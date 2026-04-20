@@ -1,0 +1,289 @@
+---
+type: community
+cohesion: 0.01
+members: 250
+---
+
+# server.ts
+
+**Cohesion:** 0.01 - loosely connected
+**Members:** 250 nodes
+
+## Members
+- [[.byteSize()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[.clear()_4]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[.clear()_5]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[.clearRefs()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.close()_7]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.constructor()_66]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[.constructor()_68]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[.constructor()_29]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.constructor()_69]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.exportToFile()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[.extractBetween()]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.extractInstructionSection()]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.finalizeRoutes()]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.get()_2]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[.getActiveFrameOrPage()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.getFrame()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.getHttpServer()]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.getLastSnapshot()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.getPage()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.getRefCount()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.getRefEntries()]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.getRefRole()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.last()]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[.length()]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[.length()_1]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[.listen()]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.onMainFrameNavigated()]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.push()]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[.push()_1]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[.registerRoutes()_1]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.resolveRef()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.set()]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[.setFrame()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.setLastSnapshot()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.setRefMap()_1]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[.setupCoreRoutes()]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.setupMiddleware()]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[.summary()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[.toArray()]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[.toArray()_1]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[.totalAdded()]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[CircularBuffer]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[Server]] - code - 01_PROJECTS/claude-mem/src/services/server/Server.ts
+- [[SizeCappedBuffer]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[TabSession]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[accessibility.py]] - code - 01_PROJECTS/openspace/openspace/local_server/utils/accessibility.py
+- [[activity.test.ts]] - code - 01_PROJECTS/gstack/browse/test/activity.test.ts
+- [[activity.ts]] - code - 01_PROJECTS/gstack/browse/src/activity.ts
+- [[addChatEntry()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[addConsoleEntry()]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[addDialogEntry()]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[addNetworkEntry()]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[batch()]] - code - 01_PROJECTS/gstack/browse/test/batch.test.ts
+- [[batch.test.ts]] - code - 01_PROJECTS/gstack/browse/test/batch.test.ts
+- [[browse.ts]] - code - 01_PROJECTS/gstack/scripts/resolvers/browse.ts
+- [[browser-manager.ts]] - code - 01_PROJECTS/gstack/browse/src/browser-manager.ts
+- [[buffers.ts]] - code - 01_PROJECTS/gstack/browse/src/buffers.ts
+- [[cdp-inspector.ts]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[cleanupHiddenMarkers()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[clearCapture()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[clearContentFilters()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[clearInbox()]] - code - 01_PROJECTS/gstack/browse/test/file-drop.test.ts
+- [[commands.test.ts]] - code - 01_PROJECTS/gstack/browse/test/commands.test.ts
+- [[commands.ts]] - code - 01_PROJECTS/gstack/design/src/commands.ts
+- [[compare()]] - code - 01_PROJECTS/gstack/design/src/compare.ts
+- [[compare-board.test.ts]] - code - 01_PROJECTS/gstack/browse/test/compare-board.test.ts
+- [[compare.ts]] - code - 01_PROJECTS/gstack/design/src/compare.ts
+- [[compareSpecificity()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[computeSpecificity()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[content-security.test.ts]] - code - 01_PROJECTS/gstack/browse/test/content-security.test.ts
+- [[content-security.ts]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[cookie-picker-routes.test.ts]] - code - 01_PROJECTS/gstack/browse/test/cookie-picker-routes.test.ts
+- [[cookie-picker-routes.ts]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-routes.ts
+- [[cookie-picker-ui.ts]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-ui.ts
+- [[corsOrigin()]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-routes.ts
+- [[createResponseListener()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[createSession()_1]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[createTestPng()]] - code - 01_PROJECTS/gstack/browse/test/compare-board.test.ts
+- [[createTestPng()_1]] - code - 01_PROJECTS/gstack/design/test/feedback-roundtrip.test.ts
+- [[createTestPng()_3]] - code - 01_PROJECTS/gstack/design/test/serve.test.ts
+- [[createWorktree()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[data-platform.test.ts]] - code - 01_PROJECTS/gstack/browse/test/data-platform.test.ts
+- [[datamarkContent()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[detachSession()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[dev-skill.ts]] - code - 01_PROJECTS/gstack/scripts/dev-skill.ts
+- [[diff.ts]] - code - 01_PROJECTS/gstack/design/src/diff.ts
+- [[diffMockups()]] - code - 01_PROJECTS/gstack/design/src/diff.ts
+- [[discover-skills.ts]] - code - 01_PROJECTS/gstack/scripts/discover-skills.ts
+- [[discoverSkillFiles()]] - code - 01_PROJECTS/gstack/scripts/discover-skills.ts
+- [[discoverTemplates()]] - code - 01_PROJECTS/gstack/scripts/discover-skills.ts
+- [[emergencyCleanup()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[emitActivity()]] - code - 01_PROJECTS/gstack/browse/src/activity.ts
+- [[emitInspectorEvent()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[ensureMarker()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[errorResponse()]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-routes.ts
+- [[escapeRegExp()]] - code - 01_PROJECTS/gstack/browse/src/path-security.ts
+- [[exportCapture()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[extractBrowseCommands()]] - code - 01_PROJECTS/gstack/test/helpers/skill-parser.ts
+- [[extractDescription()]] - code - 01_PROJECTS/gstack/test/gen-skill-docs.test.ts
+- [[extractRemoteSlugPatterns()]] - code - 01_PROJECTS/gstack/test/helpers/skill-parser.ts
+- [[extractToken()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[extractWeightsFromTable()]] - code - 01_PROJECTS/gstack/test/helpers/skill-parser.ts
+- [[feature_checker.py]] - code - 01_PROJECTS/openspace/openspace/local_server/feature_checker.py
+- [[feedback-roundtrip.test.ts]] - code - 01_PROJECTS/gstack/design/test/feedback-roundtrip.test.ts
+- [[fetch()_1]] - code - 01_PROJECTS/gstack/browse/test/compare-board.test.ts
+- [[fetch()_3]] - code - 01_PROJECTS/gstack/design/test/feedback-roundtrip.test.ts
+- [[fetch()_4]] - code - 01_PROJECTS/gstack/design/test/serve.test.ts
+- [[file-drop.test.ts]] - code - 01_PROJECTS/gstack/browse/test/file-drop.test.ts
+- [[filterArgs()]] - code - 01_PROJECTS/gstack/browse/src/activity.ts
+- [[findBrowseBin()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[findClaudeBin()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[findPort()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[flushBuffers()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[formatInbox()]] - code - 01_PROJECTS/gstack/browse/test/file-drop.test.ts
+- [[formatInspectorResult()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[gen-skill-docs.test.ts]] - code - 01_PROJECTS/gstack/test/gen-skill-docs.test.ts
+- [[generateBrowseSetup()]] - code - 01_PROJECTS/gstack/scripts/resolvers/browse.ts
+- [[generateCommandReference()]] - code - 01_PROJECTS/gstack/scripts/resolvers/browse.ts
+- [[generateCompareHtml()]] - code - 01_PROJECTS/gstack/design/src/compare.ts
+- [[generateHelpText()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[generatePickerCode()]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-routes.ts
+- [[generateSnapshotFlags()]] - code - 01_PROJECTS/gstack/scripts/resolvers/browse.ts
+- [[getActivityAfter()]] - code - 01_PROJECTS/gstack/browse/src/activity.ts
+- [[getActivityHistory()]] - code - 01_PROJECTS/gstack/browse/src/activity.ts
+- [[getAllSkillMds()_1]] - code - 01_PROJECTS/gstack/test/gen-skill-docs.test.ts
+- [[getCaptureBuffer()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[getCaptureListener()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[getChatBuffer()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[getCleanText()]] - code - 01_PROJECTS/gstack/browse/src/read-commands.ts
+- [[getCleanTextWithStripping()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[getCookiePickerHTML()]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-ui.ts
+- [[getFilterMode()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[getModificationHistory()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[getOrCreateSession()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[getSessionCookie()]] - code - 01_PROJECTS/gstack/browse/test/cookie-picker-routes.test.ts
+- [[getSessionFromCookie()]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-routes.ts
+- [[getSessionMarker()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[getSubscriberCount()]] - code - 01_PROJECTS/gstack/browse/src/activity.ts
+- [[getTabAgent()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[getTabAgentStatus()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[getTokenInfo()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[handleCommand()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[handleCommandInternal()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[handleCookiePickerRoute()]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-routes.ts
+- [[handleMetaCommand()]] - code - 01_PROJECTS/gstack/browse/src/meta-commands.ts
+- [[handleReadCommand()_1]] - code - 01_PROJECTS/gstack/browse/test/batch.test.ts
+- [[handleReadCommand()_2]] - code - 01_PROJECTS/gstack/browse/test/commands.test.ts
+- [[handleReadCommand()_3]] - code - 01_PROJECTS/gstack/browse/test/compare-board.test.ts
+- [[handleReadCommand()]] - code - 01_PROJECTS/gstack/browse/src/read-commands.ts
+- [[handleReadCommand()_4]] - code - 01_PROJECTS/gstack/browse/test/snapshot.test.ts
+- [[handleSnapshot()]] - code - 01_PROJECTS/gstack/browse/src/snapshot.ts
+- [[handleWriteCommand()_1]] - code - 01_PROJECTS/gstack/browse/test/batch.test.ts
+- [[handleWriteCommand()_2]] - code - 01_PROJECTS/gstack/browse/test/commands.test.ts
+- [[handleWriteCommand()_3]] - code - 01_PROJECTS/gstack/browse/test/compare-board.test.ts
+- [[handleWriteCommand()_4]] - code - 01_PROJECTS/gstack/browse/test/handoff.test.ts
+- [[handleWriteCommand()_5]] - code - 01_PROJECTS/gstack/browse/test/snapshot.test.ts
+- [[handleWriteCommand()]] - code - 01_PROJECTS/gstack/browse/src/write-commands.ts
+- [[handoff.test.ts]] - code - 01_PROJECTS/gstack/browse/test/handoff.test.ts
+- [[hasAwait()]] - code - 01_PROJECTS/gstack/browse/src/read-commands.ts
+- [[initSidebarSession()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[inspectElement()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[isBlockedIpv6()]] - code - 01_PROJECTS/gstack/browse/src/url-validation.ts
+- [[isCaptureActive()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[isMetadataIp()]] - code - 01_PROJECTS/gstack/browse/src/url-validation.ts
+- [[isPathWithin()]] - code - 01_PROJECTS/gstack/browse/src/platform.ts
+- [[isPortAvailable()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[isRootRequest()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[isValidSession()]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-routes.ts
+- [[jsonResponse()]] - code - 01_PROJECTS/gstack/browse/src/cookie-picker-routes.ts
+- [[killAgent()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[listSessions()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[loadSession()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[makeEntry()]] - code - 01_PROJECTS/gstack/browse/test/data-platform.test.ts
+- [[makeReq()]] - code - 01_PROJECTS/gstack/browse/test/cookie-picker-routes.test.ts
+- [[makeUrl()]] - code - 01_PROJECTS/gstack/browse/test/cookie-picker-routes.test.ts
+- [[markHiddenElements()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[meta-commands.ts]] - code - 01_PROJECTS/gstack/browse/src/meta-commands.ts
+- [[mimeToExt()]] - code - 01_PROJECTS/gstack/browse/src/write-commands.ts
+- [[mockBrowserManager()]] - code - 01_PROJECTS/gstack/browse/test/cookie-picker-routes.test.ts
+- [[modifyStyle()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[needsBlockWrapper()]] - code - 01_PROJECTS/gstack/browse/src/read-commands.ts
+- [[network-capture.ts]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[normalizeHostname()]] - code - 01_PROJECTS/gstack/browse/src/url-validation.ts
+- [[parseLine()]] - code - 01_PROJECTS/gstack/browse/src/snapshot.ts
+- [[parseSnapshotArgs()]] - code - 01_PROJECTS/gstack/browse/src/snapshot.ts
+- [[path-security.ts]] - code - 01_PROJECTS/gstack/browse/src/path-security.ts
+- [[path-validation.test.ts]] - code - 01_PROJECTS/gstack/browse/test/path-validation.test.ts
+- [[pickSidebarModel()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[platform.test.ts]] - code - 01_PROJECTS/gstack/browse/test/platform.test.ts
+- [[platform.ts]] - code - 01_PROJECTS/gstack/browse/src/platform.ts
+- [[processAgentEvent()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[read-commands.ts]] - code - 01_PROJECTS/gstack/browse/src/read-commands.ts
+- [[readInbox()]] - code - 01_PROJECTS/gstack/browse/test/file-drop.test.ts
+- [[regenerateAndValidate()]] - code - 01_PROJECTS/gstack/scripts/dev-skill.ts
+- [[registerContentFilter()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[removeWorktree()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[resetIdleTimer()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[resetModifications()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[resetSessionMarker()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[resolvesToBlockedIp()]] - code - 01_PROJECTS/gstack/browse/src/url-validation.ts
+- [[runContentFilters()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[sanitizeExtensionUrl()]] - code - 01_PROJECTS/gstack/browse/src/sidebar-utils.ts
+- [[saveSession()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[serve.test.ts]] - code - 01_PROJECTS/gstack/design/test/serve.test.ts
+- [[server.ts]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[shortenPath()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[shutdown()_2]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[shutdown()_3]] - code - 01_PROJECTS/gstack/browse/test/snapshot.test.ts
+- [[sidebar-unit.test.ts]] - code - 01_PROJECTS/gstack/browse/test/sidebar-unit.test.ts
+- [[sidebar-utils.ts]] - code - 01_PROJECTS/gstack/browse/src/sidebar-utils.ts
+- [[skeleton()]] - code - 01_PROJECTS/gstack/test/skill-validation.test.ts
+- [[skill-check.ts]] - code - 01_PROJECTS/gstack/scripts/skill-check.ts
+- [[skill-parser.test.ts]] - code - 01_PROJECTS/gstack/test/skill-parser.test.ts
+- [[skill-parser.ts]] - code - 01_PROJECTS/gstack/test/helpers/skill-parser.ts
+- [[skill-validation.test.ts]] - code - 01_PROJECTS/gstack/test/skill-validation.test.ts
+- [[snapshot.test.ts]] - code - 01_PROJECTS/gstack/browse/test/snapshot.test.ts
+- [[snapshot.ts]] - code - 01_PROJECTS/gstack/browse/src/snapshot.ts
+- [[spawnClaude()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[start()_2]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[startAgentHealthCheck()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[startCapture()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[startTestServer()]] - code - 01_PROJECTS/gstack/browse/test/test-server.ts
+- [[stopCapture()]] - code - 01_PROJECTS/gstack/browse/src/network-capture.ts
+- [[subdirs()]] - code - 01_PROJECTS/gstack/scripts/discover-skills.ts
+- [[subscribe()]] - code - 01_PROJECTS/gstack/browse/src/activity.ts
+- [[summarizeToolInput()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[tab-isolation.test.ts]] - code - 01_PROJECTS/gstack/browse/test/tab-isolation.test.ts
+- [[tab-session.ts]] - code - 01_PROJECTS/gstack/browse/src/tab-session.ts
+- [[test-server.ts]] - code - 01_PROJECTS/gstack/browse/test/test-server.ts
+- [[tokenizePipeSegment()]] - code - 01_PROJECTS/gstack/browse/src/meta-commands.ts
+- [[truncateResult()]] - code - 01_PROJECTS/gstack/browse/src/activity.ts
+- [[undoModification()]] - code - 01_PROJECTS/gstack/browse/src/cdp-inspector.ts
+- [[url-validation.test.ts]] - code - 01_PROJECTS/gstack/browse/test/url-validation.test.ts
+- [[url-validation.ts]] - code - 01_PROJECTS/gstack/browse/src/url-validation.ts
+- [[urlBlocklistFilter()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[validateAuth()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[validateNavigationUrl()]] - code - 01_PROJECTS/gstack/browse/src/url-validation.ts
+- [[validateOutputPath()]] - code - 01_PROJECTS/gstack/browse/src/path-security.ts
+- [[validateReadPath()]] - code - 01_PROJECTS/gstack/browse/src/path-security.ts
+- [[validateSkill()]] - code - 01_PROJECTS/gstack/test/helpers/skill-parser.ts
+- [[validateTempPath()]] - code - 01_PROJECTS/gstack/browse/src/path-security.ts
+- [[verifyAgainstMockup()]] - code - 01_PROJECTS/gstack/design/src/diff.ts
+- [[watch.test.ts]] - code - 01_PROJECTS/gstack/browse/test/watch.test.ts
+- [[wrapError()]] - code - 01_PROJECTS/gstack/browse/src/server.ts
+- [[wrapForEvaluate()]] - code - 01_PROJECTS/gstack/browse/src/read-commands.ts
+- [[wrapUntrustedContent()]] - code - 01_PROJECTS/gstack/browse/src/commands.ts
+- [[wrapUntrustedPageContent()]] - code - 01_PROJECTS/gstack/browse/src/content-security.ts
+- [[write-commands.ts]] - code - 01_PROJECTS/gstack/browse/src/write-commands.ts
+- [[writeFixture()]] - code - 01_PROJECTS/gstack/test/skill-parser.test.ts
+- [[writeTestInboxFile()]] - code - 01_PROJECTS/gstack/browse/test/file-drop.test.ts
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/server.ts
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 7 edges to [[_COMMUNITY_types.ts]]
+- 7 edges to [[_COMMUNITY_cli.ts]]
+- 4 edges to [[_COMMUNITY_e2e-helpers.ts]]
+- 3 edges to [[_COMMUNITY_MCPBaseConnector]]
+- 3 edges to [[_COMMUNITY_config.ts]]
+- 2 edges to [[_COMMUNITY___main__.py]]
+- 2 edges to [[_COMMUNITY_Logger]]
+- 2 edges to [[_COMMUNITY_cookie-import-browser.ts]]
+- 1 edge to [[_COMMUNITY_SessionManager]]
+- 1 edge to [[_COMMUNITY_LinuxAdapter]]
+- 1 edge to [[_COMMUNITY_BrowserManager]]
+
+## Top bridge nodes
+- [[platform.ts]] - degree 16, connects to 5 communities
+- [[server.ts]] - degree 52, connects to 2 communities
+- [[commands.ts]] - degree 10, connects to 2 communities
+- [[accessibility.py]] - degree 3, connects to 2 communities
+- [[browser-manager.ts]] - degree 18, connects to 1 community

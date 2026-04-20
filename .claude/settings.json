@@ -1,0 +1,13 @@
+{
+  "hooks": {
+    "SubagentStart": [{
+      "type": "command",
+      "command": "node .claude/hooks/nisaba-subagent-start.js"
+    }],
+    "Stop": [{
+      "type": "command",
+      "command": "node .claude/hooks/nisaba-on-stop.js",
+      "async": true
+    }]
+  }
+}

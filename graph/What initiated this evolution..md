@@ -1,0 +1,31 @@
+---
+source_file: "01_PROJECTS/openspace/openspace/skill_engine/evolver.py"
+type: "rationale"
+community: "EvolutionSuggestion"
+location: "L114"
+tags:
+  - graphify/rationale
+  - graphify/INFERRED
+  - community/EvolutionSuggestion
+---
+
+# What initiated this evolution.
+
+## Connections
+- [[EvolutionSuggestion]] - `uses` [INFERRED]
+- [[EvolutionTrigger]] - `rationale_for` [EXTRACTED]
+- [[EvolutionType]] - `uses` [INFERRED]
+- [[ExecutionAnalysis]] - `uses` [INFERRED]
+- [[Logger]] - `uses` [INFERRED]
+- [[PatchType]] - `uses` [INFERRED]
+- [[SkillCategory]] - `uses` [INFERRED]
+- [[SkillEditResult]] - `uses` [INFERRED]
+- [[SkillLineage]] - `uses` [INFERRED]
+- [[SkillMeta]] - `uses` [INFERRED]
+- [[SkillOrigin]] - `uses` [INFERRED]
+- [[SkillRecord]] - `uses` [INFERRED]
+- [[SkillRegistry]] - `uses` [INFERRED]
+- [[SkillStore]] - `uses` [INFERRED]
+- [[ToolQualityRecord]] - `uses` [INFERRED]
+
+#graphify/rationale #graphify/INFERRED #community/EvolutionSuggestion

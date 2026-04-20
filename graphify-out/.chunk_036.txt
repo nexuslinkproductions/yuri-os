@@ -1,0 +1,8 @@
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/icon-thin-investigated.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/icon-thin-learned.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/icon-thin-next-steps.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/gstack/docs/images/github-2013.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/gstack/docs/images/github-2026.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/gstack/extension/icons/icon-128.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/gstack/extension/icons/icon-16.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/gstack/extension/icons/icon-48.png

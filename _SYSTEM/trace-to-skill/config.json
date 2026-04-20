@@ -1,0 +1,65 @@
+{
+  "enabled": true,
+  "tasks": [
+    {
+      "id": "shot-list-generation",
+      "name": "Generate shot list from brief",
+      "description": "Creates detailed, production-ready shot list from client brief",
+      "inputType": "brief",
+      "outputType": "shot-list",
+      "difficulty_distribution": {
+        "easy": 5,
+        "normal": 8,
+        "hard": 4,
+        "adversarial": 3
+      },
+      "evaluation_rubric": "/Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/shot-list-rubric.md",
+      "passing_score": 7.0,
+      "analysts": ["error", "success", "structure", "edge"]
+    },
+    {
+      "id": "client-brief-generation",
+      "name": "Generate client brief from requirements",
+      "description": "Creates professional brief ready to send to Claudio/Marc",
+      "inputType": "requirements",
+      "outputType": "brief",
+      "difficulty_distribution": {
+        "easy": 5,
+        "normal": 8,
+        "hard": 4,
+        "adversarial": 3
+      },
+      "evaluation_rubric": "/Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/client-brief-rubric.md",
+      "passing_score": 7.0,
+      "analysts": ["error", "success", "structure", "edge"]
+    },
+    {
+      "id": "invoice-preparation",
+      "name": "Prepare invoice from project data",
+      "description": "Generates complete invoice with line items, taxes, terms",
+      "inputType": "project-data",
+      "outputType": "invoice",
+      "difficulty_distribution": {
+        "easy": 5,
+        "normal": 8,
+        "hard": 4,
+        "adversarial": 3
+      },
+      "evaluation_rubric": null,
+      "passing_score": 8.5,
+      "analysts": ["error", "success", "structure", "edge"]
+    }
+  ],
+  "analyst_prompts": {
+    "error_analyst": "Analyze failures. What root causes led to low scores? What preventive rules would avoid these failures?",
+    "success_analyst": "Analyze high-scoring outputs (≥8/10). What behaviors, structures, or decisions made them succeed?",
+    "structure_analyst": "Analyze step sequences. What's the optimal order of operations? What tools get called first, last?",
+    "edge_analyst": "Analyze boundary cases and adversarial inputs. What breaks? What defensive checks are needed?"
+  },
+  "output": {
+    "skill_file": "/Volumes/T7/NUDIMMUD/.claude/skills/[task_id]/SKILL.md",
+    "evidence_dir": "/Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/evidence/[task_id]/",
+    "max_rules": 50,
+    "rule_ranking": "by_frequency_and_confidence"
+  }
+}

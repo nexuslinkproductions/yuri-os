@@ -1,0 +1,18 @@
+---
+source_file: "01_PROJECTS/claude-mem/src/integrations/opencode-plugin/index.ts"
+type: "code"
+community: "types.ts"
+location: "L129"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/types.ts
+---
+
+# workerPostFireAndForget()
+
+## Connections
+- [[index.ts]] - `contains` [EXTRACTED]
+- [[workerBaseUrl()]] - `calls` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/types.ts

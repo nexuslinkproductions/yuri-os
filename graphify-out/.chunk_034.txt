@@ -1,0 +1,8 @@
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/docs/public/cm-preview.gif
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/docs/public/trendshift-badge-dark.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/docs/public/trendshift-badge.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/plugin/ui/claude-mem-logo-for-dark-mode.webp
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/plugin/ui/claude-mem-logomark.webp
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/plugin/ui/icon-thick-completed.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/plugin/ui/icon-thick-investigated.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/plugin/ui/icon-thick-learned.svg

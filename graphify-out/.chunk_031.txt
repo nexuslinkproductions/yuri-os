@@ -1,0 +1,8 @@
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/frontend/public/openspace_icon.webp
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/frontend_4.gif
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/my_daily_monitor_evograph.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/benchmark_kpi.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/logo.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/benchmark_task_showcase.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/command_palette.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/manga.png

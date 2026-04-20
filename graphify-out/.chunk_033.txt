@@ -1,0 +1,8 @@
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/cli-typing.gif
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/frontend_1.gif
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/frontend_3.gif
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/my_daily_monitor_light.png
+/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/frontend_2.gif
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/docs/public/claude-mem-logo-for-dark-mode.webp
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/docs/public/claude-mem-logo-for-light-mode.webp
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/docs/public/claude-mem-logomark.webp

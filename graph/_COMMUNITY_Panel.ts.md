@@ -1,0 +1,276 @@
+---
+type: community
+cohesion: 0.01
+members: 241
+---
+
+# Panel.ts
+
+**Cohesion:** 0.01 - loosely connected
+**Members:** 241 nodes
+
+## Members
+- [[.addMarker()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.addMonitor()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[.buildLayout()_4]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.buildLayout()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[.buildLayout()_2]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SocialPanel.ts
+- [[.buildLayout()_3]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/StockPanel.ts
+- [[.buildUI()_2]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[.buildUI()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[.clearDataBadge()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.clearNewBadge()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.clearRetryCountdown()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.constructor()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[.constructor()_23]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.constructor()_20]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[.constructor()_4]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.constructor()_6]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[.constructor()_2]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[.constructor()_3]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.constructor()_13]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/QuickLinksPanel.ts
+- [[.constructor()_15]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SchedulePanel.ts
+- [[.constructor()_12]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SocialPanel.ts
+- [[.constructor()_19]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/StockPanel.ts
+- [[.constructor()_5]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.constructor()_21]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[.constructor()_14]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WorldClockPanel.ts
+- [[.destroy()_1]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.destroy()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.destroy()_4]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[.destroy()_3]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WorldClockPanel.ts
+- [[.detectLocation()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[.execute()_2]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[.fallbackIPLocation()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[.filterAndRender()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[.filterAndRender()_1]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SocialPanel.ts
+- [[.flyTo()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.fmtNum()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.fmtScore()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SocialPanel.ts
+- [[.formatUptime()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.formatUrl()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.getBarColor()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.getCached()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[.getCachedOrDefault()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[.getColor()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.getCooldownRemaining()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[.getElement()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.getMetricColor()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.getSourceColor()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[.getTypeLabel()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.handleSend()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[.hide()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.initMap()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.isFetching()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.isOnCooldown()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[.loadActivity()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.loadCI()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.loadMyRepos()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.loadTracked()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.loadTrending()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.recordFailure()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[.recordSuccess()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[.refresh()_18]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.refresh()_15]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[.refresh()_2]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.refresh()_4]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[.refresh()_1]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[.refresh()_9]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/QuickLinksPanel.ts
+- [[.refresh()_11]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SchedulePanel.ts
+- [[.refresh()_8]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SocialPanel.ts
+- [[.refresh()_14]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/StockPanel.ts
+- [[.refresh()_3]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.refresh()_16]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[.refresh()_10]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WorldClockPanel.ts
+- [[.removeMonitor()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[.render()_4]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/QuickLinksPanel.ts
+- [[.render()_6]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SchedulePanel.ts
+- [[.render()_8]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/StockPanel.ts
+- [[.render()_2]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.render()_9]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[.render()_5]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WorldClockPanel.ts
+- [[.renderArticles()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[.renderChat()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[.renderMarkers()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.renderMetric()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.renderMonitors()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[.renderPosts()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SocialPanel.ts
+- [[.renderProbe()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.renderResults()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[.renderTabs()_4]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[.renderTabs()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[.renderTabs()_2]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SocialPanel.ts
+- [[.renderTabs()_3]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/StockPanel.ts
+- [[.renderUptime()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[.resetHeight()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.resetRetryBackoff()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.resetWidth()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.selectTools()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[.sendMessage()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[.setContent()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.setCount()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.setDataBadge()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.setErrorState()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.setFetching()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.setMarkers()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.setNewBadge()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.setRetryCallback()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.setupColResize()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.setupRowResize()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.show()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.showError()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.showLoading()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[.showTaskList()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[.switchMapStyle()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.toggleCategory()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[.updateClocks()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[.updateLegendColors()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[.wireQuickActions()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[.wireSearch()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[CircuitBreaker]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[CodeStatusPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[CodeStatusPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/CodeStatusPanel.ts
+- [[InsightsPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[InsightsPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[MapPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[MapPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[MyMonitorsPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[MyMonitorsPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[NewsPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[NewsPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/NewsPanel.ts
+- [[Panel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[Panel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[QuickLinksPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/QuickLinksPanel.ts
+- [[QuickLinksPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/QuickLinksPanel.ts
+- [[SchedulePanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SchedulePanel.ts
+- [[SchedulePanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SchedulePanel.ts
+- [[SettingsModal.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SettingsModal.ts
+- [[SocialPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SocialPanel.ts
+- [[SocialPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SocialPanel.ts
+- [[StockPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/StockPanel.ts
+- [[StockPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/StockPanel.ts
+- [[SystemHealthPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[SystemHealthPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SystemHealthPanel.ts
+- [[WeatherPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[WeatherPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[WorldClockPanel]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WorldClockPanel.ts
+- [[WorldClockPanel.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WorldClockPanel.ts
+- [[ai-summary.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/ai-summary.ts
+- [[analyzeProcessExit()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/ai-summary.ts
+- [[applyStoredTheme()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/theme-manager.ts
+- [[buildMapStyle()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[cached()_1]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/social.ts
+- [[callLLM()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/ai-summary.ts
+- [[circuit-breaker.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[clampColSpan()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[classifyThreat()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/news.ts
+- [[clearAllSecrets()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[clearColSpanClass()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[closeSettings()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SettingsModal.ts
+- [[code-status.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/code-status.ts
+- [[createCircuitBreaker()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/circuit-breaker.ts
+- [[deleteMapKey()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[deltaToColSpan()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[deltaToRowSpan()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[extractImage()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/news.ts
+- [[extractItems()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/news.ts
+- [[extractTag()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/news.ts
+- [[fetchCalendarEvents()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/schedule.ts
+- [[fetchCalendarResult()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/schedule.ts
+- [[fetchCodeStatusResult()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/code-status.ts
+- [[fetchCommunityPosts()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/social.ts
+- [[fetchHN()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/social.ts
+- [[fetchNews()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/news.ts
+- [[fetchReddit()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/social.ts
+- [[fetchSocialFeed()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/social.ts
+- [[fetchSocialResult()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/social.ts
+- [[fetchStockQuotes()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/stock-market.ts
+- [[fetchSystemHealth()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/system-health.ts
+- [[fetchTool()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[fetchV2EX()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/social.ts
+- [[fetchWorkflowRuns()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/code-status.ts
+- [[generateDailyBriefing()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/ai-summary.ts
+- [[getAllSecrets()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[getColSpan()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[getCurrentTheme()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/theme-manager.ts
+- [[getCurrentVariant()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/theme-manager.ts
+- [[getGithubRepos()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[getGridColumnCount()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[getMapStyle()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[getMaxColSpan()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[getPreferences()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[getRowSpan()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[getSecret()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[getStockSymbols()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[gn()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/news.ts
+- [[handleNewsRequest()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/news.ts
+- [[handleSocialRequest()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/server/routes/social.ts
+- [[hasSecret()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[isHappyLight()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MapPanel.ts
+- [[loadHistory()_1]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[loadMap()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[loadMonitors()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[loadPrefs()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[loadSecrets()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[loadTasks()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[maskSecret()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[news.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/news.ts
+- [[openSettings()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SettingsModal.ts
+- [[preferences.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/config/preferences.ts
+- [[renderApiKeysTab()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SettingsModal.ts
+- [[renderPreferencesTab()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SettingsModal.ts
+- [[resetPreferences()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[saveHistory()_1]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[saveMap()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[saveMonitors()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/MyMonitorsPanel.ts
+- [[savePrefs()_1]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[savePrefs()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SettingsModal.ts
+- [[saveSecrets()_1]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[saveSecrets()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/SettingsModal.ts
+- [[saveTasks()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/InsightsPanel.ts
+- [[schedule.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/schedule.ts
+- [[searchNews()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/news.ts
+- [[setAllSecrets()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[setColSpanClass()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[setPreferences()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[setRowSpanClass()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/Panel.ts
+- [[setSecret()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[setTheme()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/theme-manager.ts
+- [[setVariant()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/theme-manager.ts
+- [[settings-keys.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/config/settings-keys.ts
+- [[settings-store.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[social.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/social.ts
+- [[stock-market.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/stock-market.ts
+- [[subscribeSettingsChange()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/settings-store.ts
+- [[summarizeEmails()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/ai-summary.ts
+- [[summarizeFeishuMessages()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/ai-summary.ts
+- [[summarizeNews()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/ai-summary.ts
+- [[system-health.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/services/system-health.ts
+- [[theme-manager.ts]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/theme-manager.ts
+- [[toggleTheme()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/theme-manager.ts
+- [[updateMetaThemeColor()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/utils/theme-manager.ts
+- [[weatherDesc()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+- [[weatherIcon()]] - code - 01_PROJECTS/openspace/showcase/my-daily-monitor/src/components/WeatherPanel.ts
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/Panel.ts
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 9 edges to [[_COMMUNITY_OpenSpaceUI]]
+- 6 edges to [[_COMMUNITY_types.ts]]
+- 3 edges to [[_COMMUNITY___main__.py]]
+- 2 edges to [[_COMMUNITY_FeishuAdapter]]
+- 1 edge to [[_COMMUNITY_FinancePanel]]
+- 1 edge to [[_COMMUNITY_DevOpsPanel]]
+- 1 edge to [[_COMMUNITY_WebPanel]]
+
+## Top bridge nodes
+- [[Panel.ts]] - degree 34, connects to 7 communities
+- [[settings-store.ts]] - degree 30, connects to 2 communities
+- [[news.ts]] - degree 14, connects to 1 community
+- [[social.ts]] - degree 12, connects to 1 community
+- [[SettingsModal.ts]] - degree 10, connects to 1 community

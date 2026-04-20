@@ -1,0 +1,18 @@
+---
+source_file: "01_PROJECTS/claude-mem/src/services/worker/agents/ObservationBroadcaster.ts"
+type: "code"
+community: "ObservationBroadcaster.ts"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/ObservationBroadcaster.ts
+---
+
+# ObservationBroadcaster.ts
+
+## Connections
+- [[broadcastObservation()]] - `contains` [EXTRACTED]
+- [[broadcastSummary()]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/ObservationBroadcaster.ts

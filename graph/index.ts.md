@@ -1,0 +1,88 @@
+---
+source_file: "01_PROJECTS/gstack/supabase/functions/update-check/index.ts"
+type: "code"
+community: "types.ts"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/types.ts
+---
+
+# index.ts
+
+## Connections
+- [[App.tsx]] - `imports_from` [EXTRACTED]
+- [[ClaudeMemPlugin()]] - `contains` [EXTRACTED]
+- [[ErrorBoundary.tsx]] - `imports_from` [EXTRACTED]
+- [[Supervisor]] - `contains` [EXTRACTED]
+- [[browse.ts]] - `imports_from` [EXTRACTED]
+- [[buildGetSourceLabel()]] - `contains` [EXTRACTED]
+- [[buildPrompt()]] - `contains` [EXTRACTED]
+- [[calendar.ts]] - `imports_from` [EXTRACTED]
+- [[claude.ts]] - `imports_from` [EXTRACTED]
+- [[client.ts]] - `imports_from` [EXTRACTED]
+- [[codex.ts]] - `imports_from` [EXTRACTED]
+- [[composition.ts]] - `imports_from` [EXTRACTED]
+- [[confidence.ts]] - `imports_from` [EXTRACTED]
+- [[configureSupervisorSignalHandlers()]] - `contains` [EXTRACTED]
+- [[connectToSSEStream()]] - `contains` [EXTRACTED]
+- [[cursor.ts]] - `imports_from` [EXTRACTED]
+- [[design.ts]] - `imports_from` [EXTRACTED]
+- [[dx.ts]] - `imports_from` [EXTRACTED]
+- [[email.ts]] - `imports_from` [EXTRACTED]
+- [[factory.ts]] - `imports_from` [EXTRACTED]
+- [[feishu.ts]] - `imports_from` [EXTRACTED]
+- [[formatObservationMessage()]] - `contains` [EXTRACTED]
+- [[gen-skill-docs.test.ts]] - `imports_from` [EXTRACTED]
+- [[gen-skill-docs.ts]] - `imports_from` [EXTRACTED]
+- [[generateBugReport()]] - `contains` [EXTRACTED]
+- [[generateTemplateFallback()]] - `contains` [EXTRACTED]
+- [[getEventHandler()]] - `contains` [EXTRACTED]
+- [[getExternalHosts()]] - `contains` [EXTRACTED]
+- [[getHostConfig()]] - `contains` [EXTRACTED]
+- [[getLanguageName()]] - `contains` [EXTRACTED]
+- [[getOrCreateContentSessionId()]] - `contains` [EXTRACTED]
+- [[getPlatformAdapter()]] - `contains` [EXTRACTED]
+- [[getSavedLanguage()]] - `contains` [EXTRACTED]
+- [[getSupervisor()]] - `contains` [EXTRACTED]
+- [[github.ts]] - `imports_from` [EXTRACTED]
+- [[hashContent()]] - `contains` [EXTRACTED]
+- [[host-config-export.ts]] - `imports_from` [EXTRACTED]
+- [[host-config.test.ts]] - `imports_from` [EXTRACTED]
+- [[host-config.ts]] - `imports_from` [EXTRACTED]
+- [[kiro.ts]] - `imports_from` [EXTRACTED]
+- [[learnings.ts]] - `imports_from` [EXTRACTED]
+- [[main()_26]] - `contains` [EXTRACTED]
+- [[news.ts]] - `imports_from` [EXTRACTED]
+- [[openclaw.ts]] - `imports_from` [EXTRACTED]
+- [[opencode.ts]] - `imports_from` [EXTRACTED]
+- [[poolEmojiForAgent()]] - `contains` [EXTRACTED]
+- [[preamble.ts]] - `imports_from` [EXTRACTED]
+- [[printHelp()_1]] - `contains` [EXTRACTED]
+- [[readCache()]] - `contains` [EXTRACTED]
+- [[resolveHostArg()]] - `contains` [EXTRACTED]
+- [[review-army.ts]] - `imports_from` [EXTRACTED]
+- [[review.ts]] - `imports_from` [EXTRACTED]
+- [[sendDirectTelegram()]] - `contains` [EXTRACTED]
+- [[sendToChannel()]] - `contains` [EXTRACTED]
+- [[skill-check.ts]] - `imports_from` [EXTRACTED]
+- [[slate.ts]] - `imports_from` [EXTRACTED]
+- [[social.ts]] - `imports_from` [EXTRACTED]
+- [[startSupervisor()]] - `contains` [EXTRACTED]
+- [[stock.ts]] - `imports_from` [EXTRACTED]
+- [[stopSupervisor()]] - `contains` [EXTRACTED]
+- [[testing.ts]] - `imports_from` [EXTRACTED]
+- [[translateReadme()]] - `contains` [EXTRACTED]
+- [[translateToLanguage()]] - `contains` [EXTRACTED]
+- [[types.ts]] - `imports_from` [EXTRACTED]
+- [[utility.ts]] - `imports_from` [EXTRACTED]
+- [[validateWorkerPidFile()]] - `contains` [EXTRACTED]
+- [[workerBaseUrl()]] - `contains` [EXTRACTED]
+- [[workerGetJson()]] - `contains` [EXTRACTED]
+- [[workerGetText()]] - `contains` [EXTRACTED]
+- [[workerPost()]] - `contains` [EXTRACTED]
+- [[workerPostFireAndForget()]] - `contains` [EXTRACTED]
+- [[writeCache()]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/types.ts

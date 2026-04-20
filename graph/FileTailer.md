@@ -1,0 +1,21 @@
+---
+source_file: "01_PROJECTS/claude-mem/src/services/transcripts/watcher.ts"
+type: "code"
+community: "TranscriptWatcher"
+location: "L15"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/TranscriptWatcher
+---
+
+# FileTailer
+
+## Connections
+- [[.close()_13]] - `method` [EXTRACTED]
+- [[.constructor()_37]] - `method` [EXTRACTED]
+- [[.readNewData()]] - `method` [EXTRACTED]
+- [[.start()_7]] - `method` [EXTRACTED]
+- [[watcher.ts]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/TranscriptWatcher

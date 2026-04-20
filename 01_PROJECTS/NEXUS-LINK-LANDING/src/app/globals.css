@@ -1,0 +1,73 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  background-color: #f5f5f5;
+  color: #1a1a1a;
+}
+
+/* Enforce dark theme globally */
+:root {
+  color-scheme: dark;
+}
+
+/* Typography base */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+/* Crimson accent utilities */
+.accent {
+  color: #dc143c;
+}
+
+.accent-bg {
+  background-color: #dc143c;
+}
+
+.accent-border {
+  border-color: #dc143c;
+}
+
+/* Smooth transitions */
+button,
+a {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Remove default focus outline, add custom */
+button:focus,
+a:focus {
+  outline: 2px solid #dc143c;
+  outline-offset: 2px;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}

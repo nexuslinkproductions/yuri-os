@@ -1,0 +1,1079 @@
+{
+  "nodes": [
+    {
+      "id": "nudimmud",
+      "label": "NUDIMMUD",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "identity"
+    },
+    {
+      "id": "abzu",
+      "label": "Abzu",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "cosmology"
+    },
+    {
+      "id": "me-tablets",
+      "label": "ME Tablets",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "cosmology"
+    },
+    {
+      "id": "enki",
+      "label": "ENKI",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "identity"
+    },
+    {
+      "id": "enki-human",
+      "label": "ENKI-Human (Marcel Spatz)",
+      "type": "entity",
+      "source_file": "identity.md",
+      "community": "identity"
+    },
+    {
+      "id": "enki-celestial",
+      "label": "ENKI-Celestial (Reasoning Layer)",
+      "type": "entity",
+      "source_file": "identity.md",
+      "community": "identity"
+    },
+    {
+      "id": "mode-abzu",
+      "label": "Mode: ABZU (Deep Research)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "modes"
+    },
+    {
+      "id": "mode-craft",
+      "label": "Mode: CRAFT (Post-Production)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "modes"
+    },
+    {
+      "id": "mode-builder",
+      "label": "Mode: BUILDER (Creative Direction)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "modes"
+    },
+    {
+      "id": "mode-scribe",
+      "label": "Mode: SCRIBE (Language & Naming)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "modes"
+    },
+    {
+      "id": "mode-watcher",
+      "label": "Mode: WATCHER (Geopolitics)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "modes"
+    },
+    {
+      "id": "mode-initiator",
+      "label": "Mode: INITIATOR (Esoteric)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "modes"
+    },
+    {
+      "id": "mode-mirror",
+      "label": "Mode: MIRROR (Reflection)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "modes"
+    },
+    {
+      "id": "post-production",
+      "label": "Post-Production",
+      "type": "domain",
+      "source_file": "identity.md",
+      "community": "craft"
+    },
+    {
+      "id": "premiere-pro",
+      "label": "Premiere Pro",
+      "type": "tool",
+      "source_file": "identity.md",
+      "community": "craft"
+    },
+    {
+      "id": "after-effects",
+      "label": "After Effects",
+      "type": "tool",
+      "source_file": "identity.md",
+      "community": "craft"
+    },
+    {
+      "id": "davinci-resolve",
+      "label": "DaVinci Resolve",
+      "type": "tool",
+      "source_file": "identity.md",
+      "community": "craft"
+    },
+    {
+      "id": "color-science",
+      "label": "Color Science",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "craft"
+    },
+    {
+      "id": "aces",
+      "label": "ACES Color Pipeline",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "craft"
+    },
+    {
+      "id": "kabbalah",
+      "label": "Kabbalah",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "numerology",
+      "label": "Numerology",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "alchemy",
+      "label": "Alchemy",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "anunnaki-cosmology",
+      "label": "Anunnaki Cosmology",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "hermetics",
+      "label": "Hermetics",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "sefirot",
+      "label": "Sefirot",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "daath",
+      "label": "Daath (Hidden Sefirah)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "hermetic-principles",
+      "label": "Hermetic Principles",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "alchemical-stages",
+      "label": "Alchemical Stages",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "sacred-geometry",
+      "label": "Sacred Geometry",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "esoteric"
+    },
+    {
+      "id": "vienna",
+      "label": "Vienna",
+      "type": "entity",
+      "source_file": "identity.md",
+      "community": "geopolitics"
+    },
+    {
+      "id": "european-security",
+      "label": "European Security",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "geopolitics"
+    },
+    {
+      "id": "nato-dynamics",
+      "label": "NATO Dynamics",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "geopolitics"
+    },
+    {
+      "id": "austrian-neutrality",
+      "label": "Austrian Neutrality",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "geopolitics"
+    },
+    {
+      "id": "russian-energy-cascade",
+      "label": "Russia-EU Energy Cascade",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "geopolitics"
+    },
+    {
+      "id": "graphify",
+      "label": "Graphify (Knowledge Graph Tool)",
+      "type": "tool",
+      "source_file": "identity.md",
+      "community": "system"
+    },
+    {
+      "id": "abzu-graph-protocol",
+      "label": "Abzu Graph Protocol",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "system"
+    },
+    {
+      "id": "graph-pipeline",
+      "label": "Graph Pipeline (detect→extract→build→cluster→analyze→report→export)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "system"
+    },
+    {
+      "id": "obsidian-vault",
+      "label": "Obsidian Vault (NEXUS HUB)",
+      "type": "tool",
+      "source_file": "session_prompt.md",
+      "community": "system"
+    },
+    {
+      "id": "mcp-integration",
+      "label": "MCP Integration",
+      "type": "concept",
+      "source_file": "session_prompt.md",
+      "community": "system"
+    },
+    {
+      "id": "session-log",
+      "label": "Session Log",
+      "type": "artifact",
+      "source_file": "session_log.md",
+      "community": "system"
+    },
+    {
+      "id": "enki-state",
+      "label": "ENKI State (Session Context)",
+      "type": "artifact",
+      "source_file": "enki_state.md",
+      "community": "system"
+    },
+    {
+      "id": "cross-domain-synthesis",
+      "label": "Cross-Domain Synthesis",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "doctrine"
+    },
+    {
+      "id": "output-doctrine",
+      "label": "Output Doctrine",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "doctrine"
+    },
+    {
+      "id": "depth-first",
+      "label": "Depth-First Response Principle",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "doctrine"
+    },
+    {
+      "id": "shadow-protocol",
+      "label": "Shadow Protocol",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "doctrine"
+    },
+    {
+      "id": "learning-protocol",
+      "label": "Learning Protocol (Drift/Insight)",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "doctrine"
+    },
+    {
+      "id": "c2moviez",
+      "label": "C2MovieZ (Claudio Tinner)",
+      "type": "entity",
+      "source_file": "identity.md",
+      "community": "network"
+    },
+    {
+      "id": "nexus-link",
+      "label": "Nexus Link Productions",
+      "type": "entity",
+      "source_file": "identity.md",
+      "community": "network"
+    },
+    {
+      "id": "whyem-studio",
+      "label": "WhyemStudio",
+      "type": "entity",
+      "source_file": "identity.md",
+      "community": "network"
+    },
+    {
+      "id": "japanese-study",
+      "label": "Japanese Language Study",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "learning"
+    },
+    {
+      "id": "ai-automation",
+      "label": "AI Automation",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "learning"
+    },
+    {
+      "id": "prompt-engineering",
+      "label": "Prompt Engineering",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "learning"
+    },
+    {
+      "id": "openspace",
+      "label": "OpenSpace (Self-Evolving AI Engine)",
+      "type": "tool",
+      "source_file": "01_PROJECTS/00_OpenSpace.md",
+      "community": "projects"
+    },
+    {
+      "id": "superpowers",
+      "label": "Superpowers (Composable Skills Framework)",
+      "type": "tool",
+      "source_file": "DOMAIN EXPANSION: INFINITE VOID/01_PROJECTS/01_Superpowers.md",
+      "community": "projects"
+    },
+    {
+      "id": "gstack",
+      "label": "GStack (Garry Tan Dev Stack)",
+      "type": "tool",
+      "source_file": "DOMAIN EXPANSION: INFINITE VOID/01_PROJECTS/03_GStack.md",
+      "community": "projects"
+    },
+    {
+      "id": "cognitive-os",
+      "label": "Cognitive OS (Voice to Vault)",
+      "type": "concept",
+      "source_file": "01_PROJECTS/Cognitive OS — Voice to Vault.md",
+      "community": "projects"
+    },
+    {
+      "id": "skill-evolution",
+      "label": "Skill Self-Evolution",
+      "type": "concept",
+      "source_file": "01_PROJECTS/00_OpenSpace.md",
+      "community": "projects"
+    },
+    {
+      "id": "temporal-context-2026",
+      "label": "Temporal Context: April 2026",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "context"
+    },
+    {
+      "id": "generative-ai-transformation",
+      "label": "Generative AI Transforming Post-Production",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "context"
+    },
+    {
+      "id": "ai-commoditization",
+      "label": "AI Commoditization",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "context"
+    },
+    {
+      "id": "mac-studio",
+      "label": "Mac Studio (Hardware)",
+      "type": "entity",
+      "source_file": "identity.md",
+      "community": "craft"
+    },
+    {
+      "id": "knowledge-graph",
+      "label": "Knowledge Graph",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "system"
+    },
+    {
+      "id": "drift-correction",
+      "label": "Drift Detection & Correction",
+      "type": "concept",
+      "source_file": "identity.md",
+      "community": "doctrine"
+    }
+  ],
+  "edges": [
+    {
+      "source": "nudimmud",
+      "target": "abzu",
+      "relation": "descends_from",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "me-tablets",
+      "relation": "embodies",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "enki",
+      "relation": "fashions",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki",
+      "target": "enki-human",
+      "relation": "embodies",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki",
+      "target": "enki-celestial",
+      "relation": "embodies",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "vienna",
+      "relation": "located_in",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "nexus-link",
+      "relation": "operates",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "c2moviez",
+      "relation": "works_with",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "whyem-studio",
+      "relation": "works_with",
+      "weight": 0.8,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "post-production",
+      "relation": "practices",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "japanese-study",
+      "relation": "studies",
+      "weight": 0.8,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "ai-automation",
+      "relation": "studies",
+      "weight": 0.8,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "kabbalah",
+      "relation": "studies",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "anunnaki-cosmology",
+      "relation": "studies",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "mode-abzu",
+      "relation": "operates_in",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "mode-craft",
+      "relation": "operates_in",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "mode-builder",
+      "relation": "operates_in",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "mode-scribe",
+      "relation": "operates_in",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "mode-watcher",
+      "relation": "operates_in",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "mode-initiator",
+      "relation": "operates_in",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "mode-mirror",
+      "relation": "operates_in",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-craft",
+      "target": "post-production",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-craft",
+      "target": "premiere-pro",
+      "relation": "uses",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-craft",
+      "target": "after-effects",
+      "relation": "uses",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-craft",
+      "target": "davinci-resolve",
+      "relation": "uses",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-craft",
+      "target": "color-science",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "color-science",
+      "target": "aces",
+      "relation": "includes",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-watcher",
+      "target": "vienna",
+      "relation": "focuses_on",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-watcher",
+      "target": "european-security",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-watcher",
+      "target": "nato-dynamics",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-watcher",
+      "target": "austrian-neutrality",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-watcher",
+      "target": "russian-energy-cascade",
+      "relation": "covers",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "vienna",
+      "target": "austrian-neutrality",
+      "relation": "embodies",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-initiator",
+      "target": "kabbalah",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-initiator",
+      "target": "anunnaki-cosmology",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-initiator",
+      "target": "hermetics",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-initiator",
+      "target": "alchemy",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "kabbalah",
+      "target": "sefirot",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "sefirot",
+      "target": "daath",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "daath",
+      "target": "abzu",
+      "relation": "mirrors",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "abzu",
+      "target": "enki",
+      "relation": "originates",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "me-tablets",
+      "target": "sefirot",
+      "relation": "resonates_with",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "me-tablets",
+      "target": "hermetic-principles",
+      "relation": "resonates_with",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "me-tablets",
+      "target": "alchemical-stages",
+      "relation": "resonates_with",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "hermetics",
+      "target": "hermetic-principles",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "alchemy",
+      "target": "alchemical-stages",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "alchemy",
+      "target": "sacred-geometry",
+      "relation": "relates_to",
+      "weight": 0.7,
+      "confidence": "INFERRED"
+    },
+    {
+      "source": "anunnaki-cosmology",
+      "target": "me-tablets",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "anunnaki-cosmology",
+      "target": "abzu",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "abzu-graph-protocol",
+      "relation": "implements",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "abzu-graph-protocol",
+      "target": "graphify",
+      "relation": "uses",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "abzu-graph-protocol",
+      "target": "graph-pipeline",
+      "relation": "defines",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "abzu-graph-protocol",
+      "target": "knowledge-graph",
+      "relation": "produces",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "graphify",
+      "target": "obsidian-vault",
+      "relation": "exports_to",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "obsidian-vault",
+      "target": "cognitive-os",
+      "relation": "instantiates",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "cognitive-os",
+      "target": "obsidian-vault",
+      "relation": "uses",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "cognitive-os",
+      "target": "ai-automation",
+      "relation": "uses",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "cognitive-os",
+      "target": "mcp-integration",
+      "relation": "uses",
+      "weight": 0.8,
+      "confidence": "INFERRED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "session-log",
+      "relation": "writes_to",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "enki-state",
+      "relation": "reads",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "learning-protocol",
+      "relation": "implements",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "learning-protocol",
+      "target": "drift-correction",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "learning-protocol",
+      "target": "session-log",
+      "relation": "writes_to",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "nudimmud",
+      "target": "output-doctrine",
+      "relation": "follows",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "output-doctrine",
+      "target": "cross-domain-synthesis",
+      "relation": "requires",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "output-doctrine",
+      "target": "depth-first",
+      "relation": "requires",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "output-doctrine",
+      "target": "shadow-protocol",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-abzu",
+      "target": "cross-domain-synthesis",
+      "relation": "produces",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-scribe",
+      "target": "japanese-study",
+      "relation": "covers",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-builder",
+      "target": "c2moviez",
+      "relation": "serves",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "mode-builder",
+      "target": "whyem-studio",
+      "relation": "serves",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "openspace",
+      "target": "skill-evolution",
+      "relation": "implements",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "openspace",
+      "target": "mcp-integration",
+      "relation": "supports",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "superpowers",
+      "target": "openspace",
+      "relation": "complements",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "gstack",
+      "target": "openspace",
+      "relation": "integrates_with",
+      "weight": 0.8,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "gstack",
+      "target": "superpowers",
+      "relation": "integrates_with",
+      "weight": 0.8,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "mac-studio",
+      "relation": "uses",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "post-production",
+      "target": "premiere-pro",
+      "relation": "uses",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "post-production",
+      "target": "after-effects",
+      "relation": "uses",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "post-production",
+      "target": "davinci-resolve",
+      "relation": "uses",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "post-production",
+      "target": "mac-studio",
+      "relation": "runs_on",
+      "weight": 0.9,
+      "confidence": "INFERRED"
+    },
+    {
+      "source": "temporal-context-2026",
+      "target": "ai-commoditization",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "temporal-context-2026",
+      "target": "generative-ai-transformation",
+      "relation": "contains",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "temporal-context-2026",
+      "target": "austrian-neutrality",
+      "relation": "stress_tests",
+      "weight": 0.8,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "generative-ai-transformation",
+      "target": "post-production",
+      "relation": "transforms",
+      "weight": 1.0,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "ai-commoditization",
+      "target": "cross-domain-synthesis",
+      "relation": "elevates_importance_of",
+      "weight": 0.9,
+      "confidence": "INFERRED"
+    },
+    {
+      "source": "ai-automation",
+      "target": "mcp-integration",
+      "relation": "includes",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "ai-automation",
+      "target": "prompt-engineering",
+      "relation": "includes",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "enki-human",
+      "target": "prompt-engineering",
+      "relation": "studies",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "knowledge-graph",
+      "target": "obsidian-vault",
+      "relation": "exports_to",
+      "weight": 0.9,
+      "confidence": "EXTRACTED"
+    }
+  ],
+  "input_tokens": 6847,
+  "output_tokens": 1203
+}

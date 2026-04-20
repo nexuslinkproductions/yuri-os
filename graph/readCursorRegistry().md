@@ -1,0 +1,20 @@
+---
+source_file: "01_PROJECTS/claude-mem/src/services/integrations/CursorHooksInstaller.ts"
+type: "code"
+community: "CursorHooksInstaller.ts"
+location: "L58"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/CursorHooksInstaller.ts
+---
+
+# readCursorRegistry()
+
+## Connections
+- [[CursorHooksInstaller.ts]] - `contains` [EXTRACTED]
+- [[registerCursorProject()]] - `calls` [EXTRACTED]
+- [[unregisterCursorProject()]] - `calls` [EXTRACTED]
+- [[updateCursorContextForProject()]] - `calls` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/CursorHooksInstaller.ts

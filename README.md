@@ -77,6 +77,12 @@ This repo is one node in a **three-vault ecosystem**:
 
 ### For Claudio (c2moviez)
 
+**Public Repo & Setup:**
+- **GitHub:** [nexuslinkproductions/nudimmud-vault](https://github.com/nexuslinkproductions/nudimmud-vault)
+- **Setup Guide:** [SETUP-GUIDE.md](06_NETWORK-SYNC/C2MOVIEZ/SETUP-GUIDE.md) — Start here
+- **Sync Status:** [_SYNC-STATUS.md](06_NETWORK-SYNC/C2MOVIEZ/_SYNC-STATUS.md) — Live integration log
+- **Mapping Protocol:** [_MAPPING.md](06_NETWORK-SYNC/C2MOVIEZ/_MAPPING.md) — Path alignment rules
+
 **You have:**
 - Read access to this repo
 - Direct sync folder at `06_NETWORK-SYNC/C2MOVIEZ/`
@@ -144,7 +150,7 @@ Feel free to fork the **structure**, **naming conventions**, and **collaboration
 |------|--------|------|
 | Core vault structure | ✅ Complete | Keep evolving |
 | Knowledge base (06_) | ✅ 24 files, 5K lines | Cross-vault navigation |
-| c2moviez sync | 🟡 Awaiting Claudio's export | Implement _MAPPING.md |
+| c2moviez sync | ✅ Live (GitHub public) | Awaiting Claudio's filesystem export |
 | iC2M shared vault | ⏳ Planned | Awaiting Claudio setup |
 | Public GitHub repo | 🔄 Publishing now | Add CI/docs generation |
 

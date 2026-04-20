@@ -1,0 +1,17 @@
+---
+source_file: "01_PROJECTS/openspace/openspace/dashboard_server.py"
+type: "code"
+community: "dashboard_server.py"
+location: "L257"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/dashboard_server.py
+---
+
+# _get_store()
+
+## Connections
+- [[dashboard_server.py]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/dashboard_server.py

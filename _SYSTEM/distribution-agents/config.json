@@ -1,0 +1,119 @@
+{
+  "enabled": true,
+  "brand": {
+    "name": "Nexus Link: Productions",
+    "tagline": "Vienna-based videography, cinematography, on-set capture",
+    "mission": "Premium creative production for commercial, corporate, and branded content",
+    "voice": "Professional, technical, collaborative. Show process and craft.",
+    "audience": "Filmmakers, videographers, production teams, content creators"
+  },
+  "agents": [
+    {
+      "id": "behind-the-scenes-writer",
+      "name": "Behind-the-Scenes Content Writer",
+      "description": "Creates blog posts about production process, techniques, on-set insights",
+      "schedule": "0 9 * * 1-5",
+      "schedule_description": "Weekdays 9:00 AM (Vienna time)",
+      "frequency": "Daily (Mon-Fri)",
+      "input": "shoot notes from today or previous day",
+      "output": "One blog post (500–800 words), MDX format",
+      "output_dir": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/",
+      "mcp_tools": ["web-search", "file-read", "file-write"],
+      "examples": [
+        "Color grading workflow for Alexa vs. Red",
+        "Location scouting tips for European commercials",
+        "Why wireless audio matters on set",
+        "Gimbal techniques for narrative vs. commercial"
+      ]
+    },
+    {
+      "id": "carousel-maker",
+      "name": "Instagram Carousel Creator",
+      "description": "Converts blog posts or shoot highlights into 7-slide carousels (1080x1350 PNG)",
+      "schedule": "0 14 * * 1,3,5",
+      "schedule_description": "Mon/Wed/Fri 2:00 PM (Vienna time)",
+      "frequency": "3x per week",
+      "input": "recent blog posts or shoot highlight notes",
+      "output": "7-slide carousel (PNG), ready to post to Instagram",
+      "output_dir": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/",
+      "mcp_tools": ["file-read", "playwright-render", "file-write"],
+      "examples": [
+        "Gimbal technique carousel (hook → 5 teaching slides → CTA)",
+        "On-set lighting setup carousel",
+        "Color grading before/after carousel",
+        "Lens choice guide carousel"
+      ],
+      "design_spec": {
+        "resolution": "1080x1350",
+        "format": "PNG (each slide separate file + combined PDF)",
+        "slide_count": 7,
+        "slide_structure": ["Hook (provocative stat or question)", "Teaching #1", "Teaching #2", "Teaching #3", "Teaching #4", "Result/Impact", "CTA (follow for more)"],
+        "color_scheme": "Professional, Nexus Link brand colors",
+        "font": "Clean, readable at phone size"
+      }
+    },
+    {
+      "id": "reddit-scout",
+      "name": "Reddit Thread Scout & Reply Drafter",
+      "description": "Finds relevant filmmaking/videography threads, drafts value-first replies",
+      "schedule": "0 11 * * *",
+      "schedule_description": "Daily 11:00 AM (Vienna time)",
+      "frequency": "Daily",
+      "input": "target subreddits (r/videography, r/filmmaking, r/cinematography, etc.)",
+      "output": "Curated thread list with drafted replies (zero self-promotion)",
+      "output_dir": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/",
+      "mcp_tools": ["web-search", "reddit-api", "file-write"],
+      "examples": [
+        "Thread: 'Best gimbal for wedding videography?'",
+        "Thread: 'Color grading workflow suggestions'",
+        "Thread: 'How to light interviews on a budget?'"
+      ],
+      "guidelines": {
+        "rule": "90/10: 9 out of 10 replies are pure value with zero product mention",
+        "tone": "Helpful, peer-to-peer, no sales pitch",
+        "content": "Share knowledge, ask clarifying questions, link to free resources",
+        "no_self_promotion": true,
+        "do_link_to": ["Blog posts", "Free tutorials", "Open source tools"]
+      }
+    },
+    {
+      "id": "finance-digest",
+      "name": "Weekly Finance Digest",
+      "description": "Reviews outstanding invoices, upcoming payments, cash flow status",
+      "schedule": "0 8 * * 1",
+      "schedule_description": "Monday 8:00 AM (Vienna time)",
+      "frequency": "Weekly",
+      "input": "04_FINANCE/2026/ folder contents",
+      "output": "One digest (email-ready markdown) with action items",
+      "output_dir": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/",
+      "mcp_tools": ["file-read", "file-list", "file-write"],
+      "examples": [
+        "Outstanding invoice summary (who owes, how much, how long)",
+        "Upcoming payments (next 2 weeks)",
+        "Monthly revenue forecast",
+        "Action items (follow-ups, chase payments)"
+      ]
+    }
+  ],
+  "scheduling": {
+    "system": "Claude Code scheduled tasks (or cron)",
+    "timezone": "Europe/Vienna",
+    "retry_on_failure": true,
+    "max_retries": 3,
+    "notification": "Slack/email on completion"
+  },
+  "outputs": {
+    "blog_posts": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/",
+    "carousels": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/",
+    "reddit_drafts": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/",
+    "finance_reports": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/",
+    "all_archived": "/Volumes/T7/NUDIMMUD/07_ARCHIVE/distribution-agents/"
+  },
+  "expected_30_day_results": {
+    "blog_posts": "20 posts (weekday cadence)",
+    "carousels": "12 carousels (3x/week)",
+    "reddit_threads": "20+ curated threads with drafted replies",
+    "finance_digests": "4 weekly reports",
+    "organic_reach": "500–2000 new visitors/month from SEO + social"
+  }
+}

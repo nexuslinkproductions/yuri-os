@@ -1,0 +1,109 @@
+{
+  "name": "Autonomous AI Swarm",
+  "purpose": "Overnight brand building: generate, validate, learn, deploy while Marcel sleeps",
+  "timezone": "Europe/Vienna",
+  "schedule": {
+    "start": "22:00",
+    "end": "06:00",
+    "days": "daily"
+  },
+  "phases": {
+    "generation": {
+      "enabled": true,
+      "agents": ["behind-the-scenes-writer", "carousel-maker", "reddit-scout", "finance-digest"],
+      "parallel": true,
+      "timeout_minutes": 60
+    },
+    "validation": {
+      "enabled": true,
+      "use_gan_loop": true,
+      "approval_threshold": 7.0,
+      "max_iterations": 3,
+      "timeout_minutes": 45
+    },
+    "learning": {
+      "enabled": true,
+      "use_trace_to_skill": false,
+      "track_execution_metrics": true,
+      "update_hooks": true
+    },
+    "deployment": {
+      "enabled": true,
+      "auto_publish_blog": false,
+      "queue_instagram": true,
+      "queue_reddit": true,
+      "send_finance_digest": true,
+      "deployment_timeout_minutes": 30
+    },
+    "reporting": {
+      "enabled": true,
+      "morning_briefing": true,
+      "metrics_summary": true,
+      "report_path": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/swarm/"
+    }
+  },
+  "thresholds": {
+    "blog_post_score_min": 7.0,
+    "carousel_design_score_min": 7.0,
+    "reddit_authenticity_score_min": 7.5,
+    "finance_accuracy_score_min": 8.5,
+    "confidence_for_deployment": 0.85
+  },
+  "deployment_rules": {
+    "blog_posts": {
+      "action": "queue_for_review",
+      "destination": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/",
+      "requires_manual_approval": true
+    },
+    "instagram_carousels": {
+      "action": "queue_for_posting",
+      "destination": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/ready/",
+      "requires_manual_approval": false,
+      "auto_post_after_days": 0
+    },
+    "reddit_drafts": {
+      "action": "queue_for_review",
+      "destination": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/ready/",
+      "requires_manual_approval": true
+    },
+    "finance_digest": {
+      "action": "email_ready",
+      "destination": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/",
+      "requires_manual_approval": false
+    }
+  },
+  "morning_report": {
+    "time": "06:00",
+    "format": "markdown",
+    "include_sections": [
+      "completion_summary",
+      "content_generated",
+      "validation_results",
+      "deployment_queue",
+      "learned_patterns",
+      "action_items",
+      "next_steps"
+    ],
+    "recipient": "Marcel (internal)"
+  },
+  "expected_nightly_output": {
+    "blog_posts_generated": 1,
+    "carousels_generated": 0.5,
+    "reddit_threads_curated": "8-10",
+    "finance_digest_created": 0,
+    "total_content_pieces": "9-12",
+    "avg_processing_time_minutes": 120
+  },
+  "fallback_behavior": {
+    "on_validation_fail": "queue_for_manual_review",
+    "on_agent_timeout": "log_error_and_continue",
+    "on_deployment_fail": "queue_for_morning_retry",
+    "on_critical_error": "send_alert_to_marcel"
+  },
+  "monitoring": {
+    "track_metrics": true,
+    "metrics_file": "/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/metrics/nightly-log.jsonl",
+    "alert_on_failure_rate_above": 0.3,
+    "health_check_interval_minutes": 15
+  }
+}

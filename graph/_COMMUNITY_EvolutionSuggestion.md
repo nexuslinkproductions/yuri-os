@@ -1,0 +1,355 @@
+---
+type: community
+cohesion: 0.03
+members: 312
+---
+
+# EvolutionSuggestion
+
+**Cohesion:** 0.03 - loosely connected
+**Members:** 312 nodes
+
+## Members
+- [[.__aenter__()_6]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.__aexit__()_6]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.__getattr__()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[.__init__()_73]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[.__init__()_74]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[.__init__()_2]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[.__init__()_72]] - code - 01_PROJECTS/openspace/openspace/skill_engine/registry.py
+- [[.__init__()_70]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[._apply_with_retry()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._build_analysis_prompt()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[._build_context_from_analysis()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._cleanup_wal_on_startup()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[._ensure_open()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[._evolve_captured()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._evolve_derived()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._evolve_fix()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._execute_contexts()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._infer_capture_dir_from_analysis()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._insert_analysis()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[._llm_confirm_evolution()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._load_recording_context()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[._load_skill_content()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._load_skill_contents_from_disk()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[._make_connection()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[._process_tool_degradation_locked()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._record_tool_quality_feedback()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[._run_analysis_loop()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[._run_evolution_loop()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[._subtree()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[._to_record()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[._upsert()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.analyze_execution()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[.clear()_2]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.close()_5]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[.close()_4]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.deactivate_record()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.delete_record()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.evolve()_1]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[.evolve_skill()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.fileno()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[.flush()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[.get_evolution_candidates()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[.get_judgment()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[.get_store()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[.isatty()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[.process_analysis()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[.process_metric_check()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[.process_tool_degradation()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[.reactivate_record()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.readable()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[.record_analysis()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.save_record()_1]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.save_records()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.schedule_background()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[.seekable()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[.set_available_tools()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[.suggestions_by_type()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[.sync_from_registry()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.to_dict()_4]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[.to_dict()_5]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[.to_dict()_3]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[.to_dict()_2]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[.to_dict()_6]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[.to_origin()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[.vacuum()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[.wait_background()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[.writable()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[.write()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[.writelines()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Access the underlying SkillStore for direct queries.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Aggregate statistics across skills.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Analyzes task execution results and tracks skill quality.      Args         sto]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Apply an edit with retry on failure.          If the first attempt fails (patch]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Ask LLM to confirm whether a rule-based evolution candidate         truly needs]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Atomic evolution insert new version + deactivate old version.          FIXED]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Atomic observation insert analysis + judgments + increment counters.          1]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Atomic insert new version + deactivate parents (for FIXED).]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[AttachmentKind]] - code - 01_PROJECTS/openspace/openspace/communication/types.py
+- [[Await all outstanding background evolution tasks.          Call this during shut]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Batch upsert in a single transaction.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Best-effort correction of LLM-hallucinated skill IDs.      LLMs frequently garbl]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Build EvolutionContext from a single analysis suggestion.          Loads all tar]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Build a JSON-friendly tree rooted at skill_id (downward).]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Build a lightweight SkillRegistry for local-only skill search.      This avoids]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Build the LLM prompt for execution analysis.          ``contextselected_skills]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Build {tool_key has_any_success} from raw traj records.          Used for dedup]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Capture a novel pattern as a brand-new skill.          Uses agent loop for infor]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[ChannelPlatform]] - code - 01_PROJECTS/openspace/openspace/communication/types.py
+- [[Close the persistent connection. Subsequent ops will raise.          Performs a]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Close the store connection.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Cloud visibility of a skill. (`Group` is managed by the cloud platform)]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Compact the database file.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Comprehensive record for a skill identity + lineage + quality.      This is the]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Console-script entry point for ``openspace-mcp``.]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Convert the raw LLM JSON output into an ExecutionAnalysis.          Also attache]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Convert this evolution action to the corresponding SkillOrigin.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Create a tuned SQLite connection.          Write connection ``check_same_thread]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Create enhanced version in a new directory.          Supports single-parent (enh]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Create tables if they don't exist (idempotent via IF NOT EXISTS).]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Delete a skill and all related data (CASCADE).]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Delete all data (keeps schema).]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Deserialize a skill_records row + related rows → SkillRecord.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Deserialize an execution_analyses row + judgments → ExecutionAnalysis.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Diagnose what type of evolution a skill needs based on metrics.          Returns]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Download a cloud skill and register it locally.]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Enforce naming rules for skill names (used as directory names).      - Lowercase]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Ensure every discovered skill has an initial DB record.          For each skill]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Enum]] - code
+- [[EvolutionContext]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[EvolutionSuggestion]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[EvolutionTrigger]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[EvolutionType]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Execute a list of evolution contexts in parallel (throttled).          Used by a]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Execute a task with OpenSpace's full grounding engine.      OpenSpace will]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Execute one evolution action. Returns new SkillRecord or None.          The glob]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Execute skill evolution actions.      Single entry point ``evolve()`` takes an]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[ExecutionAnalysis]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[ExecutionAnalyzer]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[ExecutionAnalyzer — post-execution analysis and skill quality tracking.  Respons]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Extract a JSON object from LLM response text.          Handles markdown code fen]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Extract edit content or failure reason from LLM output.          MUST only be ca]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Feed LLM-identified tool issues to the ToolQualityManager.          Deduplicat]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Filter evolution suggestions by type.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Find skill_ids derived from the given parent.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Find the judgment for a specific skill, or None.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Fix skills that depend on degraded tools.          Two-phase rule-based candida]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Format all text files in a skill directory for prompt inclusion.          Return]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Format an OpenSpace execution result for MCP transport.]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Format conversations.jsonl into a readable text block for the LLM.          Dele]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Format recent analyses into a concise context block for prompts.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Format tool definitions with usage annotation.          Tools that appear in ``u]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Format traj.jsonl records into a concise tool execution timeline.          This]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Get SkillStore — reuses OpenSpace's internal instance when available.]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Get a OpenSpaceClient instance (raises CloudError if not configured).]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[HTTP client for the OpenSpace cloud API.      Args         auth_headers Pre-re]] - rationale - 01_PROJECTS/openspace/openspace/cloud/client.py
+- [[How this skill was created  entered the system.      Version DAG model — every]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[In-place fix same name, same directory, new version record.          Uses agent]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Infer the best skill root for a CAPTURED skill from analysis context.          W]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Inner body of process_tool_degradation, called under _degradation_lock.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Insert an execution_analyses row + its skill_judgments.          Called within a]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Insert or update skill_records + sync related rows.          Called within a tra]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[LLM output format for skill edits.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/patch.py
+- [[LLM-produced analysis of a single task execution.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Launch a coroutine as a background ``asyncio.Task``.          Used by the caller]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Lazy-initialise the OpenSpace engine.]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Levenshtein edit distance (compact DP, O(min(m,n)) space).]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Lightweight summary of skills (no analysesdeps loaded).          Default filter]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load SKILL.md content from disk via registry or direct read.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Load a single class`SkillRecord` by id.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load all versions of a named skill (active + inactive), sorted by generation.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load analyses marked as evolution candidates.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load and structure all recording artifacts needed for analysis.          Returns]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Load only active skill records, keyed by ``skill_id``.          Convenience wrap]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load recent analyses across all tasks.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load recent analyses.          Args             skill_id True ``skill_id`` (e.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load skill SKILL.md from disk via SkillRegistry.          Returns dict mapping `]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Load skill records filtered by category.          Args             active_only]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load skill records, keyed by ``skill_id``.          Args             active_onl]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load the analysis for a specific task, or None.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load the most recent active SkillRecord whose ``path`` is inside skill_dir.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Load traj.jsonl and return structured tool execution records.          Each reco]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Log the outcome of a background evolution task.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Manually fix a broken skill.      This is the only manual evolution entry po]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[One evolution action suggested by the analysis LLM.      ``target_skill_ids`` li]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Only returns active records — deactivated (superseded) versions         are excl]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Open a temporary read-only connection.          WAL mode allows concurrent reade]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[OpenSpace MCP Server  Exposes the following tools to MCP clients   execute_task]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[OpenSpaceClient]] - code - 01_PROJECTS/openspace/openspace/cloud/client.py
+- [[Parse LLM confirmation response (expects JSON with 'proceed' field).]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Parse the injected skill context to extract per-skill content.          The inje]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[PatchType]] - code - 01_PROJECTS/openspace/openspace/skill_engine/patch.py
+- [[Per-skill assessment within an class`ExecutionAnalysis`.      One ``ExecutionA]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Per-task summary task-level fields + per-skill judgments.          Useful for u]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Persist an analysis and update skill quality counters.          ``SkillJudgment.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Process all evolution suggestions from a completed analysis.          Called imm]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Read upload metadata with three-tier fallback.      Resolution order       1. `]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Register bot skill directories into OpenSpace's SkillRegistry + DB.      Called]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Remove stale WALSHM left by unclean shutdown.          If the main DB file is e]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Result of a skill edit operation.      Attributes         skill_dir Final skil]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/patch.py
+- [[Retry on transient SQLite errors with exponential backoff.      Catches ``Operat]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Return recent analyses flagged as evolution candidates.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Run LLM analysis on a completed task and persist the result.          Args]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Run analysis as an agent loop with optional tool use.          Most analyses com]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[Run evolution as a token-driven agent loop.          Modeled after ``GroundingAg]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[SQLite persistence engine — Skill quality tracking and evolution ledger.      Ar]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Scan active skills and evolve those with poor health metrics.          Two-phase]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Search cloud for skills relevant to task and auto-import top hits.      This i]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Search skills across local registry and cloud community.      Standalone search]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Set a specific record's ``is_active`` to False.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Set a specific record's ``is_active`` to True (revert  rollback).]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Skill count + newest ``last_updated`` for cheap change detection.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Skill primary category.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[SkillCategory]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[SkillEditResult]] - code - 01_PROJECTS/openspace/openspace/skill_engine/patch.py
+- [[SkillEvolver]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[SkillEvolver — execute skill evolution actions.  Three evolution types   FIX]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[SkillJudgment]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[SkillLineage]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[SkillMeta]] - code - 01_PROJECTS/openspace/openspace/skill_engine/registry.py
+- [[SkillOrigin]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[SkillRecord]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[SkillRegistry]] - code - 01_PROJECTS/openspace/openspace/skill_engine/registry.py
+- [[SkillStore]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[SkillVisibility]] - code - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Stdout wrapper binary (.buffer) → real stdout, text (.write) → stderr.]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Storage location project_root.openspaceopenspace.db Tables   skill_records]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Top-N skills ranked by the chosen metric.          Metrics             ``effect]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Total number of skill records.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Tracks the evolutionary lineage of a skill.      ``parent_skill_ids`` may contai]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/types.py
+- [[Unified context for all evolution triggers.      For trigger 1 (ANALYSIS) sourc]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Update the tools available for evolution agent loops.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Upload a local skill to the cloud.      For evolved skills (from ``execute_task`]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[Upsert a single class`SkillRecord`.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[Walk up the lineage tree; returns ancestors oldest-first.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[What initiated this evolution.]] - rationale - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[Write ``.upload_meta.json`` so ``upload_skill`` can read pre-saved metadata.]] - rationale - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_MCPSafeStdout]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_auto_register_skill_dirs()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_build_tool_status_map()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_cloud_search_and_import()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_correct_skill_ids()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_db_retry()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_deactivate_record_sync()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_delete_record_sync()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_diagnose_skill_health()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[_do_import_cloud_skill()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_edit_distance()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_evolve_skill_sync()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_extract_json()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_extract_skill_contents()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_format_analysis_context()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[_format_conversations()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_format_skill_dir_content()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[_format_task_result()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_format_tool_list()_1]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_format_traj_summary()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_get_cloud_client()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_get_local_skill_registry()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_get_openspace()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_get_store()_1]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_init_db()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_json_error()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_json_ok()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_load_traj_data()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_log_background_result()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[_optional_str()]] - code - 01_PROJECTS/openspace/openspace/communication/types.py
+- [[_parse_analysis()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[_parse_confirmation()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[_parse_evolution_output()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[_reactivate_record_sync()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_read_upload_meta()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[_reader()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_record_analysis_sync()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_sanitize_skill_name()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[_save_record_sync()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_save_records_sync()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_sync_from_registry_sync()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_to_analysis()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[_write_upload_meta()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[analyzer.py]] - code - 01_PROJECTS/openspace/openspace/skill_engine/analyzer.py
+- [[attachStdioLifecycle()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[buffer()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[callWorkerAPI()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[callWorkerAPIPost()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[cleanup()_1]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[closed()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[computeObservationContentHash()]] - code - 01_PROJECTS/claude-mem/src/services/sqlite/observations/store.ts
+- [[count()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[db_path()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[detachStdioLifecycle()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[encoding()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[ensureWorkerConnection()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[errorIfWorkerScriptMissing()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[errors()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[evolver.py]] - code - 01_PROJECTS/openspace/openspace/skill_engine/evolver.py
+- [[execute_task()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[findDuplicateObservation()]] - code - 01_PROJECTS/claude-mem/src/services/sqlite/observations/store.ts
+- [[find_children()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[find_skills_by_tool()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[fix_skill()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[from_dict()]] - code - 01_PROJECTS/openspace/openspace/communication/types.py
+- [[get_ancestry()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[get_count_and_timestamp()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[get_lineage_tree()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[get_stats()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[get_summary()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[get_task_skill_summary()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[get_top_skills()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[get_versions()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[handleStdioClosed()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[handleStdioError()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[load_active()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[load_all()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[load_all_analyses()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[load_analyses()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[load_analyses_for_task()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[load_by_category()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[load_evolution_candidates()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[load_record()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[load_record_by_path()]] - code - 01_PROJECTS/openspace/openspace/skill_engine/store.py
+- [[main()_27]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[mcp-server.ts]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[run_mcp_server()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[saveUserPrompt()]] - code - 01_PROJECTS/claude-mem/src/services/sqlite/prompts/store.ts
+- [[search_skills()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[startParentHeartbeat()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+- [[store.ts]] - code - 01_PROJECTS/claude-mem/src/services/sqlite/summaries/store.ts
+- [[storeObservation()]] - code - 01_PROJECTS/claude-mem/src/services/sqlite/observations/store.ts
+- [[storeSummary()]] - code - 01_PROJECTS/claude-mem/src/services/sqlite/summaries/store.ts
+- [[str]] - code
+- [[upload_skill()]] - code - 01_PROJECTS/openspace/openspace/mcp_server.py
+- [[verifyWorkerConnection()]] - code - 01_PROJECTS/claude-mem/src/servers/mcp-server.ts
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/EvolutionSuggestion
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 168 edges to [[_COMMUNITY_Logger]]
+- 38 edges to [[_COMMUNITY_OpenSpace]]
+- 37 edges to [[_COMMUNITY_SkillRanker]]
+- 24 edges to [[_COMMUNITY_types.ts]]
+- 15 edges to [[_COMMUNITY_patch.py]]
+- 14 edges to [[_COMMUNITY_client.ts]]
+- 4 edges to [[_COMMUNITY_OpenSpaceUI]]
+- 2 edges to [[_COMMUNITY_dashboard_server.py]]
+- 2 edges to [[_COMMUNITY_FeishuAdapter]]
+- 1 edge to [[_COMMUNITY_MCPBaseConnector]]
+- 1 edge to [[_COMMUNITY_logging.py]]
+- 1 edge to [[_COMMUNITY_TrajectoryRecorder]]
+- 1 edge to [[_COMMUNITY_MCPInstallerManager]]
+- 1 edge to [[_COMMUNITY_conversation_formatter.py]]
+- 1 edge to [[_COMMUNITY_config.ts]]
+
+## Top bridge nodes
+- [[store.ts]] - degree 47, connects to 5 communities
+- [[Enum]] - degree 24, connects to 4 communities
+- [[OpenSpaceClient]] - degree 47, connects to 3 communities
+- [[evolver.py]] - degree 17, connects to 3 communities
+- [[analyzer.py]] - degree 16, connects to 3 communities

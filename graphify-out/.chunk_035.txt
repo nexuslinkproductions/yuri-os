@@ -1,0 +1,8 @@
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/plugin/ui/icon-thick-next-steps.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/claude-mem-logo-for-dark-mode.webp
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/claude-mem-logomark.webp
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/icon-thick-completed.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/icon-thick-investigated.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/icon-thick-learned.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/icon-thick-next-steps.svg
+/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem/src/ui/icon-thin-completed.svg
