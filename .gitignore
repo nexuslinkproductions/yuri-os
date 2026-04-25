@@ -50,3 +50,17 @@ graphify-out/__pycache__/
 .vscode/
 .idea/
 *.sublime-*
+.gitnexus
+
+# Claude worktrees (ephemeral, not for VCS)
+.claude/worktrees/
+.claude/plans/
+.claude/eot/
+
+# Research corpus clones (external repos, not submodules)
+RESEARCH/ORACLE-CORPUS/
+RESEARCH/ruflo/
+
+# Embedded agent repos
+.agents/openmythos/
+01_PROJECTS/claude-cookbooks/
