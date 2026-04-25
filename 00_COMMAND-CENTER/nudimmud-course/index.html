@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NUDIMMUD: Operations Manual</title>
+
+  <!-- Google Fonts: Bricolage Grotesque · DM Sans · JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root {
+      --color-accent:       #D94F30;
+      --color-accent-hover: #C4432A;
+      --color-accent-light: #FDEEE9;
+      --color-accent-muted: #E8836C;
+    }
+  </style>
+
+  <script src="main.js" defer></script>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="nav-inner">
+      <span class="nav-title">NUDIMMUD: The Architect's Manual</span>
+      <div class="nav-dots" id="nav-dots" role="tablist">
+        <button class="nav-dot" data-target="module-1" data-tooltip="The Swarm Engine" role="tab" aria-label="Module 1: The Swarm Engine"></button>
+        <button class="nav-dot" data-target="module-2" data-tooltip="C2MovieZ Integration" role="tab" aria-label="Module 2: C2MovieZ Integration"></button>
+        <button class="nav-dot" data-target="module-3" data-tooltip="Unbounded Memory" role="tab" aria-label="Module 3: Unbounded Memory"></button>
+        <button class="nav-dot" data-target="module-4" data-tooltip="The Autonomous Future" role="tab" aria-label="Module 4: The Autonomous Future"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+<section class="module" id="module-1">
+  <div class="module-header">
+    <h2 class="module-title">The Swarm Engine</h2>
+    <p class="module-subtitle">A hyper-automated AI workforce backing Marcel's creative direction.</p>
+  </div>
+
+  <div class="module-content">
+    <p>Claudio, what Marcel has built here is not a standard AI wrapper. It is <strong>NUDIMMUD</strong>—a highly organized digital empire comprised of distinct <span class="term" data-definition="Independent AI programs that work together. Instead of asking one AI to do a massive job, NUDIMMUD breaks the job into pieces and hands them to specialized workers.">autonomous agents</span>.</p>
+
+    <div class="callout callout-accent">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-content">
+        <strong class="callout-title">The Spectral Overview</strong>
+        <p>You have a videographer and creative director handling the physical set. But backing him up is an entire digital agency working 24/7 in the background—managing the files, organizing the edits, planning the pre-production, and tracking the finances without any human bottlenecks.</p>
+      </div>
+    </div>
+
+    <h3>The Pantheon of Workers</h3>
+    <p>NUDIMMUD operates through five specialized personas to ensure flawless execution.</p>
+
+    <div class="pattern-cards">
+      <div class="pattern-card" style="border-top: 3px solid var(--color-accent)">
+        <h4 class="pattern-title">ENKI</h4>
+        <p class="pattern-desc">The Strategist. Sets the creative vision for the client project.</p>
+      </div>
+      <div class="pattern-card" style="border-top: 3px solid var(--color-accent-muted)">
+        <h4 class="pattern-title">NUDIMMUD</h4>
+        <p class="pattern-desc">The Architect. Builds the actual files, code, and folder structures.</p>
+      </div>
+      <div class="pattern-card" style="border-top: 3px solid var(--color-accent)">
+        <h4 class="pattern-title">NABU</h4>
+        <p class="pattern-desc">The Codifier. Writes the standard operating procedures and laws of the system.</p>
+      </div>
+      <div class="pattern-card" style="border-top: 3px solid var(--color-accent-muted)">
+        <h4 class="pattern-title">NISABA</h4>
+        <p class="pattern-desc">The Measurer. Evaluates quality control and acts as the automated QA department.</p>
+      </div>
+      <div class="pattern-card" style="border-top: 3px solid var(--color-accent)">
+        <h4 class="pattern-title">NOESIS</h4>
+        <p class="pattern-desc">The Learner. Analyzes mistakes made on previous shoots to guarantee they are never repeated.</p>
+      </div>
+    </div>
+
+    <h3>How this translates to speed</h3>
+    <p>Because the Swarm operates simultaneously, administrative and post-production bottlenecks vanish. Let's look at how the agents handle a new project coming in.</p>
+
+    <div class="chat-window" id="chat-module1">
+      <div class="chat-messages">
+        <div class="chat-message" data-msg="0" data-sender="actor-enki" style="display:none">
+          <div class="chat-avatar" style="background: #D94F30">E</div>
+          <div class="chat-bubble">
+            <span class="chat-sender" style="color: #D94F30">ENKI</span>
+            <p>Marcel just finished the on-set capture for the new C2MovieZ client. Footage is offloading.</p>
+          </div>
+        </div>
+        <div class="chat-message" data-msg="1" data-sender="actor-nudimmud" style="display:none">
+          <div class="chat-avatar" style="background: #C4432A">Nu</div>
+          <div class="chat-bubble">
+            <span class="chat-sender" style="color: #C4432A">NUDIMMUD</span>
+            <p>I am automatically generating the project folder structure, sorting the proxies, and pulling the client brief from Claudio's vault.</p>
+          </div>
+        </div>
+        <div class="chat-message" data-msg="2" data-sender="actor-nisaba" style="display:none">
+          <div class="chat-avatar" style="background: #E8836C">Ni</div>
+          <div class="chat-bubble">
+            <span class="chat-sender" style="color: #E8836C">NISABA</span>
+            <p>I've cross-referenced the raw footage against the shot list. We have 100% coverage.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-typing" id="chat-typing" style="display:none">
+        <div class="chat-avatar" id="chat-module1-typing-avatar">?</div>
+        <div class="chat-typing-dots">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
+      </div>
+
+      <div class="chat-controls">
+        <button class="btn chat-next-btn">Next Step</button>
+        <button class="btn chat-all-btn">Play All</button>
+        <button class="btn chat-reset-btn">Restart</button>
+        <span class="chat-progress"></span>
+      </div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-2">
+  <div class="module-header">
+    <h2 class="module-title">C2MovieZ Integration</h2>
+    <p class="module-subtitle">Bidirectional sync between the production pipeline and the Neural Empire.</p>
+  </div>
+
+  <div class="module-content">
+    <p>NUDIMMUD does not operate in isolation. It is directly wired into the C2MovieZ ecosystem. When Claudio updates a client brief, signs a new retainer, or drops a shot list, the Swarm detects it and prepares Marcel's environment automatically.</p>
+
+    <div class="callout callout-info">
+      <div class="callout-icon">🤝</div>
+      <div class="callout-content">
+        <strong class="callout-title">The Value Proposition</strong>
+        <p>No more dropped communications, missing files, or misaligned project briefs. Claudio's strategy instantly becomes Marcel's operational reality.</p>
+      </div>
+    </div>
+
+    <h3>The Synchronization Pipeline</h3>
+    <p>Here is how the data flows from Claudio's management system directly into Marcel's execution engine.</p>
+
+    <div class="flow-animation" data-steps='[
+      {"highlight":"flow-actor-1","label":"Claudio finalizes a new project brief for a Tier 1 Retainer."},
+      {"highlight":"flow-actor-1","label":"Data syncs to the shared C2MovieZ Vault","packet":true,"from":"actor-1","to":"actor-2"},
+      {"highlight":"flow-actor-2","label":"NUDIMMUD automatically pulls the latest updates into Marcel&apos;s system","packet":true,"from":"actor-2","to":"actor-3"},
+      {"highlight":"flow-actor-3","label":"The Swarm prepares the shot lists, equipment loadouts, and invoice structures."}
+    ]'>
+      <div class="flow-actors">
+        <div class="flow-actor" id="flow-actor-1">
+          <div class="flow-actor-icon" style="background:#D94F30">👤</div>
+          <span>Claudio (C2MovieZ)</span>
+        </div>
+        <div class="flow-actor" id="flow-actor-2">
+          <div class="flow-actor-icon" style="background:#C4432A">☁️</div>
+          <span>Shared Vault</span>
+        </div>
+        <div class="flow-actor" id="flow-actor-3">
+          <div class="flow-actor-icon" style="background:#E8836C">🤖</div>
+          <span>NUDIMMUD</span>
+        </div>
+      </div>
+
+      <div class="flow-packet" id="flow-packet"></div>
+
+      <div class="flow-step-label" id="flow-label">Click "Next Step" to trace the sync</div>
+
+      <div class="flow-controls">
+        <button class="btn flow-next-btn">Next Step</button>
+        <button class="btn flow-reset-btn">Restart</button>
+        <span class="flow-progress"></span>
+      </div>
+    </div>
+
+    <h3>On-Set Execution</h3>
+    <p>When Marcel is on set, he isn't bogged down by administrative overhead. He executes the creative vision, captures the footage, and logs the metadata. The moment the hard drive is connected back at the studio, the Swarm takes over the ingestion, proxy generation, and archival.</p>
+
+  </div>
+</section>
+<section class="module" id="module-3">
+  <div class="module-header">
+    <h2 class="module-title">Unbounded Memory</h2>
+    <p class="module-subtitle">How NUDIMMUD remembers every client, every frame, and every project.</p>
+  </div>
+
+  <div class="module-content">
+    <p>A standard human workflow degrades as file counts increase. Folders get messy, assets get lost, and context is forgotten. NUDIMMUD solves this by converting the entire macOS file system into a <span class="term" data-definition="A system that doesn't just store files, but actively maps how they relate to each other, allowing the AI to 'remember' context across years of projects.">Hyper-Graph</span>.</p>
+
+    <div class="callout callout-accent">
+      <div class="callout-icon">🧠</div>
+      <div class="callout-content">
+        <strong class="callout-title">Zero Administrative Rot</strong>
+        <p>There are over 95,000 files in Marcel's current vault. Before any action is taken, NUDIMMUD runs an "Impact Analysis" to instantly recall the exact client preferences, color grading notes, and past deliverables associated with that specific project.</p>
+      </div>
+    </div>
+
+    <h3>Multimedia Retrieval (RAG)</h3>
+    <p>The memory system is not limited to text documents. NUDIMMUD natively ingests video.</p>
+
+    <div class="translation-block animate-in">
+      <div class="translation-code">
+        <span class="translation-label">THE PROTOCOL (CLAUDE.md)</span>
+        <pre><code>
+<span class="code-line"><span class="code-keyword">###</span> Multimedia Ingestion</span>
+<span class="code-line"></span>
+<span class="code-line">Knowledge Base RAG is not limited to text.</span>
+<span class="code-line">When conducting research or compiling knowledge,</span>
+<span class="code-line">you MUST consume relevant multimedia.</span>
+<span class="code-line"></span>
+<span class="code-line">Extract transcripts, build semantic/scene indexes,</span>
+<span class="code-line">and retrieve exact timestamps for inclusion in notes.</span>
+<span class="code-line">Do not ignore video sources.</span>
+        </code></pre>
+      </div>
+      <div class="translation-english">
+        <span class="translation-label">WHAT THIS MEANS FOR C2MOVIEZ</span>
+        <div class="translation-lines">
+          <p class="tl">Our AI doesn't just read PDFs.</p>
+          <p class="tl">It watches the raw footage from the shoot.</p>
+          <p class="tl"></p>
+          <p class="tl"></p>
+          <p class="tl">It automatically transcribes the audio, tags the visual scenes, and gives Marcel the exact timestamps of the best takes so he can edit 10x faster.</p>
+          <p class="tl"></p>
+          <p class="tl"></p>
+        </div>
+      </div>
+    </div>
+
+    <h3>The Nightly Optimization</h3>
+    <p>Every single night, while the studio is asleep, a background heartbeat routine wakes up the AI. It scans everything Marcel and Claudio worked on that day, maps the new connections, and optimizes the system for the next morning.</p>
+
+  </div>
+</section>
+<section class="module" id="module-4">
+  <div class="module-header">
+    <h2 class="module-title">The Autonomous Future</h2>
+    <p class="module-subtitle">Where we are going next.</p>
+  </div>
+
+  <div class="module-content">
+    <p>What you see today is just the baseline infrastructure. The foundation is locked. The sync is live. The Swarm is active. Now, we move to the expansion phase.</p>
+
+    <div class="pattern-cards">
+      <div class="pattern-card" style="border-top: 3px solid var(--color-accent)">
+        <h4 class="pattern-title">1. The EvoNexus Vessel</h4>
+        <p class="pattern-desc">Transitioning from a terminal/code interface into a fully interactive visual dashboard. A physical digital "body" where you can drag, drop, and view the entire production pipeline in real-time.</p>
+      </div>
+      <div class="pattern-card" style="border-top: 3px solid var(--color-accent-muted)">
+        <h4 class="pattern-title">2. Generative Video Pipelines</h4>
+        <p class="pattern-desc">Integrating Ultra Realism AI Video models directly into the Swarm. The system will be able to ingest Claudio's creative brief and automatically generate storyboards, moodboards, and style frames overnight.</p>
+      </div>
+      <div class="pattern-card" style="border-top: 3px solid var(--color-accent)">
+        <h4 class="pattern-title">3. Fully Autonomous Editing</h4>
+        <p class="pattern-desc">With VideoDB integration, the Swarm will soon be able to perform rough cuts autonomously based on the ingested shot list and scene index, presenting Marcel with an assembled timeline before he even sits down.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-info" style="margin-top: 32px;">
+      <div class="callout-icon">🚀</div>
+      <div class="callout-content">
+        <strong class="callout-title">The Ultimate Goal</strong>
+        <p>To eliminate friction between the creative vision and the final execution. When Claudio imagines it, NUDIMMUD prepares it, and Marcel captures it. The rest is fully autonomous.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+  </main>
+
+</body>
+</html>

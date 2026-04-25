@@ -1,0 +1,44 @@
+'use strict';
+const fs = require('fs');
+const path = require('path');
+
+const LEARNING_DIR = path.join(process.env.HOME || process.cwd(), '.claude', 'nisaba', 'learning');
+const PROJECT_LEARNING_DIR = path.join(process.cwd(), '.claude', 'nisaba', 'learning');
+
+let raw = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', c => raw += c);
+process.stdin.on('end', () => {
+  try {
+    const event = JSON.parse(raw);
+    const agentType = (event.agent_type || '')
+      .replace(/^[^:]+:/, '').trim().toLowerCase();
+
+    const parts = [];
+
+    const globalGlobal = readFile(path.join(LEARNING_DIR, 'global.md'));
+    if (globalGlobal) parts.push(`### Global Lessons (all projects)\n\n${globalGlobal}`);
+
+    const projectGlobal = readFile(path.join(PROJECT_LEARNING_DIR, 'global.md'));
+    if (projectGlobal) parts.push(`### Project Lessons (this project)\n\n${projectGlobal}`);
+
+    if (agentType) {
+      const globalAgent = readFile(path.join(LEARNING_DIR, 'agents', `${agentType}.md`));
+      if (globalAgent) parts.push(`### Lessons for ${agentType} (all projects)\n\n${globalAgent}`);
+
+      const projectAgent = readFile(path.join(PROJECT_LEARNING_DIR, 'agents', `${agentType}.md`));
+      if (projectAgent) parts.push(`### Lessons for ${agentType} (this project)\n\n${projectAgent}`);
+    }
+
+    if (parts.length === 0) { process.exit(0); return; }
+
+    const attr = agentType ? ` agent="${agentType}"` : '';
+    process.stdout.write(`<mnemosyne${attr}>\n\n${parts.join('\n\n---\n\n')}\n\n</mnemosyne>\n`);
+  } catch (e) {}
+  process.exit(0);
+});
+
+function readFile(p) {
+  try { return fs.readFileSync(p, 'utf8').trim(); }
+  catch { return ''; }
+}

@@ -1,32 +1,53 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { navItems } from "@/lib/nudimmud";
+
 export default function Header() {
+  const pathname = usePathname();
+
   return (
-    <header className="fixed top-0 w-full bg-white/90 backdrop-blur-lg border-b border-gray-200 z-50">
-      <nav className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-        <a href="#" className="flex items-center">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/80 backdrop-blur-xl">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <Link href="/" className="flex items-center gap-3">
           <img
             src="/logos/logo light nexus.svg"
             alt="Nexus Link Productions"
-            className="h-16 w-auto hover:opacity-75 transition"
+            className="h-12 w-auto transition hover:opacity-75"
           />
-        </a>
+          <span className="hidden text-xs uppercase tracking-[0.35em] text-white/45 md:block">
+            NUDIMMUD / NexusLink
+          </span>
+        </Link>
 
-        <div className="hidden md:flex items-center gap-12">
-          <a href="#services" className="text-gray-500 hover:text-crimson text-sm tracking-wide transition">
-            Services
-          </a>
-          <a href="#portfolio" className="text-gray-500 hover:text-crimson text-sm tracking-wide transition">
-            Portfolio
-          </a>
-          <a href="#contact" className="text-gray-500 hover:text-crimson text-sm tracking-wide transition">
-            Contact
-          </a>
+        <div className="hidden items-center gap-2 md:flex">
+          {navItems.map((item) => {
+            const active =
+              item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`rounded-full px-4 py-2 text-sm tracking-wide transition ${
+                  active
+                    ? "bg-white text-black"
+                    : "text-white/65 hover:bg-white/5 hover:text-white"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
 
-        <button className="px-8 py-3 bg-crimson text-white font-bold rounded hover:bg-crimson-dark transition tracking-wide">
-          Get in Touch
-        </button>
+        <Link
+          href="/research"
+          className="rounded-full bg-crimson px-5 py-2 text-sm font-semibold tracking-wide text-black transition hover:bg-crimson-dark"
+        >
+          Launch
+        </Link>
       </nav>
     </header>
   );

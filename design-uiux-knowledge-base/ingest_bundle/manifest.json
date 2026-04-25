@@ -1,0 +1,28 @@
+{
+  "graph_path": "/Users/marcelspatz/design-uiux-knowledge-base/graph.json",
+  "node_count": 58,
+  "edge_count": 64,
+  "node_types": {
+    "inspiration": 9,
+    "design_system": 17,
+    "curated_list": 4,
+    "ux_skill": 12,
+    "ai_tool": 10,
+    "cluster": 6
+  },
+  "relation_types": {
+    "contains": 55,
+    "supports": 5,
+    "reinforces": 4
+  },
+  "outputs": {
+    "nodes_csv": "nodes.csv",
+    "edges_csv": "edges.csv",
+    "clusters_csv": "clusters.csv"
+  },
+  "recommended_use": [
+    "Import nodes.csv into a relational table or spreadsheet",
+    "Import edges.csv into a graph tool or joinable relational table",
+    "Use clusters.csv for top-level navigation or taxonomy views"
+  ]
+}

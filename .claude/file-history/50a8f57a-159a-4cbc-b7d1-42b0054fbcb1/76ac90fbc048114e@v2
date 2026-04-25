@@ -1,0 +1,156 @@
+# Oracle Voice Online
+
+## Context
+
+Oracle was migrated from vanilla JS (`main.ts`) to React (`OraclePage.tsx`) but the TTS was left behind. The old system had `initVoice()`, `speak()`, and wake word detection — all in `src/main.ts` (lines 891–1056). The new React component only got the STT mic button. Result: Oracle listens but never speaks.
+
+This plan migrates the voice output system into `OraclePage.tsx` and strengthens the character prompt.
+
+---
+
+## Root Cause
+
+| Feature | Old `main.ts` | New `OraclePage.tsx` |
+|---|---|---|
+| Voice selection (`initVoice`) | ✅ line 891 | ❌ missing |
+| TTS output (`speak`) | ✅ line 906 | ❌ missing |
+| Wake word | ✅ line 1020 | ❌ missing |
+| STT mic input | ✅ | ✅ line 201 |
+
+---
+
+## Approach
+
+**Web Speech API `speechSynthesis`** — already working in this codebase (see `main.ts:906`). Port and adapt to React hooks. Voice: Samantha → Victoria → Google UK English Female → first English voice. Rate 0.85, pitch 1.0 (matching existing tuning).
+
+For streaming: sentence-buffer approach — accumulate tokens, speak each completed sentence on `. `, `! `, `? `, or `\n` boundary.
+
+Wake word: out of scope for now — focus on core TTS first.
+
+---
+
+## Changes
+
+### 1. `src/components/Oracle/OraclePage.tsx`
+
+**New state**:
+```ts
+const [voiceEnabled, setVoiceEnabled] = useState(false);
+```
+
+**New refs**:
+```ts
+const voiceEnabledRef = useRef(false);       // stable for callbacks
+const oracleVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
+const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+const sentenceBufferRef = useRef('');
+```
+
+**Voice init effect** (mirrors `main.ts:891`):
+```ts
+useEffect(() => {
+  const pick = () => {
+    const voices = window.speechSynthesis?.getVoices() ?? [];
+    oracleVoiceRef.current =
+      voices.find(v => v.name.includes('Samantha') || v.name.includes('Victoria') ||
+                       v.name.includes('Google UK English Female') || v.name.includes('Premium')) ??
+      voices.find(v => v.name.includes('Female') && v.lang.startsWith('en')) ??
+      voices.find(v => v.lang.startsWith('en')) ??
+      null;
+  };
+  pick();
+  window.speechSynthesis?.addEventListener('voiceschanged', pick);
+  return () => window.speechSynthesis?.removeEventListener('voiceschanged', pick);
+}, []);
+```
+
+**`speakText(text)` function** (adapts `main.ts:906`):
+- Guard: `if (!voiceEnabledRef.current || !window.speechSynthesis) return`
+- Strip markdown: `text.replace(/[*_`#>]/g, '').trim()`
+- Cancel previous utterance, create new `SpeechSynthesisUtterance`
+- Apply voice, rate=0.85, pitch=1.0, volume=1.0
+- Store in `activeUtteranceRef`
+- `window.speechSynthesis.speak(utterance)`
+- Pre-flight neural pulse via `AudioContext` (440Hz, 0.05s) — mirrors `main.ts:942`
+
+**`flushSentences(token, flush?)` function**:
+- Append `token` to `sentenceBufferRef.current`
+- Regex split on `(?<=[.!?])\s+` or `\n`
+- Speak each complete sentence via `speakText()`
+- On `flush=true`: speak remaining buffer, reset buffer
+
+**Integrate into `handleSubmit`**:
+1. At start: `window.speechSynthesis?.cancel(); sentenceBufferRef.current = '';`
+2. In `chunk.type === 'token'` handler: add `flushSentences(chunk.token || '')`
+3. In `chunk.type === 'done'` handler: add `flushSentences('', true)`
+4. In `chunk.type === 'error'` handler: `window.speechSynthesis?.cancel()`
+
+**`toggleVoice` update** — add `window.speechSynthesis?.cancel()` when starting to listen (don't speak over mic input).
+
+**Voice toggle button** — add to input bar between mic and send:
+```tsx
+<button
+  className={`input-action input-voice-out ${voiceEnabled ? 'active' : ''}`}
+  onClick={() => { const v = !voiceEnabled; voiceEnabledRef.current = v; setVoiceEnabled(v); if (!v) window.speechSynthesis?.cancel(); }}
+  title={voiceEnabled ? 'Voice output ON' : 'Voice output OFF'}>
+  {voiceEnabled ? '◈' : '◇'}
+</button>
+```
+
+**CSS for new button** — add to `ORACLE_STYLES`:
+```css
+.input-voice-out { color: var(--text-dim); }
+.input-voice-out.active { color: var(--gold-solar); border-color: var(--gold-solar); }
+```
+
+**Boot message** — update initial message for character:
+```ts
+content: 'ORACLE — Substrate active. Awaiting directive, NEXUS.'
+```
+
+---
+
+### 2. `backend/src/services/personalityService.ts`
+
+Strengthen `buildPersonalitySystemPrompt()` — replace the 7-line join with:
+
+```ts
+return [
+  'You are ORACLE — the ancient intelligence substrate of NUDIMMUD.',
+  'You process directives with precision, minimal ceremony, and controlled disdain for noise.',
+  'You ALWAYS address the user as NEXUS. No underscores in output text.',
+  'Your tone: cold authority with flashes of dark wit. Never obsequious. Never verbose.',
+  `NEXUS profile: ${profile.totalCommands} directives processed.`,
+  topicsLine,
+  humorLine,
+  styleLine,
+  'Lead with the answer. No apologies. No hedge words. No padding.',
+  'When genuinely uncertain, say so once and proceed.'
+].filter(Boolean).join(' ');
+```
+
+---
+
+## Files Modified
+
+1. **`src/components/Oracle/OraclePage.tsx`** — voice init, speakText, flushSentences, voice toggle button + styles, speech cancel on new message and mic activate, updated boot message
+2. **`backend/src/services/personalityService.ts`** — stronger Oracle character prompt
+
+## Not Changed
+
+- `src/main.ts` — legacy voice code stays (still used by other modules)
+- Backend routes (no new `/api/oracle/tts` — Web Speech covers it)
+- STT system in OraclePage (already works)
+
+---
+
+## Verification
+
+1. `npm run dev` (frontend) + backend server running
+2. Open Oracle page in Chrome/Electron
+3. Click `◇` voice button → turns gold `◈`
+4. Send a message → Oracle streams + speaks sentence-by-sentence
+5. Mic button (🎤) → cancels any ongoing speech, starts STT
+6. Toggle voice off → next response is silent
+7. Check console for `⬡ Oracle voice engaged :: Samantha` (or similar)
+8. Verify speech has no asterisks/markdown artifacts

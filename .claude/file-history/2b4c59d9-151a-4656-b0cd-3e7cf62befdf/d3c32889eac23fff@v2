@@ -1,0 +1,40 @@
+# Context
+Boot sequence uses custom green/amber/teal palette. User wants it to match the Oracle HUD color system defined in `index.css`.
+
+# Token Map — Oracle → Terminal RGB
+
+| Oracle token | HSL definition | Computed RGB | Role in boot sequence |
+|---|---|---|---|
+| `--cyan-glow` | `hsl(96, 68%, 74%)` | `rgb(180,234,144)` `#B4EA90` | NUDIMMUD wordmark + value text |
+| `--gold-solar` | `hsl(90, 100%, 36%)` | `rgb(92,184,0)` `#5CB800` | NLP insignia |
+| `--cyan-dim` | `hsl(96, 42%, 24%)` | `rgb(56,87,36)` `#385724` | Divider line |
+| `--text-dim` | `hsl(0, 0%, 66%)` | `rgb(168,168,168)` `#A8A8A8` | Labels + prompt glyph |
+| `--silver-albedo` | `hsl(0, 0%, 97%)` | `rgb(247,247,247)` | (not used) |
+
+# Change
+
+**File:** `/Users/marcelspatz/NUDIMMUD/_SYSTEM/nudimmud-boot.zsh`
+
+Replace the 5 color variable declarations:
+
+```zsh
+# Before
+_G="\033[38;2;140;224;43m"     # Moss Green
+_G2="\033[38;2;63;92;31m"      # Dim Green
+_AU="\033[38;2;255;196;46m"    # Amber/Gold
+_GR="\033[38;5;244m"           # Muted Grey (256-color)
+_CY="\033[38;2;0;210;170m"     # Cyan
+
+# After (Oracle-aligned)
+_G="\033[38;2;180;234;144m"    # --cyan-glow  #B4EA90
+_G2="\033[38;2;56;87;36m"      # --cyan-dim   #385724
+_AU="\033[38;2;92;184;0m"      # --gold-solar #5CB800
+_GR="\033[38;2;168;168;168m"   # --text-dim   #A8A8A8
+_CY="\033[38;2;180;234;144m"   # --cyan-glow  #B4EA90 (same as primary)
+```
+
+# Verification
+Run `source ~/.zshrc` in a new terminal — inspect that:
+- NLP insignia renders in olive-lime (--gold-solar)
+- NUDIMMUD wordmark renders in bright neon lime (--cyan-glow)
+- Labels and prompt glyph render in mid-grey (--text-dim)

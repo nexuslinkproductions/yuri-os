@@ -1,0 +1,357 @@
+# Plan: NotebookLM Clone → Oracle Integration
+
+## Context
+
+Oracle (React 19 + Express/SSE + Ollama + SQLite) needs a non-destructive NotebookLM clone
+embedded as a new "NOTEBOOK" tab. All four source types (PDF/DOCX, audio/video, URLs, vault
+notes), local-first Whisper transcription, RAG Q&A with streaming citations, auto-generated
+documents (PDF export via Puppeteer), data visualizations, and Obsidian NISABA/ sync.
+
+Zero changes to existing Oracle core logic. The integration is purely additive — 3 tiny edits
+to existing files + all new files.
+
+---
+
+## Swarm Roles
+
+| Role | Model | Responsibility |
+|------|-------|----------------|
+| Orchestrator | Opus @ Medium | DB schema, route wiring, integration, final review, swarm state |
+| Heavy Lifter | Sonnet @ Max | Complex services (ingest, transcription, RAG, docgen, viz), all React components |
+| Background agents | Haiku / local | File reads, research, package docs, preliminary scaffolding |
+
+---
+
+## Phase Sequence
+
+```
+Phase 0  → Opus:   notebookSchema.ts + notebookService.ts (unblocks everything)
+Phase 1  → Parallel:
+            Opus:   notebookRoutes.ts skeleton + 3 existing-file edits
+            Sonnet: notebookIngestService.ts + notebookTranscribeService.ts
+Phase 2  → Sonnet parallel batch:
+            notebookRagService.ts, notebookDocGenService.ts, notebookPdfExportService.ts,
+            notebookObsidianSyncService.ts, notebookVizService.ts
+Phase 3  → Opus:   wire all services into notebookRoutes.ts
+Phase 4  → Sonnet: notebookBridge.ts + all React components
+Phase 5  → Both:   integration tests + non-destructive verification
+```
+
+---
+
+## Existing Files — 3 Surgical Edits Only
+
+### 1. `src/components/Oracle/OraclePage.tsx`
+
+**Line 36** — extend the `TabId` union:
+```typescript
+// BEFORE
+type TabId = 'context' | 'research' | 'code' | 'visual' | 'ops';
+// AFTER
+type TabId = 'context' | 'research' | 'code' | 'visual' | 'ops' | 'notebook';
+```
+
+**Lines 38–44** — append one entry to the `TABS` array:
+```typescript
+{ id: 'notebook', label: 'Notebook', icon: '◧' }
+```
+
+**Lines 272–275** — extend the render branch (currently a simple ternary):
+```typescript
+// BEFORE
+{activeTab === 'visual' ? (
+    <VisualSynthesisLane models={imageModels} />
+) : (
+    <OracleToolOrbs activeTab={activeTab} />
+)}
+
+// AFTER
+{activeTab === 'visual' ? (
+    <VisualSynthesisLane models={imageModels} />
+) : activeTab === 'notebook' ? (
+    <NotebookTab />
+) : (
+    <OracleToolOrbs activeTab={activeTab as Exclude<TabId, 'notebook' | 'visual'>} />
+)}
+```
+
+Add import at top of file:
+```typescript
+import NotebookTab from './NotebookTab/NotebookTab';
+```
+
+### 2. `backend/src/routes/api.ts`
+
+Insert before `return router;` at line 695 (currently last statement):
+```typescript
+// Notebook module — additive, no existing routes touched
+const { initNotebookRoutes } = require('./notebookRoutes');
+initNotebookRoutes(router, db);
+```
+
+### 3. `backend/src/models/database.ts`
+
+Insert after `runMigrations(db);` at line 397 inside `initDatabase()`:
+```typescript
+import { runNotebookMigrations } from './notebookSchema';
+// …
+runNotebookMigrations(db);   // idempotent — CREATE TABLE IF NOT EXISTS pattern
+```
+
+---
+
+## New Files
+
+### Backend
+
+```
+backend/src/
+  models/
+    notebookSchema.ts              ← DDL + runNotebookMigrations() (all CREATE TABLE IF NOT EXISTS)
+  services/
+    notebookService.ts             ← SQLite CRUD: notebooks, sources, chunks, docs, messages
+    notebookIngestService.ts       ← PDF/DOCX/URL/audio/obsidian → chunks → embeddings
+    notebookTranscribeService.ts   ← Ollama Whisper first, OpenAI fallback
+    notebookRagService.ts          ← retrieval + SSE streaming with citations
+    notebookDocGenService.ts       ← summary/FAQ/study_guide/timeline/briefing SSE gen
+    notebookPdfExportService.ts    ← Puppeteer HTML→PDF, same branding as Nexus Link template
+    notebookObsidianSyncService.ts ← push generated docs to NISABA/09_NOTEBOOK/
+    notebookVizService.ts          ← entity freq, temporal, topic graph, sentiment via neuralForge
+  routes/
+    notebookRoutes.ts              ← all /api/notebook/* routes
+```
+
+### Frontend
+
+```
+src/
+  lib/
+    notebookBridge.ts              ← API client (mirrors oracleCommandBridge.ts pattern)
+  components/Oracle/NotebookTab/
+    NotebookTab.tsx                ← two-pane root (280px sources | flex-1 right)
+    SourcesPanel.tsx               ← notebook selector + source list
+    SourceCard.tsx                 ← type icon + status badge + delete
+    SourceUploadZone.tsx           ← drag-drop + URL input + obsidian picker
+    ChatPane.tsx                   ← RAG Q&A with SSE, citation pills, reuses oracle-msg CSS
+    GeneratedDocsSection.tsx       ← collapsible accordion of DocCards
+    DocCard.tsx                    ← doc type badge, markdown preview, PDF export, Obsidian sync
+    VizPanel.tsx                   ← tab bar: Entities | Temporal | Topics | Sentiment
+    BarChart.tsx                   ← Canvas 2D (no new lib)
+    LineChart.tsx                  ← Canvas 2D (no new lib)
+    NetworkGraph.tsx               ← Three.js force-directed (reuses existing three import)
+    SentimentGauge.tsx             ← SVG arc gauge
+```
+
+---
+
+## DB Schema (5 new tables, `CREATE TABLE IF NOT EXISTS`, no user_version change)
+
+```sql
+CREATE TABLE IF NOT EXISTS notebook_notebooks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL DEFAULT 'Untitled Notebook',
+    description TEXT,
+    model_id TEXT NOT NULL DEFAULT 'qwen-liberated:latest',
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS notebook_sources (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    notebook_id INTEGER NOT NULL REFERENCES notebook_notebooks(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    source_type TEXT NOT NULL CHECK (source_type IN ('pdf','docx','audio','video','url','obsidian')),
+    origin_path TEXT,
+    obsidian_path TEXT,
+    file_size_bytes INTEGER DEFAULT 0,
+    mime_type TEXT,
+    status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending','processing','ready','error')),
+    error_msg TEXT,
+    word_count INTEGER DEFAULT 0,
+    metadata TEXT,   -- JSON: duration, page_count, etc.
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS notebook_chunks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id INTEGER NOT NULL REFERENCES notebook_sources(id) ON DELETE CASCADE,
+    chunk_index INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    token_count INTEGER DEFAULT 0,
+    embedding TEXT,   -- JSON float[] from neuralForge.getEmbedding('nomic-embed-text')
+    metadata TEXT,    -- JSON: page_num, timestamp_start
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS notebook_docs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    notebook_id INTEGER NOT NULL REFERENCES notebook_notebooks(id) ON DELETE CASCADE,
+    doc_type TEXT NOT NULL
+        CHECK (doc_type IN ('summary','study_guide','faq','timeline','briefing')),
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    pdf_path TEXT,
+    obsidian_path TEXT,
+    model_id TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS notebook_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    notebook_id INTEGER NOT NULL REFERENCES notebook_notebooks(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('user','assistant')),
+    content TEXT NOT NULL,
+    sources_used TEXT,   -- JSON: chunk_id[]
+    created_at TEXT DEFAULT (datetime('now'))
+);
+```
+
+---
+
+## API Routes (`/api/notebook/*`)
+
+```
+POST   /api/notebook/notebooks                      create notebook
+GET    /api/notebook/notebooks                      list all
+GET    /api/notebook/notebooks/:id                  get + sources + docs
+PATCH  /api/notebook/notebooks/:id                  update title/description
+DELETE /api/notebook/notebooks/:id                  cascade delete
+
+POST   /api/notebook/notebooks/:id/sources/upload   multipart file[]
+POST   /api/notebook/notebooks/:id/sources/url      { url }
+POST   /api/notebook/notebooks/:id/sources/obsidian { vault_path }
+GET    /api/notebook/sources/:sourceId/status       { status, progress?, error? }
+DELETE /api/notebook/sources/:sourceId
+
+GET    /api/notebook/notebooks/:id/stream           SSE RAG chat (events: start|token|citation|done|error)
+POST   /api/notebook/notebooks/:id/generate         SSE doc gen (events: token|done → { doc_id })
+GET    /api/notebook/docs/:docId/pdf                binary PDF download
+POST   /api/notebook/docs/:docId/obsidian-sync      push to NISABA/09_NOTEBOOK/
+DELETE /api/notebook/docs/:docId
+
+GET    /api/notebook/notebooks/:id/viz/entities     EntityFreqData[]
+GET    /api/notebook/notebooks/:id/viz/temporal     TemporalPoint[]
+GET    /api/notebook/notebooks/:id/viz/topics       { nodes[], edges[] }
+GET    /api/notebook/notebooks/:id/viz/sentiment    SentimentResult
+```
+
+---
+
+## Key Reuse — Existing Patterns to Mirror
+
+| Pattern | Source file | Where to reuse |
+|---------|-------------|----------------|
+| SSE streaming loop | `api.ts:618` (oracle/stream) | `notebookRagService.streamAnswer()` + generate route |
+| `neuralForge.getEmbedding(text)` | `neuralForgeService.ts:210` | chunk embedding in `notebookIngestService` |
+| `neuralForge.chat()` | `oracleService.ts:70` | doc gen + viz extraction |
+| `obsidianRest.client.patch()` | `obsidianRestService.ts` | `notebookObsidianSyncService` |
+| `tableExists()` / `addColumnIfMissing()` | `database.ts` | `notebookSchema.ts` (import and reuse) |
+| Puppeteer PDF | Nexus Link template | `notebookPdfExportService.ts` |
+| `oracle-msg` / `oracle-tab` CSS | `OraclePage.tsx` | `ChatPane.tsx` + `VizPanel.tsx` |
+| `handleFileDrop` pattern | `OraclePage.tsx` | `SourceUploadZone.tsx` |
+
+---
+
+## New Dependencies
+
+### Backend (`backend/package.json`)
+```json
+"pdf-parse": "^1.1.1",
+"mammoth": "^1.8.0",
+"@mozilla/readability": "^0.5.0",
+"jsdom": "^26.0.0",
+"multer": "^1.4.5-lts.2",
+"puppeteer": "^24.0.0"
+```
+Dev: `@types/multer`, `@types/jsdom`, `@types/mammoth`
+
+### Frontend (`package.json`)
+**None.** Canvas 2D API (built-in), Three.js (already `^0.173.0`), SVG (built-in), Framer Motion (already present).
+
+---
+
+## Storage Paths
+
+| Type | Path |
+|------|------|
+| Uploaded files | `backend/data/notebook-uploads/` |
+| Exported PDFs | `backend/data/notebook-exports/` |
+| Obsidian sync target | `NISABA/09_NOTEBOOK/<type>-<ts>-<title>.md` |
+
+---
+
+## Transcription Logic (`notebookTranscribeService.ts`)
+
+```
+1. POST http://localhost:11434/api/transcribe  (Ollama Whisper)
+   → if 200: return { text, provider: 'ollama-whisper' }
+   → if 404 / non-200 / timeout 10s: fall through
+
+2. OpenAI Whisper API (whisper-1)
+   → requires OPENAI_API_KEY env var
+   → if missing: throw "No transcription provider available"
+   → return { text, provider: 'openai-whisper' }
+```
+
+---
+
+## Chunking Strategy
+
+- Window: 512 tokens (estimated as `words × 1.35`)
+- Overlap: 64 tokens
+- Min chunk: 50 tokens (discard smaller trailing chunks)
+- Embedding model: `nomic-embed-text` via `neuralForge.getEmbedding()`
+
+---
+
+## RAG Retrieval (`notebookRagService.ts`)
+
+- Embed query with `neuralForge.getEmbedding(query)`
+- Load all `notebook_chunks` with non-null `embedding` for the notebook
+- Cosine similarity (copy from `vectorSearchService.ts:33` pattern)
+- Take top 5 chunks (configurable)
+- System prompt: inject chunks as `[SOURCE: title, chunk N]\n<content>`
+- Citation events: `event: citation\ndata: { chunk_id, source_title, excerpt }\n\n`
+
+---
+
+## Verification Checklist
+
+### Schema
+- [ ] `runNotebookMigrations(db)` idempotent (run 3× without error)
+- [ ] All 5 tables in `sqlite_master` after first boot
+- [ ] `ON DELETE CASCADE` verified: delete notebook → all children gone
+- [ ] `status` CHECK constraint rejects `'unknown'`
+
+### Ingest Pipeline
+- [ ] PDF → `status: ready`, `word_count > 0`, chunks created, embeddings non-null
+- [ ] DOCX → same
+- [ ] URL (Wikipedia article) → readable text extracted (not HTML tags)
+- [ ] Audio (.mp3) → transcription text stored, chunks created
+- [ ] Obsidian vault note path → .md content ingested
+
+### RAG Chat
+- [ ] SSE sends `event: token` stream, ends with `event: done`
+- [ ] `event: citation` events carry `source_title` and `excerpt`
+- [ ] Empty notebook responds gracefully ("no sources yet")
+- [ ] Message persisted in `notebook_messages` after done
+
+### Document Generation
+- [ ] `summary` → valid markdown, saved to `notebook_docs`
+- [ ] PDF download returns `Content-Type: application/pdf`, opens correctly
+- [ ] Obsidian sync creates file at `NISABA/09_NOTEBOOK/`
+
+### Visualizations
+- [ ] `/viz/entities` — at least 1 entity for populated notebook
+- [ ] `/viz/sentiment` — `positive + neutral + negative ≈ 1.0`
+
+### Non-Destructive Oracle Health
+- [ ] `GET /api/oracle/stream` streams tokens unchanged
+- [ ] All existing Oracle tabs render without errors
+- [ ] `npm run build` completes without TypeScript errors
+- [ ] No `user_version` change in `nudimmud.db`
+- [ ] `PRAGMA table_info` on all 8 original tables shows unchanged column count
+- [ ] All mutating notebook routes require `X-API-KEY` header

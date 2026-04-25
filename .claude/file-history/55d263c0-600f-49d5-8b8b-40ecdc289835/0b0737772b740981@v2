@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# NUDIMMUD claude launcher — shows HUD splash for interactive sessions
+# Sits at ~/NUDIMMUD/bin (prepended to PATH) to intercept all launches.
+# Self-removes from PATH before exec'ing real claude to avoid recursion.
+
+if [[ "${NUDIMMUD_SPLASH_SHOWN:-0}" != "1" ]]; then
+  _interactive=1
+  for _arg in "$@"; do
+    case "$_arg" in
+      --print|-p|--version|-h|--help|--output-format) _interactive=0; break ;;
+    esac
+  done
+  unset _arg
+
+  if [[ "$_interactive" = "1" ]]; then
+    _G='\033[38;2;180;234;144m'
+    _G2='\033[38;2;56;87;36m'
+    _AU='\033[38;2;92;184;0m'
+    _GR='\033[38;2;168;168;168m'
+    _CY='\033[38;2;180;234;144m'
+    _RS='\033[0m'
+
+    printf "\n"
+    printf "${_AU}  ◆ CLAUDE CODE${_RS}  ${_G2}──────────────────────────────────────${_RS}\n"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "claude-sonnet-4-6"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "$(basename "$PWD")"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
+    printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
+    printf "\n"
+
+    unset _G _G2 _AU _GR _CY _RS
+  fi
+  unset _interactive
+fi
+
+export NUDIMMUD_SPLASH_SHOWN=1
+
+# Strip this wrapper's dir from PATH so exec finds the real claude binary
+_CLEAN_PATH="${PATH//$HOME\/NUDIMMUD\/bin:/}"
+_CLEAN_PATH="${_CLEAN_PATH//:$HOME\/NUDIMMUD\/bin/}"
+exec env PATH="$_CLEAN_PATH" claude "$@"

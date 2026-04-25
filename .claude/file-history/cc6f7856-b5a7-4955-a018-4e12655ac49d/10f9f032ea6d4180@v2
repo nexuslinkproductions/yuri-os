@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-04-24",
+  "entries": [
+    {
+      "date": "2026-04-24",
+      "component": "OraclePage",
+      "decision": "Three-column layout: 88px tab rail left, flex-1 center with orbs + chat, collapsible terminal pane at bottom. Avoids scattered tool UIs.",
+      "tokens_used": ["--bg-void", "--cyan-glow", "--gold-solar", "--bg-glass"],
+      "pattern": "Tab rail left + content right + collapsible bottom — reuse for any multi-tool page"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "OracleToolOrbs",
+      "decision": "Circular orbs (68px) with animated orbit ring, hover scale + glow. Arranged in flex-wrap grid. Type-coded: cyan=skill, gold=tool, red=danger. Tooltip on hover.",
+      "tokens_used": ["--cyan-glow", "--gold-solar", "--red-fusion"],
+      "pattern": "Orb cluster — use for any tool/capability catalog display"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "ChatInput",
+      "decision": "Plus icon bottom-left (file picker), textarea center, model select, reasoning level button, mic button, send button. All 34px height for alignment.",
+      "tokens_used": ["--bg-surface", "--cyan-glow", "--red-fusion"],
+      "pattern": "Unified chat bar pattern — replicate across any agent interface"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "VisualSynthesisLane",
+      "decision": "Collapsible dropdowns per provider (KIE primary expanded, remote collapsed). Model pills for selection. Generate button inline with prompt. Results grid below.",
+      "tokens_used": ["--cyan-glow", "--gold-solar"],
+      "pattern": "Layered provider dropdown — KIE first, remote second, always same pattern"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "TokenStatusBar",
+      "decision": "Dual bar (session + weekly) in footer. Bar turns gold >55%, red >80%. Monospace token counts with up/down arrows. Cost in gold. Polls every 5s.",
+      "tokens_used": ["--cyan-glow", "--gold-solar", "--red-fusion"],
+      "pattern": "Dual-metric status bar — reuse for any live telemetry display"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "PixelArtLogo",
+      "decision": "32x32 base SVG, cuneiform tablet motif, circuit trace overlay. Cyan/gold on void. Scanline overlay animation, glitch on hover. No rounded corners.",
+      "tokens_used": ["--cyan-glow", "--gold-solar", "--bg-void"],
+      "pattern": "Pixel art sigil — repeat grid-based SVG approach for any icon in the HUD"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "graph_path": "/Users/marcelspatz/design-uiux-knowledge-base/graph.json",
+  "sqlite_path": "/Users/marcelspatz/design-uiux-knowledge-base/offload_package/design_uiux.db",
+  "jsonl": {
+    "nodes": "nodes.jsonl",
+    "edges": "edges.jsonl",
+    "clusters": "clusters.jsonl"
+  },
+  "counts": {
+    "nodes": 58,
+    "edges": 64,
+    "clusters": 6
+  },
+  "tables": [
+    "nodes",
+    "edges",
+    "clusters"
+  ],
+  "recommended_use": [
+    "Use SQLite for local querying and joins",
+    "Use JSONL for embeddings, search indexes, and bulk ingest",
+    "Keep graph.json as the source of truth"
+  ]
+}

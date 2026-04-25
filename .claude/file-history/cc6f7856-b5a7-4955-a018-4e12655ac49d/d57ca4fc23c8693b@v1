@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+// Stop: finalize session, append to tracker, clean up stale sessions
+const fs = require('fs');
+const path = require('path');
+
+const TRACKER = '/Volumes/T7/NUDIMMUD/_SYSTEM/token-tracker.md';
+
+try {
+  const sessionPath = '/tmp/claude-current-session';
+  if (!fs.existsSync(sessionPath)) process.exit(0);
+  const sessionFile = fs.readFileSync(sessionPath, 'utf8').trim();
+  if (!fs.existsSync(sessionFile)) process.exit(0);
+
+  const session = JSON.parse(fs.readFileSync(sessionFile, 'utf8'));
+  const duration = Math.floor((Date.now() - new Date(session.startTime).getTime()) / 60000);
+  const toolCount = session.toolCalls.length;
+  const topTools = Object.entries(
+    session.toolCalls.reduce((acc, t) => { acc[t.tool] = (acc[t.tool] || 0) + 1; return acc; }, {})
+  ).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t, c]) => `${t}×${c}`).join(', ') || 'none';
+
+  const entry = `| ${new Date(session.startTime).toISOString().slice(0, 16)} | ${duration}m | ${toolCount} | ~${session.estimatedTokens.toLocaleString()} | ${topTools} |\n`;
+  fs.appendFileSync(TRACKER, entry);
+
+  // Clean up stale session files (>8h)
+  fs.readdirSync('/tmp').filter(f => f.startsWith('claude-session-')).forEach(f => {
+    const p = path.join('/tmp', f);
+    try { if (Date.now() - fs.statSync(p).mtimeMs > 28800000) fs.unlinkSync(p); } catch(e) {}
+  });
+
+  try { fs.unlinkSync(sessionPath); } catch(e) {}
+} catch(e) { /* silent */ }

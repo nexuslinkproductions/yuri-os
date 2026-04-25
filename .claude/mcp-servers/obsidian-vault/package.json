@@ -1,0 +1,20 @@
+{
+  "name": "obsidian-vault-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for querying Obsidian NUDIMMUD vault",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "node dist/index.js",
+    "inspect": "node --loader ts-node/esm dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

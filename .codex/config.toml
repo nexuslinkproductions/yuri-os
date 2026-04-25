@@ -1,0 +1,20 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+
+# Keep the skill surface focused in this workspace.
+# Large research / sandbox trees create noisy sessions and skill-list overflow.
+
+[[skills.config]]
+path = "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo"
+enabled = false
+
+[[skills.config]]
+path = "/Users/marcelspatz/NUDIMMUD/01_PROJECTS/openspace"
+enabled = false
+
+[[skills.config]]
+path = "/Users/marcelspatz/NUDIMMUD/01_PROJECTS/superpowers"
+enabled = false
+
+[[skills.config]]
+path = "/Users/marcelspatz/NUDIMMUD/01_PROJECTS/claude-cookbooks"
+enabled = false

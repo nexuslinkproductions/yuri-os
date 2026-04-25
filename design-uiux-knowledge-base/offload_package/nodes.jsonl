@@ -1,0 +1,58 @@
+{"id": "inspiration_lapa_ninja", "label": "Lapa Ninja", "type": "inspiration", "url": "https://www.lapa.ninja/"}
+{"id": "inspiration_land_book", "label": "Land-book", "type": "inspiration", "url": "https://land-book.com/"}
+{"id": "inspiration_mobbin", "label": "Mobbin", "type": "inspiration", "url": "https://mobbin.com/"}
+{"id": "inspiration_page_flows", "label": "Page Flows", "type": "inspiration", "url": "https://pageflows.com/"}
+{"id": "inspiration_rge", "label": "Really Good Emails", "type": "inspiration", "url": "https://reallygoodemails.com/"}
+{"id": "inspiration_one_page_love", "label": "One Page Love", "type": "inspiration", "url": "https://onepagelove.com/"}
+{"id": "inspiration_awwwwards", "label": "Awwwards", "type": "inspiration", "url": "https://www.awwwards.com/"}
+{"id": "inspiration_dribbble", "label": "Dribbble", "type": "inspiration", "url": "https://dribbble.com/"}
+{"id": "inspiration_behance", "label": "Behance", "type": "inspiration", "url": "https://www.behance.net/"}
+{"id": "repo_atlassian_design", "label": "Atlassian Design System", "type": "design_system", "url": "https://atlassian.design/design-system/"}
+{"id": "repo_shopify_polaris", "label": "Shopify Polaris", "type": "design_system", "url": "https://polaris-react.shopify.com/"}
+{"id": "repo_carbon", "label": "Carbon Design System", "type": "design_system", "url": "https://carbondesignsystem.com/"}
+{"id": "repo_adobe_spectrum", "label": "Adobe Spectrum", "type": "design_system", "url": "https://spectrum.adobe.com/"}
+{"id": "repo_storybook", "label": "Storybook", "type": "design_system", "url": "https://storybook.js.org/docs/"}
+{"id": "repo_ant_design", "label": "Ant Design", "type": "design_system", "url": "https://ant.design/docs/spec/overview/"}
+{"id": "repo_tailwind_plus", "label": "Tailwind Plus UI Blocks", "type": "design_system", "url": "https://tailwindcss.com/plus"}
+{"id": "repo_figma_examples", "label": "Figma Design System Examples", "type": "design_system", "url": "https://www.figma.com/resource-library/design-system-examples/"}
+{"id": "repo_figma_ui_kits", "label": "Figma UI Kits", "type": "design_system", "url": "https://help.figma.com/hc/en-us/articles/24037724065943-Start-designing-with-UI-kits"}
+{"id": "repo_shadcn_ui", "label": "shadcn/ui", "type": "design_system", "url": "https://github.com/shadcn-ui/ui"}
+{"id": "repo_radix_ui", "label": "Radix UI", "type": "design_system", "url": "https://github.com/radix-ui/primitives"}
+{"id": "repo_material_ui", "label": "Material UI", "type": "design_system", "url": "https://github.com/mui/material-ui"}
+{"id": "repo_headless_ui", "label": "Headless UI", "type": "design_system", "url": "https://github.com/tailwindlabs/headlessui"}
+{"id": "repo_primer", "label": "Primer", "type": "design_system", "url": "https://github.com/primer"}
+{"id": "repo_govuk", "label": "GOV.UK Design System", "type": "design_system", "url": "https://design-system.service.gov.uk/"}
+{"id": "repo_material_design", "label": "Material Design", "type": "design_system", "url": "https://m1.material.io/layout/principles.html"}
+{"id": "repo_fluent2", "label": "Fluent 2", "type": "design_system", "url": "https://fluent2.microsoft.design/design-principles"}
+{"id": "repo_awesome_design", "label": "Awesome Design", "type": "curated_list", "url": "https://github.com/gztchan/awesome-design"}
+{"id": "repo_awesome_ui", "label": "Awesome UI", "type": "curated_list", "url": "https://github.com/kevindeasis/awesome-ui"}
+{"id": "repo_awesome_design_systems", "label": "Awesome Design Systems", "type": "curated_list", "url": "https://github.com/klaufel/awesome-design-systems"}
+{"id": "repo_awesome_landing_page", "label": "Awesome Landing Page", "type": "curated_list", "url": "https://github.com/nordicgiant2/awesome-landing-page"}
+{"id": "ux_baymard_homepage", "label": "Baymard Homepage Benchmark", "type": "ux_skill", "url": "https://baymard.com/homepage-and-category-usability/benchmark/page-types/homepage/"}
+{"id": "ux_baymard_checkout", "label": "Baymard Checkout Research", "type": "ux_skill", "url": "https://baymard.com/research/checkout-usability"}
+{"id": "ux_smashing_guide", "label": "Smashing UX Guide", "type": "ux_skill", "url": "https://www.smashingmagazine.com/guides/ux-design/"}
+{"id": "ux_nngroup_principles", "label": "NNGroup Visual Design Principles", "type": "ux_skill", "url": "https://media.nngroup.com/media/articles/attachments/Principles_Visual_Design-Letter.pdf"}
+{"id": "ux_w3c_structure", "label": "W3C Page Structure", "type": "ux_skill", "url": "https://www.w3.org/WAI/tutorials/page-structure/"}
+{"id": "ux_w3c_forms", "label": "W3C Forms", "type": "ux_skill", "url": "https://www.w3.org/WAI/tutorials/forms/"}
+{"id": "ux_w3c_contrast", "label": "W3C Contrast Minimum", "type": "ux_skill", "url": "https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum"}
+{"id": "ux_govuk_content", "label": "GOV.UK Content Design", "type": "ux_skill", "url": "https://www.gov.uk/guidance/content-design/what-is-content-design"}
+{"id": "ux_atlassian_content", "label": "Atlassian Content Design", "type": "ux_skill", "url": "https://atlassian.design/get-started/content-design/"}
+{"id": "ux_apple_accessibility", "label": "Apple HIG Accessibility", "type": "ux_skill", "url": "https://developer.apple.com/design/human-interface-guidelines/accessibility"}
+{"id": "ux_material_accessibility", "label": "Material Accessibility", "type": "ux_skill", "url": "https://m1.material.io/usability/accessibility.html"}
+{"id": "ux_microsoft_inclusive", "label": "Microsoft Inclusive Design", "type": "ux_skill", "url": "https://inclusive.microsoft.design/"}
+{"id": "ai_framer", "label": "Framer AI / Wireframer", "type": "ai_tool", "url": "https://www.framer.com/solutions/landing-page-builder"}
+{"id": "ai_webflow_builder", "label": "Webflow AI Site Builder", "type": "ai_tool", "url": "https://webflow.com/ai-site-builder"}
+{"id": "ai_webflow_help", "label": "Webflow AI Help", "type": "ai_tool", "url": "https://help.webflow.com/hc/en-us/articles/38840145286035-Build-a-site-with-Webflow-s-AI-site-builder"}
+{"id": "ai_relume", "label": "Relume AI Site Builder", "type": "ai_tool", "url": "https://www.relume.io/"}
+{"id": "ai_v0_text", "label": "v0 Text Prompting", "type": "ai_tool", "url": "https://v0.dev/docs/text-prompting"}
+{"id": "ai_v0_prompt", "label": "How to prompt v0", "type": "ai_tool", "url": "https://vercel.com/blog/how-to-prompt-v0"}
+{"id": "ai_wix", "label": "Wix AI Landing Builder", "type": "ai_tool", "url": "https://www.wix.com/landing-page-builder"}
+{"id": "ai_uizard", "label": "Uizard", "type": "ai_tool", "url": "https://uizard.io/"}
+{"id": "ai_landingi", "label": "Landingi Lunar", "type": "ai_tool", "url": "https://www.landingi.com/product/lunar/"}
+{"id": "ai_unbounce", "label": "Unbounce Variant Optimization", "type": "ai_tool", "url": "https://unbounce.com/landing-pages/optimize-with-smart-traffic-landing-page-variants/"}
+{"id": "theme_inspiration", "label": "Inspiration Libraries", "type": "cluster"}
+{"id": "theme_design_systems", "label": "Design Systems", "type": "cluster"}
+{"id": "theme_ux_skills", "label": "UI/UX Skill Resources", "type": "cluster"}
+{"id": "theme_ai_builders", "label": "AI Landing Builders", "type": "cluster"}
+{"id": "theme_prompting", "label": "Prompting Heuristics", "type": "cluster"}
+{"id": "theme_flow_references", "label": "Flow References", "type": "cluster"}

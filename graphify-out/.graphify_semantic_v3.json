@@ -1,0 +1,2793 @@
+{
+  "nodes": [
+    {
+      "id": "v3_claudeflowv3",
+      "label": "Claude Flow V3",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_swarm",
+      "label": "@claude-flow/swarm",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_guidance",
+      "label": "@claude-flow/guidance",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_memory",
+      "label": "@claude-flow/memory",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_security",
+      "label": "@claude-flow/security",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/security/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_unifiedswarmcoordinator",
+      "label": "UnifiedSwarmCoordinator",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/README.md",
+      "source_location": "Architecture (ADR-003)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_queencoordinator",
+      "label": "QueenCoordinator",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/README.md",
+      "source_location": "Key Components",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_agentdb",
+      "label": "AgentDB",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md",
+      "source_location": "Features",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_hnsw",
+      "label": "HNSW Index",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md",
+      "source_location": "Features",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_wasmkernel",
+      "label": "WASM Policy Kernel",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G025-wasm-kernel.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_trustsystem",
+      "label": "TrustSystem",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G017-trust-score-accumulation.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_proofchain",
+      "label": "ProofChain",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/README.md",
+      "source_location": "Layer 0 \u2014 Proof Anchoring",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_g017",
+      "label": "ADR-G017: Trust Score Accumulation",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G017-trust-score-accumulation.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_g025",
+      "label": "ADR-G025: Rust WASM Policy Kernel",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G025-wasm-kernel.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_sparc",
+      "label": "SPARC methodology",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/README.md",
+      "source_location": "License",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_guidance_control_plane",
+      "label": "Guidance Control Plane",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_policy_bundle",
+      "label": "PolicyBundle",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_constitution",
+      "label": "Constitution",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G002-constitution-shard-split.md",
+      "source_location": "Tier 1: Constitution",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_rule_shard",
+      "label": "RuleShard",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G002-constitution-shard-split.md",
+      "source_location": "Tier 2: Shards",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_enforcement_gates",
+      "label": "EnforcementGates",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_capability_algebra",
+      "label": "CapabilityAlgebra",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G010-capability-algebra.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_artifact_ledger",
+      "label": "Artifact Ledger",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G011-artifact-ledger.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_coherence_scheduler",
+      "label": "CoherenceScheduler",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G015-coherence-driven-throttling.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_economic_governor",
+      "label": "EconomicGovernor",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G015-coherence-driven-throttling.md",
+      "source_location": "Economic Governor",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_trust_ledger",
+      "label": "TrustLedger",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G017-trust-score-accumulation.md",
+      "source_location": "Ledger",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_g001",
+      "label": "ADR-G001: Guidance Control Plane",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_g002",
+      "label": "ADR-G002: Constitution / Shard Split",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G002-constitution-shard-split.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_g010",
+      "label": "ADR-G010: Capability Algebra",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G010-capability-algebra.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_g011",
+      "label": "ADR-G011: Artifact Ledger",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G011-artifact-ledger.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_g015",
+      "label": "ADR-G015: Coherence-Driven Throttling",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G015-coherence-driven-throttling.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_destructive_ops_gate",
+      "label": "Destructive Operations Gate",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": "Gate 1: Destructive Operations",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_tool_allowlist_gate",
+      "label": "Tool Allowlist Gate",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": "Gate 2: Tool Allowlist",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_diff_size_gate",
+      "label": "Diff Size Gate",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": "Gate 3: Diff Size",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_secrets_gate",
+      "label": "Secrets Detection Gate",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": "Gate 4: Secrets Detection",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_deterministic_tool_gateway",
+      "label": "Deterministic Tool Gateway",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G006-deterministic-tool-gateway.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_plugin_sdk",
+      "label": "@claude-flow/plugins",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_aidefence",
+      "label": "@claude-flow/aidefence",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/aidefence/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_codex_adapter",
+      "label": "@claude-flow/codex",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/codex/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_mcp_tool_builder",
+      "label": "MCP Tool Builder",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/README.md",
+      "source_location": "Features",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_hook_system",
+      "label": "Hook System",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/README.md",
+      "source_location": "Features",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_worker_pool",
+      "label": "Worker Pool",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/README.md",
+      "source_location": "Features",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_dual_mode",
+      "label": "Dual Mode",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/codex/README.md",
+      "source_location": "Dual-Mode Integration",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_g004",
+      "label": "ADR-G004: Four Enforcement Gates",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_g006",
+      "label": "ADR-G006: Deterministic Tool Gateway",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G006-deterministic-tool-gateway.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_ruflo",
+      "label": "RuFlo v3.5",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Introduction",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_ruvector",
+      "label": "RuVector Intelligence Layer",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Intelligence Layer",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_sona",
+      "label": "SONA",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_ewc_plus",
+      "label": "EWC++",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_flash_attention",
+      "label": "Flash Attention",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_event_store",
+      "label": "Event Store",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_README.md",
+      "source_location": "Overview",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_performance_module",
+      "label": "@claude-flow/performance",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/performance/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_browser_module",
+      "label": "@claude-flow/browser",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_trajectory_learning",
+      "label": "Trajectory Learning",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/README.md",
+      "source_location": "Key Features",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_agent_booster",
+      "label": "Agent Booster",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Agent Booster (WASM)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_token_optimizer",
+      "label": "Token Optimizer",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Token Optimizer",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_claims_system",
+      "label": "Claims System",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Key Differentiators",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_007",
+      "label": "ADR-007: Event Store Persistence",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_README.md",
+      "source_location": "ADR Compliance",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_049",
+      "label": "ADR-049: Self-Learning Memory with GNN",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Self-Learning Memory (ADR-049)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_flash_attention_optimizer",
+      "label": "Flash Attention Optimizer",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/performance/docs/ATTENTION.md",
+      "source_location": "Features",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_sona_manager",
+      "label": "SONA Manager",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/neural/README.md",
+      "source_location": "API Reference",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_rl_algorithms",
+      "label": "RL Algorithms",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/neural/README.md",
+      "source_location": "Features",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_quantum_optimizer_plugin",
+      "label": "Quantum Optimizer Plugin",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/plugins/quantum-optimizer/README.md",
+      "source_location": "Introduction",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_cognitive_kernel_plugin",
+      "label": "Cognitive Kernel Plugin",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/plugins/cognitive-kernel/README.md",
+      "source_location": "Introduction",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_working_memory_slot",
+      "label": "Working Memory Slot",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/plugins/cognitive-kernel/README.md",
+      "source_location": "Quick Start",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_attention_control_mode",
+      "label": "Attention Control Mode",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/plugins/cognitive-kernel/README.md",
+      "source_location": "Quick Start",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_cognitive_load_assessment",
+      "label": "Cognitive Load Assessment",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/plugins/cognitive-kernel/README.md",
+      "source_location": "MCP Tools",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_trajectory_id",
+      "label": "Trajectory ID",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/neural/README.md",
+      "source_location": "Quick Start",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_ewc_plus_config",
+      "label": "EWC++ Config",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/neural/README.md",
+      "source_location": "EWC++ (Elastic Weight Consolidation)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_agentic_qe_plugin",
+      "label": "Agentic-QE Plugin",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/plugins/agentic-qe/README.md",
+      "source_location": "What is this?",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_test_case_entity",
+      "label": "TestCase Entity",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/quality-engineering/domain-model.md",
+      "source_location": "Entity: TestCase",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_quality_gate_aggregate",
+      "label": "QualityGate Aggregate",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/quality-engineering/domain-model.md",
+      "source_location": "Entity: QualityGate",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_chaos_experiment_entity",
+      "label": "ChaosExperiment Entity",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/quality-engineering/domain-model.md",
+      "source_location": "Entity: ChaosExperiment",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_coherence_engine_domain",
+      "label": "Coherence Engine Domain Model",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/coherence-engine/domain-model.md",
+      "source_location": "Overview",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_coherence_energy_vo",
+      "label": "CoherenceEnergy VO",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/coherence-engine/domain-model.md",
+      "source_location": "Value Objects",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_spectral_gap_vo",
+      "label": "SpectralGap VO",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/coherence-engine/domain-model.md",
+      "source_location": "Value Objects",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_causal_query_entity",
+      "label": "CausalQuery Entity",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/coherence-engine/domain-model.md",
+      "source_location": "Entities",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_mcp_tools_implementation",
+      "label": "MCP Tools Implementation",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/mcp/tools/IMPLEMENTATION.md",
+      "source_location": "File Structure",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_agent_spawn_tool",
+      "label": "agent/spawn MCP Tool",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/mcp/tools/IMPLEMENTATION.md",
+      "source_location": "Agent Tools (4)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_swarm_init_tool",
+      "label": "swarm/init MCP Tool",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/mcp/tools/IMPLEMENTATION.md",
+      "source_location": "Swarm Tools (3)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_memory_search_tool",
+      "label": "memory/search MCP Tool",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/mcp/tools/IMPLEMENTATION.md",
+      "source_location": "Memory Tools (3)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_15_agent_swarm",
+      "label": "15-Agent Concurrent Swarm",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Overview",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_queen_coordinator",
+      "label": "Queen Coordinator",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_security_domain_agents",
+      "label": "Security Domain Agents",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_core_domain_agents",
+      "label": "Core Domain Agents",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_integration_domain_agents",
+      "label": "Integration Domain Agents",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_quality_performance_agents",
+      "label": "Quality & Performance Agents",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_release_engineer_agent",
+      "label": "Release Engineer Agent",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_swarm_message",
+      "label": "SwarmMessage",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Concurrency Model",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_security_audit_v2",
+      "label": "Security Audit v2.7.47",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/security/SECURITY_SUMMARY.md",
+      "source_location": "Quick Overview",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_claude_code_hooks",
+      "label": "Claude Code Hooks",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/init/HOOKS.md",
+      "source_location": "Overview",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_pre_edit_hook",
+      "label": "hooks pre-edit",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/init/HOOKS.md",
+      "source_location": "PreToolUse Hooks",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_post_edit_hook",
+      "label": "hooks post-edit",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/init/HOOKS.md",
+      "source_location": "PostToolUse Hooks",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_route_hook",
+      "label": "hooks route",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/init/HOOKS.md",
+      "source_location": "UserPromptSubmit Hook",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_master_plan",
+      "label": "Claude-Flow v3 Master Plan",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/planning/CLAUDE-FLOW-V3-MASTER-PLAN.md",
+      "source_location": "Executive Summary",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_agent_booster_routing",
+      "label": "Agent Booster AST-Based Dynamic Model Routing",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-026-agent-booster-model-routing.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_ast_complexity_analysis",
+      "label": "AST Complexity Analysis",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-026-agent-booster-model-routing.md",
+      "source_location": "Routing Flow",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_ipfs_pattern_sharing",
+      "label": "IPFS-Based Pattern Sharing System",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "Decision",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_anonymization_pipeline",
+      "label": "Anonymization Pipeline",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "Anonymization Levels",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_pattern_marketplace",
+      "label": "Pattern Marketplace",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "Pattern Marketplace (Plugin Store)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_pii_detector",
+      "label": "PII Detector",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "PII Detection & Redaction",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_cfp_format",
+      "label": "Claude Flow Pattern (.cfp) format",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "Export Format Specification",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_sqljs_windows_support",
+      "label": "sql.js Windows Support",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/planning/CLAUDE-FLOW-V3-MASTER-PLAN.md",
+      "source_location": "4. Windows Support via sql.js",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_026",
+      "label": "ADR-026: Agent Booster AST-Based Dynamic Model Routing",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-026-agent-booster-model-routing.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_021",
+      "label": "ADR-021: Transfer Hook - IPFS-Based Pattern Sharing",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "changelog_v3_release",
+      "label": "V3 Release",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/CHANGELOG.md"
+    },
+    {
+      "id": "readme_ruflo_v3",
+      "label": "Ruflo V3",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/README.md"
+    },
+    {
+      "id": "claude_workflow",
+      "label": "Claude Workflow",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/CLAUDE.md"
+    },
+    {
+      "id": "migration_swarm",
+      "label": "Swarm Migration",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/MIGRATION.md"
+    },
+    {
+      "id": "readme_swarm",
+      "label": "Swarm Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/README.md"
+    },
+    {
+      "id": "readme_embeddings",
+      "label": "Embeddings Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/embeddings/README.md"
+    },
+    {
+      "id": "readme_memory",
+      "label": "Memory Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md"
+    },
+    {
+      "id": "cross_platform_memory",
+      "label": "Cross-Platform Memory",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/docs/CROSS_PLATFORM.md"
+    },
+    {
+      "id": "windows_support_memory",
+      "label": "Windows Support Memory",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/docs/WINDOWS_SUPPORT.md"
+    },
+    {
+      "id": "agentdb_integration",
+      "label": "AgentDB Integration",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/docs/AGENTDB-INTEGRATION.md"
+    },
+    {
+      "id": "readme_security",
+      "label": "Security Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/security/README.md"
+    },
+    {
+      "id": "readme_guidance",
+      "label": "Guidance Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/README.md"
+    },
+    {
+      "id": "index_guidance",
+      "label": "Guidance Index",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/INDEX.md"
+    },
+    {
+      "id": "system_diagrams",
+      "label": "System Diagrams",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/diagrams/system-diagrams.md"
+    },
+    {
+      "id": "multi_agent_security",
+      "label": "Multi-Agent Security",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/multi-agent-security.md"
+    },
+    {
+      "id": "wasm_kernel",
+      "label": "WASM Kernel",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/wasm-kernel.md"
+    },
+    {
+      "id": "getting_started_guidance",
+      "label": "Getting Started Guidance",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/getting-started.md"
+    },
+    {
+      "id": "capabilities_and_trust",
+      "label": "Capabilities and Trust",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/capabilities-and-trust.md"
+    },
+    {
+      "id": "architecture_overview",
+      "label": "Architecture Overview",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/architecture-overview.md"
+    },
+    {
+      "id": "knowledge_management",
+      "label": "Knowledge Management",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/knowledge-management.md"
+    },
+    {
+      "id": "adr_g017_trust_score",
+      "label": "ADR-G017: Trust Score",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G017-trust-score-accumulation.md"
+    },
+    {
+      "id": "adr_g025_wasm_kernel",
+      "label": "ADR-G025: WASM Kernel",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G025-wasm-kernel.md"
+    },
+    {
+      "id": "adr_g009_headless_testing",
+      "label": "ADR-G009: Headless Testing",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G009-headless-testing-harness.md"
+    },
+    {
+      "id": "adr_g012_manifest_validator",
+      "label": "ADR-G012: Manifest Validator",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G012-manifest-validator.md"
+    },
+    {
+      "id": "adr_g018_truth_anchor",
+      "label": "ADR-G018: Truth Anchor",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G018-truth-anchor-system.md"
+    },
+    {
+      "id": "adr_g015_throttling",
+      "label": "ADR-G015: Throttling",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G015-coherence-driven-throttling.md"
+    },
+    {
+      "id": "adr_g016_container_integration",
+      "label": "ADR-G016: Container Integration",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G016-agentic-container-integration.md"
+    },
+    {
+      "id": "adr_g002_constitution_shard",
+      "label": "ADR-G002: Constitution Shard",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G002-constitution-shard-split.md"
+    },
+    {
+      "id": "adr_g024_continue_gate",
+      "label": "ADR-G024: Continue Gate",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G024-continue-gate.md"
+    },
+    {
+      "id": "adr_g005_proof_envelope",
+      "label": "ADR-G005: Proof Envelope",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G005-proof-envelope.md"
+    },
+    {
+      "id": "adr_g023_meta_governance",
+      "label": "ADR-G023: Meta Governance",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G023-meta-governance.md"
+    },
+    {
+      "id": "adr_g007_memory_write_gating",
+      "label": "ADR-G007: Memory Write Gating",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G007-memory-write-gating.md"
+    },
+    {
+      "id": "adr_g003_classification",
+      "label": "ADR-G003: Classification",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G003-intent-weighted-classification.md"
+    },
+    {
+      "id": "adr_g026_remediation",
+      "label": "ADR-G026: Remediation",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G026-review-remediation.md"
+    },
+    {
+      "id": "adr_g010_capability_algebra",
+      "label": "ADR-G010: Capability Algebra",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G010-capability-algebra.md"
+    },
+    {
+      "id": "adr_g008_optimizer_promotion",
+      "label": "ADR-G008: Optimizer Promotion",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G008-optimizer-promotion-rule.md"
+    },
+    {
+      "id": "adr_g011_artifact_ledger",
+      "label": "ADR-G011: Artifact Ledger",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G011-artifact-ledger.md"
+    },
+    {
+      "id": "adr_g019_uncertainty",
+      "label": "ADR-G019: Uncertainty",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G019-first-class-uncertainty.md"
+    },
+    {
+      "id": "adr_g013_evolution_pipeline",
+      "label": "ADR-G013: Evolution Pipeline",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G013-evolution-pipeline.md"
+    },
+    {
+      "id": "adr_g020_temporal_assertions",
+      "label": "ADR-G020: Temporal Assertions",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G020-temporal-assertions.md"
+    },
+    {
+      "id": "adr_g014_conformance_kit",
+      "label": "ADR-G014: Conformance Kit",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G014-conformance-kit.md"
+    },
+    {
+      "id": "adr_g022_adversarial_model",
+      "label": "ADR-G022: Adversarial Model",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G022-adversarial-model.md"
+    },
+    {
+      "id": "adr_g001_control_plane",
+      "label": "ADR-G001: Control Plane",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md"
+    },
+    {
+      "id": "adr_g021_human_authority",
+      "label": "ADR-G021: Human Authority",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G021-human-authority-and-irreversibility.md"
+    },
+    {
+      "id": "adr_g004_enforcement_gates",
+      "label": "ADR-G004: Enforcement Gates",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md"
+    },
+    {
+      "id": "adr_g006_tool_gateway",
+      "label": "ADR-G006: Tool Gateway",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G006-deterministic-tool-gateway.md"
+    },
+    {
+      "id": "tutorials_cicd_testing",
+      "label": "Tutorial: CI/CD Testing",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/tutorials/cicd-headless-testing.md"
+    },
+    {
+      "id": "tutorials_continue_gate",
+      "label": "Tutorial: Continue Gate",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/tutorials/continue-gate.md"
+    },
+    {
+      "id": "tutorials_proof_audit",
+      "label": "Tutorial: Proof Audit",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/tutorials/proof-audit-trail.md"
+    },
+    {
+      "id": "tutorials_enforcement_gates",
+      "label": "Tutorial: Enforcement Gates",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/tutorials/enforcement-gates.md"
+    },
+    {
+      "id": "api_quick_reference",
+      "label": "API Quick Reference",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/reference/api-quick-reference.md"
+    },
+    {
+      "id": "claude_md_analysis",
+      "label": "Claude MD Analysis",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/reports/claude-md-analysis.md"
+    },
+    {
+      "id": "flight_build_report",
+      "label": "Flight Build Report",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/reports/flight-build-report.md"
+    },
+    {
+      "id": "readme_plugins",
+      "label": "Plugins Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/README.md"
+    },
+    {
+      "id": "readme_ruvector_example",
+      "label": "RuVector Example Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/examples/ruvector/README.md"
+    },
+    {
+      "id": "architecture_ruvector",
+      "label": "RuVector Architecture",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/src/integrations/ruvector/ARCHITECTURE.md"
+    },
+    {
+      "id": "readme_integration",
+      "label": "Integration Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/integration/README.md"
+    },
+    {
+      "id": "readme_aidefence",
+      "label": "AIDefence Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/aidefence/README.md"
+    },
+    {
+      "id": "readme_providers",
+      "label": "Providers Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/providers/README.md"
+    },
+    {
+      "id": "readme_codex",
+      "label": "Codex Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/codex/README.md"
+    },
+    {
+      "id": "agents_codex",
+      "label": "Codex Agents",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/codex/AGENTS.md"
+    },
+    {
+      "id": "readme_mcp",
+      "label": "MCP Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/mcp/README.md"
+    },
+    {
+      "id": "claude_mcp",
+      "label": "Claude MCP",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/mcp/CLAUDE.md"
+    },
+    {
+      "id": "readme_shared",
+      "label": "Shared Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/README.md"
+    },
+    {
+      "id": "events_reference",
+      "label": "Events Reference",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_QUICK_REFERENCE.md"
+    },
+    {
+      "id": "events_summary",
+      "label": "Events Summary",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_IMPLEMENTATION_SUMMARY.md"
+    },
+    {
+      "id": "events_readme",
+      "label": "Events Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_README.md"
+    },
+    {
+      "id": "hooks_integration",
+      "label": "Hooks Integration",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/src/hooks/INTEGRATION.md"
+    },
+    {
+      "id": "hooks_readme",
+      "label": "Hooks Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/src/hooks/README.md"
+    },
+    {
+      "id": "readme_cli",
+      "label": "CLI Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md"
+    },
+    {
+      "id": "claude_cli",
+      "label": "Claude CLI",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/CLAUDE.md"
+    },
+    {
+      "id": "mcp_client_guide",
+      "label": "MCP Client Guide",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/docs/MCP_CLIENT_GUIDE.md"
+    },
+    {
+      "id": "implementation_complete_cli",
+      "label": "Implementation Complete CLI",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/docs/IMPLEMENTATION_COMPLETE.md"
+    },
+    {
+      "id": "refactoring_summary_cli",
+      "label": "Refactoring Summary CLI",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/docs/REFACTORING_SUMMARY.md"
+    },
+    {
+      "id": "config_loading_cli",
+      "label": "Config Loading CLI",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/docs/CONFIG_LOADING.md"
+    },
+    {
+      "id": "test_summary_cli",
+      "label": "Test Summary CLI",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/__tests__/TEST_SUMMARY.md"
+    },
+    {
+      "id": "readme_test_cli",
+      "label": "Test Readme CLI",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/__tests__/README.md"
+    },
+    {
+      "id": "setup_ipfs_registry",
+      "label": "Setup IPFS Registry",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/scripts/setup-ipfs-registry.md"
+    },
+    {
+      "id": "security_plugins_cli",
+      "label": "Security Plugins CLI",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/src/plugins/SECURITY.md"
+    },
+    {
+      "id": "readme_ruvector_cli",
+      "label": "RuVector Readme CLI",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/src/ruvector/README.md"
+    },
+    {
+      "id": "readme_testing",
+      "label": "Testing Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/testing/README.md"
+    },
+    {
+      "id": "readme_browser",
+      "label": "Browser Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/README.md"
+    },
+    {
+      "id": "browser_test_fixtures",
+      "label": "Browser Test Fixtures",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/docker/test-fixtures/index.html"
+    },
+    {
+      "id": "skill_browser",
+      "label": "Browser Skill",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/skills/browser/SKILL.md"
+    },
+    {
+      "id": "readme_deployment",
+      "label": "Deployment Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/deployment/README.md"
+    },
+    {
+      "id": "quick_start_deployment",
+      "label": "Quick Start Deployment",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/deployment/QUICK_START.md"
+    },
+    {
+      "id": "readme_hooks",
+      "label": "Hooks Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/hooks/README.md"
+    },
+    {
+      "id": "readme_performance",
+      "label": "Performance Readme",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/performance/README.md"
+    },
+    {
+      "id": "attention_performance",
+      "label": "Attention Performance",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/performance/docs/ATTENTION.md"
+    }
+  ],
+  "edges": [
+    {
+      "source": "v3_claudeflowv3",
+      "target": "v3_swarm",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_claudeflowv3",
+      "target": "v3_guidance",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_claudeflowv3",
+      "target": "v3_memory",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_claudeflowv3",
+      "target": "v3_security",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_swarm",
+      "target": "v3_unifiedswarmcoordinator",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/README.md",
+      "source_location": "Architecture (ADR-003)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_queencoordinator",
+      "target": "v3_unifiedswarmcoordinator",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/README.md",
+      "source_location": "Key Components",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_guidance",
+      "target": "v3_wasmkernel",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/README.md",
+      "source_location": "WASM Policy Kernel",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_guidance",
+      "target": "v3_trustsystem",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/README.md",
+      "source_location": "Layer 3 \u2014 Meta-Governance",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_trustsystem",
+      "target": "v3_adr_g017",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G017-trust-score-accumulation.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_wasmkernel",
+      "target": "v3_adr_g025",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G025-wasm-kernel.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_memory",
+      "target": "v3_agentdb",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md",
+      "source_location": "Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_agentdb",
+      "target": "v3_hnsw",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md",
+      "source_location": "Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_claudeflowv3",
+      "target": "v3_sparc",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/README.md",
+      "source_location": "License",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_guidance_control_plane",
+      "target": "v3_adr_g001",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_guidance_control_plane",
+      "target": "v3_policy_bundle",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_guidance_control_plane",
+      "target": "v3_enforcement_gates",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_policy_bundle",
+      "target": "v3_constitution",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_policy_bundle",
+      "target": "v3_rule_shard",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_constitution",
+      "target": "v3_adr_g002",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G002-constitution-shard-split.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_capability_algebra",
+      "target": "v3_adr_g010",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G010-capability-algebra.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_artifact_ledger",
+      "target": "v3_adr_g011",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G011-artifact-ledger.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_coherence_scheduler",
+      "target": "v3_adr_g015",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G015-coherence-driven-throttling.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_coherence_scheduler",
+      "target": "v3_economic_governor",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G015-coherence-driven-throttling.md",
+      "source_location": "Economic Governor",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_trust_ledger",
+      "target": "v3_adr_g017",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G017-trust-score-accumulation.md",
+      "source_location": "Ledger",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_enforcement_gates",
+      "target": "v3_destructive_ops_gate",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_enforcement_gates",
+      "target": "v3_tool_allowlist_gate",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_enforcement_gates",
+      "target": "v3_diff_size_gate",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_enforcement_gates",
+      "target": "v3_secrets_gate",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_enforcement_gates",
+      "target": "v3_adr_g004",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_deterministic_tool_gateway",
+      "target": "v3_adr_g006",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G006-deterministic-tool-gateway.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_deterministic_tool_gateway",
+      "target": "v3_enforcement_gates",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G006-deterministic-tool-gateway.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_plugin_sdk",
+      "target": "v3_mcp_tool_builder",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/README.md",
+      "source_location": "Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_plugin_sdk",
+      "target": "v3_hook_system",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/README.md",
+      "source_location": "Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_plugin_sdk",
+      "target": "v3_worker_pool",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/README.md",
+      "source_location": "Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_aidefence",
+      "target": "v3_security",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/aidefence/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_codex_adapter",
+      "target": "v3_dual_mode",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/codex/README.md",
+      "source_location": "Dual-Mode Integration",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_codex_adapter",
+      "target": "v3_claudeflowv3",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/codex/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruflo",
+      "target": "v3_ruvector",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Expanded Architecture",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruvector",
+      "target": "v3_sona",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruvector",
+      "target": "v3_ewc_plus",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruvector",
+      "target": "v3_flash_attention",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruflo",
+      "target": "v3_agent_booster",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Agent Booster (WASM)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruflo",
+      "target": "v3_token_optimizer",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Token Optimizer",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruflo",
+      "target": "v3_claims_system",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Key Differentiators",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_event_store",
+      "target": "v3_adr_007",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_README.md",
+      "source_location": "ADR Compliance",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_performance_module",
+      "target": "v3_flash_attention",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/performance/README.md",
+      "source_location": "Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_browser_module",
+      "target": "v3_trajectory_learning",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/README.md",
+      "source_location": "Key Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_trajectory_learning",
+      "target": "v3_sona",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/README.md",
+      "source_location": "Trajectory Tracking",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruvector",
+      "target": "v3_adr_049",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Self-Learning Memory (ADR-049)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_flash_attention",
+      "target": "v3_flash_attention_optimizer",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/performance/docs/ATTENTION.md",
+      "source_location": "Overview",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_sona",
+      "target": "v3_sona_manager",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/neural/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_sona_manager",
+      "target": "v3_rl_algorithms",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/neural/README.md",
+      "source_location": "Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_sona_manager",
+      "target": "v3_trajectory_id",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/neural/README.md",
+      "source_location": "Quick Start",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_sona_manager",
+      "target": "v3_ewc_plus_config",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/neural/README.md",
+      "source_location": "EWC++ (Elastic Weight Consolidation)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_quantum_optimizer_plugin",
+      "target": "v3_ruflo",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "RESEARCH/ruflo/v3/plugins/quantum-optimizer/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_cognitive_kernel_plugin",
+      "target": "v3_ruflo",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "RESEARCH/ruflo/v3/plugins/cognitive-kernel/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_cognitive_kernel_plugin",
+      "target": "v3_working_memory_slot",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/plugins/cognitive-kernel/README.md",
+      "source_location": "Quick Start",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_cognitive_kernel_plugin",
+      "target": "v3_attention_control_mode",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/plugins/cognitive-kernel/README.md",
+      "source_location": "Quick Start",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_cognitive_kernel_plugin",
+      "target": "v3_cognitive_load_assessment",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/plugins/cognitive-kernel/README.md",
+      "source_location": "MCP Tools",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_cognitive_kernel_plugin",
+      "target": "v3_sona",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/plugins/cognitive-kernel/README.md",
+      "source_location": "Introduction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_agentic_qe_plugin",
+      "target": "v3_test_case_entity",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/quality-engineering/domain-model.md",
+      "source_location": "Core Domain Entities",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_agentic_qe_plugin",
+      "target": "v3_quality_gate_aggregate",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/quality-engineering/domain-model.md",
+      "source_location": "Core Domain Entities",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_agentic_qe_plugin",
+      "target": "v3_chaos_experiment_entity",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/quality-engineering/domain-model.md",
+      "source_location": "Core Domain Entities",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_coherence_engine_domain",
+      "target": "v3_coherence_energy_vo",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/coherence-engine/domain-model.md",
+      "source_location": "Value Objects",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_coherence_engine_domain",
+      "target": "v3_spectral_gap_vo",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/coherence-engine/domain-model.md",
+      "source_location": "Value Objects",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_coherence_engine_domain",
+      "target": "v3_causal_query_entity",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/docs/ddd/coherence-engine/domain-model.md",
+      "source_location": "Entities",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_mcp_tools_implementation",
+      "target": "v3_agent_spawn_tool",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/mcp/tools/IMPLEMENTATION.md",
+      "source_location": "Agent Tools (4)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_mcp_tools_implementation",
+      "target": "v3_swarm_init_tool",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/mcp/tools/IMPLEMENTATION.md",
+      "source_location": "Swarm Tools (3)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_mcp_tools_implementation",
+      "target": "v3_memory_search_tool",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/mcp/tools/IMPLEMENTATION.md",
+      "source_location": "Memory Tools (3)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_mcp_tools_implementation",
+      "target": "v3_adr_005",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/mcp/tools/IMPLEMENTATION.md",
+      "source_location": "Architecture Compliance",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_15_agent_swarm",
+      "target": "v3_queen_coordinator",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_15_agent_swarm",
+      "target": "v3_security_domain_agents",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_15_agent_swarm",
+      "target": "v3_core_domain_agents",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_15_agent_swarm",
+      "target": "v3_integration_domain_agents",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_15_agent_swarm",
+      "target": "v3_quality_performance_agents",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_15_agent_swarm",
+      "target": "v3_release_engineer_agent",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Agent Roster (15 Agents)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_15_agent_swarm",
+      "target": "v3_swarm_message",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/swarm-plans/SWARM-OVERVIEW.md",
+      "source_location": "Concurrency Model",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_security_domain_agents",
+      "target": "v3_security_audit_v2",
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "RESEARCH/ruflo/v3/implementation/security/SECURITY_SUMMARY.md",
+      "source_location": "Critical Issues",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_claude_code_hooks",
+      "target": "v3_pre_edit_hook",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/init/HOOKS.md",
+      "source_location": "PreToolUse Hooks",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_claude_code_hooks",
+      "target": "v3_post_edit_hook",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/init/HOOKS.md",
+      "source_location": "PostToolUse Hooks",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_claude_code_hooks",
+      "target": "v3_route_hook",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/init/HOOKS.md",
+      "source_location": "UserPromptSubmit Hook",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruflo",
+      "target": "v3_master_plan",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/planning/CLAUDE-FLOW-V3-MASTER-PLAN.md",
+      "source_location": "Executive Summary",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_agent_booster_routing",
+      "target": "v3_adr_026",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-026-agent-booster-model-routing.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_agent_booster_routing",
+      "target": "v3_ast_complexity_analysis",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-026-agent-booster-model-routing.md",
+      "source_location": "Routing Flow",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ipfs_pattern_sharing",
+      "target": "v3_adr_021",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "Decision",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ipfs_pattern_sharing",
+      "target": "v3_anonymization_pipeline",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "Architecture Overview",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ipfs_pattern_sharing",
+      "target": "v3_pattern_marketplace",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "Pattern Marketplace (Plugin Store)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ipfs_pattern_sharing",
+      "target": "v3_cfp_format",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "Architecture Overview",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_anonymization_pipeline",
+      "target": "v3_pii_detector",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/adrs/ADR-021-transfer-hook-ipfs-pattern-sharing.md",
+      "source_location": "PII Detection & Redaction",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruflo",
+      "target": "v3_sqljs_windows_support",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/implementation/planning/CLAUDE-FLOW-V3-MASTER-PLAN.md",
+      "source_location": "4. Windows Support via sql.js",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_ruflo_v3",
+      "target": "changelog_v3_release",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/README.md"
+    },
+    {
+      "source": "readme_swarm",
+      "target": "migration_swarm",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/README.md"
+    },
+    {
+      "source": "readme_memory",
+      "target": "agentdb_integration",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md"
+    },
+    {
+      "source": "readme_memory",
+      "target": "cross_platform_memory",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md"
+    },
+    {
+      "source": "readme_memory",
+      "target": "windows_support_memory",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md"
+    },
+    {
+      "source": "readme_guidance",
+      "target": "index_guidance",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/README.md"
+    },
+    {
+      "source": "index_guidance",
+      "target": "architecture_overview",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/INDEX.md"
+    },
+    {
+      "source": "wasm_kernel",
+      "target": "adr_g025_wasm_kernel",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/wasm-kernel.md"
+    },
+    {
+      "source": "capabilities_and_trust",
+      "target": "adr_g017_trust_score",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/capabilities-and-trust.md"
+    },
+    {
+      "source": "agentdb_integration",
+      "target": "adr_g025_wasm_kernel",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.7,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/docs/AGENTDB-INTEGRATION.md"
+    },
+    {
+      "source": "adr_g001_control_plane",
+      "target": "adr_g004_enforcement_gates",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md"
+    },
+    {
+      "source": "adr_g004_enforcement_gates",
+      "target": "adr_g006_tool_gateway",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md"
+    },
+    {
+      "source": "adr_g011_artifact_ledger",
+      "target": "adr_g005_proof_envelope",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G011-artifact-ledger.md"
+    },
+    {
+      "source": "adr_g024_continue_gate",
+      "target": "adr_g004_enforcement_gates",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G024-continue-gate.md"
+    },
+    {
+      "source": "adr_g013_evolution_pipeline",
+      "target": "adr_g008_optimizer_promotion",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G013-evolution-pipeline.md"
+    },
+    {
+      "source": "tutorials_cicd_testing",
+      "target": "adr_g009_headless_testing",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/tutorials/cicd-headless-testing.md"
+    },
+    {
+      "source": "tutorials_continue_gate",
+      "target": "adr_g024_continue_gate",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/tutorials/continue-gate.md"
+    },
+    {
+      "source": "tutorials_enforcement_gates",
+      "target": "adr_g004_enforcement_gates",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/tutorials/enforcement-gates.md"
+    },
+    {
+      "source": "architecture_ruvector",
+      "target": "readme_ruvector_example",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/plugins/src/integrations/ruvector/ARCHITECTURE.md"
+    },
+    {
+      "source": "agents_codex",
+      "target": "readme_codex",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/codex/AGENTS.md"
+    },
+    {
+      "source": "events_summary",
+      "target": "events_reference",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_IMPLEMENTATION_SUMMARY.md"
+    },
+    {
+      "source": "hooks_integration",
+      "target": "hooks_readme",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/src/hooks/INTEGRATION.md"
+    },
+    {
+      "source": "mcp_client_guide",
+      "target": "readme_cli",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/docs/MCP_CLIENT_GUIDE.md"
+    },
+    {
+      "source": "config_loading_cli",
+      "target": "readme_cli",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/docs/CONFIG_LOADING.md"
+    },
+    {
+      "source": "quick_start_deployment",
+      "target": "readme_deployment",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/deployment/QUICK_START.md"
+    },
+    {
+      "source": "attention_performance",
+      "target": "readme_performance",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/performance/docs/ATTENTION.md"
+    }
+  ],
+  "hyperedges": []
+}

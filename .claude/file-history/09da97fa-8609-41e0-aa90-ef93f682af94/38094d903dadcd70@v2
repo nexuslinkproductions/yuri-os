@@ -1,0 +1,149 @@
+# Oracle Activation & Functionality — Rollout Audit + Fix Plan
+
+## Context
+
+Oracle is the primary human-AI interface for NUDIMMUD. Before first real-world use it has 4 silent failure modes that will make it feel broken, 2 deprecated API references that will hard-error, and no startup health gate. This plan audits every layer (voice, activation, routing, auth, startup) and delivers an ordered fix sequence for a stable rollout.
+
+---
+
+## Audit: Current Defects
+
+### P0 — Silent Failures / Will Break On First Use
+
+| # | Bug | File | Line | Symptom |
+|---|-----|------|------|---------|
+| 1 | `speak()` calls `speechSynthesis.cancel()` before every utterance | `src/main.ts` | 910 | Cuts off sentences mid-stream; contradicts React's no-cancel pattern |
+| 2 | Wake word → mic uses hardcoded 450ms DOM-ID contract | `src/main.ts` | 1101–1113 | Silently fails if React mounts >450ms (cold load, slow machine) |
+| 3 | `/api/oracle/stream` has NO auth | `backend/src/routes/api.ts` | 619–682 | Any reachable host can stream queries; open to abuse |
+| 4 | `claude-3-opus-20240229` model mapping is DEPRECATED | `backend/src/services/smartRouter.ts` / `neuralForgeService.ts` | — | Hard-errors on any cloud call targeting Opus |
+
+### P1 — Reliability / Rollout Blockers
+
+| # | Issue | File | Impact |
+|---|-------|------|--------|
+| 5 | No launchd plist for shellService.js | `backend/shellService.js` | Shell service dies on crash; must be restarted manually |
+| 6 | No startup health gate | `src/components/Oracle/OraclePage.tsx` | Oracle shows "ready" when backend/Ollama are down |
+| 7 | No Ollama-unavailable fallback UI | `OraclePage.tsx`, `oracleCommandBridge.ts` | Silent hang → user sees no error when local models aren't running |
+| 8 | Voice selection logic duplicated, mismatched | `src/main.ts:891–904` vs `OraclePage.tsx:107–120` | Different fallback order; inconsistent voice on cold start |
+
+### P2 — UX / Robustness
+
+| # | Issue | File | Impact |
+|---|-------|------|--------|
+| 9 | Council mode 180s hard timeout, no progressive feedback | `src/lib/oracleCommandBridge.ts` | User sees blank screen for up to 3 minutes |
+| 10 | EventSource has no reconnect logic | `oracleCommandBridge.ts:submitOracleCommandStream()` | One network hiccup kills session permanently |
+| 11 | No DB schema migration guard | `backend/src/services/personalityService.ts` | Corrupt/missing personality DB kills processCommand() |
+
+---
+
+## Fix Sequence
+
+### Phase 1 — P0 Fixes (do first, nothing else until these are done)
+
+**Fix 1: Remove `cancel()` from main.ts `speak()`**
+- File: `src/main.ts:910`
+- Change: Delete `speechSynthesis.cancel()` call
+- Align with OraclePage.tsx pattern: just enqueue utterances, cancel only on user new-command signal
+- Verify: Wake word → speak sequence produces uninterrupted sentence output
+
+**Fix 2: Replace hardcoded 450ms wake-word→mic timing with event-based handshake**
+- File: `src/main.ts:1096–1117` (triggerVoiceCommand)
+- Replace: polling retry loop (3× @ 150ms + 450ms initial wait)
+- With: Custom DOM event `oracle:ready` dispatched by OraclePage on mount; `triggerVoiceCommand` listens for it with a 2s timeout fallback
+- File: `src/components/Oracle/OraclePage.tsx` — add `dispatchEvent(new Event('oracle:ready'))` in `useEffect` on mount
+- Verify: Wake word activation works on cold load (fresh browser tab)
+
+**Fix 3: Add auth to `/api/oracle/stream`**
+- File: `backend/src/routes/api.ts:619`
+- Change: Add `authMiddleware` to the GET stream route (same as command route)
+- Frontend: Confirm `oracleCommandBridge.ts:submitOracleCommandStream()` passes `X-API-KEY` header in EventSource init (use `fetch`+`ReadableStream` instead of `EventSource` if header support needed)
+- Note: Browser-native `EventSource` does NOT support custom headers — must switch to `fetch`+stream or pass key as query param (less ideal but acceptable for localhost-only use)
+- Decision: Use query param `?apiKey=...` for stream endpoint (acceptable; service is localhost-only)
+- Verify: Unauthenticated request to `/api/oracle/stream` returns 403
+
+**Fix 4: Update deprecated Claude model mappings**
+- Files: `backend/src/services/smartRouter.ts`, `backend/src/services/neuralForgeService.ts`
+- Change:
+  - `claude-3-1-opus-liberated` → maps to `claude-opus-4-5-20251101` (or `claude-opus-4-7` if available)
+  - `claude-3-5-sonnet-liberated` → maps to `claude-sonnet-4-6` (current model in this session)
+- Verify: Cloud routing path returns valid response without API error
+
+---
+
+### Phase 2 — P1 Fixes
+
+**Fix 5: launchd plist for shellService.js**
+- Create: `/Users/marcelspatz/Library/LaunchAgents/com.nudimmud.shellservice.plist`
+- Config: `ProgramArguments: [node, /Users/marcelspatz/NUDIMMUD/backend/shellService.js]`, `KeepAlive: true`, `RunAtLoad: true`
+- Verify: `launchctl list | grep nudimmud` shows service; kill process → auto-restarts
+
+**Fix 6: Startup health gate in OraclePage**
+- File: `src/components/Oracle/OraclePage.tsx`
+- Add: `useEffect` on mount → `GET /api/health` + `GET /api/neural/status`
+- Show: Loading overlay with status breakdown until both healthy
+- States: `checking` → `backend_down` | `ollama_down` | `ready`
+- Verify: With Ollama stopped, Oracle shows "Local models unavailable — cloud fallback active" instead of blank
+
+**Fix 7: Ollama fallback feedback**
+- File: `backend/src/services/smartRouter.ts`
+- When: Ollama unreachable + cloud key present → set `preferredRuntime: 'cloud'`, log warning
+- When: Both down → return structured error `{ status: 'SYSTEM_UNAVAILABLE' }`
+- File: `OraclePage.tsx` — handle `SYSTEM_UNAVAILABLE` status with inline error message
+- Verify: Kill Ollama, send command → Oracle responds with cloud fallback or clear error
+
+**Fix 8: Consolidate voice selection**
+- Extract shared util: `src/lib/voiceSelector.ts`
+- Priority: `['Google UK English Female', 'Google US English', 'Microsoft Aria', 'en-GB', 'en-US', default]`
+- Replace both `initVoice()` (main.ts) and React voice selection (OraclePage.tsx) with import from this util
+- Verify: Same voice selected whether command comes from wake word or UI input
+
+---
+
+### Phase 3 — P2 Fixes
+
+**Fix 9: Council progressive feedback**
+- File: `src/lib/oracleCommandBridge.ts`
+- Add: Council phase events — `ENLIL`, `NABU`, `ENKI`, `INANNA` agent names shown as they complete
+- Reduce: `councilHardTimeout` from 180s → 90s
+- File: `OraclePage.tsx` — show active council agent name in deliberating state UI
+
+**Fix 10: EventSource reconnect**
+- File: `src/lib/oracleCommandBridge.ts:submitOracleCommandStream()`
+- Add: Exponential backoff reconnect (3 attempts, 1s/2s/4s delays) on `EventSource error`
+- Cap: 3 reconnects then emit `failed` state with user-visible message
+
+**Fix 11: Personality DB guard**
+- File: `backend/src/services/personalityService.ts`
+- Add: DB existence check on `processCommand()` entry; if missing → init with empty profile, log warning
+- Never throw — degrade gracefully to default system prompt
+
+---
+
+## Critical Files
+
+```
+src/main.ts                                    — Fix 1, 2 (speak, triggerVoiceCommand)
+src/components/Oracle/OraclePage.tsx           — Fix 2, 6, 7, 8 (event, health gate, fallback, voice)
+src/lib/oracleCommandBridge.ts                 — Fix 3, 9, 10 (auth, council feedback, reconnect)
+src/lib/voiceSelector.ts                       — Fix 8 (NEW utility, ~30 lines)
+backend/src/routes/api.ts                      — Fix 3 (stream auth)
+backend/src/services/smartRouter.ts            — Fix 4, 7 (model names, fallback)
+backend/src/services/neuralForgeService.ts     — Fix 4 (model mapping)
+backend/src/services/personalityService.ts     — Fix 11 (DB guard)
+~/Library/LaunchAgents/com.nudimmud.shellservice.plist  — Fix 5 (NEW)
+```
+
+---
+
+## Verification Checklist (end-to-end)
+
+1. **Cold boot**: Start system → Oracle health gate shows checking → transitions to ready
+2. **Wake word**: Say "oracle" → mic activates within 500ms (no 450ms race)
+3. **Voice command**: Speak query → stream response → TTS plays all sentences uninterrupted
+4. **Text command**: Type query → stream arrives → local model responds (or cloud fallback)
+5. **Shell**: Terminal tab → run `ls` → output streams correctly
+6. **Ollama down**: Kill Ollama → Oracle shows clear fallback state, cloud responds or error is shown
+7. **Auth**: `curl /api/oracle/stream?command=test` without key → 403
+8. **Shell service crash**: `kill $(lsof -ti:3098)` → launchd restarts it within 5s
+9. **Deprecated models**: Trigger cloud path → no API error, valid response
+10. **Council mode**: Submit strategy query → see agent names cycling, response in <90s

@@ -2,7 +2,7 @@
 
 export default function Footer() {
   return (
-    <footer className="py-16 bg-black border-t border-crimson/10">
+    <footer className="border-t border-white/10 bg-black py-16">
       <div className="max-w-6xl mx-auto px-6">
         <div className="grid md:grid-cols-3 gap-16 mb-16">
           {/* Brand info */}
@@ -15,28 +15,29 @@ export default function Footer() {
               />
               <span className="font-bold text-lg">NEXUS LINK</span>
             </div>
-            <p className="text-gray-400 text-base leading-relaxed">
-              Premium video production and post-production for premium brands.
+            <p className="text-white/65 text-base leading-relaxed">
+              Public landing, research workspace, and source shelf inside one
+              module shell.
             </p>
           </div>
 
           {/* Links */}
           <div className="space-y-4">
-            <p className="font-bold text-lg tracking-wide">SERVICES</p>
-            <ul className="space-y-3 text-gray-400">
+            <p className="font-bold text-lg tracking-wide">MODULES</p>
+            <ul className="space-y-3 text-white/65">
               <li>
-                <a href="#services" className="hover:text-crimson transition">
-                  Video Production
+                <a href="/" className="hover:text-crimson transition">
+                  NexusLink
                 </a>
               </li>
               <li>
-                <a href="#services" className="hover:text-crimson transition">
-                  Post-Production
+                <a href="/research" className="hover:text-crimson transition">
+                  Research
                 </a>
               </li>
               <li>
-                <a href="#services" className="hover:text-crimson transition">
-                  Motion Graphics
+                <a href="/sources" className="hover:text-crimson transition">
+                  Sources
                 </a>
               </li>
             </ul>
@@ -45,7 +46,7 @@ export default function Footer() {
           {/* Contact */}
           <div className="space-y-4">
             <p className="font-bold text-lg tracking-wide">CONTACT</p>
-            <ul className="space-y-3 text-gray-400">
+            <ul className="space-y-3 text-white/65">
               <li>
                 <a
                   href="mailto:contact@nexuslinkproductions.com"
@@ -59,7 +60,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-900 pt-8 text-center text-gray-500 text-sm">
+        <div className="border-t border-white/10 pt-8 text-center text-white/45 text-sm">
           <p>
             © 2026 Nexus Link Productions. All rights reserved. |{" "}
             <a href="#" className="hover:text-crimson transition">

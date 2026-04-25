@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Local reference mirror for the math-curve-loaders project.">
+  <title>Math Curve Loaders // Local Mirror</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-top">
+        <div class="badge">LOCAL REFERENCE MIRROR</div>
+        <div class="hero-links">
+          <a href="https://github.com/Paidax01/math-curve-loaders" target="_blank" rel="noreferrer">Upstream repo</a>
+          <a href="https://paidax01.github.io/math-curve-loaders/" target="_blank" rel="noreferrer">Live preview</a>
+          <a href="./README.md">README</a>
+        </div>
+      </div>
+
+      <div class="hero-copy">
+        <p class="eyebrow">Mathematical Curve Motion</p>
+        <h1>Math Curve Loaders</h1>
+        <p class="lede">
+          A dependency-free local mirror for the upstream curve-loader gallery.
+          This folder is meant to be easy to inspect, easy to ship, and clearly marked as a reference layer rather than the source of truth.
+        </p>
+      </div>
+
+      <div class="stats">
+        <article class="stat">
+          <strong>21</strong>
+          <span>curve families cataloged</span>
+        </article>
+        <article class="stat">
+          <strong>0</strong>
+          <span>runtime dependencies</span>
+        </article>
+        <article class="stat">
+          <strong>Static</strong>
+          <span>inspectable in any browser</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="catalog-panel">
+        <div class="section-label">Curve Families</div>
+        <div class="catalog" id="catalog" aria-label="Math curve family catalog"></div>
+      </aside>
+
+      <article class="detail-panel" id="detail-panel" aria-live="polite">
+        <div class="detail-preview" id="detail-preview" data-shape="rose">
+          <div class="ring ring-a"></div>
+          <div class="ring ring-b"></div>
+          <div class="ring ring-c"></div>
+          <div class="dot"></div>
+        </div>
+
+        <div class="detail-copy">
+          <div class="section-label">Selected Curve</div>
+          <h2 id="detail-title">Original Thinking</h2>
+          <p id="detail-family" class="detail-family">Rose / orbit</p>
+          <p id="detail-summary" class="detail-summary"></p>
+          <div class="detail-tags" id="detail-tags"></div>
+          <pre class="detail-note" id="detail-note"></pre>
+        </div>
+      </article>
+    </section>
+
+    <section class="source-panel">
+      <div class="section-label">Source Notes</div>
+      <div class="source-grid">
+        <article class="source-card">
+          <h3>What lives here</h3>
+          <p>
+            A local reference mirror with a curated catalog of the upstream gallery's curve families.
+            It stays lightweight on purpose so the bundle is easy to inspect in the repo.
+          </p>
+        </article>
+        <article class="source-card">
+          <h3>What stays upstream</h3>
+          <p>
+            The original interactive animation engine, the live preview site, and any future gallery changes remain upstream.
+            Use this folder as a local lookup layer.
+          </p>
+        </article>
+        <article class="source-card">
+          <h3>How to use it</h3>
+          <p>
+            Open this folder directly in the built app, or browse the files in place.
+            The README lists the source links and the local file map.
+          </p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

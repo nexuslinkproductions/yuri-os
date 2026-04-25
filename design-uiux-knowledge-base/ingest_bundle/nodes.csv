@@ -1,0 +1,59 @@
+id,label,type,url,tag,source_degree,target_degree
+inspiration_lapa_ninja,Lapa Ninja,inspiration,https://www.lapa.ninja/,inspiration,0,1
+inspiration_land_book,Land-book,inspiration,https://land-book.com/,inspiration,0,1
+inspiration_mobbin,Mobbin,inspiration,https://mobbin.com/,inspiration,0,1
+inspiration_page_flows,Page Flows,inspiration,https://pageflows.com/,inspiration,0,2
+inspiration_rge,Really Good Emails,inspiration,https://reallygoodemails.com/,inspiration,0,2
+inspiration_one_page_love,One Page Love,inspiration,https://onepagelove.com/,inspiration,0,2
+inspiration_awwwwards,Awwwards,inspiration,https://www.awwwards.com/,inspiration,0,1
+inspiration_dribbble,Dribbble,inspiration,https://dribbble.com/,inspiration,0,1
+inspiration_behance,Behance,inspiration,https://www.behance.net/,inspiration,0,1
+repo_atlassian_design,Atlassian Design System,design_system,https://atlassian.design/design-system/,design_system,0,1
+repo_shopify_polaris,Shopify Polaris,design_system,https://polaris-react.shopify.com/,design_system,0,1
+repo_carbon,Carbon Design System,design_system,https://carbondesignsystem.com/,design_system,0,1
+repo_adobe_spectrum,Adobe Spectrum,design_system,https://spectrum.adobe.com/,design_system,0,1
+repo_storybook,Storybook,design_system,https://storybook.js.org/docs/,design_system,0,1
+repo_ant_design,Ant Design,design_system,https://ant.design/docs/spec/overview/,design_system,0,1
+repo_tailwind_plus,Tailwind Plus UI Blocks,design_system,https://tailwindcss.com/plus,design_system,0,1
+repo_figma_examples,Figma Design System Examples,design_system,https://www.figma.com/resource-library/design-system-examples/,design_system,0,1
+repo_figma_ui_kits,Figma UI Kits,design_system,https://help.figma.com/hc/en-us/articles/24037724065943-Start-designing-with-UI-kits,design_system,0,1
+repo_shadcn_ui,shadcn/ui,design_system,https://github.com/shadcn-ui/ui,design_system,0,1
+repo_radix_ui,Radix UI,design_system,https://github.com/radix-ui/primitives,design_system,0,1
+repo_material_ui,Material UI,design_system,https://github.com/mui/material-ui,design_system,0,1
+repo_headless_ui,Headless UI,design_system,https://github.com/tailwindlabs/headlessui,design_system,0,1
+repo_primer,Primer,design_system,https://github.com/primer,design_system,0,1
+repo_govuk,GOV.UK Design System,design_system,https://design-system.service.gov.uk/,design_system,0,1
+repo_material_design,Material Design,design_system,https://m1.material.io/layout/principles.html,design_system,0,1
+repo_fluent2,Fluent 2,design_system,https://fluent2.microsoft.design/design-principles,design_system,0,1
+repo_awesome_design,Awesome Design,curated_list,https://github.com/gztchan/awesome-design,curated_list,0,1
+repo_awesome_ui,Awesome UI,curated_list,https://github.com/kevindeasis/awesome-ui,curated_list,0,1
+repo_awesome_design_systems,Awesome Design Systems,curated_list,https://github.com/klaufel/awesome-design-systems,curated_list,0,1
+repo_awesome_landing_page,Awesome Landing Page,curated_list,https://github.com/nordicgiant2/awesome-landing-page,curated_list,0,1
+ux_baymard_homepage,Baymard Homepage Benchmark,ux_skill,https://baymard.com/homepage-and-category-usability/benchmark/page-types/homepage/,ux_skill,0,2
+ux_baymard_checkout,Baymard Checkout Research,ux_skill,https://baymard.com/research/checkout-usability,ux_skill,0,1
+ux_smashing_guide,Smashing UX Guide,ux_skill,https://www.smashingmagazine.com/guides/ux-design/,ux_skill,0,1
+ux_nngroup_principles,NNGroup Visual Design Principles,ux_skill,https://media.nngroup.com/media/articles/attachments/Principles_Visual_Design-Letter.pdf,ux_skill,0,2
+ux_w3c_structure,W3C Page Structure,ux_skill,https://www.w3.org/WAI/tutorials/page-structure/,ux_skill,0,2
+ux_w3c_forms,W3C Forms,ux_skill,https://www.w3.org/WAI/tutorials/forms/,ux_skill,0,2
+ux_w3c_contrast,W3C Contrast Minimum,ux_skill,https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum,ux_skill,0,1
+ux_govuk_content,GOV.UK Content Design,ux_skill,https://www.gov.uk/guidance/content-design/what-is-content-design,ux_skill,0,1
+ux_atlassian_content,Atlassian Content Design,ux_skill,https://atlassian.design/get-started/content-design/,ux_skill,0,1
+ux_apple_accessibility,Apple HIG Accessibility,ux_skill,https://developer.apple.com/design/human-interface-guidelines/accessibility,ux_skill,0,1
+ux_material_accessibility,Material Accessibility,ux_skill,https://m1.material.io/usability/accessibility.html,ux_skill,0,1
+ux_microsoft_inclusive,Microsoft Inclusive Design,ux_skill,https://inclusive.microsoft.design/,ux_skill,0,1
+ai_framer,Framer AI / Wireframer,ai_tool,https://www.framer.com/solutions/landing-page-builder,ai_tool,0,2
+ai_webflow_builder,Webflow AI Site Builder,ai_tool,https://webflow.com/ai-site-builder,ai_tool,0,1
+ai_webflow_help,Webflow AI Help,ai_tool,https://help.webflow.com/hc/en-us/articles/38840145286035-Build-a-site-with-Webflow-s-AI-site-builder,ai_tool,0,2
+ai_relume,Relume AI Site Builder,ai_tool,https://www.relume.io/,ai_tool,0,2
+ai_v0_text,v0 Text Prompting,ai_tool,https://v0.dev/docs/text-prompting,ai_tool,0,1
+ai_v0_prompt,How to prompt v0,ai_tool,https://vercel.com/blog/how-to-prompt-v0,ai_tool,0,2
+ai_wix,Wix AI Landing Builder,ai_tool,https://www.wix.com/landing-page-builder,ai_tool,0,1
+ai_uizard,Uizard,ai_tool,https://uizard.io/,ai_tool,0,2
+ai_landingi,Landingi Lunar,ai_tool,https://www.landingi.com/product/lunar/,ai_tool,0,1
+ai_unbounce,Unbounce Variant Optimization,ai_tool,https://unbounce.com/landing-pages/optimize-with-smart-traffic-landing-page-variants/,ai_tool,0,1
+theme_inspiration,Inspiration Libraries,cluster,,cluster,9,0
+theme_design_systems,Design Systems,cluster,,cluster,21,0
+theme_ux_skills,UI/UX Skill Resources,cluster,,cluster,12,0
+theme_ai_builders,AI Landing Builders,cluster,,cluster,10,0
+theme_prompting,Prompting Heuristics,cluster,,cluster,9,0
+theme_flow_references,Flow References,cluster,,cluster,3,0

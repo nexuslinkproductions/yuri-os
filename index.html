@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NUDIMMUD // COMMAND CENTER</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#0d0a09">
+    <meta name="color-scheme" content="dark">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <a href="#module-content" class="skip-link">Skip to main content</a>
+
+    <!-- LAYER 0: BACKGROUND ENGINE -->
+    <canvas id="qi-flow-canvas"></canvas>
+    <div class="vignette"></div>
+    <div class="global-scanline"></div>
+
+    <!-- LAYER 1: APP SHELL — VSCode layout -->
+    <div class="app-shell">
+
+        <!-- COL 1: ACTIVITY BAR -->
+        <div class="vsc-activity-bar" id="vsc-activity-bar" role="navigation" aria-label="Activity">
+            <div class="vsc-activity-logo">
+                <img src="/src/assets/nudimmud-logo.svg" alt="NUDIMMUD" width="26" height="26"
+                     style="image-rendering:pixelated;" title="NUDIMMUD // Operator System" />
+            </div>
+            <div class="vsc-activity-actions">
+                <button class="vsc-activity-btn active" data-sidebar-target="modules"
+                        title="Modules" aria-label="Modules" aria-pressed="true">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <rect x="2" y="2" width="7" height="7" stroke="currentColor" stroke-width="1.2"/>
+                        <rect x="11" y="2" width="7" height="7" stroke="currentColor" stroke-width="1.2"/>
+                        <rect x="2" y="11" width="7" height="7" stroke="currentColor" stroke-width="1.2"/>
+                        <rect x="11" y="11" width="7" height="7" stroke="currentColor" stroke-width="1.2"/>
+                    </svg>
+                </button>
+                <button class="vsc-activity-btn" data-sidebar-target="oracle"
+                        title="Oracle" aria-label="Oracle" aria-pressed="false">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.2"/>
+                        <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.2"/>
+                        <line x1="10" y1="2" x2="10" y2="5" stroke="currentColor" stroke-width="1.2"/>
+                        <line x1="10" y1="15" x2="10" y2="18" stroke="currentColor" stroke-width="1.2"/>
+                    </svg>
+                </button>
+                <button class="vsc-activity-btn" data-sidebar-target="search"
+                        title="Search" aria-label="Search" aria-pressed="false">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.2"/>
+                        <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/>
+                    </svg>
+                </button>
+                <button class="vsc-activity-btn" data-sidebar-target="swarm"
+                        title="Swarm" aria-label="Swarm" aria-pressed="false">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <circle cx="10" cy="4"  r="2" stroke="currentColor" stroke-width="1.1"/>
+                        <circle cx="4"  cy="14" r="2" stroke="currentColor" stroke-width="1.1"/>
+                        <circle cx="16" cy="14" r="2" stroke="currentColor" stroke-width="1.1"/>
+                        <line x1="10" y1="6"  x2="4"  y2="12" stroke="currentColor" stroke-width="1"/>
+                        <line x1="10" y1="6"  x2="16" y2="12" stroke="currentColor" stroke-width="1"/>
+                        <line x1="6"  y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="1"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="vsc-activity-footer">
+                <div id="enki-orb" class="status-orb" title="System heartbeat"></div>
+            </div>
+        </div>
+
+        <!-- COL 2: SIDEBAR / MODULE EXPLORER -->
+        <nav id="sidebar-nav" class="vsc-sidebar" aria-label="Primary navigation">
+            <div class="vsc-sidebar-title">MODULES</div>
+            <div class="nav-node active" data-module="NEXUSLINK" tabindex="0" role="button">
+                <span class="nav-label">NexusLink</span>
+            </div>
+            <div class="nav-node" data-module="RESEARCH" tabindex="0" role="button">
+                <span class="nav-label">Research</span>
+            </div>
+            <div class="nav-node" data-module="CHRONOS" tabindex="0" role="button">
+                <span class="nav-label">Chronos</span>
+            </div>
+            <div class="nav-node" data-module="INDRA" tabindex="0" role="button">
+                <span class="nav-label">Indra</span>
+            </div>
+            <div class="nav-node" data-module="ABZU" tabindex="0" role="button">
+                <span class="nav-label">Abzu</span>
+            </div>
+            <div class="nav-node" data-module="LOGOS" tabindex="0" role="button">
+                <span class="nav-label">Logos</span>
+            </div>
+            <div class="nav-node" data-module="DIRECTIVE" tabindex="0" role="button">
+                <span class="nav-label">Directive</span>
+            </div>
+            <div class="vsc-sidebar-divider" role="separator"></div>
+            <div class="vsc-sidebar-title">AI</div>
+            <div class="nav-node" data-module="ORACLE" tabindex="0" role="button"
+                 style="color:var(--gold-solar);">
+                <span class="nav-label">Oracle</span>
+                <span class="nav-badge" style="color:var(--gold-solar);opacity:0.7;">◎</span>
+            </div>
+            <div class="nav-node" data-module="NEURAL_FORGE" tabindex="0" role="button">
+                <span class="nav-label">Neural Forge</span>
+            </div>
+            <div class="nav-node" data-module="BRIDGE" tabindex="0" role="button">
+                <span class="nav-label">Bridge</span>
+            </div>
+            <div class="nav-node" data-module="MNEMOSYNE" tabindex="0" role="button">
+                <span class="nav-label">Mnemosyne</span>
+            </div>
+            <div class="vsc-sidebar-divider" role="separator"></div>
+            <div class="vsc-sidebar-title">OPS</div>
+            <div class="nav-node" data-module="PHYSIS" tabindex="0" role="button">
+                <span class="nav-label">Physis</span>
+            </div>
+            <div class="nav-node" data-module="TICKETS" tabindex="0" role="button">
+                <span class="nav-label">Tickets</span>
+            </div>
+            <div class="nav-node" data-module="CONCLAVE_MONITOR" tabindex="0" role="button">
+                <span class="nav-label">Conclave</span>
+            </div>
+            <div class="nav-node" data-module="CATALOG" tabindex="0" role="button">
+                <span class="nav-label">Catalog</span>
+            </div>
+            <div class="nav-node" data-module="DESIGN_AUDIT" tabindex="0" role="button">
+                <span class="nav-label">Design Audit</span>
+            </div>
+            <div class="vsc-sidebar-footer">
+                <div class="vsc-sidebar-footer-item">
+                    <span class="brand-kicker" translate="no">OPERATOR SYSTEM</span>
+                    <span class="brand-wordmark" translate="no">NUDIMMUD</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- COL 3: EDITOR AREA -->
+        <div class="vsc-editor-area">
+
+            <!-- TITLE BAR (command rail + status) -->
+            <header class="shell-header vsc-title-bar">
+                <div class="cortex-command-shell">
+                    <div class="command-row">
+                        <span class="command-prefix">>></span>
+                        <input
+                            type="text"
+                            id="global-command-input"
+                            name="global-command"
+                            aria-label="Global operator command"
+                            placeholder="Route directive, module, or task…"
+                            autocomplete="off"
+                            spellcheck="false"
+                        >
+                    </div>
+                </div>
+                <div class="system-status">
+                    <div class="status-pill">
+                        <span class="status-pill-label">Heartbeat</span>
+                        <span id="shell-heartbeat">NOMINAL</span>
+                    </div>
+                    <div class="status-pill">
+                        <span class="status-pill-label">Risk</span>
+                        <span id="shell-risk">LOW</span>
+                    </div>
+                    <div class="status-pill">
+                        <span class="status-pill-label">Clock</span>
+                        <span id="clock">00:00:00</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- TAB BAR -->
+            <div class="vsc-tab-bar" id="vsc-tab-bar" role="tablist" aria-label="Open modules">
+                <div class="vsc-tab active" id="vsc-active-tab" role="tab" aria-selected="true">NexusLink</div>
+            </div>
+
+            <!-- BREADCRUMB -->
+            <div class="vsc-breadcrumb" aria-label="Breadcrumb">
+                <span class="vsc-breadcrumb-item">NUDIMMUD</span>
+                <span class="vsc-breadcrumb-sep" aria-hidden="true">›</span>
+                <span class="vsc-breadcrumb-item" id="vsc-breadcrumb-current">NexusLink</span>
+            </div>
+
+            <!-- MAIN CONTENT STAGE -->
+            <section id="module-content" class="vsc-editor-content" aria-live="polite">
+                <div style="padding:100px;text-align:center;opacity:0.42;font-family:var(--font-mono);letter-spacing:0.32em;">
+                    Loading command surface...
+                </div>
+            </section>
+
+            <!-- CONTEXT PANEL (slide-in from right) -->
+            <aside id="context-panel"></aside>
+
+        </div>
+
+        <!-- ROW 2: STATUS BAR (spans all cols) -->
+        <footer class="vsc-status-bar">
+            <div class="vsc-status-left">
+                <div class="vsc-status-item">
+                    <span style="opacity:0.65;">drive:</span>
+                    <span style="color:rgba(255,255,255,0.9);margin-left:4px;">Active</span>
+                </div>
+                <div class="vsc-status-item">
+                    <span style="opacity:0.65;">nodes:</span>
+                    <span style="color:rgba(255,255,255,0.9);margin-left:4px;" id="footer-node-count">--</span>
+                </div>
+                <div class="vsc-status-item vsc-status-bar-chart">
+                    <span style="opacity:0.6;">sync</span>
+                    <div class="telemetry-bar-bg" style="width:52px;height:3px;margin:0 4px;">
+                        <div id="bar-sync" class="telemetry-bar-fill" style="width:0%;background:rgba(255,255,255,0.7);box-shadow:none;"></div>
+                    </div>
+                    <span id="bar-sync-text">--%</span>
+                </div>
+                <div class="vsc-status-item">
+                    <span style="opacity:0.65;">load:</span>
+                    <span style="margin-left:4px;" id="load-percentage">--%</span>
+                </div>
+            </div>
+            <div class="vsc-status-right">
+                <div id="react-token-status-bar" style="height:22px;display:flex;align-items:center;"></div>
+                <div id="oracle-wake-status" class="vsc-status-item">Oracle</div>
+                <div class="vsc-status-item">
+                    <span style="opacity:0.65;">confidence:</span>
+                    <span style="margin-left:4px;" id="footer-confidence">MEDIUM</span>
+                </div>
+                <div class="vsc-status-item" id="footer-disagreement-wrap">
+                    <span id="footer-disagreement">CLEAR</span>
+                </div>
+                <div class="vsc-status-item">
+                    <span id="footer-heartbeat">NOMINAL</span>
+                </div>
+                <div class="vsc-status-item" style="opacity:0.55;">99.8% // 432Hz</div>
+            </div>
+        </footer>
+
+    </div><!-- /.app-shell -->
+
+    <!-- MISSION SIDEBAR OVERLAY -->
+    <div id="mission-sidebar" class="neural-glass" style="position:fixed;top:0;right:0;width:450px;height:100vh;background:rgba(10,13,26,0.98);z-index:10000;border-left:1px solid var(--cyan-glow);box-shadow:-10px 0 30px rgba(0,0,0,0.8);transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;">
+        <div style="padding:24px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <div class="text-mono" style="font-size:0.6rem;color:var(--cyan-glow);letter-spacing:0.1em;margin-bottom:4px;">ExeoFlow // documentation link</div>
+                <h3 id="mission-sidebar-title" style="font-size:1.1rem;margin:0;">Mission name</h3>
+            </div>
+            <button id="mission-sidebar-close" style="background:transparent;border:none;color:white;cursor:pointer;font-size:1.5rem;opacity:0.5;">&times;</button>
+        </div>
+        <div style="padding:24px;flex-grow:1;overflow-y:auto;">
+            <div class="text-mono" style="font-size:0.65rem;color:var(--text-dim);margin-bottom:20px;" id="mission-sidebar-meta"></div>
+            <h4 class="text-mono" style="font-size:0.7rem;color:var(--gold-solar);margin-bottom:8px;">Execution notes</h4>
+            <textarea id="mission-sidebar-notes" class="neural-glass" style="width:100%;height:150px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:white;padding:12px;font-family:var(--font-mono);font-size:0.75rem;resize:none;margin-bottom:24px;" placeholder="Document time spent, blockers resolved, and systems affected..."></textarea>
+            <h4 class="text-mono" style="font-size:0.7rem;color:var(--cyan-glow);margin-bottom:8px;">Time tracking</h4>
+            <input type="text" id="mission-sidebar-time" class="neural-glass" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:white;padding:12px;font-family:var(--font-mono);font-size:0.75rem;margin-bottom:24px;" placeholder="e.g. 1h 30m">
+            <button id="mission-sidebar-submit" class="text-mono" style="width:100%;background:rgba(0,242,255,0.1);border:1px solid var(--cyan-glow);color:var(--cyan-glow);padding:16px;cursor:pointer;letter-spacing:0.1em;font-size:0.8rem;transition:background 0.2s;">Transmit to ExeoFlow</button>
+            <button id="mission-sidebar-reinstate" class="text-mono" style="width:100%;background:rgba(255,184,0,0.05);border:1px solid var(--gold-solar);color:var(--gold-solar);padding:12px;cursor:pointer;letter-spacing:0.1em;font-size:0.7rem;margin-top:12px;transition:background 0.2s;display:none;">Reinstate mission</button>
+            <div id="mission-sidebar-status" class="text-mono" style="font-size:0.6rem;text-align:center;margin-top:12px;opacity:0;"></div>
+        </div>
+    </div>
+
+    <div id="hover-tooltip"></div>
+    <div id="three-bg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:0.6;"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+
+    <!-- VSC UI SYNC: keep tab + breadcrumb in sync with active nav node -->
+    <script>
+    (function() {
+        var tab = document.getElementById('vsc-active-tab');
+        var crumb = document.getElementById('vsc-breadcrumb-current');
+
+        function readActiveLabel() {
+            var active = document.querySelector('.nav-node.active .nav-label');
+            return active ? active.textContent.trim() : '';
+        }
+
+        function syncVscUi() {
+            var label = readActiveLabel();
+            if (!label) return;
+            if (tab) tab.textContent = label;
+            if (crumb) crumb.textContent = label;
+        }
+
+        // Watch for class changes on all .nav-node elements
+        function attachObservers() {
+            var nodes = document.querySelectorAll('.nav-node');
+            if (!nodes.length) return false;
+            var mo = new MutationObserver(syncVscUi);
+            nodes.forEach(function(n) {
+                mo.observe(n, { attributes: true, attributeFilter: ['class'] });
+            });
+            syncVscUi();
+            return true;
+        }
+
+        if (!attachObservers()) {
+            var iv = setInterval(function() {
+                if (attachObservers()) clearInterval(iv);
+            }, 100);
+        }
+    })();
+    </script>
+</body>
+</html>

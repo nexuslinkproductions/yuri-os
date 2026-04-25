@@ -7,7 +7,7 @@ Work is organized by who brings the client, not just the client name.
 | C2MOVIEZ/ | All clients sourced through Claudio — primary pipeline (100% of current work) |
 | PLANZERFILMS/ | Clients through Marc Planzer — new, growing |
 | MACL-ONE/ | MACL ONE premium sports clothing — direct active project |
-| NEXUS-LINK-INTERNAL/ | Nexus Link's own brand projects, showreel, self-promo |
+| NEXUS-LINK-INTERNAL/ | Nexus Link's own brand projects, showreel, self-promo; shell routes: `/`, `/research`, `/sources` |
 | DIRECT-CLIENTS/ | Any future Vienna-based or direct clients Marcel closes |
 
 ## Project Folder Naming

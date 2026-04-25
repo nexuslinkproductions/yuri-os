@@ -2,46 +2,53 @@
 
 const services = [
   {
-    title: "Video Production",
+    title: "Production",
     description:
-      "Concept to delivery. Full production services for long-form and short-form content.",
+      "Concept to delivery for campaigns, internal assets, and launch material.",
   },
   {
-    title: "Post-Production",
+    title: "Post",
     description:
-      "Editing, color grading, visual effects, and sound design. DaVinci Resolve, Premiere Pro.",
+      "Editing, color, and finishing with clear handoff points.",
   },
   {
-    title: "Motion Graphics",
+    title: "Motion",
     description:
-      "Title sequences, kinetic typography, animated explainers. After Effects.",
+      "Titles, systems, and motion language that stay readable at speed.",
   },
   {
     title: "Creative Direction",
     description:
-      "Strategic creative guidance for your brand. Concept architecture and execution.",
+      "Strategy, structure, and approval discipline before production starts.",
   },
 ];
 
 export default function Services() {
   return (
-    <section id="services" className="py-32 bg-gradient-to-b from-slate-900/10 to-black">
+    <section id="services" className="py-24">
       <div className="max-w-6xl mx-auto px-6">
-        <div className="mb-20">
-          <h2 className="text-6xl md:text-7xl font-bold mb-6">Services</h2>
-          <div className="w-16 h-1 bg-crimson"></div>
+        <div className="mb-12 flex items-end justify-between gap-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/45">
+              Landing module
+            </p>
+            <h2 className="mt-4 text-4xl font-semibold md:text-6xl">
+              Capabilities
+            </h2>
+          </div>
+          <div className="hidden h-px flex-1 bg-white/10 md:block" />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid gap-6 md:grid-cols-2">
           {services.map((service, idx) => (
             <div
               key={idx}
-              className="p-10 border border-gray-800 rounded-lg hover:border-crimson hover:bg-crimson/5 transition group"
+              className="group rounded-2xl border border-white/10 bg-white/5 p-8 transition hover:border-crimson/60 hover:bg-crimson/10"
             >
-              <h3 className="text-2xl md:text-3xl font-bold mb-4 group-hover:text-crimson transition">
+              <h3 className="text-2xl font-semibold transition group-hover:text-crimson">
                 {service.title}
               </h3>
-              <p className="text-gray-300 leading-relaxed text-lg">
+              <p className="mt-4 text-base leading-relaxed text-white/70">
                 {service.description}
               </p>
             </div>

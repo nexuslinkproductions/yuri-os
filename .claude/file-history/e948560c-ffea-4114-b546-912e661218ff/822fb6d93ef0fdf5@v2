@@ -1,0 +1,28 @@
+# Self-Improvement System Update
+**Date:** 2026-04-25
+
+---
+
+## Updates Applied
+
+### 1. `/eot` CLI alias — applied
+
+**Target:** `.claude/commands/eot.md`  
+**Change:** Create alias command file so `/eot` works in Claude Code CLI.  
+**Status:** `applied` (written this session via Write tool)
+
+### 2. SKILL.md Session Notes updated — applied
+
+**Target:** `.claude/skills/end-of-transmission/SKILL.md`  
+**Change:** Appended actual session data to Session Notes section.  
+**Status:** `applied`
+
+---
+
+## Patch Proposals (not yet applied)
+
+### 3. Skill creation checklist addition — proposed
+
+**Target:** Any future skill creation workflow or CLAUDE.md skill-creation guidance.  
+**Change:** Add a pre-completion step: "For every `/alias` in triggers frontmatter, verify `commands/<alias>.md` exists."  
+**Status:** `patch_proposed` — would require addition to CLAUDE.md or a skill-creation checklist that doesn't exist yet. Recommend adding to a future `skill-scaffolding` skill or checklist.

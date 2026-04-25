@@ -1,0 +1,65 @@
+source,source_label,source_type,target,target_label,target_type,relation,weight
+theme_inspiration,Inspiration Libraries,cluster,inspiration_lapa_ninja,Lapa Ninja,inspiration,contains,1
+theme_inspiration,Inspiration Libraries,cluster,inspiration_land_book,Land-book,inspiration,contains,1
+theme_inspiration,Inspiration Libraries,cluster,inspiration_mobbin,Mobbin,inspiration,contains,1
+theme_inspiration,Inspiration Libraries,cluster,inspiration_page_flows,Page Flows,inspiration,contains,1
+theme_inspiration,Inspiration Libraries,cluster,inspiration_rge,Really Good Emails,inspiration,contains,1
+theme_inspiration,Inspiration Libraries,cluster,inspiration_one_page_love,One Page Love,inspiration,contains,1
+theme_inspiration,Inspiration Libraries,cluster,inspiration_awwwwards,Awwwards,inspiration,contains,1
+theme_inspiration,Inspiration Libraries,cluster,inspiration_dribbble,Dribbble,inspiration,contains,1
+theme_inspiration,Inspiration Libraries,cluster,inspiration_behance,Behance,inspiration,contains,1
+theme_flow_references,Flow References,cluster,inspiration_page_flows,Page Flows,inspiration,contains,1
+theme_flow_references,Flow References,cluster,inspiration_rge,Really Good Emails,inspiration,contains,1
+theme_flow_references,Flow References,cluster,inspiration_one_page_love,One Page Love,inspiration,contains,1
+theme_design_systems,Design Systems,cluster,repo_atlassian_design,Atlassian Design System,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_shopify_polaris,Shopify Polaris,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_carbon,Carbon Design System,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_adobe_spectrum,Adobe Spectrum,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_storybook,Storybook,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_ant_design,Ant Design,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_tailwind_plus,Tailwind Plus UI Blocks,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_figma_examples,Figma Design System Examples,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_figma_ui_kits,Figma UI Kits,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_shadcn_ui,shadcn/ui,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_radix_ui,Radix UI,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_material_ui,Material UI,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_headless_ui,Headless UI,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_primer,Primer,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_govuk,GOV.UK Design System,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_material_design,Material Design,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_fluent2,Fluent 2,design_system,contains,1
+theme_design_systems,Design Systems,cluster,repo_awesome_design,Awesome Design,curated_list,contains,1
+theme_design_systems,Design Systems,cluster,repo_awesome_ui,Awesome UI,curated_list,contains,1
+theme_design_systems,Design Systems,cluster,repo_awesome_design_systems,Awesome Design Systems,curated_list,contains,1
+theme_design_systems,Design Systems,cluster,repo_awesome_landing_page,Awesome Landing Page,curated_list,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_baymard_homepage,Baymard Homepage Benchmark,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_baymard_checkout,Baymard Checkout Research,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_smashing_guide,Smashing UX Guide,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_nngroup_principles,NNGroup Visual Design Principles,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_w3c_structure,W3C Page Structure,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_w3c_forms,W3C Forms,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_w3c_contrast,W3C Contrast Minimum,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_govuk_content,GOV.UK Content Design,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_atlassian_content,Atlassian Content Design,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_apple_accessibility,Apple HIG Accessibility,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_material_accessibility,Material Accessibility,ux_skill,contains,1
+theme_ux_skills,UI/UX Skill Resources,cluster,ux_microsoft_inclusive,Microsoft Inclusive Design,ux_skill,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_framer,Framer AI / Wireframer,ai_tool,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_webflow_builder,Webflow AI Site Builder,ai_tool,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_webflow_help,Webflow AI Help,ai_tool,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_relume,Relume AI Site Builder,ai_tool,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_v0_text,v0 Text Prompting,ai_tool,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_v0_prompt,How to prompt v0,ai_tool,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_wix,Wix AI Landing Builder,ai_tool,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_uizard,Uizard,ai_tool,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_landingi,Landingi Lunar,ai_tool,contains,1
+theme_ai_builders,AI Landing Builders,cluster,ai_unbounce,Unbounce Variant Optimization,ai_tool,contains,1
+theme_prompting,Prompting Heuristics,cluster,ai_v0_prompt,How to prompt v0,ai_tool,supports,1
+theme_prompting,Prompting Heuristics,cluster,ai_relume,Relume AI Site Builder,ai_tool,supports,1
+theme_prompting,Prompting Heuristics,cluster,ai_webflow_help,Webflow AI Help,ai_tool,supports,1
+theme_prompting,Prompting Heuristics,cluster,ai_framer,Framer AI / Wireframer,ai_tool,supports,1
+theme_prompting,Prompting Heuristics,cluster,ai_uizard,Uizard,ai_tool,supports,1
+theme_prompting,Prompting Heuristics,cluster,ux_baymard_homepage,Baymard Homepage Benchmark,ux_skill,reinforces,1
+theme_prompting,Prompting Heuristics,cluster,ux_nngroup_principles,NNGroup Visual Design Principles,ux_skill,reinforces,1
+theme_prompting,Prompting Heuristics,cluster,ux_w3c_structure,W3C Page Structure,ux_skill,reinforces,1
+theme_prompting,Prompting Heuristics,cluster,ux_w3c_forms,W3C Forms,ux_skill,reinforces,1

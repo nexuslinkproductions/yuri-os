@@ -1,0 +1,629 @@
+import { Router } from 'express';
+import Database from 'better-sqlite3';
+import { 
+    getAllAgents, getAllDeities, getAllProjects, getAllKnowledgeNodes, 
+    getRecentEvents, searchKnowledge, updateAgentStatus,
+    getAllEvents, getAllTickets, getIntegrations,
+    getTemporalEvents, getStrategicBriefing, getAgentByName,
+    getSwarmMetrics, getAgentActivity, getKnowledgeGraph,
+    getProjectById, updateProjectStatus, updateActiveProjectsStatus
+} from '../models/queries';
+import { runVaultIngestion, getIngestionStats } from '../services/vaultIngestion';
+import { syncOutlookIcs } from '../services/outlookIcs';
+import { executeCommand, isAllowedCommandKey } from '../services/executor';
+import { listVaultDirectory } from '../services/fileSystem';
+import { getNoteDetail } from '../services/knowledgeService';
+import { logTimeEntry, ensureTimeEntriesTable, getAllTimeEntries, getPendingTimeEntries } from '../services/exeoflow';
+import { OracleService } from '../services/oracleService';
+import { SmartRouter } from '../services/smartRouter';
+import { obsidianRest } from '../services/obsidianRestService';
+import { neuralForge } from '../services/neuralForgeService';
+import { neuralService } from '../services/neuralService';
+import { workflowCatalogService } from '../services/workflowCatalogService';
+import { mathCurveCatalogService } from '../services/mathCurveCatalogService';
+import { projectAnalyzer } from '../services/projectAnalyzer';
+import { authMiddleware, getRuntimeApiKey, localOnlyMiddleware } from '../middleware/auth';
+import { kieImageService } from '../services/kieImageService';
+import { kieFileUploadService } from '../services/kieFileUploadService';
+
+type RouteHealthPayload = {
+    healthy?: boolean;
+    ready?: boolean;
+    alive?: boolean;
+    status?: string;
+    [key: string]: unknown;
+};
+
+type ApiRouteOptions = {
+    getStatusPayload?: () => Promise<unknown>;
+    getHealth?: () => Promise<RouteHealthPayload>;
+    getReadiness?: () => Promise<RouteHealthPayload>;
+    getLiveness?: () => RouteHealthPayload;
+};
+
+export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = {}) {
+    const router = Router();
+    ensureTimeEntriesTable(db); // ensure time_entries table exists
+    neuralForge.setDb(db); // Provide DB access for vector search context injection
+
+    router.use((req, res, next) => {
+        console.log(`⬡ API_REQUEST :: ${req.method} ${req.url}`);
+        next();
+    });
+
+    router.get('/ping-test', (req, res) => res.json({ status: 'API_ROUTER_ALIVE', timestamp: new Date().toISOString() }));
+
+    // System Status
+    router.get('/status', async (_, res) => {
+        if (options.getStatusPayload) {
+            res.json(await options.getStatusPayload());
+            return;
+        }
+
+        res.json({ message: 'NUDIMMUD API ONLINE' });
+    });
+
+    router.get('/auth/bootstrap', localOnlyMiddleware, (_, res) => {
+        res.json({ apiKey: getRuntimeApiKey() });
+    });
+
+    router.get('/health', async (_, res) => {
+        if (!options.getHealth) {
+            res.json({ healthy: true, status: 'healthy' });
+            return;
+        }
+
+        const payload = await options.getHealth();
+        res.status(payload.healthy === false ? 503 : 200).json(payload);
+    });
+
+    router.get('/health/live', (_, res) => {
+        const payload = options.getLiveness ? options.getLiveness() : { alive: true, status: 'alive' };
+        res.status(payload.alive === false ? 503 : 200).json(payload);
+    });
+
+    router.get('/health/ready', async (_, res) => {
+        if (!options.getReadiness) {
+            res.json({ ready: true, status: 'ready' });
+            return;
+        }
+
+        const payload = await options.getReadiness();
+        res.status(payload.ready === false ? 503 : 200).json(payload);
+    });
+
+    const oracle = new OracleService(db);
+    router.post('/oracle/command', authMiddleware, async (req, res) => {
+        const { command, ...options } = req.body;
+        if (!command) return res.status(400).json({ error: 'Command required' });
+        try {
+            const result = await oracle.processCommand(command, options);
+            res.json(result);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    router.get('/neural/models', (req, res) => {
+        res.json(neuralService.getModels());
+    });
+
+    router.get('/neural/status', async (req, res) => {
+        try {
+            const status = await neuralForge.ping();
+            res.json({
+                ...status,
+                image: kieImageService.getStatus()
+            });
+        } catch (error) {
+            res.status(500).json({ error: (error as Error).message });
+        }
+    });
+
+    router.post('/neural/images/generate', authMiddleware, async (req, res) => {
+        try {
+            const {
+                prompt,
+                size,
+                nVariants,
+                isEnhance,
+                filesUrl,
+                maskUrl,
+                sourceImageDataUrl,
+                sourceImageName,
+                sourceImageUploadPath,
+                waitForCompletion,
+                pollIntervalMs,
+                timeoutMs
+            } = req.body;
+
+            let resolvedFilesUrl = Array.isArray(filesUrl) ? filesUrl.filter(Boolean) : [];
+            let uploadedSourceImage: { fileName: string; filePath: string; fileUrl: string; downloadUrl: string } | null = null;
+
+            if (typeof sourceImageDataUrl === 'string' && sourceImageDataUrl.trim()) {
+                uploadedSourceImage = await kieFileUploadService.uploadBase64({
+                    base64Data: sourceImageDataUrl,
+                    fileName: typeof sourceImageName === 'string' ? sourceImageName : undefined,
+                    uploadPath: typeof sourceImageUploadPath === 'string' && sourceImageUploadPath.trim()
+                        ? sourceImageUploadPath.trim()
+                        : 'images/user-uploads'
+                });
+                resolvedFilesUrl = [uploadedSourceImage.downloadUrl];
+            }
+
+            const result = await kieImageService.generate4oImage({
+                prompt,
+                size,
+                nVariants,
+                isEnhance,
+                filesUrl: resolvedFilesUrl,
+                maskUrl,
+                waitForCompletion,
+                pollIntervalMs,
+                timeoutMs
+            });
+
+            res.json({
+                ...result,
+                sourceImage: uploadedSourceImage
+            });
+        } catch (error) {
+            res.status(500).json({ error: (error as Error).message });
+        }
+    });
+
+    router.get('/neural/images/:taskId', authMiddleware, async (req, res) => {
+        try {
+            const taskId = Array.isArray(req.params.taskId) ? req.params.taskId[0] : req.params.taskId;
+            if (!taskId) {
+                throw new Error('KIE_IMAGE_TASK_ID_REQUIRED');
+            }
+            const result = await kieImageService.getImageTask(taskId);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: (error as Error).message });
+        }
+    });
+
+    router.post('/neural/chat', authMiddleware, async (req, res) => {
+        try {
+            const {
+                modelId,
+                messages,
+                systemPrompt,
+                intent,
+                compressionMode,
+                reasoningBudget,
+                allowLocal,
+                allowCloud,
+                retrievalProfile,
+                providerOptions
+            } = req.body;
+
+            const result = await neuralForge.chat(modelId, messages, systemPrompt, {
+                intent,
+                compressionMode,
+                reasoningBudget,
+                allowLocal,
+                allowCloud,
+                retrievalProfile,
+                providerOptions
+            });
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: (error as Error).message });
+        }
+    });
+
+    router.get('/neural/verify-cloud', async (req, res) => {
+        try {
+            const result = await neuralForge.verifyCloudIntegration();
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ error: (error as Error).message });
+        }
+    });
+
+    router.get('/catalog', (_, res) => {
+        res.json({
+            workflows: workflowCatalogService.getWorkflows(),
+            mathCurves: mathCurveCatalogService.getCurves()
+        });
+    });
+
+    router.get('/catalog/search', (req, res) => {
+        const q = (req.query.q as string || '').trim();
+        res.json({
+            query: q,
+            workflows: workflowCatalogService.search(q),
+            mathCurves: mathCurveCatalogService.search(q)
+        });
+    });
+
+    router.get('/catalog/workflows', (_, res) => {
+        res.json(workflowCatalogService.getWorkflows());
+    });
+
+    router.get('/catalog/workflows/:id', (req, res) => {
+        const workflow = workflowCatalogService.getWorkflowById(req.params.id);
+        if (!workflow) return res.status(404).json({ error: 'WORKFLOW_NOT_FOUND' });
+        res.json(workflow);
+    });
+
+    router.get('/catalog/skills', (_, res) => {
+        res.json(workflowCatalogService.getWorkflows());
+    });
+
+    router.get('/catalog/skills/:id', (req, res) => {
+        const workflow = workflowCatalogService.getWorkflowById(req.params.id);
+        if (!workflow) return res.status(404).json({ error: 'SKILL_NOT_FOUND' });
+        res.json(workflow);
+    });
+
+    router.get('/catalog/math-curves', (_, res) => {
+        res.json(mathCurveCatalogService.getCurves());
+    });
+
+    router.get('/catalog/math-curves/:id', (req, res) => {
+        const curve = mathCurveCatalogService.getCurveById(req.params.id);
+        if (!curve) return res.status(404).json({ error: 'MATH_CURVE_NOT_FOUND' });
+        res.json(curve);
+    });
+
+    // Temporal & Strategic
+    router.get('/briefing', (_, res) => res.json({ summary: getStrategicBriefing(db) }));
+    router.get('/temporal-graph', (_, res) => res.json(getTemporalEvents(db)));
+    router.post('/outlook/sync', authMiddleware, async (_, res) => {
+        await syncOutlookIcs();
+        res.json({ success: true });
+    });
+    router.post('/plane/sync', authMiddleware, async (_, res) => {
+        const { syncPlaneTickets } = require('../services/planeSync');
+        const result = await syncPlaneTickets();
+        res.json(result);
+    });
+
+    // Entities
+    router.get('/deities', (_, res) => res.json(getAllDeities(db)));
+    router.get('/agents', (_, res) => res.json(getAllAgents(db)));
+    router.get('/agents/detail', (req, res) => {
+        const name = req.query.name as string;
+        if (!name) return res.status(400).json({ error: 'name is required' });
+        const agent = getAgentByName(db, name);
+        if (!agent) return res.status(404).json({ error: 'AGENT_NOT_FOUND' });
+        res.json(agent);
+    });
+    router.get('/projects', (_, res) => res.json(getAllProjects(db)));
+    router.get('/events', (_, res) => res.json(getRecentEvents(db, 50)));
+    router.get('/calendar', (_, res) => res.json(getAllEvents(db)));
+    router.get('/tickets', (_, res) => res.json(getAllTickets(db)));
+    router.get('/temporal-graph', (_, res) => res.json(getTemporalEvents(db, 100)));
+
+    router.post('/swarm/route', (req, res) => {
+        const { prompt, ...options } = req.body;
+        if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+        const decision = SmartRouter.route(prompt, options);
+        res.json(decision);
+    });
+    
+     router.post('/projects/:id/analyze', authMiddleware, async (req, res) => {
+         try {
+             const { id } = req.params;
+             const projectId = id as string;
+             const project = getAllProjects(db).find(p => p.id === parseInt(projectId));
+             if (!project) return res.status(404).json({ error: 'PROJECT_NOT_FOUND' });
+             
+             const insights = await projectAnalyzer.analyzeProject(project);
+             res.json(insights);
+         } catch (error) {
+             res.status(500).json({ error: (error as Error).message });
+         }
+     });
+
+    router.post('/projects/:id/status', authMiddleware, (req, res) => {
+        const { id } = req.params;
+        const { status } = req.body;
+        const nextStatus = Array.isArray(status) ? status[0] : status;
+        if (!nextStatus) return res.status(400).json({ error: 'status is required' });
+
+        const projectId = parseInt(Array.isArray(id) ? id[0] : id, 10);
+        if (Number.isNaN(projectId)) {
+            return res.status(400).json({ error: 'id is required' });
+        }
+
+        const project = getProjectById(db, projectId);
+        if (!project) return res.status(404).json({ error: 'PROJECT_NOT_FOUND' });
+
+        updateProjectStatus(db, projectId, nextStatus);
+        res.json({ success: true });
+    });
+
+    router.post('/projects/active/status', authMiddleware, (req, res) => {
+        const { status } = req.body;
+        const nextStatus = Array.isArray(status) ? status[0] : status;
+        if (!nextStatus) return res.status(400).json({ error: 'status is required' });
+
+        const updated = updateActiveProjectsStatus(db, nextStatus);
+        res.json({ success: true, updated });
+    });
+    
+    router.post('/tickets/:external_id/status', authMiddleware, (req, res) => {
+        const { external_id } = req.params;
+        const { status } = req.body;
+        if (!status) return res.status(400).json({ error: 'status is required' });
+        const { updateTicketStatus } = require('../models/queries');
+        updateTicketStatus(db, external_id, status);
+        res.json({ success: true });
+    });
+
+    router.get('/integrations', (_, res) => res.json(getIntegrations(db)));
+
+    // File System
+    router.get('/files/ls', (req, res) => {
+        const dirPath = req.query.path as string || '';
+        try {
+            res.json(listVaultDirectory(dirPath));
+        } catch (e) {
+            res.status(403).json({ error: 'ACCESS_DENIED' });
+        }
+    });
+
+    // Knowledge
+    router.get('/knowledge', (_, res) => res.json(getKnowledgeGraph(db)));
+    
+    router.post('/knowledge/refresh', authMiddleware, async (_, res) => {
+        try {
+            const result = await runVaultIngestion(db, 'route:knowledge_refresh');
+            res.json({ status: 'SUCCESS', message: 'Vault ingestion triggered.', result });
+        } catch (e: any) {
+            res.status(500).json({ status: 'ERROR', message: e.message });
+        }
+    });
+
+    router.get('/knowledge/search', (req, res) => {
+        const q = req.query.q as string;
+        if (!q) return res.status(400).json({ error: 'Query param q is required' });
+        res.json(searchKnowledge(db, q));
+    });
+
+    router.get('/knowledge/detail', (req, res) => {
+        const filePath = req.query.path as string;
+        if (!filePath) return res.status(400).json({ error: 'path is required' });
+        try {
+            res.json(getNoteDetail(filePath));
+        } catch (e) {
+            res.status(404).json({ error: 'NOTE_NOT_FOUND' });
+        }
+    });
+
+     // Control
+     router.post('/agents/:name/status', authMiddleware, (req, res) => {
+         const { name } = req.params;
+         const { status } = req.body;
+         if (!status) return res.status(400).json({ error: 'status is required' });
+         const agentName = name as string;
+         updateAgentStatus(db, agentName.toUpperCase(), status);
+         res.json({ success: true });
+     });
+
+    router.post('/vault/ingest', authMiddleware, async (_, res) => {
+        try {
+            const result = await runVaultIngestion(db, 'route:vault_ingest');
+            res.json({ ...getIngestionStats(db), result });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    // Executor
+    router.post('/execute', authMiddleware, async (req, res) => {
+        const { commandKey } = req.body;
+        if (typeof commandKey !== 'string' || !isAllowedCommandKey(commandKey)) {
+            return res.status(400).json({ error: 'Invalid or unauthorized command key' });
+        }
+
+        try {
+            const result = await executeCommand(db, commandKey);
+            res.json({ success: true, ...result });
+        } catch (error: any) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    // ExeoFlow Time Tracking
+    router.post('/exeoflow/time', authMiddleware, async (req, res) => {
+        const { ticket_id, notes, time } = req.body;
+        if (!ticket_id) return res.status(400).json({ error: 'ticket_id is required' });
+        const result = await logTimeEntry(db, { ticket_id, notes: notes || '', time: time || 'unspecified' });
+        res.json(result);
+    });
+
+    router.get('/exeoflow/entries', (_, res) => res.json(getAllTimeEntries(db)));
+    router.get('/exeoflow/pending', (_, res) => res.json(getPendingTimeEntries(db)));
+    
+    // ── SWARM ORCHESTRATION ──
+    const { SwarmOrchestrator } = require('../services/swarmOrchestrator');
+    const swarm = new SwarmOrchestrator(db);
+
+    router.post('/swarm/execute', authMiddleware, async (req, res) => {
+        const { goal, context } = req.body;
+        if (!goal) return res.status(400).json({ error: 'goal is required' });
+        try {
+            const result = await swarm.executeSwarmGoal(goal, context);
+            res.json({ result });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    router.get('/swarm/messages', (_, res) => {
+        const messages = db.prepare(`
+            SELECT m.*, s.name as sender, r.name as receiver
+            FROM swarm_messages m
+            JOIN agents s ON m.sender_agent_id = s.id
+            JOIN agents r ON m.receiver_agent_id = r.id
+            ORDER BY m.created_at DESC LIMIT 50
+        `).all();
+        res.json(messages);
+    });
+
+    router.get('/swarm/metrics', (_, res) => res.json(getSwarmMetrics(db)));
+    
+    router.get('/agents/:name/activity', (req, res) => {
+        const { name } = req.params;
+        res.json(getAgentActivity(db, name.toUpperCase()));
+    });
+
+    // ─── VAULT DIAGNOSTICS ────────────────────────────────────────────────────
+    router.get('/obsidian/status', (_, res) => {
+        try {
+            const status = obsidianRest.getStatus?.() || { status: 'UNKNOWN', lastSync: null };
+            res.json(status);
+        } catch (err) {
+            res.json({ status: 'OFFLINE', lastSync: null, error: String(err) });
+        }
+    });
+
+    router.get('/obsidian/paths', async (_, res) => {
+        try {
+            const paths = await obsidianRest.listVaults?.() || [];
+            res.json({ vaults: paths, count: paths.length });
+        } catch (err) {
+            res.status(500).json({ error: String(err) });
+        }
+    });
+
+    router.post('/obsidian/reconnect', async (_, res) => {
+        try {
+            const result = await obsidianRest.reconnect?.();
+            const success = typeof result === 'object' && result !== null
+                ? Boolean((result as { success?: boolean }).success)
+                : Boolean(result);
+            res.json({ success, status: 'RECONNECT_ATTEMPTED' });
+        } catch (err) {
+            res.status(500).json({ error: String(err) });
+        }
+    });
+
+    router.post('/obsidian/restart-sync', async (_, res) => {
+        try {
+            await obsidianRest.restartSync?.();
+            res.json({ success: true, message: 'Sync service restarted' });
+        } catch (err) {
+            res.status(500).json({ error: String(err) });
+        }
+    });
+
+    router.post('/obsidian/sync', async (req, res) => {
+        try {
+            const { action } = req.body;
+            if (action === 'test') {
+                const result = await obsidianRest.testConnection?.() || { connected: false };
+                res.json({ success: result.connected, test: true });
+            } else {
+                res.status(400).json({ error: 'Unknown action' });
+            }
+        } catch (err) {
+            res.status(500).json({ error: String(err) });
+        }
+    });
+
+    // Oracle SSE stream — pipes local LLM output as it arrives, no blocking wait
+    router.get('/oracle/stream', async (req, res) => {
+        const command = String(req.query.command || '').trim();
+        const modelId = String(req.query.model || 'qwen-liberated:latest');
+        if (!command) { res.status(400).json({ error: 'command required' }); return; }
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no');
+        res.flushHeaders();
+
+        const send = (event: string, data: unknown) => {
+            res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+        };
+
+        send('start', { model: modelId, command });
+
+        try {
+            const ollamaBase = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+            const fetch = (await import('node-fetch')).default;
+            const upstream = await fetch(`${ollamaBase}/api/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: modelId,
+                    messages: [{ role: 'user', content: command }],
+                    stream: true
+                }),
+                signal: (req as any).signal
+            });
+
+            if (!upstream.ok) throw new Error(`Ollama HTTP ${upstream.status}`);
+            if (!upstream.body) throw new Error('No response body');
+
+            let full = '';
+            for await (const chunk of upstream.body as any) {
+                const text = chunk.toString();
+                for (const line of text.split('\n').filter(Boolean)) {
+                    try {
+                        const parsed = JSON.parse(line);
+                        const token = parsed?.message?.content || '';
+                        if (token) {
+                            full += token;
+                            send('token', { token });
+                        }
+                        if (parsed?.done) {
+                            send('done', { content: full, model: modelId });
+                            res.end();
+                            return;
+                        }
+                    } catch (_) {}
+                }
+            }
+            send('done', { content: full, model: modelId });
+        } catch (err: any) {
+            send('error', { message: err.message || 'STREAM_FAILED' });
+        }
+        res.end();
+    });
+
+    // Token telemetry — HUD polls this for session + weekly status bar
+    router.get('/telemetry/tokens', (_, res) => {
+        const fs = require('fs');
+        const STATE_DIR = '/Users/marcelspatz/NUDIMMUD/.claude/state';
+        try {
+            const session = fs.existsSync(`${STATE_DIR}/token-session.json`)
+                ? JSON.parse(fs.readFileSync(`${STATE_DIR}/token-session.json`, 'utf-8'))
+                : null;
+            const weekly = fs.existsSync(`${STATE_DIR}/token-weekly.json`)
+                ? JSON.parse(fs.readFileSync(`${STATE_DIR}/token-weekly.json`, 'utf-8'))
+                : null;
+            res.json({ session, weekly });
+        } catch (err: any) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
+    // Image gen models catalog (kie.ai + static local catalog)
+    router.get('/neural/images/models', (_, res) => {
+        res.json({
+            kie: [
+                { id: 'gpt4o-image', label: 'GPT-4o Image', provider: 'kie' },
+                { id: 'flux-pro', label: 'Flux Pro', provider: 'kie' },
+                { id: 'flux-schnell', label: 'Flux Schnell', provider: 'kie' },
+                { id: 'ideogram', label: 'Ideogram V2', provider: 'kie' },
+                { id: 'recraft', label: 'Recraft V3', provider: 'kie' }
+            ],
+            remote: [
+                { id: 'chatgpt-images-2', label: 'ChatGPT Images 2.0', provider: 'chatgpt-web' },
+                { id: 'dalle3', label: 'DALL-E 3', provider: 'chatgpt-web' },
+                { id: 'imagen3', label: 'Imagen 3', provider: 'gemini-web' },
+                { id: 'veo2', label: 'Veo 2 (Video)', provider: 'gemini-web' }
+            ]
+        });
+    });
+
+    return router;
+}

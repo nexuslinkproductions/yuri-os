@@ -1,0 +1,37 @@
+{
+  "nodes": [
+    {"id": "adr_g012_manifest_validator", "label": "ADR-G012: Manifest Validator", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G012-manifest-validator.md"},
+    {"id": "adr_g018_truth_anchor", "label": "ADR-G018: Truth Anchor", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G018-truth-anchor-system.md"},
+    {"id": "adr_g015_throttling", "label": "ADR-G015: Throttling", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G015-coherence-driven-throttling.md"},
+    {"id": "adr_g016_container_integration", "label": "ADR-G016: Container Integration", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G016-agentic-container-integration.md"},
+    {"id": "adr_g002_constitution_shard", "label": "ADR-G002: Constitution Shard", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G002-constitution-shard-split.md"},
+    {"id": "adr_g024_continue_gate", "label": "ADR-G024: Continue Gate", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G024-continue-gate.md"},
+    {"id": "adr_g005_proof_envelope", "label": "ADR-G005: Proof Envelope", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G005-proof-envelope.md"},
+    {"id": "adr_g023_meta_governance", "label": "ADR-G023: Meta Governance", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G023-meta-governance.md"},
+    {"id": "adr_g007_memory_write_gating", "label": "ADR-G007: Memory Write Gating", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G007-memory-write-gating.md"},
+    {"id": "adr_g003_classification", "label": "ADR-G003: Classification", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G003-intent-weighted-classification.md"},
+    {"id": "adr_g026_remediation", "label": "ADR-G026: Remediation", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G026-review-remediation.md"},
+    {"id": "adr_g010_capability_algebra", "label": "ADR-G010: Capability Algebra", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G010-capability-algebra.md"},
+    {"id": "adr_g008_optimizer_promotion", "label": "ADR-G008: Optimizer Promotion", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G008-optimizer-promotion-rule.md"},
+    {"id": "adr_g011_artifact_ledger", "label": "ADR-G011: Artifact Ledger", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G011-artifact-ledger.md"},
+    {"id": "adr_g019_uncertainty", "label": "ADR-G019: Uncertainty", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G019-first-class-uncertainty.md"},
+    {"id": "adr_g013_evolution_pipeline", "label": "ADR-G013: Evolution Pipeline", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G013-evolution-pipeline.md"},
+    {"id": "adr_g020_temporal_assertions", "label": "ADR-G020: Temporal Assertions", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G020-temporal-assertions.md"},
+    {"id": "adr_g014_conformance_kit", "label": "ADR-G014: Conformance Kit", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G014-conformance-kit.md"},
+    {"id": "adr_g022_adversarial_model", "label": "ADR-G022: Adversarial Model", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G022-adversarial-model.md"},
+    {"id": "adr_g001_control_plane", "label": "ADR-G001: Control Plane", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md"},
+    {"id": "adr_g021_human_authority", "label": "ADR-G021: Human Authority", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G021-human-authority-and-irreversibility.md"},
+    {"id": "adr_g004_enforcement_gates", "label": "ADR-G004: Enforcement Gates", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md"},
+    {"id": "adr_g006_tool_gateway", "label": "ADR-G006: Tool Gateway", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G006-deterministic-tool-gateway.md"}
+  ],
+  "edges": [
+    {"source": "adr_g001_control_plane", "target": "adr_g004_enforcement_gates", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G001-guidance-control-plane.md"},
+    {"source": "adr_g004_enforcement_gates", "target": "adr_g006_tool_gateway", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G004-four-enforcement-gates.md"},
+    {"source": "adr_g011_artifact_ledger", "target": "adr_g005_proof_envelope", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G011-artifact-ledger.md"},
+    {"source": "adr_g024_continue_gate", "target": "adr_g004_enforcement_gates", "relation": "implements", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G024-continue-gate.md"},
+    {"source": "adr_g013_evolution_pipeline", "target": "adr_g008_optimizer_promotion", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G013-evolution-pipeline.md"}
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

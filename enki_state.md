@@ -88,6 +88,23 @@
     - [ ] Clarify planzerfilms scope — on-set capture or post-production?
     - [ ] Email MACL-ONE (Cati): define deliverables and delivery format
 
+- PROJECT 4 — THE EVONEXUS VESSEL (APP / PHYSICAL BODY)
+  - Goal: In the coming weeks, give EvoNexus an entire physical and interactable body/app that integrates all wildest dreams into one ultimate creation of pure excellence and life.
+  - Context: Moving from CLI/Markdown execution to a highly visual, interactive command center interface. Includes Generative Video integration.
+  - Constraints: Generative Video Pipelines are for storyboards, moodboards, and style frames ONLY. Do not generate B-roll.
+  - Next actions:
+    - [ ] Concept visual interface / dashboard framework (Electron, Tauri, or Web)
+    - [ ] Map how the 38 agents and NUDIMMUD Pantheon will physically manifest in the UI
+    - [ ] Design interactive RAG/Graph traversal UI
+
+- PROJECT 5 — KNOWLEDGE BASE (LIVE)
+  - Goal: Maintain the cross-referenced knowledge vault spanning cosmology, consciousness, communication, synthesis, and operational practice.
+  - Status: LIVE — content present; graphify rebuild pending on the vault markdown corpus.
+  - Next actions:
+    - [ ] Rebuild graphify scoped to NUDIMMUD vault `.md` files
+    - [ ] Add missing `identity.md` references to operational files where needed
+    - [ ] Keep noesis-intake.md current before starting new research sessions
+
 ---
 
 ## Constraints

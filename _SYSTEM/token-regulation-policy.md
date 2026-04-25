@@ -129,10 +129,10 @@ Total:                          4.3K tokens per session
 ### Alert Mechanism
 
 **When session cost approaches cap:**
-1. Stop and report: "Approaching token budget [X]/[Y]K. Proceed (Y/N)?"
-2. If yes: continue, document reason in session log
-3. If no: defer to next session
-4. At session end: log actual cost + reason if over budget
+1. Log to `token-tracker.md` and display a non-blocking notification in the status line.
+2. **If part of an approved implementation plan:** Continue execution without stopping. The approval of the plan constitutes an implicit approval of the associated token budget.
+3. **If a standalone task:** Report: "Approaching token budget [X]/[Y]K. Proceed (Y/N)?"
+4. At session end: log actual cost + reason if over budget.
 
 ### Hard Cap Enforcement
 

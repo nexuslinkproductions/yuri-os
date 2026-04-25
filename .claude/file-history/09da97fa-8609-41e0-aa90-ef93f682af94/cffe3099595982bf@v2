@@ -1,0 +1,237 @@
+interface RuntimeEnv {
+    VITE_API_ORIGIN?: string;
+    VITE_API_PORT?: string;
+    VITE_API_FALLBACK_PORT?: string;
+    VITE_API_FALLBACK_PORTS?: string;
+    VITE_API_BOOTSTRAP_PATH?: string;
+}
+
+const runtimeEnv = ((import.meta as ImportMeta & { env?: RuntimeEnv }).env ?? {});
+const SYSTEM_HOST = window.location.hostname || '127.0.0.1';
+const HTTP_PROTOCOL = window.location.protocol === 'https:' ? 'https:' : 'http:';
+const WS_PROTOCOL = HTTP_PROTOCOL === 'https:' ? 'wss:' : 'ws:';
+const PRIMARY_PORT = runtimeEnv.VITE_API_PORT?.trim() || '3004';
+const CONFIGURED_API_ORIGIN = runtimeEnv.VITE_API_ORIGIN?.trim();
+const AUTH_HEADER_NAME = 'X-API-KEY';
+const AUTH_STORAGE_KEY = 'nudimmud.runtime-api-key';
+const BOOTSTRAP_PATH = runtimeEnv.VITE_API_BOOTSTRAP_PATH?.trim() || '/api/auth/bootstrap';
+
+let runtimeAuthToken: string | null | undefined;
+let runtimeAuthTokenPromise: Promise<string | null> | null = null;
+
+function buildOrigin(protocol: string, port: string) {
+    return `${protocol}//${SYSTEM_HOST}:${port}`;
+}
+
+function normalizePath(pathOrUrl: string) {
+    try {
+        const parsed = new URL(pathOrUrl, buildOrigin(HTTP_PROTOCOL, PRIMARY_PORT));
+        return `${parsed.pathname}${parsed.search}`;
+    } catch {
+        return pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`;
+    }
+}
+
+function dedupe(values: string[]) {
+    return [...new Set(values.filter(Boolean))];
+}
+
+function parsePortList(value?: string) {
+    return (value || '')
+        .split(',')
+        .map((port) => port.trim())
+        .filter(Boolean);
+}
+
+const FALLBACK_PORTS = dedupe([
+    ...parsePortList(runtimeEnv.VITE_API_FALLBACK_PORTS),
+    runtimeEnv.VITE_API_FALLBACK_PORT?.trim() || '',
+    '3005',
+    '3003'
+]);
+
+export const API_ORIGINS = dedupe([
+    CONFIGURED_API_ORIGIN || buildOrigin(HTTP_PROTOCOL, PRIMARY_PORT),
+    ...(CONFIGURED_API_ORIGIN ? [] : FALLBACK_PORTS.map((port) => buildOrigin(HTTP_PROTOCOL, port)))
+]);
+
+export const WS_ORIGINS = API_ORIGINS.map((origin) =>
+    origin.replace(/^https?:/, WS_PROTOCOL)
+);
+
+export function apiUrl(pathOrUrl: string, origin = API_ORIGINS[0]) {
+    return `${origin}${normalizePath(pathOrUrl)}`;
+}
+
+function readStoredAuthToken() {
+    try {
+        return window.sessionStorage.getItem(AUTH_STORAGE_KEY)?.trim() || null;
+    } catch {
+        return null;
+    }
+}
+
+function storeAuthToken(token: string | null) {
+    runtimeAuthToken = token;
+    try {
+        if (token) {
+            window.sessionStorage.setItem(AUTH_STORAGE_KEY, token);
+        } else {
+            window.sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        }
+    } catch {
+        // Session storage is best-effort only.
+    }
+}
+
+function extractBootstrapToken(response: Response, payload: unknown) {
+    const headerToken = response.headers.get(AUTH_HEADER_NAME) || response.headers.get(AUTH_HEADER_NAME.toLowerCase());
+    if (headerToken?.trim()) return headerToken.trim();
+
+    if (typeof payload === 'string') {
+        const trimmed = payload.trim();
+        return trimmed || null;
+    }
+
+    if (!payload || typeof payload !== 'object') return null;
+
+    const candidate = (payload as Record<string, unknown>).apiKey
+        || (payload as Record<string, unknown>).api_key
+        || (payload as Record<string, unknown>).token
+        || (payload as Record<string, unknown>).authToken
+        || (payload as Record<string, unknown>).value
+        || (payload as Record<string, unknown>).key;
+
+    return typeof candidate === 'string' && candidate.trim() ? candidate.trim() : null;
+}
+
+async function fetchFromOrigin(pathOrUrl: string, origin: string, init?: RequestInit) {
+    return fetch(apiUrl(pathOrUrl, origin), init);
+}
+
+async function fetchRuntimeBootstrapToken(origin: string) {
+    try {
+        const response = await fetchFromOrigin(BOOTSTRAP_PATH, origin, { credentials: 'same-origin' });
+        if (!response.ok) return null;
+
+        const raw = await response.text().catch(() => '');
+        try {
+            return extractBootstrapToken(response, JSON.parse(raw));
+        } catch {
+            return extractBootstrapToken(response, raw);
+        }
+    } catch {
+        return null;
+    }
+}
+
+async function resolveRuntimeAuthToken() {
+    if (runtimeAuthToken !== undefined) {
+        return runtimeAuthToken;
+    }
+
+    const storedToken = readStoredAuthToken();
+    if (storedToken) {
+        runtimeAuthToken = storedToken;
+        return storedToken;
+    }
+
+    runtimeAuthTokenPromise ||= (async () => {
+        for (const origin of API_ORIGINS) {
+            const token = await fetchRuntimeBootstrapToken(origin);
+            if (token) return token;
+        }
+        return null;
+    })();
+
+    const token = await runtimeAuthTokenPromise;
+    runtimeAuthTokenPromise = null;
+    if (token) {
+        storeAuthToken(token);
+        return token;
+    }
+
+    storeAuthToken(null);
+    return null;
+}
+
+function withAuthHeader(init: RequestInit | undefined, token: string | null) {
+    const headers = new Headers(init?.headers || {});
+    if (token && !headers.has(AUTH_HEADER_NAME)) {
+        headers.set(AUTH_HEADER_NAME, token);
+    }
+    return {
+        ...(init || {}),
+        headers
+    };
+}
+
+export async function getRuntimeAuthToken(): Promise<string | null> {
+    return resolveRuntimeAuthToken();
+}
+
+export async function apiFetch(pathOrUrl: string, init?: RequestInit) {
+    const attemptRequest = async (forceRefreshToken: boolean) => {
+        if (forceRefreshToken) {
+            storeAuthToken(null);
+            runtimeAuthToken = undefined;
+        }
+
+        const authToken = await resolveRuntimeAuthToken();
+        const requestInit = withAuthHeader(init, authToken);
+        let lastError: unknown;
+
+        for (const origin of API_ORIGINS) {
+            try {
+                return await fetchFromOrigin(pathOrUrl, origin, requestInit);
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        throw lastError;
+    };
+
+    const response = await attemptRequest(false);
+    if (response.status !== 401) {
+        return response;
+    }
+
+    return attemptRequest(true);
+}
+
+export async function apiFetchWithTimeout(pathOrUrl: string, timeoutMs: number, init: RequestInit = {}) {
+    const controller = new AbortController();
+    const upstreamSignal = init.signal;
+    let timedOut = false;
+
+    const onUpstreamAbort = () => controller.abort();
+    if (upstreamSignal) {
+        if (upstreamSignal.aborted) {
+            onUpstreamAbort();
+        } else {
+            upstreamSignal.addEventListener('abort', onUpstreamAbort, { once: true });
+        }
+    }
+
+    const timeoutId = globalThis.setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+    }, timeoutMs);
+
+    try {
+        return await apiFetch(pathOrUrl, { ...init, signal: controller.signal });
+    } catch (error: any) {
+        if (timedOut && error?.name === 'AbortError') {
+            const timeoutError = new Error(`REQUEST_TIMEOUT_${timeoutMs}MS`);
+            timeoutError.name = 'AbortError';
+            throw timeoutError;
+        }
+        throw error;
+    } finally {
+        globalThis.clearTimeout(timeoutId);
+        if (upstreamSignal) {
+            upstreamSignal.removeEventListener('abort', onUpstreamAbort);
+        }
+    }
+}

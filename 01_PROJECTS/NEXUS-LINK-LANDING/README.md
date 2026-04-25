@@ -1,6 +1,6 @@
 # Nexus Link Productions — Landing Page
 
-Premium video production & post-production website.
+NexusLink landing and client research shell.
 
 ## Stack
 
@@ -15,6 +15,12 @@ Premium video production & post-production website.
 - **Typography:** Clean, modern sans-serif, high-contrast hierarchy
 - **Aesthetic:** Premium · Futuristic · Minimal
 
+## Routes
+
+- `/` - public NexusLink landing module
+- `/research` - client research workspace
+- `/sources` - design radar reference shelf
+
 ## Structure
 
 ```
@@ -22,6 +28,10 @@ src/
 ├── app/
 │   ├── layout.tsx       (root layout)
 │   ├── page.tsx         (home)
+│   ├── research/
+│   │   └── page.tsx     (client research workspace)
+│   ├── sources/
+│   │   └── page.tsx     (design radar)
 │   └── globals.css      (global styles)
 ├── components/
 │   ├── Header.tsx       (navigation + logo)
@@ -50,6 +60,9 @@ npm build
 
 # Start production server
 npm start
+
+# Smoke-check the built routes
+npm run smoke
 ```
 
 Server runs on `http://localhost:3000` by default.
@@ -61,9 +74,9 @@ Server runs on `http://localhost:3000` by default.
    - Update Header.tsx with actual logo (replace placeholder)
 
 2. **Content Integration:**
-   - Update Hero section with real copy and reel
-   - Add portfolio projects (cases studies with images/videos)
-   - Update Services with final descriptions
+   - Tune the landing copy to match the final brief
+   - Add real research content to `/research`
+   - Populate `/sources` with the canonical reference notes
 
 3. **Forms & Interactivity:**
    - Wire up contact form (email service integration)

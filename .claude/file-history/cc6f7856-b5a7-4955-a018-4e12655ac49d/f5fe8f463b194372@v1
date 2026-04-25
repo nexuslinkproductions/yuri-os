@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+// SessionStart: initialize token tracking + palace status check
+const fs = require('fs');
+
+const sessionId = Date.now();
+const sessionFile = `/tmp/claude-session-${sessionId}.json`;
+
+try {
+  fs.writeFileSync(sessionFile, JSON.stringify({
+    id: sessionId,
+    startTime: new Date().toISOString(),
+    toolCalls: [],
+    estimatedTokens: 0
+  }, null, 2));
+  fs.writeFileSync('/tmp/claude-current-session', sessionFile);
+} catch(e) { /* silent */ }
+
+// Palace status
+const palacePath = '/Volumes/T7/claude-palace-out/palace-index.md';
+let palaceStatus;
+try {
+  if (fs.existsSync(palacePath)) {
+    const age = Math.floor((Date.now() - fs.statSync(palacePath).mtimeMs) / 86400000);
+    palaceStatus = age > 7
+      ? `⚠️ STALE (${age}d) — call mcp__obsidian-vault__rebuild_index`
+      : `✅ Current (${age}d old) — use palace-index.md before raw vault reads`;
+  } else {
+    palaceStatus = '❌ MISSING — call mcp__obsidian-vault__rebuild_index';
+  }
+} catch(e) {
+  palaceStatus = '⚠️ Check failed';
+}
+
+console.log(JSON.stringify({
+  hookSpecificOutput: {
+    hookEventName: 'SessionStart',
+    additionalContext: `SESSION: Token tracking active (id: ${sessionId}) | PALACE: ${palaceStatus} | Reasoning: MAX effort active | Navigation: structure-first via palace-index.md`
+  }
+}));

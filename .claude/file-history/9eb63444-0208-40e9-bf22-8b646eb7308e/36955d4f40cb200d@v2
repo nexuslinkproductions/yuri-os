@@ -1,0 +1,173 @@
+# Plan: Oracle + Terminal + Image Gen Activation
+
+## Context
+
+Oracle chat produces cold/generic responses because the `/api/oracle/stream` SSE endpoint bypasses all Oracle personality infrastructure — it calls Ollama directly with no system prompt. The terminal is completely non-functional because the WebSocket server broadcasts outbound only (no incoming message handler) and the HTTP fallback sends `{ command }` while the endpoint expects a predefined `{ commandKey }`. Image folder opener is broken for the same mismatch reason. These are all plumbing disconnects, not missing features.
+
+---
+
+## Root Causes (precise)
+
+| System | File | Line(s) | Root cause |
+|--------|------|---------|------------|
+| Oracle stale responses | `backend/src/routes/api.ts` | 567–625 | SSE stream calls Ollama raw — no `buildPersonalitySystemPrompt`, no SmartRouter |
+| Oracle isBusy missing stale | `src/components/Oracle/OraclePage.tsx` | 228 | `isBusy` only checks `submitted\|deliberating`, misses `stale` |
+| Bridge source default wrong | `src/lib/oracleCommandBridge.ts` | 258 | `source` defaults to `'voice'` on typed stream submits |
+| Terminal WS no shell handler | `backend/src/server.ts` | 463–487 | `attachWebSocketServer` has no `ws.on('message')` — WS is outbound-only broadcast |
+| Terminal WS hardcoded host | `src/components/Oracle/OracleTerminal.tsx` | 59 | Hardcoded `ws://localhost:3004` |
+| Terminal HTTP fallback broken | `src/components/Oracle/OracleTerminal.tsx` | 99–103 | Sends `{ command, cwd }` to `/api/execute` which expects `{ commandKey }` |
+| Terminal no auth token | `src/components/Oracle/OracleTerminal.tsx` | 99 | Uses raw `fetch` not `apiFetch` → auth fails |
+| Image opener broken | `src/components/Oracle/VisualSynthesisLane.tsx` | 105–111 | Sends `{ command: 'open ...' }` to `/api/execute` which expects `{ commandKey }` |
+| Image opener path hardcoded | same | 109 | Hardcoded `/Users/marcelspatz/GeneratedContent/images/` |
+
+---
+
+## Implementation Plan
+
+### Step 1 — Oracle SSE: inject personality system prompt
+**File**: `backend/src/routes/api.ts` (lines 566–625)
+
+- Import `getPersonalityProfile`, `buildPersonalitySystemPrompt` from `../services/personalityService` (already imported by oracleService.ts — same pattern)
+- Inside the route handler, after validation, call `getPersonalityProfile(db)` and `buildPersonalitySystemPrompt(profile)` to get `systemPrompt`
+- Add `systemPrompt` as first message in the `messages` array sent to Ollama: `{ role: 'system', content: systemPrompt }`
+- This makes streaming responses carry the same Oracle personality as the blocking `/oracle/command` path
+
+### Step 2 — Oracle state: include 'stale' in isBusy + fix source default
+**File**: `src/components/Oracle/OraclePage.tsx` line 228
+
+```ts
+// before
+const isBusy = oracleState?.phase === 'submitted' || oracleState?.phase === 'deliberating';
+// after
+const isBusy = ['submitted', 'deliberating', 'stale'].includes(oracleState?.phase ?? '');
+```
+
+**File**: `src/lib/oracleCommandBridge.ts` line 258
+```ts
+source: options.source || 'voice',  →  source: options.source || 'typed',
+```
+
+### Step 3 — Terminal: WebSocket shell bridge in server.ts
+**File**: `backend/src/server.ts` — inside `attachWebSocketServer`
+
+Add incoming message handler to the existing `connection` callback. Check `req.url` to distinguish `/ws/shell` shell connections from general status connections:
+
+```ts
+socketServer.on('connection', async (ws, req) => {
+    if ((req as any).url === '/ws/shell') {
+        // Shell bridge: spawn child process, pipe stdout/stderr back
+        ws.on('message', (raw) => {
+            try {
+                const { command } = JSON.parse(raw.toString());
+                if (typeof command !== 'string') return;
+                const child = spawn(command, [], {
+                    cwd: SystemConfig.ROOT,
+                    shell: true,
+                    env: process.env
+                });
+                child.stdout.on('data', d => ws.send(JSON.stringify({ type: 'stdout', data: d.toString() })));
+                child.stderr.on('data', d => ws.send(JSON.stringify({ type: 'stderr', data: d.toString() })));
+                child.on('close', code => ws.send(JSON.stringify({ type: 'exit', code })));
+                child.on('error', err => ws.send(JSON.stringify({ type: 'stderr', data: err.message })));
+            } catch (_) {}
+        });
+        return; // don't run existing status/CONCLAVE broadcast logic
+    }
+    // ... existing status broadcast logic unchanged
+```
+
+- `SystemConfig.ROOT` is already imported, cwd is safe
+- `spawn(..., shell: true)` is required for commands like `pm2 status`, `ls`, pipes, etc.
+- No hardcoded user paths — cwd is always project root
+
+### Step 4 — Terminal: fix frontend WS URL + fallback
+**File**: `src/components/Oracle/OracleTerminal.tsx`
+
+- Line 47: Fix init message to show correct WS path
+- Line 59: Replace hardcoded URL with dynamic origin:
+  ```ts
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const ws = new WebSocket(`${proto}//${window.location.host}/ws/shell`);
+  ```
+- Lines 99–112: Replace raw `fetch` fallback with `apiFetch` import + switch body to `{ commandKey }` mapped from known commands, OR fall back to a new `/api/terminal/run` endpoint (see Step 5)
+
+### Step 5 — Add `/api/terminal/run` endpoint (HTTP fallback)
+**File**: `backend/src/routes/api.ts`
+
+Add a new route after the `/execute` route:
+
+```ts
+router.post('/terminal/run', authMiddleware, async (req, res) => {
+    const { command } = req.body;
+    if (typeof command !== 'string' || !command.trim()) {
+        return res.status(400).json({ error: 'command required' });
+    }
+    try {
+        const { stdout, stderr } = await new Promise<{stdout: string; stderr: string}>((resolve, reject) => {
+            const child = spawn(command, [], { cwd: SystemConfig.ROOT, shell: true, env: process.env });
+            let stdout = '', stderr = '';
+            child.stdout.on('data', d => stdout += d.toString());
+            child.stderr.on('data', d => stderr += d.toString());
+            child.on('error', reject);
+            child.on('close', () => resolve({ stdout, stderr }));
+        });
+        res.json({ stdout, stderr });
+    } catch (err: any) {
+        res.status(500).json({ stdout: '', stderr: err.message });
+    }
+});
+```
+
+- Update OracleTerminal.tsx fallback to use `apiFetch('/api/terminal/run', { method: 'POST', body: JSON.stringify({ command: cmd }) })`
+- Import `apiFetch` from `../../lib/runtime`
+
+### Step 6 — Fix image folder opener
+**File**: `backend/src/services/executor.ts`
+
+Add to `AllowedCommandKey` type and `COMMAND_HANDLERS`:
+```ts
+// AllowedCommandKey union: add 'OPEN_IMAGES_FOLDER'
+OPEN_IMAGES_FOLDER: { kind: 'spawn', command: 'open', args: [SystemConfig.resolve('../GeneratedContent/images')] }
+```
+
+**File**: `src/components/Oracle/VisualSynthesisLane.tsx` line 105–111
+
+Replace:
+```ts
+fetch('/api/execute', { body: JSON.stringify({ command: 'open /Users/marcelspatz/GeneratedContent/images/' }) })
+```
+With:
+```ts
+apiFetch('/api/execute', { method: 'POST', body: JSON.stringify({ commandKey: 'OPEN_IMAGES_FOLDER' }) })
+```
+Import `apiFetch` from `../../lib/runtime` (already used in OraclePage).
+
+### Step 7 — Image generation UX: make Visual tab more discoverable
+**File**: `src/components/Oracle/OraclePage.tsx`
+
+- Add a subtle badge/indicator on the "Visual" tab button when `imageModels` has loaded models (non-empty)
+- This is a 2-line change: check `imageModels.kie.length > 0 || imageModels.remote.length > 0` and add a dot indicator class to the tab
+
+---
+
+## Files Modified
+
+| File | Change |
+|------|--------|
+| `backend/src/routes/api.ts` | Add personality to SSE stream; add `/api/terminal/run` |
+| `backend/src/server.ts` | Add WS shell handler for `/ws/shell` path |
+| `backend/src/services/executor.ts` | Add `OPEN_IMAGES_FOLDER` command key |
+| `src/components/Oracle/OraclePage.tsx` | Fix isBusy stale inclusion; Visual tab badge |
+| `src/components/Oracle/OracleTerminal.tsx` | Dynamic WS URL; use apiFetch + /api/terminal/run |
+| `src/components/Oracle/VisualSynthesisLane.tsx` | Fix opener to use commandKey + apiFetch |
+| `src/lib/oracleCommandBridge.ts` | Fix source default voice→typed |
+
+---
+
+## Verification
+
+1. **Oracle chat**: Send a prompt → response carries Oracle personality tone (not generic Ollama output). Stale spinner shows after 30s if Ollama is slow.
+2. **Terminal WS**: Open terminal pane, run `pm2 status` → real output streams back. Run `ls .claude/state/` → shows files.
+3. **Terminal HTTP fallback**: Kill WS manually (close port), submit command → fallback hits `/api/terminal/run`, returns stdout.
+4. **Image generation**: Generate an image → "Open Folder" button works, opens Finder to images dir.
+5. **File drag-drop**: Drop a `.md` file onto Oracle → pill appears in pending files, sends with next message (already works on frontend; backend ignores it but no crash).

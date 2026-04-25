@@ -1,0 +1,104 @@
+import { NotebookService, DocType } from './notebookService';
+
+const OLLAMA_BASE = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+
+const DOC_PROMPTS: Record<DocType, (text: string) => string> = {
+    summary: (text) => `You are an expert analyst. Read the following source material and write a comprehensive executive summary in markdown. Include key findings, main themes, and critical insights. Use headings, bullet points, and clear structure.\n\n---\n${text.slice(0, 12000)}`,
+
+    study_guide: (text) => `You are an expert educator. Read the following material and create a detailed study guide in markdown with: ## Key Concepts (with definitions), ## Core Arguments, ## Important Facts, ## Potential Exam Questions with answers, ## Glossary of Terms.\n\n---\n${text.slice(0, 12000)}`,
+
+    faq: (text) => `You are a helpful assistant. Read the following material and generate a detailed FAQ document in markdown. Create 10-15 thoughtful questions a reader would ask, followed by thorough answers. Format as ## Q: ... and **A:** ...\n\n---\n${text.slice(0, 12000)}`,
+
+    timeline: (text) => `You are a historian and analyst. Read the following material and extract a chronological timeline of all events, dates, and milestones. Format as a markdown timeline with ## Year/Date headers and bullet points for each event. If no explicit dates, infer a logical sequence.\n\n---\n${text.slice(0, 12000)}`,
+
+    briefing: (text) => `You are an intelligence analyst. Create a concise executive briefing document from the following material. Include: ## Situation Overview (2-3 sentences), ## Key Points (5-7 bullets), ## Critical Risks or Concerns, ## Recommended Actions, ## Background Context. Be direct and actionable.\n\n---\n${text.slice(0, 12000)}`
+};
+
+const DOC_TITLES: Record<DocType, string> = {
+    summary: 'Executive Summary',
+    study_guide: 'Study Guide',
+    faq: 'FAQ Document',
+    timeline: 'Timeline',
+    briefing: 'Intelligence Briefing'
+};
+
+export interface DocGenStreamOptions {
+    notebookId: number;
+    docType: DocType;
+    modelId: string;
+    onToken: (token: string) => void;
+    onDone: (docId: number) => void;
+    onError: (msg: string) => void;
+    signal?: AbortSignal;
+}
+
+export class NotebookDocGenService {
+    private notebookService: NotebookService;
+
+    constructor(notebookService: NotebookService) {
+        this.notebookService = notebookService;
+    }
+
+    async streamGenerate(opts: DocGenStreamOptions): Promise<void> {
+        const { notebookId, docType, modelId, onToken, onDone, onError, signal } = opts;
+
+        const sourceText = this.notebookService.getAllSourceText(notebookId);
+        if (!sourceText.trim()) {
+            onError('No source content found for this notebook. Add and process sources first.');
+            return;
+        }
+
+        const userPrompt = DOC_PROMPTS[docType](sourceText);
+
+        try {
+            const upstream = await fetch(`${OLLAMA_BASE}/api/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: modelId,
+                    messages: [{ role: 'user', content: userPrompt }],
+                    stream: true
+                }),
+                signal
+            });
+
+            if (!upstream.ok) throw new Error(`Ollama HTTP ${upstream.status}`);
+            if (!upstream.body) throw new Error('No response body');
+
+            let fullContent = '';
+            const reader = upstream.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const text = decoder.decode(value, { stream: true });
+                for (const line of text.split('\n').filter(Boolean)) {
+                    try {
+                        const parsed = JSON.parse(line);
+                        const token = parsed?.message?.content || '';
+                        if (token) {
+                            fullContent += token;
+                            onToken(token);
+                        }
+                        if (parsed?.done) break;
+                    } catch (_) {}
+                }
+            }
+
+            if (!fullContent.trim()) throw new Error('Empty response from model');
+
+            const doc = this.notebookService.createDoc(
+                notebookId, docType,
+                DOC_TITLES[docType],
+                fullContent,
+                modelId
+            );
+            onDone(doc.id);
+        } catch (e: any) {
+            if (e.name !== 'AbortError') {
+                onError(e.message || 'DOC_GEN_FAILED');
+            }
+        }
+    }
+}

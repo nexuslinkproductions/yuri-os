@@ -1,0 +1,84 @@
+# Plan: Inject "End of Transmission" Global Command
+
+## Context
+
+The document `MARCEL_UwU_End_of_Transmission_Global_Command.md` defines a rigorous 9-phase end-of-session reflection protocol. The user wants it symbiosed into NUDIMMUD — meaning wired into the skill system, registered as a global trigger, and visible to all session hooks.
+
+No existing EOT/EoT skill exists. The existing `/reflect` command (`commands/reflect.md`) runs a lightweight session journal script — EOT is the heavyweight, evidence-based successor that replaces or extends it.
+
+---
+
+## Files to Create
+
+### 1. `.claude/skills/end-of-transmission/SKILL.md`
+Full skill file. Frontmatter triggers: `"end of transmission"`, `"/eot"`, `"/end-of-transmission"`.
+
+Body contains:
+- The 9-phase pipeline (Phase 0 Freeze → Phase 9 Sonnet Finalisation)
+- Offload routing map (eot-001 through eot-007)
+- Required artifact schema
+- Final output contract
+- Architect Council review checklist
+- Session Notes section (empty, per standard format)
+
+Format follows existing skills exactly:
+```yaml
+---
+name: end-of-transmission
+description: "Global session-close command. Evidence-based reflection: freeze work, backtrack session, verify claims, log success/failure, extract skill patches, produce next-session boot packet. Finalised by Sonnet 4.6 auto."
+triggers:
+  - "end of transmission"
+  - "/eot"
+  - "/end-of-transmission"
+---
+```
+
+### 2. `.claude/commands/end-of-transmission.md`
+Thin command file (mirrors `commands/reflect.md` pattern). Invokes the EOT skill and optionally writes artifacts to:
+```
+.claude/eot/YYYY-MM-DD_HHMM/
+```
+
+---
+
+## Files to Modify
+
+### 3. `CLAUDE.md` (project root)
+Add under **Operational Protocols** section — after the existing CAVEMAN PROTOCOL block:
+
+```markdown
+### END OF TRANSMISSION (Global Session-Close Command)
+
+When the user says `end of transmission` (exact or semantic), stop all implementation work and enter **End-of-Session Reflection Mode**.
+
+Load and execute the `end-of-transmission` skill. Do not summarise casually. Run the full evidence-based reflection pipeline.
+```
+
+### 4. `~/.claude/CLAUDE.md` (global)
+Append the Section 9 "Ready-to-Inject Global Command Block" from the source document at the bottom. This ensures the trigger is active across all projects, not just NUDIMMUD.
+
+---
+
+## Memory
+
+### 5. `/Users/marcelspatz/.claude/projects/-Users-marcelspatz-NUDIMMUD/memory/`
+Write `project_eot_command.md` — records that EOT is now a registered global command, what it does, and where the skill lives. Update `MEMORY.md` index.
+
+---
+
+## Integration Notes
+
+- **Does NOT replace `/reflect`** — that's the lightweight mid-session journal. EOT is the heavyweight end-of-session audit. They coexist.
+- **nisaba-on-stop.js** already calls `session-reflect.js` on stop. EOT is user-triggered — it's richer and manual, not automatic.
+- **Artifact output path**: `.claude/eot/YYYY-MM-DD_HHMM/` (local, not T7, per local execution policy)
+- **Protected areas**: Conclave, credentials, T7, production code — EOT must never touch these (already in the protocol)
+
+---
+
+## Verification
+
+1. After creation: `ls .claude/skills/end-of-transmission/` — SKILL.md exists
+2. Trigger check: say "end of transmission" → skill should load and enter Phase 0
+3. Slash command: `/eot` should invoke the skill
+4. CLAUDE.md grep: `grep -n "end of transmission" CLAUDE.md` returns the new block
+5. Global CLAUDE.md: `grep -n "end of transmission" ~/.claude/CLAUDE.md` returns section 9 block

@@ -1,0 +1,50 @@
+#!/usr/bin/env node
+const fs = require('fs');
+
+try {
+  const input = fs.readFileSync(0, 'utf-8').trim();
+  if (!input) {
+    console.log("Token Monitor Offline");
+    process.exit(0);
+  }
+  
+  const data = JSON.parse(input);
+  
+  // Parse fields
+  const model = data?.model?.display_name || data?.model?.name || 'Claude';
+  const context = data?.context_window?.used_percentage || 0;
+  
+  // Attempt to parse token usage from possible schema variations
+  const inputTokens = data?.usage?.input_tokens || data?.prompt_tokens || data?.tokens_in || data?.message_tokens || 0;
+  const outputTokens = data?.usage?.output_tokens || data?.completion_tokens || data?.tokens_out || 0;
+  const totalTokens = data?.usage?.total_tokens || data?.total_tokens || data?.tokens || (inputTokens + outputTokens) || 0;
+  
+  const cost = data?.cost || data?.session_cost || 0;
+  
+  // Construct status bar string
+  const parts = [];
+  
+  // Model and Context Health
+  parts.push(`🧠 ${model}`);
+  
+  let contextIcon = context < 50 ? '🟢' : (context < 85 ? '🟡' : '🔴');
+  parts.push(`${contextIcon} Context: ${context}%`);
+  
+  // Token Usage Overview
+  if (totalTokens > 0) {
+    parts.push(`🔄 Total Tokens: ${totalTokens.toLocaleString()}`);
+  }
+  if (inputTokens > 0 || outputTokens > 0) {
+    parts.push(`📥 In: ${inputTokens.toLocaleString()} | 📤 Out: ${outputTokens.toLocaleString()}`);
+  }
+  
+  // Cost
+  if (cost > 0) {
+    parts.push(`💰 Est. Cost: $${parseFloat(cost).toFixed(4)}`);
+  }
+  
+  // Live output
+  console.log(parts.join('  |  '));
+} catch (e) {
+  console.log(`Status Error: ${e.message}`);
+}

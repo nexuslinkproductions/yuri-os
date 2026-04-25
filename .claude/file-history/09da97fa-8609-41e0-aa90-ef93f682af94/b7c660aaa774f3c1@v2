@@ -1,0 +1,40 @@
+# Session Reflection Report — 2026-04-25
+
+## Session Intent
+Oracle activation and functionality revision for first real-world rollout. Audit all layers, fix defects, deliver improvement strategy.
+
+## Scope
+- Planning: 3 parallel Explore agents → Plan agent → ExitPlanMode
+- Execution: 11 fixes across P0/P1/P2 priorities
+- Files touched: 8 files modified, 2 files created
+
+## Evidence Summary
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `src/main.ts` | Remove cancel(), event-based triggerVoiceCommand, import voiceSelector, initVoice refactor |
+| `src/components/Oracle/OraclePage.tsx` | oracle:ready dispatch, health gate, voice refactor, council agent display, OLLAMA_UNAVAILABLE message |
+| `src/lib/oracleCommandBridge.ts` | councilAgent state+type, councilHardTimeout 90s, startCouncilAgentCycle, reconnect logic, auth token, idle state fix |
+| `src/lib/runtime.ts` | Export getRuntimeAuthToken() |
+| `backend/src/routes/api.ts` | Stream auth (apiKey query param), OLLAMA_UNAVAILABLE error code, personality table try/catch |
+| `backend/src/services/providers/anthropicProvider.ts` | Model mappings: opus→claude-opus-4-7, sonnet→claude-sonnet-4-6, haiku→claude-haiku-4-5-20251001 |
+
+### Files Created
+| File | Purpose |
+|------|---------|
+| `src/lib/voiceSelector.ts` | Shared voice priority util; eliminates duplicate logic between main.ts and OraclePage |
+| `~/Library/LaunchAgents/com.nudimmud.shellservice.plist` | Auto-restart shell service via launchd |
+
+### Checks Run (Evidence)
+- `grep -n "speechSynthesis.cancel"` → speak() at line 904 confirmed clean
+- `grep -n "oracle:ready"` → confirmed in OraclePage.tsx:126 and main.ts:1103,1107,1110,1112
+- `grep -n "healthStatus"` → confirmed in OraclePage.tsx:78,112,117,119,337–354,545
+- `grep -n "getRuntimeAuthToken"` → confirmed runtime.ts:169, bridge.ts:1,299,300
+- `grep -n "claude-opus-4-7"` → confirmed anthropicProvider.ts:22–24
+- `grep -n "councilHardTimeout"` → confirmed 90_000 at bridge.ts:9
+- `grep -n "MAX_RETRIES"` → confirmed bridge.ts:303–348
+- `launchctl list | grep nudimmud` → PID 98898, exit 0
+- `lsof -ti:3098` → PID 98898 active
+- TypeScript frontend: exit 0 (clean)
+- TypeScript backend: exit 0 (clean)

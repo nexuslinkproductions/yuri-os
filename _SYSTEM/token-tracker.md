@@ -205,3 +205,5 @@ If token usage exceeds budgets consistently, auto-disable:
 | 2026-04-19T12:54 | 0m | 5 | ~2,000 | Shell×5 |
 | 2026-04-19T15:06 | 0m | 0 | ~0 | none |
 | 2026-04-19T15:07 | 0m | 0 | ~0 | none |
+| 2026-04-21T01:24 | 4m | 17 | ~6,800 | Grep×9, Read×4, Shell×3 |
+| 2026-04-21T01:53 | 0m | 1 | ~400 | Shell×1 |

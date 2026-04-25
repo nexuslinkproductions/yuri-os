@@ -1,0 +1,218 @@
+import { Database } from 'better-sqlite3';
+import { ConclaveOS } from '../conclave/ConclaveOS';
+import { SmartRouter } from './smartRouter';
+import { neuralForge } from './neuralForgeService';
+import {
+    ensurePersonalityTable,
+    logPersonalityEntry,
+    getPersonalityProfile,
+    buildPersonalitySystemPrompt
+} from './personalityService';
+
+/**
+ * THE AEONIC CONCLAVE (OS v9.0 - Industrial Implementation)
+ * This service now acts as a high-level wrapper for the modular Conclave OS Kernel.
+ */
+export class OracleService {
+    private db: Database;
+
+    constructor(db: Database) {
+        this.db = db;
+        ensurePersonalityTable(db);
+    }
+
+    /**
+     * Entry point for incoming directives.
+     */
+    async processCommand(command: string, options: { useCouncil?: boolean; modelId?: string } = {}) {
+        const routingDecision = SmartRouter.route(command, {
+            modelId: options.modelId,
+            intent: options.useCouncil === false ? 'ops' : 'strategy'
+        });
+        const { useCouncil = true, modelId = routingDecision.preferredModel } = options;
+        console.log(`⬡ ORACLE_ADAPTER :: [${routingDecision.preferredRuntime.toUpperCase()}] :: HANDOFF_TO_KERNEL`);
+        const buildTelemetry = (status: string, runtime?: string, extras: { decision?: any; escalated?: boolean; loopCount?: number } = {}) => {
+            const decision = extras.decision || routingDecision;
+            const risk = String(decision?.risk || routingDecision.risk || 'medium').toUpperCase();
+            const escalated = Boolean(extras.escalated);
+            const confidenceBand = status === 'FORGE_DEGRADED'
+                ? 'LOW'
+                : escalated
+                    ? 'GUARDED'
+                    : risk === 'HIGH'
+                        ? 'LOW'
+                        : risk === 'MEDIUM'
+                            ? 'MEDIUM'
+                            : 'HIGH';
+
+            return {
+                runtime: String(runtime || decision?.preferredRuntime || routingDecision.preferredRuntime || 'local').toUpperCase(),
+                risk,
+                escalated,
+                loopCount: extras.loopCount || 1,
+                disagreement: escalated || risk === 'HIGH' || status === 'FORGE_DEGRADED',
+                confidenceBand,
+                heartbeat: status === 'FORGE_DEGRADED'
+                    ? 'DEGRADED'
+                    : status === 'CONCLAVE_TIMEOUT'
+                        ? 'DELAYED'
+                        : 'NOMINAL'
+            };
+        };
+        
+        try {
+            // Log command for personality learning
+            logPersonalityEntry(this.db, command);
+            const profile = getPersonalityProfile(this.db);
+            const personalityPrompt = buildPersonalitySystemPrompt(profile);
+
+            if (!useCouncil) {
+                let response = await neuralForge.chat(
+                    modelId,
+                    [{ role: 'user', content: command }],
+                    personalityPrompt,
+                    {
+                        intent: 'strategy',
+                        retrievalProfile: routingDecision.retrievalProfile,
+                        reasoningBudget: routingDecision.reasoningBudget
+                    }
+                );
+
+                if (response.status === 'FORGE_DEGRADED' && modelId !== 'qwen-liberated:latest') {
+                    response = await neuralForge.chat(
+                        'qwen-liberated:latest',
+                        [{ role: 'user', content: command }],
+                        'SYSTEM_NODE: ORACLE_DIRECTIVE_CHANNEL',
+                        {
+                            intent: 'ops',
+                            allowCloud: false,
+                            retrievalProfile: routingDecision.retrievalProfile
+                        }
+                    );
+                }
+
+                return {
+                    status: response.status || 'CONCLAVE_SUCCESS',
+                    final_summary: response.final_summary || response.content || 'Directive processed.',
+                    content: response.content || response.final_summary || 'Directive processed.',
+                    model: response.model,
+                    timestamp: response.timestamp,
+                    runtime: response.runtime || routingDecision.preferredRuntime,
+                    decision: response.decision || routingDecision,
+                    escalated: Boolean(response.escalated),
+                    loopCount: response.loopCount || 1,
+                    telemetry: buildTelemetry(response.status || 'CONCLAVE_SUCCESS', response.runtime, {
+                        decision: response.decision || routingDecision,
+                        escalated: response.escalated,
+                        loopCount: response.loopCount
+                    })
+                };
+            }
+
+            const kernel = new ConclaveOS(this.db);
+            const result = await kernel.boot(command);
+
+            if (result.status === 'CONCLAVE_TIMEOUT') {
+                return {
+                    status: result.status,
+                    memory_bank: result.finalState,
+                    final_summary: result.finalSummary,
+                    error: result.error,
+                    model: 'aeonic-council',
+                    runtime: routingDecision.preferredRuntime,
+                    decision: routingDecision,
+                    escalated: false,
+                    loopCount: 1,
+                    telemetry: buildTelemetry(result.status, routingDecision.preferredRuntime, {
+                        decision: routingDecision
+                    })
+                };
+            }
+
+            if (result.status !== 'CONCLAVE_SUCCESS') {
+                const fallback = await neuralForge.chat(
+                    'qwen-liberated:latest',
+                    [{ role: 'user', content: this.buildCouncilPrompt(command) }],
+                    'SYSTEM_NODE: AEONIC_COUNCIL_ORCHESTRATOR',
+                    {
+                        intent: 'strategy',
+                        allowCloud: false,
+                        retrievalProfile: routingDecision.retrievalProfile
+                    }
+                );
+
+                return {
+                    status: fallback.status || 'CONCLAVE_SUCCESS',
+                    memory_bank: this.buildCouncilFallbackMemory(command, fallback.content, result.status),
+                    final_summary: fallback.final_summary || fallback.content || result.finalSummary,
+                    error: result.error,
+                    model: fallback.model || 'aeonic-council-fallback',
+                    runtime: fallback.runtime || 'degraded',
+                    decision: fallback.decision || routingDecision,
+                    escalated: Boolean(fallback.escalated),
+                    loopCount: fallback.loopCount || 1,
+                    telemetry: buildTelemetry(fallback.status || result.status, fallback.runtime, {
+                        decision: fallback.decision || routingDecision,
+                        escalated: fallback.escalated,
+                        loopCount: fallback.loopCount
+                    })
+                };
+            }
+
+                return {
+                    status: result.status,
+                    memory_bank: result.finalState,
+                    final_summary: result.finalSummary,
+                    file_path: result.filePath,
+                    content: result.content,
+                    ui: result.ui,
+                    error: result.error,
+                    model: 'aeonic-council',
+                    runtime: routingDecision.preferredRuntime,
+                    decision: routingDecision,
+                    escalated: false,
+                loopCount: 1,
+                telemetry: buildTelemetry(result.status, routingDecision.preferredRuntime, {
+                    decision: routingDecision
+                })
+            };
+        } catch (error: any) {
+            console.error(`⬡ ORACLE_ADAPTER_ERROR ::`, error);
+            return {
+                status: 'CONCLAVE_ERROR',
+                error: error.message,
+                final_summary: `Oracle could not process "${command.substring(0, 80)}". ${error.message}`,
+                runtime: 'degraded',
+                decision: routingDecision,
+                escalated: false,
+                loopCount: 0,
+                telemetry: buildTelemetry('CONCLAVE_ERROR', 'degraded')
+            };
+        }
+    }
+
+    private buildCouncilPrompt(command: string) {
+        return `As the Aeonic Council, respond to this directive with a concise, actionable council brief: "${command}".
+Break the response into:
+1. ENLIL (Mission Logistics & Tasks)
+2. NABU (Search & Routing)
+3. ENKI (Technical Implementation)
+4. INANNA (Context & Impact)`;
+    }
+
+    private buildCouncilFallbackMemory(command: string, response: string, priorStatus: string) {
+        return {
+            mission_log: [
+                { agent: 'ENLIL', action: `Fallback council mobilized for: ${command.substring(0, 50)}...` },
+                { agent: 'NABU', action: 'Routing via qwen-liberated local council channel.' },
+                { agent: 'ENKI', action: 'Synthesizing a local response path for reliable delivery.' },
+                { agent: 'INANNA', action: `Kernel reported ${priorStatus}; preserving conversational continuity.` }
+            ],
+            memory: {
+                shortTerm: []
+            },
+            fallback_response: response,
+            prior_status: priorStatus
+        };
+    }
+}

@@ -1,0 +1,8 @@
+2026-04-25T01:40:58.879Z [scout-runner] claude -p failed for CASSANDRA: spawnSync /bin/sh ETIMEDOUT
+2026-04-25T01:41:06.001Z [scout-runner] claude -p failed for ARGUS: spawnSync /bin/sh ETIMEDOUT
+2026-04-25T02:13:05.346Z [scout-runner] claude -p failed for CASSANDRA: Command failed: claude -p --model claude-haiku-4-5-20251001 "$(cat '/tmp/scout-CASSANDRA-1777083181048.txt')" 2>/dev/null
+2026-04-25T02:13:05.787Z [scout-runner] claude -p failed for HERMES: Command failed: claude -p --model claude-haiku-4-5-20251001 "$(cat '/tmp/scout-HERMES-1777083181048.txt')" 2>/dev/null
+2026-04-25T02:13:05.864Z [scout-runner] claude -p failed for ARGUS: Command failed: claude -p --model claude-haiku-4-5-20251001 "$(cat '/tmp/scout-ARGUS-1777083181048.txt')" 2>/dev/null
+2026-04-25T02:13:12.822Z [scout-runner] claude -p failed for CASSANDRA: Command failed: claude -p --model claude-haiku-4-5-20251001 "$(cat '/tmp/scout-CASSANDRA-1777083189180.txt')" 2>/dev/null
+2026-04-25T02:13:12.965Z [scout-runner] claude -p failed for ARGUS: Command failed: claude -p --model claude-haiku-4-5-20251001 "$(cat '/tmp/scout-ARGUS-1777083189175.txt')" 2>/dev/null
+2026-04-25T09:30:53.448Z [scout-runner] claude -p failed for ARGUS: spawnSync /bin/sh ETIMEDOUT

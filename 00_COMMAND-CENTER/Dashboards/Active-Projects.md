@@ -1,6 +1,6 @@
 ---
 tags: [dashboard, projects, active]
-last-updated: 2026-04-13
+last-updated: 2026-04-23
 ---
 
 # Active Projects Dashboard
@@ -67,8 +67,8 @@ last-updated: 2026-04-13
 - [ ] Confirm MACL-ONE scope and first deliverable
 - [ ] Delete `/NUDIMMUD/NUDIMMUD/` nested folder (pending explicit confirmation)
 - [ ] Sort AE/ in `_UNSORTED-EDITS/` (R logo.aep, TEST VIDEO KAI.aep)
-- [ ] Fill enki_state.md personal constraints (time/energy/money)
+- [x] Fill enki_state.md personal constraints (time/energy/money)
 
 ---
 
-*Last updated: 2026-04-13 — vault improvement session*
+*Last updated: 2026-04-23 — LOGOS sweep*

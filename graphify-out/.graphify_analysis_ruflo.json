@@ -1,0 +1,1715 @@
+{
+  "communities": {
+    "0": [
+      "abortregistry_abortregistry",
+      "abortregistry_abortregistry_abort",
+      "abortregistry_abortregistry_getinstance",
+      "abortregistry_abortregistry_register",
+      "abortregistry_abortregistry_unregister",
+      "addsibling_addsibling",
+      "auth_authcondition",
+      "autopilotstore_svelte_applyupdate",
+      "autopilotstore_svelte_ensureworkers",
+      "autopilotstore_svelte_handledetailmessage",
+      "autopilotstore_svelte_handleworkermessage",
+      "autopilotstore_svelte_useautopilot",
+      "buildprompt_buildprompt",
+      "buildsubtree_buildsubtree",
+      "clientpool_drainpool",
+      "clientpool_evictfrompool",
+      "clientpool_getclient",
+      "clientpool_keyof",
+      "convertlegacyconversation_convertlegacyconversation",
+      "detailfetchworker_evictlru",
+      "detailfetchworker_touchaccess",
+      "hashconv_hashconv",
+      "hf_hasauthheader",
+      "hf_hasnonemptytoken",
+      "hf_isexamcpserver",
+      "hf_isstricthfmcplogin",
+      "httpclient_callmcptool",
+      "httpclient_getmcptooltimeoutms",
+      "httpclient_isconnectionclosederror",
+      "ismessageid_ismessageid",
+      "page_async",
+      "page_flush",
+      "page_if",
+      "page_sendstoprequest",
+      "requireauth_requireadmin",
+      "requireauth_requireauth",
+      "resolveconversation_resolveconversation",
+      "resolvemodel_resolvemodel",
+      "server_delete",
+      "server_get",
+      "server_patch",
+      "server_post",
+      "src_ruvocal_src_lib_buildprompt_ts",
+      "src_ruvocal_src_lib_server_abortregistry_ts",
+      "src_ruvocal_src_lib_server_api_utils_requireauth_ts",
+      "src_ruvocal_src_lib_server_api_utils_resolveconversation_ts",
+      "src_ruvocal_src_lib_server_api_utils_resolvemodel_ts",
+      "src_ruvocal_src_lib_server_api_utils_superjsonresponse_ts",
+      "src_ruvocal_src_lib_server_mcp_clientpool_ts",
+      "src_ruvocal_src_lib_server_mcp_hf_ts",
+      "src_ruvocal_src_lib_server_mcp_httpclient_ts",
+      "src_ruvocal_src_lib_server_urlsafety_ts",
+      "src_ruvocal_src_lib_stores_autopilotstore_svelte_ts",
+      "src_ruvocal_src_lib_utils_hashconv_ts",
+      "src_ruvocal_src_lib_utils_hf_ts",
+      "src_ruvocal_src_lib_utils_tree_addsibling_ts",
+      "src_ruvocal_src_lib_utils_tree_buildsubtree_ts",
+      "src_ruvocal_src_lib_utils_tree_convertlegacyconversation_ts",
+      "src_ruvocal_src_lib_utils_tree_ismessageid_ts",
+      "src_ruvocal_src_lib_workers_detailfetchworker_ts",
+      "src_ruvocal_src_routes_admin_export_server_ts",
+      "src_ruvocal_src_routes_admin_stats_compute_server_ts",
+      "src_ruvocal_src_routes_api_conversation_id_message_messageid_server_ts",
+      "src_ruvocal_src_routes_api_conversation_id_server_ts",
+      "src_ruvocal_src_routes_api_conversations_server_ts",
+      "src_ruvocal_src_routes_api_fetch_url_server_ts",
+      "src_ruvocal_src_routes_api_mcp_health_server_ts",
+      "src_ruvocal_src_routes_api_mcp_servers_server_ts",
+      "src_ruvocal_src_routes_api_models_server_ts",
+      "src_ruvocal_src_routes_api_transcribe_server_ts",
+      "src_ruvocal_src_routes_api_user_server_ts",
+      "src_ruvocal_src_routes_api_user_validate_token_server_ts",
+      "src_ruvocal_src_routes_api_v2_conversations_id_message_messageid_server_ts",
+      "src_ruvocal_src_routes_api_v2_conversations_id_server_ts",
+      "src_ruvocal_src_routes_api_v2_conversations_import_share_server_ts",
+      "src_ruvocal_src_routes_api_v2_conversations_server_ts",
+      "src_ruvocal_src_routes_api_v2_debug_config_server_ts",
+      "src_ruvocal_src_routes_api_v2_debug_refresh_server_ts",
+      "src_ruvocal_src_routes_api_v2_export_server_ts",
+      "src_ruvocal_src_routes_api_v2_feature_flags_server_ts",
+      "src_ruvocal_src_routes_api_v2_models_namespace_model_server_ts",
+      "src_ruvocal_src_routes_api_v2_models_namespace_model_subscribe_server_ts",
+      "src_ruvocal_src_routes_api_v2_models_namespace_server_ts",
+      "src_ruvocal_src_routes_api_v2_models_namespace_subscribe_server_ts",
+      "src_ruvocal_src_routes_api_v2_models_old_server_ts",
+      "src_ruvocal_src_routes_api_v2_models_refresh_server_ts",
+      "src_ruvocal_src_routes_api_v2_models_server_ts",
+      "src_ruvocal_src_routes_api_v2_public_config_server_ts",
+      "src_ruvocal_src_routes_api_v2_user_billing_orgs_server_ts",
+      "src_ruvocal_src_routes_api_v2_user_reports_server_ts",
+      "src_ruvocal_src_routes_api_v2_user_server_ts",
+      "src_ruvocal_src_routes_api_v2_user_settings_server_ts",
+      "src_ruvocal_src_routes_conversation_id_message_messageid_prompt_server_ts",
+      "src_ruvocal_src_routes_conversation_id_page_svelte",
+      "src_ruvocal_src_routes_conversation_id_server_ts",
+      "src_ruvocal_src_routes_conversation_id_share_server_ts",
+      "src_ruvocal_src_routes_conversation_id_stop_generating_server_ts",
+      "src_ruvocal_src_routes_conversation_server_ts",
+      "src_ruvocal_src_routes_debug_openai_server_ts",
+      "src_ruvocal_src_routes_healthcheck_server_ts",
+      "src_ruvocal_src_routes_login_server_ts",
+      "src_ruvocal_src_routes_logout_server_ts",
+      "src_ruvocal_src_routes_metrics_server_ts",
+      "src_ruvocal_src_routes_page_svelte",
+      "src_ruvocal_src_routes_settings_nav_application_page_svelte",
+      "src_ruvocal_src_routes_settings_nav_server_ts",
+      "superjsonresponse_superjsonresponse",
+      "urlsafety_assertsafeip",
+      "urlsafety_isunsafeip",
+      "urlsafety_isvalidurl"
+    ],
+    "1": [
+      "config_configmanager",
+      "config_configmanager_checkforupdates",
+      "config_configmanager_clear",
+      "config_configmanager_configmanagerenabled",
+      "config_configmanager_delete",
+      "config_configmanager_get",
+      "config_configmanager_getpublicconfig",
+      "config_configmanager_init",
+      "config_configmanager_isconfigstale",
+      "config_configmanager_ishuggingchat",
+      "config_configmanager_set",
+      "config_configmanager_updateconfig",
+      "config_configmanager_updatesemaphore",
+      "conversations_spec_mockurl",
+      "conversations_spec_parseresponse",
+      "database_database",
+      "database_database_getclient",
+      "database_database_getcollections",
+      "database_database_getinstance",
+      "database_database_init",
+      "database_getcollectionsearly",
+      "exithandler_onexit",
+      "populate_seed",
+      "rvf_applyupdate",
+      "rvf_deletenestedvalue",
+      "rvf_enablemultitenant",
+      "rvf_flushtodisk",
+      "rvf_getcollection",
+      "rvf_getnestedvalue",
+      "rvf_gettenantstats",
+      "rvf_gettenantstore",
+      "rvf_initrvfstore",
+      "rvf_ismultitenant",
+      "rvf_isobjectidlike",
+      "rvf_listtenants",
+      "rvf_matches",
+      "rvf_matchesfilter",
+      "rvf_rvfcollection",
+      "rvf_rvfcollection_aggregateinternal",
+      "rvf_rvfcollection_bulkwrite",
+      "rvf_rvfcollection_constructor",
+      "rvf_rvfcollection_countdocuments",
+      "rvf_rvfcollection_createindex",
+      "rvf_rvfcollection_deletemany",
+      "rvf_rvfcollection_deleteone",
+      "rvf_rvfcollection_distinct",
+      "rvf_rvfcollection_docs",
+      "rvf_rvfcollection_find",
+      "rvf_rvfcollection_findoneanddelete",
+      "rvf_rvfcollection_findoneandupdate",
+      "rvf_rvfcollection_fortenant",
+      "rvf_rvfcollection_insertmany",
+      "rvf_rvfcollection_insertone",
+      "rvf_rvfcollection_tenantid",
+      "rvf_rvfcollection_updatemany",
+      "rvf_rvfcollection_updateone",
+      "rvf_rvfcursor_sort",
+      "rvf_rvfgridfsbucket",
+      "rvf_rvfgridfsbucket_delete",
+      "rvf_rvfgridfsbucket_files",
+      "rvf_schedulesave",
+      "rvf_setnestedvalue",
+      "rvf_sortdocs",
+      "src_ruvocal_src_lib_server_api_tests_conversations_spec_ts",
+      "src_ruvocal_src_lib_server_api_tests_testhelpers_ts",
+      "src_ruvocal_src_lib_server_config_ts",
+      "src_ruvocal_src_lib_server_database_rvf_ts",
+      "src_ruvocal_src_lib_server_database_ts",
+      "src_ruvocal_src_lib_server_exithandler_ts",
+      "src_ruvocal_src_lib_server_textgeneration_mcp_toolinvocation_ts",
+      "src_ruvocal_src_lib_utils_tree_treehelpers_spec_ts",
+      "src_ruvocal_src_routes_login_callback_updateuser_spec_ts",
+      "testhelpers_cleanuptestdata",
+      "testhelpers_createtestconversation",
+      "testhelpers_createtestlocals",
+      "testhelpers_createtestuser",
+      "toolinvocation_createqueue",
+      "toolinvocation_servermap",
+      "tools_resetmcptoolscache",
+      "treehelpers_spec_getconversations",
+      "treehelpers_spec_insertlegacyconversation",
+      "treehelpers_spec_insertlinearbranchconversation",
+      "treehelpers_spec_insertsidebranchesconversation",
+      "updateuser_spec_insertrandomconversations",
+      "updateuser_spec_insertrandomuser"
+    ],
+    "2": [
+      "chunk_chunk",
+      "chunk_range",
+      "config_add",
+      "exithandler_runexithandler",
+      "index_autopilotsleep",
+      "index_buildsystemprompt",
+      "index_callcloudfunction",
+      "index_createmcphandler",
+      "index_createmcpssehandler",
+      "index_executegoapsearch",
+      "index_executegoapsearchgemini",
+      "index_executetool",
+      "index_filtertoolsbygroups",
+      "index_geminigroundedsearch",
+      "index_getactivetools",
+      "index_getguidance",
+      "index_gettoolsforgroup",
+      "index_handleautopilot",
+      "index_initbackends",
+      "index_isbackendneeded",
+      "index_isblockedtool",
+      "index_main",
+      "index_resolveprovider",
+      "index_safeparseargs",
+      "index_sendautopilotevent",
+      "index_stdiomcpclient",
+      "index_stdiomcpclient_calltool",
+      "index_stdiomcpclient_constructor",
+      "index_stdiomcpclient_notify",
+      "index_stdiomcpclient_ondata",
+      "index_stdiomcpclient_send",
+      "index_stdiomcpclient_start",
+      "index_stdiomcpclient_stop",
+      "loadattachmentsfromurls_extractfilename",
+      "loadattachmentsfromurls_loadattachmentsfromurls",
+      "loadattachmentsfromurls_parseattachmenturls",
+      "messageupdates_spec_collect",
+      "messageupdates_spec_streamtext",
+      "parsestringtolist_parsestringtolist",
+      "preparefiles_preparefiles",
+      "preparefiles_preparemessageswithfiles",
+      "preprocessmessages_downloadfiles",
+      "preprocessmessages_injectclipboardfiles",
+      "preprocessmessages_preprocessmessages",
+      "preprocessmessages_stripemptyinitialsystemmessage",
+      "rvf_rvfcursor_map",
+      "src_mcp_bridge_index_js",
+      "src_ruvocal_mcp_bridge_index_js",
+      "src_ruvocal_src_lib_server_endpoints_preprocessmessages_ts",
+      "src_ruvocal_src_lib_server_mcp_tools_ts",
+      "src_ruvocal_src_lib_server_textgeneration_utils_preparefiles_ts",
+      "src_ruvocal_src_lib_server_textgeneration_utils_toolprompt_ts",
+      "src_ruvocal_src_lib_utils_chunk_ts",
+      "src_ruvocal_src_lib_utils_loadattachmentsfromurls_ts",
+      "src_ruvocal_src_lib_utils_messageupdates_spec_ts",
+      "src_ruvocal_src_lib_utils_parsestringtolist_ts",
+      "src_ruvocal_src_lib_utils_timeout_ts",
+      "timeout_timeout",
+      "toolprompt_buildtoolpreprompt",
+      "tools_buildcachekey",
+      "tools_getopenaitoolsformcp",
+      "tools_listservertools",
+      "tools_sanitizename"
+    ],
+    "3": [
+      "postgres_camelcase",
+      "postgres_closepool",
+      "postgres_filtertowhere",
+      "postgres_getpool",
+      "postgres_jsonbpath",
+      "postgres_objectid",
+      "postgres_objectid_createfromhexstring",
+      "postgres_objectid_equals",
+      "postgres_objectid_tohexstring",
+      "postgres_objectid_tojson",
+      "postgres_objectid_tostring",
+      "postgres_postgrescollection",
+      "postgres_postgrescollection_aggregate",
+      "postgres_postgrescollection_constructor",
+      "postgres_postgrescollection_countdocuments",
+      "postgres_postgrescollection_createindex",
+      "postgres_postgrescollection_deletemany",
+      "postgres_postgrescollection_deleteone",
+      "postgres_postgrescollection_distinct",
+      "postgres_postgrescollection_find",
+      "postgres_postgrescollection_findone",
+      "postgres_postgrescollection_findoneanddelete",
+      "postgres_postgrescollection_findoneandupdate",
+      "postgres_postgrescollection_insertmany",
+      "postgres_postgrescollection_insertone",
+      "postgres_postgrescollection_pool",
+      "postgres_postgrescollection_rowtodoc",
+      "postgres_postgrescollection_semanticsearch",
+      "postgres_postgrescollection_updatemany",
+      "postgres_postgrescollection_updateone",
+      "postgres_postgrescursor",
+      "postgres_postgrescursor_constructor",
+      "postgres_postgrescursor_limit",
+      "postgres_postgrescursor_project",
+      "postgres_postgrescursor_skip",
+      "postgres_postgrescursor_sort",
+      "postgres_postgrescursor_symbol_asynciterator",
+      "postgres_postgrescursor_toarray",
+      "postgres_postgresgridfsbucket",
+      "postgres_postgresgridfsbucket_delete",
+      "postgres_postgresgridfsbucket_find",
+      "postgres_postgresgridfsbucket_opendownloadstream",
+      "postgres_postgresgridfsbucket_openuploadstream",
+      "postgres_snakecase",
+      "postgres_sorttoorderby",
+      "postgres_updatetoset",
+      "src_ruvocal_src_lib_server_database_postgres_ts"
+    ],
+    "4": [
+      "generate_welcome_generateframe",
+      "generate_welcome_main",
+      "isvirtualkeyboard_isvirtualkeyboard",
+      "parseincompletemarkdown_countsingleasterisks",
+      "parseincompletemarkdown_countsinglebackticks",
+      "parseincompletemarkdown_countsingledollarsigns",
+      "parseincompletemarkdown_countsingleunderscores",
+      "parseincompletemarkdown_counttripleasterisks",
+      "parseincompletemarkdown_getopencodefenceindex",
+      "parseincompletemarkdown_handleincompleteblockkatex",
+      "parseincompletemarkdown_handleincompletebold",
+      "parseincompletemarkdown_handleincompletebolditalic",
+      "parseincompletemarkdown_handleincompletedoubleunderscoreitalic",
+      "parseincompletemarkdown_handleincompleteinlinecode",
+      "parseincompletemarkdown_handleincompletelinksandimages",
+      "parseincompletemarkdown_handleincompletesingleasteriskitalic",
+      "parseincompletemarkdown_handleincompletesingleunderscoreitalic",
+      "parseincompletemarkdown_handleincompletestrikethrough",
+      "parseincompletemarkdown_hascompletecodeblock",
+      "parseincompletemarkdown_ispartoftriplebacktick",
+      "parseincompletemarkdown_iswithinmathblock",
+      "parseincompletemarkdown_parseincompletemarkdown",
+      "src_mcp_bridge_test_harness_js",
+      "src_ruvocal_mcp_bridge_test_harness_js",
+      "src_ruvocal_scripts_generate_welcome_mjs",
+      "src_ruvocal_src_lib_utils_isvirtualkeyboard_ts",
+      "src_ruvocal_src_lib_utils_parseincompletemarkdown_ts",
+      "test_harness_assert",
+      "test_harness_fetchjson",
+      "test_harness_log",
+      "test_harness_main",
+      "test_harness_mcpcall",
+      "test_harness_skip",
+      "test_harness_test",
+      "test_harness_testcatchallmcp",
+      "test_harness_testcrossgroupexecution",
+      "test_harness_testgroups",
+      "test_harness_testguidancetool",
+      "test_harness_testhealth",
+      "test_harness_testmcpservers",
+      "test_harness_testmodels",
+      "test_harness_testnotificationsinitialized",
+      "test_harness_testpergroupmcp",
+      "test_harness_testsse",
+      "test_harness_testtoolcounts",
+      "test_harness_testtoolexecution"
+    ],
+    "5": [
+      "arch_archselectroute",
+      "arch_lastnturns",
+      "arch_parseroutename",
+      "arch_torouterprompt",
+      "arch_trimmiddle",
+      "autopilotworker_flushupdates",
+      "autopilotworker_handleevent",
+      "autopilotworker_queueupdate",
+      "endpoint_extractupstreamerror",
+      "endpoint_getmodels",
+      "endpoint_httperror",
+      "endpoint_httperror_constructor",
+      "endpoint_ispolicyerror",
+      "endpoint_makerouterendpoint",
+      "endpoint_stripreasoningblocks",
+      "endpoint_stripreasoningfrommessage",
+      "filerefs_attachfilerefstoargs",
+      "filerefs_buildfilerefresolver",
+      "filerefs_buildimagerefresolver",
+      "formatusercount_formatusercount",
+      "generationstate_isassistantgenerationterminal",
+      "generationstate_isconversationgenerationactive",
+      "models_findcurrentmodel",
+      "multimodal_findconfiguredmultimodalmodel",
+      "multimodal_getconfiguredmultimodalmodelid",
+      "page_getprovideroverride",
+      "policy_getroutes",
+      "policy_loadpolicy",
+      "policy_resolveroutemodels",
+      "routerresolution_resolveroutertarget",
+      "rvf_rvfgridfsbucket_find",
+      "src_ruvocal_src_lib_server_router_arch_ts",
+      "src_ruvocal_src_lib_server_router_endpoint_ts",
+      "src_ruvocal_src_lib_server_router_multimodal_ts",
+      "src_ruvocal_src_lib_server_router_policy_ts",
+      "src_ruvocal_src_lib_server_router_toolsroute_ts",
+      "src_ruvocal_src_lib_server_textgeneration_mcp_filerefs_ts",
+      "src_ruvocal_src_lib_server_textgeneration_mcp_routerresolution_ts",
+      "src_ruvocal_src_lib_utils_formatusercount_ts",
+      "src_ruvocal_src_lib_utils_generationstate_ts",
+      "src_ruvocal_src_lib_utils_models_ts",
+      "src_ruvocal_src_lib_workers_autopilotworker_ts",
+      "src_ruvocal_src_routes_settings_nav_model_page_svelte",
+      "toolsroute_hasactivetoolsselection",
+      "toolsroute_isroutertoolsbypassenabled",
+      "toolsroute_picktoolscapablemodel"
+    ],
+    "6": [
+      "04_update_message_updates_convertmessageupdate",
+      "06_trim_message_updates_convertmessageupdate",
+      "document_createdocumentprocessoroptionsvalidator",
+      "document_makedocumentprocessor",
+      "document_validatemimetype",
+      "endpointoai_endpointoai",
+      "haptics_error",
+      "images_chooseimagesize",
+      "images_choosemimetype",
+      "images_convertimage",
+      "images_createimageprocessoroptionsvalidator",
+      "images_estimateimagesizeinbytes",
+      "images_isoutputformat",
+      "images_makeimageprocessor",
+      "images_resizeimage",
+      "mcpservers_addcustomserver",
+      "mcpservers_deletecustomserver",
+      "mcpservers_disableallservers",
+      "mcpservers_healthcheckserver",
+      "mcpservers_loadcustomservers",
+      "mcpservers_loaddisabledbaseids",
+      "mcpservers_loadselectedids",
+      "mcpservers_refreshmcpservers",
+      "mcpservers_savecustomservers",
+      "mcpservers_savedisabledbaseids",
+      "mcpservers_saveselectedids",
+      "mcpservers_toggleserver",
+      "mcpservers_tokeypart",
+      "mcpservers_updatecustomserver",
+      "mcpservers_updateserverstatus",
+      "modelswitch_handlemodelchange",
+      "sendslack_sendslack",
+      "src_ruvocal_src_lib_components_chat_modelswitch_svelte",
+      "src_ruvocal_src_lib_migrations_routines_04_update_message_updates_ts",
+      "src_ruvocal_src_lib_migrations_routines_06_trim_message_updates_ts",
+      "src_ruvocal_src_lib_server_endpoints_document_ts",
+      "src_ruvocal_src_lib_server_endpoints_images_ts",
+      "src_ruvocal_src_lib_server_endpoints_openai_endpointoai_ts",
+      "src_ruvocal_src_lib_server_sendslack_ts",
+      "src_ruvocal_src_lib_stores_mcpservers_ts"
+    ],
+    "7": [
+      "auth_authenticaterequest",
+      "auth_finduser",
+      "auth_generatecsrftoken",
+      "auth_getcoupledcookiehash",
+      "auth_getoidcauthorizationurl",
+      "auth_getoidcclient",
+      "auth_getoidcuserdata",
+      "auth_refreshoauthtoken",
+      "auth_refreshsessioncookie",
+      "auth_sanitizereturnpath",
+      "auth_stringwithdefault",
+      "auth_tokensettosessionoauth",
+      "auth_triggeroauthflow",
+      "auth_validateandparsecsrftoken",
+      "lock_acquirelock",
+      "lock_isdblocked",
+      "lock_refreshlock",
+      "lock_releaselock",
+      "migrations_checkandrunmigrations",
+      "refresh_conversation_stats_computeallstats",
+      "refresh_conversation_stats_computestats",
+      "refresh_conversation_stats_getlastcomputationtime",
+      "refresh_conversation_stats_maintainlock",
+      "refresh_conversation_stats_refreshconversationstats",
+      "refresh_conversation_stats_shouldcomputestats",
+      "rvf_rvfcollection_aggregate",
+      "rvf_rvfcollection_findone",
+      "rvf_rvfcollection_listindexes",
+      "server_sanitizejsonenv",
+      "sha256_sha256",
+      "src_ruvocal_src_lib_jobs_refresh_conversation_stats_ts",
+      "src_ruvocal_src_lib_migrations_lock_ts",
+      "src_ruvocal_src_lib_migrations_migrations_ts",
+      "src_ruvocal_src_lib_server_auth_ts",
+      "src_ruvocal_src_lib_utils_sha256_ts",
+      "src_ruvocal_src_routes_login_callback_server_ts",
+      "src_ruvocal_src_routes_login_callback_updateuser_ts",
+      "updateuser_updateuser"
+    ],
+    "8": [
+      "error_handleservererror",
+      "fetch_handlefetchrequest",
+      "handle_getclientaddresssafe",
+      "handle_handlerequest",
+      "hooks_server_handle",
+      "hooks_server_handleerror",
+      "hooks_server_handlefetch",
+      "hooks_server_init",
+      "isurllocal_assertvalidhostname",
+      "isurllocal_dnslookup",
+      "isurllocal_ishostlocalhost",
+      "isurllocal_isurllocal",
+      "isurllocal_isurlstringlocal",
+      "mcp_stdio_kernel_forwardtobridge",
+      "mcp_stdio_kernel_handlerequest",
+      "mcp_stdio_kernel_signrequest",
+      "postgres_objectid_constructor",
+      "randomuuid_randomuuid",
+      "requestcontext_getrequestcontext",
+      "requestcontext_getrequestid",
+      "requestcontext_runwithrequestcontext",
+      "requestcontext_updaterequestcontext",
+      "rvf_rvfgridfsbucket_openuploadstream",
+      "src_mcp_bridge_mcp_stdio_kernel_js",
+      "src_ruvocal_mcp_bridge_mcp_stdio_kernel_js",
+      "src_ruvocal_src_hooks_server_ts",
+      "src_ruvocal_src_lib_server_files_uploadfile_ts",
+      "src_ruvocal_src_lib_server_hooks_error_ts",
+      "src_ruvocal_src_lib_server_hooks_fetch_ts",
+      "src_ruvocal_src_lib_server_hooks_handle_ts",
+      "src_ruvocal_src_lib_server_isurllocal_ts",
+      "src_ruvocal_src_lib_server_requestcontext_ts",
+      "src_ruvocal_src_lib_utils_randomuuid_ts",
+      "uploadfile_uploadfile"
+    ],
+    "9": [
+      "09_delete_empty_conversations_deletebatch",
+      "09_delete_empty_conversations_deleteconversations",
+      "09_delete_empty_conversations_processcursor",
+      "abortedgenerations_abortedgenerations",
+      "abortedgenerations_abortedgenerations_constructor",
+      "abortedgenerations_abortedgenerations_getaborttime",
+      "abortedgenerations_abortedgenerations_getinstance",
+      "abortedgenerations_abortedgenerations_updatelist",
+      "getreturnfromgenerator_getreturnfromgenerator",
+      "runmcpflow_captureproviderfetch",
+      "runmcpflow_checkaborted",
+      "runmcpflow_parseargs",
+      "runmcpflow_processtooloutput",
+      "runmcpflow_toprimitive",
+      "rvf_rvfcursor",
+      "rvf_rvfcursor_batchsize",
+      "rvf_rvfcursor_constructor",
+      "rvf_rvfcursor_ensurecached",
+      "rvf_rvfcursor_hasnext",
+      "rvf_rvfcursor_limit",
+      "rvf_rvfcursor_next",
+      "rvf_rvfcursor_project",
+      "rvf_rvfcursor_skip",
+      "rvf_rvfcursor_symbol_asynciterator",
+      "rvf_rvfcursor_toarray",
+      "rvf_rvfcursor_trynext",
+      "src_ruvocal_src_lib_migrations_routines_09_delete_empty_conversations_ts",
+      "src_ruvocal_src_lib_server_abortedgenerations_ts",
+      "src_ruvocal_src_lib_server_textgeneration_mcp_runmcpflow_ts",
+      "src_ruvocal_src_lib_server_textgeneration_title_ts",
+      "src_ruvocal_src_lib_utils_getreturnfromgenerator_ts",
+      "title_generatetitle"
+    ],
+    "10": [
+      "markdownworker_processmessage",
+      "marked_addinlinecitations",
+      "marked_cachekey",
+      "marked_createmarkedinstance",
+      "marked_escapehtml",
+      "marked_hashstring",
+      "marked_highlightcode",
+      "marked_isaudiourl",
+      "marked_isfencedblockclosed",
+      "marked_isvideourl",
+      "marked_processblocks",
+      "marked_processblockssync",
+      "marked_processtokens",
+      "marked_processtokenssync",
+      "marked_sanitizehref",
+      "marked_sanitizehtmlformultimedia",
+      "marked_sanitizemediaurl",
+      "marked_serializemediaattributes",
+      "marked_serializemedianode",
+      "marked_spec_renderhtml",
+      "parseblocks_parsemarkdownintoblocks",
+      "src_ruvocal_src_lib_utils_marked_spec_ts",
+      "src_ruvocal_src_lib_utils_marked_ts",
+      "src_ruvocal_src_lib_utils_parseblocks_ts",
+      "src_ruvocal_src_lib_workers_markdownworker_ts"
+    ],
+    "11": [
+      "exithandler_initexithandler",
+      "haptics_confirm",
+      "haptics_fire",
+      "haptics_getinstance",
+      "haptics_selection",
+      "haptics_sethapticsenabled",
+      "haptics_supportshaptics",
+      "haptics_tap",
+      "init_initserver",
+      "mobilenav_closedrawer",
+      "mobilenav_ontouchcancel",
+      "mobilenav_ontouchend",
+      "mobilenav_ontouchmove",
+      "mobilenav_ontouchstart",
+      "mobilenav_resetdragstate",
+      "registry_getmcpservers",
+      "registry_loadmcpserversonstartup",
+      "registry_parseservers",
+      "registry_refreshmcpserversifchanged",
+      "registry_setservers",
+      "src_ruvocal_src_lib_components_mobilenav_svelte",
+      "src_ruvocal_src_lib_server_hooks_init_ts",
+      "src_ruvocal_src_lib_server_mcp_registry_ts",
+      "src_ruvocal_src_lib_utils_haptics_ts"
+    ],
+    "12": [
+      "apiclient_apicall",
+      "apiclient_endpoint",
+      "apiclient_handleresponse",
+      "apiclient_useapiclient",
+      "layout_load",
+      "page_load",
+      "publicconfig_svelte_getconfigmanager",
+      "publicconfig_svelte_publicconfigmanager",
+      "publicconfig_svelte_publicconfigmanager_assetpath",
+      "publicconfig_svelte_publicconfigmanager_constructor",
+      "publicconfig_svelte_publicconfigmanager_get",
+      "publicconfig_svelte_publicconfigmanager_getpublicconfig",
+      "publicconfig_svelte_publicconfigmanager_init",
+      "publicconfig_svelte_publicconfigmanager_ishuggingchat",
+      "publicconfig_svelte_usepublicconfig",
+      "src_ruvocal_src_lib_apiclient_ts",
+      "src_ruvocal_src_lib_utils_publicconfig_svelte_ts",
+      "src_ruvocal_src_routes_conversation_id_page_ts",
+      "src_ruvocal_src_routes_layout_ts",
+      "src_ruvocal_src_routes_models_model_page_ts",
+      "src_ruvocal_src_routes_r_id_page_ts",
+      "src_ruvocal_src_routes_settings_nav_model_page_ts"
+    ],
+    "13": [
+      "downloadfile_downloadfile",
+      "gethref_gethref",
+      "mcpvalidation_checkurlsafety",
+      "mcpvalidation_isprivateorlocalhost",
+      "mcpvalidation_issensitiveheader",
+      "mcpvalidation_sanitizeurlfordisplay",
+      "mcpvalidation_validateheader",
+      "mcpvalidation_validatemcpserverurl",
+      "rvf_objectid",
+      "rvf_objectid_constructor",
+      "rvf_objectid_createfromhexstring",
+      "rvf_objectid_equals",
+      "rvf_objectid_tohexstring",
+      "rvf_objectid_tojson",
+      "rvf_objectid_tostring",
+      "rvf_rvfgridfsbucket_opendownloadstream",
+      "src_ruvocal_src_lib_server_files_downloadfile_ts",
+      "src_ruvocal_src_lib_utils_gethref_ts",
+      "src_ruvocal_src_lib_utils_mcpvalidation_ts",
+      "src_ruvocal_svelte_config_js",
+      "svelte_config_getcurrentcommitsha"
+    ],
+    "14": [
+      "addchildren_addchildren",
+      "models_addendpoint",
+      "models_applymodelstate",
+      "models_buildmodels",
+      "models_createvalidmodelidschema",
+      "models_getchatpromptrender",
+      "models_getmodeloverrides",
+      "models_processmodel",
+      "models_rebuildmodels",
+      "models_refreshmodels",
+      "models_resolvetaskmodel",
+      "models_sanitizejsonenv",
+      "models_signatureformodel",
+      "models_validatemodel",
+      "populate_generatemessages",
+      "src_ruvocal_scripts_populate_ts",
+      "src_ruvocal_src_lib_server_models_ts",
+      "src_ruvocal_src_lib_types_message_ts",
+      "src_ruvocal_src_lib_types_review_ts",
+      "src_ruvocal_src_lib_utils_tree_addchildren_ts"
+    ],
+    "15": [
+      "messageupdates_applystreamingmode",
+      "messageupdates_createwordchunkdetector",
+      "messageupdates_defaultsleep",
+      "messageupdates_enqueue",
+      "messageupdates_fetchmessageupdates",
+      "messageupdates_flushpendingbuffer",
+      "messageupdates_ismessagetoolcallupdate",
+      "messageupdates_ismessagetoolerrorupdate",
+      "messageupdates_ismessagetoolprogressupdate",
+      "messageupdates_ismessagetoolresultupdate",
+      "messageupdates_ismessagetoolupdate",
+      "messageupdates_parsemessageupdates",
+      "messageupdates_resolvestreamingmode",
+      "messageupdates_waitforevent",
+      "src_ruvocal_src_lib_utils_messageupdates_ts"
+    ],
+    "16": [
+      "conversation_createconversationfromshare",
+      "metrics_metricsserver",
+      "metrics_metricsserver_constructor",
+      "metrics_metricsserver_createmetrics",
+      "metrics_metricsserver_getinstance",
+      "metrics_metricsserver_getmetrics",
+      "metrics_metricsserver_isenabled",
+      "metrics_metricsserver_render",
+      "metrics_metricsserver_startstandaloneserver",
+      "src_ruvocal_src_lib_server_conversation_ts",
+      "src_ruvocal_src_lib_server_metrics_ts",
+      "src_ruvocal_src_lib_utils_template_ts",
+      "template_compiletemplate"
+    ],
+    "17": [
+      "config_clear",
+      "config_remove",
+      "src_ruvocal_scripts_config_ts",
+      "src_ruvocal_src_lib_switchtheme_ts",
+      "switchtheme_applydarkclass",
+      "switchtheme_getthemepreference",
+      "switchtheme_notify",
+      "switchtheme_setmetathemecolor",
+      "switchtheme_settheme",
+      "switchtheme_subscribetotheme",
+      "switchtheme_switchtheme"
+    ],
+    "18": [
+      "auth_requireauthuser",
+      "navmenu_handlenavitemclick",
+      "navmenu_handlenewchatclick",
+      "navmenu_handlevisible",
+      "src_ruvocal_src_lib_components_infinitescroll_svelte",
+      "src_ruvocal_src_lib_components_mcp_mcpservermanager_svelte",
+      "src_ruvocal_src_lib_components_navconversationitem_svelte",
+      "src_ruvocal_src_lib_components_navmenu_svelte",
+      "src_ruvocal_src_lib_utils_auth_ts"
+    ],
+    "19": [
+      "adr_001_extension_arch",
+      "adr_014_chat_system",
+      "chat_orchestrator",
+      "omni_welcome_screenshot",
+      "ruflo_logo",
+      "ruvector_db"
+    ],
+    "20": [
+      "backgroundgenerations_svelte_addbackgroundgeneration",
+      "backgroundgenerations_svelte_clearbackgroundgenerations",
+      "backgroundgenerations_svelte_hasbackgroundgeneration",
+      "backgroundgenerations_svelte_removebackgroundgeneration",
+      "src_ruvocal_src_lib_stores_backgroundgenerations_svelte_ts"
+    ],
+    "21": [
+      "src_nginx_static_welcome_js",
+      "src_ruvocal_static_chatui_welcome_js",
+      "welcome_cleanup",
+      "welcome_createtexttexture",
+      "welcome_initscene"
+    ],
+    "22": [
+      "src_ruvocal_src_lib_utils_updates_ts",
+      "updates_updatedebouncer",
+      "updates_updatedebouncer_endrender",
+      "updates_updatedebouncer_maxupdatetime",
+      "updates_updatedebouncer_startrender"
+    ],
+    "23": [
+      "adr_032_mcp_tunnel",
+      "adr_033_mcp_integration",
+      "mcp_bridge",
+      "tools_thumbnail_screenshot"
+    ],
+    "24": [
+      "bin_ruflo_js",
+      "ruflo_findclipath",
+      "ruflo_toimporturl"
+    ],
+    "25": [
+      "generate_welcome_getshapepoints",
+      "generate_welcome_hextorgb",
+      "src_scripts_generate_welcome_js"
+    ],
+    "26": [
+      "settings_createsettingsstore",
+      "settings_usesettingsstore",
+      "src_ruvocal_src_lib_stores_settings_ts"
+    ],
+    "27": [
+      "routing_stripreasoningblocks",
+      "routing_stripreasoningfrommessageforrouting",
+      "src_ruvocal_src_lib_server_textgeneration_utils_routing_ts"
+    ],
+    "28": [
+      "conversations_message_spec_buildmessagetree",
+      "conversations_message_spec_parseresponse",
+      "src_ruvocal_src_lib_server_api_tests_conversations_message_spec_ts"
+    ],
+    "29": [
+      "misc_spec_mockrequestevent",
+      "misc_spec_parseresponse",
+      "src_ruvocal_src_lib_server_api_tests_misc_spec_ts"
+    ],
+    "30": [
+      "src_ruvocal_src_lib_server_api_tests_user_spec_ts",
+      "user_spec_mockrequestevent",
+      "user_spec_parseresponse"
+    ],
+    "31": [
+      "conversations_id_spec_mockurl",
+      "conversations_id_spec_parseresponse",
+      "src_ruvocal_src_lib_server_api_tests_conversations_id_spec_ts"
+    ],
+    "32": [
+      "src_ruvocal_src_lib_server_api_tests_user_reports_spec_ts",
+      "user_reports_spec_mockrequestevent",
+      "user_reports_spec_parseresponse"
+    ],
+    "33": [
+      "mime_guessmimefromurl",
+      "mime_picksafemime",
+      "src_ruvocal_src_lib_utils_mime_ts"
+    ],
+    "34": [
+      "chatmessage_if",
+      "chatmessage_tick",
+      "src_ruvocal_src_lib_components_chat_chatmessage_svelte"
+    ],
+    "35": [
+      "snapscrolltobottom_getforcereattach",
+      "snapscrolltobottom_snapscrolltobottom",
+      "src_ruvocal_src_lib_actions_snapscrolltobottom_ts"
+    ],
+    "36": [
+      "layout_children",
+      "src_ruvocal_src_routes_layout_svelte",
+      "src_ruvocal_src_routes_settings_layout_svelte"
+    ],
+    "37": [
+      "layout_hidden",
+      "layout_if",
+      "src_ruvocal_src_routes_settings_nav_layout_svelte"
+    ],
+    "38": [
+      "src_ruvocal_vite_config_ts",
+      "vite_config_loadttfasarraybuffer"
+    ],
+    "39": [
+      "createsharelink_createsharelink",
+      "src_ruvocal_src_lib_createsharelink_ts"
+    ],
+    "40": [
+      "sharemodal_createsharemodalstore",
+      "src_ruvocal_src_lib_stores_sharemodal_ts"
+    ],
+    "41": [
+      "findreporoot_findreporoot",
+      "src_ruvocal_src_lib_server_findreporoot_ts"
+    ],
+    "42": [
+      "src_ruvocal_src_lib_server_usagelimits_ts",
+      "usagelimits_sanitizejsonenv"
+    ],
+    "43": [
+      "reasoning_generatesummaryofreasoning",
+      "src_ruvocal_src_lib_server_textgeneration_reasoning_ts"
+    ],
+    "44": [
+      "file2base64_file2base64",
+      "src_ruvocal_src_lib_utils_file2base64_ts"
+    ],
+    "45": [
+      "debounce_debounce",
+      "src_ruvocal_src_lib_utils_debounce_ts"
+    ],
+    "46": [
+      "src_ruvocal_src_lib_utils_sum_ts",
+      "sum_sum"
+    ],
+    "47": [
+      "fetchjson_fetchjson",
+      "src_ruvocal_src_lib_utils_fetchjson_ts"
+    ],
+    "48": [
+      "deepestchild_deepestchild",
+      "src_ruvocal_src_lib_utils_deepestchild_ts"
+    ],
+    "49": [
+      "favicon_getmcpserverfaviconurl",
+      "src_ruvocal_src_lib_utils_favicon_ts"
+    ],
+    "50": [
+      "generationstate_spec_assistantmessage",
+      "src_ruvocal_src_lib_utils_generationstate_spec_ts"
+    ],
+    "51": [
+      "src_ruvocal_src_lib_utils_urlparams_ts",
+      "urlparams_sanitizeurlparam"
+    ],
+    "52": [
+      "isdesktop_isdesktop",
+      "src_ruvocal_src_lib_utils_isdesktop_ts"
+    ],
+    "53": [
+      "src_ruvocal_src_lib_utils_toolprogress_ts",
+      "toolprogress_formattoolprogresslabel"
+    ],
+    "54": [
+      "cookiesareenabled_cookiesareenabled",
+      "src_ruvocal_src_lib_utils_cookiesareenabled_ts"
+    ],
+    "55": [
+      "src_ruvocal_src_lib_utils_stringifyerror_ts",
+      "stringifyerror_stringifyerror"
+    ],
+    "56": [
+      "isurl_isurl",
+      "src_ruvocal_src_lib_utils_isurl_ts"
+    ],
+    "57": [
+      "htmlpreviewmodal_handlekeydown",
+      "src_ruvocal_src_lib_components_htmlpreviewmodal_svelte"
+    ],
+    "58": [
+      "copytoclipboardbtn_if",
+      "src_ruvocal_src_lib_components_copytoclipboardbtn_svelte"
+    ],
+    "59": [
+      "hovertooltip_x",
+      "src_ruvocal_src_lib_components_hovertooltip_svelte"
+    ],
+    "60": [
+      "src_ruvocal_src_lib_components_chat_markdownrenderer_svelte",
+      "src_ruvocal_src_lib_components_chat_markdownrenderer_svelte_test_ts"
+    ],
+    "61": [
+      "blockwrapper_icon",
+      "src_ruvocal_src_lib_components_chat_blockwrapper_svelte"
+    ],
+    "62": [
+      "src_ruvocal_src_lib_components_chat_uploadedfile_svelte",
+      "uploadedfile_invisible"
+    ],
+    "63": [
+      "addserverform_if",
+      "src_ruvocal_src_lib_components_mcp_addserverform_svelte"
+    ],
+    "64": [
+      "clickoutside_clickoutside",
+      "src_ruvocal_src_lib_actions_clickoutside_ts"
+    ],
+    "65": [
+      "page_index",
+      "src_ruvocal_src_routes_models_page_svelte"
+    ],
+    "66": [
+      "src_ruvocal_src_routes_models_model_thumbnail_png_modelthumbnail_svelte",
+      "src_ruvocal_src_routes_models_model_thumbnail_png_server_ts"
+    ],
+    "67": [
+      "src_scripts_generate_config_js"
+    ],
+    "68": [
+      "src_ruvocal_postcss_config_js"
+    ],
+    "69": [
+      "src_ruvocal_scripts_updatelocalenv_ts"
+    ],
+    "70": [
+      "src_ruvocal_scripts_setups_vitest_setup_server_ts"
+    ],
+    "71": [
+      "src_ruvocal_scripts_setups_vitest_setup_client_ts"
+    ],
+    "72": [
+      "src_ruvocal_stub_reflink_reflink_index_js"
+    ],
+    "73": [
+      "src_ruvocal_src_app_d_ts"
+    ],
+    "74": [
+      "src_ruvocal_src_ambient_d_ts"
+    ],
+    "75": [
+      "src_ruvocal_src_hooks_ts"
+    ],
+    "76": [
+      "src_ruvocal_src_lib_migrations_migrations_spec_ts"
+    ],
+    "77": [
+      "src_ruvocal_src_lib_migrations_routines_10_update_reports_assistantid_ts"
+    ],
+    "78": [
+      "src_ruvocal_src_lib_migrations_routines_02_update_assistants_models_ts"
+    ],
+    "79": [
+      "src_ruvocal_src_lib_migrations_routines_01_update_search_assistants_ts"
+    ],
+    "80": [
+      "src_ruvocal_src_lib_migrations_routines_08_update_featured_to_review_ts"
+    ],
+    "81": [
+      "src_ruvocal_src_lib_migrations_routines_05_update_message_files_ts"
+    ],
+    "82": [
+      "src_ruvocal_src_lib_migrations_routines_index_ts"
+    ],
+    "83": [
+      "src_ruvocal_src_lib_migrations_routines_09_delete_empty_conversations_spec_ts"
+    ],
+    "84": [
+      "src_ruvocal_src_lib_types_convsidebar_ts"
+    ],
+    "85": [
+      "src_ruvocal_src_lib_types_messageupdate_ts"
+    ],
+    "86": [
+      "src_ruvocal_src_lib_types_migrationresult_ts"
+    ],
+    "87": [
+      "src_ruvocal_src_lib_types_report_ts"
+    ],
+    "88": [
+      "src_ruvocal_src_lib_types_conversationstats_ts"
+    ],
+    "89": [
+      "src_ruvocal_src_lib_types_tool_ts"
+    ],
+    "90": [
+      "src_ruvocal_src_lib_types_messageevent_ts"
+    ],
+    "91": [
+      "src_ruvocal_src_lib_types_template_ts"
+    ],
+    "92": [
+      "src_ruvocal_src_lib_types_settings_ts"
+    ],
+    "93": [
+      "src_ruvocal_src_lib_types_model_ts"
+    ],
+    "94": [
+      "src_ruvocal_src_lib_types_abortedgeneration_ts"
+    ],
+    "95": [
+      "src_ruvocal_src_lib_types_session_ts"
+    ],
+    "96": [
+      "src_ruvocal_src_lib_types_sharedconversation_ts"
+    ],
+    "97": [
+      "src_ruvocal_src_lib_types_assistant_ts"
+    ],
+    "98": [
+      "src_ruvocal_src_lib_types_semaphore_ts"
+    ],
+    "99": [
+      "src_ruvocal_src_lib_types_configkey_ts"
+    ],
+    "100": [
+      "src_ruvocal_src_lib_types_timestamps_ts"
+    ],
+    "101": [
+      "src_ruvocal_src_lib_types_conversation_ts"
+    ],
+    "102": [
+      "src_ruvocal_src_lib_types_assistantstats_ts"
+    ],
+    "103": [
+      "src_ruvocal_src_lib_types_user_ts"
+    ],
+    "104": [
+      "src_ruvocal_src_lib_types_urldependency_ts"
+    ],
+    "105": [
+      "src_ruvocal_src_lib_constants_pagination_ts"
+    ],
+    "106": [
+      "src_ruvocal_src_lib_constants_mcpexamples_ts"
+    ],
+    "107": [
+      "src_ruvocal_src_lib_constants_mime_ts"
+    ],
+    "108": [
+      "src_ruvocal_src_lib_constants_routerexamples_ts"
+    ],
+    "109": [
+      "src_ruvocal_src_lib_stores_pendingchatinput_ts"
+    ],
+    "110": [
+      "src_ruvocal_src_lib_stores_errors_ts"
+    ],
+    "111": [
+      "src_ruvocal_src_lib_stores_backgroundgenerations_ts"
+    ],
+    "112": [
+      "src_ruvocal_src_lib_stores_titleupdate_ts"
+    ],
+    "113": [
+      "src_ruvocal_src_lib_stores_ispro_ts"
+    ],
+    "114": [
+      "src_ruvocal_src_lib_stores_isaborted_ts"
+    ],
+    "115": [
+      "src_ruvocal_src_lib_stores_pendingmessage_ts"
+    ],
+    "116": [
+      "src_ruvocal_src_lib_stores_loading_ts"
+    ],
+    "117": [
+      "src_ruvocal_src_lib_server_generatefromdefaultendpoint_ts"
+    ],
+    "118": [
+      "src_ruvocal_src_lib_server_logger_ts"
+    ],
+    "119": [
+      "src_ruvocal_src_lib_server_isurllocal_spec_ts"
+    ],
+    "120": [
+      "src_ruvocal_src_lib_server_database_tests_rvf_spec_ts"
+    ],
+    "121": [
+      "src_ruvocal_src_lib_server_endpoints_endpoints_ts"
+    ],
+    "122": [
+      "src_ruvocal_src_lib_server_endpoints_openai_openaichattotextgenerationstream_ts"
+    ],
+    "123": [
+      "src_ruvocal_src_lib_server_endpoints_openai_openaicompletiontotextgenerationstream_ts"
+    ],
+    "124": [
+      "src_ruvocal_src_lib_server_textgeneration_types_ts"
+    ],
+    "125": [
+      "src_ruvocal_src_lib_server_textgeneration_generate_ts"
+    ],
+    "126": [
+      "src_ruvocal_src_lib_server_textgeneration_index_ts"
+    ],
+    "127": [
+      "src_ruvocal_src_lib_server_tests_conversation_stop_generating_spec_ts"
+    ],
+    "128": [
+      "src_ruvocal_src_lib_server_api_types_ts"
+    ],
+    "129": [
+      "src_ruvocal_src_lib_server_router_types_ts"
+    ],
+    "130": [
+      "src_ruvocal_src_lib_utils_mergeasyncgenerators_ts"
+    ],
+    "131": [
+      "src_ruvocal_src_lib_utils_template_spec_ts"
+    ],
+    "132": [
+      "src_ruvocal_src_lib_utils_toolprogress_spec_ts"
+    ],
+    "133": [
+      "src_ruvocal_src_lib_utils_tree_ismessageid_spec_ts"
+    ],
+    "134": [
+      "src_ruvocal_src_lib_utils_tree_addchildren_spec_ts"
+    ],
+    "135": [
+      "src_ruvocal_src_lib_utils_tree_addsibling_spec_ts"
+    ],
+    "136": [
+      "src_ruvocal_src_lib_utils_tree_convertlegacyconversation_spec_ts"
+    ],
+    "137": [
+      "src_ruvocal_src_lib_utils_tree_buildsubtree_spec_ts"
+    ],
+    "138": [
+      "src_ruvocal_src_lib_utils_tree_tree_d_ts"
+    ],
+    "139": [
+      "src_ruvocal_src_lib_components_backgroundgenerationpoller_svelte"
+    ],
+    "140": [
+      "src_ruvocal_src_lib_components_modal_svelte"
+    ],
+    "141": [
+      "src_ruvocal_src_lib_components_expandnavigation_svelte"
+    ],
+    "142": [
+      "src_ruvocal_src_lib_components_tooltip_svelte"
+    ],
+    "143": [
+      "src_ruvocal_src_lib_components_welcomemodal_svelte"
+    ],
+    "144": [
+      "src_ruvocal_src_lib_components_deleteconversationmodal_svelte"
+    ],
+    "145": [
+      "src_ruvocal_src_lib_components_stopgeneratingbtn_svelte"
+    ],
+    "146": [
+      "src_ruvocal_src_lib_components_scrolltobottombtn_svelte"
+    ],
+    "147": [
+      "src_ruvocal_src_lib_components_toast_svelte"
+    ],
+    "148": [
+      "src_ruvocal_src_lib_components_scrolltopreviousbtn_svelte"
+    ],
+    "149": [
+      "src_ruvocal_src_lib_components_subscribemodal_svelte"
+    ],
+    "150": [
+      "src_ruvocal_src_lib_components_announcementbanner_svelte"
+    ],
+    "151": [
+      "src_ruvocal_src_lib_components_retrybtn_svelte"
+    ],
+    "152": [
+      "src_ruvocal_src_lib_components_paginationarrow_svelte"
+    ],
+    "153": [
+      "src_ruvocal_src_lib_components_switch_svelte"
+    ],
+    "154": [
+      "src_ruvocal_src_lib_components_pagination_svelte"
+    ],
+    "155": [
+      "src_ruvocal_src_lib_components_editconversationmodal_svelte"
+    ],
+    "156": [
+      "src_ruvocal_src_lib_components_ruflouniverse_svelte"
+    ],
+    "157": [
+      "src_ruvocal_src_lib_components_shareconversationmodal_svelte"
+    ],
+    "158": [
+      "src_ruvocal_src_lib_components_modelcardmetadata_svelte"
+    ],
+    "159": [
+      "src_ruvocal_src_lib_components_portal_svelte"
+    ],
+    "160": [
+      "src_ruvocal_src_lib_components_codeblock_svelte"
+    ],
+    "161": [
+      "src_ruvocal_src_lib_components_systempromptmodal_svelte"
+    ],
+    "162": [
+      "src_ruvocal_src_lib_components_chat_filedropzone_svelte"
+    ],
+    "163": [
+      "src_ruvocal_src_lib_components_chat_chatinput_svelte"
+    ],
+    "164": [
+      "src_ruvocal_src_lib_components_chat_openreasoningresults_svelte"
+    ],
+    "165": [
+      "src_ruvocal_src_lib_components_chat_chatintroduction_svelte"
+    ],
+    "166": [
+      "src_ruvocal_src_lib_components_chat_urlfetchmodal_svelte"
+    ],
+    "167": [
+      "src_ruvocal_src_lib_components_chat_alternatives_svelte"
+    ],
+    "168": [
+      "src_ruvocal_src_lib_components_chat_messageavatar_svelte"
+    ],
+    "169": [
+      "src_ruvocal_src_lib_components_chat_voicerecorder_svelte"
+    ],
+    "170": [
+      "src_ruvocal_src_lib_components_chat_imagelightbox_svelte"
+    ],
+    "171": [
+      "src_ruvocal_src_lib_components_chat_taskgroup_svelte"
+    ],
+    "172": [
+      "src_ruvocal_src_lib_components_chat_toolupdate_svelte"
+    ],
+    "173": [
+      "src_ruvocal_src_lib_components_chat_markdownblock_svelte"
+    ],
+    "174": [
+      "src_ruvocal_src_lib_components_chat_chatwindow_svelte"
+    ],
+    "175": [
+      "src_ruvocal_src_lib_components_players_audioplayer_svelte"
+    ],
+    "176": [
+      "src_ruvocal_src_lib_components_mcp_servercard_svelte"
+    ],
+    "177": [
+      "src_ruvocal_src_lib_components_voice_audiowaveform_svelte"
+    ],
+    "178": [
+      "src_ruvocal_src_lib_components_icons_iconchevron_svelte"
+    ],
+    "179": [
+      "src_ruvocal_src_lib_components_icons_logo_svelte"
+    ],
+    "180": [
+      "src_ruvocal_src_lib_components_icons_logohuggingfaceborderless_svelte"
+    ],
+    "181": [
+      "src_ruvocal_src_lib_components_icons_iconpaperclip_svelte"
+    ],
+    "182": [
+      "src_ruvocal_src_lib_components_icons_iconmcp_svelte"
+    ],
+    "183": [
+      "src_ruvocal_src_lib_components_icons_iconfast_svelte"
+    ],
+    "184": [
+      "src_ruvocal_src_lib_components_icons_iconshare_svelte"
+    ],
+    "185": [
+      "src_ruvocal_src_lib_components_icons_iconcheap_svelte"
+    ],
+    "186": [
+      "src_ruvocal_src_lib_components_icons_iconsun_svelte"
+    ],
+    "187": [
+      "src_ruvocal_src_lib_components_icons_iconomni_svelte"
+    ],
+    "188": [
+      "src_ruvocal_src_lib_components_icons_iconburger_svelte"
+    ],
+    "189": [
+      "src_ruvocal_src_lib_components_icons_iconnew_svelte"
+    ],
+    "190": [
+      "src_ruvocal_src_lib_components_icons_iconloading_svelte"
+    ],
+    "191": [
+      "src_ruvocal_src_lib_components_icons_iconmoon_svelte"
+    ],
+    "192": [
+      "src_ruvocal_src_lib_components_icons_iconpro_svelte"
+    ],
+    "193": [
+      "src_ruvocal_src_lib_components_icons_icondazzled_svelte"
+    ],
+    "194": [
+      "src_ruvocal_src_routes_error_svelte"
+    ],
+    "195": [
+      "src_ruvocal_src_routes_settings_nav_layout_ts"
+    ],
+    "196": [
+      "src_ruvocal_src_routes_settings_nav_page_svelte"
+    ],
+    "197": [
+      "src_ruvocal_src_routes_privacy_page_svelte"
+    ],
+    "198": [
+      "src_ruvocal_src_routes_models_model_page_svelte"
+    ],
+    "199": [
+      "assistants_thumbnail_screenshot"
+    ],
+    "200": [
+      "castle_example_image"
+    ]
+  },
+  "cohesion": {
+    "0": 0.03,
+    "1": 0.04,
+    "2": 0.06,
+    "3": 0.08,
+    "4": 0.13,
+    "5": 0.07,
+    "6": 0.08,
+    "7": 0.1,
+    "8": 0.08,
+    "9": 0.08,
+    "10": 0.11,
+    "11": 0.12,
+    "12": 0.1,
+    "13": 0.12,
+    "14": 0.15,
+    "15": 0.19,
+    "16": 0.21,
+    "17": 0.25,
+    "18": 0.25,
+    "19": 0.33,
+    "20": 0.4,
+    "21": 0.7,
+    "22": 0.4,
+    "23": 0.5,
+    "24": 0.67,
+    "25": 0.67,
+    "26": 0.67,
+    "27": 1.0,
+    "28": 0.67,
+    "29": 0.67,
+    "30": 0.67,
+    "31": 0.67,
+    "32": 0.67,
+    "33": 1.0,
+    "34": 0.67,
+    "35": 1.0,
+    "36": 0.67,
+    "37": 0.67,
+    "38": 1.0,
+    "39": 1.0,
+    "40": 1.0,
+    "41": 1.0,
+    "42": 1.0,
+    "43": 1.0,
+    "44": 1.0,
+    "45": 1.0,
+    "46": 1.0,
+    "47": 1.0,
+    "48": 1.0,
+    "49": 1.0,
+    "50": 1.0,
+    "51": 1.0,
+    "52": 1.0,
+    "53": 1.0,
+    "54": 1.0,
+    "55": 1.0,
+    "56": 1.0,
+    "57": 1.0,
+    "58": 1.0,
+    "59": 1.0,
+    "60": 1.0,
+    "61": 1.0,
+    "62": 1.0,
+    "63": 1.0,
+    "64": 1.0,
+    "65": 1.0,
+    "66": 1.0,
+    "67": 1.0,
+    "68": 1.0,
+    "69": 1.0,
+    "70": 1.0,
+    "71": 1.0,
+    "72": 1.0,
+    "73": 1.0,
+    "74": 1.0,
+    "75": 1.0,
+    "76": 1.0,
+    "77": 1.0,
+    "78": 1.0,
+    "79": 1.0,
+    "80": 1.0,
+    "81": 1.0,
+    "82": 1.0,
+    "83": 1.0,
+    "84": 1.0,
+    "85": 1.0,
+    "86": 1.0,
+    "87": 1.0,
+    "88": 1.0,
+    "89": 1.0,
+    "90": 1.0,
+    "91": 1.0,
+    "92": 1.0,
+    "93": 1.0,
+    "94": 1.0,
+    "95": 1.0,
+    "96": 1.0,
+    "97": 1.0,
+    "98": 1.0,
+    "99": 1.0,
+    "100": 1.0,
+    "101": 1.0,
+    "102": 1.0,
+    "103": 1.0,
+    "104": 1.0,
+    "105": 1.0,
+    "106": 1.0,
+    "107": 1.0,
+    "108": 1.0,
+    "109": 1.0,
+    "110": 1.0,
+    "111": 1.0,
+    "112": 1.0,
+    "113": 1.0,
+    "114": 1.0,
+    "115": 1.0,
+    "116": 1.0,
+    "117": 1.0,
+    "118": 1.0,
+    "119": 1.0,
+    "120": 1.0,
+    "121": 1.0,
+    "122": 1.0,
+    "123": 1.0,
+    "124": 1.0,
+    "125": 1.0,
+    "126": 1.0,
+    "127": 1.0,
+    "128": 1.0,
+    "129": 1.0,
+    "130": 1.0,
+    "131": 1.0,
+    "132": 1.0,
+    "133": 1.0,
+    "134": 1.0,
+    "135": 1.0,
+    "136": 1.0,
+    "137": 1.0,
+    "138": 1.0,
+    "139": 1.0,
+    "140": 1.0,
+    "141": 1.0,
+    "142": 1.0,
+    "143": 1.0,
+    "144": 1.0,
+    "145": 1.0,
+    "146": 1.0,
+    "147": 1.0,
+    "148": 1.0,
+    "149": 1.0,
+    "150": 1.0,
+    "151": 1.0,
+    "152": 1.0,
+    "153": 1.0,
+    "154": 1.0,
+    "155": 1.0,
+    "156": 1.0,
+    "157": 1.0,
+    "158": 1.0,
+    "159": 1.0,
+    "160": 1.0,
+    "161": 1.0,
+    "162": 1.0,
+    "163": 1.0,
+    "164": 1.0,
+    "165": 1.0,
+    "166": 1.0,
+    "167": 1.0,
+    "168": 1.0,
+    "169": 1.0,
+    "170": 1.0,
+    "171": 1.0,
+    "172": 1.0,
+    "173": 1.0,
+    "174": 1.0,
+    "175": 1.0,
+    "176": 1.0,
+    "177": 1.0,
+    "178": 1.0,
+    "179": 1.0,
+    "180": 1.0,
+    "181": 1.0,
+    "182": 1.0,
+    "183": 1.0,
+    "184": 1.0,
+    "185": 1.0,
+    "186": 1.0,
+    "187": 1.0,
+    "188": 1.0,
+    "189": 1.0,
+    "190": 1.0,
+    "191": 1.0,
+    "192": 1.0,
+    "193": 1.0,
+    "194": 1.0,
+    "195": 1.0,
+    "196": 1.0,
+    "197": 1.0,
+    "198": 1.0,
+    "199": 1.0,
+    "200": 1.0
+  },
+  "gods": [
+    {
+      "id": "server_get",
+      "label": "GET()",
+      "degree": 83
+    },
+    {
+      "id": "server_post",
+      "label": "POST()",
+      "degree": 58
+    },
+    {
+      "id": "haptics_error",
+      "label": "error()",
+      "degree": 47
+    },
+    {
+      "id": "test_harness_test",
+      "label": "test()",
+      "degree": 35
+    },
+    {
+      "id": "server_delete",
+      "label": "DELETE()",
+      "degree": 27
+    },
+    {
+      "id": "test_harness_log",
+      "label": "log()",
+      "degree": 25
+    },
+    {
+      "id": "rvf_rvfcollection",
+      "label": "RvfCollection",
+      "degree": 22
+    },
+    {
+      "id": "postgres_postgrescollection",
+      "label": "PostgresCollection",
+      "degree": 19
+    },
+    {
+      "id": "randomuuid_randomuuid",
+      "label": "randomUUID()",
+      "degree": 17
+    },
+    {
+      "id": "test_harness_main",
+      "label": "main()",
+      "degree": 16
+    }
+  ],
+  "surprises": [
+    {
+      "source": "isVideoUrl()",
+      "target": "test()",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/src/lib/utils/marked.ts",
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/mcp-bridge/test-harness.js"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities; peripheral node `isVideoUrl()` unexpectedly reaches hub `test()`"
+    },
+    {
+      "source": "isAudioUrl()",
+      "target": "test()",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/src/lib/utils/marked.ts",
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/mcp-bridge/test-harness.js"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities; peripheral node `isAudioUrl()` unexpectedly reaches hub `test()`"
+    },
+    {
+      "source": "isFencedBlockClosed()",
+      "target": "test()",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/src/lib/utils/marked.ts",
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/mcp-bridge/test-harness.js"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities; peripheral node `isFencedBlockClosed()` unexpectedly reaches hub `test()`"
+    },
+    {
+      "source": "validateHeader()",
+      "target": "test()",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/src/lib/utils/mcpValidation.ts",
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/mcp-bridge/test-harness.js"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities; peripheral node `validateHeader()` unexpectedly reaches hub `test()`"
+    },
+    {
+      "source": "init()",
+      "target": "initServer()",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/src/hooks.server.ts",
+        "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/ruflo/src/ruvocal/src/lib/server/hooks/init.ts"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities; peripheral node `init()` unexpectedly reaches hub `initServer()`"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `GET()` connect `Community 0` to `Community 1`, `Community 2`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 11`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 18`?",
+      "why": "High betweenness centrality (0.137) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `POST()` connect `Community 0` to `Community 1`, `Community 2`, `Community 4`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 9`, `Community 11`, `Community 12`, `Community 13`, `Community 14`, `Community 15`, `Community 16`?",
+      "why": "High betweenness centrality (0.104) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `error()` connect `Community 6` to `Community 0`, `Community 1`, `Community 2`, `Community 4`, `Community 5`, `Community 7`, `Community 8`, `Community 9`, `Community 11`, `Community 13`, `Community 14`, `Community 15`, `Community 16`, `Community 17`?",
+      "why": "High betweenness centrality (0.100) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 54 inferred relationships involving `GET()` (e.g. with `._onData()` and `executeTool()`) actually correct?",
+      "why": "`GET()` has 54 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 41 inferred relationships involving `POST()` (e.g. with `resolveStreamingMode()` and `.updateOne()`) actually correct?",
+      "why": "`POST()` has 41 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 45 inferred relationships involving `error()` (e.g. with `main()` and `getCurrentCommitSHA()`) actually correct?",
+      "why": "`error()` has 45 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 20 inferred relationships involving `test()` (e.g. with `executeTool()` and `assertValidHostname()`) actually correct?",
+      "why": "`test()` has 20 INFERRED edges - model-reasoned connections that need verification."
+    }
+  ]
+}

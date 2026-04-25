@@ -1,0 +1,120 @@
+# Plan: TOKENMAXXING Mode
+
+## Context
+
+The current system has token management, caveman protocol, and offload routing spread across multiple triggers, skills, and hooks — all requiring manual activation or keyword phrases. `btw offload this` only works if remembered; CAVEMAN_PROTOCOL is passive; compact suggestions require user response. The goal is a single `/tokenmaxxing` command that cranks all of it to max simultaneously: ultra-terse speech, autonomous offloading (no trigger word), auto-compact, and `ctrl+b` to fire tasks into the background without interrupting the main thread.
+
+`btw offload this` remains as a backwards-compatible alias but is no longer the primary surface.
+
+---
+
+## What Gets Built
+
+### 1. `/tokenmaxxing` Skill — new file
+**Path:** `~/.claude/skills/tokenmaxxing/SKILL.md`
+
+When invoked, Claude must:
+1. Run: `node -e "const s=require('/Users/marcelspatz/.claude/state/session-state.json'); s.tokenmaxxing=true; require('fs').writeFileSync('/Users/marcelspatz/.claude/state/session-state.json', JSON.stringify(s,null,2))"` (or equivalent Bash write) to persist the flag
+2. Output exactly one line: `⚡ TOKENMAXXING ACTIVE`
+3. Apply these rules for the remainder of the session:
+   - **Ultra-caveman:** zero preamble, zero trailing summaries, no "let me", no "I'll", tightest possible tokens
+   - **Offload-default:** every non-trivial task → delegate first, no trigger word required; main thread = overseer + finalizer only
+   - **Auto-compact:** /compact fires automatically when context ≥65% (tier 2), do not ask, do not suggest — just compact with pre-built hint
+   - **Background-default for `[bg]` prefix:** if user input starts with `[bg]` (inserted by ctrl+b), spawn as `Agent({ run_in_background: true })` immediately and return control
+
+---
+
+### 2. `/bg` Skill — new file
+**Path:** `~/.claude/skills/bg/SKILL.md`
+
+Invokable via `/bg <task>` or triggered when input starts with `[bg]`.
+
+Behavior:
+- Strip the `/bg` or `[bg]` prefix
+- Spawn `Agent({ description: "<3-word task>", prompt: "<task>", run_in_background: true })`
+- Confirm spawn in one line: `→ BG: <3-word task>`
+- Return to main thread immediately
+
+---
+
+### 3. `ctrl+b` Keybinding — modify existing file
+**Path:** `~/NUDIMMUD/.claude/keybindings.json`
+
+Add entry to insert `[bg] ` at the start of current input, enabling the user to type a task and hit ctrl+b to background-route it. Will use `keybindings-help` skill during execution to get exact action syntax for text insertion.
+
+```json
+{ "key": "ctrl+b", "action": "insertText", "text": "[bg] " }
+```
+
+If `insertText` action is unsupported, fallback: bind ctrl+b to a chord that invokes `/bg` as a command prefix.
+
+---
+
+### 4. Modify `pre-tool-use.js` — ~35 lines added
+**Path:** `~/.claude/hooks/pre-tool-use.js`
+
+At the top of the compaction check block, read `session-state.json` for `tokenmaxxing` flag. When true:
+
+- **Lower thresholds:** tier 2 fires at 60% (down from 65%), tier 4 critical at 82% (down from 88%)
+- **Auto-compact at tier 2:** instead of printing a suggestion, emit the `/compact` hint directly as a `blockOutput` so Claude receives it as a system instruction to compact now
+- **Heavy-tool delegation:** if context >58% AND tool is `Agent`, `WebSearch`, or `WebFetch`, inject a one-line note: `⚡ tokenmaxxing: offload to @deepseek/@qwen first`
+- **Token economy warnings:** lower budget thresholds by ~20% (warn at 64k, critical at 120k)
+
+---
+
+### 5. Update `nisaba/learning/global.md` — small addition
+**Path:** `~/.claude/nisaba/learning/global.md`
+
+Add to the Offload Rule section:
+
+```
+## Tokenmaxxing Mode
+
+- `/tokenmaxxing` = master activation. Engages ultra-caveman + full offload default + auto-compact + bg task routing.
+- When active: no trigger word needed. Every task delegates. Main thread is overseer only.
+- `[bg] <task>` or ctrl+b = spawn as background Agent, return control immediately.
+- `btw offload this` = backwards-compatible alias for partial activation only.
+```
+
+---
+
+### 6. Update `NUDIMMUD/CLAUDE.md` — replace BTW Ignition section
+**Path:** `~/NUDIMMUD/CLAUDE.md`
+
+Replace the **BTW Ignition** section with **TOKENMAXXING**:
+
+```markdown
+### TOKENMAXXING (Master Activation)
+
+- `/tokenmaxxing` = engage all token management at once. One command.
+- Activates: ultra-caveman · full offload-default · auto-compact · ctrl+b background routing
+- `btw` / `btw offload this` = legacy partial trigger (still works, subset of tokenmaxxing)
+- When tokenmaxxing is active: no keyword needed — offload is the default behavior
+- ctrl+b inserts `[bg] ` prefix → task routes to background Agent, main thread unblocked
+```
+
+---
+
+## Critical Files
+
+| File | Action |
+|------|--------|
+| `~/.claude/skills/tokenmaxxing/SKILL.md` | Create |
+| `~/.claude/skills/bg/SKILL.md` | Create |
+| `~/NUDIMMUD/.claude/keybindings.json` | Modify — add ctrl+b |
+| `~/.claude/hooks/pre-tool-use.js` | Modify — tokenmaxxing flag checks |
+| `~/.claude/nisaba/learning/global.md` | Modify — add tokenmaxxing keyword block |
+| `~/NUDIMMUD/CLAUDE.md` | Modify — replace BTW Ignition section |
+
+Note: `~/.claude/skills/` and `~/NUDIMMUD/.claude/skills/` are symlinked — write to one path only.
+
+---
+
+## Verification
+
+1. Type `/tokenmaxxing` → one-line `⚡ TOKENMAXXING ACTIVE` response, session-state.json has `tokenmaxxing: true`
+2. Let context reach 60% → confirm pre-tool-use.js fires auto-compact with hint (no user prompt)
+3. Type a task, press ctrl+b → `[bg] <task>` appears, `/bg` skill spawns background Agent, main thread returns immediately
+4. Confirm responses post-activation are tighter: no preamble, no trailing summaries
+5. Confirm `btw offload this` still routes correctly as legacy alias
+6. Check status line shows consistent context % with lower thresholds active

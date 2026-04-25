@@ -1,0 +1,25 @@
+{
+  "bundle_path": "/Users/marcelspatz/design-uiux-knowledge-base/handoff_bundle/design_uiux_knowledge_base_bundle.zip",
+  "included": [
+    "graph.json",
+    "GRAPH_REPORT.md",
+    "PLAYBOOK.md",
+    "ingest_bundle/",
+    "offload_package/",
+    "vector_package/",
+    "obsidian-vault/"
+  ],
+  "counts": {
+    "graph_nodes": 58,
+    "graph_edges": 64,
+    "obsidian_notes": 58,
+    "ingest_csv_files": 3,
+    "offload_jsonl_files": 3,
+    "vector_chunks": 54
+  },
+  "recommended_use": [
+    "Share one archive instead of many loose files",
+    "Import derived artifacts into separate tools as needed",
+    "Keep graph.json as the canonical source"
+  ]
+}

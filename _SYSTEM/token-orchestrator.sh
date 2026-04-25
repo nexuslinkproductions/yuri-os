@@ -73,31 +73,24 @@ monthly_summary() {
   success "Monthly summary generated"
 }
 
-# Show current session status
+# Show current session status via Backend API
 status() {
-  log "Current token session status:"
+  log "Current token session status (from Database):"
 
-  LATEST_SESSION=$(ls -t "$SESSION_DIR"/claude-session-*.json 2>/dev/null | head -1)
-
-  if [ -z "$LATEST_SESSION" ]; then
-    warn "No active session"
-    return
+  # We query the metrics endpoint of the backend
+  # Requires local API_KEY to be set
+  if [ -z "$API_KEY" ]; then
+    warn "API_KEY not set, falling back to local file parsing"
+    LATEST_SESSION=$(ls -t "$SESSION_DIR"/claude-session-*.json 2>/dev/null | head -1)
+    if [ -z "$LATEST_SESSION" ]; then
+      warn "No active session"
+      return
+    fi
+    # ... legacy parsing ...
+  else
+    METRICS=$(curl -s -H "X-API-KEY: $API_KEY" http://localhost:3000/api/metrics)
+    echo "$METRICS" | jq -r '.currentSession | "  Session ID: \(.sessionId)\n  Tokens used: \(.tokens)\n  Tools loaded: \(.toolsLoaded)\n  Duration: \(.durationMinutes)m"'
   fi
-
-  # Parse JSON
-  SESSION_ID=$(jq -r '.sessionId' "$LATEST_SESSION")
-  TOKENS=$(jq -r '.tokensEstimated' "$LATEST_SESSION")
-  TOOLS=$(jq -r '.toolsLoaded | length' "$LATEST_SESSION")
-  START_TIME=$(jq -r '.startTime' "$LATEST_SESSION")
-
-  CURRENT_TIME=$(date +%s000)
-  DURATION=$(( (CURRENT_TIME - START_TIME) / 1000 / 60 ))
-  TOKENS_KB=$(( TOKENS / 1000 ))
-
-  echo "  Session ID: $SESSION_ID"
-  echo "  Tokens used: ${TOKENS_KB}K"
-  echo "  Tools loaded: $TOOLS"
-  echo "  Duration: ${DURATION}m"
 }
 
 # Show tracker file

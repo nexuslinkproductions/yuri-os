@@ -1,0 +1,53 @@
+---
+name: swarm-coordination
+description: "Global swarm orchestration for NUDIMMUD. Use when distributing work across agents, model lanes, or handoff steps with shared state."
+---
+
+# Swarm Coordination
+
+Use this skill when a task should be split across multiple agents or model lanes.
+
+## Core Pattern
+
+- On root session start, load `.claude/nisaba/learning/global.md` before any routing or decomposition.
+- On subagent start, rely on the hook injection and do not duplicate the seed manually.
+- Decompose the task.
+- Assign one isolated responsibility per lane.
+- Track the shared state in the OS kernel or the repo ledger.
+- Validate before merge.
+- In this repo, let Ruflo handle swarm routing and task fan-out when available.
+- Treat `.claude/nisaba/learning/global.md` as the startup seed for every delegated session.
+
+## Handoff Protocol
+
+- Record handoffs in the shared task/memory store when the workflow uses the kernel.
+- Keep context snapshots minimal.
+- State success criteria before transfer.
+- Define the fallback if the lane fails.
+
+## Roles
+
+- `ENLIL` for decomposition and final integration.
+- `NABU` for routing, docs, and memory.
+- `ENKI` for implementation.
+- `INANNA` for validation and adversarial checks.
+
+## Delegate Triggers
+
+- Use `btw offload this` as an immediate delegation signal.
+- Use `@swarm` when the same prompt should be compared across lanes.
+- Use parallel lanes when output can be merged without conflict.
+- Prefer Ruflo swarm coordination before ad hoc lane fan-out.
+
+## Stop Condition
+
+- If a lane returns ambiguous output, re-scope it before continuing.
+- If a lane exposes a conflict, preserve the narrower working set and retry.
+
+## Session Notes
+
+### 2026-04-25
+- session: 2m | peak ctx: 8% | compacts: 0
+- tools: Read×56, Bash×23, TaskCreate×11, Write×1, ExitPlanMode×1, ToolSearch×1
+- corrections: none
+- errors: none

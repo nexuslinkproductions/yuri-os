@@ -2,72 +2,134 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-* {
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ── Reset ── */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html,
-body {
-  width: 100%;
-  height: 100%;
-  background-color: #f5f5f5;
-  color: #1a1a1a;
-}
-
-/* Enforce dark theme globally */
+/* ── Design Tokens ── */
 :root {
   color-scheme: dark;
+
+  /* Surfaces */
+  --color-void:     #06060a;
+  --color-deep:     #0a0a10;
+  --color-surface:  #101018;
+  --color-elevated: #16161f;
+  --color-hover:    #1c1c28;
+
+  /* Borders */
+  --color-border-subtle: #1e1e2a;
+  --color-border:        #2a2a3a;
+
+  /* Text */
+  --color-text-primary:   #e4e4ed;
+  --color-text-secondary: #8888a0;
+  --color-text-muted:     #5a5a70;
+
+  /* Accent — purple primary */
+  --color-purple:     #7c3aed;
+  --color-purple-dim: #5b21b6;
+
+  /* Accent — cyan secondary / CTA */
+  --color-cyan:     #00FFA7;
+  --color-cyan-dim: #00cc86;
+
+  /* Semantic */
+  --color-danger:  #EF4444;
+  --color-success: #10b981;
+  --color-warning: #F59E0B;
+
+  /* Typography */
+  --font-sans:    'Outfit', system-ui, sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Radius */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-full: 9999px;
+
+  /* Shadows / Glow */
+  --glow-purple:      0 0 20px rgba(124, 58, 237, 0.4);
+  --glow-purple-soft: 0 0 40px rgba(124, 58, 237, 0.15);
+  --glow-cyan:        0 0 20px rgba(0, 255, 167, 0.4);
+  --shadow-sm:        0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md:        0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg:        0 8px 24px rgba(0, 0, 0, 0.6);
+
+  /* Motion */
+  --ease-out:       cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast:  150ms;
+  --duration-normal: 300ms;
+  --duration-slow:  500ms;
 }
 
-/* Typography base */
+/* ── Base ── */
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-void);
+  color: var(--color-text-primary);
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-    "Helvetica Neue", sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: 0.5px;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
   font-weight: 600;
   letter-spacing: -0.5px;
 }
 
-/* Crimson accent utilities */
-.accent {
-  color: #dc143c;
+code, pre, kbd {
+  font-family: var(--font-mono);
 }
 
-.accent-bg {
-  background-color: #dc143c;
+/* ── Accent utilities ── */
+.accent         { color: var(--color-purple); }
+.accent-cyan    { color: var(--color-cyan); }
+.accent-bg      { background-color: var(--color-purple); }
+.accent-bg-cyan { background-color: var(--color-cyan); }
+.accent-border  { border-color: var(--color-purple); }
+.glow-purple    { box-shadow: var(--glow-purple); }
+.glow-cyan      { box-shadow: var(--glow-cyan); }
+
+/* ── Animations ── */
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
 }
 
-.accent-border {
-  border-color: #dc143c;
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: var(--glow-purple-soft); }
+  50%       { box-shadow: var(--glow-purple); }
 }
 
-/* Smooth transitions */
-button,
-a {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Remove default focus outline, add custom */
-button:focus,
-a:focus {
-  outline: 2px solid #dc143c;
+/* ── Transitions ── */
+button, a {
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+button:focus, a:focus {
+  outline: 2px solid var(--color-purple);
   outline-offset: 2px;
 }
 
-/* Smooth scroll */
 html {
   scroll-behavior: smooth;
 }

@@ -1,0 +1,64 @@
+---
+name: tokenmaxxing
+description: "Master token efficiency mode. Activates ultra-caveman, full offload-default, auto-compact, and ctrl+b background task routing. One command to engage everything."
+triggers:
+  - "/tokenmaxxing"
+  - "tokenmaxxing"
+---
+
+# TOKENMAXXING MODE
+
+## Activation Steps (execute every time this skill fires)
+
+1. Run this Bash command to set the session flag:
+   ```bash
+   node -e "const ss=require('/Users/marcelspatz/.claude/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=true;});"
+   ```
+
+2. Output exactly one line: `⚡ TOKENMAXXING ACTIVE`
+
+## Rules — enforce for the rest of this session
+
+### Ultra-Caveman
+- Zero preamble. Zero trailing summaries. No "let me", no "I'll", no "here's".
+- Single-sentence updates. Headers only for multi-section outputs.
+- Code stays deep. Docs stay thorough. Speech stays minimal.
+
+### Offload-Default (no trigger word needed)
+- Every non-trivial task → delegate to smallest lane first, without being asked.
+- Main thread = overseer + finalizer only. Never researcher or implementer.
+- Routing priority: @deepseek → @qwen → @gpt-oss → @swarm → @claude (last resort).
+- Do not narrate work that can run in a lane.
+
+### Auto-Compact
+- When context hits tier 2 (60%+), run /compact immediately — do not suggest, do not wait.
+- Use the pre-built hint injected by pre-tool-use.js context.
+- Never compact without preserving: branch, files touched, last user correction, next step.
+
+### Background Tasks (`ctrl+b` / `[bg]` prefix)
+- If user input starts with `[bg]` or `/bg`: spawn as `Agent({ run_in_background: true })` immediately.
+- Confirm in one line: `→ BG: <3-word description>`
+- Return to main thread. Do not narrate the spawned task further.
+
+## Deactivation
+
+Type `tokenmaxxing off` to disable:
+```bash
+node -e "const ss=require('/Users/marcelspatz/.claude/hooks/session-state.js'); ss.update(s=>{s.tokenmaxxing=false;});"
+```
+Output: `TOKENMAXXING OFF`
+
+## Session Notes
+
+### 2026-04-25
+- session: 12m | peak ctx: 14% | compacts: 0
+- tools: Bash×10, Read×9, Write×4, Edit×3, ToolSearch×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-04-25
+- session: planning + implementation | peak ctx: 18% | compacts: 0
+- tools: Bash×8, Read×7, Write×2, Edit×9, Agent×2 (explore), ExitPlanMode×1
+- corrections: none
+- errors: Edit failed on ai-pipeline-offloading + swarm-coordination (read-before-write guard missed during parallel edits)
+- notes: ctrl+b uses `chat:insertText` — unverified. Verify with /keybindings-help before relying on it. token-status.js ⚡ indicator was missed in initial plan, caught in reflection pass.

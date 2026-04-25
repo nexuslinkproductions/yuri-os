@@ -1,0 +1,276 @@
+import { apiFetch, API_ORIGINS } from './runtime';
+
+export interface Notebook {
+    id: number;
+    title: string;
+    description: string | null;
+    model_id: string;
+    created_at: string;
+    updated_at: string;
+    sources?: NotebookSource[];
+    docs?: NotebookDoc[];
+}
+
+export interface NotebookSource {
+    id: number;
+    notebook_id: number;
+    title: string;
+    source_type: 'pdf' | 'docx' | 'audio' | 'video' | 'url' | 'obsidian';
+    origin_path: string | null;
+    status: 'pending' | 'processing' | 'ready' | 'error';
+    error_msg: string | null;
+    word_count: number;
+    created_at: string;
+}
+
+export interface NotebookDoc {
+    id: number;
+    notebook_id: number;
+    doc_type: 'summary' | 'study_guide' | 'faq' | 'timeline' | 'briefing';
+    title: string;
+    content: string;
+    pdf_path: string | null;
+    obsidian_path: string | null;
+    model_id: string | null;
+    created_at: string;
+}
+
+export interface NotebookMessage {
+    id: number;
+    role: 'user' | 'assistant';
+    content: string;
+    sources_used: string | null;
+    created_at: string;
+}
+
+export interface RagCitation {
+    chunk_id: number;
+    source_title: string;
+    excerpt: string;
+}
+
+export type DocType = 'summary' | 'study_guide' | 'faq' | 'timeline' | 'briefing';
+
+// ─── Notebooks ──────────────────────────────────────────────────────────────
+
+export async function createNotebook(title: string): Promise<Notebook> {
+    const r = await apiFetch('/api/notebook/notebooks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+    });
+    return r.json();
+}
+
+export async function listNotebooks(): Promise<Notebook[]> {
+    const r = await apiFetch('/api/notebook/notebooks');
+    return r.json();
+}
+
+export async function getNotebook(id: number): Promise<Notebook> {
+    const r = await apiFetch(`/api/notebook/notebooks/${id}`);
+    return r.json();
+}
+
+export async function updateNotebook(id: number, patch: { title?: string; description?: string }): Promise<void> {
+    await apiFetch(`/api/notebook/notebooks/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch)
+    });
+}
+
+export async function deleteNotebook(id: number): Promise<void> {
+    await apiFetch(`/api/notebook/notebooks/${id}`, { method: 'DELETE' });
+}
+
+// ─── Sources ────────────────────────────────────────────────────────────────
+
+export async function uploadSources(notebookId: number, files: File[]): Promise<any[]> {
+    const form = new FormData();
+    files.forEach(f => form.append('files', f));
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}/sources/upload`, {
+        method: 'POST',
+        body: form
+    });
+    return r.json();
+}
+
+export async function addUrlSource(notebookId: number, url: string): Promise<any> {
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}/sources/url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+    });
+    return r.json();
+}
+
+export async function addObsidianSource(notebookId: number, vaultPath: string): Promise<any> {
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}/sources/obsidian`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vault_path: vaultPath })
+    });
+    return r.json();
+}
+
+export async function deleteSource(sourceId: number): Promise<void> {
+    await apiFetch(`/api/notebook/sources/${sourceId}`, { method: 'DELETE' });
+}
+
+export async function listSources(notebookId: number): Promise<NotebookSource[]> {
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}`);
+    const nb: Notebook = await r.json();
+    return nb.sources || [];
+}
+
+// ─── Messages ───────────────────────────────────────────────────────────────
+
+export async function loadMessages(notebookId: number): Promise<NotebookMessage[]> {
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}/messages`);
+    return r.json();
+}
+
+// ─── RAG Chat Stream ─────────────────────────────────────────────────────────
+
+export interface StreamCallbacks {
+    onToken: (token: string) => void;
+    onCitation: (citation: RagCitation) => void;
+    onDone: (content: string) => void;
+    onError: (msg: string) => void;
+}
+
+export function streamChat(notebookId: number, query: string, model: string, callbacks: StreamCallbacks): EventSource {
+    const url = `${API_ORIGINS[0]}/api/notebook/notebooks/${notebookId}/stream?command=${encodeURIComponent(query)}&model=${encodeURIComponent(model)}`;
+    const es = new EventSource(url);
+    let full = '';
+
+    es.addEventListener('token', (e: MessageEvent) => {
+        try {
+            const { token } = JSON.parse(e.data);
+            full += token;
+            callbacks.onToken(token);
+        } catch (_) {}
+    });
+
+    es.addEventListener('citation', (e: MessageEvent) => {
+        try {
+            callbacks.onCitation(JSON.parse(e.data));
+        } catch (_) {}
+    });
+
+    es.addEventListener('done', (e: MessageEvent) => {
+        es.close();
+        try { const { content } = JSON.parse(e.data); full = content || full; } catch (_) {}
+        callbacks.onDone(full);
+    });
+
+    es.addEventListener('error', (e: MessageEvent) => {
+        es.close();
+        let msg = 'STREAM_FAILED';
+        try { msg = JSON.parse((e as any).data)?.message || msg; } catch (_) {}
+        callbacks.onError(msg);
+    });
+
+    es.onerror = () => { es.close(); callbacks.onError('CONNECTION_LOST'); };
+
+    return es;
+}
+
+// ─── Document Generation ────────────────────────────────────────────────────
+
+export interface DocGenCallbacks {
+    onToken: (token: string) => void;
+    onDone: (docId: number) => void;
+    onError: (msg: string) => void;
+}
+
+export function streamGenerate(notebookId: number, docType: DocType, model: string, callbacks: DocGenCallbacks): EventSource {
+    const url = `${API_ORIGINS[0]}/api/notebook/notebooks/${notebookId}/generate`;
+    // POST with SSE isn't standard — we use fetch + ReadableStream here
+    const es = new (class extends EventTarget {
+        close() {}
+    } as any)();
+
+    (async () => {
+        try {
+            const r = await apiFetch(`/api/notebook/notebooks/${notebookId}/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ doc_type: docType, model_id: model })
+            });
+            if (!r.ok || !r.body) throw new Error(`HTTP ${r.status}`);
+
+            const reader = r.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+                for (const line of lines) {
+                    if (line.startsWith('event: token')) continue;
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            if (data.token !== undefined) callbacks.onToken(data.token);
+                            if (data.docId !== undefined) callbacks.onDone(data.docId);
+                            if (data.message !== undefined) callbacks.onError(data.message);
+                        } catch (_) {}
+                    }
+                }
+            }
+        } catch (e: any) {
+            callbacks.onError(e.message || 'GENERATE_FAILED');
+        }
+    })();
+
+    return es;
+}
+
+// ─── Documents ───────────────────────────────────────────────────────────────
+
+export async function listDocs(notebookId: number): Promise<NotebookDoc[]> {
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}`);
+    const nb: Notebook = await r.json();
+    return nb.docs || [];
+}
+
+export function getPdfUrl(docId: number): string {
+    return `${API_ORIGINS[0]}/api/notebook/docs/${docId}/pdf`;
+}
+
+export async function syncDocToObsidian(docId: number): Promise<string> {
+    const r = await apiFetch(`/api/notebook/docs/${docId}/obsidian-sync`, { method: 'POST' });
+    const data = await r.json();
+    return data.vault_path;
+}
+
+export async function deleteDoc(docId: number): Promise<void> {
+    await apiFetch(`/api/notebook/docs/${docId}`, { method: 'DELETE' });
+}
+
+// ─── Visualizations ──────────────────────────────────────────────────────────
+
+export async function getEntityFrequencies(notebookId: number): Promise<any[]> {
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}/viz/entities`);
+    return r.json();
+}
+
+export async function getTemporalSeries(notebookId: number): Promise<any[]> {
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}/viz/temporal`);
+    return r.json();
+}
+
+export async function getTopicGraph(notebookId: number): Promise<{ nodes: any[]; edges: any[] }> {
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}/viz/topics`);
+    return r.json();
+}
+
+export async function getSentiment(notebookId: number): Promise<any> {
+    const r = await apiFetch(`/api/notebook/notebooks/${notebookId}/viz/sentiment`);
+    return r.json();
+}

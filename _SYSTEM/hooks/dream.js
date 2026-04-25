@@ -140,16 +140,26 @@ function writeRule(domain, rule) {
     return; // Domain file must exist
   }
 
-  const content = fs.readFileSync(rulePath, 'utf8');
-  const updated = content.replace(
-    /\*\(No rules yet/,
-    `- ${rule}\n\n*Previous entry: (No rules yet`
-  ).replace(
-    /\(No rules yet — will populate from first corrections\)\*/,
-    'corrections)*'
-  );
+  let content = fs.readFileSync(rulePath, 'utf8');
 
-  fs.writeFileSync(rulePath, updated);
+  // Skip if rule already exists
+  if (content.includes(rule)) {
+    return;
+  }
+  
+  // Remove the initial placeholder if it exists
+  content = content.replace(/\*\(No rules yet — will populate from first corrections\)\*\n+/g, '');
+  
+  // Insert the rule after the ## Rules header and any italicized description
+  const rulesHeaderRegex = /(## Rules\n+(?:\*.*?\*\n+)?)/;
+  if (rulesHeaderRegex.test(content)) {
+    content = content.replace(rulesHeaderRegex, `$1- ${rule}\n`);
+  } else {
+    // Fallback if header is missing
+    content += `\n- ${rule}\n`;
+  }
+
+  fs.writeFileSync(rulePath, content);
 }
 
 dream();

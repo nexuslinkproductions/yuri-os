@@ -1,0 +1,11 @@
+/plan
+Role & Execution Context:
+Act as the primary swarm orchestrator using Sonnet 4.6 (operating at maximum reasoning capacity). Your objective is to manage, delegate, and execute a flawless integration of a comprehensive NotebookLM clone into the existing 'Oracle' environment.
+Core Directives:
+•    Zero-Disruption Integration: Execute this implementation with surgical precision. It is strictly forbidden to disturb, break, or interrupt any currently running systems.
+•    Swarm Delegation Strategy: As the Sonnet 4.6 orchestrator, you will handle the heavy lifting, main architectural decisions, CI/CD pipeline integration, and final code reviews. You must actively offload all smaller tasks—such as data fetching, file reading, code scraping, and preliminary research—to background sub-agents to optimize speed and efficiency. Include design tools and skills where necessary.
+Required Features to Implement:
+•    Media Processing: Automated audio and text transcription summaries.
+•    Document Generation: Automated creation and formatting of PDFs and rich-text documents.
+•    Data Visualization: Dynamic generation of graphs, pie charts, and infographics based on system data.
+•    Knowledge Base Routing: Format all generated outputs as easy-to-read documentation and seamlessly sync them directly into our Obsidian vault (acting as our primary data processing center).

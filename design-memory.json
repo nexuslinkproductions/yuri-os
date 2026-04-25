@@ -1,0 +1,28 @@
+[
+  {
+    "date": "2026-04-25",
+    "component": "App Shell — VSCode Layout",
+    "decision": "Replaced flat header+pill-nav layout with VSCode spatial grammar: activity-bar (48px, col 1) | sidebar/explorer (220px, col 2) | editor-area (flex col: title-bar + tab-bar + breadcrumb + content, col 3) + status-bar (22px, row 2, full width). Grid: `var(--vsc-activity-w) var(--sidebar-w) 1fr / 1fr var(--vsc-status-h)`. Nav nodes moved from inline pill tabs to vertical list items in sidebar with left-border active indicator. Status bar background uses `rgba(0,100,160,0.92)` (VSCode blue adapted to HUD opacity model). All existing JS IDs preserved (`#module-content`, `#sidebar-nav`, `.nav-node[data-module]`, all footer IDs). MutationObserver inline script syncs tab-bar and breadcrumb with active nav-node class changes.",
+    "tokens_used": [
+      "--vsc-activity-w",
+      "--vsc-status-h",
+      "--vsc-tab-h",
+      "--vsc-breadcrumb-h",
+      "--vsc-sidebar-bg",
+      "--vsc-activity-bg",
+      "--vsc-editor-bg",
+      "--vsc-titlebar-bg",
+      "--vsc-tab-bg",
+      "--vsc-status-bg",
+      "--vsc-border",
+      "--vsc-border-active",
+      "--sidebar-w",
+      "--cyan-glow",
+      "--gold-solar",
+      "--text-dim",
+      "--silver-albedo",
+      "--font-mono"
+    ],
+    "pattern": "VSCode layout shell: grid(activity | sidebar | editor / content | statusbar). Editor area = flex-col with title-bar, tab-bar, breadcrumb, scrollable content. Activity bar = icon-only with left-border active state. Sidebar = vertical nav list with grouped sections + dividers. Status bar = 22px full-width strip."
+  }
+]

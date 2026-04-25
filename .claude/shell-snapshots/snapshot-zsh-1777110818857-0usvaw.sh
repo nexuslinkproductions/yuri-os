@@ -1,0 +1,319 @@
+# Snapshot file
+# Unset all aliases to avoid conflicts with functions
+unalias -a 2>/dev/null || true
+# Functions
+__arguments () {
+	# undefined
+	builtin autoload -XUz /usr/share/zsh/5.9/functions
+}
+__bun_dynamic_comp () {
+	local comp="" 
+	for arg in scripts
+	do
+		local line
+		while read -r line
+		do
+			local name="$line" 
+			local desc="$line" 
+			name="${name%$'\t'*}" 
+			desc="${desc/*$'\t'/}" 
+			echo
+		done <<< "$arg"
+	done
+	return $comp
+}
+auto () {
+	if [[ "$1" == "research" ]]
+	then
+		local topic="${@:2}" 
+		cd /Volumes/T7/_TOOLS/AutoResearchClaw && source venv/bin/activate && research run --topic "$topic" --auto-approve
+	else
+		echo "Usage: auto research \"your topic here\""
+	fi
+}
+compaudit () {
+	# undefined
+	builtin autoload -XUz /usr/share/zsh/5.9/functions
+}
+compdef () {
+	local opt autol type func delete eval new i ret=0 cmd svc 
+	local -a match mbegin mend
+	emulate -L zsh
+	setopt extendedglob
+	if (( ! $# ))
+	then
+		print -u2 "$0: I need arguments"
+		return 1
+	fi
+	while getopts "anpPkKde" opt
+	do
+		case "$opt" in
+			(a) autol=yes  ;;
+			(n) new=yes  ;;
+			([pPkK]) if [[ -n "$type" ]]
+				then
+					print -u2 "$0: type already set to $type"
+					return 1
+				fi
+				if [[ "$opt" = p ]]
+				then
+					type=pattern 
+				elif [[ "$opt" = P ]]
+				then
+					type=postpattern 
+				elif [[ "$opt" = K ]]
+				then
+					type=widgetkey 
+				else
+					type=key 
+				fi ;;
+			(d) delete=yes  ;;
+			(e) eval=yes  ;;
+		esac
+	done
+	shift OPTIND-1
+	if (( ! $# ))
+	then
+		print -u2 "$0: I need arguments"
+		return 1
+	fi
+	if [[ -z "$delete" ]]
+	then
+		if [[ -z "$eval" ]] && [[ "$1" = *\=* ]]
+		then
+			while (( $# ))
+			do
+				if [[ "$1" = *\=* ]]
+				then
+					cmd="${1%%\=*}" 
+					svc="${1#*\=}" 
+					func="$_comps[${_services[(r)$svc]:-$svc}]" 
+					[[ -n ${_services[$svc]} ]] && svc=${_services[$svc]} 
+					[[ -z "$func" ]] && func="${${_patcomps[(K)$svc][1]}:-${_postpatcomps[(K)$svc][1]}}" 
+					if [[ -n "$func" ]]
+					then
+						_comps[$cmd]="$func" 
+						_services[$cmd]="$svc" 
+					else
+						print -u2 "$0: unknown command or service: $svc"
+						ret=1 
+					fi
+				else
+					print -u2 "$0: invalid argument: $1"
+					ret=1 
+				fi
+				shift
+			done
+			return ret
+		fi
+		func="$1" 
+		[[ -n "$autol" ]] && autoload -rUz "$func"
+		shift
+		case "$type" in
+			(widgetkey) while [[ -n $1 ]]
+				do
+					if [[ $# -lt 3 ]]
+					then
+						print -u2 "$0: compdef -K requires <widget> <comp-widget> <key>"
+						return 1
+					fi
+					[[ $1 = _* ]] || 1="_$1" 
+					[[ $2 = .* ]] || 2=".$2" 
+					[[ $2 = .menu-select ]] && zmodload -i zsh/complist
+					zle -C "$1" "$2" "$func"
+					if [[ -n $new ]]
+					then
+						bindkey "$3" | IFS=$' \t' read -A opt
+						[[ $opt[-1] = undefined-key ]] && bindkey "$3" "$1"
+					else
+						bindkey "$3" "$1"
+					fi
+					shift 3
+				done ;;
+			(key) if [[ $# -lt 2 ]]
+				then
+					print -u2 "$0: missing keys"
+					return 1
+				fi
+				if [[ $1 = .* ]]
+				then
+					[[ $1 = .menu-select ]] && zmodload -i zsh/complist
+					zle -C "$func" "$1" "$func"
+				else
+					[[ $1 = menu-select ]] && zmodload -i zsh/complist
+					zle -C "$func" ".$1" "$func"
+				fi
+				shift
+				for i
+				do
+					if [[ -n $new ]]
+					then
+						bindkey "$i" | IFS=$' \t' read -A opt
+						[[ $opt[-1] = undefined-key ]] || continue
+					fi
+					bindkey "$i" "$func"
+				done ;;
+			(*) while (( $# ))
+				do
+					if [[ "$1" = -N ]]
+					then
+						type=normal 
+					elif [[ "$1" = -p ]]
+					then
+						type=pattern 
+					elif [[ "$1" = -P ]]
+					then
+						type=postpattern 
+					else
+						case "$type" in
+							(pattern) if [[ $1 = (#b)(*)=(*) ]]
+								then
+									_patcomps[$match[1]]="=$match[2]=$func" 
+								else
+									_patcomps[$1]="$func" 
+								fi ;;
+							(postpattern) if [[ $1 = (#b)(*)=(*) ]]
+								then
+									_postpatcomps[$match[1]]="=$match[2]=$func" 
+								else
+									_postpatcomps[$1]="$func" 
+								fi ;;
+							(*) if [[ "$1" = *\=* ]]
+								then
+									cmd="${1%%\=*}" 
+									svc=yes 
+								else
+									cmd="$1" 
+									svc= 
+								fi
+								if [[ -z "$new" || -z "${_comps[$1]}" ]]
+								then
+									_comps[$cmd]="$func" 
+									[[ -n "$svc" ]] && _services[$cmd]="${1#*\=}" 
+								fi ;;
+						esac
+					fi
+					shift
+				done ;;
+		esac
+	else
+		case "$type" in
+			(pattern) unset "_patcomps[$^@]" ;;
+			(postpattern) unset "_postpatcomps[$^@]" ;;
+			(key) print -u2 "$0: cannot restore key bindings"
+				return 1 ;;
+			(*) unset "_comps[$^@]" ;;
+		esac
+	fi
+}
+compdump () {
+	# undefined
+	builtin autoload -XUz
+}
+compinit () {
+	# undefined
+	builtin autoload -XUz /usr/share/zsh/5.9/functions
+}
+compinstall () {
+	# undefined
+	builtin autoload -XUz /usr/share/zsh/5.9/functions
+}
+getent () {
+	if [[ $1 = hosts ]]
+	then
+		sed 's/#.*//' /etc/$1 | grep -w $2
+	elif [[ $2 = <-> ]]
+	then
+		grep ":$2:[^:]*$" /etc/$1
+	else
+		grep "^$2:" /etc/$1
+	fi
+}
+precmd () {
+	PS1_CONTEXT_BAR="$(render_context_bar)" 
+}
+render_context_bar () {
+	local percent=${CONTEXT_LOAD:-15} 
+	local total_blocks=20 
+	local filled_blocks=$(( percent * total_blocks / 100 )) 
+	local empty_blocks=$(( total_blocks - filled_blocks )) 
+	local color="%F{112}" 
+	if [ "$percent" -ge 85 ]
+	then
+		color="%F{196}" 
+	elif [ "$percent" -ge 60 ]
+	then
+		color="%F{214}" 
+	fi
+	local bar_string="" 
+	for ((i=0; i<filled_blocks; i++)) do
+		bar_string+="■" 
+	done
+	for ((i=0; i<empty_blocks; i++)) do
+		bar_string+="□" 
+	done
+	echo "${color}CTX [${bar_string}] ${percent}%%%f"
+}
+# Shell Options
+setopt nohashdirs
+setopt login
+setopt promptsubst
+# Aliases
+alias -- ai=/Users/marcelspatz/NUDIMMUD/Scripts/ai
+alias -- c='/Users/marcelspatz/NUDIMMUD/Scripts/ai claude'
+alias -- dot_clean_t7='find /Volumes/T7 -name "._*" -type f -not -path "*/RECOVERY/*" -delete && echo "T7: ._* files cleaned"'
+alias -- g='/Users/marcelspatz/NUDIMMUD/Scripts/ai gemini'
+alias -- oracle=claude
+alias -- run-help=man
+alias -- tri='/Users/marcelspatz/NUDIMMUD/Scripts/ai triage'
+alias -- which-command=whence
+alias -- x='/Users/marcelspatz/NUDIMMUD/Scripts/ai codex'
+# Check for rg availability
+if ! (unalias rg 2>/dev/null; command -v rg) >/dev/null 2>&1; then
+  function rg {
+  local _cc_bin="${CLAUDE_CODE_EXECPATH:-}"
+  [[ -x $_cc_bin ]] || _cc_bin=$(command -v claude 2>/dev/null)
+  if [[ ! -x $_cc_bin ]]; then command rg "$@"; return; fi
+  if [[ -n $ZSH_VERSION ]]; then
+    ARGV0=rg "$_cc_bin" "$@"
+  elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    ARGV0=rg "$_cc_bin" "$@"
+  elif [[ $BASHPID != $$ ]]; then
+    exec -a rg "$_cc_bin" "$@"
+  else
+    (exec -a rg "$_cc_bin" "$@")
+  fi
+}
+fi
+# Shadow find/grep with embedded bfs/ugrep
+unalias find 2>/dev/null || true
+unalias grep 2>/dev/null || true
+function find {
+  local _cc_bin="${CLAUDE_CODE_EXECPATH:-}"
+  [[ -x $_cc_bin ]] || _cc_bin=$(command -v claude 2>/dev/null)
+  if [[ ! -x $_cc_bin ]]; then command find "$@"; return; fi
+  if [[ -n $ZSH_VERSION ]]; then
+    ARGV0=bfs "$_cc_bin" -regextype findutils-default "$@"
+  elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    ARGV0=bfs "$_cc_bin" -regextype findutils-default "$@"
+  elif [[ $BASHPID != $$ ]]; then
+    exec -a bfs "$_cc_bin" -regextype findutils-default "$@"
+  else
+    (exec -a bfs "$_cc_bin" -regextype findutils-default "$@")
+  fi
+}
+function grep {
+  local _cc_bin="${CLAUDE_CODE_EXECPATH:-}"
+  [[ -x $_cc_bin ]] || _cc_bin=$(command -v claude 2>/dev/null)
+  if [[ ! -x $_cc_bin ]]; then command grep "$@"; return; fi
+  if [[ -n $ZSH_VERSION ]]; then
+    ARGV0=ugrep "$_cc_bin" -G --ignore-files --hidden -I --exclude-dir=.git --exclude-dir=.svn --exclude-dir=.hg --exclude-dir=.bzr --exclude-dir=.jj --exclude-dir=.sl "$@"
+  elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    ARGV0=ugrep "$_cc_bin" -G --ignore-files --hidden -I --exclude-dir=.git --exclude-dir=.svn --exclude-dir=.hg --exclude-dir=.bzr --exclude-dir=.jj --exclude-dir=.sl "$@"
+  elif [[ $BASHPID != $$ ]]; then
+    exec -a ugrep "$_cc_bin" -G --ignore-files --hidden -I --exclude-dir=.git --exclude-dir=.svn --exclude-dir=.hg --exclude-dir=.bzr --exclude-dir=.jj --exclude-dir=.sl "$@"
+  else
+    (exec -a ugrep "$_cc_bin" -G --ignore-files --hidden -I --exclude-dir=.git --exclude-dir=.svn --exclude-dir=.hg --exclude-dir=.bzr --exclude-dir=.jj --exclude-dir=.sl "$@")
+  fi
+}
+export PATH='/Users/marcelspatz/.bun/bin:/Users/marcelspatz/.local/bin:/Users/marcelspatz/.antigravity/antigravity/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/marcelspatz/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand:/Users/marcelspatz/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/opt/ImageMagick/bin:/Users/marcelspatz/NUDIMMUD/bin:/Users/marcelspatz/.local/bin:/Users/marcelspatz/.bun/bin:/Users/marcelspatz/.antigravity/antigravity/bin'

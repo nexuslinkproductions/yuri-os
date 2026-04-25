@@ -1,0 +1,71 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "AI: Doctor",
+      "type": "shell",
+      "command": "ai doctor",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: BTW",
+      "type": "shell",
+      "command": "ai btw \"offload this\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Route",
+      "type": "shell",
+      "command": "ai route \"offload swarm proceed\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Swarm",
+      "type": "shell",
+      "command": "ai @swarm \"review the current task\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Moonshot",
+      "type": "shell",
+      "command": "ai moonshot \"deep reasoning task\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Claude",
+      "type": "shell",
+      "command": "ai claude \"check the current branch\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Codex",
+      "type": "shell",
+      "command": "ai codex \"inspect the current project\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Gemini",
+      "type": "shell",
+      "command": "ai gemini \"summarize the current workspace\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: OpenMythos",
+      "type": "shell",
+      "command": "ai openmythos \"analyze the active system\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Claude Unpacked",
+      "type": "shell",
+      "command": "ai claudeunpacked \"analyze agent mechanics\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Frontend Design",
+      "type": "shell",
+      "command": "ai frontenddesign \"audit the UI\"",
+      "problemMatcher": []
+    }
+  ]
+}

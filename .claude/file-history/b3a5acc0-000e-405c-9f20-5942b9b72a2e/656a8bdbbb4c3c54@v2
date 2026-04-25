@@ -1,0 +1,267 @@
+# Scout Agent System — Background Reasoning Watchers
+
+## Context
+
+NUDIMMUD has a rich hook lifecycle (SessionStart → PreToolUse → PostToolUse → Stop) but no background reasoning layer. When Claude takes an action, nothing is double-checking it in parallel. This plan builds **three scout agents** (ARGUS, CASSANDRA, HERMES) + one instant heuristic checker (CASSANDRA-LITE) that auto-join every session, reason over tool calls, and inject findings into the next turn via the existing `emitContext` / `hookSpecificOutput` mechanism already used by `pre-tool-use.js`.
+
+---
+
+## Architecture
+
+```
+PostToolUse (async)
+  └─ scout-spawn.js (async: true)
+       ├─ cassandra-lite.js (sync, instant regex/heuristics) → emitContext immediately if risk found
+       ├─ spawn ARGUS background (claude haiku) → scout-bus.json
+       └─ spawn CASSANDRA background (claude haiku) → scout-bus.json
+       [HERMES spawns only on Write/Edit tool calls — context drift]
+
+PreToolUse (sync) — runs BEFORE existing pre-tool-use.js
+  └─ scout-inject.js
+       └─ reads scout-bus.json → unconsumed entries → emitContext → marks consumed
+```
+
+**Injection vector:** `process.stderr.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', additionalContext: msg } }))` — exact pattern from `pre-tool-use.js:33-36`.
+
+**Peer communication:** Each scout receives the last 5 unconsumed bus entries as context before reasoning, so they build on each other's findings.
+
+---
+
+## Scout Definitions
+
+| Scout | Trigger | Model | Purpose |
+|-------|---------|-------|---------|
+| **ARGUS** | Write, Edit, Agent, Bash | haiku | Logic consistency — contradictions, off-task drift, wrong assumptions |
+| **CASSANDRA** | Write, Edit, Bash | haiku | Risk prediction — destructive ops, irreversible actions, T7 violations |
+| **CASSANDRA-LITE** | All tools | pure JS | Instant regex — `rm -rf`, `--force`, `T7`, `DROP TABLE`, `chmod 777` |
+| **HERMES** | Write, Edit only | haiku | Context drift — flags when Claude is drifting from original task scope |
+
+**THEMIS** (quality scout) deferred to v2 — overlaps with OBLITERATUS-QA which already exists.
+
+---
+
+## File Plan
+
+### New files
+
+**`_SYSTEM/OS_KERNEL/scout-bus.json`** — ring buffer, initialized empty:
+```json
+{
+  "version": "1.0",
+  "maxEntries": 20,
+  "entries": []
+}
+```
+
+Entry schema:
+```json
+{
+  "id": "uuid-short",
+  "scout": "ARGUS|CASSANDRA|HERMES",
+  "timestamp": "ISO8601",
+  "severity": "low|medium|high",
+  "toolCall": "Write",
+  "finding": "One or two sentence finding.",
+  "consumed": false
+}
+```
+
+---
+
+**`.claude/agents/argus.md`**
+```markdown
+# IDENTITY
+Name: ARGUS
+Role: Logic Consistency Watcher
+House: NISABA House 06 (Scouts)
+
+# DIRECTIVE
+You watch for reasoning failures: contradictions between what Claude said it would do
+and what tool it actually called, wrong assumptions about file state, and off-task drift.
+You operate silently in the background and never block. One finding or null.
+
+# PROTOCOLS
+1. Read the tool call and recent peer scout findings provided to you.
+2. Identify ONE issue: logical contradiction, wrong assumption, or significant off-task drift.
+3. If nothing significant, output null.
+4. Never invent issues. Only flag clear violations.
+5. Output exactly one JSON object, no prose.
+
+# OUTPUT FORMAT
+{"severity": "low|medium|high", "finding": "Max 2 sentences."}
+or
+null
+```
+
+---
+
+**`.claude/agents/cassandra.md`**
+```markdown
+# IDENTITY
+Name: CASSANDRA
+Role: Risk & Destruction Predictor
+House: NISABA House 06 (Scouts)
+
+# DIRECTIVE
+You predict bad outcomes before they happen. Review the tool call for: destructive
+operations, irreversible file changes, T7 path violations (/Volumes/T7), security risks,
+operations that bypass safety checks. You are pessimistic by design.
+
+# PROTOCOLS
+1. Read the tool call context and peer findings.
+2. Identify ONE risk: data loss, unrecoverable state, T7 write, security hole.
+3. If nothing significant, output null.
+4. Severity: high = data loss / T7 write / security, medium = risky but recoverable, low = minor.
+5. Output exactly one JSON object, no prose.
+
+# OUTPUT FORMAT
+{"severity": "low|medium|high", "finding": "Max 2 sentences."}
+or
+null
+```
+
+---
+
+**`.claude/agents/hermes.md`**
+```markdown
+# IDENTITY
+Name: HERMES
+Role: Context & Task Scope Monitor
+House: NISABA House 06 (Scouts)
+
+# DIRECTIVE
+You track whether Claude is staying on task. Compare the file being written/edited against
+the stated task from earlier in the session. Flag scope creep, unrelated file touches,
+and sessions that have lost their original thread.
+
+# PROTOCOLS
+1. Read the tool call and recent peer findings.
+2. Identify ONE drift: file unrelated to task, scope creep, task forgotten.
+3. If nothing significant, output null.
+4. Output exactly one JSON object, no prose.
+
+# OUTPUT FORMAT
+{"severity": "low|medium|high", "finding": "Max 2 sentences."}
+or
+null
+```
+
+---
+
+**`.claude/hooks/scout-spawn.js`** — PostToolUse async spawner:
+
+Logic:
+1. Read event from stdin (same pattern as `post-tool-use.js`)
+2. Extract `toolName`, `toolInput`, `toolResponse`
+3. Run CASSANDRA-LITE heuristics inline (no spawn, instant)
+4. Check throttle: read `_SYSTEM/OS_KERNEL/.scout-lock.json`, skip if scout spawned < 30s ago
+5. If `toolName` in `{Write, Edit, Bash, Agent}`: spawn ARGUS + CASSANDRA (detached + unref)
+6. If `toolName` in `{Write, Edit}`: also spawn HERMES
+7. Each scout is a separate `scout-runner.js` process that receives `--scout ARGUS --context <base64-json>`
+
+**`.claude/hooks/cassandra-lite.js`** — instant heuristic, required by scout-spawn.js:
+
+Patterns to flag (severity: high):
+- `/\/Volumes\/T7\//` in file path → T7 write
+- `/rm\s+-rf/`, `/--force/`, `/git\s+push\s+--force/` in Bash command
+- `/DROP\s+TABLE/i`, `/DELETE\s+FROM/i` in Bash/Write content
+- `chmod 777`, `chmod a+rwx`
+- `process.exit(0)` in wrong context (false positive risk — skip)
+
+Output: writes directly to scout-bus.json if risk found (no LLM needed).
+
+**`.claude/hooks/scout-runner.js`** — executes a single scout via `claude -p`:
+
+Logic:
+1. Parse `--scout NAME`, `--tool TOOL_NAME`, `--input <base64>`, `--peers <base64>` args
+2. Read agent definition from `.claude/agents/{name.toLowerCase()}.md`
+3. Build prompt: agent directive + tool call summary + peer findings (last 5 unconsumed)
+4. Run: `execSync('claude -p --model claude-haiku-4-5-20251001 "${prompt}"', { timeout: 45000 })`
+5. Parse stdout as JSON (or null)
+6. Append finding to `_SYSTEM/OS_KERNEL/scout-bus.json` (atomic write with temp-rename)
+7. Trim bus to maxEntries=20
+
+**`.claude/hooks/scout-inject.js`** — PreToolUse sync injector:
+
+Logic:
+1. Read `_SYSTEM/OS_KERNEL/scout-bus.json`
+2. Filter: unconsumed entries where `timestamp` > now - 300s (5 min window)
+3. If any: format as `[SCOUT: {NAME}] [{SEVERITY}] {finding}` per entry
+4. `emitContext(formatted_output)` — exact pattern from pre-tool-use.js
+5. Mark all injected entries as `consumed: true`, write back
+6. If bus missing or empty: silent exit
+
+---
+
+### Modified files
+
+**`.claude/settings.json`** — add two hooks:
+
+```json
+"PreToolUse": [
+  {
+    "matcher": "",
+    "hooks": [
+      { "type": "command", "command": "node .claude/hooks/scout-inject.js" },   // ← NEW (first)
+      { "type": "command", "command": "node .claude/hooks/pre-tool-use.js" }    // existing
+    ]
+  }
+],
+"PostToolUse": [
+  {
+    "matcher": "",
+    "hooks": [
+      { "type": "command", "command": "node .claude/hooks/post-tool-use.js", "async": true },  // existing
+      { "type": "command", "command": "node .claude/hooks/scout-spawn.js", "async": true }    // ← NEW
+    ]
+  }
+]
+```
+
+---
+
+## Throttle & Cost Control
+
+- `.scout-lock.json` at `_SYSTEM/OS_KERNEL/` — per-scout timestamps
+- Skip spawn if < 30s since last spawn for that scout type
+- Skip on Read, Glob, LS, Bash returning <50 chars
+- Skip if bus already has ≥3 unconsumed entries (scouts are backed up — wait)
+- HERMES only spawns on Write/Edit (not Bash)
+- Max 3 concurrent scout runners (check active PIDs via lock file)
+
+---
+
+## Peer Communication Flow
+
+```
+CASSANDRA-LITE finds T7 path → writes HIGH severity to bus
+  ↓ (30s later)
+ARGUS spawns → reads bus → sees CASSANDRA-LITE HIGH finding → incorporates into context
+ARGUS: "CASSANDRA already flagged T7 write; logic also shows this contradicts stated read-only scope"
+  ↓ (30s later, next PreToolUse)
+scout-inject.js reads both → emits to Claude:
+  [SCOUT: CASSANDRA-LITE] [HIGH] Detected /Volumes/T7/ write path. T7 is read-only sync source.
+  [SCOUT: ARGUS] [HIGH] T7 flag confirmed. This edit also contradicts the "local-only" constraint stated earlier.
+```
+
+---
+
+## Verification
+
+1. **Functional test:** Run `node .claude/hooks/scout-spawn.js` with a fake PostToolUse event piped to stdin (JSON with `tool_name: "Write"`, `tool_input: { file_path: "/Volumes/T7/test.md" }`) → scout-bus.json should get a HIGH finding within 45s
+2. **Injection test:** Run `node .claude/hooks/scout-inject.js` with scout-bus.json containing a mock unconsumed finding → stderr should contain `hookSpecificOutput` JSON
+3. **Peer test:** Pre-populate bus with one CASSANDRA finding, then spawn ARGUS manually → verify ARGUS prompt includes peer findings
+4. **Throttle test:** Spawn ARGUS twice in <30s → second spawn should be skipped
+5. **Integration:** In a real session, run `node -e "require('.claude/hooks/scout-spawn.js')"` equivalent after a Write call → next PreToolUse should show findings
+
+---
+
+## Session auto-join
+
+Scouts auto-join via the PostToolUse hook registered in settings.json. No manual invocation needed. Every Write/Edit/Bash/Agent tool call triggers scout-spawn.js. The system is fully automatic from first session that loads the new settings.
+
+---
+
+## Post-plan: Auto mode (separate from scout build)
+
+User requested "bypass all permissions for session, auto mode" — apply `update-config` skill after plan approval to add broad `allowedTools` permissions to settings.json.

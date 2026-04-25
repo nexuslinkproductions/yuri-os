@@ -1,0 +1,12 @@
+/plan ai swarm
+Objective: Execute a surgical, seamless integration of a complete NotebookLM clone into the existing 'Oracle' system. This integration must be non-destructive and strictly avoid disturbing any currently running systems.
+Core Features to Implement:
+•    Audio/Text Processing: Automated transcription summaries.
+•    Document Generation: Automated creation and formatting of PDFs and rich text documents.
+•    Data Visualization: Generation of dynamic graphs, pie charts, and infographics based on ingested data.
+•    Knowledge Base Sync: Creation of easy-to-read documentation specifically formatted and routed directly into our Obsidian vault (our primary data processing center).
+Swarm Architecture & Task Delegation:
+Please self-organize and execute this plan using the following model delegation strategy:
+    1.    Main Orchestrator (Opus @ Medium): Act as the project manager. Handle the main orchestration, final code reviews, and integration finalizing. You are responsible for keeping strict track of all offloaded tasks and ensuring the system's stability.
+    2.    Heavy Lifter (Sonnet @ Max Reasoning): Handle the most complex development modules, bigger architectural tasks, and incorporate necessary design tools/skills. Manage the CI/CD pipeline integration.
+    3.    Task Offloading: Delegate all smaller tasks, data fetching, file reading, documentation scraping, and preliminary research to background agents to optimize speed and token usage.

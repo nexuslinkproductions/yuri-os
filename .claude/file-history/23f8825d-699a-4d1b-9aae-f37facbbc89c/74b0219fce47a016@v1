@@ -1,0 +1,28 @@
+module.exports = {
+  apps: [
+    {
+      name: 'nudimmud-backend',
+      script: 'npm',
+      args: 'run dev',
+      cwd: '/Users/marcelspatz/NUDIMMUD/backend',
+      env: {
+        NODE_ENV: 'development',
+        PORT: 3004
+      },
+      watch: false,
+      max_memory_restart: '1G'
+    },
+    {
+      name: 'nudimmud-frontend',
+      script: 'npm',
+      args: 'run dev',
+      cwd: '/Users/marcelspatz/NUDIMMUD',
+      env: {
+        NODE_ENV: 'development',
+        PORT: 5173
+      },
+      watch: false,
+      max_memory_restart: '1G'
+    }
+  ]
+};

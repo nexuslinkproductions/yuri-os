@@ -1,0 +1,15 @@
+{
+  "graph_path": "/Users/marcelspatz/design-uiux-knowledge-base/graph.json",
+  "chunk_path": "/Users/marcelspatz/design-uiux-knowledge-base/vector_package/chunks.jsonl",
+  "chunk_count": 54,
+  "source_note_count": 52,
+  "summary_docs": [
+    "/Users/marcelspatz/design-uiux-knowledge-base/GRAPH_REPORT.md",
+    "/Users/marcelspatz/design-uiux-knowledge-base/PLAYBOOK.md"
+  ],
+  "recommended_use": [
+    "Use chunks.jsonl for embeddings",
+    "Use chunks.jsonl for search index ingest",
+    "Keep graph.json as the relationship source"
+  ]
+}

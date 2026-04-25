@@ -1,52 +1,64 @@
 "use client";
 
+import Link from "next/link";
+
 export default function Hero() {
   return (
-    <section className="min-h-screen bg-gradient-to-b from-transparent to-slate-900/20 pt-40 pb-24 flex items-center justify-center">
-      <div className="max-w-7xl mx-auto px-6 text-center space-y-12">
-        {/* Hero content */}
-        <div className="space-y-8">
-          <h1 className="text-7xl md:text-8xl font-bold leading-tight tracking-tight">
-            Premium <span className="text-crimson">Production</span>
+    <section className="relative overflow-hidden pt-28 pb-20">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(220,20,60,0.18),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.08),_transparent_24%)]" />
+      <div className="relative mx-auto max-w-7xl px-6">
+        <div className="max-w-4xl space-y-8">
+          <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/60">
+            NUDIMMUD / NexusLink control surface
+          </div>
+          <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight md:text-7xl">
+            NexusLink is the public face. Research is the working face.
           </h1>
-          <p className="text-lg md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            Video, motion graphics, and post-production for premium brands.
-            Vienna-based. Internationally recognized.
+          <p className="max-w-3xl text-lg leading-relaxed text-white/72 md:text-2xl">
+            One shell. One navigation layer. Public landing, internal research,
+            and the design radar stay legible from the first screen.
           </p>
         </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
-          <button className="px-10 py-4 bg-crimson text-black font-bold rounded hover:bg-crimson-dark transition text-lg tracking-wide">
-            View Portfolio
-          </button>
-          <button className="px-10 py-4 border-2 border-crimson text-crimson font-bold rounded hover:bg-crimson/10 transition text-lg tracking-wide">
-            Let's Talk
-          </button>
+        <div className="mt-12 flex flex-col gap-4 sm:flex-row">
+          <Link
+            href="/research"
+            className="rounded-full bg-crimson px-8 py-4 text-center text-base font-semibold tracking-wide text-black transition hover:bg-crimson-dark"
+          >
+            Open Research Workspace
+          </Link>
+          <Link
+            href="/sources"
+            className="rounded-full border border-white/15 bg-white/5 px-8 py-4 text-center text-base font-semibold tracking-wide text-white transition hover:bg-white/10"
+          >
+            View Sources
+          </Link>
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-8 pt-20 mt-20 border-t border-gray-800">
-          <div className="text-center">
-            <p className="text-4xl md:text-5xl font-bold text-crimson mb-2">50+</p>
-            <p className="text-gray-400 text-sm uppercase tracking-widest">Projects Completed</p>
+        <div className="mt-16 grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/40">
+              Landing
+            </p>
+            <p className="mt-3 text-lg font-medium text-white">
+              Public module, crisp hierarchy
+            </p>
           </div>
-          <div className="text-center">
-            <p className="text-4xl md:text-5xl font-bold text-crimson mb-2">8+</p>
-            <p className="text-gray-400 text-sm uppercase tracking-widest">Years Experience</p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/40">
+              Research
+            </p>
+            <p className="mt-3 text-lg font-medium text-white">
+              Internal workspace, docs + action
+            </p>
           </div>
-          <div className="text-center">
-            <p className="text-4xl md:text-5xl font-bold text-crimson mb-2">30+</p>
-            <p className="text-gray-400 text-sm uppercase tracking-widest">Premium Brands</p>
-          </div>
-        </div>
-
-        {/* Hero visual placeholder */}
-        <div className="aspect-video bg-gradient-to-b from-slate-800 to-slate-900 border border-crimson/20 rounded-xl overflow-hidden mt-20 hover:border-crimson/40 transition">
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-gray-500 text-center">
-              <p className="text-lg tracking-wide">HERO VISUAL — REEL/IMAGE SLOT</p>
-            </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/40">
+              Sources
+            </p>
+            <p className="mt-3 text-lg font-medium text-white">
+              Design radar, reference shelf
+            </p>
           </div>
         </div>
       </div>

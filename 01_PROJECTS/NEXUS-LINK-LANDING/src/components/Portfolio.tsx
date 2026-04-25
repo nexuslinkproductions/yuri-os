@@ -2,51 +2,55 @@
 
 const portfolio = [
   {
-    title: "Project One",
-    category: "Commercial",
-    description: "Premium brand commercial",
+    title: "Launch Systems",
+    category: "Control",
+    description: "Command rail, route labels, and module entry logic.",
   },
   {
-    title: "Project Two",
-    category: "Music Video",
-    description: "Director's vision realized",
+    title: "Client Briefing",
+    category: "Research",
+    description: "Workspace flow for notes, sources, and next actions.",
   },
   {
-    title: "Project Three",
-    category: "Corporate",
-    description: "Branded content series",
+    title: "Reference Shelf",
+    category: "Sources",
+    description: "Design radar as a visible system, not buried context.",
   },
   {
-    title: "Project Four",
-    category: "Short Form",
-    description: "Social-first reels",
+    title: "Public Module",
+    category: "Landing",
+    description: "Crisp public surface with one dominant action strip.",
   },
 ];
 
 export default function Portfolio() {
   return (
-    <section id="portfolio" className="py-32 bg-black">
+    <section id="portfolio" className="py-24">
       <div className="max-w-6xl mx-auto px-6">
-        <div className="mb-20">
-          <h2 className="text-6xl md:text-7xl font-bold mb-6">Portfolio</h2>
-          <div className="w-16 h-1 bg-crimson"></div>
+        <div className="mb-12">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/45">
+            Shell map
+          </p>
+          <h2 className="mt-4 text-4xl font-semibold md:text-6xl">
+            Selected modules
+          </h2>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid gap-6 md:grid-cols-2">
           {portfolio.map((item, idx) => (
             <div
               key={idx}
-              className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 border border-gray-800 rounded-lg overflow-hidden hover:border-crimson transition cursor-pointer group"
+              className="group aspect-video rounded-2xl border border-white/10 bg-gradient-to-br from-white/6 to-white/3 overflow-hidden transition hover:border-crimson/60"
             >
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center space-y-3">
-                  <p className="text-gray-400 text-sm tracking-widest uppercase">
+              <div className="flex h-full w-full items-center justify-center p-8">
+                <div className="space-y-3 text-center">
+                  <p className="text-xs tracking-[0.3em] text-white/40 uppercase">
                     {item.category}
                   </p>
-                  <h3 className="text-3xl font-bold group-hover:text-crimson transition">
+                  <h3 className="text-3xl font-semibold transition group-hover:text-crimson">
                     {item.title}
                   </h3>
-                  <p className="text-gray-400 text-base">{item.description}</p>
+                  <p className="text-base text-white/65">{item.description}</p>
                 </div>
               </div>
             </div>

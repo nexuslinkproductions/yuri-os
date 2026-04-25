@@ -1,0 +1,73 @@
+# Design UI/UX Vault
+
+This vault is generated from `graph.json`.
+
+## Counts
+- Total nodes: 58
+- Total edges: 64
+
+## Categories
+- Inspiration: 9
+  - [[sources/inspiration_lapa_ninja|Lapa Ninja]]
+  - [[sources/inspiration_land_book|Land-book]]
+  - [[sources/inspiration_mobbin|Mobbin]]
+  - [[sources/inspiration_page_flows|Page Flows]]
+  - [[sources/inspiration_rge|Really Good Emails]]
+  - [[sources/inspiration_one_page_love|One Page Love]]
+  - [[sources/inspiration_awwwwards|Awwwards]]
+  - [[sources/inspiration_dribbble|Dribbble]]
+  - [[sources/inspiration_behance|Behance]]
+- Design Systems: 17
+  - [[sources/repo_atlassian_design|Atlassian Design System]]
+  - [[sources/repo_shopify_polaris|Shopify Polaris]]
+  - [[sources/repo_carbon|Carbon Design System]]
+  - [[sources/repo_adobe_spectrum|Adobe Spectrum]]
+  - [[sources/repo_storybook|Storybook]]
+  - [[sources/repo_ant_design|Ant Design]]
+  - [[sources/repo_tailwind_plus|Tailwind Plus UI Blocks]]
+  - [[sources/repo_figma_examples|Figma Design System Examples]]
+  - [[sources/repo_figma_ui_kits|Figma UI Kits]]
+  - [[sources/repo_shadcn_ui|shadcn/ui]]
+  - [[sources/repo_radix_ui|Radix UI]]
+  - [[sources/repo_material_ui|Material UI]]
+  - [[sources/repo_headless_ui|Headless UI]]
+  - [[sources/repo_primer|Primer]]
+  - [[sources/repo_govuk|GOV.UK Design System]]
+  - [[sources/repo_material_design|Material Design]]
+  - [[sources/repo_fluent2|Fluent 2]]
+- UI/UX Skills: 12
+  - [[sources/ux_baymard_homepage|Baymard Homepage Benchmark]]
+  - [[sources/ux_baymard_checkout|Baymard Checkout Research]]
+  - [[sources/ux_smashing_guide|Smashing UX Guide]]
+  - [[sources/ux_nngroup_principles|NNGroup Visual Design Principles]]
+  - [[sources/ux_w3c_structure|W3C Page Structure]]
+  - [[sources/ux_w3c_forms|W3C Forms]]
+  - [[sources/ux_w3c_contrast|W3C Contrast Minimum]]
+  - [[sources/ux_govuk_content|GOV.UK Content Design]]
+  - [[sources/ux_atlassian_content|Atlassian Content Design]]
+  - [[sources/ux_apple_accessibility|Apple HIG Accessibility]]
+  - [[sources/ux_material_accessibility|Material Accessibility]]
+  - [[sources/ux_microsoft_inclusive|Microsoft Inclusive Design]]
+- AI Tools: 10
+  - [[sources/ai_framer|Framer AI / Wireframer]]
+  - [[sources/ai_webflow_builder|Webflow AI Site Builder]]
+  - [[sources/ai_webflow_help|Webflow AI Help]]
+  - [[sources/ai_relume|Relume AI Site Builder]]
+  - [[sources/ai_v0_text|v0 Text Prompting]]
+  - [[sources/ai_v0_prompt|How to prompt v0]]
+  - [[sources/ai_wix|Wix AI Landing Builder]]
+  - [[sources/ai_uizard|Uizard]]
+  - [[sources/ai_landingi|Landingi Lunar]]
+  - [[sources/ai_unbounce|Unbounce Variant Optimization]]
+- Curated Lists: 4
+  - [[sources/repo_awesome_design|Awesome Design]]
+  - [[sources/repo_awesome_ui|Awesome UI]]
+  - [[sources/repo_awesome_design_systems|Awesome Design Systems]]
+  - [[sources/repo_awesome_landing_page|Awesome Landing Page]]
+- Clusters: 6
+  - [[sources/theme_inspiration|Inspiration Libraries]]
+  - [[sources/theme_design_systems|Design Systems]]
+  - [[sources/theme_ux_skills|UI/UX Skill Resources]]
+  - [[sources/theme_ai_builders|AI Landing Builders]]
+  - [[sources/theme_prompting|Prompting Heuristics]]
+  - [[sources/theme_flow_references|Flow References]]

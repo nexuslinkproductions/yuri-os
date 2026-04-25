@@ -42,6 +42,7 @@ EXCLUDE_DIRS = {
 }
 
 WIKILINK_RE = re.compile(r'\[\[([^\]|#\n]+?)(?:[|#][^\]\n]*)?\]\]')
+MDLINK_RE   = re.compile(r'\[[^\]\n]*\]\(([^)]+\.md)(?:#[^)]*)?\)')
 TOP_HUBS    = 15
 TOP_CROSS   = 20
 TOP_ORPHANS = 100
@@ -91,13 +92,17 @@ def scan_vault(vault_root: Path):
 
             try:
                 content = fpath.read_text(encoding="utf-8", errors="ignore")
-                links   = WIKILINK_RE.findall(content)
+                wiki_links = WIKILINK_RE.findall(content)
+                md_links   = MDLINK_RE.findall(content)
+                
+                # Combine and clean
+                links = [lnk.strip() for lnk in wiki_links] + [Path(lnk.strip()).stem for lnk in md_links]
                 size    = len(content.encode("utf-8"))
             except OSError:
                 content, links, size = "", [], 0
 
             for lnk in links:
-                raw_links.append((rel_str, lnk.strip()))
+                raw_links.append((rel_str, lnk))
 
             # Top-level folder (first path component)
             parts   = rel_f.parts

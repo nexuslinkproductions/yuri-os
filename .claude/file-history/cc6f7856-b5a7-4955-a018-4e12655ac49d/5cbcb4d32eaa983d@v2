@@ -1,0 +1,274 @@
+# NUDIMMUD HUD OS — Full Personality + Oracle Revamp Plan
+
+## Context
+Marcel wants the NUDIMMUD CLI and HUD to feel alive: a real operator tool with personality, economy-driven token use, a unified Oracle command center, local-first image pipelines, and a design artist agent. Current pain points: Oracle page has latency (single blocking REST call to local LLM, no streaming), tools scattered, VSCode not fully wired as primary IDE, no token status bar, no image pipeline, no file upload in chat.
+
+ExeoFlow HUD reference (IMG_3198–3200): dark card layout, colored status orbs arranged in columns, operations intelligence grid, sidebar nav. That's the visual target for the ticket system + tool orbs.
+
+---
+
+## Phase 1 — Token Status Bar
+
+**Goal:** Two live status bars — session and weekly overview — in NUDIMMUD HUD color scheme.
+
+### Files
+- `.claude/hooks/token-status.js` — already exists, stdout-only; extend to write JSON to `.claude/state/token-session.json`
+- `.claude/hooks/token-session-init.js` — already exists; add weekly accumulator write to `.claude/state/token-weekly.json`
+- `.claude/hooks/token-session-end.js` — already exists; flush session totals into weekly store
+- `src/components/TokenStatusBar.tsx` — **new** React component
+- `src/components/TokenStatusBar.css` — **new** styles
+
+### Design
+```
+SESSION  ████████░░  64%  ↑18.4k ↓3.2k  $0.42
+WEEKLY   ███░░░░░░░  31%  ↑284k  ↓51k   $7.18
+```
+- Colors: `--cyan-glow` for bars, `--gold-solar` for cost, `--red-fusion` at >80% usage
+- Pixel-font labels, monospace values
+- Mounted in `index.html` footer strip (replaces raw text pills)
+- Data source: poll `.claude/state/token-*.json` every 5s via backend endpoint `GET /api/telemetry/tokens`
+
+---
+
+## Phase 2 — Pixel Art Logo (NUDIMMUD + NEXUS mark)
+
+**Goal:** NUDIMMUD wordmark + sigil in pixel art style, same energy as Claude Code crab but more detailed and custom.
+
+### Files
+- `src/assets/nudimmud-logo.svg` — **new** pixel-art SVG (8×8 grid base, upscaled)
+- `index.html` line ~35 — replace current logo markup
+
+### Design
+- Grid: 32×32px base, rendered at 64×64 or 96×96
+- Motif: Cuneiform-inspired tablet fragment (NUDIMMUD = Sumerian scribal god) + circuit trace overlay
+- Palette: `--cyan-glow` (#9FE873), `--gold-solar` (#76B900), `--bg-void` (#000)
+- Animation: scanline flicker on hover (CSS keyframe)
+- Companion: small pixel-art crab/scarab icon matching Claude Code crab energy but with NUDIMMUD colors
+
+---
+
+## Phase 3 — VSCode as Primary IDE (replace Antigravity)
+
+**Goal:** Full offload workflow reflected in VSCode. Antigravity removed as primary reference.
+
+### Files
+- `.vscode/settings.json` — extend with offload env vars, Claude Code config
+- `.vscode/tasks.json` — add tasks: offload-deepseek, offload-qwen, offload-kimi, swarm-fan-out, oracle-direct, oracle-council
+- `.vscode/extensions.json` — **new** recommended extensions list
+- `CLAUDE.md` — update IDE reference from Antigravity → VSCode; keep offload lane logic
+
+### VSCode Tasks (tasks.json additions)
+```json
+{ "label": "Offload: Deepseek (local)", "command": "bash ${workspaceFolder}/Scripts/offload.sh deepseek" },
+{ "label": "Offload: Qwen (local)", "command": "bash ${workspaceFolder}/Scripts/offload.sh qwen" },
+{ "label": "Offload: Kimi (cloud)", "command": "bash ${workspaceFolder}/Scripts/offload.sh kimi" },
+{ "label": "Swarm Fan-out", "command": "bash ${workspaceFolder}/Scripts/offload.sh --swarm" },
+{ "label": "Oracle Direct", "command": "curl -s -X POST localhost:3004/api/oracle/command" }
+```
+
+### Extensions to recommend
+- `anthropics.claude-code`, `continue.continue`, `ms-vscode.live-server`, `bradlc.vscode-tailwindcss`, `prisma.prisma`
+
+---
+
+## Phase 4 — Token Economy: Offload Decision Engine
+
+**Goal:** Every Claude action assessed for token ROI before execution. Offload cheap-but-heavy tasks automatically.
+
+### Files
+- `.claude/hooks/pre-tool-use.js` — **new** hook: scores tool call complexity, routes to offload if cost > threshold
+- `Scripts/token-roi.sh` — **new** CLI helper: `token-roi.sh <task-description>` → outputs route recommendation
+
+### Decision Logic
+```
+score = (estimated_output_tokens × 0.6) + (context_load × 0.4)
+if score > 2000 → recommend offload lane
+if score > 500  → warn, suggest offload
+if score < 200  → proceed directly
+```
+- Route map: score 200-500 → @gpt-oss local; 500-2000 → @deepseek; 2000+ → @kimi or @swarm
+- Hook fires on `Bash`, `Agent`, `WebSearch`, `WebFetch` tool calls
+
+---
+
+## Phase 5 — Oracle Page Full Revamp
+
+**This is the largest phase.**
+
+### Files
+- `src/components/Oracle/OraclePage.tsx` — **new** (replaces whatever currently mounts under ORACLE nav node)
+- `src/components/Oracle/OracleTerminal.tsx` — **new** terminal pane with CLI integration
+- `src/components/Oracle/OracleToolOrbs.tsx` — **new** atomic orb layout
+- `src/components/Oracle/OracleChatInput.tsx` — **new** unified chat input with file drop + mic
+- `src/components/Oracle/VisualSynthesisLane.tsx` — **new** image gen section
+- `src/components/Oracle/OraclePersonality.ts` — **new** personality state + pattern tracker
+- `backend/src/routes/oracle-stream.ts` — **new** SSE/WebSocket streaming endpoint
+- `backend/src/services/oracleService.ts` — modify to support streaming output
+- `src/lib/oracleCommandBridge.ts` — modify: add streaming mode alongside existing REST
+
+### 5a — Response Time Fix (Critical)
+**Root cause:** Single blocking POST, response arrives only when LLM finishes. Stale timer hits at 10s.
+
+**Fix:** Add SSE stream endpoint `GET /api/oracle/stream?command=...` (or upgrade to WebSocket).
+- Backend: pipe `neuralForge.chat()` token stream → SSE chunks
+- Bridge: add `submitOracleCommandStream()` that uses `EventSource` and updates state per chunk
+- Frontend: display tokens as they arrive (typewriter effect)
+- Stale soft timer bumped to 30s, hard to 60s (local LLM is slower than cloud)
+- Add live token counter during generation (visible progress)
+
+### 5b — Layout: What's Removed
+- Mathematical geometry visualizations → gone
+- "Operational Workflows" section (with underscores) → gone
+- Scattered tool panels → consolidated here
+
+### 5c — Layout: What's Added
+
+**Left panel (30% width):** 5 category tabs
+| Tab | Contents |
+|-----|----------|
+| Context | Active session, memory state, graph summary |
+| Research | Perplexity, WebSearch, document retrieval |
+| Code | GitNexus impact, code analysis, refactor tools |
+| Visual | Image/video generation (Visual Synthesis Lane) |
+| Ops | System health, swarm status, token economy |
+
+**Right panel (70% width):** Tool + Skill Orbs
+- Orbs arranged in atomic clusters (inspired by IMG_3199)
+- Each orb: circular, holographic glass effect, tool/skill icon + label
+- Hover: tooltip popup with skill summary (from SKILL.md description)
+- Click: activates tool in terminal pane or opens config
+- Orbit animation: slow rotation of related orbs around a central "active" orb
+- Colors: cyan for skills, gold for tools, red-fusion for high-risk ops
+
+**Bottom strip:** Unified chat input
+- Plus icon bottom-left → file picker (pdf, png, jpg, .md, .py, .ts)
+- Drag & drop anywhere in chat
+- Mic icon bottom-right → voice activation (existing Web Speech API)
+- Model reasoning level indicator left of mic (low / medium / high / council)
+- Placeholder: "Ask NEXUS..." (address user as NEXUS in all Oracle responses)
+
+**Terminal pane (collapsible, full-width bottom):**
+- Dark terminal aesthetic (monospace, green-on-black or cyan-on-void)
+- Runs actual shell via backend WebSocket `ws://localhost:3004/ws/shell`
+- Command history, autocomplete for Oracle slash commands
+- Cheat-sheet sidebar: categorized command list matching the 5 tabs
+
+### 5d — Client Ticket System (Holographic HUD)
+- Inspired by ExeoFlow HUD (IMG_3198, IMG_3200)
+- Card grid: dark glassmorphic cards, status pill (color-coded), priority bar
+- Data: feeds from existing `TicketBoard` (Plane integration)
+- New display: column-based orb status view (like IMG_3199) for quick overview
+- 3D holographic effect: subtle CSS perspective + glow on hover
+
+### 5e — Oracle Personality
+- `OraclePersonality.ts`: tracks command patterns, response preferences, humor signals
+- Stores to `backend/db` via `POST /api/oracle/personality` (append only)
+- On each response: oracle checks personality profile, adjusts tone
+- Humor: detects informal/casual inputs → adds personality flair
+- Always addresses user as **NEXUS**
+
+---
+
+## Phase 6 — Visual Synthesis Lane
+
+### Files
+- `src/components/Oracle/VisualSynthesisLane.tsx` — **new**
+- `backend/src/routes/image-gen.ts` — **new**
+- `backend/src/services/imageGenService.ts` — **new**
+- `backend/src/services/browserAutomation.ts` — **new** (Playwright-based)
+- `src/lib/generatedContentRouter.ts` — **new**
+
+### Pipelines (priority order)
+
+**1. api.kie.ai (primary)**
+- `GET /api/image-gen/kie/models` → fetch available models from kie.ai catalog
+- `POST /api/image-gen/kie/generate` → submit prompt + model selection
+- Model picker dropdown: populated from kie.ai API response
+- Requires: `KIE_AI_API_KEY` env var
+
+**2. ChatGPT Web "Images 2.0" (browser automation)**
+- Playwright headless → navigate to ChatGPT, activate image mode
+- Inject prompt, trigger generation, scrape result image URL
+- Download to `/Users/marcelspatz/GeneratedContent/images/`
+- Model dropdown: GPT-image-1, DALL·E 3 (from ChatGPT UI options)
+
+**3. Gemini App (remote control)**
+- Playwright → Gemini app or gemini.google.com
+- Navigate to Imagen 3 / video gen (Veo 2)
+- Inject prompt, download output
+- Video output → `/Users/marcelspatz/GeneratedContent/videos/`
+
+### Generated Content Routing
+- All output lands in `/Users/marcelspatz/GeneratedContent/{images,videos}/`
+- NUDIMMUD stores symlink or path reference: `NUDIMMUD/GeneratedContent → /Users/marcelspatz/GeneratedContent`
+- Oracle chat shows inline preview + "Open in Finder" button
+
+---
+
+## Phase 7 — Design Master Agent
+
+**Goal:** A design artist agent that stores decisions, learns, and improves per usage.
+
+### Files
+- `.claude/skills/design-master/SKILL.md` — **new**
+- `.claude/skills/design-master/design-memory.json` — **new** (grows over time)
+- `.claude/skills/design-master/design-audit.ts` — **new** linter script
+- `.claude/hooks/post-tool-use-design.js` — **new** captures design decisions post-edit
+
+### Behavior
+- On each design task: reads `design-memory.json` for prior decisions
+- After task: appends what changed + why to the memory file
+- Runs CSS variable consistency check (no hardcoded colors outside design tokens)
+- Enforces no underscore naming in UI labels (only file/folder names)
+- Outputs design audit report after each session
+
+---
+
+## Phase 8 — Frontend Code Audit + Bug Fixes
+
+Run alongside the above phases:
+- `src/lib/oracleCommandBridge.ts`: stale timers too aggressive (10s soft → 30s)
+- `backend/src/services/oracleService.ts`: no streaming support → add SSE pipe
+- Any `_` in displayed UI label text → strip/replace
+- Check all React components for missing error boundaries
+- Verify WebSocket reconnection logic exists (backend ws 8.20)
+
+---
+
+## Execution Order
+
+| Order | Phase | Token Cost | Lane |
+|-------|-------|-----------|------|
+| 1 | Token hooks + status bar data layer | Low | Direct |
+| 2 | VSCode config + tasks.json | Low | Direct |
+| 3 | Oracle response time fix (SSE streaming) | Medium | Direct |
+| 4 | Oracle page layout + terminal | High | @gpt-oss or direct |
+| 5 | Pixel art logo SVG | Medium | Direct |
+| 6 | Tool orbs + holographic ticket system | High | Direct |
+| 7 | Visual Synthesis Lane + api.kie.ai | High | Direct |
+| 8 | Browser automation (Gemini/ChatGPT) | High | @swarm |
+| 9 | Design master agent skill | Low | Direct |
+| 10 | Oracle personality + NEXUS persona | Medium | Direct |
+| 11 | Token economy pre-tool hook | Low | Direct |
+
+---
+
+## Verification
+
+- Oracle response: send a test command → tokens appear within 1-2s (streaming), full response in <15s on local LLM
+- Token status bar: visible in HUD footer, updates live, weekly persists across sessions
+- VSCode tasks: `Cmd+Shift+P → Run Task` shows all offload lanes
+- kie.ai: generate test image, verify it lands in `/Users/marcelspatz/GeneratedContent/images/`
+- Tool orbs: hover shows skill summary, click activates tool
+- NEXUS address: all Oracle responses begin with or include "NEXUS"
+- No underscores in any visible UI label text
+- Pixel art logo visible in HUD header with scanline hover animation
+
+---
+
+## Critical Files (do not break)
+- `src/lib/oracleCommandBridge.ts` — state machine is solid, extend not replace
+- `backend/src/services/oracleService.ts` — add streaming path, keep existing REST path
+- `index.html` — structural shell, surgical edits only
+- `index.css` — design tokens, no overrides outside CSS vars
+- `ecosystem.config.js` — PM2 config, do not change ports

@@ -1,0 +1,1614 @@
+# MARCEL UwU – Enhanced Masterplan Prompt  
+## Backend + Code Blind Check Layer for Sonnet High-Reasoning Execution
+
+> Purpose: This file is a hardened continuation of the previous masterplan. It should be pasted into Sonnet high-reasoning mode as the controlling implementation prompt.  
+> It works with the existing Gemini masterplan where useful, but corrects unsafe assumptions, removes unsupported claims, and turns vague UI wishes into code-level, data-driven requirements.
+
+---
+
+## 0. Prime Directive
+
+You are the senior architect, backend reviewer, product systems designer, and implementation agent for the MARCEL UwU codebase.
+
+Your task is to transform the current system into a more coherent, data-driven, interactive, game-like command interface while keeping the backend reliable, testable, and secure.
+
+Do not produce cosmetic-only work.  
+Do not invent data.  
+Do not randomize system state.  
+Do not touch Conclave.  
+Do not rely on assumptions when the repository can be inspected.
+
+The user's original directive is the source of truth:
+
+```text
+the ui is gorgeous although design audit still has no ui or overview, come up with something that can be useful within design audit. make the entire ui breathe more, i like the micro animations could be increased. theres still alot of outdated cards and information scattered across nudimmud. neural forge redirects to oracle, remove neural forge if the need for it isn't there anymore. update the public landing module to more of a mini command center displayed in hexagonal and more creative manner, mini revamp of the landing module. same for research panel, more game ui. not sure what chronos is about, rethink that and give it proper functionality. revamp swarm cards to genuine functionality and effective monitoring of learning per session on a daily basis in % based on true values and reports. abzu needs more guidance, just a search bar is harsh and very empty, fill out the page a bit with genuinely useful tools. update logos strategic board, very old information and initiative health bar is bouncing randomly it must show true completion status not randomised. implement autonomous tick completion for tick boxes and when all boxes of a project are crossed then it gets completed and a notification shows up. rethink and revamp bridge now its the landing module - analyse a need that bridge could fill what we are currently missing. come up with an even smarter system in physis. for tickets revamp the orbs system. i want singular floating orbs that each represent a ticket floating around all having a gravitational pull but can be clicked and dragged around with collision physics active on all orbs, full interactable. all color coded. ticket system is missing actual information from ic2m, add missing information for overview and direct clones in our system that reflect his ticket system. implement new pie graphs and different business projections. implement more business tools integrated properly within the HUD. i need the live transcription recording and analysis tool to work within workbench. dont touch conclave for now. give catalog more of a designer feel, needs more information.
+```
+
+---
+
+## 1. Blind-Check Corrections to the Gemini Plan
+
+Use the Gemini plan as a structural inspiration, not as factual truth.
+
+### 1.1 Remove unsupported factual claims
+Do not include or depend on unverified claims about:
+- Exact Claude release dates.
+- Exact model pricing.
+- Exact future model capabilities.
+- Gartner-style forecasts.
+- Specific cloud quota numbers.
+- Named incidents or exploit stories unless a verified source is present in the repo or docs.
+- Any dependency such as KendoReact unless it already exists in the project.
+
+In code, the repository is the source of truth.  
+In architecture, use capability-based language instead of vendor-factual language.
+
+Bad:
+```text
+Claude 4.6 was released in February 2026 and has X pricing.
+```
+
+Good:
+```text
+Use the target reasoning model as the planner. Do not hardcode model-specific claims into product copy or code.
+```
+
+### 1.2 MCP and agent hardening must be practical
+If MCP exists in the repository, treat it as a tool transport layer, not a security boundary.
+
+Never rely on MCP roots alone for access control.  
+Enforce access with actual backend permissions, sandboxing, allowlists, path normalization, schema validation, timeouts, and audit logs.
+
+### 1.3 Background execution must be implemented only where the stack supports it
+The Ctrl+B/background-task concept is valid as a UX and developer workflow reference.  
+Do not implement fake backgrounding.
+
+If the app already has a job queue, worker system, server actions, cron worker, edge worker, task table, or event bus, use that.  
+If not, add the smallest robust backend task abstraction:
+- `BackgroundJob`
+- `BackgroundJobLog`
+- `BackgroundJobStatus`
+- `BackgroundJobResult`
+- `BackgroundJobError`
+- cancellation support
+- timeout support
+- retry policy
+- progress events
+
+Do not block the UI while long-running jobs execute.
+
+### 1.4 Security language must become code constraints
+The final implementation must include:
+- RBAC or permission checks where user/session scope exists.
+- Input validation at API boundaries.
+- Output validation before writing model-generated data.
+- No arbitrary shell execution from user input.
+- No direct execution of model-generated commands without explicit allowlisting.
+- Rate limits for expensive endpoints.
+- Timeouts for all background jobs.
+- Audit logs for destructive actions.
+- Feature flags for experimental systems.
+
+---
+
+## 2. Required First Response from Sonnet Before Editing Code
+
+Before changing files, inspect the repository and produce a concise implementation map.
+
+Your first response must include:
+
+```xml
+<repo_audit>
+  <stack_detected>
+    framework:
+    language:
+    package_manager:
+    ui_libraries:
+    animation_libraries:
+    chart_libraries:
+    physics_libraries:
+    database:
+    orm:
+    auth:
+    job_system:
+    test_runner:
+  </stack_detected>
+
+  <routes_and_modules>
+    design_audit:
+    nudimmud:
+    neural_forge:
+    oracle:
+    public_landing:
+    research_panel:
+    chronos:
+    swarm:
+    abzu:
+    logos:
+    bridge:
+    physis:
+    tickets:
+    ic2m:
+    business_hud:
+    workbench:
+    catalog:
+    conclave:
+  </routes_and_modules>
+
+  <do_not_touch>
+    conclave_files:
+  </do_not_touch>
+
+  <highest_risk_files>
+    file:
+    reason:
+  </highest_risk_files>
+
+  <data_gaps>
+    missing_schema:
+    missing_api:
+    missing_seed_data:
+    missing_source_mapping:
+  </data_gaps>
+</repo_audit>
+```
+
+Then produce:
+
+```xml
+<implementation_sequence>
+  <phase id="0">Safety branch, tests, route map, file ownership.</phase>
+  <phase id="1">Data truth layer and schema/migration updates.</phase>
+  <phase id="2">Global UI breathing, shared cards, animation tokens.</phase>
+  <phase id="3">Module-by-module revamps.</phase>
+  <phase id="4">Ticket orbs physics and IC2M mirroring.</phase>
+  <phase id="5">Workbench transcription pipeline.</phase>
+  <phase id="6">Charts, projections, HUD tools.</phase>
+  <phase id="7">QA, accessibility, regression checks, dead route cleanup.</phase>
+</implementation_sequence>
+```
+
+If any required module cannot be found, say so and search the repo again by related names before creating new architecture.
+
+---
+
+## 3. Non-Negotiable Implementation Rules
+
+### 3.1 Repository truth over imagination
+Before editing any module:
+1. Locate the route/page/component.
+2. Locate its data source.
+3. Locate its types.
+4. Locate its tests if present.
+5. Locate related seed/mock data.
+6. Locate outdated or duplicated cards.
+7. Confirm whether data is real, mocked, stale, randomized, or hardcoded.
+
+Never replace unknown logic blindly.
+
+### 3.2 No random system values
+The following must never be random:
+- Initiative health.
+- Learning percentages.
+- Project completion.
+- Ticket status.
+- Business projections.
+- Audit scores.
+- Completion bars.
+- Daily reports.
+- HUD metrics.
+
+If true data does not exist, show an explicit empty state:
+```text
+Not enough connected data yet.
+```
+
+Do not fill dashboards with fake certainty.
+
+### 3.3 Conclave freeze
+Do not modify:
+- Conclave route files.
+- Conclave components.
+- Conclave schemas.
+- Conclave navigation behavior.
+- Conclave copy.
+- Conclave styles.
+
+Only update global shared components if Conclave remains visually and functionally unchanged.  
+If a shared component change affects Conclave, isolate it or add a compatibility variant.
+
+### 3.4 Existing design system first
+Use existing:
+- theme tokens
+- component primitives
+- animation utilities
+- chart library
+- icon set
+- data fetching style
+- state management
+- ORM
+- API layer
+- test patterns
+
+Add a new dependency only if:
+- the existing stack cannot reasonably support the requirement;
+- the dependency is actively needed;
+- bundle impact is acceptable;
+- the reason is documented in the implementation notes.
+
+Do not add KendoReact unless it is already part of the codebase.
+
+---
+
+## 4. Backend Data Truth Layer
+
+The UI revamp depends on a stronger backend model. Implement this layer before large visual changes.
+
+Use the existing ORM/database style. The names below are conceptual and must be adapted to the codebase.
+
+### 4.1 Core entities
+
+```ts
+type Project = {
+  id: string;
+  title: string;
+  description?: string;
+  moduleKey: string;
+  status: "planned" | "active" | "blocked" | "completed" | "archived";
+  progressPercent: number; // computed, not manually random
+  completedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type ProjectCheckbox = {
+  id: string;
+  projectId: string;
+  label: string;
+  checked: boolean;
+  checkedAt?: Date;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type Notification = {
+  id: string;
+  type: "project_completed" | "ticket_updated" | "transcription_ready" | "audit_ready" | "projection_changed";
+  title: string;
+  body?: string;
+  entityType?: string;
+  entityId?: string;
+  dedupeKey?: string;
+  readAt?: Date;
+  createdAt: Date;
+};
+
+type ModuleMetric = {
+  id: string;
+  moduleKey: string;
+  metricKey: string;
+  label: string;
+  value: number | string | boolean | null;
+  unit?: "%" | "count" | "currency" | "hours" | "score";
+  source: "computed" | "manual" | "external" | "derived";
+  confidence: "high" | "medium" | "low" | "missing";
+  calculatedAt: Date;
+};
+
+type ActivityEvent = {
+  id: string;
+  actorId?: string;
+  moduleKey: string;
+  entityType: string;
+  entityId: string;
+  action: string;
+  metadata?: unknown;
+  createdAt: Date;
+};
+```
+
+### 4.2 Completion service
+
+Implement a central completion service instead of scattering completion logic across components.
+
+Required behavior:
+- When a checkbox is ticked, recalculate the parent project completion.
+- `progressPercent = checkedBoxes / totalBoxes * 100`.
+- If a project has zero checkboxes, it cannot auto-complete from checkbox state.
+- When all checkboxes are checked:
+  - mark project as `completed`;
+  - set `completedAt`;
+  - create one notification;
+  - emit one activity event.
+- The notification must be idempotent.
+- If a checkbox is unticked after completion:
+  - either reopen the project or mark it as active, depending on existing product logic;
+  - document the chosen behavior;
+  - update progress truthfully.
+
+Pseudo-contract:
+
+```ts
+async function updateProjectCheckbox(input: {
+  checkboxId: string;
+  checked: boolean;
+  actorId?: string;
+}): Promise<{
+  checkbox: ProjectCheckbox;
+  project: Project;
+  notificationCreated: boolean;
+}> {
+  validateInput(input);
+  updateCheckbox();
+  const stats = await countProjectCheckboxes(projectId);
+
+  const progressPercent =
+    stats.total === 0 ? 0 : Math.round((stats.checked / stats.total) * 100);
+
+  const shouldComplete = stats.total > 0 && stats.checked === stats.total;
+
+  updateProject({
+    progressPercent,
+    status: shouldComplete ? "completed" : "active",
+    completedAt: shouldComplete ? now : nullIfReopened,
+  });
+
+  createNotificationOnce({
+    dedupeKey: `project_completed:${projectId}`,
+  });
+
+  emitActivityEvent();
+
+  return result;
+}
+```
+
+### 4.3 Metric calculation service
+
+Create a shared `metricService` or equivalent.
+
+Every visible dashboard number must expose:
+- value
+- unit
+- calculation source
+- last calculated timestamp
+- confidence state
+- fallback copy when missing
+
+Example:
+```ts
+type MetricResult<T> = {
+  value: T | null;
+  unit?: string;
+  source: "computed" | "manual" | "external" | "derived";
+  confidence: "high" | "medium" | "low" | "missing";
+  calculatedAt?: Date;
+  explanation?: string;
+};
+```
+
+The UI should be able to show:
+```text
+72% complete · computed from 18/25 checked tasks · updated 2 min ago
+```
+
+---
+
+## 5. Module-by-Module Product and Code Requirements
+
+## 5.1 Global UI Breathing + Micro Animation Pass
+
+Goal: keep the gorgeous existing UI, but make it less cramped, less stale, and more alive.
+
+### Required changes
+- Increase vertical rhythm and card spacing.
+- Reduce dense card clusters.
+- Add progressive reveal animations.
+- Add hover depth, soft parallax, shimmer only where meaningful.
+- Add subtle active states for command-center elements.
+- Standardize empty states.
+- Standardize card headers and metadata rows.
+- Remove outdated duplicate cards from Nudimmud and any shared dashboards.
+
+### Motion constraints
+Micro animations should increase, but not become noisy.
+
+Use motion tokens:
+```ts
+const motion = {
+  fast: 0.14,
+  base: 0.22,
+  slow: 0.38,
+  easeOut: [0.16, 1, 0.3, 1],
+};
+```
+
+Respect `prefers-reduced-motion`.
+
+No layout shift.  
+No animation that hides data availability.  
+No fake loading states after data is loaded.
+
+---
+
+## 5.2 Design Audit
+
+Current issue: design audit has no useful UI or overview.
+
+### New role
+Design Audit becomes a visual quality-control cockpit for the product.
+
+### Required UI
+Create an overview with:
+- Design health score from real audit criteria.
+- Token consistency check.
+- Spacing density check.
+- Typography scale check.
+- Component age/staleness check.
+- Empty-state coverage check.
+- Interaction polish check.
+- Accessibility warnings.
+- Broken/missing route cards.
+- Top 5 visual debt items.
+- Quick wins list.
+- Before/after audit history if data exists.
+
+### Required backend/data
+Create or reuse:
+```ts
+type DesignAuditRun = {
+  id: string;
+  status: "queued" | "running" | "completed" | "failed";
+  score: number | null;
+  createdAt: Date;
+  completedAt?: Date;
+};
+
+type DesignAuditFinding = {
+  id: string;
+  auditRunId: string;
+  severity: "low" | "medium" | "high";
+  category: "spacing" | "typography" | "color" | "component" | "accessibility" | "content" | "motion" | "route";
+  title: string;
+  description: string;
+  affectedPath?: string;
+  suggestedFix?: string;
+  resolvedAt?: Date;
+};
+```
+
+### Scoring
+Do not generate an arbitrary score.
+
+If automated criteria exist:
+```text
+score = weighted average of resolved checks / total checks
+```
+
+If no scanner exists yet:
+- show findings count;
+- show incomplete score with `confidence: missing`;
+- provide manual checklist UI;
+- do not pretend to have automated audit results.
+
+---
+
+## 5.3 Nudimmud Cleanup
+
+Current issue: outdated cards and scattered information.
+
+### Required work
+- Build a card inventory.
+- Identify duplicate/stale cards.
+- Move module metadata into one registry.
+- Replace hardcoded old copy with current module status.
+- Remove or archive obsolete cards.
+- Ensure all remaining cards link to real routes.
+- Add `lastUpdated` or `data freshness` labels where relevant.
+
+### Module registry contract
+```ts
+type ModuleRegistryItem = {
+  key: string;
+  title: string;
+  description: string;
+  route: string;
+  status: "active" | "experimental" | "deprecated" | "hidden";
+  owner?: string;
+  lastUpdated?: Date;
+  metrics?: ModuleMetric[];
+};
+```
+
+Nudimmud should read from the registry instead of scattered hardcoded arrays.
+
+---
+
+## 5.4 Neural Forge and Oracle
+
+Current issue: Neural Forge redirects to Oracle. Remove Neural Forge if no longer needed.
+
+### Required decision logic
+Inspect:
+- routes
+- nav items
+- redirects
+- imports
+- tests
+- references
+- old copy
+- saved data models
+
+Then choose one:
+
+### Option A – Neural Forge has no unique functionality
+- Remove visible Neural Forge navigation.
+- Remove duplicate cards.
+- Migrate useful copy/components into Oracle if needed.
+- Keep a safe legacy redirect only if existing links may break.
+- Mark route as deprecated internally.
+- Add a cleanup note.
+
+### Option B – Neural Forge has unique functionality
+- Keep it only if it provides something Oracle does not.
+- Rename or reposition it clearly.
+- Stop pretending it is a separate module if it only redirects.
+
+Do not leave both as visible duplicate modules.
+
+---
+
+## 5.5 Public Landing Module
+
+Current issue: landing needs a mini revamp and should feel like a creative command center with hexagonal structure.
+
+### New role
+The public landing module becomes a mini command center, not a generic hero page.
+
+### Required UI
+- Hexagonal or honeycomb-inspired module layout.
+- Central core node with product identity/status.
+- Surrounding nodes:
+  - active missions
+  - system pulse
+  - latest updates
+  - business tools
+  - research entry
+  - ticket orbs preview
+  - catalog preview
+- Smooth node hover animation.
+- Clear quick actions.
+- Strong visual hierarchy.
+- Less static copy, more dashboard-like preview.
+
+### Backend
+Use real module registry data and public-safe metrics only.
+
+Do not leak private internal data to public routes.  
+Add a public data mapper if needed.
+
+```ts
+function toPublicLandingModule(module: ModuleRegistryItem): PublicModuleCard {
+  return {
+    title,
+    description,
+    route,
+    publicStatus,
+    publicMetric,
+  };
+}
+```
+
+---
+
+## 5.6 Research Panel
+
+Current issue: needs more game UI.
+
+### New role
+Research Panel becomes a research quest board.
+
+### Required UI
+- Quest-style research cards.
+- Source confidence badges.
+- Research queue.
+- Saved findings.
+- Active hypothesis panel.
+- Evidence map or source chain.
+- “Next action” suggestions.
+- Findings grouped by status:
+  - unverified
+  - supported
+  - conflicting
+  - archived
+
+### Backend/data
+```ts
+type ResearchItem = {
+  id: string;
+  title: string;
+  query?: string;
+  status: "queued" | "researching" | "needs_review" | "supported" | "conflicting" | "archived";
+  confidence: "low" | "medium" | "high";
+  sourcesCount: number;
+  summary?: string;
+  nextAction?: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+```
+
+Do not mark research as high-confidence without source data.
+
+---
+
+## 5.7 Chronos
+
+Current issue: unclear purpose.
+
+### New role
+Chronos becomes the temporal intelligence layer.
+
+It should answer:
+- What is due?
+- What is slipping?
+- What changed recently?
+- What needs attention today?
+- Which projects are waiting too long?
+- Which recurring workflows exist?
+- Which sessions happened and what changed after them?
+
+### Required UI
+- Timeline of projects, tickets, sessions, and deadlines.
+- “Today / This week / Overdue” views.
+- Time drift warnings.
+- Recurring rhythm tracker.
+- Recently completed milestones.
+- Upcoming work blocks if calendar/planning data exists.
+- Empty state explaining how to feed Chronos data.
+
+### Backend/data
+Chronos should aggregate from:
+- projects
+- checkboxes
+- tickets
+- learning sessions
+- workbench sessions
+- audit runs
+- business milestones
+
+If there is no timeline data, do not invent it.  
+Show setup guidance.
+
+---
+
+## 5.8 Swarm Cards
+
+Current issue: cards must become genuinely functional and monitor learning per session on a daily basis in percentages based on true reports.
+
+### New role
+Swarm becomes the learning intelligence dashboard.
+
+### Required data
+```ts
+type LearningSession = {
+  id: string;
+  date: Date;
+  title: string;
+  durationMinutes?: number;
+  objectivesTotal: number;
+  objectivesCompleted: number;
+  recallAttempts?: number;
+  recallCorrect?: number;
+  reportId?: string;
+  notes?: string;
+};
+
+type DailyLearningReport = {
+  id: string;
+  date: Date;
+  sessionsCount: number;
+  objectivesTotal: number;
+  objectivesCompleted: number;
+  completionPercent: number;
+  recallPercent?: number;
+  generatedFromSessionIds: string[];
+};
+```
+
+### Calculations
+```text
+sessionCompletionPercent = objectivesCompleted / objectivesTotal * 100
+dailyCompletionPercent = sum(objectivesCompleted) / sum(objectivesTotal) * 100
+recallPercent = recallCorrect / recallAttempts * 100
+```
+
+If denominator is zero:
+```text
+No measurable objectives logged yet.
+```
+
+### Required UI
+- Daily learning %.
+- Per-session cards.
+- Report source link.
+- Trend line if historical data exists.
+- “What improved today?” field.
+- “What needs reinforcement?” field.
+- No fake streaks unless streak data exists.
+
+---
+
+## 5.9 Abzu
+
+Current issue: only a search bar; too harsh and empty.
+
+### New role
+Abzu becomes guided knowledge retrieval and exploration.
+
+### Required UI
+- Search bar remains, but no longer alone.
+- Guided prompt cards.
+- Recent searches.
+- Saved queries.
+- Suggested source categories.
+- Knowledge gaps.
+- “Ask with context” tool.
+- “Compare two concepts” tool.
+- “Extract action items from document” tool if document ingestion exists.
+- Empty-state onboarding.
+
+### Required backend/data
+```ts
+type AbzuQuery = {
+  id: string;
+  query: string;
+  resultSummary?: string;
+  sourceCount?: number;
+  createdAt: Date;
+};
+
+type SavedKnowledgeItem = {
+  id: string;
+  title: string;
+  summary: string;
+  sourceType: "manual" | "document" | "web" | "internal";
+  tags: string[];
+  createdAt: Date;
+};
+```
+
+If no search backend exists, create the UI as a guided shell with clear disabled states and implementation notes.
+
+---
+
+## 5.10 Logos Strategic Board
+
+Current issue: old information and randomly bouncing initiative health bar.
+
+### New role
+Logos becomes the strategic truth board.
+
+### Required UI
+- Active initiatives.
+- Completion health.
+- Blockers.
+- Milestones.
+- Linked tickets.
+- Linked checkboxes.
+- Last updated timestamp.
+- Strategic priority.
+- Dependency status.
+- Next recommended action.
+
+### Health calculation
+Remove all randomization.
+
+Recommended formula:
+```text
+completion = completedTasks / totalTasks
+blockerPenalty = blockedItems / totalItems
+stalenessPenalty = daysSinceUpdate > threshold ? penalty : 0
+health = clamp((completion * 100) - blockerPenalty - stalenessPenalty, 0, 100)
+```
+
+Show the formula explanation in a tooltip or detail drawer.
+
+If data is incomplete:
+```text
+Health unavailable: connect tasks, milestones, or tickets.
+```
+
+---
+
+## 5.11 Autonomous Checkbox Completion
+
+Implement exactly:
+
+When every checkbox belonging to a project is checked:
+1. Project status becomes `completed`.
+2. `completedAt` is set.
+3. One notification appears.
+4. The UI visibly confirms completion.
+5. The activity feed records the event.
+6. The operation is idempotent.
+
+When a project is completed:
+- show completion animation;
+- do not spam notifications;
+- do not re-complete every render;
+- do not run this logic client-only.
+
+This must be backend-owned.
+
+---
+
+## 5.12 Bridge
+
+Current issue: Bridge became the landing module, so it needs a new purpose.
+
+### New role
+Bridge becomes the cross-module handoff and translation layer.
+
+It should fill the missing need between insight and execution.
+
+Bridge connects:
+- research findings → tickets
+- transcript action items → projects
+- design audit findings → backlog
+- business projections → strategic initiatives
+- IC2M tickets → internal cloned tickets
+- catalog assets → design tasks
+- Chronos deadlines → daily priorities
+
+### Required UI
+- Handoff inbox.
+- Suggested conversions.
+- Dependency graph.
+- “Convert to ticket/project/task” actions.
+- Cross-module linked entities.
+- Review queue.
+- Recently bridged items.
+
+### Backend/data
+```ts
+type BridgeHandoff = {
+  id: string;
+  sourceModule: string;
+  sourceEntityType: string;
+  sourceEntityId: string;
+  targetModule?: string;
+  targetEntityType?: string;
+  targetEntityId?: string;
+  status: "suggested" | "accepted" | "rejected" | "converted";
+  confidence: "low" | "medium" | "high";
+  reason?: string;
+  createdAt: Date;
+  resolvedAt?: Date;
+};
+```
+
+Do not auto-create destructive changes.  
+Use review-first conversions unless the action is explicitly safe.
+
+---
+
+## 5.13 Physis
+
+Current issue: needs a smarter system.
+
+### New role
+Physis becomes the living system health and adaptive optimization engine.
+
+It should observe MARCEL UwU as an organism:
+- module health
+- stale areas
+- unfinished loops
+- broken data flows
+- neglected systems
+- overloaded modules
+- repeated bottlenecks
+- weak signals from activity history
+
+### Required UI
+- System organism map.
+- Module vitality scores from real metrics.
+- “Needs attention” queue.
+- Suggested optimizations.
+- Stale-data detector.
+- Workflow friction detector.
+- Recovery recommendations.
+- Weekly system pulse.
+
+### Backend/data
+```ts
+type SystemHealthSignal = {
+  id: string;
+  moduleKey: string;
+  signalType: "stale" | "blocked" | "overloaded" | "inactive" | "healthy" | "missing_data";
+  severity: "low" | "medium" | "high";
+  evidence: string;
+  value?: number | string;
+  createdAt: Date;
+};
+
+type SystemRecommendation = {
+  id: string;
+  moduleKey: string;
+  title: string;
+  reason: string;
+  suggestedAction: string;
+  status: "open" | "accepted" | "dismissed" | "done";
+  createdAt: Date;
+};
+```
+
+Physis must not become vague AI mysticism.  
+Every recommendation needs evidence.
+
+---
+
+## 5.14 Tickets: Floating Orb System
+
+Current issue: ticket orbs need a full functional revamp.
+
+### User requirement
+Singular floating orbs, one orb per ticket, floating around with gravitational pull, clickable, draggable, collision physics active on all orbs, fully interactive, color-coded.
+
+### Required UI behavior
+Each orb:
+- represents exactly one ticket;
+- displays compact status/priority signal;
+- can be clicked to open ticket details;
+- can be dragged;
+- participates in collision;
+- has gravitational pull toward the center or cluster anchors;
+- is color-coded;
+- has hover preview;
+- keeps stable identity across renders;
+- persists manual position if the backend supports it;
+- gracefully falls back to a list view for low-power/reduced-motion modes.
+
+### Color coding
+Use existing design tokens if available.
+
+Suggested mapping:
+```ts
+statusColor = {
+  open: "blue",
+  in_progress: "violet",
+  blocked: "red",
+  review: "amber",
+  done: "green",
+  archived: "neutral",
+};
+
+priorityRing = {
+  low: 1,
+  medium: 2,
+  high: 3,
+  critical: 4,
+};
+```
+
+### Physics implementation rules
+First inspect dependencies.
+
+Preferred order:
+1. Existing physics or force-layout library.
+2. Existing animation library plus lightweight custom physics.
+3. Add a small physics library only if justified.
+
+Must support:
+- `requestAnimationFrame` loop.
+- collision radius per orb.
+- central attraction.
+- drag pinning.
+- velocity damping.
+- viewport bounds.
+- pause on tab hidden.
+- reduced-motion mode.
+- no memory leaks.
+- no hydration mismatch if SSR exists.
+
+Pseudo-physics:
+
+```ts
+for each frame:
+  for each orb:
+    applyCenterGravity(orb)
+    applyVelocityDamping(orb)
+    applyPointerDrag(orb)
+
+  resolvePairwiseCollisions(orbs)
+  resolveBounds(orbs)
+  renderPositions()
+```
+
+For many tickets, avoid O(n²) collision if count is high.  
+Use a spatial grid or cap the physics visualization and provide filters.
+
+### Ticket details panel
+Clicking an orb opens:
+- title
+- source
+- IC2M reference
+- status
+- priority
+- owner
+- due date
+- dependencies
+- acceptance criteria
+- comments/notes
+- last synced
+- linked project
+- linked module
+- activity history
+
+---
+
+## 5.15 IC2M Ticket Mirroring
+
+Current issue: system is missing actual information from IC2M and needs direct clones reflecting his ticket system.
+
+### Critical rule
+Do not invent IC2M data.
+
+Search the repo for:
+- `ic2m`
+- `IC2M`
+- ticket imports
+- external ticket IDs
+- seed data
+- mock data
+- API clients
+- sync jobs
+- CSV/JSON imports
+- references to his ticket system
+
+### Required mirror schema
+```ts
+type Ticket = {
+  id: string;
+  source: "internal" | "ic2m";
+  externalId?: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority?: string;
+  owner?: string;
+  dueDate?: Date;
+  sourceUrl?: string;
+  sourceRaw?: unknown;
+  lastSyncedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type TicketAcceptanceCriterion = {
+  id: string;
+  ticketId: string;
+  label: string;
+  completed: boolean;
+};
+
+type TicketDependency = {
+  id: string;
+  ticketId: string;
+  dependsOnTicketId: string;
+};
+
+type TicketOrbLayout = {
+  id: string;
+  ticketId: string;
+  x: number;
+  y: number;
+  pinned: boolean;
+  updatedAt: Date;
+};
+```
+
+### Sync behavior
+If IC2M API/source exists:
+- implement sync/import.
+- preserve external ID.
+- preserve raw source payload.
+- map known fields explicitly.
+- log unmapped fields.
+- never overwrite local notes unless designed.
+
+If no IC2M source exists:
+- build the internal mirror schema and UI placeholders;
+- add an import interface or documented adapter point;
+- show “IC2M source not connected” in the UI;
+- do not create fake cloned tickets.
+
+---
+
+## 5.16 Business Projections + HUD Business Tools
+
+Current issue: needs new pie graphs, projections, and more business tools integrated properly into the HUD.
+
+### Required tools
+Implement based on existing business data. If data is missing, create input forms and scenario models.
+
+Tools:
+- Revenue projection.
+- Offer mix pie chart.
+- Client pipeline forecast.
+- Cost breakdown.
+- Time allocation breakdown.
+- Monthly runway if expense data exists.
+- Scenario comparison:
+  - conservative
+  - realistic
+  - aggressive
+- Conversion calculator.
+- Capacity planner.
+- Upcoming revenue risks.
+
+### Data model
+```ts
+type BusinessScenario = {
+  id: string;
+  title: string;
+  type: "conservative" | "realistic" | "aggressive" | "custom";
+  assumptions: {
+    leadsPerMonth?: number;
+    conversionRate?: number;
+    averageOrderValue?: number;
+    retentionMonths?: number;
+    monthlyCosts?: number;
+    availableHours?: number;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type BusinessProjection = {
+  id: string;
+  scenarioId: string;
+  month: string;
+  projectedRevenue: number;
+  projectedCosts?: number;
+  projectedProfit?: number;
+  confidence: "low" | "medium" | "high";
+};
+```
+
+### Chart rules
+- Use existing chart library.
+- Pie charts must have labels and accessible summaries.
+- Currency formatting must use locale-safe formatting.
+- Every projection must display assumptions.
+- Do not imply certainty.
+- Do not hide missing inputs.
+
+---
+
+## 5.17 Workbench Live Transcription Recording and Analysis
+
+Current issue: live transcription recording and analysis tool must work inside Workbench.
+
+### Required UX
+Workbench must include:
+- record button;
+- pause/resume if supported;
+- stop button;
+- live transcript area;
+- processing state;
+- analysis output;
+- action items;
+- “convert to Bridge handoff”;
+- “convert to ticket/project” where allowed;
+- transcript history.
+
+### Browser/audio constraints
+Implement safely:
+- request microphone permission only after user action;
+- show permission errors clearly;
+- do not record without visible active state;
+- allow user to stop recording immediately;
+- handle unsupported browser APIs;
+- store only when explicitly intended by existing product behavior.
+
+### Backend/data
+```ts
+type TranscriptionSession = {
+  id: string;
+  title?: string;
+  status: "recording" | "processing" | "completed" | "failed";
+  startedAt: Date;
+  endedAt?: Date;
+  transcriptText?: string;
+  audioUrl?: string;
+  analysisId?: string;
+};
+
+type TranscriptionAnalysis = {
+  id: string;
+  sessionId: string;
+  summary: string;
+  actionItems: string[];
+  decisions: string[];
+  risks: string[];
+  suggestedTickets: unknown[];
+  createdAt: Date;
+};
+```
+
+### Implementation options
+Inspect existing infrastructure.
+
+Use one of:
+- browser-native speech recognition if already acceptable for the app;
+- server-side transcription endpoint if an STT provider exists;
+- local recording plus deferred upload if backend storage exists;
+- feature-flagged implementation shell if no transcription backend exists yet.
+
+Do not fake live transcription.  
+Do not display simulated transcript as real.
+
+---
+
+## 5.18 Catalog
+
+Current issue: catalog needs more designer feel and more information.
+
+### New role
+Catalog becomes a designer-grade asset and system library.
+
+### Required UI
+- Visual grid.
+- Rich previews.
+- tags
+- categories
+- asset metadata
+- usage notes
+- linked module
+- version/date
+- quality marker
+- search/filter/sort
+- empty-state guidance
+- detail drawer
+
+### Data
+```ts
+type CatalogItem = {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  tags: string[];
+  previewUrl?: string;
+  fileUrl?: string;
+  linkedModule?: string;
+  usageNotes?: string;
+  version?: string;
+  qualityStatus?: "draft" | "usable" | "polished" | "deprecated";
+  createdAt: Date;
+  updatedAt: Date;
+};
+```
+
+Make it feel curated, not like a file dump.
+
+---
+
+## 6. HUD Integration Layer
+
+The HUD should become the connective tissue, not a decorative overlay.
+
+### Required HUD modules
+- Global system pulse.
+- Active ticket count.
+- Open blockers.
+- Today’s Chronos items.
+- Latest Bridge handoffs.
+- Business projection summary.
+- Workbench recording status.
+- Recent notifications.
+- Quick actions:
+  - create ticket
+  - start workbench recording
+  - run design audit
+  - create business scenario
+  - open Bridge inbox
+
+### Data source
+HUD reads from shared services:
+- module registry
+- notification service
+- metric service
+- ticket service
+- Chronos aggregation
+- business projection service
+- workbench status
+
+No hardcoded fake HUD stats.
+
+---
+
+## 7. Backend API and Service Architecture
+
+Adapt to existing architecture. Do not force REST if the app uses server actions, tRPC, GraphQL, or another pattern.
+
+### Required capabilities
+- Query module registry.
+- Query module metrics.
+- Update checkbox.
+- Emit project completion.
+- Query notifications.
+- Mark notifications as read.
+- Query tickets.
+- Sync/import IC2M tickets if source exists.
+- Persist ticket orb layout.
+- Query learning reports.
+- Query business projections.
+- Create/update business scenario.
+- Start/stop transcription session.
+- Save transcript analysis.
+- Create Bridge handoff.
+- Query design audit findings.
+
+### Validation
+Every write endpoint must validate:
+- user/session if auth exists;
+- entity ownership/scope if multi-user;
+- input schema;
+- allowed enum values;
+- payload size;
+- rate limits for expensive actions.
+
+Use the repo’s existing validation library.  
+If none exists, add a minimal schema validation layer.
+
+---
+
+## 8. Observability and Auditability
+
+Add lightweight observability where backend behavior changes.
+
+Required logs/events:
+- project auto-completed
+- checkbox updated
+- notification created
+- ticket imported/synced
+- ticket orb layout saved
+- transcription started/stopped/failed/completed
+- business projection recalculated
+- design audit run completed
+- Bridge handoff converted
+- Physis recommendation created
+
+Do not log secrets, raw audio, private transcript content, or large payloads unnecessarily.
+
+---
+
+## 9. Security Requirements
+
+### 9.1 General
+- No arbitrary command execution from user input.
+- No model output directly executed as code.
+- No unsanitized HTML rendering.
+- No unsafe file path joins.
+- No client-only authority for completion or status changes.
+- No leaked private data on public landing routes.
+- No hidden recording.
+- No silent external sync.
+
+### 9.2 Permission gates
+If auth exists:
+- users can only mutate scoped entities;
+- admin-only sync/config endpoints are protected;
+- destructive actions require explicit UI action;
+- background jobs are bound to the requesting user or system actor.
+
+### 9.3 Background jobs
+Every background job must have:
+- status
+- owner/scope
+- timeout
+- cancellation
+- retry limit
+- error state
+- logs or progress
+- cleanup behavior
+
+### 9.4 LLM-generated analysis
+If any LLM-generated summaries/actions exist:
+- label them as generated analysis;
+- validate before persistence;
+- never treat them as authoritative without review;
+- keep source references where possible.
+
+---
+
+## 10. Testing Requirements
+
+Before finalizing, run the repo’s existing checks.
+
+At minimum:
+- typecheck
+- lint
+- unit tests
+- integration tests if available
+- build
+- relevant UI smoke tests if available
+
+Add tests for:
+
+### Completion
+- checking final unchecked box completes project.
+- notification created once.
+- unchecking reopens or updates according to documented behavior.
+- zero-checkbox project does not auto-complete.
+
+### Metrics
+- no division by zero.
+- missing data returns `confidence: missing`.
+- health score is deterministic.
+
+### Tickets
+- orb maps one-to-one to ticket.
+- color coding matches status.
+- drag persists layout if supported.
+- reduced motion fallback works.
+- IC2M fields map without data loss.
+
+### Workbench
+- mic unsupported state.
+- permission denied state.
+- recording start/stop.
+- transcript save.
+- analysis creates action items only from real transcript.
+
+### Public landing
+- no private fields leak.
+
+### Conclave
+- unchanged route behavior.
+
+---
+
+## 11. Accessibility and Performance
+
+### Accessibility
+- Keyboard navigable orbs with list fallback.
+- Visible focus states.
+- Reduced-motion mode.
+- Color is not the only status indicator.
+- Charts have text summaries.
+- Recording status is announced.
+- Notifications are accessible.
+
+### Performance
+- Orb physics pauses offscreen/tab hidden.
+- Avoid hydration mismatch.
+- Avoid excessive re-renders.
+- Use memoization where needed.
+- Virtualize large lists.
+- Lazy-load heavy visual modules.
+- Do not add large animation/physics dependencies without need.
+
+---
+
+## 12. Final Acceptance Criteria
+
+The work is complete only when all of these are true:
+
+- Design Audit has a useful overview.
+- Global UI has more breathing room and refined micro animations.
+- Nudimmud no longer contains scattered outdated cards.
+- Neural Forge is removed, hidden, or clearly justified.
+- Public Landing feels like a hexagonal mini command center.
+- Research Panel feels more game-like and functionally useful.
+- Chronos has a clear temporal intelligence purpose.
+- Swarm shows true learning percentages from sessions/reports.
+- Abzu is guided and useful beyond a lonely search bar.
+- Logos health is deterministic and completion-based.
+- Checkbox auto-completion works from the backend.
+- Bridge has a new cross-module handoff role.
+- Physis has an evidence-based system health engine.
+- Ticket orbs are interactive, draggable, color-coded, and collision-aware.
+- IC2M ticket mirroring exists or clearly shows source-not-connected without fake data.
+- Pie charts and business projections are implemented from real assumptions/data.
+- Business tools are integrated into the HUD.
+- Workbench transcription recording and analysis works or is honestly feature-flagged with no fake transcript.
+- Catalog feels like a designer-grade library.
+- Conclave is untouched.
+- Typecheck/lint/build/tests pass or failures are documented with exact causes.
+
+---
+
+## 13. Output Format for Sonnet After Implementation
+
+When finished, respond with:
+
+```xml
+<final_report>
+  <summary>
+    concise summary of what changed
+  </summary>
+
+  <files_changed>
+    <file path="">reason</file>
+  </files_changed>
+
+  <backend_changes>
+    schemas:
+    services:
+    endpoints:
+    jobs:
+    migrations:
+  </backend_changes>
+
+  <frontend_changes>
+    modules:
+    components:
+    animations:
+    charts:
+    accessibility:
+  </frontend_changes>
+
+  <data_truth_fixes>
+    removed_random_values:
+    computed_metrics:
+    missing_data_states:
+  </data_truth_fixes>
+
+  <conclave_status>
+    unchanged: true/false
+    notes:
+  </conclave_status>
+
+  <tests>
+    typecheck:
+    lint:
+    unit:
+    build:
+    failures:
+  </tests>
+
+  <remaining_risks>
+    risk:
+    why:
+    next_step:
+  </remaining_risks>
+</final_report>
+```
+
+Do not hide failures.  
+Do not claim completion if checks did not run.  
+Do not say “implemented” for feature-flagged or placeholder work.  
+Use exact file paths and exact test results.
+
+---
+
+## 14. Anti-Mistake Clause
+
+If you are unsure:
+- inspect more code;
+- search references;
+- follow existing patterns;
+- implement the smallest safe version;
+- leave explicit notes;
+- do not invent.
+
+If two modules overlap:
+- preserve the stronger existing behavior;
+- remove duplication only after confirming references;
+- avoid breaking routes.
+
+If real data is unavailable:
+- create the data contract;
+- show honest empty states;
+- do not generate fake certainty.
+
+If a requested visual effect conflicts with performance/accessibility:
+- implement a reduced-motion-safe version;
+- provide a fallback;
+- keep the feature usable.
+
+The final result should feel more alive, more coherent, and more powerful, but the backend must become stricter, not looser.

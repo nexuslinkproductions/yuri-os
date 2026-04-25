@@ -1,0 +1,337 @@
+import Database from 'better-sqlite3';
+
+export type SourceType = 'pdf' | 'docx' | 'audio' | 'video' | 'url' | 'obsidian';
+export type SourceStatus = 'pending' | 'processing' | 'ready' | 'error';
+export type DocType = 'summary' | 'study_guide' | 'faq' | 'timeline' | 'briefing';
+
+export interface Notebook {
+    id: number;
+    title: string;
+    description: string | null;
+    model_id: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface NotebookSource {
+    id: number;
+    notebook_id: number;
+    title: string;
+    source_type: SourceType;
+    origin_path: string | null;
+    obsidian_path: string | null;
+    file_size_bytes: number;
+    mime_type: string | null;
+    status: SourceStatus;
+    error_msg: string | null;
+    word_count: number;
+    metadata: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface NotebookChunk {
+    id: number;
+    source_id: number;
+    chunk_index: number;
+    content: string;
+    token_count: number;
+    embedding: string | null;
+    metadata: string | null;
+    created_at: string;
+}
+
+export interface NotebookDoc {
+    id: number;
+    notebook_id: number;
+    doc_type: DocType;
+    title: string;
+    content: string;
+    pdf_path: string | null;
+    obsidian_path: string | null;
+    model_id: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface NotebookMessage {
+    id: number;
+    notebook_id: number;
+    role: 'user' | 'assistant';
+    content: string;
+    sources_used: string | null;
+    created_at: string;
+}
+
+export class NotebookService {
+    private db: Database.Database;
+
+    private stmts = {
+        createNotebook: null as any,
+        listNotebooks: null as any,
+        getNotebook: null as any,
+        updateNotebook: null as any,
+        deleteNotebook: null as any,
+        createSource: null as any,
+        getSource: null as any,
+        listSources: null as any,
+        updateSourceStatus: null as any,
+        deleteSource: null as any,
+        createChunk: null as any,
+        listChunksForSource: null as any,
+        listEmbeddedChunks: null as any,
+        updateChunkEmbedding: null as any,
+        createDoc: null as any,
+        getDoc: null as any,
+        listDocs: null as any,
+        updateDocPdfPath: null as any,
+        updateDocObsidianPath: null as any,
+        deleteDoc: null as any,
+        createMessage: null as any,
+        listMessages: null as any,
+    };
+
+    constructor(db: Database.Database) {
+        this.db = db;
+        this.prepare();
+    }
+
+    private prepare() {
+        this.stmts.createNotebook = this.db.prepare(
+            `INSERT INTO notebook_notebooks (title, description, model_id) VALUES (?, ?, ?) RETURNING *`
+        );
+        this.stmts.listNotebooks = this.db.prepare(
+            `SELECT * FROM notebook_notebooks ORDER BY updated_at DESC`
+        );
+        this.stmts.getNotebook = this.db.prepare(
+            `SELECT * FROM notebook_notebooks WHERE id = ?`
+        );
+        this.stmts.updateNotebook = this.db.prepare(
+            `UPDATE notebook_notebooks SET title=?, description=?, model_id=?, updated_at=datetime('now') WHERE id=?`
+        );
+        this.stmts.deleteNotebook = this.db.prepare(
+            `DELETE FROM notebook_notebooks WHERE id=?`
+        );
+        this.stmts.createSource = this.db.prepare(`
+            INSERT INTO notebook_sources
+              (notebook_id, title, source_type, origin_path, obsidian_path,
+               file_size_bytes, mime_type, status, word_count, metadata)
+            VALUES (?,?,?,?,?,?,?,?,?,?) RETURNING *
+        `);
+        this.stmts.getSource = this.db.prepare(
+            `SELECT * FROM notebook_sources WHERE id=?`
+        );
+        this.stmts.listSources = this.db.prepare(
+            `SELECT * FROM notebook_sources WHERE notebook_id=? ORDER BY created_at ASC`
+        );
+        this.stmts.updateSourceStatus = this.db.prepare(
+            `UPDATE notebook_sources SET status=?, error_msg=?, word_count=COALESCE(?,word_count), updated_at=datetime('now') WHERE id=?`
+        );
+        this.stmts.deleteSource = this.db.prepare(
+            `DELETE FROM notebook_sources WHERE id=?`
+        );
+        this.stmts.createChunk = this.db.prepare(`
+            INSERT INTO notebook_chunks (source_id, chunk_index, content, token_count, metadata)
+            VALUES (?,?,?,?,?)
+        `);
+        this.stmts.listChunksForSource = this.db.prepare(
+            `SELECT * FROM notebook_chunks WHERE source_id=? ORDER BY chunk_index ASC`
+        );
+        this.stmts.listEmbeddedChunks = this.db.prepare(`
+            SELECT nc.*, ns.title as source_title
+            FROM notebook_chunks nc
+            JOIN notebook_sources ns ON ns.id = nc.source_id
+            WHERE ns.notebook_id=? AND nc.embedding IS NOT NULL
+        `);
+        this.stmts.updateChunkEmbedding = this.db.prepare(
+            `UPDATE notebook_chunks SET embedding=? WHERE id=?`
+        );
+        this.stmts.createDoc = this.db.prepare(`
+            INSERT INTO notebook_docs (notebook_id, doc_type, title, content, model_id)
+            VALUES (?,?,?,?,?) RETURNING *
+        `);
+        this.stmts.getDoc = this.db.prepare(
+            `SELECT * FROM notebook_docs WHERE id=?`
+        );
+        this.stmts.listDocs = this.db.prepare(
+            `SELECT * FROM notebook_docs WHERE notebook_id=? ORDER BY created_at DESC`
+        );
+        this.stmts.updateDocPdfPath = this.db.prepare(
+            `UPDATE notebook_docs SET pdf_path=?, updated_at=datetime('now') WHERE id=?`
+        );
+        this.stmts.updateDocObsidianPath = this.db.prepare(
+            `UPDATE notebook_docs SET obsidian_path=?, updated_at=datetime('now') WHERE id=?`
+        );
+        this.stmts.deleteDoc = this.db.prepare(
+            `DELETE FROM notebook_docs WHERE id=?`
+        );
+        this.stmts.createMessage = this.db.prepare(`
+            INSERT INTO notebook_messages (notebook_id, role, content, sources_used)
+            VALUES (?,?,?,?) RETURNING *
+        `);
+        this.stmts.listMessages = this.db.prepare(
+            `SELECT * FROM notebook_messages WHERE notebook_id=? ORDER BY created_at ASC`
+        );
+    }
+
+    // ─── Notebooks ────────────────────────────────────────────────────────────
+
+    createNotebook(title: string, description?: string, modelId = 'qwen-liberated:latest'): Notebook {
+        return this.stmts.createNotebook.get(title, description ?? null, modelId) as Notebook;
+    }
+
+    listNotebooks(): Notebook[] {
+        return this.stmts.listNotebooks.all() as Notebook[];
+    }
+
+    getNotebook(id: number): Notebook | null {
+        return (this.stmts.getNotebook.get(id) as Notebook) ?? null;
+    }
+
+    updateNotebook(id: number, patch: { title?: string; description?: string; model_id?: string }): void {
+        const current = this.getNotebook(id);
+        if (!current) return;
+        this.stmts.updateNotebook.run(
+            patch.title ?? current.title,
+            patch.description ?? current.description,
+            patch.model_id ?? current.model_id,
+            id
+        );
+    }
+
+    deleteNotebook(id: number): void {
+        this.stmts.deleteNotebook.run(id);
+    }
+
+    // ─── Sources ──────────────────────────────────────────────────────────────
+
+    createSource(
+        notebookId: number,
+        sourceType: SourceType,
+        title: string,
+        opts: {
+            originPath?: string;
+            obsidianPath?: string;
+            fileSizeBytes?: number;
+            mimeType?: string;
+            metadata?: Record<string, unknown>;
+        } = {}
+    ): NotebookSource {
+        return this.stmts.createSource.get(
+            notebookId, title, sourceType,
+            opts.originPath ?? null,
+            opts.obsidianPath ?? null,
+            opts.fileSizeBytes ?? 0,
+            opts.mimeType ?? null,
+            'pending',
+            0,
+            opts.metadata ? JSON.stringify(opts.metadata) : null
+        ) as NotebookSource;
+    }
+
+    getSource(id: number): NotebookSource | null {
+        return (this.stmts.getSource.get(id) as NotebookSource) ?? null;
+    }
+
+    listSources(notebookId: number): NotebookSource[] {
+        return this.stmts.listSources.all(notebookId) as NotebookSource[];
+    }
+
+    updateSourceStatus(
+        sourceId: number,
+        status: SourceStatus,
+        errorMsg?: string,
+        wordCount?: number
+    ): void {
+        this.stmts.updateSourceStatus.run(status, errorMsg ?? null, wordCount ?? null, sourceId);
+    }
+
+    deleteSource(sourceId: number): void {
+        this.stmts.deleteSource.run(sourceId);
+    }
+
+    // ─── Chunks ───────────────────────────────────────────────────────────────
+
+    saveChunks(
+        sourceId: number,
+        chunks: Array<{ content: string; tokenCount: number; metadata?: Record<string, unknown> }>
+    ): void {
+        const insert = this.db.transaction(() => {
+            chunks.forEach((c, idx) => {
+                this.stmts.createChunk.run(
+                    sourceId, idx, c.content, c.tokenCount,
+                    c.metadata ? JSON.stringify(c.metadata) : null
+                );
+            });
+        });
+        insert();
+    }
+
+    getChunksForSource(sourceId: number): NotebookChunk[] {
+        return this.stmts.listChunksForSource.all(sourceId) as NotebookChunk[];
+    }
+
+    getEmbeddedChunks(notebookId: number): Array<NotebookChunk & { source_title: string }> {
+        return this.stmts.listEmbeddedChunks.all(notebookId) as Array<NotebookChunk & { source_title: string }>;
+    }
+
+    updateChunkEmbedding(chunkId: number, embedding: number[]): void {
+        this.stmts.updateChunkEmbedding.run(JSON.stringify(embedding), chunkId);
+    }
+
+    // ─── Docs ─────────────────────────────────────────────────────────────────
+
+    createDoc(notebookId: number, docType: DocType, title: string, content: string, modelId?: string): NotebookDoc {
+        return this.stmts.createDoc.get(notebookId, docType, title, content, modelId ?? null) as NotebookDoc;
+    }
+
+    getDoc(id: number): NotebookDoc | null {
+        return (this.stmts.getDoc.get(id) as NotebookDoc) ?? null;
+    }
+
+    listDocs(notebookId: number): NotebookDoc[] {
+        return this.stmts.listDocs.all(notebookId) as NotebookDoc[];
+    }
+
+    updateDocPdfPath(docId: number, pdfPath: string): void {
+        this.stmts.updateDocPdfPath.run(pdfPath, docId);
+    }
+
+    updateDocObsidianPath(docId: number, vaultPath: string): void {
+        this.stmts.updateDocObsidianPath.run(vaultPath, docId);
+    }
+
+    deleteDoc(docId: number): void {
+        this.stmts.deleteDoc.run(docId);
+    }
+
+    // ─── Messages ─────────────────────────────────────────────────────────────
+
+    saveMessage(notebookId: number, role: 'user' | 'assistant', content: string, sourceChunkIds?: number[]): NotebookMessage {
+        return this.stmts.createMessage.get(
+            notebookId, role, content,
+            sourceChunkIds ? JSON.stringify(sourceChunkIds) : null
+        ) as NotebookMessage;
+    }
+
+    listMessages(notebookId: number): NotebookMessage[] {
+        return this.stmts.listMessages.all(notebookId) as NotebookMessage[];
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    getNotebookDetail(id: number): (Notebook & { sources: NotebookSource[]; docs: NotebookDoc[] }) | null {
+        const notebook = this.getNotebook(id);
+        if (!notebook) return null;
+        return {
+            ...notebook,
+            sources: this.listSources(id),
+            docs: this.listDocs(id)
+        };
+    }
+
+    getAllSourceText(notebookId: number): string {
+        const chunks = this.getEmbeddedChunks(notebookId);
+        return chunks.map(c => c.content).join('\n\n');
+    }
+}

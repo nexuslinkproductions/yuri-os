@@ -2,40 +2,44 @@
 
 export default function Contact() {
   return (
-    <section id="contact" className="py-32 bg-gradient-to-b from-slate-900/20 to-black">
+    <section id="contact" className="py-24">
       <div className="max-w-5xl mx-auto px-6 text-center">
-        <div className="mb-16">
-          <h2 className="text-6xl md:text-7xl font-bold mb-6">Let's Work</h2>
-          <div className="w-16 h-1 bg-crimson mx-auto"></div>
+        <div className="mb-10">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/45">
+            Launch action
+          </p>
+          <h2 className="mt-4 text-4xl font-semibold md:text-6xl">
+            Start a brief
+          </h2>
         </div>
 
-        <p className="text-xl md:text-2xl text-gray-300 mb-16 max-w-3xl mx-auto leading-relaxed">
-          We work with premium brands on ambitious projects. If your vision
-          requires precision and expertise, let's talk.
+        <p className="mx-auto mb-12 max-w-3xl text-lg leading-relaxed text-white/70 md:text-2xl">
+          Landing, research, and internal notes should move together. If the
+          brief is real, the shell is ready.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-12 justify-center mb-16">
+        <div className="mb-12 flex flex-col justify-center gap-8 sm:flex-row">
           <div>
-            <p className="text-gray-500 text-sm mb-4 tracking-widest uppercase">
+            <p className="mb-3 text-xs uppercase tracking-[0.35em] text-white/45">
               EMAIL
             </p>
             <a
               href="mailto:contact@nexuslinkproductions.com"
-              className="text-2xl md:text-3xl font-bold hover:text-crimson transition"
+              className="text-xl font-semibold transition hover:text-crimson md:text-3xl"
             >
               contact@nexuslinkproductions.com
             </a>
           </div>
-          <div className="hidden sm:block w-px bg-gray-800"></div>
+          <div className="hidden sm:block w-px bg-white/10" />
           <div>
-            <p className="text-gray-500 text-sm mb-4 tracking-widest uppercase">
+            <p className="mb-3 text-xs uppercase tracking-[0.35em] text-white/45">
               LOCATION
             </p>
-            <p className="text-2xl md:text-3xl font-bold">Vienna, Austria</p>
+            <p className="text-xl font-semibold md:text-3xl">Vienna, Austria</p>
           </div>
         </div>
 
-        <button className="px-10 py-4 bg-crimson text-black font-bold rounded hover:bg-crimson-dark transition text-lg tracking-wide">
+        <button className="rounded-full bg-crimson px-8 py-4 text-base font-semibold tracking-wide text-black transition hover:bg-crimson-dark">
           Schedule a Call
         </button>
       </div>

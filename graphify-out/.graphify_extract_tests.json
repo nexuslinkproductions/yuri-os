@@ -1,0 +1,1310 @@
+{
+  "nodes": [
+    {
+      "id": "rvf_event_log_test_ts",
+      "label": "rvf-event-log.test.ts",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "rvf_event_log_test_maketmpdir",
+      "label": "makeTmpDir()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L48"
+    },
+    {
+      "id": "rvf_event_log_test_makeevent",
+      "label": "makeEvent()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L54"
+    },
+    {
+      "id": "rvf_event_log_test_makesnapshot",
+      "label": "makeSnapshot()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L72"
+    },
+    {
+      "id": "rvf_capability_verify_test_ts",
+      "label": "rvf-capability-verify.test.ts",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "rvf_capability_verify_test_tmp",
+      "label": "tmp()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L40"
+    },
+    {
+      "id": "rvf_capability_verify_test_makeentry",
+      "label": "makeEntry()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L42"
+    },
+    {
+      "id": "rvf_capability_verify_test_makeentrywithembedding",
+      "label": "makeEntryWithEmbedding()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L52"
+    },
+    {
+      "id": "rvf_migration_test_ts",
+      "label": "rvf-migration.test.ts",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-migration.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "rvf_integration_test_ts",
+      "label": "rvf-integration.test.ts",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-integration.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "rvf_integration_test_makeentry",
+      "label": "makeEntry()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-integration.test.ts",
+      "source_location": "L21"
+    },
+    {
+      "id": "rvf_learning_store_test_ts",
+      "label": "rvf-learning-store.test.ts",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "rvf_learning_store_test_tmpdir",
+      "label": "tmpDir()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L25"
+    },
+    {
+      "id": "rvf_learning_store_test_makepattern",
+      "label": "makePattern()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L29"
+    },
+    {
+      "id": "rvf_learning_store_test_makelora",
+      "label": "makeLora()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L41"
+    },
+    {
+      "id": "rvf_learning_store_test_makeewc",
+      "label": "makeEwc()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L52"
+    },
+    {
+      "id": "rvf_learning_store_test_maketrajectory",
+      "label": "makeTrajectory()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L62"
+    },
+    {
+      "id": "rvf_backend_test_ts",
+      "label": "rvf-backend.test.ts",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "rvf_backend_test_maketmpdir",
+      "label": "makeTmpDir()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L16"
+    },
+    {
+      "id": "rvf_backend_test_makeentry",
+      "label": "makeEntry()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L20"
+    },
+    {
+      "id": "rvf_backend_test_randomvec",
+      "label": "randomVec()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L41"
+    },
+    {
+      "id": "context_persistence_hook_test_mjs",
+      "label": "context-persistence-hook.test.mjs",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L1"
+    },
+    {
+      "id": "context_persistence_hook_test_makeusermsg",
+      "label": "makeUserMsg()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L43"
+    },
+    {
+      "id": "context_persistence_hook_test_makeassistantmsg",
+      "label": "makeAssistantMsg()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L47"
+    },
+    {
+      "id": "context_persistence_hook_test_maketoolresultmsg",
+      "label": "makeToolResultMsg()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L55"
+    },
+    {
+      "id": "rvf_embeddings_test_ts",
+      "label": "rvf-embeddings.test.ts",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "rvf_embeddings_test_maketmpdir",
+      "label": "makeTmpDir()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L24"
+    },
+    {
+      "id": "rvf_embeddings_test_makeembedding",
+      "label": "makeEmbedding()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L28"
+    },
+    {
+      "id": "rvf_embeddings_test_l2norm",
+      "label": "l2Norm()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L34"
+    },
+    {
+      "id": "rvf_embeddings_test_listener",
+      "label": "listener()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L557"
+    },
+    {
+      "id": "docker_regression_fixtures_sample_code_ts",
+      "label": "sample-code.ts",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "sample_code_calculatesum",
+      "label": "calculateSum()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L7"
+    },
+    {
+      "id": "sample_code_fetchdata",
+      "label": "fetchData()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L12"
+    },
+    {
+      "id": "sample_code_userservice",
+      "label": "UserService",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L18"
+    },
+    {
+      "id": "sample_code_userservice_createuser",
+      "label": ".createUser()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L21"
+    },
+    {
+      "id": "sample_code_userservice_getuser",
+      "label": ".getUser()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L32"
+    },
+    {
+      "id": "sample_code_userservice_deleteuser",
+      "label": ".deleteUser()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L36"
+    },
+    {
+      "id": "sample_code_authservice",
+      "label": "AuthService",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L50"
+    },
+    {
+      "id": "sample_code_authservice_login",
+      "label": ".login()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L53"
+    },
+    {
+      "id": "sample_code_authservice_validatetoken",
+      "label": ".validateToken()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L67"
+    },
+    {
+      "id": "sample_code_authservice_logout",
+      "label": ".logout()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L73"
+    },
+    {
+      "id": "sample_code_memorystore",
+      "label": "MemoryStore",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L85"
+    },
+    {
+      "id": "sample_code_memorystore_set",
+      "label": ".set()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L88"
+    },
+    {
+      "id": "sample_code_memorystore_get",
+      "label": ".get()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L95"
+    },
+    {
+      "id": "sample_code_memorystore_delete",
+      "label": ".delete()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L105"
+    },
+    {
+      "id": "sample_code_memorystore_clear",
+      "label": ".clear()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L109"
+    },
+    {
+      "id": "sample_code_memorystore_size",
+      "label": ".size()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L113"
+    },
+    {
+      "id": "sample_code_cosinesimilarity",
+      "label": "cosineSimilarity()",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L119"
+    }
+  ],
+  "edges": [
+    {
+      "source": "rvf_event_log_test_ts",
+      "target": "node_test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_event_log_test_ts",
+      "target": "strict",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_event_log_test_ts",
+      "target": "node_crypto",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_event_log_test_ts",
+      "target": "node_fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_event_log_test_ts",
+      "target": "node_path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_event_log_test_ts",
+      "target": "node_os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_event_log_test_ts",
+      "target": "rvf_event_log_test_maketmpdir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_event_log_test_ts",
+      "target": "rvf_event_log_test_makeevent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_event_log_test_ts",
+      "target": "rvf_event_log_test_makesnapshot",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "node_test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "strict",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "node_fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "node_path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "node_os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_rvf_backend_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_rvf_backend_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_hnsw_lite_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_shared_src_events_rvf_event_log_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_embeddings_src_rvf_embedding_cache_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_embeddings_src_rvf_embedding_service_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_rvf_learning_store_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_persistent_sona_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_rvf_migration_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "rvf_capability_verify_test_tmp",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "rvf_capability_verify_test_makeentry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_ts",
+      "target": "rvf_capability_verify_test_makeentrywithembedding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_capability_verify_test_makeentrywithembedding",
+      "target": "rvf_capability_verify_test_makeentry",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-capability-verify.test.ts",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_migration_test_ts",
+      "target": "node_test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-migration.test.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_migration_test_ts",
+      "target": "strict",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-migration.test.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_migration_test_ts",
+      "target": "node_fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-migration.test.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_migration_test_ts",
+      "target": "node_path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-migration.test.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_migration_test_ts",
+      "target": "node_os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-migration.test.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_migration_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_rvf_migration_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-migration.test.ts",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_migration_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_rvf_backend_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-migration.test.ts",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_integration_test_ts",
+      "target": "node_test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-integration.test.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_integration_test_ts",
+      "target": "strict",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-integration.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_integration_test_ts",
+      "target": "node_fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-integration.test.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_integration_test_ts",
+      "target": "node_os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-integration.test.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_integration_test_ts",
+      "target": "node_path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-integration.test.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_integration_test_ts",
+      "target": "rvf_integration_test_makeentry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-integration.test.ts",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "node_test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "strict",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "node_fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "node_path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "node_os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_rvf_learning_store_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "rvf_learning_store_test_tmpdir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "rvf_learning_store_test_makepattern",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "rvf_learning_store_test_makelora",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "rvf_learning_store_test_makeewc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_learning_store_test_ts",
+      "target": "rvf_learning_store_test_maketrajectory",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-learning-store.test.ts",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "node_test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "strict",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "node_fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "node_os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "node_path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_rvf_backend_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_memory_src_types_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "rvf_backend_test_maketmpdir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "rvf_backend_test_makeentry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_ts",
+      "target": "rvf_backend_test_randomvec",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "context_persistence_hook_test_mjs",
+      "target": "node_test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "context_persistence_hook_test_mjs",
+      "target": "strict",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "context_persistence_hook_test_mjs",
+      "target": "fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "context_persistence_hook_test_mjs",
+      "target": "path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "context_persistence_hook_test_mjs",
+      "target": "url",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "context_persistence_hook_test_mjs",
+      "target": "context_persistence_hook_test_makeusermsg",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "context_persistence_hook_test_mjs",
+      "target": "context_persistence_hook_test_makeassistantmsg",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "context_persistence_hook_test_mjs",
+      "target": "context_persistence_hook_test_maketoolresultmsg",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/context-persistence-hook.test.mjs",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "node_test",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "strict",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "os",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_embeddings_src_rvf_embedding_cache_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "users_marcelspatz_nudimmud_research_ruflo_v3_claude_flow_embeddings_src_rvf_embedding_service_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "rvf_embeddings_test_maketmpdir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "rvf_embeddings_test_makeembedding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "rvf_embeddings_test_l2norm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_ts",
+      "target": "rvf_embeddings_test_listener",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L557",
+      "weight": 1.0
+    },
+    {
+      "source": "docker_regression_fixtures_sample_code_ts",
+      "target": "sample_code_calculatesum",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "docker_regression_fixtures_sample_code_ts",
+      "target": "sample_code_fetchdata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "docker_regression_fixtures_sample_code_ts",
+      "target": "sample_code_userservice",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_userservice",
+      "target": "sample_code_userservice_createuser",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_userservice",
+      "target": "sample_code_userservice_getuser",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_userservice",
+      "target": "sample_code_userservice_deleteuser",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "docker_regression_fixtures_sample_code_ts",
+      "target": "sample_code_authservice",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_authservice",
+      "target": "sample_code_authservice_login",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_authservice",
+      "target": "sample_code_authservice_validatetoken",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_authservice",
+      "target": "sample_code_authservice_logout",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "docker_regression_fixtures_sample_code_ts",
+      "target": "sample_code_memorystore",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_memorystore",
+      "target": "sample_code_memorystore_set",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_memorystore",
+      "target": "sample_code_memorystore_get",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_memorystore",
+      "target": "sample_code_memorystore_delete",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_memorystore",
+      "target": "sample_code_memorystore_clear",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_memorystore",
+      "target": "sample_code_memorystore_size",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "docker_regression_fixtures_sample_code_ts",
+      "target": "sample_code_cosinesimilarity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_userservice_createuser",
+      "target": "sample_code_memorystore_set",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_userservice_getuser",
+      "target": "sample_code_memorystore_get",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_userservice_deleteuser",
+      "target": "sample_code_memorystore_delete",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_authservice_login",
+      "target": "sample_code_memorystore_set",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_authservice_validatetoken",
+      "target": "sample_code_memorystore_get",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_authservice_logout",
+      "target": "sample_code_memorystore_delete",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "sample_code_memorystore_get",
+      "target": "sample_code_memorystore_delete",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/docker-regression/fixtures/sample-code.ts",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_event_log_test_maketmpdir",
+      "target": "rvf_learning_store_test_tmpdir",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-event-log.test.ts",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_backend_test_maketmpdir",
+      "target": "rvf_learning_store_test_tmpdir",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-backend.test.ts",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "rvf_embeddings_test_maketmpdir",
+      "target": "rvf_learning_store_test_tmpdir",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/tests/rvf-embeddings.test.ts",
+      "source_location": "L25",
+      "weight": 1.0
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

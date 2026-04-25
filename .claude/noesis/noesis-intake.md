@@ -176,4 +176,17 @@ updated: 2026-04-17
 
 ---
 
+### Recent Additions
+
+**[2026-04-24] MIT RLM Paper — Recursive Language Models (Zhang, Kraska, Khattab)**
+- Source: arXiv:2512.24601v2 (MIT, 2025) — archived at `RESEARCH/papers/Recursive Language Models - MIT.pdf`
+- Key finding: LLMs can process inputs 100x beyond context window via REPL-based recursive self-calling
+- RLM(GPT-5): 62% on CodeQA (23K–4.2M tokens) vs. 24% baseline; 91.3% on BrowseComp-Plus
+- Fine-tuned 8B model approaches GPT-5 quality on long-context tasks → local LLM offloading viable
+- Application: Gemini Flash as RLM execution environment for EvoNexus pipeline; Mental Map JSON handoff pattern
+- Synthesis: [`06_KNOWLEDGE-BASE/05_OPERATIONAL/rlm-synthesis.md`](../06_KNOWLEDGE-BASE/05_OPERATIONAL/rlm-synthesis.md)
+- Status: ✅ INTEGRATED — applied to offload-workflow.md + EVONEXUS_INTEGRATION_MAP.md
+
+---
+
 **Status: INTAKE FLOWING**

@@ -8,9 +8,9 @@
     "client-comms"
   ],
   "thresholds": {
-    "minSessionsForRule": 2,
-    "minHoursForDreamWorker": 4,
-    "minNewSessionsForDream": 3,
+    "minSessionsForRule": 1,
+    "minHoursForDreamWorker": 0,
+    "minNewSessionsForDream": 1,
     "correctionWeight": 1.0,
     "confirmationWeight": 0.5
   },

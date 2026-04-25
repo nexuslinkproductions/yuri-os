@@ -1,0 +1,54 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Design Audit HUD",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173/?module=DESIGN_AUDIT",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "preLaunchTask": "NUDIMMUD: Start Frontend",
+      "presentation": {
+        "group": "Design",
+        "order": 1
+      }
+    },
+    {
+      "name": "NUDIMMUD (default)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "preLaunchTask": "NUDIMMUD: Start Frontend",
+      "presentation": {
+        "group": "Design",
+        "order": 2
+      }
+    },
+    {
+      "name": "Attach to Chrome",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "presentation": {
+        "group": "Debug",
+        "order": 1
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Design Audit: Full Stack",
+      "configurations": ["Design Audit HUD"],
+      "stopAll": true,
+      "presentation": {
+        "group": "Design",
+        "order": 0
+      }
+    }
+  ]
+}

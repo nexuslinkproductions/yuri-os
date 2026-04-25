@@ -1,0 +1,62 @@
+[
+  {
+    "id": "codex-openai-workflow",
+    "title": "OpenAI / Codex workflow",
+    "summary": "Portable research lane for Codex, OpenAI docs, config, skills, subagents, and memory rules.",
+    "source": "help.openai.com / developers.openai.com",
+    "surfaces": ["codex", "claude"],
+    "category": "research",
+    "status": "planned",
+    "tags": ["openai", "codex", "skills", "subagents", "memory", "config"]
+  },
+  {
+    "id": "anthropic-managed-agents",
+    "title": "Anthropic managed agents workflow",
+    "summary": "Reference lane for agent/session/event architecture, skills, and portable orchestration patterns.",
+    "source": "platform.claude.com / anthropic.com",
+    "surfaces": ["codex", "claude"],
+    "category": "reference",
+    "status": "planned",
+    "tags": ["anthropic", "managed-agents", "skills", "sessions", "events"]
+  },
+  {
+    "id": "gpt-oss-20b-runtime",
+    "title": "gpt-oss-20B runtime",
+    "summary": "Ollama-first local runtime lane with LM Studio fallback and OpenAI-compatible routing.",
+    "source": "developers.openai.com / openai/gpt-oss-20b",
+    "surfaces": ["codex", "claude"],
+    "category": "runtime",
+    "status": "planned",
+    "tags": ["gpt-oss", "ollama", "lm-studio", "local", "openai-compatible"]
+  },
+  {
+    "id": "kimi-k2-6-server",
+    "title": "Kimi K2.6 server adapter",
+    "summary": "Server-grade OpenAI-compatible backend lane for Kimi K2.6 with honest health checks.",
+    "source": "moonshot / kimi platform docs",
+    "surfaces": ["codex", "claude"],
+    "category": "runtime",
+    "status": "planned",
+    "tags": ["kimi", "k2.6", "openai-compatible", "server", "health-check"]
+  },
+  {
+    "id": "design-skill-pack",
+    "title": "Design skill pack",
+    "summary": "Installable design workflows extracted from the PDF and design-md sources.",
+    "source": "Design-Skills-Installation-Guide.pdf / awesome-design-md",
+    "surfaces": ["codex", "claude"],
+    "category": "design",
+    "status": "planned",
+    "tags": ["design", "skills", "ui", "workflow", "installation"]
+  },
+  {
+    "id": "math-curve-loaders-reference",
+    "title": "math-curve-loaders reference",
+    "summary": "Read-only reference catalog for math loading curves, formulas, and loader motion patterns.",
+    "source": "Paidax01/math-curve-loaders",
+    "surfaces": ["codex", "claude"],
+    "category": "reference",
+    "status": "reference",
+    "tags": ["math", "loader", "curve", "motion", "reference"]
+  }
+]

@@ -1,0 +1,366 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { apiFetch } from '../../lib/runtime';
+
+interface TermLine {
+    id: number;
+    text: string;
+    type: 'cmd' | 'out' | 'err' | 'info' | 'exit';
+    ts?: number;
+}
+
+const CHEATSHEET = [
+    {
+        category: 'Oracle',
+        commands: [
+            { cmd: 'oracle <prompt>',       desc: 'Send prompt to Oracle (streaming)' },
+            { cmd: 'oracle --council <q>',  desc: 'Aeonic Council deliberation' },
+            { cmd: 'oracle status',         desc: 'System health + model status' },
+        ]
+    },
+    {
+        category: 'Offload',
+        commands: [
+            { cmd: 'offload deepseek <task>', desc: 'Route to local Deepseek' },
+            { cmd: 'offload qwen <task>',     desc: 'Route to local Qwen' },
+            { cmd: 'offload kimi <task>',     desc: 'Route to cloud Kimi' },
+            { cmd: 'offload --swarm <task>',  desc: 'Fan-out via Ruflo swarm' },
+        ]
+    },
+    {
+        category: 'GitNexus',
+        commands: [
+            { cmd: 'gitnexus impact <sym>',    desc: 'Blast radius analysis' },
+            { cmd: 'gitnexus context <sym>',   desc: 'Full symbol context' },
+            { cmd: 'gitnexus query <concept>', desc: 'Semantic code search' },
+        ]
+    },
+    {
+        category: 'System',
+        commands: [
+            { cmd: 'tokens',            desc: 'Show session + weekly token spend' },
+            { cmd: 'pm2 status',        desc: 'Backend process status' },
+            { cmd: 'pm2 restart all',   desc: 'Restart all PM2 processes' },
+            { cmd: 'ls .claude/state/', desc: 'Show state files' },
+        ]
+    }
+];
+
+let lineId = 0;
+
+function fmtTime(ts: number): string {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+}
+
+export default function OracleTerminal() {
+    const [lines, setLines]       = useState<TermLine[]>([
+        { id: lineId++, text: 'NUDIMMUD terminal — type "help" or press ? for cheatsheet', type: 'info' },
+    ]);
+    const [input, setInput]       = useState('');
+    const [history, setHistory]   = useState<string[]>([]);
+    const [histIdx, setHistIdx]   = useState(-1);
+    const [showSheet, setShowSheet] = useState(false);
+    const [wsStatus, setWsStatus] = useState<'connecting' | 'open' | 'closed' | 'error'>('connecting');
+    const bottomRef = useRef<HTMLDivElement>(null);
+    const wsRef     = useRef<WebSocket | null>(null);
+
+    useEffect(() => {
+        try {
+            const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(`${proto}//${window.location.host}/ws/shell`);
+            ws.onopen  = () => setWsStatus('open');
+            ws.onclose = () => setWsStatus('closed');
+            ws.onerror = () => {
+                setWsStatus('error');
+                setLines(prev => [...prev, {
+                    id: lineId++,
+                    text: 'WS: connection failed — falling back to HTTP',
+                    type: 'err',
+                }]);
+            };
+            ws.onmessage = (e) => {
+                try {
+                    const msg = JSON.parse(e.data);
+                    if (msg.type === 'exit') {
+                        setLines(prev => [...prev, { id: lineId++, text: String(msg.code ?? '?'), type: 'exit' }]);
+                    } else {
+                        setLines(prev => [...prev, {
+                            id: lineId++,
+                            text: String(msg.data || ''),
+                            type: msg.type === 'stderr' ? 'err' : 'out',
+                        }]);
+                    }
+                } catch {
+                    setLines(prev => [...prev, { id: lineId++, text: String(e.data), type: 'out' }]);
+                }
+            };
+            wsRef.current = ws;
+            return () => ws.close();
+        } catch (err: any) {
+            setWsStatus('error');
+            setLines(prev => [...prev, {
+                id: lineId++,
+                text: `WS init failed: ${err?.message ?? 'unknown'}`,
+                type: 'err',
+            }]);
+        }
+    }, []);
+
+    useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [lines]);
+
+    const pushStream = useCallback(async (cmd: string) => {
+        try {
+            const res = await apiFetch('/api/terminal/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: cmd }),
+            });
+            const reader = res.body!.getReader();
+            const dec    = new TextDecoder();
+            let buf = '';
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buf += dec.decode(value, { stream: true });
+                const parts = buf.split('\n\n');
+                buf = parts.pop() ?? '';
+                for (const part of parts) {
+                    const raw = part.replace(/^data:\s*/, '').trim();
+                    if (!raw) continue;
+                    try {
+                        const msg = JSON.parse(raw);
+                        if (msg.type === 'exit') {
+                            setLines(prev => [...prev, { id: lineId++, text: String(msg.code ?? '?'), type: 'exit' }]);
+                        } else {
+                            setLines(prev => [...prev, {
+                                id: lineId++,
+                                text: String(msg.data || ''),
+                                type: msg.type === 'stderr' ? 'err' : 'out',
+                            }]);
+                        }
+                    } catch { /* skip malformed chunk */ }
+                }
+            }
+        } catch (e: any) {
+            setLines(prev => [...prev, { id: lineId++, text: `HTTP error: ${e.message}`, type: 'err' }]);
+        }
+    }, []);
+
+    const submit = useCallback(() => {
+        const cmd = input.trim();
+        if (!cmd) return;
+        setLines(prev => [...prev, { id: lineId++, text: cmd, type: 'cmd', ts: Date.now() }]);
+        setHistory(prev => [cmd, ...prev.slice(0, 49)]);
+        setHistIdx(-1);
+        setInput('');
+
+        if (cmd === 'help') { setShowSheet(s => !s); return; }
+        if (cmd === 'clear') {
+            setLines([{ id: lineId++, text: 'Terminal cleared.', type: 'info' }]);
+            return;
+        }
+
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({ command: cmd }));
+        } else {
+            pushStream(cmd);
+        }
+    }, [input, pushStream]);
+
+    const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') { submit(); return; }
+        if (e.key === 'ArrowUp') {
+            const idx = Math.min(histIdx + 1, history.length - 1);
+            setHistIdx(idx);
+            setInput(history[idx] || '');
+        }
+        if (e.key === 'ArrowDown') {
+            const idx = Math.max(histIdx - 1, -1);
+            setHistIdx(idx);
+            setInput(idx < 0 ? '' : history[idx] || '');
+        }
+    }, [submit, history, histIdx]);
+
+    const WS_DOT = {
+        open:       { color: '#9fe873', label: 'ws' },
+        connecting: { color: '#f5a623', label: 'ws' },
+        closed:     { color: '#ff4d4d', label: 'http' },
+        error:      { color: '#ff4d4d', label: 'http' },
+    };
+    const dot = WS_DOT[wsStatus];
+
+    return (
+        <div style={{ display: 'flex', height: '100%', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>
+            {/* Output pane */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
+                    {lines.map(l => <Line key={l.id} line={l} />)}
+                    <div ref={bottomRef} />
+                </div>
+
+                {/* Input bar */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '6px 12px',
+                    borderTop: '1px solid rgba(159,232,115,0.1)',
+                }}>
+                    <span title={wsStatus} style={{ color: dot.color, fontSize: 10, userSelect: 'none', letterSpacing: '0.05em' }}>
+                        ● {dot.label}
+                    </span>
+                    <span style={{ color: 'var(--cyan-glow)', userSelect: 'none' }}>$</span>
+                    <input
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                        onKeyDown={onKeyDown}
+                        style={{
+                            flex: 1, background: 'none', border: 'none', outline: 'none',
+                            color: 'var(--silver-albedo)', fontFamily: 'inherit', fontSize: 12,
+                        }}
+                        placeholder="command..."
+                        autoFocus
+                    />
+                    <button
+                        onClick={() => setShowSheet(s => !s)}
+                        title="Toggle cheatsheet"
+                        style={{
+                            background: showSheet ? 'rgba(159,232,115,0.1)' : 'none',
+                            border: '1px solid rgba(159,232,115,0.2)',
+                            borderRadius: 3,
+                            color: showSheet ? 'var(--cyan-glow)' : 'var(--text-dim)',
+                            cursor: 'pointer', fontSize: 10,
+                            padding: '1px 6px', lineHeight: 1.8,
+                        }}
+                    >?</button>
+                </div>
+            </div>
+
+            {/* Cheatsheet sidebar */}
+            {showSheet && (
+                <div style={{
+                    width: 260, borderLeft: '1px solid rgba(159,232,115,0.1)',
+                    overflowY: 'auto', padding: '8px 12px',
+                }}>
+                    <div style={{
+                        fontSize: 9, letterSpacing: '0.12em',
+                        color: 'var(--gold-solar)', textTransform: 'uppercase', marginBottom: 10,
+                    }}>
+                        Cheatsheet
+                    </div>
+                    {CHEATSHEET.map(section => (
+                        <div key={section.category} style={{ marginBottom: 14 }}>
+                            <div style={{
+                                fontSize: 9, color: 'var(--cyan-glow)',
+                                letterSpacing: '0.1em', marginBottom: 6,
+                                textTransform: 'uppercase', opacity: 0.7,
+                                paddingBottom: 3,
+                                borderBottom: '1px solid rgba(159,232,115,0.07)',
+                            }}>
+                                {section.category}
+                            </div>
+                            {section.commands.map(c => (
+                                <div
+                                    key={c.cmd}
+                                    style={{ marginBottom: 6, cursor: 'pointer', paddingLeft: 6 }}
+                                    onClick={() => setInput(c.cmd.replace(/<[^>]+>/g, ''))}
+                                >
+                                    <div style={{ color: 'var(--gold-solar)', fontSize: 10 }}>{c.cmd}</div>
+                                    <div style={{ color: 'rgba(247,247,247,0.35)', fontSize: 9, marginTop: 1 }}>{c.desc}</div>
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function Line({ line }: { line: TermLine }) {
+    if (line.type === 'cmd') {
+        return (
+            <div style={{
+                marginTop: 12,
+                borderLeft: '2px solid var(--cyan-glow)',
+                background: 'rgba(0,200,255,0.04)',
+                padding: '3px 8px',
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 6,
+            }}>
+                <span style={{ color: 'var(--cyan-glow)', userSelect: 'none' }}>▸</span>
+                <span style={{ color: 'var(--cyan-glow)', flex: 1, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                    {line.text}
+                </span>
+                {line.ts && (
+                    <span style={{ color: 'rgba(247,247,247,0.2)', fontSize: 9, flexShrink: 0 }}>
+                        {fmtTime(line.ts)}
+                    </span>
+                )}
+            </div>
+        );
+    }
+
+    if (line.type === 'exit') {
+        const code = Number(line.text);
+        const ok   = code === 0;
+        return (
+            <div style={{ paddingLeft: 20, display: 'flex', alignItems: 'center', marginTop: 2, marginBottom: 4 }}>
+                <span style={{
+                    fontSize: 9,
+                    color: ok ? '#9fe873' : '#ff4d4d',
+                    border: `1px solid ${ok ? 'rgba(159,232,115,0.25)' : 'rgba(255,77,77,0.25)'}`,
+                    borderRadius: 3,
+                    padding: '0 5px',
+                    lineHeight: 1.8,
+                    letterSpacing: '0.05em',
+                }}>
+                    {ok ? '✓' : '✗'} {line.text}
+                </span>
+            </div>
+        );
+    }
+
+    if (line.type === 'err') {
+        return (
+            <div style={{
+                paddingLeft: 18,
+                borderLeft: '2px solid rgba(255,77,77,0.4)',
+                marginLeft: 2,
+                color: 'var(--red-fusion)',
+                lineHeight: 1.6,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-all',
+            }}>
+                {line.text}
+            </div>
+        );
+    }
+
+    if (line.type === 'info') {
+        return (
+            <div style={{
+                color: 'rgba(247,247,247,0.3)',
+                fontSize: 10,
+                lineHeight: 1.8,
+                textAlign: 'center',
+                borderBottom: '1px dashed rgba(255,255,255,0.05)',
+                marginBottom: 8,
+                paddingBottom: 4,
+            }}>
+                {line.text}
+            </div>
+        );
+    }
+
+    return (
+        <div style={{
+            paddingLeft: 20,
+            color: 'rgba(247,247,247,0.8)',
+            lineHeight: 1.6,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+        }}>
+            {line.text}
+        </div>
+    );
+}

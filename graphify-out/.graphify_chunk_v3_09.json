@@ -1,0 +1,42 @@
+{
+  "nodes": [
+    {"id": "changelog_v3_release", "label": "V3 Release", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/CHANGELOG.md"},
+    {"id": "readme_ruflo_v3", "label": "Ruflo V3", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/README.md"},
+    {"id": "claude_workflow", "label": "Claude Workflow", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/CLAUDE.md"},
+    {"id": "migration_swarm", "label": "Swarm Migration", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/MIGRATION.md"},
+    {"id": "readme_swarm", "label": "Swarm Readme", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/README.md"},
+    {"id": "readme_embeddings", "label": "Embeddings Readme", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/embeddings/README.md"},
+    {"id": "readme_memory", "label": "Memory Readme", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md"},
+    {"id": "cross_platform_memory", "label": "Cross-Platform Memory", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/docs/CROSS_PLATFORM.md"},
+    {"id": "windows_support_memory", "label": "Windows Support Memory", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/docs/WINDOWS_SUPPORT.md"},
+    {"id": "agentdb_integration", "label": "AgentDB Integration", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/docs/AGENTDB-INTEGRATION.md"},
+    {"id": "readme_security", "label": "Security Readme", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/security/README.md"},
+    {"id": "readme_guidance", "label": "Guidance Readme", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/README.md"},
+    {"id": "index_guidance", "label": "Guidance Index", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/INDEX.md"},
+    {"id": "system_diagrams", "label": "System Diagrams", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/diagrams/system-diagrams.md"},
+    {"id": "multi_agent_security", "label": "Multi-Agent Security", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/multi-agent-security.md"},
+    {"id": "wasm_kernel", "label": "WASM Kernel", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/wasm-kernel.md"},
+    {"id": "getting_started_guidance", "label": "Getting Started Guidance", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/getting-started.md"},
+    {"id": "capabilities_and_trust", "label": "Capabilities and Trust", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/capabilities-and-trust.md"},
+    {"id": "architecture_overview", "label": "Architecture Overview", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/architecture-overview.md"},
+    {"id": "knowledge_management", "label": "Knowledge Management", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/knowledge-management.md"},
+    {"id": "adr_g017_trust_score", "label": "ADR-G017: Trust Score", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G017-trust-score-accumulation.md"},
+    {"id": "adr_g025_wasm_kernel", "label": "ADR-G025: WASM Kernel", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G025-wasm-kernel.md"},
+    {"id": "adr_g009_headless_testing", "label": "ADR-G009: Headless Testing", "file_type": "document", "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/adrs/ADR-G009-headless-testing-harness.md"}
+  ],
+  "edges": [
+    {"source": "readme_ruflo_v3", "target": "changelog_v3_release", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/README.md"},
+    {"source": "readme_swarm", "target": "migration_swarm", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/swarm/README.md"},
+    {"source": "readme_memory", "target": "agentdb_integration", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md"},
+    {"source": "readme_memory", "target": "cross_platform_memory", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md"},
+    {"source": "readme_memory", "target": "windows_support_memory", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/README.md"},
+    {"source": "readme_guidance", "target": "index_guidance", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/README.md"},
+    {"source": "index_guidance", "target": "architecture_overview", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/INDEX.md"},
+    {"source": "wasm_kernel", "target": "adr_g025_wasm_kernel", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/wasm-kernel.md"},
+    {"source": "capabilities_and_trust", "target": "adr_g017_trust_score", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "RESEARCH/ruflo/v3/@claude-flow/guidance/docs/guides/capabilities-and-trust.md"},
+    {"source": "agentdb_integration", "target": "adr_g025_wasm_kernel", "relation": "semantically_similar_to", "confidence": "INFERRED", "confidence_score": 0.7, "source_file": "RESEARCH/ruflo/v3/@claude-flow/memory/docs/AGENTDB-INTEGRATION.md"}
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

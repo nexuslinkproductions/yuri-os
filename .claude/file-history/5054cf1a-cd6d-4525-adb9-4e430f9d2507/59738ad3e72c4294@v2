@@ -1,0 +1,155 @@
+# Plan: Fix MaxListeners Leak + System Hardening
+
+## Context
+
+The Oracle terminal was surfacing two errors:
+- `WS: connection failed — falling back to HTTP`
+- `oracle terminal HTTP error: Failed to fetch`
+
+Debug revealed the immediate cause was the backend being down. During investigation a deeper ongoing problem was found: `MaxListenersExceededWarning` accumulating at ~3,600+ unremoved listeners/hour. This will eventually cause process instability. Additionally the pm2 config, error handlers, and WS reconnect logic all lack basic reliability patterns.
+
+---
+
+## A — CRITICAL: Fix MaxListeners Leak
+
+### Root Cause
+`openaiProvider.ts:69-87` — `resolveClient()` calls `createClient()` (which calls `new OpenAI()`) every time a non-default config is passed (Kimi, Moonshot, GPT-OSS each pass custom `baseURL`+`apiKey`). Each `new OpenAI()` instance attaches error listeners to `TLSSocket`/`Socket` that are never cleaned up. The 10s polling loop drives this continuously.
+
+### Fix: Client cache keyed by config
+
+**File:** `backend/src/services/providers/openaiProvider.ts`
+
+1. Add `private clientCache = new Map<string, OpenAI>()` to the class.
+2. Replace `resolveClient()` body:
+   ```typescript
+   private resolveClient(config?: OpenAICompatibleProviderConfig) {
+       if (!config?.apiKey && this.defaultClient) return this.defaultClient;
+       const apiKey = config?.apiKey || process.env.OPENAI_API_KEY;
+       if (!apiKey) throw new Error('OPENAI_CLIENT_NOT_INITIALIZED');
+       const baseURL = config?.baseURL || process.env.OPENAI_BASE_URL || '';
+       const cacheKey = `${baseURL}::${apiKey.slice(-8)}`;
+       if (!this.clientCache.has(cacheKey)) {
+           this.clientCache.set(cacheKey, this.createClient({ apiKey, baseURL }));
+       }
+       return this.clientCache.get(cacheKey)!;
+   }
+   ```
+   `createClient()` stays unchanged.
+
+**Why this works:** Kimi, Moonshot, and GPT-OSS always pass the same `baseURL`+`apiKey` combination. The cache turns N listener accumulations into 1 per unique provider. Cache is a class instance field — lives as long as the singleton `openaiProvider`.
+
+---
+
+## B — HARDENING
+
+### B1. Slow down the polling driver
+**File:** `backend/src/server.ts:561-563`
+
+Change `10 * 1000` → `30 * 1000`. The polling interval was 10s; integration health doesn't need sub-30s resolution, and halving the frequency halves listener creation rate even before the cache fix fully eliminates it.
+
+### B2. Fix `unhandledRejection` to trigger graceful shutdown
+**File:** `backend/src/server.ts:66-68`
+
+Current handler logs but **does not exit**, leaving the process in unknown state. Fix:
+```typescript
+process.on('unhandledRejection', (reason) => {
+    bootLog(`⬡ FATAL_UNHANDLED_REJECTION: ${reason}`);
+    void gracefulShutdown('unhandledRejection');
+});
+```
+Note: `gracefulShutdown` is defined later in the file (line ~565) — this is fine since the event fires at runtime, not startup. The function sets `shuttingDown = true` so double-calls are safe.
+
+Also fix `uncaughtException` to call graceful shutdown before exit:
+```typescript
+process.on('uncaughtException', (err) => {
+    bootLog(`⬡ FATAL_UNCAUGHT_EXCEPTION: ${err.message}\n${err.stack}`);
+    void gracefulShutdown('uncaughtException');
+});
+```
+Remove the bare `process.exit(1)` — `gracefulShutdown` already calls `process.exit` after its 5s timeout.
+
+### B3. Harden pm2 config
+**File:** `ecosystem.config.js`
+
+Add to both `nudimmud-backend` and `nudimmud-frontend` app objects:
+```javascript
+min_uptime: '5s',                 // must stay alive 5s to count as successful start
+max_restarts: 15,                 // stop restart loop after 15 attempts
+exp_backoff_restart_delay: 100,   // 100ms → 200ms → 400ms... between restart attempts
+```
+Add to `nudimmud-backend` only (frontend logs are noisy):
+```javascript
+error_file: '/Users/marcelspatz/.pm2/logs/nudimmud-backend-error.log',
+out_file:   '/Users/marcelspatz/.pm2/logs/nudimmud-backend-out.log',
+log_date_format: 'YYYY-MM-DD HH:mm:ss',
+```
+
+### B4. WS reconnect exponential backoff
+**File:** `src/main.ts` — `connectWS()` method (line 1121)
+
+The method currently schedules `setTimeout(() => this.connectWS(), 5000)` with a fixed 5s delay.
+
+1. Add `private _wsRetryDelay = 5000` to the class (or the enclosing object if it's not a class — check the actual structure at line ~800).
+2. On `ws.onopen` success: reset `this._wsRetryDelay = 5000`.
+3. On `ws.onclose` (when reconnecting) and on the catch block: use the current delay, then double it:
+   ```typescript
+   setTimeout(() => this.connectWS(), this._wsRetryDelay);
+   this._wsRetryDelay = Math.min(this._wsRetryDelay * 2, 60_000);
+   ```
+4. Cap at 60s so it doesn't drift to arbitrarily large values.
+
+**Effect:** After a backend restart the frontend reconnects in 5s → 10s → 20s → 40s → 60s (cap), instead of hammering at exactly 5s forever.
+
+---
+
+## C — NICE-TO-HAVE (out of scope for this pass, log for later)
+
+- `runtime.ts`: Add `AbortController` timeout (10s) per origin in the `apiFetch` origin loop — prevents hangs when a backend origin is reachable but not responding.
+- `OracleTerminal.tsx`: Show persistent "Backend Unavailable" banner after 10s of consecutive WS + HTTP failures.
+- Health watchdog: periodic external caller of `/api/health/live`, kill+restart if unhealthy.
+
+---
+
+## Execution Order
+
+1. `openaiProvider.ts` — client cache (A)
+2. `server.ts` — polling interval (B1) + error handlers (B2)
+3. `ecosystem.config.js` — pm2 policy (B3)
+4. `src/main.ts` — WS backoff (B4)
+
+## Verification
+
+After implementation:
+```bash
+# Restart backend to pick up changes
+cd /Users/marcelspatz/NUDIMMUD/backend && npm run build && pm2 restart nudimmud-backend
+
+# Watch logs for 60s — should see NO MaxListenersExceededWarning
+pm2 logs nudimmud-backend --lines 0
+
+# Confirm listeners not leaking
+node -e "
+const OpenAI = require('openai');
+const {OpenAIProvider} = require('./dist/services/providers/openaiProvider');
+const p = new OpenAIProvider();
+// calling resolveClient 20x with same config should return same instance
+"
+
+# Verify pm2 policy is active
+pm2 describe nudimmud-backend | grep -E "restart|uptime|min_uptime"
+
+# Test WS reconnect backoff: stop backend, watch console, restart after ~15s
+pm2 stop nudimmud-backend
+# browser console should show RECONNECTING_IN_5S, then 10s, then 20s...
+pm2 start nudimmud-backend
+```
+
+## Files Modified
+
+| File | Change | Priority |
+|------|--------|----------|
+| `backend/src/services/providers/openaiProvider.ts` | Add `clientCache` Map, update `resolveClient()` | CRITICAL |
+| `backend/src/server.ts:61-68` | Fix error handlers to call `gracefulShutdown` | HIGH |
+| `backend/src/server.ts:561-563` | Polling interval 10s → 30s | HIGH |
+| `ecosystem.config.js` | Add `min_uptime`, `max_restarts`, `exp_backoff_restart_delay`, log paths | HIGH |
+| `src/main.ts:1200-1219` | WS reconnect: fixed 5s → exponential backoff (5s→60s cap) | MEDIUM |

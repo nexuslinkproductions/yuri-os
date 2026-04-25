@@ -1,0 +1,51 @@
+#!/usr/bin/env node
+// PostToolUse — capture design decisions to design-memory.json after UI file edits
+const fs = require('fs');
+const path = require('path');
+
+const MEMORY_FILE = '/Users/marcelspatz/NUDIMMUD/.claude/skills/design-master/design-memory.json';
+const DESIGN_EXTS = ['.tsx', '.css', '.html', '.scss'];
+
+try {
+    const input = fs.readFileSync(0, 'utf-8').trim();
+    if (!input) process.exit(0);
+    const event = JSON.parse(input);
+
+    const toolName = event?.tool_name || '';
+    const filePath = event?.tool_input?.file_path || event?.tool_input?.path || '';
+
+    if (!['Edit', 'Write'].includes(toolName)) process.exit(0);
+    if (!filePath) process.exit(0);
+    if (!DESIGN_EXTS.some(ext => filePath.endsWith(ext))) process.exit(0);
+
+    // Extract component name from path
+    const basename = path.basename(filePath, path.extname(filePath));
+    const isNew = toolName === 'Write';
+
+    // Read existing memory
+    let memory = { version: '1.0', lastUpdated: '', entries: [] };
+    try { memory = JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf-8')); } catch (_) {}
+
+    const entry = {
+        date: new Date().toISOString().slice(0, 10),
+        component: basename,
+        file: filePath.replace('/Users/marcelspatz/NUDIMMUD/', ''),
+        action: isNew ? 'create' : 'edit',
+        decision: isNew ? `New component created: ${basename}` : `Updated: ${basename}`
+    };
+
+    // Avoid duplicate same-session entries for same file
+    const alreadyLogged = memory.entries.some((e) =>
+        e.file === entry.file && e.date === entry.date && e.action === entry.action
+    );
+
+    if (!alreadyLogged) {
+        memory.entries = [entry, ...memory.entries].slice(0, 100);
+        memory.lastUpdated = new Date().toISOString();
+        fs.writeFileSync(MEMORY_FILE, JSON.stringify(memory, null, 2));
+    }
+
+    process.exit(0);
+} catch (_) {
+    process.exit(0);
+}

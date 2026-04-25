@@ -1,0 +1,158 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "AI: Doctor",
+      "type": "shell",
+      "command": "ai doctor",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: BTW",
+      "type": "shell",
+      "command": "ai btw \"offload this\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Route",
+      "type": "shell",
+      "command": "ai route \"offload swarm proceed\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Swarm",
+      "type": "shell",
+      "command": "ai @swarm \"review the current task\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Moonshot",
+      "type": "shell",
+      "command": "ai moonshot \"deep reasoning task\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Claude",
+      "type": "shell",
+      "command": "ai claude \"check the current branch\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Codex",
+      "type": "shell",
+      "command": "ai codex \"inspect the current project\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Gemini",
+      "type": "shell",
+      "command": "ai gemini \"summarize the current workspace\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: OpenMythos",
+      "type": "shell",
+      "command": "ai openmythos \"analyze the active system\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Claude Unpacked",
+      "type": "shell",
+      "command": "ai claudeunpacked \"analyze agent mechanics\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "AI: Frontend Design",
+      "type": "shell",
+      "command": "ai frontenddesign \"audit the UI\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "Offload: Deepseek (local)",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/Scripts/offload.sh deepseek",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Offload: Qwen (local)",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/Scripts/offload.sh qwen",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Offload: Kimi (cloud)",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/Scripts/offload.sh kimi",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Offload: Swarm",
+      "type": "shell",
+      "command": "bash ${workspaceFolder}/Scripts/offload.sh --swarm",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Oracle: Direct",
+      "type": "shell",
+      "command": "curl -s -X POST http://localhost:3004/api/oracle/command -H 'Content-Type: application/json' -d '{\"command\": \"status\"}'",
+      "problemMatcher": []
+    },
+    {
+      "label": "Oracle: Stream Test",
+      "type": "shell",
+      "command": "curl -N 'http://localhost:3004/api/oracle/stream?command=hello'",
+      "problemMatcher": []
+    },
+    {
+      "label": "NUDIMMUD: Start Backend",
+      "type": "shell",
+      "command": "cd ${workspaceFolder} && pm2 start ecosystem.config.js --only nudimmud-backend",
+      "problemMatcher": []
+    },
+    {
+      "label": "NUDIMMUD: Start Frontend",
+      "type": "shell",
+      "command": "cd ${workspaceFolder} && npm run dev",
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "NUDIMMUD: Token Status",
+      "type": "shell",
+      "command": "cat ${workspaceFolder}/.claude/state/token-session.json && echo '---' && cat ${workspaceFolder}/.claude/state/token-weekly.json",
+      "problemMatcher": []
+    },
+    {
+      "label": "GitNexus: Analyze",
+      "type": "shell",
+      "command": "cd ${workspaceFolder} && npx gitnexus analyze",
+      "problemMatcher": []
+    },
+    {
+      "label": "Design Audit: Open",
+      "type": "shell",
+      "command": "open 'http://localhost:5173/?module=DESIGN_AUDIT'",
+      "problemMatcher": [],
+      "detail": "Open Design Audit HUD in browser (dev server must already be running)"
+    },
+    {
+      "label": "Design Audit: Dev Launch",
+      "type": "shell",
+      "command": "cd ${workspaceFolder} && npm run dev & sleep 3 && open 'http://localhost:5173/?module=DESIGN_AUDIT'",
+      "problemMatcher": [],
+      "isBackground": true,
+      "detail": "Start Vite dev server and open Design Audit HUD in browser"
+    },
+    {
+      "label": "Design Audit: TypeCheck",
+      "type": "shell",
+      "command": "cd ${workspaceFolder} && npx tsc --noEmit",
+      "problemMatcher": ["$tsc"],
+      "detail": "Run TypeScript check on DesignAuditHUD components"
+    }
+  ]
+}

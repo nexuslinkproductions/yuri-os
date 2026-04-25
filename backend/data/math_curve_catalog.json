@@ -1,0 +1,62 @@
+[
+  {
+    "id": "particle-trail",
+    "title": "Particle trail loader",
+    "family": "original",
+    "summary": "Original trail-based loader used as the baseline motion pattern.",
+    "source": "Paidax01/math-curve-loaders",
+    "formula": "moving point with fading trail",
+    "tags": ["trail", "baseline", "particle"],
+    "status": "reference"
+  },
+  {
+    "id": "rose-curve",
+    "title": "Rose curve",
+    "family": "polar",
+    "summary": "Petal-shaped path useful for decorative orbital loader motion.",
+    "source": "Paidax01/math-curve-loaders",
+    "formula": "r = a cos(kθ) or r = a sin(kθ)",
+    "tags": ["rose", "polar", "orbital"],
+    "status": "reference"
+  },
+  {
+    "id": "lissajous",
+    "title": "Lissajous curve",
+    "family": "harmonic",
+    "summary": "X/Y harmonic oscillation path for smooth layered animation loops.",
+    "source": "Paidax01/math-curve-loaders",
+    "formula": "x = A sin(at + δ), y = B sin(bt)",
+    "tags": ["lissajous", "harmonic", "oscillation"],
+    "status": "reference"
+  },
+  {
+    "id": "hypotrochoid",
+    "title": "Hypotrochoid",
+    "family": "epicyclic",
+    "summary": "Nested rolling-circle path with intricate looping geometry.",
+    "source": "Paidax01/math-curve-loaders",
+    "formula": "x = (R-r) cos t + d cos(((R-r)/r)t)",
+    "tags": ["hypotrochoid", "spirograph", "looping"],
+    "status": "reference"
+  },
+  {
+    "id": "cardioid",
+    "title": "Cardioid",
+    "family": "polar",
+    "summary": "Heart-like polar path with strong symmetry for focal loader motion.",
+    "source": "Paidax01/math-curve-loaders",
+    "formula": "r = a(1 - cos θ)",
+    "tags": ["cardioid", "polar", "symmetry"],
+    "status": "reference"
+  },
+  {
+    "id": "fourier-path",
+    "title": "Fourier path",
+    "family": "series",
+    "summary": "Composite path built from harmonics for more organic animated loaders.",
+    "source": "Paidax01/math-curve-loaders",
+    "formula": "Σ harmonics with phase and amplitude offsets",
+    "tags": ["fourier", "series", "harmonics"],
+    "status": "reference"
+  }
+]

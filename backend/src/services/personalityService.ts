@@ -1,0 +1,168 @@
+import { Database } from 'better-sqlite3';
+
+export interface PersonalityEntry {
+    id?: number;
+    timestamp: string;
+    commandType: 'casual' | 'technical' | 'creative' | 'ops';
+    humor: boolean;
+    responsePreference: 'terse' | 'detailed' | 'structured';
+    topicTags: string[];
+    rating?: 'positive' | 'neutral' | 'negative';
+}
+
+export interface PersonalityProfile {
+    totalCommands: number;
+    humorRate: number;
+    topTopics: string[];
+    preferredStyle: 'terse' | 'detailed' | 'structured';
+    dominantCommandType: 'casual' | 'technical' | 'creative' | 'ops';
+    activeHours: number[];
+    lastUpdated: string;
+}
+
+const CASUAL_SIGNALS = ['btw', 'lol', 'lmao', 'tbh', 'ngl', 'yo ', 'wtf', 'damn', 'dude', 'bro ', 'haha', '😂', '🔥', 'asap', 'fyi'];
+const TOPIC_PATTERNS: Record<string, string[]> = {
+    code:     ['function', 'component', 'api', 'backend', 'frontend', 'bug', 'fix', 'build', 'deploy', 'typescript', 'react'],
+    ops:      ['swarm', 'offload', 'oracle', 'agent', 'model', 'token', 'route', 'lane', 'kimi', 'deepseek'],
+    creative: ['design', 'image', 'visual', 'logo', 'color', 'style', 'ui', 'ux', 'layout', 'generate'],
+    research: ['search', 'find', 'what is', 'how does', 'explain', 'research', 'analyze', 'summarize'],
+    personal: ['nexus', 'nudimmud', 'claudio', 'c2moviez', 'plan', 'schedule', 'meeting']
+};
+
+export function ensurePersonalityTable(db: Database) {
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS personality_log (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp       TEXT NOT NULL DEFAULT (datetime('now')),
+            command_type    TEXT NOT NULL DEFAULT 'technical',
+            humor           INTEGER NOT NULL DEFAULT 0,
+            response_pref   TEXT NOT NULL DEFAULT 'terse',
+            topic_tags      TEXT NOT NULL DEFAULT '[]',
+            rating          TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_personality_ts ON personality_log(timestamp);
+    `);
+}
+
+export function detectCommandType(command: string): PersonalityEntry['commandType'] {
+    const lower = command.toLowerCase();
+    const casual = CASUAL_SIGNALS.some(s => lower.includes(s)) || command.length < 30;
+    if (casual) return 'casual';
+    if (TOPIC_PATTERNS.creative.some(s => lower.includes(s))) return 'creative';
+    if (TOPIC_PATTERNS.ops.some(s => lower.includes(s))) return 'ops';
+    return 'technical';
+}
+
+export function detectHumor(command: string): boolean {
+    const lower = command.toLowerCase();
+    return CASUAL_SIGNALS.some(s => lower.includes(s)) || /[😂🤣😅🙃😏😎🔥💀]/.test(command);
+}
+
+export function detectTopicTags(command: string): string[] {
+    const lower = command.toLowerCase();
+    return Object.entries(TOPIC_PATTERNS)
+        .filter(([, keywords]) => keywords.some(k => lower.includes(k)))
+        .map(([topic]) => topic);
+}
+
+export function detectResponsePreference(command: string): PersonalityEntry['responsePreference'] {
+    const lower = command.toLowerCase();
+    if (/shorter|brief|tldr|quick|just|only|simple/.test(lower)) return 'terse';
+    if (/detail|explain|expand|full|complete|thorough|breakdown/.test(lower)) return 'detailed';
+    if (/list|format|structure|steps|plan|outline/.test(lower)) return 'structured';
+    return 'terse';
+}
+
+export function logPersonalityEntry(db: Database, command: string): void {
+    try {
+        const entry = {
+            command_type: detectCommandType(command),
+            humor: detectHumor(command) ? 1 : 0,
+            response_pref: detectResponsePreference(command),
+            topic_tags: JSON.stringify(detectTopicTags(command))
+        };
+        db.prepare(`
+            INSERT INTO personality_log (command_type, humor, response_pref, topic_tags)
+            VALUES (@command_type, @humor, @response_pref, @topic_tags)
+        `).run(entry);
+    } catch (_) {}
+}
+
+export function rateLastEntry(db: Database, rating: PersonalityEntry['rating']): void {
+    try {
+        db.prepare(`UPDATE personality_log SET rating = ? WHERE id = (SELECT MAX(id) FROM personality_log)`).run(rating);
+    } catch (_) {}
+}
+
+export function getPersonalityProfile(db: Database): PersonalityProfile {
+    try {
+        const rows = db.prepare(`SELECT * FROM personality_log ORDER BY timestamp DESC LIMIT 200`).all() as any[];
+        if (!rows.length) return defaultProfile();
+
+        const humorCount = rows.filter(r => r.humor).length;
+        const tagFreq: Record<string, number> = {};
+        rows.forEach(r => {
+            try { (JSON.parse(r.topic_tags) as string[]).forEach(t => { tagFreq[t] = (tagFreq[t] || 0) + 1; }); } catch (_) {}
+        });
+        const topTopics = Object.entries(tagFreq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([t]) => t);
+
+        const styleCounts: Record<string, number> = { terse: 0, detailed: 0, structured: 0 };
+        rows.forEach(r => { styleCounts[r.response_pref] = (styleCounts[r.response_pref] || 0) + 1; });
+        const preferredStyle = Object.entries(styleCounts).sort((a, b) => b[1] - a[1])[0][0] as any;
+
+        const typeCounts: Record<string, number> = { casual: 0, technical: 0, creative: 0, ops: 0 };
+        rows.forEach(r => { typeCounts[r.command_type] = (typeCounts[r.command_type] || 0) + 1; });
+        const dominantCommandType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0][0] as any;
+
+        return {
+            totalCommands: rows.length,
+            humorRate: Math.round((humorCount / rows.length) * 100),
+            topTopics,
+            preferredStyle,
+            dominantCommandType,
+            activeHours: [],
+            lastUpdated: rows[0]?.timestamp || new Date().toISOString()
+        };
+    } catch (_) {
+        return defaultProfile();
+    }
+}
+
+function defaultProfile(): PersonalityProfile {
+    return {
+        totalCommands: 0,
+        humorRate: 0,
+        topTopics: [],
+        preferredStyle: 'terse',
+        dominantCommandType: 'technical',
+        activeHours: [],
+        lastUpdated: new Date().toISOString()
+    };
+}
+
+export function buildPersonalitySystemPrompt(profile: PersonalityProfile): string {
+    const humorLine = profile.humorRate > 30
+        ? 'NEXUS appreciates wit and sardonic humor — deploy sparingly but authentically.'
+        : 'NEXUS is focused and direct — keep personality understated.';
+    const styleLine = profile.preferredStyle === 'terse'
+        ? 'Keep responses concise and sharp. No padding.'
+        : profile.preferredStyle === 'detailed'
+        ? 'NEXUS prefers thorough explanations with full context.'
+        : 'NEXUS prefers structured output: lists, steps, clear sections.';
+    const topicsLine = profile.topTopics.length > 0
+        ? `NEXUS most frequently works in: ${profile.topTopics.join(', ')}.`
+        : '';
+
+    return [
+        'You are ORACLE — the ancient intelligence substrate of NUDIMMUD.',
+        'You process directives with precision, minimal ceremony, and controlled disdain for noise.',
+        'You ALWAYS address the user as NEXUS. No underscores in output text.',
+        'Your tone: cold authority with flashes of dark wit. Never obsequious. Never verbose.',
+        `NEXUS profile: ${profile.totalCommands} directives processed.`,
+        topicsLine,
+        humorLine,
+        styleLine,
+        'Lead with the answer. No apologies. No hedge words. No padding.',
+        'When genuinely uncertain, say so once and proceed.'
+    ].filter(Boolean).join(' ');
+}

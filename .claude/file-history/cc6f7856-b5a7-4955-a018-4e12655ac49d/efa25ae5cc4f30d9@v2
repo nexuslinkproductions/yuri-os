@@ -1,0 +1,56 @@
+#!/usr/bin/env node
+// Token Economy Hook — scores tool calls and recommends offload before execution
+const fs = require('fs');
+
+const STATE_FILE = '/Users/marcelspatz/NUDIMMUD/.claude/state/token-session.json';
+
+// Tools with high token cost — flag for potential offload
+const HEAVY_TOOLS = new Set(['Agent', 'WebSearch', 'WebFetch', 'TaskCreate']);
+const LIGHT_TOOLS = new Set(['Read', 'Bash', 'Edit', 'Write', 'ToolSearch']);
+
+try {
+    const input = fs.readFileSync(0, 'utf-8').trim();
+    if (!input) process.exit(0);
+    const event = JSON.parse(input);
+
+    const toolName = event?.tool_name || event?.tool || '';
+    const toolInput = JSON.stringify(event?.tool_input || {});
+
+    // Estimate cost: heavy tools + large inputs = flag
+    const isHeavy = HEAVY_TOOLS.has(toolName);
+    const inputSize = toolInput.length;
+    const score = (isHeavy ? 600 : 100) + Math.floor(inputSize / 10);
+
+    // Read current session token state
+    let sessionTokens = 0;
+    let contextPct = 0;
+    try {
+        const s = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
+        sessionTokens = s.totalTokens || 0;
+        contextPct = s.context || 0;
+    } catch (_) {}
+
+    // High context pressure — warn
+    if (contextPct > 75 && isHeavy) {
+        console.error(JSON.stringify({
+            hookSpecificOutput: {
+                hookEventName: 'PreToolUse',
+                additionalContext: `TOKEN_ECONOMY: Context at ${contextPct}% — tool "${toolName}" is expensive (score: ${score}). Consider offloading to @deepseek or @qwen. Session total: ${sessionTokens.toLocaleString()} tokens.`
+            }
+        }));
+    }
+
+    // Very high — block with recommendation (score > 2000)
+    if (score > 2000 && contextPct > 60) {
+        console.error(JSON.stringify({
+            hookSpecificOutput: {
+                hookEventName: 'PreToolUse',
+                additionalContext: `TOKEN_ECONOMY: High-cost operation detected for "${toolName}" (score: ${score}). Recommend: offload via @swarm or @kimi. Proceed only if reasoning value justifies spend.`
+            }
+        }));
+    }
+
+    process.exit(0);
+} catch (e) {
+    process.exit(0);
+}

@@ -25,6 +25,12 @@ process.stdin.on('end', () => {
     const obs = parseSession(session_id || 'unknown', transcript_path);
     writeObservation(obs);
 
+    // Session lifecycle: extract learnings + write journal
+    try {
+      const reflect = require('./session-reflect.js');
+      reflect.run();
+    } catch (_) {}
+
     if (shouldDream()) spawnDream();
   } catch (e) {}
   process.exit(0);

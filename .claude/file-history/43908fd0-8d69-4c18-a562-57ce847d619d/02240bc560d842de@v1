@@ -1,0 +1,61 @@
+import React from 'react';
+
+interface SentimentResult {
+    positive: number;
+    neutral: number;
+    negative: number;
+    compound: number;
+}
+
+export function SentimentGauge({ data }: { data: SentimentResult }) {
+    const { positive, neutral, negative, compound } = data;
+    const r = 80;
+    const cx = 120;
+    const cy = 110;
+    const sweep = Math.PI;
+
+    function arc(start: number, end: number, color: string) {
+        const s = start * sweep;
+        const e = end * sweep;
+        const x1 = cx + r * Math.cos(Math.PI + s);
+        const y1 = cy + r * Math.sin(Math.PI + s);
+        const x2 = cx + r * Math.cos(Math.PI + e);
+        const y2 = cy + r * Math.sin(Math.PI + e);
+        const large = (e - s) > Math.PI ? 1 : 0;
+        return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+    }
+
+    const neg = negative;
+    const neu = neg + neutral;
+    const pos = 1;
+
+    // Pointer angle: compound -1→0, 0→0.5, 1→1
+    const pointerNorm = (compound + 1) / 2;
+    const pointerAngle = Math.PI + pointerNorm * sweep;
+    const px = cx + (r - 12) * Math.cos(pointerAngle);
+    const py = cy + (r - 12) * Math.sin(pointerAngle);
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <svg width={240} height={130} style={{ overflow: 'visible' }}>
+                <path d={arc(0, neg)} stroke="#e55" strokeWidth={18} fill="none" strokeLinecap="butt" />
+                <path d={arc(neg, neu)} stroke="#888" strokeWidth={18} fill="none" strokeLinecap="butt" />
+                <path d={arc(neu, pos)} stroke="#9fe873" strokeWidth={18} fill="none" strokeLinecap="butt" />
+                <line
+                    x1={cx} y1={cy}
+                    x2={px} y2={py}
+                    stroke="#00e5ff" strokeWidth={3} strokeLinecap="round"
+                />
+                <circle cx={cx} cy={cy} r={5} fill="#00e5ff" />
+                <text x={cx} y={cy + 24} textAnchor="middle" fill="#e8e8f0" fontSize={13} fontFamily="JetBrains Mono, monospace">
+                    {compound >= 0 ? '+' : ''}{compound.toFixed(2)}
+                </text>
+            </svg>
+            <div style={{ display: 'flex', gap: 20, fontSize: 11, fontFamily: 'JetBrains Mono, monospace', color: '#8888aa' }}>
+                <span><span style={{ color: '#e55' }}>■</span> Negative {(negative * 100).toFixed(0)}%</span>
+                <span><span style={{ color: '#888' }}>■</span> Neutral {(neutral * 100).toFixed(0)}%</span>
+                <span><span style={{ color: '#9fe873' }}>■</span> Positive {(positive * 100).toFixed(0)}%</span>
+            </div>
+        </div>
+    );
+}

@@ -117,17 +117,20 @@ For each active client project:
 
 ---
 
-## Step 5: Cross-Vault Integration (iC2M)
+## Step 5: Cross-Vault Integration (iC2M) — [LIVE]
 
-**Eventually:** Create a third vault (`iC2M`) as the shared space.
+The integrated vault `iC2M` is now live in the root of NUDIMMUD.
 
-**iC2M would contain:**
-- Unified project index (read-only references from both vaults)
-- Shared client database
-- Asset library (LUTs, presets, music, stock)
-- Communication logs
+**iC2M contains:**
+- **Operational Brain**: Clients, Work Items, Daily Briefings (Claudio's authority)
+- **Shared Projects**: Sales Pipeline + Meetings
+- **Asset Library**: LUTs, presets, music, stock
+- **Automation**: Plane.so sync, Telegram COO bot, Netlify Dashboards
 
-**For now:** Use `06_NETWORK-SYNC/` as the sync point.
+**Navigation:**
+- Access via `iC2M/` folder in the root directory.
+- Bi-directional sync is active via Obsidian Sync + GitHub.
+- Operational metrics are visible in the Aeonic Conclave command center.
 
 ---
 
@@ -180,20 +183,20 @@ This vault is a **template**. You can fork/adapt:
 
 ---
 
-## Next Actions
+## Next Actions — [FINALIZED]
 
 **Marcel:**
-1. Push NUDIMMUD to GitHub (public)
-2. Send Claudio access link + this guide
-3. Await Claudio's filesystem export
+1. ✅ Push NUDIMMUD to GitHub (integrated with iC2M)
+2. ✅ Finalize semantic mapping (`palace-rebuild.py`)
+3. ✅ Update `Home.md` with unified breadcrumbs
 
 **Claudio:**
-1. Export your vault structure
-2. Send to Marcel
-3. Review the sync protocol once mapping is created
+1. ✅ Integrated live sync via Obsidian Sync
+2. ✅ Shared GitHub access for version safety
+3. ✅ Active use of Plane.so for work item tracking
 
 ---
 
-**Timeline:** 2-week sync window to get both vaults cross-referenced and operational.
+**Timeline:** Integration complete as of 2026-04-20.
 
-**Version:** 1.0 — 2026-04-17
+**Version:** 2.0 — 2026-04-20

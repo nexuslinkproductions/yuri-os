@@ -47,4 +47,15 @@ last-updated: 2026-04-03
 
 ---
 
-*See also: [[Identity]], [[Preferences]]*
+---
+
+## Operational Constraint: CAVEMAN PROTOCOL
+- **Context:** Mandatory token-efficiency layer.
+- **Trigger:** Active until subscription upgrade / manual override.
+- **Rules:**
+  - **Planning/Thinking:** Use terse, functional English. Strip polite filler. Key nouns and verbs only.
+  - **Responses:** Max brevity. Zero preamble. Match depth to core technical need.
+  - **Code:** Remains deep, thorough, and highly documented. Quality must not drop.
+  - **Goal:** Minimize output and context tokens without losing technical precision.
+
+*See also: [[Identity]], [[Preferences]], [[_SYSTEM/TOKEN-SMART-CHECKLIST]]*

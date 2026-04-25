@@ -24,26 +24,26 @@ async function captureSession() {
       return;
     }
 
-    // Read transcript from latest project session
-    const projectSessions = path.join(PROJECT_DIR, '.claude/projects');
-    if (!fs.existsSync(projectSessions)) {
+    // Read transcript from Antigravity brain sessions
+    const brainDir = path.join(process.env.HOME || '/Users/marcelspatz', '.gemini/antigravity/brain');
+    if (!fs.existsSync(brainDir)) {
       return;
     }
 
     // Get most recent session
-    const sessions = fs.readdirSync(projectSessions).filter(f => f.startsWith('.'));
+    const sessions = fs.readdirSync(brainDir).filter(f => !f.startsWith('.'));
     if (sessions.length === 0) {
       return;
     }
 
     sessions.sort((a, b) => {
-      const statA = fs.statSync(path.join(projectSessions, a));
-      const statB = fs.statSync(path.join(projectSessions, b));
+      const statA = fs.statSync(path.join(brainDir, a));
+      const statB = fs.statSync(path.join(brainDir, b));
       return statB.mtimeMs - statA.mtimeMs;
     });
 
     const latestSession = sessions[0];
-    const transcriptPath = path.join(projectSessions, latestSession, 'transcript.md');
+    const transcriptPath = path.join(brainDir, latestSession, '.system_generated', 'logs', 'overview.txt');
 
     if (!fs.existsSync(transcriptPath)) {
       return;
@@ -77,25 +77,39 @@ function extractSignals(transcript, config) {
   const signals = [];
   const maxChars = config.captureMaxChars;
 
-  // Look for user corrections and confirmations
   const correctionPatterns = [
-    /^(no|don't|stop|remove|delete|fix|change|update)[\s\w:,-]*/im,
-    /^(yes|exactly|perfect|keep|that's right|correct|good)/im
+    /^(no|don't|stop|remove|delete|fix|change|update)[\s\w:,-]*/i,
+    /^(yes|exactly|perfect|keep|that's right|correct|good)/i
   ];
 
-  const lines = transcript.split('\n');
-  lines.forEach((line, idx) => {
-    correctionPatterns.forEach(pattern => {
-      if (pattern.test(line.trim())) {
-        // Extract context: previous line + this line
-        const context = lines.slice(Math.max(0, idx - 1), idx + 1).join(' ');
-        signals.push({
-          type: 'correction',
-          isCorrective: pattern.toString().includes('no|don') ? true : false,
-          snippet: context.substring(0, maxChars.userMessage)
-        });
-      }
-    });
+  const lines = transcript.split('\n').filter(l => l.trim().length > 0);
+  const parsedLines = lines.map(line => {
+    try {
+      return JSON.parse(line);
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
+
+  parsedLines.forEach((entry, idx) => {
+    if (entry.type === 'USER_INPUT' && entry.content) {
+      // Strip tags like <USER_REQUEST> and trim whitespace
+      const cleanContent = entry.content.replace(/<[^>]+>/g, '').trim();
+      
+      correctionPatterns.forEach(pattern => {
+        if (pattern.test(cleanContent)) {
+          let context = cleanContent;
+          if (idx > 0 && parsedLines[idx - 1].type === 'PLANNER_RESPONSE') {
+            context = 'Previous Action -> ' + cleanContent;
+          }
+          signals.push({
+            type: 'correction',
+            isCorrective: pattern.toString().includes('no|don') ? true : false,
+            snippet: context.substring(0, maxChars.userMessage)
+          });
+        }
+      });
+    }
   });
 
   return signals;

@@ -1,0 +1,14 @@
+{
+  "bindings": [
+    { "key": "ctrl+o", "command": "app:toggleTranscript" },
+    { "key": "ctrl+t", "command": "app:toggleTodos" },
+    { "key": "ctrl+j", "command": "chat:newline" },
+    { "key": "meta+p", "command": "chat:modelPicker" },
+    { "key": "meta+o", "command": "chat:fastMode" },
+    { "key": "meta+t", "command": "chat:thinkingToggle" },
+    { "key": "ctrl+e", "command": "transcript:toggleShowAll" },
+    { "key": "pageup", "command": "scroll:pageUp" },
+    { "key": "pagedown", "command": "scroll:pageDown" },
+    { "key": "ctrl+b", "command": "chat:insertText", "args": { "text": "[bg] " } }
+  ]
+}

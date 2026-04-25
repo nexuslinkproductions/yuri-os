@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# design-audit — launch the Design Audit HUD in browser.
+# Starts Vite dev server if not already running on FRONTEND_PORT.
+# Usage: design-audit [--dev] [--build]
+
+FRONTEND_PORT="${FRONTEND_PORT:-5173}"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+URL="http://localhost:${FRONTEND_PORT}/?module=DESIGN_AUDIT"
+
+_cyan='\033[38;2;150;220;120m'
+_dim='\033[38;2;120;120;120m'
+_reset='\033[0m'
+
+case "${1:-}" in
+  --build)
+    echo -e "${_cyan}⬡ DESIGN_AUDIT :: BUILD${_reset}"
+    cd "$ROOT" && npm run build
+    exit $?
+    ;;
+  --typecheck)
+    echo -e "${_cyan}⬡ DESIGN_AUDIT :: TYPECHECK${_reset}"
+    cd "$ROOT" && npx tsc --noEmit
+    exit $?
+    ;;
+esac
+
+# Check if dev server is already up
+if curl -s -o /dev/null -w "%{http_code}" "http://localhost:${FRONTEND_PORT}" 2>/dev/null | grep -q "200"; then
+  echo -e "${_dim}⬡ dev server already running on :${FRONTEND_PORT}${_reset}"
+else
+  echo -e "${_cyan}⬡ DESIGN_AUDIT :: starting Vite on :${FRONTEND_PORT}${_reset}"
+  cd "$ROOT" && npm run dev &
+  _vite_pid=$!
+
+  # Wait for server (max 8s)
+  _waited=0
+  until curl -s -o /dev/null -w "%{http_code}" "http://localhost:${FRONTEND_PORT}" 2>/dev/null | grep -q "200"; do
+    sleep 0.5
+    _waited=$(( _waited + 1 ))
+    if [[ $_waited -ge 16 ]]; then
+      echo -e "${_dim}⬡ server did not start in time — check: npm run dev${_reset}"
+      exit 1
+    fi
+  done
+fi
+
+echo -e "${_cyan}⬡ DESIGN_AUDIT :: opening${_reset} ${_dim}${URL}${_reset}"
+open "$URL"

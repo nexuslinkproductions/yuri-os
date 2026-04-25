@@ -1,0 +1,283 @@
+{
+  "nodes": [
+    {
+      "id": "v3_ruflo",
+      "label": "RuFlo v3.5",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Introduction",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_ruvector",
+      "label": "RuVector Intelligence Layer",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Intelligence Layer",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_sona",
+      "label": "SONA",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_ewc_plus",
+      "label": "EWC++",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_flash_attention",
+      "label": "Flash Attention",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_event_store",
+      "label": "Event Store",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_README.md",
+      "source_location": "Overview",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_performance_module",
+      "label": "@claude-flow/performance",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/performance/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_browser_module",
+      "label": "@claude-flow/browser",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_trajectory_learning",
+      "label": "Trajectory Learning",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/README.md",
+      "source_location": "Key Features",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_agent_booster",
+      "label": "Agent Booster",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Agent Booster (WASM)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_token_optimizer",
+      "label": "Token Optimizer",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Token Optimizer",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_claims_system",
+      "label": "Claims System",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Key Differentiators",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_007",
+      "label": "ADR-007: Event Store Persistence",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_README.md",
+      "source_location": "ADR Compliance",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "v3_adr_049",
+      "label": "ADR-049: Self-Learning Memory with GNN",
+      "file_type": "document",
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Self-Learning Memory (ADR-049)",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "v3_ruflo",
+      "target": "v3_ruvector",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Expanded Architecture",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruvector",
+      "target": "v3_sona",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruvector",
+      "target": "v3_ewc_plus",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruvector",
+      "target": "v3_flash_attention",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "RuVector Components",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruflo",
+      "target": "v3_agent_booster",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Agent Booster (WASM)",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruflo",
+      "target": "v3_token_optimizer",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Token Optimizer",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruflo",
+      "target": "v3_claims_system",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Key Differentiators",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_event_store",
+      "target": "v3_adr_007",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/shared/docs/EVENTS_README.md",
+      "source_location": "ADR Compliance",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_performance_module",
+      "target": "v3_flash_attention",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/performance/README.md",
+      "source_location": "Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_browser_module",
+      "target": "v3_trajectory_learning",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/README.md",
+      "source_location": "Key Features",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_trajectory_learning",
+      "target": "v3_sona",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/browser/README.md",
+      "source_location": "Trajectory Tracking",
+      "weight": 1.0
+    },
+    {
+      "source": "v3_ruvector",
+      "target": "v3_adr_049",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "RESEARCH/ruflo/v3/@claude-flow/cli/README.md",
+      "source_location": "Self-Learning Memory (ADR-049)",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

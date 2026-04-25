@@ -44,10 +44,11 @@ Additional projects tracked in Claudio's `03 - Projects/` but not yet requiring 
 
 | Purpose | Location | Access |
 |---|---|---|
-| **Raw Claudio vault** | `/Volumes/T7/NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/` | Read-only (git-managed) |
+| **Integrated iC2M Vault** | `/Volumes/T7/NUDIMMUD/iC2M/` | Live Sync (Obsidian + GitHub) |
+| **Raw Claudio Database** | `/Volumes/T7/NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/` | Read-only (git clone) |
 | **Mapping** | `/Volumes/T7/NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/_MAPPING.md` | This file |
 | **Sync status** | `/Volumes/T7/NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/_SYNC-STATUS.md` | Sync log |
-| **Active projects** | `/Volumes/T7/NUDIMMUD/01_PROJECTS/C2MOVIEZ/` | Main vault (read-write) |
+| **Production Projects** | `/Volumes/T7/NUDIMMUD/01_PROJECTS/C2MOVIEZ/` | Main vault (read-write) |
 
 ## Sync Protocol
 
@@ -68,9 +69,15 @@ When Claudio updates a shared project in his vault:
 - **Claudio owns**: client relationships, billing, project scope, timeline
 - If conflict: ask before overwriting; sync via external communication first
 
+## Operational Boundaries
+
+1.  **Authority**: `iC2M/` is the authoritative source for c2moviez operational data (Clients, Work Items, Daily Briefings).
+2.  **Collaboration**: `01_PROJECTS/C2MOVIEZ/` is the production workspace for collaborative media projects.
+3.  **Cross-Linking**: Use absolute wikilinks `[[iC2M/...|link]]` to reference Claudio's operational data from NUDIMMUD.
+4.  **No Duplication**: Do not copy notes from `iC2M/` to NUDIMMUD areas; link them instead to maintain a single source of truth.
+
 ## Notes
 
-- Database/ is read-only: never edit files inside this folder directly
-- All active project work happens in `01_PROJECTS/C2MOVIEZ/`
-- Use Database/ as reference layer only
-- Run `git pull origin main` in Database/ weekly to stay current with Claudio's updates
+- **iC2M/ is the Live Core**: This is where the CEO's operational brain lives.
+- **Production happens in NUDIMMUD**: Media production and capture logs stay in the NUDIMMUD canonical structure.
+- Run `palace-rebuild.py` after significant updates to maintain the semantic graph.

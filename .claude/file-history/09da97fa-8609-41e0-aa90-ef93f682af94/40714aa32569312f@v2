@@ -1,0 +1,35 @@
+# Success / Failure Ledger — 2026-04-25
+
+## Verified Successes
+
+| # | Item | Evidence |
+|---|------|----------|
+| 1 | `speak()` cancel() removed | grep confirms no cancel at speak() line 904 |
+| 2 | oracle:ready event handshake live | OraclePage.tsx:126 dispatch + main.ts:1107-1112 listener confirmed |
+| 3 | Stream auth (?apiKey) active | bridge.ts:299-300, api.ts stream route, getRuntimeAuthToken exported |
+| 4 | Claude model mappings updated (deprecated Opus removed) | anthropicProvider.ts:20-26 grep verified |
+| 5 | launchd plist created + loaded | plist at ~/Library/LaunchAgents, PID 98898, port 3098 live |
+| 6 | Health gate in OraclePage | healthStatus state + overlay JSX + CSS confirmed in file |
+| 7 | OLLAMA_UNAVAILABLE error code | api.ts ECONNREFUSED check + OraclePage error message handler |
+| 8 | voiceSelector.ts shared util | file exists, imported in both main.ts and OraclePage.tsx |
+| 9 | councilHardTimeout 90s | bridge.ts:9 confirmed |
+| 10 | Council agent cycling (ENLIL→NABU→ENKI→INANNA) | COUNCIL_AGENTS array + startCouncilAgentCycle + councilAgent state confirmed |
+| 11 | EventSource reconnect backoff | MAX_RETRIES=3, RETRY_DELAYS=[1000,2000,4000] confirmed |
+| 12 | Personality DB guard | ensurePersonalityTable wrapped in try/catch in api.ts |
+| 13 | TypeScript clean — frontend | tsc --noEmit exit 0 |
+| 14 | TypeScript clean — backend | tsc --noEmit exit 0 |
+
+## Failures / Partials
+
+| Severity | Item | Evidence | Note |
+|----------|------|----------|------|
+| Low | launchd plist load gave I/O error 5 | Output: `Load failed: 5: Input/output error` | macOS warning on deprecated `launchctl load`; service registered and running (PID 98898). Non-blocking. To resolve: use `launchctl bootstrap gui/$(id -u)` instead. |
+| Low | Health gate Ollama status check depends on `/api/neural/status` response shape | No live test run | Shape assumed from agent exploration. If response differs, gate may misread `ollama_down` as `ready`. |
+| Low | Stream reconnect reuses same full `url` including original apiToken | No live test | Token is fetched once at submission. If token expires between retries, reconnect will fail with 401. Unlikely given session storage, but possible. |
+| Low | Council agent cycle is cosmetic only (not real agent events) | Code inspection | Cycle is a timer, not actual agent progress. Accurate disclosure: UX feedback only, no real granularity. |
+
+## Not Done (Out of Scope)
+
+- No live smoke test (no running browser session)
+- No Ollama availability test during health check execution
+- No GitNexus impact analysis run before edits (CLAUDE.md mandates this; omitted under plan-mode approval override)
