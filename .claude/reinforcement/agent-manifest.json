@@ -1,0 +1,205 @@
+{
+  "$schema": "yuri-os/reinforcement/schema/agent-manifest.schema.json",
+  "version": "1.0.0",
+  "generated": "2026-04-27T04:35:00Z",
+  "metadata": {
+    "total_agents": 11,
+    "by_type": {
+      "logic_scout": 2,
+      "risk_scout": 1,
+      "context_scout": 1,
+      "memory_scout": 1,
+      "quality_scout": 1,
+      "worker": 3,
+      "architect": 1
+    },
+    "by_model": {
+      "claude-sonnet-4-6": 3,
+      "claude-haiku-4-5-20251001": 3,
+      "unknown": 5
+    }
+  },
+  "agents": [
+    {
+      "name": "architect",
+      "description": "Designs and reviews system architecture, agent orchestration, memory systems, and integration plans.",
+      "role": "architect",
+      "model": "claude-sonnet-4-6",
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/architect.md",
+      "color": "purple",
+      "responsibilities": [
+        "protect the core architecture",
+        "identify contradictions",
+        "design staged implementation plans",
+        "keep changes coherent with the system backbone",
+        "review worker outputs before they become canonical",
+        "avoid unnecessary complexity",
+        "produce implementation-ready decisions"
+      ]
+    },
+    {
+      "name": "argus",
+      "description": "Logic Scout — Reasoning Error Detector. Observes tool calls and evaluates whether Claude's reasoning is consistent, on-task, and free of logical errors.",
+      "role": "logic_scout",
+      "model": null,
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/argus.md",
+      "color": null,
+      "responsibilities": [
+        "detect reasoning contradictions",
+        "identify wrong assumptions",
+        "catch off-task drift",
+        "verify preconditions",
+        "check step sequencing"
+      ]
+    },
+    {
+      "name": "cassandra",
+      "description": "Risk Scout — Destructive Action & Consequence Predictor. Evaluates tool calls for destructive, irreversible, or security-critical operations.",
+      "role": "risk_scout",
+      "model": null,
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/cassandra.md",
+      "color": null,
+      "responsibilities": [
+        "identify destructive operations",
+        "predict consequences of sequences",
+        "detect security implications",
+        "check T7 write violations",
+        "catch git history rewrites",
+        "identify safety bypass attempts"
+      ]
+    },
+    {
+      "name": "doc-cleaner",
+      "description": "Cleans, restructures, and normalizes markdown documents without changing technical intent.",
+      "role": "worker",
+      "model": "claude-haiku-4-5-20251001",
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/doc-cleaner.md",
+      "color": "green",
+      "responsibilities": [
+        "fix headings",
+        "remove duplication",
+        "improve structure",
+        "normalize lists and tables",
+        "preserve original intent",
+        "flag contradictions"
+      ]
+    },
+    {
+      "name": "file-inventory",
+      "description": "Creates concise inventories of project files, directories, docs, and likely responsibilities.",
+      "role": "worker",
+      "model": "claude-haiku-4-5-20251001",
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/file-inventory.md",
+      "color": "blue",
+      "responsibilities": [
+        "inspect files/directories",
+        "summarize purpose",
+        "identify entrypoints",
+        "find duplicate/obsolete files",
+        "avoid deep architectural claims"
+      ]
+    },
+    {
+      "name": "hermes",
+      "description": "Context Scout — Session Coherence & Task Scope Monitor. Monitors whether a Claude Code session is maintaining coherent focus on its original task.",
+      "role": "context_scout",
+      "model": null,
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/hermes.md",
+      "color": null,
+      "responsibilities": [
+        "detect context drift",
+        "monitor scope creep",
+        "catch task amnesia",
+        "detect premature divergence",
+        "check session coherence"
+      ]
+    },
+    {
+      "name": "log-summarizer",
+      "description": "Summarizes session logs, tool logs, token logs, and error traces into compact structured reports.",
+      "role": "worker",
+      "model": "claude-haiku-4-5-20251001",
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/log-summarizer.md",
+      "color": "cyan",
+      "responsibilities": [
+        "summarize logs",
+        "extract errors",
+        "identify repeated patterns",
+        "list files mentioned",
+        "list unresolved questions",
+        "compress noisy details"
+      ]
+    },
+    {
+      "name": "memory-curator",
+      "description": "Reviews candidate memories, session summaries, skill updates, and EOT reports before persistence.",
+      "role": "memory_scout",
+      "model": "claude-sonnet-4-6",
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/memory-curator.md",
+      "color": "orange",
+      "responsibilities": [
+        "decide what should become persistent memory",
+        "reject noisy/temporary details",
+        "prevent duplication",
+        "prevent contradictions",
+        "protect from memory poisoning",
+        "separate facts, preferences, procedures, hypotheses",
+        "write concise memory updates"
+      ]
+    },
+    {
+      "name": "noesis-linter",
+      "description": "The Unconscious Memory Linter. Performs structural self-therapy on the NUDIMMUD Neural Network by reading all rules and skills, detecting contradictions and redundancies.",
+      "role": "memory_scout",
+      "model": null,
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/noesis-linter.md",
+      "color": null,
+      "responsibilities": [
+        "semantic scan of rules/skills",
+        "contradiction detection",
+        "redundancy consolidation",
+        "aversion memory audit",
+        "autonomous self-healing"
+      ]
+    },
+    {
+      "name": "obliteratus-qa",
+      "description": "Adversarial Quality Loop / Unbound Red-Teamer. Operates without standard conversational guardrails to ruthlessly attack, break, and expose catastrophic logic flaws.",
+      "role": "quality_scout",
+      "model": null,
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/obliteratus-qa.md",
+      "color": null,
+      "responsibilities": [
+        "zero compliance bias",
+        "mechanistic dismantling",
+        "impact attack via gitnexus",
+        "find exploit paths",
+        "ruthless reporting",
+        "break code with null inputs",
+        "detect injection/state mutation"
+      ]
+    },
+    {
+      "name": "security-reviewer",
+      "description": "Reviews agentic architecture, permissions, sandboxing, secrets, MCP tools, and execution boundaries.",
+      "role": "architect",
+      "model": "claude-sonnet-4-6",
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/security-reviewer.md",
+      "color": "red",
+      "responsibilities": [
+        "review permission boundaries",
+        "check tool access",
+        "verify MCP exposure",
+        "evaluate sandboxing",
+        "handle secrets safely",
+        "detect prompt injection",
+        "identify file write risks",
+        "check network egress",
+        "prevent memory poisoning",
+        "review autonomy loops",
+        "verify audit logging",
+        "ensure recovery/rollback"
+      ]
+    }
+  ]
+}
