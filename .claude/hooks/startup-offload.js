@@ -12,7 +12,16 @@ process.stdin.on('end', () => {
   if (skills.length === 0) { process.exit(0); return; }
 
   const lines = skills.map(s => `- **${s.name}**: ${s.description}`).join('\n');
-  process.stdout.write(`<startup-index>\n\n### Skills (${skills.length}) — loaded from frontmatter, do NOT re-read SKILL.md files\n\n${lines}\n\n</startup-index>\n`);
+  const content = `<startup-index>\n\n### Skills (${skills.length}) — loaded from frontmatter, do NOT re-read SKILL.md files\n\n${lines}\n\n</startup-index>`;
+
+  const output = {
+    hookSpecificOutput: {
+      hookEventName: 'SessionStart',
+      additionalContext: content.split('\n').join('\\n')
+    }
+  };
+
+  console.log(JSON.stringify(output));
   process.exit(0);
 });
 

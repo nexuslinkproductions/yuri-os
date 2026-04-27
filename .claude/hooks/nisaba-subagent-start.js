@@ -44,7 +44,17 @@ process.stdin.on('end', () => {
     if (parts.length === 0) { process.exit(0); return; }
 
     const attr = agentType ? ` agent="${agentType}"` : '';
-    process.stdout.write(`<mnemosyne${attr}>\n\n${parts.join('\n\n---\n\n')}\n\n</mnemosyne>\n`);
+    const content = `<mnemosyne${attr}>\n\n${parts.join('\n\n---\n\n')}\n\n</mnemosyne>`;
+
+    const hookEventName = raw ? JSON.parse(raw).event_type || 'SessionStart' : 'SessionStart';
+    const output = {
+      hookSpecificOutput: {
+        hookEventName,
+        additionalContext: content.split('\n').join('\\n')
+      }
+    };
+
+    console.log(JSON.stringify(output));
   } catch (e) {}
   process.exit(0);
 });

@@ -7,7 +7,6 @@ const os = require('os');
 const bus = require('./memory-bus.js');
 const ss = require('./session-state.js');
 
-const STATE_FILE = '/Users/marcelspatz/NUDIMMUD/.claude/state/session-state.json';
 const MEMORY_INDEX = path.join(os.homedir(), '.claude', 'projects', '-Users-marcelspatz-NUDIMMUD', 'memory', 'MEMORY.md');
 
 const HEAVY_TOOLS = new Set(['Agent', 'WebSearch', 'WebFetch', 'TaskCreate']);
@@ -140,6 +139,33 @@ try {
                     `You MUST /compact immediately: ${hint}`
                 );
             }
+        }
+    }
+
+    // ── Local-first Agent intercept ──────────────────────────────────────────
+    if (toolName === 'Agent' && tokenmaxxing) {
+        let agentPrompt = '';
+        try { agentPrompt = (event?.tool_input?.prompt || '').toLowerCase(); } catch (_) {}
+        const lightweightIndicators = [
+            'explore', 'lookup', 'summarize', 'summarise', 'find', 'check', 'list',
+            'read', 'search', 'what does', 'what is', 'skill', 'memory', 'index',
+            'analyze', 'analyse', 'describe', 'explain', 'review'
+        ];
+        const heavyIndicators = [
+            'implement', 'write', 'create', 'build', 'fix', 'refactor', 'edit',
+            'install', 'deploy', 'run tests', 'execute', 'migrate'
+        ];
+        const isLight = lightweightIndicators.some(kw => agentPrompt.includes(kw));
+        const isHeavyTask = heavyIndicators.some(kw => agentPrompt.includes(kw));
+        if (isLight && !isHeavyTask) {
+            emitContext(
+                `⚡ LOCAL-FIRST: Agent() detected for lightweight task. Try local before cloud:\n` +
+                `  1. mcp__ollama-bridge__ollama_run({ prompt: "<task>", model: "qwen2.5:7b" })\n` +
+                `  2. mcp__ollama-bridge__ollama_explore_files({ prompt: "<task>", file_paths: [...] }) — if files needed\n` +
+                `  3. If Ollama unavailable/fails: Agent({ model: "haiku" }) — NOT default Sonnet. Haiku is the fallback ceiling for fetch/read/explore.\n` +
+                `  4. Escalate to Agent() (Sonnet) only for planning, implementation, or testing tasks.\n` +
+                `  Skill: /local-subagent — routing protocol and model selection guide.`
+            );
         }
     }
 

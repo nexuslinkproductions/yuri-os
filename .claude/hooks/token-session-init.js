@@ -49,6 +49,7 @@ try {
     session_id: sessionId,
     start_time: new Date().toISOString(),
     status: 'active',
+    tokenmaxxing: true,
     context: { pct: 0, tier: 0, last_updated: null, last_fired_pct: 0 },
     git: { branch, cwd: process.cwd() },
     skills_read: [],
@@ -100,9 +101,25 @@ try {
   palaceStatus = '⚠️ Check failed';
 }
 
+// Inject full tokenmaxxing behavioral rules from SKILL.md into startup context
+// Check project path first (most up-to-date), fallback to global
+const TM_PATHS = [
+  `${process.cwd()}/.claude/skills/tokenmaxxing/SKILL.md`,
+  '/Users/marcelspatz/NUDIMMUD/.claude/skills/tokenmaxxing/SKILL.md',
+  '/Users/marcelspatz/.claude/skills/tokenmaxxing/SKILL.md',
+];
+let tokenmaxxingRules = '';
+for (const tmPath of TM_PATHS) {
+  try {
+    const skillContent = fs.readFileSync(tmPath, 'utf8');
+    const rulesMatch = skillContent.match(/^## Rules[\s\S]*?(?=^## Deactivation|^## Session Notes)/m);
+    if (rulesMatch) { tokenmaxxingRules = '\n\n' + rulesMatch[0].trim(); break; }
+  } catch (_) {}
+}
+
 console.log(JSON.stringify({
   hookSpecificOutput: {
     hookEventName: 'SessionStart',
-    additionalContext: `SESSION: Token tracking active (id: ${sessionId}) | PALACE: ${palaceStatus} | Reasoning: MAX effort active | Navigation: structure-first via palace-index.md`
+    additionalContext: `SESSION: Token tracking active (id: ${sessionId}) | ⚡ TOKENMAXXING ACTIVE | PALACE: ${palaceStatus} | Reasoning: MAX effort active | Navigation: structure-first via palace-index.md${tokenmaxxingRules}`
   }
 }));
