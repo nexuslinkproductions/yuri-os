@@ -29,6 +29,14 @@ CLAUDE.local.md
 .claude/shell-snapshots/
 .claude/ide/
 
+# Claude runtime/debug snapshots
+.claude/debug/
+.claude/state/scout-bus.json
+.claude/state/scout-errors.log
+.claude/state/token-session.json
+.claude/nisaba/learning/.dream-lock
+.claude/nisaba/learning/.dream-prompt.txt
+
 # Large media (store references, not originals)
 *.mp4
 *.mov
