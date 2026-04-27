@@ -1,6 +1,16 @@
 ---
 name: ai-pipeline-offloading
 description: "Global offload routing for NUDIMMUD. Local-first: Deepseek, Qwen, GPT-OSS. Browser: Comet, Perplexity. Swarm via Ruflo. Cloud (Kimi) when limit allows."
+triggers:
+  - "@deepseek"
+  - "@qwen"
+  - "@gpt-oss"
+  - "@ollama"
+  - "@comet"
+  - "@perplexity"
+  - "@claude"
+  - "@kimi"
+  - "@haiku"
 ---
 
 # AI Pipeline Offloading
@@ -12,14 +22,15 @@ Route work to the smallest useful lane. Local first. Browser second. Cloud when 
 | Lane | Binary | Use Case | Status |
 |------|--------|----------|--------|
 | `@deepseek` | `./Scripts/ai --model deepseek` | Reasoning, code analysis, multi-step logic | ✓ Active |
-| `@qwen` | `./Scripts/ai --model qwen2.5:7b` | General tasks, summarization, extraction | ✓ Active |
+| `@qwen` | `./Scripts/ai --model $(jq -r '.local.primary' .claude/config/models.json)` | General tasks, summarization, extraction (model from .claude/config/models.json) | ✓ Active |
 | `@gpt-oss` | `./Scripts/ai @gpt-oss` | Formatting, synthesis, template generation | ✓ Active |
 | `@ollama` | `./Scripts/ai @ollama` | Any registered local Ollama model | ✓ Active |
-| `@comet` | browser-use MCP | UI interaction, screenshot, browser control | 🔄 Wiring |
-| `@perplexity` | browser-use via Comet | Web research, real-time data fetch | 🔄 Wiring |
+| `@comet` | browser-use MCP | UI interaction, screenshot, browser control | ✓ Active |
+| `@perplexity` | browser-use via Comet | Web research, real-time data fetch | ✓ Active |
 | `@swarm` | `./Scripts/offload.sh --swarm` | Parallel fan-out, consensus, cross-check | ✓ Active |
 | `@claude` | main session | High-nuance, safety-critical, final merge | ✓ Active |
 | `@kimi` | `./Scripts/ai @kimi` | High-grade remote reasoning | ⏳ Rate-limited |
+| `@haiku` | `Agent({ model: "haiku" })` | Fallback when local fails: fetch, read, explore, summarize | ✓ Active |
 
 ## Routing Decision Tree
 
@@ -32,8 +43,11 @@ Task arrives
 ├── Browser interaction needed? → @comet
 ├── Web research / real-time data? → @perplexity
 ├── Consensus needed / high-stakes? → @swarm (deepseek + qwen + gpt-oss)
-└── Frontier reasoning / wide context? → @claude (main session)
+├── Frontier reasoning / wide context? → @claude (main session)
+└── Local failed + utility task? → @haiku (fetch/read/explore fallback ceiling)
 ```
+
+**Local-fail rule:** Ollama error/unavailable → `@haiku`, not `@claude`. Main thread stays Sonnet 4.6.
 
 ## Capacity (M2 Pro, 16GB unified memory)
 
@@ -116,6 +130,96 @@ Main thread: overseer, router, and final merge only.
 3. Execute.
 
 ## Session Notes
+
+### 2026-04-27
+- session: 2m | peak ctx: 33% | compacts: 0
+- tools: Bash×11, Read×2
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 2m | peak ctx: 33% | compacts: 0
+- tools: Bash×11, Read×2
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 22m | peak ctx: 49% | compacts: 0
+- tools: Bash×14, Read×4, Write×2, Edit×1
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 19m | peak ctx: 48% | compacts: 0
+- tools: Bash×14, Read×4, Write×2, Edit×1
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 6m | peak ctx: 53% | compacts: 0
+- tools: Read×27, Bash×8, Write×2, mcp×1
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 1m | peak ctx: 40% | compacts: 0
+- tools: Read×7, Bash×4, Edit×3
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 3m | peak ctx: 35% | compacts: 0
+- tools: Bash×6, Read×4, mcp×3, Write×1
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 8m | peak ctx: 50% | compacts: 0
+- tools: Read×41, Bash×15, Write×5, Agent×1
+- corrections: none
+- errors: none
+
+### 2026-04-26
+- session: 1m | peak ctx: 40% | compacts: 0
+- tools: Edit×2, Read×1
+- corrections: none
+- errors: none
+
+### 2026-04-26
+- session: 11m | peak ctx: 63% | compacts: 1
+- tools: Read×8, Write×6, Edit×6, Bash×6, ToolSearch×2, AskUserQuestion×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-04-26
+- session: 2m | peak ctx: 9% | compacts: 0
+- tools: Read×31, Bash×15
+- corrections: none
+- errors: none
+
+### 2026-04-26
+- session: 17m | peak ctx: 11% | compacts: 0
+- tools: Read×26, Edit×4, Bash×2, Agent×2, Write×2, ToolSearch×1
+- corrections: none
+- errors: none
+
+### 2026-04-26
+- session: 16m | peak ctx: 11% | compacts: 0
+- tools: Read×26, Edit×4, Bash×2, Agent×2, Write×2, ToolSearch×1
+- corrections: none
+- errors: none
+
+### 2026-04-26
+- session: 5m | peak ctx: 9% | compacts: 0
+- tools: Bash×31, Read×19, Edit×2, Agent×1
+- corrections: none
+- errors: none
+
+### 2026-04-25
+- session: 0m | peak ctx: 14% | compacts: 0
+- tools: Read×9, Bash×4, Write×2, Edit×2
+- corrections: none
+- errors: none
 
 ### 2026-04-25
 - session: 3m | peak ctx: 20% | compacts: 0

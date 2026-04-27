@@ -1,6 +1,10 @@
 ---
 name: swarm-coordination
 description: "Global swarm orchestration for NUDIMMUD. Use when distributing work across agents, model lanes, or handoff steps with shared state."
+triggers:
+  - "@swarm"
+  - "swarm orchestration"
+  - "distribute work"
 ---
 
 # Swarm Coordination
@@ -45,7 +49,68 @@ Use this skill when a task should be split across multiple agents or model lanes
 - If a lane returns ambiguous output, re-scope it before continuing.
 - If a lane exposes a conflict, preserve the narrower working set and retry.
 
+## Browser Lanes
+
+Browser lanes are now Active. Use alongside local model lanes in swarm tasks.
+
+### Lane Routing
+
+- `@comet` — UI interaction, screenshot capture, Obsidian Web Clipper
+- `@perplexity` — web research, real-time data, citation-backed answers
+
+### Swarm Integration
+
+Add browser lanes as research workers in parallel swarms:
+
+```
+ENLIL decomposes task
+├── @deepseek   ← local reasoning lane
+├── @qwen       ← summarization / extraction lane
+└── @perplexity ← web research lane (browser-lane.js)
+```
+
+Swarm pattern for research tasks:
+1. Decompose task into: reasoning sub-tasks (local lanes) + web lookups (browser lane)
+2. Fan-out in parallel (one Agent per lane)
+3. Merge results in main session (ENLIL role)
+
+### Code Reference
+
+```javascript
+const { routeToBrowser } = require('.claude/hooks/browser-lane.js');
+// Example: route research subtask to perplexity
+const result = await routeToBrowser('research topic X', 'perplexity');
+```
+
+### Stop Condition
+
+If browser lane unavailable (MCP not connected): fall back to `@deepseek` + web search via Bash curl. Do not block swarm on browser lane failure.
+
 ## Session Notes
+
+### 2026-04-27
+- session: 6m | peak ctx: 53% | compacts: 0
+- tools: Read×27, Bash×8, Write×2, mcp×1
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 8m | peak ctx: 50% | compacts: 0
+- tools: Read×41, Bash×15, Write×5, Agent×1
+- corrections: none
+- errors: none
+
+### 2026-04-26
+- session: 2m | peak ctx: 9% | compacts: 0
+- tools: Read×31, Bash×15
+- corrections: none
+- errors: none
+
+### 2026-04-25
+- session: 0m | peak ctx: 14% | compacts: 0
+- tools: Read×9, Bash×4, Write×2, Edit×2
+- corrections: none
+- errors: none
 
 ### 2026-04-25
 - session: 3m | peak ctx: 20% | compacts: 0

@@ -88,3 +88,23 @@ Write to `design-memory.json`:
 - [ ] Border-radius ≤ 2px
 - [ ] Motion duration ≤ 0.4s
 - [ ] Dark background contrast passes
+
+## Session Notes
+
+### 2026-04-27
+- session: 6m | peak ctx: 53% | compacts: 0
+- tools: Read×27, Bash×8, Write×2, mcp×1
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 1m | peak ctx: 40% | compacts: 0
+- tools: Read×7, Bash×4, Edit×3
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 8m | peak ctx: 50% | compacts: 0
+- tools: Read×41, Bash×15, Write×5, Agent×1
+- corrections: none
+- errors: none
