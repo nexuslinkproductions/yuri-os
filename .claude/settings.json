@@ -27,6 +27,14 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/aeonic-ingest.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/yuri-boot.js"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/startup-offload.js"
           },
           {
@@ -36,6 +44,21 @@
           {
             "type": "command",
             "command": "node .claude/hooks/scout-init.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/eot-background-start.js"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/user-prompt-submit.js"
           }
         ]
       }
@@ -62,6 +85,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/pre-tool-use.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/aeonic-enforce.js"
           }
         ]
       }
