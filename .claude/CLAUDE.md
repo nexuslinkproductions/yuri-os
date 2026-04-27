@@ -1,3 +1,33 @@
+# Yuri OS / NUDIMMUD Session Start Guard
+
+Canonical repository root:
+
+- `/Users/marcelspatz/NUDIMMUD`
+
+Canonical branch:
+
+- `main`
+
+Before any Yuri OS / NUDIMMUD sprint, audit, validation, cleanup, patch, report, config work, or local CLI task, first verify:
+
+- `pwd` equals `/Users/marcelspatz/NUDIMMUD`
+- `git branch --show-current` equals `main`
+
+If either check fails:
+
+- stop immediately
+- do not continue the task
+- do not switch directories automatically
+- do not switch branches automatically
+- do not mutate files
+- do not stage or commit
+- report the mismatch to the owner and ask them to manually reconcile the VS Code workspace / terminal context
+
+Do not treat `/Users/marcelspatz` as the Yuri OS / NUDIMMUD repository root.
+Do not run Yuri OS / NUDIMMUD sprint work from `master`.
+
+---
+
 # Yuri OS — Session Boot
 
 When starting with `npm run yuri`, the session automatically loads:
