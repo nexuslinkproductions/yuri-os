@@ -15,10 +15,19 @@ Thumbs.db
 
 # Private / Local
 CLAUDE.local.md
+.claude/settings.local.json
+.claude/settings.local.backup-unsafe-original.json
 .env
 .env.local
 *.key
 *.pem
+
+# Claude ephemeral session artifacts
+.claude/memory-sessions/
+.claude/sessions/
+.claude/backups/
+.claude/shell-snapshots/
+.claude/ide/
 
 # Large media (store references, not originals)
 *.mp4
