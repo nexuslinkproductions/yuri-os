@@ -201,6 +201,12 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
       endpoint: process.env.CODE_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
       apiKey: process.env.CODE_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '',
       model: normalizedForcedModel || process.env.CODE_CLOUD_MODEL || 'qwen2.5-coder:32b',
+    },
+    'nvidia-deepseek': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || process.env.NVIDIA_NIM_MODEL || 'deepseek-ai/deepseek-v4-pro',
     }
   };
 
@@ -409,7 +415,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'kimi', 'moonshot', 'deepseek-cloud', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-kimi', 'reason-cloud', 'code-deepseek', 'code-cloud', 'gemma-local', 'gemma-cloud', 'gemma'];
+  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'kimi', 'moonshot', 'deepseek-cloud', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-kimi', 'reason-cloud', 'code-deepseek', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma'];
   const lanes = {};
   for (const name of laneNames) {
     try {
