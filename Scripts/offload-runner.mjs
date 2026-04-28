@@ -144,6 +144,48 @@ function resolveLane(requestedLane, forcedModel, localModels) {
         'deepseek-r1:70b',
         'llama3.1:70b'
       ], new Set()),
+    },
+    'triage-local': {
+      kind: 'local',
+      model: normalizedForcedModel || process.env.TRIAGE_LOCAL_MODEL || pickFirstExisting([
+        'qwen2.5:7b',
+        'qwen2.5:3b',
+        'llama3.2:3b',
+        'llama3.2:latest',
+        'gemma4:4b'
+      ], localModels)
+    },
+    'summarize-local': {
+      kind: 'local',
+      model: normalizedForcedModel || process.env.SUMMARIZE_LOCAL_MODEL || pickFirstExisting([
+        'qwen2.5:7b',
+        'qwen-liberated:latest',
+        'llama3.2:latest',
+        'gemma4:8b'
+      ], localModels)
+    },
+    'code-local': {
+      kind: 'local',
+      model: normalizedForcedModel || process.env.CODE_LOCAL_MODEL || pickFirstExisting([
+        'qwen2.5-coder:latest',
+        'deepseek-coder:latest',
+        'qwen2.5:7b',
+        'deepseek-r1:latest',
+        'gemma4-code:latest'
+      ], localModels)
+    },
+    'reason-cloud': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.REASON_CLOUD_BASE_URL || process.env.KIMI_BASE_URL || 'https://api.moonshot.ai/v1'),
+      apiKey: process.env.REASON_CLOUD_API_KEY || process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY || '',
+      model: normalizedForcedModel || process.env.REASON_CLOUD_MODEL || 'kimi-k2.6',
+      extraBody: cloudExtraBody('reason-cloud')
+    },
+    'code-cloud': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.CODE_CLOUD_BASE_URL || process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com'),
+      apiKey: process.env.CODE_CLOUD_API_KEY || process.env.DEEPSEEK_API_KEY || '',
+      model: normalizedForcedModel || process.env.CODE_CLOUD_MODEL || 'deepseek-v4-pro'
     }
   };
 
@@ -183,12 +225,17 @@ function normalizeForcedModel(forcedModel, lane) {
   if (laneName === 'moonshot' && (normalized === 'moonshot' || normalized === 'kimi')) return '';
   if (laneName === 'deepseek-cloud' && normalized === 'deepseek-cloud') return '';
   if (laneName === 'ollama-cloud' && (normalized === 'ollama-cloud' || normalized === 'ollama')) return '';
+  if (laneName === 'triage-local' && normalized === 'triage-local') return '';
+  if (laneName === 'summarize-local' && normalized === 'summarize-local') return '';
+  if (laneName === 'code-local' && normalized === 'code-local') return '';
+  if (laneName === 'reason-cloud' && normalized === 'reason-cloud') return '';
+  if (laneName === 'code-cloud' && normalized === 'code-cloud') return '';
 
   return forcedModel;
 }
 
 function cloudExtraBody(provider) {
-  if (provider === 'kimi') {
+  if (provider === 'kimi' || provider === 'reason-cloud') {
     return { chat_template_kwargs: { thinking: true } };
   }
   return undefined;
@@ -255,7 +302,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'kimi', 'moonshot', 'deepseek-cloud', 'ollama-cloud'];
+  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'kimi', 'moonshot', 'deepseek-cloud', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud'];
   const lanes = {};
   for (const name of laneNames) {
     try {

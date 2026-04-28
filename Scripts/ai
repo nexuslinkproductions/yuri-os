@@ -59,6 +59,21 @@ Commands:
   @deepseek [prompt]
       Run the direct DeepSeek local offload lane.
 
+  @triage-local [prompt]
+      Run the triage-local lane (fast lightweight local model).
+
+  @summarize-local [prompt]
+      Run the summarize-local lane (summarization-optimized local model).
+
+  @code-local [prompt]
+      Run the code-local lane (code-specialized local model, prefers qwen2.5-coder).
+
+  @reason-cloud [prompt]
+      Run the reason-cloud lane (cloud reasoning with thinking enabled, defaults to Kimi K2.6).
+
+  @code-cloud [prompt]
+      Run the code-cloud lane (cloud code lane, defaults to DeepSeek).
+
   @swarm [prompt]
       Run Ruflo-backed swarm routing, then fan out Kimi, GPT-OSS, and Ollama as needed.
 
@@ -624,6 +639,46 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane deepseek "$@"
+    ;;
+  @triage-local|triage-local)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane triage-local "$@"
+    ;;
+  @summarize-local|summarize-local)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane summarize-local "$@"
+    ;;
+  @code-local|code-local)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane code-local "$@"
+    ;;
+  @reason-cloud|reason-cloud)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane reason-cloud "$@"
+    ;;
+  @code-cloud|code-cloud)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane code-cloud "$@"
     ;;
   @swarm|swarm)
     shift || true
