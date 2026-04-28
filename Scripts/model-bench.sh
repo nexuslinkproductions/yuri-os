@@ -1,7 +1,10 @@
 #!/usr/bin/env zsh
 # model-bench.sh — Sequential local model benchmark
 # ONE model at a time. Max 10GB RAM. Kills Ollama between runs.
-# Usage: ./Scripts/model-bench.sh [model_id]   (omit = run all)
+# Usage: model-bench.sh <model_id> [model_id...]
+# Runs provided models sequentially in one invocation.
+# The registry is overwritten once at the start, then rows for all provided models are appended.
+# For a complete multi-model registry, pass all target models in one invocation.
 
 set -e
 
@@ -62,14 +65,17 @@ run_test() {
   elapsed=$(( end_ms - start_ms ))
 
   # strip ANSI escape sequences
-  output=$(print "$output" | sed 's/\x1b\[[0-9;]*m//g; s/\x1b\[[0-9]*[A-Z]//g' | head -c 500)
+  # zsh-safe: print -r -- avoids interpreting leading '-' in model output as flags
+  output=$(print -r -- "$output" | sed 's/\x1b\[[0-9;]*m//g; s/\x1b\[[0-9]*[A-Z]//g' | head -c 500)
 
   print -u2 "    ✓ ${test}: ${elapsed}ms"
   # stdout: machine-readable result only
-  print "${elapsed}|||${output}"
+  # zsh-safe: print -r -- protects against model output beginning with '-'
+  print -r -- "${elapsed}|||${output}"
 }
 
 # ── Init registry ─────────────────────────────────────────────────────────────
+# Registry is rewritten once per script invocation. To preserve multiple rows, pass all target models in a single invocation.
 mkdir -p "$(dirname "$REGISTRY")"
 cat > "$REGISTRY" <<HEADER
 # Model Registry — NUDIMMUD Local LLMs
@@ -139,9 +145,10 @@ ${t_out}
 done
 
 # Append all detail blocks at end
-print "\n---\n\n## Detail Results" >> "$REGISTRY"
+# zsh-safe: printf '%s\n' protects against detail block content beginning with '-'
+printf '%s\n' "" "---" "" "## Detail Results" >> "$REGISTRY"
 for model in "${TARGET_MODELS[@]}"; do
-  print "$DETAIL_BLOCKS[$model]" >> "$REGISTRY"
+  printf '%s\n' "$DETAIL_BLOCKS[$model]" >> "$REGISTRY"
 done
 
 print -u2 "\n⬡ BENCHMARK_COMPLETE"
