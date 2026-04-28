@@ -68,11 +68,26 @@ Commands:
   @code-local [prompt]
       Run the code-local lane (code-specialized local model, prefers qwen2.5-coder).
 
+  @reason-kimi [prompt]
+      Run the reason-kimi lane (cloud reasoning via Kimi K2.6 with thinking enabled).
+
+  @code-deepseek [prompt]
+      Run the code-deepseek lane (cloud code via DeepSeek V4 Pro).
+
   @reason-cloud [prompt]
-      Run the reason-cloud lane (cloud reasoning with thinking enabled, defaults to Kimi K2.6).
+      Run the reason-cloud lane (Ollama Cloud reasoning, defaults to qwen2.5:72b).
 
   @code-cloud [prompt]
-      Run the code-cloud lane (cloud code lane, defaults to DeepSeek).
+      Run the code-cloud lane (Ollama Cloud code, defaults to qwen2.5-coder:32b).
+
+  @gemma [prompt]
+      Run the gemma lane (cloud-first if OLLAMA_API_KEY set, local Gemma4 fallback).
+
+  @gemma-local [prompt]
+      Run the gemma-local lane (local Gemma4 only, no non-Gemma fallback).
+
+  @gemma-cloud [prompt]
+      Run the gemma-cloud lane (Ollama Cloud Gemma4 only).
 
   @swarm [prompt]
       Run Ruflo-backed swarm routing, then fan out Kimi, GPT-OSS, and Ollama as needed.
@@ -664,6 +679,22 @@ case "${1:-help}" in
     fi
     run_offload_lane code-local "$@"
     ;;
+  @reason-kimi|reason-kimi)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane reason-kimi "$@"
+    ;;
+  @code-deepseek|code-deepseek)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane code-deepseek "$@"
+    ;;
   @reason-cloud|reason-cloud)
     shift || true
     if [ "$#" -eq 0 ]; then
@@ -679,6 +710,30 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane code-cloud "$@"
+    ;;
+  @gemma|gemma)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane gemma "$@"
+    ;;
+  @gemma-local|gemma-local)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane gemma-local "$@"
+    ;;
+  @gemma-cloud|gemma-cloud)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane gemma-cloud "$@"
     ;;
   @swarm|swarm)
     shift || true
