@@ -108,7 +108,10 @@ for model in "${TARGET_MODELS[@]}"; do
   print -u2 "\n[bench] ═══ $model ═══"
 
   code_t="-" reason_t="-" summary_t="-" instruct_t="-" speed_t="-"
-  detail_block="\n## ${model}\n"
+  # Real newlines (not literal \n) so the registry renders as markdown headers.
+  detail_block="
+## ${model}
+"
 
   for test in "${TESTS[@]}"; do
     result="$(run_test "$model" "$test")"
