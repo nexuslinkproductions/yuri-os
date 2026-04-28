@@ -19,7 +19,9 @@ Usage: offload [options] <prompt>
 Options:
   -l, --list             List available neural models in the registry
   -m, --model <id>       Force offload to a specific model ID
-  -s, --swarm <id,id,..> Run task via multiple models in parallel (manual swarm)
+  -s, --swarm <id,id,..> Run task via multiple models (cloud parallel, local serialized)
+  -d, --dry-run, --route-only
+                         Print routing decision without executing
   -h, --help             Show this help
 
 Default behavior: Automatically routes the task based on intent, complexity, and risk.
@@ -64,6 +66,13 @@ list_models() {
   else
     echo "  (manifest dir missing)"
   fi
+}
+
+classify_lane() {
+  case "$1" in
+    kimi*|moonshot*|*-cloud*) printf 'cloud' ;;
+    *) printf 'local' ;;
+  esac
 }
 
 dispatch_model() {
@@ -112,6 +121,7 @@ dispatch_model() {
 # Parse options
 MODEL_OVERRIDE=""
 SWARM_MODELS=""
+DRY_RUN=0
 PROMPT_PARTS=()
 
 while [[ $# -gt 0 ]]; do
@@ -128,6 +138,10 @@ while [[ $# -gt 0 ]]; do
       SWARM_MODELS="$2"
       shift 2
       ;;
+    -d|--dry-run|--route-only)
+      DRY_RUN=1
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -141,20 +155,56 @@ done
 
 PROMPT="${PROMPT_PARTS[*]:-}"
 
+# ── Dry-run gate ────────────────────────────────────────────
+if [[ "$DRY_RUN" -eq 1 ]]; then
+  if [[ -n "$SWARM_MODELS" ]]; then
+    printf '⬡ DRY_RUN_SWARM :: models=[%s]\n' "$SWARM_MODELS"
+    IFS=',' read -ra ADDR <<< "$SWARM_MODELS"
+    for m in "${ADDR[@]}"; do
+      printf '  [%s] %s\n' "$(classify_lane "$m")" "$m"
+    done
+    exit 0
+  fi
+  if [[ -n "$MODEL_OVERRIDE" ]]; then
+    printf '⬡ DRY_RUN :: model=%s lane=%s\n' "$MODEL_OVERRIDE" "$(classify_lane "$MODEL_OVERRIDE")"
+    exit 0
+  fi
+  DECISION=$(curl -s --connect-timeout 3 --max-time 5 -X POST \
+    -H "Content-Type: application/json" \
+    -d "{\"prompt\": \"$PROMPT\"}" \
+    "$BACKEND_URL/api/swarm/route" 2>/dev/null) || DECISION=""
+  MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
+  if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
+    printf '⬡ DRY_RUN :: backend unreachable, would fall back to local default\n'
+  else
+    RUNTIME=$(echo "$DECISION" | jq -r '.preferredRuntime // empty' 2>/dev/null) || RUNTIME=""
+    INTENT=$(echo "$DECISION" | jq -r '.intent // empty' 2>/dev/null) || INTENT=""
+    printf '⬡ DRY_RUN :: intent=%s runtime=%s model=%s\n' "$INTENT" "$RUNTIME" "$MODEL"
+  fi
+  exit 0
+fi
+
 if [[ -z "$PROMPT" ]]; then
   usage
   exit 1
 fi
 
+# ── Swarm execution (cloud parallel, local serialized) ─────
 if [[ -n "$SWARM_MODELS" ]]; then
     echo "⬡ INITIATING_MANUAL_SWARM :: models=[$SWARM_MODELS]"
     IFS=',' read -ra ADDR <<< "$SWARM_MODELS"
+    cloud_pids=()
     for m in "${ADDR[@]}"; do
-        (
+        if [[ "$(classify_lane "$m")" == "cloud" ]]; then
+            ( dispatch_model "$m" "$PROMPT" ) &
+            cloud_pids+=($!)
+        else
             dispatch_model "$m" "$PROMPT"
-        ) &
+        fi
     done
-    wait
+    for pid in "${cloud_pids[@]}"; do
+        wait "$pid" || true
+    done
     exit 0
 fi
 
@@ -164,15 +214,26 @@ if [[ -n "$MODEL_OVERRIDE" ]]; then
     exit 0
 fi
 
-# 1. GET AUTO ROUTING DECISION
-DECISION=$(curl -s -X POST \
+# ── Auto routing: try backend, fall back to local default ──
+DECISION=$(curl -s --connect-timeout 3 --max-time 5 -X POST \
   -H "Content-Type: application/json" \
   -d "{\"prompt\": \"$PROMPT\"}" \
-  "$BACKEND_URL/api/swarm/route")
+  "$BACKEND_URL/api/swarm/route" 2>/dev/null) || DECISION=""
 
-MODEL=$(echo "$DECISION" | jq -r '.preferredModel')
-RUNTIME=$(echo "$DECISION" | jq -r '.preferredRuntime')
-INTENT=$(echo "$DECISION" | jq -r '.intent')
+MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
+RUNTIME=$(echo "$DECISION" | jq -r '.preferredRuntime // empty' 2>/dev/null) || RUNTIME=""
+INTENT=$(echo "$DECISION" | jq -r '.intent // empty' 2>/dev/null) || INTENT=""
+
+if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
+  echo "⬡ BACKEND_UNREACHABLE — cannot auto-route." >&2
+  echo "  Manual fallback options:" >&2
+  echo "    offload --model <id> \"<prompt>\"                  # direct model" >&2
+  echo "    offload --swarm kimi,gpt-oss,ollama \"<prompt>\"   # swarm" >&2
+  echo "    ai @ollama \"<prompt>\"                            # local ollama" >&2
+  echo "    ai @kimi \"<prompt>\"                              # kimi cloud" >&2
+  echo "    ai @deepseek \"<prompt>\"                          # deepseek local" >&2
+  exit 1
+fi
 
 echo "⬡ OFFLOAD_ASSESSMENT :: intent=$INTENT runtime=$RUNTIME model=$MODEL"
 dispatch_model "$MODEL" "$PROMPT"

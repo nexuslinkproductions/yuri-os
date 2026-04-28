@@ -29,6 +29,15 @@ Commands:
   moonshot [prompt]
       Route directly to the Moonshot/Kimi cloud lane.
 
+  offload [options] [prompt]
+      Route through the NUDIMMUD offload system (auto, --model, --swarm, --list, --dry-run, --route-only).
+
+  offload swarm [prompt]
+      Run offload swarm with default lane set (kimi,gpt-oss,ollama).
+
+  offload capabilities
+      Print the full lane and model inventory (JSON).
+
   swarm [prompt]
       Run Ruflo-backed swarm routing, then fan out Kimi, GPT-OSS, and Ollama as needed.
 
@@ -189,7 +198,7 @@ run_offload_lane() {
 run_codex_swarm() {
   local prompt="$1"
   local tmpdir kimi_out gpt_oss_out ollama_out
-  local pid_kimi pid_gpt_oss pid_ollama status
+  local pid_kimi status
 
   if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
     printf 'kimi\n'
@@ -207,29 +216,23 @@ run_codex_swarm() {
 
   trap 'rm -rf "$tmpdir"' EXIT
 
+  status=0
+
+  # Cloud lane: kimi runs in background (no local resource contention)
   (
     node "$OFFLOAD_RUNNER" kimi "$prompt" >"$kimi_out" 2>&1
   ) &
   pid_kimi=$!
 
-  (
-    node "$OFFLOAD_RUNNER" gpt-oss "$prompt" >"$gpt_oss_out" 2>&1
-  ) &
-  pid_gpt_oss=$!
+  # Local lanes: serialize to avoid Ollama GPU/memory contention on M2 Pro
+  if ! node "$OFFLOAD_RUNNER" gpt-oss "$prompt" >"$gpt_oss_out" 2>&1; then
+    status=1
+  fi
+  if ! node "$OFFLOAD_RUNNER" ollama "$prompt" >"$ollama_out" 2>&1; then
+    status=1
+  fi
 
-  (
-    node "$OFFLOAD_RUNNER" ollama "$prompt" >"$ollama_out" 2>&1
-  ) &
-  pid_ollama=$!
-
-  status=0
   if ! wait "$pid_kimi"; then
-    status=1
-  fi
-  if ! wait "$pid_gpt_oss"; then
-    status=1
-  fi
-  if ! wait "$pid_ollama"; then
     status=1
   fi
 
@@ -414,6 +417,39 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane moonshot "$prompt"
+    ;;
+  offload)
+    shift || true
+    case "${1:-}" in
+      swarm|@swarm)
+        shift || true
+        _dry_run=0
+        _prompt_parts=()
+        for _arg in "$@"; do
+          case "$_arg" in
+            --route-only|--dry-run|-d) _dry_run=1 ;;
+            *) _prompt_parts+=("$_arg") ;;
+          esac
+        done
+        prompt="$(join_prompt ${_prompt_parts[@]+"${_prompt_parts[@]}"})"
+        if [ -z "$prompt" ] && [ "$_dry_run" -eq 0 ]; then
+          usage
+          exit 1
+        fi
+        if [ "$_dry_run" -eq 1 ]; then
+          exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm "kimi,gpt-oss,ollama" "$prompt"
+        fi
+        exec "$SCRIPT_DIR/offload.sh" --swarm "kimi,gpt-oss,ollama" "$prompt"
+        ;;
+      capabilities|inventory)
+        shift || true
+        require_cmd node
+        exec node "$OFFLOAD_RUNNER" --inventory
+        ;;
+      *)
+        exec "$SCRIPT_DIR/offload.sh" "$@"
+        ;;
+    esac
     ;;
   swarm|@swarm)
     shift || true

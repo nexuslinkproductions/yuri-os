@@ -4,17 +4,24 @@ import { existsSync, readdirSync, statSync } from 'fs';
 import path from 'path';
 
 const argv = process.argv.slice(2);
+
+if (argv.includes('--inventory')) {
+  const localModels = listLocalModels();
+  console.log(JSON.stringify(buildInventory(localModels), null, 2));
+  process.exit(0);
+}
+
 const lane = (argv.shift() || '').toLowerCase();
+const options = parseArgs(argv);
 
 if (!lane) {
-  console.error('Usage: offload-runner <lane> [--model <id>] [--system <prompt>] <prompt>');
+  console.error('Usage: offload-runner <lane> [--model <id>] [--system <prompt>] [--dry-run] [--inventory] <prompt>');
   process.exit(1);
 }
 
-const options = parseArgs(argv);
 const prompt = options.prompt.trim();
 
-if (!prompt) {
+if (!prompt && !options.dryRun) {
   console.error('Missing prompt.');
   process.exit(1);
 }
@@ -22,8 +29,21 @@ if (!prompt) {
 const localModels = listLocalModels();
 const resolved = resolveLane(lane, options.model, localModels);
 
+if (options.dryRun) {
+  const out = { lane, ...resolved };
+  if (out.apiKey) out.apiKey = '[set]';
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(0);
+}
+
 if (resolved.kind === 'local') {
   const result = await runLocalChat(resolved.model, prompt, options.system);
+  process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+  process.exit(0);
+}
+
+if (resolved.protocol === 'ollama-native') {
+  const result = await runOllamaRemote(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system);
   process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
   process.exit(0);
 }
@@ -32,7 +52,7 @@ const result = await runOpenAICompatibleChat(resolved.endpoint, resolved.apiKey,
 process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
 
 function parseArgs(rest) {
-  const out = { model: '', system: '', prompt: '' };
+  const out = { model: '', system: '', prompt: '', dryRun: false, inventory: false };
   const promptParts = [];
 
   for (let i = 0; i < rest.length; i += 1) {
@@ -43,6 +63,14 @@ function parseArgs(rest) {
     }
     if (token === '--system' && rest[i + 1]) {
       out.system = rest[++i];
+      continue;
+    }
+    if (token === '--dry-run' || token === '--route-only') {
+      out.dryRun = true;
+      continue;
+    }
+    if (token === '--inventory') {
+      out.inventory = true;
       continue;
     }
     promptParts.push(token);
@@ -98,11 +126,32 @@ function resolveLane(requestedLane, forcedModel, localModels) {
       apiKey: process.env.MOONSHOT_API_KEY || '',
       model: normalizedForcedModel || process.env.MOONSHOT_MODEL || 'kimi-k2.6',
       extraBody: cloudExtraBody('moonshot')
+    },
+    'deepseek-cloud': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com'),
+      apiKey: process.env.DEEPSEEK_API_KEY || '',
+      model: normalizedForcedModel || process.env.DEEPSEEK_CLOUD_MODEL || 'deepseek-v4-pro',
+    },
+    'ollama-cloud': {
+      kind: 'cloud',
+      protocol: 'ollama-native',
+      endpoint: process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
+      apiKey: process.env.OLLAMA_API_KEY || '',
+      model: normalizedForcedModel || process.env.OLLAMA_CLOUD_MODEL || pickFirstExisting([
+        'llama3.3:70b',
+        'qwen2.5:72b',
+        'deepseek-r1:70b',
+        'llama3.1:70b'
+      ], new Set()),
     }
   };
 
   const resolved = laneMap[requestedLane];
   if (!resolved) {
+    if (requestedLane === 'claude') {
+      throw new Error('Lane "claude" removed: it routed to DeepSeek Cloud, not Claude. Use "deepseek-cloud" instead.');
+    }
     throw new Error(`Unsupported lane: ${requestedLane}`);
   }
 
@@ -120,6 +169,9 @@ function resolveLane(requestedLane, forcedModel, localModels) {
 function normalizeForcedModel(forcedModel, lane) {
   if (!forcedModel) return '';
 
+  // Strip routing suffixes (:cloud, :local, :remote) — they're routing hints, not model IDs
+  forcedModel = forcedModel.replace(/:(?:cloud|local|remote)$/i, '');
+
   const normalized = forcedModel.replace(/[_]/g, '-').toLowerCase();
   const laneName = lane.replace(/[_]/g, '-').toLowerCase();
 
@@ -129,6 +181,8 @@ function normalizeForcedModel(forcedModel, lane) {
   if (laneName === 'ollama' && normalized === 'ollama') return '';
   if (laneName === 'kimi' && (normalized === 'kimi' || normalized === 'moonshot')) return '';
   if (laneName === 'moonshot' && (normalized === 'moonshot' || normalized === 'kimi')) return '';
+  if (laneName === 'deepseek-cloud' && normalized === 'deepseek-cloud') return '';
+  if (laneName === 'ollama-cloud' && (normalized === 'ollama-cloud' || normalized === 'ollama')) return '';
 
   return forcedModel;
 }
@@ -200,6 +254,23 @@ function safeStat(file) {
   }
 }
 
+function buildInventory(localModels) {
+  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'kimi', 'moonshot', 'deepseek-cloud', 'ollama-cloud'];
+  const lanes = {};
+  for (const name of laneNames) {
+    try {
+      const r = resolveLane(name, '', localModels);
+      lanes[name] = { kind: r.kind, model: r.model };
+      if (r.endpoint) lanes[name].endpoint = r.endpoint;
+      if (r.protocol) lanes[name].protocol = r.protocol;
+      if (r.apiKey !== undefined) lanes[name].hasKey = !!r.apiKey;
+    } catch (e) {
+      lanes[name] = { error: e.message };
+    }
+  }
+  return { lanes, localModels: [...localModels].sort() };
+}
+
 async function runLocalChat(model, promptText, systemText) {
   const host = (process.env.OLLAMA_HOST || 'http://127.0.0.1:11434').replace(/\/$/, '');
   const messages = [];
@@ -218,6 +289,28 @@ async function runLocalChat(model, promptText, systemText) {
 
   if (!response.ok) {
     throw new Error(`OLLAMA_${response.status}: ${await response.text()}`);
+  }
+
+  const data = await response.json();
+  return data.message?.content || data.response || '';
+}
+
+async function runOllamaRemote(endpoint, apiKey, model, promptText, systemText) {
+  const messages = [];
+  if (systemText) messages.push({ role: 'system', content: systemText });
+  messages.push({ role: 'user', content: promptText });
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ model, messages, stream: false })
+  });
+
+  if (!response.ok) {
+    throw new Error(`OLLAMA_CLOUD_${response.status}: ${await response.text()}`);
   }
 
   const data = await response.json();
