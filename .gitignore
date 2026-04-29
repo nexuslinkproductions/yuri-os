@@ -82,3 +82,7 @@ RESEARCH/ruflo/
 # Embedded agent repos
 .agents/openmythos/
 01_PROJECTS/claude-cookbooks/
+
+# Local cache and nested snapshot artifacts
+.smart-env/
+NUDIMMUD/
