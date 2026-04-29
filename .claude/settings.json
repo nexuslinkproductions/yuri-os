@@ -105,6 +105,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node .claude/hooks/bash-security-guard.js"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/scout-inject.js"
           },
           {
