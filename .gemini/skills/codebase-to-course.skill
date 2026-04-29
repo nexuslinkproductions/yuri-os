@@ -1,0 +1,7 @@
+# Bridge Skill: codebase-to-course
+This is an Antigravity bridge for the Claude skill "codebase-to-course".
+See the core implementation at: `.claude/skills/codebase-to-course/SKILL.md`
+
+**Instructions for Agent:**
+When executing this skill, you MUST strictly follow the instructions defined in:
+`.claude/skills/codebase-to-course/SKILL.md`

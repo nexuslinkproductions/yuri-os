@@ -1,0 +1,7 @@
+# Bridge Skill: local-subagent
+This is an Antigravity bridge for the Claude skill "local-subagent".
+See the core implementation at: `.claude/skills/local-subagent/SKILL.md`
+
+**Instructions for Agent:**
+When executing this skill, you MUST strictly follow the instructions defined in:
+`.claude/skills/local-subagent/SKILL.md`
