@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 'use strict';
 
+const LIVE_BLOCK_SENTINEL = 'echo __bash_security_guard_live_block_test__';
+
+function isSentinelCommand(cmd) {
+  return cmd.trim() === LIVE_BLOCK_SENTINEL;
+}
+
 const BLOCKED_CLAUDE_FILES = new Set([
   '.claude/history.jsonl',
   '.claude/memory-bus.json',
@@ -172,6 +178,8 @@ function isBlockedShellWrapper(cmd) {
 }
 
 function inspectCommand(cmd) {
+  if (isSentinelCommand(cmd))
+    return { type: 'block', reason: 'SECURITY_GUARD live block sentinel.' };
   if (isBlockedEnvRead(cmd))
     return { type: 'block', reason: 'Reading .env is blocked.' };
   if (isBlockedSensitiveClaudeRead(cmd))

@@ -176,6 +176,13 @@ expectPass('Bash with missing command',
 expectPass('Bash with empty command',
   { tool_name: 'Bash', tool_input: { command: '' } });
 
+// --- H: sentinel ---
+console.log('\nH — sentinel:');
+expectBlock('sentinel exact match', 'echo __bash_security_guard_live_block_test__');
+expectPass('sentinel pass: trailing suffix', 'echo __bash_security_guard_live_block_test__extra');
+expectPass('sentinel pass: prefix text', 'echo before __bash_security_guard_live_block_test__');
+expectAdvisory('sentinel wrapper advisory', 'bash -c "echo __bash_security_guard_live_block_test__"');
+
 // --- Summary ---
 const total = pass + fail;
 console.log(`\nResults: ${pass}/${total} passed, ${fail} failed`);

@@ -95,6 +95,13 @@ expectPass('cat .claude/settings.json', 'cat .claude/settings.json');
 expectPass('git add .claude/hooks/new-hook.js', 'git add .claude/hooks/new-hook.js');
 expectPass('echo "dotenv loaded"', 'echo "dotenv loaded"');
 
+// --- Sentinel cases ---
+console.log('\nSentinel cases:');
+expectBlock('sentinel exact match', 'echo __bash_security_guard_live_block_test__');
+expectPass('sentinel pass: trailing suffix', 'echo __bash_security_guard_live_block_test__extra');
+expectPass('sentinel pass: prefix text', 'echo before __bash_security_guard_live_block_test__');
+expectAdvisory('sentinel wrapper advisory', 'bash -c "echo __bash_security_guard_live_block_test__"');
+
 // --- Malformed / non-Bash cases ---
 console.log('\nMalformed / non-Bash cases:');
 {
