@@ -86,3 +86,4 @@ RESEARCH/ruflo/
 # Local cache and nested snapshot artifacts
 .smart-env/
 NUDIMMUD/
+gemini_env/
