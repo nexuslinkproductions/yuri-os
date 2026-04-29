@@ -40,14 +40,20 @@ function bashInput(cmd) {
 function expectBlock(label, cmd) {
   const out = runHook(bashInput(cmd));
   const p = parseOut(out);
-  assert(label, out.status === 0 && p && p.hookSpecificOutput && p.hookSpecificOutput.permissionDecision === 'deny',
+  const hso = p && p.hookSpecificOutput;
+  assert(label, out.status === 0 && hso &&
+    hso.hookEventName === 'PreToolUse' &&
+    hso.permissionDecision === 'deny',
     `stdout=${JSON.stringify(out.stdout)}`);
 }
 
 function expectAdvisory(label, cmd) {
   const out = runHook(bashInput(cmd));
   const p = parseOut(out);
-  assert(label, out.status === 0 && p && p.hookSpecificOutput && p.hookSpecificOutput.additionalContext && !p.hookSpecificOutput.permissionDecision,
+  const hso = p && p.hookSpecificOutput;
+  assert(label, out.status === 0 && hso &&
+    hso.hookEventName === 'PreToolUse' &&
+    hso.additionalContext && !hso.permissionDecision,
     `stdout=${JSON.stringify(out.stdout)}`);
 }
 

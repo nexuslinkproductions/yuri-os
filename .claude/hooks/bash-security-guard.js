@@ -259,23 +259,33 @@ process.stdin.on('end', () => {
   const cmd = (input.tool_input && input.tool_input.command) || '';
   if (!cmd) process.exit(0);
 
+  function emitDeny(reason) {
+    process.stdout.write(JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: reason,
+      },
+    }) + '\n');
+  }
+
+  function emitAdvisory(message) {
+    process.stdout.write(JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        additionalContext: message,
+      },
+    }) + '\n');
+  }
+
   const result = inspectCommand(cmd);
   if (result === null) {
     process.exit(0);
   } else if (result.type === 'block') {
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: {
-        permissionDecision: 'deny',
-        permissionDecisionReason: result.reason,
-      },
-    }) + '\n');
+    emitDeny(result.reason);
     process.exit(0);
   } else if (result.type === 'advisory') {
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: {
-        additionalContext: result.message,
-      },
-    }) + '\n');
+    emitAdvisory(result.message);
     process.exit(0);
   }
 });
