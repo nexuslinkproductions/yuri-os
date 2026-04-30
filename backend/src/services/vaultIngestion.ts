@@ -44,9 +44,25 @@ const DIR_DOMAIN_MAP: Record<string, string> = {
     '01_PROJECTS':                        'PROJECTS',
 };
 
+// File-level domain overrides (root-level files)
+const FILE_DOMAIN_MAP: Record<string, string> = {
+    'AEONIC_PROTOCOL.md':  'AEONIC',
+    'CODEX_PROTOCOL.md':   'AEONIC',
+    'esoteric_codex.md':   'HERMETIC',
+    'creative_codex.md':   'CREATIVE',
+    'language_codex.md':   'LINGUISTICS',
+    'nabu.md':             'SYSTEM',
+    'identity.md':         'MEMORY',
+    'session_log.md':      'LOG',
+    'enki_state.md':       'MEMORY',
+    'STRUCTURE.md':        'SYSTEM',
+};
+
 const VAULT_DIRS = Object.keys(DIR_DOMAIN_MAP);
 
 const CORE_FILES = [
+    { file: 'AEONIC_PROTOCOL.md',                             domain: 'AEONIC' },
+    { file: 'CODEX_PROTOCOL.md',                              domain: 'AEONIC' },
     { file: 'esoteric_codex.md',                              domain: 'HERMETIC' },
     { file: 'creative_codex.md',                              domain: 'CREATIVE' },
     { file: 'language_codex.md',                              domain: 'LINGUISTICS' },
@@ -128,7 +144,10 @@ function redactSecrets(content: string): string {
  * Infer the domain for a file based on its relative path.
  */
 export function inferDomain(relativePath: string): string {
-    // Check from most specific to least specific
+    const filename = path.basename(relativePath);
+    // Check file-level overrides first
+    if (FILE_DOMAIN_MAP[filename]) return FILE_DOMAIN_MAP[filename];
+    // Check from most specific to least specific directory prefix
     for (const prefix of Object.keys(DIR_DOMAIN_MAP).sort((a, b) => b.length - a.length)) {
         if (relativePath.startsWith(prefix)) return DIR_DOMAIN_MAP[prefix];
     }
