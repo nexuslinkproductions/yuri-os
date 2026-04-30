@@ -87,3 +87,16 @@ RESEARCH/ruflo/
 .smart-env/
 NUDIMMUD/
 gemini_env/
+
+# Graphify generated runtime artifacts
+graphify-out/.venv/
+graphify-out/cache/
+graphify-out/.graphify_*.json
+graphify-out/.graphify_*.pkl
+graphify-out/.graphify_uncached*.txt
+graphify-out/.chunk_*.txt
+graphify-out/chunk_*.txt
+graphify-out/.graphify_python
+graphify-out/manifest.json
+graphify-out/._*
+graphify-out/.DS_Store

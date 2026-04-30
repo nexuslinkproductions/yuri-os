@@ -1,1 +1,0 @@
-{"nodes": [{"id": "opencode", "label": "opencode.ts", "file_type": "code", "source_file": "01_PROJECTS/gstack/hosts/opencode.ts", "source_location": "L1"}], "edges": [{"source": "opencode", "target": "host_config", "relation": "imports_from", "confidence": "EXTRACTED", "source_file": "01_PROJECTS/gstack/hosts/opencode.ts", "source_location": "L1", "weight": 1.0}]}

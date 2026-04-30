@@ -1,8 +1,0 @@
-/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/add_custom_panel.png
-/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/my_daily_monitor_dark.png
-/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/framework.png
-/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/settings_api_keys.png
-/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/manga_v1.png
-/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/benchmark_income.png
-/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/settings_preferences.png
-/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace/assets/benchmark_skill_taxonomy.png

@@ -1,1 +1,0 @@
-{"nodes": [{"id": "kiro", "label": "kiro.ts", "file_type": "code", "source_file": "01_PROJECTS/gstack/hosts/kiro.ts", "source_location": "L1"}], "edges": [{"source": "kiro", "target": "host_config", "relation": "imports_from", "confidence": "EXTRACTED", "source_file": "01_PROJECTS/gstack/hosts/kiro.ts", "source_location": "L1", "weight": 1.0}]}
