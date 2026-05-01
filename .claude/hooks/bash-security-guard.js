@@ -165,6 +165,10 @@ function isBlockedInner(cmd) {
     isBlockedBroadGitAdd(cmd) || isBlockedGitRm(cmd);
 }
 
+function isDownloadExecuteChain(cmd) {
+  return /\b(curl|wget)\b[^|]*\|\s*(sudo\s+|env\s+)?(bash|sh|zsh|ksh|dash|python3?|node)\b/.test(cmd);
+}
+
 // Matches bash/sh/zsh/ksh/dash with -c or combined flags like -lc, -ic
 function extractShellWrapper(cmd) {
   if (!/^(?:bash|sh|zsh|ksh|dash)\b/.test(cmd)) return null;
@@ -174,7 +178,8 @@ function extractShellWrapper(cmd) {
 
 function isBlockedShellWrapper(cmd) {
   const inner = extractShellWrapper(cmd);
-  return inner ? isBlockedInner(inner) : false;
+  if (!inner) return false;
+  return isBlockedInner(inner) || isDownloadExecuteChain(inner);
 }
 
 function inspectCommand(cmd) {
@@ -200,6 +205,8 @@ function inspectCommand(cmd) {
     return { type: 'block', reason: 'git rm targeting .claude is blocked.' };
   if (isBlockedShellWrapper(cmd))
     return { type: 'block', reason: 'Shell wrapper contains a blocked command.' };
+  if (isDownloadExecuteChain(cmd))
+    return { type: 'block', reason: 'Download-and-execute chain is blocked (HI-12).' };
 
   const parts = toks(cmd);
   const first = parts[0];
