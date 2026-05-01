@@ -77,16 +77,43 @@ export class NotebookIngestService {
         if (!fs.existsSync(fullPath)) throw new Error(`Vault note not found: ${vaultRelativePath}`);
 
         const raw = fs.readFileSync(fullPath, 'utf-8');
-        // Strip YAML frontmatter
         const text = raw.replace(/^---[\s\S]*?---\n?/, '').trim();
         const title = path.basename(vaultRelativePath, '.md');
 
-        const source = this.notebookService.createSource(notebookId, 'obsidian', title, {
-            obsidianPath: vaultRelativePath,
-            fileSizeBytes: Buffer.byteLength(raw, 'utf-8')
-        });
+        const existing = this.notebookService.findSourcesByObsidianPath(notebookId, vaultRelativePath);
 
-        return this.processTextIntoChunks(source.id, text);
+        if (existing.length === 0) {
+            const source = this.notebookService.createSource(notebookId, 'obsidian', title, {
+                obsidianPath: vaultRelativePath,
+                fileSizeBytes: Buffer.byteLength(raw, 'utf-8')
+            });
+            return this.processTextIntoChunks(source.id, text);
+        }
+
+        const canonical = existing.reduce((a, b) => (a.id < b.id ? a : b));
+        const duplicates = existing.filter(s => s.id !== canonical.id);
+        const words = text.split(/\s+/).filter(Boolean);
+        const wordCount = words.length;
+        const rawChunks = this.chunkText(words);
+
+        this.notebookService.updateSourceStatus(canonical.id, 'processing');
+        try {
+            this.notebookService.collapseAndReplaceObsidianSource(
+                canonical.id,
+                duplicates.map(s => s.id),
+                rawChunks
+            );
+            this.notebookService.updateSourceStatus(canonical.id, 'ready', undefined, wordCount);
+            this.embedAllChunks(canonical.id, rawChunks.length).catch((e: unknown) => {
+                const msg = e instanceof Error ? e.message : String(e);
+                console.error(`⬡ NOTEBOOK_EMBED_ERROR :: source=${canonical.id} :: ${msg}`);
+            });
+            return { sourceId: canonical.id, chunkCount: rawChunks.length, wordCount };
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            this.notebookService.updateSourceStatus(canonical.id, 'error', msg);
+            throw e;
+        }
     }
 
     private async extractPdf(filePath: string): Promise<string> {

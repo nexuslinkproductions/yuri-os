@@ -89,6 +89,8 @@ export class NotebookService {
         deleteDoc: null as any,
         createMessage: null as any,
         listMessages: null as any,
+        findSourcesByObsidianPath: null as any,
+        deleteChunksForSource: null as any,
     };
 
     constructor(db: Database.Database) {
@@ -171,6 +173,12 @@ export class NotebookService {
         `);
         this.stmts.listMessages = this.db.prepare(
             `SELECT * FROM notebook_messages WHERE notebook_id=? ORDER BY created_at ASC`
+        );
+        this.stmts.findSourcesByObsidianPath = this.db.prepare(
+            `SELECT * FROM notebook_sources WHERE notebook_id=? AND obsidian_path=? ORDER BY id ASC`
+        );
+        this.stmts.deleteChunksForSource = this.db.prepare(
+            `DELETE FROM notebook_chunks WHERE source_id=?`
         );
     }
 
@@ -287,6 +295,50 @@ export class NotebookService {
 
     updateChunkEmbedding(chunkId: number, embedding: number[]): void {
         this.stmts.updateChunkEmbedding.run(JSON.stringify(embedding), chunkId);
+    }
+
+    findSourcesByObsidianPath(notebookId: number, obsidianPath: string): NotebookSource[] {
+        return this.stmts.findSourcesByObsidianPath.all(notebookId, obsidianPath) as NotebookSource[];
+    }
+
+    deleteChunksForSource(sourceId: number): void {
+        this.stmts.deleteChunksForSource.run(sourceId);
+    }
+
+    replaceChunksForSource(
+        sourceId: number,
+        chunks: Array<{ content: string; tokenCount: number; metadata?: Record<string, unknown> }>
+    ): void {
+        const replace = this.db.transaction(() => {
+            this.stmts.deleteChunksForSource.run(sourceId);
+            chunks.forEach((c, idx) => {
+                this.stmts.createChunk.run(
+                    sourceId, idx, c.content, c.tokenCount,
+                    c.metadata ? JSON.stringify(c.metadata) : null
+                );
+            });
+        });
+        replace();
+    }
+
+    collapseAndReplaceObsidianSource(
+        canonicalId: number,
+        duplicateIds: number[],
+        chunks: Array<{ content: string; tokenCount: number; metadata?: Record<string, unknown> }>
+    ): void {
+        const collapse = this.db.transaction(() => {
+            for (const dupId of duplicateIds) {
+                this.stmts.deleteSource.run(dupId);
+            }
+            this.stmts.deleteChunksForSource.run(canonicalId);
+            chunks.forEach((c, idx) => {
+                this.stmts.createChunk.run(
+                    canonicalId, idx, c.content, c.tokenCount,
+                    c.metadata ? JSON.stringify(c.metadata) : null
+                );
+            });
+        });
+        collapse();
     }
 
     // ─── Docs ─────────────────────────────────────────────────────────────────
