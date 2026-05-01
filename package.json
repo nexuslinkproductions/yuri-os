@@ -5,9 +5,12 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "graphify": "bash scripts/graphify-run.sh"
+    "graphify": "bash scripts/graphify-run.sh",
+    "validate:ledger": "node _SYSTEM/validators/validate-evidence-ledger.mjs",
+    "yuri": "claude"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   },
@@ -20,6 +23,7 @@
     "framer-motion": "^12.38.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "run-deepseek-cli": "^0.1.1",
     "three": "^0.173.0"
   }
 }
