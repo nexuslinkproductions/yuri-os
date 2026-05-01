@@ -47,14 +47,11 @@ export class NotebookRagService {
 
         const topChunks = this.retrieveTopK(embeddedChunks, queryEmbedding, TOP_K);
 
-        // Emit citations for all retrieved chunks
-        for (const chunk of topChunks) {
-            onCitation({
-                chunk_id: chunk.id,
-                source_title: chunk.source_title,
-                excerpt: chunk.content.slice(0, 200) + (chunk.content.length > 200 ? '…' : '')
-            });
-        }
+        const citations = topChunks.map(chunk => ({
+            chunk_id: chunk.id,
+            source_title: chunk.source_title,
+            excerpt: chunk.content.slice(0, 200) + (chunk.content.length > 200 ? '…' : '')
+        }));
 
         const systemPrompt = this.buildSystemPrompt(topChunks);
         const usedChunkIds = topChunks.map(c => c.id);
@@ -99,6 +96,9 @@ export class NotebookRagService {
             }
 
             this.notebookService.saveMessage(notebookId, 'assistant', fullContent, usedChunkIds);
+            for (const citation of citations) {
+                onCitation(citation);
+            }
             onDone(fullContent);
         } catch (e: any) {
             if (e.name !== 'AbortError') {
