@@ -32,7 +32,7 @@ list_models() {
   echo "⬡ NUDIMMUD_NEURAL_REGISTRY"
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
-  for lane in gpt-oss deepseek kimi moonshot ollama; do
+  for lane in gpt-oss deepseek kimi moonshot ollama openrouter-free; do
     if command -v "$lane" >/dev/null 2>&1; then
       printf '  [%-8s] %s\n' "$lane" "$(command -v "$lane")"
     else
@@ -70,7 +70,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    kimi*|moonshot*|*-cloud*) printf 'cloud' ;;
+    kimi*|moonshot*|*-cloud*|openrouter*) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -96,6 +96,14 @@ dispatch_model() {
       deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b|deepseek)
         echo "⬡ ROUTING_TO_DEEPSEEK..."
         node "$OFFLOAD_RUNNER" deepseek --model "$target_model" "$prompt"
+        ;;
+      openrouter-free|openrouter)
+        echo "⬡ ROUTING_TO_OPENROUTER_FREE..."
+        node "$OFFLOAD_RUNNER" openrouter-free "$prompt"
+        ;;
+      openrouter/free)
+        echo "⬡ ROUTING_TO_OPENROUTER_FREE..."
+        node "$OFFLOAD_RUNNER" openrouter-free --model openrouter/free "$prompt"
         ;;
       *)
         echo "⬡ ROUTING_TO_OLLAMA ($target_model)..."

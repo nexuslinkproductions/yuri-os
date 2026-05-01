@@ -36,7 +36,7 @@ if (options.dryRun) {
   process.exit(0);
 }
 
-if (resolved.status === 'SKIPPED_MISSING_ENDPOINT') {
+if (resolved.status === 'SKIPPED_MISSING_ENDPOINT' || resolved.status === 'SKIPPED_MISSING_KEY') {
   console.error(`[${lane}] ${resolved.status}: ${resolved.error}`);
   process.exit(0);
 }
@@ -53,7 +53,10 @@ if (resolved.protocol === 'ollama-native') {
   process.exit(0);
 }
 
-const result = await runOpenAICompatibleChat(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody);
+const result = await runOpenAICompatibleChat(
+  resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody,
+  { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout }
+);
 process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
 
 function parseArgs(rest) {
@@ -212,6 +215,19 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
       apiKey: process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || process.env.NVIDIA_NIM_MODEL || 'deepseek-ai/deepseek-v4-pro',
+    },
+    'openrouter-free': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'),
+      apiKey: process.env.OPENROUTER_API_KEY || '',
+      model: normalizedForcedModel || process.env.OPENROUTER_MODEL || 'openrouter/free',
+      maxTokens: parseInt(process.env.OPENROUTER_MAX_TOKENS || '2048', 10),
+      timeout: 30000,
+      extraHeaders: {
+        'HTTP-Referer': 'https://nudimmud.local',
+        'X-OpenRouter-Title': 'NUDIMMUD',
+      },
+      requiresKey: true,
     }
   };
 
@@ -242,6 +258,38 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
       };
     }
     throw new Error(`Missing endpoint for lane: ${requestedLane}`);
+  }
+
+  if (resolved.requiresKey && !resolved.apiKey) {
+    if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
+      return {
+        kind: resolved.kind,
+        endpoint: resolved.endpoint,
+        apiKey: '',
+        model: resolved.model,
+        executable: false,
+        status: 'SKIPPED_MISSING_KEY',
+        error: `Missing API key for lane: ${requestedLane}`,
+      };
+    }
+    throw new Error(`Missing API key for lane: ${requestedLane}`);
+  }
+
+  if (requestedLane === 'openrouter-free') {
+    const model = resolved.model;
+    const isFree = model === 'openrouter/free' || model.endsWith(':free');
+    if (!isFree && process.env.OPENROUTER_ALLOW_PAID !== '1') {
+      if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
+        return {
+          kind: 'blocked',
+          model,
+          executable: false,
+          status: 'BLOCKED_PAID_MODEL',
+          error: `Model "${model}" requires OPENROUTER_ALLOW_PAID=1`,
+        };
+      }
+      throw new Error(`OpenRouter paid model blocked: "${model}". Set OPENROUTER_ALLOW_PAID=1 to allow.`);
+    }
   }
 
   return resolved;
@@ -433,7 +481,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'kimi', 'moonshot', 'deepseek-cloud', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-kimi', 'reason-cloud', 'code-deepseek', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma'];
+  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'kimi', 'moonshot', 'deepseek-cloud', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-kimi', 'reason-cloud', 'code-deepseek', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -499,27 +547,40 @@ async function runOllamaRemote(endpoint, apiKey, model, promptText, systemText) 
   return data.message?.content || data.response || '';
 }
 
-async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, systemText, extraBody) {
+async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, systemText, extraBody, opts = {}) {
   const messages = [];
   if (systemText) messages.push({ role: 'system', content: systemText });
   messages.push({ role: 'user', content: promptText });
 
   const headers = { 'Content-Type': 'application/json' };
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+  if (opts.extraHeaders) Object.assign(headers, opts.extraHeaders);
 
   const body = {
     model,
     messages,
+    ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
     ...(extraBody || {})
   };
 
-  const response = await fetch(`${endpoint}/chat/completions`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body)
-  });
+  const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) };
+  let timeoutId;
+  if (opts.timeout) {
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), opts.timeout);
+    fetchOpts.signal = controller.signal;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${endpoint}/chat/completions`, fetchOpts);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
+    if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
+    if (response.status === 429) throw new Error('RATE_LIMITED');
     throw new Error(`OPENAI_COMPAT_${response.status}: ${await response.text()}`);
   }
 
