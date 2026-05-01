@@ -36,7 +36,11 @@ if (options.dryRun) {
   process.exit(0);
 }
 
-if (resolved.status === 'SKIPPED_MISSING_ENDPOINT' || resolved.status === 'SKIPPED_MISSING_KEY') {
+if (
+  resolved.status === 'SKIPPED_MISSING_ENDPOINT' ||
+  resolved.status === 'SKIPPED_MISSING_KEY' ||
+  resolved.status === 'BLOCKED_PAID_MODEL'
+) {
   console.error(`[${lane}] ${resolved.status}: ${resolved.error}`);
   process.exit(0);
 }
