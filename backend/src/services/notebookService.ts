@@ -143,7 +143,7 @@ export class NotebookService {
             SELECT nc.*, ns.title as source_title
             FROM notebook_chunks nc
             JOIN notebook_sources ns ON ns.id = nc.source_id
-            WHERE ns.notebook_id=? AND nc.embedding IS NOT NULL
+            WHERE ns.notebook_id=? AND ns.status='ready' AND nc.embedding IS NOT NULL
         `);
         this.stmts.updateChunkEmbedding = this.db.prepare(
             `UPDATE notebook_chunks SET embedding=? WHERE id=?`
