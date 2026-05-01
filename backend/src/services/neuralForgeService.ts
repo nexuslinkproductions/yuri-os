@@ -43,6 +43,10 @@ export interface NeuralChatOptions extends RoutingRequestOptions {
     };
 }
 
+export interface NeuralEmbeddingOptions {
+    allowCloud?: boolean;
+}
+
 export interface ForgeExecutionSnapshot {
     timestamp: string;
     runtime: 'local' | 'cloud' | 'degraded';
@@ -207,11 +211,17 @@ export class NeuralForgeService {
     /**
      * Generate an embedding vector for a string
      */
-    async getEmbedding(text: string, model: string = 'nomic-embed-text'): Promise<number[] | null> {
+    async getEmbedding(text: string, model: string = 'nomic-embed-text', options: NeuralEmbeddingOptions = {}): Promise<number[] | null> {
         const start = Date.now();
         const isCloud = model.endsWith(':cloud');
+        const allowCloud = options.allowCloud !== false;
         const endpoint = isCloud ? this.cloudEndpoint.replace(/\/api$/, '') : this.ollamaHost;
         const actualModel = isCloud ? model.replace(':cloud', '') : model;
+
+        if (isCloud && !allowCloud) {
+            console.warn(`⬡ NEURAL_FORGE :: EMBEDDING_CLOUD_BLOCKED_BY_POLICY`);
+            return null;
+        }
 
         const headers: Record<string, string> = {};
         if (isCloud && this.cloudApiKey) {
@@ -228,9 +238,9 @@ export class NeuralForgeService {
             return response.data.embedding;
         } catch (e: any) {
             console.error(`⬡ NEURAL_FORGE_EMBEDDING_ERROR :: ${isCloud ? 'CLOUD' : 'LOCAL'} :: ${e.message}`);
-            if (!isCloud && this.cloudApiKey) {
+            if (!isCloud && this.cloudApiKey && allowCloud) {
                 console.log(`⬡ NEURAL_FORGE :: RETRYING_EMBEDDING_VIA_CLOUD`);
-                return this.getEmbedding(text, `${actualModel}:cloud`);
+                return this.getEmbedding(text, `${actualModel}:cloud`, options);
             }
             return null;
         }

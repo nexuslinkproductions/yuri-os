@@ -39,7 +39,7 @@ export class NotebookRagService {
             return;
         }
 
-        const queryEmbedding = await neuralForge.getEmbedding(query);
+        const queryEmbedding = await neuralForge.getEmbedding(query, 'nomic-embed-text', { allowCloud: false });
         if (!queryEmbedding) {
             onError('Failed to generate query embedding. Is Ollama running?');
             return;
