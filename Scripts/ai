@@ -155,9 +155,16 @@ print_section() {
   fi
 }
 
+cleanup_tmpdir() {
+  local path="${1:-}"
+  if [ -n "$path" ] && [ -d "$path" ]; then
+    rm -rf -- "$path"
+  fi
+}
+
 run_triage() {
   local prompt="$1"
-  local tmpdir claude_out gemini_out codex_out
+  local tmpdir="" claude_out gemini_out codex_out
   local pid_claude pid_gemini pid_codex status
 
   require_cmd claude
@@ -169,7 +176,7 @@ run_triage() {
   gemini_out="$tmpdir/gemini.txt"
   codex_out="$tmpdir/codex.txt"
 
-  trap 'rm -rf "$tmpdir"' EXIT
+  trap "cleanup_tmpdir \"$tmpdir\"" EXIT
 
   (
     claude --print "$prompt" >"$claude_out" 2>&1
@@ -227,7 +234,7 @@ run_offload_lane() {
 
 run_codex_swarm() {
   local prompt="$1"
-  local tmpdir kimi_out gpt_oss_out ollama_out
+  local tmpdir="" kimi_out gpt_oss_out ollama_out
   local pid_kimi status
 
   if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
@@ -244,13 +251,13 @@ run_codex_swarm() {
   gpt_oss_out="$tmpdir/gpt-oss.txt"
   ollama_out="$tmpdir/ollama.txt"
 
-  trap 'rm -rf "$tmpdir"' EXIT
+  trap "cleanup_tmpdir \"$tmpdir\"" EXIT
 
   status=0
 
   # Cloud lane: kimi runs in background (no local resource contention)
   (
-    node "$OFFLOAD_RUNNER" kimi "$prompt" >"$kimi_out" 2>&1
+    OFFLOAD_OPTIONAL=1 node "$OFFLOAD_RUNNER" kimi "$prompt" >"$kimi_out" 2>&1
   ) &
   pid_kimi=$!
 
@@ -609,7 +616,7 @@ case "${1:-help}" in
         fi
         run_codex_offload ollama "$@"
         ;;
-      swarm|triage)
+      @swarm|swarm|triage)
         shift || true
         prompt="$(join_prompt "$@")"
         if [ -z "$prompt" ]; then

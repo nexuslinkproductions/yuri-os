@@ -36,6 +36,11 @@ if (options.dryRun) {
   process.exit(0);
 }
 
+if (resolved.status === 'SKIPPED_MISSING_ENDPOINT') {
+  console.error(`[${lane}] ${resolved.status}: ${resolved.error}`);
+  process.exit(0);
+}
+
 if (resolved.kind === 'local') {
   const result = await runLocalChat(resolved.model, prompt, options.system);
   process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
@@ -223,6 +228,19 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
   }
 
   if (!resolved.endpoint) {
+    if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
+      return {
+        kind: resolved.kind,
+        protocol: resolved.protocol,
+        endpoint: '',
+        apiKey: resolved.apiKey || '',
+        model: resolved.model,
+        extraBody: resolved.extraBody,
+        executable: false,
+        status: 'SKIPPED_MISSING_ENDPOINT',
+        error: `Missing endpoint for lane: ${requestedLane}`,
+      };
+    }
     throw new Error(`Missing endpoint for lane: ${requestedLane}`);
   }
 
@@ -425,6 +443,7 @@ function buildInventory(localModels) {
       if (r.protocol) lanes[name].protocol = r.protocol;
       if (r.apiKey !== undefined) lanes[name].hasKey = !!r.apiKey;
       if (r.executable !== undefined) lanes[name].executable = r.executable;
+      if (r.status) lanes[name].status = r.status;
       if (r.error) lanes[name].error = r.error;
       if (r.resolvedVia) lanes[name].resolvedVia = r.resolvedVia;
     } catch (e) {

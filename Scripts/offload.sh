@@ -196,10 +196,10 @@ if [[ -n "$SWARM_MODELS" ]]; then
     cloud_pids=()
     for m in "${ADDR[@]}"; do
         if [[ "$(classify_lane "$m")" == "cloud" ]]; then
-            ( dispatch_model "$m" "$PROMPT" ) &
+            ( OFFLOAD_OPTIONAL=1 dispatch_model "$m" "$PROMPT" ) &
             cloud_pids+=($!)
         else
-            dispatch_model "$m" "$PROMPT"
+            OFFLOAD_OPTIONAL=1 dispatch_model "$m" "$PROMPT"
         fi
     done
     for pid in "${cloud_pids[@]}"; do
