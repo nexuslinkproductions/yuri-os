@@ -22,6 +22,69 @@ function toCount(value, fallback = 0) {
   return Number.isInteger(value) && value >= 0 ? value : fallback;
 }
 
+function toShortModeLabel(state) {
+  const mode = toStringOrEmpty(state.mode).toLowerCase();
+  if (state.completed || mode === 'saved') {
+    return 'saved';
+  }
+
+  if (mode === 'streaming' || mode === 'thinking') {
+    return mode;
+  }
+
+  if (mode === 'busy') {
+    return Number.isInteger(state.output_chars) && state.output_chars > 0 ? 'streaming' : 'thinking';
+  }
+
+  return 'idle';
+}
+
+function toTokenmaxxingLabel(value) {
+  const raw = toStringOrEmpty(value).trim();
+  if (!raw) return '';
+  if (/inactive/i.test(raw)) return '';
+  if (/active/i.test(raw)) return 'tmx active';
+  return `tmx ${raw.toLowerCase()}`;
+}
+
+function toSavedCue(state) {
+  if (!state.completed && !state.last_transcript_path) {
+    return '';
+  }
+
+  if (state.last_turn_id) {
+    return `saved ${state.last_turn_id}`;
+  }
+
+  return 'saved transcript';
+}
+
+function renderStatusParts(state, { forceBusy = false } = {}) {
+  const parts = [];
+  const mode = forceBusy ? (Number.isInteger(state.output_chars) && state.output_chars > 0 ? 'streaming' : 'thinking') : toShortModeLabel(state);
+
+  parts.push(`state ${mode}`);
+  if (state.model) parts.push(`model ${state.model}`);
+  if (state.lane) parts.push(`route ${state.lane}`);
+
+  const showProgress = mode === 'thinking' || mode === 'streaming';
+  if (showProgress && Number.isInteger(state.elapsed_seconds) && state.elapsed_seconds > 0) {
+    parts.push(`elapsed ${state.elapsed_seconds}s`);
+  }
+
+  if (showProgress && Number.isInteger(state.output_chars) && state.output_chars >= 0) {
+    parts.push(`output ${state.output_chars} chars`);
+  }
+
+  const tmx = toTokenmaxxingLabel(state.tokenmaxxing_state);
+  if (tmx) parts.push(tmx);
+
+  const saved = toSavedCue(state);
+  if (saved) parts.push(saved);
+
+  return parts.join(' | ');
+}
+
 function toBoolean(value) {
   return Boolean(value);
 }
@@ -96,33 +159,12 @@ export function createStatusSnapshot(input = {}) {
 
 export function renderCompactStatusLine(snapshot) {
   const state = isPlainObject(snapshot) ? snapshot : createStatusSnapshot();
-  const parts = [];
-
-  if (state.run_id) parts.push(`run ${state.run_id}`);
-  if (state.turn_id) parts.push(`turn ${state.turn_id}`);
-  if (state.model) parts.push(`model ${state.model}`);
-  if (state.lane) parts.push(`lane ${state.lane}`);
-  parts.push(`mode ${state.mode || 'normal'}`);
-  parts.push(`ctx ${state.token_estimate || 0}/${state.model_context_window || DEFAULT_STATUS_LIMITS.model_context_window}`);
-  if (state.tokenmaxxing_state) parts.push(`tmx ${state.tokenmaxxing_state}`);
-  if (state.phase) parts.push(`phase ${state.phase}`);
-  if (state.last_turn_id) parts.push(`last ${state.last_turn_id}`);
-
-  return clampLine(parts.join(' | '), DEFAULT_STATUS_LIMITS.compact_max_chars);
+  return clampLine(renderStatusParts(state), DEFAULT_STATUS_LIMITS.compact_max_chars);
 }
 
 export function renderBusyStatusLine(snapshot) {
   const state = isPlainObject(snapshot) ? snapshot : createStatusSnapshot();
-  const parts = ['thinking'];
-
-  if (state.phase) parts.push(`phase ${state.phase}`);
-  if (Number.isInteger(state.elapsed_seconds)) parts.push(`elapsed ${state.elapsed_seconds}s`);
-  if (Number.isInteger(state.output_chars)) parts.push(`output ${state.output_chars} chars`);
-
-  const hint = state.last_chunk_hint || state.no_output_hint || (state.output_chars === 0 ? 'no-output' : '');
-  if (hint) parts.push(hint);
-
-  return clampLine(parts.join(' | '), DEFAULT_STATUS_LIMITS.busy_max_chars);
+  return clampLine(renderStatusParts(state, { forceBusy: true }), DEFAULT_STATUS_LIMITS.busy_max_chars);
 }
 
 export function renderBudgetStatusLine(snapshot) {

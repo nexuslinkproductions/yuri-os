@@ -8,6 +8,7 @@ import os from 'os';
 import {
   createStatusSnapshot,
   renderCompactStatusLine,
+  renderBusyStatusLine,
   renderBudgetStatusLine,
 } from './nudimmud/status-line.mjs';
 
@@ -68,6 +69,8 @@ const state = {
   inputTokens: 0,
   outputTokens: 0,
   startTime: Date.now(),
+  turnStartTime: null,
+  turnOutputChars: 0,
   lastStatus: 'READY',
   busy: false,
   pendingClose: false,
@@ -427,13 +430,16 @@ const readTokenmaxxingState = () => {
 
 const createHudStatusSnapshot = () => createStatusSnapshot({
   model: state.model,
-  mode: state.multilineActive ? 'multiline' : state.busy ? 'busy' : 'normal',
+  lane: state.model === MODELS.pro ? 'pro' : 'flash',
+  mode: state.busy ? (state.turnOutputChars > 0 ? 'streaming' : 'thinking') : 'idle',
   token_estimate: state.inputTokens + state.outputTokens,
   workflow_budget_used: state.inputTokens + state.outputTokens,
   model_context_window: CTX_WINDOW,
   workflow_budget_target: WORKFLOW_SOFT,
   workflow_budget_hard: WORKFLOW_HARD,
   tokenmaxxing_state: readTokenmaxxingState(),
+  elapsed_seconds: state.turnStartTime ? Math.max(0, Math.round((Date.now() - state.turnStartTime) / 1000)) : 0,
+  output_chars: state.busy ? state.turnOutputChars : 0,
   last_turn_id: state.lastTurnId || '',
   last_transcript_path: state.lastTranscriptDir || '',
 });
@@ -473,6 +479,8 @@ const printHeader = () => {
 };
 
 const printStatusBlock = () => {
+  console.log(`\n${renderCompactStatusLine(createHudStatusSnapshot())}\n`);
+  return;
   const { branch, head, staged, tmx } = getStatus();
   const elapsed = Math.round((Date.now() - state.startTime) / 1000);
   const totalTok = state.inputTokens + state.outputTokens;
@@ -531,6 +539,8 @@ ${g('CTX TOKENS (ESTIMATE only — not billing data)')}
 
 // ── HUD footer ────────────────────────────────────────────────────────────────
 const printHudFooter = () => {
+  process.stdout.write(`\n${renderCompactStatusLine(createHudStatusSnapshot())}\n\n`);
+  return;
   const { branch, head, staged, tmx } = getStatus();
   const elapsed = Math.round((Date.now() - state.startTime) / 1000);
   const totalTok = state.inputTokens + state.outputTokens;
@@ -597,9 +607,17 @@ const createActivityIndicator = ({ turnId, model }) => {
   };
 
   return {
-    start: () => { interval = setInterval(render, 80); },
+    start: () => {
+      state.turnPhase = 'thinking';
+      interval = setInterval(render, 80);
+    },
     setPhase: (p) => { phase = p; },
-    markChunk: (len) => { chunksRecv += len; lastChunkTs = Date.now(); },
+    markChunk: (len) => {
+      chunksRecv += len;
+      lastChunkTs = Date.now();
+      state.turnPhase = 'streaming';
+      state.turnOutputChars += len;
+    },
     stop: () => { if (interval) clearInterval(interval); process.stdout.write('\r\x1b[2K'); },
   };
 };
@@ -614,6 +632,9 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   state.inputTokens += inputEst;
   state.promptsSent += 1;
   state.busy = true;
+  state.turnStartTime = startTs;
+  state.turnOutputChars = 0;
+  state.turnPhase = 'thinking';
 
   // ─ USER REQUEST ─
   const preview = reqChars > 300
@@ -648,6 +669,9 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     if (savedDir) state.lastTranscriptDir = savedDir;
     const elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
     printCompactSavedLine(turnId, savedDir);
+    state.turnStartTime = null;
+    state.turnOutputChars = 0;
+    state.turnPhase = '';
     resolve('');
     return;
   }
@@ -724,6 +748,9 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     state.lastTurnId = turnId;
     if (savedDir) state.lastTranscriptDir = savedDir;
     printCompactSavedLine(turnId, savedDir);
+    state.turnStartTime = null;
+    state.turnOutputChars = 0;
+    state.turnPhase = '';
 
     if (state.pendingClose) {
       finalizeSession('SESSION CLOSED');
@@ -835,10 +862,63 @@ const runSelfTest = () => {
   const noFalsePassCommittedAcceptance = fakeVerifier.verdict !== 'LOCAL_COMMIT_CONFIRMED';
   const claimVerifierArtifactSmoke = runClaimVerifierArtifactSmoke.toString().includes('CLAIM_VERIFIER_ARTIFACT_SMOKE_PASS') &&
     runClaimVerifierArtifactSmoke.toString().includes('local_claim_verifier');
+  const hudIdleSnapshot = createStatusSnapshot({
+    model: MODELS.pro,
+    lane: 'pro',
+    mode: 'idle',
+    tokenmaxxing_state: 'TOKENMAXXING::ACTIVE',
+    workflow_budget_target: 15000,
+    workflow_budget_hard: 40000,
+    workflow_budget_used: 321,
+    last_turn_id: 'NMD-20260502-225747-002',
+    last_transcript_path: '/tmp/nudimmud/NMD-20260502-225747-002',
+  });
+  const hudIdleLine = renderCompactStatusLine(hudIdleSnapshot);
+  const hudBusyThinking = renderBusyStatusLine(createStatusSnapshot({
+    model: MODELS.pro,
+    lane: 'pro',
+    mode: 'thinking',
+    elapsed_seconds: 9,
+    output_chars: 0,
+    tokenmaxxing_state: 'TOKENMAXXING::ACTIVE',
+  }));
+  const hudBusyStreaming = renderBusyStatusLine(createStatusSnapshot({
+    model: MODELS.pro,
+    lane: 'pro',
+    mode: 'streaming',
+    elapsed_seconds: 11,
+    output_chars: 128,
+    tokenmaxxing_state: 'TOKENMAXXING::ACTIVE',
+  }));
+  const hudSavedLine = renderCompactStatusLine(createStatusSnapshot({
+    model: MODELS.pro,
+    lane: 'pro',
+    mode: 'idle',
+    last_turn_id: 'NMD-20260502-225747-002',
+    last_transcript_path: '/tmp/nudimmud/NMD-20260502-225747-002',
+  }));
+  const hudReferenceShapePresent = hudIdleLine.includes('state idle') &&
+    hudIdleLine.includes(`model ${MODELS.pro}`) &&
+    hudIdleLine.includes('route pro') &&
+    hudIdleLine.includes('tmx active') &&
+    hudIdleLine.includes('saved NMD-20260502-225747-002');
+  const hudUsefulPolishRendered = hudBusyThinking.includes('state thinking') &&
+    hudBusyThinking.includes('elapsed 9s') &&
+    hudBusyThinking.includes('output 0 chars') &&
+    hudBusyStreaming.includes('state streaming') &&
+    hudBusyStreaming.includes('elapsed 11s') &&
+    hudBusyStreaming.includes('output 128 chars') &&
+    hudSavedLine.includes('saved NMD-20260502-225747-002') &&
+    ![hudIdleLine, hudBusyThinking, hudBusyStreaming, hudSavedLine].join('\n').match(/40k|40000|workflow budget/i);
+  const hudBudgetLineStillHidden = renderBudgetStatusLine(hudIdleSnapshot) === '';
+  const tokenmaxxingStatePreserved = hudIdleSnapshot.workflow_budget_target === 15000 &&
+    hudIdleSnapshot.workflow_budget_hard === 40000 &&
+    hudIdleSnapshot.workflow_budget_used === 321 &&
+    hudIdleSnapshot.tokenmaxxing_state === 'TOKENMAXXING::ACTIVE';
   const composer08oRegression = autoSendPaste && noDuplicateMultilinePrompt && quietTurnEnd;
 
   ok('NODE_CHECK_PASS', nodeCheck);
-  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke);
+  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke && hudUsefulPolishRendered && hudReferenceShapePresent && hudBudgetLineStillHidden && tokenmaxxingStatePreserved);
   ok('NATURAL_COMPOSER_PASS', natural);
   ok('MULTILINE_CAPTURE_PASS', multiline);
   ok('ENTER_SENDS_CAPTURE_PASS', enterAfterPaste);
@@ -860,6 +940,10 @@ const runSelfTest = () => {
   ok('ROUTE_METADATA_CAPTURED_PASS', routeMetadataCaptured);
   ok('OUTPUT_MD_CLEAN_PASS', outputMdClean);
   ok('COMPOSER_08O_REGRESSION_PASS', composer08oRegression);
+  ok('HUD_USEFUL_POLISH_RENDERED_PASS', hudUsefulPolishRendered);
+  ok('HUD_REFERENCE_SHAPE_PRESENT_PASS', hudReferenceShapePresent);
+  ok('HUD_BUDGET_LINE_STILL_HIDDEN_PASS', hudBudgetLineStillHidden);
+  ok('TOKENMAXXING_STATE_PRESERVED_PASS', tokenmaxxingStatePreserved);
   ok('FAKE_COMMIT_CLAIM_DOWNGRADED_PASS', fakeCommitClaimDowngraded);
   ok('NO_FALSE_PASS_COMMITTED_ACCEPTANCE_PASS', noFalsePassCommittedAcceptance);
   process.exit(0);
