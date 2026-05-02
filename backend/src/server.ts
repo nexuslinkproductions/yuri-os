@@ -34,6 +34,15 @@ import { EventBus } from './conclave/EventBus';
 
 dotenv.config();
 
+function isTruthy(v: string | undefined): boolean {
+    return v === '1' || v === 'true';
+}
+
+const isTestMode = isTruthy(process.env.NUDIMMUD_TEST_MODE);
+const suppressWatchers = isTestMode || isTruthy(process.env.NUDIMMUD_DISABLE_WATCHERS);
+const suppressIntervals = isTestMode || isTruthy(process.env.NUDIMMUD_DISABLE_INTERVALS);
+const suppressSwarm = isTestMode || isTruthy(process.env.NUDIMMUD_DISABLE_SWARM_ORCHESTRATOR);
+
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost']);
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = Number(process.env.PORT || 3004);
@@ -529,20 +538,26 @@ const backgroundStartTimeout = trackTimeout(setTimeout(() => {
         bootLog('⬡ BACKGROUND_SERVICES_STARTING');
         backgroundServicesStarted = true;
 
-        void runVaultIngestion(db, 'boot').catch((error) => {
-            bootLog(`⬡ VAULT_INGESTION_BOOT_ERROR: ${error.message}`);
-        });
+        if (!suppressWatchers) {
+            void runVaultIngestion(db, 'boot').catch((error) => {
+                bootLog(`⬡ VAULT_INGESTION_BOOT_ERROR: ${error.message}`);
+            });
 
-        vaultWatcherController = initVaultWatcher(db);
+            vaultWatcherController = initVaultWatcher(db);
+        }
 
-        void syncOutlookIcs().catch((error) => {
-            bootLog(`⬡ OUTLOOK_SYNC_ERROR: ${error.message}`);
-        });
+        if (!suppressIntervals) {
+            void syncOutlookIcs().catch((error) => {
+                bootLog(`⬡ OUTLOOK_SYNC_ERROR: ${error.message}`);
+            });
+        }
 
-        const swarm = new (require('./services/swarmOrchestrator').SwarmOrchestrator)(db);
-        void swarm.executeSwarmGoal('SYSTEM_STABILITY_AUDIT', { boot_time: new Date().toISOString() })
-            .then(() => bootLog('⬡ STABILITY_SWARM_AUDIT_COMPLETE'))
-            .catch((error: any) => bootLog(`⬡ STABILITY_SWARM_ERROR: ${error.message}`));
+        if (!suppressSwarm) {
+            const swarm = new (require('./services/swarmOrchestrator').SwarmOrchestrator)(db);
+            void swarm.executeSwarmGoal('SYSTEM_STABILITY_AUDIT', { boot_time: new Date().toISOString() })
+                .then(() => bootLog('⬡ STABILITY_SWARM_AUDIT_COMPLETE'))
+                .catch((error: any) => bootLog(`⬡ STABILITY_SWARM_ERROR: ${error.message}`));
+        }
 
         bootLog('⬡ BACKGROUND_SERVICES_READY');
     } catch (error: any) {
@@ -550,18 +565,20 @@ const backgroundStartTimeout = trackTimeout(setTimeout(() => {
     }
 }, 1000));
 
-guard.start();
-void checkIntegrations();
+if (!isTestMode) guard.start();
+if (!suppressIntervals) void checkIntegrations();
 
-trackInterval(setInterval(() => {
-    void syncOutlookIcs().catch((error) => {
-        bootLog(`⬡ OUTLOOK_SYNC_ERROR: ${error.message}`);
-    });
-}, 60 * 60 * 1000));
+if (!suppressIntervals) {
+    trackInterval(setInterval(() => {
+        void syncOutlookIcs().catch((error) => {
+            bootLog(`⬡ OUTLOOK_SYNC_ERROR: ${error.message}`);
+        });
+    }, 60 * 60 * 1000));
 
-trackInterval(setInterval(() => {
-    void checkIntegrations();
-}, 30 * 1000));
+    trackInterval(setInterval(() => {
+        void checkIntegrations();
+    }, 30 * 1000));
+}
 
 async function gracefulShutdown(signal: string) {
     if (shuttingDown) return;

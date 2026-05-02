@@ -3,8 +3,13 @@ import path from 'path';
 import fs from 'fs';
 import { SystemConfig } from '../config/SystemConfig';
 
-const DB_PATH = SystemConfig.resolve(SystemConfig.SYSTEM.DB);
-const DB_DIR = path.dirname(DB_PATH);
+const rawDbPath = process.env.NUDIMMUD_DB_PATH;
+const DB_PATH = rawDbPath === ':memory:'
+    ? ':memory:'
+    : rawDbPath
+        ? SystemConfig.resolve(rawDbPath)
+        : SystemConfig.resolve(SystemConfig.SYSTEM.DB);
+const DB_DIR: string | null = DB_PATH !== ':memory:' ? path.dirname(DB_PATH) : null;
 const LATEST_SCHEMA_VERSION = 1;
 
 // Lazily initialize the database to prevent top-level crashes during module import
@@ -13,8 +18,7 @@ let dbInstance: Database.Database | null = null;
 function getDB(): Database.Database {
     if (!dbInstance) {
         console.log(`⬡ DATABASE :: ATTEMPTING_CONNECTION_AT: ${DB_PATH}`);
-        // Ensure data directory exists
-        if (!fs.existsSync(DB_DIR)) {
+        if (DB_DIR && !fs.existsSync(DB_DIR)) {
             console.log(`⬡ DATABASE :: CREATING_DIRECTORY: ${DB_DIR}`);
             fs.mkdirSync(DB_DIR, { recursive: true });
         }
