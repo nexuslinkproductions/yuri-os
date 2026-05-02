@@ -102,6 +102,10 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         res.status(payload.ready === false ? 503 : 200).json(payload);
     });
 
+    router.get('/health/auth', authMiddleware, (_, res) => {
+        res.json({ status: 'AUTH_OK' });
+    });
+
     try { ensurePersonalityTable(db); } catch (e) {
         console.warn('⬡ PERSONALITY_DB_WARN :: table init failed, running with default profile:', e);
     }
