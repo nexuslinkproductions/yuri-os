@@ -43,6 +43,7 @@ const state = {
   lastStatus: 'READY',
   busy: false,      // true while a DeepSeek call is in flight
   pendingClose: false, // deferred close requested while busy
+  sessionFinalized: false, // one-shot guard for exit summary
 };
 
 const est = (text) => Math.ceil(text.length / 4);
@@ -135,6 +136,13 @@ ${g('CTX TOKENS (ESTIMATE only — not billing data)')}
   ELAPSED ${g(elapsed + 's')}`);
 };
 
+const finalizeSession = (label) => {
+  if (state.sessionFinalized) return;
+  state.sessionFinalized = true;
+  console.log(g(`\n[${label}]`));
+  printTokens();
+};
+
 // ── DeepSeek call ─────────────────────────────────────────────────────────────
 const callDeepSeek = (prompt) => new Promise((resolve) => {
   if (!existsSync(OFFLOAD_SH)) {
@@ -172,8 +180,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     state.lastStatus = code === 0 ? g('OK') : r(`EXIT_${code}`);
     process.stdout.write('\n');
     if (state.pendingClose) {
-      console.log(g('\n[SESSION CLOSED]'));
-      printTokens();
+      finalizeSession('SESSION CLOSED');
       process.exit(0);
     }
     resolve(output);
@@ -230,8 +237,7 @@ const run = async () => {
         state.pendingClose = true;
         return; // finish() will call process.exit after DeepSeek resolves
       }
-      console.log(g('\n[SESSION TERMINATED]'));
-      printTokens();
+      finalizeSession('SESSION TERMINATED');
       rl.close();
       process.exit(0);
     } else if (input === '/help') {
@@ -265,8 +271,7 @@ const run = async () => {
       state.pendingClose = true; // defer until DeepSeek call finishes
       return;
     }
-    console.log(g('\n[SESSION CLOSED]'));
-    printTokens();
+    finalizeSession('SESSION CLOSED');
     process.exit(0);
   });
 
