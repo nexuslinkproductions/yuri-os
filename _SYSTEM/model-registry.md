@@ -7,6 +7,21 @@
 
 ---
 
+## DeepSeek V4 Router Notes
+
+- Official docs as of 2026-05-02.
+- OpenAI base URL: `https://api.deepseek.com`
+- Anthropic base URL: `https://api.deepseek.com/anthropic`
+- Both V4 models support 1M context, 384K max output, JSON output, tool calls, and thinking toggle.
+- `deepseek-v4-flash`: non-thinking default, `max_tokens` 4096, timeout 60s.
+- `deepseek-v4-pro`: thinking default, `max_tokens` 8192, timeout 120s.
+- `deepseek-v4-pro-lite-budget`: router lane on `deepseek-v4-pro`, non-thinking default, `max_tokens` 1024, timeout 45s.
+- Compatibility aliases: `deepseek-chat` -> `deepseek-v4-flash` non-thinking; `deepseek-reasoner` -> `deepseek-v4-flash` thinking; `deepseek-cloud` and `code-deepseek` -> `deepseek-v4-pro`.
+- Pricing per 1M tokens: flash cache-hit $0.0028, cache-miss $0.14, output $0.28.
+- Pro promo until 2026-05-31 15:59 UTC: cache-hit $0.003625, cache-miss $0.435, output $0.87.
+- Pro list price: cache-hit $0.0145, cache-miss $1.74, output $3.48.
+- Boundary: this section is router authority only; do not infer benchmark superiority over Opus without Yuri eval.
+
 ## Summary
 
 | Model | Code (ms) | Reason (ms) | Summary (ms) | Instruct (ms) | Speed (ms) | Best For |
@@ -324,4 +339,3 @@ components to enhance usability and visual clarity.
 ```
 READY
 ```
-

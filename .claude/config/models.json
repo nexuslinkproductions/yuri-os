@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "schema_version": "1.0",
+    "hardware": "macbook_m2_pro",
+    "updated": "2026-04-26T21:30:00Z",
+    "source_session": "2026-04-26_2113_offload-model",
+    "notes": "Centralized Ollama model registry. Skills and MCP server reference this instead of hardcoding model names. Single source of truth for model defaults."
+  },
+  "local": {
+    "primary": "qwen2.5:7b",
+    "code": "qwen2.5-coder:latest",
+    "fallback": "llama3.2:latest",
+    "reasoning": "primary: qwen2.5:7b (7B params, fast cold-load, reasoning-capable). code: qwen2.5-coder (specialized for code generation/understanding). fallback: llama3.2 (3.2B, ultra-fast cold-load for lightweight tasks when primary times out)."
+  },
+  "hardware_constraints": {
+    "macbook_m2_pro": {
+      "max_ollama_memory_gb": 10,
+      "unified_memory": true,
+      "note": "Models >8B params risk cold-load timeouts (e.g., deepseek-r1:latest caused 120s MCP timeouts). Prefer lightweight models (≤7B) for cold-start MCP operations."
+    }
+  },
+  "environment_override": {
+    "env_var": "OLLAMA_DEFAULT_MODEL",
+    "precedence": "env_var > this_file > hardcoded_defaults",
+    "note": "User can override any model via OLLAMA_DEFAULT_MODEL=<model_name>. This file provides documented defaults."
+  },
+  "deepseek_v4": {
+    "docs_as_of": "2026-05-02",
+    "base_urls": {
+      "openai": "https://api.deepseek.com",
+      "anthropic": "https://api.deepseek.com/anthropic"
+    },
+    "models": {
+      "flash": "deepseek-v4-flash",
+      "pro": "deepseek-v4-pro",
+      "pro_lite_budget": "deepseek-v4-pro"
+    },
+    "thinking_modes": {
+      "flash": "disabled",
+      "pro": "enabled",
+      "pro_lite_budget": "disabled"
+    },
+    "compatibility_aliases": {
+      "deepseek-chat": "deepseek-v4-flash",
+      "deepseek-reasoner": "deepseek-v4-flash",
+      "deepseek-cloud": "deepseek-v4-pro",
+      "code-deepseek": "deepseek-v4-pro"
+    },
+    "caps": {
+      "flash": {
+        "max_tokens": 4096,
+        "timeout_seconds": 60
+      },
+      "pro": {
+        "max_tokens": 8192,
+        "timeout_seconds": 120
+      },
+      "pro_lite_budget": {
+        "max_tokens": 1024,
+        "timeout_seconds": 45
+      }
+    },
+    "pricing_per_1m_tokens": {
+      "flash": {
+        "cache_hit_input": 0.0028,
+        "cache_miss_input": 0.14,
+        "output": 0.28
+      },
+      "pro_discounted_until_2026_05_31_15_59_utc": {
+        "cache_hit_input": 0.003625,
+        "cache_miss_input": 0.435,
+        "output": 0.87
+      },
+      "pro_list_price": {
+        "cache_hit_input": 0.0145,
+        "cache_miss_input": 1.74,
+        "output": 3.48
+      }
+    },
+    "deprecation_utc": {
+      "deepseek-chat": "2026-07-24T15:59:00Z",
+      "deepseek-reasoner": "2026-07-24T15:59:00Z"
+    }
+  }
+}

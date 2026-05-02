@@ -143,11 +143,50 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
       model: normalizedForcedModel || process.env.MOONSHOT_MODEL || 'kimi-k2.6',
       extraBody: cloudExtraBody('moonshot')
     },
+    'deepseek-v4-flash': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-flash',
+      envVars: ['DEEPSEEK_FLASH_MODEL'],
+      thinking: false,
+      maxTokens: 4096,
+      timeout: 60000,
+    }),
+    'deepseek-v4-pro': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-pro',
+      envVars: ['DEEPSEEK_PRO_MODEL'],
+      thinking: true,
+      maxTokens: 8192,
+      timeout: 120000,
+    }),
+    'deepseek-v4-pro-lite-budget': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-pro',
+      envVars: ['DEEPSEEK_PRO_LITE_MODEL', 'DEEPSEEK_PRO_MODEL'],
+      thinking: false,
+      maxTokens: 1024,
+      timeout: 45000,
+    }),
+    'deepseek-chat': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-flash',
+      envVars: ['DEEPSEEK_FLASH_MODEL'],
+      thinking: false,
+      maxTokens: 4096,
+      timeout: 60000,
+    }),
+    'deepseek-reasoner': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-flash',
+      envVars: ['DEEPSEEK_FLASH_MODEL'],
+      thinking: true,
+      maxTokens: 4096,
+      timeout: 60000,
+    }),
     'deepseek-cloud': {
       kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com'),
-      apiKey: process.env.DEEPSEEK_API_KEY || '',
-      model: normalizedForcedModel || process.env.DEEPSEEK_CLOUD_MODEL || 'deepseek-v4-pro',
+      endpoint: deepseekBaseUrl(),
+      apiKey: deepseekApiKey(),
+      model: normalizedForcedModel || process.env.DEEPSEEK_PRO_MODEL || process.env.DEEPSEEK_CLOUD_MODEL || 'deepseek-v4-pro',
+      extraBody: deepseekThinkingBody(true),
+      maxTokens: 8192,
+      timeout: 120000,
+      requiresKey: true,
     },
     'ollama-cloud': {
       kind: 'cloud',
@@ -203,9 +242,13 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
     },
     'code-deepseek': {
       kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.CODE_DEEPSEEK_BASE_URL || process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com'),
-      apiKey: process.env.CODE_DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY || '',
-      model: normalizedForcedModel || process.env.CODE_DEEPSEEK_MODEL || 'deepseek-v4-pro'
+      endpoint: deepseekBaseUrl(),
+      apiKey: deepseekApiKey(),
+      model: normalizedForcedModel || process.env.DEEPSEEK_PRO_MODEL || process.env.CODE_DEEPSEEK_MODEL || 'deepseek-v4-pro',
+      extraBody: deepseekThinkingBody(true),
+      maxTokens: 8192,
+      timeout: 120000,
+      requiresKey: true,
     },
     'code-cloud': {
       kind: 'cloud',
@@ -335,6 +378,41 @@ function cloudExtraBody(provider) {
     return { chat_template_kwargs: { thinking: true } };
   }
   return undefined;
+}
+
+function deepseekBaseUrl() {
+  const raw = process.env.DEEPSEEK_BASE_URL || process.env.CODE_DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
+  const trimmed = raw.replace(/\/$/, '');
+  return trimmed.endsWith('/v1') ? trimmed.slice(0, -3) : trimmed;
+}
+
+function deepseekApiKey() {
+  return process.env.DEEPSEEK_API_KEY || process.env.CODE_DEEPSEEK_API_KEY || '';
+}
+
+function deepseekThinkingBody(enabled) {
+  return { thinking: { type: enabled ? 'enabled' : 'disabled' } };
+}
+
+function resolveDeepseekModel(options) {
+  for (const envName of options.envVars || []) {
+    const val = process.env[envName] || '';
+    if (val) return val;
+  }
+  return options.defaultModel;
+}
+
+function deepseekLane(normalizedForcedModel, options) {
+  return {
+    kind: 'cloud',
+    endpoint: deepseekBaseUrl(),
+    apiKey: deepseekApiKey(),
+    model: normalizedForcedModel || resolveDeepseekModel(options),
+    extraBody: deepseekThinkingBody(!!options.thinking),
+    maxTokens: options.maxTokens,
+    timeout: options.timeout,
+    requiresKey: true,
+  };
 }
 
 function resolveGemmaLane(lane, normalizedForcedModel, localModels, dryRun = false) {
@@ -485,7 +563,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'kimi', 'moonshot', 'deepseek-cloud', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-kimi', 'reason-cloud', 'code-deepseek', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free'];
+  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'kimi', 'moonshot', 'deepseek-cloud', 'code-deepseek', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-kimi', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -498,6 +576,10 @@ function buildInventory(localModels) {
       if (r.status) lanes[name].status = r.status;
       if (r.error) lanes[name].error = r.error;
       if (r.resolvedVia) lanes[name].resolvedVia = r.resolvedVia;
+      if (r.extraBody?.thinking?.type) lanes[name].thinking = r.extraBody.thinking.type;
+      if (r.maxTokens !== undefined) lanes[name].maxTokens = r.maxTokens;
+      if (r.timeout !== undefined) lanes[name].timeout = r.timeout;
+      if (r.requiresKey !== undefined) lanes[name].requiresKey = r.requiresKey;
     } catch (e) {
       lanes[name] = { error: e.message };
     }
@@ -589,5 +671,6 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
   }
 
   const data = await response.json();
+  // Emit only the final answer; reasoning_content stays internal.
   return data.choices?.[0]?.message?.content || '';
 }

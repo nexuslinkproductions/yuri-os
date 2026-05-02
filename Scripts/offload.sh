@@ -41,6 +41,16 @@ list_models() {
   done
 
   echo
+  echo "DeepSeek API lanes:"
+  printf '  [%-30s] %s\n' "deepseek-v4-flash" "official V4 Flash (non-thinking default)"
+  printf '  [%-30s] %s\n' "deepseek-v4-pro" "official V4 Pro (thinking default)"
+  printf '  [%-30s] %s\n' "deepseek-v4-pro-lite-budget" "V4 Pro budget lane (non-thinking, tight caps)"
+  printf '  [%-30s] %s\n' "deepseek-chat" "compat alias -> deepseek-v4-flash (non-thinking)"
+  printf '  [%-30s] %s\n' "deepseek-reasoner" "compat alias -> deepseek-v4-flash (thinking)"
+  printf '  [%-30s] %s\n' "deepseek-cloud" "compat alias -> deepseek-v4-pro"
+  printf '  [%-30s] %s\n' "code-deepseek" "compat alias -> deepseek-v4-pro"
+
+  echo
   echo "Raw Ollama binary:"
   if [[ -x "$RAW_OLLAMA_BIN" ]]; then
     printf '  %s\n' "$RAW_OLLAMA_BIN"
@@ -70,7 +80,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    kimi*|moonshot*|*-cloud*|openrouter*) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|kimi*|moonshot*|*-cloud*|openrouter*) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -92,6 +102,10 @@ dispatch_model() {
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
         echo "⬡ ROUTING_TO_GPT_OSS..."
         node "$OFFLOAD_RUNNER" gpt-oss --model "$target_model" "$prompt"
+        ;;
+      deepseek-v4-flash|deepseek-v4-pro|deepseek-v4-pro-lite-budget|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek)
+        echo "⬡ ROUTING_TO_DEEPSEEK_V4..."
+        node "$OFFLOAD_RUNNER" "$target_model" "$prompt"
         ;;
       deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b|deepseek)
         echo "⬡ ROUTING_TO_DEEPSEEK..."

@@ -59,6 +59,24 @@ Commands:
   @deepseek [prompt]
       Run the direct DeepSeek local offload lane.
 
+  @deepseek-v4-flash [prompt]
+      Run the official DeepSeek V4 Flash lane (non-thinking default).
+
+  @deepseek-v4-pro [prompt]
+      Run the official DeepSeek V4 Pro lane (thinking default).
+
+  @deepseek-v4-pro-lite-budget [prompt]
+      Run the DeepSeek V4 Pro budget lane (non-thinking, tight caps).
+
+  @deepseek-chat [prompt]
+      Compatibility alias for DeepSeek V4 Flash non-thinking mode.
+
+  @deepseek-reasoner [prompt]
+      Compatibility alias for DeepSeek V4 Flash thinking mode.
+
+  @deepseek-cloud [prompt]
+      Compatibility alias for DeepSeek V4 Pro.
+
   @triage-local [prompt]
       Run the triage-local lane (fast lightweight local model).
 
@@ -72,7 +90,7 @@ Commands:
       Run the reason-kimi lane (cloud reasoning via Kimi K2.6 with thinking enabled).
 
   @code-deepseek [prompt]
-      Run the code-deepseek lane (cloud code via DeepSeek V4 Pro).
+      Run the code-deepseek lane (compatibility alias for DeepSeek V4 Pro).
 
   @reason-cloud [prompt]
       Run the reason-cloud lane (Ollama Cloud reasoning, defaults to qwen2.5:72b).
@@ -661,6 +679,54 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane deepseek "$@"
+    ;;
+  @deepseek-v4-flash|deepseek-v4-flash)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane deepseek-v4-flash "$@"
+    ;;
+  @deepseek-v4-pro|deepseek-v4-pro)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane deepseek-v4-pro "$@"
+    ;;
+  @deepseek-v4-pro-lite-budget|deepseek-v4-pro-lite-budget)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane deepseek-v4-pro-lite-budget "$@"
+    ;;
+  @deepseek-chat|deepseek-chat)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane deepseek-chat "$@"
+    ;;
+  @deepseek-reasoner|deepseek-reasoner)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane deepseek-reasoner "$@"
+    ;;
+  @deepseek-cloud|deepseek-cloud)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane deepseek-cloud "$@"
     ;;
   @triage-local|triage-local)
     shift || true
