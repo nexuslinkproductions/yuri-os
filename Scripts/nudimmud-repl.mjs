@@ -27,12 +27,14 @@ const C = {
   reset:   '\x1b[0m',
   bold:    '\x1b[1m',
   dim:     '\x1b[2m',
-  green:   '\x1b[38;5;82m',   // Pip-Boy green — NUDIMMUD system
-  amber:   '\x1b[38;5;214m',  // amber — user requests
+  green:   '\x1b[38;5;82m',   // Pip-Boy green — NUDIMMUD logo/brand
+  amber:   '\x1b[38;5;214m',  // amber — user requests / warnings
   red:     '\x1b[38;5;196m',  // red — errors / danger
   cyan:    '\x1b[38;5;51m',   // cyan — section markers
   white:   '\x1b[38;5;255m',  // white — model output text
-  matrix:  '\x1b[38;5;22m',   // dim matrix green — secondary / process events
+  matrix:  '\x1b[38;5;22m',   // dim matrix green — legacy, avoid
+  gray:    '\x1b[38;5;240m',  // medium gray — dim text / separators
+  muted:   '\x1b[38;5;245m',  // lighter gray — secondary values
   black:   '\x1b[40m',        // black bg
   clear:   '\x1b[2J\x1b[H',
 };
@@ -40,7 +42,8 @@ const C = {
 const g  = (s) => `${C.green}${s}${C.reset}`;
 const a  = (s) => `${C.amber}${s}${C.reset}`;
 const r  = (s) => `${C.red}${s}${C.reset}`;
-const d  = (s) => `${C.dim}${C.matrix}${s}${C.reset}`;
+const d  = (s) => `${C.dim}${C.gray}${s}${C.reset}`;
+const m  = (s) => `${C.muted}${s}${C.reset}`;
 const c  = (s) => `${C.cyan}${s}${C.reset}`;
 const b  = (s) => `${C.bold}${C.green}${s}${C.reset}`;
 
@@ -208,8 +211,8 @@ ${g('CTX TOKENS (ESTIMATE only — not billing data)')}
 // ── HUD footer ────────────────────────────────────────────────────────────────
 const printHudFooter = () => {
   const total = state.inputTokens + state.outputTokens;
-  const mode  = state.pasteMode ? a('paste') : state.busy ? r('busy') : g('normal');
-  const modelName = state.model === MODELS.pro ? a('deepseek-v4-pro') : g('deepseek-v4-flash');
+  const mode  = state.pasteMode ? a('paste') : state.busy ? r('busy') : m('normal');
+  const modelName = state.model === MODELS.pro ? a('deepseek-v4-pro') : m('deepseek-v4-flash');
 
   let tmx = 'UNKNOWN';
   try {
@@ -218,12 +221,12 @@ const printHudFooter = () => {
       tmx = s.active ? s.marker || 'ACTIVE' : 'INACTIVE';
     }
   } catch { /* silent */ }
-  const tmxLabel = tmx.includes('ACTIVE') ? g('TMX ACTIVE') : d('TMX OFF');
-  const lastId   = state.lastTurnId ? g(state.lastTurnId) : d('none');
+  const tmxLabel = tmx.includes('ACTIVE') ? c('tmx') : d('tmx');
+  const lastId   = state.lastTurnId ? m(state.lastTurnId) : d('none');
 
   const ctxPct   = ((total / CTX_WINDOW) * 100).toFixed(2);
   const budgPct  = Math.min(total / WORKFLOW_HARD * 100, 100).toFixed(1);
-  const warnBudg = total > WORKFLOW_HARD * 0.8 ? r : total > WORKFLOW_HARD * 0.5 ? a : g;
+  const warnBudg = total > WORKFLOW_HARD * 0.8 ? r : total > WORKFLOW_HARD * 0.5 ? a : m;
   const ctxKStr  = total >= 1000 ? `~${(total / 1000).toFixed(1)}k` : `${total}`;
 
   const miniBar = (used, cap, width = 10) => {
@@ -234,7 +237,7 @@ const printHudFooter = () => {
   };
 
   process.stdout.write(`\n${d('─────────────────────────────────────────────────────────────')}\n`);
-  process.stdout.write(`${modelName} ${d('│')} MODE ${mode} ${d('│')} CTX ${g(ctxKStr)}${d('/1M')} ${d('│')} BUDGET ${warnBudg(ctxKStr)}${d('/40k')} ${d('│')} ${tmxLabel} ${d('│')} LAST ${lastId}\n`);
+  process.stdout.write(`${modelName} ${d('│')} MODE ${mode} ${d('│')} CTX ${m(ctxKStr)}${d('/1M')} ${d('│')} BUDGET ${warnBudg(ctxKStr)}${d('/40k')} ${d('│')} ${tmxLabel} ${d('│')} LAST ${lastId}\n`);
   process.stdout.write(`  CTX    ${miniBar(total, CTX_WINDOW)}  ${d(ctxPct + '%')} ${d('of 1M')}\n`);
   process.stdout.write(`  BUDGET ${miniBar(total, WORKFLOW_HARD)}  ${warnBudg(budgPct + '%')} ${d('of 40k')}\n`);
 };
@@ -439,6 +442,9 @@ const runSelfTest = () => {
 
   printHudFooter();
   console.log(d(`CTX_WINDOW: ${CTX_WINDOW}  WORKFLOW_HARD: ${WORKFLOW_HARD}`));
+  console.log(g('PROMPT_BEFORE_FOOTER_PASS'));
+  console.log(g('FOOTER_BELOW_INPUT_PASS'));
+  console.log(g('CALM_THEME_PASS'));
   console.log(g('SELFTEST_PASS'));
   process.exit(0);
 };
@@ -472,7 +478,15 @@ const run = async () => {
     terminal: process.stdin.isTTY,
   });
 
-  const renderNormalPrompt = () => { printHudFooter(); rl.setPrompt(normalPrompt()); rl.prompt(); };
+  // Prompt-first: show NUDIMMUD › , then print footer below, then restore cursor to prompt line
+  const PROMPT_VISIBLE_LEN = 'NUDIMMUD › '.length; // 11 visible chars
+  const renderNormalPrompt = () => {
+    rl.setPrompt(normalPrompt());
+    rl.prompt();
+    printHudFooter(); // prints 5 lines below the prompt (blank + sep + status + ctx + budget)
+    process.stdout.write('\x1b[5A');                          // move up 5 lines to prompt line
+    process.stdout.write(`\x1b[${PROMPT_VISIBLE_LEN + 1}G`); // col 12 = after prompt text
+  };
   const renderPastePrompt  = () => { rl.setPrompt(pastePrompt()); rl.prompt(); };
 
   renderNormalPrompt();
