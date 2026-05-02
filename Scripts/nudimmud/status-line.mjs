@@ -104,7 +104,6 @@ export function renderCompactStatusLine(snapshot) {
   if (state.lane) parts.push(`lane ${state.lane}`);
   parts.push(`mode ${state.mode || 'normal'}`);
   parts.push(`ctx ${state.token_estimate || 0}/${state.model_context_window || DEFAULT_STATUS_LIMITS.model_context_window}`);
-  parts.push(`budget ${state.workflow_budget_used || 0}/${state.workflow_budget_hard || DEFAULT_STATUS_LIMITS.workflow_budget_hard}`);
   if (state.tokenmaxxing_state) parts.push(`tmx ${state.tokenmaxxing_state}`);
   if (state.phase) parts.push(`phase ${state.phase}`);
   if (state.last_turn_id) parts.push(`last ${state.last_turn_id}`);
@@ -127,14 +126,8 @@ export function renderBusyStatusLine(snapshot) {
 }
 
 export function renderBudgetStatusLine(snapshot) {
-  const state = isPlainObject(snapshot) ? snapshot : createStatusSnapshot();
-  const used = Number.isInteger(state.workflow_budget_used) ? state.workflow_budget_used : 0;
-  const hard = Number.isInteger(state.workflow_budget_hard) && state.workflow_budget_hard > 0 ? state.workflow_budget_hard : DEFAULT_STATUS_LIMITS.workflow_budget_hard;
-  const target = Number.isInteger(state.workflow_budget_target) && state.workflow_budget_target > 0 ? state.workflow_budget_target : DEFAULT_STATUS_LIMITS.workflow_budget_target;
-  const pct = percent(used, hard);
-  const stateLabel = budgetState(used, target, hard);
-
-  return clampLine(`budget ${used}/${hard} (${pct}%) | state ${stateLabel}`, DEFAULT_STATUS_LIMITS.busy_max_chars);
+  void snapshot;
+  return '';
 }
 
 export function validateStatusSnapshot(snapshot) {
