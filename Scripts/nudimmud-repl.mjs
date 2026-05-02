@@ -265,6 +265,29 @@ const printTurnSummary = (turnId, elapsed, code, inputEst, outputEst, savedDir) 
 };
 
 // ── DeepSeek call ─────────────────────────────────────────────────────────────
+const createActivityIndicator = ({ turnId, model }) => {
+  const spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+  let spinIdx = 0, phase = 'dispatching', chunksRecv = 0, lastChunkTs = null, interval = null;
+  const startTs = Date.now();
+
+  const render = () => {
+    const elapsed = ((Date.now() - startTs) / 1000).toFixed(0);
+    const timeHint = lastChunkTs === null
+      ? `waiting ${((Date.now() - startTs) / 1000).toFixed(0)}s`
+      : `${phase} last-chunk ${((Date.now() - lastChunkTs) / 1000).toFixed(0)}s`;
+    const line = `${spinner[spinIdx]} THINKING ${model} | ${turnId} | ${elapsed}s | ${timeHint} | ${(chunksRecv / 1024).toFixed(1)}k chars`;
+    process.stdout.write(`\r\x1b[2K${d(line)}`);
+    spinIdx = (spinIdx + 1) % spinner.length;
+  };
+
+  return {
+    start: () => { interval = setInterval(render, 80); },
+    setPhase: (p) => { phase = p; },
+    markChunk: (len) => { chunksRecv += len; lastChunkTs = Date.now(); },
+    stop: () => { if (interval) clearInterval(interval); process.stdout.write('\r\x1b[2K'); },
+  };
+};
+
 const callDeepSeek = (prompt) => new Promise((resolve) => {
   const turnId   = makeTurnId();
   const startTs  = Date.now();
@@ -317,10 +340,18 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     env: { ...process.env },
   });
 
+  const activity = createActivityIndicator({ turnId, model: state.model });
+  activity.start();
+  activity.setPhase('waiting');
+
   proc.stdout.on('data', (chunk) => {
     const text = chunk.toString();
     output += text;
+    activity.setPhase('streaming');
+    activity.markChunk(text.length);
+    activity.stop();
     process.stdout.write(`${C.white}${text}${C.reset}`);
+    activity.start();
   });
 
   proc.stderr.on('data', (chunk) => {
@@ -328,6 +359,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   });
 
   const finish = (code) => {
+    activity.stop();
     state.busy = false;
     const outputEst = est(output);
     state.outputTokens += outputEst;
@@ -381,6 +413,14 @@ const runSelfTest = () => {
   console.log(sectionBot() + '\n');
 
   console.log(outputBanner('MODEL OUTPUT', turnId));
+  const actTest = createActivityIndicator({ turnId, model: 'deepseek-v4-pro' });
+  actTest.start();
+  console.log(g('ACTIVITY_START_PASS'));
+  actTest.setPhase('streaming');
+  actTest.markChunk(fakeOutput.length);
+  console.log(g('ACTIVITY_STREAMING_PASS'));
+  actTest.stop();
+  console.log(g('ACTIVITY_STOP_PASS'));
   process.stdout.write(`${C.white}${fakeOutput}${C.reset}\n`);
   console.log(outputBanner('MODEL OUTPUT END', `${fakeOutput.length} chars`));
 
