@@ -18,6 +18,10 @@ const MODELS = {
   pro: 'deepseek-v4-pro',
 };
 
+const CTX_WINDOW    = 1_000_000;
+const WORKFLOW_SOFT = 15_000;
+const WORKFLOW_HARD = 40_000;
+
 // ── ANSI palette ──────────────────────────────────────────────────────────────
 const C = {
   reset:   '\x1b[0m',
@@ -53,6 +57,8 @@ const state = {
   sessionFinalized: false,
   pasteMode: false,
   pasteBuffer: [],
+  lastTurnId: null,
+  lastTranscriptDir: null,
 };
 
 const est = (text) => Math.ceil(text.length / 4);
@@ -145,6 +151,7 @@ const printStatusBlock = () => {
   const elapsed = Math.round((Date.now() - state.startTime) / 1000);
   const totalTok = state.inputTokens + state.outputTokens;
   const modelLabel = state.model === MODELS.pro ? a('PRO') : g('FLASH');
+  const warnBudget = totalTok > WORKFLOW_HARD * 0.8 ? r : totalTok > WORKFLOW_HARD * 0.5 ? a : g;
 
   const bar = (used, cap, width = 20) => {
     const filled = Math.min(Math.round((used / cap) * width), width);
@@ -161,7 +168,8 @@ ${g('│')} BRANCH    ${g(branch)}        HEAD     ${d(head)}
 ${g('│')} STAGED    ${staged > 0 ? a(String(staged)) : d('0')} files       LAST     ${state.lastStatus}
 ${g('│')} TOKENMAXXING  ${tmx.includes('ACTIVE') ? g(tmx) : d(tmx)}
 ${g('│')}
-${g('│')} CTX [EST] ${bar(totalTok, 40000)} ${a(String(totalTok).padStart(6))}/${d('40k')}
+${g('│')} CTX    ${bar(totalTok, CTX_WINDOW)}   ${g(String(totalTok))} / ${d('1,000k')}
+${g('│')} BUDGET ${bar(totalTok, WORKFLOW_HARD)}   ${warnBudget(String(totalTok))} / ${d('40k')} ${d('[soft: 15k]')}
 ${g('│')} IN  ${g(String(state.inputTokens).padStart(8))} OUT ${g(String(state.outputTokens).padStart(8))} ELAPSED ${g(elapsed + 's')}
 ${g('│')} ${r('⚠ ESTIMATES only — not billing data')}
 ${g('└──────────────────────────────────────────────────────────────┘')}`);
@@ -171,18 +179,18 @@ const printHelp = () => {
   console.log(`
 ${g('┌─ NUDIMMUD REPL COMMANDS ─────────────────────────────────────┐')}
 ${g('│')} ${a('/help')}          Show this help
-${g('│')} ${a('/status')}        Print HUD status block
-${g('│')} ${a('/tokens')}        Print token counters (ESTIMATE)
-${g('│')} ${a('/model pro')}     Switch to deepseek-v4-pro (thinking)
-${g('│')} ${a('/model flash')}   Switch to deepseek-v4-flash (fast)
-${g('│')} ${a('/clear')}         Clear screen and re-print header
+${g('│')} ${a('/status')}        Print full HUD status (model, ctx, budget, git, tmx)
+${g('│')} ${a('/tokens')}        Print token counters (ESTIMATE only)
+${g('│')} ${a('/model pro')}     Switch to deepseek-v4-pro (1M ctx, deep thinking)
+${g('│')} ${a('/model flash')}   Switch to deepseek-v4-flash (1M ctx, fast)
+${g('│')} ${a('/clear')}         Clear screen and re-print header + status
 ${g('│')} ${a('/paste')}         Start multiline paste mode
-${g('│')} ${a('/send')}          Send buffered multiline input (paste mode)
+${g('│')} ${a('/send')}          Send buffered paste input (paste mode only)
 ${g('│')} ${a('/cancel')}        Cancel paste mode without sending
-${g('│')} ${a('/exit')}          Exit REPL
+${g('│')} ${a('/exit')}          Exit REPL (graceful — waits for active turn)
 ${g('│')}
-${g('│')} ${d('Paste mode: /paste → paste lines → /send to submit')}
-${g('│')} ${d('Single-line: type directly and press Enter')}
+${g('│')} ${d('Context: DeepSeek 1M token window | Yuri budget: 15k soft / 40k hard')}
+${g('│')} ${d('Paste: /paste → paste lines → /send to submit')}
 ${g('└──────────────────────────────────────────────────────────────┘')}`);
 };
 
@@ -195,6 +203,40 @@ ${g('CTX TOKENS (ESTIMATE only — not billing data)')}
   OUT     ${a(String(state.outputTokens))}
   TOTAL   ${a(String(total))}
   ELAPSED ${g(elapsed + 's')}`);
+};
+
+// ── HUD footer ────────────────────────────────────────────────────────────────
+const printHudFooter = () => {
+  const total = state.inputTokens + state.outputTokens;
+  const mode  = state.pasteMode ? a('paste') : state.busy ? r('busy') : g('normal');
+  const modelName = state.model === MODELS.pro ? a('deepseek-v4-pro') : g('deepseek-v4-flash');
+
+  let tmx = 'UNKNOWN';
+  try {
+    if (existsSync(TOKENMAXXING_STATE)) {
+      const s = JSON.parse(readFileSync(TOKENMAXXING_STATE, 'utf8'));
+      tmx = s.active ? s.marker || 'ACTIVE' : 'INACTIVE';
+    }
+  } catch { /* silent */ }
+  const tmxLabel = tmx.includes('ACTIVE') ? g('TMX ACTIVE') : d('TMX OFF');
+  const lastId   = state.lastTurnId ? g(state.lastTurnId) : d('none');
+
+  const ctxPct   = ((total / CTX_WINDOW) * 100).toFixed(2);
+  const budgPct  = Math.min(total / WORKFLOW_HARD * 100, 100).toFixed(1);
+  const warnBudg = total > WORKFLOW_HARD * 0.8 ? r : total > WORKFLOW_HARD * 0.5 ? a : g;
+  const ctxKStr  = total >= 1000 ? `~${(total / 1000).toFixed(1)}k` : `${total}`;
+
+  const miniBar = (used, cap, width = 10) => {
+    const filled = Math.min(Math.round((used / cap) * width), width);
+    const empty  = width - filled;
+    const color  = filled > width * 0.8 ? C.red : filled > width * 0.5 ? C.amber : C.green;
+    return `[${color}${'█'.repeat(filled)}${C.dim}${'░'.repeat(empty)}${C.reset}]`;
+  };
+
+  process.stdout.write(`\n${d('─────────────────────────────────────────────────────────────')}\n`);
+  process.stdout.write(`${modelName} ${d('│')} MODE ${mode} ${d('│')} CTX ${g(ctxKStr)}${d('/1M')} ${d('│')} BUDGET ${warnBudg(ctxKStr)}${d('/40k')} ${d('│')} ${tmxLabel} ${d('│')} LAST ${lastId}\n`);
+  process.stdout.write(`  CTX    ${miniBar(total, CTX_WINDOW)}  ${d(ctxPct + '%')} ${d('of 1M')}\n`);
+  process.stdout.write(`  BUDGET ${miniBar(total, WORKFLOW_HARD)}  ${warnBudg(budgPct + '%')} ${d('of 40k')}\n`);
 };
 
 const finalizeSession = (label) => {
@@ -261,6 +303,8 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     const savedDir = saveTranscript(turnId, prompt, '[ERROR: offload.sh not found]', {
       turnId, error: 'offload_not_found', timestamp: new Date().toISOString(),
     });
+    state.lastTurnId = turnId;
+    if (savedDir) state.lastTranscriptDir = savedDir;
     const elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
     printTurnSummary(turnId, elapsed, 1, inputEst, 0, savedDir);
     resolve('');
@@ -299,6 +343,8 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
       code, timestamp: new Date().toISOString(),
     };
     const savedDir = saveTranscript(turnId, prompt, output, meta);
+    state.lastTurnId = turnId;
+    if (savedDir) state.lastTranscriptDir = savedDir;
     printTurnSummary(turnId, elapsed, code, inputEst, outputEst, savedDir);
 
     if (state.pendingClose) {
@@ -344,9 +390,15 @@ const runSelfTest = () => {
     elapsed: 0, code: 0, timestamp: new Date().toISOString(),
   };
   const savedDir = saveTranscript(turnId, fakeReq, fakeOutput, meta);
+  state.lastTurnId = turnId;
+  if (savedDir) state.lastTranscriptDir = savedDir;
+  state.inputTokens = est(fakeReq);
+  state.outputTokens = est(fakeOutput);
   const elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
   printTurnSummary(turnId, elapsed, 0, est(fakeReq), est(fakeOutput), savedDir);
 
+  printHudFooter();
+  console.log(d(`CTX_WINDOW: ${CTX_WINDOW}  WORKFLOW_HARD: ${WORKFLOW_HARD}`));
   console.log(g('SELFTEST_PASS'));
   process.exit(0);
 };
@@ -370,7 +422,7 @@ const run = async () => {
   printHeader();
   printStatusBlock();
 
-  const normalPrompt = () => `\n${g('NUDIMMUD')}${d('>')} `;
+  const normalPrompt = () => `${g('NUDIMMUD')} ${d('›')} `;
   const pastePrompt  = () => `${a('PASTE')}${d('[')}${g(String(state.pasteBuffer.length))}${d(']>')} `;
 
   const rl = readline.createInterface({
@@ -380,7 +432,10 @@ const run = async () => {
     terminal: process.stdin.isTTY,
   });
 
-  rl.prompt();
+  const renderNormalPrompt = () => { printHudFooter(); rl.setPrompt(normalPrompt()); rl.prompt(); };
+  const renderPastePrompt  = () => { rl.setPrompt(pastePrompt()); rl.prompt(); };
+
+  renderNormalPrompt();
 
   rl.on('line', async (line) => {
     rl.pause();
@@ -391,31 +446,31 @@ const run = async () => {
       if (input === '/send') {
         if (state.pasteBuffer.length === 0) {
           console.log(d('[PASTE] Buffer empty — nothing to send.'));
+          renderNormalPrompt();
         } else {
           const composed = state.pasteBuffer.join('\n');
           state.pasteMode = false;
           state.pasteBuffer = [];
           console.log(d(`[PASTE] Sending ${composed.length} chars / ${composed.split('\n').length} lines`));
           await callDeepSeek(composed);
+          renderNormalPrompt();
         }
-        rl.setPrompt(normalPrompt());
       } else if (input === '/cancel') {
         state.pasteMode = false;
         state.pasteBuffer = [];
         console.log(d('[PASTE] Cancelled.'));
-        rl.setPrompt(normalPrompt());
+        renderNormalPrompt();
       } else {
         state.pasteBuffer.push(line);
-        rl.setPrompt(pastePrompt());
+        renderPastePrompt();
       }
-      rl.prompt();
       rl.resume();
       return;
     }
 
     // ── Normal mode ──
     if (!input) {
-      rl.prompt();
+      renderNormalPrompt();
       rl.resume();
       return;
     }
@@ -445,14 +500,16 @@ const run = async () => {
       state.pasteMode = true;
       state.pasteBuffer = [];
       console.log(d('[PASTE] Mode ON — paste lines, /send to submit, /cancel to abort'));
-      rl.setPrompt(pastePrompt());
+      renderPastePrompt();
+      rl.resume();
+      return;
     } else if (input.startsWith('/')) {
       console.log(d(`[UNKNOWN COMMAND] ${input} — type /help`));
     } else {
       await callDeepSeek(input);
     }
 
-    rl.prompt();
+    renderNormalPrompt();
     rl.resume();
   });
 
@@ -464,7 +521,7 @@ const run = async () => {
 
   process.on('SIGINT', () => {
     console.log(g('\n[SIGINT] — type /exit to quit cleanly'));
-    rl.prompt();
+    renderNormalPrompt();
   });
 };
 
