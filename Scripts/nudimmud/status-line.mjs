@@ -76,6 +76,10 @@ function renderStatusParts(state, { forceBusy = false } = {}) {
     parts.push(`output ${state.output_chars} chars`);
   }
 
+  if (showProgress && state.output_chars === 0 && state.no_output_hint) {
+    parts.push(state.no_output_hint);
+  }
+
   const tmx = toTokenmaxxingLabel(state.tokenmaxxing_state);
   if (tmx) parts.push(tmx);
 

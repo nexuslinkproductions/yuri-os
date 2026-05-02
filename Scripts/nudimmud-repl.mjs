@@ -6,6 +6,7 @@ import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 import os from 'os';
 import {
+  DEFAULT_STATUS_LIMITS,
   createStatusSnapshot,
   renderCompactStatusLine,
   renderBusyStatusLine,
@@ -465,12 +466,7 @@ const outputBanner = (label, extra = '') => {
 };
 
 // ── ASCII header ──────────────────────────────────────────────────────────────
-const HEADER = `
-${renderBannerSegments([
-  { text: 'YURI', color: C.green },
-  { text: 'OS', color: C.purple },
-])}
-${renderBanner('NUDIMMUD', C.green)}
+const HEADER = `${C.bold}${c('YURI')} ${p('OS')} ${d('/')} ${c('NUDIMMUD')}${C.reset}
 ${m('AI ROUTING & REPORT GENERATION SYSTEM')}`;
 
 const printHeader = () => {
@@ -479,7 +475,7 @@ const printHeader = () => {
 };
 
 const printStatusBlock = () => {
-  console.log(`\n${renderCompactStatusLine(createHudStatusSnapshot())}\n`);
+  console.log(renderCompactStatusLine(createHudStatusSnapshot()));
   return;
   const { branch, head, staged, tmx } = getStatus();
   const elapsed = Math.round((Date.now() - state.startTime) / 1000);
@@ -539,7 +535,7 @@ ${g('CTX TOKENS (ESTIMATE only — not billing data)')}
 
 // ── HUD footer ────────────────────────────────────────────────────────────────
 const printHudFooter = () => {
-  process.stdout.write(`\n${renderCompactStatusLine(createHudStatusSnapshot())}\n\n`);
+  process.stdout.write(`${renderCompactStatusLine(createHudStatusSnapshot())}\n`);
   return;
   const { branch, head, staged, tmx } = getStatus();
   const elapsed = Math.round((Date.now() - state.startTime) / 1000);
@@ -597,11 +593,19 @@ const createActivityIndicator = ({ turnId, model }) => {
   const startTs = Date.now();
 
   const render = () => {
-    const elapsed = ((Date.now() - startTs) / 1000).toFixed(0);
+    const elapsed = Math.max(0, Math.round((Date.now() - startTs) / 1000));
     const timeHint = lastChunkTs === null
-      ? `waiting ${((Date.now() - startTs) / 1000).toFixed(0)}s`
-      : `${phase} last-chunk ${((Date.now() - lastChunkTs) / 1000).toFixed(0)}s`;
-    const line = `${spinner[spinIdx]} THINKING ${model} | ${turnId} | ${elapsed}s | ${timeHint} | ${(chunksRecv / 1024).toFixed(1)}k chars`;
+      ? `waiting ${elapsed}s`
+      : `${phase} last-chunk ${Math.max(0, Math.round((Date.now() - lastChunkTs) / 1000))}s`;
+    const line = `${spinner[spinIdx]} ${renderBusyStatusLine(createStatusSnapshot({
+      model,
+      lane: model === MODELS.pro ? 'pro' : 'flash',
+      mode: chunksRecv > 0 ? 'streaming' : 'thinking',
+      elapsed_seconds: elapsed,
+      output_chars: chunksRecv,
+      tokenmaxxing_state: readTokenmaxxingState(),
+      no_output_hint: chunksRecv === 0 ? timeHint : '',
+    }))}`;
     process.stdout.write(`\r\x1b[2K${d(line)}`);
     spinIdx = (spinIdx + 1) % spinner.length;
   };
@@ -770,6 +774,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
 // ── Self-test ─────────────────────────────────────────────────────────────────
 const runSelfTest = () => {
   const ok = (label, pass) => console.log(g(pass ? label : `${label}_FAIL`));
+  const stripAnsi = (text) => String(text).replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '');
   const nodeCheck = true;
   const natural = composeMultilinePayload(['single-line prompt']) === 'single-line prompt' &&
     composeMultilinePayload(['line-1', 'line-2']) === 'line-1\nline-2';
@@ -785,7 +790,12 @@ const runSelfTest = () => {
     process.stdin.on && typeof cancelMultilineComposer === 'function';
   const statusIntegration = typeof createHudStatusSnapshot === 'function' && typeof renderCompactStatusLine === 'function';
   const quietTurnEnd = !/MODEL OUTPUT END|TURN SUMMARY/.test(`${printCompactOutputEnd}\n${printTurnSummary}`);
-  const yuriOsHeader = HEADER.includes(C.green) && HEADER.includes(C.purple) && HEADER.includes('AI ROUTING & REPORT GENERATION SYSTEM') && HEADER.includes('█');
+  const plainHeader = stripAnsi(HEADER);
+  const yuriOsHeader = HEADER.includes(C.green) &&
+    HEADER.includes(C.purple) &&
+    plainHeader.includes('YURI OS / NUDIMMUD') &&
+    plainHeader.includes('AI ROUTING & REPORT GENERATION SYSTEM') &&
+    !plainHeader.includes('█');
   const purpleOs = HEADER.includes(C.purple);
   const noHud40kBudget = !/40k|40000/.test(`${printStatusBlock}\n${printHudFooter}`);
   const readableTheme = d('x') === `${C.gray}x${C.reset}` && c('x') === `${C.green}x${C.reset}` && !d('x').includes(C.dim);
@@ -902,6 +912,21 @@ const runSelfTest = () => {
     hudIdleLine.includes('route pro') &&
     hudIdleLine.includes('tmx active') &&
     hudIdleLine.includes('saved NMD-20260502-225747-002');
+  const normalPromptCycle = `${hudIdleLine}\n${stripAnsi(normalPrompt())}`;
+  const noDuplicateIdentity = (plainHeader.match(/YURI OS/g) || []).length === 1 &&
+    (plainHeader.match(/NUDIMMUD/g) || []).length === 1 &&
+    !plainHeader.includes('█') &&
+    !normalPromptCycle.includes('YURI OS');
+  const hudCompactDefault = hudIdleLine.startsWith('state idle |') &&
+    hudIdleLine.includes(`model ${MODELS.pro}`) &&
+    hudIdleLine.includes('route pro') &&
+    hudIdleLine.includes('tmx active') &&
+    hudIdleLine.length <= DEFAULT_STATUS_LIMITS.compact_max_chars;
+  const hudVisualRepairRendered = yuriOsHeader &&
+    noDuplicateIdentity &&
+    hudCompactDefault &&
+    normalPromptCycle.split('\n').length === 2 &&
+    !/40k|40000|workflow budget/i.test(normalPromptCycle);
   const hudUsefulPolishRendered = hudBusyThinking.includes('state thinking') &&
     hudBusyThinking.includes('elapsed 9s') &&
     hudBusyThinking.includes('output 0 chars') &&
@@ -918,7 +943,7 @@ const runSelfTest = () => {
   const composer08oRegression = autoSendPaste && noDuplicateMultilinePrompt && quietTurnEnd;
 
   ok('NODE_CHECK_PASS', nodeCheck);
-  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke && hudUsefulPolishRendered && hudReferenceShapePresent && hudBudgetLineStillHidden && tokenmaxxingStatePreserved);
+  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke && hudUsefulPolishRendered && hudReferenceShapePresent && hudVisualRepairRendered && noDuplicateIdentity && hudCompactDefault && hudBudgetLineStillHidden && tokenmaxxingStatePreserved);
   ok('NATURAL_COMPOSER_PASS', natural);
   ok('MULTILINE_CAPTURE_PASS', multiline);
   ok('ENTER_SENDS_CAPTURE_PASS', enterAfterPaste);
@@ -940,6 +965,9 @@ const runSelfTest = () => {
   ok('ROUTE_METADATA_CAPTURED_PASS', routeMetadataCaptured);
   ok('OUTPUT_MD_CLEAN_PASS', outputMdClean);
   ok('COMPOSER_08O_REGRESSION_PASS', composer08oRegression);
+  ok('HUD_VISUAL_REPAIR_RENDERED_PASS', hudVisualRepairRendered);
+  ok('NO_DUPLICATE_IDENTITY_PASS', noDuplicateIdentity);
+  ok('HUD_COMPACT_DEFAULT_PASS', hudCompactDefault);
   ok('HUD_USEFUL_POLISH_RENDERED_PASS', hudUsefulPolishRendered);
   ok('HUD_REFERENCE_SHAPE_PRESENT_PASS', hudReferenceShapePresent);
   ok('HUD_BUDGET_LINE_STILL_HIDDEN_PASS', hudBudgetLineStillHidden);
