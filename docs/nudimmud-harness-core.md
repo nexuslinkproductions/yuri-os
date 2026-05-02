@@ -1,6 +1,7 @@
-# NUDIMMUD Harness Core X1
+# NUDIMMUD Harness Core X2
 
-- Status: X1 skeleton only.
+- Status: X2 prompt compiler dry-run support.
+- Scope: no HUD integration.
 - Behavior: no behavior change.
 - Modules added: `Scripts/nudimmud/event-protocol.mjs`, `Scripts/nudimmud/harness-state.mjs`, `Scripts/nudimmud/prompt-compiler.mjs`.
 - Authority boundaries:
@@ -8,9 +9,15 @@
   - Harness state: pure initial state, reducer, and summary helpers.
   - Prompt compiler: inert contract assembly and validation.
 
+X2:
+
+- `compileDryRun` returns contract, validation, metrics, warnings, and blocked state.
+- Validation markers: `DRY_RUN_SMALL_PASS`, `DRY_RUN_LARGE_PASS`, `DRY_RUN_BLOCK_GUARD_PASS`.
+- No runtime behavior change.
+- Next phase: X3 event recorder/status provider.
+
 Future phases:
 
-- X2 prompt compiler dry-run
 - X3 event recorder/status provider
 - X4 HUD reads state instead of owning state
 - X5 stream-json adapter
