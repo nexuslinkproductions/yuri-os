@@ -103,7 +103,20 @@ Rank 3 — **Drop entirely** (reconstructable, low self-information):
 
 Per the NUDIMMUD Aversion Memory Protocol: if you are compacting after a **failed branch**, first write the failure reason to an Aversion Memory node, THEN compact. The compact hint should reference the aversion: `last aversion: [reason]`.
 
+## Token Budget Policy
+
+- Trigger /compact at 65%+ context OR at 40k transcript hard max — whichever comes first.
+- Dirty repo + mid-sprint: capture scoped `git status --short` marker before compacting.
+- Lane output arriving in main context: summarize to marker-only before injection.
+- After /compact, re-read 2–3 key touched files to verify compact summary accuracy.
+
 ## Session Notes
+
+### 2026-05-02
+- session: 1m | peak ctx: 34% | compacts: 0
+- tools: Bash×6, Read×4
+- corrections: none
+- errors: none
 
 ### 2026-04-27
 - session: 1m | peak ctx: 43% | compacts: 0

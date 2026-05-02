@@ -73,6 +73,14 @@ node -e "const ss=require('/Users/marcelspatz/.claude/hooks/session-state.js'); 
 ```
 Output: `TOKENMAXXING OFF`
 
+## Token Budget Policy
+
+- Master enforcement: every active session enforces 5k–15k soft / 40k hard transcript budget.
+- No command outputs > 60–80 lines.
+- Dirty repos: no broad `git status` or `find .`; scoped and marker-only only.
+- Reports: pass = one label line; failure = failure-only verbose block.
+- Runtime script flags planned separately; docs-only patches committed first.
+
 ## Session Notes
 
 ### 2026-04-27

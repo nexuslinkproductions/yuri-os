@@ -86,7 +86,51 @@ const result = await routeToBrowser('research topic X', 'perplexity');
 
 If browser lane unavailable (MCP not connected): fall back to `@deepseek` + web search via Bash curl. Do not block swarm on browser lane failure.
 
+## Token Budget Policy
+
+- Research, gather, classify → cheap local lanes (@deepseek, @qwen, grep, Bash). Never orchestrator.
+- Orchestrator receives compact evidence only; performs merge, mutation, and final decisions.
+- Per-swarm budget: soft 5k–15k, hard max 40k. Stop/reshape before breach.
+- Lane output cap: 60–80 lines max per lane result.
+- Dirty repos: scoped marker commands only in any lane.
+
 ## Session Notes
+
+### 2026-05-02
+- session: 1m | peak ctx: 34% | compacts: 0
+- tools: Bash×6, Read×4
+- corrections: none
+- errors: none
+
+### 2026-05-01
+- session: 1m | peak ctx: 44% | compacts: 0
+- tools: Bash×15, Read×5
+- corrections: none
+- errors: none
+
+### 2026-05-01
+- session: 1m | peak ctx: 45% | compacts: 0
+- tools: Bash×13, Read×6
+- corrections: none
+- errors: none
+
+### 2026-05-01
+- session: 3m | peak ctx: 49% | compacts: 0
+- tools: Bash×23, Read×9
+- corrections: none
+- errors: none
+
+### 2026-04-28
+- session: 348m | peak ctx: 50% | compacts: 0
+- tools: Read×9, Bash×8, Agent×1, mcp×1
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 2m | peak ctx: 41% | compacts: 0
+- tools: Read×11, Bash×5
+- corrections: none
+- errors: none
 
 ### 2026-04-27
 - session: 6m | peak ctx: 53% | compacts: 0

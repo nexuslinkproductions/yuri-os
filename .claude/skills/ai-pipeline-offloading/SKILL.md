@@ -129,7 +129,59 @@ Main thread: overseer, router, and final merge only.
 2. State why it is minimum viable.
 3. Execute.
 
+## Token Budget Policy
+
+- Heavy reading, search, classification → cheap/offloaded lanes only: Haiku, @swarm, local scripts, grep. Never an expensive orchestrator.
+- Expensive orchestrators (Sonnet, Kimi) receive compact evidence only; handle mutation, live DB/process checks, security gates, final decisions.
+- Transcript budget: small tasks soft 5k–15k, hard max 40k. Stop/reshape if trajectory is above budget.
+- No command may intentionally output more than 60–80 lines.
+- Dirty repos: scoped marker-only commands; no broad `git status`, `git diff`, `find .`, or full grep dumps.
+- Reports: marker-only on pass; failure-only verbose logs; no repeated harness or code blocks.
+- Runtime script flags planned separately; docs-only patches run first.
+
 ## Session Notes
+
+### 2026-05-02
+- session: 1m | peak ctx: 34% | compacts: 0
+- tools: Bash×6, Read×4
+- corrections: none
+- errors: none
+
+### 2026-05-01
+- session: 1m | peak ctx: 44% | compacts: 0
+- tools: Bash×15, Read×5
+- corrections: none
+- errors: none
+
+### 2026-05-01
+- session: 1m | peak ctx: 45% | compacts: 0
+- tools: Bash×13, Read×6
+- corrections: none
+- errors: none
+
+### 2026-05-01
+- session: 3m | peak ctx: 49% | compacts: 0
+- tools: Bash×23, Read×9
+- corrections: none
+- errors: none
+
+### 2026-04-28
+- session: 8m | peak ctx: 22% | compacts: 0
+- tools: Bash×12, Read×11, Edit×11, Write×2
+- corrections: none
+- errors: none
+
+### 2026-04-28
+- session: 348m | peak ctx: 50% | compacts: 0
+- tools: Read×9, Bash×8, Agent×1, mcp×1
+- corrections: none
+- errors: none
+
+### 2026-04-27
+- session: 2m | peak ctx: 41% | compacts: 0
+- tools: Read×11, Bash×5
+- corrections: none
+- errors: none
 
 ### 2026-04-27
 - session: 2m | peak ctx: 33% | compacts: 0
