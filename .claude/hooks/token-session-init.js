@@ -61,6 +61,17 @@ try {
     errors: []
   }, null, 2));
 
+  const tokenmaxxingStatePath = `${STATE_DIR}/tokenmaxxing-state.json`;
+  fs.writeFileSync(tokenmaxxingStatePath, JSON.stringify({
+    active: true,
+    marker: 'TOKENMAXXING::ACTIVE',
+    source: 'SessionStart',
+    budgetSoft: '5k-15k',
+    budgetHard: '40k',
+    markerOnly: true,
+    updatedAt: new Date().toISOString()
+  }, null, 2));
+
   // Initialize weekly accumulator if missing or stale (>7d)
   let weekly = null;
   try { weekly = JSON.parse(fs.readFileSync(WEEKLY_FILE, 'utf-8')); } catch(_) {}
