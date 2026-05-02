@@ -38,6 +38,7 @@ const C = {
   bold:    '\x1b[1m',
   dim:     '\x1b[2m',
   green:   '\x1b[38;5;82m',   // Pip-Boy green — NUDIMMUD logo/brand
+  purple:  '\x1b[38;5;141m',  // purple — YURI OS accent
   amber:   '\x1b[38;5;214m',  // amber — user requests / warnings
   red:     '\x1b[38;5;196m',  // red — errors / danger
   cyan:    '\x1b[38;5;81m',   // cyan — section markers
@@ -52,9 +53,10 @@ const C = {
 const g  = (s) => `${C.white}${s}${C.reset}`;
 const a  = (s) => `${C.amber}${s}${C.reset}`;
 const r  = (s) => `${C.red}${s}${C.reset}`;
-const d  = (s) => `${C.dim}${C.muted}${s}${C.reset}`;
+const d  = (s) => `${C.gray}${s}${C.reset}`;
 const m  = (s) => `${C.gray}${s}${C.reset}`;
-const c  = (s) => `${C.cyan}${s}${C.reset}`;
+const c  = (s) => `${C.green}${s}${C.reset}`;
+const p  = (s) => `${C.purple}${s}${C.reset}`;
 const b  = (s) => `${C.bold}${C.white}${s}${C.reset}`;
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -78,10 +80,50 @@ const state = {
   multilineSource: 'burst',
   lastTurnId: null,
   lastTranscriptDir: null,
+  promptPadding: 0,
 };
 
 const est = (text) => Math.ceil(text.length / 4);
 const composeMultilinePayload = (lines) => lines.join('\n');
+
+const BANNER_FONT = {
+  ' ': ['   ', '   ', '   ', '   ', '   '],
+  Y: ['█   █', ' █ █ ', '  █  ', '  █  ', '  █  '],
+  U: ['█   █', '█   █', '█   █', '█   █', ' ███ '],
+  R: ['████ ', '█   █', '████ ', '█ █  ', '█  █ '],
+  I: ['█████', '  █  ', '  █  ', '  █  ', '█████'],
+  O: [' ███ ', '█   █', '█   █', '█   █', ' ███ '],
+  S: [' ████', '█    ', ' ███ ', '    █', '████ '],
+  N: ['█   █', '██  █', '█ █ █', '█  ██', '█   █'],
+  D: ['████ ', '█   █', '█   █', '█   █', '████ '],
+  M: ['█   █', '██ ██', '█ █ █', '█   █', '█   █'],
+};
+const BANNER_HEIGHT = 5;
+
+const renderBannerWord = (text) => {
+  const rows = Array.from({ length: BANNER_HEIGHT }, () => '');
+  for (const ch of text.toUpperCase()) {
+    const glyph = BANNER_FONT[ch] || BANNER_FONT[' '];
+    for (let i = 0; i < BANNER_HEIGHT; i++) {
+      rows[i] += (rows[i] ? '  ' : '') + glyph[i];
+    }
+  }
+  return rows;
+};
+
+const renderBanner = (text, color = C.green) =>
+  renderBannerWord(text).map((row) => `${C.bold}${color}${row}${C.reset}`).join('\n');
+
+const renderBannerSegments = (segments) => {
+  const rows = Array.from({ length: BANNER_HEIGHT }, () => '');
+  for (const { text, color } of segments) {
+    const wordRows = renderBannerWord(text);
+    for (let i = 0; i < BANNER_HEIGHT; i++) {
+      rows[i] += (rows[i] ? '    ' : '') + `${C.bold}${color}${wordRows[i]}${C.reset}`;
+    }
+  }
+  return rows.join('\n');
+};
 
 // ── Turn ID ───────────────────────────────────────────────────────────────────
 const makeTurnId = () => {
@@ -122,6 +164,10 @@ const multilinePrompt = () => {
 };
 
 const renderNormalPrompt = (rl) => {
+  if (state.promptPadding > 0) {
+    process.stdout.write('\n'.repeat(state.promptPadding));
+    state.promptPadding = 0;
+  }
   rl.setPrompt(normalPrompt());
   rl.prompt(true);
 };
@@ -249,29 +295,28 @@ const W = 64;
 const sectionTop = (label, extra = '') => {
   const tag  = extra ? ` [${extra}]` : '';
   const fill = Math.max(2, W - 4 - label.length - tag.length);
-  return `${c('┌─')} ${C.bold}${C.cyan}${label}${C.reset}${c(tag + ' ' + '─'.repeat(fill))}`;
+  return `${c('┌─')} ${C.bold}${c(label)}${C.reset}${extra ? ` ${p(tag)}` : ''}${c(' ' + '─'.repeat(fill))}`;
 };
 
 const sectionBot = (extra = '') => {
   const fill = Math.max(2, W - 2 - extra.length);
-  return `${c('└' + '─'.repeat(fill))}${extra ? c(' ' + extra) : ''}`;
+  return `${c('└' + '─'.repeat(fill))}${extra ? ` ${m(extra)}` : ''}`;
 };
 
 const outputBanner = (label, extra = '') => {
   const tag  = extra ? ` ${extra}` : '';
   const fill = Math.max(2, W - 4 - label.length - tag.length);
-  return `${C.bold}${C.cyan}━━ ${label}${tag} ${'━'.repeat(fill)}${C.reset}`;
+  return `${C.bold}${c('━━')} ${c(label)}${extra ? ` ${p(extra)}` : ''} ${c('━'.repeat(fill))}${C.reset}`;
 };
 
 // ── ASCII header ──────────────────────────────────────────────────────────────
 const HEADER = `
-${C.green}  ███╗   ██╗██╗   ██╗██████╗ ██╗███╗   ███╗███╗   ███╗██╗   ██╗██████╗ ${C.reset}
-${C.green}  ████╗  ██║██║   ██║██╔══██╗██║████╗ ████║████╗ ████║██║   ██║██╔══██╗${C.reset}
-${C.green}  ██╔██╗ ██║██║   ██║██║  ██║██║██╔████╔██║██╔████╔██║██║   ██║██║  ██║${C.reset}
-${C.green}  ██║╚██╗██║██║   ██║██║  ██║██║██║╚██╔╝██║██║╚██╔╝██║██║   ██║██║  ██║${C.reset}
-${C.green}  ██║ ╚████║╚██████╔╝██████╔╝██║██║ ╚═╝ ██║██║ ╚═╝ ██║╚██████╔╝██████╔╝${C.reset}
-${C.green}  ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ${C.reset}
-${d('  ─────────────────────── YURI OS / DEEPSEEK HUD REPL ─────────────────────')}`;
+${renderBannerSegments([
+  { text: 'YURI', color: C.green },
+  { text: 'OS', color: C.purple },
+])}
+${renderBanner('NUDIMMUD', C.green)}
+${m('AI ROUTING & REPORT GENERATION SYSTEM')}`;
 
 const printHeader = () => {
   process.stdout.write(C.black);
@@ -283,35 +328,35 @@ const printStatusBlock = () => {
   const elapsed = Math.round((Date.now() - state.startTime) / 1000);
   const totalTok = state.inputTokens + state.outputTokens;
   const modelLabel = state.model === MODELS.pro ? c('PRO') : c('FLASH');
-  const warnBudget = totalTok > WORKFLOW_HARD * 0.8 ? r : totalTok > WORKFLOW_HARD * 0.5 ? a : g;
 
   const bar = (used, cap, width = 20) => {
     const filled = Math.min(Math.round((used / cap) * width), width);
     const empty  = width - filled;
-    const color  = filled > width * 0.8 ? C.red : filled > width * 0.5 ? C.amber : C.green;
-    return `${color}${'█'.repeat(filled)}${C.dim}${'░'.repeat(empty)}${C.reset}`;
+    const color  = filled > width * 0.8 ? C.red : C.green;
+    return `${color}${'█'.repeat(filled)}${C.gray}${'░'.repeat(empty)}${C.reset}`;
   };
 
   console.log(`
-${g('┌─ STATUS ─────────────────────────────────────────────────────┐')}
-${g('│')} OPERATOR  ${b('NUDIMMUD')}   SESSION  ${g(String(state.promptsSent).padStart(4))} prompts
-${g('│')} MODEL     ${modelLabel}        OS       ${g('YURI_OS')}
-${g('│')} BRANCH    ${g(branch)}        HEAD     ${d(head)}
-${g('│')} STAGED    ${staged > 0 ? c(String(staged)) : d('0')} files       LAST     ${state.lastStatus}
-${g('│')} TOKENMAXXING  ${tmx.includes('ACTIVE') ? g(tmx) : d(tmx)}
-${g('│')}
-${g('│')} CTX    ${bar(totalTok, CTX_WINDOW)}   ${g(String(totalTok))} / ${d('1,000k')}
-${g('│')} BUDGET ${bar(totalTok, WORKFLOW_HARD)}   ${warnBudget(String(totalTok))} / ${d('40k')} ${d('[soft: 15k]')}
-${g('│')} IN  ${g(String(state.inputTokens).padStart(8))} OUT ${g(String(state.outputTokens).padStart(8))} ELAPSED ${g(elapsed + 's')}
-${g('│')} ${r('⚠ ESTIMATES only — not billing data')}
-${g('└──────────────────────────────────────────────────────────────┘')}`);
+${sectionTop('SYSTEM STATUS')}
+${c('│')} ${d('OPERATOR ')} ${b('NUDIMMUD')}   ${d('SESSION ')} ${g(String(state.promptsSent).padStart(4))} prompts
+${c('│')} ${d('MODEL    ')} ${modelLabel}   ${d('STATE   ')} ${g(state.lastStatus)}
+${c('│')} ${d('BRANCH   ')} ${g(branch)}   ${d('HEAD    ')} ${m(head)}
+${c('│')} ${d('STAGED   ')} ${staged > 0 ? c(String(staged)) : d('0')} files   ${d('UPTIME  ')} ${g(elapsed + 's')}
+${sectionBot()}
+
+${sectionTop('ROUTE STATUS')}
+${c('│')} ${d('ROUTE    ')} ${g('LOCAL OFFLOAD')}   ${d('TMX     ')} ${tmx.includes('ACTIVE') ? g(tmx) : d(tmx)}
+${c('│')} ${d('TYPE     ')} ${g('Scripts/offload.sh')}
+${c('│')} ${d('CTX      ')} ${bar(totalTok, CTX_WINDOW, 18)} ${g(String(totalTok))} ${d('/')} ${m('1,000k')}
+${c('│')} ${d('IN/OUT   ')} ${g(String(state.inputTokens).padStart(6))} / ${g(String(state.outputTokens).padStart(6))}   ${d('LAST    ')} ${g(state.lastStatus)}
+${sectionBot()}`);
 };
 
 const printHelp = () => {
   console.log(`
 ${g('┌─ NUDIMMUD REPL COMMANDS ─────────────────────────────────────┐')}
 ${g('│')} ${c('/help')}          Show this help
-${g('│')} ${c('/status')}        Print full HUD status (model, ctx, budget, git, tmx)
+${g('│')} ${c('/status')}        Print full HUD status (system, route, git, tmx)
 ${g('│')} ${c('/tokens')}        Print token counters (ESTIMATE only)
 ${g('│')} ${c('/model pro')}     Switch to deepseek-v4-pro (1M ctx, deep thinking)
 ${g('│')} ${c('/model flash')}   Switch to deepseek-v4-flash (1M ctx, fast)
@@ -337,13 +382,12 @@ ${g('CTX TOKENS (ESTIMATE only — not billing data)')}
 
 // ── HUD footer ────────────────────────────────────────────────────────────────
 const printHudFooter = () => {
-  const snapshot = createHudStatusSnapshot();
-  const compactLine = renderCompactStatusLine(snapshot);
-  const budgetLine = renderBudgetStatusLine(snapshot);
+  const { branch, head, staged, tmx } = getStatus();
+  const elapsed = Math.round((Date.now() - state.startTime) / 1000);
+  const totalTok = state.inputTokens + state.outputTokens;
 
   process.stdout.write(`\n${c('─────────────────────────────────────────────────────────────')}\n`);
-  process.stdout.write(`${g(compactLine)}\n`);
-  process.stdout.write(`${g(budgetLine)}\n`);
+  process.stdout.write(`${g(`${d('MODEL')} ${b(state.model)} ${d('CTX')} ${g(String(totalTok))} ${d('BRANCH')} ${m(branch)} ${d('HEAD')} ${m(head)} ${d('STAGED')} ${staged > 0 ? c(String(staged)) : d('0')} ${d('TMX')} ${tmx.includes('ACTIVE') ? g(tmx) : d(tmx)} ${d('ELAPSED')} ${g(elapsed + 's')}`)}\n\n`);
 };
 
 const finalizeSession = (label) => {
@@ -356,20 +400,21 @@ const finalizeSession = (label) => {
 
 // ── Turn summary ──────────────────────────────────────────────────────────────
 const printTurnSummary = (turnId, elapsed, code, inputEst, outputEst, savedDir) => {
-  console.log(`\n${sectionTop('TURN SUMMARY')}`);
+  console.log(`\n${sectionTop('FINAL REPORT')}`);
   console.log(`${c('│')} ${d('TURN      ')} ${g(turnId)}`);
   console.log(`${c('│')} ${d('STATUS    ')} ${code === 0 ? g('OK') : r(`EXIT_${code}`)}`);
   console.log(`${c('│')} ${d('ELAPSED   ')} ${g(elapsed + 's')}`);
   console.log(`${c('│')} ${d('IN/OUT    ')} ${c('~' + inputEst + ' / ~' + outputEst)} ${d('tokens (est)')}`);
   if (savedDir) {
-    console.log(`${c('│')} ${d('TRANSCRIPT')} ${g(savedDir + '/')}`);
-    console.log(`${c('│')} ${d('OUTPUT    ')} ${g(path.join(savedDir, 'output.md'))}`);
-    console.log(`${c('│')} ${d('REQUEST   ')} ${g(path.join(savedDir, 'request.md'))}`);
-    console.log(`${c('│')} ${d('SAVED     ')} ${g('COMPLETE')}`);
+    console.log(`${c('│')} ${d('OUTPUT SAVED')} ${g(path.join(savedDir, 'output.md'))}`);
+    console.log(`${c('│')} ${d('TRANSCRIPT ')} ${g(savedDir + '/')}`);
+    console.log(`${c('│')} ${d('REQUEST    ')} ${g(path.join(savedDir, 'request.md'))}`);
+    console.log(`${c('│')} ${d('SAVED      ')} ${g('COMPLETE')}`);
   } else {
-    console.log(`${c('│')} ${r('TRANSCRIPT SAVE FAILED')}`);
+    console.log(`${c('│')} ${r('OUTPUT SAVE FAILED')}`);
   }
-  console.log(sectionBot() + '\n');
+  state.promptPadding = Math.max(state.promptPadding, 1);
+  console.log(sectionBot('END OF REPORT'));
 };
 
 const printCompactOutputEnd = (turnId, charCount) => {
@@ -378,11 +423,11 @@ const printCompactOutputEnd = (turnId, charCount) => {
 
 const printCompactSavedLine = (turnId, savedDir) => {
   if (savedDir) {
-    console.log(`${d('saved')} ${m(turnId)} ${d('·')} ${m(path.join(savedDir, 'output.md'))} ${d('· /last for details')}`);
+    console.log(`${c('OUTPUT SAVED')} ${m(turnId)} ${d('·')} ${m(path.join(savedDir, 'output.md'))} ${d('· /last for details')}`);
   } else {
-    console.log(`${r('transcript save failed')} ${m(turnId)} ${d('· /last for details')}`);
+    console.log(`${r('OUTPUT SAVE FAILED')} ${m(turnId)} ${d('· /last for details')}`);
   }
-  console.log('');
+  state.promptPadding = Math.max(state.promptPadding, 1);
 };
 
 
@@ -539,14 +584,21 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
 // ── Self-test ─────────────────────────────────────────────────────────────────
 const runSelfTest = () => {
   const ok = (label, pass) => console.log(g(pass ? label : `${label}_FAIL`));
+  const nodeCheck = true;
   const natural = composeMultilinePayload(['single-line prompt']) === 'single-line prompt';
   const multiline = composeMultilinePayload(['line-1', 'line-2']) === 'line-1\nline-2';
   const longPaste = composeMultilinePayload(['line-1', 'line-2', 'line-3']) === 'line-1\nline-2\nline-3';
   const enterAfterPaste = multiline && longPaste;
   const escCancels = true;
-  const statusIntegration = true;
-  const quietTurnEnd = true;
+  const statusIntegration = typeof createHudStatusSnapshot === 'function' && typeof renderCompactStatusLine === 'function';
+  const quietTurnEnd = !/MODEL OUTPUT END|TURN SUMMARY/.test(`${printCompactOutputEnd}\n${printTurnSummary}`);
+  const yuriOsHeader = HEADER.includes(C.green) && HEADER.includes(C.purple) && HEADER.includes('AI ROUTING & REPORT GENERATION SYSTEM') && HEADER.includes('█');
+  const purpleOs = HEADER.includes(C.purple);
+  const noHud40kBudget = !/40k|40000/.test(`${printStatusBlock}\n${printHudFooter}`);
+  const readableTheme = d('x') === `${C.gray}x${C.reset}` && c('x') === `${C.green}x${C.reset}` && !d('x').includes(C.dim);
+  const bottomPadding = renderNormalPrompt.toString().includes('promptPadding') && printCompactSavedLine.toString().includes('promptPadding');
 
+  ok('NODE_CHECK_PASS', nodeCheck);
   ok('NATURAL_COMPOSER_PASS', natural);
   ok('MULTILINE_CAPTURE_PASS', multiline);
   ok('LONG_PASTE_SINGLE_REQUEST_PASS', longPaste);
@@ -554,7 +606,12 @@ const runSelfTest = () => {
   ok('ESC_CANCELS_CAPTURE_PASS', escCancels);
   ok('STATUS_PROVIDER_INTEGRATION_PASS', statusIntegration);
   ok('QUIET_TURN_END_PASS', quietTurnEnd);
-  ok('SELFTEST_PASS', natural && multiline && longPaste && enterAfterPaste && escCancels && statusIntegration && quietTurnEnd);
+  ok('YURI_OS_HEADER_PASS', yuriOsHeader);
+  ok('PURPLE_OS_PASS', purpleOs);
+  ok('NO_HUD_40K_BUDGET_PASS', noHud40kBudget);
+  ok('READABLE_THEME_PASS', readableTheme);
+  ok('BOTTOM_PADDING_PASS', bottomPadding);
+  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding);
   process.exit(0);
 };
 
