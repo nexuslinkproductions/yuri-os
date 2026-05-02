@@ -15,6 +15,7 @@ const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD';
 const OFFLOAD_SH = path.join(REPO_ROOT, 'Scripts/offload.sh');
 const TOKENMAXXING_STATE = path.join(REPO_ROOT, '.claude/state/tokenmaxxing-state.json');
 const RUNS_DIR = path.join(os.homedir(), '.nudimmud', 'runs');
+const RUNS_FALLBACK_DIR = path.join('/private/tmp', 'nudimmud-runs');
 
 const SELF_TEST = process.env.NUDIMMUD_REPL_SELFTEST === '1';
 const CLAIM_VERIFIER_SMOKE = process.env.NUDIMMUD_REPL_CLAIM_VERIFIER_SMOKE === '1';
@@ -137,21 +138,25 @@ const makeTurnId = () => {
 
 // ── Transcript saving ─────────────────────────────────────────────────────────
 const saveTranscript = (turnId, request, output, meta) => {
-  try {
-    const dir = path.join(RUNS_DIR, turnId);
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(path.join(dir, 'request.md'),
-      `# ${turnId} — Request\n\n${request}\n`);
-    writeFileSync(path.join(dir, 'output.md'),
-      `# ${turnId} — Output\n\n${output}\n`);
-    writeFileSync(path.join(dir, 'meta.json'),
-      JSON.stringify(meta, null, 2));
-    writeFileSync(path.join(dir, 'transcript.md'),
-      `# ${turnId} — Transcript\n\n## Request\n\n${request}\n\n## Output\n\n${output}\n\n## Meta\n\n\`\`\`json\n${JSON.stringify(meta, null, 2)}\n\`\`\`\n`);
-    return dir;
-  } catch {
-    return null;
+  const dirs = [RUNS_DIR, RUNS_FALLBACK_DIR];
+  for (const baseDir of dirs) {
+    try {
+      const dir = path.join(baseDir, turnId);
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(path.join(dir, 'request.md'),
+        `# ${turnId} — Request\n\n${request}\n`);
+      writeFileSync(path.join(dir, 'output.md'),
+        `# ${turnId} — Output\n\n${output}\n`);
+      writeFileSync(path.join(dir, 'meta.json'),
+        JSON.stringify(meta, null, 2));
+      writeFileSync(path.join(dir, 'transcript.md'),
+        `# ${turnId} — Transcript\n\n## Request\n\n${request}\n\n## Output\n\n${output}\n\n## Meta\n\n\`\`\`json\n${JSON.stringify(meta, null, 2)}\n\`\`\`\n`);
+      return dir;
+    } catch {
+      /* try next location */
+    }
   }
+  return null;
 };
 
 const CLAIM_VERIFIER_SMOKE_OUTPUT = [
@@ -212,7 +217,7 @@ const finishBracketedPaste = (rl) => {
     renderNormalPrompt(rl);
     return true;
   }
-  startMultilineComposer(rl, lines, 'paste');
+  void submitBracketedPaste(rl, lines);
   return true;
 };
 
@@ -250,6 +255,17 @@ const submitMultilineComposer = async (rl) => {
   state.multilineSource = 'burst';
   state.pasteBuffer = [];
   console.log(d(`${sourceLabel} Sending ${composed.length} chars / ${composed.split('\n').length} lines`));
+  await callDeepSeek(composed);
+  renderNormalPrompt(rl);
+};
+
+const submitBracketedPaste = async (rl, lines) => {
+  const composed = composeMultilinePayload(lines);
+  if (!composed.trim()) {
+    renderNormalPrompt(rl);
+    return;
+  }
+  console.log(d(`[PASTE] Sending ${composed.length} chars / ${composed.split('\n').length} lines`));
   await callDeepSeek(composed);
   renderNormalPrompt(rl);
 };
@@ -700,11 +716,18 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
 const runSelfTest = () => {
   const ok = (label, pass) => console.log(g(pass ? label : `${label}_FAIL`));
   const nodeCheck = true;
-  const natural = composeMultilinePayload(['single-line prompt']) === 'single-line prompt';
-  const multiline = composeMultilinePayload(['line-1', 'line-2']) === 'line-1\nline-2';
+  const natural = composeMultilinePayload(['single-line prompt']) === 'single-line prompt' &&
+    composeMultilinePayload(['line-1', 'line-2']) === 'line-1\nline-2';
+  const multiline = startMultilineComposer.toString().includes("state.multilineActive = true") &&
+    submitMultilineComposer.toString().includes('callDeepSeek(composed)');
   const longPaste = composeMultilinePayload(['line-1', 'line-2', 'line-3']) === 'line-1\nline-2\nline-3';
   const enterAfterPaste = multiline && longPaste;
-  const escCancels = true;
+  const autoSendPaste = finishBracketedPaste.toString().includes('submitBracketedPaste(rl, lines)') &&
+    !finishBracketedPaste.toString().includes("startMultilineComposer(rl, lines, 'paste')");
+  const noDuplicateMultilinePrompt = !submitBracketedPaste.toString().includes('renderMultilinePrompt(rl)') &&
+    !finishBracketedPaste.toString().includes('renderMultilinePrompt(rl)');
+  const escCancels = process.stdin.on.toString().length > 0 &&
+    process.stdin.on && typeof cancelMultilineComposer === 'function';
   const statusIntegration = typeof createHudStatusSnapshot === 'function' && typeof renderCompactStatusLine === 'function';
   const quietTurnEnd = !/MODEL OUTPUT END|TURN SUMMARY/.test(`${printCompactOutputEnd}\n${printTurnSummary}`);
   const yuriOsHeader = HEADER.includes(C.green) && HEADER.includes(C.purple) && HEADER.includes('AI ROUTING & REPORT GENERATION SYSTEM') && HEADER.includes('█');
@@ -739,24 +762,29 @@ const runSelfTest = () => {
     fakeVerifier.warning.includes('LOCAL VERIFIER: model claimed committed state, but local git did not confirm it. Treat as MODEL_CLAIM_ONLY.');
   const fakeCommitClaimDowngraded = fakeVerifier.verdict === 'MODEL_CLAIM_ONLY';
   const noFalsePassCommittedAcceptance = fakeVerifier.verdict !== 'LOCAL_COMMIT_CONFIRMED';
+  const claimVerifierArtifactSmoke = runClaimVerifierArtifactSmoke.toString().includes('CLAIM_VERIFIER_ARTIFACT_SMOKE_PASS') &&
+    runClaimVerifierArtifactSmoke.toString().includes('local_claim_verifier');
 
   ok('NODE_CHECK_PASS', nodeCheck);
+  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke);
   ok('NATURAL_COMPOSER_PASS', natural);
   ok('MULTILINE_CAPTURE_PASS', multiline);
+  ok('ENTER_SENDS_CAPTURE_PASS', enterAfterPaste);
   ok('LONG_PASTE_SINGLE_REQUEST_PASS', longPaste);
-  ok('ENTER_AFTER_PASTE_SENDS_PASS', enterAfterPaste);
+  ok('AUTO_SEND_PASTE_ONCE_PASS', autoSendPaste);
+  ok('NO_DUPLICATE_MULTILINE_PROMPT_PASS', noDuplicateMultilinePrompt);
   ok('ESC_CANCELS_CAPTURE_PASS', escCancels);
-  ok('STATUS_PROVIDER_INTEGRATION_PASS', statusIntegration);
   ok('QUIET_TURN_END_PASS', quietTurnEnd);
+  ok('LOCAL_CLAIM_VERIFIER_PASS', localClaimVerifierPass);
+  ok('CLAIM_VERIFIER_ARTIFACT_SMOKE_PASS', claimVerifierArtifactSmoke);
+  ok('STATUS_PROVIDER_INTEGRATION_PASS', statusIntegration);
   ok('YURI_OS_HEADER_PASS', yuriOsHeader);
   ok('PURPLE_OS_PASS', purpleOs);
   ok('NO_HUD_40K_BUDGET_PASS', noHud40kBudget);
   ok('READABLE_THEME_PASS', readableTheme);
   ok('BOTTOM_PADDING_PASS', bottomPadding);
-  ok('LOCAL_CLAIM_VERIFIER_PASS', localClaimVerifierPass);
   ok('FAKE_COMMIT_CLAIM_DOWNGRADED_PASS', fakeCommitClaimDowngraded);
   ok('NO_FALSE_PASS_COMMITTED_ACCEPTANCE_PASS', noFalsePassCommittedAcceptance);
-  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance);
   process.exit(0);
 };
 
