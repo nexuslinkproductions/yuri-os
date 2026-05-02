@@ -9,6 +9,14 @@
 - no file writes yet
 - next phase: X4 HUD reads state instead of owning state, or X3-R if recorder/status provider needs repair
 
+## X4
+- status: tiny status-provider integration
+- HUD still owns runtime state
+- status provider is read-only formatting helper
+- no event recorder integration
+- no runtime behavior change intended
+- next phase: X5 or X4-R depending manual HUD check
+
 - Status: X2 prompt compiler dry-run support.
 - Scope: no HUD integration.
 - Behavior: no behavior change.

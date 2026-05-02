@@ -5,6 +5,11 @@ import { execSync, spawn } from 'child_process';
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 import os from 'os';
+import {
+  createStatusSnapshot,
+  renderCompactStatusLine,
+  renderBudgetStatusLine,
+} from './nudimmud/status-line.mjs';
 
 const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD';
 const OFFLOAD_SH = path.join(REPO_ROOT, 'Scripts/offload.sh');
@@ -183,6 +188,10 @@ const getStatus = () => {
   const branch = git('git branch --show-current');
   const head   = git('git rev-parse --short HEAD');
   const staged = git('git diff --cached --name-only').split('\n').filter(Boolean).length;
+  return { branch, head, staged, tmx: readTokenmaxxingState() };
+};
+
+const readTokenmaxxingState = () => {
   let tmx = 'UNKNOWN';
   try {
     if (existsSync(TOKENMAXXING_STATE)) {
@@ -190,8 +199,21 @@ const getStatus = () => {
       tmx = s.active ? s.marker || 'ACTIVE' : 'INACTIVE';
     }
   } catch { /* silent */ }
-  return { branch, head, staged, tmx };
+  return tmx;
 };
+
+const createHudStatusSnapshot = () => createStatusSnapshot({
+  model: state.model,
+  mode: state.multilineActive ? 'multiline' : state.busy ? 'busy' : 'normal',
+  token_estimate: state.inputTokens + state.outputTokens,
+  workflow_budget_used: state.inputTokens + state.outputTokens,
+  model_context_window: CTX_WINDOW,
+  workflow_budget_target: WORKFLOW_SOFT,
+  workflow_budget_hard: WORKFLOW_HARD,
+  tokenmaxxing_state: readTokenmaxxingState(),
+  last_turn_id: state.lastTurnId || '',
+  last_transcript_path: state.lastTranscriptDir || '',
+});
 
 // ── Section marker helpers ────────────────────────────────────────────────────
 const W = 64;
@@ -287,36 +309,13 @@ ${g('CTX TOKENS (ESTIMATE only — not billing data)')}
 
 // ── HUD footer ────────────────────────────────────────────────────────────────
 const printHudFooter = () => {
-  const total = state.inputTokens + state.outputTokens;
-  const mode  = state.pasteMode ? c('multiline') : state.busy ? r('busy') : m('normal');
-  const modelName = state.model === MODELS.pro ? c('deepseek-v4-pro') : m('deepseek-v4-flash');
+  const snapshot = createHudStatusSnapshot();
+  const compactLine = renderCompactStatusLine(snapshot);
+  const budgetLine = renderBudgetStatusLine(snapshot);
 
-  let tmx = 'UNKNOWN';
-  try {
-    if (existsSync(TOKENMAXXING_STATE)) {
-      const s = JSON.parse(readFileSync(TOKENMAXXING_STATE, 'utf8'));
-      tmx = s.active ? s.marker || 'ACTIVE' : 'INACTIVE';
-    }
-  } catch { /* silent */ }
-  const tmxLabel = tmx.includes('ACTIVE') ? c('tmx') : d('tmx');
-  const lastId   = state.lastTurnId ? m(state.lastTurnId) : d('none');
-
-  const ctxPct   = ((total / CTX_WINDOW) * 100).toFixed(2);
-  const budgPct  = Math.min(total / WORKFLOW_HARD * 100, 100).toFixed(1);
-  const warnBudg = total > WORKFLOW_HARD * 0.8 ? r : total > WORKFLOW_HARD * 0.5 ? a : m;
-  const ctxKStr  = total >= 1000 ? `~${(total / 1000).toFixed(1)}k` : `${total}`;
-
-  const miniBar = (used, cap, width = 10) => {
-    const filled = Math.min(Math.round((used / cap) * width), width);
-    const empty  = width - filled;
-    const color  = filled > width * 0.8 ? C.red : filled > width * 0.5 ? C.amber : C.green;
-    return `[${color}${'█'.repeat(filled)}${C.dim}${'░'.repeat(empty)}${C.reset}]`;
-  };
-
-  process.stdout.write(`\n${d('─────────────────────────────────────────────────────────────')}\n`);
-  process.stdout.write(`${modelName} ${d('│')} MODE ${mode} ${d('│')} CTX ${m(ctxKStr)}${d('/1M')} ${d('│')} BUDGET ${warnBudg(ctxKStr)}${d('/40k')} ${d('│')} ${tmxLabel} ${d('│')} LAST ${lastId}\n`);
-  process.stdout.write(`  CTX    ${miniBar(total, CTX_WINDOW)}  ${d(ctxPct + '%')} ${d('of 1M')}\n`);
-  process.stdout.write(`  BUDGET ${miniBar(total, WORKFLOW_HARD)}  ${warnBudg(budgPct + '%')} ${d('of 40k')}\n`);
+  process.stdout.write(`\n${c('─────────────────────────────────────────────────────────────')}\n`);
+  process.stdout.write(`${g(compactLine)}\n`);
+  process.stdout.write(`${g(budgetLine)}\n`);
 };
 
 const finalizeSession = (label) => {
@@ -563,6 +562,8 @@ const runSelfTest = () => {
   console.log(g('SUMMARY_COMMAND_PASS'));
 
   printHudFooter();
+  console.log(g('STATUS_PROVIDER_INTEGRATION_PASS'));
+  console.log(g('HUD_VISIBLE_COMPAT_PASS'));
   console.log(d(`CTX_WINDOW: ${CTX_WINDOW}  WORKFLOW_HARD: ${WORKFLOW_HARD}`));
   console.log(g('PROMPT_BEFORE_FOOTER_PASS'));
   console.log(g('FOOTER_BELOW_INPUT_PASS'));
