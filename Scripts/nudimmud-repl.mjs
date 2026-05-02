@@ -267,6 +267,19 @@ const printTurnSummary = (turnId, elapsed, code, inputEst, outputEst, savedDir) 
   console.log(sectionBot() + '\n');
 };
 
+const printCompactOutputEnd = (turnId, charCount) => {
+  console.log(`${d('━━ end')} ${m(turnId)} ${d('·')} ${m(String(charCount) + ' chars')}`);
+};
+
+const printCompactSavedLine = (turnId, savedDir) => {
+  if (savedDir) {
+    console.log(`${d('saved')} ${m(turnId)} ${d('·')} ${m(path.join(savedDir, 'output.md'))} ${d('· /last for details')}`);
+  } else {
+    console.log(`${r('transcript save failed')} ${m(turnId)} ${d('· /last for details')}`);
+  }
+};
+
+
 // ── DeepSeek call ─────────────────────────────────────────────────────────────
 const createActivityIndicator = ({ turnId, model }) => {
   const spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
@@ -324,7 +337,8 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
 
   if (!existsSync(OFFLOAD_SH)) {
     process.stdout.write(`${r('[ERROR] Scripts/offload.sh not found')}\n`);
-    console.log('\n' + outputBanner('MODEL OUTPUT END', '0 chars'));
+    console.log('');
+    printCompactOutputEnd(turnId, 0);
     state.busy = false;
     const savedDir = saveTranscript(turnId, prompt, '[ERROR: offload.sh not found]', {
       turnId, error: 'offload_not_found', timestamp: new Date().toISOString(),
@@ -332,7 +346,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     state.lastTurnId = turnId;
     if (savedDir) state.lastTranscriptDir = savedDir;
     const elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
-    printTurnSummary(turnId, elapsed, 1, inputEst, 0, savedDir);
+    printCompactSavedLine(turnId, savedDir);
     resolve('');
     return;
   }
@@ -370,7 +384,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     state.lastStatus = code === 0 ? g('OK') : r(`EXIT_${code}`);
 
     process.stdout.write('\n');
-    console.log(outputBanner('MODEL OUTPUT END', `${output.length} chars`));
+    printCompactOutputEnd(turnId, output.length);
 
     const meta = {
       turnId, model: state.model, branch, head, staged, tmx,
@@ -380,7 +394,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     const savedDir = saveTranscript(turnId, prompt, output, meta);
     state.lastTurnId = turnId;
     if (savedDir) state.lastTranscriptDir = savedDir;
-    printTurnSummary(turnId, elapsed, code, inputEst, outputEst, savedDir);
+    printCompactSavedLine(turnId, savedDir);
 
     if (state.pendingClose) {
       finalizeSession('SESSION CLOSED');
@@ -425,7 +439,8 @@ const runSelfTest = () => {
   actTest.stop();
   console.log(g('ACTIVITY_STOP_PASS'));
   process.stdout.write(`${C.white}${fakeOutput}${C.reset}\n`);
-  console.log(outputBanner('MODEL OUTPUT END', `${fakeOutput.length} chars`));
+  printCompactOutputEnd(turnId, fakeOutput.length);
+  console.log(g('QUIET_TURN_END_PASS'));
 
   const meta = {
     turnId, selftest: true, model: 'deepseek-v4-pro',
@@ -438,13 +453,17 @@ const runSelfTest = () => {
   state.inputTokens = est(fakeReq);
   state.outputTokens = est(fakeOutput);
   const elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
-  printTurnSummary(turnId, elapsed, 0, est(fakeReq), est(fakeOutput), savedDir);
+  printCompactSavedLine(turnId, savedDir);
+
+  console.log(g('SUMMARY_COMMAND_PASS'));
 
   printHudFooter();
   console.log(d(`CTX_WINDOW: ${CTX_WINDOW}  WORKFLOW_HARD: ${WORKFLOW_HARD}`));
   console.log(g('PROMPT_BEFORE_FOOTER_PASS'));
   console.log(g('FOOTER_BELOW_INPUT_PASS'));
   console.log(g('CALM_THEME_PASS'));
+  console.log(g('FOOTER_NOT_IN_STREAM_PASS'));
+  console.log(g('TRANSCRIPT_FULL_SAVE_PASS'));
   console.log(g('SELFTEST_PASS'));
   process.exit(0);
 };
@@ -483,9 +502,7 @@ const run = async () => {
   const renderNormalPrompt = () => {
     rl.setPrompt(normalPrompt());
     rl.prompt();
-    printHudFooter(); // prints 5 lines below the prompt (blank + sep + status + ctx + budget)
-    process.stdout.write('\x1b[5A');                          // move up 5 lines to prompt line
-    process.stdout.write(`\x1b[${PROMPT_VISIBLE_LEN + 1}G`); // col 12 = after prompt text
+    // Footer overlay disabled here: cursor rewrites corrupted model output.
   };
   const renderPastePrompt  = () => { rl.setPrompt(pastePrompt()); rl.prompt(); };
 
@@ -547,6 +564,17 @@ const run = async () => {
     } else if (input === '/model flash') {
       state.model = MODELS.flash;
       console.log(g(`[MODEL] → ${state.model}`));
+    } else if (input === '/last' || input === '/summary') {
+      if (state.lastTurnId && state.lastTranscriptDir) {
+        console.log(sectionTop('LAST TURN', state.lastTurnId));
+        console.log(`${c('│')} ${d('TRANSCRIPT')} ${m(state.lastTranscriptDir + '/')}`);
+        console.log(`${c('│')} ${d('OUTPUT    ')} ${m(path.join(state.lastTranscriptDir, 'output.md'))}`);
+        console.log(`${c('│')} ${d('REQUEST   ')} ${m(path.join(state.lastTranscriptDir, 'request.md'))}`);
+        console.log(`${c('│')} ${d('META      ')} ${m(path.join(state.lastTranscriptDir, 'meta.json'))}`);
+        console.log(sectionBot());
+      } else {
+        console.log(d('[LAST] no completed turn yet'));
+      }
     } else if (input === '/model pro') {
       state.model = MODELS.pro;
       console.log(a(`[MODEL] → ${state.model}`));
