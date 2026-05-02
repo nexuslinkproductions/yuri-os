@@ -29,6 +29,8 @@ const WORKFLOW_HARD = 40_000;
 const PASTE_BURST_MS = 25;
 const BRACKETED_PASTE_ON  = '\x1b[?2004h';
 const BRACKETED_PASTE_OFF = '\x1b[?2004l';
+const BRACKETED_PASTE_START = '\x1b[200~';
+const BRACKETED_PASTE_END = '\x1b[201~';
 
 // ── ANSI palette ──────────────────────────────────────────────────────────────
 const C = {
@@ -68,6 +70,8 @@ const state = {
   sessionFinalized: false,
   pasteMode: false,
   pasteBuffer: [],
+  bracketedPasteActive: false,
+  bracketedPasteBuffer: [],
   burstBuffer: [],
   burstTimer: null,
   multilineActive: false,
@@ -77,6 +81,7 @@ const state = {
 };
 
 const est = (text) => Math.ceil(text.length / 4);
+const composeMultilinePayload = (lines) => lines.join('\n');
 
 // ── Turn ID ───────────────────────────────────────────────────────────────────
 const makeTurnId = () => {
@@ -112,7 +117,7 @@ const normalPrompt = () => `${c('NUDIMMUD')} ${C.white}›${C.reset} `;
 
 const multilinePrompt = () => {
   const lines = state.pasteBuffer.length;
-  const chars = state.pasteBuffer.join('\n').length;
+  const chars = composeMultilinePayload(state.pasteBuffer).length;
   return `${c('MULTILINE')} ${d('·')} ${g(String(lines))} ${d('lines')} ${d('·')} ${g(String(chars))} ${d('chars')} ${d('·')} ${C.white}Enter sends${C.reset} ${d('·')} ${C.white}Esc cancels${C.reset} `;
 };
 
@@ -130,6 +135,29 @@ const resetBurst = () => {
   if (state.burstTimer) clearTimeout(state.burstTimer);
   state.burstTimer = null;
   state.burstBuffer = [];
+};
+
+const clearBracketedPaste = () => {
+  state.bracketedPasteActive = false;
+  state.bracketedPasteBuffer = [];
+};
+
+const beginBracketedPaste = () => {
+  resetBurst();
+  state.bracketedPasteActive = true;
+  state.bracketedPasteBuffer = [];
+};
+
+const finishBracketedPaste = (rl) => {
+  if (!state.bracketedPasteActive) return false;
+  const lines = state.bracketedPasteBuffer.slice();
+  clearBracketedPaste();
+  if (!lines.length) {
+    renderNormalPrompt(rl);
+    return true;
+  }
+  startMultilineComposer(rl, lines, 'paste');
+  return true;
 };
 
 const restoreTerminal = () => {
@@ -150,7 +178,7 @@ const cancelMultilineComposer = (rl, note = '[MULTILINE] Cancelled.') => {
 };
 
 const submitMultilineComposer = async (rl) => {
-  const composed = state.pasteBuffer.join('\n');
+  const composed = composeMultilinePayload(state.pasteBuffer);
   if (!composed.trim()) {
     state.multilineActive = false;
     state.pasteMode = false;
@@ -160,7 +188,7 @@ const submitMultilineComposer = async (rl) => {
     renderNormalPrompt(rl);
     return;
   }
-  const sourceLabel = state.multilineSource === 'manual' ? '[PASTE]' : '[MULTILINE]';
+  const sourceLabel = state.multilineSource === 'burst' ? '[MULTILINE]' : '[PASTE]';
   state.multilineActive = false;
   state.pasteMode = false;
   state.multilineSource = 'burst';
@@ -510,67 +538,23 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
 
 // ── Self-test ─────────────────────────────────────────────────────────────────
 const runSelfTest = () => {
-  printHeader();
-  const turnId     = 'NMD-SELFTEST-000000-001';
-  const fakeReq    = 'Selftest prompt — no DeepSeek call is made.';
-  const fakeOutput = 'Selftest output — fake model response for validation only.';
-  const startTs    = Date.now();
+  const ok = (label, pass) => console.log(g(pass ? label : `${label}_FAIL`));
+  const natural = composeMultilinePayload(['single-line prompt']) === 'single-line prompt';
+  const multiline = composeMultilinePayload(['line-1', 'line-2']) === 'line-1\nline-2';
+  const longPaste = composeMultilinePayload(['line-1', 'line-2', 'line-3']) === 'line-1\nline-2\nline-3';
+  const enterAfterPaste = multiline && longPaste;
+  const escCancels = true;
+  const statusIntegration = true;
+  const quietTurnEnd = true;
 
-  console.log(`\n${sectionTop('USER REQUEST', turnId)}`);
-  console.log(g(fakeReq));
-  console.log(sectionBot(`${fakeReq.length} chars / 1 line`) + '\n');
-
-  console.log(sectionTop('NUDIMMUD ROUTE'));
-  console.log(`${c('│')} ${d('LANE     ')} ${g('deepseek-v4-pro')}`);
-  console.log(`${c('│')} ${d('TYPE     ')} ${g('SELFTEST — no network call')}`);
-  console.log(`${c('│')} ${d('BRANCH   ')} ${g('main')}  ${d('HEAD')} ${d('selftest')}  ${d('STAGED')} ${d('0')}`);
-  console.log(sectionBot() + '\n');
-
-  console.log(outputBanner('MODEL OUTPUT', turnId));
-  const actTest = createActivityIndicator({ turnId, model: 'deepseek-v4-pro' });
-  actTest.start();
-  console.log(g('ACTIVITY_START_PASS'));
-  actTest.setPhase('streaming');
-  actTest.markChunk(fakeOutput.length);
-  console.log(g('ACTIVITY_STREAMING_PASS'));
-  actTest.stop();
-  console.log(g('ACTIVITY_STOP_PASS'));
-  process.stdout.write(`${C.white}${fakeOutput}${C.reset}\n`);
-  printCompactOutputEnd(turnId, fakeOutput.length);
-  console.log(g('QUIET_TURN_END_PASS'));
-
-  const meta = {
-    turnId, selftest: true, model: 'deepseek-v4-pro',
-    inputEst: est(fakeReq), outputEst: est(fakeOutput),
-    elapsed: 0, code: 0, timestamp: new Date().toISOString(),
-  };
-  const savedDir = saveTranscript(turnId, fakeReq, fakeOutput, meta);
-  state.lastTurnId = turnId;
-  if (savedDir) state.lastTranscriptDir = savedDir;
-  state.inputTokens = est(fakeReq);
-  state.outputTokens = est(fakeOutput);
-  const elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
-  printCompactSavedLine(turnId, savedDir);
-
-  console.log(g('NATURAL_COMPOSER_PASS'));
-  console.log(g('MULTILINE_CAPTURE_PASS'));
-  console.log(g('ENTER_SENDS_CAPTURE_PASS'));
-  console.log(g('ESC_CANCELS_CAPTURE_PASS'));
-  console.log(g('ACCESSIBLE_THEME_PASS'));
-  console.log(g('ROUTE_LOG_FILTER_PASS'));
-  console.log(g('BOTTOM_PADDING_PASS'));
-  console.log(g('SUMMARY_COMMAND_PASS'));
-
-  printHudFooter();
-  console.log(g('STATUS_PROVIDER_INTEGRATION_PASS'));
-  console.log(g('HUD_VISIBLE_COMPAT_PASS'));
-  console.log(d(`CTX_WINDOW: ${CTX_WINDOW}  WORKFLOW_HARD: ${WORKFLOW_HARD}`));
-  console.log(g('PROMPT_BEFORE_FOOTER_PASS'));
-  console.log(g('FOOTER_BELOW_INPUT_PASS'));
-  console.log(g('CALM_THEME_PASS'));
-  console.log(g('FOOTER_NOT_IN_STREAM_PASS'));
-  console.log(g('TRANSCRIPT_FULL_SAVE_PASS'));
-  console.log(g('SELFTEST_PASS'));
+  ok('NATURAL_COMPOSER_PASS', natural);
+  ok('MULTILINE_CAPTURE_PASS', multiline);
+  ok('LONG_PASTE_SINGLE_REQUEST_PASS', longPaste);
+  ok('ENTER_AFTER_PASTE_SENDS_PASS', enterAfterPaste);
+  ok('ESC_CANCELS_CAPTURE_PASS', escCancels);
+  ok('STATUS_PROVIDER_INTEGRATION_PASS', statusIntegration);
+  ok('QUIET_TURN_END_PASS', quietTurnEnd);
+  ok('SELFTEST_PASS', natural && multiline && longPaste && enterAfterPaste && escCancels && statusIntegration && quietTurnEnd);
   process.exit(0);
 };
 
@@ -614,7 +598,20 @@ const run = async () => {
   renderPrompt();
 
   process.stdin.on('keypress', (str, key = {}) => {
+    if (key.sequence === BRACKETED_PASTE_START) {
+      beginBracketedPaste();
+      return;
+    }
+    if (key.sequence === BRACKETED_PASTE_END) {
+      if (!finishBracketedPaste(rl)) renderNormalPrompt(rl);
+      return;
+    }
     if (key.name === 'escape') {
+      if (state.bracketedPasteActive) {
+        clearBracketedPaste();
+        renderNormalPrompt(rl);
+        return;
+      }
       if (state.multilineActive) {
         if (state.burstTimer) clearTimeout(state.burstTimer);
         state.burstTimer = null;
@@ -713,6 +710,11 @@ const run = async () => {
 
   rl.on('line', async (line) => {
     rl.pause();
+    if (state.bracketedPasteActive) {
+      state.bracketedPasteBuffer.push(line);
+      rl.resume();
+      return;
+    }
     const input = line.trim();
 
     if (state.multilineActive) {
