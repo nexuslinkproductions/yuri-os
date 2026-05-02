@@ -240,6 +240,8 @@ run_codex_offload() {
 run_offload_lane() {
   local lane="$1"
   shift
+  local prompt
+  prompt="$(join_prompt "$@")"
 
   if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
     printf '%s\n' "$lane"
@@ -247,7 +249,7 @@ run_offload_lane() {
   fi
 
   require_cmd node
-  exec node "$OFFLOAD_RUNNER" "$lane" "$@"
+  OFFLOAD_PROMPT_TEXT="$prompt" exec node "$OFFLOAD_RUNNER" "$lane"
 }
 
 run_codex_swarm() {

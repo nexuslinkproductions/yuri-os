@@ -13,13 +13,13 @@ if (argv.includes('--inventory')) {
 
 const lane = (argv.shift() || '').toLowerCase();
 const options = parseArgs(argv);
+const envPrompt = process.env.OFFLOAD_PROMPT_TEXT;
+const prompt = envPrompt !== undefined ? envPrompt : options.prompt.trim();
 
 if (!lane) {
   console.error('Usage: offload-runner <lane> [--model <id>] [--system <prompt>] [--dry-run] [--inventory] <prompt>');
   process.exit(1);
 }
-
-const prompt = options.prompt.trim();
 
 if (!prompt && !options.dryRun) {
   console.error('Missing prompt.');

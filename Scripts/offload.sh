@@ -85,6 +85,19 @@ classify_lane() {
   esac
 }
 
+run_offload_runner() {
+  local lane="$1"
+  local prompt="$2"
+  shift 2
+
+  OFFLOAD_PROMPT_TEXT="$prompt" node "$OFFLOAD_RUNNER" "$lane" "$@"
+}
+
+build_route_payload() {
+  local prompt="$1"
+  node -e 'const prompt = process.argv[1] ?? ""; process.stdout.write(JSON.stringify({ prompt }));' "$prompt"
+}
+
 dispatch_model() {
     local target_model="$1"
     local prompt="$2"
@@ -92,35 +105,35 @@ dispatch_model() {
     # Normalize model IDs to agent names where possible
   case "$target_model" in
       claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)
-        echo "⬡ ROUTING_TO_CLAUDE..."
+        printf '%s\n' "⬡ ROUTING_TO_CLAUDE..." >&2
         /Users/marcelspatz/NUDIMMUD/Scripts/ai claude "$prompt"
         ;;
       kimi-k2.6|kimi-k2.5-liberated|kimi-k2.5|kimi|moonshot)
-        echo "⬡ ROUTING_TO_KIMI..."
-        node "$OFFLOAD_RUNNER" moonshot --model "$target_model" "$prompt"
+        printf '%s\n' "⬡ ROUTING_TO_KIMI..." >&2
+        run_offload_runner moonshot "$prompt" --model "$target_model"
         ;;
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
-        echo "⬡ ROUTING_TO_GPT_OSS..."
-        node "$OFFLOAD_RUNNER" gpt-oss --model "$target_model" "$prompt"
+        printf '%s\n' "⬡ ROUTING_TO_GPT_OSS..." >&2
+        run_offload_runner gpt-oss "$prompt" --model "$target_model"
         ;;
       deepseek-v4-flash|deepseek-v4-pro|deepseek-v4-pro-lite-budget|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek)
-        echo "⬡ ROUTING_TO_DEEPSEEK_V4..."
-        node "$OFFLOAD_RUNNER" "$target_model" "$prompt"
+        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2
+        run_offload_runner "$target_model" "$prompt"
         ;;
       deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b|deepseek)
-        echo "⬡ ROUTING_TO_DEEPSEEK..."
-        node "$OFFLOAD_RUNNER" deepseek --model "$target_model" "$prompt"
+        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK..." >&2
+        run_offload_runner deepseek "$prompt" --model "$target_model"
         ;;
       openrouter-free|openrouter)
-        echo "⬡ ROUTING_TO_OPENROUTER_FREE..."
-        node "$OFFLOAD_RUNNER" openrouter-free "$prompt"
+        printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
+        run_offload_runner openrouter-free "$prompt"
         ;;
       openrouter/free)
-        echo "⬡ ROUTING_TO_OPENROUTER_FREE..."
-        node "$OFFLOAD_RUNNER" openrouter-free --model openrouter/free "$prompt"
+        printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
+        run_offload_runner openrouter-free "$prompt" --model openrouter/free
         ;;
       *)
-        echo "⬡ ROUTING_TO_OLLAMA ($target_model)..."
+        printf '%s\n' "⬡ ROUTING_TO_OLLAMA ($target_model)..." >&2
         # We wrap Ollama in a temporary UI update if it doesn't have a dedicated command
         # This keeps IndraSwarm visual pulse working for arbitrary models
         curl -s -X POST \
@@ -129,7 +142,7 @@ dispatch_model() {
           -d "{\"status\": \"ACTIVE\", \"command\": \"OLLAMA: $target_model\"}" \
           "$BACKEND_URL/api/agents/ENGINEERING/status" > /dev/null || true
 
-        node "$OFFLOAD_RUNNER" ollama --model "$target_model" "$prompt"
+        run_offload_runner ollama "$prompt" --model "$target_model"
 
         curl -s -X POST \
           -H "X-API-KEY: $API_KEY" \
@@ -231,15 +244,15 @@ if [[ -n "$SWARM_MODELS" ]]; then
 fi
 
 if [[ -n "$MODEL_OVERRIDE" ]]; then
-    echo "⬡ MANUAL_OVERRIDE :: model=$MODEL_OVERRIDE"
-    dispatch_model "$MODEL_OVERRIDE" "$PROMPT"
-    exit 0
+        printf '%s\n' "⬡ MANUAL_OVERRIDE :: model=$MODEL_OVERRIDE" >&2
+        dispatch_model "$MODEL_OVERRIDE" "$PROMPT"
+        exit 0
 fi
 
 # ── Auto routing: try backend, fall back to local default ──
 DECISION=$(curl -s --connect-timeout 3 --max-time 5 -X POST \
   -H "Content-Type: application/json" \
-  -d "{\"prompt\": \"$PROMPT\"}" \
+  -d "$(build_route_payload "$PROMPT")" \
   "$BACKEND_URL/api/swarm/route" 2>/dev/null) || DECISION=""
 
 MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
@@ -257,5 +270,5 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   exit 1
 fi
 
-echo "⬡ OFFLOAD_ASSESSMENT :: intent=$INTENT runtime=$RUNTIME model=$MODEL"
+printf '%s\n' "⬡ OFFLOAD_ASSESSMENT :: intent=$INTENT runtime=$RUNTIME model=$MODEL" >&2
 dispatch_model "$MODEL" "$PROMPT"
