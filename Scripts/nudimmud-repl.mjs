@@ -475,34 +475,25 @@ const printHeader = () => {
 };
 
 const printStatusBlock = () => {
-  console.log(renderCompactStatusLine(createHudStatusSnapshot()));
-  return;
-  const { branch, head, staged, tmx } = getStatus();
-  const elapsed = Math.round((Date.now() - state.startTime) / 1000);
-  const totalTok = state.inputTokens + state.outputTokens;
-  const modelLabel = state.model === MODELS.pro ? c('PRO') : c('FLASH');
-
-  const bar = (used, cap, width = 20) => {
-    const filled = Math.min(Math.round((used / cap) * width), width);
-    const empty  = width - filled;
-    const color  = filled > width * 0.8 ? C.red : C.green;
-    return `${color}${'█'.repeat(filled)}${C.gray}${'░'.repeat(empty)}${C.reset}`;
-  };
-
-  console.log(`
-${sectionTop('SYSTEM STATUS')}
-${c('│')} ${d('OPERATOR ')} ${b('NUDIMMUD')}   ${d('SESSION ')} ${g(String(state.promptsSent).padStart(4))} prompts
-${c('│')} ${d('MODEL    ')} ${modelLabel}   ${d('STATE   ')} ${g(state.lastStatus)}
-${c('│')} ${d('BRANCH   ')} ${g(branch)}   ${d('HEAD    ')} ${m(head)}
-${c('│')} ${d('STAGED   ')} ${staged > 0 ? c(String(staged)) : d('0')} files   ${d('UPTIME  ')} ${g(elapsed + 's')}
-${sectionBot()}
-
-${sectionTop('ROUTE STATUS')}
-${c('│')} ${d('ROUTE    ')} ${g('LOCAL OFFLOAD')}   ${d('TMX     ')} ${tmx.includes('ACTIVE') ? g(tmx) : d(tmx)}
-${c('│')} ${d('TYPE     ')} ${g('Scripts/offload.sh')}
-${c('│')} ${d('CTX      ')} ${bar(totalTok, CTX_WINDOW, 18)} ${g(String(totalTok))} ${d('/')} ${m('1,000k')}
-${c('│')} ${d('IN/OUT   ')} ${g(String(state.inputTokens).padStart(6))} / ${g(String(state.outputTokens).padStart(6))}   ${d('LAST    ')} ${g(state.lastStatus)}
-${sectionBot()}`);
+  const snap = createHudStatusSnapshot();
+  const modeStr = snap.mode === 'busy'
+    ? (snap.output_chars > 0 ? 'streaming' : 'thinking')
+    : snap.mode;
+  const rawTmx = (snap.tokenmaxxing_state || '').trim();
+  const tmxStr = !rawTmx || /inactive/i.test(rawTmx) ? ''
+    : /active/i.test(rawTmx) ? 'tmx active'
+    : `tmx ${rawTmx.toLowerCase()}`;
+  const row1 = [`state ${modeStr}`];
+  if (snap.model) row1.push(`model ${snap.model}`);
+  if (snap.lane) row1.push(`route ${snap.lane}`);
+  const row2 = [];
+  if (tmxStr) row2.push(tmxStr);
+  if (snap.last_turn_id) row2.push(`session ${snap.last_turn_id.slice(-9)}`);
+  row2.push('cwd NUDIMMUD');
+  console.log(sectionTop('NUDIMMUD / YURI OS'));
+  console.log(`${c('│')} ${d(row1.join('  '))}`);
+  console.log(`${c('│')} ${d(row2.join('  '))}`);
+  console.log(sectionBot());
 };
 
 const printHelp = () => {
@@ -1063,7 +1054,6 @@ const run = async () => {
     process.exit(0);
   }
 
-  printHeader();
   printStatusBlock();
 
   const rl = readline.createInterface({
@@ -1128,7 +1118,6 @@ const run = async () => {
       printTokens();
     } else if (input === '/clear') {
       process.stdout.write(C.clear);
-      printHeader();
       printStatusBlock();
     } else if (input === '/model flash') {
       state.model = MODELS.flash;
