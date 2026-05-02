@@ -17,6 +17,7 @@ const TOKENMAXXING_STATE = path.join(REPO_ROOT, '.claude/state/tokenmaxxing-stat
 const RUNS_DIR = path.join(os.homedir(), '.nudimmud', 'runs');
 
 const SELF_TEST = process.env.NUDIMMUD_REPL_SELFTEST === '1';
+const CLAIM_VERIFIER_SMOKE = process.env.NUDIMMUD_REPL_CLAIM_VERIFIER_SMOKE === '1';
 
 const MODELS = {
   flash: 'deepseek-v4-flash',
@@ -152,6 +153,15 @@ const saveTranscript = (turnId, request, output, meta) => {
     return null;
   }
 };
+
+const CLAIM_VERIFIER_SMOKE_OUTPUT = [
+  'RESULT_LABEL: 08N_FAKE_PASS_COMMITTED',
+  'HEAD: 97b8c2d66',
+  'STAGED: Scripts/nudimmud-repl.mjs',
+  'FILES_CHANGED: Scripts/nudimmud-repl.mjs',
+  'VALIDATION: PASS',
+  'git commit success',
+].join('\n');
 
 const isRouteLogLine = (line) => /^(?:\s*)⬡\s+(?:MANUAL_OVERRIDE|ROUTING_TO_DEEPSEEK(?:_V4)?)\b/.test(line);
 
@@ -750,6 +760,74 @@ const runSelfTest = () => {
   process.exit(0);
 };
 
+const runClaimVerifierArtifactSmoke = () => {
+  const turnId = makeTurnId();
+  const request = 'NUDIMMUD_REPL_CLAIM_VERIFIER_SMOKE=1\nDeterministic no-model artifact smoke.';
+  const output = CLAIM_VERIFIER_SMOKE_OUTPUT;
+  const headBefore = git('git rev-parse --short HEAD');
+  const status = getStatus();
+
+  const localClaimVerifier = verifyModelLocalClaims({
+    output,
+    headBefore,
+    headAfter: headBefore,
+    stagedAfter: [],
+    targetDirty: [],
+  });
+
+  const meta = {
+    turnId,
+    model: 'NO_MODEL_SMOKE',
+    branch: status.branch,
+    head: status.head,
+    staged: status.staged,
+    tmx: status.tmx,
+    inputEst: est(request),
+    outputEst: est(output),
+    elapsed: 0,
+    code: 0,
+    timestamp: new Date().toISOString(),
+    local_claim_verifier: localClaimVerifier,
+  };
+
+  const savedDir = saveTranscript(turnId, request, output, meta);
+  if (!savedDir) {
+    process.stderr.write(`${r('[FATAL]')} failed to save smoke transcript\n`);
+    process.exit(1);
+  }
+
+  const headAfter = git('git rev-parse --short HEAD');
+  const stagedAfter = gitLines('git diff --cached --name-only');
+  const savedOutput = readFileSync(path.join(savedDir, 'output.md'), 'utf8');
+  const savedMeta = JSON.parse(readFileSync(path.join(savedDir, 'meta.json'), 'utf8'));
+  const verifier = savedMeta.local_claim_verifier || {};
+  const claimTypes = Array.isArray(verifier.claim_types) ? verifier.claim_types : [];
+  const rawOutputPreserved = savedOutput.includes(output);
+  const hasRequiredClaims = claimTypes.includes('PASS_COMMITTED') && claimTypes.includes('HEAD');
+  const metaVerdict = verifier.verdict === 'MODEL_CLAIM_ONLY';
+  const headUnchanged = headBefore === headAfter && verifier.head_before === verifier.head_after;
+  const success = verifier.suspicious === true && metaVerdict && hasRequiredClaims && rawOutputPreserved && headUnchanged && stagedAfter.length === 0;
+
+  if (!success) {
+    process.stderr.write([
+      `${r('[FATAL]')} claim verifier smoke failed`,
+      `verdict=${verifier.verdict || 'UNKNOWN'}`,
+      `claims=${claimTypes.join(',') || 'NONE'}`,
+      `head_before=${verifier.head_before || headBefore}`,
+      `head_after=${verifier.head_after || headAfter}`,
+      `staged_after=${stagedAfter.join(',') || 'NONE'}`,
+    ].join('\n') + '\n');
+    process.exit(1);
+  }
+
+  console.log('CLAIM_VERIFIER_ARTIFACT_SMOKE_PASS');
+  console.log(`META_VERDICT::${verifier.verdict}`);
+  console.log(`RAW_OUTPUT_PRESERVED::${rawOutputPreserved}`);
+  console.log(`HEAD_UNCHANGED::${headUnchanged}`);
+  console.log(`RUN_ARTIFACT::${savedDir}`);
+  process.exit(0);
+};
+
 // ── REPL loop ─────────────────────────────────────────────────────────────────
 const run = async () => {
   if (SELF_TEST) return runSelfTest();
@@ -759,6 +837,8 @@ const run = async () => {
     process.exit(1);
   }
   process.chdir(REPO_ROOT);
+
+  if (CLAIM_VERIFIER_SMOKE) return runClaimVerifierArtifactSmoke();
 
   if (process.argv.includes('--help') || process.argv.includes('-h')) {
     printHeader();
