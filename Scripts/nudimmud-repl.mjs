@@ -258,6 +258,97 @@ const git = (cmd) => {
   catch { return '?'; }
 };
 
+const gitLines = (cmd) => {
+  try {
+    const out = execSync(cmd, { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+    return out ? out.split('\n').filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+};
+
+const readLocalTruth = () => {
+  const head = git('git rev-parse --short HEAD');
+  const stagedAfter = gitLines('git diff --cached --name-only');
+  const targetDirty = gitLines('git diff --name-only -- Scripts/nudimmud-repl.mjs');
+  return { head, stagedAfter, targetDirty };
+};
+
+const detectLocalExecutionClaims = (output) => {
+  const text = String(output ?? '');
+  const claimTypes = [];
+  const claimedHeadHashes = [];
+  const addClaim = (type) => {
+    if (!claimTypes.includes(type)) claimTypes.push(type);
+  };
+
+  if (/PASS_COMMITTED/i.test(text)) addClaim('PASS_COMMITTED');
+  if (/^\s*HEAD\s*:/im.test(text)) addClaim('HEAD');
+  if (/^\s*STAGED\s*:/im.test(text)) addClaim('STAGED');
+  if (/^\s*FILES_CHANGED\s*:/im.test(text)) addClaim('FILES_CHANGED');
+  if (/^\s*VALIDATION\s*:/im.test(text)) addClaim('VALIDATION');
+  if (/\b(?:git\s+)?commit(?:ed|ted)?(?:\s+\w+)*\s+(?:success(?:ful|fully)?|succeeded|done|complete(?:d)?|created)\b/i.test(text)) {
+    addClaim('GIT_COMMIT_SUCCESS');
+  }
+
+  for (const line of text.split(/\r?\n/)) {
+    const match = line.match(/^\s*HEAD\s*:\s*([0-9a-f]{7,40})\b/i);
+    if (match) claimedHeadHashes.push(match[1].toLowerCase());
+  }
+
+  return {
+    suspicious: claimTypes.length > 0,
+    claim_types: claimTypes,
+    claimed_head_hashes: [...new Set(claimedHeadHashes)],
+  };
+};
+
+const verifyModelLocalClaims = ({ output, headBefore, headAfter, stagedAfter, targetDirty }) => {
+  const detected = detectLocalExecutionClaims(output);
+  const commitishClaimed = detected.claim_types.some((type) =>
+    type === 'PASS_COMMITTED' ||
+    type === 'HEAD' ||
+    type === 'STAGED' ||
+    type === 'FILES_CHANGED' ||
+    type === 'GIT_COMMIT_SUCCESS');
+  const headChanged = headBefore !== headAfter;
+  const stagedChanged = Array.isArray(stagedAfter) && stagedAfter.length > 0;
+
+  let verdict = 'NO_LOCAL_EXECUTION_CLAIMS';
+  if (detected.suspicious) {
+    if (commitishClaimed) {
+      if (!headChanged) verdict = 'MODEL_CLAIM_ONLY';
+      else if (!stagedChanged) verdict = 'LOCAL_COMMIT_CONFIRMED';
+      else verdict = 'LOCAL_STATE_CHANGED_UNVERIFIED';
+    } else if (headChanged || stagedChanged) {
+      verdict = 'LOCAL_STATE_CHANGED_UNVERIFIED';
+    } else {
+      verdict = 'MODEL_CLAIM_ONLY';
+    }
+  }
+
+  const suspicious = detected.suspicious;
+  const unverified = suspicious && verdict !== 'LOCAL_COMMIT_CONFIRMED';
+  let warning = '';
+  if (suspicious && unverified && commitishClaimed && !headChanged) {
+    warning = 'LOCAL VERIFIER: model claimed committed state, but local git did not confirm it. Treat as MODEL_CLAIM_ONLY.';
+  } else if (suspicious && unverified) {
+    warning = 'LOCAL VERIFIER: model-local claims were not confirmed by local git. Treat as MODEL_CLAIM_ONLY.';
+  }
+
+  return {
+    suspicious,
+    claim_types: detected.claim_types,
+    claimed_head_hashes: detected.claimed_head_hashes,
+    head_before: headBefore,
+    head_after: headAfter,
+    staged_after: Array.isArray(stagedAfter) ? stagedAfter : [],
+    target_dirty: Array.isArray(targetDirty) ? targetDirty : [],
+    verdict,
+    warning,
+  };
+};
+
 const getStatus = () => {
   const branch = git('git branch --show-current');
   const head   = git('git rev-parse --short HEAD');
@@ -461,6 +552,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   const reqLines = prompt.split('\n').length;
   const reqChars = prompt.length;
   const inputEst = est(prompt);
+  const localHeadBefore = git('git rev-parse --short HEAD');
   state.inputTokens += inputEst;
   state.promptsSent += 1;
   state.busy = true;
@@ -556,10 +648,23 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     process.stdout.write('\n');
     printCompactOutputEnd(turnId, output.length);
 
+    const localTruthAfter = readLocalTruth();
+    const localClaimVerifier = verifyModelLocalClaims({
+      output,
+      headBefore: localHeadBefore,
+      headAfter: localTruthAfter.head,
+      stagedAfter: localTruthAfter.stagedAfter,
+      targetDirty: localTruthAfter.targetDirty,
+    });
+    if (localClaimVerifier.warning) {
+      console.log(r(localClaimVerifier.warning));
+    }
+
     const meta = {
       turnId, model: state.model, branch, head, staged, tmx,
       inputEst, outputEst, elapsed: parseFloat(elapsed),
       code, timestamp: new Date().toISOString(),
+      local_claim_verifier: localClaimVerifier,
     };
     const savedDir = saveTranscript(turnId, prompt, output, meta);
     state.lastTurnId = turnId;
@@ -597,6 +702,33 @@ const runSelfTest = () => {
   const noHud40kBudget = !/40k|40000/.test(`${printStatusBlock}\n${printHudFooter}`);
   const readableTheme = d('x') === `${C.gray}x${C.reset}` && c('x') === `${C.green}x${C.reset}` && !d('x').includes(C.dim);
   const bottomPadding = renderNormalPrompt.toString().includes('promptPadding') && printCompactSavedLine.toString().includes('promptPadding');
+  const fakeOutput = [
+    'RESULT_LABEL: X_PASS_COMMITTED',
+    'HEAD: 97b8c2d66',
+    'STAGED: Scripts/nudimmud-repl.mjs',
+    'FILES_CHANGED: Scripts/nudimmud-repl.mjs',
+    'VALIDATION: PASS',
+    'git commit success',
+  ].join('\n');
+  const fakeClaims = detectLocalExecutionClaims(fakeOutput);
+  const fakeVerifier = verifyModelLocalClaims({
+    output: fakeOutput,
+    headBefore: 'b1f060d55',
+    headAfter: 'b1f060d55',
+    stagedAfter: [],
+    targetDirty: [],
+  });
+  const localClaimVerifierPass = fakeClaims.suspicious &&
+    fakeClaims.claim_types.includes('PASS_COMMITTED') &&
+    fakeClaims.claim_types.includes('HEAD') &&
+    fakeClaims.claim_types.includes('STAGED') &&
+    fakeClaims.claim_types.includes('FILES_CHANGED') &&
+    fakeClaims.claim_types.includes('VALIDATION') &&
+    fakeClaims.claim_types.includes('GIT_COMMIT_SUCCESS') &&
+    fakeVerifier.verdict === 'MODEL_CLAIM_ONLY' &&
+    fakeVerifier.warning.includes('LOCAL VERIFIER: model claimed committed state, but local git did not confirm it. Treat as MODEL_CLAIM_ONLY.');
+  const fakeCommitClaimDowngraded = fakeVerifier.verdict === 'MODEL_CLAIM_ONLY';
+  const noFalsePassCommittedAcceptance = fakeVerifier.verdict !== 'LOCAL_COMMIT_CONFIRMED';
 
   ok('NODE_CHECK_PASS', nodeCheck);
   ok('NATURAL_COMPOSER_PASS', natural);
@@ -611,7 +743,10 @@ const runSelfTest = () => {
   ok('NO_HUD_40K_BUDGET_PASS', noHud40kBudget);
   ok('READABLE_THEME_PASS', readableTheme);
   ok('BOTTOM_PADDING_PASS', bottomPadding);
-  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding);
+  ok('LOCAL_CLAIM_VERIFIER_PASS', localClaimVerifierPass);
+  ok('FAKE_COMMIT_CLAIM_DOWNGRADED_PASS', fakeCommitClaimDowngraded);
+  ok('NO_FALSE_PASS_COMMITTED_ACCEPTANCE_PASS', noFalsePassCommittedAcceptance);
+  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance);
   process.exit(0);
 };
 
