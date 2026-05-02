@@ -7,7 +7,8 @@
     "preview": "vite preview",
     "graphify": "bash scripts/graphify-run.sh",
     "validate:ledger": "node _SYSTEM/validators/validate-evidence-ledger.mjs",
-    "yuri": "claude"
+    "yuri": "claude",
+    "nudimmud": "node Scripts/nudimmud-repl.mjs"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
