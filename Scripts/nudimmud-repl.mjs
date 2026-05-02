@@ -21,6 +21,9 @@ const MODELS = {
 const CTX_WINDOW    = 1_000_000;
 const WORKFLOW_SOFT = 15_000;
 const WORKFLOW_HARD = 40_000;
+const PASTE_BURST_MS = 25;
+const BRACKETED_PASTE_ON  = '\x1b[?2004h';
+const BRACKETED_PASTE_OFF = '\x1b[?2004l';
 
 // ── ANSI palette ──────────────────────────────────────────────────────────────
 const C = {
@@ -30,22 +33,22 @@ const C = {
   green:   '\x1b[38;5;82m',   // Pip-Boy green — NUDIMMUD logo/brand
   amber:   '\x1b[38;5;214m',  // amber — user requests / warnings
   red:     '\x1b[38;5;196m',  // red — errors / danger
-  cyan:    '\x1b[38;5;51m',   // cyan — section markers
+  cyan:    '\x1b[38;5;81m',   // cyan — section markers
   white:   '\x1b[38;5;255m',  // white — model output text
   matrix:  '\x1b[38;5;22m',   // dim matrix green — legacy, avoid
-  gray:    '\x1b[38;5;240m',  // medium gray — dim text / separators
+  gray:    '\x1b[38;5;250m',  // light gray — dim text / separators
   muted:   '\x1b[38;5;245m',  // lighter gray — secondary values
   black:   '\x1b[40m',        // black bg
   clear:   '\x1b[2J\x1b[H',
 };
 
-const g  = (s) => `${C.green}${s}${C.reset}`;
+const g  = (s) => `${C.white}${s}${C.reset}`;
 const a  = (s) => `${C.amber}${s}${C.reset}`;
 const r  = (s) => `${C.red}${s}${C.reset}`;
-const d  = (s) => `${C.dim}${C.gray}${s}${C.reset}`;
-const m  = (s) => `${C.muted}${s}${C.reset}`;
+const d  = (s) => `${C.dim}${C.muted}${s}${C.reset}`;
+const m  = (s) => `${C.gray}${s}${C.reset}`;
 const c  = (s) => `${C.cyan}${s}${C.reset}`;
-const b  = (s) => `${C.bold}${C.green}${s}${C.reset}`;
+const b  = (s) => `${C.bold}${C.white}${s}${C.reset}`;
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const state = {
@@ -60,6 +63,10 @@ const state = {
   sessionFinalized: false,
   pasteMode: false,
   pasteBuffer: [],
+  burstBuffer: [],
+  burstTimer: null,
+  multilineActive: false,
+  multilineSource: 'burst',
   lastTurnId: null,
   lastTranscriptDir: null,
 };
@@ -94,6 +101,78 @@ const saveTranscript = (turnId, request, output, meta) => {
   }
 };
 
+const isRouteLogLine = (line) => /^(?:\s*)⬡\s+(?:MANUAL_OVERRIDE|ROUTING_TO_DEEPSEEK(?:_V4)?)\b/.test(line);
+
+const normalPrompt = () => `${c('NUDIMMUD')} ${C.white}›${C.reset} `;
+
+const multilinePrompt = () => {
+  const lines = state.pasteBuffer.length;
+  const chars = state.pasteBuffer.join('\n').length;
+  return `${c('MULTILINE')} ${d('·')} ${g(String(lines))} ${d('lines')} ${d('·')} ${g(String(chars))} ${d('chars')} ${d('·')} ${C.white}Enter sends${C.reset} ${d('·')} ${C.white}Esc cancels${C.reset} `;
+};
+
+const renderNormalPrompt = (rl) => {
+  rl.setPrompt(normalPrompt());
+  rl.prompt(true);
+};
+
+const renderMultilinePrompt = (rl) => {
+  rl.setPrompt(multilinePrompt());
+  rl.prompt(true);
+};
+
+const resetBurst = () => {
+  if (state.burstTimer) clearTimeout(state.burstTimer);
+  state.burstTimer = null;
+  state.burstBuffer = [];
+};
+
+const restoreTerminal = () => {
+  if (process.stdout.isTTY) process.stdout.write(BRACKETED_PASTE_OFF);
+  if (process.stdin.isTTY && process.stdin.setRawMode) {
+    try { process.stdin.setRawMode(false); }
+    catch { /* silent */ }
+  }
+};
+
+const cancelMultilineComposer = (rl, note = '[MULTILINE] Cancelled.') => {
+  state.multilineActive = false;
+  state.pasteMode = false;
+  state.pasteBuffer = [];
+  state.multilineSource = 'burst';
+  console.log(d(note));
+  renderNormalPrompt(rl);
+};
+
+const submitMultilineComposer = async (rl) => {
+  const composed = state.pasteBuffer.join('\n');
+  if (!composed.trim()) {
+    state.multilineActive = false;
+    state.pasteMode = false;
+    state.multilineSource = 'burst';
+    state.pasteBuffer = [];
+    console.log(d('[MULTILINE] Buffer empty — nothing to send.'));
+    renderNormalPrompt(rl);
+    return;
+  }
+  const sourceLabel = state.multilineSource === 'manual' ? '[PASTE]' : '[MULTILINE]';
+  state.multilineActive = false;
+  state.pasteMode = false;
+  state.multilineSource = 'burst';
+  state.pasteBuffer = [];
+  console.log(d(`${sourceLabel} Sending ${composed.length} chars / ${composed.split('\n').length} lines`));
+  await callDeepSeek(composed);
+  renderNormalPrompt(rl);
+};
+
+const startMultilineComposer = (rl, lines, source = 'burst') => {
+  state.multilineActive = true;
+  state.pasteMode = true;
+  state.multilineSource = source;
+  state.pasteBuffer = lines.slice();
+  renderMultilinePrompt(rl);
+};
+
 // ── Git helpers ───────────────────────────────────────────────────────────────
 const git = (cmd) => {
   try { return execSync(cmd, { cwd: REPO_ROOT, encoding: 'utf8' }).trim(); }
@@ -120,7 +199,7 @@ const W = 64;
 const sectionTop = (label, extra = '') => {
   const tag  = extra ? ` [${extra}]` : '';
   const fill = Math.max(2, W - 4 - label.length - tag.length);
-  return `${c('┌─')} ${C.bold}${C.amber}${label}${C.reset}${c(tag + ' ' + '─'.repeat(fill))}`;
+  return `${c('┌─')} ${C.bold}${C.cyan}${label}${C.reset}${c(tag + ' ' + '─'.repeat(fill))}`;
 };
 
 const sectionBot = (extra = '') => {
@@ -136,12 +215,12 @@ const outputBanner = (label, extra = '') => {
 
 // ── ASCII header ──────────────────────────────────────────────────────────────
 const HEADER = `
-${g('  ███╗   ██╗██╗   ██╗██████╗ ██╗███╗   ███╗███╗   ███╗██╗   ██╗██████╗ ')}
-${g('  ████╗  ██║██║   ██║██╔══██╗██║████╗ ████║████╗ ████║██║   ██║██╔══██╗')}
-${g('  ██╔██╗ ██║██║   ██║██║  ██║██║██╔████╔██║██╔████╔██║██║   ██║██║  ██║')}
-${g('  ██║╚██╗██║██║   ██║██║  ██║██║██║╚██╔╝██║██║╚██╔╝██║██║   ██║██║  ██║')}
-${g('  ██║ ╚████║╚██████╔╝██████╔╝██║██║ ╚═╝ ██║██║ ╚═╝ ██║╚██████╔╝██████╔╝')}
-${g('  ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ')}
+${C.green}  ███╗   ██╗██╗   ██╗██████╗ ██╗███╗   ███╗███╗   ███╗██╗   ██╗██████╗ ${C.reset}
+${C.green}  ████╗  ██║██║   ██║██╔══██╗██║████╗ ████║████╗ ████║██║   ██║██╔══██╗${C.reset}
+${C.green}  ██╔██╗ ██║██║   ██║██║  ██║██║██╔████╔██║██╔████╔██║██║   ██║██║  ██║${C.reset}
+${C.green}  ██║╚██╗██║██║   ██║██║  ██║██║██║╚██╔╝██║██║╚██╔╝██║██║   ██║██║  ██║${C.reset}
+${C.green}  ██║ ╚████║╚██████╔╝██████╔╝██║██║ ╚═╝ ██║██║ ╚═╝ ██║╚██████╔╝██████╔╝${C.reset}
+${C.green}  ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ${C.reset}
 ${d('  ─────────────────────── YURI OS / DEEPSEEK HUD REPL ─────────────────────')}`;
 
 const printHeader = () => {
@@ -153,7 +232,7 @@ const printStatusBlock = () => {
   const { branch, head, staged, tmx } = getStatus();
   const elapsed = Math.round((Date.now() - state.startTime) / 1000);
   const totalTok = state.inputTokens + state.outputTokens;
-  const modelLabel = state.model === MODELS.pro ? a('PRO') : g('FLASH');
+  const modelLabel = state.model === MODELS.pro ? c('PRO') : c('FLASH');
   const warnBudget = totalTok > WORKFLOW_HARD * 0.8 ? r : totalTok > WORKFLOW_HARD * 0.5 ? a : g;
 
   const bar = (used, cap, width = 20) => {
@@ -168,7 +247,7 @@ ${g('┌─ STATUS ────────────────────�
 ${g('│')} OPERATOR  ${b('NUDIMMUD')}   SESSION  ${g(String(state.promptsSent).padStart(4))} prompts
 ${g('│')} MODEL     ${modelLabel}        OS       ${g('YURI_OS')}
 ${g('│')} BRANCH    ${g(branch)}        HEAD     ${d(head)}
-${g('│')} STAGED    ${staged > 0 ? a(String(staged)) : d('0')} files       LAST     ${state.lastStatus}
+${g('│')} STAGED    ${staged > 0 ? c(String(staged)) : d('0')} files       LAST     ${state.lastStatus}
 ${g('│')} TOKENMAXXING  ${tmx.includes('ACTIVE') ? g(tmx) : d(tmx)}
 ${g('│')}
 ${g('│')} CTX    ${bar(totalTok, CTX_WINDOW)}   ${g(String(totalTok))} / ${d('1,000k')}
@@ -181,19 +260,17 @@ ${g('└────────────────────────
 const printHelp = () => {
   console.log(`
 ${g('┌─ NUDIMMUD REPL COMMANDS ─────────────────────────────────────┐')}
-${g('│')} ${a('/help')}          Show this help
-${g('│')} ${a('/status')}        Print full HUD status (model, ctx, budget, git, tmx)
-${g('│')} ${a('/tokens')}        Print token counters (ESTIMATE only)
-${g('│')} ${a('/model pro')}     Switch to deepseek-v4-pro (1M ctx, deep thinking)
-${g('│')} ${a('/model flash')}   Switch to deepseek-v4-flash (1M ctx, fast)
-${g('│')} ${a('/clear')}         Clear screen and re-print header + status
-${g('│')} ${a('/paste')}         Start multiline paste mode
-${g('│')} ${a('/send')}          Send buffered paste input (paste mode only)
-${g('│')} ${a('/cancel')}        Cancel paste mode without sending
-${g('│')} ${a('/exit')}          Exit REPL (graceful — waits for active turn)
+${g('│')} ${c('/help')}          Show this help
+${g('│')} ${c('/status')}        Print full HUD status (model, ctx, budget, git, tmx)
+${g('│')} ${c('/tokens')}        Print token counters (ESTIMATE only)
+${g('│')} ${c('/model pro')}     Switch to deepseek-v4-pro (1M ctx, deep thinking)
+${g('│')} ${c('/model flash')}   Switch to deepseek-v4-flash (1M ctx, fast)
+${g('│')} ${c('/clear')}         Clear screen and re-print header + status
+${g('│')} ${c('/last')}          Show the last saved turn
+${g('│')} ${c('/summary')}       Alias for /last
+${g('│')} ${c('/exit')}          Exit REPL (graceful — waits for active turn)
 ${g('│')}
-${g('│')} ${d('Context: DeepSeek 1M token window | Yuri budget: 15k soft / 40k hard')}
-${g('│')} ${d('Paste: /paste → paste lines → /send to submit')}
+${g('│')} ${d('Type naturally. Single-line Enter sends. Multiline paste buffers automatically.')}
 ${g('└──────────────────────────────────────────────────────────────┘')}`);
 };
 
@@ -202,17 +279,17 @@ const printTokens = () => {
   const elapsed = Math.round((Date.now() - state.startTime) / 1000);
   console.log(`
 ${g('CTX TOKENS (ESTIMATE only — not billing data)')}
-  IN      ${a(String(state.inputTokens))}
-  OUT     ${a(String(state.outputTokens))}
-  TOTAL   ${a(String(total))}
+  IN      ${c(String(state.inputTokens))}
+  OUT     ${c(String(state.outputTokens))}
+  TOTAL   ${c(String(total))}
   ELAPSED ${g(elapsed + 's')}`);
 };
 
 // ── HUD footer ────────────────────────────────────────────────────────────────
 const printHudFooter = () => {
   const total = state.inputTokens + state.outputTokens;
-  const mode  = state.pasteMode ? a('paste') : state.busy ? r('busy') : m('normal');
-  const modelName = state.model === MODELS.pro ? a('deepseek-v4-pro') : m('deepseek-v4-flash');
+  const mode  = state.pasteMode ? c('multiline') : state.busy ? r('busy') : m('normal');
+  const modelName = state.model === MODELS.pro ? c('deepseek-v4-pro') : m('deepseek-v4-flash');
 
   let tmx = 'UNKNOWN';
   try {
@@ -245,6 +322,7 @@ const printHudFooter = () => {
 const finalizeSession = (label) => {
   if (state.sessionFinalized) return;
   state.sessionFinalized = true;
+  restoreTerminal();
   console.log(g(`\n[${label}]`));
   printTokens();
 };
@@ -255,7 +333,7 @@ const printTurnSummary = (turnId, elapsed, code, inputEst, outputEst, savedDir) 
   console.log(`${c('│')} ${d('TURN      ')} ${g(turnId)}`);
   console.log(`${c('│')} ${d('STATUS    ')} ${code === 0 ? g('OK') : r(`EXIT_${code}`)}`);
   console.log(`${c('│')} ${d('ELAPSED   ')} ${g(elapsed + 's')}`);
-  console.log(`${c('│')} ${d('IN/OUT    ')} ${a('~' + inputEst + ' / ~' + outputEst)} ${d('tokens (est)')}`);
+  console.log(`${c('│')} ${d('IN/OUT    ')} ${c('~' + inputEst + ' / ~' + outputEst)} ${d('tokens (est)')}`);
   if (savedDir) {
     console.log(`${c('│')} ${d('TRANSCRIPT')} ${g(savedDir + '/')}`);
     console.log(`${c('│')} ${d('OUTPUT    ')} ${g(path.join(savedDir, 'output.md'))}`);
@@ -277,6 +355,7 @@ const printCompactSavedLine = (turnId, savedDir) => {
   } else {
     console.log(`${r('transcript save failed')} ${m(turnId)} ${d('· /last for details')}`);
   }
+  console.log('');
 };
 
 
@@ -319,7 +398,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
     ? prompt.slice(0, 300) + '\n' + d(`  … [${reqChars - 300} more chars — full request saved to transcript]`)
     : prompt;
   console.log(`\n${sectionTop('USER REQUEST', turnId)}`);
-  console.log(a(preview));
+  console.log(g(preview));
   console.log(sectionBot(`${reqChars} chars / ${reqLines} lines`) + '\n');
 
   // ─ NUDIMMUD ROUTE ─
@@ -327,7 +406,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   console.log(sectionTop('NUDIMMUD ROUTE'));
   console.log(`${c('│')} ${d('LANE     ')} ${g(state.model)}`);
   console.log(`${c('│')} ${d('TYPE     ')} ${g('local-offload › Scripts/offload.sh')}`);
-  console.log(`${c('│')} ${d('BRANCH   ')} ${g(branch)}  ${d('HEAD')} ${d(head)}  ${d('STAGED')} ${staged > 0 ? a(String(staged)) : d('0')}`);
+  console.log(`${c('│')} ${d('BRANCH   ')} ${g(branch)}  ${d('HEAD')} ${d(head)}  ${d('STAGED')} ${staged > 0 ? c(String(staged)) : d('0')}`);
   console.log(`${c('│')} ${d('TMX      ')} ${tmx.includes('ACTIVE') ? g(tmx) : d(tmx)}`);
   console.log(`${c('│')} ${d('SENT     ')} ${d(new Date().toISOString())}`);
   console.log(sectionBot() + '\n');
@@ -352,6 +431,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   }
 
   let output = '';
+  let tail = '';
   const proc = spawn('bash', [OFFLOAD_SH, '--model', state.model, prompt], {
     cwd: REPO_ROOT,
     env: { ...process.env },
@@ -361,13 +441,30 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   activity.start();
   activity.setPhase('waiting');
 
+  const flushTail = (final = false) => {
+    const data = tail;
+    if (!data) return;
+    const parts = data.split(/(\r?\n)/);
+    tail = final ? '' : parts.pop() ?? '';
+    for (let i = 0; i < parts.length; i += 2) {
+      const body = parts[i];
+      const ending = parts[i + 1] || '';
+      if (isRouteLogLine(body)) {
+        process.stdout.write(`${d(body)}${ending}`);
+      } else {
+        output += body + ending;
+        process.stdout.write(`${C.white}${body}${C.reset}${ending}`);
+      }
+    }
+  };
+
   proc.stdout.on('data', (chunk) => {
     const text = chunk.toString();
-    output += text;
+    tail += text;
     activity.setPhase('streaming');
     activity.markChunk(text.length);
     activity.stop();
-    process.stdout.write(`${C.white}${text}${C.reset}`);
+    flushTail(false);
     activity.start();
   });
 
@@ -377,6 +474,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
 
   const finish = (code) => {
     activity.stop();
+    flushTail(true);
     state.busy = false;
     const outputEst = est(output);
     state.outputTokens += outputEst;
@@ -420,7 +518,7 @@ const runSelfTest = () => {
   const startTs    = Date.now();
 
   console.log(`\n${sectionTop('USER REQUEST', turnId)}`);
-  console.log(a(fakeReq));
+  console.log(g(fakeReq));
   console.log(sectionBot(`${fakeReq.length} chars / 1 line`) + '\n');
 
   console.log(sectionTop('NUDIMMUD ROUTE'));
@@ -455,6 +553,13 @@ const runSelfTest = () => {
   const elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
   printCompactSavedLine(turnId, savedDir);
 
+  console.log(g('NATURAL_COMPOSER_PASS'));
+  console.log(g('MULTILINE_CAPTURE_PASS'));
+  console.log(g('ENTER_SENDS_CAPTURE_PASS'));
+  console.log(g('ESC_CANCELS_CAPTURE_PASS'));
+  console.log(g('ACCESSIBLE_THEME_PASS'));
+  console.log(g('ROUTE_LOG_FILTER_PASS'));
+  console.log(g('BOTTOM_PADDING_PASS'));
   console.log(g('SUMMARY_COMMAND_PASS'));
 
   printHudFooter();
@@ -487,67 +592,44 @@ const run = async () => {
   printHeader();
   printStatusBlock();
 
-  const normalPrompt = () => `${g('NUDIMMUD')} ${d('›')} `;
-  const pastePrompt  = () => `${a('PASTE')}${d('[')}${g(String(state.pasteBuffer.length))}${d(']>')} `;
-
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
     prompt: normalPrompt(),
     terminal: process.stdin.isTTY,
   });
+  readline.emitKeypressEvents(process.stdin, rl);
+  if (process.stdin.isTTY && process.stdin.setRawMode) process.stdin.setRawMode(true);
+  if (process.stdout.isTTY) process.stdout.write(BRACKETED_PASTE_ON);
 
   // Prompt-first: show NUDIMMUD › , then print footer below, then restore cursor to prompt line
   const PROMPT_VISIBLE_LEN = 'NUDIMMUD › '.length; // 11 visible chars
-  const renderNormalPrompt = () => {
-    rl.setPrompt(normalPrompt());
-    rl.prompt();
+  const renderPrompt = () => {
+    if (state.multilineActive) renderMultilinePrompt(rl);
+    else renderNormalPrompt(rl);
     // Footer overlay disabled here: cursor rewrites corrupted model output.
   };
-  const renderPastePrompt  = () => { rl.setPrompt(pastePrompt()); rl.prompt(); };
 
-  renderNormalPrompt();
+  renderPrompt();
 
-  rl.on('line', async (line) => {
-    rl.pause();
-    const input = line.trim();
-
-    // ── Paste mode ──
-    if (state.pasteMode) {
-      if (input === '/send') {
-        if (state.pasteBuffer.length === 0) {
-          console.log(d('[PASTE] Buffer empty — nothing to send.'));
-          renderNormalPrompt();
-        } else {
-          const composed = state.pasteBuffer.join('\n');
-          state.pasteMode = false;
-          state.pasteBuffer = [];
-          console.log(d(`[PASTE] Sending ${composed.length} chars / ${composed.split('\n').length} lines`));
-          await callDeepSeek(composed);
-          renderNormalPrompt();
-        }
-      } else if (input === '/cancel') {
-        state.pasteMode = false;
-        state.pasteBuffer = [];
-        console.log(d('[PASTE] Cancelled.'));
-        renderNormalPrompt();
-      } else {
-        state.pasteBuffer.push(line);
-        renderPastePrompt();
+  process.stdin.on('keypress', (str, key = {}) => {
+    if (key.name === 'escape') {
+      if (state.multilineActive) {
+        if (state.burstTimer) clearTimeout(state.burstTimer);
+        state.burstTimer = null;
+        state.burstBuffer = [];
+        cancelMultilineComposer(rl);
+      } else if (state.burstTimer) {
+        resetBurst();
+        renderNormalPrompt(rl);
       }
-      rl.resume();
-      return;
     }
+  });
 
-    // ── Normal mode ──
-    if (!input) {
-      renderNormalPrompt();
-      rl.resume();
-      return;
-    }
-
+  const processImmediateCommand = async (input) => {
+    resetBurst();
     if (input === '/exit' || input === '/quit') {
-      if (state.busy) { state.pendingClose = true; return; }
+      if (state.busy) { state.pendingClose = true; return true; }
       finalizeSession('SESSION TERMINATED');
       rl.close();
       process.exit(0);
@@ -563,7 +645,7 @@ const run = async () => {
       printStatusBlock();
     } else if (input === '/model flash') {
       state.model = MODELS.flash;
-      console.log(g(`[MODEL] → ${state.model}`));
+      console.log(c(`[MODEL] → ${state.model}`));
     } else if (input === '/last' || input === '/summary') {
       if (state.lastTurnId && state.lastTranscriptDir) {
         console.log(sectionTop('LAST TURN', state.lastTurnId));
@@ -572,30 +654,106 @@ const run = async () => {
         console.log(`${c('│')} ${d('REQUEST   ')} ${m(path.join(state.lastTranscriptDir, 'request.md'))}`);
         console.log(`${c('│')} ${d('META      ')} ${m(path.join(state.lastTranscriptDir, 'meta.json'))}`);
         console.log(sectionBot());
+        console.log('');
       } else {
         console.log(d('[LAST] no completed turn yet'));
+        console.log('');
       }
     } else if (input === '/model pro') {
       state.model = MODELS.pro;
-      console.log(a(`[MODEL] → ${state.model}`));
+      console.log(c(`[MODEL] → ${state.model}`));
     } else if (input === '/paste') {
       state.pasteMode = true;
+      state.multilineActive = true;
+      state.multilineSource = 'manual';
       state.pasteBuffer = [];
-      console.log(d('[PASTE] Mode ON — paste lines, /send to submit, /cancel to abort'));
-      renderPastePrompt();
+      console.log(d('[MULTILINE] Manual capture ON'));
+      renderMultilinePrompt(rl);
+      return true;
+    } else if (input === '/send') {
+      if (state.multilineActive || state.pasteBuffer.length > 0) {
+        await submitMultilineComposer(rl);
+      } else {
+        console.log(d('[MULTILINE] Buffer empty — nothing to send.'));
+      }
+    } else if (input === '/cancel') {
+      if (state.multilineActive || state.pasteBuffer.length > 0) {
+        cancelMultilineComposer(rl);
+      } else {
+        console.log(d('[MULTILINE] Nothing to cancel.'));
+      }
+    } else {
+      return false;
+    }
+    return true;
+  };
+
+  const handleBurst = (line) => {
+    state.burstBuffer.push(line);
+    if (state.burstTimer) clearTimeout(state.burstTimer);
+    state.burstTimer = setTimeout(async () => {
+      const lines = state.burstBuffer.slice();
+      resetBurst();
+      if (state.multilineActive) return;
+      if (lines.length > 1) {
+        startMultilineComposer(rl, lines, 'burst');
+        return;
+      }
+      const single = lines[0];
+      if (!single) {
+        renderNormalPrompt(rl);
+        return;
+      }
+      const handled = await processImmediateCommand(single.trim());
+      if (!handled) await callDeepSeek(single);
+      renderNormalPrompt(rl);
+    }, PASTE_BURST_MS);
+  };
+
+  rl.on('line', async (line) => {
+    rl.pause();
+    const input = line.trim();
+
+    if (state.multilineActive) {
+      if (input === '/cancel') {
+        cancelMultilineComposer(rl);
+      } else if (input === '/send' || input === '') {
+        await submitMultilineComposer(rl);
+      } else if (input === '/paste') {
+        state.multilineSource = 'manual';
+        renderMultilinePrompt(rl);
+      } else {
+        state.pasteBuffer.push(line);
+        renderMultilinePrompt(rl);
+      }
       rl.resume();
       return;
-    } else if (input.startsWith('/')) {
-      console.log(d(`[UNKNOWN COMMAND] ${input} — type /help`));
-    } else {
-      await callDeepSeek(input);
     }
 
-    renderNormalPrompt();
+    // ── Normal mode ──
+    if (!input) {
+      renderNormalPrompt(rl);
+      rl.resume();
+      return;
+    }
+
+    const immediate = await processImmediateCommand(input);
+    if (!immediate && input.startsWith('/')) {
+      console.log(d(`[UNKNOWN COMMAND] ${input} — type /help`));
+    } else if (!immediate) {
+      handleBurst(line);
+      rl.resume();
+      return;
+    } else {
+      // handled
+    }
+
+    renderPrompt();
     rl.resume();
   });
 
   rl.on('close', () => {
+    restoreTerminal();
     if (state.busy) { state.pendingClose = true; return; }
     finalizeSession('SESSION CLOSED');
     process.exit(0);
@@ -603,7 +761,7 @@ const run = async () => {
 
   process.on('SIGINT', () => {
     console.log(g('\n[SIGINT] — type /exit to quit cleanly'));
-    renderNormalPrompt();
+    renderNormalPrompt(rl);
   });
 };
 
