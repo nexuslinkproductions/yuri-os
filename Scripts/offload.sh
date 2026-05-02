@@ -153,6 +153,10 @@ dispatch_model() {
     esac
 }
 
+route_log() {
+  printf '%s\n' "$*" >&2
+}
+
 # Parse options
 MODEL_OVERRIDE=""
 SWARM_MODELS=""
@@ -193,15 +197,15 @@ PROMPT="${PROMPT_PARTS[*]:-}"
 # ── Dry-run gate ────────────────────────────────────────────
 if [[ "$DRY_RUN" -eq 1 ]]; then
   if [[ -n "$SWARM_MODELS" ]]; then
-    printf '⬡ DRY_RUN_SWARM :: models=[%s]\n' "$SWARM_MODELS"
+    route_log "$(printf '⬡ DRY_RUN_SWARM :: models=[%s]' "$SWARM_MODELS")"
     IFS=',' read -ra ADDR <<< "$SWARM_MODELS"
     for m in "${ADDR[@]}"; do
-      printf '  [%s] %s\n' "$(classify_lane "$m")" "$m"
+      route_log "$(printf '  [%s] %s' "$(classify_lane "$m")" "$m")"
     done
     exit 0
   fi
   if [[ -n "$MODEL_OVERRIDE" ]]; then
-    printf '⬡ DRY_RUN :: model=%s lane=%s\n' "$MODEL_OVERRIDE" "$(classify_lane "$MODEL_OVERRIDE")"
+    route_log "$(printf '⬡ DRY_RUN :: model=%s lane=%s' "$MODEL_OVERRIDE" "$(classify_lane "$MODEL_OVERRIDE")")"
     exit 0
   fi
   DECISION=$(curl -s --connect-timeout 3 --max-time 5 -X POST \
@@ -210,11 +214,11 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
     "$BACKEND_URL/api/swarm/route" 2>/dev/null) || DECISION=""
   MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
   if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
-    printf '⬡ DRY_RUN :: backend unreachable, would fall back to local default\n'
+    route_log '⬡ DRY_RUN :: backend unreachable, would fall back to local default'
   else
     RUNTIME=$(echo "$DECISION" | jq -r '.preferredRuntime // empty' 2>/dev/null) || RUNTIME=""
     INTENT=$(echo "$DECISION" | jq -r '.intent // empty' 2>/dev/null) || INTENT=""
-    printf '⬡ DRY_RUN :: intent=%s runtime=%s model=%s\n' "$INTENT" "$RUNTIME" "$MODEL"
+    route_log "$(printf '⬡ DRY_RUN :: intent=%s runtime=%s model=%s' "$INTENT" "$RUNTIME" "$MODEL")"
   fi
   exit 0
 fi
@@ -226,7 +230,7 @@ fi
 
 # ── Swarm execution (cloud parallel, local serialized) ─────
 if [[ -n "$SWARM_MODELS" ]]; then
-    echo "⬡ INITIATING_MANUAL_SWARM :: models=[$SWARM_MODELS]"
+    route_log "⬡ INITIATING_MANUAL_SWARM :: models=[$SWARM_MODELS]"
     IFS=',' read -ra ADDR <<< "$SWARM_MODELS"
     cloud_pids=()
     for m in "${ADDR[@]}"; do

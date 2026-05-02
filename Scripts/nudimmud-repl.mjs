@@ -168,7 +168,39 @@ const CLAIM_VERIFIER_SMOKE_OUTPUT = [
   'git commit success',
 ].join('\n');
 
-const isRouteLogLine = (line) => /^(?:\s*)⬡\s+(?:MANUAL_OVERRIDE|ROUTING_TO_DEEPSEEK(?:_V4)?)\b/.test(line);
+const ROUTE_LOG_LINE = /^(?:\s*)⬡\s+(?:MANUAL_OVERRIDE|ROUTING_TO_[A-Z0-9_]+|DRY_RUN(?:_SWARM)?|INITIATING_MANUAL_SWARM|OFFLOAD_ASSESSMENT|BACKEND_UNREACHABLE)\b/;
+const ROUTE_PROVIDER_LINE = /^(?:\s*)\[(?:[^\]]+)\]\s+(?:SKIPPED_MISSING_ENDPOINT|SKIPPED_MISSING_KEY|BLOCKED_PAID_MODEL)\b/;
+
+const isRouteLogLine = (line) => ROUTE_LOG_LINE.test(line) || ROUTE_PROVIDER_LINE.test(line);
+
+const drainCapturedText = (buffer, text, onModelLine, onRouteLine, { final = false, routeOnly = false } = {}) => {
+  if (!text && !buffer.tail) return;
+
+  buffer.tail += text;
+  const parts = buffer.tail.split(/(\r?\n)/);
+  buffer.tail = final ? '' : (parts.pop() ?? '');
+
+  for (let i = 0; i < parts.length; i += 2) {
+    const body = parts[i];
+    const ending = parts[i + 1] || '';
+    if (routeOnly || isRouteLogLine(body)) onRouteLine(body, ending);
+    else onModelLine(body, ending);
+  }
+};
+
+const splitCapturedText = (text) => {
+  const buffer = { tail: '' };
+  let model = '';
+  let route = '';
+  drainCapturedText(
+    buffer,
+    text,
+    (body, ending) => { model += body + ending; },
+    (body, ending) => { route += body + ending; },
+    { final: true },
+  );
+  return { model, route };
+};
 
 const normalPrompt = () => `${c('NUDIMMUD')} ${C.white}›${C.reset} `;
 
@@ -621,7 +653,9 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   }
 
   let output = '';
-  let tail = '';
+  let routeOutput = '';
+  const stdoutBuffer = { tail: '' };
+  const stderrBuffer = { tail: '' };
   const proc = spawn('bash', [OFFLOAD_SH, '--model', state.model, prompt], {
     cwd: REPO_ROOT,
     env: { ...process.env },
@@ -631,40 +665,33 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   activity.start();
   activity.setPhase('waiting');
 
-  const flushTail = (final = false) => {
-    const data = tail;
-    if (!data) return;
-    const parts = data.split(/(\r?\n)/);
-    tail = final ? '' : parts.pop() ?? '';
-    for (let i = 0; i < parts.length; i += 2) {
-      const body = parts[i];
-      const ending = parts[i + 1] || '';
-      if (isRouteLogLine(body)) {
-        process.stdout.write(`${d(body)}${ending}`);
-      } else {
-        output += body + ending;
-        process.stdout.write(`${C.white}${body}${C.reset}${ending}`);
-      }
-    }
+  const appendModelLine = (body, ending) => {
+    output += body + ending;
+    process.stdout.write(`${C.white}${body}${C.reset}${ending}`);
+  };
+
+  const appendRouteLine = (body, ending) => {
+    routeOutput += body + ending;
+    process.stdout.write(`${d(body)}${ending}`);
   };
 
   proc.stdout.on('data', (chunk) => {
     const text = chunk.toString();
-    tail += text;
     activity.setPhase('streaming');
     activity.markChunk(text.length);
     activity.stop();
-    flushTail(false);
+    drainCapturedText(stdoutBuffer, text, appendModelLine, appendRouteLine);
     activity.start();
   });
 
   proc.stderr.on('data', (chunk) => {
-    process.stdout.write(d(chunk.toString()));
+    drainCapturedText(stderrBuffer, chunk.toString(), appendModelLine, appendRouteLine, { routeOnly: true });
   });
 
   const finish = (code) => {
     activity.stop();
-    flushTail(true);
+    drainCapturedText(stdoutBuffer, '', appendModelLine, appendRouteLine, { final: true });
+    drainCapturedText(stderrBuffer, '', appendModelLine, appendRouteLine, { final: true, routeOnly: true });
     state.busy = false;
     const outputEst = est(output);
     state.outputTokens += outputEst;
@@ -690,6 +717,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
       turnId, model: state.model, branch, head, staged, tmx,
       inputEst, outputEst, elapsed: parseFloat(elapsed),
       code, timestamp: new Date().toISOString(),
+      route_output: routeOutput,
       local_claim_verifier: localClaimVerifier,
     };
     const savedDir = saveTranscript(turnId, prompt, output, meta);
@@ -735,6 +763,49 @@ const runSelfTest = () => {
   const noHud40kBudget = !/40k|40000/.test(`${printStatusBlock}\n${printHudFooter}`);
   const readableTheme = d('x') === `${C.gray}x${C.reset}` && c('x') === `${C.green}x${C.reset}` && !d('x').includes(C.dim);
   const bottomPadding = renderNormalPrompt.toString().includes('promptPadding') && printCompactSavedLine.toString().includes('promptPadding');
+  const syntheticMixedOutput = [
+    '⬡ MANUAL_OVERRIDE :: model=deepseek-v4-pro',
+    'MODEL: answer line one',
+    '⬡ ROUTING_TO_OLLAMA (deepseek-r1:latest)...',
+    'MODEL: answer line two',
+    '[deepseek-v4-pro] SKIPPED_MISSING_KEY: Missing API key for lane: deepseek-v4-pro',
+  ].join('\n') + '\n';
+  const syntheticSplit = splitCapturedText(syntheticMixedOutput);
+  const routeLogSeparated = syntheticSplit.route.includes('MANUAL_OVERRIDE') &&
+    syntheticSplit.route.includes('ROUTING_TO_OLLAMA') &&
+    syntheticSplit.route.includes('SKIPPED_MISSING_KEY') &&
+    !syntheticSplit.model.includes('MANUAL_OVERRIDE') &&
+    !syntheticSplit.model.includes('SKIPPED_MISSING_KEY');
+  const modelOutputClean = syntheticSplit.model === 'MODEL: answer line one\nMODEL: answer line two\n';
+  const routeMetadataCaptured = routeLogSeparated && syntheticSplit.route === [
+    '⬡ MANUAL_OVERRIDE :: model=deepseek-v4-pro',
+    '⬡ ROUTING_TO_OLLAMA (deepseek-r1:latest)...',
+    '[deepseek-v4-pro] SKIPPED_MISSING_KEY: Missing API key for lane: deepseek-v4-pro',
+  ].join('\n') + '\n';
+  const outputMdClean = (() => {
+    const turnId = makeTurnId();
+    const savedDir = saveTranscript(turnId, 'route split smoke', syntheticSplit.model, {
+      turnId,
+      model: 'ROUTE_SPLIT_SMOKE',
+      branch: 'main',
+      head: 'deadbee',
+      staged: 0,
+      tmx: 'TOKENMAXXING::ACTIVE',
+      inputEst: 0,
+      outputEst: est(syntheticSplit.model),
+      elapsed: 0,
+      code: 0,
+      timestamp: new Date().toISOString(),
+      route_output: syntheticSplit.route,
+      local_claim_verifier: { verdict: 'SMOKE', suspicious: false, claim_types: [], claimed_head_hashes: [] },
+    });
+    const savedOutput = readFileSync(path.join(savedDir, 'output.md'), 'utf8');
+    const savedMeta = JSON.parse(readFileSync(path.join(savedDir, 'meta.json'), 'utf8'));
+    return savedOutput.includes('MODEL: answer line one') &&
+      !savedOutput.includes('MANUAL_OVERRIDE') &&
+      savedMeta.route_output === syntheticSplit.route &&
+      savedMeta.route_output.includes('SKIPPED_MISSING_KEY');
+  })();
   const fakeOutput = [
     'RESULT_LABEL: X_PASS_COMMITTED',
     'HEAD: 97b8c2d66',
@@ -764,9 +835,10 @@ const runSelfTest = () => {
   const noFalsePassCommittedAcceptance = fakeVerifier.verdict !== 'LOCAL_COMMIT_CONFIRMED';
   const claimVerifierArtifactSmoke = runClaimVerifierArtifactSmoke.toString().includes('CLAIM_VERIFIER_ARTIFACT_SMOKE_PASS') &&
     runClaimVerifierArtifactSmoke.toString().includes('local_claim_verifier');
+  const composer08oRegression = autoSendPaste && noDuplicateMultilinePrompt && quietTurnEnd;
 
   ok('NODE_CHECK_PASS', nodeCheck);
-  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke);
+  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke);
   ok('NATURAL_COMPOSER_PASS', natural);
   ok('MULTILINE_CAPTURE_PASS', multiline);
   ok('ENTER_SENDS_CAPTURE_PASS', enterAfterPaste);
@@ -783,6 +855,11 @@ const runSelfTest = () => {
   ok('NO_HUD_40K_BUDGET_PASS', noHud40kBudget);
   ok('READABLE_THEME_PASS', readableTheme);
   ok('BOTTOM_PADDING_PASS', bottomPadding);
+  ok('ROUTE_LOG_SEPARATED_PASS', routeLogSeparated);
+  ok('MODEL_OUTPUT_CLEAN_PASS', modelOutputClean);
+  ok('ROUTE_METADATA_CAPTURED_PASS', routeMetadataCaptured);
+  ok('OUTPUT_MD_CLEAN_PASS', outputMdClean);
+  ok('COMPOSER_08O_REGRESSION_PASS', composer08oRegression);
   ok('FAKE_COMMIT_CLAIM_DOWNGRADED_PASS', fakeCommitClaimDowngraded);
   ok('NO_FALSE_PASS_COMMITTED_ACCEPTANCE_PASS', noFalsePassCommittedAcceptance);
   process.exit(0);

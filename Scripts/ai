@@ -173,6 +173,15 @@ print_section() {
   fi
 }
 
+print_route_section() {
+  local title="$1"
+  local file="$2"
+  if [ -s "$file" ]; then
+    printf '\n[%s route]\n' "$title"
+    sed -n '1,220p' "$file"
+  fi
+}
+
 cleanup_tmpdir() {
   local path="${1:-}"
   if [ -n "$path" ] && [ -d "$path" ]; then
@@ -182,7 +191,7 @@ cleanup_tmpdir() {
 
 run_triage() {
   local prompt="$1"
-  local tmpdir="" claude_out gemini_out codex_out
+  local tmpdir="" claude_out claude_err gemini_out gemini_err codex_out codex_err
   local pid_claude pid_gemini pid_codex status
 
   require_cmd claude
@@ -191,23 +200,26 @@ run_triage() {
 
   tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/ai-triage.XXXXXX")"
   claude_out="$tmpdir/claude.txt"
+  claude_err="$tmpdir/claude.route.txt"
   gemini_out="$tmpdir/gemini.txt"
+  gemini_err="$tmpdir/gemini.route.txt"
   codex_out="$tmpdir/codex.txt"
+  codex_err="$tmpdir/codex.route.txt"
 
   trap "cleanup_tmpdir \"$tmpdir\"" EXIT
 
   (
-    claude --print "$prompt" >"$claude_out" 2>&1
+    claude --print "$prompt" >"$claude_out" 2>"$claude_err"
   ) &
   pid_claude=$!
 
   (
-    run_gemini_prompt "$prompt" >"$gemini_out" 2>&1
+    run_gemini_prompt "$prompt" >"$gemini_out" 2>"$gemini_err"
   ) &
   pid_gemini=$!
 
   (
-    codex exec --cd "$ROOT_DIR" "$prompt" >"$codex_out" 2>&1
+    codex exec --cd "$ROOT_DIR" "$prompt" >"$codex_out" 2>"$codex_err"
   ) &
   pid_codex=$!
 
@@ -223,8 +235,11 @@ run_triage() {
   fi
 
   print_section "claude" "$claude_out"
+  print_route_section "claude" "$claude_err"
   print_section "gemini" "$gemini_out"
+  print_route_section "gemini" "$gemini_err"
   print_section "codex" "$codex_out"
+  print_route_section "codex" "$codex_err"
 
   return "$status"
 }
@@ -254,7 +269,7 @@ run_offload_lane() {
 
 run_codex_swarm() {
   local prompt="$1"
-  local tmpdir="" kimi_out gpt_oss_out ollama_out
+  local tmpdir="" kimi_out kimi_err gpt_oss_out gpt_oss_err ollama_out ollama_err
   local pid_kimi status
 
   if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
@@ -268,8 +283,11 @@ run_codex_swarm() {
 
   tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/codex-swarm.XXXXXX")"
   kimi_out="$tmpdir/kimi.txt"
+  kimi_err="$tmpdir/kimi.route.txt"
   gpt_oss_out="$tmpdir/gpt-oss.txt"
+  gpt_oss_err="$tmpdir/gpt-oss.route.txt"
   ollama_out="$tmpdir/ollama.txt"
+  ollama_err="$tmpdir/ollama.route.txt"
 
   trap "cleanup_tmpdir \"$tmpdir\"" EXIT
 
@@ -277,15 +295,15 @@ run_codex_swarm() {
 
   # Cloud lane: kimi runs in background (no local resource contention)
   (
-    OFFLOAD_OPTIONAL=1 node "$OFFLOAD_RUNNER" kimi "$prompt" >"$kimi_out" 2>&1
+    OFFLOAD_OPTIONAL=1 node "$OFFLOAD_RUNNER" kimi "$prompt" >"$kimi_out" 2>"$kimi_err"
   ) &
   pid_kimi=$!
 
   # Local lanes: serialize to avoid Ollama GPU/memory contention on M2 Pro
-  if ! node "$OFFLOAD_RUNNER" gpt-oss "$prompt" >"$gpt_oss_out" 2>&1; then
+  if ! node "$OFFLOAD_RUNNER" gpt-oss "$prompt" >"$gpt_oss_out" 2>"$gpt_oss_err"; then
     status=1
   fi
-  if ! node "$OFFLOAD_RUNNER" ollama "$prompt" >"$ollama_out" 2>&1; then
+  if ! node "$OFFLOAD_RUNNER" ollama "$prompt" >"$ollama_out" 2>"$ollama_err"; then
     status=1
   fi
 
@@ -294,8 +312,11 @@ run_codex_swarm() {
   fi
 
   print_section "kimi" "$kimi_out"
+  print_route_section "kimi" "$kimi_err"
   print_section "gpt-oss" "$gpt_oss_out"
+  print_route_section "gpt-oss" "$gpt_oss_err"
   print_section "ollama" "$ollama_out"
+  print_route_section "ollama" "$ollama_err"
 
   return "$status"
 }
