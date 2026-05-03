@@ -799,22 +799,182 @@ case "${1:-help}" in
   @deepseek-workhorse|deepseek-workhorse)
     shift || true
     _dry_run=0
+    _artifact_root=""
+    _line_cap=80
+    _max_bytes=12000
     _prompt_parts=()
+    _WORKHORSE_DEFAULT_ROOT="/private/tmp/nudimmud-workhorse-bundles"
+    _skip_next=0
     for _arg in "$@"; do
+      if [ "$_skip_next" -eq 1 ]; then
+        _skip_next=0
+        continue
+      fi
       case "$_arg" in
         --route-only|--dry-run|-d) _dry_run=1 ;;
-        *) _prompt_parts+=("$_arg") ;;
+        --bundle-artifacts) _artifact_root="$_WORKHORSE_DEFAULT_ROOT" ;;
+        --artifact-bundle)
+          # value follows as next arg — mark skip and consume inline via shift-style workaround
+          # handled via positional loop below; flag without value is a no-op guard
+          _artifact_root="__NEXT__"
+          ;;
+        --line-cap) _artifact_root_flag_next_linecap=1 ;;
+        --max-output-bytes) _artifact_root_flag_next_bytes=1 ;;
+        *)
+          if [ "${_artifact_root:-}" = "__NEXT__" ]; then
+            _artifact_root="$_arg"
+          elif [ "${_artifact_root_flag_next_linecap:-0}" = "1" ]; then
+            _line_cap="$_arg"
+            _artifact_root_flag_next_linecap=0
+          elif [ "${_artifact_root_flag_next_bytes:-0}" = "1" ]; then
+            _max_bytes="$_arg"
+            _artifact_root_flag_next_bytes=0
+          else
+            _prompt_parts+=("$_arg")
+          fi
+          ;;
       esac
     done
+    # Clamp caps
+    [ "$_line_cap" -gt 200 ] && _line_cap=200
+    [ "$_max_bytes" -gt 50000 ] && _max_bytes=50000
     prompt="$(join_prompt ${_prompt_parts[@]+"${_prompt_parts[@]}"})"
+
+    # --- Non-bundle path (original behavior preserved) ---
+    if [ -z "$_artifact_root" ] || [ "$_artifact_root" = "__NEXT__" ]; then
+      if [ -z "$prompt" ] && [ "$_dry_run" -eq 0 ]; then
+        usage
+        exit 1
+      fi
+      if [ "$_dry_run" -eq 1 ]; then
+        exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm "deepseek-v4-pro-lite-budget,deepseek-v4-flash" "$prompt"
+      fi
+      exec "$SCRIPT_DIR/offload.sh" --swarm "deepseek-v4-pro-lite-budget,deepseek-v4-flash" "$prompt"
+    fi
+
+    # --- Artifact bundle path ---
+
+    # Security: reject repo-internal or relative artifact roots
+    _repo_root="$(cd "$SCRIPT_DIR/.." && pwd)"
+    case "$_artifact_root" in
+      /Users/marcelspatz/NUDIMMUD*|"$_repo_root"*)
+        printf 'ERROR: artifact-bundle root must be outside the repo: %s\n' "$_artifact_root" >&2
+        exit 1
+        ;;
+      [^/]*)
+        printf 'ERROR: artifact-bundle root must be an absolute path: %s\n' "$_artifact_root" >&2
+        exit 1
+        ;;
+    esac
+
     if [ -z "$prompt" ] && [ "$_dry_run" -eq 0 ]; then
       usage
       exit 1
     fi
+
     if [ "$_dry_run" -eq 1 ]; then
-      exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm "deepseek-v4-pro-lite-budget,deepseek-v4-flash" "$prompt"
+      printf 'WORKHORSE_BUNDLE_DRY_RUN=1\n'
+      printf 'WORKHORSE_BUNDLE_ROOT=%s\n' "$_artifact_root"
+      printf 'WORKHORSE_BUNDLE_LANES=deepseek-v4-pro-lite-budget,deepseek-v4-flash\n'
+      printf 'WORKHORSE_BUNDLE_LINE_CAP=%s\n' "$_line_cap"
+      printf 'WORKHORSE_BUNDLE_MAX_BYTES=%s\n' "$_max_bytes"
+      exit 0
     fi
-    exec "$SCRIPT_DIR/offload.sh" --swarm "deepseek-v4-pro-lite-budget,deepseek-v4-flash" "$prompt"
+
+    require_cmd node
+    require_cmd shasum
+
+    _run_id="$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 4)"
+    _run_dir="$_artifact_root/$_run_id"
+    mkdir -p "$_run_dir"
+
+    _prompt_sha256="$(printf '%s' "$prompt" | shasum -a 256 | awk '{print $1}')"
+    _lanes=("deepseek-v4-pro-lite-budget" "deepseek-v4-flash")
+    _bundle_status="PASS"
+    _lanes_summary=""
+    _total_bytes=0
+    _all_ok=true
+
+    for _lane in "${_lanes[@]}"; do
+      _lane_dir="$_run_dir/$_lane"
+      mkdir -p "$_lane_dir"
+      _stdout_raw="$_lane_dir/stdout_raw.tmp"
+      _stderr_file="$_lane_dir/stderr.txt"
+      _stdout_md="$_lane_dir/stdout.md"
+      _meta_file="$_lane_dir/meta.json"
+      _started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      _lane_exit=0
+
+      OFFLOAD_PROMPT_TEXT="$prompt" node "$OFFLOAD_RUNNER" "$_lane" >"$_stdout_raw" 2>"$_stderr_file" || _lane_exit=$?
+
+      _ended="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      _stdout_raw_bytes="$(wc -c < "$_stdout_raw" | tr -d ' ')"
+      _stdout_raw_lines="$(wc -l < "$_stdout_raw" | tr -d ' ')"
+      _cap_marker="FULL"
+
+      # Apply byte cap first, then line cap
+      if [ "$_stdout_raw_bytes" -gt "$_max_bytes" ]; then
+        _capped_content="$(head -c "$_max_bytes" "$_stdout_raw")"
+        _cap_marker="TRUNCATED"
+      else
+        _capped_content="$(cat "$_stdout_raw")"
+      fi
+      _capped_lines="$(printf '%s' "$_capped_content" | wc -l | tr -d ' ')"
+      if [ "$_capped_lines" -gt "$_line_cap" ]; then
+        _capped_content="$(printf '%s' "$_capped_content" | head -n "$_line_cap")"
+        _cap_marker="TRUNCATED"
+      fi
+
+      _stdout_sha256="$(printf '%s' "$_capped_content" | shasum -a 256 | awk '{print $1}')"
+      _stderr_bytes="$(wc -c < "$_stderr_file" | tr -d ' ')"
+      _stderr_sha256="$(shasum -a 256 "$_stderr_file" | awk '{print $1}')"
+      _written_bytes="$(printf '%s' "$_capped_content" | wc -c | tr -d ' ')"
+      _written_lines="$(printf '%s' "$_capped_content" | wc -l | tr -d ' ')"
+
+      # Write advisory stdout.md
+      {
+        printf '# ADVISORY_WORKHORSE_OUTPUT\n'
+        printf '# lane: %s\n' "$_lane"
+        printf '# route: @deepseek-workhorse\n'
+        printf '# run_id: %s\n' "$_run_id"
+        printf '# sha256: %s\n' "$_stdout_sha256"
+        printf '# cap: %s\n' "$_cap_marker"
+        printf '# NOT_LOCAL_TRUTH\n'
+        printf '\n'
+        printf '%s\n' "$_capped_content"
+      } >"$_stdout_md"
+
+      _lane_status="ok"
+      if [ "$_lane_exit" -ne 0 ]; then
+        _lane_status="error"
+        _bundle_status="PARTIAL"
+        _all_ok=false
+      fi
+
+      # Write meta.json
+      printf '{"lane_id":"%s","route_class":"@deepseek-workhorse","prompt_sha256":"%s","stdout_sha256":"%s","stderr_sha256":"%s","stdout_bytes":%s,"stdout_lines":%s,"stdout_cap_marker":"%s","stderr_bytes":%s,"exit_code":%s,"status":"%s","started_at":"%s","ended_at":"%s"}\n' \
+        "$_lane" "$_prompt_sha256" "$_stdout_sha256" "$_stderr_sha256" \
+        "$_written_bytes" "$_written_lines" "$_cap_marker" \
+        "$_stderr_bytes" "$_lane_exit" "$_lane_status" \
+        "$_started" "$_ended" >"$_meta_file"
+
+      _total_bytes=$(( _total_bytes + _written_bytes ))
+      _lanes_summary="${_lanes_summary}{\"lane\":\"${_lane}\",\"status\":\"${_lane_status}\",\"exit_code\":${_lane_exit},\"stdout_bytes\":${_written_bytes},\"cap\":\"${_cap_marker}\"},"
+
+      rm -f "$_stdout_raw"
+    done
+
+    # Trim trailing comma from lanes summary array
+    _lanes_summary="[${_lanes_summary%,}]"
+
+    # Write summary.json
+    printf '{"run_id":"%s","route":"@deepseek-workhorse","artifact_root":"%s","prompt_sha256":"%s","lanes":%s,"total_bytes":%s,"all_lanes_ok":%s,"advisory_label":"ADVISORY_WORKHORSE_OUTPUT","local_truth_disclaimer":"NOT_LOCAL_TRUTH — bundle is advisory only; not executor truth","user_approval_required":true,"proposal_validation_status":null,"non_claims":["no write capability","no patch application","no guarded executor widening","no staging/commit through DeepSeek"]}\n' \
+      "$_run_id" "$_artifact_root" "$_prompt_sha256" "$_lanes_summary" \
+      "$_total_bytes" "$_all_ok" >"$_run_dir/summary.json"
+
+    printf 'WORKHORSE_BUNDLE_RUN=%s\n' "$_run_dir"
+    printf 'WORKHORSE_BUNDLE_SUMMARY=%s\n' "$_run_dir/summary.json"
+    printf 'WORKHORSE_BUNDLE_STATUS=%s\n' "$_bundle_status"
     ;;
   @reason-cloud|reason-cloud)
     shift || true
