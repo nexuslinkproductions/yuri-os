@@ -1,0 +1,93 @@
+{
+  "version": "2026-05-03_30",
+  "generated_at": "2026-05-03T14:00:00.000000",
+  "source_validation": "_SYSTEM/yuri-history-archive/boot_anchor_repo_truth_validation_2026-05-03_30.json",
+  "reviewed_count": 6,
+  "deepseek_review_used": false,
+  "resolutions": [
+    {
+      "anchor_id": 1,
+      "basename": "yuri_os_nudimmud_session_context_extract.md",
+      "prior_status": "needs_more_review",
+      "final_status": "superseded",
+      "evidence_used": [
+        "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/yuri_os_nudimmud_session_context_extract.md first 15 lines",
+        "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/yuri_os_nudimmud_session_context_extract (1).md larger sibling",
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json sequence_rank 29"
+      ],
+      "repo_truth_result": "Do not use. The undated extract is superseded by the larger (1) variant in the same lane.",
+      "validation_needed_before_future_use": "None. Keep historical only and prefer the (1) variant if the lane is ever reopened.",
+      "current_use_policy": "do_not_use; superseded by yuri_os_nudimmud_session_context_extract (1).md"
+    },
+    {
+      "anchor_id": 2,
+      "basename": "yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md",
+      "prior_status": "needs_more_review",
+      "final_status": "verified_reference",
+      "evidence_used": [
+        "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md first 15 lines",
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json sequence_rank 17",
+        "git log --oneline --all --grep='R4' returned no newer R4 ingest handoff in current repo scan"
+      ],
+      "repo_truth_result": "Latest R3 handoff stands as the current historical reference. No newer R4+ ingest handoff was found in repo history.",
+      "validation_needed_before_future_use": "Re-scan repo history if any later R4/RAG ingest artifact lands.",
+      "current_use_policy": "historical reference only; latest R3 ingest handoff"
+    },
+    {
+      "anchor_id": 3,
+      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md",
+      "prior_status": "needs_more_review",
+      "final_status": "verified_reference",
+      "evidence_used": [
+        "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/YURI_OS_NUDIMMUD_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md first 15 lines",
+        "Scripts/nudimmud-repl.mjs:1",
+        "git log --oneline --follow -- Scripts/nudimmud-repl.mjs includes e17a9012d and 81722e778"
+      ],
+      "repo_truth_result": "The closure note matches current repo state: the HUD REPL is present and the current REPL file explicitly carries no Hermes code.",
+      "validation_needed_before_future_use": "Recheck if a Hermes sidecar or alternate executor path is reintroduced.",
+      "current_use_policy": "historical reference only; use as closure note, not live executor design"
+    },
+    {
+      "anchor_id": 4,
+      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07K_RAG_QUERY_SWARM_COMMITS_2026-05-01.md",
+      "prior_status": "needs_more_review",
+      "final_status": "historical_only",
+      "evidence_used": [
+        "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07K_RAG_QUERY_SWARM_COMMITS_2026-05-01.md first 15 lines",
+        "git log --oneline --follow -- Scripts/nudimmud-repl.mjs",
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json sequence_rank 20"
+      ],
+      "repo_truth_result": "Keep as a historical continuity record only. Current repo history does not directly prove the exact 07K swarm-commit state described in the handoff.",
+      "validation_needed_before_future_use": "Verify the exact 07K commit sequence in git log before using this as a factual state source.",
+      "current_use_policy": "historical record only; do not treat as current state"
+    },
+    {
+      "anchor_id": 5,
+      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART2_NUDIMMUD_HUD_CONTINUATION.md",
+      "prior_status": "needs_more_review",
+      "final_status": "superseded",
+      "evidence_used": [
+        "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART2_NUDIMMUD_HUD_CONTINUATION.md first 15 lines",
+        "git log --oneline --follow -- Scripts/nudimmud-repl.mjs includes 000baeb8c, e17a9012d, 81722e778",
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json says it is superseded by HUD_DEEPSEEK_TOKENOPS archive"
+      ],
+      "repo_truth_result": "Do not use. Part 2 is superseded by the later HUD/DeepSeek/TokenOps archive.",
+      "validation_needed_before_future_use": "None unless the later HUD archive is withdrawn or replaced.",
+      "current_use_policy": "do_not_use; superseded by YURI_OS_NUDIMMUD_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md"
+    },
+    {
+      "anchor_id": 9,
+      "basename": "yuri_os_nudimmud_session_context_extract (1).md",
+      "prior_status": "needs_more_review",
+      "final_status": "verified_reference",
+      "evidence_used": [
+        "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/yuri_os_nudimmud_session_context_extract (1).md first 15 lines",
+        "stat shows 49265 bytes vs 37142 bytes for the undated sibling",
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json sequence_rank 30 latest_candidate"
+      ],
+      "repo_truth_result": "Latest undated extract-lane variant. Safe as a historical reference for the broader extract set.",
+      "validation_needed_before_future_use": "Compare against the dated 2026-04-27 extracts before using beyond historical context.",
+      "current_use_policy": "historical reference only; latest in undated extract lane"
+    }
+  ]
+}
