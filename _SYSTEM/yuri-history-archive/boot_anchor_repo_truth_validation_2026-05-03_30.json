@@ -1,0 +1,126 @@
+{
+  "version": "2026-05-03_30",
+  "source_plan": "_SYSTEM/yuri-history-archive/boot_anchor_plan_2026-05-03_30.md",
+  "source_timeline": "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json",
+  "source_review": "_SYSTEM/yuri-history-archive/needs_review_resolution_2026-05-03_30.json",
+  "anchor_count": 9,
+  "validation_count": 9,
+  "counts": {
+    "verified_reference": 3,
+    "needs_more_review": 6,
+    "blocked": 0,
+    "superseded": 0
+  },
+  "blocked_items": [],
+  "next_recommended_lane": "session_context_extract",
+  "validations": [
+    {
+      "basename": "yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md",
+      "lane": "session_context_extract",
+      "repo_truth_status": "needs_more_review",
+      "current_use_policy": "latest_in_dated_extract_lane; verify body scope before reference",
+      "evidence_source": [
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 3 latest_candidate",
+        "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
+        "_SYSTEM/yuri-history-archive/raw/yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md header"
+      ],
+      "required_future_repo_check": "compare body scope with the dated 2026-04-27 extract files and confirm no newer extract exists"
+    },
+    {
+      "basename": "yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md",
+      "lane": "rag_ingest_handoff",
+      "repo_truth_status": "needs_more_review",
+      "current_use_policy": "latest_in_lane; verify current RAG ingest state before reference",
+      "evidence_source": [
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 17 latest_candidate",
+        "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
+        "_SYSTEM/yuri-history-archive/raw/yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md header"
+      ],
+      "required_future_repo_check": "confirm no R4+ ingest artifact or newer ingest lane exists in current repo history"
+    },
+    {
+      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md",
+      "lane": "query_hardening_handoff",
+      "repo_truth_status": "needs_more_review",
+      "current_use_policy": "latest_in_lane; verify Hermes integration and query-hardening state before reference",
+      "evidence_source": [
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 19 latest_candidate",
+        "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
+        "_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md header"
+      ],
+      "required_future_repo_check": "confirm Hermes integration and query-hardening state in current repo and git log"
+    },
+    {
+      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07K_RAG_QUERY_SWARM_COMMITS_2026-05-01.md",
+      "lane": "session_continuity",
+      "repo_truth_status": "needs_more_review",
+      "current_use_policy": "latest_in_session_continuity_lane; verify swarm commit state before reference",
+      "evidence_source": [
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 20 latest_candidate",
+        "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
+        "_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07K_RAG_QUERY_SWARM_COMMITS_2026-05-01.md header"
+      ],
+      "required_future_repo_check": "verify 07K RAG query and swarm commit state in current repo via git log"
+    },
+    {
+      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART2_NUDIMMUD_HUD_CONTINUATION.md",
+      "lane": "gpt_session_archive",
+      "repo_truth_status": "needs_more_review",
+      "current_use_policy": "latest_in_gpt_archive_part2_lane; compare body with PART_2 and verify HUD state before reference",
+      "evidence_source": [
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 25 latest_candidate",
+        "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
+        "_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART2_NUDIMMUD_HUD_CONTINUATION.md header"
+      ],
+      "required_future_repo_check": "compare body coverage with PART_2 and verify HUD implementation state in current repo"
+    },
+    {
+      "basename": "YURI_OS_NUDIMMUD_SESSION_HANDOFF_2026-05-03_WEBSEARCH_DEEPSEEK_EXECUTOR_HUD.md",
+      "lane": "websearch_executor_hud",
+      "repo_truth_status": "verified_reference",
+      "current_use_policy": "latest_in_lane; verify websearch executor and HUD integration before reference",
+      "evidence_source": [
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 26 latest_candidate",
+        "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
+        "_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_SESSION_HANDOFF_2026-05-03_WEBSEARCH_DEEPSEEK_EXECUTOR_HUD.md header"
+      ],
+      "required_future_repo_check": "confirm current websearch executor and HUD implementation state in repo"
+    },
+    {
+      "basename": "YURI_OS_NUDIMMUD_SESSION_HANDOFF_2026-05-03_LOCAL_CLAIM_VERIFIER_TO_COMPOSER.md",
+      "lane": "local_claim_verifier",
+      "repo_truth_status": "verified_reference",
+      "current_use_policy": "latest_in_lane; verify local claim verifier and composer handoff state before reference",
+      "evidence_source": [
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 27 latest_candidate",
+        "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
+        "_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_SESSION_HANDOFF_2026-05-03_LOCAL_CLAIM_VERIFIER_TO_COMPOSER.md header"
+      ],
+      "required_future_repo_check": "confirm current local claim verifier implementation state in repo"
+    },
+    {
+      "basename": "YURI_OS_NUDIMMUD_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md",
+      "lane": "deepseek_tokenops",
+      "repo_truth_status": "verified_reference",
+      "current_use_policy": "latest_in_deepseek_tokenops_lane; verify DeepSeek integration and TokenOps HUD before reference",
+      "evidence_source": [
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 28 latest_candidate",
+        "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
+        "_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md header"
+      ],
+      "required_future_repo_check": "confirm current DeepSeek integration and TokenOps HUD state in repo"
+    },
+    {
+      "basename": "yuri_os_nudimmud_session_context_extract (1).md",
+      "lane": "session_context_extract",
+      "repo_truth_status": "needs_more_review",
+      "current_use_policy": "latest_in_undated_extract_lane; verify extraction date and scope before reference",
+      "evidence_source": [
+        "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 30 latest_candidate",
+        "_SYSTEM/yuri-history-archive/classification_2026-05-03_30.json needs_review entry",
+        "_SYSTEM/yuri-history-archive/raw/yuri_os_nudimmud_session_context_extract (1).md header"
+      ],
+      "required_future_repo_check": "verify extraction date from body and compare scope with the dated 2026-04-27 extracts"
+    }
+  ]
+}
