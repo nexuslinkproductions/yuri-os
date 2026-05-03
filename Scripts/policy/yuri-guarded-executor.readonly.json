@@ -7,6 +7,8 @@
     "Scripts/offload.sh",
     "Scripts/offload-runner.mjs",
     "Scripts/nudimmud-repl.mjs",
+    "Scripts/yuri-guarded-executor.mjs",
+    "Scripts/policy/yuri-guarded-executor.readonly.json",
     ".claude/rules/nudimmud_operating_dna.md",
     ".claude/rules/research_pipeline.md",
     "_SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md",
