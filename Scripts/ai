@@ -92,6 +92,11 @@ Commands:
   @code-deepseek [prompt]
       Run the code-deepseek lane (compatibility alias for DeepSeek V4 Pro).
 
+  @deepseek-workhorse [prompt]
+      Run DeepSeek workhorse swarm (cloud): deepseek-v4-pro-lite-budget,deepseek-v4-flash.
+      Supports --dry-run / --route-only to preview lanes without live API calls.
+      Read-only routing only. No write, patch, stage, or commit capability.
+
   @reason-cloud [prompt]
       Run the reason-cloud lane (Ollama Cloud reasoning, defaults to qwen2.5:72b).
 
@@ -790,6 +795,26 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane code-deepseek "$@"
+    ;;
+  @deepseek-workhorse|deepseek-workhorse)
+    shift || true
+    _dry_run=0
+    _prompt_parts=()
+    for _arg in "$@"; do
+      case "$_arg" in
+        --route-only|--dry-run|-d) _dry_run=1 ;;
+        *) _prompt_parts+=("$_arg") ;;
+      esac
+    done
+    prompt="$(join_prompt ${_prompt_parts[@]+"${_prompt_parts[@]}"})"
+    if [ -z "$prompt" ] && [ "$_dry_run" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    if [ "$_dry_run" -eq 1 ]; then
+      exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm "deepseek-v4-pro-lite-budget,deepseek-v4-flash" "$prompt"
+    fi
+    exec "$SCRIPT_DIR/offload.sh" --swarm "deepseek-v4-pro-lite-budget,deepseek-v4-flash" "$prompt"
     ;;
   @reason-cloud|reason-cloud)
     shift || true
