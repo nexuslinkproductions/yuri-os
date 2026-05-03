@@ -278,7 +278,12 @@
   },
   "phase1_anchor": {
     "version": "0.1.0",
-    "established": "2025-01-20",
+    "established": "2026-05-03",
+    "provenance": {
+      "genesis": "2025-01-20",
+      "anchor_reset": "2026-05-03",
+      "reason": "Phase1 operational baseline corrected after NUDIMMUD systems convergence. Genesis preserved for lineage."
+    },
     "purpose": "minimal phase1 anchor for runtime-gate scaffold",
     "status": "active",
     "artifacts": {
