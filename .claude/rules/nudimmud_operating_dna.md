@@ -73,6 +73,7 @@ EXCEPTION: <rule-id> | REASON: <one sentence> | SCOPE: <session|task|file> | VAL
 
 - Caveman mode always active: zero preamble, maximum brevity in speech, depth in code/docs.
 - Main thread = overseer + finalizer only. Never researcher or implementer.
+- Codex CLI is a platform, not a model.
 - `/compact` before context hits 60%. Use `/compact-optimizer` to build the hint first.
 - `/clear` between unrelated tasks.
 - Background tasks: `[bg]` prefix or `ctrl+b` → spawn `Agent({ run_in_background: true })`.
@@ -89,6 +90,13 @@ Summary: always start at Tier 0 (local cache / git history). Escalate only when 
 
 ## 9. Swarm / Offload Contract
 
+- Load/confirm `swarm-coordination` before dispatch. If unavailable, continue direct-only and report `SWARM_COORDINATION_UNAVAILABLE`.
+- Use swarm for compact evidence extraction, cheap/local/offloaded work, and repetitive verification.
+- Swarm output cap is about 80 lines unless explicitly overridden.
+- No raw file bodies. No tool-output dumps. No swarm mutation unless explicitly scoped.
+- Direct shell/local script evidence remains authority for local truth.
+- Lower-lane reports are advisory until verified by direct evidence.
+- Orchestrator makes final gate, commit, supersession, and safety decisions.
 - Routing priority: `@deepseek → @qwen → @gpt-oss → @swarm → @claude` (last resort).
 - Spawn smallest lane that can finish the work.
 - Fan-out with explicit file boundaries per agent to prevent silent overwrites.
@@ -99,19 +107,22 @@ Summary: always start at Tier 0 (local cache / git history). Escalate only when 
 
 ## 10. Model Routing Contract
 
+Codex CLI is a platform, not a model. Route work by cost and risk, not by the CLI surface.
+
 | Workload | Model |
 |----------|-------|
-| Architecture, security, orchestration, mutation, final review | Sonnet 4.6 |
-| Low-risk exact checks, summarization, extraction, markdown cleanup, bulk transforms | Haiku 4.5 |
-| Background workers | Haiku 4.5 max |
-| Fast research, reasoning augmentation, cost-sensitive synthesis | DeepSeek Flash |
-| Complex reasoning requiring chain-of-thought depth beyond Sonnet | DeepSeek Pro |
-| Code generation and transformation tasks (cloud offload) | Codex / GPT-5.5 |
+| Cheap deterministic checks, patch review, markdown cleanup, exact extraction | GPT-5.4-mini |
+| Harder deterministic code, review, and local reasoning tasks | GPT-5.4 |
+| Strategic or high-stakes external gate only | GPT-5.5 |
+| Code-generation oriented fallback where appropriate | GPT-5.3-codex |
+| Fast research, reasoning augmentation, archive synthesis | DeepSeek Flash |
+| Deeper archive / research reasoning when needed | DeepSeek Pro |
 | Multimodal or large-context synthesis | Gemini (when routed via offload) |
 | Opus | Explicit owner approval only after Sonnet retries exhausted |
 
-**Haiku boundary:** may handle low-risk exact checks, summarization, extraction, markdown cleanup.
-**Haiku hard limits:** must NOT handle high-risk mutation, security gates, ambiguous architecture decisions, final local-truth verdicts, or tool orchestration.
+- Prefer local scripts plus DeepSeek V4 Flash/Pro compact review for archive/research reasoning.
+- Avoid Codex subagent fan-out for cheap archive/research tasks.
+- Avoid MCP startup/discovery unless explicitly needed.
 
 ---
 
