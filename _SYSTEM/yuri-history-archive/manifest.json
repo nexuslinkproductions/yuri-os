@@ -205,5 +205,77 @@
     "sha256": "78777eacbe194c4a77e1710f67813a9b3b8b1b5aab309bdfe345a95ce2562750",
     "mtime_iso": "2026-04-27T13:13:37.342558+00:00",
     "intake_status": "ok"
+  },
+  {
+    "original_path": "/Users/marcelspatz/Downloads/mangekyo_sharingan_extension_yuri_os_nudimmud.md",
+    "archived_path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-history-archive/raw/mangekyo_sharingan_extension_yuri_os_nudimmud.md",
+    "original_basename": "mangekyo_sharingan_extension_yuri_os_nudimmud.md",
+    "size_bytes": 54079,
+    "sha256": "4a36487fa5b1379890f7331652752c61f7e1176e0dadafe3501e9075e5f4a821",
+    "mtime_iso": "2026-05-03T11:27:10.767758+00:00",
+    "intake_status": "ok"
+  },
+  {
+    "original_path": "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_SESSION_HANDOFF_2026-05-03_LOCAL_CLAIM_VERIFIER_TO_COMPOSER.md",
+    "archived_path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_SESSION_HANDOFF_2026-05-03_LOCAL_CLAIM_VERIFIER_TO_COMPOSER.md",
+    "original_basename": "YURI_OS_NUDIMMUD_SESSION_HANDOFF_2026-05-03_LOCAL_CLAIM_VERIFIER_TO_COMPOSER.md",
+    "size_bytes": 19523,
+    "sha256": "8eee940fc5ca9d9ce6b9f996cd318b317379bed968c431ef920aec3df1187172",
+    "mtime_iso": "2026-05-03T11:27:10.769396+00:00",
+    "intake_status": "ok"
+  },
+  {
+    "original_path": "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_CROSS_SESSION_SOURCE_CONTEXT_2026-04-27.md",
+    "archived_path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_CROSS_SESSION_SOURCE_CONTEXT_2026-04-27.md",
+    "original_basename": "YURI_OS_NUDIMMUD_CROSS_SESSION_SOURCE_CONTEXT_2026-04-27.md",
+    "size_bytes": 26063,
+    "sha256": "0e2707a5021363b9a78ed56fbba9411791f1f1e270764c4892de992953180c23",
+    "mtime_iso": "2026-05-03T11:27:10.769835+00:00",
+    "intake_status": "ok"
+  },
+  {
+    "original_path": "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART2_NUDIMMUD_HUD_CONTINUATION.md",
+    "archived_path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART2_NUDIMMUD_HUD_CONTINUATION_000.md",
+    "original_basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART2_NUDIMMUD_HUD_CONTINUATION.md",
+    "size_bytes": 21676,
+    "sha256": "cb91929e04f43b18c186c7e3c4fbbd80ad2f609636972db0c11ec3a050a8e3d1",
+    "mtime_iso": "2026-05-03T11:27:10.770478+00:00",
+    "intake_status": "ok"
+  },
+  {
+    "original_path": "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_2.md",
+    "archived_path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_2.md",
+    "original_basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_2.md",
+    "size_bytes": 21549,
+    "sha256": "8ea3d05cd2d5576b30856dcf127bd095446d79977d5c5ea79e0bc3b98d1a293e",
+    "mtime_iso": "2026-05-03T11:27:10.771104+00:00",
+    "intake_status": "ok"
+  },
+  {
+    "original_path": "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md",
+    "archived_path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md",
+    "original_basename": "YURI_OS_NUDIMMUD_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md",
+    "size_bytes": 34637,
+    "sha256": "ecde0c1db01b45bf2e6ca6db042f5dfd1ccb1b3d25189b31b7d0cfce77356428",
+    "mtime_iso": "2026-05-03T11:27:10.773006+00:00",
+    "intake_status": "ok"
+  },
+  {
+    "original_path": "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_1.md",
+    "archived_path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_1.md",
+    "original_basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_1.md",
+    "size_bytes": 18920,
+    "sha256": "76be939395780886a0e3262a39a36264ea2b47fec0569b1bb08509663722c49d",
+    "mtime_iso": "2026-05-03T11:27:10.773442+00:00",
+    "intake_status": "ok"
+  },
+  {
+    "original_path": "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART1_DEEPSEEK_TOKENOPS_RAG.md",
+    "archived_path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-history-archive/raw/YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART1_DEEPSEEK_TOKENOPS_RAG.md",
+    "original_basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART1_DEEPSEEK_TOKENOPS_RAG.md",
+    "size_bytes": 18741,
+    "sha256": "8310b5a9a6996b0060b3f901b82c6668dd0c535346a5ad3112834314b0f7f9da",
+    "mtime_iso": "2026-05-03T11:27:10.775067+00:00",
+    "intake_status": "ok"
   }
 ]
