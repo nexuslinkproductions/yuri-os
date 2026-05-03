@@ -18,6 +18,8 @@ const OFFLOAD_RUNNER_REL = 'Scripts/offload-runner.mjs'
 const EXECUTOR_REL = 'Scripts/yuri-guarded-executor.mjs'
 const WRAPPER_FINAL_REPORT_NAME = 'wrapper_final_report.md'
 const WRAPPER_META_NAME = 'wrapper_meta.json'
+const READ_WINDOW_RUNTIME_FIELDS = ['start_line', 'end_line']
+const READ_WINDOW_UNKNOWN_FIELDS = new Set(['offset', 'limit', 'range', 'span', 'cursor'])
 const WRAPPER_MANIFEST_ALLOWLIST = [
   'Scripts/yuri-guarded-executor.mjs',
   'Scripts/policy/yuri-guarded-executor.readonly.json',
@@ -126,11 +128,34 @@ function main() {
       maxModelOutputBytes: cli.maxModelOutputBytes,
     })
 
-    const sanitizedRequest = validateAndSanitizeProposal({
-      rawOutput: modelResult.stdout,
-      allowedManifestPaths: manifestPaths,
-      maxActions: cli.maxActions,
-    })
+    let sanitizedRequest
+    try {
+      sanitizedRequest = validateAndSanitizeProposal({
+        rawOutput: modelResult.stdout,
+        allowedManifestPaths: manifestPaths,
+        maxActions: cli.maxActions,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      const wrapperPacket = writeRejectedProposalReviewPacket({
+        wrapperRun,
+        artifactRoot,
+        modelLane: cli.model,
+        modelOutputPath: path.join(wrapperRun.runDir, 'model_output.md'),
+        rawOutput: modelResult.stdout,
+        rejectionReason: message,
+      })
+      const summary = {
+        result: 'HANDOFF_REJECT',
+        wrapper_run_dir: wrapperRun.runDir,
+        advisory_prompt: path.join(wrapperRun.runDir, 'prompt.txt'),
+        advisory_model_output: path.join(wrapperRun.runDir, 'model_output.md'),
+        wrapper_final_report: wrapperPacket.reportPath,
+        wrapper_meta: wrapperPacket.metaPath,
+      }
+      fs.writeFileSync(path.join(wrapperRun.runDir, 'wrapper_summary.json'), `${JSON.stringify(summary, null, 2)}\n`, 'utf8')
+      throw new Error(`Proposal rejected before executor: ${message}; wrapper_final_report=${wrapperPacket.reportPath}; wrapper_meta=${wrapperPacket.metaPath}`)
+    }
     const requestPath = path.join(wrapperRun.runDir, 'sanitized_request.json')
     fs.writeFileSync(requestPath, `${JSON.stringify(sanitizedRequest, null, 2)}\n`, 'utf8')
 
@@ -164,6 +189,7 @@ function main() {
       gpt55ReviewRequired: true,
       executorCommandSummary: `${EXECUTOR_REL} --request ${requestPath} --artifact-root ${artifactRoot}`,
       executorDeniedActionCount: executorVerification?.denied_action_count,
+      innovationReview: buildInnovationReview({ rawOutput: modelResult.stdout }),
     })
 
     const summary = {
@@ -358,6 +384,11 @@ function buildPrompt({ taskText, manifestPaths, maxActions, maxModelOutputBytes 
     'Allowed top-level fields: protocol_version, request_id, repo_root, mode, manifest_paths, actions.',
     'Allowed action types: READ_MANIFEST_FILE, SEARCH_MANIFEST_PATHS, RUN_ALLOWED_CHECK, SUMMARIZE_EVIDENCE, FINAL_REPORT.',
     'Allowed check_ids: GIT_BRANCH_SHOW_CURRENT, GIT_REV_PARSE_SHORT_HEAD, GIT_DIFF_CACHED_NAME_ONLY, WC_L_FILE, GREP_Q_MARKER.',
+    `READ_MANIFEST_FILE accepts ${READ_WINDOW_RUNTIME_FIELDS.join(' and ')} only for the runtime read window.`,
+    'Do not use offset, limit, range, span, cursor, or any alternate read-window field in actions.',
+    'Unknown fields in actions are rejected before executor handoff.',
+    'If you want a schema improvement, keep it out of actions and describe it only in a non-executable innovation note when the wrapper explicitly supports such a note.',
+    'Current top-level schema is strict and does not support innovation note fields, so keep invention ideas out of the JSON action proposal for now.',
     `Keep output below ${maxModelOutputBytes} bytes.`,
     `Task: ${taskText}`,
     'JSON template:',
@@ -380,6 +411,8 @@ function buildDryRunMeta({ artifactRoot, model, manifestPaths, prompt, maxAction
     observation_phase_status: 'ACTIVE',
     gpt_5_5_review_required: true,
     write_capability_enabled: false,
+    strict_read_window_contract: 'START_LINE_END_LINE_ONLY',
+    invention_review_reporting: 'ENABLED',
   }
 }
 
@@ -849,6 +882,22 @@ function runSelftest() {
     markers.push('HANDOFF_FINAL_REPORT_LAST_PASS')
   }
 
+  const offsetFixture = JSON.stringify({
+    ...JSON.parse(validFixture),
+    actions: [
+      { type: 'READ_MANIFEST_FILE', path: manifestPaths[0], start_line: 1, end_line: 5, offset: 1 },
+      { type: 'SUMMARIZE_EVIDENCE' },
+      { type: 'FINAL_REPORT' },
+    ],
+  })
+  if (expectReject(() => validateAndSanitizeProposal({
+    rawOutput: offsetFixture,
+    allowedManifestPaths: manifestPaths,
+    maxActions: DEFAULT_MAX_ACTIONS,
+  }), 'Action 1 unknown field: offset')) {
+    markers.push('HANDOFF_OFFSET_FIELD_REJECT_PASS')
+  }
+
   try {
     if (!sanitizedRequest) {
       throw new Error('sanitized request missing')
@@ -896,6 +945,7 @@ function runSelftest() {
       gpt55ReviewRequired: true,
       executorCommandSummary: `${EXECUTOR_REL} --request ${requestPath} --artifact-root ${tempRoot}`,
       executorDeniedActionCount: executorVerification?.denied_action_count,
+      innovationReview: buildInnovationReview({ rawOutput: validFixture }),
     })
     const scopedAfter = scopedStatus()
     const wrapperReport = fs.existsSync(wrapperPacket.reportPath)
@@ -919,6 +969,47 @@ function runSelftest() {
     }
   } catch {}
 
+  try {
+    const rejectionRun = createWrapperRun(tempRoot)
+    const modelOutputPath = path.join(rejectionRun.runDir, 'model_output.md')
+    fs.writeFileSync(
+      modelOutputPath,
+      [
+        '# advisory_model_output',
+        '',
+        '```text',
+        safeFence(offsetFixture),
+        '```',
+        '',
+      ].join('\n'),
+      'utf8'
+    )
+    const rejectionPacket = writeRejectedProposalReviewPacket({
+      wrapperRun: rejectionRun,
+      artifactRoot: tempRoot,
+      modelLane: DEFAULT_MODEL,
+      modelOutputPath,
+      rawOutput: offsetFixture,
+      rejectionReason: 'Action 1 unknown field: offset',
+    })
+    const rejectionReport = fs.readFileSync(rejectionPacket.reportPath, 'utf8')
+    const rejectionMeta = fs.readFileSync(rejectionPacket.metaPath, 'utf8')
+    if (
+      rejectionReport.includes('innovation_review_status: contract_drift_detected')
+      && rejectionReport.includes('innovation_review_classification: candidate_protocol_extension_not_accepted')
+      && rejectionReport.includes('innovation_review_unknown_fields: READ_MANIFEST_FILE.offset')
+    ) {
+      markers.push('HANDOFF_INVENTION_REVIEW_REPORT_PASS')
+    }
+    if (
+      rejectionMeta.includes('"innovation_review_status": "contract_drift_detected"')
+      && rejectionMeta.includes('"innovation_review_classification": "candidate_protocol_extension_not_accepted"')
+      && rejectionMeta.includes('"innovation_review_unknown_fields": [\n    "READ_MANIFEST_FILE.offset"\n  ]')
+    ) {
+      markers.push('HANDOFF_INVENTION_REVIEW_META_PASS')
+    }
+  } catch {}
+
   const required = [
     'HANDOFF_VALID_JSON_PASS',
     'HANDOFF_MARKDOWN_REJECT_PASS',
@@ -929,10 +1020,13 @@ function runSelftest() {
     'HANDOFF_ACTION_CAP_REJECT_PASS',
     'HANDOFF_SUMMARY_REQUIRED_PASS',
     'HANDOFF_FINAL_REPORT_LAST_PASS',
+    'HANDOFF_OFFSET_FIELD_REJECT_PASS',
     'HANDOFF_EXECUTOR_DRY_BRIDGE_PASS',
     'HANDOFF_WRAPPER_REPORT_PASS',
     'HANDOFF_WRAPPER_META_PASS',
     'HANDOFF_OBSERVATION_PHASE_PASS',
+    'HANDOFF_INVENTION_REVIEW_REPORT_PASS',
+    'HANDOFF_INVENTION_REVIEW_META_PASS',
   ]
   if (required.every((marker) => markers.includes(marker))) {
     markers.push('HANDOFF_SELFTEST_PASS')
@@ -994,6 +1088,47 @@ function parsePositiveInt(value, label) {
   return parsed
 }
 
+function writeRejectedProposalReviewPacket({
+  wrapperRun,
+  artifactRoot,
+  modelLane,
+  modelOutputPath,
+  rawOutput,
+  rejectionReason,
+}) {
+  const innovationReview = buildInnovationReview({
+    rawOutput,
+    rejectionReason,
+    rejectedBeforeExecutor: true,
+  })
+  return writeWrapperReviewPacket({
+    wrapperRun,
+    artifactRoot,
+    modelLane,
+    modelOutputPath,
+    sanitizedRequestPath: 'not_written',
+    executorFinalReportPath: 'not_run',
+    executorArtifactDir: 'not_run',
+    executorVerification: null,
+    handoffStatus: 'HANDOFF_REJECT',
+    jsonContractStatus: 'FAIL',
+    sanitizedRequestStatus: 'REJECTED_BEFORE_EXECUTOR',
+    executorStatus: 'NOT_RUN',
+    localTruthBoundary: 'Executor artifacts are local truth; DeepSeek/model output is advisory only.',
+    modelClaimsPolicy: 'DeepSeek/model output is advisory only. Executor-local evidence is required for truth.',
+    actionsRequested: extractRequestedActionTypes(rawOutput),
+    actionsAllowedByWrapper: [],
+    actionsDeniedByWrapper: innovationReview.unknown_fields_action_types,
+    repoMutationClaim: 'No repo mutation observed; wrapper report is not proof of writes, staging, commits, production readiness, or autonomous safety.',
+    observationPhaseStatus: 'ACTIVE',
+    gpt55ReviewRequired: true,
+    executorCommandSummary: 'not_run',
+    executorDeniedActionCount: null,
+    innovationReview,
+    sanitizedRequestRejectionReason: rejectionReason,
+  })
+}
+
 function writeWrapperReviewPacket({
   wrapperRun,
   artifactRoot,
@@ -1017,11 +1152,14 @@ function writeWrapperReviewPacket({
   gpt55ReviewRequired,
   executorCommandSummary,
   executorDeniedActionCount,
+  innovationReview,
+  sanitizedRequestRejectionReason,
 }) {
   const reportPath = path.join(wrapperRun.runDir, WRAPPER_FINAL_REPORT_NAME)
   const metaPath = path.join(wrapperRun.runDir, WRAPPER_META_NAME)
   const timestamp = new Date().toISOString()
   const deniedActionCount = Number.isInteger(executorDeniedActionCount) ? executorDeniedActionCount : 'n/a'
+  const review = innovationReview ?? buildInnovationReview({})
   const finalReport = [
     `result_label: ${handoffStatus}`,
     `wrapper_run_dir: ${wrapperRun.runDir}`,
@@ -1042,7 +1180,17 @@ function writeWrapperReviewPacket({
     `executor_denied_action_count: ${deniedActionCount}`,
     `repo_mutation_claim: ${repoMutationClaim}`,
     `observation_phase_status: ${observationPhaseStatus}`,
+    `innovation_review_status: ${review.innovation_review_status}`,
+    `innovation_review_classification: ${review.innovation_review_classification}`,
+    `innovation_review_unknown_fields: ${formatList(review.innovation_review_unknown_fields)}`,
+    `innovation_review_rejected_before_executor: ${formatBoolean(review.innovation_review_rejected_before_executor)}`,
+    `innovation_review_prompt_ambiguity_suspected: ${formatBoolean(review.innovation_review_prompt_ambiguity_suspected)}`,
+    `innovation_review_candidate_protocol_extension: ${formatBoolean(review.innovation_review_candidate_protocol_extension)}`,
+    `innovation_review_safety_notes: ${review.innovation_review_safety_notes}`,
+    `innovation_review_tokenops_notes: ${review.innovation_review_tokenops_notes}`,
+    `innovation_review_executor_compatibility_required: ${formatBoolean(review.innovation_review_executor_compatibility_required)}`,
     `gpt_5_5_review_required: ${gpt55ReviewRequired ? 'YES' : 'NO'}`,
+    ...(sanitizedRequestRejectionReason ? [`sanitized_request_rejection_reason: ${sanitizedRequestRejectionReason}`] : []),
     'non_claims: DeepSeek/model output is advisory only; this wrapper report is not proof of writes, staging, commits, production readiness, or autonomous safety.',
     'next_gate: GPT-5.5 review before widening beyond readonly.',
   ].join('\n')
@@ -1061,8 +1209,20 @@ function writeWrapperReviewPacket({
     handoff_status: handoffStatus,
     observation_phase_status: observationPhaseStatus,
     gpt_5_5_review_required: gpt55ReviewRequired,
+    innovation_review_status: review.innovation_review_status,
+    innovation_review_classification: review.innovation_review_classification,
+    innovation_review_unknown_fields: review.innovation_review_unknown_fields,
+    innovation_review_rejected_before_executor: review.innovation_review_rejected_before_executor,
+    innovation_review_prompt_ambiguity_suspected: review.innovation_review_prompt_ambiguity_suspected,
+    innovation_review_candidate_protocol_extension: review.innovation_review_candidate_protocol_extension,
+    innovation_review_safety_notes: review.innovation_review_safety_notes,
+    innovation_review_tokenops_notes: review.innovation_review_tokenops_notes,
+    innovation_review_executor_compatibility_required: review.innovation_review_executor_compatibility_required,
     raw_model_output_sha256: fs.existsSync(modelOutputPath) ? sha256(fs.readFileSync(modelOutputPath, 'utf8')) : null,
     sanitized_request_sha256: fs.existsSync(sanitizedRequestPath) ? sha256(fs.readFileSync(sanitizedRequestPath, 'utf8')) : null,
+  }
+  if (sanitizedRequestRejectionReason) {
+    meta.sanitized_request_rejection_reason = sanitizedRequestRejectionReason
   }
   if (executorVerification && typeof executorVerification === 'object') {
     meta.executor_denied_action_count = executorVerification.denied_action_count ?? null
@@ -1082,6 +1242,54 @@ function deriveExecutorStatus(executorVerification) {
   return deniedActionCount > 0 ? 'PASS_WITH_DENIALS' : 'PASS'
 }
 
+function buildInnovationReview({ rawOutput = '', rejectionReason = '', rejectedBeforeExecutor = false } = {}) {
+  const parsed = tryParseProposal(rawOutput)
+  const drift = inspectContractDrift(parsed)
+  if (drift.unknownFields.length === 0) {
+    return {
+      innovation_review_status: 'none_detected',
+      innovation_review_classification: 'none',
+      innovation_review_unknown_fields: [],
+      innovation_review_rejected_before_executor: rejectedBeforeExecutor,
+      innovation_review_prompt_ambiguity_suspected: false,
+      innovation_review_candidate_protocol_extension: false,
+      innovation_review_safety_notes: rejectedBeforeExecutor
+        ? 'Rejected before executor; no executable innovation drift detected.'
+        : 'No invention drift detected.',
+      innovation_review_tokenops_notes: rejectedBeforeExecutor
+        ? 'No retry. No executor handoff.'
+        : 'No invention drift observed in executable actions.',
+      innovation_review_executor_compatibility_required: false,
+      unknown_fields_action_types: [],
+    }
+  }
+
+  const unknownFields = drift.unknownFields.map((entry) => `${entry.action_type}.${entry.field}`)
+  const candidateProtocolExtension = drift.unknownFields.some((entry) => (
+    entry.action_type === 'READ_MANIFEST_FILE' && READ_WINDOW_UNKNOWN_FIELDS.has(entry.field)
+  ))
+  const promptAmbiguitySuspected = candidateProtocolExtension
+  const classification = candidateProtocolExtension
+    ? 'candidate_protocol_extension_not_accepted'
+    : 'unknown_field_not_accepted'
+  return {
+    innovation_review_status: 'contract_drift_detected',
+    innovation_review_classification: classification,
+    innovation_review_unknown_fields: [...new Set(unknownFields)],
+    innovation_review_rejected_before_executor: rejectedBeforeExecutor,
+    innovation_review_prompt_ambiguity_suspected: promptAmbiguitySuspected,
+    innovation_review_candidate_protocol_extension: candidateProtocolExtension,
+    innovation_review_safety_notes: rejectedBeforeExecutor
+      ? 'Rejected before executor. Fail-closed preserved. Unsupported invented fields stayed non-executable.'
+      : 'Unsupported invented fields were observed but not executed.',
+    innovation_review_tokenops_notes: rejectedBeforeExecutor
+      ? `Reject-only path. No retry. ${rejectionReason || 'Executor handoff blocked.'}`
+      : 'Observation only; executor compatibility review required before widening runtime schema.',
+    innovation_review_executor_compatibility_required: candidateProtocolExtension || rejectedBeforeExecutor,
+    unknown_fields_action_types: [...new Set(drift.unknownFields.map((entry) => entry.action_type))],
+  }
+}
+
 function readJsonIfExists(filePath) {
   if (!fs.existsSync(filePath)) {
     return null
@@ -1093,11 +1301,69 @@ function readJsonIfExists(filePath) {
   }
 }
 
+function tryParseProposal(rawOutput) {
+  const trimmed = typeof rawOutput === 'string' ? rawOutput.trim() : ''
+  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
+    return null
+  }
+  try {
+    const parsed = JSON.parse(trimmed)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function inspectContractDrift(parsed) {
+  if (!parsed || !Array.isArray(parsed.actions)) {
+    return { unknownFields: [] }
+  }
+  const unknownFields = []
+  for (let index = 0; index < parsed.actions.length; index += 1) {
+    const action = parsed.actions[index]
+    if (!action || typeof action !== 'object' || Array.isArray(action)) {
+      continue
+    }
+    const actionType = normalizeActionType(action.type)
+    const allowedKeys = ALLOWED_ACTION_KEYS[actionType]
+    if (!allowedKeys) {
+      continue
+    }
+    for (const key of Object.keys(action)) {
+      if (!allowedKeys.has(key)) {
+        unknownFields.push({
+          action_index: index + 1,
+          action_type: actionType || 'UNKNOWN',
+          field: key,
+        })
+      }
+    }
+  }
+  return { unknownFields }
+}
+
+function extractRequestedActionTypes(rawOutput) {
+  const parsed = tryParseProposal(rawOutput)
+  if (!parsed || !Array.isArray(parsed.actions)) {
+    return []
+  }
+  return parsed.actions
+    .map((action) => normalizeActionType(action?.type))
+    .filter(Boolean)
+}
+
 function formatList(value) {
   if (!Array.isArray(value) || value.length === 0) {
     return 'none'
   }
   return value.join(', ')
+}
+
+function formatBoolean(value) {
+  return value ? 'true' : 'false'
 }
 
 function requireInteger(value, label) {
