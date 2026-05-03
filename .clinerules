@@ -22,6 +22,8 @@ Model routing:
 - NUDIMMUD workhorse is the secondary guard and automation layer.
 - DeepSeek V4 Pro through offload-runner is used for architecture, prompt synthesis, and heavier planning.
 - DeepSeek V4 Flash is used for cheap sanity checks and overclaim detection.
+- Codex CLI may be used as fallback local patch executor if explicitly requested.
+- Claude/Sonnet is not the default route and should only be used for protected local-risk/security/hook/settings gates when explicitly requested.
 - Local git/tool output is the only authority for repo truth.
 
 Output style:
