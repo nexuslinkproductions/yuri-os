@@ -7,21 +7,26 @@
 
 ## 1. Authority Hierarchy
 
-1. `CORE_PROTOCOL.md` — global operational rules (highest)
-2. `.claude/rules/*.md` — path-targeted rules (this file is one of them)
-3. `CLAUDE.md` + `~/.claude/CLAUDE.md` — session directives
-4. Skills — on-demand domain knowledge
-5. Model inference — lowest authority; always loses to local evidence
+1. Owner intent — explicit session instructions (highest)
+2. Direct evidence — shell/git/runtime reads, observed filesystem state
+3. Executable contracts — hooks, validators, preflight checks
+4. `CORE_PROTOCOL.md` + `.claude/rules/*.md` — codified rules (this file is one of them)
+5. `CLAUDE.md` + `~/.claude/CLAUDE.md` — session directives
+6. Skills — on-demand domain knowledge
+7. Task prompt — as parsed by model
+8. Model inference — lowest; always loses to local evidence
 
 ---
 
 ## 2. Exception Mechanism
 
-Any rule in this document may be overridden **only** with:
+Any rule may be overridden **only** with explicit owner approval OR an already-defined runtime contract:
 ```
-EXCEPTION: <rule-id> | REASON: <one sentence> | SCOPE: <session|task|file> | APPROVAL: <owner|auto>
+EXCEPTION: <rule-id> | REASON: <one sentence> | SCOPE: <session|task|file> | VALIDATION: <check to run> | APPROVAL: owner | DISCLOSURE: final-report
 ```
-Log the exception before acting. No silent overrides.
+- `auto` is not a valid APPROVAL value.
+- Log the exception before acting. Disclose in the final report's NON_CLAIMS section.
+- No silent overrides.
 
 ---
 
@@ -76,16 +81,9 @@ Log the exception before acting. No silent overrides.
 
 ## 8. Research Contract
 
-| Tier | Source | Method | Approval |
-|------|--------|---------|----------|
-| 0 | Local cache / git history | Read, grep, git log | None |
-| 1 | Package registry metadata | `npm view <pkg> --json \| jq` | None |
-| 2 | Raw source files | raw.githubusercontent.com + head -N | None |
-| 3 | Targeted grep on raw source | grep + head | None |
-| 4 | Single scoped file read | targeted extract | None |
-| 5 | Full crawl / WebFetch | rendered page or full repo | Explicit owner |
+Full tier table and approval rules: see `research_pipeline.md`.
 
-Always start at Tier 0. See: `research_pipeline.md` for full protocol.
+Summary: always start at Tier 0 (local cache / git history). Escalate only when lower tier is provably insufficient. Tier 5 (full crawl / WebFetch) requires explicit owner approval.
 
 ---
 
@@ -103,12 +101,17 @@ Always start at Tier 0. See: `research_pipeline.md` for full protocol.
 
 | Workload | Model |
 |----------|-------|
-| Architecture, security, orchestration, production decisions | Sonnet 4.6 |
-| Summarization, extraction, markdown cleanup, bulk transforms | Haiku 4.5 |
+| Architecture, security, orchestration, mutation, final review | Sonnet 4.6 |
+| Low-risk exact checks, summarization, extraction, markdown cleanup, bulk transforms | Haiku 4.5 |
 | Background workers | Haiku 4.5 max |
+| Fast research, reasoning augmentation, cost-sensitive synthesis | DeepSeek Flash |
+| Complex reasoning requiring chain-of-thought depth beyond Sonnet | DeepSeek Pro |
+| Code generation and transformation tasks (cloud offload) | Codex / GPT-5.5 |
+| Multimodal or large-context synthesis | Gemini (when routed via offload) |
 | Opus | Explicit owner approval only after Sonnet retries exhausted |
 
-Haiku must NOT execute tools, orchestrate agents, or reason about tool results.
+**Haiku boundary:** may handle low-risk exact checks, summarization, extraction, markdown cleanup.
+**Haiku hard limits:** must NOT handle high-risk mutation, security gates, ambiguous architecture decisions, final local-truth verdicts, or tool orchestration.
 
 ---
 
@@ -166,12 +169,14 @@ Inherited rules apply in full unless overridden via the exception mechanism (§2
 
 ## 16. Runtime Enforcement Roadmap
 
+Status legend: **Known surface** = observed in use; not re-verified in this sprint. **Planned** = not yet built.
+
 | Item | Status |
 |------|--------|
-| Hook-based mutation guard (07J schema) | LIVE |
-| GitNexus impact gate | LIVE |
-| Session start preflight (cwd + branch) | LIVE |
-| Compact hint automation | LIVE |
+| Hook-based mutation guard (07J schema) | Known surface (inherited from 07J audit) |
+| GitNexus impact gate | Known surface (inherited from CLAUDE.md directive) |
+| Session start preflight (cwd + branch) | Known surface (inherited from hook config) |
+| Compact hint automation | Known surface (inherited from compact-optimizer skill) |
 | Swarm file-boundary enforcement | Partial |
 | Automated evidence tagging | Planned |
 | Tier-0 research auto-routing | Planned |
