@@ -666,16 +666,33 @@ function validateLiveFlashReview(payload) {
   if (!['approved', 'blocked'].includes(payload.verdict)) {
     throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: verdict invalid')
   }
+  if (payload.flash_review_status !== payload.verdict) {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: flash_review_status/verdict mismatch')
+  }
   if (!['low', 'medium', 'high'].includes(payload.risk_level)) {
     throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: risk_level invalid')
   }
-  if (!Array.isArray(payload.notes) || payload.notes.some((item) => typeof item !== 'string')) {
-    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: notes invalid')
-  }
-  if (typeof payload.blocked_reason !== 'string') {
+  if (payload.verdict === 'approved') {
+    if (payload.blocked_reason !== null) {
+      throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: blocked_reason invalid')
+    }
+  } else if (typeof payload.blocked_reason !== 'string') {
     throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: blocked_reason invalid')
   }
-  return payload
+  let notes = payload.notes
+  if (Array.isArray(notes)) {
+    if (notes.some((item) => typeof item !== 'string')) {
+      throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: notes invalid')
+    }
+  } else if (typeof notes === 'string') {
+    notes = [notes]
+  } else {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: notes invalid')
+  }
+  return {
+    ...payload,
+    notes,
+  }
 }
 
 function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath, artifactRoot }) {
@@ -821,7 +838,11 @@ function buildLiveFlashPrompt({ idea, intent, plan, execute }) {
     '',
     'flash_review_status must be approved or blocked.',
     'verdict must be approved or blocked.',
-    'If anything is off, set verdict to blocked and explain why.',
+    'notes MUST be an array of strings.',
+    'notes MUST NOT be a string.',
+    'blocked_reason MUST be null when approved.',
+    'blocked_reason MUST be a string when blocked.',
+    'Return JSON only, no markdown, no prose.',
     '',
   ].join('\n')
 }
@@ -1315,7 +1336,7 @@ function runSelftest({ artifactRoot }) {
           verdict: 'approved',
           risk_level: 'low',
           notes: ['approved'],
-          blocked_reason: '',
+          blocked_reason: null,
         })
       }
       throw new Error(`unexpected lane: ${lane}`)
@@ -1342,6 +1363,17 @@ function runSelftest({ artifactRoot }) {
     ) {
       markers.push('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS')
     }
+    const flashPrompt = readTextFile(path.join(approvedLiveRun.runDir, 'flash-prompt.md'))
+    if (
+      flashPrompt.includes('Return one JSON object with exactly these keys:') &&
+      flashPrompt.includes('notes MUST be an array of strings.') &&
+      flashPrompt.includes('notes MUST NOT be a string.') &&
+      flashPrompt.includes('blocked_reason MUST be null when approved.') &&
+      flashPrompt.includes('blocked_reason MUST be a string when blocked.') &&
+      flashPrompt.includes('Return JSON only, no markdown, no prose.')
+    ) {
+      markers.push('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS')
+    }
     const parsedIntent = readJsonFile(path.join(approvedLiveRun.runDir, 'intent.json'))
     const parsedPlan = readJsonFile(path.join(approvedLiveRun.runDir, 'action-plan.json'))
     if (
@@ -1354,8 +1386,56 @@ function runSelftest({ artifactRoot }) {
     ) {
       markers.push('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS')
     }
+    const parsedFlashReview = readJsonFile(path.join(approvedLiveRun.runDir, 'flash-review.json'))
+    if (
+      parsedFlashReview.flash_review_status === 'approved' &&
+      parsedFlashReview.verdict === 'approved' &&
+      parsedFlashReview.blocked_reason === null &&
+      Array.isArray(parsedFlashReview.notes) &&
+      parsedFlashReview.notes.length > 0 &&
+      parsedFlashReview.notes.every((item) => typeof item === 'string')
+    ) {
+      markers.push('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS')
+    }
     if (liveArtifactPackExists(approvedLiveRun.runDir, false)) {
       markers.push('WORKHORSE_LIVE_ARTIFACTS_PASS')
+    }
+  }
+
+  const normalizedFlashTransport = {
+    runLane(lane) {
+      if (lane === LIVE_PRO_LANE) {
+        return JSON.stringify({ intent: liveIntent, action_plan: livePlan })
+      }
+      if (lane === LIVE_FLASH_LANE) {
+        return JSON.stringify({
+          flash_review_status: 'approved',
+          verdict: 'approved',
+          risk_level: 'low',
+          notes: 'normalized string note',
+          blocked_reason: null,
+        })
+      }
+      throw new Error(`unexpected lane: ${lane}`)
+    },
+  }
+  const normalizedFlashRun = forgePipeline({
+    idea: liveIdea,
+    execute: false,
+    live: true,
+    noFlash: false,
+    artifactRoot: tempRoot,
+    transport: normalizedFlashTransport,
+    executorRunner: () => ({ validated: true, readonly: true, markers: [], files_changed: [], executed: false }),
+  })
+  if (normalizedFlashRun.ok && normalizedFlashRun.flashReviewStatus === 'approved') {
+    const parsedNormalizedFlashReview = readJsonFile(path.join(normalizedFlashRun.runDir, 'flash-review.json'))
+    if (
+      Array.isArray(parsedNormalizedFlashReview.notes) &&
+      parsedNormalizedFlashReview.notes.length === 1 &&
+      parsedNormalizedFlashReview.notes[0] === 'normalized string note'
+    ) {
+      markers.push('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS')
     }
   }
 
@@ -1471,7 +1551,7 @@ function runSelftest({ artifactRoot }) {
     markers.push('NO_REPO_MUTATION_FROM_RUNTIME_PASS')
   }
 
-  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS')) {
+  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS') && markers.includes('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS')) {
     markers.push('WORKHORSE_SELFTEST_PASS')
   }
 
