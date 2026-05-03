@@ -1,33 +1,40 @@
 {
-  "schema_version": "1",
+  "schema_version": "1.1",
   "created_at": "2026-05-03T15:10:33Z",
-  "source_files": [
-    "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md",
-    "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md"
-  ],
-  "copied_files": [
-    {
-      "path": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session/YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md",
-      "sha256": "f3e169c8b15f7075d206cf49e21dba4d5065cd36084c5866e74e15b440f74080",
-      "byte_size": 12770,
-      "line_count": 434
-    },
-    {
-      "path": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session/YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
-      "sha256": "c81b039516a0faa867a581502608ed3cc63e532051400164fab31ea434f264e3",
-      "byte_size": 24638,
-      "line_count": 1052
-    }
-  ],
+  "repo_archive_path": "_SYSTEM/yuri-history-archive/rag-prep/2026-05-03-web-session/",
+  "temp_artifact_root": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session",
   "trust_policy": "historical_archive_current_repo_truth_outranks",
   "ingestion_status": "prepared_not_ingested",
-  "rag_namespace_suggestion": "yuri_history_archive",
-  "safety_tags": [
-    "historical",
-    "web_session",
-    "directional_guidance",
-    "no_live_truth",
-    "no_runtime_authority"
+  "full_report_bodies_committed": false,
+  "report_body_commit_policy": "full_report_bodies_excluded_to_avoid_duplicate_archive_and_rag_ingestion",
+  "reports": [
+    {
+      "filename": "YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md",
+      "sha256": "f3e169c8b15f7075d206cf49e21dba4d5065cd36084c5866e74e15b440f74080",
+      "byte_size": 12770,
+      "line_count": 434,
+      "original_source_path": "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md",
+      "temp_source_path": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session/YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md"
+    },
+    {
+      "filename": "YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
+      "sha256": "c81b039516a0faa867a581502608ed3cc63e532051400164fab31ea434f264e3",
+      "byte_size": 24638,
+      "line_count": 1052,
+      "original_source_path": "/Users/marcelspatz/Downloads/YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
+      "temp_source_path": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session/YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md"
+    }
   ],
-  "supersession_note": "Current repo truth and newer archive entries outrank these reports."
+  "digest": {
+    "filename": "rag_prep_digest_deepseek_v4_pro_2026-05-03.json",
+    "sha256": "09aafbbb00b22ad8bab6872269e623798c8706768c68d127b927f9a2c34f95dd",
+    "byte_size": 8766,
+    "temp_source_path": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session/rag_prep_digest_deepseek_v4_pro_2026-05-03.json",
+    "advisory_only": true,
+    "duplication_policy": "compact_advisory_only"
+  },
+  "notes": [
+    "Full PART1 and PART2 bodies are intentionally excluded from the repo archive.",
+    "Digest is compact and advisory only."
+  ]
 }
