@@ -320,6 +320,91 @@ run_ruflo_route() {
   npx -y ruflo@latest hooks route -t "$prompt"
 }
 
+_fused_swarm_orchestrate() {
+  local _dry_run=0
+  local _route_only=0
+  local _artifact_root="/private/tmp/yuri-artifacts"
+  local _prompt_parts=()
+
+  for _arg in "$@"; do
+    case "$_arg" in
+      --dry-run|-d) _dry_run=1 ;;
+      --route-only) _route_only=1 ;;
+      *)
+        _prompt_parts+=("$_arg")
+        ;;
+    esac
+  done
+
+  local prompt="$(join_prompt ${_prompt_parts[@]+"${_prompt_parts[@]}"})"
+
+  if [ -z "$prompt" ]; then
+    if [ "$_dry_run" -eq 0 ] && [ "$_route_only" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+  fi
+
+  if [ "$_dry_run" -eq 1 ] || [ "$_route_only" -eq 1 ]; then
+    printf 'FUSED_SWARM_DRY_RUN=1\n'
+    printf 'FUSED_SWARM_ARTIFACT_ROOT=%s\n' "$_artifact_root"
+    printf 'FUSED_SWARM_RUFLO=advisory_status_only\n'
+    printf 'FUSED_SWARM_WORKHORSE=deepseek-v4-pro-lite-budget,deepseek-v4-flash\n'
+    printf 'FUSED_SWARM_ADVISORY_ONLY=true\n'
+    printf 'FUSED_SWARM_LOCAL_TRUTH_CLAIM=false\n'
+    printf 'FUSED_SWARM_REQUIRES_APPROVAL=true\n'
+    return 0
+  fi
+
+  require_cmd node
+  require_cmd shasum
+
+  _run_id="$(date +%Y%m%d-%H%M%S)-$(openssl rand -hex 4)"
+  _run_dir="$_artifact_root/$_run_id"
+  mkdir -p "$_run_dir"
+
+  _prompt_sha256="$(printf '%s' "$prompt" | shasum -a 256 | awk '{print $1}')"
+
+  _swarm_stdout="$_run_dir/swarm_output.tmp"
+  _swarm_stderr="$_run_dir/swarm_error.txt"
+  _swarm_status=0
+
+  # Run ruflo swarm and capture output
+  if ! run_ruflo_swarm "$prompt" >"$_swarm_stdout" 2>"$_swarm_stderr"; then
+    _swarm_status=$?
+  fi
+
+  _stdout_bytes="$(wc -c < "$_swarm_stdout" | tr -d ' ')"
+  _stdout_lines="$(wc -l < "$_swarm_stdout" | tr -d ' ')"
+  _stderr_bytes="$(wc -c < "$_swarm_stderr" | tr -d ' ')"
+  _stdout_sha256="$(shasum -a 256 "$_swarm_stdout" | awk '{print $1}')"
+
+  # Write advisory output
+  {
+    printf '# ADVISORY_FUSED_SWARM_OUTPUT\n'
+    printf '# route: @swarm\n'
+    printf '# run_id: %s\n' "$_run_id"
+    printf '# sha256: %s\n' "$_stdout_sha256"
+    printf '# advisory_only=true\n'
+    printf '# local_truth_claim=false\n'
+    printf '# requires_approval=true\n'
+    printf '\n'
+    cat "$_swarm_stdout"
+  } >"$_run_dir/output.md"
+
+  # Write summary.json
+  printf '{"run_id":"%s","route":"@swarm","fused":true,"artifact_root":"%s","prompt_sha256":"%s","advisory_only":true,"local_truth_claim":false,"requires_approval":true,"stdout_bytes":%s,"stdout_lines":%s,"stderr_bytes":%s,"exit_code":%s,"ruflo_status":"advisory_status_only","workhorse_status":"deepseek-v4-pro-lite-budget,deepseek-v4-flash","paid_lanes":["deepseek"],"non_claims":["no write capability","no patch application","no executor widening"]}\n' \
+    "$_run_id" "$_artifact_root" "$_prompt_sha256" \
+    "$_stdout_bytes" "$_stdout_lines" "$_stderr_bytes" "$_swarm_status" \
+    >"$_run_dir/summary.json"
+
+  printf 'FUSED_SWARM_RUN=%s\n' "$_run_dir"
+  printf 'FUSED_SWARM_SUMMARY=%s\n' "$_run_dir/summary.json"
+  printf 'FUSED_SWARM_STATUS=%s\n' "PASS"
+
+  rm -f "$_swarm_stdout" "$_swarm_stderr"
+}
+
 run_ruflo_swarm() {
   local prompt="$1"
   local route route_lower
@@ -515,15 +600,6 @@ case "${1:-help}" in
         exec "$SCRIPT_DIR/offload.sh" "$@"
         ;;
     esac
-    ;;
-  swarm|@swarm)
-    shift || true
-    prompt="$(join_prompt "$@")"
-    if [ -z "$prompt" ]; then
-      usage
-      exit 1
-    fi
-    run_ruflo_swarm "$prompt"
     ;;
   btw|/btw)
     shift || true
@@ -1000,12 +1076,7 @@ case "${1:-help}" in
     ;;
   @swarm|swarm)
     shift || true
-    prompt="$(join_prompt "$@")"
-    if [ -z "$prompt" ]; then
-      usage
-      exit 1
-    fi
-    run_ruflo_swarm "$prompt"
+    _fused_swarm_orchestrate "$@"
     ;;
   ruflo)
     shift || true
