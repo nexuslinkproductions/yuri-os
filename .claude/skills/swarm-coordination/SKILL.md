@@ -94,7 +94,29 @@ If browser lane unavailable (MCP not connected): fall back to `@deepseek` + web 
 - Lane output cap: 60–80 lines max per lane result.
 - Dirty repos: scoped marker commands only in any lane.
 
+## Swarm Research Restriction
+
+Swarm lanes may gather compact evidence only. Local shell / git is the authority for:
+- commit state, HEAD, staged files, branch
+- mutation decisions (what to write, stage, commit)
+- DB reads, live process state
+- security gates
+
+Lower-lane generated reports are not accepted as local truth without direct shell verification.
+
 ## Session Notes
+
+### 2026-05-03
+- session: 24m | peak ctx: 31% | compacts: 0
+- tools: Bash×20, Read×10, Edit×5
+- corrections: none
+- errors: none
+
+### 2026-05-02
+- session: 4m | peak ctx: 14% | compacts: 0
+- tools: Bash×16, Read×4, Edit×4, Skill×1
+- corrections: none
+- errors: none
 
 ### 2026-05-02
 - session: 1m | peak ctx: 34% | compacts: 0

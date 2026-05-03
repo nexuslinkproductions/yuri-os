@@ -81,7 +81,22 @@ Output: `TOKENMAXXING OFF`
 - Reports: pass = one label line; failure = failure-only verbose block.
 - Runtime script flags planned separately; docs-only patches committed first.
 
+## Hard Token Rules — Research
+
+- No routine subagents for package or web research. Direct shell only.
+- No rendered GitHub WebFetch. Use raw.githubusercontent.com with line cap.
+- Evidence pack max: 80 lines.
+- Final report max: 120 lines unless explicitly blocked.
+- Split before broad crawl. Full crawl requires explicit owner approval.
+- DeepSeek reinforcement: compact evidence only. No raw dumps.
+
 ## Session Notes
+
+### 2026-05-02
+- session: 4m | peak ctx: 14% | compacts: 0
+- tools: Bash×16, Read×4, Edit×4, Skill×1
+- corrections: none
+- errors: none
 
 ### 2026-04-27
 - session: 3m | peak ctx: 50% | compacts: 0

@@ -110,7 +110,32 @@ Per the NUDIMMUD Aversion Memory Protocol: if you are compacting after a **faile
 - Lane output arriving in main context: summarize to marker-only before injection.
 - After /compact, re-read 2–3 key touched files to verify compact summary accuracy.
 
+## Evidence Pack Shape
+
+Canonical compact payload for DeepSeek reinforcement and lane handoff:
+
+```
+TASK: <one sentence>
+CONTEXT_PACK:
+- fact1
+- fact2  (max 5 facts)
+EVIDENCE:
+- ref/snippet1
+- ref/snippet2  (max 3 refs)
+BLOCKERS: <none | specific>
+QUESTION: <specific question or "proceed">
+OUTPUT_CAP: <80 lines research | 120 lines final report>
+```
+
+Never inject raw command dumps, full file contents, or unfiltered grep output into a compact payload.
+
 ## Session Notes
+
+### 2026-05-02
+- session: 4m | peak ctx: 14% | compacts: 0
+- tools: Bash×16, Read×4, Edit×4, Skill×1
+- corrections: none
+- errors: none
 
 ### 2026-05-02
 - session: 1m | peak ctx: 34% | compacts: 0

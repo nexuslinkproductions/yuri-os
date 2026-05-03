@@ -139,7 +139,32 @@ Main thread: overseer, router, and final merge only.
 - Reports: marker-only on pass; failure-only verbose logs; no repeated harness or code blocks.
 - Runtime script flags planned separately; docs-only patches run first.
 
+## Low-Cost Research Ladder
+
+Default routing for all research tasks. Do not skip tiers.
+
+| Tier | Source | Method | Approval |
+|------|--------|---------|----------|
+| 0 | Local cache / git history | Read, grep, git log | None |
+| 1 | Package registry metadata | `npm view <pkg> --json \| jq` | None |
+| 2 | Raw source files | raw.githubusercontent.com + `head -N` line cap | None |
+| 3 | Snippets / highlights | Targeted grep on raw source | None |
+| 4 | Targeted extract | Single scoped file read | None |
+| 5 | Full crawl / WebFetch | Rendered GitHub or full page | Explicit owner approval |
+
+- No subagents for routine package or web research. Direct shell tools only.
+- Package audits: `npm view <pkg> --json | jq '.versions,.description,.dist-tags'`
+- GitHub source: raw URL + `head -200` max. Never rendered GitHub WebFetch.
+- Full crawl / WebFetch: explicit owner approval required before every call.
+- DeepSeek reinforcement: compact evidence only, never raw command dumps.
+
 ## Session Notes
+
+### 2026-05-02
+- session: 4m | peak ctx: 14% | compacts: 0
+- tools: Bash×16, Read×4, Edit×4, Skill×1
+- corrections: none
+- errors: none
 
 ### 2026-05-02
 - session: 1m | peak ctx: 34% | compacts: 0
