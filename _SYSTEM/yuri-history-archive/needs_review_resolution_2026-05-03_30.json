@@ -1,0 +1,32 @@
+{
+  "version": "2026-05-03_30",
+  "generated_at": "2026-05-03T12:21:27Z",
+  "source_timeline": "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json",
+  "reviewed_count": 3,
+  "resolutions": [
+    {
+      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_1.md",
+      "prior_status": "needs_review",
+      "new_status": "superseded",
+      "evidence_used": "metadata_only",
+      "reason": "Timeline metadata marks a direct successor at PART1_DEEPSEEK_TOKENOPS_RAG, and the first-10-line header says this is a continuity archive for ingestion rather than a repo audit.",
+      "validation_needed_before_use": "Compare body headings with PART1_DEEPSEEK_TOKENOPS_RAG to confirm full coverage before any historical reference use."
+    },
+    {
+      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_2.md",
+      "prior_status": "needs_review",
+      "new_status": "superseded",
+      "evidence_used": "metadata_only",
+      "reason": "Timeline metadata marks a direct successor at PART2_NUDIMMUD_HUD_CONTINUATION, and the first-10-line header shows a dated GPT session archive with no sign it is the final lane artifact.",
+      "validation_needed_before_use": "Compare body headings with PART2_NUDIMMUD_HUD_CONTINUATION to confirm supersession before any historical reference use."
+    },
+    {
+      "basename": "yuri_os_nudimmud_session_context_extract.md",
+      "prior_status": "needs_review",
+      "new_status": "superseded",
+      "evidence_used": "metadata_only",
+      "reason": "Timeline metadata points to the (1) variant as the successor, and the first-10-line header is a generic session summary with no date anchor that would override that relationship.",
+      "validation_needed_before_use": "Compare body scope with yuri_os_nudimmud_session_context_extract (1).md and the dated 2026-04-27 extracts before any historical reference use."
+    }
+  ]
+}
