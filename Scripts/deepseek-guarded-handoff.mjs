@@ -501,21 +501,62 @@ function writeModelArtifacts({ wrapperRun, lane, prompt, stdout, stderr, status,
   )
 }
 
+function extractJsonFromStrictFence(trimmed) {
+  if (!trimmed.includes('```')) {
+    return trimmed
+  }
+  const lines = trimmed.split('\n')
+  let openIndex = -1
+  let closeIndex = -1
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (openIndex === -1) {
+      if (/^```(?:json)?\s*$/.test(line)) {
+        openIndex = i
+      } else if (line.trim() !== '') {
+        throw new Error('Prose before or after fenced JSON rejected')
+      }
+    } else if (closeIndex === -1) {
+      if (/^```\s*$/.test(line)) {
+        closeIndex = i
+      } else if (/^```/.test(line)) {
+        throw new Error('Multiple markdown fences rejected')
+      }
+    } else {
+      if (line.trim() !== '') {
+        if (/^```/.test(line.trim())) {
+          throw new Error('Multiple markdown fences rejected')
+        }
+        throw new Error('Prose before or after fenced JSON rejected')
+      }
+    }
+  }
+  if (openIndex === -1) {
+    throw new Error('Markdown fences rejected')
+  }
+  if (closeIndex === -1) {
+    throw new Error('Unclosed markdown fence rejected')
+  }
+  const inner = lines.slice(openIndex + 1, closeIndex).join('\n').trim()
+  if (!inner.startsWith('{') || !inner.endsWith('}')) {
+    throw new Error('Fenced block does not contain a JSON object')
+  }
+  return inner
+}
+
 function validateAndSanitizeProposal({ rawOutput, allowedManifestPaths, maxActions }) {
   const trimmed = rawOutput.trim()
   if (!trimmed) {
     throw new Error('Empty model output')
   }
-  if (trimmed.includes('```')) {
-    throw new Error('Markdown fences rejected')
-  }
-  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
+  const normalized = extractJsonFromStrictFence(trimmed)
+  if (!normalized.startsWith('{') || !normalized.endsWith('}')) {
     throw new Error('Prose before or after JSON rejected')
   }
 
   let parsed
   try {
-    parsed = JSON.parse(trimmed)
+    parsed = JSON.parse(normalized)
   } catch {
     throw new Error('Strict JSON parse failed')
   }
@@ -784,11 +825,12 @@ function runSelftest() {
   } catch {}
 
   if (expectReject(() => validateAndSanitizeProposal({
-    rawOutput: `\`\`\`json\n${validFixture}\n\`\`\``,
+    rawOutput: '```\nhello world\n```',
     allowedManifestPaths: manifestPaths,
     maxActions: DEFAULT_MAX_ACTIONS,
-  }), 'Markdown fences rejected')) {
+  }), 'Fenced block does not contain a JSON object')) {
     markers.push('HANDOFF_MARKDOWN_REJECT_PASS')
+    markers.push('HANDOFF_NON_JSON_FENCE_REJECT_PASS')
   }
 
   if (expectReject(() => validateAndSanitizeProposal({
@@ -808,6 +850,7 @@ function runSelftest() {
     maxActions: DEFAULT_MAX_ACTIONS,
   }), 'Unknown top-level field: extra_field')) {
     markers.push('HANDOFF_UNKNOWN_FIELD_REJECT_PASS')
+    markers.push('HANDOFF_UNKNOWN_FIELD_REJECT_STILL_PASS')
   }
 
   if (expectReject(() => validateAndSanitizeProposal({
@@ -819,6 +862,7 @@ function runSelftest() {
     maxActions: DEFAULT_MAX_ACTIONS,
   }), 'Forbidden action type: WRITE_FILE')) {
     markers.push('HANDOFF_FORBIDDEN_ACTION_REJECT_PASS')
+    markers.push('HANDOFF_FORBIDDEN_ACTION_REJECT_STILL_PASS')
   }
 
   if (expectReject(() => validateAndSanitizeProposal({
@@ -896,6 +940,49 @@ function runSelftest() {
     maxActions: DEFAULT_MAX_ACTIONS,
   }), 'Action 1 unknown field: offset')) {
     markers.push('HANDOFF_OFFSET_FIELD_REJECT_PASS')
+    markers.push('HANDOFF_OFFSET_FIELD_REJECT_STILL_PASS')
+  }
+
+  try {
+    validateAndSanitizeProposal({
+      rawOutput: `\`\`\`json\n${validFixture}\n\`\`\``,
+      allowedManifestPaths: manifestPaths,
+      maxActions: DEFAULT_MAX_ACTIONS,
+    })
+    markers.push('HANDOFF_STRICT_FENCED_JSON_ACCEPT_PASS')
+  } catch {}
+
+  try {
+    validateAndSanitizeProposal({
+      rawOutput: validFixture,
+      allowedManifestPaths: manifestPaths,
+      maxActions: DEFAULT_MAX_ACTIONS,
+    })
+    markers.push('HANDOFF_RAW_JSON_STILL_ACCEPT_PASS')
+  } catch {}
+
+  if (expectReject(() => validateAndSanitizeProposal({
+    rawOutput: `Here is the JSON:\n${validFixture}`,
+    allowedManifestPaths: manifestPaths,
+    maxActions: DEFAULT_MAX_ACTIONS,
+  }), 'Prose before or after JSON rejected')) {
+    markers.push('HANDOFF_MARKDOWN_PROSE_STILL_REJECT_PASS')
+  }
+
+  if (expectReject(() => validateAndSanitizeProposal({
+    rawOutput: `Here is the proposal:\n\`\`\`json\n${validFixture}\n\`\`\``,
+    allowedManifestPaths: manifestPaths,
+    maxActions: DEFAULT_MAX_ACTIONS,
+  }), 'Prose before or after fenced JSON rejected')) {
+    markers.push('HANDOFF_FENCED_JSON_WITH_PROSE_REJECT_PASS')
+  }
+
+  if (expectReject(() => validateAndSanitizeProposal({
+    rawOutput: `\`\`\`json\n${validFixture}\n\`\`\`\n\`\`\`json\n${validFixture}\n\`\`\``,
+    allowedManifestPaths: manifestPaths,
+    maxActions: DEFAULT_MAX_ACTIONS,
+  }), 'Multiple markdown fences rejected')) {
+    markers.push('HANDOFF_MULTIPLE_FENCES_REJECT_PASS')
   }
 
   try {
@@ -1027,6 +1114,15 @@ function runSelftest() {
     'HANDOFF_OBSERVATION_PHASE_PASS',
     'HANDOFF_INVENTION_REVIEW_REPORT_PASS',
     'HANDOFF_INVENTION_REVIEW_META_PASS',
+    'HANDOFF_STRICT_FENCED_JSON_ACCEPT_PASS',
+    'HANDOFF_FENCED_JSON_WITH_PROSE_REJECT_PASS',
+    'HANDOFF_MULTIPLE_FENCES_REJECT_PASS',
+    'HANDOFF_NON_JSON_FENCE_REJECT_PASS',
+    'HANDOFF_RAW_JSON_STILL_ACCEPT_PASS',
+    'HANDOFF_MARKDOWN_PROSE_STILL_REJECT_PASS',
+    'HANDOFF_UNKNOWN_FIELD_REJECT_STILL_PASS',
+    'HANDOFF_FORBIDDEN_ACTION_REJECT_STILL_PASS',
+    'HANDOFF_OFFSET_FIELD_REJECT_STILL_PASS',
   ]
   if (required.every((marker) => markers.includes(marker))) {
     markers.push('HANDOFF_SELFTEST_PASS')
@@ -1303,11 +1399,19 @@ function readJsonIfExists(filePath) {
 
 function tryParseProposal(rawOutput) {
   const trimmed = typeof rawOutput === 'string' ? rawOutput.trim() : ''
-  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
+  let candidate = trimmed
+  if (trimmed.includes('```')) {
+    try {
+      candidate = extractJsonFromStrictFence(trimmed)
+    } catch {
+      return null
+    }
+  }
+  if (!candidate.startsWith('{') || !candidate.endsWith('}')) {
     return null
   }
   try {
-    const parsed = JSON.parse(trimmed)
+    const parsed = JSON.parse(candidate)
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
       return null
     }
