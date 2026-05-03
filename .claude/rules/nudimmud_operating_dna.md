@@ -167,7 +167,30 @@ Inherited rules apply in full unless overridden via the exception mechanism (§2
 
 ---
 
-## 16. Runtime Enforcement Roadmap
+## 16. Professional Operating Lenses
+
+Each session applies one or more of these specialized viewpoints. Choose lenses based on task focus.
+
+| Role | Yuri OS Focus | See Also |
+|------|---------------|----------|
+| **AI Systems Architect** | Orchestration logic, agent routing, swarm topology | § 9, 14 |
+| **Platform Engineer** | launchd services, CLI tooling, boot pipeline | `boot.zsh`, `Scripts/ai` |
+| **SRE/Reliability Engineer** | Observability, error recovery, circuit breakers | `project_oracle_voice.md`, session lifecycle |
+| **DevEx Engineer** | CLI ergonomics, skill routing, permission prompts | `update-config` skill, settings.json |
+| **Security/AppSec Engineer** | Privilege escalation, secrets isolation, T7 boundaries | § 11, `local_execution.md`, § 5 |
+| **Supply Chain Security Engineer** | Dependency audit, offload lane integrity, swarm trust | `research_pipeline.md`, § 9 |
+| **Knowledge Engineer/RAG Architect** | Session context extraction, handoff docs, evidence packs | Classification archive, § 8 |
+| **Research Engineer** | Hypothesis validation, experiment design, evidence collection | § 13, `research_pipeline.md` |
+| **MLOps/LLMOps Engineer** | Model routing, token budgets, cache management, reasoning mode | § 10, `gpt-oss-local-runtime` skill |
+| **FinOps/TokenOps Engineer** | Cost per decision, offload efficiency, batch optimization | `ai-pipeline-offloading` skill |
+| **Compiler/PL Engineer** | Syntax enforcement, type safety, symbol collision detection | GitNexus, `gitnexus_rename` |
+| **Data Engineer** | DB schema, wal/shm files, data lineage | § 12, `backend/data/nudimmud.db` |
+| **Technical Program Manager** | Sprint boundaries, split conditions, phase tracking | § 4, `.claude/specs/YURI_PROGRESS.md` |
+| **Product Strategist** | User intent hierarchy, roadmap prioritization, feature gates | § 1, `YURI_PROGRESS.md` phases |
+
+---
+
+## 17. Runtime Enforcement Roadmap
 
 Status legend: **Known surface** = observed in use; not re-verified in this sprint. **Planned** = not yet built.
 
