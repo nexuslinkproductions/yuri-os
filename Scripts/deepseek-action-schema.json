@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nudimmud.local/schemas/deepseek-action-schema.json",
+  "title": "NUDIMMUD Workhorse Action Plan Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plan_version",
+    "id",
+    "intent",
+    "tier_required",
+    "steps"
+  ],
+  "properties": {
+    "plan_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intent": {
+      "type": "object"
+    },
+    "tier_required": {
+      "type": "string",
+      "enum": [
+        "tier0_readonly",
+        "tier1_blocked"
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "step_id",
+          "action",
+          "target",
+          "params",
+          "tier"
+        ],
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "read_file",
+              "list_directory",
+              "file_diff",
+              "git_log",
+              "status_check",
+              "run_command"
+            ]
+          },
+          "target": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object"
+          },
+          "tier": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ]
+          }
+        }
+      }
+    }
+  }
+}

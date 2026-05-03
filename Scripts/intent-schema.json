@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nudimmud.local/schemas/intent-schema.json",
+  "title": "NUDIMMUD Workhorse Intent Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "intent_version",
+    "rough_idea",
+    "normalized_goal",
+    "execution_mode",
+    "tier_required",
+    "risk_level",
+    "mutation_policy",
+    "artifact_policy",
+    "notes",
+    "keywords"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intent_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rough_idea": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normalized_goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": [
+        "dry_run",
+        "execute"
+      ]
+    },
+    "tier_required": {
+      "type": "string",
+      "enum": [
+        "tier0_readonly",
+        "tier1_blocked"
+      ]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "mutation_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_mutation",
+        "tier1_blocked",
+        "repo_writes_allowed",
+        "source_writes_allowed"
+      ],
+      "properties": {
+        "default_mutation": {
+          "type": "boolean"
+        },
+        "tier1_blocked": {
+          "type": "boolean"
+        },
+        "repo_writes_allowed": {
+          "type": "boolean"
+        },
+        "source_writes_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "artifact_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_root",
+        "keep_out_of_repo",
+        "write_git_tracked_source"
+      ],
+      "properties": {
+        "artifact_root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "keep_out_of_repo": {
+          "type": "boolean"
+        },
+        "write_git_tracked_source": {
+          "type": "boolean"
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -11,6 +11,30 @@ const PROTOCOL_VERSION = '1.0'
 const DEFAULT_POLICY_REL = 'Scripts/policy/yuri-guarded-executor.readonly.json'
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud/guarded-executor-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/nudimmud-guarded-executor-runs'
+const STRUCTURED_PLAN_VERSION = 'nudimmud.workhorse.x1'
+const STRUCTURED_DEFAULT_MAX_LINES = 80
+const STRUCTURED_HARD_MAX_LINES = 200
+const STRUCTURED_FORBIDDEN_PATH_MARKERS = [
+  '.git',
+  '.env',
+  '.npmrc',
+  'node_modules',
+  'backend/data',
+  '.claude/history',
+  '.claude/state',
+]
+const STRUCTURED_RUN_COMMANDS = new Set([
+  'pwd',
+  'git_branch_show_current',
+  'git_rev_parse_short_head',
+  'git_diff_cached_name_only',
+  'git_status_scoped',
+  'ls_path',
+  'wc_l_file',
+  'head_file',
+  'tail_file',
+  'grep_file',
+])
 const IMPLEMENTATION_FILES = [
   'Scripts/yuri-guarded-executor.mjs',
   DEFAULT_POLICY_REL,
@@ -82,6 +106,24 @@ function main() {
     return
   }
 
+  if (cli.planPath) {
+    try {
+      const summary = executeStructuredPlan({
+        planPath: cli.planPath,
+        artifactRoot: artifactRootInfo.path,
+        execute: cli.execute,
+      })
+      process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`)
+      process.exitCode = 0
+      return
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      process.stderr.write(`${message}\n`)
+      process.exitCode = 1
+      return
+    }
+  }
+
   const rawRequest = cli.requestPath
     ? fs.readFileSync(cli.requestPath, 'utf8')
     : readRequestFromStdin()
@@ -99,7 +141,9 @@ function parseCli(argv) {
   const cli = {
     help: false,
     selftest: false,
+    execute: false,
     requestPath: null,
+    planPath: null,
     artifactRoot: null,
   }
 
@@ -113,12 +157,25 @@ function parseCli(argv) {
       cli.selftest = true
       continue
     }
+    if (arg === '--execute') {
+      cli.execute = true
+      continue
+    }
     if (arg === '--request') {
       const next = argv[index + 1]
       if (!next) {
         throw new Error('--request requires a file path')
       }
       cli.requestPath = next
+      index += 1
+      continue
+    }
+    if (arg === '--plan') {
+      const next = argv[index + 1]
+      if (!next) {
+        throw new Error('--plan requires a file path')
+      }
+      cli.planPath = next
       index += 1
       continue
     }
@@ -147,6 +204,7 @@ function printHelp() {
       'Usage:',
       '  node Scripts/yuri-guarded-executor.mjs --request <file> [--artifact-root <dir>]',
       '  printf \'{...}\' | node Scripts/yuri-guarded-executor.mjs [--artifact-root <dir>]',
+      '  node Scripts/yuri-guarded-executor.mjs --plan <file> [--execute] [--artifact-root <dir>]',
       '  node Scripts/yuri-guarded-executor.mjs --selftest [--artifact-root <dir>]',
       '  node Scripts/yuri-guarded-executor.mjs --help',
     ].join('\n') + '\n'
@@ -1243,6 +1301,475 @@ function safeBlock(text) {
 
 function timestampId() {
   return new Date().toISOString().replace(/[:.]/g, '-')
+}
+
+function executeStructuredPlan({ planPath, artifactRoot, execute }) {
+  const plan = readStructuredJsonFile(planPath)
+  validateStructuredPlan(plan)
+  if (hasTier1Step(plan) || plan.tier_required === 'tier1_blocked') {
+    throw new Error('tier1 blocked in X1')
+  }
+
+  const headBefore = structuredGitShortHead()
+  const summary = {
+    plan_id: plan.id,
+    plan_version: plan.plan_version,
+    mode: execute ? 'execute' : 'dry_run',
+    validated: true,
+    executed: execute,
+    readonly: true,
+    blocked: false,
+    head_before: headBefore,
+    head_after: headBefore,
+    artifact_root: artifactRoot,
+    plan_path: path.resolve(planPath),
+    command_count: plan.steps.length,
+    step_results: [],
+    files_changed: [],
+  }
+
+  if (!execute) {
+    summary.step_results = plan.steps.map((step) => ({
+      step_id: step.step_id,
+      action: step.action,
+      tier: step.tier,
+      target: step.target,
+      status: 'validated',
+    }))
+    return summary
+  }
+
+  for (const step of plan.steps) {
+    const result = runStructuredStep(step)
+    summary.step_results.push(result)
+  }
+
+  summary.head_after = structuredGitShortHead()
+  return summary
+}
+
+function runStructuredStep(step) {
+  if (step.action === 'read_file') {
+    return {
+      step_id: step.step_id,
+      action: step.action,
+      tier: step.tier,
+      target: step.target,
+      status: 'executed',
+      output: readStructuredFile(step.target, step.params.start_line, step.params.end_line),
+    }
+  }
+  if (step.action === 'list_directory') {
+    return {
+      step_id: step.step_id,
+      action: step.action,
+      tier: step.tier,
+      target: step.target,
+      status: 'executed',
+      output: listStructuredDirectory(step.target, step.params.max_entries),
+    }
+  }
+  if (step.action === 'file_diff') {
+    return {
+      step_id: step.step_id,
+      action: step.action,
+      tier: step.tier,
+      target: step.target,
+      status: 'executed',
+      output: diffStructuredFiles(step.target, step.params.other),
+    }
+  }
+  if (step.action === 'git_log') {
+    return {
+      step_id: step.step_id,
+      action: step.action,
+      tier: step.tier,
+      target: step.target,
+      status: 'executed',
+      output: gitLogStructured(step.target, step.params.max_count),
+    }
+  }
+  if (step.action === 'status_check') {
+    return {
+      step_id: step.step_id,
+      action: step.action,
+      tier: step.tier,
+      target: step.target,
+      status: 'executed',
+      output: statusCheckStructured(step.target),
+    }
+  }
+  if (step.action === 'run_command') {
+    return {
+      step_id: step.step_id,
+      action: step.action,
+      tier: step.tier,
+      target: step.target,
+      command: step.params.command,
+      status: 'executed',
+      output: runStructuredCommand(step.params.command, step.target, step.params),
+    }
+  }
+  throw new Error(`Unhandled structured action: ${step.action}`)
+}
+
+function validateStructuredPlan(plan) {
+  if (!plan || typeof plan !== 'object' || Array.isArray(plan)) {
+    throw new Error('action plan must be an object')
+  }
+  const required = ['plan_version', 'id', 'intent', 'tier_required', 'steps']
+  for (const key of required) {
+    if (!(key in plan)) {
+      throw new Error(`action plan missing field: ${key}`)
+    }
+  }
+  if (plan.plan_version !== STRUCTURED_PLAN_VERSION) {
+    throw new Error(`unsupported plan_version: ${plan.plan_version}`)
+  }
+  if (!['tier0_readonly', 'tier1_blocked'].includes(plan.tier_required)) {
+    throw new Error('invalid tier_required')
+  }
+  validateStructuredIntent(plan.intent)
+  if (!Array.isArray(plan.steps) || plan.steps.length === 0) {
+    throw new Error('steps must be a non-empty array')
+  }
+
+  const seen = new Set()
+  for (const step of plan.steps) {
+    validateStructuredStep(step)
+    if (seen.has(step.step_id)) {
+      throw new Error(`duplicate step_id: ${step.step_id}`)
+    }
+    seen.add(step.step_id)
+  }
+}
+
+function validateStructuredIntent(intent) {
+  if (!intent || typeof intent !== 'object' || Array.isArray(intent)) {
+    throw new Error('intent must be an object')
+  }
+  const required = ['id', 'intent_version', 'rough_idea', 'normalized_goal', 'execution_mode', 'tier_required', 'risk_level', 'mutation_policy', 'artifact_policy', 'notes', 'keywords']
+  for (const key of required) {
+    if (!(key in intent)) {
+      throw new Error(`intent missing field: ${key}`)
+    }
+  }
+  if (!['dry_run', 'execute'].includes(intent.execution_mode)) {
+    throw new Error('invalid execution_mode')
+  }
+  if (!['tier0_readonly', 'tier1_blocked'].includes(intent.tier_required)) {
+    throw new Error('invalid intent tier_required')
+  }
+  if (!['low', 'medium', 'high'].includes(intent.risk_level)) {
+    throw new Error('invalid risk_level')
+  }
+  if (!intent.mutation_policy || intent.mutation_policy.default_mutation !== false || intent.mutation_policy.tier1_blocked !== true || intent.mutation_policy.repo_writes_allowed !== false || intent.mutation_policy.source_writes_allowed !== false) {
+    throw new Error('invalid mutation_policy')
+  }
+  if (!intent.artifact_policy || intent.artifact_policy.keep_out_of_repo !== true || intent.artifact_policy.write_git_tracked_source !== false || typeof intent.artifact_policy.artifact_root !== 'string' || intent.artifact_policy.artifact_root.length === 0) {
+    throw new Error('invalid artifact_policy')
+  }
+  if (!Array.isArray(intent.notes) || intent.notes.some((item) => typeof item !== 'string')) {
+    throw new Error('invalid notes')
+  }
+  if (!Array.isArray(intent.keywords) || intent.keywords.some((item) => typeof item !== 'string')) {
+    throw new Error('invalid keywords')
+  }
+}
+
+function validateStructuredStep(step) {
+  if (!step || typeof step !== 'object' || Array.isArray(step)) {
+    throw new Error('step must be an object')
+  }
+  if (typeof step.step_id !== 'string' || step.step_id.length === 0) {
+    throw new Error('step_id must be a string')
+  }
+  if (typeof step.action !== 'string') {
+    throw new Error('action must be a string')
+  }
+  if (typeof step.target !== 'string') {
+    throw new Error('target must be a string')
+  }
+  if (!step.params || typeof step.params !== 'object' || Array.isArray(step.params)) {
+    throw new Error('params must be an object')
+  }
+  if (!Number.isInteger(step.tier) || (step.tier !== 0 && step.tier !== 1)) {
+    throw new Error('tier must be 0 or 1')
+  }
+  if (step.tier === 1) {
+    throw new Error('tier1 blocked in X1')
+  }
+
+  if (step.action === 'read_file') {
+    assertStructuredPath(step.target)
+    assertLineWindow(step.params.start_line, step.params.end_line)
+    return
+  }
+  if (step.action === 'list_directory') {
+    assertStructuredPath(step.target)
+    assertOptionalPositiveInteger(step.params.max_entries, 'max_entries')
+    return
+  }
+  if (step.action === 'file_diff') {
+    assertStructuredPath(step.target)
+    assertStructuredPath(step.params.other)
+    return
+  }
+  if (step.action === 'git_log') {
+    assertStructuredPath(step.target)
+    assertOptionalPositiveInteger(step.params.max_count, 'max_count')
+    return
+  }
+  if (step.action === 'status_check') {
+    assertStructuredPath(step.target)
+    return
+  }
+  if (step.action === 'run_command') {
+    validateStructuredRunCommand(step)
+    return
+  }
+
+  throw new Error(`unsupported action: ${step.action}`)
+}
+
+function validateStructuredRunCommand(step) {
+  const command = step.params.command
+  if (!STRUCTURED_RUN_COMMANDS.has(command)) {
+    throw new Error('forbidden command')
+  }
+
+  if (command === 'pwd' || command === 'git_branch_show_current' || command === 'git_rev_parse_short_head' || command === 'git_diff_cached_name_only') {
+    return
+  }
+
+  assertStructuredPath(step.target)
+  if (command === 'grep_file') {
+    if (typeof step.params.pattern !== 'string' || step.params.pattern.length === 0) {
+      throw new Error('grep_file requires pattern')
+    }
+  }
+}
+
+function runStructuredCommand(command, target, params) {
+  if (command === 'pwd') {
+    return capStructuredLines(runStructuredExecFile('pwd', []).stdout)
+  }
+  if (command === 'git_branch_show_current') {
+    return capStructuredLines(runStructuredExecFile('git', ['branch', '--show-current']).stdout)
+  }
+  if (command === 'git_rev_parse_short_head') {
+    return capStructuredLines(runStructuredExecFile('git', ['rev-parse', '--short', 'HEAD']).stdout)
+  }
+  if (command === 'git_diff_cached_name_only') {
+    return capStructuredLines(runStructuredExecFile('git', ['diff', '--cached', '--name-only']).stdout)
+  }
+  if (command === 'git_status_scoped') {
+    return capStructuredLines(runStructuredExecFile('git', ['status', '--short', '--', target]).stdout)
+  }
+  if (command === 'ls_path') {
+    return capStructuredLines(runStructuredExecFile('ls', ['-1A', target]).stdout)
+  }
+  if (command === 'wc_l_file') {
+    return capStructuredLines(runStructuredExecFile('wc', ['-l', target]).stdout)
+  }
+  if (command === 'head_file') {
+    const lines = assertOutputLimit(params.lines)
+    return capStructuredLines(runStructuredExecFile('head', ['-n', String(lines), target]).stdout)
+  }
+  if (command === 'tail_file') {
+    const lines = assertOutputLimit(params.lines)
+    return capStructuredLines(runStructuredExecFile('tail', ['-n', String(lines), target]).stdout)
+  }
+  if (command === 'grep_file') {
+    const args = ['-nF', '--', params.pattern, target]
+    const result = runStructuredExecFile('grep', args, true)
+    if (result.code === 1) {
+      return []
+    }
+    return capStructuredLines(result.stdout)
+  }
+
+  throw new Error(`unsupported command: ${command}`)
+}
+
+function readStructuredFile(filePath, startLine, endLine) {
+  assertStructuredPath(filePath)
+  const absolutePath = path.resolve(process.cwd(), filePath)
+  if (!fs.existsSync(absolutePath) || fs.statSync(absolutePath).isDirectory()) {
+    throw new Error(`Missing file: ${filePath}`)
+  }
+  const lines = fs.readFileSync(absolutePath, 'utf8').split('\n')
+  assertLineWindow(startLine, endLine)
+  if (endLine > lines.length) {
+    throw new Error('line window exceeds file length')
+  }
+  return {
+    path: filePath,
+    start_line: startLine,
+    end_line: endLine,
+    line_count: lines.length,
+    truncated: false,
+    lines: lines.slice(startLine - 1, endLine).map((line, index) => ({
+      line: startLine + index,
+      text: line,
+    })),
+  }
+}
+
+function listStructuredDirectory(dirPath, maxEntries) {
+  assertStructuredPath(dirPath)
+  const absolutePath = path.resolve(process.cwd(), dirPath)
+  if (!fs.existsSync(absolutePath) || !fs.statSync(absolutePath).isDirectory()) {
+    throw new Error(`Missing directory: ${dirPath}`)
+  }
+  const limit = assertOutputLimit(maxEntries)
+  const entries = fs.readdirSync(absolutePath).sort()
+  return {
+    path: dirPath,
+    entry_count: entries.length,
+    truncated: entries.length > limit,
+    entries: entries.slice(0, limit),
+  }
+}
+
+function diffStructuredFiles(leftPath, rightPath) {
+  assertStructuredPath(leftPath)
+  assertStructuredPath(rightPath)
+  const result = runStructuredExecFile('git', ['diff', '--no-index', '--', leftPath, rightPath], true)
+  return {
+    left: leftPath,
+    right: rightPath,
+    exit_code: result.code,
+    truncated: false,
+    lines: capStructuredLines(result.stdout),
+  }
+}
+
+function gitLogStructured(targetPath, maxCount) {
+  assertStructuredPath(targetPath)
+  const limit = assertOutputLimit(maxCount)
+  const result = runStructuredExecFile('git', ['log', '--oneline', '--max-count', String(limit), '--', targetPath], true)
+  return {
+    path: targetPath,
+    max_count: limit,
+    truncated: false,
+    lines: capStructuredLines(result.stdout),
+  }
+}
+
+function statusCheckStructured(targetPath) {
+  assertStructuredPath(targetPath)
+  const result = runStructuredExecFile('git', ['status', '--short', '--', targetPath], true)
+  return {
+    path: targetPath,
+    truncated: false,
+    lines: capStructuredLines(result.stdout),
+  }
+}
+
+function runStructuredExecFile(command, args, allowFailure = false) {
+  try {
+    const stdout = execFileSync(command, args, {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    return { stdout: String(stdout).replace(/\r\n/g, '\n').trimEnd(), code: 0 }
+  } catch (error) {
+    if (allowFailure) {
+      return {
+        stdout: String(error.stdout ?? '').replace(/\r\n/g, '\n').trimEnd(),
+        code: Number.isInteger(error.status) ? error.status : 1,
+      }
+    }
+    const stderr = String(error.stderr ?? '').trim()
+    throw new Error(stderr || `Command failed: ${command} ${args.join(' ')}`)
+  }
+}
+
+function capStructuredLines(text, requestedLimit = STRUCTURED_DEFAULT_MAX_LINES) {
+  const limit = assertOutputLimit(requestedLimit)
+  const lines = String(text ?? '').trimEnd() === '' ? [] : String(text ?? '').trimEnd().split('\n')
+  if (lines.length <= limit) {
+    return lines
+  }
+  return [
+    ...lines.slice(0, limit),
+    `...[truncated ${lines.length - limit} lines]`,
+  ]
+}
+
+function assertStructuredPath(value) {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error('Path must be a non-empty string')
+  }
+  if (path.isAbsolute(value)) {
+    throw new Error('Absolute paths forbidden')
+  }
+  const normalized = path.normalize(value)
+  if (normalized === '..' || normalized.startsWith(`..${path.sep}`) || normalized.includes(`${path.sep}..${path.sep}`) || normalized.endsWith(`${path.sep}..`)) {
+    throw new Error('Path escapes repo root')
+  }
+  const lowered = normalized.toLowerCase()
+  for (const marker of STRUCTURED_FORBIDDEN_PATH_MARKERS) {
+    if (lowered.includes(marker.toLowerCase())) {
+      throw new Error(`Forbidden path marker: ${marker}`)
+    }
+  }
+}
+
+function hasTier1Step(plan) {
+  return Array.isArray(plan.steps) && plan.steps.some((step) => step && typeof step === 'object' && step.tier === 1)
+}
+
+function assertLineWindow(startLine, endLine) {
+  if (!Number.isInteger(startLine) || !Number.isInteger(endLine) || startLine < 1 || endLine < startLine) {
+    throw new Error('Invalid line window')
+  }
+  const width = endLine - startLine + 1
+  if (width > STRUCTURED_HARD_MAX_LINES) {
+    throw new Error('Line window exceeds hard cap')
+  }
+}
+
+function assertOptionalPositiveInteger(value, label) {
+  if (value === undefined) {
+    return STRUCTURED_DEFAULT_MAX_LINES
+  }
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`${label} must be a positive integer`)
+  }
+  return Math.min(value, STRUCTURED_HARD_MAX_LINES)
+}
+
+function assertOutputLimit(value) {
+  if (value === undefined) {
+    return STRUCTURED_DEFAULT_MAX_LINES
+  }
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error('Invalid output limit')
+  }
+  return Math.min(value, STRUCTURED_HARD_MAX_LINES)
+}
+
+function readStructuredJsonFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Missing plan file: ${filePath}`)
+  }
+  const parsed = parseStrictJson(fs.readFileSync(filePath, 'utf8'), 'Malformed plan JSON')
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('Plan must be an object')
+  }
+  return parsed
+}
+
+function structuredGitShortHead() {
+  const result = runStructuredExecFile('git', ['rev-parse', '--short', 'HEAD'], true)
+  if (result.code !== 0 || !result.stdout) {
+    throw new Error('git rev-parse failed')
+  }
+  return result.stdout.trim()
 }
 
 main()
