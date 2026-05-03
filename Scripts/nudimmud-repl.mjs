@@ -466,8 +466,10 @@ const outputBanner = (label, extra = '') => {
 };
 
 // ── ASCII header ──────────────────────────────────────────────────────────────
-const HEADER = `${C.bold}${c('YURI')} ${p('OS')} ${d('/')} ${c('NUDIMMUD')}${C.reset}
-${m('AI ROUTING & REPORT GENERATION SYSTEM')}`;
+const HEADER = `
+${c('⬡')}
+${renderBanner('NUDIMMUD', C.green)}
+${p('YURI OS')} ${d('/')} ${c('DEEPSEEK HUD REPL')}`;
 
 const printHeader = () => {
   process.stdout.write(C.black);
@@ -480,20 +482,21 @@ const printStatusBlock = () => {
     ? (snap.output_chars > 0 ? 'streaming' : 'thinking')
     : snap.mode;
   const rawTmx = (snap.tokenmaxxing_state || '').trim();
-  const tmxStr = !rawTmx || /inactive/i.test(rawTmx) ? ''
-    : /active/i.test(rawTmx) ? 'tmx active'
-    : `tmx ${rawTmx.toLowerCase()}`;
-  const row1 = [`state ${modeStr}`];
-  if (snap.model) row1.push(`model ${snap.model}`);
-  if (snap.lane) row1.push(`route ${snap.lane}`);
-  const row2 = [];
-  if (tmxStr) row2.push(tmxStr);
-  if (snap.last_turn_id) row2.push(`session ${snap.last_turn_id.slice(-9)}`);
-  row2.push('cwd NUDIMMUD');
-  console.log(sectionTop('NUDIMMUD / YURI OS'));
-  console.log(`${c('│')} ${d(row1.join('  '))}`);
-  console.log(`${c('│')} ${d(row2.join('  '))}`);
-  console.log(sectionBot());
+  const tmxStr = !rawTmx || /inactive/i.test(rawTmx) ? d('─')
+    : /active/i.test(rawTmx) ? c('active') : g(rawTmx.toLowerCase());
+  const sessionStr = `${String(state.promptsSent).padStart(4, '0')} prompts`;
+  const routeStr = snap.lane || (state.model === MODELS.pro ? 'pro' : 'flash');
+  const vsStr = getStatus().head;
+  const osStr = os.platform();
+
+  printHeader();
+  console.log(`
+${sectionTop('STATUS')}
+${c('│')} ${d('operator ')} ${b('NUDIMMUD')}   ${d('session ')} ${g(sessionStr)}
+${c('│')} ${d('model    ')} ${g(snap.model || state.model)}   ${d('route   ')} ${g(routeStr)}
+${c('│')} ${d('os       ')} ${g(osStr)}   ${d('vs      ')} ${m(vsStr)}
+${c('│')} ${d('state    ')} ${g(modeStr.toUpperCase())}   ${d('tmx     ')} ${tmxStr}
+${sectionBot()}`);
 };
 
 const printHelp = () => {
@@ -784,9 +787,9 @@ const runSelfTest = () => {
   const plainHeader = stripAnsi(HEADER);
   const yuriOsHeader = HEADER.includes(C.green) &&
     HEADER.includes(C.purple) &&
-    plainHeader.includes('YURI OS / NUDIMMUD') &&
-    plainHeader.includes('AI ROUTING & REPORT GENERATION SYSTEM') &&
-    !plainHeader.includes('█');
+    plainHeader.includes('⬡') &&
+    plainHeader.includes('YURI OS / DEEPSEEK HUD REPL') &&
+    plainHeader.includes('█');
   const purpleOs = HEADER.includes(C.purple);
   const noHud40kBudget = !/40k|40000/.test(`${printStatusBlock}\n${printHudFooter}`);
   const readableTheme = d('x') === `${C.gray}x${C.reset}` && c('x') === `${C.green}x${C.reset}` && !d('x').includes(C.dim);
@@ -905,8 +908,8 @@ const runSelfTest = () => {
     hudIdleLine.includes('saved NMD-20260502-225747-002');
   const normalPromptCycle = `${hudIdleLine}\n${stripAnsi(normalPrompt())}`;
   const noDuplicateIdentity = (plainHeader.match(/YURI OS/g) || []).length === 1 &&
-    (plainHeader.match(/NUDIMMUD/g) || []).length === 1 &&
-    !plainHeader.includes('█') &&
+    (plainHeader.match(/NUDIMMUD/g) || []).length === 0 &&
+    plainHeader.includes('█') &&
     !normalPromptCycle.includes('YURI OS');
   const hudCompactDefault = hudIdleLine.startsWith('state idle |') &&
     hudIdleLine.includes(`model ${MODELS.pro}`) &&
@@ -933,8 +936,49 @@ const runSelfTest = () => {
     hudIdleSnapshot.tokenmaxxing_state === 'TOKENMAXXING::ACTIVE';
   const composer08oRegression = autoSendPaste && noDuplicateMultilinePrompt && quietTurnEnd;
 
+  // ── HUD visual baseline validation ──────────────────────────────────────────
+  const captureStdout = (fn) => {
+    let captured = '';
+    const origWrite = process.stdout.write.bind(process.stdout);
+    const origLog = console.log;
+    process.stdout.write = (chunk) => { captured += String(chunk); return true; };
+    console.log = (...args) => { captured += args.join(' ') + '\n'; };
+    fn();
+    process.stdout.write = origWrite;
+    console.log = origLog;
+    return captured;
+  };
+  const prevBusy = state.busy;
+  state.busy = false;
+  const hudStartupRaw = captureStdout(() => printStatusBlock());
+  state.busy = prevBusy;
+  const hudStartupPlain = stripAnsi(hudStartupRaw);
+  const hudStartupLineCount = hudStartupPlain.split('\n').filter((l) => l.trim()).length;
+  const hudLargeIdentityPresent =
+    hudStartupPlain.includes('⬡') &&
+    hudStartupPlain.includes('█') &&
+    hudStartupPlain.includes('YURI OS / DEEPSEEK HUD REPL') &&
+    hudStartupPlain.includes('NUDIMMUD') &&
+    (hudStartupPlain.match(/YURI OS/g) || []).length === 1;
+  const hudModularPanelShape =
+    hudStartupPlain.includes('STATUS') &&
+    hudStartupPlain.includes('operator') &&
+    hudStartupPlain.includes('session') &&
+    hudStartupPlain.includes('model') &&
+    hudStartupPlain.includes('route') &&
+    hudStartupPlain.includes('os') &&
+    hudStartupPlain.includes('vs') &&
+    hudStartupPlain.includes('state') &&
+    hudStartupPlain.includes('tmx') &&
+    hudStartupLineCount >= 6;
+  const hudVisualRebuildRendered =
+    hudLargeIdentityPresent &&
+    hudModularPanelShape &&
+    !hudStartupPlain.match(/40k|40000|workflow budget/i) &&
+    hudVisualRepairRendered;
+
   ok('NODE_CHECK_PASS', nodeCheck);
-  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke && hudUsefulPolishRendered && hudReferenceShapePresent && hudVisualRepairRendered && noDuplicateIdentity && hudCompactDefault && hudBudgetLineStillHidden && tokenmaxxingStatePreserved);
+  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke && hudUsefulPolishRendered && hudReferenceShapePresent && hudVisualRepairRendered && noDuplicateIdentity && hudCompactDefault && hudBudgetLineStillHidden && tokenmaxxingStatePreserved && hudLargeIdentityPresent && hudModularPanelShape && hudVisualRebuildRendered);
   ok('NATURAL_COMPOSER_PASS', natural);
   ok('MULTILINE_CAPTURE_PASS', multiline);
   ok('ENTER_SENDS_CAPTURE_PASS', enterAfterPaste);
@@ -965,6 +1009,12 @@ const runSelfTest = () => {
   ok('TOKENMAXXING_STATE_PRESERVED_PASS', tokenmaxxingStatePreserved);
   ok('FAKE_COMMIT_CLAIM_DOWNGRADED_PASS', fakeCommitClaimDowngraded);
   ok('NO_FALSE_PASS_COMMITTED_ACCEPTANCE_PASS', noFalsePassCommittedAcceptance);
+  ok('HUD_VISUAL_REBUILD_RENDERED_PASS', hudVisualRebuildRendered);
+  ok('HUD_LARGE_IDENTITY_PRESENT_PASS', hudLargeIdentityPresent);
+  ok('HUD_MODULAR_PANEL_SHAPE_PASS', hudModularPanelShape);
+  ok('HUD_REFERENCE_STYLE_PRESENT_PASS', hudReferenceShapePresent);
+  ok('ROUTE_LOG_SEPARATION_REGRESSION_PASS', routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean);
+  ok('CLAIM_VERIFIER_BOUNDARY_REGRESSION_PASS', localClaimVerifierPass);
   process.exit(0);
 };
 
