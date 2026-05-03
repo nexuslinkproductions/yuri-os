@@ -10,7 +10,10 @@ const WORKHORSE_VERSION = '0.1.0'
 const PLAN_VERSION = 'nudimmud.workhorse.x1'
 const INTENT_SCHEMA_PATH = 'Scripts/intent-schema.json'
 const ACTION_SCHEMA_PATH = 'Scripts/deepseek-action-schema.json'
+const OFFLOAD_RUNNER_PATH = 'Scripts/offload-runner.mjs'
 const EXECUTOR_PATH = 'Scripts/yuri-guarded-executor.mjs'
+const LIVE_PRO_LANE = 'deepseek-v4-pro'
+const LIVE_FLASH_LANE = 'deepseek-v4-flash'
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud', 'workhorse-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/nudimmud-workhorse-runs'
 const DEFAULT_MAX_LINES = 80
@@ -69,6 +72,8 @@ function main() {
       const outcome = forgePipeline({
         idea: cli.idea,
         execute: cli.execute,
+        live: cli.live,
+        noFlash: cli.noFlash,
         artifactRoot,
       })
       process.stdout.write(`${formatSummary(outcome)}\n`)
@@ -100,6 +105,8 @@ function parseCli(argv) {
     help: false,
     selftest: false,
     execute: false,
+    live: false,
+    noFlash: false,
     artifactRoot: '',
     command: '',
     ideaParts: [],
@@ -118,6 +125,14 @@ function parseCli(argv) {
     }
     if (arg === '--execute') {
       cli.execute = true
+      continue
+    }
+    if (arg === '--live') {
+      cli.live = true
+      continue
+    }
+    if (arg === '--no-flash') {
+      cli.noFlash = true
       continue
     }
     if (arg === '--artifact-root') {
@@ -159,6 +174,9 @@ function parseCli(argv) {
   }
 
   cli.idea = collapseWhitespace(cli.ideaParts.join(' ')).trim()
+  if (cli.noFlash && !cli.live) {
+    throw new Error('--no-flash requires --live')
+  }
   return cli
 }
 
@@ -170,6 +188,9 @@ function printHelp() {
       'Usage:',
       '  node Scripts/nudimmud-workhorse.mjs forge "<rough idea>"',
       '  node Scripts/nudimmud-workhorse.mjs forge --execute "<rough idea>"',
+      '  node Scripts/nudimmud-workhorse.mjs forge --live "<rough idea>"',
+      '  node Scripts/nudimmud-workhorse.mjs forge --live --execute "<rough idea>"',
+      '  node Scripts/nudimmud-workhorse.mjs forge --live --no-flash "<rough idea>"',
       '  node Scripts/nudimmud-workhorse.mjs run --plan <path>',
       '  node Scripts/nudimmud-workhorse.mjs run --execute --plan <path>',
       '  node Scripts/nudimmud-workhorse.mjs --selftest',
@@ -200,52 +221,73 @@ function ensureArtifactRoot(explicitRoot) {
   throw new Error('Artifact root unavailable')
 }
 
-function forgePipeline({ idea, execute, artifactRoot }) {
+function forgePipeline({ idea, execute, live = false, noFlash = false, artifactRoot, transport = createDeepseekTransport(), executorRunner = runExecutorPlan }) {
   if (!idea) {
     throw new Error('forge requires a rough idea')
   }
 
-  const run = createRunContext({ artifactRoot, mode: execute ? 'execute' : 'dry_run', source: 'forge' })
-  const intent = buildIntent({ idea, execute, artifactRoot, run })
-  const plan = buildActionPlan({ intent, run })
-  validateIntent(intent)
-  validateActionPlan(plan)
+  const run = createRunContext({ artifactRoot, mode: execute ? 'execute' : 'dry_run', source: live ? 'forge-live' : 'forge' })
+  const request = buildRequestArtifact({ run, idea, execute, live, noFlash, sourcePath: 'forge' })
+  const files = writeCoreArtifacts({ run, request, sourceLabel: live ? 'forge-live' : 'forge' })
 
-  const files = writeCoreArtifacts({ run, intent, plan, sourceLabel: 'forge' })
-  const flashReview = buildFlashReview({ intent, plan, execute })
-  writeJson(files.flashReview, flashReview)
-  writeText(files.executorPrompt, buildExecutorPrompt({ run, intent, plan, flashReview, execute }))
+  if (!live) {
+    const intent = buildIntent({ idea, execute, artifactRoot, run })
+    const plan = buildActionPlan({ intent, run })
+    validateIntent(intent)
+    validateActionPlan(plan)
 
-  const executorSummary = runExecutorPlan({
-    planPath: files.actionPlan,
-    execute,
-    artifactRoot,
-  })
-  if (execute) {
-    writeJson(files.executionSummary, executorSummary)
+    writeJson(files.intent, intent)
+    writeJson(files.actionPlan, plan)
+    const flashReview = buildFlashReview({ intent, plan, execute })
+    writeJson(files.flashReview, flashReview)
+    writeText(files.executorPrompt, buildExecutorPrompt({ run, intent, plan, flashReview, execute }))
+
+    const executorSummary = executorRunner({
+      planPath: files.actionPlan,
+      execute,
+      artifactRoot,
+    })
+    if (execute) {
+      writeJson(files.executionSummary, executorSummary)
+    }
+
+    writeText(files.finalReport, buildFinalReport({
+      run,
+      intent,
+      plan,
+      flashReview,
+      executorSummary,
+      execute,
+      live,
+      liveSmokeStatus: 'not_run',
+      beforeHead: run.beforeHead,
+      afterHead: execute ? executorSummary.head_after ?? run.beforeHead : run.beforeHead,
+      sourcePath: 'forge',
+    }))
+
+    return {
+      ok: true,
+      mode: execute ? 'EXECUTE' : 'DRY_RUN',
+      runDir: run.runDir,
+      planId: plan.id,
+      finalReport: files.finalReport,
+      executionSummary: execute ? files.executionSummary : '',
+      marker: execute ? 'WORKHORSE_FORGE_EXECUTE_PASS' : 'WORKHORSE_FORGE_DRY_RUN_PASS',
+    }
   }
 
-  writeText(files.finalReport, buildFinalReport({
+  const liveOutcome = runLiveForgePipeline({
+    idea,
+    execute,
+    noFlash,
     run,
-    intent,
-    plan,
-    flashReview,
-    executorSummary,
-    execute,
-    beforeHead: run.beforeHead,
-    afterHead: execute ? executorSummary.head_after ?? run.beforeHead : run.beforeHead,
-    sourcePath: 'forge',
-  }))
-
-  return {
-    ok: true,
-    mode: execute ? 'EXECUTE' : 'DRY_RUN',
-    runDir: run.runDir,
-    planId: plan.id,
-    finalReport: files.finalReport,
-    executionSummary: execute ? files.executionSummary : '',
-    marker: execute ? 'WORKHORSE_FORGE_EXECUTE_PASS' : 'WORKHORSE_FORGE_DRY_RUN_PASS',
-  }
+    request,
+    files,
+    artifactRoot,
+    transport,
+    executorRunner,
+  })
+  return liveOutcome
 }
 
 function runPlanPipeline({ planPath, execute, artifactRoot }) {
@@ -261,7 +303,10 @@ function runPlanPipeline({ planPath, execute, artifactRoot }) {
   const run = createRunContext({ artifactRoot, mode: execute ? 'execute' : 'dry_run', source: 'run' })
   const intent = sourcePlan.intent
   const plan = sourcePlan
-  const files = writeCoreArtifacts({ run, intent, plan, sourceLabel: 'run' })
+  const request = buildRequestArtifact({ run, planPath: sourcePlanPath, execute, live: false, noFlash: false, sourcePath: sourcePlanPath })
+  const files = writeCoreArtifacts({ run, request, sourceLabel: 'run' })
+  writeJson(files.intent, intent)
+  writeJson(files.actionPlan, plan)
   const flashReview = buildFlashReview({ intent, plan, execute })
   writeJson(files.flashReview, flashReview)
   writeText(files.executorPrompt, buildExecutorPrompt({
@@ -289,6 +334,8 @@ function runPlanPipeline({ planPath, execute, artifactRoot }) {
     flashReview,
     executorSummary,
     execute,
+    live: false,
+    liveSmokeStatus: 'not_run',
     beforeHead: run.beforeHead,
     afterHead: execute ? executorSummary.head_after ?? run.beforeHead : run.beforeHead,
     sourcePath: sourcePlanPath,
@@ -319,18 +366,22 @@ function createRunContext({ artifactRoot, mode, source }) {
   }
 }
 
-function writeCoreArtifacts({ run, intent, plan, sourceLabel }) {
+function writeCoreArtifacts({ run, request, sourceLabel }) {
   const files = {
+    request: path.join(run.runDir, 'request.json'),
     intent: path.join(run.runDir, 'intent.json'),
     actionPlan: path.join(run.runDir, 'action-plan.json'),
+    proPrompt: path.join(run.runDir, 'pro-prompt.md'),
+    proOutputRaw: path.join(run.runDir, 'pro-output.raw.txt'),
     flashReview: path.join(run.runDir, 'flash-review.json'),
+    flashPrompt: path.join(run.runDir, 'flash-prompt.md'),
+    flashOutputRaw: path.join(run.runDir, 'flash-output.raw.txt'),
     executorPrompt: path.join(run.runDir, 'final-executor-prompt.md'),
     executionSummary: path.join(run.runDir, 'execution-summary.json'),
     finalReport: path.join(run.runDir, 'final-report.md'),
   }
 
-  writeJson(files.intent, intent)
-  writeJson(files.actionPlan, plan)
+  writeJson(files.request, request)
   writeText(path.join(run.runDir, 'run-source.txt'), `${sourceLabel}\n`)
 
   return files
@@ -442,6 +493,7 @@ function validateIntent(intent) {
     throw new Error('intent must be an object')
   }
   const required = ['id', 'intent_version', 'rough_idea', 'normalized_goal', 'execution_mode', 'tier_required', 'risk_level', 'mutation_policy', 'artifact_policy', 'notes', 'keywords']
+  assertExactKeys(intent, required, 'intent')
   for (const key of required) {
     if (!(key in intent)) {
       throw new Error(`intent missing field: ${key}`)
@@ -459,7 +511,12 @@ function validateIntent(intent) {
   if (!isPlainObject(intent.mutation_policy) || intent.mutation_policy.default_mutation !== false || intent.mutation_policy.tier1_blocked !== true || intent.mutation_policy.repo_writes_allowed !== false || intent.mutation_policy.source_writes_allowed !== false) {
     throw new Error('intent.mutation_policy invalid')
   }
-  if (!isPlainObject(intent.artifact_policy) || intent.artifact_policy.keep_out_of_repo !== true || intent.artifact_policy.write_git_tracked_source !== false || typeof intent.artifact_policy.artifact_root !== 'string') {
+  if (!isPlainObject(intent.mutation_policy) || !isPlainObject(intent.artifact_policy)) {
+    throw new Error('intent policy objects invalid')
+  }
+  assertExactKeys(intent.mutation_policy, ['default_mutation', 'tier1_blocked', 'repo_writes_allowed', 'source_writes_allowed'], 'intent.mutation_policy')
+  assertExactKeys(intent.artifact_policy, ['artifact_root', 'keep_out_of_repo', 'write_git_tracked_source'], 'intent.artifact_policy')
+  if (intent.artifact_policy.keep_out_of_repo !== true || intent.artifact_policy.write_git_tracked_source !== false || typeof intent.artifact_policy.artifact_root !== 'string') {
     throw new Error('intent.artifact_policy invalid')
   }
   if (!Array.isArray(intent.notes) || intent.notes.some((item) => typeof item !== 'string')) {
@@ -475,6 +532,7 @@ function validateActionPlan(plan) {
     throw new Error('action plan must be an object')
   }
   const required = ['plan_version', 'id', 'intent', 'tier_required', 'steps']
+  assertExactKeys(plan, required, 'action plan')
   for (const key of required) {
     if (!(key in plan)) {
       throw new Error(`action plan missing field: ${key}`)
@@ -505,6 +563,7 @@ function validateStep(step) {
   if (!isPlainObject(step)) {
     throw new Error('step must be an object')
   }
+  assertExactKeys(step, ['step_id', 'action', 'target', 'params', 'tier'], 'step')
   if (!step.step_id || typeof step.step_id !== 'string') {
     throw new Error('step_id must be a string')
   }
@@ -586,6 +645,369 @@ function buildFlashReview({ intent, plan, execute }) {
   }
 }
 
+function validateLiveProPayload(payload) {
+  if (!isPlainObject(payload)) {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: pro payload must be an object')
+  }
+  assertExactKeys(payload, ['intent', 'action_plan'], 'pro payload')
+  if (!isPlainObject(payload.intent) || !isPlainObject(payload.action_plan)) {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: pro payload objects invalid')
+  }
+}
+
+function validateLiveFlashReview(payload) {
+  if (!isPlainObject(payload)) {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: flash review must be an object')
+  }
+  assertExactKeys(payload, ['flash_review_status', 'verdict', 'risk_level', 'notes', 'blocked_reason'], 'flash review')
+  if (!['approved', 'blocked'].includes(payload.flash_review_status)) {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: flash_review_status invalid')
+  }
+  if (!['approved', 'blocked'].includes(payload.verdict)) {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: verdict invalid')
+  }
+  if (!['low', 'medium', 'high'].includes(payload.risk_level)) {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: risk_level invalid')
+  }
+  if (!Array.isArray(payload.notes) || payload.notes.some((item) => typeof item !== 'string')) {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: notes invalid')
+  }
+  if (typeof payload.blocked_reason !== 'string') {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: blocked_reason invalid')
+  }
+  return payload
+}
+
+function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath }) {
+  return [
+    '# NUDIMMUD Workhorse Live Request',
+    '',
+    `rough_idea: ${idea}`,
+    `execution_mode: ${execute ? 'execute' : 'dry_run'}`,
+    `flash_mode: ${noFlash ? 'skipped_explicit' : 'required'}`,
+    `source_path: ${sourcePath}`,
+    '',
+    'Constraints:',
+    '- Strict JSON only.',
+    '- No markdown.',
+    '- No prose.',
+    '- No code fences.',
+    '- No shell output.',
+    '- No raw commands outside the schema.',
+    '- No Claude routing.',
+    '- No Agent/subagent routing.',
+    '- No source writes.',
+    '- Tier-1 remains blocked.',
+    '',
+    'Return one JSON object with exactly two keys:',
+    '- intent',
+    '- action_plan',
+    '',
+    `intent must satisfy ${INTENT_SCHEMA_PATH}.`,
+    `action_plan must satisfy ${ACTION_SCHEMA_PATH}.`,
+    'action_plan.intent must exactly match intent.',
+    'Use only tier0 readonly steps.',
+    'Use only safe read-only actions and guarded run_command entries already supported by the executor.',
+    'Never emit raw shell strings.',
+    '',
+  ].join('\n')
+}
+
+function buildLiveFlashPrompt({ idea, intent, plan, execute }) {
+  return [
+    '# NUDIMMUD Workhorse Flash Review',
+    '',
+    `rough_idea: ${idea}`,
+    `execution_mode: ${execute ? 'execute' : 'dry_run'}`,
+    `intent_id: ${intent.id}`,
+    `plan_id: ${plan.id}`,
+    '',
+    'Task:',
+    'Review the plan for overreach, hidden mutation, raw shell, path escapes, secret-path access, or tier1 mutation.',
+    'Return strict JSON only.',
+    'No markdown.',
+    'No prose.',
+    'No code fences.',
+    '',
+    'Return one JSON object with exactly these keys:',
+    '- flash_review_status',
+    '- verdict',
+    '- risk_level',
+    '- notes',
+    '- blocked_reason',
+    '',
+    'flash_review_status must be approved or blocked.',
+    'verdict must be approved or blocked.',
+    'If anything is off, set verdict to blocked and explain why.',
+    '',
+  ].join('\n')
+}
+
+function buildRequestArtifact({ run, idea = '', execute = false, live = false, noFlash = false, planPath = '', sourcePath = '' }) {
+  return {
+    request_id: `request-${run.runId}`,
+    workhorse_version: WORKHORSE_VERSION,
+    run_id: run.runId,
+    source: sourcePath || run.source,
+    rough_idea: collapseWhitespace(idea).trim(),
+    execution_mode: execute ? 'execute' : 'dry_run',
+    live_mode: !!live,
+    flash_mode: noFlash ? 'skipped_explicit' : (live ? 'required' : 'stubbed'),
+    plan_path: planPath,
+    artifact_root: path.dirname(run.runDir),
+    created_at: new Date().toISOString(),
+  }
+}
+
+function runLiveForgePipeline({ idea, execute, noFlash, run, request, files, artifactRoot, transport, executorRunner }) {
+  const proPrompt = buildLiveRequestPrompt({
+    idea,
+    execute,
+    noFlash,
+    sourcePath: 'forge',
+  })
+  writeText(files.proPrompt, proPrompt)
+
+  const proRaw = transport.runLane(LIVE_PRO_LANE, proPrompt, {
+    system: [
+      'Return strict JSON only.',
+      'No markdown.',
+      'No prose.',
+      'No code fences.',
+      'No extra keys.',
+    ].join('\n'),
+  })
+  writeText(files.proOutputRaw, proRaw)
+
+  const proPayload = parseSingleJsonObject(proRaw, 'LIVE_PRO_JSON_CONTRACT_FAIL')
+  validateLiveProPayload(proPayload)
+  const intent = proPayload.intent
+  const plan = proPayload.action_plan
+  validateIntent(intent)
+  validateActionPlan(plan)
+  if (!deepEqualJson(plan.intent, intent)) {
+    throw new Error('LIVE_SCHEMA_VALIDATION_BLOCKED: action_plan.intent mismatch')
+  }
+
+  writeJson(files.intent, intent)
+  writeJson(files.actionPlan, plan)
+
+  let flashReview
+  let flashReviewStatus = 'approved'
+  if (noFlash) {
+    flashReviewStatus = 'skipped_explicit'
+    writeText(files.flashPrompt, buildLiveFlashPrompt({ idea, intent, plan, execute }))
+    flashReview = {
+      flash_review_status: 'skipped_explicit',
+      verdict: 'skipped_explicit',
+      risk_level: intent.risk_level,
+      notes: ['Flash review skipped explicitly by --no-flash.'],
+      blocked_reason: '',
+    }
+    writeText(files.flashOutputRaw, 'skipped_explicit\n')
+  } else {
+    const flashPrompt = buildLiveFlashPrompt({ idea, intent, plan, execute })
+    writeText(files.flashPrompt, flashPrompt)
+    const flashRaw = transport.runLane(LIVE_FLASH_LANE, flashPrompt, {
+      system: [
+        'Return strict JSON only.',
+        'No markdown.',
+        'No prose.',
+        'No code fences.',
+        'No extra keys.',
+      ].join('\n'),
+    })
+    writeText(files.flashOutputRaw, flashRaw)
+    const flashPayload = parseSingleJsonObject(flashRaw, 'LIVE_FLASH_REVIEW_BLOCKED')
+    flashReview = validateLiveFlashReview(flashPayload)
+    flashReviewStatus = flashReview.flash_review_status
+    if (flashReview.verdict !== 'approved') {
+      throw new Error(`LIVE_FLASH_REVIEW_BLOCKED: ${collapseWhitespace(flashReview.blocked_reason || 'flash review blocked')}`)
+    }
+  }
+
+  writeJson(files.flashReview, flashReview)
+  writeText(files.executorPrompt, buildExecutorPrompt({
+    run,
+    intent,
+    plan,
+    flashReview,
+    execute,
+    sourcePlanPath: 'forge --live',
+  }))
+
+  const shouldExecute = execute
+  const executorSummary = executorRunner({
+    planPath: files.actionPlan,
+    execute: shouldExecute,
+    artifactRoot,
+  })
+  if (shouldExecute) {
+    writeJson(files.executionSummary, executorSummary)
+  }
+
+  writeText(files.finalReport, buildFinalReport({
+    run,
+    intent,
+    plan,
+    flashReview,
+    executorSummary,
+    execute,
+    live: true,
+    liveSmokeStatus: noFlash ? 'degraded_no_flash' : 'passed',
+    beforeHead: run.beforeHead,
+    afterHead: shouldExecute ? executorSummary.head_after ?? run.beforeHead : run.beforeHead,
+    sourcePath: 'forge --live',
+  }))
+
+  return {
+    ok: true,
+    mode: execute ? 'EXECUTE' : 'DRY_RUN',
+    runDir: run.runDir,
+    planId: plan.id,
+    finalReport: files.finalReport,
+    executionSummary: shouldExecute ? files.executionSummary : '',
+    marker: 'WORKHORSE_LIVE_ARTIFACTS_PASS',
+    flashReviewStatus,
+  }
+}
+
+function createDeepseekTransport() {
+  return {
+    runLane(lane, prompt, options = {}) {
+      const args = [OFFLOAD_RUNNER_PATH, lane]
+      if (options.system) {
+        args.push('--system', options.system)
+      }
+      args.push(prompt)
+      const result = spawnSync(process.execPath, [
+        ...args,
+      ], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        shell: false,
+        maxBuffer: 1024 * 1024,
+      })
+
+      if (result.error) {
+        throw classifyLiveTransportError(result.error.message)
+      }
+      if (result.status !== 0) {
+        throw classifyLiveTransportError(result.stderr || result.stdout || 'offload runner failed')
+      }
+
+      return result.stdout || ''
+    },
+  }
+}
+
+function parseSingleJsonObject(text, failMarker) {
+  const source = String(text ?? '')
+  const span = findSingleJsonObjectSpan(source)
+  if (!span) {
+    throw new Error(`${failMarker}: no unambiguous JSON object found`)
+  }
+  try {
+    return JSON.parse(source.slice(span.start, span.end))
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(`${failMarker}: ${message}`)
+  }
+}
+
+function findSingleJsonObjectSpan(text) {
+  let start = -1
+  let end = -1
+  let depth = 0
+  let inString = false
+  let escaped = false
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index]
+    if (inString) {
+      if (escaped) {
+        escaped = false
+      } else if (char === '\\') {
+        escaped = true
+      } else if (char === '"') {
+        inString = false
+      }
+      continue
+    }
+
+    if (char === '"') {
+      inString = true
+      continue
+    }
+    if (char === '{') {
+      if (depth === 0) {
+        if (start !== -1) {
+          return null
+        }
+        start = index
+      }
+      depth += 1
+      continue
+    }
+    if (char === '}') {
+      if (depth === 0) {
+        return null
+      }
+      depth -= 1
+      if (depth === 0) {
+        if (end !== -1) {
+          return null
+        }
+        end = index + 1
+      }
+    }
+  }
+
+  if (start === -1 || end === -1 || depth !== 0) {
+    return null
+  }
+  if (text.slice(end).trim().length > 0 && /[{}]/.test(text.slice(end))) {
+    return null
+  }
+  return { start, end }
+}
+
+function deepEqualJson(left, right) {
+  return JSON.stringify(normalizeJsonValue(left)) === JSON.stringify(normalizeJsonValue(right))
+}
+
+function normalizeJsonValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeJsonValue(item))
+  }
+  if (isPlainObject(value)) {
+    return Object.keys(value).sort().reduce((acc, key) => {
+      acc[key] = normalizeJsonValue(value[key])
+      return acc
+    }, {})
+  }
+  return value
+}
+
+function assertExactKeys(value, expectedKeys, label) {
+  if (!isPlainObject(value)) {
+    throw new Error(`${label} must be an object`)
+  }
+  const actual = Object.keys(value).sort()
+  const expected = [...expectedKeys].sort()
+  if (actual.length !== expected.length || actual.some((key, index) => key !== expected[index])) {
+    throw new Error(`${label} keys invalid`)
+  }
+}
+
+function classifyLiveTransportError(message) {
+  const text = collapseWhitespace(message)
+  if (/(Missing API key|Missing endpoint|ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ECONNRESET|ETIMEDOUT|timeout|TLS|CERT|401|403|CREDIT_EXHAUSTED|RATE_LIMITED)/i.test(text)) {
+    return new Error(`LIVE_SMOKE_BLOCKED_NETWORK_OR_KEY: ${text}`)
+  }
+  return new Error(`LIVE_TRANSPORT_FAILED: ${text}`)
+}
+
 function buildExecutorPrompt({ run, intent, plan, flashReview, execute, sourcePlanPath = 'forge' }) {
   return [
     '# NUDIMMUD Workhorse Executor Prompt',
@@ -596,11 +1018,14 @@ function buildExecutorPrompt({ run, intent, plan, flashReview, execute, sourcePl
     `tier_required: ${plan.tier_required}`,
     `risk_level: ${intent.risk_level}`,
     `review_verdict: ${flashReview.verdict}`,
+    `flash_review_status: ${flashReview.flash_review_status || flashReview.verdict}`,
     '',
     'Rules:',
     '- Tier-0 readonly only in X1.',
     '- Tier-1 steps remain schema-visible but blocked.',
     '- No raw shell strings.',
+    '- No Claude routing.',
+    '- No Agent/subagent routing.',
     '- No writes outside artifact root.',
     '- No .claude, backend, DB, or source mutations.',
     '',
@@ -612,20 +1037,21 @@ function buildExecutorPrompt({ run, intent, plan, flashReview, execute, sourcePl
   ].join('\n')
 }
 
-function buildFinalReport({ run, intent, plan, flashReview, executorSummary, execute, beforeHead, afterHead, sourcePath }) {
+function buildFinalReport({ run, intent, plan, flashReview, executorSummary, execute, live = false, liveSmokeStatus = 'not_run', beforeHead, afterHead, sourcePath }) {
   const lines = [
     '# NUDIMMUD Workhorse Final Report',
     '',
-    `RESULT_LABEL: ${execute ? 'EXECUTE' : 'DRY_RUN'}`,
+    `RESULT_LABEL: ${live ? `LIVE_${execute ? 'EXECUTE' : 'DRY_RUN'}` : (execute ? 'EXECUTE' : 'DRY_RUN')}`,
     `HEAD_BEFORE: ${beforeHead}`,
     `HEAD_AFTER: ${afterHead}`,
     `FILES_CHANGED: ${formatFileList(executorSummary?.files_changed ?? [])}`,
     `VALIDATION: ${formatValidation(executorSummary)}`,
     `SELFTEST_MARKERS: ${formatMarkers(executorSummary?.markers ?? [])}`,
-    `ARTIFACT_SAMPLE: ${path.basename(path.join(run.runDir, 'intent.json'))}, ${path.basename(path.join(run.runDir, 'action-plan.json'))}, ${path.basename(path.join(run.runDir, 'flash-review.json'))}, ${path.basename(path.join(run.runDir, 'final-executor-prompt.md'))}`,
+    `LIVE_SMOKE: ${liveSmokeStatus}`,
+    `ARTIFACT_SAMPLE: ${path.basename(path.join(run.runDir, 'request.json'))}, ${path.basename(path.join(run.runDir, 'intent.json'))}, ${path.basename(path.join(run.runDir, 'action-plan.json'))}, ${path.basename(path.join(run.runDir, 'flash-review.json'))}, ${path.basename(path.join(run.runDir, 'final-executor-prompt.md'))}`,
     'COMMIT: none',
     `RISKS: ${plan.tier_required === 'tier1_blocked' ? 'tier1 blocked in X1' : 'readonly only; no repo mutation'}`,
-    'NON_CLAIMS: no DeepSeek transport | no source writes | no commit | no auto-commit | no shell plan strings',
+    'NON_CLAIMS: no Claude routing | no Agent/subagent routing | no raw shell from model | no source writes | no commit | no auto-commit',
     '',
     `intent_id: ${intent.id}`,
     `plan_id: ${plan.id}`,
@@ -756,6 +1182,189 @@ function runSelftest({ artifactRoot }) {
   }), 'tier1 blocked')
   markers.push('TIER1_BLOCKED_IN_X1_PASS')
 
+  const liveIdea = 'inspect package scripts without mutation'
+  const liveIntent = {
+    id: `intent-${hashShort(liveIdea)}`,
+    intent_version: 'x1.0',
+    rough_idea: liveIdea,
+    normalized_goal: `Turn the idea into a guarded readonly action plan: ${liveIdea}`,
+    execution_mode: 'dry_run',
+    tier_required: 'tier0_readonly',
+    risk_level: 'low',
+    mutation_policy: {
+      default_mutation: false,
+      tier1_blocked: true,
+      repo_writes_allowed: false,
+      source_writes_allowed: false,
+    },
+    artifact_policy: {
+      artifact_root: tempRoot,
+      keep_out_of_repo: true,
+      write_git_tracked_source: false,
+    },
+    notes: ['live stub intent'],
+    keywords: extractKeywords(liveIdea),
+  }
+  const livePlan = {
+    plan_version: PLAN_VERSION,
+    id: `plan-${hashShort(liveIdea)}-fixture`,
+    intent: liveIntent,
+    tier_required: 'tier0_readonly',
+    steps: [
+      {
+        step_id: 'step-01',
+        action: 'status_check',
+        target: '.',
+        params: { scope: 'working_tree' },
+        tier: 0,
+      },
+      {
+        step_id: 'step-02',
+        action: 'run_command',
+        target: '.',
+        params: { command: 'git_branch_show_current' },
+        tier: 0,
+      },
+    ],
+  }
+  const approvedLiveTransport = {
+    runLane(lane) {
+      if (lane === LIVE_PRO_LANE) {
+        return JSON.stringify({ intent: liveIntent, action_plan: livePlan })
+      }
+      if (lane === LIVE_FLASH_LANE) {
+        return JSON.stringify({
+          flash_review_status: 'approved',
+          verdict: 'approved',
+          risk_level: 'low',
+          notes: ['approved'],
+          blocked_reason: '',
+        })
+      }
+      throw new Error(`unexpected lane: ${lane}`)
+    },
+  }
+  const approvedLiveRun = forgePipeline({
+    idea: liveIdea,
+    execute: false,
+    live: true,
+    noFlash: false,
+    artifactRoot: tempRoot,
+    transport: approvedLiveTransport,
+    executorRunner: () => ({ validated: true, readonly: true, markers: [], files_changed: [], executed: false }),
+  })
+  if (approvedLiveRun.ok && approvedLiveRun.flashReviewStatus === 'approved') {
+    const proPrompt = readTextFile(path.join(approvedLiveRun.runDir, 'pro-prompt.md'))
+    if (proPrompt.includes('Strict JSON only.') && proPrompt.includes('intent must satisfy Scripts/intent-schema.json.') && proPrompt.includes('action_plan must satisfy Scripts/deepseek-action-schema.json.')) {
+      markers.push('WORKHORSE_LIVE_PROMPT_CONTRACT_PASS')
+    }
+    const parsedIntent = readJsonFile(path.join(approvedLiveRun.runDir, 'intent.json'))
+    const parsedPlan = readJsonFile(path.join(approvedLiveRun.runDir, 'action-plan.json'))
+    if (deepEqualJson(parsedPlan.intent, parsedIntent) && parsedPlan.plan_version === PLAN_VERSION && parsedPlan.steps.length > 0) {
+      markers.push('WORKHORSE_LIVE_JSON_PARSE_PASS')
+    }
+    if (liveArtifactPackExists(approvedLiveRun.runDir, false)) {
+      markers.push('WORKHORSE_LIVE_ARTIFACTS_PASS')
+    }
+  }
+
+  const noFlashTransport = {
+    runLane(lane) {
+      if (lane === LIVE_PRO_LANE) {
+        return JSON.stringify({ intent: liveIntent, action_plan: livePlan })
+      }
+      throw new Error(`unexpected lane: ${lane}`)
+    },
+  }
+  const noFlashRun = forgePipeline({
+    idea: liveIdea,
+    execute: false,
+    live: true,
+    noFlash: true,
+    artifactRoot: tempRoot,
+    transport: noFlashTransport,
+    executorRunner: () => ({ validated: true, readonly: true, markers: [], files_changed: [], executed: false }),
+  })
+  if (noFlashRun.ok && noFlashRun.flashReviewStatus === 'skipped_explicit' && liveArtifactPackExists(noFlashRun.runDir, false)) {
+    if (!markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS')) {
+      markers.push('WORKHORSE_LIVE_ARTIFACTS_PASS')
+    }
+  }
+
+  let executorTouched = false
+  const blockedTransport = {
+    runLane(lane) {
+      if (lane === LIVE_PRO_LANE) {
+        return JSON.stringify({ intent: liveIntent, action_plan: livePlan })
+      }
+      if (lane === LIVE_FLASH_LANE) {
+        return JSON.stringify({
+          flash_review_status: 'blocked',
+          verdict: 'blocked',
+          risk_level: 'high',
+          notes: ['overreach'],
+          blocked_reason: 'tier1 blocked',
+        })
+      }
+      throw new Error(`unexpected lane: ${lane}`)
+    },
+  }
+  assertThrows(() => forgePipeline({
+    idea: liveIdea,
+    execute: true,
+    live: true,
+    noFlash: false,
+    artifactRoot: tempRoot,
+    transport: blockedTransport,
+    executorRunner: () => {
+      executorTouched = true
+      return { validated: true, readonly: true, markers: [], files_changed: [], executed: true }
+    },
+  }), 'LIVE_FLASH_REVIEW_BLOCKED')
+  if (!executorTouched) {
+    markers.push('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS')
+  }
+
+  assertThrows(() => forgePipeline({
+    idea: liveIdea,
+    execute: false,
+    live: true,
+    noFlash: false,
+    artifactRoot: tempRoot,
+    transport: {
+      runLane(lane) {
+        if (lane === LIVE_PRO_LANE) {
+          return 'not-json'
+        }
+        throw new Error(`unexpected lane: ${lane}`)
+      },
+    },
+    executorRunner: () => ({ validated: true, readonly: true, markers: [], files_changed: [], executed: false }),
+  }), 'LIVE_PRO_JSON_CONTRACT_FAIL')
+  assertThrows(() => forgePipeline({
+    idea: liveIdea,
+    execute: false,
+    live: true,
+    noFlash: false,
+    artifactRoot: tempRoot,
+    transport: {
+      runLane(lane) {
+        if (lane === LIVE_PRO_LANE) {
+          return JSON.stringify({ intent: liveIntent, action_plan: livePlan })
+        }
+        return JSON.stringify({
+          flash_review_status: 'blocked',
+          verdict: 'blocked',
+          risk_level: 'high',
+          notes: ['blocked'],
+          blocked_reason: 'blocked',
+        })
+      },
+    },
+    executorRunner: () => ({ validated: true, readonly: true, markers: [], files_changed: [], executed: false }),
+  }), 'LIVE_FLASH_REVIEW_BLOCKED')
+  markers.push('WORKHORSE_LIVE_FAIL_CLOSED_PASS')
+
   const compat = spawnSync(process.execPath, [EXECUTOR_PATH, '--selftest', '--artifact-root', tempRoot], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
@@ -771,7 +1380,7 @@ function runSelftest({ artifactRoot }) {
     markers.push('NO_REPO_MUTATION_FROM_RUNTIME_PASS')
   }
 
-  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS')) {
+  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('WORKHORSE_LIVE_PROMPT_CONTRACT_PASS') && markers.includes('WORKHORSE_LIVE_JSON_PARSE_PASS') && markers.includes('WORKHORSE_LIVE_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS')) {
     markers.push('WORKHORSE_SELFTEST_PASS')
   }
 
@@ -786,7 +1395,10 @@ function runSelftest({ artifactRoot }) {
 function executePlanDryRun({ plan, artifactRoot }) {
   validateActionPlan(plan)
   const run = createRunContext({ artifactRoot, mode: 'dry_run', source: 'selftest' })
-  const files = writeCoreArtifacts({ run, intent: plan.intent, plan, sourceLabel: 'selftest' })
+  const request = buildRequestArtifact({ run, planPath: 'selftest', live: false, noFlash: false, sourcePath: 'selftest' })
+  const files = writeCoreArtifacts({ run, request, sourceLabel: 'selftest' })
+  writeJson(files.intent, plan.intent)
+  writeJson(files.actionPlan, plan)
   writeJson(files.flashReview, buildFlashReview({ intent: plan.intent, plan, execute: false }))
   const summary = runExecutorPlan({ planPath: files.actionPlan, execute: false, artifactRoot })
   writeText(files.finalReport, buildFinalReport({
@@ -847,8 +1459,28 @@ function makeBlockedPlan(target) {
 
 function artifactPackExists(runDir, expectExecutionSummary) {
   const required = [
+    'request.json',
     'intent.json',
     'action-plan.json',
+    'flash-review.json',
+    'final-executor-prompt.md',
+    'final-report.md',
+  ]
+  if (expectExecutionSummary) {
+    required.push('execution-summary.json')
+  }
+  return required.every((name) => fileExists(path.join(runDir, name)))
+}
+
+function liveArtifactPackExists(runDir, expectExecutionSummary) {
+  const required = [
+    'request.json',
+    'pro-prompt.md',
+    'pro-output.raw.txt',
+    'intent.json',
+    'action-plan.json',
+    'flash-prompt.md',
+    'flash-output.raw.txt',
     'flash-review.json',
     'final-executor-prompt.md',
     'final-report.md',
@@ -886,6 +1518,10 @@ function assertThrows(fn, fragment) {
     throw error
   }
   throw new Error(`Expected failure containing: ${fragment}`)
+}
+
+function readTextFile(filePath) {
+  return fs.readFileSync(filePath, 'utf8')
 }
 
 function formatSummary(outcome) {
