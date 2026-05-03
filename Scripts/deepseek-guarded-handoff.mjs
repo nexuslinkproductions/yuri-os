@@ -13,8 +13,11 @@ const DEFAULT_MAX_MODEL_OUTPUT_BYTES = 16000
 const DEFAULT_MAX_ACTIONS = 12
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud/guarded-executor-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/nudimmud-guarded-executor-runs'
+const WRAPPER_VERSION = '1.0'
 const OFFLOAD_RUNNER_REL = 'Scripts/offload-runner.mjs'
 const EXECUTOR_REL = 'Scripts/yuri-guarded-executor.mjs'
+const WRAPPER_FINAL_REPORT_NAME = 'wrapper_final_report.md'
+const WRAPPER_META_NAME = 'wrapper_meta.json'
 const WRAPPER_MANIFEST_ALLOWLIST = [
   'Scripts/yuri-guarded-executor.mjs',
   'Scripts/policy/yuri-guarded-executor.readonly.json',
@@ -136,6 +139,32 @@ function main() {
       requestPath,
       wrapperRun,
     })
+    const executorArtifactDir = path.dirname(executorResult.finalReportPath)
+    const executorVerification = readJsonIfExists(path.join(executorArtifactDir, 'verification.json'))
+    const wrapperPacket = writeWrapperReviewPacket({
+      wrapperRun,
+      artifactRoot,
+      modelLane: cli.model,
+      modelOutputPath: path.join(wrapperRun.runDir, 'model_output.md'),
+      sanitizedRequestPath: requestPath,
+      executorFinalReportPath: executorResult.finalReportPath,
+      executorArtifactDir,
+      executorVerification,
+      handoffStatus: 'HANDOFF_PASS',
+      jsonContractStatus: 'PASS',
+      sanitizedRequestStatus: 'PASS',
+      executorStatus: deriveExecutorStatus(executorVerification),
+      localTruthBoundary: 'Executor artifacts are local truth; DeepSeek/model output is advisory only.',
+      modelClaimsPolicy: 'DeepSeek/model output is advisory only. Executor-local evidence is required for truth.',
+      actionsRequested: sanitizedRequest.actions.map((action) => action.type),
+      actionsAllowedByWrapper: sanitizedRequest.actions.map((action) => action.type),
+      actionsDeniedByWrapper: [],
+      repoMutationClaim: 'No repo mutation observed; wrapper report is not proof of writes, staging, commits, production readiness, or autonomous safety.',
+      observationPhaseStatus: 'ACTIVE',
+      gpt55ReviewRequired: true,
+      executorCommandSummary: `${EXECUTOR_REL} --request ${requestPath} --artifact-root ${artifactRoot}`,
+      executorDeniedActionCount: executorVerification?.denied_action_count,
+    })
 
     const summary = {
       result: 'HANDOFF_PASS',
@@ -144,6 +173,9 @@ function main() {
       advisory_model_output: path.join(wrapperRun.runDir, 'model_output.md'),
       sanitized_request: requestPath,
       executor_final_report: executorResult.finalReportPath,
+      wrapper_final_report: wrapperPacket.reportPath,
+      wrapper_meta: wrapperPacket.metaPath,
+      executor_artifact_dir: executorArtifactDir,
     }
     fs.writeFileSync(path.join(wrapperRun.runDir, 'wrapper_summary.json'), `${JSON.stringify(summary, null, 2)}\n`, 'utf8')
     process.stdout.write(`${formatKv(summary)}\n`)
@@ -344,6 +376,10 @@ function buildDryRunMeta({ artifactRoot, model, manifestPaths, prompt, maxAction
     prompt_bytes: byteLength(prompt),
     max_actions: maxActions,
     max_model_output_bytes: maxModelOutputBytes,
+    wrapper_review_packet_support: 'ENABLED',
+    observation_phase_status: 'ACTIVE',
+    gpt_5_5_review_required: true,
+    write_capability_enabled: false,
   }
 }
 
@@ -676,7 +712,10 @@ function bridgeToExecutor({ artifactRoot, requestPath, wrapperRun }) {
     throw new Error(`Executor final report missing: ${finalReportPath}`)
   }
 
-  return { finalReportPath }
+  return {
+    finalReportPath,
+    artifactDir: path.dirname(finalReportPath),
+  }
 }
 
 function runSelftest() {
@@ -822,9 +861,61 @@ function runSelftest() {
       requestPath,
       wrapperRun,
     })
+    const executorVerification = readJsonIfExists(path.join(bridge.artifactDir, 'verification.json'))
+    const modelOutputPath = path.join(wrapperRun.runDir, 'model_output.md')
+    fs.writeFileSync(
+      modelOutputPath,
+      [
+        '# advisory_model_output',
+        '',
+        'readonly observation phase placeholder',
+        '',
+      ].join('\n'),
+      'utf8'
+    )
+    const wrapperPacket = writeWrapperReviewPacket({
+      wrapperRun,
+      artifactRoot: tempRoot,
+      modelLane: DEFAULT_MODEL,
+      modelOutputPath,
+      sanitizedRequestPath: requestPath,
+      executorFinalReportPath: bridge.finalReportPath,
+      executorArtifactDir: bridge.artifactDir,
+      executorVerification,
+      handoffStatus: 'HANDOFF_PASS',
+      jsonContractStatus: 'PASS',
+      sanitizedRequestStatus: 'PASS',
+      executorStatus: deriveExecutorStatus(executorVerification),
+      localTruthBoundary: 'Executor artifacts are local truth; DeepSeek/model output is advisory only.',
+      modelClaimsPolicy: 'DeepSeek/model output is advisory only. Executor-local evidence is required for truth.',
+      actionsRequested: sanitizedRequest.actions.map((action) => action.type),
+      actionsAllowedByWrapper: sanitizedRequest.actions.map((action) => action.type),
+      actionsDeniedByWrapper: [],
+      repoMutationClaim: 'No repo mutation observed; wrapper report is not proof of writes, staging, commits, production readiness, or autonomous safety.',
+      observationPhaseStatus: 'ACTIVE',
+      gpt55ReviewRequired: true,
+      executorCommandSummary: `${EXECUTOR_REL} --request ${requestPath} --artifact-root ${tempRoot}`,
+      executorDeniedActionCount: executorVerification?.denied_action_count,
+    })
     const scopedAfter = scopedStatus()
-    if (fs.existsSync(bridge.finalReportPath) && scopedBefore === scopedAfter) {
+    const wrapperReport = fs.existsSync(wrapperPacket.reportPath)
+      ? fs.readFileSync(wrapperPacket.reportPath, 'utf8')
+      : ''
+    const wrapperMeta = fs.existsSync(wrapperPacket.metaPath)
+      ? fs.readFileSync(wrapperPacket.metaPath, 'utf8')
+      : ''
+    if (
+      fs.existsSync(bridge.finalReportPath)
+      && scopedBefore === scopedAfter
+      && wrapperReport.includes('DeepSeek/model output is advisory only.')
+      && wrapperReport.includes('observation_phase_status: ACTIVE')
+      && wrapperMeta.includes('"wrapper_version": "1.0"')
+      && wrapperMeta.includes('"observation_phase_status": "ACTIVE"')
+    ) {
       markers.push('HANDOFF_EXECUTOR_DRY_BRIDGE_PASS')
+      markers.push('HANDOFF_WRAPPER_REPORT_PASS')
+      markers.push('HANDOFF_WRAPPER_META_PASS')
+      markers.push('HANDOFF_OBSERVATION_PHASE_PASS')
     }
   } catch {}
 
@@ -839,6 +930,9 @@ function runSelftest() {
     'HANDOFF_SUMMARY_REQUIRED_PASS',
     'HANDOFF_FINAL_REPORT_LAST_PASS',
     'HANDOFF_EXECUTOR_DRY_BRIDGE_PASS',
+    'HANDOFF_WRAPPER_REPORT_PASS',
+    'HANDOFF_WRAPPER_META_PASS',
+    'HANDOFF_OBSERVATION_PHASE_PASS',
   ]
   if (required.every((marker) => markers.includes(marker))) {
     markers.push('HANDOFF_SELFTEST_PASS')
@@ -898,6 +992,112 @@ function parsePositiveInt(value, label) {
     throw new Error(`${label} must be a positive integer`)
   }
   return parsed
+}
+
+function writeWrapperReviewPacket({
+  wrapperRun,
+  artifactRoot,
+  modelLane,
+  modelOutputPath,
+  sanitizedRequestPath,
+  executorFinalReportPath,
+  executorArtifactDir,
+  executorVerification,
+  handoffStatus,
+  jsonContractStatus,
+  sanitizedRequestStatus,
+  executorStatus,
+  localTruthBoundary,
+  modelClaimsPolicy,
+  actionsRequested,
+  actionsAllowedByWrapper,
+  actionsDeniedByWrapper,
+  repoMutationClaim,
+  observationPhaseStatus,
+  gpt55ReviewRequired,
+  executorCommandSummary,
+  executorDeniedActionCount,
+}) {
+  const reportPath = path.join(wrapperRun.runDir, WRAPPER_FINAL_REPORT_NAME)
+  const metaPath = path.join(wrapperRun.runDir, WRAPPER_META_NAME)
+  const timestamp = new Date().toISOString()
+  const deniedActionCount = Number.isInteger(executorDeniedActionCount) ? executorDeniedActionCount : 'n/a'
+  const finalReport = [
+    `result_label: ${handoffStatus}`,
+    `wrapper_run_dir: ${wrapperRun.runDir}`,
+    `model_lane: ${modelLane}`,
+    `model_output_advisory_path: ${modelOutputPath}`,
+    `sanitized_request_path: ${sanitizedRequestPath}`,
+    `executor_final_report_path: ${executorFinalReportPath}`,
+    `executor_artifact_dir: ${executorArtifactDir}`,
+    `handoff_status: ${handoffStatus}`,
+    `json_contract_status: ${jsonContractStatus}`,
+    `sanitized_request_status: ${sanitizedRequestStatus}`,
+    `executor_status: ${executorStatus}`,
+    `local_truth_boundary: ${localTruthBoundary}`,
+    `model_claims_policy: ${modelClaimsPolicy}`,
+    `actions_requested: ${formatList(actionsRequested)}`,
+    `actions_allowed_by_wrapper: ${formatList(actionsAllowedByWrapper)}`,
+    `actions_denied_by_wrapper: ${formatList(actionsDeniedByWrapper)}`,
+    `executor_denied_action_count: ${deniedActionCount}`,
+    `repo_mutation_claim: ${repoMutationClaim}`,
+    `observation_phase_status: ${observationPhaseStatus}`,
+    `gpt_5_5_review_required: ${gpt55ReviewRequired ? 'YES' : 'NO'}`,
+    'non_claims: DeepSeek/model output is advisory only; this wrapper report is not proof of writes, staging, commits, production readiness, or autonomous safety.',
+    'next_gate: GPT-5.5 review before widening beyond readonly.',
+  ].join('\n')
+
+  const meta = {
+    wrapper_version: WRAPPER_VERSION,
+    timestamp,
+    repo_root: REPO_ROOT,
+    model_lane: modelLane,
+    raw_model_output_path: modelOutputPath,
+    sanitized_request_path: sanitizedRequestPath,
+    executor_command_summary: executorCommandSummary,
+    executor_final_report_path: executorFinalReportPath,
+    executor_artifact_dir: executorArtifactDir,
+    json_contract_status: jsonContractStatus,
+    handoff_status: handoffStatus,
+    observation_phase_status: observationPhaseStatus,
+    gpt_5_5_review_required: gpt55ReviewRequired,
+    raw_model_output_sha256: fs.existsSync(modelOutputPath) ? sha256(fs.readFileSync(modelOutputPath, 'utf8')) : null,
+    sanitized_request_sha256: fs.existsSync(sanitizedRequestPath) ? sha256(fs.readFileSync(sanitizedRequestPath, 'utf8')) : null,
+  }
+  if (executorVerification && typeof executorVerification === 'object') {
+    meta.executor_denied_action_count = executorVerification.denied_action_count ?? null
+    meta.executor_policy_version = executorVerification.policy_version ?? null
+  }
+
+  fs.writeFileSync(reportPath, `${finalReport}\n`, 'utf8')
+  fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`, 'utf8')
+  return { reportPath, metaPath }
+}
+
+function deriveExecutorStatus(executorVerification) {
+  const deniedActionCount = executorVerification?.denied_action_count
+  if (!Number.isInteger(deniedActionCount)) {
+    return 'UNKNOWN'
+  }
+  return deniedActionCount > 0 ? 'PASS_WITH_DENIALS' : 'PASS'
+}
+
+function readJsonIfExists(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return null
+  }
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'))
+  } catch {
+    return null
+  }
+}
+
+function formatList(value) {
+  if (!Array.isArray(value) || value.length === 0) {
+    return 'none'
+  }
+  return value.join(', ')
 }
 
 function requireInteger(value, label) {
