@@ -138,6 +138,23 @@ Codex CLI is a platform, not a model. Route work by cost and risk, not by the CL
 - If Gemini uses a forbidden tool anyway, treat the audit as supportive only, not clean protocol-compliant evidence.
 - Direct shell/local script evidence remains authority for local truth.
 
+### 10.1 Cheap / Thin Orchestrator Contract
+
+- Haiku, Codex-mini, and similar cheap lanes are thin orchestrators, not investigators of last resort.
+- Use them for scoped local checks, compact evidence packs, workhorse bundle calls, and gate summaries only.
+- Do not repair permissions, edit settings, inspect hooks/configs unless the task is explicitly about hooks/configs, retry blocked commands, or search bypasses.
+- If a command is denied, stop with `BLOCKED_PERMISSION` and report the exact blocked command, approval needed, and safest next command.
+- Do not read raw workhorse stdout by default. Prefer `grep` counts, `jq` summaries, `wc`, `shasum`, marker checks, and artifact paths.
+- Evidence packs target 4k-6k bytes unless explicitly approved.
+- Final reports for cheap orchestration lanes target 25-35 lines.
+- No execution narration in cheap lanes; final report only unless blocked.
+- No broad reads, broad `git status` / `diff` / `find`, retry loops, or settings edits.
+- No mutation in verification or planning lanes.
+- Workhorse models do advisory reasoning; cheap orchestrators verify local truth and gate.
+- Functional-but-expensive cheap runs must be labeled `FUNCTIONAL_RESULT / TOKENOPS_FAIL`.
+- Stop/redesign thresholds: good thin run = 1-3 message-equivalents; acceptable = 3-5; stop/redesign = more than 5 for verification, more than 8 for non-mutation lanes.
+- Routing: tiny exact verification -> Haiku fresh/cleared session, marker-only, no workhorse unless needed; multi-step verification -> Codex CLI GPT-5.4-mini with DeepSeek workhorse bundle; safety-sensitive mutation -> Sonnet 4.6 only after compact evidence and approved scope; broad reasoning/POA -> DeepSeek workhorse first, Claude/Codex gates; huge reading/inventory -> local scripts, `rg`, sqlite metadata, `jq`, `wc`, then compact pack to DeepSeek.
+
 ---
 
 ## 11. Safety / Security Contract
