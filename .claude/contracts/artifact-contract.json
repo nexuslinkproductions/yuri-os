@@ -1,0 +1,266 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "yuri://contracts/artifact-contract.json",
+  "title": "Advisory Artifact Contract v1.0.0",
+  "description": "Minimal shared contract for artifacts produced by fused @swarm + workhorse systems in Yuri OS / NUDIMMUD. All model output is advisory only; local shell/git/runtime artifacts remain truth.",
+  "type": "object",
+  "required": [
+    "_meta",
+    "content",
+    "governance"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "_meta": {
+      "type": "object",
+      "required": [
+        "version",
+        "timestamp",
+        "lane",
+        "source",
+        "cost"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^1\\.0\\.0$",
+          "description": "Artifact contract version (semantic versioning)"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 UTC timestamp of artifact generation"
+        },
+        "lane": {
+          "type": "string",
+          "enum": [
+            "local_llm",
+            "cloud_haiku",
+            "cloud_claude",
+            "cloud_deepseek",
+            "swarm_offload",
+            "swarm_ruflo",
+            "workhorse_deepseek",
+            "raw_unknown"
+          ],
+          "description": "Which system/route produced this artifact"
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "type",
+            "id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "swarm",
+                "workhorse",
+                "gatekeeper",
+                "orchestrator",
+                "fusion"
+              ],
+              "description": "Type of source system"
+            },
+            "id": {
+              "type": "string",
+              "description": "Agent/model identifier (e.g., 'deepseek-r1:8b', 'qwen2.5:7b', 'claude-haiku-4-5-20251001')"
+            },
+            "thread_id": {
+              "type": "string",
+              "description": "Optional conversation/swarm thread reference"
+            }
+          }
+        },
+        "cost": {
+          "type": "object",
+          "required": [
+            "paid_tier"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "paid_tier": {
+              "type": "boolean",
+              "description": "True if artifact consumed paid/cloud tokens"
+            },
+            "tokens_in": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Input token count (optional; omit if unknown)"
+            },
+            "tokens_out": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Output token count (optional; omit if unknown)"
+            },
+            "estimate_usd": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Estimated cost in USD (optional; omit if unknown)"
+            }
+          }
+        }
+      }
+    },
+    "content": {
+      "type": "object",
+      "required": [
+        "type",
+        "body"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "advisory_plan",
+            "advisory_fix",
+            "advisory_review",
+            "advisory_suggestion",
+            "advisory_summary",
+            "advisory_warning",
+            "advisory_failure"
+          ],
+          "description": "Classification of advisory artifact"
+        },
+        "body": {
+          "type": "string",
+          "description": "Advisory content (markdown). FORBIDDEN: secrets, env values, DB row content, raw model output, raw vectors. Must be synthesized human-readable text."
+        },
+        "confidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": [
+                "high",
+                "medium",
+                "low",
+                "untested"
+              ],
+              "description": "Model's self-assessed confidence"
+            },
+            "risk": {
+              "type": "string",
+              "enum": [
+                "safe",
+                "caution",
+                "dangerous"
+              ],
+              "description": "Risk level assessment"
+            },
+            "notes": {
+              "type": "string",
+              "description": "Optional confidence/risk reasoning"
+            }
+          }
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "required": [
+        "advisory_only",
+        "local_truth_claim",
+        "requires_approval",
+        "approval_scope"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "advisory_only": {
+          "type": "boolean",
+          "enum": [
+            true
+          ],
+          "description": "ALWAYS true. Model output is advisory; not executor truth."
+        },
+        "local_truth_claim": {
+          "type": "boolean",
+          "enum": [
+            false
+          ],
+          "description": "ALWAYS false. This artifact is not local shell/git/runtime truth."
+        },
+        "requires_approval": {
+          "type": "boolean",
+          "description": "True if any write/mutation recommendation in content requires explicit owner approval before execution"
+        },
+        "approval_scope": {
+          "type": "string",
+          "enum": [
+            "none",
+            "session",
+            "task",
+            "file",
+            "symbol",
+            "global"
+          ],
+          "description": "Scope of approval required (if requires_approval: true)"
+        },
+        "non_claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Explicit disclaimers of what this artifact does NOT include or claim"
+        }
+      }
+    },
+    "artifact_paths": {
+      "type": "object",
+      "description": "Optional artifact references (paths, hashes, URIs)",
+      "additionalProperties": false,
+      "properties": {
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File paths or artifact identifiers produced by this advisory"
+        },
+        "checksums": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          },
+          "description": "Optional sha256 checksums for verification"
+        }
+      }
+    },
+    "failures": {
+      "type": "object",
+      "description": "Optional failure reporting",
+      "additionalProperties": false,
+      "properties": {
+        "encountered": {
+          "type": "boolean",
+          "description": "Whether execution encountered failures"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Failure summary (if any)"
+        },
+        "blocked_by": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What blocked completion (permissions, resources, tool unavailability)"
+        }
+      }
+    }
+  }
+}
