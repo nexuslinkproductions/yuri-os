@@ -394,7 +394,7 @@ function buildIntent({ idea, execute, run }) {
 
   return {
     id: `intent-${hashShort(collapsedIdea)}`,
-    intent_version: 'x1.0',
+    intent_version: 'nudimmud.intent.x1',
     rough_idea: collapsedIdea,
     normalized_goal: `Turn the idea into a guarded readonly action plan: ${collapsedIdea}`,
     execution_mode: execute ? 'execute' : 'dry_run',
@@ -481,7 +481,7 @@ function buildActionPlan({ intent, run }) {
 
   return {
     plan_version: PLAN_VERSION,
-    id: `plan-${hashShort(intent.rough_idea)}-${run.runId.slice(-10)}`,
+    id: `plan-${intent.id}-${run.runId.slice(-10)}`,
     intent,
     tier_required: 'tier0_readonly',
     steps,
@@ -505,7 +505,7 @@ function validateIntent(intent) {
   if (!['tier0_readonly', 'tier1_blocked'].includes(intent.tier_required)) {
     throw new Error('intent.tier_required invalid')
   }
-  if (!['low', 'medium', 'high'].includes(intent.risk_level)) {
+  if (!['low', 'medium'].includes(intent.risk_level)) {
     throw new Error('intent.risk_level invalid')
   }
   if (!isPlainObject(intent.mutation_policy) || intent.mutation_policy.default_mutation !== false || intent.mutation_policy.tier1_blocked !== true || intent.mutation_policy.repo_writes_allowed !== false || intent.mutation_policy.source_writes_allowed !== false) {
@@ -678,7 +678,7 @@ function validateLiveFlashReview(payload) {
   return payload
 }
 
-function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath }) {
+function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath, artifactRoot }) {
   return [
     '# NUDIMMUD Workhorse Live Request',
     '',
@@ -686,6 +686,7 @@ function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath }) {
     `execution_mode: ${execute ? 'execute' : 'dry_run'}`,
     `flash_mode: ${noFlash ? 'skipped_explicit' : 'required'}`,
     `source_path: ${sourcePath}`,
+    `artifact_root: ${artifactRoot}`,
     '',
     'Constraints:',
     '- Strict JSON only.',
@@ -699,15 +700,97 @@ function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath }) {
     '- No source writes.',
     '- Tier-1 remains blocked.',
     '',
-    'Return one JSON object with exactly two keys:',
-    '- intent',
-    '- action_plan',
+    'Return exactly one JSON object with exactly two top-level keys: intent, action_plan.',
     '',
-    `intent must satisfy ${INTENT_SCHEMA_PATH}.`,
-    `action_plan must satisfy ${ACTION_SCHEMA_PATH}.`,
-    'action_plan.intent must exactly match intent.',
-    'Use only tier0 readonly steps.',
-    'Use only safe read-only actions and guarded run_command entries already supported by the executor.',
+    'intent must include exactly these keys:',
+    'id',
+    'intent_version',
+    'rough_idea',
+    'normalized_goal',
+    'execution_mode',
+    'tier_required',
+    'risk_level',
+    'mutation_policy',
+    'artifact_policy',
+    'notes',
+    'keywords',
+    '',
+    'intent values:',
+    'intent_version must be "nudimmud.intent.x1".',
+    'execution_mode must be "dry_run" or "execute".',
+    'tier_required must be "tier0_readonly".',
+    'risk_level must be "low" or "medium".',
+    'mutation_policy must be:',
+    '{',
+    '  "default_mutation": false,',
+    '  "tier1_blocked": true,',
+    '  "repo_writes_allowed": false,',
+    '  "source_writes_allowed": false',
+    '}',
+    'artifact_policy must include:',
+    '{',
+    `  "artifact_root": "${artifactRoot}",`,
+    '  "keep_out_of_repo": true,',
+    '  "write_git_tracked_source": false',
+    '}',
+    'notes must be array of strings.',
+    'keywords must be array of strings.',
+    '',
+    'action_plan must include exactly these keys:',
+    'plan_version',
+    'id',
+    'intent',
+    'tier_required',
+    'steps',
+    '',
+    'action_plan.plan_version must be "nudimmud.workhorse.x1".',
+    'action_plan.id must match or derive from intent.id.',
+    'action_plan.intent must be the exact intent object.',
+    'action_plan.tier_required must be "tier0_readonly".',
+    'steps must be a non-empty array.',
+    '',
+    'Allowed step shape:',
+    '{',
+    '  "step_id": "step-1",',
+    '  "action": "read_file",',
+    '  "target": "package.json",',
+    '  "params": { "start_line": 1, "end_line": 120 },',
+    '  "tier": 0',
+    '}',
+    '',
+    'Allowed actions only:',
+    'read_file',
+    'list_directory',
+    'file_diff',
+    'git_log',
+    'status_check',
+    'run_command',
+    '',
+    'Allowed run_command params.command only:',
+    'pwd',
+    'git_branch_show_current',
+    'git_rev_parse_short_head',
+    'git_diff_cached_name_only',
+    'git_status_scoped',
+    'ls_path',
+    'wc_l_file',
+    'head_file',
+    'tail_file',
+    'grep_file',
+    '',
+    'Do not use:',
+    'type',
+    'parameters',
+    'path',
+    'output',
+    'parse_json',
+    'file_read',
+    'raw_content',
+    'script_object',
+    'any action not in the enum',
+    '',
+    'For the rough idea "inspect package scripts without mutation", choose a valid safe action such as read_file package.json line window, or run_command grep_file on package.json with pattern "\\"scripts\\"".',
+    'Do not invent parse_json because it is not an allowed X1 action.',
     'Never emit raw shell strings.',
     '',
   ].join('\n')
@@ -765,6 +848,7 @@ function runLiveForgePipeline({ idea, execute, noFlash, run, request, files, art
     execute,
     noFlash,
     sourcePath: 'forge',
+    artifactRoot,
   })
   writeText(files.proPrompt, proPrompt)
 
@@ -1185,7 +1269,7 @@ function runSelftest({ artifactRoot }) {
   const liveIdea = 'inspect package scripts without mutation'
   const liveIntent = {
     id: `intent-${hashShort(liveIdea)}`,
-    intent_version: 'x1.0',
+    intent_version: 'nudimmud.intent.x1',
     rough_idea: liveIdea,
     normalized_goal: `Turn the idea into a guarded readonly action plan: ${liveIdea}`,
     execution_mode: 'dry_run',
@@ -1207,22 +1291,15 @@ function runSelftest({ artifactRoot }) {
   }
   const livePlan = {
     plan_version: PLAN_VERSION,
-    id: `plan-${hashShort(liveIdea)}-fixture`,
+    id: `plan-${liveIntent.id}-fixture`,
     intent: liveIntent,
     tier_required: 'tier0_readonly',
     steps: [
       {
-        step_id: 'step-01',
-        action: 'status_check',
-        target: '.',
-        params: { scope: 'working_tree' },
-        tier: 0,
-      },
-      {
-        step_id: 'step-02',
-        action: 'run_command',
-        target: '.',
-        params: { command: 'git_branch_show_current' },
+        step_id: 'step-1',
+        action: 'read_file',
+        target: 'package.json',
+        params: { start_line: 1, end_line: 120 },
         tier: 0,
       },
     ],
@@ -1255,13 +1332,27 @@ function runSelftest({ artifactRoot }) {
   })
   if (approvedLiveRun.ok && approvedLiveRun.flashReviewStatus === 'approved') {
     const proPrompt = readTextFile(path.join(approvedLiveRun.runDir, 'pro-prompt.md'))
-    if (proPrompt.includes('Strict JSON only.') && proPrompt.includes('intent must satisfy Scripts/intent-schema.json.') && proPrompt.includes('action_plan must satisfy Scripts/deepseek-action-schema.json.')) {
-      markers.push('WORKHORSE_LIVE_PROMPT_CONTRACT_PASS')
+    if (
+      proPrompt.includes('Return exactly one JSON object with exactly two top-level keys: intent, action_plan.') &&
+      proPrompt.includes('intent must include exactly these keys:') &&
+      proPrompt.includes('action_plan must include exactly these keys:') &&
+      proPrompt.includes('Allowed step shape:') &&
+      proPrompt.includes('Allowed actions only:') &&
+      proPrompt.includes('Allowed run_command params.command only:')
+    ) {
+      markers.push('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS')
     }
     const parsedIntent = readJsonFile(path.join(approvedLiveRun.runDir, 'intent.json'))
     const parsedPlan = readJsonFile(path.join(approvedLiveRun.runDir, 'action-plan.json'))
-    if (deepEqualJson(parsedPlan.intent, parsedIntent) && parsedPlan.plan_version === PLAN_VERSION && parsedPlan.steps.length > 0) {
-      markers.push('WORKHORSE_LIVE_JSON_PARSE_PASS')
+    if (
+      deepEqualJson(parsedPlan.intent, parsedIntent) &&
+      parsedPlan.plan_version === PLAN_VERSION &&
+      parsedPlan.steps.length > 0 &&
+      parsedIntent.intent_version === 'nudimmud.intent.x1' &&
+      parsedIntent.tier_required === 'tier0_readonly' &&
+      parsedPlan.tier_required === 'tier0_readonly'
+    ) {
+      markers.push('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS')
     }
     if (liveArtifactPackExists(approvedLiveRun.runDir, false)) {
       markers.push('WORKHORSE_LIVE_ARTIFACTS_PASS')
@@ -1363,7 +1454,7 @@ function runSelftest({ artifactRoot }) {
     },
     executorRunner: () => ({ validated: true, readonly: true, markers: [], files_changed: [], executed: false }),
   }), 'LIVE_FLASH_REVIEW_BLOCKED')
-  markers.push('WORKHORSE_LIVE_FAIL_CLOSED_PASS')
+  markers.push('LIVE_SCHEMA_FAIL_CLOSED_PASS')
 
   const compat = spawnSync(process.execPath, [EXECUTOR_PATH, '--selftest', '--artifact-root', tempRoot], {
     cwd: REPO_ROOT,
@@ -1380,7 +1471,7 @@ function runSelftest({ artifactRoot }) {
     markers.push('NO_REPO_MUTATION_FROM_RUNTIME_PASS')
   }
 
-  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('WORKHORSE_LIVE_PROMPT_CONTRACT_PASS') && markers.includes('WORKHORSE_LIVE_JSON_PARSE_PASS') && markers.includes('WORKHORSE_LIVE_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS')) {
+  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS')) {
     markers.push('WORKHORSE_SELFTEST_PASS')
   }
 
@@ -1421,7 +1512,7 @@ function makeBlockedPlan(target) {
     id: `blocked-${hashShort(target)}`,
     intent: {
       id: `intent-${hashShort(target)}`,
-      intent_version: 'x1.0',
+      intent_version: 'nudimmud.intent.x1',
       rough_idea: 'blocked path test',
       normalized_goal: 'blocked path test',
       execution_mode: 'dry_run',
@@ -1619,7 +1710,7 @@ function extractKeywords(text) {
 function inferRiskLevel(text) {
   const lowered = String(text).toLowerCase()
   if (/(write|edit|change|delete|commit|push|install|mutat)/.test(lowered)) {
-    return 'high'
+    return 'medium'
   }
   if (/(inspect|validate|check|review|read|dry)/.test(lowered)) {
     return 'low'

@@ -14,7 +14,7 @@
   "properties": {
     "plan_version": {
       "type": "string",
-      "minLength": 1
+      "const": "nudimmud.workhorse.x1"
     },
     "id": {
       "type": "string",

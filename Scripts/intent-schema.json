@@ -24,7 +24,7 @@
     },
     "intent_version": {
       "type": "string",
-      "minLength": 1
+      "const": "nudimmud.intent.x1"
     },
     "rough_idea": {
       "type": "string",
@@ -52,8 +52,7 @@
       "type": "string",
       "enum": [
         "low",
-        "medium",
-        "high"
+        "medium"
       ]
     },
     "mutation_policy": {
