@@ -1,0 +1,73 @@
+{
+  "version": "2026-05-03.readonly.v1",
+  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "mode": "readonly_read_search_check",
+  "allowed_files": [
+    "Scripts/ai",
+    "Scripts/offload.sh",
+    "Scripts/offload-runner.mjs",
+    "Scripts/nudimmud-repl.mjs",
+    ".claude/rules/nudimmud_operating_dna.md",
+    ".claude/rules/research_pipeline.md",
+    "_SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md",
+    "_SYSTEM/model-registry.md",
+    ".claude/config/models.json",
+    "package.json"
+  ],
+  "allow_full_small_file_paths": [
+    "package.json"
+  ],
+  "denied_path_markers": [
+    ".env",
+    "secret",
+    "token",
+    "credential",
+    "private_key",
+    "id_rsa",
+    "backend/data",
+    ".db",
+    ".sqlite",
+    ".wal",
+    ".shm"
+  ],
+  "denied_extensions": [
+    ".db",
+    ".sqlite",
+    ".sqlite3",
+    ".wal",
+    ".shm",
+    ".bin",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".webp",
+    ".pdf",
+    ".zip",
+    ".tar",
+    ".gz"
+  ],
+  "denied_globs": [
+    "backend/data/*",
+    "_SYSTEM/**/*.md"
+  ],
+  "allowed_checks": [
+    "PWD",
+    "GIT_BRANCH_SHOW_CURRENT",
+    "GIT_REV_PARSE_SHORT_HEAD",
+    "GIT_DIFF_CACHED_NAME_ONLY",
+    "GIT_STATUS_SCOPED_MANIFEST_AND_DB_FILES",
+    "NODE_CHECK_SCRIPT",
+    "GREP_Q_MARKER",
+    "WC_L_FILE"
+  ],
+  "caps": {
+    "read_window_lines": 80,
+    "aggregate_read_lines": 320,
+    "full_small_file_max_lines": 40,
+    "search_matches_per_action": 12,
+    "search_context_lines_max": 1,
+    "command_output_chars": 400,
+    "summary_items": 12
+  }
+}
