@@ -563,7 +563,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'kimi', 'moonshot', 'deepseek-cloud', 'code-deepseek', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-kimi', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free'];
+  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-cloud', 'code-deepseek', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free'];
   const lanes = {};
   for (const name of laneNames) {
     try {

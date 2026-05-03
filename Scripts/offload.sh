@@ -32,7 +32,7 @@ list_models() {
   echo "⬡ NUDIMMUD_NEURAL_REGISTRY"
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
-  for lane in gpt-oss deepseek kimi moonshot ollama openrouter-free; do
+  for lane in gpt-oss deepseek ollama openrouter-free; do
     if command -v "$lane" >/dev/null 2>&1; then
       printf '  [%-8s] %s\n' "$lane" "$(command -v "$lane")"
     else
@@ -108,6 +108,7 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_CLAUDE..." >&2
         /Users/marcelspatz/NUDIMMUD/Scripts/ai claude "$prompt"
         ;;
+      # Deprecated Moonshot/Kimi compatibility path. Keep manual aliasing only.
       kimi-k2.6|kimi-k2.5-liberated|kimi-k2.5|kimi|moonshot)
         printf '%s\n' "⬡ ROUTING_TO_KIMI..." >&2
         run_offload_runner moonshot "$prompt" --model "$target_model"
@@ -267,9 +268,9 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   echo "⬡ BACKEND_UNREACHABLE — cannot auto-route." >&2
   echo "  Manual fallback options:" >&2
   echo "    offload --model <id> \"<prompt>\"                  # direct model" >&2
-  echo "    offload --swarm kimi,gpt-oss,ollama \"<prompt>\"   # swarm" >&2
+  echo "    offload --swarm gpt-oss,ollama \"<prompt>\"       # swarm" >&2
   echo "    ai @ollama \"<prompt>\"                            # local ollama" >&2
-  echo "    ai @kimi \"<prompt>\"                              # kimi cloud" >&2
+  echo "    ai @kimi \"<prompt>\"                              # deprecated Kimi compatibility" >&2
   echo "    ai @deepseek \"<prompt>\"                          # deepseek local" >&2
   exit 1
 fi
