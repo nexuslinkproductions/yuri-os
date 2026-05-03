@@ -11,6 +11,19 @@
   ],
   "additionalProperties": false,
   "properties": {
+    "phase1_anchor": {
+      "type": "object",
+      "description": "Phase 1 anchor metadata for runtime-gate scaffold. Metadata-only; no runtime enforcement.",
+      "properties": {
+        "version": { "type": "string" },
+        "established": { "type": "string" },
+        "purpose": { "type": "string" },
+        "status": { "type": "string" },
+        "artifacts": { "type": "object" },
+        "claims": { "type": "array" },
+        "non_claims": { "type": "array" }
+      }
+    },
     "_meta": {
       "type": "object",
       "required": [
@@ -262,5 +275,25 @@
         }
       }
     }
+  },
+  "phase1_anchor": {
+    "version": "0.1.0",
+    "established": "2025-01-20",
+    "purpose": "minimal phase1 anchor for runtime-gate scaffold",
+    "status": "active",
+    "artifacts": {
+      "haiku_dir": ".haiku/",
+      "runtime_gate_logs": "runtime-gate-*.log"
+    },
+    "claims": [
+      "Phase 1 anchor establishes artifact contract existence",
+      "No runtime-gate implementation exists yet",
+      ".gitignore protects gate artifacts from version control"
+    ],
+    "non_claims": [
+      "Does not claim .haiku/gate.json exists",
+      "Does not claim route changes",
+      "Does not claim documentation completeness"
+    ]
   }
 }

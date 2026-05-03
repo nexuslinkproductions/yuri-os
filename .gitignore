@@ -100,3 +100,7 @@ graphify-out/.graphify_python
 graphify-out/manifest.json
 graphify-out/._*
 graphify-out/.DS_Store
+
+# Phase 1 anchor gate artifacts
+.haiku/
+runtime-gate-*.log
