@@ -1,0 +1,143 @@
+[
+  {
+    "title": "YURI OS / NUDIMMUD GPT Web Session Archive — Part 1: Continuity, Operating DNA, Boot Packet",
+    "source_file": "YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md",
+    "trust_policy": "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document.",
+    "key_facts": [
+      "Converted handoff-heavy continuity into compact local boot-packet workflow",
+      "Repaired Operating DNA Codex routing defaults and Gemini no-tool audit policy",
+      "Established fresh-session starter using session_boot_packet_2026-05-03.md as continuity aid only",
+      "Prompt style standard: ONE_TRANSACTION, FINAL_REPORT_ONLY, no numbered steps, no repeated executor-context block unless routing is the task",
+      "Model routing outside prompt, not inside copy-ready block",
+      "Boot packet explicitly not boot config, session config, RAG, or memory artifact",
+      "Gemini audit became supportive only after tool policy violation; 08AM hardened policy with TOOL_POLICY_VIOLATION hard stop",
+      "Swarm/offload default contract added to Operating DNA",
+      "Git dirty sidecar files (nudimmud.db-shm/db-wal) tolerated when main DB clean"
+    ],
+    "accepted_labels": [
+      "08AI Operating DNA swarm/Codex routing defaults: closed",
+      "08AJ session boot packet plan: closed",
+      "08AK session boot packet creation: closed",
+      "08AM Gemini no-tool audit policy repair: closed",
+      "08AL-R2 boot packet usability audit: clean pass"
+    ],
+    "repo_state_claims_to_verify": [
+      "HEAD at session end was 025ba4c8f (verify actual repo state)",
+      "Branch main",
+      "File _SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md exists, was 93 lines",
+      ".claude/rules/nudimmud_operating_dna.md updated to ~221 lines with Gemini hard stop",
+      "backend/data/nudimmud.db clean; only db-shm/db-wal drift present",
+      "No other staged or uncommitted changes beyond those two files"
+    ],
+    "safety_boundaries": [
+      "Boot packet is reference only; never used as live truth or config",
+      "No RAG/memory/boot/session mutation from boot packet",
+      "Local shell/script evidence is local truth authority",
+      "Gemini audit with forbidden tool use = supportive only, not protocol-compliant evidence",
+      "Prompt style must not contain inline model/routing declarations unless task is routing repair"
+    ],
+    "routing_rules": [
+      "Codex CLI GPT-5.4-mini high: small exact-path verification, simple markdown/policy patches",
+      "Codex CLI GPT-5.4 high: architecture, safety-boundary, executor/wrapper code, contract design",
+      "GPT-5.5: strategic gate and contradiction/IP/safety review",
+      "Gemini 3.1 Pro/Flash: no-shell/no-local-truth audit only when explicitly constrained and hard-stop tool policy",
+      "Sonnet 4.6: protected mutation/security/hook/settings lane after session reset",
+      "DeepSeek V4 Pro: reasoning brain through guarded wrapper/executor, not local truth"
+    ],
+    "rag_tags": [
+      "continuity",
+      "boot-packet",
+      "operating-dna",
+      "prompt-workflow",
+      "model-routing",
+      "gpt-5.5",
+      "gemini-audit",
+      "yuri-os",
+      "nudimmud",
+      "archive"
+    ],
+    "suggested_chunking_strategy": "Single chunk sufficient; if splitting, group by logical task (08AI DNA repair, 08AJ–AK boot packet, 08AM Gemini policy) to preserve context.",
+    "do_not_promote_claims": [
+      "Boot packet as live truth or session config",
+      "Gemini audit with tool violation as authoritative",
+      "Model output as repo state",
+      "Any claim that the session boot packet mutates repo state",
+      "DeepSeek as having write capability at this stage"
+    ]
+  },
+  {
+    "title": "YURI OS / NUDIMMUD GPT Web Session Archive — Part 2: DeepSeek Guarded Executor and Observation Phase",
+    "source_file": "YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
+    "trust_policy": "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document.",
+    "key_facts": [
+      "Built readonly Yuri guarded executor (Scripts/yuri-guarded-executor.mjs) with strict action allowlist and policy file",
+      "Implemented DeepSeek handoff wrapper (Scripts/deepseek-guarded-handoff.mjs) that validates DeepSeek JSON, bridges to executor",
+      "Live DeepSeek V4 Pro smoke succeeded via normal Terminal (HANDOFF_PASS); Codex DNS blocked",
+      "Observation phase established: no write/patch/staging/commit capability; only readonly runs",
+      "DeepSeek allowed to invent, but inventions become candidate protocol extensions, not runtime behavior",
+      "Invention gate (08AX) classifies contract drift, rejects unknown fields (e.g., offset) before executor; wrapper reports include innovation_review fields",
+      "Anime-DNA assessment gates inventions into buckets: observer_more, candidate_protocol_extension, etc.",
+      "GPT-5.5 review required before any mutation lane widening",
+      "Wrapper review packet separates model advisory output from executor local truth",
+      "No write capability at end of session"
+    ],
+    "accepted_labels": [
+      "08AN DeepSeek Claude Code-equivalent executor architecture: completed",
+      "08AO readonly executor read/search/check slice plan: passed",
+      "08AP readonly executor implementation: passed",
+      "08AR policy self-verification repair: closed",
+      "08AT DeepSeek guarded handoff wrapper implementation: passed",
+      "08AU live DeepSeek handoff smoke: passed (via Terminal)",
+      "08AV wrapper review packet/provenance polish: passed",
+      "08AW observation review with Anime-DNA gate: passed",
+      "08AX invention gate strict contract patch: passed"
+    ],
+    "repo_state_claims_to_verify": [
+      "HEAD at session end 025ba4c8f (verify actual repo state)",
+      "Scripts/yuri-guarded-executor.mjs, Scripts/policy/yuri-guarded-executor.readonly.json, Scripts/deepseek-guarded-handoff.mjs exist",
+      "Readonly executor policy only allows READ_MANIFEST_FILE, SEARCH_MANIFEST_PATHS, RUN_ALLOWED_CHECK, SUMMARIZE_EVIDENCE, FINAL_REPORT",
+      "Wrapper selftest markers include HANDOFF_SELFTEST_PASS, HANDOFF_OFFSET_FIELD_REJECT_PASS etc.",
+      "No write/stage/commit code paths activated in these files",
+      "backend/data/nudimmud.db clean; db-shm/db-wal drift still present",
+      "No package alias, NUDIMMUD REPL integration, or MCP capabilities enabled"
+    ],
+    "safety_boundaries": [
+      "DeepSeek output is advisory; only executor artifacts are local truth",
+      "Wrapper fails closed on any unknown action field, path, or contract drift; no executor call unless JSON passes strict allowlist",
+      "No write, patch, stage, commit, or delete through DeepSeek/executor",
+      "GPT-5.5 strategic gate required before any write capability or protocol widening",
+      "Observation phase mandatory: multiple clean readonly runs needed before write-proposal-only consideration",
+      "Invention proposals must pass Anime-DNA safety buckets and executor compatibility test before acceptance",
+      "No autonomous safety claims; observation only"
+    ],
+    "routing_rules": [
+      "DeepSeek V4 Pro: model prompt via Scripts/offload-runner.mjs direct lane (not offload.sh or REPL for first handoff)",
+      "Wrapper sanitizes DeepSeek output and passes to Scripts/yuri-guarded-executor.mjs readonly mode",
+      "Readonly executor carries out READ_MANIFEST_FILE, SEARCH_MANIFEST_PATHS, and allowed check commands only",
+      "GPT-5.5 reviews final executor artifact pack and wrapper review packet before widening",
+      "All mutation decisions use local truth from executor evidence, not model claims"
+    ],
+    "rag_tags": [
+      "deepseek",
+      "guarded-executor",
+      "handoff",
+      "readonly",
+      "observation",
+      "invention-gate",
+      "anime-dna",
+      "gpt-5.5-gate",
+      "yuri-os",
+      "nudimmud",
+      "archive"
+    ],
+    "suggested_chunking_strategy": "Can be ingested as single chunk; for finer granularity, split by phase: 08AN–08AP (executor build), 08AR–08AT (policy fix + handoff), 08AU–08AV (live smoke + polish), 08AW–08AX (observation + invention gate).",
+    "do_not_promote_claims": [
+      "DeepSeek output as local truth",
+      "Write/patch/stage/commit capability from DeepSeek or executor",
+      "Production readiness of executor or handoff pipeline",
+      "Autonomous safety after observation phase",
+      "Any claim that observation runs constitute full validation",
+      "Wrapper acceptance of unknown fields as runtime feature"
+    ]
+  }
+]

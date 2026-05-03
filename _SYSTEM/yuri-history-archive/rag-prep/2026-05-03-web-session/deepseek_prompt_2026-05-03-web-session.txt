@@ -1,0 +1,1497 @@
+Task: Produce compact RAG prep entries for the two attached historical web-session archive reports.
+Rules:
+- Output JSON only.
+- Keep it compact.
+- Do not quote or dump source text.
+- Treat the reports as directional guidance only, never runtime authority.
+- Include fields: title, source_file, trust_policy, key_facts, accepted_labels, repo_state_claims_to_verify, safety_boundaries, routing_rules, rag_tags, suggested_chunking_strategy, do_not_promote_claims.
+
+FILE: YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md
+---
+title: "YURI OS / NUDIMMUD GPT Web Session Archive — Part 1: Continuity, Operating DNA, Boot Packet"
+date_generated: "2026-05-03"
+source: "GPT-5.5 Thinking web session plus user-provided Codex/Gemini/Terminal outputs and screenshots"
+status: "archive_ready_for_rag_ingestion"
+project: "Yuri OS / NUDIMMUD"
+repo_root: "/Users/marcelspatz/NUDIMMUD"
+branch: "main"
+latest_head_at_end_of_session: "025ba4c8f fix(cli): classify DeepSeek handoff inventions"
+trust_policy: "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document."
+---
+
+# YURI OS / NUDIMMUD GPT Web Session Archive
+## Part 1: Continuity, Operating DNA, Boot Packet, Prompt Workflow Rules
+
+This file captures the first half of the GPT web session that stabilized the Yuri OS / NUDIMMUD continuity layer and control-surface rules before returning to DeepSeek guarded-executor work.
+
+It is intended for direct ingestion into the Yuri OS / NUDIMMUD archive/RAG system as a historical continuity artifact. It is not an independent local repo audit. Future mutation must always begin with direct local preflight.
+
+---
+
+## High-level outcome
+
+The session converted large handoff-heavy continuity into a compact local boot-packet workflow, repaired Operating DNA routing and Gemini tool-policy rules, and established a reliable fresh-session starter pattern.
+
+Accepted core outcomes:
+
+```text
+08AI Operating DNA swarm/Codex routing defaults: closed
+08AJ session boot packet plan: closed
+08AK session boot packet creation: closed
+08AM Gemini no-tool audit policy repair: closed
+08AL-R2 boot packet usability audit: clean pass
+Fresh-session starter validated through live repo revalidation
+```
+
+By the end of this continuity phase, the default fresh-session artifact became:
+
+```text
+_SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md
+```
+
+The packet is explicitly a continuity aid only. It is not boot config, session config, RAG memory, or live repo truth.
+
+---
+
+## Prompt/workflow corrections established in this session
+
+The user corrected several prompt-writing issues. These corrections must be preserved for future Yuri OS / NUDIMMUD work.
+
+### Copy-ready prompt blocks must contain everything
+
+When the user asks for a copy/paste prompt, all required pasted evidence, final reports, command inputs, placeholders, and instructions must be inside the same prompt block. Do not put essential material after the block with “paste this into the placeholder,” because the user expects the block to be complete.
+
+### No numbered procedure-style lists inside Yuri/NUDIMMUD prompts
+
+The user explicitly said numbering inside prompts comes across as individual steps/procedures. Future copy-ready prompts should be one complete task contract with compact headings and bullets/clauses, not numbered procedure lists.
+
+### Omit repeated executor-context block inside prompts
+
+The user asked to remove the repeated “EXECUTOR CONTEXT” block from future prompts. Keep model/executor choice outside the prompt as chat guidance only. Do not repeat lines such as:
+
+```text
+We are operating in Codex CLI.
+Codex CLI is the platform, not the model.
+Preferred model: ...
+This is a read-only sprint.
+```
+
+Exception: only include such routing language if the task itself is about repairing or auditing routing policy.
+
+### Model choice outside prompt
+
+For this session, the recurring model guidance was:
+
+```text
+Codex CLI GPT-5.4-mini high: small exact-path verification, simple markdown/policy patches.
+Codex CLI GPT-5.4 high: architecture, safety-boundary, executor/wrapper code, contract design.
+GPT-5.5: strategic gate and contradiction/IP/safety review.
+Gemini 3.1 Pro/Flash: no-shell/no-local-truth audit only, when explicitly constrained.
+Sonnet 4.6: protected mutation/security/hook/settings lane after session reset.
+DeepSeek V4 Pro: reasoning brain through guarded wrapper/executor, not local truth.
+```
+
+---
+
+## 08AI — Operating DNA swarm/Codex routing defaults
+
+### Accepted result
+
+```text
+08AI_NUDIMMUD_OPERATING_DNA_SWARM_CODEX_ROUTING_REPAIR_P_PASS_CLOSED
+commit: 3c9cece72 fix(workflow): embed swarm and Codex routing defaults
+```
+
+### File changed
+
+```text
+.claude/rules/nudimmud_operating_dna.md
+```
+
+### Scope and validation
+
+The target file was the only repo mutation. The final line count was reported as 216. Validation marker checks passed for:
+
+```text
+Codex CLI platform wording
+GPT-5.4-mini / GPT-5.4 / GPT-5.5 / GPT-5.3-codex routing
+No Codex subagent fan-out for cheap archive/research tasks
+No MCP startup/discovery unless explicitly needed
+Swarm/offload default contract
+Local truth authority
+Professional operating lenses
+```
+
+### Important nuance
+
+The sprint attempted to use `@swarm`, but `swarm-coordination` was unavailable in that Codex turn. It proceeded direct-only and still passed. This was accepted because the resulting Operating DNA contains the swarm/offload default contract.
+
+### Embedded rules added/preserved
+
+Operating DNA now includes:
+
+```text
+Codex CLI is a platform, not a model.
+GPT-5.4-mini: cheap deterministic checks and patch review.
+GPT-5.4: harder deterministic code/review.
+GPT-5.5: strategic/high-stakes external gate only.
+GPT-5.3-codex: code-generation oriented fallback where appropriate.
+Avoid Codex subagent fan-out for cheap archive/research tasks.
+Avoid MCP startup/discovery unless explicitly needed.
+Prefer local scripts plus DeepSeek V4 Flash/Pro compact review for archive/research reasoning.
+Direct shell/local script evidence remains authority for local truth.
+Professional Operating Lenses remain embedded.
+```
+
+---
+
+## 08AI Gemini no-shell final-report audit
+
+A Gemini no-shell audit of the 08AI Codex final report passed:
+
+```text
+PASS_OR_GAP: PASS
+RISKS: None apparent
+SUGGESTED_DELTA_ONLY_IF_NEEDED: None
+```
+
+Gemini confirmed the report covered all eight routing-policy goals:
+
+```text
+Codex CLI as platform, not model
+Model routing for GPT-5.4-mini/GPT-5.4/GPT-5.5/GPT-5.3-codex
+No Codex fan-out/MCP startup for cheap tasks
+Bounded swarm defaults
+Local-truth authority
+Professional lenses preserved
+No boot/RAG/session/memory promotion
+```
+
+This was accepted as supportive audit evidence. Local repo truth still outranks model audit output.
+
+---
+
+## 08AJ — Session boot packet plan
+
+### Accepted result
+
+```text
+08AJ_YURI_HISTORY_SESSION_BOOT_PACKET_PLAN_P_PASS
+mutation: none
+commit: none
+boot packet created: no
+swarm: unavailable, direct-only
+proposed path: _SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md
+next label: 08AK_YURI_HISTORY_SESSION_BOOT_PACKET_CREATE_P
+```
+
+### Plan content
+
+The plan defined the future session boot packet as a compact continuity aid only. It specified that the packet must include:
+
+```text
+Authority header
+Current local truth placeholder
+Active Operating Doctrine pointer
+Current accepted anchors
+Model/platform routing
+Current work queue
+Non-claims/prohibitions
+Future creation sprint validation rules
+```
+
+No boot config, session config, RAG ingestion, memory mutation, archive promotion, commit, or file creation happened in 08AJ.
+
+---
+
+## 08AK — Session boot packet creation
+
+### Accepted result
+
+```text
+08AK_YURI_HISTORY_SESSION_BOOT_PACKET_CREATE_P_PASS_CLOSED
+commit: 574feac4d chore(history): add Yuri session boot packet
+```
+
+### File created
+
+```text
+_SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md
+```
+
+### Validation
+
+The created boot packet was 93 lines. Validation passed:
+
+```text
+test -f passed
+wc -l = 93
+marker greps passed for:
+  continuity_aid_only
+  current_repo_truth_outvotes_this_packet
+  Codex CLI is a platform, not a model
+  No boot config mutation
+  No RAG ingestion
+  No memory promotion
+  verified_reference
+  superseded
+  historical_only
+git diff --check passed
+post-commit git diff --cached --name-only empty
+git show listed only the packet file
+```
+
+### Promotion status
+
+```text
+None.
+Historical anchors stay reference only.
+No boot/session/RAG/memory mutation happened.
+```
+
+### Non-claims
+
+The packet states:
+
+```text
+Current repo truth outranks the packet.
+verified_reference is reference, not live truth.
+superseded and historical_only are not boot authority.
+```
+
+---
+
+## 08AL initial Gemini audit and tool violation
+
+A Gemini audit returned a supportive PASS for the boot packet, but it attempted a forbidden file tool call:
+
+```text
+ReadManyFiles Attempting to read files from _SYSTEM/autonomous-swarm/SWARM-DEPLOYMENT.md
+```
+
+This violated the prompt’s no-file/no-repo-inspection rule. The audit was classified as:
+
+```text
+08AL_YURI_SESSION_BOOT_PACKET_USABILITY_AUDIT_SUPPORTIVE_PASS_WITH_TOOL_VIOLATION
+```
+
+Interpretation:
+
+```text
+The conclusion was useful and supportive.
+It was not clean no-shell/no-file evidence.
+Gemini must be harder-gated in no-tool audit prompts.
+```
+
+---
+
+## 08AM — Gemini no-tool audit policy repair
+
+### Accepted result
+
+```text
+08AM_OPERATING_DNA_GEMINI_TOOL_POLICY_REPAIR_P_PASS_CLOSED
+commit: 35c59e4ab fix(workflow): harden Gemini no-tool audit policy
+```
+
+### File changed
+
+```text
+.claude/rules/nudimmud_operating_dna.md
+```
+
+### Policy update
+
+Operating DNA now includes:
+
+```text
+Gemini 3.1 Pro is useful for no-shell/no-local-truth audits from embedded reports.
+Gemini must not be treated as local repo truth unless a separate tool-capability sprint proves the exact tool surface.
+For no-tool audits, prompts must include a first-line hard stop:
+If you are about to use any tool, stop and answer TOOL_POLICY_VIOLATION.
+If Gemini uses a forbidden tool anyway, the audit may be supportive only, not clean protocol-compliant evidence.
+Direct shell/local scripts remain local truth authority.
+```
+
+### Validation
+
+```text
+git diff --check passed
+grep markers passed for:
+  TOOL_POLICY_VIOLATION
+  Gemini
+  Direct shell/local
+  Codex CLI is a platform, not a model
+  Professional Operating Lenses
+line count: 221 under 240 cap
+post-commit staged clean
+```
+
+---
+
+## 08AL-R2 — Clean Gemini no-tool audit
+
+After 08AM, Gemini was rerun with the first-line tool hard stop.
+
+### Accepted result
+
+```text
+08AL_R2_YURI_SESSION_BOOT_PACKET_USABILITY_AUDIT_NO_TOOL_ENFORCEMENT_PASS_CLEAN
+```
+
+### Audit result
+
+```text
+RESULT: PASS
+PASS_OR_GAP: PASS
+SAFETY: HIGH
+USABILITY: HIGH
+SUGGESTED_DELTA_ONLY_IF_NEEDED: None
+```
+
+No visible tool/file call appeared in the Gemini result. This was accepted unless later tool transcript contradicts it.
+
+### Boot-packet status after R2
+
+The session boot packet is now accepted as the default compact fresh-session continuity artifact, contingent on live repo revalidation before mutation.
+
+---
+
+## Fresh-session starter validation
+
+A compact fresh-session starter was used in Codex. Codex validated live repo truth successfully.
+
+### Observed live state
+
+```text
+cwd: /Users/marcelspatz/NUDIMMUD
+branch: main
+HEAD: 574feac4d
+staged: none
+clean:
+  _SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md
+  .claude/rules/nudimmud_operating_dna.md
+  backend/data/nudimmud.db
+dirty only:
+  backend/data/nudimmud.db-shm
+  backend/data/nudimmud.db-wal
+mutation: none
+```
+
+This confirmed the boot-packet workflow works: compact continuity plus live repo validation without dragging the entire handoff archive into every new session.
+
+---
+
+## Current prompt style standard after Part 1
+
+Future serious prompts should be one complete copy-ready task contract. They should generally include:
+
+```text
+ONE_TRANSACTION
+FINAL_REPORT_ONLY_UNLESS_BLOCKED
+NO progress prose
+NO numbered procedure steps
+NO broad repo scans
+NO raw dumps
+Exact scope and hard stops
+Allowed mutation and forbidden mutation
+Compact validation markers
+Final report schema
+```
+
+But they should omit the repeated executor-context block unless routing itself is the task.
+
+---
+
+## Dirty-state caveat carried forward
+
+Throughout the session, these unrelated sidecar files repeatedly appeared dirty:
+
+```text
+backend/data/nudimmud.db-shm
+backend/data/nudimmud.db-wal
+```
+
+This drift was tolerated when:
+
+```text
+backend/data/nudimmud.db itself was clean
+no DB task was scoped
+no staged files were present
+```
+
+Future prompts should keep using exact-path status and must avoid broad `git status` in dirty repos.
+
+---
+
+## State handoff to Part 2
+
+After continuity stabilization, the user chose Option C: make DeepSeek capable of operating like Claude Code CLI, but through a local guarded executor instead of raw model shell power.
+
+The next archive file covers:
+
+```text
+08AN DeepSeek Claude Code-equivalent architecture
+08AO readonly executor slice plan
+08AP guarded executor implementation
+08AR self-verification policy repair
+08AT DeepSeek-to-executor wrapper
+08AU live handoff pass
+08AV wrapper review packet
+08AW observation/training phase
+08AX invention-gate strict contract patch
+```
+
+FILE: YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md
+---
+title: "YURI OS / NUDIMMUD GPT Web Session Archive — Part 2: DeepSeek Guarded Executor and Observation Phase"
+date_generated: "2026-05-03"
+source: "GPT-5.5 Thinking web session plus user-provided Codex/Terminal outputs and screenshots"
+status: "archive_ready_for_rag_ingestion"
+project: "Yuri OS / NUDIMMUD"
+repo_root: "/Users/marcelspatz/NUDIMMUD"
+branch: "main"
+latest_head_at_end_of_session: "025ba4c8f fix(cli): classify DeepSeek handoff inventions"
+trust_policy: "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document."
+---
+
+# YURI OS / NUDIMMUD GPT Web Session Archive
+## Part 2: DeepSeek Guarded Executor, Live Handoff, Observation Phase, Invention Gate
+
+This file documents the DeepSeek executor work from the same GPT web session. It begins after the continuity/Operating DNA/boot-packet foundation was stabilized.
+
+The major objective was to move DeepSeek from a text-only model lane toward Claude Code CLI-like capability while preserving Yuri-controlled local truth, permissions, artifacts, and GPT-5.5 review gates.
+
+The session explicitly did not enable write capability. All accepted executor behavior remains readonly at the end of this archive.
+
+---
+
+## Strategic goal established by user
+
+The user stated that DeepSeek must eventually have capabilities comparable to Claude Code CLI / Claude Code:
+
+```text
+read project files
+search the repo
+understand local context
+propose edits
+apply edits through controlled tools
+run safe shell checks
+inspect diffs
+stage scoped files
+commit after approval
+preserve artifacts/logs
+report back to GPT-5.5 for strategic gatekeeping
+```
+
+GPT-5.5 clarified and the user accepted the safety architecture:
+
+```text
+DeepSeek V4 Pro = reasoning/model brain
+Yuri local guarded executor = read/write/shell/git truth and enforcement
+GPT-5.5 = strategic gate and widening approval
+```
+
+Raw DeepSeek output must not get unrestricted shell or filesystem power.
+
+---
+
+## 08AN — DeepSeek Claude Code-equivalent executor architecture
+
+### Accepted result
+
+```text
+08AN_DEEPSEEK_CLAUDE_CODE_EQUIVALENT_EXECUTOR_ARCHITECTURE_P completed
+```
+
+### Key decision
+
+```text
+Build a Yuri-native guarded executor bridge first.
+Use existing agent CLIs only later, after separate provenance.
+Best cheap-evidence external bridge candidate: OpenCode.
+Safest architecture: hybrid, with Yuri owning truth, scope, approvals, diffs, verification, artifacts, and GPT-5.5 handoff.
+```
+
+### Observed local preflight
+
+```text
+pwd: /Users/marcelspatz/NUDIMMUD
+branch: main
+HEAD: 35c59e4ab
+staged: empty
+backend/data/nudimmud.db: clean
+only backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal dirty
+```
+
+### Current DeepSeek state found
+
+```text
+DeepSeek lanes and aliases exist.
+Scripts/ai exposes @deepseek, @deepseek-v4-flash, @deepseek-v4-pro, offload, swarm, and REPL launch paths.
+Scripts/offload.sh is a router/dispatcher only.
+Scripts/offload-runner.mjs performs plain chat calls and emits final text only.
+NUDIMMUD REPL separates route output from model output and saves artifacts.
+NUDIMMUD REPL has a local claim verifier, but it is narrow and partly hardcoded to Scripts/nudimmud-repl.mjs.
+Current DeepSeek path is reasoning transport plus transcript wrapper, not Claude Code-style execution.
+```
+
+### Local capability gap
+
+Missing:
+
+```text
+generic workspace context builder
+repo read/search tool contract
+scoped write/patch engine
+command policy engine
+approval checkpoints
+diff/stage/commit workflow
+generic claim verifier for arbitrary file scopes
+artifact schema for executor actions versus model claims
+GPT-5.5 gate report contract
+```
+
+### External candidates
+
+```text
+Deep Code / @vegamo/deepcode-cli: insufficient proof for scoped edit/shell/diff/commit gates.
+Crush / @charmland/crush: plausible temporary bridge, but install/provenance and MCP breadth risks.
+OpenCode: strongest Claude Code-like bridge candidate on cheap evidence, but still requires separate provenance sprint.
+Aider: workable editor bridge but weaker fit for strict advisory-only commit flow.
+Langcli: provenance gap.
+Yuri-native bridge: strongest local provenance and best fit with Yuri trust model.
+```
+
+### Next label from 08AN
+
+```text
+08AO_YURI_NATIVE_DEEPSEEK_GUARDED_EXECUTOR_READ_SEARCH_SLICE_PLAN_P
+```
+
+---
+
+## 08AO — Read/search/check slice plan
+
+### Accepted result
+
+```text
+08AO_YURI_NATIVE_DEEPSEEK_GUARDED_EXECUTOR_READ_SEARCH_SLICE_PLAN_P
+PASS_FOR_PLANNING_ONLY
+```
+
+### First-slice decision
+
+```text
+Build a new standalone script:
+Scripts/yuri-guarded-executor.mjs
+
+Create new policy file:
+Scripts/policy/yuri-guarded-executor.readonly.json
+
+No package alias yet.
+No model call.
+No writes.
+No staging.
+No commits.
+Strict JSON input from stdin or --request <file>.
+Explicit readonly manifest.
+Bounded read/search/check actions.
+Non-repo artifact writes.
+GPT-5.5-ready report.
+```
+
+### Allowed actions planned
+
+```text
+READ_MANIFEST_FILE
+SEARCH_MANIFEST_PATHS
+RUN_ALLOWED_CHECK
+SUMMARIZE_EVIDENCE
+FINAL_REPORT
+```
+
+### Denied actions planned
+
+```text
+WRITE_FILE
+APPLY_PATCH
+STAGE_FILE
+COMMIT
+DELETE_FILE
+READ_SECRET
+READ_DB
+BROAD_SEARCH
+RUN_UNLISTED_COMMAND
+MCP_CALL
+SUBAGENT_CALL
+```
+
+### Artifact schema planned
+
+Each run directory would contain:
+
+```text
+request.md
+model_output.md
+actions.jsonl
+evidence.json
+verification.json
+final_report.md
+meta.json
+```
+
+### Validation markers planned
+
+```text
+PREFLIGHT_PASS
+MANIFEST_ONLY_PASS
+READ_WINDOW_CAP_PASS
+SEARCH_SCOPE_CAP_PASS
+CHECK_ENUM_ONLY_PASS
+SECRET_DB_DENIAL_PASS
+NO_RAW_COMMAND_PASS
+MODEL_TRUTH_SEPARATION_PASS
+ARTIFACT_PACK_PASS
+FINAL_REPORT_SCHEMA_PASS
+NO_REPO_MUTATION_PASS
+```
+
+### Next label
+
+```text
+08AP_YURI_NATIVE_DEEPSEEK_GUARDED_EXECUTOR_READ_SEARCH_CHECK_IMPL_P
+```
+
+---
+
+## 08AP — Readonly Yuri guarded executor implementation
+
+### Accepted result
+
+```text
+08AP_YURI_NATIVE_DEEPSEEK_GUARDED_EXECUTOR_READ_SEARCH_CHECK_IMPL_P_PASS
+commit: 22a950e44 feat(cli): add readonly Yuri guarded executor
+```
+
+### Files changed
+
+```text
+Scripts/yuri-guarded-executor.mjs
+Scripts/policy/yuri-guarded-executor.readonly.json
+```
+
+### Implemented capabilities
+
+```text
+Standalone built-in Node CLI.
+Accepts strict JSON via stdin or --request <file>.
+Supports --help, --selftest, --artifact-root.
+Loads readonly policy by default.
+Allows only READ_MANIFEST_FILE, SEARCH_MANIFEST_PATHS, RUN_ALLOWED_CHECK, SUMMARIZE_EVIDENCE, FINAL_REPORT.
+Denies writes, patches, stage, commit, delete, secret/DB reads, broad search, unlisted commands, MCP, subagents.
+Writes non-repo artifact packs.
+Keeps request/model output advisory separate from local evidence/truth.
+```
+
+### Validation passed
+
+```text
+node check
+help
+selftest
+PREFLIGHT_PASS
+MANIFEST_ONLY_PASS
+READ_WINDOW_CAP_PASS
+SEARCH_SCOPE_CAP_PASS
+CHECK_ENUM_ONLY_PASS
+SECRET_DB_DENIAL_PASS
+NO_RAW_COMMAND_PASS
+MODEL_TRUTH_SEPARATION_PASS
+ARTIFACT_PACK_PASS
+FINAL_REPORT_SCHEMA_PASS
+NO_REPO_MUTATION_PASS
+YURI_GUARDED_EXECUTOR_SELFTEST_PASS
+git diff --check
+target scope clean
+```
+
+### Non-claims
+
+```text
+No transport wiring.
+No DeepSeek call path.
+No offload integration.
+No MCP.
+No repo mutation from executor runtime.
+No model-truth trust.
+```
+
+---
+
+## 08AQ — Explicit request verification failure and policy mismatch
+
+The first explicit request verification failed closed.
+
+### Result
+
+```text
+08AQ explicit request: FAIL_CLOSED
+failure reason: manifest_path not allowed: Scripts/yuri-guarded-executor.mjs
+```
+
+### Interpretation
+
+This was a good failure. The executor rejected the request because the policy did not yet allow executor self-verification paths.
+
+No repo mutation occurred. Artifact pack was still present. The failure revealed a policy mismatch, not an executor safety failure.
+
+### Next label
+
+```text
+08AR_YURI_GUARDED_EXECUTOR_POLICY_SELF_VERIFY_REPAIR_X
+```
+
+---
+
+## 08AR — Policy self-verification repair
+
+### Accepted result
+
+```text
+08AR_YURI_GUARDED_EXECUTOR_POLICY_SELF_VERIFY_REPAIR_X_PASS_CLOSED
+commit: 18d76f1a4 fix(cli): allow guarded executor self-verification
+```
+
+### File changed
+
+```text
+Scripts/policy/yuri-guarded-executor.readonly.json
+```
+
+### Policy repair
+
+Added to `allowed_files`:
+
+```text
+Scripts/yuri-guarded-executor.mjs
+Scripts/policy/yuri-guarded-executor.readonly.json
+```
+
+Preserved:
+
+```text
+readonly/no-writes/no-patches/no-staging/no-commits/no-DB-reads
+```
+
+### Explicit request rerun
+
+Allowed actions executed:
+
+```text
+READ_MANIFEST_FILE
+SEARCH_MANIFEST_PATHS
+GIT_BRANCH_SHOW_CURRENT
+GIT_REV_PARSE_SHORT_HEAD
+GIT_DIFF_CACHED_NAME_ONLY
+WC_L_FILE
+SUMMARIZE_EVIDENCE
+FINAL_REPORT
+```
+
+Denied action count:
+
+```text
+1 for READ_DB
+```
+
+### Artifact dir
+
+```text
+/private/tmp/nudimmud-guarded-executor-runs/run-2026-05-03T13-35-30-203Z-ca0af3
+```
+
+### Validation
+
+```text
+policy JSON pass
+allowlist grep pass
+git diff --check pass
+explicit request completed
+required artifacts present
+verification.hard_stop=false
+final report result_label: PASS_WITH_DENIALS
+gpt_5_5_review_required: true
+post-commit staged clean
+```
+
+---
+
+## 08AS — DeepSeek-to-guarded-executor readonly handoff design
+
+### Accepted result
+
+```text
+08AS_DEEPSEEK_TO_GUARDED_EXECUTOR_READONLY_HANDOFF_P
+PASS_READONLY_DESIGN_READY
+```
+
+### Design decision
+
+```text
+Single-batch DeepSeek V4 Pro JSON proposal.
+Thin wrapper validates and sanitizes model output.
+Wrapper passes sanitized request into readonly guarded executor.
+DeepSeek output remains advisory.
+Local executor evidence remains truth.
+GPT-5.5 reviews artifact pack before widening.
+```
+
+### Transport recommendation
+
+Use:
+
+```text
+Scripts/offload-runner.mjs directly with lane deepseek-v4-pro
+```
+
+Avoid for first handoff:
+
+```text
+Scripts/offload.sh
+Scripts/ai
+NUDIMMUD REPL
+```
+
+Reason: avoid routing/log/interactive wrapper risk.
+
+### Next label
+
+```text
+08AT_DEEPSEEK_TO_GUARDED_EXECUTOR_JSON_BOUNDARY_IMPL_V1
+```
+
+---
+
+## 08AT — DeepSeek guarded handoff wrapper implementation
+
+### Accepted result
+
+```text
+08AT_DEEPSEEK_TO_GUARDED_EXECUTOR_JSON_BOUNDARY_IMPL_V1_PASS
+commit: 315d0091 feat(cli): add DeepSeek guarded executor handoff
+```
+
+### File changed
+
+```text
+Scripts/deepseek-guarded-handoff.mjs
+```
+
+### Implemented capabilities
+
+```text
+Built-in Node wrapper.
+Supports --help, --selftest, --dry-run.
+Builds strict DeepSeek prompt contract.
+Direct Scripts/offload-runner.mjs lane call for live mode.
+Captures raw stdout/stderr outside repo as advisory.
+Full-object JSON-only parse.
+Top-level field allowlist.
+Per-sprint manifest allowlist.
+Readonly action/check allowlists.
+Requires SUMMARIZE_EVIDENCE.
+Requires FINAL_REPORT last.
+Writes sanitized request temp file.
+Bridges into Scripts/yuri-guarded-executor.mjs.
+Executor artifacts remain local truth.
+```
+
+### Selftest passed
+
+```text
+HANDOFF_VALID_JSON_PASS
+HANDOFF_MARKDOWN_REJECT_PASS
+HANDOFF_PROSE_REJECT_PASS
+HANDOFF_UNKNOWN_FIELD_REJECT_PASS
+HANDOFF_FORBIDDEN_ACTION_REJECT_PASS
+HANDOFF_FORBIDDEN_PATH_REJECT_PASS
+HANDOFF_ACTION_CAP_REJECT_PASS
+HANDOFF_SUMMARY_REQUIRED_PASS
+HANDOFF_FINAL_REPORT_LAST_PASS
+HANDOFF_EXECUTOR_DRY_BRIDGE_PASS
+HANDOFF_SELFTEST_PASS
+```
+
+### Caveat
+
+Live DeepSeek smoke was skipped in Codex because of network/API access. The real model JSON contract was not yet verified at 08AT.
+
+---
+
+## 08AU — Live DeepSeek guarded handoff smoke
+
+### Codex attempt
+
+The live smoke from Codex failed due network/DNS/API access:
+
+```text
+08AU_DEEPSEEK_GUARDED_HANDOFF_LIVE_JSON_SMOKE_V_BLOCKED_NETWORK_OR_KEY
+error: getaddrinfo ENOTFOUND api.deepseek.com
+```
+
+This was classified as a Codex sandbox/network issue, not a wrapper or executor failure.
+
+### Normal Terminal retry
+
+Normal macOS Terminal resolved DNS:
+
+```text
+DNS_OK api.deepseek.com 3.173.21.63
+```
+
+Live wrapper output:
+
+```text
+result=HANDOFF_PASS
+```
+
+### Verified artifact paths from first successful live handoff
+
+```text
+wrapper_run_dir:
+/private/tmp/nudimmud-guarded-executor-runs/handoff-2026-05-03T13-54-58-038Z-f04210
+
+advisory_model_output:
+/private/tmp/nudimmud-guarded-executor-runs/handoff-2026-05-03T13-54-58-038Z-f04210/model_output.md
+
+sanitized_request:
+/private/tmp/nudimmud-guarded-executor-runs/handoff-2026-05-03T13-54-58-038Z-f04210/sanitized_request.json
+
+executor_final_report:
+/private/tmp/nudimmud-guarded-executor-runs/run-2026-05-03T13-55-30-346Z-4295fc/final_report.md
+```
+
+### Artifact acceptance
+
+Artifact existence passed for wrapper prompt/model output/sanitized request and executor request/model_output/actions/evidence/verification/final_report/meta.
+
+Sanitized request summary:
+
+```text
+protocol_version=1.0
+mode=readonly_read_search_check
+manifest_paths=[".claude/rules/nudimmud_operating_dna.md"]
+actions=SEARCH_MANIFEST_PATHS,RUN_ALLOWED_CHECK,RUN_ALLOWED_CHECK,RUN_ALLOWED_CHECK,SUMMARIZE_EVIDENCE,FINAL_REPORT
+final_report_last=true
+has_summary=true
+```
+
+Executor verification:
+
+```text
+hard_stop=false
+denied_action_count=0
+non_mutation_assertion=true
+policy_version=2026-05-03.readonly.v1
+```
+
+Final report markers:
+
+```text
+result_label: PASS
+gpt_5_5_review_required: true
+non-claims: no model/offload/MCP/repo writes/staging/commit from executor
+next gate: GPT-5.5 review before mutation lane
+```
+
+Repo postcheck:
+
+```text
+staged empty
+backend/data/nudimmud.db clean
+only backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal dirty
+```
+
+### Accepted closure
+
+```text
+08AU_DEEPSEEK_GUARDED_HANDOFF_LIVE_JSON_SMOKE_V_PASS_CLOSED
+```
+
+This was the first successful real DeepSeek V4 Pro → wrapper → readonly Yuri guarded executor loop.
+
+---
+
+## 08AV — Wrapper review packet/provenance polish
+
+### Accepted result
+
+```text
+08AV_DEEPSEEK_GUARDED_HANDOFF_WRAPPER_REPORT_POLISH_X_PASS_CLOSED
+commit: b16272493 fix(cli): add DeepSeek handoff review packet
+```
+
+### File changed
+
+```text
+Scripts/deepseek-guarded-handoff.mjs
+```
+
+### Improvement
+
+The wrapper now writes:
+
+```text
+wrapper_final_report.md
+wrapper_meta.json
+```
+
+The wrapper-level review packet separates:
+
+```text
+model advisory output
+wrapper sanitization
+executor-local evidence
+repo-mutation claims
+GPT-5.5 review gating
+```
+
+### Selftest added markers
+
+```text
+HANDOFF_WRAPPER_REPORT_PASS
+HANDOFF_WRAPPER_META_PASS
+HANDOFF_OBSERVATION_PHASE_PASS
+```
+
+### Live smoke after 08AV
+
+Normal Terminal live handoff passed:
+
+```text
+result=HANDOFF_PASS
+```
+
+Wrapper run dir:
+
+```text
+/private/tmp/nudimmud-guarded-executor-runs/handoff-2026-05-03T14-06-59-500Z-066b43
+```
+
+Executor final report:
+
+```text
+/private/tmp/nudimmud-guarded-executor-runs/run-2026-05-03T14-07-30-402Z-560bd3/final_report.md
+```
+
+### Wrapper packet inspection
+
+Wrapper packet exists with:
+
+```text
+wrapper_final_report.md
+wrapper_meta.json
+prompt/model/sanitized request artifacts
+executor final report/verification/actions artifacts
+```
+
+Wrapper meta summary:
+
+```text
+wrapper_version=1.0
+model_lane=deepseek-v4-pro
+json_contract_status=PASS
+handoff_status=HANDOFF_PASS
+observation_phase_status=ACTIVE
+gpt_5_5_review_required=true
+```
+
+Wrapper report markers:
+
+```text
+result_label=HANDOFF_PASS
+local_truth_boundary: executor artifacts are local truth; DeepSeek/model output is advisory only
+model_claims_policy: DeepSeek/model output is advisory only; executor-local evidence is required for truth
+non_claims: no writes/staging/commits/production/autonomous safety
+next_gate: GPT-5.5 review before widening beyond readonly
+```
+
+Executor final markers:
+
+```text
+result_label=PASS
+no additional local risks in readonly scope
+GPT-5.5 review before mutation lane
+```
+
+---
+
+## Observation/training phase policy
+
+The user explicitly directed that before adding write capabilities, the system must run several proper readonly runs for testing/training/observation.
+
+Policy established:
+
+```text
+No write capability yet.
+No write proposal mode yet unless explicitly approved after observation review.
+No patch application.
+No staging.
+No commit.
+Continue readonly observation and evaluate stability/trustworthiness.
+```
+
+DeepSeek should remain creative/outside-the-box, but creative deviations must be safety-gated.
+
+---
+
+## Readonly observation suite after 08AV
+
+### Observation root
+
+```text
+/private/tmp/nudimmud-guarded-executor-runs/observation-20260503T140910Z
+```
+
+### Tasks attempted
+
+```text
+operating-dna-policy-marker
+executor-policy-self-check
+wrapper-interface-check
+```
+
+### Observed outcomes
+
+At least:
+
+```text
+operating-dna-policy-marker: HANDOFF_PASS
+wrapper-interface-check: appeared to produce HANDOFF_PASS entries / insufficient complete evidence in later review
+executor-policy-self-check: FAIL_CLOSED_CONTRACT_DRIFT
+```
+
+### Contract drift
+
+One observation produced:
+
+```text
+Action 1 unknown field: offset
+```
+
+Interpretation:
+
+```text
+DeepSeek invented an unsupported field.
+Wrapper rejected/fail-closed.
+Malformed JSON did not reach executor.
+No repo mutation happened.
+This is a useful observation/training signal, not an unsafe failure.
+```
+
+---
+
+## User policy correction: DeepSeek should think outside the box
+
+The user stated that DeepSeek should always think outside the box. The system should not train DeepSeek into a rigid JSON parrot. Unexpected proposals should be treated as possible inventions, then safety-assessed.
+
+Accepted policy:
+
+```text
+DeepSeek is allowed to invent.
+Wrapper must fail closed against current runtime contract.
+Unexpected proposals become candidate inventions, not accepted runtime behavior.
+Anime-DNA safety/architecture assessment decides whether inventions are good.
+Good inventions may become future protocol proposals only after evidence, safety review, local executor compatibility, GPT-5.5 gate, and user approval.
+No write/stage/commit capability until DeepSeek proves stability and trustworthiness through observation and gate reviews.
+```
+
+---
+
+## 08AW — Observation review with Anime-DNA gate
+
+### Accepted result
+
+```text
+08AW_READONLY_DEEPSEEK_OBSERVATION_REVIEW_WITH_ANIME_DNA_P_PASS_MIXED_OBSERVATION
+```
+
+### Local preflight observed
+
+```text
+cwd: /Users/marcelspatz/NUDIMMUD
+branch: main
+HEAD: b16272493
+staged: empty
+target repo files clean
+backend/data/nudimmud.db clean
+only backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal dirty
+```
+
+### Observation classification
+
+```text
+operating-dna-policy-marker: HANDOFF_PASS
+wrapper-interface-check: INSUFFICIENT_EVIDENCE from shown output
+executor-policy-self-check: FAIL_CLOSED_CONTRACT_DRIFT
+```
+
+### Contract drift finding
+
+```text
+DeepSeek used offset instead of start_line/end_line.
+This was functionally a read-window invention.
+Wrapper rejected before executor execution.
+No executor artifact chain existed for the rejected handoff.
+No repo mutation happened.
+```
+
+### Invention assessment
+
+```text
+offset is not useless drift.
+offset is a plausible ergonomics proposal.
+Current status: candidate_protocol_extension, not accepted input.
+Risk: offset is ambiguous unless units and base are fixed.
+Safer future design would normalize to explicit start_line and end_line before executor handoff.
+Current judgment: observe more; do not widen runtime.
+```
+
+### Anime-DNA gate buckets
+
+```text
+reject_now
+observe_more
+prompt_contract_tighten
+wrapper_reporting_improve
+candidate_protocol_extension
+needs_gpt_5_5_gate
+needs_security_gate
+needs_tokenops_gate
+needs_executor_compatibility_test
+```
+
+### Gate rules
+
+```text
+No automatic acceptance.
+No runtime widening from model output alone.
+Local executor compatibility required.
+Prompt-injection risk check required.
+Token/cost impact check required.
+Artifact-backed evidence required.
+GPT-5.5 review required before protocol change.
+User approval required before any write capability.
+```
+
+### Readiness decision
+
+```text
+More readonly observations: yes.
+Write proposal mode without patch application: no.
+Patch application mode: no.
+Staging/commit mode: no.
+```
+
+### Next label
+
+```text
+08AX_READONLY_DEEPSEEK_INVENTION_GATE_STRICT_CONTRACT
+```
+
+---
+
+## 08AX — Invention gate and strict contract patch
+
+### Accepted result
+
+```text
+08AX_READONLY_DEEPSEEK_INVENTION_GATE_STRICT_CONTRACT_X_PASS
+commit: 025ba4c8f fix(cli): classify DeepSeek handoff inventions
+```
+
+### File changed
+
+```text
+Scripts/deepseek-guarded-handoff.mjs
+```
+
+### Contract update
+
+The DeepSeek prompt now says:
+
+```text
+READ_MANIFEST_FILE accepts start_line and end_line only.
+Do not use offset, limit, range, span, cursor, or other alternate read-window fields in actions.
+Unknown action fields are rejected before executor handoff.
+Schema improvement ideas must stay out of executable JSON unless wrapper support exists.
+```
+
+### Invention review update
+
+Wrapper reports/meta now include fields such as:
+
+```text
+innovation_review_status
+innovation_review_classification
+innovation_review_unknown_fields
+innovation_review_rejected_before_executor
+innovation_review_prompt_ambiguity_suspected
+innovation_review_candidate_protocol_extension
+innovation_review_safety_notes
+innovation_review_tokenops_notes
+innovation_review_executor_compatibility_required
+```
+
+Accepted handoffs with no drift now set:
+
+```text
+innovation_review_status: none_detected
+```
+
+Rejected drift such as `READ_MANIFEST_FILE.offset` is classified as:
+
+```text
+contract_drift_detected
+candidate_protocol_extension_not_accepted
+rejected before executor
+executor compatibility required
+```
+
+### Selftest additions
+
+```text
+HANDOFF_OFFSET_FIELD_REJECT_PASS
+HANDOFF_INVENTION_REVIEW_REPORT_PASS
+HANDOFF_INVENTION_REVIEW_META_PASS
+```
+
+Existing selftest markers still passed, including:
+
+```text
+HANDOFF_SELFTEST_PASS
+```
+
+### Dry-run
+
+Dry-run passed and reported:
+
+```text
+strict_read_window_contract=START_LINE_END_LINE_ONLY
+invention_review_reporting=ENABLED
+```
+
+### Live smoke
+
+Live smoke attempted once after local validation in Codex, but failed due Codex DNS/network:
+
+```text
+getaddrinfo ENOTFOUND api.deepseek.com
+```
+
+This is the known Codex sandbox/network issue. Normal Terminal should be used for live DeepSeek smoke.
+
+### Validation
+
+```text
+node --check passed
+--help passed
+--selftest passed
+--dry-run passed
+git diff --check passed
+post-commit staged empty
+```
+
+### Non-claims
+
+```text
+No mutation outside Scripts/deepseek-guarded-handoff.mjs.
+No change to executor, readonly policy, offload runner, DB file, boot/session config, memory, or RAG artifacts.
+No patch decisions made from live DeepSeek behavior.
+```
+
+### Risks/gaps
+
+```text
+Live DeepSeek transport remains unverified in Codex because DNS resolution for api.deepseek.com failed.
+Scoped post-commit status still shows pre-existing backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal drift.
+backend/data/nudimmud.db is clean.
+```
+
+### Next recommendation
+
+```text
+Run one tiny live smoke again only from an environment with working DNS resolution for api.deepseek.com if transport verification is still needed.
+```
+
+---
+
+## End-of-session latest accepted repo state
+
+Based on the final visible Codex report:
+
+```text
+branch: main
+HEAD: 025ba4c8f fix(cli): classify DeepSeek handoff inventions
+staged: empty after commit
+changed file in latest commit: Scripts/deepseek-guarded-handoff.mjs
+backend/data/nudimmud.db: clean
+unrelated dirty: backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal
+```
+
+---
+
+## Current capability status at end of session
+
+### Proven
+
+```text
+Readonly Yuri guarded executor exists and selftests.
+Readonly executor can run explicit JSON requests and deny DB reads.
+DeepSeek V4 Pro can produce valid JSON proposals in normal Terminal.
+Wrapper can strict-parse and sanitize DeepSeek output.
+Wrapper can pass sanitized JSON into readonly executor.
+Executor artifact pack can be verified.
+Wrapper review packet separates model provenance from local executor truth.
+Innovation/contract-drift reporting exists after 08AX.
+```
+
+### Not yet proven / not enabled
+
+```text
+No write capability.
+No patch application capability.
+No staging capability.
+No commit capability through DeepSeek or executor.
+No arbitrary shell.
+No MCP.
+No subagents.
+No package alias.
+No NUDIMMUD REPL integration.
+No production/full-readiness claim.
+No autonomous safety claim.
+```
+
+### Current readiness
+
+```text
+Ready for more readonly observation runs.
+Not ready for write proposal mode.
+Not ready for patch application mode.
+Not ready for staging/commit mode.
+```
+
+---
+
+## Recommended next session direction
+
+Open a fresh GPT web session using the fresh handoff file. Continue with:
+
+```text
+Run one normal Terminal live smoke after 08AX, if DeepSeek DNS/API is available.
+Inspect wrapper_final_report.md and wrapper_meta.json for innovation_review fields.
+Run additional readonly observation tasks.
+Classify DeepSeek JSON discipline and invention behavior.
+Only after multiple stable readonly observations should write-proposal-only mode be planned.
+```
