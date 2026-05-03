@@ -123,6 +123,11 @@ Codex CLI is a platform, not a model. Route work by cost and risk, not by the CL
 - Prefer local scripts plus DeepSeek V4 Flash/Pro compact review for archive/research reasoning.
 - Avoid Codex subagent fan-out for cheap archive/research tasks.
 - Avoid MCP startup/discovery unless explicitly needed.
+- Gemini 3.1 Pro is useful for no-shell/no-local-truth audits sourced from embedded reports.
+- Do not treat Gemini as local repo truth unless a separate tool-capability sprint proves the exact tool surface.
+- For no-tool audits, put this hard stop on the first line of the prompt: `If you are about to use any tool, stop and answer TOOL_POLICY_VIOLATION.`
+- If Gemini uses a forbidden tool anyway, treat the audit as supportive only, not clean protocol-compliant evidence.
+- Direct shell/local script evidence remains authority for local truth.
 
 ---
 
