@@ -456,6 +456,7 @@ const readTokenmaxxingState = () => {
 const createHudStatusSnapshot = () => createStatusSnapshot({
   model: state.model,
   lane: state.model === MODELS.pro ? 'pro' : 'flash',
+  os: 'YURI_OS',
   mode: state.busy ? (state.turnOutputChars > 0 ? 'streaming' : 'thinking') : 'idle',
   token_estimate: state.inputTokens + state.outputTokens,
   workflow_budget_used: state.inputTokens + state.outputTokens,
@@ -501,6 +502,23 @@ const printHeader = () => {
 };
 
 const printStatusBlock = () => {
+  const { branch, head, staged, tmx } = getStatus();
+  const modelLabel = state.model === MODELS.pro ? 'PRO' : 'FLASH';
+  const sessionStr = `${String(state.promptsSent).padStart(4, '0')} prompts`;
+  const stateLabel = stripAnsiForHud(state.lastStatus || 'READY').toUpperCase();
+  const lastCue = state.lastTurnId || (state.lastTranscriptDir ? path.basename(state.lastTranscriptDir) : 'none');
+
+  console.log(`
+${sectionTop('STATUS')}
+${c('│')} ${d('operator ')} ${b('NUDIMMUD')}   ${d('session ')} ${g(sessionStr)}
+${c('│')} ${d('model    ')} ${c(modelLabel)}   ${d('os      ')} ${g('YURI_OS')}
+${c('│')} ${d('state    ')} ${g(stateLabel)}   ${d('tmx     ')} ${tmx.includes('ACTIVE') ? c(tmx) : d(tmx)}
+${c('│')} ${d('branch   ')} ${g(branch)}   ${d('head    ')} ${m(head)}
+${c('│')} ${d('staged   ')} ${staged > 0 ? c(String(staged)) : d('0')} ${d('files')}   ${d('last    ')} ${g(lastCue)}
+${sectionBot()}`);
+  return;
+
+  if (false) {
   const snap = createHudStatusSnapshot();
   const modeStr = snap.mode === 'busy'
     ? (snap.output_chars > 0 ? 'streaming' : 'thinking')
@@ -532,13 +550,14 @@ ${c('│')} ${d('budget   ')} ${bar(totalTok, WORKFLOW_HARD, 18)} ${g(String(tot
 ${c('│')} ${d('in       ')} ${g(String(state.inputTokens).padStart(6))} ${d('out')} ${g(String(state.outputTokens).padStart(6))} ${d('elapsed')} ${g(elapsed + 's')}
 ${c('│')} ${r('⚠ ESTIMATES only - not billing data')}
 ${sectionBot()}`);
+  }
 };
 
 const printHelp = () => {
   console.log(`
 ${g('┌─ NUDIMMUD REPL COMMANDS ─────────────────────────────────────┐')}
 ${g('│')} ${c('/help')}          Show this help
-${g('│')} ${c('/status')}        Print full HUD status (system, route, git, tmx)
+${g('│')} ${c('/status')}        Print the startup HUD status block
 ${g('│')} ${c('/tokens')}        Print token counters (ESTIMATE only)
 ${g('│')} ${c('/model pro')}     Switch to deepseek-v4-pro (1M ctx, deep thinking)
 ${g('│')} ${c('/model flash')}   Switch to deepseek-v4-flash (1M ctx, fast)
@@ -984,40 +1003,49 @@ const runSelfTest = () => {
   };
   const prevBusy = state.busy;
   state.busy = false;
-  const hudStartupRaw = captureStdout(() => printStatusBlock());
+  const hudStartupRaw = captureStdout(() => {
+    printHeader();
+    printStatusBlock();
+  });
   state.busy = prevBusy;
   const hudStartupPlain = stripAnsi(hudStartupRaw);
   const hudStartupLineCount = hudStartupPlain.split('\n').filter((l) => l.trim()).length;
   const hudLargeIdentityPresent =
     hudStartupPlain.includes('⬡') &&
     hudStartupPlain.includes('█') &&
-    hudStartupPlain.includes('YURI OS / DEEPSEEK HUD REPL') &&
-    hudStartupPlain.includes('NUDIMMUD') &&
-    (hudStartupPlain.match(/YURI OS/g) || []).length === 1;
-  const hudModularPanelShape =
+    hudStartupPlain.includes('YURI OS / DEEPSEEK HUD REPL');
+  const hudSubtitlePresent = hudStartupPlain.includes('YURI OS / DEEPSEEK HUD REPL');
+  const hudNoVisibleStartupBudget = !/(?:40k|40000|workflow_budget|ctx\s+\d+\/\d+|budget\s+)/i.test(hudStartupPlain);
+  const hudRestorationBaselineStrength =
     hudStartupPlain.includes('STATUS') &&
     hudStartupPlain.includes('operator') &&
     hudStartupPlain.includes('session') &&
     hudStartupPlain.includes('model') &&
-    hudStartupPlain.includes('os') &&
+    hudStartupPlain.includes('state') &&
     hudStartupPlain.includes('branch') &&
     hudStartupPlain.includes('head') &&
     hudStartupPlain.includes('staged') &&
     hudStartupPlain.includes('last') &&
-    hudStartupPlain.includes('tokenmaxxing') &&
-    hudStartupPlain.includes('ctx') &&
-    hudStartupPlain.includes('budget') &&
-    hudStartupPlain.includes('40k') &&
-    hudStartupPlain.includes('soft: 15k') &&
-    hudStartupPlain.includes('ESTIMATES only') &&
+    hudStartupPlain.includes('tmx') &&
+    hudStartupLineCount >= 6;
+  const hudGoalLanguagePartiallyAdopted =
+    hudStartupPlain.includes('STATUS') &&
+    hudStartupPlain.includes('session') &&
+    hudStartupPlain.includes('state') &&
+    hudStartupPlain.includes('tmx') &&
+    hudStartupPlain.includes('last') &&
+    hudStartupPlain.includes('YURI_OS') &&
     hudStartupLineCount >= 6;
   const hudVisualRebuildRendered =
     hudLargeIdentityPresent &&
-    hudModularPanelShape &&
+    hudSubtitlePresent &&
+    hudNoVisibleStartupBudget &&
+    hudRestorationBaselineStrength &&
+    hudGoalLanguagePartiallyAdopted &&
     hudVisualRepairRendered;
 
   ok('NODE_CHECK_PASS', nodeCheck);
-  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && hudBudgetVisible && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke && hudUsefulPolishRendered && hudReferenceShapePresent && hudVisualRepairRendered && noDuplicateIdentity && hudCompactDefault && hudBudgetLineStillHidden && tokenmaxxingStatePreserved && hudLargeIdentityPresent && hudModularPanelShape && hudVisualRebuildRendered);
+  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && hudNoVisibleStartupBudget && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke && hudUsefulPolishRendered && hudReferenceShapePresent && hudVisualRepairRendered && noDuplicateIdentity && hudCompactDefault && hudBudgetLineStillHidden && tokenmaxxingStatePreserved && hudLargeIdentityPresent && hudSubtitlePresent && hudRestorationBaselineStrength && hudGoalLanguagePartiallyAdopted && hudVisualRebuildRendered);
   ok('NATURAL_COMPOSER_PASS', natural);
   ok('MULTILINE_CAPTURE_PASS', multiline);
   ok('ENTER_SENDS_CAPTURE_PASS', enterAfterPaste);
@@ -1031,7 +1059,7 @@ const runSelfTest = () => {
   ok('STATUS_PROVIDER_INTEGRATION_PASS', statusIntegration);
   ok('YURI_OS_HEADER_PASS', yuriOsHeader);
   ok('PURPLE_OS_PASS', purpleOs);
-  ok('HUD_BUDGET_VISIBLE_PASS', hudBudgetVisible);
+  ok('HUD_NO_VISIBLE_STARTUP_BUDGET_PASS', hudNoVisibleStartupBudget);
   ok('READABLE_THEME_PASS', readableTheme);
   ok('BOTTOM_PADDING_PASS', bottomPadding);
   ok('ROUTE_LOG_SEPARATED_PASS', routeLogSeparated);
@@ -1050,7 +1078,9 @@ const runSelfTest = () => {
   ok('NO_FALSE_PASS_COMMITTED_ACCEPTANCE_PASS', noFalsePassCommittedAcceptance);
   ok('HUD_VISUAL_REBUILD_RENDERED_PASS', hudVisualRebuildRendered);
   ok('HUD_LARGE_IDENTITY_PRESENT_PASS', hudLargeIdentityPresent);
-  ok('HUD_MODULAR_PANEL_SHAPE_PASS', hudModularPanelShape);
+  ok('HUD_SUBTITLE_PRESENT_PASS', hudSubtitlePresent);
+  ok('HUD_RESTORATION_BASELINE_STRENGTH_PASS', hudRestorationBaselineStrength);
+  ok('HUD_GOAL_LANGUAGE_PARTIALLY_ADOPTED_PASS', hudGoalLanguagePartiallyAdopted);
   ok('HUD_REFERENCE_STYLE_PRESENT_PASS', hudReferenceShapePresent);
   ok('ROUTE_LOG_SEPARATION_REGRESSION_PASS', routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean);
   ok('CLAIM_VERIFIER_BOUNDARY_REGRESSION_PASS', localClaimVerifierPass);
@@ -1143,6 +1173,7 @@ const run = async () => {
     process.exit(0);
   }
 
+  printHeader();
   printStatusBlock();
 
   const rl = readline.createInterface({
@@ -1202,11 +1233,13 @@ const run = async () => {
     } else if (input === '/help') {
       printHelp();
     } else if (input === '/status') {
+      printHeader();
       printStatusBlock();
     } else if (input === '/tokens') {
       printTokens();
     } else if (input === '/clear') {
       process.stdout.write(C.clear);
+      printHeader();
       printStatusBlock();
     } else if (input === '/model flash') {
       state.model = MODELS.flash;

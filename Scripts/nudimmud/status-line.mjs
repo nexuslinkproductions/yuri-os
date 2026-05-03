@@ -66,18 +66,21 @@ function renderStatusParts(state, { forceBusy = false } = {}) {
   parts.push(`state ${mode}`);
   if (state.model) parts.push(`model ${state.model}`);
   if (state.lane) parts.push(`route ${state.lane}`);
+  if (state.os) parts.push(`os ${state.os}`);
+  if (state.phase) parts.push(`phase ${state.phase}`);
 
-  const showProgress = mode === 'thinking' || mode === 'streaming';
-  if (showProgress && Number.isInteger(state.elapsed_seconds) && state.elapsed_seconds > 0) {
-    parts.push(`elapsed ${state.elapsed_seconds}s`);
-  }
+  if (forceBusy) {
+    if (Number.isInteger(state.elapsed_seconds) && state.elapsed_seconds > 0) {
+      parts.push(`elapsed ${state.elapsed_seconds}s`);
+    }
 
-  if (showProgress && Number.isInteger(state.output_chars) && state.output_chars >= 0) {
-    parts.push(`output ${state.output_chars} chars`);
-  }
+    if (Number.isInteger(state.output_chars) && state.output_chars >= 0) {
+      parts.push(`output ${state.output_chars} chars`);
+    }
 
-  if (showProgress && state.output_chars === 0 && state.no_output_hint) {
-    parts.push(state.no_output_hint);
+    if (state.output_chars === 0 && state.no_output_hint) {
+      parts.push(state.no_output_hint);
+    }
   }
 
   const tmx = toTokenmaxxingLabel(state.tokenmaxxing_state);
@@ -141,6 +144,7 @@ export function createStatusSnapshot(input = {}) {
     turn_id: toStringOrEmpty(input.turn_id),
     model: toStringOrEmpty(input.model),
     lane: toStringOrEmpty(input.lane),
+    os: toStringOrEmpty(input.os),
     phase: toStringOrEmpty(input.phase),
     mode: toMode(input.mode),
     token_estimate: tokenEstimate,
@@ -183,7 +187,7 @@ export function validateStatusSnapshot(snapshot) {
     return { ok: false, issues: ['snapshot must be a plain object'] };
   }
 
-  for (const key of ['run_id', 'turn_id', 'model', 'lane', 'phase', 'mode', 'tokenmaxxing_state', 'last_turn_id', 'last_transcript_path', 'last_chunk_hint', 'no_output_hint']) {
+  for (const key of ['run_id', 'turn_id', 'model', 'lane', 'os', 'phase', 'mode', 'tokenmaxxing_state', 'last_turn_id', 'last_transcript_path', 'last_chunk_hint', 'no_output_hint']) {
     if (typeof snapshot[key] !== 'string') {
       issues.push(`${key} must be a string`);
     }
