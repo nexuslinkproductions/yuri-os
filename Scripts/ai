@@ -959,7 +959,7 @@ case "${1:-help}" in
         "$_started" "$_ended" >"$_meta_file"
 
       _total_bytes=$(( _total_bytes + _written_bytes ))
-      _lanes_summary="${_lanes_summary}{\"lane\":\"${_lane}\",\"status\":\"${_lane_status}\",\"exit_code\":${_lane_exit},\"stdout_bytes\":${_written_bytes},\"cap\":\"${_cap_marker}\"},"
+      _lanes_summary="${_lanes_summary}{\"lane\":\"${_lane}\",\"lane_id\":\"${_lane}\",\"status\":\"${_lane_status}\",\"exit_code\":${_lane_exit},\"stdout_bytes\":${_written_bytes},\"stdout_lines\":${_written_lines},\"cap\":\"${_cap_marker}\",\"stdout_cap_marker\":\"${_cap_marker}\"},"
 
       rm -f "$_stdout_raw"
     done
@@ -968,9 +968,9 @@ case "${1:-help}" in
     _lanes_summary="[${_lanes_summary%,}]"
 
     # Write summary.json
-    printf '{"run_id":"%s","route":"@deepseek-workhorse","artifact_root":"%s","prompt_sha256":"%s","lanes":%s,"total_bytes":%s,"all_lanes_ok":%s,"advisory_label":"ADVISORY_WORKHORSE_OUTPUT","local_truth_disclaimer":"NOT_LOCAL_TRUTH — bundle is advisory only; not executor truth","user_approval_required":true,"proposal_validation_status":null,"non_claims":["no write capability","no patch application","no guarded executor widening","no staging/commit through DeepSeek"]}\n' \
+    printf '{"run_id":"%s","route":"@deepseek-workhorse","artifact_root":"%s","prompt_sha256":"%s","lanes":%s,"total_stdout_bytes":%s,"total_bytes":%s,"all_lanes_ok":%s,"advisory_label":"ADVISORY_WORKHORSE_OUTPUT","local_truth_disclaimer":"NOT_LOCAL_TRUTH — bundle is advisory only; not executor truth","user_approval_required":true,"proposal_validation_status":null,"non_claims":["no write capability","no patch application","no guarded executor widening","no staging/commit through DeepSeek"]}\n' \
       "$_run_id" "$_artifact_root" "$_prompt_sha256" "$_lanes_summary" \
-      "$_total_bytes" "$_all_ok" >"$_run_dir/summary.json"
+      "$_total_bytes" "$_total_bytes" "$_all_ok" >"$_run_dir/summary.json"
 
     printf 'WORKHORSE_BUNDLE_RUN=%s\n' "$_run_dir"
     printf 'WORKHORSE_BUNDLE_SUMMARY=%s\n' "$_run_dir/summary.json"
