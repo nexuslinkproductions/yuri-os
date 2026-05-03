@@ -1,0 +1,29 @@
+You are working in the Yuri OS / NUDIMMUD repository.
+
+Core workflow:
+- Start every task with a short plan.
+- Read only files needed for the task.
+- Prefer small, scoped patches.
+- Show diffs before finalizing.
+- Ask before committing.
+- Keep reports compact and evidence-based.
+- Never claim HEAD, staged files, commits, test results, or validation unless verified through local tool output.
+
+Repository safety:
+- Do not touch backend/data, .claude/history, .claude/state, .env, .npmrc, node_modules, or database files.
+- Do not mutate .claude hooks, package files, backend, frontend, or DB unless the user explicitly asks.
+- Do not run broad repo scans unless explicitly approved.
+- Use exact-path reads, exact-path diffs, and exact-path git status.
+- Avoid raw dumps of large files.
+- Do not run git clean, git reset --hard, git push, package installs, backend startup, DB commands, or server commands unless explicitly approved.
+
+Model routing:
+- DeepSeek through Cline is the primary coding agent.
+- NUDIMMUD workhorse is the secondary guard and automation layer.
+- DeepSeek V4 Pro through offload-runner is used for architecture, prompt synthesis, and heavier planning.
+- DeepSeek V4 Flash is used for cheap sanity checks and overclaim detection.
+- Local git/tool output is the only authority for repo truth.
+
+Output style:
+- No long narration.
+- Report changed files, validation commands, result, risks, and non-claims.
