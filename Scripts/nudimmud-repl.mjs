@@ -62,6 +62,7 @@ const m  = (s) => `${C.gray}${s}${C.reset}`;
 const c  = (s) => `${C.green}${s}${C.reset}`;
 const p  = (s) => `${C.purple}${s}${C.reset}`;
 const b  = (s) => `${C.bold}${C.white}${s}${C.reset}`;
+const stripAnsiForHud = (s) => String(s).replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const state = {
@@ -130,6 +131,29 @@ const renderBannerSegments = (segments) => {
   }
   return rows.join('\n');
 };
+
+const OUTLINE_BANNER = [
+  '███╗   ██╗██╗   ██╗██████╗ ██╗███╗   ███╗███╗   ███╗██╗   ██╗██████╗ ',
+  '████╗  ██║██║   ██║██╔══██╗██║████╗ ████║████╗ ████║██║   ██║██╔══██╗',
+  '██╔██╗ ██║██║   ██║██║  ██║██║██╔████╔██║██╔████╔██║██║   ██║██║  ██║',
+  '██║╚██╗██║██║   ██║██║  ██║██║██║╚██╔╝██║██║╚██╔╝██║██║   ██║██║  ██║',
+  '██║ ╚████║╚██████╔╝██████╔╝██║██║ ╚═╝ ██║██║ ╚═╝ ██║╚██████╔╝██████╔╝',
+  '╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ',
+];
+
+const renderOutlineBanner = () =>
+  OUTLINE_BANNER.map((row, index) => {
+    const color = index === OUTLINE_BANNER.length - 1 ? C.matrix : C.green;
+    return `${C.bold}${color}${row}${C.reset}`;
+  }).join('\n');
+
+const renderHudMark = () => [
+  `      ${c('╷')}`,
+  `   ${c('╲')} ${c('│')} ${c('╱')}`,
+  `${c('╶──')} ${c('⬡')} ${c('──╴')}`,
+  `   ${c('╱')} ${c('│')} ${c('╲')}`,
+  `      ${c('╵')}`,
+].join('\n');
 
 // ── Turn ID ───────────────────────────────────────────────────────────────────
 const makeTurnId = () => {
@@ -467,8 +491,8 @@ const outputBanner = (label, extra = '') => {
 
 // ── ASCII header ──────────────────────────────────────────────────────────────
 const HEADER = `
-${c('⬡')}
-${renderBanner('NUDIMMUD', C.green)}
+${renderHudMark()}
+${renderOutlineBanner()}
 ${p('YURI OS')} ${d('/')} ${c('DEEPSEEK HUD REPL')}`;
 
 const printHeader = () => {
@@ -481,21 +505,32 @@ const printStatusBlock = () => {
   const modeStr = snap.mode === 'busy'
     ? (snap.output_chars > 0 ? 'streaming' : 'thinking')
     : snap.mode;
-  const rawTmx = (snap.tokenmaxxing_state || '').trim();
-  const tmxStr = !rawTmx || /inactive/i.test(rawTmx) ? d('─')
-    : /active/i.test(rawTmx) ? c('active') : g(rawTmx.toLowerCase());
+  const { branch, head, staged, tmx } = getStatus();
+  const totalTok = state.inputTokens + state.outputTokens;
+  const elapsed = Math.round((Date.now() - state.startTime) / 1000);
+  const modelLabel = state.model === MODELS.pro ? 'PRO' : 'FLASH';
   const sessionStr = `${String(state.promptsSent).padStart(4, '0')} prompts`;
-  const routeStr = snap.lane || (state.model === MODELS.pro ? 'pro' : 'flash');
-  const vsStr = getStatus().head;
-  const osStr = os.platform();
+  const lastStr = stripAnsiForHud(state.lastStatus || modeStr).toUpperCase();
+  const bar = (used, cap, width = 20) => {
+    const filled = Math.min(Math.round((used / cap) * width), width);
+    const empty = width - filled;
+    const color = filled > width * 0.8 ? C.red : C.green;
+    return `${color}${'█'.repeat(filled)}${C.gray}${'░'.repeat(empty)}${C.reset}`;
+  };
 
   printHeader();
   console.log(`
 ${sectionTop('STATUS')}
 ${c('│')} ${d('operator ')} ${b('NUDIMMUD')}   ${d('session ')} ${g(sessionStr)}
-${c('│')} ${d('model    ')} ${g(snap.model || state.model)}   ${d('route   ')} ${g(routeStr)}
-${c('│')} ${d('os       ')} ${g(osStr)}   ${d('vs      ')} ${m(vsStr)}
-${c('│')} ${d('state    ')} ${g(modeStr.toUpperCase())}   ${d('tmx     ')} ${tmxStr}
+${c('│')} ${d('model    ')} ${c(modelLabel)}   ${d('os      ')} ${g('YURI_OS')}
+${c('│')} ${d('branch   ')} ${g(branch)}   ${d('head    ')} ${m(head)}
+${c('│')} ${d('staged   ')} ${staged > 0 ? c(String(staged)) : d('0')} ${d('files')}   ${d('last    ')} ${g(lastStr)}
+${c('│')} ${d('tokenmaxxing ')} ${tmx.includes('ACTIVE') ? c(tmx) : d(tmx)}
+${c('│')}
+${c('│')} ${d('ctx      ')} ${bar(totalTok, CTX_WINDOW, 18)} ${g(String(totalTok))} ${d('/')} ${m('1,000k')}
+${c('│')} ${d('budget   ')} ${bar(totalTok, WORKFLOW_HARD, 18)} ${g(String(totalTok))} ${d('/')} ${m('40k')} ${d('(soft: 15k)')}
+${c('│')} ${d('in       ')} ${g(String(state.inputTokens).padStart(6))} ${d('out')} ${g(String(state.outputTokens).padStart(6))} ${d('elapsed')} ${g(elapsed + 's')}
+${c('│')} ${r('⚠ ESTIMATES only - not billing data')}
 ${sectionBot()}`);
 };
 
@@ -791,7 +826,7 @@ const runSelfTest = () => {
     plainHeader.includes('YURI OS / DEEPSEEK HUD REPL') &&
     plainHeader.includes('█');
   const purpleOs = HEADER.includes(C.purple);
-  const noHud40kBudget = !/40k|40000/.test(`${printStatusBlock}\n${printHudFooter}`);
+  const hudBudgetVisible = /40k/.test(`${printStatusBlock}`) && /soft: 15k/.test(`${printStatusBlock}`);
   const readableTheme = d('x') === `${C.gray}x${C.reset}` && c('x') === `${C.green}x${C.reset}` && !d('x').includes(C.dim);
   const bottomPadding = renderNormalPrompt.toString().includes('promptPadding') && printCompactSavedLine.toString().includes('promptPadding');
   const syntheticMixedOutput = [
@@ -919,8 +954,7 @@ const runSelfTest = () => {
   const hudVisualRepairRendered = yuriOsHeader &&
     noDuplicateIdentity &&
     hudCompactDefault &&
-    normalPromptCycle.split('\n').length === 2 &&
-    !/40k|40000|workflow budget/i.test(normalPromptCycle);
+    normalPromptCycle.split('\n').length === 2;
   const hudUsefulPolishRendered = hudBusyThinking.includes('state thinking') &&
     hudBusyThinking.includes('elapsed 9s') &&
     hudBusyThinking.includes('output 0 chars') &&
@@ -965,20 +999,25 @@ const runSelfTest = () => {
     hudStartupPlain.includes('operator') &&
     hudStartupPlain.includes('session') &&
     hudStartupPlain.includes('model') &&
-    hudStartupPlain.includes('route') &&
     hudStartupPlain.includes('os') &&
-    hudStartupPlain.includes('vs') &&
-    hudStartupPlain.includes('state') &&
-    hudStartupPlain.includes('tmx') &&
+    hudStartupPlain.includes('branch') &&
+    hudStartupPlain.includes('head') &&
+    hudStartupPlain.includes('staged') &&
+    hudStartupPlain.includes('last') &&
+    hudStartupPlain.includes('tokenmaxxing') &&
+    hudStartupPlain.includes('ctx') &&
+    hudStartupPlain.includes('budget') &&
+    hudStartupPlain.includes('40k') &&
+    hudStartupPlain.includes('soft: 15k') &&
+    hudStartupPlain.includes('ESTIMATES only') &&
     hudStartupLineCount >= 6;
   const hudVisualRebuildRendered =
     hudLargeIdentityPresent &&
     hudModularPanelShape &&
-    !hudStartupPlain.match(/40k|40000|workflow budget/i) &&
     hudVisualRepairRendered;
 
   ok('NODE_CHECK_PASS', nodeCheck);
-  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && noHud40kBudget && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke && hudUsefulPolishRendered && hudReferenceShapePresent && hudVisualRepairRendered && noDuplicateIdentity && hudCompactDefault && hudBudgetLineStillHidden && tokenmaxxingStatePreserved && hudLargeIdentityPresent && hudModularPanelShape && hudVisualRebuildRendered);
+  ok('SELFTEST_PASS', nodeCheck && natural && multiline && longPaste && enterAfterPaste && autoSendPaste && noDuplicateMultilinePrompt && escCancels && statusIntegration && quietTurnEnd && yuriOsHeader && purpleOs && hudBudgetVisible && readableTheme && bottomPadding && routeLogSeparated && modelOutputClean && routeMetadataCaptured && outputMdClean && composer08oRegression && localClaimVerifierPass && fakeCommitClaimDowngraded && noFalsePassCommittedAcceptance && claimVerifierArtifactSmoke && hudUsefulPolishRendered && hudReferenceShapePresent && hudVisualRepairRendered && noDuplicateIdentity && hudCompactDefault && hudBudgetLineStillHidden && tokenmaxxingStatePreserved && hudLargeIdentityPresent && hudModularPanelShape && hudVisualRebuildRendered);
   ok('NATURAL_COMPOSER_PASS', natural);
   ok('MULTILINE_CAPTURE_PASS', multiline);
   ok('ENTER_SENDS_CAPTURE_PASS', enterAfterPaste);
@@ -992,7 +1031,7 @@ const runSelfTest = () => {
   ok('STATUS_PROVIDER_INTEGRATION_PASS', statusIntegration);
   ok('YURI_OS_HEADER_PASS', yuriOsHeader);
   ok('PURPLE_OS_PASS', purpleOs);
-  ok('NO_HUD_40K_BUDGET_PASS', noHud40kBudget);
+  ok('HUD_BUDGET_VISIBLE_PASS', hudBudgetVisible);
   ok('READABLE_THEME_PASS', readableTheme);
   ok('BOTTOM_PADDING_PASS', bottomPadding);
   ok('ROUTE_LOG_SEPARATED_PASS', routeLogSeparated);
