@@ -32,6 +32,7 @@ graphify-out/
 # Large vendor / research corpora (not source knowledge)
 RESEARCH/ORACLE-CORPUS/
 RESEARCH/ruflo/
+_SYSTEM/research-archive/openclaw-source/
 01_PROJECTS/claude-cookbooks/
 01_PROJECTS/claude-mem/
 01_PROJECTS/gstack/
