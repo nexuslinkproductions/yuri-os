@@ -1,5 +1,12 @@
 # Yuri OS / NUDIMMUD Session Start Guard
 
+## INHERIT
+INHERIT: ../CLAUDE.md
+
+This file is a secondary extension layer for local Claude tooling behavior.
+If any instruction here conflicts with `../CLAUDE.md` or `../CORE_PROTOCOL.md`, the higher file prevails.
+
+
 Canonical repository root:
 
 - `/Users/marcelspatz/NUDIMMUD`
@@ -26,6 +33,8 @@ If either check fails:
 Do not treat `/Users/marcelspatz` as the Yuri OS / NUDIMMUD repository root.
 Do not run Yuri OS / NUDIMMUD sprint work from `master`.
 
+INHERIT: _SYSTEM/yuri-origin.md
+
 ---
 
 # Yuri OS — Session Boot
@@ -43,6 +52,14 @@ When starting with `npm run yuri`, the session automatically loads:
 # graphify
 - **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
 When the user types `/graphify`, invoke the Skill tool with `skill: "graphify"` before doing anything else.
+
+## Protected Surfaces
+
+The following paths must never be mutated by any agent, tool, or automated process unless explicitly authorized by the owner for a specific named operation:
+- `backend/data/` — database files, model catalogs, and runtime state
+- `.claude/state/` — session state, token tracking, deployment progress
+- `.claude/history/` — session history logs
+- `.env` — API keys and provider credentials
 
 ## CAVEMAN_PROTOCOL
 - **Status:** Active by default.
@@ -139,6 +156,12 @@ Yes: "Changes global model default for all sessions; requires explicit user appr
 This ensures session handoff is clear and future readers understand the decision boundary.
 
 ---
+
+## Protected Surfaces
+
+Protected surfaces are inherited from `../CLAUDE.md`.
+
+This file may add stricter local protections, but it must not relax, bypass, or reinterpret repository-level protected-surface rules.
 
 ## END OF TRANSMISSION (Global Session-Close Command — Full Auto)
 

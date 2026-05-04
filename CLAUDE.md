@@ -1,151 +1,56 @@
 # NUDIMMUD Operational Protocol
 
-## Core Principles
+INHERIT: ./CORE_PROTOCOL.md
+INHERIT: _SYSTEM/yuri-origin.md
 
-### Skills-First Workflow
+> **Supplementary reference:** `CORE_PROTOCOL.md` — additional domain-specific operational rules for the NUDIMMUD pantheon beyond the origin contract.
 
-**EVERY user request follows this sequence:**
-Request → Load Skills → Gather Context → Execute
+## Protected Surfaces
 
-Skills contain critical workflows and protocols not in base context. Loading them first prevents missing key instructions.
+The following paths must never be mutated by any agent, tool, or automated process unless explicitly authorized by the owner for a specific named operation:
+- `backend/data/` — database files, model catalogs, and runtime state
+- `.claude/state/` — session state, token tracking, deployment progress
+- `.claude/history/` — session history logs
+- `.env` — API keys and provider credentials
 
-### Direct Feedback Protocol
+## Mutation Contract
 
-- Tell the truth before protecting momentum.
-- Challenge weak assumptions early, especially around architecture, safety, and design quality.
-- Name risks, regressions, hidden costs, and incomplete reasoning directly.
-- Do not flatter, mirror, or agree by default. Agreement must be earned by evidence.
-- When confidence is limited, say so clearly and explain what is uncertain.
+- No auto-commit without explicit owner approval
+- No silent escalation of scope — if a change expands beyond the stated task, flag it before proceeding
+- Scope writes to the exact files named in the task — do not drift into adjacent files
+- No broad `git add -A` or `git add .` — use exact-path staging only
 
-### Skill Trust Gate
+## Output Contract
 
-- Treat every skill, plugin, or external install as untrusted until reviewed.
-- Prefer official orgs, known maintainers, and packages with clear adoption signals.
-- Read the local `SKILL.md` before use. Understand scope, side effects, and command surface.
-- Keep third-party installs explicit. Documentation may recommend them; the system must not auto-install them silently.
-- If provenance is weak, route to manual review instead of normal execution.
+- Compact reports with evidence markers. No raw dumps of large files.
+- Use `⬡ ` prefix for system events, errors, and state transitions.
+- Mark passes with `PASS` and failures with `FAIL` — no narrative fluff around results.
 
+## Authority Hierarchy
 
-### The "Aversion Memory" Protocol
+Authority order for this repository:
 
-**When Context Rots**:
-- **New Task?** Start a fresh session (`/clear`).
-- **Wrong Branch?** DO NOT just `/rewind`. Before rewinding a failed branch, spawn a NOESIS sub-agent to extract the reason for failure and write it to an `Aversion Memory` node. The swarm must permanently learn from dead ends.
-- **Phase Change?** Use `/compact` with a specific hint about what must survive before the model guesses wrong.
+1. `./CORE_PROTOCOL.md`
+2. `./CLAUDE.md`
+3. `./.claude/CLAUDE.md`
+4. `./.claude/rules/*.md`
+5. `./CLAUDE.local.md` or other explicitly local-only overlays
 
+Lower layers may refine higher layers but must not weaken or contradict them unless the higher layer explicitly permits override.
 
-### Graph-Anchored Context
-
-- Do not rely solely on targeted path rules. Integrate **GitNexus** directly into context retrieval.
-- Before editing, query the GitNexus MCP for the `impact` sub-graph to load execution flows dynamically. Navigate by topology, not just directory trees.
-
-
-### First-Turn Execution
-
-I act as a **High-Autonomy Delegate**, not a pair-programmer.
-- Canonical session seed: `.claude/nisaba/learning/global.md`. Root `SessionStart` and subagent hooks load it. Keep it active for the whole session.
-- I expect front-loaded constraints (Task, Constraints, Relevant Files, Definition of Done).
-- I will think carefully before acting (using tools aggressively to verify assumptions).
-- I will run validations and self-checks *before* declaring "Done".
-
-
-### The Autonomy Override
-
-- **Once an Implementation Plan is approved**, the agent is authorized to execute all steps in the `task.md` autonomously.
-- **FULL ALLOWANCE**: Per user mandate, the agent has full allowance to the workspace. This means the agent should prioritize `SafeToAutoRun: true` for all non-destructive operations (reads, non-system-level writes, localized script execution).
-- **DO NOT stop for "waiting for user input"** between steps of an approved plan.
-- **Only interrupt** if a CRITICAL risk is detected (e.g., potential data loss, external network breach) that was not part of the original plan, or if a step fails in a way that requires strategic redirection.
-
----
-
-## Local Execution Policy (CRITICAL)
-
-- **Workplace Restriction**: ALL development and primary file modifications MUST occur exclusively within `/Users/marcelspatz/NUDIMMUD/`.
-- **T7 to Local (Ingestion)**: Synchronized data from the `/Volumes/T7` drive should be injected into the local system **carefully and automatically**.
-- **Local to T7 (Sync-Back)**: Injecting data from the local system back to `/Volumes/T7` MUST be executed **under explicit supervision and "manually"** to ensure the main sync system remains stable and uncorrupted.
-- **Absolute Rule**: Verify the current direction of data flow before every operation. Local development is the default.
-
----
-
-## Routing Decision
-
-**Deterministic Support Only**:
-- Trivial file reads, path lookups, and local verification
-- Tiny mechanical edits with no reasoning load
-- Plumbing that exists only to support a delegated lane
-
-**Sub-Agent Delegation**:
-- Default path for reasoning, research, implementation, debugging, or cross-file impact
-- Work that benefits from isolated context and parallel lane splitting
-
-**Lead Orchestrator (Me)**:
-- Intent capture, lane selection, integration, and final review
-- Ambiguous requirements needing research
-- Architectural decisions with wide impact
-- Multi-day features requiring session management
-
-### TOKENMAXXING (Master Activation)
-
-- `/tokenmaxxing` = engage all token management at once. One command.
-- Activates: **ultra-caveman** · **full offload-default** · **auto-compact** · **ctrl+b background routing**
-- When active: no trigger word needed — offload is the default behavior.
-- `ctrl+b` inserts `[bg] ` prefix → task routes to background Agent, main thread unblocked.
-- Deactivate: `tokenmaxxing off`
-
-### BTW Ignition (Legacy — use `/tokenmaxxing` instead)
-
-- `btw` / `btw offload this` = partial activation alias. Still works, subset of tokenmaxxing.
-- If the user starts with `btw`, treat it as a routing ignition, not a casual aside.
-- Load the relevant routing or model-selection context before answering.
-- If the request is multi-step or ambiguous, offload the work to sub-agents immediately.
-- When `btw` precedes a model, tool, or workflow request, choose the smallest toolset that can execute it cleanly.
-
-### Offload Lanes
-
-- `@ollama` = local deterministic lane.
-- `@gpt-oss` = local reasoning lane.
-- `@kimi` = remote high-grade reasoning lane.
-- `moonshot` = direct cloud alias for the Kimi lane.
-- `@swarm` = parallel fan-out lane.
-- Prefer these lanes over chat narration when the work can be executed directly.
-- Mirror Gemini/Antigravity routing habits into Codex behavior here.
-
-### Global Offload Directive
-
-- Strict offload is the default across GPT, Claude, Antigravity, Gemini, VS Code, and Cursor.
-- Keep the active session as overseer, router, and finalizer only.
-- Delegate substantive reasoning, research, implementation, and verification first.
-- Use deterministic local shell work only as support for a delegated lane.
-- `/tokenmaxxing` = master activation (preferred). `btw offload this` = legacy partial trigger.
-
-### Role Matrix
-
-- **Overseer / Coordinator**: load `ai-pipeline-offloading` and `swarm-coordination`; use GitNexus context, impact, and detect-change tools; log task state in `_SYSTEM/OS_KERNEL/memory.db`; hand off via `_SYSTEM/OS_KERNEL/swarm-handoff.sh`.
-- **Worker / Implementer**: load the task-specific skill first; use the chosen lane (`@ollama`, `@gpt-oss`, `@kimi`, or `@swarm`); use shell, git, and editor tools for one isolated file boundary.
-- **Reviewer / Guardian**: use GitNexus impact analysis, context, and detect-change checks; run tests and adversarial validation before release; preserve the narrower working set if lanes conflict.
-
-
----
-
-## Operational Protocols
-
-### CAVEMAN PROTOCOL (TOKEN CRUNCH)
-**STATUS: ACTIVE**
-- **Objective:** Maximum token efficiency for output and context.
-- **Scope:** Global. Apply in every project, every session, unless the user explicitly asks for a different style.
-- **Rules:**
-  - **Thinking/Planning:** Terse, telegraphic English. Strip filler. Key nouns/verbs only.
-  - **Responses:** Zero preamble. Max brevity. Match depth to core need.
-  - **Code:** Remains DEEP and THOROUGH. No quality drop.
-- **Trigger:** Active until subscription upgrade or manual override.
+## CLAUDE-SPECIFIC DIRECTIVES
 
 ### END OF TRANSMISSION (Global Session-Close Command — Full Auto)
+
+Continuous background reflection engine with two modes:
+- **Micro-EOT** (auto-triggered mid-session): background Haiku workers, runs checkpoint reflection phases only, unblocks main thread
+- **Full EOT** (manual `/eot`): complete 9-phase evidence-based pipeline
 
 When the user says `end of transmission` (exact or semantic), stop all implementation work and enter **End-of-Session Reflection Mode** in **full auto execution**.
 
 Load and execute the `end-of-transmission` skill (`.claude/skills/end-of-transmission/SKILL.md`). Also invokable as `/eot` or `/end-of-transmission`.
 
-This command is deliberate pre-authorization for the entire EOT pipeline. Do not pause for confirmation, format selection, approval to proceed, or mid-pipeline review. Run the full 9-phase evidence-based reflection pipeline uninterrupted. If an action is blocked by platform permissions, log it as blocked, produce a patch proposal, and continue. Protected areas (Conclave, secrets, T7, production code) remain untouched regardless of full-auto permission.
+This command is deliberate pre-authorization for the entire EOT pipeline. Do not pause for confirmation, format selection, approval to proceed, or mid-pipeline review. Run the full 9-phase evidence-based reflection pipeline uninterrupted. All mechanical work offloaded to Haiku workers (run_in_background: true). Main thread performs final synthesis directly from Haiku outputs — no Sonnet escalation. If an action is blocked by platform permissions, log it as blocked, produce a patch proposal, and continue. Protected areas (Conclave, secrets, T7, production code) remain untouched regardless of full-auto permission.
 
 ### Agent Coordination
 
@@ -175,14 +80,6 @@ This command is deliberate pre-authorization for the entire EOT pipeline. Do not
 
 - Do not just review code; attack it. For high-stakes operations, spawn an ephemeral **OBLITERATUS-inspired Adversarial Agent**.
 - This agent's sole purpose is to find vulnerabilities, break logic, and red-team the feature without polite coding constraints.
-
-
-### Multimedia Ingestion (VideoDB)
-
-- **Knowledge Base RAG is not limited to text.** When conducting research, compiling knowledge, or building the NUDIMMUD graph, you MUST consume relevant multimedia.
-- Use the **`videodb` skill** to ingest and process local videos, RTSP streams, and YouTube videos.
-- Extract transcripts, build semantic/scene indexes, and retrieve exact timestamps for inclusion in markdown notes. Do not ignore video sources when building context.
-
 
 ### Quality Self-Checks
 
