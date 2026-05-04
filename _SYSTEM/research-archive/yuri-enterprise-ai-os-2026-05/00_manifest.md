@@ -34,5 +34,13 @@ Enterprise-grade research archive for Yuri OS.
 | 00_manifest.md | CURRENT | This file |
 | 01_source_registry.md | CURRENT | Source registry |
 | 02_capture_pipeline.md | CURRENT | Capture pipeline design |
-| 03+ | PLANNED | Enterprise governance, security, etc. |
+| 03_enterprise_governance_frameworks.md | CURRENT | 08CU | REFERENCE_ONLY |
+| 04_security_prompt_injection_browser_agents.md | CURRENT | 08CU | REFERENCE_ONLY |
+| 05_supply_chain_provenance.md | CURRENT | 08CU | REFERENCE_ONLY |
+| 06_yuri_enterprise_research_seed_summary.md | CURRENT | 08CU | REFERENCE_ONLY |
+| 07_scrapling_capture_integration.md | CURRENT | 08CV | REFERENCE_ONLY |
+| 08_browser_capture_policy.md | CURRENT | 08CV | REFERENCE_ONLY |
+| 09_professional_lens_matrix.md | CURRENT | 08CV | REFERENCE_ONLY |
+| 10_yuri_adaptation_backlog.md | CURRENT | 08CV | REFERENCE_ONLY |
+| 11+ | PLANNED | Future research | REFERENCE_ONLY |
 
