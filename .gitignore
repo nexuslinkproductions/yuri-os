@@ -104,3 +104,23 @@ graphify-out/.DS_Store
 # Phase 1 anchor gate artifacts
 .haiku/
 runtime-gate-*.log
+
+# Phase 1 anchor gate artifacts
+.haiku/
+runtime-gate-*.log
+
+# Yuri OS Content Governance — generated/cache/external paths
+# These paths are NOT current Yuri OS doctrine. See _SYSTEM/yuri-content-governance.md.
+
+.claude/file-history/
+.claude/paste-cache/
+.claude/cache/
+.claude/projects/
+.claude/plugins/marketplaces/
+01_PROJECTS/claude-mem/
+01_PROJECTS/gstack/.agents/
+01_PROJECTS/gstack/.cursor/
+01_PROJECTS/gstack/.factory/
+01_PROJECTS/gstack/.kiro/
+01_PROJECTS/gstack/.openclaw/
+01_PROJECTS/gstack/.opencode/
