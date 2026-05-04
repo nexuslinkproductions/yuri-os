@@ -6,9 +6,9 @@ Every memory surface has an access tier. Context access (read) is separate from 
 
 | Tier | Surfaces | Access Rule |
 |---|---|---|
-| PUBLIC_CONTEXT | `.clinerules`, `.cline/rules/`, `.claude/rules/`, `SystemConfig`, `.claude/skills/` | Unrestricted read by exact path. Safe reference material. |
+| PUBLIC_CONTEXT | `.clinerules`, `.cline/rules/`, `.claude/rules/`, `SystemConfig`, `.claude/skills/`, `_SYSTEM/model-registry.md` | Unrestricted read by exact path. Safe reference material. |
 | DURABLE_CONTEXT | Obsidian vault (repo root), vault-authored knowledge | Read-only by exact scoped path in approved tasks. No broad reads. No ingestion. |
-| GENERATED_CONTEXT | Workhorse artifacts (`~/.nudimmud/workhorse-runs/`), run reports, indexes | Read-only, provenance-tagged. Planning/run evidence, not durable knowledge unless indexed by approved script. |
+| GENERATED_CONTEXT | Workhorse artifacts (`~/.nudimmud/workhorse-runs/`), run reports, indexes, `graphify-out/` | Read-only, provenance-tagged. Generated graph/report/planning evidence, not durable knowledge unless indexed by approved script. |
 | HISTORICAL_CONTEXT | `_SYSTEM/yuri-history-archive/` | Readable as historical-only. Must not be promoted into current truth, RAG, boot, or session config without a separate validation gate. |
 | SENSITIVE_CONTEXT | `backend/data/` (RAG DB), `.claude/state/`, `.claude/history/`, `.claude/projects/` | No raw broad reads. Only explicit scoped/redacted/approved tooling. Future sensitive readers must summarize, redact, and cap output. |
 | SECRET_CONTEXT | `.env`, `.npmrc`, API keys, credentials, `node_modules/` | No raw dump. Only presence/shape checks if explicitly approved per task. |
@@ -29,6 +29,10 @@ Local evidence > owner intent > .clinerules/.cline rules > .claude/rules > Syste
 | `.claude/skills/` | `.claude/skills/*/SKILL.md` | PUBLIC_CONTEXT | Claude-native behavior | Reference only; Cline cannot execute |
 | Obsidian vault | repo root | DURABLE_CONTEXT | Human-authored knowledge | Read-only by exact scoped path in approved tasks |
 | Workhorse artifacts | `~/.nudimmud/workhorse-runs/` | GENERATED_CONTEXT | Planning/run evidence | Read-only, provenance-tagged, not durable until indexed |
+| Graphify graphs | `graphify-out/graph.json` | GENERATED_CONTEXT | Graph memory | Read-only, metadata-only; 9 expected files (4 graph JSON, 4 reports, cost) |
+| Graphify reports | `graphify-out/*_REPORT.md` | GENERATED_CONTEXT | Graph memory | Read-only, metadata-only; provenance-tagged generated artifacts |
+| Model registry | `_SYSTEM/model-registry.md` | PUBLIC_CONTEXT | Reference config | Read-only, public reference; local LLM benchmark data |
+| Model registry (vintage) | `_SYSTEM/model-registry-2026-04-24.md` | PUBLIC_CONTEXT | Reference config | Read-only, public reference; earlier snapshot |
 | History archive | `_SYSTEM/yuri-history-archive/` | HISTORICAL_CONTEXT | Historical | Readable as historical-only, never promoted without validation |
 | RAG DB | `backend/data/` | SENSITIVE_CONTEXT | Structured retrieval | No raw broad reads; scoped/redacted/approved tooling only |
 | Runtime state | `.claude/state/` | SENSITIVE_CONTEXT | Session state | No raw broad reads; scoped/redacted/approved tooling only |
@@ -68,10 +72,32 @@ Workhorse artifacts (`~/.nudimmud/workhorse-runs/`) are planning and run evidenc
 
 Cline uses `.clinerules` and `.cline/rules/` as operating and reference memory (PUBLIC_CONTEXT). These are human-authored, version-controlled `.md` files — not self-updating memory. Cline does not write to its own rules or maintain runtime state. All session context is provided by the user or read from the repo by exact scoped path. Edit access requires explicit sprint scope and local validation.
 
+## Surface URIs (Documentation Only)
+
+The `surface://` scheme provides stable identifiers for cross-referencing surfaces in future fabric controllers. Not yet active in code.
+
+```
+surface://rules/cline
+surface://vault/domain/<name>
+surface://workhorse/run/<id>
+surface://archive/manifest/<version>
+surface://graphify/graph
+surface://graphify/report
+surface://models/registry
+surface://rag/metadata
+surface://claude/state
+surface://secrets/env
+```
+
+## WikiLLM
+
+**WIKILLM_SURFACE_NOT_FOUND** — 7 targeted discovery paths checked (wikillm, WikiLLM, wiki-llm at repo root and `01_PROJECTS/`, plus `docs/`). None exist. Must not be invented. If discovered later, classify as DURABLE_CONTEXT or GENERATED_CONTEXT depending on authorship.
+
 ## Future X-Sprint Roadmap
 
 - X2: `Scripts/yuri-memory-map.mjs` — read-only inventory of all surfaces without reading sensitive contents. Detect which surfaces are reachable, their tier, and discovery path.
-- X3: read-only vault bridge script (`yuri-vault-bridge.mjs`) — list/read vault files by exact path.
-- X4: workhorse artifact index — index planning artifacts for retrieval (GENERATED_CONTEXT).
-- X5: RAG source registry / ingestion gate — controlled pipeline for vault to RAG (SENSITIVE_CONTEXT tooling).
-- Later: sensitive context readers that summarize, redact, and cap output by default.
+- X3: Unified memory fabric metadata expansion — added graphify and model-registry surfaces to yuri-memory-map.mjs. Vault bridge deferred to X4.
+- X4: read-only vault bridge script (`yuri-vault-bridge.mjs`) — list/read vault files by exact path.
+- X5: workhorse artifact index — index planning artifacts for retrieval (GENERATED_CONTEXT).
+- X6: RAG source registry / ingestion gate — controlled pipeline for vault to RAG (SENSITIVE_CONTEXT tooling).
+- Later: sensitive context readers that summarize, redact, and cap output by default. Surface URI scheme activation in fabric controller.

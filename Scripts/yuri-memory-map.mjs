@@ -3,7 +3,7 @@
 /**
  * yuri-memory-map.mjs — Deterministic read-only memory surface inventory
  *
- * X2 of the system memory architecture. Inventories all known memory
+ * X3 of the system memory architecture. Inventories all known memory
  * surfaces by access tier without reading sensitive contents.
  *
  * Built-in modules only. No backend startup, DB, RAG, or vault mutation.
@@ -26,8 +26,16 @@ const WORKHORSE_ARTIFACT_ROOT = path.join(HOME, '.nudimmud', 'workhorse-runs')
 const ARCHIVE_DIR = '_SYSTEM/yuri-history-archive'
 const MANIFEST_PATH = path.join(REPO_ROOT, ARCHIVE_DIR, 'manifest_2026-05-03_30.json')
 const CLASSIFICATION_PATH = path.join(REPO_ROOT, ARCHIVE_DIR, 'classification_2026-05-03_30.md')
+const GRAPHFY_DIR = 'graphify-out'
+const MODEL_REGISTRY_PATH = '_SYSTEM/model-registry.md'
 
-const SURFACE_NAMES = new Set(['rules', 'vault', 'archive', 'workhorse', 'claude-runtime', 'secrets'])
+const GRAPHFY_EXPECTED = [
+  'graph.json', 'v2_graph.json', 'v3_graph.json', 'ruflo_core_graph.json',
+  'GRAPH_REPORT.md', 'V2_GRAPH_REPORT.md', 'V3_GRAPH_REPORT.md', 'RUFLO_CORE_REPORT.md',
+  'cost.json',
+]
+
+const SURFACE_NAMES = new Set(['rules', 'vault', 'archive', 'workhorse', 'claude-runtime', 'secrets', 'graphify', 'model-registry'])
 
 main()
 
@@ -74,7 +82,7 @@ function printHelp() {
     '  node Scripts/yuri-memory-map.mjs --surface <name>  Single surface',
     '  node Scripts/yuri-memory-map.mjs --help       This message',
     '',
-    'Surfaces: rules, vault, archive, workhorse, claude-runtime, secrets',
+    'Surfaces: rules, vault, archive, workhorse, claude-runtime, secrets, graphify, model-registry',
   ]
   stdout.write(lines.join('\n') + '\n')
 }
@@ -87,6 +95,8 @@ function writeInventory() {
     inventoryWorkhorse(),
     inventoryClaudeRuntime(),
     inventorySecrets(),
+    inventoryGraphify(),
+    inventoryModelRegistry(),
   ]
   for (const line of results) {
     stdout.write(line + '\n')
@@ -101,6 +111,8 @@ function writeSurface(name) {
     workhorse: inventoryWorkhorse,
     'claude-runtime': inventoryClaudeRuntime,
     secrets: inventorySecrets,
+    graphify: inventoryGraphify,
+    'model-registry': inventoryModelRegistry,
   }
   const line = dispatcher[name]()
   stdout.write(line + '\n')
@@ -291,4 +303,72 @@ function dirFiles(dirPath) {
   } catch {
     return ['error']
   }
+}
+
+function inventoryGraphify() {
+  const graphifyPath = path.join(REPO_ROOT, GRAPHFY_DIR)
+  if (!fs.existsSync(graphifyPath)) {
+    return 'SURFACE: graphify TIER: GENERATED_CONTEXT STATUS: not_found PATH: graphify-out DETAILS: graphify-out dir missing'
+  }
+
+  let graphCount = 0
+  let reportCount = 0
+  let costCount = 0
+  let missingFiles = []
+
+  for (const name of GRAPHFY_EXPECTED) {
+    const full = path.join(graphifyPath, name)
+    if (fs.existsSync(full)) {
+      if (name.endsWith('.json') && name !== 'cost.json') graphCount += 1
+      else if (name.endsWith('.md')) reportCount += 1
+      else if (name === 'cost.json') costCount += 1
+    } else {
+      missingFiles.push(name)
+    }
+  }
+
+  const parts = [`graphs=${graphCount}`, `reports=${reportCount}`, `cost_file=${costCount}`]
+  if (missingFiles.length > 0) {
+    parts.push(`missing=${missingFiles.join(',')}`)
+  } else {
+    parts.push('all_expected_present')
+  }
+
+  return `SURFACE: graphify TIER: GENERATED_CONTEXT STATUS: reachable PATH: graphify-out DETAILS: ${parts.join(' | ')}`
+}
+
+function inventoryModelRegistry() {
+  const regPath = path.join(REPO_ROOT, MODEL_REGISTRY_PATH)
+  if (!fs.existsSync(regPath)) {
+    return 'SURFACE: model-registry TIER: PUBLIC_CONTEXT STATUS: not_found PATH: _SYSTEM/model-registry.md DETAILS: file not found'
+  }
+
+  let sizeBytes = 'unknown'
+  let mtimeIso = 'unknown'
+  let detectedDate = 'unknown'
+  let modelCountHeuristic = 'unknown'
+
+  try {
+    const stat = fs.statSync(regPath)
+    sizeBytes = String(stat.size)
+    mtimeIso = stat.mtime.toISOString().split('T')[0]
+  } catch {
+    sizeBytes = 'error'
+    mtimeIso = 'error'
+  }
+
+  try {
+    const content = fs.readFileSync(regPath, 'utf8')
+    const dateMatch = content.match(/\*\*Benchmarked:\*\*\s*([^\n]+)/)
+    if (dateMatch) detectedDate = dateMatch[1].trim()
+    const modelHeaders = content.match(/^##\s+([a-zA-Z0-9_.:-]+)/gm)
+    if (modelHeaders) {
+      const models = modelHeaders.filter(h => !h.startsWith('## Summary') && !h.startsWith('## Detail') && !h.startsWith('## DeepSeek'))
+      modelCountHeuristic = String(models.length) + ' (heuristic)'
+    }
+  } catch {
+    sizeBytes = 'error'
+  }
+
+  return `SURFACE: model-registry TIER: PUBLIC_CONTEXT STATUS: reachable PATH: _SYSTEM/model-registry.md DETAILS: size_bytes=${sizeBytes} modified=${mtimeIso} benchmark_date=${detectedDate} models=${modelCountHeuristic}`
 }
