@@ -446,9 +446,36 @@ _fused_swarm_extract_rule_vault_term_evidence() {
     done
   done
   if $_header_printed && [ "$_match_count" -eq 0 ]; then
-    _result="${_result}  no_matches: vault domain terms not found in .claude/rules content"$'
-'
+    _result="${_result}  no_matches: vault domain terms not found in .claude/rules content"$'\n'
   fi
+
+  # Append deterministic aggregate counts from MATCH lines
+  if $_header_printed && [ "$_match_count" -gt 0 ]; then
+    local _agg_section="" _count _name _files _filelist _terms _termlist
+    local _agg_terms _agg_files _match_data
+    _match_data="$(printf '%s' "$_result" | grep '^  MATCH:')"
+    _agg_terms="$(printf '%s' "$_match_data" | sed 's/.*term=//;s/ .*//' | sort | uniq -c | sort -rn | head -30)"
+    _agg_files="$(printf '%s' "$_match_data" | sed 's/  MATCH: file=.claude.rules.//;s/ term=.*//' | sort | uniq -c | sort -rn | head -20)"
+    _agg_section="${_agg_section}surface=rule_vault_term_aggregates"$'\n'
+    if [ -n "$_agg_terms" ]; then
+      while read -r _count _name; do
+        [ -z "$_count" ] && continue
+        _files="$(printf '%s' "$_match_data" | grep " term=${_name} " | grep -o 'file=[^ ]*' | sort -u | wc -l | tr -d ' ')"
+        _filelist="$(printf '%s' "$_match_data" | grep " term=${_name} " | grep -o 'file=[^ ]*' | sort -u | tr '\n' ',' | sed 's/,$//')"
+        _agg_section="${_agg_section}  TERM_COUNT: term=${_name} matches=${_count} files=${_files} files_list=${_filelist}"$'\n'
+      done <<< "$_agg_terms"
+    fi
+    if [ -n "$_agg_files" ]; then
+      while read -r _count _name; do
+        [ -z "$_count" ] && continue
+        _terms="$(printf '%s' "$_match_data" | grep -F "${_name}" | grep -o 'term=[^ ]*' | sed 's/term=//' | sort -u | wc -l | tr -d ' ')"
+        _termlist="$(printf '%s' "$_match_data" | grep -F "${_name}" | grep -o 'term=[^ ]*' | sed 's/term=//' | sort -u | tr '\n' ',' | sed 's/,$//')"
+        _agg_section="${_agg_section}  FILE_COUNT: file=.claude/rules/${_name} matches=${_count} terms=${_terms} terms_list=${_termlist}"$'\n'
+      done <<< "$_agg_files"
+    fi
+    _result="${_result}${_agg_section}"
+  fi
+
   printf '%s' "$_result"
 }
 
