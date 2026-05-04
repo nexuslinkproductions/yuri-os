@@ -179,6 +179,12 @@ function parseCli(argv) {
     cli.ideaParts.push(arg)
   }
 
+  // Default idea trigger: bare "<rough idea>" acts as forge --generate-plan
+  if (!cli.command && cli.ideaParts.length > 0) {
+    cli.command = 'forge'
+    cli.generatePlan = true
+  }
+
   cli.idea = collapseWhitespace(cli.ideaParts.join(' ')).trim()
   if (cli.generatePlan) {
     cli.live = true
@@ -195,7 +201,7 @@ function printHelp() {
       'NUDIMMUD Workhorse X1',
       '',
       'Usage:',
-      '  node Scripts/nudimmud-workhorse.mjs forge "<rough idea>"',
+      '  node Scripts/nudimmud-workhorse.mjs "<rough idea>"',
       '  node Scripts/nudimmud-workhorse.mjs forge --execute "<rough idea>"',
       '  node Scripts/nudimmud-workhorse.mjs forge --live "<rough idea>"',
       '  node Scripts/nudimmud-workhorse.mjs forge --live --execute "<rough idea>"',
@@ -1440,6 +1446,29 @@ function runSelftest({ artifactRoot }) {
     }
   }
 
+  // Default idea trigger: bare "<rough idea>" acts as forge --generate-plan
+  const defaultIdea = 'inspect package scripts without mutation'
+  const defaultCli = parseCli([defaultIdea])
+  if (defaultCli.command === 'forge' && defaultCli.generatePlan === true && defaultCli.execute === false && defaultCli.idea === defaultIdea) {
+    markers.push('WORKHORSE_DEFAULT_IDEA_TRIGGER_PASS')
+  }
+  const defaultIdeaRun = forgePipeline({
+    idea: defaultIdea,
+    execute: false,
+    live: true,
+    generatePlan: true,
+    noFlash: false,
+    artifactRoot: tempRoot,
+    transport: approvedLiveTransport,
+    executorRunner: () => ({ validated: true, readonly: true, markers: [], files_changed: [], executed: false }),
+  })
+  if (defaultIdeaRun.ok && defaultIdeaRun.flashReviewStatus === 'approved' && liveArtifactPackExists(defaultIdeaRun.runDir, false)) {
+    markers.push('DEFAULT_IDEA_USES_GENERATE_PLAN_PASS')
+  }
+  if (!defaultIdeaRun.marker.includes('EXECUTE')) {
+    markers.push('DEFAULT_IDEA_DRY_RUN_PASS')
+  }
+
   const normalizedFlashTransport = {
     runLane(lane) {
       if (lane === LIVE_PRO_LANE) {
@@ -1589,7 +1618,7 @@ function runSelftest({ artifactRoot }) {
     markers.push('NO_REPO_MUTATION_FROM_RUNTIME_PASS')
   }
 
-  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS') && markers.includes('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS') && markers.includes('GENERATE_PLAN_ALIAS_PASS') && markers.includes('GENERATE_PLAN_USES_LIVE_PIPELINE_PASS') && markers.includes('GENERATE_PLAN_NO_EXECUTE_BY_DEFAULT_PASS') && markers.includes('GENERATE_PLAN_ARTIFACT_MARKER_PASS')) {
+  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS') && markers.includes('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS') && markers.includes('GENERATE_PLAN_ALIAS_PASS') && markers.includes('GENERATE_PLAN_USES_LIVE_PIPELINE_PASS') && markers.includes('GENERATE_PLAN_NO_EXECUTE_BY_DEFAULT_PASS') && markers.includes('GENERATE_PLAN_ARTIFACT_MARKER_PASS') && markers.includes('WORKHORSE_DEFAULT_IDEA_TRIGGER_PASS') && markers.includes('DEFAULT_IDEA_USES_GENERATE_PLAN_PASS') && markers.includes('DEFAULT_IDEA_DRY_RUN_PASS')) {
     markers.push('WORKHORSE_SELFTEST_PASS')
   }
 
@@ -1872,6 +1901,7 @@ function helpTextLines() {
   return [
     'NUDIMMUD Workhorse X1',
     'Usage:',
+    '  node Scripts/nudimmud-workhorse.mjs "<rough idea>"',
     '  node Scripts/nudimmud-workhorse.mjs forge "<rough idea>"',
     '  node Scripts/nudimmud-workhorse.mjs forge --execute "<rough idea>"',
     '  node Scripts/nudimmud-workhorse.mjs forge --generate-plan "<rough idea>"',
