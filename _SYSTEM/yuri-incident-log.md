@@ -11,4 +11,4 @@ Satisfies NIST AI RMF MANAGE function and EU AI Act Art. 12 spirit.
 
 | incident_id | date | lane | description | severity | resolution | status |
 |---|---|---|---|---|---|---|
-| (empty) | | | | | | |
+| 001 | 2026-05-04 | 08CX-SCRAPLING | Scrapling v0.2.99 CLI `extract` subcommand unavailable (API changed). Python API works; T1/T2 verified. | low | documented in 07_scrapling_capture_integration.md | closed |

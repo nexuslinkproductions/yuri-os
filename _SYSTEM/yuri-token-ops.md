@@ -8,9 +8,9 @@
 
 ### Tier 1 — Broad Retrieval (lowest token cost)
 
-Tools: Perplexity, yuri-research-capture.mjs, scrapling extract get
+Tools: Perplexity, yuri-research-capture.mjs, yuri-research-capture.py, scrapling (Python API)
 Use for: source discovery, URL fetch, evidence pack creation
-Token cost: ~0
+Token cost: ~0 (T1 static) | medium (T2 browser) | high (T3 stealth)
 
 ### Tier 2 — Reasoning and Execution
 
