@@ -1,0 +1,80 @@
+# Graphify ignore — repo boundary for knowledge graph scans
+# Syntax: .gitignore-compatible. Paths relative to repo root.
+
+# Git / VCS
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# Dependencies
+node_modules/
+.pnpm-store/
+.pip/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Build / generated artifacts
+dist/
+build/
+out/
+.graphify_*.json
+.graphify_*.pkl
+.graphify_uncached*.txt
+.graphify_chunk_*.txt
+chunk_*.txt
+.cache/
+
+# Graphify own output (generated, not source)
+graphify-out/
+
+# Large vendor / research corpora (not source knowledge)
+RESEARCH/ORACLE-CORPUS/
+RESEARCH/ruflo/
+01_PROJECTS/claude-cookbooks/
+01_PROJECTS/claude-mem/
+01_PROJECTS/gstack/
+
+# Claude / agent runtime state (not source knowledge)
+.claude/state/
+.claude/history/
+.claude/projects/
+.claude/backups/
+.claude/sessions/
+.claude/eot/
+.claude/paste-cache/
+.claude/file-history/
+.claude/cache/
+.claude/plugins/marketplaces/
+.claude/worktrees/
+
+# OS / editor artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Media (store references, not originals)
+*.mp4
+*.mov
+*.wav
+*.aac
+*.mp3
+*.psd
+*.aep
+
+# Environment / Secrets
+.env*
+.npmrc
+*.key
+*.pem
+
+# Backend data (runtime state, not source)
+backend/data/
+
+# Local-only overrides
+CLAUDE.local.md
