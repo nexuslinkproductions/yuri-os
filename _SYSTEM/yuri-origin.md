@@ -68,3 +68,18 @@ MATCH file=<PATH> term=<TERM> line=<N> excerpt="<bounded text>"
 ## Professional Operating Lenses
 
 Refer to `nudimmud_operating_dna.md` §16 for the full lens table (AI Systems Architect, Platform Engineer, SRE, DevEx, Security, RAG, MLOps, etc.). Lenses are advisory viewpoint suggestions, not separate authority sources.
+
+## Lane Result Grammar
+
+Every Yuri OS lane must emit a machine-readable RESULT_LABEL conforming to this grammar.
+
+```
+LANE_ID    := 2-digit-prefix + 2-char-lane-code (e.g. 08CW)
+LABEL      := LANE_ID + "_" + DESCRIPTION + "_" + PASS_TYPE + "_COMMITTED"
+PASS_TYPE  := X (full) | P (partial) | F (failed/blocked)
+DESCRIPTION := SCREAMING_SNAKE_CASE, max 60 chars
+```
+
+Example: `08CW_PDF_TEXT_EXTRACTION_POPPLER_X_PASS_COMMITTED`
+
+Adapters must emit a conforming RESULT_LABEL in every lane result.
