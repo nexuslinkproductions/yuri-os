@@ -9,27 +9,32 @@
  * Reference pattern: OpenClaw ~/.openclaw/workspace/skills/<name>/SKILL.md
  * Initial substrate: .cline/rules/*.md
  *
- * This is a discovery/normalisation prototype only.
+ * This is a discovery/normalisation/validation prototype only.
  * No runtime skill execution. No plugin API. No session integration.
  *
  * Usage:
  *   node Scripts/yuri-skill-loader.mjs --list
  *   node Scripts/yuri-skill-loader.mjs --skill <name>
  *   node Scripts/yuri-skill-loader.mjs --json
+ *   node Scripts/yuri-skill-loader.mjs --validate
+ *   node Scripts/yuri-skill-loader.mjs --validate --json
+ *   node Scripts/yuri-skill-loader.mjs --write-manifest
+ *   node Scripts/yuri-skill-loader.mjs --help
  */
 
 import { createHash } from 'node:crypto'
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { stdout, stderr } from 'node:process'
 
 const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD'
+const MANIFEST_PATH = path.join(REPO_ROOT, '_SYSTEM', 'skill-hash-registry.json')
 
 // Discovery paths (order = precedence; first match wins for duplicate names)
 const DISCOVERY_PATHS = [
-  { prefix: '.cline/rules', sourceType: 'cline_rule', pattern: /^(.+)\.md$/ },
+  { prefix: '.cline/rules', sourceType: 'cline_rule', pattern: /^(.+).md$/ },
   // Future OpenClaw-style expansion:
-  // { prefix: 'skills', sourceType: 'openclaw_skill', pattern: /^([^/]+)\/SKILL\.md$/ },
+  // { prefix: 'skills', sourceType: 'openclaw_skill', pattern: /^([^/]+)/SKILL.md$/ },
 ]
 
 const PREVIEW_LINES = 20
@@ -41,6 +46,20 @@ function main() {
 
   if (args.length === 0 || args[0] === '--help') {
     printHelp()
+    return
+  }
+
+  // --validate must be checked before other flags because it may have --json suffix
+  if (args[0] === '--validate') {
+    const useJson = args.includes('--json')
+    const registry = buildRegistry()
+    runValidate(registry, useJson)
+    return
+  }
+
+  if (args[0] === '--write-manifest') {
+    const registry = buildRegistry()
+    writeManifest(registry)
     return
   }
 
@@ -66,7 +85,7 @@ function main() {
     return
   }
 
-  stderr.write(`Unknown flag: ${args[0]}\n`)
+  stderr.write('Unknown flag: ' + args[0] + '\n')
   process.exit(1)
 }
 
@@ -78,6 +97,9 @@ function printHelp() {
     '  node Scripts/yuri-skill-loader.mjs --list',
     '  node Scripts/yuri-skill-loader.mjs --skill <name>',
     '  node Scripts/yuri-skill-loader.mjs --json',
+    '  node Scripts/yuri-skill-loader.mjs --validate',
+    '  node Scripts/yuri-skill-loader.mjs --validate --json',
+    '  node Scripts/yuri-skill-loader.mjs --write-manifest',
     '  node Scripts/yuri-skill-loader.mjs --help',
     '',
     'Discovery paths:',
@@ -120,13 +142,11 @@ function buildRegistry() {
       }
 
       if (seen.has(skillName)) {
-        // Prefer first-encountered (higher precedence in DISCOVERY_PATHS)
         const existing = seen.get(skillName)
         skill.collision = true
         skill.collision_with = existing.source_path
         existing.collision = true
         existing.collision_with = skill.source_path
-        // Don't add duplicate — keep existing (first wins)
         continue
       }
 
@@ -136,6 +156,103 @@ function buildRegistry() {
   }
 
   return { skills, discovered_at: new Date().toISOString(), count: skills.length }
+}
+
+function runValidate(registry, useJson) {
+  // Load manifest
+  let manifest = {}
+  const manifestExists = existsSync(MANIFEST_PATH)
+  if (manifestExists) {
+    try {
+      manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'))
+    } catch {}
+  }
+
+  // Check for collisions
+  const hasCollision = registry.skills.some(s => s.collision)
+
+  // Check each discovered skill
+  const results = []
+  let driftCount = 0
+  let missingCount = 0
+  let unregisteredCount = 0
+  let okCount = 0
+
+  for (const skill of registry.skills) {
+    const entry = manifest[skill.name]
+    let status = 'OK'
+    let detail = ''
+
+    if (!entry) {
+      status = 'UNREGISTERED'
+      unregisteredCount++
+      detail = 'not in manifest'
+    } else if (entry.hash !== skill.hash) {
+      status = 'DRIFT'
+      driftCount++
+      detail = 'manifest=' + entry.hash + ' disk=' + skill.hash
+    } else {
+      okCount++
+      detail = 'hash match'
+    }
+
+    if (skill.collision) {
+      detail += ' COLLISION_WITH=' + skill.collision_with
+    }
+
+    results.push({ name: skill.name, source_path: skill.source_path, hash: skill.hash, status, detail })
+  }
+
+  // Check for skills in manifest but missing from disk
+  for (const [name, entry] of Object.entries(manifest)) {
+    if (!registry.skills.some(s => s.name === name)) {
+      results.push({
+        name,
+        source_path: entry.source_path || 'unknown',
+        hash: entry.hash,
+        status: 'MISSING',
+        detail: 'in manifest but not found on disk',
+      })
+      missingCount++
+    }
+  }
+
+  // Sort results by name
+  results.sort((a, b) => a.name.localeCompare(b.name))
+
+  if (useJson) {
+    stdout.write(JSON.stringify({
+      manifest_exists: manifestExists,
+      skills_checked: registry.skills.length,
+      results,
+      summary: { ok: okCount, drift: driftCount, missing: missingCount, unregistered: unregisteredCount },
+      collisions_detected: hasCollision,
+    }, null, 2) + '\n')
+  } else {
+    for (const r of results) {
+      const label = '[' + r.status + ']'
+      stdout.write(label + ' ' + r.name + ' ' + r.detail + '\n')
+    }
+    stdout.write('---\n')
+    stdout.write('manifest_exists=' + manifestExists + ' checked=' + registry.skills.length + ' ok=' + okCount + ' drift=' + driftCount + ' missing=' + missingCount + ' unregistered=' + unregisteredCount + ' collisions=' + hasCollision + '\n')
+  }
+
+  // Exit non-zero on DRIFT, MISSING, or collision
+  if (driftCount > 0 || missingCount > 0 || hasCollision) {
+    process.exit(1)
+  }
+}
+
+function writeManifest(registry) {
+  const manifest = {}
+  for (const skill of registry.skills) {
+    manifest[skill.name] = {
+      source_path: skill.source_path,
+      hash: skill.hash,
+    }
+  }
+  writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + '\n')
+  stdout.write('Wrote manifest: ' + MANIFEST_PATH + ' (' + registry.skills.length + ' entries)\n')
 }
 
 function printList(registry) {
@@ -149,7 +266,7 @@ function printList(registry) {
 function printSkill(registry, name) {
   const skill = registry.skills.find(s => s.name === name)
   if (!skill) {
-    stderr.write(`SKILL_NOT_FOUND: ${name}\n`)
+    stderr.write('SKILL_NOT_FOUND: ' + name + '\n')
     process.exit(1)
   }
 

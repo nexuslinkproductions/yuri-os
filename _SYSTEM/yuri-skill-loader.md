@@ -99,3 +99,50 @@ Set `YURI_SKILL_LOADER_DISABLE=1` in the environment to skip skill injection. Us
 ### Important
 
 This is **doctrine/context injection, not skill execution**. Skills are exposed as read-only text/context material. No runtime execution path was introduced.
+
+
+## Validation Mode
+
+The skill loader supports hash-based integrity checking:
+
+```bash
+node Scripts/yuri-skill-loader.mjs --validate
+node Scripts/yuri-skill-loader.mjs --validate --json
+node Scripts/yuri-skill-loader.mjs --write-manifest
+```
+
+### Manifest Location
+
+`_SYSTEM/skill-hash-registry.json` — repo-local manifest of known skill hashes.
+
+Schema:
+
+```json
+{
+  "closeout": {
+    "source_path": ".cline/rules/closeout.md",
+    "hash": "961321b256afb173"
+  }
+}
+```
+
+### Status Meanings
+
+| Status | Meaning | Exit Code |
+|---|---|---|
+| OK | Hash matches manifest | 0 |
+| UNREGISTERED | Discovered but not in manifest | 0 (non-fatal) |
+| DRIFT | Hash differs from manifest | 1 |
+| MISSING | In manifest but not found on disk | 1 |
+| COLLISION | Duplicate name across discovery paths | 1 |
+
+### Integrity
+
+Validation is integrity checking, not authority proof. A matching hash means the file has not changed since the manifest was written — it does not mean the content is correct or safe. Use as a drift detector, not a trust framework.
+
+### Bootstrapping
+
+```bash
+node Scripts/yuri-skill-loader.mjs --write-manifest
+```
+Generates the initial manifest from the current state of all discovered skills. Run after adding or editing any `.cline/rules/*.md` file. Commit the manifest alongside skill changes.

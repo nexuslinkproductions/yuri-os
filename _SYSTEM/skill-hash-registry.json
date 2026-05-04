@@ -1,0 +1,10 @@
+{
+  "closeout": {
+    "source_path": ".cline/rules/closeout.md",
+    "hash": "961321b256afb173"
+  },
+  "system-memory": {
+    "source_path": ".cline/rules/system-memory.md",
+    "hash": "fbee045eefcd6729"
+  }
+}
