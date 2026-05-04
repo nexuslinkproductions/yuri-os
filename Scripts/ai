@@ -336,6 +336,7 @@ _fused_swarm_extract_evidence_bundle() {
   if [ -z "$_found_surfaces" ]; then
     FUSED_SWARM_EVIDENCE_ENABLED=false
     FUSED_SWARM_EVIDENCE_BUNDLE=""
+    FUSED_SWARM_EVIDENCE_TRUNCATED=false
     return
   fi
   FUSED_SWARM_EVIDENCE_ENABLED=true
