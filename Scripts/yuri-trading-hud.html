@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YURI TRADING HUD</title>
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:linear-gradient(135deg,#08080f,#0c0d1a,#090a14);--panel:rgba(16,18,30,0.85);--border:rgba(48,52,80,0.35);--primary:#d4d8e6;--secondary:#7a7f99;--muted:#4a4e66;--green:#00e676;--red:#ff5252;--yellow:#ffd740;--accent:#00e5bf;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--mono:"SF Mono","Fira Code","JetBrains Mono",Consolas,monospace}
+html{font-size:14px;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--primary);font-family:var(--font);padding:24px;min-height:100vh;line-height:1.5}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;margin-bottom:24px;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 0 0 1px rgba(48,52,80,0.15),0 4px 24px rgba(0,0,0,0.4);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{font-family:var(--mono);font-size:15px;font-weight:500;letter-spacing:3px;text-transform:uppercase;background:linear-gradient(135deg,var(--accent),#00bcd4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.badge{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;padding:2px 8px;border-radius:20px;background:rgba(0,229,191,0.08);color:var(--accent);border:1px solid rgba(0,229,191,0.15)}
+.meta{display:flex;align-items:center;gap:16px}
+.sg{display:flex;align-items:center;gap:12px}
+.si{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--secondary)}
+.dt{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dt-ok{background:var(--green);box-shadow:0 0 6px rgba(0,230,118,0.4)}
+.dt-wr{background:var(--yellow);box-shadow:0 0 6px rgba(255,215,64,0.3)}
+.dt-er{background:var(--red);box-shadow:0 0 6px rgba(255,82,82,0.3)}
+.clk{font-family:var(--mono);font-size:12px;color:var(--secondary);letter-spacing:2px;padding:4px 10px;background:rgba(0,0,0,0.25);border-radius:4px;border:1px solid rgba(48,52,80,0.2)}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fw{grid-column:1/-1}
+.pn{background:var(--panel);border:1px solid var(--border);border-radius:8px;backdrop-filter:blur(20px);box-shadow:0 0 0 1px rgba(48,52,80,0.15),0 4px 24px rgba(0,0,0,0.4);overflow:hidden;display:flex;flex-direction:column;transition:border-color .25s,box-shadow .25s;animation:up .4s both}
+.pn:hover{border-color:rgba(0,212,170,0.15)}
+.pn:nth-child(2){animation-delay:.05s}
+.pn:nth-child(3){animation-delay:.1s}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(48,52,80,0.2)}
+.pt{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--secondary)}
+.pt i{font-size:13px;opacity:.7;font-style:normal}
+.cn{font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:10px;background:rgba(0,229,191,0.08);color:var(--accent);margin-left:4px}
+.pm{display:flex;align-items:center;gap:12px;font-size:10px;color:var(--muted);font-family:var(--mono)}
+.pm .ud{color:var(--secondary)}
+.pb{flex:1}
+.pb .sc{max-height:400px;overflow-y:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;font-family:var(--mono)}
+thead{position:sticky;top:0;z-index:2}
+th{text-align:left;padding:8px 12px;font-family:var(--font);font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);background:rgba(10,12,24,0.85);border-bottom:1px solid rgba(48,52,80,0.25);white-space:nowrap}
+td{padding:6px 12px;border-bottom:1px solid rgba(48,52,80,0.08);white-space:nowrap;transition:background .15s}
+tr:hover td{background:rgba(0,229,191,0.03)}
+.nu{text-align:right;font-variant-numeric:tabular-nums}
+.cg{color:var(--green)}.cr{color:var(--red)}.cy{color:var(--yellow)}.c2{color:var(--secondary)}.c3{color:var(--muted)}
+.sg{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);font-weight:500;padding:2px 8px;border-radius:20px;border:1px solid transparent}
+.sg-s{background:rgba(255,82,82,0.12);color:var(--red);border-color:rgba(255,82,82,0.2)}
+.sg-l{background:rgba(0,230,118,0.12);color:var(--green);border-color:rgba(0,230,118,0.2)}
+.sg-n{background:rgba(74,78,102,0.15);color:var(--muted);border-color:rgba(74,78,102,0.15)}
+.wt{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-family:var(--mono);font-weight:500;padding:2px 7px;border-radius:4px}
+.wt-d{background:rgba(255,82,82,0.12);color:var(--red);border:1px solid rgba(255,82,82,0.15)}
+.wt-w{background:rgba(0,230,118,0.12);color:var(--green);border:1px solid rgba(0,230,118,0.15)}
+.wt-t{background:rgba(255,215,64,0.1);color:var(--yellow);border:1px solid rgba(255,215,64,0.15)}
+#cc{height:0;overflow:hidden;transition:height .35s,opacity .25s;opacity:0}
+#cc.on{height:320px;opacity:1;border-top:1px solid rgba(48,52,80,0.2)}
+.ct{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(0,0,0,0.15)}
+.ct .cl{font-size:11px;font-family:var(--mono);color:var(--secondary)}
+.cx{cursor:pointer;font-size:11px;color:var(--muted);padding:2px 8px;border-radius:4px;transition:all .15s}
+.cx:hover{color:var(--red);background:rgba(255,82,82,0.08)}
+#cr{height:275px}
+.st{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;gap:8px}
+.st i{font-size:20px;opacity:.4;font-style:normal}
+.st p{font-size:11px;color:var(--muted);text-align:center;font-family:var(--mono)}
+.se .st p{color:var(--red)}
+.so .st p{color:var(--yellow)}
+@keyframes up{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sh{0%{background-position:-200%}100%{background-position:200%}}
+.shim{background:linear-gradient(90deg,transparent,rgba(48,52,80,0.15),transparent);background-size:200% 100%;animation:sh 1.5s ease-in-out infinite}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="brand">
+    <h1>YURI TRADING</h1>
+    <span class="badge">v1 HUD</span>
+  </div>
+  <div class="meta">
+    <div class="sg">
+      <span class="si" id="s-dex"><span class="dt dt-wr"></span>DEX</span>
+      <span class="si" id="s-fund"><span class="dt dt-wr"></span>FUND</span>
+      <span class="si" id="s-whale"><span class="dt dt-wr"></span>WHALE</span>
+      <span class="si" id="s-agg"><span class="dt dt-wr"></span>AGG</span>
+    </div>
+    <span class="clk" id="clk">--:--:--</span>
+  </div>
+</div>
+
+<div class="gr">
+
+<div class="pn fw">
+  <div class="ph">
+    <div class="pt"><i>⟐</i> New Token Radar <span class="cn" id="c-dex">0</span></div>
+    <div class="pm"><span class="ud" id="u-dex">waiting…</span></div>
+  </div>
+  <div class="pb" id="p-dex">
+    <div class="st shim"><i>⬡</i><p>connecting to aggregator…</p></div>
+  </div>
+</div>
+
+<div class="pn">
+  <div class="ph">
+    <div class="pt"><i>⟐</i> Perp Funding <span class="cn" id="c-fund">0</span></div>
+    <div class="pm"><span class="ud" id="u-fund">waiting…</span></div>
+  </div>
+  <div class="pb" id="p-fund">
+    <div class="st shim"><i>⬡</i><p>connecting to aggregator…</p></div>
+  </div>
+  <div id="cc">
+    <div class="ct"><span class="cl" id="clabel">⟐ select asset for OHLCV</span><span class="cx" onclick="closeChart()">✕ close</span></div>
+    <div id="cr"></div>
+  </div>
+</div>
+
+<div class="pn">
+  <div class="ph">
+    <div class="pt"><i>⟐</i> Smart Money <span class="cn" id="c-whale">0</span></div>
+    <div class="pm"><span class="ud" id="u-whale">waiting…</span></div>
+  </div>
+  <div class="pb" id="p-whale">
+    <div class="st shim"><i>⬡</i><p>connecting to aggregator…</p></div>
+  </div>
+</div>
+
+</div>
+<script>
+var A = "http://localhost:4201";
+var I = {D:3e4,F:15e3,W:6e4,H:15e3};
+var chart=null, cs=null, ca=null;
+var lu={dex:0,fund:0,whale:0};
+
+function $(i){return document.getElementById(i)}
+function es(s){if(typeof s!=="string")s=String(s||"");return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function fu(ep){return fetch(A+ep).then(function(r){if(!r.ok)throw Error("HTTP "+r.status);return r.json()})}
+
+function fm(n){if(!n||n===0)return"-";if(n>=1e9)return"$"+(n/1e9).toFixed(2)+"B";if(n>=1e6)return"$"+(n/1e6).toFixed(1)+"M";if(n>=1e3)return"$"+(n/1e3).toFixed(1)+"k";return"$"+Number(n).toFixed(0)}
+function sa(a){if(!a||a==="unknown")return"–";return a.slice(0,5)+"…"+a.slice(-4)}
+
+function ss(id,ok){var e=$(id);if(!e)return;var d=e.querySelector(".dt");if(!d)return;d.className="dt "+(ok?"dt-ok":"dt-er")}
+function sl(p,m){$(p).innerHTML='<div class="st shim"><i>⬡</i><p>'+es(m)+'</p></div>'}
+function se(p,m){$(p).innerHTML='<div class="st se"><i>⚠</i><p>'+es(m)+'</p></div>'}
+function so(p,m){$(p).innerHTML='<div class="st so"><i>⊘</i><p>'+es(m)+'</p></div>'}
+function sz(p,m){$(p).innerHTML='<div class="st"><i>–</i><p>'+es(m)+'</p></div>'}
+
+function uc(){$("clk").textContent=new Date().toLocaleTimeString("en-GB")}
+setInterval(uc,1e3);uc();
+
+async function pd(){
+try{var d=await fu("/feeds/dex");ss("s-dex",1);lu.dex=Date.now();$("u-dex").textContent=new Date().toLocaleTimeString("en-GB");
+if(!d.pairs||!d.pairs.length){$("c-dex").textContent="0";sz("p-dex","0 pairs matched filters");return}
+$("c-dex").textContent=d.pairs.length;
+var h="<table><thead><tr><th>Chain</th><th>Pair</th><th>Age</th><th class="nu">Liq</th><th class="nu">Vol</th><th class="nu">Δ1h</th><th class="nu">Price</th><th>DEX</th></tr></thead><tbody>";
+for(var i=0;i<d.pairs.length;i++){var p=d.pairs[i];var am=Math.round(p.age/60);var as=am<60?am+"m":Math.floor(am/60)+"h "+(am%60)+"m";var sc=p.volumeSpikePct>500?"cg":(p.volumeSpikePct>200?"":"c2");h+="<tr><td>"+es(p.chainId)+"</td><td><b>"+es(p.baseToken)+"</b>/"+es(p.quoteToken)+"</td><td class="c2">"+as+"</td><td class="nu">"+fm(p.liquidity)+"</td><td class="nu">"+fm(p.volume1h)+"</td><td class="nu "+sc+"">"+(p.volumeSpikePct>0?"+":"")+p.volumeSpikePct+"%</td><td class="nu">$"+Number(p.priceUsd).toFixed(8)+"</td><td class="c2">"+es(p.dex)+"</td></tr>"}
+h+="</tbody></table>";$("p-dex").innerHTML=h}
+catch(e){ss("s-dex",0);se("p-dex","DEX: "+es(e.message))}}
+
+async function pf(){
+try{var d=await fu("/feeds/funding");ss("s-fund",1);lu.fund=Date.now();$("u-fund").textContent=new Date().toLocaleTimeString("en-GB");
+if(!d.assets||!d.assets.length){$("c-fund").textContent="0";sz("p-fund","0 entries");return}
+$("c-fund").textContent=d.assets.length;
+var h="<table><thead><tr><th>#</th><th>Asset</th><th class="nu">Mark</th><th class="nu">1h</th><th class="nu">8h</th><th>Signal</th></tr></thead><tbody>";
+for(var i=0;i<d.assets.length;i++){var a=d.assets[i];var rp=(a.fundingRate*100).toFixed(4);var r8=(a.funding8h*100).toFixed(4);var rc=a.fundingRate>0?"cr":(a.fundingRate<0?"cg":"");var sc2=a.signal==="SHORT_BIAS"?"sg-s":(a.signal==="LONG_BIAS"?"sg-l":"sg-n");h+="<tr style="cursor:pointer" onclick="sc('"+es(a.asset)+"')"><td class="c3">"+(i+1)+"</td><td><b>"+es(a.asset)+"</b></td><td class="nu">"+(a.markPx>0?"$"+Number(a.markPx).toFixed(4):"<span class="c3">–</span>")+"</td><td class="nu "+rc+"">"+rp+"%</td><td class="nu "+rc+"">"+r8+"%</td><td><span class="sg "+sc2+"">"+a.signalEmoji+" "+a.signal+"</span></td></tr>"}
+h+="</tbody></table>";$("p-fund").innerHTML=h}
+catch(e){ss("s-fund",0);se("p-fund","Funding: "+es(e.message))}}
+
+async function pw(){
+try{var d=await fu("/feeds/whale");ss("s-whale",1);lu.whale=Date.now();$("u-whale").textContent=new Date().toLocaleTimeString("en-GB");
+if(!d.transactions||!d.transactions.length){$("c-whale").textContent="0";sz("p-whale","0 transactions");return}
+$("c-whale").textContent=d.transactions.length;
+var h="<table><thead><tr><th>Time</th><th>Asset</th><th class="nu">Amount</th><th>From</th><th>To</th><th>Type</th></tr></thead><tbody>";
+for(var i=0;i<d.transactions.length;i++){var t=d.transactions[i];var tm=t.timestamp?new Date(t.timestamp).toLocaleTimeString("en-GB"):"<span class="c3">–</span>";var tc=t.type==="EXCHANGE_DEPOSIT"?"wt-d":(t.type==="EXCHANGE_WITHDRAWAL"?"wt-w":"wt-t");var fl=t.fromOwner||sa(t.fromAddress);var tl=t.toOwner||sa(t.toAddress);h+="<tr><td class="c2">"+tm+"</td><td><b>"+es(t.symbol)+"</b></td><td class="nu">$"+(t.amountUsd/1e6).toFixed(2)+"M</td><td class="c2" title=""+es(t.fromAddress)+"">"+es(fl)+"</td><td class="c2" title=""+es(t.toAddress)+"">"+es(tl)+"</td><td><span class="wt "+tc+"">"+es(t.type)+"</span></td></tr>"}
+h+="</tbody></table>";$("p-whale").innerHTML=h}
+catch(e){ss("s-whale",0);if(e.message.indexOf("404")>=0||e.message.indexOf("ECONNREFUSED")>=0)so("p-whale","WHALE_ALERT_API_KEY not set");else se("p-whale","Whale: "+es(e.message))}}
+
+async function ph(){
+try{var d=await fu("/health");ss("s-agg",d.status==="ok")}catch(e){ss("s-agg",0)}}
+
+function sc(asset){
+ca=asset;var c=$("cc");c.classList.add("on");
+if(!chart){chart=LightweightCharts.createChart($("cr"),{layout:{background:{color:"#12121a"},textColor:"#7a7f99"},grid:{vertLines:{color:"#1e1e2e"},horzLines:{color:"#1e1e2e"}},crosshair:{mode:LightweightCharts.CrosshairMode.Normal},timeScale:{borderColor:"#1e1e2e",timeVisible:true},rightPriceScale:{borderColor:"#1e1e2e"}});
+cs=chart.addCandlestickSeries({upColor:"#00e676",downColor:"#ff5252",borderUpColor:"#00e676",borderDownColor:"#ff5252",wickUpColor:"#00e676",wickDownColor:"#ff5252"})}
+$("clabel").textContent="⟐ "+asset+" · 15m OHLCV";
+fetch("https://api.hyperliquid.xyz/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"candleSnapshot",req:{coin:asset,interval:"15m",startTime:Date.now()-864e5,endTime:Date.now()}})}).then(function(r){if(!r.ok)throw Error("HTTP "+r.status);return r.json()}).then(function(ca){if(Array.isArray(ca)&&ca.length){var f=ca.map(function(c){return{time:Math.floor(c.t/1e3),open:parseFloat(c.o),high:parseFloat(c.h),low:parseFloat(c.l),close:parseFloat(c.c)}}).filter(function(c){return c.time&&c.open}).sort(function(a,b){return a.time-b.time});cs.setData(f);chart.timeScale().fitContent()}else sg()}).catch(function(){sg()})}
+
+function sg(){var n=Math.floor(Date.now()/1e3);var s=[];for(var i=96;i>=0;i--){var t=n-i*900;var o=100+Math.random()*10;var cl=o+(Math.random()-0.5)*4;s.push({time:t,open:o,high:Math.max(o,cl)+Math.random()*2,low:Math.min(o,cl)-Math.random()*2,close:cl})}cs.setData(s);chart.timeScale().fitContent()}
+
+function closeChart(){$("cc").classList.remove("on");ca=null}
+
+ph();pd();pf();pw();
+setInterval(ph,15e3);setInterval(pd,I.D);setInterval(pf,I.F);setInterval(pw,I.W);
+</script>
+</body>
+</html>
