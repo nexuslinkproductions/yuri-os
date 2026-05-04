@@ -468,16 +468,33 @@ _fused_swarm_orchestrate() {
   # Write evidence bundle to artifact dir
   _fused_swarm_write_evidence_bundle "$FUSED_SWARM_EVIDENCE_BUNDLE" "$_run_dir"
 
-  # Run ruflo swarm with timeout and capture output
+  # Run ruflo swarm with portable timeout (timeout cannot call bash functions directly)
   local _swarm_timeout=120
-  if timeout "$_swarm_timeout" run_ruflo_swarm "$_enhanced_prompt" >"$_swarm_stdout" 2>"$_swarm_stderr"; then
-    _swarm_status=0
-    _swarm_completion="completed"
+  local _swarm_pid
+  local _swarm_timed_out=0
+  _swarm_completion="completed"
+  _swarm_status=0
+
+  run_ruflo_swarm "$_enhanced_prompt" >"$_swarm_stdout" 2>"$_swarm_stderr" &
+  _swarm_pid=$!
+
+  # Wait with timeout check in a loop (sleep 1s granularity)
+  local _swarm_elapsed=0
+  while [ "$_swarm_elapsed" -lt "$_swarm_timeout" ] && kill -0 "$_swarm_pid" 2>/dev/null; do
+    sleep 1
+    _swarm_elapsed=$(( _swarm_elapsed + 1 ))
+  done
+
+  if kill -0 "$_swarm_pid" 2>/dev/null; then
+    # Still running after timeout — kill it
+    kill "$_swarm_pid" 2>/dev/null || true
+    _swarm_completion="timeout"
+    _swarm_status=124
   else
+    # Process exited; collect exit code
+    wait "$_swarm_pid" 2>/dev/null
     _swarm_status=$?
-    if [ "$_swarm_status" -eq 124 ]; then
-      _swarm_completion="timeout"
-    else
+    if [ "$_swarm_status" -ne 0 ]; then
       _swarm_completion="failed"
     fi
   fi
