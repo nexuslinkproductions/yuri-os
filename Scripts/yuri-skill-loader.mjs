@@ -39,6 +39,10 @@ const DISCOVERY_PATHS = [
 
 const PREVIEW_LINES = 20
 
+// Body injection size limits (tunable)
+const SKILL_BODY_MAX_PER_SKILL = 5000  // max chars per skill body
+const SKILL_BODY_MAX_TOTAL = 15000      // max chars across all skill bodies
+
 main()
 
 function main() {
@@ -128,7 +132,12 @@ function buildRegistry() {
 
       if (!stat.isFile()) continue
 
-      const body = readFileSync(sourcePath, 'utf8')
+      let body = readFileSync(sourcePath, 'utf8')
+      let bodyTruncated = false
+      if (body.length > SKILL_BODY_MAX_PER_SKILL) {
+        body = body.slice(0, SKILL_BODY_MAX_PER_SKILL)
+        bodyTruncated = true
+      }
       const hash = createHash('sha256').update(body).digest('hex').slice(0, 16)
       const loadedAt = new Date().toISOString()
 
@@ -137,6 +146,8 @@ function buildRegistry() {
         source_path: path.join(surface.prefix, entry.name),
         source_type: surface.sourceType,
         body,
+        body_length: body.length,
+        bodyTruncated,
         hash,
         loaded_at: loadedAt,
       }

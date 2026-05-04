@@ -397,18 +397,48 @@ _fused_swarm_extract_evidence_bundle() {
     if [ -n "$_skill_json_list" ]; then
       _bundle="${_bundle}surface=skills"$'\n'
       _line_count=$(( _line_count + 1 ))
-      while IFS='|' read -r _sname _stype _spath _shash; do
-        [ -z "$_sname" ] && continue
+      while IFS= read -r _sline; do
+        [ -z "$_sline" ] && continue
         [ "$_line_count" -ge "$_total_max" ] && break
-        _bundle="${_bundle}  SKILL: name=${_sname} type=${_stype} path=${_spath} hash=${_shash}"$'\n'
+        local _sname _sdata
+        _sdata="$(printf '%s' "$_sline" | python3 -c "
+import sys,json
+d=json.loads(sys.stdin.read())
+print(d.get('name','')+'|'+d.get('source_type','')+'|'+d.get('source_path','')+'|'+d.get('hash',''))
+print('BODY_START')
+body=d.get('body','')
+sys.stdout.write(body)
+")"
+        _sname="${_sdata%%|*}"
+        [ -z "$_sname" ] && continue
+        _bundle="${_bundle}  SKILL: name=$_sname"$'\n'
         _line_count=$(( _line_count + 1 ))
         _skill_count=$(( _skill_count + 1 ))
+        # Append body text after SKILL line
+        _bod="${_sdata#*BODY_START}"
+        if [ -n "$_bod" ]; then
+          while IFS= read -r _body_line; do
+            [ "$_line_count" -ge "$_total_max" ] && break
+            _bundle="${_bundle}    $_body_line"$'\n'
+            _line_count=$(( _line_count + 1 ))
+          done <<< "$_bod"
+        fi
       done <<< "$(printf '%s' "$_skill_json_list" | node -e "
         let d='';
         process.stdin.on('data',c=>d+=c);
         process.stdin.on('end',()=>{
-          try{const j=JSON.parse(d);for(const s of j.skills||[]){console.log(s.name+'|'+s.source_type+'|'+s.source_path+'|'+s.hash)}
-          }catch(e){}
+          try{const j=JSON.parse(d);let total=0;const limit=15000;
+          for(const s of j.skills||[]){
+            let body=s.body||'';
+            if(body.length+total>limit){body=body.slice(0,limit-total)+'... [truncated: total section limit]';}
+            total+=body.length;
+            let out=JSON.stringify({
+              name:s.name,source_type:s.source_type,source_path:s.source_path,
+              hash:s.hash,body:body
+            });
+            console.log(out);
+          }}
+          catch(e){}
         })
       ")"
       if [ "$_skill_count" -eq 0 ]; then
