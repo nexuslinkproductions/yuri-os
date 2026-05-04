@@ -369,8 +369,87 @@ _fused_swarm_extract_evidence_bundle() {
       _per_surface_count=$(( _per_surface_count + 1 ))
     done <<< "$_output"
   done
+
+  # Append bounded rule-vault term evidence if both rules and vault are detected
+  local _has_rules=0 _has_vault=0 _f
+  for _f in $_found_surfaces; do
+    [ "$_f" = "rules" ] && _has_rules=1
+    [ "$_f" = "vault" ] && _has_vault=1
+  done
+  if [ "$_has_rules" -eq 1 ] && [ "$_has_vault" -eq 1 ] && [ "$_line_count" -lt "$_total_max" ]; then
+    local _term_evidence=""
+    _term_evidence="$(_fused_swarm_extract_rule_vault_term_evidence "$_line_count" "$_total_max")"
+    if [ -n "$_term_evidence" ]; then
+      _bundle="${_bundle}${_term_evidence}"
+      local _term_lines
+      _term_lines="$(printf '%s' "$_term_evidence" | wc -l | tr -d ' ')"
+      _line_count=$(( _line_count + _term_lines ))
+    fi
+  fi
+
   FUSED_SWARM_EVIDENCE_TRUNCATED=$_truncated
   FUSED_SWARM_EVIDENCE_BUNDLE="$_bundle"
+}
+
+# Bounded deterministic rule-vault term matching: scans .claude/rules for vault domain terms
+_fused_swarm_extract_rule_vault_term_evidence() {
+  local _current_lines="$1"
+  local _max_lines="$2"
+  local _remaining=$(( _max_lines - _current_lines ))
+  [ "$_remaining" -le 0 ] && return
+
+  local _rules_dir=".claude/rules"
+  local _max_matches=80
+  local _max_per_file_per_term=3
+  local _excerpt_max=160
+  local _domains="COSMOLOGY CONSCIOUSNESS COMMUNICATION SYNTHESIS OPERATIONAL META HERMETIC DEPLOYMENT EVOLUTION DISTRIBUTION QUALITY DEFENSE SWARM CANON INGESTION SYSTEM RESOURCE MEMORY COMMAND NEURAL PROJECT_ENGINE CLAUDIO_VAULT PROJECTS"
+  local _result=""
+  local _match_count=0
+  local _no_match_count=0
+  local _header_printed=false
+  local _budget_spent=0
+
+  for _rule_file in "$ROOT_DIR/$_rules_dir"/*.md; do
+    [ -f "$_rule_file" ] || continue
+    local _basename="$(basename "$_rule_file")"
+    for _term in $_domains; do
+      [ "$_budget_spent" -ge "$_remaining" ] && break 2
+      [ "$_match_count" -ge "$_max_matches" ] && break 2
+      local _search_pat="$_term"
+      if printf '%s' "$_term" | grep -q '_'; then
+        local _spaced; _spaced="$(printf '%s' "$_term" | tr '_' ' ')"
+        local _hyphened; _hyphened="$(printf '%s' "$_term" | tr '_' '-')"
+        _search_pat="${_term}|${_spaced}|${_hyphened}"
+      fi
+      local _matches
+      _matches="$(grep -in "$_search_pat" "$_rule_file" 2>/dev/null | head -n "$_max_per_file_per_term")" || true
+      if [ -n "$_matches" ]; then
+        while IFS= read -r _mline; do
+          [ "$_budget_spent" -ge "$_remaining" ] && break 2
+          [ "$_match_count" -ge "$_max_matches" ] && break 2
+          if ! $_header_printed; then
+            _result="${_result}surface=rule_vault_term_matches"$'
+'
+            _budget_spent=$(( _budget_spent + 1 ))
+            _header_printed=true
+          fi
+          local _lnum; _lnum="$(printf '%s' "$_mline" | cut -d: -f1)"
+          local _text; _text="$(printf '%s' "$_mline" | cut -d: -f2- | head -c "$_excerpt_max")"
+          _result="${_result}  MATCH: file=.claude/rules/${_basename} term=${_term} line=${_lnum} excerpt=${_text}"$'
+'
+          _match_count=$(( _match_count + 1 ))
+          _budget_spent=$(( _budget_spent + 1 ))
+        done <<< "$_matches"
+      else
+        _no_match_count=$(( _no_match_count + 1 ))
+      fi
+    done
+  done
+  if $_header_printed && [ "$_match_count" -eq 0 ]; then
+    _result="${_result}  no_matches: vault domain terms not found in .claude/rules content"$'
+'
+  fi
+  printf '%s' "$_result"
 }
 
 _fused_swarm_write_evidence_bundle() {
