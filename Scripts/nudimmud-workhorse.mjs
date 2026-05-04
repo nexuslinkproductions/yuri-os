@@ -1772,6 +1772,16 @@ function formatSummary(outcome) {
   if (outcome.executionSummary) {
     lines.push(`EXECUTION_SUMMARY=${outcome.executionSummary}`)
   }
+  // Human-useful context (preserves all machine-readable keys above)
+  if (outcome.flashReviewStatus) {
+    lines.push(`FLASH_REVIEW=${outcome.flashReviewStatus}`)
+  }
+  if (outcome.planTitle || outcome.planSummary || outcome.intent) {
+    lines.push(`PLAN_CONTEXT=${outcome.planTitle || outcome.planSummary || outcome.intent}`)
+  }
+  if (outcome.mode === 'DRY_RUN') {
+    lines.push(`NEXT_COMMAND=cat ${outcome.finalReport}`)
+  }
   lines.push(`MARKER=${outcome.marker}`)
   return lines.join('\n')
 }
