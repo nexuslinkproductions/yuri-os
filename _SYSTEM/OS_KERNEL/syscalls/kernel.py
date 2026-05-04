@@ -46,6 +46,31 @@ def mem_log(content, mem_type='episodic', source_agent=None, tags=None, importan
         print(f"Memory {mem_id} logged [{mem_type}]: {content[:50]}...")
         return mem_id
 
+def mem_read(agent_id=None, task_id=None, limit=20, channel=None):
+    """Read memories by agent, task, or channel. Returns JSON array."""
+    with get_conn() as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        where = []
+        params = []
+        if agent_id:
+            where.append("source_agent = ?")
+            params.append(agent_id)
+        if task_id:
+            where.append("content LIKE ?")
+            params.append(f'%task_id%{task_id}%')
+        if channel:
+            where.append("content LIKE ?")
+            params.append(f'%channel%{channel}%')
+        clause = " AND ".join(where) if where else "1=1"
+        cursor.execute(
+            f"SELECT id, type, source_agent, content, importance, timestamp FROM memories WHERE {clause} ORDER BY timestamp DESC LIMIT ?",
+            params + [limit]
+        )
+        rows = [dict(r) for r in cursor.fetchall()]
+        print(json.dumps(rows, indent=2, default=str))
+        return rows
+
 def handoff(task_id, from_agent, to_agent, note, snapshot=None):
     with get_conn() as conn:
         cursor = conn.cursor()
@@ -79,6 +104,13 @@ if __name__ == "__main__":
     p_ml.add_argument("--agent")
     p_ml.add_argument("--importance", type=int, default=1)
 
+    # mem-read
+    p_mr = subparsers.add_parser("mem-read")
+    p_mr.add_argument("--agent")
+    p_mr.add_argument("--task-id")
+    p_mr.add_argument("--channel")
+    p_mr.add_argument("--limit", type=int, default=20)
+
     # handoff
     p_ho = subparsers.add_parser("handoff")
     p_ho.add_argument("task_id", type=int)
@@ -94,6 +126,8 @@ if __name__ == "__main__":
         task_update(args.task_id, args.status, args.result)
     elif args.command == "mem-log":
         mem_log(args.content, args.type, args.agent, importance=args.importance)
+    elif args.command == "mem-read":
+        mem_read(args.agent, args.task_id, args.limit, args.channel)
     elif args.command == "handoff":
         handoff(args.task_id, args.from_agent, args.to_agent, args.note)
     else:
