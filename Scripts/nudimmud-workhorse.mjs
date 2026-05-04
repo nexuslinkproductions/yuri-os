@@ -74,6 +74,7 @@ function main() {
         execute: cli.execute,
         live: cli.live,
         noFlash: cli.noFlash,
+        generatePlan: cli.generatePlan,
         artifactRoot,
       })
       process.stdout.write(`${formatSummary(outcome)}\n`)
@@ -107,6 +108,7 @@ function parseCli(argv) {
     execute: false,
     live: false,
     noFlash: false,
+    generatePlan: false,
     artifactRoot: '',
     command: '',
     ideaParts: [],
@@ -133,6 +135,10 @@ function parseCli(argv) {
     }
     if (arg === '--no-flash') {
       cli.noFlash = true
+      continue
+    }
+    if (arg === '--generate-plan') {
+      cli.generatePlan = true
       continue
     }
     if (arg === '--artifact-root') {
@@ -174,6 +180,9 @@ function parseCli(argv) {
   }
 
   cli.idea = collapseWhitespace(cli.ideaParts.join(' ')).trim()
+  if (cli.generatePlan) {
+    cli.live = true
+  }
   if (cli.noFlash && !cli.live) {
     throw new Error('--no-flash requires --live')
   }
@@ -191,6 +200,8 @@ function printHelp() {
       '  node Scripts/nudimmud-workhorse.mjs forge --live "<rough idea>"',
       '  node Scripts/nudimmud-workhorse.mjs forge --live --execute "<rough idea>"',
       '  node Scripts/nudimmud-workhorse.mjs forge --live --no-flash "<rough idea>"',
+      '  node Scripts/nudimmud-workhorse.mjs forge --generate-plan "<rough idea>"',
+      '  node Scripts/nudimmud-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
       '  node Scripts/nudimmud-workhorse.mjs run --plan <path>',
       '  node Scripts/nudimmud-workhorse.mjs run --execute --plan <path>',
       '  node Scripts/nudimmud-workhorse.mjs --selftest',
@@ -221,13 +232,13 @@ function ensureArtifactRoot(explicitRoot) {
   throw new Error('Artifact root unavailable')
 }
 
-function forgePipeline({ idea, execute, live = false, noFlash = false, artifactRoot, transport = createDeepseekTransport(), executorRunner = runExecutorPlan }) {
+function forgePipeline({ idea, execute, live = false, noFlash = false, generatePlan = false, artifactRoot, transport = createDeepseekTransport(), executorRunner = runExecutorPlan }) {
   if (!idea) {
     throw new Error('forge requires a rough idea')
   }
 
   const run = createRunContext({ artifactRoot, mode: execute ? 'execute' : 'dry_run', source: live ? 'forge-live' : 'forge' })
-  const request = buildRequestArtifact({ run, idea, execute, live, noFlash, sourcePath: 'forge' })
+  const request = buildRequestArtifact({ run, idea, execute, live, noFlash, generatePlan, sourcePath: 'forge' })
   const files = writeCoreArtifacts({ run, request, sourceLabel: live ? 'forge-live' : 'forge' })
 
   if (!live) {
@@ -847,7 +858,7 @@ function buildLiveFlashPrompt({ idea, intent, plan, execute }) {
   ].join('\n')
 }
 
-function buildRequestArtifact({ run, idea = '', execute = false, live = false, noFlash = false, planPath = '', sourcePath = '' }) {
+function buildRequestArtifact({ run, idea = '', execute = false, live = false, noFlash = false, generatePlan = false, planPath = '', sourcePath = '' }) {
   return {
     request_id: `request-${run.runId}`,
     workhorse_version: WORKHORSE_VERSION,
@@ -857,6 +868,7 @@ function buildRequestArtifact({ run, idea = '', execute = false, live = false, n
     execution_mode: execute ? 'execute' : 'dry_run',
     live_mode: !!live,
     flash_mode: noFlash ? 'skipped_explicit' : (live ? 'required' : 'stubbed'),
+    generate_plan_mode: !!generatePlan,
     plan_path: planPath,
     artifact_root: path.dirname(run.runDir),
     created_at: new Date().toISOString(),
@@ -1402,6 +1414,32 @@ function runSelftest({ artifactRoot }) {
     }
   }
 
+  const generatePlanRun = forgePipeline({
+    idea: 'inspect package scripts without mutation',
+    execute: false,
+    live: true,
+    generatePlan: true,
+    noFlash: false,
+    artifactRoot: tempRoot,
+    transport: approvedLiveTransport,
+    executorRunner: () => ({ validated: true, readonly: true, markers: [], files_changed: [], executed: false }),
+  })
+  if (generatePlanRun.ok && generatePlanRun.flashReviewStatus === 'approved') {
+    if (liveArtifactPackExists(generatePlanRun.runDir, false)) {
+      markers.push('GENERATE_PLAN_ALIAS_PASS')
+      markers.push('GENERATE_PLAN_USES_LIVE_PIPELINE_PASS')
+    }
+  }
+  if (!generatePlanRun.marker.includes('EXECUTE')) {
+    markers.push('GENERATE_PLAN_NO_EXECUTE_BY_DEFAULT_PASS')
+  }
+  if (generatePlanRun.ok && markers.includes('GENERATE_PLAN_USES_LIVE_PIPELINE_PASS') && markers.includes('GENERATE_PLAN_NO_EXECUTE_BY_DEFAULT_PASS')) {
+    const genRequest = readJsonFile(path.join(generatePlanRun.runDir, 'request.json'))
+    if (genRequest.generate_plan_mode === true) {
+      markers.push('GENERATE_PLAN_ARTIFACT_MARKER_PASS')
+    }
+  }
+
   const normalizedFlashTransport = {
     runLane(lane) {
       if (lane === LIVE_PRO_LANE) {
@@ -1551,7 +1589,7 @@ function runSelftest({ artifactRoot }) {
     markers.push('NO_REPO_MUTATION_FROM_RUNTIME_PASS')
   }
 
-  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS') && markers.includes('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS')) {
+  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS') && markers.includes('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS') && markers.includes('GENERATE_PLAN_ALIAS_PASS') && markers.includes('GENERATE_PLAN_USES_LIVE_PIPELINE_PASS') && markers.includes('GENERATE_PLAN_NO_EXECUTE_BY_DEFAULT_PASS') && markers.includes('GENERATE_PLAN_ARTIFACT_MARKER_PASS')) {
     markers.push('WORKHORSE_SELFTEST_PASS')
   }
 
@@ -1836,6 +1874,8 @@ function helpTextLines() {
     'Usage:',
     '  node Scripts/nudimmud-workhorse.mjs forge "<rough idea>"',
     '  node Scripts/nudimmud-workhorse.mjs forge --execute "<rough idea>"',
+    '  node Scripts/nudimmud-workhorse.mjs forge --generate-plan "<rough idea>"',
+    '  node Scripts/nudimmud-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
     '  node Scripts/nudimmud-workhorse.mjs run --plan <path>',
     '  node Scripts/nudimmud-workhorse.mjs run --execute --plan <path>',
     '  node Scripts/nudimmud-workhorse.mjs --selftest',
