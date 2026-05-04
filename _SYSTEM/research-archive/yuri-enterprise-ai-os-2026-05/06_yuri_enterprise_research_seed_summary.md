@@ -18,10 +18,10 @@
 
 | Expected Source | Status |
 |
-| NIST AI RMF (NIST.AI.600-1) | PDF_REFERENCE_PENDING_TEXT_EXTRACTION |
-| OWASP LLM Top 10 full document | PDF_REFERENCE_PENDING_TEXT_EXTRACTION |
-| SLSA v1.0 full spec | PDF_REFERENCE_PENDING_TEXT_EXTRACTION |
-| EU AI Act full text | PDF_REFERENCE_PENDING_TEXT_EXTRACTION |
+| NIST AI RMF (NIST.AI.100-1) | EXTRACTED (300 lines, pdftotext) |
+| OWASP LLM Top 10 | UNAVAILABLE (404 from source); using HTML capture |
+| SLSA v1.0 | UNAVAILABLE (HTML-only source); using web page capture |
+| EU AI Act | UNAVAILABLE (HTML-only); needs license review |
 
 ## Yuri Adaptation Backlog
 

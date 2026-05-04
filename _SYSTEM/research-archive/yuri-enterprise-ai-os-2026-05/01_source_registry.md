@@ -24,7 +24,7 @@
 | https://genai.owasp.org/ | 2 | standard | FETCHED | 5ad364bc | CC-BY-SA 4.0 | medium |
 | https://slsa.dev/spec/v1.0/ | 2 | standard | FETCHED | 67cd1f21 | Apache 2.0 | medium |
 | https://artificialintelligenceact.eu/the-act/ | 2 | official | FETCHED | 8f68fbe0 | EU, public (educational) | medium |
-| NIST AI RMF PDF (NIST.AI.600-1) | 2 | official | PDF_REFERENCE | -- | US Gov, public domain | pending |
-| OWASP LLM Top 10 full PDF | 2 | standard | PDF_REFERENCE | -- | CC-BY-SA 4.0 | pending |
-| SLSA v1.0 full spec | 2 | standard | PDF_REFERENCE | -- | Apache 2.0 | pending |
-| EU AI Act full text PDF | 2 | official | PDF_REFERENCE | -- | EU, public (educational) | pending |
+| NIST AI RMF PDF (NIST.AI.100-1) | 2 | official | READY_FOR_REVIEW | (in archive 03) | US Gov, public domain | high | pdf_extraction: pdftotext | |
+| OWASP LLM Top 10 | 2 | standard | READY_FOR_REVIEW | (HTML capture, 08CU) | CC-BY-SA 4.0 | medium | pdf_NOT_AVAILABLE: 404 from source | |
+| SLSA v1.0 | 2 | standard | READY_FOR_REVIEW | (HTML capture, 08CU) | Apache 2.0 | medium | pdf_NOT_AVAILABLE: HTML-only source | |
+| EU AI Act | 2 | official | NEEDS_LICENSE_REVIEW | (HTML capture, 08CU) | EU, public (educational) | medium | pdf_NOT_AVAILABLE: HTML-only; license review pending | |

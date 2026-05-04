@@ -3,7 +3,8 @@
 **Date**: 2026-05-04
 **advisory_only**: true
 **local_truth_claim**: false
-**ingestion_status**: REFERENCE_ONLY
+**ingestion_status**: READY_FOR_REVIEW
+**pdf_extraction_note**: SLSA v1.0 PDF not available (slsa.dev returns HTML). Using HTML page capture from 08CU.
 
 ## Sources
 
@@ -39,7 +40,7 @@
 
 ## Non-Claims
 
-- SLSA full specification not fully captured (text extraction pending).
+- SLSA v1.0 PDF download returned HTML page (slsa.dev serves spec as web doc, not PDF). Using HTML page capture from 08CU.
 - No third-party software bill of materials (SBOM) generated.
 - No dependency audit performed.
 - No RAG ingestion without explicit owner approval.
