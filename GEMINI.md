@@ -1,3 +1,5 @@
+INHERIT: _SYSTEM/yuri-origin.md
+
 # GEMINI.md — Yuri OS / NUDIMMUD Gemini CLI Guard
 
 Gemini CLI is allowed only as a read-only backup and broad-context review lane until a dedicated Gemini parity sprint passes.

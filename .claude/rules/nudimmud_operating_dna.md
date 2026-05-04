@@ -1,6 +1,8 @@
 # NUDIMMUD Operating DNA — Canonical Contract
 
-> Source of truth for all Yuri OS sessions. Future short prompts inherit this by reference.
+INHERIT: _SYSTEM/yuri-origin.md
+
+> Source of truth for Yuri OS sessions bootstrapping through Claude. Inherits the Yuri OS canonical origin.
 > Do not duplicate content from referenced rule files; point to them instead.
 
 ---
