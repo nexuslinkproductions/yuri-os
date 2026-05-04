@@ -23,6 +23,10 @@ import http from 'node:http';
 import { startDexFeed, getLatestPairs } from './dex-feed.mjs';
 import { startFundingFeed, getLatestFunding } from './hl-funding.mjs';
 import { startWhaleFeed, getLatestWhale } from './whale-feed.mjs';
+import { startJupiterFeed, getLatestJupiter } from './jupiter-feed.mjs';
+import { startBirdeyeFeed, getLatestBirdeye } from './birdeye-feed.mjs';
+import { startFearGreedFeed, getLatestFearGreed } from './fear-greed-feed.mjs';
+import { startNewsFeed, getLatestNews } from './news-feed.mjs';
 
 const PORT = 4201;
 const HOST = '127.0.0.1';
@@ -35,10 +39,18 @@ const cache = {
   dex: [],
   funding: [],
   whale: [],
+  jupiter: [],
+  birdeye: [],
+  feargreed: [],
+  news: [],
   lastUpdated: {
     dex: null,
     funding: null,
     whale: null,
+    jupiter: null,
+    birdeye: null,
+    feargreed: null,
+    news: null,
   },
 };
 
@@ -57,6 +69,26 @@ startFundingFeed((entries) => {
 startWhaleFeed((entries) => {
   cache.whale = entries;
   cache.lastUpdated.whale = new Date().toISOString();
+});
+
+startJupiterFeed((tokens) => {
+  cache.jupiter = tokens;
+  cache.lastUpdated.jupiter = new Date().toISOString();
+});
+
+startBirdeyeFeed((tokens) => {
+  cache.birdeye = tokens;
+  cache.lastUpdated.birdeye = new Date().toISOString();
+});
+
+startFearGreedFeed((data) => {
+  cache.feargreed = data;
+  cache.lastUpdated.feargreed = new Date().toISOString();
+});
+
+startNewsFeed((articles) => {
+  cache.news = articles;
+  cache.lastUpdated.news = new Date().toISOString();
 });
 
 // ── HTTP Server ──────────────────────────────────────────────────────
@@ -108,6 +140,34 @@ const routes = {
     });
   },
 
+  '/feeds/jupiter': (req, res) => {
+    sendJson(res, 200, {
+      feed: 'jupiter',
+      status: 'ok',
+      count: cache.jupiter.length,
+      lastUpdated: cache.lastUpdated.jupiter,
+      tokens: cache.jupiter,
+    });
+  },
+
+  '/feeds/birdeye': (req, res) => {
+    sendJson(res, 200, {
+      feed: 'birdeye',
+      status: 'ok',
+      count: cache.birdeye.length,
+      lastUpdated: cache.lastUpdated.birdeye,
+      tokens: cache.birdeye,
+    });
+  },
+
+  '/feeds/feargreed': (req, res) => {
+    sendJson(res, 200, { feed: 'feargreed', status: 'ok', count: cache.feargreed.length, lastUpdated: cache.lastUpdated.feargreed, data: cache.feargreed });
+  },
+
+  '/feeds/news': (req, res) => {
+    sendJson(res, 200, { feed: 'news', status: 'ok', count: cache.news.length, lastUpdated: cache.lastUpdated.news, articles: cache.news });
+  },
+
   // Lane T2: Coinbase Advanced Trade integration
   '/feeds/coinbase': (req, res) => {
     sendJson(res, 501, {
@@ -128,6 +188,10 @@ const routes = {
       dex: cache.lastUpdated.dex ? 'active' : 'starting',
       funding: cache.lastUpdated.funding ? 'active' : 'starting',
       whale: cache.lastUpdated.whale ? 'active' : 'starting',
+      jupiter: cache.lastUpdated.jupiter ? 'active' : 'starting',
+      birdeye: cache.lastUpdated.birdeye ? 'active' : 'starting',
+      feargreed: cache.lastUpdated.feargreed ? 'active' : 'starting',
+      news: cache.lastUpdated.news ? 'active' : 'starting',
       coinbase: 'stub_501',
     };
 

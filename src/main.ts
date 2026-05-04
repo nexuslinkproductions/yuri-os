@@ -70,6 +70,12 @@ const WORKFLOW_SHORTCUTS = [
         title: 'Neural Forge',
         module: 'ORACLE',
         detail: 'Open the neural reasoning and image synthesis engine. Access mission-critical reasoning, Conclave deliberation, and creative synthesis capabilities.'
+    },
+    {
+        command: '/hud',
+        title: 'Trading HUD',
+        module: 'TRADING_HUD',
+        detail: 'Palantir-grade trading signal dashboard. DEX radar, perp funding terminal, smart money tracker. Live Hyperliquid + DEX Screener data.'
     }
 ] as const;
 
@@ -1378,6 +1384,10 @@ class NudimmudEngine {
                 case 'TICKETS': 
                     this.stage.innerHTML = '<div id="react-tickets-root" style="width:100%; height:100%;"></div>';
                     (window as any).mountModule('TICKETS', 'react-tickets-root'); 
+                    break;
+                case 'TRADING_HUD':
+                    this.stage.innerHTML = '<div id="react-trading-hud-root" style="width:100%; height:100%;"></div>';
+                    (window as any).mountModule('TRADING_HUD', 'react-trading-hud-root');
                     break;
                 case 'VAULT_DEBUGGER':
                     if (!this.stage.innerHTML || this.stage.innerHTML.length < 20) {

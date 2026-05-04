@@ -355,7 +355,10 @@ async function checkIntegrations() {
     try {
         const obsidianState = obsidianRest.getStatus();
         const isPingOk = obsidianState.mode === 'rest'
-            ? await obsidianRest.ping()
+            ? await Promise.race([
+                obsidianRest.ping(),
+                new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000)),
+              ])
             : true;
         const obsidianAvailable = isPingOk || obsidianState.mode !== 'offline';
         obsidianFailCount = obsidianAvailable ? 0 : obsidianFailCount + 1;

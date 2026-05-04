@@ -1,0 +1,247 @@
+/*
+ * ⬡ YURI_TRADING :: Trading HUD Styles
+ * Uses existing NUDIMMUD design tokens (--panel, --border, --accent, etc.)
+ */
+
+.tradingHudGrid {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  height: 100%;
+  padding: 16px 20px;
+}
+
+.headerBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--panel, rgba(16,18,30,0.85));
+  border: 1px solid var(--border, rgba(48,52,80,0.35));
+  border-radius: 10px;
+  backdrop-filter: blur(20px);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerTitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent, #00e5bf);
+}
+
+.headerBadge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: rgba(0,229,191,0.08);
+  color: var(--accent, #00e5bf);
+  border: 1px solid rgba(0,229,191,0.12);
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.feedIndicators { display: flex; align-items: center; gap: 10px; }
+
+.feedDot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--secondary, #7a7f99);
+}
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background .3s, box-shadow .3s;
+}
+
+.dotActive  { background: #00e676; box-shadow: 0 0 6px rgba(0,230,118,0.5); }
+.dotError   { background: #ff5252; box-shadow: 0 0 6px rgba(255,82,82,0.4); }
+.dotLoading { background: #ffd740; box-shadow: 0 0 6px rgba(255,215,64,0.3); animation: pulse 1.5s ease-in-out infinite; }
+
+.lastUpdate {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted, #4a4e66);
+  letter-spacing: 1px;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 0;
+}
+
+.panel {
+  background: var(--panel, rgba(16,18,30,0.85));
+  border: 1px solid var(--border, rgba(48,52,80,0.35));
+  border-radius: 10px;
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 280px;
+}
+
+.panelFull { grid-column: 1 / -1; }
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(48,52,80,0.15);
+  flex-shrink: 0;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--secondary, #7a7f99);
+}
+
+.panelCount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(0,229,191,0.06);
+  color: var(--accent, #00e5bf);
+}
+
+.panelMeta {
+  font-size: 9px;
+  color: var(--muted, #4a4e66);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.panelBody { flex: 1; overflow-y: auto; min-height: 0; }
+
+/* Tables */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.table thead { position: sticky; top: 0; z-index: 2; }
+
+.table th {
+  text-align: left;
+  padding: 7px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted, #4a4e66);
+  background: rgba(10,12,24,0.85);
+  border-bottom: 1px solid rgba(48,52,80,0.2);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(48,52,80,0.06);
+  white-space: nowrap;
+  transition: background .15s;
+}
+
+.table tr:hover td { background: rgba(0,229,191,0.025); }
+.numCol { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Colours */
+.green  { color: #00e676; }
+.red    { color: #ff5252; }
+.yellow { color: #ffd740; }
+.muted  { color: var(--muted, #4a4e66); }
+
+/* State placeholders */
+.stateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  gap: 8px;
+  height: 100%;
+  min-height: 180px;
+}
+
+.stateIcon   { font-size: 18px; opacity: 0.35; font-style: normal; }
+.stateMessage { font-size: 10.5px; color: var(--muted, #4a4e66); text-align: center; font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
+.stateError .stateMessage { color: #ff5252; }
+
+/* Signal badges */
+.signalBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.signalShort  { background: rgba(255,82,82,0.1); color: #ff5252; border-color: rgba(255,82,82,0.18); }
+.signalLong   { background: rgba(0,230,118,0.1); color: #00e676; border-color: rgba(0,230,118,0.18); }
+.signalNeutral { background: rgba(74,78,102,0.1); color: var(--muted, #4a4e66); border-color: rgba(74,78,102,0.12); }
+
+/* Whale type badges */
+.whaleType {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.whaleDeposit    { background: rgba(255,82,82,0.1); color: #ff5252; border: 1px solid rgba(255,82,82,0.15); }
+.whaleWithdrawal { background: rgba(0,230,118,0.1); color: #00e676; border: 1px solid rgba(0,230,118,0.15); }
+.whaleTransfer   { background: rgba(255,215,64,0.08); color: #ffd740; border: 1px solid rgba(255,215,64,0.15); }
+
+/* Animations */
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes pulse   { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes fadeUp  { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(48,52,80,0.12), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.fadeUp { animation: fadeUp 0.35s ease-out both; }
