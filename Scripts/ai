@@ -387,6 +387,34 @@ _fused_swarm_extract_evidence_bundle() {
     fi
   fi
 
+  # Append active skills from Yuri skill loader (read-only doctrine context)
+  if [ "$_line_count" -lt "$_total_max" ] && [ "${YURI_SKILL_LOADER_DISABLE:-0}" != "1" ]; then
+    local _skills_output _skill_count=0
+    _skills_output="$(node Scripts/yuri-skill-loader.mjs --json 2>/dev/null)" || true
+    if [ -n "$_skills_output" ]; then
+      _bundle="${_bundle}surface=skills"$'\n'
+      _line_count=$(( _line_count + 1 ))
+      while IFS='|' read -r _sname _stype _spath _shash; do
+        [ -z "$_sname" ] && continue
+        [ "$_line_count" -ge "$_total_max" ] && break
+        _bundle="${_bundle}  SKILL: name=${_sname} type=${_stype} path=${_spath} hash=${_shash}"$'\n'
+        _line_count=$(( _line_count + 1 ))
+        _skill_count=$(( _skill_count + 1 ))
+      done <<< "$(printf '%s' "$_skills_output" | node -e "
+        let d='';
+        process.stdin.on('data',c=>d+=c);
+        process.stdin.on('end',()=>{
+          try{const j=JSON.parse(d);for(const s of j.skills||[]){console.log(s.name+'|'+s.source_type+'|'+s.source_path+'|'+s.hash)}
+          }catch(e){}
+        })
+      ")"
+      if [ "$_skill_count" -eq 0 ]; then
+        _bundle="${_bundle}  no_active_skills"$'\n'
+        _line_count=$(( _line_count + 1 ))
+      fi
+    fi
+  fi
+
   FUSED_SWARM_EVIDENCE_TRUNCATED=$_truncated
   FUSED_SWARM_EVIDENCE_BUNDLE="$_bundle"
 }

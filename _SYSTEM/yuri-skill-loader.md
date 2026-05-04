@@ -56,3 +56,46 @@ node Scripts/yuri-skill-loader.mjs --json
 - No agent dispatch wiring.
 - No mutation contract enforcement.
 - Body is treated as opaque text; no semantic parsing.
+
+
+## Integration into Fused Swarm Context
+
+Skills enter the context assembly path through `Scripts/ai` in the `_fused_swarm_extract_evidence_bundle()` function. After surface evidence and vault term matching are appended, the function calls `node Scripts/yuri-skill-loader.mjs --json` and appends active skills as:
+
+```
+surface=skills
+  SKILL: name=closeout type=cline_rule path=.cline/rules/closeout.md hash=961321b256afb173
+  SKILL: name=system-memory type=cline_rule path=.cline/rules/system-memory.md hash=fbee045eefcd6729
+```
+
+### What Is Included
+
+- All skills discovered by `yuri-skill-loader.mjs` from current active discovery paths
+- Currently: `.cline/rules/*.md` (2 skills: closeout, system-memory)
+- Skills appear as compact text entries in the EVIDENCE_BUNDLE
+
+### What Is Intentionally Excluded
+
+- `skills/<name>/SKILL.md` path — not yet activated (future OpenClaw-style)
+- Full skill body text — only name/type/path/hash are included to keep context compact
+- No execution, dispatch, or tool calling of any kind
+
+### Verification
+
+```bash
+# Skills present (default)
+bash Scripts/ai @swarm 'query with rules and vault'
+grep 'SKILL:' /private/tmp/yuri-artifacts/<run_id>/evidence-bundle.txt
+
+# Skills disabled via env gate
+YURI_SKILL_LOADER_DISABLE=1 bash Scripts/ai @swarm 'query with rules and vault'
+grep 'SKILL:' /private/tmp/yuri-artifacts/<run_id>/evidence-bundle.txt  # returns empty
+```
+
+### Disable Gate
+
+Set `YURI_SKILL_LOADER_DISABLE=1` in the environment to skip skill injection. Useful for debugging or when minimal context is desired.
+
+### Important
+
+This is **doctrine/context injection, not skill execution**. Skills are exposed as read-only text/context material. No runtime execution path was introduced.
