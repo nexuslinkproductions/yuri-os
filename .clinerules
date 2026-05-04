@@ -58,3 +58,40 @@ Mirrors Claude Code behaviors in Cline-native terms. Claude skills that depend o
 - No broad repo scans or unbounded grep/find.
 - Exact-path validation only.
 - Local truth outranks model text — always read before claiming.
+
+
+## Vault Awareness
+
+X1 only — passive read-only vault awareness. No bridge, no MCP, no ingestion.
+
+### Vault Location Evidence
+
+The Obsidian vault root is at the repo root. Directly proven by:
+- `SystemConfig.ROOT` (backend/src/config/SystemConfig.ts) resolves repo root.
+- `vaultIngestion.ts` sets `VAULT_ROOT = SystemConfig.ROOT` at runtime.
+- `.obsidian/` directory exists at repo root — confirms Obsidian vault.
+- Observed vault files: `AEONIC_PROTOCOL.md`, `CODEX_PROTOCOL.md`, `06_KNOWLEDGE-BASE/`, `NISABA/`, `02_AREAS/`, `03_RESOURCES/`, `01_PROJECTS/`, `00_COMMAND-CENTER/`, `_SYSTEM/`, `NEURAL-NETWORK/`.
+
+Source of truth for vault structure: `backend/src/services/vaultIngestion.ts` (DIR_DOMAIN_MAP, CORE_FILES, FILE_DOMAIN_MAP). Do not hardcode vault path — always verify from live config and code evidence.
+
+### Cline Behavior (X1)
+
+- Cline has passive vault awareness only. No vault bridge.
+- Cline must not assume it has Obsidian MCP access. MCP is not configured for vault access in this sprint.
+- Cline may inspect vault-related repo config by exact-path reads only when explicitly asked.
+- Vault path discovery must be proven from exact local config/code evidence. Do not infer or assume.
+- If vault path is not resolvable from scoped files, report `VAULT_PATH_UNRESOLVED` and stop.
+
+### Hard Stops (All X Sprints)
+
+- No vault writes, renames, moves, deletes, ingests, indexing, syncing, or mutations of any kind.
+- No vault ingestion, RAG, or background sync daemon.
+- No backend startup or DB connection to read vault content.
+- No MCP configuration or modification.
+
+### Future X-Sprint Roadmap
+
+- X2 (planned): read-only vault bridge script (yuri-vault-bridge.mjs) — list vault structure and read vault files by exact path.
+- X3 (planned): evaluate MCP for vault access only after provenance/config review.
+- X4 (planned): connect vault evidence to workhorse/godmode report pipeline.
+- RAG ingestion remains a separate explicit gate in all sprints.
