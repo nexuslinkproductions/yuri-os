@@ -388,10 +388,13 @@ _fused_swarm_extract_evidence_bundle() {
   fi
 
   # Append active skills from Yuri skill loader (read-only doctrine context)
+  FUSED_SWARM_SKILL_COUNT=0
+  FUSED_SWARM_SKILL_JSON='[]'
   if [ "$_line_count" -lt "$_total_max" ] && [ "${YURI_SKILL_LOADER_DISABLE:-0}" != "1" ]; then
-    local _skills_output _skill_count=0
-    _skills_output="$(node Scripts/yuri-skill-loader.mjs --json 2>/dev/null)" || true
-    if [ -n "$_skills_output" ]; then
+    local _skills_json_output _skill_count=0 _skill_json_list
+    _skills_json_output="$(node Scripts/yuri-skill-loader.mjs --json 2>/dev/null && printf '\nSKILL_JSON_END')" || true
+    _skill_json_list="${_skills_json_output%SKILL_JSON_END}"
+    if [ -n "$_skill_json_list" ]; then
       _bundle="${_bundle}surface=skills"$'\n'
       _line_count=$(( _line_count + 1 ))
       while IFS='|' read -r _sname _stype _spath _shash; do
@@ -400,7 +403,7 @@ _fused_swarm_extract_evidence_bundle() {
         _bundle="${_bundle}  SKILL: name=${_sname} type=${_stype} path=${_spath} hash=${_shash}"$'\n'
         _line_count=$(( _line_count + 1 ))
         _skill_count=$(( _skill_count + 1 ))
-      done <<< "$(printf '%s' "$_skills_output" | node -e "
+      done <<< "$(printf '%s' "$_skill_json_list" | node -e "
         let d='';
         process.stdin.on('data',c=>d+=c);
         process.stdin.on('end',()=>{
@@ -412,6 +415,16 @@ _fused_swarm_extract_evidence_bundle() {
         _bundle="${_bundle}  no_active_skills"$'\n'
         _line_count=$(( _line_count + 1 ))
       fi
+      FUSED_SWARM_SKILL_COUNT=$_skill_count
+      FUSED_SWARM_SKILL_JSON_PRESENT=true
+      FUSED_SWARM_SKILL_JSON="$(printf '%s' "$_skill_json_list" | node -e "
+        let d='';
+        process.stdin.on('data',c=>d+=c);
+        process.stdin.on('end',()=>{
+          try{const j=JSON.parse(d);const a=(j.skills||[]).map(s=>({name:s.name,source_type:s.source_type,source_path:s.source_path,hash:s.hash}));console.log(JSON.stringify(a))}
+          catch(e){console.log('[]')}
+        })
+      ")"
     fi
   fi
 
@@ -657,13 +670,13 @@ _fused_swarm_orchestrate() {
 
   # Write summary.json (always, even if partial or timed out)
   local _output_md="$_run_dir/output.md"
-  printf '{"run_id":"%s","route":"@swarm","fused":true,"artifact_root":"%s","prompt_sha256":"%s","advisory_only":true,"local_truth_claim":false,"requires_approval":true,"stdout_bytes":%s,"stdout_lines":%s,"stderr_bytes":%s,"exit_code":%s,"completion_status":"%s","ruflo_status":"advisory_status_only","workhorse_status":"deepseek-v4-pro-lite-budget,deepseek-v4-flash","paid_lanes":["deepseek"],"non_claims":["no write capability","no patch application","no executor widening"],"evidence_hook_enabled":true,"evidence_surfaces":["%s"],"evidence_bundle_path":"%s","evidence_bundle_truncated":%s,"swarm_output_path":"%s","swarm_error_path":"%s","output_path":"%s"}\n' \
+  printf '{"run_id":"%s","route":"@swarm","fused":true,"artifact_root":"%s","prompt_sha256":"%s","advisory_only":true,"local_truth_claim":false,"requires_approval":true,"stdout_bytes":%s,"stdout_lines":%s,"stderr_bytes":%s,"exit_code":%s,"completion_status":"%s","ruflo_status":"advisory_status_only","workhorse_status":"deepseek-v4-pro-lite-budget,deepseek-v4-flash","paid_lanes":["deepseek"],"non_claims":["no write capability","no patch application","no executor widening"],"evidence_hook_enabled":true,"evidence_surfaces":["%s"],"evidence_bundle_path":"%s","evidence_bundle_truncated":%s,"swarm_output_path":"%s","swarm_error_path":"%s","output_path":"%s","skill_count":%s,"skills_present":%s,"skills":%s}\n' \
     "$_run_id" "$_artifact_root" "$_prompt_sha256" \
     "$_stdout_bytes" "$_stdout_lines" "$_stderr_bytes" "$_swarm_status" \
     "$_swarm_completion" \
     "${FUSED_SWARM_EVIDENCE_SURFACES:-}" "$_run_dir/evidence-bundle.txt" \
     "${FUSED_SWARM_EVIDENCE_TRUNCATED:-false}" \
-    "$_swarm_stdout" "$_swarm_stderr" "$_output_md" \
+    "$_swarm_stdout" "$_swarm_stderr" "$_output_md" "${FUSED_SWARM_SKILL_COUNT:-0}" "${FUSED_SWARM_SKILL_JSON_PRESENT:-false}" "${FUSED_SWARM_SKILL_JSON:-[]}" \
     >"$_run_dir/summary.json"
 
   printf 'FUSED_SWARM_RUN=%s\n' "$_run_dir"

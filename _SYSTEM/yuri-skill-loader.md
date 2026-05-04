@@ -146,3 +146,31 @@ Validation is integrity checking, not authority proof. A matching hash means the
 node Scripts/yuri-skill-loader.mjs --write-manifest
 ```
 Generates the initial manifest from the current state of all discovered skills. Run after adding or editing any `.cline/rules/*.md` file. Commit the manifest alongside skill changes.
+
+
+## Fused Swarm Observability
+
+Skill registry metadata is emitted into fused swarm artifacts:
+
+### summary.json Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `skill_count` | int | Number of skills included in the evidence bundle |
+| `skills_present` | bool | True when skill_count > 0 |
+| `skills` | array | List of skill objects with name, source_type, source_path, hash |
+
+### Behavior
+
+- Default: skills are loaded and `skill_count` > 0, `skills_present` = true, `skills[]` populated.
+- `YURI_SKILL_LOADER_DISABLE=1`: `skill_count` = 0, `skills_present` = false, `skills` = [].
+- If no skills are discovered, same as disabled output (not an error).
+- Skill bodies are NOT included in summary.json — only metadata.
+- FUSED_SWARM_SKILL_COUNT is set in the same function that builds the evidence bundle, so it always reflects what was actually appended.
+
+### Verification
+
+```bash
+bash Scripts/ai @swarm 'using rules and vault'
+jq '.skill_count, .skills_present, .skills[].name' <artifact_dir>/summary.json
+```
