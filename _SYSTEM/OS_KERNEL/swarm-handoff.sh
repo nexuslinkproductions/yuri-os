@@ -3,8 +3,9 @@
 # Bridges the Fractal Orchestration between Agent Tool Loops and Macro Swarm State
 
 if [ "$#" -lt 4 ]; then
-    echo "Usage: $0 <TASK_ID> <FROM_AGENT> <TO_AGENT> \"<COMPRESSED_CONTEXT>\""
-    echo "Agents: ENLIL, NABU, ENKI, INANNA"
+    echo "Usage: $0 <TASK_ID> <FROM_AGENT> <TO_AGENT> \"<COMPRESSED_CONTEXT>\" [--lane 09OC]"
+    echo "Agents: ENLIL, NABU, ENKI, INANNA, OPENCLAW"
+    echo "Lane 09OC routes through openclaw-bridge.sh"
     exit 1
 fi
 
@@ -13,9 +14,26 @@ FROM_AGENT=$2
 TO_AGENT=$3
 CONTEXT=$4
 
-VALID_AGENTS=("ENLIL" "NABU" "ENKI" "INANNA")
+# Phase 2: OPENCLAW routing — if target is OPENCLAW or lane is 09OC, use the bridge
+if [ "$TO_AGENT" = "OPENCLAW" ] || [ "${5:-}" = "--lane" ] && [ "${6:-}" = "09OC" ]; then
+    BRIDGE_DIR="$(cd "$(dirname "$0")" && pwd)"
+    PAYLOAD_JSON=$(python3 -c "
+import json
+print(json.dumps({
+    'task_id': '$TASK_ID' if '$TASK_ID' != '0' else '',
+    'from_agent': '$FROM_AGENT',
+    'channel': '',
+    'message': '$CONTEXT',
+    'origin': '$FROM_AGENT'
+}))
+")
+    echo "$PAYLOAD_JSON" | "$BRIDGE_DIR/openclaw-bridge.sh"
+    exit $?
+fi
+
+VALID_AGENTS=("ENLIL" "NABU" "ENKI" "INANNA" "OPENCLAW")
 if [[ ! " ${VALID_AGENTS[*]} " =~ " ${FROM_AGENT} " ]] || [[ ! " ${VALID_AGENTS[*]} " =~ " ${TO_AGENT} " ]]; then
-    echo "Error: Both FROM and TO agents must be members of the Conclave (ENLIL, NABU, ENKI, INANNA)."
+    echo "Error: Both FROM and TO agents must be members of the Conclave (ENLIL, NABU, ENKI, INANNA, OPENCLAW)."
     exit 1
 fi
 

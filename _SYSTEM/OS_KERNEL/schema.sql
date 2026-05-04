@@ -52,4 +52,5 @@ INSERT OR IGNORE INTO agents (agent_id, role, base_model) VALUES
 ('ENLIL', 'High Architect', 'Claude 3.5 Sonnet'),
 ('NABU', 'Divine Scribe', 'DeepSeek-V3.2'),
 ('ENKI', 'Great Craftsman', 'Qwen-3.5-72B'),
-('INANNA', 'Radiant Guardian', 'Gemini 3.1 Pro');
+('INANNA', 'Radiant Guardian', 'Gemini 3.1 Pro'),
+('OPENCLAW', 'Channel-Native Execution Lane', 'deepseek/deepseek-v4-flash');
