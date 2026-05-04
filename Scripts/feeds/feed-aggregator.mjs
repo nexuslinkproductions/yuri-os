@@ -131,6 +131,20 @@ const routes = {
       coinbase: 'stub_501',
     };
 
+    sendJson(res, 200, {
+      status: 'ok',
+      service: 'yuri-trading-feed-aggregator',
+      uptime,
+      feeds,
+      coinbaseEnv: {
+        keySet: Boolean(process.env.COINBASE_API_KEY),
+        secretSet: Boolean(process.env.COINBASE_API_SECRET),
+        ready: Boolean(process.env.COINBASE_API_KEY && process.env.COINBASE_API_SECRET),
+      },
+    });
+  },
+};
+
 // ── Request Handler ──────────────────────────────────────────────────
 
 function handleRequest(req, res) {
@@ -167,8 +181,8 @@ const server = http.createServer(handleRequest);
 server.listen(PORT, HOST, () => {
   console.log(`⬡ YURI_TRADING :: feed-aggregator online :${PORT}`);
   console.log(`⬡ YURI_TRADING :: endpoints:`);
-  for (const path of Object.keys(routes)) {
-    console.log(`  GET http://${HOST}:${PORT}${path}`);
+  for (const routePath of Object.keys(routes)) {
+    console.log(`  GET http://${HOST}:${PORT}${routePath}`);
   }
 });
 
@@ -186,19 +200,4 @@ process.on('SIGINT', () => {
   console.log('⬡ YURI_TRADING :: feed-aggregator shutting down (SIGINT)');
   server.close(() => process.exit(0));
 });
-
-
-    sendJson(res, 200, {
-      status: 'ok',
-      service: 'yuri-trading-feed-aggregator',
-      uptime,
-      feeds,
-      coinbaseEnv: {
-        keySet: Boolean(process.env.COINBASE_API_KEY),
-        secretSet: Boolean(process.env.COINBASE_API_SECRET),
-        ready: Boolean(process.env.COINBASE_API_KEY && process.env.COINBASE_API_SECRET),
-      },
-    });
-  },
-};
 
