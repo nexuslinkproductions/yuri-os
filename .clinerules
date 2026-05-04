@@ -29,3 +29,32 @@ Model routing:
 Output style:
 - No long narration.
 - Report changed files, validation commands, result, risks, and non-claims.
+
+
+## Cline Compatibility Layer
+
+Mirrors Claude Code behaviors in Cline-native terms. Claude skills that depend on Agent() spawn, hooks runtime, or native skill engine are unavailable. This section provides manual equivalents.
+
+### Skill Alias Table
+
+| Claude Skill | Cline Equivalent |
+|---|---|
+| end-of-transmission / eot | `node Scripts/yuri-closeout.mjs --path <files>` — deterministic closeout |
+| tokenmaxxing | compact reports, exact-path commands, no raw dumps, caveman speech |
+| compact-optimizer | compress outputs, no repeated evidence blocks, single-line updates |
+| research-pipeline | local/cache first (Tier 0), then registry/raw/snippet ladder (Tier 1-4), no broad browsing without approval (Tier 5) |
+| local-truth | git/filesystem/tool output only — DeepSeek/model text never outranks local evidence |
+| workhorse / godmode | `node Scripts/nudimmud-workhorse.mjs <idea>` for dry-run plans by default |
+
+### Cline-Only Behaviors
+
+- "end of transmission", "/eot", "closeout", "run EOT" → run or propose `node Scripts/yuri-closeout.mjs --path <touched files>`.
+- "/compact" not available — use compact output discipline documented above instead.
+- Swarm fan-out requires explicit routing through Yuri scripts; Cline cannot spawn Agent() lanes.
+
+### Safety
+
+- No auto-commit without approval.
+- No broad repo scans or unbounded grep/find.
+- Exact-path validation only.
+- Local truth outranks model text — always read before claiming.
