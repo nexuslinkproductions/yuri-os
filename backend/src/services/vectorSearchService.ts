@@ -125,6 +125,19 @@ export class VectorSearchService {
         if (normA === 0 || normB === 0) return 0;
         return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
     }
+
+    /**
+     * Hybrid search: semantic + FTS5 keyword fusion.
+     * Delegates to HybridSearchService.
+     */
+    async searchHybrid(
+        db: Database.Database,
+        query: string,
+        options: VectorSearchOptions & { semanticWeight?: number } = {}
+    ): Promise<{ results: KnowledgeNode[]; stats: any }> {
+        const { hybridSearch } = require('./hybridSearchService');
+        return hybridSearch.searchHybrid(db, query, options);
+    }
 }
 
 export const vectorSearch = new VectorSearchService();

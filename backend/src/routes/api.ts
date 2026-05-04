@@ -18,6 +18,7 @@ import { OracleService } from '../services/oracleService';
 import { SmartRouter } from '../services/smartRouter';
 import { obsidianRest } from '../services/obsidianRestService';
 import { neuralForge } from '../services/neuralForgeService';
+import { vectorSearch } from '../services/vectorSearchService';
 import { neuralService } from '../services/neuralService';
 import { workflowCatalogService } from '../services/workflowCatalogService';
 import { mathCurveCatalogService } from '../services/mathCurveCatalogService';
@@ -456,6 +457,21 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
             res.json(getNoteDetail(filePath));
         } catch (e) {
             res.status(404).json({ error: 'NOTE_NOT_FOUND' });
+        }
+    });
+
+    // Hybrid semantic + FTS5 keyword search
+    router.get('/search/hybrid', async (req, res) => {
+        const q = req.query.q as string;
+        if (!q) return res.status(400).json({ error: 'Query param q is required' });
+        try {
+            const limit = parseInt(String(req.query.limit || '5'), 10);
+            const semanticWeight = parseFloat(String(req.query.semanticWeight || '0.7'));
+            const profile = req.query.profile as string | undefined;
+            const result = await vectorSearch.searchHybrid(db, q, { limit, semanticWeight, profile: profile as any });
+            res.json(result);
+        } catch (e: any) {
+            res.status(500).json({ error: e.message });
         }
     });
 
