@@ -95,3 +95,9 @@ Source of truth for vault structure: `backend/src/services/vaultIngestion.ts` (D
 - X3 (planned): evaluate MCP for vault access only after provenance/config review.
 - X4 (planned): connect vault evidence to workhorse/godmode report pipeline.
 - RAG ingestion remains a separate explicit gate in all sprints.
+
+
+### Reference Files
+
+`.cline/README.md` — boundary contract for `.cline/` contents.
+`.cline/rules/*.md` — detailed procedure references for closeout, vault, and other Cline behaviors.
