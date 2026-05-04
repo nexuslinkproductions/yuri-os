@@ -319,6 +319,91 @@ run_ruflo_route() {
   require_cmd npx
   npx -y ruflo@latest hooks route -t "$prompt"
 }
+# Evidence bundle extractor: runs yuri-memory-map for recognized surfaces
+_fused_swarm_extract_evidence_bundle() {
+  local _prompt_lower
+  _prompt_lower="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+  local _all_surfaces="rules vault archive workhorse graphify model-registry"
+  local _found_surfaces=""
+  local _surface
+  for _surface in $_all_surfaces; do
+    if printf '%s' "$_prompt_lower" | grep -Fq "$_surface"; then
+      _found_surfaces="$_found_surfaces $_surface"
+    fi
+  done
+  _found_surfaces="$(printf '%s' "$_found_surfaces" | xargs)"
+  FUSED_SWARM_EVIDENCE_SURFACES="$_found_surfaces"
+  if [ -z "$_found_surfaces" ]; then
+    FUSED_SWARM_EVIDENCE_ENABLED=false
+    FUSED_SWARM_EVIDENCE_BUNDLE=""
+    return
+  fi
+  FUSED_SWARM_EVIDENCE_ENABLED=true
+  local _bundle=""
+  local _line_count=0
+  local _per_surface_max=12
+  local _total_max=80
+  local _truncated=false
+  local _output
+  for _surface in $_found_surfaces; do
+    if [ "$_line_count" -ge "$_total_max" ]; then
+      _truncated=true
+      break
+    fi
+    _output="$(node Scripts/yuri-memory-map.mjs --surface "$_surface" 2>/dev/null || echo 'SURFACE_ERROR')"
+    _bundle="${_bundle}surface=${_surface}"$'\n'
+    _line_count=$(( _line_count + 1 ))
+    local _per_surface_count=0
+    while IFS= read -r _line; do
+      if [ "$_per_surface_count" -ge "$_per_surface_max" ] || [ "$_line_count" -ge "$_total_max" ]; then
+        if [ "$_per_surface_count" -ge "$_per_surface_max" ]; then
+          _bundle="${_bundle}  [capped at ${_per_surface_max} lines]"$'\n'
+          _line_count=$(( _line_count + 1 ))
+        fi
+        _truncated=true
+        break
+      fi
+      _bundle="${_bundle}  ${_line}"$'\n'
+      _line_count=$(( _line_count + 1 ))
+      _per_surface_count=$(( _per_surface_count + 1 ))
+    done <<< "$_output"
+  done
+  FUSED_SWARM_EVIDENCE_TRUNCATED=$_truncated
+  FUSED_SWARM_EVIDENCE_BUNDLE="$_bundle"
+}
+
+_fused_swarm_write_evidence_bundle() {
+  local _bundle="$1"
+  local _run_dir="$2"
+  {
+    printf 'EVIDENCE_BUNDLE_START\nadvisory_only=true\nlocal_truth_claim=false\n'
+    if [ "$FUSED_SWARM_EVIDENCE_TRUNCATED" = true ]; then
+      printf 'EVIDENCE_BUNDLE_TRUNCATED=true\n'
+    fi
+    printf '%s' "$_bundle"
+    printf 'EVIDENCE_BUNDLE_END\n'
+  } > "$_run_dir/evidence-bundle.txt"
+}
+
+_fused_swarm_prepend_evidence() {
+  local _prompt="$1"
+  local _bundle="$2"
+  if [ -z "$_bundle" ]; then
+    printf '%s' "$_prompt"
+    return
+  fi
+  printf 'EVIDENCE_BUNDLE_START\nadvisory_only=true\nlocal_truth_claim=false\n'
+  if [ "$FUSED_SWARM_EVIDENCE_TRUNCATED" = true ]; then
+    printf 'EVIDENCE_BUNDLE_TRUNCATED=true\n'
+  fi
+  printf '%s' "$_bundle"
+  printf 'EVIDENCE_BUNDLE_END\n\n'
+  printf 'Use only paths and surface names present in EVIDENCE_BUNDLE.\n'
+  printf 'If evidence is insufficient, say no_evidence.\n'
+  printf 'Do not invent file paths, rule IDs, vault paths, archive paths, or model-registry paths.\n'
+  printf 'All output is advisory_only=true and local_truth_claim=false.\n\n'
+  printf '%s' "$_prompt"
+}
 
 _fused_swarm_orchestrate() {
   local _dry_run=0
@@ -345,6 +430,9 @@ _fused_swarm_orchestrate() {
     fi
   fi
 
+  # Extract evidence bundle from prompt
+  _fused_swarm_extract_evidence_bundle "$prompt"
+
   if [ "$_dry_run" -eq 1 ] || [ "$_route_only" -eq 1 ]; then
     printf 'FUSED_SWARM_DRY_RUN=1\n'
     printf 'FUSED_SWARM_ARTIFACT_ROOT=%s\n' "$_artifact_root"
@@ -353,6 +441,9 @@ _fused_swarm_orchestrate() {
     printf 'FUSED_SWARM_ADVISORY_ONLY=true\n'
     printf 'FUSED_SWARM_LOCAL_TRUTH_CLAIM=false\n'
     printf 'FUSED_SWARM_REQUIRES_APPROVAL=true\n'
+    printf 'FUSED_SWARM_EVIDENCE_HOOK=enabled\n'
+    printf 'FUSED_SWARM_EVIDENCE_SURFACES=%s\n' "${FUSED_SWARM_EVIDENCE_SURFACES:-none}"
+    printf 'FUSED_SWARM_EVIDENCE_MAX_LINES=80\n'
     return 0
   fi
 
@@ -363,14 +454,21 @@ _fused_swarm_orchestrate() {
   _run_dir="$_artifact_root/$_run_id"
   mkdir -p "$_run_dir"
 
-  _prompt_sha256="$(printf '%s' "$prompt" | shasum -a 256 | awk '{print $1}')"
+  # Prepend evidence bundle to prompt
+  local _enhanced_prompt
+  _enhanced_prompt="$(_fused_swarm_prepend_evidence "$prompt" "$FUSED_SWARM_EVIDENCE_BUNDLE")"
+
+  _prompt_sha256="$(printf '%s' "$_enhanced_prompt" | shasum -a 256 | awk '{print $1}')"
 
   _swarm_stdout="$_run_dir/swarm_output.tmp"
   _swarm_stderr="$_run_dir/swarm_error.txt"
   _swarm_status=0
 
+  # Write evidence bundle to artifact dir
+  _fused_swarm_write_evidence_bundle "$FUSED_SWARM_EVIDENCE_BUNDLE" "$_run_dir"
+
   # Run ruflo swarm and capture output
-  if ! run_ruflo_swarm "$prompt" >"$_swarm_stdout" 2>"$_swarm_stderr"; then
+  if ! run_ruflo_swarm "$_enhanced_prompt" >"$_swarm_stdout" 2>"$_swarm_stderr"; then
     _swarm_status=$?
   fi
 
@@ -393,9 +491,11 @@ _fused_swarm_orchestrate() {
   } >"$_run_dir/output.md"
 
   # Write summary.json
-  printf '{"run_id":"%s","route":"@swarm","fused":true,"artifact_root":"%s","prompt_sha256":"%s","advisory_only":true,"local_truth_claim":false,"requires_approval":true,"stdout_bytes":%s,"stdout_lines":%s,"stderr_bytes":%s,"exit_code":%s,"ruflo_status":"advisory_status_only","workhorse_status":"deepseek-v4-pro-lite-budget,deepseek-v4-flash","paid_lanes":["deepseek"],"non_claims":["no write capability","no patch application","no executor widening"]}\n' \
+  printf '{"run_id":"%s","route":"@swarm","fused":true,"artifact_root":"%s","prompt_sha256":"%s","advisory_only":true,"local_truth_claim":false,"requires_approval":true,"stdout_bytes":%s,"stdout_lines":%s,"stderr_bytes":%s,"exit_code":%s,"ruflo_status":"advisory_status_only","workhorse_status":"deepseek-v4-pro-lite-budget,deepseek-v4-flash","paid_lanes":["deepseek"],"non_claims":["no write capability","no patch application","no executor widening"],"evidence_hook_enabled":true,"evidence_surfaces":["%s"],"evidence_bundle_path":"%s","evidence_bundle_truncated":%s}\n' \
     "$_run_id" "$_artifact_root" "$_prompt_sha256" \
     "$_stdout_bytes" "$_stdout_lines" "$_stderr_bytes" "$_swarm_status" \
+    "${FUSED_SWARM_EVIDENCE_SURFACES:-}" "$_run_dir/evidence-bundle.txt" \
+    "${FUSED_SWARM_EVIDENCE_TRUNCATED:-false}" \
     >"$_run_dir/summary.json"
 
   printf 'FUSED_SWARM_RUN=%s\n' "$_run_dir"
