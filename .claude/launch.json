@@ -2,6 +2,30 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "nudimmud-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 4200,
+      "description": "NUDIMMUD Command Center frontend (Vite + React 19)",
+      "cwd": "/Users/marcelspatz/NUDIMMUD"
+    },
+    {
+      "name": "nudimmud-backend",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["ts-node", "src/server.ts"],
+      "port": 3004,
+      "description": "NUDIMMUD backend API (Express + WebSocket, ts-node dev)",
+      "cwd": "/Users/marcelspatz/NUDIMMUD/backend"
+    },
+    {
+      "name": "nudimmud-shell-service",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["backend/shellService.js"],
+      "port": 3098,
+      "description": "Oracle terminal shell service (launchd-managed in production)",
+      "cwd": "/Users/marcelspatz/NUDIMMUD"
+    },
+    {
       "name": "nexus-link-landing",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],

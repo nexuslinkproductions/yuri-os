@@ -9,22 +9,42 @@
     "validate:ledger": "node _SYSTEM/validators/validate-evidence-ledger.mjs",
     "yuri": "claude",
     "nudimmud": "node Scripts/nudimmud-repl.mjs",
-    "openclaw": "bash _SYSTEM/OS_KERNEL/openclaw-bridge.sh"
+    "openclaw": "bash _SYSTEM/OS_KERNEL/openclaw-bridge.sh",
+    "trading-bot:phase-2": "node Scripts/trading-bot/market-scanner.mjs",
+    "trading-bot:phase-3": "node Scripts/trading-bot/evidence-collector.mjs",
+    "trading-bot:phase-4": "node Scripts/trading-bot/ensemble-inference.mjs",
+    "trading-bot:phase-5": "node Scripts/trading-bot/risk-engine.mjs",
+    "trading-bot:phase-6": "node Scripts/trading-bot/execution-engine.mjs",
+    "trading-bot:phase-7": "node Scripts/trading-bot/paper-trading.mjs",
+    "trading-bot:phase-8": "node Scripts/trading-bot/live-rollout.mjs",
+    "trading-bot:kill-switch": "node Scripts/trading-bot/kill-switch-cli.mjs",
+    "trading-bot:mode": "node Scripts/trading-bot/mode-selector.mjs",
+    "trading-bot:approve": "node Scripts/trading-bot/approval-gate.mjs",
+    "trading-bot:dashboard": "node Scripts/trading-bot/dashboard.mjs",
+    "trading-bot:audit": "node Scripts/trading-bot/audit-export.mjs"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.173.0",
     "framer-motion": "^12.38.0",
+    "gsap": "^3.13.0",
+    "lenis": "^1.1.18",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "three": "^0.173.0"
+    "react-router-dom": "^7.1.1",
+    "swiper": "^11.2.10",
+    "three": "^0.173.0",
+    "youtube-transcript": "^1.3.1",
+    "youtubei.js": "^17.0.1"
   }
 }
