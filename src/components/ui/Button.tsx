@@ -15,6 +15,7 @@ interface ButtonBaseProps {
   icon?: React.ReactNode;
   iconPosition?: IconPosition;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 interface ButtonAsButton extends ButtonBaseProps {

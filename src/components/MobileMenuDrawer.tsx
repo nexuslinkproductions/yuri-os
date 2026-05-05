@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from './ui/Button';
 
@@ -169,9 +169,11 @@ export default function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerPr
 
             {/* CTA */}
             <div style={{ textAlign: 'center' }}>
-              <Button variant="pill" as="router-link" to="/contact" style={{ width: '100%' }}>
-                Start a Project
-              </Button>
+              <Link to="/contact" style={{ textDecoration: 'none', display: 'block' }}>
+                <Button variant="pill" style={{ width: '100%' }}>
+                  Start a Project
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </>

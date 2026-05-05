@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, Link } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Button from './ui/Button';
 import MobileMenuDrawer from './MobileMenuDrawer';
@@ -154,9 +154,11 @@ export default function Navigation() {
 
         {/* Desktop CTA */}
         <div className="navigation__desktop-cta" style={{ flexShrink: 0 }}>
-          <Button variant="pill" as="router-link" to="/contact">
-            Start a Project
-          </Button>
+          <Link to="/contact" style={{ textDecoration: 'none' }}>
+            <Button variant="pill">
+              Start a Project
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile hamburger */}
