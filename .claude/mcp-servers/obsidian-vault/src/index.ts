@@ -16,7 +16,7 @@ const readDir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
 
-const VAULT_ROOT = "/Volumes/T7/NUDIMMUD";
+const VAULT_ROOT = "/Users/marcelspatz/.cline/worktrees/a7a53/NUDIMMUD";
 
 interface VaultFile {
   path: string;
@@ -36,7 +36,9 @@ async function indexVault(dir: string, basePath: string = ""): Promise<VaultFile
       if (
         entry.name.startsWith(".") ||
         entry.name === "node_modules" ||
-        entry.name === ".obsidian"
+        entry.name === ".obsidian" ||
+        entry.name === "graph" ||
+        entry.name === "RESEARCH"
       ) {
         continue;
       }
@@ -158,10 +160,17 @@ async function queryPalaceIndex(query: string): Promise<string> {
   }
 }
 
-const server = new Server({
-  name: "obsidian-vault",
-  version: "1.0.0",
-});
+const server = new Server(
+  {
+    name: "obsidian-vault",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
 
 // Track vault index in memory
 let vaultIndex: VaultFile[] = [];
