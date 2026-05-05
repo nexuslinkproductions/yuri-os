@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Container, Section, Button } from '../components/ui';
-import CTABanner from '../components/CTABanner';
+import { default as CTABanner } from '../components/CTABanner';
 
 interface FormData {
   name: string;
@@ -203,9 +203,19 @@ const ContactForm: React.FC = () => {
             {errors.message && <div style={errorStyle}>{errors.message}</div>}
           </div>
 
-          <Button variant="pill" type="submit" style={{ marginTop: '8px' }}>
+          <button type="submit" onClick={handleSubmit} style={{
+            background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
+            color: '#ffffff',
+            border: 'none',
+            padding: '10px 20px',
+            fontSize: '15px',
+            borderRadius: '10px',
+            marginTop: '8px',
+            cursor: 'pointer',
+            fontWeight: 600,
+          }}>
             Send Message
-          </Button>
+          </button>
         </motion.form>
       )}
     </AnimatePresence>
@@ -436,7 +446,7 @@ const ContactPage: React.FC = () => {
         </Container>
       </Section>
 
-      <CTABanner />
+      <CTABanner headline="Questions? We're here to help." buttonLabel="Get in Touch" buttonHref="#form" />
     </motion.div>
   );
 };

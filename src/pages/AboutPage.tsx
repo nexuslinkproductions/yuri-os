@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Section, Container, CTABanner } from '../components';
+import { Section, Container } from '../components/ui';
+import CTABanner from '../components/CTABanner';
 
 const AboutHero = () => (
   <Section className="py-24 md:py-32 bg-black text-white">
@@ -145,7 +146,7 @@ export default function AboutPage() {
       <ManifestoSection />
       <TeamGrid />
       <ClientLogosGrid />
-      <CTABanner />
+      <CTABanner headline="Ready to tell your story?" buttonLabel="Start a Project" buttonHref="/contact" />
     </motion.div>
   );
 }
