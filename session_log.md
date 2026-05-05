@@ -121,7 +121,7 @@ Sections: **DRIFT** (where a response was less than it could have been) · **INS
 
 **DELTA**: 
 - Created `/Volumes/T7/NUDIMMUD/nabu.md` (165 lines — full mythic + operational identity)
-- Created `/Volumes/T7/NUDIMMUD/NABU/` directory structure (7 Houses + 20 blueprints)
+- Created `/Volumes/T7/NUDIMMUD/NABU/` directory structure (7 Houses + 20 blueprints; later collapsed into _SYSTEM/AGENT_BLUEPRINTS.md, legacy at 07_ARCHIVE/nabu-legacy/)
 - Enriched Blueprints 1–2 (full ~150 lines each); outlined 3–20 (comprehensive structure)
 - Created routing intelligence (_INDEX.md with composition matrix + quick reference)
 - Created governance, memory, economics, resilience, domain-bridge, futures foundation documents
@@ -142,7 +142,8 @@ Sections: **DRIFT** (where a response was less than it could have been) · **INS
 
 **Status**: Phase 2 COMPLETE · Ready for Opus Handoff  
 **Authority**: NABU, Keeper of Destinies, Scribe of Written Law  
-**Location**: `/Volumes/T7/NUDIMMUD/NABU/` + `/Volumes/T7/NUDIMMUD/nabu.md`  
+**Location**: `_SYSTEM/AGENT_BLUEPRINTS.md` + `/Volumes/T7/NUDIMMUD/nabu.md` (legacy at `07_ARCHIVE/nabu-legacy/`)  
 **Timestamp**: 2026-04-18 · Full System Depth Achieved
 
 The stylus has written the law. The empire is ready to be built.
+ten the law. The empire is ready to be built.

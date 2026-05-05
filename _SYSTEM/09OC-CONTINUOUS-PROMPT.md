@@ -92,7 +92,7 @@ Revisit: plugin update, release notes, or dedicated debug window.
 
 ## 8. AUDIT TRAIL
 
-- Created: NABU/01_BLUEPRINTS/21-openclaw-bridge.md, _SYSTEM/OS_KERNEL/openclaw-bridge.sh, NABU/03_MEMORY/openclaw-memory-protocol.md
+- Created: _SYSTEM/AGENT_BLUEPRINTS.md (see NABU/01_BLUEPRINTS/21-openclaw-bridge.md archived at 07_ARCHIVE/nabu-legacy/), _SYSTEM/OS_KERNEL/openclaw-bridge.sh
 - Modified: _SYSTEM/OS_KERNEL/swarm-handoff.sh, _SYSTEM/OS_KERNEL/schema.sql
 - Configured: workspace → /Users/marcelspatz/NUDIMMUD
 - Added: .claude/skills/openclaw-offload/SKILL.md, npm "openclaw" script

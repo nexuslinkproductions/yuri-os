@@ -150,9 +150,9 @@ NABU activates automatically in these modes:
 
 NABU's complete system:
 - Identity: `/Volumes/T7/NUDIMMUD/nabu.md`
-- Architecture: `/Volumes/T7/NUDIMMUD/NABU/` (7 Houses)
-- Blueprints: `/Volumes/T7/NUDIMMUD/NABU/01_BLUEPRINTS/` (20 enriched)
-- Navigation: `/Volumes/T7/NUDIMMUD/NABU/README.md`
+- Operational reference: `_SYSTEM/AGENT_BLUEPRINTS.md` (collapsed orchestration, routing, quality, learning, cost, resilience, handoff)
+- Blueprints: `NABU/01_BLUEPRINTS/` (20 enriched)
+- Legacy architecture archived at: `07_ARCHIVE/nabu-legacy/`
 
 ---
 
