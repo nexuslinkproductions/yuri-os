@@ -17,7 +17,6 @@ import DiscoveryCatalog from './components/DiscoveryCatalog';
 import NexusLinkLanding from './components/NexusLinkLanding';
 import VaultLinkDebugger from './components/VaultLinkDebugger';
 import DesignAuditHUD from './components/DesignAuditHUD';
-import TradingHUD from './components/TradingHUD/TradingHUD';
 
 /**
  * Mount a React component into a specific target element.
@@ -109,9 +108,6 @@ export function mountModule(moduleName: string, targetId: string, options?: Moun
             break;
         case 'DESIGN_AUDIT':
             root.render(<DesignAuditHUD />);
-            break;
-        case 'TRADING_HUD':
-            root.render(<TradingHUD />);
             break;
         default:
             console.warn(`⬡ MOUNT_WARN :: No React component for ${moduleName}`);

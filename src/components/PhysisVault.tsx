@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { apiFetch } from '../lib/runtime';
-import ViennaClientResearch from './ViennaClientResearch';
 
 interface VaultNode {
     name: string;
@@ -17,10 +16,6 @@ interface PhysisVaultProps {
 }
 
 const PhysisVault: React.FC<PhysisVaultProps> = ({ surfaceLabel = 'Physis', initialPath = '' }) => {
-    if (surfaceLabel.toLowerCase() === 'research') {
-        return <ViennaClientResearch />;
-    }
-
     const [path, setPath] = useState<string>(initialPath);
     const [nodes, setNodes] = useState<VaultNode[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
