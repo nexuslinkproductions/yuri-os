@@ -1,42 +1,7 @@
 # NUDIMMUD Operational Protocol
 
-INHERIT: ./CORE_PROTOCOL.md
+INHERIT: ./OPERATOR_PROTOCOL.md
 INHERIT: _SYSTEM/yuri-origin.md
-
-> **Supplementary reference:** `CORE_PROTOCOL.md` — additional domain-specific operational rules for the NUDIMMUD pantheon beyond the origin contract.
-
-## Protected Surfaces
-
-The following paths must never be mutated by any agent, tool, or automated process unless explicitly authorized by the owner for a specific named operation:
-- `backend/data/` — database files, model catalogs, and runtime state
-- `.claude/state/` — session state, token tracking, deployment progress
-- `.claude/history/` — session history logs
-- `.env` — API keys and provider credentials
-
-## Mutation Contract
-
-- No auto-commit without explicit owner approval
-- No silent escalation of scope — if a change expands beyond the stated task, flag it before proceeding
-- Scope writes to the exact files named in the task — do not drift into adjacent files
-- No broad `git add -A` or `git add .` — use exact-path staging only
-
-## Output Contract
-
-- Compact reports with evidence markers. No raw dumps of large files.
-- Use `⬡ ` prefix for system events, errors, and state transitions.
-- Mark passes with `PASS` and failures with `FAIL` — no narrative fluff around results.
-
-## Authority Hierarchy
-
-Authority order for this repository:
-
-1. `./CORE_PROTOCOL.md`
-2. `./CLAUDE.md`
-3. `./.claude/CLAUDE.md`
-4. `./.claude/rules/*.md`
-5. `./CLAUDE.local.md` or other explicitly local-only overlays
-
-Lower layers may refine higher layers but must not weaken or contradict them unless the higher layer explicitly permits override.
 
 ## CLAUDE-SPECIFIC DIRECTIVES
 
@@ -74,12 +39,6 @@ This command is deliberate pre-authorization for the entire EOT pipeline. Do not
 - `audit`: look for regressions, risk, permissions, and unclear routing.
 - `critique`: attack assumptions, challenge weak decisions, and document what still feels fragile.
 - Do not stop at the first working version when the shell or workflow still feels generic.
-
-
-### The Adversarial Quality Loop
-
-- Do not just review code; attack it. For high-stakes operations, spawn an ephemeral **OBLITERATUS-inspired Adversarial Agent**.
-- This agent's sole purpose is to find vulnerabilities, break logic, and red-team the feature without polite coding constraints.
 
 ### Quality Self-Checks
 

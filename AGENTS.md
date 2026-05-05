@@ -1,3 +1,5 @@
+INHERIT: ./OPERATOR_PROTOCOL.md
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
@@ -51,32 +53,10 @@ The NUDIMMUD Agentic OS provides the **Memory (RAM)** and **Process Table** for 
 
 <!-- gitnexus:end -->
 
-## Global Offload Directive
-
-- Strict offload is the default across GPT, Claude, Antigravity, Gemini, VS Code, and Cursor.
-- Keep the active session as overseer, router, and finalizer only.
-- Delegate substantive reasoning, research, implementation, and verification first.
-- Use deterministic local shell work only as support for a delegated lane.
-- Treat `btw offload this` as immediate delegation.
-
-## Role Matrix
-
-- **Overseer / Coordinator**: load `ai-pipeline-offloading` and `swarm-coordination`; use GitNexus context, impact, and detect-change tools; log task state in `_SYSTEM/OS_KERNEL/memory.db`; hand off via `_SYSTEM/OS_KERNEL/swarm-handoff.sh`.
-- **Worker / Implementer**: load the task-specific skill first; use the chosen lane (`@ollama`, `@gpt-oss`, `@kimi`, or `@swarm`); use shell, git, and editor tools for one isolated file boundary.
-- **Reviewer / Guardian**: use GitNexus impact analysis, context, and detect-change checks; run tests and adversarial validation before release; preserve the narrower working set if lanes conflict.
-
-## Caveman Protocol
-
-- Terse English.
-- No preambles.
-- Straight to the result.
-- Code and docs remain deep and thorough.
-- Canonical startup seed: `.claude/nisaba/learning/global.md`. Root `SessionStart` and subagent hooks read it first in every session.
-
 ## ⬡ NUDIMMUD MULTI-IDE SYNC ⬡
 - **ENVS**: ANTIGRAVITY, Cursor, VS Code, CODEX, CLAUDE CODE.
 - **SOURCE OF TRUTH**: All state MUST be logged in `_SYSTEM/OS_KERNEL/memory.db`.
 - **STABILITY**: Every change made here MUST translate to all other agents.
 - **PROTOCOL**: Use `_SYSTEM/OS_KERNEL/swarm-handoff.sh` for all inter-agent context transitions.
 - **RULE FILES**: Any rule change must be synced across `.cursorrules`, `.windsurfrules`, `.clauderules`, and `.cursor/rules/sync.mdc`.
-- **FULL AUTONOMY**: Agents have full global permission to execute shell commands, read/write files, and coordinate without manual Y/N user confirmation. Proceed autonomously.
+
