@@ -125,7 +125,6 @@ const itemVariants: Variants = {
 
 const WorkGallery: FC<WorkGalleryProps> = ({ onProjectClick }) => {
   const [activeCategory, setActiveCategory] = useState<string>("All");
-
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -144,7 +143,18 @@ const WorkGallery: FC<WorkGalleryProps> = ({ onProjectClick }) => {
           width: 100%;
           max-width: 1600px;
           margin: 0 auto;
-          padding: 0 24px 64px;
+          padding: 80px 24px;
+        }
+
+        .gallery-header {
+          text-align: center;
+          margin-bottom: 64px;
+        }
+
+        .gallery-header h2 {
+          font-size: 3rem;
+          font-weight: 700;
+          margin-bottom: 16px;
         }
 
         .filter-bar {
@@ -153,37 +163,42 @@ const WorkGallery: FC<WorkGalleryProps> = ({ onProjectClick }) => {
           gap: 12px;
           justify-content: center;
           margin-bottom: 48px;
-          padding: 16px 0;
         }
 
         .filter-btn {
+          border: 1px solid #666;
           background: transparent;
-          border: 1px solid #888;
-          color: #fff;
+          color: #aaa;
           padding: 8px 16px;
           border-radius: 20px;
           cursor: pointer;
           transition: all 200ms;
+          font-size: 0.95rem;
         }
 
-        .filter-btn:hover,
+        .filter-btn:hover {
+          color: #fff;
+          border-color: #7c3aed;
+        }
+
         .filter-btn.active {
           background: #7c3aed;
           border-color: #7c3aed;
+          color: #fff;
         }
 
         .gallery-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 24px;
-          margin-bottom: 48px;
         }
 
         .gallery-item {
-          aspect-ratio: var(--aspect);
           border-radius: 8px;
           overflow: hidden;
           cursor: pointer;
+          aspect-ratio: var(--aspect);
+          background: #1f2937;
         }
 
         .gallery-item img {
@@ -202,7 +217,7 @@ const WorkGallery: FC<WorkGalleryProps> = ({ onProjectClick }) => {
         {categories.map((cat) => (
           <button
             key={cat}
-            className={`filter-btn ${activeCategory === cat ? 'active' : ''}`}
+            className={`filter-btn ${activeCategory === cat ? "active" : ""}`}
             onClick={() => setActiveCategory(cat)}
           >
             {cat}
@@ -210,13 +225,13 @@ const WorkGallery: FC<WorkGalleryProps> = ({ onProjectClick }) => {
         ))}
       </div>
 
-      <motion.div className="gallery-grid" ref={ref}>
+      <motion.div className="gallery-grid">
         {inView &&
           filtered.map((project, i) => (
             <motion.div
               key={project.id}
               className="gallery-item"
-              style={{ '--aspect': aspectRatioMap[project.aspect] } as React.CSSProperties}
+              style={{ "--aspect": aspectRatioMap[project.aspect] } as React.CSSProperties}
               variants={itemVariants}
               initial="hidden"
               animate="visible"
@@ -229,86 +244,6 @@ const WorkGallery: FC<WorkGalleryProps> = ({ onProjectClick }) => {
       </motion.div>
     </div>
   );
-          border: 2px solid transparent;
-          border-radius: 9999px;
-          padding: 8px 20px;
-          font-family: inherit;
-          font-size: 0.9rem;
-          font-weight: 500;
-          color: #aaa;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          outline: none;
-          position: relative;
-        }
+};
 
-        .filter-btn:hover {
-          color: #fff;
-          border-color: rgba(0, 255, 255, 0.3);
-        }
-
-        .filter-btn.active {
-          color: #00ffff;
-          border-color: #00ffff;
-          box-shadow: 0 0 14px rgba(0, 255, 255, 0.35),
-                      0 0 28px rgba(0, 255, 255, 0.12);
-        }
-
-        .masonry {
-          display: block;
-          column-count: 1;
-          column-gap: 24px;
-        }
-
-        @media (min-width: 768px) {
-          .masonry { column-count: 2; }
-        }
-
-        @media (min-width: 1024px) {
-          .masonry { column-count: 3; }
-        }
-
-        @media (min-width: 1440px) {
-          .masonry { column-count: 4; }
-        }
-
-        .masonry-item {
-          display: inline-block;
-          width: 100%;
-          margin-bottom: 24px;
-          break-inside: avoid;
-          cursor: pointer;
-          border-radius: 12px;
-          overflow: hidden;
-          position: relative;
-        }
-
-        .card-img-wrap {
-          position: relative;
-          overflow: hidden;
-          border-radius: 12px;
-          width: 100%;
-        }
-
-        .card-img {
-          display: block;
-          width: 100%;
-          height: auto;
-          object-fit: cover;
-          transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        .masonry-item:hover .card-img {
-          transform: scale(1.05);
-        }
-
-        .card-overlay {
-          position: absolute;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.6);
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
-          padding: 24px;
-          opacity: 0;
-          transition:
+export default WorkGallery;

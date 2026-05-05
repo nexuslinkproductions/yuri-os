@@ -21,9 +21,9 @@ interface ButtonAsButton extends ButtonBaseProps {
   href?: undefined;
 }
 
-interface ButtonAsLink extends ButtonBaseProps {
+interface ButtonAsLink extends Omit<ButtonBaseProps, 'onClick'> {
   href: string;
-  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement> | React.MouseEventHandler<HTMLButtonElement>;
 }
 
 type ButtonProps = ButtonAsButton | ButtonAsLink;

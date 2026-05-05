@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, useMotionValue, useTransform, useInView } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useInView, useMotionValueEvent } from 'framer-motion';
 import '../styles/tokens.css';
 
 interface AnimatedCounterProps {
@@ -25,10 +25,15 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
 }) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const [displayValue, setDisplayValue] = React.useState('0');
 
   const motionValue = useMotionValue(0);
   const rounded = useTransform(motionValue, (latest) => {
     return latest.toFixed(decimals);
+  });
+
+  useMotionValueEvent(rounded, 'change', (value) => {
+    setDisplayValue(value);
   });
 
   React.useEffect(() => {
@@ -64,7 +69,7 @@ const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
         ...style,
       }}
     >
-      {prefix}{rounded}{suffix}
+      {prefix}{displayValue}{suffix}
     </motion.div>
   );
 };
