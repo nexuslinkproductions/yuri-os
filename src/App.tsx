@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useLenis } from './hooks/useLenis';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
+import MagneticCursor from './components/ui/MagneticCursor';
 
 // ── Layout ───────────────────────────────────────────────────
 function Layout(): React.ReactElement {
@@ -36,6 +37,7 @@ const ServicesPage = React.lazy(() => import('./pages/ServicesPage'));
 const AboutPage = React.lazy(() => import('./pages/AboutPage'));
 const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 const ShowreelPage = React.lazy(() => import('./pages/ShowreelPage'));
+const OperatorShell = React.lazy(() => import('./operator/OperatorShell'));
 
 function App(): React.ReactElement {
   const { isReady } = useLenis();
@@ -47,6 +49,7 @@ function App(): React.ReactElement {
 
   return (
     <BrowserRouter>
+      <MagneticCursor />
       <Suspense
         fallback={
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -55,6 +58,7 @@ function App(): React.ReactElement {
         }
       >
         <Routes>
+          <Route path="/operator/*" element={<OperatorShell />} />
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/work" element={<WorkPage />} />

@@ -1,181 +1,352 @@
-import React, { Suspense, useEffect, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { motion, useAnimation } from 'framer-motion';
-import HeroScene from '../scenes/HeroScene';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
-const Button: React.FC<{ variant: 'pill' | 'ghost'; children: React.ReactNode }> = ({
-  variant,
-  children,
+/* ─── Scramble text hook ─── */
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+function useScramble(target: string, trigger: boolean, speed = 40) {
+  const [display, setDisplay] = useState(target);
+  const rafRef = useRef(0);
+  const iterRef = useRef(0);
+
+  useEffect(() => {
+    if (!trigger) return;
+    iterRef.current = 0;
+    cancelAnimationFrame(rafRef.current);
+
+    const animate = () => {
+      iterRef.current += 0.5;
+      const iter = iterRef.current;
+      setDisplay(
+        target.split('').map((ch, i) => {
+          if (ch === ' ') return ' ';
+          if (i < iter) return target[i];
+          return CHARS[Math.floor(Math.random() * CHARS.length)];
+        }).join('')
+      );
+      if (iter < target.length) rafRef.current = requestAnimationFrame(animate);
+      else setDisplay(target);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, trigger]);
+
+  return display;
+}
+
+/* ─── Word mask reveal ─── */
+const WordReveal: React.FC<{ text: string; delay?: number; className?: string; style?: React.CSSProperties }> = ({
+  text, delay = 0, style,
 }) => {
-  const base: React.CSSProperties = {
-    padding: '14px 32px',
-    borderRadius: variant === 'pill' ? '9999px' : '12px',
-    border: variant === 'ghost' ? '1px solid rgba(255,255,255,0.15)' : 'none',
-    background: variant === 'pill' ? 'linear-gradient(135deg, #7c3aed, #06b6d4)' : 'transparent',
-    color: '#fff',
-    fontFamily: 'Outfit, sans-serif',
-    fontSize: '16px',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    backdropFilter: variant === 'ghost' ? 'blur(4px)' : undefined,
-  };
-  return <button style={base}>{children}</button>;
-};
-
-const wordReveal = (words: string, delay: number = 0) => {
-  const split = words.split(' ');
-  return split.map((word, i) => (
-    <span
-      key={i}
-      style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'top' }}
-    >
-      <motion.span
-        style={{ display: 'inline-block' }}
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: delay + i * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-      >
-        {word}{i < split.length - 1 ? '\u00A0' : ''}
-      </motion.span>
+  const words = text.split(' ');
+  return (
+    <span style={{ display: 'block', ...style }}>
+      {words.map((word, i) => (
+        <span key={i} style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'top' }}>
+          <motion.span
+            style={{ display: 'inline-block' }}
+            initial={{ y: '110%', opacity: 0 }}
+            animate={{ y: '0%', opacity: 1 }}
+            transition={{
+              duration: 0.85,
+              delay: delay + i * 0.08,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            {word}{i < words.length - 1 ? ' ' : ''}
+          </motion.span>
+        </span>
+      ))}
     </span>
-  ));
+  );
 };
 
+/* ─── Marquee strip ─── */
+const clients = [
+  'VIENNA TOURISM BOARD', 'KUNSTHISTORISCHES MUSEUM', 'STADT WIEN', 'PRATER WIEN',
+  'WIEN KULTUR', 'SCHLOSS SCHÖNBRUNN', 'ÖSTERREICHISCHE GALERIE', 'MARKTAMT WIEN',
+];
+
+const Marquee: React.FC = () => {
+  const items = [...clients, ...clients];
+  return (
+    <div style={{ overflow: 'hidden', width: '100%' }}>
+      <motion.div
+        style={{ display: 'flex', gap: '80px', whiteSpace: 'nowrap' }}
+        animate={{ x: ['0%', '-50%'] }}
+        transition={{ duration: 32, ease: 'linear', repeat: Infinity }}
+      >
+        {items.map((c, i) => (
+          <span key={i} style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: '0.2em',
+            color: 'rgba(255,255,255,0.2)',
+            textTransform: 'uppercase',
+            flexShrink: 0,
+          }}>
+            {c}
+            <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'rgba(220,38,38,0.5)', margin: '0 40px', verticalAlign: 'middle' }} />
+          </span>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
+/* ─── Stats row ─── */
+const stats = [
+  { value: '150+', label: 'Projects' },
+  { value: '12', label: 'Countries' },
+  { value: '8', label: 'Years' },
+  { value: '100%', label: 'Premium' },
+];
+
+/* ─── Main Hero ─── */
 const HeroSection: React.FC = () => {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollY } = useScroll();
+  const titleY = useTransform(scrollY, [0, 600], [0, 80]);
+  const opacity = useTransform(scrollY, [0, 400], [1, 0]);
+  const scramble1 = useScramble('FRAMES', mounted, 35);
+  const scramble2 = useScramble('DEFINE', mounted, 45);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 200);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <div
+      ref={containerRef}
       style={{
         position: 'relative',
-        height: '100vh',
+        minHeight: '100vh',
+        backgroundColor: 'var(--color-bg-void)',
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
-        backgroundColor: 'var(--color-bg-void, #0a0a0f)',
       }}
     >
-      <Canvas
-        camera={{ position: [0, 0, 8], fov: 45 }}
-        dpr={[1, 1.5]}
-        gl={{ alpha: true, antialias: true }}
-        style={{ position: 'absolute', inset: 0 }}
+      {/* Ambient grid */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: `
+          linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)
+        `,
+        backgroundSize: '80px 80px',
+        pointerEvents: 'none',
+        maskImage: 'radial-gradient(ellipse 80% 80% at 50% 0%, black 0%, transparent 100%)',
+      }} />
+
+      {/* Red ambient light top-right */}
+      <div style={{
+        position: 'absolute',
+        top: '-10%',
+        right: '-5%',
+        width: 600,
+        height: 600,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(220,38,38,0.07) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Main content */}
+      <motion.div
+        style={{ y: titleY, opacity, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
       >
-        <Suspense fallback={null}>
-          <HeroScene />
-        </Suspense>
-      </Canvas>
-
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(180deg, transparent 0%, rgba(10,10,15,0.4) 50%, rgba(10,10,15,0.95) 100%)',
-          pointerEvents: 'none',
-          zIndex: 1,
-        }}
-      />
-
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          textAlign: 'center',
-          maxWidth: '900px',
-          width: '90%',
-          zIndex: 2,
-          pointerEvents: 'none',
-        }}
-      >
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={mounted ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          style={{
-            fontFamily: '"Space Grotesk", sans-serif',
-            fontSize: '14px',
-            fontWeight: 500,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: '#06b6d4',
-            marginBottom: '24px',
-          }}
-        >
-          NEXUS LINK PRODUCTIONS
-        </motion.p>
-
-        <h1
-          style={{
-            fontFamily: '"Space Grotesk", sans-serif',
-            fontSize: '72px',
-            fontWeight: 700,
-            lineHeight: 1.0,
-            letterSpacing: '-0.04em',
-            color: 'var(--color-text-primary, #ffffff)',
-            margin: '0 0 24px',
-          }}
-        >
-          {wordReveal('Where Vision Meets Code')}
-        </h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={mounted ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          style={{
-            fontFamily: 'Outfit, sans-serif',
-            fontSize: '22px',
-            fontWeight: 300,
-            lineHeight: 1.4,
-            color: 'var(--color-text-secondary, #a0a0b0)',
-            maxWidth: '600px',
-            margin: '0 auto 40px',
-          }}
-        >
-          We craft immersive digital experiences that push the boundaries of creativity and technology.
-        </motion.p>
-
+        {/* Overline */}
         <motion.div
+          style={{ paddingTop: 120, paddingLeft: 'var(--container-px)', paddingRight: 'var(--container-px)' }}
+          initial={{ opacity: 0 }}
+          animate={mounted ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 12,
+            marginBottom: 48,
+          }}>
+            <span style={{ width: 32, height: 1, background: 'rgba(220,38,38,0.6)' }} />
+            <span style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.22em',
+              color: '#dc2626',
+              textTransform: 'uppercase',
+            }}>
+              Nexus Link Productions
+            </span>
+          </div>
+        </motion.div>
+
+        {/* Headline */}
+        <div style={{
+          paddingLeft: 'var(--container-px)',
+          paddingRight: 'var(--container-px)',
+          maxWidth: 1400,
+        }}>
+          <h1 style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'var(--text-hero)',
+            fontWeight: 700,
+            lineHeight: 'var(--leading-tight)',
+            letterSpacing: '-0.04em',
+            color: 'var(--color-text-primary)',
+            margin: 0,
+          }}>
+            {mounted && (
+              <>
+                <WordReveal text={`${scramble1} THAT LAST.`} delay={0.2} />
+                <WordReveal
+                  text={`STORIES THAT ${scramble2}.`}
+                  delay={0.35}
+                  style={{ color: 'rgba(245,245,247,0.45)' }}
+                />
+              </>
+            )}
+          </h1>
+        </div>
+
+        {/* Sub copy + CTA */}
+        <motion.div
+          style={{
+            paddingLeft: 'var(--container-px)',
+            paddingRight: 'var(--container-px)',
+            marginTop: 56,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 40,
+          }}
           initial={{ opacity: 0, y: 20 }}
           animate={mounted ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 1.0 }}
-          style={{
-            display: 'flex',
-            gap: '16px',
-            justifyContent: 'center',
-            pointerEvents: 'auto',
-          }}
+          transition={{ duration: 0.8, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Button variant="pill">Watch Showreel</Button>
-          <Button variant="ghost">Get in Touch</Button>
-        </motion.div>
-      </div>
+          <p style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 'clamp(16px, 1.5vw, 19px)',
+            fontWeight: 300,
+            lineHeight: 1.65,
+            color: 'var(--color-text-secondary)',
+            maxWidth: 400,
+            margin: 0,
+          }}>
+            Vienna-based cinematic production house.
+            We turn brand ambition into films that
+            demand attention — across every screen, every market.
+          </p>
 
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <Link
+              to="/work"
+              data-magnetic
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 14,
+                fontWeight: 600,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'var(--color-text-primary)',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+              }}
+            >
+              View Our Work
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                border: '1px solid rgba(255,255,255,0.15)',
+              }}>→</span>
+            </Link>
+
+            <Link
+              to="/showreel"
+              data-magnetic
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 14,
+                fontWeight: 600,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: '#dc2626',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+              }}
+            >
+              ▶ Showreel
+            </Link>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Stats row */}
       <motion.div
+        style={{
+          borderTop: '1px solid var(--color-border-subtle)',
+          marginTop: 80,
+          padding: '32px var(--container-px)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+        }}
         initial={{ opacity: 0 }}
         animate={mounted ? { opacity: 1 } : {}}
-        transition={{ delay: 1.4 }}
-        style={{
-          position: 'absolute',
-          bottom: '40px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 2,
-        }}
+        transition={{ duration: 0.8, delay: 1.4 }}
       >
-        <motion.div
-          animate={{ y: [0, 8, 0], opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-          style={{
-            width: 24,
-            height: 24,
-            borderLeft: '2px solid rgba(255,255,255,0.6)',
-            borderBottom: '2px solid rgba(255,255,255,0.6)',
-            transform: 'rotate(-45deg)',
-          }}
-        />
+        {stats.map((s, i) => (
+          <div key={i} style={{
+            borderLeft: i > 0 ? '1px solid var(--color-border-subtle)' : undefined,
+            paddingLeft: i > 0 ? 32 : 0,
+          }}>
+            <div style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(28px, 3.5vw, 42px)',
+              fontWeight: 700,
+              color: 'var(--color-text-primary)',
+              lineHeight: 1,
+              letterSpacing: '-0.03em',
+            }}>{s.value}</div>
+            <div style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 12,
+              fontWeight: 500,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--color-text-tertiary)',
+              marginTop: 6,
+            }}>{s.label}</div>
+          </div>
+        ))}
+      </motion.div>
+
+      {/* Marquee */}
+      <motion.div
+        style={{
+          borderTop: '1px solid var(--color-border-subtle)',
+          paddingBlock: 18,
+          overflow: 'hidden',
+        }}
+        initial={{ opacity: 0 }}
+        animate={mounted ? { opacity: 1 } : {}}
+        transition={{ duration: 0.6, delay: 1.6 }}
+      >
+        <Marquee />
       </motion.div>
     </div>
   );

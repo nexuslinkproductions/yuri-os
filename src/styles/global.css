@@ -18,13 +18,14 @@ html {
 body {
   min-height: 100vh;
   font-family: var(--font-body);
-  font-size: var(--text-16);
+  font-size: var(--text-base, 15px);
   line-height: var(--leading-normal);
   color: var(--color-text-primary);
   background-color: var(--color-bg-void);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  cursor: none; /* MagneticCursor handles this */
 }
 
 img,
@@ -90,12 +91,12 @@ pre {
 /* ── Selection ── */
 ::selection {
   color: var(--color-text-primary);
-  background: rgba(124, 58, 237, 0.35);
+  background: rgba(220, 38, 38, 0.25);
 }
 
 ::-moz-selection {
   color: var(--color-text-primary);
-  background: rgba(124, 58, 237, 0.35);
+  background: rgba(220, 38, 38, 0.25);
 }
 
 /* ── Focus Visible ── */
@@ -120,20 +121,19 @@ pre {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(6, 182, 212, 0.25);
+  background: rgba(220, 38, 38, 0.2);
   border-radius: var(--radius-full);
   border: 2px solid var(--color-bg-void);
-  transition: background var(--duration-200) var(--ease-out);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(6, 182, 212, 0.5);
+  background: rgba(220, 38, 38, 0.4);
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(6, 182, 212, 0.25) var(--color-bg-void);
+  scrollbar-color: rgba(220, 38, 38, 0.2) var(--color-bg-void);
 }
 
 /* ── Reduced Motion ── */
