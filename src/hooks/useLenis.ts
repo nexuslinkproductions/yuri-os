@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
-
+/* Single-loop Lenis — no GSAP double-tick */
 interface UseLenisReturn {
   lenis: React.MutableRefObject<Lenis | null>;
   isReady: boolean;
@@ -16,8 +13,8 @@ export function useLenis(): UseLenisReturn {
 
   useEffect(() => {
     const instance = new Lenis({
-      lerp: 0.1,
-      duration: 1.2,
+      lerp: 0.08,
+      duration: 1.0,
       easing: (t: number): number => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       syncTouch: true,
@@ -27,19 +24,15 @@ export function useLenis(): UseLenisReturn {
     lenis.current = instance;
     setIsReady(true);
 
-    instance.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time: number) => instance.raf(time * 1000));
-    gsap.ticker.lagSmoothing(0);
-
-    const raf = (time: number): void => {
+    let rafId = 0;
+    const loop = (time: number): void => {
       instance.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(loop);
     };
-    const id = requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(loop);
 
     return () => {
-      cancelAnimationFrame(id);
-      gsap.ticker.remove((time: number) => instance.raf(time * 1000));
+      cancelAnimationFrame(rafId);
       instance.destroy();
       lenis.current = null;
       setIsReady(false);

@@ -68,7 +68,7 @@ export default function ProcessTimeline() {
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, margin: '-80px' }}
+        viewport={{ once: false, margin: '-80px' }}
       >
         {steps.map((step, i) => (
           <motion.div

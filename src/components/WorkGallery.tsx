@@ -126,7 +126,7 @@ const itemVariants: Variants = {
 const WorkGallery: FC<WorkGalleryProps> = ({ onProjectClick }) => {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
+  const inView = useInView(ref, { once: false, margin: "-100px" });
 
   const filtered = useMemo(
     () =>

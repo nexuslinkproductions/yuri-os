@@ -157,7 +157,7 @@ export default function WorkPage() {
             style={{ ...styles.projectCard, backgroundColor: p.bgColor }}
             initial={{ opacity: 0, y: 60 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
+            viewport={{ once: false, margin: '-80px' }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: i * 0.08 }}
             whileHover={{ scale: 1.005, transition: { duration: 0.3 } }}
           >

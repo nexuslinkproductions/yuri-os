@@ -13,7 +13,7 @@ const CharReveal: React.FC<{ text: string; delay?: number; stagger?: number; sty
         style={{ display: 'inline-block' }}
         initial={{ opacity: 0, y: 14, rotateX: 40 }}
         whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
+        viewport={{ once: false, margin: '-80px' }}
         transition={{ duration: 0.45, delay: delay + i * stagger, ease: [0.22, 1, 0.36, 1] }}
       >
         {ch === ' ' ? ' ' : ch}
@@ -26,7 +26,7 @@ const CharReveal: React.FC<{ text: string; delay?: number; stagger?: number; sty
 const HighlightBar: React.FC<{ delay?: number }> = ({ delay = 0 }) => (
   <motion.div
     style={{ height: 1, background: 'rgba(220,38,38,0.7)', marginTop: 24, transformOrigin: 'left' }}
-    initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true, margin: '-80px' }}
+    initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: false, margin: '-80px' }}
     transition={{ duration: 1, delay, ease: [0.22, 1, 0.36, 1] }}
   />
 );
@@ -125,7 +125,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
         }}
         initial={{ x: isLeft ? 60 : -60, opacity: 0 }}
         whileInView={{ x: 0, opacity: 1 }}
-        viewport={{ once: true, margin: '-15%' }}
+        viewport={{ once: false, margin: '-15%' }}
         transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
       >
         {s.number}
@@ -173,7 +173,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
             style={{ order: isLeft ? 1 : 0 }}
             initial={{ opacity: 0, rotateX: 8, y: 50 }}
             whileInView={{ opacity: 1, rotateX: 0, y: 0 }}
-            viewport={{ once: true, margin: '-15%' }}
+            viewport={{ once: false, margin: '-15%' }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
           >
             {/* Stage label */}
@@ -183,7 +183,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
               }}
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: '-15%' }}
+              viewport={{ once: false, margin: '-15%' }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
               <span style={{ width: 24, height: 1, background: '#dc2626', flexShrink: 0 }} />
@@ -214,7 +214,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
                 color: 'rgba(255,255,255,0.3)', margin: '20px 0 28px',
                 letterSpacing: '0.02em',
               }}
-              initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+              initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: false }}
               transition={{ duration: 0.8, delay: 0.7 }}
             >
               "{s.principle}"
@@ -227,7 +227,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
                 lineHeight: 1.75, color: 'var(--color-text-secondary)',
                 fontWeight: 300, margin: 0,
               }}
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-15%' }}
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: '-15%' }}
               transition={{ duration: 0.8, delay: 0.5 }}
             >
               {s.body}
@@ -243,7 +243,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
             }}
             initial={{ opacity: 0, x: isLeft ? -40 : 40, rotateY: isLeft ? -6 : 6 }}
             whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
-            viewport={{ once: true, margin: '-15%' }}
+            viewport={{ once: false, margin: '-15%' }}
             transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
           >
             {/* Process step */}
@@ -263,7 +263,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
                 }}
                 initial={{ opacity: 0, scale: 0.92 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
+                viewport={{ once: false }}
                 transition={{ duration: 1, delay: 0.4 }}
               >
                 {s.process}
@@ -274,7 +274,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
                   color: 'rgba(255,255,255,0.35)', lineHeight: 1.65,
                   margin: '16px 0 0', fontWeight: 300,
                 }}
-                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: false }}
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
                 {s.processDesc}
@@ -287,7 +287,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
                 display: 'flex', alignItems: 'center', gap: 16,
                 opacity: 0.4,
               }}
-              initial={{ opacity: 0 }} whileInView={{ opacity: 0.4 }} viewport={{ once: true }}
+              initial={{ opacity: 0 }} whileInView={{ opacity: 0.4 }} viewport={{ once: false }}
               transition={{ delay: 0.8 }}
             >
               <motion.div
@@ -313,7 +313,7 @@ const Station: React.FC<{ s: typeof stations[0]; i: number; sectionRef: React.Re
       {/* Bottom progress line */}
       <motion.div
         style={{ position: 'absolute', bottom: 0, left: 0, height: 1, background: 'rgba(255,255,255,0.06)' }}
-        initial={{ width: '0%' }} whileInView={{ width: '100%' }} viewport={{ once: true, margin: '-20%' }}
+        initial={{ width: '0%' }} whileInView={{ width: '100%' }} viewport={{ once: false, margin: '-20%' }}
         transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
       />
     </section>
@@ -387,7 +387,7 @@ const Synthesis: React.FC = () => {
           fontWeight: 400, letterSpacing: '-0.01em',
           color: 'var(--color-text-primary)', margin: '0 0 16px', textAlign: 'center',
         }}
-        initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+        initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
       >
         The Great Work
@@ -399,14 +399,14 @@ const Synthesis: React.FC = () => {
           color: 'var(--color-text-secondary)', textAlign: 'center',
           maxWidth: 480, lineHeight: 1.65, fontWeight: 300, margin: '0 0 48px',
         }}
-        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: false }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
         Five disciplines in perpetual orbit. From prima materia to multiplicatio — the complete cycle of creation.
       </motion.p>
 
       <motion.div
-        initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+        initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }}
         transition={{ duration: 0.7, delay: 0.4 }}
       >
         <Link to="/contact" data-magnetic style={{

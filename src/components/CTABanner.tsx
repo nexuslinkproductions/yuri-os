@@ -12,7 +12,7 @@ interface CTABannerProps {
 /* Minimal, dark, integrated — no jarring gradient banners */
 const CTABanner = ({ headline, sub, buttonLabel, buttonHref = '/contact' }: CTABannerProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
+  const inView = useInView(ref, { once: false, margin: '-60px' });
 
   return (
     <section style={{

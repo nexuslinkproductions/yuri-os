@@ -70,8 +70,8 @@ export default function LightCursor() {
         const cy = r.top + r.height / 2;
         const dx = e.clientX - cx, dy = e.clientY - cy;
         const dist = Math.hypot(dx, dy);
-        if (dist < 70) {
-          const pull = (70 - dist) / 70 * 14;
+        if (dist < 40) {
+          const pull = (40 - dist) / 40 * 5;
           const a = Math.atan2(dy, dx);
           el.style.transform = `translate(${Math.cos(a) * pull}px,${Math.sin(a) * pull}px)`;
           el.style.transition = 'transform 0.1s ease-out';
