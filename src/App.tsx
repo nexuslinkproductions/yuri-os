@@ -4,7 +4,8 @@ import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { useLenis } from './hooks/useLenis';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
-import FuturisticCursor from './components/ui/MagneticCursor';
+import LightCursor from './components/ui/LightCursor';
+import CelticBackground from './components/ui/CelticBackground';
 
 const routeOrder: Record<string, number> = {
   '/': 0,
@@ -77,7 +78,8 @@ function App(): React.ReactElement {
 
   return (
     <BrowserRouter>
-      <FuturisticCursor />
+      <CelticBackground />
+      <LightCursor />
       <Suspense
         fallback={
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>

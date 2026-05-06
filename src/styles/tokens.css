@@ -7,17 +7,17 @@
   --color-red-glow: rgba(220, 38, 38, 0.10);
   --color-red-border: rgba(220, 38, 38, 0.22);
 
-  /* ── Surfaces ── */
-  --color-bg-void:     #060608;
-  --color-bg-base:     #0c0c10;
-  --color-bg-deep:     #0f0f14;
-  --color-bg-elevated: #141418;
-  --color-bg-card:     #191920;
-  --color-bg-glass:    rgba(255, 255, 255, 0.03);
-  --color-bg-glass-hover: rgba(255, 255, 255, 0.06);
+  /* ── Surfaces — brightened cosmos palette ── */
+  --color-bg-void:     #0e0e18;
+  --color-bg-base:     #13131e;
+  --color-bg-deep:     #161620;
+  --color-bg-elevated: #1c1c2a;
+  --color-bg-card:     #212130;
+  --color-bg-glass:    rgba(255, 255, 255, 0.05);
+  --color-bg-glass-hover: rgba(255, 255, 255, 0.09);
 
-  --color-border-subtle:  rgba(255, 255, 255, 0.05);
-  --color-border-default: rgba(255, 255, 255, 0.09);
+  --color-border-subtle:  rgba(255, 255, 255, 0.07);
+  --color-border-default: rgba(255, 255, 255, 0.12);
   --color-border-strong:  rgba(255, 255, 255, 0.14);
 
   /* ── Text ── */

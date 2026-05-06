@@ -184,7 +184,7 @@ const HeroSection: React.FC = () => {
         width: 500,
         height: 500,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(34,211,238,0.025) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(180,160,255,0.03) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
 
