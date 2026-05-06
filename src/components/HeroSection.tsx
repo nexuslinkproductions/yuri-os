@@ -131,6 +131,120 @@ const HeroSection: React.FC = () => {
         overflow: 'hidden',
       }}
     >
+      {/* 1. NOISE TEXTURE — feTurbulence overlay */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 9999,
+        mixBlendMode: 'overlay',
+        opacity: 0.03,
+      }}>
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <filter id="grain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+            <feColorMatrix type="saturate" values="0" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#grain)" />
+        </svg>
+      </div>
+
+      {/* 2. SCAN LINE — sweeping horizontal line */}
+      <motion.div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          height: 1,
+          backgroundColor: 'rgba(255,255,255,0.04)',
+          pointerEvents: 'none',
+          zIndex: 50,
+        }}
+        animate={{ y: ['0vh', '100vh'] }}
+        transition={{ duration: 8, ease: 'linear', repeat: Infinity }}
+      />
+
+      {/* 3. AMBIENT ORBS */}
+      <div style={{
+        position: 'absolute',
+        top: -80,
+        left: -80,
+        width: 400,
+        height: 400,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(220,38,38,0.04) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: -100,
+        right: -100,
+        width: 500,
+        height: 500,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(34,211,238,0.025) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* 4. CORNER DECORATIONS — L-shaped viewfinder brackets */}
+      {[
+        { top: 32, left: 32, rotation: 0 },
+        { top: 32, right: 32, rotation: 90 },
+        { bottom: 32, left: 32, rotation: -90 },
+        { bottom: 32, right: 32, rotation: 180 },
+      ].map((corner, idx) => (
+        <motion.div
+          key={idx}
+          style={{
+            position: 'absolute',
+            top: corner.top ?? undefined,
+            bottom: corner.bottom ?? undefined,
+            left: corner.left ?? undefined,
+            right: corner.right ?? undefined,
+            width: 20,
+            height: 20,
+            pointerEvents: 'none',
+            zIndex: 40,
+          }}
+          initial={{ opacity: 0 }}
+          animate={mounted ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 1.8, ease: 'easeOut' }}
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ transform: `rotate(${corner.rotation}deg)` }}>
+            <path d="M0 0V6" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+            <path d="M0 0H6" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+          </svg>
+        </motion.div>
+      ))}
+
+      {/* 5. VERTICAL TEXT LABEL */}
+      <div style={{
+        position: 'absolute',
+        left: 24,
+        top: 0,
+        bottom: 0,
+        display: 'flex',
+        alignItems: 'center',
+        pointerEvents: 'none',
+        zIndex: 40,
+      }}>
+        <span style={{
+          transform: 'rotate(-90deg)',
+          transformOrigin: 'center center',
+          whiteSpace: 'nowrap',
+          fontFamily: 'var(--font-display)',
+          fontSize: 10,
+          fontWeight: 500,
+          letterSpacing: '0.25em',
+          color: 'rgba(255,255,255,0.18)',
+          textTransform: 'uppercase',
+        }}>
+          NEXUS LINK PRODUCTIONS — EST. 2016
+        </span>
+      </div>
+
       {/* Ambient grid */}
       <div style={{
         position: 'absolute',

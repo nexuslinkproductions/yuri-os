@@ -1,14 +1,41 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { useLenis } from './hooks/useLenis';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
-import MagneticCursor from './components/ui/MagneticCursor';
+import FuturisticCursor from './components/ui/MagneticCursor';
+
+const routeOrder: Record<string, number> = {
+  '/': 0,
+  '/work': 1,
+  '/services': 2,
+  '/about': 3,
+  '/showreel': 4,
+  '/contact': 5,
+};
 
 // ── Layout ───────────────────────────────────────────────────
 function Layout(): React.ReactElement {
   const location = useLocation();
+  const prevPath = useRef<string>(location.pathname);
+
+  const currentOrder = routeOrder[location.pathname] ?? -1;
+  const prevOrder = routeOrder[prevPath.current] ?? -1;
+  const goingForward = currentOrder >= prevOrder;
+
+  useEffect(() => {
+    prevPath.current = location.pathname;
+  }, [location.pathname]);
+
+  const direction = goingForward ? 1 : -1;
+
+  const ease = [0.22, 1, 0.36, 1] as [number, number, number, number];
+  const variants: Variants = {
+    enter:  { x: direction * 40,  opacity: 0, transition: { duration: 0.45, ease } },
+    center: { x: 0,                opacity: 1, transition: { duration: 0.45, ease } },
+    exit:   { x: direction * -40, opacity: 0, transition: { duration: 0.35, ease } },
+  };
 
   return (
     <>
@@ -16,10 +43,11 @@ function Layout(): React.ReactElement {
       <AnimatePresence mode="wait">
         <motion.main
           key={location.pathname}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.35, ease: 'easeInOut' }}
+          variants={variants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          style={{ overflow: 'hidden', minHeight: '100vh' }}
         >
           <Outlet />
         </motion.main>
@@ -49,7 +77,7 @@ function App(): React.ReactElement {
 
   return (
     <BrowserRouter>
-      <MagneticCursor />
+      <FuturisticCursor />
       <Suspense
         fallback={
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>

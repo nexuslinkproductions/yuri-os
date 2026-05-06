@@ -122,9 +122,9 @@ const styles: Record<string, React.CSSProperties> = {
 };
 
 const projects = [
-  { name: 'Echoes of Tomorrow', client: 'Vienna Tourism Board', category: 'Commercial', year: '2024', bgColor: '#0f0f14', description: 'A city film redefining destination storytelling. Shot across three continents in seven days.' },
-  { name: 'The Unseen', client: 'Österreichische Galerie', category: 'Documentary', year: '2024', bgColor: '#100a0a', description: 'Deep-sea researchers uncovering ocean mysteries. Winner, Best Documentary Short 2024.' },
-  { name: 'Velocity', client: 'Prater Wien', category: 'Commercial', year: '2023', bgColor: '#0a0f0a', description: 'Automotive campaign. Practical stunts, cinematic VFX. 15M+ views across platforms.' },
+  { name: 'Echoes of Tomorrow', client: 'Vienna Tourism Board', category: 'Commercial', year: '2024', bgColor: '#0c0c14', description: 'A city film redefining destination storytelling. Shot across three continents in seven days.' },
+  { name: 'The Unseen', client: 'Österreichische Galerie', category: 'Documentary', year: '2024', bgColor: '#100c0c', description: 'Deep-sea researchers uncovering ocean mysteries. Winner, Best Documentary Short 2024.' },
+  { name: 'Velocity', client: 'Prater Wien', category: 'Commercial', year: '2023', bgColor: '#0c0f14', description: 'Automotive campaign. Practical stunts, cinematic VFX. 15M+ views across platforms.' },
 ];
 
 export default function WorkPage() {

@@ -31,10 +31,10 @@
   --color-warning: #f59e0b;
   --color-error:   #ef4444;
 
-  /* ── Typography ── */
-  --font-display: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
-  --font-body:    'Outfit', 'Helvetica Neue', Arial, sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
+  /* ── Typography — Apple-system stack (Inter loads via Google Fonts) ── */
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:    'JetBrains Mono', 'SF Mono', monospace;
   --font-serif:   'Georgia', serif;
 
   /* ── Type Scale ── */

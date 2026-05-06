@@ -1,218 +1,165 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 
-/* ─── Types ─── */
-type CursorState = 'default' | 'hover' | 'text' | 'drag' | 'link';
+/* ─── High-tech targeting reticle cursor ─── */
 
-const SPRING_CONFIG = { stiffness: 280, damping: 28, mass: 0.5 };
-const OUTER_SPRING  = { stiffness: 140, damping: 20, mass: 0.8 };
+const SNAPPY   = { stiffness: 420, damping: 34, mass: 0.4 };
+const BRACKET  = { stiffness: 200, damping: 22, mass: 0.6 };
+const AURA     = { stiffness: 48,  damping: 14, mass: 1.0 };
 
-export default function MagneticCursor() {
-  const cursorX = useMotionValue(-200);
-  const cursorY = useMotionValue(-200);
-  const outerX  = useMotionValue(-200);
-  const outerY  = useMotionValue(-200);
+export default function FuturisticCursor() {
+  const rX = useMotionValue(-400); const rY = useMotionValue(-400);
+  const cX = useSpring(rX, SNAPPY);  const cY = useSpring(rY, SNAPPY);
+  const bX = useSpring(rX, BRACKET); const bY = useSpring(rY, BRACKET);
+  const aX = useSpring(rX, AURA);    const aY = useSpring(rY, AURA);
 
-  const springX = useSpring(cursorX, SPRING_CONFIG);
-  const springY = useSpring(cursorY, SPRING_CONFIG);
-  const outerSX = useSpring(outerX, OUTER_SPRING);
-  const outerSY = useSpring(outerY, OUTER_SPRING);
-
-  const [state, setState]   = useState<CursorState>('default');
+  const [hover, setHover] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [label, setLabel]   = useState('');
-  const rafRef = useRef<number>(0);
-  const posRef = useRef({ x: -200, y: -200 });
+  const idleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const onMove = useCallback((e: MouseEvent) => {
-    posRef.current = { x: e.clientX, y: e.clientY };
-    cursorX.set(e.clientX);
-    cursorY.set(e.clientY);
-    outerX.set(e.clientX);
-    outerY.set(e.clientY);
-    if (!visible) setVisible(true);
-
-    // Magnetic attraction on nearby interactive elements
-    const els = document.querySelectorAll<HTMLElement>(
-      'button, a, [data-magnetic], [data-cursor]'
-    );
-    els.forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const cx   = rect.left + rect.width / 2;
-      const cy   = rect.top  + rect.height / 2;
-      const dx   = e.clientX - cx;
-      const dy   = e.clientY - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const RANGE = 80;
-
-      if (dist < RANGE) {
-        const pull = (RANGE - dist) / RANGE;
-        const tx   = -dx * pull * 0.22;
-        const ty   = -dy * pull * 0.22;
-        el.style.transform  = `translate(${tx}px, ${ty}px)`;
-        el.style.transition = 'transform 0.15s ease-out';
-      } else {
-        if (el.style.transform) {
-          el.style.transform  = '';
-          el.style.transition = 'transform 0.4s var(--ease-out, cubic-bezier(0.22,1,0.36,1))';
-        }
+  /* ── Magnetic pull ── */
+  const applyMagnetic = useCallback((mx: number, my: number) => {
+    document.querySelectorAll<HTMLElement>('a, button, [data-magnetic]').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dx = mx - cx; const dy = my - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 72) {
+        const p = (72 - dist) / 72 * 16;
+        const a = Math.atan2(dy, dx);
+        el.style.transform = `translate(${Math.cos(a) * p}px, ${Math.sin(a) * p}px)`;
+        el.style.transition = 'transform 0.12s cubic-bezier(0.22,1,0.36,1)';
+      } else if (el.style.transform) {
+        el.style.transform = '';
+        el.style.transition = 'transform 0.5s cubic-bezier(0.22,1,0.36,1)';
       }
     });
-  }, [cursorX, cursorY, outerX, outerY, visible]);
-
-  const onEnter = useCallback((e: MouseEvent) => {
-    const target = e.target as HTMLElement;
-    const closest = target.closest<HTMLElement>('a, button, [data-cursor]');
-    if (!closest) return;
-    const cursorType = closest.getAttribute('data-cursor') as CursorState | null;
-    const cursorLabel = closest.getAttribute('data-cursor-label') || '';
-    setState(cursorType || (closest.tagName === 'A' ? 'link' : 'hover'));
-    setLabel(cursorLabel);
-  }, []);
-
-  const onLeave = useCallback((e: MouseEvent) => {
-    const related = e.relatedTarget as HTMLElement | null;
-    const isInteractive = related?.closest('a, button, [data-cursor]');
-    if (!isInteractive) {
-      setState('default');
-      setLabel('');
-    }
-  }, []);
-
-  const onMouseOut = useCallback(() => {
-    setVisible(false);
-    cancelAnimationFrame(rafRef.current);
   }, []);
 
   useEffect(() => {
     document.documentElement.style.cursor = 'none';
+
+    const onMove = (e: MouseEvent) => {
+      rX.set(e.clientX); rY.set(e.clientY);
+      if (!visible) setVisible(true);
+      applyMagnetic(e.clientX, e.clientY);
+      if (idleRef.current) clearTimeout(idleRef.current);
+    };
+
+    const onOver = (e: MouseEvent) => {
+      if ((e.target as HTMLElement)?.closest?.('a, button, [data-cursor]')) setHover(true);
+    };
+    const onOut = (e: MouseEvent) => {
+      if (!(e.relatedTarget as HTMLElement)?.closest?.('a, button, [data-cursor]')) setHover(false);
+    };
+    const onLeave = () => {
+      setVisible(false);
+      document.querySelectorAll<HTMLElement>('a, button, [data-magnetic]').forEach(el => { el.style.transform = ''; });
+    };
+
     window.addEventListener('mousemove', onMove, { passive: true });
-    document.addEventListener('mouseover',  onEnter, { passive: true });
-    document.addEventListener('mouseout',   onLeave, { passive: true });
-    document.addEventListener('mouseleave', onMouseOut, { passive: true });
+    document.addEventListener('mouseover', onOver, { passive: true });
+    document.addEventListener('mouseout', onOut, { passive: true });
+    document.addEventListener('mouseleave', onLeave, { passive: true });
     return () => {
       document.documentElement.style.cursor = '';
       window.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseover', onEnter);
-      document.removeEventListener('mouseout',  onLeave);
-      document.removeEventListener('mouseleave', onMouseOut);
+      document.removeEventListener('mouseover', onOver);
+      document.removeEventListener('mouseout', onOut);
+      document.removeEventListener('mouseleave', onLeave);
+      if (idleRef.current) clearTimeout(idleRef.current);
     };
-  }, [onMove, onEnter, onLeave, onMouseOut]);
+  }, [rX, rY, visible, applyMagnetic]);
 
-  const isHover = state !== 'default';
+  /* ── Derived sizes ── */
+  const bracketSize = hover ? 56 : 30;
+  const color = hover ? 'rgba(220,38,38,0.95)' : 'rgba(255,255,255,0.88)';
+  const auraOpacity = visible ? 0.06 : 0;
 
-  /* ── Inner dot ── */
-  const dotSize      = isHover ? 5 : 5;
-  const dotOpacity   = isHover ? 0 : 1;
+  /* ── SVG bracket corners ── */
+  const B = bracketSize;
+  const arm = B * 0.35; // length of each bracket arm
 
-  /* ── Outer ring ── */
-  const ringSize     = isHover ? 72 : 36;
-  const ringOpacity  = visible ? (isHover ? 0.9 : 0.55) : 0;
-  const ringBorder   = isHover
-    ? '1.5px solid rgba(220,38,38,0.7)'
-    : '1px solid rgba(255,255,255,0.35)';
-  const ringBg       = isHover
-    ? 'rgba(220,38,38,0.06)'
-    : 'transparent';
+  const TL = `M ${arm} 2 L 2 2 L 2 ${arm}`; // top-left L
+  const TR = `M ${B - arm} 2 L ${B - 2} 2 L ${B - 2} ${arm}`; // top-right L
+  const BL = `M ${arm} ${B - 2} L 2 ${B - 2} L 2 ${B - arm}`; // bottom-left L
+  const BR = `M ${B - arm} ${B - 2} L ${B - 2} ${B - 2} L ${B - 2} ${B - arm}`; // bottom-right L
 
   return (
     <>
-      {/* Outer trailing ring */}
+      {/* Ghost aura */}
       <motion.div
         style={{
-          x: outerSX,
-          y: outerSY,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width:  ringSize,
-          height: ringSize,
-          marginLeft: -(ringSize / 2),
-          marginTop:  -(ringSize / 2),
+          position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 9996,
+          width: 100, height: 100,
+          marginLeft: -50, marginTop: -50,
           borderRadius: '50%',
-          border: ringBorder,
-          background: ringBg,
-          opacity: ringOpacity,
-          pointerEvents: 'none',
-          zIndex: 'var(--z-cursor, 9999)' as unknown as number,
-          backdropFilter: isHover ? 'blur(4px)' : undefined,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mixBlendMode: 'normal',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 68%)',
+          x: aX, y: aY,
         }}
-        animate={{
-          width:  ringSize,
-          height: ringSize,
-          marginLeft: -(ringSize / 2),
-          marginTop:  -(ringSize / 2),
-          border: ringBorder,
-          background: ringBg,
-          opacity: ringOpacity,
-        }}
-        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      >
-        {label && (
-          <span style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-            color: '#dc2626',
-            textTransform: 'uppercase',
-            userSelect: 'none',
-          }}>
-            {label}
-          </span>
-        )}
-      </motion.div>
-
-      {/* Inner precision dot */}
-      <motion.div
-        style={{
-          x: springX,
-          y: springY,
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width:  dotSize,
-          height: dotSize,
-          marginLeft: -(dotSize / 2),
-          marginTop:  -(dotSize / 2),
-          borderRadius: '50%',
-          background: isHover ? '#dc2626' : 'rgba(255,255,255,0.9)',
-          opacity: visible ? (isHover ? 0.9 : dotOpacity) : 0,
-          pointerEvents: 'none',
-          zIndex: 'var(--z-cursor, 9999)' as unknown as number,
-        }}
-        animate={{ opacity: visible ? (isHover ? 0 : 1) : 0 }}
-        transition={{ duration: 0.2 }}
+        animate={{ opacity: auraOpacity }}
+        transition={{ duration: 0.4 }}
       />
 
-      {/* Subtle red glow on hover */}
-      {isHover && visible && (
-        <motion.div
-          style={{
-            x: outerSX,
-            y: outerSY,
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width:  120,
-            height: 120,
-            marginLeft: -60,
-            marginTop:  -60,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(220,38,38,0.08) 0%, transparent 70%)',
-            pointerEvents: 'none',
-            zIndex: 'var(--z-cursor, 9998)' as unknown as number,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        />
-      )}
+      {/* Viewfinder brackets */}
+      <motion.div
+        style={{
+          position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 9998,
+          x: bX, y: bY,
+        }}
+        animate={{
+          marginLeft: -(bracketSize / 2),
+          marginTop:  -(bracketSize / 2),
+          rotate: hover ? 0 : 0,
+          opacity: visible ? 1 : 0,
+        }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <motion.svg
+          width={bracketSize} height={bracketSize}
+          viewBox={`0 0 ${B} ${B}`}
+          fill="none"
+          animate={{ width: bracketSize, height: bracketSize }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {[TL, TR, BL, BR].map((d, i) => (
+            <motion.path
+              key={i} d={d}
+              stroke={color}
+              strokeWidth={hover ? 1.8 : 1.2}
+              strokeLinecap="round" strokeLinejoin="round"
+              animate={{ stroke: color, strokeWidth: hover ? 1.8 : 1.2 }}
+              transition={{ duration: 0.25 }}
+            />
+          ))}
+          {/* Center tick marks when hovering */}
+          {hover && (
+            <>
+              <motion.line x1={B/2 - 4} y1={B/2} x2={B/2 + 4} y2={B/2} stroke="rgba(220,38,38,0.6)" strokeWidth="0.8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
+              <motion.line x1={B/2} y1={B/2 - 4} x2={B/2} y2={B/2 + 4} stroke="rgba(220,38,38,0.6)" strokeWidth="0.8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
+            </>
+          )}
+        </motion.svg>
+      </motion.div>
+
+      {/* Inner crosshair — mix-blend-mode: difference so it works on all backgrounds */}
+      <motion.div
+        style={{
+          position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 9999,
+          width: 14, height: 14, marginLeft: -7, marginTop: -7,
+          x: cX, y: cY,
+          mixBlendMode: 'difference',
+        }}
+        animate={{ opacity: visible ? 1 : 0, scale: hover ? 1.2 : 1 }}
+        transition={{ duration: 0.2 }}
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <line x1="3" y1="7" x2="11" y2="7" stroke="white" strokeWidth="1" strokeLinecap="round" />
+          <line x1="7" y1="3" x2="7"  y2="11" stroke="white" strokeWidth="1" strokeLinecap="round" />
+          <circle cx="7" cy="7" r="0.7" fill="white" />
+        </svg>
+      </motion.div>
     </>
   );
 }
