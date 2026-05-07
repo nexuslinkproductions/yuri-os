@@ -152,16 +152,16 @@ function Hero() {
 
         <motion.h1
           style={{
-            maxWidth: 1220,
+            maxWidth: 1640,
             margin: '26px 0 0',
             fontFamily: 'var(--font-display)',
             fontSize: 'var(--text-hero)',
             fontWeight: 900,
-            letterSpacing: '-0.01em',
-            lineHeight: 0.88,
+            letterSpacing: '-0.015em',
+            lineHeight: 0.86,
             color: 'var(--color-text-primary)',
             textTransform: 'uppercase',
-            textShadow: '0 1px 0 rgba(0,0,0,0.45), 0 0 60px rgba(0,0,0,0.55)',
+            textShadow: '0 1px 0 rgba(0,0,0,0.45), 0 0 80px rgba(0,0,0,0.6)',
           }}
           initial={{ opacity: 0, y: 56, rotateX: 8 }}
           animate={{ opacity: 1, y: 0, rotateX: 0 }}
@@ -173,10 +173,10 @@ function Hero() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(0, 620px) minmax(280px, 420px)',
-            gap: 'clamp(36px, 8vw, 120px)',
+            gridTemplateColumns: 'minmax(0, 720px) minmax(320px, 480px)',
+            gap: 'clamp(36px, 6vw, 140px)',
             alignItems: 'end',
-            marginTop: 34,
+            marginTop: 'clamp(34px, 4vw, 56px)',
           }}
           className="hero-lower"
         >

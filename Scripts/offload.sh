@@ -9,8 +9,20 @@ OFFLOAD_RUNNER="$SCRIPT_DIR/offload-runner.mjs"
 BACKEND_URL="http://127.0.0.1:3004"
 # Master key for internal API access
 API_KEY="nudimmud-master-key-2026-04-23"
-RAW_OLLAMA_BIN="${OLLAMA_BIN:-/Applications/Ollama.app/Contents/Resources/ollama}"
-OLLAMA_MANIFEST_DIR="${OLLAMA_MANIFEST_DIR:-$HOME/.ollama/models/manifests/registry.ollama.ai/library}"
+# Ollama paths removed — lane deprecated
+
+# Bash subprocesses (e.g. Claude Code Bash tool) don't inherit ~/.zshrc exports.
+# When invoked from non-zsh contexts, hydrate lane API keys from ~/.zshrc if absent.
+# Only fires when a key is missing — zsh users see no overhead.
+if [ -f "$HOME/.zshrc" ]; then
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OLLAMA_API_KEY; do
+    if [ -z "${!_lane_var:-}" ]; then
+      _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
+      [ -n "$_line" ] && eval "$_line"
+    fi
+  done
+  unset _lane_var _line
+fi
 
 usage() {
   cat <<EOF
@@ -32,7 +44,7 @@ list_models() {
   echo "⬡ NUDIMMUD_NEURAL_REGISTRY"
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
-  for lane in gpt-oss deepseek ollama openrouter-free; do
+  for lane in gpt-oss deepseek openrouter-free; do
     if command -v "$lane" >/dev/null 2>&1; then
       printf '  [%-8s] %s\n' "$lane" "$(command -v "$lane")"
     else
@@ -51,31 +63,6 @@ list_models() {
   printf '  [%-30s] %s\n' "code-deepseek" "compat alias -> deepseek-v4-pro"
 
   echo
-  echo "Raw Ollama binary:"
-  if [[ -x "$RAW_OLLAMA_BIN" ]]; then
-    printf '  %s\n' "$RAW_OLLAMA_BIN"
-  else
-    echo "  MISSING"
-  fi
-
-  echo
-  echo "Local Ollama models:"
-  if [[ -d "$OLLAMA_MANIFEST_DIR" ]]; then
-    local found=0
-    while IFS= read -r manifest; do
-      found=1
-      rel="${manifest#"$OLLAMA_MANIFEST_DIR"/}"
-      model_name="${rel%/*}"
-      model_tag="${rel##*/}"
-      printf '  [%s:%s]\n' "${model_name//\//:}" "$model_tag"
-    done < <(find "$OLLAMA_MANIFEST_DIR" -mindepth 2 -maxdepth 2 -type f | sort)
-
-    if [[ "$found" -eq 0 ]]; then
-      echo "  (none)"
-    fi
-  else
-    echo "  (manifest dir missing)"
-  fi
 }
 
 classify_lane() {
@@ -134,22 +121,9 @@ dispatch_model() {
         run_offload_runner openrouter-free "$prompt" --model openrouter/free
         ;;
       *)
-        printf '%s\n' "⬡ ROUTING_TO_OLLAMA ($target_model)..." >&2
-        # We wrap Ollama in a temporary UI update if it doesn't have a dedicated command
-        # This keeps IndraSwarm visual pulse working for arbitrary models
-        curl -s -X POST \
-          -H "X-API-KEY: $API_KEY" \
-          -H "Content-Type: application/json" \
-          -d "{\"status\": \"ACTIVE\", \"command\": \"OLLAMA: $target_model\"}" \
-          "$BACKEND_URL/api/agents/ENGINEERING/status" > /dev/null || true
-
-        run_offload_runner ollama "$prompt" --model "$target_model"
-
-        curl -s -X POST \
-          -H "X-API-KEY: $API_KEY" \
-          -H "Content-Type: application/json" \
-          -d "{\"status\": \"IDLE\", \"command\": \"IDLE\"}" \
-          "$BACKEND_URL/api/agents/ENGINEERING/status" > /dev/null || true
+        printf '%s\n' "⬡ UNKNOWN_MODEL ($target_model) — no lane configured" >&2
+        echo "No lane for model: $target_model" >&2
+        return 1
         ;;
     esac
 }
@@ -268,8 +242,8 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   echo "⬡ BACKEND_UNREACHABLE — cannot auto-route." >&2
   echo "  Manual fallback options:" >&2
   echo "    offload --model <id> \"<prompt>\"                  # direct model" >&2
-  echo "    offload --swarm gpt-oss,ollama \"<prompt>\"       # swarm" >&2
-  echo "    ai @ollama \"<prompt>\"                            # local ollama" >&2
+  echo "    offload --swarm gpt-oss \"<prompt>\"       # swarm" >&2
+  # ollama lane removed
   echo "    ai @kimi \"<prompt>\"                              # deprecated Kimi compatibility" >&2
   echo "    ai @deepseek \"<prompt>\"                          # deepseek local" >&2
   exit 1
