@@ -23,6 +23,8 @@ export default function LightCursor() {
   const [hover, setHover] = useState(false);
 
   useEffect(() => {
+    if (window.matchMedia('(max-width: 900px), (pointer: coarse)').matches) return;
+    document.documentElement.classList.add('custom-cursor-active');
     document.documentElement.style.cursor = 'none';
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -45,41 +47,23 @@ export default function LightCursor() {
       trailRef.current.push({ x: e.clientX, y: e.clientY });
       if (trailRef.current.length > MAX_TRAIL) trailRef.current.shift();
 
-      /* emit particles every 2nd frame on movement */
-      if (frameRef.current % 2 === 0) {
+      /* emit particles every 3rd frame on movement (reduced density for premium calm) */
+      if (frameRef.current % 3 === 0) {
         const p = particlesRef.current;
         if (p.length < MAX_PARTICLES) {
           const angle = Math.random() * Math.PI * 2;
-          const speed = 0.3 + Math.random() * 0.8;
+          const speed = 0.25 + Math.random() * 0.55;
           p.push({
             x: e.clientX,
             y: e.clientY,
             vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - 0.4, // slight upward bias
+            vy: Math.sin(angle) * speed - 0.3,
             life: 0,
-            maxLife: 18 + Math.floor(Math.random() * 22),
-            size: 0.6 + Math.random() * 1.4,
+            maxLife: 22 + Math.floor(Math.random() * 18),
+            size: 0.5 + Math.random() * 1.1,
           });
         }
       }
-
-      /* magnetic pull */
-      document.querySelectorAll<HTMLElement>('a, button, [data-magnetic]').forEach((el) => {
-        const r = el.getBoundingClientRect();
-        const cx = r.left + r.width / 2;
-        const cy = r.top + r.height / 2;
-        const dx = e.clientX - cx, dy = e.clientY - cy;
-        const dist = Math.hypot(dx, dy);
-        if (dist < 40) {
-          const pull = (40 - dist) / 40 * 5;
-          const a = Math.atan2(dy, dx);
-          el.style.transform = `translate(${Math.cos(a) * pull}px,${Math.sin(a) * pull}px)`;
-          el.style.transition = 'transform 0.1s ease-out';
-        } else if (el.style.transform) {
-          el.style.transform = '';
-          el.style.transition = 'transform 0.5s ease-out';
-        }
-      });
     };
 
     const onOver = (e: MouseEvent) => {
@@ -184,6 +168,7 @@ export default function LightCursor() {
       document.removeEventListener('mouseover', onOver);
       document.removeEventListener('mouseout', onOut);
       document.removeEventListener('mouseleave', onLeave);
+      document.documentElement.classList.remove('custom-cursor-active');
       document.documentElement.style.cursor = '';
     };
   }, [visible, hover]);
