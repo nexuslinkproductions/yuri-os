@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-/* ─── Canvas-based light source cursor with trails + particles ─── */
+/* ─── Canvas-based light source cursor with ambient particles ─── */
 
 interface Particle {
   x: number; y: number;
@@ -9,13 +9,11 @@ interface Particle {
   size: number;
 }
 
-const MAX_TRAIL = 36;
 const MAX_PARTICLES = 60;
 
 export default function LightCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: -400, y: -400 });
-  const trailRef = useRef<{ x: number; y: number }[]>([]);
   const particlesRef = useRef<Particle[]>([]);
   const rafRef = useRef(0);
   const frameRef = useRef(0);
@@ -42,10 +40,6 @@ export default function LightCursor() {
     const onMove = (e: MouseEvent) => {
       mouseRef.current = { x: e.clientX, y: e.clientY };
       if (!visible) setVisible(true);
-
-      /* trail */
-      trailRef.current.push({ x: e.clientX, y: e.clientY });
-      if (trailRef.current.length > MAX_TRAIL) trailRef.current.shift();
 
       /* emit particles every 3rd frame on movement (reduced density for premium calm) */
       if (frameRef.current % 3 === 0) {
@@ -74,7 +68,6 @@ export default function LightCursor() {
     };
     const onLeave = () => {
       setVisible(false);
-      trailRef.current = [];
     };
 
     window.addEventListener('mousemove', onMove, { passive: true });
@@ -90,23 +83,6 @@ export default function LightCursor() {
 
       /* clear with slight alpha bleed for persistence */
       ctx.clearRect(0, 0, w, h);
-
-      /* ── trail ── */
-      const trail = trailRef.current;
-      if (trail.length > 1) {
-        for (let i = 1; i < trail.length; i++) {
-          const t = i / trail.length;
-          const alpha = t * t * 0.35;
-          const width = t * 2.5;
-          ctx.beginPath();
-          ctx.moveTo(trail[i - 1].x, trail[i - 1].y);
-          ctx.lineTo(trail[i].x, trail[i].y);
-          ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-          ctx.lineWidth = width;
-          ctx.lineCap = 'round';
-          ctx.stroke();
-        }
-      }
 
       /* ── particles ── */
       const alive: Particle[] = [];
