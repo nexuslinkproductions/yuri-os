@@ -105,9 +105,19 @@ graphify-out/.DS_Store
 .haiku/
 runtime-gate-*.log
 
-# Phase 1 anchor gate artifacts
-.haiku/
-runtime-gate-*.log
+# Root-level service logs (ephemeral process output)
+/backend*.log
+/frontend*.log
+/*.log
+
+# Graphify symbol-graph emitter (auto-regenerated)
+graph/
+
+# Claude Palace navigation index (auto-regenerated; canonical copy in Volumes/T7/)
+claude-palace-out/
+
+# Quarantine for refactor safety (move-not-delete pattern)
+_QUARANTINE_*/
 
 # Yuri OS Content Governance — generated/cache/external paths
 # These paths are NOT current Yuri OS doctrine. See _SYSTEM/yuri-content-governance.md.
