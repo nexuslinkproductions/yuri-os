@@ -133,4 +133,7 @@ _QUARANTINE_*/
 01_PROJECTS/gstack/.factory/
 01_PROJECTS/gstack/.kiro/
 01_PROJECTS/gstack/.openclaw/
-01_PROJECTS/gstack/.opencode/
+01_PROJECTS/gstack/.opencode/._*
+
+# AppleDouble metadata (macOS)
+._*
