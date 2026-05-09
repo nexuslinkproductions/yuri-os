@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const TRACKER = '/Users/marcelspatz/NUDIMMUD/.claude/state/token-tracker.md';
+const TRACKER = '/Users/marcelspatz/NUDIMMUD/_SYSTEM/token-tracker.md';
 const STATE_DIR = '/Users/marcelspatz/NUDIMMUD/.claude/state';
 const SESSION_FILE = `${STATE_DIR}/token-session.json`;
 const WEEKLY_FILE = `${STATE_DIR}/token-weekly.json`;

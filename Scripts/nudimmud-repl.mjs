@@ -448,6 +448,9 @@ const readTokenmaxxingState = () => {
     if (existsSync(TOKENMAXXING_STATE)) {
       const s = JSON.parse(readFileSync(TOKENMAXXING_STATE, 'utf8'));
       tmx = s.active ? s.marker || 'ACTIVE' : 'INACTIVE';
+    } else if (existsSync(SESSION_STATE_FILE)) {
+      const s = JSON.parse(readFileSync(SESSION_STATE_FILE, 'utf8'));
+      tmx = s?.tokenmaxxing ? 'TOKENMAXXING::ACTIVE' : 'INACTIVE';
     }
   } catch { /* silent */ }
   return tmx;
