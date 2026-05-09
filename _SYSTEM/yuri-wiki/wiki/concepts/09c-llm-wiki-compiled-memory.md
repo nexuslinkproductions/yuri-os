@@ -1,7 +1,7 @@
 ---
 title: "09C Fixture — Yuri LLM Wiki Compiled Memory Layer"
 page_type: "concept"
-status: "reviewed"
+status: "accepted"
 reviewed_by: "owner:marcel-spatz"
 reviewed_at: "2026-05-09T16:18:26Z"
 created_at: "2026-05-09T14:31:23Z"
@@ -85,8 +85,8 @@ advisory_only: true
 rag_eligibility: "NOT_ELIGIBLE"
 ingestion_status: "NOT_INGESTED"
 sensitive_content_class: "curated_reference"
-last_verified_head: "df6b9e331"
-last_verified_at: "2026-05-09T16:18:26Z"
+last_verified_head: "ab5c8c8c5"
+last_verified_at: "2026-05-09T16:33:56Z"
 tags:
   - "llm-wiki"
   - "compiled-memory"
@@ -96,11 +96,11 @@ tags:
 
 ## Purpose
 
-This candidate defines a minimal Yuri-native LLM Wiki control-plane island for future compiled-memory work. It is a reviewed-docs fixture only: raw/source truth stays outside the wiki, pending pages are advisory only, accepted pages require review, and RAG requires a future explicit gate before any eligibility or indexing.
+This accepted page defines a minimal Yuri-native LLM Wiki control-plane island for future compiled-memory work. It is an internal compiled-memory fixture: raw/source truth stays outside the wiki, accepted pages require review, and RAG requires a future explicit gate before any eligibility or indexing.
 
-Manual lint passed for the `candidate -> linted` transition at head `d6247ba9a`. Manual source-ref review passed for the `review_pending -> reviewed` transition at head `df6b9e331`. The candidate remains advisory, non-RAG, and blocked from acceptance. Review is assigned to `owner:marcel-spatz`.
+Manual lint passed for the `candidate -> linted` transition at head `d6247ba9a`. Manual source-ref review passed for the `review_pending -> reviewed` transition at head `df6b9e331`. Acceptance verification passed at head `ab5c8c8c5`. The page remains advisory, non-RAG, and non-ingested. Review remains attributed to `owner:marcel-spatz`.
 
-Owner-approved manual local-source provenance allowed the `linted -> review_pending` transition. Owner review via `owner:marcel-spatz` allows the `review_pending -> reviewed` transition for this fixture candidate. The candidate remains advisory and non-RAG, the source registry remains missing, and no acceptance is claimed.
+Owner-approved manual local-source provenance allowed the `linted -> review_pending` transition. Owner review via `owner:marcel-spatz` allowed the `review_pending -> reviewed` transition for this fixture page. The page remains advisory and non-RAG, the source registry remains missing, and no RAG or ingestion claim is made.
 
 ## Separation Rule
 
@@ -112,10 +112,9 @@ DeepSeek direct API lanes are future-only for review, compression, classificatio
 
 ## Non-Claims
 
-- No accepted wiki page is created.
 - No source registry is created or repaired.
 - Source registry remains missing.
-- Review is assigned to `owner:marcel-spatz`; no acceptance is claimed.
+- Review is assigned to `owner:marcel-spatz`; no authority upgrade beyond accepted internal compiled memory is claimed.
 - No RAG eligibility is granted.
 - No RAG indexing is run.
 - No DB is opened or mutated.

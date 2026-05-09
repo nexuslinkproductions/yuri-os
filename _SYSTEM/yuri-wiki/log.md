@@ -157,3 +157,20 @@ The `head` field in each event records the HEAD commit at event-time (verificati
 - reviewer: `owner:marcel-spatz`
 - rag_eligibility: `NOT_ELIGIBLE`
 - notes: `Schema clarified (reviewed_by convention, log head semantics, current_head policy). All 8 source_refs verified. Advisory only; no acceptance; no RAG; no source registry repair.`
+
+### 09i-0001
+
+- event_id: `09i-0001`
+- timestamp: `2026-05-09T16:33:56Z`
+- actor: `Codex`
+- action: `candidate_accepted`
+- page_path: `_SYSTEM/yuri-wiki/wiki/concepts/09c-llm-wiki-compiled-memory.md`
+- from_status: `reviewed`
+- to_status: `accepted`
+- source_refs_delta: `0`
+- head: `ab5c8c8c5`
+- reviewed_by: `owner:marcel-spatz`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `NOT_ELIGIBLE`
+- ingestion_status: `NOT_INGESTED`
+- notes: `Accepted with no RAG, no ingestion, and no source registry. Moved path from _SYSTEM/yuri-wiki/pending/09c-fixture-llm-wiki-candidate.md to _SYSTEM/yuri-wiki/wiki/concepts/09c-llm-wiki-compiled-memory.md.`

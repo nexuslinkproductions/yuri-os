@@ -1,7 +1,7 @@
 # Yuri LLM Wiki Fixture Index
 
 status: `PHASE_1_FIXTURE_NO_INGEST`
-current_head: `df6b9e331`
+current_head: `ab5c8c8c5`
 source_registry_status: `SOURCE_REGISTRY_MISSING`
 
 ## current_head Policy
@@ -18,16 +18,16 @@ Raw/source truth stays outside this wiki. This fixture does not store raw corpor
 
 ## Counts
 
-- pending candidate count: 1
+- pending candidate count: 0
 - linted candidate count: 0
 - review_pending candidate count: 0
-- reviewed candidate count: 1
-- accepted page count: 0
+- reviewed candidate count: 0
+- accepted page count: 1
 - RAG indexed count: 0
 
 ## Navigation
 
-- Pending fixture candidate: [09c-fixture-llm-wiki-candidate.md](pending/09c-fixture-llm-wiki-candidate.md)
+- Accepted compiled-memory page: [09c-llm-wiki-compiled-memory.md](wiki/concepts/09c-llm-wiki-compiled-memory.md)
 - Lint report: [09c-fixture-lint-report.md](reports/lint/09c-fixture-lint-report.md)
 - Page schema: [page.schema.md](schema/page.schema.md)
 - Lint contract: [lint-contract.md](schema/lint-contract.md)
