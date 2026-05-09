@@ -7,7 +7,8 @@
     "dev": "ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "bugs": "ts-node src/scripts/bugFinder.ts"
+    "bugs": "ts-node src/scripts/bugFinder.ts",
+    "wiki:rag": "ts-node src/scripts/ingestWikiControlPlane.ts"
   },
   "keywords": [],
   "author": "",

@@ -4,10 +4,18 @@ import { SmartRouter } from './smartRouter';
 import { neuralForge } from './neuralForgeService';
 import {
     ensurePersonalityTable,
+    detectCommandType,
+    detectTopicTags,
     logPersonalityEntry,
     getPersonalityProfile,
     buildPersonalitySystemPrompt
 } from './personalityService';
+import { telemetryService } from './telemetryService';
+import {
+    deriveAutoScore,
+    finalizeSessionImprovement,
+    startSessionImprovement
+} from './sessionImprovementService';
 
 /**
  * THE AEONIC CONCLAVE (OS v9.0 - Industrial Implementation)
@@ -30,6 +38,7 @@ export class OracleService {
             intent: options.useCouncil === false ? 'ops' : 'strategy'
         });
         const { useCouncil = true, modelId = routingDecision.preferredModel } = options;
+        const sessionId = `oracle_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         console.log(`⬡ ORACLE_ADAPTER :: [${routingDecision.preferredRuntime.toUpperCase()}] :: HANDOFF_TO_KERNEL`);
         const buildTelemetry = (status: string, runtime?: string, extras: { decision?: any; escalated?: boolean; loopCount?: number } = {}) => {
             const decision = extras.decision || routingDecision;
@@ -65,6 +74,37 @@ export class OracleService {
             logPersonalityEntry(this.db, command);
             const profile = getPersonalityProfile(this.db);
             const personalityPrompt = buildPersonalitySystemPrompt(profile);
+            const commandType = detectCommandType(command);
+            const topicTags = detectTopicTags(command);
+
+            startSessionImprovement(this.db, {
+                sessionId,
+                command,
+                commandType,
+                voiceMode: 'deadpool-annunaki',
+                topicTags,
+                goal: options.useCouncil === false ? 'direct-answer' : 'council-synthesis',
+                metadata: {
+                    preferredModel: modelId,
+                    useCouncil,
+                    preferredRuntime: routingDecision.preferredRuntime,
+                    risk: routingDecision.risk
+                }
+            });
+
+            await telemetryService.initSession({
+                sessionId,
+                startTime: Date.now(),
+                tokensEstimated: 0,
+                toolsLoaded: 1,
+                status: 'ACTIVE',
+                metadata: JSON.stringify({
+                    command,
+                    modelId,
+                    useCouncil,
+                    route: routingDecision
+                })
+            });
 
             if (!useCouncil) {
                 let response = await neuralForge.chat(
@@ -91,6 +131,48 @@ export class OracleService {
                     );
                 }
 
+                const responseTelemetry = buildTelemetry(response.status || 'CONCLAVE_SUCCESS', response.runtime, {
+                    decision: response.decision || routingDecision,
+                    escalated: response.escalated,
+                    loopCount: response.loopCount
+                });
+                const tokensEstimated = Math.max(0, Math.round((command.length + (response.content?.length || 0)) / 4));
+                const autoScore = deriveAutoScore({
+                    status: response.status || 'CONCLAVE_SUCCESS',
+                    confidenceBand: responseTelemetry.confidenceBand,
+                    loopCount: response.loopCount,
+                    escalated: response.escalated
+                });
+                await telemetryService.updateSession(sessionId, {
+                    endTime: Date.now(),
+                    tokensEstimated,
+                    toolsLoaded: 1,
+                    status: 'FINALIZED',
+                    metadata: JSON.stringify({
+                        command,
+                        modelId,
+                        useCouncil,
+                        route: routingDecision,
+                        status: response.status || 'CONCLAVE_SUCCESS',
+                        autoScore
+                    })
+                });
+                finalizeSessionImprovement(this.db, {
+                    sessionId,
+                    whatHappened: response.content || response.final_summary || 'Directive processed.',
+                    autoScore,
+                    outcome: autoScore >= 75 ? 'improved' : autoScore >= 55 ? 'stable' : autoScore >= 40 ? 'mixed' : 'regressed',
+                    whatGotBetter: response.status !== 'FORGE_DEGRADED'
+                        ? 'response stayed grounded in local evidence'
+                        : 'fallback path preserved continuity',
+                    whatGotWorse: response.status === 'FORGE_DEGRADED'
+                        ? 'runtime degraded and the mask slipped'
+                        : response.escalated
+                            ? 'response required escalation'
+                            : undefined,
+                    notes: response.final_summary || response.content || 'Directive processed.'
+                });
+
                 return {
                     status: response.status || 'CONCLAVE_SUCCESS',
                     final_summary: response.final_summary || response.content || 'Directive processed.',
@@ -113,6 +195,34 @@ export class OracleService {
             const result = await kernel.boot(command);
 
             if (result.status === 'CONCLAVE_TIMEOUT') {
+                const autoScore = deriveAutoScore({
+                    status: result.status,
+                    confidenceBand: 'LOW',
+                    loopCount: 1
+                });
+                await telemetryService.updateSession(sessionId, {
+                    endTime: Date.now(),
+                    tokensEstimated: Math.max(0, Math.round((command.length + (result.finalSummary?.length || 0)) / 4)),
+                    toolsLoaded: 1,
+                    status: 'FINALIZED',
+                    metadata: JSON.stringify({
+                        command,
+                        modelId,
+                        useCouncil,
+                        route: routingDecision,
+                        status: result.status,
+                        autoScore
+                    })
+                });
+                finalizeSessionImprovement(this.db, {
+                    sessionId,
+                    whatHappened: result.finalSummary,
+                    autoScore,
+                    outcome: 'regressed',
+                    whatGotWorse: 'the council timed out',
+                    notes: result.error || result.finalSummary
+                });
+
                 return {
                     status: result.status,
                     memory_bank: result.finalState,
@@ -141,6 +251,41 @@ export class OracleService {
                     }
                 );
 
+                const fallbackTelemetry = buildTelemetry(fallback.status || result.status, fallback.runtime, {
+                    decision: fallback.decision || routingDecision,
+                    escalated: fallback.escalated,
+                    loopCount: fallback.loopCount
+                });
+                const autoScore = deriveAutoScore({
+                    status: fallback.status || result.status,
+                    confidenceBand: fallbackTelemetry.confidenceBand,
+                    loopCount: fallback.loopCount,
+                    escalated: fallback.escalated
+                });
+                await telemetryService.updateSession(sessionId, {
+                    endTime: Date.now(),
+                    tokensEstimated: Math.max(0, Math.round((command.length + (fallback.content?.length || 0)) / 4)),
+                    toolsLoaded: 1,
+                    status: 'FINALIZED',
+                    metadata: JSON.stringify({
+                        command,
+                        modelId,
+                        useCouncil,
+                        route: routingDecision,
+                        status: fallback.status || result.status,
+                        autoScore
+                    })
+                });
+                finalizeSessionImprovement(this.db, {
+                    sessionId,
+                    whatHappened: fallback.content || fallback.final_summary || result.finalSummary,
+                    autoScore,
+                    outcome: autoScore >= 75 ? 'improved' : autoScore >= 55 ? 'stable' : autoScore >= 40 ? 'mixed' : 'regressed',
+                    whatGotBetter: 'fallback council preserved continuity',
+                whatGotWorse: 'the primary council path failed',
+                notes: fallback.final_summary || fallback.content || result.finalSummary
+            });
+
                 return {
                     status: fallback.status || 'CONCLAVE_SUCCESS',
                     memory_bank: this.buildCouncilFallbackMemory(command, fallback.content, result.status),
@@ -159,18 +304,57 @@ export class OracleService {
                 };
             }
 
-                return {
+            const autoScore = deriveAutoScore({
+                status: result.status,
+                confidenceBand: 'HIGH',
+                loopCount: 1
+            });
+            await telemetryService.updateSession(sessionId, {
+                endTime: Date.now(),
+                tokensEstimated: Math.max(0, Math.round((command.length + (result.finalSummary?.length || 0)) / 4)),
+                toolsLoaded: 1,
+                status: 'FINALIZED',
+                metadata: JSON.stringify({
+                    command,
+                    modelId,
+                    useCouncil,
+                    route: routingDecision,
                     status: result.status,
-                    memory_bank: result.finalState,
-                    final_summary: result.finalSummary,
-                    file_path: result.filePath,
-                    content: result.content,
-                    ui: result.ui,
-                    error: result.error,
-                    model: 'aeonic-council',
-                    runtime: routingDecision.preferredRuntime,
-                    decision: routingDecision,
-                    escalated: false,
+                    autoScore
+                })
+            });
+            finalizeSessionImprovement(this.db, {
+                sessionId,
+                whatHappened: result.finalSummary || result.content || 'Directive processed.',
+                autoScore,
+                outcome: result.status === 'CONCLAVE_SUCCESS'
+                    ? 'improved'
+                    : autoScore >= 55
+                        ? 'stable'
+                        : autoScore >= 40
+                            ? 'mixed'
+                            : 'regressed',
+                whatGotBetter: result.status === 'CONCLAVE_SUCCESS'
+                    ? 'response stayed grounded in local evidence'
+                    : 'fallback council preserved continuity',
+                whatGotWorse: result.status === 'CONCLAVE_SUCCESS'
+                    ? undefined
+                    : 'the primary council path failed',
+                notes: result.finalSummary || result.content || 'Directive processed.'
+            });
+
+            return {
+                status: result.status,
+                memory_bank: result.finalState,
+                final_summary: result.finalSummary,
+                file_path: result.filePath,
+                content: result.content,
+                ui: result.ui,
+                error: result.error,
+                model: 'aeonic-council',
+                runtime: routingDecision.preferredRuntime,
+                decision: routingDecision,
+                escalated: false,
                 loopCount: 1,
                 telemetry: buildTelemetry(result.status, routingDecision.preferredRuntime, {
                     decision: routingDecision
@@ -178,6 +362,29 @@ export class OracleService {
             };
         } catch (error: any) {
             console.error(`⬡ ORACLE_ADAPTER_ERROR ::`, error);
+            try {
+                await telemetryService.updateSession(sessionId, {
+                    endTime: Date.now(),
+                    tokensEstimated: Math.max(0, Math.round((command.length || 0) / 4)),
+                    toolsLoaded: 1,
+                    status: 'FINALIZED',
+                    metadata: JSON.stringify({
+                        command,
+                        modelId,
+                        useCouncil,
+                        route: routingDecision,
+                        error: error.message
+                    })
+                });
+                finalizeSessionImprovement(this.db, {
+                    sessionId,
+                    whatHappened: error.message,
+                    autoScore: 0,
+                    outcome: 'regressed',
+                    whatGotWorse: error.message,
+                    notes: `Oracle failed: ${error.message}`
+                });
+            } catch (_) {}
             return {
                 status: 'CONCLAVE_ERROR',
                 error: error.message,

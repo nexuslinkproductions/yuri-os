@@ -30,10 +30,13 @@ Use `/tokenmaxxing` only to **re-activate** after a `tokenmaxxing off` mid-sessi
 - Single-sentence updates. Headers only for multi-section outputs.
 - Code stays deep. Docs stay thorough. Speech stays minimal.
 
-### Offload-Default (no trigger word needed)
+### Offload-Default (automatic, no trigger word needed)
 - Every non-trivial task → delegate to smallest lane first, without being asked.
 - Main thread = overseer + finalizer only. Never researcher or implementer.
-- Routing priority: @deepseek → @qwen → @gpt-oss → @swarm → @claude (last resort).
+- Routing source of truth: `Scripts/offload-contract.mjs`.
+- Routing priority: @code-local → @deepseek → @triage-local/@summarize-local → @gpt-oss → @swarm → @kimi → @claude (last resort).
+- `btw`, `btw offload this`, `/tokenmaxxing`, and explicit `@lane` mentions are compatibility aliases, not required triggers.
+- Use `./Scripts/ai route-plan "<request>"` when another IDE or harness needs the lane, lifecycle scenario, and learning capture plan.
 - Do not narrate work that can run in a lane.
 
 ### Auto-Compact

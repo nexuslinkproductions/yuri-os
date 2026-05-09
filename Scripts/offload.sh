@@ -7,6 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OFFLOAD_RUNNER="$SCRIPT_DIR/offload-runner.mjs"
 OFFLOAD_QUEUE="$SCRIPT_DIR/offload-queue.mjs"
+OFFLOAD_CONTRACT="$SCRIPT_DIR/offload-contract.mjs"
 BACKEND_URL="http://127.0.0.1:3004"
 # Master key for internal API access
 API_KEY="nudimmud-master-key-2026-04-23"
@@ -33,7 +34,8 @@ Options:
   -l, --list             List available neural models in the registry
   -m, --model <id>       Force offload to a specific model ID
   --intent <id>          Pass a router intent hint for auto routing
-  -s, --swarm <id,id,..> Run task via multiple models (cloud parallel, local serialized)
+  -s, --swarm <id,id,..|default>
+                         Run task via multiple models (cloud parallel, local serialized)
   -d, --dry-run, --route-only
                          Print routing decision without executing
   -h, --help             Show this help
@@ -42,13 +44,20 @@ Default behavior: Automatically routes the task based on intent, complexity, and
 EOF
 }
 
+require_cmd() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "Missing required command: $1" >&2
+    exit 127
+  fi
+}
+
 list_models() {
   echo "⬡ NUDIMMUD_NEURAL_REGISTRY"
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
   for lane in gpt-oss deepseek openrouter-free; do
     if [ "$lane" = "gpt-oss" ]; then
-      printf '  [%-8s] %s\n' "gpt-oss" "FROZEN — Ollama daemon offline, re-enable later"
+      printf '  [%-8s] %s\n' "gpt-oss" "active via offload-runner (local wrapper)"
     elif command -v "$lane" >/dev/null 2>&1; then
       printf '  [%-8s] %s\n' "$lane" "$(command -v "$lane")"
     else
@@ -86,6 +95,18 @@ classify_lane() {
     deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|kimi*|moonshot*|*-cloud*|openrouter*|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
+}
+
+resolve_swarm_models() {
+  local swarm_models="${1:-}"
+
+  if [[ -z "$swarm_models" || "$swarm_models" == "default" ]]; then
+    require_cmd node
+    node "$OFFLOAD_CONTRACT" swarm-default
+    return
+  fi
+
+  printf '%s\n' "$swarm_models"
 }
 
 run_offload_runner() {
@@ -126,6 +147,9 @@ dry_run_model_override() {
       codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
         run_offload_runner "$target_model" "$prompt" --dry-run
         ;;
+      gpt-oss:20b|gpt-oss:120b|gpt-oss)
+        run_offload_runner gpt-oss "$prompt" --dry-run
+        ;;
       *)
         route_log "$(printf '⬡ DRY_RUN :: model=%s lane=%s' "$target_model" "$(classify_lane "$target_model")")"
         ;;
@@ -148,9 +172,8 @@ dispatch_model() {
         run_offload_runner moonshot "$prompt" --model "$target_model"
         ;;
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
-        printf '%s\n' "⬡ FROZEN — gpt-oss (Ollama) disabled until Ollama daemon is running" >&2
-        printf '%s\n' "   Re-enable: start \`ollama serve\` then remove the freeze guard in offload.sh" >&2
-        return 0
+        printf '%s\n' "⬡ ROUTING_TO_GPT_OSS..." >&2
+        run_offload_runner gpt-oss "$prompt"
         ;;
       deepseek-v4-flash|deepseek-v4-pro|deepseek-v4-pro-lite-budget|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2
@@ -241,6 +264,7 @@ PROMPT="${PROMPT_PARTS[*]:-}"
 # ── Dry-run gate ────────────────────────────────────────────
 if [[ "$DRY_RUN" -eq 1 ]]; then
   if [[ -n "$SWARM_MODELS" ]]; then
+    SWARM_MODELS="$(resolve_swarm_models "$SWARM_MODELS")"
     route_log "$(printf '⬡ DRY_RUN_SWARM :: models=[%s]' "$SWARM_MODELS")"
     IFS=',' read -ra ADDR <<< "$SWARM_MODELS"
     for m in "${ADDR[@]}"; do
@@ -274,6 +298,7 @@ fi
 
 # ── Swarm execution (cloud parallel, local serialized) ─────
 if [[ -n "$SWARM_MODELS" ]]; then
+    SWARM_MODELS="$(resolve_swarm_models "$SWARM_MODELS")"
     route_log "⬡ INITIATING_MANUAL_SWARM :: models=[$SWARM_MODELS]"
     IFS=',' read -ra ADDR <<< "$SWARM_MODELS"
     cloud_pids=()
@@ -313,7 +338,7 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   echo "    offload --model <id> \"<prompt>\"                  # direct model" >&2
   echo "    offload --model codex-spark \"<prompt>\"          # bounded Codex Spark lane" >&2
   echo "    offload --swarm deepseek-v4-flash,deepseek-v4-pro \"<prompt>\"   # swarm" >&2
-  # gpt-oss (Ollama) lane FROZEN — re-enable later
+  echo "    ai route-plan \"<prompt>\"                         # shared automatic route plan" >&2
   echo "    ai @kimi \"<prompt>\"                              # deprecated Kimi compatibility" >&2
   echo "    ai @deepseek \"<prompt>\"                          # deepseek local" >&2
   exit 1

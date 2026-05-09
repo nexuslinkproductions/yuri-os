@@ -1,5 +1,6 @@
 import { NotebookService, NotebookChunk } from './notebookService';
 import { neuralForge } from './neuralForgeService';
+import { memoryGovernor } from './memoryGovernorService';
 
 const OLLAMA_BASE = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 const TOP_K = 5;
@@ -96,6 +97,7 @@ export class NotebookRagService {
             }
 
             this.notebookService.saveMessage(notebookId, 'assistant', fullContent, usedChunkIds);
+            memoryGovernor.recordRetrieval(topChunks.map(c => c.memoryItemId), 'notebook_rag', { notebookId, query });
             for (const citation of citations) {
                 onCitation(citation);
             }
@@ -107,13 +109,29 @@ export class NotebookRagService {
         }
     }
 
-    private retrieveTopK(chunks: EmbeddedChunk[], queryVec: number[], k: number): EmbeddedChunk[] {
+    private retrieveTopK(chunks: EmbeddedChunk[], queryVec: number[], k: number): Array<EmbeddedChunk & { memoryItemId?: number }> {
         return chunks
             .filter(c => c.embedding != null)
-            .map(c => ({
-                chunk: c,
-                score: this.cosineSimilarity(queryVec, JSON.parse(c.embedding!))
-            }))
+            .map(c => {
+                const decision = memoryGovernor.governKnowledgeNode({
+                    id: c.id,
+                    title: c.source_title,
+                    content: c.content,
+                    source_path: `notebook:${c.source_id}:${c.chunk_index}`,
+                    node_type: 'NOTEBOOK_CHUNK',
+                    tags: c.metadata,
+                    domain: 'NOTEBOOK',
+                    embedding: c.embedding,
+                    created_at: c.created_at
+                });
+                return {
+                    chunk: { ...c, memoryItemId: decision.itemId },
+                    score: decision.allowed
+                        ? this.cosineSimilarity(queryVec, JSON.parse(c.embedding!)) * decision.multiplier
+                        : -1
+                };
+            })
+            .filter(r => r.score >= 0)
             .sort((a, b) => b.score - a.score)
             .slice(0, k)
             .map(r => r.chunk);

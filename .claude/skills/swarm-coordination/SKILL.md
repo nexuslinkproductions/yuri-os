@@ -9,7 +9,7 @@ triggers:
 
 # Swarm Coordination
 
-Use this skill when a task should be split across multiple agents or model lanes.
+Use this skill when a task should be split across multiple agents or model lanes. Automatic offload routing owns activation; this skill handles fan-out after `Scripts/offload-contract.mjs` selects a swarm scenario.
 
 ## Core Pattern
 
@@ -21,6 +21,7 @@ Use this skill when a task should be split across multiple agents or model lanes
 - Validate before merge.
 - In this repo, let Ruflo handle swarm routing and task fan-out when available.
 - Treat `.claude/nisaba/learning/global.md` as the startup seed for every delegated session.
+- Use the shared offload contract in `Scripts/offload-contract.mjs` instead of inventing a second swarm table.
 
 ## Handoff Protocol
 
@@ -36,13 +37,14 @@ Use this skill when a task should be split across multiple agents or model lanes
 - `ENKI` for implementation.
 - `INANNA` for validation and adversarial checks.
 
-## Delegate Triggers
+## Delegate Rules
 
-- `/tokenmaxxing` = master activation (preferred). Activates full swarm-default with no trigger word.
-- `btw offload this` = legacy delegation signal. Still works, subset of tokenmaxxing.
+- Swarm can be selected automatically for review, audit, security, architecture, consensus, or high-risk work.
+- `/tokenmaxxing`, `btw offload this`, and `@swarm` still work as compatibility aliases.
 - Use `@swarm` when the same prompt should be compared across lanes.
 - Use parallel lanes when output can be merged without conflict.
 - Prefer Ruflo swarm coordination before ad hoc lane fan-out.
+- Swarm fan-out uses the shared workhorse pair from `Scripts/offload-contract.mjs` unless a task-specific lane list is explicitly scoped.
 
 ## Stop Condition
 
@@ -65,7 +67,7 @@ Add browser lanes as research workers in parallel swarms:
 ```
 ENLIL decomposes task
 ├── @deepseek   ← local reasoning lane
-├── @qwen       ← summarization / extraction lane
+├── @summarize-local ← summarization / extraction lane
 └── @perplexity ← web research lane (browser-lane.js)
 ```
 
@@ -86,9 +88,18 @@ const result = await routeToBrowser('research topic X', 'perplexity');
 
 If browser lane unavailable (MCP not connected): fall back to `@deepseek` + web search via Bash curl. Do not block swarm on browser lane failure.
 
+## Shared Contract
+
+- Activation: automatic, no user trigger required
+- Compatibility aliases: `/tokenmaxxing`, `btw offload this`, `@swarm`
+- Execution entrypoint: `./Scripts/ai auto "<prompt>"`
+- Route plan: `./Scripts/ai route-plan "<request>"`
+- Default swarm models: `deepseek-v4-pro-lite-budget,deepseek-v4-flash`
+- Canonical command surface: `./Scripts/ai @swarm` or `./Scripts/offload.sh --swarm default`
+
 ## Token Budget Policy
 
-- Research, gather, classify → cheap local lanes (@deepseek, @qwen, grep, Bash). Never orchestrator.
+- Research, gather, classify → cheap local lanes (@deepseek, @triage-local, @summarize-local, grep, Bash). Never orchestrator.
 - Orchestrator receives compact evidence only; performs merge, mutation, and final decisions.
 - Per-swarm budget: soft 5k–15k, hard max 40k. Stop/reshape before breach.
 - Lane output cap: 60–80 lines max per lane result.

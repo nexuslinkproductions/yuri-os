@@ -1,4 +1,4 @@
-# Yuri LLM Wiki Fixture Log
+# Yuri OS Wiki Fixture Log
 
 Append-only control log. New events append below existing events without rewriting historical entries.
 
@@ -174,3 +174,243 @@ The `head` field in each event records the HEAD commit at event-time (verificati
 - rag_eligibility: `NOT_ELIGIBLE`
 - ingestion_status: `NOT_INGESTED`
 - notes: `Accepted with no RAG, no ingestion, and no source registry. Moved path from _SYSTEM/yuri-wiki/pending/09c-fixture-llm-wiki-candidate.md to _SYSTEM/yuri-wiki/wiki/concepts/09c-llm-wiki-compiled-memory.md.`
+
+### 09j-0001
+
+- event_id: `09j-0001`
+- timestamp: `2026-05-09T17:49:00Z`
+- actor: `Codex`
+- action: `source_registry_mirrored`
+- page_path: `_SYSTEM/yuri-wiki/source-registry.md`
+- from_status: `SOURCE_REGISTRY_MISSING`
+- to_status: `SOURCE_REGISTRY_MIRRORED`
+- source_refs_delta: `8`
+- head: `b5ac69333`
+- reviewer: `none`
+- rag_eligibility: `NOT_ELIGIBLE`
+- notes: `Wiki control-plane mirror added from research archive source registry; advisory only; no RAG ingestion; no source registry repair.`
+
+### 09k-0001
+
+- event_id: `09k-0001`
+- timestamp: `2026-05-09T17:49:00Z`
+- actor: `Codex`
+- action: `rag_gate_deferred_report_created`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-gate-deferred.md`
+- from_status: `NOT_INGESTED`
+- to_status: `RAG_GATE_DEFERRED`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `none`
+- rag_eligibility: `NOT_ELIGIBLE`
+- notes: `RAG remains deferred because the wiki source registry is reference-only, the accepted page is advisory-only, and no explicit ingestion gate has been opened.`
+
+### 09l-0001
+
+- event_id: `09l-0001`
+- timestamp: `2026-05-09T17:53:52Z`
+- actor: `Codex`
+- action: `rag_gate_opened`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-gate-open.md`
+- from_status: `RAG_GATE_DEFERRED`
+- to_status: `RAG_GATE_OPEN`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `READY_FOR_RAG_AFTER_APPROVAL`
+- notes: `Owner approval granted in this session; gate opened for the fixture lane. No ingestion executed yet.`
+
+### 09m-0001
+
+- event_id: `09m-0001`
+- timestamp: `2026-05-09T19:56:27+02:00`
+- actor: `Codex`
+- action: `rag_ingestion_verified`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-ingested.md`
+- from_status: `RAG_GATE_OPEN`
+- to_status: `RAG_INGESTED_VERIFIED`
+- source_refs_delta: `9`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Dedicated notebook Yuri Wiki Control Plane ingested 9 wiki control-plane sources, produced 11 embedded chunks, and answered a retrieval query successfully with local Ollama.`
+
+### 09n-0001
+
+- event_id: `09n-0001`
+- timestamp: `2026-05-09T19:56:27+02:00`
+- actor: `Codex`
+- action: `rag_runner_created`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-runner.md`
+- from_status: `RAG_INGESTED_VERIFIED`
+- to_status: `RAG_RUNNER_CREATED`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Repeatable runner added at backend/src/scripts/ingestWikiControlPlane.ts and wired to backend/package.json wiki:rag for future exact-path re-verification.`
+
+### 09o-0001
+
+- event_id: `09o-0001`
+- timestamp: `2026-05-09T20:01:47+02:00`
+- actor: `Codex`
+- action: `rag_ingestion_rerun_verified`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-ingested.md`
+- from_status: `RAG_INGESTED_VERIFIED`
+- to_status: `RAG_INGESTED_VERIFIED`
+- source_refs_delta: `10`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Repeatable runner smoke test verified the live notebook state after adding the ingestion report itself as a source. Notebook now contains 10 wiki control-plane sources and 12 embedded chunks.`
+
+### 09p-0001
+
+- event_id: `09p-0001`
+- timestamp: `2026-05-09T20:01:47+02:00`
+- actor: `Codex`
+- action: `rag_watcher_created`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-watcher.md`
+- from_status: `RAG_RUNNER_CREATED`
+- to_status: `RAG_WATCHER_CREATED`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Added smart auto-refresh watcher at Scripts/wiki-rag-watch.mjs and npm run wiki:rag:watch to rerun the dedicated lane on authoritative control-plane input changes.`
+
+### 09q-0001
+
+- event_id: `09q-0001`
+- timestamp: `2026-05-09T20:05:00+02:00`
+- actor: `Codex`
+- action: `rag_watcher_verified`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-watcher.md`
+- from_status: `RAG_WATCHER_CREATED`
+- to_status: `RAG_WATCHER_CREATED`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Verified npm run wiki:rag:auto one-shot digest gating and npm run wiki:rag:watch polling mode; no rerun occurs when the digest is unchanged. Watcher now covers the full ingested source set, uses a fileURL-safe repo root resolver, and supports WIKI_RAG_POLL_MS override. Notebook state is 12 sources and 15 embedded chunks.`
+
+### 09r-0001
+
+- event_id: `09r-0001`
+- timestamp: `2026-05-09T20:14:59+02:00`
+- actor: `Codex`
+- action: `rag_launchd_installed`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-launchd.md`
+- from_status: `RAG_WATCHER_CREATED`
+- to_status: `RAG_LAUNCHD_RUNNING`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Installed com.nudimmud.wiki-rag launchd agent at /Users/marcelspatz/Library/LaunchAgents/com.nudimmud.wiki-rag.plist; launchctl print confirms the agent is running and will start the digest-gated watcher on login.`
+
+### 09s-0001
+
+- event_id: `09s-0001`
+- timestamp: `2026-05-09T20:16:21+02:00`
+- actor: `Codex`
+- action: `rag_ingestion_rerun_verified`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-ingested.md`
+- from_status: `RAG_INGESTED_VERIFIED`
+- to_status: `RAG_INGESTED_VERIFIED`
+- source_refs_delta: `1`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Verified the launchd-backed source set after adding the launchd report and launchd wrapper to the ingest inputs. Notebook now contains 13 wiki control-plane sources and 16 embedded chunks, and the launchd agent remains running.`
+
+### 09t-0001
+
+- event_id: `09t-0001`
+- timestamp: `2026-05-09T20:21:37+02:00`
+- actor: `Codex`
+- action: `rag_launchd_teardown_verified`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-launchd-teardown.md`
+- from_status: `RAG_LAUNCHD_RUNNING`
+- to_status: `RAG_LAUNCHD_REMOVED_VERIFIED`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Verified the clean removal path with launchctl remove com.nudimmud.wiki-rag; the label disappeared from gui/501, the plist was removed, and launchctl print no longer finds the job.`
+
+### 09u-0001
+
+- event_id: `09u-0001`
+- timestamp: `2026-05-09T20:22:28+02:00`
+- actor: `Codex`
+- action: `rag_launchd_restored`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-launchd.md`
+- from_status: `RAG_LAUNCHD_REMOVED_VERIFIED`
+- to_status: `RAG_LAUNCHD_RUNNING`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Restored the launchd agent with npm run wiki:rag:launchd:install after teardown verification. launchctl print confirms com.nudimmud.wiki-rag is running again and the label is enabled in gui/501.`
+
+### 09v-0001
+
+- event_id: `09v-0001`
+- timestamp: `2026-05-09T20:31:49+02:00`
+- actor: `Codex`
+- action: `rag_health_automated`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-health.md`
+- from_status: `RAG_LAUNCHD_RUNNING`
+- to_status: `RAG_LAUNCHD_RUNNING`
+- source_refs_delta: `2`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Added the read-only health probe and wired it into the watcher loop. The live notebook now contains 16 wiki control-plane sources and 21 embedded chunks, and the launchd-backed agent remains running.`
+
+### 09w-0001
+
+- event_id: `09w-0001`
+- timestamp: `2026-05-09T20:31:49+02:00`
+- actor: `Codex`
+- action: `rag_notebook_identity_hardened`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-ingested.md`
+- from_status: `RAG_INGESTED_VERIFIED`
+- to_status: `RAG_INGESTED_VERIFIED`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `The wiki RAG lane now resolves the live notebook by stable key first, title second. The health probe reads the live notebook row and validates stable-key identity alongside counts.`
+
+### 09x-0001
+
+- event_id: `09x-0001`
+- timestamp: `2026-05-09T20:40:47+02:00`
+- actor: `Codex`
+- action: `rag_identity_verified`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-ingested.md`
+- from_status: `RAG_INGESTED_VERIFIED`
+- to_status: `RAG_INGESTED_VERIFIED`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Latest health probe confirms the stable-keyed notebook identity yuri-os/wiki-control-plane with 16 wiki control-plane sources and 22 embedded chunks. launchd remains running and the digest watcher stays resident.`
+
+### 09y-0001
+
+- event_id: `09y-0001`
+- timestamp: `2026-05-09T20:41:27+02:00`
+- actor: `Codex`
+- action: `rag_identity_finalized`
+- page_path: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-health.md`
+- from_status: `RAG_INGESTED_VERIFIED`
+- to_status: `RAG_INGESTED_VERIFIED`
+- source_refs_delta: `0`
+- head: `b5ac69333`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `ACTIVE`
+- notes: `Final health probe confirms the stable-keyed notebook identity yuri-os/wiki-control-plane, the launchd watcher is running, and the live notebook holds 16 sources with 22 embedded chunks.`

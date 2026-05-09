@@ -134,6 +134,15 @@ backend/src/scripts/importPlaneTickets.ts
 .claude/cache/
 .claude/projects/
 .claude/plugins/marketplaces/
+.claude/.last-cleanup
+.claude/mcp-needs-auth-cache.json
+.claude/history.jsonl
+.claude/credentials.json
+.claude/.credentials.json
+.claude/nisaba/learning/sessions/
+.claude/state/token-tracker.md
+.claude/state/token-weekly.json
+.claude/state/tokenmaxxing-state.json
 01_PROJECTS/claude-mem/
 01_PROJECTS/gstack/.agents/
 01_PROJECTS/gstack/.cursor/
@@ -144,3 +153,16 @@ backend/src/scripts/importPlaneTickets.ts
 
 # AppleDouble metadata (macOS)
 ._*
+
+# SQLite WAL / SHM and local runtime DB spill
+_SYSTEM/OS_KERNEL/*.db-shm
+_SYSTEM/OS_KERNEL/*.db-wal
+_SYSTEM/OS_KERNEL/*.db-corrupt-*
+backend/data/*.db-shm
+backend/data/*.db-wal
+backend/data/*.db-corrupt-*
+backend/data/*.db.corrupt.*
+backend/data/wiki-rag-auto-state.json
+
+# Python bytecode / cache
+_SYSTEM/OS_KERNEL/__pycache__/

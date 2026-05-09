@@ -18,6 +18,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { spawnSync } from 'node:child_process'
 import { stdout } from 'node:process'
 
 const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD'
@@ -35,7 +36,7 @@ const GRAPHFY_EXPECTED = [
   'cost.json',
 ]
 
-const SURFACE_NAMES = new Set(['rules', 'vault', 'archive', 'workhorse', 'claude-runtime', 'secrets', 'graphify', 'model-registry'])
+const SURFACE_NAMES = new Set(['rules', 'vault', 'archive', 'workhorse', 'claude-runtime', 'secrets', 'graphify', 'model-registry', 'memory-governor'])
 
 main()
 
@@ -82,7 +83,7 @@ function printHelp() {
     '  node Scripts/yuri-memory-map.mjs --surface <name>  Single surface',
     '  node Scripts/yuri-memory-map.mjs --help       This message',
     '',
-    'Surfaces: rules, vault, archive, workhorse, claude-runtime, secrets, graphify, model-registry',
+    'Surfaces: rules, vault, archive, workhorse, claude-runtime, secrets, graphify, model-registry, memory-governor',
   ]
   stdout.write(lines.join('\n') + '\n')
 }
@@ -97,6 +98,7 @@ function writeInventory() {
     inventorySecrets(),
     inventoryGraphify(),
     inventoryModelRegistry(),
+    inventoryMemoryGovernor(),
   ]
   for (const line of results) {
     stdout.write(line + '\n')
@@ -113,6 +115,7 @@ function writeSurface(name) {
     secrets: inventorySecrets,
     graphify: inventoryGraphify,
     'model-registry': inventoryModelRegistry,
+    'memory-governor': inventoryMemoryGovernor,
   }
   const line = dispatcher[name]()
   stdout.write(line + '\n')
@@ -371,4 +374,52 @@ function inventoryModelRegistry() {
   }
 
   return `SURFACE: model-registry TIER: PUBLIC_CONTEXT STATUS: reachable PATH: _SYSTEM/model-registry.md DETAILS: size_bytes=${sizeBytes} modified=${mtimeIso} benchmark_date=${detectedDate} models=${modelCountHeuristic}`
+}
+
+function inventoryMemoryGovernor() {
+  const dbPath = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/memory.db')
+  if (!fs.existsSync(dbPath)) {
+    return 'SURFACE: memory-governor TIER: AUTHORITY STATUS: not_found PATH: _SYSTEM/OS_KERNEL/memory.db DETAILS: database missing'
+  }
+
+  const script = [
+    'import json, sqlite3, sys',
+    'db_path=sys.argv[1]',
+    'conn=sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)',
+    'conn.row_factory=sqlite3.Row',
+    'def has(table):',
+    '    return conn.execute("SELECT name FROM sqlite_master WHERE type=\'table\' AND name=?", (table,)).fetchone() is not None',
+    'if not has("memory_items"):',
+    '    print(json.dumps({"schema":"legacy_only"})); sys.exit(0)',
+    'def one(sql):',
+    '    row=conn.execute(sql).fetchone(); return row[0] if row else 0',
+    'total=one("SELECT COUNT(*) FROM memory_items")',
+    'stale=one("SELECT COUNT(*) FROM memory_items WHERE status=\'active\' AND COALESCE(last_accessed_at, updated_at, created_at) < datetime(\'now\', \'-90 days\')")',
+    'suppressed=one("SELECT COUNT(*) FROM memory_items WHERE status IN (\'tombstoned\', \'quarantined\') OR tier=\'Tombstone\'")',
+    'conflicts=one("SELECT COUNT(*) FROM memory_relations WHERE relation_type=\'contradicts\'") if has("memory_relations") else 0',
+    'low_trust=one("SELECT COUNT(*) FROM memory_items WHERE trust_score < 0.35")',
+    'last_research=one("SELECT MAX(checked_at) FROM memory_research_sources") if has("memory_research_sources") else None',
+    'last_run=conn.execute("SELECT cycle, status, finished_at FROM memory_consolidation_runs ORDER BY id DESC LIMIT 1").fetchone() if has("memory_consolidation_runs") else None',
+    'print(json.dumps({"schema":"governed","total":total,"stale":stale,"stale_ratio":round(stale/total,4) if total else 0,"suppressed":suppressed,"conflicts":conflicts,"low_trust":low_trust,"last_research":last_research,"last_run":dict(last_run) if last_run else None}))',
+  ].join('\n')
+
+  const result = spawnSync('python3', ['-c', script, dbPath], { encoding: 'utf8', timeout: 5000 })
+  if (result.status !== 0) {
+    return `SURFACE: memory-governor TIER: AUTHORITY STATUS: error PATH: _SYSTEM/OS_KERNEL/memory.db DETAILS: ${sanitizeInline(result.stderr || 'sqlite_read_failed')}`
+  }
+
+  try {
+    const health = JSON.parse(result.stdout)
+    if (health.schema === 'legacy_only') {
+      return 'SURFACE: memory-governor TIER: AUTHORITY STATUS: legacy_only PATH: _SYSTEM/OS_KERNEL/memory.db DETAILS: governed tables not initialized'
+    }
+    const lastRun = health.last_run ? `${health.last_run.cycle}:${health.last_run.status}:${health.last_run.finished_at || 'unfinished'}` : 'none'
+    return `SURFACE: memory-governor TIER: AUTHORITY STATUS: reachable PATH: _SYSTEM/OS_KERNEL/memory.db DETAILS: items=${health.total} stale_ratio=${health.stale_ratio} suppressed=${health.suppressed} conflicts=${health.conflicts} low_trust=${health.low_trust} last_research=${health.last_research || 'none'} last_run=${lastRun}`
+  } catch {
+    return 'SURFACE: memory-governor TIER: AUTHORITY STATUS: error PATH: _SYSTEM/OS_KERNEL/memory.db DETAILS: invalid_health_json'
+  }
+}
+
+function sanitizeInline(value) {
+  return String(value).replace(/\s+/g, ' ').slice(0, 240)
 }

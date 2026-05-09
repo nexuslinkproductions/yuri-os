@@ -3,14 +3,13 @@ INHERIT: ./OPERATOR_PROTOCOL.md
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **NUDIMMUD** (107359 symbols, 143289 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (76716 symbols, 97716 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
 ## Always Do
 
 - **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST adhere to CAVEMAN PROTOCOL:** Use terse, functional English in thinking and planning. **FORBIDDEN: preambles, "I have successfully..." intros, "Execution Summary" headers.** Go straight to the core result.
 - **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
 - **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
 - When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
@@ -22,23 +21,15 @@ This project is indexed by GitNexus as **NUDIMMUD** (107359 symbols, 143289 rela
 - NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
 - NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
 - NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
-- NEVER execute a task without registering it in `_SYSTEM/OS_KERNEL/memory.db`.
-
-## OS Kernel Integration
-
-The NUDIMMUD Agentic OS provides the **Memory (RAM)** and **Process Table** for all agents.
-- **Shared State:** All task IDs and agent statuses are tracked in `_SYSTEM/OS_KERNEL/memory.db`.
-- **Episodic Memory:** Every significant discovery or decision must be logged via `mem-log`.
-- **Agent Roles:** Identity is verified against the `agents` table (ENLIL, NABU, ENKI, INANNA).
 
 ## Resources
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/NUDIMMUD/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/NUDIMMUD/clusters` | All functional areas |
-| `gitnexus://repo/NUDIMMUD/processes` | All execution flows |
-| `gitnexus://repo/NUDIMMUD/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/nudimmud-vault/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/nudimmud-vault/clusters` | All functional areas |
+| `gitnexus://repo/nudimmud-vault/processes` | All execution flows |
+| `gitnexus://repo/nudimmud-vault/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 
@@ -56,7 +47,7 @@ The NUDIMMUD Agentic OS provides the **Memory (RAM)** and **Process Table** for 
 ## ⬡ NUDIMMUD MULTI-IDE SYNC ⬡
 - **ENVS**: ANTIGRAVITY, Cursor, VS Code, CODEX, CLAUDE CODE.
 - **SOURCE OF TRUTH**: All state MUST be logged in `_SYSTEM/OS_KERNEL/memory.db`.
+- **ROUTING SOURCE OF TRUTH**: `Scripts/offload-contract.mjs` owns automatic lane selection, lifecycle scenarios, and learning capture for every IDE/CLI/agent harness.
 - **STABILITY**: Every change made here MUST translate to all other agents.
 - **PROTOCOL**: Use `_SYSTEM/OS_KERNEL/swarm-handoff.sh` for all inter-agent context transitions.
 - **RULE FILES**: Any rule change must be synced across `.cursorrules`, `.windsurfrules`, `.clauderules`, and `.cursor/rules/sync.mdc`.
-

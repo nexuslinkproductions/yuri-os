@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 // PostToolUse — spawn background scout agents to review the tool call
 'use strict';
+if (process.env.NUDIMMUD_DISABLE_SCOUTS === '1') {
+  process.exit(0);
+}
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');

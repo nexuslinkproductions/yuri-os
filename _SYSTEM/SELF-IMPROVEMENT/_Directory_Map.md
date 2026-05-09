@@ -41,6 +41,7 @@ This system follows **Kishōtenketsu** (起承転結) — a four-act story arc. 
 - `quarterly-goals.md` — Max 3 goals per quarter
 - `capability-roadmap.md` — Living skill map
 - `quarterly-review-template.md` — Quarter-end review format
+- `voice-and-improvement-contract.md` — Voice mask, learning loop, and session promotion rules
 
 ## Root Files
 

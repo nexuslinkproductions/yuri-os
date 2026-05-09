@@ -238,7 +238,7 @@ function ensureArtifactRoot(explicitRoot) {
   return { ok: false, error: 'Artifact root unavailable' }
 }
 
-function executeRequest({ rawRequest, artifactRoot, policyRelPath }) {
+function executeRequest({ rawRequest, artifactRoot, policyRelPath, preflightOptions = {} }) {
   const start = new Date().toISOString()
   const policyPath = path.resolve(policyRelPath)
   const runId = `run-${timestampId()}-${crypto.randomBytes(3).toString('hex')}`
@@ -289,7 +289,7 @@ function executeRequest({ rawRequest, artifactRoot, policyRelPath }) {
     context.verification.policy_version = policy.version
     writeText(artifactPaths.modelOutput, buildModelOutputArtifact(request))
 
-    const preflight = runPreflight(policy)
+    const preflight = runPreflight(policy, preflightOptions)
     context.verification.preflight = preflight
     if (preflight.hardStop) {
       context.verification.hard_stop = true
@@ -403,7 +403,7 @@ function loadPolicy(policyPath) {
   return policy
 }
 
-function runPreflight(policy) {
+function runPreflight(policy, options = {}) {
   const expectedRoot = policy.repo_root
   const preflight = {
     cwd: process.cwd(),
@@ -426,7 +426,7 @@ function runPreflight(policy) {
 
   preflight.head = runCommand(['git', 'rev-parse', '--short', 'HEAD']).stdout
   preflight.staged_files = linesOf(runCommand(['git', 'diff', '--cached', '--name-only']).stdout)
-  if (preflight.staged_files.length > 0) {
+  if (preflight.staged_files.length > 0 && options.allowStagedFiles !== true) {
     preflight.reasons.push('Staged files present')
   }
 
@@ -1034,6 +1034,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
     rawRequest: JSON.stringify(baseRequest, null, 2),
     artifactRoot,
     policyRelPath,
+    preflightOptions: { allowStagedFiles: true },
   })
   const baseRun = loadRunArtifacts(baseOutcome.runDir)
   if (!baseRun.verification.hard_stop) {
@@ -1064,6 +1065,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
     }, null, 2),
     artifactRoot,
     policyRelPath,
+    preflightOptions: { allowStagedFiles: true },
   })
   const manifestOnlyRun = loadRunArtifacts(manifestOnlyOutcome.runDir)
   if (actionDeniedForReason(manifestOnlyRun.actions, 'Path not in manifest_paths')) {
@@ -1081,6 +1083,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
     }, null, 2),
     artifactRoot,
     policyRelPath,
+    preflightOptions: { allowStagedFiles: true },
   })
   const readCapRun = loadRunArtifacts(readCapOutcome.runDir)
   if (actionDeniedForReason(readCapRun.actions, 'Read window cap exceeded')) {
@@ -1098,6 +1101,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
     }, null, 2),
     artifactRoot,
     policyRelPath,
+    preflightOptions: { allowStagedFiles: true },
   })
   const searchCapRun = loadRunArtifacts(searchCapOutcome.runDir)
   const searchRecord = searchCapRun.evidence.searches[0]
@@ -1121,6 +1125,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
     }, null, 2),
     artifactRoot,
     policyRelPath,
+    preflightOptions: { allowStagedFiles: true },
   })
   const enumRun = loadRunArtifacts(enumOutcome.runDir)
   if (actionDeniedForReason(enumRun.actions, 'check_id not in allowed_checks')) {
@@ -1139,6 +1144,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
     }, null, 2),
     artifactRoot,
     policyRelPath,
+    preflightOptions: { allowStagedFiles: true },
   })
   const secretDbRun = loadRunArtifacts(secretDbOutcome.runDir)
   if (
@@ -1159,6 +1165,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
     }, null, 2),
     artifactRoot,
     policyRelPath,
+    preflightOptions: { allowStagedFiles: true },
   })
   const rawCommandRun = loadRunArtifacts(rawCommandOutcome.runDir)
   if (actionDeniedForReason(rawCommandRun.actions, 'Raw command strings forbidden')) {

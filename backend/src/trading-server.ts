@@ -90,7 +90,7 @@ try {
       ]);
       const scored = computeSignals({ dex, funding, whale, feargreed, news });
       const fg = feargreed.data?.[0] || null;
-      const top3 = scored.topMerged.slice(0,3).map(m => ({
+      const top3 = scored.topMerged.slice(0,3).map((m: any) => ({
         token: m.token, score: m.aggregateScore, urgency: m.urgency,
         confidence: m.maxConfidence, sources: m.sources.length, rationale: m.evidence.slice(0,3),
       }));

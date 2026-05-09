@@ -5,6 +5,8 @@ import sys
 import json
 import argparse
 from datetime import datetime
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from memory_governor import governed_read, governed_write
 
 # Path to the shared RAM
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'memory.db'))
@@ -43,11 +45,25 @@ def mem_log(content, mem_type='episodic', source_agent=None, tags=None, importan
             VALUES (?, ?, ?, ?, ?)
         """, (content, mem_type, source_agent, json.dumps(tags) if tags else None, importance))
         mem_id = cursor.lastrowid
-        print(f"Memory {mem_id} logged [{mem_type}]: {content[:50]}...")
-        return mem_id
+    item_id = governed_write(
+        content,
+        mem_type=mem_type,
+        source_agent=source_agent,
+        tags=tags or [],
+        importance=importance,
+        source_kind='kernel',
+        legacy_memory_id=mem_id,
+    )
+    print(f"Memory {mem_id} logged [{mem_type}] governed_item={item_id}: {content[:50]}...")
+    return mem_id
 
 def mem_read(agent_id=None, task_id=None, limit=20, channel=None):
     """Read memories by agent, task, or channel. Returns JSON array."""
+    if not agent_id and not task_id and not channel:
+        rows = governed_read(limit=limit)
+        print(json.dumps(rows, indent=2, default=str))
+        return rows
+
     with get_conn() as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()

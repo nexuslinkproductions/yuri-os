@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "$ROOT_DIR"
+
+if ! command -v npm >/dev/null 2>&1; then
+  echo "[pre-push] npm not found" >&2
+  exit 1
+fi
+
+echo "[pre-push] offload contract regression"
+npm run test:offload-contract --silent

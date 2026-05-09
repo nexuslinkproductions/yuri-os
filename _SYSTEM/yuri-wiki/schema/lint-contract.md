@@ -1,4 +1,4 @@
-# Yuri LLM Wiki Lint Contract
+# Yuri OS Wiki Lint Contract
 
 Checks-only contract. This file defines future lint expectations; it does not implement code or run validation.
 

@@ -1,8 +1,13 @@
-# Yuri LLM Wiki Fixture Index
+# Yuri OS Wiki Fixture Index
 
-status: `PHASE_1_FIXTURE_NO_INGEST`
-current_head: `ab5c8c8c5`
-source_registry_status: `SOURCE_REGISTRY_MISSING`
+status: `PHASE_1_FIXTURE_SOURCE_REGISTRY_MIRRORED_RAG_VERIFIED`
+current_head: `b5ac69333cf34915863f65fa6dcb4c6918a29107`
+source_registry_status: `SOURCE_REGISTRY_MIRRORED`
+rag_gate_status: `OPEN`
+rag_ingestion_status: `VERIFIED`
+rag_notebook: `Yuri Wiki Control Plane`
+rag_notebook_id: `4`
+rag_notebook_key: `yuri-os/wiki-control-plane`
 
 ## current_head Policy
 
@@ -23,11 +28,21 @@ Raw/source truth stays outside this wiki. This fixture does not store raw corpor
 - review_pending candidate count: 0
 - reviewed candidate count: 0
 - accepted page count: 1
-- RAG indexed count: 0
+- source registry entry count: 8
+- RAG indexed count: 16
+- RAG embedded chunk count: 22
 
 ## Navigation
 
 - Accepted compiled-memory page: [09c-llm-wiki-compiled-memory.md](wiki/concepts/09c-llm-wiki-compiled-memory.md)
+- Source registry mirror: [source-registry.md](source-registry.md)
+- RAG gate open report: [09c-rag-gate-open.md](reports/staleness/09c-rag-gate-open.md)
+- RAG gate deferred report: [09c-rag-gate-deferred.md](reports/staleness/09c-rag-gate-deferred.md)
+- RAG ingestion report: [09c-rag-ingested.md](reports/staleness/09c-rag-ingested.md)
+- RAG runner report: [09c-rag-runner.md](reports/staleness/09c-rag-runner.md)
+- RAG watcher report: [09c-rag-watcher.md](reports/staleness/09c-rag-watcher.md)
+- RAG launchd report: [09c-rag-launchd.md](reports/staleness/09c-rag-launchd.md)
+- RAG launchd teardown report: [09c-rag-launchd-teardown.md](reports/staleness/09c-rag-launchd-teardown.md)
 - Lint report: [09c-fixture-lint-report.md](reports/lint/09c-fixture-lint-report.md)
 - Page schema: [page.schema.md](schema/page.schema.md)
 - Lint contract: [lint-contract.md](schema/lint-contract.md)

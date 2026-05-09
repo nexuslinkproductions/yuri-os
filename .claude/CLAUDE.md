@@ -69,44 +69,70 @@ The following paths must never be mutated by any agent, tool, or automated proce
 - **Code / Docs / Reports:** Stay deep, thorough, and fully documented. No quality drop.
 - **Goal:** Save tokens in conversation without flattening technical depth.
 
+## Decision Priority
+
+Truth > rigor > cost > speed > polish.
+Model output is advisory until local evidence agrees. If a local tool or local lane can handle the work accurately, use it first; keep heavier lanes for synthesis, ambiguity, or risk.
+
+## Lens Routing
+
+Start with the right lens, then cross-check with others when needed. Lenses are additive, not exclusive. If facts, judgment, and risk all matter, use separate lenses for each and reconcile them instead of staying locked in one frame.
+
+## Evidence Handling
+
+- Separate facts, inference, recommendation, and blocker when correctness matters.
+- Keep provenance with important claims.
+- Surface contradictions instead of flattening them.
+- If evidence is partial, state what is missing and what would change the answer.
+- Confidence must be earned from evidence, not from wording.
+
+## Secondary Verification
+
+- For audits, reviews, validation, and similar confidence-sensitive tasks, add a Claude verification pass when local checks still leave material uncertainty or a second read would materially improve trust.
+- Draft the Claude prompt directly: task, local evidence, open questions, and the exact verdict or risks to check.
+- Skip the extra pass when local evidence is already decisive or the work is clearly mechanical.
+
+## Direct Launch
+
+- When a needed local surface exists as a terminal command or repo script, run it directly instead of asking the user to launch it.
+- Prefer direct launches for local Claude/OpenClaw/Yuri surfaces when they help with review, audit, validation, or workflow continuity.
+- Only ask the user to launch it if the command is missing, blocked, or needs interactive input I cannot supply.
+
+## Correction Memory
+
+- Treat user corrections as durable evidence.
+- Repeated corrections become standing rules unless they conflict with higher-priority instructions.
+- Do not repeat a corrected failure mode in later sessions once it is known.
+- Let repeated successful patterns become defaults; do not reset proven preferences or workflows each session.
+
+## Ambiguity Resolution
+
+- Name the missing fact when an answer depends on it.
+- Proceed with an explicit assumption if the missing fact does not change the decision materially.
+- Ask one direct question only when the missing fact would change the outcome.
+- If the same ambiguity repeats, convert it into a standing default or rule.
+
+## Redundancy Control
+
+- Trim repeated caveats, duplicated explanations, and overlapping rules.
+- Merge new guidance into the smallest rule that fully covers it.
+- Prefer a compact instruction layer that stays readable under pressure.
+
+## Model Guidance Format
+
+- When asked for model guidance, give only the exact model and reasoning level; omit platform labels and extra explanation unless explicitly requested.
+- Model selection is assistant-owned: for each task, choose the exact model and reasoning level from the local registry and task demands. Do not ask the user to pick model or reasoning unless capability is missing or the choice changes the outcome materially.
+
 ## Model Routing Policy
 
-**Default model**: Claude Sonnet 4.6.
-
-**Use Sonnet 4.6 for:**
-- architecture decisions
-- security design and threat modeling
-- permission and memory governance
-- multi-agent orchestration
-- risky multi-file edits
-- final reviews and QA
-- system prompt authoring
-- production decisions
-
-**Use Haiku 4.5 only for:**
-- summarization and log compression
-- extraction and file inventories
-- markdown cleanup and normalization
-- repetitive transformations
-- first-pass drafts
-- cheap worker tasks (low risk of structural damage)
-- bulk high-volume work
-
-**Avoid Opus by default.**
-If a task appears Opus-level, first attempt:
-1. Sonnet 4.6 with high reasoning
-2. staged planning
-3. Haiku worker decomposition
-4. Sonnet final review
-
-Escalate to Opus only with explicit user approval after Sonnet fails via structured retries.
-
-**Cost control rules:**
-- Use `/clear` between unrelated tasks
-- Use `/compact` during long tasks to preserve context
-- Prefer file paths over pasting giant files
-- Run Haiku for preprocessing; Sonnet for final review
-- Check `/cost` periodically when using API-key billing
+- Route by lane first, then choose the model and reasoning for the current phase.
+- Offload routing and model routing are coupled: keep lane and model aligned automatically during background work.
+- Default controller: `gpt-5.4-mini` at `medium`.
+- Escalation model: `gpt-5.5` at `high` for synthesis, review, risk, and final decisions.
+- Micro-lane: `gpt-5.3-codex-spark` for exact-scope reading, extraction, cleanup, and bounded edits only.
+- Model switches are allowed at task or phase boundaries.
+- Manual model picks are advisory unless the session is hard-locked.
+- Offload lanes decide where work runs; model choice decides who owns the phase.
 
 ---
 
@@ -118,13 +144,15 @@ Local tools suffice for:
 - **File reads & inventory**: Use `Read`, `Bash find/grep/ls`
 - **Directory exploration**: Use `Bash find`, `Bash tree`, `Bash ls -R`
 - **Extraction & parsing**: Use `Bash grep/sed/awk`, `Read` multiple files, then synthesize locally
-- **Markdown cleanup & normalization**: Haiku 4.5 via Agent is OK if ≥5 files; single file → local tool
+- **Markdown cleanup & normalization**: `gpt-5.3-codex-spark` is OK if ≥5 files; single file → local tool
 
 **Escalate to Agent only when:**
 - Task requires cross-file reasoning (file A affects file B affects file C; needs inference)
 - Task involves subjective judgment (what's an "architecture violation"? What should priorities be?)
 - Task requires synthesis beyond grep/find (e.g., "summarize 50 log lines into common themes")
 - Local tool result is insufficient and Agent reasoning adds value
+
+If a local lane can handle the work accurately, use it before a cloud model. Mechanical reads, inventories, extraction, and first-pass cleanup should stay local whenever possible.
 
 **Cost rule:** File reads that consume 45k tokens via Agent can be done locally for <100 tokens. Always choose local first.
 

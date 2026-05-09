@@ -5,6 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${ROOT_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 OFFLOAD_RUNNER="$SCRIPT_DIR/offload-runner.mjs"
+OFFLOAD_CONTRACT="$SCRIPT_DIR/offload-contract.mjs"
 
 usage() {
   cat <<'EOF'
@@ -15,7 +16,10 @@ Commands:
       Open a path in VS Code. Defaults to the current directory.
 
   claude [prompt]
-      Start Claude interactively, or run a one-shot prompt with --print.
+      Start Claude in safe mode (Agent and scouts disabled), or run a one-shot prompt with --print.
+
+  claude-full [prompt]
+      Start raw Claude interactively with full tool and scout behavior, or run a one-shot prompt with --print.
 
   gemini [prompt]
       Start Gemini interactively, or run a one-shot prompt with -p.
@@ -33,7 +37,7 @@ Commands:
       Route through the NUDIMMUD offload system (auto, --model, --swarm, --list, --dry-run, --route-only).
 
   offload swarm [prompt]
-      Run offload swarm with default lane set (gpt-oss).
+      Run offload swarm with the shared default workhorse lane set.
 
   offload capabilities
       Print the full lane and model inventory (JSON).
@@ -46,6 +50,15 @@ Commands:
 
   route [prompt]
       Print the lane that btw would choose without executing it.
+
+  route-plan [prompt]
+      Print the automatic route, scenario, lifecycle, and learning capture plan (JSON).
+
+  route-examples
+      Print embedded end-to-end routing scenarios (JSON).
+
+  auto [prompt]
+      Automatically classify, dispatch, and execute through the shared contract.
 
   @kimi [prompt]
       Deprecated compatibility route to the Kimi cloud offload lane.
@@ -93,7 +106,7 @@ Commands:
       Run the code-deepseek lane (compatibility alias for DeepSeek V4 Pro).
 
   @deepseek-workhorse [prompt]
-      Run DeepSeek workhorse swarm (cloud): deepseek-v4-pro-lite-budget,deepseek-v4-flash.
+      Run DeepSeek workhorse swarm (cloud): shared workhorse pair from Scripts/offload-contract.mjs.
       Supports --dry-run / --route-only to preview lanes without live API calls.
       Read-only routing only. No write, patch, stage, or commit capability.
 
@@ -113,17 +126,18 @@ Commands:
       Run the gemma-cloud lane (Ollama Cloud Gemma4 only).
 
   @swarm [prompt]
-      Run Ruflo-backed swarm routing, then fan out Kimi and GPT-OSS as needed.
+      Run Ruflo-backed swarm routing, then fan out the shared workhorse lane set as needed.
 
   ruflo [prompt]
       Ask Ruflo for routing guidance without executing the routed lane.
 
   triage [prompt]
-      Run claude, gemini, and codex in parallel and print all three outputs.
+      Run safe Claude, gemini, and codex in parallel and print all three outputs.
 
 Examples:
   ai code .
   ai claude "Trace the auth flow in this repo"
+  ai claude-full "Trace the auth flow in this repo"
   ai gemini "Summarize the latest changes"
   ai codex "Find the riskiest file in backend/src"
   ai btw "offload this review"
@@ -131,6 +145,8 @@ Examples:
   ai swarm "review this branch"
   ai doctor
   ai route "offload swarm proceed"
+  ai route-plan "fix the failing api test"
+  ai auto "fix the failing api test"
   ai @deepseek-workhorse "Summarize this branch"
   ai @swarm "Review the auth flow"
   ai triage "What should I change first?"
@@ -143,6 +159,13 @@ require_cmd() {
     echo "Missing required command: $1" >&2
     exit 127
   fi
+}
+
+offload_contract() {
+  local subcommand="$1"
+  shift || true
+  require_cmd node
+  node "$OFFLOAD_CONTRACT" "$subcommand" "$@"
 }
 
 gemini_policy_guard() {
@@ -161,6 +184,31 @@ run_gemini_prompt() {
   gemini_policy_guard
   require_cmd gemini
   exec gemini -p "$prompt"
+}
+
+run_claude_safe() {
+  require_cmd claude
+  NUDIMMUD_DISABLE_SCOUTS=1 exec claude \
+    --permission-mode default \
+    --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
+    --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
+    "$@"
+}
+
+run_claude_safe_prompt() {
+  local prompt="$1"
+  require_cmd claude
+  NUDIMMUD_DISABLE_SCOUTS=1 exec claude \
+    --permission-mode default \
+    --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
+    --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
+    --no-session-persistence \
+    --print "$prompt"
+}
+
+run_claude_full() {
+  require_cmd claude
+  exec claude "$@"
 }
 
 join_prompt() {
@@ -214,7 +262,7 @@ run_triage() {
   trap "cleanup_tmpdir \"$tmpdir\"" EXIT
 
   (
-    claude --print "$prompt" >"$claude_out" 2>"$claude_err"
+    run_claude_safe_prompt "$prompt" >"$claude_out" 2>"$claude_err"
   ) &
   pid_claude=$!
 
@@ -282,36 +330,33 @@ run_offload_lane() {
 
 run_codex_swarm() {
   local prompt="$1"
-  local tmpdir="" gpt_oss_out gpt_oss_err ollama_out ollama_err
+  local tmpdir="" lane_out lane_err lane
+  local swarm_models=""
   local status=0
 
   if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
-    printf 'gpt-oss\n'
-    printf 'ollama\n'
+    offload_contract swarm-default
     return
   fi
 
   require_cmd node
 
   tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/codex-swarm.XXXXXX")"
-  gpt_oss_out="$tmpdir/gpt-oss.txt"
-  gpt_oss_err="$tmpdir/gpt-oss.route.txt"
-  ollama_out="$tmpdir/ollama.txt"
-  ollama_err="$tmpdir/ollama.route.txt"
+  swarm_models="$(offload_contract swarm-default)"
 
   trap "cleanup_tmpdir \"$tmpdir\"" EXIT
 
-  # Local lanes: serialize to avoid Ollama GPU/memory contention on M2 Pro
-  if ! node "$OFFLOAD_RUNNER" gpt-oss "$prompt" >"$gpt_oss_out" 2>"$gpt_oss_err"; then
-    status=1
-  fi
-  if ! node "$OFFLOAD_RUNNER" ollama "$prompt" >"$ollama_out" 2>"$ollama_err"; then
-    status=1
-  fi
-  print_section "gpt-oss" "$gpt_oss_out"
-  print_route_section "gpt-oss" "$gpt_oss_err"
-  print_section "ollama" "$ollama_out"
-  print_route_section "ollama" "$ollama_err"
+  # Local lanes: serialize to avoid M2 Pro memory contention.
+  IFS=',' read -ra _swarm_lanes <<< "$swarm_models"
+  for lane in "${_swarm_lanes[@]}"; do
+    lane_out="$tmpdir/$lane.txt"
+    lane_err="$tmpdir/$lane.route.txt"
+    if ! node "$OFFLOAD_RUNNER" "$lane" "$prompt" >"$lane_out" 2>"$lane_err"; then
+      status=1
+    fi
+    print_section "$lane" "$lane_out"
+    print_route_section "$lane" "$lane_err"
+  done
 
   return "$status"
 }
@@ -623,7 +668,7 @@ _fused_swarm_orchestrate() {
     printf 'FUSED_SWARM_DRY_RUN=1\n'
     printf 'FUSED_SWARM_ARTIFACT_ROOT=%s\n' "$_artifact_root"
     printf 'FUSED_SWARM_RUFLO=advisory_status_only\n'
-    printf 'FUSED_SWARM_WORKHORSE=deepseek-v4-pro-lite-budget,deepseek-v4-flash\n'
+    printf 'FUSED_SWARM_WORKHORSE=%s\n' "$(offload_contract swarm-workhorse)"
     printf 'FUSED_SWARM_ADVISORY_ONLY=true\n'
     printf 'FUSED_SWARM_LOCAL_TRUTH_CLAIM=false\n'
     printf 'FUSED_SWARM_REQUIRES_APPROVAL=true\n'
@@ -708,10 +753,10 @@ _fused_swarm_orchestrate() {
 
   # Write summary.json (always, even if partial or timed out)
   local _output_md="$_run_dir/output.md"
-  printf '{"run_id":"%s","route":"@swarm","fused":true,"artifact_root":"%s","prompt_sha256":"%s","advisory_only":true,"local_truth_claim":false,"requires_approval":true,"stdout_bytes":%s,"stdout_lines":%s,"stderr_bytes":%s,"exit_code":%s,"completion_status":"%s","ruflo_status":"advisory_status_only","workhorse_status":"deepseek-v4-pro-lite-budget,deepseek-v4-flash","paid_lanes":["deepseek"],"non_claims":["no write capability","no patch application","no executor widening"],"evidence_hook_enabled":true,"evidence_surfaces":["%s"],"evidence_bundle_path":"%s","evidence_bundle_truncated":%s,"swarm_output_path":"%s","swarm_error_path":"%s","output_path":"%s","skill_count":%s,"skills_present":%s,"skills":%s}\n' \
+  printf '{"run_id":"%s","route":"@swarm","fused":true,"artifact_root":"%s","prompt_sha256":"%s","advisory_only":true,"local_truth_claim":false,"requires_approval":true,"stdout_bytes":%s,"stdout_lines":%s,"stderr_bytes":%s,"exit_code":%s,"completion_status":"%s","ruflo_status":"advisory_status_only","workhorse_status":"%s","paid_lanes":["deepseek"],"non_claims":["no write capability","no patch application","no executor widening"],"evidence_hook_enabled":true,"evidence_surfaces":["%s"],"evidence_bundle_path":"%s","evidence_bundle_truncated":%s,"swarm_output_path":"%s","swarm_error_path":"%s","output_path":"%s","skill_count":%s,"skills_present":%s,"skills":%s}\n' \
     "$_run_id" "$_artifact_root" "$_prompt_sha256" \
     "$_stdout_bytes" "$_stdout_lines" "$_stderr_bytes" "$_swarm_status" \
-    "$_swarm_completion" \
+    "$_swarm_completion" "$(offload_contract swarm-workhorse)" \
     "${FUSED_SWARM_EVIDENCE_SURFACES:-}" "$_run_dir/evidence-bundle.txt" \
     "${FUSED_SWARM_EVIDENCE_TRUNCATED:-false}" \
     "$_swarm_stdout" "$_swarm_stderr" "$_output_md" "${FUSED_SWARM_SKILL_COUNT:-0}" "${FUSED_SWARM_SKILL_JSON_PRESENT:-false}" "${FUSED_SWARM_SKILL_JSON:-[]}" \
@@ -756,6 +801,15 @@ run_ruflo_swarm() {
   fi
 
   case "$route_lower" in
+    *deepseek*)
+      run_offload_lane deepseek "$prompt"
+      ;;
+    *qwen*|*triage*)
+      run_offload_lane triage-local "$prompt"
+      ;;
+    *summarize*)
+      run_offload_lane summarize-local "$prompt"
+      ;;
     *gpt-oss*|*gptoss*)
       run_offload_lane gpt-oss "$prompt"
       ;;
@@ -763,7 +817,7 @@ run_ruflo_swarm() {
       run_offload_lane ollama "$prompt"
       ;;
     *kimi*|*moonshot*)
-      run_codex_swarm "$prompt"
+      run_offload_lane kimi "$prompt"
       ;;
     *swarm*|*parallel*|*fan-out*|*hierarchical*|*hive*)
       run_codex_swarm "$prompt"
@@ -788,40 +842,39 @@ run_codex_hint() {
     swarm)
       run_ruflo_swarm "$prompt"
       ;;
-    kimi)
-      run_offload_lane kimi "$prompt"
+    *)
+      run_offload_lane "$lane" "$prompt"
       ;;
-    gpt-oss)
-      run_offload_lane gpt-oss "$prompt"
+  esac
+}
+
+run_auto_route() {
+  local prompt="$1"
+  local plan_json
+  local lane
+
+  plan_json="$(offload_contract route-plan "$prompt")"
+
+  if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
+    printf '%s\n' "$plan_json"
+    return
+  fi
+
+  lane="$(node -e 'const plan=JSON.parse(process.argv[1]); process.stdout.write(plan.lane)' "$plan_json")"
+
+  case "$lane" in
+    swarm)
+      run_ruflo_swarm "$prompt"
       ;;
     *)
-      run_offload_lane gpt-oss "$prompt"
+      run_offload_lane "$lane" "$prompt"
       ;;
   esac
 }
 
 select_btw_lane() {
   local prompt="$1"
-  local prompt_lower
-
-  prompt_lower="$(printf '%s' "$prompt" | tr '[:upper:]' '[:lower:]')"
-
-  if [[ "$prompt_lower" == *swarm* || "$prompt_lower" == *fan\ out* || "$prompt_lower" == *parallel* || "$prompt_lower" == *compare* ]]; then
-    printf 'swarm\n'
-    return
-  fi
-
-  if [[ "$prompt_lower" == *frontend* || "$prompt_lower" == *ui* || "$prompt_lower" == *design* || "$prompt_lower" == *react* || "$prompt_lower" == *interface* ]]; then
-    printf 'gpt-oss\n'
-    return
-  fi
-
-  if [[ "$prompt_lower" == *moonshot* || "$prompt_lower" == *kimi* || "$prompt_lower" == *cloud* || "$prompt_lower" == *complex* || "$prompt_lower" == *deep* || "$prompt_lower" == *architecture* || "$prompt_lower" == *review* || "$prompt_lower" == *audit* || "$prompt_lower" == *security* ]]; then
-    printf 'swarm\n'
-    return
-  fi
-
-  printf 'gpt-oss\n'
+  offload_contract steer "$prompt"
 }
 
 check_cmd() {
@@ -863,7 +916,6 @@ case "${1:-help}" in
     ;;
   claude)
     shift || true
-    require_cmd claude
     if [ "$#" -eq 0 ]; then
       # ── Claude Code launch splash ─────────────────────────────
       _G="\033[38;2;180;234;144m"
@@ -875,6 +927,7 @@ case "${1:-help}" in
       _RS="\033[0m"
       printf "\n"
       printf "${_AU}  ◆ CLAUDE CODE${_RS}  ${_G2}──────────────────────────────────────${_RS}\n"
+      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "safe / no Agent"
       printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "claude-sonnet-4-6"
       printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "NUDIMMUD"
       printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
@@ -882,9 +935,34 @@ case "${1:-help}" in
       printf "\n"
       unset _G _G2 _AU _GR _CY _BD _RS
       export NUDIMMUD_SPLASH_SHOWN=1
-      exec claude
+      run_claude_safe
     fi
-    exec claude --print "$(join_prompt "$@")"
+    run_claude_safe_prompt "$(join_prompt "$@")"
+    ;;
+  claude-full|claude-raw)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      # ── Raw Claude Code launch splash ─────────────────────────
+      _G="\033[38;2;180;234;144m"
+      _G2="\033[38;2;56;87;36m"
+      _AU="\033[38;2;92;184;0m"
+      _GR="\033[38;2;168;168;168m"
+      _CY="\033[38;2;180;234;144m"
+      _BD="\033[1m"
+      _RS="\033[0m"
+      printf "\n"
+      printf "${_AU}  ◆ CLAUDE CODE RAW${_RS}  ${_G2}──────────────────────────────${_RS}\n"
+      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "full / Agent allowed"
+      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "claude-sonnet-4-6"
+      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "NUDIMMUD"
+      printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
+      printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
+      printf "\n"
+      unset _G _G2 _AU _GR _CY _BD _RS
+      export NUDIMMUD_SPLASH_SHOWN=1
+      run_claude_full
+    fi
+    run_claude_full --print "$(join_prompt "$@")"
     ;;
   gemini)
     shift || true
@@ -920,10 +998,10 @@ case "${1:-help}" in
           usage
           exit 1
         fi
-        if [ "$_dry_run" -eq 1 ]; then
-          exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm "gpt-oss,ollama" "$prompt"
+        if [ "$_dry_run" -eq 1 ] || [ "${AI_DRY_RUN:-0}" = "1" ]; then
+          exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm default "$prompt"
         fi
-        exec "$SCRIPT_DIR/offload.sh" --swarm "gpt-oss,ollama" "$prompt"
+        exec "$SCRIPT_DIR/offload.sh" --swarm default "$prompt"
         ;;
       capabilities|inventory)
         shift || true
@@ -952,6 +1030,40 @@ case "${1:-help}" in
       exit 1
     fi
     select_btw_lane "$prompt"
+    ;;
+  auto|execute)
+    shift || true
+    _dry_run=0
+    _prompt_parts=()
+    for _arg in "$@"; do
+      case "$_arg" in
+        --route-only|--dry-run|-d) _dry_run=1 ;;
+        *) _prompt_parts+=("$_arg") ;;
+      esac
+    done
+    prompt="$(join_prompt ${_prompt_parts[@]+"${_prompt_parts[@]}"})"
+    if [ -z "$prompt" ]; then
+      usage
+      exit 1
+    fi
+    if [ "$_dry_run" -eq 1 ] || [ "${AI_DRY_RUN:-0}" = "1" ]; then
+      offload_contract route-plan "$prompt"
+    else
+      run_auto_route "$prompt"
+    fi
+    ;;
+  route-plan|auto-plan|execution-plan)
+    shift || true
+    prompt="$(join_prompt "$@")"
+    if [ -z "$prompt" ]; then
+      usage
+      exit 1
+    fi
+    offload_contract route-plan "$prompt"
+    ;;
+  route-examples|examples)
+    shift || true
+    offload_contract examples
     ;;
   mythos|openmythos|openmythos-swarm)
     shift || true
@@ -1255,9 +1367,9 @@ case "${1:-help}" in
         exit 1
       fi
       if [ "$_dry_run" -eq 1 ]; then
-        exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm "deepseek-v4-pro-lite-budget,deepseek-v4-flash" "$prompt"
+        exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm "$(offload_contract swarm-workhorse)" "$prompt"
       fi
-      exec "$SCRIPT_DIR/offload.sh" --swarm "deepseek-v4-pro-lite-budget,deepseek-v4-flash" "$prompt"
+      exec "$SCRIPT_DIR/offload.sh" --swarm "$(offload_contract swarm-workhorse)" "$prompt"
     fi
 
     # --- Artifact bundle path ---
@@ -1283,7 +1395,7 @@ case "${1:-help}" in
     if [ "$_dry_run" -eq 1 ]; then
       printf 'WORKHORSE_BUNDLE_DRY_RUN=1\n'
       printf 'WORKHORSE_BUNDLE_ROOT=%s\n' "$_artifact_root"
-      printf 'WORKHORSE_BUNDLE_LANES=deepseek-v4-pro-lite-budget,deepseek-v4-flash\n'
+      printf 'WORKHORSE_BUNDLE_LANES=%s\n' "$(offload_contract swarm-workhorse)"
       printf 'WORKHORSE_BUNDLE_LINE_CAP=%s\n' "$_line_cap"
       printf 'WORKHORSE_BUNDLE_MAX_BYTES=%s\n' "$_max_bytes"
       exit 0
@@ -1297,7 +1409,7 @@ case "${1:-help}" in
     mkdir -p "$_run_dir"
 
     _prompt_sha256="$(printf '%s' "$prompt" | shasum -a 256 | awk '{print $1}')"
-    _lanes=("deepseek-v4-pro-lite-budget" "deepseek-v4-flash")
+    IFS=',' read -ra _lanes <<< "$(offload_contract swarm-workhorse)"
     _bundle_status="PASS"
     _lanes_summary=""
     _total_bytes=0

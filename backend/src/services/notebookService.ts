@@ -9,6 +9,7 @@ export interface Notebook {
     title: string;
     description: string | null;
     model_id: string;
+    stable_key: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -70,6 +71,7 @@ export class NotebookService {
         createNotebook: null as any,
         listNotebooks: null as any,
         getNotebook: null as any,
+        getNotebookByStableKey: null as any,
         updateNotebook: null as any,
         deleteNotebook: null as any,
         createSource: null as any,
@@ -100,7 +102,7 @@ export class NotebookService {
 
     private prepare() {
         this.stmts.createNotebook = this.db.prepare(
-            `INSERT INTO notebook_notebooks (title, description, model_id) VALUES (?, ?, ?) RETURNING *`
+            `INSERT INTO notebook_notebooks (title, description, model_id, stable_key) VALUES (?, ?, ?, ?) RETURNING *`
         );
         this.stmts.listNotebooks = this.db.prepare(
             `SELECT * FROM notebook_notebooks ORDER BY updated_at DESC`
@@ -108,8 +110,11 @@ export class NotebookService {
         this.stmts.getNotebook = this.db.prepare(
             `SELECT * FROM notebook_notebooks WHERE id = ?`
         );
+        this.stmts.getNotebookByStableKey = this.db.prepare(
+            `SELECT * FROM notebook_notebooks WHERE stable_key = ?`
+        );
         this.stmts.updateNotebook = this.db.prepare(
-            `UPDATE notebook_notebooks SET title=?, description=?, model_id=?, updated_at=datetime('now') WHERE id=?`
+            `UPDATE notebook_notebooks SET title=?, description=?, model_id=?, stable_key=?, updated_at=datetime('now') WHERE id=?`
         );
         this.stmts.deleteNotebook = this.db.prepare(
             `DELETE FROM notebook_notebooks WHERE id=?`
@@ -184,8 +189,8 @@ export class NotebookService {
 
     // ─── Notebooks ────────────────────────────────────────────────────────────
 
-    createNotebook(title: string, description?: string, modelId = 'qwen-liberated:latest'): Notebook {
-        return this.stmts.createNotebook.get(title, description ?? null, modelId) as Notebook;
+    createNotebook(title: string, description?: string, modelId = 'qwen-liberated:latest', stableKey?: string | null): Notebook {
+        return this.stmts.createNotebook.get(title, description ?? null, modelId, stableKey ?? null) as Notebook;
     }
 
     listNotebooks(): Notebook[] {
@@ -196,13 +201,18 @@ export class NotebookService {
         return (this.stmts.getNotebook.get(id) as Notebook) ?? null;
     }
 
-    updateNotebook(id: number, patch: { title?: string; description?: string; model_id?: string }): void {
+    getNotebookByStableKey(stableKey: string): Notebook | null {
+        return (this.stmts.getNotebookByStableKey.get(stableKey) as Notebook) ?? null;
+    }
+
+    updateNotebook(id: number, patch: { title?: string; description?: string; model_id?: string; stable_key?: string | null }): void {
         const current = this.getNotebook(id);
         if (!current) return;
         this.stmts.updateNotebook.run(
             patch.title ?? current.title,
             patch.description ?? current.description,
             patch.model_id ?? current.model_id,
+            patch.stable_key !== undefined ? patch.stable_key : current.stable_key,
             id
         );
     }

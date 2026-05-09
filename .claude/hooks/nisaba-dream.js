@@ -1,4 +1,7 @@
 'use strict';
+if (process.env.NUDIMMUD_DISABLE_SCOUTS === '1') {
+  process.exit(0);
+}
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');

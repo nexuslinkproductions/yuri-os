@@ -101,6 +101,7 @@ Summary: always start at Tier 0 (local cache / git history). Escalate only when 
 
 ## 9. Swarm / Offload Contract
 
+- Offload routing is automatic and triggerless for every non-trivial task.
 - Load/confirm `swarm-coordination` before dispatch. If unavailable, continue direct-only and report `SWARM_COORDINATION_UNAVAILABLE`.
 - Use swarm for compact evidence extraction, cheap/local/offloaded work, and repetitive verification.
 - Swarm output cap is about 80 lines unless explicitly overridden.
@@ -108,11 +109,14 @@ Summary: always start at Tier 0 (local cache / git history). Escalate only when 
 - Direct shell/local script evidence remains authority for local truth.
 - Lower-lane reports are advisory until verified by direct evidence.
 - Orchestrator makes final gate, commit, supersession, and safety decisions.
-- Routing priority: `@deepseek → @qwen → @gpt-oss → @swarm → @claude` (last resort).
+- Routing priority comes from `Scripts/offload-contract.mjs`; current order is `@code-local → @deepseek → @triage-local/@summarize-local → @gpt-oss → @swarm → @kimi → @claude` (last resort).
 - Spawn smallest lane that can finish the work.
 - Fan-out with explicit file boundaries per agent to prevent silent overwrites.
 - Verification wave gates next phase — never merge unverified parallel output.
 - M2 Pro capacity: 8–10 safe, 14 hard ceiling. Check `Scripts/offload.sh --list` before spawning.
+- Shared contract: `Scripts/offload-contract.mjs` owns lane mapping, lifecycle scenarios, compatibility aliases, and default swarm lane pair. Do not duplicate lane tables elsewhere.
+- Automatic execution entrypoint: `./Scripts/ai auto "<request>"`.
+- Machine-readable route plan: `./Scripts/ai route-plan "<request>"`.
 
 ---
 

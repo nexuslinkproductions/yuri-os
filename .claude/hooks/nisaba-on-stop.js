@@ -31,7 +31,7 @@ process.stdin.on('end', () => {
       reflect.run();
     } catch (_) {}
 
-    if (shouldDream()) spawnDream();
+    if (process.env.NUDIMMUD_DISABLE_SCOUTS !== '1' && shouldDream()) spawnDream();
   } catch (e) {}
   process.exit(0);
 });

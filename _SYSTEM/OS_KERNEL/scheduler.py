@@ -5,6 +5,7 @@ import json
 import argparse
 import time
 from datetime import datetime
+from memory_governor import health as memory_health, manage as memory_manage
 
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'memory.db'))
 
@@ -44,10 +45,18 @@ def suggest_next_action(tasks):
 def print_status_line():
     tasks = get_active_tasks()
     suggestion = suggest_next_action(tasks)
+    governor_health = memory_health()
     
     print("\n" + "="*50)
     print(f"NUDIMMUD OS KERNEL | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"ACTIVE PROCESSES: {len(tasks)}")
+    print(
+        "MEMORY GOVERNOR: "
+        f"items={governor_health['total']} "
+        f"stale_ratio={governor_health['stale_ratio']} "
+        f"suppressed={governor_health['suppressed']} "
+        f"conflicts={governor_health['conflicts']}"
+    )
     print("="*50)
     
     for t in tasks:
@@ -61,8 +70,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="NUDIMMUD OS Kernel Scheduler")
     parser.add_argument("--loop", action="store_true", help="Run in continuous monitoring mode")
     parser.add_argument("--interval", type=int, default=10, help="Refresh interval for loop mode (seconds)")
+    parser.add_argument("--memory-governor", choices=["daily", "weekly", "monthly"], help="Run a governed memory lifecycle cycle")
     
     args = parser.parse_args()
+
+    if args.memory_governor:
+        result = memory_manage(args.memory_governor)
+        print(json.dumps(result, indent=2, default=str))
+        raise SystemExit(0)
     
     if args.loop:
         try:

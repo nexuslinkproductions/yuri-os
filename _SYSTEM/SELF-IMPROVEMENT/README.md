@@ -35,6 +35,7 @@ VESSEL → RHYTHM → EXTRACT → GAZE → (back to VESSEL)
 **Metrics, vision, quarterly review.**
 *"And so, does the system work? Where are we going?"*
 - Metric evidence. Direction. The closing loop that feeds back into the vessel.
+- The voice/improvement contract lives here: `03_GAZE/voice-and-improvement-contract.md`
 - → `03_GAZE/`
 
 ## How to Navigate

@@ -1,4 +1,4 @@
-# Yuri LLM Wiki Page Schema
+# Yuri OS Wiki Page Schema
 
 This is a docs-only schema contract for future compiled-memory pages. It defines structure and lifecycle only; it does not implement ingestion, linting, RAG, backend wiring, or source registry behavior.
 

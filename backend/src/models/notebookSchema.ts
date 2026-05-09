@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS notebook_notebooks (
     title       TEXT    NOT NULL DEFAULT 'Untitled Notebook',
     description TEXT,
     model_id    TEXT    NOT NULL DEFAULT 'qwen-liberated:latest',
+    stable_key  TEXT,
     created_at  TEXT    DEFAULT (datetime('now')),
     updated_at  TEXT    DEFAULT (datetime('now'))
 );
@@ -69,7 +70,20 @@ CREATE INDEX IF NOT EXISTS idx_nb_docs_notebook     ON notebook_docs(notebook_id
 CREATE INDEX IF NOT EXISTS idx_nb_msgs_notebook     ON notebook_messages(notebook_id);
 `;
 
+function columnExists(db: Database.Database, tableName: string, columnName: string): boolean {
+    const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
+    return columns.some((column) => column.name === columnName);
+}
+
+function addColumnIfMissing(db: Database.Database, tableName: string, columnName: string, definition: string): void {
+    if (!columnExists(db, tableName, columnName)) {
+        db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
+    }
+}
+
 export function runNotebookMigrations(db: Database.Database): void {
     db.exec(NOTEBOOK_SCHEMA);
+    addColumnIfMissing(db, 'notebook_notebooks', 'stable_key', 'TEXT');
+    db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_nb_notebooks_stable_key ON notebook_notebooks(stable_key)`);
     console.log('⬡ NOTEBOOK_SCHEMA_READY');
 }
