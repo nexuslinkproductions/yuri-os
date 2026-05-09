@@ -8,17 +8,6 @@ import assert from 'node:assert/strict';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const contractPath = resolve(__dirname, 'offload-contract.mjs');
-const regressionPaths = [
-  'Scripts/offload-contract.mjs',
-  'Scripts/offload-contract-regression.test.mjs',
-  'Scripts/nudimmud-workhorse.mjs',
-  'Scripts/policy/yuri-guarded-executor.readonly.json',
-  'Scripts/yuri-guarded-executor.mjs',
-  'OPERATOR_PROTOCOL.md',
-  'CODEX_PROTOCOL.md',
-  'CLAUDE.md',
-  '.cursor/rules/sync.mdc',
-];
 
 function runContract(args) {
   return execFileSync(process.execPath, [contractPath, ...args], { encoding: 'utf8' }).trim();
@@ -37,29 +26,16 @@ assert.equal(contract.deepseekCodexQualityGate.authority.modelOutput, 'advisory_
 assert.ok(contract.deepseekCodexQualityGate.discardWhenAny.includes('Contradicts deterministic local evidence.'), 'degradation guard missing');
 assert.ok(contract.deepseekCodexQualityGate.metrics.includes('accepted_findings'), 'quality metrics missing');
 
-function runWithTemporarilyUnstagedPaths(paths, args) {
-  try {
-    execFileSync('git', ['restore', '--staged', '--', ...paths], { encoding: 'utf8' });
-    return execFileSync(
-      process.execPath,
-      args,
-      { cwd: process.cwd(), encoding: 'utf8' }
-    ).trim();
-  } finally {
-    try {
-      execFileSync('git', ['add', '--', ...paths], { encoding: 'utf8' });
-    } catch {
-      // Best-effort cleanup. The commit hook should leave the staged set restored.
-    }
-  }
-}
-
-const yuriSelftest = runWithTemporarilyUnstagedPaths(regressionPaths, [
-  'Scripts/yuri-guarded-executor.mjs',
-  '--selftest',
-  '--artifact-root',
-  '/tmp/nudimmud-yuri-selftest-regression'
-]);
+const yuriSelftest = execFileSync(
+  process.execPath,
+  [
+    'Scripts/yuri-guarded-executor.mjs',
+    '--selftest',
+    '--artifact-root',
+    '/tmp/nudimmud-yuri-selftest-regression'
+  ],
+  { encoding: 'utf8' }
+).trim();
 assert.ok(yuriSelftest.includes('YURI_GUARDED_EXECUTOR_SELFTEST_PASS'), 'yuri guarded executor selftest should pass');
 
 function autoPlan(prompt) {
