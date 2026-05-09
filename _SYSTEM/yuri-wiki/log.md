@@ -123,3 +123,18 @@ Append-only control log. New events append below existing events without rewriti
 - reviewer: `none`
 - rag_eligibility: `NOT_ELIGIBLE`
 - notes: `Manual lint passed; advisory only; no RAG; no source registry repair.`
+
+### 09e-0001
+
+- event_id: `09e-0001`
+- timestamp: `2026-05-09T15:42:32Z`
+- actor: `Codex`
+- action: `candidate_review_pending`
+- page_path: `_SYSTEM/yuri-wiki/pending/09c-fixture-llm-wiki-candidate.md`
+- from_status: `linted`
+- to_status: `review_pending`
+- source_refs_delta: `0`
+- head: `ed9515c9a`
+- reviewer: `none`
+- rag_eligibility: `NOT_ELIGIBLE`
+- notes: `Owner provenance rule allows review_pending; advisory only; no RAG; no source registry repair.`

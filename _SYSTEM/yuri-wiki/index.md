@@ -15,7 +15,8 @@ Raw/source truth stays outside this wiki. This fixture does not store raw corpor
 ## Counts
 
 - pending candidate count: 1
-- linted candidate count: 1
+- linted candidate count: 0
+- review_pending candidate count: 1
 - accepted page count: 0
 - RAG indexed count: 0
 
