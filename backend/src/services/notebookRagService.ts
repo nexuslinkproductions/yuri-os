@@ -1,8 +1,8 @@
 import { NotebookService, NotebookChunk } from './notebookService';
 import { neuralForge } from './neuralForgeService';
 import { memoryGovernor } from './memoryGovernorService';
+import { ollamaProvider } from './providers/ollamaProvider';
 
-const OLLAMA_BASE = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 const TOP_K = 5;
 
 export interface RagCitation {
@@ -58,43 +58,17 @@ export class NotebookRagService {
         const usedChunkIds = topChunks.map(c => c.id);
 
         try {
-            const upstream = await fetch(`${OLLAMA_BASE}/api/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: modelId,
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        { role: 'user', content: query }
-                    ],
-                    stream: true
-                }),
-                signal
+            const result = await ollamaProvider.streamChat({
+                model: modelId,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: query }],
+                runtime: 'local',
+                signal,
+                operationType: 'notebook_rag_answer',
+                metadata: { notebook_id: notebookId, top_k: topChunks.length },
+                onToken
             });
-
-            if (!upstream.ok) throw new Error(`Ollama HTTP ${upstream.status}`);
-            if (!upstream.body) throw new Error('No response body');
-
-            let fullContent = '';
-            const reader = upstream.body.getReader();
-            const decoder = new TextDecoder();
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                const text = decoder.decode(value, { stream: true });
-                for (const line of text.split('\n').filter(Boolean)) {
-                    try {
-                        const parsed = JSON.parse(line);
-                        const token = parsed?.message?.content || '';
-                        if (token) {
-                            fullContent += token;
-                            onToken(token);
-                        }
-                        if (parsed?.done) break;
-                    } catch (_) {}
-                }
-            }
+            const fullContent = result.content;
 
             this.notebookService.saveMessage(notebookId, 'assistant', fullContent, usedChunkIds);
             memoryGovernor.recordRetrieval(topChunks.map(c => c.memoryItemId), 'notebook_rag', { notebookId, query });

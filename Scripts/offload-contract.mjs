@@ -11,7 +11,7 @@ const OFFLOAD_CONTRACT = {
     steeringPrefixes: ['btw', '/btw'],
     compatibilityOnly: ['@lane', '/tokenmaxxing', 'btw', '/btw', 'btw offload this']
   },
-  routingPriority: ['@code-local', '@deepseek', '@triage-local', '@summarize-local', '@gpt-oss', '@swarm', '@kimi', '@claude'],
+  routingPriority: ['@code-local', '@deepseek', '@triage-local', '@summarize-local', '@ollama-local', '@gpt-oss', '@swarm', '@kimi', '@claude'],
   universalWorkflow: [
     {
       phase: 'intake',
@@ -65,10 +65,30 @@ const OFFLOAD_CONTRACT = {
       description: 'Qwen-backed local summarization lane',
       preferredUsage: ['summarization', 'extraction', 'condensation', 'note cleanup']
     },
+    ollamaLocal: {
+      alias: '@ollama-local',
+      description: 'Additive Ollama local utility lane',
+      preferredUsage: ['private utility work', 'bounded summarization', 'low-risk extraction', 'embeddings', 'offline-friendly triage']
+    },
+    ollamaCloud: {
+      alias: '@ollama-cloud',
+      description: 'Temporary Ollama cloud fallback lane',
+      preferredUsage: ['Ollama-compatible fallback when local model is missing', 'bounded utility work with existing OLLAMA_API_KEY']
+    },
+    ollama: {
+      alias: '@ollama',
+      description: 'Ollama auto lane, local first with cloud fallback',
+      preferredUsage: ['explicit Ollama requests', 'local/private task trials', 'low-risk utility prompts']
+    },
     gptOss: {
       alias: '@gpt-oss',
       description: 'Formatting and synthesis lane',
       preferredUsage: ['formatting', 'template generation', 'ui text']
+    },
+    codexSpark: {
+      alias: '@codex-spark',
+      description: 'Bounded Codex Spark sandbox lane',
+      preferredUsage: ['sandbox improvement', 'read-only experiments', 'isolated verification', 'live operational trials']
     },
     swarm: {
       alias: '@swarm',
@@ -172,6 +192,22 @@ const OFFLOAD_CONTRACT = {
   },
   scenarios: [
     {
+      id: 'sandbox-improvement',
+      title: 'Sandboxed improvement or operational trial',
+      match: ['sandbox', 'isolate', 'isolated', 'experiment', 'improvement loop', 'sandbox loop', 'live test', 'test run', 'operational trial', 'promote-check'],
+      defaultLane: 'codex-spark',
+      lifecycle: [
+        'Detect: classify scope, route, branch, and canonical-state risk.',
+        'Isolate: create an artifact-only run directory outside tracked repo state.',
+        'Self-probe: verify runner availability, artifact writes, and no repo mutation.',
+        'Run: execute Codex Spark through the read-only ephemeral sandbox lane.',
+        'Verify: check artifacts, status, tests, and protected-state invariants.',
+        'Sanitize: reduce raw output into a verified learning summary.',
+        'Log: write only sanitized verified summaries through the learning capture path.',
+        'Promote-check: inspect existing review gates without auto-approving lessons.'
+      ]
+    },
+    {
       id: 'code-change',
       title: 'Implement or fix code',
       match: ['implement', 'fix', 'debug', 'patch', 'refactor', 'test'],
@@ -269,6 +305,10 @@ function selectSteeringLane(prompt) {
     return 'swarm';
   }
 
+  if (text.includes('@codex-spark') || text.includes('@spark') || text.includes('sandbox') || text.includes('isolated') || text.includes('isolate') || text.includes('improvement loop') || text.includes('sandbox loop') || text.includes('operational trial') || text.includes('live test')) {
+    return 'codex-spark';
+  }
+
   if (text.includes('@swarm') || text.includes('swarm') || text.includes('fan out') || text.includes('parallel') || text.includes('compare') || text.includes('consensus')) {
     return 'swarm';
   }
@@ -279,6 +319,17 @@ function selectSteeringLane(prompt) {
 
   if (text.includes('protocol') || text.includes('ide') || text.includes('agent harness') || text.includes('workflow') || text.includes('routing') || text.includes('offload')) {
     return 'swarm';
+  }
+
+  if (text.includes('@ollama-local') || text.includes('ollama local')) return 'ollama-local';
+  if (text.includes('@ollama-cloud') || text.includes('ollama cloud')) return 'ollama-cloud';
+  if (text.includes('@ollama') || text.includes('use ollama') || text.includes('try ollama')) return 'ollama';
+
+  if (
+    (text.includes('local private') || text.includes('offline') || text.includes('private local')) &&
+    (text.includes('summarize') || text.includes('extract') || text.includes('triage') || text.includes('draft cleanup'))
+  ) {
+    return 'ollama-local';
   }
 
   if (text.includes('@kimi') || text.includes('kimi') || text.includes('moonshot') || text.includes('cloud')) {

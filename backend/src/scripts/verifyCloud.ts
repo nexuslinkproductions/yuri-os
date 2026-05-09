@@ -9,11 +9,11 @@ async function verify() {
     console.log("⬡ STARTING_CLOUD_VERIFICATION...");
     
     console.log("⬡ CHECKING_CREDENTIALS...");
-    const apiKey = process.env.OLLAMA_CLOUD_API_KEY;
+    const apiKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY;
     const endpoint = process.env.OLLAMA_CLOUD_ENDPOINT;
     
     if (!apiKey) {
-        console.error("!!! OLLAMA_CLOUD_API_KEY is missing in .env");
+        console.error("!!! OLLAMA_API_KEY or OLLAMA_CLOUD_API_KEY is missing in .env");
         return;
     }
     console.log(`>>> Endpoint: ${endpoint}`);

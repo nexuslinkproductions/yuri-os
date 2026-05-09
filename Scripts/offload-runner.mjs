@@ -4,6 +4,17 @@ import { existsSync, readdirSync, statSync, readFileSync, writeFileSync } from '
 import { execSync } from 'child_process';
 import path from 'path';
 import { evaluateToolCall } from './policy/nudimmud-safety-core.mjs';
+import {
+  estimateTokensFromText,
+  hashPayload,
+  normalizeProviderUsage,
+  recordTokenEvent,
+} from './token-ledger.mjs';
+import {
+  resolveOllamaAdditiveLane,
+  runOllamaCloudChat,
+  runOllamaLocalChat,
+} from './ollama-adapter.mjs';
 
 const argv = process.argv.slice(2);
 
@@ -17,6 +28,7 @@ const lane = (argv.shift() || '').toLowerCase();
 const options = parseArgs(argv);
 const envPrompt = process.env.OFFLOAD_PROMPT_TEXT;
 const prompt = envPrompt !== undefined ? envPrompt : options.prompt.trim();
+const ledgerTraceId = process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || `offload-${Date.now()}-${process.pid}`;
 
 if (!lane) {
   console.error('Usage: offload-runner <lane> [--model <id>] [--system <prompt>] [--dry-run] [--inventory] <prompt>');
@@ -48,13 +60,13 @@ if (
 }
 
 if (resolved.kind === 'local') {
-  const result = await runLocalChat(resolved.model, prompt, options.system);
+  const result = await runLocalChat(resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
   process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
   process.exit(0);
 }
 
 if (resolved.protocol === 'ollama-native') {
-  const result = await runOllamaRemote(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system);
+  const result = await runOllamaCloudChat(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
   process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
   process.exit(0);
 }
@@ -64,6 +76,8 @@ if (resolved.protocol === 'responses') {
     maxTokens: resolved.maxTokens,
     reasoningEffort: resolved.reasoningEffort,
     timeout: resolved.timeout,
+    lane,
+    traceId: ledgerTraceId,
   });
   process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
   process.exit(0);
@@ -71,7 +85,7 @@ if (resolved.protocol === 'responses') {
 
 const result = await runOpenAICompatibleChat(
   resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody,
-  { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout }
+  { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout, lane, traceId: ledgerTraceId }
 );
 process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
 
@@ -125,6 +139,10 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
 
   if (requestedLane === 'gemma' || requestedLane === 'gemma-local' || requestedLane === 'gemma-cloud') {
     return resolveGemmaLane(requestedLane, normalizedForcedModel, localModels, dryRun);
+  }
+
+  if (requestedLane === 'ollama' || requestedLane === 'ollama-local' || requestedLane === 'ollama-cloud') {
+    return resolveOllamaAdditiveLane(requestedLane, normalizedForcedModel, localModels, dryRun);
   }
 
   const laneMap = {
@@ -206,18 +224,6 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       maxTokens: 8192,
       timeout: 120000,
       requiresKey: true,
-    },
-    'ollama-cloud': {
-      kind: 'cloud',
-      protocol: 'ollama-native',
-      endpoint: process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
-      apiKey: process.env.OLLAMA_API_KEY || '',
-      model: normalizedForcedModel || process.env.OLLAMA_CLOUD_MODEL || pickFirstExisting([
-        'llama3.3:70b',
-        'qwen2.5:72b',
-        'deepseek-r1:70b',
-        'llama3.1:70b'
-      ], new Set()),
     },
     'triage-local': {
       kind: 'local',
@@ -420,11 +426,10 @@ function normalizeForcedModel(forcedModel, lane) {
   if (normalized === laneName) return '';
   if (laneName === 'gpt-oss' && (normalized === 'gptoss' || normalized === 'gpt-oss')) return '';
   if (laneName === 'deepseek' && normalized === 'deepseek') return '';
-  if (laneName === 'ollama' && normalized === 'ollama') return '';
+  if ((laneName === 'ollama' || laneName === 'ollama-local' || laneName === 'ollama-cloud') && (normalized === 'ollama' || normalized === 'ollama-local' || normalized === 'ollama-cloud')) return '';
   if (laneName === 'kimi' && (normalized === 'kimi' || normalized === 'moonshot')) return '';
   if (laneName === 'moonshot' && (normalized === 'moonshot' || normalized === 'kimi')) return '';
   if (laneName === 'deepseek-cloud' && normalized === 'deepseek-cloud') return '';
-  if (laneName === 'ollama-cloud' && (normalized === 'ollama-cloud' || normalized === 'ollama')) return '';
   if (laneName === 'triage-local' && normalized === 'triage-local') return '';
   if (laneName === 'summarize-local' && normalized === 'summarize-local') return '';
   if (laneName === 'code-local' && normalized === 'code-local') return '';
@@ -653,7 +658,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-cloud', 'code-deepseek', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-cloud', 'code-deepseek', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -679,6 +684,7 @@ function buildInventory(localModels) {
 }
 
 async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemText, opts = {}) {
+  const startedAt = Date.now();
   const headers = { 'Content-Type': 'application/json' };
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 
@@ -708,13 +714,44 @@ async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemTex
 
   if (!response.ok) {
     const errText = await response.text();
+    await recordOffloadLedger({
+      lane: opts.lane,
+      traceId: opts.traceId,
+      provider: 'openai-responses',
+      requestModel: model,
+      status: 'error',
+      measurement: { measurement_type: 'unobservable', accuracy_class: 'not_measurable' },
+      startedAt,
+      promptText,
+      systemText,
+      endpoint,
+      metadata: { http_status: response.status, error_hash: hashPayload(errText) },
+    });
     if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
     if (response.status === 429) throw new Error('RATE_LIMITED');
     throw new Error(`OPENAI_RESPONSES_${response.status}: ${errText}`);
   }
 
   const data = await response.json();
-  return extractResponseText(data);
+  const output = extractResponseText(data);
+  await recordOffloadLedger({
+    lane: opts.lane,
+    traceId: opts.traceId,
+    provider: 'openai-responses',
+    requestModel: model,
+    responseModel: data.model || model,
+    status: 'ok',
+    measurement: normalizeProviderUsage('openai', data.usage, {
+      input_tokens: estimateTokensFromText([systemText, promptText].filter(Boolean).join('\n')),
+      output_tokens: estimateTokensFromText(output),
+    }),
+    startedAt,
+    promptText,
+    systemText,
+    endpoint,
+    metadata: { response_id_hash: data.id ? hashPayload(data.id) : '' },
+  });
+  return output;
 }
 
 function extractResponseText(data) {
@@ -741,50 +778,12 @@ function extractResponseText(data) {
   throw new Error('No text output from Responses API');
 }
 
-async function runLocalChat(model, promptText, systemText) {
-  const host = (process.env.OLLAMA_HOST || 'http://127.0.0.1:11434').replace(/\/$/, '');
-  const messages = [];
-  if (systemText) messages.push({ role: 'system', content: systemText });
-  messages.push({ role: 'user', content: promptText });
-
-  const response = await fetch(`${host}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      messages,
-      stream: false
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error(`OLLAMA_${response.status}: ${await response.text()}`);
-  }
-
-  const data = await response.json();
-  return data.message?.content || data.response || '';
+async function runLocalChat(model, promptText, systemText, ledger = {}) {
+  return runOllamaLocalChat(model, promptText, systemText, ledger);
 }
 
-async function runOllamaRemote(endpoint, apiKey, model, promptText, systemText) {
-  const messages = [];
-  if (systemText) messages.push({ role: 'system', content: systemText });
-  messages.push({ role: 'user', content: promptText });
-
-  const headers = { 'Content-Type': 'application/json' };
-  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
-
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ model, messages, stream: false })
-  });
-
-  if (!response.ok) {
-    throw new Error(`OLLAMA_CLOUD_${response.status}: ${await response.text()}`);
-  }
-
-  const data = await response.json();
-  return data.message?.content || data.response || '';
+async function runOllamaRemote(endpoint, apiKey, model, promptText, systemText, ledger = {}) {
+  return runOllamaCloudChat(endpoint, apiKey, model, promptText, systemText, ledger);
 }
 
 async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, systemText, extraBody, opts = {}) {
@@ -870,6 +869,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
     }
 
     let response;
+    const startedAt = Date.now();
     try {
       response = await fetch(`${endpoint}/chat/completions`, fetchOpts);
     } finally {
@@ -885,6 +885,19 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
         messages.pop(); // Remove last message if it was a tool attempt
         continue;
       }
+      await recordOffloadLedger({
+        lane: opts.lane,
+        traceId: opts.traceId,
+        provider: providerFromEndpoint(endpoint),
+        requestModel: model,
+        status: 'error',
+        measurement: { measurement_type: 'unobservable', accuracy_class: 'not_measurable' },
+        startedAt,
+        promptText,
+        systemText,
+        endpoint,
+        metadata: { http_status: response.status, iteration, error_hash: hashPayload(errText) },
+      });
       if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
       if (response.status === 429) throw new Error('RATE_LIMITED');
       throw new Error(`OPENAI_COMPAT_${response.status}: ${errText}`);
@@ -894,6 +907,27 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
     const message = data.choices?.[0]?.message;
 
     if (!message) throw new Error('No response from model');
+    await recordOffloadLedger({
+      lane: opts.lane,
+      traceId: opts.traceId,
+      provider: providerFromEndpoint(endpoint),
+      requestModel: model,
+      responseModel: data.model || model,
+      status: 'ok',
+      measurement: normalizeProviderUsage('openai-compatible', data.usage, {
+        input_tokens: estimateTokensFromText(messages.map((m) => m.content || '').join('\n')),
+        output_tokens: estimateTokensFromText(message.content || ''),
+      }),
+      startedAt,
+      promptText,
+      systemText,
+      endpoint,
+      metadata: {
+        iteration,
+        supports_tools: supportsTools,
+        tool_call_count: Array.isArray(message.tool_calls) ? message.tool_calls.length : 0,
+      },
+    });
 
     // Add assistant's response to conversation
     messages.push({ role: 'assistant', content: message.content || '' });
@@ -928,6 +962,59 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
   }
 
   throw new Error(`Loop exceeded max iterations (${maxIterations})`);
+}
+
+async function recordOffloadLedger({
+  lane,
+  traceId,
+  provider,
+  requestModel,
+  responseModel,
+  status,
+  measurement,
+  startedAt,
+  promptText,
+  systemText,
+  endpoint,
+  metadata = {},
+}) {
+  const safeMeasurement = measurement || { measurement_type: 'unobservable', accuracy_class: 'not_measurable' };
+  await recordTokenEvent({
+    trace_id: traceId,
+    source_path: 'Scripts/offload-runner.mjs',
+    lane,
+    provider,
+    request_model: requestModel,
+    response_model: responseModel || requestModel,
+    operation_type: 'model_call',
+    status,
+    ...safeMeasurement,
+    latency_ms: Date.now() - startedAt,
+    payload_hash: hashPayload({ prompt: promptText, system: systemText, model: requestModel, lane }),
+    metadata: {
+      prompt_chars: promptText?.length || 0,
+      system_chars: systemText?.length || 0,
+      endpoint_host: endpointHost(endpoint),
+      ...metadata,
+    },
+  });
+}
+
+function endpointHost(endpoint) {
+  try {
+    return new URL(endpoint).host;
+  } catch {
+    return '';
+  }
+}
+
+function providerFromEndpoint(endpoint) {
+  const host = endpointHost(endpoint);
+  if (host.includes('deepseek')) return 'deepseek';
+  if (host.includes('moonshot')) return 'moonshot';
+  if (host.includes('openrouter')) return 'openrouter';
+  if (host.includes('openai')) return 'openai-compatible';
+  return 'openai-compatible';
 }
 
 async function executeTool(name, argsStr) {

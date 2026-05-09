@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { postOllamaEmbedding } from './ollama-adapter.mjs';
 
 const require = createRequire(import.meta.url);
 const Database = require('../backend/node_modules/better-sqlite3');
@@ -134,31 +135,17 @@ function getMissingChunkIds(db, limit) {
 }
 
 async function postEmbedding(text, model, baseUrl) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
-  try {
-    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/embeddings`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, prompt: text }),
-      signal: controller.signal
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-    if (!Array.isArray(data?.embedding) || data.embedding.some((value) => typeof value !== 'number' || !Number.isFinite(value))) {
-      return null;
-    }
-
-    return data.embedding;
-  } catch {
+  const embedding = await postOllamaEmbedding({
+    text,
+    model,
+    baseUrl,
+    sourcePath: 'Scripts/embed-backfill.mjs',
+    operationType: 'embed_backfill_embedding'
+  });
+  if (!Array.isArray(embedding) || embedding.some((value) => typeof value !== 'number' || !Number.isFinite(value))) {
     return null;
-  } finally {
-    clearTimeout(timeout);
   }
+  return embedding;
 }
 
 async function probeModel(model, baseUrl) {

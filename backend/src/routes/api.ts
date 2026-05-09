@@ -36,6 +36,7 @@ import {
     buildPersonalitySystemPrompt
 } from '../services/personalityService';
 import { browserAutomation } from '../services/browserAutomation';
+import { ollamaProvider } from '../services/providers/ollamaProvider';
 import {
     getSessionImprovementSummary,
     recordSessionReview,
@@ -738,45 +739,17 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         try {
             const profile = getPersonalityProfile(db);
             const systemPrompt = buildPersonalitySystemPrompt(profile);
-            const ollamaBase = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-            const fetch = (await import('node-fetch')).default;
-            const upstream = await fetch(`${ollamaBase}/api/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: modelId,
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        { role: 'user', content: command }
-                    ],
-                    stream: true
-                }),
-                signal: (req as any).signal
+            const result = await ollamaProvider.streamChat({
+                model: modelId,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: command }],
+                runtime: 'local',
+                signal: (req as any).signal,
+                operationType: 'oracle_stream',
+                metadata: { route: '/oracle/stream' },
+                onToken: (token) => send('token', { token })
             });
-
-            if (!upstream.ok) throw new Error(`Ollama HTTP ${upstream.status}`);
-            if (!upstream.body) throw new Error('No response body');
-
-            let full = '';
-            for await (const chunk of upstream.body as any) {
-                const text = chunk.toString();
-                for (const line of text.split('\n').filter(Boolean)) {
-                    try {
-                        const parsed = JSON.parse(line);
-                        const token = parsed?.message?.content || '';
-                        if (token) {
-                            full += token;
-                            send('token', { token });
-                        }
-                        if (parsed?.done) {
-                            send('done', { content: full, model: modelId });
-                            res.end();
-                            return;
-                        }
-                    } catch (_) {}
-                }
-            }
-            send('done', { content: full, model: modelId });
+            send('done', { content: result.content, model: result.model || modelId });
         } catch (err: any) {
             const msg = err.message || '';
             const isOllamaDown = msg.includes('ECONNREFUSED') || msg.includes('ENOTFOUND') || /Ollama HTTP [45]/.test(msg);

@@ -2,12 +2,15 @@
 
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { dirname, resolve, join } from 'node:path';
 import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const contractPath = resolve(__dirname, 'offload-contract.mjs');
+const offloadRunnerPath = resolve(__dirname, 'offload-runner.mjs');
 
 function runContract(args) {
   return execFileSync(process.execPath, [contractPath, ...args], { encoding: 'utf8' }).trim();
@@ -25,6 +28,9 @@ assert.equal(contract.deepseekCodexQualityGate.authority.executor, 'Codex/main-s
 assert.equal(contract.deepseekCodexQualityGate.authority.modelOutput, 'advisory_only=true; local_truth_claim=false', 'DeepSeek output must remain advisory');
 assert.ok(contract.deepseekCodexQualityGate.discardWhenAny.includes('Contradicts deterministic local evidence.'), 'degradation guard missing');
 assert.ok(contract.deepseekCodexQualityGate.metrics.includes('accepted_findings'), 'quality metrics missing');
+assert.equal(contract.lanes.ollama.alias, '@ollama', 'additive Ollama lane metadata missing');
+assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local Ollama lane metadata missing');
+assert.equal(contract.lanes.ollamaCloud.alias, '@ollama-cloud', 'additive Ollama Cloud lane metadata missing');
 
 const yuriSelftest = execFileSync(
   process.execPath,
@@ -48,6 +54,11 @@ function autoPlan(prompt) {
 
 const cases = [
   {
+    prompt: 'run the Yuri sandbox improvement loop as a live test',
+    lane: 'codex-spark',
+    scenario: 'sandbox-improvement'
+  },
+  {
     prompt: 'implement a new auth flow',
     lane: 'code-local',
     scenario: 'code-change'
@@ -65,6 +76,16 @@ const cases = [
   {
     prompt: 'summarize these notes into a short brief',
     lane: 'summarize-local',
+    scenario: 'document-synthesis'
+  },
+  {
+    prompt: 'use ollama to summarize this private local note',
+    lane: 'ollama',
+    scenario: 'document-synthesis'
+  },
+  {
+    prompt: 'offline summarize this private local note',
+    lane: 'ollama-local',
     scenario: 'document-synthesis'
   }
 ];
@@ -126,8 +147,37 @@ assert.ok(Array.isArray(examples) && examples.length >= 5, 'embedded scenario ca
 assert.ok(examples.some((scenario) => scenario.id === 'code-change'), 'code-change example missing');
 assert.ok(examples.some((scenario) => scenario.id === 'protocol-change'), 'protocol-change example missing');
 assert.ok(examples.some((scenario) => scenario.id === 'high-stakes-review'), 'high-stakes-review example missing');
+const sandboxScenario = examples.find((scenario) => scenario.id === 'sandbox-improvement');
+assert.ok(sandboxScenario, 'sandbox-improvement example missing');
+assert.equal(sandboxScenario.defaultLane, 'codex-spark', 'sandbox-improvement should route to codex-spark');
+assert.ok(sandboxScenario.lifecycle.some((step) => /Self-probe/i.test(step)), 'sandbox lifecycle should include self-probe');
+assert.ok(sandboxScenario.lifecycle.some((step) => /Sanitize/i.test(step)), 'sandbox lifecycle should include sanitize');
+assert.ok(sandboxScenario.lifecycle.some((step) => /Promote-check/i.test(step)), 'sandbox lifecycle should include promote-check');
+assert.equal(contract.lanes.codexSpark.alias, '@codex-spark', 'codexSpark lane metadata missing');
 
 const swarmDefault = runContract(['swarm-default']);
 assert.equal(swarmDefault, 'deepseek-v4-pro-lite-budget,deepseek-v4-flash', 'shared swarm default changed unexpectedly');
+
+const manifestRoot = mkdtempSync(join(tmpdir(), 'ollama-lane-regression-'));
+try {
+  mkdirSync(join(manifestRoot, 'qwen2.5'), { recursive: true });
+  writeFileSync(join(manifestRoot, 'qwen2.5', '7b'), '{}');
+  const ollamaLocal = JSON.parse(execFileSync(
+    process.execPath,
+    [offloadRunnerPath, 'ollama-local', '--dry-run', 'private summary'],
+    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot } }
+  ));
+  assert.equal(ollamaLocal.kind, 'local', 'ollama-local should resolve as local');
+  assert.equal(ollamaLocal.model, 'qwen2.5:7b', 'ollama-local should pick installed local model');
+
+  const ollamaAuto = JSON.parse(execFileSync(
+    process.execPath,
+    [offloadRunnerPath, 'ollama', '--dry-run', 'private summary'],
+    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot } }
+  ));
+  assert.equal(ollamaAuto.resolvedVia, 'local', 'ollama auto lane should prefer local when available');
+} finally {
+  rmSync(manifestRoot, { recursive: true, force: true });
+}
 
 process.stdout.write('offload-contract-regression: pass\n');

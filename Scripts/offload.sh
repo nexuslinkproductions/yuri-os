@@ -17,7 +17,7 @@ API_KEY="nudimmud-master-key-2026-04-23"
 # When invoked from non-zsh contexts, hydrate lane API keys from ~/.zshrc if absent.
 # Only fires when a key is missing — zsh users see no overhead.
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OLLAMA_API_KEY OPENAI_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY OPENAI_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -74,6 +74,12 @@ list_models() {
   printf '  [%-30s] %s\n' "deepseek-reasoner" "compat alias -> deepseek-v4-flash (thinking)"
   printf '  [%-30s] %s\n' "deepseek-cloud" "compat alias -> deepseek-v4-pro"
   printf '  [%-30s] %s\n' "code-deepseek" "compat alias -> deepseek-v4-pro"
+
+  echo
+  echo "Additive Ollama lanes:"
+  printf '  [%-30s] %s\n' "ollama" "local-first utility lane, cloud fallback only if configured"
+  printf '  [%-30s] %s\n' "ollama-local" "local-only private utility lane"
+  printf '  [%-30s] %s\n' "ollama-cloud" "temporary Ollama Cloud fallback using OLLAMA_API_KEY"
 
   echo
   echo "OpenAI Responses lanes:"
@@ -199,7 +205,7 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_CODEX_RESPONSES..." >&2
         run_offload_runner "$target_model" "$prompt"
         ;;
-      triage-local|summarize-local|code-local|reason-cloud|code-cloud|ollama-cloud|nvidia-deepseek|gemma|gemma-local|gemma-cloud)
+      triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|reason-cloud|code-cloud|nvidia-deepseek|gemma|gemma-local|gemma-cloud)
         printf '%s\n' "⬡ ROUTING_TO_OFFLOAD_RUNNER..." >&2
         run_offload_runner "$target_model" "$prompt"
         ;;

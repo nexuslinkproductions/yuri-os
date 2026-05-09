@@ -60,6 +60,9 @@ Commands:
   auto [prompt]
       Automatically classify, dispatch, and execute through the shared contract.
 
+  sandbox [prompt]
+      Run the Yuri sandbox improvement loop live and write artifact-only reports.
+
   @kimi [prompt]
       Deprecated compatibility route to the Kimi cloud offload lane.
 
@@ -98,6 +101,15 @@ Commands:
 
   @code-local [prompt]
       Run the code-local lane (code-specialized local model, prefers qwen2.5-coder).
+
+  @ollama [prompt]
+      Run additive Ollama auto lane (local first, cloud fallback only if configured).
+
+  @ollama-local [prompt]
+      Run additive local Ollama utility lane for private, bounded low-risk work.
+
+  @ollama-cloud [prompt]
+      Run additive Ollama Cloud fallback lane using OLLAMA_API_KEY.
 
   @reason-kimi [prompt]
       Deprecated compatibility route for Kimi reasoning (cloud, thinking enabled).
@@ -147,6 +159,7 @@ Examples:
   ai route "offload swarm proceed"
   ai route-plan "fix the failing api test"
   ai auto "fix the failing api test"
+  ai sandbox "first Yuri sandbox operational proving run"
   ai @deepseek-workhorse "Summarize this branch"
   ai @swarm "Review the auth flow"
   ai triage "What should I change first?"
@@ -376,14 +389,21 @@ run_ruflo_route() {
 _fused_swarm_extract_evidence_bundle() {
   local _prompt_lower
   _prompt_lower="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
-  local _all_surfaces="rules vault archive workhorse graphify model-registry"
+  local _all_surfaces="rules vault archive workhorse graphify model-registry skills"
   local _found_surfaces=""
+  local _skill_focus=""
   local _surface
   for _surface in $_all_surfaces; do
     if printf '%s' "$_prompt_lower" | grep -Fq "$_surface"; then
       _found_surfaces="$_found_surfaces $_surface"
     fi
   done
+  if printf '%s' "$_prompt_lower" | grep -Eq 'probabil|uncertain|uncertainty|forecast|base rate|expected value|calibration|brier|risk|decision'; then
+    _skill_focus="probabilistic-decision-core"
+    if ! printf ' %s ' "$_found_surfaces" | grep -Fq ' skills '; then
+      _found_surfaces="$_found_surfaces skills"
+    fi
+  fi
   _found_surfaces="$(printf '%s' "$_found_surfaces" | xargs)"
   FUSED_SWARM_EVIDENCE_SURFACES="$_found_surfaces"
   if [ -z "$_found_surfaces" ]; then
@@ -403,6 +423,9 @@ _fused_swarm_extract_evidence_bundle() {
     if [ "$_line_count" -ge "$_total_max" ]; then
       _truncated=true
       break
+    fi
+    if [ "$_surface" = "skills" ]; then
+      continue
     fi
     _output="$(node Scripts/yuri-memory-map.mjs --surface "$_surface" 2>/dev/null || echo 'SURFACE_ERROR')"
     _bundle="${_bundle}surface=${_surface}"$'\n'
@@ -476,12 +499,18 @@ sys.stdout.write(body)
             _line_count=$(( _line_count + 1 ))
           done <<< "$_bod"
         fi
-      done <<< "$(printf '%s' "$_skill_json_list" | node -e "
+      done <<< "$(printf '%s' "$_skill_json_list" | YURI_SKILL_FOCUS="$_skill_focus" node -e "
         let d='';
         process.stdin.on('data',c=>d+=c);
         process.stdin.on('end',()=>{
           try{const j=JSON.parse(d);let total=0;const limit=15000;
-          for(const s of j.skills||[]){
+          const focus=process.env.YURI_SKILL_FOCUS||'';
+          const skills=[...(j.skills||[])].sort((a,b)=>{
+            if(a.name===focus) return -1;
+            if(b.name===focus) return 1;
+            return a.name.localeCompare(b.name);
+          });
+          for(const s of skills){
             let body=s.body||'';
             if(body.length+total>limit){body=body.slice(0,limit-total)+'... [truncated: total section limit]';}
             total+=body.length;
@@ -500,11 +529,15 @@ sys.stdout.write(body)
       fi
       FUSED_SWARM_SKILL_COUNT=$_skill_count
       FUSED_SWARM_SKILL_JSON_PRESENT=true
-      FUSED_SWARM_SKILL_JSON="$(printf '%s' "$_skill_json_list" | node -e "
+      FUSED_SWARM_SKILL_JSON="$(printf '%s' "$_skill_json_list" | YURI_SKILL_FOCUS="$_skill_focus" node -e "
         let d='';
         process.stdin.on('data',c=>d+=c);
         process.stdin.on('end',()=>{
-          try{const j=JSON.parse(d);const a=(j.skills||[]).map(s=>({name:s.name,source_type:s.source_type,source_path:s.source_path,hash:s.hash}));console.log(JSON.stringify(a))}
+          try{const j=JSON.parse(d);const focus=process.env.YURI_SKILL_FOCUS||'';const a=[...(j.skills||[])].sort((a,b)=>{
+            if(a.name===focus) return -1;
+            if(b.name===focus) return 1;
+            return a.name.localeCompare(b.name);
+          }).map(s=>({name:s.name,source_type:s.source_type,source_path:s.source_path,hash:s.hash}));console.log(JSON.stringify(a))}
           catch(e){console.log('[]')}
         })
       ")"
@@ -813,6 +846,12 @@ run_ruflo_swarm() {
     *gpt-oss*|*gptoss*)
       run_offload_lane gpt-oss "$prompt"
       ;;
+    *ollama*local*|*local*ollama*)
+      run_offload_lane ollama-local "$prompt"
+      ;;
+    *ollama*cloud*|*cloud*ollama*)
+      run_offload_lane ollama-cloud "$prompt"
+      ;;
     *ollama*)
       run_offload_lane ollama "$prompt"
       ;;
@@ -1052,6 +1091,14 @@ case "${1:-help}" in
       run_auto_route "$prompt"
     fi
     ;;
+  sandbox|sandbox-loop)
+    shift || true
+    prompt="$(join_prompt "$@")"
+    if [ -z "$prompt" ]; then
+      prompt="first Yuri sandbox operational proving run"
+    fi
+    exec node "$SCRIPT_DIR/yuri-sandbox-loop.mjs" --live --prompt "$prompt"
+    ;;
   route-plan|auto-plan|execution-plan)
     shift || true
     prompt="$(join_prompt "$@")"
@@ -1174,6 +1221,22 @@ case "${1:-help}" in
         fi
         run_codex_offload ollama "$@"
         ;;
+      ollama-local)
+        shift || true
+        if [ "$#" -eq 0 ]; then
+          usage
+          exit 1
+        fi
+        run_codex_offload ollama-local "$@"
+        ;;
+      ollama-cloud)
+        shift || true
+        if [ "$#" -eq 0 ]; then
+          usage
+          exit 1
+        fi
+        run_codex_offload ollama-cloud "$@"
+        ;;
       @swarm|swarm|triage)
         shift || true
         prompt="$(join_prompt "$@")"
@@ -1219,6 +1282,22 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane ollama "$@"
+    ;;
+  @ollama-local|ollama-local)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane ollama-local "$@"
+    ;;
+  @ollama-cloud|ollama-cloud)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane ollama-cloud "$@"
     ;;
   @deepseek|deepseek)
     shift || true

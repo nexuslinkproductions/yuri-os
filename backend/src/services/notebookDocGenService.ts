@@ -1,6 +1,6 @@
 import { NotebookService, DocType } from './notebookService';
+import { ollamaProvider } from './providers/ollamaProvider';
 
-const OLLAMA_BASE = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
 const MAX_CONTEXT_CHARS = 80_000;
 
 const TYPE_ICONS: Record<string, string> = { pdf: 'PDF', docx: 'DOCX', audio: 'Audio', video: 'Video', url: 'Web', obsidian: 'Vault Note' };
@@ -227,57 +227,21 @@ export class NotebookDocGenService {
         console.log(`⬡ NOTEBOOK_DOCGEN :: type=${docType} sources=${ctx.sourceCount} words=${ctx.totalWords} promptChars=${prompt.length}`);
 
         try {
-            const upstream = await fetch(`${OLLAMA_BASE}/api/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: modelId,
-                    messages: [
-                        {
-                            role: 'system',
-                            content: 'You are an expert research analyst. You produce thorough, citation-grounded documents. You cite every factual claim using [N] notation. You write in professional, clear prose. You never truncate output — you always complete the full document as requested.'
-                        },
-                        { role: 'user', content: prompt }
-                    ],
-                    stream: true,
-                    options: {
-                        num_ctx: 32768,
-                        temperature: 0.3
-                    }
-                }),
-                signal
+            const result = await ollamaProvider.streamChat({
+                model: modelId,
+                system: 'You are an expert research analyst. You produce thorough, citation-grounded documents. You cite every factual claim using [N] notation. You write in professional, clear prose. You never truncate output — you always complete the full document as requested.',
+                messages: [{ role: 'user', content: prompt }],
+                runtime: 'local',
+                signal,
+                options: {
+                    num_ctx: 32768,
+                    temperature: 0.3
+                },
+                operationType: 'notebook_doc_generate',
+                metadata: { doc_type: docType, source_count: ctx.sourceCount, source_words: ctx.totalWords },
+                onToken
             });
-
-            if (!upstream.ok) throw new Error(`Ollama HTTP ${upstream.status}: ${await upstream.text()}`);
-            if (!upstream.body) throw new Error('No response body');
-
-            let fullContent = '';
-            const reader = upstream.body.getReader();
-            const decoder = new TextDecoder();
-            let buf = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                buf += decoder.decode(value, { stream: true });
-                const lines = buf.split('\n');
-                buf = lines.pop() || '';
-                for (const line of lines) {
-                    if (!line.trim()) continue;
-                    try {
-                        const parsed = JSON.parse(line);
-                        const token = parsed?.message?.content || '';
-                        if (token) {
-                            fullContent += token;
-                            onToken(token);
-                        }
-                        if (parsed?.done) {
-                            buf = '';
-                            break;
-                        }
-                    } catch (_) {}
-                }
-            }
+            const fullContent = result.content;
 
             if (!fullContent.trim()) throw new Error('Model returned empty response — is Ollama running with the selected model?');
 

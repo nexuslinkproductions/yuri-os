@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import Database from 'better-sqlite3';
 import { anthropicProvider } from './providers/anthropicProvider';
 import { googleProvider } from './providers/googleProvider';
+import { ollamaProvider } from './providers/ollamaProvider';
 import { openaiProvider } from './providers/openaiProvider';
 import { tokenGovernor } from './tokenGovernor';
 import { vectorSearch } from './vectorSearchService';
@@ -148,7 +149,7 @@ export class NeuralForgeService {
     constructor() {
         this.ollamaHost = process.env.OLLAMA_HOST || 'http://localhost:11434';
         this.cloudEndpoint = process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com';
-        this.cloudApiKey = process.env.OLLAMA_CLOUD_API_KEY || '';
+        this.cloudApiKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '';
         this.kimiEndpoint = process.env.KIMI_BASE_URL || '';
         this.kimiApiKey = process.env.KIMI_API_KEY || '';
         this.gptOssEndpoint = process.env.GPT_OSS_BASE_URL || 'http://localhost:11434/v1';
@@ -179,23 +180,14 @@ export class NeuralForgeService {
             kimi: false
         };
 
-        try {
-            await this.axiosInstance.get(`${this.ollamaHost}/api/tags`, { timeout: 1500 });
-            status.local = true;
-        } catch (e: any) {
-            console.log(`⬡ NEURAL_FORGE :: LOCAL_OFFLINE (${e.message})`);
-        }
+        const localOllama = await ollamaProvider.health('local');
+        status.local = localOllama.ok;
+        if (!localOllama.ok) console.log(`⬡ NEURAL_FORGE :: LOCAL_OFFLINE (${localOllama.error})`);
 
-        try {
-            if (this.cloudApiKey) {
-                await this.axiosInstance.get(`${this.cloudEndpoint}/api/tags`, {
-                    headers: { 'Authorization': `Bearer ${this.cloudApiKey}` },
-                    timeout: 2000
-                });
-                status.cloud = true;
-            }
-        } catch (e: any) {
-            console.error(`⬡ NEURAL_FORGE :: CLOUD_OFFLINE (${e.message})`);
+        if (this.cloudApiKey) {
+            const cloudOllama = await ollamaProvider.health('cloud');
+            status.cloud = cloudOllama.ok;
+            if (!cloudOllama.ok) console.error(`⬡ NEURAL_FORGE :: CLOUD_OFFLINE (${cloudOllama.error})`);
         }
 
         status.anthropic = this.hasConfiguredKey('ANTHROPIC_API_KEY') && !tokenGovernor.isCoolingOff('anthropic');
@@ -215,7 +207,6 @@ export class NeuralForgeService {
         const start = Date.now();
         const isCloud = model.endsWith(':cloud');
         const allowCloud = options.allowCloud !== false;
-        const endpoint = isCloud ? this.cloudEndpoint.replace(/\/api$/, '') : this.ollamaHost;
         const actualModel = isCloud ? model.replace(':cloud', '') : model;
 
         if (isCloud && !allowCloud) {
@@ -223,19 +214,15 @@ export class NeuralForgeService {
             return null;
         }
 
-        const headers: Record<string, string> = {};
-        if (isCloud && this.cloudApiKey) {
-            headers['Authorization'] = `Bearer ${this.cloudApiKey}`;
-        }
-
         try {
-            const response = await axios.post(`${endpoint}/api/embeddings`, {
+            const embedding = await ollamaProvider.embedding({
                 model: actualModel,
-                prompt: text
-            }, { headers, timeout: 15000 });
-
+                prompt: text,
+                runtime: isCloud ? 'cloud' : 'local',
+                operationType: 'neural_forge_embedding'
+            });
             latencyTracker.record(Date.now() - start);
-            return response.data.embedding;
+            return embedding;
         } catch (e: any) {
             console.error(`⬡ NEURAL_FORGE_EMBEDDING_ERROR :: ${isCloud ? 'CLOUD' : 'LOCAL'} :: ${e.message}`);
             if (!isCloud && this.cloudApiKey && allowCloud) {
@@ -493,21 +480,20 @@ export class NeuralForgeService {
     ): Promise<NeuralChatResponse> {
         console.log(`⬡ NEURAL_FORGE :: ROUTING_TO_LOCAL :: ${ollamaModelName}`);
         const formattedMessages = messages.map(m => ({ role: m.role, content: m.content }));
-        if (finalSystemPrompt) {
-            formattedMessages.unshift({ role: 'system', content: finalSystemPrompt });
-        }
 
         const start = Date.now();
         const response = await this.withTimeout(
-            () => this.axiosInstance.post(`${this.ollamaHost}/api/chat`, {
+            () => ollamaProvider.chat({
                 model: ollamaModelName,
                 messages: formattedMessages,
+                system: finalSystemPrompt,
                 options: {
                     num_ctx: 4096,
                     num_predict: 320
                 },
-                stream: false
-            }, { timeout: LOCAL_CHAT_TIMEOUT_MS }),
+                runtime: 'local',
+                operationType: 'neural_forge_local_chat'
+            }),
             LOCAL_CHAT_TIMEOUT_MS,
             `OLLAMA_TIMEOUT_${ollamaModelName}`
         );
@@ -515,8 +501,9 @@ export class NeuralForgeService {
         latencyTracker.record(Date.now() - start);
 
         return this.buildResponse(
-            response.data.message?.content || response.data.response || '⬡ EMPTY_RESPONSE',
-            ollamaModelName
+            response.content || '⬡ EMPTY_RESPONSE',
+            response.model || ollamaModelName,
+            { usage: response.usage }
         );
     }
 
