@@ -1,0 +1,600 @@
+{
+  "videoId": "tQ6rQMW7vo8",
+  "title": "Apocalyptic AI",
+  "segments": [
+    {
+      "text": "It's the apocalypse. You only have two",
+      "duration": 4720,
+      "offset": 240,
+      "lang": "en"
+    },
+    {
+      "text": "laptops to choose from. One of them has",
+      "duration": 4239,
+      "offset": 2560,
+      "lang": "en"
+    },
+    {
+      "text": "Wikipedia on it. All of it. 30",
+      "duration": 3120,
+      "offset": 4960,
+      "lang": "en"
+    },
+    {
+      "text": "gigabytes, believe it or not. It's",
+      "duration": 3121,
+      "offset": 6799,
+      "lang": "en"
+    },
+    {
+      "text": "really not that much. But the other",
+      "duration": 5280,
+      "offset": 8080,
+      "lang": "en"
+    },
+    {
+      "text": "laptop has a local AI model trained on",
+      "duration": 5759,
+      "offset": 9920,
+      "lang": "en"
+    },
+    {
+      "text": "all the Wikipedia data. Now, I know it'd",
+      "duration": 3600,
+      "offset": 13360,
+      "lang": "en"
+    },
+    {
+      "text": "be better to have it trained on a lot",
+      "duration": 2801,
+      "offset": 15679,
+      "lang": "en"
+    },
+    {
+      "text": "more, but just stick with me for this",
+      "duration": 3440,
+      "offset": 16960,
+      "lang": "en"
+    },
+    {
+      "text": "flaw experiment. Which one do you",
+      "duration": 3760,
+      "offset": 18480,
+      "lang": "en"
+    },
+    {
+      "text": "choose? Now, I've told this and asked",
+      "duration": 3600,
+      "offset": 20400,
+      "lang": "en"
+    },
+    {
+      "text": "this of a lot of people and some even",
+      "duration": 3199,
+      "offset": 22240,
+      "lang": "en"
+    },
+    {
+      "text": "professors and some of them their",
+      "duration": 3039,
+      "offset": 24000,
+      "lang": "en"
+    },
+    {
+      "text": "immediate response is, \"Well, I couldn't",
+      "duration": 3920,
+      "offset": 25439,
+      "lang": "en"
+    },
+    {
+      "text": "do the AI one because that just costs so",
+      "duration": 4000,
+      "offset": 27039,
+      "lang": "en"
+    },
+    {
+      "text": "much energy and I know they use all this",
+      "duration": 4161,
+      "offset": 29359,
+      "lang": "en"
+    },
+    {
+      "text": "water and stuff to cool whatnot.\" But",
+      "duration": 5281,
+      "offset": 31039,
+      "lang": "en"
+    },
+    {
+      "text": "that's a misunderstanding. AI isn't what",
+      "duration": 5039,
+      "offset": 33520,
+      "lang": "en"
+    },
+    {
+      "text": "costs all the energy. It's the cloud",
+      "duration": 4640,
+      "offset": 36320,
+      "lang": "en"
+    },
+    {
+      "text": "servers, the data centers. In fact, Tik",
+      "duration": 4561,
+      "offset": 38559,
+      "lang": "en"
+    },
+    {
+      "text": "Tok, Facebook, this video being stored",
+      "duration": 4400,
+      "offset": 40960,
+      "lang": "en"
+    },
+    {
+      "text": "across things. Just normal Google search",
+      "duration": 3919,
+      "offset": 43120,
+      "lang": "en"
+    },
+    {
+      "text": "uses probably three to four times the",
+      "duration": 3760,
+      "offset": 45360,
+      "lang": "en"
+    },
+    {
+      "text": "amount of energy every year that AI does",
+      "duration": 3761,
+      "offset": 47039,
+      "lang": "en"
+    },
+    {
+      "text": "currently right now. And I get it.",
+      "duration": 3200,
+      "offset": 49120,
+      "lang": "en"
+    },
+    {
+      "text": "You're seeing all these articles. A uses",
+      "duration": 3360,
+      "offset": 50800,
+      "lang": "en"
+    },
+    {
+      "text": "so much water and a and and energy and",
+      "duration": 3680,
+      "offset": 52320,
+      "lang": "en"
+    },
+    {
+      "text": "whatnot. And it does come from truth.",
+      "duration": 4000,
+      "offset": 54160,
+      "lang": "en"
+    },
+    {
+      "text": "They are using a lot. And I'm not saying",
+      "duration": 3920,
+      "offset": 56000,
+      "lang": "en"
+    },
+    {
+      "text": "that we should be using all this. I'm",
+      "duration": 3840,
+      "offset": 58160,
+      "lang": "en"
+    },
+    {
+      "text": "just saying it's been the norm for a",
+      "duration": 4559,
+      "offset": 59920,
+      "lang": "en"
+    },
+    {
+      "text": "while. And in fact, AI would allow us to",
+      "duration": 5200,
+      "offset": 62000,
+      "lang": "en"
+    },
+    {
+      "text": "use less energy. Hear me out. This",
+      "duration": 4241,
+      "offset": 64479,
+      "lang": "en"
+    },
+    {
+      "text": "thought experiment of the apocalypse",
+      "duration": 4160,
+      "offset": 67200,
+      "lang": "en"
+    },
+    {
+      "text": "laptops will help you understand why.",
+      "duration": 5520,
+      "offset": 68720,
+      "lang": "en"
+    },
+    {
+      "text": "You see, if I asked myself a question in",
+      "duration": 5280,
+      "offset": 71360,
+      "lang": "en"
+    },
+    {
+      "text": "this apocalypse of, oh, how do I solve",
+      "duration": 5040,
+      "offset": 74240,
+      "lang": "en"
+    },
+    {
+      "text": "this issue of a rash I have or I got cut",
+      "duration": 4720,
+      "offset": 76640,
+      "lang": "en"
+    },
+    {
+      "text": "or I need to make a water filter, it",
+      "duration": 4240,
+      "offset": 79280,
+      "lang": "en"
+    },
+    {
+      "text": "would take me hours and lots of energy",
+      "duration": 4799,
+      "offset": 81360,
+      "lang": "en"
+    },
+    {
+      "text": "to scour through each of those Wikipedia",
+      "duration": 4400,
+      "offset": 83520,
+      "lang": "en"
+    },
+    {
+      "text": "articles to know which one, even if I'm",
+      "duration": 3600,
+      "offset": 86159,
+      "lang": "en"
+    },
+    {
+      "text": "using search functions, that still takes",
+      "duration": 3600,
+      "offset": 87920,
+      "lang": "en"
+    },
+    {
+      "text": "a while and the data might not be",
+      "duration": 4320,
+      "offset": 89759,
+      "lang": "en"
+    },
+    {
+      "text": "exactly what I need or bespoke to my",
+      "duration": 5599,
+      "offset": 91520,
+      "lang": "en"
+    },
+    {
+      "text": "situation. But if I make a chat on my",
+      "duration": 6641,
+      "offset": 94079,
+      "lang": "en"
+    },
+    {
+      "text": "laptop with a local AI model and ask it",
+      "duration": 5521,
+      "offset": 97119,
+      "lang": "en"
+    },
+    {
+      "text": "and tell it about my situation, it'll",
+      "duration": 4000,
+      "offset": 100720,
+      "lang": "en"
+    },
+    {
+      "text": "give me an answer in seconds, sometimes",
+      "duration": 4080,
+      "offset": 102640,
+      "lang": "en"
+    },
+    {
+      "text": "minutes if you have a slow computer. But",
+      "duration": 3679,
+      "offset": 104720,
+      "lang": "en"
+    },
+    {
+      "text": "still, the amount of time and the",
+      "duration": 4960,
+      "offset": 106720,
+      "lang": "en"
+    },
+    {
+      "text": "answers you get are far faster and use",
+      "duration": 5521,
+      "offset": 108399,
+      "lang": "en"
+    },
+    {
+      "text": "less energy. And that's the idea here.",
+      "duration": 4560,
+      "offset": 111680,
+      "lang": "en"
+    },
+    {
+      "text": "Why do we need all this data centers and",
+      "duration": 3760,
+      "offset": 113920,
+      "lang": "en"
+    },
+    {
+      "text": "Google and information? Why are we",
+      "duration": 3680,
+      "offset": 116240,
+      "lang": "en"
+    },
+    {
+      "text": "trying to access it? Well, to get an",
+      "duration": 4479,
+      "offset": 117680,
+      "lang": "en"
+    },
+    {
+      "text": "answer. And we're making answers",
+      "duration": 5199,
+      "offset": 119920,
+      "lang": "en"
+    },
+    {
+      "text": "cheaper. It's faster. It's less energy",
+      "duration": 4721,
+      "offset": 122159,
+      "lang": "en"
+    },
+    {
+      "text": "to find them. And I know that sounds",
+      "duration": 3601,
+      "offset": 125119,
+      "lang": "en"
+    },
+    {
+      "text": "wild. I've done all the numbers. I",
+      "duration": 3439,
+      "offset": 126880,
+      "lang": "en"
+    },
+    {
+      "text": "crunched the math. I have published",
+      "duration": 3120,
+      "offset": 128720,
+      "lang": "en"
+    },
+    {
+      "text": "articles if you want to go read them.",
+      "duration": 2881,
+      "offset": 130319,
+      "lang": "en"
+    },
+    {
+      "text": "Some of them are just short on my",
+      "duration": 3360,
+      "offset": 131840,
+      "lang": "en"
+    },
+    {
+      "text": "Substack that talk about this",
+      "duration": 3920,
+      "offset": 133200,
+      "lang": "en"
+    },
+    {
+      "text": "specifically. But believe it or not, the",
+      "duration": 4399,
+      "offset": 135200,
+      "lang": "en"
+    },
+    {
+      "text": "AI will find the answer much faster in a",
+      "duration": 4560,
+      "offset": 137120,
+      "lang": "en"
+    },
+    {
+      "text": "matter of seconds and would use way less",
+      "duration": 3441,
+      "offset": 139599,
+      "lang": "en"
+    },
+    {
+      "text": "energy. Now, I know you're thinking,",
+      "duration": 3360,
+      "offset": 141680,
+      "lang": "en"
+    },
+    {
+      "text": "\"Oh, well, what if it's inaccurate?\" I",
+      "duration": 4160,
+      "offset": 143040,
+      "lang": "en"
+    },
+    {
+      "text": "promise you, if I spent 4 hours looking",
+      "duration": 3680,
+      "offset": 145040,
+      "lang": "en"
+    },
+    {
+      "text": "for an answer through hundreds of",
+      "duration": 3759,
+      "offset": 147200,
+      "lang": "en"
+    },
+    {
+      "text": "Wikipedia articles, I'd probably have",
+      "duration": 4320,
+      "offset": 148720,
+      "lang": "en"
+    },
+    {
+      "text": "some pretty inaccurate information for",
+      "duration": 4401,
+      "offset": 150959,
+      "lang": "en"
+    },
+    {
+      "text": "you. It would be close, but it wouldn't",
+      "duration": 4880,
+      "offset": 153040,
+      "lang": "en"
+    },
+    {
+      "text": "be nearly even close to as good,",
+      "duration": 4800,
+      "offset": 155360,
+      "lang": "en"
+    },
+    {
+      "text": "especially if it was a concept or a",
+      "duration": 4560,
+      "offset": 157920,
+      "lang": "en"
+    },
+    {
+      "text": "field that I was unaware of or not well",
+      "duration": 4320,
+      "offset": 160160,
+      "lang": "en"
+    },
+    {
+      "text": "knowledgeable of compared to the AI",
+      "duration": 4240,
+      "offset": 162480,
+      "lang": "en"
+    },
+    {
+      "text": "would give me. The AI will be far more",
+      "duration": 3839,
+      "offset": 164480,
+      "lang": "en"
+    },
+    {
+      "text": "accurate. That's the thing is we're",
+      "duration": 3280,
+      "offset": 166720,
+      "lang": "en"
+    },
+    {
+      "text": "comparing it to perfection rather than",
+      "duration": 3601,
+      "offset": 168319,
+      "lang": "en"
+    },
+    {
+      "text": "comparing it to ourselves. And at the",
+      "duration": 4560,
+      "offset": 170000,
+      "lang": "en"
+    },
+    {
+      "text": "end of the day day, AI isn't using all",
+      "duration": 5039,
+      "offset": 171920,
+      "lang": "en"
+    },
+    {
+      "text": "this energy. It's us. We're the ones",
+      "duration": 4399,
+      "offset": 174560,
+      "lang": "en"
+    },
+    {
+      "text": "that are using it all. We should be the",
+      "duration": 4081,
+      "offset": 176959,
+      "lang": "en"
+    },
+    {
+      "text": "ones to blame. We're making a scapegoat",
+      "duration": 3681,
+      "offset": 178959,
+      "lang": "en"
+    },
+    {
+      "text": "out of something other than ourselves,",
+      "duration": 3440,
+      "offset": 181040,
+      "lang": "en"
+    },
+    {
+      "text": "which is, you know, something we do",
+      "duration": 3519,
+      "offset": 182640,
+      "lang": "en"
+    },
+    {
+      "text": "throughout history with technology. And",
+      "duration": 3520,
+      "offset": 184480,
+      "lang": "en"
+    },
+    {
+      "text": "this is no different. But I really want",
+      "duration": 3360,
+      "offset": 186159,
+      "lang": "en"
+    },
+    {
+      "text": "you all to think about this thought",
+      "duration": 3519,
+      "offset": 188000,
+      "lang": "en"
+    },
+    {
+      "text": "experiment. And again, go go read more.",
+      "duration": 3440,
+      "offset": 189519,
+      "lang": "en"
+    },
+    {
+      "text": "There should be a link in the bottom",
+      "duration": 3281,
+      "offset": 191519,
+      "lang": "en"
+    },
+    {
+      "text": "here or in my bio. We'll see depending",
+      "duration": 4000,
+      "offset": 192959,
+      "lang": "en"
+    },
+    {
+      "text": "on where you see this. Uh there should",
+      "duration": 4480,
+      "offset": 194800,
+      "lang": "en"
+    },
+    {
+      "text": "be something for you to access. Uh but",
+      "duration": 4000,
+      "offset": 196959,
+      "lang": "en"
+    },
+    {
+      "text": "it's this thought experiment of the",
+      "duration": 3840,
+      "offset": 199280,
+      "lang": "en"
+    },
+    {
+      "text": "apocalypse laptops. Tell me what you",
+      "duration": 4481,
+      "offset": 200959,
+      "lang": "en"
+    },
+    {
+      "text": "think below.",
+      "duration": 2320,
+      "offset": 203120,
+      "lang": "en"
+    }
+  ]
+}

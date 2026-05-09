@@ -1,7 +1,301 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-04-25T01:44:45.107Z",
+  "lastUpdated": "2026-05-07T03:18:28.031Z",
   "entries": [
+    {
+      "date": "2026-05-07",
+      "component": "Navigation",
+      "file": "src/components/Navigation.tsx",
+      "action": "edit",
+      "decision": "Updated: Navigation"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "Footer",
+      "file": "src/components/Footer.tsx",
+      "action": "edit",
+      "decision": "Updated: Footer"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "HeroSection",
+      "file": "src/components/HeroSection.tsx",
+      "action": "edit",
+      "decision": "Updated: HeroSection"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "AnimatedCounter",
+      "file": "src/components/ui/AnimatedCounter.tsx",
+      "action": "create",
+      "decision": "New component created: AnimatedCounter"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "ServicesPage",
+      "file": "src/pages/ServicesPage.tsx",
+      "action": "edit",
+      "decision": "Updated: ServicesPage"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "ParticleCanvas",
+      "file": "src/components/ParticleCanvas.tsx",
+      "action": "edit",
+      "decision": "Updated: ParticleCanvas"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "tokens",
+      "file": "src/styles/tokens.css",
+      "action": "edit",
+      "decision": "Updated: tokens"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "App",
+      "file": "src/App.tsx",
+      "action": "edit",
+      "decision": "Updated: App"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "LightCursor",
+      "file": "src/components/ui/LightCursor.tsx",
+      "action": "edit",
+      "decision": "Updated: LightCursor"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "HomePage",
+      "file": "src/pages/HomePage.tsx",
+      "action": "edit",
+      "decision": "Updated: HomePage"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "global",
+      "file": "src/styles/global.css",
+      "action": "edit",
+      "decision": "Updated: global"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "LogoAtmosphere",
+      "file": "src/components/ui/LogoAtmosphere.tsx",
+      "action": "edit",
+      "decision": "Updated: LogoAtmosphere"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "AboutPage",
+      "file": "src/pages/AboutPage.tsx",
+      "action": "create",
+      "decision": "New component created: AboutPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "LightCursor",
+      "file": "src/components/ui/LightCursor.tsx",
+      "action": "edit",
+      "decision": "Updated: LightCursor"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "App",
+      "file": "src/App.tsx",
+      "action": "create",
+      "decision": "New component created: App"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "HeroSection",
+      "file": "src/components/HeroSection.tsx",
+      "action": "edit",
+      "decision": "Updated: HeroSection"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "CelticBackground",
+      "file": "src/components/ui/CelticBackground.tsx",
+      "action": "create",
+      "decision": "New component created: CelticBackground"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "LightCursor",
+      "file": "src/components/ui/LightCursor.tsx",
+      "action": "create",
+      "decision": "New component created: LightCursor"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "index",
+      "file": "index.html",
+      "action": "edit",
+      "decision": "Updated: index"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "WorkPage",
+      "file": "src/pages/WorkPage.tsx",
+      "action": "edit",
+      "decision": "Updated: WorkPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "tokens",
+      "file": "src/styles/tokens.css",
+      "action": "edit",
+      "decision": "Updated: tokens"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "CTABanner",
+      "file": "src/components/CTABanner.tsx",
+      "action": "create",
+      "decision": "New component created: CTABanner"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "ContactPage",
+      "file": "src/pages/ContactPage.tsx",
+      "action": "create",
+      "decision": "New component created: ContactPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "ServicesPage",
+      "file": "src/pages/ServicesPage.tsx",
+      "action": "edit",
+      "decision": "Updated: ServicesPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "HomePage",
+      "file": "src/pages/HomePage.tsx",
+      "action": "edit",
+      "decision": "Updated: HomePage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "Navigation",
+      "file": "src/components/Navigation.tsx",
+      "action": "edit",
+      "decision": "Updated: Navigation"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "global",
+      "file": "src/styles/global.css",
+      "action": "edit",
+      "decision": "Updated: global"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "App",
+      "file": "src/App.tsx",
+      "action": "edit",
+      "decision": "Updated: App"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "HomePage",
+      "file": "src/pages/HomePage.tsx",
+      "action": "create",
+      "decision": "New component created: HomePage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "ServicesPage",
+      "file": "src/pages/ServicesPage.tsx",
+      "action": "create",
+      "decision": "New component created: ServicesPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "WorkPage",
+      "file": "src/pages/WorkPage.tsx",
+      "action": "create",
+      "decision": "New component created: WorkPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "HeroSection",
+      "file": "src/components/HeroSection.tsx",
+      "action": "create",
+      "decision": "New component created: HeroSection"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "tokens",
+      "file": "src/styles/tokens.css",
+      "action": "create",
+      "decision": "New component created: tokens"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "MagneticCursor",
+      "file": "src/components/ui/MagneticCursor.tsx",
+      "action": "create",
+      "decision": "New component created: MagneticCursor"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "ServicesPage",
+      "file": "src/pages/ServicesPage.tsx",
+      "action": "edit",
+      "decision": "Updated: ServicesPage"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "WorkPage",
+      "file": "src/pages/WorkPage.tsx",
+      "action": "edit",
+      "decision": "Updated: WorkPage"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "AboutPage",
+      "file": "src/pages/AboutPage.tsx",
+      "action": "create",
+      "decision": "New component created: AboutPage"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "ContactPage",
+      "file": "src/pages/ContactPage.tsx",
+      "action": "edit",
+      "decision": "Updated: ContactPage"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "AboutPage",
+      "file": "src/pages/AboutPage.tsx",
+      "action": "edit",
+      "decision": "Updated: AboutPage"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "Button",
+      "file": "src/components/ui/Button.tsx",
+      "action": "edit",
+      "decision": "Updated: Button"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "MobileMenuDrawer",
+      "file": "src/components/MobileMenuDrawer.tsx",
+      "action": "edit",
+      "decision": "Updated: MobileMenuDrawer"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "Navigation",
+      "file": "src/components/Navigation.tsx",
+      "action": "edit",
+      "decision": "Updated: Navigation"
+    },
     {
       "date": "2026-04-25",
       "component": "OraclePage",

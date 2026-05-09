@@ -1,0 +1,12 @@
+{
+  "id": "5",
+  "subject": "Implement session memory feedback loop (Phase 3)",
+  "description": "Automate session-capture → extract DRIFT/INSIGHT/DELTA/PATTERN → write to memories table → retrieve + rank by recency/relevance → inject as session synthesis at session start.",
+  "activeForm": "Automating session memory feedback loop",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": [
+    "1",
+    "4"
+  ]
+}

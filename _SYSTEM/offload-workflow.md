@@ -100,6 +100,27 @@ openclaw mcp set offload '{"url":"http://127.0.0.1:8081/mcp","transport":"stream
 **Via:** Comet browser + Perplexity UI
 **Data Flow:** Comet visual → extraction → LLM response
 
+### OpenClaw Browser Handoff
+
+OpenClaw stays the router. Real Chrome work belongs to the browser worker.
+
+**Preferred path:**
+- OpenClaw receives the task.
+- OpenClaw hands browser tasks to the worker.
+- Worker launches headed Chrome with Playwright `channel: 'chrome'`.
+- Worker keeps the browser session persistent across tasks.
+- Worker returns findings to OpenClaw, which writes the result to `memory.db`.
+
+**Use this for:**
+- Authenticated web sessions
+- Visible browser debugging
+- Screenshot-driven inspection
+- Form filling and manual takeover
+
+**Fallback:**
+- Direct CDP attach only if the task must reuse an already-running Chrome instance.
+- Fetch/curl only if the page is public and does not need browser state.
+
 ---
 
 ## Task State Tracking

@@ -1,0 +1,52 @@
+Files NUDIMMUD/00_COMMAND-CENTER/.DS_Store and ./00_COMMAND-CENTER/.DS_Store differ
+Files NUDIMMUD/00_COMMAND-CENTER/Dashboards/Active-Projects.md and ./00_COMMAND-CENTER/Dashboards/Active-Projects.md differ
+Files NUDIMMUD/00_COMMAND-CENTER/HOME.md and ./00_COMMAND-CENTER/HOME.md differ
+Files NUDIMMUD/01_PROJECTS/.DS_Store and ./01_PROJECTS/.DS_Store differ
+Files NUDIMMUD/01_PROJECTS/CLAUDE.md and ./01_PROJECTS/CLAUDE.md differ
+Files NUDIMMUD/01_PROJECTS/MOC-Projects.md and ./01_PROJECTS/MOC-Projects.md differ
+Files NUDIMMUD/01_PROJECTS/NEXUS-LINK-LANDING/README.md and ./01_PROJECTS/NEXUS-LINK-LANDING/README.md differ
+Files NUDIMMUD/01_PROJECTS/claude-mem/CLAUDE.md and ./01_PROJECTS/claude-mem/CLAUDE.md differ
+Files NUDIMMUD/01_PROJECTS/claude-mem/README.md and ./01_PROJECTS/claude-mem/README.md differ
+Files NUDIMMUD/01_PROJECTS/claude-mem/plugin/skills/mem-search/SKILL.md and ./01_PROJECTS/claude-mem/plugin/skills/mem-search/SKILL.md differ
+Files NUDIMMUD/01_PROJECTS/gstack/SKILL.md and ./01_PROJECTS/gstack/SKILL.md differ
+Files NUDIMMUD/01_PROJECTS/gstack/browse/SKILL.md and ./01_PROJECTS/gstack/browse/SKILL.md differ
+Files NUDIMMUD/01_PROJECTS/gstack/docs/skills.md and ./01_PROJECTS/gstack/docs/skills.md differ
+Files NUDIMMUD/01_PROJECTS/gstack/health/SKILL.md and ./01_PROJECTS/gstack/health/SKILL.md differ
+Files NUDIMMUD/01_PROJECTS/superpowers/skills/verification-before-completion/SKILL.md and ./01_PROJECTS/superpowers/skills/verification-before-completion/SKILL.md differ
+Files NUDIMMUD/02_AREAS/.DS_Store and ./02_AREAS/.DS_Store differ
+Files NUDIMMUD/03_RESOURCES/CLAUDE.md and ./03_RESOURCES/CLAUDE.md differ
+Files NUDIMMUD/04_FINANCE/.DS_Store and ./04_FINANCE/.DS_Store differ
+Files NUDIMMUD/05_NEXUS-LINK/.DS_Store and ./05_NEXUS-LINK/.DS_Store differ
+Files NUDIMMUD/06_KNOWLEDGE-BASE/REPORT.md and ./06_KNOWLEDGE-BASE/REPORT.md differ
+Files NUDIMMUD/06_NETWORK-SYNC/.DS_Store and ./06_NETWORK-SYNC/.DS_Store differ
+Files NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/06 - Processes/Sales Process.md and ./06_NETWORK-SYNC/C2MOVIEZ/Database/06 - Processes/Sales Process.md differ
+Files NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/07 - Resources/Offering Packages.md and ./06_NETWORK-SYNC/C2MOVIEZ/Database/07 - Resources/Offering Packages.md differ
+Files NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/Home.md and ./06_NETWORK-SYNC/C2MOVIEZ/Database/Home.md differ
+Files NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/SETUP-GUIDE.md and ./06_NETWORK-SYNC/C2MOVIEZ/SETUP-GUIDE.md differ
+Files NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/_MAPPING.md and ./06_NETWORK-SYNC/C2MOVIEZ/_MAPPING.md differ
+Files NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/_SYNC-STATUS.md and ./06_NETWORK-SYNC/C2MOVIEZ/_SYNC-STATUS.md differ
+Files NUDIMMUD/AEONIC_PROTOCOL.md and ./AEONIC_PROTOCOL.md differ
+Files NUDIMMUD/AGENTS.md and ./AGENTS.md differ
+Files NUDIMMUD/CLAUDE.md and ./CLAUDE.md differ
+Files NUDIMMUD/CODEX_PROTOCOL.md and ./CODEX_PROTOCOL.md differ
+Files NUDIMMUD/NABU/.DS_Store and ./NABU/.DS_Store differ
+Files NUDIMMUD/NABU/README.md and ./NABU/README.md differ
+Files NUDIMMUD/NEURAL-NETWORK/.DS_Store and ./NEURAL-NETWORK/.DS_Store differ
+Files NUDIMMUD/NISABA/.DS_Store and ./NISABA/.DS_Store differ
+Files NUDIMMUD/README.md and ./README.md differ
+Files NUDIMMUD/STRUCTURE.md and ./STRUCTURE.md differ
+Files NUDIMMUD/_SYSTEM/.DS_Store and ./_SYSTEM/.DS_Store differ
+Files NUDIMMUD/_SYSTEM/SELF/Instructions.md and ./_SYSTEM/SELF/Instructions.md differ
+Files NUDIMMUD/_SYSTEM/token-regulation-policy.md and ./_SYSTEM/token-regulation-policy.md differ
+Files NUDIMMUD/_SYSTEM/token-tracker.md and ./_SYSTEM/token-tracker.md differ
+Files NUDIMMUD/backend/.DS_Store and ./backend/.DS_Store differ
+Files NUDIMMUD/enki_state.md and ./enki_state.md differ
+Files NUDIMMUD/graph/GStack (Garry Tan Dev Stack).md and ./graph/GStack (Garry Tan Dev Stack).md differ
+Files NUDIMMUD/graph/Superpowers (Composable Skills Framework).md and ./graph/Superpowers (Composable Skills Framework).md differ
+Files NUDIMMUD/graph/_COMMUNITY_NUDIMMUD.md and ./graph/_COMMUNITY_NUDIMMUD.md differ
+Files NUDIMMUD/graphify-out/GRAPH_REPORT.md and ./graphify-out/GRAPH_REPORT.md differ
+Files NUDIMMUD/iC2M/.DS_Store and ./iC2M/.DS_Store differ
+Files NUDIMMUD/iC2M/06 - Processes/Sales Process.md and ./iC2M/06 - Processes/Sales Process.md differ
+Files NUDIMMUD/iC2M/07 - Resources/Offering Packages.md and ./iC2M/07 - Resources/Offering Packages.md differ
+Files NUDIMMUD/iC2M/Home.md and ./iC2M/Home.md differ
+Files NUDIMMUD/session_log.md and ./session_log.md differ

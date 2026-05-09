@@ -1,8 +1,23 @@
 {
-  "version": "2026-05-03.readonly.v1",
+  "version": "2026-05-05.scoped-mutation.v1",
   "repo_root": "/Users/marcelspatz/NUDIMMUD",
-  "mode": "readonly_read_search_check",
-  "allowed_files": [
+  "mode": "scoped_mutation_default",
+  "allowed_mutation_paths": [
+    ".claude/trading-bot/**",
+    ".claude/trading-bot-logs/**"
+  ],
+  "denied_mutation_paths": [
+    ".env",
+    ".git",
+    "backend/data",
+    ".claude/history",
+    ".claude/state",
+    ".claude/cache",
+    "node_modules",
+    "package.json",
+    "package-lock.json"
+  ],
+  "allowed_files_read": [
     "Scripts/ai",
     "Scripts/offload.sh",
     "Scripts/offload-runner.mjs",
@@ -11,13 +26,22 @@
     "Scripts/policy/yuri-guarded-executor.readonly.json",
     ".claude/rules/nudimmud_operating_dna.md",
     ".claude/rules/research_pipeline.md",
+    ".claude/rules/local_execution.md",
     "_SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md",
     "_SYSTEM/model-registry.md",
     ".claude/config/models.json",
     "package.json"
   ],
-  "allow_full_small_file_paths": [
-    "package.json"
+  "allowed_write_extensions": [
+    ".md",
+    ".json",
+    ".jsonl",
+    ".js",
+    ".mjs",
+    ".ts",
+    ".yaml",
+    ".yml",
+    ".csv"
   ],
   "denied_path_markers": [
     ".env",
@@ -63,6 +87,25 @@
     "GREP_Q_MARKER",
     "WC_L_FILE"
   ],
+  "allowed_actions": [
+    "CREATE_FILE",
+    "WRITE_FILE",
+    "CREATE_DIRECTORY",
+    "READ_FILE",
+    "RUN_SCOPED_COMMAND",
+    "VALIDATE_STRUCTURE"
+  ],
+  "denied_actions": [
+    "DELETE_FILE",
+    "DELETE_DIRECTORY",
+    "MODIFY_GIT",
+    "COMMIT",
+    "PUSH",
+    "READ_SECRET",
+    "READ_DB",
+    "MCP_CALL",
+    "SUBAGENT_CALL"
+  ],
   "caps": {
     "read_window_lines": 80,
     "aggregate_read_lines": 320,
@@ -70,6 +113,8 @@
     "search_matches_per_action": 12,
     "search_context_lines_max": 1,
     "command_output_chars": 400,
-    "summary_items": 12
+    "summary_items": 12,
+    "max_file_size_bytes": 102400,
+    "max_files_per_action": 10
   }
 }

@@ -3,13 +3,41 @@
  * Produces a structured routing decision for local-first inference.
  */
 
-export type NeuralTaskIntent = 'ops' | 'retrieval' | 'coding' | 'review' | 'strategy' | 'orchestration';
+declare const require: any;
+declare const __dirname: string;
+
+const fs = require('fs');
+const path = require('path');
+
+export type BridgeTaskIntent =
+    'code_edit_small'
+    | 'code_edit_large'
+    | 'research_repo'
+    | 'summarization'
+    | 'extraction'
+    | 'architecture_review'
+    | 'audit_security'
+    | 'custom';
+export type NeuralTaskIntent = 'ops' | 'retrieval' | 'coding' | 'review' | 'strategy' | 'orchestration' | BridgeTaskIntent;
 export type QueryComplexity = 'cheap' | 'balanced' | 'deep';
 export type QueryRisk = 'low' | 'medium' | 'high';
 export type PreferredRuntime = 'local' | 'cloud' | 'hybrid';
 export type CompressionMode = 'off' | 'safe' | 'aggressive';
 export type ReasoningBudget = 'cheap' | 'balanced' | 'deep';
 export type RetrievalProfile = 'NUDIMMUD_SYSTEM' | 'IC2M_OPERATIONS' | 'CROSS_VAULT_SYNTHESIS';
+
+interface RouterPolicyTask {
+    lane: string;
+    fallback?: string;
+    max_files?: number;
+}
+
+interface RouterPolicy {
+    tasks?: Partial<Record<BridgeTaskIntent, RouterPolicyTask>>;
+}
+
+const ROUTER_POLICY_PATH = path.resolve(__dirname, '../../../Scripts/router-policy.json');
+const ROUTER_POLICY = loadRouterPolicy();
 
 export interface RoutingRequestOptions {
     modelId?: string;
@@ -40,6 +68,8 @@ export interface RoutingDecision {
     compressionMode: CompressionMode;
     reasoningBudget: ReasoningBudget;
     retrievalProfile: RetrievalProfile;
+    policySource?: string;
+    maxFiles?: number;
 }
 
 export class SmartRouter {
@@ -48,15 +78,20 @@ export class SmartRouter {
         const queryLower = normalizedQuery.toLowerCase();
 
         const intent = options.intent || this.detectIntent(queryLower);
+        const policyRoute = this.getPolicyRoute(intent);
         const complexity = this.detectComplexity(normalizedQuery, queryLower, intent);
         const risk = this.detectRisk(queryLower, intent);
         const providerStatus = options.providerStatus;
-        const preferredRuntime = this.detectRuntime(intent, complexity, risk, options, providerStatus);
+        const preferredRuntime = policyRoute
+            ? this.runtimeForLane(policyRoute.lane)
+            : this.detectRuntime(intent, complexity, risk, options, providerStatus);
         const reasoningBudget = options.reasoningBudget || complexity;
         const retrievalProfile = options.retrievalProfile || this.detectRetrievalProfile(queryLower, intent);
         const compressionMode = this.detectCompressionMode(options.compressionMode, preferredRuntime, risk);
-        const preferredModel = options.modelId || this.detectPreferredModel(intent, preferredRuntime, complexity, providerStatus);
-        const fallbackChain = this.buildFallbackChain(preferredModel, intent, preferredRuntime, complexity, options, providerStatus);
+        const preferredModel = options.modelId || policyRoute?.lane || this.detectPreferredModel(intent, preferredRuntime, complexity, providerStatus);
+        const fallbackChain = policyRoute
+            ? this.buildPolicyFallbackChain(preferredModel, policyRoute)
+            : this.buildFallbackChain(preferredModel, intent, preferredRuntime, complexity, options, providerStatus);
 
         console.log(
             `⬡ SMART_ROUTER :: intent=${intent} complexity=${complexity} risk=${risk} runtime=${preferredRuntime} model=${preferredModel}`
@@ -71,11 +106,32 @@ export class SmartRouter {
             fallbackChain,
             compressionMode,
             reasoningBudget,
-            retrievalProfile
+            retrievalProfile,
+            ...(policyRoute ? { policySource: 'Scripts/router-policy.json', maxFiles: policyRoute.max_files } : {})
         };
     }
 
     private static detectIntent(queryLower: string): NeuralTaskIntent {
+        if (this.hasAny(queryLower, ['audit security', 'security audit', 'vulnerability review'])) {
+            return 'audit_security';
+        }
+
+        if (this.hasAny(queryLower, ['architecture review', 'architecture audit', 'system design review'])) {
+            return 'architecture_review';
+        }
+
+        if (this.hasAny(queryLower, ['summarize', 'summary', 'condense'])) {
+            return 'summarization';
+        }
+
+        if (this.hasAny(queryLower, ['extract', 'extraction', 'pull fields', 'parse fields'])) {
+            return 'extraction';
+        }
+
+        if (this.hasAny(queryLower, ['repo research', 'codebase research', 'scan repository', 'multi-file scan'])) {
+            return 'research_repo';
+        }
+
         if (queryLower.startsWith('btw') || queryLower.startsWith('/btw')) {
             return 'orchestration';
         }
@@ -124,6 +180,10 @@ export class SmartRouter {
         const longInput = query.length > 1400;
         const mediumInput = query.length > 450;
 
+        if (intent === 'code_edit_small' || intent === 'summarization' || intent === 'extraction') return 'cheap';
+        if (intent === 'code_edit_large' || intent === 'research_repo') return 'balanced';
+        if (intent === 'architecture_review' || intent === 'audit_security') return 'deep';
+
         if (
             longInput ||
             this.hasAny(queryLower, [
@@ -147,6 +207,10 @@ export class SmartRouter {
     }
 
     private static detectRisk(queryLower: string, intent: NeuralTaskIntent): QueryRisk {
+        if (intent === 'audit_security') return 'high';
+        if (intent === 'code_edit_large' || intent === 'architecture_review') return 'medium';
+        if (intent === 'code_edit_small' || intent === 'research_repo' || intent === 'summarization' || intent === 'extraction') return 'low';
+
         if (
             intent === 'review' ||
             this.hasAny(queryLower, [
@@ -288,6 +352,23 @@ export class SmartRouter {
         return [...new Set(ordered)];
     }
 
+    private static getPolicyRoute(intent: NeuralTaskIntent): RouterPolicyTask | undefined {
+        if (!isBridgeTaskIntent(intent)) return undefined;
+        if (intent === 'custom') return undefined;
+        return ROUTER_POLICY.tasks?.[intent];
+    }
+
+    private static buildPolicyFallbackChain(preferredModel: string, policyRoute: RouterPolicyTask): string[] {
+        return [...new Set([preferredModel, policyRoute.fallback].filter(Boolean) as string[])];
+    }
+
+    private static runtimeForLane(lane: string): PreferredRuntime {
+        if (lane === 'self') return 'local';
+        if (lane.includes('local') || lane === 'deepseek' || lane === 'gpt-oss') return 'local';
+        if (lane.includes('cloud') || lane.startsWith('deepseek-v4') || lane.startsWith('codex') || lane.startsWith('gpt-5')) return 'cloud';
+        return 'local';
+    }
+
     private static hasAny(queryLower: string, keywords: string[]) {
         return keywords.some((keyword) => {
             if (keyword.includes(' ')) {
@@ -298,4 +379,27 @@ export class SmartRouter {
             return new RegExp(`\\b${escaped}\\b`, 'i').test(queryLower);
         });
     }
+}
+
+function loadRouterPolicy(): RouterPolicy {
+    try {
+        if (!fs.existsSync(ROUTER_POLICY_PATH)) return {};
+        return JSON.parse(fs.readFileSync(ROUTER_POLICY_PATH, 'utf8')) as RouterPolicy;
+    } catch (error) {
+        console.warn(`⬡ SMART_ROUTER_POLICY_UNAVAILABLE :: ${(error as Error).message}`);
+        return {};
+    }
+}
+
+function isBridgeTaskIntent(intent: NeuralTaskIntent): intent is BridgeTaskIntent {
+    return [
+        'code_edit_small',
+        'code_edit_large',
+        'research_repo',
+        'summarization',
+        'extraction',
+        'architecture_review',
+        'audit_security',
+        'custom'
+    ].includes(intent);
 }

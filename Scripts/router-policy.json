@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "code_edit_small": { "lane": "self", "max_files": 3 },
+    "code_edit_large": { "lane": "code-local", "fallback": "deepseek-v4-pro" },
+    "research_repo": { "lane": "summarize-local", "fallback": "deepseek" },
+    "summarization": { "lane": "summarize-local" },
+    "extraction": { "lane": "triage-local" },
+    "architecture_review": { "lane": "deepseek-v4-pro", "fallback": "codex" },
+    "audit_security": { "lane": "deepseek-v4-pro", "fallback": "codex" }
+  },
+  "executors": {
+    "codex": { "self_budget_tokens": 50000, "escalate_to": "deepseek-v4-pro" },
+    "claude": { "self_budget_tokens": 30000, "escalate_to": "deepseek-v4-pro" }
+  }
+}

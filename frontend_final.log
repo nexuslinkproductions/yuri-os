@@ -1,9 +1,0 @@
-
-> nudimmud-command-center@1.0.0 dev
-> vite --port 3003
-
-
-  VITE v5.4.21  ready in 143 ms
-
-  ➜  Local:   http://localhost:3003/
-  ➜  Network: use --host to expose

@@ -1,192 +1,215 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiFetch } from '../lib/runtime';
 
-interface TemporalEvent {
+interface SystemEvent {
     id: number;
-    title: string;
-    start_time: string;
-    end_time: string;
-    strategic_summary: string;
-    importance_score: number;
-    type?: string;
+    event_type: string;
+    source: string;
+    message: string;
+    severity: string;
+    created_at: string;
 }
 
-const IMPORTANCE_COLORS: Record<number, string> = {
-    10: 'var(--red-fusion)',
-    9: 'var(--red-fusion)',
-    8: 'var(--gold-solar)',
-    7: 'var(--gold-solar)',
-    6: 'var(--cyan-glow)',
-    5: 'var(--cyan-glow)',
-    4: '#FFFFFF',
-    3: '#FFFFFF',
-    2: 'rgba(255,255,255,0.4)',
-    1: 'rgba(255,255,255,0.2)'
+const SEVERITY_COLORS: Record<string, string> = {
+    INFO: 'var(--cyan-glow)',
+    WARN: 'var(--gold-solar)',
+    ERROR: 'var(--red-fusion)',
+    CRITICAL: '#ff1744',
 };
 
-const ChronosStream: React.FC = () => {
-    const [events, setEvents] = useState<TemporalEvent[]>([]);
-    const [loading, setLoading] = useState(true);
+const SOURCE_COLORS: Record<string, string> = {
+    VAULT_INGESTION: '#00e676',
+    VAULT_WATCHER: '#00e5bf',
+    WEBSOCKET: '#7c4dff',
+    IC2M_SYNC: '#ffd740',
+    SYSTEM: 'var(--silver-albedo)',
+};
 
-    const fetchEvents = async () => {
+function formatTime(iso: string) {
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function sourceIcon(source: string): string {
+    const icons: Record<string, string> = {
+        VAULT_INGESTION: '↓',
+        VAULT_WATCHER: '◈',
+        WEBSOCKET: '⇄',
+        IC2M_SYNC: '⟳',
+        SYSTEM: '⬡',
+    };
+    return icons[source] || '•';
+}
+
+const ChronosStream: React.FC = () => {
+    const [events, setEvents] = useState<SystemEvent[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [filter, setFilter] = useState<string>('ALL');
+    const [paused, setPaused] = useState(false);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const autoScroll = useRef(true);
+
+    const sources = ['ALL', 'VAULT_INGESTION', 'VAULT_WATCHER', 'WEBSOCKET', 'IC2M_SYNC', 'SYSTEM'];
+
+    const fetchEvents = useCallback(async () => {
         try {
-            const host = window.location.hostname;
-            const res = await apiFetch(`http://${host}:3004/api/temporal-graph`);
+            const res = await apiFetch('/api/events');
+            if (!res.ok) throw new Error(`Status ${res.status}`);
             const data = await res.json();
-            setEvents(data);
-        } catch (err) {
-            console.error('⬡ CHRONOS_FETCH_ERROR:', err);
-        } finally {
+            const eventList = Array.isArray(data) ? data : data.events || [];
+            setEvents(eventList.slice(0, 100));
+            setLoading(false);
+            setError(null);
+        } catch (e) {
+            setError('Could not reach the event stream.');
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchEvents();
-        const interval = setInterval(fetchEvents, 15000);
+        if (paused) return;
+        const interval = setInterval(fetchEvents, 10000);
         return () => clearInterval(interval);
-    }, []);
+    }, [fetchEvents, paused]);
 
-    const formatTime = (iso: string) => {
-        const date = new Date(iso);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    };
+    useEffect(() => {
+        if (autoScroll.current && scrollRef.current) {
+            scrollRef.current.scrollTop = 0;
+        }
+    }, [events]);
+
+    const filtered = filter === 'ALL'
+        ? events
+        : events.filter(e => e.source === filter);
+
+    const sourceCounts = events.reduce((acc, e) => {
+        acc[e.source] = (acc[e.source] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
 
     return (
-        <div className="chronos-container" style={{ padding: '40px', height: '100%', overflowY: 'auto' }}>
-            <header style={{ marginBottom: '60px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, rgba(8,10,16,0.96) 0%, rgba(3,5,10,1) 100%)' }}>
+            {/* Header */}
+            <div style={{ padding: '28px 32px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <div>
-                    <h1 className="text-mono glow-text" style={{ color: 'var(--cyan-glow)', letterSpacing: '0.4em', fontSize: '2.2rem', marginBottom: '8px', margin: 0 }}>
-                        CHRONOS // TEMPORAL_C2
-                    </h1>
-                    <div className="text-mono" style={{ fontSize: '0.7rem', opacity: 0.4 }}>
-                        SEQUENTIAL_LOGIC_PERSISTENCE // AEON_FLUX_STABILITY: NOMINAL
+                    <div className="text-mono" style={{ fontSize: '0.55rem', color: 'var(--cyan-glow)', letterSpacing: '0.4em', marginBottom: 6 }}>Temporal stream // live</div>
+                    <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.03em' }}>Chronos</h1>
+                </div>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                        {sources.map(s => (
+                            <button key={s} onClick={() => setFilter(s)}
+                                style={{
+                                    padding: '4px 10px', fontSize: '0.55rem', fontFamily: 'var(--font-mono)',
+                                    background: filter === s ? 'rgba(0,242,255,0.1)' : 'transparent',
+                                    border: `1px solid ${filter === s ? 'var(--cyan-glow)' : 'rgba(255,255,255,0.08)'}`,
+                                    color: filter === s ? 'var(--cyan-glow)' : 'rgba(255,255,255,0.5)',
+                                    borderRadius: 4, cursor: 'pointer', letterSpacing: '0.12em'
+                                }}
+                            >{s === 'ALL' ? 'ALL' : s.split('_')[0]}</button>
+                        ))}
                     </div>
+                    <button onClick={() => setPaused(!paused)}
+                        style={{
+                            padding: '4px 10px', fontSize: '0.55rem', fontFamily: 'var(--font-mono)',
+                            background: paused ? 'rgba(255,82,82,0.1)' : 'transparent',
+                            border: `1px solid ${paused ? 'var(--red-fusion)' : 'rgba(255,255,255,0.08)'}`,
+                            color: paused ? 'var(--red-fusion)' : 'rgba(255,255,255,0.5)',
+                            borderRadius: 4, cursor: 'pointer'
+                        }}
+                    >{paused ? '▸ LIVE' : '❚❚ PAUSE'}</button>
                 </div>
-                
-                <div style={{ display: 'flex', gap: '30px' }}>
-                    {[
-                        { label: 'TEMPORAL_DRIFT', value: '0.002ms', color: 'var(--cyan-glow)' },
-                        { label: 'EVENT_DENSITY', value: events.length, color: 'white' }
-                    ].map((m: { label: string, value: string | number, color: string }) => (
-                        <div key={m.label} style={{ textAlign: 'right' }}>
-                            <div className="text-mono" style={{ fontSize: '0.55rem', opacity: 0.3 }}>{m.label}</div>
-                            <div className="text-mono" style={{ fontSize: '1.2rem', color: m.color, fontWeight: 900 }}>{m.value}</div>
-                        </div>
-                    ))}
-                </div>
-            </header>
+            </div>
 
-            {loading ? (
-                <div className="text-mono" style={{ opacity: 0.3, padding: '100px', textAlign: 'center' }}>SYNCHRONIZING_TIME_VERTICES...</div>
-            ) : (
-                <div style={{ position: 'relative', paddingLeft: '40px' }}>
-                    {/* Vertical Timeline Axis */}
-                    <div style={{ 
-                        position: 'absolute', left: '10px', top: '10px', bottom: '10px', width: '1px', 
-                        background: 'linear-gradient(180deg, var(--cyan-glow) 0%, rgba(255,255,255,0.05) 100%)',
-                        boxShadow: '0 0 10px var(--cyan-glow)33'
-                    }} />
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                        <AnimatePresence>
-                            {events.map((event: TemporalEvent, idx: number) => (
-                                <motion.div 
-                                    key={event.id} 
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    className="neural-glass card-hover-effect"
-                                    style={{ 
-                                        padding: '25px', 
-                                        position: 'relative',
-                                        borderLeft: `2px solid ${IMPORTANCE_COLORS[event.importance_score] || 'white'}`
-                                    }}
-                                >
-                                    {/* Timeline Marker */}
-                                    <div style={{ 
-                                        position: 'absolute', left: '-35px', top: '30px', 
-                                        width: '10px', height: '10px', borderRadius: '50%',
-                                        background: IMPORTANCE_COLORS[event.importance_score] || 'white',
-                                        boxShadow: `0 0 10px ${IMPORTANCE_COLORS[event.importance_score]}66`
-                                    }} />
-
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                                        <div className="text-mono" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                                            <span style={{ color: 'var(--cyan-glow)', fontSize: '0.7rem', fontWeight: 900 }}>
-                                                {formatTime(event.start_time)}
-                                            </span>
-                                            <span style={{ fontSize: '0.5rem', opacity: 0.3 }}>&gt;&gt;</span>
-                                            <span style={{ fontSize: '0.65rem', opacity: 0.4 }}>EVENT_NODE_{event.id.toString().padStart(4, '0')}</span>
-                                        </div>
-                                        <div className="text-mono" style={{ 
-                                            fontSize: '0.45rem', padding: '2px 8px', 
-                                            background: 'rgba(255,255,255,0.05)', borderRadius: '2px', opacity: 0.6 
-                                        }}>
-                                            IMPORTANCE: {event.importance_score}
-                                        </div>
-                                    </div>
-
-                                    <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '10px', margin: 0 }}>{event.title}</h3>
-                                    
-                                    {event.strategic_summary && (
-                                        <div style={{ 
-                                            fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', 
-                                            lineHeight: '1.5', padding: '12px', background: 'rgba(0,0,0,0.3)',
-                                            borderRadius: '4px', border: '1px solid rgba(255,255,255,0.03)',
-                                            marginTop: '15px'
-                                        }}>
-                                            <span className="text-mono" style={{ color: IMPORTANCE_COLORS[event.importance_score], marginRight: '8px', fontSize: '0.6rem' }}>STRATEGIC_BRIEF:</span>
-                                            {event.strategic_summary}
-                                        </div>
-                                    )}
-
-                                    {/* Action Footnote */}
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px', gap: '10px' }}>
-                                        <button className="text-mono" style={{ 
-                                            background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', 
-                                            fontSize: '0.5rem', cursor: 'pointer', textDecoration: 'underline'
-                                        }}>EXPAND_CONTEXT</button>
-                                        <button className="text-mono" style={{ 
-                                            background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', 
-                                            fontSize: '0.5rem', cursor: 'pointer', textDecoration: 'underline'
-                                        }}>LINK_TO_VAULT</button>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-
-                        {events.length === 0 && (
-                            <div className="text-mono" style={{ opacity: 0.2, textAlign: 'center', padding: '50px' }}>
-                                THE_STREAM_IS_QUIET // AWAITING_TEMPORAL_VERTICES
-                            </div>
-                        )}
+            {/* Source Summary */}
+            <div style={{ padding: '0 32px 16px', display: 'flex', gap: 16, flexShrink: 0 }}>
+                {Object.entries(sourceCounts).map(([src, count]) => (
+                    <div key={src} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ color: SOURCE_COLORS[src] || 'var(--text-dim)', fontSize: '0.65rem' }}>{sourceIcon(src)}</span>
+                        <span className="text-mono" style={{ fontSize: '0.55rem', opacity: 0.5 }}>{src.split('_').join(' ')}</span>
+                        <span className="text-mono" style={{ fontSize: '0.6rem', fontWeight: 700 }}>{count}</span>
                     </div>
-                </div>
-            )}
+                ))}
+            </div>
 
-            <style>{`
-                .chronos-container::-webkit-scrollbar { width: 4px; }
-                .chronos-container::-webkit-scrollbar-track { background: transparent; }
-                .chronos-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-                
-                .neural-glass {
-                    backdrop-filter: blur(25px) saturate(180%);
-                    background: rgba(17, 25, 40, 0.5);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                }
-
-                .card-hover-effect {
-                    transition: all 0.3s ease;
-                }
-                .card-hover-effect:hover {
-                    background: rgba(17, 25, 40, 0.7) !important;
-                    transform: translateX(5px);
-                    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-                    border-color: rgba(255,255,255,0.2) !important;
-                }
-            `}</style>
+            {/* Event Stream */}
+            <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '0 32px 32px', scrollbarWidth: 'thin', scrollbarColor: 'rgba(0,242,255,0.1) transparent' }}>
+                {loading ? (
+                    <div className="text-mono" style={{ opacity: 0.3, textAlign: 'center', paddingTop: 80 }}>
+                        <div style={{ fontSize: '1.2rem', marginBottom: 12 }}>◈</div>
+                        Streaming event horizon...
+                    </div>
+                ) : error ? (
+                    <div className="neural-glass" style={{ padding: 28, borderLeft: '3px solid var(--red-fusion)', marginTop: 20 }}>
+                        <div className="text-mono" style={{ fontSize: '0.58rem', color: 'var(--red-fusion)', marginBottom: 10 }}>STREAM OFFLINE</div>
+                        <div style={{ fontSize: '0.9rem', marginBottom: 16 }}>{error}</div>
+                        <button onClick={fetchEvents} style={{
+                            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)',
+                            color: 'white', padding: '10px 14px', cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: '0.6rem'
+                        }}>RETRY CONNECTION</button>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="text-mono" style={{ opacity: 0.3, textAlign: 'center', paddingTop: 80 }}>
+                        <div style={{ fontSize: '1.2rem', marginBottom: 12 }}>◈</div>
+                        No events match this filter.
+                    </div>
+                ) : (
+                    <AnimatePresence initial={false}>
+                        {filtered.map((event, i) => (
+                            <motion.div
+                                key={event.id}
+                                initial={{ opacity: 0, x: -20, height: 0 }}
+                                animate={{ opacity: 1, x: 0, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.25, delay: i < 20 ? i * 0.02 : 0 }}
+                                className="neural-glass"
+                                style={{
+                                    padding: '14px 18px', marginBottom: 6,
+                                    borderLeft: `2px solid ${SEVERITY_COLORS[event.severity] || 'var(--cyan-glow)'}`,
+                                    display: 'flex', alignItems: 'flex-start', gap: 14, fontSize: '0.82rem'
+                                }}
+                            >
+                                <div style={{
+                                    width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                                    background: `${SOURCE_COLORS[event.source] || 'var(--text-dim)'}18`,
+                                    border: `1px solid ${SOURCE_COLORS[event.source] || 'var(--text-dim)'}44`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '0.7rem', color: SOURCE_COLORS[event.source] || 'var(--text-dim)'
+                                }}>
+                                    {sourceIcon(event.source)}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 3 }}>
+                                        <span className="text-mono" style={{
+                                            fontSize: '0.5rem', padding: '2px 6px', borderRadius: 3,
+                                            background: `${SEVERITY_COLORS[event.severity] || 'var(--cyan-dim)'}22`,
+                                            color: SEVERITY_COLORS[event.severity] || 'var(--cyan-glow)',
+                                        }}>
+                                            {event.severity}
+                                        </span>
+                                        <span className="text-mono" style={{
+                                            fontSize: '0.5rem', color: SOURCE_COLORS[event.source] || 'var(--text-dim)', opacity: 0.6
+                                        }}>
+                                            {event.source}
+                                        </span>
+                                    </div>
+                                    <div style={{ lineHeight: 1.5, wordBreak: 'break-word' }}>{event.message}</div>
+                                </div>
+                                <span className="text-mono" style={{ fontSize: '0.5rem', opacity: 0.35, flexShrink: 0, marginTop: 2 }}>
+                                    {formatTime(event.created_at)}
+                                </span>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                )}
+            </div>
         </div>
     );
 };

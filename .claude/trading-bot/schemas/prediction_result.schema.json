@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Prediction Result",
+  "description": "Model ensemble output with dispersion metrics",
+  "type": "object",
+  "required": [
+    "market_id",
+    "p_model",
+    "confidence",
+    "model_probs",
+    "dispersion",
+    "timestamp"
+  ],
+  "properties": {
+    "market_id": {
+      "type": "string",
+      "description": "Market identifier"
+    },
+    "p_model": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Ensemble weighted probability"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Overall confidence score"
+    },
+    "model_probs": {
+      "type": "object",
+      "description": "Per-model probability estimates",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "dispersion": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Standard deviation across model outputs"
+    },
+    "research_quality": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Quality score of research/evidence packet"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Interpretive notes from ensemble"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Prediction timestamp"
+    }
+  },
+  "examples": [
+    {
+      "market_id": "BTC-USD",
+      "p_model": 0.643,
+      "confidence": 0.78,
+      "model_probs": {
+        "grok": 0.67,
+        "claude": 0.62,
+        "gpt4o": 0.65,
+        "gemini": 0.60,
+        "deepseek": 0.64
+      },
+      "dispersion": 0.024,
+      "research_quality": 0.81,
+      "notes": ["fresh market data", "consensus stable"],
+      "timestamp": "2026-05-05T12:34:56.789Z"
+    }
+  ]
+}

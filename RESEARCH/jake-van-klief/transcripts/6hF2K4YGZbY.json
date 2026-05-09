@@ -1,0 +1,5136 @@
+{
+  "videoId": "6hF2K4YGZbY",
+  "title": "Afternoon Tea #1: Joe Fioramonti on Scaling Human Judgment",
+  "segments": [
+    {
+      "text": "Hello everyone. If you're watching this",
+      "duration": 4159,
+      "offset": 160,
+      "lang": "en"
+    },
+    {
+      "text": "post, this is our first afternoon tea.",
+      "duration": 4400,
+      "offset": 2000,
+      "lang": "en"
+    },
+    {
+      "text": "Uh, as you can see, we have a massive",
+      "duration": 4161,
+      "offset": 4319,
+      "lang": "en"
+    },
+    {
+      "text": "turnout today. Uh, now we have some",
+      "duration": 4000,
+      "offset": 6400,
+      "lang": "en"
+    },
+    {
+      "text": "amazing people. Jasmine and Cinder just",
+      "duration": 4239,
+      "offset": 8480,
+      "lang": "en"
+    },
+    {
+      "text": "introduced themselves. Jasmine's in SAS",
+      "duration": 4399,
+      "offset": 10400,
+      "lang": "en"
+    },
+    {
+      "text": "and this kind of field of hey, how are",
+      "duration": 3761,
+      "offset": 12719,
+      "lang": "en"
+    },
+    {
+      "text": "we looking? But she also is trying to",
+      "duration": 3441,
+      "offset": 14799,
+      "lang": "en"
+    },
+    {
+      "text": "look at how to build her own softwares",
+      "duration": 3600,
+      "offset": 16480,
+      "lang": "en"
+    },
+    {
+      "text": "in this vibe coding space, but perhaps",
+      "duration": 4080,
+      "offset": 18240,
+      "lang": "en"
+    },
+    {
+      "text": "with fundamentals that are are actual",
+      "duration": 4400,
+      "offset": 20080,
+      "lang": "en"
+    },
+    {
+      "text": "software fundamentals, which a lot of my",
+      "duration": 4080,
+      "offset": 22320,
+      "lang": "en"
+    },
+    {
+      "text": "research and things are around. Uh,",
+      "duration": 4160,
+      "offset": 24480,
+      "lang": "en"
+    },
+    {
+      "text": "Cinder, you said you were a professor,",
+      "duration": 4560,
+      "offset": 26400,
+      "lang": "en"
+    },
+    {
+      "text": "um, a business professor, greatly hated",
+      "duration": 3840,
+      "offset": 28640,
+      "lang": "en"
+    },
+    {
+      "text": "by your students in the best kind of",
+      "duration": 4000,
+      "offset": 30960,
+      "lang": "en"
+    },
+    {
+      "text": "way. Um, which is exactly who you want.",
+      "duration": 4000,
+      "offset": 32480,
+      "lang": "en"
+    },
+    {
+      "text": "If you're not pushing your students, I",
+      "duration": 2960,
+      "offset": 34960,
+      "lang": "en"
+    },
+    {
+      "text": "don't think, uh, there's much going on",
+      "duration": 4000,
+      "offset": 36480,
+      "lang": "en"
+    },
+    {
+      "text": "there. But today we have Joseph Monte,",
+      "duration": 4639,
+      "offset": 37920,
+      "lang": "en"
+    },
+    {
+      "text": "who is, uh, also was a previously a",
+      "duration": 3599,
+      "offset": 40480,
+      "lang": "en"
+    },
+    {
+      "text": "professor, but has 20 years of",
+      "duration": 4801,
+      "offset": 42559,
+      "lang": "en"
+    },
+    {
+      "text": "experience in the industry. Um, and I'm",
+      "duration": 5121,
+      "offset": 44079,
+      "lang": "en"
+    },
+    {
+      "text": "going to let him kind of dive into what",
+      "duration": 4000,
+      "offset": 47360,
+      "lang": "en"
+    },
+    {
+      "text": "his company is. He has two companies,",
+      "duration": 5359,
+      "offset": 49200,
+      "lang": "en"
+    },
+    {
+      "text": "Dark Square and Constellation. one is a",
+      "duration": 5600,
+      "offset": 51360,
+      "lang": "en"
+    },
+    {
+      "text": "larger kind of, you know, agency, the",
+      "duration": 4721,
+      "offset": 54559,
+      "lang": "en"
+    },
+    {
+      "text": "other one is an actual software product.",
+      "duration": 4000,
+      "offset": 56960,
+      "lang": "en"
+    },
+    {
+      "text": "Uh, and he's been building them out for",
+      "duration": 3599,
+      "offset": 59280,
+      "lang": "en"
+    },
+    {
+      "text": "a while. And I I really respect him in",
+      "duration": 3680,
+      "offset": 60960,
+      "lang": "en"
+    },
+    {
+      "text": "every sense of the word. He's wildly",
+      "duration": 3920,
+      "offset": 62879,
+      "lang": "en"
+    },
+    {
+      "text": "creative, has a deep understanding of",
+      "duration": 5120,
+      "offset": 64640,
+      "lang": "en"
+    },
+    {
+      "text": "these crazy esoteric marketing concepts",
+      "duration": 4881,
+      "offset": 66799,
+      "lang": "en"
+    },
+    {
+      "text": "and psychology, but somehow pairs it",
+      "duration": 4640,
+      "offset": 69760,
+      "lang": "en"
+    },
+    {
+      "text": "well with design and software. Uh, and",
+      "duration": 4080,
+      "offset": 71680,
+      "lang": "en"
+    },
+    {
+      "text": "hopefully he'll be joining us a lot more",
+      "duration": 3600,
+      "offset": 74400,
+      "lang": "en"
+    },
+    {
+      "text": "in future ones. But Joe, uh, give you",
+      "duration": 4080,
+      "offset": 75760,
+      "lang": "en"
+    },
+    {
+      "text": "the floor and, uh, introduce yourself.",
+      "duration": 3840,
+      "offset": 78000,
+      "lang": "en"
+    },
+    {
+      "text": "And, uh, just double checking I everyone",
+      "duration": 3599,
+      "offset": 79840,
+      "lang": "en"
+    },
+    {
+      "text": "can hear me. All right. My my mic",
+      "duration": 3200,
+      "offset": 81840,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't sound terrible. Just wanted I",
+      "duration": 2561,
+      "offset": 83439,
+      "lang": "en"
+    },
+    {
+      "text": "should have checked that before I",
+      "duration": 2719,
+      "offset": 85040,
+      "lang": "en"
+    },
+    {
+      "text": "started talking. So yeah, take the",
+      "duration": 3119,
+      "offset": 86000,
+      "lang": "en"
+    },
+    {
+      "text": "floor, Joe.",
+      "duration": 2881,
+      "offset": 87759,
+      "lang": "en"
+    },
+    {
+      "text": ">> Oh, thank you. Appreciate it. Good to",
+      "duration": 3360,
+      "offset": 89119,
+      "lang": "en"
+    },
+    {
+      "text": "meet everybody. Um, thanks for making",
+      "duration": 3839,
+      "offset": 90640,
+      "lang": "en"
+    },
+    {
+      "text": "time. I'll challenge you, Cinder. I was",
+      "duration": 4000,
+      "offset": 92479,
+      "lang": "en"
+    },
+    {
+      "text": "the mean professor at every school I've",
+      "duration": 3280,
+      "offset": 94479,
+      "lang": "en"
+    },
+    {
+      "text": "been at as well. So I was at the",
+      "duration": 3841,
+      "offset": 96479,
+      "lang": "en"
+    },
+    {
+      "text": "University of Baltimore for a while. I I",
+      "duration": 4081,
+      "offset": 97759,
+      "lang": "en"
+    },
+    {
+      "text": "would wear a black suit, black shirt,",
+      "duration": 3759,
+      "offset": 100320,
+      "lang": "en"
+    },
+    {
+      "text": "black tie. I was the the scary",
+      "duration": 6160,
+      "offset": 101840,
+      "lang": "en"
+    },
+    {
+      "text": "business-minded art professor. Um, so",
+      "duration": 5841,
+      "offset": 104079,
+      "lang": "en"
+    },
+    {
+      "text": "that's that's kind of my background. I I",
+      "duration": 4479,
+      "offset": 108000,
+      "lang": "en"
+    },
+    {
+      "text": "went to SCAD for graphic design at",
+      "duration": 5360,
+      "offset": 109920,
+      "lang": "en"
+    },
+    {
+      "text": "terminal degree from SCAD and um my",
+      "duration": 5841,
+      "offset": 112479,
+      "lang": "en"
+    },
+    {
+      "text": "focus was in branding and just my",
+      "duration": 5439,
+      "offset": 115280,
+      "lang": "en"
+    },
+    {
+      "text": "personal interest. I read a tremendous",
+      "duration": 5520,
+      "offset": 118320,
+      "lang": "en"
+    },
+    {
+      "text": "amount of theology and philosophy and",
+      "duration": 6000,
+      "offset": 120719,
+      "lang": "en"
+    },
+    {
+      "text": "it's just helped me think deeply about",
+      "duration": 4880,
+      "offset": 123840,
+      "lang": "en"
+    },
+    {
+      "text": "paradigm shifts. Um that along with",
+      "duration": 5281,
+      "offset": 126719,
+      "lang": "en"
+    },
+    {
+      "text": "teaching the history of design um just",
+      "duration": 5920,
+      "offset": 128720,
+      "lang": "en"
+    },
+    {
+      "text": "really trying to understand when these",
+      "duration": 5440,
+      "offset": 132000,
+      "lang": "en"
+    },
+    {
+      "text": "big changes like the internet happen or",
+      "duration": 5200,
+      "offset": 134640,
+      "lang": "en"
+    },
+    {
+      "text": "AI happen like what does it do to",
+      "duration": 4560,
+      "offset": 137440,
+      "lang": "en"
+    },
+    {
+      "text": "society? Um,",
+      "duration": 4320,
+      "offset": 139840,
+      "lang": "en"
+    },
+    {
+      "text": "just for context, you know, my company,",
+      "duration": 4800,
+      "offset": 142000,
+      "lang": "en"
+    },
+    {
+      "text": "Dark Square, my branding agency,",
+      "duration": 5760,
+      "offset": 144160,
+      "lang": "en"
+    },
+    {
+      "text": "we were helping, you know, multi-billion",
+      "duration": 5519,
+      "offset": 146800,
+      "lang": "en"
+    },
+    {
+      "text": "dollar in revenue companies talk about",
+      "duration": 4319,
+      "offset": 149920,
+      "lang": "en"
+    },
+    {
+      "text": "AI like seven and eight years ago before",
+      "duration": 3361,
+      "offset": 152319,
+      "lang": "en"
+    },
+    {
+      "text": "everybody was talking about AI. And we",
+      "duration": 3041,
+      "offset": 154239,
+      "lang": "en"
+    },
+    {
+      "text": "were really thinking deeply and working",
+      "duration": 3600,
+      "offset": 155680,
+      "lang": "en"
+    },
+    {
+      "text": "with these large companies and their and",
+      "duration": 4880,
+      "offset": 157280,
+      "lang": "en"
+    },
+    {
+      "text": "their leadership to to think about,",
+      "duration": 6080,
+      "offset": 159280,
+      "lang": "en"
+    },
+    {
+      "text": "okay, it does all this stuff and it can",
+      "duration": 5840,
+      "offset": 162160,
+      "lang": "en"
+    },
+    {
+      "text": "do all this stuff and what does that",
+      "duration": 4320,
+      "offset": 165360,
+      "lang": "en"
+    },
+    {
+      "text": "mean for a business or for an individual",
+      "duration": 4560,
+      "offset": 168000,
+      "lang": "en"
+    },
+    {
+      "text": "and for everything in between. Um, so we",
+      "duration": 6240,
+      "offset": 169680,
+      "lang": "en"
+    },
+    {
+      "text": "we've just been kind of pondering this",
+      "duration": 6399,
+      "offset": 172560,
+      "lang": "en"
+    },
+    {
+      "text": "for for a long time on behalf of of some",
+      "duration": 5920,
+      "offset": 175920,
+      "lang": "en"
+    },
+    {
+      "text": "interesting companies and um and here we",
+      "duration": 4000,
+      "offset": 178959,
+      "lang": "en"
+    },
+    {
+      "text": "are now. Everybody's thinking about it",
+      "duration": 2319,
+      "offset": 181840,
+      "lang": "en"
+    },
+    {
+      "text": "and talking about it and arguing about",
+      "duration": 4640,
+      "offset": 182959,
+      "lang": "en"
+    },
+    {
+      "text": "it. So, it's it's been fun to watch.",
+      "duration": 4961,
+      "offset": 184159,
+      "lang": "en"
+    },
+    {
+      "text": "I guess it's kind of interesting to",
+      "duration": 5041,
+      "offset": 187599,
+      "lang": "en"
+    },
+    {
+      "text": "watch. Um, so so yeah, that's that's my",
+      "duration": 6080,
+      "offset": 189120,
+      "lang": "en"
+    },
+    {
+      "text": "agency. We're we're we're a positioning",
+      "duration": 6959,
+      "offset": 192640,
+      "lang": "en"
+    },
+    {
+      "text": "firm. Um, we we kind of look at really",
+      "duration": 6319,
+      "offset": 195200,
+      "lang": "en"
+    },
+    {
+      "text": "complicated technical solutions and",
+      "duration": 3280,
+      "offset": 199599,
+      "lang": "en"
+    },
+    {
+      "text": "products and try to figure out, okay,",
+      "duration": 2640,
+      "offset": 201519,
+      "lang": "en"
+    },
+    {
+      "text": "how do we talk about this like human",
+      "duration": 4801,
+      "offset": 202879,
+      "lang": "en"
+    },
+    {
+      "text": "beings in a way that's meaningful? And",
+      "duration": 5601,
+      "offset": 204159,
+      "lang": "en"
+    },
+    {
+      "text": "through that process, working with a lot",
+      "duration": 5680,
+      "offset": 207680,
+      "lang": "en"
+    },
+    {
+      "text": "of big data companies, um, we've always",
+      "duration": 5759,
+      "offset": 209760,
+      "lang": "en"
+    },
+    {
+      "text": "used mood boards to help bridge the gap",
+      "duration": 4959,
+      "offset": 213360,
+      "lang": "en"
+    },
+    {
+      "text": "visually and creatively with technical",
+      "duration": 4800,
+      "offset": 215519,
+      "lang": "en"
+    },
+    {
+      "text": "leadership. Right? Somebody says, I like",
+      "duration": 3441,
+      "offset": 218319,
+      "lang": "en"
+    },
+    {
+      "text": "the color green. You know, I'm talking",
+      "duration": 3761,
+      "offset": 220319,
+      "lang": "en"
+    },
+    {
+      "text": "with the CEO or chief marketing officer",
+      "duration": 4559,
+      "offset": 221760,
+      "lang": "en"
+    },
+    {
+      "text": "or something. It's like, okay, a lime",
+      "duration": 3920,
+      "offset": 224080,
+      "lang": "en"
+    },
+    {
+      "text": "green, a mint green, a kelly green. What",
+      "duration": 3200,
+      "offset": 226319,
+      "lang": "en"
+    },
+    {
+      "text": "what green are we talking about here?",
+      "duration": 3200,
+      "offset": 228000,
+      "lang": "en"
+    },
+    {
+      "text": "where a mood board is a data point where",
+      "duration": 3280,
+      "offset": 229519,
+      "lang": "en"
+    },
+    {
+      "text": "they can point to it and tell me like I",
+      "duration": 4480,
+      "offset": 231200,
+      "lang": "en"
+    },
+    {
+      "text": "like this green because and we can have",
+      "duration": 4481,
+      "offset": 232799,
+      "lang": "en"
+    },
+    {
+      "text": "a meaningful conversation about what's",
+      "duration": 2960,
+      "offset": 235680,
+      "lang": "en"
+    },
+    {
+      "text": "going to work.",
+      "duration": 3679,
+      "offset": 237280,
+      "lang": "en"
+    },
+    {
+      "text": ">> Something happened.",
+      "duration": 3599,
+      "offset": 238640,
+      "lang": "en"
+    },
+    {
+      "text": "I don't know what that was. We'll keep",
+      "duration": 1761,
+      "offset": 240959,
+      "lang": "en"
+    },
+    {
+      "text": "going.",
+      "duration": 2000,
+      "offset": 242239,
+      "lang": "en"
+    },
+    {
+      "text": ">> I'll share the screen of your website,",
+      "duration": 1760,
+      "offset": 242720,
+      "lang": "en"
+    },
+    {
+      "text": "too.",
+      "duration": 2321,
+      "offset": 244239,
+      "lang": "en"
+    },
+    {
+      "text": ">> Oh, yeah. Cool.",
+      "duration": 3920,
+      "offset": 244480,
+      "lang": "en"
+    },
+    {
+      "text": ">> Um,",
+      "duration": 3440,
+      "offset": 246560,
+      "lang": "en"
+    },
+    {
+      "text": ">> again, this is not a funnel for you to",
+      "duration": 3440,
+      "offset": 248400,
+      "lang": "en"
+    },
+    {
+      "text": "buy. This is",
+      "duration": 4400,
+      "offset": 250000,
+      "lang": "en"
+    },
+    {
+      "text": ">> this is a very specific client base. Uh",
+      "duration": 4880,
+      "offset": 251840,
+      "lang": "en"
+    },
+    {
+      "text": "it's just to show off like hey if you",
+      "duration": 4320,
+      "offset": 254400,
+      "lang": "en"
+    },
+    {
+      "text": "have questions about how he gets clients",
+      "duration": 4000,
+      "offset": 256720,
+      "lang": "en"
+    },
+    {
+      "text": "or what it is then that's to ask but",
+      "duration": 2720,
+      "offset": 258720,
+      "lang": "en"
+    },
+    {
+      "text": "yeah go for it.",
+      "duration": 3600,
+      "offset": 260720,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah and it's you know we were working",
+      "duration": 5199,
+      "offset": 261440,
+      "lang": "en"
+    },
+    {
+      "text": "with a lot of big data companies in the",
+      "duration": 5680,
+      "offset": 264320,
+      "lang": "en"
+    },
+    {
+      "text": "201s and um you know just thinking about",
+      "duration": 5761,
+      "offset": 266639,
+      "lang": "en"
+    },
+    {
+      "text": "these things and working with that",
+      "duration": 4080,
+      "offset": 270000,
+      "lang": "en"
+    },
+    {
+      "text": "single data point of one or a few",
+      "duration": 3600,
+      "offset": 272400,
+      "lang": "en"
+    },
+    {
+      "text": "stakeholders. It's like why hasn't",
+      "duration": 4960,
+      "offset": 274080,
+      "lang": "en"
+    },
+    {
+      "text": "anybody scaled this? Um and so we made a",
+      "duration": 5440,
+      "offset": 276000,
+      "lang": "en"
+    },
+    {
+      "text": "really simple system. We've got two",
+      "duration": 4560,
+      "offset": 279040,
+      "lang": "en"
+    },
+    {
+      "text": "patents pending on it. If you flip back",
+      "duration": 3600,
+      "offset": 281440,
+      "lang": "en"
+    },
+    {
+      "text": "to constellations for a minute there,",
+      "duration": 2319,
+      "offset": 283600,
+      "lang": "en"
+    },
+    {
+      "text": "Jake.",
+      "duration": 4640,
+      "offset": 285040,
+      "lang": "en"
+    },
+    {
+      "text": ">> Um, and it's it's just such a simple and",
+      "duration": 5681,
+      "offset": 285919,
+      "lang": "en"
+    },
+    {
+      "text": "elegant solution where we're able to",
+      "duration": 4720,
+      "offset": 289680,
+      "lang": "en"
+    },
+    {
+      "text": "send these mood boards to thousands of",
+      "duration": 5520,
+      "offset": 291600,
+      "lang": "en"
+    },
+    {
+      "text": "people and ask them to drag green dots",
+      "duration": 4320,
+      "offset": 294400,
+      "lang": "en"
+    },
+    {
+      "text": "on things that they like and red dots on",
+      "duration": 2960,
+      "offset": 297120,
+      "lang": "en"
+    },
+    {
+      "text": "things that they don't like within the",
+      "duration": 5440,
+      "offset": 298720,
+      "lang": "en"
+    },
+    {
+      "text": "context of a particular prompt. And what",
+      "duration": 6800,
+      "offset": 300080,
+      "lang": "en"
+    },
+    {
+      "text": "we are really just learning now as we as",
+      "duration": 4720,
+      "offset": 304160,
+      "lang": "en"
+    },
+    {
+      "text": "we start to build it out and use it more",
+      "duration": 3840,
+      "offset": 306880,
+      "lang": "en"
+    },
+    {
+      "text": "commercially than just the little",
+      "duration": 2879,
+      "offset": 308880,
+      "lang": "en"
+    },
+    {
+      "text": "branding, you know, the branding",
+      "duration": 2240,
+      "offset": 310720,
+      "lang": "en"
+    },
+    {
+      "text": "projects I I shouldn't say they're",
+      "duration": 2481,
+      "offset": 311759,
+      "lang": "en"
+    },
+    {
+      "text": "little, but the branding projects I was",
+      "duration": 4880,
+      "offset": 312960,
+      "lang": "en"
+    },
+    {
+      "text": "doing were very closed circle. Um, that",
+      "duration": 5519,
+      "offset": 314240,
+      "lang": "en"
+    },
+    {
+      "text": "you can it's it's a different kind of",
+      "duration": 4320,
+      "offset": 317840,
+      "lang": "en"
+    },
+    {
+      "text": "data. It's it's a data you can really",
+      "duration": 5921,
+      "offset": 319759,
+      "lang": "en"
+    },
+    {
+      "text": "see and",
+      "duration": 5599,
+      "offset": 322160,
+      "lang": "en"
+    },
+    {
+      "text": "the way that we can we can funnel it and",
+      "duration": 4480,
+      "offset": 325680,
+      "lang": "en"
+    },
+    {
+      "text": "move it around um gives us this",
+      "duration": 5761,
+      "offset": 327759,
+      "lang": "en"
+    },
+    {
+      "text": "tremendous insight into how people are",
+      "duration": 6080,
+      "offset": 330160,
+      "lang": "en"
+    },
+    {
+      "text": "feeling about things, where people align",
+      "duration": 4480,
+      "offset": 333520,
+      "lang": "en"
+    },
+    {
+      "text": "on things, where they disagree on",
+      "duration": 4480,
+      "offset": 336240,
+      "lang": "en"
+    },
+    {
+      "text": "things. Um,",
+      "duration": 4880,
+      "offset": 338000,
+      "lang": "en"
+    },
+    {
+      "text": "and it's it's been just fascinating to",
+      "duration": 3919,
+      "offset": 340720,
+      "lang": "en"
+    },
+    {
+      "text": "work on. So, I'm probably the least",
+      "duration": 3840,
+      "offset": 342880,
+      "lang": "en"
+    },
+    {
+      "text": "technical person on the call here. I",
+      "duration": 4321,
+      "offset": 344639,
+      "lang": "en"
+    },
+    {
+      "text": "operate more in the aesthetic, but I",
+      "duration": 4479,
+      "offset": 346720,
+      "lang": "en"
+    },
+    {
+      "text": "appreciate the technical enough and and",
+      "duration": 4640,
+      "offset": 348960,
+      "lang": "en"
+    },
+    {
+      "text": "the need for good data, a particular",
+      "duration": 3840,
+      "offset": 351199,
+      "lang": "en"
+    },
+    {
+      "text": "type of data.",
+      "duration": 5039,
+      "offset": 353600,
+      "lang": "en"
+    },
+    {
+      "text": ">> Um, and and just I don't know, I just",
+      "duration": 5841,
+      "offset": 355039,
+      "lang": "en"
+    },
+    {
+      "text": "thought differently about my practice",
+      "duration": 6801,
+      "offset": 358639,
+      "lang": "en"
+    },
+    {
+      "text": "and guild as a graphic designer and",
+      "duration": 6640,
+      "offset": 360880,
+      "lang": "en"
+    },
+    {
+      "text": "thought of mood boards as data points.",
+      "duration": 4400,
+      "offset": 365440,
+      "lang": "en"
+    },
+    {
+      "text": "Um, actually lots of data points. And",
+      "duration": 4000,
+      "offset": 367520,
+      "lang": "en"
+    },
+    {
+      "text": "so, so yeah, that's what we've been",
+      "duration": 5520,
+      "offset": 369840,
+      "lang": "en"
+    },
+    {
+      "text": "working on. Um, and Jake Jake's been",
+      "duration": 7519,
+      "offset": 371520,
+      "lang": "en"
+    },
+    {
+      "text": "instrumental in just how we're not only",
+      "duration": 5520,
+      "offset": 375360,
+      "lang": "en"
+    },
+    {
+      "text": "integrating AI like everybody's doing,",
+      "duration": 4720,
+      "offset": 379039,
+      "lang": "en"
+    },
+    {
+      "text": "right? I feel like it's, you know, it's",
+      "duration": 4400,
+      "offset": 380880,
+      "lang": "en"
+    },
+    {
+      "text": "everybody's got an AI something right",
+      "duration": 3201,
+      "offset": 383759,
+      "lang": "en"
+    },
+    {
+      "text": "now. It's it's a lot of hype, which",
+      "duration": 4880,
+      "offset": 385280,
+      "lang": "en"
+    },
+    {
+      "text": "we've seen so many times now, but how",
+      "duration": 6079,
+      "offset": 386960,
+      "lang": "en"
+    },
+    {
+      "text": "are we going to AI proof",
+      "duration": 4400,
+      "offset": 390160,
+      "lang": "en"
+    },
+    {
+      "text": "whatever it is we're doing, right? How",
+      "duration": 4561,
+      "offset": 393039,
+      "lang": "en"
+    },
+    {
+      "text": "are we going to keep it human?",
+      "duration": 6320,
+      "offset": 394560,
+      "lang": "en"
+    },
+    {
+      "text": "And so this is just a magnificent tool",
+      "duration": 6960,
+      "offset": 397600,
+      "lang": "en"
+    },
+    {
+      "text": "for getting human reactions",
+      "duration": 6800,
+      "offset": 400880,
+      "lang": "en"
+    },
+    {
+      "text": "and patterns of human data into an AI to",
+      "duration": 5199,
+      "offset": 404560,
+      "lang": "en"
+    },
+    {
+      "text": "make sense of that and to interact with",
+      "duration": 4560,
+      "offset": 407680,
+      "lang": "en"
+    },
+    {
+      "text": "humans more effectively rather than all",
+      "duration": 3681,
+      "offset": 409759,
+      "lang": "en"
+    },
+    {
+      "text": "we're just going to pump out a bunch of",
+      "duration": 4079,
+      "offset": 412240,
+      "lang": "en"
+    },
+    {
+      "text": "stuff and see what sticks. And I I just",
+      "duration": 5199,
+      "offset": 413440,
+      "lang": "en"
+    },
+    {
+      "text": "keep coming back to this dilemma as a as",
+      "duration": 4880,
+      "offset": 416319,
+      "lang": "en"
+    },
+    {
+      "text": "a professor and as an advertising kind",
+      "duration": 3840,
+      "offset": 418639,
+      "lang": "en"
+    },
+    {
+      "text": "of person in the marketing space or",
+      "duration": 3681,
+      "offset": 421199,
+      "lang": "en"
+    },
+    {
+      "text": "whatever. Like what happens when all the",
+      "duration": 4881,
+      "offset": 422479,
+      "lang": "en"
+    },
+    {
+      "text": "teachers are making things with AI and",
+      "duration": 4240,
+      "offset": 424880,
+      "lang": "en"
+    },
+    {
+      "text": "the students are all taking tests with",
+      "duration": 4720,
+      "offset": 427360,
+      "lang": "en"
+    },
+    {
+      "text": "AI? What are we doing? What are we doing",
+      "duration": 4560,
+      "offset": 429120,
+      "lang": "en"
+    },
+    {
+      "text": "when all the marketers are just pumping",
+      "duration": 4239,
+      "offset": 432080,
+      "lang": "en"
+    },
+    {
+      "text": "out endless marketing materials with AI",
+      "duration": 4880,
+      "offset": 433680,
+      "lang": "en"
+    },
+    {
+      "text": "and people have AI set up to read all",
+      "duration": 3521,
+      "offset": 436319,
+      "lang": "en"
+    },
+    {
+      "text": "the things that they don't want to read",
+      "duration": 2960,
+      "offset": 438560,
+      "lang": "en"
+    },
+    {
+      "text": "and we're pumping just megat tons of",
+      "duration": 5919,
+      "offset": 439840,
+      "lang": "en"
+    },
+    {
+      "text": "carbon into the atmosphere for what?",
+      "duration": 6799,
+      "offset": 441520,
+      "lang": "en"
+    },
+    {
+      "text": "Like what what are we all doing in the",
+      "duration": 6401,
+      "offset": 445759,
+      "lang": "en"
+    },
+    {
+      "text": "meantime? And so I I'm hoping this tool",
+      "duration": 6081,
+      "offset": 448319,
+      "lang": "en"
+    },
+    {
+      "text": "answers that to some degree or at least",
+      "duration": 4479,
+      "offset": 452160,
+      "lang": "en"
+    },
+    {
+      "text": "adds a perspective. So yeah, that's",
+      "duration": 4480,
+      "offset": 454400,
+      "lang": "en"
+    },
+    {
+      "text": "that's what I've been working on. Um,",
+      "duration": 4161,
+      "offset": 456639,
+      "lang": "en"
+    },
+    {
+      "text": "Dark Square has funded the whole thing.",
+      "duration": 3599,
+      "offset": 458880,
+      "lang": "en"
+    },
+    {
+      "text": "I, you know, it's kind of out of pocket",
+      "duration": 4080,
+      "offset": 460800,
+      "lang": "en"
+    },
+    {
+      "text": "for me. Um, I'm fortunate to have a",
+      "duration": 4081,
+      "offset": 462479,
+      "lang": "en"
+    },
+    {
+      "text": "really strong business there and we",
+      "duration": 3280,
+      "offset": 464880,
+      "lang": "en"
+    },
+    {
+      "text": "haven't had to go for VC or anything",
+      "duration": 3120,
+      "offset": 466560,
+      "lang": "en"
+    },
+    {
+      "text": "like that. We've built it out with our",
+      "duration": 4879,
+      "offset": 468160,
+      "lang": "en"
+    },
+    {
+      "text": "developers. Um, we're probably moving a",
+      "duration": 4880,
+      "offset": 469680,
+      "lang": "en"
+    },
+    {
+      "text": "little slower than I would like to. If",
+      "duration": 2961,
+      "offset": 473039,
+      "lang": "en"
+    },
+    {
+      "text": "we had the VC, we could probably",
+      "duration": 3680,
+      "offset": 474560,
+      "lang": "en"
+    },
+    {
+      "text": "probably get there a little faster. But",
+      "duration": 3599,
+      "offset": 476000,
+      "lang": "en"
+    },
+    {
+      "text": "it's been going well. We have a few",
+      "duration": 2880,
+      "offset": 478240,
+      "lang": "en"
+    },
+    {
+      "text": "customers who are using it on really",
+      "duration": 3361,
+      "offset": 479599,
+      "lang": "en"
+    },
+    {
+      "text": "exciting projects and and every time",
+      "duration": 3680,
+      "offset": 481120,
+      "lang": "en"
+    },
+    {
+      "text": "somebody uses it, we just learn so much",
+      "duration": 4400,
+      "offset": 482960,
+      "lang": "en"
+    },
+    {
+      "text": "about how people interact with imagery",
+      "duration": 4079,
+      "offset": 484800,
+      "lang": "en"
+    },
+    {
+      "text": "in a way that was never measurable",
+      "duration": 3360,
+      "offset": 487360,
+      "lang": "en"
+    },
+    {
+      "text": "before that I feel like this is the",
+      "duration": 4880,
+      "offset": 488879,
+      "lang": "en"
+    },
+    {
+      "text": "first time this kind of an approach has",
+      "duration": 5120,
+      "offset": 490720,
+      "lang": "en"
+    },
+    {
+      "text": "made it measurable. And um yeah, it's",
+      "duration": 3921,
+      "offset": 493759,
+      "lang": "en"
+    },
+    {
+      "text": "been fascinating.",
+      "duration": 4000,
+      "offset": 495840,
+      "lang": "en"
+    },
+    {
+      "text": ">> Perfect timing, by the way. That was",
+      "duration": 4400,
+      "offset": 497680,
+      "lang": "en"
+    },
+    {
+      "text": "like spot on. We now got 10 minutes for",
+      "duration": 4799,
+      "offset": 499840,
+      "lang": "en"
+    },
+    {
+      "text": "all questions and answers and stuff too.",
+      "duration": 4640,
+      "offset": 502080,
+      "lang": "en"
+    },
+    {
+      "text": "Uh I just wanted to double down to yeah",
+      "duration": 4481,
+      "offset": 504639,
+      "lang": "en"
+    },
+    {
+      "text": "this aspect of like where and where not",
+      "duration": 4240,
+      "offset": 506720,
+      "lang": "en"
+    },
+    {
+      "text": "to use AI. I'm always a big fan of",
+      "duration": 3520,
+      "offset": 509120,
+      "lang": "en"
+    },
+    {
+      "text": "whenever I'm working with companies this",
+      "duration": 3600,
+      "offset": 510960,
+      "lang": "en"
+    },
+    {
+      "text": "concept of like hey where can we just",
+      "duration": 4319,
+      "offset": 512640,
+      "lang": "en"
+    },
+    {
+      "text": "not touch AI at all and use traditional",
+      "duration": 4080,
+      "offset": 514560,
+      "lang": "en"
+    },
+    {
+      "text": "software right is there some sort of",
+      "duration": 3760,
+      "offset": 516959,
+      "lang": "en"
+    },
+    {
+      "text": "solution here? Uh and you'd be surprised",
+      "duration": 4160,
+      "offset": 518640,
+      "lang": "en"
+    },
+    {
+      "text": "how often like there's people try to",
+      "duration": 4321,
+      "offset": 520719,
+      "lang": "en"
+    },
+    {
+      "text": "throw a language model or even just a",
+      "duration": 3920,
+      "offset": 522800,
+      "lang": "en"
+    },
+    {
+      "text": "normal biasian model at something that",
+      "duration": 4479,
+      "offset": 525040,
+      "lang": "en"
+    },
+    {
+      "text": "like a Python script could solve. um or",
+      "duration": 4960,
+      "offset": 526720,
+      "lang": "en"
+    },
+    {
+      "text": "in my case one thing that I just want to",
+      "duration": 4721,
+      "offset": 529519,
+      "lang": "en"
+    },
+    {
+      "text": "share before we go into questions. Um",
+      "duration": 4000,
+      "offset": 531680,
+      "lang": "en"
+    },
+    {
+      "text": "I've been developed something I'm going",
+      "duration": 3840,
+      "offset": 534240,
+      "lang": "en"
+    },
+    {
+      "text": "to post it into chat here soon um but",
+      "duration": 4320,
+      "offset": 535680,
+      "lang": "en"
+    },
+    {
+      "text": "it's called model workspace protocol.",
+      "duration": 3600,
+      "offset": 538080,
+      "lang": "en"
+    },
+    {
+      "text": "It's a paper I'm pushing for publishing",
+      "duration": 4080,
+      "offset": 540000,
+      "lang": "en"
+    },
+    {
+      "text": "here soon. Long story short, this is all",
+      "duration": 4000,
+      "offset": 541680,
+      "lang": "en"
+    },
+    {
+      "text": "a whole bunch of history and I've got",
+      "duration": 5199,
+      "offset": 544080,
+      "lang": "en"
+    },
+    {
+      "text": "like 51 citations of like old stuff, but",
+      "duration": 4960,
+      "offset": 545680,
+      "lang": "en"
+    },
+    {
+      "text": "everyone right now is trying to build",
+      "duration": 3761,
+      "offset": 549279,
+      "lang": "en"
+    },
+    {
+      "text": "these crazy apps and agentic workflow",
+      "duration": 4480,
+      "offset": 550640,
+      "lang": "en"
+    },
+    {
+      "text": "layers and things like that when you can",
+      "duration": 5919,
+      "offset": 553040,
+      "lang": "en"
+    },
+    {
+      "text": "really just create a nice folder that",
+      "duration": 6080,
+      "offset": 555120,
+      "lang": "en"
+    },
+    {
+      "text": "has a bunch of text in it, right? Your",
+      "duration": 5201,
+      "offset": 558959,
+      "lang": "en"
+    },
+    {
+      "text": "claw MD that decides where you should go",
+      "duration": 6160,
+      "offset": 561200,
+      "lang": "en"
+    },
+    {
+      "text": "and that acts as the app itself. This",
+      "duration": 4640,
+      "offset": 564160,
+      "lang": "en"
+    },
+    {
+      "text": "looks super complicated. If you're not",
+      "duration": 4560,
+      "offset": 567360,
+      "lang": "en"
+    },
+    {
+      "text": "into code, don't worry. Uh, this is I'm",
+      "duration": 5440,
+      "offset": 568800,
+      "lang": "en"
+    },
+    {
+      "text": "I'm going to break it down simple. If I",
+      "duration": 5760,
+      "offset": 571920,
+      "lang": "en"
+    },
+    {
+      "text": "want to say, \"Hey, go build me an",
+      "duration": 7440,
+      "offset": 574240,
+      "lang": "en"
+    },
+    {
+      "text": "animation from my Apocalypse",
+      "duration": 7200,
+      "offset": 577680,
+      "lang": "en"
+    },
+    {
+      "text": "V1 script.\"",
+      "duration": 5680,
+      "offset": 581680,
+      "lang": "en"
+    },
+    {
+      "text": "Claw immediately knows all of that. Not",
+      "duration": 4160,
+      "offset": 584880,
+      "lang": "en"
+    },
+    {
+      "text": "because of software, not because of",
+      "duration": 3680,
+      "offset": 587360,
+      "lang": "en"
+    },
+    {
+      "text": "Python, not because of anything else,",
+      "duration": 4640,
+      "offset": 589040,
+      "lang": "en"
+    },
+    {
+      "text": "but because I have folders and I have",
+      "duration": 5040,
+      "offset": 591040,
+      "lang": "en"
+    },
+    {
+      "text": "natural language text documents that",
+      "duration": 4960,
+      "offset": 593680,
+      "lang": "en"
+    },
+    {
+      "text": "say, \"Hey, Claude, read this. This is my",
+      "duration": 5199,
+      "offset": 596080,
+      "lang": "en"
+    },
+    {
+      "text": "folder structure. If you want to write a",
+      "duration": 5120,
+      "offset": 598640,
+      "lang": "en"
+    },
+    {
+      "text": "script, go to this folder. If you want",
+      "duration": 4481,
+      "offset": 601279,
+      "lang": "en"
+    },
+    {
+      "text": "to learn how to script a structure, go",
+      "duration": 4320,
+      "offset": 603760,
+      "lang": "en"
+    },
+    {
+      "text": "to this folder. And I wrote my own",
+      "duration": 5280,
+      "offset": 605760,
+      "lang": "en"
+    },
+    {
+      "text": "processes and voice and things to a",
+      "duration": 5840,
+      "offset": 608080,
+      "lang": "en"
+    },
+    {
+      "text": "limit in those folders. This is a huge",
+      "duration": 5600,
+      "offset": 611040,
+      "lang": "en"
+    },
+    {
+      "text": "orchestration workflow that like Autogen",
+      "duration": 5359,
+      "offset": 613920,
+      "lang": "en"
+    },
+    {
+      "text": "and Crew AI and all these companies n",
+      "duration": 4480,
+      "offset": 616640,
+      "lang": "en"
+    },
+    {
+      "text": "are trying to create. But at the end of",
+      "duration": 4161,
+      "offset": 619279,
+      "lang": "en"
+    },
+    {
+      "text": "the day, the Unix philosophy back in the",
+      "duration": 5600,
+      "offset": 621120,
+      "lang": "en"
+    },
+    {
+      "text": "70s and the 80s was data is a folder. If",
+      "duration": 4959,
+      "offset": 623440,
+      "lang": "en"
+    },
+    {
+      "text": "we can make it as simple as possible",
+      "duration": 3359,
+      "offset": 626720,
+      "lang": "en"
+    },
+    {
+      "text": "where I just have a folder on my",
+      "duration": 4081,
+      "offset": 628399,
+      "lang": "en"
+    },
+    {
+      "text": "computer where I can store everything",
+      "duration": 4401,
+      "offset": 630079,
+      "lang": "en"
+    },
+    {
+      "text": "and I have something running through it",
+      "duration": 3919,
+      "offset": 632480,
+      "lang": "en"
+    },
+    {
+      "text": "all, it's working well. Right, this is",
+      "duration": 4400,
+      "offset": 634480,
+      "lang": "en"
+    },
+    {
+      "text": "just clawed code. It's base cloud code.",
+      "duration": 4241,
+      "offset": 636399,
+      "lang": "en"
+    },
+    {
+      "text": "It's not anything like special. I don't",
+      "duration": 5360,
+      "offset": 638880,
+      "lang": "en"
+    },
+    {
+      "text": "have a beta thing with really good MD",
+      "duration": 6240,
+      "offset": 640640,
+      "lang": "en"
+    },
+    {
+      "text": "files and yet it's outputting controlled",
+      "duration": 5440,
+      "offset": 644240,
+      "lang": "en"
+    },
+    {
+      "text": "structures, documents, things like that.",
+      "duration": 4720,
+      "offset": 646880,
+      "lang": "en"
+    },
+    {
+      "text": "And the reason I bring this up, one, I'm",
+      "duration": 4800,
+      "offset": 649680,
+      "lang": "en"
+    },
+    {
+      "text": "making more videos on this. This is one",
+      "duration": 6160,
+      "offset": 651600,
+      "lang": "en"
+    },
+    {
+      "text": "way to solve these problems of how many",
+      "duration": 4960,
+      "offset": 654480,
+      "lang": "en"
+    },
+    {
+      "text": "AI do we use because it's not just",
+      "duration": 3759,
+      "offset": 657760,
+      "lang": "en"
+    },
+    {
+      "text": "agnostic to to claude. You can use",
+      "duration": 4000,
+      "offset": 659440,
+      "lang": "en"
+    },
+    {
+      "text": "others coding agents that can use local",
+      "duration": 4560,
+      "offset": 661519,
+      "lang": "en"
+    },
+    {
+      "text": "models and it ends up using folders as",
+      "duration": 4320,
+      "offset": 663440,
+      "lang": "en"
+    },
+    {
+      "text": "the architecture. And the reason I want",
+      "duration": 3921,
+      "offset": 666079,
+      "lang": "en"
+    },
+    {
+      "text": "to bring this up is specifically for you",
+      "duration": 4400,
+      "offset": 667760,
+      "lang": "en"
+    },
+    {
+      "text": "Jasmine. If you are looking at building",
+      "duration": 4720,
+      "offset": 670000,
+      "lang": "en"
+    },
+    {
+      "text": "a software, build a folder set of a",
+      "duration": 4720,
+      "offset": 672160,
+      "lang": "en"
+    },
+    {
+      "text": "workflow that you really want. See if",
+      "duration": 3920,
+      "offset": 674720,
+      "lang": "en"
+    },
+    {
+      "text": "cloud code can execute it. Then you",
+      "duration": 4000,
+      "offset": 676880,
+      "lang": "en"
+    },
+    {
+      "text": "build software to make it better, right?",
+      "duration": 4080,
+      "offset": 678640,
+      "lang": "en"
+    },
+    {
+      "text": "you figure it out or you build a",
+      "duration": 4000,
+      "offset": 680880,
+      "lang": "en"
+    },
+    {
+      "text": "software that fits into a folder",
+      "duration": 4320,
+      "offset": 682720,
+      "lang": "en"
+    },
+    {
+      "text": "structure like this. Those types of",
+      "duration": 4800,
+      "offset": 684880,
+      "lang": "en"
+    },
+    {
+      "text": "softwares are going to last 5 10 years,",
+      "duration": 4880,
+      "offset": 687040,
+      "lang": "en"
+    },
+    {
+      "text": "right? Or at the very least you can sell",
+      "duration": 4080,
+      "offset": 689680,
+      "lang": "en"
+    },
+    {
+      "text": "them to an AI company because you've",
+      "duration": 4720,
+      "offset": 691920,
+      "lang": "en"
+    },
+    {
+      "text": "created a bespoke workflow and concept",
+      "duration": 4880,
+      "offset": 693760,
+      "lang": "en"
+    },
+    {
+      "text": "that's not something you generate from",
+      "duration": 4480,
+      "offset": 696640,
+      "lang": "en"
+    },
+    {
+      "text": "training data. You can't throw AI at the",
+      "duration": 4560,
+      "offset": 698640,
+      "lang": "en"
+    },
+    {
+      "text": "problem necessarily to discover it",
+      "duration": 4800,
+      "offset": 701120,
+      "lang": "en"
+    },
+    {
+      "text": "because it doesn't even exist yet. Um,",
+      "duration": 4720,
+      "offset": 703200,
+      "lang": "en"
+    },
+    {
+      "text": "which is just kind of hitting on this.",
+      "duration": 4080,
+      "offset": 705920,
+      "lang": "en"
+    },
+    {
+      "text": "We want to ask the questions. We want to",
+      "duration": 4960,
+      "offset": 707920,
+      "lang": "en"
+    },
+    {
+      "text": "think about what's simple. And in Joe's",
+      "duration": 4399,
+      "offset": 710000,
+      "lang": "en"
+    },
+    {
+      "text": "case, a picture is worth a thousand",
+      "duration": 4079,
+      "offset": 712880,
+      "lang": "en"
+    },
+    {
+      "text": "words. In my case, a folder is worth a",
+      "duration": 4880,
+      "offset": 714399,
+      "lang": "en"
+    },
+    {
+      "text": "thousand words. Uh, and that's just kind",
+      "duration": 4000,
+      "offset": 716959,
+      "lang": "en"
+    },
+    {
+      "text": "of what I want to throw there. And this,",
+      "duration": 3521,
+      "offset": 719279,
+      "lang": "en"
+    },
+    {
+      "text": "we got about six minutes left since we",
+      "duration": 3601,
+      "offset": 720959,
+      "lang": "en"
+    },
+    {
+      "text": "talked. We can stay a little over, but",
+      "duration": 3839,
+      "offset": 722800,
+      "lang": "en"
+    },
+    {
+      "text": "I'd love to see like Jasmine or Cinder",
+      "duration": 4000,
+      "offset": 724560,
+      "lang": "en"
+    },
+    {
+      "text": "if you both have very specific questions",
+      "duration": 3760,
+      "offset": 726639,
+      "lang": "en"
+    },
+    {
+      "text": "about, you know, how Joe was building",
+      "duration": 3839,
+      "offset": 728560,
+      "lang": "en"
+    },
+    {
+      "text": "his company, what it was like, or what",
+      "duration": 3921,
+      "offset": 730399,
+      "lang": "en"
+    },
+    {
+      "text": "I've done in my softwares. I've got",
+      "duration": 3841,
+      "offset": 732399,
+      "lang": "en"
+    },
+    {
+      "text": "about five softwares that I've built in",
+      "duration": 3840,
+      "offset": 734320,
+      "lang": "en"
+    },
+    {
+      "text": "the last two years that have done well.",
+      "duration": 4240,
+      "offset": 736240,
+      "lang": "en"
+    },
+    {
+      "text": "Um, I' I'd love to to answer any",
+      "duration": 3679,
+      "offset": 738160,
+      "lang": "en"
+    },
+    {
+      "text": "questions and leave it open for all of",
+      "duration": 4880,
+      "offset": 740480,
+      "lang": "en"
+    },
+    {
+      "text": "you if you have any.",
+      "duration": 7041,
+      "offset": 741839,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah. Question for you. What makes you",
+      "duration": 6560,
+      "offset": 745360,
+      "lang": "en"
+    },
+    {
+      "text": "decide that you left the institution and",
+      "duration": 5440,
+      "offset": 748880,
+      "lang": "en"
+    },
+    {
+      "text": "start your own?",
+      "duration": 4719,
+      "offset": 751920,
+      "lang": "en"
+    },
+    {
+      "text": ">> Sorry. Say say one more time.",
+      "duration": 4720,
+      "offset": 754320,
+      "lang": "en"
+    },
+    {
+      "text": ">> So, what what actually made you to left",
+      "duration": 6561,
+      "offset": 756639,
+      "lang": "en"
+    },
+    {
+      "text": "the university and start a company?",
+      "duration": 6000,
+      "offset": 759040,
+      "lang": "en"
+    },
+    {
+      "text": ">> Are we gonna we're gonna record this?",
+      "duration": 3680,
+      "offset": 763200,
+      "lang": "en"
+    },
+    {
+      "text": "Um,",
+      "duration": 3120,
+      "offset": 765040,
+      "lang": "en"
+    },
+    {
+      "text": "we got",
+      "duration": 4560,
+      "offset": 766880,
+      "lang": "en"
+    },
+    {
+      "text": ">> there's a there's a lot of reasons. Um,",
+      "duration": 4799,
+      "offset": 768160,
+      "lang": "en"
+    },
+    {
+      "text": ">> I think I think at least in the United",
+      "duration": 2800,
+      "offset": 771440,
+      "lang": "en"
+    },
+    {
+      "text": "States, the college industry is",
+      "duration": 2560,
+      "offset": 772959,
+      "lang": "en"
+    },
+    {
+      "text": "struggling and so they're trying to",
+      "duration": 4480,
+      "offset": 774240,
+      "lang": "en"
+    },
+    {
+      "text": "extract as much work as they can out of",
+      "duration": 5921,
+      "offset": 775519,
+      "lang": "en"
+    },
+    {
+      "text": "professors. And I'm not going to pretend",
+      "duration": 5679,
+      "offset": 778720,
+      "lang": "en"
+    },
+    {
+      "text": "like cush like it's not a cushy job if I",
+      "duration": 5040,
+      "offset": 781440,
+      "lang": "en"
+    },
+    {
+      "text": "wanted it to be, but I have two young",
+      "duration": 5120,
+      "offset": 784399,
+      "lang": "en"
+    },
+    {
+      "text": "kids and two two businesses and like I",
+      "duration": 4240,
+      "offset": 786480,
+      "lang": "en"
+    },
+    {
+      "text": "just didn't have the bandwidth for all",
+      "duration": 3440,
+      "offset": 789519,
+      "lang": "en"
+    },
+    {
+      "text": "of it. I can go back to teaching 10",
+      "duration": 3359,
+      "offset": 790720,
+      "lang": "en"
+    },
+    {
+      "text": "years from now. I can't raise my",
+      "duration": 2801,
+      "offset": 792959,
+      "lang": "en"
+    },
+    {
+      "text": "2-year-old 10 years from now. And that",
+      "duration": 4961,
+      "offset": 794079,
+      "lang": "en"
+    },
+    {
+      "text": "was that was kind of that. Um, I also",
+      "duration": 5440,
+      "offset": 795760,
+      "lang": "en"
+    },
+    {
+      "text": "I'm I'm kind of very frustrated with the",
+      "duration": 4960,
+      "offset": 799040,
+      "lang": "en"
+    },
+    {
+      "text": "industry, at least here, and I'm sure",
+      "duration": 4079,
+      "offset": 801200,
+      "lang": "en"
+    },
+    {
+      "text": "it's different at other schools, but a",
+      "duration": 3360,
+      "offset": 804000,
+      "lang": "en"
+    },
+    {
+      "text": "lot of my colleagues are are all up in",
+      "duration": 6321,
+      "offset": 805279,
+      "lang": "en"
+    },
+    {
+      "text": "arms and anti- AI, which just is",
+      "duration": 6320,
+      "offset": 807360,
+      "lang": "en"
+    },
+    {
+      "text": "mindboggling to me. I remember when I",
+      "duration": 3919,
+      "offset": 811600,
+      "lang": "en"
+    },
+    {
+      "text": "was in undergrad having a professor tell",
+      "duration": 3279,
+      "offset": 813680,
+      "lang": "en"
+    },
+    {
+      "text": "me, \"You can't use the internet to write",
+      "duration": 2801,
+      "offset": 815519,
+      "lang": "en"
+    },
+    {
+      "text": "a paper.\" And it's like, could you even",
+      "duration": 3601,
+      "offset": 816959,
+      "lang": "en"
+    },
+    {
+      "text": "imagine? like what a disservice to those",
+      "duration": 4079,
+      "offset": 818320,
+      "lang": "en"
+    },
+    {
+      "text": "students to say that you can't use this",
+      "duration": 4160,
+      "offset": 820560,
+      "lang": "en"
+    },
+    {
+      "text": "technology uh rather than teaching them",
+      "duration": 4000,
+      "offset": 822399,
+      "lang": "en"
+    },
+    {
+      "text": "to be ready for the career they're going",
+      "duration": 3119,
+      "offset": 824720,
+      "lang": "en"
+    },
+    {
+      "text": "to have the rest of their lives, right?",
+      "duration": 3841,
+      "offset": 826399,
+      "lang": "en"
+    },
+    {
+      "text": "It's just like I just very frustrated",
+      "duration": 4321,
+      "offset": 827839,
+      "lang": "en"
+    },
+    {
+      "text": "across the board. So, it's time to take",
+      "duration": 3200,
+      "offset": 830240,
+      "lang": "en"
+    },
+    {
+      "text": "a break.",
+      "duration": 6799,
+      "offset": 832160,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah, I I I I echo you 100%. It's",
+      "duration": 7920,
+      "offset": 833440,
+      "lang": "en"
+    },
+    {
+      "text": ">> not much difference. I'm sorry.",
+      "duration": 4481,
+      "offset": 838959,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah,",
+      "duration": 2640,
+      "offset": 841360,
+      "lang": "en"
+    },
+    {
+      "text": "absolutely.",
+      "duration": 2240,
+      "offset": 843440,
+      "lang": "en"
+    },
+    {
+      "text": ">> Hi, David. Sorry you're catching the",
+      "duration": 3600,
+      "offset": 844000,
+      "lang": "en"
+    },
+    {
+      "text": "last bit here, but uh we did record the",
+      "duration": 4320,
+      "offset": 845680,
+      "lang": "en"
+    },
+    {
+      "text": "whole thing. Um, and we're in the Q&A",
+      "duration": 5599,
+      "offset": 847600,
+      "lang": "en"
+    },
+    {
+      "text": "part now. Uh, but if you, uh, want to",
+      "duration": 5920,
+      "offset": 850000,
+      "lang": "en"
+    },
+    {
+      "text": "say hi and introduce yourselves, um,",
+      "duration": 5440,
+      "offset": 853199,
+      "lang": "en"
+    },
+    {
+      "text": "you're more than welcome to.",
+      "duration": 5120,
+      "offset": 855920,
+      "lang": "en"
+    },
+    {
+      "text": ">> Uh, hey, how's it going? Sorry. Sorry,",
+      "duration": 5121,
+      "offset": 858639,
+      "lang": "en"
+    },
+    {
+      "text": "my camera's off. It's, um, it's late",
+      "duration": 4479,
+      "offset": 861040,
+      "lang": "en"
+    },
+    {
+      "text": "this side, so I don't have good",
+      "duration": 3199,
+      "offset": 863760,
+      "lang": "en"
+    },
+    {
+      "text": "lighting.",
+      "duration": 2880,
+      "offset": 865519,
+      "lang": "en"
+    },
+    {
+      "text": ">> That's actually a qu I was going to make",
+      "duration": 3041,
+      "offset": 866959,
+      "lang": "en"
+    },
+    {
+      "text": "a poll because I know there's a lot of",
+      "duration": 3201,
+      "offset": 868399,
+      "lang": "en"
+    },
+    {
+      "text": "international people. I'm happy to move",
+      "duration": 3920,
+      "offset": 870000,
+      "lang": "en"
+    },
+    {
+      "text": "it earlier into the day or later. I just",
+      "duration": 4560,
+      "offset": 871600,
+      "lang": "en"
+    },
+    {
+      "text": "wanted to uh, give this one a kind of",
+      "duration": 4080,
+      "offset": 873920,
+      "lang": "en"
+    },
+    {
+      "text": "just get it there Friday. future ones",
+      "duration": 3520,
+      "offset": 876160,
+      "lang": "en"
+    },
+    {
+      "text": "because I know yeah in the UK you're",
+      "duration": 3279,
+      "offset": 878000,
+      "lang": "en"
+    },
+    {
+      "text": "you're three or four hours ahead of me",
+      "duration": 4000,
+      "offset": 879680,
+      "lang": "en"
+    },
+    {
+      "text": "right now so it's getting late there so",
+      "duration": 4240,
+      "offset": 881279,
+      "lang": "en"
+    },
+    {
+      "text": "make it's not really afternoon tea for",
+      "duration": 4719,
+      "offset": 883680,
+      "lang": "en"
+    },
+    {
+      "text": "you it's more evening tea",
+      "duration": 5921,
+      "offset": 885519,
+      "lang": "en"
+    },
+    {
+      "text": "but uh no I'd love to uh and David where",
+      "duration": 6921,
+      "offset": 888399,
+      "lang": "en"
+    },
+    {
+      "text": "are you located right now",
+      "duration": 3880,
+      "offset": 891440,
+      "lang": "en"
+    },
+    {
+      "text": ">> all right no issue no issue thank you",
+      "duration": 3839,
+      "offset": 895440,
+      "lang": "en"
+    },
+    {
+      "text": "thank you",
+      "duration": 5041,
+      "offset": 897839,
+      "lang": "en"
+    },
+    {
+      "text": ">> that's okay fair enough but um yeah I",
+      "duration": 6161,
+      "offset": 899279,
+      "lang": "en"
+    },
+    {
+      "text": "just uh finishing up here though Jasmine",
+      "duration": 5600,
+      "offset": 902880,
+      "lang": "en"
+    },
+    {
+      "text": "do you have any questions or statements.",
+      "duration": 4480,
+      "offset": 905440,
+      "lang": "en"
+    },
+    {
+      "text": "I mean, do you feel like you got",
+      "duration": 3280,
+      "offset": 908480,
+      "lang": "en"
+    },
+    {
+      "text": "anything of value out of the last 20",
+      "duration": 3200,
+      "offset": 909920,
+      "lang": "en"
+    },
+    {
+      "text": "minutes? I hope you did.",
+      "duration": 3120,
+      "offset": 911760,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah. No, actually like like I don't",
+      "duration": 3200,
+      "offset": 913120,
+      "lang": "en"
+    },
+    {
+      "text": "necessarily have any questions because I",
+      "duration": 2800,
+      "offset": 914880,
+      "lang": "en"
+    },
+    {
+      "text": "need to like go away and think, you",
+      "duration": 2959,
+      "offset": 916320,
+      "lang": "en"
+    },
+    {
+      "text": "know, I'm like that kind of person. I",
+      "duration": 3040,
+      "offset": 917680,
+      "lang": "en"
+    },
+    {
+      "text": "need to look what you actually put",
+      "duration": 4321,
+      "offset": 919279,
+      "lang": "en"
+    },
+    {
+      "text": "together there. Um, but super",
+      "duration": 4640,
+      "offset": 920720,
+      "lang": "en"
+    },
+    {
+      "text": "interesting. Obviously, I've got like an",
+      "duration": 3919,
+      "offset": 923600,
+      "lang": "en"
+    },
+    {
+      "text": "arts background, so the visual side to",
+      "duration": 5120,
+      "offset": 925360,
+      "lang": "en"
+    },
+    {
+      "text": "your like the whole thing you've got",
+      "duration": 4721,
+      "offset": 927519,
+      "lang": "en"
+    },
+    {
+      "text": "going on there. Really interesting. And",
+      "duration": 4159,
+      "offset": 930480,
+      "lang": "en"
+    },
+    {
+      "text": "actually a lot of the stuff I'm doing at",
+      "duration": 4959,
+      "offset": 932240,
+      "lang": "en"
+    },
+    {
+      "text": "the moment is really working on mood",
+      "duration": 4161,
+      "offset": 934639,
+      "lang": "en"
+    },
+    {
+      "text": "boards and it's",
+      "duration": 3281,
+      "offset": 937199,
+      "lang": "en"
+    },
+    {
+      "text": ">> can we can we",
+      "duration": 2960,
+      "offset": 938800,
+      "lang": "en"
+    },
+    {
+      "text": ">> do we have a minute? I'd love to show",
+      "duration": 2479,
+      "offset": 940480,
+      "lang": "en"
+    },
+    {
+      "text": "you the back end because I mean it's",
+      "duration": 2560,
+      "offset": 941760,
+      "lang": "en"
+    },
+    {
+      "text": "like we didn't look at the reporting",
+      "duration": 3440,
+      "offset": 942959,
+      "lang": "en"
+    },
+    {
+      "text": "side and it's fascinating. Yeah, I would",
+      "duration": 4160,
+      "offset": 944320,
+      "lang": "en"
+    },
+    {
+      "text": "love that because honestly like I'm I",
+      "duration": 3521,
+      "offset": 946399,
+      "lang": "en"
+    },
+    {
+      "text": "think mood boards are like one of the",
+      "duration": 3760,
+      "offset": 948480,
+      "lang": "en"
+    },
+    {
+      "text": "most underrated things like so you",
+      "duration": 4640,
+      "offset": 949920,
+      "lang": "en"
+    },
+    {
+      "text": "coming in like it's something I'm really",
+      "duration": 4719,
+      "offset": 952240,
+      "lang": "en"
+    },
+    {
+      "text": "like I don't I'm trying to work on a",
+      "duration": 3760,
+      "offset": 954560,
+      "lang": "en"
+    },
+    {
+      "text": "piece of software at the moment to like",
+      "duration": 3761,
+      "offset": 956959,
+      "lang": "en"
+    },
+    {
+      "text": "visualize data but like I don't want to",
+      "duration": 4400,
+      "offset": 958320,
+      "lang": "en"
+    },
+    {
+      "text": "visualize data in like a normal way like",
+      "duration": 4720,
+      "offset": 960720,
+      "lang": "en"
+    },
+    {
+      "text": "I want this to be like very different so",
+      "duration": 4400,
+      "offset": 962720,
+      "lang": "en"
+    },
+    {
+      "text": "I'm really spending a lot of time of",
+      "duration": 4079,
+      "offset": 965440,
+      "lang": "en"
+    },
+    {
+      "text": "looking at everything like how does like",
+      "duration": 6079,
+      "offset": 967120,
+      "lang": "en"
+    },
+    {
+      "text": "sand and water sit next to each",
+      "duration": 5361,
+      "offset": 969519,
+      "lang": "en"
+    },
+    {
+      "text": "other not you know like that kind of",
+      "duration": 2961,
+      "offset": 973199,
+      "lang": "en"
+    },
+    {
+      "text": "stuff. So, yeah,",
+      "duration": 2959,
+      "offset": 974880,
+      "lang": "en"
+    },
+    {
+      "text": ">> I'm just doing a lot with like mood",
+      "duration": 4160,
+      "offset": 976160,
+      "lang": "en"
+    },
+    {
+      "text": "boards and just before doing AI, before",
+      "duration": 4240,
+      "offset": 977839,
+      "lang": "en"
+    },
+    {
+      "text": "doing coding, before doing any of that",
+      "duration": 4959,
+      "offset": 980320,
+      "lang": "en"
+    },
+    {
+      "text": "and getting the real sort of like",
+      "duration": 7120,
+      "offset": 982079,
+      "lang": "en"
+    },
+    {
+      "text": ">> I like the linear bit of this this D and",
+      "duration": 6881,
+      "offset": 985279,
+      "lang": "en"
+    },
+    {
+      "text": "like iterating and iterating just on",
+      "duration": 5521,
+      "offset": 989199,
+      "lang": "en"
+    },
+    {
+      "text": ">> the real world that lives already so",
+      "duration": 4080,
+      "offset": 992160,
+      "lang": "en"
+    },
+    {
+      "text": "that when I actually get to the point",
+      "duration": 3520,
+      "offset": 994720,
+      "lang": "en"
+    },
+    {
+      "text": "like I've built the questions",
+      "duration": 4000,
+      "offset": 996240,
+      "lang": "en"
+    },
+    {
+      "text": ">> that should all be able to be visualized",
+      "duration": 4320,
+      "offset": 998240,
+      "lang": "en"
+    },
+    {
+      "text": "now, but how do I want that to look?",
+      "duration": 5440,
+      "offset": 1000240,
+      "lang": "en"
+    },
+    {
+      "text": "Like I'm I think it's spending I'm so",
+      "duration": 5440,
+      "offset": 1002560,
+      "lang": "en"
+    },
+    {
+      "text": "sick of everyone being so oh we've got",
+      "duration": 4000,
+      "offset": 1005680,
+      "lang": "en"
+    },
+    {
+      "text": "vibe coding we can do whatever we want",
+      "duration": 3839,
+      "offset": 1008000,
+      "lang": "en"
+    },
+    {
+      "text": "I'm just going to jump on it like no I'm",
+      "duration": 3760,
+      "offset": 1009680,
+      "lang": "en"
+    },
+    {
+      "text": "gonna take a few weeks to actually sit",
+      "duration": 3440,
+      "offset": 1011839,
+      "lang": "en"
+    },
+    {
+      "text": "here and really analyze and really work",
+      "duration": 3519,
+      "offset": 1013440,
+      "lang": "en"
+    },
+    {
+      "text": "on this and come to something that is",
+      "duration": 5281,
+      "offset": 1015279,
+      "lang": "en"
+    },
+    {
+      "text": "actually a thoughtout proposal not hey",
+      "duration": 6000,
+      "offset": 1016959,
+      "lang": "en"
+    },
+    {
+      "text": "I'm going to take 30 seconds to write a",
+      "duration": 4399,
+      "offset": 1020560,
+      "lang": "en"
+    },
+    {
+      "text": "quick prompt and have something is",
+      "duration": 4161,
+      "offset": 1022959,
+      "lang": "en"
+    },
+    {
+      "text": "produced which it it's true you can have",
+      "duration": 2880,
+      "offset": 1024959,
+      "lang": "en"
+    },
+    {
+      "text": "that",
+      "duration": 1600,
+      "offset": 1027120,
+      "lang": "en"
+    },
+    {
+      "text": ">> but",
+      "duration": 2641,
+      "offset": 1027839,
+      "lang": "en"
+    },
+    {
+      "text": ">> also if you take a few more minutes it's",
+      "duration": 3520,
+      "offset": 1028720,
+      "lang": "en"
+    },
+    {
+      "text": "going to actually change potentially in",
+      "duration": 3680,
+      "offset": 1030480,
+      "lang": "en"
+    },
+    {
+      "text": "the world if you do it right.",
+      "duration": 3439,
+      "offset": 1032240,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yes. Yeah.",
+      "duration": 3360,
+      "offset": 1034160,
+      "lang": "en"
+    },
+    {
+      "text": ">> Jake, can I share screen? Can we",
+      "duration": 3841,
+      "offset": 1035679,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah. Is it letting you or",
+      "duration": 4080,
+      "offset": 1037520,
+      "lang": "en"
+    },
+    {
+      "text": ">> it's saying awaiting approval?",
+      "duration": 5279,
+      "offset": 1039520,
+      "lang": "en"
+    },
+    {
+      "text": ">> Oh. Uh I didn't get a link. Can you uh",
+      "duration": 4880,
+      "offset": 1041600,
+      "lang": "en"
+    },
+    {
+      "text": "request one more time? Maybe I missed it",
+      "duration": 4961,
+      "offset": 1044799,
+      "lang": "en"
+    },
+    {
+      "text": "and wasn't paying attention. Um let's",
+      "duration": 4880,
+      "offset": 1046480,
+      "lang": "en"
+    },
+    {
+      "text": "see.",
+      "duration": 4880,
+      "offset": 1049760,
+      "lang": "en"
+    },
+    {
+      "text": "Uh allow screen sharing. There we go.",
+      "duration": 5679,
+      "offset": 1051360,
+      "lang": "en"
+    },
+    {
+      "text": "You should have it now.",
+      "duration": 4320,
+      "offset": 1054640,
+      "lang": "en"
+    },
+    {
+      "text": ">> Uh yes, there we go.",
+      "duration": 4481,
+      "offset": 1057039,
+      "lang": "en"
+    },
+    {
+      "text": ">> Amazing. Um, while you're pulling that",
+      "duration": 4160,
+      "offset": 1058960,
+      "lang": "en"
+    },
+    {
+      "text": "up, Jasmine, I just want to say too,",
+      "duration": 4159,
+      "offset": 1061520,
+      "lang": "en"
+    },
+    {
+      "text": "that is the whole spiel behind like why",
+      "duration": 5120,
+      "offset": 1063120,
+      "lang": "en"
+    },
+    {
+      "text": "I'm automating the way I'm automating is",
+      "duration": 4240,
+      "offset": 1065679,
+      "lang": "en"
+    },
+    {
+      "text": "before Claude's even generating",
+      "duration": 4160,
+      "offset": 1068240,
+      "lang": "en"
+    },
+    {
+      "text": "anything, I spent months just figuring",
+      "duration": 4321,
+      "offset": 1069919,
+      "lang": "en"
+    },
+    {
+      "text": "out what words I want to say, how those",
+      "duration": 3600,
+      "offset": 1072400,
+      "lang": "en"
+    },
+    {
+      "text": "words look, all that stuff. Because",
+      "duration": 4799,
+      "offset": 1074240,
+      "lang": "en"
+    },
+    {
+      "text": "people, AI doesn't just automate us. It",
+      "duration": 4960,
+      "offset": 1076000,
+      "lang": "en"
+    },
+    {
+      "text": "automates all of our mistakes, all of",
+      "duration": 4081,
+      "offset": 1079039,
+      "lang": "en"
+    },
+    {
+      "text": "our nuances, and then it fuzzies it up.",
+      "duration": 4160,
+      "offset": 1080960,
+      "lang": "en"
+    },
+    {
+      "text": "But if you spend the time, those little",
+      "duration": 4400,
+      "offset": 1083120,
+      "lang": "en"
+    },
+    {
+      "text": "teeny weird nuances and critiques of",
+      "duration": 4880,
+      "offset": 1085120,
+      "lang": "en"
+    },
+    {
+      "text": "design, then you amplify it, you're",
+      "duration": 4240,
+      "offset": 1087520,
+      "lang": "en"
+    },
+    {
+      "text": "going to blow past competition. So I",
+      "duration": 3440,
+      "offset": 1090000,
+      "lang": "en"
+    },
+    {
+      "text": "Yeah, I think where you're on is",
+      "duration": 3039,
+      "offset": 1091760,
+      "lang": "en"
+    },
+    {
+      "text": "perfect. Perfect.",
+      "duration": 3040,
+      "offset": 1093440,
+      "lang": "en"
+    },
+    {
+      "text": ">> Put in, you're going to get",
+      "duration": 4161,
+      "offset": 1094799,
+      "lang": "en"
+    },
+    {
+      "text": "out. And like totally",
+      "duration": 4079,
+      "offset": 1096480,
+      "lang": "en"
+    },
+    {
+      "text": ">> That's with everything. And it's always",
+      "duration": 3760,
+      "offset": 1098960,
+      "lang": "en"
+    },
+    {
+      "text": "been like that before AI came along. If",
+      "duration": 3681,
+      "offset": 1100559,
+      "lang": "en"
+    },
+    {
+      "text": "you",
+      "duration": 2959,
+      "offset": 1102720,
+      "lang": "en"
+    },
+    {
+      "text": ">> It's the mentality you just have to have",
+      "duration": 2960,
+      "offset": 1104240,
+      "lang": "en"
+    },
+    {
+      "text": "with everything. Just take a few",
+      "duration": 5521,
+      "offset": 1105679,
+      "lang": "en"
+    },
+    {
+      "text": "minutes, stop, breathe, think, then do.",
+      "duration": 6719,
+      "offset": 1107200,
+      "lang": "en"
+    },
+    {
+      "text": ">> Correct. 100%. Absolutely. You're spot",
+      "duration": 4560,
+      "offset": 1111200,
+      "lang": "en"
+    },
+    {
+      "text": "on with that. I'd love for you to write",
+      "duration": 3361,
+      "offset": 1113919,
+      "lang": "en"
+    },
+    {
+      "text": "some posts on that if you feel like it",
+      "duration": 3600,
+      "offset": 1115760,
+      "lang": "en"
+    },
+    {
+      "text": "in the the main chat. You don't have to",
+      "duration": 3840,
+      "offset": 1117280,
+      "lang": "en"
+    },
+    {
+      "text": "be involved that much. I just love",
+      "duration": 2880,
+      "offset": 1119360,
+      "lang": "en"
+    },
+    {
+      "text": "having everyone involved in the",
+      "duration": 2480,
+      "offset": 1121120,
+      "lang": "en"
+    },
+    {
+      "text": "community and I think everyone has",
+      "duration": 3280,
+      "offset": 1122240,
+      "lang": "en"
+    },
+    {
+      "text": "something to offer here. Uh so feel free",
+      "duration": 3360,
+      "offset": 1123600,
+      "lang": "en"
+    },
+    {
+      "text": "to if you're anytime want to have a",
+      "duration": 3440,
+      "offset": 1125520,
+      "lang": "en"
+    },
+    {
+      "text": "rant, just toss it in the uh the main",
+      "duration": 3040,
+      "offset": 1126960,
+      "lang": "en"
+    },
+    {
+      "text": "thing.",
+      "duration": 5120,
+      "offset": 1128960,
+      "lang": "en"
+    },
+    {
+      "text": ">> I will rant up about my my week this",
+      "duration": 6000,
+      "offset": 1130000,
+      "lang": "en"
+    },
+    {
+      "text": "week because it's the same topic.",
+      "duration": 3760,
+      "offset": 1134080,
+      "lang": "en"
+    },
+    {
+      "text": ">> Amazing. Please do it. I'd love to. Or",
+      "duration": 3120,
+      "offset": 1136000,
+      "lang": "en"
+    },
+    {
+      "text": "even if you have a substack or",
+      "duration": 2640,
+      "offset": 1137840,
+      "lang": "en"
+    },
+    {
+      "text": "something, I don't have a problem with",
+      "duration": 3120,
+      "offset": 1139120,
+      "lang": "en"
+    },
+    {
+      "text": "people crossosting. thinking of doing",
+      "duration": 2960,
+      "offset": 1140480,
+      "lang": "en"
+    },
+    {
+      "text": "one of those because honestly",
+      "duration": 3280,
+      "offset": 1142240,
+      "lang": "en"
+    },
+    {
+      "text": ">> I recommend it. I I have some uh paid",
+      "duration": 3920,
+      "offset": 1143440,
+      "lang": "en"
+    },
+    {
+      "text": "subscribers on mine and I I don't do",
+      "duration": 3600,
+      "offset": 1145520,
+      "lang": "en"
+    },
+    {
+      "text": "that much marketing for it. It's really",
+      "duration": 4480,
+      "offset": 1147360,
+      "lang": "en"
+    },
+    {
+      "text": "weird and boring niche stuff, but uh you",
+      "duration": 4480,
+      "offset": 1149120,
+      "lang": "en"
+    },
+    {
+      "text": "know some people like it. But uh Joe,",
+      "duration": 3360,
+      "offset": 1151840,
+      "lang": "en"
+    },
+    {
+      "text": "are you able to share? We're over time",
+      "duration": 3199,
+      "offset": 1153600,
+      "lang": "en"
+    },
+    {
+      "text": "here, so if anyone wants to leave,",
+      "duration": 3520,
+      "offset": 1155200,
+      "lang": "en"
+    },
+    {
+      "text": "you're free to. I like this, so I'm",
+      "duration": 3601,
+      "offset": 1156799,
+      "lang": "en"
+    },
+    {
+      "text": "happy going over time.",
+      "duration": 2959,
+      "offset": 1158720,
+      "lang": "en"
+    },
+    {
+      "text": ">> It should be sharing. Can you not see",
+      "duration": 1920,
+      "offset": 1160400,
+      "lang": "en"
+    },
+    {
+      "text": "it?",
+      "duration": 3441,
+      "offset": 1161679,
+      "lang": "en"
+    },
+    {
+      "text": ">> Uh I do not see anything. Um",
+      "duration": 6160,
+      "offset": 1162320,
+      "lang": "en"
+    },
+    {
+      "text": ">> Oh, looks like it's sharing.",
+      "duration": 6400,
+      "offset": 1165120,
+      "lang": "en"
+    },
+    {
+      "text": ">> Try one more time. If it doesn't, um, do",
+      "duration": 4880,
+      "offset": 1168480,
+      "lang": "en"
+    },
+    {
+      "text": "you want to send me a link and I can try",
+      "duration": 3600,
+      "offset": 1171520,
+      "lang": "en"
+    },
+    {
+      "text": "to look? Oh, I might not have access to",
+      "duration": 2319,
+      "offset": 1173360,
+      "lang": "en"
+    },
+    {
+      "text": "your back end.",
+      "duration": 2559,
+      "offset": 1175120,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah, you'd have to log in. Um, weird.",
+      "duration": 3681,
+      "offset": 1175679,
+      "lang": "en"
+    },
+    {
+      "text": ">> Let me try one more time.",
+      "duration": 3120,
+      "offset": 1177679,
+      "lang": "en"
+    },
+    {
+      "text": ">> This is good. This is good practice",
+      "duration": 2880,
+      "offset": 1179360,
+      "lang": "en"
+    },
+    {
+      "text": "because Oh, there it is. Okay,",
+      "duration": 3361,
+      "offset": 1180799,
+      "lang": "en"
+    },
+    {
+      "text": ">> there it is. Okay, cool.",
+      "duration": 4640,
+      "offset": 1182240,
+      "lang": "en"
+    },
+    {
+      "text": ">> So, yeah. So, the the test is is super",
+      "duration": 5280,
+      "offset": 1184160,
+      "lang": "en"
+    },
+    {
+      "text": "easy. Um,",
+      "duration": 5200,
+      "offset": 1186880,
+      "lang": "en"
+    },
+    {
+      "text": "it's worth seeing though in a private",
+      "duration": 5440,
+      "offset": 1189440,
+      "lang": "en"
+    },
+    {
+      "text": "window. So, we just have, you know,",
+      "duration": 4959,
+      "offset": 1192080,
+      "lang": "en"
+    },
+    {
+      "text": "green dots on things that pop, right?",
+      "duration": 3760,
+      "offset": 1194880,
+      "lang": "en"
+    },
+    {
+      "text": "So, we're we're doing a series of like",
+      "duration": 3921,
+      "offset": 1197039,
+      "lang": "en"
+    },
+    {
+      "text": "these painful things that clients tell",
+      "duration": 4480,
+      "offset": 1198640,
+      "lang": "en"
+    },
+    {
+      "text": "designers like make it pop or can it be",
+      "duration": 6000,
+      "offset": 1200960,
+      "lang": "en"
+    },
+    {
+      "text": "edgy as just a a demo of what it does.",
+      "duration": 6000,
+      "offset": 1203120,
+      "lang": "en"
+    },
+    {
+      "text": "So, you drag your dots, you you drag",
+      "duration": 4640,
+      "offset": 1206960,
+      "lang": "en"
+    },
+    {
+      "text": "your dots and hit next. But on the",
+      "duration": 5120,
+      "offset": 1209120,
+      "lang": "en"
+    },
+    {
+      "text": "reporting side, we get our heat maps and",
+      "duration": 4880,
+      "offset": 1211600,
+      "lang": "en"
+    },
+    {
+      "text": "we can see, okay, this for our audience",
+      "duration": 7760,
+      "offset": 1214240,
+      "lang": "en"
+    },
+    {
+      "text": "of almost 40 people, not pop pop, but",
+      "duration": 6960,
+      "offset": 1216480,
+      "lang": "en"
+    },
+    {
+      "text": "the real powerhouse. So, you go through",
+      "duration": 2720,
+      "offset": 1222000,
+      "lang": "en"
+    },
+    {
+      "text": "and there's there's a handful of mood",
+      "duration": 4239,
+      "offset": 1223440,
+      "lang": "en"
+    },
+    {
+      "text": "boards, but it will score those and you",
+      "duration": 5040,
+      "offset": 1224720,
+      "lang": "en"
+    },
+    {
+      "text": "can set a threshold, which is really fun",
+      "duration": 3841,
+      "offset": 1227679,
+      "lang": "en"
+    },
+    {
+      "text": "when you're presenting to a board",
+      "duration": 4240,
+      "offset": 1229760,
+      "lang": "en"
+    },
+    {
+      "text": "because I can ask the CEO, \"What's your",
+      "duration": 4399,
+      "offset": 1231520,
+      "lang": "en"
+    },
+    {
+      "text": "what's your risk tolerance?\" Literally,",
+      "duration": 3840,
+      "offset": 1234000,
+      "lang": "en"
+    },
+    {
+      "text": "give me a number. And then you have",
+      "duration": 3921,
+      "offset": 1235919,
+      "lang": "en"
+    },
+    {
+      "text": "these comparison arrays where you see",
+      "duration": 3839,
+      "offset": 1237840,
+      "lang": "en"
+    },
+    {
+      "text": "the difference between what people said",
+      "duration": 3839,
+      "offset": 1239840,
+      "lang": "en"
+    },
+    {
+      "text": "that they like for a brand or for a",
+      "duration": 4721,
+      "offset": 1241679,
+      "lang": "en"
+    },
+    {
+      "text": "particular topic like pop by contrast",
+      "duration": 4081,
+      "offset": 1243679,
+      "lang": "en"
+    },
+    {
+      "text": "next to it, what they don't like, and",
+      "duration": 3920,
+      "offset": 1246400,
+      "lang": "en"
+    },
+    {
+      "text": "then what the contested ones are. And so",
+      "duration": 4560,
+      "offset": 1247760,
+      "lang": "en"
+    },
+    {
+      "text": "we kind of have all these ways of",
+      "duration": 3920,
+      "offset": 1250320,
+      "lang": "en"
+    },
+    {
+      "text": "filtering that info. We can say, \"Okay,",
+      "duration": 3920,
+      "offset": 1252320,
+      "lang": "en"
+    },
+    {
+      "text": "if somebody put a green dot on number",
+      "duration": 5600,
+      "offset": 1254240,
+      "lang": "en"
+    },
+    {
+      "text": "three, they like this purple color. Only",
+      "duration": 4960,
+      "offset": 1256240,
+      "lang": "en"
+    },
+    {
+      "text": "show me what those people like and",
+      "duration": 3280,
+      "offset": 1259840,
+      "lang": "en"
+    },
+    {
+      "text": "dislike.\" And so we'll get different",
+      "duration": 4080,
+      "offset": 1261200,
+      "lang": "en"
+    },
+    {
+      "text": "vision boards based on that on that",
+      "duration": 4799,
+      "offset": 1263120,
+      "lang": "en"
+    },
+    {
+      "text": "filtering. Um, we can narrow it down to",
+      "duration": 4560,
+      "offset": 1265280,
+      "lang": "en"
+    },
+    {
+      "text": "individual",
+      "duration": 4961,
+      "offset": 1267919,
+      "lang": "en"
+    },
+    {
+      "text": "individual entries or groups of entries.",
+      "duration": 4319,
+      "offset": 1269840,
+      "lang": "en"
+    },
+    {
+      "text": "I guess that person didn't have any. It",
+      "duration": 2640,
+      "offset": 1272880,
+      "lang": "en"
+    },
+    {
+      "text": "might have been. There's some blank ones",
+      "duration": 4721,
+      "offset": 1274159,
+      "lang": "en"
+    },
+    {
+      "text": "in here between people. Like if people",
+      "duration": 5519,
+      "offset": 1275520,
+      "lang": "en"
+    },
+    {
+      "text": "liked this one, you're more likely that",
+      "duration": 4560,
+      "offset": 1278880,
+      "lang": "en"
+    },
+    {
+      "text": "they like this one and this one as well.",
+      "duration": 4561,
+      "offset": 1281039,
+      "lang": "en"
+    },
+    {
+      "text": ">> Correct. Yeah, that's that's what this",
+      "duration": 3359,
+      "offset": 1283440,
+      "lang": "en"
+    },
+    {
+      "text": ">> I love it.",
+      "duration": 1520,
+      "offset": 1285600,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah.",
+      "duration": 2721,
+      "offset": 1286799,
+      "lang": "en"
+    },
+    {
+      "text": ">> Oh, no. So much fun. And then like we he",
+      "duration": 4160,
+      "offset": 1287120,
+      "lang": "en"
+    },
+    {
+      "text": "hasn't even started doing demographics",
+      "duration": 3920,
+      "offset": 1289520,
+      "lang": "en"
+    },
+    {
+      "text": "yet, which I'm super interested in as",
+      "duration": 3200,
+      "offset": 1291280,
+      "lang": "en"
+    },
+    {
+      "text": "well.",
+      "duration": 3840,
+      "offset": 1293440,
+      "lang": "en"
+    },
+    {
+      "text": ">> Figured out how to segment um based on",
+      "duration": 5840,
+      "offset": 1294480,
+      "lang": "en"
+    },
+    {
+      "text": "demographic targeting. Um",
+      "duration": 3759,
+      "offset": 1297280,
+      "lang": "en"
+    },
+    {
+      "text": "essentially,",
+      "duration": 2400,
+      "offset": 1300320,
+      "lang": "en"
+    },
+    {
+      "text": ">> continue what you're showing.",
+      "duration": 3281,
+      "offset": 1301039,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah. Essentially, we can we can",
+      "duration": 5280,
+      "offset": 1302720,
+      "lang": "en"
+    },
+    {
+      "text": "generate 20 different URLs and segment",
+      "duration": 5920,
+      "offset": 1304320,
+      "lang": "en"
+    },
+    {
+      "text": "by those URLs and send it to, you know,",
+      "duration": 3600,
+      "offset": 1308000,
+      "lang": "en"
+    },
+    {
+      "text": "this one's on Tik Tok, this one's on",
+      "duration": 2640,
+      "offset": 1310240,
+      "lang": "en"
+    },
+    {
+      "text": "Facebook, or this one goes to this",
+      "duration": 3199,
+      "offset": 1311600,
+      "lang": "en"
+    },
+    {
+      "text": "particular mailing list, and that URL",
+      "duration": 3440,
+      "offset": 1312880,
+      "lang": "en"
+    },
+    {
+      "text": "will segment those groups, and then we",
+      "duration": 3601,
+      "offset": 1314799,
+      "lang": "en"
+    },
+    {
+      "text": "can run comparison arrays on that. So",
+      "duration": 4400,
+      "offset": 1316320,
+      "lang": "en"
+    },
+    {
+      "text": "there's just all these different ways of",
+      "duration": 5800,
+      "offset": 1318400,
+      "lang": "en"
+    },
+    {
+      "text": "of filtering",
+      "duration": 3480,
+      "offset": 1320720,
+      "lang": "en"
+    },
+    {
+      "text": "how, you know, who who do you want to",
+      "duration": 4321,
+      "offset": 1324799,
+      "lang": "en"
+    },
+    {
+      "text": "see, what they like and don't like, what",
+      "duration": 2640,
+      "offset": 1327760,
+      "lang": "en"
+    },
+    {
+      "text": "groups of people do you want to see,",
+      "duration": 2960,
+      "offset": 1329120,
+      "lang": "en"
+    },
+    {
+      "text": "what they like and don't like, right",
+      "duration": 3279,
+      "offset": 1330400,
+      "lang": "en"
+    },
+    {
+      "text": "down to the individual and then the",
+      "duration": 5120,
+      "offset": 1332080,
+      "lang": "en"
+    },
+    {
+      "text": "cloud of all the people. Um, we can even",
+      "duration": 6961,
+      "offset": 1333679,
+      "lang": "en"
+    },
+    {
+      "text": "see things like which dots dropped first",
+      "duration": 6400,
+      "offset": 1337200,
+      "lang": "en"
+    },
+    {
+      "text": "or last and gain some insight there.",
+      "duration": 4880,
+      "offset": 1340640,
+      "lang": "en"
+    },
+    {
+      "text": ">> Oh, nice. Uh, we also have a a",
+      "duration": 4000,
+      "offset": 1343600,
+      "lang": "en"
+    },
+    {
+      "text": "two-minute timer that's sped up and that",
+      "duration": 3840,
+      "offset": 1345520,
+      "lang": "en"
+    },
+    {
+      "text": "shows us",
+      "duration": 3760,
+      "offset": 1347600,
+      "lang": "en"
+    },
+    {
+      "text": "kind of what are the knee-jerk reactions",
+      "duration": 4240,
+      "offset": 1349360,
+      "lang": "en"
+    },
+    {
+      "text": "and and what are the more contemplative",
+      "duration": 4319,
+      "offset": 1351360,
+      "lang": "en"
+    },
+    {
+      "text": "decision, you know, drag and drops on",
+      "duration": 3040,
+      "offset": 1353600,
+      "lang": "en"
+    },
+    {
+      "text": "those.",
+      "duration": 1601,
+      "offset": 1355679,
+      "lang": "en"
+    },
+    {
+      "text": ">> So much data.",
+      "duration": 3039,
+      "offset": 1356640,
+      "lang": "en"
+    },
+    {
+      "text": ">> And then we're say again,",
+      "duration": 3920,
+      "offset": 1357280,
+      "lang": "en"
+    },
+    {
+      "text": ">> that's just so much data. Like I just",
+      "duration": 4721,
+      "offset": 1359679,
+      "lang": "en"
+    },
+    {
+      "text": "love it's just literally the the the",
+      "duration": 5120,
+      "offset": 1361200,
+      "lang": "en"
+    },
+    {
+      "text": "software version of a picture is worth a",
+      "duration": 4000,
+      "offset": 1364400,
+      "lang": "en"
+    },
+    {
+      "text": "thousand words. It's it's",
+      "duration": 4800,
+      "offset": 1366320,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah. And the um this is the part that",
+      "duration": 4960,
+      "offset": 1368400,
+      "lang": "en"
+    },
+    {
+      "text": "Jake has been so helpful with is we're",
+      "duration": 3919,
+      "offset": 1371120,
+      "lang": "en"
+    },
+    {
+      "text": "able to we're able to download all that",
+      "duration": 3600,
+      "offset": 1373360,
+      "lang": "en"
+    },
+    {
+      "text": "data. We set up all our configurations",
+      "duration": 4000,
+      "offset": 1375039,
+      "lang": "en"
+    },
+    {
+      "text": "and segments and whatever we want to do",
+      "duration": 6719,
+      "offset": 1376960,
+      "lang": "en"
+    },
+    {
+      "text": "with it and then we have created these",
+      "duration": 8081,
+      "offset": 1379039,
+      "lang": "en"
+    },
+    {
+      "text": "analysis models that give us these",
+      "duration": 5841,
+      "offset": 1383679,
+      "lang": "en"
+    },
+    {
+      "text": "pattern recognition reports based on",
+      "duration": 3919,
+      "offset": 1387120,
+      "lang": "en"
+    },
+    {
+      "text": "semiodic discipline and and other",
+      "duration": 5279,
+      "offset": 1389520,
+      "lang": "en"
+    },
+    {
+      "text": "interpretive models. And for me as a",
+      "duration": 6161,
+      "offset": 1391039,
+      "lang": "en"
+    },
+    {
+      "text": "designer, you know, the pain of trying",
+      "duration": 4401,
+      "offset": 1394799,
+      "lang": "en"
+    },
+    {
+      "text": "to explain why this is a good idea or a",
+      "duration": 4640,
+      "offset": 1397200,
+      "lang": "en"
+    },
+    {
+      "text": "bad idea visually to non-artic people",
+      "duration": 5040,
+      "offset": 1399200,
+      "lang": "en"
+    },
+    {
+      "text": "and, you know, it I I'm able to walk in",
+      "duration": 4800,
+      "offset": 1401840,
+      "lang": "en"
+    },
+    {
+      "text": "and show them side by side what an",
+      "duration": 4160,
+      "offset": 1404240,
+      "lang": "en"
+    },
+    {
+      "text": "audience of, you know, several thousand",
+      "duration": 3360,
+      "offset": 1406640,
+      "lang": "en"
+    },
+    {
+      "text": "people like and dislike",
+      "duration": 2880,
+      "offset": 1408400,
+      "lang": "en"
+    },
+    {
+      "text": ">> based on the prompt",
+      "duration": 3280,
+      "offset": 1410000,
+      "lang": "en"
+    },
+    {
+      "text": ">> and have this really articulate write up",
+      "duration": 3759,
+      "offset": 1411280,
+      "lang": "en"
+    },
+    {
+      "text": "for them to read so that when we go into",
+      "duration": 2800,
+      "offset": 1413280,
+      "lang": "en"
+    },
+    {
+      "text": "that meeting, we're speaking the same",
+      "duration": 3120,
+      "offset": 1415039,
+      "lang": "en"
+    },
+    {
+      "text": "language. It's really a translation tool",
+      "duration": 4240,
+      "offset": 1416080,
+      "lang": "en"
+    },
+    {
+      "text": "for me to work with people who don't",
+      "duration": 3921,
+      "offset": 1418159,
+      "lang": "en"
+    },
+    {
+      "text": "necessarily have my background. I can I",
+      "duration": 3520,
+      "offset": 1420320,
+      "lang": "en"
+    },
+    {
+      "text": "can not only get them up to speed, but",
+      "duration": 3920,
+      "offset": 1422080,
+      "lang": "en"
+    },
+    {
+      "text": "in the context of an audience where I",
+      "duration": 3839,
+      "offset": 1423840,
+      "lang": "en"
+    },
+    {
+      "text": "could have been wrong. I mean, for years",
+      "duration": 3440,
+      "offset": 1426000,
+      "lang": "en"
+    },
+    {
+      "text": "I've designed on gut and using mood",
+      "duration": 3521,
+      "offset": 1427679,
+      "lang": "en"
+    },
+    {
+      "text": "boards with single individuals or maybe",
+      "duration": 3840,
+      "offset": 1429440,
+      "lang": "en"
+    },
+    {
+      "text": "a couple of people. Now I'm able to get",
+      "duration": 3599,
+      "offset": 1431200,
+      "lang": "en"
+    },
+    {
+      "text": "data from thousands of people and go",
+      "duration": 3440,
+      "offset": 1433280,
+      "lang": "en"
+    },
+    {
+      "text": "back and say this is going to work. And",
+      "duration": 4000,
+      "offset": 1434799,
+      "lang": "en"
+    },
+    {
+      "text": "I can honestly say too, my clients have",
+      "duration": 5040,
+      "offset": 1436720,
+      "lang": "en"
+    },
+    {
+      "text": "seen the impact, the the ROI that they",
+      "duration": 4801,
+      "offset": 1438799,
+      "lang": "en"
+    },
+    {
+      "text": "are getting out of Dark Squar's work by",
+      "duration": 6399,
+      "offset": 1441760,
+      "lang": "en"
+    },
+    {
+      "text": "using this tool has been fantastic. Um,",
+      "duration": 8000,
+      "offset": 1443600,
+      "lang": "en"
+    },
+    {
+      "text": "so yeah, it's it's pretty neat. And I",
+      "duration": 4880,
+      "offset": 1448159,
+      "lang": "en"
+    },
+    {
+      "text": "don't know if we have any Zelda nerds in",
+      "duration": 2720,
+      "offset": 1451600,
+      "lang": "en"
+    },
+    {
+      "text": "here like me. I just love The Legend of",
+      "duration": 3921,
+      "offset": 1453039,
+      "lang": "en"
+    },
+    {
+      "text": "Zelda. It's game I grew up with. But",
+      "duration": 4479,
+      "offset": 1454320,
+      "lang": "en"
+    },
+    {
+      "text": "they're making a movie. And this was our",
+      "duration": 3760,
+      "offset": 1456960,
+      "lang": "en"
+    },
+    {
+      "text": "our most complicated test. We had six",
+      "duration": 3760,
+      "offset": 1458799,
+      "lang": "en"
+    },
+    {
+      "text": "boards on this one for what the",
+      "duration": 3040,
+      "offset": 1460720,
+      "lang": "en"
+    },
+    {
+      "text": "characters should look like in the",
+      "duration": 2720,
+      "offset": 1462559,
+      "lang": "en"
+    },
+    {
+      "text": "movie,",
+      "duration": 3519,
+      "offset": 1463760,
+      "lang": "en"
+    },
+    {
+      "text": "what the what the supporting characters",
+      "duration": 3760,
+      "offset": 1465279,
+      "lang": "en"
+    },
+    {
+      "text": "should be from the game that's 40 years",
+      "duration": 4880,
+      "offset": 1467279,
+      "lang": "en"
+    },
+    {
+      "text": "old. And uh the write up on it is just",
+      "duration": 4161,
+      "offset": 1469039,
+      "lang": "en"
+    },
+    {
+      "text": "when I was going through I was like,",
+      "duration": 2961,
+      "offset": 1472159,
+      "lang": "en"
+    },
+    {
+      "text": "\"This is absolutely brilliant.\" like",
+      "duration": 4560,
+      "offset": 1473200,
+      "lang": "en"
+    },
+    {
+      "text": "it's just crazy what it's able to kind",
+      "duration": 4720,
+      "offset": 1475120,
+      "lang": "en"
+    },
+    {
+      "text": "of find in people picking dots on",
+      "duration": 4399,
+      "offset": 1477760,
+      "lang": "en"
+    },
+    {
+      "text": "images. So",
+      "duration": 2880,
+      "offset": 1479840,
+      "lang": "en"
+    },
+    {
+      "text": ">> yeah,",
+      "duration": 3201,
+      "offset": 1482159,
+      "lang": "en"
+    },
+    {
+      "text": ">> so this honestly this is really really",
+      "duration": 5360,
+      "offset": 1482720,
+      "lang": "en"
+    },
+    {
+      "text": "really cool. Like I did not this call",
+      "duration": 4319,
+      "offset": 1485360,
+      "lang": "en"
+    },
+    {
+      "text": "was going to be but like I'm",
+      "duration": 3839,
+      "offset": 1488080,
+      "lang": "en"
+    },
+    {
+      "text": ">> I appreciate it. I think it's cool.",
+      "duration": 3681,
+      "offset": 1489679,
+      "lang": "en"
+    },
+    {
+      "text": "We're we're still early and we only have",
+      "duration": 3760,
+      "offset": 1491919,
+      "lang": "en"
+    },
+    {
+      "text": "a handful of clients. Um we've really",
+      "duration": 3679,
+      "offset": 1493360,
+      "lang": "en"
+    },
+    {
+      "text": "only been trying to sell it for about a",
+      "duration": 3521,
+      "offset": 1495679,
+      "lang": "en"
+    },
+    {
+      "text": "month now. So I've been working on it",
+      "duration": 3841,
+      "offset": 1497039,
+      "lang": "en"
+    },
+    {
+      "text": "for a year and I've spent a ton of money",
+      "duration": 4079,
+      "offset": 1499200,
+      "lang": "en"
+    },
+    {
+      "text": "on it. Um but I just think the",
+      "duration": 3919,
+      "offset": 1500880,
+      "lang": "en"
+    },
+    {
+      "text": "opportunity is is",
+      "duration": 4721,
+      "offset": 1503279,
+      "lang": "en"
+    },
+    {
+      "text": ">> massive like it's so as if you've got",
+      "duration": 6081,
+      "offset": 1504799,
+      "lang": "en"
+    },
+    {
+      "text": "any sort of like inkling towards design",
+      "duration": 6400,
+      "offset": 1508000,
+      "lang": "en"
+    },
+    {
+      "text": "and like ah like data",
+      "duration": 6560,
+      "offset": 1510880,
+      "lang": "en"
+    },
+    {
+      "text": ">> you you've s you've made data pretty and",
+      "duration": 5840,
+      "offset": 1514400,
+      "lang": "en"
+    },
+    {
+      "text": "like factoable you know",
+      "duration": 5680,
+      "offset": 1517440,
+      "lang": "en"
+    },
+    {
+      "text": ">> it's the right kind of data.",
+      "duration": 4319,
+      "offset": 1520240,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah, exactly. It's the right kind of",
+      "duration": 4559,
+      "offset": 1523120,
+      "lang": "en"
+    },
+    {
+      "text": "data. No, it's super it's super clever.",
+      "duration": 4801,
+      "offset": 1524559,
+      "lang": "en"
+    },
+    {
+      "text": ">> Thank you so much. It's encouraging. I",
+      "duration": 3201,
+      "offset": 1527679,
+      "lang": "en"
+    },
+    {
+      "text": "need it right now. It's kind of like we",
+      "duration": 4080,
+      "offset": 1529360,
+      "lang": "en"
+    },
+    {
+      "text": "got to get this out here. So,",
+      "duration": 4720,
+      "offset": 1530880,
+      "lang": "en"
+    },
+    {
+      "text": ">> so I got I got a question. How did you",
+      "duration": 4320,
+      "offset": 1533440,
+      "lang": "en"
+    },
+    {
+      "text": "collect the data? Do do you pay them to",
+      "duration": 5199,
+      "offset": 1535600,
+      "lang": "en"
+    },
+    {
+      "text": "uh collect or just just randomly send to",
+      "duration": 4560,
+      "offset": 1537760,
+      "lang": "en"
+    },
+    {
+      "text": "a social media? Then, you know, they",
+      "duration": 2321,
+      "offset": 1540799,
+      "lang": "en"
+    },
+    {
+      "text": "volunteer it",
+      "duration": 1359,
+      "offset": 1542320,
+      "lang": "en"
+    },
+    {
+      "text": ">> for",
+      "duration": 2320,
+      "offset": 1543120,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah, for these ones it's kind of random",
+      "duration": 3360,
+      "offset": 1543679,
+      "lang": "en"
+    },
+    {
+      "text": "social media. when we're doing it with",
+      "duration": 3839,
+      "offset": 1545440,
+      "lang": "en"
+    },
+    {
+      "text": "clients, um they usually have either",
+      "duration": 3760,
+      "offset": 1547039,
+      "lang": "en"
+    },
+    {
+      "text": "mailing lists that we're able to send it",
+      "duration": 4801,
+      "offset": 1549279,
+      "lang": "en"
+    },
+    {
+      "text": "out to or a lot of the B2B, most of my",
+      "duration": 5601,
+      "offset": 1550799,
+      "lang": "en"
+    },
+    {
+      "text": "design work is B2B and so we'll utilize",
+      "duration": 4240,
+      "offset": 1554080,
+      "lang": "en"
+    },
+    {
+      "text": "the employee base and we'll send it to",
+      "duration": 3519,
+      "offset": 1556400,
+      "lang": "en"
+    },
+    {
+      "text": "you know they have thousands of",
+      "duration": 4800,
+      "offset": 1558320,
+      "lang": "en"
+    },
+    {
+      "text": "employees a lot of the time and our our",
+      "duration": 5201,
+      "offset": 1559919,
+      "lang": "en"
+    },
+    {
+      "text": "assumption is that they are spending 40",
+      "duration": 3679,
+      "offset": 1563120,
+      "lang": "en"
+    },
+    {
+      "text": "hours a week working at the company and",
+      "duration": 3039,
+      "offset": 1565120,
+      "lang": "en"
+    },
+    {
+      "text": "are very familiar with the brand and",
+      "duration": 3441,
+      "offset": 1566799,
+      "lang": "en"
+    },
+    {
+      "text": "therefore a good data set to pull from",
+      "duration": 3601,
+      "offset": 1568159,
+      "lang": "en"
+    },
+    {
+      "text": "um or a good audience to pull I should",
+      "duration": 5200,
+      "offset": 1570240,
+      "lang": "en"
+    },
+    {
+      "text": "say. So we we will utilize that. Um, we",
+      "duration": 5600,
+      "offset": 1571760,
+      "lang": "en"
+    },
+    {
+      "text": "are starting to have conversations with",
+      "duration": 5040,
+      "offset": 1575440,
+      "lang": "en"
+    },
+    {
+      "text": "retailers who have large Instagram",
+      "duration": 5360,
+      "offset": 1577360,
+      "lang": "en"
+    },
+    {
+      "text": "followings and incentivize them with",
+      "duration": 4079,
+      "offset": 1580480,
+      "lang": "en"
+    },
+    {
+      "text": "something like a 10% off coupon to get",
+      "duration": 4079,
+      "offset": 1582720,
+      "lang": "en"
+    },
+    {
+      "text": "them to take these tests. And what we're",
+      "duration": 4881,
+      "offset": 1584559,
+      "lang": "en"
+    },
+    {
+      "text": "realizing on the on the on the retail",
+      "duration": 6081,
+      "offset": 1586799,
+      "lang": "en"
+    },
+    {
+      "text": "side is if we can incentivize a",
+      "duration": 6640,
+      "offset": 1589440,
+      "lang": "en"
+    },
+    {
+      "text": "completion with a coupon as an example,",
+      "duration": 6720,
+      "offset": 1592880,
+      "lang": "en"
+    },
+    {
+      "text": "we can then isolate that one individual",
+      "duration": 5680,
+      "offset": 1596080,
+      "lang": "en"
+    },
+    {
+      "text": "or all of the individuals or however we",
+      "duration": 4000,
+      "offset": 1599600,
+      "lang": "en"
+    },
+    {
+      "text": "segment it and then reach go back to",
+      "duration": 3440,
+      "offset": 1601760,
+      "lang": "en"
+    },
+    {
+      "text": "them and say you said you like these",
+      "duration": 3360,
+      "offset": 1603600,
+      "lang": "en"
+    },
+    {
+      "text": "four things.",
+      "duration": 3680,
+      "offset": 1605200,
+      "lang": "en"
+    },
+    {
+      "text": "Here's a a special offer on those four",
+      "duration": 3199,
+      "offset": 1606960,
+      "lang": "en"
+    },
+    {
+      "text": "things and we're not going to even waste",
+      "duration": 2640,
+      "offset": 1608880,
+      "lang": "en"
+    },
+    {
+      "text": "your time with these things, right?",
+      "duration": 2801,
+      "offset": 1610159,
+      "lang": "en"
+    },
+    {
+      "text": "Because you told us that you don't like",
+      "duration": 4000,
+      "offset": 1611520,
+      "lang": "en"
+    },
+    {
+      "text": "those things. So, I haven't deeply",
+      "duration": 6000,
+      "offset": 1612960,
+      "lang": "en"
+    },
+    {
+      "text": "explored the the retail component with",
+      "duration": 5759,
+      "offset": 1615520,
+      "lang": "en"
+    },
+    {
+      "text": "that. Um, but we're just starting to and",
+      "duration": 3920,
+      "offset": 1618960,
+      "lang": "en"
+    },
+    {
+      "text": "realizing like it's it's pretty powerful",
+      "duration": 4161,
+      "offset": 1621279,
+      "lang": "en"
+    },
+    {
+      "text": "for that, too. I think",
+      "duration": 4960,
+      "offset": 1622880,
+      "lang": "en"
+    },
+    {
+      "text": ">> 100%.",
+      "duration": 5359,
+      "offset": 1625440,
+      "lang": "en"
+    },
+    {
+      "text": ">> So much. Yeah. Was this uh what any of",
+      "duration": 4959,
+      "offset": 1627840,
+      "lang": "en"
+    },
+    {
+      "text": "you were expecting for today's call? I I",
+      "duration": 4240,
+      "offset": 1630799,
+      "lang": "en"
+    },
+    {
+      "text": "hope it's uh exceeded expectations. I",
+      "duration": 3841,
+      "offset": 1632799,
+      "lang": "en"
+    },
+    {
+      "text": "I'm trying to get some heavy hitters in",
+      "duration": 3281,
+      "offset": 1635039,
+      "lang": "en"
+    },
+    {
+      "text": "the What do you It's the opposite of a",
+      "duration": 3440,
+      "offset": 1636640,
+      "lang": "en"
+    },
+    {
+      "text": "stealth startup. It's a a stealth",
+      "duration": 3280,
+      "offset": 1638320,
+      "lang": "en"
+    },
+    {
+      "text": "community.",
+      "duration": 3520,
+      "offset": 1640080,
+      "lang": "en"
+    },
+    {
+      "text": "It's just we've got heavy hitters and I",
+      "duration": 3600,
+      "offset": 1641600,
+      "lang": "en"
+    },
+    {
+      "text": "have some PhDs that are going to be in",
+      "duration": 3040,
+      "offset": 1643600,
+      "lang": "en"
+    },
+    {
+      "text": "some future ones where we're talking",
+      "duration": 3760,
+      "offset": 1645200,
+      "lang": "en"
+    },
+    {
+      "text": "about neuropolitics and where we've done",
+      "duration": 4560,
+      "offset": 1646640,
+      "lang": "en"
+    },
+    {
+      "text": "research papers on like uh we've taken",
+      "duration": 4400,
+      "offset": 1648960,
+      "lang": "en"
+    },
+    {
+      "text": "psychometric scales and actually aimed",
+      "duration": 4719,
+      "offset": 1651200,
+      "lang": "en"
+    },
+    {
+      "text": "them at the AI to see how they respond",
+      "duration": 4559,
+      "offset": 1653360,
+      "lang": "en"
+    },
+    {
+      "text": "at scale and did a whole bunch of data",
+      "duration": 4161,
+      "offset": 1655919,
+      "lang": "en"
+    },
+    {
+      "text": "science behind it. Uh we're looking at",
+      "duration": 3921,
+      "offset": 1657919,
+      "lang": "en"
+    },
+    {
+      "text": "future I'm going to have a local AI",
+      "duration": 3199,
+      "offset": 1660080,
+      "lang": "en"
+    },
+    {
+      "text": "company that's in machine learning",
+      "duration": 2719,
+      "offset": 1661840,
+      "lang": "en"
+    },
+    {
+      "text": "that's been in there for a decade.",
+      "duration": 2801,
+      "offset": 1663279,
+      "lang": "en"
+    },
+    {
+      "text": "They're going to be coming on. So",
+      "duration": 3600,
+      "offset": 1664559,
+      "lang": "en"
+    },
+    {
+      "text": "hopefully I I again I know there's only",
+      "duration": 3680,
+      "offset": 1666080,
+      "lang": "en"
+    },
+    {
+      "text": "three of you in here, but I'm I'm gonna",
+      "duration": 3120,
+      "offset": 1668159,
+      "lang": "en"
+    },
+    {
+      "text": "I'm going to be working literally every",
+      "duration": 3760,
+      "offset": 1669760,
+      "lang": "en"
+    },
+    {
+      "text": "day to try to get more people in and",
+      "duration": 3921,
+      "offset": 1671279,
+      "lang": "en"
+    },
+    {
+      "text": "build it up. But do you feel like you",
+      "duration": 3200,
+      "offset": 1673520,
+      "lang": "en"
+    },
+    {
+      "text": "got value out of this? Do you feel like",
+      "duration": 2800,
+      "offset": 1675200,
+      "lang": "en"
+    },
+    {
+      "text": "this is great?",
+      "duration": 3520,
+      "offset": 1676720,
+      "lang": "en"
+    },
+    {
+      "text": ">> 100%. I'm like super inspired.",
+      "duration": 4480,
+      "offset": 1678000,
+      "lang": "en"
+    },
+    {
+      "text": ">> Sweet. Amazing. Yeah. And like I said,",
+      "duration": 4159,
+      "offset": 1680240,
+      "lang": "en"
+    },
+    {
+      "text": "Oh, sorry. Go for it, Cinder.",
+      "duration": 4480,
+      "offset": 1682480,
+      "lang": "en"
+    },
+    {
+      "text": ">> No, no, I said that this is a what what",
+      "duration": 4721,
+      "offset": 1684399,
+      "lang": "en"
+    },
+    {
+      "text": "Joe is doing is very very interesting.",
+      "duration": 4640,
+      "offset": 1686960,
+      "lang": "en"
+    },
+    {
+      "text": "Never saw anything like that.",
+      "duration": 4880,
+      "offset": 1689120,
+      "lang": "en"
+    },
+    {
+      "text": "Please, please connect on um on",
+      "duration": 4160,
+      "offset": 1691600,
+      "lang": "en"
+    },
+    {
+      "text": "LinkedIn's probably the best platform if",
+      "duration": 2559,
+      "offset": 1694000,
+      "lang": "en"
+    },
+    {
+      "text": "you're on LinkedIn.",
+      "duration": 1680,
+      "offset": 1695760,
+      "lang": "en"
+    },
+    {
+      "text": ">> Let me get your",
+      "duration": 3681,
+      "offset": 1696559,
+      "lang": "en"
+    },
+    {
+      "text": ">> but I mean I'm I'm literally giving it",
+      "duration": 4800,
+      "offset": 1697440,
+      "lang": "en"
+    },
+    {
+      "text": "away to people who have interesting use",
+      "duration": 4640,
+      "offset": 1700240,
+      "lang": "en"
+    },
+    {
+      "text": "cases for it for now. You know, you can",
+      "duration": 3840,
+      "offset": 1702240,
+      "lang": "en"
+    },
+    {
+      "text": "if you want to look at the pricing model",
+      "duration": 2320,
+      "offset": 1704880,
+      "lang": "en"
+    },
+    {
+      "text": "on the site or whatever, that's fine.",
+      "duration": 3040,
+      "offset": 1706080,
+      "lang": "en"
+    },
+    {
+      "text": "But like people I know in person that I",
+      "duration": 3440,
+      "offset": 1707200,
+      "lang": "en"
+    },
+    {
+      "text": "have met or I have worked with before at",
+      "duration": 2880,
+      "offset": 1709120,
+      "lang": "en"
+    },
+    {
+      "text": "this stage. I'm just saying go use it",
+      "duration": 4880,
+      "offset": 1710640,
+      "lang": "en"
+    },
+    {
+      "text": "for a quarter or even a year and do",
+      "duration": 4799,
+      "offset": 1712000,
+      "lang": "en"
+    },
+    {
+      "text": "something cool with it and tell me about",
+      "duration": 2879,
+      "offset": 1715520,
+      "lang": "en"
+    },
+    {
+      "text": "it so we can kind of think about it",
+      "duration": 3041,
+      "offset": 1716799,
+      "lang": "en"
+    },
+    {
+      "text": "better. So if",
+      "duration": 3280,
+      "offset": 1718399,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah. you know, either of you. If",
+      "duration": 3760,
+      "offset": 1719840,
+      "lang": "en"
+    },
+    {
+      "text": "anybody has a",
+      "duration": 3120,
+      "offset": 1721679,
+      "lang": "en"
+    },
+    {
+      "text": ">> they want to experiment with it, just",
+      "duration": 3760,
+      "offset": 1723600,
+      "lang": "en"
+    },
+    {
+      "text": "just hit me up.",
+      "duration": 4561,
+      "offset": 1724799,
+      "lang": "en"
+    },
+    {
+      "text": ">> His LinkedIn is in the chat, definitely.",
+      "duration": 4319,
+      "offset": 1727360,
+      "lang": "en"
+    },
+    {
+      "text": "All right. Well, I uh I think we'll",
+      "duration": 4080,
+      "offset": 1729360,
+      "lang": "en"
+    },
+    {
+      "text": "we'll call it there then. That was This",
+      "duration": 3281,
+      "offset": 1731679,
+      "lang": "en"
+    },
+    {
+      "text": "was an awesome coffee time. If this is",
+      "duration": 3200,
+      "offset": 1733440,
+      "lang": "en"
+    },
+    {
+      "text": "what it is every two weeks, I'm hyped.",
+      "duration": 3439,
+      "offset": 1734960,
+      "lang": "en"
+    },
+    {
+      "text": "And Jasmine, like I said, go away. Do",
+      "duration": 3919,
+      "offset": 1736640,
+      "lang": "en"
+    },
+    {
+      "text": "your thinking. Think about it. Any",
+      "duration": 2481,
+      "offset": 1738399,
+      "lang": "en"
+    },
+    {
+      "text": "questions?",
+      "duration": 2720,
+      "offset": 1740559,
+      "lang": "en"
+    },
+    {
+      "text": ">> Hit me up with questions or ideas. Like",
+      "duration": 4480,
+      "offset": 1740880,
+      "lang": "en"
+    },
+    {
+      "text": "even I I know a girl who's in law school",
+      "duration": 6561,
+      "offset": 1743279,
+      "lang": "en"
+    },
+    {
+      "text": "who who wants to use it to pull jury",
+      "duration": 6240,
+      "offset": 1745360,
+      "lang": "en"
+    },
+    {
+      "text": "members before a case goes to court for",
+      "duration": 3120,
+      "offset": 1749840,
+      "lang": "en"
+    },
+    {
+      "text": "things like racial bias. I'm like I",
+      "duration": 2640,
+      "offset": 1751600,
+      "lang": "en"
+    },
+    {
+      "text": "would never have thought of that. Like",
+      "duration": 2560,
+      "offset": 1752960,
+      "lang": "en"
+    },
+    {
+      "text": "that's brilliant",
+      "duration": 2880,
+      "offset": 1754240,
+      "lang": "en"
+    },
+    {
+      "text": ">> that like there's just such broad",
+      "duration": 4560,
+      "offset": 1755520,
+      "lang": "en"
+    },
+    {
+      "text": "application like yeah please if if",
+      "duration": 4880,
+      "offset": 1757120,
+      "lang": "en"
+    },
+    {
+      "text": "you're you're a deep thinker and you",
+      "duration": 4959,
+      "offset": 1760080,
+      "lang": "en"
+    },
+    {
+      "text": "have an idea please let me know. Yeah,",
+      "duration": 4880,
+      "offset": 1762000,
+      "lang": "en"
+    },
+    {
+      "text": "we're here to, like I said, I want this",
+      "duration": 3120,
+      "offset": 1765039,
+      "lang": "en"
+    },
+    {
+      "text": "community to come together because we",
+      "duration": 3519,
+      "offset": 1766880,
+      "lang": "en"
+    },
+    {
+      "text": "all just have one piece of a, right? My",
+      "duration": 5041,
+      "offset": 1768159,
+      "lang": "en"
+    },
+    {
+      "text": "I had an old PhD or a master's adviser",
+      "duration": 4640,
+      "offset": 1770399,
+      "lang": "en"
+    },
+    {
+      "text": "who told me, yeah, when you're in",
+      "duration": 3120,
+      "offset": 1773200,
+      "lang": "en"
+    },
+    {
+      "text": "something that you're really meant to be",
+      "duration": 2801,
+      "offset": 1775039,
+      "lang": "en"
+    },
+    {
+      "text": "in, it's like finding a bunch of people",
+      "duration": 3359,
+      "offset": 1776320,
+      "lang": "en"
+    },
+    {
+      "text": "that are all broken, but broken in the",
+      "duration": 3199,
+      "offset": 1777840,
+      "lang": "en"
+    },
+    {
+      "text": "same way, and you all have a different",
+      "duration": 3600,
+      "offset": 1779679,
+      "lang": "en"
+    },
+    {
+      "text": "piece to add. Uh, and that's always the",
+      "duration": 3681,
+      "offset": 1781039,
+      "lang": "en"
+    },
+    {
+      "text": "goal here, right? How do we how do we",
+      "duration": 3120,
+      "offset": 1783279,
+      "lang": "en"
+    },
+    {
+      "text": "come together and find something new?",
+      "duration": 3520,
+      "offset": 1784720,
+      "lang": "en"
+    },
+    {
+      "text": "And I I hope that's that's what you got",
+      "duration": 3681,
+      "offset": 1786399,
+      "lang": "en"
+    },
+    {
+      "text": "today for everyone. Cinder as well, I'd",
+      "duration": 3840,
+      "offset": 1788240,
+      "lang": "en"
+    },
+    {
+      "text": "love to talk more about your university.",
+      "duration": 4240,
+      "offset": 1790080,
+      "lang": "en"
+    },
+    {
+      "text": "And uh David, I I I'll I'll send you the",
+      "duration": 4079,
+      "offset": 1792080,
+      "lang": "en"
+    },
+    {
+      "text": "I'll be posting this recording. It's",
+      "duration": 3359,
+      "offset": 1794320,
+      "lang": "en"
+    },
+    {
+      "text": "gonna be on YouTube. We're gonna cut it",
+      "duration": 2880,
+      "offset": 1796159,
+      "lang": "en"
+    },
+    {
+      "text": "up and make shorts out of it. If",
+      "duration": 3041,
+      "offset": 1797679,
+      "lang": "en"
+    },
+    {
+      "text": "everyone's okay with that, I can blur",
+      "duration": 3120,
+      "offset": 1799039,
+      "lang": "en"
+    },
+    {
+      "text": "out faces. If you're not, you can just",
+      "duration": 4319,
+      "offset": 1800720,
+      "lang": "en"
+    },
+    {
+      "text": "tell me, \"Hey, Jake, absolutely not.\" Um",
+      "duration": 5201,
+      "offset": 1802159,
+      "lang": "en"
+    },
+    {
+      "text": "just, you know, let me know. Uh and I",
+      "duration": 5520,
+      "offset": 1805039,
+      "lang": "en"
+    },
+    {
+      "text": "won't do it. But um yeah, I this was",
+      "duration": 5280,
+      "offset": 1807360,
+      "lang": "en"
+    },
+    {
+      "text": "super fun. I very much enjoyed this. So,",
+      "duration": 3600,
+      "offset": 1810559,
+      "lang": "en"
+    },
+    {
+      "text": "thank you everyone.",
+      "duration": 3919,
+      "offset": 1812640,
+      "lang": "en"
+    },
+    {
+      "text": ">> Yeah, thank you Jake. And thanks",
+      "duration": 3601,
+      "offset": 1814159,
+      "lang": "en"
+    },
+    {
+      "text": "everybody for",
+      "duration": 2561,
+      "offset": 1816559,
+      "lang": "en"
+    },
+    {
+      "text": ">> Nice to meet you. Have a great night.",
+      "duration": 2799,
+      "offset": 1817760,
+      "lang": "en"
+    },
+    {
+      "text": ">> After Nice to meet everybody. Have a",
+      "duration": 3600,
+      "offset": 1819120,
+      "lang": "en"
+    },
+    {
+      "text": "good lovely meeting.",
+      "duration": 3201,
+      "offset": 1820559,
+      "lang": "en"
+    },
+    {
+      "text": ">> See you guys. Bye.",
+      "duration": 2160,
+      "offset": 1822720,
+      "lang": "en"
+    },
+    {
+      "text": ">> Thank you.",
+      "duration": 1919,
+      "offset": 1823760,
+      "lang": "en"
+    },
+    {
+      "text": ">> Bye.",
+      "duration": 3799,
+      "offset": 1824880,
+      "lang": "en"
+    },
+    {
+      "text": ">> Bye.",
+      "duration": 3000,
+      "offset": 1825679,
+      "lang": "en"
+    },
+    {
+      "text": ">> No way.",
+      "duration": 3240,
+      "offset": 1828880,
+      "lang": "en"
+    }
+  ]
+}

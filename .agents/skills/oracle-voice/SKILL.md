@@ -1,6 +1,7 @@
 ---
 name: oracle-voice
 description: "Build Oracle voice surfaces: STT, TTS, wakeword, call handoff, and voice-first routing. Use when the task touches speech input/output or assistant voice UX on this OS."
+triggers: ["oracle-voice"]
 ---
 
 # Oracle Voice
@@ -26,3 +27,7 @@ Use this skill when the task is to add voice input/output without bloating the c
 - Keep voice features optional and reversible.
 - If a voice command needs a shell command, name the exact command surface explicitly.
 
+## Session Notes
+
+### 2026-05-05
+- session: patch | tools: Edit, Write | errors: none | notes: wired for CLI routing via triggers array and command alias

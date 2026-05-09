@@ -1,0 +1,676 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Trade Outcome",
+  "description": "Complete post-trade outcome record with P&L, failure classification, Brier Score contribution, and post-mortem analysis. Phase 7 paper trading core schema.",
+  "type": "object",
+  "required": [
+    "outcome_id",
+    "trade_id",
+    "market_id",
+    "trade_status",
+    "brier_score_contribution",
+    "verified_at"
+  ],
+  "properties": {
+    "outcome_id": {
+      "type": "string",
+      "description": "Unique identifier for this outcome record (UUID v4)",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "trade_id": {
+      "type": "string",
+      "description": "Reference to the risk decision trade ID",
+      "minLength": 1
+    },
+    "execution_id": {
+      "type": "string",
+      "description": "Reference to the execution event ID that fulfilled this trade",
+      "minLength": 1
+    },
+    "market_id": {
+      "type": "string",
+      "description": "Market identifier (e.g. BTC-USD, ETH-USD)",
+      "minLength": 1
+    },
+    "trade_status": {
+      "type": "string",
+      "enum": ["WIN", "LOSS", "BREAKEVEN", "CANCELLED_BEFORE_FILL", "EXPIRED_UNFILLED"],
+      "description": "Final resolved status of the trade"
+    },
+
+    "prediction": {
+      "type": "object",
+      "description": "Snapshot of the prediction that drove this trade",
+      "required": ["p_model", "confidence", "dispersion"],
+      "properties": {
+        "p_model": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Ensemble probability at trade entry"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Confidence score at trade entry"
+        },
+        "dispersion": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Model disagreement at trade entry"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["LONG", "SHORT"],
+          "description": "Predicted directional bias"
+        },
+        "target_price": {
+          "type": "number",
+          "description": "Model's target price for resolution window",
+          "minimum": 0
+        }
+      }
+    },
+
+    "execution_summary": {
+      "type": "object",
+      "description": "Key execution metrics for post-mortem",
+      "properties": {
+        "entry_price": {
+          "type": "number",
+          "description": "Volume-weighted average entry price",
+          "minimum": 0
+        },
+        "exit_price": {
+          "type": "number",
+          "description": "Volume-weighted average exit price (or mark price if still open)",
+          "minimum": 0
+        },
+        "position_size_usd": {
+          "type": "number",
+          "description": "Notional position size in USD",
+          "minimum": 0
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of base asset traded",
+          "minimum": 0
+        },
+        "fees_total_usd": {
+          "type": "number",
+          "description": "Total exchange fees paid (entry + exit)",
+          "minimum": 0
+        },
+        "slippage_bps": {
+          "type": "number",
+          "description": "Actual realized slippage in basis points",
+          "minimum": 0
+        },
+        "entry_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When position was entered"
+        },
+        "exit_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When position was exited (null if still open)"
+        },
+        "holding_duration_seconds": {
+          "type": "number",
+          "description": "How long position was held",
+          "minimum": 0
+        }
+      }
+    },
+
+    "pnl": {
+      "type": "object",
+      "description": "Profit and loss breakdown",
+      "required": ["gross_pnl_usd", "net_pnl_usd", "net_pnl_pct", "pnl_classification"],
+      "properties": {
+        "gross_pnl_usd": {
+          "type": "number",
+          "description": "Gross profit/loss before fees"
+        },
+        "net_pnl_usd": {
+          "type": "number",
+          "description": "Net profit/loss after fees and slippage"
+        },
+        "net_pnl_pct": {
+          "type": "number",
+          "description": "Net P&L as percentage of position size"
+        },
+        "fees_paid_usd": {
+          "type": "number",
+          "description": "Total fees for this trade",
+          "minimum": 0
+        },
+        "pnl_classification": {
+          "type": "string",
+          "enum": ["POSITIVE", "NEGATIVE", "ZERO"],
+          "description": "Categorical P&L result"
+        },
+        "ror_pct": {
+          "type": "number",
+          "description": "Return on risk as percentage of bankroll at risk"
+        },
+        "bankroll_impact_pct": {
+          "type": "number",
+          "description": "Impact on total bankroll in percentage points"
+        }
+      }
+    },
+
+    "trade_status": {
+      "type": "string",
+      "enum": ["WIN", "LOSS", "BREAKEVEN", "CANCELLED_BEFORE_FILL", "EXPIRED_UNFILLED"],
+      "description": "Final resolved status of the trade"
+    },
+
+    "resolution": {
+      "type": "object",
+      "description": "How the binary prediction resolved in reality",
+      "required": ["actual_outcome", "resolution_method"],
+      "properties": {
+        "actual_outcome": {
+          "type": "number",
+          "description": "Binary resolution: 1.0 = YES (price went up), 0.0 = NO (price went down), null if unresolved",
+          "enum": [0, 1]
+        },
+        "resolution_price": {
+          "type": "number",
+          "description": "Market price at resolution time",
+          "minimum": 0
+        },
+        "resolution_window_hours": {
+          "type": "number",
+          "description": "Target holding window in hours",
+          "minimum": 0
+        },
+        "resolution_method": {
+          "type": "string",
+          "enum": ["MARKET_CLOSE", "TAKE_PROFIT", "STOP_LOSS", "TIME_EXPIRY", "MANUAL_EXIT", "LIQUIDATION"],
+          "description": "How the trade was resolved"
+        },
+        "resolved_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When resolution was determined"
+        }
+      }
+    },
+
+    "brier_score_contribution": {
+      "type": "number",
+      "description": "Individual Brier Score contribution: (p_model - actual_outcome)^2. Range 0-1, lower is better. Aggregate across all trades computes overall Brier Score.",
+      "minimum": 0,
+      "maximum": 1
+    },
+
+    "failure_classification": {
+      "type": "object",
+      "description": "Post-mortem failure taxonomy. Mandatory for all LOSS outcomes, optional for BREAKEVEN.",
+      "properties": {
+        "primary_type": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D", null],
+          "description": "Primary failure classification using the Phase 0 taxonomy: A=Prediction Error, B=Timing Error, C=Execution Error, D=External Shock"
+        },
+        "secondary_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["A", "B", "C", "D"]
+          },
+          "description": "Contributing failure types (if multiple factors)"
+        },
+        "classification_rationale": {
+          "type": "string",
+          "description": "Detailed explanation of why this failure type was assigned"
+        },
+        "type_a_detail": {
+          "type": "object",
+          "description": "Details for Type A: Prediction Error",
+          "properties": {
+            "predicted_probability": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "resolved_outcome": {
+              "type": "number",
+              "enum": [0, 1]
+            },
+            "calibration_error_magnitude": {
+              "type": "number",
+              "description": "|p_model - actual|, absolute prediction error"
+            },
+            "direction_correct": {
+              "type": "boolean",
+              "description": "Was directional prediction correct even if magnitude off?"
+            },
+            "evidence_quality_at_entry": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Retrospective quality score of evidence used"
+            }
+          }
+        },
+        "type_b_detail": {
+          "type": "object",
+          "description": "Details for Type B: Timing Error",
+          "properties": {
+            "optimal_entry_price": {
+              "type": "number",
+              "description": "Best entry price within resolution window"
+            },
+            "optimal_exit_price": {
+              "type": "number",
+              "description": "Best exit price within resolution window"
+            },
+            "entry_timing_error_bps": {
+              "type": "number",
+              "description": "Entry price deviation from optimal in basis points"
+            },
+            "exit_timing_error_bps": {
+              "type": "number",
+              "description": "Exit price deviation from optimal in basis points"
+            },
+            "would_have_been_profitable": {
+              "type": "boolean",
+              "description": "If entered/exited at optimal times, would trade have been profitable?"
+            }
+          }
+        },
+        "type_c_detail": {
+          "type": "object",
+          "description": "Details for Type C: Execution Error",
+          "properties": {
+            "order_type_used": {
+              "type": "string",
+              "enum": ["LIMIT", "MARKET"]
+            },
+            "partial_fill_occurred": {
+              "type": "boolean"
+            },
+            "fill_ratio": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Proportion of requested size that filled"
+            },
+            "excess_slippage_bps": {
+              "type": "number",
+              "description": "Slippage beyond expected range"
+            },
+            "rejection_reason": {
+              "type": "string",
+              "description": "Why order was rejected if applicable"
+            },
+            "latency_outlier": {
+              "type": "boolean",
+              "description": "Was latency significantly above baseline?"
+            }
+          }
+        },
+        "type_d_detail": {
+          "type": "object",
+          "description": "Details for Type D: External Shock",
+          "properties": {
+            "shock_event": {
+              "type": "string",
+              "description": "Description of external event (e.g. 'Fed announcement', 'exchange outage')"
+            },
+            "shock_timestamp": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "price_impact_pct": {
+              "type": "number",
+              "description": "Price move attributable to shock"
+            },
+            "was_foreseeable": {
+              "type": "boolean",
+              "description": "Could this shock have been anticipated?"
+            },
+            "recovery_possible": {
+              "type": "boolean",
+              "description": "Could position have recovered if held longer?"
+            }
+          }
+        }
+      }
+    },
+
+    "post_mortem": {
+      "type": "object",
+      "description": "Deep retrospective analysis",
+      "properties": {
+        "root_cause_summary": {
+          "type": "string",
+          "description": "Concise root cause statement"
+        },
+        "what_went_right": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Aspects of the trade that performed correctly"
+        },
+        "what_went_wrong": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Aspects that underperformed or failed"
+        },
+        "lessons_learned": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Actionable lessons for system improvement"
+        },
+        "system_changes_proposed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "enum": ["ENSEMBLE", "RISK_ENGINE", "EXECUTION_ENGINE", "RESEARCH_PIPELINE", "SCANNER", "CALIBRATION"]
+              },
+              "change": {
+                "type": "string",
+                "description": "Proposed change"
+              },
+              "priority": {
+                "type": "string",
+                "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+              }
+            }
+          },
+          "description": "System changes identified from this trade"
+        },
+        "confidence_recalibration_needed": {
+          "type": "boolean",
+          "description": "Does this outcome suggest confidence bucket needs recalibration?"
+        },
+        "model_weight_adjustment": {
+          "type": "object",
+          "description": "Suggested per-model weight adjustments based on this outcome",
+          "properties": {
+            "grok": { "type": "number" },
+            "claude": { "type": "number" },
+            "gpt4o": { "type": "number" },
+            "gemini": { "type": "number" },
+            "deepseek": { "type": "number" }
+          }
+        }
+      }
+    },
+
+    "calibration_impact": {
+      "type": "object",
+      "description": "How this trade affects calibration statistics",
+      "properties": {
+        "running_brier_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Cumulative Brier Score after including this trade"
+        },
+        "running_win_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Cumulative win rate after this trade"
+        },
+        "confidence_bucket_affected": {
+          "type": "string",
+          "description": "Which confidence bucket this trade falls into"
+        },
+        "bucket_brier_after": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Brier Score for this confidence bucket after trade"
+        },
+        "bucket_sample_size": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of trades in this confidence bucket"
+        },
+        "sharpe_contribution": {
+          "type": "number",
+          "description": "Marginal contribution to running Sharpe ratio"
+        }
+      }
+    },
+
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this outcome was verified and post-mortem completed (ISO 8601)"
+    },
+
+    "verifier": {
+      "type": "string",
+      "description": "Person or system that verified this outcome",
+      "default": "AUTOMATED"
+    },
+
+    "trade_sequence_number": {
+      "type": "integer",
+      "description": "Sequential trade number in the paper trading run (1-50+)",
+      "minimum": 1
+    },
+
+    "paper_trading_run_id": {
+      "type": "string",
+      "description": "Identifier for the paper trading batch this trade belongs to",
+      "minLength": 1
+    }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "trade_status": { "const": "LOSS" }
+        }
+      },
+      "then": {
+        "required": ["failure_classification"],
+        "properties": {
+          "failure_classification": {
+            "required": ["primary_type", "classification_rationale"]
+          }
+        }
+      }
+    }
+  ],
+
+  "examples": [
+    {
+      "outcome_id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "trade_id": "550e8400-e29b-41d4-a716-446655440000",
+      "execution_id": "660e8400-e29b-41d4-a716-446655440001",
+      "market_id": "BTC-USD",
+      "trade_status": "WIN",
+      "prediction": {
+        "p_model": 0.643,
+        "confidence": 0.78,
+        "dispersion": 0.024,
+        "direction": "LONG",
+        "target_price": 43200.00
+      },
+      "execution_summary": {
+        "entry_price": 42500.50,
+        "exit_price": 43100.25,
+        "position_size_usd": 0.50,
+        "quantity": 0.0000118,
+        "fees_total_usd": 0.0025,
+        "slippage_bps": 8,
+        "entry_timestamp": "2026-05-05T12:34:56.789Z",
+        "exit_timestamp": "2026-05-07T14:22:10.000Z",
+        "holding_duration_seconds": 179233
+      },
+      "pnl": {
+        "gross_pnl_usd": 0.0071,
+        "net_pnl_usd": 0.0046,
+        "net_pnl_pct": 0.92,
+        "fees_paid_usd": 0.0025,
+        "pnl_classification": "POSITIVE",
+        "ror_pct": 0.0046,
+        "bankroll_impact_pct": 0.0046
+      },
+      "resolution": {
+        "actual_outcome": 1,
+        "resolution_price": 43100.25,
+        "resolution_window_hours": 48,
+        "resolution_method": "TAKE_PROFIT",
+        "resolved_at": "2026-05-07T14:22:10.000Z"
+      },
+      "brier_score_contribution": 0.127,
+      "failure_classification": {},
+      "post_mortem": {
+        "root_cause_summary": "Prediction was correct: BTC rose 1.41% in 48h. Model probability 64.3% was well-calibrated.",
+        "what_went_right": [
+          "Directional prediction accurate",
+          "Entry timing near local support",
+          "Take-profit triggered within window",
+          "Low slippage execution"
+        ],
+        "what_went_wrong": [],
+        "lessons_learned": [
+          "Confidence bucket 0.78 performed as expected",
+          "Take-profit placement aligned with target price"
+        ],
+        "system_changes_proposed": [],
+        "confidence_recalibration_needed": false,
+        "model_weight_adjustment": {}
+      },
+      "calibration_impact": {
+        "running_brier_score": 0.185,
+        "running_win_rate": 0.60,
+        "confidence_bucket_affected": "0.05-0.10",
+        "bucket_brier_after": 0.18,
+        "bucket_sample_size": 13,
+        "sharpe_contribution": 0.03
+      },
+      "verified_at": "2026-05-07T14:30:00.000Z",
+      "verifier": "AUTOMATED",
+      "trade_sequence_number": 37,
+      "paper_trading_run_id": "PAPER-RUN-001"
+    },
+    {
+      "outcome_id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+      "trade_id": "550e8400-e29b-41d4-a716-446655440002",
+      "execution_id": "660e8400-e29b-41d4-a716-446655440003",
+      "market_id": "ETH-USD",
+      "trade_status": "LOSS",
+      "prediction": {
+        "p_model": 0.72,
+        "confidence": 0.82,
+        "dispersion": 0.03,
+        "direction": "LONG",
+        "target_price": 2850.00
+      },
+      "execution_summary": {
+        "entry_price": 2750.00,
+        "exit_price": 2680.00,
+        "position_size_usd": 0.50,
+        "quantity": 0.0001818,
+        "fees_total_usd": 0.0027,
+        "slippage_bps": 15,
+        "entry_timestamp": "2026-05-06T09:15:00.000Z",
+        "exit_timestamp": "2026-05-06T16:45:00.000Z",
+        "holding_duration_seconds": 27000
+      },
+      "pnl": {
+        "gross_pnl_usd": -0.0127,
+        "net_pnl_usd": -0.0154,
+        "net_pnl_pct": -3.08,
+        "fees_paid_usd": 0.0027,
+        "pnl_classification": "NEGATIVE",
+        "ror_pct": -0.0154,
+        "bankroll_impact_pct": -0.0154
+      },
+      "resolution": {
+        "actual_outcome": 0,
+        "resolution_price": 2680.00,
+        "resolution_window_hours": 8,
+        "resolution_method": "STOP_LOSS",
+        "resolved_at": "2026-05-06T16:45:00.000Z"
+      },
+      "brier_score_contribution": 0.518,
+      "failure_classification": {
+        "primary_type": "A",
+        "secondary_types": ["B"],
+        "classification_rationale": "Model predicted 72% probability of upward move, but ETH declined 2.5% intraday due to unexpected regulatory news. Primary failure is prediction error (model overconfident), with secondary timing error (entered near daily high).",
+        "type_a_detail": {
+          "predicted_probability": 0.72,
+          "resolved_outcome": 0,
+          "calibration_error_magnitude": 0.72,
+          "direction_correct": false,
+          "evidence_quality_at_entry": 0.65
+        },
+        "type_b_detail": {
+          "optimal_entry_price": 2720.00,
+          "optimal_exit_price": 2750.00,
+          "entry_timing_error_bps": 110,
+          "exit_timing_error_bps": 260,
+          "would_have_been_profitable": false
+        }
+      },
+      "post_mortem": {
+        "root_cause_summary": "Overconfident prediction (72%) contradicted by SEC regulatory announcement at 14:00 UTC. Model failed to account for pending regulatory calendar.",
+        "what_went_right": [
+          "Stop-loss triggered correctly, limiting downside",
+          "Risk engine correctly sized small position",
+          "Execution engine filled promptly"
+        ],
+        "what_went_wrong": [
+          "Model confidence too high relative to evidence quality",
+          "Research pipeline missed regulatory calendar event",
+          "Entry near daily high amplified loss"
+        ],
+        "lessons_learned": [
+          "Add regulatory event calendar to research pipeline",
+          "Reduce confidence when evidence quality < 0.70",
+          "Consider time-of-day entry filters for ETH"
+        ],
+        "system_changes_proposed": [
+          {
+            "component": "RESEARCH_PIPELINE",
+            "change": "Integrate regulatory event calendar (SEC, CFTC, Fed dates)",
+            "priority": "HIGH"
+          },
+          {
+            "component": "ENSEMBLE",
+            "change": "Downweight ensemble confidence when research_quality < 0.70",
+            "priority": "MEDIUM"
+          }
+        ],
+        "confidence_recalibration_needed": true,
+        "model_weight_adjustment": {
+          "grok": -0.02,
+          "claude": 0.0,
+          "gpt4o": -0.01,
+          "gemini": -0.01,
+          "deepseek": 0.0
+        }
+      },
+      "calibration_impact": {
+        "running_brier_score": 0.215,
+        "running_win_rate": 0.55,
+        "confidence_bucket_affected": "0.05-0.10",
+        "bucket_brier_after": 0.24,
+        "bucket_sample_size": 14,
+        "sharpe_contribution": -0.08
+      },
+      "verified_at": "2026-05-06T17:00:00.000Z",
+      "verifier": "AUTOMATED",
+      "trade_sequence_number": 42,
+      "paper_trading_run_id": "PAPER-RUN-001"
+    }
+  ]
+}

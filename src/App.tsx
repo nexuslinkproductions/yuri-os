@@ -8,7 +8,9 @@ import CineGlow from './components/ui/CineGlow';
 import ArchitecturalGrid from './components/ui/ArchitecturalGrid';
 import HermeticVeil from './components/ui/HermeticVeil';
 import LogoAtmosphere from './components/ui/LogoAtmosphere';
-import LightCursor from './components/ui/LightCursor';
+import MagneticCursor from './components/ui/MagneticCursor';
+import ParticleCanvas from './components/ParticleCanvas';
+import { useLenis } from './hooks/useLenis';
 import HomePage from './pages/HomePage';
 import WorkPage from './pages/WorkPage';
 import ServicesPage from './pages/ServicesPage';
@@ -96,6 +98,7 @@ function RouteChangeEffects() {
 }
 
 function Layout() {
+  useLenis();
   const location = useLocation();
   const navigate = useNavigate();
   const touchStartX = useRef(0);
@@ -143,7 +146,7 @@ function Layout() {
         initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-        style={{ minHeight: '100vh', position: 'relative' }}
+        style={{ minHeight: '100vh', position: 'relative', zIndex: 4 }}
       >
         <Outlet />
       </motion.main>
@@ -156,9 +159,10 @@ function App() {
   return (
     <BrowserRouter>
       <ArchitecturalGrid />
+      <ParticleCanvas />
       <LogoAtmosphere />
       <CineGlow />
-      <LightCursor />
+      <MagneticCursor />
       <Routes>
         <Route path="/operator/*" element={null} />
         <Route element={<Layout />}>

@@ -38,7 +38,7 @@ total-lines: 4654
 |-------|------|--------|
 | NUDIMMUD (primary) | `/Volumes/T7/NUDIMMUD/` | Active, well-structured |
 | NEXUS HUB (legacy) | `/Volumes/T7/MASTER/NEXUS LINK AI/OBSIDIAN/NEXUS HUB/` | Legacy, do not modify |
-| DOMAIN EXPANSION: INFINITE VOID | `/Volumes/T7/MASTER/DOMAIN EXPANSION: INFINITE VOID/` | Legacy |
+| DOMAIN EXPANSION - INFINITE VOID | `/Volumes/T7/MASTER/DOMAIN EXPANSION - INFINITE VOID/` | Legacy |
 | iC2M | `/Volumes/T7/MASTER/iC2M/` | **Empty** — no markdown files found |
 | RECOVERY copies | `/Volumes/T7/RECOVERY/` | Backup copies only |
 

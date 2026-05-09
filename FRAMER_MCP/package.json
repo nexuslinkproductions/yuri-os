@@ -1,0 +1,23 @@
+{
+  "name": "framer-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Framer — AI agent access to Framer CMS, canvas, and publishing",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "npx tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.9.0",
+    "dotenv": "^16.4.7",
+    "framer-api": "^0.1.8",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

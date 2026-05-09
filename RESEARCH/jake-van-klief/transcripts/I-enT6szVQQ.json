@@ -1,0 +1,2088 @@
+{
+  "videoId": "I-enT6szVQQ",
+  "title": "I Used AI to Fix Government Contracting",
+  "segments": [
+    {
+      "text": "Hello everyone.",
+      "duration": 3680,
+      "offset": 5120,
+      "lang": "en"
+    },
+    {
+      "text": "Today's video I'm just going to be doing",
+      "duration": 3439,
+      "offset": 7120,
+      "lang": "en"
+    },
+    {
+      "text": "kind of quick. It's actually mostly for",
+      "duration": 3360,
+      "offset": 8800,
+      "lang": "en"
+    },
+    {
+      "text": "some other people that I was making",
+      "duration": 3841,
+      "offset": 10559,
+      "lang": "en"
+    },
+    {
+      "text": "software uh and wanted to explain to,",
+      "duration": 3519,
+      "offset": 12160,
+      "lang": "en"
+    },
+    {
+      "text": "but I figured it'd be useful for",
+      "duration": 3280,
+      "offset": 14400,
+      "lang": "en"
+    },
+    {
+      "text": "everyone else here. Uh government",
+      "duration": 3360,
+      "offset": 15679,
+      "lang": "en"
+    },
+    {
+      "text": "contracting. There's a lot of government",
+      "duration": 2880,
+      "offset": 17680,
+      "lang": "en"
+    },
+    {
+      "text": "contracting. Main sites that a lot of",
+      "duration": 3841,
+      "offset": 19039,
+      "lang": "en"
+    },
+    {
+      "text": "people go to are Bidnet Direct and",
+      "duration": 4799,
+      "offset": 20560,
+      "lang": "en"
+    },
+    {
+      "text": "SAM.gov. Um there's hundreds and",
+      "duration": 5040,
+      "offset": 22880,
+      "lang": "en"
+    },
+    {
+      "text": "hundreds of contracts, solicitations,",
+      "duration": 5361,
+      "offset": 25359,
+      "lang": "en"
+    },
+    {
+      "text": "RFPs, so on and so forth with millions",
+      "duration": 4240,
+      "offset": 27920,
+      "lang": "en"
+    },
+    {
+      "text": "and millions and millions of dollars",
+      "duration": 4560,
+      "offset": 30720,
+      "lang": "en"
+    },
+    {
+      "text": "behind them for companies uh and even",
+      "duration": 5040,
+      "offset": 32160,
+      "lang": "en"
+    },
+    {
+      "text": "small companies uh to be able to apply",
+      "duration": 4160,
+      "offset": 35280,
+      "lang": "en"
+    },
+    {
+      "text": "for and get. However, getting through",
+      "duration": 4240,
+      "offset": 37200,
+      "lang": "en"
+    },
+    {
+      "text": "it, learning about it, applying to it,",
+      "duration": 3840,
+      "offset": 39440,
+      "lang": "en"
+    },
+    {
+      "text": "knowing what all the codes and places",
+      "duration": 3840,
+      "offset": 41440,
+      "lang": "en"
+    },
+    {
+      "text": "and certain types of contract mean is",
+      "duration": 5040,
+      "offset": 43280,
+      "lang": "en"
+    },
+    {
+      "text": "super challenging. And as you know, I'm",
+      "duration": 5040,
+      "offset": 45280,
+      "lang": "en"
+    },
+    {
+      "text": "kind of big in the AI space within the",
+      "duration": 3360,
+      "offset": 48320,
+      "lang": "en"
+    },
+    {
+      "text": "consulting world. And there's a lot of",
+      "duration": 2960,
+      "offset": 50320,
+      "lang": "en"
+    },
+    {
+      "text": "consultancies and practices and",
+      "duration": 4080,
+      "offset": 51680,
+      "lang": "en"
+    },
+    {
+      "text": "processes around this. So, knowing how",
+      "duration": 4720,
+      "offset": 53280,
+      "lang": "en"
+    },
+    {
+      "text": "you can use AI to help you with that is",
+      "duration": 4799,
+      "offset": 55760,
+      "lang": "en"
+    },
+    {
+      "text": "kind of big. Now, what I did real quick",
+      "duration": 4960,
+      "offset": 58000,
+      "lang": "en"
+    },
+    {
+      "text": "is I created an actual software, but I",
+      "duration": 4000,
+      "offset": 60559,
+      "lang": "en"
+    },
+    {
+      "text": "wanted to show you even just some of the",
+      "duration": 3120,
+      "offset": 62960,
+      "lang": "en"
+    },
+    {
+      "text": "major tools that are out there that you",
+      "duration": 4001,
+      "offset": 64559,
+      "lang": "en"
+    },
+    {
+      "text": "can get for 20 bucks a month uh can",
+      "duration": 4560,
+      "offset": 66080,
+      "lang": "en"
+    },
+    {
+      "text": "actually handle pretty well. Uh, I went",
+      "duration": 4559,
+      "offset": 68560,
+      "lang": "en"
+    },
+    {
+      "text": "ahead and created a very large prompt uh",
+      "duration": 5280,
+      "offset": 70640,
+      "lang": "en"
+    },
+    {
+      "text": "that basically has to do with bid direct",
+      "duration": 5360,
+      "offset": 73119,
+      "lang": "en"
+    },
+    {
+      "text": "and kind of like their codes and things",
+      "duration": 4160,
+      "offset": 75920,
+      "lang": "en"
+    },
+    {
+      "text": "like that as well as how they should",
+      "duration": 3280,
+      "offset": 78479,
+      "lang": "en"
+    },
+    {
+      "text": "handle them in there. I'm going to go",
+      "duration": 3760,
+      "offset": 80080,
+      "lang": "en"
+    },
+    {
+      "text": "ahead and send this into claude. Now,",
+      "duration": 4961,
+      "offset": 81759,
+      "lang": "en"
+    },
+    {
+      "text": "you could use the same prompt in JGPT,",
+      "duration": 5760,
+      "offset": 83840,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini, any other AI platform you there.",
+      "duration": 5280,
+      "offset": 86720,
+      "lang": "en"
+    },
+    {
+      "text": "Um, however, I just personally prefer",
+      "duration": 5360,
+      "offset": 89600,
+      "lang": "en"
+    },
+    {
+      "text": "Anthropic and Claude. Now, immediately",
+      "duration": 5840,
+      "offset": 92000,
+      "lang": "en"
+    },
+    {
+      "text": "it me it asks, \"Hey, I can help you. Um,",
+      "duration": 4159,
+      "offset": 94960,
+      "lang": "en"
+    },
+    {
+      "text": "I'm guessing you're looking to expand",
+      "duration": 3200,
+      "offset": 97840,
+      "lang": "en"
+    },
+    {
+      "text": "beyond Fortune 500 companies. It already",
+      "duration": 3360,
+      "offset": 99119,
+      "lang": "en"
+    },
+    {
+      "text": "knows some information about me because",
+      "duration": 3600,
+      "offset": 101040,
+      "lang": "en"
+    },
+    {
+      "text": "this is my account, but uh, you know, I",
+      "duration": 3521,
+      "offset": 102479,
+      "lang": "en"
+    },
+    {
+      "text": "already work with some some companies",
+      "duration": 3280,
+      "offset": 104640,
+      "lang": "en"
+    },
+    {
+      "text": "here or there, but you know, hey, do you",
+      "duration": 4159,
+      "offset": 106000,
+      "lang": "en"
+    },
+    {
+      "text": "want code selection, vendor profile",
+      "duration": 4879,
+      "offset": 107920,
+      "lang": "en"
+    },
+    {
+      "text": "optimization, solicitation analysis, any",
+      "duration": 5041,
+      "offset": 110159,
+      "lang": "en"
+    },
+    {
+      "text": "of that stuff. Uh, but what we're",
+      "duration": 4640,
+      "offset": 112799,
+      "lang": "en"
+    },
+    {
+      "text": "actually going to do specifically is",
+      "duration": 4160,
+      "offset": 115200,
+      "lang": "en"
+    },
+    {
+      "text": "I've already kind of done a whole thing,",
+      "duration": 3921,
+      "offset": 117439,
+      "lang": "en"
+    },
+    {
+      "text": "a write up, right? Imagine this is just",
+      "duration": 4560,
+      "offset": 119360,
+      "lang": "en"
+    },
+    {
+      "text": "an explanation of your company and just",
+      "duration": 4240,
+      "offset": 121360,
+      "lang": "en"
+    },
+    {
+      "text": "a couple paragraphs, bullet points here",
+      "duration": 3600,
+      "offset": 123920,
+      "lang": "en"
+    },
+    {
+      "text": "or here. Anyone can do this. I promise",
+      "duration": 4159,
+      "offset": 125600,
+      "lang": "en"
+    },
+    {
+      "text": "you. Just write this up and say, \"Here",
+      "duration": 6000,
+      "offset": 127520,
+      "lang": "en"
+    },
+    {
+      "text": "is my company's info.",
+      "duration": 8321,
+      "offset": 129759,
+      "lang": "en"
+    },
+    {
+      "text": "How would I apply and what codes should",
+      "duration": 8079,
+      "offset": 133520,
+      "lang": "en"
+    },
+    {
+      "text": "I use and more, right? Super simple,",
+      "duration": 5760,
+      "offset": 138080,
+      "lang": "en"
+    },
+    {
+      "text": "very basic prompt. Uh, just throwing it",
+      "duration": 4081,
+      "offset": 141599,
+      "lang": "en"
+    },
+    {
+      "text": "in there. Again, using this prompt on",
+      "duration": 5039,
+      "offset": 143840,
+      "lang": "en"
+    },
+    {
+      "text": "top of it is nice. And immediately it's",
+      "duration": 5279,
+      "offset": 145680,
+      "lang": "en"
+    },
+    {
+      "text": "understanding what we do, who we are,",
+      "duration": 4401,
+      "offset": 148879,
+      "lang": "en"
+    },
+    {
+      "text": "what my company is, what Adobe is",
+      "duration": 3841,
+      "offset": 150959,
+      "lang": "en"
+    },
+    {
+      "text": "positioned at. Again, this could be your",
+      "duration": 3679,
+      "offset": 153280,
+      "lang": "en"
+    },
+    {
+      "text": "company right here. And immediately",
+      "duration": 3600,
+      "offset": 154800,
+      "lang": "en"
+    },
+    {
+      "text": "dives into breaking down code",
+      "duration": 2801,
+      "offset": 156959,
+      "lang": "en"
+    },
+    {
+      "text": "recommendations. Hey, you're going to",
+      "duration": 3680,
+      "offset": 158400,
+      "lang": "en"
+    },
+    {
+      "text": "want 9183 for computer software",
+      "duration": 4479,
+      "offset": 159760,
+      "lang": "en"
+    },
+    {
+      "text": "consultant. This covers my AI strategy",
+      "duration": 3680,
+      "offset": 162080,
+      "lang": "en"
+    },
+    {
+      "text": "and implementation network, which is",
+      "duration": 4401,
+      "offset": 164239,
+      "lang": "en"
+    },
+    {
+      "text": "absolutely true. Um, secondary codes",
+      "duration": 5920,
+      "offset": 165760,
+      "lang": "en"
+    },
+    {
+      "text": "that might be nice are 96278,",
+      "duration": 6080,
+      "offset": 168640,
+      "lang": "en"
+    },
+    {
+      "text": "research services 95860. Now, some of",
+      "duration": 5760,
+      "offset": 171680,
+      "lang": "en"
+    },
+    {
+      "text": "these may be slightly inaccurate. Um,",
+      "duration": 4159,
+      "offset": 174720,
+      "lang": "en"
+    },
+    {
+      "text": "but most of them are probably going to",
+      "duration": 4320,
+      "offset": 177440,
+      "lang": "en"
+    },
+    {
+      "text": "be roughly close. Uh again, it's going",
+      "duration": 4961,
+      "offset": 178879,
+      "lang": "en"
+    },
+    {
+      "text": "to follow off the ones that I threw in",
+      "duration": 4960,
+      "offset": 181760,
+      "lang": "en"
+    },
+    {
+      "text": "here and um realistically it could pull",
+      "duration": 4399,
+      "offset": 183840,
+      "lang": "en"
+    },
+    {
+      "text": "from the internet. I could ask it to do",
+      "duration": 3280,
+      "offset": 186720,
+      "lang": "en"
+    },
+    {
+      "text": "that as well, but it does a pretty good",
+      "duration": 4000,
+      "offset": 188239,
+      "lang": "en"
+    },
+    {
+      "text": "job, right? Codes to avoid profile",
+      "duration": 3920,
+      "offset": 190000,
+      "lang": "en"
+    },
+    {
+      "text": "assessment. What's strong capability",
+      "duration": 3521,
+      "offset": 192239,
+      "lang": "en"
+    },
+    {
+      "text": "assessment? Hey, you need specifically a",
+      "duration": 3599,
+      "offset": 193920,
+      "lang": "en"
+    },
+    {
+      "text": "one to two page PDF capability",
+      "duration": 4000,
+      "offset": 195760,
+      "lang": "en"
+    },
+    {
+      "text": "assessment. Governor buyers expect this",
+      "duration": 3761,
+      "offset": 197519,
+      "lang": "en"
+    },
+    {
+      "text": "format. And this is true. This is",
+      "duration": 2880,
+      "offset": 199760,
+      "lang": "en"
+    },
+    {
+      "text": "something you want. Sometimes you need",
+      "duration": 3120,
+      "offset": 201280,
+      "lang": "en"
+    },
+    {
+      "text": "cage codes. Again, if you need to know",
+      "duration": 3360,
+      "offset": 202640,
+      "lang": "en"
+    },
+    {
+      "text": "more about these, it can explain that",
+      "duration": 4000,
+      "offset": 204400,
+      "lang": "en"
+    },
+    {
+      "text": "for you as well. uh past performance",
+      "duration": 4319,
+      "offset": 206000,
+      "lang": "en"
+    },
+    {
+      "text": "descriptions could be better. NASIC",
+      "duration": 3839,
+      "offset": 208400,
+      "lang": "en"
+    },
+    {
+      "text": "codes which are extremely important when",
+      "duration": 3920,
+      "offset": 210319,
+      "lang": "en"
+    },
+    {
+      "text": "you're on SAM.gov and things like this.",
+      "duration": 3521,
+      "offset": 212239,
+      "lang": "en"
+    },
+    {
+      "text": "A lot of this you're not told, you're",
+      "duration": 2560,
+      "offset": 214239,
+      "lang": "en"
+    },
+    {
+      "text": "not taught and there's so much",
+      "duration": 2640,
+      "offset": 215760,
+      "lang": "en"
+    },
+    {
+      "text": "information out there. Just be nice to",
+      "duration": 3041,
+      "offset": 216799,
+      "lang": "en"
+    },
+    {
+      "text": "be able to just pull it up and it said",
+      "duration": 3119,
+      "offset": 218400,
+      "lang": "en"
+    },
+    {
+      "text": "that hey these are the consultancy codes",
+      "duration": 4640,
+      "offset": 219840,
+      "lang": "en"
+    },
+    {
+      "text": "or the NASC codes or the uh PG codes or",
+      "duration": 4881,
+      "offset": 221519,
+      "lang": "en"
+    },
+    {
+      "text": "so on and so forth that you're actually",
+      "duration": 3759,
+      "offset": 224480,
+      "lang": "en"
+    },
+    {
+      "text": "going to need. Maybe even some",
+      "duration": 3839,
+      "offset": 226400,
+      "lang": "en"
+    },
+    {
+      "text": "certifications like hey you should have",
+      "duration": 3681,
+      "offset": 228239,
+      "lang": "en"
+    },
+    {
+      "text": "veteranowned small business. I am a",
+      "duration": 3920,
+      "offset": 230239,
+      "lang": "en"
+    },
+    {
+      "text": "veteran. Right? Really great response",
+      "duration": 4319,
+      "offset": 231920,
+      "lang": "en"
+    },
+    {
+      "text": "right off the bat. But again, this is",
+      "duration": 3921,
+      "offset": 234159,
+      "lang": "en"
+    },
+    {
+      "text": "just 20 bucks that are going out there.",
+      "duration": 3841,
+      "offset": 236239,
+      "lang": "en"
+    },
+    {
+      "text": "Um, I had made a couple of other apps",
+      "duration": 3280,
+      "offset": 238080,
+      "lang": "en"
+    },
+    {
+      "text": "that kind of took this to the other",
+      "duration": 2799,
+      "offset": 240080,
+      "lang": "en"
+    },
+    {
+      "text": "level because again, this is readily",
+      "duration": 3120,
+      "offset": 241360,
+      "lang": "en"
+    },
+    {
+      "text": "available, but there's ways to make this",
+      "duration": 4241,
+      "offset": 242879,
+      "lang": "en"
+    },
+    {
+      "text": "more nuanced. Uh, one of them is very",
+      "duration": 4640,
+      "offset": 244480,
+      "lang": "en"
+    },
+    {
+      "text": "specifically I'm building right now for",
+      "duration": 4960,
+      "offset": 247120,
+      "lang": "en"
+    },
+    {
+      "text": "SAM.gov. It actually pulls directly from",
+      "duration": 6080,
+      "offset": 249120,
+      "lang": "en"
+    },
+    {
+      "text": "the SAM.gov API and it pulls a whole",
+      "duration": 5760,
+      "offset": 252080,
+      "lang": "en"
+    },
+    {
+      "text": "bunch of contracts and updates on the",
+      "duration": 5599,
+      "offset": 255200,
+      "lang": "en"
+    },
+    {
+      "text": "fly. And essentially what this uh is",
+      "duration": 5440,
+      "offset": 257840,
+      "lang": "en"
+    },
+    {
+      "text": "doing is pulling up a huge database of",
+      "duration": 4801,
+      "offset": 260799,
+      "lang": "en"
+    },
+    {
+      "text": "all the possible contracts that can be",
+      "duration": 4639,
+      "offset": 263280,
+      "lang": "en"
+    },
+    {
+      "text": "available. But not only that, while",
+      "duration": 4480,
+      "offset": 265600,
+      "lang": "en"
+    },
+    {
+      "text": "that's syncing and and pulling and doing",
+      "duration": 4481,
+      "offset": 267919,
+      "lang": "en"
+    },
+    {
+      "text": "kind of data verifications, you can",
+      "duration": 4640,
+      "offset": 270080,
+      "lang": "en"
+    },
+    {
+      "text": "actually create and look at your uh",
+      "duration": 5600,
+      "offset": 272400,
+      "lang": "en"
+    },
+    {
+      "text": "company profile. Now uh if you were to",
+      "duration": 5120,
+      "offset": 274720,
+      "lang": "en"
+    },
+    {
+      "text": "essentially kind of roll into this,",
+      "duration": 3360,
+      "offset": 278000,
+      "lang": "en"
+    },
+    {
+      "text": "let's actually show you this whole",
+      "duration": 3359,
+      "offset": 279840,
+      "lang": "en"
+    },
+    {
+      "text": "process. I'm going to go ahead and",
+      "duration": 4320,
+      "offset": 281360,
+      "lang": "en"
+    },
+    {
+      "text": "control save here. Let's log out",
+      "duration": 4560,
+      "offset": 283199,
+      "lang": "en"
+    },
+    {
+      "text": "actually and imagine you're a fresh",
+      "duration": 3760,
+      "offset": 285680,
+      "lang": "en"
+    },
+    {
+      "text": "company. Instead of having to go and",
+      "duration": 3761,
+      "offset": 287759,
+      "lang": "en"
+    },
+    {
+      "text": "figure out all of that absurdity, build",
+      "duration": 3759,
+      "offset": 289440,
+      "lang": "en"
+    },
+    {
+      "text": "all of that stuff. What if you could",
+      "duration": 4320,
+      "offset": 291520,
+      "lang": "en"
+    },
+    {
+      "text": "just simply put in your company's name,",
+      "duration": 4241,
+      "offset": 293199,
+      "lang": "en"
+    },
+    {
+      "text": "put in your mission statement, which I'm",
+      "duration": 3200,
+      "offset": 295840,
+      "lang": "en"
+    },
+    {
+      "text": "just going to throw that in there. Talk",
+      "duration": 3360,
+      "offset": 297440,
+      "lang": "en"
+    },
+    {
+      "text": "about what you do. I'm just going to",
+      "duration": 3520,
+      "offset": 299040,
+      "lang": "en"
+    },
+    {
+      "text": "paste it twice in there. It'll be okay.",
+      "duration": 3600,
+      "offset": 300800,
+      "lang": "en"
+    },
+    {
+      "text": "But again, the more descriptive you are,",
+      "duration": 3440,
+      "offset": 302560,
+      "lang": "en"
+    },
+    {
+      "text": "the better the AI can handle it. You",
+      "duration": 3359,
+      "offset": 304400,
+      "lang": "en"
+    },
+    {
+      "text": "could talk about your target agencies or",
+      "duration": 3440,
+      "offset": 306000,
+      "lang": "en"
+    },
+    {
+      "text": "sectors, past performance, what",
+      "duration": 3761,
+      "offset": 307759,
+      "lang": "en"
+    },
+    {
+      "text": "certifications you have, what your team",
+      "duration": 4160,
+      "offset": 309440,
+      "lang": "en"
+    },
+    {
+      "text": "size is, which these are all important",
+      "duration": 4239,
+      "offset": 311520,
+      "lang": "en"
+    },
+    {
+      "text": "to government contracting, and simply",
+      "duration": 4800,
+      "offset": 313600,
+      "lang": "en"
+    },
+    {
+      "text": "just generate a profile. And essentially",
+      "duration": 4961,
+      "offset": 315759,
+      "lang": "en"
+    },
+    {
+      "text": "what is happening right now is the AI is",
+      "duration": 4239,
+      "offset": 318400,
+      "lang": "en"
+    },
+    {
+      "text": "reading all of that, taking in the",
+      "duration": 3840,
+      "offset": 320720,
+      "lang": "en"
+    },
+    {
+      "text": "understanding of what kind of government",
+      "duration": 4000,
+      "offset": 322639,
+      "lang": "en"
+    },
+    {
+      "text": "contracting is and creating a capability",
+      "duration": 4320,
+      "offset": 324560,
+      "lang": "en"
+    },
+    {
+      "text": "statement as well as immediately looking",
+      "duration": 4721,
+      "offset": 326639,
+      "lang": "en"
+    },
+    {
+      "text": "at Nas codes suggested to you and then",
+      "duration": 4720,
+      "offset": 328880,
+      "lang": "en"
+    },
+    {
+      "text": "applying them. But that's great, right?",
+      "duration": 3520,
+      "offset": 331360,
+      "lang": "en"
+    },
+    {
+      "text": "That's cool. This helps you with the",
+      "duration": 2879,
+      "offset": 333600,
+      "lang": "en"
+    },
+    {
+      "text": "application. This doesn't help you with",
+      "duration": 3599,
+      "offset": 334880,
+      "lang": "en"
+    },
+    {
+      "text": "finding the contracts that are useful.",
+      "duration": 4560,
+      "offset": 336479,
+      "lang": "en"
+    },
+    {
+      "text": "As soon as you hit save profile, what",
+      "duration": 4961,
+      "offset": 338479,
+      "lang": "en"
+    },
+    {
+      "text": "happened is an embedding is created,",
+      "duration": 4000,
+      "offset": 341039,
+      "lang": "en"
+    },
+    {
+      "text": "which is a fancy word for saying",
+      "duration": 4000,
+      "offset": 343440,
+      "lang": "en"
+    },
+    {
+      "text": "similarity. It looks at words and adds",
+      "duration": 5361,
+      "offset": 345039,
+      "lang": "en"
+    },
+    {
+      "text": "numbers to them basically. And uh as",
+      "duration": 5360,
+      "offset": 347440,
+      "lang": "en"
+    },
+    {
+      "text": "that updates, it immediately creates a",
+      "duration": 4880,
+      "offset": 350400,
+      "lang": "en"
+    },
+    {
+      "text": "similarity score or your chances of",
+      "duration": 4880,
+      "offset": 352800,
+      "lang": "en"
+    },
+    {
+      "text": "being similar for a contract. So I got a",
+      "duration": 5520,
+      "offset": 355280,
+      "lang": "en"
+    },
+    {
+      "text": "43% similarity here on this contract for",
+      "duration": 5120,
+      "offset": 357680,
+      "lang": "en"
+    },
+    {
+      "text": "my company. So instead of me having to",
+      "duration": 3600,
+      "offset": 360800,
+      "lang": "en"
+    },
+    {
+      "text": "scroll through all of these contracts",
+      "duration": 3760,
+      "offset": 362800,
+      "lang": "en"
+    },
+    {
+      "text": "for sources sought contracts over and",
+      "duration": 4000,
+      "offset": 364400,
+      "lang": "en"
+    },
+    {
+      "text": "over again instead the AI is coming",
+      "duration": 3359,
+      "offset": 366560,
+      "lang": "en"
+    },
+    {
+      "text": "through looking at the description and",
+      "duration": 3519,
+      "offset": 368400,
+      "lang": "en"
+    },
+    {
+      "text": "saying hey it seems like your company's",
+      "duration": 3361,
+      "offset": 369919,
+      "lang": "en"
+    },
+    {
+      "text": "really good for this and this is the",
+      "duration": 3201,
+      "offset": 371919,
+      "lang": "en"
+    },
+    {
+      "text": "highest percentage and I would say my",
+      "duration": 3440,
+      "offset": 373280,
+      "lang": "en"
+    },
+    {
+      "text": "company would be great for this data",
+      "duration": 4480,
+      "offset": 375120,
+      "lang": "en"
+    },
+    {
+      "text": "verification and uh analysis artificial",
+      "duration": 4240,
+      "offset": 376720,
+      "lang": "en"
+    },
+    {
+      "text": "intelligence solutions for network",
+      "duration": 2879,
+      "offset": 379600,
+      "lang": "en"
+    },
+    {
+      "text": "performance analytics. Yeah, that's",
+      "duration": 3200,
+      "offset": 380960,
+      "lang": "en"
+    },
+    {
+      "text": "right up. It immediately pulls the",
+      "duration": 3521,
+      "offset": 382479,
+      "lang": "en"
+    },
+    {
+      "text": "person I need to reach and things like",
+      "duration": 4400,
+      "offset": 384160,
+      "lang": "en"
+    },
+    {
+      "text": "that. It pulls the attachments as well.",
+      "duration": 4639,
+      "offset": 386000,
+      "lang": "en"
+    },
+    {
+      "text": "um we can immediately download them and",
+      "duration": 4160,
+      "offset": 388560,
+      "lang": "en"
+    },
+    {
+      "text": "open them or what you can do is just go",
+      "duration": 3761,
+      "offset": 390639,
+      "lang": "en"
+    },
+    {
+      "text": "straight to the sam.gov and it pulls it",
+      "duration": 3199,
+      "offset": 392720,
+      "lang": "en"
+    },
+    {
+      "text": "straight up for you. So you if you",
+      "duration": 2720,
+      "offset": 394400,
+      "lang": "en"
+    },
+    {
+      "text": "signed into your account you can",
+      "duration": 2720,
+      "offset": 395919,
+      "lang": "en"
+    },
+    {
+      "text": "immediately look at anything else that",
+      "duration": 3440,
+      "offset": 397120,
+      "lang": "en"
+    },
+    {
+      "text": "needs to be in there. Look at what the",
+      "duration": 4081,
+      "offset": 398639,
+      "lang": "en"
+    },
+    {
+      "text": "kind of RFI request for information in",
+      "duration": 4000,
+      "offset": 400560,
+      "lang": "en"
+    },
+    {
+      "text": "this standpoint is and and things like",
+      "duration": 3280,
+      "offset": 402720,
+      "lang": "en"
+    },
+    {
+      "text": "that. And this is something that I've",
+      "duration": 3520,
+      "offset": 404560,
+      "lang": "en"
+    },
+    {
+      "text": "been building for SAM.gov. I also went",
+      "duration": 3759,
+      "offset": 406000,
+      "lang": "en"
+    },
+    {
+      "text": "ahead and built something similar for",
+      "duration": 3679,
+      "offset": 408080,
+      "lang": "en"
+    },
+    {
+      "text": "Bidnet because BidNet doesn't have an",
+      "duration": 4000,
+      "offset": 409759,
+      "lang": "en"
+    },
+    {
+      "text": "API. There's no way to access all of",
+      "duration": 3440,
+      "offset": 411759,
+      "lang": "en"
+    },
+    {
+      "text": "these contracts all at once or at least",
+      "duration": 2961,
+      "offset": 413759,
+      "lang": "en"
+    },
+    {
+      "text": "I couldn't find an API key. I'm gonna",
+      "duration": 3361,
+      "offset": 415199,
+      "lang": "en"
+    },
+    {
+      "text": "have to talk to them about that. But,",
+      "duration": 3440,
+      "offset": 416720,
+      "lang": "en"
+    },
+    {
+      "text": "uh, essentially here you could do the",
+      "duration": 4000,
+      "offset": 418560,
+      "lang": "en"
+    },
+    {
+      "text": "same thing, right? Um, I created a",
+      "duration": 5280,
+      "offset": 420160,
+      "lang": "en"
+    },
+    {
+      "text": "little AI assistant. Um,",
+      "duration": 7440,
+      "offset": 422560,
+      "lang": "en"
+    },
+    {
+      "text": "I would like help finding codes for my",
+      "duration": 6640,
+      "offset": 425440,
+      "lang": "en"
+    },
+    {
+      "text": "company, right? Let's say, you know,",
+      "duration": 3599,
+      "offset": 430000,
+      "lang": "en"
+    },
+    {
+      "text": "next to nothing. Again, this is the",
+      "duration": 3679,
+      "offset": 432080,
+      "lang": "en"
+    },
+    {
+      "text": "opposite side. This one's made more for",
+      "duration": 3521,
+      "offset": 433599,
+      "lang": "en"
+    },
+    {
+      "text": "automation, so you're not really",
+      "duration": 2961,
+      "offset": 435759,
+      "lang": "en"
+    },
+    {
+      "text": "chatting with anything. It's all doing",
+      "duration": 3600,
+      "offset": 437120,
+      "lang": "en"
+    },
+    {
+      "text": "it on its own. This one's a more kind of",
+      "duration": 3759,
+      "offset": 438720,
+      "lang": "en"
+    },
+    {
+      "text": "help bot. It's like, \"Oh, yeah. I'd love",
+      "duration": 3440,
+      "offset": 440720,
+      "lang": "en"
+    },
+    {
+      "text": "for to help you find the NIGB codes.",
+      "duration": 2801,
+      "offset": 442479,
+      "lang": "en"
+    },
+    {
+      "text": "Let's give you the most relevant",
+      "duration": 2479,
+      "offset": 444160,
+      "lang": "en"
+    },
+    {
+      "text": "recommendations first. What does your",
+      "duration": 3359,
+      "offset": 445280,
+      "lang": "en"
+    },
+    {
+      "text": "company do? What industry are you in?",
+      "duration": 3921,
+      "offset": 446639,
+      "lang": "en"
+    },
+    {
+      "text": "What specialized areas are you focused",
+      "duration": 3601,
+      "offset": 448639,
+      "lang": "en"
+    },
+    {
+      "text": "in? Uh, in this case, we're actually",
+      "duration": 4560,
+      "offset": 450560,
+      "lang": "en"
+    },
+    {
+      "text": "going to go ahead and steal uh, you",
+      "duration": 4480,
+      "offset": 452240,
+      "lang": "en"
+    },
+    {
+      "text": "know, my write up over here because I",
+      "duration": 2960,
+      "offset": 455120,
+      "lang": "en"
+    },
+    {
+      "text": "don't feel like writing that all out in",
+      "duration": 3039,
+      "offset": 456720,
+      "lang": "en"
+    },
+    {
+      "text": "front of you guys today. Uh, but let's",
+      "duration": 3519,
+      "offset": 458080,
+      "lang": "en"
+    },
+    {
+      "text": "say you had a write up simpler like this",
+      "duration": 4401,
+      "offset": 459759,
+      "lang": "en"
+    },
+    {
+      "text": "and send that in. And then immediately",
+      "duration": 4720,
+      "offset": 461599,
+      "lang": "en"
+    },
+    {
+      "text": "what the agent is doing is just analyze",
+      "duration": 4000,
+      "offset": 464160,
+      "lang": "en"
+    },
+    {
+      "text": "it, look at it, figuring out the",
+      "duration": 3681,
+      "offset": 466319,
+      "lang": "en"
+    },
+    {
+      "text": "processes and ideas that it needs to.",
+      "duration": 3840,
+      "offset": 468160,
+      "lang": "en"
+    },
+    {
+      "text": "And it's actually searching as this is",
+      "duration": 4639,
+      "offset": 470000,
+      "lang": "en"
+    },
+    {
+      "text": "happening um, for technology, software",
+      "duration": 4479,
+      "offset": 472000,
+      "lang": "en"
+    },
+    {
+      "text": "codes, things like that. But it's doing",
+      "duration": 3840,
+      "offset": 474639,
+      "lang": "en"
+    },
+    {
+      "text": "more than just searching the web. It's",
+      "duration": 3681,
+      "offset": 476479,
+      "lang": "en"
+    },
+    {
+      "text": "searching a database that I have",
+      "duration": 4321,
+      "offset": 478479,
+      "lang": "en"
+    },
+    {
+      "text": "actually created and put in. Um so I",
+      "duration": 4400,
+      "offset": 480160,
+      "lang": "en"
+    },
+    {
+      "text": "created a database of all of these",
+      "duration": 5040,
+      "offset": 482800,
+      "lang": "en"
+    },
+    {
+      "text": "specific terms and processes right of",
+      "duration": 8720,
+      "offset": 484560,
+      "lang": "en"
+    },
+    {
+      "text": "you know RFQ, RFP, IFB, uh NIGP, NACS as",
+      "duration": 7919,
+      "offset": 487840,
+      "lang": "en"
+    },
+    {
+      "text": "well as NIGP specific code. So if there",
+      "duration": 4639,
+      "offset": 493280,
+      "lang": "en"
+    },
+    {
+      "text": "is any inaccuracies here we can easily",
+      "duration": 5681,
+      "offset": 495759,
+      "lang": "en"
+    },
+    {
+      "text": "change it and verify right for 918210 or",
+      "duration": 7601,
+      "offset": 497919,
+      "lang": "en"
+    },
+    {
+      "text": "21 business consulting or 91899 computer",
+      "duration": 6000,
+      "offset": 501440,
+      "lang": "en"
+    },
+    {
+      "text": "related services perhaps these are wrong",
+      "duration": 3440,
+      "offset": 505520,
+      "lang": "en"
+    },
+    {
+      "text": "and we need to come in and change it",
+      "duration": 3039,
+      "offset": 507440,
+      "lang": "en"
+    },
+    {
+      "text": "instead of having to fine-tune a model",
+      "duration": 3120,
+      "offset": 508960,
+      "lang": "en"
+    },
+    {
+      "text": "and verify with the AI you can just come",
+      "duration": 3120,
+      "offset": 510479,
+      "lang": "en"
+    },
+    {
+      "text": "in and change it right here and then the",
+      "duration": 4399,
+      "offset": 512080,
+      "lang": "en"
+    },
+    {
+      "text": "AI references this list which is really",
+      "duration": 5360,
+      "offset": 513599,
+      "lang": "en"
+    },
+    {
+      "text": "important when it comes to um accuracy",
+      "duration": 5120,
+      "offset": 516479,
+      "lang": "en"
+    },
+    {
+      "text": "and things like that and immediately",
+      "duration": 4801,
+      "offset": 518959,
+      "lang": "en"
+    },
+    {
+      "text": "what it comes and creates it says hey",
+      "duration": 3841,
+      "offset": 521599,
+      "lang": "en"
+    },
+    {
+      "text": "you probably need computer related",
+      "duration": 5040,
+      "offset": 523760,
+      "lang": "en"
+    },
+    {
+      "text": "services 91899818",
+      "duration": 5040,
+      "offset": 525440,
+      "lang": "en"
+    },
+    {
+      "text": "uh consulting services. I did check",
+      "duration": 4000,
+      "offset": 528800,
+      "lang": "en"
+    },
+    {
+      "text": "that. That is correct and accurate. Um",
+      "duration": 5680,
+      "offset": 530480,
+      "lang": "en"
+    },
+    {
+      "text": "91821 business consulting uh management",
+      "duration": 4960,
+      "offset": 532800,
+      "lang": "en"
+    },
+    {
+      "text": "supervisory training. These could be",
+      "duration": 3040,
+      "offset": 536160,
+      "lang": "en"
+    },
+    {
+      "text": "training in development codes. Maybe",
+      "duration": 3759,
+      "offset": 537760,
+      "lang": "en"
+    },
+    {
+      "text": "more specialized codes, right? Or cyber",
+      "duration": 3600,
+      "offset": 539200,
+      "lang": "en"
+    },
+    {
+      "text": "security. And it just makes it a lot",
+      "duration": 2961,
+      "offset": 541519,
+      "lang": "en"
+    },
+    {
+      "text": "easier to really know which code should",
+      "duration": 3599,
+      "offset": 542800,
+      "lang": "en"
+    },
+    {
+      "text": "be good for you and a lot faster. Even",
+      "duration": 4000,
+      "offset": 544480,
+      "lang": "en"
+    },
+    {
+      "text": "gave a quick grade, right? Uh this is,",
+      "duration": 4721,
+      "offset": 546399,
+      "lang": "en"
+    },
+    {
+      "text": "you know, 75 out of 100. Strong overall,",
+      "duration": 4560,
+      "offset": 548480,
+      "lang": "en"
+    },
+    {
+      "text": "but it's missing kind of very specific",
+      "duration": 4080,
+      "offset": 551120,
+      "lang": "en"
+    },
+    {
+      "text": "things. here's what's working well,",
+      "duration": 3919,
+      "offset": 553040,
+      "lang": "en"
+    },
+    {
+      "text": "right? Specific differentiators,",
+      "duration": 4000,
+      "offset": 555200,
+      "lang": "en"
+    },
+    {
+      "text": "impressive client list, uh strong",
+      "duration": 4481,
+      "offset": 556959,
+      "lang": "en"
+    },
+    {
+      "text": "credentials, things like that. But it's",
+      "duration": 4079,
+      "offset": 559200,
+      "lang": "en"
+    },
+    {
+      "text": "missing critical information, specific",
+      "duration": 3680,
+      "offset": 561440,
+      "lang": "en"
+    },
+    {
+      "text": "contact information, geographic",
+      "duration": 4000,
+      "offset": 563279,
+      "lang": "en"
+    },
+    {
+      "text": "coverage, maybe government specific",
+      "duration": 4080,
+      "offset": 565120,
+      "lang": "en"
+    },
+    {
+      "text": "enhancements, right? I don't talk about",
+      "duration": 4560,
+      "offset": 567279,
+      "lang": "en"
+    },
+    {
+      "text": "um clearance level or GSA schedules or",
+      "duration": 3920,
+      "offset": 569200,
+      "lang": "en"
+    },
+    {
+      "text": "anything like that. If you don't know",
+      "duration": 3041,
+      "offset": 571839,
+      "lang": "en"
+    },
+    {
+      "text": "you even need to put those in there,",
+      "duration": 3600,
+      "offset": 573120,
+      "lang": "en"
+    },
+    {
+      "text": "again, this is super nice to be able to",
+      "duration": 3680,
+      "offset": 574880,
+      "lang": "en"
+    },
+    {
+      "text": "have. Um and it even gives some",
+      "duration": 3200,
+      "offset": 576720,
+      "lang": "en"
+    },
+    {
+      "text": "suggested things. Again, this is a",
+      "duration": 3360,
+      "offset": 578560,
+      "lang": "en"
+    },
+    {
+      "text": "really quick PC I made. I'd probably",
+      "duration": 3919,
+      "offset": 579920,
+      "lang": "en"
+    },
+    {
+      "text": "make this look nicer and generate a lot",
+      "duration": 4080,
+      "offset": 581920,
+      "lang": "en"
+    },
+    {
+      "text": "more info. Um, and then vice versa, if",
+      "duration": 4560,
+      "offset": 583839,
+      "lang": "en"
+    },
+    {
+      "text": "you just wanted something quicker, uh,",
+      "duration": 5839,
+      "offset": 586000,
+      "lang": "en"
+    },
+    {
+      "text": "right? And training in AI. This is a",
+      "duration": 5440,
+      "offset": 588399,
+      "lang": "en"
+    },
+    {
+      "text": "quick code. It immediately pulls up all",
+      "duration": 4161,
+      "offset": 591839,
+      "lang": "en"
+    },
+    {
+      "text": "of those codes almost instantaneously.",
+      "duration": 3761,
+      "offset": 593839,
+      "lang": "en"
+    },
+    {
+      "text": "Same thing from that database. And this",
+      "duration": 3839,
+      "offset": 596000,
+      "lang": "en"
+    },
+    {
+      "text": "is more traditional kind of software",
+      "duration": 4640,
+      "offset": 597600,
+      "lang": "en"
+    },
+    {
+      "text": "solutions rather than just AI. Uh you",
+      "duration": 4401,
+      "offset": 599839,
+      "lang": "en"
+    },
+    {
+      "text": "could even have a profile coach in here",
+      "duration": 4400,
+      "offset": 602240,
+      "lang": "en"
+    },
+    {
+      "text": "which is uh kind of analyzing based on",
+      "duration": 4800,
+      "offset": 604240,
+      "lang": "en"
+    },
+    {
+      "text": "code and processes and it caught the",
+      "duration": 4160,
+      "offset": 606640,
+      "lang": "en"
+    },
+    {
+      "text": "geographic coverage and contact",
+      "duration": 4000,
+      "offset": 609040,
+      "lang": "en"
+    },
+    {
+      "text": "information issues as well. Uh and it's",
+      "duration": 4800,
+      "offset": 610800,
+      "lang": "en"
+    },
+    {
+      "text": "the same exact grade as well which is",
+      "duration": 4239,
+      "offset": 613040,
+      "lang": "en"
+    },
+    {
+      "text": "interesting because that's the AI",
+      "duration": 4400,
+      "offset": 615600,
+      "lang": "en"
+    },
+    {
+      "text": "assistant using this tool, right? And",
+      "duration": 5601,
+      "offset": 617279,
+      "lang": "en"
+    },
+    {
+      "text": "this tool can be used by the AI. So, the",
+      "duration": 4240,
+      "offset": 620000,
+      "lang": "en"
+    },
+    {
+      "text": "more advanced you make this tool",
+      "duration": 3440,
+      "offset": 622880,
+      "lang": "en"
+    },
+    {
+      "text": "software-wise, the better this AI",
+      "duration": 4240,
+      "offset": 624240,
+      "lang": "en"
+    },
+    {
+      "text": "assistant is, which actually puts it",
+      "duration": 4480,
+      "offset": 626320,
+      "lang": "en"
+    },
+    {
+      "text": "over this kind of traditional thing,",
+      "duration": 3919,
+      "offset": 628480,
+      "lang": "en"
+    },
+    {
+      "text": "which is why I showed this to begin",
+      "duration": 4400,
+      "offset": 630800,
+      "lang": "en"
+    },
+    {
+      "text": "with. Most of the time, you can get 80%",
+      "duration": 5120,
+      "offset": 632399,
+      "lang": "en"
+    },
+    {
+      "text": "solution just by using a $20 tool that's",
+      "duration": 4240,
+      "offset": 635200,
+      "lang": "en"
+    },
+    {
+      "text": "out there, right? It's given us almost",
+      "duration": 3201,
+      "offset": 637519,
+      "lang": "en"
+    },
+    {
+      "text": "everything that I'm showing you right",
+      "duration": 3120,
+      "offset": 639440,
+      "lang": "en"
+    },
+    {
+      "text": "here, and all I had to do was throw in a",
+      "duration": 4080,
+      "offset": 640720,
+      "lang": "en"
+    },
+    {
+      "text": "prompt. The difference with this is it's",
+      "duration": 4399,
+      "offset": 642560,
+      "lang": "en"
+    },
+    {
+      "text": "repeatable, it's controllable, and you",
+      "duration": 3920,
+      "offset": 644800,
+      "lang": "en"
+    },
+    {
+      "text": "can affect the accuracy as well as have",
+      "duration": 3761,
+      "offset": 646959,
+      "lang": "en"
+    },
+    {
+      "text": "it within your own environment here.",
+      "duration": 4480,
+      "offset": 648720,
+      "lang": "en"
+    },
+    {
+      "text": "Same with uh my other uh kind of process",
+      "duration": 5760,
+      "offset": 650720,
+      "lang": "en"
+    },
+    {
+      "text": "here. Um and again like you know all of",
+      "duration": 5920,
+      "offset": 653200,
+      "lang": "en"
+    },
+    {
+      "text": "this is is expandable and interesting in",
+      "duration": 4560,
+      "offset": 656480,
+      "lang": "en"
+    },
+    {
+      "text": "that area uh to be able to kind of",
+      "duration": 3440,
+      "offset": 659120,
+      "lang": "en"
+    },
+    {
+      "text": "explore and I also have the idea of the",
+      "duration": 3440,
+      "offset": 661040,
+      "lang": "en"
+    },
+    {
+      "text": "scorer and the sol uh solicitation",
+      "duration": 3839,
+      "offset": 662560,
+      "lang": "en"
+    },
+    {
+      "text": "decoder. So like putting the document in",
+      "duration": 3760,
+      "offset": 664480,
+      "lang": "en"
+    },
+    {
+      "text": "there and having it kind of break down",
+      "duration": 4081,
+      "offset": 666399,
+      "lang": "en"
+    },
+    {
+      "text": "and understand what you need. But again",
+      "duration": 4560,
+      "offset": 668240,
+      "lang": "en"
+    },
+    {
+      "text": "this is just a quick idea of what could",
+      "duration": 4799,
+      "offset": 670480,
+      "lang": "en"
+    },
+    {
+      "text": "really be possible uh within just a",
+      "duration": 4240,
+      "offset": 672800,
+      "lang": "en"
+    },
+    {
+      "text": "weekend. Again I built this in a couple",
+      "duration": 3921,
+      "offset": 675279,
+      "lang": "en"
+    },
+    {
+      "text": "hours. Uh now obviously if you want it",
+      "duration": 4560,
+      "offset": 677040,
+      "lang": "en"
+    },
+    {
+      "text": "to be scalable and to you know be nice",
+      "duration": 3840,
+      "offset": 679200,
+      "lang": "en"
+    },
+    {
+      "text": "we have to do a lot more than what I",
+      "duration": 3280,
+      "offset": 681600,
+      "lang": "en"
+    },
+    {
+      "text": "built in here uh you're going to need a",
+      "duration": 3680,
+      "offset": 683040,
+      "lang": "en"
+    },
+    {
+      "text": "lot more kind of security and",
+      "duration": 3519,
+      "offset": 684880,
+      "lang": "en"
+    },
+    {
+      "text": "scalability in the traditional side but",
+      "duration": 3679,
+      "offset": 686720,
+      "lang": "en"
+    },
+    {
+      "text": "the the important part is you have a",
+      "duration": 3361,
+      "offset": 688399,
+      "lang": "en"
+    },
+    {
+      "text": "direction you have an understanding of",
+      "duration": 3361,
+      "offset": 690399,
+      "lang": "en"
+    },
+    {
+      "text": "what you need to work on and invest in",
+      "duration": 3840,
+      "offset": 691760,
+      "lang": "en"
+    },
+    {
+      "text": "and I would argue it works pretty well",
+      "duration": 4319,
+      "offset": 693760,
+      "lang": "en"
+    },
+    {
+      "text": "already with next to no investment right",
+      "duration": 4080,
+      "offset": 695600,
+      "lang": "en"
+    },
+    {
+      "text": "that's that's the really good way to",
+      "duration": 4561,
+      "offset": 698079,
+      "lang": "en"
+    },
+    {
+      "text": "kind of go about this uh but you know",
+      "duration": 4480,
+      "offset": 699680,
+      "lang": "en"
+    },
+    {
+      "text": "understanding how this works and what it",
+      "duration": 3199,
+      "offset": 702640,
+      "lang": "en"
+    },
+    {
+      "text": "is I'll probably be doing more videos",
+      "duration": 3520,
+      "offset": 704160,
+      "lang": "en"
+    },
+    {
+      "text": "how I built these softwares I will",
+      "duration": 3680,
+      "offset": 705839,
+      "lang": "en"
+    },
+    {
+      "text": "definitely do some videos on. But hey,",
+      "duration": 3200,
+      "offset": 707680,
+      "lang": "en"
+    },
+    {
+      "text": "uh, you know, if anyone's interested in",
+      "duration": 2641,
+      "offset": 709519,
+      "lang": "en"
+    },
+    {
+      "text": "using these, let me know in the",
+      "duration": 2880,
+      "offset": 710880,
+      "lang": "en"
+    },
+    {
+      "text": "comments. Uh, if anyone wants to know",
+      "duration": 3119,
+      "offset": 712160,
+      "lang": "en"
+    },
+    {
+      "text": "how to build these, also let me know.",
+      "duration": 3280,
+      "offset": 713760,
+      "lang": "en"
+    },
+    {
+      "text": "But, you know, there's there's ways to",
+      "duration": 3281,
+      "offset": 715279,
+      "lang": "en"
+    },
+    {
+      "text": "make money out there, and, you know,",
+      "duration": 3120,
+      "offset": 717040,
+      "lang": "en"
+    },
+    {
+      "text": "just got to figure out how to use the",
+      "duration": 3920,
+      "offset": 718560,
+      "lang": "en"
+    },
+    {
+      "text": "tools that are at your ability. Cool.",
+      "duration": 3840,
+      "offset": 720160,
+      "lang": "en"
+    },
+    {
+      "text": "Have a wonderful day, everyone. Enjoy",
+      "duration": 4520,
+      "offset": 722480,
+      "lang": "en"
+    },
+    {
+      "text": "yourselves.",
+      "duration": 3000,
+      "offset": 724000,
+      "lang": "en"
+    }
+  ]
+}

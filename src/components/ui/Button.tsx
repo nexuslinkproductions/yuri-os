@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import '../styles/tokens.css';
+import '../../styles/tokens.css';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'pill' | 'large';
 type ButtonSize = 'sm' | 'md' | 'lg';

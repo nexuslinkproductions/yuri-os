@@ -1,0 +1,2238 @@
+{
+  "videoId": "UGyTimVObus",
+  "title": "From Nazi Psychology to AI Auditing",
+  "segments": [
+    {
+      "text": "I took psychometric tests used to",
+      "duration": 4720,
+      "offset": 320,
+      "lang": "en"
+    },
+    {
+      "text": "capture Nazis in the 50s and aimed them",
+      "duration": 5200,
+      "offset": 2320,
+      "lang": "en"
+    },
+    {
+      "text": "at AI models. Well, I did a little bit",
+      "duration": 3920,
+      "offset": 5040,
+      "lang": "en"
+    },
+    {
+      "text": "more than that. I created a data",
+      "duration": 3039,
+      "offset": 7520,
+      "lang": "en"
+    },
+    {
+      "text": "pipeline that allowed to take a lot of",
+      "duration": 3679,
+      "offset": 8960,
+      "lang": "en"
+    },
+    {
+      "text": "personality tests and aim them all",
+      "duration": 4401,
+      "offset": 10559,
+      "lang": "en"
+    },
+    {
+      "text": "across AI models. It can tell you where",
+      "duration": 4400,
+      "offset": 12639,
+      "lang": "en"
+    },
+    {
+      "text": "a model lands on moral foundations,",
+      "duration": 4159,
+      "offset": 14960,
+      "lang": "en"
+    },
+    {
+      "text": "authoritarianism scales, personality",
+      "duration": 4000,
+      "offset": 17039,
+      "lang": "en"
+    },
+    {
+      "text": "dimensions, and it can do this across",
+      "duration": 4481,
+      "offset": 19119,
+      "lang": "en"
+    },
+    {
+      "text": "personas, model variations, various",
+      "duration": 4400,
+      "offset": 21039,
+      "lang": "en"
+    },
+    {
+      "text": "providers, and so on. And from the",
+      "duration": 3439,
+      "offset": 23600,
+      "lang": "en"
+    },
+    {
+      "text": "outside, it looks like one intelligence",
+      "duration": 3121,
+      "offset": 25439,
+      "lang": "en"
+    },
+    {
+      "text": "studying another, like something that",
+      "duration": 3041,
+      "offset": 27039,
+      "lang": "en"
+    },
+    {
+      "text": "would require a team of researchers or",
+      "duration": 3440,
+      "offset": 28560,
+      "lang": "en"
+    },
+    {
+      "text": "grants. But the point I'm bringing this",
+      "duration": 3840,
+      "offset": 30080,
+      "lang": "en"
+    },
+    {
+      "text": "up is not to even show you that. I",
+      "duration": 3760,
+      "offset": 32000,
+      "lang": "en"
+    },
+    {
+      "text": "actually want to take this apart because",
+      "duration": 4159,
+      "offset": 33920,
+      "lang": "en"
+    },
+    {
+      "text": "it's going to help me explain APIs,",
+      "duration": 4799,
+      "offset": 35760,
+      "lang": "en"
+    },
+    {
+      "text": "research, coding in the modern era, what",
+      "duration": 4721,
+      "offset": 38079,
+      "lang": "en"
+    },
+    {
+      "text": "it means to do the fundamentals. And I",
+      "duration": 3441,
+      "offset": 40559,
+      "lang": "en"
+    },
+    {
+      "text": "don't want to show you how to build",
+      "duration": 3279,
+      "offset": 42800,
+      "lang": "en"
+    },
+    {
+      "text": "this. Rather, I'd deconstruct it because",
+      "duration": 3600,
+      "offset": 44000,
+      "lang": "en"
+    },
+    {
+      "text": "something becomes visible when you",
+      "duration": 3681,
+      "offset": 46079,
+      "lang": "en"
+    },
+    {
+      "text": "deconstruct systems rather than showing",
+      "duration": 4400,
+      "offset": 47600,
+      "lang": "en"
+    },
+    {
+      "text": "you how to assemble systems. And let me",
+      "duration": 4880,
+      "offset": 49760,
+      "lang": "en"
+    },
+    {
+      "text": "show you exactly what I mean. But before",
+      "duration": 5600,
+      "offset": 52000,
+      "lang": "en"
+    },
+    {
+      "text": "I do that, let's go into a kind of world",
+      "duration": 5360,
+      "offset": 54640,
+      "lang": "en"
+    },
+    {
+      "text": "of definitions. There's a word that has",
+      "duration": 3920,
+      "offset": 57600,
+      "lang": "en"
+    },
+    {
+      "text": "taken on a lot of weight in the last",
+      "duration": 4479,
+      "offset": 60000,
+      "lang": "en"
+    },
+    {
+      "text": "couple of years, and that word is agent.",
+      "duration": 4720,
+      "offset": 61520,
+      "lang": "en"
+    },
+    {
+      "text": "We hear about AI agents that can browse",
+      "duration": 4241,
+      "offset": 64479,
+      "lang": "en"
+    },
+    {
+      "text": "the web, write code, manage calendars,",
+      "duration": 4640,
+      "offset": 66240,
+      "lang": "en"
+    },
+    {
+      "text": "analyze documents, da da da da, all this",
+      "duration": 4880,
+      "offset": 68720,
+      "lang": "en"
+    },
+    {
+      "text": "hype, agentic world. And the word agent",
+      "duration": 5279,
+      "offset": 70880,
+      "lang": "en"
+    },
+    {
+      "text": "does mean something to our imagination.",
+      "duration": 4960,
+      "offset": 73600,
+      "lang": "en"
+    },
+    {
+      "text": "And not just from an AI perspective. It",
+      "duration": 4801,
+      "offset": 76159,
+      "lang": "en"
+    },
+    {
+      "text": "used to mean autonomy or separate or",
+      "duration": 4640,
+      "offset": 78560,
+      "lang": "en"
+    },
+    {
+      "text": "attached, right? this idea that there's",
+      "duration": 4000,
+      "offset": 80960,
+      "lang": "en"
+    },
+    {
+      "text": "decision-making going on. It implies",
+      "duration": 4640,
+      "offset": 83200,
+      "lang": "en"
+    },
+    {
+      "text": "that this thing can act on its own",
+      "duration": 5440,
+      "offset": 84960,
+      "lang": "en"
+    },
+    {
+      "text": "behalf. Uh, and I want to be careful",
+      "duration": 4880,
+      "offset": 87840,
+      "lang": "en"
+    },
+    {
+      "text": "here because I think this is one of",
+      "duration": 4240,
+      "offset": 90400,
+      "lang": "en"
+    },
+    {
+      "text": "those places where language is running",
+      "duration": 4800,
+      "offset": 92720,
+      "lang": "en"
+    },
+    {
+      "text": "ahead of the engineering. What we call",
+      "duration": 5439,
+      "offset": 94640,
+      "lang": "en"
+    },
+    {
+      "text": "an AI agent in the vast majority of",
+      "duration": 5040,
+      "offset": 97520,
+      "lang": "en"
+    },
+    {
+      "text": "cases is not a single entity making",
+      "duration": 4881,
+      "offset": 100079,
+      "lang": "en"
+    },
+    {
+      "text": "autonomous decisions. It is a collection",
+      "duration": 5120,
+      "offset": 102560,
+      "lang": "en"
+    },
+    {
+      "text": "of prompts structured and sequenced by",
+      "duration": 5199,
+      "offset": 104960,
+      "lang": "en"
+    },
+    {
+      "text": "traditional code that causes a model to",
+      "duration": 4479,
+      "offset": 107680,
+      "lang": "en"
+    },
+    {
+      "text": "behave differently at different stages",
+      "duration": 4721,
+      "offset": 110159,
+      "lang": "en"
+    },
+    {
+      "text": "of a workflow. The model itself is not",
+      "duration": 4640,
+      "offset": 112159,
+      "lang": "en"
+    },
+    {
+      "text": "deciding to take a next step. The",
+      "duration": 3919,
+      "offset": 114880,
+      "lang": "en"
+    },
+    {
+      "text": "orchestration layer, which is regular",
+      "duration": 4320,
+      "offset": 116799,
+      "lang": "en"
+    },
+    {
+      "text": "software, evaluates the model's output",
+      "duration": 5121,
+      "offset": 118799,
+      "lang": "en"
+    },
+    {
+      "text": "and determines what prompt to send next",
+      "duration": 4801,
+      "offset": 121119,
+      "lang": "en"
+    },
+    {
+      "text": "based on conditions that a human",
+      "duration": 4559,
+      "offset": 123920,
+      "lang": "en"
+    },
+    {
+      "text": "engineer defined. This is an important",
+      "duration": 4319,
+      "offset": 125920,
+      "lang": "en"
+    },
+    {
+      "text": "distinction and it maps onto something",
+      "duration": 3120,
+      "offset": 128479,
+      "lang": "en"
+    },
+    {
+      "text": "we already understand in computer",
+      "duration": 2881,
+      "offset": 130239,
+      "lang": "en"
+    },
+    {
+      "text": "science. Think about the difference",
+      "duration": 3601,
+      "offset": 131599,
+      "lang": "en"
+    },
+    {
+      "text": "between a function call and a running",
+      "duration": 4800,
+      "offset": 133120,
+      "lang": "en"
+    },
+    {
+      "text": "process. A function takes an input and",
+      "duration": 5039,
+      "offset": 135200,
+      "lang": "en"
+    },
+    {
+      "text": "returns an output. It doesn't decide",
+      "duration": 4800,
+      "offset": 137920,
+      "lang": "en"
+    },
+    {
+      "text": "what to do next. The program that called",
+      "duration": 4881,
+      "offset": 140239,
+      "lang": "en"
+    },
+    {
+      "text": "the function makes that decision. In the",
+      "duration": 5519,
+      "offset": 142720,
+      "lang": "en"
+    },
+    {
+      "text": "same way, each call to a language model",
+      "duration": 6080,
+      "offset": 145120,
+      "lang": "en"
+    },
+    {
+      "text": "is a function call. Prompt in, text out.",
+      "duration": 5360,
+      "offset": 148239,
+      "lang": "en"
+    },
+    {
+      "text": "The agentic behavior, the appearance of",
+      "duration": 4640,
+      "offset": 151200,
+      "lang": "en"
+    },
+    {
+      "text": "autonomy emerges from the orchestration",
+      "duration": 4961,
+      "offset": 153599,
+      "lang": "en"
+    },
+    {
+      "text": "code that wraps those calls. There are",
+      "duration": 4720,
+      "offset": 155840,
+      "lang": "en"
+    },
+    {
+      "text": "systems beginning to emerge where models",
+      "duration": 4480,
+      "offset": 158560,
+      "lang": "en"
+    },
+    {
+      "text": "genuinely operate in autonomous loops,",
+      "duration": 4080,
+      "offset": 160560,
+      "lang": "en"
+    },
+    {
+      "text": "right? Everyone can think about my good",
+      "duration": 4080,
+      "offset": 163040,
+      "lang": "en"
+    },
+    {
+      "text": "old Clawbot video, but or I think",
+      "duration": 4000,
+      "offset": 164640,
+      "lang": "en"
+    },
+    {
+      "text": "they're called moldbot now. No, open",
+      "duration": 3119,
+      "offset": 167120,
+      "lang": "en"
+    },
+    {
+      "text": "claw. That's the word that they are now.",
+      "duration": 4400,
+      "offset": 168640,
+      "lang": "en"
+    },
+    {
+      "text": "Yeah. Where the model itself decides the",
+      "duration": 5280,
+      "offset": 170239,
+      "lang": "en"
+    },
+    {
+      "text": "next action. That is a real and",
+      "duration": 4240,
+      "offset": 173040,
+      "lang": "en"
+    },
+    {
+      "text": "meaningful evolution, but it's not what",
+      "duration": 3681,
+      "offset": 175519,
+      "lang": "en"
+    },
+    {
+      "text": "we were looking at in the vast majority",
+      "duration": 4239,
+      "offset": 177280,
+      "lang": "en"
+    },
+    {
+      "text": "of the deployed systems we have today.",
+      "duration": 3920,
+      "offset": 179200,
+      "lang": "en"
+    },
+    {
+      "text": "And conflating the two makes it harder",
+      "duration": 3201,
+      "offset": 181519,
+      "lang": "en"
+    },
+    {
+      "text": "to understand what is actually happening",
+      "duration": 4080,
+      "offset": 183120,
+      "lang": "en"
+    },
+    {
+      "text": "when these systems work. So let us look",
+      "duration": 4560,
+      "offset": 184720,
+      "lang": "en"
+    },
+    {
+      "text": "at what is actually happening. And",
+      "duration": 4240,
+      "offset": 187200,
+      "lang": "en"
+    },
+    {
+      "text": "again, let's go into my ethics engine",
+      "duration": 3840,
+      "offset": 189280,
+      "lang": "en"
+    },
+    {
+      "text": "pipeline. The first thing we find when",
+      "duration": 3680,
+      "offset": 191440,
+      "lang": "en"
+    },
+    {
+      "text": "we open the system is not a model. It's",
+      "duration": 3600,
+      "offset": 193120,
+      "lang": "en"
+    },
+    {
+      "text": "actually more of a traffic controller,",
+      "duration": 3759,
+      "offset": 195120,
+      "lang": "en"
+    },
+    {
+      "text": "so to speak. My ethics engine needs to",
+      "duration": 4400,
+      "offset": 196720,
+      "lang": "en"
+    },
+    {
+      "text": "administer dozens of psychometric items",
+      "duration": 5201,
+      "offset": 198879,
+      "lang": "en"
+    },
+    {
+      "text": "across multiple models simultaneously.",
+      "duration": 5199,
+      "offset": 201120,
+      "lang": "en"
+    },
+    {
+      "text": "Claude, GPT, Llama, blah blah blah,",
+      "duration": 4720,
+      "offset": 204080,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini, all these things. Each provider",
+      "duration": 4401,
+      "offset": 206319,
+      "lang": "en"
+    },
+    {
+      "text": "has different rate limits, different",
+      "duration": 3840,
+      "offset": 208800,
+      "lang": "en"
+    },
+    {
+      "text": "responses, formats, different failure",
+      "duration": 3840,
+      "offset": 210720,
+      "lang": "en"
+    },
+    {
+      "text": "modes. So there is an orchestration",
+      "duration": 3840,
+      "offset": 212640,
+      "lang": "en"
+    },
+    {
+      "text": "layer that manages all of this and it is",
+      "duration": 3920,
+      "offset": 214560,
+      "lang": "en"
+    },
+    {
+      "text": "written in Python and it is doing",
+      "duration": 3679,
+      "offset": 216480,
+      "lang": "en"
+    },
+    {
+      "text": "something that would be immediately",
+      "duration": 3600,
+      "offset": 218480,
+      "lang": "en"
+    },
+    {
+      "text": "recognizable to anyone who has built a",
+      "duration": 4000,
+      "offset": 220159,
+      "lang": "en"
+    },
+    {
+      "text": "web screener or a trading system or even",
+      "duration": 4879,
+      "offset": 222080,
+      "lang": "en"
+    },
+    {
+      "text": "just a ticket reservation platform. It",
+      "duration": 5201,
+      "offset": 224159,
+      "lang": "en"
+    },
+    {
+      "text": "manages concurrency. That's it. It",
+      "duration": 4640,
+      "offset": 226959,
+      "lang": "en"
+    },
+    {
+      "text": "handles retries when requests fails. It",
+      "duration": 4080,
+      "offset": 229360,
+      "lang": "en"
+    },
+    {
+      "text": "queries prompts and dispatches them in",
+      "duration": 4000,
+      "offset": 231599,
+      "lang": "en"
+    },
+    {
+      "text": "order. It tracks which items have been",
+      "duration": 4640,
+      "offset": 233440,
+      "lang": "en"
+    },
+    {
+      "text": "completed and which are still pending.",
+      "duration": 5200,
+      "offset": 235599,
+      "lang": "en"
+    },
+    {
+      "text": "Yet none of this is AI, right? There's",
+      "duration": 4480,
+      "offset": 238080,
+      "lang": "en"
+    },
+    {
+      "text": "no AI doing any of this work, or at",
+      "duration": 4241,
+      "offset": 240799,
+      "lang": "en"
+    },
+    {
+      "text": "least not the modern AI. This is just",
+      "duration": 4560,
+      "offset": 242560,
+      "lang": "en"
+    },
+    {
+      "text": "async programming, asynchronous",
+      "duration": 3600,
+      "offset": 245040,
+      "lang": "en"
+    },
+    {
+      "text": "programming. It's concurrency",
+      "duration": 3199,
+      "offset": 247120,
+      "lang": "en"
+    },
+    {
+      "text": "management. These are patterns that",
+      "duration": 3599,
+      "offset": 248640,
+      "lang": "en"
+    },
+    {
+      "text": "existed long before language models, and",
+      "duration": 3761,
+      "offset": 250319,
+      "lang": "en"
+    },
+    {
+      "text": "they work the same way as they do",
+      "duration": 4481,
+      "offset": 252239,
+      "lang": "en"
+    },
+    {
+      "text": "anywhere else. The model at the other",
+      "duration": 4960,
+      "offset": 254080,
+      "lang": "en"
+    },
+    {
+      "text": "end of each request has no awareness",
+      "duration": 4320,
+      "offset": 256720,
+      "lang": "en"
+    },
+    {
+      "text": "that any of this is happening. It",
+      "duration": 4719,
+      "offset": 259040,
+      "lang": "en"
+    },
+    {
+      "text": "receives a prompt, returns text. That is",
+      "duration": 4800,
+      "offset": 261040,
+      "lang": "en"
+    },
+    {
+      "text": "the full extent of its involvement in",
+      "duration": 4561,
+      "offset": 263759,
+      "lang": "en"
+    },
+    {
+      "text": "this layer of the system. Which raises a",
+      "duration": 4000,
+      "offset": 265840,
+      "lang": "en"
+    },
+    {
+      "text": "question that I think is worth sitting",
+      "duration": 3840,
+      "offset": 268320,
+      "lang": "en"
+    },
+    {
+      "text": "on for a moment. How does the prompt",
+      "duration": 4320,
+      "offset": 269840,
+      "lang": "en"
+    },
+    {
+      "text": "even get to the model? What is the",
+      "duration": 4160,
+      "offset": 272160,
+      "lang": "en"
+    },
+    {
+      "text": "actual mechanism by which one piece of",
+      "duration": 4640,
+      "offset": 274160,
+      "lang": "en"
+    },
+    {
+      "text": "software talks to another? When we say",
+      "duration": 5360,
+      "offset": 276320,
+      "lang": "en"
+    },
+    {
+      "text": "that an AI agent called an API or we",
+      "duration": 5679,
+      "offset": 278800,
+      "lang": "en"
+    },
+    {
+      "text": "called an API, there's a concept buried",
+      "duration": 4239,
+      "offset": 281680,
+      "lang": "en"
+    },
+    {
+      "text": "in that sentence that tends to get",
+      "duration": 3201,
+      "offset": 284479,
+      "lang": "en"
+    },
+    {
+      "text": "skipped over when people are kind of",
+      "duration": 3361,
+      "offset": 285919,
+      "lang": "en"
+    },
+    {
+      "text": "teaching about this stuff. And I think",
+      "duration": 3280,
+      "offset": 287680,
+      "lang": "en"
+    },
+    {
+      "text": "it's worth unpacking because it connects",
+      "duration": 4400,
+      "offset": 289280,
+      "lang": "en"
+    },
+    {
+      "text": "to something larger. An API or an",
+      "duration": 5360,
+      "offset": 290960,
+      "lang": "en"
+    },
+    {
+      "text": "application programming interface is a",
+      "duration": 4959,
+      "offset": 293680,
+      "lang": "en"
+    },
+    {
+      "text": "contract. Two pieces of software agree",
+      "duration": 4080,
+      "offset": 296320,
+      "lang": "en"
+    },
+    {
+      "text": "in advance on the shape of their",
+      "duration": 3921,
+      "offset": 298639,
+      "lang": "en"
+    },
+    {
+      "text": "conversation. What the request will look",
+      "duration": 4079,
+      "offset": 300400,
+      "lang": "en"
+    },
+    {
+      "text": "like, what the response will look like,",
+      "duration": 4479,
+      "offset": 302560,
+      "lang": "en"
+    },
+    {
+      "text": "what is allowed and what is not. Neither",
+      "duration": 4321,
+      "offset": 304479,
+      "lang": "en"
+    },
+    {
+      "text": "side needs to understand the other's",
+      "duration": 4160,
+      "offset": 307039,
+      "lang": "en"
+    },
+    {
+      "text": "internals. They just need to honor the",
+      "duration": 4800,
+      "offset": 308800,
+      "lang": "en"
+    },
+    {
+      "text": "agreement that was made. When the ethics",
+      "duration": 4560,
+      "offset": 311199,
+      "lang": "en"
+    },
+    {
+      "text": "engine sends a prompt to claude, what",
+      "duration": 4720,
+      "offset": 313600,
+      "lang": "en"
+    },
+    {
+      "text": "actually happens is an HTTP request",
+      "duration": 4801,
+      "offset": 315759,
+      "lang": "en"
+    },
+    {
+      "text": "carrying JSON, which is a structured",
+      "duration": 4159,
+      "offset": 318320,
+      "lang": "en"
+    },
+    {
+      "text": "text format, and that goes to an",
+      "duration": 4160,
+      "offset": 320560,
+      "lang": "en"
+    },
+    {
+      "text": "endpoint at Anthropic Servers, company",
+      "duration": 4961,
+      "offset": 322479,
+      "lang": "en"
+    },
+    {
+      "text": "that runs Claude. That JSON contains the",
+      "duration": 4960,
+      "offset": 324720,
+      "lang": "en"
+    },
+    {
+      "text": "prompt, the model name, and some",
+      "duration": 4800,
+      "offset": 327440,
+      "lang": "en"
+    },
+    {
+      "text": "parameters. The server processes it and",
+      "duration": 4720,
+      "offset": 329680,
+      "lang": "en"
+    },
+    {
+      "text": "returns JSON containing the models",
+      "duration": 4480,
+      "offset": 332240,
+      "lang": "en"
+    },
+    {
+      "text": "response. A structured text message goes",
+      "duration": 4160,
+      "offset": 334400,
+      "lang": "en"
+    },
+    {
+      "text": "out. A structured text message comes",
+      "duration": 3919,
+      "offset": 336720,
+      "lang": "en"
+    },
+    {
+      "text": "back and everything the ethics engine",
+      "duration": 3680,
+      "offset": 338560,
+      "lang": "en"
+    },
+    {
+      "text": "does with that response, the scoring,",
+      "duration": 3521,
+      "offset": 340639,
+      "lang": "en"
+    },
+    {
+      "text": "the analysis, the reliability",
+      "duration": 4160,
+      "offset": 342240,
+      "lang": "en"
+    },
+    {
+      "text": "calculations, the synchronous muse and",
+      "duration": 5520,
+      "offset": 344160,
+      "lang": "en"
+    },
+    {
+      "text": "so on. All of that happens locally in",
+      "duration": 5760,
+      "offset": 346400,
+      "lang": "en"
+    },
+    {
+      "text": "traditional code. This is how software",
+      "duration": 4400,
+      "offset": 349680,
+      "lang": "en"
+    },
+    {
+      "text": "has communicated for decades. Web",
+      "duration": 3599,
+      "offset": 352160,
+      "lang": "en"
+    },
+    {
+      "text": "browsers talk to servers this way.",
+      "duration": 3600,
+      "offset": 354080,
+      "lang": "en"
+    },
+    {
+      "text": "Payment systems talk to banks this way.",
+      "duration": 3681,
+      "offset": 355759,
+      "lang": "en"
+    },
+    {
+      "text": "Your weather app talks to a data",
+      "duration": 3680,
+      "offset": 357680,
+      "lang": "en"
+    },
+    {
+      "text": "provider this way. This pattern is not",
+      "duration": 5360,
+      "offset": 359440,
+      "lang": "en"
+    },
+    {
+      "text": "new. But here is where I think it gets a",
+      "duration": 5200,
+      "offset": 361360,
+      "lang": "en"
+    },
+    {
+      "text": "little interesting and where a familiar",
+      "duration": 4080,
+      "offset": 364800,
+      "lang": "en"
+    },
+    {
+      "text": "problem resurfaces. What happens when",
+      "duration": 4400,
+      "offset": 366560,
+      "lang": "en"
+    },
+    {
+      "text": "your system needs to talk to not just",
+      "duration": 4640,
+      "offset": 368880,
+      "lang": "en"
+    },
+    {
+      "text": "one service but 20? A database, a file",
+      "duration": 3920,
+      "offset": 370960,
+      "lang": "en"
+    },
+    {
+      "text": "system, a web browser, a code",
+      "duration": 3360,
+      "offset": 373520,
+      "lang": "en"
+    },
+    {
+      "text": "interpreter, a calendar, a search",
+      "duration": 4080,
+      "offset": 374880,
+      "lang": "en"
+    },
+    {
+      "text": "engine. If every connection is",
+      "duration": 5360,
+      "offset": 376880,
+      "lang": "en"
+    },
+    {
+      "text": "customuilt, you have a scaling problem.",
+      "duration": 5040,
+      "offset": 378960,
+      "lang": "en"
+    },
+    {
+      "text": "Every new tool requires a new",
+      "duration": 4320,
+      "offset": 382240,
+      "lang": "en"
+    },
+    {
+      "text": "integration. Every new AI application",
+      "duration": 4960,
+      "offset": 384000,
+      "lang": "en"
+    },
+    {
+      "text": "requires its own connectors to every",
+      "duration": 4960,
+      "offset": 386560,
+      "lang": "en"
+    },
+    {
+      "text": "tool it wants to use. The number of",
+      "duration": 4959,
+      "offset": 388960,
+      "lang": "en"
+    },
+    {
+      "text": "integrations grows as the product of the",
+      "duration": 4720,
+      "offset": 391520,
+      "lang": "en"
+    },
+    {
+      "text": "number of application times the number",
+      "duration": 5521,
+      "offset": 393919,
+      "lang": "en"
+    },
+    {
+      "text": "of tools. And that math gets unworkable",
+      "duration": 6160,
+      "offset": 396240,
+      "lang": "en"
+    },
+    {
+      "text": "real quickly. But we have fortunately",
+      "duration": 6800,
+      "offset": 399440,
+      "lang": "en"
+    },
+    {
+      "text": "seen this problem before. Well before AI",
+      "duration": 6239,
+      "offset": 402400,
+      "lang": "en"
+    },
+    {
+      "text": "and honestly with every iteration, we",
+      "duration": 4880,
+      "offset": 406240,
+      "lang": "en"
+    },
+    {
+      "text": "found a solution. Before USB, every",
+      "duration": 4721,
+      "offset": 408639,
+      "lang": "en"
+    },
+    {
+      "text": "peripheral device had its own connector.",
+      "duration": 4720,
+      "offset": 411120,
+      "lang": "en"
+    },
+    {
+      "text": "Printers, keyboards, mice, cameras, all",
+      "duration": 3920,
+      "offset": 413360,
+      "lang": "en"
+    },
+    {
+      "text": "different cables, all different",
+      "duration": 3600,
+      "offset": 415840,
+      "lang": "en"
+    },
+    {
+      "text": "protocols. The solution was to",
+      "duration": 3919,
+      "offset": 417280,
+      "lang": "en"
+    },
+    {
+      "text": "standardize the interface. One",
+      "duration": 4640,
+      "offset": 419440,
+      "lang": "en"
+    },
+    {
+      "text": "connector, one protocol, and any device",
+      "duration": 5201,
+      "offset": 421199,
+      "lang": "en"
+    },
+    {
+      "text": "that speaks it can connect to any",
+      "duration": 5679,
+      "offset": 424080,
+      "lang": "en"
+    },
+    {
+      "text": "computer that speaks it. Before HTTP,",
+      "duration": 5199,
+      "offset": 426400,
+      "lang": "en"
+    },
+    {
+      "text": "applications each had their own way of",
+      "duration": 4000,
+      "offset": 429759,
+      "lang": "en"
+    },
+    {
+      "text": "communicating. The solution was to",
+      "duration": 4320,
+      "offset": 431599,
+      "lang": "en"
+    },
+    {
+      "text": "standardize the protocol, one set of",
+      "duration": 3761,
+      "offset": 433759,
+      "lang": "en"
+    },
+    {
+      "text": "rules for how to request and deliver",
+      "duration": 4321,
+      "offset": 435919,
+      "lang": "en"
+    },
+    {
+      "text": "documents, and the web became possible.",
+      "duration": 4640,
+      "offset": 437520,
+      "lang": "en"
+    },
+    {
+      "text": "Before the language server protocol,",
+      "duration": 3920,
+      "offset": 440240,
+      "lang": "en"
+    },
+    {
+      "text": "every code editor needed a custom",
+      "duration": 3759,
+      "offset": 442160,
+      "lang": "en"
+    },
+    {
+      "text": "integration for every programming",
+      "duration": 3840,
+      "offset": 444160,
+      "lang": "en"
+    },
+    {
+      "text": "language. syntax highlighting, error",
+      "duration": 4241,
+      "offset": 445919,
+      "lang": "en"
+    },
+    {
+      "text": "checking, autocomplete, all built",
+      "duration": 4240,
+      "offset": 448000,
+      "lang": "en"
+    },
+    {
+      "text": "separately for each editor and each",
+      "duration": 5039,
+      "offset": 450160,
+      "lang": "en"
+    },
+    {
+      "text": "language. The solution was again",
+      "duration": 5679,
+      "offset": 452240,
+      "lang": "en"
+    },
+    {
+      "text": "standardize the interface. This is where",
+      "duration": 5761,
+      "offset": 455199,
+      "lang": "en"
+    },
+    {
+      "text": "MCP comes in and this is the more modern",
+      "duration": 6241,
+      "offset": 457919,
+      "lang": "en"
+    },
+    {
+      "text": "version of this uh history for AI. It's",
+      "duration": 5679,
+      "offset": 460960,
+      "lang": "en"
+    },
+    {
+      "text": "called model context protocol and is a",
+      "duration": 4400,
+      "offset": 464160,
+      "lang": "en"
+    },
+    {
+      "text": "standardized way for AI systems to",
+      "duration": 3680,
+      "offset": 466639,
+      "lang": "en"
+    },
+    {
+      "text": "connect to external tools and data",
+      "duration": 4079,
+      "offset": 468560,
+      "lang": "en"
+    },
+    {
+      "text": "sources. It was introduced by Anthropic",
+      "duration": 5361,
+      "offset": 470319,
+      "lang": "en"
+    },
+    {
+      "text": "in late 2024 and explicitly inspired by",
+      "duration": 5601,
+      "offset": 472639,
+      "lang": "en"
+    },
+    {
+      "text": "this language server protocol. The",
+      "duration": 4079,
+      "offset": 475680,
+      "lang": "en"
+    },
+    {
+      "text": "people who built it recognized the",
+      "duration": 2880,
+      "offset": 478240,
+      "lang": "en"
+    },
+    {
+      "text": "pattern. We already solved this problem",
+      "duration": 3120,
+      "offset": 479759,
+      "lang": "en"
+    },
+    {
+      "text": "for programming languages talking to",
+      "duration": 4079,
+      "offset": 481120,
+      "lang": "en"
+    },
+    {
+      "text": "editors. So let us solve it in the same",
+      "duration": 4641,
+      "offset": 482879,
+      "lang": "en"
+    },
+    {
+      "text": "way for AI talking to tools. The",
+      "duration": 5041,
+      "offset": 485199,
+      "lang": "en"
+    },
+    {
+      "text": "architecture has three parts. A host",
+      "duration": 4880,
+      "offset": 487520,
+      "lang": "en"
+    },
+    {
+      "text": "which is the AI application, a client",
+      "duration": 3920,
+      "offset": 490240,
+      "lang": "en"
+    },
+    {
+      "text": "which handles the connection and a",
+      "duration": 3600,
+      "offset": 492400,
+      "lang": "en"
+    },
+    {
+      "text": "server which wraps the external tool or",
+      "duration": 4640,
+      "offset": 494160,
+      "lang": "en"
+    },
+    {
+      "text": "data source and speaks MCP. The model",
+      "duration": 4479,
+      "offset": 496000,
+      "lang": "en"
+    },
+    {
+      "text": "does not call APIs directly. The",
+      "duration": 3280,
+      "offset": 498800,
+      "lang": "en"
+    },
+    {
+      "text": "orchestration layer determines what",
+      "duration": 4481,
+      "offset": 500479,
+      "lang": "en"
+    },
+    {
+      "text": "tools to use. The MCP client manages the",
+      "duration": 5760,
+      "offset": 502080,
+      "lang": "en"
+    },
+    {
+      "text": "connection and the MCP server translates",
+      "duration": 5040,
+      "offset": 504960,
+      "lang": "en"
+    },
+    {
+      "text": "between the protocol and whatever the",
+      "duration": 4480,
+      "offset": 507840,
+      "lang": "en"
+    },
+    {
+      "text": "actual tool needs internally. Let's get",
+      "duration": 4320,
+      "offset": 510000,
+      "lang": "en"
+    },
+    {
+      "text": "back to the ethics engine. The model",
+      "duration": 4240,
+      "offset": 512320,
+      "lang": "en"
+    },
+    {
+      "text": "returned a text after having this API",
+      "duration": 4320,
+      "offset": 514320,
+      "lang": "en"
+    },
+    {
+      "text": "call or tool call sent out. Right? Let's",
+      "duration": 4719,
+      "offset": 516560,
+      "lang": "en"
+    },
+    {
+      "text": "look at what happens next to this text",
+      "duration": 4480,
+      "offset": 518640,
+      "lang": "en"
+    },
+    {
+      "text": "because this is where the ratio becomes",
+      "duration": 4560,
+      "offset": 521279,
+      "lang": "en"
+    },
+    {
+      "text": "clear. The model's response is sent as a",
+      "duration": 5040,
+      "offset": 523120,
+      "lang": "en"
+    },
+    {
+      "text": "string. natural language, probabilistic",
+      "duration": 4321,
+      "offset": 525839,
+      "lang": "en"
+    },
+    {
+      "text": "language. The system needs to extract a",
+      "duration": 3920,
+      "offset": 528160,
+      "lang": "en"
+    },
+    {
+      "text": "number from that string. And this is a",
+      "duration": 4080,
+      "offset": 530160,
+      "lang": "en"
+    },
+    {
+      "text": "small thing, but it is worth noticing.",
+      "duration": 4480,
+      "offset": 532080,
+      "lang": "en"
+    },
+    {
+      "text": "The model operates in language. The",
+      "duration": 4480,
+      "offset": 534240,
+      "lang": "en"
+    },
+    {
+      "text": "scoring system operates in numbers.",
+      "duration": 3680,
+      "offset": 536560,
+      "lang": "en"
+    },
+    {
+      "text": "Something has to bridge that gap. And",
+      "duration": 3200,
+      "offset": 538720,
+      "lang": "en"
+    },
+    {
+      "text": "what bridges it is something called",
+      "duration": 4159,
+      "offset": 540240,
+      "lang": "en"
+    },
+    {
+      "text": "parsing, pattern matching, regular",
+      "duration": 4880,
+      "offset": 541920,
+      "lang": "en"
+    },
+    {
+      "text": "expressions. The same text processing in",
+      "duration": 4000,
+      "offset": 544399,
+      "lang": "en"
+    },
+    {
+      "text": "tools that have existed for quite",
+      "duration": 4479,
+      "offset": 546800,
+      "lang": "en"
+    },
+    {
+      "text": "literally decades. The number enters the",
+      "duration": 5281,
+      "offset": 548399,
+      "lang": "en"
+    },
+    {
+      "text": "scoring logic. Psychometric instruments",
+      "duration": 4321,
+      "offset": 551279,
+      "lang": "en"
+    },
+    {
+      "text": "actually have a specific scoring key",
+      "duration": 4240,
+      "offset": 553680,
+      "lang": "en"
+    },
+    {
+      "text": "developed and validated over years and",
+      "duration": 4400,
+      "offset": 555600,
+      "lang": "en"
+    },
+    {
+      "text": "years of clinical research. Some items",
+      "duration": 3760,
+      "offset": 557920,
+      "lang": "en"
+    },
+    {
+      "text": "are reverse scored, meaning a response",
+      "duration": 4000,
+      "offset": 560000,
+      "lang": "en"
+    },
+    {
+      "text": "of five gets recorded as a one. And",
+      "duration": 4080,
+      "offset": 561680,
+      "lang": "en"
+    },
+    {
+      "text": "because the question was phrased in a",
+      "duration": 4080,
+      "offset": 564000,
+      "lang": "en"
+    },
+    {
+      "text": "kind of negative direction. Subscales",
+      "duration": 4720,
+      "offset": 565760,
+      "lang": "en"
+    },
+    {
+      "text": "are calculated by aggregating specific",
+      "duration": 4080,
+      "offset": 568080,
+      "lang": "en"
+    },
+    {
+      "text": "items and creating a new number. And",
+      "duration": 3840,
+      "offset": 570480,
+      "lang": "en"
+    },
+    {
+      "text": "this is just basic arithmetic. All of",
+      "duration": 4320,
+      "offset": 572160,
+      "lang": "en"
+    },
+    {
+      "text": "this is validated, peer-reviewed",
+      "duration": 5760,
+      "offset": 574320,
+      "lang": "en"
+    },
+    {
+      "text": "arithmetic, but arithmetic nonetheless.",
+      "duration": 5359,
+      "offset": 576480,
+      "lang": "en"
+    },
+    {
+      "text": "From there you have reliability testing.",
+      "duration": 3360,
+      "offset": 580080,
+      "lang": "en"
+    },
+    {
+      "text": "Chromebox alpha for internal",
+      "duration": 3680,
+      "offset": 581839,
+      "lang": "en"
+    },
+    {
+      "text": "consistency. Test retest correlation for",
+      "duration": 3760,
+      "offset": 583440,
+      "lang": "en"
+    },
+    {
+      "text": "temporal stability. These are all",
+      "duration": 3440,
+      "offset": 585519,
+      "lang": "en"
+    },
+    {
+      "text": "statistical methods implemented in",
+      "duration": 5280,
+      "offset": 587200,
+      "lang": "en"
+    },
+    {
+      "text": "libraries like scypi numpy. Um and that",
+      "duration": 5201,
+      "offset": 588959,
+      "lang": "en"
+    },
+    {
+      "text": "predates large language models by",
+      "duration": 3520,
+      "offset": 592480,
+      "lang": "en"
+    },
+    {
+      "text": "decades as well. The math has not",
+      "duration": 3280,
+      "offset": 594160,
+      "lang": "en"
+    },
+    {
+      "text": "changed since these instruments were",
+      "duration": 4160,
+      "offset": 596000,
+      "lang": "en"
+    },
+    {
+      "text": "validated on human populations. So",
+      "duration": 4480,
+      "offset": 597440,
+      "lang": "en"
+    },
+    {
+      "text": "here's what the ethics engine actually",
+      "duration": 3119,
+      "offset": 600160,
+      "lang": "en"
+    },
+    {
+      "text": "looks like when you lay it out.",
+      "duration": 3919,
+      "offset": 601920,
+      "lang": "en"
+    },
+    {
+      "text": "Honestly, the AI sends prompts, receives",
+      "duration": 5201,
+      "offset": 603279,
+      "lang": "en"
+    },
+    {
+      "text": "texts, and honestly the actual AI",
+      "duration": 5041,
+      "offset": 605839,
+      "lang": "en"
+    },
+    {
+      "text": "calling is maybe 10% of the system",
+      "duration": 4720,
+      "offset": 608480,
+      "lang": "en"
+    },
+    {
+      "text": "volume. The orchestration, right, async",
+      "duration": 4399,
+      "offset": 610880,
+      "lang": "en"
+    },
+    {
+      "text": "coordination, the rate limming, retry",
+      "duration": 4319,
+      "offset": 613200,
+      "lang": "en"
+    },
+    {
+      "text": "logics, Q management, things like that,",
+      "duration": 4881,
+      "offset": 615279,
+      "lang": "en"
+    },
+    {
+      "text": "that's maybe 30%. The actual data",
+      "duration": 4560,
+      "offset": 617519,
+      "lang": "en"
+    },
+    {
+      "text": "processing, sending and collecting",
+      "duration": 4239,
+      "offset": 620160,
+      "lang": "en"
+    },
+    {
+      "text": "prompts, personas, parsing, scoring,",
+      "duration": 4561,
+      "offset": 622079,
+      "lang": "en"
+    },
+    {
+      "text": "analysis, reliability, that's actually",
+      "duration": 4321,
+      "offset": 624399,
+      "lang": "en"
+    },
+    {
+      "text": "like 60% of the actual code that's going",
+      "duration": 4720,
+      "offset": 626640,
+      "lang": "en"
+    },
+    {
+      "text": "on in this. The ratio is not unique to",
+      "duration": 4480,
+      "offset": 628720,
+      "lang": "en"
+    },
+    {
+      "text": "my ethics engine. I'm bringing this up",
+      "duration": 3599,
+      "offset": 631360,
+      "lang": "en"
+    },
+    {
+      "text": "because it's something I see in every",
+      "duration": 4160,
+      "offset": 633200,
+      "lang": "en"
+    },
+    {
+      "text": "good working AI system I work with. All",
+      "duration": 4481,
+      "offset": 634959,
+      "lang": "en"
+    },
+    {
+      "text": "the bad ones seem to ignore this ratio.",
+      "duration": 3440,
+      "offset": 637360,
+      "lang": "en"
+    },
+    {
+      "text": "And this is where, if you've been",
+      "duration": 3280,
+      "offset": 639440,
+      "lang": "en"
+    },
+    {
+      "text": "following along through the series, the",
+      "duration": 4320,
+      "offset": 640800,
+      "lang": "en"
+    },
+    {
+      "text": "connection starts to surface. We traced",
+      "duration": 4480,
+      "offset": 642720,
+      "lang": "en"
+    },
+    {
+      "text": "a line of Python down through seven",
+      "duration": 4000,
+      "offset": 645120,
+      "lang": "en"
+    },
+    {
+      "text": "layers of abstraction to electrons that",
+      "duration": 4000,
+      "offset": 647200,
+      "lang": "en"
+    },
+    {
+      "text": "are fundamentally probabilistic. We",
+      "duration": 4399,
+      "offset": 649120,
+      "lang": "en"
+    },
+    {
+      "text": "traced memory from registers and cache",
+      "duration": 4560,
+      "offset": 651200,
+      "lang": "en"
+    },
+    {
+      "text": "through to context windows and system",
+      "duration": 4401,
+      "offset": 653519,
+      "lang": "en"
+    },
+    {
+      "text": "prompts. And we found that the template",
+      "duration": 4560,
+      "offset": 655760,
+      "lang": "en"
+    },
+    {
+      "text": "pattern blanks filled according to rules",
+      "duration": 4640,
+      "offset": 657920,
+      "lang": "en"
+    },
+    {
+      "text": "holds at every level. Now, we've taken",
+      "duration": 4639,
+      "offset": 660320,
+      "lang": "en"
+    },
+    {
+      "text": "an AI agent apart from the top and found",
+      "duration": 4959,
+      "offset": 662560,
+      "lang": "en"
+    },
+    {
+      "text": "that most of its layers are traditional",
+      "duration": 5361,
+      "offset": 664959,
+      "lang": "en"
+    },
+    {
+      "text": "engineering APIs that follow the same",
+      "duration": 4880,
+      "offset": 667519,
+      "lang": "en"
+    },
+    {
+      "text": "request response pattern software has",
+      "duration": 4320,
+      "offset": 670320,
+      "lang": "en"
+    },
+    {
+      "text": "used for decades. Protocols that",
+      "duration": 5201,
+      "offset": 672399,
+      "lang": "en"
+    },
+    {
+      "text": "standardize interfaces the same way USB",
+      "duration": 6319,
+      "offset": 674640,
+      "lang": "en"
+    },
+    {
+      "text": "and HTTP did before them. Data",
+      "duration": 5200,
+      "offset": 677600,
+      "lang": "en"
+    },
+    {
+      "text": "processing that runs on statistical",
+      "duration": 3841,
+      "offset": 680959,
+      "lang": "en"
+    },
+    {
+      "text": "libraries older than the models they",
+      "duration": 3920,
+      "offset": 682800,
+      "lang": "en"
+    },
+    {
+      "text": "evaluate. Kind of funny when you think",
+      "duration": 3599,
+      "offset": 684800,
+      "lang": "en"
+    },
+    {
+      "text": "about it. There's this narrative that",
+      "duration": 3920,
+      "offset": 686720,
+      "lang": "en"
+    },
+    {
+      "text": "says AI changes everything and then",
+      "duration": 4000,
+      "offset": 688399,
+      "lang": "en"
+    },
+    {
+      "text": "there's this counternarrative that AI is",
+      "duration": 4480,
+      "offset": 690640,
+      "lang": "en"
+    },
+    {
+      "text": "just hype. And while honestly I think",
+      "duration": 5041,
+      "offset": 692399,
+      "lang": "en"
+    },
+    {
+      "text": "both of those myths what is actually",
+      "duration": 4240,
+      "offset": 695120,
+      "lang": "en"
+    },
+    {
+      "text": "happening and what is interesting in my",
+      "duration": 4480,
+      "offset": 697440,
+      "lang": "en"
+    },
+    {
+      "text": "head which is that AI simply extends",
+      "duration": 5120,
+      "offset": 699360,
+      "lang": "en"
+    },
+    {
+      "text": "what we've always been doing. It adds a",
+      "duration": 4720,
+      "offset": 701920,
+      "lang": "en"
+    },
+    {
+      "text": "layer where natural language becomes the",
+      "duration": 4320,
+      "offset": 704480,
+      "lang": "en"
+    },
+    {
+      "text": "interface and context becomes the",
+      "duration": 5199,
+      "offset": 706640,
+      "lang": "en"
+    },
+    {
+      "text": "program. But that layer sits on top of",
+      "duration": 5360,
+      "offset": 708800,
+      "lang": "en"
+    },
+    {
+      "text": "the same exact engineering tradition",
+      "duration": 4240,
+      "offset": 711839,
+      "lang": "en"
+    },
+    {
+      "text": "that has been building since we first",
+      "duration": 3840,
+      "offset": 714160,
+      "lang": "en"
+    },
+    {
+      "text": "figured out how to route electricity",
+      "duration": 4880,
+      "offset": 716079,
+      "lang": "en"
+    },
+    {
+      "text": "through logic gates. The new thing is",
+      "duration": 5200,
+      "offset": 718000,
+      "lang": "en"
+    },
+    {
+      "text": "real. The semantic layer, the ability to",
+      "duration": 4641,
+      "offset": 720959,
+      "lang": "en"
+    },
+    {
+      "text": "operate meaning rather than syntax. That",
+      "duration": 4879,
+      "offset": 723200,
+      "lang": "en"
+    },
+    {
+      "text": "is genuinely novel, but it does not",
+      "duration": 4720,
+      "offset": 725600,
+      "lang": "en"
+    },
+    {
+      "text": "replace the layers beneath it. It",
+      "duration": 4560,
+      "offset": 728079,
+      "lang": "en"
+    },
+    {
+      "text": "depends on them in certain cases. I'll",
+      "duration": 3519,
+      "offset": 730320,
+      "lang": "en"
+    },
+    {
+      "text": "make another video on where I think",
+      "duration": 3361,
+      "offset": 732639,
+      "lang": "en"
+    },
+    {
+      "text": "there's a grain of salt there. Here is",
+      "duration": 4481,
+      "offset": 733839,
+      "lang": "en"
+    },
+    {
+      "text": "where the word agent becomes interesting",
+      "duration": 4160,
+      "offset": 736000,
+      "lang": "en"
+    },
+    {
+      "text": "again because I think we're approaching",
+      "duration": 4720,
+      "offset": 738320,
+      "lang": "en"
+    },
+    {
+      "text": "a moment where genuine agentic behavior",
+      "duration": 4960,
+      "offset": 740160,
+      "lang": "en"
+    },
+    {
+      "text": "models operating in autonomous loops",
+      "duration": 3359,
+      "offset": 743040,
+      "lang": "en"
+    },
+    {
+      "text": "making decisions that were not",
+      "duration": 4159,
+      "offset": 745120,
+      "lang": "en"
+    },
+    {
+      "text": "predetermined even by orchestrating code",
+      "duration": 4961,
+      "offset": 746399,
+      "lang": "en"
+    },
+    {
+      "text": "starts to become real. And when that",
+      "duration": 3601,
+      "offset": 749279,
+      "lang": "en"
+    },
+    {
+      "text": "happens the engineer's challenge will",
+      "duration": 3840,
+      "offset": 751360,
+      "lang": "en"
+    },
+    {
+      "text": "not be making the AI smarter. It will be",
+      "duration": 4560,
+      "offset": 752880,
+      "lang": "en"
+    },
+    {
+      "text": "building the infrastructure around it,",
+      "duration": 4319,
+      "offset": 755200,
+      "lang": "en"
+    },
+    {
+      "text": "the reliability patterns, the error",
+      "duration": 4160,
+      "offset": 757440,
+      "lang": "en"
+    },
+    {
+      "text": "handling, the protocols for safe",
+      "duration": 5120,
+      "offset": 759519,
+      "lang": "en"
+    },
+    {
+      "text": "autonomous operation. the same work, in",
+      "duration": 4880,
+      "offset": 761600,
+      "lang": "en"
+    },
+    {
+      "text": "other words, that has accompanied every",
+      "duration": 3841,
+      "offset": 764639,
+      "lang": "en"
+    },
+    {
+      "text": "new layer of the stack since Gracehopper",
+      "duration": 4159,
+      "offset": 766480,
+      "lang": "en"
+    },
+    {
+      "text": "had a compiler that no one believed",
+      "duration": 4159,
+      "offset": 768480,
+      "lang": "en"
+    },
+    {
+      "text": "would work. And I'm simply just trying",
+      "duration": 3521,
+      "offset": 770639,
+      "lang": "en"
+    },
+    {
+      "text": "to build software at the top of this",
+      "duration": 3121,
+      "offset": 772639,
+      "lang": "en"
+    },
+    {
+      "text": "layer. My ethics engine can tell you the",
+      "duration": 3359,
+      "offset": 774160,
+      "lang": "en"
+    },
+    {
+      "text": "psychological profile of an AI model",
+      "duration": 4240,
+      "offset": 775760,
+      "lang": "en"
+    },
+    {
+      "text": "with about 90% reliability. That is a",
+      "duration": 4481,
+      "offset": 777519,
+      "lang": "en"
+    },
+    {
+      "text": "real and useful capability. And the",
+      "duration": 4240,
+      "offset": 780000,
+      "lang": "en"
+    },
+    {
+      "text": "reason it works is not because the AI is",
+      "duration": 4880,
+      "offset": 782000,
+      "lang": "en"
+    },
+    {
+      "text": "brilliant. The AI does what AI is good",
+      "duration": 5599,
+      "offset": 784240,
+      "lang": "en"
+    },
+    {
+      "text": "at, which is processing natural language",
+      "duration": 5440,
+      "offset": 786880,
+      "lang": "en"
+    },
+    {
+      "text": "and generating responses shaped by",
+      "duration": 5281,
+      "offset": 789839,
+      "lang": "en"
+    },
+    {
+      "text": "context. The traditional code does what",
+      "duration": 4480,
+      "offset": 792320,
+      "lang": "en"
+    },
+    {
+      "text": "traditional code has always been good",
+      "duration": 4080,
+      "offset": 795120,
+      "lang": "en"
+    },
+    {
+      "text": "at, which is orchestration, computation,",
+      "duration": 4719,
+      "offset": 796800,
+      "lang": "en"
+    },
+    {
+      "text": "and reliability. And the protocols",
+      "duration": 4400,
+      "offset": 799200,
+      "lang": "en"
+    },
+    {
+      "text": "connecting them do what protocols have",
+      "duration": 4081,
+      "offset": 801519,
+      "lang": "en"
+    },
+    {
+      "text": "always done, which is letting different",
+      "duration": 3760,
+      "offset": 803600,
+      "lang": "en"
+    },
+    {
+      "text": "systems communicate without needing to",
+      "duration": 3760,
+      "offset": 805600,
+      "lang": "en"
+    },
+    {
+      "text": "understand each other's internals. That",
+      "duration": 4240,
+      "offset": 807360,
+      "lang": "en"
+    },
+    {
+      "text": "is not less impressive than magic. In my",
+      "duration": 4560,
+      "offset": 809360,
+      "lang": "en"
+    },
+    {
+      "text": "opinion, it's more impressive because",
+      "duration": 4479,
+      "offset": 811600,
+      "lang": "en"
+    },
+    {
+      "text": "you can actually understand it and it",
+      "duration": 5120,
+      "offset": 813920,
+      "lang": "en"
+    },
+    {
+      "text": "actually works.",
+      "duration": 7281,
+      "offset": 816079,
+      "lang": "en"
+    },
+    {
+      "text": "Till next time, friends. Goodbye.",
+      "duration": 4320,
+      "offset": 819040,
+      "lang": "en"
+    }
+  ]
+}

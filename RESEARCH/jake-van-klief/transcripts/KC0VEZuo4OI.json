@@ -1,0 +1,2538 @@
+{
+  "videoId": "KC0VEZuo4OI",
+  "title": "Watch Me Build Something Claude Code Can't Do Yet",
+  "segments": [
+    {
+      "text": "All right, I figured I would record my",
+      "duration": 3280,
+      "offset": 0,
+      "lang": "en"
+    },
+    {
+      "text": "work process. This is less of a lecture",
+      "duration": 3360,
+      "offset": 1520,
+      "lang": "en"
+    },
+    {
+      "text": "video and more of just kind of almost",
+      "duration": 4479,
+      "offset": 3280,
+      "lang": "en"
+    },
+    {
+      "text": "like a live stream. So, basically what",
+      "duration": 5120,
+      "offset": 4880,
+      "lang": "en"
+    },
+    {
+      "text": "I'm thinking is I should make a front",
+      "duration": 3920,
+      "offset": 7759,
+      "lang": "en"
+    },
+    {
+      "text": "end for this, but I don't want to make a",
+      "duration": 4080,
+      "offset": 10000,
+      "lang": "en"
+    },
+    {
+      "text": "front end that calls Claude because then",
+      "duration": 4641,
+      "offset": 11679,
+      "lang": "en"
+    },
+    {
+      "text": "we have to use API fees. I want to make",
+      "duration": 4720,
+      "offset": 14080,
+      "lang": "en"
+    },
+    {
+      "text": "a front end that lets me navigate all of",
+      "duration": 4879,
+      "offset": 16320,
+      "lang": "en"
+    },
+    {
+      "text": "my work here, right? Because I can take",
+      "duration": 4319,
+      "offset": 18800,
+      "lang": "en"
+    },
+    {
+      "text": "scripts and I can take them and turn",
+      "duration": 4401,
+      "offset": 21199,
+      "lang": "en"
+    },
+    {
+      "text": "them into, you know, full animations.",
+      "duration": 5521,
+      "offset": 23119,
+      "lang": "en"
+    },
+    {
+      "text": "Um, and I want to be able to, you know,",
+      "duration": 4480,
+      "offset": 25600,
+      "lang": "en"
+    },
+    {
+      "text": "have my workflow to create these",
+      "duration": 3200,
+      "offset": 28640,
+      "lang": "en"
+    },
+    {
+      "text": "animations, but have it where it's much",
+      "duration": 3040,
+      "offset": 30080,
+      "lang": "en"
+    },
+    {
+      "text": "more organized and cleaner. Kind of like",
+      "duration": 2800,
+      "offset": 31840,
+      "lang": "en"
+    },
+    {
+      "text": "how there's a front end for when my",
+      "duration": 3439,
+      "offset": 33120,
+      "lang": "en"
+    },
+    {
+      "text": "animations are done and I can look at",
+      "duration": 3680,
+      "offset": 34640,
+      "lang": "en"
+    },
+    {
+      "text": "them and look through them. But, you",
+      "duration": 2961,
+      "offset": 36559,
+      "lang": "en"
+    },
+    {
+      "text": "know, something a little bit cleaner",
+      "duration": 2960,
+      "offset": 38320,
+      "lang": "en"
+    },
+    {
+      "text": "there. And I found a couple GitHub repos",
+      "duration": 4559,
+      "offset": 39520,
+      "lang": "en"
+    },
+    {
+      "text": "that already do that. Cloud CLI, Cloud",
+      "duration": 5599,
+      "offset": 41280,
+      "lang": "en"
+    },
+    {
+      "text": "Code Web, and Op code do similar things,",
+      "duration": 4640,
+      "offset": 44079,
+      "lang": "en"
+    },
+    {
+      "text": "but they're not really doing everything",
+      "duration": 3601,
+      "offset": 46879,
+      "lang": "en"
+    },
+    {
+      "text": "that I wanted. So, I went ahead and",
+      "duration": 4081,
+      "offset": 48719,
+      "lang": "en"
+    },
+    {
+      "text": "created a large PRD, right? product",
+      "duration": 4640,
+      "offset": 50480,
+      "lang": "en"
+    },
+    {
+      "text": "requirements document um that describes",
+      "duration": 4160,
+      "offset": 52800,
+      "lang": "en"
+    },
+    {
+      "text": "it to Claude code so it always knows",
+      "duration": 3360,
+      "offset": 55120,
+      "lang": "en"
+    },
+    {
+      "text": "where we are, right? Hey, here's the",
+      "duration": 3439,
+      "offset": 56960,
+      "lang": "en"
+    },
+    {
+      "text": "repos that I was talking about. Here's",
+      "duration": 3840,
+      "offset": 58480,
+      "lang": "en"
+    },
+    {
+      "text": "the stacks that those repos have. You",
+      "duration": 3921,
+      "offset": 60399,
+      "lang": "en"
+    },
+    {
+      "text": "can have Claude create these PRDs for",
+      "duration": 4880,
+      "offset": 62320,
+      "lang": "en"
+    },
+    {
+      "text": "you as well. Um and kind of like what I",
+      "duration": 4400,
+      "offset": 64320,
+      "lang": "en"
+    },
+    {
+      "text": "liked about them, but what I wanted to",
+      "duration": 2959,
+      "offset": 67200,
+      "lang": "en"
+    },
+    {
+      "text": "cut, right? We want to get rid of most",
+      "duration": 3280,
+      "offset": 68720,
+      "lang": "en"
+    },
+    {
+      "text": "of the frontends on these other repos",
+      "duration": 3681,
+      "offset": 70159,
+      "lang": "en"
+    },
+    {
+      "text": "because at the end of the day, I just I",
+      "duration": 3680,
+      "offset": 72000,
+      "lang": "en"
+    },
+    {
+      "text": "don't know. I didn't I didn't I wasn't",
+      "duration": 3360,
+      "offset": 73840,
+      "lang": "en"
+    },
+    {
+      "text": "vibing with them, I guess, is the",
+      "duration": 3439,
+      "offset": 75680,
+      "lang": "en"
+    },
+    {
+      "text": "question. I don't uh which where's the",
+      "duration": 3520,
+      "offset": 77200,
+      "lang": "en"
+    },
+    {
+      "text": "I'm sure I have it. Here we go. Yeah, I",
+      "duration": 4161,
+      "offset": 79119,
+      "lang": "en"
+    },
+    {
+      "text": "just they weren't fitting what I wanted.",
+      "duration": 5120,
+      "offset": 80720,
+      "lang": "en"
+    },
+    {
+      "text": "They didn't look I don't know. It just",
+      "duration": 4479,
+      "offset": 83280,
+      "lang": "en"
+    },
+    {
+      "text": "this isn't my workflow. I'd rather just",
+      "duration": 3840,
+      "offset": 85840,
+      "lang": "en"
+    },
+    {
+      "text": "sit and work inside of VS Code in the",
+      "duration": 4000,
+      "offset": 87759,
+      "lang": "en"
+    },
+    {
+      "text": "folders instead of use these types of",
+      "duration": 4240,
+      "offset": 89680,
+      "lang": "en"
+    },
+    {
+      "text": "friends. This one was okay, but I didn't",
+      "duration": 3921,
+      "offset": 91759,
+      "lang": "en"
+    },
+    {
+      "text": "need all this crazy choice. I didn't",
+      "duration": 3760,
+      "offset": 93920,
+      "lang": "en"
+    },
+    {
+      "text": "need Enthropic and all these things. I",
+      "duration": 4399,
+      "offset": 95680,
+      "lang": "en"
+    },
+    {
+      "text": "wanted something for me in my area and",
+      "duration": 5200,
+      "offset": 97680,
+      "lang": "en"
+    },
+    {
+      "text": "I'll make it modular later. But they had",
+      "duration": 5281,
+      "offset": 100079,
+      "lang": "en"
+    },
+    {
+      "text": "a lot of really good ideas inside of",
+      "duration": 4400,
+      "offset": 102880,
+      "lang": "en"
+    },
+    {
+      "text": "this as well as like the way they were",
+      "duration": 4079,
+      "offset": 105360,
+      "lang": "en"
+    },
+    {
+      "text": "doing things. So that's kind of what uh",
+      "duration": 3920,
+      "offset": 107280,
+      "lang": "en"
+    },
+    {
+      "text": "I was going to kind of build and look at",
+      "duration": 5761,
+      "offset": 109439,
+      "lang": "en"
+    },
+    {
+      "text": "here. So the first thing I did is um I'm",
+      "duration": 6000,
+      "offset": 111200,
+      "lang": "en"
+    },
+    {
+      "text": "inside this workspace because this has a",
+      "duration": 3760,
+      "offset": 115200,
+      "lang": "en"
+    },
+    {
+      "text": "lot of the information and processes. So",
+      "duration": 4800,
+      "offset": 117200,
+      "lang": "en"
+    },
+    {
+      "text": "I built a new folder that says front",
+      "duration": 5439,
+      "offset": 118960,
+      "lang": "en"
+    },
+    {
+      "text": "end, right? And so that way, you know, I",
+      "duration": 4719,
+      "offset": 122000,
+      "lang": "en"
+    },
+    {
+      "text": "have my my stuff is already all here",
+      "duration": 4241,
+      "offset": 124399,
+      "lang": "en"
+    },
+    {
+      "text": "that I can reference later or I can have",
+      "duration": 4961,
+      "offset": 126719,
+      "lang": "en"
+    },
+    {
+      "text": "Claude go running as context easier",
+      "duration": 4400,
+      "offset": 128640,
+      "lang": "en"
+    },
+    {
+      "text": "without rather than me having to upload",
+      "duration": 4639,
+      "offset": 131680,
+      "lang": "en"
+    },
+    {
+      "text": "it. Um, but I just dropped my PRD in",
+      "duration": 4720,
+      "offset": 133040,
+      "lang": "en"
+    },
+    {
+      "text": "here and it went through and described",
+      "duration": 3121,
+      "offset": 136319,
+      "lang": "en"
+    },
+    {
+      "text": "it. Right, here's what the workspace",
+      "duration": 4000,
+      "offset": 137760,
+      "lang": "en"
+    },
+    {
+      "text": "looks like. I'm thinking this is a",
+      "duration": 3920,
+      "offset": 139440,
+      "lang": "en"
+    },
+    {
+      "text": "pretty good architecture. Uh, I went",
+      "duration": 3119,
+      "offset": 141760,
+      "lang": "en"
+    },
+    {
+      "text": "through and edited a little bit cuz I",
+      "duration": 3440,
+      "offset": 143360,
+      "lang": "en"
+    },
+    {
+      "text": "have Claude generate a lot of this, but",
+      "duration": 3521,
+      "offset": 144879,
+      "lang": "en"
+    },
+    {
+      "text": "I was thinking about, okay, I want a",
+      "duration": 4000,
+      "offset": 146800,
+      "lang": "en"
+    },
+    {
+      "text": "workflow map as well. So, we create like",
+      "duration": 3680,
+      "offset": 148400,
+      "lang": "en"
+    },
+    {
+      "text": "nodes and stuff and you know, have you",
+      "duration": 3360,
+      "offset": 150800,
+      "lang": "en"
+    },
+    {
+      "text": "ever seen like mind maps and web maps",
+      "duration": 3600,
+      "offset": 152080,
+      "lang": "en"
+    },
+    {
+      "text": "where you can look through? Well, I want",
+      "duration": 4240,
+      "offset": 154160,
+      "lang": "en"
+    },
+    {
+      "text": "a similar thing, but in that thing be",
+      "duration": 5199,
+      "offset": 155680,
+      "lang": "en"
+    },
+    {
+      "text": "able to edit these folders. So like I",
+      "duration": 5280,
+      "offset": 158400,
+      "lang": "en"
+    },
+    {
+      "text": "start at script lab. I create a short",
+      "duration": 4801,
+      "offset": 160879,
+      "lang": "en"
+    },
+    {
+      "text": "form script, right? And I get all these",
+      "duration": 3919,
+      "offset": 163680,
+      "lang": "en"
+    },
+    {
+      "text": "different scripts. Then that moves into",
+      "duration": 4320,
+      "offset": 165680,
+      "lang": "en"
+    },
+    {
+      "text": "my animation studio and my animation",
+      "duration": 4640,
+      "offset": 167599,
+      "lang": "en"
+    },
+    {
+      "text": "studio creates all sorts of things and",
+      "duration": 4400,
+      "offset": 170000,
+      "lang": "en"
+    },
+    {
+      "text": "processes, right? Uh and goes through a",
+      "duration": 4241,
+      "offset": 172239,
+      "lang": "en"
+    },
+    {
+      "text": "workflow where I go into a spec and I",
+      "duration": 4240,
+      "offset": 174400,
+      "lang": "en"
+    },
+    {
+      "text": "build that and then that turns into a",
+      "duration": 3839,
+      "offset": 176480,
+      "lang": "en"
+    },
+    {
+      "text": "render which is then, you know,",
+      "duration": 4160,
+      "offset": 178640,
+      "lang": "en"
+    },
+    {
+      "text": "something that I can actually uh you",
+      "duration": 6161,
+      "offset": 180319,
+      "lang": "en"
+    },
+    {
+      "text": "know build so to speak um or look at the",
+      "duration": 6640,
+      "offset": 182800,
+      "lang": "en"
+    },
+    {
+      "text": "animations from. And so that's something",
+      "duration": 5119,
+      "offset": 186480,
+      "lang": "en"
+    },
+    {
+      "text": "I want to map visually rather than just",
+      "duration": 4079,
+      "offset": 189440,
+      "lang": "en"
+    },
+    {
+      "text": "stare at, you know, a folder structure.",
+      "duration": 3761,
+      "offset": 191599,
+      "lang": "en"
+    },
+    {
+      "text": "And this is great. It organizes it well,",
+      "duration": 4561,
+      "offset": 193519,
+      "lang": "en"
+    },
+    {
+      "text": "but I think it could be even better. Um,",
+      "duration": 5599,
+      "offset": 195360,
+      "lang": "en"
+    },
+    {
+      "text": "and so that's kind of what I want to do",
+      "duration": 4640,
+      "offset": 198080,
+      "lang": "en"
+    },
+    {
+      "text": "with all of this. Maybe even have a",
+      "duration": 3601,
+      "offset": 200959,
+      "lang": "en"
+    },
+    {
+      "text": "chat, right? Just a panel right there",
+      "duration": 4080,
+      "offset": 202720,
+      "lang": "en"
+    },
+    {
+      "text": "that you see much similar to this. And",
+      "duration": 4560,
+      "offset": 204560,
+      "lang": "en"
+    },
+    {
+      "text": "again, we're relying on Claude's code's",
+      "duration": 4159,
+      "offset": 206800,
+      "lang": "en"
+    },
+    {
+      "text": "infrastructure. We're not creating a",
+      "duration": 3839,
+      "offset": 209120,
+      "lang": "en"
+    },
+    {
+      "text": "separate app. We're not using anything",
+      "duration": 3441,
+      "offset": 210959,
+      "lang": "en"
+    },
+    {
+      "text": "doing anything craziness. We're just",
+      "duration": 2961,
+      "offset": 212959,
+      "lang": "en"
+    },
+    {
+      "text": "making something better, a better",
+      "duration": 4000,
+      "offset": 214400,
+      "lang": "en"
+    },
+    {
+      "text": "interface for how I want to work with",
+      "duration": 5520,
+      "offset": 215920,
+      "lang": "en"
+    },
+    {
+      "text": "claude code. Um, now we've got the idea",
+      "duration": 5040,
+      "offset": 218400,
+      "lang": "en"
+    },
+    {
+      "text": "of a panel, right? So, it's like, okay,",
+      "duration": 4400,
+      "offset": 221440,
+      "lang": "en"
+    },
+    {
+      "text": "I want to have maybe my workflow map on",
+      "duration": 4560,
+      "offset": 223440,
+      "lang": "en"
+    },
+    {
+      "text": "the left, file editor in the middle, and",
+      "duration": 4080,
+      "offset": 225840,
+      "lang": "en"
+    },
+    {
+      "text": "claude code on the right. And being able",
+      "duration": 3760,
+      "offset": 228000,
+      "lang": "en"
+    },
+    {
+      "text": "to open multiple chats is going to be",
+      "duration": 3760,
+      "offset": 229920,
+      "lang": "en"
+    },
+    {
+      "text": "super important there. Um, and being",
+      "duration": 3440,
+      "offset": 231760,
+      "lang": "en"
+    },
+    {
+      "text": "able to collapse them. And again, this",
+      "duration": 3360,
+      "offset": 233680,
+      "lang": "en"
+    },
+    {
+      "text": "is why it's important to do a PRD",
+      "duration": 3360,
+      "offset": 235200,
+      "lang": "en"
+    },
+    {
+      "text": "because you can lay all this out and",
+      "duration": 3440,
+      "offset": 237040,
+      "lang": "en"
+    },
+    {
+      "text": "edit it. If you didn't like this, you",
+      "duration": 3360,
+      "offset": 238560,
+      "lang": "en"
+    },
+    {
+      "text": "don't want Claude to just run out and",
+      "duration": 3039,
+      "offset": 240480,
+      "lang": "en"
+    },
+    {
+      "text": "start building stuff. you want it to be",
+      "duration": 3440,
+      "offset": 241920,
+      "lang": "en"
+    },
+    {
+      "text": "right from the get-go and then it",
+      "duration": 5280,
+      "offset": 243519,
+      "lang": "en"
+    },
+    {
+      "text": "expands on what you like. Um, so I'm",
+      "duration": 5599,
+      "offset": 245360,
+      "lang": "en"
+    },
+    {
+      "text": "going to look at pipeline definitions.",
+      "duration": 5440,
+      "offset": 248799,
+      "lang": "en"
+    },
+    {
+      "text": "I'm going to look at um kind of okay,",
+      "duration": 5761,
+      "offset": 250959,
+      "lang": "en"
+    },
+    {
+      "text": "here is probably what has worked well in",
+      "duration": 5280,
+      "offset": 254239,
+      "lang": "en"
+    },
+    {
+      "text": "the past. Here's the root path. So, this",
+      "duration": 5600,
+      "offset": 256720,
+      "lang": "en"
+    },
+    {
+      "text": "is built off of my actual workflow here.",
+      "duration": 4240,
+      "offset": 259519,
+      "lang": "en"
+    },
+    {
+      "text": "And this is a JavaScript. You don't",
+      "duration": 3040,
+      "offset": 262320,
+      "lang": "en"
+    },
+    {
+      "text": "necessarily need to write it like this.",
+      "duration": 2720,
+      "offset": 263759,
+      "lang": "en"
+    },
+    {
+      "text": "You could write it where it looks",
+      "duration": 3360,
+      "offset": 265360,
+      "lang": "en"
+    },
+    {
+      "text": "something more like quad code, right?",
+      "duration": 4481,
+      "offset": 266479,
+      "lang": "en"
+    },
+    {
+      "text": "like, hey, to write a script, I'm in",
+      "duration": 5039,
+      "offset": 268720,
+      "lang": "en"
+    },
+    {
+      "text": "this folder. To learn script structure,",
+      "duration": 4799,
+      "offset": 270960,
+      "lang": "en"
+    },
+    {
+      "text": "go to this folder. That's another way",
+      "duration": 4000,
+      "offset": 273759,
+      "lang": "en"
+    },
+    {
+      "text": "you could do that. However, if we're",
+      "duration": 3761,
+      "offset": 275759,
+      "lang": "en"
+    },
+    {
+      "text": "going to put it in a front end, we're",
+      "duration": 3681,
+      "offset": 277759,
+      "lang": "en"
+    },
+    {
+      "text": "actually going to need some sort of",
+      "duration": 5600,
+      "offset": 279520,
+      "lang": "en"
+    },
+    {
+      "text": "front end style image or or or code, uh,",
+      "duration": 5440,
+      "offset": 281440,
+      "lang": "en"
+    },
+    {
+      "text": "you know, React or anything like that,",
+      "duration": 3600,
+      "offset": 285120,
+      "lang": "en"
+    },
+    {
+      "text": "but JavaScript is a really common one",
+      "duration": 3840,
+      "offset": 286880,
+      "lang": "en"
+    },
+    {
+      "text": "that everyone uses. And again, you can",
+      "duration": 4080,
+      "offset": 288720,
+      "lang": "en"
+    },
+    {
+      "text": "ask Claw to build something like this.",
+      "duration": 4000,
+      "offset": 290720,
+      "lang": "en"
+    },
+    {
+      "text": "And I'm going to be making um more",
+      "duration": 4399,
+      "offset": 292800,
+      "lang": "en"
+    },
+    {
+      "text": "courses that dive deeper into what",
+      "duration": 4640,
+      "offset": 294720,
+      "lang": "en"
+    },
+    {
+      "text": "JavaScript is, what Python is, like how",
+      "duration": 3601,
+      "offset": 297199,
+      "lang": "en"
+    },
+    {
+      "text": "do you read this? But at the end of the",
+      "duration": 3279,
+      "offset": 299360,
+      "lang": "en"
+    },
+    {
+      "text": "day, you'll start to learn that all",
+      "duration": 3520,
+      "offset": 300800,
+      "lang": "en"
+    },
+    {
+      "text": "programming languages are roughly the",
+      "duration": 3681,
+      "offset": 302639,
+      "lang": "en"
+    },
+    {
+      "text": "same. They have some sort of definition",
+      "duration": 3439,
+      "offset": 304320,
+      "lang": "en"
+    },
+    {
+      "text": "and then they have a description for",
+      "duration": 3120,
+      "offset": 306320,
+      "lang": "en"
+    },
+    {
+      "text": "that definition and then that",
+      "duration": 3601,
+      "offset": 307759,
+      "lang": "en"
+    },
+    {
+      "text": "description and definition can be paired",
+      "duration": 4319,
+      "offset": 309440,
+      "lang": "en"
+    },
+    {
+      "text": "with others which are then sent to other",
+      "duration": 4160,
+      "offset": 311360,
+      "lang": "en"
+    },
+    {
+      "text": "descriptions and definitions so that you",
+      "duration": 3361,
+      "offset": 313759,
+      "lang": "en"
+    },
+    {
+      "text": "can then look at stuff. It's the same",
+      "duration": 3760,
+      "offset": 315520,
+      "lang": "en"
+    },
+    {
+      "text": "thing here, right? You have a folder and",
+      "duration": 4320,
+      "offset": 317120,
+      "lang": "en"
+    },
+    {
+      "text": "in that folder you have definitions,",
+      "duration": 3280,
+      "offset": 319280,
+      "lang": "en"
+    },
+    {
+      "text": "right? Right? So you have a description",
+      "duration": 2960,
+      "offset": 321440,
+      "lang": "en"
+    },
+    {
+      "text": "of what is should be in there and then",
+      "duration": 3680,
+      "offset": 322560,
+      "lang": "en"
+    },
+    {
+      "text": "you have things that work inside of that",
+      "duration": 3920,
+      "offset": 324400,
+      "lang": "en"
+    },
+    {
+      "text": "folder. This is the same thing here but",
+      "duration": 4320,
+      "offset": 326240,
+      "lang": "en"
+    },
+    {
+      "text": "written out programmatically.",
+      "duration": 4400,
+      "offset": 328320,
+      "lang": "en"
+    },
+    {
+      "text": "Very simplifying a lot of this but",
+      "duration": 4639,
+      "offset": 330560,
+      "lang": "en"
+    },
+    {
+      "text": "that's kind of the idea here. Um I'm",
+      "duration": 4080,
+      "offset": 332720,
+      "lang": "en"
+    },
+    {
+      "text": "also giving the idea of like what I",
+      "duration": 3601,
+      "offset": 335199,
+      "lang": "en"
+    },
+    {
+      "text": "want. I want to be able to click nodes.",
+      "duration": 4320,
+      "offset": 336800,
+      "lang": "en"
+    },
+    {
+      "text": "I want to be able to click sub stuff. So",
+      "duration": 4560,
+      "offset": 338800,
+      "lang": "en"
+    },
+    {
+      "text": "instead of me just clicking like this,",
+      "duration": 3840,
+      "offset": 341120,
+      "lang": "en"
+    },
+    {
+      "text": "the same exact thing's happening, but",
+      "duration": 3520,
+      "offset": 343360,
+      "lang": "en"
+    },
+    {
+      "text": "it's like a really pretty, you know,",
+      "duration": 4000,
+      "offset": 344960,
+      "lang": "en"
+    },
+    {
+      "text": "visual design or something like that.",
+      "duration": 3840,
+      "offset": 346880,
+      "lang": "en"
+    },
+    {
+      "text": "Um, and I'm gonna keep it clean and",
+      "duration": 4160,
+      "offset": 348960,
+      "lang": "en"
+    },
+    {
+      "text": "minimal. Um,",
+      "duration": 4880,
+      "offset": 350720,
+      "lang": "en"
+    },
+    {
+      "text": "matrix maybe. No, I don't know if I want",
+      "duration": 4320,
+      "offset": 353120,
+      "lang": "en"
+    },
+    {
+      "text": "to add matrix. So, anything I add here",
+      "duration": 3599,
+      "offset": 355600,
+      "lang": "en"
+    },
+    {
+      "text": "is what's going to be for I I want to",
+      "duration": 3360,
+      "offset": 357440,
+      "lang": "en"
+    },
+    {
+      "text": "think more about my visual style,",
+      "duration": 3440,
+      "offset": 359199,
+      "lang": "en"
+    },
+    {
+      "text": "honestly, but I think it's good where it",
+      "duration": 5200,
+      "offset": 360800,
+      "lang": "en"
+    },
+    {
+      "text": "is. Um, and after that, it's just simple",
+      "duration": 4961,
+      "offset": 362639,
+      "lang": "en"
+    },
+    {
+      "text": "things like that. Here's the steps that",
+      "duration": 3600,
+      "offset": 366000,
+      "lang": "en"
+    },
+    {
+      "text": "I want you to take, right? Make sure",
+      "duration": 3520,
+      "offset": 367600,
+      "lang": "en"
+    },
+    {
+      "text": "you're removing all these features. The",
+      "duration": 2560,
+      "offset": 369600,
+      "lang": "en"
+    },
+    {
+      "text": "first thing we're going to do is",
+      "duration": 3760,
+      "offset": 371120,
+      "lang": "en"
+    },
+    {
+      "text": "actually look at and clone these repos.",
+      "duration": 4960,
+      "offset": 372160,
+      "lang": "en"
+    },
+    {
+      "text": "So, when I say clone a repo, that means",
+      "duration": 4879,
+      "offset": 374880,
+      "lang": "en"
+    },
+    {
+      "text": "literally downloading someone else's",
+      "duration": 5359,
+      "offset": 377120,
+      "lang": "en"
+    },
+    {
+      "text": "code or GitHub. And again, I'm making",
+      "duration": 5440,
+      "offset": 379759,
+      "lang": "en"
+    },
+    {
+      "text": "videos on what GitHub is, what Git is as",
+      "duration": 5041,
+      "offset": 382479,
+      "lang": "en"
+    },
+    {
+      "text": "well. Uh, so keep an eye out for those,",
+      "duration": 4321,
+      "offset": 385199,
+      "lang": "en"
+    },
+    {
+      "text": "but someone already did a lot of work",
+      "duration": 3840,
+      "offset": 387520,
+      "lang": "en"
+    },
+    {
+      "text": "and then they put it up on GitHub and",
+      "duration": 3679,
+      "offset": 389520,
+      "lang": "en"
+    },
+    {
+      "text": "then I can come in and actually look at",
+      "duration": 4240,
+      "offset": 391360,
+      "lang": "en"
+    },
+    {
+      "text": "it, see what their code is. So, my goal",
+      "duration": 5120,
+      "offset": 393199,
+      "lang": "en"
+    },
+    {
+      "text": "is to actually download this, strip away",
+      "duration": 4879,
+      "offset": 395600,
+      "lang": "en"
+    },
+    {
+      "text": "everything that I don't like uh of both",
+      "duration": 4561,
+      "offset": 398319,
+      "lang": "en"
+    },
+    {
+      "text": "of these and kind of create something",
+      "duration": 3921,
+      "offset": 400479,
+      "lang": "en"
+    },
+    {
+      "text": "from it, right? Don't reinvent the",
+      "duration": 4080,
+      "offset": 402880,
+      "lang": "en"
+    },
+    {
+      "text": "wheel. Make a better wheel. Uh, clean up",
+      "duration": 4480,
+      "offset": 404400,
+      "lang": "en"
+    },
+    {
+      "text": "the wheel. Make the wheel yours. And I'm",
+      "duration": 3359,
+      "offset": 406960,
+      "lang": "en"
+    },
+    {
+      "text": "doing that through steps. And that's why",
+      "duration": 3280,
+      "offset": 408880,
+      "lang": "en"
+    },
+    {
+      "text": "I have this here. The PRD is saying this",
+      "duration": 3841,
+      "offset": 410319,
+      "lang": "en"
+    },
+    {
+      "text": "is what we need to do first before we",
+      "duration": 5039,
+      "offset": 412160,
+      "lang": "en"
+    },
+    {
+      "text": "start building anything. Um, we're going",
+      "duration": 5200,
+      "offset": 414160,
+      "lang": "en"
+    },
+    {
+      "text": "to add in O tokens and things like that,",
+      "duration": 4000,
+      "offset": 417199,
+      "lang": "en"
+    },
+    {
+      "text": "which basically what this is doing is",
+      "duration": 3679,
+      "offset": 419360,
+      "lang": "en"
+    },
+    {
+      "text": "it's just allowing it to connect to the",
+      "duration": 4321,
+      "offset": 421199,
+      "lang": "en"
+    },
+    {
+      "text": "cloud CL2. Basically, someone had come",
+      "duration": 4000,
+      "offset": 423039,
+      "lang": "en"
+    },
+    {
+      "text": "up with a really good session",
+      "duration": 3840,
+      "offset": 425520,
+      "lang": "en"
+    },
+    {
+      "text": "persistence. So, if I sit here and see",
+      "duration": 4641,
+      "offset": 427039,
+      "lang": "en"
+    },
+    {
+      "text": "all of this, I have persistence in here.",
+      "duration": 4480,
+      "offset": 429360,
+      "lang": "en"
+    },
+    {
+      "text": "This is an extension for VS Code.",
+      "duration": 4160,
+      "offset": 431680,
+      "lang": "en"
+    },
+    {
+      "text": "Someone had to build every single one of",
+      "duration": 4240,
+      "offset": 433840,
+      "lang": "en"
+    },
+    {
+      "text": "these buttons in. So, we want to rebuild",
+      "duration": 4960,
+      "offset": 435840,
+      "lang": "en"
+    },
+    {
+      "text": "some of these or just in this case take",
+      "duration": 4399,
+      "offset": 438080,
+      "lang": "en"
+    },
+    {
+      "text": "them from someone else who's already",
+      "duration": 4799,
+      "offset": 440800,
+      "lang": "en"
+    },
+    {
+      "text": "built them, right? Um, and the idea by",
+      "duration": 4641,
+      "offset": 442479,
+      "lang": "en"
+    },
+    {
+      "text": "the end of that is have something like",
+      "duration": 3600,
+      "offset": 445599,
+      "lang": "en"
+    },
+    {
+      "text": "that's clean there. Then we're going to",
+      "duration": 3760,
+      "offset": 447120,
+      "lang": "en"
+    },
+    {
+      "text": "move into actually implementing the",
+      "duration": 4081,
+      "offset": 449199,
+      "lang": "en"
+    },
+    {
+      "text": "front end. Then at the end, I'm actually",
+      "duration": 3920,
+      "offset": 450880,
+      "lang": "en"
+    },
+    {
+      "text": "implementing the workflow because I",
+      "duration": 3120,
+      "offset": 453280,
+      "lang": "en"
+    },
+    {
+      "text": "think that's going to be the hardest.",
+      "duration": 3360,
+      "offset": 454800,
+      "lang": "en"
+    },
+    {
+      "text": "And at a certain point, Claude's going",
+      "duration": 3760,
+      "offset": 456400,
+      "lang": "en"
+    },
+    {
+      "text": "to run out of tokens. I might even want",
+      "duration": 5280,
+      "offset": 458160,
+      "lang": "en"
+    },
+    {
+      "text": "to start a whole other Claude process.",
+      "duration": 5360,
+      "offset": 460160,
+      "lang": "en"
+    },
+    {
+      "text": "So, um, yeah, I'm going to go ahead and",
+      "duration": 4400,
+      "offset": 463440,
+      "lang": "en"
+    },
+    {
+      "text": "nail that down and kind of work on it. I",
+      "duration": 4079,
+      "offset": 465520,
+      "lang": "en"
+    },
+    {
+      "text": "already did partially do that, right?",
+      "duration": 4799,
+      "offset": 467840,
+      "lang": "en"
+    },
+    {
+      "text": "So, I asked Claude, \"Hey, read this PRD",
+      "duration": 4641,
+      "offset": 469599,
+      "lang": "en"
+    },
+    {
+      "text": "and make sure you're up to speed on",
+      "duration": 3680,
+      "offset": 472639,
+      "lang": "en"
+    },
+    {
+      "text": "everything.\" Um, and you understand it,",
+      "duration": 3600,
+      "offset": 474240,
+      "lang": "en"
+    },
+    {
+      "text": "right? And it's like, cool, got it.",
+      "duration": 3681,
+      "offset": 476319,
+      "lang": "en"
+    },
+    {
+      "text": "Here's the idea. I kind of liked it, but",
+      "duration": 4000,
+      "offset": 477840,
+      "lang": "en"
+    },
+    {
+      "text": "I wanted to make sure that it understood",
+      "duration": 3680,
+      "offset": 480000,
+      "lang": "en"
+    },
+    {
+      "text": "what I really wanted, right? I wanted to",
+      "duration": 3840,
+      "offset": 481840,
+      "lang": "en"
+    },
+    {
+      "text": "clean and edit stuff. I want to have",
+      "duration": 4320,
+      "offset": 483680,
+      "lang": "en"
+    },
+    {
+      "text": "control over files and routing. Uh,",
+      "duration": 4400,
+      "offset": 485680,
+      "lang": "en"
+    },
+    {
+      "text": "other ones are annoying. I literally say",
+      "duration": 4160,
+      "offset": 488000,
+      "lang": "en"
+    },
+    {
+      "text": "that. Um, I want to be able to automate",
+      "duration": 3920,
+      "offset": 490080,
+      "lang": "en"
+    },
+    {
+      "text": "things, swap files around. I just want",
+      "duration": 3360,
+      "offset": 492160,
+      "lang": "en"
+    },
+    {
+      "text": "to make sure you understand this. The",
+      "duration": 4000,
+      "offset": 494000,
+      "lang": "en"
+    },
+    {
+      "text": "abstract goal isn't a prettier claw",
+      "duration": 4959,
+      "offset": 495520,
+      "lang": "en"
+    },
+    {
+      "text": "front end. It's a control surface that I",
+      "duration": 5440,
+      "offset": 498000,
+      "lang": "en"
+    },
+    {
+      "text": "can fluidly switch, right, between I'm",
+      "duration": 4481,
+      "offset": 500479,
+      "lang": "en"
+    },
+    {
+      "text": "driving or Claude's driving. That's such",
+      "duration": 3599,
+      "offset": 503440,
+      "lang": "en"
+    },
+    {
+      "text": "a good way to put it. I love that. Um,",
+      "duration": 3679,
+      "offset": 504960,
+      "lang": "en"
+    },
+    {
+      "text": "and that's the idea, right? Is sometimes",
+      "duration": 3600,
+      "offset": 507039,
+      "lang": "en"
+    },
+    {
+      "text": "I want to edit every individual file,",
+      "duration": 3441,
+      "offset": 508639,
+      "lang": "en"
+    },
+    {
+      "text": "but sometimes I just want to automate",
+      "duration": 3760,
+      "offset": 510639,
+      "lang": "en"
+    },
+    {
+      "text": "the whole thing, but trust that it's",
+      "duration": 4800,
+      "offset": 512080,
+      "lang": "en"
+    },
+    {
+      "text": "automating it the way I want. Um, so I'm",
+      "duration": 5440,
+      "offset": 514399,
+      "lang": "en"
+    },
+    {
+      "text": "gonna say that's perfect.",
+      "duration": 8000,
+      "offset": 516880,
+      "lang": "en"
+    },
+    {
+      "text": "Let's go ahead and start. And um, in",
+      "duration": 7921,
+      "offset": 519839,
+      "lang": "en"
+    },
+    {
+      "text": "this case, again, this version of Cloud",
+      "duration": 6160,
+      "offset": 524880,
+      "lang": "en"
+    },
+    {
+      "text": "Code is really nice because it's using",
+      "duration": 6880,
+      "offset": 527760,
+      "lang": "en"
+    },
+    {
+      "text": "my folders, my files, my text as these",
+      "duration": 4960,
+      "offset": 531040,
+      "lang": "en"
+    },
+    {
+      "text": "prompts, right? These are essentially",
+      "duration": 3840,
+      "offset": 534640,
+      "lang": "en"
+    },
+    {
+      "text": "just bunch of prompts that are being fed",
+      "duration": 4480,
+      "offset": 536000,
+      "lang": "en"
+    },
+    {
+      "text": "into it. But in this case, I don't have",
+      "duration": 4479,
+      "offset": 538480,
+      "lang": "en"
+    },
+    {
+      "text": "to write this out. It's actually",
+      "duration": 5600,
+      "offset": 540480,
+      "lang": "en"
+    },
+    {
+      "text": "referencing that file. And it's a uh",
+      "duration": 6401,
+      "offset": 542959,
+      "lang": "en"
+    },
+    {
+      "text": "almost it's not a stateless prompt. Um",
+      "duration": 4960,
+      "offset": 546080,
+      "lang": "en"
+    },
+    {
+      "text": "when when I say stateless, right,",
+      "duration": 3919,
+      "offset": 549360,
+      "lang": "en"
+    },
+    {
+      "text": "imagine your memory. You have something",
+      "duration": 4400,
+      "offset": 551040,
+      "lang": "en"
+    },
+    {
+      "text": "that's in memory, right? You downloaded",
+      "duration": 4401,
+      "offset": 553279,
+      "lang": "en"
+    },
+    {
+      "text": "it. It has a state on your computer.",
+      "duration": 4640,
+      "offset": 555440,
+      "lang": "en"
+    },
+    {
+      "text": "It's sitting there and it's held well.",
+      "duration": 4000,
+      "offset": 557680,
+      "lang": "en"
+    },
+    {
+      "text": "In this case, when you're sending",
+      "duration": 3520,
+      "offset": 560080,
+      "lang": "en"
+    },
+    {
+      "text": "prompts to claude, as soon as you leave",
+      "duration": 3680,
+      "offset": 561680,
+      "lang": "en"
+    },
+    {
+      "text": "that conversation or you start to the",
+      "duration": 3840,
+      "offset": 563600,
+      "lang": "en"
+    },
+    {
+      "text": "next one, it's gone. It's stateless. It",
+      "duration": 3919,
+      "offset": 565360,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't have its original structure in",
+      "duration": 4800,
+      "offset": 567440,
+      "lang": "en"
+    },
+    {
+      "text": "the same way. This makes a prompt exist",
+      "duration": 4641,
+      "offset": 569279,
+      "lang": "en"
+    },
+    {
+      "text": "permanently. So, I can always reference",
+      "duration": 3840,
+      "offset": 572240,
+      "lang": "en"
+    },
+    {
+      "text": "it. I can redo it. I can tell Claude to",
+      "duration": 4400,
+      "offset": 573920,
+      "lang": "en"
+    },
+    {
+      "text": "check it out again. We can restart very",
+      "duration": 3759,
+      "offset": 576080,
+      "lang": "en"
+    },
+    {
+      "text": "quickly. That's why it's nice having",
+      "duration": 4320,
+      "offset": 578320,
+      "lang": "en"
+    },
+    {
+      "text": "markdown files because they don't take a",
+      "duration": 5281,
+      "offset": 579839,
+      "lang": "en"
+    },
+    {
+      "text": "lot of memory, which is a really great",
+      "duration": 5280,
+      "offset": 582640,
+      "lang": "en"
+    },
+    {
+      "text": "one. They take less tokens than a PDF or",
+      "duration": 5839,
+      "offset": 585120,
+      "lang": "en"
+    },
+    {
+      "text": "a DOC file, and they're really easy for",
+      "duration": 6080,
+      "offset": 587920,
+      "lang": "en"
+    },
+    {
+      "text": "AI to read. They are very uh well",
+      "duration": 5601,
+      "offset": 590959,
+      "lang": "en"
+    },
+    {
+      "text": "trained to understand markdown styles.",
+      "duration": 4800,
+      "offset": 594000,
+      "lang": "en"
+    },
+    {
+      "text": "And if I do want to do something with",
+      "duration": 4160,
+      "offset": 596560,
+      "lang": "en"
+    },
+    {
+      "text": "this markdown file, I can actually",
+      "duration": 3920,
+      "offset": 598800,
+      "lang": "en"
+    },
+    {
+      "text": "upload it to Google Docs or something",
+      "duration": 4080,
+      "offset": 600720,
+      "lang": "en"
+    },
+    {
+      "text": "like that and it will turn all of these",
+      "duration": 4239,
+      "offset": 602720,
+      "lang": "en"
+    },
+    {
+      "text": "into formatting. Like it'll bold these.",
+      "duration": 4000,
+      "offset": 604800,
+      "lang": "en"
+    },
+    {
+      "text": "It'll make these bigger because that's",
+      "duration": 3761,
+      "offset": 606959,
+      "lang": "en"
+    },
+    {
+      "text": "how markdown's designed to be. And",
+      "duration": 3360,
+      "offset": 608800,
+      "lang": "en"
+    },
+    {
+      "text": "that's what I'm going to make my front",
+      "duration": 3760,
+      "offset": 610720,
+      "lang": "en"
+    },
+    {
+      "text": "end work on. It's going to be allowing",
+      "duration": 5919,
+      "offset": 612160,
+      "lang": "en"
+    },
+    {
+      "text": "me to use markdown in that way. So, I",
+      "duration": 4960,
+      "offset": 614480,
+      "lang": "en"
+    },
+    {
+      "text": "think that's pretty cool. I'm going to",
+      "duration": 3041,
+      "offset": 618079,
+      "lang": "en"
+    },
+    {
+      "text": "let this kind of rip through. As you can",
+      "duration": 3280,
+      "offset": 619440,
+      "lang": "en"
+    },
+    {
+      "text": "see, it's currently Let me actually",
+      "duration": 3040,
+      "offset": 621120,
+      "lang": "en"
+    },
+    {
+      "text": "explain this for for some of you who",
+      "duration": 2960,
+      "offset": 622720,
+      "lang": "en"
+    },
+    {
+      "text": "aren't familiar with it. What's",
+      "duration": 2960,
+      "offset": 624160,
+      "lang": "en"
+    },
+    {
+      "text": "happening is it's going to enter plan",
+      "duration": 2960,
+      "offset": 625680,
+      "lang": "en"
+    },
+    {
+      "text": "mode and there's plan mode and then",
+      "duration": 3680,
+      "offset": 627120,
+      "lang": "en"
+    },
+    {
+      "text": "there's execution mode. Um, usually it",
+      "duration": 3759,
+      "offset": 628640,
+      "lang": "en"
+    },
+    {
+      "text": "chooses on its own, but you can affect",
+      "duration": 3760,
+      "offset": 630800,
+      "lang": "en"
+    },
+    {
+      "text": "it and change it right here. Uh, it's",
+      "duration": 3521,
+      "offset": 632399,
+      "lang": "en"
+    },
+    {
+      "text": "going to go through and it's going to",
+      "duration": 3440,
+      "offset": 634560,
+      "lang": "en"
+    },
+    {
+      "text": "plan what our plan is, which is really",
+      "duration": 3440,
+      "offset": 635920,
+      "lang": "en"
+    },
+    {
+      "text": "good. This is what we want it to do",
+      "duration": 2320,
+      "offset": 638000,
+      "lang": "en"
+    },
+    {
+      "text": "because now it's going to create",
+      "duration": 3280,
+      "offset": 639360,
+      "lang": "en"
+    },
+    {
+      "text": "individual plans off of this. And if",
+      "duration": 4880,
+      "offset": 640320,
+      "lang": "en"
+    },
+    {
+      "text": "you're using um 4.6, right? So, if I",
+      "duration": 6720,
+      "offset": 642640,
+      "lang": "en"
+    },
+    {
+      "text": "type /model, I can switch model. Um, if",
+      "duration": 6639,
+      "offset": 645200,
+      "lang": "en"
+    },
+    {
+      "text": "you're using 4.6 or the default, which",
+      "duration": 4880,
+      "offset": 649360,
+      "lang": "en"
+    },
+    {
+      "text": "is usually 4.6, six, it actually also",
+      "duration": 4401,
+      "offset": 651839,
+      "lang": "en"
+    },
+    {
+      "text": "creates something called sub agents",
+      "duration": 3839,
+      "offset": 654240,
+      "lang": "en"
+    },
+    {
+      "text": "where it saves kind of time and says,",
+      "duration": 4320,
+      "offset": 656240,
+      "lang": "en"
+    },
+    {
+      "text": "\"Hey, let me send an agent to go study",
+      "duration": 4081,
+      "offset": 658079,
+      "lang": "en"
+    },
+    {
+      "text": "the workspace. Let me send something",
+      "duration": 3920,
+      "offset": 660560,
+      "lang": "en"
+    },
+    {
+      "text": "else other than this main one to save on",
+      "duration": 4560,
+      "offset": 662160,
+      "lang": "en"
+    },
+    {
+      "text": "tokens to go study and fetch these",
+      "duration": 4080,
+      "offset": 664480,
+      "lang": "en"
+    },
+    {
+      "text": "things.\" And as you can see, the tool is",
+      "duration": 3840,
+      "offset": 666720,
+      "lang": "en"
+    },
+    {
+      "text": "going, \"Oh, I need to do this. Let me",
+      "duration": 3920,
+      "offset": 668560,
+      "lang": "en"
+    },
+    {
+      "text": "look at this. Let me understand how all",
+      "duration": 4000,
+      "offset": 670560,
+      "lang": "en"
+    },
+    {
+      "text": "of this is structured.\" Right? Claude is",
+      "duration": 5120,
+      "offset": 672480,
+      "lang": "en"
+    },
+    {
+      "text": "acting as the uh kind of what do you",
+      "duration": 5440,
+      "offset": 674560,
+      "lang": "en"
+    },
+    {
+      "text": "call it? manager of these agents",
+      "duration": 4479,
+      "offset": 677600,
+      "lang": "en"
+    },
+    {
+      "text": "automatically. Um, and then it's doing",
+      "duration": 4399,
+      "offset": 680000,
+      "lang": "en"
+    },
+    {
+      "text": "some bash commands. So, a bash is",
+      "duration": 4161,
+      "offset": 682079,
+      "lang": "en"
+    },
+    {
+      "text": "literally just right if I was to sit",
+      "duration": 4081,
+      "offset": 684399,
+      "lang": "en"
+    },
+    {
+      "text": "here and open up a terminal and type",
+      "duration": 5599,
+      "offset": 686240,
+      "lang": "en"
+    },
+    {
+      "text": "something in say like, oh, fine. Or if I",
+      "duration": 5440,
+      "offset": 688480,
+      "lang": "en"
+    },
+    {
+      "text": "could even run claw again right here,",
+      "duration": 3921,
+      "offset": 691839,
+      "lang": "en"
+    },
+    {
+      "text": "it's just doing a command of some sort.",
+      "duration": 3680,
+      "offset": 693920,
+      "lang": "en"
+    },
+    {
+      "text": "So, in this case, it's doing a bash",
+      "duration": 4000,
+      "offset": 695760,
+      "lang": "en"
+    },
+    {
+      "text": "command, which is just searching for,",
+      "duration": 4560,
+      "offset": 697600,
+      "lang": "en"
+    },
+    {
+      "text": "hey, look for structure this, right?",
+      "duration": 4079,
+      "offset": 699760,
+      "lang": "en"
+    },
+    {
+      "text": "This is where it's trying to find some",
+      "duration": 3440,
+      "offset": 702160,
+      "lang": "en"
+    },
+    {
+      "text": "sort of file. Hey, we're going to script",
+      "duration": 3361,
+      "offset": 703839,
+      "lang": "en"
+    },
+    {
+      "text": "lab. So, it's actually going through.",
+      "duration": 3359,
+      "offset": 705600,
+      "lang": "en"
+    },
+    {
+      "text": "And this is why this is really",
+      "duration": 4480,
+      "offset": 707200,
+      "lang": "en"
+    },
+    {
+      "text": "important. I did this conversation",
+      "duration": 5201,
+      "offset": 708959,
+      "lang": "en"
+    },
+    {
+      "text": "inside of my actual workspace instead of",
+      "duration": 4640,
+      "offset": 711680,
+      "lang": "en"
+    },
+    {
+      "text": "a separate folder. Because if I did it",
+      "duration": 3679,
+      "offset": 714160,
+      "lang": "en"
+    },
+    {
+      "text": "in a separate folder, it wouldn't be",
+      "duration": 4240,
+      "offset": 716320,
+      "lang": "en"
+    },
+    {
+      "text": "able to pull context from my actual",
+      "duration": 5201,
+      "offset": 717839,
+      "lang": "en"
+    },
+    {
+      "text": "workflow, the things that's working. So,",
+      "duration": 4399,
+      "offset": 720560,
+      "lang": "en"
+    },
+    {
+      "text": "as I'm building this front end, it's",
+      "duration": 3840,
+      "offset": 723040,
+      "lang": "en"
+    },
+    {
+      "text": "able to reference the thing that we're",
+      "duration": 4320,
+      "offset": 724959,
+      "lang": "en"
+    },
+    {
+      "text": "building the front end on, but only",
+      "duration": 4000,
+      "offset": 726880,
+      "lang": "en"
+    },
+    {
+      "text": "referencing it when I tell it to. I'm",
+      "duration": 3680,
+      "offset": 729279,
+      "lang": "en"
+    },
+    {
+      "text": "not saying, \"Hey, go read everything",
+      "duration": 4079,
+      "offset": 730880,
+      "lang": "en"
+    },
+    {
+      "text": "here.\" I'm saying, \"Hey, there's certain",
+      "duration": 5201,
+      "offset": 732959,
+      "lang": "en"
+    },
+    {
+      "text": "processes at certain steps. Go reference",
+      "duration": 4961,
+      "offset": 734959,
+      "lang": "en"
+    },
+    {
+      "text": "parts of it.\" Right? It's all about",
+      "duration": 3359,
+      "offset": 738160,
+      "lang": "en"
+    },
+    {
+      "text": "breaking it down and putting it into",
+      "duration": 3280,
+      "offset": 739920,
+      "lang": "en"
+    },
+    {
+      "text": "control. And it's doing that a couple",
+      "duration": 3120,
+      "offset": 741519,
+      "lang": "en"
+    },
+    {
+      "text": "different times here or there. It's",
+      "duration": 3360,
+      "offset": 743200,
+      "lang": "en"
+    },
+    {
+      "text": "doing a web fetch. It immediately went",
+      "duration": 4481,
+      "offset": 744639,
+      "lang": "en"
+    },
+    {
+      "text": "and it found um this JSON package for",
+      "duration": 5200,
+      "offset": 746560,
+      "lang": "en"
+    },
+    {
+      "text": "the clawed code UI. Right? So, what this",
+      "duration": 4560,
+      "offset": 749120,
+      "lang": "en"
+    },
+    {
+      "text": "is going to do is basically how is it",
+      "duration": 3920,
+      "offset": 751760,
+      "lang": "en"
+    },
+    {
+      "text": "structured? How is it delivering it?",
+      "duration": 3920,
+      "offset": 753680,
+      "lang": "en"
+    },
+    {
+      "text": "Let's pull that from these people who've",
+      "duration": 3839,
+      "offset": 755680,
+      "lang": "en"
+    },
+    {
+      "text": "already done the hard work and actually",
+      "duration": 4799,
+      "offset": 757600,
+      "lang": "en"
+    },
+    {
+      "text": "get that together. Um, which I think is",
+      "duration": 4161,
+      "offset": 759519,
+      "lang": "en"
+    },
+    {
+      "text": "nice.",
+      "duration": 4721,
+      "offset": 762399,
+      "lang": "en"
+    },
+    {
+      "text": "Uh, oops, wrong one. From there, let's",
+      "duration": 4640,
+      "offset": 763680,
+      "lang": "en"
+    },
+    {
+      "text": "see. It's just doing a whole bunch of",
+      "duration": 3200,
+      "offset": 767120,
+      "lang": "en"
+    },
+    {
+      "text": "web fetches. So, it's pulling individual",
+      "duration": 4079,
+      "offset": 768320,
+      "lang": "en"
+    },
+    {
+      "text": "files rather than the entire repo",
+      "duration": 3680,
+      "offset": 770320,
+      "lang": "en"
+    },
+    {
+      "text": "itself, which actually is better than",
+      "duration": 4081,
+      "offset": 772399,
+      "lang": "en"
+    },
+    {
+      "text": "what I told it to do originally. Uh, so",
+      "duration": 4720,
+      "offset": 774000,
+      "lang": "en"
+    },
+    {
+      "text": "that's pretty cool. Uh, originally I was",
+      "duration": 4080,
+      "offset": 776480,
+      "lang": "en"
+    },
+    {
+      "text": "just going to say clone the repo, but it",
+      "duration": 3280,
+      "offset": 778720,
+      "lang": "en"
+    },
+    {
+      "text": "makes a lot more sense for it just to",
+      "duration": 2959,
+      "offset": 780560,
+      "lang": "en"
+    },
+    {
+      "text": "search through the repo and then only",
+      "duration": 3040,
+      "offset": 782000,
+      "lang": "en"
+    },
+    {
+      "text": "download what we need or just straight",
+      "duration": 3521,
+      "offset": 783519,
+      "lang": "en"
+    },
+    {
+      "text": "up copy and paste it. Now, it's sending",
+      "duration": 3680,
+      "offset": 785040,
+      "lang": "en"
+    },
+    {
+      "text": "another agent to go implement another",
+      "duration": 4320,
+      "offset": 787040,
+      "lang": "en"
+    },
+    {
+      "text": "part of it. Um, it looks like it's doing",
+      "duration": 5919,
+      "offset": 788720,
+      "lang": "en"
+    },
+    {
+      "text": "a find command to look for some sort of",
+      "duration": 5760,
+      "offset": 791360,
+      "lang": "en"
+    },
+    {
+      "text": "parts inside of it. Uh, let's see, Max.",
+      "duration": 4161,
+      "offset": 794639,
+      "lang": "en"
+    },
+    {
+      "text": "Yep, it's trying to find certain parts",
+      "duration": 4080,
+      "offset": 797120,
+      "lang": "en"
+    },
+    {
+      "text": "of the cloud code web app, the actual",
+      "duration": 4240,
+      "offset": 798800,
+      "lang": "en"
+    },
+    {
+      "text": "aspect. And then it's going back and",
+      "duration": 3680,
+      "offset": 801200,
+      "lang": "en"
+    },
+    {
+      "text": "looking. So, this is now onto the next",
+      "duration": 4000,
+      "offset": 803040,
+      "lang": "en"
+    },
+    {
+      "text": "GitHub repo, the other one that I wanted",
+      "duration": 3920,
+      "offset": 804880,
+      "lang": "en"
+    },
+    {
+      "text": "to pull from, and it's pulling for this.",
+      "duration": 3760,
+      "offset": 807040,
+      "lang": "en"
+    },
+    {
+      "text": "And as you can see, if we had been using",
+      "duration": 4080,
+      "offset": 808800,
+      "lang": "en"
+    },
+    {
+      "text": "Cloud before and I just gave basic",
+      "duration": 4159,
+      "offset": 810800,
+      "lang": "en"
+    },
+    {
+      "text": "things, it kind of responds quickly. But",
+      "duration": 4399,
+      "offset": 812880,
+      "lang": "en"
+    },
+    {
+      "text": "because we have an entire PRD that it's",
+      "duration": 4641,
+      "offset": 814959,
+      "lang": "en"
+    },
+    {
+      "text": "following, right? And I said, \"Hey, you",
+      "duration": 4560,
+      "offset": 817279,
+      "lang": "en"
+    },
+    {
+      "text": "can go and do your thing, it's going to",
+      "duration": 4000,
+      "offset": 819600,
+      "lang": "en"
+    },
+    {
+      "text": "go through and do all of this and it",
+      "duration": 3761,
+      "offset": 821839,
+      "lang": "en"
+    },
+    {
+      "text": "might stop at certain points to ask for,",
+      "duration": 3679,
+      "offset": 823600,
+      "lang": "en"
+    },
+    {
+      "text": "you know, help, but this is how you get",
+      "duration": 4160,
+      "offset": 825600,
+      "lang": "en"
+    },
+    {
+      "text": "Claude to like work for a long time on",
+      "duration": 4800,
+      "offset": 827279,
+      "lang": "en"
+    },
+    {
+      "text": "its own and kind of trust its outputs.\"",
+      "duration": 4079,
+      "offset": 829760,
+      "lang": "en"
+    },
+    {
+      "text": "And of course, we can watch what it's",
+      "duration": 4641,
+      "offset": 832079,
+      "lang": "en"
+    },
+    {
+      "text": "doing, uh, which is really nice. So, um,",
+      "duration": 4881,
+      "offset": 833839,
+      "lang": "en"
+    },
+    {
+      "text": "I'll go ahead and post another video",
+      "duration": 6320,
+      "offset": 836720,
+      "lang": "en"
+    },
+    {
+      "text": "here soon on kind of what we are doing",
+      "duration": 6960,
+      "offset": 838720,
+      "lang": "en"
+    },
+    {
+      "text": "or what is actually being done. Um, this",
+      "duration": 4400,
+      "offset": 843040,
+      "lang": "en"
+    },
+    {
+      "text": "is probably going to be thrown into",
+      "duration": 4640,
+      "offset": 845680,
+      "lang": "en"
+    },
+    {
+      "text": "session two of one of these courses. I'm",
+      "duration": 4800,
+      "offset": 847440,
+      "lang": "en"
+    },
+    {
+      "text": "kind of making these as I go and seeing",
+      "duration": 4160,
+      "offset": 850320,
+      "lang": "en"
+    },
+    {
+      "text": "where they go. Uh, you shouldn't have",
+      "duration": 4240,
+      "offset": 852240,
+      "lang": "en"
+    },
+    {
+      "text": "paid to see this. This should be free.",
+      "duration": 4560,
+      "offset": 854480,
+      "lang": "en"
+    },
+    {
+      "text": "Uh, that's the paid ones. I want to be",
+      "duration": 4719,
+      "offset": 856480,
+      "lang": "en"
+    },
+    {
+      "text": "more structured, have workbooks, be like",
+      "duration": 4080,
+      "offset": 859040,
+      "lang": "en"
+    },
+    {
+      "text": "an actual college course, which I do",
+      "duration": 3681,
+      "offset": 861199,
+      "lang": "en"
+    },
+    {
+      "text": "teach college courses. that's a real",
+      "duration": 4240,
+      "offset": 863120,
+      "lang": "en"
+    },
+    {
+      "text": "thing uh as well. So, that's the other",
+      "duration": 3920,
+      "offset": 864880,
+      "lang": "en"
+    },
+    {
+      "text": "side of this. If you're feeling rushed",
+      "duration": 3279,
+      "offset": 867360,
+      "lang": "en"
+    },
+    {
+      "text": "or confused by anything I'm doing, don't",
+      "duration": 3680,
+      "offset": 868800,
+      "lang": "en"
+    },
+    {
+      "text": "worry. I'm going to break every little",
+      "duration": 3601,
+      "offset": 870639,
+      "lang": "en"
+    },
+    {
+      "text": "concepts of these down into individual",
+      "duration": 3760,
+      "offset": 872480,
+      "lang": "en"
+    },
+    {
+      "text": "courses for you to be able to really",
+      "duration": 4240,
+      "offset": 874240,
+      "lang": "en"
+    },
+    {
+      "text": "catch up and understand. But for those",
+      "duration": 3520,
+      "offset": 876240,
+      "lang": "en"
+    },
+    {
+      "text": "of you who already kind of understand",
+      "duration": 3520,
+      "offset": 878480,
+      "lang": "en"
+    },
+    {
+      "text": "all of this, I wanted to show what I do",
+      "duration": 4240,
+      "offset": 879760,
+      "lang": "en"
+    },
+    {
+      "text": "on a daily basis. This is something I I",
+      "duration": 4399,
+      "offset": 882000,
+      "lang": "en"
+    },
+    {
+      "text": "work with every day. So, yeah, have a",
+      "duration": 4480,
+      "offset": 884000,
+      "lang": "en"
+    },
+    {
+      "text": "wonderful time. See you everyone. or I",
+      "duration": 3201,
+      "offset": 886399,
+      "lang": "en"
+    },
+    {
+      "text": "guess I'll update you on the next",
+      "duration": 3200,
+      "offset": 888480,
+      "lang": "en"
+    },
+    {
+      "text": "session.",
+      "duration": 2080,
+      "offset": 889600,
+      "lang": "en"
+    }
+  ]
+}

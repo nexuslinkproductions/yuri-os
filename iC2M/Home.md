@@ -130,11 +130,11 @@ tags:
 | [Plane.so](https://app.plane.so) | Tickets & Projects | ✅ Active |
 | [ops.c2moviez.com](https://ops.c2moviez.com) | COO Dashboard + Meetings + Pipeline | ✅ Active |
 | [Cal.com](https://cal.com) | Scheduling | ✅ Active |
-| Offer Builder | Sales proposals | ✅ Ready (`~/CI-CD/sales_offer_template/`) |
+| Offer Builder | Sales proposals | ✅ Ready (`~/CI_CD/sales_offer_template/`) |
 | ExeoFlow | CRM, Invoicing, Timetracking | 🔨 In development |
 | EXEO (Telegram) | Morning digest + ticket management | ✅ Active |
 
 ## 💻 Code Repos
-> `~/Documents/c2moviez/CI-CD/`
+> `~/Documents/c2moviez/CI_CD/`
 > - `dashboard_ops.c2moviez.com` — ops dashboard
 > - `sales_offer_template` — offer builder app

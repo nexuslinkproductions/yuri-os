@@ -1,249 +1,194 @@
-import { useState, useRef, useMemo, type FC } from "react";
-import { motion, useInView, type Variants } from "framer-motion";
+import { useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
+import type React from 'react';
 
-interface Project {
+export type WorkProject = {
   id: string;
   title: string;
   client: string;
   category: string;
-  year: number;
-  thumbnail: string;
-  aspect: "4:3" | "16:9" | "1:1";
-}
+  year: string;
+  span: 'wide' | 'tall' | 'square' | 'compact';
+};
 
-interface WorkGalleryProps {
-  onProjectClick: (id: string) => void;
-}
+const categories = ['All', 'Campaign', 'Brand', 'Short-Form', 'Documentary', 'Motion'] as const;
 
-const categories = [
-  "All",
-  "Commercial",
-  "Music Video",
-  "Documentary",
-  "Corporate",
-  "Event",
-] as const;
-
-const projects: Project[] = [
-  {
-    id: "stephansdom",
-    title: "Stephansdom Illuminated",
-    client: "Vienna Tourism Board",
-    category: "Commercial",
-    year: 2024,
-    thumbnail: "https://picsum.photos/seed/stephan/800/600",
-    aspect: "4:3",
-  },
-  {
-    id: "belvedere",
-    title: "Belvedere Nights",
-    client: "Österreichische Galerie",
-    category: "Music Video",
-    year: 2024,
-    thumbnail: "https://picsum.photos/seed/belvedere/1600/900",
-    aspect: "16:9",
-  },
-  {
-    id: "prater",
-    title: "Riesenrad Reimagined",
-    client: "Prater Wien GmbH",
-    category: "Documentary",
-    year: 2023,
-    thumbnail: "https://picsum.photos/seed/prater/800/800",
-    aspect: "1:1",
-  },
-  {
-    id: "naschmarkt",
-    title: "Naschmarkt Stories",
-    client: "Marktamt Wien",
-    category: "Documentary",
-    year: 2023,
-    thumbnail: "https://picsum.photos/seed/nasch/800/600",
-    aspect: "4:3",
-  },
-  {
-    id: "kunsthistorisches",
-    title: "Masterpieces in Motion",
-    client: "Kunsthistorisches Museum",
-    category: "Corporate",
-    year: 2024,
-    thumbnail: "https://picsum.photos/seed/kunst/1600/900",
-    aspect: "16:9",
-  },
-  {
-    id: "rathaus",
-    title: "Rathaus Sommerkino",
-    client: "Stadt Wien",
-    category: "Event",
-    year: 2024,
-    thumbnail: "https://picsum.photos/seed/rathaus/800/800",
-    aspect: "1:1",
-  },
-  {
-    id: "hunderwasser",
-    title: "Hundertwasser Harmony",
-    client: "Wien Kultur",
-    category: "Commercial",
-    year: 2023,
-    thumbnail: "https://picsum.photos/seed/hunder/800/600",
-    aspect: "4:3",
-  },
-  {
-    id: "donaukanal",
-    title: "Donaukanal Sessions",
-    client: "Vienna Music Collective",
-    category: "Music Video",
-    year: 2024,
-    thumbnail: "https://picsum.photos/seed/donau/1600/900",
-    aspect: "16:9",
-  },
-  {
-    id: "schonbrunn",
-    title: "Schönbrunn After Hours",
-    client: "Schloss Schönbrunn Kultur",
-    category: "Event",
-    year: 2023,
-    thumbnail: "https://picsum.photos/seed/schonb/800/800",
-    aspect: "1:1",
-  },
+const projects: WorkProject[] = [
+  { id: 'raf-universe', title: 'Lifestyle Brand System', client: 'R. Tattoo x Barber', category: 'Campaign', year: '2026', span: 'wide' },
+  { id: 'corbo-release', title: 'Luxury Apparel Drops', client: 'CØRBO by RAF CAMORA', category: 'Brand', year: '2026', span: 'tall' },
+  { id: 'classic-physique', title: 'Classic Lines', client: 'Mike Sommerfeld', category: 'Short-Form', year: '2025', span: 'square' },
+  { id: 'vienna-floor', title: 'Vienna Floor Sessions', client: 'Nexus Link', category: 'Motion', year: '2026', span: 'compact' },
+  { id: 'founder-doc', title: 'Founder Signal', client: 'Independent', category: 'Documentary', year: '2026', span: 'wide' },
+  { id: 'social-engine', title: 'Social Engine', client: 'Apollon Nutrition EU', category: 'Short-Form', year: '2024', span: 'square' },
+  { id: 'campaign-finish', title: 'Finish Layer', client: 'Public Figure', category: 'Motion', year: '2025', span: 'compact' },
 ];
 
-const aspectRatioMap: Record<Project["aspect"], string> = {
-  "4:3": "3 / 4",
-  "16:9": "9 / 16",
-  "1:1": "1 / 1",
+const spanClass: Record<WorkProject['span'], string> = {
+  wide: 'work-card--wide',
+  tall: 'work-card--tall',
+  square: 'work-card--square',
+  compact: 'work-card--compact',
 };
 
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, delay: i * 0.08, ease: "easeOut" },
-  }),
-};
+interface WorkGalleryProps {
+  onProjectClick?: (id: string) => void;
+}
 
-const WorkGallery: FC<WorkGalleryProps> = ({ onProjectClick }) => {
-  const [activeCategory, setActiveCategory] = useState<string>("All");
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, margin: "-100px" });
-
-  const filtered = useMemo(
-    () =>
-      activeCategory === "All"
-        ? projects
-        : projects.filter((p) => p.category === activeCategory),
-    [activeCategory]
+export default function WorkGallery({ onProjectClick }: WorkGalleryProps) {
+  const [active, setActive] = useState<(typeof categories)[number]>('All');
+  const visible = useMemo(
+    () => active === 'All' ? projects : projects.filter((project) => project.category === active),
+    [active],
   );
 
   return (
-    <div className="work-gallery" ref={ref}>
-      <style>{`
-        .work-gallery {
-          width: 100%;
-          max-width: 1600px;
-          margin: 0 auto;
-          padding: 80px 24px;
-        }
-
-        .gallery-header {
-          text-align: center;
-          margin-bottom: 64px;
-        }
-
-        .gallery-header h2 {
-          font-size: 3rem;
-          font-weight: 700;
-          margin-bottom: 16px;
-        }
-
-        .filter-bar {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          justify-content: center;
-          margin-bottom: 48px;
-        }
-
-        .filter-btn {
-          border: 1px solid #666;
-          background: transparent;
-          color: #aaa;
-          padding: 8px 16px;
-          border-radius: 20px;
-          cursor: pointer;
-          transition: all 200ms;
-          font-size: 0.95rem;
-        }
-
-        .filter-btn:hover {
-          color: #fff;
-          border-color: #7c3aed;
-        }
-
-        .filter-btn.active {
-          background: #7c3aed;
-          border-color: #7c3aed;
-          color: #fff;
-        }
-
-        .gallery-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 24px;
-        }
-
-        .gallery-item {
-          border-radius: 8px;
-          overflow: hidden;
-          cursor: pointer;
-          aspect-ratio: var(--aspect);
-          background: #1f2937;
-        }
-
-        .gallery-item img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 300ms ease;
-        }
-
-        .gallery-item:hover img {
-          transform: scale(1.05);
-        }
-      `}</style>
-
-      <div className="filter-bar">
-        {categories.map((cat) => (
+    <div data-proximity>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 10,
+          marginBottom: 28,
+        }}
+      >
+        {categories.map((category) => (
           <button
-            key={cat}
-            className={`filter-btn ${activeCategory === cat ? "active" : ""}`}
-            onClick={() => setActiveCategory(cat)}
+            key={category}
+            type="button"
+            data-magnetic
+            className="magnetic-link"
+            onClick={() => setActive(category)}
+            style={{
+              minHeight: 38,
+              padding: '0 16px',
+              borderRadius: 'var(--radius-full)',
+              border: active === category ? '1px solid var(--color-crimson-border)' : '1px solid var(--color-border-subtle)',
+              background: active === category ? 'rgba(220,38,38,0.1)' : 'rgba(255,255,255,0.025)',
+              color: active === category ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+              fontFamily: 'var(--font-display)',
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: '0.11em',
+              textTransform: 'uppercase',
+            }}
           >
-            {cat}
+            {category}
           </button>
         ))}
       </div>
 
-      <motion.div className="gallery-grid">
-        {inView &&
-          filtered.map((project, i) => (
-            <motion.div
-              key={project.id}
-              className="gallery-item"
-              style={{ "--aspect": aspectRatioMap[project.aspect] } as React.CSSProperties}
-              variants={itemVariants}
-              initial="hidden"
-              animate="visible"
-              custom={i}
-              onClick={() => onProjectClick(project.id)}
-            >
-              <img src={project.thumbnail} alt={project.title} loading="lazy" />
-            </motion.div>
-          ))}
+      <motion.div className="work-bento" layout>
+        {visible.map((project, index) => (
+          <motion.article
+            key={project.id}
+            layout
+            className={`depth-card work-card ${spanClass[project.span]}`}
+            data-tilt
+            data-magnetic
+            data-proximity
+            onClick={() => onProjectClick?.(project.id)}
+            initial={{ opacity: 0, y: 36 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-12%' }}
+            transition={{ duration: 0.62, delay: index * 0.045, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              '--z-depth': project.span === 'wide' ? '42px' : project.span === 'tall' ? '36px' : '28px',
+              position: 'relative',
+              minHeight: project.span === 'tall' ? 540 : project.span === 'compact' ? 270 : 360,
+              overflow: 'hidden',
+              padding: 16,
+            } as React.CSSProperties}
+          >
+            <div className="image-slot" style={{ height: project.span === 'tall' ? '58%' : '62%', minHeight: 190 }} />
+            <div style={{ padding: '22px 8px 4px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 10,
+                  alignItems: 'center',
+                  marginBottom: 14,
+                  color: 'var(--color-text-tertiary)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                <span>{project.client}</span>
+                <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--color-crimson)', opacity: 0.6 }} />
+                <span style={{ color: 'var(--color-crimson)' }}>{project.category}</span>
+                <span>{project.year}</span>
+              </div>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: project.span === 'wide' ? 'clamp(34px, 4.8vw, 70px)' : 'clamp(25px, 3vw, 42px)',
+                  lineHeight: 0.98,
+                  fontWeight: 900,
+                  letterSpacing: 0,
+                }}
+              >
+                {project.title}
+              </h2>
+            </div>
+          </motion.article>
+        ))}
       </motion.div>
+
+      <style>{`
+        .work-bento {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-auto-flow: dense;
+          grid-auto-rows: 190px;
+          gap: 18px;
+        }
+
+        .work-card--wide {
+          grid-column: span 2;
+          grid-row: span 2;
+        }
+
+        .work-card--tall {
+          grid-column: span 1;
+          grid-row: span 3;
+        }
+
+        .work-card--square {
+          grid-column: span 1;
+          grid-row: span 2;
+        }
+
+        .work-card--compact {
+          grid-column: span 1;
+          grid-row: span 1;
+        }
+
+        @media (max-width: 1100px) {
+          .work-bento {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .work-card--wide,
+          .work-card--tall,
+          .work-card--square,
+          .work-card--compact {
+            grid-column: span 1;
+            grid-row: span 2;
+          }
+        }
+
+        @media (max-width: 680px) {
+          .work-bento {
+            grid-template-columns: 1fr;
+            grid-auto-rows: auto;
+          }
+
+          .work-card {
+            min-height: 360px !important;
+          }
+        }
+      `}</style>
     </div>
   );
-};
-
-export default WorkGallery;
+}

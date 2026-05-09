@@ -1,0 +1,4194 @@
+{
+  "videoId": "rHDA0WMXzy4",
+  "title": "Stop Copy-Pasting Into Claude",
+  "segments": [
+    {
+      "text": "Welcome, welcome to a five session",
+      "duration": 4719,
+      "offset": 560,
+      "lang": "en"
+    },
+    {
+      "text": "series. Now, this initial first session",
+      "duration": 4720,
+      "offset": 2800,
+      "lang": "en"
+    },
+    {
+      "text": "is on how to use cloud desktop and cloud",
+      "duration": 4400,
+      "offset": 5279,
+      "lang": "en"
+    },
+    {
+      "text": "code. We're going to be diving into a",
+      "duration": 4079,
+      "offset": 7520,
+      "lang": "en"
+    },
+    {
+      "text": "lot uh in the second session, which is",
+      "duration": 3761,
+      "offset": 9679,
+      "lang": "en"
+    },
+    {
+      "text": "actually cloud code in practice. So, if",
+      "duration": 3521,
+      "offset": 11599,
+      "lang": "en"
+    },
+    {
+      "text": "you have already gotten it installed,",
+      "duration": 3440,
+      "offset": 13440,
+      "lang": "en"
+    },
+    {
+      "text": "maybe you can jump there. However, I'd",
+      "duration": 3919,
+      "offset": 15120,
+      "lang": "en"
+    },
+    {
+      "text": "be, you know, I give a caveat there",
+      "duration": 3920,
+      "offset": 16880,
+      "lang": "en"
+    },
+    {
+      "text": "because I dive into certain things in",
+      "duration": 4080,
+      "offset": 19039,
+      "lang": "en"
+    },
+    {
+      "text": "this session, this first one, that are",
+      "duration": 4479,
+      "offset": 20800,
+      "lang": "en"
+    },
+    {
+      "text": "well, maybe something you might not have",
+      "duration": 4561,
+      "offset": 23119,
+      "lang": "en"
+    },
+    {
+      "text": "installed or done for your cloud code.",
+      "duration": 4160,
+      "offset": 25279,
+      "lang": "en"
+    },
+    {
+      "text": "So even if you're a veteran, I recommend",
+      "duration": 3919,
+      "offset": 27680,
+      "lang": "en"
+    },
+    {
+      "text": "you checking it out. Uh I also have a",
+      "duration": 3761,
+      "offset": 29439,
+      "lang": "en"
+    },
+    {
+      "text": "session three is going to be on cloud",
+      "duration": 3521,
+      "offset": 31599,
+      "lang": "en"
+    },
+    {
+      "text": "desktop as a thinking partner, right?",
+      "duration": 3359,
+      "offset": 33200,
+      "lang": "en"
+    },
+    {
+      "text": "How do you actually use this and more",
+      "duration": 3680,
+      "offset": 35120,
+      "lang": "en"
+    },
+    {
+      "text": "than just generating stuff for you? From",
+      "duration": 3840,
+      "offset": 36559,
+      "lang": "en"
+    },
+    {
+      "text": "there, session four is going to dive",
+      "duration": 4000,
+      "offset": 38800,
+      "lang": "en"
+    },
+    {
+      "text": "into making cloud code understand your",
+      "duration": 4721,
+      "offset": 40399,
+      "lang": "en"
+    },
+    {
+      "text": "product or your project, right? This is",
+      "duration": 4480,
+      "offset": 42800,
+      "lang": "en"
+    },
+    {
+      "text": "more than just asking it to run and hit",
+      "duration": 4080,
+      "offset": 45120,
+      "lang": "en"
+    },
+    {
+      "text": "something. How do you make it work with",
+      "duration": 4160,
+      "offset": 47280,
+      "lang": "en"
+    },
+    {
+      "text": "you in your project and get really good",
+      "duration": 4720,
+      "offset": 49200,
+      "lang": "en"
+    },
+    {
+      "text": "results consistently out of it? Finally,",
+      "duration": 4560,
+      "offset": 51440,
+      "lang": "en"
+    },
+    {
+      "text": "session five is going to dive into where",
+      "duration": 3920,
+      "offset": 53920,
+      "lang": "en"
+    },
+    {
+      "text": "all of this goes and how you can",
+      "duration": 4239,
+      "offset": 56000,
+      "lang": "en"
+    },
+    {
+      "text": "actually do a deeper dive into a file",
+      "duration": 4239,
+      "offset": 57840,
+      "lang": "en"
+    },
+    {
+      "text": "architecture system I call model",
+      "duration": 3920,
+      "offset": 60239,
+      "lang": "en"
+    },
+    {
+      "text": "workspace protocol. And that's really",
+      "duration": 3841,
+      "offset": 62079,
+      "lang": "en"
+    },
+    {
+      "text": "highlevel good stuff. It's a separate",
+      "duration": 3761,
+      "offset": 64159,
+      "lang": "en"
+    },
+    {
+      "text": "course, but I touch on it a lot here in",
+      "duration": 4320,
+      "offset": 65920,
+      "lang": "en"
+    },
+    {
+      "text": "session five. So, uh let's go ahead and",
+      "duration": 4879,
+      "offset": 67920,
+      "lang": "en"
+    },
+    {
+      "text": "um dive in. Now, the goal for this",
+      "duration": 4320,
+      "offset": 70240,
+      "lang": "en"
+    },
+    {
+      "text": "session is to actually have you walk",
+      "duration": 3521,
+      "offset": 72799,
+      "lang": "en"
+    },
+    {
+      "text": "away with real deliverables, not just",
+      "duration": 4239,
+      "offset": 74560,
+      "lang": "en"
+    },
+    {
+      "text": "like awareness or oh, I understand AI",
+      "duration": 4320,
+      "offset": 76320,
+      "lang": "en"
+    },
+    {
+      "text": "better, but actual artifacts sitting on",
+      "duration": 4320,
+      "offset": 78799,
+      "lang": "en"
+    },
+    {
+      "text": "your computer after each session. all",
+      "duration": 4320,
+      "offset": 80640,
+      "lang": "en"
+    },
+    {
+      "text": "three interfaces installed and working.",
+      "duration": 4000,
+      "offset": 83119,
+      "lang": "en"
+    },
+    {
+      "text": "Uh real tasks that you can use and run",
+      "duration": 4400,
+      "offset": 84960,
+      "lang": "en"
+    },
+    {
+      "text": "on your files, a clear sense of when to",
+      "duration": 4640,
+      "offset": 87119,
+      "lang": "en"
+    },
+    {
+      "text": "use which tool, when not to, so you stop",
+      "duration": 4000,
+      "offset": 89360,
+      "lang": "en"
+    },
+    {
+      "text": "guessing. I'm also going to show you",
+      "duration": 4320,
+      "offset": 91759,
+      "lang": "en"
+    },
+    {
+      "text": "what uh a good Claude MD file is, a",
+      "duration": 4799,
+      "offset": 93360,
+      "lang": "en"
+    },
+    {
+      "text": "markdown file for Claude that completely",
+      "duration": 4321,
+      "offset": 96079,
+      "lang": "en"
+    },
+    {
+      "text": "changes how Claude works on your",
+      "duration": 3920,
+      "offset": 98159,
+      "lang": "en"
+    },
+    {
+      "text": "projects and a preview of something",
+      "duration": 3280,
+      "offset": 100400,
+      "lang": "en"
+    },
+    {
+      "text": "bigger in session five that I just",
+      "duration": 3360,
+      "offset": 102079,
+      "lang": "en"
+    },
+    {
+      "text": "mentioned that might be the most",
+      "duration": 3280,
+      "offset": 103680,
+      "lang": "en"
+    },
+    {
+      "text": "valuable part of all of these sessions,",
+      "duration": 3201,
+      "offset": 105439,
+      "lang": "en"
+    },
+    {
+      "text": "but you know, I think it's all pretty",
+      "duration": 4880,
+      "offset": 106960,
+      "lang": "en"
+    },
+    {
+      "text": "valuable. Now, most people use Claude",
+      "duration": 5119,
+      "offset": 108640,
+      "lang": "en"
+    },
+    {
+      "text": "like this. It's more like a search",
+      "duration": 3760,
+      "offset": 111840,
+      "lang": "en"
+    },
+    {
+      "text": "engine that writes better sentences or",
+      "duration": 3360,
+      "offset": 113759,
+      "lang": "en"
+    },
+    {
+      "text": "code or something like that. You type a",
+      "duration": 3360,
+      "offset": 115600,
+      "lang": "en"
+    },
+    {
+      "text": "question, you get an answer, and then",
+      "duration": 3680,
+      "offset": 117119,
+      "lang": "en"
+    },
+    {
+      "text": "you copy and paste it or move it",
+      "duration": 4080,
+      "offset": 118960,
+      "lang": "en"
+    },
+    {
+      "text": "somewhere. And that works, but it's like",
+      "duration": 4320,
+      "offset": 120799,
+      "lang": "en"
+    },
+    {
+      "text": "using a car to check the mailbox. The",
+      "duration": 3840,
+      "offset": 123040,
+      "lang": "en"
+    },
+    {
+      "text": "car can take you across the country. You",
+      "duration": 4480,
+      "offset": 125119,
+      "lang": "en"
+    },
+    {
+      "text": "just haven't left the driveway yet. And",
+      "duration": 4159,
+      "offset": 126880,
+      "lang": "en"
+    },
+    {
+      "text": "we're going to try to leave the driveway",
+      "duration": 4081,
+      "offset": 129599,
+      "lang": "en"
+    },
+    {
+      "text": "today. Now, Claw Desktop, just the",
+      "duration": 4161,
+      "offset": 131039,
+      "lang": "en"
+    },
+    {
+      "text": "normal downloaded version, is very",
+      "duration": 2800,
+      "offset": 133680,
+      "lang": "en"
+    },
+    {
+      "text": "similar to the one that you would log in",
+      "duration": 3360,
+      "offset": 135200,
+      "lang": "en"
+    },
+    {
+      "text": "on the website. And it's more of a",
+      "duration": 3520,
+      "offset": 136480,
+      "lang": "en"
+    },
+    {
+      "text": "conversational tool with all the good",
+      "duration": 3200,
+      "offset": 138560,
+      "lang": "en"
+    },
+    {
+      "text": "stuff that Claude has. And you can get a",
+      "duration": 3760,
+      "offset": 140000,
+      "lang": "en"
+    },
+    {
+      "text": "lot done with it. And it's great for",
+      "duration": 3760,
+      "offset": 141760,
+      "lang": "en"
+    },
+    {
+      "text": "planning, thinking out ideas, building",
+      "duration": 3440,
+      "offset": 143760,
+      "lang": "en"
+    },
+    {
+      "text": "stuff, all that jazz. But there is a",
+      "duration": 4000,
+      "offset": 145520,
+      "lang": "en"
+    },
+    {
+      "text": "limit to what it can do at scale. It",
+      "duration": 4320,
+      "offset": 147200,
+      "lang": "en"
+    },
+    {
+      "text": "can't see your files necessarily. And",
+      "duration": 3600,
+      "offset": 149520,
+      "lang": "en"
+    },
+    {
+      "text": "I'm talking purely just about the chat",
+      "duration": 3600,
+      "offset": 151520,
+      "lang": "en"
+    },
+    {
+      "text": "version. It can't run code. It can't",
+      "duration": 4640,
+      "offset": 153120,
+      "lang": "en"
+    },
+    {
+      "text": "edit anything in your projects. And",
+      "duration": 4720,
+      "offset": 155120,
+      "lang": "en"
+    },
+    {
+      "text": "everything has to go through copy paste",
+      "duration": 4240,
+      "offset": 157760,
+      "lang": "en"
+    },
+    {
+      "text": "or uploads. And that's not because the",
+      "duration": 3920,
+      "offset": 159840,
+      "lang": "en"
+    },
+    {
+      "text": "model is limited. It's extremely",
+      "duration": 3599,
+      "offset": 162000,
+      "lang": "en"
+    },
+    {
+      "text": "powerful, just the desktop version, but",
+      "duration": 3600,
+      "offset": 163760,
+      "lang": "en"
+    },
+    {
+      "text": "the model is the same one powering",
+      "duration": 3841,
+      "offset": 165599,
+      "lang": "en"
+    },
+    {
+      "text": "everything else. The problem is the",
+      "duration": 4159,
+      "offset": 167360,
+      "lang": "en"
+    },
+    {
+      "text": "interface. It just can't reach your",
+      "duration": 3920,
+      "offset": 169440,
+      "lang": "en"
+    },
+    {
+      "text": "stuff. So, you've ever felt like Claude",
+      "duration": 4241,
+      "offset": 171519,
+      "lang": "en"
+    },
+    {
+      "text": "is like kind of gets it, but not quite.",
+      "duration": 3680,
+      "offset": 173360,
+      "lang": "en"
+    },
+    {
+      "text": "It's probably because you're working",
+      "duration": 4559,
+      "offset": 175760,
+      "lang": "en"
+    },
+    {
+      "text": "with a more pasted expert excerpt",
+      "duration": 6720,
+      "offset": 177040,
+      "lang": "en"
+    },
+    {
+      "text": "excerpt instead of your actual project.",
+      "duration": 6560,
+      "offset": 180319,
+      "lang": "en"
+    },
+    {
+      "text": "Now, this is what I actually use for",
+      "duration": 5360,
+      "offset": 183760,
+      "lang": "en"
+    },
+    {
+      "text": "almost everything. Claude code living",
+      "duration": 5201,
+      "offset": 186879,
+      "lang": "en"
+    },
+    {
+      "text": "inside VS Code. Your files are on the",
+      "duration": 4640,
+      "offset": 189120,
+      "lang": "en"
+    },
+    {
+      "text": "left. you can easily see them. If you're",
+      "duration": 3439,
+      "offset": 192080,
+      "lang": "en"
+    },
+    {
+      "text": "on Mac, it's a little bit different as",
+      "duration": 4320,
+      "offset": 193760,
+      "lang": "en"
+    },
+    {
+      "text": "well. And Claude is on the right. It",
+      "duration": 4640,
+      "offset": 195519,
+      "lang": "en"
+    },
+    {
+      "text": "reads your project, edits your files in",
+      "duration": 4159,
+      "offset": 198080,
+      "lang": "en"
+    },
+    {
+      "text": "line, runs commands. You don't copy and",
+      "duration": 3681,
+      "offset": 200159,
+      "lang": "en"
+    },
+    {
+      "text": "paste anything. You just describe what",
+      "duration": 3601,
+      "offset": 202239,
+      "lang": "en"
+    },
+    {
+      "text": "you need and it works directly within",
+      "duration": 4479,
+      "offset": 203840,
+      "lang": "en"
+    },
+    {
+      "text": "the files. Right? If you already use VS",
+      "duration": 4560,
+      "offset": 205840,
+      "lang": "en"
+    },
+    {
+      "text": "Code, Visual Studio Code, and you're",
+      "duration": 3441,
+      "offset": 208319,
+      "lang": "en"
+    },
+    {
+      "text": "open to trying it, this is actually",
+      "duration": 3119,
+      "offset": 210400,
+      "lang": "en"
+    },
+    {
+      "text": "where I'd start. For those of you who've",
+      "duration": 4080,
+      "offset": 211760,
+      "lang": "en"
+    },
+    {
+      "text": "never opened VS Code before, we'll get",
+      "duration": 4401,
+      "offset": 213519,
+      "lang": "en"
+    },
+    {
+      "text": "you set up in the hands-on section, and",
+      "duration": 4000,
+      "offset": 215840,
+      "lang": "en"
+    },
+    {
+      "text": "it's simpler than it looks. But just",
+      "duration": 3280,
+      "offset": 217920,
+      "lang": "en"
+    },
+    {
+      "text": "keep that note. I'm going to walk you",
+      "duration": 2640,
+      "offset": 219840,
+      "lang": "en"
+    },
+    {
+      "text": "through install instructions and",
+      "duration": 3200,
+      "offset": 221200,
+      "lang": "en"
+    },
+    {
+      "text": "everything for that. There's also just",
+      "duration": 4160,
+      "offset": 222480,
+      "lang": "en"
+    },
+    {
+      "text": "the most generic way to use it, which is",
+      "duration": 3919,
+      "offset": 224400,
+      "lang": "en"
+    },
+    {
+      "text": "clawed through the terminal. Uh, it's",
+      "duration": 3679,
+      "offset": 226640,
+      "lang": "en"
+    },
+    {
+      "text": "the same engine under the hood, but a",
+      "duration": 3761,
+      "offset": 228319,
+      "lang": "en"
+    },
+    {
+      "text": "kind of different wrapper. The terminal",
+      "duration": 3521,
+      "offset": 230319,
+      "lang": "en"
+    },
+    {
+      "text": "version is better for when your work",
+      "duration": 3840,
+      "offset": 232080,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't live in a code project.",
+      "duration": 3920,
+      "offset": 233840,
+      "lang": "en"
+    },
+    {
+      "text": "Processing a folder of documents,",
+      "duration": 3360,
+      "offset": 235920,
+      "lang": "en"
+    },
+    {
+      "text": "managing files, cleaning up your",
+      "duration": 3280,
+      "offset": 237760,
+      "lang": "en"
+    },
+    {
+      "text": "downloads folder, anything where you",
+      "duration": 3360,
+      "offset": 239280,
+      "lang": "en"
+    },
+    {
+      "text": "just need Claude to read a bunch of",
+      "duration": 3680,
+      "offset": 241040,
+      "lang": "en"
+    },
+    {
+      "text": "files and do something with them. You",
+      "duration": 3440,
+      "offset": 242640,
+      "lang": "en"
+    },
+    {
+      "text": "don't need this one to get value from",
+      "duration": 2799,
+      "offset": 244720,
+      "lang": "en"
+    },
+    {
+      "text": "this course, but if you're already",
+      "duration": 2960,
+      "offset": 246080,
+      "lang": "en"
+    },
+    {
+      "text": "comfortable in the terminal, it's",
+      "duration": 3201,
+      "offset": 247519,
+      "lang": "en"
+    },
+    {
+      "text": "actually faster for some jobs, and I do",
+      "duration": 4000,
+      "offset": 249040,
+      "lang": "en"
+    },
+    {
+      "text": "it once in a while. And this is the",
+      "duration": 4480,
+      "offset": 250720,
+      "lang": "en"
+    },
+    {
+      "text": "thing that most people miss. It's not",
+      "duration": 6240,
+      "offset": 253040,
+      "lang": "en"
+    },
+    {
+      "text": "three different AIs. It's one model,",
+      "duration": 6480,
+      "offset": 255200,
+      "lang": "en"
+    },
+    {
+      "text": "three different ways to access it.",
+      "duration": 3680,
+      "offset": 259280,
+      "lang": "en"
+    },
+    {
+      "text": "Technically, there's a little bit of",
+      "duration": 2959,
+      "offset": 261680,
+      "lang": "en"
+    },
+    {
+      "text": "fine-tuning difference with cloud code",
+      "duration": 3600,
+      "offset": 262960,
+      "lang": "en"
+    },
+    {
+      "text": "and whatnot, but at the end of the day,",
+      "duration": 4961,
+      "offset": 264639,
+      "lang": "en"
+    },
+    {
+      "text": "the desktop is a conversation layer, VS",
+      "duration": 5520,
+      "offset": 266560,
+      "lang": "en"
+    },
+    {
+      "text": "Code is an editor layer, and the",
+      "duration": 5200,
+      "offset": 269600,
+      "lang": "en"
+    },
+    {
+      "text": "terminal is the command line layer. Same",
+      "duration": 4800,
+      "offset": 272080,
+      "lang": "en"
+    },
+    {
+      "text": "brain behind all three. The difference",
+      "duration": 4399,
+      "offset": 274800,
+      "lang": "en"
+    },
+    {
+      "text": "is what each interface lets that brain",
+      "duration": 5680,
+      "offset": 276880,
+      "lang": "en"
+    },
+    {
+      "text": "see and do. Although quick note, there's",
+      "duration": 5361,
+      "offset": 279199,
+      "lang": "en"
+    },
+    {
+      "text": "things out there called Cursor or",
+      "duration": 4240,
+      "offset": 282560,
+      "lang": "en"
+    },
+    {
+      "text": "Windsurf or Copilot or Google's",
+      "duration": 4800,
+      "offset": 284560,
+      "lang": "en"
+    },
+    {
+      "text": "anti-gravity and those are completely",
+      "duration": 4480,
+      "offset": 286800,
+      "lang": "en"
+    },
+    {
+      "text": "different products that are built on top",
+      "duration": 4880,
+      "offset": 289360,
+      "lang": "en"
+    },
+    {
+      "text": "of VS Code. So VS Code is the source",
+      "duration": 5600,
+      "offset": 291280,
+      "lang": "en"
+    },
+    {
+      "text": "IDE, right? An interface for developer",
+      "duration": 5840,
+      "offset": 294240,
+      "lang": "en"
+    },
+    {
+      "text": "environments, but the uh actual",
+      "duration": 5200,
+      "offset": 296880,
+      "lang": "en"
+    },
+    {
+      "text": "buildings or the interface or the layers",
+      "duration": 4000,
+      "offset": 300080,
+      "lang": "en"
+    },
+    {
+      "text": "are just supporting different models or",
+      "duration": 3839,
+      "offset": 302080,
+      "lang": "en"
+    },
+    {
+      "text": "different processes. Some of them",
+      "duration": 4640,
+      "offset": 304080,
+      "lang": "en"
+    },
+    {
+      "text": "actually use clawed and some don't. some",
+      "duration": 5361,
+      "offset": 305919,
+      "lang": "en"
+    },
+    {
+      "text": "mix multiple models and I do have an",
+      "duration": 4400,
+      "offset": 308720,
+      "lang": "en"
+    },
+    {
+      "text": "entirely separate course diving into the",
+      "duration": 3840,
+      "offset": 311280,
+      "lang": "en"
+    },
+    {
+      "text": "pros and cons of each of them which one",
+      "duration": 3919,
+      "offset": 313120,
+      "lang": "en"
+    },
+    {
+      "text": "you actually want and breaks it down but",
+      "duration": 4560,
+      "offset": 315120,
+      "lang": "en"
+    },
+    {
+      "text": "this course is specifically for Claude's",
+      "duration": 4641,
+      "offset": 317039,
+      "lang": "en"
+    },
+    {
+      "text": "tools and the way inside of the",
+      "duration": 3760,
+      "offset": 319680,
+      "lang": "en"
+    },
+    {
+      "text": "enthropic environment and that's all",
+      "duration": 3280,
+      "offset": 321680,
+      "lang": "en"
+    },
+    {
+      "text": "we'll covering here. Now let me show you",
+      "duration": 3440,
+      "offset": 323440,
+      "lang": "en"
+    },
+    {
+      "text": "what the difference between all of these",
+      "duration": 3760,
+      "offset": 324960,
+      "lang": "en"
+    },
+    {
+      "text": "kind of looks like uh just really quick",
+      "duration": 3520,
+      "offset": 326880,
+      "lang": "en"
+    },
+    {
+      "text": "off the bat if you've never used any of",
+      "duration": 4400,
+      "offset": 328720,
+      "lang": "en"
+    },
+    {
+      "text": "them. So, first of all, we have clawed",
+      "duration": 5120,
+      "offset": 330400,
+      "lang": "en"
+    },
+    {
+      "text": "desktop or the clawed normal one that",
+      "duration": 3760,
+      "offset": 333120,
+      "lang": "en"
+    },
+    {
+      "text": "you're actually going in through there.",
+      "duration": 3200,
+      "offset": 335520,
+      "lang": "en"
+    },
+    {
+      "text": "And let's say I wanted to just be able",
+      "duration": 3680,
+      "offset": 336880,
+      "lang": "en"
+    },
+    {
+      "text": "to summarize a document, right? We come",
+      "duration": 4080,
+      "offset": 338720,
+      "lang": "en"
+    },
+    {
+      "text": "in, we have to go find the document",
+      "duration": 4320,
+      "offset": 340560,
+      "lang": "en"
+    },
+    {
+      "text": "wherever we had put it. We come in, we",
+      "duration": 4560,
+      "offset": 342800,
+      "lang": "en"
+    },
+    {
+      "text": "open it, we upload it, and then from",
+      "duration": 4560,
+      "offset": 344880,
+      "lang": "en"
+    },
+    {
+      "text": "there I can say summarize this Python",
+      "duration": 4000,
+      "offset": 347360,
+      "lang": "en"
+    },
+    {
+      "text": "breakdown PDF and suggest three",
+      "duration": 3759,
+      "offset": 349440,
+      "lang": "en"
+    },
+    {
+      "text": "improvements. And it's going to go ahead",
+      "duration": 3119,
+      "offset": 351360,
+      "lang": "en"
+    },
+    {
+      "text": "and it's going to go through and do",
+      "duration": 3521,
+      "offset": 353199,
+      "lang": "en"
+    },
+    {
+      "text": "that. Right now, I'm using Opus 4.6,",
+      "duration": 4401,
+      "offset": 354479,
+      "lang": "en"
+    },
+    {
+      "text": "which is the more powerful one. Um, and",
+      "duration": 4080,
+      "offset": 356720,
+      "lang": "en"
+    },
+    {
+      "text": "it's doing a pretty good job, right? as",
+      "duration": 4080,
+      "offset": 358880,
+      "lang": "en"
+    },
+    {
+      "text": "good. That's good. It's nice and I'm",
+      "duration": 3360,
+      "offset": 360800,
+      "lang": "en"
+    },
+    {
+      "text": "sure it's going to be a great one when",
+      "duration": 3840,
+      "offset": 362960,
+      "lang": "en"
+    },
+    {
+      "text": "we're done with this, right? But then",
+      "duration": 5440,
+      "offset": 364160,
+      "lang": "en"
+    },
+    {
+      "text": "from there, I actually want to be able",
+      "duration": 5600,
+      "offset": 366800,
+      "lang": "en"
+    },
+    {
+      "text": "to possibly use VS Code, right? And so",
+      "duration": 4240,
+      "offset": 369600,
+      "lang": "en"
+    },
+    {
+      "text": "this is what it looks like, right? This",
+      "duration": 3280,
+      "offset": 372400,
+      "lang": "en"
+    },
+    {
+      "text": "is your VS Code. You have your file",
+      "duration": 3440,
+      "offset": 373840,
+      "lang": "en"
+    },
+    {
+      "text": "explorer here where you're able to see",
+      "duration": 2880,
+      "offset": 375680,
+      "lang": "en"
+    },
+    {
+      "text": "all your files and you'd be able to",
+      "duration": 3520,
+      "offset": 377280,
+      "lang": "en"
+    },
+    {
+      "text": "break them down. You I have an extension",
+      "duration": 4000,
+      "offset": 378560,
+      "lang": "en"
+    },
+    {
+      "text": "that allows me to open a whole bunch of",
+      "duration": 4160,
+      "offset": 380800,
+      "lang": "en"
+    },
+    {
+      "text": "CL code tabs. That's another immediate",
+      "duration": 4000,
+      "offset": 382560,
+      "lang": "en"
+    },
+    {
+      "text": "usefulness out of this is the fact that",
+      "duration": 3040,
+      "offset": 384960,
+      "lang": "en"
+    },
+    {
+      "text": "I can have a whole bunch of",
+      "duration": 3199,
+      "offset": 386560,
+      "lang": "en"
+    },
+    {
+      "text": "conversations all going at once and I",
+      "duration": 3919,
+      "offset": 388000,
+      "lang": "en"
+    },
+    {
+      "text": "can swap between them. But it's the same",
+      "duration": 4321,
+      "offset": 389759,
+      "lang": "en"
+    },
+    {
+      "text": "aspect except this time I can just say",
+      "duration": 4400,
+      "offset": 391919,
+      "lang": "en"
+    },
+    {
+      "text": "summarize Python breakdown PDF. It's",
+      "duration": 3600,
+      "offset": 394080,
+      "lang": "en"
+    },
+    {
+      "text": "going to immediately know which file",
+      "duration": 2961,
+      "offset": 396319,
+      "lang": "en"
+    },
+    {
+      "text": "we're in. It's going to go find it and",
+      "duration": 3280,
+      "offset": 397680,
+      "lang": "en"
+    },
+    {
+      "text": "it's going to go read and search through",
+      "duration": 3440,
+      "offset": 399280,
+      "lang": "en"
+    },
+    {
+      "text": "it immediately. So that's already one",
+      "duration": 4320,
+      "offset": 400960,
+      "lang": "en"
+    },
+    {
+      "text": "less layer of work that you have to do",
+      "duration": 4160,
+      "offset": 402720,
+      "lang": "en"
+    },
+    {
+      "text": "and it still does all the same good",
+      "duration": 3600,
+      "offset": 405280,
+      "lang": "en"
+    },
+    {
+      "text": "stuff that the normal 4.6 would there",
+      "duration": 3840,
+      "offset": 406880,
+      "lang": "en"
+    },
+    {
+      "text": "be. You can also do the same thing",
+      "duration": 4319,
+      "offset": 408880,
+      "lang": "en"
+    },
+    {
+      "text": "inside of uh the terminal. I have this",
+      "duration": 5120,
+      "offset": 410720,
+      "lang": "en"
+    },
+    {
+      "text": "terminal open inside of this file here,",
+      "duration": 5120,
+      "offset": 413199,
+      "lang": "en"
+    },
+    {
+      "text": "right? As simple as this. I come in, I",
+      "duration": 4799,
+      "offset": 415840,
+      "lang": "en"
+    },
+    {
+      "text": "open, I hit open terminal, and it",
+      "duration": 4160,
+      "offset": 418319,
+      "lang": "en"
+    },
+    {
+      "text": "immediately is inside this folder,",
+      "duration": 4241,
+      "offset": 420639,
+      "lang": "en"
+    },
+    {
+      "text": "right? I just type claude and it opens",
+      "duration": 4321,
+      "offset": 422479,
+      "lang": "en"
+    },
+    {
+      "text": "it up. And I can say the same thing",
+      "duration": 4319,
+      "offset": 424880,
+      "lang": "en"
+    },
+    {
+      "text": "here. Same power as the VS Code one,",
+      "duration": 3920,
+      "offset": 426800,
+      "lang": "en"
+    },
+    {
+      "text": "except the difference is I have to read",
+      "duration": 3521,
+      "offset": 429199,
+      "lang": "en"
+    },
+    {
+      "text": "everything inside the child. Again,",
+      "duration": 4640,
+      "offset": 430720,
+      "lang": "en"
+    },
+    {
+      "text": "something nice, but it just depends on",
+      "duration": 4800,
+      "offset": 432720,
+      "lang": "en"
+    },
+    {
+      "text": "what you kind of want there. Now, the",
+      "duration": 3600,
+      "offset": 435360,
+      "lang": "en"
+    },
+    {
+      "text": "pattern here is pretty straightforward",
+      "duration": 2799,
+      "offset": 437520,
+      "lang": "en"
+    },
+    {
+      "text": "if you haven't noticed, right? The",
+      "duration": 3359,
+      "offset": 438960,
+      "lang": "en"
+    },
+    {
+      "text": "normal clawed chat is just for good",
+      "duration": 3681,
+      "offset": 440319,
+      "lang": "en"
+    },
+    {
+      "text": "conversation and some work that you just",
+      "duration": 3361,
+      "offset": 442319,
+      "lang": "en"
+    },
+    {
+      "text": "want to bust out quickly. It's also good",
+      "duration": 4080,
+      "offset": 444000,
+      "lang": "en"
+    },
+    {
+      "text": "for finding memory. Code is more for",
+      "duration": 4079,
+      "offset": 445680,
+      "lang": "en"
+    },
+    {
+      "text": "action, right? Being able to quickly",
+      "duration": 3760,
+      "offset": 448080,
+      "lang": "en"
+    },
+    {
+      "text": "scale things, right? It's not as useful",
+      "duration": 3601,
+      "offset": 449759,
+      "lang": "en"
+    },
+    {
+      "text": "the difference in one file, but as soon",
+      "duration": 3280,
+      "offset": 451840,
+      "lang": "en"
+    },
+    {
+      "text": "as I have a 100 files that I need to",
+      "duration": 3839,
+      "offset": 453360,
+      "lang": "en"
+    },
+    {
+      "text": "roll through, it's much easier to",
+      "duration": 4799,
+      "offset": 455120,
+      "lang": "en"
+    },
+    {
+      "text": "actually use cla code. The difference is",
+      "duration": 4641,
+      "offset": 457199,
+      "lang": "en"
+    },
+    {
+      "text": "simply what they can touch and how they",
+      "duration": 3680,
+      "offset": 459919,
+      "lang": "en"
+    },
+    {
+      "text": "access it. The row worth paying",
+      "duration": 3440,
+      "offset": 461840,
+      "lang": "en"
+    },
+    {
+      "text": "attention to on this chart is the",
+      "duration": 4241,
+      "offset": 463599,
+      "lang": "en"
+    },
+    {
+      "text": "iterate on output. With the normal chat",
+      "duration": 4639,
+      "offset": 465280,
+      "lang": "en"
+    },
+    {
+      "text": "one, you have to read the response,",
+      "duration": 4160,
+      "offset": 467840,
+      "lang": "en"
+    },
+    {
+      "text": "decides what's wrong, copy it, start",
+      "duration": 4641,
+      "offset": 469919,
+      "lang": "en"
+    },
+    {
+      "text": "again. But with cloud code, you can say",
+      "duration": 4639,
+      "offset": 472000,
+      "lang": "en"
+    },
+    {
+      "text": "that's not right. Fix this and move it",
+      "duration": 3759,
+      "offset": 474560,
+      "lang": "en"
+    },
+    {
+      "text": "into a separate folder. You can break",
+      "duration": 4240,
+      "offset": 476639,
+      "lang": "en"
+    },
+    {
+      "text": "down your processes as you're going",
+      "duration": 4880,
+      "offset": 478319,
+      "lang": "en"
+    },
+    {
+      "text": "along and you're delegating instead of",
+      "duration": 4641,
+      "offset": 480879,
+      "lang": "en"
+    },
+    {
+      "text": "rounds of copy and paste in a single",
+      "duration": 4241,
+      "offset": 483199,
+      "lang": "en"
+    },
+    {
+      "text": "chat environment. For those of you who",
+      "duration": 4079,
+      "offset": 485520,
+      "lang": "en"
+    },
+    {
+      "text": "have been using the chat or the desktop",
+      "duration": 3680,
+      "offset": 487440,
+      "lang": "en"
+    },
+    {
+      "text": "and feel like you're getting these",
+      "duration": 3521,
+      "offset": 489599,
+      "lang": "en"
+    },
+    {
+      "text": "issues or there's a lot of manual work",
+      "duration": 4240,
+      "offset": 491120,
+      "lang": "en"
+    },
+    {
+      "text": "to kind of continuously get good results",
+      "duration": 4960,
+      "offset": 493120,
+      "lang": "en"
+    },
+    {
+      "text": "even if you copy and paste prompts. This",
+      "duration": 5679,
+      "offset": 495360,
+      "lang": "en"
+    },
+    {
+      "text": "is exactly why your interface is playing",
+      "duration": 5679,
+      "offset": 498080,
+      "lang": "en"
+    },
+    {
+      "text": "the middleman stopping you from working",
+      "duration": 4720,
+      "offset": 501039,
+      "lang": "en"
+    },
+    {
+      "text": "as well. The folder structure being able",
+      "duration": 4560,
+      "offset": 503759,
+      "lang": "en"
+    },
+    {
+      "text": "to access files. All of this is",
+      "duration": 5840,
+      "offset": 505759,
+      "lang": "en"
+    },
+    {
+      "text": "extremely important. Now again I use VS",
+      "duration": 5200,
+      "offset": 508319,
+      "lang": "en"
+    },
+    {
+      "text": "Code extension for almost everything.",
+      "duration": 4000,
+      "offset": 511599,
+      "lang": "en"
+    },
+    {
+      "text": "I'm in VS Code anyway for most of my",
+      "duration": 3681,
+      "offset": 513519,
+      "lang": "en"
+    },
+    {
+      "text": "projects because I do a lot of coding.",
+      "duration": 3120,
+      "offset": 515599,
+      "lang": "en"
+    },
+    {
+      "text": "So having Claude right there in the",
+      "duration": 3279,
+      "offset": 517200,
+      "lang": "en"
+    },
+    {
+      "text": "sidebar and being able to open multiple",
+      "duration": 4000,
+      "offset": 518719,
+      "lang": "en"
+    },
+    {
+      "text": "work trees is the fastest path. The",
+      "duration": 3680,
+      "offset": 520479,
+      "lang": "en"
+    },
+    {
+      "text": "terminal is nice if I want to go",
+      "duration": 3201,
+      "offset": 522719,
+      "lang": "en"
+    },
+    {
+      "text": "quickly, but most of the time I just",
+      "duration": 4321,
+      "offset": 524159,
+      "lang": "en"
+    },
+    {
+      "text": "open up VS Code anyway. The desktop is",
+      "duration": 4240,
+      "offset": 525920,
+      "lang": "en"
+    },
+    {
+      "text": "something that I can use from anywhere.",
+      "duration": 3440,
+      "offset": 528480,
+      "lang": "en"
+    },
+    {
+      "text": "Even though you can do remote access",
+      "duration": 4000,
+      "offset": 530160,
+      "lang": "en"
+    },
+    {
+      "text": "with the VS Code terminal now, so I can",
+      "duration": 4320,
+      "offset": 531920,
+      "lang": "en"
+    },
+    {
+      "text": "use it on my phone. It's just sometimes",
+      "duration": 3920,
+      "offset": 534160,
+      "lang": "en"
+    },
+    {
+      "text": "a cleaner interface for when I'm not",
+      "duration": 4240,
+      "offset": 536240,
+      "lang": "en"
+    },
+    {
+      "text": "doing as deep stuff. Now, your setup",
+      "duration": 3840,
+      "offset": 538080,
+      "lang": "en"
+    },
+    {
+      "text": "might look a little bit different from",
+      "duration": 3280,
+      "offset": 540480,
+      "lang": "en"
+    },
+    {
+      "text": "mine if you're on Mac or you're, you",
+      "duration": 3200,
+      "offset": 541920,
+      "lang": "en"
+    },
+    {
+      "text": "know, different colors and stuff like",
+      "duration": 3360,
+      "offset": 543760,
+      "lang": "en"
+    },
+    {
+      "text": "that. That's fine. Some people end up",
+      "duration": 4399,
+      "offset": 545120,
+      "lang": "en"
+    },
+    {
+      "text": "using desktop 80% of the time because",
+      "duration": 3920,
+      "offset": 547120,
+      "lang": "en"
+    },
+    {
+      "text": "their work is mostly thinking and",
+      "duration": 4081,
+      "offset": 549519,
+      "lang": "en"
+    },
+    {
+      "text": "planning anyway. So, some of you might",
+      "duration": 4160,
+      "offset": 551040,
+      "lang": "en"
+    },
+    {
+      "text": "live in the terminal for whatever",
+      "duration": 3040,
+      "offset": 553600,
+      "lang": "en"
+    },
+    {
+      "text": "reasons, right? Just being able to use",
+      "duration": 3680,
+      "offset": 555200,
+      "lang": "en"
+    },
+    {
+      "text": "those commands. But the point is knowing",
+      "duration": 5440,
+      "offset": 556640,
+      "lang": "en"
+    },
+    {
+      "text": "that each one is good for you in",
+      "duration": 5360,
+      "offset": 558880,
+      "lang": "en"
+    },
+    {
+      "text": "specific areas. So just pick the right",
+      "duration": 4240,
+      "offset": 562080,
+      "lang": "en"
+    },
+    {
+      "text": "one and what you like working with and",
+      "duration": 4000,
+      "offset": 564240,
+      "lang": "en"
+    },
+    {
+      "text": "feels right for you rather than just",
+      "duration": 3199,
+      "offset": 566320,
+      "lang": "en"
+    },
+    {
+      "text": "forcing everything through one",
+      "duration": 3120,
+      "offset": 568240,
+      "lang": "en"
+    },
+    {
+      "text": "interface. Just play around with it. See",
+      "duration": 4000,
+      "offset": 569519,
+      "lang": "en"
+    },
+    {
+      "text": "what you like.",
+      "duration": 4720,
+      "offset": 571360,
+      "lang": "en"
+    },
+    {
+      "text": "The desktop is kind of the easiest to",
+      "duration": 5121,
+      "offset": 573519,
+      "lang": "en"
+    },
+    {
+      "text": "use. It's the least control over what",
+      "duration": 6480,
+      "offset": 576080,
+      "lang": "en"
+    },
+    {
+      "text": "Claude can do. The terminal is flexible.",
+      "duration": 6400,
+      "offset": 578640,
+      "lang": "en"
+    },
+    {
+      "text": "Uh arguably the most flexible because",
+      "duration": 4320,
+      "offset": 582560,
+      "lang": "en"
+    },
+    {
+      "text": "you can kind of open it up anywhere and",
+      "duration": 3520,
+      "offset": 585040,
+      "lang": "en"
+    },
+    {
+      "text": "you can open multiple terminals in",
+      "duration": 3200,
+      "offset": 586880,
+      "lang": "en"
+    },
+    {
+      "text": "different ways and bounce between it.",
+      "duration": 3600,
+      "offset": 588560,
+      "lang": "en"
+    },
+    {
+      "text": "But it's kind of a weird learning curve",
+      "duration": 4400,
+      "offset": 590080,
+      "lang": "en"
+    },
+    {
+      "text": "is not as visual. But at the end of the",
+      "duration": 4400,
+      "offset": 592160,
+      "lang": "en"
+    },
+    {
+      "text": "day, the VS Code one is this middle",
+      "duration": 4240,
+      "offset": 594480,
+      "lang": "en"
+    },
+    {
+      "text": "ground. I think it gives you this",
+      "duration": 4080,
+      "offset": 596560,
+      "lang": "en"
+    },
+    {
+      "text": "familiar editor if you're used to it or",
+      "duration": 4320,
+      "offset": 598720,
+      "lang": "en"
+    },
+    {
+      "text": "at least an area to see. And it has the",
+      "duration": 5120,
+      "offset": 600640,
+      "lang": "en"
+    },
+    {
+      "text": "full power of the normal claw code.",
+      "duration": 4160,
+      "offset": 603040,
+      "lang": "en"
+    },
+    {
+      "text": "Okay, you might have noticed that the",
+      "duration": 3120,
+      "offset": 605760,
+      "lang": "en"
+    },
+    {
+      "text": "lighting has changed and I have changed",
+      "duration": 3280,
+      "offset": 607200,
+      "lang": "en"
+    },
+    {
+      "text": "my shirt as well as my hair. That is",
+      "duration": 3040,
+      "offset": 608880,
+      "lang": "en"
+    },
+    {
+      "text": "because it is the next day. I am",
+      "duration": 2720,
+      "offset": 610480,
+      "lang": "en"
+    },
+    {
+      "text": "recording all of this, building",
+      "duration": 2880,
+      "offset": 611920,
+      "lang": "en"
+    },
+    {
+      "text": "everything that you're seeing. So, just",
+      "duration": 2800,
+      "offset": 613200,
+      "lang": "en"
+    },
+    {
+      "text": "friendly reminder, I'm doing this all on",
+      "duration": 3920,
+      "offset": 614800,
+      "lang": "en"
+    },
+    {
+      "text": "my own and this is free. So, uh just",
+      "duration": 4480,
+      "offset": 616000,
+      "lang": "en"
+    },
+    {
+      "text": "bear with me here. trying a little hard.",
+      "duration": 3280,
+      "offset": 618720,
+      "lang": "en"
+    },
+    {
+      "text": "But let's go ahead and go into",
+      "duration": 3599,
+      "offset": 620480,
+      "lang": "en"
+    },
+    {
+      "text": "installations of all of these, right?",
+      "duration": 3200,
+      "offset": 622000,
+      "lang": "en"
+    },
+    {
+      "text": "So, we're not just going to look at one,",
+      "duration": 2561,
+      "offset": 624079,
+      "lang": "en"
+    },
+    {
+      "text": "we're going to look at all of them. So,",
+      "duration": 4480,
+      "offset": 625200,
+      "lang": "en"
+    },
+    {
+      "text": "to include",
+      "duration": 5680,
+      "offset": 626640,
+      "lang": "en"
+    },
+    {
+      "text": "desktop, it's actually quite simple. Uh,",
+      "duration": 6399,
+      "offset": 629680,
+      "lang": "en"
+    },
+    {
+      "text": "you just go Claude Desktop. Um, you can",
+      "duration": 5920,
+      "offset": 632320,
+      "lang": "en"
+    },
+    {
+      "text": "look straight on, you know, anywhere.",
+      "duration": 3521,
+      "offset": 636079,
+      "lang": "en"
+    },
+    {
+      "text": "Download Claude. You're going to make",
+      "duration": 3599,
+      "offset": 638240,
+      "lang": "en"
+    },
+    {
+      "text": "sure it's actually from Anthropic from",
+      "duration": 4080,
+      "offset": 639600,
+      "lang": "en"
+    },
+    {
+      "text": "Claude. You're going to look, are you on",
+      "duration": 4240,
+      "offset": 641839,
+      "lang": "en"
+    },
+    {
+      "text": "Mac? Are you on Windows? Or are you ARM",
+      "duration": 4480,
+      "offset": 643680,
+      "lang": "en"
+    },
+    {
+      "text": "65? For those of you who are curious",
+      "duration": 4161,
+      "offset": 646079,
+      "lang": "en"
+    },
+    {
+      "text": "what that even means, there's certain",
+      "duration": 4640,
+      "offset": 648160,
+      "lang": "en"
+    },
+    {
+      "text": "ways in which your operating system",
+      "duration": 4880,
+      "offset": 650240,
+      "lang": "en"
+    },
+    {
+      "text": "works and the way it's coded. Most of",
+      "duration": 4400,
+      "offset": 652800,
+      "lang": "en"
+    },
+    {
+      "text": "you are just going to be normal Windows.",
+      "duration": 4560,
+      "offset": 655120,
+      "lang": "en"
+    },
+    {
+      "text": "If you ever need to check if you are ARM",
+      "duration": 4480,
+      "offset": 657200,
+      "lang": "en"
+    },
+    {
+      "text": "65, it has to do with the type of",
+      "duration": 4719,
+      "offset": 659680,
+      "lang": "en"
+    },
+    {
+      "text": "processor that you have. Um, if you're",
+      "duration": 5120,
+      "offset": 661680,
+      "lang": "en"
+    },
+    {
+      "text": "on Windows, you simply just type in",
+      "duration": 6081,
+      "offset": 664399,
+      "lang": "en"
+    },
+    {
+      "text": "settings. You go to settings. You go to",
+      "duration": 7599,
+      "offset": 666800,
+      "lang": "en"
+    },
+    {
+      "text": "uh system right here under system. Then",
+      "duration": 5440,
+      "offset": 670480,
+      "lang": "en"
+    },
+    {
+      "text": "you're going to scroll all the way down",
+      "duration": 3120,
+      "offset": 674399,
+      "lang": "en"
+    },
+    {
+      "text": "and it should have something called",
+      "duration": 3919,
+      "offset": 675920,
+      "lang": "en"
+    },
+    {
+      "text": "about. This is on Windows 11. Obviously,",
+      "duration": 4081,
+      "offset": 677519,
+      "lang": "en"
+    },
+    {
+      "text": "you could find this roughly the same on",
+      "duration": 4560,
+      "offset": 679839,
+      "lang": "en"
+    },
+    {
+      "text": "any other one. And if you look at this,",
+      "duration": 5040,
+      "offset": 681600,
+      "lang": "en"
+    },
+    {
+      "text": "it should say Windows specifications and",
+      "duration": 4560,
+      "offset": 684399,
+      "lang": "en"
+    },
+    {
+      "text": "device specifications. Under system",
+      "duration": 5360,
+      "offset": 686640,
+      "lang": "en"
+    },
+    {
+      "text": "type, it should say 64bit",
+      "duration": 6161,
+      "offset": 688959,
+      "lang": "en"
+    },
+    {
+      "text": "operating system on x64-based",
+      "duration": 5440,
+      "offset": 692000,
+      "lang": "en"
+    },
+    {
+      "text": "processor. That's the standard Windows.",
+      "duration": 4399,
+      "offset": 695120,
+      "lang": "en"
+    },
+    {
+      "text": "That's the normal um sometimes they'll",
+      "duration": 4639,
+      "offset": 697440,
+      "lang": "en"
+    },
+    {
+      "text": "say x86, which is technically similar.",
+      "duration": 5281,
+      "offset": 699519,
+      "lang": "en"
+    },
+    {
+      "text": "it would actually say uh 64-base",
+      "duration": 5521,
+      "offset": 702079,
+      "lang": "en"
+    },
+    {
+      "text": "ARMbased processor if you had an ARM",
+      "duration": 5680,
+      "offset": 704800,
+      "lang": "en"
+    },
+    {
+      "text": "system. Um some AMD processors, right, I",
+      "duration": 5840,
+      "offset": 707600,
+      "lang": "en"
+    },
+    {
+      "text": "have an AMD Ryzen 9 um are similar in",
+      "duration": 4640,
+      "offset": 710480,
+      "lang": "en"
+    },
+    {
+      "text": "that way. Just a kind of certain note",
+      "duration": 3600,
+      "offset": 713440,
+      "lang": "en"
+    },
+    {
+      "text": "there for those who are curious if you",
+      "duration": 4240,
+      "offset": 715120,
+      "lang": "en"
+    },
+    {
+      "text": "want to dive into um why that's the",
+      "duration": 4160,
+      "offset": 717040,
+      "lang": "en"
+    },
+    {
+      "text": "case, what any of that means. It has to",
+      "duration": 4240,
+      "offset": 719360,
+      "lang": "en"
+    },
+    {
+      "text": "do with um actual instructions for the",
+      "duration": 4560,
+      "offset": 721200,
+      "lang": "en"
+    },
+    {
+      "text": "processor and lower languages. I'll",
+      "duration": 4400,
+      "offset": 723600,
+      "lang": "en"
+    },
+    {
+      "text": "probably make a course on that later on.",
+      "duration": 4160,
+      "offset": 725760,
+      "lang": "en"
+    },
+    {
+      "text": "Uh but let me know if that's something",
+      "duration": 4160,
+      "offset": 728000,
+      "lang": "en"
+    },
+    {
+      "text": "you need. So, you download it and then",
+      "duration": 3919,
+      "offset": 729920,
+      "lang": "en"
+    },
+    {
+      "text": "all you're going to do is actually just",
+      "duration": 4160,
+      "offset": 732160,
+      "lang": "en"
+    },
+    {
+      "text": "click install. Um, I think I had one",
+      "duration": 4000,
+      "offset": 733839,
+      "lang": "en"
+    },
+    {
+      "text": "downloaded. Yep. And you'll just click",
+      "duration": 4000,
+      "offset": 736320,
+      "lang": "en"
+    },
+    {
+      "text": "Claude setup and it'll install it. You",
+      "duration": 4401,
+      "offset": 737839,
+      "lang": "en"
+    },
+    {
+      "text": "give it permissions and then boop. It's",
+      "duration": 3680,
+      "offset": 740320,
+      "lang": "en"
+    },
+    {
+      "text": "just like if you were using Claude, the",
+      "duration": 5200,
+      "offset": 742240,
+      "lang": "en"
+    },
+    {
+      "text": "initial one um uh anywhere else you log",
+      "duration": 6560,
+      "offset": 744000,
+      "lang": "en"
+    },
+    {
+      "text": "in. Now, I have the uh Max account. So,",
+      "duration": 4880,
+      "offset": 747440,
+      "lang": "en"
+    },
+    {
+      "text": "I also get access to something called",
+      "duration": 4320,
+      "offset": 750560,
+      "lang": "en"
+    },
+    {
+      "text": "Clo Co-work uh which is a version of",
+      "duration": 4400,
+      "offset": 752320,
+      "lang": "en"
+    },
+    {
+      "text": "Claude Code that's able to work through",
+      "duration": 4480,
+      "offset": 754880,
+      "lang": "en"
+    },
+    {
+      "text": "all your folders inside of the app. Uh,",
+      "duration": 5040,
+      "offset": 756720,
+      "lang": "en"
+    },
+    {
+      "text": "so this is kind of like the chat plus",
+      "duration": 4479,
+      "offset": 759360,
+      "lang": "en"
+    },
+    {
+      "text": "the ability to actually use it. And then",
+      "duration": 3840,
+      "offset": 761760,
+      "lang": "en"
+    },
+    {
+      "text": "there's actual Claude code which is",
+      "duration": 4240,
+      "offset": 763839,
+      "lang": "en"
+    },
+    {
+      "text": "built around you selecting folders and",
+      "duration": 4320,
+      "offset": 765600,
+      "lang": "en"
+    },
+    {
+      "text": "being able to edit it, which we'll dive",
+      "duration": 3841,
+      "offset": 768079,
+      "lang": "en"
+    },
+    {
+      "text": "into a bit later. But that's it. It",
+      "duration": 4000,
+      "offset": 769920,
+      "lang": "en"
+    },
+    {
+      "text": "handles most of it for you. And it also",
+      "duration": 4000,
+      "offset": 771920,
+      "lang": "en"
+    },
+    {
+      "text": "helps you install claude code the",
+      "duration": 4240,
+      "offset": 773920,
+      "lang": "en"
+    },
+    {
+      "text": "non-manual way. So you should be able to",
+      "duration": 4240,
+      "offset": 775920,
+      "lang": "en"
+    },
+    {
+      "text": "do this in that way. However, I'm going",
+      "duration": 4160,
+      "offset": 778160,
+      "lang": "en"
+    },
+    {
+      "text": "to show you uh some ways to handle it so",
+      "duration": 3760,
+      "offset": 780160,
+      "lang": "en"
+    },
+    {
+      "text": "that you can have it directly on your",
+      "duration": 4400,
+      "offset": 782320,
+      "lang": "en"
+    },
+    {
+      "text": "system as well outside of Claude Code.",
+      "duration": 5039,
+      "offset": 783920,
+      "lang": "en"
+    },
+    {
+      "text": "Now, installing Claude Code, you do",
+      "duration": 4320,
+      "offset": 786720,
+      "lang": "en"
+    },
+    {
+      "text": "require to have certain things. You need",
+      "duration": 4560,
+      "offset": 788959,
+      "lang": "en"
+    },
+    {
+      "text": "something called NodeJS. Now, there's a",
+      "duration": 4080,
+      "offset": 791040,
+      "lang": "en"
+    },
+    {
+      "text": "couple ways to install this. You can",
+      "duration": 3601,
+      "offset": 793519,
+      "lang": "en"
+    },
+    {
+      "text": "even, if you just downloaded the app,",
+      "duration": 4399,
+      "offset": 795120,
+      "lang": "en"
+    },
+    {
+      "text": "you can actually go to code and have",
+      "duration": 5519,
+      "offset": 797120,
+      "lang": "en"
+    },
+    {
+      "text": "Cloud Code install it for you. However,",
+      "duration": 4320,
+      "offset": 799519,
+      "lang": "en"
+    },
+    {
+      "text": "for those of you who want to do it",
+      "duration": 2961,
+      "offset": 802639,
+      "lang": "en"
+    },
+    {
+      "text": "manually yourself, there's a couple",
+      "duration": 4321,
+      "offset": 803839,
+      "lang": "en"
+    },
+    {
+      "text": "ways. You can either go to Node.js,",
+      "duration": 4479,
+      "offset": 805600,
+      "lang": "en"
+    },
+    {
+      "text": "right? And you can just download their",
+      "duration": 4560,
+      "offset": 808160,
+      "lang": "en"
+    },
+    {
+      "text": "installer. It says get NodeJS. This is",
+      "duration": 5681,
+      "offset": 810079,
+      "lang": "en"
+    },
+    {
+      "text": "just essentially a JavaScript library",
+      "duration": 5760,
+      "offset": 812720,
+      "lang": "en"
+    },
+    {
+      "text": "that allows it to run on your computer.",
+      "duration": 5120,
+      "offset": 815760,
+      "lang": "en"
+    },
+    {
+      "text": "JavaScript is required for claude code",
+      "duration": 5039,
+      "offset": 818480,
+      "lang": "en"
+    },
+    {
+      "text": "to work a certain way. Um, sometimes",
+      "duration": 5120,
+      "offset": 820880,
+      "lang": "en"
+    },
+    {
+      "text": "this actually is installed with this and",
+      "duration": 4320,
+      "offset": 823519,
+      "lang": "en"
+    },
+    {
+      "text": "to a certain extent, but it generally",
+      "duration": 3120,
+      "offset": 826000,
+      "lang": "en"
+    },
+    {
+      "text": "isn't. So, you need to make sure that",
+      "duration": 3361,
+      "offset": 827839,
+      "lang": "en"
+    },
+    {
+      "text": "it's installed there. Once you have",
+      "duration": 5360,
+      "offset": 829120,
+      "lang": "en"
+    },
+    {
+      "text": "NodeJS installed, uh, you can then use",
+      "duration": 5520,
+      "offset": 831200,
+      "lang": "en"
+    },
+    {
+      "text": "something called an MPM command. Right?",
+      "duration": 3760,
+      "offset": 834480,
+      "lang": "en"
+    },
+    {
+      "text": "This is super useful. I think you all",
+      "duration": 3040,
+      "offset": 836720,
+      "lang": "en"
+    },
+    {
+      "text": "should, if you're diving into startups",
+      "duration": 2959,
+      "offset": 838240,
+      "lang": "en"
+    },
+    {
+      "text": "or anything like this, you should have",
+      "duration": 2800,
+      "offset": 839760,
+      "lang": "en"
+    },
+    {
+      "text": "this installed anyway because it makes",
+      "duration": 3200,
+      "offset": 841199,
+      "lang": "en"
+    },
+    {
+      "text": "life 10 times easier down the line",
+      "duration": 3680,
+      "offset": 842560,
+      "lang": "en"
+    },
+    {
+      "text": "whenever I'm doing animations or stuff",
+      "duration": 3361,
+      "offset": 844399,
+      "lang": "en"
+    },
+    {
+      "text": "like that. Being able to do what we're",
+      "duration": 3760,
+      "offset": 846240,
+      "lang": "en"
+    },
+    {
+      "text": "about to do here is really nice. So, you",
+      "duration": 3759,
+      "offset": 847760,
+      "lang": "en"
+    },
+    {
+      "text": "want to open the command prompt. There's",
+      "duration": 3120,
+      "offset": 850000,
+      "lang": "en"
+    },
+    {
+      "text": "a couple ways to do that. You can either",
+      "duration": 5521,
+      "offset": 851519,
+      "lang": "en"
+    },
+    {
+      "text": "just type in cmd. If you're on uh Mac,",
+      "duration": 5600,
+      "offset": 853120,
+      "lang": "en"
+    },
+    {
+      "text": "you want to type in your integrated",
+      "duration": 3599,
+      "offset": 857040,
+      "lang": "en"
+    },
+    {
+      "text": "terminal is probably what it would look",
+      "duration": 4080,
+      "offset": 858720,
+      "lang": "en"
+    },
+    {
+      "text": "like. It should pop up something similar",
+      "duration": 4481,
+      "offset": 860639,
+      "lang": "en"
+    },
+    {
+      "text": "to this. And all you're going to do if",
+      "duration": 5279,
+      "offset": 862800,
+      "lang": "en"
+    },
+    {
+      "text": "mpm was stalled prop properly and to",
+      "duration": 5440,
+      "offset": 865120,
+      "lang": "en"
+    },
+    {
+      "text": "your path uh which means essentially",
+      "duration": 4401,
+      "offset": 868079,
+      "lang": "en"
+    },
+    {
+      "text": "that your computer can access it from",
+      "duration": 3839,
+      "offset": 870560,
+      "lang": "en"
+    },
+    {
+      "text": "anywhere you should be able to put this",
+      "duration": 4640,
+      "offset": 872480,
+      "lang": "en"
+    },
+    {
+      "text": "command in it will actually install",
+      "duration": 6880,
+      "offset": 874399,
+      "lang": "en"
+    },
+    {
+      "text": "claude code directly from claude and",
+      "duration": 6240,
+      "offset": 877120,
+      "lang": "en"
+    },
+    {
+      "text": "enthropics data stores and it'll install",
+      "duration": 4641,
+      "offset": 881279,
+      "lang": "en"
+    },
+    {
+      "text": "it onto your computer. Again, if you're",
+      "duration": 4159,
+      "offset": 883360,
+      "lang": "en"
+    },
+    {
+      "text": "having trouble with this, you can",
+      "duration": 3760,
+      "offset": 885920,
+      "lang": "en"
+    },
+    {
+      "text": "actually install Claude through the",
+      "duration": 3760,
+      "offset": 887519,
+      "lang": "en"
+    },
+    {
+      "text": "desktop and have it help you walk",
+      "duration": 3680,
+      "offset": 889680,
+      "lang": "en"
+    },
+    {
+      "text": "through this or just use Cloud in",
+      "duration": 3761,
+      "offset": 891279,
+      "lang": "en"
+    },
+    {
+      "text": "general to kind of help you walk through",
+      "duration": 3919,
+      "offset": 893360,
+      "lang": "en"
+    },
+    {
+      "text": "it. I highly recommend that as I may",
+      "duration": 3760,
+      "offset": 895040,
+      "lang": "en"
+    },
+    {
+      "text": "miss something that your computer",
+      "duration": 3601,
+      "offset": 897279,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't have or there's certain little",
+      "duration": 4560,
+      "offset": 898800,
+      "lang": "en"
+    },
+    {
+      "text": "things about packages and permissions",
+      "duration": 4079,
+      "offset": 900880,
+      "lang": "en"
+    },
+    {
+      "text": "and where it's installed on your",
+      "duration": 4560,
+      "offset": 903360,
+      "lang": "en"
+    },
+    {
+      "text": "computer. Uh I highly recommend eat,",
+      "duration": 4240,
+      "offset": 904959,
+      "lang": "en"
+    },
+    {
+      "text": "they can all help you through that",
+      "duration": 3680,
+      "offset": 907920,
+      "lang": "en"
+    },
+    {
+      "text": "process. Um, but if you were to do it",
+      "duration": 4080,
+      "offset": 909199,
+      "lang": "en"
+    },
+    {
+      "text": "that way, that's something you can do.",
+      "duration": 4640,
+      "offset": 911600,
+      "lang": "en"
+    },
+    {
+      "text": "Once it's installed and properly there,",
+      "duration": 4800,
+      "offset": 913279,
+      "lang": "en"
+    },
+    {
+      "text": "all it should be is literally from",
+      "duration": 3200,
+      "offset": 916240,
+      "lang": "en"
+    },
+    {
+      "text": "anywhere on your computer, if it was",
+      "duration": 3681,
+      "offset": 918079,
+      "lang": "en"
+    },
+    {
+      "text": "installed right, you can type in claude",
+      "duration": 4480,
+      "offset": 919440,
+      "lang": "en"
+    },
+    {
+      "text": "and it'll actually that command will go",
+      "duration": 3439,
+      "offset": 921760,
+      "lang": "en"
+    },
+    {
+      "text": "and say, \"Hey, do you trust this",
+      "duration": 3599,
+      "offset": 923920,
+      "lang": "en"
+    },
+    {
+      "text": "workspace?\" Yes, I do. It'll have you",
+      "duration": 4801,
+      "offset": 925199,
+      "lang": "en"
+    },
+    {
+      "text": "log in and you can either log in with an",
+      "duration": 4880,
+      "offset": 927519,
+      "lang": "en"
+    },
+    {
+      "text": "API key. You actually need to go to",
+      "duration": 5199,
+      "offset": 930000,
+      "lang": "en"
+    },
+    {
+      "text": "claude API developer platform, right,",
+      "duration": 4961,
+      "offset": 932399,
+      "lang": "en"
+    },
+    {
+      "text": "which is still on cloud.com. It's still",
+      "duration": 4080,
+      "offset": 935199,
+      "lang": "en"
+    },
+    {
+      "text": "your same account if you want to log in",
+      "duration": 4159,
+      "offset": 937360,
+      "lang": "en"
+    },
+    {
+      "text": "with it. Now, if you log in and it takes",
+      "duration": 3761,
+      "offset": 939279,
+      "lang": "en"
+    },
+    {
+      "text": "you back to your normal chat account,",
+      "duration": 3680,
+      "offset": 941519,
+      "lang": "en"
+    },
+    {
+      "text": "you accidentally clicked back on normal.",
+      "duration": 4320,
+      "offset": 943040,
+      "lang": "en"
+    },
+    {
+      "text": "And what sometimes helps people is",
+      "duration": 4560,
+      "offset": 945199,
+      "lang": "en"
+    },
+    {
+      "text": "actually going to typing in anthropic",
+      "duration": 4479,
+      "offset": 947360,
+      "lang": "en"
+    },
+    {
+      "text": "console and specifically finding",
+      "duration": 3921,
+      "offset": 949759,
+      "lang": "en"
+    },
+    {
+      "text": "platform.claude",
+      "duration": 3680,
+      "offset": 951839,
+      "lang": "en"
+    },
+    {
+      "text": "and signing it on that part. And that",
+      "duration": 4000,
+      "offset": 953680,
+      "lang": "en"
+    },
+    {
+      "text": "sometimes forces it to go through. It",
+      "duration": 4641,
+      "offset": 955519,
+      "lang": "en"
+    },
+    {
+      "text": "should look something similar to this,",
+      "duration": 3760,
+      "offset": 957680,
+      "lang": "en"
+    },
+    {
+      "text": "right? It's a little bit different than",
+      "duration": 3119,
+      "offset": 960160,
+      "lang": "en"
+    },
+    {
+      "text": "the normal claude, but you should be",
+      "duration": 4560,
+      "offset": 961440,
+      "lang": "en"
+    },
+    {
+      "text": "able to go down where it says API keys",
+      "duration": 4961,
+      "offset": 963279,
+      "lang": "en"
+    },
+    {
+      "text": "on the bottom left. You'll have to go",
+      "duration": 4160,
+      "offset": 966000,
+      "lang": "en"
+    },
+    {
+      "text": "through now. You should have created an",
+      "duration": 4399,
+      "offset": 968240,
+      "lang": "en"
+    },
+    {
+      "text": "organization or maybe you have to add in",
+      "duration": 4000,
+      "offset": 970160,
+      "lang": "en"
+    },
+    {
+      "text": "billing because this is separate from",
+      "duration": 4000,
+      "offset": 972639,
+      "lang": "en"
+    },
+    {
+      "text": "your normal cloud account uh and certain",
+      "duration": 4880,
+      "offset": 974160,
+      "lang": "en"
+    },
+    {
+      "text": "billing that you actually have to do. Um",
+      "duration": 4401,
+      "offset": 976639,
+      "lang": "en"
+    },
+    {
+      "text": "don't worry, you can't see all of my key",
+      "duration": 3760,
+      "offset": 979040,
+      "lang": "en"
+    },
+    {
+      "text": "there, which is nice. But you can",
+      "duration": 4479,
+      "offset": 981040,
+      "lang": "en"
+    },
+    {
+      "text": "actually just create a new key and you",
+      "duration": 5120,
+      "offset": 982800,
+      "lang": "en"
+    },
+    {
+      "text": "can copy that and give it to the",
+      "duration": 5201,
+      "offset": 985519,
+      "lang": "en"
+    },
+    {
+      "text": "terminal. Now, I don't recommend this at",
+      "duration": 5359,
+      "offset": 987920,
+      "lang": "en"
+    },
+    {
+      "text": "all because at the end of the day, if",
+      "duration": 4080,
+      "offset": 990720,
+      "lang": "en"
+    },
+    {
+      "text": "you are paying for a subscription",
+      "duration": 4081,
+      "offset": 993279,
+      "lang": "en"
+    },
+    {
+      "text": "account, you can just log in to Claude",
+      "duration": 3839,
+      "offset": 994800,
+      "lang": "en"
+    },
+    {
+      "text": "Code through this through your",
+      "duration": 2880,
+      "offset": 997360,
+      "lang": "en"
+    },
+    {
+      "text": "subscription account. It'll say, \"Hey,",
+      "duration": 3440,
+      "offset": 998639,
+      "lang": "en"
+    },
+    {
+      "text": "log in with subscription.\" You'll click",
+      "duration": 4159,
+      "offset": 1000240,
+      "lang": "en"
+    },
+    {
+      "text": "it. It'll open up in your tab. You hit",
+      "duration": 4961,
+      "offset": 1002079,
+      "lang": "en"
+    },
+    {
+      "text": "authorize. Boom. You're done. But for",
+      "duration": 4961,
+      "offset": 1004399,
+      "lang": "en"
+    },
+    {
+      "text": "those of you who have maybe a reason to",
+      "duration": 4320,
+      "offset": 1007040,
+      "lang": "en"
+    },
+    {
+      "text": "do this, and there's certain software",
+      "duration": 4640,
+      "offset": 1009360,
+      "lang": "en"
+    },
+    {
+      "text": "reasons, which I describe later on why,",
+      "duration": 4719,
+      "offset": 1011360,
+      "lang": "en"
+    },
+    {
+      "text": "just wanted to show what that looks",
+      "duration": 3600,
+      "offset": 1014000,
+      "lang": "en"
+    },
+    {
+      "text": "like. And I'm probably going to show it",
+      "duration": 3521,
+      "offset": 1016079,
+      "lang": "en"
+    },
+    {
+      "text": "in future, you know, ones as well. But",
+      "duration": 3840,
+      "offset": 1017600,
+      "lang": "en"
+    },
+    {
+      "text": "important to understand here, right?",
+      "duration": 5439,
+      "offset": 1019600,
+      "lang": "en"
+    },
+    {
+      "text": "Then from there, you have Claude",
+      "duration": 6479,
+      "offset": 1021440,
+      "lang": "en"
+    },
+    {
+      "text": "anywhere on your computer, right? You",
+      "duration": 5280,
+      "offset": 1025039,
+      "lang": "en"
+    },
+    {
+      "text": "can have it access any sort of folders,",
+      "duration": 4880,
+      "offset": 1027919,
+      "lang": "en"
+    },
+    {
+      "text": "things like that, and it's ready to go.",
+      "duration": 3841,
+      "offset": 1030319,
+      "lang": "en"
+    },
+    {
+      "text": "And there's a lot of different commands",
+      "duration": 3441,
+      "offset": 1032799,
+      "lang": "en"
+    },
+    {
+      "text": "that you can use, right? Web app",
+      "duration": 4399,
+      "offset": 1034160,
+      "lang": "en"
+    },
+    {
+      "text": "testing, you can download skills,",
+      "duration": 3839,
+      "offset": 1036240,
+      "lang": "en"
+    },
+    {
+      "text": "there's all sorts of things of sub",
+      "duration": 4240,
+      "offset": 1038559,
+      "lang": "en"
+    },
+    {
+      "text": "agents, having Claude use agents. Um,",
+      "duration": 4641,
+      "offset": 1040079,
+      "lang": "en"
+    },
+    {
+      "text": "I'll go into that in future lectures for",
+      "duration": 3760,
+      "offset": 1042799,
+      "lang": "en"
+    },
+    {
+      "text": "sure as well, but I just want everyone",
+      "duration": 3839,
+      "offset": 1044720,
+      "lang": "en"
+    },
+    {
+      "text": "to understand and understand how to be",
+      "duration": 4240,
+      "offset": 1046559,
+      "lang": "en"
+    },
+    {
+      "text": "installed, so to speak. This, in my",
+      "duration": 4000,
+      "offset": 1048559,
+      "lang": "en"
+    },
+    {
+      "text": "opinion, is the best combination being",
+      "duration": 4000,
+      "offset": 1050799,
+      "lang": "en"
+    },
+    {
+      "text": "inside of VS Code. For those of you who",
+      "duration": 3921,
+      "offset": 1052559,
+      "lang": "en"
+    },
+    {
+      "text": "don't know what VS Code is, it's called",
+      "duration": 4000,
+      "offset": 1054799,
+      "lang": "en"
+    },
+    {
+      "text": "Visual Studio Code. It's the generic",
+      "duration": 4480,
+      "offset": 1056480,
+      "lang": "en"
+    },
+    {
+      "text": "coding app that Microsoft has made. It's",
+      "duration": 4240,
+      "offset": 1058799,
+      "lang": "en"
+    },
+    {
+      "text": "very nice. If you're familiar with",
+      "duration": 4880,
+      "offset": 1060960,
+      "lang": "en"
+    },
+    {
+      "text": "cursor or anti-gravity or any of these",
+      "duration": 5201,
+      "offset": 1063039,
+      "lang": "en"
+    },
+    {
+      "text": "agentic coding tools, they're actually",
+      "duration": 4480,
+      "offset": 1065840,
+      "lang": "en"
+    },
+    {
+      "text": "all just built off of VS Code. So, I",
+      "duration": 3840,
+      "offset": 1068240,
+      "lang": "en"
+    },
+    {
+      "text": "prefer to just use VS Code because",
+      "duration": 3760,
+      "offset": 1070320,
+      "lang": "en"
+    },
+    {
+      "text": "there's no bloat. There's no extraness.",
+      "duration": 4000,
+      "offset": 1072080,
+      "lang": "en"
+    },
+    {
+      "text": "They have any access that you want in",
+      "duration": 3839,
+      "offset": 1074080,
+      "lang": "en"
+    },
+    {
+      "text": "there. It's already built for people to",
+      "duration": 3040,
+      "offset": 1076080,
+      "lang": "en"
+    },
+    {
+      "text": "be coding, but you don't need to know",
+      "duration": 3601,
+      "offset": 1077919,
+      "lang": "en"
+    },
+    {
+      "text": "how to code to use it, right? It lets",
+      "duration": 4720,
+      "offset": 1079120,
+      "lang": "en"
+    },
+    {
+      "text": "you open any sort of folders and look at",
+      "duration": 3840,
+      "offset": 1081520,
+      "lang": "en"
+    },
+    {
+      "text": "it in a completely different way than",
+      "duration": 3120,
+      "offset": 1083840,
+      "lang": "en"
+    },
+    {
+      "text": "you've never seen it if you've ever used",
+      "duration": 4000,
+      "offset": 1085360,
+      "lang": "en"
+    },
+    {
+      "text": "it. It's made for developers, but I",
+      "duration": 3760,
+      "offset": 1086960,
+      "lang": "en"
+    },
+    {
+      "text": "actually like it for a lot of other",
+      "duration": 3600,
+      "offset": 1089360,
+      "lang": "en"
+    },
+    {
+      "text": "reasons. So, let's open up my content",
+      "duration": 4000,
+      "offset": 1090720,
+      "lang": "en"
+    },
+    {
+      "text": "development folder, which I already have",
+      "duration": 5599,
+      "offset": 1092960,
+      "lang": "en"
+    },
+    {
+      "text": "one open. Um, and essentially it lets",
+      "duration": 6480,
+      "offset": 1094720,
+      "lang": "en"
+    },
+    {
+      "text": "you see your entire folder. Again, let",
+      "duration": 4480,
+      "offset": 1098559,
+      "lang": "en"
+    },
+    {
+      "text": "me show you what this looks like just",
+      "duration": 3599,
+      "offset": 1101200,
+      "lang": "en"
+    },
+    {
+      "text": "normally. So, if you were to go onto",
+      "duration": 3281,
+      "offset": 1103039,
+      "lang": "en"
+    },
+    {
+      "text": "your normal windows, this is what this",
+      "duration": 3281,
+      "offset": 1104799,
+      "lang": "en"
+    },
+    {
+      "text": "looks like. It's the same thing, but now",
+      "duration": 3599,
+      "offset": 1106320,
+      "lang": "en"
+    },
+    {
+      "text": "instead of having to click into it to",
+      "duration": 4000,
+      "offset": 1108080,
+      "lang": "en"
+    },
+    {
+      "text": "see everything, I can open it up like",
+      "duration": 4481,
+      "offset": 1109919,
+      "lang": "en"
+    },
+    {
+      "text": "trees and see all of my folders and",
+      "duration": 5120,
+      "offset": 1112080,
+      "lang": "en"
+    },
+    {
+      "text": "processes. From there, I can actually",
+      "duration": 7760,
+      "offset": 1114400,
+      "lang": "en"
+    },
+    {
+      "text": "open up these uh oops, these documents",
+      "duration": 7040,
+      "offset": 1117200,
+      "lang": "en"
+    },
+    {
+      "text": "as well to be able to see what's going",
+      "duration": 3840,
+      "offset": 1122160,
+      "lang": "en"
+    },
+    {
+      "text": "on inside of them without having to",
+      "duration": 3920,
+      "offset": 1124240,
+      "lang": "en"
+    },
+    {
+      "text": "close the folder or have a separate tab.",
+      "duration": 4400,
+      "offset": 1126000,
+      "lang": "en"
+    },
+    {
+      "text": "But even better, I can open up claude",
+      "duration": 4080,
+      "offset": 1128160,
+      "lang": "en"
+    },
+    {
+      "text": "right in the middle and all I have to do",
+      "duration": 4000,
+      "offset": 1130400,
+      "lang": "en"
+    },
+    {
+      "text": "is hit this little button here, right?",
+      "duration": 4640,
+      "offset": 1132240,
+      "lang": "en"
+    },
+    {
+      "text": "Um this button. I can also I have codeex",
+      "duration": 4320,
+      "offset": 1134400,
+      "lang": "en"
+    },
+    {
+      "text": "installed, open AI's codeex to be able",
+      "duration": 3679,
+      "offset": 1136880,
+      "lang": "en"
+    },
+    {
+      "text": "to pop over here and use it when I need",
+      "duration": 3440,
+      "offset": 1138720,
+      "lang": "en"
+    },
+    {
+      "text": "to. But right now, we're focusing on",
+      "duration": 3921,
+      "offset": 1140559,
+      "lang": "en"
+    },
+    {
+      "text": "cloud. This is super great because what",
+      "duration": 4240,
+      "offset": 1142160,
+      "lang": "en"
+    },
+    {
+      "text": "if I'm having multiple chats and want to",
+      "duration": 3680,
+      "offset": 1144480,
+      "lang": "en"
+    },
+    {
+      "text": "switch between them and work on multiple",
+      "duration": 3760,
+      "offset": 1146400,
+      "lang": "en"
+    },
+    {
+      "text": "things at the same time? This becomes",
+      "duration": 4000,
+      "offset": 1148160,
+      "lang": "en"
+    },
+    {
+      "text": "super useful. I can read what it's",
+      "duration": 4320,
+      "offset": 1150160,
+      "lang": "en"
+    },
+    {
+      "text": "editing while bouncing between chats and",
+      "duration": 5440,
+      "offset": 1152160,
+      "lang": "en"
+    },
+    {
+      "text": "it just becomes so nice. But how do I",
+      "duration": 4640,
+      "offset": 1154480,
+      "lang": "en"
+    },
+    {
+      "text": "get this here? Well, first you need to",
+      "duration": 3040,
+      "offset": 1157600,
+      "lang": "en"
+    },
+    {
+      "text": "make sure you've done the installation",
+      "duration": 4080,
+      "offset": 1159120,
+      "lang": "en"
+    },
+    {
+      "text": "process before with the normal claw",
+      "duration": 4720,
+      "offset": 1160640,
+      "lang": "en"
+    },
+    {
+      "text": "code. But once it's on and once you",
+      "duration": 5520,
+      "offset": 1163200,
+      "lang": "en"
+    },
+    {
+      "text": "install um VS Code, Visual Studio Code,",
+      "duration": 4880,
+      "offset": 1165360,
+      "lang": "en"
+    },
+    {
+      "text": "again, if you're on Windows, you can",
+      "duration": 3199,
+      "offset": 1168720,
+      "lang": "en"
+    },
+    {
+      "text": "literally just download it from the app",
+      "duration": 3760,
+      "offset": 1170240,
+      "lang": "en"
+    },
+    {
+      "text": "store. Um, it should pop up pretty",
+      "duration": 4561,
+      "offset": 1171919,
+      "lang": "en"
+    },
+    {
+      "text": "easily. Just install that. Make sure",
+      "duration": 4960,
+      "offset": 1174000,
+      "lang": "en"
+    },
+    {
+      "text": "it's good to go. And from there, you",
+      "duration": 4960,
+      "offset": 1176480,
+      "lang": "en"
+    },
+    {
+      "text": "actually will open up VS Code. And you",
+      "duration": 4240,
+      "offset": 1178960,
+      "lang": "en"
+    },
+    {
+      "text": "want to actually look for something",
+      "duration": 4160,
+      "offset": 1181440,
+      "lang": "en"
+    },
+    {
+      "text": "called extensions. So on the left here,",
+      "duration": 3599,
+      "offset": 1183200,
+      "lang": "en"
+    },
+    {
+      "text": "you're going to have a whole bunch of",
+      "duration": 3199,
+      "offset": 1185600,
+      "lang": "en"
+    },
+    {
+      "text": "options. But this one right here with",
+      "duration": 4401,
+      "offset": 1186799,
+      "lang": "en"
+    },
+    {
+      "text": "the squares and the one slightly tilted",
+      "duration": 4081,
+      "offset": 1188799,
+      "lang": "en"
+    },
+    {
+      "text": "called extensions. You can also hit",
+      "duration": 4960,
+      "offset": 1191200,
+      "lang": "en"
+    },
+    {
+      "text": "control shiftx will open it up. And you",
+      "duration": 7039,
+      "offset": 1192880,
+      "lang": "en"
+    },
+    {
+      "text": "can just type in cloud code. And it says",
+      "duration": 5920,
+      "offset": 1196160,
+      "lang": "en"
+    },
+    {
+      "text": "claude code for VS Code. and you're",
+      "duration": 3361,
+      "offset": 1199919,
+      "lang": "en"
+    },
+    {
+      "text": "going to have a little button, blue",
+      "duration": 3280,
+      "offset": 1202080,
+      "lang": "en"
+    },
+    {
+      "text": "button that says install. You'll click",
+      "duration": 4240,
+      "offset": 1203280,
+      "lang": "en"
+    },
+    {
+      "text": "install and that's it. You might have to",
+      "duration": 4080,
+      "offset": 1205360,
+      "lang": "en"
+    },
+    {
+      "text": "restart it, but you should now see this",
+      "duration": 4720,
+      "offset": 1207520,
+      "lang": "en"
+    },
+    {
+      "text": "there. One important note some people",
+      "duration": 5040,
+      "offset": 1209440,
+      "lang": "en"
+    },
+    {
+      "text": "get confused by is that when you open up",
+      "duration": 4880,
+      "offset": 1212240,
+      "lang": "en"
+    },
+    {
+      "text": "VS Code and you open up like maybe a",
+      "duration": 3920,
+      "offset": 1214480,
+      "lang": "en"
+    },
+    {
+      "text": "brand new folder that you've never",
+      "duration": 3919,
+      "offset": 1217120,
+      "lang": "en"
+    },
+    {
+      "text": "touched before. So, let's do uh let's do",
+      "duration": 5279,
+      "offset": 1218400,
+      "lang": "en"
+    },
+    {
+      "text": "this one, right? Yes, I trust the",
+      "duration": 5601,
+      "offset": 1221039,
+      "lang": "en"
+    },
+    {
+      "text": "offers. Uh if sometimes you have this",
+      "duration": 5041,
+      "offset": 1223679,
+      "lang": "en"
+    },
+    {
+      "text": "right where there's nothing there and",
+      "duration": 3760,
+      "offset": 1226640,
+      "lang": "en"
+    },
+    {
+      "text": "you see nowhere to add anything, you",
+      "duration": 4000,
+      "offset": 1228720,
+      "lang": "en"
+    },
+    {
+      "text": "actually need to click on something and",
+      "duration": 4800,
+      "offset": 1230400,
+      "lang": "en"
+    },
+    {
+      "text": "have a page open to get that little",
+      "duration": 5120,
+      "offset": 1232720,
+      "lang": "en"
+    },
+    {
+      "text": "extension open. Also, VS Code has its",
+      "duration": 4640,
+      "offset": 1235200,
+      "lang": "en"
+    },
+    {
+      "text": "own chat built in as well that you can",
+      "duration": 4000,
+      "offset": 1237840,
+      "lang": "en"
+    },
+    {
+      "text": "use just in case something's wrong with",
+      "duration": 3520,
+      "offset": 1239840,
+      "lang": "en"
+    },
+    {
+      "text": "Claude or you're not paying for the",
+      "duration": 4319,
+      "offset": 1241840,
+      "lang": "en"
+    },
+    {
+      "text": "account. And what's really cool is you",
+      "duration": 4880,
+      "offset": 1243360,
+      "lang": "en"
+    },
+    {
+      "text": "can add your own language models in here",
+      "duration": 4481,
+      "offset": 1246159,
+      "lang": "en"
+    },
+    {
+      "text": "if you log in. And you can add Claude to",
+      "duration": 4480,
+      "offset": 1248240,
+      "lang": "en"
+    },
+    {
+      "text": "this as well. I just like to use",
+      "duration": 3519,
+      "offset": 1250640,
+      "lang": "en"
+    },
+    {
+      "text": "directly through Claude because there's",
+      "duration": 3120,
+      "offset": 1252720,
+      "lang": "en"
+    },
+    {
+      "text": "it's cheaper, it works better, it's",
+      "duration": 3520,
+      "offset": 1254159,
+      "lang": "en"
+    },
+    {
+      "text": "cleaner, there's less bloat, and I",
+      "duration": 3760,
+      "offset": 1255840,
+      "lang": "en"
+    },
+    {
+      "text": "really think it's the way to go. I'll",
+      "duration": 3761,
+      "offset": 1257679,
+      "lang": "en"
+    },
+    {
+      "text": "have a whole video on which models are",
+      "duration": 3439,
+      "offset": 1259600,
+      "lang": "en"
+    },
+    {
+      "text": "good at what, which one's better. At the",
+      "duration": 4080,
+      "offset": 1261440,
+      "lang": "en"
+    },
+    {
+      "text": "end of the day, pick one and build the",
+      "duration": 4561,
+      "offset": 1263039,
+      "lang": "en"
+    },
+    {
+      "text": "systems and the knowledge of how to use",
+      "duration": 4800,
+      "offset": 1265520,
+      "lang": "en"
+    },
+    {
+      "text": "that one. Well, it will easily transfer",
+      "duration": 4240,
+      "offset": 1267600,
+      "lang": "en"
+    },
+    {
+      "text": "all the other ones, and you can make",
+      "duration": 4080,
+      "offset": 1270320,
+      "lang": "en"
+    },
+    {
+      "text": "your choice after you get decent at",
+      "duration": 6319,
+      "offset": 1271840,
+      "lang": "en"
+    },
+    {
+      "text": "using one. Okay, simple as that. And if",
+      "duration": 5360,
+      "offset": 1274400,
+      "lang": "en"
+    },
+    {
+      "text": "you have any questions about this whole",
+      "duration": 3520,
+      "offset": 1278159,
+      "lang": "en"
+    },
+    {
+      "text": "install process, please throw them in",
+      "duration": 3840,
+      "offset": 1279760,
+      "lang": "en"
+    },
+    {
+      "text": "the community. Happy to help out. Happy",
+      "duration": 3921,
+      "offset": 1281679,
+      "lang": "en"
+    },
+    {
+      "text": "to try to figure it out for you. That's",
+      "duration": 4880,
+      "offset": 1283600,
+      "lang": "en"
+    },
+    {
+      "text": "the main goal I had for all of this.",
+      "duration": 4720,
+      "offset": 1285600,
+      "lang": "en"
+    },
+    {
+      "text": "Now, one thing that I want you all to",
+      "duration": 3439,
+      "offset": 1288480,
+      "lang": "en"
+    },
+    {
+      "text": "do, as I said, this isn't just a",
+      "duration": 2960,
+      "offset": 1290320,
+      "lang": "en"
+    },
+    {
+      "text": "lecture. I'm going to give you some",
+      "duration": 2880,
+      "offset": 1291919,
+      "lang": "en"
+    },
+    {
+      "text": "homework or at least something that you",
+      "duration": 3600,
+      "offset": 1293280,
+      "lang": "en"
+    },
+    {
+      "text": "can do. And I'll have links for files",
+      "duration": 3441,
+      "offset": 1294799,
+      "lang": "en"
+    },
+    {
+      "text": "and documents that are a little",
+      "duration": 3840,
+      "offset": 1296880,
+      "lang": "en"
+    },
+    {
+      "text": "extracurricular if you need to practice.",
+      "duration": 4960,
+      "offset": 1298240,
+      "lang": "en"
+    },
+    {
+      "text": "But pick one thing from your own work",
+      "duration": 4959,
+      "offset": 1300720,
+      "lang": "en"
+    },
+    {
+      "text": "and actually try to get it summarized.",
+      "duration": 4560,
+      "offset": 1303200,
+      "lang": "en"
+    },
+    {
+      "text": "Put it in a folder. have cloud code",
+      "duration": 4240,
+      "offset": 1305679,
+      "lang": "en"
+    },
+    {
+      "text": "summarize it. Try to use it with your",
+      "duration": 3760,
+      "offset": 1307760,
+      "lang": "en"
+    },
+    {
+      "text": "normal cloud desktop, whatever you",
+      "duration": 3601,
+      "offset": 1309919,
+      "lang": "en"
+    },
+    {
+      "text": "choose and try to get it to answer",
+      "duration": 4480,
+      "offset": 1311520,
+      "lang": "en"
+    },
+    {
+      "text": "things or build things from that single",
+      "duration": 5519,
+      "offset": 1313520,
+      "lang": "en"
+    },
+    {
+      "text": "file. Run it in desktop. Then try the VS",
+      "duration": 5280,
+      "offset": 1316000,
+      "lang": "en"
+    },
+    {
+      "text": "Code extension if you want. Maybe look",
+      "duration": 4161,
+      "offset": 1319039,
+      "lang": "en"
+    },
+    {
+      "text": "at the outputs. But think about the",
+      "duration": 3840,
+      "offset": 1321280,
+      "lang": "en"
+    },
+    {
+      "text": "workflow, right? This is really",
+      "duration": 5280,
+      "offset": 1323200,
+      "lang": "en"
+    },
+    {
+      "text": "important. You want to be able to build",
+      "duration": 5439,
+      "offset": 1325120,
+      "lang": "en"
+    },
+    {
+      "text": "with these. You want to create scale.",
+      "duration": 4079,
+      "offset": 1328480,
+      "lang": "en"
+    },
+    {
+      "text": "It's not just about installing something",
+      "duration": 3841,
+      "offset": 1330559,
+      "lang": "en"
+    },
+    {
+      "text": "that's good. It's about thinking about,",
+      "duration": 3281,
+      "offset": 1332559,
+      "lang": "en"
+    },
+    {
+      "text": "all right, if I'm going to be building a",
+      "duration": 2960,
+      "offset": 1334400,
+      "lang": "en"
+    },
+    {
+      "text": "lot of stuff, if I'm running a company,",
+      "duration": 3120,
+      "offset": 1335840,
+      "lang": "en"
+    },
+    {
+      "text": "running a startup, running a content",
+      "duration": 4640,
+      "offset": 1337360,
+      "lang": "en"
+    },
+    {
+      "text": "things, what works best for me to create",
+      "duration": 5440,
+      "offset": 1338960,
+      "lang": "en"
+    },
+    {
+      "text": "these builds? In my opinion, I love just",
+      "duration": 4080,
+      "offset": 1342000,
+      "lang": "en"
+    },
+    {
+      "text": "having a folder that I'm able to",
+      "duration": 4960,
+      "offset": 1344400,
+      "lang": "en"
+    },
+    {
+      "text": "navigate easily inside of VS Code",
+      "duration": 6160,
+      "offset": 1346080,
+      "lang": "en"
+    },
+    {
+      "text": "because that means I have all the access",
+      "duration": 4799,
+      "offset": 1349360,
+      "lang": "en"
+    },
+    {
+      "text": "to stuff. I can organize it, right? All",
+      "duration": 4160,
+      "offset": 1352240,
+      "lang": "en"
+    },
+    {
+      "text": "of your courses I'm building right here.",
+      "duration": 3841,
+      "offset": 1354159,
+      "lang": "en"
+    },
+    {
+      "text": "I'm working with Claude Code because",
+      "duration": 3279,
+      "offset": 1356400,
+      "lang": "en"
+    },
+    {
+      "text": "again, I don't want it to automate the",
+      "duration": 3919,
+      "offset": 1358000,
+      "lang": "en"
+    },
+    {
+      "text": "whole process. I want it to help me make",
+      "duration": 3921,
+      "offset": 1359679,
+      "lang": "en"
+    },
+    {
+      "text": "this process better. Because I'm doing",
+      "duration": 3521,
+      "offset": 1361919,
+      "lang": "en"
+    },
+    {
+      "text": "this all on my own, I would usually have",
+      "duration": 3840,
+      "offset": 1363600,
+      "lang": "en"
+    },
+    {
+      "text": "to hire a whole team to do all of this,",
+      "duration": 4400,
+      "offset": 1365440,
+      "lang": "en"
+    },
+    {
+      "text": "but because I've organized it in how I",
+      "duration": 4719,
+      "offset": 1367440,
+      "lang": "en"
+    },
+    {
+      "text": "work, how I think, like, oh, I've got my",
+      "duration": 4560,
+      "offset": 1369840,
+      "lang": "en"
+    },
+    {
+      "text": "cleotes for all of you here. I have my",
+      "duration": 4161,
+      "offset": 1372159,
+      "lang": "en"
+    },
+    {
+      "text": "scripts for my long form and stuff that",
+      "duration": 4240,
+      "offset": 1374400,
+      "lang": "en"
+    },
+    {
+      "text": "I can edit easily in here. Um, if I",
+      "duration": 4320,
+      "offset": 1376320,
+      "lang": "en"
+    },
+    {
+      "text": "don't like a script, I can change it and",
+      "duration": 4080,
+      "offset": 1378640,
+      "lang": "en"
+    },
+    {
+      "text": "then Claude can easily reference it,",
+      "duration": 4320,
+      "offset": 1380640,
+      "lang": "en"
+    },
+    {
+      "text": "right? That's why I like using VS Code",
+      "duration": 4400,
+      "offset": 1382720,
+      "lang": "en"
+    },
+    {
+      "text": "so much. It's just it's a really great",
+      "duration": 4480,
+      "offset": 1384960,
+      "lang": "en"
+    },
+    {
+      "text": "platform to look at. But you can use the",
+      "duration": 5200,
+      "offset": 1387120,
+      "lang": "en"
+    },
+    {
+      "text": "normal claw, you know, code or co-work",
+      "duration": 5280,
+      "offset": 1389440,
+      "lang": "en"
+    },
+    {
+      "text": "to do this as well. It's just I find it",
+      "duration": 5200,
+      "offset": 1392320,
+      "lang": "en"
+    },
+    {
+      "text": "harder because it's I don't get to see",
+      "duration": 4319,
+      "offset": 1394720,
+      "lang": "en"
+    },
+    {
+      "text": "everything. I want to be able to click",
+      "duration": 3440,
+      "offset": 1397520,
+      "lang": "en"
+    },
+    {
+      "text": "back and forth quickly and it just kind",
+      "duration": 4561,
+      "offset": 1399039,
+      "lang": "en"
+    },
+    {
+      "text": "of gets in the way. So practice with it.",
+      "duration": 4480,
+      "offset": 1400960,
+      "lang": "en"
+    },
+    {
+      "text": "Try to see what you like better, what",
+      "duration": 4480,
+      "offset": 1403600,
+      "lang": "en"
+    },
+    {
+      "text": "works for you. Then we can think about",
+      "duration": 4800,
+      "offset": 1405440,
+      "lang": "en"
+    },
+    {
+      "text": "sitting down on one specific tool and",
+      "duration": 5120,
+      "offset": 1408080,
+      "lang": "en"
+    },
+    {
+      "text": "using that only. If you do have any",
+      "duration": 4240,
+      "offset": 1410240,
+      "lang": "en"
+    },
+    {
+      "text": "comparisons or anything where you're",
+      "duration": 3040,
+      "offset": 1413200,
+      "lang": "en"
+    },
+    {
+      "text": "like, \"Hey, this happened with one.\"",
+      "duration": 3280,
+      "offset": 1414480,
+      "lang": "en"
+    },
+    {
+      "text": "Please post them. Is there anything that",
+      "duration": 3280,
+      "offset": 1416240,
+      "lang": "en"
+    },
+    {
+      "text": "surprised you? You were like, \"Whoa, I",
+      "duration": 3360,
+      "offset": 1417760,
+      "lang": "en"
+    },
+    {
+      "text": "didn't know Claude could see that on my",
+      "duration": 3600,
+      "offset": 1419520,
+      "lang": "en"
+    },
+    {
+      "text": "computer or execute stuffs.\" This is",
+      "duration": 5280,
+      "offset": 1421120,
+      "lang": "en"
+    },
+    {
+      "text": "kind of what we want to do. Now, this is",
+      "duration": 4960,
+      "offset": 1423120,
+      "lang": "en"
+    },
+    {
+      "text": "the end of the first session. I'm going",
+      "duration": 3920,
+      "offset": 1426400,
+      "lang": "en"
+    },
+    {
+      "text": "to be posting this right now after I'm",
+      "duration": 3920,
+      "offset": 1428080,
+      "lang": "en"
+    },
+    {
+      "text": "done editing and taking out all the",
+      "duration": 3520,
+      "offset": 1430320,
+      "lang": "en"
+    },
+    {
+      "text": "nasty parts where I maybe skipped",
+      "duration": 3600,
+      "offset": 1432000,
+      "lang": "en"
+    },
+    {
+      "text": "something or said something wrong. But",
+      "duration": 3360,
+      "offset": 1433840,
+      "lang": "en"
+    },
+    {
+      "text": "session two is actually going to be",
+      "duration": 3520,
+      "offset": 1435600,
+      "lang": "en"
+    },
+    {
+      "text": "showing you Claude code in practice. I'm",
+      "duration": 3920,
+      "offset": 1437200,
+      "lang": "en"
+    },
+    {
+      "text": "going to be filming that now. Hopefully,",
+      "duration": 3919,
+      "offset": 1439120,
+      "lang": "en"
+    },
+    {
+      "text": "by the time you're watching this video,",
+      "duration": 3439,
+      "offset": 1441120,
+      "lang": "en"
+    },
+    {
+      "text": "I'll have already posted it. If you're",
+      "duration": 3601,
+      "offset": 1443039,
+      "lang": "en"
+    },
+    {
+      "text": "an early comer, then you probably aren't",
+      "duration": 3521,
+      "offset": 1444559,
+      "lang": "en"
+    },
+    {
+      "text": "going to see it. But I promise you, I'm",
+      "duration": 2960,
+      "offset": 1446640,
+      "lang": "en"
+    },
+    {
+      "text": "working hard to get this all out to you",
+      "duration": 3839,
+      "offset": 1448080,
+      "lang": "en"
+    },
+    {
+      "text": "all. So yeah, stay tuned. We're going to",
+      "duration": 4640,
+      "offset": 1449600,
+      "lang": "en"
+    },
+    {
+      "text": "be diving into a lot in that session",
+      "duration": 4561,
+      "offset": 1451919,
+      "lang": "en"
+    },
+    {
+      "text": "about how to use clawed code, its real",
+      "duration": 4400,
+      "offset": 1454240,
+      "lang": "en"
+    },
+    {
+      "text": "power, how you can see and get that kind",
+      "duration": 4000,
+      "offset": 1456480,
+      "lang": "en"
+    },
+    {
+      "text": "of workflow process because you see this",
+      "duration": 3840,
+      "offset": 1458640,
+      "lang": "en"
+    },
+    {
+      "text": "isn't just about using an AI model. This",
+      "duration": 4000,
+      "offset": 1460480,
+      "lang": "en"
+    },
+    {
+      "text": "is about designing your workflow to",
+      "duration": 4480,
+      "offset": 1462480,
+      "lang": "en"
+    },
+    {
+      "text": "really get a lot out of it.",
+      "duration": 4880,
+      "offset": 1464480,
+      "lang": "en"
+    },
+    {
+      "text": "Till next time friends, much love and",
+      "duration": 4400,
+      "offset": 1466960,
+      "lang": "en"
+    },
+    {
+      "text": "please stick with me as I build this",
+      "duration": 4640,
+      "offset": 1469360,
+      "lang": "en"
+    },
+    {
+      "text": "channel and this",
+      "duration": 2640,
+      "offset": 1471360,
+      "lang": "en"
+    }
+  ]
+}

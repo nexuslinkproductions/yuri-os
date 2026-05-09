@@ -1,0 +1,4380 @@
+{
+  "videoId": "_rtyhVD4v4A",
+  "title": "AI Coding Tools Failed Completely",
+  "segments": [
+    {
+      "text": "In this video, I'm going to be comparing",
+      "duration": 5600,
+      "offset": 4240,
+      "lang": "en"
+    },
+    {
+      "text": "anti-gravity to Claude CLI and Codeex.",
+      "duration": 5359,
+      "offset": 6160,
+      "lang": "en"
+    },
+    {
+      "text": "See which one's better. Now, I will say",
+      "duration": 3040,
+      "offset": 9840,
+      "lang": "en"
+    },
+    {
+      "text": "Claude and Codeex are going to be",
+      "duration": 3361,
+      "offset": 11519,
+      "lang": "en"
+    },
+    {
+      "text": "running inside of Cursor. Uh, it's just",
+      "duration": 3360,
+      "offset": 12880,
+      "lang": "en"
+    },
+    {
+      "text": "an IDE, but I'm not going to be using",
+      "duration": 3040,
+      "offset": 14880,
+      "lang": "en"
+    },
+    {
+      "text": "really any cursor features. I just",
+      "duration": 3199,
+      "offset": 16240,
+      "lang": "en"
+    },
+    {
+      "text": "wanted to kind of show it there. The",
+      "duration": 3359,
+      "offset": 17920,
+      "lang": "en"
+    },
+    {
+      "text": "goal is to kind of understand how well",
+      "duration": 3361,
+      "offset": 19439,
+      "lang": "en"
+    },
+    {
+      "text": "it does. I've seen all of these",
+      "duration": 4240,
+      "offset": 21279,
+      "lang": "en"
+    },
+    {
+      "text": "different metrics on Gemini 3, the new",
+      "duration": 4960,
+      "offset": 22800,
+      "lang": "en"
+    },
+    {
+      "text": "model that Google just launched, on what",
+      "duration": 3600,
+      "offset": 25519,
+      "lang": "en"
+    },
+    {
+      "text": "could be best about it, how it's",
+      "duration": 3120,
+      "offset": 27760,
+      "lang": "en"
+    },
+    {
+      "text": "absolutely beating everything, but",
+      "duration": 3201,
+      "offset": 29119,
+      "lang": "en"
+    },
+    {
+      "text": "realistically, I want to see how it does",
+      "duration": 3839,
+      "offset": 30880,
+      "lang": "en"
+    },
+    {
+      "text": "with my work in my situations. And what",
+      "duration": 4079,
+      "offset": 32320,
+      "lang": "en"
+    },
+    {
+      "text": "am I going to be doing to test that by",
+      "duration": 3121,
+      "offset": 34719,
+      "lang": "en"
+    },
+    {
+      "text": "seeing how well not only does it",
+      "duration": 3441,
+      "offset": 36399,
+      "lang": "en"
+    },
+    {
+      "text": "understand the goal of a paper that I",
+      "duration": 3920,
+      "offset": 37840,
+      "lang": "en"
+    },
+    {
+      "text": "wrote and put into preprint about",
+      "duration": 4480,
+      "offset": 39840,
+      "lang": "en"
+    },
+    {
+      "text": "psychometric pipeline analysis of large",
+      "duration": 4479,
+      "offset": 41760,
+      "lang": "en"
+    },
+    {
+      "text": "language models, don't worry if you're",
+      "duration": 3280,
+      "offset": 44320,
+      "lang": "en"
+    },
+    {
+      "text": "curious what that means, I have a whole",
+      "duration": 3041,
+      "offset": 46239,
+      "lang": "en"
+    },
+    {
+      "text": "other video diving into it, as well as a",
+      "duration": 4000,
+      "offset": 47600,
+      "lang": "en"
+    },
+    {
+      "text": "couple articles. But long story short, I",
+      "duration": 4400,
+      "offset": 49280,
+      "lang": "en"
+    },
+    {
+      "text": "took a bunch of personality tests, more",
+      "duration": 4080,
+      "offset": 51600,
+      "lang": "en"
+    },
+    {
+      "text": "advanced tests called psychometric",
+      "duration": 4240,
+      "offset": 53680,
+      "lang": "en"
+    },
+    {
+      "text": "tests. Psychologists use it. And I aimed",
+      "duration": 4399,
+      "offset": 55680,
+      "lang": "en"
+    },
+    {
+      "text": "it and I created a data pipeline that",
+      "duration": 4080,
+      "offset": 57920,
+      "lang": "en"
+    },
+    {
+      "text": "allows me to aim those tests at all the",
+      "duration": 4160,
+      "offset": 60079,
+      "lang": "en"
+    },
+    {
+      "text": "big AI models out there and get a whole",
+      "duration": 4400,
+      "offset": 62000,
+      "lang": "en"
+    },
+    {
+      "text": "bunch of data to kind of understand",
+      "duration": 4481,
+      "offset": 64239,
+      "lang": "en"
+    },
+    {
+      "text": "their personality. I want to see how",
+      "duration": 4480,
+      "offset": 66400,
+      "lang": "en"
+    },
+    {
+      "text": "well it can actually take my codebase",
+      "duration": 4719,
+      "offset": 68720,
+      "lang": "en"
+    },
+    {
+      "text": "that I created and refactor it into a",
+      "duration": 4880,
+      "offset": 70880,
+      "lang": "en"
+    },
+    {
+      "text": "more modular pipeline if not an app for",
+      "duration": 3680,
+      "offset": 73439,
+      "lang": "en"
+    },
+    {
+      "text": "other political scientists and",
+      "duration": 3039,
+      "offset": 75760,
+      "lang": "en"
+    },
+    {
+      "text": "individuals to use. And it's a it's a",
+      "duration": 3601,
+      "offset": 77119,
+      "lang": "en"
+    },
+    {
+      "text": "quite a large one. Lots of prompts, lots",
+      "duration": 3521,
+      "offset": 78799,
+      "lang": "en"
+    },
+    {
+      "text": "of thought. This is over a year of work.",
+      "duration": 3600,
+      "offset": 80720,
+      "lang": "en"
+    },
+    {
+      "text": "I've been testing models on this",
+      "duration": 3600,
+      "offset": 82320,
+      "lang": "en"
+    },
+    {
+      "text": "continuously. I've had it do the same",
+      "duration": 3600,
+      "offset": 84320,
+      "lang": "en"
+    },
+    {
+      "text": "prompts for the last 2 years, seeing how",
+      "duration": 3680,
+      "offset": 85920,
+      "lang": "en"
+    },
+    {
+      "text": "well it's able to navigate all the",
+      "duration": 3920,
+      "offset": 87920,
+      "lang": "en"
+    },
+    {
+      "text": "weirdness of this code cuz this is more",
+      "duration": 4879,
+      "offset": 89600,
+      "lang": "en"
+    },
+    {
+      "text": "than just hard code. It's conceptually",
+      "duration": 5360,
+      "offset": 91840,
+      "lang": "en"
+    },
+    {
+      "text": "odd, which is a really great test to see",
+      "duration": 4561,
+      "offset": 94479,
+      "lang": "en"
+    },
+    {
+      "text": "how these models are actually",
+      "duration": 4000,
+      "offset": 97200,
+      "lang": "en"
+    },
+    {
+      "text": "developing. Now, in order to test it, I",
+      "duration": 6560,
+      "offset": 99040,
+      "lang": "en"
+    },
+    {
+      "text": "want to test Gemini 3 Claude 4.5 Sonnet",
+      "duration": 8160,
+      "offset": 101200,
+      "lang": "en"
+    },
+    {
+      "text": "as well as 5.1 Code Max from Codeex.",
+      "duration": 7280,
+      "offset": 105600,
+      "lang": "en"
+    },
+    {
+      "text": "Now, I'm not testing Claude to Codeex as",
+      "duration": 5439,
+      "offset": 109360,
+      "lang": "en"
+    },
+    {
+      "text": "much, but it's more to compare how",
+      "duration": 4160,
+      "offset": 112880,
+      "lang": "en"
+    },
+    {
+      "text": "anti-gravity does in a space where",
+      "duration": 4081,
+      "offset": 114799,
+      "lang": "en"
+    },
+    {
+      "text": "there's already a lot of tools like this",
+      "duration": 4000,
+      "offset": 117040,
+      "lang": "en"
+    },
+    {
+      "text": "out there. For this environment, I have",
+      "duration": 4080,
+      "offset": 118880,
+      "lang": "en"
+    },
+    {
+      "text": "Claude Code on the right, essentially",
+      "duration": 4160,
+      "offset": 121040,
+      "lang": "en"
+    },
+    {
+      "text": "looking at my entire codebase, and I",
+      "duration": 4960,
+      "offset": 122960,
+      "lang": "en"
+    },
+    {
+      "text": "have Codeex on the left. I also have",
+      "duration": 4960,
+      "offset": 125200,
+      "lang": "en"
+    },
+    {
+      "text": "anti-gravity pulled up looking at the",
+      "duration": 4720,
+      "offset": 127920,
+      "lang": "en"
+    },
+    {
+      "text": "same exact file. What I'm gonna do is",
+      "duration": 4640,
+      "offset": 130160,
+      "lang": "en"
+    },
+    {
+      "text": "actually not have it edit this file. I'm",
+      "duration": 3679,
+      "offset": 132640,
+      "lang": "en"
+    },
+    {
+      "text": "going to have it create an entirely new",
+      "duration": 3840,
+      "offset": 134800,
+      "lang": "en"
+    },
+    {
+      "text": "folder with an entirely new set of code",
+      "duration": 4481,
+      "offset": 136319,
+      "lang": "en"
+    },
+    {
+      "text": "and essentially try to see how the",
+      "duration": 4640,
+      "offset": 138640,
+      "lang": "en"
+    },
+    {
+      "text": "models can take this code, make it more",
+      "duration": 4400,
+      "offset": 140800,
+      "lang": "en"
+    },
+    {
+      "text": "modular, and if anything, turn it into",
+      "duration": 4720,
+      "offset": 143280,
+      "lang": "en"
+    },
+    {
+      "text": "an app that's much easier to use. My",
+      "duration": 5360,
+      "offset": 145200,
+      "lang": "en"
+    },
+    {
+      "text": "reasoning behind that is in my paper I",
+      "duration": 4239,
+      "offset": 148000,
+      "lang": "en"
+    },
+    {
+      "text": "want political scientists, social",
+      "duration": 3200,
+      "offset": 150560,
+      "lang": "en"
+    },
+    {
+      "text": "scientists, all these individuals who",
+      "duration": 3441,
+      "offset": 152239,
+      "lang": "en"
+    },
+    {
+      "text": "have a technical barrier in researching",
+      "duration": 3600,
+      "offset": 153760,
+      "lang": "en"
+    },
+    {
+      "text": "this stuff to be able to just have a",
+      "duration": 3600,
+      "offset": 155680,
+      "lang": "en"
+    },
+    {
+      "text": "tool they can put their own scales or",
+      "duration": 4400,
+      "offset": 157360,
+      "lang": "en"
+    },
+    {
+      "text": "questions or survey responses in and see",
+      "duration": 4959,
+      "offset": 159280,
+      "lang": "en"
+    },
+    {
+      "text": "how the AI actually responds to it so we",
+      "duration": 4240,
+      "offset": 161760,
+      "lang": "en"
+    },
+    {
+      "text": "can really understand the bias or the",
+      "duration": 3921,
+      "offset": 164239,
+      "lang": "en"
+    },
+    {
+      "text": "direction these models are going. Now, I",
+      "duration": 4160,
+      "offset": 166000,
+      "lang": "en"
+    },
+    {
+      "text": "will say I already have a designed",
+      "duration": 4240,
+      "offset": 168160,
+      "lang": "en"
+    },
+    {
+      "text": "version that I prefer that I created",
+      "duration": 4320,
+      "offset": 170160,
+      "lang": "en"
+    },
+    {
+      "text": "once before and I'll be able to compare",
+      "duration": 4240,
+      "offset": 172400,
+      "lang": "en"
+    },
+    {
+      "text": "it to, you know, my personal design as",
+      "duration": 4320,
+      "offset": 174480,
+      "lang": "en"
+    },
+    {
+      "text": "well. not just the other AI, but I have",
+      "duration": 3599,
+      "offset": 176640,
+      "lang": "en"
+    },
+    {
+      "text": "a sneaking suspicion that they're going",
+      "duration": 3680,
+      "offset": 178800,
+      "lang": "en"
+    },
+    {
+      "text": "to do quite a good job. So, to start off",
+      "duration": 4720,
+      "offset": 180239,
+      "lang": "en"
+    },
+    {
+      "text": "with, I immediately gave it a prompt.",
+      "duration": 4800,
+      "offset": 182480,
+      "lang": "en"
+    },
+    {
+      "text": "Please read and understand this ethics",
+      "duration": 5321,
+      "offset": 184959,
+      "lang": "en"
+    },
+    {
+      "text": "engine.",
+      "duration": 3000,
+      "offset": 187280,
+      "lang": "en"
+    },
+    {
+      "text": "And I gave the same prompt to everyone",
+      "duration": 4161,
+      "offset": 197519,
+      "lang": "en"
+    },
+    {
+      "text": "else, including [music]",
+      "duration": 4399,
+      "offset": 200480,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini 3 in anti-gravity here. Now, I",
+      "duration": 5120,
+      "offset": 201680,
+      "lang": "en"
+    },
+    {
+      "text": "will say I've done this once before, a",
+      "duration": 3360,
+      "offset": 204879,
+      "lang": "en"
+    },
+    {
+      "text": "couple times before, and one of the",
+      "duration": 3920,
+      "offset": 206800,
+      "lang": "en"
+    },
+    {
+      "text": "biggest problems I have is right inside",
+      "duration": 4881,
+      "offset": 208239,
+      "lang": "en"
+    },
+    {
+      "text": "of the main codebase, I have a whole",
+      "duration": 5760,
+      "offset": 210720,
+      "lang": "en"
+    },
+    {
+      "text": "bunch of YAML JSON um objects that are",
+      "duration": 5119,
+      "offset": 213120,
+      "lang": "en"
+    },
+    {
+      "text": "all the questions from the",
+      "duration": 3440,
+      "offset": 216480,
+      "lang": "en"
+    },
+    {
+      "text": "questionnaires. And these are",
+      "duration": 3601,
+      "offset": 218239,
+      "lang": "en"
+    },
+    {
+      "text": "essentially prompts, and I need them to",
+      "duration": 4239,
+      "offset": 219920,
+      "lang": "en"
+    },
+    {
+      "text": "be accurate and exact because if they're",
+      "duration": 5119,
+      "offset": 221840,
+      "lang": "en"
+    },
+    {
+      "text": "any different than the original scales,",
+      "duration": 4800,
+      "offset": 224159,
+      "lang": "en"
+    },
+    {
+      "text": "I'm losing all of that academic",
+      "duration": 3920,
+      "offset": 226959,
+      "lang": "en"
+    },
+    {
+      "text": "fidelity, right? the last 30 years of",
+      "duration": 3681,
+      "offset": 228959,
+      "lang": "en"
+    },
+    {
+      "text": "research on these questions and the way",
+      "duration": 3440,
+      "offset": 230879,
+      "lang": "en"
+    },
+    {
+      "text": "the words are put together and the",
+      "duration": 3200,
+      "offset": 232640,
+      "lang": "en"
+    },
+    {
+      "text": "models will just shorten it down and",
+      "duration": 3521,
+      "offset": 234319,
+      "lang": "en"
+    },
+    {
+      "text": "like put a three dots as like, oh,",
+      "duration": 3520,
+      "offset": 235840,
+      "lang": "en"
+    },
+    {
+      "text": "you'll add it later. Now, right off the",
+      "duration": 3520,
+      "offset": 237840,
+      "lang": "en"
+    },
+    {
+      "text": "bat, I already like Claude's response",
+      "duration": 4640,
+      "offset": 239360,
+      "lang": "en"
+    },
+    {
+      "text": "better than Codeexes. Um, it's much",
+      "duration": 4799,
+      "offset": 241360,
+      "lang": "en"
+    },
+    {
+      "text": "easier to read. Again, the reasons I",
+      "duration": 4000,
+      "offset": 244000,
+      "lang": "en"
+    },
+    {
+      "text": "like it aren't necessarily technical",
+      "duration": 3440,
+      "offset": 246159,
+      "lang": "en"
+    },
+    {
+      "text": "reasons. So, there might be technical",
+      "duration": 3599,
+      "offset": 248000,
+      "lang": "en"
+    },
+    {
+      "text": "reasons that Codeex is better, but from",
+      "duration": 4801,
+      "offset": 249599,
+      "lang": "en"
+    },
+    {
+      "text": "a personal use and everyday processing",
+      "duration": 4640,
+      "offset": 251599,
+      "lang": "en"
+    },
+    {
+      "text": "of it, it's just more formatted. It's",
+      "duration": 4000,
+      "offset": 254400,
+      "lang": "en"
+    },
+    {
+      "text": "much more robust. It's letting me",
+      "duration": 3680,
+      "offset": 256239,
+      "lang": "en"
+    },
+    {
+      "text": "understand that it does have its",
+      "duration": 3760,
+      "offset": 258400,
+      "lang": "en"
+    },
+    {
+      "text": "context. Now, this could be a problem if",
+      "duration": 4401,
+      "offset": 259919,
+      "lang": "en"
+    },
+    {
+      "text": "you're trying to limit tokens, right?",
+      "duration": 4800,
+      "offset": 262160,
+      "lang": "en"
+    },
+    {
+      "text": "This is much more concise from codeex.",
+      "duration": 4800,
+      "offset": 264320,
+      "lang": "en"
+    },
+    {
+      "text": "Just this is what it is. These are the",
+      "duration": 4400,
+      "offset": 266960,
+      "lang": "en"
+    },
+    {
+      "text": "natural steps I would take to reiterate",
+      "duration": 5359,
+      "offset": 269120,
+      "lang": "en"
+    },
+    {
+      "text": "versus Claude who really dives in,",
+      "duration": 5040,
+      "offset": 271360,
+      "lang": "en"
+    },
+    {
+      "text": "thinks about the research implications,",
+      "duration": 4241,
+      "offset": 274479,
+      "lang": "en"
+    },
+    {
+      "text": "thinks about the output files, all of",
+      "duration": 4480,
+      "offset": 276400,
+      "lang": "en"
+    },
+    {
+      "text": "these processes. Now, whether or not",
+      "duration": 4560,
+      "offset": 278720,
+      "lang": "en"
+    },
+    {
+      "text": "this is more valuable, again, Claude's",
+      "duration": 4400,
+      "offset": 280880,
+      "lang": "en"
+    },
+    {
+      "text": "response is more valuable is up in the",
+      "duration": 4080,
+      "offset": 283280,
+      "lang": "en"
+    },
+    {
+      "text": "air for me to kind of dive into. But as",
+      "duration": 4080,
+      "offset": 285280,
+      "lang": "en"
+    },
+    {
+      "text": "of right now, based on its understanding",
+      "duration": 4559,
+      "offset": 287360,
+      "lang": "en"
+    },
+    {
+      "text": "and how it broke it down, I would trust",
+      "duration": 5360,
+      "offset": 289360,
+      "lang": "en"
+    },
+    {
+      "text": "Claude Sonnet 4.5 more than Codeex in",
+      "duration": 4321,
+      "offset": 291919,
+      "lang": "en"
+    },
+    {
+      "text": "this situation. But again, the goal",
+      "duration": 3919,
+      "offset": 294720,
+      "lang": "en"
+    },
+    {
+      "text": "isn't to compare these two. It's to",
+      "duration": 4480,
+      "offset": 296240,
+      "lang": "en"
+    },
+    {
+      "text": "compare anti-gravity. Now, I will say",
+      "duration": 4161,
+      "offset": 298639,
+      "lang": "en"
+    },
+    {
+      "text": "the first time I ran this was right when",
+      "duration": 4080,
+      "offset": 300720,
+      "lang": "en"
+    },
+    {
+      "text": "Anti-gravity launched and it was kind of",
+      "duration": 3520,
+      "offset": 302800,
+      "lang": "en"
+    },
+    {
+      "text": "hard. I kept getting error rates. I",
+      "duration": 2560,
+      "offset": 304800,
+      "lang": "en"
+    },
+    {
+      "text": "think their servers were getting",
+      "duration": 2879,
+      "offset": 306320,
+      "lang": "en"
+    },
+    {
+      "text": "overloaded. So, I waited a day or two",
+      "duration": 4000,
+      "offset": 307360,
+      "lang": "en"
+    },
+    {
+      "text": "and now I'm re-recording the video. This",
+      "duration": 4081,
+      "offset": 309199,
+      "lang": "en"
+    },
+    {
+      "text": "time, I didn't have any issues with",
+      "duration": 4000,
+      "offset": 311360,
+      "lang": "en"
+    },
+    {
+      "text": "errors or anything like that. um recent",
+      "duration": 3520,
+      "offset": 313280,
+      "lang": "en"
+    },
+    {
+      "text": "update might have fixed a lot of",
+      "duration": 3520,
+      "offset": 315360,
+      "lang": "en"
+    },
+    {
+      "text": "problems. Now immediately it the",
+      "duration": 5200,
+      "offset": 316800,
+      "lang": "en"
+    },
+    {
+      "text": "difference right off the bat is that um",
+      "duration": 6159,
+      "offset": 318880,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini inside of Anti-gravity creates a",
+      "duration": 5919,
+      "offset": 322000,
+      "lang": "en"
+    },
+    {
+      "text": "task list. Now Claude and Codeex will",
+      "duration": 5361,
+      "offset": 325039,
+      "lang": "en"
+    },
+    {
+      "text": "create task lists within their chat.",
+      "duration": 4961,
+      "offset": 327919,
+      "lang": "en"
+    },
+    {
+      "text": "Anti-gravity with Gemini 3, specifically",
+      "duration": 4560,
+      "offset": 330400,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini 3 Pro, I don't think I mentioned",
+      "duration": 4400,
+      "offset": 332880,
+      "lang": "en"
+    },
+    {
+      "text": "that, actually creates this task list",
+      "duration": 5040,
+      "offset": 334960,
+      "lang": "en"
+    },
+    {
+      "text": "that you can come in and review or even",
+      "duration": 5680,
+      "offset": 337280,
+      "lang": "en"
+    },
+    {
+      "text": "edit and add comments to, which I find",
+      "duration": 4720,
+      "offset": 340000,
+      "lang": "en"
+    },
+    {
+      "text": "wildly interesting. Again, I'm a very",
+      "duration": 3519,
+      "offset": 342960,
+      "lang": "en"
+    },
+    {
+      "text": "novice with anti-gravity. I haven't",
+      "duration": 3919,
+      "offset": 344720,
+      "lang": "en"
+    },
+    {
+      "text": "watched any tutorial videos. I've just",
+      "duration": 4241,
+      "offset": 346479,
+      "lang": "en"
+    },
+    {
+      "text": "dove right in and try to click on stuff.",
+      "duration": 3921,
+      "offset": 348639,
+      "lang": "en"
+    },
+    {
+      "text": "So, if you want to see a tutorial video",
+      "duration": 3840,
+      "offset": 350720,
+      "lang": "en"
+    },
+    {
+      "text": "on how to use anti-gravity, I recommend",
+      "duration": 3760,
+      "offset": 352560,
+      "lang": "en"
+    },
+    {
+      "text": "checking someone else's video or wait",
+      "duration": 3680,
+      "offset": 354560,
+      "lang": "en"
+    },
+    {
+      "text": "about a month until I post one myself.",
+      "duration": 4000,
+      "offset": 356320,
+      "lang": "en"
+    },
+    {
+      "text": "These comments will actually affect how",
+      "duration": 4799,
+      "offset": 358240,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini reads and understands the tasks,",
+      "duration": 5840,
+      "offset": 360320,
+      "lang": "en"
+    },
+    {
+      "text": "which is extremely valuable. the fact",
+      "duration": 5521,
+      "offset": 363039,
+      "lang": "en"
+    },
+    {
+      "text": "that I get to not edit the entire task",
+      "duration": 4080,
+      "offset": 366160,
+      "lang": "en"
+    },
+    {
+      "text": "list or change things, but just make",
+      "duration": 4139,
+      "offset": 368560,
+      "lang": "en"
+    },
+    {
+      "text": "small nuance shift to its directions",
+      "duration": 4480,
+      "offset": 370240,
+      "lang": "en"
+    },
+    {
+      "text": "[music] to ensure it's on the right path",
+      "duration": 3940,
+      "offset": 372699,
+      "lang": "en"
+    },
+    {
+      "text": "and not following too far the wrong",
+      "duration": 4319,
+      "offset": 374720,
+      "lang": "en"
+    },
+    {
+      "text": "direction. There's also a walkth through",
+      "duration": 4560,
+      "offset": 376639,
+      "lang": "en"
+    },
+    {
+      "text": "file that it decided to make, which is",
+      "duration": 4081,
+      "offset": 379039,
+      "lang": "en"
+    },
+    {
+      "text": "really interesting. It went through and",
+      "duration": 4881,
+      "offset": 381199,
+      "lang": "en"
+    },
+    {
+      "text": "analyzed it and my reasoning behind",
+      "duration": 5680,
+      "offset": 383120,
+      "lang": "en"
+    },
+    {
+      "text": "liking Claude is now amplified here.",
+      "duration": 4640,
+      "offset": 386080,
+      "lang": "en"
+    },
+    {
+      "text": "Google has been waiting a while. They",
+      "duration": 3440,
+      "offset": 388800,
+      "lang": "en"
+    },
+    {
+      "text": "bought Wind Surf. They took their time",
+      "duration": 3280,
+      "offset": 390720,
+      "lang": "en"
+    },
+    {
+      "text": "to dive into this. So, right off the",
+      "duration": 4320,
+      "offset": 392240,
+      "lang": "en"
+    },
+    {
+      "text": "bat, I was expecting a pretty decent UI",
+      "duration": 4720,
+      "offset": 394000,
+      "lang": "en"
+    },
+    {
+      "text": "interaction interface, especially when",
+      "duration": 4400,
+      "offset": 396560,
+      "lang": "en"
+    },
+    {
+      "text": "the entire IDE is built around the",
+      "duration": 4720,
+      "offset": 398720,
+      "lang": "en"
+    },
+    {
+      "text": "model. It's kind of cheating in some",
+      "duration": 4799,
+      "offset": 400960,
+      "lang": "en"
+    },
+    {
+      "text": "ways. Um, but it it it's kind of to be",
+      "duration": 4319,
+      "offset": 403440,
+      "lang": "en"
+    },
+    {
+      "text": "expected that it would look nice. And",
+      "duration": 4880,
+      "offset": 405759,
+      "lang": "en"
+    },
+    {
+      "text": "again, right here, it looks very nice.",
+      "duration": 4560,
+      "offset": 407759,
+      "lang": "en"
+    },
+    {
+      "text": "And it went through and did this feature",
+      "duration": 4081,
+      "offset": 410639,
+      "lang": "en"
+    },
+    {
+      "text": "verification process where it went and",
+      "duration": 4641,
+      "offset": 412319,
+      "lang": "en"
+    },
+    {
+      "text": "looked and verified that the features I",
+      "duration": 4879,
+      "offset": 414720,
+      "lang": "en"
+    },
+    {
+      "text": "explained were actually there and",
+      "duration": 5040,
+      "offset": 416960,
+      "lang": "en"
+    },
+    {
+      "text": "implemented. Um, it didn't notice any",
+      "duration": 5040,
+      "offset": 419599,
+      "lang": "en"
+    },
+    {
+      "text": "bugs. I actually do have some bugs for",
+      "duration": 5039,
+      "offset": 422000,
+      "lang": "en"
+    },
+    {
+      "text": "the llama and deepseek uh kind of",
+      "duration": 5120,
+      "offset": 424639,
+      "lang": "en"
+    },
+    {
+      "text": "implementations. Um I think if I asked",
+      "duration": 4720,
+      "offset": 427039,
+      "lang": "en"
+    },
+    {
+      "text": "it to find them, it might notice them.",
+      "duration": 3521,
+      "offset": 429759,
+      "lang": "en"
+    },
+    {
+      "text": "But right here, it just said",
+      "duration": 2880,
+      "offset": 431759,
+      "lang": "en"
+    },
+    {
+      "text": "implemented. It didn't say it was",
+      "duration": 3840,
+      "offset": 433280,
+      "lang": "en"
+    },
+    {
+      "text": "perfectly implemented. Um so maybe it",
+      "duration": 4161,
+      "offset": 434639,
+      "lang": "en"
+    },
+    {
+      "text": "just didn't feel like it was, you know,",
+      "duration": 5199,
+      "offset": 437120,
+      "lang": "en"
+    },
+    {
+      "text": "worth the time. It is shorter than",
+      "duration": 6560,
+      "offset": 438800,
+      "lang": "en"
+    },
+    {
+      "text": "clawed, which can give some worry here.",
+      "duration": 5361,
+      "offset": 442319,
+      "lang": "en"
+    },
+    {
+      "text": "I'm not entirely sure, but it is cleaner",
+      "duration": 4720,
+      "offset": 445360,
+      "lang": "en"
+    },
+    {
+      "text": "in that aspect. I had to tell it to",
+      "duration": 4320,
+      "offset": 447680,
+      "lang": "en"
+    },
+    {
+      "text": "continue here again from that error",
+      "duration": 3600,
+      "offset": 450080,
+      "lang": "en"
+    },
+    {
+      "text": "rate, but that hasn't happened again",
+      "duration": 3280,
+      "offset": 452000,
+      "lang": "en"
+    },
+    {
+      "text": "since I've done that. And it went right",
+      "duration": 3359,
+      "offset": 453680,
+      "lang": "en"
+    },
+    {
+      "text": "through. I can go and see its thought",
+      "duration": 4479,
+      "offset": 455280,
+      "lang": "en"
+    },
+    {
+      "text": "process a lot cleaner than if I was",
+      "duration": 6241,
+      "offset": 457039,
+      "lang": "en"
+    },
+    {
+      "text": "inside of um either of these. There's a",
+      "duration": 5601,
+      "offset": 459759,
+      "lang": "en"
+    },
+    {
+      "text": "way to watch the thought process of it",
+      "duration": 4800,
+      "offset": 463280,
+      "lang": "en"
+    },
+    {
+      "text": "and hit CtrlR, but it's a lot less",
+      "duration": 5600,
+      "offset": 465360,
+      "lang": "en"
+    },
+    {
+      "text": "clean. Again, these are UI arguments.",
+      "duration": 4399,
+      "offset": 468080,
+      "lang": "en"
+    },
+    {
+      "text": "This has nothing to do with the",
+      "duration": 3120,
+      "offset": 470960,
+      "lang": "en"
+    },
+    {
+      "text": "performance of the model yet as we",
+      "duration": 3440,
+      "offset": 472479,
+      "lang": "en"
+    },
+    {
+      "text": "haven't gotten to that full point. But I",
+      "duration": 3760,
+      "offset": 474080,
+      "lang": "en"
+    },
+    {
+      "text": "think UI and interaction is becoming",
+      "duration": 4321,
+      "offset": 475919,
+      "lang": "en"
+    },
+    {
+      "text": "exponentially more important as the",
+      "duration": 4240,
+      "offset": 477840,
+      "lang": "en"
+    },
+    {
+      "text": "software and the creation of software",
+      "duration": 3920,
+      "offset": 480240,
+      "lang": "en"
+    },
+    {
+      "text": "becomes easier to produce. I think the",
+      "duration": 4239,
+      "offset": 482080,
+      "lang": "en"
+    },
+    {
+      "text": "differentiation between a lot of",
+      "duration": 4319,
+      "offset": 484160,
+      "lang": "en"
+    },
+    {
+      "text": "companies 5 10 years from now is how",
+      "duration": 4560,
+      "offset": 486319,
+      "lang": "en"
+    },
+    {
+      "text": "much people enjoy interacting with it",
+      "duration": 5681,
+      "offset": 488479,
+      "lang": "en"
+    },
+    {
+      "text": "both from a UI UX perspective but also",
+      "duration": 5361,
+      "offset": 490879,
+      "lang": "en"
+    },
+    {
+      "text": "from like an ethical and moral",
+      "duration": 4000,
+      "offset": 494160,
+      "lang": "en"
+    },
+    {
+      "text": "perspective. Now, for the next step of",
+      "duration": 3840,
+      "offset": 496240,
+      "lang": "en"
+    },
+    {
+      "text": "this process, I actually created a",
+      "duration": 4719,
+      "offset": 498160,
+      "lang": "en"
+    },
+    {
+      "text": "relatively simple prompt. Now, usually I",
+      "duration": 4799,
+      "offset": 500080,
+      "lang": "en"
+    },
+    {
+      "text": "take a lot more time on my prompts,",
+      "duration": 3361,
+      "offset": 502879,
+      "lang": "en"
+    },
+    {
+      "text": "especially when I'm doing coding with",
+      "duration": 3921,
+      "offset": 504879,
+      "lang": "en"
+    },
+    {
+      "text": "aentic systems, describing specific file",
+      "duration": 5280,
+      "offset": 506240,
+      "lang": "en"
+    },
+    {
+      "text": "names, structures of files, the types of",
+      "duration": 5119,
+      "offset": 508800,
+      "lang": "en"
+    },
+    {
+      "text": "code, and updates I want to use. But in",
+      "duration": 4399,
+      "offset": 511520,
+      "lang": "en"
+    },
+    {
+      "text": "this case, I want to see how well all of",
+      "duration": 4560,
+      "offset": 513919,
+      "lang": "en"
+    },
+    {
+      "text": "these can capture intent with as little",
+      "duration": 5040,
+      "offset": 515919,
+      "lang": "en"
+    },
+    {
+      "text": "much uh context as possible. So, the",
+      "duration": 4721,
+      "offset": 518479,
+      "lang": "en"
+    },
+    {
+      "text": "prompt I said is, \"Okay, amazing. Now",
+      "duration": 4081,
+      "offset": 520959,
+      "lang": "en"
+    },
+    {
+      "text": "that you understand this, I have a goal",
+      "duration": 3440,
+      "offset": 523200,
+      "lang": "en"
+    },
+    {
+      "text": "for you. I want you to create an",
+      "duration": 4400,
+      "offset": 525040,
+      "lang": "en"
+    },
+    {
+      "text": "entirely separate folder, task one. Then",
+      "duration": 5280,
+      "offset": 526640,
+      "lang": "en"
+    },
+    {
+      "text": "in that folder, create a clean codebase",
+      "duration": 6079,
+      "offset": 529440,
+      "lang": "en"
+    },
+    {
+      "text": "that is a Python files that are modular.",
+      "duration": 6240,
+      "offset": 531920,
+      "lang": "en"
+    },
+    {
+      "text": "Each section of this Jupiter notebook",
+      "duration": 6000,
+      "offset": 535519,
+      "lang": "en"
+    },
+    {
+      "text": "could be api file. And I want to be able",
+      "duration": 6480,
+      "offset": 538160,
+      "lang": "en"
+    },
+    {
+      "text": "to easily navigate it myself and to",
+      "duration": 6961,
+      "offset": 541519,
+      "lang": "en"
+    },
+    {
+      "text": "update changes or add scales parameters.",
+      "duration": 6400,
+      "offset": 544640,
+      "lang": "en"
+    },
+    {
+      "text": "Once that is done, I would like a simple",
+      "duration": 5760,
+      "offset": 548480,
+      "lang": "en"
+    },
+    {
+      "text": "but easy to use UI that lets me run this",
+      "duration": 6320,
+      "offset": 551040,
+      "lang": "en"
+    },
+    {
+      "text": "pipeline. I have an ENV file with all my",
+      "duration": 5920,
+      "offset": 554240,
+      "lang": "en"
+    },
+    {
+      "text": "keys I will paste into the folder later.",
+      "duration": 5120,
+      "offset": 557360,
+      "lang": "en"
+    },
+    {
+      "text": "I purposely misspelled things as well",
+      "duration": 4320,
+      "offset": 560160,
+      "lang": "en"
+    },
+    {
+      "text": "just to see as I've noticed that",
+      "duration": 4000,
+      "offset": 562480,
+      "lang": "en"
+    },
+    {
+      "text": "sometimes the quality shifts when you",
+      "duration": 3840,
+      "offset": 564480,
+      "lang": "en"
+    },
+    {
+      "text": "misspell things and I want to see how",
+      "duration": 4479,
+      "offset": 566480,
+      "lang": "en"
+    },
+    {
+      "text": "well it can handle that. It's a very",
+      "duration": 4400,
+      "offset": 568320,
+      "lang": "en"
+    },
+    {
+      "text": "subtle shift that requires thousands of",
+      "duration": 3601,
+      "offset": 570959,
+      "lang": "en"
+    },
+    {
+      "text": "data points to notice, but I have",
+      "duration": 3760,
+      "offset": 572720,
+      "lang": "en"
+    },
+    {
+      "text": "noticed it. This is what I'm sending to",
+      "duration": 3680,
+      "offset": 574560,
+      "lang": "en"
+    },
+    {
+      "text": "all of them. I'm making sure they are on",
+      "duration": 3919,
+      "offset": 576480,
+      "lang": "en"
+    },
+    {
+      "text": "the highest version. And something",
+      "duration": 3680,
+      "offset": 578240,
+      "lang": "en"
+    },
+    {
+      "text": "important to note that I'm going to do",
+      "duration": 4081,
+      "offset": 580399,
+      "lang": "en"
+    },
+    {
+      "text": "for a future video is I can use sonnet",
+      "duration": 6160,
+      "offset": 581920,
+      "lang": "en"
+    },
+    {
+      "text": "4.5 in here. And I can use the GPOSS",
+      "duration": 5919,
+      "offset": 584480,
+      "lang": "en"
+    },
+    {
+      "text": "which is a um uh kind of open- source",
+      "duration": 4879,
+      "offset": 588080,
+      "lang": "en"
+    },
+    {
+      "text": "model that OpenAI created. So there's a",
+      "duration": 4321,
+      "offset": 590399,
+      "lang": "en"
+    },
+    {
+      "text": "there's another option of having this",
+      "duration": 3281,
+      "offset": 592959,
+      "lang": "en"
+    },
+    {
+      "text": "template but with a different model",
+      "duration": 3760,
+      "offset": 594720,
+      "lang": "en"
+    },
+    {
+      "text": "which might be interesting. I also sent",
+      "duration": 6320,
+      "offset": 596240,
+      "lang": "en"
+    },
+    {
+      "text": "the same thing to Claude and Codeex. Now",
+      "duration": 6720,
+      "offset": 598480,
+      "lang": "en"
+    },
+    {
+      "text": "Claude is immediately asking for you",
+      "duration": 4399,
+      "offset": 602560,
+      "lang": "en"
+    },
+    {
+      "text": "know bash commands. So, I'm going to go",
+      "duration": 3840,
+      "offset": 605200,
+      "lang": "en"
+    },
+    {
+      "text": "ahead and give it. Also, with Claude, I",
+      "duration": 4241,
+      "offset": 606959,
+      "lang": "en"
+    },
+    {
+      "text": "specifically said ultra think hard",
+      "duration": 3520,
+      "offset": 609040,
+      "lang": "en"
+    },
+    {
+      "text": "because that makes sure it's in its",
+      "duration": 4079,
+      "offset": 611200,
+      "lang": "en"
+    },
+    {
+      "text": "highest process. Um, and right off the",
+      "duration": 4800,
+      "offset": 612560,
+      "lang": "en"
+    },
+    {
+      "text": "bat, it gives a to-do list much like the",
+      "duration": 4800,
+      "offset": 615279,
+      "lang": "en"
+    },
+    {
+      "text": "other ones and is immediately giving me",
+      "duration": 6080,
+      "offset": 617360,
+      "lang": "en"
+    },
+    {
+      "text": "some sort of uh project architecture,",
+      "duration": 5521,
+      "offset": 620079,
+      "lang": "en"
+    },
+    {
+      "text": "right? Codeex, on the other hand, is",
+      "duration": 4240,
+      "offset": 623440,
+      "lang": "en"
+    },
+    {
+      "text": "immediately saying, \"Cool, I'll do it.\"",
+      "duration": 3520,
+      "offset": 625600,
+      "lang": "en"
+    },
+    {
+      "text": "And it's actually asking questions",
+      "duration": 3599,
+      "offset": 627680,
+      "lang": "en"
+    },
+    {
+      "text": "first, which I'm not against, right?",
+      "duration": 3680,
+      "offset": 629120,
+      "lang": "en"
+    },
+    {
+      "text": "That's actually kind of nice. You should",
+      "duration": 3120,
+      "offset": 631279,
+      "lang": "en"
+    },
+    {
+      "text": "be doing that. In this case, I was",
+      "duration": 3599,
+      "offset": 632800,
+      "lang": "en"
+    },
+    {
+      "text": "wanting it to just run and go for it.",
+      "duration": 5521,
+      "offset": 634399,
+      "lang": "en"
+    },
+    {
+      "text": "I'll just say your choice for all. I",
+      "duration": 5120,
+      "offset": 636399,
+      "lang": "en"
+    },
+    {
+      "text": "don't want to input too much of prompts",
+      "duration": 4159,
+      "offset": 639920,
+      "lang": "en"
+    },
+    {
+      "text": "and give Codex an unfair advantage uh as",
+      "duration": 4081,
+      "offset": 641519,
+      "lang": "en"
+    },
+    {
+      "text": "the other ones are kind of going out and",
+      "duration": 3041,
+      "offset": 644079,
+      "lang": "en"
+    },
+    {
+      "text": "making it do it in there. So, I'll just",
+      "duration": 4000,
+      "offset": 645600,
+      "lang": "en"
+    },
+    {
+      "text": "I'll let that happen there. Gemini 3",
+      "duration": 5600,
+      "offset": 647120,
+      "lang": "en"
+    },
+    {
+      "text": "inside of anti-gravity is actually",
+      "duration": 6000,
+      "offset": 649600,
+      "lang": "en"
+    },
+    {
+      "text": "creating an implementation plan as again",
+      "duration": 6239,
+      "offset": 652720,
+      "lang": "en"
+    },
+    {
+      "text": "a separate file. I really really love",
+      "duration": 6400,
+      "offset": 655600,
+      "lang": "en"
+    },
+    {
+      "text": "this feel this vibe of bouncing back and",
+      "duration": 4961,
+      "offset": 658959,
+      "lang": "en"
+    },
+    {
+      "text": "between them. the the file being out",
+      "duration": 3839,
+      "offset": 662000,
+      "lang": "en"
+    },
+    {
+      "text": "here rather than a to-do list in the",
+      "duration": 3520,
+      "offset": 663920,
+      "lang": "en"
+    },
+    {
+      "text": "conversation. It's something we do",
+      "duration": 4240,
+      "offset": 665839,
+      "lang": "en"
+    },
+    {
+      "text": "naturally or we do on purpose with like",
+      "duration": 5839,
+      "offset": 667440,
+      "lang": "en"
+    },
+    {
+      "text": "clawed MD files or PRD files. However,",
+      "duration": 5760,
+      "offset": 670079,
+      "lang": "en"
+    },
+    {
+      "text": "this is built it in to automatically",
+      "duration": 4401,
+      "offset": 673279,
+      "lang": "en"
+    },
+    {
+      "text": "open up in that way. It's the little",
+      "duration": 3521,
+      "offset": 675839,
+      "lang": "en"
+    },
+    {
+      "text": "things that matter when you're diving",
+      "duration": 3200,
+      "offset": 677680,
+      "lang": "en"
+    },
+    {
+      "text": "into this level, right? Cuz all these",
+      "duration": 3520,
+      "offset": 679360,
+      "lang": "en"
+    },
+    {
+      "text": "models are going to do a great job, but",
+      "duration": 3600,
+      "offset": 680880,
+      "lang": "en"
+    },
+    {
+      "text": "at the end of the day, it's the way in",
+      "duration": 2959,
+      "offset": 682880,
+      "lang": "en"
+    },
+    {
+      "text": "which you interact with them that",
+      "duration": 3280,
+      "offset": 684480,
+      "lang": "en"
+    },
+    {
+      "text": "matter. So, inside the implementation",
+      "duration": 3841,
+      "offset": 685839,
+      "lang": "en"
+    },
+    {
+      "text": "model gave me some ideas for user",
+      "duration": 4639,
+      "offset": 687760,
+      "lang": "en"
+    },
+    {
+      "text": "review, right? Modular codebase. Um, it",
+      "duration": 4800,
+      "offset": 689680,
+      "lang": "en"
+    },
+    {
+      "text": "did a pretty decent job. I like this",
+      "duration": 4481,
+      "offset": 692399,
+      "lang": "en"
+    },
+    {
+      "text": "kind of idea. It gave an API section, a",
+      "duration": 5680,
+      "offset": 694480,
+      "lang": "en"
+    },
+    {
+      "text": "core section, an analysis section, uh,",
+      "duration": 5680,
+      "offset": 696880,
+      "lang": "en"
+    },
+    {
+      "text": "UI section, as well as requirements in",
+      "duration": 4239,
+      "offset": 700160,
+      "lang": "en"
+    },
+    {
+      "text": "main. Uh, which is actually kind of",
+      "duration": 4880,
+      "offset": 702560,
+      "lang": "en"
+    },
+    {
+      "text": "similar, I think, to what Claude did,",
+      "duration": 5680,
+      "offset": 704399,
+      "lang": "en"
+    },
+    {
+      "text": "right? Config, core, analysis, UI.",
+      "duration": 4880,
+      "offset": 707440,
+      "lang": "en"
+    },
+    {
+      "text": "There's not really an API section in",
+      "duration": 3841,
+      "offset": 710079,
+      "lang": "en"
+    },
+    {
+      "text": "this one. I'm assuming it's going to put",
+      "duration": 3759,
+      "offset": 712320,
+      "lang": "en"
+    },
+    {
+      "text": "it under models as well as core, right?",
+      "duration": 4159,
+      "offset": 713920,
+      "lang": "en"
+    },
+    {
+      "text": "API clients. I kind of like the idea of",
+      "duration": 4481,
+      "offset": 716079,
+      "lang": "en"
+    },
+    {
+      "text": "API being a separate section because",
+      "duration": 4961,
+      "offset": 718079,
+      "lang": "en"
+    },
+    {
+      "text": "eventually that's going to be MCP and so",
+      "duration": 4160,
+      "offset": 720560,
+      "lang": "en"
+    },
+    {
+      "text": "I would like a whole section that is",
+      "duration": 4479,
+      "offset": 723040,
+      "lang": "en"
+    },
+    {
+      "text": "only MCP. Now for codeex to the left",
+      "duration": 6480,
+      "offset": 724720,
+      "lang": "en"
+    },
+    {
+      "text": "here um it gives me kind of outlining",
+      "duration": 6161,
+      "offset": 727519,
+      "lang": "en"
+    },
+    {
+      "text": "the structure all this stuff talks about",
+      "duration": 4079,
+      "offset": 731200,
+      "lang": "en"
+    },
+    {
+      "text": "tasks but there's not really any",
+      "duration": 4399,
+      "offset": 733680,
+      "lang": "en"
+    },
+    {
+      "text": "information right like I I have no idea",
+      "duration": 4641,
+      "offset": 735279,
+      "lang": "en"
+    },
+    {
+      "text": "what it's doing right now [music] and",
+      "duration": 3121,
+      "offset": 738079,
+      "lang": "en"
+    },
+    {
+      "text": "this has been a problem I think for",
+      "duration": 3760,
+      "offset": 739920,
+      "lang": "en"
+    },
+    {
+      "text": "Codeex for a while. I will say Codeex",
+      "duration": 4639,
+      "offset": 741200,
+      "lang": "en"
+    },
+    {
+      "text": "does ask more questions and can be very",
+      "duration": 3599,
+      "offset": 743680,
+      "lang": "en"
+    },
+    {
+      "text": "good at planning on its own. So, it",
+      "duration": 3361,
+      "offset": 745839,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't need as much interaction, but",
+      "duration": 4481,
+      "offset": 747279,
+      "lang": "en"
+    },
+    {
+      "text": "I'm very big fan of seeing the entire",
+      "duration": 4240,
+      "offset": 749200,
+      "lang": "en"
+    },
+    {
+      "text": "process and what's in there. And you can",
+      "duration": 3759,
+      "offset": 751760,
+      "lang": "en"
+    },
+    {
+      "text": "open this and dive into its process a",
+      "duration": 4480,
+      "offset": 753440,
+      "lang": "en"
+    },
+    {
+      "text": "bit more. But again, right off the bat",
+      "duration": 4320,
+      "offset": 755519,
+      "lang": "en"
+    },
+    {
+      "text": "in anti-gravity, I have this beautiful",
+      "duration": 3919,
+      "offset": 757920,
+      "lang": "en"
+    },
+    {
+      "text": "file that I can come and look through. I",
+      "duration": 3761,
+      "offset": 759839,
+      "lang": "en"
+    },
+    {
+      "text": "can look at its plan. I can understand",
+      "duration": 4321,
+      "offset": 761839,
+      "lang": "en"
+    },
+    {
+      "text": "it. I can review it. That's the flow.",
+      "duration": 4723,
+      "offset": 763600,
+      "lang": "en"
+    },
+    {
+      "text": "This is a flow that I would want with",
+      "duration": 4080,
+      "offset": 766160,
+      "lang": "en"
+    },
+    {
+      "text": "[music] coding with AI assistance. It's",
+      "duration": 3837,
+      "offset": 768323,
+      "lang": "en"
+    },
+    {
+      "text": "like working with another individual.",
+      "duration": 4000,
+      "offset": 770240,
+      "lang": "en"
+    },
+    {
+      "text": "It's clean and in front of me. I can see",
+      "duration": 4400,
+      "offset": 772160,
+      "lang": "en"
+    },
+    {
+      "text": "the injection points for my own",
+      "duration": 3839,
+      "offset": 774240,
+      "lang": "en"
+    },
+    {
+      "text": "knowledge. So, I'm going to go ahead and",
+      "duration": 3519,
+      "offset": 776560,
+      "lang": "en"
+    },
+    {
+      "text": "click proceed here. And um I'm actually",
+      "duration": 3760,
+      "offset": 778079,
+      "lang": "en"
+    },
+    {
+      "text": "going to run through the rest of the",
+      "duration": 4081,
+      "offset": 780079,
+      "lang": "en"
+    },
+    {
+      "text": "process. What ended up happening is",
+      "duration": 5841,
+      "offset": 781839,
+      "lang": "en"
+    },
+    {
+      "text": "Claude finished extremely fast. Uh I",
+      "duration": 6080,
+      "offset": 784160,
+      "lang": "en"
+    },
+    {
+      "text": "mean, way before anyone else did. Uh",
+      "duration": 4800,
+      "offset": 787680,
+      "lang": "en"
+    },
+    {
+      "text": "right now, Codeex is still going through",
+      "duration": 4800,
+      "offset": 790240,
+      "lang": "en"
+    },
+    {
+      "text": "and it's just failing terribly trying to",
+      "duration": 4240,
+      "offset": 792480,
+      "lang": "en"
+    },
+    {
+      "text": "talk to PowerShell. It might be a",
+      "duration": 3280,
+      "offset": 795040,
+      "lang": "en"
+    },
+    {
+      "text": "permissions issue. This might be",
+      "duration": 4640,
+      "offset": 796720,
+      "lang": "en"
+    },
+    {
+      "text": "something I did. um not giving it full",
+      "duration": 5280,
+      "offset": 798320,
+      "lang": "en"
+    },
+    {
+      "text": "admin aspect. I don't want it to be",
+      "duration": 3919,
+      "offset": 801360,
+      "lang": "en"
+    },
+    {
+      "text": "like, hey, Codeex sucks. I think there's",
+      "duration": 3359,
+      "offset": 803600,
+      "lang": "en"
+    },
+    {
+      "text": "a lot of situations there. I could do",
+      "duration": 3680,
+      "offset": 805279,
+      "lang": "en"
+    },
+    {
+      "text": "better prompting specifically for Codex",
+      "duration": 3680,
+      "offset": 806959,
+      "lang": "en"
+    },
+    {
+      "text": "and its environment. I haven't been",
+      "duration": 3521,
+      "offset": 808959,
+      "lang": "en"
+    },
+    {
+      "text": "using Codex as much because I just I",
+      "duration": 3760,
+      "offset": 810639,
+      "lang": "en"
+    },
+    {
+      "text": "feel like the other ones do what I want",
+      "duration": 4960,
+      "offset": 812480,
+      "lang": "en"
+    },
+    {
+      "text": "and my intention better. Also, Google is",
+      "duration": 4321,
+      "offset": 814399,
+      "lang": "en"
+    },
+    {
+      "text": "still going along right now. It's",
+      "duration": 3360,
+      "offset": 817440,
+      "lang": "en"
+    },
+    {
+      "text": "chugging, just generating. It's doing a",
+      "duration": 4320,
+      "offset": 818720,
+      "lang": "en"
+    },
+    {
+      "text": "lot of work. Um it's showing me. And",
+      "duration": 4159,
+      "offset": 820800,
+      "lang": "en"
+    },
+    {
+      "text": "again, what's really nice is it the UI",
+      "duration": 3599,
+      "offset": 823040,
+      "lang": "en"
+    },
+    {
+      "text": "is just so clean. It's so clean. I can",
+      "duration": 3680,
+      "offset": 824959,
+      "lang": "en"
+    },
+    {
+      "text": "see it has the nice little buttons. I",
+      "duration": 4081,
+      "offset": 826639,
+      "lang": "en"
+    },
+    {
+      "text": "can click to open it up very quickly.",
+      "duration": 4000,
+      "offset": 828639,
+      "lang": "en"
+    },
+    {
+      "text": "Um, it's just very very nice. It's",
+      "duration": 3440,
+      "offset": 830720,
+      "lang": "en"
+    },
+    {
+      "text": "coming through. I can accept all these",
+      "duration": 3521,
+      "offset": 832639,
+      "lang": "en"
+    },
+    {
+      "text": "changes. But let's go ahead and take a",
+      "duration": 5440,
+      "offset": 834160,
+      "lang": "en"
+    },
+    {
+      "text": "dive into what we think Claude is doing.",
+      "duration": 4640,
+      "offset": 836160,
+      "lang": "en"
+    },
+    {
+      "text": "So, it looks like starting from the",
+      "duration": 3440,
+      "offset": 839600,
+      "lang": "en"
+    },
+    {
+      "text": "bottom, right? Project complete. Woo.",
+      "duration": 4960,
+      "offset": 840800,
+      "lang": "en"
+    },
+    {
+      "text": "They did a folder called ethics engine.",
+      "duration": 5359,
+      "offset": 843040,
+      "lang": "en"
+    },
+    {
+      "text": "Uh, architecture of five packages and 20",
+      "duration": 5759,
+      "offset": 845760,
+      "lang": "en"
+    },
+    {
+      "text": "modules. So, config, core, analysis, UI.",
+      "duration": 5201,
+      "offset": 848399,
+      "lang": "en"
+    },
+    {
+      "text": "Um, config has all the configurations,",
+      "duration": 4401,
+      "offset": 851519,
+      "lang": "en"
+    },
+    {
+      "text": "all that jazz. Two user interfaces,",
+      "duration": 4080,
+      "offset": 853600,
+      "lang": "en"
+    },
+    {
+      "text": "which is interesting. gave me a CLI,",
+      "duration": 3840,
+      "offset": 855920,
+      "lang": "en"
+    },
+    {
+      "text": "which that's super nice. That's actually",
+      "duration": 3680,
+      "offset": 857680,
+      "lang": "en"
+    },
+    {
+      "text": "really nice. I didn't ask it to do that,",
+      "duration": 4240,
+      "offset": 859760,
+      "lang": "en"
+    },
+    {
+      "text": "but um having a CLI to be able to just",
+      "duration": 4479,
+      "offset": 861360,
+      "lang": "en"
+    },
+    {
+      "text": "run and test things and force it sounds",
+      "duration": 3600,
+      "offset": 864000,
+      "lang": "en"
+    },
+    {
+      "text": "really good. And it decided to use",
+      "duration": 3680,
+      "offset": 865839,
+      "lang": "en"
+    },
+    {
+      "text": "Streamlit. Almost every model uses",
+      "duration": 4080,
+      "offset": 867600,
+      "lang": "en"
+    },
+    {
+      "text": "Streamlit to to create a UI generally",
+      "duration": 4801,
+      "offset": 869519,
+      "lang": "en"
+    },
+    {
+      "text": "speaking. Um so we'll see some good",
+      "duration": 4959,
+      "offset": 871680,
+      "lang": "en"
+    },
+    {
+      "text": "documentation, readMes, features, chain",
+      "duration": 4879,
+      "offset": 874320,
+      "lang": "en"
+    },
+    {
+      "text": "logs. Uh created some key improvements",
+      "duration": 3921,
+      "offset": 876639,
+      "lang": "en"
+    },
+    {
+      "text": "over the notebook. Whether they're",
+      "duration": 3041,
+      "offset": 879199,
+      "lang": "en"
+    },
+    {
+      "text": "improvements, we'll we'll find out here",
+      "duration": 3680,
+      "offset": 880560,
+      "lang": "en"
+    },
+    {
+      "text": "shortly. Uh, tells me some getting",
+      "duration": 4480,
+      "offset": 882240,
+      "lang": "en"
+    },
+    {
+      "text": "started, some setup processes, uh,",
+      "duration": 4719,
+      "offset": 884240,
+      "lang": "en"
+    },
+    {
+      "text": "common tasks made easy. That's",
+      "duration": 3679,
+      "offset": 886720,
+      "lang": "en"
+    },
+    {
+      "text": "interesting. It decided to come up with",
+      "duration": 3201,
+      "offset": 888959,
+      "lang": "en"
+    },
+    {
+      "text": "tasks that it thought needed to be",
+      "duration": 4161,
+      "offset": 890399,
+      "lang": "en"
+    },
+    {
+      "text": "cleaned up. Change prompts, right? Let's",
+      "duration": 4799,
+      "offset": 892160,
+      "lang": "en"
+    },
+    {
+      "text": "see. Edit config/prompts. That's",
+      "duration": 5040,
+      "offset": 894560,
+      "lang": "en"
+    },
+    {
+      "text": "interesting. Modify templates. Yeah, I",
+      "duration": 4401,
+      "offset": 896959,
+      "lang": "en"
+    },
+    {
+      "text": "mean, that's nice. Uh, kept all the",
+      "duration": 4880,
+      "offset": 899600,
+      "lang": "en"
+    },
+    {
+      "text": "features plus new features. Wow. Uh,",
+      "duration": 5120,
+      "offset": 901360,
+      "lang": "en"
+    },
+    {
+      "text": "file locations reference. Need to modify",
+      "duration": 3280,
+      "offset": 904480,
+      "lang": "en"
+    },
+    {
+      "text": "something? Here's a quick reference",
+      "duration": 3919,
+      "offset": 906480,
+      "lang": "en"
+    },
+    {
+      "text": "file. Pro tip, start with the UI. It's",
+      "duration": 5280,
+      "offset": 907760,
+      "lang": "en"
+    },
+    {
+      "text": "the easiest to learn. test with runs,",
+      "duration": 5841,
+      "offset": 910399,
+      "lang": "en"
+    },
+    {
+      "text": "use list, amazing nest step. So I mean",
+      "duration": 5039,
+      "offset": 913040,
+      "lang": "en"
+    },
+    {
+      "text": "that's cool. I think the most important",
+      "duration": 3680,
+      "offset": 916240,
+      "lang": "en"
+    },
+    {
+      "text": "things to take from this is it decided",
+      "duration": 4481,
+      "offset": 918079,
+      "lang": "en"
+    },
+    {
+      "text": "new features to add on its own and how",
+      "duration": 4880,
+      "offset": 919920,
+      "lang": "en"
+    },
+    {
+      "text": "to actually automate those tasks. And",
+      "duration": 4160,
+      "offset": 922560,
+      "lang": "en"
+    },
+    {
+      "text": "most importantly, it was the fastest,",
+      "duration": 5440,
+      "offset": 924800,
+      "lang": "en"
+    },
+    {
+      "text": "right? The uh codeex still is doing",
+      "duration": 5359,
+      "offset": 926720,
+      "lang": "en"
+    },
+    {
+      "text": "whatever ridiculousness it's doing.",
+      "duration": 5520,
+      "offset": 930240,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini um is waiting for me to accept. I",
+      "duration": 5281,
+      "offset": 932079,
+      "lang": "en"
+    },
+    {
+      "text": "would prefer something to take longer",
+      "duration": 3600,
+      "offset": 935760,
+      "lang": "en"
+    },
+    {
+      "text": "and get it right. Yeah, I'm gonna go",
+      "duration": 4159,
+      "offset": 937360,
+      "lang": "en"
+    },
+    {
+      "text": "ahead and open up the UI from Claude",
+      "duration": 3520,
+      "offset": 939360,
+      "lang": "en"
+    },
+    {
+      "text": "while these guys are running and see",
+      "duration": 4161,
+      "offset": 941519,
+      "lang": "en"
+    },
+    {
+      "text": "what it looks like. Okay. Well, this was",
+      "duration": 4319,
+      "offset": 942880,
+      "lang": "en"
+    },
+    {
+      "text": "much more annoying a process to even get",
+      "duration": 3279,
+      "offset": 945680,
+      "lang": "en"
+    },
+    {
+      "text": "it to this screen. Uh, essentially the",
+      "duration": 4080,
+      "offset": 947199,
+      "lang": "en"
+    },
+    {
+      "text": "first thing it did, uh, one common thing",
+      "duration": 5281,
+      "offset": 948959,
+      "lang": "en"
+    },
+    {
+      "text": "that humans do as well as people. So,",
+      "duration": 5521,
+      "offset": 951279,
+      "lang": "en"
+    },
+    {
+      "text": "uh, if you actually look at my original",
+      "duration": 4240,
+      "offset": 954240,
+      "lang": "en"
+    },
+    {
+      "text": "survey aggregator, the thing that I",
+      "duration": 3599,
+      "offset": 956800,
+      "lang": "en"
+    },
+    {
+      "text": "created, I put all the prompts into",
+      "duration": 3599,
+      "offset": 958480,
+      "lang": "en"
+    },
+    {
+      "text": "these JSON objects cuz it's easier to",
+      "duration": 3680,
+      "offset": 960399,
+      "lang": "en"
+    },
+    {
+      "text": "pull an ID and create this list, right?",
+      "duration": 3041,
+      "offset": 962079,
+      "lang": "en"
+    },
+    {
+      "text": "They're [music] they're lists, right?",
+      "duration": 2880,
+      "offset": 964079,
+      "lang": "en"
+    },
+    {
+      "text": "JSON objects is even really the right",
+      "duration": 3839,
+      "offset": 965120,
+      "lang": "en"
+    },
+    {
+      "text": "way to put it either. Um, and what it",
+      "duration": 4800,
+      "offset": 966959,
+      "lang": "en"
+    },
+    {
+      "text": "would do is it'll put the quotations in",
+      "duration": 4481,
+      "offset": 968959,
+      "lang": "en"
+    },
+    {
+      "text": "the wrong order or miss a quotation",
+      "duration": 4080,
+      "offset": 971759,
+      "lang": "en"
+    },
+    {
+      "text": "causing a basically syntax error in all",
+      "duration": 3759,
+      "offset": 973440,
+      "lang": "en"
+    },
+    {
+      "text": "of these. Now, I've I've done this",
+      "duration": 3360,
+      "offset": 975839,
+      "lang": "en"
+    },
+    {
+      "text": "personally myself plenty of times, and",
+      "duration": 4000,
+      "offset": 977199,
+      "lang": "en"
+    },
+    {
+      "text": "the AI consistently has a problem with",
+      "duration": 4241,
+      "offset": 979199,
+      "lang": "en"
+    },
+    {
+      "text": "these large lists like this. So, I've",
+      "duration": 3921,
+      "offset": 981199,
+      "lang": "en"
+    },
+    {
+      "text": "had this problem for the last year on",
+      "duration": 3040,
+      "offset": 983440,
+      "lang": "en"
+    },
+    {
+      "text": "trying to get anything to work with",
+      "duration": 4320,
+      "offset": 985120,
+      "lang": "en"
+    },
+    {
+      "text": "this. Um, and Claude's solution was just",
+      "duration": 5359,
+      "offset": 986480,
+      "lang": "en"
+    },
+    {
+      "text": "to get rid of most of it and basically",
+      "duration": 4240,
+      "offset": 989440,
+      "lang": "en"
+    },
+    {
+      "text": "make a version of it and tell me to copy",
+      "duration": 3680,
+      "offset": 991839,
+      "lang": "en"
+    },
+    {
+      "text": "it and paste it in later, which honestly",
+      "duration": 3519,
+      "offset": 993680,
+      "lang": "en"
+    },
+    {
+      "text": "is actually a pretty good solution.",
+      "duration": 3281,
+      "offset": 995519,
+      "lang": "en"
+    },
+    {
+      "text": "Right? There's no point automating and",
+      "duration": 3440,
+      "offset": 997199,
+      "lang": "en"
+    },
+    {
+      "text": "creating all these scripts to try to get",
+      "duration": 4800,
+      "offset": 998800,
+      "lang": "en"
+    },
+    {
+      "text": "it in there if it's struggling so hard",
+      "duration": 4961,
+      "offset": 1000639,
+      "lang": "en"
+    },
+    {
+      "text": "when I could just paste it my original",
+      "duration": 4080,
+      "offset": 1003600,
+      "lang": "en"
+    },
+    {
+      "text": "ones right in there. On top of that, it",
+      "duration": 4640,
+      "offset": 1005600,
+      "lang": "en"
+    },
+    {
+      "text": "had some issues with the actual UI as",
+      "duration": 5680,
+      "offset": 1007680,
+      "lang": "en"
+    },
+    {
+      "text": "well and registering my ENV file for my",
+      "duration": 6880,
+      "offset": 1010240,
+      "lang": "en"
+    },
+    {
+      "text": "API keys, but eventually we got it up",
+      "duration": 5680,
+      "offset": 1013360,
+      "lang": "en"
+    },
+    {
+      "text": "and it's a it's a streamlit dashboard,",
+      "duration": 3680,
+      "offset": 1017120,
+      "lang": "en"
+    },
+    {
+      "text": "right? And it did a decent job. I",
+      "duration": 4080,
+      "offset": 1019040,
+      "lang": "en"
+    },
+    {
+      "text": "haven't ran to see if it works well. I'm",
+      "duration": 5840,
+      "offset": 1020800,
+      "lang": "en"
+    },
+    {
+      "text": "still looking through the logic. Um, it",
+      "duration": 5760,
+      "offset": 1023120,
+      "lang": "en"
+    },
+    {
+      "text": "seems to click. It seems to give me the",
+      "duration": 4799,
+      "offset": 1026640,
+      "lang": "en"
+    },
+    {
+      "text": "options of choosing different scales,",
+      "duration": 4559,
+      "offset": 1028880,
+      "lang": "en"
+    },
+    {
+      "text": "choosing different prompt styles, which",
+      "duration": 4161,
+      "offset": 1031439,
+      "lang": "en"
+    },
+    {
+      "text": "is interesting there. I don't believe",
+      "duration": 4321,
+      "offset": 1033439,
+      "lang": "en"
+    },
+    {
+      "text": "it's going to really work too well",
+      "duration": 3599,
+      "offset": 1035600,
+      "lang": "en"
+    },
+    {
+      "text": "without some editing. And this has been",
+      "duration": 3279,
+      "offset": 1037760,
+      "lang": "en"
+    },
+    {
+      "text": "the case for the last year. I've never",
+      "duration": 4321,
+      "offset": 1039199,
+      "lang": "en"
+    },
+    {
+      "text": "been able to get a model to oneot or",
+      "duration": 4721,
+      "offset": 1041039,
+      "lang": "en"
+    },
+    {
+      "text": "twoshot my codebase into something",
+      "duration": 4960,
+      "offset": 1043520,
+      "lang": "en"
+    },
+    {
+      "text": "modular um too easily without some, you",
+      "duration": 4480,
+      "offset": 1045760,
+      "lang": "en"
+    },
+    {
+      "text": "know, obvious prompting and whatnot.",
+      "duration": 3600,
+      "offset": 1048480,
+      "lang": "en"
+    },
+    {
+      "text": "Most of the code as I was reviewing it",
+      "duration": 4080,
+      "offset": 1050240,
+      "lang": "en"
+    },
+    {
+      "text": "looks okay. Let's dive into codeex real",
+      "duration": 4560,
+      "offset": 1052080,
+      "lang": "en"
+    },
+    {
+      "text": "quick. Now, I was going to show you",
+      "duration": 5120,
+      "offset": 1054320,
+      "lang": "en"
+    },
+    {
+      "text": "codeex's. Uh, he kind of hijacked Claude",
+      "duration": 6000,
+      "offset": 1056640,
+      "lang": "en"
+    },
+    {
+      "text": "in here um, and put its own and created",
+      "duration": 6239,
+      "offset": 1059440,
+      "lang": "en"
+    },
+    {
+      "text": "a series of pies that are okay, I",
+      "duration": 5680,
+      "offset": 1062640,
+      "lang": "en"
+    },
+    {
+      "text": "suppose. Um, but it kind of got",
+      "duration": 4961,
+      "offset": 1065679,
+      "lang": "en"
+    },
+    {
+      "text": "confused, I think. Um, didn't realize it",
+      "duration": 4000,
+      "offset": 1068320,
+      "lang": "en"
+    },
+    {
+      "text": "should be in a separate engine.",
+      "duration": 3520,
+      "offset": 1070640,
+      "lang": "en"
+    },
+    {
+      "text": "Meanwhile, Claude both recognized it",
+      "duration": 3280,
+      "offset": 1072320,
+      "lang": "en"
+    },
+    {
+      "text": "needed to create a separate one, even",
+      "duration": 3519,
+      "offset": 1074160,
+      "lang": "en"
+    },
+    {
+      "text": "though Google had already made one, the",
+      "duration": 4000,
+      "offset": 1075600,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini 3. So, right now, I'm just going",
+      "duration": 4481,
+      "offset": 1077679,
+      "lang": "en"
+    },
+    {
+      "text": "to stop touching codecs for the cases of",
+      "duration": 5199,
+      "offset": 1079600,
+      "lang": "en"
+    },
+    {
+      "text": "this. Don't like it. it's the loser. Uh",
+      "duration": 4960,
+      "offset": 1082160,
+      "lang": "en"
+    },
+    {
+      "text": "just kind of overall already. Yeah, I've",
+      "duration": 3841,
+      "offset": 1084799,
+      "lang": "en"
+    },
+    {
+      "text": "never really liked Codeex as much as the",
+      "duration": 3439,
+      "offset": 1087120,
+      "lang": "en"
+    },
+    {
+      "text": "other ones anyway. Um [music] I think it",
+      "duration": 4000,
+      "offset": 1088640,
+      "lang": "en"
+    },
+    {
+      "text": "can be very powerful, but not on this",
+      "duration": 4240,
+      "offset": 1090559,
+      "lang": "en"
+    },
+    {
+      "text": "one. And now finally, anti-gravity with",
+      "duration": 4720,
+      "offset": 1092640,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini 3. Um this by far took the",
+      "duration": 4000,
+      "offset": 1094799,
+      "lang": "en"
+    },
+    {
+      "text": "longest out of all of them, like",
+      "duration": 3600,
+      "offset": 1097360,
+      "lang": "en"
+    },
+    {
+      "text": "significantly so. A good 30 minutes",
+      "duration": 6481,
+      "offset": 1098799,
+      "lang": "en"
+    },
+    {
+      "text": "extra. Already extremely promising. So",
+      "duration": 5920,
+      "offset": 1100960,
+      "lang": "en"
+    },
+    {
+      "text": "immediately recognized needed to create",
+      "duration": 3279,
+      "offset": 1105280,
+      "lang": "en"
+    },
+    {
+      "text": "a separate folder from the other AI on",
+      "duration": 4480,
+      "offset": 1106880,
+      "lang": "en"
+    },
+    {
+      "text": "its own. Um it created its analysis",
+      "duration": 4641,
+      "offset": 1108559,
+      "lang": "en"
+    },
+    {
+      "text": "area. It looked like it got the scoring",
+      "duration": 3840,
+      "offset": 1111360,
+      "lang": "en"
+    },
+    {
+      "text": "well. It looked like it did the API",
+      "duration": 3920,
+      "offset": 1113200,
+      "lang": "en"
+    },
+    {
+      "text": "calls pretty well. I haven't ran it yet,",
+      "duration": 4719,
+      "offset": 1115200,
+      "lang": "en"
+    },
+    {
+      "text": "so we'll find out there. The core looks",
+      "duration": 5200,
+      "offset": 1117120,
+      "lang": "en"
+    },
+    {
+      "text": "great. The most impressive part is I'm",
+      "duration": 4321,
+      "offset": 1119919,
+      "lang": "en"
+    },
+    {
+      "text": "not seeing any JSON errors. So, right",
+      "duration": 3920,
+      "offset": 1122320,
+      "lang": "en"
+    },
+    {
+      "text": "off the bat, all of these were copied",
+      "duration": 3920,
+      "offset": 1124240,
+      "lang": "en"
+    },
+    {
+      "text": "over perfectly. Uh, as of right now,",
+      "duration": 3360,
+      "offset": 1126240,
+      "lang": "en"
+    },
+    {
+      "text": "we'll we'll find out here shortly if",
+      "duration": 3759,
+      "offset": 1128160,
+      "lang": "en"
+    },
+    {
+      "text": "that's the case. Um, and these scales",
+      "duration": 4560,
+      "offset": 1129600,
+      "lang": "en"
+    },
+    {
+      "text": "look exactly like how I would have",
+      "duration": 4081,
+      "offset": 1131919,
+      "lang": "en"
+    },
+    {
+      "text": "organized them and how I would have",
+      "duration": 3680,
+      "offset": 1134160,
+      "lang": "en"
+    },
+    {
+      "text": "coded them. It handled the reverse",
+      "duration": 4080,
+      "offset": 1136000,
+      "lang": "en"
+    },
+    {
+      "text": "scoring. [music] These true values are",
+      "duration": 4560,
+      "offset": 1137840,
+      "lang": "en"
+    },
+    {
+      "text": "true values in my original one as well.",
+      "duration": 4320,
+      "offset": 1140080,
+      "lang": "en"
+    },
+    {
+      "text": "It did the proper compiling of the list",
+      "duration": 4159,
+      "offset": 1142400,
+      "lang": "en"
+    },
+    {
+      "text": "as well. Super nice there. But the thing",
+      "duration": 3760,
+      "offset": 1144400,
+      "lang": "en"
+    },
+    {
+      "text": "that's blowing me away right now, and",
+      "duration": 5281,
+      "offset": 1146559,
+      "lang": "en"
+    },
+    {
+      "text": "again, I haven't seen it, is the UI. It",
+      "duration": 6639,
+      "offset": 1148160,
+      "lang": "en"
+    },
+    {
+      "text": "said, \"Nah, Streamllet's cool, but let",
+      "duration": 5839,
+      "offset": 1151840,
+      "lang": "en"
+    },
+    {
+      "text": "me actually just build an entire JS and",
+      "duration": 5921,
+      "offset": 1154799,
+      "lang": "en"
+    },
+    {
+      "text": "CSS front end.\" And it went all in. I",
+      "duration": 7441,
+      "offset": 1157679,
+      "lang": "en"
+    },
+    {
+      "text": "mean, it created this entire massive set",
+      "duration": 7440,
+      "offset": 1160720,
+      "lang": "en"
+    },
+    {
+      "text": "of like triggers and sections. And",
+      "duration": 4480,
+      "offset": 1165120,
+      "lang": "en"
+    },
+    {
+      "text": "honestly, it's going to take me a while",
+      "duration": 4160,
+      "offset": 1168160,
+      "lang": "en"
+    },
+    {
+      "text": "to like dive in and actually understand",
+      "duration": 4079,
+      "offset": 1169600,
+      "lang": "en"
+    },
+    {
+      "text": "what it was trying to create here",
+      "duration": 3680,
+      "offset": 1172320,
+      "lang": "en"
+    },
+    {
+      "text": "because [music] this is a massive build",
+      "duration": 4081,
+      "offset": 1173679,
+      "lang": "en"
+    },
+    {
+      "text": "from what I think it's doing. And then",
+      "duration": 4640,
+      "offset": 1176000,
+      "lang": "en"
+    },
+    {
+      "text": "it also created a fast API uh front end",
+      "duration": 5279,
+      "offset": 1177760,
+      "lang": "en"
+    },
+    {
+      "text": "to be able to do it. Now, this looks",
+      "duration": 5600,
+      "offset": 1180640,
+      "lang": "en"
+    },
+    {
+      "text": "pretty, but does it work? So, I'm going",
+      "duration": 5041,
+      "offset": 1183039,
+      "lang": "en"
+    },
+    {
+      "text": "to go ahead and run it for the first",
+      "duration": 4080,
+      "offset": 1186240,
+      "lang": "en"
+    },
+    {
+      "text": "time and we're going to see if it",
+      "duration": 5200,
+      "offset": 1188080,
+      "lang": "en"
+    },
+    {
+      "text": "actually was able to do this insanely",
+      "duration": 5200,
+      "offset": 1190320,
+      "lang": "en"
+    },
+    {
+      "text": "monumental task. Um, I was looking",
+      "duration": 4080,
+      "offset": 1193280,
+      "lang": "en"
+    },
+    {
+      "text": "through its thought. I kind of dig it.",
+      "duration": 4240,
+      "offset": 1195520,
+      "lang": "en"
+    },
+    {
+      "text": "Again, same prompts. I haven't told it",
+      "duration": 4640,
+      "offset": 1197360,
+      "lang": "en"
+    },
+    {
+      "text": "to do any of this. I only gave Gemini",
+      "duration": 4799,
+      "offset": 1199760,
+      "lang": "en"
+    },
+    {
+      "text": "the first two. Only Claude and Codox did",
+      "duration": 4320,
+      "offset": 1202000,
+      "lang": "en"
+    },
+    {
+      "text": "I have to prompt at least a little extra",
+      "duration": 4240,
+      "offset": 1204559,
+      "lang": "en"
+    },
+    {
+      "text": "for it to even finish the task. Uh, but",
+      "duration": 3840,
+      "offset": 1206320,
+      "lang": "en"
+    },
+    {
+      "text": "we're going to find out here shortly if",
+      "duration": 3601,
+      "offset": 1208799,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini was able to do it in two single",
+      "duration": 4480,
+      "offset": 1210160,
+      "lang": "en"
+    },
+    {
+      "text": "prompts. Okay, Google wasn't perfect at",
+      "duration": 4159,
+      "offset": 1212400,
+      "lang": "en"
+    },
+    {
+      "text": "first either. I had to fix a couple",
+      "duration": 3360,
+      "offset": 1214640,
+      "lang": "en"
+    },
+    {
+      "text": "things and I just threw some errors in",
+      "duration": 2721,
+      "offset": 1216559,
+      "lang": "en"
+    },
+    {
+      "text": "there to see if it would fix it on its",
+      "duration": 3200,
+      "offset": 1218000,
+      "lang": "en"
+    },
+    {
+      "text": "own. And it did. It did very quickly. it",
+      "duration": 3120,
+      "offset": 1219280,
+      "lang": "en"
+    },
+    {
+      "text": "wasn't that challenging, but it",
+      "duration": 3599,
+      "offset": 1221200,
+      "lang": "en"
+    },
+    {
+      "text": "basically had an import error um to be",
+      "duration": 6240,
+      "offset": 1222400,
+      "lang": "en"
+    },
+    {
+      "text": "able to get one of them to run and then",
+      "duration": 6561,
+      "offset": 1224799,
+      "lang": "en"
+    },
+    {
+      "text": "also had a for the backend to run and",
+      "duration": 4800,
+      "offset": 1228640,
+      "lang": "en"
+    },
+    {
+      "text": "then also it didn't correctly configure",
+      "duration": 5120,
+      "offset": 1231360,
+      "lang": "en"
+    },
+    {
+      "text": "the postcs CSS imports and the packages.",
+      "duration": 5440,
+      "offset": 1233440,
+      "lang": "en"
+    },
+    {
+      "text": "So, it was just a kind of crappy HTML",
+      "duration": 4559,
+      "offset": 1236480,
+      "lang": "en"
+    },
+    {
+      "text": "page rather than anything else. However,",
+      "duration": 4159,
+      "offset": 1238880,
+      "lang": "en"
+    },
+    {
+      "text": "that was kind of quick to fix like 2",
+      "duration": 4000,
+      "offset": 1241039,
+      "lang": "en"
+    },
+    {
+      "text": "minutes, 3 minutes. And um this is what",
+      "duration": 3520,
+      "offset": 1243039,
+      "lang": "en"
+    },
+    {
+      "text": "it looks like and actually it's very",
+      "duration": 4060,
+      "offset": 1245039,
+      "lang": "en"
+    },
+    {
+      "text": "clean. It seems to work very well. Um,",
+      "duration": 3201,
+      "offset": 1246559,
+      "lang": "en"
+    },
+    {
+      "text": "[music]",
+      "duration": 3541,
+      "offset": 1249099,
+      "lang": "en"
+    },
+    {
+      "text": "it seems to have pulled my my API keys,",
+      "duration": 6159,
+      "offset": 1249760,
+      "lang": "en"
+    },
+    {
+      "text": "no problem. Um, it seems to have pulled",
+      "duration": 5279,
+      "offset": 1252640,
+      "lang": "en"
+    },
+    {
+      "text": "kind of all of the different texts as",
+      "duration": 3601,
+      "offset": 1255919,
+      "lang": "en"
+    },
+    {
+      "text": "well. And I double checked the scales,",
+      "duration": 3281,
+      "offset": 1257919,
+      "lang": "en"
+    },
+    {
+      "text": "the personas, those are always proper",
+      "duration": 3360,
+      "offset": 1259520,
+      "lang": "en"
+    },
+    {
+      "text": "and spot-on, which that's the most",
+      "duration": 3599,
+      "offset": 1261200,
+      "lang": "en"
+    },
+    {
+      "text": "impressive part for me cuz no model has",
+      "duration": 3760,
+      "offset": 1262880,
+      "lang": "en"
+    },
+    {
+      "text": "been able to do that [music] yet. So,",
+      "duration": 3601,
+      "offset": 1264799,
+      "lang": "en"
+    },
+    {
+      "text": "that's pretty good, honestly, as far as",
+      "duration": 6320,
+      "offset": 1266640,
+      "lang": "en"
+    },
+    {
+      "text": "it goes. Um, and then, uh, in terms of",
+      "duration": 6560,
+      "offset": 1268400,
+      "lang": "en"
+    },
+    {
+      "text": "running and starting the process, it",
+      "duration": 4320,
+      "offset": 1272960,
+      "lang": "en"
+    },
+    {
+      "text": "does take about an hour to run it. Um,",
+      "duration": 4560,
+      "offset": 1274960,
+      "lang": "en"
+    },
+    {
+      "text": "it hasn't even gotten into the first",
+      "duration": 3840,
+      "offset": 1277280,
+      "lang": "en"
+    },
+    {
+      "text": "kind of task, [music]",
+      "duration": 3039,
+      "offset": 1279520,
+      "lang": "en"
+    },
+    {
+      "text": "uh, which it should have already been",
+      "duration": 4400,
+      "offset": 1281120,
+      "lang": "en"
+    },
+    {
+      "text": "doing. It's a pretty fast kind of, uh,",
+      "duration": 5360,
+      "offset": 1282559,
+      "lang": "en"
+    },
+    {
+      "text": "pipeline. Uh, let's see. Oh, okay. Hold",
+      "duration": 4960,
+      "offset": 1285520,
+      "lang": "en"
+    },
+    {
+      "text": "on. Wait. Um, it looks like it's",
+      "duration": 5201,
+      "offset": 1287919,
+      "lang": "en"
+    },
+    {
+      "text": "actually getting the runs. Uh, okay.",
+      "duration": 5360,
+      "offset": 1290480,
+      "lang": "en"
+    },
+    {
+      "text": "Here. Um, processing survey. All right.",
+      "duration": 5120,
+      "offset": 1293120,
+      "lang": "en"
+    },
+    {
+      "text": "We'll see. But this is already better",
+      "duration": 4319,
+      "offset": 1295840,
+      "lang": "en"
+    },
+    {
+      "text": "than any other model up until this",
+      "duration": 3360,
+      "offset": 1298240,
+      "lang": "en"
+    },
+    {
+      "text": "point. I still think it's going to fail.",
+      "duration": 2721,
+      "offset": 1300159,
+      "lang": "en"
+    },
+    {
+      "text": "I still think there's going to be some",
+      "duration": 2559,
+      "offset": 1301600,
+      "lang": "en"
+    },
+    {
+      "text": "problems compared to my original",
+      "duration": 4880,
+      "offset": 1302880,
+      "lang": "en"
+    },
+    {
+      "text": "pipeline. However, this is significantly",
+      "duration": 7201,
+      "offset": 1304159,
+      "lang": "en"
+    },
+    {
+      "text": "better than both Claude and OpenAI um",
+      "duration": 5919,
+      "offset": 1307760,
+      "lang": "en"
+    },
+    {
+      "text": "codecs. So, that's a great improvement",
+      "duration": 3760,
+      "offset": 1311360,
+      "lang": "en"
+    },
+    {
+      "text": "to see. Again, I've been running this",
+      "duration": 3841,
+      "offset": 1313679,
+      "lang": "en"
+    },
+    {
+      "text": "test and this this type of process on",
+      "duration": 4320,
+      "offset": 1315120,
+      "lang": "en"
+    },
+    {
+      "text": "this same data pipeline for well over a",
+      "duration": 4000,
+      "offset": 1317520,
+      "lang": "en"
+    },
+    {
+      "text": "year now with all the previous models.",
+      "duration": 4080,
+      "offset": 1319440,
+      "lang": "en"
+    },
+    {
+      "text": "One important thing to note too with the",
+      "duration": 4800,
+      "offset": 1321520,
+      "lang": "en"
+    },
+    {
+      "text": "anti-gravity is it shows me now all of",
+      "duration": 5039,
+      "offset": 1323520,
+      "lang": "en"
+    },
+    {
+      "text": "these tasks as well that it was doing as",
+      "duration": 4640,
+      "offset": 1326320,
+      "lang": "en"
+    },
+    {
+      "text": "a separate task file rather than inside",
+      "duration": 5281,
+      "offset": 1328559,
+      "lang": "en"
+    },
+    {
+      "text": "of the actual chat. And then it also had",
+      "duration": 4880,
+      "offset": 1330960,
+      "lang": "en"
+    },
+    {
+      "text": "a walkthrough file that is really clean",
+      "duration": 4000,
+      "offset": 1333840,
+      "lang": "en"
+    },
+    {
+      "text": "and is a lot nicer than what you see",
+      "duration": 4719,
+      "offset": 1335840,
+      "lang": "en"
+    },
+    {
+      "text": "with Claude or just a basic MD file,",
+      "duration": 4800,
+      "offset": 1337840,
+      "lang": "en"
+    },
+    {
+      "text": "right? And again, I can comment on all",
+      "duration": 3841,
+      "offset": 1340559,
+      "lang": "en"
+    },
+    {
+      "text": "of this and go through reviews. [music]",
+      "duration": 3840,
+      "offset": 1342640,
+      "lang": "en"
+    },
+    {
+      "text": "Like the fact that it went through all",
+      "duration": 4159,
+      "offset": 1344400,
+      "lang": "en"
+    },
+    {
+      "text": "of this effort means that now I don't",
+      "duration": 3920,
+      "offset": 1346480,
+      "lang": "en"
+    },
+    {
+      "text": "have to go and do a separate",
+      "duration": 3841,
+      "offset": 1348559,
+      "lang": "en"
+    },
+    {
+      "text": "conversation, create the fast API,",
+      "duration": 3759,
+      "offset": 1350400,
+      "lang": "en"
+    },
+    {
+      "text": "create the front end, and then connect",
+      "duration": 4320,
+      "offset": 1352400,
+      "lang": "en"
+    },
+    {
+      "text": "it. versus with Claude and Codeex, they",
+      "duration": 4561,
+      "offset": 1354159,
+      "lang": "en"
+    },
+    {
+      "text": "just use Streamlit and I can push",
+      "duration": 4480,
+      "offset": 1356720,
+      "lang": "en"
+    },
+    {
+      "text": "Streamlit to, you know, to like a GitHub",
+      "duration": 4000,
+      "offset": 1358720,
+      "lang": "en"
+    },
+    {
+      "text": "and host it on pages or something like",
+      "duration": 3440,
+      "offset": 1361200,
+      "lang": "en"
+    },
+    {
+      "text": "that. But realistically, I'm going to",
+      "duration": 4000,
+      "offset": 1362720,
+      "lang": "en"
+    },
+    {
+      "text": "want to have a proper front end and UI",
+      "duration": 3680,
+      "offset": 1364640,
+      "lang": "en"
+    },
+    {
+      "text": "for everyone to use. So, the fact that",
+      "duration": 2959,
+      "offset": 1366720,
+      "lang": "en"
+    },
+    {
+      "text": "it already went through it, it used",
+      "duration": 3440,
+      "offset": 1368320,
+      "lang": "en"
+    },
+    {
+      "text": "Tailwind, which I like. It used all this",
+      "duration": 4401,
+      "offset": 1369679,
+      "lang": "en"
+    },
+    {
+      "text": "type of aspect that is pretty decent.",
+      "duration": 5039,
+      "offset": 1371760,
+      "lang": "en"
+    },
+    {
+      "text": "So, um, honestly, I'm I'm pretty happy",
+      "duration": 5360,
+      "offset": 1374080,
+      "lang": "en"
+    },
+    {
+      "text": "with it. It seems like it ran it",
+      "duration": 6000,
+      "offset": 1376799,
+      "lang": "en"
+    },
+    {
+      "text": "partially through. Um, I'm not really",
+      "duration": 5359,
+      "offset": 1379440,
+      "lang": "en"
+    },
+    {
+      "text": "happy that how fast that went. That",
+      "duration": 4321,
+      "offset": 1382799,
+      "lang": "en"
+    },
+    {
+      "text": "should have taken 20 30 minutes. It also",
+      "duration": 4801,
+      "offset": 1384799,
+      "lang": "en"
+    },
+    {
+      "text": "shows 0% there. [music] Um, so there's",
+      "duration": 4960,
+      "offset": 1387120,
+      "lang": "en"
+    },
+    {
+      "text": "something wrong going on there. Um, that",
+      "duration": 6720,
+      "offset": 1389600,
+      "lang": "en"
+    },
+    {
+      "text": "I think is is is interesting. Um, and I",
+      "duration": 7040,
+      "offset": 1392080,
+      "lang": "en"
+    },
+    {
+      "text": "don't think is working as it should be.",
+      "duration": 5120,
+      "offset": 1396320,
+      "lang": "en"
+    },
+    {
+      "text": "As far as getting to this step, that's",
+      "duration": 4320,
+      "offset": 1399120,
+      "lang": "en"
+    },
+    {
+      "text": "pretty good. Uh, you would need a lot",
+      "duration": 3760,
+      "offset": 1401440,
+      "lang": "en"
+    },
+    {
+      "text": "more prompting and moving. Let me give",
+      "duration": 3920,
+      "offset": 1403440,
+      "lang": "en"
+    },
+    {
+      "text": "an overall opinion on these just in",
+      "duration": 4880,
+      "offset": 1405200,
+      "lang": "en"
+    },
+    {
+      "text": "terms of chunking and time, right? None",
+      "duration": 5120,
+      "offset": 1407360,
+      "lang": "en"
+    },
+    {
+      "text": "of them successfully were able to",
+      "duration": 4079,
+      "offset": 1410080,
+      "lang": "en"
+    },
+    {
+      "text": "completely do what I wanted in one or",
+      "duration": 4240,
+      "offset": 1412480,
+      "lang": "en"
+    },
+    {
+      "text": "two shots. Uh I've never had a model be",
+      "duration": 4721,
+      "offset": 1414159,
+      "lang": "en"
+    },
+    {
+      "text": "able to do it within reason. I'm sure if",
+      "duration": 4720,
+      "offset": 1416720,
+      "lang": "en"
+    },
+    {
+      "text": "I made like a larger paragraph and I",
+      "duration": 4240,
+      "offset": 1418880,
+      "lang": "en"
+    },
+    {
+      "text": "identified it, I've gotten models get",
+      "duration": 3760,
+      "offset": 1421440,
+      "lang": "en"
+    },
+    {
+      "text": "really close uh with just some minor",
+      "duration": 4240,
+      "offset": 1423120,
+      "lang": "en"
+    },
+    {
+      "text": "tweaks here or there. Uh but overall,",
+      "duration": 4719,
+      "offset": 1425200,
+      "lang": "en"
+    },
+    {
+      "text": "the thing I'm asking it to do is is not",
+      "duration": 4640,
+      "offset": 1427360,
+      "lang": "en"
+    },
+    {
+      "text": "something even like a, you know, an",
+      "duration": 3921,
+      "offset": 1429919,
+      "lang": "en"
+    },
+    {
+      "text": "entry level or mid-level uh kind of",
+      "duration": 4320,
+      "offset": 1432000,
+      "lang": "en"
+    },
+    {
+      "text": "programmer would have an easy time doing",
+      "duration": 5760,
+      "offset": 1433840,
+      "lang": "en"
+    },
+    {
+      "text": "even with AI. Uh so this this idea of",
+      "duration": 6080,
+      "offset": 1436320,
+      "lang": "en"
+    },
+    {
+      "text": "modularity and refractoring for a",
+      "duration": 5439,
+      "offset": 1439600,
+      "lang": "en"
+    },
+    {
+      "text": "database that is kind of [music] weird",
+      "duration": 4960,
+      "offset": 1442400,
+      "lang": "en"
+    },
+    {
+      "text": "and complex in a way that it's simple.",
+      "duration": 4721,
+      "offset": 1445039,
+      "lang": "en"
+    },
+    {
+      "text": "It's not a lot of code but it's weird",
+      "duration": 5280,
+      "offset": 1447360,
+      "lang": "en"
+    },
+    {
+      "text": "how the code interacts. Um still all",
+      "duration": 4640,
+      "offset": 1449760,
+      "lang": "en"
+    },
+    {
+      "text": "models are challenging with this kind of",
+      "duration": 4000,
+      "offset": 1452640,
+      "lang": "en"
+    },
+    {
+      "text": "stuff especially when it comes to kind",
+      "duration": 4480,
+      "offset": 1454400,
+      "lang": "en"
+    },
+    {
+      "text": "of you know my scales and the JSON.",
+      "duration": 5519,
+      "offset": 1456640,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini absolutely beat and won both in",
+      "duration": 5840,
+      "offset": 1458880,
+      "lang": "en"
+    },
+    {
+      "text": "terms of transferring my JSON objects",
+      "duration": 5681,
+      "offset": 1462159,
+      "lang": "en"
+    },
+    {
+      "text": "over properly and accurately. Um, I",
+      "duration": 6000,
+      "offset": 1464720,
+      "lang": "en"
+    },
+    {
+      "text": "believe it also won in terms of least",
+      "duration": 5040,
+      "offset": 1467840,
+      "lang": "en"
+    },
+    {
+      "text": "amount of effort to get the UI running.",
+      "duration": 5667,
+      "offset": 1470720,
+      "lang": "en"
+    },
+    {
+      "text": "Um, Claude was significantly faster",
+      "duration": 6080,
+      "offset": 1472880,
+      "lang": "en"
+    },
+    {
+      "text": "[music] and I think that speed would",
+      "duration": 5213,
+      "offset": 1476387,
+      "lang": "en"
+    },
+    {
+      "text": "allow me to kind of catch up to Gemini.",
+      "duration": 4640,
+      "offset": 1478960,
+      "lang": "en"
+    },
+    {
+      "text": "So, as in how quickly I'm working with",
+      "duration": 4559,
+      "offset": 1481600,
+      "lang": "en"
+    },
+    {
+      "text": "the Sonnet 4.5, the amount of time it",
+      "duration": 5439,
+      "offset": 1483600,
+      "lang": "en"
+    },
+    {
+      "text": "would take Gemini to get there would be",
+      "duration": 4801,
+      "offset": 1486159,
+      "lang": "en"
+    },
+    {
+      "text": "probably the same of how much me just",
+      "duration": 4161,
+      "offset": 1489039,
+      "lang": "en"
+    },
+    {
+      "text": "prompting and getting Sonnet to kind of",
+      "duration": 4240,
+      "offset": 1490960,
+      "lang": "en"
+    },
+    {
+      "text": "be where I want it to be for the UI and",
+      "duration": 4160,
+      "offset": 1493200,
+      "lang": "en"
+    },
+    {
+      "text": "everything. So, I'd say they tie in",
+      "duration": 5040,
+      "offset": 1495200,
+      "lang": "en"
+    },
+    {
+      "text": "terms of time to success. Uh, codecs",
+      "duration": 5439,
+      "offset": 1497360,
+      "lang": "en"
+    },
+    {
+      "text": "definitely lost um, in this instance.",
+      "duration": 4480,
+      "offset": 1500240,
+      "lang": "en"
+    },
+    {
+      "text": "Again, for my friends who use codecs out",
+      "duration": 3521,
+      "offset": 1502799,
+      "lang": "en"
+    },
+    {
+      "text": "there, there is ways you could code",
+      "duration": 2880,
+      "offset": 1504720,
+      "lang": "en"
+    },
+    {
+      "text": "this. I'm sure you're thinking about it",
+      "duration": 2959,
+      "offset": 1506320,
+      "lang": "en"
+    },
+    {
+      "text": "right now to be able to get this to",
+      "duration": 4240,
+      "offset": 1507600,
+      "lang": "en"
+    },
+    {
+      "text": "work, but uh, not for me in this case.",
+      "duration": 4801,
+      "offset": 1509279,
+      "lang": "en"
+    },
+    {
+      "text": "Overall, it's very clear. It's very",
+      "duration": 4400,
+      "offset": 1511840,
+      "lang": "en"
+    },
+    {
+      "text": "clear to me. I'm I'm going to be working",
+      "duration": 4160,
+      "offset": 1514080,
+      "lang": "en"
+    },
+    {
+      "text": "in anti-gravity from now on cuz the",
+      "duration": 3520,
+      "offset": 1516240,
+      "lang": "en"
+    },
+    {
+      "text": "other big aspect that we haven't even",
+      "duration": 4319,
+      "offset": 1518240,
+      "lang": "en"
+    },
+    {
+      "text": "talked about, I can use sonnet 4.5 in",
+      "duration": 4799,
+      "offset": 1519760,
+      "lang": "en"
+    },
+    {
+      "text": "anti-gravity, right? So, my favorite",
+      "duration": 3841,
+      "offset": 1522559,
+      "lang": "en"
+    },
+    {
+      "text": "model that works well, can be used right",
+      "duration": 3921,
+      "offset": 1524559,
+      "lang": "en"
+    },
+    {
+      "text": "inside of here, and immediately it's",
+      "duration": 3920,
+      "offset": 1526400,
+      "lang": "en"
+    },
+    {
+      "text": "probably going to use all of the things",
+      "duration": 3760,
+      "offset": 1528480,
+      "lang": "en"
+    },
+    {
+      "text": "that I like about anti-gravity. The idea",
+      "duration": 3680,
+      "offset": 1530320,
+      "lang": "en"
+    },
+    {
+      "text": "that it's cleaner, it's easier to work",
+      "duration": 4319,
+      "offset": 1532240,
+      "lang": "en"
+    },
+    {
+      "text": "with, it's organizing things better, and",
+      "duration": 4720,
+      "offset": 1534000,
+      "lang": "en"
+    },
+    {
+      "text": "then I can just flop over to Gemini 3 if",
+      "duration": 4081,
+      "offset": 1536559,
+      "lang": "en"
+    },
+    {
+      "text": "I really want to. I haven't even touched",
+      "duration": 4480,
+      "offset": 1538720,
+      "lang": "en"
+    },
+    {
+      "text": "on the idea of breaking things down, the",
+      "duration": 4880,
+      "offset": 1540640,
+      "lang": "en"
+    },
+    {
+      "text": "other tools, this kind of agentic",
+      "duration": 4959,
+      "offset": 1543200,
+      "lang": "en"
+    },
+    {
+      "text": "movement use cases, the controllability",
+      "duration": 4480,
+      "offset": 1545520,
+      "lang": "en"
+    },
+    {
+      "text": "of how you're actually able to explore",
+      "duration": 3760,
+      "offset": 1548159,
+      "lang": "en"
+    },
+    {
+      "text": "it. The fact that anti-gravity and",
+      "duration": 5039,
+      "offset": 1550000,
+      "lang": "en"
+    },
+    {
+      "text": "Gemini can actually explore your app and",
+      "duration": 5201,
+      "offset": 1551919,
+      "lang": "en"
+    },
+    {
+      "text": "so I can actually have it open up the UI",
+      "duration": 4481,
+      "offset": 1555039,
+      "lang": "en"
+    },
+    {
+      "text": "and look at it and see what's wrong and",
+      "duration": 3919,
+      "offset": 1557120,
+      "lang": "en"
+    },
+    {
+      "text": "code with it. I didn't even jump into",
+      "duration": 4159,
+      "offset": 1559520,
+      "lang": "en"
+    },
+    {
+      "text": "any of those features without being a",
+      "duration": 4880,
+      "offset": 1561039,
+      "lang": "en"
+    },
+    {
+      "text": "heavy user of anti-gravity. I can",
+      "duration": 4880,
+      "offset": 1563679,
+      "lang": "en"
+    },
+    {
+      "text": "already say this is my IDE of choice for",
+      "duration": 5120,
+      "offset": 1565919,
+      "lang": "en"
+    },
+    {
+      "text": "agentic coding already. Um I made some",
+      "duration": 4161,
+      "offset": 1568559,
+      "lang": "en"
+    },
+    {
+      "text": "kind of rough posts on LinkedIn uh",
+      "duration": 2961,
+      "offset": 1571039,
+      "lang": "en"
+    },
+    {
+      "text": "because it was hard to access it. There",
+      "duration": 2720,
+      "offset": 1572720,
+      "lang": "en"
+    },
+    {
+      "text": "were some authentication errors the",
+      "duration": 3360,
+      "offset": 1574000,
+      "lang": "en"
+    },
+    {
+      "text": "first week. Uh but it seems like they",
+      "duration": 3760,
+      "offset": 1575440,
+      "lang": "en"
+    },
+    {
+      "text": "solve those within no time. [music] And",
+      "duration": 3679,
+      "offset": 1577360,
+      "lang": "en"
+    },
+    {
+      "text": "the idea that I can touch artifacts here",
+      "duration": 4320,
+      "offset": 1579200,
+      "lang": "en"
+    },
+    {
+      "text": "and easily see them. It's just it's",
+      "duration": 5361,
+      "offset": 1581039,
+      "lang": "en"
+    },
+    {
+      "text": "userfriendly in a way that I think is",
+      "duration": 6399,
+      "offset": 1583520,
+      "lang": "en"
+    },
+    {
+      "text": "required for the actual flow and speed",
+      "duration": 5840,
+      "offset": 1586400,
+      "lang": "en"
+    },
+    {
+      "text": "for agentic coding vibe coding which I",
+      "duration": 3760,
+      "offset": 1589919,
+      "lang": "en"
+    },
+    {
+      "text": "don't really like calling it that but",
+      "duration": 3760,
+      "offset": 1592240,
+      "lang": "en"
+    },
+    {
+      "text": "that's essentially what it is to be you",
+      "duration": 4321,
+      "offset": 1593679,
+      "lang": "en"
+    },
+    {
+      "text": "know to get the most bang for your buck.",
+      "duration": 4080,
+      "offset": 1596000,
+      "lang": "en"
+    },
+    {
+      "text": "That's uh that's anti-gravity versus",
+      "duration": 4480,
+      "offset": 1598000,
+      "lang": "en"
+    },
+    {
+      "text": "claw versus codeex. Um a little bit of",
+      "duration": 3839,
+      "offset": 1600080,
+      "lang": "en"
+    },
+    {
+      "text": "cursor in there obviously I could be",
+      "duration": 3760,
+      "offset": 1602480,
+      "lang": "en"
+    },
+    {
+      "text": "using it better. Google really really is",
+      "duration": 4000,
+      "offset": 1603919,
+      "lang": "en"
+    },
+    {
+      "text": "um upping their game and they took their",
+      "duration": 3120,
+      "offset": 1606240,
+      "lang": "en"
+    },
+    {
+      "text": "time to come out with something nice and",
+      "duration": 3041,
+      "offset": 1607919,
+      "lang": "en"
+    },
+    {
+      "text": "I'm excited to see where it goes over",
+      "duration": 3199,
+      "offset": 1609360,
+      "lang": "en"
+    },
+    {
+      "text": "the next year or two. I I'm sure",
+      "duration": 2959,
+      "offset": 1610960,
+      "lang": "en"
+    },
+    {
+      "text": "everyone's going to clap back with",
+      "duration": 3041,
+      "offset": 1612559,
+      "lang": "en"
+    },
+    {
+      "text": "something, but we'll see how it goes.",
+      "duration": 3601,
+      "offset": 1613919,
+      "lang": "en"
+    },
+    {
+      "text": "But enjoy the rest of your evening, day,",
+      "duration": 5280,
+      "offset": 1615600,
+      "lang": "en"
+    },
+    {
+      "text": "morning, whenever you're watching this.",
+      "duration": 3360,
+      "offset": 1617520,
+      "lang": "en"
+    }
+  ]
+}

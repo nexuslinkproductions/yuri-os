@@ -1,6 +1,6 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { MeshDistortMaterial, PointMaterial, Points, Bloom, DepthOfField, EffectComposer } from '@react-three/drei';
+import { MeshDistortMaterial, PointMaterial, Points } from '@react-three/drei';
 import * as THREE from 'three';
 
 const ParticleField = () => {
@@ -85,10 +85,6 @@ const HeroScene = () => {
       </mesh>
 
       <ParticleField />
-
-      <EffectComposer>
-        <Bloom intensity={0.8} threshold={0.4} smoothing={0.5} />
-      </EffectComposer>
     </>
   );
 };

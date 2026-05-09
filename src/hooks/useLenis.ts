@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 
-/* Single-loop Lenis — no GSAP double-tick */
 interface UseLenisReturn {
   lenis: React.MutableRefObject<Lenis | null>;
   isReady: boolean;
@@ -22,6 +21,7 @@ export function useLenis(): UseLenisReturn {
     });
 
     lenis.current = instance;
+    (window as any).__lenis = instance;
     setIsReady(true);
 
     let rafId = 0;
@@ -34,6 +34,7 @@ export function useLenis(): UseLenisReturn {
     return () => {
       cancelAnimationFrame(rafId);
       instance.destroy();
+      (window as any).__lenis = null;
       lenis.current = null;
       setIsReady(false);
     };

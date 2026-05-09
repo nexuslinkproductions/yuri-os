@@ -1,0 +1,164 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Execution Event",
+  "description": "Order submission, status, fill events, and completion record",
+  "required": [
+    "execution_id",
+    "trade_id",
+    "market_id",
+    "client_order_id",
+    "side",
+    "status",
+    "order_type",
+    "requested_size_usd",
+    "requested_price",
+    "submitted_at"
+  ],
+  "properties": {
+    "execution_id": {
+      "type": "string",
+      "description": "Unique identifier for this execution event (UUID v4)",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "trade_id": {
+      "type": "string",
+      "description": "Reference to parent trade (from risk decision)"
+    },
+    "market_id": {
+      "type": "string",
+      "description": "Market identifier (e.g. BTC-USD)"
+    },
+    "client_order_id": {
+      "type": "string",
+      "description": "Deterministic idempotency key sent to Coinbase"
+    },
+    "exchange_order_id": {
+      "type": ["string", "null"],
+      "description": "Coinbase order ID returned after submission"
+    },
+    "side": {
+      "type": "string",
+      "enum": ["BUY", "SELL"],
+      "description": "Order side"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "OPEN",
+        "PARTIALLY_FILLED",
+        "FILLED",
+        "CANCELLED",
+        "FAILED",
+        "TIMEOUT"
+      ],
+      "description": "Current order status"
+    },
+    "order_type": {
+      "type": "string",
+      "enum": ["LIMIT", "MARKET"],
+      "description": "Order type submitted"
+    },
+    "requested_size_usd": {
+      "type": "number",
+      "description": "Requested position size in USD",
+      "minimum": 0
+    },
+    "requested_price": {
+      "type": "number",
+      "description": "Limit price requested (for LIMIT orders)",
+      "minimum": 0
+    },
+    "filled_size_btc": {
+      "type": ["number", "null"],
+      "description": "Actual amount filled in base currency",
+      "minimum": 0
+    },
+    "filled_size_usd": {
+      "type": ["number", "null"],
+      "description": "Actual amount filled in USD",
+      "minimum": 0
+    },
+    "average_fill_price": {
+      "type": ["number", "null"],
+      "description": "Volume-weighted average fill price",
+      "minimum": 0
+    },
+    "fill_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sequence", "timestamp", "size_btc", "price"],
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "description": "Fill sequence number"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "size_btc": {
+            "type": "number",
+            "description": "Amount filled in this partial fill"
+          },
+          "price": {
+            "type": "number",
+            "description": "Price of this fill"
+          }
+        }
+      },
+      "description": "All fill events if partially filled"
+    },
+    "fees_usd": {
+      "type": ["number", "null"],
+      "description": "Total exchange fees charged",
+      "minimum": 0
+    },
+    "net_cost_usd": {
+      "type": ["number", "null"],
+      "description": "Total cost including fees",
+      "minimum": 0
+    },
+    "slippage_bps": {
+      "type": ["integer", "null"],
+      "description": "Actual slippage in basis points",
+      "minimum": 0
+    },
+    "rejection_reason": {
+      "type": ["string", "null"],
+      "description": "If FAILED or REJECTED, reason why"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When order was submitted to exchange"
+    },
+    "first_fill_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "When first fill occurred"
+    },
+    "completed_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "When order completed (filled, cancelled, or failed)"
+    },
+    "total_latency_ms": {
+      "type": ["integer", "null"],
+      "description": "Total time from submission to completion",
+      "minimum": 0
+    },
+    "exchange_latency_ms": {
+      "type": ["integer", "null"],
+      "description": "Time spent waiting for exchange response",
+      "minimum": 0
+    },
+    "bot_latency_ms": {
+      "type": ["integer", "null"],
+      "description": "Time spent in bot processing",
+      "minimum": 0
+    }
+  }
+}

@@ -1,0 +1,3492 @@
+{
+  "videoId": "RZ0AcCLVPFA",
+  "title": "AI is the New Compiler",
+  "segments": [
+    {
+      "text": "The view that machines cannot give rise",
+      "duration": 4200,
+      "offset": 920,
+      "lang": "en"
+    },
+    {
+      "text": "to surprise is due, I believe, to a",
+      "duration": 4040,
+      "offset": 3040,
+      "lang": "en"
+    },
+    {
+      "text": "fallacy. This is the assumption that as",
+      "duration": 5000,
+      "offset": 5120,
+      "lang": "en"
+    },
+    {
+      "text": "soon as a fact is presented to a mind,",
+      "duration": 5600,
+      "offset": 7080,
+      "lang": "en"
+    },
+    {
+      "text": "all the consequences of that fact spring",
+      "duration": 4800,
+      "offset": 10120,
+      "lang": "en"
+    },
+    {
+      "text": "into the mind simultaneously with it.",
+      "duration": 4680,
+      "offset": 12680,
+      "lang": "en"
+    },
+    {
+      "text": "This is Alan Turing, and he was talking",
+      "duration": 5480,
+      "offset": 14920,
+      "lang": "en"
+    },
+    {
+      "text": "to mathematicians, to philosophers back",
+      "duration": 6240,
+      "offset": 17360,
+      "lang": "en"
+    },
+    {
+      "text": "in the late '40s, early '50s about how",
+      "duration": 5120,
+      "offset": 20400,
+      "lang": "en"
+    },
+    {
+      "text": "computers, about how artificial",
+      "duration": 5600,
+      "offset": 23600,
+      "lang": "en"
+    },
+    {
+      "text": "intelligence can do things that we would",
+      "duration": 6040,
+      "offset": 25520,
+      "lang": "en"
+    },
+    {
+      "text": "find surprising. Despite how much we",
+      "duration": 4280,
+      "offset": 29200,
+      "lang": "en"
+    },
+    {
+      "text": "think we understand these systems and",
+      "duration": 4800,
+      "offset": 31560,
+      "lang": "en"
+    },
+    {
+      "text": "what computing and abstraction is, um",
+      "duration": 4640,
+      "offset": 33480,
+      "lang": "en"
+    },
+    {
+      "text": "it's not the case. Well, why am I",
+      "duration": 3280,
+      "offset": 36360,
+      "lang": "en"
+    },
+    {
+      "text": "starting off with this? I'm sure you",
+      "duration": 3080,
+      "offset": 38120,
+      "lang": "en"
+    },
+    {
+      "text": "read, you know, the thumbnails. This is",
+      "duration": 2960,
+      "offset": 39640,
+      "lang": "en"
+    },
+    {
+      "text": "about, you know, the future of",
+      "duration": 2760,
+      "offset": 41200,
+      "lang": "en"
+    },
+    {
+      "text": "prompting. What does it mean to",
+      "duration": 4360,
+      "offset": 42600,
+      "lang": "en"
+    },
+    {
+      "text": "orchestrate AI, this future of AI?",
+      "duration": 5280,
+      "offset": 43960,
+      "lang": "en"
+    },
+    {
+      "text": "Um how do you be relevant in this world,",
+      "duration": 3600,
+      "offset": 46960,
+      "lang": "en"
+    },
+    {
+      "text": "things like that. But the goal of",
+      "duration": 3800,
+      "offset": 49240,
+      "lang": "en"
+    },
+    {
+      "text": "today's video is to do three things.",
+      "duration": 5160,
+      "offset": 50560,
+      "lang": "en"
+    },
+    {
+      "text": "One, to show that you need to understand",
+      "duration": 5640,
+      "offset": 53040,
+      "lang": "en"
+    },
+    {
+      "text": "AI is the next compiler. It is a new",
+      "duration": 5880,
+      "offset": 55720,
+      "lang": "en"
+    },
+    {
+      "text": "abstraction language that we are using.",
+      "duration": 4080,
+      "offset": 58680,
+      "lang": "en"
+    },
+    {
+      "text": "And if you don't understand what that",
+      "duration": 3120,
+      "offset": 61600,
+      "lang": "en"
+    },
+    {
+      "text": "is, that's okay. I'm going to teach you",
+      "duration": 3520,
+      "offset": 62760,
+      "lang": "en"
+    },
+    {
+      "text": "this. And if you do understand what that",
+      "duration": 3520,
+      "offset": 64720,
+      "lang": "en"
+    },
+    {
+      "text": "is, and you disagree, hopefully I'll",
+      "duration": 3480,
+      "offset": 66280,
+      "lang": "en"
+    },
+    {
+      "text": "convince you the opposite by the end of",
+      "duration": 4040,
+      "offset": 68240,
+      "lang": "en"
+    },
+    {
+      "text": "this video. Also, the second thing is",
+      "duration": 4800,
+      "offset": 69760,
+      "lang": "en"
+    },
+    {
+      "text": "that you'll come away understanding more",
+      "duration": 4800,
+      "offset": 72280,
+      "lang": "en"
+    },
+    {
+      "text": "about the future. Understanding that",
+      "duration": 5080,
+      "offset": 74560,
+      "lang": "en"
+    },
+    {
+      "text": "companies themselves, people, your own",
+      "duration": 5120,
+      "offset": 77080,
+      "lang": "en"
+    },
+    {
+      "text": "job, all depend on you understanding",
+      "duration": 4920,
+      "offset": 79640,
+      "lang": "en"
+    },
+    {
+      "text": "this fact. Making money, or even if",
+      "duration": 4080,
+      "offset": 82200,
+      "lang": "en"
+    },
+    {
+      "text": "you're an investor and you're investing",
+      "duration": 3920,
+      "offset": 84560,
+      "lang": "en"
+    },
+    {
+      "text": "money in these companies, is going to be",
+      "duration": 4640,
+      "offset": 86280,
+      "lang": "en"
+    },
+    {
+      "text": "dependent on whether you understand",
+      "duration": 4720,
+      "offset": 88480,
+      "lang": "en"
+    },
+    {
+      "text": "this. 95%",
+      "duration": 4080,
+      "offset": 90920,
+      "lang": "en"
+    },
+    {
+      "text": "of AI initiatives are currently failing",
+      "duration": 3480,
+      "offset": 93200,
+      "lang": "en"
+    },
+    {
+      "text": "according to an MIT study. And if you",
+      "duration": 3680,
+      "offset": 95000,
+      "lang": "en"
+    },
+    {
+      "text": "want less, you know, focus on this,",
+      "duration": 3520,
+      "offset": 96680,
+      "lang": "en"
+    },
+    {
+      "text": "there's a lot of people looking at this",
+      "duration": 4440,
+      "offset": 98680,
+      "lang": "en"
+    },
+    {
+      "text": "bubble. And I fully 100% believe there",
+      "duration": 5440,
+      "offset": 100200,
+      "lang": "en"
+    },
+    {
+      "text": "is a massive AI bubble. I love a lot of",
+      "duration": 4200,
+      "offset": 103120,
+      "lang": "en"
+    },
+    {
+      "text": "generative artificial intelligence,",
+      "duration": 3360,
+      "offset": 105640,
+      "lang": "en"
+    },
+    {
+      "text": "machine learning, things like that. But",
+      "duration": 3640,
+      "offset": 107320,
+      "lang": "en"
+    },
+    {
+      "text": "we are in a bubble much like the",
+      "duration": 4720,
+      "offset": 109000,
+      "lang": "en"
+    },
+    {
+      "text": "internet. By 2001, the internet had, I",
+      "duration": 4800,
+      "offset": 110960,
+      "lang": "en"
+    },
+    {
+      "text": "believe, 500 million users. We still",
+      "duration": 4320,
+      "offset": 113720,
+      "lang": "en"
+    },
+    {
+      "text": "barely have 300 to 400 million users of",
+      "duration": 4680,
+      "offset": 115760,
+      "lang": "en"
+    },
+    {
+      "text": "AI. Uh generative AI, at least that is.",
+      "duration": 3840,
+      "offset": 118040,
+      "lang": "en"
+    },
+    {
+      "text": "So, we're still in the early days, but",
+      "duration": 3200,
+      "offset": 120440,
+      "lang": "en"
+    },
+    {
+      "text": "that means we also have the early",
+      "duration": 4360,
+      "offset": 121880,
+      "lang": "en"
+    },
+    {
+      "text": "growing pains. And I 100% believe we are",
+      "duration": 4680,
+      "offset": 123640,
+      "lang": "en"
+    },
+    {
+      "text": "going to see that. However, how to",
+      "duration": 4200,
+      "offset": 126240,
+      "lang": "en"
+    },
+    {
+      "text": "navigate this, how to get through it,",
+      "duration": 4160,
+      "offset": 128320,
+      "lang": "en"
+    },
+    {
+      "text": "you have to have axioms. If you",
+      "duration": 4000,
+      "offset": 130440,
+      "lang": "en"
+    },
+    {
+      "text": "constantly feel like you're behind or",
+      "duration": 3840,
+      "offset": 132480,
+      "lang": "en"
+    },
+    {
+      "text": "you're not catching up, it's because",
+      "duration": 4520,
+      "offset": 134440,
+      "lang": "en"
+    },
+    {
+      "text": "you're not operating on fundamental",
+      "duration": 4800,
+      "offset": 136320,
+      "lang": "en"
+    },
+    {
+      "text": "truths. Everyone that's saying this is",
+      "duration": 4760,
+      "offset": 138960,
+      "lang": "en"
+    },
+    {
+      "text": "disruptive is true, but it's only",
+      "duration": 4120,
+      "offset": 141120,
+      "lang": "en"
+    },
+    {
+      "text": "disruptive and you're only going to feel",
+      "duration": 4200,
+      "offset": 143720,
+      "lang": "en"
+    },
+    {
+      "text": "like you're falling behind if you don't",
+      "duration": 6200,
+      "offset": 145240,
+      "lang": "en"
+    },
+    {
+      "text": "understand the simple basics of how this",
+      "duration": 5920,
+      "offset": 147920,
+      "lang": "en"
+    },
+    {
+      "text": "technology is being used. And believe",
+      "duration": 5200,
+      "offset": 151440,
+      "lang": "en"
+    },
+    {
+      "text": "me, whether you're a programmer or not,",
+      "duration": 4720,
+      "offset": 153840,
+      "lang": "en"
+    },
+    {
+      "text": "you can understand this, and I will",
+      "duration": 4440,
+      "offset": 156640,
+      "lang": "en"
+    },
+    {
+      "text": "teach you this. If you are a programmer,",
+      "duration": 3800,
+      "offset": 158560,
+      "lang": "en"
+    },
+    {
+      "text": "you're still going to get a massive",
+      "duration": 2840,
+      "offset": 161080,
+      "lang": "en"
+    },
+    {
+      "text": "amount about this video because I'm",
+      "duration": 4120,
+      "offset": 162360,
+      "lang": "en"
+    },
+    {
+      "text": "showing you how I create data pipelines",
+      "duration": 5760,
+      "offset": 163920,
+      "lang": "en"
+    },
+    {
+      "text": "and how I use AI in my daily process.",
+      "duration": 5000,
+      "offset": 166480,
+      "lang": "en"
+    },
+    {
+      "text": "Now, who am I? Why should you listen to",
+      "duration": 3400,
+      "offset": 169680,
+      "lang": "en"
+    },
+    {
+      "text": "me? For those of you who are watching",
+      "duration": 3560,
+      "offset": 171480,
+      "lang": "en"
+    },
+    {
+      "text": "and you do know me, awesome, cool. For",
+      "duration": 3560,
+      "offset": 173080,
+      "lang": "en"
+    },
+    {
+      "text": "those of you don't, I'm Jake. I was in",
+      "duration": 2960,
+      "offset": 175040,
+      "lang": "en"
+    },
+    {
+      "text": "the US Marine Corps for quite a little",
+      "duration": 3720,
+      "offset": 176640,
+      "lang": "en"
+    },
+    {
+      "text": "while. I was in cryptography, avionics,",
+      "duration": 4840,
+      "offset": 178000,
+      "lang": "en"
+    },
+    {
+      "text": "worked on F-18s, a little bit on F-35s",
+      "duration": 3680,
+      "offset": 180360,
+      "lang": "en"
+    },
+    {
+      "text": "here or there. That's actually from my",
+      "duration": 4000,
+      "offset": 182840,
+      "lang": "en"
+    },
+    {
+      "text": "squadron, 242, Mors ex tenebris,",
+      "duration": 4600,
+      "offset": 184040,
+      "lang": "en"
+    },
+    {
+      "text": "darkness. Sorry for my Marine friends",
+      "duration": 3640,
+      "offset": 186840,
+      "lang": "en"
+    },
+    {
+      "text": "watching this, it's cringe. But after",
+      "duration": 3280,
+      "offset": 188640,
+      "lang": "en"
+    },
+    {
+      "text": "the Marine Corps, dove into political",
+      "duration": 4080,
+      "offset": 190480,
+      "lang": "en"
+    },
+    {
+      "text": "science, uh little undergrad degree. I",
+      "duration": 5120,
+      "offset": 191920,
+      "lang": "en"
+    },
+    {
+      "text": "was doing kind of AI alongside of that",
+      "duration": 4880,
+      "offset": 194560,
+      "lang": "en"
+    },
+    {
+      "text": "as well. using it in papers and aspects",
+      "duration": 4720,
+      "offset": 197040,
+      "lang": "en"
+    },
+    {
+      "text": "and doing studies on how it affected the",
+      "duration": 4960,
+      "offset": 199440,
+      "lang": "en"
+    },
+    {
+      "text": "papers, which expanded into my postgrad",
+      "duration": 4720,
+      "offset": 201760,
+      "lang": "en"
+    },
+    {
+      "text": "research at the University of Edinburgh.",
+      "duration": 4160,
+      "offset": 204400,
+      "lang": "en"
+    },
+    {
+      "text": "Um I actually submitted a big thesis on",
+      "duration": 3920,
+      "offset": 206480,
+      "lang": "en"
+    },
+    {
+      "text": "AI and psychometric data pipelines,",
+      "duration": 3520,
+      "offset": 208560,
+      "lang": "en"
+    },
+    {
+      "text": "bunch of nerdy stuff, focused stuff,",
+      "duration": 3760,
+      "offset": 210400,
+      "lang": "en"
+    },
+    {
+      "text": "really cool if you're into it. I can uh",
+      "duration": 3520,
+      "offset": 212080,
+      "lang": "en"
+    },
+    {
+      "text": "put a link in the description if you",
+      "duration": 2760,
+      "offset": 214160,
+      "lang": "en"
+    },
+    {
+      "text": "want to check it out. And I currently",
+      "duration": 2840,
+      "offset": 215600,
+      "lang": "en"
+    },
+    {
+      "text": "work a lot with the neuropolitics on",
+      "duration": 3600,
+      "offset": 216920,
+      "lang": "en"
+    },
+    {
+      "text": "kind of AI and how it's affecting",
+      "duration": 3680,
+      "offset": 218440,
+      "lang": "en"
+    },
+    {
+      "text": "governance and politics and all that",
+      "duration": 2760,
+      "offset": 220520,
+      "lang": "en"
+    },
+    {
+      "text": "good jazz.",
+      "duration": 3560,
+      "offset": 222120,
+      "lang": "en"
+    },
+    {
+      "text": "Uh but professionally, um I get paid way",
+      "duration": 4000,
+      "offset": 223280,
+      "lang": "en"
+    },
+    {
+      "text": "too much. Not way too much, actually. I",
+      "duration": 3760,
+      "offset": 225680,
+      "lang": "en"
+    },
+    {
+      "text": "could always charge more. Uh but to",
+      "duration": 3680,
+      "offset": 227280,
+      "lang": "en"
+    },
+    {
+      "text": "essentially do these trainings, these",
+      "duration": 3280,
+      "offset": 229440,
+      "lang": "en"
+    },
+    {
+      "text": "workshops on what the future of AI is,",
+      "duration": 3600,
+      "offset": 230960,
+      "lang": "en"
+    },
+    {
+      "text": "how you should implement it, how do you",
+      "duration": 3560,
+      "offset": 232720,
+      "lang": "en"
+    },
+    {
+      "text": "not spend too much money on it, and",
+      "duration": 3240,
+      "offset": 234560,
+      "lang": "en"
+    },
+    {
+      "text": "actually build pipelines for big",
+      "duration": 3240,
+      "offset": 236280,
+      "lang": "en"
+    },
+    {
+      "text": "companies. I've worked uh and done",
+      "duration": 3480,
+      "offset": 237800,
+      "lang": "en"
+    },
+    {
+      "text": "workshops for executives. I'm working",
+      "duration": 3080,
+      "offset": 239520,
+      "lang": "en"
+    },
+    {
+      "text": "with the British Council. I'm on a",
+      "duration": 3520,
+      "offset": 241280,
+      "lang": "en"
+    },
+    {
+      "text": "project for the European Union. Um I've",
+      "duration": 3560,
+      "offset": 242600,
+      "lang": "en"
+    },
+    {
+      "text": "done some serious stuff with some",
+      "duration": 3480,
+      "offset": 244800,
+      "lang": "en"
+    },
+    {
+      "text": "serious companies. So, I'm telling you,",
+      "duration": 3760,
+      "offset": 246160,
+      "lang": "en"
+    },
+    {
+      "text": "this isn't coming from, \"Oh, this is",
+      "duration": 3680,
+      "offset": 248280,
+      "lang": "en"
+    },
+    {
+      "text": "what I think.\" I am on the ground",
+      "duration": 3640,
+      "offset": 249920,
+      "lang": "en"
+    },
+    {
+      "text": "building these things, doing these",
+      "duration": 4080,
+      "offset": 251960,
+      "lang": "en"
+    },
+    {
+      "text": "things, seeing the issues every single",
+      "duration": 4679,
+      "offset": 253560,
+      "lang": "en"
+    },
+    {
+      "text": "day, 14 hours a day. So, hopefully",
+      "duration": 3919,
+      "offset": 256040,
+      "lang": "en"
+    },
+    {
+      "text": "that's enough to get you in there. But",
+      "duration": 3241,
+      "offset": 258239,
+      "lang": "en"
+    },
+    {
+      "text": "let's dive into the meat of it. What am",
+      "duration": 3041,
+      "offset": 259959,
+      "lang": "en"
+    },
+    {
+      "text": "I going to teach you? How am I going to",
+      "duration": 3760,
+      "offset": 261480,
+      "lang": "en"
+    },
+    {
+      "text": "teach you this? Now, I'm sure all of you",
+      "duration": 4840,
+      "offset": 263000,
+      "lang": "en"
+    },
+    {
+      "text": "have heard prompt engineering or what",
+      "duration": 5000,
+      "offset": 265240,
+      "lang": "en"
+    },
+    {
+      "text": "prompting is. You may have heard things",
+      "duration": 4360,
+      "offset": 267840,
+      "lang": "en"
+    },
+    {
+      "text": "about chain of prompting or prompting",
+      "duration": 4200,
+      "offset": 270240,
+      "lang": "en"
+    },
+    {
+      "text": "the AI. Um I want to clear some air. I",
+      "duration": 4120,
+      "offset": 272200,
+      "lang": "en"
+    },
+    {
+      "text": "made a video a bit ago about what prompt",
+      "duration": 3560,
+      "offset": 274440,
+      "lang": "en"
+    },
+    {
+      "text": "engineering is, and I think there's a",
+      "duration": 4240,
+      "offset": 276320,
+      "lang": "en"
+    },
+    {
+      "text": "lot of disconnects. I saw a video of a",
+      "duration": 4160,
+      "offset": 278000,
+      "lang": "en"
+    },
+    {
+      "text": "some girl, she was saying that prompt",
+      "duration": 2800,
+      "offset": 280560,
+      "lang": "en"
+    },
+    {
+      "text": "engineering isn't real, it doesn't",
+      "duration": 3480,
+      "offset": 282160,
+      "lang": "en"
+    },
+    {
+      "text": "exist. Uh just putting a bunch of words",
+      "duration": 3200,
+      "offset": 283360,
+      "lang": "en"
+    },
+    {
+      "text": "together means you're a good",
+      "duration": 2520,
+      "offset": 285640,
+      "lang": "en"
+    },
+    {
+      "text": "communicator, not a programmer or an",
+      "duration": 3600,
+      "offset": 286560,
+      "lang": "en"
+    },
+    {
+      "text": "engineer. And there's some truth to",
+      "duration": 3320,
+      "offset": 288160,
+      "lang": "en"
+    },
+    {
+      "text": "that. There's some people that say",
+      "duration": 3240,
+      "offset": 290160,
+      "lang": "en"
+    },
+    {
+      "text": "they're prompt engineering, uh but",
+      "duration": 4080,
+      "offset": 291480,
+      "lang": "en"
+    },
+    {
+      "text": "they're not. And to a certain extent, I",
+      "duration": 3320,
+      "offset": 293400,
+      "lang": "en"
+    },
+    {
+      "text": "don't know. That sounds more like",
+      "duration": 2800,
+      "offset": 295560,
+      "lang": "en"
+    },
+    {
+      "text": "gatekeeping. I think if you're really",
+      "duration": 5240,
+      "offset": 296720,
+      "lang": "en"
+    },
+    {
+      "text": "good at putting together and systems and",
+      "duration": 5400,
+      "offset": 298360,
+      "lang": "en"
+    },
+    {
+      "text": "communications, there is a lot of",
+      "duration": 4320,
+      "offset": 301960,
+      "lang": "en"
+    },
+    {
+      "text": "programming logic behind that. But",
+      "duration": 4720,
+      "offset": 303760,
+      "lang": "en"
+    },
+    {
+      "text": "despite that, there is also truth to the",
+      "duration": 3560,
+      "offset": 306280,
+      "lang": "en"
+    },
+    {
+      "text": "other side of it, which is there is",
+      "duration": 3240,
+      "offset": 308480,
+      "lang": "en"
+    },
+    {
+      "text": "advanced prompt engineering. Again,",
+      "duration": 3280,
+      "offset": 309840,
+      "lang": "en"
+    },
+    {
+      "text": "don't worry if you don't understand what",
+      "duration": 2680,
+      "offset": 311720,
+      "lang": "en"
+    },
+    {
+      "text": "you're looking at with prompting or",
+      "duration": 3440,
+      "offset": 313120,
+      "lang": "en"
+    },
+    {
+      "text": "anything like that. This is just purely",
+      "duration": 4840,
+      "offset": 314400,
+      "lang": "en"
+    },
+    {
+      "text": "to show you an aspect here. So, actual",
+      "duration": 5080,
+      "offset": 316560,
+      "lang": "en"
+    },
+    {
+      "text": "prompt engineering involves kind of what",
+      "duration": 4880,
+      "offset": 319240,
+      "lang": "en"
+    },
+    {
+      "text": "you're seeing on the screen here. These",
+      "duration": 5840,
+      "offset": 321640,
+      "lang": "en"
+    },
+    {
+      "text": "are all prompt templates, prompt pooling",
+      "duration": 6280,
+      "offset": 324120,
+      "lang": "en"
+    },
+    {
+      "text": "of specific questions. Again, this is",
+      "duration": 4720,
+      "offset": 327480,
+      "lang": "en"
+    },
+    {
+      "text": "all from my thesis. If you want to learn",
+      "duration": 4480,
+      "offset": 330400,
+      "lang": "en"
+    },
+    {
+      "text": "more about it, essentially, what I did",
+      "duration": 5280,
+      "offset": 332200,
+      "lang": "en"
+    },
+    {
+      "text": "is I took a whole bunch of psychometric",
+      "duration": 4960,
+      "offset": 334880,
+      "lang": "en"
+    },
+    {
+      "text": "scales. So, think of a psychometric",
+      "duration": 5000,
+      "offset": 337480,
+      "lang": "en"
+    },
+    {
+      "text": "scale as a personality test. I took a",
+      "duration": 4240,
+      "offset": 339840,
+      "lang": "en"
+    },
+    {
+      "text": "personality test, and you get a",
+      "duration": 4520,
+      "offset": 342480,
+      "lang": "en"
+    },
+    {
+      "text": "personality score or a kind of",
+      "duration": 4640,
+      "offset": 344080,
+      "lang": "en"
+    },
+    {
+      "text": "prediction of what you might do in",
+      "duration": 4920,
+      "offset": 347000,
+      "lang": "en"
+    },
+    {
+      "text": "certain situations. These are scales or",
+      "duration": 5520,
+      "offset": 348720,
+      "lang": "en"
+    },
+    {
+      "text": "questions. Question one, question two,",
+      "duration": 5200,
+      "offset": 351920,
+      "lang": "en"
+    },
+    {
+      "text": "question three of a test that was used",
+      "duration": 5800,
+      "offset": 354240,
+      "lang": "en"
+    },
+    {
+      "text": "back in the '50s to figure out how uh",
+      "duration": 4480,
+      "offset": 357120,
+      "lang": "en"
+    },
+    {
+      "text": "fascist someone was. It's called",
+      "duration": 3720,
+      "offset": 360040,
+      "lang": "en"
+    },
+    {
+      "text": "right-wing authoritarianism. There's",
+      "duration": 4040,
+      "offset": 361600,
+      "lang": "en"
+    },
+    {
+      "text": "also another scale for left-wing",
+      "duration": 3960,
+      "offset": 363760,
+      "lang": "en"
+    },
+    {
+      "text": "authoritarianism. So, you take these,",
+      "duration": 4120,
+      "offset": 365640,
+      "lang": "en"
+    },
+    {
+      "text": "you say whether you agree or disagree",
+      "duration": 3840,
+      "offset": 367720,
+      "lang": "en"
+    },
+    {
+      "text": "with a statement like life imprisonment",
+      "duration": 3960,
+      "offset": 369760,
+      "lang": "en"
+    },
+    {
+      "text": "is justified for certain crimes. Then",
+      "duration": 4080,
+      "offset": 371560,
+      "lang": "en"
+    },
+    {
+      "text": "some math happens in the back end, and",
+      "duration": 4080,
+      "offset": 373720,
+      "lang": "en"
+    },
+    {
+      "text": "it says, \"Ah, this is how likely you are",
+      "duration": 5800,
+      "offset": 375640,
+      "lang": "en"
+    },
+    {
+      "text": "or are not to be an authoritarian.\" I",
+      "duration": 7240,
+      "offset": 377800,
+      "lang": "en"
+    },
+    {
+      "text": "wanted to test what the AI would respond",
+      "duration": 6000,
+      "offset": 381440,
+      "lang": "en"
+    },
+    {
+      "text": "to on these scales. But in order to do",
+      "duration": 4640,
+      "offset": 385040,
+      "lang": "en"
+    },
+    {
+      "text": "that, if I just copy and pasted the",
+      "duration": 5520,
+      "offset": 387440,
+      "lang": "en"
+    },
+    {
+      "text": "scale into ChatGPT, two things are big",
+      "duration": 5920,
+      "offset": 389680,
+      "lang": "en"
+    },
+    {
+      "text": "there. One, it's a little unpredictable.",
+      "duration": 5200,
+      "offset": 392960,
+      "lang": "en"
+    },
+    {
+      "text": "It's a little hard to repeat that 10,000",
+      "duration": 4320,
+      "offset": 395600,
+      "lang": "en"
+    },
+    {
+      "text": "times. Copying and pasting, copying and",
+      "duration": 4320,
+      "offset": 398160,
+      "lang": "en"
+    },
+    {
+      "text": "pasting, copying and pasting. Two, if I",
+      "duration": 4400,
+      "offset": 399920,
+      "lang": "en"
+    },
+    {
+      "text": "put the whole scale in there, there's",
+      "duration": 3920,
+      "offset": 402480,
+      "lang": "en"
+    },
+    {
+      "text": "actually a lot of studies and research,",
+      "duration": 3480,
+      "offset": 404320,
+      "lang": "en"
+    },
+    {
+      "text": "which should be popping up here, here,",
+      "duration": 3600,
+      "offset": 406400,
+      "lang": "en"
+    },
+    {
+      "text": "here, here, here, that show that when",
+      "duration": 4880,
+      "offset": 407800,
+      "lang": "en"
+    },
+    {
+      "text": "the AI sees it's taking a personality",
+      "duration": 5080,
+      "offset": 410000,
+      "lang": "en"
+    },
+    {
+      "text": "test, it will start to answer what it",
+      "duration": 4880,
+      "offset": 412680,
+      "lang": "en"
+    },
+    {
+      "text": "thinks would be favorable. And that's",
+      "duration": 4280,
+      "offset": 415080,
+      "lang": "en"
+    },
+    {
+      "text": "actually seen in humans, too. It's a",
+      "duration": 3800,
+      "offset": 417560,
+      "lang": "en"
+    },
+    {
+      "text": "favorability bias. So, I wanted to be",
+      "duration": 4200,
+      "offset": 419360,
+      "lang": "en"
+    },
+    {
+      "text": "able to separate each question and just",
+      "duration": 4720,
+      "offset": 421360,
+      "lang": "en"
+    },
+    {
+      "text": "ask it to the model individually. On top",
+      "duration": 5120,
+      "offset": 423560,
+      "lang": "en"
+    },
+    {
+      "text": "of that, that allows me to really test",
+      "duration": 5200,
+      "offset": 426080,
+      "lang": "en"
+    },
+    {
+      "text": "individually across every single prompt",
+      "duration": 4840,
+      "offset": 428680,
+      "lang": "en"
+    },
+    {
+      "text": "and every single question if there's any",
+      "duration": 5120,
+      "offset": 431280,
+      "lang": "en"
+    },
+    {
+      "text": "issues or weirdness or variability that",
+      "duration": 4840,
+      "offset": 433520,
+      "lang": "en"
+    },
+    {
+      "text": "maybe could point us into the direction",
+      "duration": 4040,
+      "offset": 436400,
+      "lang": "en"
+    },
+    {
+      "text": "of some sort of insights.",
+      "duration": 5080,
+      "offset": 438360,
+      "lang": "en"
+    },
+    {
+      "text": "Now, from those things you saw up there,",
+      "duration": 5760,
+      "offset": 440440,
+      "lang": "en"
+    },
+    {
+      "text": "I actually am calling upon a final",
+      "duration": 5240,
+      "offset": 443440,
+      "lang": "en"
+    },
+    {
+      "text": "prompt. So, when you send a prompt to",
+      "duration": 5320,
+      "offset": 446200,
+      "lang": "en"
+    },
+    {
+      "text": "the chatbot, when you type in a chat box",
+      "duration": 4760,
+      "offset": 448680,
+      "lang": "en"
+    },
+    {
+      "text": "to an AI, in the background, you're",
+      "duration": 3640,
+      "offset": 451520,
+      "lang": "en"
+    },
+    {
+      "text": "seeing maybe something that looks like",
+      "duration": 3680,
+      "offset": 453440,
+      "lang": "en"
+    },
+    {
+      "text": "this. It's saying what model you need to",
+      "duration": 4520,
+      "offset": 455160,
+      "lang": "en"
+    },
+    {
+      "text": "news. In this case, I'm calling Grok. In",
+      "duration": 5040,
+      "offset": 457120,
+      "lang": "en"
+    },
+    {
+      "text": "this one, I'm using Claude. Uh you know,",
+      "duration": 5080,
+      "offset": 459680,
+      "lang": "en"
+    },
+    {
+      "text": "I could be doing the ChatGPT one up here",
+      "duration": 5600,
+      "offset": 462160,
+      "lang": "en"
+    },
+    {
+      "text": "from OpenAI. It's saying who the user",
+      "duration": 5480,
+      "offset": 464760,
+      "lang": "en"
+    },
+    {
+      "text": "is, what content it is. So, you have a",
+      "duration": 5480,
+      "offset": 467760,
+      "lang": "en"
+    },
+    {
+      "text": "question, and you ask, \"Hey, AI, can I",
+      "duration": 5080,
+      "offset": 470240,
+      "lang": "en"
+    },
+    {
+      "text": "do this?\" It sends that prompt to the",
+      "duration": 4240,
+      "offset": 473240,
+      "lang": "en"
+    },
+    {
+      "text": "model, and it tells you what it should",
+      "duration": 4440,
+      "offset": 475320,
+      "lang": "en"
+    },
+    {
+      "text": "generate based on tokens and",
+      "duration": 4320,
+      "offset": 477480,
+      "lang": "en"
+    },
+    {
+      "text": "temperature. Again, I don't want to go",
+      "duration": 3640,
+      "offset": 479760,
+      "lang": "en"
+    },
+    {
+      "text": "too deep into this. If you understand",
+      "duration": 4160,
+      "offset": 481800,
+      "lang": "en"
+    },
+    {
+      "text": "what those are, awesome. If not, I'm",
+      "duration": 4440,
+      "offset": 483400,
+      "lang": "en"
+    },
+    {
+      "text": "going to make more videos diving deeper",
+      "duration": 3800,
+      "offset": 485960,
+      "lang": "en"
+    },
+    {
+      "text": "into these concepts. You just want to",
+      "duration": 4080,
+      "offset": 487840,
+      "lang": "en"
+    },
+    {
+      "text": "throw this data at you so you understand",
+      "duration": 3200,
+      "offset": 489760,
+      "lang": "en"
+    },
+    {
+      "text": "it.",
+      "duration": 3360,
+      "offset": 491920,
+      "lang": "en"
+    },
+    {
+      "text": "So, basically, I'm sending something",
+      "duration": 5280,
+      "offset": 492960,
+      "lang": "en"
+    },
+    {
+      "text": "called final prompt. Now, final prompt",
+      "duration": 6320,
+      "offset": 495280,
+      "lang": "en"
+    },
+    {
+      "text": "itself is actually being focused by",
+      "duration": 6400,
+      "offset": 498240,
+      "lang": "en"
+    },
+    {
+      "text": "style prompt. Style prompt is being",
+      "duration": 6080,
+      "offset": 501600,
+      "lang": "en"
+    },
+    {
+      "text": "pulled from whatever sort of prompt",
+      "duration": 6680,
+      "offset": 504640,
+      "lang": "en"
+    },
+    {
+      "text": "style and keys, which are being pulled",
+      "duration": 4840,
+      "offset": 507680,
+      "lang": "en"
+    },
+    {
+      "text": "from",
+      "duration": 3599,
+      "offset": 511320,
+      "lang": "en"
+    },
+    {
+      "text": "Ooh, this big list here.",
+      "duration": 6160,
+      "offset": 512520,
+      "lang": "en"
+    },
+    {
+      "text": "What that means is I am using Python to",
+      "duration": 6361,
+      "offset": 514919,
+      "lang": "en"
+    },
+    {
+      "text": "automate a prompting process in a",
+      "duration": 5840,
+      "offset": 518680,
+      "lang": "en"
+    },
+    {
+      "text": "certain order and a certain way. I am",
+      "duration": 6520,
+      "offset": 521280,
+      "lang": "en"
+    },
+    {
+      "text": "engineering the prompts to be given to",
+      "duration": 4920,
+      "offset": 524520,
+      "lang": "en"
+    },
+    {
+      "text": "the model",
+      "duration": 5720,
+      "offset": 527800,
+      "lang": "en"
+    },
+    {
+      "text": "in a specific order or way to create",
+      "duration": 6080,
+      "offset": 529440,
+      "lang": "en"
+    },
+    {
+      "text": "reproducibility.",
+      "duration": 5040,
+      "offset": 533520,
+      "lang": "en"
+    },
+    {
+      "text": "At a huge large scale, this is one form",
+      "duration": 5520,
+      "offset": 535520,
+      "lang": "en"
+    },
+    {
+      "text": "of prompt engineering. Now, I get it. If",
+      "duration": 4200,
+      "offset": 538560,
+      "lang": "en"
+    },
+    {
+      "text": "I'm losing you or this is too much,",
+      "duration": 4440,
+      "offset": 541040,
+      "lang": "en"
+    },
+    {
+      "text": "don't worry. I'm about to explain what",
+      "duration": 5320,
+      "offset": 542760,
+      "lang": "en"
+    },
+    {
+      "text": "this is in much more simpler terms.",
+      "duration": 4400,
+      "offset": 545480,
+      "lang": "en"
+    },
+    {
+      "text": "Again, I built this entire pipeline",
+      "duration": 3720,
+      "offset": 548080,
+      "lang": "en"
+    },
+    {
+      "text": "myself. This is kind of brand new. I",
+      "duration": 4400,
+      "offset": 549880,
+      "lang": "en"
+    },
+    {
+      "text": "didn't really use anyone to kind of help",
+      "duration": 4160,
+      "offset": 551800,
+      "lang": "en"
+    },
+    {
+      "text": "me build off of this. There isn't other",
+      "duration": 3600,
+      "offset": 554280,
+      "lang": "en"
+    },
+    {
+      "text": "pipelines I saw that were like this.",
+      "duration": 3760,
+      "offset": 555960,
+      "lang": "en"
+    },
+    {
+      "text": "This is very bespoke. Uh it's on my",
+      "duration": 3760,
+      "offset": 557880,
+      "lang": "en"
+    },
+    {
+      "text": "GitHub. If you are a programmer, the",
+      "duration": 4000,
+      "offset": 559720,
+      "lang": "en"
+    },
+    {
+      "text": "link will be down below. Um I did it in",
+      "duration": 3960,
+      "offset": 561640,
+      "lang": "en"
+    },
+    {
+      "text": "a Python notebook format, so it's easy",
+      "duration": 4640,
+      "offset": 563720,
+      "lang": "en"
+    },
+    {
+      "text": "to kind of step through, uh show you how",
+      "duration": 4200,
+      "offset": 565600,
+      "lang": "en"
+    },
+    {
+      "text": "to use it and everything. Let's dive",
+      "duration": 3080,
+      "offset": 568360,
+      "lang": "en"
+    },
+    {
+      "text": "into something simpler. I just wanted to",
+      "duration": 3400,
+      "offset": 569800,
+      "lang": "en"
+    },
+    {
+      "text": "throw all that at you so you can, you",
+      "duration": 4040,
+      "offset": 571440,
+      "lang": "en"
+    },
+    {
+      "text": "know, see where we're going. But let's",
+      "duration": 4360,
+      "offset": 573200,
+      "lang": "en"
+    },
+    {
+      "text": "let's let's scale it back. How do we do",
+      "duration": 3960,
+      "offset": 575480,
+      "lang": "en"
+    },
+    {
+      "text": "all of that? What does all of that mean,",
+      "duration": 4000,
+      "offset": 577560,
+      "lang": "en"
+    },
+    {
+      "text": "and why is it important? Well,",
+      "duration": 5520,
+      "offset": 579440,
+      "lang": "en"
+    },
+    {
+      "text": "AI, using it well or using it like how I",
+      "duration": 6280,
+      "offset": 581560,
+      "lang": "en"
+    },
+    {
+      "text": "just use it, is much like a smart Mad",
+      "duration": 4720,
+      "offset": 584960,
+      "lang": "en"
+    },
+    {
+      "text": "Libs game. Mad Libs, for those of you",
+      "duration": 3800,
+      "offset": 587840,
+      "lang": "en"
+    },
+    {
+      "text": "who don't know, it's like a book, and it",
+      "duration": 3880,
+      "offset": 589680,
+      "lang": "en"
+    },
+    {
+      "text": "gives you a bunch of sentences, and you",
+      "duration": 5240,
+      "offset": 591640,
+      "lang": "en"
+    },
+    {
+      "text": "get to write in or type in um adjectives",
+      "duration": 5200,
+      "offset": 593560,
+      "lang": "en"
+    },
+    {
+      "text": "or adverbs to make your own sentences.",
+      "duration": 5320,
+      "offset": 596880,
+      "lang": "en"
+    },
+    {
+      "text": "So, the blank dog ran blank to the",
+      "duration": 5440,
+      "offset": 598760,
+      "lang": "en"
+    },
+    {
+      "text": "blank. And it would specifically say",
+      "duration": 5200,
+      "offset": 602200,
+      "lang": "en"
+    },
+    {
+      "text": "adjective, adverb, place.",
+      "duration": 5960,
+      "offset": 604200,
+      "lang": "en"
+    },
+    {
+      "text": "Now, the AI, or the way I'm using AI in",
+      "duration": 5520,
+      "offset": 607400,
+      "lang": "en"
+    },
+    {
+      "text": "that specific pipeline, or way you would",
+      "duration": 5000,
+      "offset": 610160,
+      "lang": "en"
+    },
+    {
+      "text": "want to use it in other pipelines,",
+      "duration": 3880,
+      "offset": 612920,
+      "lang": "en"
+    },
+    {
+      "text": "again, this is the idea we're teaching",
+      "duration": 4360,
+      "offset": 615160,
+      "lang": "en"
+    },
+    {
+      "text": "the logic, the abstractness here,",
+      "duration": 5240,
+      "offset": 616800,
+      "lang": "en"
+    },
+    {
+      "text": "is that you could do the same thing. You",
+      "duration": 4360,
+      "offset": 619520,
+      "lang": "en"
+    },
+    {
+      "text": "can have a prompt where it says, \"You",
+      "duration": 5080,
+      "offset": 622040,
+      "lang": "en"
+    },
+    {
+      "text": "are a blank persona. Please rate this",
+      "duration": 5680,
+      "offset": 623880,
+      "lang": "en"
+    },
+    {
+      "text": "statement.\" Question. Question and",
+      "duration": 5120,
+      "offset": 627120,
+      "lang": "en"
+    },
+    {
+      "text": "persona can be stored elsewhere and",
+      "duration": 4720,
+      "offset": 629560,
+      "lang": "en"
+    },
+    {
+      "text": "added in. You're automating the",
+      "duration": 3880,
+      "offset": 632240,
+      "lang": "en"
+    },
+    {
+      "text": "introduction of that prompt, or you have",
+      "duration": 4400,
+      "offset": 634280,
+      "lang": "en"
+    },
+    {
+      "text": "a prompt structure, and you're changing",
+      "duration": 5400,
+      "offset": 636120,
+      "lang": "en"
+    },
+    {
+      "text": "it in. Again, you don't have to do code.",
+      "duration": 5800,
+      "offset": 638680,
+      "lang": "en"
+    },
+    {
+      "text": "You can do this with a normal chatbot.",
+      "duration": 4960,
+      "offset": 641520,
+      "lang": "en"
+    },
+    {
+      "text": "What I mean by that is, if you log into",
+      "duration": 4760,
+      "offset": 644480,
+      "lang": "en"
+    },
+    {
+      "text": "ChatGPT, or Gemini, or Google, or any of",
+      "duration": 4360,
+      "offset": 646480,
+      "lang": "en"
+    },
+    {
+      "text": "the other ones,",
+      "duration": 4240,
+      "offset": 649240,
+      "lang": "en"
+    },
+    {
+      "text": "let's say you gave it a list that you",
+      "duration": 5280,
+      "offset": 650840,
+      "lang": "en"
+    },
+    {
+      "text": "had yourself. So, you decided which",
+      "duration": 4480,
+      "offset": 653480,
+      "lang": "en"
+    },
+    {
+      "text": "words you wanted to use for that",
+      "duration": 3680,
+      "offset": 656120,
+      "lang": "en"
+    },
+    {
+      "text": "sentence. And again,",
+      "duration": 3800,
+      "offset": 657960,
+      "lang": "en"
+    },
+    {
+      "text": "this task isn't what you'd be doing this",
+      "duration": 4200,
+      "offset": 659800,
+      "lang": "en"
+    },
+    {
+      "text": "task for. This is to help you understand",
+      "duration": 4320,
+      "offset": 661760,
+      "lang": "en"
+    },
+    {
+      "text": "this can be applied to a plethora of",
+      "duration": 5040,
+      "offset": 664000,
+      "lang": "en"
+    },
+    {
+      "text": "tasks. But, let's say I have a list, or",
+      "duration": 4720,
+      "offset": 666080,
+      "lang": "en"
+    },
+    {
+      "text": "this could be a document you're pulling",
+      "duration": 4200,
+      "offset": 669040,
+      "lang": "en"
+    },
+    {
+      "text": "from, or a code base",
+      "duration": 6600,
+      "offset": 670800,
+      "lang": "en"
+    },
+    {
+      "text": "of adjectives, of adverbs, quietly,",
+      "duration": 6720,
+      "offset": 673240,
+      "lang": "en"
+    },
+    {
+      "text": "drifting, and I labeled them myself, and",
+      "duration": 4520,
+      "offset": 677400,
+      "lang": "en"
+    },
+    {
+      "text": "I wanted these words. So, we're making",
+      "duration": 4879,
+      "offset": 679960,
+      "lang": "en"
+    },
+    {
+      "text": "sure the data it's getting is mine.",
+      "duration": 5240,
+      "offset": 681920,
+      "lang": "en"
+    },
+    {
+      "text": "You can then say,",
+      "duration": 5441,
+      "offset": 684839,
+      "lang": "en"
+    },
+    {
+      "text": "\"Create a bunch of sentences using that",
+      "duration": 5280,
+      "offset": 687160,
+      "lang": "en"
+    },
+    {
+      "text": "structure",
+      "duration": 4640,
+      "offset": 690280,
+      "lang": "en"
+    },
+    {
+      "text": "for this sentence.\"",
+      "duration": 4480,
+      "offset": 692440,
+      "lang": "en"
+    },
+    {
+      "text": "And what it's going to do is, it's going",
+      "duration": 5040,
+      "offset": 694920,
+      "lang": "en"
+    },
+    {
+      "text": "to pull from your list,",
+      "duration": 5720,
+      "offset": 696920,
+      "lang": "en"
+    },
+    {
+      "text": "and create a bunch of sentences.",
+      "duration": 5000,
+      "offset": 699960,
+      "lang": "en"
+    },
+    {
+      "text": "The restless dog ran swiftly to the",
+      "duration": 4960,
+      "offset": 702640,
+      "lang": "en"
+    },
+    {
+      "text": "forest. The timid cat crept quietly into",
+      "duration": 6720,
+      "offset": 704960,
+      "lang": "en"
+    },
+    {
+      "text": "the attic. Now, again, this is a simpler",
+      "duration": 5760,
+      "offset": 707600,
+      "lang": "en"
+    },
+    {
+      "text": "version of it, but the idea here is",
+      "duration": 4880,
+      "offset": 711680,
+      "lang": "en"
+    },
+    {
+      "text": "you're controlling the output based on",
+      "duration": 5920,
+      "offset": 713360,
+      "lang": "en"
+    },
+    {
+      "text": "what you directly want as input. And you",
+      "duration": 4920,
+      "offset": 716560,
+      "lang": "en"
+    },
+    {
+      "text": "can start building on that abstraction,",
+      "duration": 4360,
+      "offset": 719280,
+      "lang": "en"
+    },
+    {
+      "text": "but it's all natural lang- Again, this",
+      "duration": 3400,
+      "offset": 721480,
+      "lang": "en"
+    },
+    {
+      "text": "is going to come important as we're",
+      "duration": 3000,
+      "offset": 723640,
+      "lang": "en"
+    },
+    {
+      "text": "slowly going on. We're building up",
+      "duration": 3760,
+      "offset": 724880,
+      "lang": "en"
+    },
+    {
+      "text": "abstractness here, but you can see it",
+      "duration": 3920,
+      "offset": 726640,
+      "lang": "en"
+    },
+    {
+      "text": "works just as fine within a chat",
+      "duration": 4400,
+      "offset": 728640,
+      "lang": "en"
+    },
+    {
+      "text": "environment. That's exactly what we're",
+      "duration": 4960,
+      "offset": 730560,
+      "lang": "en"
+    },
+    {
+      "text": "doing inside the code I'm showing you",
+      "duration": 5640,
+      "offset": 733040,
+      "lang": "en"
+    },
+    {
+      "text": "here. I am simply, what you just saw,",
+      "duration": 6640,
+      "offset": 735520,
+      "lang": "en"
+    },
+    {
+      "text": "doing Mad Libs. I am giving it a prompt,",
+      "duration": 7040,
+      "offset": 738680,
+      "lang": "en"
+    },
+    {
+      "text": "or a Python code, or some code to do. I",
+      "duration": 6080,
+      "offset": 742160,
+      "lang": "en"
+    },
+    {
+      "text": "am either using the code itself to input",
+      "duration": 4760,
+      "offset": 745720,
+      "lang": "en"
+    },
+    {
+      "text": "in the prompts, or the AI is listening",
+      "duration": 4520,
+      "offset": 748240,
+      "lang": "en"
+    },
+    {
+      "text": "to those prompts programmatically. The",
+      "duration": 4920,
+      "offset": 750480,
+      "lang": "en"
+    },
+    {
+      "text": "reason this is important is this gives",
+      "duration": 5480,
+      "offset": 752760,
+      "lang": "en"
+    },
+    {
+      "text": "you templates to control the output. You",
+      "duration": 6960,
+      "offset": 755400,
+      "lang": "en"
+    },
+    {
+      "text": "can now send automated prompts to an",
+      "duration": 8360,
+      "offset": 758240,
+      "lang": "en"
+    },
+    {
+      "text": "agent, or an AI. Again, agent's a big",
+      "duration": 6120,
+      "offset": 762360,
+      "lang": "en"
+    },
+    {
+      "text": "word. There's a lot of arguments about",
+      "duration": 4080,
+      "offset": 766600,
+      "lang": "en"
+    },
+    {
+      "text": "it, but take it with a grain of salt.",
+      "duration": 4600,
+      "offset": 768480,
+      "lang": "en"
+    },
+    {
+      "text": "So, it could be a persona, and that",
+      "duration": 4120,
+      "offset": 770680,
+      "lang": "en"
+    },
+    {
+      "text": "persona gets swapped out with my data",
+      "duration": 4080,
+      "offset": 773080,
+      "lang": "en"
+    },
+    {
+      "text": "library. It could be a question, and it",
+      "duration": 3520,
+      "offset": 774800,
+      "lang": "en"
+    },
+    {
+      "text": "gets swapped out with all of my",
+      "duration": 3360,
+      "offset": 777160,
+      "lang": "en"
+    },
+    {
+      "text": "questions I want. And the personas could",
+      "duration": 3960,
+      "offset": 778320,
+      "lang": "en"
+    },
+    {
+      "text": "be very optimistic person, very",
+      "duration": 4640,
+      "offset": 780520,
+      "lang": "en"
+    },
+    {
+      "text": "pessimistic person. It could be tone for",
+      "duration": 5120,
+      "offset": 782280,
+      "lang": "en"
+    },
+    {
+      "text": "writing, things like that.",
+      "duration": 3960,
+      "offset": 785160,
+      "lang": "en"
+    },
+    {
+      "text": "Uh, the questions could be, \"Tomorrow",
+      "duration": 3400,
+      "offset": 787400,
+      "lang": "en"
+    },
+    {
+      "text": "will be better than today?\" And the",
+      "duration": 3480,
+      "offset": 789120,
+      "lang": "en"
+    },
+    {
+      "text": "optimistic person, or pessimistic",
+      "duration": 3760,
+      "offset": 790800,
+      "lang": "en"
+    },
+    {
+      "text": "person, will give a different output.",
+      "duration": 3040,
+      "offset": 792600,
+      "lang": "en"
+    },
+    {
+      "text": "Again,",
+      "duration": 4240,
+      "offset": 794560,
+      "lang": "en"
+    },
+    {
+      "text": "tone, this could be swapped out with uh,",
+      "duration": 5160,
+      "offset": 795640,
+      "lang": "en"
+    },
+    {
+      "text": "you know, the ability of that agent.",
+      "duration": 3520,
+      "offset": 798800,
+      "lang": "en"
+    },
+    {
+      "text": "Sometimes people will say, \"You're now",
+      "duration": 3440,
+      "offset": 800800,
+      "lang": "en"
+    },
+    {
+      "text": "an expert in coding. You're now an",
+      "duration": 4040,
+      "offset": 802320,
+      "lang": "en"
+    },
+    {
+      "text": "expert in this type of coding.\" I think",
+      "duration": 3599,
+      "offset": 804240,
+      "lang": "en"
+    },
+    {
+      "text": "it's connecting for those of you who are",
+      "duration": 3040,
+      "offset": 806360,
+      "lang": "en"
+    },
+    {
+      "text": "seeing it there, but let's continue",
+      "duration": 4401,
+      "offset": 807839,
+      "lang": "en"
+    },
+    {
+      "text": "going on. Every single prompt you give",
+      "duration": 6560,
+      "offset": 809400,
+      "lang": "en"
+    },
+    {
+      "text": "an AI should have fixed parts, which are",
+      "duration": 6680,
+      "offset": 812240,
+      "lang": "en"
+    },
+    {
+      "text": "the instructions, and variable parts,",
+      "duration": 4840,
+      "offset": 815960,
+      "lang": "en"
+    },
+    {
+      "text": "the things that are changing. The fixed",
+      "duration": 4560,
+      "offset": 818920,
+      "lang": "en"
+    },
+    {
+      "text": "parts are going to be, \"You are a blank.",
+      "duration": 5760,
+      "offset": 820800,
+      "lang": "en"
+    },
+    {
+      "text": "Please rate from this. Provide your",
+      "duration": 6320,
+      "offset": 823480,
+      "lang": "en"
+    },
+    {
+      "text": "answer like this.\" The variable parts",
+      "duration": 5400,
+      "offset": 826560,
+      "lang": "en"
+    },
+    {
+      "text": "are going to change every time, who they",
+      "duration": 5000,
+      "offset": 829800,
+      "lang": "en"
+    },
+    {
+      "text": "are, what they are, how many questions",
+      "duration": 4440,
+      "offset": 831960,
+      "lang": "en"
+    },
+    {
+      "text": "they ask.",
+      "duration": 4039,
+      "offset": 834800,
+      "lang": "en"
+    },
+    {
+      "text": "Further, you can combine each of these",
+      "duration": 5320,
+      "offset": 836400,
+      "lang": "en"
+    },
+    {
+      "text": "to create more unique prompts. \"You are",
+      "duration": 5521,
+      "offset": 838839,
+      "lang": "en"
+    },
+    {
+      "text": "this persona, and I want you to rate",
+      "duration": 5480,
+      "offset": 841720,
+      "lang": "en"
+    },
+    {
+      "text": "this statement in this scale.\" You can",
+      "duration": 5120,
+      "offset": 844360,
+      "lang": "en"
+    },
+    {
+      "text": "swip and swap those, and start having",
+      "duration": 4440,
+      "offset": 847200,
+      "lang": "en"
+    },
+    {
+      "text": "the agents do very specific things in a",
+      "duration": 4760,
+      "offset": 849480,
+      "lang": "en"
+    },
+    {
+      "text": "very good way, rather than having to",
+      "duration": 4640,
+      "offset": 851640,
+      "lang": "en"
+    },
+    {
+      "text": "chat through it and create the prompts,",
+      "duration": 3839,
+      "offset": 854240,
+      "lang": "en"
+    },
+    {
+      "text": "they're happening automatically. And",
+      "duration": 5200,
+      "offset": 856280,
+      "lang": "en"
+    },
+    {
+      "text": "this is important because of what I said",
+      "duration": 6921,
+      "offset": 858079,
+      "lang": "en"
+    },
+    {
+      "text": "earlier, AI is a compiler.",
+      "duration": 5200,
+      "offset": 861480,
+      "lang": "en"
+    },
+    {
+      "text": "Now, for those of you unsure what",
+      "duration": 3800,
+      "offset": 865000,
+      "lang": "en"
+    },
+    {
+      "text": "compiler is, or for those of you who do",
+      "duration": 3360,
+      "offset": 866680,
+      "lang": "en"
+    },
+    {
+      "text": "know what it is, and are still",
+      "duration": 3159,
+      "offset": 868800,
+      "lang": "en"
+    },
+    {
+      "text": "disconnecting on what I mean by that,",
+      "duration": 5080,
+      "offset": 870040,
+      "lang": "en"
+    },
+    {
+      "text": "look at this. Programming languages are",
+      "duration": 5921,
+      "offset": 871959,
+      "lang": "en"
+    },
+    {
+      "text": "the way we use symbolic representation,",
+      "duration": 5520,
+      "offset": 875120,
+      "lang": "en"
+    },
+    {
+      "text": "or mathematic representation, to",
+      "duration": 6199,
+      "offset": 877880,
+      "lang": "en"
+    },
+    {
+      "text": "essentially map physical happenings. Um,",
+      "duration": 6280,
+      "offset": 880640,
+      "lang": "en"
+    },
+    {
+      "text": "there is hardware programming languages,",
+      "duration": 5081,
+      "offset": 884079,
+      "lang": "en"
+    },
+    {
+      "text": "so you have physical switches turning on",
+      "duration": 4400,
+      "offset": 886920,
+      "lang": "en"
+    },
+    {
+      "text": "and off. You have machine languages,",
+      "duration": 4360,
+      "offset": 889160,
+      "lang": "en"
+    },
+    {
+      "text": "your zeros, your ones. You hear You hear",
+      "duration": 4519,
+      "offset": 891320,
+      "lang": "en"
+    },
+    {
+      "text": "about binary, things like that. But,",
+      "duration": 3800,
+      "offset": 893520,
+      "lang": "en"
+    },
+    {
+      "text": "then we would condense those. Like,",
+      "duration": 4041,
+      "offset": 895839,
+      "lang": "en"
+    },
+    {
+      "text": "hardboard switching back and forth, we",
+      "duration": 5320,
+      "offset": 897320,
+      "lang": "en"
+    },
+    {
+      "text": "represented processes of that with",
+      "duration": 5199,
+      "offset": 899880,
+      "lang": "en"
+    },
+    {
+      "text": "machine language. Then, we represented",
+      "duration": 5520,
+      "offset": 902640,
+      "lang": "en"
+    },
+    {
+      "text": "and condensed those processes with",
+      "duration": 6121,
+      "offset": 905079,
+      "lang": "en"
+    },
+    {
+      "text": "assembly language. Then, we kind of",
+      "duration": 4720,
+      "offset": 908160,
+      "lang": "en"
+    },
+    {
+      "text": "argued and talked about kind of",
+      "duration": 4560,
+      "offset": 911200,
+      "lang": "en"
+    },
+    {
+      "text": "compilers and compiling those processes,",
+      "duration": 5480,
+      "offset": 912880,
+      "lang": "en"
+    },
+    {
+      "text": "as in, a thousand instruction lines, a",
+      "duration": 4800,
+      "offset": 915760,
+      "lang": "en"
+    },
+    {
+      "text": "thousand lines of code does this one",
+      "duration": 3840,
+      "offset": 918360,
+      "lang": "en"
+    },
+    {
+      "text": "thing, and we keep using it over and",
+      "duration": 3960,
+      "offset": 920560,
+      "lang": "en"
+    },
+    {
+      "text": "over again. Well, we can turn that",
+      "duration": 5560,
+      "offset": 922200,
+      "lang": "en"
+    },
+    {
+      "text": "process and automate it into one line of",
+      "duration": 5760,
+      "offset": 924520,
+      "lang": "en"
+    },
+    {
+      "text": "code. And we kept doing this with every",
+      "duration": 4520,
+      "offset": 927760,
+      "lang": "en"
+    },
+    {
+      "text": "layer of code until you get to these",
+      "duration": 4440,
+      "offset": 930280,
+      "lang": "en"
+    },
+    {
+      "text": "higher level languages like Python, or",
+      "duration": 5520,
+      "offset": 932280,
+      "lang": "en"
+    },
+    {
+      "text": "Java. My argument is that AI is now",
+      "duration": 5560,
+      "offset": 934720,
+      "lang": "en"
+    },
+    {
+      "text": "creating another tier to that pyramid.",
+      "duration": 5920,
+      "offset": 937800,
+      "lang": "en"
+    },
+    {
+      "text": "It's not exactly doing that right now,",
+      "duration": 7080,
+      "offset": 940280,
+      "lang": "en"
+    },
+    {
+      "text": "but it's going to be. This assembly line",
+      "duration": 7440,
+      "offset": 943720,
+      "lang": "en"
+    },
+    {
+      "text": "of using logical outputs, and ensuring",
+      "duration": 6280,
+      "offset": 947360,
+      "lang": "en"
+    },
+    {
+      "text": "their accuracy, is building off of",
+      "duration": 5320,
+      "offset": 951160,
+      "lang": "en"
+    },
+    {
+      "text": "itself. It's continuing up this ladder.",
+      "duration": 5920,
+      "offset": 953640,
+      "lang": "en"
+    },
+    {
+      "text": "And I'm sending information",
+      "duration": 5640,
+      "offset": 956480,
+      "lang": "en"
+    },
+    {
+      "text": "to an AI, so that it comes back with a",
+      "duration": 5080,
+      "offset": 959560,
+      "lang": "en"
+    },
+    {
+      "text": "certain output. And the AI is doing",
+      "duration": 5480,
+      "offset": 962120,
+      "lang": "en"
+    },
+    {
+      "text": "computations, or processes, that",
+      "duration": 4720,
+      "offset": 964640,
+      "lang": "en"
+    },
+    {
+      "text": "previously",
+      "duration": 5640,
+      "offset": 967600,
+      "lang": "en"
+    },
+    {
+      "text": "I had to code manually. Now, it's",
+      "duration": 7040,
+      "offset": 969360,
+      "lang": "en"
+    },
+    {
+      "text": "automating some of that coding process.",
+      "duration": 5560,
+      "offset": 973240,
+      "lang": "en"
+    },
+    {
+      "text": "Again, I'm not saying it's replacing",
+      "duration": 4280,
+      "offset": 976400,
+      "lang": "en"
+    },
+    {
+      "text": "code. I'm saying we're adding an",
+      "duration": 4640,
+      "offset": 978800,
+      "lang": "en"
+    },
+    {
+      "text": "abstraction layer to it. Is there going",
+      "duration": 6000,
+      "offset": 980680,
+      "lang": "en"
+    },
+    {
+      "text": "to be as many Python programmers?",
+      "duration": 6560,
+      "offset": 983440,
+      "lang": "en"
+    },
+    {
+      "text": "I don't think so. In the same way that",
+      "duration": 5760,
+      "offset": 986680,
+      "lang": "en"
+    },
+    {
+      "text": "there is not as many Fortran, or lower",
+      "duration": 4480,
+      "offset": 990000,
+      "lang": "en"
+    },
+    {
+      "text": "level language programmers, but they're",
+      "duration": 3639,
+      "offset": 992440,
+      "lang": "en"
+    },
+    {
+      "text": "equally important. You can get jobs at",
+      "duration": 3400,
+      "offset": 994480,
+      "lang": "en"
+    },
+    {
+      "text": "NASA still for those languages. Those",
+      "duration": 4121,
+      "offset": 996079,
+      "lang": "en"
+    },
+    {
+      "text": "low level languages, conceptually, are",
+      "duration": 4040,
+      "offset": 997880,
+      "lang": "en"
+    },
+    {
+      "text": "still important. Building new ways in",
+      "duration": 4080,
+      "offset": 1000200,
+      "lang": "en"
+    },
+    {
+      "text": "which to do hardware parallelization is",
+      "duration": 3840,
+      "offset": 1001920,
+      "lang": "en"
+    },
+    {
+      "text": "actually, I would argue, more important",
+      "duration": 4880,
+      "offset": 1004280,
+      "lang": "en"
+    },
+    {
+      "text": "now. The majority of jobs, or focuses,",
+      "duration": 5720,
+      "offset": 1005760,
+      "lang": "en"
+    },
+    {
+      "text": "or learning, is going to be at this",
+      "duration": 3360,
+      "offset": 1009160,
+      "lang": "en"
+    },
+    {
+      "text": "higher level, and we're already",
+      "duration": 4160,
+      "offset": 1011480,
+      "lang": "en"
+    },
+    {
+      "text": "witnessing this shift. The problem is,",
+      "duration": 6880,
+      "offset": 1012520,
+      "lang": "en"
+    },
+    {
+      "text": "we are still building the layer of that",
+      "duration": 5920,
+      "offset": 1015640,
+      "lang": "en"
+    },
+    {
+      "text": "languages, the processes, the",
+      "duration": 6360,
+      "offset": 1019400,
+      "lang": "en"
+    },
+    {
+      "text": "continuancing of that scale. Scaling up",
+      "duration": 7279,
+      "offset": 1021560,
+      "lang": "en"
+    },
+    {
+      "text": "how we call these models, how we ad-lib",
+      "duration": 5439,
+      "offset": 1025760,
+      "lang": "en"
+    },
+    {
+      "text": "and send them. The processes that I'm",
+      "duration": 5721,
+      "offset": 1028839,
+      "lang": "en"
+    },
+    {
+      "text": "showing you here need to be organized",
+      "duration": 5121,
+      "offset": 1031199,
+      "lang": "en"
+    },
+    {
+      "text": "more. They need to be sent more. And",
+      "duration": 3720,
+      "offset": 1034560,
+      "lang": "en"
+    },
+    {
+      "text": "what does that look like? This is a very",
+      "duration": 3960,
+      "offset": 1036320,
+      "lang": "en"
+    },
+    {
+      "text": "simple version. There's a lot of other",
+      "duration": 4520,
+      "offset": 1038280,
+      "lang": "en"
+    },
+    {
+      "text": "tools out there like Semantic Kernel,",
+      "duration": 5880,
+      "offset": 1040280,
+      "lang": "en"
+    },
+    {
+      "text": "Crew AI, and just every big AI company",
+      "duration": 4800,
+      "offset": 1042800,
+      "lang": "en"
+    },
+    {
+      "text": "is doing this on the back end. This",
+      "duration": 4560,
+      "offset": 1046160,
+      "lang": "en"
+    },
+    {
+      "text": "isn't new, necessarily. I'm not just out",
+      "duration": 5000,
+      "offset": 1047600,
+      "lang": "en"
+    },
+    {
+      "text": "at the front completely. There's people",
+      "duration": 3600,
+      "offset": 1050720,
+      "lang": "en"
+    },
+    {
+      "text": "who have been doing this process, or at",
+      "duration": 3960,
+      "offset": 1052600,
+      "lang": "en"
+    },
+    {
+      "text": "least understand this process, for quite",
+      "duration": 5240,
+      "offset": 1054320,
+      "lang": "en"
+    },
+    {
+      "text": "a few years now. But, the idea here is,",
+      "duration": 6119,
+      "offset": 1056560,
+      "lang": "en"
+    },
+    {
+      "text": "the template, your natural words, the",
+      "duration": 6240,
+      "offset": 1059560,
+      "lang": "en"
+    },
+    {
+      "text": "variables, your natural variables, or",
+      "duration": 6441,
+      "offset": 1062679,
+      "lang": "en"
+    },
+    {
+      "text": "numbers, are being put into a prompt.",
+      "duration": 6000,
+      "offset": 1065800,
+      "lang": "en"
+    },
+    {
+      "text": "And they're doing it in a structured way",
+      "duration": 5400,
+      "offset": 1069120,
+      "lang": "en"
+    },
+    {
+      "text": "that sends it to the AI, and expects a",
+      "duration": 6200,
+      "offset": 1071800,
+      "lang": "en"
+    },
+    {
+      "text": "very specific output. So, that now, the",
+      "duration": 6640,
+      "offset": 1074520,
+      "lang": "en"
+    },
+    {
+      "text": "processes before, between, you know,",
+      "duration": 5440,
+      "offset": 1078000,
+      "lang": "en"
+    },
+    {
+      "text": "this output, or this answer, that",
+      "duration": 5480,
+      "offset": 1081160,
+      "lang": "en"
+    },
+    {
+      "text": "required me to, you know, code a whole",
+      "duration": 5160,
+      "offset": 1083440,
+      "lang": "en"
+    },
+    {
+      "text": "bunch of Python here, or code a",
+      "duration": 5200,
+      "offset": 1086640,
+      "lang": "en"
+    },
+    {
+      "text": "pipeline, I now no longer have to do,",
+      "duration": 5760,
+      "offset": 1088600,
+      "lang": "en"
+    },
+    {
+      "text": "because I can automate parts of it. And",
+      "duration": 4040,
+      "offset": 1091840,
+      "lang": "en"
+    },
+    {
+      "text": "we're continuously doing that with",
+      "duration": 3440,
+      "offset": 1094360,
+      "lang": "en"
+    },
+    {
+      "text": "different agents, different LLMs,",
+      "duration": 3680,
+      "offset": 1095880,
+      "lang": "en"
+    },
+    {
+      "text": "different work processes.",
+      "duration": 3960,
+      "offset": 1097800,
+      "lang": "en"
+    },
+    {
+      "text": "This is also happening at the larger",
+      "duration": 4240,
+      "offset": 1099560,
+      "lang": "en"
+    },
+    {
+      "text": "scale, at the business level, the",
+      "duration": 4960,
+      "offset": 1101760,
+      "lang": "en"
+    },
+    {
+      "text": "workflow level. We're condensing",
+      "duration": 6879,
+      "offset": 1103800,
+      "lang": "en"
+    },
+    {
+      "text": "variables of workflow, variables",
+      "duration": 6520,
+      "offset": 1106720,
+      "lang": "en"
+    },
+    {
+      "text": "of templates, business templates, and",
+      "duration": 4681,
+      "offset": 1110679,
+      "lang": "en"
+    },
+    {
+      "text": "we're creating an automation of that as",
+      "duration": 5439,
+      "offset": 1113240,
+      "lang": "en"
+    },
+    {
+      "text": "well, which is where this worry of job",
+      "duration": 4840,
+      "offset": 1115360,
+      "lang": "en"
+    },
+    {
+      "text": "replacement comes from. And I'm not",
+      "duration": 3161,
+      "offset": 1118679,
+      "lang": "en"
+    },
+    {
+      "text": "going to comment on that in this video,",
+      "duration": 3640,
+      "offset": 1120200,
+      "lang": "en"
+    },
+    {
+      "text": "but it's it's a valid worry in many",
+      "duration": 5200,
+      "offset": 1121840,
+      "lang": "en"
+    },
+    {
+      "text": "ways. But, this process",
+      "duration": 6880,
+      "offset": 1123840,
+      "lang": "en"
+    },
+    {
+      "text": "is what we're automating and compiling",
+      "duration": 6000,
+      "offset": 1127040,
+      "lang": "en"
+    },
+    {
+      "text": "with the AI. With traditional",
+      "duration": 4800,
+      "offset": 1130720,
+      "lang": "en"
+    },
+    {
+      "text": "programming, I had to code every single",
+      "duration": 5160,
+      "offset": 1133040,
+      "lang": "en"
+    },
+    {
+      "text": "step for every single edge case. If the",
+      "duration": 5200,
+      "offset": 1135520,
+      "lang": "en"
+    },
+    {
+      "text": "persona is conservative, and the",
+      "duration": 4840,
+      "offset": 1138200,
+      "lang": "en"
+    },
+    {
+      "text": "question is taxes, then you have to",
+      "duration": 6320,
+      "offset": 1140720,
+      "lang": "en"
+    },
+    {
+      "text": "return this programmatic question for",
+      "duration": 8760,
+      "offset": 1143040,
+      "lang": "en"
+    },
+    {
+      "text": "every single possible output. But, now,",
+      "duration": 8360,
+      "offset": 1147040,
+      "lang": "en"
+    },
+    {
+      "text": "we can ask the AI, \"Here is this, and",
+      "duration": 7600,
+      "offset": 1151800,
+      "lang": "en"
+    },
+    {
+      "text": "this. Use context to compile, and get",
+      "duration": 7160,
+      "offset": 1155400,
+      "lang": "en"
+    },
+    {
+      "text": "the best possible output related to that",
+      "duration": 6040,
+      "offset": 1159400,
+      "lang": "en"
+    },
+    {
+      "text": "input.\" That allows us to skip a lot of",
+      "duration": 5840,
+      "offset": 1162560,
+      "lang": "en"
+    },
+    {
+      "text": "steps, or automate certain steps that",
+      "duration": 5840,
+      "offset": 1165440,
+      "lang": "en"
+    },
+    {
+      "text": "would have taken hundreds and hundreds",
+      "duration": 7320,
+      "offset": 1168400,
+      "lang": "en"
+    },
+    {
+      "text": "of lines of code to do, and compile it",
+      "duration": 7720,
+      "offset": 1171280,
+      "lang": "en"
+    },
+    {
+      "text": "into one line of code.",
+      "duration": 5840,
+      "offset": 1175720,
+      "lang": "en"
+    },
+    {
+      "text": "Now, I was going to actually do this",
+      "duration": 4600,
+      "offset": 1179000,
+      "lang": "en"
+    },
+    {
+      "text": "entire notebook in this video, where I",
+      "duration": 4320,
+      "offset": 1181560,
+      "lang": "en"
+    },
+    {
+      "text": "dive into kind of the orchestration",
+      "duration": 4160,
+      "offset": 1183600,
+      "lang": "en"
+    },
+    {
+      "text": "techniques, the more advanced techniques",
+      "duration": 3160,
+      "offset": 1185880,
+      "lang": "en"
+    },
+    {
+      "text": "around this, but I realized that was a",
+      "duration": 3200,
+      "offset": 1187760,
+      "lang": "en"
+    },
+    {
+      "text": "lot for a single video, and I really",
+      "duration": 3880,
+      "offset": 1189040,
+      "lang": "en"
+    },
+    {
+      "text": "liked how that was ending. So, what I'm",
+      "duration": 4400,
+      "offset": 1190960,
+      "lang": "en"
+    },
+    {
+      "text": "going to do is a part two of this video",
+      "duration": 5080,
+      "offset": 1192920,
+      "lang": "en"
+    },
+    {
+      "text": "where I dive into the next iteration.",
+      "duration": 5240,
+      "offset": 1195360,
+      "lang": "en"
+    },
+    {
+      "text": "What does the next 10 years look like",
+      "duration": 5120,
+      "offset": 1198000,
+      "lang": "en"
+    },
+    {
+      "text": "following those fundamentals?",
+      "duration": 4520,
+      "offset": 1200600,
+      "lang": "en"
+    },
+    {
+      "text": "Um pretty much where we're taking those",
+      "duration": 5080,
+      "offset": 1203120,
+      "lang": "en"
+    },
+    {
+      "text": "templates, these Madlib templates, and",
+      "duration": 5680,
+      "offset": 1205120,
+      "lang": "en"
+    },
+    {
+      "text": "turning them into actual orchestration,",
+      "duration": 5840,
+      "offset": 1208200,
+      "lang": "en"
+    },
+    {
+      "text": "computational orchestration, turning",
+      "duration": 5840,
+      "offset": 1210800,
+      "lang": "en"
+    },
+    {
+      "text": "those templates into actual agentic",
+      "duration": 5480,
+      "offset": 1214040,
+      "lang": "en"
+    },
+    {
+      "text": "workflows. Um again, I'm using code",
+      "duration": 5120,
+      "offset": 1216640,
+      "lang": "en"
+    },
+    {
+      "text": "here, but this can be used at any",
+      "duration": 4280,
+      "offset": 1219520,
+      "lang": "en"
+    },
+    {
+      "text": "abstraction level, whether it's business",
+      "duration": 3960,
+      "offset": 1221760,
+      "lang": "en"
+    },
+    {
+      "text": "operations, investment, startup",
+      "duration": 5160,
+      "offset": 1223800,
+      "lang": "en"
+    },
+    {
+      "text": "creation, education. It's It's common",
+      "duration": 5360,
+      "offset": 1225720,
+      "lang": "en"
+    },
+    {
+      "text": "across all of them. But to give a little",
+      "duration": 5680,
+      "offset": 1228960,
+      "lang": "en"
+    },
+    {
+      "text": "sneak peek and kind of this aspect here,",
+      "duration": 7000,
+      "offset": 1231080,
+      "lang": "en"
+    },
+    {
+      "text": "um I wanted to dive into the fact that",
+      "duration": 5920,
+      "offset": 1234640,
+      "lang": "en"
+    },
+    {
+      "text": "you'll notice a pattern. Whether you're",
+      "duration": 4760,
+      "offset": 1238080,
+      "lang": "en"
+    },
+    {
+      "text": "just interacting with ChatGPT, you're",
+      "duration": 4280,
+      "offset": 1240560,
+      "lang": "en"
+    },
+    {
+      "text": "using something more advanced like",
+      "duration": 4200,
+      "offset": 1242840,
+      "lang": "en"
+    },
+    {
+      "text": "Claude Code, you're using something even",
+      "duration": 4080,
+      "offset": 1244840,
+      "lang": "en"
+    },
+    {
+      "text": "more advanced or building something with",
+      "duration": 4400,
+      "offset": 1247040,
+      "lang": "en"
+    },
+    {
+      "text": "Semantic Kernel or Crew AI, you're using",
+      "duration": 5200,
+      "offset": 1248920,
+      "lang": "en"
+    },
+    {
+      "text": "the same four concepts here. We're doing",
+      "duration": 5920,
+      "offset": 1251440,
+      "lang": "en"
+    },
+    {
+      "text": "the same four things. You're defining a",
+      "duration": 7800,
+      "offset": 1254120,
+      "lang": "en"
+    },
+    {
+      "text": "role or a persona or a context and tone.",
+      "duration": 6760,
+      "offset": 1257360,
+      "lang": "en"
+    },
+    {
+      "text": "You're setting structure.",
+      "duration": 4440,
+      "offset": 1261920,
+      "lang": "en"
+    },
+    {
+      "text": "You're adding a validation level and",
+      "duration": 3960,
+      "offset": 1264120,
+      "lang": "en"
+    },
+    {
+      "text": "you're handling errors. So, what do I",
+      "duration": 4080,
+      "offset": 1266360,
+      "lang": "en"
+    },
+    {
+      "text": "mean by that? This is common to all",
+      "duration": 4640,
+      "offset": 1268080,
+      "lang": "en"
+    },
+    {
+      "text": "programming for the last 100 years. In",
+      "duration": 5080,
+      "offset": 1270440,
+      "lang": "en"
+    },
+    {
+      "text": "ChatGPT, you're telling it to act as an",
+      "duration": 4800,
+      "offset": 1272720,
+      "lang": "en"
+    },
+    {
+      "text": "analyst and you're saying what type of",
+      "duration": 4120,
+      "offset": 1275520,
+      "lang": "en"
+    },
+    {
+      "text": "format or what its output should be",
+      "duration": 4800,
+      "offset": 1277520,
+      "lang": "en"
+    },
+    {
+      "text": "maybe. And you're manually checking what",
+      "duration": 4360,
+      "offset": 1279640,
+      "lang": "en"
+    },
+    {
+      "text": "that output is. Ooh, I like that. Ooh,",
+      "duration": 3080,
+      "offset": 1282320,
+      "lang": "en"
+    },
+    {
+      "text": "change your tone here. Ooh, I don't",
+      "duration": 3320,
+      "offset": 1284000,
+      "lang": "en"
+    },
+    {
+      "text": "really do this and trying again",
+      "duration": 3160,
+      "offset": 1285400,
+      "lang": "en"
+    },
+    {
+      "text": "manually.",
+      "duration": 3520,
+      "offset": 1287320,
+      "lang": "en"
+    },
+    {
+      "text": "With Claude Code or any of these",
+      "duration": 4720,
+      "offset": 1288560,
+      "lang": "en"
+    },
+    {
+      "text": "more advanced tools, you're actually",
+      "duration": 4920,
+      "offset": 1290840,
+      "lang": "en"
+    },
+    {
+      "text": "automating some of these processes or",
+      "duration": 6720,
+      "offset": 1293280,
+      "lang": "en"
+    },
+    {
+      "text": "condensing these personas into",
+      "duration": 7440,
+      "offset": 1295760,
+      "lang": "en"
+    },
+    {
+      "text": "um files or or databases or even",
+      "duration": 4760,
+      "offset": 1300000,
+      "lang": "en"
+    },
+    {
+      "text": "functions.",
+      "duration": 4240,
+      "offset": 1303200,
+      "lang": "en"
+    },
+    {
+      "text": "You're using some sort of template or",
+      "duration": 4080,
+      "offset": 1304760,
+      "lang": "en"
+    },
+    {
+      "text": "schema",
+      "duration": 4400,
+      "offset": 1307440,
+      "lang": "en"
+    },
+    {
+      "text": "to validate those process or to to",
+      "duration": 5400,
+      "offset": 1308840,
+      "lang": "en"
+    },
+    {
+      "text": "conduct those processes and then you're",
+      "duration": 4120,
+      "offset": 1311840,
+      "lang": "en"
+    },
+    {
+      "text": "creating some sort of automatic",
+      "duration": 3800,
+      "offset": 1314240,
+      "lang": "en"
+    },
+    {
+      "text": "validation process, some sort of",
+      "duration": 4719,
+      "offset": 1315960,
+      "lang": "en"
+    },
+    {
+      "text": "checking or built-in validation. Some",
+      "duration": 4200,
+      "offset": 1318040,
+      "lang": "en"
+    },
+    {
+      "text": "Semantic Kernel and Crew AI are actually",
+      "duration": 3961,
+      "offset": 1320679,
+      "lang": "en"
+    },
+    {
+      "text": "doing this on their own process. And",
+      "duration": 4920,
+      "offset": 1322240,
+      "lang": "en"
+    },
+    {
+      "text": "then some sort of retrying aspect. Each",
+      "duration": 4120,
+      "offset": 1324640,
+      "lang": "en"
+    },
+    {
+      "text": "of these are, you know, in the coding",
+      "duration": 2600,
+      "offset": 1327160,
+      "lang": "en"
+    },
+    {
+      "text": "level,",
+      "duration": 3080,
+      "offset": 1328760,
+      "lang": "en"
+    },
+    {
+      "text": "um have their own version of it. These",
+      "duration": 5520,
+      "offset": 1329760,
+      "lang": "en"
+    },
+    {
+      "text": "are defined schemas, processes that are",
+      "duration": 6160,
+      "offset": 1331840,
+      "lang": "en"
+    },
+    {
+      "text": "going to stay the same because they've",
+      "duration": 6280,
+      "offset": 1335280,
+      "lang": "en"
+    },
+    {
+      "text": "stayed the same for 100 years across",
+      "duration": 6679,
+      "offset": 1338000,
+      "lang": "en"
+    },
+    {
+      "text": "multiple programming languages and into",
+      "duration": 5160,
+      "offset": 1341560,
+      "lang": "en"
+    },
+    {
+      "text": "the AI age.",
+      "duration": 4161,
+      "offset": 1344679,
+      "lang": "en"
+    },
+    {
+      "text": "Again, I'll do a whole other video on",
+      "duration": 3680,
+      "offset": 1346720,
+      "lang": "en"
+    },
+    {
+      "text": "that, but I just wanted to kind of talk",
+      "duration": 3480,
+      "offset": 1348840,
+      "lang": "en"
+    },
+    {
+      "text": "about that. I hope this kind of answers",
+      "duration": 4320,
+      "offset": 1350400,
+      "lang": "en"
+    },
+    {
+      "text": "a lot of questions. If it didn't, please",
+      "duration": 4120,
+      "offset": 1352320,
+      "lang": "en"
+    },
+    {
+      "text": "ask all of those questions. This is",
+      "duration": 4280,
+      "offset": 1354720,
+      "lang": "en"
+    },
+    {
+      "text": "extremely important to me and uh yeah,",
+      "duration": 4400,
+      "offset": 1356440,
+      "lang": "en"
+    },
+    {
+      "text": "that is that is it for today's video.",
+      "duration": 3600,
+      "offset": 1359000,
+      "lang": "en"
+    },
+    {
+      "text": "Hopefully this uh taught you some good",
+      "duration": 4640,
+      "offset": 1360840,
+      "lang": "en"
+    },
+    {
+      "text": "stuff and um again, ask the questions.",
+      "duration": 6760,
+      "offset": 1362600,
+      "lang": "en"
+    },
+    {
+      "text": "That's all I need. Have a good day.",
+      "duration": 3880,
+      "offset": 1365480,
+      "lang": "en"
+    }
+  ]
+}

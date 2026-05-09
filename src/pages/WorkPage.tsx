@@ -1,185 +1,99 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import WorkGallery from '../components/WorkGallery';
 import CTABanner from '../components/CTABanner';
+import WorkGallery from '../components/WorkGallery';
+import type React from 'react';
 
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    backgroundColor: 'var(--color-bg-void, #060608)',
-    color: 'var(--color-text-primary, #f5f5f7)',
-    fontFamily: 'var(--font-body, Outfit), sans-serif',
-    overflow: 'hidden',
-  },
-  heroSection: {
-    position: 'relative',
-    padding: '160px 48px 120px 48px',
-    maxWidth: '1440px',
-    margin: '0 auto',
-  },
-  heroAccentRow: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '24px',
-    marginBottom: '32px',
-  },
-  accentLine: {
-    width: '4px',
-    height: '80px',
-    backgroundColor: '#dc2626',
-    flexShrink: 0,
-    borderRadius: '2px',
-    transformOrigin: 'top' as const,
-  },
-  heroHeading: {
-    fontFamily: 'var(--font-display, "Space Grotesk"), sans-serif',
-    fontSize: 'clamp(64px, 8vw, 110px)',
-    fontWeight: 700,
-    letterSpacing: '-0.04em',
-    lineHeight: 1,
-    margin: 0,
-    color: 'var(--color-text-primary, #f5f5f7)',
-  },
-  heroSubline: {
-    fontFamily: 'var(--font-body, Outfit), sans-serif',
-    fontSize: '18px',
-    lineHeight: 1.6,
-    color: 'var(--color-text-secondary, #8e8ea0)',
-    maxWidth: '680px',
-    marginTop: '24px',
-    marginLeft: '28px',
-    fontWeight: 300,
-  },
-  featuredSection: {
-    padding: '0 48px 120px 48px',
-    maxWidth: '1440px',
-    margin: '0 auto',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '32px',
-  },
-  projectCard: {
-    width: '100%',
-    height: '400px',
-    borderRadius: '20px',
-    position: 'relative' as const,
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    justifyContent: 'space-between',
-    padding: '40px 48px',
-    boxSizing: 'border-box' as const,
-    border: '1px solid var(--color-border-subtle, rgba(255,255,255,0.05))',
-  },
-  cardTopRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  projectName: {
-    fontFamily: 'var(--font-display, "Space Grotesk"), sans-serif',
-    fontSize: 'clamp(40px, 5vw, 72px)',
-    fontWeight: 700,
-    letterSpacing: '-0.03em',
-    lineHeight: 1.1,
-    margin: 0,
-    color: 'var(--color-text-primary, #f5f5f7)',
-    maxWidth: '70%',
-  },
-  metadata: {
-    textAlign: 'right' as const,
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '4px',
-    flexShrink: 0,
-  },
-  metadataItem: {
-    fontSize: '13px',
-    fontWeight: 400,
-    color: 'var(--color-text-secondary, #8e8ea0)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.08em',
-    lineHeight: 1.4,
-    margin: 0,
-  },
-  metadataAccent: {
-    fontSize: '13px',
-    fontWeight: 500,
-    color: '#dc2626',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.08em',
-    lineHeight: 1.4,
-    margin: 0,
-  },
-  cardDescription: {
-    fontSize: '15px',
-    lineHeight: 1.6,
-    color: 'var(--color-text-secondary, #8e8ea0)',
-    maxWidth: '520px',
-    margin: 0,
-    fontWeight: 300,
-  },
-};
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-const projects = [
-  { name: 'Echoes of Tomorrow', client: 'Vienna Tourism Board', category: 'Commercial', year: '2024', bgColor: '#0c0c14', description: 'A city film redefining destination storytelling. Shot across three continents in seven days.' },
-  { name: 'The Unseen', client: 'Österreichische Galerie', category: 'Documentary', year: '2024', bgColor: '#100c0c', description: 'Deep-sea researchers uncovering ocean mysteries. Winner, Best Documentary Short 2024.' },
-  { name: 'Velocity', client: 'Prater Wien', category: 'Commercial', year: '2023', bgColor: '#0c0f14', description: 'Automotive campaign. Practical stunts, cinematic VFX. 15M+ views across platforms.' },
-];
+function FrameCorners() {
+  return <div className="frame-corners" aria-hidden="true"><span /><span /><span /><span /></div>;
+}
 
 export default function WorkPage() {
   return (
-    <motion.div style={styles.page} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-
-      {/* HERO */}
-      <section style={styles.heroSection}>
-        <div style={styles.heroAccentRow}>
+    <div className="spatial-page">
+      <section
+        className="spatial-section frame-shell"
+        data-proximity
+        style={{ minHeight: '78vh', display: 'flex', alignItems: 'center', paddingTop: 132 }}
+      >
+        <FrameCorners />
+        <div className="container">
           <motion.div
-            style={styles.accentLine}
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-          />
-          <motion.h1 style={styles.heroHeading} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}>
+            className="kicker"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.62, ease: EASE }}
+          >
+            Work Archive
+          </motion.div>
+          <motion.h1
+            className="section-title"
+            style={{ maxWidth: 1100, fontSize: 'clamp(64px, 11vw, 150px)' }}
+            initial={{ opacity: 0, y: 48, rotateX: 12 }}
+            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+            transition={{ duration: 0.86, delay: 0.12, ease: EASE }}
+          >
             Selected Work.
           </motion.h1>
-        </div>
-        <motion.p style={styles.heroSubline} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.55 }}>
-          A curated body of work spanning commercial film, documentary, and live event. Each project chosen for its ambition.
-        </motion.p>
-      </section>
-
-      {/* FEATURED */}
-      <section style={styles.featuredSection}>
-        {projects.map((p, i) => (
-          <motion.div
-            key={p.name}
-            style={{ ...styles.projectCard, backgroundColor: p.bgColor }}
-            initial={{ opacity: 0, y: 60 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, margin: '-80px' }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: i * 0.08 }}
-            whileHover={{ scale: 1.005, transition: { duration: 0.3 } }}
+          <motion.p
+            className="section-copy"
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.34, ease: EASE }}
           >
-            <div style={styles.cardTopRow}>
-              <h2 style={styles.projectName}>{p.name}</h2>
-              <div style={styles.metadata}>
-                <span style={styles.metadataItem}>{p.client}</span>
-                <span style={styles.metadataAccent}>{p.category}</span>
-                <span style={styles.metadataItem}>{p.year}</span>
-              </div>
-            </div>
-            <p style={styles.cardDescription}>{p.description}</p>
-          </motion.div>
-        ))}
+            A bento archive for campaign systems, social-first production, motion pieces, and brand worlds. Media wells stay empty until final project assets are dropped in.
+          </motion.p>
+        </div>
       </section>
 
-      {/* GALLERY */}
-      <section style={{ padding: '0 48px 120px', maxWidth: 1440, margin: '0 auto' }}>
-        <WorkGallery onProjectClick={() => {}} />
+      <section className="spatial-section spatial-section--compact section-diagonal">
+        <div className="container frame-shell">
+          <FrameCorners />
+          <WorkGallery />
+        </div>
+      </section>
+
+      <section className="spatial-section spatial-section--compact" data-proximity>
+        <div className="container">
+          <motion.div
+            className="depth-panel"
+            data-tilt
+            style={{
+              '--z-depth': '34px',
+              padding: 'clamp(28px, 5vw, 56px)',
+              display: 'grid',
+              gridTemplateColumns: '1.2fr 1fr',
+              gap: 'clamp(24px, 5vw, 70px)',
+              alignItems: 'center',
+            } as React.CSSProperties}
+            initial={{ opacity: 0, y: 34 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, margin: '-14%' }}
+            transition={{ duration: 0.72, ease: EASE }}
+          >
+            <div>
+              <div className="kicker">Portfolio Logic</div>
+              <h2 style={{ marginTop: 18, fontSize: 'clamp(32px, 5vw, 68px)', fontWeight: 900, letterSpacing: 0 }}>
+                Not a gallery. A surface for future proof.
+              </h2>
+            </div>
+            <p style={{ color: 'var(--color-text-secondary)', lineHeight: 1.75, fontWeight: 300 }}>
+              The layout is intentionally uneven: large work gets room, smaller assets orbit around it, and every card reacts to cursor proximity before it is touched.
+            </p>
+          </motion.div>
+        </div>
       </section>
 
       <CTABanner headline="Your story is next." buttonLabel="Start a Project" buttonHref="/contact" />
-    </motion.div>
+
+      <style>{`
+        @media (max-width: 860px) {
+          .depth-panel {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+    </div>
   );
 }

@@ -88,4 +88,15 @@
   --z-nav: 100;
   --z-modal: 200;
   --z-cursor: 9999;
+
+  /* Aesthetic enhancement — additive ambient layers */
+  --color-indigo-trace: rgba(60, 40, 120, 0.04);
+  --color-indigo-ambient: rgba(60, 40, 120, 0.02);
+  --color-crimson-pulse: rgba(220, 38, 38, 0.14);
+  --overlay-geometry-opacity: 0.038;
+  --overlay-celestial-opacity: 0.028;
+  --overlay-blob-opacity: 0.05;
+  --overlay-fog-near: rgba(12, 12, 20, 0.72);
+  --overlay-fog-mid: rgba(12, 12, 20, 0.48);
+  --overlay-fog-far: rgba(12, 12, 20, 0.28);
 }

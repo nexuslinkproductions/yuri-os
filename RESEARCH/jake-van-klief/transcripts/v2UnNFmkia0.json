@@ -1,0 +1,1350 @@
+{
+  "videoId": "v2UnNFmkia0",
+  "title": "Claude Code + Cursor: Agentic Workflows",
+  "segments": [
+    {
+      "text": "Okay, so just doing a quick video to",
+      "duration": 3519,
+      "offset": 160,
+      "lang": "en"
+    },
+    {
+      "text": "show you kind of what cloud code is. So",
+      "duration": 3600,
+      "offset": 2000,
+      "lang": "en"
+    },
+    {
+      "text": "once you have it installed, you can",
+      "duration": 4960,
+      "offset": 3679,
+      "lang": "en"
+    },
+    {
+      "text": "actually have it as a direct um kind of",
+      "duration": 4480,
+      "offset": 5600,
+      "lang": "en"
+    },
+    {
+      "text": "function in here. So let me actually",
+      "duration": 3201,
+      "offset": 8639,
+      "lang": "en"
+    },
+    {
+      "text": "terminate this or you can actually go",
+      "duration": 4240,
+      "offset": 10080,
+      "lang": "en"
+    },
+    {
+      "text": "into the terminal and if you type claude",
+      "duration": 4640,
+      "offset": 11840,
+      "lang": "en"
+    },
+    {
+      "text": "once it's fully installed, it's directly",
+      "duration": 3920,
+      "offset": 14320,
+      "lang": "en"
+    },
+    {
+      "text": "in your command line interface and",
+      "duration": 4719,
+      "offset": 16480,
+      "lang": "en"
+    },
+    {
+      "text": "whatnot. Um but I actually oops let me",
+      "duration": 4640,
+      "offset": 18240,
+      "lang": "en"
+    },
+    {
+      "text": "terminate that process. I actually",
+      "duration": 4320,
+      "offset": 21199,
+      "lang": "en"
+    },
+    {
+      "text": "prefer to use it in here. Um, and this",
+      "duration": 4000,
+      "offset": 22880,
+      "lang": "en"
+    },
+    {
+      "text": "all this button does is just run a",
+      "duration": 3041,
+      "offset": 25519,
+      "lang": "en"
+    },
+    {
+      "text": "terminal but directly in. Uh, as you can",
+      "duration": 3680,
+      "offset": 26880,
+      "lang": "en"
+    },
+    {
+      "text": "see right here, I am in WSL, but you",
+      "duration": 3920,
+      "offset": 28560,
+      "lang": "en"
+    },
+    {
+      "text": "could do it in normal PowerShell as",
+      "duration": 3839,
+      "offset": 30560,
+      "lang": "en"
+    },
+    {
+      "text": "well. Um, and then obviously this is a",
+      "duration": 3759,
+      "offset": 32480,
+      "lang": "en"
+    },
+    {
+      "text": "plugin for cursor as well that you have",
+      "duration": 4000,
+      "offset": 34399,
+      "lang": "en"
+    },
+    {
+      "text": "to install. But, um, what's really",
+      "duration": 4480,
+      "offset": 36239,
+      "lang": "en"
+    },
+    {
+      "text": "interesting is that when you do have",
+      "duration": 5281,
+      "offset": 38399,
+      "lang": "en"
+    },
+    {
+      "text": "Cloud Run, you can create MD files. So,",
+      "duration": 5201,
+      "offset": 40719,
+      "lang": "en"
+    },
+    {
+      "text": "basically system prompts that it will",
+      "duration": 4080,
+      "offset": 43680,
+      "lang": "en"
+    },
+    {
+      "text": "run across all your data sets and",
+      "duration": 4000,
+      "offset": 45920,
+      "lang": "en"
+    },
+    {
+      "text": "whatnot. Um, and it goes in here. And",
+      "duration": 4080,
+      "offset": 47760,
+      "lang": "en"
+    },
+    {
+      "text": "what's great is it's like an super",
+      "duration": 3760,
+      "offset": 49920,
+      "lang": "en"
+    },
+    {
+      "text": "advanced agent. So obviously I already",
+      "duration": 4000,
+      "offset": 51840,
+      "lang": "en"
+    },
+    {
+      "text": "have my readme and I already have a kind",
+      "duration": 4719,
+      "offset": 53680,
+      "lang": "en"
+    },
+    {
+      "text": "of database or codebase already set up",
+      "duration": 4239,
+      "offset": 55840,
+      "lang": "en"
+    },
+    {
+      "text": "right in this multi- aent compliant",
+      "duration": 4160,
+      "offset": 58399,
+      "lang": "en"
+    },
+    {
+      "text": "thing. Um, but what I can do here is,",
+      "duration": 4321,
+      "offset": 60079,
+      "lang": "en"
+    },
+    {
+      "text": "you know, you could do a really long",
+      "duration": 4161,
+      "offset": 62559,
+      "lang": "en"
+    },
+    {
+      "text": "explanation or you could say, \"Underst",
+      "duration": 7960,
+      "offset": 64400,
+      "lang": "en"
+    },
+    {
+      "text": "understand my codebase as is.",
+      "duration": 5640,
+      "offset": 66720,
+      "lang": "en"
+    },
+    {
+      "text": "Do you have questions?",
+      "duration": 4480,
+      "offset": 85600,
+      "lang": "en"
+    },
+    {
+      "text": "Write them.\" No, no, we don't want to do",
+      "duration": 4081,
+      "offset": 88159,
+      "lang": "en"
+    },
+    {
+      "text": "that.",
+      "duration": 4079,
+      "offset": 90080,
+      "lang": "en"
+    },
+    {
+      "text": "And I would usually take a little bit",
+      "duration": 3280,
+      "offset": 92240,
+      "lang": "en"
+    },
+    {
+      "text": "more time. I would give it some kind of",
+      "duration": 3121,
+      "offset": 94159,
+      "lang": "en"
+    },
+    {
+      "text": "direction here or there. Um, but",
+      "duration": 3279,
+      "offset": 95520,
+      "lang": "en"
+    },
+    {
+      "text": "realistically, this is the power of",
+      "duration": 3600,
+      "offset": 97280,
+      "lang": "en"
+    },
+    {
+      "text": "Cloud Code is that it gets up to date on",
+      "duration": 3521,
+      "offset": 98799,
+      "lang": "en"
+    },
+    {
+      "text": "the work you've already done very",
+      "duration": 4400,
+      "offset": 100880,
+      "lang": "en"
+    },
+    {
+      "text": "quickly. Um, and so what's really fun is",
+      "duration": 4640,
+      "offset": 102320,
+      "lang": "en"
+    },
+    {
+      "text": "so it gives you a token count and",
+      "duration": 3760,
+      "offset": 105280,
+      "lang": "en"
+    },
+    {
+      "text": "whatnot. And right now I'm on the API",
+      "duration": 4400,
+      "offset": 106960,
+      "lang": "en"
+    },
+    {
+      "text": "access rather than my account access. So",
+      "duration": 3600,
+      "offset": 109040,
+      "lang": "en"
+    },
+    {
+      "text": "generally speaking, you have a token",
+      "duration": 4799,
+      "offset": 111360,
+      "lang": "en"
+    },
+    {
+      "text": "limit every month. um I don't I have a",
+      "duration": 5519,
+      "offset": 112640,
+      "lang": "en"
+    },
+    {
+      "text": "soft limit but because I'm using API and",
+      "duration": 4161,
+      "offset": 116159,
+      "lang": "en"
+    },
+    {
+      "text": "there's no limit and it just chugs right",
+      "duration": 4161,
+      "offset": 118159,
+      "lang": "en"
+    },
+    {
+      "text": "and so what it first does is it creates",
+      "duration": 4399,
+      "offset": 120320,
+      "lang": "en"
+    },
+    {
+      "text": "actual tasks before it even starts",
+      "duration": 4079,
+      "offset": 122320,
+      "lang": "en"
+    },
+    {
+      "text": "editing lines so it's going to read",
+      "duration": 3040,
+      "offset": 124719,
+      "lang": "en"
+    },
+    {
+      "text": "through lines and it's going to be a lot",
+      "duration": 3521,
+      "offset": 126399,
+      "lang": "en"
+    },
+    {
+      "text": "of input tokens before it actually",
+      "duration": 4641,
+      "offset": 127759,
+      "lang": "en"
+    },
+    {
+      "text": "outputs anything and so obviously it's",
+      "duration": 4080,
+      "offset": 129920,
+      "lang": "en"
+    },
+    {
+      "text": "looking at it it's saying okay cool",
+      "duration": 3360,
+      "offset": 132400,
+      "lang": "en"
+    },
+    {
+      "text": "that's what we're doing here's the",
+      "duration": 3360,
+      "offset": 134000,
+      "lang": "en"
+    },
+    {
+      "text": "different searches it's doing it well",
+      "duration": 3440,
+      "offset": 135760,
+      "lang": "en"
+    },
+    {
+      "text": "and again it's doing it directly",
+      "duration": 4000,
+      "offset": 137360,
+      "lang": "en"
+    },
+    {
+      "text": "implemented in through um the actual",
+      "duration": 4399,
+      "offset": 139200,
+      "lang": "en"
+    },
+    {
+      "text": "terminal and in this case WSL",
+      "duration": 4560,
+      "offset": 141360,
+      "lang": "en"
+    },
+    {
+      "text": "access uh which is where you really have",
+      "duration": 4561,
+      "offset": 143599,
+      "lang": "en"
+    },
+    {
+      "text": "some power. And um I'm actually going to",
+      "duration": 5280,
+      "offset": 145920,
+      "lang": "en"
+    },
+    {
+      "text": "pause the video right now. Um and just",
+      "duration": 6640,
+      "offset": 148160,
+      "lang": "en"
+    },
+    {
+      "text": "let it run uh and then I'll I'll uh come",
+      "duration": 6160,
+      "offset": 151200,
+      "lang": "en"
+    },
+    {
+      "text": "back up with the video after uh as well.",
+      "duration": 5360,
+      "offset": 154800,
+      "lang": "en"
+    },
+    {
+      "text": "As you saw from above, um it was kind of",
+      "duration": 4239,
+      "offset": 157360,
+      "lang": "en"
+    },
+    {
+      "text": "editing and going and it actually",
+      "duration": 3920,
+      "offset": 160160,
+      "lang": "en"
+    },
+    {
+      "text": "created a to-do list. And now what it's",
+      "duration": 3841,
+      "offset": 161599,
+      "lang": "en"
+    },
+    {
+      "text": "going to do, so this is its own to-do",
+      "duration": 2799,
+      "offset": 164080,
+      "lang": "en"
+    },
+    {
+      "text": "list and it's currently updating",
+      "duration": 2720,
+      "offset": 165440,
+      "lang": "en"
+    },
+    {
+      "text": "documents right now. It's going through",
+      "duration": 3281,
+      "offset": 166879,
+      "lang": "en"
+    },
+    {
+      "text": "it. Once it finishes it something, it",
+      "duration": 3680,
+      "offset": 168160,
+      "lang": "en"
+    },
+    {
+      "text": "actually creates it. And you're watching",
+      "duration": 3439,
+      "offset": 170160,
+      "lang": "en"
+    },
+    {
+      "text": "this as it goes along. And as it hits",
+      "duration": 3119,
+      "offset": 171840,
+      "lang": "en"
+    },
+    {
+      "text": "things and there's certain write or",
+      "duration": 3201,
+      "offset": 173599,
+      "lang": "en"
+    },
+    {
+      "text": "audit things, it'll say, \"Hey, do you",
+      "duration": 3201,
+      "offset": 174959,
+      "lang": "en"
+    },
+    {
+      "text": "want me to make this edit?\" And you can",
+      "duration": 5040,
+      "offset": 176800,
+      "lang": "en"
+    },
+    {
+      "text": "watch it in real time. Um, and I can",
+      "duration": 5999,
+      "offset": 178160,
+      "lang": "en"
+    },
+    {
+      "text": "also literally say, \"Hey, don't ask me",
+      "duration": 4399,
+      "offset": 181840,
+      "lang": "en"
+    },
+    {
+      "text": "again.\" And continue along. Uh, which is",
+      "duration": 3440,
+      "offset": 184159,
+      "lang": "en"
+    },
+    {
+      "text": "exactly what I'm going to do on this",
+      "duration": 3601,
+      "offset": 186239,
+      "lang": "en"
+    },
+    {
+      "text": "one. And so now it's just going to sit",
+      "duration": 5121,
+      "offset": 187599,
+      "lang": "en"
+    },
+    {
+      "text": "here and chug and basically go through.",
+      "duration": 4720,
+      "offset": 189840,
+      "lang": "en"
+    },
+    {
+      "text": "And it has the auto accept. And you can",
+      "duration": 4320,
+      "offset": 192720,
+      "lang": "en"
+    },
+    {
+      "text": "just shift tab to to take that off. And",
+      "duration": 3920,
+      "offset": 194560,
+      "lang": "en"
+    },
+    {
+      "text": "it's just going to go through and bust",
+      "duration": 3119,
+      "offset": 197040,
+      "lang": "en"
+    },
+    {
+      "text": "all of these out. And I already reviewed",
+      "duration": 3360,
+      "offset": 198480,
+      "lang": "en"
+    },
+    {
+      "text": "it. I'm happy with the direction it's",
+      "duration": 3841,
+      "offset": 200159,
+      "lang": "en"
+    },
+    {
+      "text": "doing it, why it's doing it, how it's",
+      "duration": 4319,
+      "offset": 201840,
+      "lang": "en"
+    },
+    {
+      "text": "doing it, um what it's extracting. These",
+      "duration": 4239,
+      "offset": 204000,
+      "lang": "en"
+    },
+    {
+      "text": "are certain modules and aspects that I",
+      "duration": 4800,
+      "offset": 206159,
+      "lang": "en"
+    },
+    {
+      "text": "am uh interested in and aspects here.",
+      "duration": 4801,
+      "offset": 208239,
+      "lang": "en"
+    },
+    {
+      "text": "And what I can even do is is have it",
+      "duration": 4081,
+      "offset": 210959,
+      "lang": "en"
+    },
+    {
+      "text": "create a new read me and see its",
+      "duration": 4080,
+      "offset": 213040,
+      "lang": "en"
+    },
+    {
+      "text": "understanding or what its to-do list is.",
+      "duration": 4559,
+      "offset": 215040,
+      "lang": "en"
+    },
+    {
+      "text": "Have it print out in that way. But um it",
+      "duration": 4880,
+      "offset": 217120,
+      "lang": "en"
+    },
+    {
+      "text": "it doesn't lose context as easily as",
+      "duration": 4560,
+      "offset": 219599,
+      "lang": "en"
+    },
+    {
+      "text": "others. I mean, we're probably maybe 8%",
+      "duration": 4319,
+      "offset": 222000,
+      "lang": "en"
+    },
+    {
+      "text": "context filled even with um you know,",
+      "duration": 4401,
+      "offset": 224159,
+      "lang": "en"
+    },
+    {
+      "text": "kind of whatever this file right now. I",
+      "duration": 5441,
+      "offset": 226319,
+      "lang": "en"
+    },
+    {
+      "text": "think my original files 839 lines right",
+      "duration": 4640,
+      "offset": 228560,
+      "lang": "en"
+    },
+    {
+      "text": "and it works right this is something",
+      "duration": 3759,
+      "offset": 231760,
+      "lang": "en"
+    },
+    {
+      "text": "that's generated outputs for me it's",
+      "duration": 4640,
+      "offset": 233200,
+      "lang": "en"
+    },
+    {
+      "text": "made this is a multiple agentic workflow",
+      "duration": 4800,
+      "offset": 235519,
+      "lang": "en"
+    },
+    {
+      "text": "where I'm using pideantic in it um and",
+      "duration": 4399,
+      "offset": 237840,
+      "lang": "en"
+    },
+    {
+      "text": "pyantic is the way to go if you're",
+      "duration": 4560,
+      "offset": 240319,
+      "lang": "en"
+    },
+    {
+      "text": "teaching anything in CS I think teaching",
+      "duration": 5360,
+      "offset": 242239,
+      "lang": "en"
+    },
+    {
+      "text": "pyantic in python is is really great",
+      "duration": 4241,
+      "offset": 244879,
+      "lang": "en"
+    },
+    {
+      "text": "being able to do classes things like",
+      "duration": 3840,
+      "offset": 247599,
+      "lang": "en"
+    },
+    {
+      "text": "that in that aspect because you can then",
+      "duration": 4160,
+      "offset": 249120,
+      "lang": "en"
+    },
+    {
+      "text": "actually create these agent using these",
+      "duration": 4241,
+      "offset": 251439,
+      "lang": "en"
+    },
+    {
+      "text": "classes and you know using JSON aspects",
+      "duration": 4959,
+      "offset": 253280,
+      "lang": "en"
+    },
+    {
+      "text": "to it and a lot of these models actually",
+      "duration": 4799,
+      "offset": 255680,
+      "lang": "en"
+    },
+    {
+      "text": "are able to do these classes really well",
+      "duration": 4641,
+      "offset": 258239,
+      "lang": "en"
+    },
+    {
+      "text": "quickly is uh for what I want. And so I",
+      "duration": 4241,
+      "offset": 260479,
+      "lang": "en"
+    },
+    {
+      "text": "kind of set up different um parser",
+      "duration": 3680,
+      "offset": 262880,
+      "lang": "en"
+    },
+    {
+      "text": "agents. I set up kind of agents that are",
+      "duration": 3360,
+      "offset": 264720,
+      "lang": "en"
+    },
+    {
+      "text": "handling this thought process that I was",
+      "duration": 4079,
+      "offset": 266560,
+      "lang": "en"
+    },
+    {
+      "text": "already doing on my own or in this case",
+      "duration": 4080,
+      "offset": 268080,
+      "lang": "en"
+    },
+    {
+      "text": "the auditors that I'm building this",
+      "duration": 3681,
+      "offset": 270639,
+      "lang": "en"
+    },
+    {
+      "text": "pipeline for were already doing and then",
+      "duration": 4000,
+      "offset": 272160,
+      "lang": "en"
+    },
+    {
+      "text": "a couple little extra things that I did",
+      "duration": 3920,
+      "offset": 274320,
+      "lang": "en"
+    },
+    {
+      "text": "like this framework loader agent is",
+      "duration": 4800,
+      "offset": 276160,
+      "lang": "en"
+    },
+    {
+      "text": "actually looking at a PDF breaking it",
+      "duration": 4959,
+      "offset": 278240,
+      "lang": "en"
+    },
+    {
+      "text": "down into its specific parts because",
+      "duration": 4160,
+      "offset": 280960,
+      "lang": "en"
+    },
+    {
+      "text": "these are different you know codes that",
+      "duration": 4000,
+      "offset": 283199,
+      "lang": "en"
+    },
+    {
+      "text": "um uh are actually focused on kind of",
+      "duration": 3760,
+      "offset": 285120,
+      "lang": "en"
+    },
+    {
+      "text": "human rights and things like that within",
+      "duration": 3521,
+      "offset": 287199,
+      "lang": "en"
+    },
+    {
+      "text": "the mind force something I'm working on",
+      "duration": 5680,
+      "offset": 288880,
+      "lang": "en"
+    },
+    {
+      "text": "right now um and basically this kind of",
+      "duration": 5680,
+      "offset": 290720,
+      "lang": "en"
+    },
+    {
+      "text": "creates It's this like sections of",
+      "duration": 4480,
+      "offset": 294560,
+      "lang": "en"
+    },
+    {
+      "text": "agents, right? Um, but what's really",
+      "duration": 5359,
+      "offset": 296400,
+      "lang": "en"
+    },
+    {
+      "text": "great is that it's understanding this",
+      "duration": 4960,
+      "offset": 299040,
+      "lang": "en"
+    },
+    {
+      "text": "and from my experience in other",
+      "duration": 4641,
+      "offset": 301759,
+      "lang": "en"
+    },
+    {
+      "text": "pipelines, it's able to it's hasn't",
+      "duration": 4000,
+      "offset": 304000,
+      "lang": "en"
+    },
+    {
+      "text": "missed a beat. It doesn't screw with any",
+      "duration": 3680,
+      "offset": 306400,
+      "lang": "en"
+    },
+    {
+      "text": "of the logic. It's able to understand",
+      "duration": 5120,
+      "offset": 308000,
+      "lang": "en"
+    },
+    {
+      "text": "huge context um in different directions,",
+      "duration": 5200,
+      "offset": 310080,
+      "lang": "en"
+    },
+    {
+      "text": "follow plans that I want it to follow.",
+      "duration": 4000,
+      "offset": 313120,
+      "lang": "en"
+    },
+    {
+      "text": "And um as you can see here, it's already",
+      "duration": 4000,
+      "offset": 315280,
+      "lang": "en"
+    },
+    {
+      "text": "creating an entirely new codebase. All",
+      "duration": 3760,
+      "offset": 317120,
+      "lang": "en"
+    },
+    {
+      "text": "of this is what it's been creating right",
+      "duration": 3759,
+      "offset": 319280,
+      "lang": "en"
+    },
+    {
+      "text": "now, right? I haven't This is mine. I",
+      "duration": 4080,
+      "offset": 320880,
+      "lang": "en"
+    },
+    {
+      "text": "built this massive.py pie and I wanted",
+      "duration": 4641,
+      "offset": 323039,
+      "lang": "en"
+    },
+    {
+      "text": "to turn it into modules that initiate",
+      "duration": 4720,
+      "offset": 324960,
+      "lang": "en"
+    },
+    {
+      "text": "from each other uh because I knew I was",
+      "duration": 4320,
+      "offset": 327680,
+      "lang": "en"
+    },
+    {
+      "text": "going to do that later. Um and that's",
+      "duration": 4160,
+      "offset": 329680,
+      "lang": "en"
+    },
+    {
+      "text": "exactly what it was able to do here. And",
+      "duration": 3840,
+      "offset": 332000,
+      "lang": "en"
+    },
+    {
+      "text": "it's going through and I guarantee you",
+      "duration": 4000,
+      "offset": 333840,
+      "lang": "en"
+    },
+    {
+      "text": "let's see parsed statement class. Let's",
+      "duration": 3680,
+      "offset": 335840,
+      "lang": "en"
+    },
+    {
+      "text": "see how much similar it is to my",
+      "duration": 3359,
+      "offset": 337840,
+      "lang": "en"
+    },
+    {
+      "text": "individual parse statement field",
+      "duration": 3200,
+      "offset": 339520,
+      "lang": "en"
+    },
+    {
+      "text": "description category the statement",
+      "duration": 3521,
+      "offset": 341199,
+      "lang": "en"
+    },
+    {
+      "text": "belongs to field list of compliance.",
+      "duration": 4640,
+      "offset": 342720,
+      "lang": "en"
+    },
+    {
+      "text": "Yep. Uh let's make sure that it's there.",
+      "duration": 7319,
+      "offset": 344720,
+      "lang": "en"
+    },
+    {
+      "text": "Where? Oh my um",
+      "duration": 4679,
+      "offset": 347360,
+      "lang": "en"
+    },
+    {
+      "text": "where what did I just Where did it put",
+      "duration": 3519,
+      "offset": 352400,
+      "lang": "en"
+    },
+    {
+      "text": "Yeah, here we go. Compliance. Uh see",
+      "duration": 3519,
+      "offset": 354240,
+      "lang": "en"
+    },
+    {
+      "text": "individual description category. Yep.",
+      "duration": 6355,
+      "offset": 355919,
+      "lang": "en"
+    },
+    {
+      "text": "Yeah, I know. That's uh [groaning]",
+      "duration": 4515,
+      "offset": 357759,
+      "lang": "en"
+    },
+    {
+      "text": "is it doing the list as a string though?",
+      "duration": 3361,
+      "offset": 363199,
+      "lang": "en"
+    },
+    {
+      "text": "That might be. Yep. No, it's doing the",
+      "duration": 3361,
+      "offset": 365039,
+      "lang": "en"
+    },
+    {
+      "text": "list as a string. Cool. Yeah. And like I",
+      "duration": 3520,
+      "offset": 366560,
+      "lang": "en"
+    },
+    {
+      "text": "said, it just copied it over perfectly",
+      "duration": 3760,
+      "offset": 368400,
+      "lang": "en"
+    },
+    {
+      "text": "into an exact area. It gave the proper",
+      "duration": 3920,
+      "offset": 370080,
+      "lang": "en"
+    },
+    {
+      "text": "initialization section here that it's",
+      "duration": 4000,
+      "offset": 372160,
+      "lang": "en"
+    },
+    {
+      "text": "going for it. um it's doing proper doc",
+      "duration": 4080,
+      "offset": 374000,
+      "lang": "en"
+    },
+    {
+      "text": "assignments to it so that it can be used",
+      "duration": 4080,
+      "offset": 376160,
+      "lang": "en"
+    },
+    {
+      "text": "later. This is the only area where I",
+      "duration": 4239,
+      "offset": 378080,
+      "lang": "en"
+    },
+    {
+      "text": "think there could be trouble is that you",
+      "duration": 4160,
+      "offset": 380240,
+      "lang": "en"
+    },
+    {
+      "text": "need to verify which calls are which",
+      "duration": 3521,
+      "offset": 382319,
+      "lang": "en"
+    },
+    {
+      "text": "because if you change this it could",
+      "duration": 6000,
+      "offset": 384400,
+      "lang": "en"
+    },
+    {
+      "text": "create issues as well. Um but that's",
+      "duration": 6560,
+      "offset": 385840,
+      "lang": "en"
+    },
+    {
+      "text": "that's just standard processes. I think",
+      "duration": 3760,
+      "offset": 390400,
+      "lang": "en"
+    },
+    {
+      "text": "running this pipeline will teach you",
+      "duration": 3600,
+      "offset": 392400,
+      "lang": "en"
+    },
+    {
+      "text": "more about what's wrong with it than",
+      "duration": 4879,
+      "offset": 394160,
+      "lang": "en"
+    },
+    {
+      "text": "looking for what's wrong immediately. Um",
+      "duration": 4960,
+      "offset": 396000,
+      "lang": "en"
+    },
+    {
+      "text": "and then of course this is just Python,",
+      "duration": 3361,
+      "offset": 399039,
+      "lang": "en"
+    },
+    {
+      "text": "right? being able to connect this to",
+      "duration": 3760,
+      "offset": 400960,
+      "lang": "en"
+    },
+    {
+      "text": "databases, connecting it to a website,",
+      "duration": 4079,
+      "offset": 402400,
+      "lang": "en"
+    },
+    {
+      "text": "that's probably the processes that are",
+      "duration": 3520,
+      "offset": 404720,
+      "lang": "en"
+    },
+    {
+      "text": "going to need to be taught and is much",
+      "duration": 3840,
+      "offset": 406479,
+      "lang": "en"
+    },
+    {
+      "text": "more challenging for claude or anything",
+      "duration": 4160,
+      "offset": 408240,
+      "lang": "en"
+    },
+    {
+      "text": "like that to handle until you already",
+      "duration": 4481,
+      "offset": 410319,
+      "lang": "en"
+    },
+    {
+      "text": "create those outside inputs for now.",
+      "duration": 3840,
+      "offset": 412400,
+      "lang": "en"
+    },
+    {
+      "text": "Another year or two, maybe that'll",
+      "duration": 2959,
+      "offset": 414800,
+      "lang": "en"
+    },
+    {
+      "text": "change. But as you can see, it's still",
+      "duration": 3120,
+      "offset": 416240,
+      "lang": "en"
+    },
+    {
+      "text": "chugging away here, right? Still telling",
+      "duration": 4241,
+      "offset": 417759,
+      "lang": "en"
+    },
+    {
+      "text": "me which tokens. Um it it can get",
+      "duration": 4399,
+      "offset": 419360,
+      "lang": "en"
+    },
+    {
+      "text": "expensive if you're running on the API",
+      "duration": 3360,
+      "offset": 422000,
+      "lang": "en"
+    },
+    {
+      "text": "update. Um, I mean, if you're using it",
+      "duration": 3201,
+      "offset": 423759,
+      "lang": "en"
+    },
+    {
+      "text": "for an hour straight, it's probably",
+      "duration": 4399,
+      "offset": 425360,
+      "lang": "en"
+    },
+    {
+      "text": "going to be about $5,",
+      "duration": 4400,
+      "offset": 426960,
+      "lang": "en"
+    },
+    {
+      "text": "uh, that you'd end up spending just",
+      "duration": 3601,
+      "offset": 429759,
+      "lang": "en"
+    },
+    {
+      "text": "based on tokens in and tokens out if you",
+      "duration": 4880,
+      "offset": 431360,
+      "lang": "en"
+    },
+    {
+      "text": "have a bigger codebase, especially. Um,",
+      "duration": 5440,
+      "offset": 433360,
+      "lang": "en"
+    },
+    {
+      "text": "but if you have the account one, then",
+      "duration": 4239,
+      "offset": 436240,
+      "lang": "en"
+    },
+    {
+      "text": "it's just when you hit token limits,",
+      "duration": 3440,
+      "offset": 438800,
+      "lang": "en"
+    },
+    {
+      "text": "which is, I would argue, very worth it",
+      "duration": 3521,
+      "offset": 440479,
+      "lang": "en"
+    },
+    {
+      "text": "to have the pro account, especially",
+      "duration": 3920,
+      "offset": 442240,
+      "lang": "en"
+    },
+    {
+      "text": "compared to how, you know, expensive",
+      "duration": 4720,
+      "offset": 444000,
+      "lang": "en"
+    },
+    {
+      "text": "Grock uh, agent workflow is. It's like",
+      "duration": 6319,
+      "offset": 446160,
+      "lang": "en"
+    },
+    {
+      "text": "300 a month uh versus the 20 to 100 $20",
+      "duration": 7360,
+      "offset": 448720,
+      "lang": "en"
+    },
+    {
+      "text": "to $100 that it costs for Claude. Um",
+      "duration": 5120,
+      "offset": 452479,
+      "lang": "en"
+    },
+    {
+      "text": "depending if you're on the max or the",
+      "duration": 4480,
+      "offset": 456080,
+      "lang": "en"
+    },
+    {
+      "text": "non-max. Um but again, that's for if",
+      "duration": 4481,
+      "offset": 457599,
+      "lang": "en"
+    },
+    {
+      "text": "you're not making money directly from",
+      "duration": 4320,
+      "offset": 460560,
+      "lang": "en"
+    },
+    {
+      "text": "your work. Um I would be hesitant in",
+      "duration": 5679,
+      "offset": 462080,
+      "lang": "en"
+    },
+    {
+      "text": "telling to do it. For me, spending",
+      "duration": 4800,
+      "offset": 464880,
+      "lang": "en"
+    },
+    {
+      "text": "$1,000 a month on something like this",
+      "duration": 3521,
+      "offset": 467759,
+      "lang": "en"
+    },
+    {
+      "text": "would still probably end up coming worth",
+      "duration": 4079,
+      "offset": 469680,
+      "lang": "en"
+    },
+    {
+      "text": "it. Uh I'm not spending that much, but",
+      "duration": 5520,
+      "offset": 471280,
+      "lang": "en"
+    },
+    {
+      "text": "anyway, that's the idea there. Well, um",
+      "duration": 4321,
+      "offset": 473759,
+      "lang": "en"
+    },
+    {
+      "text": "yeah. So, I'm going to let this cook and",
+      "duration": 2480,
+      "offset": 476800,
+      "lang": "en"
+    },
+    {
+      "text": "I'm going to go review it and see how",
+      "duration": 2720,
+      "offset": 478080,
+      "lang": "en"
+    },
+    {
+      "text": "well it runs. But yeah, that's the",
+      "duration": 3440,
+      "offset": 479280,
+      "lang": "en"
+    },
+    {
+      "text": "aspect here. And again, I'm telling you,",
+      "duration": 4000,
+      "offset": 480800,
+      "lang": "en"
+    },
+    {
+      "text": "it works amazingly. You get to see its",
+      "duration": 4319,
+      "offset": 482720,
+      "lang": "en"
+    },
+    {
+      "text": "process of what it was building as it's",
+      "duration": 4160,
+      "offset": 484800,
+      "lang": "en"
+    },
+    {
+      "text": "building it. And uh yeah, cloud code",
+      "duration": 4081,
+      "offset": 487039,
+      "lang": "en"
+    },
+    {
+      "text": "inside of cursor, it's the way to go,",
+      "duration": 4639,
+      "offset": 488960,
+      "lang": "en"
+    },
+    {
+      "text": "man.",
+      "duration": 2479,
+      "offset": 491120,
+      "lang": "en"
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-import { existsSync, readdirSync, statSync } from 'fs';
+import { existsSync, readdirSync, statSync, readFileSync, writeFileSync } from 'fs';
+import { execSync } from 'child_process';
 import path from 'path';
+import { evaluateToolCall } from './policy/nudimmud-safety-core.mjs';
 
 const argv = process.argv.slice(2);
 
@@ -27,7 +29,7 @@ if (!prompt && !options.dryRun) {
 }
 
 const localModels = listLocalModels();
-const resolved = resolveLane(lane, options.model, localModels, options.dryRun);
+const resolved = resolveLane(lane, options.model, localModels, options.dryRun, options);
 
 if (options.dryRun) {
   const out = { lane, ...resolved };
@@ -57,6 +59,16 @@ if (resolved.protocol === 'ollama-native') {
   process.exit(0);
 }
 
+if (resolved.protocol === 'responses') {
+  const result = await runOpenAIResponses(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, {
+    maxTokens: resolved.maxTokens,
+    reasoningEffort: resolved.reasoningEffort,
+    timeout: resolved.timeout,
+  });
+  process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+  process.exit(0);
+}
+
 const result = await runOpenAICompatibleChat(
   resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody,
   { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout }
@@ -64,7 +76,15 @@ const result = await runOpenAICompatibleChat(
 process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
 
 function parseArgs(rest) {
-  const out = { model: '', system: '', prompt: '', dryRun: false, inventory: false };
+  const out = {
+    model: '',
+    system: '',
+    prompt: '',
+    dryRun: false,
+    inventory: false,
+    reasoning: '',
+    maxOutputTokens: undefined,
+  };
   const promptParts = [];
 
   for (let i = 0; i < rest.length; i += 1) {
@@ -75,6 +95,14 @@ function parseArgs(rest) {
     }
     if (token === '--system' && rest[i + 1]) {
       out.system = rest[++i];
+      continue;
+    }
+    if (token === '--reasoning' && rest[i + 1]) {
+      out.reasoning = rest[++i];
+      continue;
+    }
+    if (token === '--max-output-tokens' && rest[i + 1]) {
+      out.maxOutputTokens = parseInt(rest[++i], 10);
       continue;
     }
     if (token === '--dry-run' || token === '--route-only') {
@@ -92,7 +120,7 @@ function parseArgs(rest) {
   return out;
 }
 
-function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
+function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, options = {}) {
   const normalizedForcedModel = normalizeForcedModel(forcedModel, requestedLane);
 
   if (requestedLane === 'gemma' || requestedLane === 'gemma-local' || requestedLane === 'gemma-cloud') {
@@ -100,15 +128,6 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
   }
 
   const laneMap = {
-    'ollama': {
-      kind: 'local',
-      model: normalizedForcedModel || process.env.OLLAMA_MODEL || pickFirstExisting([
-        'qwen-liberated:latest',
-        'qwen2.5:7b',
-        'deepseek-r1:latest',
-        'llama3.2:latest'
-      ], localModels)
-    },
     'gpt-oss': {
       kind: 'local',
       model: normalizedForcedModel || process.env.GPT_OSS_MODEL || pickFirstExisting([
@@ -275,7 +294,49 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
         'X-OpenRouter-Title': 'NUDIMMUD',
       },
       requiresKey: true,
-    }
+    },
+    'codex': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: process.env.CODEX_MODEL || 'gpt-5.5',
+      defaultReasoningEffort: 'high',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'codex-mini': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: process.env.CODEX_MINI_MODEL || 'gpt-5.4-mini',
+      defaultReasoningEffort: 'medium',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
+      timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || '90000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'gpt-5.5': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: 'gpt-5.5',
+      defaultReasoningEffort: 'high',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'gpt-5.4': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: 'gpt-5.4',
+      defaultReasoningEffort: 'medium',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'gpt-5.4-mini': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: 'gpt-5.4-mini',
+      defaultReasoningEffort: 'medium',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
+      timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || '90000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'gpt-5.3-codex': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: 'gpt-5.3-codex',
+      defaultReasoningEffort: 'high',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      reasoningEffort: options.reasoning,
+    }),
   };
 
   const resolved = laneMap[requestedLane];
@@ -311,9 +372,14 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false) {
     if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
       return {
         kind: resolved.kind,
+        protocol: resolved.protocol,
         endpoint: resolved.endpoint,
         apiKey: '',
         model: resolved.model,
+        extraBody: resolved.extraBody,
+        maxTokens: resolved.maxTokens,
+        timeout: resolved.timeout,
+        reasoningEffort: resolved.reasoningEffort,
         executable: false,
         status: 'SKIPPED_MISSING_KEY',
         error: `Missing API key for lane: ${requestedLane}`,
@@ -369,8 +435,32 @@ function normalizeForcedModel(forcedModel, lane) {
   if (laneName === 'gemma-local' && normalized === 'gemma-local') return '';
   if (laneName === 'gemma-cloud' && normalized === 'gemma-cloud') return '';
   if (laneName === 'gemma' && normalized === 'gemma') return '';
+  if (laneName === 'codex' && normalized === 'codex') return '';
+  if (laneName === 'codex-mini' && normalized === 'codex-mini') return '';
 
   return forcedModel;
+}
+
+function openAiResponsesLane(normalizedForcedModel, options) {
+  return {
+    kind: 'cloud',
+    protocol: 'responses',
+    endpoint: normalizeOpenAIBaseUrl(process.env.CODEX_ENDPOINT || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'),
+    apiKey: process.env.OPENAI_API_KEY || '',
+    model: normalizedForcedModel || options.defaultModel,
+    reasoningEffort: validateReasoningEffort(
+      options.reasoningEffort || process.env.CODEX_REASONING_EFFORT || options.defaultReasoningEffort,
+    ),
+    maxTokens: options.maxTokens,
+    timeout: options.timeout,
+    requiresKey: true,
+  };
+}
+
+function validateReasoningEffort(value) {
+  const effort = (value || '').toLowerCase();
+  if (['low', 'medium', 'high', 'xhigh'].includes(effort)) return effort;
+  throw new Error(`Invalid reasoning effort "${value}". Use low, medium, high, or xhigh.`);
 }
 
 function cloudExtraBody(provider) {
@@ -563,7 +653,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-cloud', 'code-deepseek', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free'];
+  const laneNames = ['ollama', 'gpt-oss', 'deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-cloud', 'code-deepseek', 'ollama-cloud', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -577,6 +667,7 @@ function buildInventory(localModels) {
       if (r.error) lanes[name].error = r.error;
       if (r.resolvedVia) lanes[name].resolvedVia = r.resolvedVia;
       if (r.extraBody?.thinking?.type) lanes[name].thinking = r.extraBody.thinking.type;
+      if (r.reasoningEffort !== undefined) lanes[name].reasoningEffort = r.reasoningEffort;
       if (r.maxTokens !== undefined) lanes[name].maxTokens = r.maxTokens;
       if (r.timeout !== undefined) lanes[name].timeout = r.timeout;
       if (r.requiresKey !== undefined) lanes[name].requiresKey = r.requiresKey;
@@ -585,6 +676,69 @@ function buildInventory(localModels) {
     }
   }
   return { lanes, localModels: [...localModels].sort() };
+}
+
+async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemText, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+
+  const body = {
+    model,
+    input: promptText,
+    store: false,
+    ...(systemText ? { instructions: systemText } : {}),
+    ...(opts.maxTokens ? { max_output_tokens: opts.maxTokens } : {}),
+    ...(opts.reasoningEffort ? { reasoning: { effort: opts.reasoningEffort } } : {}),
+  };
+
+  const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) };
+  let timeoutId;
+  if (opts.timeout) {
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), opts.timeout);
+    fetchOpts.signal = controller.signal;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${endpoint}/responses`, fetchOpts);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+
+  if (!response.ok) {
+    const errText = await response.text();
+    if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
+    if (response.status === 429) throw new Error('RATE_LIMITED');
+    throw new Error(`OPENAI_RESPONSES_${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  return extractResponseText(data);
+}
+
+function extractResponseText(data) {
+  if (typeof data.output_text === 'string' && data.output_text.length > 0) {
+    return data.output_text;
+  }
+
+  const parts = [];
+  for (const item of data.output || []) {
+    for (const content of item.content || []) {
+      if (content.type === 'output_text' && typeof content.text === 'string') {
+        parts.push(content.text);
+      }
+    }
+  }
+
+  if (parts.length > 0) return parts.join('\n');
+
+  if (data.status === 'incomplete') {
+    const reason = data.incomplete_details?.reason || 'unknown';
+    throw new Error(`OPENAI_RESPONSES_INCOMPLETE: ${reason}`);
+  }
+
+  throw new Error('No text output from Responses API');
 }
 
 async function runLocalChat(model, promptText, systemText) {
@@ -642,35 +796,197 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
   if (opts.extraHeaders) Object.assign(headers, opts.extraHeaders);
 
-  const body = {
-    model,
-    messages,
-    ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
-    ...(extraBody || {})
-  };
+  const toolDefinitions = [
+    {
+      type: 'function',
+      function: {
+        name: 'bash',
+        description: 'Execute bash shell commands and return output',
+        parameters: {
+          type: 'object',
+          properties: {
+            cmd: { type: 'string', description: 'Bash command to execute' },
+            cwd: { type: 'string', description: 'Working directory (optional, defaults to current)' }
+          },
+          required: ['cmd']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'read_file',
+        description: 'Read contents of a file',
+        parameters: {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'File path to read' },
+            lines: { type: 'number', description: 'Max lines to read (optional)' }
+          },
+          required: ['path']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'write_file',
+        description: 'Write content to a file',
+        parameters: {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'File path to write' },
+            content: { type: 'string', description: 'Content to write' }
+          },
+          required: ['path', 'content']
+        }
+      }
+    }
+  ];
 
-  const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) };
-  let timeoutId;
-  if (opts.timeout) {
-    const controller = new AbortController();
-    timeoutId = setTimeout(() => controller.abort(), opts.timeout);
-    fetchOpts.signal = controller.signal;
+  // Try with tools first; fall back to text-only if not supported
+  let supportsTools = true;
+  const maxIterations = 50; // Increased from 10 for complex multi-step reasoning tasks
+  let iteration = 0;
+  let lastToolCallNames = []; // Track last tool calls to detect loops
+
+  while (iteration < maxIterations) {
+    iteration++;
+
+    const body = {
+      model,
+      messages,
+      ...(supportsTools && { tools: toolDefinitions, tool_choice: 'auto' }),
+      ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
+      ...(extraBody || {})
+    };
+
+    const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) };
+    let timeoutId;
+    if (opts.timeout) {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), opts.timeout);
+      fetchOpts.signal = controller.signal;
+    }
+
+    let response;
+    try {
+      response = await fetch(`${endpoint}/chat/completions`, fetchOpts);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      const errText = await response.text();
+      // If tool-use is not supported, disable it and retry
+      if (supportsTools && (errText.includes('unknown variant') || errText.includes('tool'))) {
+        supportsTools = false;
+        iteration = 0; // Reset iteration counter
+        messages.pop(); // Remove last message if it was a tool attempt
+        continue;
+      }
+      if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
+      if (response.status === 429) throw new Error('RATE_LIMITED');
+      throw new Error(`OPENAI_COMPAT_${response.status}: ${errText}`);
+    }
+
+    const data = await response.json();
+    const message = data.choices?.[0]?.message;
+
+    if (!message) throw new Error('No response from model');
+
+    // Add assistant's response to conversation
+    messages.push({ role: 'assistant', content: message.content || '' });
+
+    // Check if model requested tool calls (only if tools are supported)
+    if (supportsTools && message.tool_calls && message.tool_calls.length > 0) {
+      // Detect infinite loops: if same tools called 3 times in a row, break and return what we have
+      const currentToolNames = message.tool_calls.map(tc => tc.function.name).sort().join(',');
+      if (lastToolCallNames === currentToolNames && iteration >= 6) {
+        // Same tools being called repeatedly — likely stuck loop, return best effort
+        return message.content || 'Reached tool call repetition limit; returning partial result.';
+      }
+      lastToolCallNames = currentToolNames;
+
+      // Execute tools and collect results
+      const toolResults = [];
+      for (const toolCall of message.tool_calls) {
+        const result = await executeTool(toolCall.function.name, toolCall.function.arguments);
+        toolResults.push(`Tool ${toolCall.function.name}: ${result}`);
+      }
+
+      // Add tool results as user message
+      messages.push({
+        role: 'user',
+        content: `Tool execution results:\n${toolResults.join('\n')}`
+      });
+      continue;
+    }
+
+    // No more tool calls or tools disabled — return final answer
+    return message.content || '';
   }
 
-  let response;
+  throw new Error(`Loop exceeded max iterations (${maxIterations})`);
+}
+
+async function executeTool(name, argsStr) {
   try {
-    response = await fetch(`${endpoint}/chat/completions`, fetchOpts);
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-  }
+    let args = {};
+    if (typeof argsStr === 'string') {
+      args = JSON.parse(argsStr);
+    } else {
+      args = argsStr;
+    }
 
-  if (!response.ok) {
-    if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
-    if (response.status === 429) throw new Error('RATE_LIMITED');
-    throw new Error(`OPENAI_COMPAT_${response.status}: ${await response.text()}`);
-  }
+    if (name === 'bash') {
+      const { cmd, cwd } = args;
+      if (!cmd) return 'ERROR: Missing cmd parameter';
+      const safety = evaluateToolCall('bash', { cmd, cwd }, { source: 'offload-runner' });
+      if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
+      try {
+        const output = execSync(cmd, {
+          cwd: cwd || '/Users/marcelspatz/NUDIMMUD',
+          encoding: 'utf-8',
+          maxBuffer: 10 * 1024 * 1024,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        return output.trim();
+      } catch (e) {
+        return `bash error (exit ${e.status}): ${e.stderr?.toString() || e.message}`;
+      }
+    }
 
-  const data = await response.json();
-  // Emit only the final answer; reasoning_content stays internal.
-  return data.choices?.[0]?.message?.content || '';
+    if (name === 'read_file') {
+      const { path: filePath, lines } = args;
+      if (!filePath) return 'ERROR: Missing path parameter';
+      try {
+        let content = readFileSync(filePath, 'utf-8');
+        if (lines) {
+          const fileLines = content.split('\n');
+          content = fileLines.slice(0, lines).join('\n');
+        }
+        return content;
+      } catch (e) {
+        return `read_file error: ${e.message}`;
+      }
+    }
+
+    if (name === 'write_file') {
+      const { path: filePath, content } = args;
+      if (!filePath || content === undefined) return 'ERROR: Missing path or content parameter';
+      const safety = evaluateToolCall('write_file', { path: filePath }, { source: 'offload-runner' });
+      if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
+      try {
+        writeFileSync(filePath, content, 'utf-8');
+        return `✓ Wrote ${content.length} bytes to ${filePath}`;
+      } catch (e) {
+        return `write_file error: ${e.message}`;
+      }
+    }
+
+    return `ERROR: Unknown tool "${name}"`;
+  } catch (e) {
+    return `Tool execution error: ${e.message}`;
+  }
 }

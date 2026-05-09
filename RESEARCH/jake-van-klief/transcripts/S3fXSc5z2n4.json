@@ -1,0 +1,2304 @@
+{
+  "videoId": "S3fXSc5z2n4",
+  "title": "How a 1953 Word Game Explains AI Memory",
+  "segments": [
+    {
+      "text": "Picture this. It's 1953 and a television",
+      "duration": 5039,
+      "offset": 240,
+      "lang": "en"
+    },
+    {
+      "text": "writer named Leonard Stern was stuck on",
+      "duration": 3759,
+      "offset": 3040,
+      "lang": "en"
+    },
+    {
+      "text": "an adjective. [music] He was writing a",
+      "duration": 2801,
+      "offset": 5279,
+      "lang": "en"
+    },
+    {
+      "text": "script for the honeymooners and he",
+      "duration": 3361,
+      "offset": 6799,
+      "lang": "en"
+    },
+    {
+      "text": "needed the right word to describe his",
+      "duration": 4479,
+      "offset": 8080,
+      "lang": "en"
+    },
+    {
+      "text": "boss's nose. His friend Roger Price",
+      "duration": 3920,
+      "offset": 10160,
+      "lang": "en"
+    },
+    {
+      "text": "walked in and impatient to work on",
+      "duration": 2801,
+      "offset": 12559,
+      "lang": "en"
+    },
+    {
+      "text": "something else, Stern said, \"I need an",
+      "duration": 2959,
+      "offset": 14080,
+      "lang": "en"
+    },
+    {
+      "text": "adjective that.\" And before he could",
+      "duration": 5440,
+      "offset": 15360,
+      "lang": "en"
+    },
+    {
+      "text": "finish, Price said, \"Clumsy and naked.\"",
+      "duration": 6641,
+      "offset": 17039,
+      "lang": "en"
+    },
+    {
+      "text": "Stern laughed because now his boss had a",
+      "duration": 5360,
+      "offset": 20800,
+      "lang": "en"
+    },
+    {
+      "text": "clumsy nose or a naked nose. But the",
+      "duration": 4080,
+      "offset": 23680,
+      "lang": "en"
+    },
+    {
+      "text": "words were completely wrong for the",
+      "duration": 4400,
+      "offset": 26160,
+      "lang": "en"
+    },
+    {
+      "text": "context yet somehow still worked and",
+      "duration": 4240,
+      "offset": 27760,
+      "lang": "en"
+    },
+    {
+      "text": "they had stumbled onto something. Though",
+      "duration": 2800,
+      "offset": 30560,
+      "lang": "en"
+    },
+    {
+      "text": "it took them five more years to figure",
+      "duration": 2960,
+      "offset": 32000,
+      "lang": "en"
+    },
+    {
+      "text": "out what to call it, they ended up",
+      "duration": 4160,
+      "offset": 33360,
+      "lang": "en"
+    },
+    {
+      "text": "calling it Mad Libs. But what they",
+      "duration": 5119,
+      "offset": 34960,
+      "lang": "en"
+    },
+    {
+      "text": "actually did is stumble upon something",
+      "duration": 5039,
+      "offset": 37520,
+      "lang": "en"
+    },
+    {
+      "text": "that may be the oldest pattern in",
+      "duration": 5441,
+      "offset": 40079,
+      "lang": "en"
+    },
+    {
+      "text": "computing. You see, what they discovered",
+      "duration": 5041,
+      "offset": 42559,
+      "lang": "en"
+    },
+    {
+      "text": "was something extremely fundamental to",
+      "duration": 4240,
+      "offset": 45520,
+      "lang": "en"
+    },
+    {
+      "text": "how we code and more importantly how we",
+      "duration": 4959,
+      "offset": 47600,
+      "lang": "en"
+    },
+    {
+      "text": "use AI today. But before we dive into",
+      "duration": 4799,
+      "offset": 49760,
+      "lang": "en"
+    },
+    {
+      "text": "that, I think it's important to look at",
+      "duration": 4241,
+      "offset": 52559,
+      "lang": "en"
+    },
+    {
+      "text": "how Mad Libs works. And I promise this",
+      "duration": 4081,
+      "offset": 54559,
+      "lang": "en"
+    },
+    {
+      "text": "is important for discovering and",
+      "duration": 4239,
+      "offset": 56800,
+      "lang": "en"
+    },
+    {
+      "text": "understanding computing in general. Just",
+      "duration": 4559,
+      "offset": 58640,
+      "lang": "en"
+    },
+    {
+      "text": "stick with me for a second here. You",
+      "duration": 4241,
+      "offset": 61039,
+      "lang": "en"
+    },
+    {
+      "text": "see, this is how Mad Lib works. You have",
+      "duration": 4081,
+      "offset": 63199,
+      "lang": "en"
+    },
+    {
+      "text": "a template. The template has blanks.",
+      "duration": 4400,
+      "offset": 65280,
+      "lang": "en"
+    },
+    {
+      "text": "Each blank has a type, noun, verb,",
+      "duration": 4320,
+      "offset": 67280,
+      "lang": "en"
+    },
+    {
+      "text": "adjective. Someone who cannot see the",
+      "duration": 3759,
+      "offset": 69680,
+      "lang": "en"
+    },
+    {
+      "text": "template provides words that fit those",
+      "duration": 4240,
+      "offset": 71600,
+      "lang": "en"
+    },
+    {
+      "text": "types and then you read the results. The",
+      "duration": 4000,
+      "offset": 73439,
+      "lang": "en"
+    },
+    {
+      "text": "comedy comes from the mismatch. The",
+      "duration": 3120,
+      "offset": 75840,
+      "lang": "en"
+    },
+    {
+      "text": "person filling in the blanks doesn't",
+      "duration": 3121,
+      "offset": 77439,
+      "lang": "en"
+    },
+    {
+      "text": "know the context. They're providing",
+      "duration": 3600,
+      "offset": 78960,
+      "lang": "en"
+    },
+    {
+      "text": "semantically correct input without",
+      "duration": 4080,
+      "offset": 80560,
+      "lang": "en"
+    },
+    {
+      "text": "semantic awareness. They give you a noun",
+      "duration": 4400,
+      "offset": 82560,
+      "lang": "en"
+    },
+    {
+      "text": "and it is in fact a noun, but it's the",
+      "duration": 4080,
+      "offset": 84640,
+      "lang": "en"
+    },
+    {
+      "text": "wrong noun for the sentence that the",
+      "duration": 4320,
+      "offset": 86960,
+      "lang": "en"
+    },
+    {
+      "text": "wrongness is actually funny. Now, here's",
+      "duration": 4079,
+      "offset": 88720,
+      "lang": "en"
+    },
+    {
+      "text": "something that might reframe how you",
+      "duration": 4080,
+      "offset": 91280,
+      "lang": "en"
+    },
+    {
+      "text": "think about software. When you write a",
+      "duration": 4801,
+      "offset": 92799,
+      "lang": "en"
+    },
+    {
+      "text": "line of Python, let's say, you are not",
+      "duration": 3920,
+      "offset": 95360,
+      "lang": "en"
+    },
+    {
+      "text": "talking to the computer. You are filling",
+      "duration": 5199,
+      "offset": 97600,
+      "lang": "en"
+    },
+    {
+      "text": "in a template. This is called [music] an",
+      "duration": 6720,
+      "offset": 99280,
+      "lang": "en"
+    },
+    {
+      "text": "abstract syntax tree. It's the structure",
+      "duration": 4881,
+      "offset": 102799,
+      "lang": "en"
+    },
+    {
+      "text": "your code becomes before anything",
+      "duration": 3439,
+      "offset": 106000,
+      "lang": "en"
+    },
+    {
+      "text": "executes. And if you look at it, really",
+      "duration": 3759,
+      "offset": 107680,
+      "lang": "en"
+    },
+    {
+      "text": "look at it, you'll notice something. It",
+      "duration": 4481,
+      "offset": 109439,
+      "lang": "en"
+    },
+    {
+      "text": "has blanks, [music] typed blanks. This",
+      "duration": 5761,
+      "offset": 111439,
+      "lang": "en"
+    },
+    {
+      "text": "node expects an expression. Another node",
+      "duration": 5199,
+      "offset": 113920,
+      "lang": "en"
+    },
+    {
+      "text": "actually [music] expects an identifier",
+      "duration": 4720,
+      "offset": 117200,
+      "lang": "en"
+    },
+    {
+      "text": "and another a value. You, the",
+      "duration": 5201,
+      "offset": 119119,
+      "lang": "en"
+    },
+    {
+      "text": "programmer, are providing words that fit",
+      "duration": 4479,
+      "offset": 121920,
+      "lang": "en"
+    },
+    {
+      "text": "those types. The interpreter takes your",
+      "duration": 3999,
+      "offset": 124320,
+      "lang": "en"
+    },
+    {
+      "text": "input and fills in a much larger",
+      "duration": 4721,
+      "offset": 126399,
+      "lang": "en"
+    },
+    {
+      "text": "template that you never see. Thousands",
+      "duration": 5121,
+      "offset": 128319,
+      "lang": "en"
+    },
+    {
+      "text": "of lines of C code with slots for your",
+      "duration": 4479,
+      "offset": 131120,
+      "lang": "en"
+    },
+    {
+      "text": "variables, your function names, your",
+      "duration": 4000,
+      "offset": 133440,
+      "lang": "en"
+    },
+    {
+      "text": "values, and [music] that template gets",
+      "duration": 3601,
+      "offset": 135599,
+      "lang": "en"
+    },
+    {
+      "text": "filled into another template at the",
+      "duration": 4159,
+      "offset": 137440,
+      "lang": "en"
+    },
+    {
+      "text": "assembly level. And that one gets filled",
+      "duration": 5440,
+      "offset": 139200,
+      "lang": "en"
+    },
+    {
+      "text": "into machine code all the way down. Mad",
+      "duration": 5360,
+      "offset": 141599,
+      "lang": "en"
+    },
+    {
+      "text": "Libs isn't a metaphor for programming.",
+      "duration": 4640,
+      "offset": 144640,
+      "lang": "en"
+    },
+    {
+      "text": "It is at a structural level what",
+      "duration": 4081,
+      "offset": 146959,
+      "lang": "en"
+    },
+    {
+      "text": "programming is. templates [music] with",
+      "duration": 4080,
+      "offset": 149280,
+      "lang": "en"
+    },
+    {
+      "text": "type slots filled according to rules",
+      "duration": 4400,
+      "offset": 151040,
+      "lang": "en"
+    },
+    {
+      "text": "composed into larger templates until",
+      "duration": 4560,
+      "offset": 153360,
+      "lang": "en"
+    },
+    {
+      "text": "eventually something executes. But",
+      "duration": 4000,
+      "offset": 155440,
+      "lang": "en"
+    },
+    {
+      "text": "templates need to be filled with",
+      "duration": 3520,
+      "offset": 157920,
+      "lang": "en"
+    },
+    {
+      "text": "something and that something has to be",
+      "duration": 4720,
+      "offset": 159440,
+      "lang": "en"
+    },
+    {
+      "text": "stored somewhere. Which brings us to",
+      "duration": 5439,
+      "offset": 161440,
+      "lang": "en"
+    },
+    {
+      "text": "memory. In traditional computing, memory",
+      "duration": 6000,
+      "offset": 164160,
+      "lang": "en"
+    },
+    {
+      "text": "is a hierarchy. At the top, closest to",
+      "duration": 6241,
+      "offset": 166879,
+      "lang": "en"
+    },
+    {
+      "text": "the processor, you have registers. Tiny,",
+      "duration": 6159,
+      "offset": 170160,
+      "lang": "en"
+    },
+    {
+      "text": "incredibly fast, maybe 64 bits each. a",
+      "duration": 6320,
+      "offset": 173120,
+      "lang": "en"
+    },
+    {
+      "text": "handful of values that CPU can access in",
+      "duration": 5521,
+      "offset": 176319,
+      "lang": "en"
+    },
+    {
+      "text": "a single cycle. [music] However, when",
+      "duration": 4799,
+      "offset": 179440,
+      "lang": "en"
+    },
+    {
+      "text": "you look a little bit up the chain here,",
+      "duration": 4960,
+      "offset": 181840,
+      "lang": "en"
+    },
+    {
+      "text": "you have something called the cache.",
+      "duration": 5121,
+      "offset": 184239,
+      "lang": "en"
+    },
+    {
+      "text": "Still fast, still small, measured in",
+      "duration": 4560,
+      "offset": 186800,
+      "lang": "en"
+    },
+    {
+      "text": "kilobytes or megabytes. This is where",
+      "duration": 4239,
+      "offset": 189360,
+      "lang": "en"
+    },
+    {
+      "text": "the machine keeps data it thinks it will",
+      "duration": 4959,
+      "offset": 191360,
+      "lang": "en"
+    },
+    {
+      "text": "need against. The principle is called",
+      "duration": 5201,
+      "offset": 193599,
+      "lang": "en"
+    },
+    {
+      "text": "locality. But if you accessed something",
+      "duration": 4721,
+      "offset": 196319,
+      "lang": "en"
+    },
+    {
+      "text": "once, you'll probably access it again.",
+      "duration": 4799,
+      "offset": 198800,
+      "lang": "en"
+    },
+    {
+      "text": "If you accessed this address, you'll",
+      "duration": 5199,
+      "offset": 201040,
+      "lang": "en"
+    },
+    {
+      "text": "probably access a nearby address. Cache",
+      "duration": 4961,
+      "offset": 203599,
+      "lang": "en"
+    },
+    {
+      "text": "exploits that pattern. Then you finally",
+      "duration": 4801,
+      "offset": 206239,
+      "lang": "en"
+    },
+    {
+      "text": "move into the main memory or what I",
+      "duration": 4480,
+      "offset": 208560,
+      "lang": "en"
+    },
+    {
+      "text": "would consider the main memory RAM.",
+      "duration": 5279,
+      "offset": 211040,
+      "lang": "en"
+    },
+    {
+      "text": "Random access memory. Larger, slower,",
+      "duration": 5279,
+      "offset": 213040,
+      "lang": "en"
+    },
+    {
+      "text": "often in gigabytes. This is what most",
+      "duration": 3280,
+      "offset": 216319,
+      "lang": "en"
+    },
+    {
+      "text": "people think of when they think of",
+      "duration": 3441,
+      "offset": 218319,
+      "lang": "en"
+    },
+    {
+      "text": "computer memory. It holds the working",
+      "duration": 4560,
+      "offset": 219599,
+      "lang": "en"
+    },
+    {
+      "text": "state of programs. When you open an",
+      "duration": 4800,
+      "offset": 221760,
+      "lang": "en"
+    },
+    {
+      "text": "application, its code and data load from",
+      "duration": 5281,
+      "offset": 224159,
+      "lang": "en"
+    },
+    {
+      "text": "the disk into the RAM so the processor",
+      "duration": 4800,
+      "offset": 226560,
+      "lang": "en"
+    },
+    {
+      "text": "can access them without waiting for the",
+      "duration": 4799,
+      "offset": 229440,
+      "lang": "en"
+    },
+    {
+      "text": "slow mechanical process of reading from",
+      "duration": 5680,
+      "offset": 231360,
+      "lang": "en"
+    },
+    {
+      "text": "storage like discs or archives. Speaking",
+      "duration": 5280,
+      "offset": 234239,
+      "lang": "en"
+    },
+    {
+      "text": "of discs, you can have solid state or",
+      "duration": 4479,
+      "offset": 237040,
+      "lang": "en"
+    },
+    {
+      "text": "even spinning magnetic platters,",
+      "duration": 4321,
+      "offset": 239519,
+      "lang": "en"
+    },
+    {
+      "text": "terabytes, persistent, and when you save",
+      "duration": 4561,
+      "offset": 241519,
+      "lang": "en"
+    },
+    {
+      "text": "a file, this is where it goes. Even",
+      "duration": 4399,
+      "offset": 243840,
+      "lang": "en"
+    },
+    {
+      "text": "below that, you have archival storage.",
+      "duration": 4000,
+      "offset": 246080,
+      "lang": "en"
+    },
+    {
+      "text": "This is on tape or cold [music] storage,",
+      "duration": 3601,
+      "offset": 248239,
+      "lang": "en"
+    },
+    {
+      "text": "the stuff that you back up and and",
+      "duration": 4239,
+      "offset": 250080,
+      "lang": "en"
+    },
+    {
+      "text": "rarely touch. Personally, I prefer",
+      "duration": 4639,
+      "offset": 251840,
+      "lang": "en"
+    },
+    {
+      "text": "solidstate drives. However, hard disk",
+      "duration": 4241,
+      "offset": 254319,
+      "lang": "en"
+    },
+    {
+      "text": "drives have their, you know, benefits,",
+      "duration": 3921,
+      "offset": 256479,
+      "lang": "en"
+    },
+    {
+      "text": "that [music] mostly being cheaper. I'm",
+      "duration": 3040,
+      "offset": 258560,
+      "lang": "en"
+    },
+    {
+      "text": "not going to go too deep into the",
+      "duration": 2799,
+      "offset": 260400,
+      "lang": "en"
+    },
+    {
+      "text": "differences between these. However, if",
+      "duration": 2960,
+      "offset": 261600,
+      "lang": "en"
+    },
+    {
+      "text": "anyone wants a video on building",
+      "duration": 2801,
+      "offset": 263199,
+      "lang": "en"
+    },
+    {
+      "text": "computers, I've been building them since",
+      "duration": 3359,
+      "offset": 264560,
+      "lang": "en"
+    },
+    {
+      "text": "I was a teenager, and I'm happy to make",
+      "duration": 3360,
+      "offset": 266000,
+      "lang": "en"
+    },
+    {
+      "text": "some cool ones on that as well. Just",
+      "duration": 3361,
+      "offset": 267919,
+      "lang": "en"
+    },
+    {
+      "text": "please comment below like, \"Build me a",
+      "duration": 3119,
+      "offset": 269360,
+      "lang": "en"
+    },
+    {
+      "text": "computer or something like that.\" I",
+      "duration": 3680,
+      "offset": 271280,
+      "lang": "en"
+    },
+    {
+      "text": "don't know. Anyway, the whole system is",
+      "duration": 4481,
+      "offset": 272479,
+      "lang": "en"
+    },
+    {
+      "text": "a trade-off between speed [music] and",
+      "duration": 4239,
+      "offset": 274960,
+      "lang": "en"
+    },
+    {
+      "text": "capacity. Fast memory is expensive,",
+      "duration": 4720,
+      "offset": 276960,
+      "lang": "en"
+    },
+    {
+      "text": "small, and cheap memory is slow but",
+      "duration": 5041,
+      "offset": 279199,
+      "lang": "en"
+    },
+    {
+      "text": "large. So we build hierarchies. We move",
+      "duration": 4720,
+      "offset": 281680,
+      "lang": "en"
+    },
+    {
+      "text": "data between levels based on how often",
+      "duration": 4160,
+      "offset": 284240,
+      "lang": "en"
+    },
+    {
+      "text": "it's accessed. We predict what we'll",
+      "duration": 3920,
+      "offset": 286400,
+      "lang": "en"
+    },
+    {
+      "text": "need and stage it closer to the",
+      "duration": 4799,
+      "offset": 288400,
+      "lang": "en"
+    },
+    {
+      "text": "processor based on those prediction. But",
+      "duration": 4800,
+      "offset": 290320,
+      "lang": "en"
+    },
+    {
+      "text": "here's the part that matters for what",
+      "duration": 4801,
+      "offset": 293199,
+      "lang": "en"
+    },
+    {
+      "text": "comes next. In all of this, there is a",
+      "duration": 6720,
+      "offset": 295120,
+      "lang": "en"
+    },
+    {
+      "text": "hard boundary between code and data. The",
+      "duration": 5600,
+      "offset": 298000,
+      "lang": "en"
+    },
+    {
+      "text": "instructions that tell the machine what",
+      "duration": 4160,
+      "offset": 301840,
+      "lang": "en"
+    },
+    {
+      "text": "to do are kept separate from the",
+      "duration": 5520,
+      "offset": 303600,
+      "lang": "en"
+    },
+    {
+      "text": "information this machine operates on. In",
+      "duration": 6160,
+      "offset": 306000,
+      "lang": "en"
+    },
+    {
+      "text": "fact, mixing them is considered a",
+      "duration": 5120,
+      "offset": 309120,
+      "lang": "en"
+    },
+    {
+      "text": "security vulnerability. It's how buffer",
+      "duration": 3840,
+      "offset": 312160,
+      "lang": "en"
+    },
+    {
+      "text": "overflow attacks work. You trick the",
+      "duration": 5840,
+      "offset": 314240,
+      "lang": "en"
+    },
+    {
+      "text": "machine into treating data as code. The",
+      "duration": 6639,
+      "offset": 316000,
+      "lang": "en"
+    },
+    {
+      "text": "separation is seemingly foundational.",
+      "duration": 5200,
+      "offset": 320080,
+      "lang": "en"
+    },
+    {
+      "text": "It's baked into the architecture until",
+      "duration": 4400,
+      "offset": 322639,
+      "lang": "en"
+    },
+    {
+      "text": "it isn't.",
+      "duration": 4479,
+      "offset": 325280,
+      "lang": "en"
+    },
+    {
+      "text": "When people talk about AI memory, they",
+      "duration": 5600,
+      "offset": 327039,
+      "lang": "en"
+    },
+    {
+      "text": "usually mean one of two things. Either",
+      "duration": 4720,
+      "offset": 329759,
+      "lang": "en"
+    },
+    {
+      "text": "they mean the model's training, the",
+      "duration": 3441,
+      "offset": 332639,
+      "lang": "en"
+    },
+    {
+      "text": "patterns baked into the weight through",
+      "duration": 4000,
+      "offset": 334479,
+      "lang": "en"
+    },
+    {
+      "text": "its exposure to data, or they mean the",
+      "duration": 4320,
+      "offset": 336080,
+      "lang": "en"
+    },
+    {
+      "text": "context window, the text the model can",
+      "duration": 4160,
+      "offset": 338479,
+      "lang": "en"
+    },
+    {
+      "text": "see during a single conversation. But if",
+      "duration": 3600,
+      "offset": 340400,
+      "lang": "en"
+    },
+    {
+      "text": "you're actually building with these",
+      "duration": 2801,
+      "offset": 342639,
+      "lang": "en"
+    },
+    {
+      "text": "systems, you know there's a lot more",
+      "duration": 3120,
+      "offset": 344000,
+      "lang": "en"
+    },
+    {
+      "text": "going on. And for those of you don't,",
+      "duration": 3599,
+      "offset": 345440,
+      "lang": "en"
+    },
+    {
+      "text": "there's a hierarchy here, too. And it",
+      "duration": 3200,
+      "offset": 347120,
+      "lang": "en"
+    },
+    {
+      "text": "rhymes with the one we just talked",
+      "duration": 3361,
+      "offset": 349039,
+      "lang": "en"
+    },
+    {
+      "text": "about, but the differences really do",
+      "duration": 4960,
+      "offset": 350320,
+      "lang": "en"
+    },
+    {
+      "text": "matter. At the base, you have the model",
+      "duration": 5280,
+      "offset": 352400,
+      "lang": "en"
+    },
+    {
+      "text": "weights. This is the closest analog to",
+      "duration": 5440,
+      "offset": 355280,
+      "lang": "en"
+    },
+    {
+      "text": "ROM, read only memory. It's fixed at",
+      "duration": 5200,
+      "offset": 357680,
+      "lang": "en"
+    },
+    {
+      "text": "training time. It encodes patterns,",
+      "duration": 4080,
+      "offset": 360720,
+      "lang": "en"
+    },
+    {
+      "text": "knowledge, capabilities. You can't",
+      "duration": 4240,
+      "offset": 362880,
+      "lang": "en"
+    },
+    {
+      "text": "change it during inference. It's just",
+      "duration": 5280,
+      "offset": 364800,
+      "lang": "en"
+    },
+    {
+      "text": "what the model knows. From there, you",
+      "duration": 4400,
+      "offset": 367120,
+      "lang": "en"
+    },
+    {
+      "text": "can look at another part called the",
+      "duration": 3360,
+      "offset": 370080,
+      "lang": "en"
+    },
+    {
+      "text": "context window. This is more like",
+      "duration": 3440,
+      "offset": 371520,
+      "lang": "en"
+    },
+    {
+      "text": "working memory. It's everything the",
+      "duration": 3759,
+      "offset": 373440,
+      "lang": "en"
+    },
+    {
+      "text": "model can attend to when generating a",
+      "duration": 4079,
+      "offset": 374960,
+      "lang": "en"
+    },
+    {
+      "text": "response. The system prompt, its",
+      "duration": 3761,
+      "offset": 377199,
+      "lang": "en"
+    },
+    {
+      "text": "conversation history, any documents or",
+      "duration": 3600,
+      "offset": 379039,
+      "lang": "en"
+    },
+    {
+      "text": "data that have been included. It's",
+      "duration": 4000,
+      "offset": 380960,
+      "lang": "en"
+    },
+    {
+      "text": "temporary and it exists only for this",
+      "duration": 4560,
+      "offset": 382639,
+      "lang": "en"
+    },
+    {
+      "text": "interaction. When the conversation ends,",
+      "duration": 4560,
+      "offset": 384960,
+      "lang": "en"
+    },
+    {
+      "text": "it's gone. Now, the rest of these",
+      "duration": 3840,
+      "offset": 387199,
+      "lang": "en"
+    },
+    {
+      "text": "memories are kind of stored within all",
+      "duration": 4160,
+      "offset": 389520,
+      "lang": "en"
+    },
+    {
+      "text": "of those two. In that context, you have",
+      "duration": 4641,
+      "offset": 391039,
+      "lang": "en"
+    },
+    {
+      "text": "a system prompt functions something like",
+      "duration": 4400,
+      "offset": 393680,
+      "lang": "en"
+    },
+    {
+      "text": "a firmware almost. It sets the operating",
+      "duration": 4079,
+      "offset": 395680,
+      "lang": "en"
+    },
+    {
+      "text": "parameters. It tells the model what it",
+      "duration": 3440,
+      "offset": 398080,
+      "lang": "en"
+    },
+    {
+      "text": "is, who it is, what it should do, what",
+      "duration": 3921,
+      "offset": 399759,
+      "lang": "en"
+    },
+    {
+      "text": "constraints to follow, and often the",
+      "duration": 4160,
+      "offset": 401520,
+      "lang": "en"
+    },
+    {
+      "text": "user or an outside user typically",
+      "duration": 3840,
+      "offset": 403680,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't see it, but it does shape",
+      "duration": 3680,
+      "offset": 405680,
+      "lang": "en"
+    },
+    {
+      "text": "everything in the conversation or",
+      "duration": 4799,
+      "offset": 407520,
+      "lang": "en"
+    },
+    {
+      "text": "process. Then you have retrieved context",
+      "duration": 4800,
+      "offset": 409360,
+      "lang": "en"
+    },
+    {
+      "text": "things that are pulled dynamically based",
+      "duration": 4401,
+      "offset": 412319,
+      "lang": "en"
+    },
+    {
+      "text": "on a query, a relevant document or a",
+      "duration": 4400,
+      "offset": 414160,
+      "lang": "en"
+    },
+    {
+      "text": "skill file that contains specialized",
+      "duration": 3919,
+      "offset": 416720,
+      "lang": "en"
+    },
+    {
+      "text": "instructions. This is like loading from",
+      "duration": 6160,
+      "offset": 418560,
+      "lang": "en"
+    },
+    {
+      "text": "a disk into RAM. It happens on demand.",
+      "duration": 6321,
+      "offset": 420639,
+      "lang": "en"
+    },
+    {
+      "text": "However, there's another version of this",
+      "duration": 4400,
+      "offset": 424720,
+      "lang": "en"
+    },
+    {
+      "text": "that is still the same, but I think is",
+      "duration": 4079,
+      "offset": 426960,
+      "lang": "en"
+    },
+    {
+      "text": "important to separate. It's called",
+      "duration": 3760,
+      "offset": 429120,
+      "lang": "en"
+    },
+    {
+      "text": "persistent memory. And this is",
+      "duration": 4081,
+      "offset": 431039,
+      "lang": "en"
+    },
+    {
+      "text": "information stored between conversations",
+      "duration": 4560,
+      "offset": 432880,
+      "lang": "en"
+    },
+    {
+      "text": "and selectively loaded when relevant.",
+      "duration": 3680,
+      "offset": 435120,
+      "lang": "en"
+    },
+    {
+      "text": "Almost like summaries. It's not",
+      "duration": 3599,
+      "offset": 437440,
+      "lang": "en"
+    },
+    {
+      "text": "everything, just what seems useful for",
+      "duration": 4399,
+      "offset": 438800,
+      "lang": "en"
+    },
+    {
+      "text": "every single conversation. And it's",
+      "duration": 4000,
+      "offset": 441039,
+      "lang": "en"
+    },
+    {
+      "text": "retrieved in the same way as the",
+      "duration": 4321,
+      "offset": 443199,
+      "lang": "en"
+    },
+    {
+      "text": "previous method, but just is a slightly",
+      "duration": 4880,
+      "offset": 445039,
+      "lang": "en"
+    },
+    {
+      "text": "different concept around it. But if you",
+      "duration": 4239,
+      "offset": 447520,
+      "lang": "en"
+    },
+    {
+      "text": "squint, this looks like a traditional",
+      "duration": 3921,
+      "offset": 449919,
+      "lang": "en"
+    },
+    {
+      "text": "hierarchy. Speed versus capacity",
+      "duration": 4401,
+      "offset": 451759,
+      "lang": "en"
+    },
+    {
+      "text": "trade-offs, data moving between levels,",
+      "duration": 3840,
+      "offset": 453840,
+      "lang": "en"
+    },
+    {
+      "text": "locality patterns [music] determining",
+      "duration": 4159,
+      "offset": 456160,
+      "lang": "en"
+    },
+    {
+      "text": "what gets loaded. But there is a",
+      "duration": 5280,
+      "offset": 457680,
+      "lang": "en"
+    },
+    {
+      "text": "difference, and it's not a small one. In",
+      "duration": 5681,
+      "offset": 460319,
+      "lang": "en"
+    },
+    {
+      "text": "this system with AI, code and data end",
+      "duration": 5200,
+      "offset": 462960,
+      "lang": "en"
+    },
+    {
+      "text": "up being the same thing. The system",
+      "duration": 4160,
+      "offset": 466000,
+      "lang": "en"
+    },
+    {
+      "text": "prompt is not compiled separately from",
+      "duration": 3920,
+      "offset": 468160,
+      "lang": "en"
+    },
+    {
+      "text": "the user's message. The skill file is",
+      "duration": 3520,
+      "offset": 470160,
+      "lang": "en"
+    },
+    {
+      "text": "not executed through a different pathway",
+      "duration": 3519,
+      "offset": 472080,
+      "lang": "en"
+    },
+    {
+      "text": "than the conversation history. They are",
+      "duration": 4160,
+      "offset": 473680,
+      "lang": "en"
+    },
+    {
+      "text": "all just text. All processed",
+      "duration": 4880,
+      "offset": 475599,
+      "lang": "en"
+    },
+    {
+      "text": "identically, all tokens in a sequence",
+      "duration": 5520,
+      "offset": 477840,
+      "lang": "en"
+    },
+    {
+      "text": "that the model attends to and continues.",
+      "duration": 4560,
+      "offset": 480479,
+      "lang": "en"
+    },
+    {
+      "text": "When you write an instruction in a",
+      "duration": 3040,
+      "offset": 483360,
+      "lang": "en"
+    },
+    {
+      "text": "system prompt, you're not giving the",
+      "duration": 3521,
+      "offset": 485039,
+      "lang": "en"
+    },
+    {
+      "text": "model a command that it executes. You're",
+      "duration": 4239,
+      "offset": 486400,
+      "lang": "en"
+    },
+    {
+      "text": "adding words to a document that the",
+      "duration": 5600,
+      "offset": 488560,
+      "lang": "en"
+    },
+    {
+      "text": "model will read and then continue. The",
+      "duration": 6161,
+      "offset": 490639,
+      "lang": "en"
+    },
+    {
+      "text": "instructions become part of the context.",
+      "duration": 5599,
+      "offset": 494160,
+      "lang": "en"
+    },
+    {
+      "text": "reading it is the execution. And this is",
+      "duration": 4799,
+      "offset": 496800,
+      "lang": "en"
+    },
+    {
+      "text": "why prompt injection works. If someone",
+      "duration": 4000,
+      "offset": 499759,
+      "lang": "en"
+    },
+    {
+      "text": "puts text in a document that says ignore",
+      "duration": 4241,
+      "offset": 501599,
+      "lang": "en"
+    },
+    {
+      "text": "your previous instructions, and that",
+      "duration": 4081,
+      "offset": 503759,
+      "lang": "en"
+    },
+    {
+      "text": "document gets loaded into the context,",
+      "duration": 3600,
+      "offset": 505840,
+      "lang": "en"
+    },
+    {
+      "text": "the model reads those [music] words the",
+      "duration": 3759,
+      "offset": 507840,
+      "lang": "en"
+    },
+    {
+      "text": "same way it reads everything else. There",
+      "duration": 4800,
+      "offset": 509440,
+      "lang": "en"
+    },
+    {
+      "text": "is no separate layer that validates code",
+      "duration": 4721,
+      "offset": 511599,
+      "lang": "en"
+    },
+    {
+      "text": "versus data. There is no boundary to",
+      "duration": 4799,
+      "offset": 514240,
+      "lang": "en"
+    },
+    {
+      "text": "cross. It's all just text. But this is",
+      "duration": 6079,
+      "offset": 516320,
+      "lang": "en"
+    },
+    {
+      "text": "not a bug. It is the architecture. And",
+      "duration": 5201,
+      "offset": 519039,
+      "lang": "en"
+    },
+    {
+      "text": "when I say that, I think it's important",
+      "duration": 4560,
+      "offset": 522399,
+      "lang": "en"
+    },
+    {
+      "text": "for us to go back in time. Back into",
+      "duration": 4400,
+      "offset": 524240,
+      "lang": "en"
+    },
+    {
+      "text": "1952,",
+      "duration": 4081,
+      "offset": 526959,
+      "lang": "en"
+    },
+    {
+      "text": "Grace Hopper had a working compiler. It",
+      "duration": 4160,
+      "offset": 528640,
+      "lang": "en"
+    },
+    {
+      "text": "could take instructions written in",
+      "duration": 3680,
+      "offset": 531040,
+      "lang": "en"
+    },
+    {
+      "text": "something closer to English and",
+      "duration": 4560,
+      "offset": 532800,
+      "lang": "en"
+    },
+    {
+      "text": "translate them into machine code.",
+      "duration": 5360,
+      "offset": 534720,
+      "lang": "en"
+    },
+    {
+      "text": "However, nobody believed her. She said,",
+      "duration": 4720,
+      "offset": 537360,
+      "lang": "en"
+    },
+    {
+      "text": "\"I had a running compiler and nobody",
+      "duration": 3759,
+      "offset": 540080,
+      "lang": "en"
+    },
+    {
+      "text": "would touch it. They told me computers",
+      "duration": 4319,
+      "offset": 542080,
+      "lang": "en"
+    },
+    {
+      "text": "could only do arithmetic.\" She spent",
+      "duration": 4641,
+      "offset": 543839,
+      "lang": "en"
+    },
+    {
+      "text": "years trying to convince people that her",
+      "duration": 4081,
+      "offset": 546399,
+      "lang": "en"
+    },
+    {
+      "text": "compiler was truly possible, or at least",
+      "duration": 4400,
+      "offset": 548480,
+      "lang": "en"
+    },
+    {
+      "text": "this type of process and abstraction.",
+      "duration": 4320,
+      "offset": 550480,
+      "lang": "en"
+    },
+    {
+      "text": "But she said people were allergic to",
+      "duration": 4480,
+      "offset": 552880,
+      "lang": "en"
+    },
+    {
+      "text": "change. Now the skepticism came from a",
+      "duration": 5440,
+      "offset": 554800,
+      "lang": "en"
+    },
+    {
+      "text": "genuine place. Compilers did arithmetic.",
+      "duration": 5039,
+      "offset": 557360,
+      "lang": "en"
+    },
+    {
+      "text": "That was the foundational truth.",
+      "duration": 4480,
+      "offset": 560240,
+      "lang": "en"
+    },
+    {
+      "text": "However, a compiler seemed to violate",
+      "duration": 4401,
+      "offset": 562399,
+      "lang": "en"
+    },
+    {
+      "text": "that truth by claiming computers could",
+      "duration": 5040,
+      "offset": 564720,
+      "lang": "en"
+    },
+    {
+      "text": "process language. However, Hopper wasn't",
+      "duration": 4880,
+      "offset": 566800,
+      "lang": "en"
+    },
+    {
+      "text": "claiming that computers had stopped",
+      "duration": 4639,
+      "offset": 569760,
+      "lang": "en"
+    },
+    {
+      "text": "doing arithmetic. She had simply built a",
+      "duration": 4640,
+      "offset": 571680,
+      "lang": "en"
+    },
+    {
+      "text": "layer on top of that that translated",
+      "duration": 4321,
+      "offset": 574399,
+      "lang": "en"
+    },
+    {
+      "text": "human readable instructions into the",
+      "duration": 4880,
+      "offset": 576320,
+      "lang": "en"
+    },
+    {
+      "text": "arithmetic the machine already",
+      "duration": 4720,
+      "offset": 578720,
+      "lang": "en"
+    },
+    {
+      "text": "understood. The machine still did what",
+      "duration": 4240,
+      "offset": 581200,
+      "lang": "en"
+    },
+    {
+      "text": "it always did. The abstractions just",
+      "duration": 4560,
+      "offset": 583440,
+      "lang": "en"
+    },
+    {
+      "text": "made it accessible to more people in new",
+      "duration": 5280,
+      "offset": 585440,
+      "lang": "en"
+    },
+    {
+      "text": "ways. And this pattern repeated.",
+      "duration": 4240,
+      "offset": 588000,
+      "lang": "en"
+    },
+    {
+      "text": "Assembly gave way to higher level",
+      "duration": 3360,
+      "offset": 590720,
+      "lang": "en"
+    },
+    {
+      "text": "languages. Those gave way to interpreted",
+      "duration": 4400,
+      "offset": 592240,
+      "lang": "en"
+    },
+    {
+      "text": "languages. Each time skeptics pointed to",
+      "duration": 4319,
+      "offset": 594080,
+      "lang": "en"
+    },
+    {
+      "text": "the layer below and said, \"This is",
+      "duration": 3040,
+      "offset": 596640,
+      "lang": "en"
+    },
+    {
+      "text": "what's really happening and you're",
+      "duration": 3761,
+      "offset": 598399,
+      "lang": "en"
+    },
+    {
+      "text": "adding unreliability by abstracting it.",
+      "duration": 4480,
+      "offset": 599680,
+      "lang": "en"
+    },
+    {
+      "text": "And each time engineers built the",
+      "duration": 4560,
+      "offset": 602160,
+      "lang": "en"
+    },
+    {
+      "text": "infrastructure to make the new layer",
+      "duration": 5679,
+      "offset": 604160,
+      "lang": "en"
+    },
+    {
+      "text": "reliable enough to trust.\" Now, I talked",
+      "duration": 4640,
+      "offset": 606720,
+      "lang": "en"
+    },
+    {
+      "text": "a whole bunch about this in a previous",
+      "duration": 3281,
+      "offset": 609839,
+      "lang": "en"
+    },
+    {
+      "text": "video. Please go check it out. But if",
+      "duration": 4560,
+      "offset": 611360,
+      "lang": "en"
+    },
+    {
+      "text": "you trace a single line of Python from",
+      "duration": 4320,
+      "offset": 613120,
+      "lang": "en"
+    },
+    {
+      "text": "all the way down through the",
+      "duration": 3280,
+      "offset": 615920,
+      "lang": "en"
+    },
+    {
+      "text": "interpreter, through the C code, through",
+      "duration": 3680,
+      "offset": 617440,
+      "lang": "en"
+    },
+    {
+      "text": "the assembly, through the machine code,",
+      "duration": 4160,
+      "offset": 619200,
+      "lang": "en"
+    },
+    {
+      "text": "through transistors, you eventually hit",
+      "duration": 4800,
+      "offset": 621120,
+      "lang": "en"
+    },
+    {
+      "text": "electrons, particles that at the quantum",
+      "duration": 5280,
+      "offset": 623360,
+      "lang": "en"
+    },
+    {
+      "text": "level are genuinely probabilistic, not",
+      "duration": 4880,
+      "offset": 625920,
+      "lang": "en"
+    },
+    {
+      "text": "deterministic. They don't have definite",
+      "duration": 4400,
+      "offset": 628640,
+      "lang": "en"
+    },
+    {
+      "text": "positions until measured. The entire",
+      "duration": 4880,
+      "offset": 630800,
+      "lang": "en"
+    },
+    {
+      "text": "supposedly deterministic computing stack",
+      "duration": 5680,
+      "offset": 633040,
+      "lang": "en"
+    },
+    {
+      "text": "is built on quantum uncertainty. We made",
+      "duration": 6080,
+      "offset": 635680,
+      "lang": "en"
+    },
+    {
+      "text": "it reliable through architecture,",
+      "duration": 4720,
+      "offset": 638720,
+      "lang": "en"
+    },
+    {
+      "text": "through error correction, through",
+      "duration": 4400,
+      "offset": 641760,
+      "lang": "en"
+    },
+    {
+      "text": "redundancy, through engineering that",
+      "duration": 5680,
+      "offset": 643440,
+      "lang": "en"
+    },
+    {
+      "text": "handles the failures we can't prevent.",
+      "duration": 5119,
+      "offset": 646160,
+      "lang": "en"
+    },
+    {
+      "text": "When people say AI can't be trusted",
+      "duration": 4320,
+      "offset": 649120,
+      "lang": "en"
+    },
+    {
+      "text": "because it's probabilistic, they're not",
+      "duration": 4800,
+      "offset": 651279,
+      "lang": "en"
+    },
+    {
+      "text": "wrong at one level, but they're missing",
+      "duration": 5440,
+      "offset": 653440,
+      "lang": "en"
+    },
+    {
+      "text": "the pattern. Every layer of the stack",
+      "duration": 5361,
+      "offset": 656079,
+      "lang": "en"
+    },
+    {
+      "text": "was probabilistic or unreliable at",
+      "duration": 5280,
+      "offset": 658880,
+      "lang": "en"
+    },
+    {
+      "text": "first. Grace Hopper's compiler was",
+      "duration": 5839,
+      "offset": 661440,
+      "lang": "en"
+    },
+    {
+      "text": "unreliable until it wasn't. Highle",
+      "duration": 5760,
+      "offset": 664160,
+      "lang": "en"
+    },
+    {
+      "text": "languages were toys until they weren't.",
+      "duration": 4721,
+      "offset": 667279,
+      "lang": "en"
+    },
+    {
+      "text": "The reliability came from building the",
+      "duration": 3760,
+      "offset": 669920,
+      "lang": "en"
+    },
+    {
+      "text": "infrastructure, from doing the",
+      "duration": 4160,
+      "offset": 672000,
+      "lang": "en"
+    },
+    {
+      "text": "engineering work. That work is happening",
+      "duration": 4640,
+      "offset": 673680,
+      "lang": "en"
+    },
+    {
+      "text": "now. It just looks different because the",
+      "duration": 5520,
+      "offset": 676160,
+      "lang": "en"
+    },
+    {
+      "text": "abstraction layer is different. And if",
+      "duration": 5440,
+      "offset": 678320,
+      "lang": "en"
+    },
+    {
+      "text": "it is different, let's go look at all",
+      "duration": 4000,
+      "offset": 681680,
+      "lang": "en"
+    },
+    {
+      "text": "this but from the perspective of",
+      "duration": 4720,
+      "offset": 683760,
+      "lang": "en"
+    },
+    {
+      "text": "prompting. And you see, most people",
+      "duration": 4960,
+      "offset": 685680,
+      "lang": "en"
+    },
+    {
+      "text": "think of right, write me a poem, be",
+      "duration": 4320,
+      "offset": 688480,
+      "lang": "en"
+    },
+    {
+      "text": "specific, add examples, use personas",
+      "duration": 3680,
+      "offset": 690640,
+      "lang": "en"
+    },
+    {
+      "text": "compared to what we were just looking at",
+      "duration": 3039,
+      "offset": 692800,
+      "lang": "en"
+    },
+    {
+      "text": "a little bit ago, right? this idea of",
+      "duration": 4000,
+      "offset": 694320,
+      "lang": "en"
+    },
+    {
+      "text": "memory. How is memory being used to move",
+      "duration": 4481,
+      "offset": 695839,
+      "lang": "en"
+    },
+    {
+      "text": "all these things around? Right? Most",
+      "duration": 3759,
+      "offset": 698320,
+      "lang": "en"
+    },
+    {
+      "text": "people just talk about tips [music]",
+      "duration": 3840,
+      "offset": 700320,
+      "lang": "en"
+    },
+    {
+      "text": "and tricks. And this is really just",
+      "duration": 3760,
+      "offset": 702079,
+      "lang": "en"
+    },
+    {
+      "text": "surface level. It's like telling someone",
+      "duration": 3200,
+      "offset": 704160,
+      "lang": "en"
+    },
+    {
+      "text": "that programming is about knowing which",
+      "duration": 3361,
+      "offset": 705839,
+      "lang": "en"
+    },
+    {
+      "text": "words to type, which technically it is,",
+      "duration": 4320,
+      "offset": 707360,
+      "lang": "en"
+    },
+    {
+      "text": "but it's much more than that. And I see",
+      "duration": 4720,
+      "offset": 709200,
+      "lang": "en"
+    },
+    {
+      "text": "a lot of engineers completely ignoring",
+      "duration": 3839,
+      "offset": 711680,
+      "lang": "en"
+    },
+    {
+      "text": "this difference and people just getting",
+      "duration": 4159,
+      "offset": 713920,
+      "lang": "en"
+    },
+    {
+      "text": "into the AI world. Production looks",
+      "duration": 4961,
+      "offset": 715519,
+      "lang": "en"
+    },
+    {
+      "text": "completely different. We ask a lot of",
+      "duration": 4081,
+      "offset": 718079,
+      "lang": "en"
+    },
+    {
+      "text": "different questions. Architectural",
+      "duration": 3599,
+      "offset": 720480,
+      "lang": "en"
+    },
+    {
+      "text": "design decisions, things like that, like",
+      "duration": 3679,
+      "offset": 722160,
+      "lang": "en"
+    },
+    {
+      "text": "how to structure memory files, when to",
+      "duration": 3601,
+      "offset": 724079,
+      "lang": "en"
+    },
+    {
+      "text": "retrieve additional information, how do",
+      "duration": 3761,
+      "offset": 725839,
+      "lang": "en"
+    },
+    {
+      "text": "we manage the interaction between system",
+      "duration": 3920,
+      "offset": 727680,
+      "lang": "en"
+    },
+    {
+      "text": "level instructions and user input, how",
+      "duration": 3760,
+      "offset": 729600,
+      "lang": "en"
+    },
+    {
+      "text": "do we handle the fact that all this gets",
+      "duration": 4320,
+      "offset": 731600,
+      "lang": "en"
+    },
+    {
+      "text": "flattened into a single stream where",
+      "duration": 5599,
+      "offset": 733360,
+      "lang": "en"
+    },
+    {
+      "text": "code and data are indistinguishable.",
+      "duration": 5280,
+      "offset": 735920,
+      "lang": "en"
+    },
+    {
+      "text": "This is the same discipline. It's not",
+      "duration": 4241,
+      "offset": 738959,
+      "lang": "en"
+    },
+    {
+      "text": "anything different than the last 100,",
+      "duration": 4560,
+      "offset": 741200,
+      "lang": "en"
+    },
+    {
+      "text": "200 years. It's what prompting looks",
+      "duration": 5360,
+      "offset": 743200,
+      "lang": "en"
+    },
+    {
+      "text": "like when you actually go deeper. And",
+      "duration": 5440,
+      "offset": 745760,
+      "lang": "en"
+    },
+    {
+      "text": "you see this is programming. It's at the",
+      "duration": 4640,
+      "offset": 748560,
+      "lang": "en"
+    },
+    {
+      "text": "highest abstraction layer we've built so",
+      "duration": 2800,
+      "offset": 751200,
+      "lang": "en"
+    },
+    {
+      "text": "far. [music]",
+      "duration": 3040,
+      "offset": 753200,
+      "lang": "en"
+    },
+    {
+      "text": "It's natural language as an interface",
+      "duration": 5680,
+      "offset": 754000,
+      "lang": "en"
+    },
+    {
+      "text": "and meaning as the mechanism. In prior",
+      "duration": 6480,
+      "offset": 756240,
+      "lang": "en"
+    },
+    {
+      "text": "lower languages, syntax was compiling",
+      "duration": 5760,
+      "offset": 759680,
+      "lang": "en"
+    },
+    {
+      "text": "into machine code. But now we're looking",
+      "duration": 5359,
+      "offset": 762720,
+      "lang": "en"
+    },
+    {
+      "text": "at context that shapes probability",
+      "duration": 5440,
+      "offset": 765440,
+      "lang": "en"
+    },
+    {
+      "text": "distributions over continuations. The",
+      "duration": 4880,
+      "offset": 768079,
+      "lang": "en"
+    },
+    {
+      "text": "Mad [music] Libs pattern template still",
+      "duration": 4560,
+      "offset": 770880,
+      "lang": "en"
+    },
+    {
+      "text": "holds. You're filling type slots in a",
+      "duration": 4560,
+      "offset": 772959,
+      "lang": "en"
+    },
+    {
+      "text": "structure you can't fully see and the",
+      "duration": 4673,
+      "offset": 775440,
+      "lang": "en"
+    },
+    {
+      "text": "output depends on what you provide and",
+      "duration": 5681,
+      "offset": 777519,
+      "lang": "en"
+    },
+    {
+      "text": "[music] where it goes. The difference is",
+      "duration": 6286,
+      "offset": 780113,
+      "lang": "en"
+    },
+    {
+      "text": "what we're optimizing for. In Mad Libs,",
+      "duration": 6639,
+      "offset": 783200,
+      "lang": "en"
+    },
+    {
+      "text": "the wrong word is funny. In programming,",
+      "duration": 6161,
+      "offset": 786399,
+      "lang": "en"
+    },
+    {
+      "text": "the wrong word is a bug. In prompting,",
+      "duration": 5680,
+      "offset": 789839,
+      "lang": "en"
+    },
+    {
+      "text": "the wrong context is a hallucination, a",
+      "duration": 5680,
+      "offset": 792560,
+      "lang": "en"
+    },
+    {
+      "text": "jailbreak, a failure to understand what",
+      "duration": 4401,
+      "offset": 795519,
+      "lang": "en"
+    },
+    {
+      "text": "you actually need. And we're [music]",
+      "duration": 3839,
+      "offset": 798240,
+      "lang": "en"
+    },
+    {
+      "text": "still in the early days of figuring out",
+      "duration": 4800,
+      "offset": 799920,
+      "lang": "en"
+    },
+    {
+      "text": "what the right abstractions are, what",
+      "duration": 4481,
+      "offset": 802079,
+      "lang": "en"
+    },
+    {
+      "text": "structures make this reliable, what",
+      "duration": 4480,
+      "offset": 804720,
+      "lang": "en"
+    },
+    {
+      "text": "architectural patterns let us trust the",
+      "duration": 4880,
+      "offset": 806560,
+      "lang": "en"
+    },
+    {
+      "text": "output. The way we eventually learn to",
+      "duration": 4879,
+      "offset": 809200,
+      "lang": "en"
+    },
+    {
+      "text": "trust compilers, learn to trust garbage",
+      "duration": 4639,
+      "offset": 811440,
+      "lang": "en"
+    },
+    {
+      "text": "collection and all these other layers of",
+      "duration": 4880,
+      "offset": 814079,
+      "lang": "en"
+    },
+    {
+      "text": "abstraction between our code and the",
+      "duration": 5440,
+      "offset": 816079,
+      "lang": "en"
+    },
+    {
+      "text": "electrons underneath.",
+      "duration": 4241,
+      "offset": 818959,
+      "lang": "en"
+    },
+    {
+      "text": "Grace Hopper once said that the most",
+      "duration": 4081,
+      "offset": 821519,
+      "lang": "en"
+    },
+    {
+      "text": "dangerous phrase in the e- language is",
+      "duration": 5280,
+      "offset": 823200,
+      "lang": "en"
+    },
+    {
+      "text": "we've always done it this way. We're at",
+      "duration": 4080,
+      "offset": 825600,
+      "lang": "en"
+    },
+    {
+      "text": "a moment where the patterns are",
+      "duration": 2640,
+      "offset": 828480,
+      "lang": "en"
+    },
+    {
+      "text": "repeating, but the medium looks",
+      "duration": 3520,
+      "offset": 829680,
+      "lang": "en"
+    },
+    {
+      "text": "different enough that it's easy to miss.",
+      "duration": 4320,
+      "offset": 831120,
+      "lang": "en"
+    },
+    {
+      "text": "The skepticism sounds reasonable. The",
+      "duration": 5120,
+      "offset": 833200,
+      "lang": "en"
+    },
+    {
+      "text": "concerns about reliability are real, but",
+      "duration": 5600,
+      "offset": 835440,
+      "lang": "en"
+    },
+    {
+      "text": "the path forward is the same path it's",
+      "duration": 5519,
+      "offset": 838320,
+      "lang": "en"
+    },
+    {
+      "text": "always been. Build the infrastructure.",
+      "duration": 5359,
+      "offset": 841040,
+      "lang": "en"
+    },
+    {
+      "text": "Do the engineering. Make the unreliable",
+      "duration": 5041,
+      "offset": 843839,
+      "lang": "en"
+    },
+    {
+      "text": "thing reliable enough to trust. That is",
+      "duration": 4560,
+      "offset": 846399,
+      "lang": "en"
+    },
+    {
+      "text": "what prompting is at this level at",
+      "duration": 4240,
+      "offset": 848880,
+      "lang": "en"
+    },
+    {
+      "text": "least. Not tips for talking to a",
+      "duration": 4081,
+      "offset": 850959,
+      "lang": "en"
+    },
+    {
+      "text": "chatbot, not tricks for getting better",
+      "duration": 4880,
+      "offset": 853120,
+      "lang": "en"
+    },
+    {
+      "text": "outputs. It's the next layer of the",
+      "duration": 6239,
+      "offset": 855040,
+      "lang": "en"
+    },
+    {
+      "text": "stack. Until next time, my friends, have",
+      "duration": 5920,
+      "offset": 858000,
+      "lang": "en"
+    },
+    {
+      "text": "a good day.",
+      "duration": 2641,
+      "offset": 861279,
+      "lang": "en"
+    }
+  ]
+}

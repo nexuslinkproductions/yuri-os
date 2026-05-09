@@ -566,9 +566,36 @@ function validateActionPlan(plan) {
   }
   validateIntent(plan.intent)
 
+  // Pre-clean malformed steps from DeepSeek drift before validation
+  const cleanedSteps = []
+  const rejectedSteps = []
+  for (const step of plan.steps) {
+    try {
+      validateStep(step)
+      cleanedSteps.push(step)
+    } catch (err) {
+      rejectedSteps.push({
+        step_id: step.step_id || 'unknown',
+        reason: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  if (rejectedSteps.length > 0) {
+    process.stderr.write(`[WORKHORSE] Cleaned ${rejectedSteps.length} malformed step(s) from DeepSeek output:\n`)
+    for (const rejected of rejectedSteps) {
+      process.stderr.write(`  - ${rejected.step_id}: ${rejected.reason}\n`)
+    }
+  }
+
+  if (cleanedSteps.length === 0) {
+    throw new Error('action plan has no valid steps after schema cleanup')
+  }
+
+  plan.steps = cleanedSteps
+
   const seenIds = new Set()
   for (const step of plan.steps) {
-    validateStep(step)
     if (seenIds.has(step.step_id)) {
       throw new Error(`duplicate step_id: ${step.step_id}`)
     }
@@ -580,7 +607,16 @@ function validateStep(step) {
   if (!isPlainObject(step)) {
     throw new Error('step must be an object')
   }
-  assertExactKeys(step, ['step_id', 'action', 'target', 'params', 'tier'], 'step')
+  // Default tier to 0 (readonly) when DeepSeek omits it
+  if (!Object.hasOwn(step, 'tier')) {
+    step.tier = 0
+  }
+  const requiredKeys = ['step_id', 'action', 'target', 'tier']
+  for (const key of requiredKeys) {
+    if (!Object.hasOwn(step, key)) {
+      throw new Error(`step missing required key: ${key}`)
+    }
+  }
   if (!step.step_id || typeof step.step_id !== 'string') {
     throw new Error('step_id must be a string')
   }
@@ -590,8 +626,10 @@ function validateStep(step) {
   if (typeof step.target !== 'string') {
     throw new Error('step target must be a string')
   }
-  if (!isPlainObject(step.params)) {
-    throw new Error('step params must be an object')
+  if (!Object.hasOwn(step, 'params')) {
+    step.params = {}
+  } else if (!isPlainObject(step.params)) {
+    step.params = {}
   }
   if (!Number.isInteger(step.tier) || (step.tier !== 0 && step.tier !== 1)) {
     throw new Error('step tier must be 0 or 1')
@@ -599,6 +637,26 @@ function validateStep(step) {
 
   if (step.action === 'read_file') {
     assertSafePlanPath(step.target)
+    // Default line window when DeepSeek omits params
+    if (!isPositiveInteger(step.params.start_line)) step.params.start_line = 1
+    if (!isPositiveInteger(step.params.end_line)) step.params.end_line = 200
+    if (step.params.start_line > step.params.end_line) step.params.end_line = step.params.start_line + 199
+
+    // Clamp end_line to actual file length to prevent "line window exceeds file length"
+    try {
+      const filePath = path.resolve(REPO_ROOT, step.target)
+      const stat = fs.statSync(filePath)
+      if (stat.isFile()) {
+        const content = fs.readFileSync(filePath, 'utf8')
+        const actualLines = content.split('\n').length
+        if (step.params.end_line > actualLines) {
+          step.params.end_line = Math.max(actualLines, step.params.start_line)
+        }
+      }
+    } catch (_) {
+      // If we can't read file stats, proceed with defaults
+    }
+
     requirePositiveLineWindow(step.params.start_line, step.params.end_line)
     return
   }
@@ -632,6 +690,9 @@ function validateStep(step) {
 
 function validateRunCommandStep(step) {
   const command = step.params.command
+  if (!command || typeof command !== 'string') {
+    throw new Error(`run_command requires params.command to be a non-empty string; got: ${typeof command}`)
+  }
   if (!RUN_COMMANDS.has(command)) {
     throw new Error(`forbidden command: ${command}`)
   }

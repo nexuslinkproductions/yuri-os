@@ -16,7 +16,7 @@ const readDir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
 
-const VAULT_ROOT = "/Users/marcelspatz/.cline/worktrees/a7a53/NUDIMMUD";
+const VAULT_ROOT = "/Users/marcelspatz/NUDIMMUD";
 
 interface VaultFile {
   path: string;

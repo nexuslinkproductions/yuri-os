@@ -1,0 +1,1524 @@
+{
+  "videoId": "Wtf6E-fwuwI",
+  "title": "Becoming an AI Psychologist",
+  "segments": [
+    {
+      "text": "Psychometric assessment for large",
+      "duration": 4440,
+      "offset": 1000,
+      "lang": "en"
+    },
+    {
+      "text": "language models. What is that? Why are",
+      "duration": 4040,
+      "offset": 2920,
+      "lang": "en"
+    },
+    {
+      "text": "we doing this? What is this app that's",
+      "duration": 2720,
+      "offset": 5440,
+      "lang": "en"
+    },
+    {
+      "text": "in front of you? What is this video",
+      "duration": 4000,
+      "offset": 6960,
+      "lang": "en"
+    },
+    {
+      "text": "about? And why does this matter? Well,",
+      "duration": 4560,
+      "offset": 8160,
+      "lang": "en"
+    },
+    {
+      "text": "I'm Jake Van Cleef, if you don't know",
+      "duration": 2760,
+      "offset": 10960,
+      "lang": "en"
+    },
+    {
+      "text": "me.",
+      "duration": 3280,
+      "offset": 12720,
+      "lang": "en"
+    },
+    {
+      "text": "I'm a researcher, I'm a writer, I work",
+      "duration": 4400,
+      "offset": 13720,
+      "lang": "en"
+    },
+    {
+      "text": "in AI, I work in psychometric, I work in",
+      "duration": 3880,
+      "offset": 16000,
+      "lang": "en"
+    },
+    {
+      "text": "governance. I worked with the University",
+      "duration": 2840,
+      "offset": 18120,
+      "lang": "en"
+    },
+    {
+      "text": "of Edinburgh, a whole bunch of other",
+      "duration": 2480,
+      "offset": 19880,
+      "lang": "en"
+    },
+    {
+      "text": "people. I won't bore you with the",
+      "duration": 3800,
+      "offset": 20960,
+      "lang": "en"
+    },
+    {
+      "text": "details, but essentially I wrote a paper",
+      "duration": 4560,
+      "offset": 22360,
+      "lang": "en"
+    },
+    {
+      "text": "as my master's thesis where I realized",
+      "duration": 4320,
+      "offset": 24760,
+      "lang": "en"
+    },
+    {
+      "text": "that the data you can pull from multiple",
+      "duration": 5800,
+      "offset": 26920,
+      "lang": "en"
+    },
+    {
+      "text": "models uh is very useful when you use",
+      "duration": 5040,
+      "offset": 29080,
+      "lang": "en"
+    },
+    {
+      "text": "psychometric scales. You know,",
+      "duration": 4040,
+      "offset": 32720,
+      "lang": "en"
+    },
+    {
+      "text": "personality tests, uh the things we use",
+      "duration": 4920,
+      "offset": 34120,
+      "lang": "en"
+    },
+    {
+      "text": "for IQ, things like that to figure out",
+      "duration": 4720,
+      "offset": 36760,
+      "lang": "en"
+    },
+    {
+      "text": "how humans react in certain situations.",
+      "duration": 4360,
+      "offset": 39040,
+      "lang": "en"
+    },
+    {
+      "text": "Well, it's also important for getting",
+      "duration": 3880,
+      "offset": 41480,
+      "lang": "en"
+    },
+    {
+      "text": "data out of these language models and",
+      "duration": 3840,
+      "offset": 43400,
+      "lang": "en"
+    },
+    {
+      "text": "can actually provide very useful data.",
+      "duration": 3280,
+      "offset": 45360,
+      "lang": "en"
+    },
+    {
+      "text": "Well, I'm not going to be justifying",
+      "duration": 3400,
+      "offset": 47240,
+      "lang": "en"
+    },
+    {
+      "text": "what or why that's important considering",
+      "duration": 3400,
+      "offset": 48640,
+      "lang": "en"
+    },
+    {
+      "text": "I wrote an entire paper. If you would",
+      "duration": 3360,
+      "offset": 50640,
+      "lang": "en"
+    },
+    {
+      "text": "like to read through it and explore why",
+      "duration": 4280,
+      "offset": 52040,
+      "lang": "en"
+    },
+    {
+      "text": "I think this is important, go ahead. If",
+      "duration": 3760,
+      "offset": 54000,
+      "lang": "en"
+    },
+    {
+      "text": "not, you're probably clicking it cuz you",
+      "duration": 3400,
+      "offset": 56320,
+      "lang": "en"
+    },
+    {
+      "text": "want a tutorial on how to use the",
+      "duration": 4360,
+      "offset": 57760,
+      "lang": "en"
+    },
+    {
+      "text": "software that I created uh from my",
+      "duration": 4200,
+      "offset": 59720,
+      "lang": "en"
+    },
+    {
+      "text": "paper. And this is a much more advanced",
+      "duration": 3720,
+      "offset": 62120,
+      "lang": "en"
+    },
+    {
+      "text": "version uh compared to when I first",
+      "duration": 3480,
+      "offset": 63920,
+      "lang": "en"
+    },
+    {
+      "text": "published my paper.",
+      "duration": 3160,
+      "offset": 65840,
+      "lang": "en"
+    },
+    {
+      "text": "Uh however, I just wanted to do a nice",
+      "duration": 3160,
+      "offset": 67400,
+      "lang": "en"
+    },
+    {
+      "text": "kind of tutorial.",
+      "duration": 3640,
+      "offset": 69000,
+      "lang": "en"
+    },
+    {
+      "text": "So, when you come in, uh again, all the",
+      "duration": 4320,
+      "offset": 70560,
+      "lang": "en"
+    },
+    {
+      "text": "links will be in the description of this",
+      "duration": 5640,
+      "offset": 72640,
+      "lang": "en"
+    },
+    {
+      "text": "YouTube video. All you do is simply get",
+      "duration": 6160,
+      "offset": 74880,
+      "lang": "en"
+    },
+    {
+      "text": "API access. Um and what you're actually",
+      "duration": 4880,
+      "offset": 78280,
+      "lang": "en"
+    },
+    {
+      "text": "going to do is just get your API keys.",
+      "duration": 4120,
+      "offset": 81040,
+      "lang": "en"
+    },
+    {
+      "text": "Don't worry, they're not stored. I do",
+      "duration": 3880,
+      "offset": 83160,
+      "lang": "en"
+    },
+    {
+      "text": "not keep them. This is all stateless",
+      "duration": 3080,
+      "offset": 85160,
+      "lang": "en"
+    },
+    {
+      "text": "currently. Eventually, we're going to",
+      "duration": 3480,
+      "offset": 87040,
+      "lang": "en"
+    },
+    {
+      "text": "open up um kind of security and",
+      "duration": 4400,
+      "offset": 88240,
+      "lang": "en"
+    },
+    {
+      "text": "authentication, but right now it's all",
+      "duration": 4280,
+      "offset": 90520,
+      "lang": "en"
+    },
+    {
+      "text": "client-side. So, I try to keep it all",
+      "duration": 4301,
+      "offset": 92640,
+      "lang": "en"
+    },
+    {
+      "text": "nice and crypt uh that way.",
+      "duration": 2200,
+      "offset": 94800,
+      "lang": "en"
+    },
+    {
+      "text": ">> [snorts]",
+      "duration": 1179,
+      "offset": 96941,
+      "lang": "en"
+    },
+    {
+      "text": ">> Um",
+      "duration": 3040,
+      "offset": 97000,
+      "lang": "en"
+    },
+    {
+      "text": "And in this case, right, you let's say",
+      "duration": 4600,
+      "offset": 98120,
+      "lang": "en"
+    },
+    {
+      "text": "you already have an API key. Uh you just",
+      "duration": 4320,
+      "offset": 100040,
+      "lang": "en"
+    },
+    {
+      "text": "come in, drop it in there. Here's",
+      "duration": 4000,
+      "offset": 102720,
+      "lang": "en"
+    },
+    {
+      "text": "OpenAI. You can validate it. I'll check",
+      "duration": 4320,
+      "offset": 104360,
+      "lang": "en"
+    },
+    {
+      "text": "to make sure that it's good. You have 23",
+      "duration": 4480,
+      "offset": 106720,
+      "lang": "en"
+    },
+    {
+      "text": "models available with that account. Um",
+      "duration": 4520,
+      "offset": 108680,
+      "lang": "en"
+    },
+    {
+      "text": "let's say you also have Anthropic and",
+      "duration": 3760,
+      "offset": 111200,
+      "lang": "en"
+    },
+    {
+      "text": "you're trying to test models from",
+      "duration": 3600,
+      "offset": 113200,
+      "lang": "en"
+    },
+    {
+      "text": "Anthropic as well. You just throw that",
+      "duration": 4600,
+      "offset": 114960,
+      "lang": "en"
+    },
+    {
+      "text": "API key in there, validate, and continue",
+      "duration": 4800,
+      "offset": 116800,
+      "lang": "en"
+    },
+    {
+      "text": "that process for all of the different",
+      "duration": 3920,
+      "offset": 119560,
+      "lang": "en"
+    },
+    {
+      "text": "models that you would like to use. You",
+      "duration": 3280,
+      "offset": 121600,
+      "lang": "en"
+    },
+    {
+      "text": "don't need one for all these. You can",
+      "duration": 3360,
+      "offset": 123480,
+      "lang": "en"
+    },
+    {
+      "text": "even just do it with one. Um I you can",
+      "duration": 3760,
+      "offset": 124880,
+      "lang": "en"
+    },
+    {
+      "text": "easily add more. Let's say maybe you",
+      "duration": 3960,
+      "offset": 126840,
+      "lang": "en"
+    },
+    {
+      "text": "have some self-hosted ones that you are",
+      "duration": 3480,
+      "offset": 128640,
+      "lang": "en"
+    },
+    {
+      "text": "trying to test that you've built or",
+      "duration": 3000,
+      "offset": 130800,
+      "lang": "en"
+    },
+    {
+      "text": "fine-tuned yourself.",
+      "duration": 3520,
+      "offset": 132120,
+      "lang": "en"
+    },
+    {
+      "text": "Um and I can easily add a lot more to",
+      "duration": 3240,
+      "offset": 133800,
+      "lang": "en"
+    },
+    {
+      "text": "this. I've just kind of kept it with the",
+      "duration": 3680,
+      "offset": 135640,
+      "lang": "en"
+    },
+    {
+      "text": "big guys right now um as that's where a",
+      "duration": 4520,
+      "offset": 137040,
+      "lang": "en"
+    },
+    {
+      "text": "lot of the kind of testing and reason",
+      "duration": 4800,
+      "offset": 139320,
+      "lang": "en"
+    },
+    {
+      "text": "behind this testing seems important.",
+      "duration": 4520,
+      "offset": 141560,
+      "lang": "en"
+    },
+    {
+      "text": "Now, from there, you can actually select",
+      "duration": 4280,
+      "offset": 144120,
+      "lang": "en"
+    },
+    {
+      "text": "your psychological scales. I have a lot",
+      "duration": 4240,
+      "offset": 146080,
+      "lang": "en"
+    },
+    {
+      "text": "already hardcoded in for you to choose",
+      "duration": 4640,
+      "offset": 148400,
+      "lang": "en"
+    },
+    {
+      "text": "from. Uh right-wing authoritarianism is",
+      "duration": 4920,
+      "offset": 150320,
+      "lang": "en"
+    },
+    {
+      "text": "one of the scales I use in my paper. Um",
+      "duration": 3800,
+      "offset": 153040,
+      "lang": "en"
+    },
+    {
+      "text": "it lets you look at the scales. It gives",
+      "duration": 3440,
+      "offset": 155240,
+      "lang": "en"
+    },
+    {
+      "text": "a citation to the original paper that",
+      "duration": 3760,
+      "offset": 156840,
+      "lang": "en"
+    },
+    {
+      "text": "the scale was used in. Uh right-wing",
+      "duration": 3720,
+      "offset": 158680,
+      "lang": "en"
+    },
+    {
+      "text": "authoritarianism actually has two scales",
+      "duration": 3800,
+      "offset": 160600,
+      "lang": "en"
+    },
+    {
+      "text": "right now, and you can select as many as",
+      "duration": 4640,
+      "offset": 162400,
+      "lang": "en"
+    },
+    {
+      "text": "you'd like depending on how many um you",
+      "duration": 4480,
+      "offset": 164400,
+      "lang": "en"
+    },
+    {
+      "text": "know, scales you want to do in a single",
+      "duration": 5160,
+      "offset": 167040,
+      "lang": "en"
+    },
+    {
+      "text": "run and test the AI on it. Uh you can",
+      "duration": 5120,
+      "offset": 168880,
+      "lang": "en"
+    },
+    {
+      "text": "choose moral foundations, social",
+      "duration": 4400,
+      "offset": 172200,
+      "lang": "en"
+    },
+    {
+      "text": "dominance, Rosenberg self-esteem scale,",
+      "duration": 4200,
+      "offset": 174000,
+      "lang": "en"
+    },
+    {
+      "text": "right? And kind of put all of this",
+      "duration": 3760,
+      "offset": 176600,
+      "lang": "en"
+    },
+    {
+      "text": "together. You can also add your own",
+      "duration": 3320,
+      "offset": 178200,
+      "lang": "en"
+    },
+    {
+      "text": "scale.",
+      "duration": 3240,
+      "offset": 180360,
+      "lang": "en"
+    },
+    {
+      "text": "Uh right, scale name, the description,",
+      "duration": 4400,
+      "offset": 181520,
+      "lang": "en"
+    },
+    {
+      "text": "which the citation is, what the response",
+      "duration": 4000,
+      "offset": 183600,
+      "lang": "en"
+    },
+    {
+      "text": "scale, so right, what are the points? Is",
+      "duration": 5040,
+      "offset": 185920,
+      "lang": "en"
+    },
+    {
+      "text": "it 1 to 7, 1 to 5, what the items are,",
+      "duration": 5080,
+      "offset": 187600,
+      "lang": "en"
+    },
+    {
+      "text": "what the question text is, as well as",
+      "duration": 3440,
+      "offset": 190960,
+      "lang": "en"
+    },
+    {
+      "text": "being reverse scored, and you can add",
+      "duration": 3560,
+      "offset": 192680,
+      "lang": "en"
+    },
+    {
+      "text": "them all yourself. Uh but these are a",
+      "duration": 3440,
+      "offset": 194400,
+      "lang": "en"
+    },
+    {
+      "text": "lot of the big scales, and in the future",
+      "duration": 3160,
+      "offset": 196240,
+      "lang": "en"
+    },
+    {
+      "text": "I'm going to automate this process a lot",
+      "duration": 2760,
+      "offset": 197840,
+      "lang": "en"
+    },
+    {
+      "text": "more.",
+      "duration": 3320,
+      "offset": 199400,
+      "lang": "en"
+    },
+    {
+      "text": "Now, when you actually put your API keys",
+      "duration": 4600,
+      "offset": 200600,
+      "lang": "en"
+    },
+    {
+      "text": "in, it will auto-generate and look. And",
+      "duration": 3960,
+      "offset": 202720,
+      "lang": "en"
+    },
+    {
+      "text": "this is the really big part of my",
+      "duration": 3320,
+      "offset": 205200,
+      "lang": "en"
+    },
+    {
+      "text": "software right here is this is a super",
+      "duration": 3720,
+      "offset": 206680,
+      "lang": "en"
+    },
+    {
+      "text": "challenging process to do on your own as",
+      "duration": 3400,
+      "offset": 208520,
+      "lang": "en"
+    },
+    {
+      "text": "a researcher, and I wanted to make this",
+      "duration": 3760,
+      "offset": 210400,
+      "lang": "en"
+    },
+    {
+      "text": "simple and easy. And so, when you put",
+      "duration": 4280,
+      "offset": 211920,
+      "lang": "en"
+    },
+    {
+      "text": "that API key in, you automatically get a",
+      "duration": 3760,
+      "offset": 214160,
+      "lang": "en"
+    },
+    {
+      "text": "choice of all the models available to",
+      "duration": 4080,
+      "offset": 216200,
+      "lang": "en"
+    },
+    {
+      "text": "that API key, right? So, I can test all",
+      "duration": 5120,
+      "offset": 217920,
+      "lang": "en"
+    },
+    {
+      "text": "of these models in automation uh as much",
+      "duration": 4440,
+      "offset": 220280,
+      "lang": "en"
+    },
+    {
+      "text": "as I want. In this case, we'll just for",
+      "duration": 3480,
+      "offset": 223040,
+      "lang": "en"
+    },
+    {
+      "text": "this demo, I'm going to choose GPT-4",
+      "duration": 4320,
+      "offset": 224720,
+      "lang": "en"
+    },
+    {
+      "text": "Mini from OpenAI. Uh I'm going to choose",
+      "duration": 4880,
+      "offset": 226520,
+      "lang": "en"
+    },
+    {
+      "text": "Claude 3 Haiku from Anthropic. Again,",
+      "duration": 3720,
+      "offset": 229040,
+      "lang": "en"
+    },
+    {
+      "text": "you can choose all of their other bigger",
+      "duration": 2840,
+      "offset": 231400,
+      "lang": "en"
+    },
+    {
+      "text": "models as well. And then I'm going to",
+      "duration": 5000,
+      "offset": 232760,
+      "lang": "en"
+    },
+    {
+      "text": "choose Grok 3 Mini from uh xAI.",
+      "duration": 5240,
+      "offset": 234240,
+      "lang": "en"
+    },
+    {
+      "text": "Now, once you've chosen your models, you",
+      "duration": 2720,
+      "offset": 237760,
+      "lang": "en"
+    },
+    {
+      "text": "know the models you want to do",
+      "duration": 3120,
+      "offset": 239480,
+      "lang": "en"
+    },
+    {
+      "text": "psychometric testing on, you can simply",
+      "duration": 4440,
+      "offset": 240480,
+      "lang": "en"
+    },
+    {
+      "text": "scroll down again and choose persona",
+      "duration": 4960,
+      "offset": 242600,
+      "lang": "en"
+    },
+    {
+      "text": "selection. Again, in my paper, I look at",
+      "duration": 5280,
+      "offset": 244920,
+      "lang": "en"
+    },
+    {
+      "text": "specifically US-type personas, and I",
+      "duration": 4520,
+      "offset": 247560,
+      "lang": "en"
+    },
+    {
+      "text": "have my own prompts already set up for",
+      "duration": 3520,
+      "offset": 250200,
+      "lang": "en"
+    },
+    {
+      "text": "them. And you can click those as you",
+      "duration": 3400,
+      "offset": 252080,
+      "lang": "en"
+    },
+    {
+      "text": "want. There's also just a minimal",
+      "duration": 4079,
+      "offset": 253720,
+      "lang": "en"
+    },
+    {
+      "text": "baseline and a neutral one. This one is",
+      "duration": 4120,
+      "offset": 255480,
+      "lang": "en"
+    },
+    {
+      "text": "politically focused neutral. This is",
+      "duration": 4961,
+      "offset": 257799,
+      "lang": "en"
+    },
+    {
+      "text": "minimal with no um essential ideological",
+      "duration": 5760,
+      "offset": 259600,
+      "lang": "en"
+    },
+    {
+      "text": "framing or demographics. Uh you can also",
+      "duration": 4760,
+      "offset": 262760,
+      "lang": "en"
+    },
+    {
+      "text": "create a custom persona depending on",
+      "duration": 3360,
+      "offset": 265360,
+      "lang": "en"
+    },
+    {
+      "text": "what you're trying to test, what",
+      "duration": 4040,
+      "offset": 267520,
+      "lang": "en"
+    },
+    {
+      "text": "demographic, what bias is in the data or",
+      "duration": 5040,
+      "offset": 268720,
+      "lang": "en"
+    },
+    {
+      "text": "the responses of these models. Uh you",
+      "duration": 3520,
+      "offset": 271560,
+      "lang": "en"
+    },
+    {
+      "text": "can give a description of what it is,",
+      "duration": 2640,
+      "offset": 273760,
+      "lang": "en"
+    },
+    {
+      "text": "and more importantly, you can put the",
+      "duration": 3720,
+      "offset": 275080,
+      "lang": "en"
+    },
+    {
+      "text": "prompt right here and simply add that",
+      "duration": 5240,
+      "offset": 276400,
+      "lang": "en"
+    },
+    {
+      "text": "persona. You can also use AI to generate",
+      "duration": 5680,
+      "offset": 278800,
+      "lang": "en"
+    },
+    {
+      "text": "multiple personas. So, in this case, uh",
+      "duration": 4680,
+      "offset": 281640,
+      "lang": "en"
+    },
+    {
+      "text": "simply saying, you know, you want a",
+      "duration": 5440,
+      "offset": 284480,
+      "lang": "en"
+    },
+    {
+      "text": "series of UK personas or maybe uh",
+      "duration": 5400,
+      "offset": 286320,
+      "lang": "en"
+    },
+    {
+      "text": "different types of personas in a certain",
+      "duration": 3840,
+      "offset": 289920,
+      "lang": "en"
+    },
+    {
+      "text": "area and you want to mass-produce them.",
+      "duration": 3760,
+      "offset": 291720,
+      "lang": "en"
+    },
+    {
+      "text": "Um it will do that, and you can just",
+      "duration": 3120,
+      "offset": 293760,
+      "lang": "en"
+    },
+    {
+      "text": "simply hit generate, and you can even",
+      "duration": 3200,
+      "offset": 295480,
+      "lang": "en"
+    },
+    {
+      "text": "choose your model provider there as",
+      "duration": 3080,
+      "offset": 296880,
+      "lang": "en"
+    },
+    {
+      "text": "well.",
+      "duration": 3400,
+      "offset": 298680,
+      "lang": "en"
+    },
+    {
+      "text": "Now, from there, let's say you've",
+      "duration": 3960,
+      "offset": 299960,
+      "lang": "en"
+    },
+    {
+      "text": "decided, you know, you've selected all",
+      "duration": 4200,
+      "offset": 302080,
+      "lang": "en"
+    },
+    {
+      "text": "of the personas you want. Um you roll",
+      "duration": 3760,
+      "offset": 303920,
+      "lang": "en"
+    },
+    {
+      "text": "down, and you can actually set the",
+      "duration": 3520,
+      "offset": 306280,
+      "lang": "en"
+    },
+    {
+      "text": "temperature, right? And increase the",
+      "duration": 3520,
+      "offset": 307680,
+      "lang": "en"
+    },
+    {
+      "text": "temperature all the way up or keep it",
+      "duration": 3280,
+      "offset": 309800,
+      "lang": "en"
+    },
+    {
+      "text": "down. You can decide how many runs you",
+      "duration": 5800,
+      "offset": 311200,
+      "lang": "en"
+    },
+    {
+      "text": "want, five runs, 500 runs, 20 runs,",
+      "duration": 5720,
+      "offset": 313080,
+      "lang": "en"
+    },
+    {
+      "text": "things like that to be able to do. In",
+      "duration": 3040,
+      "offset": 317000,
+      "lang": "en"
+    },
+    {
+      "text": "this case, we're just going to do one",
+      "duration": 4280,
+      "offset": 318800,
+      "lang": "en"
+    },
+    {
+      "text": "run with three models. Uh we're going to",
+      "duration": 5640,
+      "offset": 320040,
+      "lang": "en"
+    },
+    {
+      "text": "I didn't even choose a uh assessment,",
+      "duration": 3960,
+      "offset": 323080,
+      "lang": "en"
+    },
+    {
+      "text": "which is important, too. This will let",
+      "duration": 3240,
+      "offset": 325680,
+      "lang": "en"
+    },
+    {
+      "text": "you know all the items, the models, the",
+      "duration": 4080,
+      "offset": 327040,
+      "lang": "en"
+    },
+    {
+      "text": "personas, and the runs, and how many API",
+      "duration": 4280,
+      "offset": 328920,
+      "lang": "en"
+    },
+    {
+      "text": "calls you're going to make. Uh so, I'll",
+      "duration": 3840,
+      "offset": 331120,
+      "lang": "en"
+    },
+    {
+      "text": "go ahead and come back up, and then I'll",
+      "duration": 3640,
+      "offset": 333200,
+      "lang": "en"
+    },
+    {
+      "text": "go ahead and pick moral foundations. Why",
+      "duration": 3440,
+      "offset": 334960,
+      "lang": "en"
+    },
+    {
+      "text": "not?",
+      "duration": 2960,
+      "offset": 336840,
+      "lang": "en"
+    },
+    {
+      "text": "Now, from there, what's actually",
+      "duration": 3800,
+      "offset": 338400,
+      "lang": "en"
+    },
+    {
+      "text": "happening is for every question on the",
+      "duration": 5720,
+      "offset": 339800,
+      "lang": "en"
+    },
+    {
+      "text": "scale, for every persona prompt you've",
+      "duration": 5560,
+      "offset": 342200,
+      "lang": "en"
+    },
+    {
+      "text": "provided, and for every model, we're",
+      "duration": 4320,
+      "offset": 345520,
+      "lang": "en"
+    },
+    {
+      "text": "going to send an individual API call to",
+      "duration": 3240,
+      "offset": 347760,
+      "lang": "en"
+    },
+    {
+      "text": "every single one of these models",
+      "duration": 3600,
+      "offset": 349840,
+      "lang": "en"
+    },
+    {
+      "text": "separately. Then we'll actually compile",
+      "duration": 5000,
+      "offset": 351000,
+      "lang": "en"
+    },
+    {
+      "text": "all of them and put them into one large",
+      "duration": 5440,
+      "offset": 353440,
+      "lang": "en"
+    },
+    {
+      "text": "JSON file as well as a CSV file. And so,",
+      "duration": 4400,
+      "offset": 356000,
+      "lang": "en"
+    },
+    {
+      "text": "what's happening right now, it's going",
+      "duration": 3280,
+      "offset": 358880,
+      "lang": "en"
+    },
+    {
+      "text": "through, it's calling all the models.",
+      "duration": 3440,
+      "offset": 360400,
+      "lang": "en"
+    },
+    {
+      "text": "I'm doing it asynchronously, so we're",
+      "duration": 3440,
+      "offset": 362160,
+      "lang": "en"
+    },
+    {
+      "text": "able to do it very quickly. If this was",
+      "duration": 3880,
+      "offset": 363840,
+      "lang": "en"
+    },
+    {
+      "text": "sequential, it would take hours, but",
+      "duration": 3680,
+      "offset": 365600,
+      "lang": "en"
+    },
+    {
+      "text": "I've been able to get it to do it very",
+      "duration": 4200,
+      "offset": 367720,
+      "lang": "en"
+    },
+    {
+      "text": "quickly. Um and it shows you the rates.",
+      "duration": 4840,
+      "offset": 369280,
+      "lang": "en"
+    },
+    {
+      "text": "It shows the estimated times. Um it",
+      "duration": 4040,
+      "offset": 371920,
+      "lang": "en"
+    },
+    {
+      "text": "shows who's kind of currently being",
+      "duration": 4200,
+      "offset": 374120,
+      "lang": "en"
+    },
+    {
+      "text": "processed at that moment, how many API",
+      "duration": 4760,
+      "offset": 375960,
+      "lang": "en"
+    },
+    {
+      "text": "calls you're actually processing, and of",
+      "duration": 4360,
+      "offset": 378320,
+      "lang": "en"
+    },
+    {
+      "text": "course the percentage and times for it",
+      "duration": 2960,
+      "offset": 380720,
+      "lang": "en"
+    },
+    {
+      "text": "there.",
+      "duration": 2680,
+      "offset": 382680,
+      "lang": "en"
+    },
+    {
+      "text": "Uh most of the bigger calls when you're",
+      "duration": 3080,
+      "offset": 383680,
+      "lang": "en"
+    },
+    {
+      "text": "actually doing real testing and",
+      "duration": 2720,
+      "offset": 385360,
+      "lang": "en"
+    },
+    {
+      "text": "repeatable testing are going to take",
+      "duration": 3600,
+      "offset": 386760,
+      "lang": "en"
+    },
+    {
+      "text": "anywhere from 30 minutes to 2 hours.",
+      "duration": 4480,
+      "offset": 388080,
+      "lang": "en"
+    },
+    {
+      "text": "That is quite long. Um so, of course,",
+      "duration": 3600,
+      "offset": 390360,
+      "lang": "en"
+    },
+    {
+      "text": "you know, if you walk away from your",
+      "duration": 3320,
+      "offset": 392560,
+      "lang": "en"
+    },
+    {
+      "text": "computer, just make sure not to refresh",
+      "duration": 3920,
+      "offset": 393960,
+      "lang": "en"
+    },
+    {
+      "text": "the page or change it. Uh but it",
+      "duration": 3560,
+      "offset": 395880,
+      "lang": "en"
+    },
+    {
+      "text": "shouldn't time out. I've put in a lot of",
+      "duration": 4440,
+      "offset": 397880,
+      "lang": "en"
+    },
+    {
+      "text": "timeout uh consistency things. Uh but if",
+      "duration": 4760,
+      "offset": 399440,
+      "lang": "en"
+    },
+    {
+      "text": "you do, obviously, reach out and let me",
+      "duration": 3200,
+      "offset": 402320,
+      "lang": "en"
+    },
+    {
+      "text": "know, and I'll try to fix it. I'm",
+      "duration": 3280,
+      "offset": 404200,
+      "lang": "en"
+    },
+    {
+      "text": "building this all myself, so give me a",
+      "duration": 3680,
+      "offset": 405520,
+      "lang": "en"
+    },
+    {
+      "text": "little bit of slack if you can.",
+      "duration": 3240,
+      "offset": 407480,
+      "lang": "en"
+    },
+    {
+      "text": "Um and as you can see as it comes",
+      "duration": 2880,
+      "offset": 409200,
+      "lang": "en"
+    },
+    {
+      "text": "towards the end, it should just be",
+      "duration": 3720,
+      "offset": 410720,
+      "lang": "en"
+    },
+    {
+      "text": "finishing up here. And once the final",
+      "duration": 4560,
+      "offset": 412080,
+      "lang": "en"
+    },
+    {
+      "text": "requests and processes are done, it'll",
+      "duration": 4560,
+      "offset": 414440,
+      "lang": "en"
+    },
+    {
+      "text": "tell you the success rate. Uh on larger",
+      "duration": 4800,
+      "offset": 416640,
+      "lang": "en"
+    },
+    {
+      "text": "processes, some things may refuse to",
+      "duration": 4000,
+      "offset": 419000,
+      "lang": "en"
+    },
+    {
+      "text": "response, so there'll be refusals from",
+      "duration": 3760,
+      "offset": 421440,
+      "lang": "en"
+    },
+    {
+      "text": "the model depending on the question. Um",
+      "duration": 3880,
+      "offset": 423000,
+      "lang": "en"
+    },
+    {
+      "text": "there'll be parse errors perhaps solely",
+      "duration": 3360,
+      "offset": 425200,
+      "lang": "en"
+    },
+    {
+      "text": "because I'm using a lot of traditional",
+      "duration": 3760,
+      "offset": 426880,
+      "lang": "en"
+    },
+    {
+      "text": "programming, not AI, to go through this",
+      "duration": 4320,
+      "offset": 428560,
+      "lang": "en"
+    },
+    {
+      "text": "so we can verify the results.",
+      "duration": 3600,
+      "offset": 430640,
+      "lang": "en"
+    },
+    {
+      "text": "Um and you can go through and kind of",
+      "duration": 3360,
+      "offset": 432880,
+      "lang": "en"
+    },
+    {
+      "text": "see statistics, how well they answered,",
+      "duration": 3480,
+      "offset": 434240,
+      "lang": "en"
+    },
+    {
+      "text": "what the items were.",
+      "duration": 4320,
+      "offset": 436240,
+      "lang": "en"
+    },
+    {
+      "text": "Uh you can download a CSV. Um and it'll",
+      "duration": 5280,
+      "offset": 437720,
+      "lang": "en"
+    },
+    {
+      "text": "actually create a large CSV file, or you",
+      "duration": 4680,
+      "offset": 440560,
+      "lang": "en"
+    },
+    {
+      "text": "can download the JSON file, and you'll",
+      "duration": 5280,
+      "offset": 443000,
+      "lang": "en"
+    },
+    {
+      "text": "be able to uh essentially see um all of",
+      "duration": 6480,
+      "offset": 445240,
+      "lang": "en"
+    },
+    {
+      "text": "the data organized very well by name, by",
+      "duration": 7680,
+      "offset": 448280,
+      "lang": "en"
+    },
+    {
+      "text": "process, by time, um by persona, by what",
+      "duration": 6600,
+      "offset": 451720,
+      "lang": "en"
+    },
+    {
+      "text": "they chose on the scale. And uh then you",
+      "duration": 3440,
+      "offset": 455960,
+      "lang": "en"
+    },
+    {
+      "text": "can do whatever you'd like with the",
+      "duration": 2600,
+      "offset": 458320,
+      "lang": "en"
+    },
+    {
+      "text": "data. There's all sorts of research and",
+      "duration": 3080,
+      "offset": 459400,
+      "lang": "en"
+    },
+    {
+      "text": "visualizations, and eventually I'll",
+      "duration": 3720,
+      "offset": 460920,
+      "lang": "en"
+    },
+    {
+      "text": "create automation in here to actually do",
+      "duration": 4360,
+      "offset": 462480,
+      "lang": "en"
+    },
+    {
+      "text": "that for you. Uh but right now, a lot of",
+      "duration": 4240,
+      "offset": 464640,
+      "lang": "en"
+    },
+    {
+      "text": "researchers are just wanting the data.",
+      "duration": 3480,
+      "offset": 466840,
+      "lang": "en"
+    },
+    {
+      "text": "And in the future, I'm going to use all",
+      "duration": 4000,
+      "offset": 468880,
+      "lang": "en"
+    },
+    {
+      "text": "this JSON data to kind of compile into a",
+      "duration": 4360,
+      "offset": 470320,
+      "lang": "en"
+    },
+    {
+      "text": "larger database that other researchers",
+      "duration": 4240,
+      "offset": 472880,
+      "lang": "en"
+    },
+    {
+      "text": "can also query and mess around with.",
+      "duration": 3880,
+      "offset": 474680,
+      "lang": "en"
+    },
+    {
+      "text": "Um and that'll be fun, but that'll take",
+      "duration": 4040,
+      "offset": 477120,
+      "lang": "en"
+    },
+    {
+      "text": "some time. But that is the uh ethics",
+      "duration": 4040,
+      "offset": 478560,
+      "lang": "en"
+    },
+    {
+      "text": "engine. And if you want to get rid of",
+      "duration": 2680,
+      "offset": 481160,
+      "lang": "en"
+    },
+    {
+      "text": "all of that, you just simply hit",
+      "duration": 2880,
+      "offset": 482600,
+      "lang": "en"
+    },
+    {
+      "text": "refresh. It is stateless. It doesn't",
+      "duration": 3880,
+      "offset": 483840,
+      "lang": "en"
+    },
+    {
+      "text": "save any personal information about you.",
+      "duration": 3840,
+      "offset": 485480,
+      "lang": "en"
+    },
+    {
+      "text": "Um and if you want any more information",
+      "duration": 3280,
+      "offset": 487720,
+      "lang": "en"
+    },
+    {
+      "text": "on it, uh the GitHub is right there in",
+      "duration": 3520,
+      "offset": 489320,
+      "lang": "en"
+    },
+    {
+      "text": "the link. That goes deeper where you can",
+      "duration": 3360,
+      "offset": 491000,
+      "lang": "en"
+    },
+    {
+      "text": "actually dive into the logic of the",
+      "duration": 3720,
+      "offset": 492840,
+      "lang": "en"
+    },
+    {
+      "text": "front end and the back end, um as well",
+      "duration": 4880,
+      "offset": 494360,
+      "lang": "en"
+    },
+    {
+      "text": "as my original PRD and kind of Claude MD",
+      "duration": 4800,
+      "offset": 496560,
+      "lang": "en"
+    },
+    {
+      "text": "styles for it, why why I chose what I",
+      "duration": 3160,
+      "offset": 499240,
+      "lang": "en"
+    },
+    {
+      "text": "chose.",
+      "duration": 2600,
+      "offset": 501360,
+      "lang": "en"
+    },
+    {
+      "text": "Thank you so much. Again, if you want to",
+      "duration": 3280,
+      "offset": 502400,
+      "lang": "en"
+    },
+    {
+      "text": "read the paper, want to dive into it,",
+      "duration": 5600,
+      "offset": 503960,
+      "lang": "en"
+    },
+    {
+      "text": "it's all there. I hope this is helpful.",
+      "duration": 3880,
+      "offset": 505680,
+      "lang": "en"
+    }
+  ]
+}

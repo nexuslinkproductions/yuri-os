@@ -1,216 +1,276 @@
-import { useState, useEffect } from 'react';
-import { NavLink, useLocation, Link } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
-import Button from './ui/Button';
-import MobileMenuDrawer from './MobileMenuDrawer';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+
+const wordmarkLogo = new URL('../../05_NEXUS-LINK/Identity/NLP LOGO/wordmark light nexus.svg', import.meta.url).href;
 
 const navLinks = [
+  { label: 'Home', to: '/' },
   { label: 'Work', to: '/work' },
   { label: 'Services', to: '/services' },
   { label: 'About', to: '/about' },
-  { label: 'Showreel', to: '/showreel' },
   { label: 'Contact', to: '/contact' },
 ];
+
+function prefetchRoute(path: string) {
+  window.dispatchEvent(new CustomEvent('nexus-route-intent', { detail: { path } }));
+}
 
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 80);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
+    setScanning(true);
+    const t = setTimeout(() => setScanning(false), 520);
+    return () => clearTimeout(t);
   }, [location.pathname]);
 
   return (
     <>
-      <header
-        className="navigation"
+      {/* Route-change crimson scan line */}
+      <AnimatePresence>
+        {scanning && (
+          <motion.div
+            key="scan"
+            initial={{ scaleX: 0, originX: 0 }}
+            animate={{ scaleX: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 1,
+              background: 'var(--color-crimson)',
+              zIndex: 9998,
+              pointerEvents: 'none',
+              boxShadow: '0 0 8px var(--color-crimson-glow)',
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <motion.header
+        className="navigation-shell"
+        initial={{ y: -28, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 72,
-          zIndex: 100,
+          top: 16,
+          left: '50%',
+          zIndex: 'var(--z-nav)',
+          width: 'min(1120px, calc(100vw - 32px))',
+          transform: 'translateX(-50%)',
           display: 'flex',
           alignItems: 'center',
-          padding: '0 24px',
-          backgroundColor: scrolled ? 'rgba(10,10,15,0.92)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(20px)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none',
-          transition: 'background-color 300ms ease, backdrop-filter 300ms ease',
-          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+          gap: 18,
+          minHeight: 60,
+          padding: '8px 10px 8px 18px',
+          border: `1px solid ${scrolled ? 'var(--color-border-default)' : 'var(--color-border-void)'}`,
+          borderRadius: 'var(--radius-full)',
+          background: scrolled ? 'rgba(12, 12, 20, 0.74)' : 'rgba(12, 12, 20, 0.28)',
+          backdropFilter: 'blur(22px)',
+          WebkitBackdropFilter: 'blur(22px)',
+          boxShadow: scrolled ? '0 24px 80px rgba(0,0,0,0.32)' : 'none',
         }}
       >
-        {/* Logo + Wordmark */}
-        <NavLink
+        <Link
           to="/"
+          data-magnetic
+          onMouseEnter={() => prefetchRoute('/')}
+          className="magnetic-link"
+          aria-label="Nexus Link Productions home"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            textDecoration: 'none',
             flexShrink: 0,
+            color: 'var(--color-text-primary)',
+            fontFamily: 'var(--font-display)',
+            fontSize: 14,
+            fontWeight: 900,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            lineHeight: 1,
           }}
         >
-          <img
-            src="/src/assets/nudimmud-logo.svg"
-            alt="Nexus Link Productions"
-            height={28}
-            style={{ display: 'block' }}
-          />
-          <span
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 600,
-              fontSize: 14,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              color: '#e2e8f0',
-              lineHeight: 1,
-            }}
-          >
-            NEXUS LINK
-          </span>
-        </NavLink>
+          <img className="navigation-wordmark" src={wordmarkLogo} alt="Nexus Link Productions" />
+        </Link>
 
-        {/* Desktop nav links */}
-        <nav
-          className="navigation__desktop-links"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 32,
-            margin: '0 auto',
-          }}
-        >
+        <nav className="navigation-links" aria-label="Main navigation">
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
-              className="navigation__link"
+              data-magnetic
+              onMouseEnter={() => prefetchRoute(link.to)}
+              className="magnetic-link navigation-link"
               style={({ isActive }) => ({
-                position: 'relative',
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontWeight: 500,
-                fontSize: 13,
-                letterSpacing: '0.05em',
+                minHeight: 36,
+                padding: '0 14px',
+                borderRadius: 'var(--radius-full)',
+                color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                background: isActive ? 'rgba(220,38,38,0.12)' : 'transparent',
+                border: isActive ? '1px solid var(--color-crimson-border)' : '1px solid transparent',
+                fontFamily: 'var(--font-display)',
+                fontSize: 11,
+                fontWeight: 750,
+                letterSpacing: '0.11em',
                 textTransform: 'uppercase',
-                color: isActive ? '#dc2626' : '#cbd5e1',
-                textDecoration: 'none',
-                padding: '6px 0',
-                transition: 'color 200ms ease',
               })}
             >
-              {({ isActive }) => (
-                <>
-                  {link.label}
-                  {/* Animated underline */}
-                  <span
-                    className="navigation__link-underline"
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: isActive ? '100%' : 0,
-                      height: 2,
-                      backgroundColor: '#dc2626',
-                      borderRadius: 1,
-                      transition: 'width 200ms ease',
-                    }}
-                  />
-                  {/* Active dot indicator */}
-                  {isActive && (
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        width: 5,
-                        height: 5,
-                        borderRadius: '50%',
-                        backgroundColor: '#dc2626',
-                        marginLeft: 6,
-                        verticalAlign: 'middle',
-                        position: 'relative',
-                        top: -1,
-                      }}
-                    />
-                  )}
-                </>
-              )}
+              {link.label}
             </NavLink>
           ))}
         </nav>
 
-        {/* Desktop CTA */}
-        <div className="navigation__desktop-cta" style={{ flexShrink: 0 }}>
-          <Link to="/contact" style={{ textDecoration: 'none' }}>
-            <Button variant="pill">
-              Start a Project
-            </Button>
-          </Link>
-        </div>
+        <Link
+          to="/contact"
+          data-magnetic
+          onMouseEnter={() => prefetchRoute('/contact')}
+          className="magnetic-link cta-button cta-button--primary navigation-cta"
+          style={{ marginLeft: 'auto' }}
+        >
+          Start a Project
+        </Link>
 
-        {/* Mobile hamburger */}
         <button
-          className="navigation__hamburger"
-          onClick={() => setMobileOpen(true)}
+          data-magnetic
+          className="magnetic-link navigation-menu"
+          type="button"
           aria-label="Open menu"
+          onClick={() => setMobileOpen(true)}
           style={{
             display: 'none',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: 8,
-            color: '#e2e8f0',
-            flexShrink: 0,
+            marginLeft: 'auto',
+            width: 42,
+            height: 42,
+            border: '1px solid var(--color-border-default)',
+            borderRadius: 'var(--radius-full)',
+            color: 'var(--color-text-primary)',
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="3" y1="7" x2="21" y2="7" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="17" x2="21" y2="17" />
-          </svg>
+          <span style={{ width: 16, height: 1, background: 'currentColor', boxShadow: '0 6px 0 currentColor, 0 -6px 0 currentColor' }} />
         </button>
-      </header>
+      </motion.header>
 
-      {/* Mobile menu drawer */}
-      <MobileMenuDrawer isOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            className="mobile-nav"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9000,
+              background: 'rgba(12, 12, 20, 0.86)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              padding: 24,
+            }}
+          >
+            <div className="depth-panel" style={{ minHeight: 'calc(100vh - 48px)', padding: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 48 }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, letterSpacing: '0.16em' }}>NEXUS LINK</span>
+                <button
+                  type="button"
+                  data-magnetic
+                  className="magnetic-link"
+                  onClick={() => setMobileOpen(false)}
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 'var(--radius-full)',
+                    border: '1px solid var(--color-border-default)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  X
+                </button>
+              </div>
+              <nav style={{ display: 'grid', gap: 12 }}>
+                {navLinks.map((link, i) => (
+                  <motion.div
+                    key={link.to}
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                  >
+                    <NavLink
+                      to={link.to}
+                      data-magnetic
+                      className="magnetic-link"
+                      style={({ isActive }) => ({
+                        width: '100%',
+                        justifyContent: 'space-between',
+                        padding: '18px 0',
+                        borderBottom: '1px solid var(--color-border-subtle)',
+                        color: isActive ? 'var(--color-crimson)' : 'var(--color-text-primary)',
+                        fontFamily: 'var(--font-display)',
+                        fontSize: 'clamp(28px, 10vw, 54px)',
+                        fontWeight: 850,
+                        letterSpacing: 0,
+                      })}
+                    >
+                      {link.label}
+                      <span style={{ fontSize: 14 }}>-&gt;</span>
+                    </NavLink>
+                  </motion.div>
+                ))}
+              </nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style>{`
-        @media (max-width: 767px) {
-          .navigation__desktop-links,
-          .navigation__desktop-cta {
+        .navigation-links {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          margin-left: auto;
+        }
+
+        .navigation-wordmark {
+          width: clamp(112px, 10vw, 158px);
+          height: auto;
+          opacity: 0.92;
+          filter: drop-shadow(0 0 16px rgba(220,38,38,0.12));
+        }
+
+        .navigation-link:hover {
+          color: var(--color-text-primary) !important;
+          background: rgba(255,255,255,0.055) !important;
+        }
+
+        @media (max-width: 860px) {
+          .navigation-shell {
+            top: 10px !important;
+            min-height: 56px !important;
+          }
+
+          .navigation-links,
+          .navigation-cta {
             display: none !important;
           }
-          .navigation__hamburger {
-            display: block !important;
-            margin-left: auto;
+
+          .navigation-menu {
+            display: inline-flex !important;
           }
-          .navigation {
-            padding: 0 16px !important;
-          }
-        }
-        @media (min-width: 768px) {
-          .navigation__hamburger {
-            display: none !important;
-          }
-        }
-        .navigation__link:hover {
-          color: #22d3ee !important;
-        }
-        .navigation__link:hover .navigation__link-underline {
-          width: 100% !important;
         }
       `}</style>
     </>

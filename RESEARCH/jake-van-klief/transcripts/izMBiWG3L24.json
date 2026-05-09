@@ -1,0 +1,1944 @@
+{
+  "videoId": "izMBiWG3L24",
+  "title": "SVG to React: Illustrator to Web Animations",
+  "segments": [
+    {
+      "text": "Okay, so this video is going to be",
+      "duration": 3200,
+      "offset": 719,
+      "lang": "en"
+    },
+    {
+      "text": "relatively quick, but kind of",
+      "duration": 3519,
+      "offset": 2320,
+      "lang": "en"
+    },
+    {
+      "text": "interesting. My buddy needed a website",
+      "duration": 3920,
+      "offset": 3919,
+      "lang": "en"
+    },
+    {
+      "text": "for his story board he made. He also",
+      "duration": 3921,
+      "offset": 5839,
+      "lang": "en"
+    },
+    {
+      "text": "wanted custom animated characters that",
+      "duration": 4321,
+      "offset": 7839,
+      "lang": "en"
+    },
+    {
+      "text": "look like this built into the website.",
+      "duration": 3999,
+      "offset": 9760,
+      "lang": "en"
+    },
+    {
+      "text": "So, as you're scrolling, it looks all",
+      "duration": 3840,
+      "offset": 12160,
+      "lang": "en"
+    },
+    {
+      "text": "nice. He's telling his story board, but",
+      "duration": 4401,
+      "offset": 13759,
+      "lang": "en"
+    },
+    {
+      "text": "also scattered throughout it, you have",
+      "duration": 3840,
+      "offset": 16000,
+      "lang": "en"
+    },
+    {
+      "text": "these characters that you get to jump",
+      "duration": 3119,
+      "offset": 18160,
+      "lang": "en"
+    },
+    {
+      "text": "into, and that they have these little",
+      "duration": 3359,
+      "offset": 19840,
+      "lang": "en"
+    },
+    {
+      "text": "animations, micro expressions. They're",
+      "duration": 3361,
+      "offset": 21279,
+      "lang": "en"
+    },
+    {
+      "text": "kind of hanging out with each other,",
+      "duration": 3361,
+      "offset": 23199,
+      "lang": "en"
+    },
+    {
+      "text": "right? They're able to almost react to",
+      "duration": 3760,
+      "offset": 24640,
+      "lang": "en"
+    },
+    {
+      "text": "each other in their own way. And then he",
+      "duration": 3360,
+      "offset": 26560,
+      "lang": "en"
+    },
+    {
+      "text": "also wanted to be able to have a full",
+      "duration": 3920,
+      "offset": 28400,
+      "lang": "en"
+    },
+    {
+      "text": "video embedded into the website where",
+      "duration": 3840,
+      "offset": 29920,
+      "lang": "en"
+    },
+    {
+      "text": "you know he can actually go through and",
+      "duration": 3280,
+      "offset": 32320,
+      "lang": "en"
+    },
+    {
+      "text": "show each of these characters in their",
+      "duration": 3840,
+      "offset": 33760,
+      "lang": "en"
+    },
+    {
+      "text": "own animated way. And there's of course",
+      "duration": 4320,
+      "offset": 35600,
+      "lang": "en"
+    },
+    {
+      "text": "you know quite a few here. He also had a",
+      "duration": 4000,
+      "offset": 37600,
+      "lang": "en"
+    },
+    {
+      "text": "professor who he was doing this for.",
+      "duration": 3440,
+      "offset": 39920,
+      "lang": "en"
+    },
+    {
+      "text": "this is for school work that wanted to",
+      "duration": 3760,
+      "offset": 41600,
+      "lang": "en"
+    },
+    {
+      "text": "know if there were ways in which AI",
+      "duration": 3760,
+      "offset": 43360,
+      "lang": "en"
+    },
+    {
+      "text": "could automate some of these processes",
+      "duration": 3359,
+      "offset": 45360,
+      "lang": "en"
+    },
+    {
+      "text": "because the professor is not against AI",
+      "duration": 3759,
+      "offset": 47120,
+      "lang": "en"
+    },
+    {
+      "text": "but he also really loves design and he",
+      "duration": 4160,
+      "offset": 48719,
+      "lang": "en"
+    },
+    {
+      "text": "didn't really believe you could have AI",
+      "duration": 4081,
+      "offset": 50879,
+      "lang": "en"
+    },
+    {
+      "text": "generate these type of editable",
+      "duration": 4481,
+      "offset": 52879,
+      "lang": "en"
+    },
+    {
+      "text": "animations that were something that you",
+      "duration": 4079,
+      "offset": 54960,
+      "lang": "en"
+    },
+    {
+      "text": "could iterate on that you could organize",
+      "duration": 3760,
+      "offset": 57360,
+      "lang": "en"
+    },
+    {
+      "text": "and really create something clean based",
+      "duration": 4481,
+      "offset": 59039,
+      "lang": "en"
+    },
+    {
+      "text": "off of original Adobe Illustrator files.",
+      "duration": 4480,
+      "offset": 61120,
+      "lang": "en"
+    },
+    {
+      "text": "I obviously took that as a challenge and",
+      "duration": 5040,
+      "offset": 63520,
+      "lang": "en"
+    },
+    {
+      "text": "here's essentially how I did it. Uh both",
+      "duration": 4400,
+      "offset": 65600,
+      "lang": "en"
+    },
+    {
+      "text": "I'm going to show you what I used and",
+      "duration": 4239,
+      "offset": 68560,
+      "lang": "en"
+    },
+    {
+      "text": "then dive into the actual process uh and",
+      "duration": 5680,
+      "offset": 70000,
+      "lang": "en"
+    },
+    {
+      "text": "why I did it. Now this all started with",
+      "duration": 6081,
+      "offset": 72799,
+      "lang": "en"
+    },
+    {
+      "text": "my buddy's uh Adobe Illustrator actual",
+      "duration": 4880,
+      "offset": 75680,
+      "lang": "en"
+    },
+    {
+      "text": "storyboard that he was doing for class.",
+      "duration": 2960,
+      "offset": 78880,
+      "lang": "en"
+    },
+    {
+      "text": "And he actually went through and",
+      "duration": 3280,
+      "offset": 80560,
+      "lang": "en"
+    },
+    {
+      "text": "handdesigned all of these, placed them,",
+      "duration": 3840,
+      "offset": 81840,
+      "lang": "en"
+    },
+    {
+      "text": "did all the, you know, specific designs",
+      "duration": 4639,
+      "offset": 83840,
+      "lang": "en"
+    },
+    {
+      "text": "for it. And uh he sent me the file and",
+      "duration": 4160,
+      "offset": 85680,
+      "lang": "en"
+    },
+    {
+      "text": "was like, \"Hey, you know, can you",
+      "duration": 2640,
+      "offset": 88479,
+      "lang": "en"
+    },
+    {
+      "text": "animate these?\" And I'm like, \"Heck",
+      "duration": 3040,
+      "offset": 89840,
+      "lang": "en"
+    },
+    {
+      "text": "yeah, I would love to animate this.\" And",
+      "duration": 3201,
+      "offset": 91119,
+      "lang": "en"
+    },
+    {
+      "text": "then he came over to my house and we",
+      "duration": 3440,
+      "offset": 92880,
+      "lang": "en"
+    },
+    {
+      "text": "ended up working together on it. Uh, we",
+      "duration": 3600,
+      "offset": 94320,
+      "lang": "en"
+    },
+    {
+      "text": "had to kind of re label some of this",
+      "duration": 3119,
+      "offset": 96320,
+      "lang": "en"
+    },
+    {
+      "text": "stuff. So, we had to come in and",
+      "duration": 4159,
+      "offset": 97920,
+      "lang": "en"
+    },
+    {
+      "text": "actually label left iris, right iris,",
+      "duration": 5281,
+      "offset": 99439,
+      "lang": "en"
+    },
+    {
+      "text": "left eye, right eye, eyebrow left,",
+      "duration": 5841,
+      "offset": 102079,
+      "lang": "en"
+    },
+    {
+      "text": "eyebrow right because I knew that the AI",
+      "duration": 5920,
+      "offset": 104720,
+      "lang": "en"
+    },
+    {
+      "text": "was going to look for those specific",
+      "duration": 4800,
+      "offset": 107920,
+      "lang": "en"
+    },
+    {
+      "text": "indicators without knowing, you know,",
+      "duration": 3360,
+      "offset": 110640,
+      "lang": "en"
+    },
+    {
+      "text": "it's not necessarily going to see the",
+      "duration": 2560,
+      "offset": 112720,
+      "lang": "en"
+    },
+    {
+      "text": "image all the time. It's able to do",
+      "duration": 2640,
+      "offset": 114000,
+      "lang": "en"
+    },
+    {
+      "text": "that, right? It can take screenshots,",
+      "duration": 2879,
+      "offset": 115280,
+      "lang": "en"
+    },
+    {
+      "text": "but that's just a step I didn't want it",
+      "duration": 3600,
+      "offset": 116640,
+      "lang": "en"
+    },
+    {
+      "text": "to take. I wanted it to know right away",
+      "duration": 4721,
+      "offset": 118159,
+      "lang": "en"
+    },
+    {
+      "text": "which character was which, where the SVG",
+      "duration": 4960,
+      "offset": 120240,
+      "lang": "en"
+    },
+    {
+      "text": "was in that, you know, aspect. And then",
+      "duration": 4559,
+      "offset": 122880,
+      "lang": "en"
+    },
+    {
+      "text": "I also downloaded the entire storyboard",
+      "duration": 6160,
+      "offset": 125200,
+      "lang": "en"
+    },
+    {
+      "text": "as a uh SVG so that we could you know",
+      "duration": 5440,
+      "offset": 127439,
+      "lang": "en"
+    },
+    {
+      "text": "access it and whatnot which you can",
+      "duration": 3920,
+      "offset": 131360,
+      "lang": "en"
+    },
+    {
+      "text": "actually see right here right um so it's",
+      "duration": 4720,
+      "offset": 132879,
+      "lang": "en"
+    },
+    {
+      "text": "just a big you know essentially HTML",
+      "duration": 4560,
+      "offset": 135280,
+      "lang": "en"
+    },
+    {
+      "text": "file this is an SVG file but same same",
+      "duration": 4481,
+      "offset": 137599,
+      "lang": "en"
+    },
+    {
+      "text": "but different um so that it was easier",
+      "duration": 4960,
+      "offset": 139840,
+      "lang": "en"
+    },
+    {
+      "text": "for the AI to work with as well so first",
+      "duration": 5200,
+      "offset": 142080,
+      "lang": "en"
+    },
+    {
+      "text": "things first I needed to go ahead and",
+      "duration": 4480,
+      "offset": 144800,
+      "lang": "en"
+    },
+    {
+      "text": "get two different GitHub libraries the",
+      "duration": 6080,
+      "offset": 147280,
+      "lang": "en"
+    },
+    {
+      "text": "first one is uh UX or sorry Remotion",
+      "duration": 5599,
+      "offset": 149280,
+      "lang": "en"
+    },
+    {
+      "text": "um",
+      "duration": 3120,
+      "offset": 153360,
+      "lang": "en"
+    },
+    {
+      "text": "skill",
+      "duration": 6161,
+      "offset": 154879,
+      "lang": "en"
+    },
+    {
+      "text": "which is basically remotion is a library",
+      "duration": 7759,
+      "offset": 156480,
+      "lang": "en"
+    },
+    {
+      "text": "that allows you to create react",
+      "duration": 5839,
+      "offset": 161040,
+      "lang": "en"
+    },
+    {
+      "text": "animations programmatically right they",
+      "duration": 4801,
+      "offset": 164239,
+      "lang": "en"
+    },
+    {
+      "text": "came out with a kind of process that",
+      "duration": 4241,
+      "offset": 166879,
+      "lang": "en"
+    },
+    {
+      "text": "allows you to create animations in",
+      "duration": 3279,
+      "offset": 169040,
+      "lang": "en"
+    },
+    {
+      "text": "different ways and if you've seen any of",
+      "duration": 3199,
+      "offset": 171120,
+      "lang": "en"
+    },
+    {
+      "text": "my other videos you know I use this",
+      "duration": 4560,
+      "offset": 172319,
+      "lang": "en"
+    },
+    {
+      "text": "library a lot it's very useful you can",
+      "duration": 4560,
+      "offset": 174319,
+      "lang": "en"
+    },
+    {
+      "text": "create JavaScript and React things to",
+      "duration": 4561,
+      "offset": 176879,
+      "lang": "en"
+    },
+    {
+      "text": "create pretty amazing animations right",
+      "duration": 4561,
+      "offset": 178879,
+      "lang": "en"
+    },
+    {
+      "text": "uh that's how we actually created all of",
+      "duration": 3600,
+      "offset": 181440,
+      "lang": "en"
+    },
+    {
+      "text": "these, which I'll go into detail here",
+      "duration": 3360,
+      "offset": 183440,
+      "lang": "en"
+    },
+    {
+      "text": "shortly. Uh, and it can do a lot more",
+      "duration": 3279,
+      "offset": 185040,
+      "lang": "en"
+    },
+    {
+      "text": "than just those animations. It can do",
+      "duration": 3040,
+      "offset": 186800,
+      "lang": "en"
+    },
+    {
+      "text": "whole scenes and whatnot",
+      "duration": 4640,
+      "offset": 188319,
+      "lang": "en"
+    },
+    {
+      "text": "programmatically using front-end code,",
+      "duration": 6080,
+      "offset": 189840,
+      "lang": "en"
+    },
+    {
+      "text": "which AI is very good at writing, right?",
+      "duration": 5521,
+      "offset": 192959,
+      "lang": "en"
+    },
+    {
+      "text": "So, the way in which I actually decided",
+      "duration": 4880,
+      "offset": 195920,
+      "lang": "en"
+    },
+    {
+      "text": "to build on that and make it cleaner so",
+      "duration": 4000,
+      "offset": 198480,
+      "lang": "en"
+    },
+    {
+      "text": "that it would be a clean website and",
+      "duration": 3920,
+      "offset": 200800,
+      "lang": "en"
+    },
+    {
+      "text": "rather not look as crazy or vibecoded or",
+      "duration": 4560,
+      "offset": 202480,
+      "lang": "en"
+    },
+    {
+      "text": "at least just really amplify, you know,",
+      "duration": 4560,
+      "offset": 204720,
+      "lang": "en"
+    },
+    {
+      "text": "his storyboard that he has here. or this",
+      "duration": 3680,
+      "offset": 207040,
+      "lang": "en"
+    },
+    {
+      "text": "looks a little bit viodated, so I'm",
+      "duration": 2640,
+      "offset": 209280,
+      "lang": "en"
+    },
+    {
+      "text": "going to change some of the fonts and",
+      "duration": 5760,
+      "offset": 210720,
+      "lang": "en"
+    },
+    {
+      "text": "stuff. Um, is something called the uh",
+      "duration": 8879,
+      "offset": 211920,
+      "lang": "en"
+    },
+    {
+      "text": "UIUX Pro skill. Um, this is an amazing",
+      "duration": 6800,
+      "offset": 216480,
+      "lang": "en"
+    },
+    {
+      "text": "library skill that I think everyone",
+      "duration": 4641,
+      "offset": 220799,
+      "lang": "en"
+    },
+    {
+      "text": "needs to get for their Claude. Uh,",
+      "duration": 3920,
+      "offset": 223280,
+      "lang": "en"
+    },
+    {
+      "text": "basically it's a skill that helps it",
+      "duration": 3280,
+      "offset": 225440,
+      "lang": "en"
+    },
+    {
+      "text": "design what the front end should look",
+      "duration": 2959,
+      "offset": 227200,
+      "lang": "en"
+    },
+    {
+      "text": "like, what a website should look like.",
+      "duration": 3200,
+      "offset": 228720,
+      "lang": "en"
+    },
+    {
+      "text": "It goes through a whole process. They",
+      "duration": 3440,
+      "offset": 230159,
+      "lang": "en"
+    },
+    {
+      "text": "have it all built in here and it's quite",
+      "duration": 4239,
+      "offset": 231920,
+      "lang": "en"
+    },
+    {
+      "text": "nice. I use it a lot. Um, it's just it's",
+      "duration": 4720,
+      "offset": 233599,
+      "lang": "en"
+    },
+    {
+      "text": "just easier to catch it up and use the",
+      "duration": 4481,
+      "offset": 236159,
+      "lang": "en"
+    },
+    {
+      "text": "skill rather than have to prompt Claude",
+      "duration": 4161,
+      "offset": 238319,
+      "lang": "en"
+    },
+    {
+      "text": "so much to get it even close to what I",
+      "duration": 3679,
+      "offset": 240640,
+      "lang": "en"
+    },
+    {
+      "text": "want. Uh, this really gets it closer",
+      "duration": 4399,
+      "offset": 242480,
+      "lang": "en"
+    },
+    {
+      "text": "there. So, these two uh, GitHub repos",
+      "duration": 5200,
+      "offset": 244319,
+      "lang": "en"
+    },
+    {
+      "text": "are a requirement. Obviously, um, you're",
+      "duration": 4560,
+      "offset": 246879,
+      "lang": "en"
+    },
+    {
+      "text": "going to want Claude. You can use Claude",
+      "duration": 4881,
+      "offset": 249519,
+      "lang": "en"
+    },
+    {
+      "text": "code inside of the app. Personally, for",
+      "duration": 5920,
+      "offset": 251439,
+      "lang": "en"
+    },
+    {
+      "text": "me, I really love Claude inside of VS",
+      "duration": 5679,
+      "offset": 254400,
+      "lang": "en"
+    },
+    {
+      "text": "Code. Um, right, just being able to sit",
+      "duration": 5201,
+      "offset": 257359,
+      "lang": "en"
+    },
+    {
+      "text": "here. I can actually go through and",
+      "duration": 5201,
+      "offset": 260079,
+      "lang": "en"
+    },
+    {
+      "text": "let's say um we're looking at these,",
+      "duration": 5040,
+      "offset": 262560,
+      "lang": "en"
+    },
+    {
+      "text": "right? These characters. I can click and",
+      "duration": 4320,
+      "offset": 265280,
+      "lang": "en"
+    },
+    {
+      "text": "see them right there. These are the SVGs",
+      "duration": 4000,
+      "offset": 267600,
+      "lang": "en"
+    },
+    {
+      "text": "we downloaded from his Adobe",
+      "duration": 3440,
+      "offset": 269600,
+      "lang": "en"
+    },
+    {
+      "text": "Illustrator, which I'll show in a",
+      "duration": 3280,
+      "offset": 271600,
+      "lang": "en"
+    },
+    {
+      "text": "second. And it just becomes easier to",
+      "duration": 5040,
+      "offset": 273040,
+      "lang": "en"
+    },
+    {
+      "text": "actually talk with and work with the AI",
+      "duration": 5440,
+      "offset": 274880,
+      "lang": "en"
+    },
+    {
+      "text": "on building things and actually asking",
+      "duration": 4559,
+      "offset": 278080,
+      "lang": "en"
+    },
+    {
+      "text": "like, okay, like here I'm specifically",
+      "duration": 5120,
+      "offset": 280320,
+      "lang": "en"
+    },
+    {
+      "text": "saying, use the UI UX skill to redesign.",
+      "duration": 5041,
+      "offset": 282639,
+      "lang": "en"
+    },
+    {
+      "text": "I had made a version of the website",
+      "duration": 4720,
+      "offset": 285440,
+      "lang": "en"
+    },
+    {
+      "text": "myself before. Um, you could have Claude",
+      "duration": 4880,
+      "offset": 287680,
+      "lang": "en"
+    },
+    {
+      "text": "do it. And I wanted the UIUX to kind of",
+      "duration": 5039,
+      "offset": 290160,
+      "lang": "en"
+    },
+    {
+      "text": "redesign what it was. But again, just,",
+      "duration": 4880,
+      "offset": 292560,
+      "lang": "en"
+    },
+    {
+      "text": "you know, you don't have to use this",
+      "duration": 4081,
+      "offset": 295199,
+      "lang": "en"
+    },
+    {
+      "text": "IDE. You don't have to use VS Code.",
+      "duration": 3840,
+      "offset": 297440,
+      "lang": "en"
+    },
+    {
+      "text": "Again, I have installation instructions",
+      "duration": 4240,
+      "offset": 299280,
+      "lang": "en"
+    },
+    {
+      "text": "on how to use Claude Code with this. Go",
+      "duration": 3840,
+      "offset": 301280,
+      "lang": "en"
+    },
+    {
+      "text": "check that video out. But I just wanted",
+      "duration": 3679,
+      "offset": 303520,
+      "lang": "en"
+    },
+    {
+      "text": "to share that. From there, I just had a",
+      "duration": 3680,
+      "offset": 305120,
+      "lang": "en"
+    },
+    {
+      "text": "whole bunch of conversations with it,",
+      "duration": 4081,
+      "offset": 307199,
+      "lang": "en"
+    },
+    {
+      "text": "right? I I kept saying, \"Hey, let's take",
+      "duration": 4959,
+      "offset": 308800,
+      "lang": "en"
+    },
+    {
+      "text": "these individual SVGs and create some",
+      "duration": 4639,
+      "offset": 311280,
+      "lang": "en"
+    },
+    {
+      "text": "animations out of it.\" We kind of worked",
+      "duration": 4561,
+      "offset": 313759,
+      "lang": "en"
+    },
+    {
+      "text": "back and forth. We made a couple little",
+      "duration": 4161,
+      "offset": 315919,
+      "lang": "en"
+    },
+    {
+      "text": "designs here or there, just a really",
+      "duration": 4000,
+      "offset": 318320,
+      "lang": "en"
+    },
+    {
+      "text": "long conversation, and then, you know,",
+      "duration": 4080,
+      "offset": 320080,
+      "lang": "en"
+    },
+    {
+      "text": "what I did like, what I didn't like, and",
+      "duration": 3120,
+      "offset": 322320,
+      "lang": "en"
+    },
+    {
+      "text": "it's just editing it. And what it's",
+      "duration": 4240,
+      "offset": 324160,
+      "lang": "en"
+    },
+    {
+      "text": "doing is it's taking these SVGs, right?",
+      "duration": 5840,
+      "offset": 325440,
+      "lang": "en"
+    },
+    {
+      "text": "And it's actually um adding them because",
+      "duration": 4880,
+      "offset": 328400,
+      "lang": "en"
+    },
+    {
+      "text": "of the reotion skill and how remotion",
+      "duration": 5120,
+      "offset": 331280,
+      "lang": "en"
+    },
+    {
+      "text": "works into these kind of components and",
+      "duration": 5440,
+      "offset": 333280,
+      "lang": "en"
+    },
+    {
+      "text": "these processes, right? So like the",
+      "duration": 5280,
+      "offset": 336400,
+      "lang": "en"
+    },
+    {
+      "text": "scene for the emotions showcase that you",
+      "duration": 5199,
+      "offset": 338720,
+      "lang": "en"
+    },
+    {
+      "text": "see here",
+      "duration": 8160,
+      "offset": 341680,
+      "lang": "en"
+    },
+    {
+      "text": "here wait no here here this scene is all",
+      "duration": 7761,
+      "offset": 343919,
+      "lang": "en"
+    },
+    {
+      "text": "react and frontend code right that's",
+      "duration": 3680,
+      "offset": 349840,
+      "lang": "en"
+    },
+    {
+      "text": "that's how it's being built and it's all",
+      "duration": 4079,
+      "offset": 351680,
+      "lang": "en"
+    },
+    {
+      "text": "right here but this scene is also",
+      "duration": 5280,
+      "offset": 353520,
+      "lang": "en"
+    },
+    {
+      "text": "referencing other emotions and data",
+      "duration": 4720,
+      "offset": 355759,
+      "lang": "en"
+    },
+    {
+      "text": "right so like when it references a",
+      "duration": 4000,
+      "offset": 358800,
+      "lang": "en"
+    },
+    {
+      "text": "certain character or it's pulling in a",
+      "duration": 4321,
+      "offset": 360479,
+      "lang": "en"
+    },
+    {
+      "text": "character it's actually pulling them",
+      "duration": 4080,
+      "offset": 362800,
+      "lang": "en"
+    },
+    {
+      "text": "from components right like our",
+      "duration": 4239,
+      "offset": 364800,
+      "lang": "en"
+    },
+    {
+      "text": "characters. So like what is the head and",
+      "duration": 3920,
+      "offset": 366880,
+      "lang": "en"
+    },
+    {
+      "text": "the colors of each one? What are the",
+      "duration": 3361,
+      "offset": 369039,
+      "lang": "en"
+    },
+    {
+      "text": "emotion profiles? When are they",
+      "duration": 3920,
+      "offset": 370800,
+      "lang": "en"
+    },
+    {
+      "text": "blinking? What is the iris speed for",
+      "duration": 4239,
+      "offset": 372400,
+      "lang": "en"
+    },
+    {
+      "text": "each one? Right? Here's the joy. Here's",
+      "duration": 3919,
+      "offset": 374720,
+      "lang": "en"
+    },
+    {
+      "text": "the smooth. So all of this stays",
+      "duration": 3680,
+      "offset": 376639,
+      "lang": "en"
+    },
+    {
+      "text": "editable. And this is the most important",
+      "duration": 4881,
+      "offset": 378639,
+      "lang": "en"
+    },
+    {
+      "text": "part. This entire folder structure now",
+      "duration": 7281,
+      "offset": 380319,
+      "lang": "en"
+    },
+    {
+      "text": "becomes my app for editing videos. I was",
+      "duration": 6560,
+      "offset": 383520,
+      "lang": "en"
+    },
+    {
+      "text": "able to pull out of Adobe Illustrator or",
+      "duration": 5280,
+      "offset": 387600,
+      "lang": "en"
+    },
+    {
+      "text": "any of these apps and start editing",
+      "duration": 4959,
+      "offset": 390080,
+      "lang": "en"
+    },
+    {
+      "text": "videos or websites or anything like",
+      "duration": 4960,
+      "offset": 392880,
+      "lang": "en"
+    },
+    {
+      "text": "that. Oh gosh, I have so many tabs. I'm",
+      "duration": 4641,
+      "offset": 395039,
+      "lang": "en"
+    },
+    {
+      "text": "so sorry everyone. This is all over the",
+      "duration": 4560,
+      "offset": 397840,
+      "lang": "en"
+    },
+    {
+      "text": "place.",
+      "duration": 6239,
+      "offset": 399680,
+      "lang": "en"
+    },
+    {
+      "text": "I'm able to edit these things using",
+      "duration": 6000,
+      "offset": 402400,
+      "lang": "en"
+    },
+    {
+      "text": "natural language, right? I'm able to sit",
+      "duration": 4400,
+      "offset": 405919,
+      "lang": "en"
+    },
+    {
+      "text": "there and actually come in and say,",
+      "duration": 3600,
+      "offset": 408400,
+      "lang": "en"
+    },
+    {
+      "text": "\"Hey,\"",
+      "duration": 3521,
+      "offset": 410319,
+      "lang": "en"
+    },
+    {
+      "text": "and I have two monitors, so usually I",
+      "duration": 3759,
+      "offset": 412000,
+      "lang": "en"
+    },
+    {
+      "text": "don't have to dip between these. Uh, I",
+      "duration": 4639,
+      "offset": 413840,
+      "lang": "en"
+    },
+    {
+      "text": "don't like the eyes on sadness. I don't",
+      "duration": 6481,
+      "offset": 415759,
+      "lang": "en"
+    },
+    {
+      "text": "like the eyes on sadness.",
+      "duration": 6401,
+      "offset": 418479,
+      "lang": "en"
+    },
+    {
+      "text": "What can I do? And when I send that,",
+      "duration": 4560,
+      "offset": 422240,
+      "lang": "en"
+    },
+    {
+      "text": "it's not just reading the whole motion",
+      "duration": 4879,
+      "offset": 424880,
+      "lang": "en"
+    },
+    {
+      "text": "base. I have a project MD which is being",
+      "duration": 4480,
+      "offset": 426800,
+      "lang": "en"
+    },
+    {
+      "text": "read as cloud MD. I actually need to",
+      "duration": 3440,
+      "offset": 429759,
+      "lang": "en"
+    },
+    {
+      "text": "change that to say cloud MD so it knows",
+      "duration": 4319,
+      "offset": 431280,
+      "lang": "en"
+    },
+    {
+      "text": "to always read it. But um that shows",
+      "duration": 4560,
+      "offset": 433199,
+      "lang": "en"
+    },
+    {
+      "text": "where to go for certain folders, where",
+      "duration": 4801,
+      "offset": 435599,
+      "lang": "en"
+    },
+    {
+      "text": "to get the original uh SVG. So instead",
+      "duration": 4081,
+      "offset": 437759,
+      "lang": "en"
+    },
+    {
+      "text": "of it having to sit here and read",
+      "duration": 3120,
+      "offset": 440400,
+      "lang": "en"
+    },
+    {
+      "text": "through the whole codebase, read through",
+      "duration": 3680,
+      "offset": 441840,
+      "lang": "en"
+    },
+    {
+      "text": "everything, it already has built-in",
+      "duration": 4560,
+      "offset": 443520,
+      "lang": "en"
+    },
+    {
+      "text": "context of where it needs to go. I'm",
+      "duration": 6239,
+      "offset": 445520,
+      "lang": "en"
+    },
+    {
+      "text": "able to edit these things using natural",
+      "duration": 5920,
+      "offset": 448080,
+      "lang": "en"
+    },
+    {
+      "text": "language, right? I'm able to sit there",
+      "duration": 5601,
+      "offset": 451759,
+      "lang": "en"
+    },
+    {
+      "text": "and actually come in and say, \"Hey,",
+      "duration": 5120,
+      "offset": 454000,
+      "lang": "en"
+    },
+    {
+      "text": "and I have two monitors, so usually I",
+      "duration": 3679,
+      "offset": 457360,
+      "lang": "en"
+    },
+    {
+      "text": "don't have to dip between these. Uh, I",
+      "duration": 4720,
+      "offset": 459120,
+      "lang": "en"
+    },
+    {
+      "text": "don't like the eyes on sadness. I don't",
+      "duration": 6560,
+      "offset": 461039,
+      "lang": "en"
+    },
+    {
+      "text": "like the eyes on sadness.",
+      "duration": 6320,
+      "offset": 463840,
+      "lang": "en"
+    },
+    {
+      "text": "What can I do?\" And when I send that,",
+      "duration": 4561,
+      "offset": 467599,
+      "lang": "en"
+    },
+    {
+      "text": "it's not just reading the whole motion",
+      "duration": 4719,
+      "offset": 470160,
+      "lang": "en"
+    },
+    {
+      "text": "base. I have a project MD, which is",
+      "duration": 4319,
+      "offset": 472160,
+      "lang": "en"
+    },
+    {
+      "text": "being read as Claude MD. I actually need",
+      "duration": 3521,
+      "offset": 474879,
+      "lang": "en"
+    },
+    {
+      "text": "to change that to say Claude MD so it",
+      "duration": 3521,
+      "offset": 476479,
+      "lang": "en"
+    },
+    {
+      "text": "knows to always read it.",
+      "duration": 3519,
+      "offset": 478400,
+      "lang": "en"
+    },
+    {
+      "text": "um that shows where to go for certain",
+      "duration": 4800,
+      "offset": 480000,
+      "lang": "en"
+    },
+    {
+      "text": "folders, where to get the original uh",
+      "duration": 4801,
+      "offset": 481919,
+      "lang": "en"
+    },
+    {
+      "text": "SVG. So instead of it having to sit here",
+      "duration": 3600,
+      "offset": 484800,
+      "lang": "en"
+    },
+    {
+      "text": "and read through the whole codebase,",
+      "duration": 3520,
+      "offset": 486720,
+      "lang": "en"
+    },
+    {
+      "text": "read through everything, it already has",
+      "duration": 4239,
+      "offset": 488400,
+      "lang": "en"
+    },
+    {
+      "text": "built-in context of where it needs to",
+      "duration": 4480,
+      "offset": 490240,
+      "lang": "en"
+    },
+    {
+      "text": "go. So then I can just sit there and",
+      "duration": 4881,
+      "offset": 492639,
+      "lang": "en"
+    },
+    {
+      "text": "edit fine details. With other, you know,",
+      "duration": 5680,
+      "offset": 494720,
+      "lang": "en"
+    },
+    {
+      "text": "AI image systems and things like that,",
+      "duration": 5519,
+      "offset": 497520,
+      "lang": "en"
+    },
+    {
+      "text": "you have to constantly redo the entire",
+      "duration": 4799,
+      "offset": 500400,
+      "lang": "en"
+    },
+    {
+      "text": "video or sections of it or destroys half",
+      "duration": 4321,
+      "offset": 503039,
+      "lang": "en"
+    },
+    {
+      "text": "of what you're trying to do. versus here",
+      "duration": 4641,
+      "offset": 505199,
+      "lang": "en"
+    },
+    {
+      "text": "when I say I want to edit the eye, it's",
+      "duration": 5119,
+      "offset": 507360,
+      "lang": "en"
+    },
+    {
+      "text": "literally only gonna go in. Oops, wrong",
+      "duration": 4720,
+      "offset": 509840,
+      "lang": "en"
+    },
+    {
+      "text": "one. It's only going to go in. It's",
+      "duration": 5601,
+      "offset": 512479,
+      "lang": "en"
+    },
+    {
+      "text": "gonna find the specific component for",
+      "duration": 5760,
+      "offset": 514560,
+      "lang": "en"
+    },
+    {
+      "text": "that character. It's going to look, oh,",
+      "duration": 4720,
+      "offset": 518080,
+      "lang": "en"
+    },
+    {
+      "text": "you mean the iris speed for joy or for",
+      "duration": 4639,
+      "offset": 520320,
+      "lang": "en"
+    },
+    {
+      "text": "fear, maybe the pattern that's looking",
+      "duration": 3680,
+      "offset": 522800,
+      "lang": "en"
+    },
+    {
+      "text": "and that's what it's going to assign.",
+      "duration": 3041,
+      "offset": 524959,
+      "lang": "en"
+    },
+    {
+      "text": "It's going to assign the speeds. It's",
+      "duration": 3200,
+      "offset": 526480,
+      "lang": "en"
+    },
+    {
+      "text": "going to assign the movements of it,",
+      "duration": 3680,
+      "offset": 528000,
+      "lang": "en"
+    },
+    {
+      "text": "right? Is there certain things? It's",
+      "duration": 4719,
+      "offset": 529680,
+      "lang": "en"
+    },
+    {
+      "text": "creating the variables that I need to be",
+      "duration": 4400,
+      "offset": 531680,
+      "lang": "en"
+    },
+    {
+      "text": "able to edit all these, right? All of",
+      "duration": 4721,
+      "offset": 534399,
+      "lang": "en"
+    },
+    {
+      "text": "these all of this code I can come in and",
+      "duration": 5120,
+      "offset": 536080,
+      "lang": "en"
+    },
+    {
+      "text": "edit if I'd like or because the AI is",
+      "duration": 3920,
+      "offset": 539120,
+      "lang": "en"
+    },
+    {
+      "text": "really good at it, it can edit small",
+      "duration": 3840,
+      "offset": 541200,
+      "lang": "en"
+    },
+    {
+      "text": "parts of it without messing up the rest",
+      "duration": 4799,
+      "offset": 543040,
+      "lang": "en"
+    },
+    {
+      "text": "of the code base, allowing for really",
+      "duration": 5600,
+      "offset": 545040,
+      "lang": "en"
+    },
+    {
+      "text": "refined edits of each character in",
+      "duration": 5120,
+      "offset": 547839,
+      "lang": "en"
+    },
+    {
+      "text": "scenes or in places. And then when I'm",
+      "duration": 4800,
+      "offset": 550640,
+      "lang": "en"
+    },
+    {
+      "text": "done editing it in the scene, I can take",
+      "duration": 4961,
+      "offset": 552959,
+      "lang": "en"
+    },
+    {
+      "text": "that character of this scene, one that I",
+      "duration": 5360,
+      "offset": 555440,
+      "lang": "en"
+    },
+    {
+      "text": "really like, and say, \"Hey, can we throw",
+      "duration": 6160,
+      "offset": 557920,
+      "lang": "en"
+    },
+    {
+      "text": "that into my React front-end website?\"",
+      "duration": 5680,
+      "offset": 560800,
+      "lang": "en"
+    },
+    {
+      "text": "which is exactly what we did here.",
+      "duration": 4160,
+      "offset": 564080,
+      "lang": "en"
+    },
+    {
+      "text": "Right? So, we had the website, it had",
+      "duration": 3919,
+      "offset": 566480,
+      "lang": "en"
+    },
+    {
+      "text": "the storyboards with the normal SFG. It",
+      "duration": 4960,
+      "offset": 568240,
+      "lang": "en"
+    },
+    {
+      "text": "took that character and added them in.",
+      "duration": 4641,
+      "offset": 570399,
+      "lang": "en"
+    },
+    {
+      "text": "Now, I understand some of this may still",
+      "duration": 3759,
+      "offset": 573200,
+      "lang": "en"
+    },
+    {
+      "text": "be very confusing and there's a lot to",
+      "duration": 3919,
+      "offset": 575040,
+      "lang": "en"
+    },
+    {
+      "text": "dive into. I'm making much more",
+      "duration": 5440,
+      "offset": 576959,
+      "lang": "en"
+    },
+    {
+      "text": "structured courses on SVGs, on React, on",
+      "duration": 5281,
+      "offset": 578959,
+      "lang": "en"
+    },
+    {
+      "text": "front end, on software fundamentals",
+      "duration": 3681,
+      "offset": 582399,
+      "lang": "en"
+    },
+    {
+      "text": "because people are starting to discover",
+      "duration": 4480,
+      "offset": 584240,
+      "lang": "en"
+    },
+    {
+      "text": "now people with software fundamentals",
+      "duration": 4960,
+      "offset": 586080,
+      "lang": "en"
+    },
+    {
+      "text": "and understanding AI fundamentals and",
+      "duration": 4559,
+      "offset": 588720,
+      "lang": "en"
+    },
+    {
+      "text": "design fundamentals become like",
+      "duration": 4320,
+      "offset": 591040,
+      "lang": "en"
+    },
+    {
+      "text": "powerhouses in today's world. I mean, I",
+      "duration": 4000,
+      "offset": 593279,
+      "lang": "en"
+    },
+    {
+      "text": "was able to design this in three hours,",
+      "duration": 3760,
+      "offset": 595360,
+      "lang": "en"
+    },
+    {
+      "text": "right? This would have taken me weeks",
+      "duration": 3761,
+      "offset": 597279,
+      "lang": "en"
+    },
+    {
+      "text": "before if I was doing it manually. But",
+      "duration": 4320,
+      "offset": 599120,
+      "lang": "en"
+    },
+    {
+      "text": "the information, the understanding of",
+      "duration": 5600,
+      "offset": 601040,
+      "lang": "en"
+    },
+    {
+      "text": "design, the small nuances still existed,",
+      "duration": 5680,
+      "offset": 603440,
+      "lang": "en"
+    },
+    {
+      "text": "still were required. The the base of",
+      "duration": 4960,
+      "offset": 606640,
+      "lang": "en"
+    },
+    {
+      "text": "Adobe Illustrator was still there. This",
+      "duration": 5040,
+      "offset": 609120,
+      "lang": "en"
+    },
+    {
+      "text": "was the start of all of this, right? And",
+      "duration": 4560,
+      "offset": 611600,
+      "lang": "en"
+    },
+    {
+      "text": "this is the whole idea behind like my",
+      "duration": 4160,
+      "offset": 614160,
+      "lang": "en"
+    },
+    {
+      "text": "idea of pushing. We don't need agents.",
+      "duration": 4720,
+      "offset": 616160,
+      "lang": "en"
+    },
+    {
+      "text": "We need file structures. This file",
+      "duration": 4800,
+      "offset": 618320,
+      "lang": "en"
+    },
+    {
+      "text": "structure allows me to do all this",
+      "duration": 4240,
+      "offset": 620880,
+      "lang": "en"
+    },
+    {
+      "text": "editing. Everything you see in front of",
+      "duration": 5440,
+      "offset": 623120,
+      "lang": "en"
+    },
+    {
+      "text": "you without a single app. No app is",
+      "duration": 6240,
+      "offset": 625120,
+      "lang": "en"
+    },
+    {
+      "text": "needed other than Claude or an agent or",
+      "duration": 4640,
+      "offset": 628560,
+      "lang": "en"
+    },
+    {
+      "text": "an AI which I guess counts as an app.",
+      "duration": 3039,
+      "offset": 631360,
+      "lang": "en"
+    },
+    {
+      "text": "But you see what I'm saying? Like I",
+      "duration": 2639,
+      "offset": 633200,
+      "lang": "en"
+    },
+    {
+      "text": "don't need Adobe Illustrator and all",
+      "duration": 3120,
+      "offset": 634399,
+      "lang": "en"
+    },
+    {
+      "text": "these things. I could do all of this",
+      "duration": 4881,
+      "offset": 635839,
+      "lang": "en"
+    },
+    {
+      "text": "work inside of a folder, right? Appless",
+      "duration": 5601,
+      "offset": 637519,
+      "lang": "en"
+    },
+    {
+      "text": "work is now possible. We're entering a",
+      "duration": 4640,
+      "offset": 640720,
+      "lang": "en"
+    },
+    {
+      "text": "different abstraction to get the work",
+      "duration": 5520,
+      "offset": 643120,
+      "lang": "en"
+    },
+    {
+      "text": "done in a different way using",
+      "duration": 6320,
+      "offset": 645360,
+      "lang": "en"
+    },
+    {
+      "text": "natural language. Just natural language.",
+      "duration": 4160,
+      "offset": 648640,
+      "lang": "en"
+    },
+    {
+      "text": "Instead of me having to click through",
+      "duration": 3120,
+      "offset": 651680,
+      "lang": "en"
+    },
+    {
+      "text": "all these UI and stuff, I can say I",
+      "duration": 3599,
+      "offset": 652800,
+      "lang": "en"
+    },
+    {
+      "text": "don't really like that. Do this instead.",
+      "duration": 3120,
+      "offset": 654800,
+      "lang": "en"
+    },
+    {
+      "text": "Ah, crazy question. Are we able to",
+      "duration": 3120,
+      "offset": 656399,
+      "lang": "en"
+    },
+    {
+      "text": "convert that into our own HTML slide?",
+      "duration": 3680,
+      "offset": 657920,
+      "lang": "en"
+    },
+    {
+      "text": "Or, hey, that's fine. I want more slides",
+      "duration": 3921,
+      "offset": 659519,
+      "lang": "en"
+    },
+    {
+      "text": "than anything else. Right? I'm able to",
+      "duration": 3679,
+      "offset": 661600,
+      "lang": "en"
+    },
+    {
+      "text": "work with a program and capture my",
+      "duration": 4800,
+      "offset": 663440,
+      "lang": "en"
+    },
+    {
+      "text": "intention through natural language while",
+      "duration": 5921,
+      "offset": 665279,
+      "lang": "en"
+    },
+    {
+      "text": "still not sacrificing the minute",
+      "duration": 4800,
+      "offset": 668240,
+      "lang": "en"
+    },
+    {
+      "text": "editability. Now, there's certain things",
+      "duration": 3920,
+      "offset": 671200,
+      "lang": "en"
+    },
+    {
+      "text": "that you might want to still edit inside",
+      "duration": 4239,
+      "offset": 673040,
+      "lang": "en"
+    },
+    {
+      "text": "of Adobe Illustrator or something like",
+      "duration": 3839,
+      "offset": 675120,
+      "lang": "en"
+    },
+    {
+      "text": "that, right? That might be able to do",
+      "duration": 3441,
+      "offset": 677279,
+      "lang": "en"
+    },
+    {
+      "text": "faster, but there's also other things",
+      "duration": 3601,
+      "offset": 678959,
+      "lang": "en"
+    },
+    {
+      "text": "you don't want to edit, especially once",
+      "duration": 3440,
+      "offset": 680720,
+      "lang": "en"
+    },
+    {
+      "text": "the scenes are put together. So, you're",
+      "duration": 3760,
+      "offset": 682560,
+      "lang": "en"
+    },
+    {
+      "text": "just balancing where the human is. Well,",
+      "duration": 3679,
+      "offset": 684160,
+      "lang": "en"
+    },
+    {
+      "text": "that's it. I just wanted to make a quick",
+      "duration": 3519,
+      "offset": 686320,
+      "lang": "en"
+    },
+    {
+      "text": "video on this today, everyone. Um, other",
+      "duration": 3521,
+      "offset": 687839,
+      "lang": "en"
+    },
+    {
+      "text": "than that, if you have any questions,",
+      "duration": 3761,
+      "offset": 689839,
+      "lang": "en"
+    },
+    {
+      "text": "comments, concerns, obviously, you know,",
+      "duration": 3520,
+      "offset": 691360,
+      "lang": "en"
+    },
+    {
+      "text": "you're probably watching this from my",
+      "duration": 3040,
+      "offset": 693600,
+      "lang": "en"
+    },
+    {
+      "text": "community right now. If you're not in my",
+      "duration": 3920,
+      "offset": 694880,
+      "lang": "en"
+    },
+    {
+      "text": "community and this is a YouTube video,",
+      "duration": 3520,
+      "offset": 696640,
+      "lang": "en"
+    },
+    {
+      "text": "go ahead and click the link in the",
+      "duration": 3279,
+      "offset": 698800,
+      "lang": "en"
+    },
+    {
+      "text": "description to go come check out all my",
+      "duration": 3919,
+      "offset": 700160,
+      "lang": "en"
+    },
+    {
+      "text": "tutorials and become part of a community",
+      "duration": 4161,
+      "offset": 702079,
+      "lang": "en"
+    },
+    {
+      "text": "that's building real stuff that's going",
+      "duration": 4561,
+      "offset": 704079,
+      "lang": "en"
+    },
+    {
+      "text": "to last 10 years, not just some random",
+      "duration": 5839,
+      "offset": 706240,
+      "lang": "en"
+    },
+    {
+      "text": "AI guru crap. Uh, I'm sorry to say crap,",
+      "duration": 5280,
+      "offset": 708640,
+      "lang": "en"
+    },
+    {
+      "text": "but you know what I mean. in that world.",
+      "duration": 3841,
+      "offset": 712079,
+      "lang": "en"
+    },
+    {
+      "text": "Anyway, much love everyone. I'll see you",
+      "duration": 4479,
+      "offset": 713920,
+      "lang": "en"
+    },
+    {
+      "text": "around.",
+      "duration": 2479,
+      "offset": 715920,
+      "lang": "en"
+    }
+  ]
+}

@@ -1,0 +1,1114 @@
+/* ============================================================
+   Nexus Link Productions — Consumer CSS
+   Scoped under .nlp-shell
+   Design: Apple × Stripe × SpaceX | Dark, Minimal, Cinematic
+   ============================================================ */
+
+/* -------------------------------------------------------
+   1. DESIGN TOKENS (CSS Custom Properties)
+   ------------------------------------------------------- */
+.nlp-shell {
+  /* === Surfaces === */
+  --nlp-void: #06060a;
+  --nlp-deep: #0a0a10;
+  --nlp-surface: #101018;
+  --nlp-elevated: #16161f;
+  --nlp-hover: #1c1c28;
+
+  /* === Borders === */
+  --nlp-border-subtle: #1e1e2a;
+  --nlp-border: #2a2a3a;
+  --nlp-border-active: rgba(124, 58, 237, 0.5);
+
+  /* === Text === */
+  --nlp-text: #e4e4ed;
+  --nlp-text-secondary: #8888a0;
+  --nlp-text-muted: #5a5a70;
+
+  /* === Accents === */
+  --nlp-purple: #7c3aed;
+  --nlp-purple-dim: #5b21b6;
+  --nlp-cyan: #00FFA7;
+  --nlp-cyan-dim: #00cc86;
+
+  /* === Semantic === */
+  --nlp-danger: #EF4444;
+  --nlp-success: #10b981;
+  --nlp-warning: #F59E0B;
+
+  /* === Typography === */
+  --nlp-font-sans: 'Outfit', system-ui, sans-serif;
+  --nlp-font-heading: 'Space Grotesk', sans-serif;
+  --nlp-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* === Type Scale (fluid where noted) === */
+  --nlp-text-xs: 0.75rem;    /* 12px */
+  --nlp-text-sm: 0.875rem;   /* 14px */
+  --nlp-text-base: 1rem;     /* 16px */
+  --nlp-text-lg: 1.125rem;   /* 18px */
+  --nlp-text-xl: 1.25rem;    /* 20px */
+  --nlp-text-2xl: 1.5rem;    /* 24px */
+  --nlp-text-3xl: 1.875rem;  /* 30px */
+  --nlp-text-4xl: 2.25rem;   /* 36px */
+  --nlp-text-5xl: 3rem;      /* 48px */
+  --nlp-text-6xl: 3.75rem;   /* 60px */
+
+  /* === Spacing Scale === */
+  --nlp-space-1: 0.25rem;    /* 4px */
+  --nlp-space-2: 0.5rem;     /* 8px */
+  --nlp-space-3: 0.75rem;    /* 12px */
+  --nlp-space-4: 1rem;       /* 16px */
+  --nlp-space-5: 1.25rem;    /* 20px */
+  --nlp-space-6: 1.5rem;     /* 24px */
+  --nlp-space-8: 2rem;       /* 32px */
+  --nlp-space-10: 2.5rem;    /* 40px */
+  --nlp-space-12: 3rem;      /* 48px */
+  --nlp-space-16: 4rem;      /* 64px */
+  --nlp-space-20: 5rem;      /* 80px */
+  --nlp-space-24: 6rem;      /* 96px */
+
+  /* === Border Radius === */
+  --nlp-radius-sm: 8px;
+  --nlp-radius-md: 12px;
+  --nlp-radius-lg: 16px;
+  --nlp-radius-full: 9999px;
+
+  /* === Shadows & Glows === */
+  --nlp-glow-purple: 0 0 24px rgba(124, 58, 237, 0.6), 0 0 48px rgba(124, 58, 237, 0.3);
+  --nlp-glow-purple-soft: 0 0 16px rgba(124, 58, 237, 0.25);
+  --nlp-glow-cyan: 0 0 24px rgba(0, 255, 167, 0.4), 0 0 48px rgba(0, 255, 167, 0.15);
+  --nlp-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --nlp-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --nlp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  /* === Motion === */
+  --nlp-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --nlp-fast: 150ms;
+  --nlp-normal: 300ms;
+  --nlp-slow: 500ms;
+}
+
+/* -------------------------------------------------------
+   2. RESET & BASE
+   ------------------------------------------------------- */
+.nlp-shell,
+.nlp-shell *,
+.nlp-shell *::before,
+.nlp-shell *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.nlp-shell {
+  background: var(--nlp-void);
+  color: var(--nlp-text);
+  font-family: var(--nlp-font-sans);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+.nlp-shell *::selection {
+  background: var(--nlp-purple);
+  color: #ffffff;
+}
+
+.nlp-shell img,
+.nlp-shell picture,
+.nlp-shell video,
+.nlp-shell canvas,
+.nlp-shell svg {
+  display: block;
+  max-width: 100%;
+}
+
+.nlp-shell a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nlp-shell button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* -------------------------------------------------------
+   3. SKIP LINK
+   ------------------------------------------------------- */
+.nlp-shell .skip-link {
+  position: fixed;
+  top: -100%;
+  left: var(--nlp-space-4);
+  z-index: 999;
+  padding: var(--nlp-space-3) var(--nlp-space-6);
+  background: var(--nlp-purple);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: var(--nlp-text-sm);
+  border-radius: var(--nlp-radius-full);
+  text-decoration: none;
+  transition: top var(--nlp-fast) var(--nlp-ease);
+}
+
+.nlp-shell .skip-link:focus {
+  top: var(--nlp-space-4);
+  outline: 2px solid var(--nlp-cyan);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------
+   4. TOP NAVIGATION (.nlp-nav)
+   ------------------------------------------------------- */
+.nlp-shell .nlp-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 64px;
+  padding: 0 var(--nlp-space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background var(--nlp-normal) var(--nlp-ease),
+              border-color var(--nlp-normal) var(--nlp-ease),
+              backdrop-filter var(--nlp-normal) var(--nlp-ease);
+  backdrop-filter: blur(0px);
+}
+
+.nlp-shell .nlp-nav.scrolled {
+  background: rgba(6, 6, 10, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom-color: var(--nlp-border-subtle);
+}
+
+.nlp-shell .nlp-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--nlp-space-2);
+  color: var(--nlp-text);
+  font-family: var(--nlp-font-heading);
+  font-weight: 600;
+  font-size: var(--nlp-text-lg);
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.nlp-shell .nlp-nav-brand svg {
+  width: 24px;
+  height: 24px;
+}
+
+.nlp-shell .nlp-nav-links {
+  display: flex;
+  gap: var(--nlp-space-6);
+  list-style: none;
+  align-items: center;
+}
+
+.nlp-shell .nlp-nav-link {
+  font-weight: 500;
+  font-size: var(--nlp-text-sm);
+  letter-spacing: 0.02em;
+  color: var(--nlp-text-secondary);
+  text-decoration: none;
+  transition: color var(--nlp-fast) var(--nlp-ease);
+  position: relative;
+}
+
+.nlp-shell .nlp-nav-link:hover {
+  color: var(--nlp-text);
+}
+
+.nlp-shell .nlp-nav-link.active {
+  color: var(--nlp-purple);
+}
+
+.nlp-shell .nlp-nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--nlp-purple);
+  border-radius: var(--nlp-radius-full);
+}
+
+.nlp-shell .nlp-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nlp-cyan);
+  color: var(--nlp-void);
+  padding: 10px 18px;
+  border-radius: var(--nlp-radius-full);
+  font-weight: 600;
+  font-size: var(--nlp-text-sm);
+  border: none;
+  transition: box-shadow var(--nlp-fast) var(--nlp-ease),
+              transform var(--nlp-fast) var(--nlp-ease);
+}
+
+.nlp-shell .nlp-nav-cta:hover {
+  box-shadow: var(--nlp-glow-cyan);
+  transform: translateY(-1px);
+}
+
+.nlp-shell .nlp-nav-mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--nlp-text);
+  padding: var(--nlp-space-2);
+  cursor: pointer;
+}
+
+.nlp-shell .nlp-nav-mobile-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* -------------------------------------------------------
+   5. MAIN CONTAINER & SECTIONS
+   ------------------------------------------------------- */
+.nlp-shell .nlp-main {
+  scroll-snap-type: y mandatory;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nlp-shell .nlp-section {
+  min-height: 100vh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: var(--nlp-space-16) var(--nlp-space-6);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* -------------------------------------------------------
+   6. HERO SECTION
+   ------------------------------------------------------- */
+.nlp-shell .nlp-hero {
+  background:
+    radial-gradient(circle at 30% 50%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 70% 50%, rgba(0, 255, 167, 0.08) 0%, transparent 50%),
+    var(--nlp-void);
+}
+
+.nlp-shell .nlp-hero-kicker {
+  font-family: var(--nlp-font-mono);
+  color: var(--nlp-purple);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: var(--nlp-text-sm);
+  margin-bottom: var(--nlp-space-6);
+}
+
+.nlp-shell .nlp-hero-title {
+  font-family: var(--nlp-font-heading);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  max-width: 18ch;
+  margin-bottom: var(--nlp-space-6);
+  color: var(--nlp-text);
+}
+
+.nlp-shell .nlp-hero-subtitle {
+  font-weight: 300;
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  color: var(--nlp-text-secondary);
+  max-width: 50ch;
+  margin-bottom: var(--nlp-space-8);
+  line-height: 1.5;
+}
+
+.nlp-shell .nlp-hero-cta-row {
+  display: flex;
+  gap: var(--nlp-space-4);
+  flex-wrap: wrap;
+}
+
+.nlp-shell .nlp-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nlp-cyan);
+  color: var(--nlp-void);
+  padding: 14px 28px;
+  border-radius: var(--nlp-radius-full);
+  font-weight: 600;
+  font-size: var(--nlp-text-base);
+  border: none;
+  cursor: pointer;
+  transition: box-shadow var(--nlp-fast) var(--nlp-ease),
+              transform var(--nlp-fast) var(--nlp-ease);
+}
+
+.nlp-shell .nlp-button-primary:hover {
+  box-shadow: var(--nlp-glow-cyan);
+  transform: translateY(-2px);
+}
+
+.nlp-shell .nlp-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--nlp-text);
+  border: 1px solid var(--nlp-border);
+  padding: 14px 28px;
+  border-radius: var(--nlp-radius-full);
+  font-weight: 600;
+  font-size: var(--nlp-text-base);
+  cursor: pointer;
+  transition: background var(--nlp-fast) var(--nlp-ease),
+              border-color var(--nlp-fast) var(--nlp-ease),
+              transform var(--nlp-fast) var(--nlp-ease);
+}
+
+.nlp-shell .nlp-button-secondary:hover {
+  background: var(--nlp-hover);
+  border-color: var(--nlp-purple);
+  transform: translateY(-2px);
+}
+
+.nlp-shell .nlp-hero-scroll-indicator {
+  position: absolute;
+  bottom: var(--nlp-space-8);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--nlp-space-2);
+  color: var(--nlp-text-muted);
+  font-size: var(--nlp-text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: nlp-breathe 2s ease-in-out infinite;
+  cursor: pointer;
+}
+
+.nlp-shell .nlp-hero-scroll-indicator::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-right: 2px solid var(--nlp-text-muted);
+  border-bottom: 2px solid var(--nlp-text-muted);
+  transform: rotate(45deg);
+}
+
+/* -------------------------------------------------------
+   7. SERVICES GRID
+   ------------------------------------------------------- */
+.nlp-shell .nlp-services {
+  background: var(--nlp-deep);
+}
+
+.nlp-shell .nlp-services-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.nlp-shell .nlp-section-kicker {
+  font-family: var(--nlp-font-mono);
+  color: var(--nlp-cyan);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: var(--nlp-text-sm);
+  margin-bottom: var(--nlp-space-4);
+}
+
+.nlp-shell .nlp-section-title {
+  font-family: var(--nlp-font-heading);
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--nlp-space-6);
+  color: var(--nlp-text);
+  line-height: 1.1;
+}
+
+.nlp-shell .nlp-section-subtitle {
+  color: var(--nlp-text-secondary);
+  font-size: var(--nlp-text-lg);
+  max-width: 50ch;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.nlp-shell .nlp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--nlp-space-6);
+  max-width: 1200px;
+  margin: var(--nlp-space-12) auto 0;
+}
+
+.nlp-shell .nlp-service-card {
+  background: var(--nlp-surface);
+  border: 1px solid var(--nlp-border-subtle);
+  border-radius: var(--nlp-radius-lg);
+  padding: var(--nlp-space-8);
+  transition: transform var(--nlp-normal) var(--nlp-ease),
+              border-color var(--nlp-normal) var(--nlp-ease),
+              box-shadow var(--nlp-normal) var(--nlp-ease);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.nlp-shell .nlp-service-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(124, 58, 237, 0.04) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity var(--nlp-normal) var(--nlp-ease);
+}
+
+.nlp-shell .nlp-service-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--nlp-purple);
+  box-shadow: var(--nlp-glow-purple-soft);
+}
+
+.nlp-shell .nlp-service-card:hover::before {
+  opacity: 1;
+}
+
+.nlp-shell .nlp-service-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--nlp-purple);
+  margin-bottom: var(--nlp-space-4);
+  position: relative;
+  z-index: 1;
+}
+
+.nlp-shell .nlp-service-title {
+  font-family: var(--nlp-font-heading);
+  font-weight: 600;
+  font-size: var(--nlp-text-xl);
+  margin-bottom: var(--nlp-space-3);
+  color: var(--nlp-text);
+  position: relative;
+  z-index: 1;
+}
+
+.nlp-shell .nlp-service-desc {
+  color: var(--nlp-text-secondary);
+  line-height: 1.6;
+  font-size: var(--nlp-text-base);
+  position: relative;
+  z-index: 1;
+}
+
+/* -------------------------------------------------------
+   8. PORTFOLIO (Horizontal Scroll)
+   ------------------------------------------------------- */
+.nlp-shell .nlp-portfolio {
+  background: var(--nlp-void);
+}
+
+.nlp-shell .nlp-portfolio .nlp-section-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.nlp-shell .nlp-portfolio-track {
+  display: flex;
+  gap: var(--nlp-space-6);
+  overflow-x: auto;
+  padding: var(--nlp-space-6) 0;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nlp-shell .nlp-portfolio-track::-webkit-scrollbar {
+  display: none;
+}
+
+.nlp-shell .nlp-portfolio-card {
+  flex: 0 0 auto;
+  width: clamp(280px, 80vw, 800px);
+  aspect-ratio: 16 / 9;
+  scroll-snap-align: center;
+  border-radius: var(--nlp-radius-lg);
+  overflow: hidden;
+  position: relative;
+  background: var(--nlp-surface);
+  border: 1px solid var(--nlp-border-subtle);
+  cursor: pointer;
+  transition: transform var(--nlp-normal) var(--nlp-ease),
+              border-color var(--nlp-normal) var(--nlp-ease);
+}
+
+.nlp-shell .nlp-portfolio-card:hover {
+  transform: scale(1.02);
+  border-color: var(--nlp-purple);
+}
+
+.nlp-shell .nlp-portfolio-card img,
+.nlp-shell .nlp-portfolio-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nlp-shell .nlp-portfolio-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--nlp-space-6);
+  background: linear-gradient(to top, rgba(6, 6, 10, 0.95) 30%, transparent 100%);
+  pointer-events: none;
+}
+
+.nlp-shell .nlp-portfolio-category {
+  font-family: var(--nlp-font-mono);
+  color: var(--nlp-cyan);
+  font-size: var(--nlp-text-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.nlp-shell .nlp-portfolio-title {
+  font-family: var(--nlp-font-heading);
+  font-weight: 600;
+  font-size: var(--nlp-text-2xl);
+  margin-top: var(--nlp-space-2);
+  color: var(--nlp-text);
+}
+
+.nlp-shell .nlp-portfolio-dots {
+  display: flex;
+  gap: var(--nlp-space-2);
+  justify-content: center;
+  margin-top: var(--nlp-space-6);
+}
+
+.nlp-shell .nlp-portfolio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--nlp-border);
+  cursor: pointer;
+  transition: all var(--nlp-fast) var(--nlp-ease);
+  border: none;
+  padding: 0;
+}
+
+.nlp-shell .nlp-portfolio-dot.active {
+  background: var(--nlp-purple);
+  width: 24px;
+  border-radius: var(--nlp-radius-full);
+}
+
+.nlp-shell .nlp-portfolio-dot:hover {
+  background: var(--nlp-text-muted);
+}
+
+/* -------------------------------------------------------
+   9. ORACLE SECTION (AI Chat)
+   ------------------------------------------------------- */
+.nlp-shell .nlp-oracle {
+  background: linear-gradient(135deg, var(--nlp-deep) 0%, rgba(124, 58, 237, 0.08) 100%);
+}
+
+.nlp-shell .nlp-oracle .nlp-section-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.nlp-shell .nlp-oracle-chat {
+  max-width: 600px;
+  width: 100%;
+  background: var(--nlp-elevated);
+  border: 1px solid var(--nlp-border);
+  border-radius: var(--nlp-radius-lg);
+  padding: var(--nlp-space-6);
+  margin: var(--nlp-space-12) auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nlp-space-3);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.nlp-shell .nlp-chat-message {
+  padding: var(--nlp-space-4);
+  border-radius: var(--nlp-radius-md);
+  margin-bottom: var(--nlp-space-3);
+  max-width: 80%;
+  animation: nlp-slide-in var(--nlp-normal) var(--nlp-ease);
+  line-height: 1.5;
+  font-size: var(--nlp-text-base);
+}
+
+.nlp-shell .nlp-chat-message.user {
+  background: var(--nlp-purple);
+  color: #ffffff;
+  margin-left: auto;
+  border-bottom-right-radius: var(--nlp-radius-sm);
+}
+
+.nlp-shell .nlp-chat-message.bot {
+  background: var(--nlp-surface);
+  color: var(--nlp-text);
+  margin-right: auto;
+  border-bottom-left-radius: var(--nlp-radius-sm);
+  border: 1px solid var(--nlp-border-subtle);
+}
+
+/* -------------------------------------------------------
+   10. ABOUT SECTION
+   ------------------------------------------------------- */
+.nlp-shell .nlp-about {
+  background: var(--nlp-deep);
+}
+
+.nlp-shell .nlp-about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nlp-space-12);
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: center;
+}
+
+.nlp-shell .nlp-about-photo {
+  aspect-ratio: 1;
+  border-radius: var(--nlp-radius-lg);
+  background: var(--nlp-surface);
+  border: 1px solid var(--nlp-border);
+  overflow: hidden;
+}
+
+.nlp-shell .nlp-about-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nlp-shell .nlp-about-content .nlp-section-title {
+  margin-bottom: var(--nlp-space-6);
+}
+
+.nlp-shell .nlp-about-content p {
+  color: var(--nlp-text-secondary);
+  line-height: 1.7;
+  margin-bottom: var(--nlp-space-4);
+  font-size: var(--nlp-text-base);
+}
+
+.nlp-shell .nlp-stats-row {
+  display: flex;
+  gap: var(--nlp-space-8);
+  margin-top: var(--nlp-space-6);
+}
+
+.nlp-shell .nlp-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nlp-space-1);
+}
+
+.nlp-shell .nlp-stat-value {
+  font-family: var(--nlp-font-mono);
+  font-weight: 700;
+  font-size: var(--nlp-text-4xl);
+  color: var(--nlp-cyan);
+  line-height: 1;
+}
+
+.nlp-shell .nlp-stat-label {
+  font-size: var(--nlp-text-sm);
+  color: var(--nlp-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* -------------------------------------------------------
+   11. CONTACT SECTION
+   ------------------------------------------------------- */
+.nlp-shell .nlp-contact {
+  background: var(--nlp-void);
+}
+
+.nlp-shell .nlp-contact .nlp-section-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.nlp-shell .nlp-contact-form {
+  max-width: 600px;
+  width: 100%;
+  margin: var(--nlp-space-12) auto 0;
+  display: grid;
+  gap: var(--nlp-space-4);
+}
+
+.nlp-shell .nlp-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nlp-space-2);
+}
+
+.nlp-shell .nlp-form-label {
+  font-size: var(--nlp-text-sm);
+  color: var(--nlp-text-secondary);
+  font-weight: 500;
+}
+
+.nlp-shell .nlp-form-input,
+.nlp-shell .nlp-form-textarea,
+.nlp-shell .nlp-form-select {
+  padding: 14px 16px;
+  border: 1px solid var(--nlp-border);
+  background: var(--nlp-surface);
+  color: var(--nlp-text);
+  border-radius: var(--nlp-radius-md);
+  font-family: inherit;
+  font-size: var(--nlp-text-base);
+  transition: border-color var(--nlp-fast) var(--nlp-ease),
+              box-shadow var(--nlp-fast) var(--nlp-ease);
+  outline: none;
+  width: 100%;
+}
+
+.nlp-shell .nlp-form-input::placeholder,
+.nlp-shell .nlp-form-textarea::placeholder {
+  color: var(--nlp-text-muted);
+}
+
+.nlp-shell .nlp-form-input:focus,
+.nlp-shell .nlp-form-textarea:focus,
+.nlp-shell .nlp-form-select:focus {
+  outline: none;
+  border-color: var(--nlp-purple);
+  box-shadow: var(--nlp-glow-purple-soft);
+}
+
+.nlp-shell .nlp-form-textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.nlp-shell .nlp-form-select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%238888a0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+.nlp-shell .nlp-form-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nlp-cyan);
+  color: var(--nlp-void);
+  padding: 14px 28px;
+  border-radius: var(--nlp-radius-full);
+  font-weight: 600;
+  font-size: var(--nlp-text-base);
+  border: none;
+  cursor: pointer;
+  transition: box-shadow var(--nlp-fast) var(--nlp-ease),
+              transform var(--nlp-fast) var(--nlp-ease);
+  margin-top: var(--nlp-space-2);
+}
+
+.nlp-shell .nlp-form-submit:hover {
+  box-shadow: var(--nlp-glow-cyan);
+  transform: translateY(-2px);
+}
+
+.nlp-shell .nlp-form-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.nlp-shell .nlp-form-success {
+  padding: var(--nlp-space-6);
+  border: 1px solid var(--nlp-success);
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: var(--nlp-radius-md);
+  color: var(--nlp-success);
+  text-align: center;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nlp-space-2);
+}
+
+.nlp-shell .nlp-form-error {
+  padding: var(--nlp-space-4);
+  border: 1px solid var(--nlp-danger);
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: var(--nlp-radius-md);
+  color: var(--nlp-danger);
+  font-size: var(--nlp-text-sm);
+}
+
+/* -------------------------------------------------------
+   12. SECTION INDICATOR DOTS
+   ------------------------------------------------------- */
+.nlp-shell .nlp-section-dots {
+  position: fixed;
+  right: var(--nlp-space-6);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nlp-space-3);
+}
+
+.nlp-shell .nlp-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--nlp-border);
+  cursor: pointer;
+  transition: background var(--nlp-fast) var(--nlp-ease),
+              transform var(--nlp-fast) var(--nlp-ease);
+  border: none;
+  padding: 0;
+}
+
+.nlp-shell .nlp-dot.active {
+  background: var(--nlp-purple);
+  transform: scale(1.5);
+}
+
+.nlp-shell .nlp-dot:hover {
+  background: var(--nlp-text-muted);
+}
+
+/* -------------------------------------------------------
+   13. FOOTER
+   ------------------------------------------------------- */
+.nlp-shell .nlp-footer {
+  background: var(--nlp-void);
+  border-top: 1px solid var(--nlp-border-subtle);
+  padding: var(--nlp-space-12) var(--nlp-space-6);
+  text-align: center;
+  color: var(--nlp-text-muted);
+  font-size: var(--nlp-text-sm);
+  scroll-snap-align: start;
+}
+
+.nlp-shell .nlp-footer-brand {
+  font-family: var(--nlp-font-heading);
+  font-weight: 600;
+  font-size: var(--nlp-text-lg);
+  color: var(--nlp-text);
+  margin-bottom: var(--nlp-space-4);
+}
+
+.nlp-shell .nlp-footer-links {
+  display: flex;
+  gap: var(--nlp-space-6);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--nlp-space-6);
+}
+
+.nlp-shell .nlp-footer-link {
+  color: var(--nlp-text-secondary);
+  font-size: var(--nlp-text-sm);
+  transition: color var(--nlp-fast) var(--nlp-ease);
+}
+
+.nlp-shell .nlp-footer-link:hover {
+  color: var(--nlp-text);
+}
+
+.nlp-shell .nlp-footer-copy {
+  color: var(--nlp-text-muted);
+}
+
+/* -------------------------------------------------------
+   14. MOBILE MENU
+   ------------------------------------------------------- */
+.nlp-shell .nlp-mobile-menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 6, 10, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--nlp-space-6);
+  transition: transform var(--nlp-normal) var(--nlp-ease);
+}
+
+.nlp-shell .nlp-mobile-menu.closed {
+  transform: translateX(100%);
+}
+
+.nlp-shell .nlp-mobile-menu .nlp-nav-link {
+  font-size: var(--nlp-text-2xl);
+  font-weight: 600;
+  font-family: var(--nlp-font-heading);
+  letter-spacing: -0.01em;
+}
+
+.nlp-shell .nlp-mobile-menu-close {
+  position: absolute;
+  top: var(--nlp-space-6);
+  right: var(--nlp-space-6);
+  background: none;
+  border: none;
+  color: var(--nlp-text);
+  padding: var(--nlp-space-2);
+  cursor: pointer;
+}
+
+.nlp-shell .nlp-mobile-menu-close svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* -------------------------------------------------------
+   15. ANIMATIONS
+   ------------------------------------------------------- */
+@keyframes nlp-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateX(-50%) translateY(8px);
+  }
+}
+
+@keyframes nlp-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nlp-pulse-glow {
+  0%,
+  100% {
+    box-shadow: var(--nlp-glow-purple-soft);
+  }
+  50% {
+    box-shadow: var(--nlp-glow-purple);
+  }
+}
+
+@keyframes nlp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes nlp-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.nlp-shell .nlp-live-ticker {
+  position: fixed;
+  bottom: var(--nlp-space-4);
+  left: var(--nlp-space-4);
+  z-index: 50;
+  padding: var(--nlp-space-2) var(--nlp-space-4);
+  background: rgba(16, 16, 24, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--nlp-border-subtle);
+  border-radius: var(--nlp-radius-full);
+  font-family: var(--nlp-font-mono);
+  font-size: var(--nlp-text-xs);
+  color: var(--nlp-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--nlp-space-2);
+}
+
+.nlp-shell .nlp-live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nlp-cyan);
+  animation: nlp-pulse-glow 2s infinite;
+}
+
+@media (max-width: 1200px) {
+  .nlp-shell .nlp-grid { grid-template-columns: repeat(2, 1fr); }
+  .nlp-shell .nlp-section { padding: var(--nlp-space-12) var(--nlp-space-5); }
+}
+
+@media (max-width: 900px) {
+  .nlp-shell .nlp-grid { grid-template-columns: 1fr; }
+  .nlp-shell .nlp-about-grid { grid-template-columns: 1fr; }
+  .nlp-shell .nlp-nav-links { display: none; }
+  .nlp-shell .nlp-nav-mobile-toggle { display: flex; }
+  .nlp-shell .nlp-section-dots { display: none; }
+  .nlp-shell .nlp-stats-row { flex-direction: column; gap: var(--nlp-space-4); }
+  .nlp-shell .nlp-portfolio-card { width: clamp(260px, 90vw, 600px); }
+}
+
+@media (max-width: 600px) {
+  .nlp-shell .nlp-section { padding: var(--nlp-space-8) var(--nlp-space-4); }
+  .nlp-shell .nlp-hero-cta-row { flex-direction: column; align-items: stretch; }
+  .nlp-shell .nlp-button-primary,
+  .nlp-shell .nlp-button-secondary { width: 100%; text-align: center; }
+  .nlp-shell .nlp-nav { padding: 0 var(--nlp-space-4); }
+  .nlp-shell .nlp-live-ticker { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nlp-shell *,
+  .nlp-shell *::before,
+  .nlp-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

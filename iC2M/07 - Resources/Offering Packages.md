@@ -7,7 +7,7 @@ tags:
 
 # Offering Packages
 
-> Pre-configured packages for quick offer generation. Use with the **Sales Offer Builder** app at `~/Documents/c2moviez/CI-CD/sales_offer_template/`
+> Pre-configured packages for quick offer generation. Use with the **Sales Offer Builder** app at `~/Documents/c2moviez/CI_CD/sales_offer_template/`
 
 ---
 

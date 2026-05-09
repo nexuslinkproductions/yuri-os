@@ -1,246 +1,440 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-/* ─── Multi-step project application experience ─── */
+import { useCallback, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import type React from 'react';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-const projectTypes = [
-  { id: 'commercial', title: 'Commercial Film', desc: 'Brand campaigns, product launches, corporate storytelling' },
-  { id: 'documentary', title: 'Brand Documentary', desc: 'Long-form narrative that defines your legacy' },
-  { id: 'music', title: 'Music Video', desc: 'Visual worlds that amplify the sound' },
-  { id: 'live', title: 'Live Event', desc: 'Multi-camera coverage of moments that matter' },
+const phases = [
+  {
+    phase: 'DISCOVER',
+    title: 'What are we framing?',
+    description: 'Choose the project surface. This gives the conversation its first edge.',
+  },
+  {
+    phase: 'DEVELOP',
+    title: 'Define the vision.',
+    description: 'Describe the story, audience, pressure, and the kind of memory the asset should leave.',
+  },
+  {
+    phase: 'PRODUCE',
+    title: 'Set the production reality.',
+    description: 'Budget, timeline, and contact details decide how the room gets built.',
+  },
+  {
+    phase: 'DELIVER',
+    title: 'Review the brief.',
+    description: 'Confirm the signal before it moves into a direct creative proposal.',
+  },
 ];
 
-const budgets = ['Under €10k', '€10k–25k', '€25k–50k', '€50k–100k', '€100k+'];
-const timelines = ['Immediate (0–4 weeks)', 'Near term (1–3 months)', 'Strategic (3–6 months)', 'Open timeline'];
+const projectTypes = [
+  { id: 'brand-campaign', title: 'Brand Content & Campaigns', detail: 'Campaign assets, launch visuals, commercial social systems' },
+  { id: 'documentary', title: 'Corporate & Documentary', detail: 'Founder story, interviews, event coverage, brand films' },
+  { id: 'post-motion', title: 'Editing, Color & Motion', detail: 'Post-production, color, After Effects, motion design' },
+  { id: 'short-form', title: 'Short-Form & Social', detail: 'Reels, TikTok, Shorts, fast campaign variants' },
+  { id: 'audio-visual', title: 'Audio-Visual Production', detail: 'Podcast, live stream, music video, multi-camera capture' },
+];
 
-const stepVariants = {
-  enter:  (d: number) => ({ x: d * 60, opacity: 0 }),
-  center: { x: 0, opacity: 1, transition: { duration: 0.4, ease: EASE } },
-  exit:   (d: number) => ({ x: d * -60, opacity: 0, transition: { duration: 0.28, ease: EASE } }),
+const budgets = ['Under EUR 5k', 'EUR 5k-10k', 'EUR 10k-25k', 'EUR 25k+', 'Open'];
+const timelines = ['0-4 weeks', '1-3 months', '3-6 months', 'Open timeline'];
+
+type FormState = {
+  type: string;
+  vision: string;
+  budget: string;
+  timeline: string;
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
 };
 
-const inp: React.CSSProperties = {
-  width: '100%', padding: '14px 16px', boxSizing: 'border-box',
-  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: 6, color: '#f5f5f7', fontFamily: 'var(--font-body)',
-  fontSize: 15, outline: 'none',
+const initialForm: FormState = {
+  type: '',
+  vision: '',
+  budget: '',
+  timeline: '',
+  name: '',
+  company: '',
+  email: '',
+  phone: '',
 };
 
-type FormData = {
-  type: string; vision: string; budget: string;
-  name: string; company: string; email: string; phone: string; timeline: string;
+const fieldStyle: React.CSSProperties = {
+  width: '100%',
+  minHeight: 48,
+  padding: '14px 16px',
+  border: '1px solid var(--color-border-subtle)',
+  borderRadius: 'var(--radius-md)',
+  background: 'rgba(255,255,255,0.035)',
+  color: 'var(--color-text-primary)',
+  outline: 0,
+  transition: 'border-color 180ms var(--ease-out), background 180ms var(--ease-out)',
 };
 
-export default function ContactPage() {
-  const [step, setStep]       = useState(0);
-  const [dir, setDir]         = useState(1);
-  const [submitted, setSubmitted] = useState(false);
-  const [focused, setFocused] = useState('');
-  const [form, setForm]       = useState<FormData>({
-    type: '', vision: '', budget: '', name: '', company: '', email: '', phone: '', timeline: '',
-  });
+function FrameCorners() {
+  return <div className="frame-corners" aria-hidden="true"><span /><span /><span /><span /></div>;
+}
 
-  const next = () => { setDir(1); setStep(s => Math.min(s + 1, 3)); };
-  const prev = () => { setDir(-1); setStep(s => Math.max(s - 1, 0)); };
-  const set  = (k: keyof FormData, v: string) => setForm(f => ({ ...f, [k]: v }));
-
-  const focusStyle = (name: string): React.CSSProperties => ({
-    ...inp, borderColor: focused === name ? 'rgba(220,38,38,0.55)' : 'rgba(255,255,255,0.1)',
-  });
-
+function PhaseBadge({ phase }: { phase: string }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#0e0e18', color: '#f5f5f7', display: 'flex' }}>
-
-      {/* ── Sidebar ── */}
-      <aside style={{
-        width: 240, flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.06)',
-        padding: '48px 32px', display: 'flex', flexDirection: 'column',
-        position: 'sticky', top: 0, height: '100vh',
-      }}>
-        <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 40 }}>
-          Nexus Link
-        </div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, lineHeight: 2, color: 'rgba(255,255,255,0.35)' }}>
-          <div>contact@nexuslinkproductions.com</div>
-          <div>Vienna, Austria</div>
-          <div>c2moviez.com (CH)</div>
-        </div>
-        <div style={{ flex: 1 }} />
-        <blockquote style={{
-          fontFamily: 'Georgia, serif', fontStyle: 'italic',
-          fontSize: 13, lineHeight: 1.65, color: 'rgba(255,255,255,0.2)',
-          borderLeft: '2px solid rgba(220,38,38,0.3)', paddingLeft: 12, margin: 0,
-        }}>
-          "We take on a select number of projects each year. Each one demands our full conviction."
-        </blockquote>
-      </aside>
-
-      {/* ── Main ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '48px clamp(32px,6vw,96px)' }}>
-
-        {/* Progress */}
-        {!submitted && (
-          <div style={{ display: 'flex', gap: 8, marginBottom: 64 }}>
-            {[0,1,2,3].map(i => (
-              <div key={i} style={{
-                height: 2, flex: 1, borderRadius: 1,
-                background: i < step ? 'rgba(220,38,38,0.5)' : i === step ? '#fff' : 'rgba(255,255,255,0.12)',
-                transition: 'background 0.4s ease',
-              }} />
-            ))}
-          </div>
-        )}
-
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-          <div style={{ width: '100%', maxWidth: 720 }}>
-            <AnimatePresence mode="wait" custom={dir}>
-              {submitted ? (
-                <motion.div key="success"
-                  initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, ease: EASE }}
-                  style={{ textAlign: 'center', padding: '80px 0' }}>
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.7, delay: 0.1, ease: [0.34, 1.56, 0.64, 1] }}
-                    style={{ fontSize: 64, marginBottom: 32 }}>✦</motion.div>
-                  <motion.h2 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}
-                    style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px,4vw,48px)', fontWeight: 700, letterSpacing: '-0.03em', margin: '0 0 16px' }}>
-                    Application received.
-                  </motion.h2>
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.6 }}
-                    style={{ fontFamily: 'var(--font-body)', fontSize: 16, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65 }}>
-                    We review every submission personally and will be in touch within 48 hours.
-                  </motion.p>
-                </motion.div>
-
-              ) : step === 0 ? (
-                <motion.div key="step0" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit">
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(220,38,38,0.8)', marginBottom: 24 }}>Step 01 — The Vision</div>
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,5vw,64px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, margin: '0 0 48px' }}>What do you want to create?</h2>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 48 }}>
-                    {projectTypes.map(pt => (
-                      <motion.div key={pt.id}
-                        onClick={() => { set('type', pt.id); setTimeout(next, 300); }}
-                        whileHover={{ scale: 1.02, borderColor: 'rgba(255,255,255,0.2)' }}
-                        whileTap={{ scale: 0.98 }}
-                        style={{
-                          padding: '28px 24px', borderRadius: 8, cursor: 'pointer',
-                          border: form.type === pt.id ? '1px solid rgba(220,38,38,0.6)' : '1px solid rgba(255,255,255,0.09)',
-                          borderLeft: form.type === pt.id ? '3px solid #dc2626' : '1px solid rgba(255,255,255,0.09)',
-                          background: form.type === pt.id ? 'rgba(220,38,38,0.06)' : 'rgba(255,255,255,0.02)',
-                          transition: 'all 0.25s ease',
-                        }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, marginBottom: 8, letterSpacing: '-0.01em' }}>{pt.title}</div>
-                        <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>{pt.desc}</div>
-                      </motion.div>
-                    ))}
-                  </div>
-                  {form.type && <NavBtns onNext={next} />}
-                </motion.div>
-
-              ) : step === 1 ? (
-                <motion.div key="step1" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit">
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(220,38,38,0.8)', marginBottom: 24 }}>Step 02 — The Story</div>
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,5vw,56px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, margin: '0 0 40px' }}>Tell us about your vision.</h2>
-                  <textarea
-                    value={form.vision} onChange={e => set('vision', e.target.value)}
-                    onFocus={() => setFocused('vision')} onBlur={() => setFocused('')}
-                    placeholder="Describe the project, the feeling you want to evoke, who it's for..."
-                    rows={5}
-                    style={{ ...focusStyle('vision'), resize: 'vertical', marginBottom: 40, display: 'block' }}
-                  />
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 16 }}>Budget Range</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 48 }}>
-                    {budgets.map(b => (
-                      <button key={b} onClick={() => set('budget', b)} style={{
-                        padding: '10px 20px', borderRadius: 4, cursor: 'pointer', fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 500,
-                        border: form.budget === b ? '1px solid rgba(220,38,38,0.7)' : '1px solid rgba(255,255,255,0.12)',
-                        background: form.budget === b ? 'rgba(220,38,38,0.08)' : 'rgba(255,255,255,0.03)',
-                        color: form.budget === b ? '#f5f5f7' : 'rgba(255,255,255,0.55)',
-                        transition: 'all 0.2s ease',
-                      }}>{b}</button>
-                    ))}
-                  </div>
-                  <NavBtns onNext={next} onPrev={prev} />
-                </motion.div>
-
-              ) : step === 2 ? (
-                <motion.div key="step2" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit">
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(220,38,38,0.8)', marginBottom: 24 }}>Step 03 — The Details</div>
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,5vw,56px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, margin: '0 0 40px' }}>How do we reach you?</h2>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-                    {(['name','company','email','phone'] as const).map(k => (
-                      <div key={k}>
-                        <label style={{ display: 'block', fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
-                          {k.charAt(0).toUpperCase() + k.slice(1)}
-                        </label>
-                        <input value={form[k]} onChange={e => set(k, e.target.value)}
-                          onFocus={() => setFocused(k)} onBlur={() => setFocused('')}
-                          style={focusStyle(k)} />
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', margin: '32px 0 16px' }}>Preferred Timeline</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 48 }}>
-                    {timelines.map(tl => (
-                      <button key={tl} onClick={() => set('timeline', tl)} style={{
-                        padding: '10px 20px', borderRadius: 4, cursor: 'pointer', fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 500,
-                        border: form.timeline === tl ? '1px solid rgba(220,38,38,0.7)' : '1px solid rgba(255,255,255,0.12)',
-                        background: form.timeline === tl ? 'rgba(220,38,38,0.08)' : 'rgba(255,255,255,0.03)',
-                        color: form.timeline === tl ? '#f5f5f7' : 'rgba(255,255,255,0.55)',
-                        transition: 'all 0.2s ease',
-                      }}>{tl}</button>
-                    ))}
-                  </div>
-                  <NavBtns onNext={next} onPrev={prev} />
-                </motion.div>
-
-              ) : (
-                <motion.div key="step3" custom={dir} variants={stepVariants} initial="enter" animate="center" exit="exit">
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(220,38,38,0.8)', marginBottom: 24 }}>Step 04 — Submit</div>
-                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px,5vw,56px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, margin: '0 0 40px' }}>Review & send.</h2>
-                  <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '32px', marginBottom: 40, background: 'rgba(255,255,255,0.02)' }}>
-                    {[
-                      { label: 'Project type', value: form.type },
-                      { label: 'Vision', value: form.vision ? form.vision.slice(0, 80) + (form.vision.length > 80 ? '…' : '') : '—' },
-                      { label: 'Budget', value: form.budget || '—' },
-                      { label: 'Contact', value: `${form.name}${form.company ? `, ${form.company}` : ''}` || '—' },
-                      { label: 'Email', value: form.email || '—' },
-                      { label: 'Timeline', value: form.timeline || '—' },
-                    ].map(({ label, value }) => (
-                      <div key={label} style={{ display: 'flex', gap: 24, paddingBlock: 12, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', width: 100, flexShrink: 0 }}>{label}</span>
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'rgba(255,255,255,0.8)' }}>{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ display: 'flex', gap: 16 }}>
-                    <button onClick={prev} style={{ padding: '16px 24px', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 4, background: 'none', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-display)', fontSize: 12, cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}>← Back</button>
-                    <motion.button onClick={() => setSubmitted(true)} whileHover={{ scale: 1.02, borderColor: 'rgba(220,38,38,0.8)' }} whileTap={{ scale: 0.98 }}
-                      style={{ flex: 1, padding: '16px 32px', border: '1px solid rgba(220,38,38,0.4)', borderRadius: 4, background: 'rgba(220,38,38,0.08)', color: '#f5f5f7', fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: '0.12em', textTransform: 'uppercase', transition: 'all 0.25s ease' }}>
-                      Submit Application →
-                    </motion.button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
+    <div className="kicker" style={{ marginBottom: 18 }}>
+      {phase}
     </div>
   );
 }
 
-function NavBtns({ onNext, onPrev }: { onNext: () => void; onPrev?: () => void }) {
+function StepIndicator({ step }: { step: number }) {
   return (
-    <div style={{ display: 'flex', gap: 16 }}>
-      {onPrev && (
-        <button onClick={onPrev} style={{ padding: '14px 24px', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 4, background: 'none', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-display)', fontSize: 12, cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}>← Back</button>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 34 }}>
+      {phases.map((phase, index) => (
+        <div key={phase.phase}>
+          <motion.div
+            layout
+            style={{
+              height: 2,
+              borderRadius: 999,
+              background: index <= step ? 'var(--color-crimson)' : 'var(--color-border-subtle)',
+              boxShadow: index === step ? 'var(--shadow-glow)' : 'none',
+            }}
+          />
+          <div style={{ marginTop: 8, color: index === step ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)', fontFamily: 'var(--font-display)', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em' }}>
+            {phase.phase}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ChoiceButton({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      data-magnetic
+      className="magnetic-link"
+      onClick={onClick}
+      style={{
+        justifyContent: 'flex-start',
+        minHeight: 44,
+        padding: '11px 16px',
+        border: active ? '1px solid var(--color-crimson-border)' : '1px solid var(--color-border-subtle)',
+        borderRadius: 'var(--radius-full)',
+        background: active ? 'rgba(220,38,38,0.1)' : 'rgba(255,255,255,0.025)',
+        color: active ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+        fontSize: 13,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function NavButtons({ step, next, prev, submit }: { step: number; next: () => void; prev: () => void; submit: () => void }) {
+  return (
+    <div style={{ display: 'flex', gap: 12, marginTop: 34, flexWrap: 'wrap' }}>
+      {step > 0 && (
+        <button type="button" data-magnetic className="magnetic-link cta-button" onClick={prev}>
+          Back
+        </button>
       )}
-      <motion.button onClick={onNext} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ padding: '14px 32px', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, background: 'rgba(255,255,255,0.04)', color: '#f5f5f7', fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase', transition: 'all 0.2s ease' }}>
-        Continue →
-      </motion.button>
+      <button type="button" data-magnetic className="magnetic-link cta-button cta-button--primary" onClick={step === 3 ? submit : next}>
+        {step === 3 ? 'Submit Brief' : 'Continue'} <span aria-hidden="true">-&gt;</span>
+      </button>
+    </div>
+  );
+}
+
+export default function ContactPage() {
+  const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState<FormState>(initialForm);
+
+  const setField = useCallback((field: keyof FormState, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }, []);
+
+  const next = useCallback(() => {
+    setDirection(1);
+    setStep((current) => Math.min(3, current + 1));
+  }, []);
+
+  const prev = useCallback(() => {
+    setDirection(-1);
+    setStep((current) => Math.max(0, current - 1));
+  }, []);
+
+  const selectedProject = useMemo(
+    () => projectTypes.find((project) => project.id === form.type)?.title || 'Not selected',
+    [form.type],
+  );
+
+  const reviewRows = [
+    { label: 'Project', value: selectedProject },
+    { label: 'Vision', value: form.vision || 'Not described yet' },
+    { label: 'Budget', value: form.budget || 'Open' },
+    { label: 'Timeline', value: form.timeline || 'Open' },
+    { label: 'Contact', value: [form.name, form.company, form.email].filter(Boolean).join(' / ') || 'Not provided yet' },
+  ];
+
+  return (
+    <div className="spatial-page">
+      <section className="spatial-section frame-shell" data-proximity style={{ minHeight: '100vh', paddingTop: 128 }}>
+        <FrameCorners />
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.68, ease: EASE }}
+            style={{ marginBottom: 42 }}
+          >
+            <div className="kicker">Contact</div>
+            <h1 className="section-title" style={{ fontSize: 'clamp(58px, 10vw, 140px)' }}>Start a Project.</h1>
+          </motion.div>
+
+          <div className="contact-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 20, alignItems: 'stretch' }}>
+            <motion.div
+              className="depth-panel"
+              data-tilt
+              data-proximity
+              style={{ '--z-depth': '42px', minHeight: 650, padding: 'clamp(24px, 5vw, 56px)' } as React.CSSProperties}
+              initial={{ opacity: 0, y: 34 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.72, delay: 0.1, ease: EASE }}
+            >
+              {!submitted && <StepIndicator step={step} />}
+
+              <AnimatePresence mode="wait" custom={direction}>
+                {submitted ? (
+                  <motion.div
+                    key="success"
+                    custom={direction}
+                    initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -24 }}
+                    transition={{ duration: 0.52, ease: EASE }}
+                    style={{ minHeight: 420, display: 'grid', placeItems: 'center', textAlign: 'center' }}
+                  >
+                    <div>
+                      <div style={{ width: 76, height: 76, borderRadius: '50%', border: '1px solid var(--color-crimson-border)', display: 'grid', placeItems: 'center', margin: '0 auto 28px', color: 'var(--color-crimson)', fontSize: 28 }}>
+                        NL
+                      </div>
+                      <h2 style={{ fontSize: 'clamp(34px, 5vw, 70px)', fontWeight: 900, letterSpacing: 0 }}>Brief received.</h2>
+                      <p className="section-copy" style={{ marginInline: 'auto' }}>
+                        Nexus Link will review the project signal and respond with the next practical step.
+                      </p>
+                      <button
+                        type="button"
+                        data-magnetic
+                        className="magnetic-link cta-button"
+                        style={{ marginTop: 30 }}
+                        onClick={() => {
+                          setSubmitted(false);
+                          setStep(0);
+                          setForm(initialForm);
+                        }}
+                      >
+                        New Brief
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={step}
+                    custom={direction}
+                    initial={{ opacity: 0, x: direction * 26 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: direction * -26 }}
+                    transition={{ duration: 0.38, ease: EASE }}
+                  >
+                    <PhaseBadge phase={phases[step].phase} />
+                    <h2 style={{ fontSize: 'clamp(32px, 5vw, 62px)', fontWeight: 900, letterSpacing: 0 }}>{phases[step].title}</h2>
+                    <p className="section-copy">{phases[step].description}</p>
+
+                    {step === 0 && (
+                      <div className="project-choice-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14, marginTop: 36 }}>
+                        {projectTypes.map((project) => (
+                          <button
+                            key={project.id}
+                            type="button"
+                            data-tilt
+                            data-magnetic
+                            data-proximity
+                            className="depth-card"
+                            onClick={() => {
+                              setField('type', project.id);
+                              window.setTimeout(next, 180);
+                            }}
+                            style={{
+                              '--z-depth': form.type === project.id ? '38px' : '24px',
+                              minHeight: 155,
+                              padding: 22,
+                              textAlign: 'left',
+                              borderColor: form.type === project.id ? 'var(--color-crimson-border)' : 'var(--color-border-subtle)',
+                            } as React.CSSProperties}
+                          >
+                            <div style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 900 }}>{project.title}</div>
+                            <div style={{ marginTop: 10, color: 'var(--color-text-secondary)', fontSize: 13, lineHeight: 1.55 }}>{project.detail}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {step === 1 && (
+                      <div style={{ marginTop: 34 }}>
+                        <label style={{ display: 'block', marginBottom: 10, color: 'var(--color-text-tertiary)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                          Vision
+                        </label>
+                        <textarea
+                          value={form.vision}
+                          onChange={(event) => setField('vision', event.target.value)}
+                          rows={7}
+                          placeholder="Story, audience, references, deliverables, pressure, deadlines..."
+                          style={{ ...fieldStyle, resize: 'vertical', lineHeight: 1.65 }}
+                        />
+                        <div style={{ marginTop: 26 }}>
+                          <div style={{ marginBottom: 12, color: 'var(--color-text-tertiary)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                            Budget Range
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                            {budgets.map((budget) => (
+                              <ChoiceButton key={budget} active={form.budget === budget} onClick={() => setField('budget', budget)}>
+                                {budget}
+                              </ChoiceButton>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {step === 2 && (
+                      <div style={{ marginTop: 34 }}>
+                        <div className="contact-fields" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 }}>
+                          {(['name', 'company', 'email', 'phone'] as const).map((field) => (
+                            <label key={field} style={{ display: 'grid', gap: 9 }}>
+                              <span style={{ color: 'var(--color-text-tertiary)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{field}</span>
+                              <input value={form[field]} onChange={(event) => setField(field, event.target.value)} style={fieldStyle} />
+                            </label>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: 26 }}>
+                          <div style={{ marginBottom: 12, color: 'var(--color-text-tertiary)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                            Timeline
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                            {timelines.map((timeline) => (
+                              <ChoiceButton key={timeline} active={form.timeline === timeline} onClick={() => setField('timeline', timeline)}>
+                                {timeline}
+                              </ChoiceButton>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {step === 3 && (
+                      <div className="depth-card" data-proximity style={{ marginTop: 34, padding: 20 }}>
+                        {reviewRows.map((row, index) => (
+                          <div
+                            key={row.label}
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: '110px 1fr',
+                              gap: 16,
+                              padding: '14px 0',
+                              borderBottom: index === reviewRows.length - 1 ? '0' : '1px solid var(--color-border-void)',
+                            }}
+                          >
+                            <span style={{ color: 'var(--color-text-tertiary)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{row.label}</span>
+                            <span style={{ color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>{row.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <NavButtons step={step} next={next} prev={prev} submit={() => setSubmitted(true)} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            <motion.aside
+              className="depth-card contact-sidebar"
+              data-tilt
+              data-proximity
+              style={{
+                '--z-depth': '64px',
+                padding: 28,
+                position: 'sticky',
+                top: 104,
+                minHeight: 650,
+                alignSelf: 'start',
+                display: 'flex',
+                flexDirection: 'column',
+              } as React.CSSProperties}
+              initial={{ opacity: 0, x: 28 }}
+              animate={{ opacity: submitted ? 0.42 : 1, x: 0 }}
+              transition={{ duration: 0.72, delay: 0.18, ease: EASE }}
+            >
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 900, letterSpacing: '0.16em' }}>NEXUS LINK</div>
+                <div style={{ marginTop: 26, color: 'var(--color-text-secondary)', lineHeight: 1.9 }}>
+                  <a href="mailto:contact@nexuslinkproductions.com">contact@nexuslinkproductions.com</a>
+                  <div>Vienna, Austria</div>
+                  <div>@nexuslinkproductions</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 42, paddingTop: 28, borderTop: '1px solid var(--color-border-subtle)' }}>
+                <div className="kicker">{phases[step].phase}</div>
+                <p style={{ marginTop: 18, color: 'var(--color-text-secondary)', lineHeight: 1.72 }}>{phases[step].description}</p>
+              </div>
+
+              <div style={{ flex: 1 }} />
+
+              <blockquote
+                style={{
+                  margin: 0,
+                  paddingLeft: 18,
+                  borderLeft: '1px solid var(--color-crimson)',
+                  color: 'var(--color-text-tertiary)',
+                  fontFamily: 'var(--font-serif)',
+                  fontStyle: 'italic',
+                  lineHeight: 1.72,
+                }}
+              >
+                "Selective projects. Full conviction. Clear delivery."
+              </blockquote>
+            </motion.aside>
+          </div>
+        </div>
+      </section>
+
+      <style>{`
+        input:focus,
+        textarea:focus {
+          border-color: var(--color-crimson-border) !important;
+          background: rgba(255,255,255,0.055) !important;
+        }
+
+        @media (max-width: 980px) {
+          .contact-layout {
+            grid-template-columns: 1fr !important;
+          }
+
+          .contact-sidebar {
+            position: relative !important;
+            top: auto !important;
+            min-height: auto !important;
+          }
+
+          .project-choice-grid,
+          .contact-fields {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

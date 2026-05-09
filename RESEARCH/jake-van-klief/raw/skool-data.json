@@ -1,0 +1,163 @@
+{
+  "scrape_date": "2026-05-05T17:40:00Z",
+  "scrape_method": "web_fetch + web_search (no browser login)",
+  "auth_status": "public only, no login attempted",
+
+  "subject": {
+    "name": "Jake Van Clief",
+    "name_variations": ["Jake Van Klief", "JEVanClief", "Jake Van Clief"],
+    "handles": {
+      "skool": "https://www.skool.com/@jake-van-clief-2217",
+      "substack": "https://jakevanclief.substack.com",
+      "youtube": "https://www.youtube.com/@JEVanClief",
+      "instagram": "https://www.instagram.com/lostandlucky/",
+      "facebook": "https://www.facebook.com/jake.vanclief/",
+      "linkedin": "https://www.linkedin.com/in/jake-van-clief"
+    },
+    "bio": "I build and teach. 8 Years Marine Corps, Masters of Science, Farmer.",
+    "credentials": [
+      "8 years US Marine Corps (cryptographic systems, F-35/F-18 avionics)",
+      "MSc in AI Governance from University of Edinburgh",
+      "Published researcher",
+      "Founder of Eduba",
+      "Trained 1000+ employees at Fortune 500 companies and top Universities",
+      "Implemented real production AI systems at scale"
+    ],
+    "skool_stats": {
+      "joined": "2023-10-05",
+      "contributions": 194,
+      "followers": 27500,
+      "following": 9
+    }
+  },
+
+  "primary_community": {
+    "name": "Clief Notes",
+    "skool_url": "https://www.skool.com/quantum-quill-lyceum-1116",
+    "skool_about_url": "https://www.skool.com/quantum-quill-lyceum-1116/about",
+    "description": "Jake Van Clief, giving you the Cliff notes on the new AI age.",
+    "tagline": "Learn to build systems and methods that will last a decade.",
+    "pricing_model": "Free (with paid upgrades)",
+    "member_count": 27200,
+    "member_count_source": "Scraped from Skool profile page on 2026-05-05",
+    "growth_claim": "Grew to 26,000 members in 6 weeks (from about page)",
+    "free_content_count": "40+ free lessons, growing monthly",
+    "claim": "What I am giving away for free is better than what others are charging for.",
+    "course_last_updated": "2026-04-04",
+
+    "pricing_tiers": [
+      {
+        "tier": "Free",
+        "price": "$0/mo",
+        "includes": ["The Foundation (40+ lessons)", "Community feed", "David's Corner", "Q&A", "Weekly content drops"]
+      },
+      {
+        "tier": "Premium",
+        "price": "~$27/mo",
+        "includes": ["Implementation Playbooks", "Advanced applied content", "Deeper lesson library"]
+      },
+      {
+        "tier": "VIP",
+        "price": "$97/mo (was $47/mo, increasing as community scales)",
+        "includes": ["Direct access to Jake", "Enterprise consulting case studies", "5 live calls/month"]
+      },
+      {
+        "tier": "Lifetime VIP",
+        "price": "$5,000 one-time",
+        "includes": ["All VIP benefits", "The Lyceum (upcoming flagship program)"]
+      }
+    ],
+
+    "methodology": "Interpretable Context Methodology (ICM)",
+    "curriculum_topics": [
+      "Folder architecture",
+      "Prompt frameworks",
+      "Computing Fundamentals",
+      "Using AI like Claude Code or Codex",
+      "Implementing these in real use cases, business and beyond",
+      "The thinking underneath it all"
+    ],
+
+    "pinned_posts": [
+      {
+        "title": "Welcome to Clief Notes. Here's where to start.",
+        "url": "https://www.skool.com/quantum-quill-lyceum-1116/welcome-to-clief-notes-heres-where-to-start",
+        "description": "Guide with: 1) Intro video + intro post, 2) The Foundation (free course), 3) Lesson check-ins with polls/discussion, 4) Level 2: Implementation Playbooks, Level 3: Building Your Stack, 5) Post work, ask questions, help others.",
+        "votes": 4473
+      },
+      {
+        "title": "WEEKLY COMP #3: THE SPECIALIST",
+        "url": "https://www.skool.com/quantum-quill-lyceum-1116/weekly-comp-3-the-specialist",
+        "description": "$325 cash prize weekly competition. Build a folder-based AI specialist using ICM methodology. Deliverable: folder with identity.md, rules.md, examples.md, reference/, README.md.",
+        "responses": 33
+      },
+      {
+        "title": "Who's here? Drop your intro.",
+        "url": "https://www.skool.com/quantum-quill-lyceum-1116/whos-here-drop-your-intro",
+        "description": "Community introduction thread. Members share: what they do, what brought them to Clief Notes, what they're trying to figure out related to computing or AI.",
+        "responses": 944
+      }
+    ],
+
+    "visible_content_categories": [
+      "Community feed with posts and discussions",
+      "Pinned welcome/onboarding posts",
+      "Weekly competitions ($325 prizes)",
+      "Q&A threads",
+      "Show Your Work threads",
+      "Polls and community voting",
+      "Intro/Welcome threads"
+    ]
+
+  },
+
+  "other_skool_communities_owned": [
+    {
+      "name": "GOOSIFY 🍎🐛🦋🌈⭐️🩷",
+      "url": "https://www.skool.com/goosify",
+      "members": 12900,
+      "pricing": "Free"
+    },
+    {
+      "name": "Orlando IRL",
+      "url": "https://www.skool.com/orlando",
+      "members": 67,
+      "pricing": "Free"
+    },
+    {
+      "name": "Constellations",
+      "url": "https://www.skool.com/constellations-2153",
+      "members": 18,
+      "pricing": "Free"
+    },
+    {
+      "name": "Skoolers",
+      "url": "https://www.skool.com/skoolers",
+      "members": 191000,
+      "pricing": "Free"
+    }
+  ],
+
+  "third_party_review_data": {
+    "source": "https://aifunnelinsider.com/clief-notes-review-2026/",
+    "rating": "4.6/5",
+    "member_count_at_review": "24,700+",
+    "review_date": "2026-04-27",
+    "key_quotes": [
+      "No paid advertising to reach 24,700+ members",
+      "Free tier outpaces most paid rooms",
+      "One of the fastest-growing free AI communities in 2026",
+      "Fewer than 5% of active AI communities on Skool offer free content at this depth"
+    ],
+    "target_audience": "Technical founders, engineers, senior ops people — not beginners chasing quick wins",
+    "reviewer_note": "Affiliate link present in review"
+  },
+
+  "direct_urls_tested": [
+    "https://www.skool.com/@jake-van-clief-2217",
+    "https://www.skool.com/quantum-quill-lyceum-1116",
+    "https://www.skool.com/quantum-quill-lyceum-1116/about"
+  ],
+
+  "notes": "The community URL uses a coded ID (quantum-quill-lyceum-1116) rather than a vanity name. No URL with 'jake-van-klief' or 'jakevanclief' was found as a direct Skool community path. The primary community is 'Clief Notes'."
+}

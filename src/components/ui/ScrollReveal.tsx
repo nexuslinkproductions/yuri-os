@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useInView } from 'framer-motion';
-import '../styles/tokens.css';
+import '../../styles/tokens.css';
 
 interface ScrollRevealProps {
   children: React.ReactNode;

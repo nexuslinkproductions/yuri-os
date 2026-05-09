@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/tokens.css';
+import '../../styles/tokens.css';
 
 type ContainerWidth = 'narrow' | 'default' | 'wide' | 'full';
 

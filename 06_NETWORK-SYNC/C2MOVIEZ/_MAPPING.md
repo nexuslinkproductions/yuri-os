@@ -17,7 +17,7 @@ Maps Claudio's vault structure → NUDIMMUD canonical paths for bidirectional pr
 | `10 - MACL GmbH/` | Separate entity | `01_PROJECTS/MACL-ONE/` | MACL operational notes (separate company) | Read-only reference |
 | `11 - ExeoFlow/` | Partnership | `02_AREAS/Partnerships/ExeoFlow/` | ExeoFlow integration strategy | Reference |
 | `12 - SILASWIRTH/` | Motion partner | `02_AREAS/Partnerships/SILASWIRTH/` | Motion/VFX collaboration | Reference |
-| `CI:CD/` | Automation | `_SYSTEM/C2MOVIEZ-CI-CD/` | Dashboard, scripts, deployment | Reference only (read Claudio's GH) |
+| `CI_CD/` | Automation | `_SYSTEM/C2MOVIEZ-CI_CD/` | Dashboard, scripts, deployment | Reference only (read Claudio's GH) |
 
 ## Project Linking Rule
 

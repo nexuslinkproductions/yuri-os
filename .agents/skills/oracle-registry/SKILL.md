@@ -1,6 +1,7 @@
 ---
 name: oracle-registry
 description: "Build Oracle registry surfaces for skills, packages, and installs. Use when the task touches local skill packs, discovery, publishing, or install/update flow on this OS."
+triggers: ["oracle-registry"]
 ---
 
 # Oracle Registry
@@ -26,3 +27,7 @@ Use this skill when the task is to discover, package, install, or publish skills
 - Keep compatibility notes explicit.
 - Do not introduce extra docs unless they reduce repeated reasoning.
 
+## Session Notes
+
+### 2026-05-05
+- session: patch | tools: Edit, Write | errors: none | notes: wired for CLI routing via triggers array and command alias

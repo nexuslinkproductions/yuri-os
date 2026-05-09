@@ -33,13 +33,13 @@ Commands:
       Route through the NUDIMMUD offload system (auto, --model, --swarm, --list, --dry-run, --route-only).
 
   offload swarm [prompt]
-      Run offload swarm with default lane set (gpt-oss,ollama).
+      Run offload swarm with default lane set (gpt-oss).
 
   offload capabilities
       Print the full lane and model inventory (JSON).
 
   swarm [prompt]
-      Run Ruflo-backed swarm routing, then fan out GPT-OSS and Ollama as needed.
+      Run Ruflo-backed swarm routing, then fan out GPT-OSS as needed.
 
   doctor
       Check that the launcher and offload entrypoints are available.
@@ -53,8 +53,8 @@ Commands:
   @gpt-oss [prompt]
       Run the direct GPT-OSS local offload lane.
 
-  @ollama [prompt]
-      Run the direct Ollama local offload lane.
+  @codex-spark|@spark|@fast-codex [prompt]
+      Run the bounded Codex Spark offload lane (gpt-5.3-codex-spark).
 
   @deepseek [prompt]
       Run the direct DeepSeek local offload lane.
@@ -113,7 +113,7 @@ Commands:
       Run the gemma-cloud lane (Ollama Cloud Gemma4 only).
 
   @swarm [prompt]
-      Run Ruflo-backed swarm routing, then fan out Kimi, GPT-OSS, and Ollama as needed.
+      Run Ruflo-backed swarm routing, then fan out Kimi and GPT-OSS as needed.
 
   ruflo [prompt]
       Ask Ruflo for routing guidance without executing the routed lane.
@@ -262,6 +262,14 @@ run_offload_lane() {
   shift
   local prompt
   prompt="$(join_prompt "$@")"
+  local runner="$OFFLOAD_RUNNER"
+
+  case "$lane" in
+    codex-spark|spark|fast-codex|gpt-5.3-codex-spark)
+      runner="$SCRIPT_DIR/codex-offload-runner.mjs"
+      lane="codex-spark"
+      ;;
+  esac
 
   if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
     printf '%s\n' "$lane"
@@ -269,7 +277,7 @@ run_offload_lane() {
   fi
 
   require_cmd node
-  OFFLOAD_PROMPT_TEXT="$prompt" exec node "$OFFLOAD_RUNNER" "$lane"
+  OFFLOAD_PROMPT_TEXT="$prompt" exec node "$runner" "$lane"
 }
 
 run_codex_swarm() {
@@ -1014,6 +1022,14 @@ case "${1:-help}" in
       exec codex
     fi
     case "${1:-}" in
+      codex-spark|spark|fast-codex|gpt-5.3-codex-spark)
+        shift || true
+        if [ "$#" -eq 0 ]; then
+          usage
+          exit 1
+        fi
+        run_offload_lane codex-spark "$@"
+        ;;
       kimi)
         shift || true
         if [ "$#" -eq 0 ]; then
@@ -1075,6 +1091,14 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane gpt-oss "$@"
+    ;;
+  @codex-spark|codex-spark|@spark|spark|@fast-codex|fast-codex|gpt-5.3-codex-spark)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_offload_lane codex-spark "$@"
     ;;
   @ollama|ollama)
     shift || true

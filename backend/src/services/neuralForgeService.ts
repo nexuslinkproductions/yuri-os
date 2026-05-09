@@ -336,37 +336,10 @@ export class NeuralForgeService {
 
             try {
                 if (runtime === 'local') {
-                    const availableLocals = await this.resolveAvailableLocalModels(candidateModel, decision.intent);
-                    if (availableLocals.length === 0) {
-                        fallbackCause = `LOCAL_MODEL_UNAVAILABLE :: ${candidateModel}`;
-                        continue;
-                    }
-
-                    const primaryLocal = availableLocals[0];
-                    const execution = (!fallbackCause && this.shouldUseReasoningLoop(decision, runtime))
-                        ? await this.executeLocalReasoningLoop(primaryLocal, messages, finalSystemPrompt, decision)
-                        : {
-                            response: await this.executeOllamaChat(primaryLocal, messages, finalSystemPrompt),
-                            shouldEscalate: false,
-                            loopCount: 1
-                        } as LoopExecutionResult;
-
-                    if (execution.shouldEscalate && allowCloud) {
-                        escalated = true;
-                        fallbackCause = execution.fallbackCause || 'LOCAL_LOW_CONFIDENCE';
-                        continue;
-                    }
-
-                    const response = this.decorateResponse(execution.response, {
-                        runtime: 'local',
-                        compression: compression.stats,
-                        escalated,
-                        loopCount: execution.loopCount,
-                        decision,
-                        contextInjected: !!retrievalContext
-                    });
-                    this.recordExecutionSnapshot(response, decision, fallbackCause);
-                    return response;
+                    // LLM answers no longer use Ollama local models
+                    // Local models are reserved for embeddings only
+                    fallbackCause = `LOCAL_LLM_DISABLED :: ${candidateModel}`;
+                    continue;
                 }
 
                 const providerType = this.getProviderType(candidateModel);

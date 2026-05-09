@@ -1,0 +1,1878 @@
+{
+  "videoId": "oQ6tsBFJZzk",
+  "title": "I Think, Therefore I Am: 400-Year History of Thinking Machines",
+  "segments": [
+    {
+      "text": "[music]",
+      "duration": 2020,
+      "offset": 654,
+      "lang": "en"
+    },
+    {
+      "text": ">> In March of last year, a paper landed",
+      "duration": 4640,
+      "offset": 4880,
+      "lang": "en"
+    },
+    {
+      "text": "quietly online. Language models, it",
+      "duration": 5440,
+      "offset": 6760,
+      "lang": "en"
+    },
+    {
+      "text": "said, had passed the Turing test. And if",
+      "duration": 4120,
+      "offset": 9520,
+      "lang": "en"
+    },
+    {
+      "text": "you hadn't heard of it, the test is",
+      "duration": 3120,
+      "offset": 12200,
+      "lang": "en"
+    },
+    {
+      "text": "simple. Can a machine hold a",
+      "duration": 3800,
+      "offset": 13640,
+      "lang": "en"
+    },
+    {
+      "text": "conversation well enough that you can't",
+      "duration": 4840,
+      "offset": 15320,
+      "lang": "en"
+    },
+    {
+      "text": "tell it's a machine? For 75 years,",
+      "duration": 4840,
+      "offset": 17440,
+      "lang": "en"
+    },
+    {
+      "text": "nothing really could. However, last",
+      "duration": 3960,
+      "offset": 20160,
+      "lang": "en"
+    },
+    {
+      "text": "March, there was enough evidence that",
+      "duration": 4320,
+      "offset": 22280,
+      "lang": "en"
+    },
+    {
+      "text": "something did. Some people celebrated.",
+      "duration": 5120,
+      "offset": 24120,
+      "lang": "en"
+    },
+    {
+      "text": "Some called it meaningless. Both sides",
+      "duration": 3920,
+      "offset": 26600,
+      "lang": "en"
+    },
+    {
+      "text": "thought they were having a new",
+      "duration": 3280,
+      "offset": 29240,
+      "lang": "en"
+    },
+    {
+      "text": "conversation. They were not. This",
+      "duration": 5240,
+      "offset": 30520,
+      "lang": "en"
+    },
+    {
+      "text": "argument actually started in 1637,",
+      "duration": 5120,
+      "offset": 32520,
+      "lang": "en"
+    },
+    {
+      "text": "over 400 years ago.",
+      "duration": 4000,
+      "offset": 35760,
+      "lang": "en"
+    },
+    {
+      "text": "Rene Descartes, writing in Discourse on",
+      "duration": 4320,
+      "offset": 37640,
+      "lang": "en"
+    },
+    {
+      "text": "the Method, posed a question that will",
+      "duration": 4240,
+      "offset": 39760,
+      "lang": "en"
+    },
+    {
+      "text": "sound very familiar. If you had a",
+      "duration": 4360,
+      "offset": 41960,
+      "lang": "en"
+    },
+    {
+      "text": "machine that looked like and moved like",
+      "duration": 4720,
+      "offset": 44000,
+      "lang": "en"
+    },
+    {
+      "text": "a person, how would you know it wasn't",
+      "duration": 4800,
+      "offset": 46320,
+      "lang": "en"
+    },
+    {
+      "text": "one? He came up with two tests. The",
+      "duration": 4360,
+      "offset": 48720,
+      "lang": "en"
+    },
+    {
+      "text": "first was the one we care about. A",
+      "duration": 4040,
+      "offset": 51120,
+      "lang": "en"
+    },
+    {
+      "text": "machine, he said, could be built so that",
+      "duration": 4360,
+      "offset": 53080,
+      "lang": "en"
+    },
+    {
+      "text": "it makes a sound when you touch it.",
+      "duration": 4360,
+      "offset": 55160,
+      "lang": "en"
+    },
+    {
+      "text": "Touch it here, it speaks. Touch it",
+      "duration": 4720,
+      "offset": 57440,
+      "lang": "en"
+    },
+    {
+      "text": "there, it cries out that it's hurt. But",
+      "duration": 4840,
+      "offset": 59520,
+      "lang": "en"
+    },
+    {
+      "text": "it could not arrange those words freely",
+      "duration": 4600,
+      "offset": 62160,
+      "lang": "en"
+    },
+    {
+      "text": "and reply to what was said to it, not",
+      "duration": 5160,
+      "offset": 64360,
+      "lang": "en"
+    },
+    {
+      "text": "the way even the simplest person can.",
+      "duration": 5680,
+      "offset": 66760,
+      "lang": "en"
+    },
+    {
+      "text": "This was the Turing test, but smaller,",
+      "duration": 4840,
+      "offset": 69520,
+      "lang": "en"
+    },
+    {
+      "text": "written 313",
+      "duration": 4880,
+      "offset": 72440,
+      "lang": "en"
+    },
+    {
+      "text": "years before Alan Turing. I go deeper in",
+      "duration": 4560,
+      "offset": 74360,
+      "lang": "en"
+    },
+    {
+      "text": "this on a piece called Post-Israel",
+      "duration": 3240,
+      "offset": 77320,
+      "lang": "en"
+    },
+    {
+      "text": "Governance, where I trace some of it all",
+      "duration": 4200,
+      "offset": 78920,
+      "lang": "en"
+    },
+    {
+      "text": "the way back to Aristotle, giving tools",
+      "duration": 5200,
+      "offset": 80560,
+      "lang": "en"
+    },
+    {
+      "text": "like torches and tent. But for now, we",
+      "duration": 4400,
+      "offset": 83120,
+      "lang": "en"
+    },
+    {
+      "text": "stay focused.",
+      "duration": 4720,
+      "offset": 85760,
+      "lang": "en"
+    },
+    {
+      "text": "200 years later after Descartes, a woman",
+      "duration": 5320,
+      "offset": 87520,
+      "lang": "en"
+    },
+    {
+      "text": "named Ada Lovelace read Charles",
+      "duration": 4360,
+      "offset": 90480,
+      "lang": "en"
+    },
+    {
+      "text": "Babbage's plans for the Analytical",
+      "duration": 5160,
+      "offset": 92840,
+      "lang": "en"
+    },
+    {
+      "text": "Engine, a mechanical computer, and she",
+      "duration": 6520,
+      "offset": 94840,
+      "lang": "en"
+    },
+    {
+      "text": "saw the next test coming. Lovelace knew",
+      "duration": 5720,
+      "offset": 98000,
+      "lang": "en"
+    },
+    {
+      "text": "that this Analytical Engine could do",
+      "duration": 4800,
+      "offset": 101360,
+      "lang": "en"
+    },
+    {
+      "text": "more than arithmetic. Symbols could",
+      "duration": 5520,
+      "offset": 103720,
+      "lang": "en"
+    },
+    {
+      "text": "stand for notes, for colors, maybe even",
+      "duration": 5120,
+      "offset": 106160,
+      "lang": "en"
+    },
+    {
+      "text": "language. She wrote that such a machine,",
+      "duration": 4280,
+      "offset": 109240,
+      "lang": "en"
+    },
+    {
+      "text": "given the right rules, could compose",
+      "duration": 5760,
+      "offset": 111280,
+      "lang": "en"
+    },
+    {
+      "text": "music, scientific music, of any degree",
+      "duration": 6320,
+      "offset": 113520,
+      "lang": "en"
+    },
+    {
+      "text": "of complexity, her words. But she drew a",
+      "duration": 5600,
+      "offset": 117040,
+      "lang": "en"
+    },
+    {
+      "text": "line. The engine could follow rules, it",
+      "duration": 5120,
+      "offset": 119840,
+      "lang": "en"
+    },
+    {
+      "text": "could not make them. The engine, she",
+      "duration": 4880,
+      "offset": 122640,
+      "lang": "en"
+    },
+    {
+      "text": "wrote, has no pretensions whatsoever to",
+      "duration": 4240,
+      "offset": 124960,
+      "lang": "en"
+    },
+    {
+      "text": "originate anything.",
+      "duration": 3239,
+      "offset": 127520,
+      "lang": "en"
+    },
+    {
+      "text": "That line is still holding up a lot of",
+      "duration": 4000,
+      "offset": 129200,
+      "lang": "en"
+    },
+    {
+      "text": "arguments today. And what I love about",
+      "duration": 4401,
+      "offset": 130759,
+      "lang": "en"
+    },
+    {
+      "text": "Lovelace is she didn't just predict",
+      "duration": 4600,
+      "offset": 133200,
+      "lang": "en"
+    },
+    {
+      "text": "computation, she predicted language",
+      "duration": 4760,
+      "offset": 135160,
+      "lang": "en"
+    },
+    {
+      "text": "models. She said that the engine could",
+      "duration": 5200,
+      "offset": 137800,
+      "lang": "en"
+    },
+    {
+      "text": "combine its numerical quantities exactly",
+      "duration": 4800,
+      "offset": 139920,
+      "lang": "en"
+    },
+    {
+      "text": "as if they were letters or any other",
+      "duration": 4400,
+      "offset": 143000,
+      "lang": "en"
+    },
+    {
+      "text": "general symbols. She was describing",
+      "duration": 5360,
+      "offset": 144720,
+      "lang": "en"
+    },
+    {
+      "text": "natural language processing in the",
+      "duration": 4880,
+      "offset": 147400,
+      "lang": "en"
+    },
+    {
+      "text": "1830s.",
+      "duration": 3280,
+      "offset": 150080,
+      "lang": "en"
+    },
+    {
+      "text": "However,",
+      "duration": 3800,
+      "offset": 152280,
+      "lang": "en"
+    },
+    {
+      "text": "Lovelace drew her line at origination,",
+      "duration": 4360,
+      "offset": 153360,
+      "lang": "en"
+    },
+    {
+      "text": "being able to be original about",
+      "duration": 3680,
+      "offset": 156080,
+      "lang": "en"
+    },
+    {
+      "text": "something. A machine can follow rules,",
+      "duration": 4960,
+      "offset": 157720,
+      "lang": "en"
+    },
+    {
+      "text": "it can't make them. 100 years later,",
+      "duration": 4960,
+      "offset": 159760,
+      "lang": "en"
+    },
+    {
+      "text": "Alan Turing looked at that line and",
+      "duration": 4120,
+      "offset": 162680,
+      "lang": "en"
+    },
+    {
+      "text": "asked a harder question.",
+      "duration": 5680,
+      "offset": 164720,
+      "lang": "en"
+    },
+    {
+      "text": "What does originality actually mean?",
+      "duration": 6320,
+      "offset": 166800,
+      "lang": "en"
+    },
+    {
+      "text": "In 1950, he wrote Computing Machinery",
+      "duration": 4640,
+      "offset": 170400,
+      "lang": "en"
+    },
+    {
+      "text": "and Intelligence, the paper where the",
+      "duration": 4120,
+      "offset": 173120,
+      "lang": "en"
+    },
+    {
+      "text": "actual Turing test appears. And his",
+      "duration": 4200,
+      "offset": 175040,
+      "lang": "en"
+    },
+    {
+      "text": "argument with Lovelace is the crux of",
+      "duration": 4200,
+      "offset": 177240,
+      "lang": "en"
+    },
+    {
+      "text": "the whole thing. Turing said that the",
+      "duration": 4600,
+      "offset": 179240,
+      "lang": "en"
+    },
+    {
+      "text": "problem with Lovelace's line wasn't the",
+      "duration": 5000,
+      "offset": 181440,
+      "lang": "en"
+    },
+    {
+      "text": "machine, it was the measure.",
+      "duration": 5040,
+      "offset": 183840,
+      "lang": "en"
+    },
+    {
+      "text": "What if originality itself is just a",
+      "duration": 4880,
+      "offset": 186440,
+      "lang": "en"
+    },
+    {
+      "text": "reshaping of things we were taught?",
+      "duration": 4360,
+      "offset": 188880,
+      "lang": "en"
+    },
+    {
+      "text": "Think about how you learned anything.",
+      "duration": 4080,
+      "offset": 191320,
+      "lang": "en"
+    },
+    {
+      "text": "School taught you language. Your parents",
+      "duration": 4400,
+      "offset": 193240,
+      "lang": "en"
+    },
+    {
+      "text": "taught you values. You read books,",
+      "duration": 4320,
+      "offset": 195400,
+      "lang": "en"
+    },
+    {
+      "text": "watched movies, had conversations. All",
+      "duration": 4840,
+      "offset": 197640,
+      "lang": "en"
+    },
+    {
+      "text": "of it loaded in. Then one day you write",
+      "duration": 4880,
+      "offset": 199720,
+      "lang": "en"
+    },
+    {
+      "text": "something that feels like yours, but",
+      "duration": 4560,
+      "offset": 202480,
+      "lang": "en"
+    },
+    {
+      "text": "where did it come from? It was built out",
+      "duration": 5200,
+      "offset": 204600,
+      "lang": "en"
+    },
+    {
+      "text": "of everything that was loaded in before.",
+      "duration": 4680,
+      "offset": 207040,
+      "lang": "en"
+    },
+    {
+      "text": "We don't call a student just following",
+      "duration": 3560,
+      "offset": 209800,
+      "lang": "en"
+    },
+    {
+      "text": "their training when they write a good",
+      "duration": 3800,
+      "offset": 211720,
+      "lang": "en"
+    },
+    {
+      "text": "essay, we [music] call that thinking. So",
+      "duration": 3680,
+      "offset": 213360,
+      "lang": "en"
+    },
+    {
+      "text": "when a machine does the same thing at",
+      "duration": 4640,
+      "offset": 215520,
+      "lang": "en"
+    },
+    {
+      "text": "scale, why call it less? If a machine",
+      "duration": 5600,
+      "offset": 217040,
+      "lang": "en"
+    },
+    {
+      "text": "surprises us, that should count, should",
+      "duration": 5080,
+      "offset": 220160,
+      "lang": "en"
+    },
+    {
+      "text": "it not? If a program can hold up its end",
+      "duration": 5120,
+      "offset": 222640,
+      "lang": "en"
+    },
+    {
+      "text": "of a conversation well enough to fool a",
+      "duration": 5480,
+      "offset": 225240,
+      "lang": "en"
+    },
+    {
+      "text": "clear observer, we should treat that as",
+      "duration": 4520,
+      "offset": 227760,
+      "lang": "en"
+    },
+    {
+      "text": "thinking, no?",
+      "duration": 2960,
+      "offset": 230720,
+      "lang": "en"
+    },
+    {
+      "text": "Well, at least that's what Turing",
+      "duration": 3440,
+      "offset": 232280,
+      "lang": "en"
+    },
+    {
+      "text": "believed. He even addressed Lovelace",
+      "duration": 4800,
+      "offset": 233680,
+      "lang": "en"
+    },
+    {
+      "text": "directly and said, \"I do not assert that",
+      "duration": 5000,
+      "offset": 235720,
+      "lang": "en"
+    },
+    {
+      "text": "machines have not got the property of",
+      "duration": 4480,
+      "offset": 238480,
+      "lang": "en"
+    },
+    {
+      "text": "thinking. I assert that the evidence",
+      "duration": 4400,
+      "offset": 240720,
+      "lang": "en"
+    },
+    {
+      "text": "available to Lady Lovelace did not",
+      "duration": 4560,
+      "offset": 242960,
+      "lang": "en"
+    },
+    {
+      "text": "encourage her to believe that they had",
+      "duration": 4600,
+      "offset": 245120,
+      "lang": "en"
+    },
+    {
+      "text": "it.\" Turing didn't claim to know what",
+      "duration": 4920,
+      "offset": 247520,
+      "lang": "en"
+    },
+    {
+      "text": "thinking is. He just chose to test",
+      "duration": 6040,
+      "offset": 249720,
+      "lang": "en"
+    },
+    {
+      "text": "behavior and outcomes instead. And that",
+      "duration": 5160,
+      "offset": 252440,
+      "lang": "en"
+    },
+    {
+      "text": "is a different move than Descartes or",
+      "duration": 4280,
+      "offset": 255760,
+      "lang": "en"
+    },
+    {
+      "text": "Lovelace, and the field still hasn't",
+      "duration": 4479,
+      "offset": 257600,
+      "lang": "en"
+    },
+    {
+      "text": "necessarily decided on which side is",
+      "duration": 3040,
+      "offset": 260040,
+      "lang": "en"
+    },
+    {
+      "text": "better.",
+      "duration": 4201,
+      "offset": 262079,
+      "lang": "en"
+    },
+    {
+      "text": "Fast forward to March 2025, the paper I",
+      "duration": 4880,
+      "offset": 263080,
+      "lang": "en"
+    },
+    {
+      "text": "was talking about at the beginning shows",
+      "duration": 4000,
+      "offset": 266280,
+      "lang": "en"
+    },
+    {
+      "text": "that language models passing the Turing",
+      "duration": 4240,
+      "offset": 267960,
+      "lang": "en"
+    },
+    {
+      "text": "test with multiple people and",
+      "duration": 4240,
+      "offset": 270280,
+      "lang": "en"
+    },
+    {
+      "text": "peer-reviewed studies. And the response",
+      "duration": 4800,
+      "offset": 272200,
+      "lang": "en"
+    },
+    {
+      "text": "tells you more than the result does.",
+      "duration": 4920,
+      "offset": 274520,
+      "lang": "en"
+    },
+    {
+      "text": "Some people said the score was shallow.",
+      "duration": 4160,
+      "offset": 277000,
+      "lang": "en"
+    },
+    {
+      "text": "Others said the structure of the brain",
+      "duration": 3840,
+      "offset": 279440,
+      "lang": "en"
+    },
+    {
+      "text": "is fundamentally different from a chip,",
+      "duration": 4680,
+      "offset": 281160,
+      "lang": "en"
+    },
+    {
+      "text": "so it isn't a fair match. And I do think",
+      "duration": 4360,
+      "offset": 283280,
+      "lang": "en"
+    },
+    {
+      "text": "the structural argument might be an",
+      "duration": 4240,
+      "offset": 285840,
+      "lang": "en"
+    },
+    {
+      "text": "interesting route to go on. My brain",
+      "duration": 4760,
+      "offset": 287640,
+      "lang": "en"
+    },
+    {
+      "text": "runs on a sandwich and coffee. These",
+      "duration": 4280,
+      "offset": 290080,
+      "lang": "en"
+    },
+    {
+      "text": "models need a nuclear reactor worth the",
+      "duration": 4200,
+      "offset": 292400,
+      "lang": "en"
+    },
+    {
+      "text": "power to train, and then another cloud",
+      "duration": 4160,
+      "offset": 294360,
+      "lang": "en"
+    },
+    {
+      "text": "database to even get it close to getting",
+      "duration": 4160,
+      "offset": 296600,
+      "lang": "en"
+    },
+    {
+      "text": "a question wrong. That's not the same",
+      "duration": 4400,
+      "offset": 298520,
+      "lang": "en"
+    },
+    {
+      "text": "kind of machine at all. But here's the",
+      "duration": 4440,
+      "offset": 300760,
+      "lang": "en"
+    },
+    {
+      "text": "catch. Every argument people make",
+      "duration": 4760,
+      "offset": 302920,
+      "lang": "en"
+    },
+    {
+      "text": "against AI tests, we actually make",
+      "duration": 5600,
+      "offset": 305200,
+      "lang": "en"
+    },
+    {
+      "text": "against humans. An IQ test grades",
+      "duration": 6160,
+      "offset": 307680,
+      "lang": "en"
+    },
+    {
+      "text": "outputs, not inner life, but we use it",
+      "duration": 4760,
+      "offset": 310800,
+      "lang": "en"
+    },
+    {
+      "text": "anyway, and we say it marks",
+      "duration": 5000,
+      "offset": 313840,
+      "lang": "en"
+    },
+    {
+      "text": "intelligence. Turing saw this as well.",
+      "duration": 5560,
+      "offset": 315560,
+      "lang": "en"
+    },
+    {
+      "text": "He said, \"You cannot be sure that some",
+      "duration": 4960,
+      "offset": 318840,
+      "lang": "en"
+    },
+    {
+      "text": "causal remark of your own hasn't started",
+      "duration": 5200,
+      "offset": 321120,
+      "lang": "en"
+    },
+    {
+      "text": "the idea off. The remark could come from",
+      "duration": 5360,
+      "offset": 323800,
+      "lang": "en"
+    },
+    {
+      "text": "a teacher or from pre-training data, or",
+      "duration": 5480,
+      "offset": 326320,
+      "lang": "en"
+    },
+    {
+      "text": "just a puzzle of the mind.\" And this is",
+      "duration": 4240,
+      "offset": 329160,
+      "lang": "en"
+    },
+    {
+      "text": "where I think most of the current AI",
+      "duration": 4440,
+      "offset": 331800,
+      "lang": "en"
+    },
+    {
+      "text": "conversation is actually stuck. We keep",
+      "duration": 4680,
+      "offset": 333400,
+      "lang": "en"
+    },
+    {
+      "text": "arguing about whether a model is really",
+      "duration": 3840,
+      "offset": 336240,
+      "lang": "en"
+    },
+    {
+      "text": "thinking. I think that's the wrong",
+      "duration": 3960,
+      "offset": 338080,
+      "lang": "en"
+    },
+    {
+      "text": "abstraction layer for whether you should",
+      "duration": 4360,
+      "offset": 340080,
+      "lang": "en"
+    },
+    {
+      "text": "use them. I think it's a great question,",
+      "duration": 4760,
+      "offset": 342040,
+      "lang": "en"
+    },
+    {
+      "text": "but the abstraction layer for use, for",
+      "duration": 4160,
+      "offset": 344440,
+      "lang": "en"
+    },
+    {
+      "text": "using these models in an intelligent",
+      "duration": 5120,
+      "offset": 346800,
+      "lang": "en"
+    },
+    {
+      "text": "way, is more at a higher system. What I",
+      "duration": 6000,
+      "offset": 348600,
+      "lang": "en"
+    },
+    {
+      "text": "mean by this is what is underneath the",
+      "duration": 4920,
+      "offset": 351920,
+      "lang": "en"
+    },
+    {
+      "text": "abstraction is mostly hidden and doesn't",
+      "duration": 4520,
+      "offset": 354600,
+      "lang": "en"
+    },
+    {
+      "text": "matter if you focus on the output. When",
+      "duration": 4520,
+      "offset": 356840,
+      "lang": "en"
+    },
+    {
+      "text": "you drive a car, you don't think about",
+      "duration": 4240,
+      "offset": 359120,
+      "lang": "en"
+    },
+    {
+      "text": "pistons firing or the fuel injection",
+      "duration": 3640,
+      "offset": 361360,
+      "lang": "en"
+    },
+    {
+      "text": "timing, you think about where you're",
+      "duration": 4840,
+      "offset": 363360,
+      "lang": "en"
+    },
+    {
+      "text": "going. That's a high abstraction layer.",
+      "duration": 5640,
+      "offset": 365000,
+      "lang": "en"
+    },
+    {
+      "text": "Same here. The useful question isn't is",
+      "duration": 4280,
+      "offset": 368200,
+      "lang": "en"
+    },
+    {
+      "text": "the model really thinking? The useful",
+      "duration": 3320,
+      "offset": 370640,
+      "lang": "en"
+    },
+    {
+      "text": "question is whether the output is",
+      "duration": 3720,
+      "offset": 372480,
+      "lang": "en"
+    },
+    {
+      "text": "reliable for the task in front of you,",
+      "duration": 4080,
+      "offset": 373960,
+      "lang": "en"
+    },
+    {
+      "text": "and whether you're on the hook for when",
+      "duration": 4200,
+      "offset": 376200,
+      "lang": "en"
+    },
+    {
+      "text": "it isn't. Those are ethics questions.",
+      "duration": 3880,
+      "offset": 378040,
+      "lang": "en"
+    },
+    {
+      "text": "Those are engineering and business",
+      "duration": 4000,
+      "offset": 380400,
+      "lang": "en"
+    },
+    {
+      "text": "questions. Thinking is an entirely",
+      "duration": 5040,
+      "offset": 381920,
+      "lang": "en"
+    },
+    {
+      "text": "separate thread. Pulling on it doesn't",
+      "duration": 5280,
+      "offset": 384400,
+      "lang": "en"
+    },
+    {
+      "text": "get you the outcome. Yet, I still think",
+      "duration": 5040,
+      "offset": 386960,
+      "lang": "en"
+    },
+    {
+      "text": "it's an important question. And we have",
+      "duration": 4440,
+      "offset": 389680,
+      "lang": "en"
+    },
+    {
+      "text": "to ask, why do we keep pulling on that",
+      "duration": 4800,
+      "offset": 392000,
+      "lang": "en"
+    },
+    {
+      "text": "thread in the first place? Well, I think",
+      "duration": 4840,
+      "offset": 394120,
+      "lang": "en"
+    },
+    {
+      "text": "it really goes back to Descartes again,",
+      "duration": 4680,
+      "offset": 396800,
+      "lang": "en"
+    },
+    {
+      "text": "the 400 years ago. When we look at",
+      "duration": 5760,
+      "offset": 398960,
+      "lang": "en"
+    },
+    {
+      "text": "Descartes's dualism, dualism is the idea",
+      "duration": 5520,
+      "offset": 401480,
+      "lang": "en"
+    },
+    {
+      "text": "that the mind and body are made of",
+      "duration": 4840,
+      "offset": 404720,
+      "lang": "en"
+    },
+    {
+      "text": "fundamentally different kinds of stuff.",
+      "duration": 4400,
+      "offset": 407000,
+      "lang": "en"
+    },
+    {
+      "text": "One is physical. You can weigh your",
+      "duration": 4200,
+      "offset": 409560,
+      "lang": "en"
+    },
+    {
+      "text": "brain. You can see it on a scan. The",
+      "duration": 4840,
+      "offset": 411400,
+      "lang": "en"
+    },
+    {
+      "text": "other isn't. You can't really weigh a",
+      "duration": 4760,
+      "offset": 413760,
+      "lang": "en"
+    },
+    {
+      "text": "thought. You can't put a memory on a",
+      "duration": 5320,
+      "offset": 416240,
+      "lang": "en"
+    },
+    {
+      "text": "scale and hold it in your hands. Two",
+      "duration": 5480,
+      "offset": 418520,
+      "lang": "en"
+    },
+    {
+      "text": "different substances, two completely",
+      "duration": 5320,
+      "offset": 421560,
+      "lang": "en"
+    },
+    {
+      "text": "different worlds. Descartes needed that",
+      "duration": 4920,
+      "offset": 424000,
+      "lang": "en"
+    },
+    {
+      "text": "gap to eventually get to his famous",
+      "duration": 5920,
+      "offset": 426880,
+      "lang": "en"
+    },
+    {
+      "text": "statement, \"I think, therefore I am.\"",
+      "duration": 6640,
+      "offset": 428920,
+      "lang": "en"
+    },
+    {
+      "text": "400 years later, that gap is still",
+      "duration": 4800,
+      "offset": 432800,
+      "lang": "en"
+    },
+    {
+      "text": "something we're looking at. Look at",
+      "duration": 4400,
+      "offset": 435560,
+      "lang": "en"
+    },
+    {
+      "text": "cybernetics, the study of how systems",
+      "duration": 4600,
+      "offset": 437600,
+      "lang": "en"
+    },
+    {
+      "text": "sense and correct themselves.",
+      "duration": 5280,
+      "offset": 439960,
+      "lang": "en"
+    },
+    {
+      "text": "A thermostat is technically cybernetics.",
+      "duration": 4840,
+      "offset": 442200,
+      "lang": "en"
+    },
+    {
+      "text": "Check the temperature, compare it to the",
+      "duration": 5360,
+      "offset": 445240,
+      "lang": "en"
+    },
+    {
+      "text": "target, adjust. Cybernetics shows that",
+      "duration": 5680,
+      "offset": 447040,
+      "lang": "en"
+    },
+    {
+      "text": "purpose, the thing we used to think only",
+      "duration": 5720,
+      "offset": 450600,
+      "lang": "en"
+    },
+    {
+      "text": "minds have, can live in a loop. Norbert",
+      "duration": 5920,
+      "offset": 452720,
+      "lang": "en"
+    },
+    {
+      "text": "Wiener watched anti-aircraft guns track",
+      "duration": 4560,
+      "offset": 456320,
+      "lang": "en"
+    },
+    {
+      "text": "fast planes and saw a kind of intent in",
+      "duration": 4120,
+      "offset": 458640,
+      "lang": "en"
+    },
+    {
+      "text": "the mechanisms. From the outside,",
+      "duration": 4520,
+      "offset": 460880,
+      "lang": "en"
+    },
+    {
+      "text": "feedback and intention look identical.",
+      "duration": 5200,
+      "offset": 462760,
+      "lang": "en"
+    },
+    {
+      "text": "The loop is doing the work. And",
+      "duration": 5240,
+      "offset": 465400,
+      "lang": "en"
+    },
+    {
+      "text": "behaviorism took it step further. B.F.",
+      "duration": 4640,
+      "offset": 467960,
+      "lang": "en"
+    },
+    {
+      "text": "Skinner trained pigeons to guide",
+      "duration": 4160,
+      "offset": 470640,
+      "lang": "en"
+    },
+    {
+      "text": "missiles by pecking at a target. The",
+      "duration": 4200,
+      "offset": 472600,
+      "lang": "en"
+    },
+    {
+      "text": "birds produced steering curves as smooth",
+      "duration": 3680,
+      "offset": 474800,
+      "lang": "en"
+    },
+    {
+      "text": "as calculus. You can call that",
+      "duration": 4160,
+      "offset": 476800,
+      "lang": "en"
+    },
+    {
+      "text": "intelligence and that curve, or you can",
+      "duration": 5040,
+      "offset": 478480,
+      "lang": "en"
+    },
+    {
+      "text": "call it training data, and the curve is",
+      "duration": 5240,
+      "offset": 480960,
+      "lang": "en"
+    },
+    {
+      "text": "the same regardless of what you call it.",
+      "duration": 4640,
+      "offset": 483520,
+      "lang": "en"
+    },
+    {
+      "text": "Extended mind theory goes the other",
+      "duration": 4600,
+      "offset": 486200,
+      "lang": "en"
+    },
+    {
+      "text": "direction. Andy Clark argued that your",
+      "duration": 4720,
+      "offset": 488160,
+      "lang": "en"
+    },
+    {
+      "text": "phone, your notebook, the cloud model",
+      "duration": 4280,
+      "offset": 490800,
+      "lang": "en"
+    },
+    {
+      "text": "holding your calendar and your drafts,",
+      "duration": 5200,
+      "offset": 492880,
+      "lang": "en"
+    },
+    {
+      "text": "all of it is part of your cognition. Not",
+      "duration": 5440,
+      "offset": 495080,
+      "lang": "en"
+    },
+    {
+      "text": "a tool your mind uses, but actually part",
+      "duration": 5040,
+      "offset": 498080,
+      "lang": "en"
+    },
+    {
+      "text": "of your mind. If your cortex can reach",
+      "duration": 4160,
+      "offset": 500520,
+      "lang": "en"
+    },
+    {
+      "text": "into your phone for a memory it",
+      "duration": 4120,
+      "offset": 503120,
+      "lang": "en"
+    },
+    {
+      "text": "outsourced, then mind isn't sealed",
+      "duration": 4680,
+      "offset": 504680,
+      "lang": "en"
+    },
+    {
+      "text": "inside your skull. And if it isn't",
+      "duration": 4400,
+      "offset": 507240,
+      "lang": "en"
+    },
+    {
+      "text": "sealed inside your skull, why would it",
+      "duration": 5960,
+      "offset": 509360,
+      "lang": "en"
+    },
+    {
+      "text": "have to be sealed inside flesh? But we",
+      "duration": 5519,
+      "offset": 511640,
+      "lang": "en"
+    },
+    {
+      "text": "finally get a resistance to this with a",
+      "duration": 5040,
+      "offset": 515320,
+      "lang": "en"
+    },
+    {
+      "text": "man by the name John Searle. He tries to",
+      "duration": 5161,
+      "offset": 517159,
+      "lang": "en"
+    },
+    {
+      "text": "freeze the debate in 1980 with something",
+      "duration": 4320,
+      "offset": 520360,
+      "lang": "en"
+    },
+    {
+      "text": "called the Chinese Room.",
+      "duration": 4120,
+      "offset": 522320,
+      "lang": "en"
+    },
+    {
+      "text": "Imagine it this way. You're locked in a",
+      "duration": 4560,
+      "offset": 524680,
+      "lang": "en"
+    },
+    {
+      "text": "room. You don't speak a word of Chinese.",
+      "duration": 5760,
+      "offset": 526440,
+      "lang": "en"
+    },
+    {
+      "text": "People outside the room slide in Chinese",
+      "duration": 5320,
+      "offset": 529240,
+      "lang": "en"
+    },
+    {
+      "text": "characters and words through a slot.",
+      "duration": 4520,
+      "offset": 532200,
+      "lang": "en"
+    },
+    {
+      "text": "Inside, you have a rule book. It says",
+      "duration": 3680,
+      "offset": 534560,
+      "lang": "en"
+    },
+    {
+      "text": "things like, \"If you see these",
+      "duration": 3680,
+      "offset": 536720,
+      "lang": "en"
+    },
+    {
+      "text": "characters and words, slide these",
+      "duration": 4760,
+      "offset": 538240,
+      "lang": "en"
+    },
+    {
+      "text": "characters and words back.\" You follow",
+      "duration": 5160,
+      "offset": 540400,
+      "lang": "en"
+    },
+    {
+      "text": "the rules. You have no idea what any of",
+      "duration": 4720,
+      "offset": 543000,
+      "lang": "en"
+    },
+    {
+      "text": "it actually means, though. However, the",
+      "duration": 4000,
+      "offset": 545560,
+      "lang": "en"
+    },
+    {
+      "text": "people on the outside think you",
+      "duration": 4040,
+      "offset": 547720,
+      "lang": "en"
+    },
+    {
+      "text": "understand Chinese perfectly.",
+      "duration": 4720,
+      "offset": 549560,
+      "lang": "en"
+    },
+    {
+      "text": "Searle's question was, \"Do you actually",
+      "duration": 4920,
+      "offset": 551760,
+      "lang": "en"
+    },
+    {
+      "text": "understand Chinese if you're just",
+      "duration": 4880,
+      "offset": 554280,
+      "lang": "en"
+    },
+    {
+      "text": "memorizing the rules around it?\" His",
+      "duration": 4520,
+      "offset": 556680,
+      "lang": "en"
+    },
+    {
+      "text": "answer was no. You're just shuffling",
+      "duration": 4600,
+      "offset": 559160,
+      "lang": "en"
+    },
+    {
+      "text": "symbols, which means a computer can't",
+      "duration": 4640,
+      "offset": 561200,
+      "lang": "en"
+    },
+    {
+      "text": "really understand, either. It's doing",
+      "duration": 4440,
+      "offset": 563760,
+      "lang": "en"
+    },
+    {
+      "text": "the exact same thing you're doing, just",
+      "duration": 5440,
+      "offset": 565840,
+      "lang": "en"
+    },
+    {
+      "text": "faster and with a bigger rule book.",
+      "duration": 5880,
+      "offset": 568200,
+      "lang": "en"
+    },
+    {
+      "text": "Now, it still kind of holds today, but",
+      "duration": 4200,
+      "offset": 571280,
+      "lang": "en"
+    },
+    {
+      "text": "not if you look at it from a different",
+      "duration": 4920,
+      "offset": 574080,
+      "lang": "en"
+    },
+    {
+      "text": "perspective. The room is not you. The",
+      "duration": 6520,
+      "offset": 575480,
+      "lang": "en"
+    },
+    {
+      "text": "room is a system. You plus the rule",
+      "duration": 5360,
+      "offset": 579000,
+      "lang": "en"
+    },
+    {
+      "text": "book, plus the paper, plus the slots,",
+      "duration": 4440,
+      "offset": 582000,
+      "lang": "en"
+    },
+    {
+      "text": "plus all of it together,",
+      "duration": 3920,
+      "offset": 584360,
+      "lang": "en"
+    },
+    {
+      "text": "when the system answers in fluent",
+      "duration": 5040,
+      "offset": 586440,
+      "lang": "en"
+    },
+    {
+      "text": "Chinese, the understanding has to live",
+      "duration": 6160,
+      "offset": 588280,
+      "lang": "en"
+    },
+    {
+      "text": "somewhere in that system. Sure, it's not",
+      "duration": 5640,
+      "offset": 591480,
+      "lang": "en"
+    },
+    {
+      "text": "in your head alone, but it is in the",
+      "duration": 5320,
+      "offset": 594440,
+      "lang": "en"
+    },
+    {
+      "text": "whole setup. The man inside the room",
+      "duration": 6200,
+      "offset": 597120,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't understand Chinese, but the room",
+      "duration": 6680,
+      "offset": 599760,
+      "lang": "en"
+    },
+    {
+      "text": "does. Mind leaks into matter. Matter",
+      "duration": 5520,
+      "offset": 603320,
+      "lang": "en"
+    },
+    {
+      "text": "hosts mind. The border was never as",
+      "duration": 4760,
+      "offset": 606440,
+      "lang": "en"
+    },
+    {
+      "text": "sharp as Descartes actually needed it to",
+      "duration": 4720,
+      "offset": 608840,
+      "lang": "en"
+    },
+    {
+      "text": "be. And here's the part that I actually",
+      "duration": 4240,
+      "offset": 611200,
+      "lang": "en"
+    },
+    {
+      "text": "work on and I was thinking about while",
+      "duration": 3440,
+      "offset": 613560,
+      "lang": "en"
+    },
+    {
+      "text": "doing my research at the Edinburgh",
+      "duration": 3400,
+      "offset": 615440,
+      "lang": "en"
+    },
+    {
+      "text": "Futures Institute. You see, I was",
+      "duration": 4240,
+      "offset": 617000,
+      "lang": "en"
+    },
+    {
+      "text": "running psychometric scales on language",
+      "duration": 4160,
+      "offset": 618840,
+      "lang": "en"
+    },
+    {
+      "text": "models. You know, the same instruments",
+      "duration": 3360,
+      "offset": 621240,
+      "lang": "en"
+    },
+    {
+      "text": "psychologists use on people to figure",
+      "duration": 3480,
+      "offset": 623000,
+      "lang": "en"
+    },
+    {
+      "text": "out our personalities. I sent them",
+      "duration": 3560,
+      "offset": 624600,
+      "lang": "en"
+    },
+    {
+      "text": "towards a whole bunch of AI and the",
+      "duration": 3400,
+      "offset": 626480,
+      "lang": "en"
+    },
+    {
+      "text": "scores actually come back pretty",
+      "duration": 4880,
+      "offset": 628160,
+      "lang": "en"
+    },
+    {
+      "text": "consistently. Back then, GPT-4 read as",
+      "duration": 5760,
+      "offset": 629880,
+      "lang": "en"
+    },
+    {
+      "text": "very open and low on neuroticism. Claude",
+      "duration": 4440,
+      "offset": 633040,
+      "lang": "en"
+    },
+    {
+      "text": "was leading as guarded. That doesn't",
+      "duration": 3320,
+      "offset": 635640,
+      "lang": "en"
+    },
+    {
+      "text": "necessarily prove that the models are",
+      "duration": 3720,
+      "offset": 637480,
+      "lang": "en"
+    },
+    {
+      "text": "thinking, but it shows something quieter",
+      "duration": 5360,
+      "offset": 638960,
+      "lang": "en"
+    },
+    {
+      "text": "and actually more useful. A rule-bound",
+      "duration": 5680,
+      "offset": 641200,
+      "lang": "en"
+    },
+    {
+      "text": "system can carry a moral or",
+      "duration": 5480,
+      "offset": 644320,
+      "lang": "en"
+    },
+    {
+      "text": "psychological tone. Every sentence you",
+      "duration": 5080,
+      "offset": 646880,
+      "lang": "en"
+    },
+    {
+      "text": "ask it to finish will drift in the",
+      "duration": 5200,
+      "offset": 649800,
+      "lang": "en"
+    },
+    {
+      "text": "direction of that psychological bias,",
+      "duration": 5080,
+      "offset": 651960,
+      "lang": "en"
+    },
+    {
+      "text": "unless you notice it. And even if you",
+      "duration": 4280,
+      "offset": 655000,
+      "lang": "en"
+    },
+    {
+      "text": "notice it, you have to figure out what",
+      "duration": 4040,
+      "offset": 657040,
+      "lang": "en"
+    },
+    {
+      "text": "you want to do with that bias. [music]",
+      "duration": 3240,
+      "offset": 659280,
+      "lang": "en"
+    },
+    {
+      "text": "That's the practical version of this",
+      "duration": 3720,
+      "offset": 661080,
+      "lang": "en"
+    },
+    {
+      "text": "whole debate. The question isn't is it",
+      "duration": 4400,
+      "offset": 662520,
+      "lang": "en"
+    },
+    {
+      "text": "conscious? Can it think? The question is",
+      "duration": 5080,
+      "offset": 664800,
+      "lang": "en"
+    },
+    {
+      "text": "what value is this thing quietly handing",
+      "duration": 5280,
+      "offset": 666920,
+      "lang": "en"
+    },
+    {
+      "text": "back to you? And are you going to notice",
+      "duration": 4600,
+      "offset": 669880,
+      "lang": "en"
+    },
+    {
+      "text": "before you ship that lesson plan, that",
+      "duration": 5320,
+      "offset": 672200,
+      "lang": "en"
+    },
+    {
+      "text": "policy draft, that court memo? Descartes",
+      "duration": 4800,
+      "offset": 674480,
+      "lang": "en"
+    },
+    {
+      "text": "would not have framed it that way, but",
+      "duration": 4280,
+      "offset": 677520,
+      "lang": "en"
+    },
+    {
+      "text": "he would recognize the stakes, the",
+      "duration": 5520,
+      "offset": 679280,
+      "lang": "en"
+    },
+    {
+      "text": "problem with these systems. And here's",
+      "duration": 5120,
+      "offset": 681800,
+      "lang": "en"
+    },
+    {
+      "text": "where I keep landing. The discourse",
+      "duration": 3880,
+      "offset": 684800,
+      "lang": "en"
+    },
+    {
+      "text": "isn't really a quest for an answer. I",
+      "duration": 3880,
+      "offset": 686920,
+      "lang": "en"
+    },
+    {
+      "text": "don't think we'll ever find one. It's a",
+      "duration": 4680,
+      "offset": 688680,
+      "lang": "en"
+    },
+    {
+      "text": "mirror. When we ask if a machine can",
+      "duration": 5960,
+      "offset": 690800,
+      "lang": "en"
+    },
+    {
+      "text": "think, we sharpen what we mean by",
+      "duration": 6520,
+      "offset": 693360,
+      "lang": "en"
+    },
+    {
+      "text": "thinking, by what we are. And if we let",
+      "duration": 5720,
+      "offset": 696760,
+      "lang": "en"
+    },
+    {
+      "text": "it, the question turns outward, [music]",
+      "duration": 4480,
+      "offset": 699880,
+      "lang": "en"
+    },
+    {
+      "text": "because I need someone else to read",
+      "duration": 3880,
+      "offset": 702480,
+      "lang": "en"
+    },
+    {
+      "text": "this, to listen to this for any of it to",
+      "duration": 4120,
+      "offset": 704360,
+      "lang": "en"
+    },
+    {
+      "text": "have meaning. I need a point of",
+      "duration": 3600,
+      "offset": 706360,
+      "lang": "en"
+    },
+    {
+      "text": "reference. I need someone else to",
+      "duration": 4040,
+      "offset": 708480,
+      "lang": "en"
+    },
+    {
+      "text": "compare this to. When Einstein said you",
+      "duration": 4640,
+      "offset": 709960,
+      "lang": "en"
+    },
+    {
+      "text": "cannot know how fast something is moving",
+      "duration": 4120,
+      "offset": 712520,
+      "lang": "en"
+    },
+    {
+      "text": "if there's nothing to compare it to. I",
+      "duration": 4040,
+      "offset": 714600,
+      "lang": "en"
+    },
+    {
+      "text": "think the same is true of consciousness,",
+      "duration": 4880,
+      "offset": 716640,
+      "lang": "en"
+    },
+    {
+      "text": "of thinking. It's relational. Descartes",
+      "duration": 5560,
+      "offset": 718640,
+      "lang": "en"
+    },
+    {
+      "text": "said, I think, therefore I am.",
+      "duration": 6240,
+      "offset": 721520,
+      "lang": "en"
+    },
+    {
+      "text": "But maybe it's closer to you think,",
+      "duration": 5840,
+      "offset": 724200,
+      "lang": "en"
+    },
+    {
+      "text": "therefore I am.",
+      "duration": 4560,
+      "offset": 727760,
+      "lang": "en"
+    },
+    {
+      "text": "Stay curious, my friends, and until next",
+      "duration": 5640,
+      "offset": 730040,
+      "lang": "en"
+    },
+    {
+      "text": "time, happy learning.",
+      "duration": 3360,
+      "offset": 732320,
+      "lang": "en"
+    }
+  ]
+}

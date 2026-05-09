@@ -1,6 +1,7 @@
 ---
 name: oracle-memory
 description: "Build Oracle memory surfaces: session logs, durable notes, local context, and retrieval. Use when the task touches historical context, research notes, or project memory on this OS."
+triggers: ["oracle-memory"]
 ---
 
 # Oracle Memory
@@ -26,3 +27,7 @@ Use this skill when the task is to search, summarize, or persist assistant memor
 - Do not duplicate the same memory in multiple stores without a reason.
 - Prefer narrow search and explicit references over broad transcript loading.
 
+## Session Notes
+
+### 2026-05-05
+- session: patch | tools: Edit, Write | errors: none | notes: wired for CLI routing via triggers array and command alias

@@ -1,0 +1,1848 @@
+{
+  "videoId": "5B6W2OGfxq0",
+  "title": "How One Line of Python Triggers 12,000 Lines",
+  "segments": [
+    {
+      "text": "I typed seven words into an AI. Write",
+      "duration": 4800,
+      "offset": 80,
+      "lang": "en"
+    },
+    {
+      "text": "hello world in Python. And it gave me",
+      "duration": 4799,
+      "offset": 3040,
+      "lang": "en"
+    },
+    {
+      "text": "this in perfect syntax. Print hello",
+      "duration": 5440,
+      "offset": 4880,
+      "lang": "en"
+    },
+    {
+      "text": "world. That's it. One line, 22",
+      "duration": 4001,
+      "offset": 7839,
+      "lang": "en"
+    },
+    {
+      "text": "characters. But what most people don't",
+      "duration": 3600,
+      "offset": 10320,
+      "lang": "en"
+    },
+    {
+      "text": "realize is that single line of Python",
+      "duration": 4480,
+      "offset": 11840,
+      "lang": "en"
+    },
+    {
+      "text": "triggers roughly 12,000 lines of code",
+      "duration": 3920,
+      "offset": 13920,
+      "lang": "en"
+    },
+    {
+      "text": "across seven distinct layers of",
+      "duration": 3440,
+      "offset": 16320,
+      "lang": "en"
+    },
+    {
+      "text": "abstraction, millions of transistor",
+      "duration": 4320,
+      "offset": 17840,
+      "lang": "en"
+    },
+    {
+      "text": "state changes, and billions of electron",
+      "duration": 4080,
+      "offset": 19760,
+      "lang": "en"
+    },
+    {
+      "text": "movements. And every single one of those",
+      "duration": 4000,
+      "offset": 22160,
+      "lang": "en"
+    },
+    {
+      "text": "electrons probabilistic. But we'll come",
+      "duration": 4640,
+      "offset": 23840,
+      "lang": "en"
+    },
+    {
+      "text": "back to that later. Let's go ahead and",
+      "duration": 5680,
+      "offset": 26160,
+      "lang": "en"
+    },
+    {
+      "text": "start at the top of this stack. Hello",
+      "duration": 7040,
+      "offset": 28480,
+      "lang": "en"
+    },
+    {
+      "text": "world. This is what you write. It's",
+      "duration": 6399,
+      "offset": 31840,
+      "lang": "en"
+    },
+    {
+      "text": "clean. It's readable. A child could",
+      "duration": 4000,
+      "offset": 35520,
+      "lang": "en"
+    },
+    {
+      "text": "understand what it's supposed to do",
+      "duration": 3281,
+      "offset": 38239,
+      "lang": "en"
+    },
+    {
+      "text": "after a few lessons. But Python doesn't",
+      "duration": 3600,
+      "offset": 39520,
+      "lang": "en"
+    },
+    {
+      "text": "run this. Your computer doesn't",
+      "duration": 4320,
+      "offset": 41520,
+      "lang": "en"
+    },
+    {
+      "text": "understand English or Python or anything",
+      "duration": 5520,
+      "offset": 43120,
+      "lang": "en"
+    },
+    {
+      "text": "resembling human language. So what",
+      "duration": 5120,
+      "offset": 45840,
+      "lang": "en"
+    },
+    {
+      "text": "actually happens?",
+      "duration": 4720,
+      "offset": 48640,
+      "lang": "en"
+    },
+    {
+      "text": "First, if you look at the top, Python",
+      "duration": 4640,
+      "offset": 50960,
+      "lang": "en"
+    },
+    {
+      "text": "reads your text and builds something",
+      "duration": 5440,
+      "offset": 53360,
+      "lang": "en"
+    },
+    {
+      "text": "called an abstract syntax tree. It's",
+      "duration": 5279,
+      "offset": 55600,
+      "lang": "en"
+    },
+    {
+      "text": "exactly what it sounds like, a tree",
+      "duration": 4320,
+      "offset": 58800,
+      "lang": "en"
+    },
+    {
+      "text": "structure representing the grammar of",
+      "duration": 4801,
+      "offset": 60879,
+      "lang": "en"
+    },
+    {
+      "text": "your code. Your one line becomes",
+      "duration": 6160,
+      "offset": 63120,
+      "lang": "en"
+    },
+    {
+      "text": "something like this. Every keyword,",
+      "duration": 6400,
+      "offset": 65680,
+      "lang": "en"
+    },
+    {
+      "text": "every function, every string actually",
+      "duration": 5360,
+      "offset": 69280,
+      "lang": "en"
+    },
+    {
+      "text": "gets a node. And Python is basically",
+      "duration": 4399,
+      "offset": 72080,
+      "lang": "en"
+    },
+    {
+      "text": "diagramming your sentence the way you",
+      "duration": 3920,
+      "offset": 74640,
+      "lang": "en"
+    },
+    {
+      "text": "might have diagrammed sentences in grade",
+      "duration": 5201,
+      "offset": 76479,
+      "lang": "en"
+    },
+    {
+      "text": "school. subject, verb, object. Except",
+      "duration": 6239,
+      "offset": 78560,
+      "lang": "en"
+    },
+    {
+      "text": "here, it's function, argument, and",
+      "duration": 6079,
+      "offset": 81680,
+      "lang": "en"
+    },
+    {
+      "text": "value. This tree is how Python",
+      "duration": 5521,
+      "offset": 84799,
+      "lang": "en"
+    },
+    {
+      "text": "understands structure. But it still",
+      "duration": 5040,
+      "offset": 87759,
+      "lang": "en"
+    },
+    {
+      "text": "can't actually run anything on your",
+      "duration": 6080,
+      "offset": 90320,
+      "lang": "en"
+    },
+    {
+      "text": "computer. Next, what Python does is it",
+      "duration": 6401,
+      "offset": 92799,
+      "lang": "en"
+    },
+    {
+      "text": "compiles all of your code into something",
+      "duration": 5280,
+      "offset": 96400,
+      "lang": "en"
+    },
+    {
+      "text": "called byte code. These are simple",
+      "duration": 5040,
+      "offset": 99200,
+      "lang": "en"
+    },
+    {
+      "text": "instructions for Python's virtual",
+      "duration": 5439,
+      "offset": 101680,
+      "lang": "en"
+    },
+    {
+      "text": "machine. Load the function called print.",
+      "duration": 6320,
+      "offset": 104240,
+      "lang": "en"
+    },
+    {
+      "text": "Load the string called hello world. Call",
+      "duration": 5761,
+      "offset": 107119,
+      "lang": "en"
+    },
+    {
+      "text": "the function with that string. Three",
+      "duration": 5040,
+      "offset": 110560,
+      "lang": "en"
+    },
+    {
+      "text": "instructions, still abstract, still not",
+      "duration": 5680,
+      "offset": 112880,
+      "lang": "en"
+    },
+    {
+      "text": "running on your actual hardware. By code",
+      "duration": 4720,
+      "offset": 115600,
+      "lang": "en"
+    },
+    {
+      "text": "is like sheet music. It tells you what",
+      "duration": 3760,
+      "offset": 118560,
+      "lang": "en"
+    },
+    {
+      "text": "notes to play, but it's not sound.",
+      "duration": 4640,
+      "offset": 120320,
+      "lang": "en"
+    },
+    {
+      "text": "Someone still has to perform it. And",
+      "duration": 4640,
+      "offset": 122320,
+      "lang": "en"
+    },
+    {
+      "text": "here's where things get interesting.",
+      "duration": 3840,
+      "offset": 124960,
+      "lang": "en"
+    },
+    {
+      "text": "Python itself is written in another",
+      "duration": 4960,
+      "offset": 126960,
+      "lang": "en"
+    },
+    {
+      "text": "language, C. When you run Python, you're",
+      "duration": 5680,
+      "offset": 128800,
+      "lang": "en"
+    },
+    {
+      "text": "actually running a C program that reads",
+      "duration": 6000,
+      "offset": 131920,
+      "lang": "en"
+    },
+    {
+      "text": "bite code and executes it. So the call",
+      "duration": 5520,
+      "offset": 134480,
+      "lang": "en"
+    },
+    {
+      "text": "instruction, it triggers something like",
+      "duration": 5200,
+      "offset": 137920,
+      "lang": "en"
+    },
+    {
+      "text": "this in C. This is simplified. The",
+      "duration": 5440,
+      "offset": 140000,
+      "lang": "en"
+    },
+    {
+      "text": "actual implementation spans literally",
+      "duration": 3839,
+      "offset": 143120,
+      "lang": "en"
+    },
+    {
+      "text": "thousands of lines. But notice",
+      "duration": 3439,
+      "offset": 145440,
+      "lang": "en"
+    },
+    {
+      "text": "something. There's error handling in",
+      "duration": 5920,
+      "offset": 146959,
+      "lang": "en"
+    },
+    {
+      "text": "there. If call equal equals null. What",
+      "duration": 5281,
+      "offset": 148879,
+      "lang": "en"
+    },
+    {
+      "text": "happens if you try to call something",
+      "duration": 3761,
+      "offset": 152879,
+      "lang": "en"
+    },
+    {
+      "text": "that isn't a function? The code catches",
+      "duration": 5680,
+      "offset": 154160,
+      "lang": "en"
+    },
+    {
+      "text": "it, handles it gracefully. Every layer",
+      "duration": 5679,
+      "offset": 156640,
+      "lang": "en"
+    },
+    {
+      "text": "has error handling. Every layer has",
+      "duration": 5600,
+      "offset": 159840,
+      "lang": "en"
+    },
+    {
+      "text": "rules. This becomes very important later",
+      "duration": 5521,
+      "offset": 162319,
+      "lang": "en"
+    },
+    {
+      "text": "as we come to talk about AI in this",
+      "duration": 5760,
+      "offset": 165440,
+      "lang": "en"
+    },
+    {
+      "text": "giant stack. Now, the C compiler itself",
+      "duration": 5759,
+      "offset": 167840,
+      "lang": "en"
+    },
+    {
+      "text": "transforms that code into something",
+      "duration": 6480,
+      "offset": 171200,
+      "lang": "en"
+    },
+    {
+      "text": "called assembly language. You see, C",
+      "duration": 6241,
+      "offset": 173599,
+      "lang": "en"
+    },
+    {
+      "text": "can't actually fully compile that code",
+      "duration": 4960,
+      "offset": 177680,
+      "lang": "en"
+    },
+    {
+      "text": "to run it either. Assembly is a step",
+      "duration": 6640,
+      "offset": 179840,
+      "lang": "en"
+    },
+    {
+      "text": "away from the hardware itself. Each line",
+      "duration": 6319,
+      "offset": 182640,
+      "lang": "en"
+    },
+    {
+      "text": "maps almost directly to something the",
+      "duration": 5759,
+      "offset": 186480,
+      "lang": "en"
+    },
+    {
+      "text": "CPU can do. Uh you'll see a lot of",
+      "duration": 6640,
+      "offset": 188959,
+      "lang": "en"
+    },
+    {
+      "text": "statements like push RBP means save the",
+      "duration": 6961,
+      "offset": 192239,
+      "lang": "en"
+    },
+    {
+      "text": "current base pointer, move RBP. RSP",
+      "duration": 6081,
+      "offset": 195599,
+      "lang": "en"
+    },
+    {
+      "text": "means set the base pointer to the stack",
+      "duration": 4880,
+      "offset": 199200,
+      "lang": "en"
+    },
+    {
+      "text": "pointer. These are operations on",
+      "duration": 5440,
+      "offset": 201680,
+      "lang": "en"
+    },
+    {
+      "text": "registers, tiny pieces of memory inside",
+      "duration": 6000,
+      "offset": 204080,
+      "lang": "en"
+    },
+    {
+      "text": "the CPU itself. And finally, with all of",
+      "duration": 5039,
+      "offset": 207120,
+      "lang": "en"
+    },
+    {
+      "text": "that, we're actually getting close to",
+      "duration": 4560,
+      "offset": 210080,
+      "lang": "en"
+    },
+    {
+      "text": "the metal now, or at least closer to",
+      "duration": 5281,
+      "offset": 212159,
+      "lang": "en"
+    },
+    {
+      "text": "where everything's going on. And this is",
+      "duration": 4640,
+      "offset": 214640,
+      "lang": "en"
+    },
+    {
+      "text": "where we find a very interesting",
+      "duration": 4879,
+      "offset": 217440,
+      "lang": "en"
+    },
+    {
+      "text": "transition where assembly becomes",
+      "duration": 7280,
+      "offset": 219280,
+      "lang": "en"
+    },
+    {
+      "text": "machine code. Machine code is raw bytes,",
+      "duration": 6881,
+      "offset": 222319,
+      "lang": "en"
+    },
+    {
+      "text": "hexadesimal. And this is what the actual",
+      "duration": 6160,
+      "offset": 226560,
+      "lang": "en"
+    },
+    {
+      "text": "CPU, the brain of your computer reads.",
+      "duration": 7840,
+      "offset": 229200,
+      "lang": "en"
+    },
+    {
+      "text": "The number 55 means push RBP. The bytes",
+      "duration": 6239,
+      "offset": 232720,
+      "lang": "en"
+    },
+    {
+      "text": "4889E5",
+      "duration": 6080,
+      "offset": 237040,
+      "lang": "en"
+    },
+    {
+      "text": "mean move RBP RSP. This is the bottom of",
+      "duration": 7601,
+      "offset": 238959,
+      "lang": "en"
+    },
+    {
+      "text": "the software stack. Technically, we're",
+      "duration": 5759,
+      "offset": 243120,
+      "lang": "en"
+    },
+    {
+      "text": "actually not done here. There's",
+      "duration": 5759,
+      "offset": 246560,
+      "lang": "en"
+    },
+    {
+      "text": "something deeper than even this. Those",
+      "duration": 7360,
+      "offset": 248879,
+      "lang": "en"
+    },
+    {
+      "text": "bytes all get decoded by the CPU in",
+      "duration": 6480,
+      "offset": 252319,
+      "lang": "en"
+    },
+    {
+      "text": "something called micro operations at the",
+      "duration": 7520,
+      "offset": 256239,
+      "lang": "en"
+    },
+    {
+      "text": "hardware level. A single MOV instruction",
+      "duration": 8081,
+      "offset": 258799,
+      "lang": "en"
+    },
+    {
+      "text": "triggers a whole cascade. You have to",
+      "duration": 5921,
+      "offset": 263759,
+      "lang": "en"
+    },
+    {
+      "text": "fetch the instructions from memory,",
+      "duration": 5280,
+      "offset": 266880,
+      "lang": "en"
+    },
+    {
+      "text": "decode the op code, calculate the",
+      "duration": 4079,
+      "offset": 269680,
+      "lang": "en"
+    },
+    {
+      "text": "effective address, read from the",
+      "duration": 3440,
+      "offset": 272160,
+      "lang": "en"
+    },
+    {
+      "text": "register file, write to memory, wait for",
+      "duration": 4000,
+      "offset": 273759,
+      "lang": "en"
+    },
+    {
+      "text": "the cache coherency, commit. And each of",
+      "duration": 4240,
+      "offset": 275600,
+      "lang": "en"
+    },
+    {
+      "text": "these involves transistors switching",
+      "duration": 4241,
+      "offset": 277759,
+      "lang": "en"
+    },
+    {
+      "text": "states. Billions of transistors. And",
+      "duration": 4799,
+      "offset": 279840,
+      "lang": "en"
+    },
+    {
+      "text": "each transistor works by controlling the",
+      "duration": 5440,
+      "offset": 282000,
+      "lang": "en"
+    },
+    {
+      "text": "flow of electrons. Here's where things",
+      "duration": 5120,
+      "offset": 284639,
+      "lang": "en"
+    },
+    {
+      "text": "get philosophically interesting, or at",
+      "duration": 5680,
+      "offset": 287440,
+      "lang": "en"
+    },
+    {
+      "text": "least in my opinion, they do. And before",
+      "duration": 5601,
+      "offset": 289759,
+      "lang": "en"
+    },
+    {
+      "text": "we go deeper, I kind of want to go",
+      "duration": 5920,
+      "offset": 293120,
+      "lang": "en"
+    },
+    {
+      "text": "backward actually uh back in time to",
+      "duration": 5760,
+      "offset": 295360,
+      "lang": "en"
+    },
+    {
+      "text": "1804",
+      "duration": 4400,
+      "offset": 299040,
+      "lang": "en"
+    },
+    {
+      "text": "when we look into the kind of beginning",
+      "duration": 5840,
+      "offset": 301120,
+      "lang": "en"
+    },
+    {
+      "text": "stages of algorithms. We find ourselves",
+      "duration": 6319,
+      "offset": 303440,
+      "lang": "en"
+    },
+    {
+      "text": "in France, specifically a place in",
+      "duration": 5600,
+      "offset": 306960,
+      "lang": "en"
+    },
+    {
+      "text": "France where a man by the name Joseph",
+      "duration": 6641,
+      "offset": 309759,
+      "lang": "en"
+    },
+    {
+      "text": "Marie Jakard was living in Leyon. He was",
+      "duration": 5680,
+      "offset": 312560,
+      "lang": "en"
+    },
+    {
+      "text": "a French weaver and he invented",
+      "duration": 4560,
+      "offset": 316400,
+      "lang": "en"
+    },
+    {
+      "text": "something remarkable. It was a loom that",
+      "duration": 5600,
+      "offset": 318240,
+      "lang": "en"
+    },
+    {
+      "text": "could use punch carts to control which",
+      "duration": 5920,
+      "offset": 320960,
+      "lang": "en"
+    },
+    {
+      "text": "threads were raised and lowered, hole or",
+      "duration": 7199,
+      "offset": 323840,
+      "lang": "en"
+    },
+    {
+      "text": "no hole, up or down. Binary logic.",
+      "duration": 6879,
+      "offset": 326880,
+      "lang": "en"
+    },
+    {
+      "text": "Before Jakard, creating patterned fabric",
+      "duration": 5281,
+      "offset": 331039,
+      "lang": "en"
+    },
+    {
+      "text": "required a skilled weaver, an assistant",
+      "duration": 5761,
+      "offset": 333759,
+      "lang": "en"
+    },
+    {
+      "text": "called a draw boy, who manually raised",
+      "duration": 6080,
+      "offset": 336320,
+      "lang": "en"
+    },
+    {
+      "text": "threads according to the pattern. It was",
+      "duration": 6160,
+      "offset": 339520,
+      "lang": "en"
+    },
+    {
+      "text": "slow, expensive, and honestly limited in",
+      "duration": 6239,
+      "offset": 342400,
+      "lang": "en"
+    },
+    {
+      "text": "complexity. With punched cards, an",
+      "duration": 5040,
+      "offset": 345680,
+      "lang": "en"
+    },
+    {
+      "text": "unskilled worker could produce intricate",
+      "duration": 4481,
+      "offset": 348639,
+      "lang": "en"
+    },
+    {
+      "text": "patterns automatically. The same loom",
+      "duration": 5840,
+      "offset": 350720,
+      "lang": "en"
+    },
+    {
+      "text": "could produce unlimited designs just by",
+      "duration": 7120,
+      "offset": 353120,
+      "lang": "en"
+    },
+    {
+      "text": "changing cards. In 1839, someone used a",
+      "duration": 6479,
+      "offset": 356560,
+      "lang": "en"
+    },
+    {
+      "text": "jakard loom to weave a silk portrait of",
+      "duration": 6160,
+      "offset": 360240,
+      "lang": "en"
+    },
+    {
+      "text": "Jakard himself. It required 24,000",
+      "duration": 6401,
+      "offset": 363039,
+      "lang": "en"
+    },
+    {
+      "text": "cards, and each card had over a thousand",
+      "duration": 6320,
+      "offset": 366400,
+      "lang": "en"
+    },
+    {
+      "text": "whole positions. Adah Love Lace, often",
+      "duration": 5520,
+      "offset": 369440,
+      "lang": "en"
+    },
+    {
+      "text": "called the first programmer, saw the",
+      "duration": 4560,
+      "offset": 372720,
+      "lang": "en"
+    },
+    {
+      "text": "connection immediately. She wrote that",
+      "duration": 4480,
+      "offset": 374960,
+      "lang": "en"
+    },
+    {
+      "text": "Charles Babage analytical engine,",
+      "duration": 4639,
+      "offset": 377280,
+      "lang": "en"
+    },
+    {
+      "text": "another pre-elect electrical era",
+      "duration": 5360,
+      "offset": 379440,
+      "lang": "en"
+    },
+    {
+      "text": "machine, weaves algebraic patterns just",
+      "duration": 6161,
+      "offset": 381919,
+      "lang": "en"
+    },
+    {
+      "text": "as the chicard lom weaves flowers and",
+      "duration": 6640,
+      "offset": 384800,
+      "lang": "en"
+    },
+    {
+      "text": "leaves. The punch card, hole or no hole,",
+      "duration": 5920,
+      "offset": 388080,
+      "lang": "en"
+    },
+    {
+      "text": "one or zero. This is where it all began.",
+      "duration": 4319,
+      "offset": 391440,
+      "lang": "en"
+    },
+    {
+      "text": "And here's the thing, those early looms",
+      "duration": 3840,
+      "offset": 394000,
+      "lang": "en"
+    },
+    {
+      "text": "had errors. Cards would tear, holes",
+      "duration": 3601,
+      "offset": 395759,
+      "lang": "en"
+    },
+    {
+      "text": "would be punched wrong, the silk would",
+      "duration": 3760,
+      "offset": 397840,
+      "lang": "en"
+    },
+    {
+      "text": "come out mangled. So they built systems",
+      "duration": 4000,
+      "offset": 399360,
+      "lang": "en"
+    },
+    {
+      "text": "to catch mistakes. They created",
+      "duration": 4000,
+      "offset": 401600,
+      "lang": "en"
+    },
+    {
+      "text": "standards for card sizes. They developed",
+      "duration": 5040,
+      "offset": 403360,
+      "lang": "en"
+    },
+    {
+      "text": "processes for verifying patterns before",
+      "duration": 5680,
+      "offset": 405600,
+      "lang": "en"
+    },
+    {
+      "text": "weaving. Error handling at the very",
+      "duration": 4400,
+      "offset": 408400,
+      "lang": "en"
+    },
+    {
+      "text": "foundation.",
+      "duration": 3680,
+      "offset": 411280,
+      "lang": "en"
+    },
+    {
+      "text": "And you see this is what brings us into",
+      "duration": 4959,
+      "offset": 412800,
+      "lang": "en"
+    },
+    {
+      "text": "the modern era. The reason I'm bringing",
+      "duration": 5120,
+      "offset": 414960,
+      "lang": "en"
+    },
+    {
+      "text": "into all this, every layer of our modern",
+      "duration": 5041,
+      "offset": 417759,
+      "lang": "en"
+    },
+    {
+      "text": "computing stack has the same story. In",
+      "duration": 4320,
+      "offset": 420080,
+      "lang": "en"
+    },
+    {
+      "text": "1947,",
+      "duration": 4320,
+      "offset": 422800,
+      "lang": "en"
+    },
+    {
+      "text": "engineers at Harvard found a moth stuck",
+      "duration": 4960,
+      "offset": 424400,
+      "lang": "en"
+    },
+    {
+      "text": "in the relay of the Mark 2 computer.",
+      "duration": 4160,
+      "offset": 427120,
+      "lang": "en"
+    },
+    {
+      "text": "They taped it into the log book with one",
+      "duration": 4559,
+      "offset": 429360,
+      "lang": "en"
+    },
+    {
+      "text": "note. First actual case of bug being",
+      "duration": 5600,
+      "offset": 431280,
+      "lang": "en"
+    },
+    {
+      "text": "found. The term debugging stuck. In",
+      "duration": 5761,
+      "offset": 433919,
+      "lang": "en"
+    },
+    {
+      "text": "1994, a professor named Thomas Nicely",
+      "duration": 4240,
+      "offset": 436880,
+      "lang": "en"
+    },
+    {
+      "text": "discovered that Intel's Pentium",
+      "duration": 3760,
+      "offset": 439680,
+      "lang": "en"
+    },
+    {
+      "text": "processor sometimes gave wrong answers",
+      "duration": 4560,
+      "offset": 441120,
+      "lang": "en"
+    },
+    {
+      "text": "for division. The cause, five entries",
+      "duration": 4000,
+      "offset": 443440,
+      "lang": "en"
+    },
+    {
+      "text": "were missing from a lookup table in the",
+      "duration": 4000,
+      "offset": 445680,
+      "lang": "en"
+    },
+    {
+      "text": "chip's floatingoint unit. Just five",
+      "duration": 5120,
+      "offset": 447440,
+      "lang": "en"
+    },
+    {
+      "text": "values out of over a thousand. Intel had",
+      "duration": 7120,
+      "offset": 449680,
+      "lang": "en"
+    },
+    {
+      "text": "to recall processors. It cost them 475",
+      "duration": 6880,
+      "offset": 452560,
+      "lang": "en"
+    },
+    {
+      "text": "million. At every layer, from punch card",
+      "duration": 6239,
+      "offset": 456800,
+      "lang": "en"
+    },
+    {
+      "text": "to silicon, humans have made mistakes.",
+      "duration": 5520,
+      "offset": 459440,
+      "lang": "en"
+    },
+    {
+      "text": "And at every layer, we've built systems",
+      "duration": 4401,
+      "offset": 463039,
+      "lang": "en"
+    },
+    {
+      "text": "to catch them, correct them, work around",
+      "duration": 4720,
+      "offset": 464960,
+      "lang": "en"
+    },
+    {
+      "text": "them. This is engineering. This is what",
+      "duration": 4400,
+      "offset": 467440,
+      "lang": "en"
+    },
+    {
+      "text": "we do. But let's go back to the",
+      "duration": 3519,
+      "offset": 469680,
+      "lang": "en"
+    },
+    {
+      "text": "beginning. Remember when I said",
+      "duration": 3120,
+      "offset": 471840,
+      "lang": "en"
+    },
+    {
+      "text": "electrons are probabilistic and then",
+      "duration": 4081,
+      "offset": 473199,
+      "lang": "en"
+    },
+    {
+      "text": "that was important. Here's something",
+      "duration": 5359,
+      "offset": 474960,
+      "lang": "en"
+    },
+    {
+      "text": "most people don't know. Your computer",
+      "duration": 5840,
+      "offset": 477280,
+      "lang": "en"
+    },
+    {
+      "text": "experiences random bit flips. Not from",
+      "duration": 6241,
+      "offset": 480319,
+      "lang": "en"
+    },
+    {
+      "text": "software bugs, but from cosmic rays.",
+      "duration": 6079,
+      "offset": 483120,
+      "lang": "en"
+    },
+    {
+      "text": "High energy particles from space collide",
+      "duration": 4960,
+      "offset": 486560,
+      "lang": "en"
+    },
+    {
+      "text": "with atoms in the atmosphere, creating",
+      "duration": 4961,
+      "offset": 489199,
+      "lang": "en"
+    },
+    {
+      "text": "showers of secondary particles. Some of",
+      "duration": 4880,
+      "offset": 491520,
+      "lang": "en"
+    },
+    {
+      "text": "those particles hit your RAM. When they",
+      "duration": 4800,
+      "offset": 494160,
+      "lang": "en"
+    },
+    {
+      "text": "do, they can flip a bit. A zero becomes",
+      "duration": 7120,
+      "offset": 496400,
+      "lang": "en"
+    },
+    {
+      "text": "a one. A one becomes a zero. In 2003, an",
+      "duration": 7519,
+      "offset": 498960,
+      "lang": "en"
+    },
+    {
+      "text": "electron in Sharik, Belgium, gave one",
+      "duration": 6079,
+      "offset": 503520,
+      "lang": "en"
+    },
+    {
+      "text": "candidate exactly 4,96",
+      "duration": 7281,
+      "offset": 506479,
+      "lang": "en"
+    },
+    {
+      "text": "extra votes. That's 2 to the 12th power.",
+      "duration": 7041,
+      "offset": 509599,
+      "lang": "en"
+    },
+    {
+      "text": "A perfect power of two. The difference",
+      "duration": 7120,
+      "offset": 513760,
+      "lang": "en"
+    },
+    {
+      "text": "of exactly one flipped bit. A cosmic ray",
+      "duration": 7920,
+      "offset": 516640,
+      "lang": "en"
+    },
+    {
+      "text": "had altered the vote count. In 2013, a",
+      "duration": 6880,
+      "offset": 520880,
+      "lang": "en"
+    },
+    {
+      "text": "speedrunner playing Super Mario 64",
+      "duration": 6000,
+      "offset": 524560,
+      "lang": "en"
+    },
+    {
+      "text": "watched Mario suddenly teleport through",
+      "duration": 5519,
+      "offset": 527760,
+      "lang": "en"
+    },
+    {
+      "text": "the floor. analysis showed a single bit",
+      "duration": 7560,
+      "offset": 530560,
+      "lang": "en"
+    },
+    {
+      "text": "had flipped at memory address 05837800,",
+      "duration": 4841,
+      "offset": 533279,
+      "lang": "en"
+    },
+    {
+      "text": "changing Mario's vertical position, a",
+      "duration": 5039,
+      "offset": 538800,
+      "lang": "en"
+    },
+    {
+      "text": "cosmic ray in the middle of a video",
+      "duration": 6079,
+      "offset": 541200,
+      "lang": "en"
+    },
+    {
+      "text": "game. IBM estimated in 1996 that a",
+      "duration": 6961,
+      "offset": 543839,
+      "lang": "en"
+    },
+    {
+      "text": "desktop computer with 256 MGB of RAM",
+      "duration": 6081,
+      "offset": 547279,
+      "lang": "en"
+    },
+    {
+      "text": "would experience about one cosmic ray",
+      "duration": 6320,
+      "offset": 550800,
+      "lang": "en"
+    },
+    {
+      "text": "bit flip per month. And now we reach the",
+      "duration": 6400,
+      "offset": 553360,
+      "lang": "en"
+    },
+    {
+      "text": "real foundation. Electrons are not",
+      "duration": 5920,
+      "offset": 557120,
+      "lang": "en"
+    },
+    {
+      "text": "little balls orbiting a nucleus. In",
+      "duration": 6000,
+      "offset": 559760,
+      "lang": "en"
+    },
+    {
+      "text": "fact, they're probability clouds, wave",
+      "duration": 4799,
+      "offset": 563040,
+      "lang": "en"
+    },
+    {
+      "text": "functions. You can never know exactly",
+      "duration": 3920,
+      "offset": 565760,
+      "lang": "en"
+    },
+    {
+      "text": "where an electron is. You can only know",
+      "duration": 4000,
+      "offset": 567839,
+      "lang": "en"
+    },
+    {
+      "text": "the probability of finding it in a",
+      "duration": 4480,
+      "offset": 569680,
+      "lang": "en"
+    },
+    {
+      "text": "particular location. This isn't",
+      "duration": 4401,
+      "offset": 571839,
+      "lang": "en"
+    },
+    {
+      "text": "uncertainty due to our instruments being",
+      "duration": 4640,
+      "offset": 574160,
+      "lang": "en"
+    },
+    {
+      "text": "imprecise. This is fundamental to",
+      "duration": 5440,
+      "offset": 576240,
+      "lang": "en"
+    },
+    {
+      "text": "reality. The electron generally does not",
+      "duration": 6080,
+      "offset": 578800,
+      "lang": "en"
+    },
+    {
+      "text": "have a definite position until measured.",
+      "duration": 6240,
+      "offset": 581680,
+      "lang": "en"
+    },
+    {
+      "text": "Transistors work by controlling the flow",
+      "duration": 5360,
+      "offset": 584880,
+      "lang": "en"
+    },
+    {
+      "text": "of these probabilistic particles. When",
+      "duration": 4080,
+      "offset": 587920,
+      "lang": "en"
+    },
+    {
+      "text": "you shrink transistors small enough,",
+      "duration": 3920,
+      "offset": 590240,
+      "lang": "en"
+    },
+    {
+      "text": "quantum tunneling becomes a problem.",
+      "duration": 4240,
+      "offset": 592000,
+      "lang": "en"
+    },
+    {
+      "text": "Electrons can tunnel through barriers",
+      "duration": 4160,
+      "offset": 594160,
+      "lang": "en"
+    },
+    {
+      "text": "they shouldn't be able to cross purely",
+      "duration": 5279,
+      "offset": 596240,
+      "lang": "en"
+    },
+    {
+      "text": "due to their wavelike nature. The entire",
+      "duration": 5280,
+      "offset": 598320,
+      "lang": "en"
+    },
+    {
+      "text": "deterministic computing stack,",
+      "duration": 4401,
+      "offset": 601519,
+      "lang": "en"
+    },
+    {
+      "text": "everything from your Python code down to",
+      "duration": 5040,
+      "offset": 603600,
+      "lang": "en"
+    },
+    {
+      "text": "the machine instructions, is built on",
+      "duration": 5280,
+      "offset": 605920,
+      "lang": "en"
+    },
+    {
+      "text": "particles that are fundamentally",
+      "duration": 5680,
+      "offset": 608640,
+      "lang": "en"
+    },
+    {
+      "text": "irreducibly probabilistic.",
+      "duration": 6240,
+      "offset": 611200,
+      "lang": "en"
+    },
+    {
+      "text": "So how does it work then? How do we make",
+      "duration": 5600,
+      "offset": 614320,
+      "lang": "en"
+    },
+    {
+      "text": "these things work so deterministically?",
+      "duration": 4560,
+      "offset": 617440,
+      "lang": "en"
+    },
+    {
+      "text": "We engineered our way around it.",
+      "duration": 4240,
+      "offset": 619920,
+      "lang": "en"
+    },
+    {
+      "text": "Transistors are designed with tolerances",
+      "duration": 4000,
+      "offset": 622000,
+      "lang": "en"
+    },
+    {
+      "text": "and we use enough electrons that the",
+      "duration": 3359,
+      "offset": 624160,
+      "lang": "en"
+    },
+    {
+      "text": "statistical behavior becomes",
+      "duration": 3760,
+      "offset": 626000,
+      "lang": "en"
+    },
+    {
+      "text": "predictable. We build error correcting",
+      "duration": 4241,
+      "offset": 627519,
+      "lang": "en"
+    },
+    {
+      "text": "memory. We implement check sums and",
+      "duration": 5280,
+      "offset": 629760,
+      "lang": "en"
+    },
+    {
+      "text": "parody bits and we create redundancy.",
+      "duration": 6240,
+      "offset": 631760,
+      "lang": "en"
+    },
+    {
+      "text": "When a cosmic ray flips a bit in server",
+      "duration": 6560,
+      "offset": 635040,
+      "lang": "en"
+    },
+    {
+      "text": "RAM, ECC memory ces it and fixes it. You",
+      "duration": 5839,
+      "offset": 638000,
+      "lang": "en"
+    },
+    {
+      "text": "never know it happened. The entire",
+      "duration": 3760,
+      "offset": 641600,
+      "lang": "en"
+    },
+    {
+      "text": "history of computing is the history of",
+      "duration": 3680,
+      "offset": 643839,
+      "lang": "en"
+    },
+    {
+      "text": "taking something unreliable and making",
+      "duration": 4080,
+      "offset": 645360,
+      "lang": "en"
+    },
+    {
+      "text": "it reliable through architecture,",
+      "duration": 3601,
+      "offset": 647519,
+      "lang": "en"
+    },
+    {
+      "text": "through redundancy, through error",
+      "duration": 4160,
+      "offset": 649440,
+      "lang": "en"
+    },
+    {
+      "text": "handling, hole or no hole in a punch",
+      "duration": 5680,
+      "offset": 651120,
+      "lang": "en"
+    },
+    {
+      "text": "card, moth in a relay, missing entries",
+      "duration": 5600,
+      "offset": 653600,
+      "lang": "en"
+    },
+    {
+      "text": "in lookup tables, cosmic rays flipping",
+      "duration": 3920,
+      "offset": 656800,
+      "lang": "en"
+    },
+    {
+      "text": "bits, electrons tunneling through",
+      "duration": 5360,
+      "offset": 659200,
+      "lang": "en"
+    },
+    {
+      "text": "barriers, every layer uncertainty has",
+      "duration": 7920,
+      "offset": 660720,
+      "lang": "en"
+    },
+    {
+      "text": "engineering, engineering, engineering.",
+      "duration": 5760,
+      "offset": 664560,
+      "lang": "en"
+    },
+    {
+      "text": "Which brings us back to where we",
+      "duration": 4720,
+      "offset": 668640,
+      "lang": "en"
+    },
+    {
+      "text": "started. I typed write hello world in",
+      "duration": 6000,
+      "offset": 670320,
+      "lang": "en"
+    },
+    {
+      "text": "Python into AI and it gave me code.",
+      "duration": 4800,
+      "offset": 673360,
+      "lang": "en"
+    },
+    {
+      "text": "People say AI is different. They say",
+      "duration": 3680,
+      "offset": 676320,
+      "lang": "en"
+    },
+    {
+      "text": "it's probabilistic, not deterministic.",
+      "duration": 3200,
+      "offset": 678160,
+      "lang": "en"
+    },
+    {
+      "text": "They say you can't trust it because it",
+      "duration": 2880,
+      "offset": 680000,
+      "lang": "en"
+    },
+    {
+      "text": "might give different answers to the same",
+      "duration": 3680,
+      "offset": 681360,
+      "lang": "en"
+    },
+    {
+      "text": "question. But think about what we just",
+      "duration": 4399,
+      "offset": 682880,
+      "lang": "en"
+    },
+    {
+      "text": "walked through. The punch card loom was",
+      "duration": 4000,
+      "offset": 685040,
+      "lang": "en"
+    },
+    {
+      "text": "deterministic, but the cards tore and",
+      "duration": 3361,
+      "offset": 687279,
+      "lang": "en"
+    },
+    {
+      "text": "the holes were punched wrong. Early",
+      "duration": 3359,
+      "offset": 689040,
+      "lang": "en"
+    },
+    {
+      "text": "computers were deterministic, but Moss",
+      "duration": 3759,
+      "offset": 690640,
+      "lang": "en"
+    },
+    {
+      "text": "got stuck in relays. The Pentium was",
+      "duration": 4081,
+      "offset": 692399,
+      "lang": "en"
+    },
+    {
+      "text": "deterministic, but someone forgot five",
+      "duration": 4081,
+      "offset": 694399,
+      "lang": "en"
+    },
+    {
+      "text": "entries in a table. Your RAM is",
+      "duration": 5039,
+      "offset": 696480,
+      "lang": "en"
+    },
+    {
+      "text": "deterministic, but cosmic rays flip bits",
+      "duration": 5280,
+      "offset": 698480,
+      "lang": "en"
+    },
+    {
+      "text": "anyway. Electrons are fundamentally",
+      "duration": 4880,
+      "offset": 701519,
+      "lang": "en"
+    },
+    {
+      "text": "probabilistic. Yet, we engineered our",
+      "duration": 5199,
+      "offset": 703760,
+      "lang": "en"
+    },
+    {
+      "text": "way around that, too. Every layer",
+      "duration": 6000,
+      "offset": 706399,
+      "lang": "en"
+    },
+    {
+      "text": "started with unreliability. Every layer",
+      "duration": 6081,
+      "offset": 708959,
+      "lang": "en"
+    },
+    {
+      "text": "becomes reliable through architecture.",
+      "duration": 6081,
+      "offset": 712399,
+      "lang": "en"
+    },
+    {
+      "text": "AI is no different. It's just the new",
+      "duration": 6000,
+      "offset": 715040,
+      "lang": "en"
+    },
+    {
+      "text": "layer. Right now, we're in the era of",
+      "duration": 4720,
+      "offset": 718480,
+      "lang": "en"
+    },
+    {
+      "text": "moths in relays. We're finding the",
+      "duration": 4320,
+      "offset": 721040,
+      "lang": "en"
+    },
+    {
+      "text": "errors. We're tapping them into log",
+      "duration": 4000,
+      "offset": 723200,
+      "lang": "en"
+    },
+    {
+      "text": "books. We're building systems to catch",
+      "duration": 3760,
+      "offset": 725360,
+      "lang": "en"
+    },
+    {
+      "text": "mistakes and verify outputs or just",
+      "duration": 4720,
+      "offset": 727200,
+      "lang": "en"
+    },
+    {
+      "text": "create redundancy. The criticism that AI",
+      "duration": 4719,
+      "offset": 729120,
+      "lang": "en"
+    },
+    {
+      "text": "is merely probabilistic misses the point",
+      "duration": 3599,
+      "offset": 731920,
+      "lang": "en"
+    },
+    {
+      "text": "entirely. The critics aren't thinking",
+      "duration": 3521,
+      "offset": 733839,
+      "lang": "en"
+    },
+    {
+      "text": "about the full stack. They're not seeing",
+      "duration": 3440,
+      "offset": 735519,
+      "lang": "en"
+    },
+    {
+      "text": "that everything beneath their feet is",
+      "duration": 3760,
+      "offset": 737360,
+      "lang": "en"
+    },
+    {
+      "text": "probabistic, too. We just did the",
+      "duration": 4961,
+      "offset": 738959,
+      "lang": "en"
+    },
+    {
+      "text": "engineering work already. When you type",
+      "duration": 4880,
+      "offset": 741120,
+      "lang": "en"
+    },
+    {
+      "text": "print hello, you're not just running one",
+      "duration": 4560,
+      "offset": 743920,
+      "lang": "en"
+    },
+    {
+      "text": "line of code. You're invoking decades of",
+      "duration": 5040,
+      "offset": 746000,
+      "lang": "en"
+    },
+    {
+      "text": "accumulated engineering. Thousands of",
+      "duration": 5840,
+      "offset": 748480,
+      "lang": "en"
+    },
+    {
+      "text": "people who solved thousands of problems.",
+      "duration": 5520,
+      "offset": 751040,
+      "lang": "en"
+    },
+    {
+      "text": "error handlers built on error handlers",
+      "duration": 4800,
+      "offset": 754320,
+      "lang": "en"
+    },
+    {
+      "text": "all the way down to the quantum phone.",
+      "duration": 5279,
+      "offset": 756560,
+      "lang": "en"
+    },
+    {
+      "text": "Lovely saw it. The loom weaves the",
+      "duration": 4719,
+      "offset": 759120,
+      "lang": "en"
+    },
+    {
+      "text": "patterns. The engine weaves the algebra.",
+      "duration": 4881,
+      "offset": 761839,
+      "lang": "en"
+    },
+    {
+      "text": "The computer weaves the logic. And now",
+      "duration": 6321,
+      "offset": 763839,
+      "lang": "en"
+    },
+    {
+      "text": "AI weaves the language. Same pattern,",
+      "duration": 6960,
+      "offset": 766720,
+      "lang": "en"
+    },
+    {
+      "text": "different layer. The only question is",
+      "duration": 5840,
+      "offset": 770160,
+      "lang": "en"
+    },
+    {
+      "text": "how long it takes us to build the",
+      "duration": 4959,
+      "offset": 773680,
+      "lang": "en"
+    },
+    {
+      "text": "architecture that makes it reliable. And",
+      "duration": 4880,
+      "offset": 776000,
+      "lang": "en"
+    },
+    {
+      "text": "based on history, I'm pretty sure we're",
+      "duration": 4081,
+      "offset": 778639,
+      "lang": "en"
+    },
+    {
+      "text": "going to figure it out. I mean, we",
+      "duration": 4000,
+      "offset": 780880,
+      "lang": "en"
+    },
+    {
+      "text": "always do.",
+      "duration": 3760,
+      "offset": 782720,
+      "lang": "en"
+    },
+    {
+      "text": "But that brings us all the way back to",
+      "duration": 5280,
+      "offset": 784880,
+      "lang": "en"
+    },
+    {
+      "text": "the beginning. That one line of Python,",
+      "duration": 6640,
+      "offset": 786480,
+      "lang": "en"
+    },
+    {
+      "text": "22 characters built on the shoulders of",
+      "duration": 5760,
+      "offset": 790160,
+      "lang": "en"
+    },
+    {
+      "text": "every engineer who ever taped a moth",
+      "duration": 5360,
+      "offset": 793120,
+      "lang": "en"
+    },
+    {
+      "text": "into a log book. Stay curious, my",
+      "duration": 7800,
+      "offset": 795920,
+      "lang": "en"
+    },
+    {
+      "text": "friends, and until next time, goodbye.",
+      "duration": 5240,
+      "offset": 798480,
+      "lang": "en"
+    }
+  ]
+}

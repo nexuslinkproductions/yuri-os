@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: rlm-enterprise
+Version: 0.1.0
+Summary: Enterprise Recursive Language Model scaffold for Claude Code
+Requires-Python: >=3.10
+Provides-Extra: pdf
+Requires-Dist: pypdf>=4.0.0; extra == "pdf"
+Provides-Extra: test
+Requires-Dist: pytest>=8.0.0; extra == "test"

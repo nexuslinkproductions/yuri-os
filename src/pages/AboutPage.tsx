@@ -1,220 +1,259 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import CTABanner from '../components/CTABanner';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useInView } from 'framer-motion';
+import type React from 'react';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-/* ─── Counting stat ─── */
-function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
-  const [val, setVal] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, margin: '-15%' });
-
-  useEffect(() => {
-    if (!inView) { setVal(0); return; }
-    let start = 0;
-    const dur = 1200;
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const p = Math.min((now - t0) / dur, 1);
-      const e = 1 - Math.pow(1 - p, 3); // ease-out cubic
-      setVal(Math.floor(e * target));
-      if (p < 1) requestAnimationFrame(tick);
-      else setVal(target);
-    };
-    requestAnimationFrame(tick);
-  }, [inView, target]);
-
-  return <span ref={ref}>{val}{suffix}</span>;
-}
-
-/* ─── Team card ─── */
-const members = [
-  { name: 'Marcel Spatz', role: 'Founder & Creative Director', loc: 'Vienna, Austria', link: null },
-  { name: 'C2Moviez', role: 'Swiss Creative Partner', loc: 'Zurich, Switzerland', link: 'https://c2moviez.com', note: 'Also ExeoFlow IT' },
-  { name: 'Lilly Mansfeld', role: 'Graphic Designer', loc: 'Europe', link: null },
+const career = [
+  { year: '2021', title: 'Oldschoolgym24', meta: 'Studio Manager / Social Media Support - Baar, Switzerland', detail: 'Daily operations, community content, customer communication, and the first durable rhythm of visual presence.' },
+  { year: '2023', title: 'Apollon Nutrition EU', meta: 'Sales & Marketing Support / Content Production - Switzerland', detail: 'Product content, e-commerce visuals, cinematic brand videos, release assets, commercial production, color, sound, and edit delivery.' },
+  { year: '2024', title: 'Public Figure & Digital Media', meta: 'Video Editor / Videographer / Social Media Assistant - EU-wide', detail: 'YouTube workflows, event coverage, social production, travel-based footage, platform adaptation, and fast post-production.' },
+  { year: '2025', title: 'R. Tattoo x Barber', meta: 'Senior Content Producer / Social Media Manager - Vienna', detail: 'High-volume campaign assets for RAF Camora connected brands, including CØRBO apparel and Mike Sommerfeld collaborations.' },
+  { year: '2026', title: 'Nexus Link Productions', meta: 'Vienna-based content creation studio', detail: 'Premium brand content, campaign assets, short-form video, motion design, and full end-to-end visual systems.' },
 ];
 
+const network = [
+  { name: 'RAF Camora', role: 'Austrian multi-platinum rapper and entrepreneur', detail: 'Built a lifestyle ecosystem across music, fashion, tattoo/barber culture, vodka, and cosmetics.' },
+  { name: 'R. / Tattoo x Barber', role: 'Vienna concept store and tattoo studio', detail: "Vienna's largest tattoo studio, blending barber and tattoo culture inside RAF's wider brand universe." },
+  { name: 'CØRBO by RAF CAMORA', role: 'Luxury streetwear label', detail: "The fashion pillar of RAF's lifestyle brand universe, requiring premium campaign and social assets." },
+  { name: 'Mike Sommerfeld', role: 'IFBB Pro Classic Physique', detail: 'Known as Mike the Badass: 2024 Mr. Olympia runner-up, aesthetic classic lines, and coach relationships with Patrick Tuor and Dennis James.' },
+  { name: 'C2Moviez', role: 'Creative partner', detail: 'Swiss production partner for selected European projects and production expansion.' },
+  { name: 'Lilly Mansfeld', role: 'Graphic design', detail: 'Visual collaborator for identity, layouts, and campaign surfaces.' },
+];
+
+const philosophy = [
+  { title: 'End-to-End', body: 'Concept, shoot, edit, grade, animate, export, and deliver without losing the intent between handoffs.' },
+  { title: 'Brand First', body: 'Every asset has to serve the brand memory, not just the platform slot it occupies.' },
+  { title: 'Systems Thinking', body: 'Content works when production, publishing, review, and iteration are built as one repeatable system.' },
+];
+
+function FrameCorners() {
+  return <div className="frame-corners" aria-hidden="true"><span /><span /><span /><span /></div>;
+}
+
+function CountUp({ value }: { value: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: false, margin: '-18%' });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!inView) {
+      setCount(0);
+      return undefined;
+    }
+
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / 900);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setCount(Math.round(eased * value));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, value]);
+
+  return <span ref={ref}>{count}</span>;
+}
+
 export default function AboutPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: containerRef });
-  const heroBg = useTransform(scrollYProgress, [0, 0.12], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 0.94]);
-
   return (
-    <motion.div ref={containerRef} style={{ background: '#0e0e18', color: '#f5f5f7', overflow: 'hidden' }}
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
-
-      {/* ── HERO ── */}
-      <motion.section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', perspective: 800 }}>
-        {/* Ghost heading */}
-        <motion.h1 style={{
-          fontFamily: 'var(--font-display)', fontSize: 'clamp(80px,14vw,200px)',
-          fontWeight: 800, letterSpacing: '-0.06em', lineHeight: 1, textAlign: 'center',
-          margin: 0, opacity: heroBg as any, scale: heroScale as any,
-          userSelect: 'none', color: '#fff',
-        }}>
-          NEXUS<br />LINK
-        </motion.h1>
-
-        {/* Tagline */}
-        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.6, ease: EASE }}
-          style={{ position: 'absolute', bottom: 120, fontFamily: 'var(--font-body)', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>
-          A Vienna-based creative production house
-        </motion.p>
-
-        {/* Red line */}
-        <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1.4, delay: 0.2, ease: EASE }}
-          style={{ position: 'absolute', bottom: 80, left: 0, width: '100%', height: 1, background: 'rgba(220,38,38,0.5)', transformOrigin: '0 0' }} />
-
-        {/* Scroll cue */}
-        <motion.div animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)' }}>
-          <div style={{ width: 1, height: 28, background: 'linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)' }} />
-        </motion.div>
-
-        {/* Corner labels */}
-        {[{ t: 32, l: 32, text: 'EST. 2016' }, { t: 32, r: 32, text: 'VIENNA' }].map((c, i) => (
-          <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2, duration: 0.8 }}
-            style={{ position: 'absolute', top: c.t, left: (c as any).l, right: (c as any).r, fontFamily: 'var(--font-display)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)' }}>
-            {c.text}
+    <div className="spatial-page">
+      <section className="spatial-section frame-shell" data-proximity style={{ minHeight: '92vh', display: 'grid', placeItems: 'center', textAlign: 'center', paddingTop: 128 }}>
+        <FrameCorners />
+        <div className="container">
+          <motion.div className="kicker" style={{ justifyContent: 'center' }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.62, ease: EASE }}>
+            Marcel Spatz / Vienna
           </motion.div>
-        ))}
-      </motion.section>
-
-      {/* ── MANIFESTO ── */}
-      <section style={{ padding: '120px clamp(32px,6vw,96px)', background: '#161620', position: 'relative' }}>
-        {/* Ghost pull-quote */}
-        <div style={{
-          position: 'absolute', top: 60, left: 'clamp(32px,6vw,96px)',
-          fontFamily: 'Georgia, serif', fontStyle: 'italic',
-          fontSize: 'clamp(32px,4vw,60px)', fontWeight: 400,
-          color: 'rgba(255,255,255,0.04)', lineHeight: 1.2, letterSpacing: '-0.02em',
-          maxWidth: 600, pointerEvents: 'none', userSelect: 'none',
-        }}>
-          Story<br />precedes<br />everything.
-        </div>
-
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 80, alignItems: 'start' }}>
-          {/* Left accent */}
-          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false, margin: '-15%' }} transition={{ duration: 0.9, ease: EASE }}>
-            <div style={{ width: 1, height: 80, background: 'rgba(220,38,38,0.5)', marginBottom: 32 }} />
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#dc2626', marginBottom: 16 }}>About</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px,3.5vw,48px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1, color: 'rgba(255,255,255,0.9)' }}>
-              We find the story. We frame it in light.
-            </div>
-          </motion.div>
-
-          {/* Right text */}
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: '-15%' }} transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
-            style={{ fontFamily: 'var(--font-body)', fontSize: 'clamp(15px,1.4vw,18px)', lineHeight: 1.8, color: 'rgba(255,255,255,0.55)', fontWeight: 300, display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <p>Nexus Link was born from a conviction that every great brand carries an untold story. Founded in Vienna, we operate at the intersection of cinematic craft and strategic intelligence — producing films that outlast the moment.</p>
-            <p>From a two-person operation to an internationally networked collective, we've grown by refusing to compromise on the fundamentals: intention, craft, and unwavering attention to the frame.</p>
-            <p>We work with brands who understand that the most powerful thing they can do is make someone feel something. Everything else follows from that.</p>
-          </motion.div>
+          <motion.h1
+            style={{
+              margin: '22px auto 0',
+              fontSize: 'clamp(78px, 14vw, 198px)',
+              lineHeight: 0.82,
+              fontWeight: 950,
+              letterSpacing: 0,
+              textTransform: 'uppercase',
+            }}
+            initial={{ opacity: 0, y: 58, rotateX: 12 }}
+            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+            transition={{ duration: 0.9, delay: 0.12, ease: EASE }}
+          >
+            NEXUS<br />LINK
+          </motion.h1>
+          <motion.p
+            className="section-copy"
+            style={{ marginInline: 'auto' }}
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.72, delay: 0.36, ease: EASE }}
+          >
+            Senior Social Media Manager / Content Creator with six years of professional content creation behind a studio founded in 2026.
+          </motion.p>
+          <motion.a
+            href="https://instagram.com/nexuslinkproductions"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-magnetic
+            className="magnetic-link cta-button cta-button--primary"
+            style={{ marginTop: 34 }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.62, delay: 0.52, ease: EASE }}
+          >
+            @nexuslinkproductions
+          </motion.a>
         </div>
       </section>
 
-      {/* ── THE COLLECTIVE ── */}
-      <section style={{ padding: '120px 0', overflow: 'hidden', position: 'relative' }}>
-        {/* Ghost heading */}
-        <div style={{ position: 'absolute', top: 60, left: '50%', transform: 'translateX(-50%)', fontFamily: 'var(--font-display)', fontSize: 'clamp(60px,12vw,180px)', fontWeight: 800, letterSpacing: '-0.06em', color: 'rgba(255,255,255,0.03)', whiteSpace: 'nowrap', userSelect: 'none', pointerEvents: 'none' }}>
-          THE COLLECTIVE
-        </div>
-
-        <div style={{ paddingInline: 'clamp(32px,6vw,96px)', marginBottom: 48 }}>
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: '-15%' }} transition={{ duration: 0.8, ease: EASE }}
-            style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px,4vw,48px)', fontWeight: 700, letterSpacing: '-0.03em', margin: 0 }}>
-            The Collective
-          </motion.h2>
-        </div>
-
-        {/* Horizontal scroll cards */}
-        <div style={{ display: 'flex', gap: 24, paddingInline: 'clamp(32px,6vw,96px)', overflowX: 'auto', paddingBottom: 8, scrollbarWidth: 'none' }}>
-          {members.map((m, i) => (
-            <motion.div key={m.name}
-              initial={{ opacity: 0, y: 40, rotateY: 8 }} whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
-              viewport={{ once: false, margin: '-15%' }} transition={{ duration: 0.8, delay: i * 0.12, ease: EASE }}
-              whileHover={{ y: -6, transition: { duration: 0.3 } }}
-              style={{ flexShrink: 0, width: 280, border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '32px 24px', background: 'rgba(255,255,255,0.02)', perspective: 600 }}>
-              {/* Avatar */}
-              <div style={{ width: '100%', aspectRatio: '4/3', background: 'linear-gradient(135deg, #1a1a28, #0e0e18)', borderRadius: 8, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth={1}>
-                  <circle cx={12} cy={8} r={4} /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-                </svg>
-              </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em', marginBottom: 4 }}>{m.name}</div>
-              <div style={{ fontSize: 12, color: '#dc2626', fontFamily: 'var(--font-display)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>{m.role}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-body)' }}>{m.loc}</div>
-              {m.note && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 8, fontStyle: 'italic' }}>{m.note}</div>}
-              {m.link && <a href={m.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 16, fontSize: 12, color: 'rgba(220,38,38,0.7)', textDecoration: 'none', fontFamily: 'var(--font-body)' }}>↗ {m.link.replace('https://', '')}</a>}
+      <section className="spatial-section section-diagonal" data-proximity>
+        <div className="container">
+          <div style={{ display: 'grid', gridTemplateColumns: '0.82fr 1.18fr', gap: 'clamp(36px, 8vw, 112px)', alignItems: 'start' }} className="about-narrative">
+            <motion.div initial={{ opacity: 0, x: -28 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false, margin: '-14%' }} transition={{ duration: 0.76, ease: EASE }}>
+              <div className="kicker">Narrative</div>
+              <h2 className="section-title" style={{ fontSize: 'clamp(38px, 5vw, 74px)' }}>Six years sharpened into one studio.</h2>
             </motion.div>
-          ))}
+
+            <motion.div
+              className="depth-panel"
+              data-tilt
+              data-proximity
+              style={{ '--z-depth': '36px', padding: 'clamp(28px, 5vw, 52px)' } as React.CSSProperties}
+              initial={{ opacity: 0, y: 34 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: '-14%' }}
+              transition={{ duration: 0.76, delay: 0.12, ease: EASE }}
+            >
+              <div style={{ display: 'grid', gap: 22, color: 'var(--color-text-secondary)', lineHeight: 1.78, fontWeight: 300 }}>
+                <p>Marcel Spatz is a Senior Social Media Manager / Content Creator based in Vienna, working across video production, post-production, campaign assets, advertising, motion design, color, and publishing logic.</p>
+                <p>At R. Tattoo x Barber by RAF Camora, the work moved across connected brand environments: R. / Tattoo x Barber, CØRBO luxury apparel, R. Cosmetics adjacency, and high-pressure social output where speed and brand quality had to align.</p>
+                <p>That network included Mike Sommerfeld, the German IFBB Pro Classic Physique athlete known as Mike the Badass, 2024 Mr. Olympia runner-up, recognized for aesthetic classic lines and linked to coaches Patrick Tuor and Dennis James.</p>
+                <p>RAF Camora's ecosystem matters because it is not one brand. It is a culture stack: music, fashion, tattoo/barber culture, Karneval Vodka, R. Cosmetics, and CØRBO by RAF CAMORA as the luxury streetwear pillar.</p>
+                <p>The full arc runs from Oldschoolgym24 to Apollon Nutrition EU, then public figure production across Europe, then R. Tattoo x Barber in Vienna, then Nexus Link Productions as the independent studio surface.</p>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* ── SWISS PARTNERSHIP ── */}
-      <section style={{ padding: '100px clamp(32px,6vw,96px)', background: '#13131e' }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.8, ease: EASE }}
-            style={{ display: 'flex', alignItems: 'center', gap: 48, flexWrap: 'wrap' }}>
-            {[{ name: 'C2Moviez', url: 'c2moviez.com', href: 'https://c2moviez.com' }, { name: 'ExeoFlow', url: 'exeoflow.com', href: 'https://exeoflow.com' }].map((p, i) => (
-              <React.Fragment key={p.name}>
-                {i > 0 && <div style={{ width: 1, height: 60, background: 'rgba(220,38,38,0.3)', flexShrink: 0 }} />}
-                <div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px,4vw,48px)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 8 }}>{p.name}</div>
-                  <a href={p.href} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-body)', textDecoration: 'none' }}>↗ {p.url}</a>
+      <section className="spatial-section frame-shell" data-proximity>
+        <FrameCorners />
+        <div className="container">
+          <div className="kicker">Career Arc</div>
+          <h2 className="section-title">The line is not straight. It compounds.</h2>
+          <div style={{ marginTop: 62, position: 'relative' }}>
+            <div style={{ position: 'absolute', left: 52, top: 0, bottom: 0, width: 1, background: 'linear-gradient(var(--color-crimson), rgba(220,38,38,0.05))' }} />
+            {career.map((item, index) => (
+              <motion.article
+                key={item.year}
+                style={{ position: 'relative', display: 'grid', gridTemplateColumns: '104px 1fr', gap: 30, marginBottom: 34 }}
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, margin: '-18%' }}
+                transition={{ duration: 0.65, delay: index * 0.08, ease: EASE }}
+              >
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div style={{ width: 104, height: 104, borderRadius: '50%', border: '1px solid var(--color-crimson-border)', background: 'rgba(12,12,20,0.86)', display: 'grid', placeItems: 'center', color: 'var(--color-crimson)', fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 900 }}>
+                    {item.year}
+                  </div>
                 </div>
-              </React.Fragment>
+                <div className="depth-card" data-tilt data-proximity style={{ '--z-depth': `${20 + index * 5}px`, padding: 26 } as React.CSSProperties}>
+                  <h3 style={{ fontSize: 'clamp(22px, 2.6vw, 36px)', fontWeight: 900, letterSpacing: 0 }}>{item.title}</h3>
+                  <p style={{ marginTop: 8, color: 'var(--color-crimson)', fontSize: 12, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.meta}</p>
+                  <p style={{ marginTop: 14, color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>{item.detail}</p>
+                </div>
+              </motion.article>
             ))}
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
-                Our Swiss partners bring cinematic mastery and digital infrastructure — enabling projects at scale across Europe and beyond.
-              </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="spatial-section section-diagonal" data-proximity>
+        <div className="container">
+          <div className="kicker">Network</div>
+          <h2 className="section-title">Collaborators and brand gravity.</h2>
+          <div className="network-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 18, marginTop: 50 }}>
+            {network.map((item, index) => (
+              <motion.article
+                key={item.name}
+                className="depth-card"
+                data-tilt
+                data-magnetic
+                data-proximity
+                style={{ '--z-depth': `${22 + index * 4}px`, minHeight: 250, padding: 26 } as React.CSSProperties}
+                initial={{ opacity: 0, y: 34 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, margin: '-14%' }}
+                transition={{ duration: 0.66, delay: index * 0.05, ease: EASE }}
+              >
+                <h3 style={{ fontSize: 24, fontWeight: 900, letterSpacing: 0 }}>{item.name}</h3>
+                <p style={{ marginTop: 10, color: 'var(--color-crimson)', fontSize: 11, fontWeight: 850, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{item.role}</p>
+                <p style={{ marginTop: 18, color: 'var(--color-text-secondary)', lineHeight: 1.68 }}>{item.detail}</p>
+              </motion.article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="spatial-section spatial-section--compact" data-proximity>
+        <div className="container">
+          <div className="depth-panel" data-tilt style={{ '--z-depth': '38px', padding: 'clamp(28px, 5vw, 56px)' } as React.CSSProperties}>
+            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+              {[
+                { value: 'Wide', label: 'Portfolio' },
+                { value: <CountUp value={6} />, label: 'Years' },
+                { value: <CountUp value={3} />, label: 'Partners' },
+              ].map((stat) => (
+                <div key={stat.label} style={{ borderTop: '1px solid var(--color-border-subtle)', paddingTop: 22 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(42px, 7vw, 92px)', fontWeight: 900, lineHeight: 0.9 }}>{stat.value}</div>
+                  <div style={{ marginTop: 12, color: 'var(--color-text-tertiary)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{stat.label}</div>
+                </div>
+              ))}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* ── NUMBERS ── */}
-      <section style={{ padding: '120px clamp(32px,6vw,96px)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'clamp(24px,4vw,64px)' }}>
-          {[{ val: 150, suf: '+', label: 'Projects' }, { val: 8, suf: '', label: 'Years' }, { val: 12, suf: '', label: 'Countries' }, { val: 3, suf: '', label: 'Partners' }].map((s, i) => (
-            <motion.div key={s.label} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false, margin: '-15%' }} transition={{ duration: 0.7, delay: i * 0.1, ease: EASE }}
-              style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 24 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(48px,7vw,88px)', fontWeight: 700, letterSpacing: '-0.04em', lineHeight: 1, color: '#f5f5f7' }}>
-                <CountUp target={s.val} suffix={s.suf} />
-              </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginTop: 8 }}>{s.label}</div>
-            </motion.div>
-          ))}
+      <section className="spatial-section frame-shell" data-proximity>
+        <FrameCorners />
+        <div className="container">
+          <div className="kicker">Philosophy</div>
+          <h2 className="section-title">Every frame is a choice.</h2>
+          <div className="philosophy-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18, marginTop: 50 }}>
+            {philosophy.map((item, index) => (
+              <motion.article
+                key={item.title}
+                className="depth-card"
+                data-tilt
+                data-proximity
+                style={{ '--z-depth': `${28 + index * 8}px`, padding: 30, minHeight: 245 } as React.CSSProperties}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, margin: '-14%' }}
+                transition={{ duration: 0.65, delay: index * 0.08, ease: EASE }}
+              >
+                <div style={{ color: 'var(--color-crimson)', fontFamily: 'var(--font-serif)', fontSize: 36, fontStyle: 'italic', marginBottom: 24 }}>{String(index + 1).padStart(2, '0')}</div>
+                <h3 style={{ fontSize: 25, fontWeight: 900, letterSpacing: 0 }}>{item.title}</h3>
+                <p style={{ marginTop: 16, color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>{item.body}</p>
+              </motion.article>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── PHILOSOPHY ── */}
-      <section style={{ padding: '120px clamp(32px,6vw,96px)', background: '#161620' }}>
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: false }} transition={{ duration: 0.8, ease: EASE }}
-          style={{ textAlign: 'center', marginBottom: 80 }}>
-          <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 'clamp(20px,3vw,36px)', fontWeight: 400, color: 'rgba(255,255,255,0.7)' }}>As above, so below.</div>
-        </motion.div>
-        <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 48 }}>
-          {[
-            { num: 'I', title: 'Every Frame Is A Choice', desc: 'We leave nothing to accident. Every composition, every cut, every breath of sound is intentional.' },
-            { num: 'II', title: 'Story Precedes Strategy', desc: 'Narrative first. Execution second. The strategy that doesn\'t begin with story doesn\'t end with impact.' },
-            { num: 'III', title: 'Craft Has No Deadline', desc: 'We stay until it\'s right. Not until the budget runs out. Until the work is true.' },
-          ].map((p, i) => (
-            <motion.div key={p.num} initial={{ opacity: 0, y: 32, rotateX: 8 }} whileInView={{ opacity: 1, y: 0, rotateX: 0 }} viewport={{ once: false, margin: '-15%' }} transition={{ duration: 0.8, delay: i * 0.12, ease: EASE }}
-              style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 32 }}>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: 32, color: 'rgba(220,38,38,0.6)', marginBottom: 20, fontStyle: 'italic' }}>{p.num}</div>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(16px,1.6vw,20px)', fontWeight: 600, letterSpacing: '-0.02em', margin: '0 0 16px' }}>{p.title}</h3>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.4)', margin: 0 }}>{p.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+      <style>{`
+        @media (max-width: 980px) {
+          .about-narrative,
+          .network-grid,
+          .philosophy-grid {
+            grid-template-columns: 1fr !important;
+          }
 
-      <CTABanner headline="Ready to tell your story?" buttonLabel="Start a Project" buttonHref="/contact" />
-    </motion.div>
+          .stats-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+    </div>
   );
 }

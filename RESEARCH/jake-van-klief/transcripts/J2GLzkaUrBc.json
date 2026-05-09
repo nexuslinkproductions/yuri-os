@@ -1,0 +1,834 @@
+{
+  "videoId": "J2GLzkaUrBc",
+  "title": "Custom Front End for Claude Code",
+  "segments": [
+    {
+      "text": "So, David had a great question. We were",
+      "duration": 4000,
+      "offset": 880,
+      "lang": "en"
+    },
+    {
+      "text": "kind of talking about, you know, making",
+      "duration": 3920,
+      "offset": 3280,
+      "lang": "en"
+    },
+    {
+      "text": "animations with Claude Code and he uh,",
+      "duration": 4080,
+      "offset": 4880,
+      "lang": "en"
+    },
+    {
+      "text": "you know, watched my initial video and",
+      "duration": 3280,
+      "offset": 7200,
+      "lang": "en"
+    },
+    {
+      "text": "then also kind of set up some really",
+      "duration": 3440,
+      "offset": 8960,
+      "lang": "en"
+    },
+    {
+      "text": "great animations himself, which I",
+      "duration": 4159,
+      "offset": 10480,
+      "lang": "en"
+    },
+    {
+      "text": "absolutely love. Um, obviously there's",
+      "duration": 3920,
+      "offset": 12400,
+      "lang": "en"
+    },
+    {
+      "text": "always more tweaking that you can do and",
+      "duration": 3681,
+      "offset": 14639,
+      "lang": "en"
+    },
+    {
+      "text": "I'm creating videos on how to do that.",
+      "duration": 3680,
+      "offset": 16320,
+      "lang": "en"
+    },
+    {
+      "text": "But he had this idea of creating a",
+      "duration": 4240,
+      "offset": 18320,
+      "lang": "en"
+    },
+    {
+      "text": "front-end UI that allows him to control",
+      "duration": 5119,
+      "offset": 20000,
+      "lang": "en"
+    },
+    {
+      "text": "Claude, right? Right now he's using VS",
+      "duration": 4799,
+      "offset": 22560,
+      "lang": "en"
+    },
+    {
+      "text": "Code which is what I tell you know tell",
+      "duration": 3761,
+      "offset": 25119,
+      "lang": "en"
+    },
+    {
+      "text": "people to install and it's a great place",
+      "duration": 3041,
+      "offset": 27359,
+      "lang": "en"
+    },
+    {
+      "text": "to kind of use it but he wanted",
+      "duration": 2880,
+      "offset": 28880,
+      "lang": "en"
+    },
+    {
+      "text": "something a little bit better that he",
+      "duration": 3839,
+      "offset": 30400,
+      "lang": "en"
+    },
+    {
+      "text": "could like monitor or observe how the",
+      "duration": 4639,
+      "offset": 31760,
+      "lang": "en"
+    },
+    {
+      "text": "agents are kind of working. Now the",
+      "duration": 3921,
+      "offset": 34239,
+      "lang": "en"
+    },
+    {
+      "text": "problem is is whenever you're using",
+      "duration": 5601,
+      "offset": 36399,
+      "lang": "en"
+    },
+    {
+      "text": "claude code or claude CLI is you can use",
+      "duration": 5760,
+      "offset": 38160,
+      "lang": "en"
+    },
+    {
+      "text": "your subscription you can use your",
+      "duration": 3920,
+      "offset": 42000,
+      "lang": "en"
+    },
+    {
+      "text": "entropic subscription so it doesn't cost",
+      "duration": 4080,
+      "offset": 43920,
+      "lang": "en"
+    },
+    {
+      "text": "as much. If you did API calls for all of",
+      "duration": 3760,
+      "offset": 45920,
+      "lang": "en"
+    },
+    {
+      "text": "this, it'd be really expensive. But with",
+      "duration": 3600,
+      "offset": 48000,
+      "lang": "en"
+    },
+    {
+      "text": "a subscription, it's not as expensive.",
+      "duration": 3199,
+      "offset": 49680,
+      "lang": "en"
+    },
+    {
+      "text": "But as soon as you're building a front",
+      "duration": 3360,
+      "offset": 51600,
+      "lang": "en"
+    },
+    {
+      "text": "end, it's a lot easier quickly, or at",
+      "duration": 4320,
+      "offset": 52879,
+      "lang": "en"
+    },
+    {
+      "text": "least you would think, to use, you know,",
+      "duration": 4079,
+      "offset": 54960,
+      "lang": "en"
+    },
+    {
+      "text": "anthropic calls because then it's kind",
+      "duration": 3840,
+      "offset": 57199,
+      "lang": "en"
+    },
+    {
+      "text": "of clunky to control Claude code through",
+      "duration": 4160,
+      "offset": 59039,
+      "lang": "en"
+    },
+    {
+      "text": "your own front end. However, there are",
+      "duration": 3840,
+      "offset": 61039,
+      "lang": "en"
+    },
+    {
+      "text": "ways to get around this. And so I went",
+      "duration": 3361,
+      "offset": 63199,
+      "lang": "en"
+    },
+    {
+      "text": "and actually had Claude do a little bit",
+      "duration": 3361,
+      "offset": 64879,
+      "lang": "en"
+    },
+    {
+      "text": "of digging to see what some open source",
+      "duration": 3440,
+      "offset": 66560,
+      "lang": "en"
+    },
+    {
+      "text": "files are out there for. And there's",
+      "duration": 3760,
+      "offset": 68240,
+      "lang": "en"
+    },
+    {
+      "text": "actually some really great open- source",
+      "duration": 3840,
+      "offset": 70000,
+      "lang": "en"
+    },
+    {
+      "text": "repos that are already out there where",
+      "duration": 4479,
+      "offset": 72000,
+      "lang": "en"
+    },
+    {
+      "text": "you can control claude uh through this",
+      "duration": 4319,
+      "offset": 73840,
+      "lang": "en"
+    },
+    {
+      "text": "like kind of downloadable front end and",
+      "duration": 3761,
+      "offset": 76479,
+      "lang": "en"
+    },
+    {
+      "text": "it can even track usage if you are using",
+      "duration": 4081,
+      "offset": 78159,
+      "lang": "en"
+    },
+    {
+      "text": "the front end as well as this other one",
+      "duration": 3440,
+      "offset": 80240,
+      "lang": "en"
+    },
+    {
+      "text": "where you're able to do it through your",
+      "duration": 3360,
+      "offset": 82240,
+      "lang": "en"
+    },
+    {
+      "text": "mobile. Now there are ways to actually",
+      "duration": 4720,
+      "offset": 83680,
+      "lang": "en"
+    },
+    {
+      "text": "control claude code remotely uh and I've",
+      "duration": 4320,
+      "offset": 85600,
+      "lang": "en"
+    },
+    {
+      "text": "actually installed that where I use it",
+      "duration": 3359,
+      "offset": 88400,
+      "lang": "en"
+    },
+    {
+      "text": "through my phone. So I'm going to make a",
+      "duration": 3199,
+      "offset": 89920,
+      "lang": "en"
+    },
+    {
+      "text": "video on all of that. But I wanted to",
+      "duration": 3680,
+      "offset": 91759,
+      "lang": "en"
+    },
+    {
+      "text": "make a quick video real quick on this",
+      "duration": 4401,
+      "offset": 93119,
+      "lang": "en"
+    },
+    {
+      "text": "idea of like me actually researching it",
+      "duration": 4081,
+      "offset": 95439,
+      "lang": "en"
+    },
+    {
+      "text": "and and processing like what it could",
+      "duration": 3760,
+      "offset": 97520,
+      "lang": "en"
+    },
+    {
+      "text": "look like because I'm actually going to",
+      "duration": 3360,
+      "offset": 99520,
+      "lang": "en"
+    },
+    {
+      "text": "go ahead and develop a front end",
+      "duration": 4400,
+      "offset": 101280,
+      "lang": "en"
+    },
+    {
+      "text": "specifically for this where essentially",
+      "duration": 5680,
+      "offset": 102880,
+      "lang": "en"
+    },
+    {
+      "text": "you can access it, but on top of that it",
+      "duration": 4960,
+      "offset": 105680,
+      "lang": "en"
+    },
+    {
+      "text": "might be able to make kind of like a web",
+      "duration": 4720,
+      "offset": 108560,
+      "lang": "en"
+    },
+    {
+      "text": "service for you or some sort of like um",
+      "duration": 4320,
+      "offset": 110640,
+      "lang": "en"
+    },
+    {
+      "text": "uh like a web you're able to navigate",
+      "duration": 4159,
+      "offset": 113280,
+      "lang": "en"
+    },
+    {
+      "text": "the folders not just like simple folders",
+      "duration": 4799,
+      "offset": 114960,
+      "lang": "en"
+    },
+    {
+      "text": "like this which is how I currently do it",
+      "duration": 4561,
+      "offset": 117439,
+      "lang": "en"
+    },
+    {
+      "text": "but maybe something like a mind map or",
+      "duration": 5121,
+      "offset": 119759,
+      "lang": "en"
+    },
+    {
+      "text": "webnap. Um, and so I'm I actually told",
+      "duration": 5040,
+      "offset": 122000,
+      "lang": "en"
+    },
+    {
+      "text": "Claude how, you know, hey, this is my",
+      "duration": 4079,
+      "offset": 124880,
+      "lang": "en"
+    },
+    {
+      "text": "idea. Let's not reinvent the wheel.",
+      "duration": 3279,
+      "offset": 127040,
+      "lang": "en"
+    },
+    {
+      "text": "Let's use what they're doing in these",
+      "duration": 3280,
+      "offset": 128959,
+      "lang": "en"
+    },
+    {
+      "text": "open- source areas. Let's look at each",
+      "duration": 4961,
+      "offset": 130319,
+      "lang": "en"
+    },
+    {
+      "text": "of those repos. But also, I used my own",
+      "duration": 5041,
+      "offset": 132239,
+      "lang": "en"
+    },
+    {
+      "text": "build that I have personally on my",
+      "duration": 3360,
+      "offset": 135280,
+      "lang": "en"
+    },
+    {
+      "text": "computer here, right? This is my",
+      "duration": 3360,
+      "offset": 137280,
+      "lang": "en"
+    },
+    {
+      "text": "animation workflow, how I go from",
+      "duration": 4080,
+      "offset": 138640,
+      "lang": "en"
+    },
+    {
+      "text": "scripts to animations. And there's a lot",
+      "duration": 3679,
+      "offset": 140640,
+      "lang": "en"
+    },
+    {
+      "text": "here. And don't worry, I have a course",
+      "duration": 3120,
+      "offset": 142720,
+      "lang": "en"
+    },
+    {
+      "text": "that's going to be breaking all of this",
+      "duration": 3681,
+      "offset": 144319,
+      "lang": "en"
+    },
+    {
+      "text": "down in detail. But at the end of the",
+      "duration": 4560,
+      "offset": 145840,
+      "lang": "en"
+    },
+    {
+      "text": "day, I wanted to share kind of my Claude",
+      "duration": 4560,
+      "offset": 148000,
+      "lang": "en"
+    },
+    {
+      "text": "MD, right? because I give Claude the",
+      "duration": 4640,
+      "offset": 150400,
+      "lang": "en"
+    },
+    {
+      "text": "same markdown file before I'm ever using",
+      "duration": 4720,
+      "offset": 152560,
+      "lang": "en"
+    },
+    {
+      "text": "it, which shows the file structure,",
+      "duration": 3919,
+      "offset": 155040,
+      "lang": "en"
+    },
+    {
+      "text": "shows all of this stuff. In this case",
+      "duration": 3280,
+      "offset": 157280,
+      "lang": "en"
+    },
+    {
+      "text": "though, I'm working backwards. I'm",
+      "duration": 4640,
+      "offset": 158959,
+      "lang": "en"
+    },
+    {
+      "text": "giving Claude my my structure, my file,",
+      "duration": 5039,
+      "offset": 160560,
+      "lang": "en"
+    },
+    {
+      "text": "saying, \"Hey, what if we made a front",
+      "duration": 4401,
+      "offset": 163599,
+      "lang": "en"
+    },
+    {
+      "text": "end directly around this folder system",
+      "duration": 4401,
+      "offset": 165599,
+      "lang": "en"
+    },
+    {
+      "text": "and around what I'm trying to do here",
+      "duration": 4640,
+      "offset": 168000,
+      "lang": "en"
+    },
+    {
+      "text": "around my script design, around my areas",
+      "duration": 5360,
+      "offset": 170000,
+      "lang": "en"
+    },
+    {
+      "text": "here, and uh kind of working with it on",
+      "duration": 4400,
+      "offset": 172640,
+      "lang": "en"
+    },
+    {
+      "text": "this area.\" And so it's come up with",
+      "duration": 3440,
+      "offset": 175360,
+      "lang": "en"
+    },
+    {
+      "text": "some really good ideas for the",
+      "duration": 3360,
+      "offset": 177040,
+      "lang": "en"
+    },
+    {
+      "text": "architecture around it and understanding",
+      "duration": 3200,
+      "offset": 178800,
+      "lang": "en"
+    },
+    {
+      "text": "it. So what I'm actually going to do is",
+      "duration": 3199,
+      "offset": 180400,
+      "lang": "en"
+    },
+    {
+      "text": "I'm not going to have Claw build it in",
+      "duration": 3440,
+      "offset": 182000,
+      "lang": "en"
+    },
+    {
+      "text": "the desktop. Sometimes I use the desktop",
+      "duration": 3441,
+      "offset": 183599,
+      "lang": "en"
+    },
+    {
+      "text": "one just because it has, you know, a lot",
+      "duration": 3439,
+      "offset": 185440,
+      "lang": "en"
+    },
+    {
+      "text": "of memory and it's easier to use. I'm",
+      "duration": 4080,
+      "offset": 187040,
+      "lang": "en"
+    },
+    {
+      "text": "actually going to have it make a PRD",
+      "duration": 4801,
+      "offset": 188879,
+      "lang": "en"
+    },
+    {
+      "text": "document. Now a PRD document is a",
+      "duration": 4800,
+      "offset": 191120,
+      "lang": "en"
+    },
+    {
+      "text": "product requirements document, right?",
+      "duration": 5040,
+      "offset": 193680,
+      "lang": "en"
+    },
+    {
+      "text": "PRD doc is really something useful. It's",
+      "duration": 4640,
+      "offset": 195920,
+      "lang": "en"
+    },
+    {
+      "text": "used in software programming, things",
+      "duration": 3280,
+      "offset": 198720,
+      "lang": "en"
+    },
+    {
+      "text": "like that. It describes what kind of",
+      "duration": 3200,
+      "offset": 200560,
+      "lang": "en"
+    },
+    {
+      "text": "stacks you need, right? what your",
+      "duration": 3519,
+      "offset": 202000,
+      "lang": "en"
+    },
+    {
+      "text": "integrations might be, what you're",
+      "duration": 3520,
+      "offset": 203760,
+      "lang": "en"
+    },
+    {
+      "text": "trying to do, targeting, right? Things",
+      "duration": 3681,
+      "offset": 205519,
+      "lang": "en"
+    },
+    {
+      "text": "like that. And Claude understands what",
+      "duration": 5760,
+      "offset": 207280,
+      "lang": "en"
+    },
+    {
+      "text": "PRDs are. But I specifically say a PRD",
+      "duration": 10080,
+      "offset": 209200,
+      "lang": "en"
+    },
+    {
+      "text": "make a PRD markdown of this for clawed",
+      "duration": 12479,
+      "offset": 213040,
+      "lang": "en"
+    },
+    {
+      "text": "code as in it will read it that",
+      "duration": 10959,
+      "offset": 219280,
+      "lang": "en"
+    },
+    {
+      "text": "describes what we are trying to do and",
+      "duration": 8321,
+      "offset": 225519,
+      "lang": "en"
+    },
+    {
+      "text": "breaks down steps",
+      "duration": 5601,
+      "offset": 230239,
+      "lang": "en"
+    },
+    {
+      "text": "and",
+      "duration": 6800,
+      "offset": 233840,
+      "lang": "en"
+    },
+    {
+      "text": "structure for early phase to late phase,",
+      "duration": 6399,
+      "offset": 235840,
+      "lang": "en"
+    },
+    {
+      "text": "right? So, just trying to get it to kind",
+      "duration": 3440,
+      "offset": 240640,
+      "lang": "en"
+    },
+    {
+      "text": "of break it into steps rather than build",
+      "duration": 3601,
+      "offset": 242239,
+      "lang": "en"
+    },
+    {
+      "text": "the whole thing at once. And what this",
+      "duration": 3120,
+      "offset": 244080,
+      "lang": "en"
+    },
+    {
+      "text": "is going to do is it's going to give me",
+      "duration": 3280,
+      "offset": 245840,
+      "lang": "en"
+    },
+    {
+      "text": "a document that then I can go in and",
+      "duration": 4399,
+      "offset": 247200,
+      "lang": "en"
+    },
+    {
+      "text": "read and edit. Now, I have a background",
+      "duration": 4080,
+      "offset": 249120,
+      "lang": "en"
+    },
+    {
+      "text": "in software, so it makes it easier for",
+      "duration": 2961,
+      "offset": 251599,
+      "lang": "en"
+    },
+    {
+      "text": "me to know, oh, I don't really want to",
+      "duration": 2960,
+      "offset": 253200,
+      "lang": "en"
+    },
+    {
+      "text": "use that software. Oh, it's being too",
+      "duration": 3440,
+      "offset": 254560,
+      "lang": "en"
+    },
+    {
+      "text": "complicated there. But you can actually",
+      "duration": 3919,
+      "offset": 256160,
+      "lang": "en"
+    },
+    {
+      "text": "feed this into another version of Claw",
+      "duration": 4479,
+      "offset": 258000,
+      "lang": "en"
+    },
+    {
+      "text": "and have it act as that auditor. Uh, and",
+      "duration": 4161,
+      "offset": 260079,
+      "lang": "en"
+    },
+    {
+      "text": "it can kind of redo it there, which is",
+      "duration": 3361,
+      "offset": 262479,
+      "lang": "en"
+    },
+    {
+      "text": "really cool. So, immediately it's going",
+      "duration": 3840,
+      "offset": 264240,
+      "lang": "en"
+    },
+    {
+      "text": "to do that. It's for this. It's I'm the",
+      "duration": 3520,
+      "offset": 265840,
+      "lang": "en"
+    },
+    {
+      "text": "owner, right? Right? And it gives this",
+      "duration": 3600,
+      "offset": 268080,
+      "lang": "en"
+    },
+    {
+      "text": "all descriptions. When this is done, I",
+      "duration": 4160,
+      "offset": 269360,
+      "lang": "en"
+    },
+    {
+      "text": "can download it, drop it into my",
+      "duration": 3600,
+      "offset": 271680,
+      "lang": "en"
+    },
+    {
+      "text": "workspace, and actually have it build",
+      "duration": 4399,
+      "offset": 273520,
+      "lang": "en"
+    },
+    {
+      "text": "the front end inside of this workspace",
+      "duration": 5120,
+      "offset": 275280,
+      "lang": "en"
+    },
+    {
+      "text": "just by simply opening up my my next",
+      "duration": 4881,
+      "offset": 277919,
+      "lang": "en"
+    },
+    {
+      "text": "thing plot code and saying, \"Hey, read",
+      "duration": 5920,
+      "offset": 280400,
+      "lang": "en"
+    },
+    {
+      "text": "the PRD for the front and once I drop it",
+      "duration": 4959,
+      "offset": 282800,
+      "lang": "en"
+    },
+    {
+      "text": "in here, it's immediately going to be",
+      "duration": 2960,
+      "offset": 286320,
+      "lang": "en"
+    },
+    {
+      "text": "able to see that and move that in",
+      "duration": 3361,
+      "offset": 287759,
+      "lang": "en"
+    },
+    {
+      "text": "there.\" So, pretty cool. Just wanted to",
+      "duration": 3520,
+      "offset": 289280,
+      "lang": "en"
+    },
+    {
+      "text": "make a quick update video on this. Um,",
+      "duration": 5760,
+      "offset": 291120,
+      "lang": "en"
+    },
+    {
+      "text": "I'll make a course on both of these very",
+      "duration": 4080,
+      "offset": 292800,
+      "lang": "en"
+    }
+  ]
+}

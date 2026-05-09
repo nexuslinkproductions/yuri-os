@@ -1,0 +1,1279 @@
+{
+  "totalVideos": 30,
+  "categoryCoverage": [
+    [
+      "COMPOUND",
+      29
+    ],
+    [
+      "PREDICTION",
+      27
+    ],
+    [
+      "RESEARCH",
+      26
+    ],
+    [
+      "EXECUTION",
+      24
+    ],
+    [
+      "MARKET_STRUCTURE",
+      24
+    ],
+    [
+      "RISK",
+      18
+    ],
+    [
+      "MARKET_SCAN",
+      15
+    ],
+    [
+      "PSYCHOLOGY",
+      9
+    ]
+  ],
+  "topConcepts": [
+    [
+      "Claude Code",
+      9
+    ],
+    [
+      "Alan Turing",
+      4
+    ],
+    [
+      "Marine Corps",
+      3
+    ],
+    [
+      "Semantic Kernel",
+      3
+    ],
+    [
+      "Um And",
+      3
+    ],
+    [
+      "Tik Tok",
+      3
+    ],
+    [
+      "And Claude",
+      3
+    ],
+    [
+      "Cloud Code",
+      3
+    ],
+    [
+      "Now Claude",
+      2
+    ],
+    [
+      "You You",
+      2
+    ],
+    [
+      "Jake Van Cleef",
+      2
+    ],
+    [
+      "Joseph Marie Jakard",
+      2
+    ],
+    [
+      "Before Jakard",
+      2
+    ],
+    [
+      "Charles Babage",
+      2
+    ],
+    [
+      "Computing Machinery",
+      2
+    ],
+    [
+      "Mad Libs",
+      2
+    ],
+    [
+      "Grace Hopper",
+      2
+    ],
+    [
+      "Ada Lovelace",
+      2
+    ],
+    [
+      "Cap Cut",
+      2
+    ],
+    [
+      "Claude Co",
+      1
+    ],
+    [
+      "This Claude",
+      1
+    ],
+    [
+      "Um So",
+      1
+    ],
+    [
+      "Um You",
+      1
+    ],
+    [
+      "Um If",
+      1
+    ],
+    [
+      "Um It",
+      1
+    ],
+    [
+      "And And",
+      1
+    ],
+    [
+      "It It",
+      1
+    ],
+    [
+      "The Bay Area",
+      1
+    ],
+    [
+      "Bay Area",
+      1
+    ],
+    [
+      "Um Don Cameron",
+      1
+    ]
+  ],
+  "videoDetail": [
+    {
+      "videoId": "0fCQ-4J_jzk",
+      "categories": {
+        "MARKET_SCAN": [
+          "market"
+        ],
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "edge",
+          "model"
+        ],
+        "RISK": [
+          "position",
+          "stop"
+        ],
+        "EXECUTION": [
+          "order",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ],
+        "PSYCHOLOGY": [
+          "psychology"
+        ]
+      },
+      "concepts": [
+        "Claude Co",
+        "Now Claude",
+        "This Claude",
+        "Um So",
+        "Marine Corps",
+        "Um You",
+        "Semantic Kernel",
+        "Um If",
+        "Um It",
+        "And And",
+        "It It",
+        "Um And",
+        "You You",
+        "The Bay Area",
+        "Bay Area",
+        "Um Don Cameron",
+        "Just Yeah",
+        "Um Dean",
+        "Uh Jacqueline",
+        "Northern Territory",
+        "What What",
+        "The It",
+        "Concepts And",
+        "Uh What",
+        "Um Yeah",
+        "Um Voice",
+        "Jake Van Cleef"
+      ],
+      "charCount": 53494
+    },
+    {
+      "videoId": "5B6W2OGfxq0",
+      "categories": {
+        "PREDICTION": [
+          "predict",
+          "probability"
+        ],
+        "RISK": [
+          "position"
+        ],
+        "EXECUTION": [
+          "execute",
+          "limit"
+        ],
+        "COMPOUND": [
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ]
+      },
+      "concepts": [
+        "But Python",
+        "And Python",
+        "Joseph Marie Jakard",
+        "Before Jakard",
+        "Adah Love Lace",
+        "Charles Babage",
+        "Thomas Nicely",
+        "Super Mario",
+        "The Pentium"
+      ],
+      "charCount": 11460
+    },
+    {
+      "videoId": "6hF2K4YGZbY",
+      "categories": {
+        "MARKET_SCAN": [
+          "market",
+          "filter",
+          "opportunity"
+        ],
+        "RESEARCH": [
+          "research"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "RISK": [
+          "risk",
+          "kelly",
+          "position",
+          "stop"
+        ],
+        "EXECUTION": [
+          "execute",
+          "limit"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ],
+        "PSYCHOLOGY": [
+          "psychology",
+          "discipline"
+        ]
+      },
+      "concepts": [
+        "Joseph Monte",
+        "Dark Square",
+        "But Joe",
+        "Jake Jake",
+        "United States",
+        "Tik Tok",
+        "Dark Squar",
+        "The Legend",
+        "And Jasmine",
+        "After Nice"
+      ],
+      "charCount": 30781
+    },
+    {
+      "videoId": "AZ1l-oaD3tk",
+      "categories": {
+        "MARKET_SCAN": [
+          "market"
+        ],
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "edge",
+          "model"
+        ],
+        "RISK": [
+          "stop"
+        ],
+        "EXECUTION": [
+          "limit",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "structure"
+        ]
+      },
+      "concepts": [
+        "Claude Code",
+        "Nano Banana Pro",
+        "Seed Dance",
+        "And Erin",
+        "Andre Cap Kaparthy",
+        "And Obsidian",
+        "Andrew Kaparthy",
+        "Windows Credential Manager",
+        "Nest Openrain Project",
+        "Jake Van Clee",
+        "Git Oh",
+        "Open Brain",
+        "Stack Overflow",
+        "My Instagram",
+        "David Parn",
+        "And Woosaw",
+        "Dragon Ball",
+        "Dragon Ball Super",
+        "Team Four Star",
+        "Cleaf Notes",
+        "Go High Level",
+        "And Toby",
+        "In St"
+      ],
+      "charCount": 56088
+    },
+    {
+      "videoId": "AjzBaEkWkNA",
+      "categories": {
+        "MARKET_SCAN": [
+          "market"
+        ],
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ]
+      },
+      "concepts": [
+        "Jimmy John",
+        "Copilot Studio"
+      ],
+      "charCount": 10339
+    },
+    {
+      "videoId": "DbIjTB-kh8E",
+      "categories": {
+        "RESEARCH": [
+          "research"
+        ],
+        "PREDICTION": [
+          "predict",
+          "edge",
+          "model"
+        ],
+        "RISK": [
+          "position",
+          "stop"
+        ],
+        "EXECUTION": [
+          "execute",
+          "order",
+          "limit"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "demand",
+          "structure"
+        ],
+        "PSYCHOLOGY": [
+          "fear"
+        ]
+      },
+      "concepts": [
+        "Alan Turing",
+        "Chachi Beti",
+        "Before Rome",
+        "Yet Aaron",
+        "The Anticther",
+        "Middle East",
+        "Al Jazari",
+        "Ark Twid Dynasty",
+        "Taki Palace",
+        "Donald Hill",
+        "Renee Deart",
+        "Allen Turing",
+        "Even Deart",
+        "Jacqu Dvakon",
+        "John Eugene Robert Hudin",
+        "Pierre Jacros",
+        "Joseph Marie Jakard",
+        "Before Jakard",
+        "Charles Babage",
+        "The British",
+        "Tim Robertson",
+        "Adis Love Lace",
+        "Ada Love Lace",
+        "Luigi Manabara",
+        "Lady Lo",
+        "Alan Turring",
+        "Computing Machinery",
+        "Lady Love Lace",
+        "But Turing"
+      ],
+      "charCount": 23706
+    },
+    {
+      "videoId": "I-enT6szVQQ",
+      "categories": {
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "RISK": [
+          "position"
+        ],
+        "EXECUTION": [
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ]
+      },
+      "concepts": [
+        "Bidnet Direct"
+      ],
+      "charCount": 13126
+    },
+    {
+      "videoId": "J2GLzkaUrBc",
+      "categories": {
+        "RESEARCH": [
+          "research"
+        ],
+        "EXECUTION": [
+          "api"
+        ],
+        "COMPOUND": [
+          "track"
+        ],
+        "MARKET_STRUCTURE": [
+          "structure"
+        ]
+      },
+      "concepts": [
+        "Claude Code",
+        "And Claude"
+      ],
+      "charCount": 5275
+    },
+    {
+      "videoId": "KC0VEZuo4OI",
+      "categories": {
+        "RESEARCH": [
+          "information"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "RISK": [
+          "stop"
+        ],
+        "EXECUTION": [
+          "api"
+        ],
+        "COMPOUND": [
+          "learn"
+        ],
+        "MARKET_STRUCTURE": [
+          "structure"
+        ]
+      },
+      "concepts": [
+        "Cloud Code Web",
+        "Cloud Code",
+        "Google Docs"
+      ],
+      "charCount": 16166
+    },
+    {
+      "videoId": "MkN-ss2Nl10",
+      "categories": {
+        "MARKET_SCAN": [
+          "opportunity"
+        ],
+        "RESEARCH": [
+          "research",
+          "news",
+          "information"
+        ],
+        "PREDICTION": [
+          "predict",
+          "model"
+        ],
+        "RISK": [
+          "risk",
+          "position",
+          "stop"
+        ],
+        "EXECUTION": [
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ]
+      },
+      "concepts": [
+        "John Gruber",
+        "Claude Code"
+      ],
+      "charCount": 23653
+    },
+    {
+      "videoId": "PN9OzUNCBKE",
+      "categories": {
+        "MARKET_SCAN": [
+          "filter"
+        ],
+        "RESEARCH": [
+          "information"
+        ],
+        "PREDICTION": [
+          "edge",
+          "model"
+        ],
+        "COMPOUND": [
+          "log"
+        ]
+      },
+      "concepts": [
+        "Tik Tok"
+      ],
+      "charCount": 3741
+    },
+    {
+      "videoId": "RZ0AcCLVPFA",
+      "categories": {
+        "RESEARCH": [
+          "research",
+          "news",
+          "information"
+        ],
+        "PREDICTION": [
+          "predict",
+          "edge",
+          "model"
+        ],
+        "EXECUTION": [
+          "order"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ]
+      },
+      "concepts": [
+        "Alan Turing",
+        "Marine Corps",
+        "British Council",
+        "European Union",
+        "Mad Libs",
+        "Semantic Kernel",
+        "Claude Code",
+        "With Claude Code",
+        "Some Semantic Kernel"
+      ],
+      "charCount": 21441
+    },
+    {
+      "videoId": "S3fXSc5z2n4",
+      "categories": {
+        "RESEARCH": [
+          "information"
+        ],
+        "PREDICTION": [
+          "predict",
+          "probability",
+          "edge",
+          "model"
+        ],
+        "RISK": [
+          "position",
+          "exposure",
+          "stop"
+        ],
+        "EXECUTION": [
+          "execute"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "demand",
+          "structure"
+        ],
+        "PSYCHOLOGY": [
+          "discipline"
+        ]
+      },
+      "concepts": [
+        "Leonard Stern",
+        "Roger Price",
+        "Mad Libs",
+        "Mad Lib",
+        "Grace Hopper",
+        "The Mad",
+        "In Mad Libs"
+      ],
+      "charCount": 14443
+    },
+    {
+      "videoId": "SjlCJIU9ODs",
+      "categories": {
+        "MARKET_SCAN": [
+          "market"
+        ],
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "predict",
+          "edge",
+          "model"
+        ],
+        "RISK": [
+          "position",
+          "stop"
+        ],
+        "EXECUTION": [
+          "limit",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ],
+        "PSYCHOLOGY": [
+          "psychology"
+        ]
+      },
+      "concepts": [],
+      "charCount": 14235
+    },
+    {
+      "videoId": "UGyTimVObus",
+      "categories": {
+        "MARKET_SCAN": [
+          "volume"
+        ],
+        "RESEARCH": [
+          "research"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "EXECUTION": [
+          "order",
+          "limit",
+          "api"
+        ],
+        "COMPOUND": [
+          "track",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "structure"
+        ]
+      },
+      "concepts": [
+        "Anthropic Servers"
+      ],
+      "charCount": 14057
+    },
+    {
+      "videoId": "Wtf6E-fwuwI",
+      "categories": {
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "EXECUTION": [
+          "api"
+        ],
+        "COMPOUND": [
+          "log"
+        ]
+      },
+      "concepts": [
+        "Jake Van Cleef",
+        "Um And"
+      ],
+      "charCount": 9355
+    },
+    {
+      "videoId": "ZMDXs59Ntjc",
+      "categories": {
+        "MARKET_SCAN": [
+          "market",
+          "filter",
+          "opportunity"
+        ],
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "predict",
+          "edge",
+          "model"
+        ],
+        "RISK": [
+          "position",
+          "stop"
+        ],
+        "EXECUTION": [
+          "order",
+          "hedge",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "track",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ]
+      },
+      "concepts": [
+        "So Crystal",
+        "Um And",
+        "Grand Rapids",
+        "And Alexander",
+        "Beanie Sigel",
+        "High Times Festival",
+        "So Beanie",
+        "Not Suno",
+        "So Suno Suno",
+        "Like Here",
+        "Like If",
+        "Um Daniel",
+        "Get Be"
+      ],
+      "charCount": 47679
+    },
+    {
+      "videoId": "_rtyhVD4v4A",
+      "categories": {
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "edge",
+          "model"
+        ],
+        "RISK": [
+          "stop"
+        ],
+        "EXECUTION": [
+          "order",
+          "limit",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "structure"
+        ]
+      },
+      "concepts": [
+        "Code Max",
+        "Claude Code",
+        "Claude Sonnet",
+        "Now Claude",
+        "Wind Surf",
+        "Only Claude"
+      ],
+      "charCount": 27767
+    },
+    {
+      "videoId": "bQXi5Nd8c40",
+      "categories": {
+        "MARKET_SCAN": [
+          "market",
+          "opportunity"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "RISK": [
+          "position"
+        ],
+        "EXECUTION": [
+          "order",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "structure"
+        ]
+      },
+      "concepts": [
+        "If Mullebot",
+        "Is Moltbot"
+      ],
+      "charCount": 12700
+    },
+    {
+      "videoId": "hALln9wrrQo",
+      "categories": {
+        "RESEARCH": [
+          "information"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "RISK": [
+          "position",
+          "sizing",
+          "stop"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ]
+      },
+      "concepts": [
+        "By Tuesday",
+        "Second Obsidian",
+        "Bush Memex"
+      ],
+      "charCount": 14417
+    },
+    {
+      "videoId": "izMBiWG3L24",
+      "categories": {
+        "RESEARCH": [
+          "information"
+        ],
+        "MARKET_STRUCTURE": [
+          "structure"
+        ],
+        "PSYCHOLOGY": [
+          "emotion",
+          "fear"
+        ]
+      },
+      "concepts": [
+        "Adobe Illustrator",
+        "Claude Code"
+      ],
+      "charCount": 12188
+    },
+    {
+      "videoId": "jjV1ckgPzI0",
+      "categories": {
+        "MARKET_SCAN": [
+          "filter",
+          "opportunity"
+        ],
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "predict",
+          "edge",
+          "model",
+          "confidence"
+        ],
+        "RISK": [
+          "stop"
+        ],
+        "EXECUTION": [
+          "order",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ]
+      },
+      "concepts": [
+        "Edinburgh Innovations",
+        "Geoffrey Hinton",
+        "Nobel Prize",
+        "Charles Darwin",
+        "Alan Turing",
+        "Marine Corps",
+        "The Jacquard",
+        "Ada Lovelace",
+        "George Boole",
+        "Grace Hopper",
+        "Claude Claude",
+        "Neural Politics Lab",
+        "Knight Capital",
+        "The Ariane",
+        "Semantic Kernel",
+        "Correlation One"
+      ],
+      "charCount": 36467
+    },
+    {
+      "videoId": "oQ6tsBFJZzk",
+      "categories": {
+        "MARKET_SCAN": [
+          "scan"
+        ],
+        "RESEARCH": [
+          "research"
+        ],
+        "PREDICTION": [
+          "predict",
+          "model"
+        ],
+        "EXECUTION": [
+          "order",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "track",
+          "log",
+          "sharpe"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ]
+      },
+      "concepts": [
+        "In March",
+        "Rene Descartes",
+        "Alan Turing",
+        "Israel Governance",
+        "Ada Lovelace",
+        "Charles Babbage",
+        "Analytical Engine",
+        "Computing Machinery",
+        "Lady Lovelace",
+        "Norbert Wiener",
+        "Andy Clark",
+        "John Searle",
+        "Chinese Room",
+        "Edinburgh Futures Institute",
+        "When Einstein"
+      ],
+      "charCount": 11517
+    },
+    {
+      "videoId": "ozkx_eUfjY0",
+      "categories": {
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "RISK": [
+          "position",
+          "sizing",
+          "stop"
+        ],
+        "EXECUTION": [
+          "limit",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "track",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ]
+      },
+      "concepts": [
+        "Sometimes Claude",
+        "Subscribe Gift",
+        "The Claude",
+        "But Claude",
+        "Subscribe Beehiiv",
+        "And Claude",
+        "Hey Claude",
+        "American Moto"
+      ],
+      "charCount": 34567
+    },
+    {
+      "videoId": "pdoSAWWCDO8",
+      "categories": {
+        "MARKET_SCAN": [
+          "market"
+        ],
+        "RESEARCH": [
+          "research",
+          "information"
+        ],
+        "PREDICTION": [
+          "model",
+          "calibrate"
+        ],
+        "EXECUTION": [
+          "order",
+          "limit",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "track",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "structure"
+        ],
+        "PSYCHOLOGY": [
+          "emotion"
+        ]
+      },
+      "concepts": [
+        "Claude Anthropic",
+        "You You",
+        "Sin Space",
+        "Canda Canva",
+        "This Aduba",
+        "Claude Code Work",
+        "Claude Code",
+        "Claude Design",
+        "Coder Next",
+        "Code Gemma",
+        "Which So",
+        "Um See",
+        "Or Yeah",
+        "Cleef Notes"
+      ],
+      "charCount": 45310
+    },
+    {
+      "videoId": "rHDA0WMXzy4",
+      "categories": {
+        "PREDICTION": [
+          "edge",
+          "model"
+        ],
+        "RISK": [
+          "stop"
+        ],
+        "EXECUTION": [
+          "execute",
+          "limit",
+          "api"
+        ],
+        "COMPOUND": [
+          "learn",
+          "log"
+        ],
+        "MARKET_STRUCTURE": [
+          "structure"
+        ]
+      },
+      "concepts": [
+        "Claw Desktop",
+        "And Claude",
+        "Visual Studio Code",
+        "Claude Desktop",
+        "Download Claude",
+        "Clo Co",
+        "Claude Code",
+        "Cloud Code"
+      ],
+      "charCount": 26542
+    },
+    {
+      "videoId": "tQ6rQMW7vo8",
+      "categories": {
+        "MARKET_SCAN": [
+          "filter"
+        ],
+        "RESEARCH": [
+          "information"
+        ],
+        "PREDICTION": [
+          "edge",
+          "model"
+        ],
+        "COMPOUND": [
+          "log"
+        ]
+      },
+      "concepts": [
+        "Tik Tok"
+      ],
+      "charCount": 3746
+    },
+    {
+      "videoId": "v2UnNFmkia0",
+      "categories": {
+        "PREDICTION": [
+          "model"
+        ],
+        "EXECUTION": [
+          "limit",
+          "api"
+        ],
+        "COMPOUND": [
+          "log"
+        ]
+      },
+      "concepts": [
+        "Cloud Run",
+        "Cloud Code"
+      ],
+      "charCount": 8451
+    },
+    {
+      "videoId": "vyN7ITKcGXU",
+      "categories": {
+        "RESEARCH": [
+          "research"
+        ],
+        "PREDICTION": [
+          "model"
+        ],
+        "RISK": [
+          "position"
+        ],
+        "COMPOUND": [
+          "learn"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ],
+        "PSYCHOLOGY": [
+          "emotion"
+        ]
+      },
+      "concepts": [
+        "Claude Code",
+        "Uh Remotion",
+        "Pro Edition",
+        "Cap Cut"
+      ],
+      "charCount": 22791
+    },
+    {
+      "videoId": "yEa6dgh7wuc",
+      "categories": {
+        "MARKET_SCAN": [
+          "market"
+        ],
+        "RESEARCH": [
+          "research"
+        ],
+        "EXECUTION": [
+          "execute",
+          "limit"
+        ],
+        "COMPOUND": [
+          "learn",
+          "track"
+        ],
+        "MARKET_STRUCTURE": [
+          "ict",
+          "structure"
+        ],
+        "PSYCHOLOGY": [
+          "emotion"
+        ]
+      },
+      "concepts": [
+        "Cap Cut",
+        "David Ugle",
+        "And Remotion",
+        "Johnny Burgerer",
+        "And React",
+        "Remotion Studio",
+        "When Claude",
+        "After Effects",
+        "When Garage Band",
+        "Steve Lacy",
+        "Kendrick Lamar",
+        "Melanie Perkins",
+        "Green Eggs"
+      ],
+      "charCount": 13912
+    }
+  ]
+}

@@ -18,3 +18,31 @@ enabled = false
 [[skills.config]]
 path = "/Users/marcelspatz/NUDIMMUD/01_PROJECTS/claude-cookbooks"
 enabled = false
+
+[[skills.config]]
+path = "/Users/marcelspatz/NUDIMMUD/.claude/skills/deepseek-workhorse"
+enabled = true
+name = "deepseek-workhorse"
+
+sandbox_mode = "workspace-write"
+[sandbox_workspace_write]
+network_access = true
+
+[agents]
+max_threads = 1
+max_depth = 1
+
+[features]
+enable_fanout = false
+multi_agent = false
+
+[mcp_servers.nudimmudOffload]
+command = "node"
+args = ["/Users/marcelspatz/NUDIMMUD/.codex/adapters/nudimmud-offload-mcp.mjs"]
+enabled = true
+startup_timeout_sec = 5
+tool_timeout_sec = 180
+
+[[hooks.PreToolUse]]
+matcher = "*"
+hooks = [{ type = "command", command = "node /Users/marcelspatz/NUDIMMUD/.codex/hooks/pre-tool-use.mjs" }]

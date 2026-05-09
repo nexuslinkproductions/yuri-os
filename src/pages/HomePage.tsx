@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import CTABanner from '../components/CTABanner';
+import AnimatedCounter from '../components/ui/AnimatedCounter';
 import type React from 'react';
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -65,14 +66,18 @@ const processSteps = [
 ];
 
 const stats = [
-  { value: 'Wide', label: 'Portfolio' },
-  { value: '6', label: 'Years' },
-  { value: '3', label: 'Partners' },
+  { value: 120, suffix: '+', label: 'Projects Delivered' },
+  { value: 6, suffix: '', label: 'Years Active' },
+  { value: 14, suffix: '', label: 'Retained Clients' },
 ];
 
 function ProcessCard({ step, index }: { step: (typeof processSteps)[number]; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: false, margin: '-10%' });
+
   return (
-    <motion.article
+    <motion.div
+      ref={ref}
       className="depth-card"
       data-tilt
       data-magnetic
@@ -84,11 +89,12 @@ function ProcessCard({ step, index }: { step: (typeof processSteps)[number]; ind
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
+        overflow: 'hidden',
+        clipPath: inView
+          ? 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)'
+          : 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)',
+        transition: `clip-path 0.7s cubic-bezier(0.22,1,0.36,1) ${index * 0.12}s`,
       } as React.CSSProperties}
-      initial={{ opacity: 0, y: 44 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: false, margin: '-12%' }}
-      transition={{ duration: 0.7, delay: index * 0.09, ease: EASE }}
     >
       <div>
         <div
@@ -107,7 +113,7 @@ function ProcessCard({ step, index }: { step: (typeof processSteps)[number]; ind
         <h3 style={{ fontSize: 28, fontWeight: 850, letterSpacing: 0, marginBottom: 14 }}>{step.title}</h3>
       </div>
       <p style={{ color: 'var(--color-text-secondary)', lineHeight: 1.72, fontWeight: 300 }}>{step.copy}</p>
-    </motion.article>
+    </motion.div>
   );
 }
 
@@ -117,6 +123,9 @@ function Hero() {
   const y = useTransform(scrollY, [0, 560], [0, 80]);
   const opacity = useTransform(scrollY, [0, 520], [1, 0.14]);
   const scale = useTransform(scrollY, [0, 520], [1, 0.965]);
+  const fogNearY = useTransform(scrollY, [0, 560], [0, 44]);
+  const fogMidY = useTransform(scrollY, [0, 560], [0, 22]);
+  const fogFarY = useTransform(scrollY, [0, 560], [0, 10]);
 
   useEffect(() => {
     const id = window.setTimeout(() => setReady(true), 180);
@@ -138,16 +147,47 @@ function Hero() {
         scale,
       }}
     >
+      {/* Celestial texture — star-chart dot field */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.28) 1px, transparent 1px)
+        `,
+        backgroundSize: '120px 120px, 71px 71px',
+        backgroundPosition: '0 0, 36px 36px',
+        opacity: 'var(--overlay-celestial-opacity)',
+        maskImage: 'radial-gradient(ellipse 90% 80% at 50% 35%, black 0%, transparent 100%)',
+      }} />
+
+      {/* Indigo trace ambient — cold/warm tension, bottom-left */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', bottom: -60, left: -60,
+        width: 560, height: 560, borderRadius: '50%', pointerEvents: 'none',
+        background: 'radial-gradient(circle, var(--color-indigo-trace) 0%, transparent 68%)',
+      }} />
+
+      {/* Depth fog planes — 3-layer parallax atmosphere */}
+      <motion.div aria-hidden="true" style={{ y: fogFarY, position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', bottom: '28%', left: 0, right: 0, height: '18%', background: 'linear-gradient(180deg, transparent 0%, var(--overlay-fog-far) 50%, transparent 100%)' }} />
+      </motion.div>
+      <motion.div aria-hidden="true" style={{ y: fogMidY, position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', bottom: '16%', left: 0, right: 0, height: '14%', background: 'linear-gradient(180deg, transparent 0%, var(--overlay-fog-mid) 50%, transparent 100%)' }} />
+      </motion.div>
+      <motion.div aria-hidden="true" style={{ y: fogNearY, position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', bottom: '5%', left: 0, right: 0, height: '10%', background: 'linear-gradient(180deg, transparent 0%, var(--overlay-fog-near) 60%, transparent 100%)' }} />
+      </motion.div>
+
       <FrameCorners />
       <div className="container" style={{ position: 'relative', zIndex: 3 }}>
-        <div className="hero-readability" aria-hidden="true" />
+        <div className="hero-readability" aria-hidden="true" style={{ position: 'absolute' }} />
         <motion.div
           className="kicker"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
         >
-          Vienna / Premium Brand Content
+          Vienna / Moving image for the uncompromising
         </motion.div>
 
         <motion.h1
@@ -211,7 +251,10 @@ function Hero() {
                   borderLeft: index === 0 ? '0' : '1px solid var(--color-border-subtle)',
                 }}
               >
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 850, lineHeight: 1, color: 'var(--color-text-primary)' }}>{stat.value}</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 850, lineHeight: 1, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                  <AnimatedCounter target={stat.value} duration={1400} />
+                  <span style={{ fontSize: 16 }}>{stat.suffix}</span>
+                </div>
                 <div style={{ marginTop: 6, color: 'var(--color-text-tertiary)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{stat.label}</div>
               </div>
             ))}
@@ -224,9 +267,15 @@ function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, delay: 1.16, ease: EASE }}
         >
-          <Link to="/work" data-magnetic className="magnetic-link cta-button cta-button--primary">
-            View Work <span aria-hidden="true">-&gt;</span>
-          </Link>
+          <motion.span
+            animate={{ boxShadow: ['0 0 0px rgba(220,38,38,0)', '0 0 24px var(--color-crimson-pulse)', '0 0 0px rgba(220,38,38,0)'] }}
+            transition={{ duration: 3.5, ease: 'easeInOut', repeat: Infinity, repeatDelay: 1.5 }}
+            style={{ borderRadius: 'var(--radius-full)', display: 'inline-flex' }}
+          >
+            <Link to="/work" data-magnetic className="magnetic-link cta-button cta-button--primary">
+              View Work <span aria-hidden="true">-&gt;</span>
+            </Link>
+          </motion.span>
           <Link to="/contact" data-magnetic className="magnetic-link cta-button">
             Start a Project
           </Link>

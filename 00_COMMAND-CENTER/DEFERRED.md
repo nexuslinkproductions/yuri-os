@@ -53,7 +53,7 @@
 **Reopen when:** Marcel reviews and decides: merge, archive, or delete
 **What's waiting:**
 - `CLAUDE DESIGN/NUDIMMUD/` — appears to be older vault copy (has full directory structure + `enki_state.md` etc.)
-- `CLAUDE DESIGN/DOMAIN EXPANSION: INFINITE VOID/` — separate Claude setup/project
+- `CLAUDE DESIGN/DOMAIN EXPANSION - INFINITE VOID/` — separate Claude setup/project
 - `NUDIMMUD_RECOVERY/backend/src/` — recovery code project
 
 **Action options:**

@@ -14,6 +14,7 @@ This blueprint defines:
 - The lane identity and ID grammar for the OPENCLAW lane (09OC).
 - How OPENCLAW is represented in `memory.db` (`agents`, `tasks`, `memories`, `context_switches`).
 - The handoff lifecycle between Cline/Yuri OS, OPENCLAW, and external channels (Discord).
+- The browser worker contract for web tasks that need real Chrome.
 - Guardrails: **Yuri OS memory.db remains canonical**, OpenClaw's internal session store is treated as cache only.
 
 ---
@@ -156,6 +157,13 @@ Each handoff is logged via `kernel.py handoff`:
 - Long‑running research, background monitoring.
 - Gateway health observation.
 
+### Browser worker
+- Real browser interaction, auth flows, screenshot review, form fill, and web research that needs a visible Chrome session.
+- OpenClaw does not own Chrome directly. It routes browser work to a browser worker that owns the browser session.
+- Preferred browser path: Playwright `channel: 'chrome'` with a persistent user-data dir.
+- If the browser task needs an existing logged-in profile, the worker imports cookies or attaches to the preserved session, not to OpenClaw itself.
+- CDP attach is fallback-only for cases where an already-running Chrome window must be reused.
+
 ### Cline/ENKI
 - Vault surgery, file moves, taxonomy changes.
 - Deep code edits, multi-file refactors, security patches.
@@ -172,6 +180,7 @@ Each handoff is logged via `kernel.py handoff`:
 - [ ] Configure OpenClaw workspace to `~/NUDIMMUD`.
 - [ ] Add OpenClaw identity files in NUDIMMUD workspace.
 - [ ] Repair Discord plugin after bridge proven stable.
+- [ ] Define the browser worker entrypoint used by OPENCLAW for Chrome-backed tasks.
 
 
 | Field           | Convention                              |
@@ -220,4 +229,3 @@ This allows a chronological story of lane transitions independent of raw task st
 2. Bridge calls `kernel.py task-create` for `agent_id = ENKI`.
 3. `kernel.py handoff` logs context switch.
 4. ENKI performs work, logs memories, optionally posts results back via OPENCLAW.
-

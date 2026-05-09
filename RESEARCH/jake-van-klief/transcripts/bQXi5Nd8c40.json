@@ -1,0 +1,2028 @@
+{
+  "videoId": "bQXi5Nd8c40",
+  "title": "Clawdbot (Moltbot) Has 100K Stars",
+  "segments": [
+    {
+      "text": "Here it comes again. Slack ping, Discord",
+      "duration": 5359,
+      "offset": 0,
+      "lang": "en"
+    },
+    {
+      "text": "message, WhatsApp buzz, notification,",
+      "duration": 4799,
+      "offset": 3120,
+      "lang": "en"
+    },
+    {
+      "text": "email, calendar, teams, another Slack",
+      "duration": 4801,
+      "offset": 5359,
+      "lang": "en"
+    },
+    {
+      "text": "ping. Every app wants your attention.",
+      "duration": 4720,
+      "offset": 7919,
+      "lang": "en"
+    },
+    {
+      "text": "Every platform has its own inbox. And if",
+      "duration": 4399,
+      "offset": 10160,
+      "lang": "en"
+    },
+    {
+      "text": "you want to use AI to help, you're copy",
+      "duration": 3761,
+      "offset": 12639,
+      "lang": "en"
+    },
+    {
+      "text": "pasting between chat GPT and everything",
+      "duration": 4640,
+      "offset": 14559,
+      "lang": "en"
+    },
+    {
+      "text": "else like it's 2019. Yet someone all of",
+      "duration": 5039,
+      "offset": 16400,
+      "lang": "en"
+    },
+    {
+      "text": "a sudden out of nowhere says, \"Hey, have",
+      "duration": 4561,
+      "offset": 19199,
+      "lang": "en"
+    },
+    {
+      "text": "you heard of Moltbot?\" and sends you a",
+      "duration": 4641,
+      "offset": 21439,
+      "lang": "en"
+    },
+    {
+      "text": "link. Allegedly, it's one assistant",
+      "duration": 4240,
+      "offset": 23760,
+      "lang": "en"
+    },
+    {
+      "text": "everywhere you already are. Message it",
+      "duration": 4320,
+      "offset": 26080,
+      "lang": "en"
+    },
+    {
+      "text": "on WhatsApp, get a response on Telegram,",
+      "duration": 4160,
+      "offset": 28000,
+      "lang": "en"
+    },
+    {
+      "text": "ask it to check your calendar from",
+      "duration": 4480,
+      "offset": 30400,
+      "lang": "en"
+    },
+    {
+      "text": "Slack, and it just works across",
+      "duration": 5760,
+      "offset": 32160,
+      "lang": "en"
+    },
+    {
+      "text": "everything. One assistant, one place can",
+      "duration": 4800,
+      "offset": 34880,
+      "lang": "en"
+    },
+    {
+      "text": "simply access all of your things,",
+      "duration": 4080,
+      "offset": 37920,
+      "lang": "en"
+    },
+    {
+      "text": "including the files on your computer.",
+      "duration": 5039,
+      "offset": 39680,
+      "lang": "en"
+    },
+    {
+      "text": "And it honestly has over a 100,000 stars",
+      "duration": 6160,
+      "offset": 42000,
+      "lang": "en"
+    },
+    {
+      "text": "on GitHub already. 500 pull requests,",
+      "duration": 6000,
+      "offset": 44719,
+      "lang": "en"
+    },
+    {
+      "text": "200 contributors, and a lot of people",
+      "duration": 5120,
+      "offset": 48160,
+      "lang": "en"
+    },
+    {
+      "text": "are calling it the future of personal",
+      "duration": 4401,
+      "offset": 50719,
+      "lang": "en"
+    },
+    {
+      "text": "AI. Some people are saying that it's",
+      "duration": 4400,
+      "offset": 53280,
+      "lang": "en"
+    },
+    {
+      "text": "some sort of AGI and the hype is real.",
+      "duration": 5279,
+      "offset": 55120,
+      "lang": "en"
+    },
+    {
+      "text": "The enthusiasm might be real, but here's",
+      "duration": 5280,
+      "offset": 57680,
+      "lang": "en"
+    },
+    {
+      "text": "what most people are not understanding",
+      "duration": 5760,
+      "offset": 60399,
+      "lang": "en"
+    },
+    {
+      "text": "me. If you open the codebase, all 50,000",
+      "duration": 5519,
+      "offset": 62960,
+      "lang": "en"
+    },
+    {
+      "text": "lines of it, read every file, check",
+      "duration": 5041,
+      "offset": 66159,
+      "lang": "en"
+    },
+    {
+      "text": "every folder, you won't find a model.",
+      "duration": 4161,
+      "offset": 68479,
+      "lang": "en"
+    },
+    {
+      "text": "You're not going to find weights. You're",
+      "duration": 3360,
+      "offset": 71200,
+      "lang": "en"
+    },
+    {
+      "text": "not going to find training data. There",
+      "duration": 6159,
+      "offset": 72640,
+      "lang": "en"
+    },
+    {
+      "text": "is no AI inside of it. None. So, what is",
+      "duration": 6160,
+      "offset": 74560,
+      "lang": "en"
+    },
+    {
+      "text": "everyone all excited about if it's this",
+      "duration": 4161,
+      "offset": 78799,
+      "lang": "en"
+    },
+    {
+      "text": "crazy AI agent that's handling",
+      "duration": 5039,
+      "offset": 80720,
+      "lang": "en"
+    },
+    {
+      "text": "everything? To understand what Molbot",
+      "duration": 4799,
+      "offset": 82960,
+      "lang": "en"
+    },
+    {
+      "text": "actually is, we need to talk about a",
+      "duration": 3841,
+      "offset": 85759,
+      "lang": "en"
+    },
+    {
+      "text": "word that gets thrown around a lot in AI",
+      "duration": 4400,
+      "offset": 87759,
+      "lang": "en"
+    },
+    {
+      "text": "circles, but rarely gets explained well.",
+      "duration": 4479,
+      "offset": 89600,
+      "lang": "en"
+    },
+    {
+      "text": "Orchestration.",
+      "duration": 4640,
+      "offset": 92159,
+      "lang": "en"
+    },
+    {
+      "text": "Think about an actual orchestra. Dozens",
+      "duration": 5601,
+      "offset": 94079,
+      "lang": "en"
+    },
+    {
+      "text": "of musicians, brass, strings, woodwinds,",
+      "duration": 5601,
+      "offset": 96799,
+      "lang": "en"
+    },
+    {
+      "text": "percussion. Each one a specialist, each",
+      "duration": 4880,
+      "offset": 99680,
+      "lang": "en"
+    },
+    {
+      "text": "one capable of making music on their",
+      "duration": 4240,
+      "offset": 102400,
+      "lang": "en"
+    },
+    {
+      "text": "own. But here's the thing. The conductor",
+      "duration": 4160,
+      "offset": 104560,
+      "lang": "en"
+    },
+    {
+      "text": "does not play an instrument. The",
+      "duration": 4479,
+      "offset": 106640,
+      "lang": "en"
+    },
+    {
+      "text": "conductor doesn't make any sound at all.",
+      "duration": 5039,
+      "offset": 108720,
+      "lang": "en"
+    },
+    {
+      "text": "The conductor's job is to coordinate who",
+      "duration": 5921,
+      "offset": 111119,
+      "lang": "en"
+    },
+    {
+      "text": "plays when, how loud, in what order,",
+      "duration": 5921,
+      "offset": 113759,
+      "lang": "en"
+    },
+    {
+      "text": "when to speed up, when to slow down,",
+      "duration": 5439,
+      "offset": 117040,
+      "lang": "en"
+    },
+    {
+      "text": "when to pause. That is the important",
+      "duration": 6320,
+      "offset": 119680,
+      "lang": "en"
+    },
+    {
+      "text": "part. The musicians are the talent. The",
+      "duration": 6480,
+      "offset": 122479,
+      "lang": "en"
+    },
+    {
+      "text": "conductor is the organizer. Now replace",
+      "duration": 5760,
+      "offset": 126000,
+      "lang": "en"
+    },
+    {
+      "text": "musicians with AI models, tools,",
+      "duration": 5041,
+      "offset": 128959,
+      "lang": "en"
+    },
+    {
+      "text": "messaging platforms. That's the",
+      "duration": 4160,
+      "offset": 131760,
+      "lang": "en"
+    },
+    {
+      "text": "orchestration. Let me make this a little",
+      "duration": 3680,
+      "offset": 134000,
+      "lang": "en"
+    },
+    {
+      "text": "bit more concrete and I kind of want to",
+      "duration": 2880,
+      "offset": 135920,
+      "lang": "en"
+    },
+    {
+      "text": "take you into here a second because",
+      "duration": 2960,
+      "offset": 137680,
+      "lang": "en"
+    },
+    {
+      "text": "there's a good lesson to learn. I'm",
+      "duration": 4320,
+      "offset": 138800,
+      "lang": "en"
+    },
+    {
+      "text": "going to use some simple shapes. A",
+      "duration": 5360,
+      "offset": 140640,
+      "lang": "en"
+    },
+    {
+      "text": "circle is your message. Hey, what's on",
+      "duration": 5360,
+      "offset": 143120,
+      "lang": "en"
+    },
+    {
+      "text": "my calendar today? The pentagon is an",
+      "duration": 5680,
+      "offset": 146000,
+      "lang": "en"
+    },
+    {
+      "text": "AI, claw, GPT, llama, whatever model",
+      "duration": 5920,
+      "offset": 148480,
+      "lang": "en"
+    },
+    {
+      "text": "you're using. A square is a tool, your",
+      "duration": 4320,
+      "offset": 151680,
+      "lang": "en"
+    },
+    {
+      "text": "calendar, your browser, your file",
+      "duration": 4160,
+      "offset": 154400,
+      "lang": "en"
+    },
+    {
+      "text": "system. And a rectangle is a channel,",
+      "duration": 5360,
+      "offset": 156000,
+      "lang": "en"
+    },
+    {
+      "text": "WhatsApp, Slack, Discord. Without an",
+      "duration": 4480,
+      "offset": 158560,
+      "lang": "en"
+    },
+    {
+      "text": "orchestration layer, here's what",
+      "duration": 3840,
+      "offset": 161360,
+      "lang": "en"
+    },
+    {
+      "text": "happens. Your message has to find the",
+      "duration": 4640,
+      "offset": 163040,
+      "lang": "en"
+    },
+    {
+      "text": "AI. The AI has to figure out what it",
+      "duration": 4720,
+      "offset": 165200,
+      "lang": "en"
+    },
+    {
+      "text": "needs, a tool, when it should have a",
+      "duration": 4720,
+      "offset": 167680,
+      "lang": "en"
+    },
+    {
+      "text": "tool, what the tool is, and it has to be",
+      "duration": 5280,
+      "offset": 169920,
+      "lang": "en"
+    },
+    {
+      "text": "called. The response has to get back to",
+      "duration": 5119,
+      "offset": 172400,
+      "lang": "en"
+    },
+    {
+      "text": "the AI. And then the whole thing has to",
+      "duration": 4399,
+      "offset": 175200,
+      "lang": "en"
+    },
+    {
+      "text": "find its way back to whatever app you",
+      "duration": 4561,
+      "offset": 177519,
+      "lang": "en"
+    },
+    {
+      "text": "sent the message from. It's a mess.",
+      "duration": 4720,
+      "offset": 179599,
+      "lang": "en"
+    },
+    {
+      "text": "Every connection is manual. Every",
+      "duration": 5519,
+      "offset": 182080,
+      "lang": "en"
+    },
+    {
+      "text": "integration is custom. Things break",
+      "duration": 5601,
+      "offset": 184319,
+      "lang": "en"
+    },
+    {
+      "text": "constantly. Now, if you add an",
+      "duration": 4321,
+      "offset": 187599,
+      "lang": "en"
+    },
+    {
+      "text": "orchestration layer in the middle, a",
+      "duration": 4959,
+      "offset": 189920,
+      "lang": "en"
+    },
+    {
+      "text": "central hub that speaks every language,",
+      "duration": 5120,
+      "offset": 191920,
+      "lang": "en"
+    },
+    {
+      "text": "your message goes in, the orchestrator",
+      "duration": 4401,
+      "offset": 194879,
+      "lang": "en"
+    },
+    {
+      "text": "routes it to the right AI. The AI says,",
+      "duration": 4640,
+      "offset": 197040,
+      "lang": "en"
+    },
+    {
+      "text": "\"I need calendar data.\" The orchestrator",
+      "duration": 4160,
+      "offset": 199280,
+      "lang": "en"
+    },
+    {
+      "text": "calls the calendar tool, gets the",
+      "duration": 4800,
+      "offset": 201680,
+      "lang": "en"
+    },
+    {
+      "text": "response, sends it back to the AI. AI",
+      "duration": 5439,
+      "offset": 203440,
+      "lang": "en"
+    },
+    {
+      "text": "formulates an answer. Orchestrator sends",
+      "duration": 4640,
+      "offset": 206480,
+      "lang": "en"
+    },
+    {
+      "text": "it back to WhatsApp or Slack or whatever",
+      "duration": 4481,
+      "offset": 208879,
+      "lang": "en"
+    },
+    {
+      "text": "you started. Same task, clean",
+      "duration": 5039,
+      "offset": 211120,
+      "lang": "en"
+    },
+    {
+      "text": "architecture. Everything flows through",
+      "duration": 5760,
+      "offset": 213360,
+      "lang": "en"
+    },
+    {
+      "text": "one intelligent router. But there's",
+      "duration": 4160,
+      "offset": 216159,
+      "lang": "en"
+    },
+    {
+      "text": "something important I want to hit on",
+      "duration": 3520,
+      "offset": 219120,
+      "lang": "en"
+    },
+    {
+      "text": "here. We should get our terms straight",
+      "duration": 4081,
+      "offset": 220319,
+      "lang": "en"
+    },
+    {
+      "text": "because people use these words",
+      "duration": 3760,
+      "offset": 222640,
+      "lang": "en"
+    },
+    {
+      "text": "interchangeably and they really",
+      "duration": 4720,
+      "offset": 224400,
+      "lang": "en"
+    },
+    {
+      "text": "shouldn't. An AI model is the actual",
+      "duration": 5600,
+      "offset": 226400,
+      "lang": "en"
+    },
+    {
+      "text": "intelligence. GPT, Claude, Llama, so on",
+      "duration": 5039,
+      "offset": 229120,
+      "lang": "en"
+    },
+    {
+      "text": "and so forth. The things that think, and",
+      "duration": 4640,
+      "offset": 232000,
+      "lang": "en"
+    },
+    {
+      "text": "I use that with a grain of salt. Moltbot",
+      "duration": 6160,
+      "offset": 234159,
+      "lang": "en"
+    },
+    {
+      "text": "is not this. A wrapper is a thin layer",
+      "duration": 6879,
+      "offset": 236640,
+      "lang": "en"
+    },
+    {
+      "text": "around an API. Minimal added value. And",
+      "duration": 4640,
+      "offset": 240319,
+      "lang": "en"
+    },
+    {
+      "text": "there's a lot of tools out there like",
+      "duration": 3121,
+      "offset": 243519,
+      "lang": "en"
+    },
+    {
+      "text": "that, but I don't think Moltbot is this",
+      "duration": 4721,
+      "offset": 244959,
+      "lang": "en"
+    },
+    {
+      "text": "either. An agent is an AI that can take",
+      "duration": 5440,
+      "offset": 246640,
+      "lang": "en"
+    },
+    {
+      "text": "actions autonomously. Moltbot enables",
+      "duration": 5279,
+      "offset": 249680,
+      "lang": "en"
+    },
+    {
+      "text": "this, but needs an external AI to do it.",
+      "duration": 5679,
+      "offset": 252080,
+      "lang": "en"
+    },
+    {
+      "text": "But an orchestration layer coordinates",
+      "duration": 5840,
+      "offset": 254959,
+      "lang": "en"
+    },
+    {
+      "text": "AI plus tools plus channels plus",
+      "duration": 6000,
+      "offset": 257759,
+      "lang": "en"
+    },
+    {
+      "text": "context. This is what Moltbot actually",
+      "duration": 5680,
+      "offset": 260799,
+      "lang": "en"
+    },
+    {
+      "text": "is in my opinion. And the simplest way",
+      "duration": 4961,
+      "offset": 263759,
+      "lang": "en"
+    },
+    {
+      "text": "to think about it is Moltbot is the",
+      "duration": 4641,
+      "offset": 266479,
+      "lang": "en"
+    },
+    {
+      "text": "highway system. You still need to bring",
+      "duration": 5520,
+      "offset": 268720,
+      "lang": "en"
+    },
+    {
+      "text": "your own car to drive on it, to have it",
+      "duration": 5600,
+      "offset": 271120,
+      "lang": "en"
+    },
+    {
+      "text": "go places, make deliveries, all of that",
+      "duration": 5840,
+      "offset": 274240,
+      "lang": "en"
+    },
+    {
+      "text": "good jazz. But not arguing over what it",
+      "duration": 4960,
+      "offset": 276720,
+      "lang": "en"
+    },
+    {
+      "text": "is or how it is, I think we should",
+      "duration": 4240,
+      "offset": 280080,
+      "lang": "en"
+    },
+    {
+      "text": "actually look at Moltbot's architecture,",
+      "duration": 4720,
+      "offset": 281680,
+      "lang": "en"
+    },
+    {
+      "text": "not just because of Molbot, because it's",
+      "duration": 3920,
+      "offset": 284320,
+      "lang": "en"
+    },
+    {
+      "text": "a really great way to build all of your",
+      "duration": 3600,
+      "offset": 286400,
+      "lang": "en"
+    },
+    {
+      "text": "tools and apps in the future or in the",
+      "duration": 5120,
+      "offset": 288240,
+      "lang": "en"
+    },
+    {
+      "text": "AI world. Now, what I like about Moltbot",
+      "duration": 5759,
+      "offset": 290000,
+      "lang": "en"
+    },
+    {
+      "text": "is they really designate areas into",
+      "duration": 4160,
+      "offset": 293360,
+      "lang": "en"
+    },
+    {
+      "text": "layers, right? They have the input layer",
+      "duration": 3761,
+      "offset": 295759,
+      "lang": "en"
+    },
+    {
+      "text": "which is kind of where your interaction",
+      "duration": 4320,
+      "offset": 297520,
+      "lang": "en"
+    },
+    {
+      "text": "space is. They have this gateway layer",
+      "duration": 4320,
+      "offset": 299520,
+      "lang": "en"
+    },
+    {
+      "text": "where it's kind of this area where",
+      "duration": 4320,
+      "offset": 301840,
+      "lang": "en"
+    },
+    {
+      "text": "Moltbot is handling on sending those",
+      "duration": 4320,
+      "offset": 303840,
+      "lang": "en"
+    },
+    {
+      "text": "things, routing them, authenticating",
+      "duration": 4400,
+      "offset": 306160,
+      "lang": "en"
+    },
+    {
+      "text": "stuff. And then there's this uh kind of",
+      "duration": 4720,
+      "offset": 308160,
+      "lang": "en"
+    },
+    {
+      "text": "major output layer where you know",
+      "duration": 4320,
+      "offset": 310560,
+      "lang": "en"
+    },
+    {
+      "text": "they're taking AI models and allowing",
+      "duration": 3680,
+      "offset": 312880,
+      "lang": "en"
+    },
+    {
+      "text": "you to connect them looking at the",
+      "duration": 3680,
+      "offset": 314880,
+      "lang": "en"
+    },
+    {
+      "text": "storage. This is where it really wants",
+      "duration": 3520,
+      "offset": 316560,
+      "lang": "en"
+    },
+    {
+      "text": "all of that stuff to kind of be",
+      "duration": 4000,
+      "offset": 318560,
+      "lang": "en"
+    },
+    {
+      "text": "connected to and flowing really well.",
+      "duration": 4240,
+      "offset": 320080,
+      "lang": "en"
+    },
+    {
+      "text": "But let's try to break them apart into",
+      "duration": 4560,
+      "offset": 322560,
+      "lang": "en"
+    },
+    {
+      "text": "their individual sections. So at the top",
+      "duration": 4800,
+      "offset": 324320,
+      "lang": "en"
+    },
+    {
+      "text": "you have this channel layer. This is",
+      "duration": 3760,
+      "offset": 327120,
+      "lang": "en"
+    },
+    {
+      "text": "where Moltbot connects to all of those",
+      "duration": 4160,
+      "offset": 329120,
+      "lang": "en"
+    },
+    {
+      "text": "messaging platforms, right? WhatsApp and",
+      "duration": 4319,
+      "offset": 330880,
+      "lang": "en"
+    },
+    {
+      "text": "they're using a library called Bailey's,",
+      "duration": 4080,
+      "offset": 333280,
+      "lang": "en"
+    },
+    {
+      "text": "Telegram through Grammy, Discord through",
+      "duration": 4961,
+      "offset": 335199,
+      "lang": "en"
+    },
+    {
+      "text": "Discord.js, Signal through Signal CLI",
+      "duration": 4880,
+      "offset": 337360,
+      "lang": "en"
+    },
+    {
+      "text": "and so on. These are each of these",
+      "duration": 4160,
+      "offset": 340160,
+      "lang": "en"
+    },
+    {
+      "text": "really solid maintained open- source",
+      "duration": 4160,
+      "offset": 342240,
+      "lang": "en"
+    },
+    {
+      "text": "libraries that really know how to speak",
+      "duration": 4240,
+      "offset": 344320,
+      "lang": "en"
+    },
+    {
+      "text": "the platform's language. In the middle,",
+      "duration": 3840,
+      "offset": 346400,
+      "lang": "en"
+    },
+    {
+      "text": "you have the gateway. This is the brain",
+      "duration": 3680,
+      "offset": 348560,
+      "lang": "en"
+    },
+    {
+      "text": "of the operation. And I don't mean an AI",
+      "duration": 3760,
+      "offset": 350240,
+      "lang": "en"
+    },
+    {
+      "text": "brain, although you could argue that. I",
+      "duration": 3679,
+      "offset": 352240,
+      "lang": "en"
+    },
+    {
+      "text": "mean a routing brain. It's a websocket",
+      "duration": 4320,
+      "offset": 354000,
+      "lang": "en"
+    },
+    {
+      "text": "server running locally on your machine.",
+      "duration": 4481,
+      "offset": 355919,
+      "lang": "en"
+    },
+    {
+      "text": "Every message from every channel throws",
+      "duration": 4240,
+      "offset": 358320,
+      "lang": "en"
+    },
+    {
+      "text": "through here. The gateway decides where",
+      "duration": 4480,
+      "offset": 360400,
+      "lang": "en"
+    },
+    {
+      "text": "it goes. It manages sessions so that AI",
+      "duration": 4479,
+      "offset": 362560,
+      "lang": "en"
+    },
+    {
+      "text": "remembers your conversation context and",
+      "duration": 4080,
+      "offset": 364880,
+      "lang": "en"
+    },
+    {
+      "text": "it handles authentication so random",
+      "duration": 4160,
+      "offset": 367039,
+      "lang": "en"
+    },
+    {
+      "text": "people can't just message your AI.",
+      "duration": 4000,
+      "offset": 368960,
+      "lang": "en"
+    },
+    {
+      "text": "Hopefully, there's some arguments that",
+      "duration": 3521,
+      "offset": 371199,
+      "lang": "en"
+    },
+    {
+      "text": "there's some big opening securities in",
+      "duration": 3760,
+      "offset": 372960,
+      "lang": "en"
+    },
+    {
+      "text": "it, but that's besides the point. At the",
+      "duration": 5360,
+      "offset": 374720,
+      "lang": "en"
+    },
+    {
+      "text": "bottom, you have two things, tools and",
+      "duration": 6400,
+      "offset": 376720,
+      "lang": "en"
+    },
+    {
+      "text": "AI models. The tools are included.",
+      "duration": 4800,
+      "offset": 380080,
+      "lang": "en"
+    },
+    {
+      "text": "browser automation through Chrome's",
+      "duration": 4720,
+      "offset": 383120,
+      "lang": "en"
+    },
+    {
+      "text": "debugging tools, bash commands, file",
+      "duration": 5759,
+      "offset": 384880,
+      "lang": "en"
+    },
+    {
+      "text": "operations, Chrome jobs for scheduling,",
+      "duration": 5520,
+      "offset": 387840,
+      "lang": "en"
+    },
+    {
+      "text": "web hooks, all of them built in. And the",
+      "duration": 5201,
+      "offset": 390639,
+      "lang": "en"
+    },
+    {
+      "text": "AI models, they're just hooks. They're",
+      "duration": 4320,
+      "offset": 393360,
+      "lang": "en"
+    },
+    {
+      "text": "empty. You have to actually bring your",
+      "duration": 4000,
+      "offset": 395840,
+      "lang": "en"
+    },
+    {
+      "text": "own, right? You have to bring in your",
+      "duration": 5680,
+      "offset": 397680,
+      "lang": "en"
+    },
+    {
+      "text": "own API keys. You plug in your anthropic",
+      "duration": 6639,
+      "offset": 399840,
+      "lang": "en"
+    },
+    {
+      "text": "API key or your OpenAI API key or you",
+      "duration": 5760,
+      "offset": 403360,
+      "lang": "en"
+    },
+    {
+      "text": "run a local model from Llama and you",
+      "duration": 5361,
+      "offset": 406479,
+      "lang": "en"
+    },
+    {
+      "text": "point that model inside of it. Moltbox",
+      "duration": 4880,
+      "offset": 409120,
+      "lang": "en"
+    },
+    {
+      "text": "will handle all of the API calls, but",
+      "duration": 4400,
+      "offset": 411840,
+      "lang": "en"
+    },
+    {
+      "text": "the intelligence, the actual thinking is",
+      "duration": 4400,
+      "offset": 414000,
+      "lang": "en"
+    },
+    {
+      "text": "technically coming from somewhere else,",
+      "duration": 4560,
+      "offset": 416240,
+      "lang": "en"
+    },
+    {
+      "text": "somewhere you might be paying for",
+      "duration": 5199,
+      "offset": 418400,
+      "lang": "en"
+    },
+    {
+      "text": "already. So what does this actual",
+      "duration": 4880,
+      "offset": 420800,
+      "lang": "en"
+    },
+    {
+      "text": "codebase look like if it's not a giant",
+      "duration": 5841,
+      "offset": 423599,
+      "lang": "en"
+    },
+    {
+      "text": "AI model? Well, about 35% of this is",
+      "duration": 5840,
+      "offset": 425680,
+      "lang": "en"
+    },
+    {
+      "text": "actually channel integrations. That's",
+      "duration": 4319,
+      "offset": 429440,
+      "lang": "en"
+    },
+    {
+      "text": "the code that speaks with WhatsApp,",
+      "duration": 5600,
+      "offset": 431520,
+      "lang": "en"
+    },
+    {
+      "text": "Telegram, all that stuff. About 25% is",
+      "duration": 5201,
+      "offset": 433759,
+      "lang": "en"
+    },
+    {
+      "text": "the actual gateway, right? routing,",
+      "duration": 5440,
+      "offset": 437120,
+      "lang": "en"
+    },
+    {
+      "text": "logic, session management, security. 20%",
+      "duration": 5840,
+      "offset": 438960,
+      "lang": "en"
+    },
+    {
+      "text": "is tools, browser control, bass",
+      "duration": 5600,
+      "offset": 442560,
+      "lang": "en"
+    },
+    {
+      "text": "execution, file handling, and only 10%",
+      "duration": 6640,
+      "offset": 444800,
+      "lang": "en"
+    },
+    {
+      "text": "is really CLI configuration and AI,",
+      "duration": 5439,
+      "offset": 448160,
+      "lang": "en"
+    },
+    {
+      "text": "right? It's just basically a bunch of AI",
+      "duration": 4319,
+      "offset": 451440,
+      "lang": "en"
+    },
+    {
+      "text": "calls that you can configure into your",
+      "duration": 5201,
+      "offset": 453599,
+      "lang": "en"
+    },
+    {
+      "text": "endpoint and send messages. This maps",
+      "duration": 5041,
+      "offset": 455759,
+      "lang": "en"
+    },
+    {
+      "text": "almost perfectly to a framework that I",
+      "duration": 4160,
+      "offset": 458800,
+      "lang": "en"
+    },
+    {
+      "text": "talk about in all of my workshops and",
+      "duration": 4399,
+      "offset": 460800,
+      "lang": "en"
+    },
+    {
+      "text": "lectures and even within my own company",
+      "duration": 5120,
+      "offset": 462960,
+      "lang": "en"
+    },
+    {
+      "text": "which is this idea that 603010",
+      "duration": 5201,
+      "offset": 465199,
+      "lang": "en"
+    },
+    {
+      "text": "you should be building AI tools with",
+      "duration": 4720,
+      "offset": 468080,
+      "lang": "en"
+    },
+    {
+      "text": "about 60% traditional code you know",
+      "duration": 4639,
+      "offset": 470400,
+      "lang": "en"
+    },
+    {
+      "text": "platform integrations networking file",
+      "duration": 4160,
+      "offset": 472800,
+      "lang": "en"
+    },
+    {
+      "text": "handling stuff that has nothing to do",
+      "duration": 4481,
+      "offset": 475039,
+      "lang": "en"
+    },
+    {
+      "text": "with AI 30% needs to deal with",
+      "duration": 5120,
+      "offset": 476960,
+      "lang": "en"
+    },
+    {
+      "text": "rule-based logic routing decisions",
+      "duration": 4959,
+      "offset": 479520,
+      "lang": "en"
+    },
+    {
+      "text": "management security rules smart code but",
+      "duration": 4880,
+      "offset": 482080,
+      "lang": "en"
+    },
+    {
+      "text": "again still not these AI models and",
+      "duration": 5120,
+      "offset": 484479,
+      "lang": "en"
+    },
+    {
+      "text": "realistically Basically, only 10%",
+      "duration": 5760,
+      "offset": 486960,
+      "lang": "en"
+    },
+    {
+      "text": "actually needs to be AI calls. And in",
+      "duration": 6241,
+      "offset": 489599,
+      "lang": "en"
+    },
+    {
+      "text": "the case of Moltbot, that 10% is even",
+      "duration": 5840,
+      "offset": 492720,
+      "lang": "en"
+    },
+    {
+      "text": "pushed externally. It's API calls to",
+      "duration": 5199,
+      "offset": 495840,
+      "lang": "en"
+    },
+    {
+      "text": "someone else's AI. But this isn't a",
+      "duration": 4240,
+      "offset": 498560,
+      "lang": "en"
+    },
+    {
+      "text": "criticism. This is actually a",
+      "duration": 4000,
+      "offset": 501039,
+      "lang": "en"
+    },
+    {
+      "text": "recommendation on architecture. Most",
+      "duration": 4320,
+      "offset": 502800,
+      "lang": "en"
+    },
+    {
+      "text": "production AI systems look like this.",
+      "duration": 4720,
+      "offset": 505039,
+      "lang": "en"
+    },
+    {
+      "text": "The AI is a component, not the whole",
+      "duration": 5200,
+      "offset": 507120,
+      "lang": "en"
+    },
+    {
+      "text": "thing. The value is often in everything",
+      "duration": 5601,
+      "offset": 509759,
+      "lang": "en"
+    },
+    {
+      "text": "around the AI, not the AI itself.",
+      "duration": 5680,
+      "offset": 512320,
+      "lang": "en"
+    },
+    {
+      "text": "Moltbot just makes this explicit, maybe",
+      "duration": 4640,
+      "offset": 515360,
+      "lang": "en"
+    },
+    {
+      "text": "more explicit than people realize when",
+      "duration": 3839,
+      "offset": 518000,
+      "lang": "en"
+    },
+    {
+      "text": "they first hear about it. It's why I'm",
+      "duration": 3839,
+      "offset": 520000,
+      "lang": "en"
+    },
+    {
+      "text": "hesitant to call it a rapper and",
+      "duration": 4241,
+      "offset": 521839,
+      "lang": "en"
+    },
+    {
+      "text": "actually just call it what it is, good",
+      "duration": 4000,
+      "offset": 523839,
+      "lang": "en"
+    },
+    {
+      "text": "architecture. And of course, it's going",
+      "duration": 3199,
+      "offset": 526080,
+      "lang": "en"
+    },
+    {
+      "text": "to have security flaws, things like",
+      "duration": 3041,
+      "offset": 527839,
+      "lang": "en"
+    },
+    {
+      "text": "that. There's always stuff to be working",
+      "duration": 4240,
+      "offset": 529279,
+      "lang": "en"
+    },
+    {
+      "text": "on it. But honestly, because this is",
+      "duration": 4399,
+      "offset": 530880,
+      "lang": "en"
+    },
+    {
+      "text": "open- source, because you can see their",
+      "duration": 3440,
+      "offset": 533519,
+      "lang": "en"
+    },
+    {
+      "text": "GitHub, I think this is a great",
+      "duration": 4161,
+      "offset": 535279,
+      "lang": "en"
+    },
+    {
+      "text": "opportunity for people to learn how to",
+      "duration": 4721,
+      "offset": 536959,
+      "lang": "en"
+    },
+    {
+      "text": "create these orchestration systems that",
+      "duration": 4399,
+      "offset": 539440,
+      "lang": "en"
+    },
+    {
+      "text": "are actually going to last the decade.",
+      "duration": 4240,
+      "offset": 541680,
+      "lang": "en"
+    },
+    {
+      "text": "This is where we should be spending our",
+      "duration": 4881,
+      "offset": 543839,
+      "lang": "en"
+    },
+    {
+      "text": "time as developers. This is what makes",
+      "duration": 5599,
+      "offset": 545920,
+      "lang": "en"
+    },
+    {
+      "text": "sense. However, just because this is the",
+      "duration": 5440,
+      "offset": 548720,
+      "lang": "en"
+    },
+    {
+      "text": "right way to code doesn't necessarily",
+      "duration": 5121,
+      "offset": 551519,
+      "lang": "en"
+    },
+    {
+      "text": "mean that Moltbot or something like it",
+      "duration": 4720,
+      "offset": 554160,
+      "lang": "en"
+    },
+    {
+      "text": "is going to stick around. And that's",
+      "duration": 5440,
+      "offset": 556640,
+      "lang": "en"
+    },
+    {
+      "text": "where we come into this question.",
+      "duration": 4480,
+      "offset": 558880,
+      "lang": "en"
+    },
+    {
+      "text": "I want to get real with you because",
+      "duration": 2879,
+      "offset": 562080,
+      "lang": "en"
+    },
+    {
+      "text": "there's a question hanging over this",
+      "duration": 3440,
+      "offset": 563360,
+      "lang": "en"
+    },
+    {
+      "text": "whole project that I don't think anyone",
+      "duration": 4161,
+      "offset": 564959,
+      "lang": "en"
+    },
+    {
+      "text": "seems to be asking. What happens when",
+      "duration": 4320,
+      "offset": 566800,
+      "lang": "en"
+    },
+    {
+      "text": "the big players decide to just build",
+      "duration": 4800,
+      "offset": 569120,
+      "lang": "en"
+    },
+    {
+      "text": "this themselves? If Mullebot is still",
+      "duration": 6640,
+      "offset": 571120,
+      "lang": "en"
+    },
+    {
+      "text": "requiring the other AIS, what happens",
+      "duration": 6240,
+      "offset": 573920,
+      "lang": "en"
+    },
+    {
+      "text": "when the other big guys play this",
+      "duration": 3920,
+      "offset": 577760,
+      "lang": "en"
+    },
+    {
+      "text": "themselves?",
+      "duration": 4000,
+      "offset": 580160,
+      "lang": "en"
+    },
+    {
+      "text": "Imagine this for a second. Next year,",
+      "duration": 5120,
+      "offset": 581680,
+      "lang": "en"
+    },
+    {
+      "text": "Anthropic announces Claude everywhere.",
+      "duration": 4799,
+      "offset": 584160,
+      "lang": "en"
+    },
+    {
+      "text": "Native integration with WhatsApp built",
+      "duration": 4640,
+      "offset": 586800,
+      "lang": "en"
+    },
+    {
+      "text": "into Slack, Discord bot that works right",
+      "duration": 5761,
+      "offset": 588959,
+      "lang": "en"
+    },
+    {
+      "text": "out of the box. No configuration, no API",
+      "duration": 6720,
+      "offset": 591440,
+      "lang": "en"
+    },
+    {
+      "text": "keys, no selfhosting. You just have",
+      "duration": 6799,
+      "offset": 594720,
+      "lang": "en"
+    },
+    {
+      "text": "Claude everywhere. Why would anyone need",
+      "duration": 6239,
+      "offset": 598160,
+      "lang": "en"
+    },
+    {
+      "text": "Moltbot? Why use a middleman when the AI",
+      "duration": 5681,
+      "offset": 601519,
+      "lang": "en"
+    },
+    {
+      "text": "company itself is offering direct",
+      "duration": 5601,
+      "offset": 604399,
+      "lang": "en"
+    },
+    {
+      "text": "access? This, I often think we should",
+      "duration": 4639,
+      "offset": 607200,
+      "lang": "en"
+    },
+    {
+      "text": "call is getting sherlocked. When a",
+      "duration": 3839,
+      "offset": 610000,
+      "lang": "en"
+    },
+    {
+      "text": "platform adds a feature that makes your",
+      "duration": 4240,
+      "offset": 611839,
+      "lang": "en"
+    },
+    {
+      "text": "whole product unnecessary and this",
+      "duration": 4000,
+      "offset": 613839,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't just happen all the time in AI.",
+      "duration": 3841,
+      "offset": 616079,
+      "lang": "en"
+    },
+    {
+      "text": "This happens all the time in tech in",
+      "duration": 4881,
+      "offset": 617839,
+      "lang": "en"
+    },
+    {
+      "text": "general. But there's also another way",
+      "duration": 6560,
+      "offset": 619920,
+      "lang": "en"
+    },
+    {
+      "text": "this plays out. Moltbot is in fact model",
+      "duration": 6640,
+      "offset": 622720,
+      "lang": "en"
+    },
+    {
+      "text": "agnostic. You can swap Claude or GPT or",
+      "duration": 5520,
+      "offset": 626480,
+      "lang": "en"
+    },
+    {
+      "text": "Llama or even run your own local model",
+      "duration": 4880,
+      "offset": 629360,
+      "lang": "en"
+    },
+    {
+      "text": "and you don't have vendor lockin. Plus,",
+      "duration": 4160,
+      "offset": 632000,
+      "lang": "en"
+    },
+    {
+      "text": "Moltbot is self-hosted. Your",
+      "duration": 4240,
+      "offset": 634240,
+      "lang": "en"
+    },
+    {
+      "text": "conversation can stay on your hardware",
+      "duration": 4960,
+      "offset": 636160,
+      "lang": "en"
+    },
+    {
+      "text": "if you keep a local model. Your data,",
+      "duration": 5520,
+      "offset": 638480,
+      "lang": "en"
+    },
+    {
+      "text": "your rules. Plus, Moltbot is open-",
+      "duration": 4719,
+      "offset": 641120,
+      "lang": "en"
+    },
+    {
+      "text": "source, 200 contributors,",
+      "duration": 3680,
+      "offset": 644000,
+      "lang": "en"
+    },
+    {
+      "text": "communitydriven development, features",
+      "duration": 5120,
+      "offset": 645839,
+      "lang": "en"
+    },
+    {
+      "text": "that matter to users, not necessarily",
+      "duration": 6399,
+      "offset": 647680,
+      "lang": "en"
+    },
+    {
+      "text": "shareholders. So, Mulbot lets you not",
+      "duration": 5440,
+      "offset": 650959,
+      "lang": "en"
+    },
+    {
+      "text": "have lockin, but Claude is straight to",
+      "duration": 4880,
+      "offset": 654079,
+      "lang": "en"
+    },
+    {
+      "text": "the source. So, the question is in",
+      "duration": 5761,
+      "offset": 656399,
+      "lang": "en"
+    },
+    {
+      "text": "orchestration and frontier models, where",
+      "duration": 6161,
+      "offset": 658959,
+      "lang": "en"
+    },
+    {
+      "text": "is the value? Mullellbot has no AI",
+      "duration": 4720,
+      "offset": 662160,
+      "lang": "en"
+    },
+    {
+      "text": "inside. It's an orchestration layer, a",
+      "duration": 3839,
+      "offset": 665120,
+      "lang": "en"
+    },
+    {
+      "text": "router, a traffic controller, a",
+      "duration": 3920,
+      "offset": 666880,
+      "lang": "en"
+    },
+    {
+      "text": "universal translator between messaging",
+      "duration": 4161,
+      "offset": 668959,
+      "lang": "en"
+    },
+    {
+      "text": "platforms and AI surface. It follows the",
+      "duration": 5120,
+      "offset": 670800,
+      "lang": "en"
+    },
+    {
+      "text": "603010 architecture roughly. Most of the",
+      "duration": 4959,
+      "offset": 673120,
+      "lang": "en"
+    },
+    {
+      "text": "code is plumbing, not intelligence. Its",
+      "duration": 4960,
+      "offset": 675920,
+      "lang": "en"
+    },
+    {
+      "text": "value proposition probably is found in",
+      "duration": 5281,
+      "offset": 678079,
+      "lang": "en"
+    },
+    {
+      "text": "flexibility, model agnostic,",
+      "duration": 4000,
+      "offset": 680880,
+      "lang": "en"
+    },
+    {
+      "text": "self-hosted, open- source, and",
+      "duration": 4400,
+      "offset": 683360,
+      "lang": "en"
+    },
+    {
+      "text": "customizable. And its future, I think,",
+      "duration": 6160,
+      "offset": 684880,
+      "lang": "en"
+    },
+    {
+      "text": "is genuinely uncertain. It could be",
+      "duration": 5840,
+      "offset": 687760,
+      "lang": "en"
+    },
+    {
+      "text": "replaced by native integrations from big",
+      "duration": 4799,
+      "offset": 691040,
+      "lang": "en"
+    },
+    {
+      "text": "AI companies, or it could thrive as the",
+      "duration": 4400,
+      "offset": 693600,
+      "lang": "en"
+    },
+    {
+      "text": "Switzerland of AI systems, neutral,",
+      "duration": 4321,
+      "offset": 695839,
+      "lang": "en"
+    },
+    {
+      "text": "interoperable. At the end of the day,",
+      "duration": 3839,
+      "offset": 698000,
+      "lang": "en"
+    },
+    {
+      "text": "here's what I think. The engineering,",
+      "duration": 3919,
+      "offset": 700160,
+      "lang": "en"
+    },
+    {
+      "text": "it's impressive. Stitching together 10",
+      "duration": 3841,
+      "offset": 701839,
+      "lang": "en"
+    },
+    {
+      "text": "different messaging protocols into a",
+      "duration": 3681,
+      "offset": 704079,
+      "lang": "en"
+    },
+    {
+      "text": "coherent system isn't simple even with",
+      "duration": 4000,
+      "offset": 705680,
+      "lang": "en"
+    },
+    {
+      "text": "vibe coding. The websocket gateway",
+      "duration": 3680,
+      "offset": 707760,
+      "lang": "en"
+    },
+    {
+      "text": "architecture is clean. The tool",
+      "duration": 4399,
+      "offset": 709680,
+      "lang": "en"
+    },
+    {
+      "text": "execution sandbox is thoughtful. Is it",
+      "duration": 5440,
+      "offset": 711440,
+      "lang": "en"
+    },
+    {
+      "text": "revolutionary? I don't think so. But it",
+      "duration": 4401,
+      "offset": 714079,
+      "lang": "en"
+    },
+    {
+      "text": "is good infrastructure for the most",
+      "duration": 2959,
+      "offset": 716880,
+      "lang": "en"
+    },
+    {
+      "text": "part. I think there's going to be a lot",
+      "duration": 3359,
+      "offset": 718480,
+      "lang": "en"
+    },
+    {
+      "text": "of leaks of data and while you're using",
+      "duration": 4721,
+      "offset": 719839,
+      "lang": "en"
+    },
+    {
+      "text": "it and also on top of that, I don't",
+      "duration": 4961,
+      "offset": 721839,
+      "lang": "en"
+    },
+    {
+      "text": "think it's necessarily defensible",
+      "duration": 4320,
+      "offset": 724560,
+      "lang": "en"
+    },
+    {
+      "text": "either. But that really depends on",
+      "duration": 4159,
+      "offset": 726800,
+      "lang": "en"
+    },
+    {
+      "text": "whether users value flexibility over",
+      "duration": 4240,
+      "offset": 728880,
+      "lang": "en"
+    },
+    {
+      "text": "convenience. And I think most people",
+      "duration": 4161,
+      "offset": 730959,
+      "lang": "en"
+    },
+    {
+      "text": "historically or at least a good portion",
+      "duration": 3839,
+      "offset": 733120,
+      "lang": "en"
+    },
+    {
+      "text": "of the market will always choose",
+      "duration": 4560,
+      "offset": 735120,
+      "lang": "en"
+    },
+    {
+      "text": "convenience. But developers and privacy",
+      "duration": 4401,
+      "offset": 736959,
+      "lang": "en"
+    },
+    {
+      "text": "conscious users, I think they're going",
+      "duration": 3920,
+      "offset": 739680,
+      "lang": "en"
+    },
+    {
+      "text": "to choose flexibility. My honest take is",
+      "duration": 5360,
+      "offset": 741360,
+      "lang": "en"
+    },
+    {
+      "text": "moltbot is useful and today has a very",
+      "duration": 5679,
+      "offset": 743600,
+      "lang": "en"
+    },
+    {
+      "text": "specific audience. Power users who want",
+      "duration": 4400,
+      "offset": 746720,
+      "lang": "en"
+    },
+    {
+      "text": "control, developers who want",
+      "duration": 3921,
+      "offset": 749279,
+      "lang": "en"
+    },
+    {
+      "text": "customization, privacy advocates who",
+      "duration": 4159,
+      "offset": 751120,
+      "lang": "en"
+    },
+    {
+      "text": "want self-hosting. But as a mainstream",
+      "duration": 4240,
+      "offset": 753200,
+      "lang": "en"
+    },
+    {
+      "text": "product, it's one of anthropic",
+      "duration": 4000,
+      "offset": 755279,
+      "lang": "en"
+    },
+    {
+      "text": "announcements away from becoming a niche",
+      "duration": 3680,
+      "offset": 757440,
+      "lang": "en"
+    },
+    {
+      "text": "tool. And you know what? That might be",
+      "duration": 3680,
+      "offset": 759279,
+      "lang": "en"
+    },
+    {
+      "text": "fine. Not everything needs to be",
+      "duration": 4480,
+      "offset": 761120,
+      "lang": "en"
+    },
+    {
+      "text": "mainstream to be valuable. At the end of",
+      "duration": 4560,
+      "offset": 762959,
+      "lang": "en"
+    },
+    {
+      "text": "the day, what do you all think? Is",
+      "duration": 3840,
+      "offset": 765600,
+      "lang": "en"
+    },
+    {
+      "text": "orchestration the real product? Is",
+      "duration": 3841,
+      "offset": 767519,
+      "lang": "en"
+    },
+    {
+      "text": "Moltbot solving a problem that will",
+      "duration": 4320,
+      "offset": 769440,
+      "lang": "en"
+    },
+    {
+      "text": "exist for years or filling a gap that's",
+      "duration": 4320,
+      "offset": 771360,
+      "lang": "en"
+    },
+    {
+      "text": "about to close? I'm generally curious",
+      "duration": 3440,
+      "offset": 773760,
+      "lang": "en"
+    },
+    {
+      "text": "what everyone else thinks. Drop your",
+      "duration": 3279,
+      "offset": 775680,
+      "lang": "en"
+    },
+    {
+      "text": "take in the comments. And if you want to",
+      "duration": 3520,
+      "offset": 777200,
+      "lang": "en"
+    },
+    {
+      "text": "see more breakdowns like this where we",
+      "duration": 4081,
+      "offset": 778959,
+      "lang": "en"
+    },
+    {
+      "text": "actually look at what's inside the hype,",
+      "duration": 4720,
+      "offset": 780720,
+      "lang": "en"
+    },
+    {
+      "text": "subscribe. I can do this for all AI",
+      "duration": 4640,
+      "offset": 783040,
+      "lang": "en"
+    },
+    {
+      "text": "tools or frameworks or whatever else is",
+      "duration": 4000,
+      "offset": 785440,
+      "lang": "en"
+    },
+    {
+      "text": "getting attention that might not deserve",
+      "duration": 4240,
+      "offset": 787680,
+      "lang": "en"
+    },
+    {
+      "text": "it. But anyway, other than that, I'll",
+      "duration": 4160,
+      "offset": 789440,
+      "lang": "en"
+    },
+    {
+      "text": "see you in the next one and have a",
+      "duration": 4880,
+      "offset": 791920,
+      "lang": "en"
+    },
+    {
+      "text": "wonderful day everyone.",
+      "duration": 3200,
+      "offset": 793600,
+      "lang": "en"
+    }
+  ]
+}

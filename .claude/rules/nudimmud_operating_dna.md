@@ -126,12 +126,14 @@ Codex CLI is a platform, not a model. Route work by cost and risk, not by the CL
 | Harder deterministic code, review, and local reasoning tasks | GPT-5.4 |
 | Strategic or high-stakes external gate only | GPT-5.5 |
 | Code-generation oriented fallback where appropriate | GPT-5.3-codex |
+| Bounded Codex CLI offload lane with local dry-run/smoke gating | GPT-5.3-Codex-Spark |
 | Fast research, reasoning augmentation, archive synthesis | DeepSeek Flash |
 | Deeper archive / research reasoning when needed | DeepSeek Pro |
 | Multimodal or large-context synthesis | Gemini (when routed via offload) |
 | Opus | Explicit owner approval only after Sonnet retries exhausted |
 
 - Prefer local scripts plus DeepSeek V4 Flash/Pro compact review for archive/research reasoning.
+- Treat Spark as advisory until local wrapper evidence verifies it; use `Scripts/codex-offload-runner.mjs` and the `CODEX_SPARK_LANE_READY` marker.
 - Avoid Codex subagent fan-out for cheap archive/research tasks.
 - Avoid MCP startup/discovery unless explicitly needed.
 - Gemini 3.1 Pro is useful for no-shell/no-local-truth audits sourced from embedded reports.

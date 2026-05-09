@@ -1,0 +1,13 @@
+{
+  "id": "1",
+  "subject": "Unify memory surface schema (Phase 1)",
+  "description": "Merge nudimmud.db + OS_KERNEL/memory.db into single SSOT. Consolidate `knowledge_nodes` + `event_log` + `task_state`. Lock all writes to kernel.py interface. Target: single memory.db as canonical source.",
+  "activeForm": "Merging DB schemas and unifying memory surface",
+  "status": "pending",
+  "blocks": [
+    "4",
+    "5",
+    "3"
+  ],
+  "blockedBy": []
+}

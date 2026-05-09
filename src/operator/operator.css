@@ -1,0 +1,148 @@
+/* ============================================================
+   Operator Center — Design Tokens
+   Extends: src/consumer/consumer.css (.nlp-shell scoped tokens)
+   Scoped to: #operator-root (light) / #operator-root.dark (dark)
+   ============================================================ */
+
+#operator-root {
+  /* Surfaces — 3-layer depth hierarchy */
+  --op-surface: #0b0b13;
+  --op-surface-elevated: #12121e;
+  --op-surface-overlay: #181826;
+
+  /* Text — 3-tier opacity ladder */
+  --op-text-primary: #f0f0f7;
+  --op-text-secondary: #9d9db5;
+  --op-text-tertiary: #5e5e78;
+
+  /* Borders */
+  --op-border: #1f1f30;
+  --op-border-strong: #2d2d42;
+
+  /* Accent */
+  --op-accent: #7c3aed;
+  --op-accent-soft: rgba(124, 58, 237, 0.12);
+
+  /* Semantic status */
+  --op-status-ok: #10b981;
+  --op-status-warn: #f59e0b;
+  --op-status-critical: #ef4444;
+  --op-status-info: #3b82f6;
+
+  /* Mono / telemetry foreground */
+  --op-mono-fg: #00ffa7;
+
+  /* Geometry */
+  --op-grid-radius: 10px;
+
+  /* Shadows */
+  --op-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --op-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.55);
+  --op-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.65);
+
+  /* Glass blur */
+  --op-blur-glass: blur(18px);
+
+  /* Motion durations */
+  --op-dur-micro: 100ms;
+  --op-dur-standard: 240ms;
+  --op-dur-expressive: 500ms;
+
+  /* Easings */
+  --op-ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --op-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --op-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --op-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Z-index scale */
+  --op-z-base: 0;
+  --op-z-nav: 100;
+  --op-z-palette: 300;
+  --op-z-modal: 500;
+  --op-z-toast: 700;
+
+  /* Typography */
+  --op-font-sans: 'Outfit', system-ui, sans-serif;
+  --op-font-heading: 'Space Grotesk', sans-serif;
+  --op-font-mono: 'JetBrains Mono', ui-monospace, 'Fira Code', monospace;
+
+  /* Type scale */
+  --op-type-display: clamp(2.5rem, 6vw, 4rem);
+  --op-type-h1: 2rem;
+  --op-type-h2: 1.5rem;
+  --op-type-h3: 1.125rem;
+  --op-type-body: 0.9375rem;
+  --op-type-caption: 0.75rem;
+  --op-type-mono-data: 0.875rem;
+  --op-type-mono-log: 0.6875rem;
+
+  color-scheme: dark;
+  background: var(--op-surface);
+  color: var(--op-text-primary);
+  font-family: var(--op-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#operator-root.dark {
+  color-scheme: dark;
+}
+
+#operator-root.light {
+  --op-surface: #f5f5fa;
+  --op-surface-elevated: #ffffff;
+  --op-surface-overlay: #fafafe;
+  --op-text-primary: #0f0f1a;
+  --op-text-secondary: #565675;
+  --op-text-tertiary: #8888a0;
+  --op-border: #e0e0ec;
+  --op-border-strong: #c5c5d8;
+  --op-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --op-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10);
+  --op-shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.14);
+  --op-mono-fg: #059669;
+  color-scheme: light;
+}
+
+#operator-root *,
+#operator-root *::before,
+#operator-root *::after {
+  box-sizing: border-box;
+}
+
+/* Op-shell grid layout */
+.op-shell-grid {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: auto 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.op-content {
+  grid-row: 2;
+  grid-column: 2;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Focus ring */
+#operator-root *:focus-visible {
+  outline: 2px solid rgba(124, 58, 237, 0.6);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #operator-root *,
+  #operator-root *::before,
+  #operator-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

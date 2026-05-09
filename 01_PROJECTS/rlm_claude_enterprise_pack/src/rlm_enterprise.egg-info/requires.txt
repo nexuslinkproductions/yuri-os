@@ -1,0 +1,6 @@
+
+[pdf]
+pypdf>=4.0.0
+
+[test]
+pytest>=8.0.0

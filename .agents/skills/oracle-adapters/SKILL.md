@@ -1,6 +1,7 @@
 ---
 name: oracle-adapters
 description: "Build compatibility adapters between Jarvis, OVOS, OpenClaw, and Oracle-native surfaces. Use when legacy triggers or old labels must be preserved while the visible OS surface is cleaned up."
+triggers: ["oracle-adapters"]
 ---
 
 # Oracle Adapters
@@ -26,3 +27,7 @@ Use this skill when the task is to keep old entrypoints working while moving the
 - Keep compatibility code close to the surface it adapts.
 - Do not let old names leak into new user-facing labels.
 
+## Session Notes
+
+### 2026-05-05
+- session: patch | tools: Edit, Write | errors: none | notes: wired for CLI routing via triggers array and command alias

@@ -22,6 +22,17 @@
 - Pro list price: cache-hit $0.0145, cache-miss $1.74, output $3.48.
 - Boundary: this section is router authority only; do not infer benchmark superiority over Opus without Yuri eval.
 
+## Codex Spark Router Notes
+
+- Platform: local `codex` CLI, not a generic text API.
+- Pinned model: `gpt-5.3-codex-spark`.
+- Lane aliases: `codex-spark`, `spark`, `fast-codex`.
+- Use only for exact-scope micro tasks and fast local iteration.
+- Dry-run and smoke evidence live outside the repo by default.
+- Missing, queued, or rate-limited Spark runs are `SKIPPED_OR_RATE_LIMITED`, not hard failures.
+- Route marker: `CODEX_SPARK_LANE_READY` only after local dry-run/smoke proof.
+- Spark output stays advisory until verified by local wrapper evidence.
+
 ## Summary
 
 | Model | Code (ms) | Reason (ms) | Summary (ms) | Instruct (ms) | Speed (ms) | Best For |

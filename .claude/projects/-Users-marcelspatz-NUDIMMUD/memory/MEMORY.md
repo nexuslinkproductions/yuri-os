@@ -2,7 +2,13 @@
 
 - [Oracle Shell Service](project_shell_service.md) — launchd-managed shellService.js on port 3098; fixes pm2 posix_spawn EBADF for Oracle terminal
 
+- [No Anthropic model agents](feedback_no_anthropic_agents.md) — Agent() with Claude/Haiku/Sonnet/Opus is banned; use DeepSeek offload only
+- [Canonical cwd + branch](feedback_canonical_cwd_branch.md) — Always work from /Users/marcelspatz/NUDIMMUD on main; never worktrees/feature branches; stop+ask on mismatch
 - [Reasoning mode default](feedback_reasoning_mode.md) — Reasoning always on auto; only MAX if explicitly requested in session
+- [Use swarm for data gathering](feedback_swarm_data_gathering.md) — Route read/fetch/context extraction through @swarm offload lanes before synthesis
+- [offload.sh DeepSeek timeout](feedback_offload_timeout.md) — Set timeout: 600000 on all Bash calls to Scripts/offload.sh for DeepSeek lanes
+- [DeepSeek may call tools](feedback_deepseek_tools.md) — Do not forbid tool use in DeepSeek workhorse system prompts; tools are allowed by design
+- [Display setup — wide viewports](feedback_display_setup.md) — User on 16" MBP + 34" Asus ProArt ultrawide; verify hero framing at 1920–2560px, not just 1280px preset
 
 - [Nexus Link Document Template](document_template_nexus_link.md) — Brand-aligned legal letter + equipment schedule template (HTML→PDF via Puppeteer)
 - [HUD OS Revamp Apr 2026](project_hud_revamp.md) — Oracle rebuilt as React + SSE streaming, token bars, pixel logo, design-master skill, VSCode primary IDE

@@ -111,6 +111,9 @@ const HeroSection: React.FC = () => {
   const { scrollY } = useScroll();
   const titleY = useTransform(scrollY, [0, 600], [0, 80]);
   const opacity = useTransform(scrollY, [0, 400], [1, 0]);
+  const fogNearY = useTransform(scrollY, [0, 600], [0, 44]);
+  const fogMidY = useTransform(scrollY, [0, 600], [0, 22]);
+  const fogFarY = useTransform(scrollY, [0, 600], [0, 10]);
   const scramble1 = useScramble('FRAMES', mounted, 35);
   const scramble2 = useScramble('DEFINE', mounted, 45);
 
@@ -187,6 +190,65 @@ const HeroSection: React.FC = () => {
         background: 'radial-gradient(circle, rgba(180,160,255,0.03) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
+
+      {/* 3b. INDIGO TRACE AMBIENT — cold-warm tension, bottom-left */}
+      <div style={{
+        position: 'absolute',
+        bottom: -60,
+        left: -60,
+        width: 560,
+        height: 560,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, var(--color-indigo-trace) 0%, transparent 68%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* 3c. CELESTIAL TEXTURE — star-chart dot field */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.55) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)
+        `,
+        backgroundSize: '120px 120px, 73px 73px',
+        backgroundPosition: '0 0, 37px 37px',
+        opacity: 'var(--overlay-celestial-opacity)',
+        pointerEvents: 'none',
+        maskImage: 'radial-gradient(ellipse 90% 90% at 50% 40%, black 0%, transparent 100%)',
+      }} />
+
+      {/* 3d. DEPTH FOG PLANES — 3-layer parallax atmosphere */}
+      <motion.div style={{ y: fogFarY, position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <div style={{
+          position: 'absolute',
+          bottom: '30%',
+          left: 0,
+          right: 0,
+          height: '20%',
+          background: 'linear-gradient(180deg, transparent 0%, var(--overlay-fog-far) 50%, transparent 100%)',
+        }} />
+      </motion.div>
+      <motion.div style={{ y: fogMidY, position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <div style={{
+          position: 'absolute',
+          bottom: '18%',
+          left: 0,
+          right: 0,
+          height: '14%',
+          background: 'linear-gradient(180deg, transparent 0%, var(--overlay-fog-mid) 50%, transparent 100%)',
+        }} />
+      </motion.div>
+      <motion.div style={{ y: fogNearY, position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <div style={{
+          position: 'absolute',
+          bottom: '8%',
+          left: 0,
+          right: 0,
+          height: '10%',
+          background: 'linear-gradient(180deg, transparent 0%, var(--overlay-fog-near) 60%, transparent 100%)',
+        }} />
+      </motion.div>
 
       {/* 4. CORNER DECORATIONS — L-shaped viewfinder brackets */}
       {[
@@ -360,33 +422,39 @@ const HeroSection: React.FC = () => {
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            <Link
-              to="/work"
-              data-magnetic
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 14,
-                fontWeight: 600,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'var(--color-text-primary)',
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-              }}
+            <motion.div
+              animate={{ boxShadow: ['0 0 0px rgba(220,38,38,0)', '0 0 22px var(--color-crimson-pulse)', '0 0 0px rgba(220,38,38,0)'] }}
+              transition={{ duration: 3.5, ease: 'easeInOut', repeat: Infinity, repeatDelay: 1.5 }}
+              style={{ borderRadius: 'var(--radius-full)', display: 'inline-flex' }}
             >
-              View Our Work
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                border: '1px solid rgba(255,255,255,0.15)',
-              }}>→</span>
-            </Link>
+              <Link
+                to="/work"
+                data-magnetic
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'var(--color-text-primary)',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                View Our Work
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                }}>→</span>
+              </Link>
+            </motion.div>
 
             <Link
               to="/showreel"

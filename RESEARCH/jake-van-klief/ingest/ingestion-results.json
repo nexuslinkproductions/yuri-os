@@ -1,0 +1,157 @@
+{
+  "ingested": 0,
+  "failed": 30,
+  "results": [
+    {
+      "videoId": "0fCQ-4J_jzk",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "5B6W2OGfxq0",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "6hF2K4YGZbY",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "AZ1l-oaD3tk",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "AjzBaEkWkNA",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "DbIjTB-kh8E",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "I-enT6szVQQ",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "J2GLzkaUrBc",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "KC0VEZuo4OI",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "MkN-ss2Nl10",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "PN9OzUNCBKE",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "RZ0AcCLVPFA",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "S3fXSc5z2n4",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "SjlCJIU9ODs",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "UGyTimVObus",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "Wtf6E-fwuwI",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "ZMDXs59Ntjc",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "_rtyhVD4v4A",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "bQXi5Nd8c40",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "hALln9wrrQo",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "izMBiWG3L24",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "jjV1ckgPzI0",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "oQ6tsBFJZzk",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "ozkx_eUfjY0",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "pdoSAWWCDO8",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "rHDA0WMXzy4",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "tQ6rQMW7vo8",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "v2UnNFmkia0",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "vyN7ITKcGXU",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    },
+    {
+      "videoId": "yEa6dgh7wuc",
+      "status": "fail",
+      "error": "{\"error\":\"UNAUTHORIZED\",\"message\":\"A valid X-API-KEY header is required to acces"
+    }
+  ],
+  "ts": "2026-05-05T17:44:15.955Z"
+}

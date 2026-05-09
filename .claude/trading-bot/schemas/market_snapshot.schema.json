@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Market Snapshot",
+  "description": "Normalized market state from Coinbase Advanced Trade API",
+  "type": "object",
+  "required": [
+    "market_id",
+    "platform",
+    "symbol",
+    "side",
+    "last_price",
+    "best_bid",
+    "best_ask",
+    "timestamp",
+    "status"
+  ],
+  "properties": {
+    "market_id": {
+      "type": "string",
+      "description": "Unique market identifier (product_id from Coinbase)"
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["coinbase"],
+      "description": "Exchange platform"
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Trading pair (e.g., BTC-USD)"
+    },
+    "side": {
+      "type": "string",
+      "enum": ["buy", "sell"],
+      "description": "Trade direction"
+    },
+    "last_price": {
+      "type": "number",
+      "description": "Last traded price"
+    },
+    "best_bid": {
+      "type": "number",
+      "description": "Best bid price"
+    },
+    "best_ask": {
+      "type": "number",
+      "description": "Best ask price"
+    },
+    "spread": {
+      "type": "number",
+      "description": "Ask - Bid (computed)"
+    },
+    "spread_bps": {
+      "type": "number",
+      "description": "Spread in basis points (spread / mid * 10000)"
+    },
+    "volume_24h": {
+      "type": "number",
+      "description": "24h trading volume in quote currency"
+    },
+    "open_interest": {
+      "type": "number",
+      "description": "Open interest (if applicable)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Snapshot timestamp (ISO 8601)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "suspended"],
+      "description": "Market status"
+    }
+  },
+  "examples": [
+    {
+      "market_id": "BTC-USD",
+      "platform": "coinbase",
+      "symbol": "BTC-USD",
+      "side": "buy",
+      "last_price": 42500.50,
+      "best_bid": 42498.00,
+      "best_ask": 42502.00,
+      "spread": 4.00,
+      "spread_bps": 0.94,
+      "volume_24h": 1250000.00,
+      "open_interest": 0,
+      "timestamp": "2026-05-05T12:34:56.789Z",
+      "status": "active"
+    }
+  ]
+}

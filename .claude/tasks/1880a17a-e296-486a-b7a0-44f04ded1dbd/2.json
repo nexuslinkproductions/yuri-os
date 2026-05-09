@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Activate palace-index injection (Quick Win 1)",
+  "description": "Write script to read palace-index.md, extract vault entry-points, inject into Claude init context under VAULT_NAVIGATION. No DB changes needed. High-impact 2h win.",
+  "activeForm": "Implementing palace-index context injection",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

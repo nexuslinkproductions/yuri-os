@@ -39,7 +39,7 @@ tags:
 - [ ] Create meeting note in Obsidian: `05 - Meetings/`
 
 ### 3. Create Offer
-- [ ] Open **Sales Offer Builder** app (`~/CI-CD/sales_offer_template/`)
+- [ ] Open **Sales Offer Builder** app (`~/CI_CD/sales_offer_template/`)
 - [ ] Select appropriate package from [[07 - Resources/Offering Packages|Offering Packages]]:
   - 3-month campaign (standard): ~CHF 19k
   - 3-month full-funnel (premium): ~CHF 36k

@@ -1,0 +1,2244 @@
+{
+  "videoId": "SjlCJIU9ODs",
+  "title": "The Ladder That Explains Every AI Failure",
+  "segments": [
+    {
+      "text": "I keep seeing the same mistake. Be that",
+      "duration": 4080,
+      "offset": 400,
+      "lang": "en"
+    },
+    {
+      "text": "in corporate sessions, startups, or even",
+      "duration": 3200,
+      "offset": 2639,
+      "lang": "en"
+    },
+    {
+      "text": "just freelancers trying to figure out",
+      "duration": 3600,
+      "offset": 4480,
+      "lang": "en"
+    },
+    {
+      "text": "what their next move is. So many try",
+      "duration": 5121,
+      "offset": 5839,
+      "lang": "en"
+    },
+    {
+      "text": "automating the wrong thing. They spend 6",
+      "duration": 4479,
+      "offset": 8080,
+      "lang": "en"
+    },
+    {
+      "text": "months building an internal tool,",
+      "duration": 3360,
+      "offset": 10960,
+      "lang": "en"
+    },
+    {
+      "text": "training the team on it, or trying to",
+      "duration": 3841,
+      "offset": 12559,
+      "lang": "en"
+    },
+    {
+      "text": "find product market fit, rolling it out,",
+      "duration": 4160,
+      "offset": 14320,
+      "lang": "en"
+    },
+    {
+      "text": "then the next AI model update drops, and",
+      "duration": 4959,
+      "offset": 16400,
+      "lang": "en"
+    },
+    {
+      "text": "it's just a feature, right? It's built",
+      "duration": 5520,
+      "offset": 18480,
+      "lang": "en"
+    },
+    {
+      "text": "in. It's free, and it ruins any moat",
+      "duration": 4801,
+      "offset": 21359,
+      "lang": "en"
+    },
+    {
+      "text": "that they thought they had. I watched a",
+      "duration": 4560,
+      "offset": 24000,
+      "lang": "en"
+    },
+    {
+      "text": "Fortune 500 company do this in real",
+      "duration": 4800,
+      "offset": 26160,
+      "lang": "en"
+    },
+    {
+      "text": "time. They were spending $200,000 in",
+      "duration": 4320,
+      "offset": 28560,
+      "lang": "en"
+    },
+    {
+      "text": "real money, real engineering time, and",
+      "duration": 4000,
+      "offset": 30960,
+      "lang": "en"
+    },
+    {
+      "text": "they built a custom AI workflow for this",
+      "duration": 4160,
+      "offset": 32880,
+      "lang": "en"
+    },
+    {
+      "text": "kind of document processing. So many",
+      "duration": 4400,
+      "offset": 34960,
+      "lang": "en"
+    },
+    {
+      "text": "specific features and processing with",
+      "duration": 4720,
+      "offset": 37040,
+      "lang": "en"
+    },
+    {
+      "text": "basic Microsoft co-pilot and extra",
+      "duration": 4400,
+      "offset": 39360,
+      "lang": "en"
+    },
+    {
+      "text": "features and ideals and big internal",
+      "duration": 4000,
+      "offset": 41760,
+      "lang": "en"
+    },
+    {
+      "text": "rollout. The whole team trained on it",
+      "duration": 3760,
+      "offset": 43760,
+      "lang": "en"
+    },
+    {
+      "text": "and then the platform they were feeding",
+      "duration": 4720,
+      "offset": 45760,
+      "lang": "en"
+    },
+    {
+      "text": "documents into just added that process",
+      "duration": 5760,
+      "offset": 47520,
+      "lang": "en"
+    },
+    {
+      "text": "natively. one API call, a single button,",
+      "duration": 4640,
+      "offset": 50480,
+      "lang": "en"
+    },
+    {
+      "text": "and their entire pipeline, months of",
+      "duration": 4400,
+      "offset": 53280,
+      "lang": "en"
+    },
+    {
+      "text": "work, was now a toggle in someone else's",
+      "duration": 4880,
+      "offset": 55120,
+      "lang": "en"
+    },
+    {
+      "text": "settings menu. This isn't just a one-off",
+      "duration": 4240,
+      "offset": 57680,
+      "lang": "en"
+    },
+    {
+      "text": "thing. This is a pattern. Startups are",
+      "duration": 3760,
+      "offset": 60000,
+      "lang": "en"
+    },
+    {
+      "text": "getting wiped by a single feature",
+      "duration": 4480,
+      "offset": 61920,
+      "lang": "en"
+    },
+    {
+      "text": "release. Agencies building automations",
+      "duration": 4719,
+      "offset": 63760,
+      "lang": "en"
+    },
+    {
+      "text": "that the next version of the tool just",
+      "duration": 4000,
+      "offset": 66400,
+      "lang": "en"
+    },
+    {
+      "text": "does on its own. People investing",
+      "duration": 3601,
+      "offset": 68479,
+      "lang": "en"
+    },
+    {
+      "text": "serious energy, and more importantly,",
+      "duration": 3840,
+      "offset": 70400,
+      "lang": "en"
+    },
+    {
+      "text": "money into things that most AI tools are",
+      "duration": 4079,
+      "offset": 72080,
+      "lang": "en"
+    },
+    {
+      "text": "going to do for free in a month, maybe",
+      "duration": 4080,
+      "offset": 74240,
+      "lang": "en"
+    },
+    {
+      "text": "two. So, the obvious question is, what",
+      "duration": 4320,
+      "offset": 76159,
+      "lang": "en"
+    },
+    {
+      "text": "do you actually invest it? Where do you",
+      "duration": 4240,
+      "offset": 78320,
+      "lang": "en"
+    },
+    {
+      "text": "put your time so it's not gone in six",
+      "duration": 4081,
+      "offset": 80479,
+      "lang": "en"
+    },
+    {
+      "text": "months? What skills should you even",
+      "duration": 3919,
+      "offset": 82560,
+      "lang": "en"
+    },
+    {
+      "text": "learn if you're in computer science or",
+      "duration": 3599,
+      "offset": 84560,
+      "lang": "en"
+    },
+    {
+      "text": "learning any of that? And I've also been",
+      "duration": 3361,
+      "offset": 86479,
+      "lang": "en"
+    },
+    {
+      "text": "thinking about it a lot because this is",
+      "duration": 3441,
+      "offset": 88159,
+      "lang": "en"
+    },
+    {
+      "text": "what I get hired to do, right? I charge",
+      "duration": 3760,
+      "offset": 89840,
+      "lang": "en"
+    },
+    {
+      "text": "2,000 an hour to help companies figure",
+      "duration": 4000,
+      "offset": 91600,
+      "lang": "en"
+    },
+    {
+      "text": "this stuff out. But also, I think",
+      "duration": 3760,
+      "offset": 93600,
+      "lang": "en"
+    },
+    {
+      "text": "there's a framework here that makes it",
+      "duration": 3839,
+      "offset": 95600,
+      "lang": "en"
+    },
+    {
+      "text": "genuinely simple. Most people will say,",
+      "duration": 4320,
+      "offset": 97360,
+      "lang": "en"
+    },
+    {
+      "text": "\"Oh, if you build a course in a couple",
+      "duration": 4000,
+      "offset": 99439,
+      "lang": "en"
+    },
+    {
+      "text": "months, it'll fall behind because of how",
+      "duration": 3600,
+      "offset": 101680,
+      "lang": "en"
+    },
+    {
+      "text": "quickly this industry is moving.\" I",
+      "duration": 4801,
+      "offset": 103439,
+      "lang": "en"
+    },
+    {
+      "text": "disagree. I know what I am talking about",
+      "duration": 5040,
+      "offset": 105280,
+      "lang": "en"
+    },
+    {
+      "text": "is working and its core fundamentals",
+      "duration": 4320,
+      "offset": 108240,
+      "lang": "en"
+    },
+    {
+      "text": "because I've been using it for three",
+      "duration": 4400,
+      "offset": 110320,
+      "lang": "en"
+    },
+    {
+      "text": "straight years. By the end of this",
+      "duration": 3599,
+      "offset": 112560,
+      "lang": "en"
+    },
+    {
+      "text": "video, you're not only going to know",
+      "duration": 3359,
+      "offset": 114720,
+      "lang": "en"
+    },
+    {
+      "text": "where your work sits on what I call the",
+      "duration": 4081,
+      "offset": 116159,
+      "lang": "en"
+    },
+    {
+      "text": "ladder of abstraction, but more",
+      "duration": 3601,
+      "offset": 118079,
+      "lang": "en"
+    },
+    {
+      "text": "importantly, you'll know what your",
+      "duration": 4159,
+      "offset": 120240,
+      "lang": "en"
+    },
+    {
+      "text": "actual next move needs to be. Not vague",
+      "duration": 5600,
+      "offset": 121680,
+      "lang": "en"
+    },
+    {
+      "text": "adapt to AI BS advice, but something you",
+      "duration": 5280,
+      "offset": 124399,
+      "lang": "en"
+    },
+    {
+      "text": "can use to not only survive, but thrive",
+      "duration": 4160,
+      "offset": 127280,
+      "lang": "en"
+    },
+    {
+      "text": "in the world that seems to be changing",
+      "duration": 4001,
+      "offset": 129679,
+      "lang": "en"
+    },
+    {
+      "text": "every day. And it actually starts with",
+      "duration": 4799,
+      "offset": 131440,
+      "lang": "en"
+    },
+    {
+      "text": "movies. Well, technically it starts with",
+      "duration": 4960,
+      "offset": 133680,
+      "lang": "en"
+    },
+    {
+      "text": "a story. Just a narrative, characters,",
+      "duration": 5360,
+      "offset": 136239,
+      "lang": "en"
+    },
+    {
+      "text": "conflict, resolution. As a book, $15",
+      "duration": 5120,
+      "offset": 138640,
+      "lang": "en"
+    },
+    {
+      "text": "text on a page. Same experience for",
+      "duration": 3921,
+      "offset": 141599,
+      "lang": "en"
+    },
+    {
+      "text": "every single reader. You can print a",
+      "duration": 3920,
+      "offset": 143760,
+      "lang": "en"
+    },
+    {
+      "text": "million copies and everyone is",
+      "duration": 4240,
+      "offset": 145520,
+      "lang": "en"
+    },
+    {
+      "text": "identical. Take that same story and make",
+      "duration": 4000,
+      "offset": 147680,
+      "lang": "en"
+    },
+    {
+      "text": "it a movie. Hundreds of millions of",
+      "duration": 3839,
+      "offset": 149760,
+      "lang": "en"
+    },
+    {
+      "text": "dollars go into this. Actors, visual",
+      "duration": 4480,
+      "offset": 151680,
+      "lang": "en"
+    },
+    {
+      "text": "effects, sound, a whole production team.",
+      "duration": 4481,
+      "offset": 153599,
+      "lang": "en"
+    },
+    {
+      "text": "Same narrative underneath, but the",
+      "duration": 3920,
+      "offset": 156160,
+      "lang": "en"
+    },
+    {
+      "text": "experience is completely different. and",
+      "duration": 3760,
+      "offset": 158080,
+      "lang": "en"
+    },
+    {
+      "text": "it costs exponentially more to produce",
+      "duration": 3519,
+      "offset": 160080,
+      "lang": "en"
+    },
+    {
+      "text": "because the layer of abstraction is",
+      "duration": 4000,
+      "offset": 161840,
+      "lang": "en"
+    },
+    {
+      "text": "thicker. Now take that same story and",
+      "duration": 4561,
+      "offset": 163599,
+      "lang": "en"
+    },
+    {
+      "text": "make it a video game. GTA 6, billions of",
+      "duration": 3920,
+      "offset": 165840,
+      "lang": "en"
+    },
+    {
+      "text": "dollars is being spent for production",
+      "duration": 4079,
+      "offset": 168160,
+      "lang": "en"
+    },
+    {
+      "text": "alone. But here's the part that matters",
+      "duration": 4240,
+      "offset": 169760,
+      "lang": "en"
+    },
+    {
+      "text": "and really pay attention to what I am",
+      "duration": 3521,
+      "offset": 172239,
+      "lang": "en"
+    },
+    {
+      "text": "saying here. This is how you need to",
+      "duration": 4319,
+      "offset": 174000,
+      "lang": "en"
+    },
+    {
+      "text": "look at the AI paradigm shift. Every",
+      "duration": 5040,
+      "offset": 175760,
+      "lang": "en"
+    },
+    {
+      "text": "player's experience with the product is",
+      "duration": 4721,
+      "offset": 178319,
+      "lang": "en"
+    },
+    {
+      "text": "different. You make choices. You control",
+      "duration": 5200,
+      "offset": 180800,
+      "lang": "en"
+    },
+    {
+      "text": "the pacing. The story responds to you.",
+      "duration": 5760,
+      "offset": 183040,
+      "lang": "en"
+    },
+    {
+      "text": "It's bespoke. Your playthrough is not",
+      "duration": 6560,
+      "offset": 186000,
+      "lang": "en"
+    },
+    {
+      "text": "the same as mine. Same story, three",
+      "duration": 5840,
+      "offset": 188800,
+      "lang": "en"
+    },
+    {
+      "text": "different levels of abstraction. Each",
+      "duration": 4959,
+      "offset": 192560,
+      "lang": "en"
+    },
+    {
+      "text": "one adds more involvement, more control,",
+      "duration": 5840,
+      "offset": 194640,
+      "lang": "en"
+    },
+    {
+      "text": "and each one captures exponentially more",
+      "duration": 6000,
+      "offset": 197519,
+      "lang": "en"
+    },
+    {
+      "text": "value. Not because the story got better,",
+      "duration": 6080,
+      "offset": 200480,
+      "lang": "en"
+    },
+    {
+      "text": "but because the experience got harder to",
+      "duration": 6481,
+      "offset": 203519,
+      "lang": "en"
+    },
+    {
+      "text": "replicate. That is abstraction. I made a",
+      "duration": 5440,
+      "offset": 206560,
+      "lang": "en"
+    },
+    {
+      "text": "whole video breaking down abstraction",
+      "duration": 4080,
+      "offset": 210000,
+      "lang": "en"
+    },
+    {
+      "text": "coding language from electrons and",
+      "duration": 4159,
+      "offset": 212000,
+      "lang": "en"
+    },
+    {
+      "text": "transistors all the way up to Python.",
+      "duration": 3920,
+      "offset": 214080,
+      "lang": "en"
+    },
+    {
+      "text": "and the links in the description if you",
+      "duration": 3281,
+      "offset": 216159,
+      "lang": "en"
+    },
+    {
+      "text": "want to see a deeper version. But the",
+      "duration": 4239,
+      "offset": 218000,
+      "lang": "en"
+    },
+    {
+      "text": "short version is this. Each new layer of",
+      "duration": 4799,
+      "offset": 219440,
+      "lang": "en"
+    },
+    {
+      "text": "abstraction doesn't kill what's",
+      "duration": 5681,
+      "offset": 222239,
+      "lang": "en"
+    },
+    {
+      "text": "underneath. It changes what the layer is",
+      "duration": 6640,
+      "offset": 224239,
+      "lang": "en"
+    },
+    {
+      "text": "worth. Books didn't die when movies",
+      "duration": 5360,
+      "offset": 227920,
+      "lang": "en"
+    },
+    {
+      "text": "showed up. People still make money on",
+      "duration": 5121,
+      "offset": 230879,
+      "lang": "en"
+    },
+    {
+      "text": "books and people still lose money on",
+      "duration": 5120,
+      "offset": 233280,
+      "lang": "en"
+    },
+    {
+      "text": "books. Same with movies. Same with",
+      "duration": 4480,
+      "offset": 236000,
+      "lang": "en"
+    },
+    {
+      "text": "games. Some people make money on one",
+      "duration": 4640,
+      "offset": 238400,
+      "lang": "en"
+    },
+    {
+      "text": "book being turned into games and video",
+      "duration": 4959,
+      "offset": 240480,
+      "lang": "en"
+    },
+    {
+      "text": "games and so on and so forth. But the",
+      "duration": 5199,
+      "offset": 243040,
+      "lang": "en"
+    },
+    {
+      "text": "people who were only selling the story,",
+      "duration": 5440,
+      "offset": 245439,
+      "lang": "en"
+    },
+    {
+      "text": "just text, just information with nothing",
+      "duration": 5200,
+      "offset": 248239,
+      "lang": "en"
+    },
+    {
+      "text": "wrapped around it, no abstraction, they",
+      "duration": 5841,
+      "offset": 250879,
+      "lang": "en"
+    },
+    {
+      "text": "had and still have a problem. Software",
+      "duration": 5601,
+      "offset": 253439,
+      "lang": "en"
+    },
+    {
+      "text": "works the same way. And this is where",
+      "duration": 4639,
+      "offset": 256720,
+      "lang": "en"
+    },
+    {
+      "text": "most people get it wrong. They hear AI",
+      "duration": 4400,
+      "offset": 259040,
+      "lang": "en"
+    },
+    {
+      "text": "can build a website and they think the",
+      "duration": 4001,
+      "offset": 261359,
+      "lang": "en"
+    },
+    {
+      "text": "website is the product, but the website",
+      "duration": 4160,
+      "offset": 263440,
+      "lang": "en"
+    },
+    {
+      "text": "was never the product. The website was",
+      "duration": 4399,
+      "offset": 265360,
+      "lang": "en"
+    },
+    {
+      "text": "always the book version of something",
+      "duration": 4480,
+      "offset": 267600,
+      "lang": "en"
+    },
+    {
+      "text": "deeper, the raw output, the thing that",
+      "duration": 5121,
+      "offset": 269759,
+      "lang": "en"
+    },
+    {
+      "text": "anyone can produce. The actual value in",
+      "duration": 5280,
+      "offset": 272080,
+      "lang": "en"
+    },
+    {
+      "text": "any business, in any industry, lives in",
+      "duration": 5759,
+      "offset": 274880,
+      "lang": "en"
+    },
+    {
+      "text": "the process underneath. How those pieces",
+      "duration": 5760,
+      "offset": 277360,
+      "lang": "en"
+    },
+    {
+      "text": "connect, which parts need a human, which",
+      "duration": 5361,
+      "offset": 280639,
+      "lang": "en"
+    },
+    {
+      "text": "parts a tool handles better, and which",
+      "duration": 5440,
+      "offset": 283120,
+      "lang": "en"
+    },
+    {
+      "text": "parts you leave alone entirely. That's",
+      "duration": 4240,
+      "offset": 286000,
+      "lang": "en"
+    },
+    {
+      "text": "the real work, and that's what most",
+      "duration": 3359,
+      "offset": 288560,
+      "lang": "en"
+    },
+    {
+      "text": "people are currently skipping and",
+      "duration": 3760,
+      "offset": 290240,
+      "lang": "en"
+    },
+    {
+      "text": "continue to skip at every abstraction",
+      "duration": 4081,
+      "offset": 291919,
+      "lang": "en"
+    },
+    {
+      "text": "layer. Here's what I mean. If that still",
+      "duration": 3680,
+      "offset": 294000,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't make sense, when I work with a",
+      "duration": 3759,
+      "offset": 296000,
+      "lang": "en"
+    },
+    {
+      "text": "company, the first thing we do is break",
+      "duration": 3840,
+      "offset": 297680,
+      "lang": "en"
+    },
+    {
+      "text": "apart their workflows. Not just",
+      "duration": 4081,
+      "offset": 299759,
+      "lang": "en"
+    },
+    {
+      "text": "engineering, everything. What is go to",
+      "duration": 4239,
+      "offset": 301520,
+      "lang": "en"
+    },
+    {
+      "text": "market, their HR, their content, their",
+      "duration": 3919,
+      "offset": 303840,
+      "lang": "en"
+    },
+    {
+      "text": "operations, their development, every",
+      "duration": 4561,
+      "offset": 305759,
+      "lang": "en"
+    },
+    {
+      "text": "department. We take a look at all of",
+      "duration": 4641,
+      "offset": 307759,
+      "lang": "en"
+    },
+    {
+      "text": "those tasks and figure out one by one",
+      "duration": 4480,
+      "offset": 310320,
+      "lang": "en"
+    },
+    {
+      "text": "where AI actually helps, where",
+      "duration": 4639,
+      "offset": 312400,
+      "lang": "en"
+    },
+    {
+      "text": "traditional tooling is actually better",
+      "duration": 4800,
+      "offset": 314800,
+      "lang": "en"
+    },
+    {
+      "text": "than AI and where you just need a person",
+      "duration": 5761,
+      "offset": 317039,
+      "lang": "en"
+    },
+    {
+      "text": "to do it. That process alone is far more",
+      "duration": 5360,
+      "offset": 319600,
+      "lang": "en"
+    },
+    {
+      "text": "valuable than people realize. But here's",
+      "duration": 4880,
+      "offset": 322800,
+      "lang": "en"
+    },
+    {
+      "text": "where the abstraction actually comes in.",
+      "duration": 4640,
+      "offset": 324960,
+      "lang": "en"
+    },
+    {
+      "text": "As you do this, as you break things",
+      "duration": 3760,
+      "offset": 327680,
+      "lang": "en"
+    },
+    {
+      "text": "apart and start building AI into",
+      "duration": 4159,
+      "offset": 329600,
+      "lang": "en"
+    },
+    {
+      "text": "specific pieces, you start learning",
+      "duration": 4319,
+      "offset": 331440,
+      "lang": "en"
+    },
+    {
+      "text": "prompting flows, automation patterns,",
+      "duration": 4081,
+      "offset": 333759,
+      "lang": "en"
+    },
+    {
+      "text": "you start connecting tools in ways that",
+      "duration": 3761,
+      "offset": 335759,
+      "lang": "en"
+    },
+    {
+      "text": "are specific to your business, your",
+      "duration": 4160,
+      "offset": 337840,
+      "lang": "en"
+    },
+    {
+      "text": "data, your context. And suddenly AI goes",
+      "duration": 4480,
+      "offset": 339520,
+      "lang": "en"
+    },
+    {
+      "text": "from being a basic tool you type",
+      "duration": 4880,
+      "offset": 342000,
+      "lang": "en"
+    },
+    {
+      "text": "something into into something generally",
+      "duration": 4800,
+      "offset": 344000,
+      "lang": "en"
+    },
+    {
+      "text": "powerful. You're not just using it,",
+      "duration": 4560,
+      "offset": 346880,
+      "lang": "en"
+    },
+    {
+      "text": "you're building with it. And in that",
+      "duration": 5200,
+      "offset": 348800,
+      "lang": "en"
+    },
+    {
+      "text": "next layer, the flows you built start",
+      "duration": 5599,
+      "offset": 351440,
+      "lang": "en"
+    },
+    {
+      "text": "generating data. What's working? what's",
+      "duration": 5199,
+      "offset": 354000,
+      "lang": "en"
+    },
+    {
+      "text": "not, where the bottlenecks are, and now",
+      "duration": 4561,
+      "offset": 357039,
+      "lang": "en"
+    },
+    {
+      "text": "you can use that data to build better",
+      "duration": 4560,
+      "offset": 359199,
+      "lang": "en"
+    },
+    {
+      "text": "prompts, better agents, better tool",
+      "duration": 4480,
+      "offset": 361600,
+      "lang": "en"
+    },
+    {
+      "text": "calls. The system improves itself",
+      "duration": 3841,
+      "offset": 363759,
+      "lang": "en"
+    },
+    {
+      "text": "because you built it with enough",
+      "duration": 4239,
+      "offset": 366080,
+      "lang": "en"
+    },
+    {
+      "text": "structure to learn from. This is the",
+      "duration": 4000,
+      "offset": 367600,
+      "lang": "en"
+    },
+    {
+      "text": "same pattern that happened with",
+      "duration": 3281,
+      "offset": 370319,
+      "lang": "en"
+    },
+    {
+      "text": "programming language, machine code to",
+      "duration": 4879,
+      "offset": 371600,
+      "lang": "en"
+    },
+    {
+      "text": "assembly to C to Python. Each layer",
+      "duration": 5280,
+      "offset": 373600,
+      "lang": "en"
+    },
+    {
+      "text": "abstracted the one below into something",
+      "duration": 6160,
+      "offset": 376479,
+      "lang": "en"
+    },
+    {
+      "text": "you could think at a higher level with.",
+      "duration": 5520,
+      "offset": 378880,
+      "lang": "en"
+    },
+    {
+      "text": "The people who thrived weren't the ones",
+      "duration": 4081,
+      "offset": 382639,
+      "lang": "en"
+    },
+    {
+      "text": "who memorized the lower layer. They were",
+      "duration": 4480,
+      "offset": 384400,
+      "lang": "en"
+    },
+    {
+      "text": "the ones who understood what the new",
+      "duration": 4479,
+      "offset": 386720,
+      "lang": "en"
+    },
+    {
+      "text": "layer made possible. Right now, most",
+      "duration": 4640,
+      "offset": 388880,
+      "lang": "en"
+    },
+    {
+      "text": "people are at layer 1. They're typing",
+      "duration": 4241,
+      "offset": 391199,
+      "lang": "en"
+    },
+    {
+      "text": "prompts into chat GBT and getting",
+      "duration": 4480,
+      "offset": 393520,
+      "lang": "en"
+    },
+    {
+      "text": "outputs. You're using AI like a book at",
+      "duration": 4560,
+      "offset": 395440,
+      "lang": "en"
+    },
+    {
+      "text": "this level. It's the same tool, same",
+      "duration": 4080,
+      "offset": 398000,
+      "lang": "en"
+    },
+    {
+      "text": "input, same results for every single",
+      "duration": 5120,
+      "offset": 400000,
+      "lang": "en"
+    },
+    {
+      "text": "person who has it. Layer two is building",
+      "duration": 5280,
+      "offset": 402080,
+      "lang": "en"
+    },
+    {
+      "text": "flows. You're connecting prompts to",
+      "duration": 4880,
+      "offset": 405120,
+      "lang": "en"
+    },
+    {
+      "text": "processes, understanding which tasks in",
+      "duration": 5040,
+      "offset": 407360,
+      "lang": "en"
+    },
+    {
+      "text": "your specific business get automated and",
+      "duration": 4319,
+      "offset": 410000,
+      "lang": "en"
+    },
+    {
+      "text": "which don't. That's the movie,",
+      "duration": 4160,
+      "offset": 412400,
+      "lang": "en"
+    },
+    {
+      "text": "production value, context. It takes real",
+      "duration": 4481,
+      "offset": 414319,
+      "lang": "en"
+    },
+    {
+      "text": "knowledge to do well. Layer three is",
+      "duration": 4400,
+      "offset": 416560,
+      "lang": "en"
+    },
+    {
+      "text": "when those flows generate data and you",
+      "duration": 4880,
+      "offset": 418800,
+      "lang": "en"
+    },
+    {
+      "text": "use that data build systems that get",
+      "duration": 5359,
+      "offset": 420960,
+      "lang": "en"
+    },
+    {
+      "text": "smarter over time. And that's more like",
+      "duration": 4880,
+      "offset": 423680,
+      "lang": "en"
+    },
+    {
+      "text": "a video game, bespoke, interactive,",
+      "duration": 4000,
+      "offset": 426319,
+      "lang": "en"
+    },
+    {
+      "text": "responsive. That's traditional machine",
+      "duration": 4079,
+      "offset": 428560,
+      "lang": "en"
+    },
+    {
+      "text": "learning that we saw 10 years ago. The",
+      "duration": 4081,
+      "offset": 430319,
+      "lang": "en"
+    },
+    {
+      "text": "instinct right now is to automate",
+      "duration": 3441,
+      "offset": 432639,
+      "lang": "en"
+    },
+    {
+      "text": "everything you can. And I get it. You",
+      "duration": 3760,
+      "offset": 434400,
+      "lang": "en"
+    },
+    {
+      "text": "see a process that's slow. You throw AI",
+      "duration": 3600,
+      "offset": 436080,
+      "lang": "en"
+    },
+    {
+      "text": "at it. You save time. You feel",
+      "duration": 3920,
+      "offset": 438160,
+      "lang": "en"
+    },
+    {
+      "text": "productive. But few people are asking",
+      "duration": 5120,
+      "offset": 439680,
+      "lang": "en"
+    },
+    {
+      "text": "this question. Is the thing you just",
+      "duration": 5440,
+      "offset": 442080,
+      "lang": "en"
+    },
+    {
+      "text": "automated going to be builtin feature in",
+      "duration": 4799,
+      "offset": 444800,
+      "lang": "en"
+    },
+    {
+      "text": "6 months? Because if it is, you just",
+      "duration": 3840,
+      "offset": 447520,
+      "lang": "en"
+    },
+    {
+      "text": "spent your energy on something with an",
+      "duration": 4081,
+      "offset": 449599,
+      "lang": "en"
+    },
+    {
+      "text": "expiration date and not a long one. This",
+      "duration": 4320,
+      "offset": 451360,
+      "lang": "en"
+    },
+    {
+      "text": "is the trap. The trap isn't AI replacing",
+      "duration": 4000,
+      "offset": 453680,
+      "lang": "en"
+    },
+    {
+      "text": "your job. The trap is you investing in",
+      "duration": 4239,
+      "offset": 455680,
+      "lang": "en"
+    },
+    {
+      "text": "automating something that the next model",
+      "duration": 4480,
+      "offset": 457680,
+      "lang": "en"
+    },
+    {
+      "text": "was always going to handle on its own",
+      "duration": 4321,
+      "offset": 459919,
+      "lang": "en"
+    },
+    {
+      "text": "anyway. You're building the tutorial",
+      "duration": 3840,
+      "offset": 462160,
+      "lang": "en"
+    },
+    {
+      "text": "level of a game that hasn't even",
+      "duration": 4399,
+      "offset": 464240,
+      "lang": "en"
+    },
+    {
+      "text": "released yet. Don't automate what the",
+      "duration": 5199,
+      "offset": 466000,
+      "lang": "en"
+    },
+    {
+      "text": "next model will give you for free. So,",
+      "duration": 4721,
+      "offset": 468639,
+      "lang": "en"
+    },
+    {
+      "text": "what do you invest in? the stuff that's",
+      "duration": 5440,
+      "offset": 471199,
+      "lang": "en"
+    },
+    {
+      "text": "specific to your context, your domain",
+      "duration": 5200,
+      "offset": 473360,
+      "lang": "en"
+    },
+    {
+      "text": "knowledge, your client relationships,",
+      "duration": 4000,
+      "offset": 476639,
+      "lang": "en"
+    },
+    {
+      "text": "your data, the things that can't be",
+      "duration": 4160,
+      "offset": 478560,
+      "lang": "en"
+    },
+    {
+      "text": "scraped and fine-tuned into a general",
+      "duration": 4400,
+      "offset": 480639,
+      "lang": "en"
+    },
+    {
+      "text": "model because they only exist inside",
+      "duration": 5120,
+      "offset": 482720,
+      "lang": "en"
+    },
+    {
+      "text": "your specific situation. Here's a real",
+      "duration": 4961,
+      "offset": 485039,
+      "lang": "en"
+    },
+    {
+      "text": "example. I know a web agency that used",
+      "duration": 3840,
+      "offset": 487840,
+      "lang": "en"
+    },
+    {
+      "text": "to charge about 20,000 a month to",
+      "duration": 3680,
+      "offset": 490000,
+      "lang": "en"
+    },
+    {
+      "text": "maintain a large client base. Hundreds",
+      "duration": 3840,
+      "offset": 491680,
+      "lang": "en"
+    },
+    {
+      "text": "of unique pages, multiple internal",
+      "duration": 3919,
+      "offset": 493680,
+      "lang": "en"
+    },
+    {
+      "text": "teams, constant updates, big big",
+      "duration": 4640,
+      "offset": 495520,
+      "lang": "en"
+    },
+    {
+      "text": "operation. Now, can something like",
+      "duration": 4880,
+      "offset": 497599,
+      "lang": "en"
+    },
+    {
+      "text": "Lovable generate pages? Yeah, for a",
+      "duration": 3840,
+      "offset": 500160,
+      "lang": "en"
+    },
+    {
+      "text": "couple hundred dollars. The layouts, the",
+      "duration": 3681,
+      "offset": 502479,
+      "lang": "en"
+    },
+    {
+      "text": "basic functionality, the raw HTML, that",
+      "duration": 4879,
+      "offset": 504000,
+      "lang": "en"
+    },
+    {
+      "text": "part is commoditized. That's the book",
+      "duration": 4479,
+      "offset": 506160,
+      "lang": "en"
+    },
+    {
+      "text": "layer. But this agency doesn't just",
+      "duration": 3761,
+      "offset": 508879,
+      "lang": "en"
+    },
+    {
+      "text": "write HTML and manage a website. They",
+      "duration": 3681,
+      "offset": 510639,
+      "lang": "en"
+    },
+    {
+      "text": "interview the client's employees to",
+      "duration": 2959,
+      "offset": 512640,
+      "lang": "en"
+    },
+    {
+      "text": "understand internal knowledge",
+      "duration": 3279,
+      "offset": 514320,
+      "lang": "en"
+    },
+    {
+      "text": "structures. They make design decisions",
+      "duration": 4961,
+      "offset": 515599,
+      "lang": "en"
+    },
+    {
+      "text": "based on user psychology and conversion",
+      "duration": 4880,
+      "offset": 517599,
+      "lang": "en"
+    },
+    {
+      "text": "data that's specific to this company's",
+      "duration": 3680,
+      "offset": 520560,
+      "lang": "en"
+    },
+    {
+      "text": "audience. They know things about this",
+      "duration": 3281,
+      "offset": 522479,
+      "lang": "en"
+    },
+    {
+      "text": "business that you can't prompt because",
+      "duration": 3760,
+      "offset": 524240,
+      "lang": "en"
+    },
+    {
+      "text": "it came from years of being embedded in",
+      "duration": 5199,
+      "offset": 525760,
+      "lang": "en"
+    },
+    {
+      "text": "it, from nuance. What they did was",
+      "duration": 5120,
+      "offset": 528000,
+      "lang": "en"
+    },
+    {
+      "text": "smart. They stopped fighting the",
+      "duration": 4801,
+      "offset": 530959,
+      "lang": "en"
+    },
+    {
+      "text": "commoditization. They used it, cut the",
+      "duration": 4880,
+      "offset": 533120,
+      "lang": "en"
+    },
+    {
+      "text": "costs of basic work dramatically, and",
+      "duration": 3920,
+      "offset": 535760,
+      "lang": "en"
+    },
+    {
+      "text": "built a portal where the client's team",
+      "duration": 3920,
+      "offset": 538000,
+      "lang": "en"
+    },
+    {
+      "text": "can handle simple updates themselves.",
+      "duration": 3920,
+      "offset": 539680,
+      "lang": "en"
+    },
+    {
+      "text": "Things that used to need a support",
+      "duration": 4240,
+      "offset": 541920,
+      "lang": "en"
+    },
+    {
+      "text": "ticket and a two-day turnaround. Now,",
+      "duration": 4560,
+      "offset": 543600,
+      "lang": "en"
+    },
+    {
+      "text": "the agency spends almost all their time",
+      "duration": 4640,
+      "offset": 546160,
+      "lang": "en"
+    },
+    {
+      "text": "on the high context work, the design",
+      "duration": 4480,
+      "offset": 548160,
+      "lang": "en"
+    },
+    {
+      "text": "strategy, the research, the stuff that",
+      "duration": 4479,
+      "offset": 550800,
+      "lang": "en"
+    },
+    {
+      "text": "actually requires taste and judgment",
+      "duration": 5920,
+      "offset": 552640,
+      "lang": "en"
+    },
+    {
+      "text": "nuance. They went from selling movies to",
+      "duration": 5921,
+      "offset": 555279,
+      "lang": "en"
+    },
+    {
+      "text": "selling video games. Are you catching my",
+      "duration": 5360,
+      "offset": 558560,
+      "lang": "en"
+    },
+    {
+      "text": "drift now? Same client, same general",
+      "duration": 5520,
+      "offset": 561200,
+      "lang": "en"
+    },
+    {
+      "text": "service, but now the client is involved",
+      "duration": 5599,
+      "offset": 563920,
+      "lang": "en"
+    },
+    {
+      "text": "with the service. They have control over",
+      "duration": 6080,
+      "offset": 566720,
+      "lang": "en"
+    },
+    {
+      "text": "dayto-day. They are playing the game and",
+      "duration": 6320,
+      "offset": 569519,
+      "lang": "en"
+    },
+    {
+      "text": "the agency focuses on the bespoke layer",
+      "duration": 6000,
+      "offset": 572800,
+      "lang": "en"
+    },
+    {
+      "text": "that the game provides. This works in",
+      "duration": 5120,
+      "offset": 575839,
+      "lang": "en"
+    },
+    {
+      "text": "the other direction too. I see companies",
+      "duration": 4080,
+      "offset": 578800,
+      "lang": "en"
+    },
+    {
+      "text": "spending a year building a full SAS",
+      "duration": 3841,
+      "offset": 580959,
+      "lang": "en"
+    },
+    {
+      "text": "product when they haven't even validated",
+      "duration": 3920,
+      "offset": 582880,
+      "lang": "en"
+    },
+    {
+      "text": "the idea. What they actually need is",
+      "duration": 4320,
+      "offset": 584800,
+      "lang": "en"
+    },
+    {
+      "text": "like a 60% solution built with some",
+      "duration": 4640,
+      "offset": 586800,
+      "lang": "en"
+    },
+    {
+      "text": "basic AI tools that are free to use. Run",
+      "duration": 4320,
+      "offset": 589120,
+      "lang": "en"
+    },
+    {
+      "text": "it internally. Figure out what matters,",
+      "duration": 3680,
+      "offset": 591440,
+      "lang": "en"
+    },
+    {
+      "text": "then decide if the full build is even",
+      "duration": 4160,
+      "offset": 593440,
+      "lang": "en"
+    },
+    {
+      "text": "worth it. Use the book version while you",
+      "duration": 4800,
+      "offset": 595120,
+      "lang": "en"
+    },
+    {
+      "text": "test the story. Don't build the movie",
+      "duration": 5600,
+      "offset": 597600,
+      "lang": "en"
+    },
+    {
+      "text": "until you know people want to watch it.",
+      "duration": 5039,
+      "offset": 599920,
+      "lang": "en"
+    },
+    {
+      "text": "The pattern underneath all of this is",
+      "duration": 3920,
+      "offset": 603200,
+      "lang": "en"
+    },
+    {
+      "text": "pretty straightforward. Whatever AI made",
+      "duration": 4961,
+      "offset": 604959,
+      "lang": "en"
+    },
+    {
+      "text": "cheap, give it away. That's your book",
+      "duration": 4640,
+      "offset": 607120,
+      "lang": "en"
+    },
+    {
+      "text": "layer. That's what gets people in the",
+      "duration": 3840,
+      "offset": 609920,
+      "lang": "en"
+    },
+    {
+      "text": "door. The thing that you actually charge",
+      "duration": 4880,
+      "offset": 611760,
+      "lang": "en"
+    },
+    {
+      "text": "for is the layer above, the involved",
+      "duration": 5120,
+      "offset": 613760,
+      "lang": "en"
+    },
+    {
+      "text": "stuff, the context heavy stuff, the",
+      "duration": 4319,
+      "offset": 616640,
+      "lang": "en"
+    },
+    {
+      "text": "thing that takes judgment for taste or",
+      "duration": 4560,
+      "offset": 618880,
+      "lang": "en"
+    },
+    {
+      "text": "real relationships. Which gets to the",
+      "duration": 4721,
+      "offset": 620959,
+      "lang": "en"
+    },
+    {
+      "text": "real question underneath all of this?",
+      "duration": 4560,
+      "offset": 623440,
+      "lang": "en"
+    },
+    {
+      "text": "And if you're still listening, the real",
+      "duration": 4399,
+      "offset": 625680,
+      "lang": "en"
+    },
+    {
+      "text": "question you should be asking is, is",
+      "duration": 5519,
+      "offset": 628000,
+      "lang": "en"
+    },
+    {
+      "text": "there a limit to human abstraction?",
+      "duration": 5521,
+      "offset": 630079,
+      "lang": "en"
+    },
+    {
+      "text": "Nobody's saying it out loud, but I think",
+      "duration": 3841,
+      "offset": 633519,
+      "lang": "en"
+    },
+    {
+      "text": "everyone's feeling it. Because if there",
+      "duration": 4560,
+      "offset": 635600,
+      "lang": "en"
+    },
+    {
+      "text": "is a ceiling, if humans can only stack",
+      "duration": 5280,
+      "offset": 637360,
+      "lang": "en"
+    },
+    {
+      "text": "so many layers, if there's a hard limit",
+      "duration": 5679,
+      "offset": 640160,
+      "lang": "en"
+    },
+    {
+      "text": "to how far up we can go with our brain,",
+      "duration": 6000,
+      "offset": 642640,
+      "lang": "en"
+    },
+    {
+      "text": "then yeah, eventually AI is going to",
+      "duration": 4721,
+      "offset": 645839,
+      "lang": "en"
+    },
+    {
+      "text": "reach that ceiling, too. And either",
+      "duration": 3840,
+      "offset": 648640,
+      "lang": "en"
+    },
+    {
+      "text": "there's nowhere left for us to move and",
+      "duration": 4000,
+      "offset": 650560,
+      "lang": "en"
+    },
+    {
+      "text": "AI is going to control it, or there's",
+      "duration": 4640,
+      "offset": 652480,
+      "lang": "en"
+    },
+    {
+      "text": "nowhere for all of us to go. But I don't",
+      "duration": 4480,
+      "offset": 654560,
+      "lang": "en"
+    },
+    {
+      "text": "think that's actually true. And that's",
+      "duration": 4159,
+      "offset": 657120,
+      "lang": "en"
+    },
+    {
+      "text": "not a opinion. It's it's a pattern that",
+      "duration": 4720,
+      "offset": 659040,
+      "lang": "en"
+    },
+    {
+      "text": "I think history kind of supports. When",
+      "duration": 4881,
+      "offset": 661279,
+      "lang": "en"
+    },
+    {
+      "text": "assembly language showed up, people were",
+      "duration": 5040,
+      "offset": 663760,
+      "lang": "en"
+    },
+    {
+      "text": "writing machine code by hand, direct",
+      "duration": 5440,
+      "offset": 666160,
+      "lang": "en"
+    },
+    {
+      "text": "instructions to the processor, ones and",
+      "duration": 6240,
+      "offset": 668800,
+      "lang": "en"
+    },
+    {
+      "text": "zeros. Assembly abstracted that away,",
+      "duration": 5200,
+      "offset": 671600,
+      "lang": "en"
+    },
+    {
+      "text": "and people who were writing machine code",
+      "duration": 4400,
+      "offset": 675040,
+      "lang": "en"
+    },
+    {
+      "text": "didn't disappear. Some of them moved up.",
+      "duration": 4240,
+      "offset": 676800,
+      "lang": "en"
+    },
+    {
+      "text": "But here's the thing, new problems",
+      "duration": 4160,
+      "offset": 679440,
+      "lang": "en"
+    },
+    {
+      "text": "showed up that only existed because",
+      "duration": 4960,
+      "offset": 681040,
+      "lang": "en"
+    },
+    {
+      "text": "assembly existed. Problems nobody could",
+      "duration": 4239,
+      "offset": 683600,
+      "lang": "en"
+    },
+    {
+      "text": "have predicted because you can't see the",
+      "duration": 4720,
+      "offset": 686000,
+      "lang": "en"
+    },
+    {
+      "text": "next layer's problems from the current",
+      "duration": 6961,
+      "offset": 687839,
+      "lang": "en"
+    },
+    {
+      "text": "one. Then C abstracted assembly. Python",
+      "duration": 7119,
+      "offset": 690720,
+      "lang": "en"
+    },
+    {
+      "text": "abstracted C. Frameworks abstracted",
+      "duration": 6320,
+      "offset": 694800,
+      "lang": "en"
+    },
+    {
+      "text": "Python. And now AI tools are abstracting",
+      "duration": 5761,
+      "offset": 697839,
+      "lang": "en"
+    },
+    {
+      "text": "the frameworks. Every single time this",
+      "duration": 4480,
+      "offset": 701120,
+      "lang": "en"
+    },
+    {
+      "text": "happened, the layer below didn't die. It",
+      "duration": 4160,
+      "offset": 703600,
+      "lang": "en"
+    },
+    {
+      "text": "became part of the infrastructure, a",
+      "duration": 5280,
+      "offset": 705600,
+      "lang": "en"
+    },
+    {
+      "text": "module in the workflow. And the new",
+      "duration": 5360,
+      "offset": 707760,
+      "lang": "en"
+    },
+    {
+      "text": "layer created entirely new categories of",
+      "duration": 4480,
+      "offset": 710880,
+      "lang": "en"
+    },
+    {
+      "text": "work that weren't there before. Work",
+      "duration": 4480,
+      "offset": 713120,
+      "lang": "en"
+    },
+    {
+      "text": "that nobody was doing because nobody",
+      "duration": 5360,
+      "offset": 715360,
+      "lang": "en"
+    },
+    {
+      "text": "knew it needed to even be done. There's",
+      "duration": 5280,
+      "offset": 717600,
+      "lang": "en"
+    },
+    {
+      "text": "never been a point in computing history",
+      "duration": 4160,
+      "offset": 720720,
+      "lang": "en"
+    },
+    {
+      "text": "where a new abstraction layer reduced",
+      "duration": 4399,
+      "offset": 722880,
+      "lang": "en"
+    },
+    {
+      "text": "the total amount of work humans do. Not",
+      "duration": 6079,
+      "offset": 724880,
+      "lang": "en"
+    },
+    {
+      "text": "once. Every single time it expanded, we",
+      "duration": 6481,
+      "offset": 727279,
+      "lang": "en"
+    },
+    {
+      "text": "created more work to do. Because here's",
+      "duration": 5120,
+      "offset": 730959,
+      "lang": "en"
+    },
+    {
+      "text": "the thing about automation. It doesn't",
+      "duration": 5280,
+      "offset": 733760,
+      "lang": "en"
+    },
+    {
+      "text": "collapse markets. It kills specific",
+      "duration": 5200,
+      "offset": 736079,
+      "lang": "en"
+    },
+    {
+      "text": "positions within markets. The rent",
+      "duration": 4400,
+      "offset": 739040,
+      "lang": "en"
+    },
+    {
+      "text": "seeking ones, the middlemen, the people",
+      "duration": 4081,
+      "offset": 741279,
+      "lang": "en"
+    },
+    {
+      "text": "who were only in business because",
+      "duration": 4320,
+      "offset": 743440,
+      "lang": "en"
+    },
+    {
+      "text": "friction was protecting them. But the",
+      "duration": 5120,
+      "offset": 745360,
+      "lang": "en"
+    },
+    {
+      "text": "market itself, the market is as durable",
+      "duration": 5920,
+      "offset": 747760,
+      "lang": "en"
+    },
+    {
+      "text": "as human desire. Think about it. If AI",
+      "duration": 4799,
+      "offset": 750480,
+      "lang": "en"
+    },
+    {
+      "text": "does your shopping, finds the best",
+      "duration": 3279,
+      "offset": 753680,
+      "lang": "en"
+    },
+    {
+      "text": "price, schedules delivery, handles",
+      "duration": 3521,
+      "offset": 755279,
+      "lang": "en"
+    },
+    {
+      "text": "payment, you're still the one who's",
+      "duration": 4161,
+      "offset": 756959,
+      "lang": "en"
+    },
+    {
+      "text": "hungry. You're still the one who wants a",
+      "duration": 4240,
+      "offset": 758800,
+      "lang": "en"
+    },
+    {
+      "text": "better couch or a specific pair of",
+      "duration": 4800,
+      "offset": 761120,
+      "lang": "en"
+    },
+    {
+      "text": "shoes. The whole transaction chain still",
+      "duration": 6000,
+      "offset": 763040,
+      "lang": "en"
+    },
+    {
+      "text": "ends at a person with a preference. And",
+      "duration": 5359,
+      "offset": 765920,
+      "lang": "en"
+    },
+    {
+      "text": "I honestly think AI might grow markets",
+      "duration": 3919,
+      "offset": 769040,
+      "lang": "en"
+    },
+    {
+      "text": "more than it shrinks them. Right now,",
+      "duration": 3521,
+      "offset": 771279,
+      "lang": "en"
+    },
+    {
+      "text": "there are millions of small producers",
+      "duration": 4161,
+      "offset": 772959,
+      "lang": "en"
+    },
+    {
+      "text": "who can't reach their ideal customers.",
+      "duration": 4719,
+      "offset": 774800,
+      "lang": "en"
+    },
+    {
+      "text": "The discovery layer is still completely",
+      "duration": 5440,
+      "offset": 777120,
+      "lang": "en"
+    },
+    {
+      "text": "broken. It's all SEO games and ad spend",
+      "duration": 5521,
+      "offset": 779519,
+      "lang": "en"
+    },
+    {
+      "text": "and attention economy middlemen standing",
+      "duration": 4640,
+      "offset": 782560,
+      "lang": "en"
+    },
+    {
+      "text": "between the person who makes the thing",
+      "duration": 4799,
+      "offset": 785040,
+      "lang": "en"
+    },
+    {
+      "text": "and the person who wants it. If AI",
+      "duration": 4879,
+      "offset": 787200,
+      "lang": "en"
+    },
+    {
+      "text": "strips that away and just matches need",
+      "duration": 4721,
+      "offset": 789839,
+      "lang": "en"
+    },
+    {
+      "text": "to provider directly, that's a bigger",
+      "duration": 4961,
+      "offset": 792079,
+      "lang": "en"
+    },
+    {
+      "text": "economy, more distributed, more",
+      "duration": 4000,
+      "offset": 794560,
+      "lang": "en"
+    },
+    {
+      "text": "transactions happen. Different",
+      "duration": 3039,
+      "offset": 797040,
+      "lang": "en"
+    },
+    {
+      "text": "industries are at different points of",
+      "duration": 3279,
+      "offset": 798560,
+      "lang": "en"
+    },
+    {
+      "text": "this right now. Some are still selling",
+      "duration": 4481,
+      "offset": 800079,
+      "lang": "en"
+    },
+    {
+      "text": "books, raw features, basic information,",
+      "duration": 5521,
+      "offset": 801839,
+      "lang": "en"
+    },
+    {
+      "text": "commodity work. They're about to have a",
+      "duration": 5040,
+      "offset": 804560,
+      "lang": "en"
+    },
+    {
+      "text": "few rough years, I will say. But some",
+      "duration": 4719,
+      "offset": 807360,
+      "lang": "en"
+    },
+    {
+      "text": "are already at the movie layer. Decent",
+      "duration": 5120,
+      "offset": 809600,
+      "lang": "en"
+    },
+    {
+      "text": "production value, real effort, but still",
+      "duration": 5041,
+      "offset": 812079,
+      "lang": "en"
+    },
+    {
+      "text": "the same experience for every client.",
+      "duration": 4720,
+      "offset": 814720,
+      "lang": "en"
+    },
+    {
+      "text": "They need to figure out the video game",
+      "duration": 5839,
+      "offset": 817120,
+      "lang": "en"
+    },
+    {
+      "text": "version. Some unlucky few, if you've",
+      "duration": 6000,
+      "offset": 819440,
+      "lang": "en"
+    },
+    {
+      "text": "realized this now, are selling video",
+      "duration": 4161,
+      "offset": 822959,
+      "lang": "en"
+    },
+    {
+      "text": "games, and they're staring at the",
+      "duration": 4079,
+      "offset": 825440,
+      "lang": "en"
+    },
+    {
+      "text": "question of what's more bespoke than",
+      "duration": 4800,
+      "offset": 827120,
+      "lang": "en"
+    },
+    {
+      "text": "that? What's more interactive, more",
+      "duration": 5521,
+      "offset": 829519,
+      "lang": "en"
+    },
+    {
+      "text": "involved, more human than a video game?",
+      "duration": 5279,
+      "offset": 831920,
+      "lang": "en"
+    },
+    {
+      "text": "That's the frontier. And nobody has the",
+      "duration": 4320,
+      "offset": 835040,
+      "lang": "en"
+    },
+    {
+      "text": "answer because you can't see the next",
+      "duration": 4801,
+      "offset": 837199,
+      "lang": "en"
+    },
+    {
+      "text": "layer from this one. You never can. But",
+      "duration": 6080,
+      "offset": 839360,
+      "lang": "en"
+    },
+    {
+      "text": "it will show up. It always does. So the",
+      "duration": 5920,
+      "offset": 842000,
+      "lang": "en"
+    },
+    {
+      "text": "question was never, \"Will AI replace",
+      "duration": 5759,
+      "offset": 845440,
+      "lang": "en"
+    },
+    {
+      "text": "me?\" The question is, what am I selling?",
+      "duration": 6000,
+      "offset": 847920,
+      "lang": "en"
+    },
+    {
+      "text": "Which layer am I standing on? And what",
+      "duration": 5921,
+      "offset": 851199,
+      "lang": "en"
+    },
+    {
+      "text": "does the layer up look like? Figure that",
+      "duration": 6240,
+      "offset": 853920,
+      "lang": "en"
+    },
+    {
+      "text": "out. Give away the movies. sell the",
+      "duration": 6240,
+      "offset": 857120,
+      "lang": "en"
+    },
+    {
+      "text": "video games.",
+      "duration": 3200,
+      "offset": 860160,
+      "lang": "en"
+    }
+  ]
+}

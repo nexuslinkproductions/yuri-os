@@ -19,6 +19,13 @@ Lane 2 — OPENCLAW / 09OC (daemon-native)
 - Authority: parallel reasoning, background research, summarization, observation logging
 - Gateway: localhost:18789, always-on via LaunchAgent
 
+Browser worker — Chrome lane
+- Path: openclaw-bridge.sh → browser worker → Playwright `channel: 'chrome'`
+- Models: browser task model follows the worker, not the router
+- Memory: browser outcomes are logged back through the parent task via kernel.py
+- Authority: visible Chrome, auth flows, screenshots, form fill, web research
+- Rule: OPENCLAW routes browser work here; OPENCLAW does not drive Chrome directly
+
 Shared State
 - Canonical: _SYSTEM/OS_KERNEL/memory.db
 - Interface: kernel.py (task-create, task-update, mem-log, handoff)
@@ -42,6 +49,12 @@ Step C: Bridge executes (automated, do not touch)
 4. kernel.py mem-log [agent_id=OPENCLAW, task_id, source=OPENCLAW]
 5. kernel.py task-update [status=COMPLETED or FAILED]
 
+If the task needs real browser work:
+1. Hand off from OPENCLAW to the browser worker.
+2. Browser worker launches headed Chrome with Playwright `channel: 'chrome'`.
+3. Browser worker returns results to the parent task.
+4. OPENCLAW logs the outcome back through mem-log / task-update.
+
 Step D: ENKI retrieves result
 ```bash
 sqlite3 _SYSTEM/OS_KERNEL/memory.db "SELECT content FROM memories WHERE source_agent='OPENCLAW' AND task_id=<id> ORDER BY timestamp DESC LIMIT 1;"
@@ -63,6 +76,7 @@ sqlite3 _SYSTEM/OS_KERNEL/memory.db "SELECT content FROM memories WHERE source_a
 
 - Bridge-only: All OpenClaw calls through `openclaw-bridge.sh`. No direct `openclaw agent` from scripts.
 - One truth: `memory.db` canonical. `~/.openclaw/agents/main/sessions/` is cache only.
+- Chrome lives in the browser worker. OPENCLAW is the router, not the browser owner.
 - Attribution: Every memory has correct agent_id, source, channel.
 - Prunable: Use meta.kind: "observation", "diagnostic", "reply". Old diagnostics can be purged.
 - No code edits: 09OC reads/summarizes only. Code changes → handoff to ENKI.

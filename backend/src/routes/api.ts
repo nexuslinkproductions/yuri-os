@@ -734,6 +734,9 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     const { initNotebookRoutes } = require('./notebookRoutes');
     initNotebookRoutes(router, db);
 
+    // Consumer site public endpoints — contact form, status, chat (placeholder)
+    const { initConsumerRoutes } = require('./consumerRoutes');
+    initConsumerRoutes(router, db);
 
     return router;
 }

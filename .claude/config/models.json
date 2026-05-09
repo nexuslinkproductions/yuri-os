@@ -81,5 +81,37 @@
       "deepseek-chat": "2026-07-24T15:59:00Z",
       "deepseek-reasoner": "2026-07-24T15:59:00Z"
     }
+  },
+  "codex": {
+    "docs_as_of": "2026-05-09",
+    "source": "local codex debug models and official Codex config schema",
+    "base_url_env": "OPENAI_BASE_URL",
+    "endpoint_env": "CODEX_ENDPOINT",
+    "api_key_env": "OPENAI_API_KEY",
+    "protocol": "openai-responses",
+    "models": {
+      "primary": "gpt-5.5",
+      "mini": "gpt-5.4-mini",
+      "codex": "gpt-5.3-codex"
+    },
+    "reasoning_effort": {
+      "primary": "high",
+      "mini": "medium",
+      "allowed": ["low", "medium", "high", "xhigh"]
+    },
+    "caps": {
+      "primary": {
+        "max_output_tokens": 8192,
+        "timeout_seconds": 180
+      },
+      "mini": {
+        "max_output_tokens": 4096,
+        "timeout_seconds": 90
+      }
+    },
+    "compatibility_aliases": {
+      "codex": "gpt-5.5",
+      "codex-mini": "gpt-5.4-mini"
+    }
   }
 }

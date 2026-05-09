@@ -1,0 +1,133 @@
+Only in NUDIMMUD: .DS_Store
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/ANGELIKA: 04_Edit
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/ANGELIKA: 05_Export
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/BOVIRO: 04_Edit
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/BOVIRO: 05_Export
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/CHEESE-DOCTOR: 04_Edit
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/CHEESE-DOCTOR: 05_Export
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/MUDI: 04_Edit
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/MUDI: 05_Export
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/OREA: 05_Export
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/SHIPSTER: 04_Edit
+Only in NUDIMMUD/01_PROJECTS/C2MOVIEZ/SHIPSTER: 05_Export
+Only in NUDIMMUD/01_PROJECTS/MACL-ONE: 04_Edit
+Only in NUDIMMUD/01_PROJECTS/MACL-ONE: 05_Export
+Only in NUDIMMUD/01_PROJECTS/NEXUS-LINK-LANDING/public: images
+Only in NUDIMMUD/01_PROJECTS/NEXUS-LINK-LANDING/public: videos
+Only in NUDIMMUD/01_PROJECTS/NEXUS-LINK-LANDING: src
+Only in NUDIMMUD/01_PROJECTS/_TEMPLATE: 04_Edit
+Only in NUDIMMUD/01_PROJECTS/_TEMPLATE: 05_Export
+Only in NUDIMMUD/01_PROJECTS/claude-mem: dist
+Only in NUDIMMUD/01_PROJECTS/claude-mem/docs/public: cm-preview.gif
+Only in NUDIMMUD/01_PROJECTS/gstack: agents
+Only in NUDIMMUD/01_PROJECTS/gstack/browse: bin
+Only in NUDIMMUD/01_PROJECTS/gstack/browse: scripts
+Only in NUDIMMUD/01_PROJECTS/gstack/browse: src
+Only in NUDIMMUD/01_PROJECTS/gstack/browse: test
+Only in NUDIMMUD/01_PROJECTS/gstack/careful: bin
+Only in NUDIMMUD/01_PROJECTS/gstack: contrib
+Only in NUDIMMUD/01_PROJECTS/gstack/design: src
+Only in NUDIMMUD/01_PROJECTS/gstack/design: test
+Only in NUDIMMUD/01_PROJECTS/gstack/design-html: vendor
+Only in NUDIMMUD/01_PROJECTS/gstack/docs: images
+Only in NUDIMMUD/01_PROJECTS/gstack: extension
+Only in NUDIMMUD/01_PROJECTS/gstack/freeze: bin
+Only in NUDIMMUD/01_PROJECTS/gstack/gstack-upgrade: migrations
+Only in NUDIMMUD/01_PROJECTS/gstack: hosts
+Only in NUDIMMUD/01_PROJECTS/gstack: lib
+Only in NUDIMMUD/01_PROJECTS/gstack: scripts
+Only in NUDIMMUD/01_PROJECTS/gstack: supabase
+Only in NUDIMMUD/01_PROJECTS/gstack/test: helpers
+Only in NUDIMMUD/01_PROJECTS/superpowers: hooks
+Only in NUDIMMUD/01_PROJECTS/superpowers: scripts
+Only in NUDIMMUD/01_PROJECTS/superpowers/skills/brainstorming: scripts
+Only in NUDIMMUD/01_PROJECTS/superpowers/tests: brainstorm-server
+Only in NUDIMMUD/01_PROJECTS/superpowers/tests: explicit-skill-requests
+Only in NUDIMMUD/01_PROJECTS/superpowers/tests: opencode
+Only in NUDIMMUD/01_PROJECTS/superpowers/tests: skill-triggering
+Only in NUDIMMUD/02_AREAS: Health
+Only in NUDIMMUD/02_AREAS: Learning
+Only in NUDIMMUD/02_AREAS: Network
+Only in NUDIMMUD/02_AREAS/Personal-Brand/Social-Content/BLACKMAIL: IMG_5570.mov
+Only in NUDIMMUD/02_AREAS: Tech-Setup
+Only in NUDIMMUD/03_RESOURCES: .DS_Store
+Only in NUDIMMUD/03_RESOURCES: Assets
+Only in NUDIMMUD/03_RESOURCES: LUTs
+Only in NUDIMMUD/03_RESOURCES: Plugins
+Only in NUDIMMUD/03_RESOURCES: Presets
+Only in NUDIMMUD/03_RESOURCES: References
+Only in NUDIMMUD/03_RESOURCES: Stock
+Only in NUDIMMUD/03_RESOURCES: Templates
+Only in NUDIMMUD/04_FINANCE: 2024
+Only in NUDIMMUD/04_FINANCE: 2025
+Only in NUDIMMUD/04_FINANCE/2026: Bank-Statements
+Only in NUDIMMUD/04_FINANCE/2026: Expenses
+Only in NUDIMMUD/04_FINANCE/2026: Invoices-Out
+Only in NUDIMMUD/04_FINANCE/2026: Tax
+Only in NUDIMMUD/04_FINANCE/2026: token-tracking
+Only in NUDIMMUD/05_NEXUS-LINK: Legal
+Only in NUDIMMUD/05_NEXUS-LINK: Portfolio
+Only in NUDIMMUD/05_NEXUS-LINK: Services
+Only in NUDIMMUD/05_NEXUS-LINK: Strategy
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients: CASA
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MACL/MACL DOCUMENTS/templates: docx
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MACL/MACL DOCUMENTS/templates: html
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MACL: MACL.png
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MFB: medforbalance_favicon.png
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/MFB: medforbalance_mainlogo.png
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients/P2S: power2sales-logo.jpg
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients: SHI
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/02 - Clients: UPG
+Only in NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database: Scripts
+Only in NUDIMMUD/NABU: 02_GOVERNANCE
+Only in NUDIMMUD/NABU: 03_MEMORY
+Only in NUDIMMUD/NABU: 04_ECONOMICS
+Only in NUDIMMUD/NABU: 05_RESILIENCE
+Only in NUDIMMUD/NABU: 06_DOMAIN-BRIDGE
+Only in NUDIMMUD/NABU: 07_FUTURES
+Only in NUDIMMUD/NEURAL-NETWORK/evo-nexus/dashboard/frontend/public: EVO_NEXUS.png
+Only in NUDIMMUD/NEURAL-NETWORK/evo-nexus/dashboard/frontend/public: favicon.png
+Only in NUDIMMUD/NEURAL-NETWORK/evo-nexus/public: EVO_NEXUS.png
+Only in NUDIMMUD/NEURAL-NETWORK/evo-nexus/site/public/assets: favicon.png
+Only in NUDIMMUD/NEURAL-NETWORK/evo-nexus/site/public: favicon.png
+Only in NUDIMMUD/NISABA: 01_DEPLOYMENT
+Only in NUDIMMUD/NISABA: 02_EVOLUTION
+Only in NUDIMMUD/NISABA: 03_DISTRIBUTION
+Only in NUDIMMUD/NISABA: 04_QUALITY
+Only in NUDIMMUD/NISABA: 05_DEFENSE
+Only in NUDIMMUD/NISABA: 06_SWARM
+Only in NUDIMMUD/NISABA: 07_CANON
+Only in NUDIMMUD/NISABA/08_INGESTION/skool: skool_intelligence_report.md
+Only in NUDIMMUD/NISABA: nisaba.md
+Only in NUDIMMUD/backend/src: controllers
+Only in NUDIMMUD/iC2M: 00 - Inbox
+Only in NUDIMMUD/iC2M/02 - Clients: ASSI
+Only in NUDIMMUD/iC2M/02 - Clients/BOV: boviro-satisfaction-tool
+Only in NUDIMMUD/iC2M/02 - Clients/BOV: boviro_security_logo.png
+Only in NUDIMMUD/iC2M/02 - Clients: CASA
+Only in NUDIMMUD/iC2M/02 - Clients: JUCHLER
+Only in NUDIMMUD/iC2M/02 - Clients/MACL/MACL DOCUMENTS/templates: docx
+Only in NUDIMMUD/iC2M/02 - Clients/MACL/MACL DOCUMENTS/templates: html
+Only in NUDIMMUD/iC2M/02 - Clients/MACL: MACL.png
+Only in NUDIMMUD/iC2M/02 - Clients/MFB: medforbalance_favicon.png
+Only in NUDIMMUD/iC2M/02 - Clients/MFB: medforbalance_mainlogo.png
+Only in NUDIMMUD/iC2M/02 - Clients/P2S: power2sales-logo.jpg
+Only in NUDIMMUD/iC2M/02 - Clients/SHI/SHIPSTER-C1-APR-JUN-figma-make/src: app
+Only in NUDIMMUD/iC2M/02 - Clients/SHI/SHIPSTER-C1-APR-JUN-figma-make/src: assets
+Only in NUDIMMUD/iC2M/02 - Clients/SHI/SHIPSTER-C1-APR-JUN-figma-make/src: styles
+Only in NUDIMMUD/iC2M/02 - Clients/SHI/SHIPSTER-C1-APR-JUN-figma-make: tmp
+Only in NUDIMMUD/iC2M/02 - Clients: UPG
+Only in NUDIMMUD/iC2M: 08 - Archive
+Only in NUDIMMUD/iC2M: _SYSTEM
+Only in NUDIMMUD/iC2M/_TOOLS: AutoResearchClaw
+Only in NUDIMMUD/iC2M: backup downloads
+Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/assets: header.png
+Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/assets: mark-corner-black.png
+Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/assets: mark-corner.png
+Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System: fonts
+Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System: preview
+Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/uploads: c2moviez_1-1-corner-black.png
+Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/uploads: c2moviez_1-1-corner.png
+Only in NUDIMMUD/iC2M/c2Moviez EXEO Design System/uploads: c2moviez_header.png
+Only in NUDIMMUD/public: assets
+Only in NUDIMMUD: scripts

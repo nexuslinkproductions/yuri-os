@@ -1,0 +1,2208 @@
+{
+  "videoId": "yEa6dgh7wuc",
+  "title": "Video as Code: My AI Animation Stack",
+  "segments": [
+    {
+      "text": "The animations that you're going to see",
+      "duration": 3520,
+      "offset": 560,
+      "lang": "en"
+    },
+    {
+      "text": "in this video would have taken me",
+      "duration": 3520,
+      "offset": 2480,
+      "lang": "en"
+    },
+    {
+      "text": "probably a full week, if not a month, to",
+      "duration": 4160,
+      "offset": 4080,
+      "lang": "en"
+    },
+    {
+      "text": "make. And now I make them in under an",
+      "duration": 5519,
+      "offset": 6000,
+      "lang": "en"
+    },
+    {
+      "text": "hour. And honestly, they turn out pretty",
+      "duration": 4880,
+      "offset": 8240,
+      "lang": "en"
+    },
+    {
+      "text": "great. I've made all sorts of different",
+      "duration": 3761,
+      "offset": 11519,
+      "lang": "en"
+    },
+    {
+      "text": "types. And I know how that sounds,",
+      "duration": 4720,
+      "offset": 13120,
+      "lang": "en"
+    },
+    {
+      "text": "right? This idea that, okay, it's an AI",
+      "duration": 4560,
+      "offset": 15280,
+      "lang": "en"
+    },
+    {
+      "text": "video. AI promises this something",
+      "duration": 4320,
+      "offset": 17840,
+      "lang": "en"
+    },
+    {
+      "text": "revolutionary, gamechanging, the future",
+      "duration": 4240,
+      "offset": 19840,
+      "lang": "en"
+    },
+    {
+      "text": "of content, and then you try it and the",
+      "duration": 3920,
+      "offset": 22160,
+      "lang": "en"
+    },
+    {
+      "text": "output's mediocre, uncanny, or require",
+      "duration": 3439,
+      "offset": 24080,
+      "lang": "en"
+    },
+    {
+      "text": "so much cleanup that you wonder why you",
+      "duration": 3840,
+      "offset": 26080,
+      "lang": "en"
+    },
+    {
+      "text": "bothered. But that's exactly why. and",
+      "duration": 4641,
+      "offset": 27519,
+      "lang": "en"
+    },
+    {
+      "text": "how I want to show you this. It's not",
+      "duration": 4080,
+      "offset": 29920,
+      "lang": "en"
+    },
+    {
+      "text": "polish results, but the process and what",
+      "duration": 3520,
+      "offset": 32160,
+      "lang": "en"
+    },
+    {
+      "text": "you'll find isn't magic. It's",
+      "duration": 3520,
+      "offset": 34000,
+      "lang": "en"
+    },
+    {
+      "text": "infrastructure. It's documentation,",
+      "duration": 3680,
+      "offset": 35680,
+      "lang": "en"
+    },
+    {
+      "text": "specifications, component libraries.",
+      "duration": 3520,
+      "offset": 37520,
+      "lang": "en"
+    },
+    {
+      "text": "It's honestly software engineering",
+      "duration": 4560,
+      "offset": 39360,
+      "lang": "en"
+    },
+    {
+      "text": "applied to a creative problem. But let",
+      "duration": 5440,
+      "offset": 41040,
+      "lang": "en"
+    },
+    {
+      "text": "me go ahead and start with what you need",
+      "duration": 4639,
+      "offset": 43920,
+      "lang": "en"
+    },
+    {
+      "text": "if you wanted to do this yourself. I use",
+      "duration": 4160,
+      "offset": 46480,
+      "lang": "en"
+    },
+    {
+      "text": "cloud code, but you can use codeex or",
+      "duration": 4801,
+      "offset": 48559,
+      "lang": "en"
+    },
+    {
+      "text": "any other sort of coding agent. Um, on",
+      "duration": 4399,
+      "offset": 50640,
+      "lang": "en"
+    },
+    {
+      "text": "top of that, I also use some sort of",
+      "duration": 4000,
+      "offset": 53360,
+      "lang": "en"
+    },
+    {
+      "text": "IDE. You can use VS Code, cursor,",
+      "duration": 4641,
+      "offset": 55039,
+      "lang": "en"
+    },
+    {
+      "text": "anti-gravity, and just throw the plug in",
+      "duration": 3999,
+      "offset": 57360,
+      "lang": "en"
+    },
+    {
+      "text": "for each of those. Finally, I use a",
+      "duration": 3760,
+      "offset": 59680,
+      "lang": "en"
+    },
+    {
+      "text": "library called Remotion, uh, which",
+      "duration": 4401,
+      "offset": 61359,
+      "lang": "en"
+    },
+    {
+      "text": "generates most of the processes, and",
+      "duration": 4160,
+      "offset": 63440,
+      "lang": "en"
+    },
+    {
+      "text": "then I throw that all into some sort of",
+      "duration": 3600,
+      "offset": 65760,
+      "lang": "en"
+    },
+    {
+      "text": "video editing software, which I",
+      "duration": 3519,
+      "offset": 67600,
+      "lang": "en"
+    },
+    {
+      "text": "personally use, Cap Cut, cuz it's super",
+      "duration": 3345,
+      "offset": 69360,
+      "lang": "en"
+    },
+    {
+      "text": "easy to use. I'm not going to walk",
+      "duration": 2320,
+      "offset": 71119,
+      "lang": "en"
+    },
+    {
+      "text": "[clears throat] you through the",
+      "duration": 2495,
+      "offset": 72705,
+      "lang": "en"
+    },
+    {
+      "text": "installation because there's plenty of",
+      "duration": 4241,
+      "offset": 73439,
+      "lang": "en"
+    },
+    {
+      "text": "tutorials uh, for that and it would eat",
+      "duration": 4640,
+      "offset": 75200,
+      "lang": "en"
+    },
+    {
+      "text": "up time better spent on the actual",
+      "duration": 4640,
+      "offset": 77680,
+      "lang": "en"
+    },
+    {
+      "text": "process of moving between these. Just",
+      "duration": 4160,
+      "offset": 79840,
+      "lang": "en"
+    },
+    {
+      "text": "know if you have these tools set up and",
+      "duration": 2720,
+      "offset": 82320,
+      "lang": "en"
+    },
+    {
+      "text": "running, everything I'm about to",
+      "duration": 2720,
+      "offset": 84000,
+      "lang": "en"
+    },
+    {
+      "text": "describe to you is available to you. And",
+      "duration": 4079,
+      "offset": 85040,
+      "lang": "en"
+    },
+    {
+      "text": "again, it's not tool specific. The tools",
+      "duration": 4000,
+      "offset": 86720,
+      "lang": "en"
+    },
+    {
+      "text": "actually don't matter themselves. It's",
+      "duration": 4481,
+      "offset": 89119,
+      "lang": "en"
+    },
+    {
+      "text": "the process and how you use them, how",
+      "duration": 5359,
+      "offset": 90720,
+      "lang": "en"
+    },
+    {
+      "text": "they work together. And honestly, that's",
+      "duration": 4000,
+      "offset": 93600,
+      "lang": "en"
+    },
+    {
+      "text": "what you'll see in all of my videos. I'm",
+      "duration": 3680,
+      "offset": 96079,
+      "lang": "en"
+    },
+    {
+      "text": "not just doing basic tutorials. I'm",
+      "duration": 4559,
+      "offset": 97600,
+      "lang": "en"
+    },
+    {
+      "text": "giving you a framework to how to use",
+      "duration": 4641,
+      "offset": 99759,
+      "lang": "en"
+    },
+    {
+      "text": "tools like these, these new abstractions",
+      "duration": 4960,
+      "offset": 102159,
+      "lang": "en"
+    },
+    {
+      "text": "of AI all together in a way that",
+      "duration": 4399,
+      "offset": 104400,
+      "lang": "en"
+    },
+    {
+      "text": "actually works. Now, here's the part",
+      "duration": 2960,
+      "offset": 107119,
+      "lang": "en"
+    },
+    {
+      "text": "that surprised me when I started doing",
+      "duration": 2960,
+      "offset": 108799,
+      "lang": "en"
+    },
+    {
+      "text": "this. The hard work isn't the AI. It's",
+      "duration": 3441,
+      "offset": 110079,
+      "lang": "en"
+    },
+    {
+      "text": "not the code, it's the spec, it's the",
+      "duration": 3441,
+      "offset": 111759,
+      "lang": "en"
+    },
+    {
+      "text": "breakdown. It's the documents that",
+      "duration": 4239,
+      "offset": 113520,
+      "lang": "en"
+    },
+    {
+      "text": "describe what the video should be. And",
+      "duration": 4480,
+      "offset": 115200,
+      "lang": "en"
+    },
+    {
+      "text": "not vaguely, not make it look cool, but",
+      "duration": 3841,
+      "offset": 117759,
+      "lang": "en"
+    },
+    {
+      "text": "precisely. What's the structure? What",
+      "duration": 3360,
+      "offset": 119680,
+      "lang": "en"
+    },
+    {
+      "text": "happens in each scene? What's the",
+      "duration": 3440,
+      "offset": 121600,
+      "lang": "en"
+    },
+    {
+      "text": "timing? What's the visual elements",
+      "duration": 3759,
+      "offset": 123040,
+      "lang": "en"
+    },
+    {
+      "text": "appear? When should they appear? What do",
+      "duration": 3120,
+      "offset": 125040,
+      "lang": "en"
+    },
+    {
+      "text": "you want to emphasize? And what should",
+      "duration": 3680,
+      "offset": 126799,
+      "lang": "en"
+    },
+    {
+      "text": "stay in the background? If you ever",
+      "duration": 4240,
+      "offset": 128160,
+      "lang": "en"
+    },
+    {
+      "text": "worked with a designer or an animator,",
+      "duration": 4561,
+      "offset": 130479,
+      "lang": "en"
+    },
+    {
+      "text": "you know this is as a brief. And there's",
+      "duration": 6000,
+      "offset": 132400,
+      "lang": "en"
+    },
+    {
+      "text": "this quote from uh David Ugle. He said,",
+      "duration": 6400,
+      "offset": 135040,
+      "lang": "en"
+    },
+    {
+      "text": "\"Give me the freedom of a tight brief.\"",
+      "duration": 5120,
+      "offset": 138400,
+      "lang": "en"
+    },
+    {
+      "text": "Which sounds like a contradiction, but",
+      "duration": 4240,
+      "offset": 141440,
+      "lang": "en"
+    },
+    {
+      "text": "it isn't. When the brief is clear, when",
+      "duration": 4160,
+      "offset": 143520,
+      "lang": "en"
+    },
+    {
+      "text": "it defines the problem precisely, the",
+      "duration": 4400,
+      "offset": 145680,
+      "lang": "en"
+    },
+    {
+      "text": "person executing it knows exactly where",
+      "duration": 4559,
+      "offset": 147680,
+      "lang": "en"
+    },
+    {
+      "text": "they're going. They can focus on solving",
+      "duration": 3519,
+      "offset": 150080,
+      "lang": "en"
+    },
+    {
+      "text": "the problem instead of just sitting",
+      "duration": 2401,
+      "offset": 152239,
+      "lang": "en"
+    },
+    {
+      "text": "there trying to figure out what the",
+      "duration": 3521,
+      "offset": 153599,
+      "lang": "en"
+    },
+    {
+      "text": "problem even is. My spec or the spec",
+      "duration": 4879,
+      "offset": 154640,
+      "lang": "en"
+    },
+    {
+      "text": "that you're making, the markdown file is",
+      "duration": 6080,
+      "offset": 157120,
+      "lang": "en"
+    },
+    {
+      "text": "the brief. It's where your ideas become",
+      "duration": 5601,
+      "offset": 159519,
+      "lang": "en"
+    },
+    {
+      "text": "concrete enough for the system for the",
+      "duration": 4000,
+      "offset": 163200,
+      "lang": "en"
+    },
+    {
+      "text": "AI to actually execute them. And this is",
+      "duration": 3839,
+      "offset": 165120,
+      "lang": "en"
+    },
+    {
+      "text": "where most of your creative thinking",
+      "duration": 3840,
+      "offset": 167200,
+      "lang": "en"
+    },
+    {
+      "text": "should be happening. What's the thesis",
+      "duration": 3601,
+      "offset": 168959,
+      "lang": "en"
+    },
+    {
+      "text": "of this video? What's the arc? What are",
+      "duration": 2720,
+      "offset": 171040,
+      "lang": "en"
+    },
+    {
+      "text": "the scripts? What are the moments that",
+      "duration": 3200,
+      "offset": 172560,
+      "lang": "en"
+    },
+    {
+      "text": "need to land? What should feel fast and",
+      "duration": 4320,
+      "offset": 173760,
+      "lang": "en"
+    },
+    {
+      "text": "what should feel slow? A loose spec or a",
+      "duration": 4400,
+      "offset": 175760,
+      "lang": "en"
+    },
+    {
+      "text": "poor spec means that Claude or your AI",
+      "duration": 4480,
+      "offset": 178080,
+      "lang": "en"
+    },
+    {
+      "text": "agent makes more interpretive choices or",
+      "duration": 4640,
+      "offset": 180160,
+      "lang": "en"
+    },
+    {
+      "text": "hallucinates more. A tight spec means",
+      "duration": 4160,
+      "offset": 182560,
+      "lang": "en"
+    },
+    {
+      "text": "you're directing it at every beat. And",
+      "duration": 3760,
+      "offset": 184800,
+      "lang": "en"
+    },
+    {
+      "text": "really, it allows you to do a lot more",
+      "duration": 3920,
+      "offset": 186720,
+      "lang": "en"
+    },
+    {
+      "text": "focused things. You can do both, and it",
+      "duration": 3520,
+      "offset": 188560,
+      "lang": "en"
+    },
+    {
+      "text": "depends on where you want your creative",
+      "duration": 4160,
+      "offset": 190640,
+      "lang": "en"
+    },
+    {
+      "text": "energy to go. But I'll show you what one",
+      "duration": 5760,
+      "offset": 192080,
+      "lang": "en"
+    },
+    {
+      "text": "of my specs look like. And again, as I",
+      "duration": 5120,
+      "offset": 194800,
+      "lang": "en"
+    },
+    {
+      "text": "said, it's actually just a markdown",
+      "duration": 3679,
+      "offset": 197840,
+      "lang": "en"
+    },
+    {
+      "text": "file, which is a type of file that",
+      "duration": 4080,
+      "offset": 199920,
+      "lang": "en"
+    },
+    {
+      "text": "organizes text in a very specific way.",
+      "duration": 4321,
+      "offset": 201519,
+      "lang": "en"
+    },
+    {
+      "text": "It has headings for each scene,",
+      "duration": 3840,
+      "offset": 204000,
+      "lang": "en"
+    },
+    {
+      "text": "descriptions of what happens, notes on",
+      "duration": 4319,
+      "offset": 205840,
+      "lang": "en"
+    },
+    {
+      "text": "timing and emphasis. It's really nothing",
+      "duration": 4800,
+      "offset": 207840,
+      "lang": "en"
+    },
+    {
+      "text": "too fancy, but it's the document that",
+      "duration": 5121,
+      "offset": 210159,
+      "lang": "en"
+    },
+    {
+      "text": "makes everything else possible. And this",
+      "duration": 5360,
+      "offset": 212640,
+      "lang": "en"
+    },
+    {
+      "text": "isn't just for creative processes. This",
+      "duration": 4800,
+      "offset": 215280,
+      "lang": "en"
+    },
+    {
+      "text": "is for code. This is for anything you're",
+      "duration": 4480,
+      "offset": 218000,
+      "lang": "en"
+    },
+    {
+      "text": "doing with AI agents. And you'll start",
+      "duration": 4960,
+      "offset": 220080,
+      "lang": "en"
+    },
+    {
+      "text": "to notice how powerful this process is.",
+      "duration": 4640,
+      "offset": 222480,
+      "lang": "en"
+    },
+    {
+      "text": "Once you have a spec, the building phase",
+      "duration": 4000,
+      "offset": 225040,
+      "lang": "en"
+    },
+    {
+      "text": "is where it becomes animation. And",
+      "duration": 4560,
+      "offset": 227120,
+      "lang": "en"
+    },
+    {
+      "text": "here's what actually is happening.",
+      "duration": 4880,
+      "offset": 229040,
+      "lang": "en"
+    },
+    {
+      "text": "Claude code or your agent is going to",
+      "duration": 4400,
+      "offset": 231680,
+      "lang": "en"
+    },
+    {
+      "text": "read through the spec, but it also reads",
+      "duration": 4160,
+      "offset": 233920,
+      "lang": "en"
+    },
+    {
+      "text": "your documentation if the spec is",
+      "duration": 4000,
+      "offset": 236080,
+      "lang": "en"
+    },
+    {
+      "text": "mentioning, which mentions maybe style",
+      "duration": 3760,
+      "offset": 238080,
+      "lang": "en"
+    },
+    {
+      "text": "guides. This is going to define your",
+      "duration": 3600,
+      "offset": 240080,
+      "lang": "en"
+    },
+    {
+      "text": "visual language. You're going to define",
+      "duration": 3599,
+      "offset": 241840,
+      "lang": "en"
+    },
+    {
+      "text": "minimal texts. You're going to define",
+      "duration": 4400,
+      "offset": 243680,
+      "lang": "en"
+    },
+    {
+      "text": "color pallets, animation timing. It's",
+      "duration": 4080,
+      "offset": 245439,
+      "lang": "en"
+    },
+    {
+      "text": "going to read through a component",
+      "duration": 3439,
+      "offset": 248080,
+      "lang": "en"
+    },
+    {
+      "text": "registry. Now, I created this, but it's",
+      "duration": 4401,
+      "offset": 249519,
+      "lang": "en"
+    },
+    {
+      "text": "basically just a list of reusable pieces",
+      "duration": 4000,
+      "offset": 251519,
+      "lang": "en"
+    },
+    {
+      "text": "that you've already built in previous",
+      "duration": 3520,
+      "offset": 253920,
+      "lang": "en"
+    },
+    {
+      "text": "videos or you're building with the AI",
+      "duration": 3601,
+      "offset": 255519,
+      "lang": "en"
+    },
+    {
+      "text": "before it even starts, right? Text",
+      "duration": 4000,
+      "offset": 257440,
+      "lang": "en"
+    },
+    {
+      "text": "animations, backgrounds, transitions,",
+      "duration": 4880,
+      "offset": 259120,
+      "lang": "en"
+    },
+    {
+      "text": "data visualizations. Then from there,",
+      "duration": 4479,
+      "offset": 261440,
+      "lang": "en"
+    },
+    {
+      "text": "you're actually having it build each",
+      "duration": 4880,
+      "offset": 264000,
+      "lang": "en"
+    },
+    {
+      "text": "scene one by one. And each scene is just",
+      "duration": 4720,
+      "offset": 265919,
+      "lang": "en"
+    },
+    {
+      "text": "a React component, right? This a",
+      "duration": 4400,
+      "offset": 268880,
+      "lang": "en"
+    },
+    {
+      "text": "front-end uh software. And Remotion",
+      "duration": 4321,
+      "offset": 270639,
+      "lang": "en"
+    },
+    {
+      "text": "takes those React components and",
+      "duration": 3280,
+      "offset": 273280,
+      "lang": "en"
+    },
+    {
+      "text": "actually allows you to render them frame",
+      "duration": 4400,
+      "offset": 274960,
+      "lang": "en"
+    },
+    {
+      "text": "by frame into a long video. And there's",
+      "duration": 4560,
+      "offset": 276560,
+      "lang": "en"
+    },
+    {
+      "text": "an insight from a man named Johnny",
+      "duration": 4559,
+      "offset": 279360,
+      "lang": "en"
+    },
+    {
+      "text": "Burgerer who actually created reotion. A",
+      "duration": 5680,
+      "offset": 281120,
+      "lang": "en"
+    },
+    {
+      "text": "video is just a function of images over",
+      "duration": 5521,
+      "offset": 283919,
+      "lang": "en"
+    },
+    {
+      "text": "time. If you change content every frame,",
+      "duration": 5200,
+      "offset": 286800,
+      "lang": "en"
+    },
+    {
+      "text": "you get animation. And React is already",
+      "duration": 4319,
+      "offset": 289440,
+      "lang": "en"
+    },
+    {
+      "text": "good at describing what should appear",
+      "duration": 4160,
+      "offset": 292000,
+      "lang": "en"
+    },
+    {
+      "text": "based on some state. So instead of the",
+      "duration": 5041,
+      "offset": 293759,
+      "lang": "en"
+    },
+    {
+      "text": "state being user input, the state is the",
+      "duration": 4960,
+      "offset": 296160,
+      "lang": "en"
+    },
+    {
+      "text": "current frame number. You tell React",
+      "duration": 4640,
+      "offset": 298800,
+      "lang": "en"
+    },
+    {
+      "text": "what frame 47 should look like and it",
+      "duration": 4960,
+      "offset": 301120,
+      "lang": "en"
+    },
+    {
+      "text": "renders it. Do that for every frame, you",
+      "duration": 5120,
+      "offset": 303440,
+      "lang": "en"
+    },
+    {
+      "text": "now have a video. What this means in",
+      "duration": 4320,
+      "offset": 306080,
+      "lang": "en"
+    },
+    {
+      "text": "practice is that anything that works in",
+      "duration": 3919,
+      "offset": 308560,
+      "lang": "en"
+    },
+    {
+      "text": "a web browser can be part of your",
+      "duration": 5359,
+      "offset": 310400,
+      "lang": "en"
+    },
+    {
+      "text": "animation. CSS, SVG, canvas, the entire",
+      "duration": 5841,
+      "offset": 312479,
+      "lang": "en"
+    },
+    {
+      "text": "ecosystem of JavaScript libraries can",
+      "duration": 5121,
+      "offset": 315759,
+      "lang": "en"
+    },
+    {
+      "text": "now be placed into your videos. You see,",
+      "duration": 4159,
+      "offset": 318320,
+      "lang": "en"
+    },
+    {
+      "text": "you're not learning a new tool from",
+      "duration": 2879,
+      "offset": 320880,
+      "lang": "en"
+    },
+    {
+      "text": "scratch. If you're a front-end",
+      "duration": 2961,
+      "offset": 322479,
+      "lang": "en"
+    },
+    {
+      "text": "developer, you're using tools that have",
+      "duration": 5761,
+      "offset": 323759,
+      "lang": "en"
+    },
+    {
+      "text": "already existed for a new purpose. So,",
+      "duration": 6319,
+      "offset": 325440,
+      "lang": "en"
+    },
+    {
+      "text": "the workflow actually looks more",
+      "duration": 4880,
+      "offset": 329520,
+      "lang": "en"
+    },
+    {
+      "text": "detailed like this. I give Claude the",
+      "duration": 5521,
+      "offset": 331759,
+      "lang": "en"
+    },
+    {
+      "text": "spec, point it at the documentation, I",
+      "duration": 5440,
+      "offset": 334400,
+      "lang": "en"
+    },
+    {
+      "text": "tell it which scene to build, it writes",
+      "duration": 4880,
+      "offset": 337280,
+      "lang": "en"
+    },
+    {
+      "text": "the code, I preview it in Remotion",
+      "duration": 4320,
+      "offset": 339840,
+      "lang": "en"
+    },
+    {
+      "text": "Studio, and if something isn't right, I",
+      "duration": 3680,
+      "offset": 342160,
+      "lang": "en"
+    },
+    {
+      "text": "literally just describe in natural",
+      "duration": 4400,
+      "offset": 344160,
+      "lang": "en"
+    },
+    {
+      "text": "language what needs to change, and it",
+      "duration": 5280,
+      "offset": 345840,
+      "lang": "en"
+    },
+    {
+      "text": "adjusts. We iterate until the scene",
+      "duration": 4639,
+      "offset": 348560,
+      "lang": "en"
+    },
+    {
+      "text": "matches what I had in mind. The",
+      "duration": 4480,
+      "offset": 351120,
+      "lang": "en"
+    },
+    {
+      "text": "component library matters at this point",
+      "duration": 4000,
+      "offset": 353199,
+      "lang": "en"
+    },
+    {
+      "text": "because I'm not building every single",
+      "duration": 3439,
+      "offset": 355600,
+      "lang": "en"
+    },
+    {
+      "text": "animation from scratch. It's not like",
+      "duration": 4081,
+      "offset": 357199,
+      "lang": "en"
+    },
+    {
+      "text": "every time I'm making a video, I'm just",
+      "duration": 3921,
+      "offset": 359039,
+      "lang": "en"
+    },
+    {
+      "text": "starting from fresh. I actually have",
+      "duration": 3440,
+      "offset": 361280,
+      "lang": "en"
+    },
+    {
+      "text": "building blocks that are traditional",
+      "duration": 3600,
+      "offset": 362960,
+      "lang": "en"
+    },
+    {
+      "text": "code, a text component that handles",
+      "duration": 4000,
+      "offset": 364720,
+      "lang": "en"
+    },
+    {
+      "text": "entrance animations or enforces readable",
+      "duration": 4320,
+      "offset": 366560,
+      "lang": "en"
+    },
+    {
+      "text": "sizes, a scene container that handles",
+      "duration": 4479,
+      "offset": 368720,
+      "lang": "en"
+    },
+    {
+      "text": "safe margins and backgrounds. Effects",
+      "duration": 4480,
+      "offset": 370880,
+      "lang": "en"
+    },
+    {
+      "text": "like glitch text or counting numbers.",
+      "duration": 4321,
+      "offset": 373199,
+      "lang": "en"
+    },
+    {
+      "text": "When Claude builds a scene, it assembles",
+      "duration": 4480,
+      "offset": 375360,
+      "lang": "en"
+    },
+    {
+      "text": "these pieces according to the spec. It's",
+      "duration": 4480,
+      "offset": 377520,
+      "lang": "en"
+    },
+    {
+      "text": "not inventing everything new, but rather",
+      "duration": 4320,
+      "offset": 379840,
+      "lang": "en"
+    },
+    {
+      "text": "this kind of aspect of like, hey, I",
+      "duration": 4080,
+      "offset": 382000,
+      "lang": "en"
+    },
+    {
+      "text": "should compose a new element that",
+      "duration": 3680,
+      "offset": 384160,
+      "lang": "en"
+    },
+    {
+      "text": "already works together in other",
+      "duration": 4640,
+      "offset": 386080,
+      "lang": "en"
+    },
+    {
+      "text": "elements. This is just separations of",
+      "duration": 4400,
+      "offset": 387840,
+      "lang": "en"
+    },
+    {
+      "text": "concerns. It's the same principle that",
+      "duration": 4000,
+      "offset": 390720,
+      "lang": "en"
+    },
+    {
+      "text": "makes any complex software manageable.",
+      "duration": 4239,
+      "offset": 392240,
+      "lang": "en"
+    },
+    {
+      "text": "The spec is separate from the",
+      "duration": 4000,
+      "offset": 394720,
+      "lang": "en"
+    },
+    {
+      "text": "implementation. The components are",
+      "duration": 4720,
+      "offset": 396479,
+      "lang": "en"
+    },
+    {
+      "text": "reusable. The style guide encodes",
+      "duration": 4240,
+      "offset": 398720,
+      "lang": "en"
+    },
+    {
+      "text": "decisions so you don't have to make them",
+      "duration": 4161,
+      "offset": 401199,
+      "lang": "en"
+    },
+    {
+      "text": "every time. Now, if anyone has written",
+      "duration": 4160,
+      "offset": 402960,
+      "lang": "en"
+    },
+    {
+      "text": "software before, this should actually",
+      "duration": 3839,
+      "offset": 405360,
+      "lang": "en"
+    },
+    {
+      "text": "seem very familiar. And even if you",
+      "duration": 3600,
+      "offset": 407120,
+      "lang": "en"
+    },
+    {
+      "text": "haven't, just know that this is the",
+      "duration": 4161,
+      "offset": 409199,
+      "lang": "en"
+    },
+    {
+      "text": "principle. Break complex things into",
+      "duration": 5039,
+      "offset": 410720,
+      "lang": "en"
+    },
+    {
+      "text": "smaller pieces that can be understood",
+      "duration": 5279,
+      "offset": 413360,
+      "lang": "en"
+    },
+    {
+      "text": "and changed independently. From there,",
+      "duration": 5361,
+      "offset": 415759,
+      "lang": "en"
+    },
+    {
+      "text": "once the scenes are relatively built, I",
+      "duration": 4560,
+      "offset": 418639,
+      "lang": "en"
+    },
+    {
+      "text": "just export it from Remotion or even",
+      "duration": 4639,
+      "offset": 421120,
+      "lang": "en"
+    },
+    {
+      "text": "just use OBS to record my screen, so I",
+      "duration": 3761,
+      "offset": 423199,
+      "lang": "en"
+    },
+    {
+      "text": "don't have to worry about render",
+      "duration": 3921,
+      "offset": 425759,
+      "lang": "en"
+    },
+    {
+      "text": "processes or codec errors. And this just",
+      "duration": 4560,
+      "offset": 426960,
+      "lang": "en"
+    },
+    {
+      "text": "is something I can upload straight into",
+      "duration": 4079,
+      "offset": 429680,
+      "lang": "en"
+    },
+    {
+      "text": "Cap Cut. Now, this is where the",
+      "duration": 4160,
+      "offset": 431520,
+      "lang": "en"
+    },
+    {
+      "text": "animation becomes much more of a video.",
+      "duration": 4720,
+      "offset": 433759,
+      "lang": "en"
+    },
+    {
+      "text": "I usually do a voice over. I cut and",
+      "duration": 4720,
+      "offset": 435680,
+      "lang": "en"
+    },
+    {
+      "text": "make sure that it actually syncs up. I",
+      "duration": 4801,
+      "offset": 438479,
+      "lang": "en"
+    },
+    {
+      "text": "maybe add some music. And there's some",
+      "duration": 4639,
+      "offset": 440400,
+      "lang": "en"
+    },
+    {
+      "text": "things that right now are a little bit",
+      "duration": 3440,
+      "offset": 443280,
+      "lang": "en"
+    },
+    {
+      "text": "easier to do by hand. So, I haven't",
+      "duration": 3521,
+      "offset": 445039,
+      "lang": "en"
+    },
+    {
+      "text": "really automated that process, but I'm",
+      "duration": 3680,
+      "offset": 446720,
+      "lang": "en"
+    },
+    {
+      "text": "working on it. Now, scrubbing through",
+      "duration": 3919,
+      "offset": 448560,
+      "lang": "en"
+    },
+    {
+      "text": "and nudging a transition to land exactly",
+      "duration": 4560,
+      "offset": 450400,
+      "lang": "en"
+    },
+    {
+      "text": "on a word is honestly faster in a video",
+      "duration": 4160,
+      "offset": 452479,
+      "lang": "en"
+    },
+    {
+      "text": "editor than describing it in the spec",
+      "duration": 3760,
+      "offset": 454960,
+      "lang": "en"
+    },
+    {
+      "text": "and waiting for code to regenerate. The",
+      "duration": 3761,
+      "offset": 456639,
+      "lang": "en"
+    },
+    {
+      "text": "animation is not the finished video.",
+      "duration": 3680,
+      "offset": 458720,
+      "lang": "en"
+    },
+    {
+      "text": "It's simply a starting point. Now, it is",
+      "duration": 4000,
+      "offset": 460400,
+      "lang": "en"
+    },
+    {
+      "text": "a substantial one. I still spend real",
+      "duration": 4079,
+      "offset": 462400,
+      "lang": "en"
+    },
+    {
+      "text": "time in this phase. I'm cutting so many",
+      "duration": 3519,
+      "offset": 464400,
+      "lang": "en"
+    },
+    {
+      "text": "sections that don't work when I hear",
+      "duration": 3201,
+      "offset": 466479,
+      "lang": "en"
+    },
+    {
+      "text": "them out loud. I'm re-recording lines",
+      "duration": 3680,
+      "offset": 467919,
+      "lang": "en"
+    },
+    {
+      "text": "that don't land. I'm adding photos or",
+      "duration": 4000,
+      "offset": 469680,
+      "lang": "en"
+    },
+    {
+      "text": "screenshots or footage to support the",
+      "duration": 3761,
+      "offset": 471599,
+      "lang": "en"
+    },
+    {
+      "text": "narration. The animations give me a",
+      "duration": 3359,
+      "offset": 473680,
+      "lang": "en"
+    },
+    {
+      "text": "foundation, but the finished video",
+      "duration": 4000,
+      "offset": 475360,
+      "lang": "en"
+    },
+    {
+      "text": "requires refinement. So when I say under",
+      "duration": 4720,
+      "offset": 477039,
+      "lang": "en"
+    },
+    {
+      "text": "an hour, I mean the animation, the part",
+      "duration": 4320,
+      "offset": 479360,
+      "lang": "en"
+    },
+    {
+      "text": "that would have taken a week if I was",
+      "duration": 4081,
+      "offset": 481759,
+      "lang": "en"
+    },
+    {
+      "text": "doing it frame by frame and After",
+      "duration": 4320,
+      "offset": 483680,
+      "lang": "en"
+    },
+    {
+      "text": "Effects. The finished video still takes",
+      "duration": 4000,
+      "offset": 485840,
+      "lang": "en"
+    },
+    {
+      "text": "time, but I'm spending that time on the",
+      "duration": 3360,
+      "offset": 488000,
+      "lang": "en"
+    },
+    {
+      "text": "parts I actually want to control. The",
+      "duration": 3359,
+      "offset": 489840,
+      "lang": "en"
+    },
+    {
+      "text": "pacing, the moments that need a real",
+      "duration": 4080,
+      "offset": 491360,
+      "lang": "en"
+    },
+    {
+      "text": "image instead of motion graphics. Now,",
+      "duration": 4241,
+      "offset": 493199,
+      "lang": "en"
+    },
+    {
+      "text": "the question isn't really about whether",
+      "duration": 4080,
+      "offset": 495440,
+      "lang": "en"
+    },
+    {
+      "text": "AI can make videos or anything like",
+      "duration": 4479,
+      "offset": 497440,
+      "lang": "en"
+    },
+    {
+      "text": "that. It's more where do you want to",
+      "duration": 5200,
+      "offset": 499520,
+      "lang": "en"
+    },
+    {
+      "text": "spend your creative energy? And for me,",
+      "duration": 4960,
+      "offset": 501919,
+      "lang": "en"
+    },
+    {
+      "text": "the answer is not automating from",
+      "duration": 4159,
+      "offset": 504720,
+      "lang": "en"
+    },
+    {
+      "text": "scratch, not animating everything.",
+      "duration": 3600,
+      "offset": 506879,
+      "lang": "en"
+    },
+    {
+      "text": "Honestly, I'd rather have something real",
+      "duration": 4400,
+      "offset": 508879,
+      "lang": "en"
+    },
+    {
+      "text": "to react and to shape to rather than",
+      "duration": 5120,
+      "offset": 510479,
+      "lang": "en"
+    },
+    {
+      "text": "start with a blank timeline or focus on",
+      "duration": 5041,
+      "offset": 513279,
+      "lang": "en"
+    },
+    {
+      "text": "the actual content itself. Now, that",
+      "duration": 4240,
+      "offset": 515599,
+      "lang": "en"
+    },
+    {
+      "text": "being said, let's zoom out for a second",
+      "duration": 3360,
+      "offset": 518320,
+      "lang": "en"
+    },
+    {
+      "text": "because I think what's happening here,",
+      "duration": 4080,
+      "offset": 519839,
+      "lang": "en"
+    },
+    {
+      "text": "as I mentioned earlier in the video, is",
+      "duration": 5360,
+      "offset": 521680,
+      "lang": "en"
+    },
+    {
+      "text": "part of a much larger pattern. When",
+      "duration": 6241,
+      "offset": 523919,
+      "lang": "en"
+    },
+    {
+      "text": "Garage Band came out in 2004, Steve says",
+      "duration": 5280,
+      "offset": 527040,
+      "lang": "en"
+    },
+    {
+      "text": "he wanted to democratize music making.",
+      "duration": 3920,
+      "offset": 530160,
+      "lang": "en"
+    },
+    {
+      "text": "And there's this statistic that stuck",
+      "duration": 4400,
+      "offset": 532320,
+      "lang": "en"
+    },
+    {
+      "text": "with me. Suddenly, every teenager with a",
+      "duration": 4319,
+      "offset": 534080,
+      "lang": "en"
+    },
+    {
+      "text": "Mac could produce music that would have",
+      "duration": 4080,
+      "offset": 536720,
+      "lang": "en"
+    },
+    {
+      "text": "required a $100,000 studio. 5 years",
+      "duration": 4560,
+      "offset": 538399,
+      "lang": "en"
+    },
+    {
+      "text": "earlier, Steve Lacy made tracks for",
+      "duration": 4000,
+      "offset": 540800,
+      "lang": "en"
+    },
+    {
+      "text": "Kendrick Lamar on a cracked iPhone with",
+      "duration": 4481,
+      "offset": 542959,
+      "lang": "en"
+    },
+    {
+      "text": "GarageBand and a $20 eye ring. That",
+      "duration": 5440,
+      "offset": 544800,
+      "lang": "en"
+    },
+    {
+      "text": "phone is now in the Smithsonian. Canva",
+      "duration": 4720,
+      "offset": 547440,
+      "lang": "en"
+    },
+    {
+      "text": "did something similar for visual design.",
+      "duration": 4000,
+      "offset": 550240,
+      "lang": "en"
+    },
+    {
+      "text": "Melanie Perkins was rejected by over a",
+      "duration": 3679,
+      "offset": 552160,
+      "lang": "en"
+    },
+    {
+      "text": "hundred investors who didn't think",
+      "duration": 3520,
+      "offset": 554240,
+      "lang": "en"
+    },
+    {
+      "text": "design tools for non-designers was a",
+      "duration": 3921,
+      "offset": 555839,
+      "lang": "en"
+    },
+    {
+      "text": "real market. Now 200 million people use",
+      "duration": 4160,
+      "offset": 557760,
+      "lang": "en"
+    },
+    {
+      "text": "it monthly. The pattern is always the",
+      "duration": 4160,
+      "offset": 559760,
+      "lang": "en"
+    },
+    {
+      "text": "same. A tool emerges that gives people",
+      "duration": 3919,
+      "offset": 561920,
+      "lang": "en"
+    },
+    {
+      "text": "access to execution they couldn't do",
+      "duration": 4080,
+      "offset": 563920,
+      "lang": "en"
+    },
+    {
+      "text": "before. Not replacing professionals, but",
+      "duration": 4161,
+      "offset": 565839,
+      "lang": "en"
+    },
+    {
+      "text": "letting people who have ideas actually",
+      "duration": 4240,
+      "offset": 568000,
+      "lang": "en"
+    },
+    {
+      "text": "realize them. And there's a really messy",
+      "duration": 4480,
+      "offset": 570000,
+      "lang": "en"
+    },
+    {
+      "text": "period early on which designers called",
+      "duration": 4159,
+      "offset": 572240,
+      "lang": "en"
+    },
+    {
+      "text": "the ransom note effect. When desktop",
+      "duration": 4720,
+      "offset": 574480,
+      "lang": "en"
+    },
+    {
+      "text": "publishing first appeared, everyone used",
+      "duration": 5601,
+      "offset": 576399,
+      "lang": "en"
+    },
+    {
+      "text": "15 different fonts on one page, but it",
+      "duration": 4400,
+      "offset": 579200,
+      "lang": "en"
+    },
+    {
+      "text": "kind of went all over. And then over",
+      "duration": 3760,
+      "offset": 582000,
+      "lang": "en"
+    },
+    {
+      "text": "time, the floor kind of rose. More",
+      "duration": 4320,
+      "offset": 583600,
+      "lang": "en"
+    },
+    {
+      "text": "people creating means more good work in",
+      "duration": 4480,
+      "offset": 585760,
+      "lang": "en"
+    },
+    {
+      "text": "absolute terms. Even if the average",
+      "duration": 5120,
+      "offset": 587920,
+      "lang": "en"
+    },
+    {
+      "text": "quality takes time to catch up. I think",
+      "duration": 5200,
+      "offset": 590240,
+      "lang": "en"
+    },
+    {
+      "text": "we're in that motion or that moment for",
+      "duration": 4320,
+      "offset": 593040,
+      "lang": "en"
+    },
+    {
+      "text": "AI and animation and video. The tools",
+      "duration": 4959,
+      "offset": 595440,
+      "lang": "en"
+    },
+    {
+      "text": "exist. The quality can be good. And",
+      "duration": 4400,
+      "offset": 597360,
+      "lang": "en"
+    },
+    {
+      "text": "people who couldn't afford a motion",
+      "duration": 3201,
+      "offset": 600399,
+      "lang": "en"
+    },
+    {
+      "text": "graphics artist or couldn't justify a",
+      "duration": 3519,
+      "offset": 601760,
+      "lang": "en"
+    },
+    {
+      "text": "week of their own time can now make",
+      "duration": 4160,
+      "offset": 603600,
+      "lang": "en"
+    },
+    {
+      "text": "something real. And this might be kind",
+      "duration": 5521,
+      "offset": 605279,
+      "lang": "en"
+    },
+    {
+      "text": "of powerive, but I think this is the key",
+      "duration": 4400,
+      "offset": 607760,
+      "lang": "en"
+    },
+    {
+      "text": "to how all of this is going to work.",
+      "duration": 4640,
+      "offset": 610800,
+      "lang": "en"
+    },
+    {
+      "text": "It's that constraints enable creativity.",
+      "duration": 4880,
+      "offset": 612160,
+      "lang": "en"
+    },
+    {
+      "text": "There's actual research on this. An",
+      "duration": 4160,
+      "offset": 615440,
+      "lang": "en"
+    },
+    {
+      "text": "inverted U-shaped relationship between",
+      "duration": 5840,
+      "offset": 617040,
+      "lang": "en"
+    },
+    {
+      "text": "constraints and creative output. Too few",
+      "duration": 5200,
+      "offset": 619600,
+      "lang": "en"
+    },
+    {
+      "text": "constraints, you get paralysis, the",
+      "duration": 4240,
+      "offset": 622880,
+      "lang": "en"
+    },
+    {
+      "text": "blank canvas problem. Too many, you",
+      "duration": 4159,
+      "offset": 624800,
+      "lang": "en"
+    },
+    {
+      "text": "actually get stifled. But right in the",
+      "duration": 3520,
+      "offset": 627120,
+      "lang": "en"
+    },
+    {
+      "text": "middle, with the right boundaries,",
+      "duration": 5041,
+      "offset": 628959,
+      "lang": "en"
+    },
+    {
+      "text": "creativity actually increases. Dr. Zeus",
+      "duration": 5920,
+      "offset": 630640,
+      "lang": "en"
+    },
+    {
+      "text": "wrote Green Eggs and Ham because his",
+      "duration": 4720,
+      "offset": 634000,
+      "lang": "en"
+    },
+    {
+      "text": "editor bet him $50 he couldn't write a",
+      "duration": 4640,
+      "offset": 636560,
+      "lang": "en"
+    },
+    {
+      "text": "book with only 50 words. He made",
+      "duration": 4799,
+      "offset": 638720,
+      "lang": "en"
+    },
+    {
+      "text": "flowcharts on his walls to track his",
+      "duration": 5520,
+      "offset": 641200,
+      "lang": "en"
+    },
+    {
+      "text": "vocabulary. And the book sold 200",
+      "duration": 5921,
+      "offset": 643519,
+      "lang": "en"
+    },
+    {
+      "text": "million copies, and it is his best",
+      "duration": 5679,
+      "offset": 646720,
+      "lang": "en"
+    },
+    {
+      "text": "selling work ever. Spielberg couldn't",
+      "duration": 4720,
+      "offset": 649440,
+      "lang": "en"
+    },
+    {
+      "text": "get the mechanical shark to work in",
+      "duration": 4481,
+      "offset": 652399,
+      "lang": "en"
+    },
+    {
+      "text": "Jaws, so he showed floating barrels and",
+      "duration": 5040,
+      "offset": 654160,
+      "lang": "en"
+    },
+    {
+      "text": "point off view shots instead. The shark",
+      "duration": 4160,
+      "offset": 656880,
+      "lang": "en"
+    },
+    {
+      "text": "doesn't fully appear until 80 minutes",
+      "duration": 4480,
+      "offset": 659200,
+      "lang": "en"
+    },
+    {
+      "text": "into the film. The constraint made it",
+      "duration": 5200,
+      "offset": 661040,
+      "lang": "en"
+    },
+    {
+      "text": "better somehow. The spec, the style",
+      "duration": 4560,
+      "offset": 663680,
+      "lang": "en"
+    },
+    {
+      "text": "guide, the component registry, these",
+      "duration": 3920,
+      "offset": 666240,
+      "lang": "en"
+    },
+    {
+      "text": "aren't limitations I work around.",
+      "duration": 3920,
+      "offset": 668240,
+      "lang": "en"
+    },
+    {
+      "text": "They're boundaries that make the output",
+      "duration": 4720,
+      "offset": 670160,
+      "lang": "en"
+    },
+    {
+      "text": "better. Instead, this case, Claude is",
+      "duration": 4560,
+      "offset": 672160,
+      "lang": "en"
+    },
+    {
+      "text": "now the one constrained. It knows the",
+      "duration": 4079,
+      "offset": 674880,
+      "lang": "en"
+    },
+    {
+      "text": "rules. It focuses on execution instead",
+      "duration": 4000,
+      "offset": 676720,
+      "lang": "en"
+    },
+    {
+      "text": "of wondering what I want. So let me come",
+      "duration": 3281,
+      "offset": 678959,
+      "lang": "en"
+    },
+    {
+      "text": "back to where we started. The animations",
+      "duration": 3119,
+      "offset": 680720,
+      "lang": "en"
+    },
+    {
+      "text": "that would have taken a week are now",
+      "duration": 4400,
+      "offset": 682240,
+      "lang": "en"
+    },
+    {
+      "text": "done in an hour. That part is true and I",
+      "duration": 4401,
+      "offset": 683839,
+      "lang": "en"
+    },
+    {
+      "text": "want you to understand what actually is",
+      "duration": 4720,
+      "offset": 686640,
+      "lang": "en"
+    },
+    {
+      "text": "behind that claim. AI is not magic. I",
+      "duration": 5440,
+      "offset": 688240,
+      "lang": "en"
+    },
+    {
+      "text": "built a system. The spec is where my",
+      "duration": 3919,
+      "offset": 691360,
+      "lang": "en"
+    },
+    {
+      "text": "creative thinking lives and the",
+      "duration": 3599,
+      "offset": 693680,
+      "lang": "en"
+    },
+    {
+      "text": "predefining constraints. The",
+      "duration": 4560,
+      "offset": 695279,
+      "lang": "en"
+    },
+    {
+      "text": "documentation encodes my preferences and",
+      "duration": 5120,
+      "offset": 697279,
+      "lang": "en"
+    },
+    {
+      "text": "my lessons from past mistakes. Claude",
+      "duration": 4401,
+      "offset": 699839,
+      "lang": "en"
+    },
+    {
+      "text": "executes within those boundaries,",
+      "duration": 4000,
+      "offset": 702399,
+      "lang": "en"
+    },
+    {
+      "text": "assembling components that already work",
+      "duration": 4560,
+      "offset": 704240,
+      "lang": "en"
+    },
+    {
+      "text": "together into scenes that match what I",
+      "duration": 4880,
+      "offset": 706399,
+      "lang": "en"
+    },
+    {
+      "text": "describe. Then I take that output and I",
+      "duration": 4320,
+      "offset": 708800,
+      "lang": "en"
+    },
+    {
+      "text": "refine it. I cut it. I add footage. I",
+      "duration": 4560,
+      "offset": 711279,
+      "lang": "en"
+    },
+    {
+      "text": "shape it into something finished. The",
+      "duration": 4880,
+      "offset": 713120,
+      "lang": "en"
+    },
+    {
+      "text": "creative work didn't disappear in the",
+      "duration": 4801,
+      "offset": 715839,
+      "lang": "en"
+    },
+    {
+      "text": "same way we would imagine it actually",
+      "duration": 5920,
+      "offset": 718000,
+      "lang": "en"
+    },
+    {
+      "text": "moving. The spec, the refinement, that",
+      "duration": 5199,
+      "offset": 720640,
+      "lang": "en"
+    },
+    {
+      "text": "whole area is actually where I want to",
+      "duration": 4000,
+      "offset": 723920,
+      "lang": "en"
+    },
+    {
+      "text": "spend my attention. Now, if you have",
+      "duration": 4081,
+      "offset": 725839,
+      "lang": "en"
+    },
+    {
+      "text": "ideas and want to visualize, but you're",
+      "duration": 3680,
+      "offset": 727920,
+      "lang": "en"
+    },
+    {
+      "text": "not an animator, this is probably",
+      "duration": 3919,
+      "offset": 729920,
+      "lang": "en"
+    },
+    {
+      "text": "something you want to focus on. Not",
+      "duration": 4560,
+      "offset": 731600,
+      "lang": "en"
+    },
+    {
+      "text": "easy. There's setup and learning and",
+      "duration": 4161,
+      "offset": 733839,
+      "lang": "en"
+    },
+    {
+      "text": "narration, but it's possible in a way",
+      "duration": 5440,
+      "offset": 736160,
+      "lang": "en"
+    },
+    {
+      "text": "that was never possible before. You can",
+      "duration": 6320,
+      "offset": 738000,
+      "lang": "en"
+    },
+    {
+      "text": "finally get ideas into a visual form",
+      "duration": 5200,
+      "offset": 741600,
+      "lang": "en"
+    },
+    {
+      "text": "that used to require skills most people",
+      "duration": 5120,
+      "offset": 744320,
+      "lang": "en"
+    },
+    {
+      "text": "don't have. Years of After Effects or",
+      "duration": 5279,
+      "offset": 746800,
+      "lang": "en"
+    },
+    {
+      "text": "money to hire someone who did. Now it",
+      "duration": 5360,
+      "offset": 749440,
+      "lang": "en"
+    },
+    {
+      "text": "requires a process, right? Tools that",
+      "duration": 4721,
+      "offset": 752079,
+      "lang": "en"
+    },
+    {
+      "text": "are freely available, a way of thinking",
+      "duration": 4320,
+      "offset": 754800,
+      "lang": "en"
+    },
+    {
+      "text": "about constraints and separations of",
+      "duration": 4800,
+      "offset": 756800,
+      "lang": "en"
+    },
+    {
+      "text": "concerns. And honestly, most of those",
+      "duration": 3839,
+      "offset": 759120,
+      "lang": "en"
+    },
+    {
+      "text": "constraints are just software",
+      "duration": 3200,
+      "offset": 761600,
+      "lang": "en"
+    },
+    {
+      "text": "engineering but applied to creative",
+      "duration": 4560,
+      "offset": 762959,
+      "lang": "en"
+    },
+    {
+      "text": "work. This process can be learned and I",
+      "duration": 4240,
+      "offset": 764800,
+      "lang": "en"
+    },
+    {
+      "text": "really recommend each of you try it.",
+      "duration": 3041,
+      "offset": 767519,
+      "lang": "en"
+    },
+    {
+      "text": "Everything I've described, I have",
+      "duration": 3039,
+      "offset": 769040,
+      "lang": "en"
+    },
+    {
+      "text": "documented. The tools are [music] there.",
+      "duration": 3200,
+      "offset": 770560,
+      "lang": "en"
+    },
+    {
+      "text": "If you want any of these specs or these",
+      "duration": 3681,
+      "offset": 772079,
+      "lang": "en"
+    },
+    {
+      "text": "scripts or these designs, just comment",
+      "duration": 3519,
+      "offset": 773760,
+      "lang": "en"
+    },
+    {
+      "text": "and and ask for them. I'll happy to",
+      "duration": 3759,
+      "offset": 775760,
+      "lang": "en"
+    },
+    {
+      "text": "email them to you. But if you have ideas",
+      "duration": 3601,
+      "offset": 777279,
+      "lang": "en"
+    },
+    {
+      "text": "that have been stuck in your head",
+      "duration": 2721,
+      "offset": 779519,
+      "lang": "en"
+    },
+    {
+      "text": "because you couldn't figure out how to",
+      "duration": 3360,
+      "offset": 780880,
+      "lang": "en"
+    },
+    {
+      "text": "make them visible,",
+      "duration": 4320,
+      "offset": 782240,
+      "lang": "en"
+    },
+    {
+      "text": "maybe now you can. Other than that, I",
+      "duration": 5520,
+      "offset": 784240,
+      "lang": "en"
+    },
+    {
+      "text": "hope this helps out everyone. As always,",
+      "duration": 6519,
+      "offset": 786560,
+      "lang": "en"
+    },
+    {
+      "text": "stay curious.",
+      "duration": 3319,
+      "offset": 789760,
+      "lang": "en"
+    }
+  ]
+}

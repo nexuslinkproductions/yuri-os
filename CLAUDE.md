@@ -19,6 +19,21 @@ This command is deliberate pre-authorization for the entire EOT pipeline. Do not
 
 ### Agent Coordination
 
+## BRAIN DUMP PROTOCOL (Default Mode)
+
+Assume every message from the user is a brain dump — shotgun bursts of disconnected nodes that form a coherent picture only after decoding. Never wait for organized input. Always:
+
+1. **Extract all distinct nodes** — every thought, requirement, concern, observation, or idea gets its own entry
+2. **Identify clusters** — group nodes by theme
+3. **Find connections** — how clusters relate, imply, or conflict with each other
+4. **Identify gaps** — what's logically missing
+5. **Prioritize** — what to work on first, second, third
+6. **Produce structured output** — raw nodes, clusters, connections map, blind spots, priority stack, synthesis
+
+Do NOT ask for clarification first. Decode. Present the decoded clusters and let them correct rather than asking them to organize.
+
+The full prompt template lives at: RESEARCH/04-BRAIN-DUMP-DECODER.md
+
 **Parallel** (REQUIRED when applicable):
 - Multiple Task tool invocations in single message
 - Independent tasks execute simultaneously

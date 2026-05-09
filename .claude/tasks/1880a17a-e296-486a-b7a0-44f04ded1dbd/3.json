@@ -1,0 +1,11 @@
+{
+  "id": "3",
+  "subject": "Fix OPENCLAW handoff to memory.db (Quick Win 2)",
+  "description": "Verify kernel.py syscalls (mem-read, mem-log, task-create). Test mem-log write from openclaw-bridge.sh. Wire OS_KERNEL/memory.db reads into ENKI session context. Unblock Discord lane.",
+  "activeForm": "Verifying and wiring OPENCLAW syscalls",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": [
+    "1"
+  ]
+}

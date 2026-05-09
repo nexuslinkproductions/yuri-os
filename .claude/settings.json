@@ -1,7 +1,12 @@
 {
+  "env": {
+    "CLAUDE_CODE_BASH_NO_TIMEOUT": "1",
+    "NUDIMMUD_WORKHORSE_TIMEOUT": "0"
+  },
   "permissions": {
     "allow": [
       "Bash(*)",
+      "Bash(chmod *)",
       "Read(*)",
       "Write(*)",
       "Edit(*)",
@@ -40,7 +45,7 @@
       "MultiEdit(.claude/state/token-session.json)"
     ]
   },
-  "model": "sonnet",
+  "model": "haiku",
   "hooks": {
     "SessionStart": [
       {
@@ -49,6 +54,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/token-session-init.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/palace-context-inject.js"
           },
           {
             "type": "command",
@@ -162,6 +171,7 @@
     "command": "node .claude/hooks/token-status.js"
   },
   "spinnerTipsEnabled": false,
+  "effortLevel": "high",
   "prefersReducedMotion": false,
   "theme": "dark-ansi",
   "autoScrollEnabled": true,
