@@ -1,7 +1,7 @@
 ---
 title: "09C Fixture — Yuri LLM Wiki Compiled Memory Layer"
 page_type: "concept"
-status: "candidate"
+status: "linted"
 created_at: "2026-05-09T14:31:23Z"
 source_refs:
   - path: ".claude/rules/nudimmud_operating_dna.md"
@@ -83,8 +83,8 @@ advisory_only: true
 rag_eligibility: "NOT_ELIGIBLE"
 ingestion_status: "NOT_INGESTED"
 sensitive_content_class: "curated_reference"
-last_verified_head: "d1172d7c2"
-last_verified_at: "2026-05-09T14:31:23Z"
+last_verified_head: "d6247ba9a"
+last_verified_at: "2026-05-09T15:05:25Z"
 tags:
   - "llm-wiki"
   - "compiled-memory"
@@ -95,6 +95,8 @@ tags:
 ## Purpose
 
 This candidate defines a minimal Yuri-native LLM Wiki control-plane island for future compiled-memory work. It is a reviewed-docs fixture only: raw/source truth stays outside the wiki, pending pages are advisory only, accepted pages require review, and RAG requires a future explicit gate before any eligibility or indexing.
+
+Manual lint passed for the `candidate -> linted` transition at head `d6247ba9a`. The candidate remains advisory, non-RAG, needs review, and blocked from acceptance until reviewer identity and provenance gaps are resolved.
 
 ## Separation Rule
 
@@ -108,6 +110,8 @@ DeepSeek direct API lanes are future-only for review, compression, classificatio
 
 - No accepted wiki page is created.
 - No source registry is created or repaired.
+- Source registry remains missing.
+- Reviewer identity remains unresolved.
 - No RAG eligibility is granted.
 - No RAG indexing is run.
 - No DB is opened or mutated.

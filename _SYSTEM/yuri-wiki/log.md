@@ -108,3 +108,18 @@ Append-only control log. New events append below existing events without rewriti
 - reviewer: `UNREVIEWED`
 - rag_eligibility: `NOT_ELIGIBLE`
 - notes: `No DeepSeek, Claude, Codex Spark, local model, OpenRouter, Ollama, Docker, Telegram, OpenClaw, MCP, plugin, subagent, or cloud thread execution.`
+
+### 09d-0001
+
+- event_id: `09d-0001`
+- timestamp: `2026-05-09T15:05:25Z`
+- actor: `Codex`
+- action: `candidate_linted`
+- page_path: `_SYSTEM/yuri-wiki/pending/09c-fixture-llm-wiki-candidate.md`
+- from_status: `candidate`
+- to_status: `linted`
+- source_refs_delta: `0`
+- head: `d6247ba9a`
+- reviewer: `none`
+- rag_eligibility: `NOT_ELIGIBLE`
+- notes: `Manual lint passed; advisory only; no RAG; no source registry repair.`
