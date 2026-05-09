@@ -391,6 +391,15 @@ function loadPolicy(policyPath) {
   if (!policy || typeof policy !== 'object') {
     throw new Error('Invalid policy object')
   }
+  const allowedFiles = Array.isArray(policy.allowed_files)
+    ? policy.allowed_files
+    : Array.isArray(policy.allowed_files_read)
+      ? policy.allowed_files_read
+      : null
+  if (!Array.isArray(allowedFiles) || allowedFiles.length === 0) {
+    throw new Error('Invalid policy object: allowed_files missing')
+  }
+  policy.allowed_files = allowedFiles
   return policy
 }
 
@@ -992,12 +1001,13 @@ function runSelftest({ artifactRoot, policyRelPath }) {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nudimmud-guarded-executor-selftest-'))
   const scopedStatusBefore = scopedStatus()
   const markers = []
+  const policy = loadPolicy(path.resolve(policyRelPath))
 
   const baseRequest = {
     protocol_version: PROTOCOL_VERSION,
     request_id: 'selftest-base',
     repo_root: '/Users/marcelspatz/NUDIMMUD',
-    mode: 'readonly_read_search_check',
+    mode: policy.mode,
     manifest_paths: [
       'package.json',
       '.claude/rules/nudimmud_operating_dna.md',

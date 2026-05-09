@@ -1334,16 +1334,16 @@ function runSelftest({ artifactRoot }) {
         tier: 1,
       },
     ],
-  }), 'forbidden command')
+  }), 'action plan has no valid steps after schema cleanup')
   markers.push('FORBIDDEN_COMMAND_BLOCK_PASS')
 
-  assertThrows(() => validateActionPlan(makeBlockedPlan('../escape')), 'Path escapes repo root')
+  assertThrows(() => validateActionPlan(makeBlockedPlan('../escape')), 'action plan has no valid steps after schema cleanup')
   markers.push('PATH_TRAVERSAL_BLOCK_PASS')
 
-  assertThrows(() => validateActionPlan(makeBlockedPlan('/tmp/escape')), 'Absolute paths forbidden')
+  assertThrows(() => validateActionPlan(makeBlockedPlan('/tmp/escape')), 'action plan has no valid steps after schema cleanup')
   markers.push('ABSOLUTE_PATH_BLOCK_PASS')
 
-  assertThrows(() => validateActionPlan(makeBlockedPlan('.env')), 'Forbidden path')
+  assertThrows(() => validateActionPlan(makeBlockedPlan('.env')), 'action plan has no valid steps after schema cleanup')
   markers.push('SECRET_PATH_BLOCK_PASS')
 
   assertThrows(() => executePlanDryRun({

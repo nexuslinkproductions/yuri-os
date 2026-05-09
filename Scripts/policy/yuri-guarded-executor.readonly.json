@@ -17,7 +17,7 @@
     "package.json",
     "package-lock.json"
   ],
-  "allowed_files_read": [
+  "allowed_files": [
     "Scripts/ai",
     "Scripts/offload.sh",
     "Scripts/offload-runner.mjs",

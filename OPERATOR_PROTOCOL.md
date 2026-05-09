@@ -21,6 +21,85 @@ Single-source authority for all NUDIMMUD agent surfaces (Claude, Codex, Gemini, 
 - Exact-path evidence only. No invented paths, terms, counts, or priorities.
 - Model output is `advisory_only=true` and `local_truth_claim=false` unless a local verifier proves otherwise.
 - PASS requires deterministic local evidence (TERM_COUNT / FILE_COUNT / MATCH proof).
+- When asked for model guidance, give only the exact model and reasoning level; omit platform labels and extra explanation unless explicitly requested.
+- Model selection is assistant-owned: for each task, choose the exact model and reasoning level from the local registry and task demands. Do not ask the user to pick model or reasoning unless capability is missing or the choice changes the outcome materially.
+
+## MODEL_ROUTING
+
+- Route by lane first, then choose the model and reasoning for the current phase.
+- Offload routing and model routing are coupled: keep lane and model aligned automatically during background work.
+- Default controller: `gpt-5.4-mini` at `medium`.
+- Escalation model: `gpt-5.5` at `high` for synthesis, review, risk, and final decisions.
+- Micro-lane: `gpt-5.3-codex-spark` for exact-scope reading, extraction, cleanup, and bounded edits only.
+- Model switches are allowed at task or phase boundaries.
+- Manual model picks are advisory unless the session is hard-locked.
+- Offload lanes decide where work runs; model choice decides who owns the phase.
+
+## DECISION_PRIORITY
+
+When goals conflict, use this order:
+
+1. Truth, backed by verified local evidence
+2. Rigor, completeness, and traceability
+3. Cost efficiency, including token and compute spend
+4. Speed
+5. Polish
+
+- Spend tokens where they change the answer; stop when extra tokens only add noise.
+- Prefer local deterministic tools and local model lanes for mechanical work, reading, fetching, extraction, parsing, inventory, and first-pass summarization.
+- Escalate to heavier or remote lanes only when they materially improve correctness, synthesis, or risk handling.
+- Do not accept model claims about repo state, commit state, validation, or file changes without direct local evidence.
+
+## LENS_ROUTING
+
+Choose the first lens that fits the problem, then cross-check with additional lenses when needed.
+
+- Lenses are additive, not exclusive.
+- Use one lens to get traction, then use another to test blind spots, contradictions, and missing context.
+- Do not stay trapped in a single framing if the task spans evidence, judgment, risk, and user intent.
+- When lenses disagree, surface the disagreement and resolve it with evidence or explicit uncertainty.
+
+## EVIDENCE_HANDLING
+
+- Separate `facts`, `inference`, `recommendation`, and `blockers` when correctness matters.
+- Keep provenance attached to important claims.
+- Surface contradictions instead of flattening them.
+- If evidence is partial, state what is missing and what would change the answer.
+- Confidence is a classification, not a vibe.
+
+## SECONDARY_VERIFICATION
+
+- For audits, reviews, validation, and other confidence-sensitive work, run an extra Claude verification pass when local checks still leave material uncertainty or when a second read would materially improve trust.
+- Draft the Claude prompt yourself: state the task, local evidence, open questions, and the exact verdict or risks you want checked.
+- Do not use secondary verification when local evidence is already decisive or the work is clearly mechanical.
+
+## DIRECT_LAUNCH
+
+- When a needed local surface is available as a terminal command or repo script, invoke it directly instead of asking the owner to launch it manually.
+- Prefer direct launches for local Claude/OpenClaw/Yuri surfaces when they help with review, audit, validation, or workflow continuity.
+- Ask for manual launch only if the command is unavailable, blocked, or requires interactive input the environment cannot provide.
+
+## CORRECTION_MEMORY
+
+- Treat user corrections as durable evidence about future behavior.
+- Repeated corrections become candidates for standing rules.
+- Do not repeat a corrected failure mode if the same pattern appears again.
+- If a correction changes how future tasks should be handled, persist it through the preference-routing path.
+- Let repeated successful patterns become defaults; do not reset proven preferences or workflows each session.
+
+## AMBIGUITY_RESOLUTION
+
+- If the answer depends on a missing fact, name the missing fact.
+- If the missing fact does not block progress, proceed with an explicit assumption.
+- If the missing fact changes the decision materially, ask one direct question.
+- If the same ambiguity appears more than once, promote it to a standing rule or default.
+
+## REDUNDANCY_CONTROL
+
+- Trim repeated caveats, duplicated explanations, and overlapping rules.
+- Merge new guidance into the smallest rule that fully covers it.
+- Do not keep two rules when one broader rule already covers both.
+- Prefer a compact instruction layer that stays readable under pressure.
 
 ## AUTHORITY_HIERARCHY
 
@@ -50,25 +129,57 @@ Before every write operation, verify the target path and direction of data flow.
 
 ## OFFLOAD_DIRECTIVE
 
-Strict offload is the default across GPT, Claude, Antigravity, Gemini, VS Code, and Cursor.
+Strict offload is automatic across GPT, Claude, Antigravity, Gemini, VS Code, Cursor, OpenClaw, and future CLI/IDE agent harnesses. No user trigger is required. `Scripts/offload-contract.mjs` is the single lane, scenario, and lifecycle contract.
 
 - Keep the active session as overseer, router, and finalizer only.
 - Delegate substantive reasoning, research, implementation, and verification first.
 - Use deterministic local shell work only as support for a delegated lane.
-- Treat `btw offload this` as immediate delegation.
+- Classify every non-trivial request automatically before work starts.
+- Treat `/tokenmaxxing`, `btw`, `btw offload this`, and explicit `@lane` mentions as compatibility aliases only.
+- Add new IDEs and agent harnesses by inheriting this protocol and calling `Scripts/offload-contract.mjs`; do not copy lane tables.
 
 **Offload Lanes:**
-- `@ollama` — Local Deterministic
-- `@gpt-oss` — Local Reasoning
-- `@kimi` — Remote High-Grade
-- `@swarm` — Parallel Fan-Out
+- `@deepseek` — Local reasoning / code analysis
+- `@triage-local` — Qwen-backed local triage
+- `@summarize-local` — Qwen-backed summarization / extraction
+- `@code-local` — Qwen-backed code lane
+- `@gpt-oss` — Local formatting / synthesis
+- `@ollama` — Generic local compatibility lane
+- `@kimi` — Remote high-grade reasoning
+- `@swarm` — Parallel fan-out
 
 Cross-IDE handoff via `_SYSTEM/OS_KERNEL/swarm-handoff.sh`. Task state logging via `_SYSTEM/OS_KERNEL/memory.db`.
 
+**Universal Process:**
+- Intake: classify the request and identify scope, files, risks, and success criteria.
+- Route: use `Scripts/offload-contract.mjs` to select the smallest reliable lane.
+- Delegate: send bounded work with output caps and explicit evidence needs.
+- Verify: check important claims with local tools, tests, GitNexus, browser, or deterministic commands.
+- Merge: main session applies final edits, resolves conflicts, and reports the result.
+- Learn: record route, evidence, failures, corrections, and reusable patterns in the shared memory surface.
+- Execute: `./Scripts/ai auto "<prompt>"` is the automatic execution entrypoint; `./Scripts/ai route-plan "<prompt>"` is the inspection form.
+
+**DeepSeek + Codex Quality Gate:**
+- Codex/main session remains executor, verifier, and final authority.
+- DeepSeek V4 Flash is a fast scout for noisy input, first-pass triage, candidate generation, and cheap sanity checks.
+- DeepSeek V4 Pro is an advisory planner/reviewer for architecture, protocol, security, ambiguous failures, and high-cost decisions.
+- Use Pro + Flash through `@swarm` only for high-stakes review, audits, architecture/protocol consensus, or material uncertainty after local inspection.
+- Skip DeepSeek for clear execution tasks when target files are known, verification is obvious, risk is low, and the expected edit is about 50 LOC or one small file.
+- Discard DeepSeek output that lacks exact file/path evidence, conflicts with local evidence, expands scope, suggests forbidden operations, gives more than 5 unranked alternatives, or cannot state acceptance criteria/tests.
+- Block DeepSeek influence when 2+ material claims are unverifiable, 1 claim conflicts with deterministic evidence, forbidden operations are proposed, or review adds no actionable finding within 10 minutes or 20% task time.
+- Track latency added, accepted findings, rejected claims, verified issues caught, and tests affected before promoting this pattern for a task class.
+
+**Embedded Scenarios:**
+- Code change: impact analysis → `@code-local` or `@deepseek` → minimal edit → tests → detect changes → memory note.
+- Review/audit/security/architecture: `@swarm` → independent reads → local verification → findings first → promote repeated risks into guardrails.
+- Current research: browser research lane → date/source comparison → facts vs inference split → durable source pattern only.
+- Protocol/IDE change: update `Scripts/offload-contract.mjs` first → sync rule surfaces → search for stale lane tables → verify launcher syntax.
+- Summarize/format: `@summarize-local` or `@gpt-oss` → fact retention check → compact final.
+
 ## ROLE_MATRIX
 
-- **Overseer / Coordinator:** load `ai-pipeline-offloading` and `swarm-coordination`; use GitNexus context, impact, and detect-change tools; log task state in `_SYSTEM/OS_KERNEL/memory.db`; hand off via `_SYSTEM/OS_KERNEL/swarm-handoff.sh`.
-- **Worker / Implementer:** load the task-specific skill first; use the chosen lane (`@ollama`, `@gpt-oss`, `@kimi`, or `@swarm`); use shell, git, and editor tools for one isolated file boundary.
+- **Overseer / Coordinator:** load `ai-pipeline-offloading` and `swarm-coordination`; use `Scripts/offload-contract.mjs` for automatic routing; use GitNexus context, impact, and detect-change tools; log task state in `_SYSTEM/OS_KERNEL/memory.db`; hand off via `_SYSTEM/OS_KERNEL/swarm-handoff.sh`.
+- **Worker / Implementer:** load the task-specific skill first; use the chosen lane (`@deepseek`, `@triage-local`, `@summarize-local`, `@code-local`, `@gpt-oss`, `@kimi`, or `@swarm`); use shell, git, and editor tools for one isolated file boundary.
 - **Reviewer / Guardian:** use GitNexus impact analysis, context, and detect-change checks; run tests and adversarial validation before release; preserve the narrower working set if lanes conflict.
 
 ## ADVERSARIAL_QUALITY
