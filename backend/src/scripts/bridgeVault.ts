@@ -98,7 +98,7 @@ Analyze the provided context from my Obsidian vault. Provide high-density, criti
 
 [FEEDBACK_SPECIFICATION]
 - Be concise but profound.
-- Use a technical, "C2 Command" tone.
+- Use a technical Yuri OS operator tone.
 - Format with clear headers.
 `;
 

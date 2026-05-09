@@ -7,11 +7,11 @@ import path from 'path';
 async function testLiquidMemory() {
     console.log('⬡ VERIFICATION :: STARTING_LIQUID_TEST...');
 
-    const testFile = path.join(process.cwd(), 'iC2M/02_BRIEFS/test_brief.md');
+    const testFile = path.join(process.cwd(), '_SYSTEM/yuri-wiki/test_brief.md');
     
     // 1. Record activity
     console.log('--- Step 1: Recording Activity ---');
-    liquidMemory.recordActivity(testFile, 'PROJECT_ENGINE');
+    liquidMemory.recordActivity(testFile, 'SYSTEM');
     
     let state = liquidMemory.getActiveMemory();
     console.log(`Current Focus: ${state.globalFocus}`);
@@ -24,7 +24,7 @@ async function testLiquidMemory() {
 
     // 2. Simulate more activity (Reinforcement)
     console.log('\n--- Step 2: Reinforcing Activity ---');
-    liquidMemory.recordActivity(testFile, 'PROJECT_ENGINE');
+    liquidMemory.recordActivity(testFile, 'SYSTEM');
     state = liquidMemory.getActiveMemory();
     const updatedNode = state.activeNodes.find(n => n.path.includes('test_brief.md'));
     if (updatedNode) {

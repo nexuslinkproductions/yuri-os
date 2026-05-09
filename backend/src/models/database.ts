@@ -216,6 +216,74 @@ CREATE TABLE IF NOT EXISTS telemetry_sessions (
     metadata            TEXT
 );
 
+CREATE TABLE IF NOT EXISTS session_improvement_log (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id          TEXT NOT NULL UNIQUE,
+    goal                TEXT,
+    command             TEXT NOT NULL,
+    command_type        TEXT NOT NULL,
+    voice_mode          TEXT DEFAULT 'deadpool-annunaki',
+    topic_tags          TEXT NOT NULL DEFAULT '[]',
+    what_happened       TEXT,
+    corrections         INTEGER DEFAULT 0,
+    rework              INTEGER DEFAULT 0,
+    outcome             TEXT DEFAULT 'pending',
+    auto_score          REAL DEFAULT 0,
+    human_score         INTEGER,
+    improvement_score   REAL DEFAULT 0,
+    what_got_better     TEXT,
+    what_got_worse      TEXT,
+    notes               TEXT,
+    metadata            TEXT,
+    reviewed_at         TEXT,
+    created_at          TEXT DEFAULT (datetime('now')),
+    updated_at          TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS session_lesson_candidates (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_session_id   TEXT NOT NULL,
+    lesson_key          TEXT NOT NULL,
+    lesson_type         TEXT NOT NULL,
+    lesson_text         TEXT NOT NULL,
+    topic_tags          TEXT NOT NULL DEFAULT '[]',
+    evidence_count      INTEGER NOT NULL DEFAULT 1,
+    confidence_score    REAL NOT NULL DEFAULT 0,
+    source_outcome      TEXT NOT NULL,
+    source_score        REAL NOT NULL DEFAULT 0,
+    status              TEXT NOT NULL DEFAULT 'pending',
+    reviewer_notes      TEXT,
+    reviewed_at         TEXT,
+    created_at          TEXT DEFAULT (datetime('now')),
+    updated_at          TEXT DEFAULT (datetime('now')),
+    UNIQUE(source_session_id, lesson_key, lesson_type)
+);
+
+CREATE TABLE IF NOT EXISTS promoted_lessons (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    lesson_key          TEXT NOT NULL UNIQUE,
+    lesson_text         TEXT NOT NULL,
+    topic_tags          TEXT NOT NULL DEFAULT '[]',
+    evidence_count      INTEGER NOT NULL DEFAULT 0,
+    promotion_score     REAL NOT NULL DEFAULT 0,
+    memory_item_id      INTEGER,
+    status              TEXT NOT NULL DEFAULT 'active',
+    promoted_at         TEXT DEFAULT (datetime('now')),
+    updated_at          TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS session_regression_trends (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    trend_key           TEXT NOT NULL UNIQUE,
+    topic_tag           TEXT NOT NULL,
+    regression_count    INTEGER NOT NULL DEFAULT 0,
+    score_drop          REAL NOT NULL DEFAULT 0,
+    status              TEXT NOT NULL DEFAULT 'active',
+    last_seen_at        TEXT NOT NULL,
+    created_at          TEXT DEFAULT (datetime('now')),
+    updated_at          TEXT DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS core_memory (
     memory_key  TEXT PRIMARY KEY,
     memory_val  TEXT NOT NULL,
@@ -369,7 +437,11 @@ function validateSchema(db: Database.Database) {
         'event_log',
         'integrations',
         'cognitive_states',
-        'telemetry_sessions'
+        'telemetry_sessions',
+        'session_improvement_log',
+        'session_lesson_candidates',
+        'promoted_lessons',
+        'session_regression_trends'
     ];
 
     for (const tableName of requiredTables) {

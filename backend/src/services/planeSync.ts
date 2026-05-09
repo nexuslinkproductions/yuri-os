@@ -6,15 +6,21 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const PLANE_API_KEY = process.env.PLANE_API_KEY;
-const PLANE_WORKSPACE_SLUG = process.env.PLANE_WORKSPACE_SLUG || 'c2moviez';
+const PLANE_WORKSPACE_SLUG = process.env.PLANE_WORKSPACE_SLUG;
+const PLANE_ALLOW_YURI_SYNC = process.env.PLANE_ALLOW_YURI_SYNC === 'true';
 const PLANE_API_URL = 'https://api.plane.so/api/v1';
 
 export async function syncPlaneTickets() {
     const db = getDB();
 
-    if (!PLANE_API_KEY || PLANE_API_KEY === 'your_plane_api_key') {
-        console.warn('⬡ PLANE_SYNC_SKIP :: PLANE_API_KEY not configured in .env');
-        return { success: false, reason: 'Missing API Key' };
+    if (!PLANE_ALLOW_YURI_SYNC) {
+        console.warn('⬡ PLANE_SYNC_SKIP :: PLANE_ALLOW_YURI_SYNC is not enabled');
+        return { success: false, reason: 'Plane sync disabled' };
+    }
+
+    if (!PLANE_API_KEY || PLANE_API_KEY === 'your_plane_api_key' || !PLANE_WORKSPACE_SLUG) {
+        console.warn('⬡ PLANE_SYNC_SKIP :: Plane API key or workspace slug is not configured');
+        return { success: false, reason: 'Missing Plane configuration' };
     }
 
     console.log('⬡ PLANE_SYNC_START :: Fetching active operations from Plane.so...');

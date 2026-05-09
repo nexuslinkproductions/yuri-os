@@ -11,11 +11,14 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
-const LEARNING_DIR = '/Volumes/T7/NUDIMMUD/_SYSTEM/learning';
+const REPO_ROOT = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/NUDIMMUD';
+const LEARNING_DIR = path.join(REPO_ROOT, '_SYSTEM/learning');
 const CONFIG_PATH = path.join(LEARNING_DIR, 'config.json');
 const SESSIONS_LOG = path.join(LEARNING_DIR, 'sessions.jsonl');
 const LAST_DREAM_PATH = path.join(LEARNING_DIR, '.last-dream');
+const LEARNING_CLI = path.join(REPO_ROOT, 'Scripts/yuri-learning-capture.mjs');
 
 async function dream() {
   try {
@@ -40,22 +43,15 @@ async function dream() {
       return;
     }
 
-    // Read signals and find patterns
+    // Read signals and find patterns for local diagnostics only.
     if (!fs.existsSync(SESSIONS_LOG)) {
       return;
     }
 
     const lines = fs.readFileSync(SESSIONS_LOG, 'utf8').split('\n').filter(l => l);
     const patterns = findPatterns(lines, config);
-
-    // Write new rules
-    if (patterns.length > 0) {
-      patterns.forEach(pattern => {
-        writeRule(pattern.domain, pattern.rule);
-      });
-
-      console.log(`[Dream] Wrote ${patterns.length} new rule(s).`);
-    }
+    const promotionResult = promoteReviewedLessons();
+    console.log(`[Dream] Reviewed ${patterns.length} pattern(s); promoted ${promotionResult.promotedCount} lesson(s).`);
 
     // Update last dream state
     fs.writeFileSync(
@@ -134,32 +130,15 @@ function guessDomain(snippet) {
   return guessed;
 }
 
-function writeRule(domain, rule) {
-  const rulePath = path.join(LEARNING_DIR, `${domain}.md`);
-  if (!fs.existsSync(rulePath)) {
-    return; // Domain file must exist
+function promoteReviewedLessons() {
+  try {
+    const raw = execFileSync('node', [LEARNING_CLI, 'promote'], { cwd: REPO_ROOT, encoding: 'utf8' });
+    const parsed = JSON.parse(raw);
+    return { promotedCount: Array.isArray(parsed.promoted) ? parsed.promoted.length : 0 };
+  } catch (error) {
+    console.error('[Dream] Learning promotion bridge failed:', error.message);
+    return { promotedCount: 0 };
   }
-
-  let content = fs.readFileSync(rulePath, 'utf8');
-
-  // Skip if rule already exists
-  if (content.includes(rule)) {
-    return;
-  }
-  
-  // Remove the initial placeholder if it exists
-  content = content.replace(/\*\(No rules yet — will populate from first corrections\)\*\n+/g, '');
-  
-  // Insert the rule after the ## Rules header and any italicized description
-  const rulesHeaderRegex = /(## Rules\n+(?:\*.*?\*\n+)?)/;
-  if (rulesHeaderRegex.test(content)) {
-    content = content.replace(rulesHeaderRegex, `$1- ${rule}\n`);
-  } else {
-    // Fallback if header is missing
-    content += `\n- ${rule}\n`;
-  }
-
-  fs.writeFileSync(rulePath, content);
 }
 
 dream();

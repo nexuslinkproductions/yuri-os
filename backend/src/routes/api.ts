@@ -36,6 +36,11 @@ import {
     buildPersonalitySystemPrompt
 } from '../services/personalityService';
 import { browserAutomation } from '../services/browserAutomation';
+import {
+    getSessionImprovementSummary,
+    recordSessionReview,
+    reviewLessonCandidate
+} from '../services/sessionImprovementService';
 
 type RouteHealthPayload = {
     healthy?: boolean;
@@ -114,6 +119,76 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     // Personality endpoints
     router.get('/oracle/personality', (_, res) => {
         res.json(getPersonalityProfile(db));
+    });
+
+    router.get('/oracle/improvement', authMiddleware, (_, res) => {
+        try {
+            const summary = getSessionImprovementSummary(db, 10);
+            res.json({
+                ...summary,
+                shouldReview: summary.pendingReviewSessions > 0 || summary.averageImprovementScore < 55
+            });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    router.post('/oracle/improvement/:sessionId/review', authMiddleware, (req, res) => {
+        try {
+            const sessionId = String(req.params.sessionId || '').trim();
+            const { humanScore, notes } = req.body || {};
+            if (!sessionId) {
+                res.status(400).json({ error: 'sessionId required' });
+                return;
+            }
+            const score = Number(humanScore);
+            if (!Number.isFinite(score) || score < 1 || score > 5) {
+                res.status(400).json({ error: 'humanScore must be between 1 and 5' });
+                return;
+            }
+            const updated = recordSessionReview(db, sessionId, score, typeof notes === 'string' ? notes : undefined);
+            if (!updated) {
+                res.status(404).json({ error: 'session not found' });
+                return;
+            }
+            res.json({ session: updated });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    router.post('/oracle/improvement/lessons/:candidateId/review', authMiddleware, (req, res) => {
+        try {
+            const candidateId = Number(req.params.candidateId);
+            const { action, revisedText, notes } = req.body || {};
+            if (!Number.isInteger(candidateId) || candidateId <= 0) {
+                res.status(400).json({ error: 'candidateId must be a positive integer' });
+                return;
+            }
+            if (!['approve', 'reject', 'revise'].includes(action)) {
+                res.status(400).json({ error: 'action must be approve, reject, or revise' });
+                return;
+            }
+            if (action === 'revise' && (typeof revisedText !== 'string' || revisedText.trim().length < 8)) {
+                res.status(400).json({ error: 'revisedText must be provided for revise actions' });
+                return;
+            }
+
+            const updated = reviewLessonCandidate(
+                db,
+                candidateId,
+                action,
+                typeof revisedText === 'string' ? revisedText : undefined,
+                typeof notes === 'string' ? notes : undefined
+            );
+            if (!updated) {
+                res.status(404).json({ error: 'candidate not found' });
+                return;
+            }
+            res.json({ candidate: updated, improvement: getSessionImprovementSummary(db, 10) });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
     });
 
     router.post('/oracle/personality/rate', (req, res) => {

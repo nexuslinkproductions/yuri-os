@@ -11,11 +11,13 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
-const LEARNING_DIR = '/Volumes/T7/NUDIMMUD/_SYSTEM/learning';
+const REPO_ROOT = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/NUDIMMUD';
+const LEARNING_DIR = path.join(REPO_ROOT, '_SYSTEM/learning');
 const CONFIG_PATH = path.join(LEARNING_DIR, 'config.json');
 const SESSIONS_LOG = path.join(LEARNING_DIR, 'sessions.jsonl');
-const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || '/Volumes/T7';
+const LEARNING_CLI = path.join(REPO_ROOT, 'Scripts/yuri-learning-capture.mjs');
 
 async function captureSession() {
   try {
@@ -67,6 +69,7 @@ async function captureSession() {
       });
 
       console.log(`[Capture] Stored ${signals.length} signal(s) for dream worker.`);
+      captureToLearningLedger(latestSession, signals);
     }
   } catch (error) {
     console.error('[Capture] Error:', error.message);
@@ -113,6 +116,41 @@ function extractSignals(transcript, config) {
   });
 
   return signals;
+}
+
+function captureToLearningLedger(sessionId, signals) {
+  const corrections = signals.filter(signal => signal.isCorrective).length;
+  const confirmations = signals.length - corrections;
+  const notes = signals.map(signal => signal.snippet).filter(Boolean).join('\n').slice(0, 1200);
+
+  const startPayload = {
+    sessionId,
+    command: 'captured-session',
+    commandType: 'hook_capture',
+    topicTags: ['hook-capture', corrections > 0 ? 'correction' : 'confirmation'],
+    goal: 'Capture session feedback signals into Yuri learning ledger',
+    metadata: { signalCount: signals.length, corrections, confirmations }
+  };
+
+  const finalizePayload = {
+    sessionId,
+    outcome: corrections > 0 ? 'mixed' : 'stable',
+    corrections,
+    rework: corrections,
+    autoScore: corrections > 0 ? 55 : 72,
+    whatHappened: `Captured ${signals.length} learning signal(s).`,
+    whatGotBetter: confirmations > 0 ? 'User confirmation signals identified.' : undefined,
+    whatGotWorse: corrections > 0 ? 'User correction signals require review.' : undefined,
+    notes,
+    metadata: { signalCount: signals.length, corrections, confirmations }
+  };
+
+  try {
+    execFileSync('node', [LEARNING_CLI, 'start', '--json', JSON.stringify(startPayload)], { cwd: REPO_ROOT, stdio: 'ignore' });
+    execFileSync('node', [LEARNING_CLI, 'finalize', '--json', JSON.stringify(finalizePayload)], { cwd: REPO_ROOT, stdio: 'ignore' });
+  } catch (error) {
+    console.error('[Capture] Learning ledger bridge failed:', error.message);
+  }
 }
 
 captureSession();

@@ -58,7 +58,6 @@ export const SystemConfig = {
     // Ecosystem B: Knowledge Vaults (Obsidian)
     VAULTS: {
         PRIMARY: '06_KNOWLEDGE-BASE',
-        CLAUDIO: '06_NETWORK-SYNC/C2MOVIEZ',
         STRUCTURE: {
             COSMOLOGY: '06_KNOWLEDGE-BASE/01_COSMOLOGY',
             OPERATIONAL: '06_KNOWLEDGE-BASE/05_OPERATIONAL',

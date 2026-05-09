@@ -122,6 +122,13 @@ _QUARANTINE_*/
 # Yuri OS Content Governance — generated/cache/external paths
 # These paths are NOT current Yuri OS doctrine. See _SYSTEM/yuri-content-governance.md.
 
+# External workspaces are local-only, not Yuri OS source of truth.
+iC2M/
+06_NETWORK-SYNC/C2MOVIEZ/
+backend/src/services/ic2mSync.ts
+backend/src/scripts/align_ecosystems.ts
+backend/src/scripts/importPlaneTickets.ts
+
 .claude/file-history/
 .claude/paste-cache/
 .claude/cache/

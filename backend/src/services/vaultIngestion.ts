@@ -8,9 +8,9 @@ import path from 'path';
 import Database from 'better-sqlite3';
 import { insertKnowledgeNode, logEvent } from '../models/queries';
 import { neuralForge } from './neuralForgeService';
+import { memoryGovernor } from './memoryGovernorService';
 
 import { SystemConfig } from '../config/SystemConfig';
-import { syncIc2mWorkItems } from './ic2mSync';
 
 // Detect Vault Root via SystemConfig abstraction
 const VAULT_ROOT = SystemConfig.ROOT;
@@ -39,8 +39,6 @@ const DIR_DOMAIN_MAP: Record<string, string> = {
     '02_AREAS':                           'MEMORY',
     '00_COMMAND-CENTER':                  'COMMAND',
     'NEURAL-NETWORK':                     'NEURAL',
-    'iC2M':                               'PROJECT_ENGINE',
-    '06_NETWORK-SYNC/C2MOVIEZ':           'CLAUDIO_VAULT',
     '01_PROJECTS':                        'PROJECTS',
 };
 
@@ -217,6 +215,17 @@ function ingestFile(db: Database.Database, filePath: string): IngestFileResult {
         if (existing) {
             const dbTime = new Date(existing.updated_at).getTime();
             if (stats.mtimeMs > dbTime || !existing.embedding) {
+                memoryGovernor.governWrite({
+                    content,
+                    memoryType: 'semantic',
+                    sourceUri: relativePath,
+                    sourceKind: 'rag_ingest',
+                    tags: [domain.toLowerCase(), 'vault_ingestion'],
+                    importance: domain === 'SYSTEM' || domain === 'COMMAND' ? 3 : 2,
+                    ragSourcePath: relativePath,
+                    ragNodeId: existing.id,
+                    metadata: { title, domain }
+                });
                 void neuralForge.getEmbedding(embedText).then(vector => {
                     if (vector) {
                         (db as any).prepare(
@@ -230,6 +239,17 @@ function ingestFile(db: Database.Database, filePath: string): IngestFileResult {
         } else {
             // Initial insert without embedding, then update async to avoid blocking crawl
             const nodeId = insertKnowledgeNode(db, { title, content, source_path: relativePath, node_type: 'DOCUMENT', tags, domain, embedding: null }) as any;
+            memoryGovernor.governWrite({
+                content,
+                memoryType: 'semantic',
+                sourceUri: relativePath,
+                sourceKind: 'rag_ingest',
+                tags: [domain.toLowerCase(), 'vault_ingestion'],
+                importance: domain === 'SYSTEM' || domain === 'COMMAND' ? 3 : 2,
+                ragSourcePath: relativePath,
+                ragNodeId: Number(nodeId),
+                metadata: { title, domain }
+            });
             void neuralForge.getEmbedding(embedText).then(vector => {
                 if (vector) {
                     (db as any).prepare('UPDATE knowledge_nodes SET embedding = ? WHERE id = ?')
@@ -296,13 +316,6 @@ async function performVaultIngestion(db: Database.Database, trigger: string): Pr
 
     // 3. Resolve and store links
     processLinks(db);
-
-    // 4. Synchronize iC2M Work Items (Authoritative)
-    try {
-        await syncIc2mWorkItems(db);
-    } catch (err) {
-        console.error('⬡ IC2M_SYNC_INTEGRATION_ERROR ::', err);
-    }
 
     const successCount = results.filter((result) => result.status === 'INGESTED').length;
     const failureResults = results.filter((result) => result.status === 'FAILED');

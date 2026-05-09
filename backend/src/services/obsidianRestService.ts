@@ -81,8 +81,7 @@ export class ObsidianRestService {
         const port = process.env.OBSIDIAN_REST_API_PORT || '27124';
         this.baseUrl = `https://127.0.0.1:${port}`;
         this.workspaceCandidatePaths = [
-            SystemConfig.resolve('.obsidian/workspace.json'),
-            SystemConfig.resolve('06_NETWORK-SYNC/C2MOVIEZ/Database/.obsidian/workspace.json')
+            SystemConfig.resolve('.obsidian/workspace.json')
         ];
 
         const trustConfig = this.resolveTrustConfiguration(port);
@@ -178,8 +177,7 @@ export class ObsidianRestService {
 
     private extractPluginCertificate(port: string) {
         const candidatePaths = [
-            SystemConfig.resolve('.obsidian/plugins/obsidian-local-rest-api/data.json'),
-            SystemConfig.resolve('06_NETWORK-SYNC/C2MOVIEZ/Database/.obsidian/plugins/obsidian-local-rest-api/data.json')
+            SystemConfig.resolve('.obsidian/plugins/obsidian-local-rest-api/data.json')
         ];
 
         for (const candidatePath of candidatePaths) {

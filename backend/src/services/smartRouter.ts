@@ -24,7 +24,7 @@ export type QueryRisk = 'low' | 'medium' | 'high';
 export type PreferredRuntime = 'local' | 'cloud' | 'hybrid';
 export type CompressionMode = 'off' | 'safe' | 'aggressive';
 export type ReasoningBudget = 'cheap' | 'balanced' | 'deep';
-export type RetrievalProfile = 'NUDIMMUD_SYSTEM' | 'IC2M_OPERATIONS' | 'CROSS_VAULT_SYNTHESIS';
+export type RetrievalProfile = 'NUDIMMUD_SYSTEM' | 'CROSS_VAULT_SYNTHESIS';
 
 interface RouterPolicyTask {
     lane: string;
@@ -155,7 +155,7 @@ export class SmartRouter {
         }
 
         const retrievalSignals = ['find', 'lookup', 'search', 'where is', 'show me', 'status', 'ticket', 'briefing', 'client', 'note'];
-        const businessSignals = ['ic2m', 'c2moviez', 'claudio', 'plane', 'outlook', 'meeting', 'project'];
+        const businessSignals = ['meeting', 'project'];
         const codeSignals = ['refactor', 'implement', 'fix', 'debug', 'typescript', 'javascript', 'function', 'class', 'test', 'code', 'patch'];
 
         if ((this.hasAny(queryLower, retrievalSignals) || this.hasAny(queryLower, businessSignals)) && !this.hasAny(queryLower, codeSignals)) {
@@ -295,18 +295,13 @@ export class SmartRouter {
     }
 
     private static detectRetrievalProfile(queryLower: string, intent: NeuralTaskIntent): RetrievalProfile {
-        const ic2mKeywords = [
-            'ic2m', 'c2moviez', 'claudio', 'client', 'plane', 'briefing', 'ticket', 'outlook', 'ops', 'meeting'
-        ];
         const nudimmudKeywords = [
             'nudimmud', 'forge', 'runtime', 'router', 'provider', 'backend', 'conclave', 'swarm', 'codebase'
         ];
 
-        const mentionsIc2M = this.hasAny(queryLower, ic2mKeywords);
         const mentionsNudimmud = this.hasAny(queryLower, nudimmudKeywords) || intent === 'coding';
 
-        if (mentionsIc2M && mentionsNudimmud) return 'CROSS_VAULT_SYNTHESIS';
-        if (mentionsIc2M) return 'IC2M_OPERATIONS';
+        if (mentionsNudimmud) return 'NUDIMMUD_SYSTEM';
         return 'NUDIMMUD_SYSTEM';
     }
 

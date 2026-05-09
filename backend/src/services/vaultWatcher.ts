@@ -14,8 +14,6 @@ const WATCH_DIRS = [
     path.join(VAULT_ROOT, 'NISABA'),
     path.join(VAULT_ROOT, '01_PROJECTS'),
     path.join(VAULT_ROOT, '_SYSTEM'),
-    path.join(VAULT_ROOT, 'iC2M'),
-    path.join(VAULT_ROOT, '06_NETWORK-SYNC/C2MOVIEZ'),
     path.join(VAULT_ROOT, 'NEURAL-NETWORK/evo-nexus/docs')
 ];
 

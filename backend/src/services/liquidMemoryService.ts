@@ -10,9 +10,7 @@ import { SystemConfig } from '../config/SystemConfig';
 
 /**
  * ⬡ EVONEXUS_LIQUID_DYNAMICS
- * Hierarchy: 
- * - SKELETON_CORE (Claudio): Structural & Barebone Support (Security-Grade)
- * - ENHANCEMENT_LAYER (Marcel): Cognitive Augmentation & Synthesis
+ * Tracks Yuri OS activity as a time-decayed adaptive context bridge.
  */
 
 interface MemoryNode {
@@ -25,17 +23,26 @@ interface MemoryNode {
 
 interface HiddenState {
     globalFocus: string; 
-    skeletonStability: number; // New metric: How stable is the barebone support?
+    skeletonStability: number;
     activeNodes: MemoryNode[];
     lastSync: number;
 }
+
+export interface LiquidMemoryCandidate {
+    path: string;
+    weight: number;
+    domain: string;
+    type: 'SKELETON' | 'ENHANCEMENT';
+    lastUpdated: number;
+}
+
+export type LiquidMemoryDecision = 'PROMOTE' | 'DEMOTE' | 'ARCHIVE' | 'TOMBSTONE';
 
 class LiquidMemoryService {
     private static instance: LiquidMemoryService;
     private state: HiddenState;
     private readonly STATE_FILE = SystemConfig.resolve('backend/data/liquid_state.json');
     private readonly DECAY_RATE = 0.03; // Slower decay for EvoNexus stability
-    private readonly SKELETON_BOOST = 0.4; // Claudio's things get higher structural priority
 
     private constructor() {
         this.state = this.loadState();
@@ -62,20 +69,19 @@ class LiquidMemoryService {
 
     public recordActivity(filePath: string, domain: string) {
         const relativePath = path.relative(SystemConfig.ROOT, filePath);
-        const isSkeleton = relativePath.includes('iC2M') || relativePath.includes('06_NETWORK-SYNC/C2MOVIEZ');
         
         let node = this.state.activeNodes.find(n => n.path === relativePath);
         if (node) {
-            node.weight = Math.min(1.0, node.weight + (isSkeleton ? 0.4 : 0.2));
+            node.weight = Math.min(1.0, node.weight + 0.2);
             node.lastUpdated = Date.now();
-            node.type = isSkeleton ? 'SKELETON' : 'ENHANCEMENT'; // Ensure type is set
+            node.type = 'ENHANCEMENT';
         } else {
             this.state.activeNodes.push({
                 path: relativePath,
-                weight: isSkeleton ? 0.6 : 0.4,
+                weight: 0.4,
                 lastUpdated: Date.now(),
                 domain: domain,
-                type: isSkeleton ? 'SKELETON' : 'ENHANCEMENT'
+                type: 'ENHANCEMENT'
             });
         }
 
@@ -133,6 +139,32 @@ class LiquidMemoryService {
 
     public getActiveMemory(): HiddenState {
         return this.state;
+    }
+
+    public getStmCandidates(minWeight = 0.2): LiquidMemoryCandidate[] {
+        return this.state.activeNodes
+            .filter(node => node.weight >= minWeight)
+            .map(node => ({ ...node }));
+    }
+
+    public applyGovernanceDecision(filePath: string, decision: LiquidMemoryDecision): void {
+        const relativePath = path.isAbsolute(filePath)
+            ? path.relative(SystemConfig.ROOT, filePath)
+            : filePath;
+        const node = this.state.activeNodes.find(n => n.path === relativePath);
+        if (!node) return;
+
+        if (decision === 'PROMOTE') {
+            node.weight = Math.min(1.0, node.weight + 0.25);
+            node.lastUpdated = Date.now();
+        } else if (decision === 'DEMOTE') {
+            node.weight = Math.max(0.05, node.weight * 0.5);
+        } else if (decision === 'ARCHIVE' || decision === 'TOMBSTONE') {
+            this.state.activeNodes = this.state.activeNodes.filter(n => n.path !== relativePath);
+        }
+
+        this.updateEvolutionaryState();
+        this.saveState();
     }
 }
 
