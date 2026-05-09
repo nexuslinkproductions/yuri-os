@@ -2,6 +2,10 @@
 
 Append-only control log. New events append below existing events without rewriting historical entries.
 
+## Head Semantics
+
+The `head` field in each event records the HEAD commit at event-time (verification-time). It does not and cannot record the future persisting commit that will contain the event itself. The head field is evidence of the repo state at the moment the transition was verified, not a self-referential commit pointer.
+
 ## Events
 
 ### 09c-0001
@@ -138,3 +142,18 @@ Append-only control log. New events append below existing events without rewriti
 - reviewer: `none`
 - rag_eligibility: `NOT_ELIGIBLE`
 - notes: `Owner provenance rule allows review_pending; advisory only; no RAG; no source registry repair.`
+
+### 09g-0001
+
+- event_id: `09g-0001`
+- timestamp: `2026-05-09T16:18:26Z`
+- actor: `owner:marcel-spatz`
+- action: `candidate_reviewed`
+- page_path: `_SYSTEM/yuri-wiki/pending/09c-fixture-llm-wiki-candidate.md`
+- from_status: `review_pending`
+- to_status: `reviewed`
+- source_refs_delta: `0`
+- head: `df6b9e331`
+- reviewer: `owner:marcel-spatz`
+- rag_eligibility: `NOT_ELIGIBLE`
+- notes: `Schema clarified (reviewed_by convention, log head semantics, current_head policy). All 8 source_refs verified. Advisory only; no acceptance; no RAG; no source registry repair.`

@@ -1,8 +1,12 @@
 # Yuri LLM Wiki Fixture Index
 
 status: `PHASE_1_FIXTURE_NO_INGEST`
-current_head: `d1172d7c2`
+current_head: `df6b9e331`
 source_registry_status: `SOURCE_REGISTRY_MISSING`
+
+## current_head Policy
+
+`current_head` reflects the HEAD commit at the latest verified lifecycle transition. It must be updated during each lifecycle transition (candidate, linted, review_pending, reviewed, accepted, etc.) to match the verification-time HEAD. It is not a static pointer — stale values indicate an unverified or unupdated transition.
 
 ## Authority
 
@@ -16,7 +20,8 @@ Raw/source truth stays outside this wiki. This fixture does not store raw corpor
 
 - pending candidate count: 1
 - linted candidate count: 0
-- review_pending candidate count: 1
+- review_pending candidate count: 0
+- reviewed candidate count: 1
 - accepted page count: 0
 - RAG indexed count: 0
 

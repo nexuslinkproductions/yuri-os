@@ -32,6 +32,10 @@ Required when supersession applies:
 - `supersedes`
 - `superseded_by`
 
+## reviewed_by Convention
+
+Owner review in this lane uses the format `owner:marcel-spatz`. This is the canonical reviewer identity for the current fixture lane. External reviewers or automated reviewers must use a distinct prefix (e.g., `auto:`, `agent:`) if added in future.
+
 ## Optional Frontmatter
 
 - `contradictions`
