@@ -43,6 +43,15 @@ try {
   assert.equal(allowed.status, 200, 'loopback CORS origin should be allowed');
   assert.equal(allowed.headers.get('x-powered-by'), null, 'x-powered-by should be disabled');
 
+  const ready = await fetch(`http://127.0.0.1:${PORT}/api/health/ready`, {
+    headers: { Origin: 'http://localhost:4200' },
+  });
+  const readyJson = await ready.json();
+  assert.equal(readyJson.database.available, true, 'readiness should expose database availability');
+  assert.equal(readyJson.database.quickCheck, 'ok', 'readiness should expose sqlite quick_check result');
+  assert.equal(readyJson.database.foreignKeyViolations, 0, 'readiness should expose foreign key check count');
+  assert.equal(readyJson.database.ready, true, 'readiness should mark database ready only after sqlite checks pass');
+
   process.stdout.write('backend-cors-hardening: pass\n');
 } finally {
   child.kill('SIGTERM');

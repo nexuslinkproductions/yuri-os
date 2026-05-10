@@ -209,17 +209,43 @@ bootLog('⬡ CORE_READY :: PROVISIONING_BACKGROUND_PROCESSES');
 let obsidianFailCount = 0;
 const FAIL_THRESHOLD = 3;
 
-function checkDatabaseHealth() {
+type DatabaseReadiness = {
+    available: boolean;
+    ready: boolean;
+    quickCheck: string;
+    foreignKeyViolations: number;
+    error: string | null;
+};
+
+function buildDatabaseReadiness(): DatabaseReadiness {
     try {
         db.prepare('SELECT 1').get();
-        return true;
-    } catch {
-        return false;
+        const quickCheck = String(db.pragma('quick_check', { simple: true }) || 'unknown');
+        const foreignKeyViolations = (db.pragma('foreign_key_check') as unknown[]).length;
+        return {
+            available: true,
+            ready: quickCheck === 'ok' && foreignKeyViolations === 0,
+            quickCheck,
+            foreignKeyViolations,
+            error: null
+        };
+    } catch (error: any) {
+        return {
+            available: false,
+            ready: false,
+            quickCheck: 'unavailable',
+            foreignKeyViolations: -1,
+            error: error?.message || 'database_unavailable'
+        };
     }
 }
 
+function checkDatabaseHealth() {
+    return buildDatabaseReadiness().ready;
+}
+
 async function buildHealthPayload() {
-    const dbHealthy = checkDatabaseHealth();
+    const database = buildDatabaseReadiness();
     const obsidianState = obsidianRest.getStatus();
     const obsidianOnline = obsidianState.mode !== 'offline';
     const watcherStatus = vaultWatcherController?.getStatus() || {
@@ -229,7 +255,7 @@ async function buildHealthPayload() {
     };
     const guardStatus = guard.getStatus();
     const ingestionStatus = getVaultIngestionStatus();
-    const healthy = dbHealthy && guardStatus.running;
+    const healthy = database.ready && guardStatus.running;
 
     return {
         healthy,
@@ -237,11 +263,12 @@ async function buildHealthPayload() {
         timestamp: new Date().toISOString(),
         uptimeSeconds: Math.round(process.uptime()),
         services: {
-            database: dbHealthy ? 'online' : 'offline',
+            database: database.ready ? 'online' : 'degraded',
             obsidian: obsidianOnline ? 'online' : 'offline',
             vaultWatcher: watcherStatus.running ? 'online' : 'offline',
             stabilityGuard: guardStatus.running ? 'online' : 'offline'
         },
+        database,
         ingestion: ingestionStatus,
         watcher: watcherStatus,
         obsidian: obsidianRest.getStatus(),
@@ -261,13 +288,14 @@ function buildLivenessPayload() {
 }
 
 async function buildReadinessPayload() {
-    const dbHealthy = checkDatabaseHealth();
+    const database = buildDatabaseReadiness();
     const ingestionStatus = getVaultIngestionStatus();
     const initialIngestionSettled = Boolean(ingestionStatus.lastResult || ingestionStatus.lastError);
 
     let reason = 'ready';
     if (shuttingDown) reason = 'shutting_down';
-    else if (!dbHealthy) reason = 'database_unavailable';
+    else if (!database.available) reason = 'database_unavailable';
+    else if (!database.ready) reason = 'database_integrity_failed';
     else if (!backgroundServicesStarted) reason = 'background_services_starting';
     else if (!initialIngestionSettled) reason = 'initial_ingestion_in_progress';
 
@@ -279,6 +307,7 @@ async function buildReadinessPayload() {
         reason,
         timestamp: new Date().toISOString(),
         authRuntimeReady: Boolean(getRuntimeApiKey()),
+        database,
         ingestion: ingestionStatus
     };
 }
