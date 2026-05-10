@@ -7,10 +7,10 @@ Generated: 2026-05-09 15:29 CEST
 - [x] Hermes Agent installed: `~/.hermes/`
 - [x] Hermes configured: DeepSeek + Anthropic providers with env placeholders
 - [x] Hermes migration from OpenClaw complete
-- [x] DeerFlow installed: `~/deer-flow/`
+- [x] DeerFlow installed: `~/NUDIMMUD/deerflow/`
 - [x] DeerFlow configured and test-passed
-- [x] YURI-OS bridge directory: `~/YURI-OS/`
-- [x] Hermes -> DeerFlow bridge script: `~/YURI-OS/bin/deerflow-bridge.sh`
+- [x] YURI-OS bridge directory: `~/NUDIMMUD/yuri-os/`
+- [x] Hermes -> DeerFlow bridge script: `~/NUDIMMUD/yuri-os/bin/deerflow-bridge.sh`
 - [x] DeerFlow research skill: `~/.hermes/skills/yuri-os/deerflow-research/`
 - [x] Initial Hermes user model present: `~/.hermes/memories/USER.md`
 - [x] Initial research skills created
@@ -31,9 +31,9 @@ Generated: 2026-05-09 15:29 CEST
 
 ## Created Outputs
 
-- `~/YURI-OS/outputs/ai-video-tools-2026.md`
-- `~/YURI-OS/outputs/client-industries.md`
-- `~/YURI-OS/outputs/deerflow-20260509-152304.md`
+- `~/NUDIMMUD/yuri-os/outputs/ai-video-tools-2026.md`
+- `~/NUDIMMUD/yuri-os/outputs/client-industries.md`
+- `~/NUDIMMUD/yuri-os/outputs/deerflow-20260509-152304.md`
 
 ## Cron Jobs
 

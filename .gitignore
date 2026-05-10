@@ -78,6 +78,8 @@ graphify-out/__pycache__/
 # Research corpus clones (external repos, not submodules)
 RESEARCH/ORACLE-CORPUS/
 RESEARCH/ruflo/
+deerflow/
+yuri-os/
 
 # Embedded agent repos
 .agents/openmythos/

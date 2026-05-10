@@ -16,7 +16,7 @@ Commands:
       Open a path in VS Code. Defaults to the current directory.
 
   claude [prompt]
-      Start Claude in safe mode (Agent and scouts disabled), or run a one-shot prompt with --print.
+      Start Claude in safe mode (Agent and scouts disabled), or run a bounded advisory one-shot prompt.
 
   claude-full [prompt]
       Start raw Claude interactively with full tool and scout behavior, or run a one-shot prompt with --print.
@@ -122,6 +122,9 @@ Commands:
       Supports --dry-run / --route-only to preview lanes without live API calls.
       Read-only routing only. No write, patch, stage, or commit capability.
 
+  @claude [prompt]
+      Run the bounded Claude Sonnet council lane with advisory-only output.
+
   @reason-cloud [prompt]
       Run the reason-cloud lane (Ollama Cloud reasoning, defaults to qwen2.5:72b).
 
@@ -200,23 +203,102 @@ run_gemini_prompt() {
 }
 
 run_claude_safe() {
-  require_cmd claude
-  NUDIMMUD_DISABLE_SCOUTS=1 exec claude \
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  require_cmd "$_claude_bin"
+  NUDIMMUD_DISABLE_SCOUTS=1 exec "$_claude_bin" \
     --permission-mode default \
     --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
     --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
     "$@"
 }
 
+build_claude_council_prompt() {
+  local prompt="$1"
+  cat <<EOF
+You are Claude Sonnet in the Yuri OS model council.
+
+Role: architecture/risk/protocol reviewer only.
+Authority: advisory_only=true; local_truth_claim=false; Codex/main session remains executor, verifier, and final authority.
+Bounds: max 80 lines. Do not propose protected writes, staging, commits, broad repo scans, secrets access, DB reads, or scope expansion.
+Evidence rule: every repo-state claim needs exact file/path evidence supplied in the prompt or must be marked unverified.
+
+Return exactly these sections:
+findings:
+risks:
+upgrade_candidates:
+tests_needed:
+reject_or_accept_reasoning:
+
+Task:
+$prompt
+EOF
+}
+
+emit_claude_advisory_output() {
+  local stdout_file="$1"
+  local stderr_file="$2"
+  local status="$3"
+  local line_cap="${CLAUDE_COUNCIL_LINE_CAP:-80}"
+  local capped cap_marker stdout_sha stderr_sha stdout_lines stderr_bytes
+
+  if ! [[ "$line_cap" =~ ^[0-9]+$ ]]; then
+    line_cap=80
+  fi
+  if [ "$line_cap" -gt 200 ]; then
+    line_cap=200
+  fi
+
+  capped="$(head -n "$line_cap" "$stdout_file" 2>/dev/null || true)"
+  stdout_lines="$(printf '%s' "$capped" | wc -l | tr -d ' ')"
+  cap_marker="FULL"
+  if [ "$(wc -l < "$stdout_file" | tr -d ' ')" -gt "$line_cap" ]; then
+    cap_marker="TRUNCATED"
+  fi
+  stdout_sha="$(printf '%s' "$capped" | shasum -a 256 | awk '{print $1}')"
+  stderr_sha="$(shasum -a 256 "$stderr_file" 2>/dev/null | awk '{print $1}')"
+  stderr_bytes="$(wc -c < "$stderr_file" 2>/dev/null | tr -d ' ')"
+
+  printf '# ADVISORY_CLAUDE_COUNCIL_OUTPUT\n'
+  printf '# lane: @claude\n'
+  printf '# model: claude-sonnet-4-6\n'
+  printf '# reasoning: xhigh\n'
+  printf '# advisory_only=true\n'
+  printf '# local_truth_claim=false\n'
+  printf '# codex_final_authority=true\n'
+  printf '# required_sections=findings,risks,upgrade_candidates,tests_needed,reject_or_accept_reasoning\n'
+  printf '# stdout_sha256: %s\n' "$stdout_sha"
+  printf '# stdout_lines: %s\n' "$stdout_lines"
+  printf '# stdout_cap_marker: %s\n' "$cap_marker"
+  printf '# stderr_sha256: %s\n' "${stderr_sha:-}"
+  printf '# stderr_bytes: %s\n' "${stderr_bytes:-0}"
+  printf '# exit_code: %s\n' "$status"
+  printf '# NOT_LOCAL_TRUTH\n\n'
+  printf '%s\n' "$capped"
+}
+
 run_claude_safe_prompt() {
   local prompt="$1"
-  require_cmd claude
-  NUDIMMUD_DISABLE_SCOUTS=1 exec claude \
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _tmpdir _stdout _stderr _status _council_prompt
+  require_cmd "$_claude_bin"
+  _tmpdir="$(mktemp -d)"
+  _stdout="$_tmpdir/stdout.txt"
+  _stderr="$_tmpdir/stderr.txt"
+  _council_prompt="$(build_claude_council_prompt "$prompt")"
+
+  set +e
+  NUDIMMUD_DISABLE_SCOUTS=1 "$_claude_bin" \
     --permission-mode default \
     --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
     --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
     --no-session-persistence \
-    --print "$prompt"
+    --print "$_council_prompt" >"$_stdout" 2>"$_stderr"
+  _status=$?
+  set -e
+
+  emit_claude_advisory_output "$_stdout" "$_stderr" "$_status"
+  rm -rf "$_tmpdir"
+  return "$_status"
 }
 
 run_claude_full() {
@@ -1394,6 +1476,14 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane code-deepseek "$@"
+    ;;
+  @claude|claude-council)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_claude_safe_prompt "$(join_prompt "$@")"
     ;;
   @deepseek-workhorse|deepseek-workhorse)
     shift || true

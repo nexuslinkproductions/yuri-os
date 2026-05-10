@@ -176,6 +176,32 @@ Cross-IDE handoff via `_SYSTEM/OS_KERNEL/swarm-handoff.sh`. Task state logging v
 - Protocol/IDE change: update `Scripts/offload-contract.mjs` first → sync rule surfaces → search for stale lane tables → verify launcher syntax.
 - Summarize/format: `@summarize-local` or `@gpt-oss` → fact retention check → compact final.
 
+## SANDBOX_IMPROVEMENT_LOOP
+
+The sandbox loop is the first Yuri automated improvement lane. It is active through `Scripts/yuri-sandbox-loop.mjs` and routes through `Scripts/offload-contract.mjs`.
+
+**Purpose:** improve velocity by running isolated, read-only experiments that produce evidence, reports, and sanitized learning summaries without polluting canonical state.
+
+**Lifecycle:** detect → isolate → self-probe → run → verify → sanitize → log → promote-check → report.
+
+**Canonical boundary:**
+- Sandbox artifacts are tainted and non-canonical.
+- Raw model output must stay in per-run artifact directories under `~/.nudimmud/sandbox-runs` or `/tmp/nudimmud-sandbox-runs`.
+- Raw sandbox output must never be written directly to `_SYSTEM/OS_KERNEL/memory.db`.
+- Only sanitized, locally verified summaries may enter the existing learning-capture path.
+- Existing lesson-review and promotion gates remain authoritative. The sandbox loop may inspect promotion status, but must not auto-approve lessons.
+
+**Required gates:**
+- Self-probe must verify runner availability, artifact creation, and unchanged repo status before live work proceeds.
+- Verification must compare scoped repo state before and after each run.
+- Protected paths remain forbidden: token-state files, `.claude/state`, `.claude/history`, `.env`, `backend/data`, secrets, and `node_modules`.
+- A live run must write `final-report.md`, `verification.json`, `learning-summary.json`, and `raw-output.md` artifacts.
+
+**Execution:**
+- Dry run: `node Scripts/yuri-sandbox-loop.mjs --dry-run --prompt "<task>"`
+- Live run: `node Scripts/yuri-sandbox-loop.mjs --live --prompt "<task>"`
+- Launcher alias: `./Scripts/ai sandbox "<task>"`
+
 ## ROLE_MATRIX
 
 - **Overseer / Coordinator:** load `ai-pipeline-offloading` and `swarm-coordination`; use `Scripts/offload-contract.mjs` for automatic routing; use GitNexus context, impact, and detect-change tools; log task state in `_SYSTEM/OS_KERNEL/memory.db`; hand off via `_SYSTEM/OS_KERNEL/swarm-handoff.sh`.

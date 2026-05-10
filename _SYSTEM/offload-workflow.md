@@ -141,6 +141,62 @@ SELECT agent_id, SUM(CASE WHEN state='COMPLETED' THEN 1 ELSE 0 END) as success_r
 
 ---
 
+## Yuri Sandbox Improvement Loop
+
+**Entrypoint:** `node Scripts/yuri-sandbox-loop.mjs --live --prompt "<task>"`
+**Launcher alias:** `./Scripts/ai sandbox "<task>"`
+**Route source of truth:** `Scripts/offload-contract.mjs`
+**Default lane:** `@codex-spark`
+
+The sandbox loop is an artifact-first improvement lane. It runs isolated experiments, verifies their effects, and captures only sanitized learning summaries. It does not treat raw model output as canonical truth.
+
+### Lifecycle
+
+```
+detect
+  -> classify prompt through offload-contract
+isolate
+  -> create a per-run artifact directory outside tracked repo state
+self-probe
+  -> verify runner dry-run artifact creation, Codex availability for live mode, and unchanged repo status
+run
+  -> execute Codex Spark through Scripts/codex-offload-runner.mjs
+verify
+  -> check route, lane, artifacts, protected-path status, and runner degradation
+sanitize
+  -> hash raw output and create compact verified summary
+log
+  -> write sanitized summary through Scripts/yuri-learning-capture.mjs
+promote-check
+  -> inspect learning queue without auto-approving candidates
+report
+  -> write live-action-report.md and final-report.md
+```
+
+### Artifact Contract
+
+Each run writes:
+
+- `run.json`
+- `route-plan.json`
+- `preflight.json`
+- `sandbox-probe.json`
+- `raw-output.md`
+- `verification.json`
+- `learning-summary.json`
+- `live-action-report.md`
+- `final-report.md`
+
+### Canonical State Rules
+
+- Sandbox artifacts are tainted and non-canonical.
+- Raw output remains artifact-only.
+- `_SYSTEM/OS_KERNEL/memory.db` receives only sanitized verified summaries through the existing learning-capture path.
+- Existing lesson review and promotion gates remain mandatory.
+- Protected paths are not read or mutated by sandbox lanes: token-state files, `.claude/state`, `.claude/history`, `.env`, `backend/data`, secrets, and `node_modules`.
+
+---
+
 ## Capacity Planning (M2 Pro, 16GB)
 
 **Memory per agent:** ~1GB
