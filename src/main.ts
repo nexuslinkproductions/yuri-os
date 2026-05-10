@@ -2880,7 +2880,7 @@ function initLiveModuleCards() {
             setMetric('NEXUSLINK', formatUptime(sl.uptime ?? 0));
 
             // NEURAL_FORGE: model status count
-            const models = await fetchModels();
+            const models = (await fetchModels()) ?? [];
             const activeModels = models.filter((m: any) => m.status === 'ACTIVE').length;
             const totalModels = models.length;
             setMetric('NEURAL_FORGE', `${activeModels}/${totalModels} models`);

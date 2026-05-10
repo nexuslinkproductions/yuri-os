@@ -126,13 +126,12 @@ export function horizontalScroll(
   sections: string | HTMLElement[],
   opts: Partial<HorizontalOpts> = {}
 ): void {
+  const sectionsArr = Array.isArray(sections) ? sections : [sections];
   const {
     start = 'top top',
-    end = () => `+=${getScrollWidth(container, sections)}`,
+    end = () => `+=${getScrollWidth(container, sectionsArr)}`,
     scrub = 1,
   } = opts;
-
-  const sectionsArr = Array.isArray(sections) ? sections : [sections];
 
   gsap.to(sectionsArr, {
     xPercent: -100 * (sectionsArr.length - 1),
@@ -150,7 +149,7 @@ export function horizontalScroll(
 
 function getScrollWidth(
   container: string | HTMLElement,
-  sections: string | HTMLElement[]
+  sections: Array<string | HTMLElement>
 ): number {
   const el =
     typeof container === 'string'

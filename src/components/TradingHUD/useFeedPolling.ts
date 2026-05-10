@@ -10,7 +10,7 @@
  *   Whale:  60 seconds   |   Health:  15 seconds
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
 import {
   fetchDexFeed,
   fetchFundingFeed,
@@ -20,6 +20,13 @@ import {
   type FundingFeedResponse,
   type WhaleFeedResponse,
   type HealthResponse,
+} from '../../lib/tradingHudBridge';
+
+export type {
+  DexFeedResponse,
+  FundingFeedResponse,
+  WhaleFeedResponse,
+  HealthResponse,
 } from '../../lib/tradingHudBridge';
 
 export type FeedStatus = 'loading' | 'active' | 'error' | 'starting';
@@ -68,7 +75,7 @@ export function useFeedPolling(): AllFeeds {
   const wrap = useCallback(
     async <T>(
       fetcher: () => Promise<T>,
-      setter: (fn: (prev: FeedState<T>) => FeedState<T>) => void,
+      setter: Dispatch<SetStateAction<FeedState<T>>>,
     ) => {
       setter((prev) => ({
         ...prev,

@@ -24,7 +24,7 @@ interface ButtonAsButton extends ButtonBaseProps {
 
 interface ButtonAsLink extends Omit<ButtonBaseProps, 'onClick'> {
   href: string;
-  onClick?: React.MouseEventHandler<HTMLAnchorElement> | React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
 
 type ButtonProps = ButtonAsButton | ButtonAsLink;
@@ -72,7 +72,6 @@ const Button: React.FC<ButtonProps> = (props) => {
     variant = 'primary',
     size = 'md',
     children,
-    onClick,
     disabled = false,
     icon,
     iconPosition = 'left',
@@ -132,7 +131,7 @@ const Button: React.FC<ButtonProps> = (props) => {
   );
 
   if (props.href !== undefined) {
-    const { href, ...anchorRest } = props as ButtonAsLink;
+    const { href, onClick: anchorOnClick } = props as ButtonAsLink;
     return (
       <motion.a
         href={href}
@@ -143,15 +142,15 @@ const Button: React.FC<ButtonProps> = (props) => {
         }}
         onFocus={handleFocus}
         onBlur={handleBlur}
+        onClick={anchorOnClick}
         {...motionProps}
-        {...(anchorRest as Omit<ButtonAsLink, 'href'>)}
       >
         {content}
       </motion.a>
     );
   }
 
-  const { href: _omitHref, ...buttonRest } = props as ButtonAsButton;
+  const { onClick: buttonOnClick } = props as ButtonAsButton;
   return (
     <motion.button
       type="button"
@@ -163,9 +162,8 @@ const Button: React.FC<ButtonProps> = (props) => {
       }}
       onFocus={handleFocus}
       onBlur={handleBlur}
-      onClick={onClick}
+      onClick={buttonOnClick}
       {...motionProps}
-      {...(buttonRest as Omit<ButtonAsButton, 'href'>)}
     >
       {content}
     </motion.button>

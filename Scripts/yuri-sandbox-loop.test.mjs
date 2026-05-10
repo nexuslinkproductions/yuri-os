@@ -247,14 +247,21 @@ function createHermeticRepoSnapshot(rootDir) {
     cwd: snapshotRoot,
     encoding: 'utf8',
   });
-  execFileSync(
-    'git',
-    ['-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--quiet', '--no-gpg-sign', '-m', 'Sandbox loop hermetic snapshot'],
-    {
-      cwd: snapshotRoot,
-      encoding: 'utf8',
-    },
-  );
+
+  const stagedSnapshotStatus = execFileSync('git', ['status', '--porcelain=v1'], {
+    cwd: snapshotRoot,
+    encoding: 'utf8',
+  });
+  if (stagedSnapshotStatus !== '') {
+    execFileSync(
+      'git',
+      ['-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--quiet', '--no-gpg-sign', '-m', 'Sandbox loop hermetic snapshot'],
+      {
+        cwd: snapshotRoot,
+        encoding: 'utf8',
+      },
+    );
+  }
 
   const snapshotStatus = execFileSync('git', ['status', '--porcelain=v1'], {
     cwd: snapshotRoot,

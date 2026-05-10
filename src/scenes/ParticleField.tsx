@@ -40,7 +40,7 @@ const ParticleField: React.FC<ParticleFieldProps> = ({
   });
 
   return (
-    <Points ref={pointsRef} positions={positions as unknown as number[]}>
+    <Points ref={pointsRef} positions={positions}>
       <PointMaterial
         size={size}
         color={color}

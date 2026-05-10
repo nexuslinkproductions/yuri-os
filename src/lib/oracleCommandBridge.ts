@@ -52,18 +52,20 @@ export interface OracleSubmitOptions {
 }
 
 type OracleCommandListener = (state: OracleCommandState) => void;
+type TimeoutHandle = ReturnType<typeof globalThis.setTimeout>;
+type IntervalHandle = ReturnType<typeof globalThis.setInterval>;
 
 const listeners = new Set<OracleCommandListener>();
 
 let state: OracleCommandState = createIdleState();
 let requestCounter = 0;
 let activeController: AbortController | null = null;
-let phaseTimer: number | null = null;
-let staleSoftTimer: number | null = null;
-let staleHardTimer: number | null = null;
-let tickInterval: number | null = null;
+let phaseTimer: TimeoutHandle | null = null;
+let staleSoftTimer: TimeoutHandle | null = null;
+let staleHardTimer: TimeoutHandle | null = null;
+let tickInterval: IntervalHandle | null = null;
 
-let councilAgentTimer: number | null = null;
+let councilAgentTimer: IntervalHandle | null = null;
 
 function createIdleState(): OracleCommandState {
     return {
@@ -99,13 +101,13 @@ function setState(nextState: OracleCommandState | ((current: OracleCommandState)
     emit();
 }
 
-function clearTimeoutSafe(timer: number | null) {
+function clearTimeoutSafe(timer: TimeoutHandle | null) {
     if (timer !== null) {
         globalThis.clearTimeout(timer);
     }
 }
 
-function clearIntervalSafe(timer: number | null) {
+function clearIntervalSafe(timer: IntervalHandle | null) {
     if (timer !== null) {
         globalThis.clearInterval(timer);
     }

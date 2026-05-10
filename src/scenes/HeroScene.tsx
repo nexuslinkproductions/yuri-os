@@ -34,7 +34,7 @@ const ParticleField = () => {
   });
 
   return (
-    <Points ref={pointsRef} positions={positions as unknown as number[]}>
+    <Points ref={pointsRef} positions={positions}>
       <PointMaterial size={0.02} color="#06b6d4" transparent opacity={0.4} sizeAttenuation depthWrite={false} />
     </Points>
   );
