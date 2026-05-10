@@ -5,7 +5,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "node Scripts/offload-contract-regression.test.mjs && node Scripts/yuri-sandbox-loop.test.mjs && node Scripts/token-ledger.test.mjs && node Scripts/ollama-adapter.test.mjs",
+    "test": "node Scripts/offload-contract-regression.test.mjs && node Scripts/yuri-control-plane-schema.test.mjs && node Scripts/yuri-sandbox-loop.test.mjs && node Scripts/token-ledger.test.mjs && node Scripts/ollama-adapter.test.mjs && node Scripts/ollama-promotion-readiness.test.mjs",
     "test:offload-contract": "node Scripts/offload-contract-regression.test.mjs",
     "test:token-ledger": "node Scripts/token-ledger.test.mjs",
     "learning:capture": "node Scripts/yuri-learning-capture.mjs",
