@@ -129,6 +129,17 @@
             "command": "node .claude/hooks/aeonic-enforce.js"
           }
         ]
+      },
+      {
+        "matcher": "Grep|Glob|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/marcelspatz/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "timeout": 10,
+            "statusMessage": "Enriching with GitNexus graph context..."
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -144,6 +155,17 @@
             "type": "command",
             "command": "node .claude/hooks/scout-spawn.js",
             "async": true
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/Users/marcelspatz/.claude/hooks/gitnexus/gitnexus-hook.cjs\"",
+            "timeout": 10,
+            "statusMessage": "Checking GitNexus index freshness..."
           }
         ]
       }

@@ -2,18 +2,19 @@
 
 **advisory_only**: true
 **local_truth_claim**: false
-**status**: PROTOTYPE — not wired into runtime execution
+**status**: ACTIVE CONTEXT INJECTION — no runtime skill execution
 
 ## Purpose
 
-Prototype skill/doctrine discovery and normalisation for Yuri OS, based on the OpenClaw `~/.openclaw/workspace/skills/<name>/SKILL.md` convention. Uses Yuri's existing `.cline/rules/*.md` structure as the initial substrate.
+Skill/doctrine discovery and normalisation for Yuri OS, based on the OpenClaw `~/.openclaw/workspace/skills/<name>/SKILL.md` convention. Uses Yuri's existing `.cline/rules/*.md` and `.claude/skills/` structures as the active substrate.
 
 ## Current Discovery Paths
 
 | Path | Source Type | Status |
 |---|---|---|
 | `.cline/rules/*.md` | `cline_rule` | Active |
-| `skills/<name>/SKILL.md` | `openclaw_skill` | Future (OpenClaw-style) |
+| `.claude/skills/*.md` | `claude_skill` | Active |
+| `.claude/skills/<name>/SKILL.md` | `claude_skill` | Active |
 
 ## Normalisation Schema
 
@@ -23,7 +24,7 @@ Each discovered skill is normalised into:
 {
   name: string,           // filename without extension, or SKILL.md parent dir name
   source_path: string,    // repo-relative path
-  source_type: string,    // cline_rule | openclaw_skill
+  source_type: string,    // cline_rule | claude_skill | openclaw_skill
   body: string,           // full file content
   hash: string,           // SHA-256 prefix (16 hex chars)
   loaded_at: string,      // ISO timestamp of discovery
@@ -49,10 +50,9 @@ node Scripts/yuri-skill-loader.mjs --json
 
 ## Non-Claims
 
-- This is a discovery/normalisation prototype only.
+- This is discovery/normalisation and read-only context injection only.
 - No runtime skill execution.
 - No plugin API.
-- No session integration.
 - No agent dispatch wiring.
 - No mutation contract enforcement.
 - Body is treated as opaque text; no semantic parsing.
@@ -71,13 +71,13 @@ surface=skills
 ### What Is Included
 
 - All skills discovered by `yuri-skill-loader.mjs` from current active discovery paths
-- Currently: `.cline/rules/*.md` (2 skills: closeout, system-memory)
+- Currently: `.cline/rules/*.md`, `.claude/skills/*.md`, and `.claude/skills/<name>/SKILL.md`
 - Skills appear as compact text entries in the EVIDENCE_BUNDLE
 
 ### What Is Intentionally Excluded
 
-- `skills/<name>/SKILL.md` path — not yet activated (future OpenClaw-style)
-- Full skill body text — only name/type/path/hash are included to keep context compact
+- Future external `skills/<name>/SKILL.md` path outside `.claude/skills/` — not yet activated
+- Full skill body text in summary metadata — only name/type/path/hash are included there to keep summaries compact
 - No execution, dispatch, or tool calling of any kind
 
 ### Verification
@@ -95,6 +95,10 @@ grep 'SKILL:' /private/tmp/yuri-artifacts/<run_id>/evidence-bundle.txt  # return
 ### Disable Gate
 
 Set `YURI_SKILL_LOADER_DISABLE=1` in the environment to skip skill injection. Useful for debugging or when minimal context is desired.
+
+### Native Probability Trigger
+
+`Scripts/ai @swarm` treats probability, uncertainty, forecast, expected-value, calibration, risk, and decision language as a skills-context trigger. In those cases, `probabilistic-decision-core` is sorted first in the skills bundle so operational uncertainty doctrine reaches downstream lanes before the bundle line cap.
 
 ### Important
 
@@ -145,7 +149,7 @@ Validation is integrity checking, not authority proof. A matching hash means the
 ```bash
 node Scripts/yuri-skill-loader.mjs --write-manifest
 ```
-Generates the initial manifest from the current state of all discovered skills. Run after adding or editing any `.cline/rules/*.md` file. Commit the manifest alongside skill changes.
+Generates the initial manifest from the current state of all discovered skills. Run after adding or editing any discovered skill file under `.cline/rules/` or `.claude/skills/`. Commit the manifest alongside skill changes.
 
 
 ## Fused Swarm Observability

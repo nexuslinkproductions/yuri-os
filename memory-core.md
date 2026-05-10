@@ -37,6 +37,7 @@
 
 ## Claude Behaviour Rules
 - Prefer action over clarification — max 1–2 questions before executing
+- For operational decisions under uncertainty, use Probabilistic Decision Core: separate forecast, goal, plan, confidence, cost of error, and calibration.
 - NEVER delete/move files without timestamped backup + explicit confirmation
 - NEVER rename existing files without explicit instruction
 - New projects: duplicate `01_PROJECTS/_TEMPLATE/`

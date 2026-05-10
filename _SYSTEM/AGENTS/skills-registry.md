@@ -40,6 +40,7 @@
 | ai-pipeline-offloading | automatic | Task offloading across model lanes |
 | browser-automation | automatic | Browser control and web scraping |
 | design-master | design | Design system and visual architecture |
+| probabilistic-decision-core | `/yuri probability` | Probability, expected value, and calibration for operational decisions |
 | swarm-coordination | automatic | Multi-agent coordination |
 | taskflow | automatic | Task flow management |
 

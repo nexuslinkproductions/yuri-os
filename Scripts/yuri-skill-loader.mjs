@@ -7,10 +7,10 @@
  * them into a structured in-memory registry.
  *
  * Reference pattern: OpenClaw ~/.openclaw/workspace/skills/<name>/SKILL.md
- * Initial substrate: .cline/rules/*.md
+ * Initial substrate: .cline/rules/*.md and .claude/skills/*
  *
  * This is a discovery/normalisation/validation prototype only.
- * No runtime skill execution. No plugin API. No session integration.
+ * No runtime skill execution. No plugin API.
  *
  * Usage:
  *   node Scripts/yuri-skill-loader.mjs --list
@@ -32,9 +32,10 @@ const MANIFEST_PATH = path.join(REPO_ROOT, '_SYSTEM', 'skill-hash-registry.json'
 
 // Discovery paths (order = precedence; first match wins for duplicate names)
 const DISCOVERY_PATHS = [
-  { prefix: '.cline/rules', sourceType: 'cline_rule', pattern: /^(.+).md$/ },
-  // Future OpenClaw-style expansion:
-  // { prefix: 'skills', sourceType: 'openclaw_skill', pattern: /^([^/]+)/SKILL.md$/ },
+  { prefix: '.cline/rules', sourceType: 'cline_rule', kind: 'flat_md' },
+  { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'flat_md' },
+  { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'skill_md' },
+  // Future OpenClaw-style expansion can reuse kind=skill_md for skills/<name>/SKILL.md.
 ]
 
 const PREVIEW_LINES = 20
@@ -108,7 +109,8 @@ function printHelp() {
     '',
     'Discovery paths:',
     '  .cline/rules/*.md (current)',
-    '  skills/<name>/SKILL.md (future, OpenClaw-style)',
+    '  .claude/skills/*.md (current)',
+    '  .claude/skills/<name>/SKILL.md (current)',
   ].join('\n') + '\n')
 }
 
@@ -120,33 +122,28 @@ function buildRegistry() {
     const surfacePath = path.join(REPO_ROOT, surface.prefix)
     if (!existsSync(surfacePath)) continue
 
-    const entries = readdirSync(surfacePath, { withFileTypes: true })
-
-    for (const entry of entries) {
-      const match = entry.name.match(surface.pattern)
-      if (!match) continue
-
-      const skillName = match[1]
-      const sourcePath = path.join(surfacePath, entry.name)
+    for (const discovered of discoverSurfaceFiles(surface, surfacePath)) {
+      const { skillName, sourcePath } = discovered
       const stat = statSync(sourcePath)
 
       if (!stat.isFile()) continue
 
-      let body = readFileSync(sourcePath, 'utf8')
+      const fullBody = readFileSync(sourcePath, 'utf8')
+      let body = fullBody
       let bodyTruncated = false
       if (body.length > SKILL_BODY_MAX_PER_SKILL) {
         body = body.slice(0, SKILL_BODY_MAX_PER_SKILL)
         bodyTruncated = true
       }
-      const hash = createHash('sha256').update(body).digest('hex').slice(0, 16)
+      const hash = createHash('sha256').update(fullBody).digest('hex').slice(0, 16)
       const loadedAt = new Date().toISOString()
 
       const skill = {
         name: skillName,
-        source_path: path.join(surface.prefix, entry.name),
+        source_path: path.relative(REPO_ROOT, sourcePath),
         source_type: surface.sourceType,
         body,
-        body_length: body.length,
+        body_length: fullBody.length,
         bodyTruncated,
         hash,
         loaded_at: loadedAt,
@@ -167,6 +164,38 @@ function buildRegistry() {
   }
 
   return { skills, discovered_at: new Date().toISOString(), count: skills.length }
+}
+
+function discoverSurfaceFiles(surface, surfacePath) {
+  const discovered = []
+
+  if (surface.kind === 'flat_md') {
+    const entries = readdirSync(surfacePath, { withFileTypes: true })
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith('.md')) continue
+      discovered.push({
+        skillName: entry.name.replace(/\.md$/, ''),
+        sourcePath: path.join(surfacePath, entry.name),
+      })
+    }
+    return discovered
+  }
+
+  if (surface.kind === 'skill_md') {
+    const entries = readdirSync(surfacePath, { withFileTypes: true })
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue
+      const sourcePath = path.join(surfacePath, entry.name, 'SKILL.md')
+      if (!existsSync(sourcePath)) continue
+      discovered.push({
+        skillName: entry.name,
+        sourcePath,
+      })
+    }
+    return discovered
+  }
+
+  return discovered
 }
 
 function runValidate(registry, useJson) {

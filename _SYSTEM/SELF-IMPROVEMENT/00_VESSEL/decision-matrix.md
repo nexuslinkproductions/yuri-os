@@ -115,7 +115,72 @@ If you classify a task as HIGH or CRITICAL risk:
 2. Do NOT take action — present the brief and wait
 3. Let the human make the call
 
-## 4. Energy-Aware Scheduling
+## 4. Probabilistic Decision Core
+
+Use this layer when a task involves uncertainty, competing paths, route selection, opportunity ranking, or risk acceptance.
+
+### Forecast vs Goal vs Plan
+
+| Layer | Question | Rule |
+|-------|----------|------|
+| Forecast | What is likely to happen? | Estimate from base rates and evidence |
+| Goal | What do we want to happen? | State separately from likelihood |
+| Plan | What action changes the odds? | Choose by expected value and cost of error |
+
+### Predictability Check
+
+Before assigning probability, score the forecastability:
+
+| Factor | Better forecast when... |
+|--------|--------------------------|
+| Factor understanding | The drivers are known and stable |
+| Data availability | Prior cases or reliable measurements exist |
+| Future similarity | Past conditions still resemble the decision context |
+| Observer effect | The forecast does not materially change the outcome |
+
+If two or more factors are weak, use `not_estimable` or a broad range instead of a precise number.
+
+### Operational Estimate Template
+
+```text
+Decision:
+Outcome estimated:
+Time horizon:
+Base rate:
+Signals for:
+Signals against:
+Probability:
+Confidence:
+Cost if wrong:
+Reversibility:
+Expected value:
+Action:
+Calibration log required:
+```
+
+### Action Thresholds
+
+| Condition | Action |
+|-----------|--------|
+| High confidence + positive expected value + reversible | Proceed |
+| Medium confidence + positive expected value + reversible | Proceed with checkpoint |
+| Low confidence + high cost if wrong | Gather evidence |
+| Any confidence + HIGH/CRITICAL risk | Escalate to human |
+| Weak predictability + fake precision risk | Mark `not_estimable` |
+
+### Calibration
+
+When the outcome can be checked later, log it in `_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/probability-calibration-log.md`.
+
+For binary outcomes, use Brier score:
+
+```text
+Brier = (forecast_probability - outcome)^2
+```
+
+Outcome is `1` if the event happened and `0` if it did not.
+
+## 5. Energy-Aware Scheduling
 
 Marcel's schedule demands precision. Night block (21:00–04:00) is peak. Daytime is lighter.
 
@@ -162,6 +227,7 @@ Before scheduling a task, check:
 1. **Look at your next task**
 2. **Run Agent vs Coworker** → which mode?
 3. **Score priority** → how urgent?
-4. **Classify risk** → how careful?
-5. **Check energy zone** → am I in the right headspace?
-6. **Go** or **Defer** — now you know.
+4. **Estimate uncertainty** → probability, confidence, cost of error
+5. **Classify risk** → how careful?
+6. **Check energy zone** → am I in the right headspace?
+7. **Go** or **Defer** — now you know.

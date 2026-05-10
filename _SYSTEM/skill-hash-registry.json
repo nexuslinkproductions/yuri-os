@@ -6,5 +6,149 @@
   "system-memory": {
     "source_path": ".cline/rules/system-memory.md",
     "hash": "fbee045eefcd6729"
+  },
+  "business-dach-market-intelligence": {
+    "source_path": ".claude/skills/business-dach-market-intelligence.md",
+    "hash": "4b2dfd79763fc33d"
+  },
+  "neural-forge-orchestration": {
+    "source_path": ".claude/skills/neural-forge-orchestration.md",
+    "hash": "ed59320d0e845b13"
+  },
+  "ai-pipeline-offloading": {
+    "source_path": ".claude/skills/ai-pipeline-offloading/SKILL.md",
+    "hash": "b5f7bed54e66a93f"
+  },
+  "anthropic-managed-agents": {
+    "source_path": ".claude/skills/anthropic-managed-agents/SKILL.md",
+    "hash": "f974bb01f6a112d3"
+  },
+  "bg": {
+    "source_path": ".claude/skills/bg/SKILL.md",
+    "hash": "94d5b73aa8572aa5"
+  },
+  "codebase-to-course": {
+    "source_path": ".claude/skills/codebase-to-course/SKILL.md",
+    "hash": "1199400faf25ce66"
+  },
+  "compact-optimizer": {
+    "source_path": ".claude/skills/compact-optimizer/SKILL.md",
+    "hash": "274b7ce4f1726cb5"
+  },
+  "deepseek-offload": {
+    "source_path": ".claude/skills/deepseek-offload/SKILL.md",
+    "hash": "b609efbe44127a91"
+  },
+  "deepseek-workhorse": {
+    "source_path": ".claude/skills/deepseek-workhorse/SKILL.md",
+    "hash": "3ecf881fad0b17dd"
+  },
+  "design-master": {
+    "source_path": ".claude/skills/design-master/SKILL.md",
+    "hash": "9ed11b2071415197"
+  },
+  "design-source-pack": {
+    "source_path": ".claude/skills/design-source-pack/SKILL.md",
+    "hash": "bc49b06138b34ca1"
+  },
+  "end-of-transmission": {
+    "source_path": ".claude/skills/end-of-transmission/SKILL.md",
+    "hash": "863042b53ecf8833"
+  },
+  "execution-domain-core": {
+    "source_path": ".claude/skills/execution-domain-core/SKILL.md",
+    "hash": "5e4852ecf4680b7c"
+  },
+  "failure-evolution-loop": {
+    "source_path": ".claude/skills/failure-evolution-loop/SKILL.md",
+    "hash": "dda48fa8852c94b9"
+  },
+  "gitnexus-cli": {
+    "source_path": ".claude/skills/gitnexus-cli/SKILL.md",
+    "hash": "d96337c948a333c8"
+  },
+  "gitnexus-debugging": {
+    "source_path": ".claude/skills/gitnexus-debugging/SKILL.md",
+    "hash": "4a1e82aa835c52e3"
+  },
+  "gitnexus-exploring": {
+    "source_path": ".claude/skills/gitnexus-exploring/SKILL.md",
+    "hash": "ffafeaa0ce52be07"
+  },
+  "gitnexus-guide": {
+    "source_path": ".claude/skills/gitnexus-guide/SKILL.md",
+    "hash": "40b047beeb9a7c5d"
+  },
+  "gitnexus-impact-analysis": {
+    "source_path": ".claude/skills/gitnexus-impact-analysis/SKILL.md",
+    "hash": "a4d6e8003c4a822c"
+  },
+  "gitnexus-pr-review": {
+    "source_path": ".claude/skills/gitnexus-pr-review/SKILL.md",
+    "hash": "f7bac200a4752191"
+  },
+  "gitnexus-refactoring": {
+    "source_path": ".claude/skills/gitnexus-refactoring/SKILL.md",
+    "hash": "6aab994ee0266063"
+  },
+  "gpt-oss-local-runtime": {
+    "source_path": ".claude/skills/gpt-oss-local-runtime/SKILL.md",
+    "hash": "00cbaee8b8125d7a"
+  },
+  "graphify": {
+    "source_path": ".claude/skills/graphify/SKILL.md",
+    "hash": "97b7bb92c47d8b6e"
+  },
+  "kimi-k2-6-server-adapter": {
+    "source_path": ".claude/skills/kimi-k2-6-server-adapter/SKILL.md",
+    "hash": "eb151333324b642e"
+  },
+  "local-subagent": {
+    "source_path": ".claude/skills/local-subagent/SKILL.md",
+    "hash": "9f65d7c9f8dc3841"
+  },
+  "math-curve-loaders": {
+    "source_path": ".claude/skills/math-curve-loaders/SKILL.md",
+    "hash": "1749a3bd26ed1123"
+  },
+  "non-destructive-infinity-guard": {
+    "source_path": ".claude/skills/non-destructive-infinity-guard/SKILL.md",
+    "hash": "7256c3a8b07c6a3b"
+  },
+  "openai-codex-workflow": {
+    "source_path": ".claude/skills/openai-codex-workflow/SKILL.md",
+    "hash": "4773d0ef7e00b67b"
+  },
+  "openclaw-offload": {
+    "source_path": ".claude/skills/openclaw-offload/SKILL.md",
+    "hash": "b33419af63b9d53d"
+  },
+  "parallel-clone-orchestrator": {
+    "source_path": ".claude/skills/parallel-clone-orchestrator/SKILL.md",
+    "hash": "e184db22b33cf763"
+  },
+  "pattern-mirror-core": {
+    "source_path": ".claude/skills/pattern-mirror-core/SKILL.md",
+    "hash": "000634c7331f1e1a"
+  },
+  "probabilistic-decision-core": {
+    "source_path": ".claude/skills/probabilistic-decision-core/SKILL.md",
+    "hash": "51941d626bf42c51"
+  },
+  "research-artifact-factory": {
+    "source_path": ".claude/skills/research-artifact-factory/SKILL.md",
+    "hash": "f85bd03b223ea783"
+  },
+  "sharingan": {
+    "source_path": ".claude/skills/sharingan/SKILL.md",
+    "hash": "d1c8b7632fb761e0"
+  },
+  "swarm-coordination": {
+    "source_path": ".claude/skills/swarm-coordination/SKILL.md",
+    "hash": "57dd6e97c398f3e3"
+  },
+  "tokenmaxxing": {
+    "source_path": ".claude/skills/tokenmaxxing/SKILL.md",
+    "hash": "991978bc7aa25257"
   }
 }
