@@ -38,3 +38,13 @@ These reference images inform the visual direction of the Nexus Link Productions
 | `ref-19.jpg` | Button / CTA styling reference |
 | `ref-21.jpg` | Mobile navigation patterns |
 | `ref-22.jpg` | Loading / transition state animations |
+
+## Internal Product References
+
+| Pack | Design Element | Purpose |
+|------|----------------|---------|
+| `03_RESOURCES/References/design-packs/exeoflow-yuri-sitrep-baseline/` | ExeoFlow + YURI OS SITREP baseline | Starting-point reference for consumer-readable intelligence briefings with target explorer, real map, public-source evidence, and account action plans. This is explicitly a baseline to improve, not a final quality bar. |
+| `03_RESOURCES/References/design-packs/exeoflow-yuri-sitrep-baseline/companion-nexus-link-website.md` | Nexus Link Productions benchmark | Stronger presentation reference for hierarchy, motion, CTA rhythm, and overall polish. |
+| `03_RESOURCES/References/design-packs/exeoflow-yuri-sitrep-baseline/00-start-here.md` | Pack manifest | Fast future-session entry point with load order, source of truth, copy rules, and guardrails. |
+| `03_RESOURCES/References/design-packs/exeoflow-yuri-sitrep-baseline/comparison-exeo-vs-nexus-link.md` | Benchmark delta sheet | Side-by-side guidance for what to keep from the baseline and what to improve using Nexus Link as the standard. |
+| `.agents/skills/exeoflow-yuri-sitrep-pack/SKILL.md` | Portable skill | Reusable skill version of the ExeoFlow + YURI OS reference pack workflow. |

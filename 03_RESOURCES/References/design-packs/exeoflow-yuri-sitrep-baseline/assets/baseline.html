@@ -1,0 +1,2436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ExeoFlow + YURI OS | Enterprise Target Briefing</title>
+  <meta name="description" content="Interactive ExeoFlow and YURI OS enterprise target briefing for public-source account prioritization.">
+  <meta name="theme-color" content="#06060a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-void: #06060a;
+      --color-deep: #0a0a10;
+      --color-surface: #101018;
+      --color-elevated: #16161f;
+      --color-hover: #1c1c28;
+      --color-border-subtle: #1e1e2a;
+      --color-border: #2a2a3a;
+      --color-text-primary: #e4e4ed;
+      --color-text-secondary: #8888a0;
+      --color-text-muted: #5a5a70;
+      --color-purple: #7c3aed;
+      --color-purple-dim: #5b21b6;
+      --color-cyan: #00ffa7;
+      --color-cyan-dim: #00cc86;
+      --color-warning: #f59e0b;
+      --color-danger: #ef4444;
+      --color-white: #ffffff;
+      --glass-soft: rgba(16, 16, 24, 0.68);
+      --glass-strong: rgba(6, 6, 10, 0.84);
+      --purple-soft: rgba(124, 58, 237, 0.14);
+      --purple-faint: rgba(124, 58, 237, 0.06);
+      --purple-border: rgba(124, 58, 237, 0.42);
+      --cyan-soft: rgba(0, 255, 167, 0.12);
+      --cyan-faint: rgba(0, 255, 167, 0.06);
+      --cyan-border: rgba(0, 255, 167, 0.34);
+      --white-faint: rgba(255, 255, 255, 0.04);
+      --white-soft: rgba(255, 255, 255, 0.08);
+      --shadow-soft: 0 24px 80px rgba(0, 0, 0, 0.46);
+      --shadow-purple: 0 0 42px rgba(124, 58, 237, 0.22);
+      --shadow-cyan: 0 0 38px rgba(0, 255, 167, 0.16);
+      --font-sans: "Outfit", system-ui, sans-serif;
+      --font-heading: "Space Grotesk", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", monospace;
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      --space-20: 5rem;
+      --space-24: 6rem;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 28px;
+      --radius-full: 9999px;
+      --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+      --duration-fast: 150ms;
+      --duration-normal: 300ms;
+      --duration-slow: 500ms;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--color-void);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 5%, var(--purple-soft), transparent 32rem),
+        radial-gradient(circle at 82% 14%, var(--cyan-faint), transparent 30rem),
+        linear-gradient(180deg, var(--color-void), var(--color-deep) 42%, var(--color-void));
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        linear-gradient(var(--white-faint) 1px, transparent 1px),
+        linear-gradient(90deg, var(--white-faint) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: linear-gradient(to bottom, transparent, var(--color-white) 18%, var(--color-white) 70%, transparent);
+      opacity: 0.28;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), var(--purple-faint), transparent 22rem);
+      pointer-events: none;
+      transition: background var(--duration-normal) var(--ease-out);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 200;
+      width: var(--scroll, 0%);
+      height: 3px;
+      background: linear-gradient(90deg, var(--color-purple), var(--color-cyan));
+      box-shadow: var(--shadow-cyan);
+    }
+
+    .nav {
+      position: fixed;
+      top: var(--space-4);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      width: min(1180px, calc(100% - 32px));
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: 0 var(--space-3) 0 var(--space-5);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-full);
+      background: var(--glass-strong);
+      backdrop-filter: blur(24px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      min-width: fit-content;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--color-purple), var(--color-cyan));
+      color: var(--color-void);
+      font-family: var(--font-heading);
+      font-weight: 800;
+    }
+
+    .brand-name {
+      font-family: var(--font-heading);
+      font-size: 0.96rem;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-5);
+      color: var(--color-text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .nav-links a {
+      transition: color var(--duration-fast) var(--ease-out);
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      color: var(--color-text-primary);
+      outline: none;
+    }
+
+    .nav-cta,
+    .button-primary,
+    .button-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: var(--radius-full);
+      transition:
+        transform var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out),
+        background var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+      white-space: nowrap;
+    }
+
+    .nav-cta,
+    .button-primary {
+      background: var(--color-cyan);
+      color: var(--color-void);
+      font-weight: 700;
+      box-shadow: 0 0 0 transparent;
+    }
+
+    .nav-cta {
+      padding: 0.8rem 1.05rem;
+      font-size: 0.86rem;
+    }
+
+    .button-primary,
+    .button-secondary {
+      padding: 0.95rem 1.3rem;
+      font-size: 0.98rem;
+    }
+
+    .button-secondary {
+      border: 1px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text-primary);
+      font-weight: 700;
+    }
+
+    .nav-cta:hover,
+    .button-primary:hover,
+    .button-primary:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-cyan);
+      outline: none;
+    }
+
+    .button-secondary:hover,
+    .button-secondary:focus-visible {
+      transform: translateY(-2px);
+      border-color: var(--color-purple);
+      background: var(--color-hover);
+      outline: none;
+    }
+
+    .page {
+      position: relative;
+    }
+
+    .section {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: var(--space-24) 0;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+      align-items: center;
+      gap: var(--space-16);
+      padding-top: 132px;
+    }
+
+    .kicker,
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--color-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.24em;
+    }
+
+    .kicker::before,
+    .eyebrow::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+      background: var(--color-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+
+    .hero h1 {
+      margin: var(--space-6) 0;
+      font-family: var(--font-heading);
+      font-size: clamp(3.6rem, 8.6vw, 7.8rem);
+      line-height: 0.9;
+      letter-spacing: -0.065em;
+      max-width: 10ch;
+    }
+
+    .hero-lede {
+      max-width: 58ch;
+      color: var(--color-text-secondary);
+      font-size: clamp(1.12rem, 2vw, 1.38rem);
+      line-height: 1.58;
+      font-weight: 300;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-top: var(--space-8);
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-3);
+      margin-top: var(--space-10);
+      max-width: 620px;
+    }
+
+    .stat {
+      padding: var(--space-5);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      background: var(--glass-soft);
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--color-text-primary);
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      letter-spacing: -0.05em;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: var(--space-1);
+      color: var(--color-text-secondary);
+      font-size: 0.84rem;
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 560px;
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-xl);
+      background:
+        radial-gradient(circle at 50% 45%, var(--purple-soft), transparent 17rem),
+        linear-gradient(145deg, var(--glass-soft), var(--color-deep));
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+
+    .hero-visual::before {
+      content: "";
+      position: absolute;
+      inset: 12%;
+      border: 1px solid var(--white-soft);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 58px var(--white-faint),
+        0 0 0 118px var(--white-faint);
+      animation: breathe 5s var(--ease-out) infinite;
+    }
+
+    .orbit-card {
+      position: absolute;
+      width: 210px;
+      padding: var(--space-5);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--glass-strong);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .orbit-card strong {
+      display: block;
+      color: var(--color-text-primary);
+      font-family: var(--font-heading);
+      margin-bottom: var(--space-2);
+    }
+
+    .orbit-card span {
+      color: var(--color-text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .orbit-card.one {
+      top: 52px;
+      left: 44px;
+    }
+
+    .orbit-card.two {
+      right: 42px;
+      top: 176px;
+    }
+
+    .orbit-card.three {
+      left: 72px;
+      bottom: 70px;
+    }
+
+    .core-sigil {
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      width: 196px;
+      height: 196px;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid var(--purple-border);
+      background: radial-gradient(circle, var(--purple-soft), transparent 68%);
+      box-shadow: var(--shadow-purple);
+      text-align: center;
+    }
+
+    .core-sigil strong {
+      font-family: var(--font-heading);
+      font-size: 1.45rem;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .section-head {
+      max-width: 760px;
+      margin-bottom: var(--space-12);
+    }
+
+    .section-head.center {
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+
+    .section-head h2 {
+      margin: var(--space-4) 0 var(--space-4);
+      font-family: var(--font-heading);
+      font-size: clamp(2.2rem, 5vw, 4.8rem);
+      line-height: 0.96;
+      letter-spacing: -0.055em;
+    }
+
+    .section-head p {
+      color: var(--color-text-secondary);
+      font-size: 1.14rem;
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .use-grid,
+    .path-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-5);
+    }
+
+    .use-card,
+    .path-card,
+    .target-card,
+    .evidence-card,
+    .package-card {
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      background: var(--glass-soft);
+      box-shadow: 0 0 0 transparent;
+      transition:
+        transform var(--duration-normal) var(--ease-out),
+        border-color var(--duration-normal) var(--ease-out),
+        box-shadow var(--duration-normal) var(--ease-out),
+        background var(--duration-normal) var(--ease-out);
+    }
+
+    .use-card,
+    .path-card,
+    .package-card {
+      padding: var(--space-8);
+    }
+
+    .use-card:hover,
+    .path-card:hover,
+    .target-card:hover,
+    .evidence-card:hover,
+    .package-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--purple-border);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-purple);
+    }
+
+    .step-num {
+      display: inline-grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      margin-bottom: var(--space-5);
+      border-radius: var(--radius-full);
+      background: var(--purple-soft);
+      color: var(--color-cyan);
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .card-title {
+      display: block;
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+      margin-bottom: var(--space-3);
+    }
+
+    .card-copy {
+      color: var(--color-text-secondary);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .path-card {
+      text-align: left;
+      color: var(--color-text-primary);
+      cursor: pointer;
+    }
+
+    .path-card.active {
+      border-color: var(--color-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+
+    .path-meta {
+      display: block;
+      color: var(--color-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: var(--space-4);
+    }
+
+    .path-detail {
+      margin-top: var(--space-6);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      background:
+        radial-gradient(circle at 24% 20%, var(--cyan-faint), transparent 22rem),
+        var(--color-surface);
+      padding: var(--space-8);
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: var(--space-8);
+      align-items: center;
+    }
+
+    .path-detail h3 {
+      margin: 0;
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 4vw, 3.8rem);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+    }
+
+    .path-detail p {
+      margin: 0;
+      color: var(--color-text-secondary);
+      line-height: 1.7;
+      font-size: 1.06rem;
+    }
+
+    .explorer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: var(--space-8);
+      align-items: start;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+      align-items: center;
+    }
+
+    .search {
+      flex: 1 1 260px;
+      min-width: 0;
+      height: 48px;
+      padding: 0 var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      background: var(--glass-soft);
+      color: var(--color-text-primary);
+      outline: none;
+    }
+
+    .search:focus {
+      border-color: var(--color-purple);
+      box-shadow: var(--shadow-purple);
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .filter {
+      min-height: 40px;
+      padding: 0 var(--space-4);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-full);
+      background: transparent;
+      color: var(--color-text-secondary);
+      transition:
+        color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        background var(--duration-fast) var(--ease-out);
+    }
+
+    .filter:hover,
+    .filter.active,
+    .filter:focus-visible {
+      color: var(--color-void);
+      border-color: var(--color-cyan);
+      background: var(--color-cyan);
+      outline: none;
+    }
+
+    .target-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    .target-card {
+      width: 100%;
+      text-align: left;
+      padding: var(--space-5);
+      color: var(--color-text-primary);
+      cursor: pointer;
+      min-height: 204px;
+    }
+
+    .target-card.active {
+      border-color: var(--color-cyan);
+      box-shadow: var(--shadow-cyan);
+    }
+
+    .target-top {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-4);
+      align-items: flex-start;
+      margin-bottom: var(--space-5);
+    }
+
+    .target-top strong {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      letter-spacing: -0.03em;
+    }
+
+    .score {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      height: 34px;
+      border-radius: var(--radius-full);
+      background: var(--purple-soft);
+      color: var(--color-cyan);
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .target-meta {
+      color: var(--color-text-muted);
+      font-size: 0.88rem;
+      margin-bottom: var(--space-4);
+    }
+
+    .target-card p {
+      color: var(--color-text-secondary);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .detail-panel {
+      position: sticky;
+      top: 104px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      background: var(--glass-strong);
+      box-shadow: var(--shadow-soft);
+      padding: var(--space-8);
+    }
+
+    .detail-panel h3 {
+      margin: 0 0 var(--space-3);
+      font-family: var(--font-heading);
+      font-size: 2.3rem;
+      letter-spacing: -0.05em;
+      line-height: 0.95;
+    }
+
+    .detail-panel .muted {
+      color: var(--color-text-secondary);
+      line-height: 1.62;
+      margin: 0 0 var(--space-6);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin: var(--space-5) 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-full);
+      padding: 0.45rem 0.72rem;
+      color: var(--color-text-secondary);
+      font-size: 0.82rem;
+    }
+
+    .detail-block {
+      padding-top: var(--space-5);
+      border-top: 1px solid var(--color-border-subtle);
+      margin-top: var(--space-5);
+    }
+
+    .detail-block span {
+      display: block;
+      color: var(--color-cyan);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.76rem;
+      margin-bottom: var(--space-2);
+    }
+
+    .detail-block p {
+      margin: 0;
+      color: var(--color-text-secondary);
+      line-height: 1.58;
+    }
+
+    .detail-block a {
+      color: var(--color-cyan);
+      font-weight: 700;
+    }
+
+    .sitrep-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: var(--space-8);
+      align-items: stretch;
+    }
+
+    .map-shell {
+      min-height: 620px;
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-xl);
+      background:
+        radial-gradient(circle at 58% 48%, var(--purple-soft), transparent 20rem),
+        linear-gradient(145deg, var(--glass-soft), var(--color-deep));
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+    }
+
+    .map-toolbar {
+      position: absolute;
+      left: var(--space-4);
+      top: var(--space-4);
+      z-index: 500;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      max-width: calc(100% - 32px);
+    }
+
+    .map-control-pill {
+      min-height: 36px;
+      padding: 0 var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      background: var(--glass-strong);
+      color: var(--color-text-secondary);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      backdrop-filter: blur(18px);
+    }
+
+    .map-control-pill:hover,
+    .map-control-pill:focus-visible {
+      border: 1px solid var(--purple-border);
+      color: var(--color-text-primary);
+      outline: none;
+    }
+
+    .map-card {
+      width: 100%;
+      height: 620px;
+      background: var(--color-deep);
+    }
+
+    .leaflet-container {
+      font-family: var(--font-sans);
+      background: var(--color-deep);
+    }
+
+    .leaflet-control-zoom a {
+      background: var(--glass-strong);
+      color: var(--color-text-primary);
+      border-color: var(--color-border);
+    }
+
+    .leaflet-control-zoom a:hover {
+      background: var(--color-hover);
+      color: var(--color-cyan);
+    }
+
+    .leaflet-control-attribution {
+      background: var(--glass-strong);
+      color: var(--color-text-secondary);
+    }
+
+    .leaflet-control-attribution a {
+      color: var(--color-cyan);
+    }
+
+    .sitrep-marker {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--purple-border);
+      border-radius: var(--radius-full);
+      background: var(--glass-strong);
+      color: var(--color-text-primary);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      box-shadow: var(--shadow-purple);
+      transition: transform var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out);
+    }
+
+    .sitrep-marker.is-active,
+    .sitrep-marker:hover {
+      transform: scale(1.18);
+      border-color: var(--color-cyan);
+      background: var(--cyan-soft);
+      box-shadow: var(--shadow-cyan);
+    }
+
+    .leaflet-popup-content-wrapper,
+    .leaflet-popup-tip {
+      background: var(--color-surface);
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .leaflet-popup-content {
+      margin: var(--space-4);
+      color: var(--color-text-secondary);
+      line-height: 1.45;
+    }
+
+    .leaflet-popup-content strong {
+      display: block;
+      color: var(--color-text-primary);
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      margin-bottom: var(--space-1);
+    }
+
+    .leaflet-popup-content span {
+      display: block;
+      color: var(--color-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: var(--space-2);
+    }
+
+    .sitrep-panel {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      background: var(--glass-strong);
+      padding: var(--space-8);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .sitrep-panel h3 {
+      margin: 0 0 var(--space-3);
+      font-family: var(--font-heading);
+      font-size: 2.1rem;
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+    }
+
+    .sitrep-meta {
+      color: var(--color-text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      margin-bottom: var(--space-6);
+    }
+
+    .contact-route {
+      display: grid;
+      gap: var(--space-3);
+      margin: var(--space-6) 0;
+    }
+
+    .contact-route a,
+    .action-step {
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      background: var(--color-surface);
+    }
+
+    .contact-route a {
+      color: var(--color-cyan);
+      font-weight: 700;
+    }
+
+    .action-list {
+      display: grid;
+      gap: var(--space-3);
+      counter-reset: action;
+    }
+
+    .action-step {
+      counter-increment: action;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+      position: relative;
+      padding-left: var(--space-12);
+    }
+
+    .action-step::before {
+      content: counter(action);
+      position: absolute;
+      left: var(--space-4);
+      top: var(--space-4);
+      color: var(--color-cyan);
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .sitrep-note {
+      color: var(--color-text-muted);
+      font-size: 0.86rem;
+      line-height: 1.55;
+      margin-top: var(--space-6);
+    }
+
+    .lens-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: var(--space-8);
+      align-items: stretch;
+    }
+
+    .map {
+      min-height: 520px;
+      position: relative;
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-xl);
+      background:
+        linear-gradient(90deg, transparent 49.8%, var(--color-border-subtle) 50%, transparent 50.2%),
+        linear-gradient(0deg, transparent 49.8%, var(--color-border-subtle) 50%, transparent 50.2%),
+        radial-gradient(circle at 70% 24%, var(--cyan-faint), transparent 22rem),
+        var(--glass-soft);
+      overflow: hidden;
+    }
+
+    .axis {
+      position: absolute;
+      color: var(--color-text-muted);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.7rem;
+    }
+
+    .axis.top {
+      top: var(--space-5);
+      left: var(--space-5);
+    }
+
+    .axis.right {
+      right: var(--space-5);
+      bottom: var(--space-5);
+    }
+
+    .axis.left {
+      left: var(--space-5);
+      bottom: var(--space-5);
+    }
+
+    .point {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: var(--size);
+      height: var(--size);
+      transform: translate(-50%, -50%);
+      border: 1px solid var(--purple-border);
+      border-radius: var(--radius-full);
+      background: var(--purple-soft);
+      color: var(--color-text-primary);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      transition:
+        transform var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out),
+        background var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out);
+    }
+
+    .point:hover,
+    .point.active,
+    .point:focus-visible {
+      transform: translate(-50%, -50%) scale(1.18);
+      border-color: var(--color-cyan);
+      background: var(--cyan-soft);
+      box-shadow: var(--shadow-cyan);
+      outline: none;
+      z-index: 4;
+    }
+
+    .lens-copy {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      background: var(--glass-strong);
+      padding: var(--space-8);
+    }
+
+    .lens-copy h3 {
+      margin: 0 0 var(--space-4);
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      letter-spacing: -0.04em;
+    }
+
+    .lens-list {
+      display: grid;
+      gap: var(--space-3);
+      margin-top: var(--space-6);
+    }
+
+    .lens-item {
+      padding: var(--space-4);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    .evidence-card {
+      padding: var(--space-5);
+      min-height: 160px;
+    }
+
+    .evidence-card strong {
+      display: block;
+      font-family: var(--font-heading);
+      margin-bottom: var(--space-3);
+      letter-spacing: -0.02em;
+    }
+
+    .evidence-card span {
+      display: block;
+      color: var(--color-text-muted);
+      font-size: 0.88rem;
+      margin-bottom: var(--space-4);
+    }
+
+    .evidence-card a {
+      color: var(--color-cyan);
+      font-weight: 700;
+    }
+
+    .package {
+      padding-bottom: var(--space-24);
+    }
+
+    .package-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-5);
+    }
+
+    .package-card h3 {
+      margin: 0 0 var(--space-3);
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      letter-spacing: -0.04em;
+    }
+
+    .footer {
+      border-top: 1px solid var(--color-border-subtle);
+      color: var(--color-text-muted);
+      padding: var(--space-8) var(--space-4);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .empty {
+      color: var(--color-text-secondary);
+      padding: var(--space-8);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      background: var(--glass-soft);
+    }
+
+    @keyframes breathe {
+      0%, 100% {
+        opacity: 0.9;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.58;
+        transform: scale(1.03);
+      }
+    }
+
+    @media (max-width: 980px) {
+      .nav {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        border-radius: 0;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .section {
+        padding: var(--space-16) 0;
+      }
+
+      .hero,
+      .explorer,
+      .sitrep-layout,
+      .lens-layout,
+      .path-detail,
+      .package-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding-top: var(--space-16);
+      }
+
+      .hero-visual {
+        min-height: 460px;
+      }
+
+      .use-grid,
+      .path-grid,
+      .target-grid,
+      .evidence-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-panel {
+        position: relative;
+        top: auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero h1 {
+        font-size: 3.25rem;
+      }
+
+      .hero-stats,
+      .path-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        display: none;
+      }
+
+      .nav-cta {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <nav class="nav" aria-label="Page navigation">
+    <a class="brand" href="#top" aria-label="ExeoFlow home">
+      <span class="brand-mark">E</span>
+      <span class="brand-name">ExeoFlow / YURI OS</span>
+    </a>
+    <div class="nav-links">
+      <a href="#use">Use</a>
+      <a href="#path">Path</a>
+      <a href="#targets">Targets</a>
+      <a href="#sitrep">Map</a>
+      <a href="#lens">Lens</a>
+      <a href="#evidence">Evidence</a>
+    </div>
+    <a class="nav-cta" href="#package">Send package</a>
+  </nav>
+
+  <main id="top" class="page">
+    <section class="section hero">
+      <div>
+        <span class="kicker">Public-source enterprise briefing</span>
+        <h1>Operating systems for serious workflows.</h1>
+        <p class="hero-lede">
+          A cleaner way to explain where ExeoFlow + YURI OS fits: start with public signals, pick a bounded workflow, prove value in six weeks, then expand into a reusable operating layer.
+        </p>
+        <div class="hero-actions">
+          <a class="button-primary" href="#targets">Explore target accounts</a>
+          <a class="button-secondary" href="#path">See the rollout path</a>
+        </div>
+        <div class="hero-stats" aria-label="Briefing statistics">
+          <div class="stat"><strong id="targetCount">12</strong><span>Account profiles</span></div>
+          <div class="stat"><strong>3</strong><span>Offer stages</span></div>
+          <div class="stat"><strong id="sourceCount">15</strong><span>Public sources</span></div>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="ExeoFlow visual system">
+        <div class="core-sigil"><strong>Workflow<br>Operating<br>Layer</strong></div>
+        <div class="orbit-card one"><strong>Signal</strong><span>Annual reports, press releases, public operating facts, and transformation pressure.</span></div>
+        <div class="orbit-card two"><strong>Wedge</strong><span>One workflow painful enough to matter, bounded enough to prototype.</span></div>
+        <div class="orbit-card three"><strong>Expansion</strong><span>YURI OS memory, agents, source trail, and decision rooms across the enterprise.</span></div>
+      </div>
+    </section>
+
+    <section id="use" class="section">
+      <div class="section-head center">
+        <span class="eyebrow">How to use this</span>
+        <h2>Read it like a client-facing website.</h2>
+        <p>This is not a data dump. It is a guided briefing surface for Claudio: learn the offer, choose targets, inspect one account, then send the source-backed report.</p>
+      </div>
+      <div class="use-grid">
+        <article class="use-card">
+          <span class="step-num">01</span>
+          <strong class="card-title">Understand the story</strong>
+          <p class="card-copy">ExeoFlow is the workflow cockpit. YURI OS is the connective enterprise layer: memory, agents, evidence, and operating rooms.</p>
+        </article>
+        <article class="use-card">
+          <span class="step-num">02</span>
+          <strong class="card-title">Pick the account</strong>
+          <p class="card-copy">Use the explorer to compare public signals, first workflow wedges, buying-center hypotheses, and scores.</p>
+        </article>
+        <article class="use-card">
+          <span class="step-num">03</span>
+          <strong class="card-title">Start with one wedge</strong>
+          <p class="card-copy">The first ask is not a platform migration. It is a small, credible cockpit built around one measurable pain.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="path" class="section">
+      <div class="section-head">
+        <span class="eyebrow">Commercial path</span>
+        <h2>Land small. Prove value. Expand into OS.</h2>
+        <p>Each stage gives Claudio a simple next step. Click a stage to see how it should be explained in a sales conversation.</p>
+      </div>
+      <div class="path-grid" id="pathGrid"></div>
+      <div class="path-detail" id="pathDetail"></div>
+    </section>
+
+    <section id="targets" class="section">
+      <div class="section-head">
+        <span class="eyebrow">Target explorer</span>
+        <h2>Profiles you can actually inspect.</h2>
+        <p>Search, filter, and click an account. The right panel keeps the pitch readable: public signal, first wedge, buyer path, and first discovery question.</p>
+      </div>
+      <div class="explorer">
+        <div>
+          <div class="toolbar">
+            <input id="search" class="search" type="search" placeholder="Search company, sector, or workflow">
+            <div class="filter-row" id="filters"></div>
+          </div>
+          <div class="target-grid" id="targetGrid"></div>
+        </div>
+        <aside class="detail-panel" id="targetDetail"></aside>
+      </div>
+    </section>
+
+    <section id="sitrep" class="section">
+      <div class="section-head">
+        <span class="eyebrow">Location SITREP</span>
+        <h2>Where the target field is concentrated.</h2>
+        <p>A public-source location tracker for headquarters and operating centers. Click a marker to update the target profile, official contact route, and action plan.</p>
+      </div>
+      <div class="sitrep-layout">
+        <div class="map-shell" aria-label="Interactive target location map">
+          <div class="map-toolbar">
+            <button class="map-control-pill" type="button" data-map-view="all">All targets</button>
+            <button class="map-control-pill" type="button" data-map-view="switzerland">Switzerland</button>
+            <button class="map-control-pill" type="button" data-map-view="austria">Austria</button>
+            <button class="map-control-pill" type="button" data-map-view="selected">Selected</button>
+          </div>
+          <div class="map-card" id="geoMap"></div>
+        </div>
+        <aside class="sitrep-panel" id="sitrepPanel"></aside>
+      </div>
+    </section>
+
+    <section id="lens" class="section">
+      <div class="section-head">
+        <span class="eyebrow">Portfolio lens</span>
+        <h2>Prioritize with a business view, not a wall of data.</h2>
+        <p>The map compares operating pressure against data and access fit. Larger points are higher priority. Click a point to update the account explorer.</p>
+      </div>
+      <div class="lens-layout">
+        <div class="map" id="fitMap" aria-label="Target portfolio fit map">
+          <span class="axis top">Higher operating pressure</span>
+          <span class="axis right">Higher data and access fit</span>
+          <span class="axis left">Lower fit</span>
+        </div>
+        <aside class="lens-copy">
+          <h3>First five plays</h3>
+          <p class="card-copy">Lead with accounts where public signals already imply coordination cost, transformation momentum, and executive-level reporting pressure.</p>
+          <div class="lens-list" id="topPlays"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="evidence" class="section">
+      <div class="section-head center">
+        <span class="eyebrow">Evidence board</span>
+        <h2>Every claim needs a public anchor.</h2>
+        <p>The briefing is intentionally built from public, lawful sources. No credentialed, leaked, private, or unauthorized material belongs in this package.</p>
+      </div>
+      <div class="evidence-grid" id="evidenceGrid"></div>
+    </section>
+
+    <section id="package" class="section package">
+      <div class="section-head center">
+        <span class="eyebrow">Send package</span>
+        <h2>What Claudio gets.</h2>
+        <p>A consumer-readable website, a source-backed briefing document, and a clear first-call path for each target.</p>
+      </div>
+      <div class="package-grid">
+        <article class="package-card">
+          <h3>Website artifact</h3>
+          <p class="card-copy">Use this page live in a meeting. It explains the product story first, then reveals target detail only when needed.</p>
+        </article>
+        <article class="package-card">
+          <h3>Briefing document</h3>
+          <p class="card-copy">Use the document as the written leave-behind: profile details, discovery questions, expansion targets, and sources.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    ExeoFlow + YURI OS enterprise target briefing. Public-source only. Built in the Nexus Link visual language, translated for workflow intelligence.
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const paths = [
+      {
+        label: "14-day map",
+        title: "Map one workflow before selling a platform.",
+        copy: "Start with public or sanitized sample data. Show owners, systems, evidence, obligations, risks, and next actions. The deliverable is a working operating map, not a pitch deck.",
+        detail: "Best for first meetings where the client is interested but not ready for procurement."
+      },
+      {
+        label: "6-week cockpit",
+        title: "Turn the map into a measurable cockpit.",
+        copy: "Build a live workflow cockpit around one wedge: exception handling, AI portfolio governance, compliance task rooms, service quality, or project delivery.",
+        detail: "Best for proving reduction in reporting labor, coordination delay, blocked-value time, or exception aging."
+      },
+      {
+        label: "YURI OS layer",
+        title: "Expand from cockpit into enterprise memory.",
+        copy: "Once one workflow proves value, YURI OS connects reusable ontology, agent routing, decision rooms, source trails, and operating memory across adjacent workflows.",
+        detail: "Best for enterprise expansion after one sponsor and one workflow owner have proof."
+      }
+    ];
+
+    const targets = [
+      {
+        rank: 1,
+        name: "OMV",
+        sector: "Energy",
+        region: "Austria",
+        score: 29,
+        wedge: "AI opportunity intake and value tracking cockpit",
+        signal: "Public AI Hub signal: 50+ AI projects in use, 40+ in development, and 210+ AI ideas.",
+        thesis: "OMV has moved beyond AI experimentation. The pain is portfolio coordination, governance, and realized-value tracking.",
+        buyer: "CIO, CDO, AI Hub lead, transformation office, process excellence, business-unit operations.",
+        question: "Where do AI ideas lose momentum between intake, prioritization, delivery, and value tracking?",
+        factors: { pressure: 15, fit: 14 },
+        location: { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
+        contact: { label: "OMV official contact", url: "https://www.omv.com/en/contact" },
+        action: [
+          "Lead with AI portfolio governance: public AI scale already implies intake, prioritization, delivery, and value-tracking pressure.",
+          "Offer a 14-day AI opportunity operating map using sanitized sample initiatives and owners.",
+          "Ask for AI Hub, transformation office, and one business-unit sponsor in the same discovery call."
+        ],
+        sources: [
+          ["OMV Digitalization 2025", "https://reports.omv.com/en/annual-report/2025/directors-report-management-review/company/digitalization.html"],
+          ["OMV Dashboard 2025", "https://reports.omv.com/en/annual-report/2025/services/dashboard.html"]
+        ]
+      },
+      {
+        rank: 2,
+        name: "VERBUND",
+        sector: "Energy",
+        region: "Austria",
+        score: 29,
+        wedge: "Renewables and grid project evidence cockpit",
+        signal: "Large electricity operator across hydropower, grids, renewables, storage, hydrogen, and regulated infrastructure.",
+        thesis: "The fit is evidence-grade coordination across grid interfaces, long-cycle energy projects, and reporting obligations.",
+        buyer: "Grid operations, renewables program leadership, COO office, sustainability reporting, portfolio management.",
+        question: "Where is evidence duplicated between project management, reporting, and regulatory packs?",
+        factors: { pressure: 15, fit: 14 },
+        location: { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
+        contact: { label: "VERBUND corporate contact", url: "https://www.verbund.com/de/konzern/kontakt" },
+        action: [
+          "Lead with evidence coordination across grid, renewables, storage, and reporting commitments.",
+          "Prototype a renewables or grid project cockpit around one project family and one reporting pack.",
+          "Route outreach toward grid operations, renewables programs, and sustainability reporting rather than generic IT."
+        ],
+        sources: [["VERBUND Integrated Annual Report 2025", "https://www.verbund.com/en/group/integrated-annual-report-2025"]]
+      },
+      {
+        rank: 3,
+        name: "ASFINAG",
+        sector: "Infrastructure",
+        region: "Austria",
+        score: 28,
+        wedge: "Incident-to-maintenance evidence workflow",
+        signal: "Public road infrastructure operator with EUR 1.6B 2025 investment and EUR 12.5B investment frame through 2031.",
+        thesis: "Traffic safety, incidents, maintenance, contractors, public communication, and capital works all create coordination pressure.",
+        buyer: "COO, road operations, digital traffic management, maintenance leadership, procurement, public safety.",
+        question: "What is the current path from incident detection to verified maintenance closure?",
+        factors: { pressure: 15, fit: 13 },
+        location: { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
+        contact: { label: "ASFINAG contact", url: "https://www.asfinag.at/kontakt/" },
+        action: [
+          "Lead with traffic safety, incident closure, and investment-program traceability.",
+          "Offer an incident-to-maintenance map across asset, contractor, approval, public update, and closure evidence.",
+          "Qualify one region or asset class before proposing an enterprise-wide traffic cockpit."
+        ],
+        sources: [["ASFINAG 2025 Results", "https://www.ots.at/presseaussendung/OTS_20260428_OTS0081/asfinag-mit-stabilem-jahresergebnis-fuer-2025-investitionen-von-16-milliarden-euro-in-verkehrssicherheit-aus-eigener-kraft"]]
+      },
+      {
+        rank: 4,
+        name: "Wiener Linien",
+        sector: "Mobility",
+        region: "Austria",
+        score: 27,
+        wedge: "Service quality and disruption learning cockpit",
+        signal: "Public transport operator with 903M passengers in 2025 and 1.3M regular customers.",
+        thesis: "Service reliability, disruption learning, training capacity, complaints, and public reporting form a strong cockpit wedge.",
+        buyer: "Operations control, customer experience, workforce training, maintenance, digital transformation.",
+        question: "Which recurring disruptions are understood but not systematically converted into fixes?",
+        factors: { pressure: 14, fit: 13 },
+        location: { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
+        contact: { label: "Wiener Linien service contact", url: "https://www.wienerlinien.at/web/wl-en/service" },
+        action: [
+          "Lead with recurring disruption learning and public-service reliability.",
+          "Offer a service-quality cockpit around one route family, disruption type, or training-capacity bottleneck.",
+          "Frame the pilot as operational learning, not surveillance or passenger analytics."
+        ],
+        sources: [["Wiener Linien 2025 Results", "https://www.wienerlinien.at/web/wl-en/news/wiener-linien-reports-results-for-2025"]]
+      },
+      {
+        rank: 5,
+        name: "Flughafen Wien",
+        sector: "Logistics",
+        region: "Austria",
+        score: 27,
+        wedge: "Airport operations issue room",
+        signal: "Vienna Airport reported 43.4M group passengers, 32.6M Vienna passengers, and record cargo volume.",
+        thesis: "Airport operations need shared truth across passenger flow, cargo, turnaround, facilities, airline coordination, and compliance.",
+        buyer: "Operations control, airport digital leadership, cargo operations, facilities, airline coordination, safety.",
+        question: "Which operating exceptions require the most cross-company coordination?",
+        factors: { pressure: 14, fit: 13 },
+        location: { city: "Schwechat", country: "Austria", lat: 48.1103, lng: 16.5697 },
+        contact: { label: "Vienna Airport contact", url: "https://www.viennaairport.com/en/contact" },
+        action: [
+          "Lead with passenger, cargo, turnaround, facility, airline, and compliance coordination.",
+          "Offer an airport issue room for one exception family: cargo SLA, facilities, passenger flow, or turnaround blockers.",
+          "Use the first call to identify which exceptions cross the most organizational boundaries."
+        ],
+        sources: [["Flughafen Wien 2025 Passenger and Cargo Record", "https://www.ots.at/presseaussendung/OTS_20260120_OTS0003/flughafen-wien-verzeichnet-2025-mit-434-mio-gruppe-und-326-mio-standort-wien-neue-passagierrekorde-und-ein-rekord-frachtaufkommen"]]
+      },
+      {
+        rank: 6,
+        name: "Austrian Post",
+        sector: "Logistics",
+        region: "Austria",
+        score: 27,
+        wedge: "Parcel exception and route learning cockpit",
+        signal: "National postal and logistics operator with parcel, retail network, digital product, and service-quality pressure.",
+        thesis: "Delivery exceptions are concrete, measurable, and easy to connect to customer impact and operational waste.",
+        buyer: "Logistics operations, parcel product leadership, customer service, data analytics, depot management.",
+        question: "Which parcel exceptions are repeatable enough to become a measurable pilot?",
+        factors: { pressure: 14, fit: 13 },
+        location: { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
+        contact: { label: "Austrian Post contact", url: "https://www.post.at/en/k/c/contact-us" },
+        action: [
+          "Lead with repeatable parcel exceptions and route-level learning.",
+          "Offer a depot or route pilot that tracks exception reason, owner, customer impact, and repeat reduction.",
+          "Keep the first metric simple: exception aging, repeat exceptions, claim exposure, or customer update latency."
+        ],
+        sources: [["Austrian Post Annual Report 2025", "https://report.post.at/en/"]]
+      },
+      {
+        rank: 7,
+        name: "A1 Telekom Austria Group",
+        sector: "Telecom",
+        region: "DACH and CEE",
+        score: 26,
+        wedge: "SLA and ticket-to-billing cockpit",
+        signal: "Telecom and ICT group with EUR 5.58B revenue, over EUR 2B EBITDA, and 30M subscribers.",
+        thesis: "A1 can use ExeoFlow internally and potentially package cockpit patterns into strategic B2B delivery.",
+        buyer: "B2B delivery center, enterprise sales operations, network operations, service management, CIO office.",
+        question: "Which enterprise delivery issues cross ticketing, project, billing, and account management?",
+        factors: { pressure: 13, fit: 13 },
+        location: { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
+        contact: { label: "A1 Group investor relations contact", url: "https://a1.group/de/investor-relations-home/service-und-kontakt/" },
+        action: [
+          "Lead with enterprise delivery friction across tickets, projects, SLAs, billing, and account management.",
+          "Offer a strategic-account SLA cockpit that connects service status to commercial and billing blockers.",
+          "Position ExeoFlow as both internal operating layer and possible B2B managed-service cockpit pattern."
+        ],
+        sources: [["A1 Group 2025 Results", "https://newsroom.a1.com/news-very-solid-financial-year-2025-for-a1-group-with-revenue-and-ebitda-growth?id=236895&l=english&menueid=14594"]]
+      },
+      {
+        rank: 8,
+        name: "ANDRITZ",
+        sector: "Industrial",
+        region: "Global",
+        score: 26,
+        wedge: "Project delivery and customer value cockpit",
+        signal: "Industrial engineering group reporting large order backlog, AI customer-solution initiatives, and internal AI adoption.",
+        thesis: "Project delivery intelligence is the wedge where engineering, procurement, site reality, and customer commitments intersect.",
+        buyer: "Project management office, digital solutions, engineering leadership, procurement, customer success.",
+        question: "Where does program evidence fragment across engineering, procurement, site, and account teams?",
+        factors: { pressure: 14, fit: 12 },
+        location: { city: "Graz", country: "Austria", lat: 47.0707, lng: 15.4395 },
+        contact: { label: "ANDRITZ contact", url: "https://www.andritz.com/group-en/about-us/global-site-installation/contact-us" },
+        action: [
+          "Lead with customer-program delivery truth across engineering, procurement, site reality, and account commitments.",
+          "Offer a project delivery cockpit for one strategic customer program or one recurring delivery-risk pattern.",
+          "Qualify whether AI-assisted internal workflows are connected to measurable customer delivery outcomes."
+        ],
+        sources: [["ANDRITZ Annual Report 2025", "https://www.andritz.com/group-en/annual-report"]]
+      },
+      {
+        rank: 9,
+        name: "Infineon Austria",
+        sector: "Semiconductors",
+        region: "Austria",
+        score: 25,
+        wedge: "R&D and efficiency portfolio cockpit",
+        signal: "FY2025 public signals: EUR 4.695B revenue, 5,787 employees, 2,506 R&D employees, EUR 721M R&D expense.",
+        thesis: "The wedge is R&D and operational-excellence portfolio coordination, not generic automation.",
+        buyer: "R&D operations, site leadership, manufacturing excellence, digital transformation, finance controlling.",
+        question: "Which R&D or efficiency initiatives depend on evidence from multiple sites or disciplines?",
+        factors: { pressure: 13, fit: 12 },
+        location: { city: "Villach", country: "Austria", lat: 46.6103, lng: 13.8558 },
+        contact: { label: "Infineon contact", url: "https://www.infineon.com/contact-us" },
+        action: [
+          "Lead with R&D and operational-excellence portfolio coordination, not core manufacturing replacement.",
+          "Offer a blocked-value cockpit for initiatives that depend on multiple sites, disciplines, and decision gates.",
+          "Keep outreach precise: R&D operations, site leadership, manufacturing excellence, and finance controlling."
+        ],
+        sources: [
+          ["Infineon Austria FY2025", "https://www.infineon.com/regional/austria/press-release/2025/fiscal-year-25"],
+          ["Infineon Austria About", "https://www.infineon.com/regional/austria/about"]
+        ]
+      },
+      {
+        rank: 10,
+        name: "Frequentis",
+        sector: "Safety Critical",
+        region: "Global",
+        score: 25,
+        wedge: "Bid and program evidence cockpit",
+        signal: "Safety-critical communications provider across air traffic, public safety, defense, and transport domains.",
+        thesis: "Trust, compliance, delivery coordination, and tender evidence make this a precision target.",
+        buyer: "Program leadership, bid management, quality, engineering, compliance, sales operations.",
+        question: "Which bid or program evidence gets recreated across proposals and delivery?",
+        factors: { pressure: 13, fit: 12 },
+        location: { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
+        contact: { label: "Frequentis contact", url: "https://www.frequentis.com/en/contact-us" },
+        action: [
+          "Lead with bid evidence, safety-critical compliance, and program delivery proof.",
+          "Offer a bid-room cockpit for one strategic tender or a program evidence room for one active delivery.",
+          "Emphasize auditability, traceability, and decision confidence rather than automation speed."
+        ],
+        sources: [["Frequentis Annual Report 2025 PDF", "https://www.frequentis.com/sites/default/files/support/2026-04/Frequentis_AnnualReport_2025.pdf"]]
+      },
+      {
+        rank: 11,
+        name: "Kapsch TrafficCom",
+        sector: "Mobility Tech",
+        region: "Global",
+        score: 24,
+        wedge: "Tender-to-delivery cockpit",
+        signal: "Traffic management and tolling company with public-sector tender exposure and delivery complexity.",
+        thesis: "The pain is keeping tender commitments aligned with implementation, change requests, and operational handover.",
+        buyer: "Bid office, project delivery, traffic solutions leadership, legal, finance, customer success.",
+        question: "Where do tender assumptions fail to survive into delivery governance?",
+        factors: { pressure: 13, fit: 11 },
+        location: { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
+        contact: { label: "Kapsch TrafficCom contact", url: "https://www.kapsch.net/en/contact" },
+        action: [
+          "Lead with tender-to-delivery drift in tolling and traffic-management programs.",
+          "Offer a cockpit that tracks tender assumptions, implementation evidence, change requests, and handover readiness.",
+          "Qualify one public-sector program class before pitching broad delivery transformation."
+        ],
+        sources: [["Kapsch TrafficCom FY 2024/25", "https://www.kapsch.net/en/ir/announcements/ktc-20250625-cr-en"]]
+      },
+      {
+        rank: 12,
+        name: "Erste Group",
+        sector: "Finance",
+        region: "CEE",
+        score: 24,
+        wedge: "Compliance and integration task room",
+        signal: "Large CEE banking group with 2025 annual reporting, Poland integration, growth, compliance burden, and transformation complexity.",
+        thesis: "The entry point is a compliant task room for integration, regulatory evidence, and cross-market transformation.",
+        buyer: "Integration management office, risk, compliance, operations, COO office, enterprise architecture.",
+        question: "Which integration or compliance workflows span too many systems and committees?",
+        factors: { pressure: 14, fit: 10 },
+        location: { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
+        contact: { label: "Erste Group official contact", url: "https://www.erstegroup.com/de/rechtliches/impressum" },
+        action: [
+          "Lead with integration, compliance, audit evidence, and cross-market transformation pressure.",
+          "Offer a compliance or integration task room with owners, obligations, evidence, risks, and board-ready status.",
+          "Avoid core-banking language; sell a bounded regulated-workflow evidence layer."
+        ],
+        sources: [
+          ["Erste Group Annual Report 2025", "https://www.erstegroup.com/en/investors/annualreport2025"],
+          ["Erste Group 2025 Results", "https://www.erstegroup.com/en/investors/news/investorinformation/2026/02/26/irnews-ye2025-results"]
+        ]
+      },
+      {
+        rank: 13,
+        name: "SBB",
+        sector: "Mobility",
+        region: "Switzerland",
+        market: "Enterprise",
+        score: 30,
+        wedge: "Rail disruption and maintenance evidence cockpit",
+        signal: "National railway operator with passenger operations, infrastructure, rolling stock, stations, digital channels, and public-service reliability pressure.",
+        thesis: "SBB is the Swiss flagship target: high operating complexity, public visibility, maintenance dependencies, and clear need for cross-system decision rooms.",
+        buyer: "Infrastructure operations, passenger operations, digital railway, maintenance, customer information, transformation office.",
+        question: "Which recurring disruption or maintenance workflow crosses the most teams before it reaches verified closure?",
+        factors: { pressure: 15, fit: 15 },
+        location: { city: "Bern", country: "Switzerland", lat: 46.9480, lng: 7.4474 },
+        contact: { label: "SBB help and contact", url: "https://company.sbb.ch/content/internet/sbb/en/support.html" },
+        action: [
+          "Lead with disruption-to-maintenance learning and public-service reliability.",
+          "Offer a 14-day operating map for one disruption category or maintenance closure workflow.",
+          "Ask for one operations owner, one digital owner, and one reporting artifact to reproduce as the pilot output."
+        ],
+        sources: [["SBB Help and Contact", "https://company.sbb.ch/content/internet/sbb/en/support.html"]]
+      },
+      {
+        rank: 14,
+        name: "Swiss Post",
+        sector: "Logistics",
+        region: "Switzerland",
+        market: "Enterprise",
+        score: 29,
+        wedge: "Parcel exception and branch-service cockpit",
+        signal: "National postal and logistics operator with parcel, branch, customer-service, and financial-service touchpoints.",
+        thesis: "Swiss Post fits the same exception-learning pattern as Austrian Post, with added Swiss multilingual and branch-network complexity.",
+        buyer: "Parcel operations, branch operations, customer experience, logistics analytics, digital products.",
+        question: "Which repeat parcel or branch-service exceptions create the most preventable customer contact?",
+        factors: { pressure: 14, fit: 15 },
+        location: { city: "Bern", country: "Switzerland", lat: 46.9480, lng: 7.4474 },
+        contact: { label: "Swiss Post help and contact", url: "https://www.post.ch/en/help-and-contact" },
+        action: [
+          "Lead with exception reduction and service-learning loops.",
+          "Offer a depot, route, or branch exception cockpit with customer-impact tracking.",
+          "Use multilingual service complexity as a reason for better evidence and action routing."
+        ],
+        sources: [["Swiss Post Help and Contact", "https://www.post.ch/en/help-and-contact"]]
+      },
+      {
+        rank: 15,
+        name: "Swisscom",
+        sector: "Telecom",
+        region: "Switzerland",
+        market: "Enterprise",
+        score: 29,
+        wedge: "Enterprise SLA and field-service cockpit",
+        signal: "Swiss enterprise telecom and ICT provider with business customer portals, network operations, service management, and field coordination.",
+        thesis: "Swisscom can use ExeoFlow as an internal service cockpit and as a model for enterprise customer delivery transparency.",
+        buyer: "Enterprise business, network operations, field service, service management, managed services, digital transformation.",
+        question: "Which enterprise service failures cross network, field, ticketing, SLA, and account-management ownership?",
+        factors: { pressure: 14, fit: 15 },
+        location: { city: "Bern", country: "Switzerland", lat: 46.9480, lng: 7.4474 },
+        contact: { label: "Swisscom enterprise contact", url: "https://www.swisscom.ch/en/business/enterprise/contact.html" },
+        action: [
+          "Lead with ticket-to-SLA-to-account coordination.",
+          "Offer a strategic-customer operating cockpit for one enterprise account segment.",
+          "Position the output as both internal operational truth and customer-facing delivery confidence."
+        ],
+        sources: [["Swisscom Enterprise Contact", "https://www.swisscom.ch/en/business/enterprise/contact.html"]]
+      },
+      {
+        rank: 16,
+        name: "Zurich Airport",
+        sector: "Logistics",
+        region: "Switzerland",
+        market: "Enterprise",
+        score: 28,
+        wedge: "Airport operations exception room",
+        signal: "Major Swiss airport operator with passenger operations, airline coordination, facilities, cargo interfaces, retail, and security stakeholders.",
+        thesis: "Zurich Airport is a clear airport-operations target: high public visibility, many operating partners, and recurring exception workflows.",
+        buyer: "Airport operations, aviation services, facilities, cargo, digital, safety and compliance.",
+        question: "Which airport exceptions create the most cross-partner coordination before recovery is visible?",
+        factors: { pressure: 14, fit: 14 },
+        location: { city: "Zurich", country: "Switzerland", lat: 47.3769, lng: 8.5417 },
+        contact: { label: "Zurich Airport contact", url: "https://www.flughafen-zuerich.ch/en/passengers/practical/contact" },
+        action: [
+          "Lead with passenger-flow, cargo, facilities, and airline exception coordination.",
+          "Offer one exception room for turnaround, facilities, cargo SLA, or passenger-service recovery.",
+          "Use Vienna Airport as an analogous narrative if helpful."
+        ],
+        sources: [["Zurich Airport Contact", "https://www.flughafen-zuerich.ch/en/passengers/practical/contact"]]
+      },
+      {
+        rank: 17,
+        name: "Swissgrid",
+        sector: "Energy",
+        region: "Switzerland",
+        market: "Enterprise",
+        score: 28,
+        wedge: "Grid incident and obligation evidence cockpit",
+        signal: "Swiss transmission grid operator with operations, outage, line, substation, scheduling, regional support, and public safety contact flows.",
+        thesis: "Swissgrid is a strong fit for auditable operational evidence where reliability, safety, and regulated coordination matter.",
+        buyer: "Grid operations, asset management, scheduling, regional support, regulatory reporting, digital operations.",
+        question: "Where do grid incident, line request, scheduling, and evidence workflows duplicate operational context?",
+        factors: { pressure: 15, fit: 13 },
+        location: { city: "Aarau", country: "Switzerland", lat: 47.3925, lng: 8.0442 },
+        contact: { label: "Swissgrid contact", url: "https://www.swissgrid.ch/de/home/about-us/contact.html" },
+        action: [
+          "Lead with regulated grid evidence and incident-to-closure traceability.",
+          "Offer a cockpit around one operational request class: line requests, incident reports, scheduling adjustments, or regional support.",
+          "Keep the language compliance-safe: evidence, closure, owners, source trail."
+        ],
+        sources: [["Swissgrid Contact", "https://www.swissgrid.ch/de/home/about-us/contact.html"]]
+      },
+      {
+        rank: 18,
+        name: "Axpo",
+        sector: "Energy",
+        region: "Switzerland",
+        market: "Enterprise",
+        score: 27,
+        wedge: "Energy project and innovation validation cockpit",
+        signal: "Swiss energy provider with generation, distribution, energy solutions, security-of-supply, innovation, and digital-solution signals.",
+        thesis: "Axpo fits where energy assets, innovation projects, security-of-supply narratives, and operational execution meet.",
+        buyer: "Energy solutions, innovation, generation operations, trading operations, digital solutions, project portfolio owners.",
+        question: "Which innovation or energy-solution projects need better evidence from idea through validation and execution?",
+        factors: { pressure: 13, fit: 14 },
+        location: { city: "Baden", country: "Switzerland", lat: 47.4733, lng: 8.3059 },
+        contact: { label: "Axpo contact", url: "https://www-prod.axpo.com/ch/en/about-us.html" },
+        action: [
+          "Lead with innovation validation and security-of-supply coordination.",
+          "Offer a project evidence cockpit for one energy solution or digital validation pipeline.",
+          "Ask which pilot ideas move slowly because evidence and owner visibility fragment."
+        ],
+        sources: [["Axpo About and Contact", "https://www-prod.axpo.com/ch/en/about-us.html"]]
+      },
+      {
+        rank: 19,
+        name: "BKW",
+        sector: "Energy",
+        region: "Switzerland",
+        market: "Enterprise",
+        score: 27,
+        wedge: "Grid service and building-solutions task room",
+        signal: "Swiss energy and infrastructure group with grid services, building solutions, engineering, customer service, outage and connection workflows.",
+        thesis: "BKW has practical workflow wedges in customer service, grid connection, building solutions, and infrastructure services.",
+        buyer: "Customer service, grid services, building solutions, engineering, infrastructure services, digital operations.",
+        question: "Which connection, outage, or building-solutions workflows require too many handoffs before closure?",
+        factors: { pressure: 13, fit: 14 },
+        location: { city: "Bern", country: "Switzerland", lat: 46.9480, lng: 7.4474 },
+        contact: { label: "BKW contact", url: "https://www.bkw.ch/en/contact" },
+        action: [
+          "Lead with customer-to-field evidence loops.",
+          "Offer a connection, outage, or building-solutions task room with owner and closure proof.",
+          "Use the first call to isolate one repeatable request class with measurable delay."
+        ],
+        sources: [["BKW Contact", "https://www.bkw.ch/en/contact"]]
+      },
+      {
+        rank: 20,
+        name: "Stadler Rail",
+        sector: "Industrial",
+        region: "Switzerland",
+        market: "Enterprise",
+        score: 27,
+        wedge: "Rail program delivery evidence cockpit",
+        signal: "Swiss rolling-stock manufacturer with rail vehicle construction, service, signaling, global projects, and customer delivery complexity.",
+        thesis: "Stadler is a program-delivery target: bids, engineering evidence, customer commitments, service readiness, and supply-chain dependencies.",
+        buyer: "Program management, service division, engineering, signaling, bid management, quality, customer delivery.",
+        question: "Where does program evidence fragment between bid, engineering, service readiness, and customer delivery?",
+        factors: { pressure: 14, fit: 13 },
+        location: { city: "Bussnang", country: "Switzerland", lat: 47.5577, lng: 9.0876 },
+        contact: { label: "Stadler contact", url: "https://www.stadlerrail.com/contact" },
+        action: [
+          "Lead with rail-program delivery evidence.",
+          "Offer a delivery cockpit for one strategic customer program or service-readiness workstream.",
+          "Ask for one bid promise and trace how it becomes engineering, supplier, and service evidence."
+        ],
+        sources: [["Stadler Contact", "https://www.stadlerrail.com/contact"]]
+      },
+      {
+        rank: 21,
+        name: "Planzer",
+        sector: "Logistics",
+        region: "Switzerland",
+        market: "Local / Medium",
+        score: 26,
+        wedge: "Customer portal and parcel exception cockpit",
+        signal: "Swiss logistics operator with transport, warehousing, distribution, customs, customer portal, shipment tracking, and parcel workflows.",
+        thesis: "Planzer is a strong Swiss local access target: large enough for operational pain, local enough for relationship-led entry.",
+        buyer: "Operations, customer portal/product, transport planning, warehousing, customer service, sales operations.",
+        question: "Which customer-portal or parcel workflows still need manual exception resolution after the customer sees a status?",
+        factors: { pressure: 13, fit: 13 },
+        location: { city: "Dietikon", country: "Switzerland", lat: 47.4056, lng: 8.4039 },
+        contact: { label: "Planzer contact", url: "https://www.planzer.ch/en/contact-2/" },
+        action: [
+          "Lead with portal-to-operations exception closure.",
+          "Offer a shipment exception cockpit for one product line or customer segment.",
+          "Use relationship-led outreach: operations pain, customer support pain, and portal roadmap."
+        ],
+        sources: [["Planzer Contact", "https://www.planzer.ch/en/contact-2/"]]
+      },
+      {
+        rank: 22,
+        name: "Camion Transport",
+        sector: "Logistics",
+        region: "Switzerland",
+        market: "Local / Medium",
+        score: 25,
+        wedge: "Tour optimization and warehouse exception room",
+        signal: "Swiss transport and logistics company with groupage, warehousing, contract logistics, track-and-trace, ETA and route workflows.",
+        thesis: "Camion Transport is a practical mid-market logistics fit: route planning, ETA, warehouse status, and customer exceptions are bounded cockpit wedges.",
+        buyer: "Transport operations, warehouse operations, customer service, route planning, IT, sales operations.",
+        question: "Where do ETA, warehouse, customer-service, and route-planning signals fall out of sync?",
+        factors: { pressure: 12, fit: 13 },
+        location: { city: "Wil", country: "Switzerland", lat: 47.4636, lng: 9.0452 },
+        contact: { label: "Camion Transport website", url: "https://www.camiontransport.ch/de/" },
+        action: [
+          "Lead with route, ETA, and warehouse exception clarity.",
+          "Offer a 14-day map around one recurring shipment or warehouse exception class.",
+          "Keep the pilot operational and local: one branch, one workflow, one KPI."
+        ],
+        sources: [["Camion Transport Website", "https://www.camiontransport.ch/de/"]]
+      },
+      {
+        rank: 23,
+        name: "Belimo",
+        sector: "Industrial",
+        region: "Switzerland",
+        market: "Local / Medium",
+        score: 25,
+        wedge: "OEM and data-center sales support cockpit",
+        signal: "Swiss building automation company with headquarters, sales support, OEM business, technical support, and data-center contact channels.",
+        thesis: "Belimo has a bounded high-value wedge around technical sales, OEM coordination, project support, and data-center opportunity routing.",
+        buyer: "Sales support, OEM business, technical support, data-center sales, project and contracting business.",
+        question: "Which technical sales or OEM workflows depend on too many disconnected quote, support, and order steps?",
+        factors: { pressure: 12, fit: 13 },
+        location: { city: "Hinwil", country: "Switzerland", lat: 47.3030, lng: 8.8430 },
+        contact: { label: "Belimo contacts", url: "https://www.belimo.com/ch/en_GB/contact" },
+        action: [
+          "Lead with quote-to-support-to-order coordination.",
+          "Offer a sales support cockpit for data-center or OEM opportunities.",
+          "Frame the pilot as faster technical confidence, not generic CRM replacement."
+        ],
+        sources: [["Belimo Contacts", "https://www.belimo.com/ch/en_GB/contact"]]
+      },
+      {
+        rank: 24,
+        name: "Emmi",
+        sector: "Food / FMCG",
+        region: "Switzerland",
+        market: "Local / Medium",
+        score: 25,
+        wedge: "Quality, production, and distribution evidence cockpit",
+        signal: "Swiss dairy and food group with Lucerne headquarters, many Swiss locations, production, consumer service, media, investor, and nutrition contact flows.",
+        thesis: "Emmi fits quality, production, distribution, and consumer-feedback workflows where evidence must connect sites and functions.",
+        buyer: "Quality, production operations, supply chain, consumer service, digital operations, site leadership.",
+        question: "Which quality or distribution exceptions require evidence from multiple locations before closure?",
+        factors: { pressure: 12, fit: 13 },
+        location: { city: "Lucerne", country: "Switzerland", lat: 47.0502, lng: 8.3093 },
+        contact: { label: "Emmi contacts", url: "https://group.emmi.com/che/en/about-emmi/contacts" },
+        action: [
+          "Lead with quality, production, and distribution evidence across locations.",
+          "Offer a site exception cockpit for one product family or service category.",
+          "Use the Swiss locations page to frame multi-site complexity without overclaiming."
+        ],
+        sources: [
+          ["Emmi Contacts", "https://group.emmi.com/che/en/about-emmi/contacts"],
+          ["Emmi Switzerland Locations", "https://group.emmi.com/che/en/about-emmi/our-locations"]
+        ]
+      },
+      {
+        rank: 25,
+        name: "Galenica",
+        sector: "Healthcare",
+        region: "Switzerland",
+        market: "Enterprise",
+        score: 26,
+        wedge: "Healthcare network task and evidence room",
+        signal: "Swiss healthcare network with 20+ business units, pharmacy, logistics, digitalisation, patient and customer workflows.",
+        thesis: "Galenica is a strong regulated-workflow target: network complexity, health-market sensitivity, and digitalisation pressure.",
+        buyer: "Network operations, digitalisation, logistics, pharmacy operations, compliance, business-unit leadership.",
+        question: "Which customer or patient workflows move across too many business units before resolution?",
+        factors: { pressure: 13, fit: 13 },
+        location: { city: "Bern", country: "Switzerland", lat: 46.9480, lng: 7.4474 },
+        contact: { label: "Galenica contact", url: "https://www.galenica.com/en/" },
+        action: [
+          "Lead with network coordination across business units.",
+          "Offer a regulated task room for one pharmacy, logistics, or digital service workflow.",
+          "Keep the language evidence-first and compliance-aware."
+        ],
+        sources: [["Galenica Website and Contact", "https://www.galenica.com/en/"]]
+      },
+      {
+        rank: 26,
+        name: "VAT Group",
+        sector: "Semiconductors",
+        region: "Switzerland",
+        market: "Local / Medium",
+        score: 25,
+        wedge: "Semiconductor supplier delivery and quality cockpit",
+        signal: "Swiss high-vacuum technology company serving semiconductor, display, and digital-technology production.",
+        thesis: "VAT Group has high-value supplier workflows where delivery, quality, engineering change, and customer commitments matter.",
+        buyer: "Operations, quality, supply chain, customer service, engineering, investor/communications for corporate route.",
+        question: "Where do delivery, quality, and engineering-change signals fragment before a customer commitment is updated?",
+        factors: { pressure: 13, fit: 12 },
+        location: { city: "Haag", country: "Switzerland", lat: 47.2090, lng: 9.4890 },
+        contact: { label: "VAT Group contact", url: "https://www.vatgroup.com/contact" },
+        action: [
+          "Lead with semiconductor supplier execution reliability.",
+          "Offer a customer-commitment evidence cockpit across delivery, quality, and engineering changes.",
+          "Frame it as operational trust for high-value industrial accounts."
+        ],
+        sources: [["VAT Group Contact", "https://www.vatgroup.com/contact"]]
+      },
+      {
+        rank: 27,
+        name: "Komax",
+        sector: "Industrial",
+        region: "Switzerland",
+        market: "Local / Medium",
+        score: 24,
+        wedge: "Installed-base service and automation project cockpit",
+        signal: "Swiss automation company for wire processing with global contacts, service, production, and customer-installation workflows.",
+        thesis: "Komax fits service, installation, and technical support workflows where machine data, customers, technicians, and parts interact.",
+        buyer: "Service, production, sales, technical support, installation project management, digital operations.",
+        question: "Which installation or service workflows require repeated manual coordination between customer, technician, and parts availability?",
+        factors: { pressure: 12, fit: 12 },
+        location: { city: "Dierikon", country: "Switzerland", lat: 47.0960, lng: 8.3630 },
+        contact: { label: "Komax contacts and locations", url: "https://www.komaxgroup.com/de-ch/about-komax/contacts-and-locations" },
+        action: [
+          "Lead with installed-base service coordination.",
+          "Offer a service cockpit for one machine family or customer segment.",
+          "Use one installation project as the proof path from planning to closure."
+        ],
+        sources: [["Komax Contacts and Locations", "https://www.komaxgroup.com/de-ch/about-komax/contacts-and-locations"]]
+      },
+      {
+        rank: 28,
+        name: "Bossard",
+        sector: "Industrial",
+        region: "Switzerland",
+        market: "Local / Medium",
+        score: 24,
+        wedge: "C-parts logistics and customer productivity cockpit",
+        signal: "Swiss fastening and logistics group with smart inventory, engineering support, and supply-chain productivity positioning.",
+        thesis: "Bossard is a mid-market access target where customer productivity, smart bins, supply-chain visibility, and technical advisory workflows converge.",
+        buyer: "Supply chain, engineering services, customer success, sales operations, smart inventory product teams.",
+        question: "Where do customer productivity opportunities get lost between engineering advice, inventory signal, and sales follow-up?",
+        factors: { pressure: 12, fit: 12 },
+        location: { city: "Zug", country: "Switzerland", lat: 47.1662, lng: 8.5155 },
+        contact: { label: "Bossard contact", url: "https://www.bossard.com/global-en/about-us/contact/" },
+        action: [
+          "Lead with smart inventory and C-parts productivity evidence.",
+          "Offer a customer account cockpit connecting inventory signals, engineering advice, and sales follow-up.",
+          "Pilot with one customer segment where service evidence already exists."
+        ],
+        sources: [["Bossard Contact", "https://www.bossard.com/global-en/about-us/contact/"]]
+      },
+      {
+        rank: 29,
+        name: "Bucher Industries",
+        sector: "Industrial",
+        region: "Switzerland",
+        market: "Local / Medium",
+        score: 24,
+        wedge: "Multi-location industrial portfolio cockpit",
+        signal: "Swiss industrial group with many manufacturing locations and development sites across divisions.",
+        thesis: "Bucher fits portfolio and multi-site coordination where equipment, municipal technology, agriculture, and automation workflows create varied evidence needs.",
+        buyer: "Group operations, division management, manufacturing excellence, service operations, digital initiatives.",
+        question: "Which cross-division initiatives need common visibility without forcing every unit into the same tool?",
+        factors: { pressure: 12, fit: 12 },
+        location: { city: "Niederweningen", country: "Switzerland", lat: 47.5060, lng: 8.3770 },
+        contact: { label: "Bucher Industries locations", url: "https://www.bucherindustries.com/en/about-us/locations" },
+        action: [
+          "Lead with multi-site portfolio visibility.",
+          "Offer a cross-division initiative cockpit for one improvement program or service workflow.",
+          "Position YURI OS as a connective layer that respects division autonomy."
+        ],
+        sources: [["Bucher Industries Locations", "https://www.bucherindustries.com/en/about-us/locations"]]
+      },
+      {
+        rank: 30,
+        name: "u-blox",
+        sector: "Semiconductors",
+        region: "Switzerland",
+        market: "Local / Medium",
+        score: 24,
+        wedge: "Technical support and product feedback cockpit",
+        signal: "Swiss positioning and wireless technology company with global support, sales, technical cases, offices, and security issue channels.",
+        thesis: "u-blox fits a technical-support and product-feedback wedge where customer issues, engineering, sales, and security concerns need routing.",
+        buyer: "Technical support, product management, sales engineering, security, customer success, operations.",
+        question: "Which product-support issues require too many handoffs between customer, support, engineering, and product owners?",
+        factors: { pressure: 12, fit: 12 },
+        location: { city: "Thalwil", country: "Switzerland", lat: 47.2918, lng: 8.5630 },
+        contact: { label: "u-blox contact", url: "https://www.u-blox.com/en/contact-u-blox" },
+        action: [
+          "Lead with technical-support routing and product feedback loops.",
+          "Offer a cockpit that clusters support cases, product signals, owners, and customer-impact evidence.",
+          "Keep the pilot scoped to one product family or customer segment."
+        ],
+        sources: [["u-blox Contact", "https://www.u-blox.com/en/contact-u-blox"]]
+      }
+    ];
+
+    const state = {
+      selected: 0,
+      filter: "All",
+      query: "",
+      path: 0
+    };
+
+    const filters = ["All", "Switzerland", "Local / Medium", "Energy", "Infrastructure", "Mobility", "Logistics", "Telecom", "Industrial", "Finance", "Healthcare", "Semiconductors"];
+
+    const els = {
+      pathGrid: document.getElementById("pathGrid"),
+      pathDetail: document.getElementById("pathDetail"),
+      filters: document.getElementById("filters"),
+      search: document.getElementById("search"),
+      targetGrid: document.getElementById("targetGrid"),
+      targetDetail: document.getElementById("targetDetail"),
+      geoMap: document.getElementById("geoMap"),
+      sitrepPanel: document.getElementById("sitrepPanel"),
+      fitMap: document.getElementById("fitMap"),
+      topPlays: document.getElementById("topPlays"),
+      evidenceGrid: document.getElementById("evidenceGrid"),
+      targetCount: document.getElementById("targetCount"),
+      sourceCount: document.getElementById("sourceCount")
+    };
+
+    const mapState = {
+      map: null,
+      markers: []
+    };
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function visibleTargets() {
+      const query = state.query.trim().toLowerCase();
+      return targets.filter((target) => {
+        const filterHit = state.filter === "All" || target.sector === state.filter || target.region === state.filter || target.market === state.filter;
+        const text = [target.name, target.sector, target.region, target.wedge, target.signal, target.thesis].join(" ").toLowerCase();
+        return filterHit && (!query || text.includes(query));
+      });
+    }
+
+    function selectTarget(index) {
+      state.selected = index;
+      renderTargets();
+      renderDetail();
+      renderGeoMap();
+      renderSitrep();
+      renderFitMap();
+    }
+
+    function renderPath() {
+      els.pathGrid.innerHTML = paths.map((item, index) => `
+        <button class="path-card ${index === state.path ? "active" : ""}" type="button" data-index="${index}">
+          <span class="path-meta">${escapeHtml(item.label)}</span>
+          <strong class="card-title">${escapeHtml(item.title)}</strong>
+          <p class="card-copy">${escapeHtml(item.detail)}</p>
+        </button>
+      `).join("");
+
+      const active = paths[state.path];
+      els.pathDetail.innerHTML = `
+        <h3>${escapeHtml(active.label)}</h3>
+        <p>${escapeHtml(active.copy)}</p>
+      `;
+
+      document.querySelectorAll(".path-card").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.path = Number(button.dataset.index);
+          renderPath();
+        });
+      });
+    }
+
+    function renderFilters() {
+      els.filters.innerHTML = filters.map((filter) => `
+        <button class="filter ${filter === state.filter ? "active" : ""}" type="button" data-filter="${escapeHtml(filter)}">${escapeHtml(filter)}</button>
+      `).join("");
+
+      document.querySelectorAll(".filter").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.filter = button.dataset.filter;
+          state.query = "";
+          els.search.value = "";
+          const first = visibleTargets()[0];
+          if (first) state.selected = targets.indexOf(first);
+          render();
+        });
+      });
+    }
+
+    function renderTargets() {
+      const visible = visibleTargets();
+      if (!visible.length) {
+        els.targetGrid.innerHTML = '<div class="empty">No matching targets. Clear search or choose another sector.</div>';
+        return;
+      }
+
+      els.targetGrid.innerHTML = visible.map((target) => {
+        const index = targets.indexOf(target);
+        return `
+          <button class="target-card ${index === state.selected ? "active" : ""}" type="button" data-index="${index}">
+            <div class="target-top">
+              <strong>${escapeHtml(target.name)}</strong>
+              <span class="score">${escapeHtml(target.score)}</span>
+            </div>
+            <div class="target-meta">${escapeHtml(target.sector)} / ${escapeHtml(target.region)}</div>
+            <p>${escapeHtml(target.wedge)}</p>
+          </button>
+        `;
+      }).join("");
+
+      document.querySelectorAll(".target-card").forEach((button) => {
+        button.addEventListener("click", () => selectTarget(Number(button.dataset.index)));
+      });
+    }
+
+    function renderDetail() {
+      const target = targets[state.selected];
+      els.targetDetail.innerHTML = `
+        <h3>${escapeHtml(target.name)}</h3>
+        <p class="muted">${escapeHtml(target.thesis)}</p>
+        <div class="pill-row">
+          <span class="pill">${escapeHtml(target.sector)}</span>
+          <span class="pill">${escapeHtml(target.region)}</span>
+          <span class="pill">Score ${escapeHtml(target.score)} / 30</span>
+        </div>
+        <div class="detail-block">
+          <span>Public signal</span>
+          <p>${escapeHtml(target.signal)}</p>
+        </div>
+        <div class="detail-block">
+          <span>First wedge</span>
+          <p>${escapeHtml(target.wedge)}</p>
+        </div>
+        <div class="detail-block">
+          <span>Buying center</span>
+          <p>${escapeHtml(target.buyer)}</p>
+        </div>
+        <div class="detail-block">
+          <span>First discovery question</span>
+          <p>${escapeHtml(target.question)}</p>
+        </div>
+        <div class="detail-block">
+          <span>Official contact route</span>
+          <p><a href="${escapeHtml(target.contact.url)}" target="_blank" rel="noreferrer">${escapeHtml(target.contact.label)}</a></p>
+        </div>
+      `;
+    }
+
+    function markerPosition(target, index, groups, seen) {
+      const key = `${target.location.lat.toFixed(3)},${target.location.lng.toFixed(3)}`;
+      const total = groups[key] || 1;
+      const ordinal = seen[key] || 0;
+      seen[key] = ordinal + 1;
+      if (total === 1) return [target.location.lat, target.location.lng];
+      const angle = (Math.PI * 2 * ordinal) / total;
+      const radius = target.location.country === "Switzerland" ? 0.028 : 0.035;
+      return [
+        target.location.lat + Math.sin(angle) * radius,
+        target.location.lng + Math.cos(angle) * radius
+      ];
+    }
+
+    function initMap() {
+      if (mapState.map || !window.L) return;
+      mapState.map = L.map(els.geoMap, {
+        zoomControl: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        touchZoom: true
+      }).setView([47.35, 10.4], 6);
+
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      }).addTo(mapState.map);
+
+      document.querySelectorAll("[data-map-view]").forEach((button) => {
+        button.addEventListener("click", () => setMapView(button.dataset.mapView));
+      });
+    }
+
+    function renderGeoMap() {
+      if (!window.L) {
+        els.geoMap.innerHTML = '<div class="empty">Map tiles could not load. Check internet access and reload this file.</div>';
+        return;
+      }
+      initMap();
+      mapState.markers.forEach((marker) => marker.remove());
+      mapState.markers = [];
+
+      const groups = targets.reduce((acc, target) => {
+        const key = `${target.location.lat.toFixed(3)},${target.location.lng.toFixed(3)}`;
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      const seen = {};
+
+      targets.forEach((target, index) => {
+        const active = index === state.selected ? "is-active" : "";
+        const [lat, lng] = markerPosition(target, index, groups, seen);
+        const icon = L.divIcon({
+          className: "",
+          html: `<div class="sitrep-marker ${active}">${escapeHtml(target.rank)}</div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+          popupAnchor: [0, -18]
+        });
+        const marker = L.marker([lat, lng], { icon, title: target.name })
+          .addTo(mapState.map)
+          .bindPopup(`<strong>${escapeHtml(target.name)}</strong><span>${escapeHtml(target.location.city)} / ${escapeHtml(target.location.country)}</span>${escapeHtml(target.wedge)}`);
+        marker.on("click", () => selectTarget(index));
+        mapState.markers.push(marker);
+      });
+
+      const active = targets[state.selected];
+      mapState.map.setView([active.location.lat, active.location.lng], Math.max(mapState.map.getZoom(), 8), { animate: true });
+    }
+
+    function setMapView(view) {
+      if (!mapState.map || !window.L) return;
+      if (view === "switzerland") {
+        mapState.map.fitBounds([[45.75, 5.85], [47.95, 10.65]], { padding: [48, 48] });
+        return;
+      }
+      if (view === "austria") {
+        mapState.map.fitBounds([[46.35, 9.45], [49.05, 17.25]], { padding: [48, 48] });
+        return;
+      }
+      if (view === "selected") {
+        const target = targets[state.selected];
+        mapState.map.setView([target.location.lat, target.location.lng], 11, { animate: true });
+        return;
+      }
+      mapState.map.fitBounds([[45.75, 5.85], [49.05, 17.25]], { padding: [48, 48] });
+    }
+
+    function renderSitrep() {
+      const target = targets[state.selected];
+      els.sitrepPanel.innerHTML = `
+        <div class="sitrep-meta">${escapeHtml(target.location.city)} / ${escapeHtml(target.location.country)} / ${escapeHtml(target.market || "Enterprise")}</div>
+        <h3>${escapeHtml(target.name)}</h3>
+        <p class="card-copy">${escapeHtml(target.thesis)}</p>
+        <div class="detail-block">
+          <span>Official contact route</span>
+          <div class="contact-route">
+            <a href="${escapeHtml(target.contact.url)}" target="_blank" rel="noreferrer">${escapeHtml(target.contact.label)}</a>
+          </div>
+        </div>
+        <div class="detail-block">
+          <span>Plan of action</span>
+          <div class="action-list">
+            ${target.action.map((step) => `<div class="action-step">${escapeHtml(step)}</div>`).join("")}
+          </div>
+        </div>
+        <p class="sitrep-note">Contact discipline: official company channels, public business pages, and role-based routing only. No private personal data, credentialed systems, leaks, or intrusive profiling.</p>
+      `;
+    }
+
+    function renderFitMap() {
+      const points = targets.map((target) => {
+        const x = 12 + (target.factors.fit / 15) * 78;
+        const y = 92 - (target.factors.pressure / 15) * 78;
+        const size = 34 + (target.score - 23) * 4;
+        const active = targets.indexOf(target) === state.selected ? "active" : "";
+        return `
+          <button class="point ${active}" style="--x:${x}%;--y:${y}%;--size:${size}px;" type="button" data-index="${targets.indexOf(target)}" aria-label="${escapeHtml(target.name)}">${escapeHtml(target.rank)}</button>
+        `;
+      }).join("");
+
+      els.fitMap.querySelectorAll(".point").forEach((point) => point.remove());
+      els.fitMap.insertAdjacentHTML("beforeend", points);
+      els.fitMap.querySelectorAll(".point").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectTarget(Number(button.dataset.index));
+          document.getElementById("targets").scrollIntoView({ behavior: "smooth" });
+        });
+      });
+
+      els.topPlays.innerHTML = targets.slice(0, 5).map((target) => `
+        <button class="lens-item" type="button" data-index="${targets.indexOf(target)}">
+          <strong>${escapeHtml(target.name)}</strong><br>${escapeHtml(target.wedge)}
+        </button>
+      `).join("");
+
+      els.topPlays.querySelectorAll(".lens-item").forEach((button) => {
+        button.addEventListener("click", () => selectTarget(Number(button.dataset.index)));
+      });
+    }
+
+    function renderEvidence() {
+      const sources = targets.flatMap((target) => target.sources.map(([label, url]) => ({ label, url, name: target.name, sector: target.sector })));
+      els.targetCount.textContent = targets.length;
+      els.sourceCount.textContent = sources.length;
+      els.evidenceGrid.innerHTML = sources.map((source) => `
+        <article class="evidence-card">
+          <strong>${escapeHtml(source.name)}</strong>
+          <span>${escapeHtml(source.sector)} / public source anchor</span>
+          <a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer">${escapeHtml(source.label)}</a>
+        </article>
+      `).join("");
+    }
+
+    function render() {
+      renderPath();
+      renderFilters();
+      renderTargets();
+      renderDetail();
+      renderGeoMap();
+      renderSitrep();
+      renderFitMap();
+      renderEvidence();
+    }
+
+    els.search.addEventListener("input", (event) => {
+      state.query = event.target.value;
+      state.filter = "All";
+      const first = visibleTargets()[0];
+      if (first) state.selected = targets.indexOf(first);
+      renderFilters();
+      renderTargets();
+      renderDetail();
+      renderFitMap();
+      els.search.focus();
+    });
+
+    window.addEventListener("scroll", () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+      document.documentElement.style.setProperty("--scroll", `${pct}%`);
+    }, { passive: true });
+
+    window.addEventListener("pointermove", (event) => {
+      document.documentElement.style.setProperty("--mx", `${event.clientX}px`);
+      document.documentElement.style.setProperty("--my", `${event.clientY}px`);
+    }, { passive: true });
+
+    render();
+  </script>
+</body>
+</html>

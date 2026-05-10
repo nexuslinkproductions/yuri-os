@@ -24,5 +24,174 @@
       "--font-mono"
     ],
     "pattern": "VSCode layout shell: grid(activity | sidebar | editor / content | statusbar). Editor area = flex-col with title-bar, tab-bar, breadcrumb, scrollable content. Activity bar = icon-only with left-border active state. Sidebar = vertical nav list with grouped sections + dividers. Status bar = 22px full-width strip."
+  },
+  {
+    "date": "2026-05-10",
+    "component": "ExeoFlow YURI OS target intelligence dashboard",
+    "decision": "Reworked from light presentation page into dark operator HUD with target profile inspector, scored account rail, evidence/source panels, buying-center hypotheses, discovery questions, and workflow wedges so Claudio can inspect accounts instead of reading generic sector summaries.",
+    "tokens_used": [
+      "--bg-void",
+      "--bg-surface",
+      "--bg-glass",
+      "--cyan-glow",
+      "--gold-solar",
+      "--red-fusion",
+      "--silver-albedo",
+      "--text-dim",
+      "--font-mono",
+      "--ease-neural"
+    ],
+    "pattern": "Enterprise target intelligence HUD: left account rail plus central profile inspector plus right buying-center/source panel plus bottom account matrix."
+  },
+  {
+    "date": "2026-05-10",
+    "component": "ExeoFlow YURI OS interactive business displays",
+    "decision": "Converted the vertical activity rail from decorative labels into clickable mode controls and added four inspectable business views: account operating diagram, portfolio fit scatter, source evidence board, and business motion board. This gives Claudio both account intelligence and a meeting-ready sales motion.",
+    "tokens_used": [
+      "--bg-void",
+      "--bg-panel",
+      "--bg-glass",
+      "--cyan-glow",
+      "--cyan-dim",
+      "--gold-solar",
+      "--green-signal",
+      "--silver-albedo",
+      "--text-dim",
+      "--line-soft",
+      "--line-hard",
+      "--font-mono",
+      "--ease-neural"
+    ],
+    "pattern": "Mode rail HUD: ACC/FIT/SRC/OPS buttons switch a central business display while preserving the selected-account dossier, right-side buying-center context, and bottom matrix."
+  },
+  {
+    "date": "2026-05-10",
+    "component": "ExeoFlow YURI OS consumer briefing website",
+    "decision": "Replaced the overloaded futuristic HUD with a Nexus Link-style consumer website: fixed glass navigation, cinematic hero, guided usage section, three-stage commercial path, card-based target explorer, portfolio fit map, evidence board, and send-package close. The design prioritizes reading order, progressive disclosure, and client comprehension over dense operator visuals.",
+    "tokens_used": [
+      "--color-void",
+      "--color-deep",
+      "--color-surface",
+      "--color-elevated",
+      "--color-border-subtle",
+      "--color-text-primary",
+      "--color-text-secondary",
+      "--color-purple",
+      "--color-cyan",
+      "--font-sans",
+      "--font-heading",
+      "--font-mono"
+    ],
+    "pattern": "Consumer briefing site: hero story -> usage guide -> commercial path -> interactive account explorer -> portfolio lens -> evidence board -> package close."
+  },
+  {
+    "date": "2026-05-10",
+    "component": "ExeoFlow YURI OS Switzerland SITREP layer",
+    "decision": "Expanded the consumer briefing site into a lawful business SITREP by adding an interactive location map, official company contact routes, and per-target action plans. Added 18 Switzerland targets, including national infrastructure operators and local/mid-market businesses for Claudio-led access, while keeping contacts limited to official public company channels.",
+    "tokens_used": [
+      "--color-void",
+      "--color-deep",
+      "--color-surface",
+      "--color-border-subtle",
+      "--color-text-primary",
+      "--color-text-secondary",
+      "--color-purple",
+      "--color-cyan",
+      "--glass-strong",
+      "--font-heading",
+      "--font-mono"
+    ],
+    "pattern": "Business SITREP layer: abstract geographic map markers -> selected account panel -> official contact route -> 3-step action plan -> public-source guardrail note."
+  },
+  {
+    "date": "2026-05-10",
+    "component": "ExeoFlow YURI OS real-world SITREP map",
+    "decision": "Replaced the abstract location tracker with a Leaflet real-world map using OpenStreetMap/CARTO dark tiles. Added pan, scroll zoom, native zoom controls, country focus buttons, selected-target focus, clickable numbered markers, and popups while preserving the Nexus Link consumer-site shell.",
+    "tokens_used": [
+      "--color-void",
+      "--color-deep",
+      "--color-surface",
+      "--color-border",
+      "--color-text-primary",
+      "--color-text-secondary",
+      "--color-purple",
+      "--color-cyan",
+      "--glass-strong",
+      "--font-mono"
+    ],
+    "pattern": "Leaflet SITREP map: real map tiles + custom numbered div markers + focus pills + selected account side panel."
+  },
+  {
+    "date": "2026-05-10",
+    "component": "ExeoFlow YURI OS SITREP baseline reference pack",
+    "decision": "Saved the current ExeoFlow + YURI OS SITREP website as an internal design-source pack under 03_RESOURCES/References/design-packs. The pack records this as a basic baseline and includes snapshot assets, design notes, a reuse guide, and a prioritized improvement backlog for future presentation, animation, and information upgrades.",
+    "tokens_used": [
+      "--color-void",
+      "--color-deep",
+      "--color-surface",
+      "--color-purple",
+      "--color-cyan",
+      "--font-heading",
+      "--font-sans",
+      "--font-mono"
+    ],
+    "pattern": "Design source pack: frozen artifact snapshot + screenshot + notes + reuse guide + improvement backlog + index references."
+  },
+  {
+    "date": "2026-05-10",
+    "component": "Nexus Link Productions benchmark companion",
+    "decision": "Added the current Nexus Link Productions website as the stronger benchmark reference inside the same ExeoFlow / YURI OS design pack. This gives future iterations a clear comparison target for presentation quality, navigation rhythm, and motion polish instead of treating the SITREP baseline as the standard.",
+    "tokens_used": [
+      "--color-void",
+      "--color-deep",
+      "--color-surface",
+      "--color-elevated",
+      "--color-text-primary",
+      "--color-text-secondary",
+      "--color-purple",
+      "--color-cyan",
+      "--font-sans",
+      "--font-heading",
+      "--font-mono"
+    ],
+    "pattern": "Two-reference pack: baseline SITREP artifact plus stronger current-site benchmark companion."
+  },
+  {
+    "date": "2026-05-10",
+    "component": "ExeoFlow + YURI OS future-session pack manifest",
+    "decision": "Added a start-here manifest and a benchmark delta sheet to the design pack so future sessions can load the right files in the right order without re-discovering the pack structure. This makes the baseline faster to reuse and clearer to improve.",
+    "tokens_used": [
+      "--color-void",
+      "--color-deep",
+      "--color-surface",
+      "--color-elevated",
+      "--color-text-primary",
+      "--color-text-secondary",
+      "--color-purple",
+      "--color-cyan",
+      "--font-sans",
+      "--font-heading",
+      "--font-mono"
+    ],
+    "pattern": "Future-session reference pack: explicit load order, source-of-truth pointer, benchmark delta, and guardrails."
+  },
+  {
+    "date": "2026-05-10",
+    "component": "ExeoFlow + YURI OS portable skill",
+    "decision": "Created a reusable agent skill for the ExeoFlow + YURI OS design reference workflow so future sessions can load the pack structure, benchmark comparison, and guardrails directly from a skill instead of reconstructing the process from scratch.",
+    "tokens_used": [
+      "--color-void",
+      "--color-deep",
+      "--color-surface",
+      "--color-elevated",
+      "--color-text-primary",
+      "--color-text-secondary",
+      "--color-purple",
+      "--color-cyan",
+      "--font-sans",
+      "--font-heading",
+      "--font-mono"
+    ],
+    "pattern": "Portable skill + design pack + benchmark companion + manifest + delta sheet."
   }
 ]

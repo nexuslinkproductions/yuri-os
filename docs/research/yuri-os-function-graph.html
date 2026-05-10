@@ -1,0 +1,2551 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yuri OS | Functional Node Graph</title>
+  <meta name="description" content="Visual node graph of how Yuri OS routes requests, executes work, verifies output, and learns from the result.">
+  <meta name="theme-color" content="#0b0f16">
+  <style>
+    :root {
+      --bg: #070a11;
+      --bg-2: #0f1522;
+      --panel: rgba(12, 17, 28, 0.74);
+      --panel-2: rgba(18, 24, 38, 0.94);
+      --panel-3: rgba(9, 12, 20, 0.86);
+      --border: rgba(166, 188, 220, 0.14);
+      --border-strong: rgba(153, 204, 255, 0.34);
+      --text: #edf4ff;
+      --muted: #a4b3ca;
+      --faint: #6f8099;
+      --core: #8bd3ff;
+      --flow: #7cf2c1;
+      --memory: #82e3ff;
+      --safety: #ffca6f;
+      --learning: #caa8ff;
+      --support: #9db3ff;
+      --output: #ff97b7;
+      --accent: #91f1ff;
+      --shadow: 0 24px 90px rgba(0, 0, 0, 0.45);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --font-sans: "Space Grotesk", "Inter", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background: var(--bg);
+      color: var(--text);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(140, 211, 255, 0.16), transparent 24rem),
+        radial-gradient(circle at 82% 18%, rgba(124, 242, 193, 0.14), transparent 24rem),
+        radial-gradient(circle at 75% 80%, rgba(202, 168, 255, 0.11), transparent 22rem),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03), transparent 16rem),
+        linear-gradient(180deg, #05070c 0%, #0a1018 42%, #05070c 100%);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -20%;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(139, 211, 255, 0.06), transparent 30%),
+        radial-gradient(circle at 20% 80%, rgba(124, 242, 193, 0.04), transparent 26%),
+        radial-gradient(circle at 80% 20%, rgba(202, 168, 255, 0.04), transparent 24%);
+      filter: blur(20px);
+      opacity: 0.55;
+      animation: ambient-drift 18s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 86px 86px;
+      mask-image: linear-gradient(to bottom, transparent 2%, rgba(255, 255, 255, 0.95) 18%, rgba(255, 255, 255, 0.95) 82%, transparent 98%);
+      opacity: 0.22;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(1860px, calc(100vw - 18px));
+      margin: 0 auto;
+      padding: 18px 0 28px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) auto;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(15, 20, 32, 0.72);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--core), var(--flow));
+      box-shadow: 0 0 24px rgba(139, 211, 255, 0.55);
+      animation: pulse-dot 2.8s ease-in-out infinite;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.7rem, 5vw, 5.2rem);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+    }
+
+    .subhead {
+      max-width: 72ch;
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.6;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .chip {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(18, 24, 38, 0.86);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      animation: chip-breath 7s ease-in-out infinite;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) 430px;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .operation-panel {
+      margin: 18px 0;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .operation-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 12% 20%, rgba(139, 211, 255, 0.12), transparent 12rem),
+        radial-gradient(circle at 88% 16%, rgba(124, 242, 193, 0.08), transparent 12rem),
+        linear-gradient(180deg, rgba(11, 15, 24, 0.76), rgba(10, 14, 21, 0.94));
+      pointer-events: none;
+    }
+
+    .operation-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(139, 211, 255, 0.08) 50%, transparent 100%);
+      background-size: 220% 100%;
+      mix-blend-mode: screen;
+      opacity: 0.25;
+      animation: rail-scan 9s linear infinite;
+    }
+
+    .operation-panel > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .operation-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      align-items: end;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .operation-head h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .operation-head p {
+      margin: 0;
+      max-width: 72ch;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .operation-rail {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+      position: relative;
+    }
+
+    .operation-rail::before {
+      content: "";
+      position: absolute;
+      left: 4%;
+      right: 4%;
+      top: 42px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(139, 211, 255, 0.22), rgba(124, 242, 193, 0.42), rgba(202, 168, 255, 0.32));
+      box-shadow: 0 0 18px rgba(124, 242, 193, 0.16);
+      opacity: 0.9;
+    }
+
+    .operation-step {
+      padding: 16px 14px 14px;
+      border-radius: 22px;
+      border: 1px solid rgba(166, 188, 220, 0.14);
+      background:
+        linear-gradient(180deg, rgba(15, 21, 34, 0.92), rgba(8, 11, 18, 0.96));
+      box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      min-height: 168px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      animation: card-rise 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    .operation-step:nth-child(1) { animation-delay: 80ms; }
+    .operation-step:nth-child(2) { animation-delay: 140ms; }
+    .operation-step:nth-child(3) { animation-delay: 200ms; }
+    .operation-step:nth-child(4) { animation-delay: 260ms; }
+    .operation-step:nth-child(5) { animation-delay: 320ms; }
+    .operation-step:nth-child(6) { animation-delay: 380ms; }
+
+    .operation-step .step-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .operation-step .step-index {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #07111a;
+      font: 800 12px var(--font-mono);
+      background: linear-gradient(135deg, var(--core), var(--flow));
+      box-shadow: 0 0 18px rgba(124, 242, 193, 0.14);
+    }
+
+    .operation-step h3 {
+      margin: 0;
+      font-size: 0.98rem;
+      letter-spacing: -0.02em;
+    }
+
+    .operation-step p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.52;
+      font-size: 0.93rem;
+    }
+
+    .operation-step .step-tag {
+      align-self: end;
+      justify-self: start;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(166, 188, 220, 0.16);
+      color: var(--faint);
+      font: 11px var(--font-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .panel {
+      border: 1px solid rgba(166, 188, 220, 0.12);
+      border-radius: var(--radius-xl);
+      background:
+        linear-gradient(180deg, rgba(21, 28, 43, 0.76), rgba(9, 12, 20, 0.86)),
+        var(--panel);
+      box-shadow:
+        0 24px 90px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(22px);
+      overflow: hidden;
+    }
+
+    .graph-panel {
+      position: relative;
+      min-height: 980px;
+    }
+
+    .graph-toolbar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+
+    .toolbar-group,
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .graph-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(166, 188, 220, 0.14);
+      background: rgba(8, 12, 19, 0.74);
+      color: var(--muted);
+      font: 12px var(--font-mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      pointer-events: auto;
+    }
+
+    .graph-hint::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--core), var(--flow));
+      box-shadow: 0 0 16px rgba(139, 211, 255, 0.3);
+    }
+
+    .toolbar-button {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(11, 15, 22, 0.70);
+      color: var(--muted);
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, background 160ms ease;
+      cursor: pointer;
+    }
+
+    .toolbar-button:hover,
+    .toolbar-button:focus-visible {
+      outline: none;
+      color: var(--text);
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+
+    .toolbar-button.active {
+      color: #08111a;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--core), var(--flow));
+      font-weight: 700;
+    }
+
+    .legend .toolbar-button {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .graph-shell {
+      position: absolute;
+      inset: 0;
+      padding-top: 62px;
+      cursor: grab;
+    }
+
+    .graph-shell.dragging {
+      cursor: grabbing;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .cluster-ring {
+      fill: none;
+      stroke: rgba(150, 181, 228, 0.09);
+      stroke-width: 1.6;
+      stroke-dasharray: 8 14;
+    }
+
+    .cluster-ring.core {
+      stroke: rgba(139, 211, 255, 0.11);
+      filter: drop-shadow(0 0 20px rgba(139, 211, 255, 0.08));
+    }
+
+    .cluster-ring.flow {
+      stroke: rgba(124, 242, 193, 0.10);
+    }
+
+    .cluster-ring.memory {
+      stroke: rgba(130, 227, 255, 0.12);
+    }
+
+    .cluster-ring.safety {
+      stroke: rgba(255, 202, 111, 0.12);
+    }
+
+    .cluster-ring.learning {
+      stroke: rgba(202, 168, 255, 0.12);
+    }
+
+    .cluster-ring.support {
+      stroke: rgba(157, 179, 255, 0.11);
+    }
+
+    .edge {
+      fill: none;
+      stroke: rgba(158, 181, 219, 0.34);
+      stroke-width: 2.1;
+      stroke-linecap: round;
+      transition: opacity 180ms ease, stroke 180ms ease, stroke-width 180ms ease;
+    }
+
+    .edge.primary {
+      stroke: rgba(139, 211, 255, 0.66);
+      stroke-width: 2.4;
+      filter: drop-shadow(0 0 10px rgba(139, 211, 255, 0.12));
+      stroke-dasharray: 16 12;
+      animation: edge-flow 13s linear infinite;
+    }
+
+    .edge.dimmed {
+      opacity: 0.10;
+    }
+
+    .edge-label {
+      fill: rgba(208, 223, 245, 0.68);
+      font: 11px var(--font-mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .node {
+      cursor: pointer;
+      filter: drop-shadow(0 16px 26px rgba(0, 0, 0, 0.26));
+      animation: node-fade 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      animation-delay: calc(var(--node-index, 0) * 48ms);
+    }
+
+    .node .ring {
+      fill: rgba(13, 18, 28, 0.98);
+      stroke: rgba(174, 193, 225, 0.28);
+      stroke-width: 1.4;
+      transition: transform 180ms ease, stroke 180ms ease, fill 180ms ease, opacity 180ms ease;
+      transform-origin: center;
+      transform-box: fill-box;
+    }
+
+    .node .halo {
+      fill: transparent;
+      stroke-width: 12;
+      opacity: 0.08;
+      transition: opacity 180ms ease;
+      animation: halo-breath 6s ease-in-out infinite;
+    }
+
+    .node .label {
+      font: 700 12px/1.2 var(--font-sans);
+      fill: var(--text);
+      letter-spacing: -0.02em;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .node .sub {
+      font: 11px/1.2 var(--font-mono);
+      fill: var(--muted);
+      opacity: 0.92;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .node.core .ring { stroke: rgba(139, 211, 255, 0.42); }
+    .node.flow .ring { stroke: rgba(124, 242, 193, 0.40); }
+    .node.memory .ring { stroke: rgba(130, 227, 255, 0.40); }
+    .node.safety .ring { stroke: rgba(255, 202, 111, 0.42); }
+    .node.learning .ring { stroke: rgba(202, 168, 255, 0.40); }
+    .node.support .ring { stroke: rgba(157, 179, 255, 0.40); }
+    .node.output .ring { stroke: rgba(255, 151, 183, 0.42); }
+
+    .node.active .ring {
+      fill: rgba(18, 28, 44, 0.99);
+      stroke: rgba(139, 211, 255, 0.96);
+      stroke-width: 1.8;
+    }
+
+    .node.hovered .ring {
+      fill: rgba(21, 33, 50, 0.98);
+      stroke: rgba(255, 255, 255, 0.84);
+      transform: scale(1.03);
+    }
+
+    .node.active .halo {
+      opacity: 0.36;
+      animation-duration: 2.8s;
+    }
+
+    .node.dimmed {
+      opacity: 0.18;
+    }
+
+    .node.dimmed .ring {
+      stroke-opacity: 0.18;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      min-height: 980px;
+    }
+
+    .sidebar-head {
+      padding: 22px 22px 16px;
+      border-bottom: 1px solid var(--border);
+      background:
+        linear-gradient(180deg, rgba(20, 28, 44, 0.98), rgba(10, 14, 22, 0.78)),
+        radial-gradient(circle at 20% 20%, rgba(139, 211, 255, 0.10), transparent 14rem);
+    }
+
+    .sidebar-kicker {
+      color: var(--faint);
+      font: 12px var(--font-mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-title {
+      margin: 10px 0 0;
+      font-size: 1.8rem;
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: rgba(12, 17, 26, 0.78);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+
+    .sidebar-body {
+      padding: 20px 22px 24px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+
+    .block {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(180deg, rgba(12, 17, 28, 0.88), rgba(8, 11, 18, 0.90));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      animation: card-rise 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .block::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(139, 211, 255, 0.78), rgba(124, 242, 193, 0.38), rgba(202, 168, 255, 0.42));
+      opacity: 0.75;
+    }
+
+    .block::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 42%;
+      background: radial-gradient(circle at 20% 0%, rgba(139, 211, 255, 0.06), transparent 60%);
+      pointer-events: none;
+    }
+
+    .sidebar-body .block:nth-child(1) { animation-delay: 60ms; }
+    .sidebar-body .block:nth-child(2) { animation-delay: 120ms; }
+    .sidebar-body .block:nth-child(3) { animation-delay: 180ms; }
+    .sidebar-body .block:nth-child(4) { animation-delay: 240ms; }
+    .sidebar-body .block:nth-child(5) { animation-delay: 300ms; }
+    .sidebar-body .block:nth-child(6) { animation-delay: 360ms; }
+
+    .block h2,
+    .block h3 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .block p {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.62;
+      font-size: 0.96rem;
+    }
+
+    .block-summary {
+      grid-column: 1 / -1;
+      background:
+        linear-gradient(180deg, rgba(18, 27, 42, 0.96), rgba(10, 14, 22, 0.94));
+      display: grid;
+      gap: 18px;
+    }
+
+    .block-summary p {
+      font-size: 1.02rem;
+      color: #f1f6ff;
+    }
+
+    .summary-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .summary-pill {
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(166, 188, 220, 0.14);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font: 11px var(--font-mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .inspector-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      width: 100%;
+    }
+
+    .stat-card {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(166, 188, 220, 0.10);
+      min-height: 96px;
+    }
+
+    .stat-card .label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--faint);
+      font: 11px var(--font-mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .stat-card .value {
+      color: var(--text);
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+
+    .files-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .files-grid li {
+      padding: 10px 11px;
+      border-radius: 14px;
+      border: 1px solid rgba(166, 188, 220, 0.10);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .files-grid li::before {
+      top: 0.95em;
+    }
+
+    .files-grid code {
+      color: var(--text);
+      font-size: 0.88rem;
+      word-break: break-word;
+    }
+
+    .source-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .source-list code {
+      display: inline-flex;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(166, 188, 220, 0.1);
+      font-size: 0.8rem;
+      line-height: 1.2;
+    }
+
+    .mechanism-list,
+    .link-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .mechanism-list li,
+    .link-list li {
+      padding-left: 16px;
+      position: relative;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .mechanism-list li::before,
+    .link-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.62em;
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--core), var(--flow));
+      box-shadow: 0 0 16px rgba(139, 211, 255, 0.26);
+    }
+
+    .flow-steps {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .flow-step {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+    }
+
+    .flow-step .num {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: rgba(22, 30, 46, 0.98);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font: 700 12px var(--font-mono);
+    }
+
+    .flow-step .text {
+      color: var(--muted);
+      line-height: 1.52;
+    }
+
+    .compact-flow {
+      display: grid;
+      gap: 10px;
+    }
+
+    .compact-flow .flow-step {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(166, 188, 220, 0.09);
+    }
+
+    .related-systems {
+      display: grid;
+      gap: 12px;
+    }
+
+    .related-item {
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(166, 188, 220, 0.10);
+      background: rgba(255, 255, 255, 0.03);
+      display: grid;
+      gap: 6px;
+      min-height: 92px;
+    }
+
+    .related-item strong {
+      font-size: 0.95rem;
+      letter-spacing: -0.02em;
+    }
+
+    .related-item span {
+      color: var(--muted);
+      font: 11px var(--font-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .systems-band {
+      margin-top: 18px;
+      padding: 22px;
+    }
+
+    .systems-band-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .systems-band-head h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .systems-band-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 74ch;
+    }
+
+    .systems-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .system-card {
+      padding: 20px;
+      border-radius: 22px;
+      border: 1px solid rgba(166, 188, 220, 0.12);
+      background:
+        linear-gradient(180deg, rgba(15, 21, 34, 0.92), rgba(8, 11, 18, 0.95));
+      box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      display: grid;
+      gap: 16px;
+      min-height: 420px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .system-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(139, 211, 255, 0.82), rgba(124, 242, 193, 0.38), rgba(202, 168, 255, 0.42));
+      opacity: 0.9;
+    }
+
+    .system-card h3 {
+      margin: 0;
+      font-size: 1.08rem;
+      letter-spacing: -0.02em;
+    }
+
+    .system-card .directive {
+      color: #f1f6ff;
+      font-size: 0.98rem;
+      line-height: 1.46;
+      font-weight: 600;
+    }
+
+    .system-card .explain {
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.5;
+    }
+
+    .system-card .tag {
+      align-self: end;
+      justify-self: start;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(166, 188, 220, 0.12);
+      color: var(--faint);
+      font: 11px var(--font-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .mini-graph {
+      width: 100%;
+      height: 220px;
+      border-radius: 16px;
+      border: 1px solid rgba(166, 188, 220, 0.08);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(139, 211, 255, 0.10), transparent 38%),
+        radial-gradient(circle at 80% 20%, rgba(124, 242, 193, 0.08), transparent 35%),
+        rgba(7, 10, 16, 0.78);
+      overflow: hidden;
+    }
+
+    .mini-graph svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .mini-node {
+      fill: rgba(15, 20, 32, 0.96);
+      stroke-width: 1.6;
+    }
+
+    .mini-edge {
+      fill: none;
+      stroke: rgba(158, 181, 219, 0.38);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 9 10;
+      animation: edge-flow 11s linear infinite;
+    }
+
+    .mini-edge.primary {
+      stroke: rgba(139, 211, 255, 0.7);
+      stroke-width: 2.25;
+    }
+
+    .mini-label {
+      fill: var(--text);
+      font: 700 12px var(--font-sans);
+      letter-spacing: -0.02em;
+    }
+
+    .mini-sub {
+      fill: var(--muted);
+      font: 10.5px var(--font-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .system-card-layout {
+      display: grid;
+      grid-template-columns: minmax(420px, 1.15fr) minmax(0, 0.95fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .system-card-copy {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .system-signals {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .system-signals li {
+      padding-left: 16px;
+      position: relative;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .system-signals li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--core), var(--flow));
+      box-shadow: 0 0 16px rgba(139, 211, 255, 0.26);
+    }
+
+    .footer {
+      margin-top: 16px;
+      padding: 14px 18px 0;
+      color: var(--faint);
+      font: 12px/1.5 var(--font-mono);
+    }
+
+    .footer code {
+      font-family: var(--font-mono);
+      color: var(--text);
+    }
+
+    @keyframes ambient-drift {
+      0% { transform: translate3d(-1.5%, -1%, 0) scale(1); opacity: 0.40; }
+      100% { transform: translate3d(1.5%, 1%, 0) scale(1.03); opacity: 0.62; }
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.25); opacity: 1; }
+    }
+
+    @keyframes chip-breath {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-1px); }
+    }
+
+    @keyframes rail-scan {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 220% 50%; }
+    }
+
+    @keyframes edge-flow {
+      0% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: -120; }
+    }
+
+    @keyframes node-fade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes halo-breath {
+      0%, 100% { opacity: 0.06; }
+      50% { opacity: 0.14; }
+    }
+
+    @keyframes card-rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      body::after {
+        animation: none !important;
+      }
+    }
+
+    @media (max-width: 1240px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .operation-rail {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .operation-rail::before {
+        display: none;
+      }
+
+      .sidebar,
+      .graph-panel {
+        min-height: 880px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .chip-row {
+        justify-content: flex-start;
+      }
+
+      .sidebar-body {
+        grid-template-columns: 1fr;
+      }
+
+      .systems-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        width: min(100vw - 18px, 100%);
+        padding-top: 14px;
+      }
+
+      .graph-panel,
+      .sidebar {
+        min-height: 820px;
+      }
+
+      h1 {
+        font-size: clamp(2.15rem, 9vw, 3.25rem);
+      }
+
+      .sidebar-title {
+        font-size: 1.45rem;
+      }
+
+      .operation-panel {
+        padding: 16px;
+      }
+
+      .operation-rail {
+        grid-template-columns: 1fr;
+      }
+
+      .systems-band {
+        padding: 16px;
+      }
+
+      .systems-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .system-card-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .mini-graph {
+        height: 180px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <div class="eyebrow">Yuri OS functional map</div>
+        <h1>How Yuri OS routes, executes, verifies, and learns.</h1>
+        <p class="subhead">
+          This page maps the system as a live control loop: request intake, graph memory, Pantheon roles, lane routing,
+          verification gates, background maintenance, and durable memory. Solid nodes are the working surfaces described
+          in the repo; the graph separates mechanism from output so the responsibilities stay legible.
+        </p>
+      </div>
+      <div class="chip-row" aria-label="Graph legend">
+        <span class="chip">Solid = active surface</span>
+        <span class="chip">Purple = learning</span>
+        <span class="chip">Cyan = memory</span>
+        <span class="chip">Gold = safety</span>
+        <span class="chip">Green = execution</span>
+      </div>
+    </header>
+
+    <section class="panel operation-panel" aria-label="Operational sequence diagram">
+      <div class="operation-head">
+        <div>
+          <h2>Orchestration</h2>
+          <p>This is the operating loop. It shows where work is routed, where subagents fan out, where sandboxing happens, and how verified output returns to memory.</p>
+        </div>
+        <div class="chip-row" style="justify-content:flex-end">
+          <span class="chip">Left to right flow</span>
+          <span class="chip">Fan-out then fan-in</span>
+        </div>
+      </div>
+      <div class="operation-rail">
+        <article class="operation-step">
+          <div class="step-head">
+            <div class="step-index">01</div>
+            <h3>Intake</h3>
+          </div>
+          <p>User text or session state enters the system and becomes normalized intent.</p>
+          <div class="step-tag">Normalize request</div>
+        </article>
+        <article class="operation-step">
+          <div class="step-head">
+            <div class="step-index">02</div>
+            <h3>Offload Router</h3>
+          </div>
+          <p>Route selection picks the smallest reliable lane, then hands bounded work to the right execution surface.</p>
+          <div class="step-tag">Choose lane</div>
+        </article>
+        <article class="operation-step">
+          <div class="step-head">
+            <div class="step-index">03</div>
+            <h3>Subagents</h3>
+          </div>
+          <p>The orchestrator fans out focused subagents so each one owns one narrow boundary and one clear output.</p>
+          <div class="step-tag">Fan-out</div>
+        </article>
+        <article class="operation-step">
+          <div class="step-head">
+            <div class="step-index">04</div>
+            <h3>Sandbox</h3>
+          </div>
+          <p>Risky or experimental work stays isolated here so failures produce evidence without contaminating canonical state.</p>
+          <div class="step-tag">Isolated run</div>
+        </article>
+        <article class="operation-step">
+          <div class="step-head">
+            <div class="step-index">05</div>
+            <h3>Verify</h3>
+          </div>
+          <p>NISABA checks the output against local evidence, impact radius, and mutation gates before anything is trusted.</p>
+          <div class="step-tag">Evidence gate</div>
+        </article>
+        <article class="operation-step">
+          <div class="step-head">
+            <div class="step-index">06</div>
+            <h3>Memory</h3>
+          </div>
+          <p>Verified lessons are written back into memory.db so the next task starts with context instead of amnesia.</p>
+          <div class="step-tag">Persist lessons</div>
+        </article>
+      </div>
+    </section>
+
+    <main class="layout">
+      <section class="panel graph-panel" aria-label="Node graph">
+        <div class="graph-toolbar">
+          <div class="toolbar-group" id="filters" aria-label="Graph filters"></div>
+          <div class="legend" aria-label="Graph legend badges">
+            <span class="graph-hint">Drag to move</span>
+            <span class="graph-hint">Wheel to zoom</span>
+            <button class="toolbar-button" id="zoom-out" type="button">-</button>
+            <button class="toolbar-button" id="zoom-reset" type="button">Reset</button>
+            <button class="toolbar-button" id="zoom-in" type="button">+</button>
+          </div>
+        </div>
+        <div class="graph-shell">
+          <svg viewBox="0 0 1600 1100" role="img" aria-labelledby="graph-title graph-desc">
+            <title id="graph-title">Yuri OS mechanism graph</title>
+            <desc id="graph-desc">A node graph showing how Yuri OS takes input, routes work, executes tasks, verifies output, stores memory, and runs background learning loops.</desc>
+            <defs>
+              <filter id="glow-core" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="10" result="blur"></feGaussianBlur>
+                <feColorMatrix in="blur" type="matrix" values="
+                  1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 14 -6" result="glow"></feColorMatrix>
+                <feMerge>
+                  <feMergeNode in="glow"></feMergeNode>
+                  <feMergeNode in="SourceGraphic"></feMergeNode>
+                </feMerge>
+              </filter>
+              <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+                <path d="M 0 0 L 14 7 L 0 14 z" fill="rgba(160, 187, 223, 0.68)"></path>
+              </marker>
+              <marker id="arrow-primary" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+                <path d="M 0 0 L 14 7 L 0 14 z" fill="rgba(139, 211, 255, 0.92)"></path>
+              </marker>
+            </defs>
+            <g id="scene">
+              <g id="rings"></g>
+              <g id="edges"></g>
+              <g id="edge-labels"></g>
+              <g id="nodes"></g>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <aside class="panel sidebar" aria-live="polite">
+        <div class="sidebar-head">
+          <div class="sidebar-kicker" id="node-kicker">Selected mechanism</div>
+          <h2 class="sidebar-title" id="node-title">YURI OS</h2>
+          <div class="badge-row" id="node-badges"></div>
+        </div>
+        <div class="sidebar-body">
+          <section class="block block-summary">
+            <h2>What it does</h2>
+            <p id="node-summary"></p>
+            <div class="summary-row" id="node-summary-row"></div>
+            <div class="inspector-grid">
+              <div class="stat-card">
+                <span class="label">Role</span>
+                <div class="value" id="node-role"></div>
+              </div>
+              <div class="stat-card">
+                <span class="label">Connections</span>
+                <div class="value" id="node-connections-count"></div>
+              </div>
+              <div class="stat-card">
+                <span class="label">Primary system</span>
+                <div class="value" id="node-primary-system"></div>
+              </div>
+              <div class="stat-card">
+                <span class="label">Output type</span>
+                <div class="value" id="node-output-type"></div>
+              </div>
+            </div>
+          </section>
+          <section class="block">
+            <h2>Mechanisms</h2>
+            <ul class="mechanism-list" id="node-mechanisms"></ul>
+          </section>
+          <section class="block">
+            <h2>Inputs and outputs</h2>
+            <div class="compact-flow" id="node-flow"></div>
+          </section>
+          <section class="block">
+            <h2>Related systems</h2>
+            <div class="related-systems" id="node-related"></div>
+          </section>
+          <section class="block">
+            <h2>Files and surfaces</h2>
+            <ul class="link-list files-grid" id="node-files"></ul>
+          </section>
+        </div>
+      </aside>
+    </main>
+
+    <section class="panel systems-band" aria-label="Noteworthy systems">
+      <div class="systems-band-head">
+        <div>
+          <h2>System graphs</h2>
+          <p>Each card is a separate system map. The graph shows the operating flow; the text stays directive and short.</p>
+        </div>
+      </div>
+      <div class="systems-grid" id="systems-grid"></div>
+      <div class="source-list" style="margin-top: 14px">
+        <code>_SYSTEM/OS_KERNEL/memory.db</code>
+        <code>Scripts/yuri-sandbox-loop.mjs</code>
+        <code>Scripts/offload-contract.mjs</code>
+        <code>.claude/hooks/nisaba-subagent-start.js</code>
+        <code>Scripts/yuri-guarded-executor.mjs</code>
+        <code>_SYSTEM/autonomous-swarm/orchestrator.js</code>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Graph note: roadmap language from the repo is shown alongside operational surfaces because Yuri OS blends current runtime machinery with doctrine that is already steering the system design.
+    </footer>
+  </div>
+
+  <script>
+    const nodes = [
+      {
+        id: "yuri-os",
+        title: "YURI OS",
+        cluster: "core",
+        labelLines: ["YURI", "OS"],
+        x: 800, y: 530, r: 86,
+        summary: "The coordination kernel that binds intake, routing, execution, verification, memory, and learning into one loop.",
+        mechanisms: [
+          "Accepts a prompt or session event.",
+          "Delegates routing to the control plane.",
+          "Keeps memory and promotion gates attached to the same loop."
+        ],
+        flow: {
+          inputs: ["User / Session", "Background heartbeat", "Memory / policy state"],
+          outputs: ["Route plan", "Verified artifacts", "Durable lessons"]
+        },
+        files: ["OPERATOR_PROTOCOL.md", "CODEX_PROTOCOL.md", "00_COMMAND-CENTER/NUDIMMUD-ARCHITECTURAL-OVERVIEW.md"]
+      },
+      {
+        id: "user-session",
+        title: "User / Session",
+        cluster: "flow",
+        labelLines: ["User", "Session"],
+        x: 210, y: 350, r: 58,
+        summary: "The request enters here. The session shape, prompt density, and ongoing context determine how the rest of the system is activated.",
+        mechanisms: [
+          "Provides the task or question.",
+          "Carries state across the current turn.",
+          "Acts as the intake boundary before routing."
+        ],
+        flow: {
+          inputs: ["Prompt text", "Conversation history"],
+          outputs: ["Normalized intent", "Execution target"]
+        },
+        files: ["session_log.md", "memory/MEMORY.md", "enki_state.md"]
+      },
+      {
+        id: "control-plane",
+        title: "Control Plane",
+        cluster: "flow",
+        labelLines: ["Control", "Plane"],
+        x: 430, y: 210, r: 64,
+        summary: "Normalizes intent, builds the graph plan, and binds the session to the correct execution route.",
+        mechanisms: [
+          "Turns rough intent into a typed control-plane object.",
+          "Compiles the task graph.",
+          "Selects the route and verifier requirements."
+        ],
+        flow: {
+          inputs: ["User / Session", "Policy / route plan"],
+          outputs: ["Graph plan", "Route plan", "Artifact policy"]
+        },
+        files: ["Scripts/offload-contract.mjs", "Scripts/yuri-control-plane-schema.mjs", "Scripts/offload-runner.mjs"]
+      },
+      {
+        id: "gitnexus",
+        title: "GitNexus Graph",
+        cluster: "memory",
+        labelLines: ["GitNexus", "Graph"],
+        x: 250, y: 540, r: 62,
+        summary: "The spatial memory layer. It indexes the vault, computes impact radius, and exposes stale execution flows.",
+        mechanisms: [
+          "Maps the codebase as a graph.",
+          "Checks blast radius before a mutation.",
+          "Finds upstream callers and downstream effects."
+        ],
+        flow: {
+          inputs: ["Repository state", "Symbol changes"],
+          outputs: ["Impact analysis", "Execution-flow context"]
+        },
+        files: ["gitnexus://repo/nudimmud-vault/context", "gitnexus://repo/nudimmud-vault/processes"]
+      },
+      {
+        id: "pantheon",
+        title: "Pantheon Roles",
+        cluster: "core",
+        labelLines: ["Pantheon", "Roles"],
+        x: 560, y: 500, r: 72,
+        summary: "The five role system that splits planning, architecture, routing, measurement, and learning into distinct responsibilities.",
+        mechanisms: [
+          "ENKI plans and synthesizes.",
+          "NUDIMMUD builds and executes.",
+          "NABU codifies the route.",
+          "NISABA measures and verifies.",
+          "NOESIS learns and consolidates."
+        ],
+        flow: {
+          inputs: ["Task context", "Route plan"],
+          outputs: ["Specialized sub-agent behavior", "Scoped execution"]
+        },
+        files: ["00_COMMAND-CENTER/NUDIMMUD-ARCHITECTURAL-OVERVIEW.md", "_SYSTEM/NEURAL-NETWORK-THESIS.md"]
+      },
+      {
+        id: "execution-lanes",
+        title: "Offload Router",
+        cluster: "support",
+        labelLines: ["Offload", "Router"],
+        x: 1115, y: 270, r: 64,
+        summary: "The lane selector decides where work goes, how much of the swarm it needs, and which execution surface is safest.",
+        mechanisms: [
+          "Chooses between local and swarm execution.",
+          "Selects the smallest reliable lane.",
+          "Keeps task scope bounded."
+        ],
+        flow: {
+          inputs: ["Control-plane route", "Risk level"],
+          outputs: ["Lane binding", "Worker assignment"]
+        },
+        files: ["Scripts/offload-contract.mjs", "Scripts/offload.sh", "Scripts/codex-offload-runner.mjs"]
+      },
+      {
+        id: "subagent-orchestrator",
+        title: "Subagent Orchestration",
+        cluster: "support",
+        labelLines: ["Subagent", "Orchestration"],
+        x: 1330, y: 300, r: 60,
+        summary: "Turns one task into a narrow fan-out of specialist subagents with explicit boundaries and a clear rejoin point.",
+        mechanisms: [
+          "Spawns focused subagents.",
+          "Keeps each agent on one boundary.",
+          "Joins results before promotion."
+        ],
+        flow: {
+          inputs: ["Lane binding", "Task fragments"],
+          outputs: ["Parallel work", "Consolidated result"]
+        },
+        files: [".claude/hooks/nisaba-subagent-start.js", "_SYSTEM/autonomous-swarm/orchestrator.js", "Scripts/swarm-proxy.sh"]
+      },
+      {
+        id: "sandbox-loop",
+        title: "Sandbox Loop",
+        cluster: "safety",
+        labelLines: ["Sandbox", "Loop"],
+        x: 1240, y: 885, r: 62,
+        summary: "Isolated runs for risky or experimental work. The sandbox keeps failures contained and artifacts inspectable.",
+        mechanisms: [
+          "Runs isolated experiments.",
+          "Keeps raw output tainted.",
+          "Separates probing from promotion."
+        ],
+        flow: {
+          inputs: ["Subagent output", "Experimental prompt"],
+          outputs: ["Raw artifacts", "Verification input"]
+        },
+        files: ["Scripts/yuri-sandbox-loop.mjs", "Scripts/yuri-sandbox-loop.test.mjs"]
+      },
+      {
+        id: "workspace-files",
+        title: "Workspace Files",
+        cluster: "flow",
+        labelLines: ["Workspace", "Files"],
+        x: 1195, y: 620, r: 60,
+        summary: "The bounded file set that the selected lane is allowed to touch. This is where work becomes concrete.",
+        mechanisms: [
+          "Limits writes to the target scope.",
+          "Preserves local evidence and artifacts.",
+          "Keeps unrelated files out of the mutation boundary."
+        ],
+        flow: {
+          inputs: ["Execution lane", "Task boundary"],
+          outputs: ["Patched files", "Generated artifacts"]
+        },
+        files: ["docs/", "Scripts/", ".claude/", "_SYSTEM/"]
+      },
+      {
+        id: "artifacts",
+        title: "Artifacts",
+        cluster: "output",
+        labelLines: ["Run", "Artifacts"],
+        x: 820, y: 980, r: 58,
+        summary: "Raw outputs stay tainted until verification completes. Artifact files carry the evidence, not the claim.",
+        mechanisms: [
+          "Holds raw-output.md and the verifier outputs.",
+          "Keeps tainted executor output out of canonical state.",
+          "Feeds promotion only after verification."
+        ],
+        flow: {
+          inputs: ["Executor output", "Verification trace"],
+          outputs: ["Learning summary", "Promotion candidate"]
+        },
+        files: ["raw-output.md", "verification.json", "learning-summary.json", "promotion-decision.json"]
+      },
+      {
+        id: "nisaba-verify",
+        title: "NISABA Verify",
+        cluster: "safety",
+        labelLines: ["NISABA", "Verify"],
+        x: 965, y: 760, r: 64,
+        summary: "Measurement and verification happen here. NISABA decides whether artifacts can be sanitized and promoted.",
+        mechanisms: [
+          "Checks local evidence deterministically.",
+          "Rejects claims without proof.",
+          "Blocks promotion until the gate passes."
+        ],
+        flow: {
+          inputs: ["Artifacts", "Safety gates", "Local evidence"],
+          outputs: ["Verified facts", "Sanitization permission"]
+        },
+        files: ["Scripts/yuri-artifact-audit.mjs", "Scripts/yuri-evidence-contract.mjs"]
+      },
+      {
+        id: "promotion-review",
+        title: "Promotion Review",
+        cluster: "learning",
+        labelLines: ["Promotion", "Review"],
+        x: 560, y: 930, r: 58,
+        summary: "Only sanitized learning crosses this boundary into durable memory. It is the last checkpoint before a lesson becomes policy.",
+        mechanisms: [
+          "Promotes verified learning.",
+          "Rejects unverified or noisy output.",
+          "Hands accepted lessons to the memory surfaces."
+        ],
+        flow: {
+          inputs: ["Sanitized facts", "Verifier result"],
+          outputs: ["Memory writes", "Standing rules"]
+        },
+        files: ["Scripts/yuri-learning-capture.mjs", "_SYSTEM/skill-hash-registry.json"]
+      },
+      {
+        id: "memory-surface",
+        title: "Memory Surface",
+        cluster: "memory",
+        labelLines: ["Memory", "Surface"],
+        x: 330, y: 780, r: 66,
+        summary: "The canonical state layer. It keeps the durable record of lessons, incidents, and long-term operational context.",
+        mechanisms: [
+          "Stores the live memory ledger.",
+          "Holds aversion memory and session notes.",
+          "Feeds future routing and learning."
+        ],
+        flow: {
+          inputs: ["Verified lessons", "Session logs"],
+          outputs: ["Persistent memory", "Future context"]
+        },
+        files: ["_SYSTEM/OS_KERNEL/memory.db", "session_log.md", "_SYSTEM/yuri-incident-log.md"]
+      },
+      {
+        id: "noesis-learn",
+        title: "NOESIS Learn",
+        cluster: "learning",
+        labelLines: ["NOESIS", "Learn"],
+        x: 260, y: 630, r: 58,
+        summary: "The background linter and learner. It wakes on a heartbeat, reads rules and skills, resolves contradictions, and updates aversion memory.",
+        mechanisms: [
+          "Scans rules, skills, and memory nodes.",
+          "Consolidates redundancy and contradiction.",
+          "Treats failure reasons as durable lessons."
+        ],
+        flow: {
+          inputs: ["Heartbeat", "Rules / skills", "Memory"],
+          outputs: ["Consolidated doctrine", "Aversion memory"]
+        },
+        files: [".claude/agents/noesis-linter.md", "_SYSTEM/yuri-skill-loader.md", ".claude/rules/"]
+      },
+      {
+        id: "background-heartbeat",
+        title: "Background Heartbeat",
+        cluster: "support",
+        labelLines: ["Background", "Heartbeat"],
+        x: 800, y: 150, r: 62,
+        summary: "The pulse that keeps Yuri OS alive without a prompt. It wakes maintenance loops and scheduled watchers.",
+        mechanisms: [
+          "Runs recurring maintenance.",
+          "Wakes NOESIS and other watchers.",
+          "Keeps the system from sleeping forever."
+        ],
+        flow: {
+          inputs: ["Timer / launchd", "Scheduler"],
+          outputs: ["Maintenance run", "Watcher wakeup"]
+        },
+        files: ["Scripts/wiki-rag-launchd.mjs", "_SYSTEM/yuri-wiki/reports/staleness/09c-rag-launchd.md"]
+      },
+      {
+        id: "skill-loader",
+        title: "Skill Loader",
+        cluster: "memory",
+        labelLines: ["Skill", "Loader"],
+        x: 480, y: 120, r: 56,
+        summary: "Loads `.cline/rules` and `.claude/skills` into the session context so doctrine is visible before work starts.",
+        mechanisms: [
+          "Discovers active skills.",
+          "Normalizes them into context.",
+          "Produces a compact metadata layer."
+        ],
+        flow: {
+          inputs: ["Rule files", "Skill files"],
+          outputs: ["Loaded doctrine", "Compact skill metadata"]
+        },
+        files: [".cline/rules/", ".claude/skills/", "Scripts/yuri-skill-loader.mjs"]
+      },
+      {
+        id: "hooks-telemetry",
+        title: "Hooks / Telemetry",
+        cluster: "support",
+        labelLines: ["Hooks", "Telemetry"],
+        x: 1120, y: 120, r: 58,
+        summary: "Session start, tool use, and stop hooks observe the session and feed state back into the control plane.",
+        mechanisms: [
+          "Intercepts session lifecycle events.",
+          "Records token and tool telemetry.",
+          "Injects or blocks context when policy requires it."
+        ],
+        flow: {
+          inputs: ["Session events", "Tool calls"],
+          outputs: ["Telemetry", "Context injection"]
+        },
+        files: [".claude/hooks/", ".claude/debug/", "Scripts/token-ledger.mjs"]
+      },
+      {
+        id: "safety-gates",
+        title: "Safety Gates",
+        cluster: "safety",
+        labelLines: ["Safety", "Gates"],
+        x: 1325, y: 500, r: 66,
+        summary: "The mutation boundary. Impact analysis, detect_changes, protected paths, and artifact taint stop unsafe promotion.",
+        mechanisms: [
+          "Checks blast radius before edits.",
+          "Blocks protected-path writes.",
+          "Requires deterministic verification before promotion."
+        ],
+        flow: {
+          inputs: ["GitNexus blast radius", "Policy / mutation intent"],
+          outputs: ["Allow", "Block", "Escalate"]
+        },
+        files: ["OPERATOR_PROTOCOL.md", "Scripts/yuri-guarded-executor.mjs", "Scripts/policy/"]
+      },
+      {
+        id: "adversarial-qa",
+        title: "Adversarial QA",
+        cluster: "safety",
+        labelLines: ["Adversarial", "QA"],
+        x: 1285, y: 770, r: 60,
+        summary: "OBLITERATUS-style red teaming. It attacks the reasoning path before the system trusts its own answer.",
+        mechanisms: [
+          "Assumes the code is wrong until proven otherwise.",
+          "Searches for exploit paths and edge failures.",
+          "Forces the structure to survive pressure."
+        ],
+        flow: {
+          inputs: ["Candidate solution", "Verifier path"],
+          outputs: ["Fracture points", "Required defenses"]
+        },
+        files: [".claude/agents/obliteratus-qa.md", "Scripts/codex-offload-runner.test.mjs"]
+      },
+      {
+        id: "external-models",
+        title: "External Models",
+        cluster: "support",
+        labelLines: ["External", "Models"],
+        x: 1420, y: 280, r: 58,
+        summary: "Model backends are selected by workload. The router can bias toward deep reasoning, cheap throughput, or long-context ingestion.",
+        mechanisms: [
+          "Matches model to task type.",
+          "Separates hard reasoning from bulk automation.",
+          "Keeps the current run aligned with the smallest reliable lane."
+        ],
+        flow: {
+          inputs: ["Route plan", "Task characteristics"],
+          outputs: ["Model selection", "Reasoning level"]
+        },
+        files: ["Scripts/model-bench.sh", "06_KNOWLEDGE-BASE/05_OPERATIONAL/model_routing.md"]
+      }
+    ];
+
+    const edges = [
+      ["user-session", "control-plane", "intake"],
+      ["control-plane", "gitnexus", "graph"],
+      ["control-plane", "pantheon", "roles"],
+      ["control-plane", "execution-lanes", "route"],
+      ["control-plane", "skill-loader", "skills"],
+      ["control-plane", "hooks-telemetry", "telemetry"],
+      ["pantheon", "execution-lanes", "spawn"],
+      ["execution-lanes", "workspace-files", "scoped work"],
+      ["workspace-files", "artifacts", "emit"],
+      ["artifacts", "nisaba-verify", "verify"],
+      ["gitnexus", "safety-gates", "impact"],
+      ["safety-gates", "nisaba-verify", "gate"],
+      ["nisaba-verify", "promotion-review", "sanitize"],
+      ["promotion-review", "memory-surface", "promote"],
+      ["memory-surface", "noesis-learn", "learn"],
+      ["background-heartbeat", "noesis-learn", "wake"],
+      ["skill-loader", "noesis-learn", "context"],
+      ["hooks-telemetry", "memory-surface", "log"],
+      ["adversarial-qa", "safety-gates", "attack"],
+      ["external-models", "execution-lanes", "select"],
+      ["yuri-os", "user-session", "receives"],
+      ["yuri-os", "control-plane", "coords"],
+      ["yuri-os", "gitnexus", "knows"],
+      ["yuri-os", "pantheon", "delegates"],
+      ["yuri-os", "execution-lanes", "runs"],
+      ["yuri-os", "memory-surface", "remembers"],
+      ["yuri-os", "safety-gates", "guards"],
+      ["yuri-os", "background-heartbeat", "pulses"],
+      ["yuri-os", "promotion-review", "persists"]
+    ].map(([source, target, label]) => ({ source, target, label }));
+
+    const clusters = [
+      { id: "core", label: "Core", cx: 800, cy: 530, rx: 164, ry: 124 },
+      { id: "flow", label: "Flow", cx: 600, cy: 570, rx: 420, ry: 360 },
+      { id: "memory", label: "Memory", cx: 360, cy: 630, rx: 220, ry: 210 },
+      { id: "safety", label: "Safety", cx: 1240, cy: 560, rx: 230, ry: 240 },
+      { id: "learning", label: "Learning", cx: 560, cy: 900, rx: 230, ry: 170 },
+      { id: "support", label: "Support", cx: 1040, cy: 330, rx: 320, ry: 240 },
+      { id: "output", label: "Output", cx: 820, cy: 930, rx: 220, ry: 120 }
+    ];
+
+    const clusterStroke = {
+      core: "rgba(139, 211, 255, 0.11)",
+      flow: "rgba(124, 242, 193, 0.10)",
+      memory: "rgba(130, 227, 255, 0.11)",
+      safety: "rgba(255, 202, 111, 0.11)",
+      learning: "rgba(202, 168, 255, 0.10)",
+      support: "rgba(157, 179, 255, 0.10)",
+      output: "rgba(255, 151, 183, 0.10)"
+    };
+
+    const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+    const svg = document.querySelector("svg");
+    const ringsLayer = document.getElementById("rings");
+    const edgesLayer = document.getElementById("edges");
+    const edgeLabelsLayer = document.getElementById("edge-labels");
+    const nodesLayer = document.getElementById("nodes");
+    const filters = document.getElementById("filters");
+
+    const nodeTitle = document.getElementById("node-title");
+    const nodeKicker = document.getElementById("node-kicker");
+    const nodeBadges = document.getElementById("node-badges");
+    const nodeSummary = document.getElementById("node-summary");
+    const nodeSummaryRow = document.getElementById("node-summary-row");
+    const nodeRole = document.getElementById("node-role");
+    const nodeConnectionsCount = document.getElementById("node-connections-count");
+    const nodePrimarySystem = document.getElementById("node-primary-system");
+    const nodeOutputType = document.getElementById("node-output-type");
+    const nodeMechanisms = document.getElementById("node-mechanisms");
+    const nodeFlow = document.getElementById("node-flow");
+    const nodeRelated = document.getElementById("node-related");
+    const nodeFiles = document.getElementById("node-files");
+    const scene = document.getElementById("scene");
+    const graphShell = document.querySelector(".graph-shell");
+    const systemsGrid = document.getElementById("systems-grid");
+    const zoomInButton = document.getElementById("zoom-in");
+    const zoomOutButton = document.getElementById("zoom-out");
+    const zoomResetButton = document.getElementById("zoom-reset");
+
+    const filterButtons = [
+      { id: "all", label: "All" },
+      { id: "core", label: "Core" },
+      { id: "flow", label: "Flow" },
+      { id: "memory", label: "Memory" },
+      { id: "safety", label: "Safety" },
+      { id: "learning", label: "Learning" },
+      { id: "support", label: "Support" },
+      { id: "output", label: "Output" }
+    ];
+
+    const systemGraphs = [
+      {
+        title: "Orchestration",
+        directive: "Route the request, fan out the work, then rejoin under verification.",
+        explain: "This graph shows the operating loop as a sequence instead of a cloud of labels.",
+        tag: "Fan-out / fan-in",
+        accent: "core",
+        signals: [
+          "Intake becomes a routed task.",
+          "Subagents work in parallel.",
+          "Verified output returns to memory."
+        ],
+        nodes: [
+          { label: "Intake", sub: "Request", x: 58, y: 78 },
+          { label: "Router", sub: "Offload", x: 174, y: 78 },
+          { label: "Subagents", sub: "Parallel", x: 292, y: 78 },
+          { label: "Sandbox", sub: "Isolate", x: 410, y: 78 },
+          { label: "Verify", sub: "NISABA", x: 528, y: 78 }
+        ],
+        edges: [[0,1],[1,2],[2,3],[3,4]],
+      },
+      {
+        title: "Memory",
+        directive: "Persist verified lessons, not raw guesses.",
+        explain: "Durable state lives in memory.db and feeds future routing with actual prior context.",
+        tag: "Durable state",
+        accent: "memory",
+        signals: [
+          "memory.db is canonical.",
+          "Only verified lessons persist.",
+          "Future routing inherits context."
+        ],
+        nodes: [
+          { label: "Session", sub: "Context", x: 72, y: 78 },
+          { label: "memory.db", sub: "Canonical", x: 252, y: 78 },
+          { label: "Future", sub: "Routing", x: 432, y: 78 }
+        ],
+        edges: [[0,1],[1,2]],
+      },
+      {
+        title: "Sandbox",
+        directive: "Keep experiments isolated until they earn promotion.",
+        explain: "The sandbox loop contains failures and returns evidence without contaminating canonical state.",
+        tag: "Isolated runs",
+        accent: "safety",
+        signals: [
+          "Experiments stay contained.",
+          "Raw output remains tainted.",
+          "Promotion waits for evidence."
+        ],
+        nodes: [
+          { label: "Subagent", sub: "Input", x: 62, y: 78 },
+          { label: "Sandbox", sub: "Run", x: 220, y: 78 },
+          { label: "Artifacts", sub: "Raw", x: 378, y: 78 },
+          { label: "Verify", sub: "Gate", x: 536, y: 78 }
+        ],
+        edges: [[0,1],[1,2],[2,3]],
+      },
+      {
+        title: "Offloading",
+        directive: "Choose the smallest reliable lane for the work.",
+        explain: "The router binds the task to a lane before the swarm is expanded.",
+        tag: "Lane selection",
+        accent: "support",
+        signals: [
+          "Local when sufficient.",
+          "Swarm when necessary.",
+          "Route before execution."
+        ],
+        nodes: [
+          { label: "Control", sub: "Plane", x: 58, y: 78 },
+          { label: "Router", sub: "Select", x: 188, y: 78 },
+          { label: "Lane", sub: "Local / Swarm", x: 318, y: 78 },
+          { label: "Worker", sub: "Execute", x: 448, y: 78 },
+          { label: "Result", sub: "Return", x: 548, y: 78 }
+        ],
+        edges: [[0,1],[1,2],[2,3],[3,4]],
+      },
+      {
+        title: "Subagents",
+        directive: "Split one problem into narrow workers, then recombine the result.",
+        explain: "The orchestrator keeps every subagent on one boundary and one deliverable.",
+        tag: "Parallel workers",
+        accent: "learning",
+        signals: [
+          "One boundary per worker.",
+          "Parallel work reduces latency.",
+          "Join happens before promotion."
+        ],
+        nodes: [
+          { label: "Parent", sub: "Task", x: 54, y: 78 },
+          { label: "A", sub: "Focus", x: 198, y: 58 },
+          { label: "B", sub: "Focus", x: 198, y: 98 },
+          { label: "C", sub: "Focus", x: 332, y: 78 },
+          { label: "Consolidate", sub: "Join", x: 470, y: 78 }
+        ],
+        edges: [[0,1],[0,2],[1,3],[2,3],[3,4]],
+      },
+      {
+        title: "Safety",
+        directive: "Stop mutation until impact and evidence are clear.",
+        explain: "Impact analysis, protected paths, and verification gates keep the system honest.",
+        tag: "Mutation control",
+        accent: "output",
+        signals: [
+          "Blast radius before edit.",
+          "Protected paths stay untouched.",
+          "Trust only after verification."
+        ],
+        nodes: [
+          { label: "Impact", sub: "GitNexus", x: 64, y: 78 },
+          { label: "Gate", sub: "NISABA", x: 236, y: 78 },
+          { label: "Allow", sub: "or Block", x: 408, y: 58 },
+          { label: "Memory", sub: "Learn", x: 408, y: 98 }
+        ],
+        edges: [[0,1],[1,2],[1,3]],
+      }
+    ];
+
+    let activeFilter = "all";
+    let selectedId = "yuri-os";
+    let hoveredId = null;
+    let viewport = { scale: 1, tx: 0, ty: 0 };
+    let dragState = null;
+    let suppressClickUntil = 0;
+
+    function ringRadius(rx, ry) {
+      const inset = 18;
+      return { rx: Math.max(0, rx - inset), ry: Math.max(0, ry - inset) };
+    }
+
+    function createSvgEl(name, attrs = {}) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+      for (const [key, value] of Object.entries(attrs)) {
+        el.setAttribute(key, value);
+      }
+      return el;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function setSceneTransform() {
+      scene.setAttribute("transform", `translate(${viewport.tx} ${viewport.ty}) scale(${viewport.scale})`);
+    }
+
+    function fitScene() {
+      const padding = 110;
+      const minX = 150;
+      const maxX = 1470;
+      const minY = 60;
+      const maxY = 1015;
+      const boxWidth = maxX - minX;
+      const boxHeight = maxY - minY;
+      const rect = graphShell.getBoundingClientRect();
+      const scaleX = rect.width / (boxWidth + padding * 2);
+      const scaleY = rect.height / (boxHeight + padding * 2);
+      const scale = clamp(Math.min(scaleX, scaleY), 0.7, 1.2);
+      const contentCenterX = (minX + maxX) / 2;
+      const contentCenterY = (minY + maxY) / 2;
+      viewport.scale = scale;
+      viewport.tx = rect.width / 2 - contentCenterX * scale;
+      viewport.ty = rect.height / 2 - contentCenterY * scale + 10;
+      setSceneTransform();
+    }
+
+    function zoomAt(clientX, clientY, nextScale) {
+      const rect = graphShell.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      const scale = clamp(nextScale, 0.58, 1.8);
+      const worldX = (x - viewport.tx) / viewport.scale;
+      const worldY = (y - viewport.ty) / viewport.scale;
+      viewport.scale = scale;
+      viewport.tx = x - worldX * scale;
+      viewport.ty = y - worldY * scale;
+      setSceneTransform();
+    }
+
+    function zoomBy(factor, anchorX = null, anchorY = null) {
+      const rect = graphShell.getBoundingClientRect();
+      const x = anchorX ?? rect.width / 2;
+      const y = anchorY ?? rect.height / 2;
+      zoomAt(rect.left + x, rect.top + y, viewport.scale * factor);
+    }
+
+    const accentPalette = {
+      core: { stroke: "rgba(139, 211, 255, 0.72)", fill: "rgba(139, 211, 255, 0.13)" },
+      memory: { stroke: "rgba(130, 227, 255, 0.72)", fill: "rgba(130, 227, 255, 0.13)" },
+      safety: { stroke: "rgba(255, 202, 111, 0.72)", fill: "rgba(255, 202, 111, 0.12)" },
+      support: { stroke: "rgba(157, 179, 255, 0.72)", fill: "rgba(157, 179, 255, 0.12)" },
+      learning: { stroke: "rgba(202, 168, 255, 0.72)", fill: "rgba(202, 168, 255, 0.12)" },
+      output: { stroke: "rgba(255, 151, 183, 0.72)", fill: "rgba(255, 151, 183, 0.12)" },
+    };
+
+    function edgeCurve(a, b) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const lift = Math.min(Math.hypot(dx, dy) * 0.18, 28);
+      const cx = (a.x + b.x) / 2;
+      const cy = (a.y + b.y) / 2 - lift;
+      return `M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`;
+    }
+
+    function renderMiniGraph(graph) {
+      const palette = accentPalette[graph.accent] || accentPalette.core;
+      const mini = document.createElement("div");
+      mini.className = "mini-graph";
+
+      const svg = createSvgEl("svg", { viewBox: "0 0 600 156", role: "img", "aria-label": graph.title });
+      const defs = createSvgEl("defs");
+      const marker = createSvgEl("marker", {
+        id: `mini-arrow-${graph.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        markerWidth: "10",
+        markerHeight: "10",
+        refX: "8",
+        refY: "5",
+        orient: "auto",
+        markerUnits: "strokeWidth"
+      });
+      marker.appendChild(createSvgEl("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: palette.stroke }));
+      defs.appendChild(marker);
+      svg.appendChild(defs);
+
+      graph.edges.forEach((pair, index) => {
+        const source = graph.nodes[pair[0]];
+        const target = graph.nodes[pair[1]];
+        const path = createSvgEl("path", {
+          d: edgeCurve(source, target),
+          class: `mini-edge ${index === 0 ? "primary" : ""}`,
+          "marker-end": `url(#mini-arrow-${graph.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")})`
+        });
+        svg.appendChild(path);
+      });
+
+      graph.nodes.forEach((node, index) => {
+        const group = createSvgEl("g", { transform: `translate(${node.x} ${node.y})` });
+        const circle = createSvgEl("circle", {
+          cx: 0,
+          cy: 0,
+          r: 18,
+          class: "mini-node",
+          fill: palette.fill,
+          stroke: palette.stroke
+        });
+        const label = createSvgEl("text", { class: "mini-label", x: 0, y: -1, "text-anchor": "middle" });
+        label.textContent = node.label;
+        const sub = createSvgEl("text", { class: "mini-sub", x: 0, y: 26, "text-anchor": "middle" });
+        sub.textContent = node.sub;
+        circle.style.animation = `halo-breath 5.5s ease-in-out ${index * 110}ms infinite`;
+        group.appendChild(circle);
+        group.appendChild(label);
+        group.appendChild(sub);
+        svg.appendChild(group);
+      });
+
+      mini.appendChild(svg);
+      return mini;
+    }
+
+    function renderSystemAtlas() {
+      systemsGrid.innerHTML = "";
+      systemGraphs.forEach((graph) => {
+        const card = document.createElement("article");
+        card.className = "system-card";
+
+        const title = document.createElement("h3");
+        title.textContent = graph.title;
+        card.appendChild(title);
+
+        const layout = document.createElement("div");
+        layout.className = "system-card-layout";
+
+        const visual = document.createElement("div");
+        visual.appendChild(renderMiniGraph(graph));
+
+        const copy = document.createElement("div");
+        copy.className = "system-card-copy";
+
+        const directive = document.createElement("div");
+        directive.className = "directive";
+        directive.textContent = `Directive: ${graph.directive}`;
+        copy.appendChild(directive);
+
+        const explain = document.createElement("div");
+        explain.className = "explain";
+        explain.textContent = graph.explain;
+        copy.appendChild(explain);
+
+        const signals = document.createElement("ul");
+        signals.className = "system-signals";
+        graph.signals.forEach((signal) => {
+          const li = document.createElement("li");
+          li.textContent = signal;
+          signals.appendChild(li);
+        });
+        copy.appendChild(signals);
+
+        const tag = document.createElement("div");
+        tag.className = "tag";
+        tag.textContent = graph.tag;
+        copy.appendChild(tag);
+
+        layout.appendChild(visual);
+        layout.appendChild(copy);
+        card.appendChild(layout);
+
+        systemsGrid.appendChild(card);
+      });
+    }
+
+    function midpointCurve(a, b, bend = 0.22) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const distance = Math.hypot(dx, dy) || 1;
+      const nx = -dy / distance;
+      const ny = dx / distance;
+      const lift = Math.min(distance * bend, 150);
+      const cx = (a.x + b.x) / 2 + nx * lift;
+      const cy = (a.y + b.y) / 2 + ny * lift;
+      return `M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`;
+    }
+
+    function renderRings() {
+      clusters.forEach((cluster) => {
+        const { rx, ry } = ringRadius(cluster.rx, cluster.ry);
+        const ring = createSvgEl("ellipse", {
+          cx: cluster.cx,
+          cy: cluster.cy,
+          rx,
+          ry,
+          class: `cluster-ring ${cluster.id}`
+        });
+        ringsLayer.appendChild(ring);
+      });
+    }
+
+    function renderEdges() {
+      edges.forEach((edge, index) => {
+        const source = nodeMap.get(edge.source);
+        const target = nodeMap.get(edge.target);
+        const path = createSvgEl("path", {
+          d: midpointCurve(source, target, index % 2 === 0 ? 0.18 : -0.16),
+          class: `edge ${index < 9 || edge.source === "yuri-os" ? "primary" : ""}`,
+          "marker-end": index < 9 || edge.source === "yuri-os" ? "url(#arrow-primary)" : "url(#arrow)"
+        });
+        path.dataset.source = edge.source;
+        path.dataset.target = edge.target;
+        edgesLayer.appendChild(path);
+
+        if (edge.label) {
+          const midx = (source.x + target.x) / 2;
+          const midy = (source.y + target.y) / 2;
+          const label = createSvgEl("text", {
+            x: midx,
+            y: midy - 8,
+            class: "edge-label",
+            "text-anchor": "middle"
+          });
+          label.textContent = edge.label;
+          edgeLabelsLayer.appendChild(label);
+        }
+      });
+    }
+
+    function renderNodes() {
+      nodes.forEach((node, index) => {
+        const group = createSvgEl("g", {
+          class: `node ${node.cluster}`,
+          transform: `translate(${node.x} ${node.y})`
+        });
+        group.dataset.id = node.id;
+        group.style.setProperty("--node-index", index);
+
+        const halo = createSvgEl("circle", {
+          class: "halo",
+          cx: 0,
+          cy: 0,
+          r: node.r + 12,
+          stroke: node.cluster === "core" ? "rgba(139, 211, 255, 0.45)" :
+                   node.cluster === "flow" ? "rgba(124, 242, 193, 0.40)" :
+                   node.cluster === "memory" ? "rgba(130, 227, 255, 0.40)" :
+                   node.cluster === "safety" ? "rgba(255, 202, 111, 0.40)" :
+                   node.cluster === "learning" ? "rgba(202, 168, 255, 0.40)" :
+                   node.cluster === "output" ? "rgba(255, 151, 183, 0.40)" :
+                   "rgba(157, 179, 255, 0.36)"
+        });
+
+        const ring = createSvgEl("circle", {
+          class: "ring",
+          cx: 0,
+          cy: 0,
+          r: node.r,
+          filter: node.id === "yuri-os" ? "url(#glow-core)" : ""
+        });
+
+        const labelY = node.labelLines.length > 1 ? -6 : 4;
+        const text = createSvgEl("text", {
+          class: "label",
+          x: 0,
+          y: labelY,
+          "text-anchor": "middle"
+        });
+        node.labelLines.forEach((line, index) => {
+          const tspan = createSvgEl("tspan", {
+            x: 0,
+            dy: index === 0 ? 0 : 15
+          });
+          tspan.textContent = line;
+          text.appendChild(tspan);
+        });
+
+        const sub = createSvgEl("text", {
+          class: "sub",
+          x: 0,
+          y: node.r - 16,
+          "text-anchor": "middle"
+        });
+        sub.textContent = node.cluster.toUpperCase();
+
+        group.appendChild(halo);
+        group.appendChild(ring);
+        group.appendChild(text);
+        group.appendChild(sub);
+        group.addEventListener("click", (event) => {
+          if (Date.now() < suppressClickUntil) return;
+          selectNode(node.id);
+        });
+        group.addEventListener("mouseenter", () => {
+          hoveredId = node.id;
+          updateGraphState();
+        });
+        group.addEventListener("mouseleave", () => {
+          hoveredId = null;
+          updateGraphState();
+        });
+        nodesLayer.appendChild(group);
+      });
+    }
+
+    function renderFilters() {
+      filterButtons.forEach((button) => {
+        const el = document.createElement("button");
+        el.className = `toolbar-button ${button.id === activeFilter ? "active" : ""}`;
+        el.textContent = button.label;
+        el.addEventListener("click", () => {
+          activeFilter = button.id;
+          renderFilterState();
+          applyFilter(activeFilter);
+        });
+        filters.appendChild(el);
+      });
+    }
+
+    function relatedToFilter(node, filter) {
+      if (filter === "all") return true;
+      return node.cluster === filter || node.id === "yuri-os";
+    }
+
+    function roleForNode(node) {
+      const roles = {
+        core: "Control surface",
+        flow: "Routing surface",
+        memory: "Memory surface",
+        safety: "Safety surface",
+        learning: "Learning surface",
+        support: "Support surface",
+        output: "Output surface",
+      };
+      return roles[node.cluster] || "System node";
+    }
+
+    function getConnectedNodes(nodeId) {
+      const related = [];
+      edges.forEach((edge) => {
+        if (edge.source === nodeId && nodeMap.has(edge.target)) {
+          related.push(nodeMap.get(edge.target));
+        } else if (edge.target === nodeId && nodeMap.has(edge.source)) {
+          related.push(nodeMap.get(edge.source));
+        }
+      });
+      return Array.from(new Map(related.map((node) => [node.id, node])).values()).slice(0, 4);
+    }
+
+    function renderFilterState() {
+      filters.querySelectorAll("button").forEach((button) => {
+        const label = button.textContent.toLowerCase();
+        button.classList.toggle("active", label === activeFilter || (activeFilter === "all" && label === "all"));
+      });
+    }
+
+    function applyFilter(filter) {
+      activeFilter = filter;
+      updateGraphState();
+    }
+
+    function updateGraphState() {
+      const nodeEls = Array.from(nodesLayer.querySelectorAll(".node"));
+      const edgeEls = Array.from(edgesLayer.querySelectorAll(".edge"));
+      const highlighted = activeFilter === "all" ? null : activeFilter;
+      const focusId = hoveredId || selectedId;
+
+      nodeEls.forEach((el) => {
+        const isHovered = el.dataset.id === hoveredId && hoveredId !== selectedId;
+        const node = nodeMap.get(el.dataset.id);
+        const inFilter = highlighted ? relatedToFilter(node, highlighted) : true;
+        el.classList.toggle("active", el.dataset.id === selectedId);
+        el.classList.toggle("hovered", isHovered);
+        el.classList.toggle("dimmed", !inFilter);
+      });
+
+      edgeEls.forEach((el) => {
+        const source = nodeMap.get(el.dataset.source);
+        const target = nodeMap.get(el.dataset.target);
+        const inFilter = highlighted ? relatedToFilter(source, highlighted) || relatedToFilter(target, highlighted) : true;
+        const inFocus = focusId === "yuri-os" ? true : (!focusId || el.dataset.source === focusId || el.dataset.target === focusId);
+        el.classList.toggle("dimmed", !(inFilter && inFocus));
+      });
+    }
+
+    function populateSidebar(node) {
+      nodeTitle.textContent = node.title;
+      nodeKicker.textContent = `Cluster: ${node.cluster}`;
+      nodeBadges.innerHTML = "";
+
+      const badges = [
+        `r=${node.r}`,
+        `${node.flow.inputs.length} inputs`,
+        `${node.flow.outputs.length} outputs`
+      ];
+
+      badges.forEach((badgeText) => {
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = badgeText;
+        nodeBadges.appendChild(badge);
+      });
+
+      nodeSummary.textContent = node.summary;
+      nodeSummaryRow.innerHTML = "";
+      const summaryItems = [
+        `Cluster ${node.cluster}`,
+        `Radius ${node.r}`,
+        `${node.mechanisms.length} mechanisms`,
+        `${node.flow.inputs.length} inputs`
+      ];
+      summaryItems.forEach((item) => {
+        const pill = document.createElement("span");
+        pill.className = "summary-pill";
+        pill.textContent = item;
+        nodeSummaryRow.appendChild(pill);
+      });
+
+      nodeRole.textContent = roleForNode(node);
+      nodeConnectionsCount.textContent = `${getConnectedNodes(node.id).length} linked systems`;
+      nodePrimarySystem.textContent = node.cluster.toUpperCase();
+      nodeOutputType.textContent = node.flow.outputs.join(" · ");
+
+      nodeMechanisms.innerHTML = "";
+      node.mechanisms.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        nodeMechanisms.appendChild(li);
+      });
+
+      nodeFlow.innerHTML = "";
+      const flowRows = [
+        { label: "Inputs", values: node.flow.inputs },
+        { label: "Outputs", values: node.flow.outputs }
+      ];
+      flowRows.forEach((row) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "flow-step";
+        const num = document.createElement("div");
+        num.className = "num";
+        num.textContent = row.label === "Inputs" ? "IN" : "OUT";
+        const text = document.createElement("div");
+        text.className = "text";
+        text.innerHTML = `<strong style="color: var(--text)">${row.label}:</strong> ${row.values.join(", ")}`;
+        wrapper.appendChild(num);
+        wrapper.appendChild(text);
+        nodeFlow.appendChild(wrapper);
+      });
+
+      nodeRelated.innerHTML = "";
+      getConnectedNodes(node.id).forEach((relatedNode) => {
+        const item = document.createElement("div");
+        item.className = "related-item";
+        const name = document.createElement("strong");
+        name.textContent = relatedNode.title;
+        const meta = document.createElement("span");
+        meta.textContent = `${relatedNode.cluster} · ${roleForNode(relatedNode)}`;
+        const note = document.createElement("div");
+        note.style.color = "var(--muted)";
+        note.style.lineHeight = "1.45";
+        note.style.fontSize = "0.92rem";
+        note.textContent = relatedNode.summary;
+        item.appendChild(name);
+        item.appendChild(meta);
+        item.appendChild(note);
+        nodeRelated.appendChild(item);
+      });
+
+      nodeFiles.innerHTML = "";
+      node.files.forEach((file) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<code>${file}</code>`;
+        nodeFiles.appendChild(li);
+      });
+    }
+
+    function selectNode(id) {
+      selectedId = id;
+      const node = nodeMap.get(id);
+      populateSidebar(node);
+      updateGraphState();
+    }
+
+    function onPointerDown(event) {
+      if (event.button !== 0) return;
+      dragState = {
+        startX: event.clientX,
+        startY: event.clientY,
+        originTx: viewport.tx,
+        originTy: viewport.ty,
+        moved: false,
+      };
+      graphShell.setPointerCapture(event.pointerId);
+      graphShell.classList.add("dragging");
+    }
+
+    function onPointerMove(event) {
+      if (!dragState) return;
+      const dx = event.clientX - dragState.startX;
+      const dy = event.clientY - dragState.startY;
+      if (!dragState.moved && Math.hypot(dx, dy) > 4) {
+        dragState.moved = true;
+      }
+      if (!dragState.moved) return;
+      viewport.tx = dragState.originTx + dx;
+      viewport.ty = dragState.originTy + dy;
+      setSceneTransform();
+    }
+
+    function onPointerUp(event) {
+      if (!dragState) return;
+      if (dragState.moved) {
+        suppressClickUntil = Date.now() + 180;
+      }
+      dragState = null;
+      graphShell.classList.remove("dragging");
+      try {
+        graphShell.releasePointerCapture(event.pointerId);
+      } catch (_) {}
+    }
+
+    function onWheel(event) {
+      event.preventDefault();
+      const factor = event.deltaY < 0 ? 1.08 : 0.92;
+      zoomAt(event.clientX, event.clientY, viewport.scale * factor);
+    }
+
+    zoomInButton.addEventListener("click", () => zoomBy(1.14));
+    zoomOutButton.addEventListener("click", () => zoomBy(0.88));
+    zoomResetButton.addEventListener("click", () => {
+      fitScene();
+    });
+    graphShell.addEventListener("pointerdown", onPointerDown);
+    graphShell.addEventListener("pointermove", onPointerMove);
+    graphShell.addEventListener("pointerup", onPointerUp);
+    graphShell.addEventListener("pointercancel", onPointerUp);
+    graphShell.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("resize", () => fitScene());
+
+    renderRings();
+    renderEdges();
+    renderNodes();
+    renderFilters();
+    renderSystemAtlas();
+    populateSidebar(nodeMap.get(selectedId));
+    fitScene();
+    updateGraphState();
+    selectNode(selectedId);
+  </script>
+</body>
+</html>
