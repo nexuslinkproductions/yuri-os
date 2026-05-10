@@ -60,13 +60,29 @@ type ApiRouteOptions = {
     sessionRuntime?: SessionRuntimeService;
 };
 
+const SENSITIVE_QUERY_KEYS = new Set(['apikey', 'api_key', 'key', 'token', 'auth', 'authorization']);
+
+function redactRequestUrl(rawUrl: string): string {
+    try {
+        const parsed = new URL(rawUrl, 'http://nudimmud.local');
+        for (const key of Array.from(parsed.searchParams.keys())) {
+            if (SENSITIVE_QUERY_KEYS.has(key.toLowerCase())) {
+                parsed.searchParams.set(key, '[redacted]');
+            }
+        }
+        return `${parsed.pathname}${parsed.search}`;
+    } catch {
+        return rawUrl.replace(/([?&](?:apiKey|api_key|key|token|auth|authorization)=)[^&]*/gi, '$1[redacted]');
+    }
+}
+
 export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = {}) {
     const router = Router();
     ensureTimeEntriesTable(db); // ensure time_entries table exists
     neuralForge.setDb(db); // Provide DB access for vector search context injection
 
     router.use((req, res, next) => {
-        console.log(`⬡ API_REQUEST :: ${req.method} ${req.url}`);
+        console.log(`⬡ API_REQUEST :: ${req.method} ${redactRequestUrl(req.url)}`);
         next();
     });
 

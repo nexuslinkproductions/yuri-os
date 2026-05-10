@@ -71,6 +71,13 @@ try {
     assert.equal(response.status, 401, `${path} should reject unauthenticated mutation/control requests`);
   }
 
+  const leakedToken = 'leaky-token-should-not-enter-logs';
+  const streamAuth = await fetch(`http://127.0.0.1:${PORT}/api/oracle/stream?apiKey=${leakedToken}&command=ping`, {
+    headers: { Origin: 'http://localhost:4200' },
+  });
+  assert.equal(streamAuth.status, 401, 'oracle stream should reject invalid query token');
+  assert.equal(output.includes(leakedToken), false, 'request logs should redact apiKey query values');
+
   process.stdout.write('backend-cors-hardening: pass\n');
 } finally {
   child.kill('SIGTERM');
