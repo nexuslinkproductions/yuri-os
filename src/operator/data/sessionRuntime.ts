@@ -1,5 +1,5 @@
 import { apiFetch } from '../../lib/runtime';
-import type { SessionRecord } from './types';
+import type { SessionBacklogPayload, SessionRecord } from './types';
 
 export interface SessionRuntimePayload {
   session: SessionRecord | null;
@@ -7,6 +7,39 @@ export interface SessionRuntimePayload {
 
 export interface SessionHistoryPayload {
   sessions: SessionRecord[];
+}
+
+export interface ControlPlaneGraphSummary {
+  graphId: string;
+  intentId: string;
+  scenario: string;
+  routeLane: string;
+  createdAt: string | null;
+  lifecycle: string[];
+  nodeCount: number;
+  artifactRoot: string | null;
+  graphPlanPath: string;
+  normalizedIntentPath: string | null;
+  rawOutputTainted: boolean;
+  sanitizedVerifiedSummaryOnly: boolean;
+  promotionRequiresReview: boolean;
+}
+
+export interface ControlPlanePromotionGateStatus {
+  status: string;
+  action: string;
+  requiresVerification: boolean;
+  verifiedNodeCount: number;
+  totalNodeCount: number;
+  verificationState: string | null;
+  promotionState: string | null;
+}
+
+export interface ControlPlaneStatusPayload {
+  activeSession: SessionRecord | null;
+  currentGraph: ControlPlaneGraphSummary | null;
+  nodeCountsByVerificationStatus: Record<string, number>;
+  promotionGateStatus: ControlPlanePromotionGateStatus;
 }
 
 async function readJson<T>(response: Response): Promise<T> {
@@ -28,6 +61,21 @@ export async function fetchSessionHistory(limit = 20): Promise<SessionRecord[]> 
   const response = await apiFetch(`/api/sessions/history?limit=${limit}`);
   const payload = await readJson<SessionHistoryPayload>(response);
   return payload.sessions;
+}
+
+export async function fetchControlPlaneStatus(): Promise<ControlPlaneStatusPayload> {
+  const response = await apiFetch('/api/control-plane/status');
+  return readJson<ControlPlaneStatusPayload>(response);
+}
+
+export async function fetchSessionBacklog(sessionId?: string | null, limit = 12): Promise<SessionBacklogPayload | null> {
+  if (!sessionId) return null;
+  const params = new URLSearchParams({
+    sessionId,
+    limit: String(limit),
+  });
+  const response = await apiFetch(`/api/sessions/backlog?${params.toString()}`);
+  return readJson<SessionBacklogPayload>(response);
 }
 
 export async function startRuntimeSession(): Promise<SessionRecord> {

@@ -5,14 +5,21 @@ import { SectionHeader } from '../components/SectionHeader';
 import { EmptyState } from '../components/EmptyState';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useOperatorPoll } from '../hooks/useOperatorPoll';
-import { fetchSessionHistory, startRuntimeSession, stopRuntimeSession } from '../data/sessionRuntime';
-import type { SessionRecord } from '../data/types';
+import { fetchSessionBacklog, fetchSessionHistory, startRuntimeSession, stopRuntimeSession } from '../data/sessionRuntime';
+import type { BacklogTaskRecord, SessionBacklogPayload, SessionRecord } from '../data/types';
 
 const SESSION_STATUS_MAP: Record<SessionRecord['status'], 'ok' | 'warn' | 'critical' | 'idle'> = {
   active: 'ok',
   completed: 'idle',
   error: 'critical',
   interrupted: 'warn',
+};
+
+const BACKLOG_STATUS_MAP: Record<BacklogTaskRecord['status'], 'ok' | 'warn' | 'critical' | 'idle'> = {
+  queued: 'idle',
+  running: 'ok',
+  completed: 'idle',
+  failed: 'critical',
 };
 
 function formatTimestamp(ts: number): string {
@@ -35,6 +42,23 @@ function formatRemaining(deadlineAt?: number): string {
   return formatDuration(Math.max(0, deadlineAt - Date.now()));
 }
 
+function hasControlPlaneState(session: SessionRecord): boolean {
+  return Boolean(
+    session.graphId ||
+    session.intentId ||
+    session.graphPlanPath ||
+    session.normalizedIntentPath ||
+    session.verificationState ||
+    session.promotionState,
+  );
+}
+
+function shortArtifactPath(value?: string | null): string {
+  if (!value) return 'pending';
+  const parts = value.split('/');
+  return parts.slice(-3).join('/');
+}
+
 export const SessionsSection: React.FC = () => {
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [actionError, setActionError] = React.useState<string | null>(null);
@@ -49,6 +73,12 @@ export const SessionsSection: React.FC = () => {
 
   const sessionList = sessions || [];
   const activeSession = sessionList.find((session) => session.status === 'active') || null;
+  const selectedBacklogSessionId = expandedId || activeSession?.id || sessionList[0]?.id || null;
+  const {
+    data: backlog,
+    error: backlogError,
+    refresh: refreshBacklog,
+  } = useOperatorPoll(() => fetchSessionBacklog(selectedBacklogSessionId, 12), 5000, [selectedBacklogSessionId]);
 
   const runAction = async (action: () => Promise<SessionRecord>) => {
     setActionBusy(true);
@@ -56,6 +86,7 @@ export const SessionsSection: React.FC = () => {
     try {
       await action();
       refresh();
+      refreshBacklog();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -268,6 +299,28 @@ export const SessionsSection: React.FC = () => {
                           {session.checkpointRef || 'pending'}
                         </span>
                       </div>
+                      {hasControlPlaneState(session) && (
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                            gap: 12,
+                            paddingTop: 8,
+                            borderTop: '1px solid var(--op-border)',
+                          }}
+                        >
+                          <SessionMeta label="Graph" value={session.graphId || 'pending'} />
+                          <SessionMeta label="Intent" value={session.intentId || 'pending'} />
+                          <SessionMeta label="Verification" value={session.verificationState || 'pending'} />
+                          <SessionMeta label="Promotion" value={session.promotionState || 'blocked'} />
+                          <SessionMeta label="Graph Plan" value={shortArtifactPath(session.graphPlanPath)} />
+                          <SessionMeta label="Normalized Intent" value={shortArtifactPath(session.normalizedIntentPath)} />
+                        </div>
+                      )}
+                      <SessionBacklogPanel
+                        backlog={backlog?.sessionId === session.id ? backlog : null}
+                        error={backlogError?.message || null}
+                      />
                       <div>
                         <span style={{ fontSize: 'var(--op-type-caption)', color: 'var(--op-text-tertiary)', display: 'block' }}>
                           Session ID
@@ -313,6 +366,90 @@ const dangerButtonStyle: React.CSSProperties = {
   color: 'var(--op-text-primary)',
 };
 
+const SessionBacklogPanel: React.FC<{
+  backlog: SessionBacklogPayload | null;
+  error: string | null;
+}> = ({ backlog, error }) => {
+  const visibleTasks = backlog?.tasks.slice(0, 6) || [];
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        paddingTop: 8,
+        borderTop: '1px solid var(--op-border)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 'var(--op-type-caption)', color: 'var(--op-text-tertiary)', fontFamily: 'var(--op-font-mono)' }}>
+          Backlog
+        </span>
+        {backlog ? (
+          <>
+            <BacklogMetric label="queued" value={backlog.summary.queued} />
+            <BacklogMetric label="running" value={backlog.summary.running} />
+            <BacklogMetric label="done" value={backlog.summary.completed} />
+            <BacklogMetric label="failed" value={backlog.summary.failed} />
+          </>
+        ) : (
+          <span style={{ fontSize: 'var(--op-type-caption)', color: 'var(--op-text-tertiary)' }}>
+            {error || 'loading queue'}
+          </span>
+        )}
+      </div>
+      {visibleTasks.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {visibleTasks.map((task) => (
+            <div
+              key={task.id}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '16px minmax(0, 1fr) 48px',
+                alignItems: 'center',
+                gap: 8,
+                minHeight: 28,
+              }}
+            >
+              <StatusDot status={BACKLOG_STATUS_MAP[task.status]} />
+              <span
+                style={{
+                  fontSize: 'var(--op-type-caption)',
+                  color: task.status === 'running' ? 'var(--op-text-primary)' : 'var(--op-text-secondary)',
+                  fontFamily: 'var(--op-font-sans)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                title={task.reason}
+              >
+                {task.title}
+              </span>
+              <span
+                style={{
+                  fontSize: 'var(--op-type-caption)',
+                  color: 'var(--op-text-tertiary)',
+                  fontFamily: 'var(--op-font-mono)',
+                  textAlign: 'right',
+                }}
+              >
+                p{task.priority}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const BacklogMetric: React.FC<{ label: string; value: number }> = ({ label, value }) => (
+  <span style={{ fontSize: 'var(--op-type-caption)', color: 'var(--op-text-secondary)', fontFamily: 'var(--op-font-mono)' }}>
+    {label}:{value}
+  </span>
+);
+
 const SessionError: React.FC<{ message: string }> = ({ message }) => (
   <div
     style={{
@@ -327,6 +464,25 @@ const SessionError: React.FC<{ message: string }> = ({ message }) => (
     }}
   >
     {message}
+  </div>
+);
+
+const SessionMeta: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div style={{ minWidth: 0 }}>
+    <span style={{ fontSize: 'var(--op-type-caption)', color: 'var(--op-text-tertiary)', display: 'block' }}>
+      {label}
+    </span>
+    <span
+      style={{
+        fontSize: 'var(--op-type-caption)',
+        color: 'var(--op-text-secondary)',
+        fontFamily: 'var(--op-font-mono)',
+        lineHeight: 1.5,
+        overflowWrap: 'anywhere',
+      }}
+    >
+      {value}
+    </span>
   </div>
 );
 

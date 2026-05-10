@@ -34,6 +34,42 @@ export interface SessionRecord {
   prompt?: string;
   canResume?: boolean;
   runtimePid?: number | null;
+  graphId?: string | null;
+  intentId?: string | null;
+  graphPlanPath?: string | null;
+  normalizedIntentPath?: string | null;
+  verificationState?: string | null;
+  promotionState?: string | null;
+}
+
+export interface BacklogTaskRecord {
+  id: string;
+  sessionId: string;
+  title: string;
+  prompt: string;
+  reason: string;
+  priority: number;
+  status: 'queued' | 'running' | 'completed' | 'failed';
+  attemptCount: number;
+  lastError?: string | null;
+  createdAt: number;
+  updatedAt: number;
+  claimedAt?: number | null;
+  completedAt?: number | null;
+}
+
+export interface SessionBacklogSummary {
+  total: number;
+  queued: number;
+  running: number;
+  completed: number;
+  failed: number;
+}
+
+export interface SessionBacklogPayload {
+  sessionId: string | null;
+  summary: SessionBacklogSummary;
+  tasks: BacklogTaskRecord[];
 }
 
 export interface SkillEntry {

@@ -174,6 +174,50 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         }
     });
 
+    router.get('/sessions/backlog', authMiddleware, (req, res) => {
+        try {
+            res.json(requireSessionRuntime().getBacklog({
+                sessionId: req.query.sessionId,
+                limit: req.query.limit
+            }));
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
+    });
+
+    router.post('/sessions/backlog', localOnlyMiddleware, authMiddleware, (req, res) => {
+        try {
+            const task = requireSessionRuntime().addBacklogTask(req.body || {});
+            res.status(201).json({ task });
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
+    });
+
+    router.post('/sessions/backlog/claim-next', localOnlyMiddleware, authMiddleware, (req, res) => {
+        try {
+            res.json(requireSessionRuntime().claimNextBacklogTask(req.body || {}));
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
+    });
+
+    router.post('/sessions/backlog/:taskId/complete', localOnlyMiddleware, authMiddleware, (req, res) => {
+        try {
+            res.json(requireSessionRuntime().completeBacklogTask(String(req.params.taskId || ''), req.body || {}));
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
+    });
+
+    router.get('/control-plane/status', authMiddleware, (_, res) => {
+        try {
+            res.json(requireSessionRuntime().getControlPlaneStatus());
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
+    });
+
     try { ensurePersonalityTable(db); } catch (e) {
         console.warn('⬡ PERSONALITY_DB_WARN :: table init failed, running with default profile:', e);
     }
