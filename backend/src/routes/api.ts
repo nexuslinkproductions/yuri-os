@@ -42,6 +42,7 @@ import {
     recordSessionReview,
     reviewLessonCandidate
 } from '../services/sessionImprovementService';
+import { SessionRuntimeService } from '../services/sessionRuntimeService';
 
 type RouteHealthPayload = {
     healthy?: boolean;
@@ -56,6 +57,7 @@ type ApiRouteOptions = {
     getHealth?: () => Promise<RouteHealthPayload>;
     getReadiness?: () => Promise<RouteHealthPayload>;
     getLiveness?: () => RouteHealthPayload;
+    sessionRuntime?: SessionRuntimeService;
 };
 
 export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = {}) {
@@ -111,6 +113,65 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
 
     router.get('/health/auth', authMiddleware, (_, res) => {
         res.json({ status: 'AUTH_OK' });
+    });
+
+    const requireSessionRuntime = () => {
+        if (!options.sessionRuntime) {
+            throw Object.assign(new Error('SESSION_RUNTIME_UNAVAILABLE'), { statusCode: 503 });
+        }
+        return options.sessionRuntime;
+    };
+
+    const handleSessionRuntimeError = (res: any, error: any) => {
+        const statusCode = Number.isInteger(error?.statusCode) ? error.statusCode : 500;
+        res.status(statusCode).json({
+            error: error?.message || 'SESSION_RUNTIME_ERROR',
+            status: statusCode
+        });
+    };
+
+    router.post('/sessions/start', localOnlyMiddleware, authMiddleware, (req, res) => {
+        try {
+            const session = requireSessionRuntime().startSession(req.body || {});
+            res.status(201).json({ session });
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
+    });
+
+    router.post('/sessions/heartbeat', localOnlyMiddleware, authMiddleware, (req, res) => {
+        try {
+            const session = requireSessionRuntime().heartbeat(req.body || {});
+            res.json({ session });
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
+    });
+
+    router.post('/sessions/stop', localOnlyMiddleware, authMiddleware, (req, res) => {
+        try {
+            const session = requireSessionRuntime().stopSession(req.body || {});
+            res.json({ session });
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
+    });
+
+    router.get('/sessions/current', authMiddleware, (_, res) => {
+        try {
+            res.json({ session: requireSessionRuntime().getCurrentSession() });
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
+    });
+
+    router.get('/sessions/history', authMiddleware, (req, res) => {
+        try {
+            const limit = Number(req.query.limit || 20);
+            res.json({ sessions: requireSessionRuntime().getHistory(limit) });
+        } catch (error: any) {
+            handleSessionRuntimeError(res, error);
+        }
     });
 
     try { ensurePersonalityTable(db); } catch (e) {

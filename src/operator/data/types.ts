@@ -21,8 +21,19 @@ export interface SessionRecord {
   model: string;
   status: 'active' | 'completed' | 'error' | 'interrupted';
   startTs: number;
+  endTs?: number | null;
   tokenCount: number;
   summary: string;
+  targetDurationMs?: number;
+  deadlineAt?: number;
+  lastHeartbeatAt?: number;
+  restartCount?: number;
+  checkpointRef?: string | null;
+  idleMode?: 'backlog' | 'hold';
+  currentTask?: string;
+  prompt?: string;
+  canResume?: boolean;
+  runtimePid?: number | null;
 }
 
 export interface SkillEntry {

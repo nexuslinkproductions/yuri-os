@@ -31,6 +31,7 @@ import { obsidianRest } from './services/obsidianRestService';
 import { neuralForge } from './services/neuralForgeService';
 import { StabilityGuard } from './services/stabilityGuard';
 import { EventBus } from './conclave/EventBus';
+import { SessionRuntimeService } from './services/sessionRuntimeService';
 
 dotenv.config();
 
@@ -86,6 +87,7 @@ const server = http.createServer(app);
 let wss: WebSocketServer | null = null;
 const db = initDatabase();
 const guard = new StabilityGuard(db);
+const sessionRuntime = new SessionRuntimeService(db);
 
 let shuttingDown = false;
 let currentPort = DEFAULT_PORT;
@@ -444,7 +446,8 @@ app.use('/api', initApiRoutes(db, {
     getStatusPayload: buildStatusPayload,
     getHealth: buildHealthPayload,
     getReadiness: buildReadinessPayload,
-    getLiveness: buildLivenessPayload
+    getLiveness: buildLivenessPayload,
+    sessionRuntime
 }));
 
 app.post('/api/neural/recalibrate', authMiddleware, (req, res) => {
@@ -600,6 +603,7 @@ const backgroundStartTimeout = trackTimeout(setTimeout(() => {
 }, 1000));
 
 if (!isTestMode) guard.start();
+sessionRuntime.startSupervisor();
 if (!suppressIntervals) void checkIntegrations();
 
 if (!suppressIntervals) {
@@ -621,6 +625,7 @@ async function gracefulShutdown(signal: string) {
     bootLog(`⬡ SHUTDOWN_SIGNAL_RECEIVED :: ${signal}`);
     clearTrackedTimers();
     guard.stop();
+    sessionRuntime.stopSupervisor();
 
     try {
         await vaultWatcherController?.close();
