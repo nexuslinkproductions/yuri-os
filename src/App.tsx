@@ -16,6 +16,7 @@ import WorkPage from './pages/WorkPage';
 import ServicesPage from './pages/ServicesPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import OperatorShell from './operator/OperatorShell';
 
 class PageErrorBoundary extends Component<{ children: React.ReactNode; name: string }, { hasError: boolean; error: string }> {
   state = { hasError: false, error: '' };
@@ -164,7 +165,7 @@ function App() {
       <CineGlow />
       <MagneticCursor />
       <Routes>
-        <Route path="/operator/*" element={null} />
+        <Route path="/operator/*" element={<OperatorShell />} />
         <Route element={<Layout />}>
           <Route path="/" element={<PageErrorBoundary name="home"><HomePage /></PageErrorBoundary>} />
           <Route path="/work" element={<PageErrorBoundary name="work"><WorkPage /></PageErrorBoundary>} />

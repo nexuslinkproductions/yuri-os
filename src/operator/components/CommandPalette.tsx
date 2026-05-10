@@ -18,7 +18,7 @@ const PALETTE_ITEMS: PaletteItem[] = [
   { id: 'skills', label: 'Skills & Routing', section: 'Operations', path: '/operator/skills', keywords: ['catalog', 'trigger'] },
   { id: 'tokenops', label: 'Token Ops / FinOps', section: 'Finance', path: '/operator/tokenops', keywords: ['spend', 'budget', 'cost'] },
   { id: 'design-audit', label: 'Design Audit HUD', section: 'Quality', path: '/operator/design-audit', keywords: ['audit', 'design'] },
-  { id: 'oracle', label: 'Oracle Console', section: 'AI', path: '/operator/oracle', keywords: ['voice', 'wake', 'transcript'] },
+  { id: 'oracle', label: 'Reasoning Surface', section: 'AI', path: '/operator/oracle', keywords: ['oracle', 'query', 'reasoning', 'council', 'voice', 'wake', 'transcript'] },
   { id: 'health', label: 'Deployment & Health', section: 'Infra', path: '/operator/health', keywords: ['service', 'port', 'uptime'] },
   { id: 'settings', label: 'Settings / Profile', section: 'System', path: '/operator/settings', keywords: ['theme', 'preferences'] },
 ];

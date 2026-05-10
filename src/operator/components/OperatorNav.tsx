@@ -16,7 +16,7 @@ const NAV_SECTIONS: NavSection[] = [
   { path: '/operator/skills', label: 'Skills', icon: '◆' },
   { path: '/operator/tokenops', label: 'Token Ops', icon: '◎' },
   { path: '/operator/design-audit', label: 'Design Audit', icon: '⊡' },
-  { path: '/operator/oracle', label: 'Oracle', icon: '✦' },
+  { path: '/operator/oracle', label: 'Reasoning', icon: '✦' },
   { path: '/operator/health', label: 'Health', icon: '⎔' },
   { path: '/operator/settings', label: 'Settings', icon: '⚙' },
 ];

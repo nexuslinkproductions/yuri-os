@@ -60,7 +60,7 @@ export const ROUTES: OperatorRoute[] = [
   { path: '/operator/skills', label: 'Skills', icon: '◆', section: 'Operations', keywords: ['catalog', 'trigger'] },
   { path: '/operator/tokenops', label: 'Token Ops', icon: '◎', section: 'Finance', keywords: ['spend', 'budget', 'cost'] },
   { path: '/operator/design-audit', label: 'Design Audit', icon: '⊡', section: 'Quality', keywords: ['audit', 'design'] },
-  { path: '/operator/oracle', label: 'Oracle', icon: '✦', section: 'AI', keywords: ['voice', 'wake', 'transcript'] },
+  { path: '/operator/oracle', label: 'Reasoning', icon: '✦', section: 'AI', keywords: ['oracle', 'query', 'reasoning', 'council', 'voice', 'wake', 'transcript'] },
   { path: '/operator/health', label: 'Health', icon: '⎔', section: 'Infra', keywords: ['service', 'port', 'uptime'] },
   { path: '/operator/settings', label: 'Settings', icon: '⚙', section: 'System', keywords: ['theme', 'preferences'] },
 ];
