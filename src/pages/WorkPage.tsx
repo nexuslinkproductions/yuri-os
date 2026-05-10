@@ -13,9 +13,8 @@ export default function WorkPage() {
   return (
     <div className="spatial-page">
       <section
-        className="spatial-section frame-shell"
+        className="spatial-section frame-shell page-hero"
         data-proximity
-        style={{ minHeight: '78vh', display: 'flex', alignItems: 'center', paddingTop: 132 }}
       >
         <FrameCorners />
         <div className="container">

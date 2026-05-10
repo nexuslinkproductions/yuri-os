@@ -134,14 +134,9 @@ function Hero() {
 
   return (
     <motion.section
-      className="spatial-section frame-shell"
+      className="spatial-section frame-shell page-hero"
       data-proximity
       style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        paddingTop: 116,
-        paddingBottom: 34,
         y,
         opacity,
         scale,
@@ -197,11 +192,10 @@ function Hero() {
             fontFamily: 'var(--font-display)',
             fontSize: 'var(--text-hero)',
             fontWeight: 900,
-            letterSpacing: '-0.015em',
+            letterSpacing: 0,
             lineHeight: 0.86,
             color: 'var(--color-text-primary)',
             textTransform: 'uppercase',
-            textShadow: '0 1px 0 rgba(0,0,0,0.45), 0 0 80px rgba(0,0,0,0.6)',
           }}
           initial={{ opacity: 0, y: 56, rotateX: 8 }}
           animate={{ opacity: 1, y: 0, rotateX: 0 }}

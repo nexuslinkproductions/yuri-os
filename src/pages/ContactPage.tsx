@@ -180,7 +180,7 @@ export default function ContactPage() {
 
   return (
     <div className="spatial-page">
-      <section className="spatial-section frame-shell" data-proximity style={{ minHeight: '100vh', paddingTop: 128 }}>
+      <section className="spatial-section frame-shell page-hero page-hero--contact" data-proximity>
         <FrameCorners />
         <div className="container">
           <motion.div

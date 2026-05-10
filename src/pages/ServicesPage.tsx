@@ -127,7 +127,7 @@ export default function ServicesPage() {
 
   return (
     <div className="spatial-page">
-      <section className="spatial-section frame-shell" data-proximity style={{ minHeight: '86vh', display: 'grid', placeItems: 'center', paddingTop: 132 }}>
+      <section className="spatial-section frame-shell page-hero page-hero--center" data-proximity>
         <FrameCorners />
         <div className="container" style={{ textAlign: 'center' }}>
           <motion.div

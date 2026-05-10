@@ -346,7 +346,6 @@ code, kbd, samp, pre {
   font-size: 26px;
   font-weight: 900;
   line-height: 1;
-  text-shadow: 0 0 24px rgba(220, 38, 38, 0.22);
 }
 
 .route-constellation__line {
@@ -572,6 +571,25 @@ code, kbd, samp, pre {
 
 .spatial-section--compact {
   padding: var(--section-py-md) var(--container-px);
+}
+
+.page-hero {
+  min-height: min(82svh, 860px);
+  display: flex;
+  align-items: center;
+  padding-top: clamp(104px, 12vh, 132px);
+  padding-bottom: clamp(48px, 7vh, 84px);
+}
+
+.page-hero--center {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.page-hero--contact {
+  min-height: auto;
+  align-items: flex-start;
 }
 
 .spatial-section::after {
@@ -996,6 +1014,12 @@ code, kbd, samp, pre {
 
   .spatial-section {
     padding: 88px var(--container-px);
+  }
+
+  .page-hero {
+    min-height: min(76svh, 720px);
+    padding-top: 92px;
+    padding-bottom: 44px;
   }
 
   .section-title {

@@ -7,18 +7,31 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 const career = [
   { year: '2021', title: 'Oldschoolgym24', meta: 'Studio Manager / Social Media Support - Baar, Switzerland', detail: 'Daily operations, community content, customer communication, and the first durable rhythm of visual presence.' },
   { year: '2023', title: 'Apollon Nutrition EU', meta: 'Sales & Marketing Support / Content Production - Switzerland', detail: 'Product content, e-commerce visuals, cinematic brand videos, release assets, commercial production, color, sound, and edit delivery.' },
-  { year: '2024', title: 'Public Figure & Digital Media', meta: 'Video Editor / Videographer / Social Media Assistant - EU-wide', detail: 'YouTube workflows, event coverage, social production, travel-based footage, platform adaptation, and fast post-production.' },
-  { year: '2025', title: 'R. Tattoo x Barber', meta: 'Senior Content Producer / Social Media Manager - Vienna', detail: 'High-volume campaign assets for RAF Camora connected brands, including CØRBO apparel and Mike Sommerfeld collaborations.' },
+  { year: '2024', title: 'Fitness Network & Public Figures', meta: 'Video Editor / Videographer / Social Media Assistant - EU-wide', detail: 'The fitness network came first: public figure production, athlete content, YouTube workflows, event coverage, travel-based footage, and fast post-production around names including Mike Sommerfeld.' },
+  { year: '2025', title: 'R. Tattoo x Barber', meta: 'Senior Content Producer / Social Media Manager - Vienna', detail: 'The tattoo studio came later as its own Vienna-based brand environment, opening a second network through barber, tattoo, fashion, nightlife, and culture-driven campaign work.' },
   { year: '2026', title: 'Nexus Link Productions', meta: 'Vienna-based content creation studio', detail: 'Premium brand content, campaign assets, short-form video, motion design, and full end-to-end visual systems.' },
 ];
 
-const network = [
-  { name: 'RAF Camora', role: 'Austrian multi-platinum rapper and entrepreneur', detail: 'Built a lifestyle ecosystem across music, fashion, tattoo/barber culture, vodka, and cosmetics.' },
-  { name: 'R. / Tattoo x Barber', role: 'Vienna concept store and tattoo studio', detail: "Vienna's largest tattoo studio, blending barber and tattoo culture inside RAF's wider brand universe." },
-  { name: 'CØRBO by RAF CAMORA', role: 'Luxury streetwear label', detail: "The fashion pillar of RAF's lifestyle brand universe, requiring premium campaign and social assets." },
-  { name: 'Mike Sommerfeld', role: 'IFBB Pro Classic Physique', detail: 'Known as Mike the Badass: 2024 Mr. Olympia runner-up, aesthetic classic lines, and coach relationships with Patrick Tuor and Dennis James.' },
-  { name: 'C2Moviez', role: 'Creative partner', detail: 'Swiss production partner for selected European projects and production expansion.' },
-  { name: 'Lilly Mansfeld', role: 'Graphic design', detail: 'Visual collaborator for identity, layouts, and campaign surfaces.' },
+const storyBeats = [
+  { label: 'Fitness First', detail: 'Athlete, gym, supplement, and public figure production built the first active network.' },
+  { label: 'Culture Layer', detail: 'The tattoo studio came later and added barber, fashion, nightlife, and Vienna street culture.' },
+  { label: 'Studio Surface', detail: 'Nexus Link now turns both lanes into campaign assets, short-form systems, and motion-led delivery.' },
+];
+
+const activeClients = [
+  { name: 'c2moviez', role: 'Current production partner', detail: 'Swiss production collaboration for selected European projects and production expansion.', lane: 'Production' },
+  { name: 'Lilly Mansfeld / @infinitycre8', role: 'Current visual collaborator', detail: 'Graphic design, identity support, layouts, and campaign surfaces.', lane: 'Design' },
+  { name: 'boviro security', role: 'Active client', detail: 'Security-sector content and visual communication with a practical, trust-first edge.', lane: 'B2B' },
+  { name: 'chicanostore barber', role: 'Active client', detail: 'Barber culture, local social output, and campaign-ready short-form production.', lane: 'Culture' },
+  { name: 'shipster boot vermietung', role: 'Active client', detail: 'Rental and leisure content built around clarity, location, and booking intent.', lane: 'Service' },
+  { name: 'cheesedoctor', role: 'Active client', detail: 'Food, personality, and product-led content with a direct social rhythm.', lane: 'Food' },
+];
+
+const priorNetwork = [
+  { name: 'Mike Sommerfeld', role: 'Prior fitness-industry collaborator', detail: 'Fitness network context and athlete/public-figure production before the tattoo studio chapter.' },
+  { name: 'R. Tattoo x Barber', role: 'Prior studio environment', detail: 'Vienna tattoo and barber culture, campaign assets, high-volume social output, and brand presence.' },
+  { name: 'RAF Camora ecosystem', role: 'Prior connected brand context', detail: 'Music, fashion, tattoo/barber culture, and lifestyle-brand adjacency around previous production work.' },
+  { name: 'CØRBO by RAF CAMORA', role: 'Prior brand context', detail: 'Luxury streetwear environment connected to earlier campaign and social asset production.' },
 ];
 
 const philosophy = [
@@ -57,10 +70,95 @@ function CountUp({ value }: { value: number }) {
   return <span ref={ref}>{count}</span>;
 }
 
+function StorySignalPanel() {
+  return (
+    <motion.div
+      className="depth-panel"
+      data-tilt
+      data-proximity
+      style={{
+        '--z-depth': '44px',
+        position: 'relative',
+        overflow: 'hidden',
+        padding: 'clamp(24px, 4vw, 42px)',
+        minHeight: 420,
+      } as React.CSSProperties}
+      initial={{ opacity: 0, y: 34 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: false, margin: '-14%' }}
+      transition={{ duration: 0.76, delay: 0.18, ease: EASE }}
+    >
+      <svg
+        viewBox="0 0 640 360"
+        aria-hidden="true"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.54 }}
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id="storySignal" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="rgba(220,38,38,0.08)" />
+            <stop offset="48%" stopColor="rgba(220,38,38,0.58)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0.16)" />
+          </linearGradient>
+        </defs>
+        {[82, 150, 218].map((y, index) => (
+          <motion.path
+            key={y}
+            d={`M38 ${y} C168 ${y - 58} 258 ${y + 68} 398 ${y - 8} S560 ${y + 38} 618 ${y - 20}`}
+            fill="none"
+            stroke="url(#storySignal)"
+            strokeWidth={index === 1 ? 2 : 1}
+            strokeDasharray="10 18"
+            initial={{ pathLength: 0, opacity: 0 }}
+            whileInView={{ pathLength: 1, opacity: index === 1 ? 1 : 0.58 }}
+            viewport={{ once: false, margin: '-18%' }}
+            transition={{ duration: 1.1, delay: index * 0.14, ease: EASE }}
+          />
+        ))}
+      </svg>
+
+      <div style={{ position: 'relative', display: 'grid', gap: 18 }}>
+        <div className="kicker">Signal Map</div>
+        <h3 style={{ margin: 0, fontSize: 'clamp(30px, 4vw, 58px)', lineHeight: 1, fontWeight: 950, letterSpacing: 0 }}>
+          Fitness network. Culture network. Studio output.
+        </h3>
+
+        <div style={{ display: 'grid', gap: 12, marginTop: 8 }}>
+          {storyBeats.map((beat, index) => (
+            <motion.div
+              key={beat.label}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '72px 1fr',
+                gap: 16,
+                alignItems: 'start',
+                padding: '14px 0',
+                borderTop: '1px solid var(--color-border-subtle)',
+              }}
+              initial={{ opacity: 0, x: -18 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: false, margin: '-16%' }}
+              transition={{ duration: 0.55, delay: 0.2 + index * 0.08, ease: EASE }}
+            >
+              <div style={{ color: 'var(--color-crimson)', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 800 }}>
+                0{index + 1}
+              </div>
+              <div>
+                <div style={{ color: 'var(--color-text-primary)', fontWeight: 900 }}>{beat.label}</div>
+                <p style={{ marginTop: 6, color: 'var(--color-text-secondary)', lineHeight: 1.62 }}>{beat.detail}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function AboutPage() {
   return (
     <div className="spatial-page">
-      <section className="spatial-section frame-shell" data-proximity style={{ minHeight: '92vh', display: 'grid', placeItems: 'center', textAlign: 'center', paddingTop: 128 }}>
+      <section className="spatial-section frame-shell page-hero page-hero--center" data-proximity>
         <FrameCorners />
         <div className="container">
           <motion.div className="kicker" style={{ justifyContent: 'center' }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.62, ease: EASE }}>
@@ -108,30 +206,33 @@ export default function AboutPage() {
 
       <section className="spatial-section section-diagonal" data-proximity>
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: '0.82fr 1.18fr', gap: 'clamp(36px, 8vw, 112px)', alignItems: 'start' }} className="about-narrative">
+          <div style={{ display: 'grid', gridTemplateColumns: '0.72fr 1.28fr', gap: 'clamp(36px, 8vw, 112px)', alignItems: 'start' }} className="about-narrative">
             <motion.div initial={{ opacity: 0, x: -28 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: false, margin: '-14%' }} transition={{ duration: 0.76, ease: EASE }}>
               <div className="kicker">Narrative</div>
-              <h2 className="section-title" style={{ fontSize: 'clamp(38px, 5vw, 74px)' }}>Six years sharpened into one studio.</h2>
+              <h2 className="section-title" style={{ fontSize: 'clamp(38px, 5vw, 74px)' }}>Two networks sharpened into one studio.</h2>
             </motion.div>
 
-            <motion.div
-              className="depth-panel"
-              data-tilt
-              data-proximity
-              style={{ '--z-depth': '36px', padding: 'clamp(28px, 5vw, 52px)' } as React.CSSProperties}
-              initial={{ opacity: 0, y: 34 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, margin: '-14%' }}
-              transition={{ duration: 0.76, delay: 0.12, ease: EASE }}
-            >
-              <div style={{ display: 'grid', gap: 22, color: 'var(--color-text-secondary)', lineHeight: 1.78, fontWeight: 300 }}>
-                <p>Marcel Spatz is a Senior Social Media Manager / Content Creator based in Vienna, working across video production, post-production, campaign assets, advertising, motion design, color, and publishing logic.</p>
-                <p>At R. Tattoo x Barber by RAF Camora, the work moved across connected brand environments: R. / Tattoo x Barber, CØRBO luxury apparel, R. Cosmetics adjacency, and high-pressure social output where speed and brand quality had to align.</p>
-                <p>That network included Mike Sommerfeld, the German IFBB Pro Classic Physique athlete known as Mike the Badass, 2024 Mr. Olympia runner-up, recognized for aesthetic classic lines and linked to coaches Patrick Tuor and Dennis James.</p>
-                <p>RAF Camora's ecosystem matters because it is not one brand. It is a culture stack: music, fashion, tattoo/barber culture, Karneval Vodka, R. Cosmetics, and CØRBO by RAF CAMORA as the luxury streetwear pillar.</p>
-                <p>The full arc runs from Oldschoolgym24 to Apollon Nutrition EU, then public figure production across Europe, then R. Tattoo x Barber in Vienna, then Nexus Link Productions as the independent studio surface.</p>
-              </div>
-            </motion.div>
+            <div className="story-stack" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 0.9fr) minmax(360px, 1.1fr)', gap: 18, alignItems: 'stretch' }}>
+              <motion.div
+                className="depth-panel"
+                data-tilt
+                data-proximity
+                style={{ '--z-depth': '36px', padding: 'clamp(28px, 5vw, 52px)' } as React.CSSProperties}
+                initial={{ opacity: 0, y: 34 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, margin: '-14%' }}
+                transition={{ duration: 0.76, delay: 0.12, ease: EASE }}
+              >
+                <div style={{ display: 'grid', gap: 22, color: 'var(--color-text-secondary)', lineHeight: 1.78, fontWeight: 300 }}>
+                  <p>Marcel Spatz is a Senior Social Media Manager / Content Creator based in Vienna, working across video production, post-production, campaign assets, advertising, motion design, color, and publishing logic.</p>
+                  <p>The fitness industry came first. Before the tattoo-studio chapter, the work was already moving through gym, supplement, athlete, public-figure, YouTube, event, and travel-based production networks, including the Sommerfeld connection.</p>
+                  <p>R. Tattoo x Barber came later as a separate cultural lane. That chapter added Vienna tattoo/barber culture, fashion adjacency, nightlife gravity, and fast social output where speed and brand quality had to align.</p>
+                  <p>Nexus Link Productions is the independent surface built from both lanes: fitness and public figures on one side, tattoo/barber/culture-driven brand environments on the other.</p>
+                </div>
+              </motion.div>
+
+              <StorySignalPanel />
+            </div>
           </div>
         </div>
       </section>
@@ -171,26 +272,65 @@ export default function AboutPage() {
       <section className="spatial-section section-diagonal" data-proximity>
         <div className="container">
           <div className="kicker">Network</div>
-          <h2 className="section-title">Collaborators and brand gravity.</h2>
+          <h2 className="section-title">Active clients, current collaborators, prior reach.</h2>
+          <p className="section-copy">
+            Current work is separated from prior clients, partners, and collaborator context so the network reads as a live production map, not one merged claim.
+          </p>
+
           <div className="network-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 18, marginTop: 50 }}>
-            {network.map((item, index) => (
+            {activeClients.map((item, index) => (
               <motion.article
                 key={item.name}
                 className="depth-card"
                 data-tilt
                 data-magnetic
                 data-proximity
-                style={{ '--z-depth': `${22 + index * 4}px`, minHeight: 250, padding: 26 } as React.CSSProperties}
+                style={{ '--z-depth': `${26 + index * 4}px`, minHeight: 260, padding: 26 } as React.CSSProperties}
                 initial={{ opacity: 0, y: 34 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: false, margin: '-14%' }}
                 transition={{ duration: 0.66, delay: index * 0.05, ease: EASE }}
               >
-                <h3 style={{ fontSize: 24, fontWeight: 900, letterSpacing: 0 }}>{item.name}</h3>
-                <p style={{ marginTop: 10, color: 'var(--color-crimson)', fontSize: 11, fontWeight: 850, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{item.role}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, alignItems: 'flex-start' }}>
+                  <h3 style={{ fontSize: 24, fontWeight: 900, letterSpacing: 0 }}>{item.name}</h3>
+                  <span style={{ color: 'var(--color-crimson)', fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                    {item.lane}
+                  </span>
+                </div>
+                <p style={{ marginTop: 12, color: 'var(--color-crimson)', fontSize: 11, fontWeight: 850, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{item.role}</p>
                 <p style={{ marginTop: 18, color: 'var(--color-text-secondary)', lineHeight: 1.68 }}>{item.detail}</p>
+                <motion.div
+                  aria-hidden="true"
+                  style={{ height: 2, marginTop: 24, background: 'linear-gradient(90deg, var(--color-crimson), transparent)', transformOrigin: '0 50%' }}
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: false, margin: '-18%' }}
+                  transition={{ duration: 0.8, delay: 0.18 + index * 0.05, ease: EASE }}
+                />
               </motion.article>
             ))}
+          </div>
+
+          <div style={{ marginTop: 54 }}>
+            <div className="kicker">Prior Context</div>
+            <div className="prior-network-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14, marginTop: 22 }}>
+              {priorNetwork.map((item, index) => (
+                <motion.article
+                  key={item.name}
+                  className="depth-card"
+                  data-proximity
+                  style={{ '--z-depth': `${16 + index * 3}px`, minHeight: 210, padding: 22, background: 'rgba(20,20,30,0.48)' } as React.CSSProperties}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, margin: '-14%' }}
+                  transition={{ duration: 0.58, delay: index * 0.04, ease: EASE }}
+                >
+                  <h3 style={{ fontSize: 20, fontWeight: 900, letterSpacing: 0 }}>{item.name}</h3>
+                  <p style={{ marginTop: 10, color: 'var(--color-text-tertiary)', fontSize: 11, fontWeight: 850, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{item.role}</p>
+                  <p style={{ marginTop: 16, color: 'var(--color-text-secondary)', lineHeight: 1.62 }}>{item.detail}</p>
+                </motion.article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -244,7 +384,9 @@ export default function AboutPage() {
       <style>{`
         @media (max-width: 980px) {
           .about-narrative,
+          .story-stack,
           .network-grid,
+          .prior-network-grid,
           .philosophy-grid {
             grid-template-columns: 1fr !important;
           }
