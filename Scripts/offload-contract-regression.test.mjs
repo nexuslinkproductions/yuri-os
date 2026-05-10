@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,6 +31,15 @@ assert.ok(contract.deepseekCodexQualityGate.metrics.includes('accepted_findings'
 assert.equal(contract.lanes.ollama.alias, '@ollama', 'additive Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaCloud.alias, '@ollama-cloud', 'additive Ollama Cloud lane metadata missing');
+assert.equal(contract.lanes.claude.alias, '@claude', 'Claude council lane metadata missing');
+assert.equal(contract.claudeCouncilQualityGate.role.outputCapLines, 80, 'Claude council output cap should be 80 lines');
+assert.deepEqual(contract.claudeCouncilQualityGate.role.requiredSections, [
+  'findings',
+  'risks',
+  'upgrade_candidates',
+  'tests_needed',
+  'reject_or_accept_reasoning',
+], 'Claude council response contract changed');
 
 const yuriSelftest = execFileSync(
   process.execPath,
@@ -54,7 +63,27 @@ function autoPlan(prompt) {
 
 const cases = [
   {
+    prompt: 'brain dump to durable orchestration control plane: intake normalize graph plan route execute verify sanitize promote',
+    lane: 'swarm',
+    scenario: 'control-plane-orchestration'
+  },
+  {
+    prompt: 'compile a task graph for artifact-driven verification and canonical state promotion',
+    lane: 'swarm',
+    scenario: 'control-plane-orchestration'
+  },
+  {
     prompt: 'run the Yuri sandbox improvement loop as a live test',
+    lane: 'codex-spark',
+    scenario: 'sandbox-improvement'
+  },
+  {
+    prompt: 'complete Yuri OS evidence-first upgrade proving run with source manifest reference registry section manifest md-vs-html and html control surface',
+    lane: 'codex-spark',
+    scenario: 'sandbox-improvement'
+  },
+  {
+    prompt: 'document-native audit proving run for beta-readiness with artifact audit and promotion candidates',
     lane: 'codex-spark',
     scenario: 'sandbox-improvement'
   },
@@ -87,6 +116,11 @@ const cases = [
     prompt: 'offline summarize this private local note',
     lane: 'ollama-local',
     scenario: 'document-synthesis'
+  },
+  {
+    prompt: 'ask @claude for model council architecture risk review',
+    lane: 'claude',
+    scenario: 'high-stakes-review'
   }
 ];
 
@@ -100,6 +134,8 @@ for (const testCase of cases) {
   assert.ok(plan.dispatch === 'single-lane' || plan.dispatch === 'parallel-fan-out', `dispatch missing for "${testCase.prompt}"`);
   assert.equal(plan.deepseekAdvisory.localTruthRequired, true, `local truth boundary missing for "${testCase.prompt}"`);
   assert.equal(plan.deepseekAdvisory.codexFinalAuthority, true, `Codex authority missing for "${testCase.prompt}"`);
+  assert.equal(plan.claudeAdvisory.localTruthRequired, true, `Claude local truth boundary missing for "${testCase.prompt}"`);
+  assert.equal(plan.claudeAdvisory.codexFinalAuthority, true, `Claude Codex authority missing for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.lifecycle) && plan.lifecycle.length >= 5, `lifecycle missing for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.learningCapture) && plan.learningCapture.includes('next_rule_candidate'), `learning capture missing for "${testCase.prompt}"`);
 
@@ -107,6 +143,14 @@ for (const testCase of cases) {
   assert.equal(dryPlan.lane, testCase.lane, `auto lane mismatch for "${testCase.prompt}"`);
   assert.equal(dryPlan.scenario, testCase.scenario, `auto scenario mismatch for "${testCase.prompt}"`);
 }
+
+const councilPlan = routePlan('large Yuri OS beta proving run with model council architecture risk review');
+assert.equal(councilPlan.claudeAdvisory.decision, 'use-sonnet', 'Claude should join high-stakes model council');
+assert.deepEqual(councilPlan.claudeAdvisory.models, ['claude-sonnet-4-6'], 'Claude council model mismatch');
+assert.equal(councilPlan.claudeAdvisory.outputCapLines, 80, 'Claude council line cap missing from route plan');
+const sandboxCouncilPlan = routePlan('Yuri sandbox proving run with model council review');
+assert.equal(sandboxCouncilPlan.lane, 'codex-spark', 'model council should not steal sandbox execution lane');
+assert.equal(sandboxCouncilPlan.claudeAdvisory.decision, 'use-sonnet', 'sandbox model council should still attach Claude advisory');
 
 const advisoryCases = [
   {
@@ -147,6 +191,12 @@ assert.ok(Array.isArray(examples) && examples.length >= 5, 'embedded scenario ca
 assert.ok(examples.some((scenario) => scenario.id === 'code-change'), 'code-change example missing');
 assert.ok(examples.some((scenario) => scenario.id === 'protocol-change'), 'protocol-change example missing');
 assert.ok(examples.some((scenario) => scenario.id === 'high-stakes-review'), 'high-stakes-review example missing');
+const controlPlaneScenario = examples.find((scenario) => scenario.id === 'control-plane-orchestration');
+assert.ok(controlPlaneScenario, 'control-plane-orchestration example missing');
+assert.equal(controlPlaneScenario.defaultLane, 'swarm', 'control-plane-orchestration should route to swarm');
+assert.ok(controlPlaneScenario.lifecycle.some((step) => /Graph plan/i.test(step)), 'control-plane lifecycle should include graph plan');
+assert.ok(controlPlaneScenario.lifecycle.some((step) => /Sanitize/i.test(step)), 'control-plane lifecycle should include sanitize');
+assert.ok(controlPlaneScenario.lifecycle.some((step) => /Promote/i.test(step)), 'control-plane lifecycle should include promote');
 const sandboxScenario = examples.find((scenario) => scenario.id === 'sandbox-improvement');
 assert.ok(sandboxScenario, 'sandbox-improvement example missing');
 assert.equal(sandboxScenario.defaultLane, 'codex-spark', 'sandbox-improvement should route to codex-spark');
@@ -157,6 +207,33 @@ assert.equal(contract.lanes.codexSpark.alias, '@codex-spark', 'codexSpark lane m
 
 const swarmDefault = runContract(['swarm-default']);
 assert.equal(swarmDefault, 'deepseek-v4-pro-lite-budget,deepseek-v4-flash', 'shared swarm default changed unexpectedly');
+
+const claudeStubRoot = mkdtempSync(join(tmpdir(), 'claude-council-regression-'));
+try {
+  const claudeStub = join(claudeStubRoot, 'claude-stub.sh');
+  writeFileSync(claudeStub, [
+    '#!/usr/bin/env bash',
+    'printf "findings:\\n"',
+    'printf "risks:\\n"',
+    'printf "upgrade_candidates:\\n"',
+    'printf "tests_needed:\\n"',
+    'printf "reject_or_accept_reasoning:\\n"',
+    'for i in $(seq 1 120); do printf "extra line %s\\n" "$i"; done',
+    '',
+  ].join('\n'));
+  chmodSync(claudeStub, 0o755);
+  const claudeOut = execFileSync(
+    resolve(__dirname, 'ai'),
+    ['@claude', 'review architecture risk'],
+    { encoding: 'utf8', env: { ...process.env, CLAUDE_BIN: claudeStub } },
+  );
+  assert(claudeOut.includes('ADVISORY_CLAUDE_COUNCIL_OUTPUT'), 'Claude council advisory label missing');
+  assert(claudeOut.includes('NOT_LOCAL_TRUTH'), 'Claude council local truth disclaimer missing');
+  assert(claudeOut.includes('stdout_cap_marker: TRUNCATED'), 'Claude council output should be capped');
+  assert(claudeOut.includes('required_sections=findings,risks,upgrade_candidates,tests_needed,reject_or_accept_reasoning'), 'Claude council schema marker missing');
+} finally {
+  rmSync(claudeStubRoot, { recursive: true, force: true });
+}
 
 const manifestRoot = mkdtempSync(join(tmpdir(), 'ollama-lane-regression-'));
 try {

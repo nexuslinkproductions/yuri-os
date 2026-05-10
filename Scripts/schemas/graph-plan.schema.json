@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nudimmud.local/schemas/graph-plan.schema.json",
+  "title": "Yuri control-plane graph plan",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "graph_id",
+    "graph_version",
+    "intent_id",
+    "created_at",
+    "scenario",
+    "route_lane",
+    "lifecycle",
+    "artifact_policy",
+    "canonical_state_policy",
+    "observability",
+    "nodes"
+  ],
+  "properties": {
+    "graph_id": { "type": "string", "minLength": 1 },
+    "graph_version": { "const": "yuri.control-plane.v1" },
+    "intent_id": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "minLength": 1 },
+    "scenario": { "type": "string", "minLength": 1 },
+    "route_lane": { "type": "string", "minLength": 1 },
+    "lifecycle": {
+      "type": "array",
+      "items": {
+        "enum": ["intake", "normalize", "graph-plan", "route", "execute", "verify", "sanitize", "promote"]
+      },
+      "minItems": 8
+    },
+    "artifact_policy": {
+      "type": "object",
+      "required": ["keep_out_of_repo", "write_git_tracked_source", "artifact_root", "raw_output_tainted"]
+    },
+    "canonical_state_policy": {
+      "type": "object",
+      "required": [
+        "memory_surface",
+        "raw_output_tainted",
+        "raw_output_may_enter_memory",
+        "sanitized_verified_summary_only",
+        "promotion_requires_review"
+      ],
+      "properties": {
+        "memory_surface": { "type": "string", "minLength": 1 },
+        "raw_output_tainted": { "const": true },
+        "raw_output_may_enter_memory": { "const": false },
+        "sanitized_verified_summary_only": { "const": true },
+        "promotion_requires_review": { "const": true }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "required": ["token_ledger_optional", "events"],
+      "properties": {
+        "token_ledger_optional": { "type": "boolean" },
+        "events": {
+          "type": "array",
+          "items": {
+            "enum": ["GRAPH_COMPILED", "NODE_DISPATCHED", "NODE_VERIFIED", "PROMOTION_DECISION"]
+          }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "node_id",
+          "kind",
+          "dependencies",
+          "capability",
+          "lane_hint",
+          "permission_tier",
+          "required_artifacts",
+          "verifier",
+          "promotion_gate"
+        ],
+        "properties": {
+          "node_id": { "type": "string", "minLength": 1 },
+          "kind": {
+            "enum": ["intake", "normalize", "graph-plan", "route", "execute", "verify", "sanitize", "promote"]
+          },
+          "dependencies": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "capability": { "type": "string", "minLength": 1 },
+          "lane_hint": { "type": "string", "minLength": 1 },
+          "permission_tier": { "enum": ["tier0_readonly", "tier1_mutation"] },
+          "required_artifacts": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "verifier": { "type": "string", "minLength": 1 },
+          "gitnexus_gate": {
+            "type": "object",
+            "properties": {
+              "impact_required": { "type": "boolean" },
+              "required_before_mutation": { "type": "boolean" }
+            }
+          },
+          "promotion_gate": {
+            "type": "object",
+            "required": ["requires_verification", "action"],
+            "properties": {
+              "requires_verification": { "type": "boolean" },
+              "action": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

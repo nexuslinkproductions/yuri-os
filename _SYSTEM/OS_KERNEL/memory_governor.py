@@ -41,6 +41,15 @@ CONTROL_FLOW_PATTERNS = [
     re.compile(r"run .*shell", re.IGNORECASE),
 ]
 
+ENVIRONMENT_SECRET_PATTERNS = [
+    re.compile(r"\.env\b", re.IGNORECASE),
+    re.compile(r"\bapi[_ -]?key\b", re.IGNORECASE),
+    re.compile(r"\bcredential(s)?\b", re.IGNORECASE),
+    re.compile(r"\bsecret(s)?\b", re.IGNORECASE),
+    re.compile(r"\b(access|auth|bearer|refresh|session)[_ -]?token\b", re.IGNORECASE),
+    re.compile(r"\bpassword\b", re.IGNORECASE),
+]
+
 RESEARCH_SOURCES_2026 = [
     ("MemoryAgentBench: Evaluating Memory in LLM Agents via Incremental Multi-Turn Interactions", "https://openreview.net/pdf/73075b52c441b9966980a5928b47d073c9671992.pdf", "2026", "peer_reviewed", "ICLR 2026", 0.95, "local eval must cover retrieval, test-time learning, long-range understanding, selective forgetting"),
     ("LightMem: Memory Is All You Need for Agentic AI", "https://arxiv.org/abs/2604.07798", "2026-04-22", "accepted_plus_preprint", "ICLR 2026 / arXiv", 0.9, "split STM/MTM/LTM and keep heavy consolidation offline"),
@@ -158,7 +167,7 @@ def classify(content: str, mem_type: str | None, source_kind: str, tags: list[st
     scope = "state"
     if any(token in lowered for token in ["trajectory", "session", "conversation", "handoff"]):
         scope = "trajectory"
-    if any(token in lowered for token in ["environment", ".env", "api key", "token", "credential"]):
+    if any(pattern.search(redacted) for pattern in ENVIRONMENT_SECRET_PATTERNS):
         scope = "environment"
 
     sensitivity = "internal"

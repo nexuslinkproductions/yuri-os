@@ -6,6 +6,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import {
+  buildGraphPlan,
+  buildNormalizedIntent,
+  validateGraphPlan,
+  validateNormalizedIntent,
+  writeNodeVerificationArtifacts,
+} from './yuri-control-plane-schema.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '..');
@@ -15,16 +22,19 @@ const LEARNING_CLI = path.join(SCRIPT_DIR, 'yuri-learning-capture.mjs');
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud', 'sandbox-runs');
 const FALLBACK_ARTIFACT_ROOT = '/tmp/nudimmud-sandbox-runs';
 const DEFAULT_PROMPT = 'first Yuri sandbox operational proving run';
-const PROTECTED_MARKERS = [
-  '.env',
-  '.claude/state',
-  '.claude/history',
-  'backend/data',
-  'node_modules',
-  'token',
-  'credential',
-  'secret',
+const PROTECTED_PATHS = new Set(['.env']);
+const PROTECTED_PREFIXES = [
+  '.claude/state/',
+  '.claude/history/',
+  '.claude/projects/',
+  'backend/data/',
+  'node_modules/',
 ];
+const PROTECTED_FILE_PATTERNS = [
+  /^_SYSTEM\/OS_KERNEL\/[^/]+\.db$/i,
+  /(^|\/)(credential|credentials|secret|secrets)(\.[^/]*)?$/i,
+];
+const RUNTIME_SIDECAR_PATTERN = /^_SYSTEM\/OS_KERNEL\/[^/]+\.db-(shm|wal)$/i;
 
 const cli = parseArgs(process.argv.slice(2));
 
@@ -132,20 +142,44 @@ function runLoop({ mode, prompt, artifactRoot, dbPath, mock = false, forceProbeF
   const routePlan = runJsonCommand(process.execPath, [CONTRACT_PATH, 'route-plan', prompt], { commandsRun, label: 'route-plan' });
   writeJson(artifacts.routePlan, routePlan.ok ? routePlan.json : { error: routePlan.error });
 
+  const normalizedIntent = buildNormalizedIntent({
+    prompt,
+    mode,
+    routePlan: routePlan.json,
+    artifactRoot: rootInfo.path,
+    runDir,
+  });
+  const normalizedIntentValidation = validateNormalizedIntent(normalizedIntent);
+  writeJson(artifacts.normalizedIntent, normalizedIntent);
+  if (!normalizedIntentValidation.ok) {
+    failures.push(`Normalized intent invalid: ${normalizedIntentValidation.issues.join('; ')}`);
+  }
+
+  const graphPlan = buildGraphPlan({
+    normalizedIntent,
+    routePlan: routePlan.json,
+  });
+  const graphPlanValidation = validateGraphPlan(graphPlan);
+  writeJson(artifacts.graphPlan, graphPlan);
+  if (!graphPlanValidation.ok) {
+    failures.push(`Graph plan invalid: ${graphPlanValidation.issues.join('; ')}`);
+  }
+  const nodeVerifications = writeNodeVerificationArtifacts(graphPlan, artifacts.nodeVerifications);
+
   const preflight = buildPreflight({ statusBefore, commandsRun });
   writeJson(artifacts.preflight, preflight);
   if (preflight.protectedDirty.length > 0) {
     failures.push(`Protected paths dirty before run: ${preflight.protectedDirty.join(', ')}`);
   }
 
-  const probe = runSelfProbe({ runDir, mode, mock, forceProbeFailure, statusBefore, commandsRun });
+  const probe = runSelfProbe({ runDir, mode, mock, forceProbeFailure, statusBefore, commandsRun, dbPath });
   writeJson(artifacts.sandboxProbe, probe);
   if (!probe.ok) failures.push(`Sandbox probe failed: ${probe.failures.join('; ')}`);
 
   let rawOutput = '';
   let runnerSummary = null;
   if (failures.length === 0) {
-    const run = runSandboxTask({ mode, prompt, runDir, mock, commandsRun });
+    const run = runSandboxTask({ mode, prompt, runDir, mock, commandsRun, dbPath });
     rawOutput = run.rawOutput;
     runnerSummary = run.summary;
     writeText(artifacts.rawOutput, rawOutput);
@@ -166,6 +200,9 @@ function runLoop({ mode, prompt, artifactRoot, dbPath, mock = false, forceProbeF
     statusAfter,
     artifacts,
     failures,
+    normalizedIntentValidation,
+    graphPlanValidation,
+    nodeVerifications,
   });
   writeJson(artifacts.verification, verification);
 
@@ -177,6 +214,8 @@ function runLoop({ mode, prompt, artifactRoot, dbPath, mock = false, forceProbeF
     verification,
     rawOutput,
     runDir,
+    normalizedIntent,
+    graphPlan,
   });
   writeJson(artifacts.learningSummary, learningSummary);
 
@@ -184,6 +223,8 @@ function runLoop({ mode, prompt, artifactRoot, dbPath, mock = false, forceProbeF
   if (mode === 'live' && verification.ok) {
     learningCapture = captureLearning({ learningSummary, dbPath, commandsRun });
   }
+  const finalVerification = applyLearningCaptureGate({ mode, verification, learningCapture });
+  writeJson(artifacts.verification, finalVerification);
 
   const promoteCheck = readLearningSummary({ dbPath, commandsRun });
   const finalReport = buildFinalReport({
@@ -195,18 +236,19 @@ function runLoop({ mode, prompt, artifactRoot, dbPath, mock = false, forceProbeF
     routePlan: routePlan.json,
     preflight,
     probe,
-    verification,
+    verification: finalVerification,
     learningSummary,
     learningCapture,
     promoteCheck,
     commandsRun,
     artifacts,
+    graphPlan,
   });
   writeText(artifacts.liveActionReport, finalReport);
   writeText(artifacts.finalReport, finalReport);
 
   return {
-    ok: verification.ok,
+    ok: finalVerification.ok,
     runDir,
     finalReportPath: artifacts.finalReport,
   };
@@ -221,6 +263,7 @@ function buildPreflight({ statusBefore, commandsRun }) {
     head: head.stdout.trim(),
     statusBefore,
     protectedDirty: protectedStatusLines(statusBefore),
+    runtimeSidecarDirty: runtimeSidecarStatusLines(statusBefore),
     codexAvailable: commandAvailable('codex'),
     nodeAvailable: commandAvailable('node'),
     runnerPath: RUNNER_PATH,
@@ -228,7 +271,7 @@ function buildPreflight({ statusBefore, commandsRun }) {
   };
 }
 
-function runSelfProbe({ runDir, mode, mock, forceProbeFailure, statusBefore, commandsRun }) {
+function runSelfProbe({ runDir, mode, mock, forceProbeFailure, statusBefore, commandsRun, dbPath = '' }) {
   const probeDir = path.join(runDir, 'probe');
   fs.mkdirSync(probeDir, { recursive: true });
   const failures = [];
@@ -241,6 +284,7 @@ function runSelfProbe({ runDir, mode, mock, forceProbeFailure, statusBefore, com
     dryRunArtifactExists: false,
     repoStatusUnchanged: false,
     protectedDirtyAfterProbe: [],
+    runtimeSidecarDirtyAfterProbe: [],
     failures,
   };
 
@@ -258,6 +302,7 @@ function runSelfProbe({ runDir, mode, mock, forceProbeFailure, statusBefore, com
   ], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
+    env: sandboxRunnerEnv(dbPath),
   });
   commandsRun.push('codex-runner-dry-run-probe');
   result.runnerDryRunExitCode = dryRun.status;
@@ -268,6 +313,7 @@ function runSelfProbe({ runDir, mode, mock, forceProbeFailure, statusBefore, com
   const statusAfterProbe = gitStatus();
   result.repoStatusUnchanged = statusBefore === statusAfterProbe;
   result.protectedDirtyAfterProbe = protectedStatusLines(statusAfterProbe);
+  result.runtimeSidecarDirtyAfterProbe = runtimeSidecarStatusLines(statusAfterProbe);
   if (!result.repoStatusUnchanged) failures.push('repo status changed during self-probe');
   if (result.protectedDirtyAfterProbe.length > 0) failures.push(`protected paths dirty after probe: ${result.protectedDirtyAfterProbe.join(', ')}`);
 
@@ -275,7 +321,7 @@ function runSelfProbe({ runDir, mode, mock, forceProbeFailure, statusBefore, com
   return result;
 }
 
-function runSandboxTask({ mode, prompt, runDir, mock, commandsRun }) {
+function runSandboxTask({ mode, prompt, runDir, mock, commandsRun, dbPath = '' }) {
   const runnerDir = path.join(runDir, 'runner');
   fs.mkdirSync(runnerDir, { recursive: true });
   const wrappedPrompt = [
@@ -289,6 +335,7 @@ function runSandboxTask({ mode, prompt, runDir, mock, commandsRun }) {
     const preview = spawnSync(process.execPath, [RUNNER_PATH, '--dry-run', '--artifact-dir', runnerDir, wrappedPrompt], {
       cwd: REPO_ROOT,
       encoding: 'utf8',
+      env: sandboxRunnerEnv(dbPath),
     });
     commandsRun.push('codex-runner-dry-run');
     return {
@@ -322,6 +369,7 @@ function runSandboxTask({ mode, prompt, runDir, mock, commandsRun }) {
   const run = spawnSync(process.execPath, [RUNNER_PATH, '--artifact-dir', runnerDir, '--timeout-ms', '180000', wrappedPrompt], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
+    env: sandboxRunnerEnv(dbPath),
   });
   commandsRun.push('codex-runner-live');
   const runJson = readJsonIfExists(path.join(runnerDir, 'run.json'));
@@ -336,17 +384,36 @@ function runSandboxTask({ mode, prompt, runDir, mock, commandsRun }) {
   };
 }
 
-function verifyRun({ mode, routePlan, probe, runnerSummary, rawOutput, statusBefore, statusAfter, artifacts, failures }) {
+function verifyRun({
+  mode,
+  routePlan,
+  probe,
+  runnerSummary,
+  rawOutput,
+  statusBefore,
+  statusAfter,
+  artifacts,
+  failures,
+  normalizedIntentValidation,
+  graphPlanValidation,
+  nodeVerifications,
+}) {
   const checks = [];
   const add = (name, pass, detail = '') => checks.push({ name, pass, detail });
   add('route-plan-present', Boolean(routePlan?.scenario), routePlan?.scenario || 'missing');
-  add('sandbox-scenario', routePlan?.scenario === 'sandbox-improvement', routePlan?.scenario || 'missing');
-  add('codex-spark-lane', routePlan?.lane === 'codex-spark', routePlan?.lane || 'missing');
+  add('supported-scenario', routePlan?.scenario === 'sandbox-improvement' || routePlan?.scenario === 'control-plane-orchestration', routePlan?.scenario || 'missing');
+  add('supported-lane', routePlan?.lane === 'codex-spark' || routePlan?.lane === 'swarm', routePlan?.lane || 'missing');
+  add('normalized-intent-artifact', fs.existsSync(artifacts.normalizedIntent), artifacts.normalizedIntent);
+  add('normalized-intent-valid', normalizedIntentValidation?.ok === true, (normalizedIntentValidation?.issues || []).join('; '));
+  add('graph-plan-artifact', fs.existsSync(artifacts.graphPlan), artifacts.graphPlan);
+  add('graph-plan-valid', graphPlanValidation?.ok === true, (graphPlanValidation?.issues || []).join('; '));
+  add('node-verifications-artifacts', Array.isArray(nodeVerifications) && nodeVerifications.length > 0 && fs.existsSync(artifacts.nodeVerifications), artifacts.nodeVerifications);
   add('self-probe-pass', probe.ok, probe.failures.join('; '));
   add('raw-output-artifact', fs.existsSync(artifacts.rawOutput), artifacts.rawOutput);
   add('verification-artifact-path', Boolean(artifacts.verification), artifacts.verification);
   add('repo-status-unchanged', statusBefore === statusAfter, 'compares full git status before/after');
   add('protected-clean-after', protectedStatusLines(statusAfter).length === 0, protectedStatusLines(statusAfter).join(', '));
+  add('runtime-sidecars-unchanged', runtimeSidecarStatusLines(statusBefore).join('\n') === runtimeSidecarStatusLines(statusAfter).join('\n'), 'compares SQLite sidecar status before/after');
   add('runner-not-degraded', mode === 'dry-run' || runnerSummary?.status === 'OK' || runnerSummary?.status === 'MOCK_OK', runnerSummary?.status || 'missing');
   add('raw-output-present', String(rawOutput || '').trim().length > 0, `${String(rawOutput || '').length} chars`);
 
@@ -359,7 +426,7 @@ function verifyRun({ mode, routePlan, probe, runnerSummary, rawOutput, statusBef
   };
 }
 
-function buildLearningSummary({ mode, prompt, routePlan, probe, verification, rawOutput, runDir }) {
+function buildLearningSummary({ mode, prompt, routePlan, probe, verification, rawOutput, runDir, normalizedIntent, graphPlan }) {
   const rawHash = crypto.createHash('sha256').update(rawOutput || '').digest('hex');
   return {
     advisory_only: true,
@@ -368,6 +435,8 @@ function buildLearningSummary({ mode, prompt, routePlan, probe, verification, ra
     prompt,
     scenario: routePlan?.scenario || 'unknown',
     lane: routePlan?.lane || 'unknown',
+    normalized_intent_id: normalizedIntent?.id || '',
+    graph_id: graphPlan?.graph_id || '',
     status: verification.ok ? 'stable' : 'mixed',
     raw_output_sha256: rawHash,
     raw_output_chars: String(rawOutput || '').length,
@@ -434,6 +503,39 @@ function captureLearning({ learningSummary, dbPath, commandsRun }) {
   };
 }
 
+function applyLearningCaptureGate({ mode, verification, learningCapture }) {
+  if (mode !== 'live' || !verification.ok) return verification;
+  const checks = [...verification.checks];
+  const skipped = Boolean(learningCapture?.skipped);
+  const startOk = learningCapture?.start?.ok === true;
+  const finalizeOk = learningCapture?.finalize?.ok === true;
+  checks.push({
+    name: 'learning-capture-not-skipped',
+    pass: !skipped,
+    detail: skipped ? learningCapture?.reason || 'skipped' : learningCapture?.sessionId || 'captured',
+  });
+  checks.push({
+    name: 'learning-capture-start-ok',
+    pass: !skipped && startOk,
+    detail: learningCapture?.start?.error || JSON.stringify(learningCapture?.start || {}),
+  });
+  checks.push({
+    name: 'learning-capture-finalize-ok',
+    pass: !skipped && finalizeOk,
+    detail: learningCapture?.finalize?.error || JSON.stringify(learningCapture?.finalize || {}),
+  });
+
+  const learningFailures = checks
+    .filter((check) => !check.pass)
+    .map((check) => `${check.name}: ${check.detail}`);
+  return {
+    ...verification,
+    checks,
+    failures: unique([...verification.failures, ...learningFailures]),
+    ok: verification.ok && learningFailures.length === 0,
+  };
+}
+
 function readLearningSummary({ dbPath, commandsRun }) {
   const env = dbPath ? { ...process.env, NUDIMMUD_DB_PATH: dbPath } : process.env;
   const summary = runJsonCommand(process.execPath, [LEARNING_CLI, 'summary', '--limit', '5'], {
@@ -444,7 +546,7 @@ function readLearningSummary({ dbPath, commandsRun }) {
   return summary.json || { ok: false, error: summary.error };
 }
 
-function buildFinalReport({ runId, mode, prompt, startedAt, finishedAt, routePlan, preflight, probe, verification, learningSummary, learningCapture, promoteCheck, commandsRun, artifacts }) {
+function buildFinalReport({ runId, mode, prompt, startedAt, finishedAt, routePlan, preflight, probe, verification, learningSummary, learningCapture, promoteCheck, commandsRun, artifacts, graphPlan }) {
   const result = verification.ok ? 'PASS' : 'FAIL_CLOSED';
   return [
     `# Yuri Sandbox Operational Trial`,
@@ -466,12 +568,16 @@ function buildFinalReport({ runId, mode, prompt, startedAt, finishedAt, routePla
     `scenario: ${routePlan?.scenario || 'unknown'}`,
     `lane: ${routePlan?.lane || 'unknown'}`,
     `lifecycle: ${(routePlan?.lifecycle || []).join(' -> ')}`,
+    `graph_id: ${graphPlan?.graph_id || ''}`,
+    `graph_nodes: ${Array.isArray(graphPlan?.nodes) ? graphPlan.nodes.length : 0}`,
+    `graph_policy_raw_output_may_enter_memory: ${graphPlan?.canonical_state_policy?.raw_output_may_enter_memory === false ? 'false' : 'unknown'}`,
     '',
     '## Preflight',
     `branch: ${preflight.branch}`,
     `head: ${preflight.head}`,
     `codex_available: ${preflight.codexAvailable}`,
     `protected_dirty_before: ${preflight.protectedDirty.length === 0 ? '[]' : preflight.protectedDirty.join(' | ')}`,
+    `runtime_sidecar_dirty_before: ${preflight.runtimeSidecarDirty.length === 0 ? '[]' : preflight.runtimeSidecarDirty.join(' | ')}`,
     '',
     '## Sandbox Probe',
     `probe_ok: ${probe.ok}`,
@@ -487,6 +593,8 @@ function buildFinalReport({ runId, mode, prompt, startedAt, finishedAt, routePla
     '## Learning Capture',
     `learning_capture_skipped: ${Boolean(learningCapture.skipped)}`,
     `learning_session_id: ${learningCapture.sessionId || ''}`,
+    `learning_start_ok: ${learningCapture.start?.ok === true}`,
+    `learning_finalize_ok: ${learningCapture.finalize?.ok === true}`,
     `raw_output_sha256: ${learningSummary.raw_output_sha256}`,
     `raw_output_artifact_only: true`,
     `promote_check_pending_lessons: ${Array.isArray(promoteCheck.pendingLessonCandidates) ? promoteCheck.pendingLessonCandidates.length : 'unknown'}`,
@@ -583,6 +691,9 @@ function artifactPaths(runDir) {
   return {
     run: path.join(runDir, 'run.json'),
     routePlan: path.join(runDir, 'route-plan.json'),
+    normalizedIntent: path.join(runDir, 'normalized-intent.json'),
+    graphPlan: path.join(runDir, 'graph-plan.json'),
+    nodeVerifications: path.join(runDir, 'node-verifications'),
     preflight: path.join(runDir, 'preflight.json'),
     sandboxProbe: path.join(runDir, 'sandbox-probe.json'),
     rawOutput: path.join(runDir, 'raw-output.md'),
@@ -603,12 +714,93 @@ function protectedStatusLines(statusText) {
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
-    .filter((line) => PROTECTED_MARKERS.some((marker) => line.toLowerCase().includes(marker.toLowerCase())));
+    .filter((line) => isProtectedStatusLine(line));
+}
+
+function runtimeSidecarStatusLines(statusText) {
+  return statusText
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => RUNTIME_SIDECAR_PATTERN.test(normalizedStatusPath(statusPath(line))));
+}
+
+function isProtectedStatusLine(line) {
+  const filePath = statusPath(line);
+  const normalizedPath = normalizedStatusPath(filePath);
+  if (!normalizedPath || RUNTIME_SIDECAR_PATTERN.test(normalizedPath)) return false;
+  if (PROTECTED_PATHS.has(normalizedPath)) return true;
+  if (PROTECTED_PREFIXES.some((prefix) => normalizedPath === prefix.slice(0, -1) || normalizedPath.startsWith(prefix))) return true;
+  if (PROTECTED_FILE_PATTERNS.some((pattern) => pattern.test(normalizedPath))) return true;
+  return resolvesInsideProtectedTarget(filePath);
+}
+
+function statusPath(line) {
+  const statusMatch = line.match(/^[ MADRCU?!]{1,2}\s+(.+)$/);
+  const raw = statusMatch ? statusMatch[1].trim() : line.trim();
+  const pathPart = raw.includes(' -> ') ? raw.split(' -> ').pop() : raw;
+  return decodeGitQuotedPath(pathPart);
+}
+
+function decodeGitQuotedPath(rawPath) {
+  const raw = String(rawPath || '').trim();
+  if (!(raw.startsWith('"') && raw.endsWith('"'))) return raw;
+  const value = raw.slice(1, -1);
+  const bytes = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    if (char === '\\') {
+      const octal = value.slice(index + 1, index + 4);
+      if (/^[0-7]{3}$/.test(octal)) {
+        bytes.push(parseInt(octal, 8));
+        index += 3;
+        continue;
+      }
+      const escaped = value[index + 1];
+      const mapped = escaped === 'n' ? '\n' : escaped === 't' ? '\t' : escaped === 'r' ? '\r' : escaped || '';
+      bytes.push(...Buffer.from(mapped));
+      index += 1;
+      continue;
+    }
+    bytes.push(...Buffer.from(char));
+  }
+  return Buffer.from(bytes).toString('utf8');
+}
+
+function normalizedStatusPath(filePath) {
+  const folded = String(filePath || '')
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\\/g, '/')
+    .replace(/^\/+/, '')
+    .toLowerCase();
+  return path.posix.normalize(folded).replace(/^\.\//, '');
+}
+
+function resolvesInsideProtectedTarget(filePath) {
+  try {
+    const absolute = path.resolve(REPO_ROOT, filePath);
+    const stats = fs.lstatSync(absolute);
+    if (!stats.isSymbolicLink()) return false;
+    const real = fs.realpathSync(absolute);
+    const relative = path.relative(REPO_ROOT, real);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) return false;
+    const normalizedReal = normalizedStatusPath(relative);
+    if (PROTECTED_PATHS.has(normalizedReal)) return true;
+    if (PROTECTED_PREFIXES.some((prefix) => normalizedReal === prefix.slice(0, -1) || normalizedReal.startsWith(prefix))) return true;
+    return PROTECTED_FILE_PATTERNS.some((pattern) => pattern.test(normalizedReal));
+  } catch {
+    return false;
+  }
 }
 
 function commandAvailable(command) {
   const result = spawnSync('sh', ['-c', `command -v ${command}`], { cwd: REPO_ROOT, encoding: 'utf8' });
   return result.status === 0;
+}
+
+function sandboxRunnerEnv(dbPath) {
+  return dbPath ? { ...process.env, NUDIMMUD_DB_PATH: dbPath } : process.env;
 }
 
 function runTextCommand(command, args, { commandsRun, label, env = process.env }) {

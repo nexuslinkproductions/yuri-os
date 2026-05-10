@@ -1,16 +1,21 @@
 #!/usr/bin/env node
 
-import { createRequire } from 'node:module';
+import Module, { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
-const backendRequire = createRequire(path.join(REPO_ROOT, 'backend', 'package.json'));
+const BACKEND_SOURCE_ROOT = path.join(REPO_ROOT, 'backend');
+const BACKEND_REQUIRE_ROOT = path.resolve(process.env.YURI_BACKEND_REQUIRE_ROOT || BACKEND_SOURCE_ROOT);
+const BACKEND_NODE_MODULES = path.join(BACKEND_REQUIRE_ROOT, 'node_modules');
+process.env.NODE_PATH = [BACKEND_NODE_MODULES, process.env.NODE_PATH].filter(Boolean).join(path.delimiter);
+Module._initPaths();
+const backendRequire = createRequire(path.join(BACKEND_REQUIRE_ROOT, 'package.json'));
 
 backendRequire('ts-node').register({
   transpileOnly: true,
-  dir: path.join(REPO_ROOT, 'backend'),
+  dir: BACKEND_SOURCE_ROOT,
   compilerOptions: {
     module: 'CommonJS',
   },
@@ -21,7 +26,7 @@ const originalConsoleLog = console.log;
 let service;
 try {
   console.log = () => {};
-  service = backendRequire(path.join(REPO_ROOT, 'backend/src/services/sessionImprovementService.ts'));
+  service = backendRequire(path.join(BACKEND_SOURCE_ROOT, 'src/services/sessionImprovementService.ts'));
 } finally {
   console.log = originalConsoleLog;
 }

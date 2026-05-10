@@ -27,8 +27,13 @@ try {
   ]);
   const dryDir = path.dirname(dryReportPath);
   const dryVerification = readJson(path.join(dryDir, 'verification.json'));
+  const dryProbePreview = readJson(path.join(dryDir, 'probe', 'dry-run.json'));
   assert.equal(dryVerification.ok, true, 'dry-run should pass verification');
+  assert.equal(dryProbePreview.env_redirects.NUDIMMUD_DB_PATH, dbPath, 'sandbox runner should inherit temp DB path');
   assert(fs.existsSync(path.join(dryDir, 'route-plan.json')), 'route plan artifact missing');
+  assert(fs.existsSync(path.join(dryDir, 'normalized-intent.json')), 'normalized intent artifact missing');
+  assert(fs.existsSync(path.join(dryDir, 'graph-plan.json')), 'graph plan artifact missing');
+  assert(fs.existsSync(path.join(dryDir, 'node-verifications', 'verify.verification.json')), 'per-node verification artifact missing');
 
   const liveReportPath = run(snapshot.repoRoot, [
     '--live',
@@ -43,16 +48,40 @@ try {
   const liveDir = path.dirname(liveReportPath);
   const rawOutput = fs.readFileSync(path.join(liveDir, 'raw-output.md'), 'utf8');
   const learningSummary = readJson(path.join(liveDir, 'learning-summary.json'));
+  const graphPlan = readJson(path.join(liveDir, 'graph-plan.json'));
   const finalReport = fs.readFileSync(path.join(liveDir, 'final-report.md'), 'utf8');
 
   assert(rawOutput.includes('MOCK_YURI_SANDBOX_OK'), 'mock raw output missing');
   assert.equal(learningSummary.raw_output_artifact.endsWith('raw-output.md'), true, 'learning summary should point at raw artifact');
+  assert.equal(Boolean(learningSummary.graph_id), true, 'learning summary should include graph id');
+  assert.equal(graphPlan.canonical_state_policy.raw_output_may_enter_memory, false, 'graph policy should keep raw output out of memory');
   assert.equal(finalReport.includes('raw_output_artifact_only: true'), true, 'final report should mark raw artifact only');
+  assert.equal(finalReport.includes('graph_policy_raw_output_may_enter_memory: false'), true, 'final report should include graph memory policy');
+  assert.equal(finalReport.includes('learning_start_ok: true'), true, 'final report should expose learning start gate');
+  assert.equal(finalReport.includes('learning_finalize_ok: true'), true, 'final report should expose learning finalize gate');
 
   const rawHash = learningSummary.raw_output_sha256;
   const dbBytes = fs.existsSync(dbPath) ? fs.readFileSync(dbPath) : Buffer.alloc(0);
   assert.equal(dbBytes.includes(Buffer.from('MOCK_YURI_SANDBOX_OK')), false, 'raw output leaked into learning db');
   assert.equal(dbBytes.includes(Buffer.from(rawHash)), true, 'raw output hash should be captured');
+
+  const invalidDbReportPath = run(
+    snapshot.repoRoot,
+    [
+      '--live',
+      '--mock',
+      '--artifact-root',
+      snapshot.artifactRoot,
+      '--db',
+      path.join(tempRoot, 'missing-parent', 'learning.db'),
+      '--prompt',
+      'sandbox loop regression learning capture failure',
+    ],
+    { expectFailure: true },
+  );
+  const invalidDbVerification = readJson(path.join(path.dirname(invalidDbReportPath), 'verification.json'));
+  assert.equal(invalidDbVerification.ok, false, 'failed learning capture should fail the live run gate');
+  assert(invalidDbVerification.failures.some((failure) => failure.includes('learning-capture-start-ok')), 'learning start failure should be explicit');
 
   const failedReportPath = run(
     snapshot.repoRoot,
@@ -75,9 +104,62 @@ try {
   const selftest = execFileSync(
     process.execPath,
     [path.join(snapshot.repoRoot, 'Scripts', 'yuri-sandbox-loop.mjs'), '--selftest'],
-    { cwd: snapshot.repoRoot, encoding: 'utf8' },
+    {
+      cwd: snapshot.repoRoot,
+      encoding: 'utf8',
+      env: { ...process.env, YURI_BACKEND_REQUIRE_ROOT: path.join(repoRoot, 'backend') },
+    },
   );
   assert(selftest.includes('YURI_SANDBOX_LOOP_SELFTEST_PASS'), 'selftest marker missing');
+
+  const tokenHookPath = path.join(snapshot.repoRoot, '.claude', 'hooks', 'token-status.js');
+  fs.mkdirSync(path.dirname(tokenHookPath), { recursive: true });
+  fs.appendFileSync(tokenHookPath, '\n// sandbox regression dirty token hook\n');
+  const tokenDirtyReportPath = run(snapshot.repoRoot, [
+    '--dry-run',
+    '--mock',
+    '--artifact-root',
+    snapshot.artifactRoot,
+    '--db',
+    dbPath,
+    '--prompt',
+    'sandbox loop dirty token hook regression',
+  ]);
+  const tokenDirtyVerification = readJson(path.join(path.dirname(tokenDirtyReportPath), 'verification.json'));
+  assert.equal(tokenDirtyVerification.ok, true, 'dirty token hook files should not trip protected path matching');
+
+  const protectedFixturePath = path.join(snapshot.repoRoot, '.env');
+  fs.writeFileSync(protectedFixturePath, 'SECRET_SHOULD_BLOCK=baseline\n');
+  execFileSync('git', ['add', '--force', '.env'], {
+    cwd: snapshot.repoRoot,
+    encoding: 'utf8',
+  });
+  execFileSync(
+    'git',
+    ['-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--quiet', '--no-gpg-sign', '--only', '.env', '-m', 'Track protected fixture'],
+    {
+      cwd: snapshot.repoRoot,
+      encoding: 'utf8',
+    },
+  );
+
+  const zeroWidthEnvPath = path.join(snapshot.repoRoot, '.e\u200bnv');
+  fs.writeFileSync(zeroWidthEnvPath, 'SECRET_SHOULD_BLOCK=zero-width\n');
+  assertProtectedDryRunFails(snapshot, dbPath, 'sandbox loop zero-width env regression');
+  fs.rmSync(zeroWidthEnvPath, { force: true });
+
+  const fullwidthEnvPath = path.join(snapshot.repoRoot, '.ｅnv');
+  fs.writeFileSync(fullwidthEnvPath, 'SECRET_SHOULD_BLOCK=fullwidth\n');
+  assertProtectedDryRunFails(snapshot, dbPath, 'sandbox loop fullwidth env regression');
+  fs.rmSync(fullwidthEnvPath, { force: true });
+
+  const symlinkPath = path.join(snapshot.repoRoot, 'visible-env-link');
+  fs.symlinkSync('.env', symlinkPath);
+  assertProtectedDryRunFails(snapshot, dbPath, 'sandbox loop protected symlink regression');
+  fs.rmSync(symlinkPath, { force: true });
+
+  fs.writeFileSync(protectedFixturePath, 'SECRET_SHOULD_BLOCK=mutated\n');
+  assertProtectedDryRunFails(snapshot, dbPath, 'sandbox loop protected env regression');
 
   process.stdout.write('yuri-sandbox-loop: pass\n');
 } finally {
@@ -87,8 +169,13 @@ try {
 
 function run(cwd, args, options = {}) {
   const scriptPath = path.join(cwd, 'Scripts', 'yuri-sandbox-loop.mjs');
+  const env = {
+    ...process.env,
+    YURI_BACKEND_REQUIRE_ROOT: path.join(repoRoot, 'backend'),
+    ...(options.env || {}),
+  };
   try {
-    return execFileSync(process.execPath, [scriptPath, ...args], { cwd, encoding: 'utf8' }).trim();
+    return execFileSync(process.execPath, [scriptPath, ...args], { cwd, encoding: 'utf8', env }).trim();
   } catch (error) {
     if (!options.expectFailure) throw error;
     return String(error.stdout || '').trim();
@@ -97,6 +184,26 @@ function run(cwd, args, options = {}) {
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+function assertProtectedDryRunFails(snapshot, dbPath, prompt) {
+  const protectedDirtyReportPath = run(
+    snapshot.repoRoot,
+    [
+      '--dry-run',
+      '--mock',
+      '--artifact-root',
+      snapshot.artifactRoot,
+      '--db',
+      dbPath,
+      '--prompt',
+      prompt,
+    ],
+    { expectFailure: true },
+  );
+  const protectedDirtyVerification = readJson(path.join(path.dirname(protectedDirtyReportPath), 'verification.json'));
+  assert.equal(protectedDirtyVerification.ok, false, `${prompt} should fail closed`);
+  assert(protectedDirtyVerification.failures.some((failure) => failure.includes('Protected paths dirty before run')), 'protected path failure should be explicit');
 }
 
 function createHermeticRepoSnapshot(rootDir) {
@@ -134,7 +241,7 @@ function createHermeticRepoSnapshot(rootDir) {
     fs.cpSync(sourcePath, destPath, { recursive: true, force: true, dereference: false });
   }
 
-  ensureBackendNodeModulesLink(snapshotRoot);
+  assert.equal(fs.existsSync(path.join(snapshotRoot, 'backend', 'node_modules')), false, 'snapshot should use dependency-root env, not copied backend node_modules');
 
   execFileSync('git', ['add', '-A'], {
     cwd: snapshotRoot,
@@ -188,16 +295,4 @@ function parseDirtyEntries(statusOutput) {
         deleted: status.includes('D'),
       };
     });
-}
-
-function ensureBackendNodeModulesLink(snapshotRoot) {
-  const source = path.join(repoRoot, 'backend', 'node_modules');
-  const dest = path.join(snapshotRoot, 'backend', 'node_modules');
-  if (!fs.existsSync(source)) {
-    throw new Error('backend/node_modules is required for the sandbox harness');
-  }
-
-  fs.rmSync(dest, { recursive: true, force: true });
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  fs.symlinkSync(source, dest, 'dir');
 }

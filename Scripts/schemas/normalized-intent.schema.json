@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nudimmud.local/schemas/normalized-intent.schema.json",
+  "title": "Yuri normalized intent",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "id",
+    "intent_version",
+    "rough_idea",
+    "normalized_goal",
+    "execution_mode",
+    "tier_required",
+    "risk_level",
+    "mutation_policy",
+    "artifact_policy",
+    "notes",
+    "keywords"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "intent_version": { "const": "yuri.control-plane.v1" },
+    "rough_idea": { "type": "string" },
+    "normalized_goal": { "type": "string", "minLength": 1 },
+    "execution_mode": { "enum": ["dry_run", "execute"] },
+    "tier_required": { "enum": ["tier0_readonly", "tier1_blocked"] },
+    "risk_level": { "enum": ["low", "medium", "high"] },
+    "mutation_policy": {
+      "type": "object",
+      "required": [
+        "default_mutation",
+        "tier1_blocked",
+        "repo_writes_allowed",
+        "source_writes_allowed",
+        "gitnexus_impact_required_for_mutation"
+      ],
+      "properties": {
+        "default_mutation": { "const": false },
+        "tier1_blocked": { "const": true },
+        "repo_writes_allowed": { "const": false },
+        "source_writes_allowed": { "const": false },
+        "gitnexus_impact_required_for_mutation": { "const": true }
+      }
+    },
+    "artifact_policy": {
+      "type": "object",
+      "required": [
+        "keep_out_of_repo",
+        "write_git_tracked_source",
+        "artifact_root",
+        "raw_output_tainted"
+      ],
+      "properties": {
+        "keep_out_of_repo": { "const": true },
+        "write_git_tracked_source": { "const": false },
+        "artifact_root": { "type": "string", "minLength": 1 },
+        "run_dir": { "type": "string" },
+        "raw_output_tainted": { "const": true }
+      }
+    },
+    "verifier_requirements": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "probabilistic_decision": {
+      "type": "object",
+      "required": [
+        "decision",
+        "outcome_being_estimated",
+        "time_horizon",
+        "base_rate",
+        "predictability",
+        "signals_for",
+        "signals_against",
+        "estimate",
+        "decision_value",
+        "action"
+      ],
+      "properties": {
+        "decision": { "type": "string" },
+        "outcome_being_estimated": { "type": "string" },
+        "time_horizon": { "type": "string" },
+        "base_rate": {
+          "type": "object",
+          "required": ["estimate", "source", "confidence"]
+        },
+        "predictability": {
+          "type": "object",
+          "required": ["factor_understanding", "data_available", "future_similarity", "observer_effect", "verdict"]
+        },
+        "signals_for": { "type": "array" },
+        "signals_against": { "type": "array" },
+        "estimate": {
+          "type": "object",
+          "required": ["probability", "confidence", "rationale"]
+        },
+        "decision_value": {
+          "type": "object",
+          "required": ["upside", "downside", "cost_if_wrong", "reversibility", "expected_value"]
+        },
+        "action": {
+          "type": "object",
+          "required": ["recommendation", "next_step", "calibration_log_required"]
+        }
+      }
+    }
+  }
+}

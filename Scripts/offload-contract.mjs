@@ -100,6 +100,11 @@ const OFFLOAD_CONTRACT = {
       description: 'Remote high-grade reasoning',
       preferredUsage: ['cloud reasoning', 'deep context', 'heavy synthesis']
     },
+    claude: {
+      alias: '@claude',
+      description: 'Bounded Claude Sonnet advisory lane',
+      preferredUsage: ['architecture review', 'risk review', 'protocol review', 'model council']
+    },
     comet: {
       alias: '@comet',
       description: 'Browser interaction lane',
@@ -179,6 +184,40 @@ const OFFLOAD_CONTRACT = {
     ],
     metrics: ['latency_added_minutes', 'accepted_findings', 'rejected_claims', 'verified_issues_caught', 'tests_affected']
   },
+  claudeCouncilQualityGate: {
+    authority: {
+      executor: 'Codex/main-session',
+      localTruth: 'shell/tests/GitNexus/source reads',
+      modelOutput: 'advisory_only=true; local_truth_claim=false'
+    },
+    role: {
+      model: 'claude-sonnet-4-6',
+      reasoning: 'xhigh',
+      use: ['architecture review', 'protocol review', 'risk review', 'council dissent'],
+      outputCapLines: 80,
+      requiredSections: [
+        'findings',
+        'risks',
+        'upgrade_candidates',
+        'tests_needed',
+        'reject_or_accept_reasoning'
+      ]
+    },
+    useWhenAny: [
+      'High-stakes architecture, protocol, security, memory, routing, or sandbox decision.',
+      'Model council requested.',
+      'DeepSeek advisory is active and independent dissent can improve the decision.',
+      'Local evidence is enough to bound the prompt but not enough to settle design risk.'
+    ],
+    discardWhenAny: [
+      'Claims repo state without exact file/path evidence.',
+      'Suggests writes, staging, commits, broad search, secrets access, DB reads, or protected path access.',
+      'Contradicts deterministic local evidence.',
+      'Expands scope beyond the requested risk review.',
+      'Omits any required council section.',
+      'Exceeds the configured output cap.'
+    ]
+  },
   learningLoop: {
     memorySurface: '_SYSTEM/OS_KERNEL/memory.db',
     durableSeed: '.claude/nisaba/learning/global.md',
@@ -192,9 +231,37 @@ const OFFLOAD_CONTRACT = {
   },
   scenarios: [
     {
+      id: 'control-plane-orchestration',
+      title: 'Durable orchestration control plane',
+      match: [
+        'brain dump', 'control plane', 'control-plane', 'graph plan', 'graph-plan',
+        'task graph', 'structured task graph', 'durable orchestration',
+        'intake normalize graph plan', 'verify sanitize promote',
+        'sanitize promote', 'artifact-driven verification', 'canonical state'
+      ],
+      defaultLane: 'swarm',
+      lifecycle: [
+        'Intake: capture raw brain dump as tainted artifact-only input.',
+        'Normalize: compile typed intent with constraints, risk, uncertainty, mutation policy, artifact policy, and verifier requirements.',
+        'Graph plan: emit graph-plan.json with task nodes, dependencies, capabilities, permissions, artifacts, verifiers, and promotion gates.',
+        'Route: bind each node to the smallest reliable lane through this shared contract.',
+        'Execute: run nodes through existing sandbox, guarded executor, offload lanes, and read-only skill context.',
+        'Verify: require deterministic local evidence before upgrading any executor claim.',
+        'Sanitize: hash raw output and summarize only verified facts.',
+        'Promote: send only sanitized reviewed lessons through existing promotion gates.'
+      ]
+    },
+    {
       id: 'sandbox-improvement',
       title: 'Sandboxed improvement or operational trial',
-      match: ['sandbox', 'isolate', 'isolated', 'experiment', 'improvement loop', 'sandbox loop', 'live test', 'test run', 'operational trial', 'promote-check'],
+      match: [
+        'sandbox', 'isolate', 'isolated', 'experiment', 'improvement loop',
+        'sandbox loop', 'live test', 'test run', 'operational trial',
+        'promote-check', 'proving run', 'beta-readiness', 'beta readiness',
+        'source manifest', 'reference registry', 'section manifest',
+        'md-vs-html', 'html control surface', 'control surface',
+        'artifact audit', 'promotion candidates'
+      ],
       defaultLane: 'codex-spark',
       lifecycle: [
         'Detect: classify scope, route, branch, and canonical-state risk.',
@@ -305,8 +372,16 @@ function selectSteeringLane(prompt) {
     return 'swarm';
   }
 
-  if (text.includes('@codex-spark') || text.includes('@spark') || text.includes('sandbox') || text.includes('isolated') || text.includes('isolate') || text.includes('improvement loop') || text.includes('sandbox loop') || text.includes('operational trial') || text.includes('live test')) {
+  if (text.includes('@claude') || text.includes('claude sonnet')) {
+    return 'claude';
+  }
+
+  if (text.includes('@codex-spark') || text.includes('@spark') || text.includes('sandbox') || text.includes('isolated') || text.includes('isolate') || text.includes('improvement loop') || text.includes('sandbox loop') || text.includes('operational trial') || text.includes('live test') || text.includes('proving run') || text.includes('beta-readiness') || text.includes('beta readiness') || text.includes('source manifest') || text.includes('reference registry') || text.includes('section manifest') || text.includes('md-vs-html') || text.includes('control surface') || text.includes('artifact audit')) {
     return 'codex-spark';
+  }
+
+  if (text.includes('control plane') || text.includes('control-plane') || text.includes('graph plan') || text.includes('graph-plan') || text.includes('task graph') || text.includes('brain dump') || text.includes('durable orchestration') || text.includes('verify sanitize promote') || text.includes('sanitize promote') || text.includes('canonical state')) {
+    return 'swarm';
   }
 
   if (text.includes('@swarm') || text.includes('swarm') || text.includes('fan out') || text.includes('parallel') || text.includes('compare') || text.includes('consensus')) {
@@ -453,6 +528,49 @@ function assessDeepseekAdvisory(prompt, lane, scenario) {
   };
 }
 
+function assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory = {}) {
+  const text = normalizePrompt(prompt);
+  const policy = OFFLOAD_CONTRACT.claudeCouncilQualityGate;
+  const councilSignals = [
+    'model council', 'council', 'claude', 'sonnet', 'architecture', 'protocol',
+    'security', 'audit', 'risk', 'high-stakes', 'routing', 'offload', 'memory',
+    'sandbox', 'protected', 'beta', 'proving run'
+  ];
+  const scenarioRequiresReview = [
+    'control-plane-orchestration',
+    'sandbox-improvement',
+    'high-stakes-review',
+    'protocol-change'
+  ].includes(scenario.id);
+  const deepseekActive = deepseekAdvisory.decision && deepseekAdvisory.decision !== 'skip';
+
+  if (lane === 'claude' || scenarioRequiresReview || deepseekActive || includesAny(text, councilSignals)) {
+    return {
+      decision: 'use-sonnet',
+      models: [policy.role.model],
+      reasoning: policy.role.reasoning,
+      role: 'bounded architecture/risk/protocol advisory review',
+      advisoryOnly: true,
+      localTruthRequired: true,
+      codexFinalAuthority: true,
+      outputCapLines: policy.role.outputCapLines,
+      requiredSections: policy.role.requiredSections,
+      discardWhenAny: policy.discardWhenAny
+    };
+  }
+
+  return {
+    decision: 'skip',
+    models: [],
+    role: 'none',
+    advisoryOnly: true,
+    localTruthRequired: true,
+    codexFinalAuthority: true,
+    outputCapLines: 0,
+    requiredSections: []
+  };
+}
+
 function selectScenario(prompt, lane = '') {
   const text = normalizePrompt(prompt);
   const matches = OFFLOAD_CONTRACT.scenarios.filter((scenario) => (
@@ -467,6 +585,7 @@ function buildRoutePlan(prompt) {
   const lane = selectSteeringLane(prompt);
   const scenario = selectScenario(prompt, lane);
   const deepseekAdvisory = assessDeepseekAdvisory(prompt, lane, scenario);
+  const claudeAdvisory = assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory);
   return {
     prompt,
     lane,
@@ -477,6 +596,7 @@ function buildRoutePlan(prompt) {
     qualityGate: 'main-session',
     dispatch: lane === 'swarm' ? 'parallel-fan-out' : 'single-lane',
     deepseekAdvisory,
+    claudeAdvisory,
     lifecycle: scenario.lifecycle,
     learningCapture: OFFLOAD_CONTRACT.learningLoop.capture,
     memorySurface: OFFLOAD_CONTRACT.learningLoop.memorySurface

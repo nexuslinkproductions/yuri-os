@@ -46,6 +46,19 @@ class MemoryGovernorTest(unittest.TestCase):
             content = conn.execute("SELECT content FROM memory_items WHERE id=?", (item_id,)).fetchone()[0]
         self.assertIn("[REDACTED_BY_MEMORY_GOVERNOR]", content)
 
+    def test_technical_environment_and_token_terms_are_not_secret(self):
+        item_id = governed_write(
+            "Codex non-interactive execution can use an env id for schema output, and Switch Attention routes at token-level granularity.",
+            mem_type="research",
+            source_kind="proving_run_claim_gate",
+            db_path=self.db_path,
+        )
+        with sqlite3.connect(self.db_path) as conn:
+            row = conn.execute("SELECT status, sensitivity, scope FROM memory_items WHERE id=?", (item_id,)).fetchone()
+        self.assertEqual(row[0], "active")
+        self.assertEqual(row[1], "internal")
+        self.assertEqual(row[2], "state")
+
     def test_dedupe_and_retrieval_feedback(self):
         first = governed_write("Stable procedural workflow for Yuri memory.", mem_type="procedural", db_path=self.db_path)
         second = governed_write("Stable procedural workflow for Yuri memory.", mem_type="procedural", db_path=self.db_path)
