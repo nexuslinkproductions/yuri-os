@@ -52,6 +52,25 @@ try {
   assert.equal(readyJson.database.foreignKeyViolations, 0, 'readiness should expose foreign key check count');
   assert.equal(readyJson.database.ready, true, 'readiness should mark database ready only after sqlite checks pass');
 
+  for (const route of [
+    ['/api/oracle/personality/rate', { rating: 'positive' }],
+    ['/api/swarm/route', { prompt: 'route this unauthenticated request' }],
+    ['/api/obsidian/reconnect', {}],
+    ['/api/obsidian/restart-sync', {}],
+    ['/api/obsidian/sync', { action: 'test' }],
+  ]) {
+    const [path, body] = route;
+    const response = await fetch(`http://127.0.0.1:${PORT}${path}`, {
+      method: 'POST',
+      headers: {
+        Origin: 'http://localhost:4200',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    assert.equal(response.status, 401, `${path} should reject unauthenticated mutation/control requests`);
+  }
+
   process.stdout.write('backend-cors-hardening: pass\n');
 } finally {
   child.kill('SIGTERM');

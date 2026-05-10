@@ -447,7 +447,7 @@ app.get('/api/obsidian/paths', async (_, res) => {
         res.status(500).json({ error: String(err) });
     }
 });
-app.post('/api/obsidian/reconnect', async (_, res) => {
+app.post('/api/obsidian/reconnect', authMiddleware, async (_, res) => {
     try {
         const result = await (obsidianRest as any).reconnect?.() || {
             success: false
@@ -457,7 +457,7 @@ app.post('/api/obsidian/reconnect', async (_, res) => {
         res.status(500).json({ error: String(err) });
     }
 });
-app.post('/api/obsidian/sync', async (req, res) => {
+app.post('/api/obsidian/sync', authMiddleware, async (req, res) => {
     try {
         const { action } = req.body;
         if (action === 'test') {

@@ -297,7 +297,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         }
     });
 
-    router.post('/oracle/personality/rate', (req, res) => {
+    router.post('/oracle/personality/rate', authMiddleware, (req, res) => {
         const { rating } = req.body;
         if (!['positive', 'neutral', 'negative'].includes(rating)) {
             return res.status(400).json({ error: 'Invalid rating' });
@@ -544,7 +544,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     router.get('/tickets', (_, res) => res.json(getAllTickets(db)));
     router.get('/temporal-graph', (_, res) => res.json(getTemporalEvents(db, 100)));
 
-    router.post('/swarm/route', (req, res) => {
+    router.post('/swarm/route', authMiddleware, (req, res) => {
         const { prompt, ...options } = req.body;
         if (!prompt) return res.status(400).json({ error: 'prompt is required' });
         const decision = SmartRouter.route(prompt, options);
@@ -783,7 +783,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         }
     });
 
-    router.post('/obsidian/reconnect', async (_, res) => {
+    router.post('/obsidian/reconnect', authMiddleware, async (_, res) => {
         try {
             const result = await obsidianRest.reconnect?.();
             const success = typeof result === 'object' && result !== null
@@ -795,7 +795,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         }
     });
 
-    router.post('/obsidian/restart-sync', async (_, res) => {
+    router.post('/obsidian/restart-sync', authMiddleware, async (_, res) => {
         try {
             await obsidianRest.restartSync?.();
             res.json({ success: true, message: 'Sync service restarted' });
@@ -804,7 +804,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         }
     });
 
-    router.post('/obsidian/sync', async (req, res) => {
+    router.post('/obsidian/sync', authMiddleware, async (req, res) => {
         try {
             const { action } = req.body;
             if (action === 'test') {
