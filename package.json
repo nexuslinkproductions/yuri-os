@@ -13,6 +13,7 @@
     "test:canonical-memory-import": "node Scripts/yuri-canonical-memory-import.test.mjs",
     "memory:canonical-import": "node Scripts/yuri-canonical-memory-import.mjs import",
     "memory:canonical-rollback": "node Scripts/yuri-canonical-memory-import.mjs rollback",
+    "proving:canonical-memory": "node Scripts/yuri-proving-run-repeatable.mjs",
     "artifact:manifest": "node Scripts/yuri-artifact-audit.mjs source-manifest",
     "artifact:registry": "node Scripts/yuri-artifact-audit.mjs reference-registry",
     "artifact:verify-references": "node Scripts/yuri-artifact-audit.mjs reference-verify",

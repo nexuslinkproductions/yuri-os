@@ -106,8 +106,16 @@ function runRollback(options) {
   const eventMapPath = path.join(options.runRoot, 'canonical-memory-gated-import-event-map.json');
   if (!fs.existsSync(eventMapPath)) throw new Error(`Missing event map: ${eventMapPath}`);
   const eventMap = JSON.parse(fs.readFileSync(eventMapPath, 'utf8'));
-  const itemIds = [...new Set((eventMap.events || []).map((event) => event.active_memory_item_id).filter(Boolean))];
-  const plan = buildRollbackPlan({ runRoot: options.runRoot, dbPath: options.db, eventMapPath, eventMap, itemIds });
+  const candidateItemIds = [...new Set((eventMap.events || []).map((event) => event.active_memory_item_id).filter(Boolean))];
+  const targetSummary = inspectRollbackTargets({ dbPath: options.db, candidateItemIds });
+  const plan = buildRollbackPlan({
+    runRoot: options.runRoot,
+    dbPath: options.db,
+    eventMapPath,
+    eventMap,
+    itemIds: targetSummary.eligible_item_ids,
+    targetSummary,
+  });
   writeFileJson(path.join(options.runRoot, 'canonical-memory-rollback-plan.json'), plan);
   fs.writeFileSync(path.join(options.runRoot, 'canonical-memory-rollback-plan.md'), renderRollbackPlan(plan));
   if (options.dryRun) {
@@ -116,12 +124,20 @@ function runRollback(options) {
       run_root: options.runRoot,
       db_path: options.db,
       plan: path.join(options.runRoot, 'canonical-memory-rollback-plan.json'),
-      items_to_tombstone: itemIds.length,
+      candidate_items: targetSummary.candidate_count,
+      items_to_tombstone: targetSummary.eligible_item_ids.length,
+      skipped_items: targetSummary.skipped_items,
       events_to_mark: (eventMap.events || []).length,
-      item_ids: itemIds,
+      item_ids: targetSummary.eligible_item_ids,
     };
   }
-  const rollback = runPythonRollback({ dbPath: options.db, runRoot: options.runRoot, itemIds, events: eventMap.events || [] });
+  const rollback = runPythonRollback({
+    dbPath: options.db,
+    runRoot: options.runRoot,
+    itemIds: targetSummary.eligible_item_ids,
+    events: eventMap.events || [],
+    skippedItems: targetSummary.skipped_items,
+  });
   writeFileJson(path.join(options.runRoot, 'canonical-memory-rollback-result.json'), rollback);
   return rollback;
 }
@@ -157,7 +173,7 @@ function buildImportRecords(gate, runRoot) {
   });
 }
 
-function buildRollbackPlan({ runRoot, dbPath, eventMapPath, eventMap, itemIds }) {
+function buildRollbackPlan({ runRoot, dbPath, eventMapPath, eventMap, itemIds, targetSummary }) {
   return {
     schema_version: 1,
     generated_at: new Date().toISOString(),
@@ -166,7 +182,10 @@ function buildRollbackPlan({ runRoot, dbPath, eventMapPath, eventMap, itemIds })
     db_path: dbPath,
     source_event_map: eventMapPath,
     rollback_strategy: 'non_destructive_tombstone',
+    candidate_item_count: targetSummary?.candidate_count ?? itemIds.length,
     item_count: itemIds.length,
+    skipped_item_count: targetSummary?.skipped_items?.length ?? 0,
+    skipped_items: targetSummary?.skipped_items || [],
     event_count: (eventMap.events || []).length,
     item_ids: itemIds,
     invariants: [
@@ -185,7 +204,9 @@ function renderRollbackPlan(plan) {
     `- Run root: ${plan.run_root}`,
     `- DB path: ${plan.db_path}`,
     `- Strategy: ${plan.rollback_strategy}`,
+    `- Candidate items from event map: ${plan.candidate_item_count}`,
     `- Items to tombstone: ${plan.item_count}`,
+    `- Skipped non-eligible items: ${plan.skipped_item_count}`,
     `- Mapping events covered: ${plan.event_count}`,
     '',
     '## Invariants',
@@ -195,6 +216,12 @@ function renderRollbackPlan(plan) {
     '## Item IDs',
     '',
     plan.item_ids.length ? plan.item_ids.map((itemId) => `- ${itemId}`).join('\n') : '- none',
+    '',
+    '## Skipped Items',
+    '',
+    plan.skipped_items.length
+      ? plan.skipped_items.map((item) => `- ${item.id}: ${item.reason}`).join('\n')
+      : '- none',
     '',
   ].join('\n');
 }
@@ -282,9 +309,55 @@ print(json.dumps({
   return JSON.parse(execFileSync('python3', ['-c', python, repoRoot, runRoot, dbPath, batchPath, backupPath], { encoding: 'utf8' }));
 }
 
-function runPythonRollback({ dbPath, runRoot, itemIds, events }) {
+function inspectRollbackTargets({ dbPath, candidateItemIds }) {
+  if (candidateItemIds.length === 0) {
+    return {
+      candidate_count: 0,
+      eligible_item_ids: [],
+      skipped_items: [],
+    };
+  }
+  const payloadPath = path.join(os.tmpdir(), `yuri-rollback-targets-${crypto.randomUUID()}.json`);
+  fs.writeFileSync(payloadPath, JSON.stringify({ candidateItemIds }, null, 2));
+  const python = String.raw`
+import json, sys
+from pathlib import Path
+repo = Path(sys.argv[1])
+db_path = sys.argv[2]
+payload = json.loads(Path(sys.argv[3]).read_text())
+sys.path.insert(0, str(repo / "_SYSTEM" / "OS_KERNEL"))
+from memory_governor import get_conn
+candidate_ids = payload["candidateItemIds"]
+eligible = []
+skipped = []
+with get_conn(db_path) as conn:
+    placeholders = ",".join("?" for _ in candidate_ids)
+    rows = conn.execute(f"SELECT id, source_kind, status FROM memory_items WHERE id IN ({placeholders})", candidate_ids).fetchall()
+    by_id = {row["id"]: row for row in rows}
+    for item_id in candidate_ids:
+        row = by_id.get(item_id)
+        if row is None:
+            skipped.append({"id": item_id, "reason": "missing_memory_item"})
+        elif row["source_kind"] != "proving_run_claim_gate":
+            skipped.append({"id": item_id, "reason": f"source_kind_not_eligible:{row['source_kind']}"})
+        else:
+            eligible.append(item_id)
+print(json.dumps({
+    "candidate_count": len(candidate_ids),
+    "eligible_item_ids": eligible,
+    "skipped_items": skipped,
+}, indent=2))
+`;
+  try {
+    return JSON.parse(execFileSync('python3', ['-c', python, repoRoot, dbPath, payloadPath], { encoding: 'utf8' }));
+  } finally {
+    fs.rmSync(payloadPath, { force: true });
+  }
+}
+
+function runPythonRollback({ dbPath, runRoot, itemIds, events, skippedItems = [] }) {
   const payloadPath = path.join(os.tmpdir(), `yuri-rollback-${crypto.randomUUID()}.json`);
-  fs.writeFileSync(payloadPath, JSON.stringify({ itemIds, events }, null, 2));
+  fs.writeFileSync(payloadPath, JSON.stringify({ itemIds, events, skippedItems }, null, 2));
   const python = String.raw`
 import json, sqlite3, sys
 from pathlib import Path
@@ -296,12 +369,16 @@ sys.path.insert(0, str(repo / "_SYSTEM" / "OS_KERNEL"))
 from memory_governor import append_event, get_conn
 item_ids = payload["itemIds"]
 events = payload["events"]
+skipped_items = payload.get("skippedItems", [])
 with get_conn(db_path) as conn:
+    tombstoned = 0
     for item_id in item_ids:
-        conn.execute("UPDATE memory_items SET status='tombstoned', tier='Tombstone', updated_at=CURRENT_TIMESTAMP WHERE id=? AND source_kind='proving_run_claim_gate'", (item_id,))
+        cursor = conn.execute("UPDATE memory_items SET status='tombstoned', tier='Tombstone', updated_at=CURRENT_TIMESTAMP WHERE id=? AND source_kind='proving_run_claim_gate'", (item_id,))
+        tombstoned += cursor.rowcount
     rollback_event_id = append_event(conn, None, "rollback", "canonical_import_rollback", "CODEX", "ok", {
         "run_root": str(run_root),
         "item_ids": item_ids,
+        "skipped_items": skipped_items,
         "event_count": len(events),
     })
     integrity = conn.execute("PRAGMA integrity_check").fetchone()[0]
@@ -309,7 +386,8 @@ print(json.dumps({
     "mode": "apply",
     "run_root": str(run_root),
     "db_path": db_path,
-    "items_tombstoned": len(item_ids),
+    "items_tombstoned": tombstoned,
+    "skipped_items": skipped_items,
     "events_marked": len(events),
     "rollback_event_id": rollback_event_id,
     "sqlite_integrity_check": integrity,

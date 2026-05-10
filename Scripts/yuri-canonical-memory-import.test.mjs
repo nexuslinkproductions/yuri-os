@@ -104,7 +104,31 @@ try {
   assert.equal(stored.status, 'active', 'stored item should be active');
   assert.equal(stored.sensitivity, 'internal', 'stored item should not be secret');
   assert.equal(stored.content.includes('RAW_SHOULD_NOT_APPEAR'), false, 'raw source marker leaked into memory content');
+  const nonCanonicalItemId = db.prepare(`
+    INSERT INTO memory_items (
+      content,
+      canonical_summary,
+      memory_type,
+      source_kind,
+      tags,
+      content_hash
+    ) VALUES (?, ?, 'research', 'manual_note', '[]', ?)
+  `).run(
+    'Manual memory item must survive canonical rollback.',
+    'Manual memory item must survive canonical rollback.',
+    'c'.repeat(64),
+  ).lastInsertRowid;
   db.close();
+
+  const eventMapPath = path.join(runRoot, 'canonical-memory-gated-import-event-map.json');
+  const eventMap = JSON.parse(fs.readFileSync(eventMapPath, 'utf8'));
+  eventMap.events.push({
+    claim_id: 'claim-rogue-non-canonical',
+    active_memory_item_id: nonCanonicalItemId,
+    event_id: 999999,
+  });
+  eventMap.event_count = eventMap.events.length;
+  fs.writeFileSync(eventMapPath, `${JSON.stringify(eventMap, null, 2)}\n`);
 
   const rollbackDryRun = JSON.parse(execFileSync(
     process.execPath,
@@ -113,7 +137,9 @@ try {
   ));
   assert.equal(rollbackDryRun.mode, 'dry-run', 'rollback dry-run mode mismatch');
   assert.equal(rollbackDryRun.items_to_tombstone, 1, 'rollback dry-run should target imported item');
-  assert.equal(rollbackDryRun.events_to_mark, 2, 'rollback dry-run should target mapping events');
+  assert.equal(rollbackDryRun.skipped_items.length, 1, 'rollback dry-run should skip non-canonical item');
+  assert.equal(rollbackDryRun.skipped_items[0].reason, 'source_kind_not_eligible:manual_note', 'non-canonical skip reason mismatch');
+  assert.equal(rollbackDryRun.events_to_mark, 3, 'rollback dry-run should record all mapping events');
   assert(fs.existsSync(path.join(runRoot, 'canonical-memory-rollback-plan.json')), 'rollback plan json missing');
   assert(fs.existsSync(path.join(runRoot, 'canonical-memory-rollback-plan.md')), 'rollback plan markdown missing');
 
@@ -124,9 +150,12 @@ try {
   ));
   assert.equal(rollback.mode, 'apply', 'rollback mode mismatch');
   assert.equal(rollback.items_tombstoned, 1, 'rollback should tombstone imported item');
+  assert.equal(rollback.skipped_items.length, 1, 'rollback should report skipped non-canonical item');
   const dbAfterRollback = new Database(dbPath);
   const activeAfterRollback = dbAfterRollback.prepare("SELECT COUNT(*) AS c FROM memory_items WHERE source_kind='proving_run_claim_gate' AND status='active'").get().c;
   assert.equal(activeAfterRollback, 0, 'rollback should leave no active imported items');
+  const nonCanonicalStatus = dbAfterRollback.prepare('SELECT status FROM memory_items WHERE id=?').get(nonCanonicalItemId).status;
+  assert.equal(nonCanonicalStatus, 'active', 'rollback must not tombstone non-proving_run_claim_gate memory');
   const rollbackEvents = dbAfterRollback.prepare("SELECT COUNT(*) AS c FROM memory_events WHERE operation='canonical_import_rollback'").get().c;
   assert.equal(rollbackEvents, 1, 'rollback event missing');
   dbAfterRollback.close();
