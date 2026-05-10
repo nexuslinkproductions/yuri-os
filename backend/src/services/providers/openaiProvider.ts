@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import { tokenLedgerService } from '../tokenLedgerService';
 
 dotenv.config();
 
@@ -57,14 +58,43 @@ export class OpenAIProvider {
             Object.assign(requestBody, config.extraBody);
         }
 
-        const response = await client.chat.completions.create(requestBody as any);
+        const provider = config?.providerName || 'openai';
+        const startedAt = Date.now();
+        try {
+            const response = await client.chat.completions.create(requestBody as any);
+            tokenLedgerService.recordProviderEvent({
+                provider,
+                requestModel: actualModel,
+                responseModel: response.model,
+                status: 'ok',
+                usage: response.usage,
+                messages: formattedMessages,
+                system,
+                latencyMs: Date.now() - startedAt,
+                metadata: {
+                    base_url_hash: config?.baseURL ? this.hashConfigValue(config.baseURL) : '',
+                    choice_count: response.choices.length
+                }
+            });
 
-        return {
-            content: response.choices[0].message.content,
-            model: response.model,
-            usage: response.usage,
-            provider: config?.providerName || 'openai'
-        };
+            return {
+                content: response.choices[0].message.content,
+                model: response.model,
+                usage: response.usage,
+                provider
+            };
+        } catch (error) {
+            tokenLedgerService.recordProviderEvent({
+                provider,
+                requestModel: actualModel,
+                status: 'error',
+                messages: formattedMessages,
+                system,
+                latencyMs: Date.now() - startedAt,
+                error
+            });
+            throw error;
+        }
     }
 
     private resolveClient(config?: OpenAICompatibleProviderConfig) {
@@ -84,6 +114,15 @@ export class OpenAIProvider {
             apiKey: config.apiKey,
             baseURL: config.baseURL
         });
+    }
+
+    private hashConfigValue(value: string) {
+        let hash = 0;
+        for (let i = 0; i < value.length; i += 1) {
+            hash = ((hash << 5) - hash) + value.charCodeAt(i);
+            hash |= 0;
+        }
+        return String(hash);
     }
 }
 

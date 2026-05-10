@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync, readFileSync, readdirSync
 import { spawnSync } from 'child_process';
 import path from 'path';
 import os from 'os';
+import { hashPayload, recordTokenEvent } from './token-ledger.mjs';
 
 const LEASE_ROOT = process.env.OFFLOAD_LEASE_DIR || path.join(os.tmpdir(), 'nudimmud-offload-leases');
 const HARD_MAX = parsePositiveInt(process.env.OFFLOAD_HARD_MAX_CONCURRENT_LANES, 14);
@@ -30,12 +31,25 @@ if (cmd.length === 0) usage();
 ensureLeaseRoot();
 const lease = acquireLease(lane);
 if (!lease) {
+  await recordQueueLedger({
+    lane,
+    status: 'error',
+    operation: 'offload_queue_rejected',
+    metadata: { reason: 'OFFLOAD_LANE_CEILING_REACHED', max_lanes: MAX_LANES, lease_root_hash: hashPayload(LEASE_ROOT) },
+  });
   console.error(`OFFLOAD_LANE_CEILING_REACHED lane=${lane} max=${MAX_LANES} lease_dir=${LEASE_ROOT}`);
   process.exit(75);
 }
 
 let exitCode = 1;
 try {
+  await recordQueueLedger({
+    lane,
+    status: 'ok',
+    operation: 'offload_queue_acquire',
+    lease,
+    metadata: { max_lanes: MAX_LANES, hard_max: HARD_MAX },
+  });
   const result = spawnSync(cmd[0], cmd.slice(1), {
     stdio: 'inherit',
     env: process.env,
@@ -49,6 +63,13 @@ try {
   }
 } finally {
   releaseLease(lease);
+  await recordQueueLedger({
+    lane,
+    status: exitCode === 0 ? 'ok' : 'error',
+    operation: 'offload_queue_release',
+    lease,
+    metadata: { exit_code: exitCode, command_hash: hashPayload(cmd.join(' ')) },
+  });
 }
 
 process.exit(exitCode);
@@ -176,6 +197,28 @@ function isPidAlive(pid) {
   } catch (error) {
     return error.code === 'EPERM';
   }
+}
+
+async function recordQueueLedger({ lane, status, operation, lease = {}, metadata = {} }) {
+  await recordTokenEvent({
+    trace_id: process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || lease.taskId || `offload-queue-${Date.now()}-${process.pid}`,
+    session_id: process.env.OFFLOAD_TASK_ID || '',
+    source_path: 'Scripts/offload-queue.mjs',
+    lane,
+    provider: 'local',
+    operation_type: operation,
+    status,
+    measurement_type: 'unobservable',
+    accuracy_class: 'not_measurable',
+    payload_hash: hashPayload({ lane, operation, taskId: lease.taskId || '', pid: lease.pid || process.pid }),
+    metadata: {
+      pid: process.pid,
+      lease_pid: lease.pid || '',
+      acquired_at: lease.acquiredAt || '',
+      timeout_ms: lease.timeoutMs || LEASE_TTL_MS,
+      ...metadata,
+    },
+  });
 }
 
 function usage() {

@@ -2,11 +2,14 @@
 // Stop: finalize session, append to tracker, clean up stale sessions
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const { spawn } = require('child_process');
 
 const TRACKER = '/Users/marcelspatz/NUDIMMUD/_SYSTEM/token-tracker.md';
 const STATE_DIR = '/Users/marcelspatz/NUDIMMUD/.claude/state';
 const SESSION_FILE = `${STATE_DIR}/token-session.json`;
 const WEEKLY_FILE = `${STATE_DIR}/token-weekly.json`;
+const TOKEN_LEDGER = '/Users/marcelspatz/NUDIMMUD/Scripts/token-ledger.mjs';
 
 try {
   const sessionPath = '/tmp/claude-current-session';
@@ -45,6 +48,32 @@ try {
   const entry = `| ${new Date(session.startTime).toISOString().slice(0, 16)} | ${duration}m | ${toolCount} | ${tokDisplay}${costDisplay} | ${topTools} |\n`;
   if (!fs.existsSync(STATE_DIR)) fs.mkdirSync(STATE_DIR, { recursive: true });
   fs.appendFileSync(TRACKER, entry);
+  writeLedgerEvent({
+    event_id: `claude-session-end-${session.id || Date.now()}`,
+    trace_id: `claude-session-${session.id || 'unknown'}`,
+    session_id: String(session.id || ''),
+    source_path: '.claude/hooks/token-session-end.js',
+    lane: 'yuri-cli',
+    provider: 'anthropic-claude-code',
+    request_model: 'claude',
+    response_model: 'claude',
+    operation_type: 'claude_session_finalize',
+    status: 'ok',
+    measurement_type: realTokens > 0 ? 'observed_transcript' : 'estimated_tokenizer',
+    input_tokens: 0,
+    output_tokens: 0,
+    cost_usd: 0,
+    accuracy_class: realTokens > 0 ? 'exact_transcript' : 'estimate_tool_heuristic',
+    payload_hash: hashString(`${session.id || ''}:${session.startTime || ''}`),
+    metadata: {
+      duration_minutes: duration,
+      tool_count: toolCount,
+      estimated_tokens: session.estimatedTokens || 0,
+      real_tokens: realTokens,
+      real_cost_usd: realCost,
+      top_tools_hash: hashString(topTools),
+    }
+  });
 
   // Clean up stale session files (>8h)
   fs.readdirSync('/tmp').filter(f => f.startsWith('claude-session-')).forEach(f => {
@@ -54,3 +83,18 @@ try {
 
   try { fs.unlinkSync(sessionPath); } catch(e) {}
 } catch(e) { /* silent */ }
+
+function writeLedgerEvent(event) {
+  try {
+    const child = spawn(process.execPath, [TOKEN_LEDGER, 'write'], {
+      detached: true,
+      stdio: ['pipe', 'ignore', 'ignore'],
+    });
+    child.stdin.end(JSON.stringify(event));
+    child.unref();
+  } catch (_) {}
+}
+
+function hashString(value) {
+  return crypto.createHash('sha256').update(String(value || '')).digest('hex');
+}

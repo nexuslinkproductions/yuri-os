@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 const fs = require('fs');
+const crypto = require('crypto');
+const { spawn } = require('child_process');
 
 const SESSION_STATE_FILE = '/Users/marcelspatz/NUDIMMUD/.claude/state/session-state.json';
 const SESSION_FILE      = '/Users/marcelspatz/NUDIMMUD/.claude/state/token-session.json';
 const WEEKLY_FILE       = '/Users/marcelspatz/NUDIMMUD/.claude/state/token-weekly.json';
+const TOKEN_LEDGER      = '/Users/marcelspatz/NUDIMMUD/Scripts/token-ledger.mjs';
 
 // ANSI helpers
 const C = {
@@ -101,19 +104,81 @@ function calcCost(t, modelId) {
        + (t.cacheRead    / 1e6) * p.cacheRead;
 }
 
-function saveSessionTokens(t, cost) {
+function saveSessionTokens(t, cost, modelId, transcriptPath) {
   try {
     const session = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
-    if (t.inputTokens <= (session.inputTokens || 0)) return;
+    const previousInput = session.ledgerInputTokens || 0;
+    const previousOutput = session.ledgerOutputTokens || 0;
+    const previousCacheWrite = session.ledgerCacheWrite || 0;
+    const previousCacheRead = session.ledgerCacheRead || 0;
+    const delta = {
+      inputTokens: Math.max(0, t.inputTokens - previousInput),
+      outputTokens: Math.max(0, t.outputTokens - previousOutput),
+      cacheWrite: Math.max(0, t.cacheWrite - previousCacheWrite),
+      cacheRead: Math.max(0, t.cacheRead - previousCacheRead),
+    };
+    if (
+      t.inputTokens <= (session.inputTokens || 0)
+      && t.outputTokens <= (session.outputTokens || 0)
+      && delta.inputTokens + delta.outputTokens + delta.cacheWrite + delta.cacheRead === 0
+    ) return;
+    if (delta.inputTokens + delta.outputTokens + delta.cacheWrite + delta.cacheRead > 0) {
+      writeLedgerEvent({
+        event_id: `claude-status-${session.sessionId || 'unknown'}-${t.inputTokens}-${t.outputTokens}-${t.cacheWrite}-${t.cacheRead}`,
+        trace_id: `claude-session-${session.sessionId || 'unknown'}`,
+        session_id: String(session.sessionId || ''),
+        source_path: '.claude/hooks/token-status.js',
+        lane: 'yuri-cli',
+        provider: 'anthropic-claude-code',
+        request_model: modelId || 'claude',
+        response_model: modelId || 'claude',
+        operation_type: 'claude_transcript_delta',
+        status: 'ok',
+        measurement_type: 'observed_transcript',
+        input_tokens: delta.inputTokens,
+        output_tokens: delta.outputTokens,
+        cache_write_tokens: delta.cacheWrite,
+        cache_read_tokens: delta.cacheRead,
+        cost_usd: parseFloat(calcCost(delta, modelId).toFixed(6)),
+        accuracy_class: 'exact_transcript',
+        payload_hash: hashString(transcriptPath || ''),
+        metadata: {
+          transcript_path_hash: hashString(transcriptPath || ''),
+          cumulative_input_tokens: t.inputTokens,
+          cumulative_output_tokens: t.outputTokens,
+          cumulative_cache_write_tokens: t.cacheWrite,
+          cumulative_cache_read_tokens: t.cacheRead,
+        }
+      });
+    }
     session.inputTokens  = t.inputTokens;
     session.outputTokens = t.outputTokens;
     session.totalTokens  = t.inputTokens + t.outputTokens;
     session.cost         = parseFloat(cost.toFixed(6));
+    session.ledgerInputTokens = t.inputTokens;
+    session.ledgerOutputTokens = t.outputTokens;
+    session.ledgerCacheWrite = t.cacheWrite;
+    session.ledgerCacheRead = t.cacheRead;
     session.updatedAt    = new Date().toISOString();
     const tmp = `${SESSION_FILE}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(session, null, 2));
     fs.renameSync(tmp, SESSION_FILE);
   } catch (_) {}
+}
+
+function writeLedgerEvent(event) {
+  try {
+    const child = spawn(process.execPath, [TOKEN_LEDGER, 'write'], {
+      detached: true,
+      stdio: ['pipe', 'ignore', 'ignore'],
+    });
+    child.stdin.end(JSON.stringify(event));
+    child.unref();
+  } catch (_) {}
+}
+
+function hashString(value) {
+  return crypto.createHash('sha256').update(String(value || '')).digest('hex');
 }
 
 try {
@@ -134,7 +199,7 @@ try {
   // Real token data from transcript
   const tokens = parseTranscript(transcriptPath) || { inputTokens: 0, outputTokens: 0, cacheWrite: 0, cacheRead: 0 };
   const cost   = calcCost(tokens, modelId);
-  if (tokens.inputTokens > 0) saveSessionTokens(tokens, cost);
+  if (tokens.inputTokens > 0) saveSessionTokens(tokens, cost, modelId, transcriptPath);
 
   // Weekly totals (past sessions + current)
   let weekly = null;
