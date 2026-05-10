@@ -81,6 +81,7 @@ bootLog('⬡ NUDIMMUD_SERVER_IGNITING...');
 bootLog('⬡ AUTH_RUNTIME_READY :: Local bootstrap token initialized');
 
 const app = express();
+app.disable('x-powered-by');
 const server = http.createServer(app);
 let wss: WebSocketServer | null = null;
 const db = initDatabase();
@@ -189,7 +190,10 @@ const corsOptions: CorsOptions = {
             return;
         }
 
-        callback(new Error('CORS_BLOCKED'));
+        const error = new Error('CORS_BLOCKED') as Error & { code: string; statusCode: number };
+        error.code = 'CORS_BLOCKED';
+        error.statusCode = 403;
+        callback(error);
     }
 };
 
@@ -452,6 +456,33 @@ app.post('/api/neural/recalibrate', authMiddleware, (req, res) => {
         res.status(500).json({ status: 'ERROR', message: error.message });
     }
 });
+
+const jsonErrorHandler: express.ErrorRequestHandler = (error, req, res, next) => {
+    if (res.headersSent) {
+        next(error);
+        return;
+    }
+
+    if (error?.code === 'CORS_BLOCKED' || error?.message === 'CORS_BLOCKED') {
+        res.status(403).json({
+            error: 'CORS_BLOCKED',
+            message: 'Origin is not allowed for this local API.',
+            status: 403,
+            origin: req.get('origin') || null
+        });
+        return;
+    }
+
+    const status = Number.isInteger(error?.statusCode) && error.statusCode >= 400 && error.statusCode < 600
+        ? error.statusCode
+        : 500;
+    res.status(status).json({
+        error: status === 500 ? 'INTERNAL_SERVER_ERROR' : error?.message || 'REQUEST_FAILED',
+        status
+    });
+};
+
+app.use(jsonErrorHandler);
 
 let lastIngestCount = -1;
 trackInterval(setInterval(async () => {
