@@ -49,6 +49,7 @@ const scanRoots = [
 
 const skippedPathReasons = new Map([
   ['Scripts/yuri-exeoflow-assimilation.test.mjs', 'guardrail implementation must name retired terms to detect regressions'],
+  ['Scripts/generated-artifact-hygiene.test.mjs', 'generated artifact guardrail must prioritize retired source-path regressions'],
   ['backend/data', 'protected live database surface'],
   ['.claude/state', 'protected agent state surface'],
   ['.claude/history', 'protected agent history surface'],
@@ -84,6 +85,12 @@ const allowedLineReasons = new Map([
     {
       pattern: /yuri-exeoflow-assimilation.*test.*mjs/,
       reason: 'release gate test must prove the requested assimilation guardrail filename is wired',
+    },
+  ]],
+  ['docs/GENERATED_ARTIFACT_HYGIENE.md', [
+    {
+      pattern: /Scripts\/yuri-exeoflow-assimilation\.test\.mjs/,
+      reason: 'generated artifact lifecycle doc must list the retired-term guardrail command required before commit',
     },
   ]],
 ]);

@@ -58,6 +58,8 @@ assert.match(result.stdout, /YURI_BACKEND_RELEASE_GATE_DRY_RUN.*system=YURI_OS/,
 assert.doesNotMatch(result.stdout, retiredIdentityPattern, 'release gate output should not expose retired flow identity');
 assert.match(result.stdout, /yuri-assimilation-guardrail/, 'release gate should include assimilation guardrail step');
 assert.match(releaseGateSource, /yuri-exeoflow-assimilation\.test\.mjs/, 'release gate should invoke the assimilation guardrail script');
+assert.match(result.stdout, /generated-artifact-hygiene/, 'release gate should include generated artifact hygiene step');
+assert.match(releaseGateSource, /generated-artifact-hygiene\.test\.mjs/, 'release gate should invoke generated artifact hygiene');
 assert.match(result.stdout, /backend-db-check\.mjs --db \/tmp\/restored-candidate\.db/, 'release gate should include explicit DB candidate check');
 assert.match(result.stdout, /backend-cors-hardening\.test\.mjs/, 'release gate should include backend smoke/CORS test');
 assert.match(result.stdout, /backend-route-auth-matrix\.test\.mjs/, 'release gate should include route auth audit');

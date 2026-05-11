@@ -27,6 +27,11 @@ const steps = [
     args: ['Scripts/yuri-exeoflow-assimilation.test.mjs'],
   },
   {
+    name: 'generated-artifact-hygiene',
+    command: process.execPath,
+    args: ['Scripts/generated-artifact-hygiene.test.mjs'],
+  },
+  {
     name: 'backend-db-check',
     command: process.execPath,
     args: ['Scripts/backend-db-check.mjs', ...dbArgs],
