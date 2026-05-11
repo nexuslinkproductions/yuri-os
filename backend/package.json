@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "bugs": "ts-node src/scripts/bugFinder.ts",
     "wiki:rag": "ts-node src/scripts/ingestWikiControlPlane.ts",
-    "research:rag": "ts-node src/scripts/ingestYuriEnterpriseResearch.ts"
+    "research:rag": "ts-node src/scripts/ingestYuriEnterpriseResearch.ts",
+    "prompt:rag": "ts-node src/scripts/ingestYuriPromptEngineeringResearch.ts"
   },
   "keywords": [],
   "author": "",
