@@ -49,6 +49,8 @@
     "prepare": "node Scripts/install-hooks.mjs",
     "graphify": "bash scripts/graphify-run.sh",
     "wiki:rag": "npm --prefix backend run wiki:rag",
+    "research:rag": "npm --prefix backend run research:rag",
+    "research:rag:health": "node Scripts/research-rag-health.mjs",
     "wiki:rag:auto": "node Scripts/wiki-rag-watch.mjs --once",
     "wiki:rag:watch": "node Scripts/wiki-rag-watch.mjs",
     "wiki:rag:launchd:install": "node Scripts/wiki-rag-launchd.mjs install",

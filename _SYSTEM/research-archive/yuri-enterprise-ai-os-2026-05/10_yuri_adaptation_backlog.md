@@ -4,15 +4,17 @@
 **Created in lane**: 08CV
 **advisory_only**: true
 **local_truth_claim**: false
-**ingestion_status**: REFERENCE_ONLY
+**ingestion_status**: READY_FOR_RAG_AFTER_APPROVAL
+**rag_approved_at**: 2026-05-11T16:51:43+02:00
+**rag_approved_by**: owner:marcel-spatz
 
-## P0 — Blocks 08CV or RAG Activation
+## P0 — Closed or No Longer Blocking RAG Activation
 
 | Item | Target |
 |---|---|
-| PDF extraction for 4 pending sources (NIST, OWASP, SLSA, EU AI Act) | Install poppler (brew install poppler) |
-| yuri-rag-security-design.md stub (LLM08 blocker before RAG) | Research archive |
-| CLAUDE.md alignment with yuri-origin.md | Resolve CLAUDE.md dirty state |
+| NIST PDF extraction | Closed for initial RAG seed; excerpt exists in 03_enterprise_governance_frameworks.md |
+| RAG ingestion allowlist | Closed by 11_rag_ingestion_approval.md |
+| EU AI Act license review | Closed for curated mapping RAG; official legal truth remains EUR-Lex |
 
 ## P1 — Next Sprint
 

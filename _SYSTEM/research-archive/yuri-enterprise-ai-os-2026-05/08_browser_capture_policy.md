@@ -4,7 +4,9 @@
 **Created in lane**: 08CV
 **advisory_only**: true
 **local_truth_claim**: false
-**ingestion_status**: REFERENCE_ONLY
+**ingestion_status**: READY_FOR_RAG_AFTER_APPROVAL
+**rag_approved_at**: 2026-05-11T16:51:43+02:00
+**rag_approved_by**: owner:marcel-spatz
 
 ## Tiered Capture Hierarchy
 

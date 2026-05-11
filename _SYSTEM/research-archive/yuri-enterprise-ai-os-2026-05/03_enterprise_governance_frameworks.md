@@ -5,7 +5,9 @@ Enterprise governance mapping for Yuri OS — a multi-CLI, multi-agent, locally 
 **Date**: 2026-05-04
 **advisory_only**: true
 **local_truth_claim**: false
-**ingestion_status**: READY_FOR_REVIEW
+**ingestion_status**: READY_FOR_RAG_AFTER_APPROVAL
+**rag_approved_at**: 2026-05-11T16:51:43+02:00
+**rag_approved_by**: owner:marcel-spatz
 **pdf_extraction_tool**: pdftotext (Poppler 26.04.0)
 **extracted_at**: 2026-05-04
 
@@ -14,9 +16,10 @@ Enterprise governance mapping for Yuri OS — a multi-CLI, multi-agent, locally 
 | URL | Type | Status | Hash |
 |-----|------|--------|------|
 | https://www.nist.gov/artificial-intelligence/executive-order | official | FETCHED | 035f5421 |
-| https://artificialintelligenceact.eu/the-act/ | official | FETCHED | 8f68fbe0 |
+| https://artificialintelligenceact.eu/the-act/ | secondary_mirror | FETCHED | 8f68fbe0 |
 
 Note: NIST AI RMF PDF (NIST.AI.100-1) extracted via pdftotext. Excerpt below.
+Note: EU AI Act legal truth remains the official EUR-Lex publication; this archive is advisory mapping only.
 
 ## NIST AI RMF — Yuri Mapping
 
@@ -361,7 +364,7 @@ used in ways that are beneficial.
 
 ## Non-Claims
 
-- PDF sources are REFERENCE_ONLY until text-extracted and reviewed.
+- Curated archive Markdown is approved for RAG ingestion.
 - This is not legal advice. EU AI Act compliance requires certified legal review.
-- NIST AI RMF full PDF not yet captured (text extraction pending).
-- No RAG ingestion without explicit owner approval.
+- NIST AI RMF excerpt is text-extracted; this file is not a substitute for the official NIST publication.
+- Owner approval for this archive's curated RAG ingestion was granted on 2026-05-11.

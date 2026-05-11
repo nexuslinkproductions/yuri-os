@@ -3,7 +3,9 @@
 **Date**: 2026-05-04
 **advisory_only**: true
 **local_truth_claim**: false
-**ingestion_status**: READY_FOR_REVIEW
+**ingestion_status**: READY_FOR_RAG_AFTER_APPROVAL
+**rag_approved_at**: 2026-05-11T16:51:43+02:00
+**rag_approved_by**: owner:marcel-spatz
 **pdf_extraction_note**: OWASP LLM Top 10 PDF not available from source (URL returned 404). Using HTML page capture from 08CU. Marking PDF_REFERENCE as UNAVAILABLE.
 
 ## Sources
@@ -43,5 +45,5 @@
 - OWASP LLM Top 10 PDF fetch returned 404 (GitHub raw path not found). Using HTML page capture from 08CU.
 - Browser automation (Chrome MCP, Playwright) not installed — lowest-cost capture is osascript-only.
 - No penetration testing performed.
-- No RAG ingestion without explicit owner approval.
+- Owner approval for this archive's curated RAG ingestion was granted on 2026-05-11.
 - No paid security audit.

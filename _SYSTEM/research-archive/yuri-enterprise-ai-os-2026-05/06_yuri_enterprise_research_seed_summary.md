@@ -3,7 +3,9 @@
 **Date**: 2026-05-04
 **advisory_only**: true
 **local_truth_claim**: false
-**ingestion_status**: REFERENCE_ONLY
+**ingestion_status**: READY_FOR_RAG_AFTER_APPROVAL
+**rag_approved_at**: 2026-05-11T16:51:43+02:00
+**rag_approved_by**: owner:marcel-spatz
 
 ## Sources Attempted
 
@@ -21,7 +23,7 @@
 | NIST AI RMF (NIST.AI.100-1) | EXTRACTED (300 lines, pdftotext) |
 | OWASP LLM Top 10 | UNAVAILABLE (404 from source); using HTML capture |
 | SLSA v1.0 | UNAVAILABLE (HTML-only source); using web page capture |
-| EU AI Act | UNAVAILABLE (HTML-only); needs license review |
+| EU AI Act | UNAVAILABLE (HTML-only); EUR-Lex reuse reviewed for curated mapping RAG |
 
 ## Yuri Adaptation Backlog
 
@@ -33,7 +35,7 @@
 | EU AI Act record-keeping automation | MEDIUM | 03_enterprise_governance_frameworks.md |
 | Browser capture verification on | MEDIUM | capture-pipeline.md |
 | NotebookLM optional synthesis | LOW | (separate lane) |
-| RAG ingestion allowlist | LOW | (requires owner approval) |
+| RAG ingestion allowlist | DONE | 11_rag_ingestion_approval.md |
 
 ## Ready for NotebookLM Synthesis
 
@@ -41,9 +43,9 @@
 - Archive files 03, 04, 05 (governance, security, supply chain)
 - Manifest, source registry, capture pipeline
 
-## Not Ready for RAG Ingestion
+## RAG Ingestion Status
 
-- All sources are REFERENCE_ONLY
-- No RAG ingestion without explicit owner approval
-- PDF sources need text extraction first
-- License review needed for each source before ingestion
+- Curated archive Markdown is READY_FOR_RAG_AFTER_APPROVAL
+- Owner approval for this archive's curated RAG ingestion was granted on 2026-05-11
+- Dedicated notebook ingestion is verified in 12_rag_ingested.md
+- Raw external sources still require separate approval before direct ingestion

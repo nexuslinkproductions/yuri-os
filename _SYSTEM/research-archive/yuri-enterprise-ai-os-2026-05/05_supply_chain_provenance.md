@@ -3,7 +3,9 @@
 **Date**: 2026-05-04
 **advisory_only**: true
 **local_truth_claim**: false
-**ingestion_status**: READY_FOR_REVIEW
+**ingestion_status**: READY_FOR_RAG_AFTER_APPROVAL
+**rag_approved_at**: 2026-05-11T16:51:43+02:00
+**rag_approved_by**: owner:marcel-spatz
 **pdf_extraction_note**: SLSA v1.0 PDF not available (slsa.dev returns HTML). Using HTML page capture from 08CU.
 
 ## Sources
@@ -35,7 +37,7 @@
 
 - Every source tracked in 01_source_registry.md
 - Must include: URL, tier, type, status, license note, confidence
-- Status values: PLANNED, FETCHED, READY_FOR_REVIEW, READY_FOR_RAG, REFERENCE_ONLY, DO_NOT_INGEST_RAW
+- Status values: PLANNED, FETCHED, READY_FOR_REVIEW, READY_FOR_RAG_AFTER_APPROVAL, REFERENCE_ONLY, DO_NOT_INGEST_RAW
 - License_unknown is valid but blocks RAG ingestion
 
 ## Non-Claims
@@ -43,4 +45,4 @@
 - SLSA v1.0 PDF download returned HTML page (slsa.dev serves spec as web doc, not PDF). Using HTML page capture from 08CU.
 - No third-party software bill of materials (SBOM) generated.
 - No dependency audit performed.
-- No RAG ingestion without explicit owner approval.
+- Owner approval for this archive's curated RAG ingestion was granted on 2026-05-11.

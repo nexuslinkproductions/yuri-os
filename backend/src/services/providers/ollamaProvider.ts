@@ -165,7 +165,8 @@ export class OllamaProvider {
             }, {
                 headers: this.headers(runtime),
                 signal: options.signal,
-                timeout: 15000
+                timeout: 15000,
+                maxRedirects: 0
             });
 
             tokenLedgerService.recordProviderEvent({
