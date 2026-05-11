@@ -185,7 +185,7 @@ export default function HermeticVeil() {
                 y={cell.y}
                 width="120"
                 height="84"
-                fill={cell.odd ? 'rgba(255,255,255,0.018)' : 'rgba(220,38,38,0.026)'}
+                fill={cell.odd ? 'rgba(255,255,255,0.018)' : 'rgba(228,88,95,0.026)'}
                 stroke="rgba(255,255,255,0.035)"
                 strokeWidth="0.55"
               />
@@ -205,7 +205,7 @@ export default function HermeticVeil() {
             <path d="M548 248 H892 V592 H548 Z" fill="none" stroke="rgba(255,255,255,0.13)" strokeWidth="0.66" />
             <path d="M720 164 V676 M430 420 H1010 M514 214 L926 626 M926 214 L514 626" stroke="url(#hermeticLine)" strokeWidth="0.58" />
             <path d="M606 420 C606 346 657 296 720 296 C783 296 834 346 834 420 C834 494 783 544 720 544 C657 544 606 494 606 420Z" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.6" />
-            <path d="M720 266 C772 330 772 510 720 574 C668 510 668 330 720 266Z" fill="none" stroke="rgba(220,38,38,0.32)" strokeWidth="0.62" />
+            <path d="M720 266 C772 330 772 510 720 574 C668 510 668 330 720 266Z" fill="none" stroke="rgba(228,88,95,0.32)" strokeWidth="0.62" />
           </motion.g>
 
           <motion.g
@@ -264,7 +264,7 @@ export default function HermeticVeil() {
                     cy={node.y}
                     r={activeNode ? 22 : 14}
                     fill="none"
-                    stroke={activeNode ? 'rgba(220,38,38,0.28)' : 'rgba(255,255,255,0.08)'}
+                    stroke={activeNode ? 'rgba(228,88,95,0.28)' : 'rgba(255,255,255,0.08)'}
                     strokeWidth="0.65"
                   />
                   <text x={node.x + 14} y={node.y - 12} className="system-node-label">

@@ -120,7 +120,7 @@ function ChoiceButton({ active, children, onClick }: { active: boolean; children
         padding: '11px 16px',
         border: active ? '1px solid var(--color-crimson-border)' : '1px solid var(--color-border-subtle)',
         borderRadius: 'var(--radius-full)',
-        background: active ? 'rgba(220,38,38,0.1)' : 'rgba(255,255,255,0.025)',
+        background: active ? 'rgba(228,88,95,0.1)' : 'rgba(255,255,255,0.025)',
         color: active ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
         fontSize: 13,
       }}

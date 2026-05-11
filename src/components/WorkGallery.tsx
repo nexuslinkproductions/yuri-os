@@ -62,14 +62,17 @@ export default function WorkGallery({ onProjectClick }: WorkGalleryProps) {
               minHeight: 38,
               padding: '0 16px',
               borderRadius: 'var(--radius-full)',
-              border: active === category ? '1px solid var(--color-crimson-border)' : '1px solid var(--color-border-subtle)',
-              background: active === category ? 'rgba(220,38,38,0.1)' : 'rgba(255,255,255,0.025)',
+              border: active === category ? '1px solid rgba(255,255,255,0.11)' : '1px solid rgba(255,255,255,0.07)',
+              background: active === category
+                ? 'linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))'
+                : 'rgba(255,255,255,0.02)',
               color: active === category ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
               fontFamily: 'var(--font-display)',
               fontSize: 11,
               fontWeight: 800,
               letterSpacing: '0.11em',
               textTransform: 'uppercase',
+              boxShadow: active === category ? '0 18px 28px rgba(0,0,0,0.16)' : 'none',
             }}
           >
             {category}
@@ -96,11 +99,11 @@ export default function WorkGallery({ onProjectClick }: WorkGalleryProps) {
               position: 'relative',
               minHeight: project.span === 'tall' ? 540 : project.span === 'compact' ? 270 : 360,
               overflow: 'hidden',
-              padding: 16,
+              padding: 18,
             } as React.CSSProperties}
           >
-            <div className="image-slot" style={{ height: project.span === 'tall' ? '58%' : '62%', minHeight: 190 }} />
-            <div style={{ padding: '22px 8px 4px' }}>
+            <div className="image-slot" style={{ height: project.span === 'tall' ? '58%' : '62%', minHeight: 190, borderRadius: '18px' }} />
+            <div style={{ padding: '20px 8px 4px' }}>
               <div
                 style={{
                   display: 'flex',
@@ -109,13 +112,13 @@ export default function WorkGallery({ onProjectClick }: WorkGalleryProps) {
                   marginBottom: 14,
                   color: 'var(--color-text-tertiary)',
                   fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
-                  letterSpacing: '0.08em',
+                  fontSize: 10,
+                  letterSpacing: '0.12em',
                   textTransform: 'uppercase',
                 }}
               >
                 <span>{project.client}</span>
-                <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--color-crimson)', opacity: 0.6 }} />
+                <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(228,88,95,0.78)', opacity: 0.72 }} />
                 <span style={{ color: 'var(--color-crimson)' }}>{project.category}</span>
                 <span>{project.year}</span>
               </div>
@@ -126,6 +129,7 @@ export default function WorkGallery({ onProjectClick }: WorkGalleryProps) {
                   lineHeight: 0.98,
                   fontWeight: 900,
                   letterSpacing: 0,
+                  maxWidth: '12ch',
                 }}
               >
                 {project.title}

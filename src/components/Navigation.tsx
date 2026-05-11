@@ -53,10 +53,10 @@ export default function Navigation() {
               left: 0,
               right: 0,
               height: 1,
-              background: 'var(--color-crimson)',
+              background: 'linear-gradient(90deg, rgba(228,88,95,0.12), rgba(228,88,95,0.88), rgba(255,255,255,0.2))',
               zIndex: 9998,
               pointerEvents: 'none',
-              boxShadow: '0 0 8px var(--color-crimson-glow)',
+              boxShadow: '0 0 10px rgba(228,88,95,0.2)',
             }}
           />
         )}
@@ -72,19 +72,24 @@ export default function Navigation() {
           top: 16,
           left: '50%',
           zIndex: 'var(--z-nav)',
-          width: 'min(1120px, calc(100vw - 32px))',
+          width: 'min(1180px, calc(100vw - 28px))',
           transform: 'translateX(-50%)',
           display: 'flex',
           alignItems: 'center',
           gap: 18,
           minHeight: 60,
           padding: '8px 10px 8px 18px',
-          border: `1px solid ${scrolled ? 'var(--color-border-default)' : 'var(--color-border-void)'}`,
+          border: `1px solid ${scrolled ? 'rgba(255,255,255,0.11)' : 'rgba(255,255,255,0.04)'}`,
           borderRadius: 'var(--radius-full)',
-          background: scrolled ? 'rgba(12, 12, 20, 0.74)' : 'rgba(12, 12, 20, 0.28)',
-          backdropFilter: 'blur(22px)',
-          WebkitBackdropFilter: 'blur(22px)',
-          boxShadow: scrolled ? '0 24px 80px rgba(0,0,0,0.32)' : 'none',
+          background: scrolled
+            ? 'linear-gradient(180deg, rgba(18, 18, 22, 0.88), rgba(8, 8, 10, 0.7))'
+            : 'linear-gradient(180deg, rgba(12, 12, 16, 0.4), rgba(8, 8, 10, 0.18))',
+          backdropFilter: 'blur(26px) saturate(125%)',
+          WebkitBackdropFilter: 'blur(26px) saturate(125%)',
+          boxShadow: scrolled
+            ? '0 28px 84px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04)'
+            : 'inset 0 1px 0 rgba(255,255,255,0.03)',
+          overflow: 'hidden',
         }}
       >
         <Link
@@ -120,8 +125,8 @@ export default function Navigation() {
                 padding: '0 14px',
                 borderRadius: 'var(--radius-full)',
                 color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                background: isActive ? 'rgba(220,38,38,0.12)' : 'transparent',
-                border: isActive ? '1px solid var(--color-crimson-border)' : '1px solid transparent',
+                background: isActive ? 'rgba(255,255,255,0.05)' : 'transparent',
+                border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
                 fontFamily: 'var(--font-display)',
                 fontSize: 11,
                 fontWeight: 750,
@@ -139,7 +144,7 @@ export default function Navigation() {
           data-magnetic
           onMouseEnter={() => prefetchRoute('/contact')}
           className="magnetic-link cta-button cta-button--primary navigation-cta"
-          style={{ marginLeft: 'auto' }}
+          style={{ marginLeft: 'auto', boxShadow: '0 16px 32px rgba(0,0,0,0.16)' }}
         >
           Start a Project
         </Link>
@@ -158,6 +163,7 @@ export default function Navigation() {
             border: '1px solid var(--color-border-default)',
             borderRadius: 'var(--radius-full)',
             color: 'var(--color-text-primary)',
+            background: 'rgba(255,255,255,0.03)',
           }}
         >
           <span style={{ width: 16, height: 1, background: 'currentColor', boxShadow: '0 6px 0 currentColor, 0 -6px 0 currentColor' }} />
@@ -176,9 +182,9 @@ export default function Navigation() {
               position: 'fixed',
               inset: 0,
               zIndex: 9000,
-              background: 'rgba(12, 12, 20, 0.86)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
+              background: 'rgba(8, 8, 10, 0.9)',
+              backdropFilter: 'blur(28px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(28px) saturate(120%)',
               padding: 24,
             }}
           >
@@ -210,19 +216,20 @@ export default function Navigation() {
                     transition={{ delay: i * 0.04 }}
                   >
                     <NavLink
-                      to={link.to}
-                      data-magnetic
-                      className="magnetic-link"
-                      style={({ isActive }) => ({
+                  to={link.to}
+                  data-magnetic
+                  className="magnetic-link"
+                  style={({ isActive }) => ({
                         width: '100%',
                         justifyContent: 'space-between',
                         padding: '18px 0',
-                        borderBottom: '1px solid var(--color-border-subtle)',
-                        color: isActive ? 'var(--color-crimson)' : 'var(--color-text-primary)',
+                        borderBottom: '1px solid rgba(255,255,255,0.08)',
+                        color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
                         fontFamily: 'var(--font-display)',
                         fontSize: 'clamp(28px, 10vw, 54px)',
                         fontWeight: 850,
                         letterSpacing: 0,
+                        opacity: isActive ? 1 : 0.78,
                       })}
                     >
                       {link.label}
@@ -241,7 +248,7 @@ export default function Navigation() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 4px;
+          gap: 6px;
           margin-left: auto;
         }
 
@@ -249,12 +256,12 @@ export default function Navigation() {
           width: clamp(112px, 10vw, 158px);
           height: auto;
           opacity: 0.92;
-          filter: drop-shadow(0 0 16px rgba(220,38,38,0.12));
+          filter: drop-shadow(0 0 16px rgba(228,88,95,0.1));
         }
 
         .navigation-link:hover {
           color: var(--color-text-primary) !important;
-          background: rgba(255,255,255,0.055) !important;
+          background: rgba(255,255,255,0.065) !important;
         }
 
         @media (max-width: 860px) {

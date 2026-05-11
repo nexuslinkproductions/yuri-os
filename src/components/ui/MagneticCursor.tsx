@@ -74,7 +74,7 @@ export default function FuturisticCursor() {
 
   /* ── Derived sizes ── */
   const bracketSize = hover ? 56 : 30;
-  const color = hover ? 'rgba(220,38,38,0.95)' : 'rgba(255,255,255,0.88)';
+  const color = hover ? 'rgba(228,88,95,0.95)' : 'rgba(255,255,255,0.88)';
   const auraOpacity = visible ? 0.06 : 0;
 
   /* ── SVG bracket corners ── */
@@ -136,8 +136,8 @@ export default function FuturisticCursor() {
           {/* Center tick marks when hovering */}
           {hover && (
             <>
-              <motion.line x1={B/2 - 4} y1={B/2} x2={B/2 + 4} y2={B/2} stroke="rgba(220,38,38,0.6)" strokeWidth="0.8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
-              <motion.line x1={B/2} y1={B/2 - 4} x2={B/2} y2={B/2 + 4} stroke="rgba(220,38,38,0.6)" strokeWidth="0.8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
+              <motion.line x1={B/2 - 4} y1={B/2} x2={B/2 + 4} y2={B/2} stroke="rgba(228,88,95,0.6)" strokeWidth="0.8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
+              <motion.line x1={B/2} y1={B/2 - 4} x2={B/2} y2={B/2 + 4} stroke="rgba(228,88,95,0.6)" strokeWidth="0.8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} />
             </>
           )}
         </motion.svg>

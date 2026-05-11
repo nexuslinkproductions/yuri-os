@@ -52,11 +52,11 @@ function ServiceRow({ service, isActive, onToggle }: { service: (typeof services
         cursor: 'pointer',
         padding: 'clamp(18px, 3vw, 28px) 0',
         transition: 'background-color 0.3s ease',
-        backgroundColor: isActive ? 'rgba(220,38,38,0.07)' : 'transparent',
+        backgroundColor: isActive ? 'rgba(228,88,95,0.07)' : 'transparent',
       }}
       onHoverStart={() => {
         if (!isActive) {
-          (document.querySelector(`[data-service="${service.id}"]`) as HTMLElement)?.style.setProperty('background-color', 'rgba(220,38,38,0.04)');
+          (document.querySelector(`[data-service="${service.id}"]`) as HTMLElement)?.style.setProperty('background-color', 'rgba(228,88,95,0.04)');
         }
       }}
       onHoverEnd={() => {
@@ -85,7 +85,7 @@ function ServiceRow({ service, isActive, onToggle }: { service: (typeof services
             fontSize: '11px',
             fontFamily: 'monospace',
             fontWeight: 600,
-            color: '#dc2626',
+            color: 'var(--color-crimson)',
             whiteSpace: 'nowrap',
             letterSpacing: '0.05em',
           }}

@@ -68,7 +68,7 @@ export default function ArchitecturalGrid() {
             transform: 'rotateX(68deg) translateZ(-50px)',
             transformOrigin: 'top center',
             backgroundImage:
-              'linear-gradient(rgba(220, 38, 38, 0.075) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px)',
+              'linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.042) 1px, transparent 1px)',
             backgroundSize: '82px 82px',
             maskImage: 'linear-gradient(to bottom, transparent 0%, black 13%, black 80%, transparent 100%)',
             opacity: 0.48,
@@ -83,13 +83,13 @@ export default function ArchitecturalGrid() {
       >
         <defs>
           <radialGradient id="triquetraGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="var(--color-crimson)" stopOpacity="0.32" />
-            <stop offset="62%" stopColor="var(--color-crimson)" stopOpacity="0.08" />
+            <stop offset="0%" stopColor="var(--color-crimson)" stopOpacity="0.24" />
+            <stop offset="62%" stopColor="var(--color-crimson)" stopOpacity="0.06" />
             <stop offset="100%" stopColor="var(--color-crimson)" stopOpacity="0" />
           </radialGradient>
           <linearGradient id="gridFade" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--color-crimson)" stopOpacity="0" />
-            <stop offset="24%" stopColor="var(--color-crimson)" stopOpacity="0.12" />
+            <stop offset="24%" stopColor="var(--color-crimson)" stopOpacity="0.08" />
             <stop offset="100%" stopColor="var(--color-crimson)" stopOpacity="0.02" />
           </linearGradient>
         </defs>
@@ -129,7 +129,7 @@ export default function ArchitecturalGrid() {
             y1={y}
             x2={Math.min(1200, 600 + (y - horizonY) * 1.35)}
             y2={y}
-            stroke={i % 5 === 0 ? 'rgba(220,38,38,0.13)' : 'rgba(255,255,255,0.055)'}
+            stroke={i % 5 === 0 ? 'rgba(228,88,95,0.1)' : 'rgba(255,255,255,0.055)'}
             strokeWidth={i % 5 === 0 ? 0.78 : 0.52}
             initial={{ opacity: 0 }}
             animate={{ opacity: i < 5 ? 0.18 : 0.34 }}
@@ -154,8 +154,8 @@ export default function ArchitecturalGrid() {
           opacity="0.36"
         >
           <circle r="122" fill="none" stroke="rgba(255,255,255,0.11)" strokeWidth="0.62" strokeDasharray="1 14" />
-          <circle r="196" fill="none" stroke="rgba(220,38,38,0.18)" strokeWidth="0.72" strokeDasharray="42 18 4 18" />
-          <path d="M0 -196 L169 98 L-169 98 Z" fill="none" stroke="rgba(220,38,38,0.14)" strokeWidth="0.7" />
+          <circle r="196" fill="none" stroke="rgba(228,88,95,0.14)" strokeWidth="0.72" strokeDasharray="42 18 4 18" />
+          <path d="M0 -196 L169 98 L-169 98 Z" fill="none" stroke="rgba(228,88,95,0.12)" strokeWidth="0.7" />
           <path d="M0 196 L169 -98 L-169 -98 Z" fill="none" stroke="rgba(255,255,255,0.095)" strokeWidth="0.62" />
         </motion.g>
         <motion.g
@@ -164,7 +164,7 @@ export default function ArchitecturalGrid() {
           animate={{ pathLength: 1 }}
           transition={{ duration: 2.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <path d="M140 710 C340 520 430 260 600 185 C770 260 860 520 1060 710" fill="none" stroke="rgba(220,38,38,0.16)" strokeWidth="0.7" />
+          <path d="M140 710 C340 520 430 260 600 185 C770 260 860 520 1060 710" fill="none" stroke="rgba(228,88,95,0.12)" strokeWidth="0.7" />
           <path d="M230 742 C390 562 480 346 600 185 C720 346 810 562 970 742" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.6" />
         </motion.g>
         <Triquetra />

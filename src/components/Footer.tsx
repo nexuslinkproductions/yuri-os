@@ -22,8 +22,8 @@ export default function Footer() {
       style={{
         position: 'relative',
         zIndex: 1,
-        borderTop: '1px solid var(--color-border-subtle)',
-        background: 'rgba(12,12,20,0.78)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        background: 'linear-gradient(180deg, rgba(8,8,10,0.48), rgba(8,8,10,0.92))',
       }}
     >
       <div className="container" style={{ position: 'relative' }}>
@@ -108,7 +108,7 @@ export default function Footer() {
 
         {/* Geometric section divider — sacred geometry hairline */}
         <div aria-hidden="true" style={{ position: 'relative', margin: '48px 0 0', height: 1 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'var(--color-border-subtle)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)' }} />
           <svg
             viewBox="0 0 200 20"
             preserveAspectRatio="xMidYMid meet"

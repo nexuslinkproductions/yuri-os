@@ -96,8 +96,8 @@ function StorySignalPanel() {
       >
         <defs>
           <linearGradient id="storySignal" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor="rgba(220,38,38,0.08)" />
-            <stop offset="48%" stopColor="rgba(220,38,38,0.58)" />
+            <stop offset="0%" stopColor="rgba(228,88,95,0.08)" />
+            <stop offset="48%" stopColor="rgba(228,88,95,0.58)" />
             <stop offset="100%" stopColor="rgba(255,255,255,0.16)" />
           </linearGradient>
         </defs>
@@ -243,7 +243,7 @@ export default function AboutPage() {
           <div className="kicker">Career Arc</div>
           <h2 className="section-title">The line is not straight. It compounds.</h2>
           <div style={{ marginTop: 62, position: 'relative' }}>
-            <div style={{ position: 'absolute', left: 52, top: 0, bottom: 0, width: 1, background: 'linear-gradient(var(--color-crimson), rgba(220,38,38,0.05))' }} />
+            <div style={{ position: 'absolute', left: 52, top: 0, bottom: 0, width: 1, background: 'linear-gradient(var(--color-crimson), rgba(228,88,95,0.05))' }} />
             {career.map((item, index) => (
               <motion.article
                 key={item.year}

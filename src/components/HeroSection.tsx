@@ -88,7 +88,7 @@ const Marquee: React.FC = () => {
             flexShrink: 0,
           }}>
             {c}
-            <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'rgba(220,38,38,0.5)', margin: '0 40px', verticalAlign: 'middle' }} />
+            <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'rgba(228,88,95,0.5)', margin: '0 40px', verticalAlign: 'middle' }} />
           </span>
         ))}
       </motion.div>
@@ -177,7 +177,7 @@ const HeroSection: React.FC = () => {
         width: 400,
         height: 400,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(220,38,38,0.04) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(228,88,95,0.04) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
       <div style={{
@@ -320,7 +320,7 @@ const HeroSection: React.FC = () => {
         maskImage: 'radial-gradient(ellipse 80% 80% at 50% 0%, black 0%, transparent 100%)',
       }} />
 
-      {/* Red ambient light top-right */}
+      {/* Rose ambient light top-right */}
       <div style={{
         position: 'absolute',
         top: '-10%',
@@ -328,7 +328,7 @@ const HeroSection: React.FC = () => {
         width: 600,
         height: 600,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(220,38,38,0.07) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(228,88,95,0.07) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
 
@@ -349,13 +349,13 @@ const HeroSection: React.FC = () => {
             gap: 12,
             marginBottom: 48,
           }}>
-            <span style={{ width: 32, height: 1, background: 'rgba(220,38,38,0.6)' }} />
+            <span style={{ width: 32, height: 1, background: 'rgba(228,88,95,0.6)' }} />
             <span style={{
               fontFamily: 'var(--font-display)',
               fontSize: 11,
               fontWeight: 600,
               letterSpacing: '0.22em',
-              color: '#dc2626',
+              color: 'var(--color-crimson)',
               textTransform: 'uppercase',
             }}>
               Nexus Link Productions
@@ -423,7 +423,7 @@ const HeroSection: React.FC = () => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             <motion.div
-              animate={{ boxShadow: ['0 0 0px rgba(220,38,38,0)', '0 0 22px var(--color-crimson-pulse)', '0 0 0px rgba(220,38,38,0)'] }}
+              animate={{ boxShadow: ['0 0 0px rgba(228,88,95,0)', '0 0 22px var(--color-crimson-pulse)', '0 0 0px rgba(228,88,95,0)'] }}
               transition={{ duration: 3.5, ease: 'easeInOut', repeat: Infinity, repeatDelay: 1.5 }}
               style={{ borderRadius: 'var(--radius-full)', display: 'inline-flex' }}
             >
@@ -465,7 +465,7 @@ const HeroSection: React.FC = () => {
                 fontWeight: 600,
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
-                color: '#dc2626',
+                color: 'var(--color-crimson)',
                 textDecoration: 'none',
                 display: 'flex',
                 alignItems: 'center',

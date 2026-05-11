@@ -91,7 +91,7 @@ export default function CineGlow() {
           const p = ripple.life / 38;
           ctx.beginPath();
           ctx.arc(ripple.x, ripple.y, 8 + p * 44, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(220,38,38,${(1 - p) * 0.34})`;
+          ctx.strokeStyle = `rgba(228,88,95,${(1 - p) * 0.24})`;
           ctx.lineWidth = 0.8;
           ctx.stroke();
           alive.push(ripple);
@@ -115,14 +115,14 @@ export default function CineGlow() {
         drawCorner(ctx, x + w, y, -1, 1, size);
         drawCorner(ctx, x + w, y + h, -1, -1, size);
         drawCorner(ctx, x, y + h, 1, -1, size);
-        ctx.strokeStyle = 'rgba(220,38,38,0.72)';
+        ctx.strokeStyle = 'rgba(228,88,95,0.54)';
         ctx.lineWidth = 0.8;
         ctx.stroke();
 
         ctx.beginPath();
         ctx.moveTo(state.x, state.y);
         ctx.lineTo(r.x + r.w / 2, r.y + r.h / 2);
-        ctx.strokeStyle = 'rgba(220,38,38,0.16)';
+        ctx.strokeStyle = 'rgba(228,88,95,0.12)';
         ctx.lineWidth = 0.55;
         ctx.setLineDash([4, 9]);
         ctx.stroke();
@@ -142,7 +142,7 @@ export default function CineGlow() {
         ctx.beginPath();
         ctx.arc(0, 0, orbit, Math.PI * 0.05, Math.PI * 0.58);
         ctx.arc(0, 0, orbit, Math.PI * 1.05, Math.PI * 1.58);
-        ctx.strokeStyle = state.active ? 'rgba(220,38,38,0.86)' : 'rgba(232,232,238,0.46)';
+        ctx.strokeStyle = state.active ? 'rgba(228,88,95,0.74)' : 'rgba(244,241,235,0.48)';
         ctx.lineWidth = state.active ? 1 : 0.72;
         ctx.stroke();
 
@@ -155,7 +155,7 @@ export default function CineGlow() {
         ctx.lineTo(0, -focus - 2);
         ctx.moveTo(0, focus + 2);
         ctx.lineTo(0, orbit + 7);
-        ctx.strokeStyle = 'rgba(220,38,38,0.58)';
+        ctx.strokeStyle = 'rgba(228,88,95,0.58)';
         ctx.lineWidth = 0.64;
         ctx.stroke();
 
@@ -165,7 +165,7 @@ export default function CineGlow() {
         ctx.lineTo(0, focus);
         ctx.lineTo(-focus, 0);
         ctx.closePath();
-        ctx.strokeStyle = 'rgba(255,255,255,0.62)';
+        ctx.strokeStyle = 'rgba(244,241,235,0.72)';
         ctx.lineWidth = 0.72;
         ctx.stroke();
         ctx.restore();
@@ -174,7 +174,7 @@ export default function CineGlow() {
           ctx.beginPath();
           ctx.moveTo(state.x, state.y);
           ctx.lineTo(lerp(state.x, state.px, 0.18), lerp(state.y, state.py, 0.18));
-          ctx.strokeStyle = `rgba(220,38,38,${0.07 + speed * 0.16})`;
+          ctx.strokeStyle = `rgba(228,88,95,${0.06 + speed * 0.12})`;
           ctx.lineWidth = 0.7;
           ctx.stroke();
         }

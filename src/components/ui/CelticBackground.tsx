@@ -120,7 +120,7 @@ export default function CelticBackground() {
         if (i === 0) ctx.moveTo(s.x, s.y);
         else ctx.lineTo(s.x, s.y);
       }
-      ctx.strokeStyle = `rgba(220,38,38,${0.02 + scrollProgress * 0.03})`;
+      ctx.strokeStyle = `rgba(228,88,95,${0.02 + scrollProgress * 0.03})`;
       ctx.lineWidth = 0.6;
       ctx.stroke();
 

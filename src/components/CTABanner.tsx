@@ -32,8 +32,8 @@ export default function CTABanner({ headline, sub, buttonLabel, buttonHref = '/c
           <div
             style={{
               position: 'absolute',
-              inset: '15% 12%',
-              background: 'radial-gradient(ellipse at center, rgba(220,38,38,0.1), transparent 68%)',
+              inset: '12% 10%',
+              background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.08), rgba(228,88,95,0.06) 34%, transparent 72%)',
               pointerEvents: 'none',
             }}
           />
@@ -41,7 +41,7 @@ export default function CTABanner({ headline, sub, buttonLabel, buttonHref = '/c
             style={{
               width: 58,
               height: 1,
-              background: 'var(--color-crimson)',
+              background: 'linear-gradient(90deg, transparent, rgba(228,88,95,0.9), rgba(255,255,255,0.22), transparent)',
               margin: '0 auto 34px',
               transformOrigin: '50% 50%',
               position: 'relative',
@@ -60,7 +60,7 @@ export default function CTABanner({ headline, sub, buttonLabel, buttonHref = '/c
               fontSize: 'clamp(38px, 7vw, 94px)',
               fontWeight: 900,
               letterSpacing: 0,
-              lineHeight: 0.98,
+              lineHeight: 0.92,
             }}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}

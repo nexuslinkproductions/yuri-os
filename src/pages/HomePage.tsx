@@ -227,11 +227,16 @@ function Hero() {
           <motion.div
             data-proximity
             style={{
-              padding: '14px 4px',
+              padding: '14px 16px',
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 4,
-              borderTop: '1px solid var(--color-border-subtle)',
+              gap: 6,
+              border: '1px solid rgba(255,255,255,0.09)',
+              borderRadius: 'var(--radius-md)',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.024)), rgba(8,8,10,0.45)',
+              boxShadow: '0 18px 48px rgba(0,0,0,0.16)',
+              backdropFilter: 'blur(18px) saturate(120%)',
+              WebkitBackdropFilter: 'blur(18px) saturate(120%)',
             } as React.CSSProperties}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -241,7 +246,7 @@ function Hero() {
               <div
                 key={stat.label}
                 style={{
-                  padding: '6px 14px',
+                  padding: '8px 14px',
                   borderLeft: index === 0 ? '0' : '1px solid var(--color-border-subtle)',
                 }}
               >
@@ -249,7 +254,7 @@ function Hero() {
                   <AnimatedCounter target={stat.value} duration={1400} />
                   <span style={{ fontSize: 16 }}>{stat.suffix}</span>
                 </div>
-                <div style={{ marginTop: 6, color: 'var(--color-text-tertiary)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase' }}>{stat.label}</div>
+                <div style={{ marginTop: 6, color: 'var(--color-text-tertiary)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{stat.label}</div>
               </div>
             ))}
           </motion.div>
@@ -262,7 +267,7 @@ function Hero() {
           transition={{ duration: 0.65, delay: 1.16, ease: EASE }}
         >
           <motion.span
-            animate={{ boxShadow: ['0 0 0px rgba(220,38,38,0)', '0 0 24px var(--color-crimson-pulse)', '0 0 0px rgba(220,38,38,0)'] }}
+            animate={{ boxShadow: ['0 0 0px rgba(228,88,95,0)', '0 0 24px var(--color-crimson-pulse)', '0 0 0px rgba(228,88,95,0)'] }}
             transition={{ duration: 3.5, ease: 'easeInOut', repeat: Infinity, repeatDelay: 1.5 }}
             style={{ borderRadius: 'var(--radius-full)', display: 'inline-flex' }}
           >
