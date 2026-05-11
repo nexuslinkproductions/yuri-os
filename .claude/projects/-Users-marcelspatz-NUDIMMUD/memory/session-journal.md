@@ -1,3 +1,305 @@
+<!-- session-journal: newest entry first -->
+
+## 2026-05-11 | Session 1778506763023 | 31m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×65, Read×5, TodoWrite×4, Edit×2, ToolSearch×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=siteBuilderService.ts,auth.test.ts,opus-aggressive-promotion-sprint-2026-05-11.md`
+
+---
+
+## 2026-05-11 | Session 1778506100272 | 2m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** none | **Success rate:** n/a
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-11 | Session 1778506100272 | 0m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** none | **Success rate:** n/a
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-11 | Session 1778505504509 | 10m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×37, Read×7, Edit×6, mcp×1, ToolSearch×1, Monitor×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=security-reviewer.md,skills-registry.md,agent-manifest.json`
+
+---
+
+## 2026-05-11 | Session 1778504758858 | 7m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×56, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-11 | Session 1778502960790 | 11m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Edit×3, Bash×3, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=auth.ts,designStudioRoutes.ts,api.ts`
+
+---
+
+## 2026-05-11 | Session 1778501395227 | 18m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×25, Bash×19, Agent×2, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-11 | Session 1778501282606 | 0m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×1, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md`
+
+---
+
+## 2026-05-11 | Session 1778500927484 | 1m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×3, Bash×1, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=package.json`
+
+---
+
+## 2026-05-11 | Session 1778500401277 | 3m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×4, Edit×4, Read×3, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=server.ts,obsidian-routes.test.mjs,package.json`
+
+---
+
+## 2026-05-11 | Session 1778500072562 | 3m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×6, Read×5 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-11 | Session 1778499362092 | 4m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×3, Edit×1, Bash×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=server.ts`
+
+---
+
+## 2026-05-11 | Session 1778499232257 | 2m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Edit×3, Read×3, Bash×3 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=offload-runner.mjs,server.ts`
+
+---
+
+## 2026-05-11 | Session 1778498300398 | 12m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×12, Read×11, mcp×2, Edit×2, ToolSearch×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=you-are-a-disciplined-eager-sunbeam.md,server.ts`
+
+---
+
+## 2026-05-11 | Session 1778495266144 | 50m | peak 0% | compacts: 0
+
+**Branch:** unknown | **Cwd:** /Users/marcelspatz
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** none | **Success rate:** n/a
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: `
+
+---
+
 ## 2026-05-07 | Session 1778151584143 | 5m | peak 0% | compacts: 0
 
 **Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD

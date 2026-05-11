@@ -1,0 +1,537 @@
+{
+  "generatedAt": "2026-05-11T05:24:39.338Z",
+  "week": "2026-W20",
+  "totalLessons": 1,
+  "totalDomains": 1,
+  "taxonomy": [
+    {
+      "tag": "framing_failure",
+      "label": "Framing failure",
+      "group": "Reasoning",
+      "description": "The work answered a different question than the one that mattered.",
+      "aliases": [
+        "wrong question",
+        "question mismatch",
+        "question drift",
+        "misframed",
+        "framing failure",
+        "wrong market question",
+        "resolution source mismatch"
+      ]
+    },
+    {
+      "tag": "source_of_truth_mismatch",
+      "label": "Source of truth mismatch",
+      "group": "Evidence",
+      "description": "The wrong source was treated as authoritative.",
+      "aliases": [
+        "wrong source of truth",
+        "source mismatch",
+        "wrong source",
+        "bad source",
+        "resolution source",
+        "reference mismatch"
+      ]
+    },
+    {
+      "tag": "missing_gate",
+      "label": "Missing gate",
+      "group": "Decision",
+      "description": "A readiness or approval check was skipped or absent.",
+      "aliases": [
+        "approval gate",
+        "missing gate",
+        "readiness check",
+        "manual approval",
+        "sign off",
+        "sign-off",
+        "checklist missing"
+      ]
+    },
+    {
+      "tag": "late_data",
+      "label": "Late data",
+      "group": "Signal",
+      "description": "The signal arrived too late or was already stale.",
+      "aliases": [
+        "stale data",
+        "old data",
+        "late data",
+        "freshness issue",
+        "data too old",
+        "stale signal"
+      ]
+    },
+    {
+      "tag": "threshold_mismatch",
+      "label": "Threshold mismatch",
+      "group": "Decision",
+      "description": "The cutoff, limit, or boundary was chosen poorly.",
+      "aliases": [
+        "threshold mismatch",
+        "limit exceeded",
+        "cutoff wrong",
+        "boundary issue",
+        "wrong threshold"
+      ]
+    },
+    {
+      "tag": "scope_mismatch",
+      "label": "Scope mismatch",
+      "group": "Scope",
+      "description": "The task was too broad, too narrow, or outside the actual scope.",
+      "aliases": [
+        "scope mismatch",
+        "out of scope",
+        "too broad",
+        "too narrow",
+        "scope creep"
+      ]
+    },
+    {
+      "tag": "ownership_gap",
+      "label": "Ownership gap",
+      "group": "Coordination",
+      "description": "Responsibility or handoff was unclear.",
+      "aliases": [
+        "ownership gap",
+        "missing owner",
+        "unclear owner",
+        "handoff gap",
+        "routing gap",
+        "who owns"
+      ]
+    },
+    {
+      "tag": "calibration_drift",
+      "label": "Calibration drift",
+      "group": "Learning",
+      "description": "The confidence model, threshold, or estimate drifted away from reality.",
+      "aliases": [
+        "calibration drift",
+        "confidence calibration",
+        "brier",
+        "overconfident",
+        "underconfident",
+        "miscalibrated"
+      ]
+    },
+    {
+      "tag": "timing_error",
+      "label": "Timing error",
+      "group": "Execution",
+      "description": "The action happened too early, too late, or with the wrong latency.",
+      "aliases": [
+        "timing error",
+        "wrong timing",
+        "too early",
+        "too late",
+        "entry timing",
+        "latency issue"
+      ]
+    },
+    {
+      "tag": "tooling_gap",
+      "label": "Tooling gap",
+      "group": "Execution",
+      "description": "The path, command, or tool was missing or broken.",
+      "aliases": [
+        "tooling gap",
+        "missing file",
+        "broken command",
+        "entrypoint missing",
+        "command not found",
+        "script missing"
+      ]
+    },
+    {
+      "tag": "state_drift",
+      "label": "State drift",
+      "group": "State",
+      "description": "The active state diverged from the expected state.",
+      "aliases": [
+        "state drift",
+        "out of sync",
+        "stale state",
+        "desync",
+        "state mismatch"
+      ]
+    },
+    {
+      "tag": "implicit_assumption",
+      "label": "Implicit assumption",
+      "group": "Reasoning",
+      "description": "A hidden assumption was treated as a fact.",
+      "aliases": [
+        "implicit assumption",
+        "assumed",
+        "assumption",
+        "unspoken assumption",
+        "without checking"
+      ]
+    }
+  ],
+  "domains": [
+    {
+      "domain": "operations",
+      "lessons": [
+        {
+          "title": "Yuri readiness gates must be live, not declarative",
+          "path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/entries/operations/yuri-readiness-gates-2026-05-11.md",
+          "archivePath": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/archive/raw-lessons/2026-W20/operations/yuri-readiness-gates-2026-05-11.md",
+          "primaryTag": "missing_gate",
+          "tags": [
+            "missing_gate",
+            "tooling_gap",
+            "state_drift",
+            "source_of_truth_mismatch",
+            "implicit_assumption"
+          ]
+        }
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "tag": "implicit_assumption",
+      "label": "Implicit assumption",
+      "group": "Reasoning",
+      "description": "A hidden assumption was treated as a fact.",
+      "lessons": [
+        {
+          "title": "Yuri readiness gates must be live, not declarative",
+          "path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/entries/operations/yuri-readiness-gates-2026-05-11.md",
+          "archivePath": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/archive/raw-lessons/2026-W20/operations/yuri-readiness-gates-2026-05-11.md",
+          "domain": "operations",
+          "primaryTag": "missing_gate",
+          "tags": [
+            "missing_gate",
+            "tooling_gap",
+            "state_drift",
+            "source_of_truth_mismatch",
+            "implicit_assumption"
+          ],
+          "questions": [
+            "What happened?",
+            "The council audit exposed a false-readiness pattern: tests could pass while build, live memory health, GitNexus status, launchd runtime, and skill registry drift were failing or unverified.",
+            "What was the real question?",
+            "Can Yuri prove operational readiness from deterministic local commands and canonical memory state?",
+            "What question did I answer instead?",
+            "Whether a written plan described the right architecture.",
+            "What did I assume without checking?",
+            "That plan status, unit-test status, and current runtime status were equivalent."
+          ],
+          "summary": "What happened?",
+          "taxonomy": [
+            {
+              "tag": "missing_gate",
+              "label": "Missing gate",
+              "group": "Decision",
+              "description": "A readiness or approval check was skipped or absent."
+            },
+            {
+              "tag": "tooling_gap",
+              "label": "Tooling gap",
+              "group": "Execution",
+              "description": "The path, command, or tool was missing or broken."
+            },
+            {
+              "tag": "state_drift",
+              "label": "State drift",
+              "group": "State",
+              "description": "The active state diverged from the expected state."
+            },
+            {
+              "tag": "source_of_truth_mismatch",
+              "label": "Source of truth mismatch",
+              "group": "Evidence",
+              "description": "The wrong source was treated as authoritative."
+            },
+            {
+              "tag": "implicit_assumption",
+              "label": "Implicit assumption",
+              "group": "Reasoning",
+              "description": "A hidden assumption was treated as a fact."
+            }
+          ]
+        }
+      ],
+      "domains": [
+        "operations"
+      ]
+    },
+    {
+      "tag": "missing_gate",
+      "label": "Missing gate",
+      "group": "Decision",
+      "description": "A readiness or approval check was skipped or absent.",
+      "lessons": [
+        {
+          "title": "Yuri readiness gates must be live, not declarative",
+          "path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/entries/operations/yuri-readiness-gates-2026-05-11.md",
+          "archivePath": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/archive/raw-lessons/2026-W20/operations/yuri-readiness-gates-2026-05-11.md",
+          "domain": "operations",
+          "primaryTag": "missing_gate",
+          "tags": [
+            "missing_gate",
+            "tooling_gap",
+            "state_drift",
+            "source_of_truth_mismatch",
+            "implicit_assumption"
+          ],
+          "questions": [
+            "What happened?",
+            "The council audit exposed a false-readiness pattern: tests could pass while build, live memory health, GitNexus status, launchd runtime, and skill registry drift were failing or unverified.",
+            "What was the real question?",
+            "Can Yuri prove operational readiness from deterministic local commands and canonical memory state?",
+            "What question did I answer instead?",
+            "Whether a written plan described the right architecture.",
+            "What did I assume without checking?",
+            "That plan status, unit-test status, and current runtime status were equivalent."
+          ],
+          "summary": "What happened?",
+          "taxonomy": [
+            {
+              "tag": "missing_gate",
+              "label": "Missing gate",
+              "group": "Decision",
+              "description": "A readiness or approval check was skipped or absent."
+            },
+            {
+              "tag": "tooling_gap",
+              "label": "Tooling gap",
+              "group": "Execution",
+              "description": "The path, command, or tool was missing or broken."
+            },
+            {
+              "tag": "state_drift",
+              "label": "State drift",
+              "group": "State",
+              "description": "The active state diverged from the expected state."
+            },
+            {
+              "tag": "source_of_truth_mismatch",
+              "label": "Source of truth mismatch",
+              "group": "Evidence",
+              "description": "The wrong source was treated as authoritative."
+            },
+            {
+              "tag": "implicit_assumption",
+              "label": "Implicit assumption",
+              "group": "Reasoning",
+              "description": "A hidden assumption was treated as a fact."
+            }
+          ]
+        }
+      ],
+      "domains": [
+        "operations"
+      ]
+    },
+    {
+      "tag": "source_of_truth_mismatch",
+      "label": "Source of truth mismatch",
+      "group": "Evidence",
+      "description": "The wrong source was treated as authoritative.",
+      "lessons": [
+        {
+          "title": "Yuri readiness gates must be live, not declarative",
+          "path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/entries/operations/yuri-readiness-gates-2026-05-11.md",
+          "archivePath": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/archive/raw-lessons/2026-W20/operations/yuri-readiness-gates-2026-05-11.md",
+          "domain": "operations",
+          "primaryTag": "missing_gate",
+          "tags": [
+            "missing_gate",
+            "tooling_gap",
+            "state_drift",
+            "source_of_truth_mismatch",
+            "implicit_assumption"
+          ],
+          "questions": [
+            "What happened?",
+            "The council audit exposed a false-readiness pattern: tests could pass while build, live memory health, GitNexus status, launchd runtime, and skill registry drift were failing or unverified.",
+            "What was the real question?",
+            "Can Yuri prove operational readiness from deterministic local commands and canonical memory state?",
+            "What question did I answer instead?",
+            "Whether a written plan described the right architecture.",
+            "What did I assume without checking?",
+            "That plan status, unit-test status, and current runtime status were equivalent."
+          ],
+          "summary": "What happened?",
+          "taxonomy": [
+            {
+              "tag": "missing_gate",
+              "label": "Missing gate",
+              "group": "Decision",
+              "description": "A readiness or approval check was skipped or absent."
+            },
+            {
+              "tag": "tooling_gap",
+              "label": "Tooling gap",
+              "group": "Execution",
+              "description": "The path, command, or tool was missing or broken."
+            },
+            {
+              "tag": "state_drift",
+              "label": "State drift",
+              "group": "State",
+              "description": "The active state diverged from the expected state."
+            },
+            {
+              "tag": "source_of_truth_mismatch",
+              "label": "Source of truth mismatch",
+              "group": "Evidence",
+              "description": "The wrong source was treated as authoritative."
+            },
+            {
+              "tag": "implicit_assumption",
+              "label": "Implicit assumption",
+              "group": "Reasoning",
+              "description": "A hidden assumption was treated as a fact."
+            }
+          ]
+        }
+      ],
+      "domains": [
+        "operations"
+      ]
+    },
+    {
+      "tag": "state_drift",
+      "label": "State drift",
+      "group": "State",
+      "description": "The active state diverged from the expected state.",
+      "lessons": [
+        {
+          "title": "Yuri readiness gates must be live, not declarative",
+          "path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/entries/operations/yuri-readiness-gates-2026-05-11.md",
+          "archivePath": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/archive/raw-lessons/2026-W20/operations/yuri-readiness-gates-2026-05-11.md",
+          "domain": "operations",
+          "primaryTag": "missing_gate",
+          "tags": [
+            "missing_gate",
+            "tooling_gap",
+            "state_drift",
+            "source_of_truth_mismatch",
+            "implicit_assumption"
+          ],
+          "questions": [
+            "What happened?",
+            "The council audit exposed a false-readiness pattern: tests could pass while build, live memory health, GitNexus status, launchd runtime, and skill registry drift were failing or unverified.",
+            "What was the real question?",
+            "Can Yuri prove operational readiness from deterministic local commands and canonical memory state?",
+            "What question did I answer instead?",
+            "Whether a written plan described the right architecture.",
+            "What did I assume without checking?",
+            "That plan status, unit-test status, and current runtime status were equivalent."
+          ],
+          "summary": "What happened?",
+          "taxonomy": [
+            {
+              "tag": "missing_gate",
+              "label": "Missing gate",
+              "group": "Decision",
+              "description": "A readiness or approval check was skipped or absent."
+            },
+            {
+              "tag": "tooling_gap",
+              "label": "Tooling gap",
+              "group": "Execution",
+              "description": "The path, command, or tool was missing or broken."
+            },
+            {
+              "tag": "state_drift",
+              "label": "State drift",
+              "group": "State",
+              "description": "The active state diverged from the expected state."
+            },
+            {
+              "tag": "source_of_truth_mismatch",
+              "label": "Source of truth mismatch",
+              "group": "Evidence",
+              "description": "The wrong source was treated as authoritative."
+            },
+            {
+              "tag": "implicit_assumption",
+              "label": "Implicit assumption",
+              "group": "Reasoning",
+              "description": "A hidden assumption was treated as a fact."
+            }
+          ]
+        }
+      ],
+      "domains": [
+        "operations"
+      ]
+    },
+    {
+      "tag": "tooling_gap",
+      "label": "Tooling gap",
+      "group": "Execution",
+      "description": "The path, command, or tool was missing or broken.",
+      "lessons": [
+        {
+          "title": "Yuri readiness gates must be live, not declarative",
+          "path": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/entries/operations/yuri-readiness-gates-2026-05-11.md",
+          "archivePath": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/archive/raw-lessons/2026-W20/operations/yuri-readiness-gates-2026-05-11.md",
+          "domain": "operations",
+          "primaryTag": "missing_gate",
+          "tags": [
+            "missing_gate",
+            "tooling_gap",
+            "state_drift",
+            "source_of_truth_mismatch",
+            "implicit_assumption"
+          ],
+          "questions": [
+            "What happened?",
+            "The council audit exposed a false-readiness pattern: tests could pass while build, live memory health, GitNexus status, launchd runtime, and skill registry drift were failing or unverified.",
+            "What was the real question?",
+            "Can Yuri prove operational readiness from deterministic local commands and canonical memory state?",
+            "What question did I answer instead?",
+            "Whether a written plan described the right architecture.",
+            "What did I assume without checking?",
+            "That plan status, unit-test status, and current runtime status were equivalent."
+          ],
+          "summary": "What happened?",
+          "taxonomy": [
+            {
+              "tag": "missing_gate",
+              "label": "Missing gate",
+              "group": "Decision",
+              "description": "A readiness or approval check was skipped or absent."
+            },
+            {
+              "tag": "tooling_gap",
+              "label": "Tooling gap",
+              "group": "Execution",
+              "description": "The path, command, or tool was missing or broken."
+            },
+            {
+              "tag": "state_drift",
+              "label": "State drift",
+              "group": "State",
+              "description": "The active state diverged from the expected state."
+            },
+            {
+              "tag": "source_of_truth_mismatch",
+              "label": "Source of truth mismatch",
+              "group": "Evidence",
+              "description": "The wrong source was treated as authoritative."
+            },
+            {
+              "tag": "implicit_assumption",
+              "label": "Implicit assumption",
+              "group": "Reasoning",
+              "description": "A hidden assumption was treated as a fact."
+            }
+          ]
+        }
+      ],
+      "domains": [
+        "operations"
+      ]
+    }
+  ],
+  "bridges": []
+}

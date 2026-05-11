@@ -13,7 +13,10 @@
 | `failure-log.md` | Safe failure container — root cause analysis |
 | `extraction-template.md` | 5-minute lesson extraction template |
 | `domain-index.md` | Living index by domain |
-| `weekly-consolidation.md` | Sunday night consolidation ritual |
+| `weekly-comp.md` | Canonical Sunday night consolidation ritual |
+| `weekly-consolidation.md` | Legacy compatibility forwarder |
+| `cross-reference-taxonomy.md` | Canonical domain-agnostic tags and aliases |
+| `cross-reference-index.md` | Generated bridge map across lessons and domains |
 | `entries/` | One file per lesson (populated by use) |
 
 ## Core Rules
@@ -38,7 +41,8 @@
 When asked about:
 - **Failures or mistakes** → read `failure-log.md`
 - **Extracting lessons** → read `extraction-template.md`
-- **Weekly patterns** → read `weekly-consolidation.md`, then scan `entries/`
+- **Weekly patterns** → read `weekly-comp.md`, then scan `entries/` and `cross-reference-index.md`
+- **Legacy references** → `weekly-consolidation.md` still forwards to the canonical ritual
 - **What's been learned in a domain** → read `domain-index.md`
 
 ---

@@ -45,7 +45,7 @@
   },
   "design-master": {
     "source_path": ".claude/skills/design-master/SKILL.md",
-    "hash": "9ed11b2071415197"
+    "hash": "200b587b9e6394f9"
   },
   "design-source-pack": {
     "source_path": ".claude/skills/design-source-pack/SKILL.md",
@@ -62,6 +62,10 @@
   "failure-evolution-loop": {
     "source_path": ".claude/skills/failure-evolution-loop/SKILL.md",
     "hash": "dda48fa8852c94b9"
+  },
+  "frontend-design": {
+    "source_path": ".claude/skills/frontend-design/SKILL.md",
+    "hash": "0a00c861501ea53b"
   },
   "gitnexus-cli": {
     "source_path": ".claude/skills/gitnexus-cli/SKILL.md",
@@ -105,7 +109,7 @@
   },
   "local-subagent": {
     "source_path": ".claude/skills/local-subagent/SKILL.md",
-    "hash": "9f65d7c9f8dc3841"
+    "hash": "e0bedd5dd687ba08"
   },
   "math-curve-loaders": {
     "source_path": ".claude/skills/math-curve-loaders/SKILL.md",
@@ -149,6 +153,6 @@
   },
   "tokenmaxxing": {
     "source_path": ".claude/skills/tokenmaxxing/SKILL.md",
-    "hash": "991978bc7aa25257"
+    "hash": "a010014d6015b10e"
   }
 }

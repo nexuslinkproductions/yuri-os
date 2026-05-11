@@ -3,6 +3,7 @@
 - [Oracle Shell Service](project_shell_service.md) — launchd-managed shellService.js on port 3098; fixes pm2 posix_spawn EBADF for Oracle terminal
 
 - [No Anthropic model agents](feedback_no_anthropic_agents.md) — Agent() with Claude/Haiku/Sonnet/Opus is banned; use DeepSeek offload only
+- [package.json dirty worktree](feedback_packagejson_dirty_worktree.md) — worktree has unrelated script churn; touch only the exact target entry, never normalize or reorder
 - [Canonical cwd + branch](feedback_canonical_cwd_branch.md) — Always work from /Users/marcelspatz/NUDIMMUD on main; never worktrees/feature branches; stop+ask on mismatch
 - [Reasoning mode default](feedback_reasoning_mode.md) — Reasoning always on auto; only MAX if explicitly requested in session
 - [Use swarm for data gathering](feedback_swarm_data_gathering.md) — Route read/fetch/context extraction through @swarm offload lanes before synthesis

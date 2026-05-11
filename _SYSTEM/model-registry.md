@@ -22,6 +22,27 @@
 - Pro list price: cache-hit $0.0145, cache-miss $1.74, output $3.48.
 - Boundary: this section is router authority only; do not infer benchmark superiority over Opus without Yuri eval.
 
+## OpenRouter Free Router Notes
+
+- Endpoint: `https://openrouter.ai/api/v1`
+- Router model: `openrouter/free`
+- Use for scouting, low-cost experimentation, and bursty agent work when a free model is acceptable.
+- Free model availability changes frequently; prefer the router for opportunistic tasks and a specific `:free` model only when you need repeatability.
+- Specific free variants are addressable as `provider/model:free`, for example `inclusionai/ring-2.6-1t:free`.
+- `inclusionai/ring-2.6-1t:free`: released 2026-05-08, 262K context, $0/M input, $0/M output, strong fit for coding agents, tool use, and long-horizon task execution.
+- `openrouter/free` will choose among currently available free models that satisfy the request shape.
+- Boundary: do not treat free routing as canonical production infrastructure.
+
+## NVIDIA Hosted Lane Notes
+
+- Endpoint: `https://integrate.api.nvidia.com/v1`
+- Lane: `nvidia-deepseek`
+- Default model: `deepseek-ai/deepseek-v4-pro`
+- Requires `NVIDIA_API_KEY`.
+- API is OpenAI-compatible and exposes `/v1/chat/completions`, `/v1/completions`, `/v1/responses`, and `/v1/models`.
+- Use for heavy cloud bursts, hosted execution, and model access when local capacity is insufficient.
+- Boundary: hosted NVIDIA lanes are good throughput valves, not the future local-home base.
+
 ## Codex Spark Router Notes
 
 - Platform: local `codex` CLI, not a generic text API.

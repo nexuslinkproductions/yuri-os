@@ -1,25 +1,15 @@
-# YYYY-MM-DD | [Domain] | [Outcome: GOOD/BAD/NEUTRAL]
+# Extraction Template — Questions Only
 
-**What happened:** (1 sentence — the event, not the reaction)
-
-**What I learned:** (1 sentence — the insight, stripped of narrative)
-
-**What I'll do different:** (concrete, actionable — next time I will...)
-
-**Emotional tag:** [frustrated/surprised/excited/tired/calm/ashamed/proud]
-
-**Cross-reference:** [link to related lesson, project file, or memory entry]
-
----
-
-## Usage
-
-1. Copy this template into `03_LEARNINGS/entries/[domain]/YYYY-MM-DD-description.md`
-2. Fill it in 5 minutes or less
-3. If it takes longer, the template is wrong — file what you have and move on
-
-## Stretch (30 seconds extra, 5x value)
-
-**What was I blind to before this happened?** (1 sentence — the assumption that was wrong)
-
-**Who else should know?** (optional — share the lesson with a collaborator)
+- What happened?
+- What was the real question?
+- What question did I answer instead?
+- What did I assume without checking?
+- What signal did I ignore?
+- What cost did the miss create?
+- What repeated pattern does this resemble?
+- Which canonical tag(s) apply?
+- Which other domain would this lesson map to?
+- What alias or alternate wording should I search for later?
+- What rule would have prevented it?
+- Where should that rule live?
+- What experiment would test the better behavior next week?

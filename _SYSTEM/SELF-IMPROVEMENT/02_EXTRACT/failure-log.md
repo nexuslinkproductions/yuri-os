@@ -1,44 +1,33 @@
-# Failure Log — No Judgment, Just Data
+# Failure Log — 7-Rung Ladder
 
-> *Failures are information. Process them within 24 hours or lose the signal.*
+Failures are routed upward until they become prevention rules.
 
-This is a safe space. No self-flagellation, no "should have known better." Just structured honesty. The goal is pattern recognition, not punishment.
+## The Ladder
 
----
+1. **Signal** — What happened?
+2. **Cost** — What did it waste or risk?
+3. **Mechanism** — What process created the miss?
+4. **Pattern** — Has this appeared before?
+5. **Framing** — Was the question itself wrong?
+6. **Prevention** — What rule would stop recurrence?
+7. **Compounding** — Where does the rule get installed?
 
-## Template (copy into log when needed)
+## Entry Template
 
 ```markdown
-# YYYY-MM-DD | [Domain] | [Cost Rating: $/TIME/OPPORTUNITY]
+# YYYY-MM-DD | Domain | Cost
 
-**What I tried:** (1 sentence — the action or decision)
-
-**What happened instead:** (1 sentence — the actual outcome)
-
-**Why (root cause, not excuse):** (1-2 sentences — the mechanism)
-
-**What it cost:** (estimate — hours wasted, money lost, opportunity missed)
-
-**What it protected me from:** (1 sentence — the silver lining, even if it's small)
-
-**Root cause type:** [knowledge-gap / assumption / haste / emotion / external / other]
-
-**Prevention measure:** (1 sentence — what system or habit would stop this recurrence)
+1. Signal:
+2. Cost:
+3. Mechanism:
+4. Pattern:
+5. Canonical tag(s):
+6. Prevention:
+7. Compounding target / cross-domain analogs:
 ```
 
----
+## Escalation
 
-## Failure Index
-
-| Date | Domain | Root Cause Type | Cost | Prevention Filed? |
-|------|--------|----------------|------|-------------------|
-| *Awaiting entries* | | | | |
-
----
-
-## Notes
-
-- Fill within 24 hours of the failure. After 48 hours the emotional data degrades.
-- "Cost" is not about punishment — it's about proportional response. A $5 mistake gets 5 minutes of analysis. A $500 mistake gets 50 minutes.
-- If the same root cause appears twice, it's no longer a failure — it's a system gap. Escalate to process design.
-- Sharing this with collaborators is optional but recommended. The second time you tell the story, you own the lesson completely.
+- Same mechanism twice: write a prevention rule.
+- Same framing miss once in a high-cost domain: write a prevention rule immediately.
+- Raw entries are archived after weekly consolidation.
