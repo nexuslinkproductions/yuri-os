@@ -16,6 +16,17 @@ import {
   runOllamaLocalChat,
 } from './ollama-adapter.mjs';
 
+const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
+const MODEL_POLICY = loadModelPolicy();
+const LOCAL_MODEL_POLICY = MODEL_POLICY.local || {};
+const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'qwen2.5:7b';
+const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || 'qwen3.5:4b';
+const LOCAL_CODE_MODEL = LOCAL_MODEL_POLICY.code || 'qwen2.5-coder:7b';
+const LOCAL_CODE_FALLBACK_MODEL = LOCAL_MODEL_POLICY.code_fallback || 'starcoder2:latest';
+const LOCAL_DEEP_REASONING_MODEL = LOCAL_MODEL_POLICY.deep_reasoning || 'deepseek-r1:8b';
+const LOCAL_MULTIMODAL_MODEL = LOCAL_MODEL_POLICY.multimodal || 'gemma4:e2b';
+const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || 'llama3.2:latest';
+
 const argv = process.argv.slice(2);
 
 if (argv.includes('--inventory')) {
@@ -145,25 +156,30 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     return resolveOllamaAdditiveLane(requestedLane, normalizedForcedModel, localModels, dryRun);
   }
 
+  if (requestedLane === 'code-local') {
+    return resolveCodeLocalLane(
+      normalizedForcedModel || normalizeForcedModel(process.env.CODE_LOCAL_MODEL || '', 'code-local') || '',
+      localModels,
+      dryRun
+    );
+  }
+
   const laneMap = {
     'gpt-oss': {
       kind: 'local',
-      model: normalizedForcedModel || process.env.GPT_OSS_MODEL || pickFirstExisting([
-        'gpt-oss:20b',
-        'gpt-oss:120b',
-        'qwen-liberated:latest',
-        'deepseek-r1:latest',
-        'llama3.2:latest'
+      model: normalizedForcedModel || normalizeForcedModel(process.env.GPT_OSS_MODEL || '', 'gpt-oss') || pickFirstExisting([
+        LOCAL_UTILITY_MODEL,
+        LOCAL_PRIMARY_MODEL,
+        LOCAL_FALLBACK_MODEL
       ], localModels)
     },
     'deepseek': {
       kind: 'local',
-      model: normalizedForcedModel || process.env.DEEPSEEK_MODEL || pickFirstExisting([
-        'deepseek-liberated:latest',
-        'deepseek-r1:latest',
-        'deepseek-v2:16b',
-        'qwen-liberated:latest',
-        'llama3.2:latest'
+      model: normalizedForcedModel || normalizeForcedModel(process.env.DEEPSEEK_MODEL || '', 'deepseek') || pickFirstExisting([
+        LOCAL_DEEP_REASONING_MODEL,
+        LOCAL_PRIMARY_MODEL,
+        LOCAL_UTILITY_MODEL,
+        LOCAL_FALLBACK_MODEL
       ], localModels)
     },
     'kimi': {
@@ -227,28 +243,18 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     },
     'triage-local': {
       kind: 'local',
-      model: normalizedForcedModel || process.env.TRIAGE_LOCAL_MODEL || pickFirstExisting([
-        'qwen2.5:7b',
-        'qwen2.5:3b',
-        'llama3.2:3b',
-        'llama3.2:latest'
+      model: normalizedForcedModel || normalizeForcedModel(process.env.TRIAGE_LOCAL_MODEL || '', 'triage-local') || pickFirstExisting([
+        LOCAL_UTILITY_MODEL,
+        LOCAL_PRIMARY_MODEL,
+        LOCAL_FALLBACK_MODEL
       ], localModels)
     },
     'summarize-local': {
       kind: 'local',
-      model: normalizedForcedModel || process.env.SUMMARIZE_LOCAL_MODEL || pickFirstExisting([
-        'qwen2.5:7b',
-        'qwen-liberated:latest',
-        'llama3.2:latest'
-      ], localModels)
-    },
-    'code-local': {
-      kind: 'local',
-      model: normalizedForcedModel || process.env.CODE_LOCAL_MODEL || pickFirstExisting([
-        'qwen2.5-coder:latest',
-        'deepseek-coder:latest',
-        'qwen2.5:7b',
-        'deepseek-r1:latest'
+      model: normalizedForcedModel || normalizeForcedModel(process.env.SUMMARIZE_LOCAL_MODEL || '', 'summarize-local') || pickFirstExisting([
+        LOCAL_UTILITY_MODEL,
+        LOCAL_PRIMARY_MODEL,
+        LOCAL_FALLBACK_MODEL
       ], localModels)
     },
     'reason-kimi': {
@@ -353,7 +359,25 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     throw new Error(`Unsupported lane: ${requestedLane}`);
   }
 
+  if (resolved.kind === 'blocked') {
+    return resolved;
+  }
+
   if (resolved.kind === 'local') {
+    if (!resolved.model || !localModels.has(resolved.model)) {
+      const error = !resolved.model
+        ? `Lane "${requestedLane}" needs a local model installed.`
+        : `Lane "${requestedLane}" requires "${resolved.model}" to be installed.`;
+      if (dryRun) {
+        return {
+          kind: 'blocked',
+          model: resolved.model || '',
+          executable: false,
+          error,
+        };
+      }
+      throw new Error(error);
+    }
     return { kind: 'local', model: resolved.model };
   }
 
@@ -443,6 +467,32 @@ function normalizeForcedModel(forcedModel, lane) {
   if (laneName === 'codex' && normalized === 'codex') return '';
   if (laneName === 'codex-mini' && normalized === 'codex-mini') return '';
 
+  if (['ollama', 'ollama-local', 'ollama-cloud', 'triage-local', 'summarize-local', 'gpt-oss'].includes(laneName)) {
+    if (['qwen3.5', 'qwen3.5:4b', 'qwen3.5:latest', 'qwen-liberated', 'qwen-liberated:latest'].includes(normalized)) return LOCAL_UTILITY_MODEL;
+    if (['qwen2.5', 'qwen2.5:7b', 'qwen2.5:latest'].includes(normalized)) return LOCAL_PRIMARY_MODEL;
+    if (['llama3.2', 'llama3.2:latest'].includes(normalized)) return LOCAL_FALLBACK_MODEL;
+  }
+
+  if (laneName === 'code-local') {
+    if (['qwen2.5-coder', 'qwen2.5-coder:7b', 'qwen2.5-coder:latest'].includes(normalized)) return LOCAL_CODE_MODEL;
+    if (['starcoder2', 'starcoder2:latest'].includes(normalized)) return LOCAL_CODE_FALLBACK_MODEL;
+  }
+
+  if (laneName === 'deepseek') {
+    if (['deepseek-r1', 'deepseek-r1:8b', 'deepseek-r1:latest'].includes(normalized)) return LOCAL_DEEP_REASONING_MODEL;
+    if (['qwen2.5', 'qwen2.5:7b', 'qwen2.5:latest'].includes(normalized)) return LOCAL_PRIMARY_MODEL;
+    if (['qwen3.5', 'qwen3.5:4b', 'qwen3.5:latest'].includes(normalized)) return LOCAL_UTILITY_MODEL;
+    if (['llama3.2', 'llama3.2:latest'].includes(normalized)) return LOCAL_FALLBACK_MODEL;
+  }
+
+  if (laneName === 'gemma' || laneName === 'gemma-local') {
+    if (['gemma4', 'gemma4:e2b', 'gemma4:latest', 'gemma'].includes(normalized)) return LOCAL_MULTIMODAL_MODEL;
+  }
+
+  if (laneName === 'gemma-cloud') {
+    if (['gemma4', 'gemma4:latest', 'gemma'].includes(normalized)) return 'gemma4:e4b';
+  }
+
   return forcedModel;
 }
 
@@ -516,18 +566,18 @@ function resolveGemmaLane(lane, normalizedForcedModel, localModels, dryRun = fal
   }
 
   if (lane === 'gemma-local') {
-    const model = normalizedForcedModel || envGemmaModel('GEMMA_LOCAL_MODEL') || pickGemmaLocal(localModels);
+    const model = normalizedForcedModel || normalizeGemmaLocalModel(envGemmaModel('GEMMA_LOCAL_MODEL')) || pickGemmaLocal(localModels);
     if (!model) {
       if (dryRun) {
         return {
           kind: 'local',
-          model: 'gemma4:e4b',
+          model: 'gemma4:e2b',
           installed: false,
           executable: false,
-          error: 'No local gemma4 model installed. Run: ollama pull gemma4:e4b',
+          error: 'No local gemma4 model installed. Run: ollama pull gemma4:e2b',
         };
       }
-      throw new Error('Lane "gemma-local": no local gemma4 model installed. Run: ollama pull gemma4:e4b');
+      throw new Error('Lane "gemma-local": no local gemma4 model installed. Run: ollama pull gemma4:e2b');
     }
     return { kind: 'local', model, installed: true, executable: true };
   }
@@ -535,7 +585,7 @@ function resolveGemmaLane(lane, normalizedForcedModel, localModels, dryRun = fal
   if (lane === 'gemma-cloud') {
     const apiKey = process.env.GEMMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '';
     const endpoint = process.env.GEMMA_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat';
-    const model = normalizedForcedModel || envGemmaModel('GEMMA_CLOUD_MODEL') || 'gemma4:e4b';
+    const model = normalizedForcedModel || normalizeGemmaCloudModel(envGemmaModel('GEMMA_CLOUD_MODEL')) || 'gemma4:e4b';
     if (!apiKey) {
       if (dryRun) {
         return {
@@ -556,31 +606,89 @@ function resolveGemmaLane(lane, normalizedForcedModel, localModels, dryRun = fal
   // lane === 'gemma' — cloud-first, local fallback
   const hasCloudKey = !!(process.env.OLLAMA_API_KEY || process.env.GEMMA_CLOUD_API_KEY);
   if (hasCloudKey) {
-    return {
-      kind: 'cloud',
-      protocol: 'ollama-native',
-      endpoint: process.env.GEMMA_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
-      apiKey: process.env.GEMMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY,
-      model: normalizedForcedModel || envGemmaModel('GEMMA_MODEL') || 'gemma4:e4b',
-      resolvedVia: 'cloud',
-      executable: true,
-    };
+      return {
+        kind: 'cloud',
+        protocol: 'ollama-native',
+        endpoint: process.env.GEMMA_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
+        apiKey: process.env.GEMMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY,
+      model: normalizedForcedModel || normalizeGemmaCloudModel(envGemmaModel('GEMMA_MODEL')) || 'gemma4:e4b',
+        resolvedVia: 'cloud',
+        executable: true,
+      };
   }
 
-  const localModel = normalizedForcedModel || envGemmaModel('GEMMA_MODEL') || pickGemmaLocal(localModels);
+  const localModel = normalizedForcedModel || normalizeGemmaLocalModel(envGemmaModel('GEMMA_MODEL')) || pickGemmaLocal(localModels);
   if (localModel) return { kind: 'local', model: localModel, resolvedVia: 'local', executable: true };
 
   if (dryRun) {
     return {
       kind: 'blocked',
-      model: 'gemma4:e4b',
+      model: 'gemma4:e2b',
       hasCloudKey: false,
       hasLocalModel: false,
       executable: false,
-      error: 'No OLLAMA_API_KEY for cloud and no local gemma4 model installed. Install gemma4:e4b or set OLLAMA_API_KEY.',
+      error: 'No OLLAMA_API_KEY for cloud and no local gemma4 model installed. Install gemma4:e2b or set OLLAMA_API_KEY.',
     };
   }
-  throw new Error('Lane "gemma": no OLLAMA_API_KEY for cloud and no local gemma4 model installed. Install gemma4:e4b or set OLLAMA_API_KEY.');
+  throw new Error('Lane "gemma": no OLLAMA_API_KEY for cloud and no local gemma4 model installed. Install gemma4:e2b or set OLLAMA_API_KEY.');
+}
+
+function resolveCodeLocalLane(forcedModel, localModels, dryRun = false) {
+  if (forcedModel) {
+    if (!isCoderModel(forcedModel)) {
+      return codeLaneBlocked(forcedModel, dryRun, `Lane "code-local" requires a coder model, got "${forcedModel}".`);
+    }
+
+    if (localModels.has(forcedModel)) {
+      return { kind: 'local', model: forcedModel, resolvedVia: 'forced', additive: false };
+    }
+
+    return codeLaneBlocked(
+      forcedModel,
+      dryRun,
+      `Lane "code-local" requires "${forcedModel}" to be installed. Run: ollama pull ${forcedModel}`
+    );
+  }
+
+  for (const candidate of [LOCAL_CODE_MODEL, LOCAL_CODE_FALLBACK_MODEL]) {
+    if (candidate && localModels.has(candidate)) {
+      return { kind: 'local', model: candidate, resolvedVia: 'local', additive: false };
+    }
+  }
+
+  return codeLaneBlocked(
+    LOCAL_CODE_MODEL,
+    dryRun,
+    `Lane "code-local" needs a coder model. Install ${LOCAL_CODE_MODEL} or ${LOCAL_CODE_FALLBACK_MODEL}.`
+  );
+}
+
+function codeLaneBlocked(model, dryRun, error) {
+  if (dryRun) {
+    return {
+      kind: 'blocked',
+      model,
+      executable: false,
+      additive: false,
+      error,
+    };
+  }
+
+  throw new Error(error);
+}
+
+function isCoderModel(model) {
+  const clean = String(model || '').toLowerCase();
+  return clean.startsWith('qwen2.5-coder') || clean.startsWith('starcoder2');
+}
+
+function loadModelPolicy() {
+  try {
+    if (!existsSync(MODEL_POLICY_PATH)) return {};
+    return JSON.parse(readFileSync(MODEL_POLICY_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
 }
 
 function envGemmaModel(envName) {
@@ -590,8 +698,22 @@ function envGemmaModel(envName) {
   throw new Error(`${envName}="${val}" is not a gemma4: model. Gemma lanes require gemma4: models only.`);
 }
 
+function normalizeGemmaLocalModel(model) {
+  const clean = String(model || '').toLowerCase();
+  if (!clean) return '';
+  if (['gemma4', 'gemma4:latest', 'gemma'].includes(clean)) return LOCAL_MULTIMODAL_MODEL;
+  return clean.startsWith('gemma4:') ? model : '';
+}
+
+function normalizeGemmaCloudModel(model) {
+  const clean = String(model || '').toLowerCase();
+  if (!clean) return '';
+  if (['gemma4', 'gemma4:latest', 'gemma'].includes(clean)) return 'gemma4:e4b';
+  return clean.startsWith('gemma4:') ? model : '';
+}
+
 function pickGemmaLocal(localModels) {
-  for (const c of ['gemma4:e4b', 'gemma4:e2b']) {
+  for (const c of ['gemma4:e2b', 'gemma4:e4b']) {
     if (localModels.has(c)) return c;
   }
   return '';

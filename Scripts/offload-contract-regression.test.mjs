@@ -32,6 +32,8 @@ assert.equal(contract.lanes.ollama.alias, '@ollama', 'additive Ollama lane metad
 assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaCloud.alias, '@ollama-cloud', 'additive Ollama Cloud lane metadata missing');
 assert.equal(contract.lanes.claude.alias, '@claude', 'Claude council lane metadata missing');
+assert.equal(contract.crossReference.taxonomySurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md', 'cross-reference taxonomy surface missing');
+assert.equal(contract.crossReference.rulesSurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/prevention-rules.md', 'cross-reference rules surface missing');
 assert.equal(contract.claudeCouncilQualityGate.role.outputCapLines, 80, 'Claude council output cap should be 80 lines');
 assert.deepEqual(contract.claudeCouncilQualityGate.role.requiredSections, [
   'findings',
@@ -108,6 +110,11 @@ const cases = [
     scenario: 'document-synthesis'
   },
   {
+    prompt: 'rewrite the cross-reference taxonomy and prevention rules for cross-domain lesson indexing',
+    lane: 'summarize-local',
+    scenario: 'cross-domain-lesson-work'
+  },
+  {
     prompt: 'use ollama to summarize this private local note',
     lane: 'ollama',
     scenario: 'document-synthesis'
@@ -136,8 +143,19 @@ for (const testCase of cases) {
   assert.equal(plan.deepseekAdvisory.codexFinalAuthority, true, `Codex authority missing for "${testCase.prompt}"`);
   assert.equal(plan.claudeAdvisory.localTruthRequired, true, `Claude local truth boundary missing for "${testCase.prompt}"`);
   assert.equal(plan.claudeAdvisory.codexFinalAuthority, true, `Claude Codex authority missing for "${testCase.prompt}"`);
+  assert.equal(plan.nativeFunctionGates.argus.decision, 'always-on', `Argus native gate missing for "${testCase.prompt}"`);
+  assert.equal(plan.nativeFunctionGates.argus.runtime, 'native_function', `Argus should be native for "${testCase.prompt}"`);
+  assert.equal(plan.nativeFunctionGates.hermes.decision, 'always-on', `Hermes native gate missing for "${testCase.prompt}"`);
+  assert.equal(plan.nativeFunctionGates.hermes.runtime, 'native_function', `Hermes should be native for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.lifecycle) && plan.lifecycle.length >= 5, `lifecycle missing for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.learningCapture) && plan.learningCapture.includes('next_rule_candidate'), `learning capture missing for "${testCase.prompt}"`);
+  if (testCase.scenario === 'cross-domain-lesson-work') {
+    assert.ok(plan.learningCapture.includes('canonical_tags'), `cross-domain capture should include canonical tags for "${testCase.prompt}"`);
+    assert.ok(plan.learningCapture.includes('bridge_domains'), `cross-domain capture should include bridge domains for "${testCase.prompt}"`);
+    assert.ok(plan.crossReference, `cross-domain route plan should expose cross-reference surfaces for "${testCase.prompt}"`);
+    assert.equal(plan.crossReference.taxonomySurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md', `cross-domain taxonomy surface missing for "${testCase.prompt}"`);
+    assert.equal(plan.crossReference.rulesSurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/prevention-rules.md', `cross-domain rules surface missing for "${testCase.prompt}"`);
+  }
 
   const dryPlan = autoPlan(testCase.prompt);
   assert.equal(dryPlan.lane, testCase.lane, `auto lane mismatch for "${testCase.prompt}"`);
@@ -148,9 +166,19 @@ const councilPlan = routePlan('large Yuri OS beta proving run with model council
 assert.equal(councilPlan.claudeAdvisory.decision, 'use-sonnet', 'Claude should join high-stakes model council');
 assert.deepEqual(councilPlan.claudeAdvisory.models, ['claude-sonnet-4-6'], 'Claude council model mismatch');
 assert.equal(councilPlan.claudeAdvisory.outputCapLines, 80, 'Claude council line cap missing from route plan');
+assert.equal(councilPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Obliteratus should gate high-stakes council work');
+assert.equal(councilPlan.nativeFunctionGates.obliteratus.runtime, 'native_function', 'Obliteratus should be a native function gate');
+assert.equal(councilPlan.nativeFunctionGates.obliteratus.alias, 'obliteratus', 'Obliteratus alias should stay stable');
 const sandboxCouncilPlan = routePlan('Yuri sandbox proving run with model council review');
 assert.equal(sandboxCouncilPlan.lane, 'codex-spark', 'model council should not steal sandbox execution lane');
 assert.equal(sandboxCouncilPlan.claudeAdvisory.decision, 'use-sonnet', 'sandbox model council should still attach Claude advisory');
+assert.equal(sandboxCouncilPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Obliteratus should gate sandbox promotion-risk work');
+
+const promotionGatePlan = routePlan('promote verified artifact into canonical memory after review');
+assert.equal(promotionGatePlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'promotion candidate should use Obliteratus gate');
+assert.equal(promotionGatePlan.nativeFunctionGates.obliteratus.localTruthRequired, true, 'Obliteratus gate must require local truth');
+const smallCodePlan = routePlan('fix typo in one known helper test');
+assert.equal(smallCodePlan.nativeFunctionGates.obliteratus.decision, 'skip', 'small code task should not invoke Obliteratus gate');
 
 const advisoryCases = [
   {
@@ -203,6 +231,11 @@ assert.equal(sandboxScenario.defaultLane, 'codex-spark', 'sandbox-improvement sh
 assert.ok(sandboxScenario.lifecycle.some((step) => /Self-probe/i.test(step)), 'sandbox lifecycle should include self-probe');
 assert.ok(sandboxScenario.lifecycle.some((step) => /Sanitize/i.test(step)), 'sandbox lifecycle should include sanitize');
 assert.ok(sandboxScenario.lifecycle.some((step) => /Promote-check/i.test(step)), 'sandbox lifecycle should include promote-check');
+const crossDomainScenario = examples.find((scenario) => scenario.id === 'cross-domain-lesson-work');
+assert.ok(crossDomainScenario, 'cross-domain-lesson-work example missing');
+assert.equal(crossDomainScenario.defaultLane, 'summarize-local', 'cross-domain lesson work should route to summarize-local');
+assert.ok(crossDomainScenario.lifecycle.some((step) => /Bridge/i.test(step)), 'cross-domain lifecycle should include bridge');
+assert.ok(crossDomainScenario.lifecycle.some((step) => /Consolidate/i.test(step)), 'cross-domain lifecycle should include consolidate');
 assert.equal(contract.lanes.codexSpark.alias, '@codex-spark', 'codexSpark lane metadata missing');
 
 const swarmDefault = runContract(['swarm-default']);

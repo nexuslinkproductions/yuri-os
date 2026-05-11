@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from 'fs';
+import path from 'path';
 import {
   estimateTokensFromText,
   hashPayload,
@@ -5,15 +7,20 @@ import {
   recordTokenEvent,
 } from './token-ledger.mjs';
 
+const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
+const LOCAL_MODEL_POLICY = loadModelPolicy().local || {};
+const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || 'qwen3.5:4b';
+const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'qwen2.5:7b';
+const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || 'llama3.2:latest';
+
 export const OLLAMA_LOCAL_MODELS = Object.freeze([
-  'qwen2.5:7b',
-  'llama3.2:3b',
-  'llama3.2:latest',
-  'qwen-liberated:latest',
+  LOCAL_UTILITY_MODEL,
+  LOCAL_PRIMARY_MODEL,
+  LOCAL_FALLBACK_MODEL,
 ]);
 
 export function resolveOllamaAdditiveLane(requestedLane, forcedModel, localModels, dryRun = false) {
-  const localModel = forcedModel || process.env.OLLAMA_LOCAL_MODEL || pickFirstInstalled(OLLAMA_LOCAL_MODELS, localModels);
+  const localModel = normalizeOllamaModelAlias(forcedModel || process.env.OLLAMA_LOCAL_MODEL || pickFirstInstalled(OLLAMA_LOCAL_MODELS, localModels));
   const cloudModel = forcedModel || process.env.OLLAMA_CLOUD_MODEL || 'llama3.3:70b';
   const cloudEndpoint = process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat';
   const cloudApiKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '';
@@ -232,4 +239,31 @@ function pickFirstInstalled(candidates, localModels) {
     if (localModels.has(candidate)) return candidate;
   }
   return '';
+}
+
+function loadModelPolicy() {
+  try {
+    if (!existsSync(MODEL_POLICY_PATH)) return {};
+    return JSON.parse(readFileSync(MODEL_POLICY_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function normalizeOllamaModelAlias(model) {
+  const clean = String(model || '').toLowerCase();
+
+  if (['qwen3.5', 'qwen3.5:4b', 'qwen3.5:latest', 'qwen-liberated', 'qwen-liberated:latest'].includes(clean)) {
+    return LOCAL_UTILITY_MODEL;
+  }
+
+  if (['qwen2.5', 'qwen2.5:7b', 'qwen2.5:latest'].includes(clean)) {
+    return LOCAL_PRIMARY_MODEL;
+  }
+
+  if (['llama3.2', 'llama3.2:latest'].includes(clean)) {
+    return LOCAL_FALLBACK_MODEL;
+  }
+
+  return model;
 }

@@ -218,16 +218,59 @@ const OFFLOAD_CONTRACT = {
       'Exceeds the configured output cap.'
     ]
   },
+  nativeFunctionGates: {
+    authority: {
+      executor: 'Codex/main-session',
+      localTruth: 'shell/tests/GitNexus/source reads/artifact reads',
+      nativeOutput: 'deterministic_gate_metadata=true; model_output=false',
+      promotion: 'no canonical promotion without verified artifacts'
+    },
+    alwaysOn: {
+      argus: {
+        runtime: 'native_function',
+        activation: 'PostToolUse scout dispatcher',
+        role: 'logic and sequencing check for meaningful tool calls',
+        linkedSkills: ['oracle-router', 'gitnexus-impact-analysis', 'non-destructive-infinity-guard']
+      },
+      hermes: {
+        runtime: 'native_function',
+        activation: 'PostToolUse scout dispatcher for file mutation tools',
+        role: 'session scope, context pressure, and drift check',
+        linkedSkills: ['oracle-memory', 'compact-optimizer', 'end-of-transmission']
+      }
+    },
+    obliteratus: {
+      runtime: 'native_function',
+      alias: 'obliteratus',
+      doc: '.claude/agents/obliteratus-qa.md',
+      stage: 'pre-promotion',
+      role: 'adversarial promotion gate for high-stakes artifacts',
+      output: 'structured_adversarial_audit',
+      linkedSkills: ['gitnexus-impact-analysis', 'gitnexus-pr-review', 'codex-security:security-scan', 'failure-evolution-loop'],
+      requireWhenAny: [
+        'high-stakes review or protocol change',
+        'control-plane orchestration plan',
+        'sandbox promotion candidate',
+        'canonical state or memory promotion',
+        'protected path or governance mutation'
+      ]
+    }
+  },
   learningLoop: {
     memorySurface: '_SYSTEM/OS_KERNEL/memory.db',
     durableSeed: '.claude/nisaba/learning/global.md',
-    capture: ['request_class', 'chosen_lane', 'fallbacks', 'evidence_used', 'files_touched', 'tests_run', 'user_correction', 'next_rule_candidate'],
+    capture: ['request_class', 'chosen_lane', 'fallbacks', 'evidence_used', 'files_touched', 'tests_run', 'user_correction', 'canonical_tags', 'bridge_domains', 'next_rule_candidate', 'prevention_rule_candidate'],
     promoteRuleWhen: [
       'The same correction repeats.',
       'A route wins repeatedly for the same task class.',
       'A failure exposes a missing guardrail.',
       'A scenario example would prevent future ambiguity.'
     ]
+  },
+  crossReference: {
+    taxonomySurface: '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md',
+    indexSurface: '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-index.md',
+    rulesSurface: '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/prevention-rules.md'
   },
   scenarios: [
     {
@@ -272,6 +315,34 @@ const OFFLOAD_CONTRACT = {
         'Sanitize: reduce raw output into a verified learning summary.',
         'Log: write only sanitized verified summaries through the learning capture path.',
         'Promote-check: inspect existing review gates without auto-approving lessons.'
+      ]
+    },
+    {
+      id: 'cross-domain-lesson-work',
+      title: 'Cross-domain lesson indexing and prevention rule promotion',
+      match: [
+        'cross-reference',
+        'cross reference',
+        'cross-domain',
+        'cross domain',
+        'canonical tag',
+        'canonical tags',
+        'taxonomy',
+        'prevention rule',
+        'prevention rules',
+        'lesson index',
+        'bridge map',
+        'alias map'
+      ],
+      defaultLane: 'summarize-local',
+      lifecycle: [
+        'Intake: capture the raw lesson and the source domain.',
+        'Normalize: resolve canonical tags and alias matches.',
+        'Bridge: find the same mechanism in other domains.',
+        'Consolidate: rewrite repeated lessons into prevention rules.',
+        'Archive: move raw notes aside once the bridge is recorded.',
+        'Verify: keep the cross-reference index and prevention rules consistent.',
+        'Learn: preserve reusable tags, not just topic-specific wording.'
       ]
     },
     {
@@ -405,6 +476,22 @@ function selectSteeringLane(prompt) {
     (text.includes('summarize') || text.includes('extract') || text.includes('triage') || text.includes('draft cleanup'))
   ) {
     return 'ollama-local';
+  }
+
+  if (
+    text.includes('cross-reference') ||
+    text.includes('cross reference') ||
+    text.includes('cross-domain') ||
+    text.includes('cross domain') ||
+    text.includes('canonical tag') ||
+    text.includes('canonical tags') ||
+    text.includes('prevention rule') ||
+    text.includes('prevention rules') ||
+    text.includes('lesson index') ||
+    text.includes('bridge map') ||
+    text.includes('alias map')
+  ) {
+    return 'summarize-local';
   }
 
   if (text.includes('@kimi') || text.includes('kimi') || text.includes('moonshot') || text.includes('cloud')) {
@@ -571,6 +658,56 @@ function assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory = {}) {
   };
 }
 
+function assessNativeFunctionGates(prompt, lane, scenario) {
+  const text = normalizePrompt(prompt);
+  const policy = OFFLOAD_CONTRACT.nativeFunctionGates;
+  const promotionSignals = [
+    'promote', 'promotion', 'promotion candidate', 'promotion gate',
+    'canonical state', 'canonical memory', 'memory.db', 'protected path',
+    'verified promotion', 'governance', 'owner approval', 'durable learning'
+  ];
+  const gatedScenarios = [
+    'control-plane-orchestration',
+    'sandbox-improvement',
+    'high-stakes-review',
+    'protocol-change'
+  ];
+  const useObliteratus = gatedScenarios.includes(scenario.id) ||
+    lane === 'swarm' ||
+    includesAny(text, promotionSignals);
+
+  return {
+    argus: {
+      decision: 'always-on',
+      ...policy.alwaysOn.argus
+    },
+    hermes: {
+      decision: 'always-on',
+      ...policy.alwaysOn.hermes
+    },
+    obliteratus: useObliteratus
+      ? {
+          decision: 'use-native-gate',
+          ...policy.obliteratus,
+          localTruthRequired: true,
+          codexFinalAuthority: true,
+          reason: gatedScenarios.includes(scenario.id)
+            ? `scenario:${scenario.id}`
+            : 'promotion_or_protected_state_signal'
+        }
+      : {
+          decision: 'skip',
+          runtime: policy.obliteratus.runtime,
+          alias: policy.obliteratus.alias,
+          stage: policy.obliteratus.stage,
+          role: policy.obliteratus.role,
+          localTruthRequired: true,
+          codexFinalAuthority: true,
+          reason: 'below_native_promotion_gate_threshold'
+        }
+  };
+}
+
 function selectScenario(prompt, lane = '') {
   const text = normalizePrompt(prompt);
   const matches = OFFLOAD_CONTRACT.scenarios.filter((scenario) => (
@@ -586,6 +723,7 @@ function buildRoutePlan(prompt) {
   const scenario = selectScenario(prompt, lane);
   const deepseekAdvisory = assessDeepseekAdvisory(prompt, lane, scenario);
   const claudeAdvisory = assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory);
+  const nativeFunctionGates = assessNativeFunctionGates(prompt, lane, scenario);
   return {
     prompt,
     lane,
@@ -597,7 +735,9 @@ function buildRoutePlan(prompt) {
     dispatch: lane === 'swarm' ? 'parallel-fan-out' : 'single-lane',
     deepseekAdvisory,
     claudeAdvisory,
+    nativeFunctionGates,
     lifecycle: scenario.lifecycle,
+    crossReference: OFFLOAD_CONTRACT.crossReference,
     learningCapture: OFFLOAD_CONTRACT.learningLoop.capture,
     memorySurface: OFFLOAD_CONTRACT.learningLoop.memorySurface
   };

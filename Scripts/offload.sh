@@ -55,15 +55,10 @@ list_models() {
   echo "⬡ NUDIMMUD_NEURAL_REGISTRY"
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
-  for lane in gpt-oss deepseek openrouter-free; do
-    if [ "$lane" = "gpt-oss" ]; then
-      printf '  [%-8s] %s\n' "gpt-oss" "active via offload-runner (local wrapper)"
-    elif command -v "$lane" >/dev/null 2>&1; then
-      printf '  [%-8s] %s\n' "$lane" "$(command -v "$lane")"
-    else
-      printf '  [%-8s] MISSING\n' "$lane"
-    fi
-  done
+  printf '  [%-16s] %s\n' "gpt-oss" "active via offload-runner (local wrapper)"
+  printf '  [%-16s] %s\n' "deepseek" "$(command -v deepseek >/dev/null 2>&1 && command -v deepseek || echo "MISSING")"
+  printf '  [%-16s] %s\n' "openrouter-free" "active via offload-runner (needs OPENROUTER_API_KEY; supports openrouter/free and provider/model:free)"
+  printf '  [%-16s] %s\n' "nvidia-deepseek" "active via offload-runner (needs NVIDIA_API_KEY; defaults to deepseek-ai/deepseek-v4-pro)"
 
   echo
   echo "DeepSeek API lanes:"
@@ -74,6 +69,16 @@ list_models() {
   printf '  [%-30s] %s\n' "deepseek-reasoner" "compat alias -> deepseek-v4-flash (thinking)"
   printf '  [%-30s] %s\n' "deepseek-cloud" "compat alias -> deepseek-v4-pro"
   printf '  [%-30s] %s\n' "code-deepseek" "compat alias -> deepseek-v4-pro"
+
+  echo
+  echo "OpenRouter free lanes:"
+  printf '  [%-30s] %s\n' "openrouter/free" "free router; picks a currently available free model"
+  printf '  [%-30s] %s\n' "provider/model:free" "any OpenRouter free variant, for example inclusionai/ring-2.6-1t:free"
+
+  echo
+  echo "NVIDIA hosted lanes:"
+  printf '  [%-30s] %s\n' "nvidia-deepseek" "hosted DeepSeek V4 Pro via NVIDIA NIM"
+  printf '  [%-30s] %s\n' "deepseek-ai/deepseek-v4-pro" "direct model override for the NVIDIA lane"
 
   echo
   echo "Additive Ollama lanes:"
@@ -98,7 +103,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|kimi*|moonshot*|*-cloud*|openrouter*|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -153,6 +158,14 @@ dry_run_model_override() {
       codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
         run_offload_runner "$target_model" "$prompt" --dry-run
         ;;
+      nvidia-deepseek|deepseek-ai/*)
+        printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
+        run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$target_model"
+        ;;
+      openrouter-free|openrouter/free|*/*:free)
+        printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
+        run_offload_runner openrouter-free "$prompt" --dry-run --model "$target_model"
+        ;;
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
         run_offload_runner gpt-oss "$prompt" --dry-run
         ;;
@@ -185,17 +198,21 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2
         run_offload_runner "$target_model" "$prompt"
         ;;
-      deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b|deepseek)
+      deepseek-r1:8b)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK..." >&2
         run_offload_runner deepseek "$prompt" --model "$target_model"
         ;;
-      openrouter-free|openrouter)
-        printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
-        run_offload_runner openrouter-free "$prompt"
+      deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b|deepseek)
+        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK..." >&2
+        run_offload_runner deepseek "$prompt"
         ;;
-      openrouter/free)
+      nvidia-deepseek|deepseek-ai/*)
+        printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
+        run_offload_runner nvidia-deepseek "$prompt" --model "$target_model"
+        ;;
+      openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
-        run_offload_runner openrouter-free "$prompt" --model openrouter/free
+        run_offload_runner openrouter-free "$prompt" --model "$target_model"
         ;;
       codex-spark|spark|fast-codex|gpt-5.3-codex-spark)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_SPARK..." >&2
