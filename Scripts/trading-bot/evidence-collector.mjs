@@ -1063,6 +1063,18 @@ async function collectEvidence(marketId, lookbackHours = DEFAULT_LOOKBACK_HOURS)
 async function main() {
   const args = process.argv.slice(2);
 
+  if (args.includes("--dry-run")) {
+    console.log(JSON.stringify({
+      ok: true,
+      command: "evidence-collector",
+      dry_run: true,
+      markets: parseMarketArg(args),
+      lookback_hours: parseLookbackArg(args),
+      output: OUTPUT_FILE,
+    }, null, 2));
+    return;
+  }
+
   if (args.includes("--daemon")) {
     console.log(`[daemon] Starting evidence collector (interval: ${DAEMON_INTERVAL_MS / 1000}s)`);
     const runOnce = async () => {

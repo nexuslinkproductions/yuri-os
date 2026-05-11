@@ -504,6 +504,36 @@ function classifyFailureDecisionTree(outcome, trade, predictions) {
   const pModel = predictions?.p_model || 0.5;
   const actualOutcome = outcome.actualOutcome;
   const calError = Math.abs(pModel - actualOutcome);
+  const framing = predictions?.market_question_quality
+    || predictions?.framing_quality
+    || predictions?.question_quality
+    || null;
+  const framingIssue = predictions?.framing_issue
+    || predictions?.market_question_issue
+    || outcome?.framingIssue
+    || null;
+
+  // Step 0: Framing failure outranks generic prediction error.
+  if (
+    framing === 'misframed'
+    || framing === 'ambiguous'
+    || framingIssue
+    || predictions?.market_type === 'framing'
+    || predictions?.notes?.some?.(note => String(note).toLowerCase().includes('framing'))
+  ) {
+    return {
+      primary_type: 'E',
+      secondary_types: [],
+      classification_rationale: `Market question framing failed before model accuracy could be evaluated: ${framingIssue || framing || 'ambiguous market framing'}.`,
+      type_e_detail: {
+        market_question_quality: framing || 'ambiguous',
+        framing_issue: framingIssue || 'The tradable question did not match the modeled question.',
+        predicted_probability: pModel,
+        resolved_outcome: actualOutcome,
+        prevention_rule: 'Restate the exact market question, resolution source, time window, and tradable instrument before inference.',
+      },
+    };
+  }
 
   // Step 1: Was order rejected/cancelled/timed out?
   if (['FAILED', 'CANCELLED', 'TIMEOUT'].includes(execStatus)) {
@@ -802,7 +832,8 @@ function computeCumulativeMetrics(outcomes, predictions, riskDecisions, executio
   const countB = failures.filter(f => f.failure_classification.primary_type === 'B').length;
   const countC = failures.filter(f => f.failure_classification.primary_type === 'C').length;
   const countD = failures.filter(f => f.failure_classification.primary_type === 'D').length;
-  const totalFail = countA + countB + countC + countD || 1;
+  const countE = failures.filter(f => f.failure_classification.primary_type === 'E').length;
+  const totalFail = countA + countB + countC + countD + countE || 1;
 
   // Sharpe Ratio (approximate: mean / std * sqrt(periods))
   const returns = outcomes.map(o => o.pnl?.net_pnl_pct || 0);
@@ -836,11 +867,12 @@ function computeCumulativeMetrics(outcomes, predictions, riskDecisions, executio
     maxPositionSize: Number(maxPosSize.toFixed(2)),
     avgHoldHours: Number(avgHoldHours.toFixed(1)),
     failureBreakdown: {
-      countA, countB, countC, countD,
+      countA, countB, countC, countD, countE,
       pctA: Number(((countA / totalFail) * 100).toFixed(1)),
       pctB: Number(((countB / totalFail) * 100).toFixed(1)),
       pctC: Number(((countC / totalFail) * 100).toFixed(1)),
       pctD: Number(((countD / totalFail) * 100).toFixed(1)),
+      pctE: Number(((countE / totalFail) * 100).toFixed(1)),
     },
     gatePerformance: {
       totalProposals,
@@ -859,7 +891,7 @@ function buildEmptyMetrics() {
     peakEquity: INITIAL_BANKROLL, maxDrawdownPct: 0,
     brierScore: 1.0, avgConfidence: 0, avgDispersion: 0,
     sharpe: 0, avgPositionSize: 0, maxPositionSize: 0, avgHoldHours: 0,
-    failureBreakdown: { countA: 0, countB: 0, countC: 0, countD: 0, pctA: 0, pctB: 0, pctC: 0, pctD: 0 },
+    failureBreakdown: { countA: 0, countB: 0, countC: 0, countD: 0, countE: 0, pctA: 0, pctB: 0, pctC: 0, pctD: 0, pctE: 0 },
     gatePerformance: { totalProposals: 0, approved: 0, rejected: 0, approvalRate: 0 },
   };
 }
@@ -981,7 +1013,7 @@ function generateDashboard(metrics, outcomes) {
     peakEquity, maxDrawdownPct,
     brierScore, avgConfidence, avgDispersion,
     sharpe, avgPositionSize, maxPositionSize, avgHoldHours,
-    failureBreakdown: { countA, countB, countC, countD, pctA, pctB, pctC, pctD },
+    failureBreakdown: { countA, countB, countC, countD, countE, pctA, pctB, pctC, pctD, pctE },
     gatePerformance: { totalProposals, approved, rejected, approvalRate },
   } = metrics;
 
@@ -1034,6 +1066,7 @@ function generateDashboard(metrics, outcomes) {
 - Type B (Timing): ${countB} (${pctB}%)
 - Type C (Execution): ${countC} (${pctC}%)
 - Type D (External): ${countD} (${pctD}%)
+- Type E (Framing): ${countE} (${pctE}%)
 
 ## Gate Performance
 - Total Proposals: ${totalProposals}
@@ -1471,6 +1504,23 @@ Examples:
     return;
   }
 
+  if (args.includes('--dry-run')) {
+    const typeE = classifyFailureDecisionTree(
+      { tradeStatus: 'LOSS', priceChangePct: -0.01, directionCorrect: false, actualOutcome: 0, netPnl: -1, exitTime: nowISO() },
+      { status: 'FILLED', slippage_bps: 5 },
+      { p_model: 0.8, market_question_quality: 'ambiguous', framing_issue: 'Resolution source differs from modeled market.' },
+    );
+    console.log(JSON.stringify({
+      ok: true,
+      command: 'paper-trading',
+      dry_run: true,
+      default_cycles: DEFAULT_CYCLE_COUNT,
+      type_e_precedence: typeE.primary_type === 'E',
+      output: OUTCOME_LOG,
+    }, null, 2));
+    return;
+  }
+
   if (args.includes('--report')) {
     const existing = loadJsonl(OUTCOME_LOG);
     if (existing.length === 0) {
@@ -1540,6 +1590,7 @@ export {
   runPaperTradingCycle,
   classifyTradeOutcome,
   classifyFailure,
+  classifyFailureDecisionTree,
   calculateBrierScore,
   computeBrierContribution,
   generateOutcomeAnalysis,

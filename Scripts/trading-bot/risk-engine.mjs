@@ -1003,6 +1003,17 @@ async function main() {
   const args = process.argv.slice(2);
   const subcommand = args[0];
 
+  if (args.includes('--dry-run')) {
+    console.log(JSON.stringify({
+      ok: true,
+      command: 'risk-engine',
+      dry_run: true,
+      gates: 10,
+      output: RISK_LOG,
+    }, null, 2));
+    process.exit(0);
+  }
+
   if (subcommand === 'evaluate') {
     // Usage: node risk-engine.mjs evaluate <marketId> [predictionResult.json] [marketSnapshot.json] [portfolioState.json]
     const marketId = args[1];

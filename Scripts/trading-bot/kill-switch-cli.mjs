@@ -264,6 +264,17 @@ Audit log: logs/kill_switch_audit.jsonl
 function main() {
   const args = process.argv.slice(2);
 
+  if (args.includes('--dry-run')) {
+    console.log(JSON.stringify({
+      ok: true,
+      command: 'kill-switch-cli',
+      dry_run: true,
+      state: loadState(),
+      audit_log: AUDIT_LOG,
+    }, null, 2));
+    return;
+  }
+
   if (args.length === 0 || args.includes('help') || args.includes('--help')) {
     printUsage();
     return;

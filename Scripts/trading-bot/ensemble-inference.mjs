@@ -68,6 +68,7 @@ const MAX_BRIER = 1.0;
 const OUTPUT_DIR = resolve(__dirname, '../../.claude/trading-bot/data');
 const PREDICTION_LOG = resolve(OUTPUT_DIR, 'prediction_result.jsonl');
 const CALIBRATION_LOG = resolve(OUTPUT_DIR, 'calibration_report.md');
+const ROLLING_BRIER_PATH = resolve(OUTPUT_DIR, 'rolling_brier_calibration.json');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -96,6 +97,28 @@ function loadJsonl(path) {
 function appendJsonl(path, record) {
   ensureOutputDir();
   appendFileSync(path, JSON.stringify(record) + '\n', 'utf-8');
+}
+
+function loadJson(path, fallback) {
+  if (!existsSync(path)) return fallback;
+  try {
+    return JSON.parse(readFileSync(path, 'utf-8'));
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJson(path, data) {
+  ensureOutputDir();
+  writeFileSync(path, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+}
+
+function inferEdgeEstimate(evidencePacket = {}, features = {}) {
+  if (typeof features.edge_estimate === 'number') return Math.abs(features.edge_estimate);
+  if (typeof evidencePacket.edge_estimate === 'number') return Math.abs(evidencePacket.edge_estimate);
+  const consensusStrength = Math.abs(evidencePacket?.sentiment_score ?? 0);
+  const sourceCount = evidencePacket?.source_count ?? 0;
+  return consensusStrength * Math.min(1, sourceCount / 5);
 }
 
 /**
@@ -129,6 +152,74 @@ function getActiveModelConfigs() {
     if (cfg) configs.push(cfg);
   }
   return configs;
+}
+
+function loadRollingBrierCalibration() {
+  return loadJson(ROLLING_BRIER_PATH, {
+    version: 1,
+    updated_at: null,
+    market_types: {},
+  });
+}
+
+function persistRollingBrierCalibration(report, prior = loadRollingBrierCalibration()) {
+  const next = {
+    version: 1,
+    updated_at: nowISO(),
+    market_types: { ...(prior.market_types || {}) },
+  };
+
+  const marketType = report.marketType || report.market_type || 'default';
+  const modelPerformance = report.modelPerformance || {};
+  const existing = next.market_types[marketType] || { models: {}, samples: 0 };
+  const models = { ...(existing.models || {}) };
+
+  for (const [name, perf] of Object.entries(modelPerformance)) {
+    const previous = models[name] || { brierScore: perf.brierScore, sampleCount: 0 };
+    const previousCount = previous.sampleCount || 0;
+    const sampleCount = perf.sampleCount || 0;
+    const totalSamples = previousCount + sampleCount;
+    const brierScore = totalSamples > 0
+      ? ((previous.brierScore || 0) * previousCount + perf.brierScore * sampleCount) / totalSamples
+      : perf.brierScore;
+    models[name] = {
+      brierScore: Number(brierScore.toFixed(4)),
+      sampleCount: totalSamples,
+      lastObservedAt: report.generatedAt || nowISO(),
+    };
+  }
+
+  next.market_types[marketType] = {
+    ...existing,
+    models,
+    samples: Object.values(models).reduce((sum, model) => sum + (model.sampleCount || 0), 0),
+    updated_at: nowISO(),
+  };
+
+  writeJson(ROLLING_BRIER_PATH, next);
+  return next;
+}
+
+function applyRollingBrierWeights(weights, marketType, calibration = loadRollingBrierCalibration()) {
+  const marketCalibration = calibration.market_types?.[marketType]
+    || calibration.market_types?.default
+    || null;
+  if (!marketCalibration?.models) return weights;
+
+  const adjusted = { ...weights };
+  for (const [name, currentWeight] of Object.entries(weights)) {
+    const model = marketCalibration.models[name];
+    if (!model || (model.sampleCount || 0) < 3) continue;
+    const inverseBrier = 1 / Math.max(0.05, model.brierScore || 0.5);
+    adjusted[name] = currentWeight * inverseBrier;
+  }
+
+  const total = Object.values(adjusted).reduce((sum, weight) => sum + weight, 0);
+  if (total <= 0) return weights;
+
+  return Object.fromEntries(
+    Object.entries(adjusted).map(([name, weight]) => [name, Number((weight / total).toFixed(4))])
+  );
 }
 
 /**
@@ -372,6 +463,8 @@ function getDynamicWeights(marketId, evidencePacket, marketType) {
     }
   }
 
+  adjusted = applyRollingBrierWeights(adjusted, marketType);
+
   // Normalize to sum to 1.0
   const totalWeight = Object.values(adjusted).reduce((a, b) => a + b, 0);
   if (totalWeight <= 0) return { ...staticWeights };
@@ -426,6 +519,51 @@ function shouldRunInference(evidencePacket, features = {}) {
   }
 
   return true;
+}
+
+function getEnsembleGateConfig() {
+  return {
+    enabled: process.env.TRADING_BOT_ENSEMBLE_GATE_ENABLED !== '0',
+    logOnly: process.env.TRADING_BOT_ENSEMBLE_GATE_MODE === 'log-only'
+      || process.env.TRADING_BOT_ENSEMBLE_GATE_LOG_ONLY === '1',
+    minQuality: parseFloat(process.env.TRADING_BOT_ENSEMBLE_GATE_MIN_QUALITY || '0.3'),
+    minEdge: parseFloat(process.env.TRADING_BOT_ENSEMBLE_GATE_MIN_EDGE || '0.02'),
+    minSources: parseInt(process.env.TRADING_BOT_ENSEMBLE_GATE_MIN_SOURCES || '1', 10),
+  };
+}
+
+function shouldRunFullEnsemble(evidencePacket, features = {}, config = getEnsembleGateConfig()) {
+  const marketId = evidencePacket?.market_id || features?.market_id || 'unknown';
+  const quality = evidencePacket?.quality ?? evidencePacket?.quality_score ?? 0;
+  const sourceCount = evidencePacket?.source_count ?? evidencePacket?.sources?.length ?? 0;
+  const edgeEstimate = inferEdgeEstimate(evidencePacket, features);
+  const failures = [];
+
+  if (!config.enabled) {
+    return { run: true, enforced: false, reason: 'gate disabled', failures };
+  }
+  if (quality < config.minQuality) {
+    failures.push(`quality ${quality.toFixed(2)} < ${config.minQuality}`);
+  }
+  if (edgeEstimate < config.minEdge) {
+    failures.push(`edge ${(edgeEstimate * 100).toFixed(1)}% < ${(config.minEdge * 100).toFixed(1)}%`);
+  }
+  if (sourceCount < config.minSources) {
+    failures.push(`sources ${sourceCount} < ${config.minSources}`);
+  }
+
+  if (failures.length === 0) {
+    return { run: true, enforced: true, reason: 'gate passed', failures };
+  }
+
+  const reason = failures.join('; ');
+  if (config.logOnly) {
+    console.warn(`[EnsembleGate] LOG_ONLY ${marketId}: ${reason}`);
+    return { run: true, enforced: false, reason, failures };
+  }
+
+  console.log(`[EnsembleGate] SKIP ${marketId}: ${reason}`);
+  return { run: false, enforced: true, reason, failures };
 }
 
 // ─── aggregateProbs: Weighted Ensemble ──────────────────────────────────────
@@ -568,16 +706,17 @@ function assignBucketLabel(dispersion, calibrationTable) {
 async function runInference(marketId, evidencePacket, features) {
   // 0. Token budget filter — skip if evidence quality or edge potential are too low
   const marketType = features?.market_type || evidencePacket?.market_type || 'financial';
-  if (!shouldRunInference(evidencePacket, features)) {
-    const reason = evidencePacket?.quality != null && evidencePacket.quality < 0.3
-      ? 'low evidence quality'
-      : 'low edge potential';
-    console.log(`[Ensemble] SKIP ${marketId}: ${reason}`);
+  const fullEnsembleGate = shouldRunFullEnsemble(
+    { ...evidencePacket, market_id: evidencePacket?.market_id || marketId },
+    { ...features, market_id: features?.market_id || marketId },
+  );
+  if (!fullEnsembleGate.run) {
     // Return a minimal prediction result indicating skip so callers can handle gracefully
     return {
       market_id: marketId,
       skipped: true,
-      skip_reason: reason,
+      skip_reason: fullEnsembleGate.reason,
+      gate: fullEnsembleGate,
       p_model: 0.5,
       confidence: 0,
       dispersion: 0,
@@ -847,6 +986,7 @@ async function generateCalibrationReport(trades, outcomes) {
   const report = {
     generatedAt: nowISO(),
     tradeCount: trades.length,
+    marketType: trades[0]?.market_type || trades[0]?.marketType || 'default',
     matchedOutcomeCount: Object.values(dispersionBins).reduce((s, d) => s + d.count, 0),
     modelPerformance,
     modelRankings: rankedModels,
@@ -859,6 +999,7 @@ async function generateCalibrationReport(trades, outcomes) {
   ensureOutputDir();
   const md = generateCalibrationMarkdown(report);
   writeFileSync(CALIBRATION_LOG, md, 'utf-8');
+  persistRollingBrierCalibration(report);
   console.log(`[Calibration] Report written to ${CALIBRATION_LOG}`);
 
   return report;
@@ -933,6 +1074,22 @@ function generateCalibrationMarkdown(report) {
 async function main() {
   const args = process.argv.slice(2);
   const subcommand = args[0];
+
+  if (args.includes('--dry-run')) {
+    const gate = shouldRunFullEnsemble(
+      { market_id: 'DRY-RUN', quality_score: 0.7, source_count: 3, sentiment_score: 0.3 },
+      { market_type: 'financial' },
+    );
+    console.log(JSON.stringify({
+      ok: true,
+      command: 'ensemble-inference',
+      dry_run: true,
+      gate,
+      output: PREDICTION_LOG,
+      rolling_brier: ROLLING_BRIER_PATH,
+    }, null, 2));
+    process.exit(0);
+  }
 
   if (subcommand === 'infer') {
     // Usage: node ensemble-inference.mjs infer <marketId> [evidencePacketPath] [featuresPath]
@@ -1040,6 +1197,31 @@ async function main() {
     console.assert(p1 === 0.73, 'single model should return its prob');
     console.assert(d1 === 0, 'single model should have 0 dispersion');
 
+    const gateReject = shouldRunFullEnsemble({ market_id: 'LOW', quality_score: 0.1, source_count: 0, sentiment_score: 0 }, {}, {
+      enabled: true,
+      logOnly: false,
+      minQuality: 0.3,
+      minEdge: 0.02,
+      minSources: 1,
+    });
+    console.assert(gateReject.run === false, 'ensemble gate should reject low-quality packets');
+
+    const gateLogOnly = shouldRunFullEnsemble({ market_id: 'LOW', quality_score: 0.1, source_count: 0, sentiment_score: 0 }, {}, {
+      enabled: true,
+      logOnly: true,
+      minQuality: 0.3,
+      minEdge: 0.02,
+      minSources: 1,
+    });
+    console.assert(gateLogOnly.run === true && gateLogOnly.enforced === false, 'log-only gate should allow but mark unenforced');
+
+    const weighted = applyRollingBrierWeights(
+      { claude: 0.2, grok: 0.2, gpt4o: 0.2, deepseek: 0.2, gemini: 0.2 },
+      'financial',
+      { market_types: { financial: { models: { deepseek: { brierScore: 0.1, sampleCount: 5 }, grok: { brierScore: 0.4, sampleCount: 5 } } } } },
+    );
+    console.assert(weighted.deepseek > weighted.grok, 'rolling Brier calibration should boost lower-Brier models');
+
     console.log('[Ensemble] All self-tests passed.');
     process.exit(0);
   }
@@ -1077,6 +1259,12 @@ export {
   runInference,
   getDynamicWeights,
   shouldRunInference,
+  shouldRunFullEnsemble,
+  getEnsembleGateConfig,
+  inferEdgeEstimate,
+  loadRollingBrierCalibration,
+  persistRollingBrierCalibration,
+  applyRollingBrierWeights,
   callModel,
   aggregateProbs,
   assignConfidence,

@@ -41,7 +41,7 @@ import { randomUUID } from 'node:crypto';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..', '..');
 const LOG_DIR = resolve(PROJECT_ROOT, 'logs');
-const DATA_DIR = resolve(PROJECT_ROOT, 'data');
+const DATA_DIR = resolve(PROJECT_ROOT, '.claude/trading-bot/data');
 
 // Ensure log and data directories exist
 if (!existsSync(LOG_DIR)) mkdirSync(LOG_DIR, { recursive: true });
@@ -60,11 +60,13 @@ let killSwitchState = (process.env.TRADING_BOT_KILL_SWITCH === 'ARMED')
   ? 'ARMED'
   : KILL_SWITCH_DEFAULT;
 
-// Log the initialization state
-recordKillSwitchEvent(
-  killSwitchState === 'ARMED' ? 'ARMED' : 'DISARMED',
-  'system'
-);
+// Log initialization only for direct CLI execution; imports should be side-effect light.
+if (process.argv[1]?.endsWith('live-rollout.mjs')) {
+  recordKillSwitchEvent(
+    killSwitchState === 'ARMED' ? 'ARMED' : 'DISARMED',
+    'system'
+  );
+}
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 
@@ -782,6 +784,25 @@ Usage:
 async function main() {
   const args = process.argv.slice(2);
 
+  if (args.includes('--dry-run')) {
+    const readiness = await validateLiveReadiness();
+    console.log(JSON.stringify({
+      ok: true,
+      command: 'live-rollout',
+      dry_run: true,
+      kill_switch: getKillSwitchState(),
+      readiness: {
+        ready: readiness.ready,
+        passed: readiness.passed,
+        failed: readiness.failed,
+        total: readiness.total,
+      },
+      data_dir: DATA_DIR,
+      log_dir: LOG_DIR,
+    }, null, 2));
+    return;
+  }
+
   if (args.length === 0 || args.includes('--help')) {
     printUsage();
     return;
@@ -879,7 +900,10 @@ async function main() {
 
 // ─── Run ────────────────────────────────────────────────────────────────────
 
-main().catch((err) => {
-  console.error(`FATAL: ${err.message}`);
-  process.exit(1);
-});
+const entryPath = process.argv[1];
+if (entryPath && entryPath.endsWith('live-rollout.mjs')) {
+  main().catch((err) => {
+    console.error(`FATAL: ${err.message}`);
+    process.exit(1);
+  });
+}

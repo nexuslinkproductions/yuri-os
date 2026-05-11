@@ -1106,6 +1106,17 @@ function loadExecutionEvents() {
 async function main() {
   const args = process.argv.slice(2);
 
+  if (args.includes('--dry-run')) {
+    console.log(JSON.stringify({
+      ok: true,
+      command: 'execution-engine',
+      dry_run: true,
+      mode: hasCredentials() ? 'live-capable' : 'stubbed',
+      output: EXECUTION_LOG,
+    }, null, 2));
+    return;
+  }
+
   if (args.includes('--help') || args.includes('-h')) {
     console.log(`
 Usage:
