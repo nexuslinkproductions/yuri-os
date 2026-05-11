@@ -51,6 +51,7 @@ const DEFAULT_PORT = Number(process.env.PORT || 3004);
 const MAX_PORT = DEFAULT_PORT + 10;
 const GITNEXUS_MCP_CHECK_SCRIPT = path.resolve(__dirname, '../..', 'Scripts/gitnexus-mcp-check.mjs');
 const GITNEXUS_MCP_CHECK_TIMEOUT_MS = 5000;
+const DB_RECOVERY_DIR = path.resolve(__dirname, '../..', '_SYSTEM/recovery/backend-db');
 const PORT_CANDIDATES = [
     DEFAULT_PORT,
     DEFAULT_PORT + 1,
@@ -222,6 +223,8 @@ type DatabaseReadiness = {
     schemaVersion: number;
     latestSchemaVersion: number;
     migrationsReady: boolean;
+    lastIntegrityCheckAt: string;
+    lastBackupAt: string | null;
     error: string | null;
 };
 
@@ -238,12 +241,47 @@ function checkDatabaseAvailable(): boolean {
     }
 }
 
+function getLatestDbBackupAt(): string | null {
+    try {
+        if (!fs.existsSync(DB_RECOVERY_DIR)) return null;
+        const manifests: string[] = [];
+        const pending = [DB_RECOVERY_DIR];
+
+        while (pending.length > 0 && manifests.length < 100) {
+            const current = pending.pop()!;
+            for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+                const entryPath = path.join(current, entry.name);
+                if (entry.isDirectory()) pending.push(entryPath);
+                else if (entry.name === 'manifest.json') manifests.push(entryPath);
+            }
+        }
+
+        const timestamps = manifests
+            .map((manifestPath) => {
+                try {
+                    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+                    return typeof manifest.createdAt === 'string' ? manifest.createdAt : null;
+                } catch {
+                    return null;
+                }
+            })
+            .filter((createdAt): createdAt is string => Boolean(createdAt))
+            .sort();
+
+        return timestamps.at(-1) || null;
+    } catch {
+        return null;
+    }
+}
+
 // O(n) integrity check — cached for 5 minutes; used by readiness and payload detail
 function buildDatabaseReadiness(): DatabaseReadiness {
     const now = Date.now();
     if (_dbIntegrityCache && now < _dbIntegrityCache.expiresAt) {
         return _dbIntegrityCache.value;
     }
+    const lastIntegrityCheckAt = new Date(now).toISOString();
+    const lastBackupAt = getLatestDbBackupAt();
     try {
         db.prepare('SELECT 1').get();
         const quickCheck = String(db.pragma('quick_check', { simple: true }) || 'unknown');
@@ -258,6 +296,8 @@ function buildDatabaseReadiness(): DatabaseReadiness {
             schemaVersion,
             latestSchemaVersion: LATEST_SCHEMA_VERSION,
             migrationsReady,
+            lastIntegrityCheckAt,
+            lastBackupAt,
             error: null
         };
         _dbIntegrityCache = { value: result, expiresAt: now + DB_INTEGRITY_TTL_MS };
@@ -271,6 +311,8 @@ function buildDatabaseReadiness(): DatabaseReadiness {
             schemaVersion: -1,
             latestSchemaVersion: LATEST_SCHEMA_VERSION,
             migrationsReady: false,
+            lastIntegrityCheckAt,
+            lastBackupAt,
             error: error?.message || 'database_unavailable'
         };
     }
