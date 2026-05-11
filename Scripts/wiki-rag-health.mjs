@@ -6,6 +6,7 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { inspectOpenDatabaseHealth, unavailableDatabaseHealth } from './lib/db-health.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LABEL = 'com.nudimmud.wiki-rag';
@@ -52,14 +53,6 @@ function launchctlPrint() {
   });
 }
 
-function checkDatabaseHealth(db) {
-  return {
-    integrityCheck: String(db.pragma('integrity_check', { simple: true }) || 'unknown'),
-    quickCheck: String(db.pragma('quick_check', { simple: true }) || 'unknown'),
-    foreignKeyViolations: (db.pragma('foreign_key_check') || []).length,
-  };
-}
-
 function main() {
   const issues = [];
   const index = readText(INDEX_PATH);
@@ -67,13 +60,9 @@ function main() {
   const launchdReport = readText(LAUNCHD_REPORT_PATH);
   const launchd = launchctlPrint();
   const db = fs.existsSync(DB_PATH) ? new Database(DB_PATH, { readonly: true }) : null;
-  let database = {
-    path: DB_PATH,
-    available: Boolean(db),
-    integrityCheck: 'unavailable',
-    quickCheck: 'unavailable',
-    foreignKeyViolations: -1,
-  };
+  let database = db
+    ? inspectOpenDatabaseHealth(db, DB_PATH)
+    : unavailableDatabaseHealth(DB_PATH);
 
   const indexIndexed = extractIndexCount(index, 'RAG indexed count');
   const indexChunks = extractIndexCount(index, 'RAG embedded chunk count');
@@ -130,10 +119,7 @@ function main() {
 
   if (db) {
     try {
-      database = {
-        ...database,
-        ...checkDatabaseHealth(db),
-      };
+      database = inspectOpenDatabaseHealth(db, DB_PATH);
     } catch (error) {
       issues.push(`database health check failed: ${error.message}`);
     }
@@ -214,10 +200,13 @@ function main() {
     },
     database: {
       path: database.path,
+      exists: database.exists,
       available: database.available,
       integrityCheck: database.integrityCheck,
       quickCheck: database.quickCheck,
       foreignKeyViolations: database.foreignKeyViolations,
+      healthy: database.healthy,
+      error: database.error,
     },
     issues,
   };

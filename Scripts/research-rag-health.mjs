@@ -4,6 +4,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { inspectOpenDatabaseHealth, unavailableDatabaseHealth } from './lib/db-health.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ARCHIVE_DIR = path.join(REPO_ROOT, '_SYSTEM/research-archive/yuri-enterprise-ai-os-2026-05');
@@ -82,14 +83,6 @@ function liveCounts(db, notebookId) {
   };
 }
 
-function checkDatabaseHealth(db) {
-  return {
-    integrityCheck: String(db.pragma('integrity_check', { simple: true }) || 'unknown'),
-    quickCheck: String(db.pragma('quick_check', { simple: true }) || 'unknown'),
-    foreignKeyViolations: (db.pragma('foreign_key_check') || []).length,
-  };
-}
-
 function pushMismatch(issues, label, actual, expected) {
   if (actual !== expected) {
     issues.push(`${label} is ${actual ?? 'missing'}, expected ${expected}`);
@@ -131,23 +124,13 @@ function main() {
   let db = null;
   let liveNotebook = null;
   let counts = null;
-  let database = {
-    path: DB_PATH,
-    available: false,
-    integrityCheck: 'unavailable',
-    quickCheck: 'unavailable',
-    foreignKeyViolations: -1
-  };
+  let database = unavailableDatabaseHealth(DB_PATH);
   if (!fs.existsSync(DB_PATH)) {
     issues.push(`live notebook database not found at ${DB_PATH}`);
   } else {
     try {
       db = new Database(DB_PATH, { readonly: true, fileMustExist: true });
-      database = {
-        ...database,
-        available: true,
-        ...checkDatabaseHealth(db)
-      };
+      database = inspectOpenDatabaseHealth(db, DB_PATH);
       if (database.integrityCheck !== 'ok') issues.push(`database integrity_check is ${database.integrityCheck}`);
       if (database.quickCheck !== 'ok') issues.push(`database quick_check is ${database.quickCheck}`);
       if (database.foreignKeyViolations !== 0) issues.push(`database foreign_key_check violations ${database.foreignKeyViolations}`);
@@ -210,10 +193,13 @@ function main() {
     },
     database: {
       path: database.path,
+      exists: database.exists,
       available: database.available,
       integrityCheck: database.integrityCheck,
       quickCheck: database.quickCheck,
-      foreignKeyViolations: database.foreignKeyViolations
+      foreignKeyViolations: database.foreignKeyViolations,
+      healthy: database.healthy,
+      error: database.error
     },
     issues
   };
