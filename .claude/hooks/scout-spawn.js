@@ -100,7 +100,8 @@ process.stdin.on('end', () => {
         'CASSANDRA-LITE',
         liteResult.severity,
         toolName,
-        `[INSTANT] ${liteResult.msg} — verify intent before proceeding.`
+        `[INSTANT] ${liteResult.msg} — verify intent before proceeding.`,
+        'native_function'
       );
     }
 

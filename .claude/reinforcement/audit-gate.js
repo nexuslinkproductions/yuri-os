@@ -22,6 +22,7 @@ if (!fs.existsSync(AUDIT_DIR)) {
 
 const skillManifest = JSON.parse(fs.readFileSync(SKILL_MANIFEST, 'utf8'));
 const agentManifest = JSON.parse(fs.readFileSync(AGENT_MANIFEST, 'utf8'));
+const MODEL_RUNTIME_KINDS = new Set(['model_agent']);
 
 const audit = {
   timestamp: new Date().toISOString(),
@@ -33,7 +34,8 @@ const audit = {
       active: skillManifest.metadata.active_count,
       unknown: skillManifest.metadata.unknown_status
     },
-    model_distribution: agentManifest.metadata.by_model
+    model_distribution: agentManifest.metadata.by_model,
+    runtime_distribution: agentManifest.metadata.by_runtime_kind
   },
   coverage: {
     skills: {
@@ -44,6 +46,8 @@ const audit = {
     },
     agents: {
       with_model: agentManifest.agents.filter(a => a.model !== null).length,
+      with_runtime_kind: agentManifest.agents.filter(a => a.runtime_kind).length,
+      native_functions: agentManifest.agents.filter(a => a.runtime_kind === 'native_function').length,
       with_responsibilities: agentManifest.agents.filter(a => a.responsibilities && a.responsibilities.length > 0).length,
       sonnet_tier: agentManifest.agents.filter(a => a.model === 'claude-sonnet-4-6').length,
       haiku_tier: agentManifest.agents.filter(a => a.model === 'claude-haiku-4-5-20251001').length
@@ -51,7 +55,10 @@ const audit = {
   },
   gaps: {
     skills_without_status: skillManifest.skills.filter(s => s.status === 'unknown').map(s => s.name),
-    agents_without_model: agentManifest.agents.filter(a => !a.model).map(a => a.name),
+    model_agents_without_model: agentManifest.agents
+      .filter(a => MODEL_RUNTIME_KINDS.has(a.runtime_kind) && !a.model)
+      .map(a => a.name),
+    agents_without_runtime_kind: agentManifest.agents.filter(a => !a.runtime_kind).map(a => a.name),
     skills_without_triggers: skillManifest.skills.filter(s => !s.triggers || s.triggers.length === 0).map(s => s.name)
   },
   readiness: {
@@ -76,7 +83,12 @@ function calculateCompleteness(skills, agents) {
   skillScore += (skillsEnterprise / skills.metadata.total_skills) * 30;
 
   // Agents completeness
-  agentScore += (agents.metadata.by_model['claude-sonnet-4-6'] / agents.metadata.total_agents) * 40;
+  const runtimeReady = agents.agents.filter(a =>
+    a.runtime_kind === 'native_function' ||
+    a.runtime_kind === 'scheduled_function' ||
+    (MODEL_RUNTIME_KINDS.has(a.runtime_kind) && a.model)
+  ).length;
+  agentScore += (runtimeReady / agents.metadata.total_agents) * 40;
   const agentsWithResp = agents.agents.filter(a => a.responsibilities && a.responsibilities.length > 0).length;
   agentScore += (agentsWithResp / agents.metadata.total_agents) * 60;
 
@@ -112,9 +124,14 @@ function generateRecommendations(skills, agents) {
     recs.push(`Define triggers for ${skillsNoTriggers} skills without CLI invocation paths`);
   }
 
-  const agentsNoModel = agents.agents.filter(a => !a.model).length;
-  if (agentsNoModel > 3) {
-    recs.push(`Assign explicit models to ${agentsNoModel} agents (critical for cost/latency prediction)`);
+  const modelAgentsNoModel = agents.agents.filter(a => MODEL_RUNTIME_KINDS.has(a.runtime_kind) && !a.model).length;
+  if (modelAgentsNoModel > 0) {
+    recs.push(`Assign explicit models to ${modelAgentsNoModel} model-backed agents (critical for cost/latency prediction)`);
+  }
+
+  const agentsNoRuntime = agents.agents.filter(a => !a.runtime_kind).length;
+  if (agentsNoRuntime > 0) {
+    recs.push(`Add runtime_kind to ${agentsNoRuntime} agents`);
   }
 
   const skillsNoVersion = skills.skills.filter(s => !s.version).length;

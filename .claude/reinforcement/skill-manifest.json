@@ -3,12 +3,12 @@
   "version": "1.0.2",
   "generated": "2026-04-27T12:30:00Z",
   "metadata": {
-    "total_skills": 29,
+    "total_skills": 30,
     "active_count": 5,
     "by_invocation_model": {
       "user_invoked_direct": 10,
       "routing_shortcut": 2,
-      "assistant_managed_reference": 6,
+      "assistant_managed_reference": 7,
       "assistant_managed_workflow": 5,
       "nested_subskill": 6
     },
@@ -17,7 +17,7 @@
       "unknown": 24,
       "reference": 0
     },
-    "metadata_coverage_count": 29,
+    "metadata_coverage_count": 30,
     "trigger_ownership": {
       "ai-pipeline-offloading": true,
       "swarm-coordination": true,
@@ -191,6 +191,28 @@
       "assistant_managed": false,
       "user_invoked": true,
       "command_surface_status": "deferred",
+      "mutation_allowed": false,
+      "enterprise_ready": null,
+      "non_destructive_default": null
+    },
+    {
+      "name": "frontend-design",
+      "description": "Anthropic's leaked UI/UX skill designed to prevent 'AI slop' by enforcing high-end, intentional design systems. Use when asked to 'build a UI', 'design a landing page', 'fix UX', or create any visual interface to ensure a production-grade, non-generic aesthetic.",
+      "invocation_model": "assistant_managed_reference",
+      "version": null,
+      "status": "unknown",
+      "triggers": [],
+      "triggers_present": false,
+      "trigger_count": 0,
+      "trigger_owner": false,
+      "requires": [],
+      "location": "/Users/marcelspatz/NUDIMMUD/.claude/skills/frontend-design/SKILL.md",
+      "canonical_path": "/Users/marcelspatz/NUDIMMUD/.claude/skills/frontend-design/SKILL.md",
+      "exists": true,
+      "parent_skill": null,
+      "assistant_managed": true,
+      "user_invoked": false,
+      "command_surface_status": "none",
       "mutation_allowed": false,
       "enterprise_ready": null,
       "non_destructive_default": null

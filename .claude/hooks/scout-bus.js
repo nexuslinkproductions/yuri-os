@@ -38,7 +38,7 @@ function pruneExpired(bus) {
   bus.ring = bus.ring.filter(e => new Date(e.expires_at).getTime() > now);
 }
 
-function appendFinding(scoutName, severity, triggerTool, finding) {
+function appendFinding(scoutName, severity, triggerTool, finding, runtimeKind = 'unknown') {
   const bus = readBus();
   pruneExpired(bus);
 
@@ -48,6 +48,7 @@ function appendFinding(scoutName, severity, triggerTool, finding) {
     ts: new Date().toISOString(),
     expires_at: new Date(Date.now() + TTL_MS).toISOString(),
     trigger_tool: triggerTool || '',
+    runtime_kind: runtimeKind,
     severity,
     finding,
     consumed: false,

@@ -26,6 +26,7 @@ if (!fs.existsSync(AUDIT_DIR)) {
 // Load manifests
 const skillManifest = JSON.parse(fs.readFileSync(SKILL_MANIFEST, 'utf8'));
 const agentManifest = JSON.parse(fs.readFileSync(AGENT_MANIFEST, 'utf8'));
+const MODEL_RUNTIME_KINDS = new Set(['model_agent']);
 
 const results = {
   timestamp: new Date().toISOString(),
@@ -154,6 +155,31 @@ test('agent-manifest: sonnet agents have explicit model', () => {
   });
 });
 
+test('agent-manifest: runtime kind is explicit', () => {
+  agentManifest.agents.forEach(agent => {
+    if (!agent.runtime_kind) throw new Error(`${agent.name} missing runtime_kind`);
+  });
+});
+
+test('agent-manifest: model agents have explicit model', () => {
+  agentManifest.agents
+    .filter(agent => MODEL_RUNTIME_KINDS.has(agent.runtime_kind))
+    .forEach(agent => {
+      if (!agent.model) throw new Error(`${agent.name} is model_agent without model`);
+    });
+});
+
+test('agent-manifest: native function scouts stay model-free', () => {
+  ['argus', 'hermes', 'obliteratus-qa'].forEach(name => {
+    const agent = agentManifest.agents.find(a => a.name === name);
+    if (!agent) throw new Error(`Required native function not found: ${name}`);
+    if (agent.runtime_kind !== 'native_function') {
+      throw new Error(`${name} should be native_function, got ${agent.runtime_kind}`);
+    }
+    if (agent.model !== null) throw new Error(`${name} should not declare a model`);
+  });
+});
+
 // === CROSS-MANIFEST TESTS ===
 
 test('skill and agent names do not overlap', () => {
@@ -186,9 +212,9 @@ if (skillsWithoutTriggers > 10) {
   warn('skill-manifest: many skills without triggers', `${skillsWithoutTriggers} skills have no triggers defined`);
 }
 
-const agentsWithoutModel = agentManifest.agents.filter(a => !a.model).length;
-if (agentsWithoutModel > 3) {
-  warn('agent-manifest: many agents without explicit model', `${agentsWithoutModel} agents have no model specified`);
+const modelAgentsWithoutModel = agentManifest.agents.filter(a => MODEL_RUNTIME_KINDS.has(a.runtime_kind) && !a.model).length;
+if (modelAgentsWithoutModel > 0) {
+  warn('agent-manifest: model agents without explicit model', `${modelAgentsWithoutModel} model agents have no model specified`);
 }
 
 // === WRITE REPORT ===

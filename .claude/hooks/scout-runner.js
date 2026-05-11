@@ -5,10 +5,12 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const bus = require('./scout-bus.js');
 
 const ERROR_LOG = path.join(__dirname, '..', 'state', 'scout-errors.log');
+const MODEL_SCOUT = 'claude-haiku-4-5-20251001';
+const NATIVE_SCOUTS = new Set(['ARGUS', 'HERMES']);
 
 function logError(msg) {
   try {
@@ -37,61 +39,175 @@ function parseScoutOutput(raw, scoutType) {
   };
 }
 
-const scoutType = process.argv[2];
-const contextFile = process.argv[3];
-
-if (!scoutType || !contextFile) {
-  logError('Missing args: scoutType or contextFile');
-  process.exit(1);
+function extractTool(contextText) {
+  const toolMatch = contextText.match(/^TOOL:\s*(\w+)/m);
+  return toolMatch ? toolMatch[1] : '';
 }
 
-const agentMdPath = path.join(__dirname, '..', 'agents', `${scoutType.toLowerCase()}.md`);
-
-if (!fs.existsSync(agentMdPath)) {
-  logError(`Agent definition not found: ${agentMdPath}`);
-  process.exit(1);
-}
-
-let contextText = '';
-try {
-  contextText = fs.readFileSync(contextFile, 'utf8');
-  fs.unlinkSync(contextFile); // clean up immediately
-} catch (e) {
-  logError(`Failed to read context file ${contextFile}: ${e.message}`);
-  process.exit(1);
-}
-
-const agentDef = fs.readFileSync(agentMdPath, 'utf8');
-const fullPrompt = agentDef + '\n\n---\n\n' + contextText;
-
-const promptFile = path.join('/tmp', `scout-${scoutType}-${Date.now()}.txt`);
-fs.writeFileSync(promptFile, fullPrompt);
-
-let rawOutput = '';
-try {
-  rawOutput = execSync(
-    `claude -p --model claude-haiku-4-5-20251001 "$(cat '${promptFile}')" 2>/dev/null`,
-    { encoding: 'utf8', timeout: 60_000, cwd: process.cwd() }
-  );
-} catch (e) {
-  logError(`claude -p failed for ${scoutType}: ${e.message?.slice(0, 200)}`);
-} finally {
-  try { fs.unlinkSync(promptFile); } catch (_) {}
-}
-
-if (!rawOutput) process.exit(0);
-
-// Extract trigger_tool from context (first line is "TOOL: <name>")
-const toolMatch = contextText.match(/^TOOL:\s*(\w+)/m);
-const triggerTool = toolMatch ? toolMatch[1] : '';
-
-const result = parseScoutOutput(rawOutput, scoutType);
-if (result) {
+function extractInput(contextText) {
+  const inputMatch = contextText.match(/^INPUT:\s*(.*)$/m);
+  if (!inputMatch) return {};
   try {
-    bus.appendFinding(scoutType, result.severity, triggerTool, result.finding);
-  } catch (e) {
-    logError(`Bus write failed for ${scoutType}: ${e.message}`);
+    return JSON.parse(inputMatch[1]);
+  } catch (_) {
+    return {};
   }
 }
 
-process.exit(0);
+function extractContextPct(contextText) {
+  const pctMatch = contextText.match(/^\s*context_pct:\s*(\d+)%/m);
+  return pctMatch ? Number.parseInt(pctMatch[1], 10) : 0;
+}
+
+function extractRecentFiles(contextText) {
+  const filesMatch = contextText.match(/^\s*files_written_recent:\s*(.*)$/m);
+  if (!filesMatch || filesMatch[1].trim() === 'none') return [];
+  return filesMatch[1].split(',').map((item) => item.trim()).filter(Boolean);
+}
+
+function topLevelFor(filePath) {
+  const normalized = String(filePath || '').replace(process.cwd(), '').replace(/^\/+/, '');
+  return normalized.split('/')[0] || '';
+}
+
+function compactFinding(finding) {
+  return String(finding || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
+function evaluateArgus(contextText) {
+  const toolName = extractTool(contextText);
+  const input = extractInput(contextText);
+  const isError = /RESULT \(error=YES\):/m.test(contextText);
+  const filePath = input.file_path || input.path || '';
+  const command = input.command || '';
+
+  if (isError && ['Write', 'Edit', 'MultiEdit'].includes(toolName)) {
+    return {
+      severity: 'WARN',
+      finding: 'File mutation errored; verify file state before reasoning from the attempted change.'
+    };
+  }
+
+  if (/_SYSTEM\/OS_KERNEL\/memory\.db/.test(filePath) || /sqlite3\b.*_SYSTEM\/OS_KERNEL\/memory\.db/.test(command)) {
+    return {
+      severity: 'HIGH',
+      finding: 'Canonical memory path touched directly; route through verified promotion instead.'
+    };
+  }
+
+  if (toolName === 'Bash' && /\bgit\s+commit\b/.test(command) && !/\bgit\s+status\b/.test(contextText)) {
+    return {
+      severity: 'INFO',
+      finding: 'Commit command seen without recent status evidence in context; verify staged scope first.'
+    };
+  }
+
+  return null;
+}
+
+function evaluateHermes(contextText) {
+  const contextPct = extractContextPct(contextText);
+  const recentFiles = extractRecentFiles(contextText);
+  const topLevels = new Set(recentFiles.map(topLevelFor).filter(Boolean));
+
+  if (topLevels.size > 4) {
+    return {
+      severity: 'WARN',
+      finding: `Recent writes span ${topLevels.size} top-level areas; confirm this is one coherent task.`
+    };
+  }
+
+  if (contextPct >= 80) {
+    return {
+      severity: 'INFO',
+      finding: 'Context is above 80%; preserve the active task state before more file edits.'
+    };
+  }
+
+  return null;
+}
+
+function runNativeScout(scoutType, contextText) {
+  if (scoutType === 'ARGUS') return evaluateArgus(contextText);
+  if (scoutType === 'HERMES') return evaluateHermes(contextText);
+  return null;
+}
+
+function runModelScout(scoutType, contextText) {
+  const agentMdPath = path.join(__dirname, '..', 'agents', `${scoutType.toLowerCase()}.md`);
+
+  if (!fs.existsSync(agentMdPath)) {
+    logError(`Agent definition not found: ${agentMdPath}`);
+    return null;
+  }
+
+  const agentDef = fs.readFileSync(agentMdPath, 'utf8');
+  const fullPrompt = `${agentDef}\n\n---\n\n${contextText}`;
+
+  let rawOutput = '';
+  try {
+    rawOutput = execFileSync(
+      process.env.CLAUDE_BIN || 'claude',
+      ['-p', '--model', MODEL_SCOUT, fullPrompt],
+      { encoding: 'utf8', timeout: 60_000, cwd: process.cwd(), stdio: ['ignore', 'pipe', 'ignore'] }
+    );
+  } catch (e) {
+    logError(`claude -p failed for ${scoutType}: ${e.message?.slice(0, 200)}`);
+  }
+
+  return parseScoutOutput(rawOutput, scoutType);
+}
+
+function runScout(scoutType, contextFile) {
+  if (!scoutType || !contextFile) {
+    logError('Missing args: scoutType or contextFile');
+    return 1;
+  }
+
+  let contextText = '';
+  try {
+    contextText = fs.readFileSync(contextFile, 'utf8');
+    fs.unlinkSync(contextFile);
+  } catch (e) {
+    logError(`Failed to read context file ${contextFile}: ${e.message}`);
+    return 1;
+  }
+
+  const normalizedScout = scoutType.toUpperCase();
+  const triggerTool = extractTool(contextText);
+  const runtimeKind = NATIVE_SCOUTS.has(normalizedScout) ? 'native_function' : 'model_agent';
+  const result = NATIVE_SCOUTS.has(normalizedScout)
+    ? runNativeScout(normalizedScout, contextText)
+    : runModelScout(normalizedScout, contextText);
+
+  if (result) {
+    try {
+      bus.appendFinding(
+        normalizedScout,
+        result.severity,
+        triggerTool,
+        compactFinding(result.finding),
+        runtimeKind
+      );
+    } catch (e) {
+      logError(`Bus write failed for ${normalizedScout}: ${e.message}`);
+    }
+  }
+
+  return 0;
+}
+
+if (require.main === module) {
+  process.exit(runScout(process.argv[2], process.argv[3]));
+}
+
+module.exports = {
+  MODEL_SCOUT,
+  NATIVE_SCOUTS,
+  parseScoutOutput,
+  evaluateArgus,
+  evaluateHermes,
+  runNativeScout,
+  runModelScout,
+  runScout,
+};
