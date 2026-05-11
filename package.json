@@ -67,7 +67,7 @@
     "test:memory-governor": "python3 _SYSTEM/OS_KERNEL/memory_governor_test.py",
     "backend:db:check": "node Scripts/backend-db-check.mjs",
     "backend:db:recover": "node Scripts/backend-db-recovery.mjs",
-    "backend:smoke": "node Scripts/backend-cors-hardening.test.mjs && node Scripts/backend-db-readiness-migration-status.test.mjs && node Scripts/backend-telemetry-truth.test.mjs",
+    "backend:smoke": "node Scripts/backend-cors-hardening.test.mjs && node Scripts/backend-db-readiness-migration-status.test.mjs && node Scripts/backend-db-readiness-recovery-metadata.test.mjs && node Scripts/backend-telemetry-truth.test.mjs",
     "backend:route-audit": "node Scripts/backend-route-auth-matrix.test.mjs",
     "backend:release-gate": "node Scripts/backend-release-gate.mjs",
     "test:backend-db-check": "node Scripts/backend-db-check.test.mjs",

@@ -41,6 +41,11 @@ const steps = [
     args: ['Scripts/backend-db-readiness-migration-status.test.mjs'],
   },
   {
+    name: 'backend-db-readiness-recovery-metadata',
+    command: process.execPath,
+    args: ['Scripts/backend-db-readiness-recovery-metadata.test.mjs'],
+  },
+  {
     name: 'gitnexus-mcp-live-probe',
     command: process.execPath,
     args: ['Scripts/gitnexus-mcp-check.mjs'],
