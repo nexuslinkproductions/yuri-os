@@ -101,6 +101,16 @@ let backgroundServicesStarted = false;
 
 const trackedTimeouts = new Set<NodeJS.Timeout>();
 const trackedIntervals = new Set<NodeJS.Timeout>();
+const runtimeMetrics = {
+    requestCount: 0,
+    errorCount: 0,
+    latencyTotalMs: 0,
+    maxLatencyMs: 0,
+    lastStatusCode: null as number | null,
+    lastRequestAt: null as string | null,
+    lastErrorAt: null as string | null,
+    statusCodes: {} as Record<string, number>
+};
 
 function trackTimeout(handle: NodeJS.Timeout) {
     trackedTimeouts.add(handle);
@@ -204,6 +214,31 @@ const corsOptions: CorsOptions = {
         callback(error);
     }
 };
+
+app.use((req, res, next) => {
+    const startedAt = process.hrtime.bigint();
+
+    res.on('finish', () => {
+        const latencyMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+        const finishedAt = new Date().toISOString();
+        const statusCode = res.statusCode;
+        const statusKey = String(statusCode);
+
+        runtimeMetrics.requestCount += 1;
+        runtimeMetrics.latencyTotalMs += latencyMs;
+        runtimeMetrics.maxLatencyMs = Math.max(runtimeMetrics.maxLatencyMs, latencyMs);
+        runtimeMetrics.lastStatusCode = statusCode;
+        runtimeMetrics.lastRequestAt = finishedAt;
+        runtimeMetrics.statusCodes[statusKey] = (runtimeMetrics.statusCodes[statusKey] || 0) + 1;
+
+        if (statusCode >= 400) {
+            runtimeMetrics.errorCount += 1;
+            runtimeMetrics.lastErrorAt = finishedAt;
+        }
+    });
+
+    next();
+});
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '25mb' }));
@@ -456,7 +491,8 @@ async function buildStatusPayload() {
             knowledgeNodes: knowledgeTotal,
             lastRuntime: metrics.routing?.latest?.runtime || null,
             lastModel: metrics.routing?.latest?.model || null,
-            lastCompressionRatio: metrics.routing?.latest?.compressionRatio || null
+            lastCompressionRatio: metrics.routing?.latest?.compressionRatio || null,
+            runtime: buildRuntimeMetricsPayload()
         },
         routing: metrics.routing,
         knowledgeStats: { total: knowledgeTotal, byDomain },
@@ -467,6 +503,23 @@ async function buildStatusPayload() {
             activeFile,
             workspaceActiveFile: obsidianState.workspaceActiveFile || null
         }
+    };
+}
+
+function buildRuntimeMetricsPayload() {
+    const requestCount = runtimeMetrics.requestCount;
+    const averageLatencyMs = requestCount > 0 ? runtimeMetrics.latencyTotalMs / requestCount : 0;
+
+    return {
+        requestCount,
+        errorCount: runtimeMetrics.errorCount,
+        latencyTotalMs: Number(runtimeMetrics.latencyTotalMs.toFixed(3)),
+        averageLatencyMs: Number(averageLatencyMs.toFixed(3)),
+        maxLatencyMs: Number(runtimeMetrics.maxLatencyMs.toFixed(3)),
+        lastStatusCode: runtimeMetrics.lastStatusCode,
+        lastRequestAt: runtimeMetrics.lastRequestAt,
+        lastErrorAt: runtimeMetrics.lastErrorAt,
+        statusCodes: { ...runtimeMetrics.statusCodes }
     };
 }
 
