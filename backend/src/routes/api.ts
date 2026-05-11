@@ -636,10 +636,10 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         res.json({ success: true });
     });
 
-    router.get('/integrations', (_, res) => res.json(getIntegrations(db)));
+    router.get('/integrations', authMiddleware, (_, res) => res.json(getIntegrations(db)));
 
     // File System
-    router.get('/files/ls', (req, res) => {
+    router.get('/files/ls', authMiddleware, (req, res) => {
         const dirPath = req.query.path as string || '';
         try {
             res.json(listVaultDirectory(dirPath));
@@ -666,7 +666,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         res.json(searchKnowledge(db, q));
     });
 
-    router.get('/knowledge/detail', (req, res) => {
+    router.get('/knowledge/detail', authMiddleware, (req, res) => {
         const filePath = req.query.path as string;
         if (!filePath) return res.status(400).json({ error: 'path is required' });
         try {
@@ -763,8 +763,8 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         res.json(result);
     });
 
-    router.get('/exeoflow/entries', (_, res) => res.json(getAllTimeEntries(db)));
-    router.get('/exeoflow/pending', (_, res) => res.json(getPendingTimeEntries(db)));
+    router.get('/exeoflow/entries', authMiddleware, (_, res) => res.json(getAllTimeEntries(db)));
+    router.get('/exeoflow/pending', authMiddleware, (_, res) => res.json(getPendingTimeEntries(db)));
     
     // ── SWARM ORCHESTRATION ──
     const { SwarmOrchestrator } = require('../services/swarmOrchestrator');

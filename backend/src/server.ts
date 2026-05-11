@@ -49,6 +49,8 @@ const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost']);
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = Number(process.env.PORT || 3004);
 const MAX_PORT = DEFAULT_PORT + 10;
+const GITNEXUS_MCP_CHECK_SCRIPT = path.resolve(__dirname, '../..', 'Scripts/gitnexus-mcp-check.mjs');
+const GITNEXUS_MCP_CHECK_TIMEOUT_MS = 5000;
 const PORT_CANDIDATES = [
     DEFAULT_PORT,
     DEFAULT_PORT + 1,
@@ -343,14 +345,21 @@ async function computeTelemetry() {
     const activeCount = agents.filter((agent) => agent.status === 'ACTIVE' || agent.status === 'SYNCING').length;
     const { total: knowledgeTotal } = getIngestionStats(db);
     const metrics = await getTokenMetrics();
-    const tokenLoad = metrics.currentSession ? (metrics.currentSession.tokens / 200000) * 100 : 20;
+    const tokenLoad = metrics.currentSession ? (metrics.currentSession.tokens / 200000) * 100 : 0;
+    const agentSync = agents.length > 0 ? (activeCount / agents.length) * 100 : 0;
+    const ingestionPressure = knowledgeTotal > 0 ? (knowledgeTotal / 1000) * 100 : 0;
+    const database = buildDatabaseReadiness();
+    const sealStability = database.ready ? 100 : (database.available ? 50 : 0);
+    const systemCpu = metrics.systemLoad?.cpu || 0;
+    const systemMem = metrics.systemLoad?.mem || 0;
+    const systemPressure = (systemCpu + systemMem) / 2;
 
     const snapshot = {
-        neural_density: clamp(tokenLoad + (Math.random() * 5)),
-        swarm_sync: clamp(activeCount * 5 + 50 + (Math.random() * 15)),
-        ingestion_pressure: clamp((knowledgeTotal / 1000) * 100 * (0.8 + Math.random() * 0.4)),
-        seal_stability: clamp(98 + Math.random() * 2),
-        logic_throughput: clamp(75 + Math.random() * 25),
+        neural_density: clamp(tokenLoad),
+        swarm_sync: clamp(agentSync),
+        ingestion_pressure: clamp(ingestionPressure),
+        seal_stability: clamp(sealStability),
+        logic_throughput: clamp(100 - systemPressure),
         active_agent_count: activeCount
     };
 
@@ -408,6 +417,50 @@ async function buildStatusPayload() {
     };
 }
 
+type IntegrationStatus = 'CONNECTED' | 'OFFLINE' | 'DEGRADED';
+
+function probeGitNexusMcpStatus(): Promise<IntegrationStatus> {
+    return new Promise((resolve) => {
+        const child = spawn(process.execPath, [GITNEXUS_MCP_CHECK_SCRIPT], {
+            cwd: path.resolve(__dirname, '../..'),
+            stdio: ['ignore', 'pipe', 'pipe'],
+        });
+
+        let stdout = '';
+        let settled = false;
+        let timeout: NodeJS.Timeout;
+
+        const settle = (status: IntegrationStatus) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
+            resolve(status);
+        };
+
+        timeout = setTimeout(() => {
+            child.kill('SIGTERM');
+            settle('DEGRADED');
+        }, GITNEXUS_MCP_CHECK_TIMEOUT_MS);
+
+        child.stdout.on('data', (chunk) => {
+            stdout += chunk.toString('utf8');
+        });
+
+        child.on('error', () => {
+            settle('OFFLINE');
+        });
+
+        child.on('exit', (code) => {
+            if (code === 0 && /GITNEXUS_MCP_CHECK_PASS\s+tools=\d+/.test(stdout)) {
+                settle('CONNECTED');
+                return;
+            }
+
+            settle(code === 0 ? 'DEGRADED' : 'OFFLINE');
+        });
+    });
+}
+
 async function checkIntegrations() {
     if (shuttingDown) return;
 
@@ -425,11 +478,12 @@ async function checkIntegrations() {
         const obsidianStatus = obsidianAvailable ? 'CONNECTED' : 'OFFLINE';
         const forgeStatus = await neuralForge.ping();
         const isForgeOnline = forgeStatus.local || forgeStatus.cloud || forgeStatus.anthropic || forgeStatus.google || forgeStatus.openai;
+        const gitNexusMcpStatus = await probeGitNexusMcpStatus();
 
         const integrations = [
             { name: 'OBSIDIAN', status: obsidianStatus },
             { name: 'NEURAL_FORGE', status: isForgeOnline ? 'CONNECTED' : 'OFFLINE' },
-            { name: 'GITNEXUS_MCP', status: 'CONNECTED' }
+            { name: 'GITNEXUS_MCP', status: gitNexusMcpStatus }
         ];
 
         for (const integration of integrations) {
