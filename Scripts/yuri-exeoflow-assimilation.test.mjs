@@ -53,6 +53,22 @@ const allowedLineReasons = new Map([
       reason: 'package scripts must invoke the requested guardrail filename',
     },
   ]],
+  ['Scripts/backend-release-gate.mjs', [
+    {
+      pattern: /Scripts\/yuri-exeoflow-assimilation\.test\.mjs/,
+      reason: 'release gate must execute the requested assimilation guardrail filename while redacting release output',
+    },
+    {
+      pattern: /yuri-exeoflow-assimilation\.test\.mjs/,
+      reason: 'release gate display redaction must identify the requested guardrail filename',
+    },
+  ]],
+  ['Scripts/backend-release-gate.test.mjs', [
+    {
+      pattern: /yuri-exeoflow-assimilation.*test.*mjs/,
+      reason: 'release gate test must prove the requested assimilation guardrail filename is wired',
+    },
+  ]],
 ]);
 
 for (const [skipPath, reason] of skippedPathReasons) {
@@ -86,7 +102,7 @@ if (violations.length > 0) {
   throw new Error(`Active ExeoFlow references must be assimilated into Yuri OS:\n${details}`);
 }
 
-process.stdout.write('yuri-exeoflow-assimilation: pass\n');
+process.stdout.write('yuri-assimilation-guardrail: pass\n');
 
 function scanDirectory(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {

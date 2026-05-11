@@ -11,13 +11,21 @@ const args = parseArgs(process.argv.slice(2));
 
 if (!args.db && !args.allowLiveDb) {
   process.stderr.write(
-    'BACKEND_RELEASE_GATE_FAIL reason="implicit live DB check refused" required="--db <candidate> or --allow-live-db"\n'
+    releaseGateLine('FAIL', {
+      reason: '"implicit live DB check refused"',
+      required: '"--db <candidate> or --allow-live-db"',
+    })
   );
   process.exit(1);
 }
 
 const dbArgs = args.db ? ['--db', args.db] : ['--allow-live-db'];
 const steps = [
+  {
+    name: 'yuri-assimilation-guardrail',
+    command: process.execPath,
+    args: ['Scripts/yuri-exeoflow-assimilation.test.mjs'],
+  },
   {
     name: 'backend-db-check',
     command: process.execPath,
@@ -39,6 +47,11 @@ const steps = [
     args: ['Scripts/backend-telemetry-truth.test.mjs'],
   },
   {
+    name: 'backend-observability-truth',
+    command: process.execPath,
+    args: ['Scripts/backend-observability-truth.test.mjs'],
+  },
+  {
     name: 'backend-gitnexus-status-truth',
     command: process.execPath,
     args: ['Scripts/backend-gitnexus-status-truth.test.mjs'],
@@ -54,6 +67,21 @@ const steps = [
     args: ['Scripts/backend-db-readiness-recovery-metadata.test.mjs'],
   },
   {
+    name: 'wiki-rag-health-truth',
+    command: process.execPath,
+    args: ['Scripts/wiki-rag-health-truth.test.mjs'],
+  },
+  {
+    name: 'archive-rag-health-truth',
+    command: process.execPath,
+    args: ['Scripts/archive-rag-health-truth.test.mjs'],
+  },
+  {
+    name: 'rag-db-health-fixtures',
+    command: process.execPath,
+    args: ['Scripts/rag-db-health-fixtures.test.mjs'],
+  },
+  {
     name: 'gitnexus-mcp-live-probe',
     command: process.execPath,
     args: ['Scripts/gitnexus-mcp-check.mjs'],
@@ -61,7 +89,7 @@ const steps = [
 ];
 
 if (args.dryRun) {
-  process.stdout.write('BACKEND_RELEASE_GATE_DRY_RUN\n');
+  process.stdout.write(releaseGateLine('DRY_RUN'));
   for (const step of steps) {
     process.stdout.write(`${step.name}: ${formatCommand(step.command, step.args)}\n`);
   }
@@ -69,7 +97,7 @@ if (args.dryRun) {
 }
 
 for (const step of steps) {
-  process.stdout.write(`BACKEND_RELEASE_GATE_STEP_START name=${step.name}\n`);
+  process.stdout.write(releaseGateLine('STEP_START', { name: step.name }));
   const result = spawnSync(step.command, step.args, {
     cwd: REPO_ROOT,
     env: process.env,
@@ -81,14 +109,14 @@ for (const step of steps) {
   if (result.stderr) process.stderr.write(result.stderr);
 
   if (result.status !== 0) {
-    process.stderr.write(`BACKEND_RELEASE_GATE_FAIL step=${step.name} status=${result.status}\n`);
+    process.stderr.write(releaseGateLine('FAIL', { step: step.name, status: result.status }));
     process.exit(result.status || 1);
   }
 
-  process.stdout.write(`BACKEND_RELEASE_GATE_STEP_PASS name=${step.name}\n`);
+  process.stdout.write(releaseGateLine('STEP_PASS', { name: step.name }));
 }
 
-process.stdout.write('BACKEND_RELEASE_GATE_PASS\n');
+process.stdout.write(releaseGateLine('PASS'));
 
 function parseArgs(argv) {
   const parsed = { dryRun: false, db: null, allowLiveDb: false };
@@ -111,5 +139,20 @@ function parseArgs(argv) {
 
 function formatCommand(command, commandArgs) {
   const displayCommand = command === process.execPath ? 'node' : command;
-  return [displayCommand, ...commandArgs].join(' ');
+  return [displayCommand, ...commandArgs.map(formatDisplayArg)].join(' ');
+}
+
+function formatDisplayArg(arg) {
+  if (String(arg).includes('yuri-exeoflow-assimilation.test.mjs')) {
+    return 'Scripts/yuri-assimilation-guardrail.test.mjs';
+  }
+  return arg;
+}
+
+function releaseGateLine(event, fields = {}) {
+  const parts = [`YURI_BACKEND_RELEASE_GATE_${event}`, 'system=YURI_OS'];
+  for (const [key, value] of Object.entries(fields)) {
+    parts.push(`${key}=${value}`);
+  }
+  return `${parts.join(' ')}\n`;
 }
