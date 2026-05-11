@@ -16,7 +16,7 @@ if (!args.db && !args.allowLiveDb) {
   process.exit(1);
 }
 
-const dbArgs = args.db ? ['--db', args.db] : [];
+const dbArgs = args.db ? ['--db', args.db] : ['--allow-live-db'];
 const steps = [
   {
     name: 'backend-db-check',

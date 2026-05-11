@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_DB_PATH = path.join(REPO_ROOT, 'backend/data/nudimmud.db');
+const PROTECTED_DB_ROOT = path.join(REPO_ROOT, 'backend/data');
 const DATABASE_SOURCE = path.join(REPO_ROOT, 'backend/src/models/database.ts');
 
 const require = createRequire(import.meta.url);
@@ -17,6 +18,13 @@ const args = parseArgs(process.argv.slice(2));
 const dbPath = path.resolve(REPO_ROOT, args.db || process.env.NUDIMMUD_DB_PATH || DEFAULT_DB_PATH);
 const latestSchemaVersion = readLatestSchemaVersion();
 const issues = [];
+
+if (isInsidePath(dbPath, PROTECTED_DB_ROOT) && !args.allowLiveDb) {
+  process.stderr.write(
+    'BACKEND_DB_CHECK_FAIL reason="implicit live DB check refused" required="--db <candidate> or --allow-live-db"\n'
+  );
+  process.exit(1);
+}
 
 let result = {
   dbPath,
@@ -72,14 +80,23 @@ process.stderr.write(`BACKEND_DB_CHECK_FAIL ${fields.join(' ')} issues="${issues
 process.exit(1);
 
 function parseArgs(argv) {
-  const parsed = {};
+  const parsed = { allowLiveDb: false };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--db') {
       parsed.db = argv[index + 1];
       index += 1;
+      continue;
+    }
+    if (argv[index] === '--allow-live-db') {
+      parsed.allowLiveDb = true;
     }
   }
   return parsed;
+}
+
+function isInsidePath(candidate, parent) {
+  const relative = path.relative(parent, candidate);
+  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
 function readLatestSchemaVersion() {

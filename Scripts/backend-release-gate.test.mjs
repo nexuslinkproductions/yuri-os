@@ -13,11 +13,23 @@ const implicitLiveDb = spawnSync(process.execPath, ['Scripts/backend-release-gat
   encoding: 'utf8',
 });
 
+const explicitLiveDb = spawnSync(process.execPath, ['Scripts/backend-release-gate.mjs', '--dry-run', '--allow-live-db'], {
+  cwd: process.cwd(),
+  encoding: 'utf8',
+});
+
 assert.notEqual(implicitLiveDb.status, 0, 'release gate should refuse implicit live DB checks');
 assert.match(
   `${implicitLiveDb.stdout}\n${implicitLiveDb.stderr}`,
   /BACKEND_RELEASE_GATE_FAIL.*--db <candidate> or --allow-live-db/,
   'live DB refusal should explain the explicit operator choice'
+);
+
+assert.equal(explicitLiveDb.status, 0, `explicit live DB dry run should pass:\n${explicitLiveDb.stdout}\n${explicitLiveDb.stderr}`);
+assert.match(
+  explicitLiveDb.stdout,
+  /backend-db-check\.mjs --allow-live-db/,
+  'release gate should forward explicit live DB override to DB check'
 );
 
 assert.equal(result.status, 0, `release gate dry run should pass:\n${result.stdout}\n${result.stderr}`);
