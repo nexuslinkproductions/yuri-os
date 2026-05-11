@@ -64,7 +64,7 @@ Both operate through NUDIMMUD. What is fashioned serves the dual-core system.
 - **Nexus Link: Productions** (personal brand) — on-set video/photo capture billing entity
   - Public operational vault: [github.com/nexuslinkproductions/nudimmud-vault](https://github.com/nexuslinkproductions/nudimmud-vault)
   - Demonstrates integrated production + knowledge system
-- **EXEOFLOW** (with Claudio) — AI-powered automation platform (creative/production infrastructure layer)
+- **Yuri Flow** (with Claudio) — Yuri-native workflow automation layer for creative and production infrastructure
 - **Trading Portfolio** (activate phase) — market systems and financial independence layer
 
 **Cognitive Architecture:**

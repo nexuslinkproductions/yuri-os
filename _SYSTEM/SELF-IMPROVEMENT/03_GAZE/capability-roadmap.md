@@ -50,7 +50,7 @@ One step away. These leverage existing skills with modest new learning (2–6 we
 | **Automated post-production workflow** | Resolve + Premiere + scripting | 2–3 weeks |
 | **DaVinci Resolve 21 AI tools** | Existing Resolve expertise | 1–2 weeks (beta now) |
 | **Client retainer architecture** | Existing client relationships | 1–2 weeks |
-| **EXEOFLOW production infra** | Systems + creative production | 3–5 weeks |
+| **Yuri Flow production infra** | Systems + creative production | 3–5 weeks |
 | **Medium Japanese conversation** | Hiragana/katakana + grammar base | 6–8 weeks |
 | **RAG-powered production assistant** | NUDIMMUD RAG pipeline + creative knowledge | 3–4 weeks |
 | **Video compression/codec consulting** | Post-production depth | 1–2 weeks |

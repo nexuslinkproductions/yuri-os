@@ -30,10 +30,7 @@ Curated UI references for the NUDIMMUD OS redesign.
 
 ## Internal Reference Packs
 
-- [ExeoFlow + YURI OS SITREP baseline](../../03_RESOURCES/References/design-packs/exeoflow-yuri-sitrep-baseline/README.md) - baseline for interactive target-intelligence websites: consumer story, account explorer, real map, public-source evidence, and action plans. Treat as a starting point to improve in presentation, animation, and information quality.
-- [ExeoFlow + YURI OS start here](../../03_RESOURCES/References/design-packs/exeoflow-yuri-sitrep-baseline/00-start-here.md) - fast manifest for future sessions.
-- [ExeoFlow vs Nexus Link comparison](../../03_RESOURCES/References/design-packs/exeoflow-yuri-sitrep-baseline/comparison-exeo-vs-nexus-link.md) - delta sheet for what to keep, copy, and improve.
-- [ExeoFlow + YURI OS skill](../../.agents/skills/exeoflow-yuri-sitrep-pack/SKILL.md) - portable reusable skill for this workflow.
+- Historical SITREP baseline pack - archived target-intelligence reference material only; do not use it as current Yuri OS product identity.
 - [Framer University resource atlas](../../03_RESOURCES/References/design-packs/framer-university-resource-atlas/README.md) - full 623-resource archive with cluster map, highlight set, and reusable motion guidance.
 - [Frontier Design Intelligence](../../03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md) - 72-source frontier atlas covering agent skills, design systems, React guidance, component catalogs, animation libraries, galleries, repos, AI design tools, and social/community signals.
 - [Frontier start here](../../03_RESOURCES/References/design-packs/frontier-design-intelligence/00-start-here.md) - load order, project-type source picking, and motion budget rules for future website work.

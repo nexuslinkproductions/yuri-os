@@ -16,8 +16,8 @@
 ### MACL ONE
 - Role: Premium sports clothing brand — active project
 
-### exeoflow
-- Role: IT/AI services arm — Marcel learning track
+### Yuri Flow
+- Role: IT/AI services and workflow layer — Marcel learning track
 
 ## Vienna Expansion
 Direct client acquisition in Vienna → later stage (2026/2027)

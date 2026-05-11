@@ -7,7 +7,7 @@
 | Category | Includes | Monthly Target |
 |----------|----------|----------------|
 | **Client Work** | C2Moviez, planzerfilms, MACL-ONE shoots/edits | < 50% |
-| **System Building** | NUDIMMUD, EXEOFLOW, tooling, automation, your ecosystem | 15-25% |
+| **System Building** | NUDIMMUD, Yuri Flow, tooling, automation, your ecosystem | 15-25% |
 | **Learning** | Japanese, cinematography, trading, esoteric study | 10-20% |
 | **Admin** | Email, invoices, scheduling, logistics, shopping, chores | < 10% |
 | **Rest** | Sleep, gym, social (non-work), cooking, deliberate rest | > 20% |
@@ -25,7 +25,7 @@
 ```
 YYYY-MM-DD | NIGHT | 4h | Client Work | C2Moviez — interview edit
 YYYY-MM-DD | NIGHT | 2h | Learning | Japanese kanji + grammar
-YYYY-MM-DD | NIGHT | 3h | System Building | EXEOFLOW — auth module
+YYYY-MM-DD | NIGHT | 3h | System Building | Yuri Flow — auth module
 YYYY-MM-DD | NIGHT | 1h | Admin | Invoicing + scheduling
 ```
 

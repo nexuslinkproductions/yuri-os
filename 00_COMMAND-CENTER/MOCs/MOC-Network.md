@@ -32,11 +32,11 @@
 - **Contact:** Cati
 - **Next step:** Clarify on-set needs and delivery format
 
-### Learning Partnership: exeoflow
+### Learning Partnership: Yuri Flow
 - **Owner:** Claudio Tinner (learning track for Marcel)
 - **Services:** IT/AI services
 - **Status:** Potential vertical for skill development
-- **Folder:** `02_AREAS/Partnerships/ExeoFlow/`
+- **Folder:** `02_AREAS/Partnerships/Yuri-Flow/`
 - **Contact:** TBD
 
 ### VFX/Motion Partner: SILASWIRTH
@@ -115,7 +115,7 @@
 | **Claudio (c2moviez)** | Weekly signals | Every Wednesday (automated) | Tier 1 opportunity handoff |
 | **Marc (planzerfilms)** | Email | Monthly | Partnership development, scope clarification |
 | **MACL-ONE (Cati)** | Email | Quarterly | Status check, scope confirmation |
-| **exeoflow** | Email | Ad-hoc | Learning + potential collaboration |
+| **Yuri Flow** | Email | Ad-hoc | Learning + potential collaboration |
 
 ---
 

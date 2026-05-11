@@ -28,18 +28,18 @@ The **Liquid Active Memory** service acts as the connective tissue.
 
 ---
 
-## ⬡ PROTOCOL 04: FUSION PROTOCOL — Nudimmud OS ↔ Exeoflow
+## ⬡ PROTOCOL 04: FUSION PROTOCOL — Nudimmud OS ↔ Yuri Flow
 
 **Added:** 2026-04-24
 
-Exeoflow (Claudio) = structural skeleton: security, client pipeline, billing authority  
+Yuri Flow (Claudio-compatible workflow layer) = structural skeleton: security, client pipeline, billing authority
 Nudimmud OS (Marcel) = cognitive symbiote: agentic execution, synthesis, creative direction
 
 **Fusion Rules:**
 1. Claudio's structural decisions are non-negotiable — Nudimmud wraps, never overwrites.
-2. Nudimmud OS observes Exeoflow state via `06_NETWORK-SYNC/`, acts on its own layer only.
+2. Nudimmud OS observes Yuri Flow state via `06_NETWORK-SYNC/`, acts on its own layer only.
 3. No destructive merges — additive overlays only.
-4. Communication: `session_log.md` entries tagged `[EXEOFLOW-SYNC]` when Claudio-layer relevant.
-5. **CONFLICT RESOLVER:** If a Nudimmud OS overlay contradicts Exeoflow's core architecture, auto-route to "Hard Deferral" with `[PROTOCOL-CLASH]` tag. Do not proceed without explicit resolution.
+4. Communication: `session_log.md` entries tagged `[YURI-FLOW-SYNC]` when Claudio-layer relevant.
+5. **CONFLICT RESOLVER:** If a Nudimmud OS overlay contradicts Yuri Flow's core architecture, auto-route to "Hard Deferral" with `[PROTOCOL-CLASH]` tag. Do not proceed without explicit resolution.
 
 *"The symbiote does not consume the host. It learns its rhythm and adds its voice."*

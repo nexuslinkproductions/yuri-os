@@ -51,7 +51,7 @@ These are not deficits. They are parameters of the operating system. NUDIMMUD ad
 - C2MovieZ (primary) — on-set videography and photography for Claudio Tinner's Swiss creative agency
 - planzerfilms (new, scope unclear) — Marc Planzer, Würenlingen Switzerland
 - MACL-ONE — premium sports clothing brand, scope and first deliverable undefined
-- exeoflow — IT/AI services arm, learning track, not yet primary income
+- Yuri Flow — IT/AI services and workflow layer, learning track, not yet primary income
 
 **Learning tracks**:
 - Japanese language — hiragana and katakana active, early kanji, building vocabulary

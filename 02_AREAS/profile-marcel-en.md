@@ -264,7 +264,7 @@ Career direction now focused on **on-set cinematography and photography** for co
 1. **Business development** — No evidence of client acquisition, sales, or business development; relies on incoming work
 2. **Pricing/rate strategy** — No mention of rate negotiation, contract structuring, or revenue optimization
 3. **Financial acumen** — No P&L thinking, budgeting, cost analysis, or ROI calculation evident
-4. **Venture scaling** — Nexus Link, EXEOFLOW mentioned but no operational progress documented; ventures dormant
+4. **Venture scaling** — Nexus Link and Yuri Flow mentioned but no operational progress documented; ventures dormant
 
 ### **Operational & Process Skills**
 5. **Team management** — No evidence of directing teams, delegation, or mentoring others
@@ -321,7 +321,7 @@ Career direction now focused on **on-set cinematography and photography** for co
 - **ENKI-HUMAN (Marcel):** On-set capture specialist; primary producer of visual content; night-block deep work
 - **ENKI-CELESTIAL (Claudio):** Client relationships, operational strategy, revenue optimization
 - **Nexus Link: Productions:** Billing entity for on-set work (Austrian EPU)
-- **EXEOFLOW:** AI-powered production infrastructure (secondary venture)
+- **Yuri Flow:** Yuri-native production workflow infrastructure (secondary venture)
 - **Knowledge base:** NUDIMMUD vault provides operating memory and skill scaffolding
 
 ---

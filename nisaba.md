@@ -257,7 +257,7 @@ Agent 7: MEASURER (NISABA original — not in BTN)
 
 **Marcel-specific distribution targets:**
 - Nexus Link Productions: Instagram carousels (filmmaking tips), YouTube behind-the-scenes, LinkedIn client case studies
-- EXEOFLOW: technical blog posts on AI automation, Reddit r/SaaS community replies
+- Yuri Flow: technical blog posts on AI automation, Reddit r/SaaS community replies
 - Personal brand: Japanese learning thread (building in public), cinematography insights
 
 **GEO optimization (enriched — BTN mentions it, NISABA codifies it):**
@@ -504,7 +504,7 @@ Nexus Link Productions empire:
   Stage 6: distribute (case study content pipeline)
   Stage 7: evolve (learn from client feedback patterns)
 
-EXEOFLOW automation empire:
+Yuri Flow automation layer:
   Same pipeline, different domain: AI automation SaaS product
   Stage 0: research AI automation market gaps
   Stage 1: spec core automation features

@@ -70,7 +70,7 @@ User Intent (Antigravity IDE terminal)
        │                            high-stakes synthesis.
        │
        └── [PROTOCOL CHECK]      → 06_NETWORK-SYNC/ (read-only)
-                                    Exeoflow skeleton — read state, never write.
+                                    Yuri Flow skeleton — read state, never write.
 ```
 
 ---
@@ -101,16 +101,16 @@ See: [`rlm-synthesis.md`](../06_KNOWLEDGE-BASE/05_OPERATIONAL/rlm-synthesis.md)
 
 ---
 
-## Exeoflow Skeleton Protocol
+## Yuri Flow Skeleton Protocol
 
 ```
-Exeoflow (Claudio) = structural skeleton: security, client pipeline, billing authority
+Yuri Flow (Claudio-compatible workflow layer) = structural skeleton: security, client pipeline, billing authority
 Nudimmud OS (Marcel) = cognitive symbiote: agentic execution, synthesis, creative direction
 
 Access pattern:
   Read:  06_NETWORK-SYNC/C2MOVIEZ/Database/ (weekly sync)
-  Write: NEVER — Nudimmud wraps, never overwrites Exeoflow
-  Sync:  session_log.md entries tagged [EXEOFLOW-SYNC] for Claudio-layer changes
+  Write: NEVER — Nudimmud wraps, never overwrites Yuri Flow
+  Sync:  session_log.md entries tagged [YURI-FLOW-SYNC] for Claudio-layer changes
 ```
 
 ---

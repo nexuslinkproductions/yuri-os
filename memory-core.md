@@ -14,7 +14,7 @@
 | c2moviez GmbH (Claudio Tinner, Wetzikon ZH) | PRIMARY | Main pipeline — CHE-158.073.494 |
 | planzerfilms (Marc Planzer, Würenlingen ZH) | ACTIVE | Secondary pipeline |
 | MACL ONE | ACTIVE | Direct client — premium sports clothing |
-| exeoflow | LEARNING | IT/AI services arm |
+| Yuri Flow | LEARNING | Yuri-native IT/AI services and workflow layer |
 
 ## Active Projects (C2MOVIEZ pipeline)
 - ANGELIKA · MUDI · BOVIRO · CHEESE DOCTOR · SHIPSTER · OREA · SAMPLE

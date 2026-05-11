@@ -1,4 +1,4 @@
-# Yuri OS / Exeoflow Frontend Handoff
+# Yuri OS / Yuri Flow Frontend Handoff
 
 **Date:** 2026-05-09
 **Status:** Provisional continuity note, not an implementation spec
@@ -6,34 +6,34 @@
 
 ## Purpose
 
-Capture the working possibility that Exeoflow remains Claudio's business-facing system and source of truth, while Yuri OS sits above it as the intelligence, orchestration, and control layer.
+Capture the current Yuri-native model for the workflow cockpit: Yuri Flow is the business-facing capability surface, while Yuri OS remains the intelligence, orchestration, and control layer.
 
 ## Current Assumption
 
-- Exeoflow keeps the face of the operation.
+- Yuri Flow owns workflow-facing language and route semantics.
 - Yuri OS stays as the top layer for memory, routing, workflow intelligence, telemetry, and assisted execution.
-- The user experience should feel like one stack, but the ownership boundaries stay separate.
+- External partner exports stay quarantined as read-only source records until an explicit integration contract exists.
 
 ## Why This Split Makes Sense
 
-- It protects Claudio's trusted business surface.
+- It protects Claudio's trusted business workflow while removing split product identity from Yuri OS.
 - It lets Yuri add value without replacing existing MS365-centered workflow structure.
-- It avoids inventing a duplicate dashboard before the real Exeoflow package exists.
+- It avoids inventing duplicate dashboards before concrete external package details exist.
 - It preserves a clean route for later integration instead of forcing a premature merge.
 
 ## What We Know From the Current Repo
 
 - Yuri already behaves like an operator system rather than a simple app. See [README.md](/Users/marcelspatz/NUDIMMUD/README.md).
 - The current backend is local-first, auth-gated, and control-plane oriented. See [backend/src/server.ts](/Users/marcelspatz/NUDIMMUD/backend/src/server.ts) and [backend/src/routes/api.ts](/Users/marcelspatz/NUDIMMUD/backend/src/routes/api.ts).
-- The Exeoflow sync path is already modeled as local persistence first, then outbound transmission when available. See [backend/src/services/exeoflow.ts](/Users/marcelspatz/NUDIMMUD/backend/src/services/exeoflow.ts).
-- The fusion protocol already states that Nudimmud wraps Exeoflow and never overwrites it. See [\_SYSTEM/EVONEXUS_PROTOCOLS.md](/Users/marcelspatz/NUDIMMUD/_SYSTEM/EVONEXUS_PROTOCOLS.md).
+- The Yuri Flow sync path is modeled as local persistence first, then outbound transmission when available. See [backend/src/services/yuriFlow.ts](/Users/marcelspatz/NUDIMMUD/backend/src/services/yuriFlow.ts).
+- The fusion protocol states that Nudimmud wraps partner workflow records and never overwrites the external source. See [\_SYSTEM/EVONEXUS_PROTOCOLS.md](/Users/marcelspatz/NUDIMMUD/_SYSTEM/EVONEXUS_PROTOCOLS.md).
 - The frontend already has a shell/module separation pattern that can support a top-layer / face-layer split. See [src/operator/OperatorShell.tsx](/Users/marcelspatz/NUDIMMUD/src/operator/OperatorShell.tsx) and [src/lib/moduleRegistry.tsx](/Users/marcelspatz/NUDIMMUD/src/lib/moduleRegistry.tsx).
 
 ## Working Model
 
-### Exeoflow owns
+### Yuri Flow owns
 
-- Client-facing business identity
+- Workflow-facing business language
 - MS365-connected operational state
 - Billing, scheduling, and client workflow records
 - Dashboard surfaces that Claudio expects to recognize as his system
@@ -50,10 +50,10 @@ Capture the working possibility that Exeoflow remains Claudio's business-facing 
 
 - Not designing final UI structure from guesswork.
 - Not merging brands into one visual identity.
-- Not deciding shared auth, shared data ownership, or write-back rules without the Exeoflow artifact.
-- Not replacing Exeoflow with Yuri.
+- Not deciding shared auth, shared data ownership, or write-back rules without a concrete external package artifact.
+- Not allowing external product naming to leak into Yuri OS routes, status output, or active docs.
 
-## What We Need From Exeoflow Next
+## What We Need From External Workflow Packages Next
 
 - Package manifest
 - App entry point
@@ -73,7 +73,7 @@ Capture the working possibility that Exeoflow remains Claudio's business-facing 
 - Durable outputs from that lane should land in `_SYSTEM/OS_KERNEL/memory.db`, not in Telegram or the OpenClaw session cache.
 - Yuri should never depend on the Telegram surface being the source of truth; Telegram is the interface, memory is the record.
 
-## Decision Gate Once Exeoflow Arrives
+## Decision Gate Once An External Workflow Package Arrives
 
 We decide then:
 
@@ -85,4 +85,4 @@ We decide then:
 
 ## Recommendation
 
-Keep Exeoflow as the face and Yuri as the top layer. Build only the seams until the real package arrives, then fit the overlay to the actual structure instead of guessing the structure first.
+Keep Yuri Flow as the workflow face and Yuri OS as the top layer. Build only the integration seams until a real package arrives, then fit the overlay to the actual structure instead of guessing the structure first.
