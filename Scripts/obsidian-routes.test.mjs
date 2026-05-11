@@ -21,15 +21,19 @@ let child = null;
 try {
   child = await startBackend();
 
-  // GET /api/obsidian/status — accessible without auth, returns getStatus() shape: { mode, connected, ... }
-  const status = await request('GET', '/api/obsidian/status');
-  assert.equal(status.status, 200, 'obsidian/status should return 200');
+  // GET /api/obsidian/status — authenticated local diagnostics only.
+  const statusNoAuth = await request('GET', '/api/obsidian/status');
+  assert.equal(statusNoAuth.status, 401, 'obsidian/status without auth should return 401');
+  const status = await request('GET', '/api/obsidian/status', undefined, API_KEY);
+  assert.equal(status.status, 200, 'obsidian/status with valid auth should return 200');
   assert.ok('mode' in status.json, 'obsidian/status response should include a mode field');
   assert.ok('connected' in status.json, 'obsidian/status response should include a connected field');
 
-  // GET /api/obsidian/paths — accessible without auth, returns { vaults, count }
-  const paths = await request('GET', '/api/obsidian/paths');
-  assert.equal(paths.status, 200, 'obsidian/paths should return 200');
+  // GET /api/obsidian/paths — authenticated because it exposes local vault paths.
+  const pathsNoAuth = await request('GET', '/api/obsidian/paths');
+  assert.equal(pathsNoAuth.status, 401, 'obsidian/paths without auth should return 401');
+  const paths = await request('GET', '/api/obsidian/paths', undefined, API_KEY);
+  assert.equal(paths.status, 200, 'obsidian/paths with valid auth should return 200');
   assert.ok(Array.isArray(paths.json.vaults), 'obsidian/paths response should include a vaults array');
   assert.equal(typeof paths.json.count, 'number', 'obsidian/paths response should include a numeric count');
 

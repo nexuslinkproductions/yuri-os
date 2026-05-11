@@ -375,7 +375,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         res.json(neuralService.getModels());
     });
 
-    router.get('/neural/status', async (req, res) => {
+    router.get('/neural/status', authMiddleware, async (req, res) => {
         try {
             const status = await neuralForge.ping();
             res.json({
@@ -501,7 +501,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         }
     });
 
-    router.get('/neural/verify-cloud', async (req, res) => {
+    router.get('/neural/verify-cloud', authMiddleware, async (req, res) => {
         try {
             const result = await neuralForge.verifyCloudIntegration();
             res.json(result);
@@ -557,8 +557,8 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     });
 
     // Temporal & Strategic
-    router.get('/briefing', (_, res) => res.json({ summary: getStrategicBriefing(db) }));
-    router.get('/temporal-graph', (_, res) => res.json(getTemporalEvents(db)));
+    router.get('/briefing', authMiddleware, (_, res) => res.json({ summary: getStrategicBriefing(db) }));
+    router.get('/temporal-graph', authMiddleware, (_, res) => res.json(getTemporalEvents(db)));
     router.post('/outlook/sync', authMiddleware, async (_, res) => {
         await syncOutlookIcs();
         res.json({ success: true });
@@ -570,19 +570,19 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     });
 
     // Entities
-    router.get('/deities', (_, res) => res.json(getAllDeities(db)));
-    router.get('/agents', (_, res) => res.json(getAllAgents(db)));
-    router.get('/agents/detail', (req, res) => {
+    router.get('/deities', authMiddleware, (_, res) => res.json(getAllDeities(db)));
+    router.get('/agents', authMiddleware, (_, res) => res.json(getAllAgents(db)));
+    router.get('/agents/detail', authMiddleware, (req, res) => {
         const name = req.query.name as string;
         if (!name) return res.status(400).json({ error: 'name is required' });
         const agent = getAgentByName(db, name);
         if (!agent) return res.status(404).json({ error: 'AGENT_NOT_FOUND' });
         res.json(agent);
     });
-    router.get('/projects', (_, res) => res.json(getAllProjects(db)));
-    router.get('/events', (_, res) => res.json(getRecentEvents(db, 50)));
-    router.get('/calendar', (_, res) => res.json(getAllEvents(db)));
-    router.get('/tickets', (_, res) => res.json(getAllTickets(db)));
+    router.get('/projects', authMiddleware, (_, res) => res.json(getAllProjects(db)));
+    router.get('/events', authMiddleware, (_, res) => res.json(getRecentEvents(db, 50)));
+    router.get('/calendar', authMiddleware, (_, res) => res.json(getAllEvents(db)));
+    router.get('/tickets', authMiddleware, (_, res) => res.json(getAllTickets(db)));
 
     router.post('/swarm/route', authMiddleware, (req, res) => {
         const { prompt, ...options } = req.body;
@@ -654,7 +654,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     });
 
     // Knowledge
-    router.get('/knowledge', (_, res) => res.json(getKnowledgeGraph(db)));
+    router.get('/knowledge', authMiddleware, (_, res) => res.json(getKnowledgeGraph(db)));
     
     router.post('/knowledge/refresh', authMiddleware, async (_, res) => {
         try {
@@ -665,7 +665,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         }
     });
 
-    router.get('/knowledge/search', (req, res) => {
+    router.get('/knowledge/search', authMiddleware, (req, res) => {
         const q = req.query.q as string;
         if (!q) return res.status(400).json({ error: 'Query param q is required' });
         res.json(searchKnowledge(db, q));
@@ -682,7 +682,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     });
 
     // Hybrid semantic + FTS5 keyword search
-    router.get('/search/hybrid', async (req, res) => {
+    router.get('/search/hybrid', authMiddleware, async (req, res) => {
         const q = req.query.q as string;
         if (!q) return res.status(400).json({ error: 'Query param q is required' });
         try {
@@ -786,7 +786,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         }
     });
 
-    router.get('/swarm/messages', (_, res) => {
+    router.get('/swarm/messages', authMiddleware, (_, res) => {
         const messages = db.prepare(`
             SELECT m.*, s.name as sender, r.name as receiver
             FROM swarm_messages m
@@ -797,15 +797,16 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         res.json(messages);
     });
 
-    router.get('/swarm/metrics', (_, res) => res.json(getSwarmMetrics(db)));
+    router.get('/swarm/metrics', authMiddleware, (_, res) => res.json(getSwarmMetrics(db)));
     
-    router.get('/agents/:name/activity', (req, res) => {
+    router.get('/agents/:name/activity', authMiddleware, (req, res) => {
         const { name } = req.params;
-        res.json(getAgentActivity(db, name.toUpperCase()));
+        const agentName = Array.isArray(name) ? name[0] : name;
+        res.json(getAgentActivity(db, agentName.toUpperCase()));
     });
 
     // ─── VAULT DIAGNOSTICS ────────────────────────────────────────────────────
-    router.get('/obsidian/status', (_, res) => {
+    router.get('/obsidian/status', authMiddleware, (_, res) => {
         try {
             const status = obsidianRest.getStatus?.() || { status: 'UNKNOWN', lastSync: null };
             res.json(status);
@@ -814,7 +815,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         }
     });
 
-    router.get('/obsidian/paths', async (_, res) => {
+    router.get('/obsidian/paths', authMiddleware, async (_, res) => {
         try {
             const paths = await obsidianRest.listVaults?.() || [];
             res.json({ vaults: paths, count: paths.length });
@@ -907,7 +908,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     });
 
     // Token telemetry — HUD polls this for session + weekly status bar
-    router.get('/telemetry/tokens', (_, res) => {
+    router.get('/telemetry/tokens', authMiddleware, (_, res) => {
         const fs = require('fs');
         const STATE_DIR = '/Users/marcelspatz/NUDIMMUD/.claude/state';
         try {
