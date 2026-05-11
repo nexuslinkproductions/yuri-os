@@ -1,7 +1,7 @@
 # Yuri OS Backend Hardening Audit
 
 Date: 2026-05-09
-Scope: backend/control plane only. exeoflow frontend/business UI is out of implementation scope.
+Scope: backend/control plane only. external workflow frontends are out of implementation scope.
 
 ## Executive Summary
 
@@ -60,7 +60,7 @@ Repo translation:
 | Oracle/Conclave | Partially wired / simulated | `oracleService.ts:35-425`; Conclave nodes use demo/simple parsing and canned fallbacks (`ArchitectNode.ts:27`, `CraftsmanNode.ts:33-36`). |
 | Swarm orchestration | Partially wired | `swarmOrchestrator.ts:29-47`; depends on model output JSON and writes agent status/messages. |
 | Learning/session improvement | Partially wired | Schema in `database.ts:219-241`; service in `sessionImprovementService.ts`; Oracle writes records, but no trend/promotion/regression control loop. |
-| exeoflow backend seam | Premature / partially wired | `api.ts:16`, `api.ts:582-591`; unauthenticated read endpoints exist. |
+| Yuri Flow backend seam | Premature / partially wired | historical route audit found time-entry endpoints mixed into the main router. |
 | Release/test pipeline | Missing / weak | No backend `test` script; build now passes after fix; smoke probes were manual. |
 
 ## Findings Ordered By Severity
@@ -127,7 +127,7 @@ Evidence:
 
 - `POST /api/swarm/route` unauthenticated and returned routing policy (`api.ts:406-411`).
 - `POST /api/obsidian/reconnect`, `/restart-sync`, `/sync` unauthenticated (`api.ts:645-678`).
-- `GET /api/exeoflow/entries` and `/pending` unauthenticated (`api.ts:590-591`).
+- Historical time-entry read routes were exposed without auth before the Yuri Flow assimilation pass.
 - Direct duplicate Obsidian app routes before router are unauthenticated (`server.ts:399-437`).
 
 Failure mode:
@@ -136,7 +136,7 @@ Failure mode:
 
 Blast radius:
 
-- Obsidian bridge, swarm routing, exeoflow-time state, operational disclosure.
+- Obsidian bridge, swarm routing, Yuri Flow time state, operational disclosure.
 
 Required action:
 
@@ -289,10 +289,10 @@ Optional later:
 | Operational simplicity | Weak | High | One command health gate | `npm run backend:release-gate` |
 | Learning-loop quality | Partial | Medium | Promotion/regression logic | Add trend/promotion schema |
 | Data integrity | Critical fail | High | Integrity checks, migrations | DB recovery first |
-| Coupling risk | High | Medium | exeoflow seam contract | Freeze backend-only contracts |
+| Coupling risk | High | Medium | Yuri Flow seam contract | Freeze backend-only contracts |
 | Test coverage | Weak | High | Backend route/DB tests | Add integration tests |
 | Evidence alignment | Poor | High | Docs/runtime verification | Mark docs-only claims |
-| Integration readiness | Not ready | High | Stable API/SLO/security contracts | Delay exeoflow fusion |
+| Integration readiness | Not ready | High | Stable API/SLO/security contracts | Delay external workflow fusion |
 
 ## Hardening Roadmap
 
@@ -367,7 +367,7 @@ Unacceptable states:
 - Health green while DB integrity fails.
 - Unauthenticated file/control routes except explicit public allowlist.
 - Simulated metrics displayed as operational truth.
-- exeoflow fusion before backend route/auth/data contracts exist.
+- external workflow fusion before backend route/auth/data contracts exist.
 
 ## Session Improvement Loop
 
@@ -395,23 +395,23 @@ Visibility:
 
 - `/api/oracle/improvement` should show rolling 7/30 day trends, promoted lessons, regression candidates, and stale review age.
 
-## Exeoflow Seam Contract
+## Yuri Flow Seam Contract
 
-Do not implement exeoflow frontend now.
+Do not implement an external workflow frontend now.
 
-Yuri OS must guarantee before exeoflow connects:
+Yuri OS must guarantee before external workflow clients connect:
 
 - Authenticated API with scoped tokens.
 - Stable OpenAPI or typed contract for projects, tickets, time entries, health, and telemetry.
 - Read-only safe endpoints separated from mutation endpoints.
-- No direct DB coupling from exeoflow.
+- No direct DB coupling from workflow clients.
 - No backend-only internals exposed: raw prompts, API keys, provider status details beyond safe health classes, filesystem paths, raw session logs.
 - Compatibility constraints: versioned API paths, backward-compatible response changes, explicit deprecation policy.
 
-Current exeoflow routes are premature:
+Current Yuri Flow routes must remain backend-owned and auth-protected:
 
-- `POST /api/exeoflow/time` is auth-protected.
-- `GET /api/exeoflow/entries` and `/pending` are not auth-protected (`backend/src/routes/api.ts:590-591`).
+- `POST /api/yuri-flow/time` is auth-protected.
+- `GET /api/yuri-flow/entries` and `/pending` are auth-protected.
 
 ## Verification Plan
 
@@ -458,7 +458,7 @@ Assumptions:
 
 - Loopback-only binding reduces exposure but does not eliminate local/browser-mediated risk.
 - Dirty worktree changes are user-owned unless explicitly modified in this audit.
-- exeoflow remains future seam only.
+- external workflow clients remain future seams only.
 
 Unresolved choices:
 

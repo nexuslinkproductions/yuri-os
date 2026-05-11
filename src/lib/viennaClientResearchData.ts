@@ -102,12 +102,12 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         star: true,
         gaps: ["🌐", "🎥", "📱", "💻", "📣"],
         pitch: "You work with police, fire, and emergency services. Your website needs to feel like that level of professionalism. We've done it for a security brand — let us show you.",
-        why: "Zero digital presence for a company that sells trust is a gaping pitch opportunity. IT security (exeoflow) is a direct add-on.",
+        why: "Zero digital presence for a company that sells trust is a gaping pitch opportunity. Yuri Flow security support is a direct add-on.",
         priorities: [
             "Website modernization",
             "Company video / trust-building content",
             "LinkedIn + corporate social",
-            "IT security consulting (exeoflow fit)",
+            "IT security consulting (Yuri Flow fit)",
             "B2B lead generation campaigns"
         ]
     },
@@ -129,7 +129,7 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
             "Social from scratch (LinkedIn B2B + Instagram)",
             "Video content (team, capability, trust)",
             "Meta / LinkedIn ads",
-            "IT/cybersecurity (exeoflow)",
+            "IT/cybersecurity (Yuri Flow)",
             "Brand strategy — differentiation"
         ]
     },
@@ -239,7 +239,7 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
             "Website redesign",
             "Professional property video + drone",
             "Meta / TikTok Ads for listings",
-            "IT support + CRM (exeoflow)",
+            "IT support + CRM (Yuri Flow)",
             "Content calendar + social strategy"
         ]
     },
@@ -284,7 +284,7 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
             "Instagram / TikTok expansion",
             "Social Ads management",
             "Website refinement",
-            "IT / CRM (exeoflow)"
+            "IT / CRM (Yuri Flow)"
         ]
     },
     {
@@ -413,7 +413,7 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         why: "1010 location = premium clients. Accounting firms have some of the worst websites — huge upside.",
         priorities: [
             "Website redesign",
-            "IT security + GDPR tools (exeoflow's strongest pitch)",
+            "IT security + GDPR tools (Yuri Flow's strongest pitch)",
             "LinkedIn content strategy",
             "Firm introduction video",
             "LinkedIn Ads targeting founders + CFOs"
@@ -431,10 +431,10 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         social: "Minimal",
         contact: "Hallas (partner/founder)",
         gaps: ["💻", "🌐", "📱", "🎥"],
-        pitch: "GDPR and cybersecurity are your clients' biggest risk right now. But do you have the IT setup to protect their data on your end? That's where we start — with exeoflow.",
-        why: "Same pattern as #18. IT security (exeoflow lead) is the strongest opener for audit/tax firms.",
+        pitch: "GDPR and cybersecurity are your clients' biggest risk right now. But do you have the IT setup to protect their data on your end? That's where Yuri Flow starts.",
+        why: "Same pattern as #18. IT security (Yuri Flow lead) is the strongest opener for audit/tax firms.",
         priorities: [
-            "IT security (exeoflow lead)",
+            "IT security (Yuri Flow lead)",
             "Website",
             "LinkedIn content",
             "Firm video"
@@ -706,7 +706,7 @@ export const VIENNA_CLIENTS: ViennaClientResearchItem[] = [
         contact: "Practice owner",
         gaps: ["🌐", "📱", "💻"],
         pitch: "You're private, which means you choose your patients. Your digital presence should do the same screening — attracting premium patients before they even call.",
-        why: "Private-only dental = premium AOV. GDPR/IT via exeoflow is natural add.",
+        why: "Private-only dental = premium AOV. GDPR/IT via Yuri Flow is natural add.",
         priorities: [
             "Website",
             "Social content",
@@ -893,6 +893,5 @@ export const VIENNA_GAP_LABELS: Record<string, string> = {
 export const VIENNA_BRIEFING_COPY = {
     title: 'Vienna client research panel',
     subtitle: '40 targets across automotive, security, real estate, dental, SaaS, PR, logistics, and e-commerce. Built from the April 2026 Vienna HUD and dashboard brief.',
-    focus: 'Start with video. Layer social and website upgrades next. Use exeoflow on the data-sensitive accounts.'
+    focus: 'Start with video. Layer social and website upgrades next. Use Yuri Flow on the data-sensitive accounts.'
 };
-

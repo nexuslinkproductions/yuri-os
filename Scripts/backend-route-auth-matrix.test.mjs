@@ -11,8 +11,8 @@ const SERVER_READY = /NUDIMMUD_BACKEND_ONLINE/;
 const protectedReadRoutes = [
   '/api/files/ls?path=backend/src',
   '/api/knowledge/detail?path=package.json',
-  '/api/exeoflow/entries',
-  '/api/exeoflow/pending',
+  '/api/yuri-flow/entries',
+  '/api/yuri-flow/pending',
   '/api/integrations',
 ];
 

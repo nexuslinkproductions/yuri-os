@@ -13,7 +13,12 @@ import { syncOutlookIcs } from '../services/outlookIcs';
 import { executeCommand, isAllowedCommandKey } from '../services/executor';
 import { listVaultDirectory } from '../services/fileSystem';
 import { getNoteDetail } from '../services/knowledgeService';
-import { logTimeEntry, ensureTimeEntriesTable, getAllTimeEntries, getPendingTimeEntries } from '../services/exeoflow';
+import {
+    logYuriFlowTimeEntry,
+    ensureYuriFlowEntriesTable,
+    getAllYuriFlowEntries,
+    getPendingYuriFlowEntries
+} from '../services/yuriFlow';
 import { OracleService } from '../services/oracleService';
 import { SmartRouter } from '../services/smartRouter';
 import { obsidianRest } from '../services/obsidianRestService';
@@ -82,7 +87,7 @@ function redactRequestUrl(rawUrl: string): string {
 
 export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = {}) {
     const router = Router();
-    ensureTimeEntriesTable(db); // ensure time_entries table exists
+    ensureYuriFlowEntriesTable(db);
     neuralForge.setDb(db); // Provide DB access for vector search context injection
 
     router.use((req, res, next) => {
@@ -755,16 +760,16 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         res.on('close', () => proxyReq.destroy());
     });
 
-    // ExeoFlow Time Tracking
-    router.post('/exeoflow/time', authMiddleware, async (req, res) => {
+    // Yuri Flow Time Tracking
+    router.post('/yuri-flow/time', authMiddleware, async (req, res) => {
         const { ticket_id, notes, time } = req.body;
         if (!ticket_id) return res.status(400).json({ error: 'ticket_id is required' });
-        const result = await logTimeEntry(db, { ticket_id, notes: notes || '', time: time || 'unspecified' });
+        const result = await logYuriFlowTimeEntry(db, { ticket_id, notes: notes || '', time: time || 'unspecified' });
         res.json(result);
     });
 
-    router.get('/exeoflow/entries', authMiddleware, (_, res) => res.json(getAllTimeEntries(db)));
-    router.get('/exeoflow/pending', authMiddleware, (_, res) => res.json(getPendingTimeEntries(db)));
+    router.get('/yuri-flow/entries', authMiddleware, (_, res) => res.json(getAllYuriFlowEntries(db)));
+    router.get('/yuri-flow/pending', authMiddleware, (_, res) => res.json(getPendingYuriFlowEntries(db)));
     
     // ── SWARM ORCHESTRATION ──
     const { SwarmOrchestrator } = require('../services/swarmOrchestrator');

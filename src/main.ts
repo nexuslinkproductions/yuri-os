@@ -4,7 +4,7 @@ import { humanizeLabel, resolveRouteKey, routeLabel } from './lib/labels';
 import { getOracleCommandState, subscribeOracleCommandState, submitOracleCommand, type OracleCommandState } from './lib/oracleCommandBridge';
 /**
  * NUDIMMUD COMMAND CENTER
- * Operational Layer Integration: Plane.so & ExeoFlow
+ * Operational Layer Integration: Plane.so & Yuri Flow
  * Stage: ALBEDO ENRICHMENT
  */
 import './lib/moduleRegistry';
@@ -620,7 +620,7 @@ class HoverTooltip {
     }
 }
 
-// ─── MISSION SIDEBAR (EXEOFLOW INTEGRATION) ────────────────────────────────────
+// ─── MISSION SIDEBAR (YURI FLOW INTEGRATION) ───────────────────────────────────
 class MissionSidebar {
     overlay: HTMLElement;
     titleEl: HTMLElement;
@@ -669,7 +669,7 @@ class MissionSidebar {
         this.notesInput.value = '';
         this.timeInput.value = '';
         this.statusEl.style.opacity = '0';
-        this.submitBtn.textContent = 'Transmit to ExeoFlow';
+        this.submitBtn.textContent = 'Transmit to Yuri Flow';
         this.submitBtn.style.background = 'rgba(118,185,0,0.08)';
         this.submitBtn.style.color = 'var(--cyan-glow)';
         
@@ -727,7 +727,7 @@ class MissionSidebar {
         this.submitBtn.style.opacity = '0.5';
 
         try {
-            await apiFetch(`http://${SYSTEM_HOST}:3004/api/exeoflow/time`, {
+            await apiFetch(`http://${SYSTEM_HOST}:3004/api/yuri-flow/time`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -741,7 +741,7 @@ class MissionSidebar {
             this.submitBtn.style.color = 'rgba(0,255,100,0.8)';
             this.submitBtn.style.opacity = '1';
             
-            this.statusEl.textContent = 'Time metrics synced with ExeoFlow database.';
+            this.statusEl.textContent = 'Time metrics stored in Yuri Flow.';
             this.statusEl.style.color = 'rgba(0,255,100,0.8)';
             this.statusEl.style.opacity = '1';
 
@@ -1638,7 +1638,7 @@ class NudimmudEngine {
                         </div>
                         <div style="margin-top:20px; padding:20px; background:rgba(118,185,0,0.03); border:1px solid rgba(118,185,0,0.12);">
                             <div class="text-mono" style="font-size:0.55rem; opacity:0.4; margin-bottom:10px;">Next oracle briefing</div>
-                            <div style="font-size:0.85rem; font-weight:bold; color:var(--gold-solar);">ExeoFlow API bridge integration</div>
+                            <div style="font-size:0.85rem; font-weight:bold; color:var(--gold-solar);">Yuri Flow time-entry integration</div>
                             <div class="text-mono" style="font-size:0.55rem; opacity:0.3; margin-top:5px;">Estimated completion: T-minus 4h</div>
                         </div>
                     </div>
@@ -1840,7 +1840,7 @@ class NudimmudEngine {
         
         const guides: any = {
             'NEXUSLINK': { title: 'NexusLink landing module', body: 'Open the public face: hero, services, launch order, and reference shelf.' },
-            'CHRONOS': { title: 'Temporal analytics guide', body: 'Monitor the flow of time and mission duration. Ensure ExeoFlow sync is active for high-fidelity tracking.' },
+            'CHRONOS': { title: 'Temporal analytics guide', body: 'Monitor the flow of time and mission duration. Ensure Yuri Flow capture is active for high-fidelity tracking.' },
             'LOGOS': { title: 'Strategic orchestration guide', body: 'Manage high-level project nodes. Use the Bento dashboard to visualize completion indices and workstream health.' },
             'INDRA': { title: 'Swarm monitor guide', body: 'Real-time agent telemetry. Monitor logic throughput and neural sync rings for each active specialist.' },
             'RESEARCH': { title: 'Vienna client research panel', body: 'Open the 40-target dashboard and work the actual client list, notes, and pitch state.' },

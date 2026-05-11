@@ -555,7 +555,7 @@ function seedDatabase(db: Database.Database) {
         }
 
         if (integrationCount === 0) {
-            insertIntegration.run('EXEOFLOW', 'DISCONNECTED');
+            insertIntegration.run('YURI_FLOW', 'CONNECTED');
             insertIntegration.run('GITNEXUS_MCP', 'OFFLINE');
             insertIntegration.run('OUTLOOK_365', 'DISCONNECTED');
             insertIntegration.run('PLANE_SO', 'DISCONNECTED');
