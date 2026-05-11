@@ -8,6 +8,14 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const args = parseArgs(process.argv.slice(2));
+
+if (!args.db && !args.allowLiveDb) {
+  process.stderr.write(
+    'BACKEND_RELEASE_GATE_FAIL reason="implicit live DB check refused" required="--db <candidate> or --allow-live-db"\n'
+  );
+  process.exit(1);
+}
+
 const dbArgs = args.db ? ['--db', args.db] : [];
 const steps = [
   {
@@ -83,10 +91,14 @@ for (const step of steps) {
 process.stdout.write('BACKEND_RELEASE_GATE_PASS\n');
 
 function parseArgs(argv) {
-  const parsed = { dryRun: false, db: null };
+  const parsed = { dryRun: false, db: null, allowLiveDb: false };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--dry-run') {
       parsed.dryRun = true;
+      continue;
+    }
+    if (argv[index] === '--allow-live-db') {
+      parsed.allowLiveDb = true;
       continue;
     }
     if (argv[index] === '--db') {
