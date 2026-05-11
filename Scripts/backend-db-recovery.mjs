@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_OUT_ROOT = path.join(REPO_ROOT, '_SYSTEM/recovery/backend-db');
+const PROTECTED_DB_ROOT = path.join(REPO_ROOT, 'backend/data');
 
 const require = createRequire(import.meta.url);
 const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlite3'));
@@ -23,6 +24,13 @@ const sourcePath = path.resolve(REPO_ROOT, args.source);
 const outDir = path.resolve(REPO_ROOT, args.outDir || path.join(DEFAULT_OUT_ROOT, timestampSlug()));
 const candidatePath = path.join(outDir, 'candidate.db');
 const manifestPath = path.join(outDir, 'manifest.json');
+
+if (isInsidePath(sourcePath, PROTECTED_DB_ROOT) && !args.allowLiveSource) {
+  process.stderr.write(
+    'BACKEND_DB_RECOVERY_FAIL reason="protected live DB source refused" required="--allow-live-source"\n'
+  );
+  process.exit(1);
+}
 
 if (args.dryRun) {
   process.stdout.write(`BACKEND_DB_RECOVERY_DRY_RUN source=${sourcePath} outDir=${outDir} candidate=${candidatePath}\n`);
@@ -64,7 +72,7 @@ process.stdout.write(
 );
 
 function parseArgs(argv) {
-  const parsed = { source: null, outDir: null, dryRun: false };
+  const parsed = { source: null, outDir: null, dryRun: false, allowLiveSource: false };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--source') {
       parsed.source = argv[index + 1] || null;
@@ -78,6 +86,10 @@ function parseArgs(argv) {
     }
     if (argv[index] === '--dry-run') {
       parsed.dryRun = true;
+      continue;
+    }
+    if (argv[index] === '--allow-live-source') {
+      parsed.allowLiveSource = true;
     }
   }
   return parsed;
@@ -97,6 +109,11 @@ function copySourceFamily(source, destinationDir) {
     files.push(destination);
   }
   return files;
+}
+
+function isInsidePath(candidate, parent) {
+  const relative = path.relative(parent, candidate);
+  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
 async function createBackupCandidate(source, destination) {

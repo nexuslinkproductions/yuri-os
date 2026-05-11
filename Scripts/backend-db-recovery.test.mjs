@@ -12,6 +12,22 @@ const Database = require(path.join(process.cwd(), 'backend/node_modules/better-s
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nudimmud-db-recovery-'));
 
 try {
+  const protectedLiveSource = spawnSync(
+    process.execPath,
+    ['Scripts/backend-db-recovery.mjs', '--dry-run', '--source', 'backend/data/nudimmud.db'],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    }
+  );
+
+  assert.notEqual(protectedLiveSource.status, 0, 'recovery should refuse protected live DB sources without explicit override');
+  assert.match(
+    `${protectedLiveSource.stdout}\n${protectedLiveSource.stderr}`,
+    /BACKEND_DB_RECOVERY_FAIL.*--allow-live-source/,
+    'protected source refusal should explain the explicit override'
+  );
+
   const sourceDb = path.join(tmpDir, 'source.db');
   const outDir = path.join(tmpDir, 'recovery');
   createHealthySource(sourceDb);
