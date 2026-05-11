@@ -32,6 +32,7 @@ import { neuralForge } from './services/neuralForgeService';
 import { StabilityGuard } from './services/stabilityGuard';
 import { EventBus } from './conclave/EventBus';
 import { SessionRuntimeService } from './services/sessionRuntimeService';
+import { DesignAssistantBridgeService } from './services/designAssistantBridgeService';
 
 dotenv.config();
 
@@ -88,6 +89,7 @@ let wss: WebSocketServer | null = null;
 const db = initDatabase();
 const guard = new StabilityGuard(db);
 const sessionRuntime = new SessionRuntimeService(db);
+const designAssistantBridge = new DesignAssistantBridgeService(db);
 
 let shuttingDown = false;
 let currentPort = DEFAULT_PORT;
@@ -179,6 +181,7 @@ function listenOnPort(port: number): Promise<void> {
 function isAllowedCorsOrigin(origin: string) {
     try {
         const parsed = new URL(origin);
+        if (parsed.protocol === 'chrome-extension:') return true;
         return LOOPBACK_HOSTS.has(parsed.hostname);
     } catch {
         return false;
@@ -200,7 +203,7 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
 
 clearRecentEvents(db);
 bootLog('⬡ NEURAL_REGISTRY_PURGED');
@@ -217,18 +220,38 @@ type DatabaseReadiness = {
     error: string | null;
 };
 
+let _dbIntegrityCache: { value: DatabaseReadiness; expiresAt: number } | null = null;
+const DB_INTEGRITY_TTL_MS = 5 * 60 * 1000;
+
+// O(1) live check — used by health endpoint for the healthy flag
+function checkDatabaseAvailable(): boolean {
+    try {
+        db.prepare('SELECT 1').get();
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// O(n) integrity check — cached for 5 minutes; used by readiness and payload detail
 function buildDatabaseReadiness(): DatabaseReadiness {
+    const now = Date.now();
+    if (_dbIntegrityCache && now < _dbIntegrityCache.expiresAt) {
+        return _dbIntegrityCache.value;
+    }
     try {
         db.prepare('SELECT 1').get();
         const quickCheck = String(db.pragma('quick_check', { simple: true }) || 'unknown');
         const foreignKeyViolations = (db.pragma('foreign_key_check') as unknown[]).length;
-        return {
+        const result: DatabaseReadiness = {
             available: true,
             ready: quickCheck === 'ok' && foreignKeyViolations === 0,
             quickCheck,
             foreignKeyViolations,
             error: null
         };
+        _dbIntegrityCache = { value: result, expiresAt: now + DB_INTEGRITY_TTL_MS };
+        return result;
     } catch (error: any) {
         return {
             available: false,
@@ -245,7 +268,8 @@ function checkDatabaseHealth() {
 }
 
 async function buildHealthPayload() {
-    const database = buildDatabaseReadiness();
+    const dbAvailable = checkDatabaseAvailable(); // O(1) live check
+    const database = buildDatabaseReadiness();     // cached integrity detail
     const obsidianState = obsidianRest.getStatus();
     const obsidianOnline = obsidianState.mode !== 'offline';
     const watcherStatus = vaultWatcherController?.getStatus() || {
@@ -263,7 +287,7 @@ async function buildHealthPayload() {
         timestamp: new Date().toISOString(),
         uptimeSeconds: Math.round(process.uptime()),
         services: {
-            database: database.ready ? 'online' : 'degraded',
+            database: dbAvailable ? (database.ready ? 'online' : 'degraded') : 'offline',
             obsidian: obsidianOnline ? 'online' : 'offline',
             vaultWatcher: watcherStatus.running ? 'online' : 'offline',
             stabilityGuard: guardStatus.running ? 'online' : 'offline'
@@ -431,52 +455,13 @@ async function checkIntegrations() {
 
 app.get('/api/direct-test', (req, res) => res.json({ status: 'SERVER_DIRECT_ALIVE' }));
 
-app.get('/api/obsidian/status', (_, res) => {
-    try {
-        const status = obsidianRest.getStatus?.() || { status: 'UNKNOWN', lastSync: null };
-        res.json(status);
-    } catch (err) {
-        res.json({ status: 'OFFLINE', lastSync: null, error: String(err) });
-    }
-});
-app.get('/api/obsidian/paths', async (_, res) => {
-    try {
-        const paths = await (obsidianRest as any).listVaults?.() || [];
-        res.json({ vaults: paths, count: paths.length });
-    } catch (err) {
-        res.status(500).json({ error: String(err) });
-    }
-});
-app.post('/api/obsidian/reconnect', authMiddleware, async (_, res) => {
-    try {
-        const result = await (obsidianRest as any).reconnect?.() || {
-            success: false
-        };
-        res.json({ success: (result as any).success, status: 'RECONNECT_ATTEMPTED' });
-    } catch (err) {
-        res.status(500).json({ error: String(err) });
-    }
-});
-app.post('/api/obsidian/sync', authMiddleware, async (req, res) => {
-    try {
-        const { action } = req.body;
-        if (action === 'test') {
-            const result = await obsidianRest.ping?.() || false;
-            res.json({ success: result, test: true });
-        } else {
-            res.status(400).json({ error: 'Unknown action' });
-        }
-    } catch (err) {
-        res.status(500).json({ error: String(err) });
-    }
-});
-
 app.use('/api', initApiRoutes(db, {
     getStatusPayload: buildStatusPayload,
     getHealth: buildHealthPayload,
     getReadiness: buildReadinessPayload,
     getLiveness: buildLivenessPayload,
-    sessionRuntime
+    sessionRuntime,
+    designAssistantBridge
 }));
 
 app.post('/api/neural/recalibrate', authMiddleware, (req, res) => {
@@ -544,8 +529,21 @@ function attachWebSocketServer(socketServer: WebSocketServer) {
             return;
         }
 
+        const pathname = (() => {
+            try {
+                return new URL((req as any).url || '/', 'http://127.0.0.1').pathname;
+            } catch {
+                return (req as any).url || '';
+            }
+        })();
+
+        if (pathname === '/api/design-assistant/live') {
+            designAssistantBridge.handleWebSocketConnection(ws);
+            return;
+        }
+
         // Shell bridge via shell service proxy (avoids pm2 posix_spawn EBADF)
-        if ((req as any).url === '/ws/shell') {
+        if (pathname === '/ws/shell') {
             ws.on('message', (raw: Buffer) => {
                 try {
                     const { command } = JSON.parse(raw.toString());

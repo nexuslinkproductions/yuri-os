@@ -385,6 +385,8 @@ function addColumnIfMissing(db: Database.Database, tableName: string, columnName
 }
 
 function runMigrations(db: Database.Database) {
+    repairLegacySchema(db);
+
     const currentVersion = getUserVersion(db);
     if (currentVersion >= LATEST_SCHEMA_VERSION) {
         return;
@@ -426,6 +428,18 @@ function runMigrations(db: Database.Database) {
 
         setUserVersion(db, LATEST_SCHEMA_VERSION);
     })();
+}
+
+function repairLegacySchema(db: Database.Database) {
+    addColumnIfMissing(db, 'projects', 'ref', "TEXT DEFAULT ''");
+    addColumnIfMissing(db, 'projects', 'name', "TEXT DEFAULT ''");
+    addColumnIfMissing(db, 'projects', 'status', "TEXT DEFAULT 'ACTIVE'");
+    addColumnIfMissing(db, 'projects', 'priority', 'INTEGER DEFAULT 5');
+    addColumnIfMissing(db, 'projects', 'description', 'TEXT');
+    addColumnIfMissing(db, 'projects', 'context', 'TEXT');
+    addColumnIfMissing(db, 'projects', 'owner_deity', 'TEXT');
+    addColumnIfMissing(db, 'integrations', 'name', "TEXT DEFAULT ''");
+    addColumnIfMissing(db, 'integrations', 'status', "TEXT DEFAULT 'DISCONNECTED'");
 }
 
 function validateSchema(db: Database.Database) {

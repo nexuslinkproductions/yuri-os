@@ -18,13 +18,43 @@ export type BridgeTaskIntent =
     | 'architecture_review'
     | 'audit_security'
     | 'custom';
-export type NeuralTaskIntent = 'ops' | 'retrieval' | 'coding' | 'review' | 'strategy' | 'orchestration' | BridgeTaskIntent;
+export type YuriIntegrationIntent =
+    'market_risk'
+    | 'growth_audit'
+    | 'browser_research'
+    | 'inbox_comms'
+    | 'media_render';
+export type NeuralTaskIntent =
+    'ops'
+    | 'retrieval'
+    | 'coding'
+    | 'review'
+    | 'strategy'
+    | 'orchestration'
+    | BridgeTaskIntent
+    | YuriIntegrationIntent;
 export type QueryComplexity = 'cheap' | 'balanced' | 'deep';
 export type QueryRisk = 'low' | 'medium' | 'high';
 export type PreferredRuntime = 'local' | 'cloud' | 'hybrid';
 export type CompressionMode = 'off' | 'safe' | 'aggressive';
 export type ReasoningBudget = 'cheap' | 'balanced' | 'deep';
 export type RetrievalProfile = 'NUDIMMUD_SYSTEM' | 'CROSS_VAULT_SYNTHESIS';
+export type YuriIntegrationLane = 'core' | 'trading' | 'growth' | 'browser' | 'inbox' | 'media';
+export type ActionGate =
+    'none'
+    | 'draft_only'
+    | 'simulation_only'
+    | 'approval_required'
+    | 'confirm_before_send'
+    | 'capture_only'
+    | 'render_only';
+export type IntegrationSurface =
+    'oracle'
+    | 'tradingControlPlane'
+    | 'siteBuilderService'
+    | 'browserAutomation'
+    | 'agenticInbox'
+    | 'hyperframesPipeline';
 
 interface RouterPolicyTask {
     lane: string;
@@ -38,6 +68,15 @@ interface RouterPolicy {
 
 const ROUTER_POLICY_PATH = path.resolve(__dirname, '../../../Scripts/router-policy.json');
 const ROUTER_POLICY = loadRouterPolicy();
+const LOCAL_MODEL_POLICY_PATH = path.resolve(__dirname, '../../../.claude/config/models.json');
+const LOCAL_MODEL_POLICY = loadLocalModelPolicy();
+const LOCAL_MODEL_POLICY_LOCAL = LOCAL_MODEL_POLICY.local || {};
+const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY_LOCAL.primary || 'qwen2.5:7b';
+const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY_LOCAL.utility || 'qwen3.5:4b';
+const LOCAL_CODE_MODEL = LOCAL_MODEL_POLICY_LOCAL.code || 'qwen2.5-coder:7b';
+const LOCAL_CODE_FALLBACK_MODEL = LOCAL_MODEL_POLICY_LOCAL.code_fallback || 'starcoder2:latest';
+const LOCAL_DEEP_REASONING_MODEL = LOCAL_MODEL_POLICY_LOCAL.deep_reasoning || 'deepseek-r1:8b';
+const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY_LOCAL.fallback || 'llama3.2:latest';
 
 export interface RoutingRequestOptions {
     modelId?: string;
@@ -68,9 +107,52 @@ export interface RoutingDecision {
     compressionMode: CompressionMode;
     reasoningBudget: ReasoningBudget;
     retrievalProfile: RetrievalProfile;
+    yuriLane: YuriIntegrationLane;
+    actionGate: ActionGate;
+    integrationSurface: IntegrationSurface;
     policySource?: string;
     maxFiles?: number;
 }
+
+interface IntegrationProfile {
+    yuriLane: YuriIntegrationLane;
+    actionGate: ActionGate;
+    integrationSurface: IntegrationSurface;
+}
+
+const DEFAULT_INTEGRATION_PROFILE: IntegrationProfile = {
+    yuriLane: 'core',
+    actionGate: 'none',
+    integrationSurface: 'oracle'
+};
+
+const INTEGRATION_PROFILES: Partial<Record<NeuralTaskIntent, IntegrationProfile>> = {
+    market_risk: {
+        yuriLane: 'trading',
+        actionGate: 'simulation_only',
+        integrationSurface: 'tradingControlPlane'
+    },
+    growth_audit: {
+        yuriLane: 'growth',
+        actionGate: 'draft_only',
+        integrationSurface: 'siteBuilderService'
+    },
+    browser_research: {
+        yuriLane: 'browser',
+        actionGate: 'capture_only',
+        integrationSurface: 'browserAutomation'
+    },
+    inbox_comms: {
+        yuriLane: 'inbox',
+        actionGate: 'confirm_before_send',
+        integrationSurface: 'agenticInbox'
+    },
+    media_render: {
+        yuriLane: 'media',
+        actionGate: 'render_only',
+        integrationSurface: 'hyperframesPipeline'
+    }
+};
 
 export class SmartRouter {
     static route(query: string, options: RoutingRequestOptions = {}): RoutingDecision {
@@ -92,6 +174,7 @@ export class SmartRouter {
         const fallbackChain = policyRoute
             ? this.buildPolicyFallbackChain(preferredModel, policyRoute)
             : this.buildFallbackChain(preferredModel, intent, preferredRuntime, complexity, options, providerStatus);
+        const integrationProfile = this.integrationProfileFor(intent, queryLower);
 
         console.log(
             `⬡ SMART_ROUTER :: intent=${intent} complexity=${complexity} risk=${risk} runtime=${preferredRuntime} model=${preferredModel}`
@@ -107,11 +190,46 @@ export class SmartRouter {
             compressionMode,
             reasoningBudget,
             retrievalProfile,
+            ...integrationProfile,
             ...(policyRoute ? { policySource: 'Scripts/router-policy.json', maxFiles: policyRoute.max_files } : {})
         };
     }
 
     private static detectIntent(queryLower: string): NeuralTaskIntent {
+        if (this.hasAny(queryLower, [
+            'backtest', 'paper trading', 'live execution', 'position sizing', 'funding', 'whale', 'dex',
+            'market signal', 'market signals', 'portfolio', 'solana position', 'solana positions', 'autohedge', 'vibe-trading'
+        ])) {
+            return 'market_risk';
+        }
+
+        if (this.hasAny(queryLower, [
+            'seo', 'google ads', 'meta ads', 'ppc', 'search console', 'structured data',
+            'campaign audit', 'ad audit', 'ads audit', 'landing page audit', 'toprank', 'claude ads'
+        ])) {
+            return 'growth_audit';
+        }
+
+        if (this.hasAny(queryLower, [
+            'accessibility snapshot', 'capture page', 'capture the page', 'inspect page', 'screenshot', 'browser', 'browser session',
+            'authenticated browsing', 'camofox', 'playwright'
+        ])) {
+            return 'browser_research';
+        }
+
+        if (this.hasAny(queryLower, [
+            'inbox', 'mailbox', 'client email', 'draft a reply', 'reply to this email', 'agentic inbox'
+        ])) {
+            return 'inbox_comms';
+        }
+
+        if (this.hasAny(queryLower, [
+            'showreel', 'html video', 'render video', 'render a video', 'mp4', 'hyperframes',
+            'social cut', 'motion graphic', 'motion graphics'
+        ])) {
+            return 'media_render';
+        }
+
         if (this.hasAny(queryLower, ['audit security', 'security audit', 'vulnerability review'])) {
             return 'audit_security';
         }
@@ -183,6 +301,8 @@ export class SmartRouter {
         if (intent === 'code_edit_small' || intent === 'summarization' || intent === 'extraction') return 'cheap';
         if (intent === 'code_edit_large' || intent === 'research_repo') return 'balanced';
         if (intent === 'architecture_review' || intent === 'audit_security') return 'deep';
+        if (intent === 'market_risk' || intent === 'growth_audit' || intent === 'media_render') return 'balanced';
+        if (intent === 'browser_research' || intent === 'inbox_comms') return mediumInput ? 'balanced' : 'cheap';
 
         if (
             longInput ||
@@ -210,6 +330,15 @@ export class SmartRouter {
         if (intent === 'audit_security') return 'high';
         if (intent === 'code_edit_large' || intent === 'architecture_review') return 'medium';
         if (intent === 'code_edit_small' || intent === 'research_repo' || intent === 'summarization' || intent === 'extraction') return 'low';
+        if (intent === 'market_risk') {
+            return this.hasAny(queryLower, ['live execution', 'execute', 'order', 'real money', 'approve trade', 'position'])
+                ? 'high'
+                : 'medium';
+        }
+        if (intent === 'growth_audit') return 'medium';
+        if (intent === 'browser_research') return 'low';
+        if (intent === 'inbox_comms') return 'high';
+        if (intent === 'media_render') return 'low';
 
         if (
             intent === 'review' ||
@@ -275,11 +404,13 @@ export class SmartRouter {
             return canUseKimi ? 'kimi-k2.6' : 'gpt-4o-liberated';
         }
 
-        // PRIORITIZE_LOCAL_LIBERATED
-        if (intent === 'coding') return 'starcoder2:latest';
-        if (complexity === 'deep') return 'deepseek-r1:latest';
-        
-        return 'qwen-liberated:latest';
+        if (intent === 'coding') return LOCAL_CODE_MODEL;
+        if (intent === 'market_risk') return LOCAL_DEEP_REASONING_MODEL;
+        if (intent === 'media_render') return LOCAL_PRIMARY_MODEL;
+        if (complexity === 'cheap' || intent === 'ops' || intent === 'retrieval') return LOCAL_UTILITY_MODEL;
+        if (complexity === 'deep') return LOCAL_DEEP_REASONING_MODEL;
+
+        return LOCAL_PRIMARY_MODEL;
     }
 
     private static detectCompressionMode(
@@ -313,12 +444,13 @@ export class SmartRouter {
         options: RoutingRequestOptions,
         providerStatus?: RoutingRequestOptions['providerStatus']
     ): string[] {
-        const localCoding = ['qwen-liberated:latest', 'starcoder2:latest', 'qwen2.5:7b', 'deepseek-r1:latest', 'llama3.2:latest'];
-        const localGeneral = ['qwen-liberated:latest', 'qwen2.5:7b', 'deepseek-liberated:latest', 'deepseek-r1:latest', 'llama3.2:latest'];
+        const localAllowed = !providerStatus || providerStatus.local;
+        const localCoding = localAllowed ? [LOCAL_CODE_MODEL, LOCAL_CODE_FALLBACK_MODEL] : [];
+        const localGeneral = localAllowed ? [LOCAL_UTILITY_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_FALLBACK_MODEL] : [];
+        const localDeep = localAllowed ? [LOCAL_DEEP_REASONING_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_UTILITY_MODEL, LOCAL_FALLBACK_MODEL] : [];
         const cloudGeneral = ['claude-3-5-sonnet-liberated', 'kimi-k2.6', 'kimi-k2.5-liberated', 'gpt-4o-liberated'];
 
-        // Filter based on health
-        const filteredLocal = localGeneral.filter(m => !providerStatus || providerStatus.local);
+        const filteredLocal = complexity === 'deep' ? localDeep : localGeneral;
         const filteredCloud = cloudGeneral.filter(m => {
             if (!providerStatus) return true;
             if (m.includes('claude')) return providerStatus.anthropic;
@@ -328,9 +460,7 @@ export class SmartRouter {
         });
 
         const localChain = intent === 'coding' ? localCoding : filteredLocal;
-        const cloudChain = complexity === 'deep'
-            ? filteredCloud
-            : filteredCloud;
+        const cloudChain = filteredCloud;
 
         const ordered: string[] = [preferredModel];
 
@@ -345,6 +475,14 @@ export class SmartRouter {
         }
 
         return [...new Set(ordered)];
+    }
+
+    private static integrationProfileFor(intent: NeuralTaskIntent, queryLower: string): IntegrationProfile {
+        const profile = INTEGRATION_PROFILES[intent] || DEFAULT_INTEGRATION_PROFILE;
+        if (intent === 'market_risk' && this.hasAny(queryLower, ['live execution', 'execute', 'order', 'real money', 'approve trade', 'position'])) {
+            return { ...profile, actionGate: 'approval_required' };
+        }
+        return profile;
     }
 
     private static getPolicyRoute(intent: NeuralTaskIntent): RouterPolicyTask | undefined {
@@ -382,6 +520,16 @@ function loadRouterPolicy(): RouterPolicy {
         return JSON.parse(fs.readFileSync(ROUTER_POLICY_PATH, 'utf8')) as RouterPolicy;
     } catch (error) {
         console.warn(`⬡ SMART_ROUTER_POLICY_UNAVAILABLE :: ${(error as Error).message}`);
+        return {};
+    }
+}
+
+function loadLocalModelPolicy(): Record<string, any> {
+    try {
+        if (!fs.existsSync(LOCAL_MODEL_POLICY_PATH)) return {};
+        return JSON.parse(fs.readFileSync(LOCAL_MODEL_POLICY_PATH, 'utf8'));
+    } catch (error) {
+        console.warn(`⬡ SMART_ROUTER_MODEL_POLICY_UNAVAILABLE :: ${(error as Error).message}`);
         return {};
     }
 }

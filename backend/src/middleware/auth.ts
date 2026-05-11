@@ -31,6 +31,7 @@ export function isLocalRequest(req: Request): boolean {
 
     try {
         const parsed = new URL(origin);
+        if (parsed.protocol === 'chrome-extension:') return true;
         return LOOPBACK_HOSTS.has(parsed.hostname);
     } catch {
         return false;

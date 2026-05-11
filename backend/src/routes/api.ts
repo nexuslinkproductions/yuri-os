@@ -43,6 +43,9 @@ import {
     reviewLessonCandidate
 } from '../services/sessionImprovementService';
 import { SessionRuntimeService } from '../services/sessionRuntimeService';
+import { DesignAssistantBridgeService } from '../services/designAssistantBridgeService';
+import { initDesignAssistantRoutes } from './designAssistantRoutes';
+import { HeadlessControlPlaneService } from '../services/headlessControlPlaneService';
 
 type RouteHealthPayload = {
     healthy?: boolean;
@@ -58,6 +61,7 @@ type ApiRouteOptions = {
     getReadiness?: () => Promise<RouteHealthPayload>;
     getLiveness?: () => RouteHealthPayload;
     sessionRuntime?: SessionRuntimeService;
+    designAssistantBridge?: DesignAssistantBridgeService;
 };
 
 const SENSITIVE_QUERY_KEYS = new Set(['apikey', 'api_key', 'key', 'token', 'auth', 'authorization']);
@@ -231,6 +235,22 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
             res.json(requireSessionRuntime().getControlPlaneStatus());
         } catch (error: any) {
             handleSessionRuntimeError(res, error);
+        }
+    });
+
+    const headlessControlPlane = new HeadlessControlPlaneService(db);
+
+    router.post('/control-plane/plan', localOnlyMiddleware, authMiddleware, (req, res) => {
+        try {
+            const plan = headlessControlPlane.plan({
+                prompt: req.body?.prompt,
+                mode: req.body?.mode,
+                source: req.body?.source
+            });
+            res.status(201).json({ plan });
+        } catch (error: any) {
+            const statusCode = /prompt required/i.test(error?.message || '') ? 400 : 500;
+            res.status(statusCode).json({ error: error?.message || 'HEADLESS_CONTROL_PLAN_FAILED' });
         }
     });
 
@@ -558,7 +578,6 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     router.get('/events', (_, res) => res.json(getRecentEvents(db, 50)));
     router.get('/calendar', (_, res) => res.json(getAllEvents(db)));
     router.get('/tickets', (_, res) => res.json(getAllTickets(db)));
-    router.get('/temporal-graph', (_, res) => res.json(getTemporalEvents(db, 100)));
 
     router.post('/swarm/route', authMiddleware, (req, res) => {
         const { prompt, ...options } = req.body;
@@ -898,6 +917,15 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
             res.status(500).json({ error: err.message });
         }
     });
+
+    // Chrome Design Assistant bridge: browser captures, selections, and Codex work packets.
+    initDesignAssistantRoutes(router, options.designAssistantBridge || new DesignAssistantBridgeService(db));
+
+    const { initSiteBuilderRoutes } = require('./siteBuilderRoutes');
+    initSiteBuilderRoutes(router);
+
+    const { initDesignStudioRoutes } = require('./designStudioRoutes');
+    initDesignStudioRoutes(router);
 
     // Notebook module (NotebookLM clone) — additive, no existing routes touched
     const { initNotebookRoutes } = require('./notebookRoutes');

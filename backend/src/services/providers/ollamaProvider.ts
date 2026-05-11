@@ -180,6 +180,7 @@ export class OllamaProvider {
                     runtime,
                     vector_dimensions: Array.isArray(response.data?.embedding) ? response.data.embedding.length : 0,
                     billing_state: runtime === 'cloud' ? 'provisional' : '',
+                    ...this.runtimeProfile(),
                     ...options.metadata
                 }
             });
@@ -195,7 +196,7 @@ export class OllamaProvider {
                 latencyMs: Date.now() - startedAt,
                 operationType: options.operationType || 'ollama_embedding',
                 error,
-                metadata: { runtime, ...options.metadata }
+                metadata: { runtime, ...this.runtimeProfile(), ...options.metadata }
             });
             throw error;
         }
@@ -249,9 +250,19 @@ export class OllamaProvider {
             metadata: {
                 runtime,
                 billing_state: runtime === 'cloud' ? 'provisional' : '',
+                ...this.runtimeProfile(),
                 ...options.metadata
             }
         });
+    }
+
+    private runtimeProfile() {
+        return {
+            ollama_host: process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+            ollama_flash_attention: process.env.OLLAMA_FLASH_ATTENTION || '',
+            ollama_kv_cache_type: process.env.OLLAMA_KV_CACHE_TYPE || '',
+            ollama_no_cloud: process.env.OLLAMA_NO_CLOUD || ''
+        };
     }
 }
 

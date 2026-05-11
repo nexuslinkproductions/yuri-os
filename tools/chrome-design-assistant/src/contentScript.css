@@ -1,0 +1,32 @@
+.cda-box {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2147483647;
+  box-sizing: border-box;
+  pointer-events: none;
+  border: 1px solid rgba(36, 180, 126, 0.95);
+  background: rgba(36, 180, 126, 0.08);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 18px rgba(36, 180, 126, 0.28);
+  opacity: 0;
+  transition: opacity 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.cda-box[data-state="selected"] {
+  border-color: rgba(255, 198, 87, 0.98);
+  background: rgba(255, 198, 87, 0.1);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 0 22px rgba(255, 198, 87, 0.32);
+}
+
+.cda-box[data-state="region"] {
+  border-color: rgba(95, 170, 255, 0.98);
+  background: rgba(95, 170, 255, 0.1);
+}
+
+html[data-cda-mode="inspect"] {
+  cursor: crosshair !important;
+}
+
+html[data-cda-mode="region"] {
+  cursor: cell !important;
+}

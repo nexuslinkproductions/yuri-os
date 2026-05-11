@@ -2,6 +2,9 @@ import { NotebookService, NotebookChunk } from './notebookService';
 import { neuralForge } from './neuralForgeService';
 import { memoryGovernor } from './memoryGovernorService';
 import { ollamaProvider } from './providers/ollamaProvider';
+import type { CompressionMode } from './smartRouter';
+import { ollamaContextGovernor } from './ollamaContextGovernor';
+import type { OllamaContextGovernorResult } from './ollamaContextGovernor';
 
 const TOP_K = 5;
 
@@ -19,10 +22,12 @@ export interface StreamRagOptions {
     onCitation: (citation: RagCitation) => void;
     onDone: (fullContent: string) => void;
     onError: (msg: string) => void;
+    compressionMode?: CompressionMode;
     signal?: AbortSignal;
 }
 
 type EmbeddedChunk = NotebookChunk & { source_title: string };
+type GovernedRagChunk = EmbeddedChunk & { memoryItemId?: number; semanticScore?: number };
 
 export class NotebookRagService {
     private notebookService: NotebookService;
@@ -32,7 +37,7 @@ export class NotebookRagService {
     }
 
     async streamAnswer(opts: StreamRagOptions): Promise<void> {
-        const { notebookId, query, modelId, onToken, onCitation, onDone, onError, signal } = opts;
+        const { notebookId, query, modelId, onToken, onCitation, onDone, onError, compressionMode = 'safe', signal } = opts;
 
         const embeddedChunks = this.notebookService.getEmbeddedChunks(notebookId);
         if (embeddedChunks.length === 0) {
@@ -47,15 +52,22 @@ export class NotebookRagService {
         }
 
         const topChunks = this.retrieveTopK(embeddedChunks, queryEmbedding, TOP_K);
+        const governed = await this.buildGovernedContext(topChunks, {
+            query,
+            modelId,
+            compressionMode
+        });
+        const selectedIds = new Set([...governed.selectedChunkIds, ...governed.summarizedChunkIds]);
+        const selectedChunks = topChunks.filter(chunk => selectedIds.has(chunk.id));
 
-        const citations = topChunks.map(chunk => ({
+        const citations = selectedChunks.map(chunk => ({
             chunk_id: chunk.id,
             source_title: chunk.source_title,
-            excerpt: chunk.content.slice(0, 200) + (chunk.content.length > 200 ? '…' : '')
+            excerpt: chunk.content.slice(0, 200) + (chunk.content.length > 200 ? '...' : '')
         }));
 
-        const systemPrompt = this.buildSystemPrompt(topChunks);
-        const usedChunkIds = topChunks.map(c => c.id);
+        const systemPrompt = this.buildSystemPrompt(governed.contextText);
+        const usedChunkIds = selectedChunks.map(c => c.id);
 
         try {
             const result = await ollamaProvider.streamChat({
@@ -64,14 +76,28 @@ export class NotebookRagService {
                 messages: [{ role: 'user', content: query }],
                 runtime: 'local',
                 signal,
+                options: {
+                    num_ctx: governed.recommendedNumCtx
+                },
                 operationType: 'notebook_rag_answer',
-                metadata: { notebook_id: notebookId, top_k: topChunks.length },
+                metadata: {
+                    notebook_id: notebookId,
+                    top_k: topChunks.length,
+                    compression_mode: governed.compressionMode,
+                    context_input_chars: governed.contextInputChars,
+                    context_output_chars: governed.contextOutputChars,
+                    compression_ratio: governed.compressionRatio,
+                    selected_chunks: governed.selectedChunkIds,
+                    summarized_chunks: governed.summarizedChunkIds,
+                    omitted_chunks: governed.omittedChunkIds,
+                    num_ctx: governed.recommendedNumCtx
+                },
                 onToken
             });
             const fullContent = result.content;
 
             this.notebookService.saveMessage(notebookId, 'assistant', fullContent, usedChunkIds);
-            memoryGovernor.recordRetrieval(topChunks.map(c => c.memoryItemId), 'notebook_rag', { notebookId, query });
+            memoryGovernor.recordRetrieval(selectedChunks.map(c => c.memoryItemId), 'notebook_rag', { notebookId, query });
             for (const citation of citations) {
                 onCitation(citation);
             }
@@ -83,7 +109,7 @@ export class NotebookRagService {
         }
     }
 
-    private retrieveTopK(chunks: EmbeddedChunk[], queryVec: number[], k: number): Array<EmbeddedChunk & { memoryItemId?: number }> {
+    private retrieveTopK(chunks: EmbeddedChunk[], queryVec: number[], k: number): GovernedRagChunk[] {
         return chunks
             .filter(c => c.embedding != null)
             .map(c => {
@@ -98,11 +124,12 @@ export class NotebookRagService {
                     embedding: c.embedding,
                     created_at: c.created_at
                 });
+                const score = decision.allowed
+                    ? this.cosineSimilarity(queryVec, JSON.parse(c.embedding!)) * decision.multiplier
+                    : -1;
                 return {
-                    chunk: { ...c, memoryItemId: decision.itemId },
-                    score: decision.allowed
-                        ? this.cosineSimilarity(queryVec, JSON.parse(c.embedding!)) * decision.multiplier
-                        : -1
+                    chunk: { ...c, memoryItemId: decision.itemId, semanticScore: score },
+                    score
                 };
             })
             .filter(r => r.score >= 0)
@@ -111,21 +138,59 @@ export class NotebookRagService {
             .map(r => r.chunk);
     }
 
-    private buildSystemPrompt(chunks: EmbeddedChunk[]): string {
-        const contextBlocks = chunks.map((c, i) =>
-            `[SOURCE ${i + 1}: ${c.source_title}]\n${c.content}`
-        ).join('\n\n---\n\n');
-
+    private buildSystemPrompt(contextText: string): string {
         return [
             'You are an expert research assistant with access to the following source material.',
             'Answer the user\'s question based ONLY on the provided sources.',
-            'Be thorough, accurate, and cite sources naturally (e.g., "According to [SOURCE 1]...").',
+            'Be thorough, accurate, and cite only source numbers included in SOURCE CONTENT.',
             'If the sources don\'t contain enough information, say so clearly.',
             '',
             '## Source Material',
             '',
-            contextBlocks
+            contextText
         ].join('\n');
+    }
+
+    private async buildGovernedContext(
+        chunks: GovernedRagChunk[],
+        options: { query: string; modelId: string; compressionMode: CompressionMode }
+    ): Promise<OllamaContextGovernorResult> {
+        try {
+            return await ollamaContextGovernor.govern({
+                query: options.query,
+                modelId: options.modelId,
+                requestedNumCtx: 8192,
+                compressionMode: options.compressionMode,
+                taskType: 'rag_answer',
+                chunks: chunks.map(chunk => ({
+                    id: chunk.id,
+                    content: chunk.content,
+                    sourceTitle: chunk.source_title,
+                    sourceId: chunk.source_id,
+                    chunkIndex: chunk.chunk_index,
+                    semanticScore: chunk.semanticScore,
+                    createdAt: chunk.created_at
+                }))
+            });
+        } catch (error: any) {
+            console.warn(`⬡ OLLAMA_CONTEXT_GOVERNOR_FALLBACK :: rag_answer :: ${error.message}`);
+            return ollamaContextGovernor.govern({
+                query: options.query,
+                modelId: options.modelId,
+                requestedNumCtx: 8192,
+                compressionMode: 'off',
+                taskType: 'rag_answer',
+                chunks: chunks.map(chunk => ({
+                    id: chunk.id,
+                    content: chunk.content,
+                    sourceTitle: chunk.source_title,
+                    sourceId: chunk.source_id,
+                    chunkIndex: chunk.chunk_index,
+                    semanticScore: chunk.semanticScore,
+                    createdAt: chunk.created_at
+                }))
+            });
+        }
     }
 
     private cosineSimilarity(vecA: number[], vecB: number[]): number {

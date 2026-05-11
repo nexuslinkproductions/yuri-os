@@ -12,6 +12,7 @@ import { NotebookDocGenService } from '../services/notebookDocGenService';
 import { NotebookPdfExportService } from '../services/notebookPdfExportService';
 import { NotebookObsidianSyncService } from '../services/notebookObsidianSyncService';
 import { NotebookVizService } from '../services/notebookVizService';
+import type { CompressionMode } from '../services/smartRouter';
 
 const UPLOAD_DIR = SystemConfig.resolve('backend/data/notebook-uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -35,6 +36,11 @@ function sseSetup(res: any) {
     return (event: string, data: unknown) => {
         res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     };
+}
+
+function parseCompressionMode(value: unknown): CompressionMode {
+    if (value === 'off' || value === 'safe' || value === 'aggressive') return value;
+    return 'safe';
 }
 
 export function initNotebookRoutes(router: Router, db: Database.Database): void {
@@ -183,6 +189,7 @@ export function initNotebookRoutes(router: Router, db: Database.Database): void 
         const notebookId = Number(req.params.id);
         const query = String(req.query.command || '').trim();
         const modelId = String(req.query.model || 'qwen-liberated:latest');
+        const compressionMode = parseCompressionMode(req.query.compressionMode || req.query.compression_mode);
         if (!query) return res.status(400).json({ error: 'command is required' });
 
         const send = sseSetup(res);
@@ -193,6 +200,7 @@ export function initNotebookRoutes(router: Router, db: Database.Database): void 
 
         await ragSvc.streamAnswer({
             notebookId, query, modelId,
+            compressionMode,
             onToken: (token) => send('token', { token }),
             onCitation: (citation) => send('citation', citation),
             onDone: (content) => {
@@ -212,6 +220,7 @@ export function initNotebookRoutes(router: Router, db: Database.Database): void 
     router.post('/notebook/notebooks/:id/generate', authMiddleware, async (req, res) => {
         const notebookId = Number(req.params.id);
         const { doc_type, model_id = 'qwen-liberated:latest' } = req.body;
+        const compressionMode = parseCompressionMode(req.body.compressionMode || req.body.compression_mode);
         if (!doc_type) return res.status(400).json({ error: 'doc_type is required' });
 
         const send = sseSetup(res);
@@ -219,6 +228,7 @@ export function initNotebookRoutes(router: Router, db: Database.Database): void 
 
         await docGenSvc.streamGenerate({
             notebookId, docType: doc_type, modelId: model_id,
+            compressionMode,
             onToken: (token) => send('token', { token }),
             onDone: (docId) => {
                 // Invalidate viz cache for this notebook

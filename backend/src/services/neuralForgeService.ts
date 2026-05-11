@@ -1,8 +1,10 @@
 import axios, { AxiosInstance } from 'axios';
 import http from 'http';
 import https from 'https';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import Database from 'better-sqlite3';
+import path from 'path';
 import { anthropicProvider } from './providers/anthropicProvider';
 import { googleProvider } from './providers/googleProvider';
 import { ollamaProvider } from './providers/ollamaProvider';
@@ -89,6 +91,27 @@ type LoopExecutionResult = {
 };
 
 type ProviderType = 'anthropic' | 'google' | 'openai' | 'moonshot' | 'kimi';
+
+type LocalModelPolicy = {
+    primary?: string;
+    utility?: string;
+    code?: string;
+    code_fallback?: string;
+    deep_reasoning?: string;
+    multimodal?: string;
+    fallback?: string;
+};
+
+const LOCAL_MODEL_POLICY_PATH = path.resolve(__dirname, '../../../.claude/config/models.json');
+const LOCAL_MODEL_POLICY = loadLocalModelPolicy();
+const LOCAL_POLICY = (LOCAL_MODEL_POLICY.local || {}) as LocalModelPolicy;
+const LOCAL_PRIMARY_MODEL = LOCAL_POLICY.primary || 'qwen2.5:7b';
+const LOCAL_UTILITY_MODEL = LOCAL_POLICY.utility || 'qwen3.5:4b';
+const LOCAL_CODE_MODEL = LOCAL_POLICY.code || 'qwen2.5-coder:7b';
+const LOCAL_CODE_FALLBACK_MODEL = LOCAL_POLICY.code_fallback || 'starcoder2:latest';
+const LOCAL_DEEP_REASONING_MODEL = LOCAL_POLICY.deep_reasoning || 'deepseek-r1:8b';
+const LOCAL_MULTIMODAL_MODEL = LOCAL_POLICY.multimodal || 'gemma4:e2b';
+const LOCAL_FALLBACK_MODEL = LOCAL_POLICY.fallback || 'llama3.2:latest';
 
 /**
  * ⬡ LATENCY_TRACKER
@@ -313,9 +336,12 @@ export class NeuralForgeService {
         let lastError: Error | null = null;
         const allowLocal = options.allowLocal !== false;
         const allowCloud = options.allowCloud !== false;
+        const attemptedModels = new Set<string>();
 
         for (const candidate of decision.fallbackChain) {
             const candidateModel = candidate || requestedModel;
+            if (!candidateModel || attemptedModels.has(candidateModel)) continue;
+            attemptedModels.add(candidateModel);
             const runtime = this.getModelRuntime(candidateModel);
 
             if (runtime === 'local' && !allowLocal) continue;
@@ -323,9 +349,60 @@ export class NeuralForgeService {
 
             try {
                 if (runtime === 'local') {
-                    // LLM answers no longer use Ollama local models
-                    // Local models are reserved for embeddings only
-                    fallbackCause = `LOCAL_LLM_DISABLED :: ${candidateModel}`;
+                    const localCandidates = await this.resolveAvailableLocalModels(candidateModel, decision.intent);
+                    if (localCandidates.length === 0) {
+                        fallbackCause = `LOCAL_MODEL_MISSING :: ${candidateModel}`;
+                        continue;
+                    }
+
+                    for (const localCandidate of localCandidates) {
+                        if (attemptedModels.has(localCandidate)) {
+                            continue;
+                        }
+                        attemptedModels.add(localCandidate);
+
+                        try {
+                            if (this.shouldUseReasoningLoop(decision, runtime)) {
+                                const loopResult = await this.executeLocalReasoningLoop(localCandidate, messages, finalSystemPrompt, decision);
+
+                                if (loopResult.shouldEscalate) {
+                                    fallbackCause = loopResult.fallbackCause || `LOCAL_LOW_CONFIDENCE :: ${localCandidate}`;
+                                    continue;
+                                }
+
+                                const decoratedLoop = this.decorateResponse(loopResult.response, {
+                                    runtime: 'local',
+                                    compression: compression.stats,
+                                    escalated: false,
+                                    loopCount: loopResult.loopCount,
+                                    decision,
+                                    contextInjected: !!retrievalContext
+                                });
+                                this.recordExecutionSnapshot(decoratedLoop, decision, fallbackCause);
+                                return decoratedLoop;
+                            }
+
+                            const response = await this.executeOllamaChat(
+                                localCandidate,
+                                messages,
+                                finalSystemPrompt
+                            );
+                            const decorated = this.decorateResponse(response, {
+                                runtime: 'local',
+                                compression: compression.stats,
+                                escalated,
+                                loopCount: 1,
+                                decision,
+                                contextInjected: !!retrievalContext
+                            });
+                            this.recordExecutionSnapshot(decorated, decision, fallbackCause);
+                            return decorated;
+                        } catch (error: any) {
+                            lastError = error;
+                            fallbackCause = error.message;
+                            console.error(`⬡ NEURAL_FORGE_ATTEMPT_FAILED :: ${localCandidate} :: ${error.message}`);
+                        }
+                    }
                     continue;
                 }
 
@@ -620,12 +697,24 @@ export class NeuralForgeService {
     private normalizeLocalModelName(modelId: string) {
         const cleanId = modelId.replace(':cloud', '');
         const aliases: Record<string, string> = {
-            'gpt-oss-20b': 'qwen-liberated:latest',
-            'gpt-oss': 'qwen-liberated:latest',
-            'deepseek-r1': 'deepseek-r1:latest',
-            'deepseek-liberated': 'deepseek-liberated:latest',
-            'starcoder2': 'starcoder2:latest',
-            'llama3.2': 'llama3.2:latest'
+            'gpt-oss-20b': LOCAL_UTILITY_MODEL,
+            'gpt-oss': LOCAL_UTILITY_MODEL,
+            'qwen-liberated': LOCAL_UTILITY_MODEL,
+            'qwen-liberated:latest': LOCAL_UTILITY_MODEL,
+            'qwen2.5': LOCAL_PRIMARY_MODEL,
+            'qwen2.5:latest': LOCAL_PRIMARY_MODEL,
+            'qwen3.5': LOCAL_UTILITY_MODEL,
+            'qwen3.5:latest': LOCAL_UTILITY_MODEL,
+            'qwen2.5-coder': LOCAL_CODE_MODEL,
+            'qwen2.5-coder:latest': LOCAL_CODE_MODEL,
+            'starcoder2': LOCAL_CODE_FALLBACK_MODEL,
+            'deepseek-r1': LOCAL_DEEP_REASONING_MODEL,
+            'deepseek-r1:latest': LOCAL_DEEP_REASONING_MODEL,
+            'gemma4': LOCAL_MULTIMODAL_MODEL,
+            'gemma4:latest': LOCAL_MULTIMODAL_MODEL,
+            'gemma': LOCAL_MULTIMODAL_MODEL,
+            'llama3.2': LOCAL_FALLBACK_MODEL,
+            'llama3.2:latest': LOCAL_FALLBACK_MODEL
         };
         return aliases[cleanId] || cleanId;
     }
@@ -633,35 +722,39 @@ export class NeuralForgeService {
     private getFallbackLocalModels(modelId: string, intent: RoutingDecision['intent']) {
         const cleanId = modelId.replace(':cloud', '');
 
-        if (cleanId.includes('starcoder')) {
-            return ['starcoder2:latest', 'qwen-liberated:latest', 'qwen2.5:7b', 'deepseek-r1:latest', 'llama3.2:latest'];
+        if (cleanId.includes('qwen2.5-coder') || cleanId.includes('starcoder')) {
+            return [LOCAL_CODE_MODEL, LOCAL_CODE_FALLBACK_MODEL];
         }
 
         if (cleanId.includes('deepseek-r1')) {
-            return ['deepseek-r1:latest', 'qwen-liberated:latest', 'qwen2.5:7b', 'llama3.2:latest'];
+            return [LOCAL_DEEP_REASONING_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_UTILITY_MODEL, LOCAL_FALLBACK_MODEL];
         }
 
         if (cleanId.includes('deepseek')) {
-            return ['deepseek-liberated:latest', 'deepseek-r1:latest', 'qwen-liberated:latest', 'qwen2.5:7b', 'llama3.2:latest'];
+            return [LOCAL_DEEP_REASONING_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_UTILITY_MODEL, LOCAL_FALLBACK_MODEL];
         }
 
         if (cleanId.includes('qwen')) {
-            return ['qwen2.5:7b', 'qwen-liberated:latest', 'deepseek-r1:latest', 'llama3.2:latest'];
+            return [LOCAL_UTILITY_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_FALLBACK_MODEL];
         }
 
         if (cleanId.includes('gpt-oss')) {
-            return ['qwen-liberated:latest', 'qwen2.5:7b', 'deepseek-r1:latest', 'llama3.2:latest'];
+            return [LOCAL_UTILITY_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_FALLBACK_MODEL];
+        }
+
+        if (cleanId.includes('gemma4') || cleanId.includes('gemma')) {
+            return [LOCAL_MULTIMODAL_MODEL, LOCAL_UTILITY_MODEL, LOCAL_PRIMARY_MODEL];
         }
 
         if (cleanId.includes('llama')) {
-            return ['llama3.2:latest', 'qwen-liberated:latest', 'qwen2.5:7b'];
+            return [LOCAL_FALLBACK_MODEL, LOCAL_UTILITY_MODEL, LOCAL_PRIMARY_MODEL];
         }
 
         if (intent === 'coding') {
-            return ['starcoder2:latest', 'qwen-liberated:latest', 'qwen2.5:7b', 'deepseek-r1:latest'];
+            return [LOCAL_CODE_MODEL, LOCAL_CODE_FALLBACK_MODEL];
         }
 
-        return ['qwen-liberated:latest', 'qwen2.5:7b', 'deepseek-r1:latest', 'deepseek-liberated:latest', 'llama3.2:latest'];
+        return [LOCAL_UTILITY_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_FALLBACK_MODEL];
     }
 
     private shouldUseReasoningLoop(decision: RoutingDecision, runtime: PreferredRuntime | 'local' | 'cloud') {
@@ -808,6 +901,7 @@ export class NeuralForgeService {
             || cleanId.includes('deepseek')
             || cleanId.includes('llama')
             || cleanId.includes('starcoder')
+            || cleanId.includes('gemma4')
             || cleanId.includes('nomic-embed-text');
     }
 
@@ -912,3 +1006,13 @@ export class NeuralForgeService {
 }
 
 export const neuralForge = new NeuralForgeService();
+
+function loadLocalModelPolicy(): Record<string, unknown> {
+    try {
+        if (!fs.existsSync(LOCAL_MODEL_POLICY_PATH)) return {};
+        return JSON.parse(fs.readFileSync(LOCAL_MODEL_POLICY_PATH, 'utf8'));
+    } catch (error) {
+        console.warn(`⬡ NEURAL_FORGE_MODEL_POLICY_UNAVAILABLE :: ${(error as Error).message}`);
+        return {};
+    }
+}

@@ -1,57 +1,67 @@
 import { NotebookService, DocType } from './notebookService';
 import { ollamaProvider } from './providers/ollamaProvider';
+import type { CompressionMode } from './smartRouter';
+import { ollamaContextGovernor } from './ollamaContextGovernor';
+import type { OllamaContextGovernorResult } from './ollamaContextGovernor';
 
 const MAX_CONTEXT_CHARS = 80_000;
 
-const TYPE_ICONS: Record<string, string> = { pdf: 'PDF', docx: 'DOCX', audio: 'Audio', video: 'Video', url: 'Web', obsidian: 'Vault Note' };
-
 interface SourceContext {
-    manifest: string;
-    attributedContent: string;
+    sourceContext: string;
     sourceCount: number;
     totalWords: number;
+    governor: OllamaContextGovernorResult;
 }
 
-function buildSourceContext(chunks: Array<{ content: string; source_title: string; source_type: string; source_word_count: number; source_id?: number }>): SourceContext {
-    // Group chunks by source
-    const bySource = new Map<string, { type: string; words: number; chunks: string[] }>();
+async function buildSourceContext(
+    chunks: Array<{ id: number; content: string; source_title: string; source_type: string; source_word_count: number; source_id?: number; chunk_index?: number; created_at?: string }>,
+    options: {
+        docType: DocType;
+        modelId: string;
+        compressionMode: CompressionMode;
+    }
+): Promise<SourceContext> {
+    const bySource = new Map<string, { words: number }>();
     for (const c of chunks) {
         const key = c.source_title;
-        if (!bySource.has(key)) bySource.set(key, { type: c.source_type, words: c.source_word_count, chunks: [] });
-        bySource.get(key)!.chunks.push(c.content);
+        if (!bySource.has(key)) bySource.set(key, { words: c.source_word_count });
     }
 
-    const sources = Array.from(bySource.entries());
-    const manifest = sources.map(([title, meta], i) =>
-        `[${i + 1}] "${title}" (${TYPE_ICONS[meta.type] || meta.type}, ~${meta.words.toLocaleString()} words)`
-    ).join('\n');
-
-    // Build attributed content, respecting MAX_CONTEXT_CHARS
-    let used = manifest.length;
-    const sections: string[] = [];
-    for (let i = 0; i < sources.length; i++) {
-        const [title, meta] = sources[i];
-        const header = `\n### [SOURCE ${i + 1}: "${title}"]\n`;
-        const joined = meta.chunks.join('\n\n');
-        const available = MAX_CONTEXT_CHARS - used - header.length;
-        if (available <= 200) break;
-        const content = joined.length > available ? joined.slice(0, available) + '\n…[truncated]' : joined;
-        sections.push(header + content);
-        used += header.length + content.length;
-    }
+    const governor = await ollamaContextGovernor.govern({
+        query: `Create a ${options.docType} document from the notebook sources.`,
+        modelId: options.modelId,
+        requestedNumCtx: 32768,
+        compressionMode: options.compressionMode,
+        taskType: 'doc_generate',
+        promptOverheadChars: 6000,
+        maxContextChars: MAX_CONTEXT_CHARS,
+        chunks: chunks.map(chunk => ({
+            id: chunk.id,
+            content: chunk.content,
+            sourceTitle: chunk.source_title,
+            sourceType: chunk.source_type,
+            sourceWordCount: chunk.source_word_count,
+            sourceId: chunk.source_id,
+            chunkIndex: chunk.chunk_index,
+            createdAt: chunk.created_at
+        })),
+        summarizeChunk: options.compressionMode === 'aggressive'
+            ? async (chunk) => summarizeChunkWithOllama(chunk.content, options.modelId)
+            : undefined
+    });
 
     return {
-        manifest,
-        attributedContent: sections.join('\n'),
-        sourceCount: sources.length,
-        totalWords: sources.reduce((sum, [, m]) => sum + m.words, 0)
+        sourceContext: governor.contextText,
+        sourceCount: bySource.size,
+        totalWords: Array.from(bySource.values()).reduce((sum, m) => sum + m.words, 0),
+        governor
     };
 }
 
 function buildPrompt(docType: DocType, ctx: SourceContext): string {
-    const intro = `You have access to ${ctx.sourceCount} source${ctx.sourceCount !== 1 ? 's' : ''} totaling approximately ${ctx.totalWords.toLocaleString()} words.\n\n## SOURCE MANIFEST\n${ctx.manifest}\n\n## SOURCE CONTENT\n${ctx.attributedContent}\n\n---\n`;
+    const intro = `You have access to ${ctx.sourceCount} source${ctx.sourceCount !== 1 ? 's' : ''} totaling approximately ${ctx.totalWords.toLocaleString()} words.\n\n${ctx.sourceContext}\n\n---\n`;
 
-    const citationRule = `\n\n**Citation rules:** Every factual claim MUST be cited using [N] format referencing the source manifest above. Use multiple citations [1][2] when a claim is supported by multiple sources. Do not make any claim without a grounding citation.`;
+    const citationRule = `\n\n**Citation rules:** Every factual claim MUST be cited using [N] format. Cite only sources that have SOURCE CONTENT or compressed SOURCE SUMMARY in the prompt. Use multiple citations [1][2] when supported. Do not make any claim without a grounding citation.`;
 
     const tasks: Record<DocType, string> = {
         summary: `${intro}## TASK: COMPREHENSIVE EXECUTIVE SUMMARY
@@ -202,6 +212,7 @@ export interface DocGenStreamOptions {
     onToken: (token: string) => void;
     onDone: (docId: number) => void;
     onError: (msg: string) => void;
+    compressionMode?: CompressionMode;
     signal?: AbortSignal;
 }
 
@@ -213,7 +224,7 @@ export class NotebookDocGenService {
     }
 
     async streamGenerate(opts: DocGenStreamOptions): Promise<void> {
-        const { notebookId, docType, modelId, onToken, onDone, onError, signal } = opts;
+        const { notebookId, docType, modelId, onToken, onDone, onError, compressionMode = 'safe', signal } = opts;
 
         const allChunks = this.notebookService.getAllChunksWithSource(notebookId);
         if (!allChunks.length) {
@@ -221,10 +232,10 @@ export class NotebookDocGenService {
             return;
         }
 
-        const ctx = buildSourceContext(allChunks);
+        const ctx = await this.buildGovernedSourceContext(allChunks, { docType, modelId, compressionMode });
         const prompt = buildPrompt(docType, ctx);
 
-        console.log(`⬡ NOTEBOOK_DOCGEN :: type=${docType} sources=${ctx.sourceCount} words=${ctx.totalWords} promptChars=${prompt.length}`);
+        console.log(`⬡ NOTEBOOK_DOCGEN :: type=${docType} sources=${ctx.sourceCount} words=${ctx.totalWords} promptChars=${prompt.length} compression=${ctx.governor.compressionMode}:${ctx.governor.compressionRatio}`);
 
         try {
             const result = await ollamaProvider.streamChat({
@@ -234,11 +245,23 @@ export class NotebookDocGenService {
                 runtime: 'local',
                 signal,
                 options: {
-                    num_ctx: 32768,
+                    num_ctx: ctx.governor.recommendedNumCtx,
                     temperature: 0.3
                 },
                 operationType: 'notebook_doc_generate',
-                metadata: { doc_type: docType, source_count: ctx.sourceCount, source_words: ctx.totalWords },
+                metadata: {
+                    doc_type: docType,
+                    source_count: ctx.sourceCount,
+                    source_words: ctx.totalWords,
+                    compression_mode: ctx.governor.compressionMode,
+                    context_input_chars: ctx.governor.contextInputChars,
+                    context_output_chars: ctx.governor.contextOutputChars,
+                    compression_ratio: ctx.governor.compressionRatio,
+                    selected_chunks: ctx.governor.selectedChunkIds,
+                    summarized_chunks: ctx.governor.summarizedChunkIds,
+                    omitted_chunks: ctx.governor.omittedChunkIds,
+                    num_ctx: ctx.governor.recommendedNumCtx
+                },
                 onToken
             });
             const fullContent = result.content;
@@ -258,4 +281,36 @@ export class NotebookDocGenService {
             }
         }
     }
+
+    private async buildGovernedSourceContext(
+        chunks: Array<{ id: number; content: string; source_title: string; source_type: string; source_word_count: number; source_id?: number; chunk_index?: number; created_at?: string }>,
+        options: { docType: DocType; modelId: string; compressionMode: CompressionMode }
+    ): Promise<SourceContext> {
+        try {
+            return await buildSourceContext(chunks, options);
+        } catch (error: any) {
+            console.warn(`⬡ OLLAMA_CONTEXT_GOVERNOR_FALLBACK :: doc_generate :: ${error.message}`);
+            return buildSourceContext(chunks, { ...options, compressionMode: 'off' });
+        }
+    }
+}
+
+async function summarizeChunkWithOllama(content: string, modelId: string): Promise<string> {
+    const result = await ollamaProvider.chat({
+        model: 'qwen3.5:4b',
+        system: 'Return a source-grounded extractive summary in 4 bullets. Preserve names, dates, numbers, and claims. Do not add facts.',
+        messages: [{ role: 'user', content: content.slice(0, 6000) }],
+        runtime: 'local',
+        options: {
+            num_ctx: 4096,
+            num_predict: 180,
+            temperature: 0
+        },
+        operationType: 'ollama_context_summary',
+        metadata: {
+            source_model: modelId,
+            compression_mode: 'aggressive'
+        }
+    });
+    return result.content || '';
 }
