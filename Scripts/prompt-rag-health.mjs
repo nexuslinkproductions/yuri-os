@@ -76,6 +76,14 @@ function liveCounts(db, notebookId) {
   };
 }
 
+function checkDatabaseHealth(db) {
+  return {
+    integrityCheck: String(db.pragma('integrity_check', { simple: true }) || 'unknown'),
+    quickCheck: String(db.pragma('quick_check', { simple: true }) || 'unknown'),
+    foreignKeyViolations: (db.pragma('foreign_key_check') || []).length,
+  };
+}
+
 function main() {
   const issues = [];
   const manifest = readText(MANIFEST_PATH, issues);
@@ -100,6 +108,13 @@ function main() {
   let liveNotebook = null;
   let counts = null;
   let status = 'READY_NOT_INGESTED';
+  let database = {
+    path: DB_PATH,
+    available: false,
+    integrityCheck: 'unavailable',
+    quickCheck: 'unavailable',
+    foreignKeyViolations: -1
+  };
 
   if (reportExists) {
     const reportSourceCount = extractNumberField(report, 'source_count');
@@ -117,6 +132,15 @@ function main() {
       let db = null;
       try {
         db = new Database(DB_PATH, { readonly: true, fileMustExist: true });
+        database = {
+          ...database,
+          available: true,
+          ...checkDatabaseHealth(db)
+        };
+        if (database.integrityCheck !== 'ok') issues.push(`database integrity_check is ${database.integrityCheck}`);
+        if (database.quickCheck !== 'ok') issues.push(`database quick_check is ${database.quickCheck}`);
+        if (database.foreignKeyViolations !== 0) issues.push(`database foreign_key_check violations ${database.foreignKeyViolations}`);
+
         liveNotebook = db.prepare('SELECT id, title, stable_key FROM notebook_notebooks WHERE stable_key = ?').get(NOTEBOOK_STABLE_KEY) ?? null;
         if (!liveNotebook) {
           issues.push(`no notebook row found for stable key ${NOTEBOOK_STABLE_KEY}`);
@@ -152,6 +176,13 @@ function main() {
         sources: EXPECTED_SOURCE_COUNT
       },
       live: counts
+    },
+    database: {
+      path: database.path,
+      available: database.available,
+      integrityCheck: database.integrityCheck,
+      quickCheck: database.quickCheck,
+      foreignKeyViolations: database.foreignKeyViolations
     },
     reportExists,
     issues
