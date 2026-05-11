@@ -43,6 +43,13 @@ enabled = true
 startup_timeout_sec = 5
 tool_timeout_sec = 180
 
+[mcp_servers.gitnexus]
+command = "node"
+args = ["/Users/marcelspatz/NUDIMMUD/Scripts/gitnexus-mcp.mjs"]
+enabled = true
+startup_timeout_sec = 10
+tool_timeout_sec = 180
+
 [[hooks.PreToolUse]]
 matcher = "*"
 hooks = [{ type = "command", command = "node /Users/marcelspatz/NUDIMMUD/.codex/hooks/pre-tool-use.mjs" }]

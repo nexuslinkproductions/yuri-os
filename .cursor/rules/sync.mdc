@@ -1,2 +1,11 @@
-INHERIT: ../../OPERATOR_PROTOCOL.md
-INHERIT: ../../CLAUDE.md
+---
+description: NUDIMMUD Cursor-first workspace and handoff rules
+alwaysApply: true
+---
+
+- Cursor is the primary workspace for day-to-day editing, review, and orchestration.
+- Use Codex CLI as a worker surface from the Cursor terminal, not as the main cockpit.
+- Inherit persona, tone, and cognitive workflow from `SOUL.md`; do not duplicate the persona contract here.
+- Keep `Scripts/offload-contract.mjs` as the routing source of truth.
+- For large work, split by file boundary, keep edits bounded, and verify locally before merge.
+- Prefer Cursor background agents for long-running or parallel work.

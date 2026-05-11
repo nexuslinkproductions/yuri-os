@@ -1,9 +1,11 @@
 # NUDIMMUD Operating DNA — Canonical Contract
 
 INHERIT: _SYSTEM/yuri-origin.md
+INHERIT: ../../SOUL.md
 
 > Source of truth for Yuri OS sessions bootstrapping through Claude. Inherits the Yuri OS canonical origin.
 > Do not duplicate content from referenced rule files; point to them instead.
+> Persona, tone, and cognitive workflow inherit from `SOUL.md`; this file may only point to it or define local operational exceptions.
 
 ---
 

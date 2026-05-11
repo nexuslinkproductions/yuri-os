@@ -1,6 +1,7 @@
 # AEONIC_PROTOCOL (compat stub — canonical rules live in OPERATOR_PROTOCOL.md)
 
 INHERIT: ./OPERATOR_PROTOCOL.md
+INHERIT: ./SOUL.md
 
 ## CORE_DIRECTIVES
 See OPERATOR_PROTOCOL.md for canonical rules. The directives previously in this section (Skills-First Execution, High-Autonomy Mandate, Cross-IDE Handoff, Aversion Memory) are now covered by OPERATOR_PROTOCOL.md sections #5 (OFFLOAD_DIRECTIVE), #6 (ROLE_MATRIX), and #9 (GLOBAL_AUTONOMY). Aversion Memory extraction remains a NOESIS sub-agent function — see `_SYSTEM/` and `.claude/noesis/` for implementation.

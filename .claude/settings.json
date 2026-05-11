@@ -65,6 +65,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/soul-persona-inject.js"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/yuri-boot.js"
           },
           {
@@ -101,6 +105,10 @@
       {
         "matcher": "",
         "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/soul-persona-inject.js"
+          },
           {
             "type": "command",
             "command": "node .claude/hooks/nisaba-subagent-start.js"

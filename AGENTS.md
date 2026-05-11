@@ -1,9 +1,10 @@
 INHERIT: ./OPERATOR_PROTOCOL.md
+INHERIT: ./SOUL.md
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **nudimmud-vault** (74119 symbols, 96432 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (76457 symbols, 107206 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

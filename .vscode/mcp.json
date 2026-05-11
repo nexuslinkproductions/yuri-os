@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "gitnexus": {
+      "command": "node",
+      "args": [
+        "/Users/marcelspatz/NUDIMMUD/Scripts/gitnexus-mcp.mjs"
+      ]
+    },
+    "obsidian-vault": {
+      "command": "node",
+      "args": [
+        "/Users/marcelspatz/NUDIMMUD/.claude/mcp-servers/obsidian-vault/dist/index.js"
+      ],
+      "env": {}
+    }
+  }
+}

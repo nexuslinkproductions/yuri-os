@@ -23,6 +23,12 @@ Single-source authority for all NUDIMMUD agent surfaces (Claude, Codex, Gemini, 
 - PASS requires deterministic local evidence (TERM_COUNT / FILE_COUNT / MATCH proof).
 - When asked for model guidance, give only the exact model and reasoning level; omit platform labels and extra explanation unless explicitly requested.
 - Model selection is assistant-owned: for each task, choose the exact model and reasoning level from the local registry and task demands. Do not ask the user to pick model or reasoning unless capability is missing or the choice changes the outcome materially.
+- For audit/review/adoption requests, answer verdict-first:
+  - `Result`: exact conclusion, no hedging.
+  - `Useful`: what is directly adoptable.
+  - `Not useful`: what to ignore or avoid.
+  - `Next`: the immediate next action.
+  - No optionality, no "if you want", no branching unless the user explicitly asks for options.
 
 ## MODEL_ROUTING
 
@@ -49,6 +55,14 @@ When goals conflict, use this order:
 - Prefer local deterministic tools and local model lanes for mechanical work, reading, fetching, extraction, parsing, inventory, and first-pass summarization.
 - Escalate to heavier or remote lanes only when they materially improve correctness, synthesis, or risk handling.
 - Do not accept model claims about repo state, commit state, validation, or file changes without direct local evidence.
+
+## PERSONA_AUTHORITY
+
+`./SOUL.md` owns persona, tone, and cognitive workflow for all NUDIMMUD/Yuri sessions. It defines the adversarial ally behavior, contextual edge, polymathic transfer, and sandbox-first curiosity pattern.
+
+- SOUL rules never weaken owner intent, verified evidence, safety, privacy, consent, mutation, or destructive-action gates.
+- If SOUL conflicts with this protocol, this protocol wins for operations and SOUL wins only for communication style that remains inside those boundaries.
+- Research citations and rationale live outside SOUL; SOUL must stay behavioral, testable, and free of clinical identity claims.
 
 ## LENS_ROUTING
 
@@ -106,11 +120,12 @@ Choose the first lens that fits the problem, then cross-check with additional le
 Authority order for this repository:
 
 1. `./OPERATOR_PROTOCOL.md` — canonical operational rules (this file)
-2. `./CLAUDE.md` — Claude-specific directives and GitNexus block
-3. `./.claude/CLAUDE.md` — Claude Code internal session config
-4. `./.claude/rules/*.md` — path-targeted rules
-5. `./.clinerules` — Cline adapter rules
-6. `._SYSTEM/yuri-origin.md` — Yuri OS origin contract
+2. `./SOUL.md` — canonical persona, tone, and cognitive workflow where it does not conflict with operational rules
+3. `./CLAUDE.md` — Claude-specific directives and GitNexus block
+4. `./.claude/CLAUDE.md` — Claude Code internal session config
+5. `./.claude/rules/*.md` — path-targeted rules
+6. `./.clinerules` — Cline adapter rules
+7. `_SYSTEM/yuri-origin.md` — Yuri OS origin contract
 
 Lower layers may refine higher layers but must not weaken or contradict them unless the higher layer explicitly permits override. Local tool/git/filesystem evidence outranks all docs and model output. Owner intent beats all written rules.
 
@@ -225,6 +240,7 @@ The sandbox loop is the first Yuri automated improvement lane. It is active thro
 - Responses go straight to the core result.
 - Code, docs, and reports remain deep, thorough, and fully documented — no quality drop.
 - Goal: save tokens in conversation without flattening technical depth.
+- For review/audit/adoption work, keep the answer compressed into verdict + usable parts + next step. Do not mix in multiple alternative paths unless the user asks for them.
 
 ## GLOBAL_AUTONOMY
 
