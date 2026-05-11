@@ -44,7 +44,7 @@ lightweight = (file_paths provided OR task is lookup/summarize/explore/check)
 ```
 mcp__ollama-bridge__ollama_run({
   prompt: "<task description, be specific>",
-  model: "qwen2.5:7b",   // from .claude/config/models.json → local.primary; override with OLLAMA_DEFAULT_MODEL env var if needed
+  model: "qwen3.5:4b",   // from .claude/config/models.json → local.utility; override with OLLAMA_DEFAULT_MODEL env var if needed
   system: "You are a precise assistant. Return structured, terse output."
 })
 ```
@@ -54,13 +54,14 @@ mcp__ollama-bridge__ollama_run({
 mcp__ollama-bridge__ollama_explore_files({
   prompt: "<specific question about the files>",
   file_paths: ["<absolute path 1>", "<absolute path 2>", ...],
-  model: "qwen2.5:7b",   // from .claude/config/models.json → local.primary
+  model: "qwen3.5:4b",   // from .claude/config/models.json → local.utility
   system: "Analyze the provided files and return a precise, structured answer."
 })
 ```
 
 **Model selection logic:**
-- Check `.claude/config/models.json` → `local.primary` for the current M2 Pro default
+- Check `.claude/config/models.json` → `local.utility` for lightweight local-subagent work
+- Use `local.primary` for general local reasoning when the utility model is insufficient
 - Code-specific tasks: use `local.code` from same config
 - If local model times out (>30s): escalate to Haiku, then Sonnet
 
@@ -94,10 +95,14 @@ Rule: `model: "haiku"` for all utility escalations. Omit model param (Sonnet def
 
 | Use Case | Model |
 |----------|-------|
-| Reasoning, logic, analysis | `deepseek-r1:latest` |
-| Code understanding, generation | `qwen2.5-coder:latest` |
-| Fast summarization | `deepseek-r1:7b` (if available) |
-| General text | `deepseek-r1:latest` |
+| Fast utility, lookup, extraction | `qwen3.5:4b` |
+| Stable general reasoning | `qwen2.5:7b` |
+| Code understanding, generation | `qwen2.5-coder:7b` |
+| Deep explicit reasoning | `deepseek-r1:8b` |
+| Fast fallback | `llama3.2:latest` |
+| Multimodal/local inspection | `gemma4:e2b` |
+
+Manual-only on 16 GB unified memory: `deepseek-liberated:latest`, `deepseek-v2:16b`, and `gemma4:latest`. Do not use them for hooks, scouts, or background local-subagent work.
 
 Check available models first if uncertain:
 ```
@@ -177,7 +182,7 @@ mcp__ollama-bridge__ollama_models()
 ### 2026-04-26
 - Created as part of local-first subagent bridge project
 - ollama-bridge MCP already wired in /Users/marcelspatz/.claude.json
-- Default model: deepseek-r1:latest
+- Default model: qwen3.5:4b
 - Escalation path: Agent() with local result context injected
 - tools used: Write
 - errors: none

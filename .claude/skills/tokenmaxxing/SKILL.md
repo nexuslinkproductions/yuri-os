@@ -49,7 +49,7 @@ Use `/tokenmaxxing` only to **re-activate** after a `tokenmaxxing off` mid-sessi
 - Lightweight tasks (lookup, explore, summarize, analyze ≤5 files, skill check) → use `mcp__ollama-bridge__ollama_run` or `mcp__ollama-bridge__ollama_explore_files` first.
 - Only escalate to `Agent()` if local result is insufficient or task needs write/tool-loop.
 - Skill: `/local-subagent` — full routing decision tree and model selection.
-- **Default local model:** See `.claude/config/models.json` → `local.primary` (currently `qwen2.5:7b`, M2 Pro optimized). Code tasks: see `local.code` in same file (currently `qwen2.5-coder:latest`).
+- **Default local model:** See `.claude/config/models.json` → `local.primary` (currently `qwen2.5:7b`, M2 Pro optimized). Code tasks: see `local.code` in same file (currently `qwen2.5-coder:7b`).
 
 ### No Cloud Agents for File Reads
 - Known file paths → `Read` tool directly, or `mcp__ollama-bridge__ollama_explore_files`

@@ -1,7 +1,7 @@
 # NUDIMMUD HUD OS — Design System
 
 > Active design system for NUDIMMUD Command Center. Supersedes NVIDIA-legacy reference.
-> All tokens live in `index.css`. Component decisions in `.claude/skills/design-master/design-memory.json`.
+> All tokens live in `index.css`. Component decisions live in canonical root `design-memory.json`; skill-local copies are compatibility mirrors only.
 
 ---
 

@@ -1,0 +1,1897 @@
+{
+  "capturedAt": "2026-05-10",
+  "source": "aggressive public frontier design scrape",
+  "total": 72,
+  "counts": {
+    "byType": {
+      "agent-skill": 6,
+      "community-social": 12,
+      "design-system": 7,
+      "component-library": 13,
+      "repo": 5,
+      "ai-design-tool": 9,
+      "animation-motion": 4,
+      "inspiration-gallery": 16
+    },
+    "byAuthority": {
+      "high": 37,
+      "medium": 32,
+      "low": 3
+    },
+    "reachable": {
+      "reachable": 68,
+      "unavailable": 4
+    }
+  },
+  "entries": [
+    {
+      "id": "anthropic-frontend-design-skill",
+      "title": "Anthropic frontend-design skill",
+      "url": "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
+      "sourceType": "agent-skill",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "anti-generic design constraints",
+        "brand-led visual language",
+        "design before implementation"
+      ],
+      "nudimmudFit": [
+        "Use as taste guard before UI generation",
+        "Pair with NUDIMMUD tokens, not instead of them"
+      ],
+      "riskNotes": [
+        "Repo path may move; keep local unpacked copy"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "skills/skills/frontend-design at main anthropics/skills GitHub",
+      "fetchedDescription": "Public repository for Agent Skills. Contribute to anthropics/skills development by creating an account on GitHub."
+    },
+    {
+      "id": "anthropic-frontend-design-blog",
+      "title": "Anthropic frontend design through skills",
+      "url": "https://claude.com/blog/improving-frontend-design-through-skills",
+      "sourceType": "agent-skill",
+      "authority": "high",
+      "freshness": "current",
+      "usefulPatterns": [
+        "skills as design context",
+        "prompt-level taste correction",
+        "AI slop avoidance"
+      ],
+      "nudimmudFit": [
+        "Explains why design constraints must be loaded before coding"
+      ],
+      "riskNotes": [
+        "Marketing layer; extract method, not claims"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "Sat, 09 May 2026 02:39:02 GMT",
+      "fetchedTitle": "Improving frontend design through Skills | Claude",
+      "fetchedDescription": "Best practices for building richer, more customized frontend design with Claude and Skills."
+    },
+    {
+      "id": "vercel-agent-skills",
+      "title": "Vercel agent skills",
+      "url": "https://github.com/vercel-labs/agent-skills",
+      "sourceType": "agent-skill",
+      "authority": "high",
+      "freshness": "current",
+      "usefulPatterns": [
+        "react best practices",
+        "web design guidelines",
+        "100+ UI audit rules"
+      ],
+      "nudimmudFit": [
+        "Add as audit companion to design-master"
+      ],
+      "riskNotes": [
+        "Skills are external; pin source and summarize"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "GitHub - vercel-labs/agent-skills: Vercel&#39;s official collection of agent skills GitHub",
+      "fetchedDescription": "Vercel&#39;s official collection of agent skills. Contribute to vercel-labs/agent-skills development by creating an account on GitHub."
+    },
+    {
+      "id": "vercel-skills-cli",
+      "title": "Vercel skills CLI",
+      "url": "https://github.com/vercel-labs/skills",
+      "sourceType": "agent-skill",
+      "authority": "high",
+      "freshness": "current",
+      "usefulPatterns": [
+        "installable skill format",
+        "agent portability",
+        "multi-agent compatibility"
+      ],
+      "nudimmudFit": [
+        "Use for future skill packaging conventions"
+      ],
+      "riskNotes": [
+        "Tooling may change quickly"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "GitHub - vercel-labs/skills: The open agent skills tool - npx skills GitHub",
+      "fetchedDescription": "The open agent skills tool - npx skills. Contribute to vercel-labs/skills development by creating an account on GitHub."
+    },
+    {
+      "id": "vercel-web-interface-guidelines",
+      "title": "Vercel Web Interface Guidelines",
+      "url": "https://vercel.com/changelog/web-interface-guidelines-now-available-as-an-agent-command",
+      "sourceType": "agent-skill",
+      "authority": "high",
+      "freshness": "2026",
+      "usefulPatterns": [
+        "accessibility audit",
+        "keyboard support",
+        "animation/performance review"
+      ],
+      "nudimmudFit": [
+        "Add as design verification checklist"
+      ],
+      "riskNotes": [
+        "Use official command source when available"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Web Interface Guidelines now available as an agent command - Vercel",
+      "fetchedDescription": "Install /web-interface-guidelines to review UI code against Vercel&#x27;s best practices. Supports Claude Code, Cursor, OpenCode, Windsurf, and Gemini CLI."
+    },
+    {
+      "id": "vercel-agent-skills-guide",
+      "title": "Vercel agent skills guide",
+      "url": "https://vercel.com/kb/guide/agent-skills-creating-installing-and-sharing-reusable-agent-context",
+      "sourceType": "agent-skill",
+      "authority": "high",
+      "freshness": "2026",
+      "usefulPatterns": [
+        "skill structure",
+        "SKILL.md conventions",
+        "reusable agent context"
+      ],
+      "nudimmudFit": [
+        "Use when turning design packs into portable skills"
+      ],
+      "riskNotes": [
+        "Guide may lag CLI details"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Agent Skills: Creating, Installing, and Sharing Reusable Agent Context | Vercel Knowledge Base",
+      "fetchedDescription": "This guide will cover what skills are, how to create custom skills for yourself and your team, and how to publish them to the community."
+    },
+    {
+      "id": "reddit-claude-frontend-skills",
+      "title": "Reddit: frontend skills for Claude Code",
+      "url": "https://www.reddit.com/r/ClaudeCode/comments/1qh56pl/two_essential_claude_skills_for_frontend/",
+      "sourceType": "community-social",
+      "authority": "medium",
+      "freshness": "2026",
+      "usefulPatterns": [
+        "frontend-design plus react-best-practices pairing",
+        "explicit skill invocation",
+        "agent skill adoption"
+      ],
+      "nudimmudFit": [
+        "Community validation for wiring frontend-design and Vercel rules"
+      ],
+      "riskNotes": [
+        "Anecdotal; use as signal only"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "",
+      "fetchedTitle": "Reddit - Please wait for verification",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "vercel-design",
+      "title": "Vercel Design",
+      "url": "https://vercel.com/design",
+      "sourceType": "design-system",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "black-white precision",
+        "developer-grade restraint",
+        "interface guidelines"
+      ],
+      "nudimmudFit": [
+        "Use for calm chrome and high-confidence spacing"
+      ],
+      "riskNotes": [
+        "Can become too sterile alone"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Vercel Design",
+      "fetchedDescription": "Vercel has brought together some of the most talented creatives on the web to craft world-class websites."
+    },
+    {
+      "id": "vercel-geist",
+      "title": "Vercel Geist",
+      "url": "https://vercel.com/geist/introduction",
+      "sourceType": "design-system",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "typography discipline",
+        "tokens",
+        "developer UI grammar"
+      ],
+      "nudimmudFit": [
+        "Good baseline for docs and command surfaces"
+      ],
+      "riskNotes": [
+        "Avoid overusing monochrome minimalism"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Geist",
+      "fetchedDescription": "Vercel&#x27;s design system called Geist. Made for building consistent and delightful web experiences."
+    },
+    {
+      "id": "apple-hig",
+      "title": "Apple Human Interface Guidelines",
+      "url": "https://developer.apple.com/design/human-interface-guidelines/",
+      "sourceType": "design-system",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "platform hierarchy",
+        "interaction consistency",
+        "motion restraint"
+      ],
+      "nudimmudFit": [
+        "Use as ergonomics check for controls and panels"
+      ],
+      "riskNotes": [
+        "Adapt, do not mimic Apple visuals"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Human Interface Guidelines | Apple Developer Documentation",
+      "fetchedDescription": "The HIG contains guidance and best practices that can help you design a great experience for any Apple platform."
+    },
+    {
+      "id": "primer",
+      "title": "GitHub Primer",
+      "url": "https://primer.style/",
+      "sourceType": "design-system",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "enterprise component grammar",
+        "states",
+        "docs clarity"
+      ],
+      "nudimmudFit": [
+        "Good for dense admin and developer surfaces"
+      ],
+      "riskNotes": [
+        "Can feel generic if copied directly"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Primer",
+      "fetchedDescription": "The Design System for GitHub"
+    },
+    {
+      "id": "atlassian-design",
+      "title": "Atlassian Design System",
+      "url": "https://atlassian.design/",
+      "sourceType": "design-system",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "work management UI",
+        "AI-aware content patterns",
+        "modular systems"
+      ],
+      "nudimmudFit": [
+        "Use for operational workflow clarity"
+      ],
+      "riskNotes": [
+        "Brand tone differs from NUDIMMUD"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "Thu, 07 May 2026 20:35:08 GMT",
+      "fetchedTitle": "Atlassian Design",
+      "fetchedDescription": "Explore Atlassian Design to build beautiful experiences using our design system, and stay up to date with the latest news."
+    },
+    {
+      "id": "notion-design",
+      "title": "Notion design system",
+      "url": "https://www.notion.com/help/guides/category/design",
+      "sourceType": "design-system",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "wiki hierarchy",
+        "docs plus action",
+        "comfortable density"
+      ],
+      "nudimmudFit": [
+        "Good for knowledge surfaces and nested docs"
+      ],
+      "riskNotes": [
+        "Not a full visual spec"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Design",
+      "fetchedDescription": "Learn how to use Notion for a variety of use cases. Whether youre looking to create a project management system or a 1:1 doc, Notion can help."
+    },
+    {
+      "id": "shadcn-ui",
+      "title": "shadcn/ui",
+      "url": "https://ui.shadcn.com/",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "copyable components",
+        "Tailwind registry",
+        "composition over package lock-in"
+      ],
+      "nudimmudFit": [
+        "Use as structural component reference, then retheme"
+      ],
+      "riskNotes": [
+        "Default look is overused; must heavily restyle"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "The Foundation for your Design System - shadcn/ui",
+      "fetchedDescription": "A set of beautifully designed components that you can customize, extend, and build on. Start here then make it your own. Open Source. Open Code."
+    },
+    {
+      "id": "shadcn-github",
+      "title": "shadcn/ui GitHub",
+      "url": "https://github.com/shadcn-ui/ui",
+      "sourceType": "repo",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "registry source",
+        "component implementations",
+        "CLI pattern"
+      ],
+      "nudimmudFit": [
+        "Use for concrete implementation patterns"
+      ],
+      "riskNotes": [
+        "Avoid importing generic theme unchanged"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "GitHub - shadcn-ui/ui: A set of beautifully-designed, accessible components and a code distribution platform. Works with your favorite frameworks. Open Source. Open Code. GitHub",
+      "fetchedDescription": "A set of beautifully-designed, accessible components and a code distribution platform. Works with your favorite frameworks. Open Source. Open Code. - shadcn-ui/ui"
+    },
+    {
+      "id": "radix-primitives",
+      "title": "Radix UI Primitives",
+      "url": "https://www.radix-ui.com/primitives",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "accessible headless primitives",
+        "focus management",
+        "composition"
+      ],
+      "nudimmudFit": [
+        "Use for robust behavior under custom HUD styling"
+      ],
+      "riskNotes": [
+        "Requires strong visual design layer"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "Fri, 24 Apr 2026 19:32:29 GMT",
+      "fetchedTitle": "Radix Primitives",
+      "fetchedDescription": "Unstyled, accessible, open source React primitives for high-quality web apps and design systems."
+    },
+    {
+      "id": "base-ui",
+      "title": "Base UI",
+      "url": "https://base-ui.com/",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "unstyled accessible primitives",
+        "modern component APIs"
+      ],
+      "nudimmudFit": [
+        "Alternative to Radix for agent-built controls"
+      ],
+      "riskNotes": [
+        "API still evolving"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": "",
+      "fetchedTitle": "Unstyled UI components for accessible design systems Base UI",
+      "fetchedDescription": "Unstyled UI components for building accessible web apps and design systems."
+    },
+    {
+      "id": "headless-ui",
+      "title": "Headless UI",
+      "url": "https://headlessui.com/",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "unstyled accessible controls",
+        "Tailwind-friendly patterns"
+      ],
+      "nudimmudFit": [
+        "Use for menus, dialogs, comboboxes"
+      ],
+      "riskNotes": [
+        "Less distinctive visually by itself"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "Fri, 08 May 2026 21:15:17 GMT",
+      "fetchedTitle": "Headless UI - Unstyled, fully accessible UI components",
+      "fetchedDescription": "Completely unstyled, fully accessible UI components, designed to integrate beautifully with Tailwind CSS."
+    },
+    {
+      "id": "react-aria",
+      "title": "React Aria",
+      "url": "https://react-spectrum.adobe.com/react-aria/",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "accessibility hooks",
+        "internationalization",
+        "complex widgets"
+      ],
+      "nudimmudFit": [
+        "Use for serious interaction ergonomics"
+      ],
+      "riskNotes": [
+        "More implementation work than shadcn"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "Fri, 17 Apr 2026 00:45:49 GMT",
+      "fetchedTitle": "React Aria",
+      "fetchedDescription": "Craft world-class accessible components with custom styles."
+    },
+    {
+      "id": "tailwind-docs",
+      "title": "Tailwind CSS docs",
+      "url": "https://tailwindcss.com/docs",
+      "sourceType": "design-system",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "utility CSS",
+        "tokens via config",
+        "responsive primitives"
+      ],
+      "nudimmudFit": [
+        "Useful for implementation discipline"
+      ],
+      "riskNotes": [
+        "Utility sprawl if not constrained"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Installing Tailwind CSS with Vite - Tailwind CSS",
+      "fetchedDescription": "Installing Tailwind CSS as a Vite plugin is the most seamless way to integrate it with frameworks like Laravel, SvelteKit, React Router, Nuxt, and SolidJS."
+    },
+    {
+      "id": "magic-ui",
+      "title": "Magic UI components",
+      "url": "https://magicui.design/docs/components",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "motion SaaS components",
+        "background effects",
+        "interactive hero patterns"
+      ],
+      "nudimmudFit": [
+        "Use for premium motion references"
+      ],
+      "riskNotes": [
+        "High risk of template sameness"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Components | React Components &amp; Templates",
+      "fetchedDescription": "Here you can find all the components available in the library."
+    },
+    {
+      "id": "magic-ui-github",
+      "title": "Magic UI GitHub",
+      "url": "https://github.com/magicuidesign/magicui",
+      "sourceType": "repo",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "component source",
+        "registry model",
+        "copyable animated UI"
+      ],
+      "nudimmudFit": [
+        "Use source to adapt patterns"
+      ],
+      "riskNotes": [
+        "Audit performance and reduced motion"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "GitHub - magicuidesign/magicui: UI Library for Design Engineers. Animated components and effects you can copy and paste into your apps. Free. Open Source. GitHub",
+      "fetchedDescription": "UI Library for Design Engineers. Animated components and effects you can copy and paste into your apps. Free. Open Source. - magicuidesign/magicui"
+    },
+    {
+      "id": "aceternity-ui",
+      "title": "Aceternity UI components",
+      "url": "https://ui.aceternity.com/components",
+      "sourceType": "component-library",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "animated landing components",
+        "3D cards",
+        "hero effects"
+      ],
+      "nudimmudFit": [
+        "Use for inspiration, not default implementation"
+      ],
+      "riskNotes": [
+        "Community reports mobile/Safari issues; verify hard"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Free React &amp; Next.js Components - Tailwind CSS &amp; Framer Motion | Aceternity UI",
+      "fetchedDescription": "200+ free, copy-paste components for React and Next.js. Animated cards, hero sections, backgrounds, and more. Built with Tailwind CSS and Framer Motion."
+    },
+    {
+      "id": "aceternity-ai-catalog",
+      "title": "Aceternity AI component catalog",
+      "url": "https://ui.aceternity.com/ai-recommendations",
+      "sourceType": "ai-design-tool",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "AI-selectable component inventory",
+        "effect taxonomy",
+        "promptable components"
+      ],
+      "nudimmudFit": [
+        "Good for source-selection step in design-master"
+      ],
+      "riskNotes": [
+        "Catalog may bias toward spectacle"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "AI Component Recommendations - Aceternity UI",
+      "fetchedDescription": "Complete machine-readable catalog of all Aceternity UI components. Optimized for AI/LLM scraping with structured data, installation commands, and detailed descriptions."
+    },
+    {
+      "id": "animate-ui",
+      "title": "Animate UI docs",
+      "url": "https://animate-ui.com/docs",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "shadcn registry",
+        "Motion-based components",
+        "animation-focused gaps"
+      ],
+      "nudimmudFit": [
+        "Use for motion components that stay installable"
+      ],
+      "riskNotes": [
+        "Check dependency and performance cost"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Introduction - Animate UI",
+      "fetchedDescription": "Use Animate UI components to animate your pages."
+    },
+    {
+      "id": "animate-ui-github",
+      "title": "Animate UI GitHub",
+      "url": "https://github.com/imskyleen/animate-ui",
+      "sourceType": "repo",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "React TypeScript components",
+        "Tailwind Motion registry",
+        "copy/install model"
+      ],
+      "nudimmudFit": [
+        "Good implementation reference"
+      ],
+      "riskNotes": [
+        "Project naming/ownership changed historically"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "GitHub - imskyleen/animate-ui: Fully animated, open-source component distribution built with React, TypeScript, Tailwind CSS, Motion, and Shadcn CLI. Browse a list of components you can install, modify, and use in your projects. GitHub",
+      "fetchedDescription": "Fully animated, open-source component distribution built with React, TypeScript, Tailwind CSS, Motion, and Shadcn CLI. Browse a list of components you can install, modify, and use in your projects. - imskyleen/animate-ui"
+    },
+    {
+      "id": "motion-primitives",
+      "title": "Motion Primitives",
+      "url": "https://motion-primitives.com/",
+      "sourceType": "animation-motion",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "small composable animation primitives",
+        "React motion patterns",
+        "controlled transitions"
+      ],
+      "nudimmudFit": [
+        "Use for restrained, production-grade motion"
+      ],
+      "riskNotes": [
+        "Pair with reduced-motion rule"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": false,
+      "httpStatus": 429,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Vercel Security Checkpoint",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "motion-dev",
+      "title": "Motion for React docs",
+      "url": "https://motion.dev/docs/react",
+      "sourceType": "animation-motion",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "motion component",
+        "layout animation",
+        "gestures",
+        "performance"
+      ],
+      "nudimmudFit": [
+        "Canonical motion implementation docs"
+      ],
+      "riskNotes": [
+        "Do not over-animate state changes"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "Wed, 29 Apr 2026 13:44:13 GMT",
+      "fetchedTitle": "Motion for React: Get started - React Animation Library | Motion",
+      "fetchedDescription": "Build smooth 120fps React animations with Motion. Install in seconds, then master spring, gesture, scroll &amp; layout animations. Start with our guide."
+    },
+    {
+      "id": "gsap-docs",
+      "title": "GSAP docs",
+      "url": "https://gsap.com/docs/v3/",
+      "sourceType": "animation-motion",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "timeline control",
+        "scroll-triggered animation",
+        "performance animation"
+      ],
+      "nudimmudFit": [
+        "Use for cinematic sequences when Framer Motion is insufficient"
+      ],
+      "riskNotes": [
+        "License/club plugin checks required"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "Wed, 06 May 2026 08:49:44 GMT",
+      "fetchedTitle": "docsHome | GSAP | Docs &amp; Learning",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "react-bits",
+      "title": "React Bits",
+      "url": "https://reactbits.dev/",
+      "sourceType": "component-library",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "animated React components",
+        "text/cursor/background effects",
+        "multiple variants"
+      ],
+      "nudimmudFit": [
+        "Useful for creative component ideas"
+      ],
+      "riskNotes": [
+        "Validate license and Next caching behavior"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "",
+      "fetchedTitle": "React Bits - Animated UI Components For React",
+      "fetchedDescription": "An open source collection of high quality, animated, interactive & fully customizable React components for building stunning, memorable user interfaces."
+    },
+    {
+      "id": "react-bits-github",
+      "title": "React Bits GitHub",
+      "url": "https://github.com/reactbits",
+      "sourceType": "repo",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "source discovery",
+        "animated UI patterns",
+        "devpack"
+      ],
+      "nudimmudFit": [
+        "Use as idea source for custom components"
+      ],
+      "riskNotes": [
+        "Source layout may differ from site"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "reactbits GitHub",
+      "fetchedDescription": "reactbits has 15 repositories available. Follow their code on GitHub."
+    },
+    {
+      "id": "react-bits-pro",
+      "title": "React Bits Pro docs",
+      "url": "https://pro.reactbits.dev/docs/introduction",
+      "sourceType": "component-library",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "premium animated blocks",
+        "WebGL/GSAP examples",
+        "templates"
+      ],
+      "nudimmudFit": [
+        "Use for motif selection and benchmark quality"
+      ],
+      "riskNotes": [
+        "Paid material; do not copy private code"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "React Bits Pro - React UI for Memorable Products",
+      "fetchedDescription": "Professional React components, templates, and blocks for building modern web applications. Get lifetime access to our premium collection of production-ready code."
+    },
+    {
+      "id": "twentyfirst-help",
+      "title": "21st.dev docs",
+      "url": "https://help.21st.dev/",
+      "sourceType": "ai-design-tool",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "AI UI builder",
+        "community component library",
+        "variant generation"
+      ],
+      "nudimmudFit": [
+        "Use as reference for AI-assisted component workflows"
+      ],
+      "riskNotes": [
+        "Generated code still needs design review"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Welcome to 21st - 21st",
+      "fetchedDescription": "AI-powered UI builder and a community library of open-source React/Tailwind components, screens, and themes."
+    },
+    {
+      "id": "twentyfirst-magic-mcp",
+      "title": "21st Magic MCP GitHub",
+      "url": "https://github.com/21st-dev/magic-mcp",
+      "sourceType": "repo",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "MCP frontend generation",
+        "agent-connected UI building",
+        "component retrieval"
+      ],
+      "nudimmudFit": [
+        "Potential future MCP lane for design generation"
+      ],
+      "riskNotes": [
+        "Tool integration requires separate setup"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "GitHub - 21st-dev/magic-mcp: It&#39;s like v0 but in your Cursor/WindSurf/Cline. 21st dev Magic MCP server for working with your frontend like Magic GitHub",
+      "fetchedDescription": "It&#39;s like v0 but in your Cursor/WindSurf/Cline. 21st dev Magic MCP server for working with your frontend like Magic - 21st-dev/magic-mcp"
+    },
+    {
+      "id": "twentyfirst-tools-mcps",
+      "title": "21st tools and MCP docs",
+      "url": "https://21st.dev/agents/docs/build/tools-and-mcps",
+      "sourceType": "ai-design-tool",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "MCP workflows",
+        "agent tool setup",
+        "frontend generation"
+      ],
+      "nudimmudFit": [
+        "Use when adding actual connector support"
+      ],
+      "riskNotes": [
+        "Docs path may move"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Tools and MCPs - 21st Agents SDK Docs",
+      "fetchedDescription": "Configure remote MCP servers inline with mcpServers, attach workspace vaults at run time with vaultIds, and understand the legacy .mcp.json compatibility path."
+    },
+    {
+      "id": "framer-university",
+      "title": "Framer University resources",
+      "url": "https://framer.university/resources",
+      "sourceType": "animation-motion",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "623 resource atlas",
+        "Framer motion patterns",
+        "component demos"
+      ],
+      "nudimmudFit": [
+        "Already archived; use for motion family selection"
+      ],
+      "riskNotes": [
+        "Framer-native examples need adaptation to React app code"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "Fri, 17 Apr 2026 17:20:05 GMT",
+      "fetchedTitle": "Best Free Framer Resources - Framer University",
+      "fetchedDescription": "Discover the best free Framer resources for your next project, including Framer components, code overrides, animations, and effects. Elevate your Framer website with a curated selection of top-quality Framer assets."
+    },
+    {
+      "id": "codrops",
+      "title": "Codrops",
+      "url": "https://tympanus.net/codrops/",
+      "sourceType": "inspiration-gallery",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "advanced web animation",
+        "creative interaction demos",
+        "tutorial source"
+      ],
+      "nudimmudFit": [
+        "Use for high-end motion and layout experiments"
+      ],
+      "riskNotes": [
+        "Often experimental; production hardening needed"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": "",
+      "fetchedTitle": "Codrops | Fueling web creativity since 2009",
+      "fetchedDescription": "Founded in 2009, Codrops is a destination for web design and development enthusiasts. Our team is dedicated to providing high-quality, innovative content that explores the latest trends and techniques in the field, keeping web professionals up-to-date on the latest developments i"
+    },
+    {
+      "id": "codrops-tutorials",
+      "title": "Codrops tutorials",
+      "url": "https://tympanus.net/codrops/category/tutorials/",
+      "sourceType": "inspiration-gallery",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "implementation writeups",
+        "shader/scroll/canvas effects",
+        "demo-to-code bridge"
+      ],
+      "nudimmudFit": [
+        "Best source for translating inspiration to code"
+      ],
+      "riskNotes": [
+        "Check browser support"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": "",
+      "fetchedTitle": "Tutorials | Codrops",
+      "fetchedDescription": "In this section, you will find a variety of in-depth articles written by skilled front-end developers that cover a range of web development and web design techniques."
+    },
+    {
+      "id": "awwwards",
+      "title": "Awwwards websites",
+      "url": "https://www.awwwards.com/websites/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "award-level visual references",
+        "trend scanning",
+        "experimental sites"
+      ],
+      "nudimmudFit": [
+        "Use for taste horizon and benchmark energy"
+      ],
+      "riskNotes": [
+        "Can reward slow/showy sites; UX skepticism needed"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": "",
+      "fetchedTitle": "Winning websites. Web Design Inspiration - Awwwards",
+      "fetchedDescription": "Discover the best website designs of the world. Awwwards recognizes the talent and effort of the best designers, web developers and digital agencies."
+    },
+    {
+      "id": "godly",
+      "title": "Godly Website",
+      "url": "https://godly.website/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "bold website curation",
+        "modern landing pages",
+        "visual density"
+      ],
+      "nudimmudFit": [
+        "Use for current web aesthetic radar"
+      ],
+      "riskNotes": [
+        "Curation UI can bias toward spectacle"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Godly - Astronomically good web design inspiration",
+      "fetchedDescription": "A hand-picked curation of over 1,000 of the best AI, Web3, portfolio, and other outstanding websites on the Internet."
+    },
+    {
+      "id": "mobbin",
+      "title": "Mobbin",
+      "url": "https://mobbin.com/",
+      "sourceType": "inspiration-gallery",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "real product flows",
+        "mobile and web app patterns",
+        "screen libraries"
+      ],
+      "nudimmudFit": [
+        "Use for operational UX, not just visual style"
+      ],
+      "riskNotes": [
+        "Paid limits; cite only public pages"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Mobbin - UI &amp; UX design inspiration for mobile &amp; web apps",
+      "fetchedDescription": "Save hours of UI &amp; UX research with our library of 600,000+ fully searchable mobile &amp; web app screenshots."
+    },
+    {
+      "id": "land-book",
+      "title": "Land-book",
+      "url": "https://land-book.com/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "real landing pages",
+        "conversion layouts",
+        "startup/site patterns"
+      ],
+      "nudimmudFit": [
+        "Use for website pacing and section architecture"
+      ],
+      "riskNotes": [
+        "Quality varies"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": false,
+      "httpStatus": 403,
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": "",
+      "fetchedTitle": "Just a moment...",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "siteinspire",
+      "title": "SiteInspire",
+      "url": "https://www.siteinspire.com/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "polished web design curation",
+        "filterable styles",
+        "layout references"
+      ],
+      "nudimmudFit": [
+        "Use for mature website patterns"
+      ],
+      "riskNotes": [
+        "Less implementation detail"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": false,
+      "httpStatus": 429,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Vercel Security Checkpoint",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "lapa-ninja",
+      "title": "Lapa Ninja",
+      "url": "https://www.lapa.ninja/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "landing-page inspiration",
+        "conversion sections",
+        "SaaS examples"
+      ],
+      "nudimmudFit": [
+        "Good first pass for landing structure"
+      ],
+      "riskNotes": [
+        "Can become generic SaaS if copied"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": "",
+      "fetchedTitle": "Landing Page Design Examples: 7,300+ Best Landing Pages | Lapa Ninja",
+      "fetchedDescription": "Browse 7,300+ landing page designs from portfolios, agencies & startups. Find high-converting examples with screenshots & videos. SaaS, e-commerce & more."
+    },
+    {
+      "id": "one-page-love",
+      "title": "One Page Love",
+      "url": "https://onepagelove.com/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "one-page websites",
+        "simple flows",
+        "responsive landing pages"
+      ],
+      "nudimmudFit": [
+        "Use for concise page pacing"
+      ],
+      "riskNotes": [
+        "Less useful for complex apps"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": "",
+      "fetchedTitle": "One Page Love - One Page Website Inspiration and Templates",
+      "fetchedDescription": "One Page Love is a One Page website design gallery showcasing the best Single Page websites, templates and resources."
+    },
+    {
+      "id": "typewolf",
+      "title": "Typewolf",
+      "url": "https://www.typewolf.com/",
+      "sourceType": "inspiration-gallery",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "font pairings",
+        "typography examples",
+        "real web type usage"
+      ],
+      "nudimmudFit": [
+        "Use to improve type decisions beyond default mono/HUD"
+      ],
+      "riskNotes": [
+        "Font licensing checks required"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "Sun, 10 May 2026 07:02:05 GMT",
+      "fetchedTitle": "What's Trending in Type &middot; Typewolf",
+      "fetchedDescription": "Typewolf helps designers choose the perfect font combination for their next design project-features web fonts in the wild, font recommendations and learning resources."
+    },
+    {
+      "id": "curated-design",
+      "title": "Curated Design",
+      "url": "https://www.curated.design/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "minimal UI curation",
+        "clean web patterns",
+        "product screens"
+      ],
+      "nudimmudFit": [
+        "Use when NUDIMMUD needs restraint"
+      ],
+      "riskNotes": [
+        "Sparse detail"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Curated Inspiration",
+      "fetchedDescription": "Discover hundreds of carefully selected websites and design patterns originally featured on Curated.design."
+    },
+    {
+      "id": "bento-grids",
+      "title": "Bento Grids",
+      "url": "https://bentogrids.com/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "structured grid layouts",
+        "feature cards",
+        "modular content"
+      ],
+      "nudimmudFit": [
+        "Use for dashboard and landing feature grids"
+      ],
+      "riskNotes": [
+        "Bento pattern is overused; adapt heavily"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Bento Grids",
+      "fetchedDescription": "BentoGrids is a curated collection of bento designs for your inspiration."
+    },
+    {
+      "id": "rebrand-gallery",
+      "title": "Rebrand Gallery",
+      "url": "https://www.rebrand.gallery/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "identity systems",
+        "brand expression",
+        "before/after references"
+      ],
+      "nudimmudFit": [
+        "Use when designing brand-level pages"
+      ],
+      "riskNotes": [
+        "Not app-interaction focused"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "A curated gallery of rebrands and visual identities",
+      "fetchedDescription": "Explore the best new design systems, identity launches, and rebrand reveal videos."
+    },
+    {
+      "id": "hoverstates",
+      "title": "Hover States",
+      "url": "https://hoverstat.es/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "experimental interaction examples",
+        "web art direction",
+        "unusual interfaces"
+      ],
+      "nudimmudFit": [
+        "Use for divergence checks"
+      ],
+      "riskNotes": [
+        "Often not production ergonomic"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=UTF-8",
+      "lastModified": "",
+      "fetchedTitle": "HOVERSTAT.ES | The home of alternative web-design.",
+      "fetchedDescription": "The home of alternative design, code and content on the world wide web."
+    },
+    {
+      "id": "dark-mode-design",
+      "title": "Dark Mode Design",
+      "url": "https://www.darkmodedesign.com/",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "dark UI references",
+        "contrast patterns",
+        "premium dark surfaces"
+      ],
+      "nudimmudFit": [
+        "Direct fit for NUDIMMUD dark systems"
+      ],
+      "riskNotes": [
+        "Can overfit dark aesthetics"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "Fri, 08 May 2026 09:35:04 GMT",
+      "fetchedTitle": "Dark Mode Design Handpicked website inspiration",
+      "fetchedDescription": "Dark Mode Design is a showcase of beautifully designed and inspiring dark mode websites. Dim the lights, lower your screen brightness, and enjoy."
+    },
+    {
+      "id": "toools-inspo",
+      "title": "Toools design inspiration list",
+      "url": "https://www.toools.design/ui-web-design-inspiration-websites",
+      "sourceType": "inspiration-gallery",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "meta-directory",
+        "inspiration source discovery",
+        "design tools"
+      ],
+      "nudimmudFit": [
+        "Use as expansion watchlist"
+      ],
+      "riskNotes": [
+        "Directory quality varies"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "Fri, 08 May 2026 22:58:34 GMT",
+      "fetchedTitle": "Design Inspiration Sites for UI, Web, Graphic &amp; Branding | TOOOLS.design",
+      "fetchedDescription": "Discover a vast collection of design inspiration resources for UI, UX, app, web, graphic, and branding designers. Get inspired beyond your own design niche."
+    },
+    {
+      "id": "v0",
+      "title": "v0 by Vercel",
+      "url": "https://v0.dev/",
+      "sourceType": "ai-design-tool",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "prompt-to-UI",
+        "React generation",
+        "component iteration"
+      ],
+      "nudimmudFit": [
+        "Benchmark AI-generated UI output"
+      ],
+      "riskNotes": [
+        "Generated output still trends generic"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "v0 by Vercel - Build Agents, Apps, and Websites with AI",
+      "fetchedDescription": "Your collaborative AI assistant to design, iterate, and scale full-stack applications for the web."
+    },
+    {
+      "id": "lovable",
+      "title": "Lovable",
+      "url": "https://lovable.dev/",
+      "sourceType": "ai-design-tool",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "full app generation",
+        "visual iteration",
+        "builder UX"
+      ],
+      "nudimmudFit": [
+        "Use as competitor workflow reference"
+      ],
+      "riskNotes": [
+        "Not a source of design truth"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "AI App Builder | Vibe Code Apps &amp; Websites with AI, Fast",
+      "fetchedDescription": "Build apps, websites, and digital products faster using Lovable's no-code and AI-powered platform, no deep coding skills required."
+    },
+    {
+      "id": "bolt-new",
+      "title": "Bolt.new",
+      "url": "https://bolt.new/",
+      "sourceType": "ai-design-tool",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "browser coding agent",
+        "fast prototyping",
+        "deployment-oriented flow"
+      ],
+      "nudimmudFit": [
+        "Use for workflow benchmark"
+      ],
+      "riskNotes": [
+        "Generated design needs audit"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "",
+      "fetchedTitle": "Bolt AI builder: Websites, apps &amp; prototypes",
+      "fetchedDescription": "Build and scale high-performing websites &amp; apps using your words. Join millions and start building today."
+    },
+    {
+      "id": "uizard",
+      "title": "Uizard",
+      "url": "https://uizard.io/",
+      "sourceType": "ai-design-tool",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "AI mockups",
+        "wireframes",
+        "design-to-prototype"
+      ],
+      "nudimmudFit": [
+        "Useful for rapid ideation references"
+      ],
+      "riskNotes": [
+        "Not code-authoritative"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "Tue, 28 Apr 2026 14:42:28 GMT",
+      "fetchedTitle": "UI Design Made Easy, Powered By AI | Uizard",
+      "fetchedDescription": "UI design for apps, websites, and desktop software in minutes. If you can use Google Slides or PowerPoint, you can use Uizard!"
+    },
+    {
+      "id": "galileo-ai",
+      "title": "Galileo AI",
+      "url": "https://www.usegalileo.ai/",
+      "sourceType": "ai-design-tool",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "prompted UI mockups",
+        "screen generation",
+        "product design exploration"
+      ],
+      "nudimmudFit": [
+        "Use for competitive UI generation benchmark"
+      ],
+      "riskNotes": [
+        "Availability/pricing changes"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Stitch - Design with AI",
+      "fetchedDescription": "Stitch generates UIs for mobile and web applications, making design ideation fast and easy."
+    },
+    {
+      "id": "figma-make",
+      "title": "Figma Make",
+      "url": "https://www.figma.com/make/",
+      "sourceType": "ai-design-tool",
+      "authority": "high",
+      "freshness": "active",
+      "usefulPatterns": [
+        "AI prototyping",
+        "design to interactive build",
+        "designer-agent loop"
+      ],
+      "nudimmudFit": [
+        "Use for future design-to-code expectations"
+      ],
+      "riskNotes": [
+        "Need Figma access for deep use"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Figma Make: Create with AI-Powered Design Tools",
+      "fetchedDescription": "Figma Make empowers you to turn ideas into reality with AI-powered design tools-generate, iterate, and build faster, all in one creative space."
+    },
+    {
+      "id": "reddit-ui-component-list",
+      "title": "Reddit: modern open-source UI component libraries",
+      "url": "https://www.reddit.com/r/reactjs/comments/1rqajo0/a_curated_list_of_modern_opensource_ui_component/",
+      "sourceType": "community-social",
+      "authority": "medium",
+      "freshness": "2026",
+      "usefulPatterns": [
+        "community shortlist",
+        "shadcn/magic/aceternity/radix comparisons",
+        "real-world caveats"
+      ],
+      "nudimmudFit": [
+        "Use for source prioritization and warnings"
+      ],
+      "riskNotes": [
+        "Anecdotal and self-promotional comments"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "",
+      "fetchedTitle": "Reddit - Please wait for verification",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "reddit-design-inspo-2026",
+      "title": "Reddit: UI design inspiration websites in 2026",
+      "url": "https://www.reddit.com/r/webdesign/comments/1q6dmix/25_ui_design_inspiration_websites_worth/",
+      "sourceType": "community-social",
+      "authority": "medium",
+      "freshness": "2026",
+      "usefulPatterns": [
+        "inspiration directories",
+        "Mobbin/Godly/Lapa/SiteInspire consensus",
+        "current curation signals"
+      ],
+      "nudimmudFit": [
+        "Use to expand watchlist"
+      ],
+      "riskNotes": [
+        "Not all linked sources are equally strong"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "",
+      "fetchedTitle": "Reddit - Please wait for verification",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "reddit-practical-inspo",
+      "title": "Reddit: practical website inspiration sources",
+      "url": "https://www.reddit.com/r/web_design/comments/1ko8f6i/where_do_you_find_actually_good_website_design/",
+      "sourceType": "community-social",
+      "authority": "medium",
+      "freshness": "2025",
+      "usefulPatterns": [
+        "practical UX over awards",
+        "Land-book/Mobbin/Page Flows consensus",
+        "skepticism of art-site references"
+      ],
+      "nudimmudFit": [
+        "Good guardrail against overdoing Awwwards-style visuals"
+      ],
+      "riskNotes": [
+        "Thread quality varies"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "",
+      "fetchedTitle": "Reddit - Please wait for verification",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "reddit-reactbits-next16",
+      "title": "Reddit: React Bits and Next.js 16 cache issue",
+      "url": "https://www.reddit.com/r/nextjs/comments/1sygrc6/what_changed_in_nextjs_16_from_15_that_made_react/",
+      "sourceType": "community-social",
+      "authority": "medium",
+      "freshness": "2026",
+      "usefulPatterns": [
+        "animation compatibility warning",
+        "Next cache interaction",
+        "real integration failure"
+      ],
+      "nudimmudFit": [
+        "Use as QA reminder for animated copied components"
+      ],
+      "riskNotes": [
+        "Specific report; verify locally"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "",
+      "fetchedTitle": "Reddit - Please wait for verification",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "reddit-motion-components",
+      "title": "Reddit: animated UI components with React, shadcn, Framer Motion",
+      "url": "https://www.reddit.com/r/reactjs/comments/1rh0qpy/collection_of_animated_ui_components_built_with/",
+      "sourceType": "community-social",
+      "authority": "medium",
+      "freshness": "2026",
+      "usefulPatterns": [
+        "motion timing",
+        "reduced motion",
+        "component collection feedback"
+      ],
+      "nudimmudFit": [
+        "Good motion accessibility reminder"
+      ],
+      "riskNotes": [
+        "Community project quality unknown"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "",
+      "fetchedTitle": "Reddit - Please wait for verification",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "reddit-aceternity-mobile",
+      "title": "Reddit: Aceternity mobile and Safari issues",
+      "url": "https://www.reddit.com/r/nextjs/comments/1c9iw84",
+      "sourceType": "community-social",
+      "authority": "medium",
+      "freshness": "2024",
+      "usefulPatterns": [
+        "mobile/Safari warning",
+        "component copy-paste risk",
+        "performance/compat issue"
+      ],
+      "nudimmudFit": [
+        "Use as risk note for animated libraries"
+      ],
+      "riskNotes": [
+        "Older thread; still useful as caution"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html",
+      "lastModified": "",
+      "fetchedTitle": "Reddit - Please wait for verification",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "github-shadcn-tailwind-v4",
+      "title": "GitHub discussion: shadcn Tailwind v4 and React 19",
+      "url": "https://github.com/shadcn-ui/ui/discussions/6714",
+      "sourceType": "community-social",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "Tailwind v4 migration",
+        "React 19 compatibility",
+        "registry updates"
+      ],
+      "nudimmudFit": [
+        "Use during React/Tailwind implementation audits"
+      ],
+      "riskNotes": [
+        "Discussion details may age fast"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Tailwind v4 and React 19 shadcn-ui/ui Discussion #6714 GitHub",
+      "fetchedDescription": "Tailwind v4 and React 19"
+    },
+    {
+      "id": "github-shadcn-designers",
+      "title": "GitHub discussion: shadcn for designers",
+      "url": "https://github.com/shadcn-ui/ui/discussions/6699",
+      "sourceType": "community-social",
+      "authority": "medium",
+      "freshness": "active",
+      "usefulPatterns": [
+        "headless primitives vs styled components",
+        "designer workflow concerns",
+        "custom design systems"
+      ],
+      "nudimmudFit": [
+        "Supports using shadcn structurally only"
+      ],
+      "riskNotes": [
+        "Discussion opinions vary"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "",
+      "fetchedTitle": "Is shadcn used by designers too ? And other questions for designers... shadcn-ui/ui Discussion #6699 GitHub",
+      "fetchedDescription": "Is shadcn used by designers too ? And other questions for designers..."
+    },
+    {
+      "id": "x-john-phamous",
+      "title": "X: John Phamous / Vercel design engineer",
+      "url": "https://x.com/johnphamous",
+      "sourceType": "community-social",
+      "authority": "low",
+      "freshness": "active",
+      "usefulPatterns": [
+        "Vercel design engineering signals",
+        "web interface guideline updates"
+      ],
+      "nudimmudFit": [
+        "Watch source for future guidelines updates"
+      ],
+      "riskNotes": [
+        "X blocks scraping; use as discovery only"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "Sun, 10 May 2026 19:51:51 GMT",
+      "fetchedTitle": "",
+      "fetchedDescription": "design eng @vercel, angel investor, a16z scout"
+    },
+    {
+      "id": "x-shadcn",
+      "title": "X: shadcn",
+      "url": "https://x.com/shadcn",
+      "sourceType": "community-social",
+      "authority": "low",
+      "freshness": "active",
+      "usefulPatterns": [
+        "shadcn registry updates",
+        "component ecosystem signals"
+      ],
+      "nudimmudFit": [
+        "Watch for registry and theme changes"
+      ],
+      "riskNotes": [
+        "X blocks scraping; use as discovery only"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": "Sun, 10 May 2026 19:51:51 GMT",
+      "fetchedTitle": "",
+      "fetchedDescription": "I own a computer / Working on https://t.co/HJcOr0AUAr &amp; https://t.co/5FRvxukoY5."
+    },
+    {
+      "id": "x-emil-kowalski",
+      "title": "X: Emil Kowalski",
+      "url": "https://x.com/emilkowalski_",
+      "sourceType": "community-social",
+      "authority": "low",
+      "freshness": "active",
+      "usefulPatterns": [
+        "motion/design engineering examples",
+        "microinteraction patterns"
+      ],
+      "nudimmudFit": [
+        "Good taste feed for motion restraint"
+      ],
+      "riskNotes": [
+        "X blocks scraping; use as discovery only"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": false,
+      "httpStatus": 404,
+      "contentType": "text/html;charset=utf-8",
+      "lastModified": "Sun, 10 May 2026 19:51:51 GMT",
+      "fetchedTitle": "X / ?",
+      "fetchedDescription": ""
+    },
+    {
+      "id": "react-learn",
+      "title": "React Learn",
+      "url": "https://react.dev/learn",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "current",
+      "usefulPatterns": [
+        "component-first thinking",
+        "state placement",
+        "rendering model",
+        "event handling basics"
+      ],
+      "nudimmudFit": [
+        "Use as React implementation baseline before adding visual complexity",
+        "Keep state and component boundaries clear under advanced motion"
+      ],
+      "riskNotes": [
+        "General React guidance; pair with project-specific architecture rules"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": ""
+    },
+    {
+      "id": "react-rules-pure-components",
+      "title": "React rules: components and hooks must be pure",
+      "url": "https://react.dev/reference/rules/components-and-hooks-must-be-pure",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "current",
+      "usefulPatterns": [
+        "pure rendering",
+        "side-effect containment",
+        "hook correctness",
+        "compiler-friendly component logic"
+      ],
+      "nudimmudFit": [
+        "Prevents animation and browser effects from contaminating render paths",
+        "Use before adding RAF, canvas, or motion hooks"
+      ],
+      "riskNotes": [
+        "Requires discipline when integrating imperative animation libraries"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": ""
+    },
+    {
+      "id": "react-managing-state",
+      "title": "React managing state",
+      "url": "https://react.dev/learn/managing-state",
+      "sourceType": "component-library",
+      "authority": "high",
+      "freshness": "current",
+      "usefulPatterns": [
+        "state structure",
+        "controlled inputs",
+        "state reset with keys",
+        "sharing state between components"
+      ],
+      "nudimmudFit": [
+        "Use for dashboards, inspectors, mode rails, and multi-panel interaction state",
+        "Keep UI state deterministic before layering presentation motion"
+      ],
+      "riskNotes": [
+        "Not design-specific; value is implementation reliability"
+      ],
+      "extractionDate": "2026-05-10",
+      "reachable": true,
+      "httpStatus": 200,
+      "contentType": "text/html; charset=utf-8",
+      "lastModified": ""
+    }
+  ]
+}

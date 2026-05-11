@@ -1,0 +1,661 @@
+# Resource Index
+
+Grouped browsable list of the 623 Framer University resource pages.
+
+Source: https://framer.university/resources
+
+## website (281)
+
+- [2 Types of Horizontal Scrolling Effect in Framer](https://framer.university/resources/2-types-of-horizontal-scrolling-effect-in-framer) — full-page or section-level reference
+- [3D Book Open Hover in Framer](https://framer.university/resources/3d-book-open-hover-in-framer) — full-page or section-level reference
+- [3D Button Component](https://framer.university/resources/3d-button-component) — full-page or section-level reference
+- [3D Card Flip Override](https://framer.university/resources/3d-card-flip-override) — full-page or section-level reference
+- [3D Carousel Loop in Framer](https://framer.university/resources/3d-carousel-loop-in-framer) — full-page or section-level reference
+- [3D Cube Carousel in Framer](https://framer.university/resources/3d-cube-carousel-in-framer) — full-page or section-level reference
+- [3D Cube Gallery in Framer](https://framer.university/resources/3d-cube-gallery-in-framer) — full-page or section-level reference
+- [3D Cube Site Loader in Framer](https://framer.university/resources/3d-cube-site-loader-in-framer) — full-page or section-level reference
+- [3D Flip Scroll Animation in Framer](https://framer.university/resources/3d-flip-scroll-animation-in-framer) — full-page or section-level reference
+- [3D Flipping Project Card Animation in Framer](https://framer.university/resources/3d-flipping-project-card-animation-in-framer) — full-page or section-level reference
+- [3D Grid Scroll Animation in Framer](https://framer.university/resources/3d-grid-scroll-animation-in-framer) — full-page or section-level reference
+- [3D Hero Section Template in Framer](https://framer.university/resources/3d-hero-section-template-in-framer) — full-page or section-level reference
+- [3D Image Grid Component in Framer](https://framer.university/resources/3d-image-grid-component-in-framer) — full-page or section-level reference
+- [3D Image Split Scroll Animation in Framer](https://framer.university/resources/3d-image-split-scroll-animation-in-framer) — full-page or section-level reference
+- [3D Inner Globe Background in Framer](https://framer.university/resources/3d-inner-globe-background-in-framer) — full-page or section-level reference
+- [3D Logo Animation Website in Framer](https://framer.university/resources/3d-logo-animation-website-in-framer) — full-page or section-level reference
+- [3D Shiny Book Interaction in Framer](https://framer.university/resources/3d-shiny-book-interaction-in-framer) — full-page or section-level reference
+- [3D Stacked Scroll Animation in Framer](https://framer.university/resources/3d-stacked-scroll-animation-in-framer) — full-page or section-level reference
+- [3D Text Flip Button Component](https://framer.university/resources/3d-text-flip-button-component) — full-page or section-level reference
+- [3D Text Scroll Animation in Framer](https://framer.university/resources/3d-text-scroll-animation-in-framer) — full-page or section-level reference
+- [Add to Calendar Button in Framer](https://framer.university/resources/add-to-calendar-button-in-framer) — full-page or section-level reference
+- [Advanced Continuous Page Transition in Framer](https://framer.university/resources/advanced-continuous-page-transition-in-framer) — full-page or section-level reference
+- [Advanced Sticky Scroll Animation in Framer](https://framer.university/resources/advanced-sticky-scroll-animation-in-framer) — full-page or section-level reference
+- [Advanced Zoom Scroll Effect](https://framer.university/resources/advanced-zoom-scroll-effect) — full-page or section-level reference
+- [AI No-Code Hero Section in Framer](https://framer.university/resources/ai-no-code-hero-section-in-framer) — full-page or section-level reference
+- [AirBnb 3D Book Interaction in Framer](https://framer.university/resources/airbnb-3d-book-interaction-in-framer) — full-page or section-level reference
+- [Airbnb 3D Card Flip Animation in Framer](https://framer.university/resources/airbnb-3d-card-flip-animation-in-framer) — full-page or section-level reference
+- [Amie Features Section in Framer](https://framer.university/resources/amie-features-section-in-framer) — full-page or section-level reference
+- [Animate Path on Scroll in Framer](https://framer.university/resources/animate-path-on-scroll-in-framer) — full-page or section-level reference
+- [Animated 3D Flipping Hero Section in Framer](https://framer.university/resources/animated-3d-flipping-hero-section-in-framer) — full-page or section-level reference
+- [Animated 3D Hero Section in Framer](https://framer.university/resources/animated-3d-hero-section-in-framer) — full-page or section-level reference
+- [Animated 3D Illustration in Framer](https://framer.university/resources/animated-3d-illustration-in-framer) — full-page or section-level reference
+- [Animated 3D Website Intro in Framer](https://framer.university/resources/animated-3d-website-intro-in-framer) — full-page or section-level reference
+- [Animated 3D Wheel Website Hero in Framer](https://framer.university/resources/animated-3d-wheel-website-hero-in-framer) — full-page or section-level reference
+- [Animated Bars in Framer](https://framer.university/resources/animated-bars-in-framer) — full-page or section-level reference
+- [Animated Lightning Component for Framer](https://framer.university/resources/animated-lightning-component-for-framer) — full-page or section-level reference
+- [Animated Mini Website Template for Framer](https://framer.university/resources/animated-mini-website-template-for-framer) — full-page or section-level reference
+- [Animated Navigation Bar in Framer](https://framer.university/resources/animated-navigation-bar-in-framer) — full-page or section-level reference
+- [Animated Product Cards in Framer](https://framer.university/resources/animated-product-cards-in-framer) — full-page or section-level reference
+- [Animated Radar](https://framer.university/resources/animated-radar) — full-page or section-level reference
+- [Animated Testimonials Carousel in Framer](https://framer.university/resources/animated-testimonials-carousel-in-framer) — full-page or section-level reference
+- [Animated Text Wall Background in Framer](https://framer.university/resources/animated-text-wall-background-in-framer) — full-page or section-level reference
+- [Animated Website Hero Template in Framer](https://framer.university/resources/animated-website-hero-template-in-framer) — full-page or section-level reference
+- [App-Like Navigation in Framer](https://framer.university/resources/app-like-navigation-in-framer) — full-page or section-level reference
+- [Apple Siri Website with Framer](https://framer.university/resources/apple-siri-website-with-framer) — full-page or section-level reference
+- [Apple Tooltip Interaction in Framer](https://framer.university/resources/apple-tooltip-interaction-in-framer) — full-page or section-level reference
+- [Apple TV Scroll Zoom Animation in Framer](https://framer.university/resources/apple-tv-scroll-zoom-animation-in-framer) — full-page or section-level reference
+- [Apple Vision Pro Scroll Animation �� Framer Resource](https://framer.university/resources/apple-vision-pro-scroll-animation) — full-page or section-level reference
+- [Apple Watch Series 9 Site Recreated in Framer](https://framer.university/resources/apple-watch-series-9-site-recreated-in-framer) — full-page or section-level reference
+- [Apple Watch Website in Framer](https://framer.university/resources/apple-watch-website-in-framer) — full-page or section-level reference
+- [Arrows Component for Framer](https://framer.university/resources/arrows-component-for-framer) — full-page or section-level reference
+- [Arturia Button Component](https://framer.university/resources/arturia-button-component) — full-page or section-level reference
+- [Auto Copyright Component in Framer](https://framer.university/resources/auto-copyright-component-in-framer) — full-page or section-level reference
+- [Auto Page Switch When Reaching Bottom in Framer](https://framer.university/resources/auto-page-switch-when-reaching-bottom-in-framer) — full-page or section-level reference
+- [Avara Site in Framer](https://framer.university/resources/avara-site-in-framer) — full-page or section-level reference
+- [Background Boxes in Framer](https://framer.university/resources/background-boxes-in-framer) — full-page or section-level reference
+- [Backup Button Animation in Framer](https://framer.university/resources/backup-button-animation-in-framer) — full-page or section-level reference
+- [Balloons Component for Framer](https://framer.university/resources/balloons-component-for-framer) — full-page or section-level reference
+- [Beautiful 2D Animations in Framer](https://framer.university/resources/beautiful-2d-animations-in-framer) — full-page or section-level reference
+- [Blinds Text Reveal Component for Framer](https://framer.university/resources/blinds-text-reveal-component-for-framer) — full-page or section-level reference
+- [Blinking Dot Logos in Framer](https://framer.university/resources/blinking-dot-logos-in-framer) — full-page or section-level reference
+- [Blur Cycle Component for Framer](https://framer.university/resources/blur-cycle-component-for-framer) — full-page or section-level reference
+- [Bookshelf Gallery Component in Framer](https://framer.university/resources/bookshelf-gallery-component-in-framer) — full-page or section-level reference
+- [Bubble FAQ Component for Framer](https://framer.university/resources/bubble-faq-component-for-framer) — full-page or section-level reference
+- [Burn Transition Component for Framer](https://framer.university/resources/burn-transition-component-for-framer) — full-page or section-level reference
+- [Button Component Hover States](https://framer.university/resources/button-component-hover-states) — full-page or section-level reference
+- [Calendar Widget Animation in Framer](https://framer.university/resources/calendar-widget-animation-in-framer) — full-page or section-level reference
+- [Card Animation On Scroll](https://framer.university/resources/card-animation-on-scroll) — full-page or section-level reference
+- [Card Hover Interaction](https://framer.university/resources/card-hover-interaction) — full-page or section-level reference
+- [Card Scroll Animation in Framer](https://framer.university/resources/card-scroll-animation-in-framer) — full-page or section-level reference
+- [Card Stack Hover Animation in Framer](https://framer.university/resources/card-stack-hover-animation-in-framer) — full-page or section-level reference
+- [Central Icon System in Framer](https://framer.university/resources/central-icon-system-in-framer) — full-page or section-level reference
+- [Chainzoku Parallax Effect](https://framer.university/resources/chainzoku-parallax-effect) — full-page or section-level reference
+- [Chroma Button Component for Framer](https://framer.university/resources/chroma-button-component-for-framer) — full-page or section-level reference
+- [Circular Animated Hero Section in Framer](https://framer.university/resources/circular-animated-hero-section-in-framer) — full-page or section-level reference
+- [Circular Scroll Animation in Framer](https://framer.university/resources/circular-scroll-animation-in-framer) — full-page or section-level reference
+- [Circular Website Intro Scroll Animation in Framer](https://framer.university/resources/circular-website-intro-scroll-animation-in-framer) — full-page or section-level reference
+- [Click Effects for Framer Websites](https://framer.university/resources/click-effects-for-framer-websites) — full-page or section-level reference
+- [Click to Copy Email in Framer](https://framer.university/resources/click-to-copy-email-in-framer) — full-page or section-level reference
+- [CMS Gallery Slideshow in Framer](https://framer.university/resources/cms-gallery-slideshow-in-framer) — full-page or section-level reference
+- [Comments Section Component for Framer](https://framer.university/resources/comments-section-component-for-framer) — full-page or section-level reference
+- [Compact Email Button Component](https://framer.university/resources/compact-email-button-component) — full-page or section-level reference
+- [Continuous Navigation Animation with Layout Templates](https://framer.university/resources/continuous-navigation-animation-with-layout-templates) — full-page or section-level reference
+- [Countdown Widget](https://framer.university/resources/countdown-widget) — full-page or section-level reference
+- [Crazy 3D Scroll Animation in Framer](https://framer.university/resources/crazy-3d-scroll-animation-in-framer) — full-page or section-level reference
+- [Crazy Galaxy Button Hover Animation in Framer](https://framer.university/resources/crazy-galaxy-button-hover-animation-in-framer) — full-page or section-level reference
+- [Crazy Navigation Animation in Framer](https://framer.university/resources/crazy-navigation-animation-in-framer) — full-page or section-level reference
+- [Crazy Parallax Animation in Framer](https://framer.university/resources/crazy-parallax-animation-in-framer) — full-page or section-level reference
+- [Creative Illustration Loader in Framer](https://framer.university/resources/creative-illustration-loader-in-framer) — full-page or section-level reference
+- [Crosshair Component for Framer](https://framer.university/resources/crosshair-component-for-framer) — full-page or section-level reference
+- [Cursor Trail Effect for Framer](https://framer.university/resources/cursor-trail-effect-for-framer) — full-page or section-level reference
+- [Custom Carousel Pattern with Framer](https://framer.university/resources/custom-carousel-pattern-with-framer) — full-page or section-level reference
+- [Custom Cursor Override](https://framer.university/resources/custom-cursor-override) — full-page or section-level reference
+- [Cyberpunk Button Component](https://framer.university/resources/cyberpunk-button-component) — full-page or section-level reference
+- [Digital Typewriter Component for Framer](https://framer.university/resources/digital-typewriter-component-for-framer) — full-page or section-level reference
+- [Discovermarket Scroll Animation in Framer](https://framer.university/resources/discovermarket-scroll-animation-in-framer) — full-page or section-level reference
+- [Draggable Freeform Canvas Website in Framer](https://framer.university/resources/draggable-freeform-canvas-website-in-framer) — full-page or section-level reference
+- [Dropdown Component by Traf](https://framer.university/resources/dropdown-component-by-traf) — full-page or section-level reference
+- [Dynamic Notch Navigation Component](https://framer.university/resources/dynamic-notch-navigation-component) — full-page or section-level reference
+- [Dynamic Squares Scroll Animation in Framer](https://framer.university/resources/dynamic-squares-scroll-animation-in-framer) — full-page or section-level reference
+- [Easter Egg Redirect Component](https://framer.university/resources/easter-egg-redirect-component) — full-page or section-level reference
+- [Elastic Line Component for Framer](https://framer.university/resources/elastic-line-component-for-framer) — full-page or section-level reference
+- [Expanding Cards Scroll Animation in Framer](https://framer.university/resources/expanding-cards-scroll-animation-in-framer) — full-page or section-level reference
+- [Expanding Footer Section in Framer](https://framer.university/resources/expanding-footer-section-in-framer) — full-page or section-level reference
+- [Exploding Input Component in Framer](https://framer.university/resources/exploding-input-component-in-framer) — full-page or section-level reference
+- [FAQ Accordion Component in Framer](https://framer.university/resources/faq-accordion-component-in-framer) — full-page or section-level reference
+- [Fey Website Scroll Animation in Framer](https://framer.university/resources/fey-website-in-framer) — full-page or section-level reference
+- [Figma Community Hero Interaction in Framer](https://framer.university/resources/figma-community-hero-interaction-in-framer) — full-page or section-level reference
+- [Fixed Footer Demo](https://framer.university/resources/fixed-footer-demo) — full-page or section-level reference
+- [Flashlight Effect in Framer](https://framer.university/resources/flashlight-effect-in-framer) — full-page or section-level reference
+- [Flip Text Cycle Component in Framer](https://framer.university/resources/flip-text-cycle-component-in-framer) — full-page or section-level reference
+- [Floating 3D Ticket in Framer](https://framer.university/resources/floating-3d-ticket-in-framer) — full-page or section-level reference
+- [Fluid Card Hover in Framer](https://framer.university/resources/fluid-card-hover-in-framer) — full-page or section-level reference
+- [Fluid Switches Component](https://framer.university/resources/fluid-switches-component) — full-page or section-level reference
+- [Flying Paper Plane Scroll Animation in Framer](https://framer.university/resources/flying-paper-plane-scroll-animation-in-framer) — full-page or section-level reference
+- [Frame.io Website Animation in Framer](https://framer.university/resources/frameio-website-animation-in-framer) — full-page or section-level reference
+- [Framer Website Recreation in Framer](https://framer.university/resources/framer-website-recreation-in-framer) — full-page or section-level reference
+- [Framer Website Starter Project](https://framer.university/resources/framer-website-starter-project) — full-page or section-level reference
+- [Futuristic Button Component](https://framer.university/resources/futuristic-button-component) — full-page or section-level reference
+- [Galaxy Button Component](https://framer.university/resources/galaxy-button-component) — full-page or section-level reference
+- [Glass Effect in Framer](https://framer.university/resources/glass-effect-in-framer) — full-page or section-level reference
+- [Glowy Button Component](https://framer.university/resources/glowy-button-component) — full-page or section-level reference
+- [Gooey Dropdown in Framer](https://framer.university/resources/gooey-dropdown-in-framer) — full-page or section-level reference
+- [Gradient Border Button Component in Framer](https://framer.university/resources/gradient-border-button-component-in-framer) — full-page or section-level reference
+- [Heart Like Button Animation in Framer](https://framer.university/resources/heart-like-button-animation-in-framer) — full-page or section-level reference
+- [Hero Section With Framer and ChatGPT 4o](https://framer.university/resources/hero-section-with-framer-and-chatgpt-4o) — full-page or section-level reference
+- [Horizontal Scroll in Framer](https://framer.university/resources/horizontal-scroll-in-framer) — full-page or section-level reference
+- [Horizontal Scrolling Effect](https://framer.university/resources/horizontal-scrolling-effect) — full-page or section-level reference
+- [Horizontal Slide Site in Framer](https://framer.university/resources/horizontal-slide-site-in-framer) — full-page or section-level reference
+- [Hover Chroma Backgrounds in Framer](https://framer.university/resources/hover-chroma-backgrounds-in-framer) — full-page or section-level reference
+- [Hover Cursor in Framer](https://framer.university/resources/hover-cursor-in-framer) — full-page or section-level reference
+- [Hover Reveal Override for Framer](https://framer.university/resources/hover-reveal-override-for-framer) — full-page or section-level reference
+- [Hover Text Repeat Effect in Framer](https://framer.university/resources/hover-text-repeat-effect-in-framer) — full-page or section-level reference
+- [Huly Effect for Framer](https://framer.university/resources/huly-effect-for-framer) — full-page or section-level reference
+- [Image Gallery Component](https://framer.university/resources/image-gallery-component) — full-page or section-level reference
+- [Image Grid Reveal Component for Framer](https://framer.university/resources/image-grid-reveal-component-for-framer) — full-page or section-level reference
+- [Image Grid Scroll Animation in Framer](https://framer.university/resources/image-grid-scroll-animation-in-framer) — full-page or section-level reference
+- [Image Hover Card in Framer](https://framer.university/resources/image-hover-card-in-framer) — full-page or section-level reference
+- [Image Intro Animation in Framer](https://framer.university/resources/image-intro-animation-in-framer) — full-page or section-level reference
+- [Image Sequence Scroll Animation in Framer](https://framer.university/resources/image-sequence-scroll-animation-in-framer) — full-page or section-level reference
+- [Image Zoom Repeat on Hover](https://framer.university/resources/image-zoom-repeat-on-hover) — full-page or section-level reference
+- [Image Zoom Scrolling in Framer](https://framer.university/resources/image-zoom-scrolling-in-framer) — full-page or section-level reference
+- [Immersive Scroll Zoom Animation in Framer](https://framer.university/resources/immersive-scroll-zoom-animation-in-framer) — full-page or section-level reference
+- [Infinite Canvas Component for Framer](https://framer.university/resources/infinite-canvas-component-for-framer) — full-page or section-level reference
+- [Insane Parallax Animation in Framer](https://framer.university/resources/insane-parallax-animation-in-framer) — full-page or section-level reference
+- [Interactive 3D Framer Website](https://framer.university/resources/interactive-3d-framer-website) — full-page or section-level reference
+- [Interactive 3D Globe in Framer](https://framer.university/resources/interactive-3d-globe-in-framer) — full-page or section-level reference
+- [Interactive 3D Image Distortion in Framer](https://framer.university/resources/interactive-3d-image-distortion-in-framer) — full-page or section-level reference
+- [Interactive Hero Section in Framer](https://framer.university/resources/interactive-hero-section-in-framer) — full-page or section-level reference
+- [Interactive Isometric 3D Hero](https://framer.university/resources/interactive-isometric-3d-hero) — full-page or section-level reference
+- [Interactive Lanyard Component for Framer](https://framer.university/resources/interactive-lanyard-component-for-framer) — full-page or section-level reference
+- [Interactive Mini Website Template for Framer](https://framer.university/resources/interactive-mini-website-template-for-framer) — full-page or section-level reference
+- [Interactive Wave Background in Framer](https://framer.university/resources/interactive-wave-background-in-framer) — full-page or section-level reference
+- [iPadOS Hover Interaction](https://framer.university/resources/ipados-hover-interaction) — full-page or section-level reference
+- [iPadOS Pointer Cursor in Framer](https://framer.university/resources/ipados-pointer-cursor-in-framer) — full-page or section-level reference
+- [iPhone 15 Pro Website Rebuild](https://framer.university/resources/iphone-15-pro-website-rebuild) — full-page or section-level reference
+- [Lego Elements Component](https://framer.university/resources/lego-elements-component) — full-page or section-level reference
+- [Lemon Squeezy Checkout on a Framer Website](https://framer.university/resources/lemon-squeezy-checkout-on-a-framer-website) — full-page or section-level reference
+- [Light Rays Component for Framer](https://framer.university/resources/light-rays-component-for-framer) — full-page or section-level reference
+- [Light Ship Cards in Framer](https://framer.university/resources/light-ship-cards-in-framer) — full-page or section-level reference
+- [Link Button Animation in Framer](https://framer.university/resources/link-button-animation-in-framer) — full-page or section-level reference
+- [Link Preview Component](https://framer.university/resources/link-preview-component) — full-page or section-level reference
+- [Linktree 3D Flip Animation in Framer](https://framer.university/resources/linktree-3d-flip-animation-in-framer) — full-page or section-level reference
+- [Liquid Button Hover Animation in Framer](https://framer.university/resources/liquid-button-hover-animation-in-framer) — full-page or section-level reference
+- [Liquid Hover Interaction in Framer](https://framer.university/resources/liquid-hover-interaction-in-framer) — full-page or section-level reference
+- [Liquid Mask Hover in Framer](https://framer.university/resources/liquid-mask-hover-in-framer) — full-page or section-level reference
+- [Logo Hover Shine Effect in Framer](https://framer.university/resources/logo-hover-shine-effect-in-framer) — full-page or section-level reference
+- [macOS Dock Component for Framer](https://framer.university/resources/macos-dock-component-for-framer) — full-page or section-level reference
+- [Magic Cursor Override for Framer](https://framer.university/resources/magic-cursor-override-for-framer) — full-page or section-level reference
+- [Magic Switch Component for Framer](https://framer.university/resources/magic-switch-component-for-framer) — full-page or section-level reference
+- [Magic Text Reveal Component for Framer](https://framer.university/resources/magic-text-reveal-component-for-framer) — full-page or section-level reference
+- [Magnetic Grid Component for Framer](https://framer.university/resources/magnetic-grid-component-for-framer) — full-page or section-level reference
+- [Magnetic Hover Component for Framer](https://framer.university/resources/magnetic-hover-component-for-framer) — full-page or section-level reference
+- [Matrix Hover Cards in Framer](https://framer.university/resources/matrix-hover-cards-in-framer) — full-page or section-level reference
+- [MAX Card Animation in Framer](https://framer.university/resources/max-card-animation-in-framer) — full-page or section-level reference
+- [Mechanical Button Component](https://framer.university/resources/mechanical-button-component) — full-page or section-level reference
+- [Mountain Parallax Effect](https://framer.university/resources/mountain-parallax-effect) — full-page or section-level reference
+- [Music Player Widget Interaction in Framer](https://framer.university/resources/music-player-widget-interaction-in-framer) — full-page or section-level reference
+- [Native Feedback Widget in Framer](https://framer.university/resources/native-feedback-widget-in-framer) — full-page or section-level reference
+- [Navigation Hover Component in Framer](https://framer.university/resources/navigation-hover-component-in-framer) — full-page or section-level reference
+- [New Apple Slider Component in Framer](https://framer.university/resources/new-apple-slider-component-in-framer) — full-page or section-level reference
+- [No-Code 3D Rotation Carousel in Framer](https://framer.university/resources/no-code-3d-rotation-carousel-in-framer) — full-page or section-level reference
+- [Nudge Button Component in Framer](https://framer.university/resources/nudge-button-component-in-framer) — full-page or section-level reference
+- [Overlapping Layout in Framer](https://framer.university/resources/overlapping-layout-in-framer) — full-page or section-level reference
+- [Parallax Hover Interaction in Framer](https://framer.university/resources/parallax-hover-interaction-in-framer) — full-page or section-level reference
+- [Parallax Image Scroll Animation in Framer](https://framer.university/resources/parallax-image-scroll-animation-in-framer) — full-page or section-level reference
+- [Parallax Image Scroll Component in Framer](https://framer.university/resources/parallax-image-scroll-component-in-framer) — full-page or section-level reference
+- [Phantom Website in Framer](https://framer.university/resources/phantom-website-in-framer) — full-page or section-level reference
+- [Phone Scroll Animation in Framer](https://framer.university/resources/phone-scroll-animation-in-framer) — full-page or section-level reference
+- [Photo Gallery Demo](https://framer.university/resources/photo-gallery-demo) — full-page or section-level reference
+- [Physics Component](https://framer.university/resources/physics-component) — full-page or section-level reference
+- [Pixel Art Reveal Component for Framer](https://framer.university/resources/pixel-art-reveal-component-for-framer) — full-page or section-level reference
+- [Pixelate Component for Framer](https://framer.university/resources/pixelate-component-for-framer) — full-page or section-level reference
+- [Pricing Slider Component for Framer](https://framer.university/resources/pricing-slider-component-for-framer) — full-page or section-level reference
+- [QR Code Generator Component for Framer](https://framer.university/resources/qr-code-generator-component-for-framer) — full-page or section-level reference
+- [Rainbow Stretching Footer Animation in Framer](https://framer.university/resources/rainbow-stretching-footer-animation-in-framer) — full-page or section-level reference
+- [Rating Interaction](https://framer.university/resources/rating-interaction) — full-page or section-level reference
+- [Real Like Button Component for Framer](https://framer.university/resources/real-like-button-component-for-framer) — full-page or section-level reference
+- [Real-Time Clock/Date Widget](https://framer.university/resources/real-time-clock-widget) — full-page or section-level reference
+- [Recolor Animation in Framer](https://framer.university/resources/recolor-animation-in-framer) — full-page or section-level reference
+- [Relative Overlays Showcase](https://framer.university/resources/relative-overlays-showcase) — full-page or section-level reference
+- [Repeat Image Hover Effect in Framer](https://framer.university/resources/repeat-image-hover-effect-in-framer) — full-page or section-level reference
+- [Retro Style Website in Framer](https://framer.university/resources/retro-style-website-in-framer) — full-page or section-level reference
+- [Retweet Animation in Framer](https://framer.university/resources/retweet-animation-in-framer) — full-page or section-level reference
+- [Rolls-Royce Phantom Hero Section in Framer](https://framer.university/resources/rolls-royce-phantom-hero-section-in-framer) — full-page or section-level reference
+- [Rotating 3D Carousel in Framer](https://framer.university/resources/rotating-3d-carousel-in-framer) — full-page or section-level reference
+- [Rotating 3D Showcase in Framer](https://framer.university/resources/rotating-3d-showcase-in-framer) — full-page or section-level reference
+- [Rotating Section Scroll Animation in Framer](https://framer.university/resources/rotating-section-scroll-animation-in-framer) — full-page or section-level reference
+- [Rotating Zoom Scroll Effect](https://framer.university/resources/rotating-zoom-scroll-effect) — full-page or section-level reference
+- [Rotation Button Hover in Framer](https://framer.university/resources/rotation-button-hover-in-framer) — full-page or section-level reference
+- [Save Frame as an Image in Framer](https://framer.university/resources/save-frame-as-an-image-in-framer) — full-page or section-level reference
+- [Scramble Cycle Component for Framer](https://framer.university/resources/scramble-cycle-component-for-framer) — full-page or section-level reference
+- [Screen Saver Component for Framer](https://framer.university/resources/screen-saver-component-for-framer) — full-page or section-level reference
+- [Scribble Component](https://framer.university/resources/scribble-component) — full-page or section-level reference
+- [Scroll Highlight Animation Override for Framer](https://framer.university/resources/scroll-highlight-animation-override-for-framer) — full-page or section-level reference
+- [Scroll Mask Effect](https://framer.university/resources/scroll-mask-effect) — full-page or section-level reference
+- [Scroll Media Component in Framer](https://framer.university/resources/scroll-media-component-in-framer) — full-page or section-level reference
+- [Scroll Progress Bar Override](https://framer.university/resources/scroll-progress-bar-override) — full-page or section-level reference
+- [Scroll Rotation Animation in Framer](https://framer.university/resources/scroll-rotation-animation-in-framer) — full-page or section-level reference
+- [Scroll Stopper Component in Framer](https://framer.university/resources/scroll-stopper-component-in-framer) — full-page or section-level reference
+- [Shader Lines Component for Framer](https://framer.university/resources/shader-lines-component-for-framer) — full-page or section-level reference
+- [Share Button](https://framer.university/resources/share-button) — full-page or section-level reference
+- [Shimmer Dot Component for Framer](https://framer.university/resources/shimmer-dot-component-for-framer) — full-page or section-level reference
+- [Shimmer Grid Component in Framer](https://framer.university/resources/shimmer-grid-component-in-framer) — full-page or section-level reference
+- [Shortcut Component for Framer](https://framer.university/resources/shortcut-component-for-framer) — full-page or section-level reference
+- [Shutter Footer Reveal Animation in Framer](https://framer.university/resources/shutter-footer-reveal-animation-in-framer) — full-page or section-level reference
+- [Shuttle Hero Scroll Animation in Framer](https://framer.university/resources/shuttle-hero-scroll-animation-in-framer) — full-page or section-level reference
+- [Simple Footer Component in Framer](https://framer.university/resources/simple-footer-component-in-framer) — full-page or section-level reference
+- [Simple Portfolio Website in Framer](https://framer.university/resources/simple-portfolio-website-in-framer) — full-page or section-level reference
+- [Smooth Circle Hover Interaction in Framer](https://framer.university/resources/smooth-circle-hover-interaction-in-framer) — full-page or section-level reference
+- [Smooth Page Transitions in Framer](https://framer.university/resources/smooth-page-transitions-in-framer) — full-page or section-level reference
+- [Smooth Scroll Effect in Framer](https://framer.university/resources/smooth-scroll-effect-in-framer) — full-page or section-level reference
+- [Smooth Website Loader Component](https://framer.university/resources/smooth-website-loader-component) — full-page or section-level reference
+- [Spatial 3D Hero Section in Framer](https://framer.university/resources/spatial-3d-hero-section-in-framer) — full-page or section-level reference
+- [Spiral 3D Scroll Animation](https://framer.university/resources/spiral-3d-scroll-animation) — full-page or section-level reference
+- [Spiral Vortex Animation in Framer](https://framer.university/resources/spiral-vortex-animation-in-framer) — full-page or section-level reference
+- [Spooky Spectacle Website](https://framer.university/resources/spooky-spectacle-website) — full-page or section-level reference
+- [Squint Hero Recreated in Framer](https://framer.university/resources/squint-hero-recreated-in-framer) — full-page or section-level reference
+- [Squishing Slider Animation in Framer](https://framer.university/resources/squishing-slider-animation-in-framer) — full-page or section-level reference
+- [Staggered Grid Scroll Animation in Framer](https://framer.university/resources/staggered-grid-scroll-animation-in-framer) — full-page or section-level reference
+- [Staggered Text Cycle Component for Framer](https://framer.university/resources/staggered-text-cycle-component-for-framer) — full-page or section-level reference
+- [Star Wars Prologue Text Effect in Framer](https://framer.university/resources/star-wars-prologue-text-effect-in-framer) — full-page or section-level reference
+- [Stickers for Framer](https://framer.university/resources/stickers-for-framer) — full-page or section-level reference
+- [Sticky Project Showcase Section](https://framer.university/resources/sticky-project-showcase-section) — full-page or section-level reference
+- [Sticky Section Scroll Animation in Framer](https://framer.university/resources/sticky-section-scroll-animation-in-framer) — full-page or section-level reference
+- [Sticky Slide Scroll Animation in Framer](https://framer.university/resources/sticky-slide-scroll-animation-in-framer) — full-page or section-level reference
+- [Sticky Table of Contents in Framer](https://framer.university/resources/sticky-table-of-contents-in-framer) — full-page or section-level reference
+- [Supercut Text Shimmer Effect in Framer](https://framer.university/resources/supercut-text-shimmer-effect-in-framer) — full-page or section-level reference
+- [Superlink Scroll Animation in Framer](https://framer.university/resources/superlink-scroll-animation-in-framer) — full-page or section-level reference
+- [SVG Component for Framer](https://framer.university/resources/svg-component-for-framer) — full-page or section-level reference
+- [Sweep Light Hover Effect](https://framer.university/resources/sweep-light-hover-effect) — full-page or section-level reference
+- [Tedy Website Scroll Animation in Framer](https://framer.university/resources/tedy-website-scroll-animation-in-framer) — full-page or section-level reference
+- [Text Animation Component for Framer](https://framer.university/resources/text-animation-component-for-framer) — full-page or section-level reference
+- [Text Area Scramble for Framer](https://framer.university/resources/text-area-scramble-for-framer) — full-page or section-level reference
+- [Text Color Animation Code Component](https://framer.university/resources/text-color-animation-code-component) — full-page or section-level reference
+- [Text Cycle Component](https://framer.university/resources/text-cycle-component) — full-page or section-level reference
+- [Text Decrypt Scroll Effect in Framer](https://framer.university/resources/text-decrypt-scroll-effect-in-framer) — full-page or section-level reference
+- [Text Flip Effect](https://framer.university/resources/text-flip-effect) — full-page or section-level reference
+- [Text Glitch Component for Framer](https://framer.university/resources/text-glitch-component-for-framer) — full-page or section-level reference
+- [Text Lift on Hover in Framer](https://framer.university/resources/text-lift-on-hover-in-framer) — full-page or section-level reference
+- [Text Logo Loop Animation in Framer](https://framer.university/resources/text-logo-loop-animation-in-framer) — full-page or section-level reference
+- [Text Magnifier Component](https://framer.university/resources/text-magnifier-component) — full-page or section-level reference
+- [Text Mask Animation in Framer](https://framer.university/resources/text-mask-animation-in-framer) — full-page or section-level reference
+- [Text Repetition on Scroll in Framer](https://framer.university/resources/text-repetition-on-scroll-in-framer) — full-page or section-level reference
+- [Text Scramble Override](https://framer.university/resources/text-scramble-override) — full-page or section-level reference
+- [Tilted Scrolling Website Animation](https://framer.university/resources/tilted-scrolling-website-animation) — full-page or section-level reference
+- [Unexpected Surprises on Hover in Framer](https://framer.university/resources/unexpected-surprises-on-hover-in-framer) — full-page or section-level reference
+- [Unusual Dropdown Component](https://framer.university/resources/unusual-dropdown-component) — full-page or section-level reference
+- [Unusual FAQs Section in Framer](https://framer.university/resources/unusual-faqs-section-in-framer) — full-page or section-level reference
+- [Vercel Book Animation](https://framer.university/resources/vercel-book-animation) — full-page or section-level reference
+- [Video Testimonial Card Component](https://framer.university/resources/video-testimonial-card-component) — full-page or section-level reference
+- [View Work Microinteraction in Framer](https://framer.university/resources/view-work-microinteraction-in-framer) — full-page or section-level reference
+- [Voice Chat Interaction in Framer](https://framer.university/resources/voice-chat-interaction-in-framer) — full-page or section-level reference
+- [Waitlist Button Animation Component in Framer](https://framer.university/resources/waitlist-button-animation-component-in-framer) — full-page or section-level reference
+- [Warp Background Component in Framer](https://framer.university/resources/warp-background-component-in-framer) — full-page or section-level reference
+- [Website Enter Effect](https://framer.university/resources/website-enter-effect) — full-page or section-level reference
+- [Website Hero Animation in Framer](https://framer.university/resources/website-hero-animation-in-framer) — full-page or section-level reference
+- [Website Hero Intro Animation in Framer](https://framer.university/resources/website-hero-intro-animation-in-framer) — full-page or section-level reference
+- [Wiza Button Component](https://framer.university/resources/wiza-button-component) — full-page or section-level reference
+- [WordPress in Framer](https://framer.university/resources/wordpress-in-framer) — full-page or section-level reference
+- [Zoom Scroll Effect](https://framer.university/resources/zoom-scroll-effect) — full-page or section-level reference
+
+## utility (56)
+
+- [3D Book Component for Framer](https://framer.university/resources/3d-book-component-for-framer) — microinteraction and utility reference
+- [3D Cube Animation in Framer](https://framer.university/resources/3d-cube-animation-in-framer) — microinteraction and utility reference
+- [3D Letter Testimonials in Framer](https://framer.university/resources/3d-letter-testimonials-in-framer) — microinteraction and utility reference
+- [3D Look Component for Framer](https://framer.university/resources/3d-look-component-for-framer) — microinteraction and utility reference
+- [3D Sphere Animation in Framer](https://framer.university/resources/3d-sphere-animation-in-framer) — microinteraction and utility reference
+- [3D Stacked Tower Spin Animation in Framer](https://framer.university/resources/3d-stacked-tower-spin-animation-in-framer) — microinteraction and utility reference
+- [Animated Number Counter in Framer](https://framer.university/resources/animated-number-counter-in-framer) — microinteraction and utility reference
+- [Animated Shiny Pill in Framer](https://framer.university/resources/animated-shiny-pill-in-framer) — microinteraction and utility reference
+- [Animated Step Counter in Framer](https://framer.university/resources/animated-step-counter-in-framer) — microinteraction and utility reference
+- [Availability Profile Component](https://framer.university/resources/availability-profile-component) — microinteraction and utility reference
+- [Clean Folder Animation in Framer](https://framer.university/resources/clean-folder-animation-in-framer) — microinteraction and utility reference
+- [Collection Preview Interaction in Framer](https://framer.university/resources/collection-preview-interaction-in-framer) — microinteraction and utility reference
+- [Cursor Attract Component for Framer](https://framer.university/resources/cursor-attract-component-for-framer) — microinteraction and utility reference
+- [Detail Pill Interaction in Framer](https://framer.university/resources/detail-pill-interaction-in-framer) — microinteraction and utility reference
+- [Elapsed Time Counter Component for Framer](https://framer.university/resources/elapsed-time-counter-component-for-framer) — microinteraction and utility reference
+- [Filters Animation in Framer](https://framer.university/resources/filters-animation-in-framer) — microinteraction and utility reference
+- [Fluid Album Viewer in Framer](https://framer.university/resources/fluid-album-viewer-in-framer) — microinteraction and utility reference
+- [Fluid Step Hint Animation in Framer](https://framer.university/resources/fluid-step-hint-animation-in-framer) — microinteraction and utility reference
+- [Fluid Steps Animation in Framer](https://framer.university/resources/fluid-steps-animation-in-framer) — microinteraction and utility reference
+- [Folder Open Up Animation in Framer](https://framer.university/resources/folder-open-up-animation-in-framer) — microinteraction and utility reference
+- [Follow Cursor Component for Framer](https://framer.university/resources/follow-cursor-component-for-framer) — microinteraction and utility reference
+- [Footer Tooltip Interaction in Framer](https://framer.university/resources/footer-tooltip-interaction-in-framer) — microinteraction and utility reference
+- [Forward Traffic Component for Framer](https://framer.university/resources/forward-traffic-component-for-framer) — microinteraction and utility reference
+- [Fun Notification Animation in Framer](https://framer.university/resources/fun-notification-animation-in-framer) — microinteraction and utility reference
+- [God Rays Component for Framer](https://framer.university/resources/god-rays-component-for-framer) — microinteraction and utility reference
+- [Grid Morphs Into Preview in Framer](https://framer.university/resources/grid-morphs-into-preview-in-framer) — microinteraction and utility reference
+- [Inline Toast Interaction in Framer](https://framer.university/resources/inline-toast-interaction-in-framer) — microinteraction and utility reference
+- [Interactive 3D Game Boxes in Framer](https://framer.university/resources/interactive-3d-game-boxes-in-framer) — microinteraction and utility reference
+- [Interactive 3D Hero Animation in Framer](https://framer.university/resources/interactive-3d-hero-animation-in-framer) — microinteraction and utility reference
+- [Interactive MIDI Keys in Framer](https://framer.university/resources/interactive-midi-keys-in-framer) — microinteraction and utility reference
+- [Interactive Thermal Wave in Framer](https://framer.university/resources/interactive-thermal-wave-in-framer) — microinteraction and utility reference
+- [Inverted Custom Cursor in Framer](https://framer.university/resources/inverted-custom-cursor-in-framer) — microinteraction and utility reference
+- [Key Micro-Interaction in Framer](https://framer.university/resources/key-micro-interaction-in-framer) — microinteraction and utility reference
+- [LED Matrix Component for Framer](https://framer.university/resources/led-matrix-component-for-framer) — microinteraction and utility reference
+- [Letter Fold Interaction in Framer](https://framer.university/resources/letter-fold-interaction-in-framer) — microinteraction and utility reference
+- [Letter Open Animation in Framer](https://framer.university/resources/letter-open-animation-in-framer) — microinteraction and utility reference
+- [Morphing Waitlist Input in Framer](https://framer.university/resources/morphing-waitlist-input-in-framer) — microinteraction and utility reference
+- [Netflix “Love This” Animation in Framer](https://framer.university/resources/netflix-love-this-animation-in-framer) — microinteraction and utility reference
+- [Number Flow Component for Framer](https://framer.university/resources/number-flow-component-for-framer) — microinteraction and utility reference
+- [Particle Sphere Component for Framer](https://framer.university/resources/particle-sphere-component-for-framer) — microinteraction and utility reference
+- [Playful Scribbles Pack for Framer](https://framer.university/resources/playful-scribbles-pack-for-framer) — microinteraction and utility reference
+- [Playlist Generation Circular Animation in Framer](https://framer.university/resources/playlist-generation-circular-animation-in-framer) — microinteraction and utility reference
+- [Proximity Effects in Framer](https://framer.university/resources/proximity-effects-in-framer) — microinteraction and utility reference
+- [Scheduling Interaction in Framer](https://framer.university/resources/scheduling-interaction-in-framer) — microinteraction and utility reference
+- [Shiny Cursor Effect in Framer](https://framer.university/resources/shiny-cursor-effect-in-framer) — microinteraction and utility reference
+- [Shiny Golden Badge in Framer](https://framer.university/resources/shiny-golden-badge-in-framer) — microinteraction and utility reference
+- [Show More Micro Interaction in Framer](https://framer.university/resources/show-more-micro-interaction-in-framer) — microinteraction and utility reference
+- [Show Once Code Override for Framer](https://framer.university/resources/show-once-code-override-for-framer) — microinteraction and utility reference
+- [Signature Animation in Framer](https://framer.university/resources/signature-animation-in-framer) — microinteraction and utility reference
+- [Skeuomorphic Audio Player Animation in Framer](https://framer.university/resources/skeuomorphic-audio-player-animation-in-framer) — microinteraction and utility reference
+- [Skeuomorphic Door Handle Interaction in Framer](https://framer.university/resources/skeuomorphic-door-handle-interaction-in-framer) — microinteraction and utility reference
+- [Soulful Form Submit States in Framer](https://framer.university/resources/soulful-form-submit-states-in-framer) — microinteraction and utility reference
+- [Stacking Slider Component in Framer](https://framer.university/resources/stacking-slider-component-in-framer) — microinteraction and utility reference
+- [Toast Animation in Framer](https://framer.university/resources/toast-animation-in-framer) — microinteraction and utility reference
+- [Tooltip Animation Interaction in Framer](https://framer.university/resources/tooltip-animation-interaction-in-framer) — microinteraction and utility reference
+- [Unusual Waitlist Form in Framer](https://framer.university/resources/unusual-waitlist-form-in-framer) — microinteraction and utility reference
+
+## other (54)
+
+- [3D Cube Animation Loop in Framer](https://framer.university/resources/3d-cube-animation-loop-in-framer) — general reference
+- [3D Folder Interaction in Framer](https://framer.university/resources/3d-folder-interaction-in-framer) — general reference
+- [3D Folder Open Animation in Framer](https://framer.university/resources/3d-folder-open-animation-in-framer) — general reference
+- [3D Picker Wheel Interaction in Framer](https://framer.university/resources/3d-picker-wheel-interaction-in-framer) — general reference
+- [ASCII Shader Animation in Framer](https://framer.university/resources/ascii-shader-animation-in-framer) — general reference
+- [Authentication Animation Loop in Framer](https://framer.university/resources/authentication-animation-loop-in-framer) — general reference
+- [Better Preloader Component for Framer](https://framer.university/resources/better-preloader-component-for-framer) — general reference
+- [Circular Intro Animation in Framer](https://framer.university/resources/circular-intro-animation-in-framer) — general reference
+- [Confetti Component for Framer](https://framer.university/resources/confetti-component-for-framer) — general reference
+- [Custom Cursor Components in Framer (No-Code)](https://framer.university/resources/custom-cursor-components-in-framer) — general reference
+- [Digital Receipt Interaction in Framer](https://framer.university/resources/digital-receipt-interaction-in-framer) — general reference
+- [Docking Pricing Plans Interaction in Framer](https://framer.university/resources/docking-pricing-plans-interaction-in-framer) — general reference
+- [Dotted Video Component for Framer](https://framer.university/resources/dotted-video-component-for-framer) — general reference
+- [Drawing Board Component for Framer](https://framer.university/resources/drawing-board-component-for-framer) — general reference
+- [Easing Options in Framer](https://framer.university/resources/easing-options-in-framer) — general reference
+- [Electric Border Component for Framer](https://framer.university/resources/electric-border-component-for-framer) — general reference
+- [Expand Activities Animation in Framer](https://framer.university/resources/expand-activities-animation-in-framer) — general reference
+- [Exploding Tap Component in Framer](https://framer.university/resources/exploding-tap-component-in-framer) — general reference
+- [Family Wallets Interaction in Framer](https://framer.university/resources/family-wallets-interaction-in-framer) — general reference
+- [Fireworks Component in Framer](https://framer.university/resources/fireworks-component-in-framer) — general reference
+- [Fluid Notification Animation in Framer](https://framer.university/resources/fluid-notification-animation-in-framer) — general reference
+- [Folder Micro-Interaction in Framer](https://framer.university/resources/folder-micro-interaction-in-framer) — general reference
+- [Framer Editor Built in Framer](https://framer.university/resources/framer-editor-built-in-framer) — general reference
+- [Framer Logo Animation in Framer](https://framer.university/resources/framer-logo-animation-in-framer) — general reference
+- [Fun 3D Loader in Framer](https://framer.university/resources/fun-3d-loader-in-framer) — general reference
+- [Gravity Component for Framer](https://framer.university/resources/gravity-component-for-framer) — general reference
+- [Icon to Modal Animation in Framer](https://framer.university/resources/icon-to-modal-animation-in-framer) — general reference
+- [iMessage Interaction in Framer](https://framer.university/resources/imessage-interaction-in-framer) — general reference
+- [Interactive Map Interaction in Framer](https://framer.university/resources/interactive-map-interaction-in-framer) — general reference
+- [Isometric 3D Icons in Framer](https://framer.university/resources/isometric-3d-icons-in-framer) — general reference
+- [Kinetic Grid Component in Framer](https://framer.university/resources/kinetic-grid-component-in-framer) — general reference
+- [Layout Jump Preventer Component in Framer](https://framer.university/resources/layout-jump-preventer-component-in-framer) — general reference
+- [Letters Interaction in Framer](https://framer.university/resources/letters-interaction-in-framer) — general reference
+- [Line Connections Component for Framer](https://framer.university/resources/line-connections-component-for-framer) — general reference
+- [Liquid Bowl Animation in Framer](https://framer.university/resources/liquid-bowl-animation-in-framer) — general reference
+- [Liquid Glass Element in Framer](https://framer.university/resources/liquid-glass-element-in-framer) — general reference
+- [Loader Animations in Framer](https://framer.university/resources/loader-animations-in-framer) — general reference
+- [Magic Folder Animation in Framer](https://framer.university/resources/magic-folder-animation-in-framer) — general reference
+- [Minimal Folder Animation in Framer](https://framer.university/resources/minimal-folder-animation-in-framer) — general reference
+- [Mobile Drawer Component for Framer](https://framer.university/resources/mobile-drawer-component-for-framer) — general reference
+- [Modal Interaction in Framer](https://framer.university/resources/modal-interaction-in-framer) — general reference
+- [Morphing Chat Modal Animation in Framer](https://framer.university/resources/morphing-chat-modal-animation-in-framer) — general reference
+- [Morphing Navbar Animation in Framer](https://framer.university/resources/morphing-navbar-animation-in-framer) — general reference
+- [Negative Gap in Framer (Without Code)](https://framer.university/resources/negative-gap-in-framer-(without-code)) — general reference
+- [Particles Component for Framer](https://framer.university/resources/particles-component-for-framer) — general reference
+- [Play Sound On Click](https://framer.university/resources/play-sound-on-click) — general reference
+- [Ripple Grid Component for Framer](https://framer.university/resources/ripple-gird-component-for-framer) — general reference
+- [Satisfying Checkbox Animation in Framer](https://framer.university/resources/satisfying-checkbox-animation-in-framer) — general reference
+- [Set Status Micro-Interaction in Framer](https://framer.university/resources/set-status-micro-interaction-in-framer) — general reference
+- [Skeuomorphic Interactive Keys in Framer](https://framer.university/resources/skeuomorphic-interactive-keys-in-framer) — general reference
+- [Squiggle Effect Component for Framer](https://framer.university/resources/squiggle-effect-component-for-framer) — general reference
+- [SVG Animator Component](https://framer.university/resources/svg-animator-component) — general reference
+- [Trash Interaction in Framer](https://framer.university/resources/trash-interaction-in-framer) — general reference
+- [UI Element Animations in Framer](https://framer.university/resources/ui-element-animations-in-framer) — general reference
+
+## hover (46)
+
+- [3D Block Hover Interaction in Framer](https://framer.university/resources/3d-block-hover-interaction-in-framer) — pointer-driven interaction reference
+- [3D Hover Component for Framer](https://framer.university/resources/3d-hover-component-for-framer) — pointer-driven interaction reference
+- [3D Hover Elements for Framer](https://framer.university/resources/3d-hover-elements-for-framer) — pointer-driven interaction reference
+- [3D Hover Override](https://framer.university/resources/3d-hover-override) — pointer-driven interaction reference
+- [3D Hover Reveal Component](https://framer.university/resources/3d-hover-reveal-component) — pointer-driven interaction reference
+- [3D Icon Hover Animation in Framer](https://framer.university/resources/3d-icon-hover-animation-in-framer) — pointer-driven interaction reference
+- [3D Image Stack Animation in Framer](https://framer.university/resources/3d-image-stack-animation-in-framer) — pointer-driven interaction reference
+- [Animated 3D Metal Pins in Framer](https://framer.university/resources/animated-3d-metal-pins-in-framer) — pointer-driven interaction reference
+- [Animating Icons on Hover in Framer](https://framer.university/resources/animating-icons-on-hover-in-framer) — pointer-driven interaction reference
+- [Blinds Reveal Interaction in Framer](https://framer.university/resources/blinds-reveal-interaction-in-framer) — pointer-driven interaction reference
+- [Blur Carousel Component in Framer](https://framer.university/resources/blur-carousel-component-in-framer) — pointer-driven interaction reference
+- [Button Hover Effect](https://framer.university/resources/button-hover-effect) — pointer-driven interaction reference
+- [Case Study Hover Interaction in Framer](https://framer.university/resources/case-study-hover-interaction-in-framer) — pointer-driven interaction reference
+- [Circle Mask Hover in Framer](https://framer.university/resources/circle-mask-hover-in-framer) — pointer-driven interaction reference
+- [Crazy Hover Mask Reveal in Framer](https://framer.university/resources/crazy-hover-mask-reveal-in-framer) — pointer-driven interaction reference
+- [Cursor Image Trail Effect in Framer](https://framer.university/resources/cursor-image-trail-effect-in-framer) — pointer-driven interaction reference
+- [Direction Aware Hover in Framer](https://framer.university/resources/direction-aware-hover-in-framer) — pointer-driven interaction reference
+- [Fingerprint Hover Interaction](https://framer.university/resources/fingerprint-hover-interaction) — pointer-driven interaction reference
+- [Fold Hover Cards in Framer](https://framer.university/resources/fold-hover-cards-in-framer) — pointer-driven interaction reference
+- [Fun Card Hover Interaction in Framer](https://framer.university/resources/fun-card-hover-interaction-in-framer) — pointer-driven interaction reference
+- [Fun UI Hover Cards in Framer](https://framer.university/resources/fun-ui-hover-cards-in-framer) — pointer-driven interaction reference
+- [Graph Hover Interaction in Framer](https://framer.university/resources/graph-hover-interaction-in-framer) — pointer-driven interaction reference
+- [Grey Folder Interaction in Framer](https://framer.university/resources/grey-folder-interaction-in-framer) — pointer-driven interaction reference
+- [Holographic 3D Cards in Framer](https://framer.university/resources/holographic-3d-cards-in-framer) — pointer-driven interaction reference
+- [Hover Force Component for Framer](https://framer.university/resources/hover-force-component-for-framer) — pointer-driven interaction reference
+- [Hover Link Previews in Framer](https://framer.university/resources/hover-link-previews-in-framer) — pointer-driven interaction reference
+- [Image on Hover Component](https://framer.university/resources/image-on-hover-component) — pointer-driven interaction reference
+- [Image Zoom Component for Framer](https://framer.university/resources/image-zoom-component-for-framer) — pointer-driven interaction reference
+- [Magnetic Button Override in Framer](https://framer.university/resources/magnetic-button-override-in-framer) — pointer-driven interaction reference
+- [Magnetic Hover Tooltips in Framer](https://framer.university/resources/magnetic-hover-tooltips-in-framer) — pointer-driven interaction reference
+- [Parallax Blur Gradient Cards in Framer](https://framer.university/resources/parallax-blur-gradient-cards-in-framer) — pointer-driven interaction reference
+- [Parallax Floating Effect in Framer](https://framer.university/resources/parallax-floating-effect-in-framer) — pointer-driven interaction reference
+- [Particles Text for Framer](https://framer.university/resources/particles-text-for-framer) — pointer-driven interaction reference
+- [Pixel Trail Effect for Framer](https://framer.university/resources/pixel-trail-effect-for-framer) — pointer-driven interaction reference
+- [Pokemon Cards in Framer](https://framer.university/resources/pokemon-cards-in-framer) — pointer-driven interaction reference
+- [Rolling Text Component for Framer](https://framer.university/resources/rolling-text-component-for-framer) — pointer-driven interaction reference
+- [Scramble Glitch Hover in Framer](https://framer.university/resources/scramble-glitch-hover-in-framer) — pointer-driven interaction reference
+- [Slide Button Component](https://framer.university/resources/slide-button-component) — pointer-driven interaction reference
+- [Sliding Button Hover Animation in Framer](https://framer.university/resources/sliding-button-hover-animation-in-framer) — pointer-driven interaction reference
+- [Smooth Hover Effect in Framer](https://framer.university/resources/smooth-hover-effect-in-framer) — pointer-driven interaction reference
+- [Staggered Text Hover in Framer](https://framer.university/resources/staggered-text-hover-in-framer) — pointer-driven interaction reference
+- [Sticker Peeling Effect in Framer](https://framer.university/resources/sticker-peeling-effect-in-framer) — pointer-driven interaction reference
+- [Sweep Hover Button Component for Framer](https://framer.university/resources/sweep-hover-button-component-for-framer) — pointer-driven interaction reference
+- [Text Magnifier Component for Framer](https://framer.university/resources/text-magnifier-component-for-framer) — pointer-driven interaction reference
+- [Ticker Menu in Framer](https://framer.university/resources/ticker-menu-in-framer) — pointer-driven interaction reference
+- [X-Ray Hover Effect in Framer](https://framer.university/resources/x-ray-hover-effect-in-framer) — pointer-driven interaction reference
+
+## button (35)
+
+- [3D Sphere Button in Framer](https://framer.university/resources/3d-sphere-button-in-framer) — cta and microinteraction reference
+- [Arrow Button Component in Framer](https://framer.university/resources/arrow-button-component-in-framer) — cta and microinteraction reference
+- [Bouncy Button Component](https://framer.university/resources/bouncy-button-component) — cta and microinteraction reference
+- [Bouncy Icon Button Component](https://framer.university/resources/bouncy-icon-button-component) — cta and microinteraction reference
+- [Bouncy Skeuomorphic Button in Framer](https://framer.university/resources/bouncy-skeuomorphic-button-in-framer) — cta and microinteraction reference
+- [Chonky Button Component in Farmer](https://framer.university/resources/chonky-button-component-in-farmer) — cta and microinteraction reference
+- [Circular Navigation Button in Framer](https://framer.university/resources/circular-navigation-button-in-framer) — cta and microinteraction reference
+- [Copy Component Button (Copy to Clipboard)](https://framer.university/resources/copy-component-button-in-framer) — cta and microinteraction reference
+- [CTA Button Pointer Component for Framer](https://framer.university/resources/cta-button-pointer-component-for-framer) — cta and microinteraction reference
+- [Delete Button Interaction in Framer](https://framer.university/resources/delete-button-interaction-in-framer) — cta and microinteraction reference
+- [Floating Action Button in Framer](https://framer.university/resources/floating-action-button-in-framer) — cta and microinteraction reference
+- [Fluid Delete Interaction in Framer](https://framer.university/resources/fluid-delete-interaction-in-framer) — cta and microinteraction reference
+- [Glass Button in Framer](https://framer.university/resources/glass-button-in-framer) — cta and microinteraction reference
+- [Glassy Button in Framer](https://framer.university/resources/glassy-button-in-framer) — cta and microinteraction reference
+- [Gooey Effect for Framer](https://framer.university/resources/gooey-effect-for-framer) — cta and microinteraction reference
+- [Gradient Border Button](https://framer.university/resources/gradient-border-button) — cta and microinteraction reference
+- [Like Button Component](https://framer.university/resources/like-button-component) — cta and microinteraction reference
+- [Metallic 3D Button Interaction in Framer](https://framer.university/resources/metallic-3d-button-interaction-in-framer) — cta and microinteraction reference
+- [Page Transition Effect Demo](https://framer.university/resources/page-transition-effect-demo) — cta and microinteraction reference
+- [Pearl Button Component in Framer](https://framer.university/resources/pearl-button-component-in-framer) — cta and microinteraction reference
+- [Save Button Micro-Interaction in Framer](https://framer.university/resources/save-button-micro-interaction-in-framer) — cta and microinteraction reference
+- [Scribble Pad Component in Framer](https://framer.university/resources/scribble-pad-component-in-framer) — cta and microinteraction reference
+- [Shader Button Component in Framer](https://framer.university/resources/shader-button-component-in-framer) — cta and microinteraction reference
+- [Shiny Button Component](https://framer.university/resources/shiny-button-component) — cta and microinteraction reference
+- [Skeuomorphic Button in Framer](https://framer.university/resources/skeuomorphic-button-in-framer) — cta and microinteraction reference
+- [Skeuomorphic Buttons in Framer](https://framer.university/resources/skeuomorphic-buttons-in-framer) — cta and microinteraction reference
+- [Skeuomorphic Switch in Framer](https://framer.university/resources/skeuomorphic-switch-in-framer) — cta and microinteraction reference
+- [Sonner Toast Component in Framer](https://framer.university/resources/sonner-toast-component-in-framer) — cta and microinteraction reference
+- [Star Button Component](https://framer.university/resources/star-button-component) — cta and microinteraction reference
+- [Swipe Button Interaction](https://framer.university/resources/swipe-button-interaction) — cta and microinteraction reference
+- [Target Button Component in Framer](https://framer.university/resources/target-button-component-in-framer) — cta and microinteraction reference
+- [Teenage Engineering Button in Framer](https://framer.university/resources/teenage-engineering-button-in-framer) — cta and microinteraction reference
+- [Underline Button Interaction in Framer](https://framer.university/resources/underline-button-interaction-in-framer) — cta and microinteraction reference
+- [Veggie Button Animation in Framer](https://framer.university/resources/veggie-button-animation-in-framer) — cta and microinteraction reference
+- [Waitlist Social Proof Animation in Framer](https://framer.university/resources/waitlist-social-proof-animation-in-framer) — cta and microinteraction reference
+
+## navigation (33)
+
+- [3D Skeuomorphic Toggle in Framer](https://framer.university/resources/3d-skeuomorphic-toggle-in-framer) — selection and control reference
+- [Animate Along Path Component for Framer](https://framer.university/resources/animate-along-path-component-for-framer) — selection and control reference
+- [Border Morph Tab Switcher in Framer](https://framer.university/resources/border-morph-tab-switcher-in-framer) — selection and control reference
+- [Circular CD Selection in Framer](https://framer.university/resources/circular-cd-selection-in-framer) — selection and control reference
+- [Compact Dropdown Menu Component](https://framer.university/resources/compact-dropdown-menu-component) — selection and control reference
+- [Cross Component Interactions in Framer](https://framer.university/resources/cross-component-interactions-in-framer) — selection and control reference
+- [Dark/Light Color Theme Toggle in Framer](https://framer.university/resources/dark-light-color-theme-toggle-in-framer) — selection and control reference
+- [Delightful Interest Selector Interaction in Framer](https://framer.university/resources/delightful-interest-selector-interaction-in-framer) — selection and control reference
+- [Dynamic Toggle Component for Framer](https://framer.university/resources/dynamic-toggle-component-for-framer) — selection and control reference
+- [Electric Tabs Interaction](https://framer.university/resources/electric-tabs-interaction) — selection and control reference
+- [Floating Navigation in Framer](https://framer.university/resources/floating-navigation-in-framer) — selection and control reference
+- [Fun Tab Navigation in Framer](https://framer.university/resources/fun-tab-navigation-in-framer) — selection and control reference
+- [Glowing Skeuomorphic Tabs in Framer](https://framer.university/resources/glowing-skeuomorphic-tabs-in-framer) — selection and control reference
+- [Icon Morpher Component in Framer](https://framer.university/resources/icon-morpher-component-in-framer) — selection and control reference
+- [Input Quick Switcher Interaction in Framer](https://framer.university/resources/input-quick-switcher-interaction-in-framer) — selection and control reference
+- [Keyboard Arrow Navigation in Framer](https://framer.university/resources/keyboard-arrow-navigation-in-framer) — selection and control reference
+- [Light Tabs Navigation in Framer](https://framer.university/resources/light-tabs-navigation-in-framer) — selection and control reference
+- [Metal Toggles Collection in Framer](https://framer.university/resources/metal-toggles-collection-in-framer) — selection and control reference
+- [Morphing Tabs Interaction in Framer](https://framer.university/resources/morphing-tabs-interaction-in-framer) — selection and control reference
+- [Navigation Eye Candy in Framer](https://framer.university/resources/navigation-eye-candy-in-framer) — selection and control reference
+- [Realistic Switch Component in Framer](https://framer.university/resources/realistic-switch-component-in-framer) — selection and control reference
+- [Responsive Navigation in Framer](https://framer.university/resources/responsive-navigation-in-framer) — selection and control reference
+- [Simple Dropdown Menu Component](https://framer.university/resources/simple-dropdown-menu-component) — selection and control reference
+- [Skeuomorphic Toggle Component](https://framer.university/resources/skeuomorphic-toggle-component) — selection and control reference
+- [Skeuomorphic Toggle in Framer](https://framer.university/resources/skeuomorphic-toggle-in-framer) — selection and control reference
+- [Snowfall Effect in Framer](https://framer.university/resources/snowfall-effect-in-framer) — selection and control reference
+- [Stacked Dropdown Animation in Framer](https://framer.university/resources/stacked-dropdown-animation-in-framer) — selection and control reference
+- [SVG Underline Navigation in Framer](https://framer.university/resources/svg-underline-navigation-in-framer) — selection and control reference
+- [Switch Interaction in Framer](https://framer.university/resources/switch-interaction-in-framer) — selection and control reference
+- [UI8 Dropdown Component in Framer](https://framer.university/resources/ui8-dropdown-component-in-framer) — selection and control reference
+- [Unusual Navigation in Framer](https://framer.university/resources/unusual-navigation-in-framer) — selection and control reference
+- [Unusual Navigation Item Selector in Framer](https://framer.university/resources/unusual-navigation-item-selector-in-framer) — selection and control reference
+- [Wood Toggle in Framer](https://framer.university/resources/wood-toggle-in-framer) — selection and control reference
+
+## image-card (29)
+
+- [3D Buy Card Animation in Framer](https://framer.university/resources/3d-buy-card-animation-in-framer) — image/card composition reference
+- [3D Card Flip Interaction in Framer](https://framer.university/resources/3d-card-flip-interaction-in-framer) — image/card composition reference
+- [3D Circular Animation in Framer](https://framer.university/resources/3d-circular-animation-in-framer) — image/card composition reference
+- [3D Depth Card Stack Animation in Framer](https://framer.university/resources/3d-depth-card-stack-animation-in-framer) — image/card composition reference
+- [3D Image Scan Effect for Framer](https://framer.university/resources/3d-image-scan-effect-for-framer) — image/card composition reference
+- [3D Projects Card Flip in Framer](https://framer.university/resources/3d-projects-card-flip-in-framer) — image/card composition reference
+- [ASCII Art Generator Component for Framer](https://framer.university/resources/ascii-art-generator-component-for-framer) — image/card composition reference
+- [Aspect Ratio Image Component for Framer](https://framer.university/resources/aspect-ratio-image-component-for-framer) — image/card composition reference
+- [Before After Image Slider in Framer](https://framer.university/resources/before-after-image-slider-in-framer) — image/card composition reference
+- [Bubble Up Elements in Framer](https://framer.university/resources/bubble-up-elements-in-framer) — image/card composition reference
+- [Card Cycle Animation in Framer](https://framer.university/resources/card-cycle-animation-in-framer) — image/card composition reference
+- [Circle Animator Component in Framer](https://framer.university/resources/circle-animator-component-in-framer) — image/card composition reference
+- [Displace Component for Framer](https://framer.university/resources/displace-component-for-framer) — image/card composition reference
+- [Dither Component for Framer](https://framer.university/resources/dither-component-for-framer) — image/card composition reference
+- [Fluid Testimonial Cards in Framer](https://framer.university/resources/fluid-testimonial-cards-in-framer) — image/card composition reference
+- [Glass Breaking Component in Framer](https://framer.university/resources/glass-breaking-component-in-framer) — image/card composition reference
+- [Halftone Generator Component for Framer](https://framer.university/resources/halftone-generator-component-for-framer) — image/card composition reference
+- [Holo Card Animation in Framer](https://framer.university/resources/holo-card-animation-in-framer) — image/card composition reference
+- [Image Scratch Component in Framer](https://framer.university/resources/image-scratch-component-in-framer) — image/card composition reference
+- [Interactive ASCII in Framer](https://framer.university/resources/interactive-ascii-in-framer) — image/card composition reference
+- [Liquid Distortion Component for Framer](https://framer.university/resources/liquid-distortion-component-for-framer) — image/card composition reference
+- [Metal Card Open Animation in Framer](https://framer.university/resources/metal-card-open-animation-in-framer) — image/card composition reference
+- [Photos Folder Animation in Framer](https://framer.university/resources/photos-folder-animation-in-framer) — image/card composition reference
+- [Pixel Wiggle Component for Framer](https://framer.university/resources/pixel-wiggle-component-for-framer) — image/card composition reference
+- [Rabbit R1 recreated in Framer](https://framer.university/resources/rabbit-r1-recreated-in-framer) — image/card composition reference
+- [Shadow Overlay Component for Framer](https://framer.university/resources/shadow-overlay-component-for-framer) — image/card composition reference
+- [Stacked Cards With Depth in Framer](https://framer.university/resources/stacked-cards-with-depth-in-framer) — image/card composition reference
+- [Swipe Card Stack Component in Framer](https://framer.university/resources/swipe-card-stack-component-in-framer) — image/card composition reference
+- [Unusual Image Cycle Component in Framer](https://framer.university/resources/unusual-image-cycle-component-in-framer) — image/card composition reference
+
+## text (27)
+
+- [3D Ring Text Animation in Framer](https://framer.university/resources/3d-ring-text-animation-in-framer) — type motion and reveal reference
+- [3D Rug Effect for Framer](https://framer.university/resources/3d-rug-effect-for-framer) — type motion and reveal reference
+- [3D Sticker Drag Component in Framer](https://framer.university/resources/3d-sticker-drag-component-in-framer) — type motion and reveal reference
+- [3D Text Cube Interaction in Framer](https://framer.university/resources/3d-text-cube-interaction-in-framer) — type motion and reveal reference
+- [Blob Image Reveal Component for Framer](https://framer.university/resources/blob-image-reveal-component-for-framer) — type motion and reveal reference
+- [Color Typer Effect in Framer](https://framer.university/resources/color-typer-effect-in-framer) — type motion and reveal reference
+- [Copy-Paste Glitch Effect for Framer](https://framer.university/resources/copy-paste-glitch-effect-for-framer) — type motion and reveal reference
+- [Curved Text Ticker Component](https://framer.university/resources/curved-text-ticker-component) — type motion and reveal reference
+- [Draggable Ticker for Framer](https://framer.university/resources/draggable-ticker-for-framer) — type motion and reveal reference
+- [Dynamic Action Bar in Framer](https://framer.university/resources/dynamic-action-bar-in-framer) — type motion and reveal reference
+- [Encryption Hero Animation in Framer](https://framer.university/resources/encryption-hero-animation-in-framer) — type motion and reveal reference
+- [Expanding Tooltip Animation in Framer](https://framer.university/resources/expanding-tooltip-animation-in-framer) — type motion and reveal reference
+- [Frame Reveal Effect in Framer](https://framer.university/resources/frame-reveal-effect-in-framer) — type motion and reveal reference
+- [Image and Text Section in Framer](https://framer.university/resources/image-and-text-section-in-framer) — type motion and reveal reference
+- [Magnifying Hero Text Animation in Framer](https://framer.university/resources/magnifying-hero-text-animation-in-framer) — type motion and reveal reference
+- [Metallic UI Component in Framer](https://framer.university/resources/metallic-ui-component-in-framer) — type motion and reveal reference
+- [Pixel Image Load Effect in Framer](https://framer.university/resources/pixel-image-load-effect-in-framer) — type motion and reveal reference
+- [Pixel Image Reveal Component for Framer](https://framer.university/resources/pixel-image-reveal-component-for-framer) — type motion and reveal reference
+- [Random Word Appear Component in Framer](https://framer.university/resources/random-word-appear-component-in-framer) — type motion and reveal reference
+- [Text Reveal Effect](https://framer.university/resources/text-reveal-effect) — type motion and reveal reference
+- [Text Scramble Appear Effect in Framer](https://framer.university/resources/text-scramble-appear-effect-in-framer) — type motion and reveal reference
+- [Text Selection Tooltip in Framer](https://framer.university/resources/text-selection-tooltip-in-framer) — type motion and reveal reference
+- [Text Shimmer Component for Framer](https://framer.university/resources/text-shimmer-component-for-framer) — type motion and reveal reference
+- [Text Shutter Animation in Framer](https://framer.university/resources/text-shutter-animation-in-framer) — type motion and reveal reference
+- [Text Wave Component for Framer](https://framer.university/resources/text-wave-component-for-framer) — type motion and reveal reference
+- [Text Wrap Component for Framer](https://framer.university/resources/text-wrap-component-for-framer) — type motion and reveal reference
+- [Vaporize Text Cycle Component for Framer](https://framer.university/resources/vaporize-text-cycle-component-for-framer) — type motion and reveal reference
+
+## scroll (26)
+
+- [ Image Unroll Effect on Scroll in Framer](https://framer.university/resources/image-unroll-effect-on-scroll-in-framer) — scroll-driven motion reference
+- [3D Bookshelf Scroll Animation in Framer](https://framer.university/resources/3d-bookshelf-scroll-animation-in-framer) — scroll-driven motion reference
+- [3D Curved Grid Scroll Animation in Framer](https://framer.university/resources/3d-curved-grid-scroll-animation-in-framer) — scroll-driven motion reference
+- [3D Image Gallery in Framer](https://framer.university/resources/3d-image-gallery-in-framer) — scroll-driven motion reference
+- [3D Image Scroll Gallery in Framer](https://framer.university/resources/3d-image-scroll-gallery-in-framer) — scroll-driven motion reference
+- [3D Scrolling Paper Images for Framer](https://framer.university/resources/3d-scrolling-paper-images-for-framer) — scroll-driven motion reference
+- [3D Staircase Scroll Animation in Framer](https://framer.university/resources/3d-staircase-scroll-animation-in-framer) — scroll-driven motion reference
+- [Card Draw Scroll Animation in Framer](https://framer.university/resources/card-draw-scroll-animation-in-framer) — scroll-driven motion reference
+- [Card Shuffle Scroll Animation ](https://framer.university/resources/card-shuffle-scroll-animation) — scroll-driven motion reference
+- [Card Stack Scroll Animation in Framer](https://framer.university/resources/card-stack-scroll-animation-in-framer) — scroll-driven motion reference
+- [Circular Selection on Scroll in Framer](https://framer.university/resources/circular-selection-on-scroll-in-framer) — scroll-driven motion reference
+- [Cross-Section Scroll Animation in Framer](https://framer.university/resources/cross-section-scroll-animation-in-framer) — scroll-driven motion reference
+- [Flip Scroll Animation in Framer](https://framer.university/resources/flip-scroll-animation-in-framer) — scroll-driven motion reference
+- [Footer Scroll Animation in Framer](https://framer.university/resources/footer-scroll-animation-in-framer) — scroll-driven motion reference
+- [Image Gallery Scroll Animation in Framer](https://framer.university/resources/image-gallery-scroll-animation-in-framer) — scroll-driven motion reference
+- [Image Sequence Player Override in Framer](https://framer.university/resources/image-sequence-player-override-in-framer) — scroll-driven motion reference
+- [Scroll Animated Stripes in Framer](https://framer.university/resources/scroll-animated-stripes-in-framer) — scroll-driven motion reference
+- [Stacking Cards on Scroll in Framer](https://framer.university/resources/stacking-cards-on-scroll-in-framer) — scroll-driven motion reference
+- [Tetris In Framer](https://framer.university/resources/tetris-in-framer) — scroll-driven motion reference
+- [Text Distortion on Scroll in Framer](https://framer.university/resources/text-distortion-on-scroll-in-framer) — scroll-driven motion reference
+- [Text Scroll Animator Component for Framer](https://framer.university/resources/text-scroll-animator-component-for-framer) — scroll-driven motion reference
+- [Ticker Path Component for Framer](https://framer.university/resources/ticker-path-component-for-framer) — scroll-driven motion reference
+- [Ticker Scroll Component for Framer](https://framer.university/resources/ticker-scroll-component-for-framer) — scroll-driven motion reference
+- [Unmask Sections On Scroll in Framer](https://framer.university/resources/unmask-sections-on-scroll-in-framer) — scroll-driven motion reference
+- [Vucko Sticky Section in Framer](https://framer.university/resources/vucko-sticky-section-in-framer) — scroll-driven motion reference
+- [Windwheel 3D Animation in Framer](https://framer.university/resources/windwheel-3d-animation-in-framer) — scroll-driven motion reference
+
+## ambient (20)
+
+- [Animated Gradient Background in Framer](https://framer.university/resources/animated-gradient-background-in-framer) — texture and atmosphere reference
+- [Animated Pattern Background in Framer](https://framer.university/resources/animated-pattern-background-in-framer) — texture and atmosphere reference
+- [Animated Prism Effect in Framer](https://framer.university/resources/animated-prism-effect-in-framer) — texture and atmosphere reference
+- [Apple Keyboard Interaction](https://framer.university/resources/apple-keyboard-interaction) — texture and atmosphere reference
+- [Blur Gradient Component](https://framer.university/resources/blur-gradient-component) — texture and atmosphere reference
+- [Character Art Background Component for Framer](https://framer.university/resources/character-art-background-component-for-framer) — texture and atmosphere reference
+- [Depth Globe Component for Framer](https://framer.university/resources/depth-globe-component-for-framer) — texture and atmosphere reference
+- [Dither Wave Background Component for Framer](https://framer.university/resources/dither-wave-background-component-for-framer) — texture and atmosphere reference
+- [Dotted Background Override + Component](https://framer.university/resources/dotted-background-override-component) — texture and atmosphere reference
+- [Interactive 3D Globe Image Grid](https://framer.university/resources/interactive-3d-globe-image-grid) — texture and atmosphere reference
+- [Interactive Animated 3D Globe for Framer](https://framer.university/resources/interactive-animated-3d-globe-for-framer) — texture and atmosphere reference
+- [Interactive Gradient Blinds Component for Framer](https://framer.university/resources/interactive-gradient-blinds-component-for-framer) — texture and atmosphere reference
+- [Interactive Skeuomorphic Joystick in Framer](https://framer.university/resources/interactive-skeuomorphic-joystick-in-framer) — texture and atmosphere reference
+- [Mobile Haptics in Framer](https://framer.university/resources/mobile-haptics-in-framer) — texture and atmosphere reference
+- [Neural Noise Component for Framer](https://framer.university/resources/neural-noise-component-for-framer) — texture and atmosphere reference
+- [Sparkle Effect in Framer](https://framer.university/resources/sparkle-effect-in-framer) — texture and atmosphere reference
+- [SVG Path Shimmer Component](https://framer.university/resources/svg-path-shimmer-component) — texture and atmosphere reference
+- [Thermal Image Component in Framer](https://framer.university/resources/thermal-image-component-in-framer) — texture and atmosphere reference
+- [Travel in Space Effect for Framer](https://framer.university/resources/travel-in-space-effect-for-framer) — texture and atmosphere reference
+- [Wave Prism Component in Framer](https://framer.university/resources/wave-prism-component-in-framer) — texture and atmosphere reference
+
+## gallery (16)
+
+- [3D Box Carousel in Framer](https://framer.university/resources/3d-box-carousel-in-framer) — image and media showcase reference
+- [3D Circular Gallery in Framer](https://framer.university/resources/3d-circular-gallery-in-framer) — image and media showcase reference
+- [3D Gallery Loading Animation in Framer](https://framer.university/resources/3d-gallery-loading-animation-in-framer) — image and media showcase reference
+- [3D Image Carousel in Framer](https://framer.university/resources/3d-image-carousel-in-framer) — image and media showcase reference
+- [Coverflow Carousel Component in Framer](https://framer.university/resources/coverflow-carousel-component-in-framer) — image and media showcase reference
+- [Image Before After Carousel in Framer](https://framer.university/resources/image-before-after-carousel-in-framer) — image and media showcase reference
+- [Image Gallery Open Interaction in Framer](https://framer.university/resources/image-gallery-open-interaction-in-framer) — image and media showcase reference
+- [Klarna Carousel Advanced Interaction](https://framer.university/resources/klarna-carousel-advanced-interaction) — image and media showcase reference
+- [Magnetic Carousel Interaction](https://framer.university/resources/magnetic-carousel-interaction) — image and media showcase reference
+- [Minimal Carousel in Framer](https://framer.university/resources/minimal-carousel-in-framer) — image and media showcase reference
+- [Parallax Carousel](https://framer.university/resources/parallax-carousel) — image and media showcase reference
+- [Segmented Control in Framer](https://framer.university/resources/segmented-control-in-framer) — image and media showcase reference
+- [Smooth 3D Slideshow in Framer](https://framer.university/resources/smooth-3d-slideshow-in-framer) — image and media showcase reference
+- [Stripe Sessions Carousel](https://framer.university/resources/stripe-sessions-carousel) — image and media showcase reference
+- [Testimonials Carousel in Framer](https://framer.university/resources/testimonials-carousel-in-framer) — image and media showcase reference
+- [Tickets Viewer Carousel in Framer](https://framer.university/resources/tickets-viewer-carousel-in-framer) — image and media showcase reference

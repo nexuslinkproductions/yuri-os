@@ -1,0 +1,349 @@
+{
+  "capturedAt": "2026-05-10",
+  "total": 623,
+  "counts": {
+    "website": 281,
+    "navigation": 33,
+    "gallery": 16,
+    "button": 35,
+    "ambient": 20,
+    "hover": 46,
+    "text": 27,
+    "other": 54,
+    "utility": 56,
+    "scroll": 26,
+    "image-card": 29
+  },
+  "families": [
+    {
+      "family": "website",
+      "count": 281,
+      "examples": [
+        {
+          "title": "Text Scramble Override",
+          "slug": "text-scramble-override"
+        },
+        {
+          "title": "Countdown Widget",
+          "slug": "countdown-widget"
+        },
+        {
+          "title": "Card Animation On Scroll",
+          "slug": "card-animation-on-scroll"
+        },
+        {
+          "title": "Lemon Squeezy Checkout on a Framer Website",
+          "slug": "lemon-squeezy-checkout-on-a-framer-website"
+        },
+        {
+          "title": "Share Button",
+          "slug": "share-button"
+        },
+        {
+          "title": "Photo Gallery Demo",
+          "slug": "photo-gallery-demo"
+        }
+      ]
+    },
+    {
+      "family": "utility",
+      "count": 56,
+      "examples": [
+        {
+          "title": "Availability Profile Component",
+          "slug": "availability-profile-component"
+        },
+        {
+          "title": "Elapsed Time Counter Component for Framer",
+          "slug": "elapsed-time-counter-component-for-framer"
+        },
+        {
+          "title": "LED Matrix Component for Framer",
+          "slug": "led-matrix-component-for-framer"
+        },
+        {
+          "title": "3D Book Component for Framer",
+          "slug": "3d-book-component-for-framer"
+        },
+        {
+          "title": "Show Once Code Override for Framer",
+          "slug": "show-once-code-override-for-framer"
+        },
+        {
+          "title": "3D Sphere Animation in Framer",
+          "slug": "3d-sphere-animation-in-framer"
+        }
+      ]
+    },
+    {
+      "family": "other",
+      "count": 54,
+      "examples": [
+        {
+          "title": "Modal Interaction in Framer",
+          "slug": "modal-interaction-in-framer"
+        },
+        {
+          "title": "Framer Editor Built in Framer",
+          "slug": "framer-editor-built-in-framer"
+        },
+        {
+          "title": "SVG Animator Component",
+          "slug": "svg-animator-component"
+        },
+        {
+          "title": "Play Sound On Click",
+          "slug": "play-sound-on-click"
+        },
+        {
+          "title": "Easing Options in Framer",
+          "slug": "easing-options-in-framer"
+        },
+        {
+          "title": "Framer Logo Animation in Framer",
+          "slug": "framer-logo-animation-in-framer"
+        }
+      ]
+    },
+    {
+      "family": "hover",
+      "count": 46,
+      "examples": [
+        {
+          "title": "3D Hover Override",
+          "slug": "3d-hover-override"
+        },
+        {
+          "title": "Slide Button Component",
+          "slug": "slide-button-component"
+        },
+        {
+          "title": "Image on Hover Component",
+          "slug": "image-on-hover-component"
+        },
+        {
+          "title": "Button Hover Effect",
+          "slug": "button-hover-effect"
+        },
+        {
+          "title": "3D Hover Elements for Framer",
+          "slug": "3d-hover-elements-for-framer"
+        },
+        {
+          "title": "Magnetic Button Override in Framer",
+          "slug": "magnetic-button-override-in-framer"
+        }
+      ]
+    },
+    {
+      "family": "button",
+      "count": 35,
+      "examples": [
+        {
+          "title": "Like Button Component",
+          "slug": "like-button-component"
+        },
+        {
+          "title": "Bouncy Button Component",
+          "slug": "bouncy-button-component"
+        },
+        {
+          "title": "Gradient Border Button",
+          "slug": "gradient-border-button"
+        },
+        {
+          "title": "Bouncy Icon Button Component",
+          "slug": "bouncy-icon-button-component"
+        },
+        {
+          "title": "Shiny Button Component",
+          "slug": "shiny-button-component"
+        },
+        {
+          "title": "Star Button Component",
+          "slug": "star-button-component"
+        }
+      ]
+    },
+    {
+      "family": "navigation",
+      "count": 33,
+      "examples": [
+        {
+          "title": "Simple Dropdown Menu Component",
+          "slug": "simple-dropdown-menu-component"
+        },
+        {
+          "title": "Electric Tabs Interaction",
+          "slug": "electric-tabs-interaction"
+        },
+        {
+          "title": "Skeuomorphic Toggle Component",
+          "slug": "skeuomorphic-toggle-component"
+        },
+        {
+          "title": "UI8 Dropdown Component in Framer",
+          "slug": "ui8-dropdown-component-in-framer"
+        },
+        {
+          "title": "Compact Dropdown Menu Component",
+          "slug": "compact-dropdown-menu-component"
+        },
+        {
+          "title": "Responsive Navigation in Framer",
+          "slug": "responsive-navigation-in-framer"
+        }
+      ]
+    },
+    {
+      "family": "image-card",
+      "count": 29,
+      "examples": [
+        {
+          "title": "Before After Image Slider in Framer",
+          "slug": "before-after-image-slider-in-framer"
+        },
+        {
+          "title": "Rabbit R1 recreated in Framer",
+          "slug": "rabbit-r1-recreated-in-framer"
+        },
+        {
+          "title": "3D Card Flip Interaction in Framer",
+          "slug": "3d-card-flip-interaction-in-framer"
+        },
+        {
+          "title": "3D Circular Animation in Framer",
+          "slug": "3d-circular-animation-in-framer"
+        },
+        {
+          "title": "3D Buy Card Animation in Framer",
+          "slug": "3d-buy-card-animation-in-framer"
+        },
+        {
+          "title": "ASCII Art Generator Component for Framer",
+          "slug": "ascii-art-generator-component-for-framer"
+        }
+      ]
+    },
+    {
+      "family": "text",
+      "count": 27,
+      "examples": [
+        {
+          "title": "Text Reveal Effect",
+          "slug": "text-reveal-effect"
+        },
+        {
+          "title": "Image and Text Section in Framer",
+          "slug": "image-and-text-section-in-framer"
+        },
+        {
+          "title": "Dynamic Action Bar in Framer",
+          "slug": "dynamic-action-bar-in-framer"
+        },
+        {
+          "title": "Metallic UI Component in Framer",
+          "slug": "metallic-ui-component-in-framer"
+        },
+        {
+          "title": "Encryption Hero Animation in Framer",
+          "slug": "encryption-hero-animation-in-framer"
+        },
+        {
+          "title": "Text Shimmer Component for Framer",
+          "slug": "text-shimmer-component-for-framer"
+        }
+      ]
+    },
+    {
+      "family": "scroll",
+      "count": 26,
+      "examples": [
+        {
+          "title": "Tetris In Framer",
+          "slug": "tetris-in-framer"
+        },
+        {
+          "title": "Vucko Sticky Section in Framer",
+          "slug": "vucko-sticky-section-in-framer"
+        },
+        {
+          "title": "Footer Scroll Animation in Framer",
+          "slug": "footer-scroll-animation-in-framer"
+        },
+        {
+          "title": "Image Sequence Player Override in Framer",
+          "slug": "image-sequence-player-override-in-framer"
+        },
+        {
+          "title": "Windwheel 3D Animation in Framer",
+          "slug": "windwheel-3d-animation-in-framer"
+        },
+        {
+          "title": "3D Image Gallery in Framer",
+          "slug": "3d-image-gallery-in-framer"
+        }
+      ]
+    },
+    {
+      "family": "ambient",
+      "count": 20,
+      "examples": [
+        {
+          "title": "Apple Keyboard Interaction",
+          "slug": "apple-keyboard-interaction"
+        },
+        {
+          "title": "Dotted Background Override + Component",
+          "slug": "dotted-background-override-component"
+        },
+        {
+          "title": "Blur Gradient Component",
+          "slug": "blur-gradient-component"
+        },
+        {
+          "title": "Interactive 3D Globe Image Grid",
+          "slug": "interactive-3d-globe-image-grid"
+        },
+        {
+          "title": "Animated Gradient Background in Framer",
+          "slug": "animated-gradient-background-in-framer"
+        },
+        {
+          "title": "SVG Path Shimmer Component",
+          "slug": "svg-path-shimmer-component"
+        }
+      ]
+    },
+    {
+      "family": "gallery",
+      "count": 16,
+      "examples": [
+        {
+          "title": "Parallax Carousel",
+          "slug": "parallax-carousel"
+        },
+        {
+          "title": "Stripe Sessions Carousel",
+          "slug": "stripe-sessions-carousel"
+        },
+        {
+          "title": "Magnetic Carousel Interaction",
+          "slug": "magnetic-carousel-interaction"
+        },
+        {
+          "title": "Klarna Carousel Advanced Interaction",
+          "slug": "klarna-carousel-advanced-interaction"
+        },
+        {
+          "title": "Segmented Control in Framer",
+          "slug": "segmented-control-in-framer"
+        },
+        {
+          "title": "Coverflow Carousel Component in Framer",
+          "slug": "coverflow-carousel-component-in-framer"
+        }
+      ]
+    }
+  ]
+}

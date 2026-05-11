@@ -1,0 +1,128 @@
+{
+  "capturedAt": "2026-05-10",
+  "total": 72,
+  "counts": {
+    "byType": {
+      "agent-skill": 6,
+      "community-social": 12,
+      "design-system": 7,
+      "component-library": 13,
+      "repo": 5,
+      "ai-design-tool": 9,
+      "animation-motion": 4,
+      "inspiration-gallery": 16
+    },
+    "byAuthority": {
+      "high": 37,
+      "medium": 32,
+      "low": 3
+    },
+    "reachable": {
+      "reachable": 68,
+      "unavailable": 4
+    }
+  },
+  "sourceTypes": [
+    {
+      "type": "inspiration-gallery",
+      "count": 16,
+      "strongestUse": "Taste calibration, layout archetypes, and visual divergence"
+    },
+    {
+      "type": "component-library",
+      "count": 13,
+      "strongestUse": "Copyable implementation patterns and component APIs"
+    },
+    {
+      "type": "community-social",
+      "count": 12,
+      "strongestUse": "Frontier signals, adoption caveats, and failure reports"
+    },
+    {
+      "type": "ai-design-tool",
+      "count": 9,
+      "strongestUse": "AI-assisted component generation and workflow benchmarks"
+    },
+    {
+      "type": "design-system",
+      "count": 7,
+      "strongestUse": "Tokens, accessibility, primitives, and mature product grammar"
+    },
+    {
+      "type": "agent-skill",
+      "count": 6,
+      "strongestUse": "Agent behavior, audit rules, and repeatable design workflows"
+    },
+    {
+      "type": "repo",
+      "count": 5,
+      "strongestUse": "Concrete source code and registry conventions"
+    },
+    {
+      "type": "animation-motion",
+      "count": 4,
+      "strongestUse": "Motion grammar, interaction timing, and advanced effects"
+    }
+  ],
+  "highValue": [
+    "anthropic-frontend-design-skill",
+    "anthropic-frontend-design-blog",
+    "vercel-agent-skills",
+    "vercel-skills-cli",
+    "vercel-web-interface-guidelines",
+    "vercel-agent-skills-guide",
+    "vercel-design",
+    "vercel-geist",
+    "apple-hig",
+    "primer",
+    "atlassian-design",
+    "shadcn-ui",
+    "shadcn-github",
+    "radix-primitives",
+    "base-ui",
+    "headless-ui",
+    "react-aria",
+    "tailwind-docs",
+    "magic-ui",
+    "magic-ui-github",
+    "animate-ui",
+    "animate-ui-github",
+    "motion-primitives",
+    "motion-dev",
+    "gsap-docs",
+    "twentyfirst-help",
+    "twentyfirst-magic-mcp",
+    "framer-university",
+    "codrops",
+    "codrops-tutorials",
+    "mobbin",
+    "typewolf",
+    "v0",
+    "figma-make",
+    "react-learn",
+    "react-rules-pure-components",
+    "react-managing-state"
+  ],
+  "unavailable": [
+    {
+      "id": "motion-primitives",
+      "url": "https://motion-primitives.com/",
+      "reason": "HTTP 429"
+    },
+    {
+      "id": "land-book",
+      "url": "https://land-book.com/",
+      "reason": "HTTP 403"
+    },
+    {
+      "id": "siteinspire",
+      "url": "https://www.siteinspire.com/",
+      "reason": "HTTP 429"
+    },
+    {
+      "id": "x-emil-kowalski",
+      "url": "https://x.com/emilkowalski_",
+      "reason": "HTTP 404"
+    }
+  ]
+}

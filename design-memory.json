@@ -1,197 +1,798 @@
-[
-  {
-    "date": "2026-04-25",
-    "component": "App Shell — VSCode Layout",
-    "decision": "Replaced flat header+pill-nav layout with VSCode spatial grammar: activity-bar (48px, col 1) | sidebar/explorer (220px, col 2) | editor-area (flex col: title-bar + tab-bar + breadcrumb + content, col 3) + status-bar (22px, row 2, full width). Grid: `var(--vsc-activity-w) var(--sidebar-w) 1fr / 1fr var(--vsc-status-h)`. Nav nodes moved from inline pill tabs to vertical list items in sidebar with left-border active indicator. Status bar background uses `rgba(0,100,160,0.92)` (VSCode blue adapted to HUD opacity model). All existing JS IDs preserved (`#module-content`, `#sidebar-nav`, `.nav-node[data-module]`, all footer IDs). MutationObserver inline script syncs tab-bar and breadcrumb with active nav-node class changes.",
-    "tokens_used": [
-      "--vsc-activity-w",
-      "--vsc-status-h",
-      "--vsc-tab-h",
-      "--vsc-breadcrumb-h",
-      "--vsc-sidebar-bg",
-      "--vsc-activity-bg",
-      "--vsc-editor-bg",
-      "--vsc-titlebar-bg",
-      "--vsc-tab-bg",
-      "--vsc-status-bg",
-      "--vsc-border",
-      "--vsc-border-active",
-      "--sidebar-w",
-      "--cyan-glow",
-      "--gold-solar",
-      "--text-dim",
-      "--silver-albedo",
-      "--font-mono"
-    ],
-    "pattern": "VSCode layout shell: grid(activity | sidebar | editor / content | statusbar). Editor area = flex-col with title-bar, tab-bar, breadcrumb, scrollable content. Activity bar = icon-only with left-border active state. Sidebar = vertical nav list with grouped sections + dividers. Status bar = 22px full-width strip."
-  },
-  {
-    "date": "2026-05-10",
-    "component": "ExeoFlow YURI OS target intelligence dashboard",
-    "decision": "Reworked from light presentation page into dark operator HUD with target profile inspector, scored account rail, evidence/source panels, buying-center hypotheses, discovery questions, and workflow wedges so Claudio can inspect accounts instead of reading generic sector summaries.",
-    "tokens_used": [
-      "--bg-void",
-      "--bg-surface",
-      "--bg-glass",
-      "--cyan-glow",
-      "--gold-solar",
-      "--red-fusion",
-      "--silver-albedo",
-      "--text-dim",
-      "--font-mono",
-      "--ease-neural"
-    ],
-    "pattern": "Enterprise target intelligence HUD: left account rail plus central profile inspector plus right buying-center/source panel plus bottom account matrix."
-  },
-  {
-    "date": "2026-05-10",
-    "component": "ExeoFlow YURI OS interactive business displays",
-    "decision": "Converted the vertical activity rail from decorative labels into clickable mode controls and added four inspectable business views: account operating diagram, portfolio fit scatter, source evidence board, and business motion board. This gives Claudio both account intelligence and a meeting-ready sales motion.",
-    "tokens_used": [
-      "--bg-void",
-      "--bg-panel",
-      "--bg-glass",
-      "--cyan-glow",
-      "--cyan-dim",
-      "--gold-solar",
-      "--green-signal",
-      "--silver-albedo",
-      "--text-dim",
-      "--line-soft",
-      "--line-hard",
-      "--font-mono",
-      "--ease-neural"
-    ],
-    "pattern": "Mode rail HUD: ACC/FIT/SRC/OPS buttons switch a central business display while preserving the selected-account dossier, right-side buying-center context, and bottom matrix."
-  },
-  {
-    "date": "2026-05-10",
-    "component": "ExeoFlow YURI OS consumer briefing website",
-    "decision": "Replaced the overloaded futuristic HUD with a Nexus Link-style consumer website: fixed glass navigation, cinematic hero, guided usage section, three-stage commercial path, card-based target explorer, portfolio fit map, evidence board, and send-package close. The design prioritizes reading order, progressive disclosure, and client comprehension over dense operator visuals.",
-    "tokens_used": [
-      "--color-void",
-      "--color-deep",
-      "--color-surface",
-      "--color-elevated",
-      "--color-border-subtle",
-      "--color-text-primary",
-      "--color-text-secondary",
-      "--color-purple",
-      "--color-cyan",
-      "--font-sans",
-      "--font-heading",
-      "--font-mono"
-    ],
-    "pattern": "Consumer briefing site: hero story -> usage guide -> commercial path -> interactive account explorer -> portfolio lens -> evidence board -> package close."
-  },
-  {
-    "date": "2026-05-10",
-    "component": "ExeoFlow YURI OS Switzerland SITREP layer",
-    "decision": "Expanded the consumer briefing site into a lawful business SITREP by adding an interactive location map, official company contact routes, and per-target action plans. Added 18 Switzerland targets, including national infrastructure operators and local/mid-market businesses for Claudio-led access, while keeping contacts limited to official public company channels.",
-    "tokens_used": [
-      "--color-void",
-      "--color-deep",
-      "--color-surface",
-      "--color-border-subtle",
-      "--color-text-primary",
-      "--color-text-secondary",
-      "--color-purple",
-      "--color-cyan",
-      "--glass-strong",
-      "--font-heading",
-      "--font-mono"
-    ],
-    "pattern": "Business SITREP layer: abstract geographic map markers -> selected account panel -> official contact route -> 3-step action plan -> public-source guardrail note."
-  },
-  {
-    "date": "2026-05-10",
-    "component": "ExeoFlow YURI OS real-world SITREP map",
-    "decision": "Replaced the abstract location tracker with a Leaflet real-world map using OpenStreetMap/CARTO dark tiles. Added pan, scroll zoom, native zoom controls, country focus buttons, selected-target focus, clickable numbered markers, and popups while preserving the Nexus Link consumer-site shell.",
-    "tokens_used": [
-      "--color-void",
-      "--color-deep",
-      "--color-surface",
-      "--color-border",
-      "--color-text-primary",
-      "--color-text-secondary",
-      "--color-purple",
-      "--color-cyan",
-      "--glass-strong",
-      "--font-mono"
-    ],
-    "pattern": "Leaflet SITREP map: real map tiles + custom numbered div markers + focus pills + selected account side panel."
-  },
-  {
-    "date": "2026-05-10",
-    "component": "ExeoFlow YURI OS SITREP baseline reference pack",
-    "decision": "Saved the current ExeoFlow + YURI OS SITREP website as an internal design-source pack under 03_RESOURCES/References/design-packs. The pack records this as a basic baseline and includes snapshot assets, design notes, a reuse guide, and a prioritized improvement backlog for future presentation, animation, and information upgrades.",
-    "tokens_used": [
-      "--color-void",
-      "--color-deep",
-      "--color-surface",
-      "--color-purple",
-      "--color-cyan",
-      "--font-heading",
-      "--font-sans",
-      "--font-mono"
-    ],
-    "pattern": "Design source pack: frozen artifact snapshot + screenshot + notes + reuse guide + improvement backlog + index references."
-  },
-  {
-    "date": "2026-05-10",
-    "component": "Nexus Link Productions benchmark companion",
-    "decision": "Added the current Nexus Link Productions website as the stronger benchmark reference inside the same ExeoFlow / YURI OS design pack. This gives future iterations a clear comparison target for presentation quality, navigation rhythm, and motion polish instead of treating the SITREP baseline as the standard.",
-    "tokens_used": [
-      "--color-void",
-      "--color-deep",
-      "--color-surface",
-      "--color-elevated",
-      "--color-text-primary",
-      "--color-text-secondary",
-      "--color-purple",
-      "--color-cyan",
-      "--font-sans",
-      "--font-heading",
-      "--font-mono"
-    ],
-    "pattern": "Two-reference pack: baseline SITREP artifact plus stronger current-site benchmark companion."
-  },
-  {
-    "date": "2026-05-10",
-    "component": "ExeoFlow + YURI OS future-session pack manifest",
-    "decision": "Added a start-here manifest and a benchmark delta sheet to the design pack so future sessions can load the right files in the right order without re-discovering the pack structure. This makes the baseline faster to reuse and clearer to improve.",
-    "tokens_used": [
-      "--color-void",
-      "--color-deep",
-      "--color-surface",
-      "--color-elevated",
-      "--color-text-primary",
-      "--color-text-secondary",
-      "--color-purple",
-      "--color-cyan",
-      "--font-sans",
-      "--font-heading",
-      "--font-mono"
-    ],
-    "pattern": "Future-session reference pack: explicit load order, source-of-truth pointer, benchmark delta, and guardrails."
-  },
-  {
-    "date": "2026-05-10",
-    "component": "ExeoFlow + YURI OS portable skill",
-    "decision": "Created a reusable agent skill for the ExeoFlow + YURI OS design reference workflow so future sessions can load the pack structure, benchmark comparison, and guardrails directly from a skill instead of reconstructing the process from scratch.",
-    "tokens_used": [
-      "--color-void",
-      "--color-deep",
-      "--color-surface",
-      "--color-elevated",
-      "--color-text-primary",
-      "--color-text-secondary",
-      "--color-purple",
-      "--color-cyan",
-      "--font-sans",
-      "--font-heading",
-      "--font-mono"
-    ],
-    "pattern": "Portable skill + design pack + benchmark companion + manifest + delta sheet."
-  }
-]
+{
+  "version": "2.0",
+  "canonicalPath": "design-memory.json",
+  "lastUpdated": "2026-05-10T20:00:45.292Z",
+  "note": "Canonical NUDIMMUD design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
+  "entries": [
+    {
+      "date": "2026-04-24",
+      "component": "ChatInput",
+      "decision": "Plus icon bottom-left (file picker), textarea center, model select, reasoning level button, mic button, send button. All 34px height for alignment.",
+      "tokens_used": [
+        "--bg-surface",
+        "--cyan-glow",
+        "--red-fusion"
+      ],
+      "pattern": "Unified chat bar pattern — replicate across any agent interface"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "NetworkGraph",
+      "file": "src/components/Oracle/NotebookTab/NetworkGraph.tsx",
+      "action": "edit",
+      "decision": "Updated: NetworkGraph"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "NotebookTab",
+      "file": "src/components/Oracle/NotebookTab/NotebookTab.tsx",
+      "action": "edit",
+      "decision": "Updated: NotebookTab"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "NotebookTab",
+      "file": "src/components/Oracle/NotebookTab/NotebookTab.tsx",
+      "action": "create",
+      "decision": "New component created: NotebookTab"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "OraclePage",
+      "file": "src/components/Oracle/OraclePage.tsx",
+      "action": "edit",
+      "decision": "Updated: OraclePage"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "OraclePage",
+      "decision": "Three-column layout: 88px tab rail left, flex-1 center with orbs + chat, collapsible terminal pane at bottom. Avoids scattered tool UIs.",
+      "tokens_used": [
+        "--bg-void",
+        "--cyan-glow",
+        "--gold-solar",
+        "--bg-glass"
+      ],
+      "pattern": "Tab rail left + content right + collapsible bottom — reuse for any multi-tool page"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "OracleTerminal",
+      "file": "src/components/Oracle/OracleTerminal.tsx",
+      "action": "edit",
+      "decision": "Updated: OracleTerminal"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "OracleToolOrbs",
+      "decision": "Circular orbs (68px) with animated orbit ring, hover scale + glow. Arranged in flex-wrap grid. Type-coded: cyan=skill, gold=tool, red=danger. Tooltip on hover.",
+      "tokens_used": [
+        "--cyan-glow",
+        "--gold-solar",
+        "--red-fusion"
+      ],
+      "pattern": "Orb cluster — use for any tool/capability catalog display"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "PixelArtLogo",
+      "decision": "32x32 base SVG, cuneiform tablet motif, circuit trace overlay. Cyan/gold on void. Scanline overlay animation, glitch on hover. No rounded corners.",
+      "tokens_used": [
+        "--cyan-glow",
+        "--gold-solar",
+        "--bg-void"
+      ],
+      "pattern": "Pixel art sigil — repeat grid-based SVG approach for any icon in the HUD"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "SentimentGauge",
+      "file": "src/components/Oracle/NotebookTab/SentimentGauge.tsx",
+      "action": "edit",
+      "decision": "Updated: SentimentGauge"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "TokenStatusBar",
+      "decision": "Dual bar (session + weekly) in footer. Bar turns gold >55%, red >80%. Monospace token counts with up/down arrows. Cost in gold. Polls every 5s.",
+      "tokens_used": [
+        "--cyan-glow",
+        "--gold-solar",
+        "--red-fusion"
+      ],
+      "pattern": "Dual-metric status bar — reuse for any live telemetry display"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "VisualSynthesisLane",
+      "file": "src/components/Oracle/VisualSynthesisLane.tsx",
+      "action": "edit",
+      "decision": "Updated: VisualSynthesisLane"
+    },
+    {
+      "date": "2026-04-24",
+      "component": "VisualSynthesisLane",
+      "decision": "Collapsible dropdowns per provider (KIE primary expanded, remote collapsed). Model pills for selection. Generate button inline with prompt. Results grid below.",
+      "tokens_used": [
+        "--cyan-glow",
+        "--gold-solar"
+      ],
+      "pattern": "Layered provider dropdown — KIE first, remote second, always same pattern"
+    },
+    {
+      "date": "2026-04-25",
+      "component": "App Shell — VSCode Layout",
+      "decision": "Replaced flat header+pill-nav layout with VSCode spatial grammar: activity-bar (48px, col 1) | sidebar/explorer (220px, col 2) | editor-area (flex col: title-bar + tab-bar + breadcrumb + content, col 3) + status-bar (22px, row 2, full width). Grid: `var(--vsc-activity-w) var(--sidebar-w) 1fr / 1fr var(--vsc-status-h)`. Nav nodes moved from inline pill tabs to vertical list items in sidebar with left-border active indicator. Status bar background uses `rgba(0,100,160,0.92)` (VSCode blue adapted to HUD opacity model). All existing JS IDs preserved (`#module-content`, `#sidebar-nav`, `.nav-node[data-module]`, all footer IDs). MutationObserver inline script syncs tab-bar and breadcrumb with active nav-node class changes.",
+      "tokens_used": [
+        "--vsc-activity-w",
+        "--vsc-status-h",
+        "--vsc-tab-h",
+        "--vsc-breadcrumb-h",
+        "--vsc-sidebar-bg",
+        "--vsc-activity-bg",
+        "--vsc-editor-bg",
+        "--vsc-titlebar-bg",
+        "--vsc-tab-bg",
+        "--vsc-status-bg",
+        "--vsc-border",
+        "--vsc-border-active",
+        "--sidebar-w",
+        "--cyan-glow",
+        "--gold-solar",
+        "--text-dim",
+        "--silver-albedo",
+        "--font-mono"
+      ],
+      "pattern": "VSCode layout shell: grid(activity | sidebar | editor / content | statusbar). Editor area = flex-col with title-bar, tab-bar, breadcrumb, scrollable content. Activity bar = icon-only with left-border active state. Sidebar = vertical nav list with grouped sections + dividers. Status bar = 22px full-width strip."
+    },
+    {
+      "date": "2026-04-25",
+      "component": "AuditHUD",
+      "file": "src/components/DesignAuditHUD/AuditHUD.tsx",
+      "action": "create",
+      "decision": "New component created: AuditHUD"
+    },
+    {
+      "date": "2026-04-25",
+      "component": "ConfirmScreen",
+      "file": "src/components/DesignAuditHUD/ConfirmScreen.tsx",
+      "action": "create",
+      "decision": "New component created: ConfirmScreen"
+    },
+    {
+      "date": "2026-04-25",
+      "component": "DesignCatalog",
+      "file": "src/components/DesignAuditHUD/DesignCatalog.tsx",
+      "action": "edit",
+      "decision": "Updated: DesignCatalog"
+    },
+    {
+      "date": "2026-04-25",
+      "component": "DesignCatalog",
+      "file": "src/components/DesignAuditHUD/DesignCatalog.tsx",
+      "action": "create",
+      "decision": "New component created: DesignCatalog"
+    },
+    {
+      "date": "2026-04-25",
+      "component": "index",
+      "file": "index.html",
+      "action": "edit",
+      "decision": "Updated: index"
+    },
+    {
+      "date": "2026-04-25",
+      "component": "index",
+      "file": "src/index.tsx",
+      "action": "edit",
+      "decision": "Updated: index"
+    },
+    {
+      "date": "2026-04-25",
+      "component": "index",
+      "file": "src/components/DesignAuditHUD/index.tsx",
+      "action": "create",
+      "decision": "New component created: index"
+    },
+    {
+      "date": "2026-04-25",
+      "component": "OraclePage",
+      "file": "src/components/Oracle/OraclePage.tsx",
+      "action": "edit",
+      "decision": "Updated: OraclePage"
+    },
+    {
+      "date": "2026-04-25",
+      "component": "ParticleBackground",
+      "file": "src/components/DesignAuditHUD/ParticleBackground.tsx",
+      "action": "create",
+      "decision": "New component created: ParticleBackground"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "AboutPage",
+      "file": "src/pages/AboutPage.tsx",
+      "action": "create",
+      "decision": "New component created: AboutPage"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "AboutPage",
+      "file": "src/pages/AboutPage.tsx",
+      "action": "edit",
+      "decision": "Updated: AboutPage"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "Button",
+      "file": "src/components/ui/Button.tsx",
+      "action": "edit",
+      "decision": "Updated: Button"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "ContactPage",
+      "file": "src/pages/ContactPage.tsx",
+      "action": "edit",
+      "decision": "Updated: ContactPage"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "MobileMenuDrawer",
+      "file": "src/components/MobileMenuDrawer.tsx",
+      "action": "edit",
+      "decision": "Updated: MobileMenuDrawer"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "Navigation",
+      "file": "src/components/Navigation.tsx",
+      "action": "edit",
+      "decision": "Updated: Navigation"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "ServicesPage",
+      "file": "src/pages/ServicesPage.tsx",
+      "action": "edit",
+      "decision": "Updated: ServicesPage"
+    },
+    {
+      "date": "2026-05-05",
+      "component": "WorkPage",
+      "file": "src/pages/WorkPage.tsx",
+      "action": "edit",
+      "decision": "Updated: WorkPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "AboutPage",
+      "file": "src/pages/AboutPage.tsx",
+      "action": "create",
+      "decision": "New component created: AboutPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "App",
+      "file": "src/App.tsx",
+      "action": "create",
+      "decision": "New component created: App"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "App",
+      "file": "src/App.tsx",
+      "action": "edit",
+      "decision": "Updated: App"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "CelticBackground",
+      "file": "src/components/ui/CelticBackground.tsx",
+      "action": "create",
+      "decision": "New component created: CelticBackground"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "ContactPage",
+      "file": "src/pages/ContactPage.tsx",
+      "action": "create",
+      "decision": "New component created: ContactPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "CTABanner",
+      "file": "src/components/CTABanner.tsx",
+      "action": "create",
+      "decision": "New component created: CTABanner"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "global",
+      "file": "src/styles/global.css",
+      "action": "edit",
+      "decision": "Updated: global"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "HeroSection",
+      "file": "src/components/HeroSection.tsx",
+      "action": "edit",
+      "decision": "Updated: HeroSection"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "HeroSection",
+      "file": "src/components/HeroSection.tsx",
+      "action": "create",
+      "decision": "New component created: HeroSection"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "HomePage",
+      "file": "src/pages/HomePage.tsx",
+      "action": "edit",
+      "decision": "Updated: HomePage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "HomePage",
+      "file": "src/pages/HomePage.tsx",
+      "action": "create",
+      "decision": "New component created: HomePage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "index",
+      "file": "index.html",
+      "action": "edit",
+      "decision": "Updated: index"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "LightCursor",
+      "file": "src/components/ui/LightCursor.tsx",
+      "action": "edit",
+      "decision": "Updated: LightCursor"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "LightCursor",
+      "file": "src/components/ui/LightCursor.tsx",
+      "action": "create",
+      "decision": "New component created: LightCursor"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "MagneticCursor",
+      "file": "src/components/ui/MagneticCursor.tsx",
+      "action": "create",
+      "decision": "New component created: MagneticCursor"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "Navigation",
+      "file": "src/components/Navigation.tsx",
+      "action": "edit",
+      "decision": "Updated: Navigation"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "ServicesPage",
+      "file": "src/pages/ServicesPage.tsx",
+      "action": "edit",
+      "decision": "Updated: ServicesPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "ServicesPage",
+      "file": "src/pages/ServicesPage.tsx",
+      "action": "create",
+      "decision": "New component created: ServicesPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "tokens",
+      "file": "src/styles/tokens.css",
+      "action": "edit",
+      "decision": "Updated: tokens"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "tokens",
+      "file": "src/styles/tokens.css",
+      "action": "create",
+      "decision": "New component created: tokens"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "WorkPage",
+      "file": "src/pages/WorkPage.tsx",
+      "action": "edit",
+      "decision": "Updated: WorkPage"
+    },
+    {
+      "date": "2026-05-06",
+      "component": "WorkPage",
+      "file": "src/pages/WorkPage.tsx",
+      "action": "create",
+      "decision": "New component created: WorkPage"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "AnimatedCounter",
+      "file": "src/components/ui/AnimatedCounter.tsx",
+      "action": "create",
+      "decision": "New component created: AnimatedCounter"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "App",
+      "file": "src/App.tsx",
+      "action": "edit",
+      "decision": "Updated: App"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "Footer",
+      "file": "src/components/Footer.tsx",
+      "action": "edit",
+      "decision": "Updated: Footer"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "global",
+      "file": "src/styles/global.css",
+      "action": "edit",
+      "decision": "Updated: global"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "HeroSection",
+      "file": "src/components/HeroSection.tsx",
+      "action": "edit",
+      "decision": "Updated: HeroSection"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "HomePage",
+      "file": "src/pages/HomePage.tsx",
+      "action": "edit",
+      "decision": "Updated: HomePage"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "LightCursor",
+      "file": "src/components/ui/LightCursor.tsx",
+      "action": "edit",
+      "decision": "Updated: LightCursor"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "LogoAtmosphere",
+      "file": "src/components/ui/LogoAtmosphere.tsx",
+      "action": "edit",
+      "decision": "Updated: LogoAtmosphere"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "Navigation",
+      "file": "src/components/Navigation.tsx",
+      "action": "edit",
+      "decision": "Updated: Navigation"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "NexusLinkHermeticLayer",
+      "file": "src/App.tsx, src/components/ui/HermeticVeil.tsx, src/components/ui/CineGlow.tsx, src/components/ui/ArchitecturalGrid.tsx, src/styles/global.css",
+      "action": "edit",
+      "decision": "Added route reset for SPA navigation, replaced bloom cursor with a precise sigil reticle, and layered hermetic line art plus route constellation navigation across all pages.",
+      "tokens_used": [
+        "--color-crimson",
+        "--color-crimson-border",
+        "--color-text-primary",
+        "--color-text-tertiary",
+        "--color-border-default"
+      ],
+      "pattern": "Use a global crimson-only hermetic veil for visual storytelling, with per-route symbols and nonblocking page-sequence guidance."
+    },
+    {
+      "date": "2026-05-07",
+      "component": "NexusLinkLogoAtmosphere",
+      "file": "src/components/ui/LogoAtmosphere.tsx, src/components/Navigation.tsx, src/App.tsx, src/styles/global.css",
+      "action": "create",
+      "decision": "Integrated the real Nexus Link SVG logo assets from 05_NEXUS-LINK/Identity/NLP LOGO as a first-load animated lockup, scroll-reactive background mark, ghost elements, construction lines, and navigation wordmark. Added hard CSS override so data-magnetic elements cannot be translated by stale cursor behavior.",
+      "tokens_used": [
+        "--color-crimson",
+        "--color-bg-abzu",
+        "--color-text-primary",
+        "--color-border-default"
+      ],
+      "pattern": "Brand mark as atmosphere: first-load lockup resolves into scroll-reactive background construction system."
+    },
+    {
+      "date": "2026-05-07",
+      "component": "NexusLinkSystemBoard",
+      "file": "src/App.tsx, src/components/ui/CineGlow.tsx, src/components/ui/HermeticVeil.tsx, src/styles/global.css",
+      "action": "edit",
+      "decision": "Replaced route exit-wait with immediate route rendering, made the cursor visual-only with hover brackets and no DOM transform mutation, and expanded the visual system into a route/scroll-reactive board of nodes, edges, move counters, animated guide paths, and floating concept-art glyphs.",
+      "tokens_used": [
+        "--color-crimson",
+        "--color-crimson-border",
+        "--color-bg-abzu",
+        "--color-text-primary",
+        "--color-text-tertiary"
+      ],
+      "pattern": "Chaotic systematic site layer: route equals board state, scroll equals move progression, visual edges reveal relationships without moving clickable UI."
+    },
+    {
+      "date": "2026-05-07",
+      "component": "NexusLinkWebsite",
+      "file": "src/App.tsx, src/styles/tokens.css, src/styles/global.css, src/pages/*",
+      "action": "rebuild",
+      "decision": "Rebuilt Nexus Link Productions as a crimson-only spatial room: fixed perspective floor grid, pulsing triquetra vanishing point, floating Z-depth panels, magnetic tilt, bento work grid, compact services stations, CV-driven about narrative, and multi-step contact flow.",
+      "tokens_used": [
+        "--color-bg-void",
+        "--color-bg-abzu",
+        "--color-bg-raised",
+        "--color-crimson",
+        "--color-text-primary",
+        "--color-text-secondary"
+      ],
+      "pattern": "Crimson-only architectural depth system for premium brand-content pages; no green, cyan, teal, or purple accents."
+    },
+    {
+      "date": "2026-05-07",
+      "component": "ParticleCanvas",
+      "file": "src/components/ParticleCanvas.tsx",
+      "action": "edit",
+      "decision": "Updated: ParticleCanvas"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "ServicesPage",
+      "file": "src/pages/ServicesPage.tsx",
+      "action": "edit",
+      "decision": "Updated: ServicesPage"
+    },
+    {
+      "date": "2026-05-07",
+      "component": "tokens",
+      "file": "src/styles/tokens.css",
+      "action": "edit",
+      "decision": "Updated: tokens"
+    },
+    {
+      "date": "2026-05-10",
+      "component": "ExeoFlow + YURI OS future-session pack manifest",
+      "decision": "Added a start-here manifest and a benchmark delta sheet to the design pack so future sessions can load the right files in the right order without re-discovering the pack structure. This makes the baseline faster to reuse and clearer to improve.",
+      "tokens_used": [
+        "--color-void",
+        "--color-deep",
+        "--color-surface",
+        "--color-elevated",
+        "--color-text-primary",
+        "--color-text-secondary",
+        "--color-purple",
+        "--color-cyan",
+        "--font-sans",
+        "--font-heading",
+        "--font-mono"
+      ],
+      "pattern": "Future-session reference pack: explicit load order, source-of-truth pointer, benchmark delta, and guardrails."
+    },
+    {
+      "date": "2026-05-10",
+      "component": "ExeoFlow + YURI OS portable skill",
+      "decision": "Created a reusable agent skill for the ExeoFlow + YURI OS design reference workflow so future sessions can load the pack structure, benchmark comparison, and guardrails directly from a skill instead of reconstructing the process from scratch.",
+      "tokens_used": [
+        "--color-void",
+        "--color-deep",
+        "--color-surface",
+        "--color-elevated",
+        "--color-text-primary",
+        "--color-text-secondary",
+        "--color-purple",
+        "--color-cyan",
+        "--font-sans",
+        "--font-heading",
+        "--font-mono"
+      ],
+      "pattern": "Portable skill + design pack + benchmark companion + manifest + delta sheet."
+    },
+    {
+      "date": "2026-05-10",
+      "component": "ExeoFlow YURI OS consumer briefing website",
+      "decision": "Replaced the overloaded futuristic HUD with a Nexus Link-style consumer website: fixed glass navigation, cinematic hero, guided usage section, three-stage commercial path, card-based target explorer, portfolio fit map, evidence board, and send-package close. The design prioritizes reading order, progressive disclosure, and client comprehension over dense operator visuals.",
+      "tokens_used": [
+        "--color-void",
+        "--color-deep",
+        "--color-surface",
+        "--color-elevated",
+        "--color-border-subtle",
+        "--color-text-primary",
+        "--color-text-secondary",
+        "--color-purple",
+        "--color-cyan",
+        "--font-sans",
+        "--font-heading",
+        "--font-mono"
+      ],
+      "pattern": "Consumer briefing site: hero story -> usage guide -> commercial path -> interactive account explorer -> portfolio lens -> evidence board -> package close."
+    },
+    {
+      "date": "2026-05-10",
+      "component": "ExeoFlow YURI OS interactive business displays",
+      "decision": "Converted the vertical activity rail from decorative labels into clickable mode controls and added four inspectable business views: account operating diagram, portfolio fit scatter, source evidence board, and business motion board. This gives Claudio both account intelligence and a meeting-ready sales motion.",
+      "tokens_used": [
+        "--bg-void",
+        "--bg-panel",
+        "--bg-glass",
+        "--cyan-glow",
+        "--cyan-dim",
+        "--gold-solar",
+        "--green-signal",
+        "--silver-albedo",
+        "--text-dim",
+        "--line-soft",
+        "--line-hard",
+        "--font-mono",
+        "--ease-neural"
+      ],
+      "pattern": "Mode rail HUD: ACC/FIT/SRC/OPS buttons switch a central business display while preserving the selected-account dossier, right-side buying-center context, and bottom matrix."
+    },
+    {
+      "date": "2026-05-10",
+      "component": "ExeoFlow YURI OS real-world SITREP map",
+      "decision": "Replaced the abstract location tracker with a Leaflet real-world map using OpenStreetMap/CARTO dark tiles. Added pan, scroll zoom, native zoom controls, country focus buttons, selected-target focus, clickable numbered markers, and popups while preserving the Nexus Link consumer-site shell.",
+      "tokens_used": [
+        "--color-void",
+        "--color-deep",
+        "--color-surface",
+        "--color-border",
+        "--color-text-primary",
+        "--color-text-secondary",
+        "--color-purple",
+        "--color-cyan",
+        "--glass-strong",
+        "--font-mono"
+      ],
+      "pattern": "Leaflet SITREP map: real map tiles + custom numbered div markers + focus pills + selected account side panel."
+    },
+    {
+      "date": "2026-05-10",
+      "component": "ExeoFlow YURI OS SITREP baseline reference pack",
+      "decision": "Saved the current ExeoFlow + YURI OS SITREP website as an internal design-source pack under 03_RESOURCES/References/design-packs. The pack records this as a basic baseline and includes snapshot assets, design notes, a reuse guide, and a prioritized improvement backlog for future presentation, animation, and information upgrades.",
+      "tokens_used": [
+        "--color-void",
+        "--color-deep",
+        "--color-surface",
+        "--color-purple",
+        "--color-cyan",
+        "--font-heading",
+        "--font-sans",
+        "--font-mono"
+      ],
+      "pattern": "Design source pack: frozen artifact snapshot + screenshot + notes + reuse guide + improvement backlog + index references."
+    },
+    {
+      "date": "2026-05-10",
+      "component": "ExeoFlow YURI OS Switzerland SITREP layer",
+      "decision": "Expanded the consumer briefing site into a lawful business SITREP by adding an interactive location map, official company contact routes, and per-target action plans. Added 18 Switzerland targets, including national infrastructure operators and local/mid-market businesses for Claudio-led access, while keeping contacts limited to official public company channels.",
+      "tokens_used": [
+        "--color-void",
+        "--color-deep",
+        "--color-surface",
+        "--color-border-subtle",
+        "--color-text-primary",
+        "--color-text-secondary",
+        "--color-purple",
+        "--color-cyan",
+        "--glass-strong",
+        "--font-heading",
+        "--font-mono"
+      ],
+      "pattern": "Business SITREP layer: abstract geographic map markers -> selected account panel -> official contact route -> 3-step action plan -> public-source guardrail note."
+    },
+    {
+      "date": "2026-05-10",
+      "component": "ExeoFlow YURI OS target intelligence dashboard",
+      "decision": "Reworked from light presentation page into dark operator HUD with target profile inspector, scored account rail, evidence/source panels, buying-center hypotheses, discovery questions, and workflow wedges so Claudio can inspect accounts instead of reading generic sector summaries.",
+      "tokens_used": [
+        "--bg-void",
+        "--bg-surface",
+        "--bg-glass",
+        "--cyan-glow",
+        "--gold-solar",
+        "--red-fusion",
+        "--silver-albedo",
+        "--text-dim",
+        "--font-mono",
+        "--ease-neural"
+      ],
+      "pattern": "Enterprise target intelligence HUD: left account rail plus central profile inspector plus right buying-center/source panel plus bottom account matrix."
+    },
+    {
+      "date": "2026-05-10",
+      "component": "Nexus Link Productions benchmark companion",
+      "decision": "Added the current Nexus Link Productions website as the stronger benchmark reference inside the same ExeoFlow / YURI OS design pack. This gives future iterations a clear comparison target for presentation quality, navigation rhythm, and motion polish instead of treating the SITREP baseline as the standard.",
+      "tokens_used": [
+        "--color-void",
+        "--color-deep",
+        "--color-surface",
+        "--color-elevated",
+        "--color-text-primary",
+        "--color-text-secondary",
+        "--color-purple",
+        "--color-cyan",
+        "--font-sans",
+        "--font-heading",
+        "--font-mono"
+      ],
+      "pattern": "Two-reference pack: baseline SITREP artifact plus stronger current-site benchmark companion."
+    },
+    {
+      "date": "2026-05-10T20:00:45.290Z",
+      "component": "Frontier Design Intelligence layer",
+      "file": "DESIGN.md, design-memory.json, .agents/skills/frontend-design/SKILL.md, .claude/skills/design-master/SKILL.md, RESEARCH/DESIGN-RADAR/design-radar.ts, 03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md",
+      "action": "upgrade",
+      "decision": "Unified design activation around root design-memory.json, installed frontend-design as an active skill, added source-selection and motion-budget rules, and represented the frontier and Framer packs in Design Radar executable catalog form.",
+      "tokens_used": [
+        "DESIGN.md",
+        "design-memory.json",
+        "frontier-design-intelligence",
+        "framer-university-resource-atlas",
+        "designRadar"
+      ],
+      "pattern": "Design task activation pipeline: DESIGN.md -> canonical memory -> frontier atlas -> relevant pack -> implementation constraints -> screenshot/browser verification."
+    },
+    {
+      "date": "2026-05-10",
+      "component": "Site Builder operator workbench",
+      "decision": "Created a dense fixed-viewport builder surface for page structure, iframe section selection, Design Radar source binding, and Codex patch packet review. The visual grammar follows Linear density, Vercel developer clarity, Raycast/Cursor command speed, Frontier source-selection discipline, and Framer Atlas restrained motion while preserving the NUDIMMUD HUD tokens.",
+      "tokens_used": [
+        "--bg-void",
+        "--bg-surface",
+        "--bg-glass",
+        "--cyan-glow",
+        "--gold-solar",
+        "--red-fusion",
+        "--silver-albedo",
+        "--text-dim",
+        "--op-font-mono"
+      ],
+      "pattern": "Builder workbench: page registry rail plus live iframe overlay plus inspector intent form plus bottom patch packet review rail."
+    },
+    {
+      "date": "2026-05-11",
+      "component": "Nexus Link global site theme",
+      "file": "index.html, src/styles/tokens.css, src/styles/global.css, src/components/Navigation.tsx, src/components/CTABanner.tsx, src/components/Footer.tsx, src/components/WorkGallery.tsx, src/pages/HomePage.tsx",
+      "action": "refine",
+      "decision": "Shifted the public site toward a luxury editorial baseline: Bricolage Grotesque/DM Sans/Instrument Serif typography, softer graphite surfaces, glassier panels, muted crimson accents, smoother nav chrome, and more polished hero/stat/card presentation. The goal is a cinematic website feel with subtle motion, not a code-tool aesthetic.",
+      "tokens_used": [
+        "--font-display",
+        "--font-body",
+        "--font-serif",
+        "--color-bg-void",
+        "--color-bg-glass",
+        "--color-crimson",
+        "--shadow-depth"
+      ],
+      "pattern": "Luxury editorial site shell: dark graphite base, soft glass cards, luminous hero framing, refined pill navigation, and higher-fidelity bento surfaces."
+    },
+    {
+      "date": "2026-05-11",
+      "component": "Design source hierarchy",
+      "file": "RESEARCH/DESIGN-IMPLEMENTATION-PROMPT.md, RESEARCH/DESIGN-RADAR/synthesis.md",
+      "action": "governance",
+      "decision": "Demoted Pinterest references to mood-only inputs and promoted Framer University plus the design radar to the motion and interaction source of truth. The implementation prompt now treats memory, design radar, frontier intelligence, and Framer resources as the hierarchy, so the system stops drifting back to generic Claude Code UI.",
+      "tokens_used": [
+        "design-memory.json",
+        "RESEARCH/DESIGN-RADAR/synthesis.md",
+        "framer-university-resource-atlas",
+        "frontier-design-intelligence"
+      ],
+      "pattern": "Source hierarchy: memory first, design radar second, frontier and Framer packs third, Pinterest mood board last."
+    }
+  ]
+}
