@@ -68,13 +68,10 @@ Token efficiency is a **system parameter**, not a nice-to-have. Unregulated toke
 
 ### Current Context Overhead
 ```
-CLAUDE.md (global)              0.8K
-CLAUDE.local.md (private)       0.3K
-token-efficiency.md             0.6K
-content-workflow.md             0.5K
-skill-expansion.md              0.7K
-brand-standards.md              0.4K
-persona.md                      0.5K
+_SYSTEM/yuri-origin.md          1.5K
+SOUL.md                         1.5K
+Thin adapters                   0.4K
+On-demand workflow references   0K baseline
 ---
 Total:                          4.3K tokens per session
 ```
@@ -86,9 +83,11 @@ Total:                          4.3K tokens per session
 - Remove "avoid doing X" if it's stated elsewhere
 - Keep one source of truth per concept
 
-**Action:** Consolidate 6 files into 2 master files:
-1. `CLAUDE-MASTER.md` (global directives, identity, working style) — ~2K
-2. `CLAUDE-RULES.md` (token efficiency, brand, content standards) — ~1.5K
+**Action:** Consolidate shared instruction policy into:
+1. `_SYSTEM/yuri-origin.md` - canonical operational authority
+2. `SOUL.md` - persona and cognitive workflow
+3. `Scripts/offload-contract.mjs` - executable routing authority
+4. Thin adapters only for surface-specific behavior
 
 **Expected reduction:** 4.3K → 3.5K = **19% reduction**
 
@@ -267,7 +266,7 @@ Contains:
 - [x] Create token-audit.md (baseline analysis)
 - [x] Create token-tracker.md (logging infrastructure)
 - [x] Create token-regulation-policy.md (this file)
-- [ ] **Next:** Consolidate CLAUDE.md files (this week)
+- [x] Consolidate Yuri instruction authority into `_SYSTEM/yuri-origin.md`, `SOUL.md`, and thin adapters
 - [ ] Set up session logging (today — Marcel starts next session)
 - [ ] File first monthly summary (May 1)
 - [ ] Quarterly deep dive (June 30)

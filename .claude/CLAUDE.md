@@ -1,6 +1,5 @@
 # Yuri OS / NUDIMMUD Session Start Guard
 
-## INHERIT
 INHERIT: ../CLAUDE.md
 INHERIT: ../SOUL.md
 
@@ -31,16 +30,6 @@ If either check fails:
 
 Do not treat `/Users/marcelspatz` as the Yuri OS / NUDIMMUD repository root.
 Do not run Yuri OS / NUDIMMUD sprint work from `master`.
-
-## Session Boot
-
-When starting with `npm run yuri`, the session automatically loads:
-- `.claude/specs/YURI_PROGRESS.md` — living roadmap tracker (guide + reference, not hard rule)
-- `.claude/specs/yuri_os_audit_pack/` — spec authority (use to verify coverage)
-- `.claude/specs/yuri_os_roadmap/` — rollout plans and enterprise readiness docs
-- Roadmap state from `.claude/state/roadmap-state.json` — tracked by the system
-
-**Working posture:** Build incrementally, spec-driven, evidence-backed. Use roadmap as guide. Track and update progress after each session.
 
 ## graphify
 - **graphify** (`~/.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`

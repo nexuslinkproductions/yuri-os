@@ -1,20 +1,32 @@
 # Yuri OS Canonical Origin
 
-Canonical machine-readable operating contract for all Yuri OS / NUDIMMUD CLI and agent surfaces. All tool-specific adapters inherit from this origin.
-
-INHERIT: _SYSTEM/yuri-origin.md
+Canonical operating contract for all Yuri OS / NUDIMMUD CLI and agent surfaces. This file is the authority layer; adapters only add surface-specific launch or compatibility rules.
 
 ## Authority Hierarchy
 
-1. Owner intent — explicit session instructions (highest)
-2. Direct local evidence — git/tool/filesystem reads, observed state
-3. `_SYSTEM/yuri-origin.md` — this document (canonical Yuri OS contract)
-4. Tool adapters — `CLAUDE.md`, `.clinerules`, `GEMINI.md` etc. (tool-specific rules)
-5. `.claude/rules/*.md` — codified operating contracts
-6. Skills and reference docs — on-demand domain knowledge
-7. Model inference — lowest; always loses to local evidence
+1. Owner intent - explicit session instructions
+2. Direct local evidence - git/tool/filesystem reads and observed state
+3. `_SYSTEM/yuri-origin.md` - canonical Yuri OS contract
+4. `SOUL.md` - persona and cognitive workflow
+5. Thin adapters - `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.clinerules`, `.cursorrules`, `.windsurfrules`, `.clauderules`, `.cursor/rules/sync.mdc`, `.codex/*`
+6. Executable routing - `Scripts/offload-contract.mjs`
+7. On-demand references and skills
+8. Model inference - lowest priority
 
-Adapters inherit origin. Tool-specific rules stay in adapters. Local evidence beats all docs and model output.
+## Canonical Shape
+
+- Shared policy lives once here or in executable contracts.
+- Adapter files may narrow behavior for a surface, but they may not restate shared policy or create multi-hop inheritance chains.
+- When rules conflict, owner intent and local evidence win first; then this origin; then the smallest surface-specific adapter.
+- If two files duplicate the same rule, keep it in the narrowest correct home and delete the duplicate elsewhere.
+
+## GitNexus / Local Code Intelligence
+
+- Before editing any function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})`.
+- Before committing, run `gitnexus_detect_changes()` to verify only expected symbols and execution flows changed.
+- If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
+- Use `gitnexus_query({query: "concept"})` for unfamiliar code and `gitnexus_context({name: "symbolName"})` for full symbol context.
+- Warn the owner before proceeding if impact analysis returns HIGH or CRITICAL risk.
 
 ## Output Contract
 
@@ -32,13 +44,14 @@ Adapters inherit origin. Tool-specific rules stay in adapters. Local evidence be
 
 ## Protected Surfaces
 
-Cline/user agents must never read or write:
-- `backend/data/` — RAG database
-- `.claude/state/` — runtime state
-- `.claude/history/` — session history
-- `.env` — secrets and local config
-- `node_modules/` — dependencies
-- Any secrets, API keys, credentials
+Never read or write these paths unless the owner explicitly authorizes a specific operation:
+
+- `backend/data/`
+- `.claude/state/`
+- `.claude/history/`
+- `.env`
+- `node_modules/`
+- secrets, API keys, credentials
 
 ## Evidence Contract Grammar
 
@@ -49,15 +62,15 @@ FILE_COUNT file=<PATH> count=<N>
 MATCH file=<PATH> term=<TERM> line=<N> excerpt="<bounded text>"
 ```
 
-- PASS requires deterministic local evidence. No PASS without TERM_COUNT/FILE_COUNT/MATCH proof.
+- PASS requires deterministic local evidence. No PASS without TERM_COUNT / FILE_COUNT / MATCH proof.
 - Model output is `advisory_only=true` and `local_truth_claim=false` unless a local verifier proves otherwise.
 - Domains without TERM_COUNT support must be marked `no_evidence` and not prioritized.
 
-## Fused Swarm Timeout Doctrine
+## Offload Routing
 
-- Fused swarm internal timeout: 120 seconds (background-process sleep-loop approach).
-- Do NOT wrap with GNU `timeout` — `timeout` is not available on macOS by default.
-- Runtime/environment quirks belong in this section, not in tool adapters.
+- `Scripts/offload-contract.mjs` is the single lane, scenario, and lifecycle contract.
+- Do not duplicate lane tables, model tables, or lifecycle matrices in adapters.
+- Route protocol, IDE, and agent harness changes through `Scripts/offload-contract.mjs` first, then sync adapter files.
 
 ## Safety / Gate Routing
 
@@ -67,7 +80,7 @@ MATCH file=<PATH> term=<TERM> line=<N> excerpt="<bounded text>"
 
 ## Professional Operating Lenses
 
-Refer to `nudimmud_operating_dna.md` §16 for the full lens table (AI Systems Architect, Platform Engineer, SRE, DevEx, Security, RAG, MLOps, etc.). Lenses are advisory viewpoint suggestions, not separate authority sources.
+Refer to `nudimmud_operating_dna.md` for the full lens table. Lenses are advisory viewpoint suggestions, not separate authority sources.
 
 ## Lane Result Grammar
 

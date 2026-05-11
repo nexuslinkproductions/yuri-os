@@ -165,6 +165,24 @@ backend/data/*.db-wal
 backend/data/*.db-corrupt-*
 backend/data/*.db.corrupt.*
 backend/data/wiki-rag-auto-state.json
+backend/data/design-assistant/
+
+# Yuri runtime backups and generated audit artifacts
+_SYSTEM/OS_KERNEL/memory.db.backup-*
+_SYSTEM/SELF-IMPROVEMENT/03_GAZE/yuri-council-audit-designed*.html
+_SYSTEM/SELF-IMPROVEMENT/03_GAZE/yuri-council-audit-designed*.pdf
+_SYSTEM/SELF-IMPROVEMENT/03_GAZE/yuri-council-audit-designed*.png
+_SYSTEM/SELF-IMPROVEMENT/03_GAZE/yuri-council-audit-framer-report.html
+
+# Runtime logs and generated Claude audit/trading artifacts
+logs/
+.claude/reinforcement/audit-output/
+.claude/trading-bot/audits/
+.claude/trading-bot/data/prediction_result.jsonl
+.claude/trading-bot/data/trade_outcome.jsonl
+
+# Local IDE runtime state
+.cursor/environment.json
 
 # Python bytecode / cache
 _SYSTEM/OS_KERNEL/__pycache__/

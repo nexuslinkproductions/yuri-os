@@ -1,3 +1,4 @@
-INHERIT: ./OPERATOR_PROTOCOL.md
-INHERIT: ./SOUL.md
-INHERIT: ./CLAUDE.md
+INHERIT: _SYSTEM/yuri-origin.md
+INHERIT: SOUL.md
+
+Claude Code adapter only. Keep EOT via `./.claude/commands/eot.md`. Policy lives in origin. Do not duplicate shared policy or routing tables here.

@@ -1,3 +1,4 @@
-INHERIT: ./OPERATOR_PROTOCOL.md
-INHERIT: ./SOUL.md
-INHERIT: ./CLAUDE.md
+INHERIT: _SYSTEM/yuri-origin.md
+INHERIT: SOUL.md
+
+Cursor adapter only. Policy lives in origin. Local evidence first. Keep writes scoped. Route protocol changes through `Scripts/offload-contract.mjs`.

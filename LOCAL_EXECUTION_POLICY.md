@@ -1,4 +1,6 @@
-# LOCAL_EXECUTION_POLICY (compat stub — canonical rules live in OPERATOR_PROTOCOL.md)
+# LOCAL_EXECUTION_POLICY (legacy compatibility stub)
 
-INHERIT: ./OPERATOR_PROTOCOL.md
+INHERIT: ./_SYSTEM/yuri-origin.md
 INHERIT: ./SOUL.md
+
+Canonical local execution policy lives in `_SYSTEM/yuri-origin.md`.

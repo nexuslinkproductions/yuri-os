@@ -9,10 +9,10 @@ Enterprise-ready content classification and governance policy for all Markdown a
 ## Classification Categories
 
 ### KEEP_TRACKED_CONTROL
-True Yuri OS control surfaces (~60 files). Tracked, reviewed, origin-aware. Includes `_SYSTEM/yuri-origin.md`, tool adapters (`.clinerules`, `CLAUDE.md`, `GEMINI.md`), operating rules (`.claude/rules/*.md`, `.cline/rules/*.md`), and reference data (`_SYSTEM/model-registry.md`). These are the canonical set for context, evidence, and review.
+True Yuri OS control surfaces. Tracked, reviewed, origin-aware. Includes `_SYSTEM/yuri-origin.md`, `SOUL.md`, executable routing in `Scripts/offload-contract.mjs`, thin tool adapters (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.clinerules`, `.cursorrules`, `.windsurfrules`, `.clauderules`, `.cursor/rules/sync.mdc`, `.codex/*`), operating references (`.claude/rules/*.md`, `.cline/rules/*.md`), and reference data (`_SYSTEM/model-registry.md`). These are the canonical set for context, evidence, and review.
 
 ### KEEP_REFERENCE_CURATED
-Curated historical or reference content. Not current doctrine but preserved for audit. Includes `_SYSTEM/yuri-history-archive/` (session exports), curated vault Markdown, and `AEONIC_PROTOCOL.md`. Reference-only unless promoted by evidence contract.
+Curated historical or reference content. Not current doctrine but preserved for audit. Includes `_SYSTEM/yuri-history-archive/` (session exports) and curated vault Markdown. Reference-only unless promoted by evidence contract.
 
 ### QUARANTINE_EXTERNAL_CORPUS
 External corpora not authored by Yuri OS. Not authority by default. Not eligible for RAG ingestion without provenance, license/IP review, and explicit owner approval. Includes `RESEARCH/ORACLE-CORPUS/` (cloned openclaw skills), `01_PROJECTS/claude-cookbooks/` (Anthropic samples), `01_PROJECTS/claude-mem/` (external plugin), gstack mirror skill dirs.
@@ -27,7 +27,7 @@ Historical content that could be consolidated. Includes `00_COMMAND-CENTER/SESSI
 No files are approved for deletion in this sprint. Any future deletion requires explicit owner approval per-item.
 
 ### NEEDS_REVIEW
-Content that may need reclassification. Includes `CORE_PROTOCOL.md` (esoteric, relationship to origin unclear), `CLAUDE.md` (dirty, points to CORE_PROTOCOL.md), and `.claude/plugins/marketplaces/` (tracked files, may need separate handling).
+Content that may need reclassification. Includes archive duplicates under `07_ARCHIVE/`, `esoteric_codex.md` archive divergence, and `.claude/plugins/marketplaces/` tracked files that may need separate handling.
 
 ## Governance Rules
 

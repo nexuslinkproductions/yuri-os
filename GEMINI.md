@@ -1,8 +1,7 @@
-# GEMINI.md (compat stub — canonical rules live in OPERATOR_PROTOCOL.md)
+# GEMINI.md (compat stub)
 
-INHERIT: ./OPERATOR_PROTOCOL.md
+INHERIT: ./_SYSTEM/yuri-origin.md
 INHERIT: ./SOUL.md
-INHERIT: _SYSTEM/yuri-origin.md
 
 ## GEMINI-SPECIFIC READ-ONLY CONSTRAINT
 
