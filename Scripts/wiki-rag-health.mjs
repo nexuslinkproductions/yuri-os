@@ -52,6 +52,14 @@ function launchctlPrint() {
   });
 }
 
+function checkDatabaseHealth(db) {
+  return {
+    integrityCheck: String(db.pragma('integrity_check', { simple: true }) || 'unknown'),
+    quickCheck: String(db.pragma('quick_check', { simple: true }) || 'unknown'),
+    foreignKeyViolations: (db.pragma('foreign_key_check') || []).length,
+  };
+}
+
 function main() {
   const issues = [];
   const index = readText(INDEX_PATH);
@@ -59,6 +67,13 @@ function main() {
   const launchdReport = readText(LAUNCHD_REPORT_PATH);
   const launchd = launchctlPrint();
   const db = fs.existsSync(DB_PATH) ? new Database(DB_PATH, { readonly: true }) : null;
+  let database = {
+    path: DB_PATH,
+    available: Boolean(db),
+    integrityCheck: 'unavailable',
+    quickCheck: 'unavailable',
+    foreignKeyViolations: -1,
+  };
 
   const indexIndexed = extractIndexCount(index, 'RAG indexed count');
   const indexChunks = extractIndexCount(index, 'RAG embedded chunk count');
@@ -114,6 +129,25 @@ function main() {
   }
 
   if (db) {
+    try {
+      database = {
+        ...database,
+        ...checkDatabaseHealth(db),
+      };
+    } catch (error) {
+      issues.push(`database health check failed: ${error.message}`);
+    }
+
+    if (database.integrityCheck !== 'ok') {
+      issues.push(`database integrity_check is ${database.integrityCheck}`);
+    }
+    if (database.quickCheck !== 'ok') {
+      issues.push(`database quick_check is ${database.quickCheck}`);
+    }
+    if (database.foreignKeyViolations !== 0) {
+      issues.push(`database foreign_key_check violations ${database.foreignKeyViolations}`);
+    }
+
     const notebookRow = db.prepare('SELECT id, title, stable_key FROM notebook_notebooks WHERE stable_key = ?').get(NOTEBOOK_STABLE_KEY);
     if (!notebookRow) {
       issues.push(`no notebook row found for stable key ${NOTEBOOK_STABLE_KEY}`);
@@ -177,6 +211,13 @@ function main() {
       notebookId: ingestNotebookId,
       notebookTitle: ingestNotebookTitle,
       notebookStableKey: ingestNotebookStableKey,
+    },
+    database: {
+      path: database.path,
+      available: database.available,
+      integrityCheck: database.integrityCheck,
+      quickCheck: database.quickCheck,
+      foreignKeyViolations: database.foreignKeyViolations,
     },
     issues,
   };
