@@ -10,7 +10,7 @@ import net from 'net';
 import { URL } from 'url';
 import { SystemConfig } from './config/SystemConfig';
 import { authMiddleware, getRuntimeApiKey } from './middleware/auth';
-import { initDatabase } from './models/database';
+import { initDatabase, LATEST_SCHEMA_VERSION } from './models/database';
 import {
     getAllAgents,
     recordTelemetry,
@@ -219,6 +219,9 @@ type DatabaseReadiness = {
     ready: boolean;
     quickCheck: string;
     foreignKeyViolations: number;
+    schemaVersion: number;
+    latestSchemaVersion: number;
+    migrationsReady: boolean;
     error: string | null;
 };
 
@@ -245,11 +248,16 @@ function buildDatabaseReadiness(): DatabaseReadiness {
         db.prepare('SELECT 1').get();
         const quickCheck = String(db.pragma('quick_check', { simple: true }) || 'unknown');
         const foreignKeyViolations = (db.pragma('foreign_key_check') as unknown[]).length;
+        const schemaVersion = Number(db.pragma('user_version', { simple: true })) || 0;
+        const migrationsReady = schemaVersion === LATEST_SCHEMA_VERSION;
         const result: DatabaseReadiness = {
             available: true,
-            ready: quickCheck === 'ok' && foreignKeyViolations === 0,
+            ready: quickCheck === 'ok' && foreignKeyViolations === 0 && migrationsReady,
             quickCheck,
             foreignKeyViolations,
+            schemaVersion,
+            latestSchemaVersion: LATEST_SCHEMA_VERSION,
+            migrationsReady,
             error: null
         };
         _dbIntegrityCache = { value: result, expiresAt: now + DB_INTEGRITY_TTL_MS };
@@ -260,6 +268,9 @@ function buildDatabaseReadiness(): DatabaseReadiness {
             ready: false,
             quickCheck: 'unavailable',
             foreignKeyViolations: -1,
+            schemaVersion: -1,
+            latestSchemaVersion: LATEST_SCHEMA_VERSION,
+            migrationsReady: false,
             error: error?.message || 'database_unavailable'
         };
     }

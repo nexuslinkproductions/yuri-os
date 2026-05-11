@@ -10,7 +10,7 @@ const DB_PATH = rawDbPath === ':memory:'
         ? SystemConfig.resolve(rawDbPath)
         : SystemConfig.resolve(SystemConfig.SYSTEM.DB);
 const DB_DIR: string | null = DB_PATH !== ':memory:' ? path.dirname(DB_PATH) : null;
-const LATEST_SCHEMA_VERSION = 1;
+export const LATEST_SCHEMA_VERSION = 1;
 
 // Lazily initialize the database to prevent top-level crashes during module import
 let dbInstance: Database.Database | null = null;
