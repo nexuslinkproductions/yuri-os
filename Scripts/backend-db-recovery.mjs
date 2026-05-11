@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { createRequire } from 'node:module';
@@ -15,31 +16,43 @@ const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlit
 
 const args = parseArgs(process.argv.slice(2));
 
+const sourcePath = args.source ? path.resolve(REPO_ROOT, args.source) : null;
+const candidatePath = path.resolve(
+  REPO_ROOT,
+  args.target || path.join(args.outDir || path.join(DEFAULT_OUT_ROOT, timestampSlug()), 'candidate.db')
+);
+const outDir = path.dirname(candidatePath);
+const manifestPath = path.join(outDir, 'manifest.json');
+const sourceExists = sourcePath ? fs.existsSync(sourcePath) : false;
+const targetExists = fs.existsSync(candidatePath);
+
 if (!args.source) {
-  process.stderr.write('BACKEND_DB_RECOVERY_FAIL reason="missing --source"\n');
-  process.exit(1);
+  finish(buildPayload({ refusalReason: 'missing --source' }), 1, 'FAIL');
 }
 
-const sourcePath = path.resolve(REPO_ROOT, args.source);
-const outDir = path.resolve(REPO_ROOT, args.outDir || path.join(DEFAULT_OUT_ROOT, timestampSlug()));
-const candidatePath = path.join(outDir, 'candidate.db');
-const manifestPath = path.join(outDir, 'manifest.json');
-
 if (isInsidePath(sourcePath, PROTECTED_DB_ROOT) && !args.allowLiveSource) {
-  process.stderr.write(
-    'BACKEND_DB_RECOVERY_FAIL reason="protected live DB source refused" required="--allow-live-source"\n'
-  );
-  process.exit(1);
+  finish(buildPayload({ refusalReason: 'protected live DB source refused', required: '--allow-live-source' }), 1, 'FAIL');
+}
+
+if (isInsidePath(candidatePath, PROTECTED_DB_ROOT) && !args.allowLiveTarget) {
+  finish(buildPayload({ refusalReason: 'protected live DB target refused', required: '--allow-live-target' }), 1, 'FAIL');
 }
 
 if (args.dryRun) {
-  process.stdout.write(`BACKEND_DB_RECOVERY_DRY_RUN source=${sourcePath} outDir=${outDir} candidate=${candidatePath}\n`);
-  process.exit(0);
+  const integrity = sourceExists
+    ? await verifyDryRunCandidate(sourcePath)
+    : unavailableIntegrity('source missing');
+  const payload = buildPayload({ integrity });
+  payload.recoveryReady = isRecoveryReady(payload);
+  finish(payload, payload.recoveryReady ? 0 : 1, 'DRY_RUN');
 }
 
-if (!fs.existsSync(sourcePath)) {
-  process.stderr.write(`BACKEND_DB_RECOVERY_FAIL reason="source missing" source=${sourcePath}\n`);
-  process.exit(1);
+if (!sourceExists) {
+  finish(buildPayload({ refusalReason: 'source missing' }), 1, 'FAIL');
+}
+
+if (targetExists) {
+  finish(buildPayload({ refusalReason: 'target already exists; choose a new --target path' }), 1, 'FAIL');
 }
 
 fs.mkdirSync(outDir, { recursive: true });
@@ -47,35 +60,49 @@ fs.mkdirSync(outDir, { recursive: true });
 const copiedFiles = copySourceFamily(sourcePath, outDir);
 await createBackupCandidate(sourcePath, candidatePath);
 const checks = verifyCandidate(candidatePath);
+const payload = buildPayload({ integrity: checks, copiedFiles });
+payload.recoveryReady = isRecoveryReady(payload);
 
 const manifest = {
+  system: 'YURI_OS',
   createdAt: new Date().toISOString(),
   sourcePath,
-  outDir,
+  targetPath: candidatePath,
   candidatePath,
+  dryRun: false,
+  sourceExists,
+  targetExists,
+  wouldCreate: !targetExists,
   copiedFiles,
+  integrity: checks,
   checks,
+  recoveryReady: payload.recoveryReady,
   promotionPolicy: 'Promote only after integrityCheck=ok, quickCheck=ok, foreignKeyViolations=0, and backend smoke passes.',
 };
 
 fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
-if (checks.integrityCheck !== 'ok' || checks.quickCheck !== 'ok' || checks.foreignKeyViolations !== 0) {
-  process.stderr.write(
-    `BACKEND_DB_RECOVERY_FAIL candidate=${candidatePath} manifest=${manifestPath} integrityCheck=${checks.integrityCheck} quickCheck=${checks.quickCheck} foreignKeyViolations=${checks.foreignKeyViolations}\n`
-  );
-  process.exit(1);
-}
-
-process.stdout.write(
-  `BACKEND_DB_RECOVERY_PASS candidate=${candidatePath} manifest=${manifestPath} integrityCheck=${checks.integrityCheck} quickCheck=${checks.quickCheck} foreignKeyViolations=${checks.foreignKeyViolations}\n`
-);
+payload.manifestPath = manifestPath;
+finish(payload, payload.recoveryReady ? 0 : 1, payload.recoveryReady ? 'PASS' : 'FAIL');
 
 function parseArgs(argv) {
-  const parsed = { source: null, outDir: null, dryRun: false, allowLiveSource: false };
+  const parsed = {
+    source: null,
+    target: null,
+    outDir: null,
+    dryRun: false,
+    json: false,
+    allowLiveSource: false,
+    allowLiveTarget: false,
+  };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--source') {
       parsed.source = argv[index + 1] || null;
+      index += 1;
+      continue;
+    }
+    if (argv[index] === '--target') {
+      parsed.target = argv[index + 1] || null;
       index += 1;
       continue;
     }
@@ -88,8 +115,16 @@ function parseArgs(argv) {
       parsed.dryRun = true;
       continue;
     }
+    if (argv[index] === '--json') {
+      parsed.json = true;
+      continue;
+    }
     if (argv[index] === '--allow-live-source') {
       parsed.allowLiveSource = true;
+      continue;
+    }
+    if (argv[index] === '--allow-live-target') {
+      parsed.allowLiveTarget = true;
     }
   }
   return parsed;
@@ -125,6 +160,19 @@ async function createBackupCandidate(source, destination) {
   }
 }
 
+async function verifyDryRunCandidate(source) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-db-recovery-dry-run-'));
+  const tempCandidate = path.join(tempDir, 'candidate.db');
+  try {
+    await createBackupCandidate(source, tempCandidate);
+    return verifyCandidate(tempCandidate);
+  } catch (error) {
+    return unavailableIntegrity(error.message);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
 function verifyCandidate(candidate) {
   const db = new Database(candidate, { fileMustExist: true });
   try {
@@ -140,4 +188,72 @@ function verifyCandidate(candidate) {
   } finally {
     db.close();
   }
+}
+
+function buildPayload(overrides = {}) {
+  const integrity = overrides.integrity || unavailableIntegrity(null);
+  return {
+    system: 'YURI_OS',
+    sourcePath,
+    targetPath: candidatePath,
+    dryRun: args.dryRun,
+    sourceExists,
+    targetExists,
+    wouldCreate: !targetExists,
+    integrity,
+    recoveryReady: false,
+    refusalReason: overrides.refusalReason || null,
+    required: overrides.required || null,
+    manifestPath: args.dryRun ? null : manifestPath,
+    copiedFiles: overrides.copiedFiles || [],
+  };
+}
+
+function unavailableIntegrity(error) {
+  return {
+    integrityCheck: 'unavailable',
+    quickCheck: 'unavailable',
+    foreignKeyViolations: -1,
+    schemaVersion: -1,
+    error,
+  };
+}
+
+function isRecoveryReady(payload) {
+  return Boolean(
+    !payload.refusalReason &&
+    payload.sourceExists &&
+    !payload.targetExists &&
+    payload.wouldCreate &&
+    payload.integrity.integrityCheck === 'ok' &&
+    payload.integrity.quickCheck === 'ok' &&
+    payload.integrity.foreignKeyViolations === 0
+  );
+}
+
+function finish(payload, status, marker) {
+  if (args?.json) {
+    const stream = status === 0 ? process.stdout : process.stderr;
+    stream.write(`${JSON.stringify(payload, null, 2)}\n`);
+    process.exit(status);
+  }
+
+  const fields = [
+    'system=YURI_OS',
+    `source=${payload.sourcePath || 'none'}`,
+    `target=${payload.targetPath || 'none'}`,
+    `dryRun=${payload.dryRun}`,
+    `sourceExists=${payload.sourceExists}`,
+    `targetExists=${payload.targetExists}`,
+    `wouldCreate=${payload.wouldCreate}`,
+    `integrityCheck=${payload.integrity.integrityCheck}`,
+    `quickCheck=${payload.integrity.quickCheck}`,
+    `foreignKeyViolations=${payload.integrity.foreignKeyViolations}`,
+    `recoveryReady=${payload.recoveryReady}`,
+  ];
+  if (payload.required) fields.push(`required="${payload.required}"`);
+  if (payload.refusalReason) fields.push(`refusalReason="${payload.refusalReason}"`);
+  if (payload.manifestPath) fields.push(`manifest=${payload.manifestPath}`);
+  process[status === 0 ? 'stdout' : 'stderr'].write(`BACKEND_DB_RECOVERY_${marker} ${fields.join(' ')}\n`);
+  process.exit(status);
 }
