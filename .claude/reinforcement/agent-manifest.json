@@ -15,8 +15,14 @@
     },
     "by_model": {
       "claude-sonnet-4-6": 3,
-      "claude-haiku-4-5-20251001": 3,
-      "unknown": 5
+      "claude-haiku-4-5-20251001": 4,
+      "native_function": 3,
+      "scheduled_function": 1
+    },
+    "by_runtime_kind": {
+      "model_agent": 7,
+      "native_function": 3,
+      "scheduled_function": 1
     }
   },
   "agents": [
@@ -24,6 +30,7 @@
       "name": "architect",
       "description": "Designs and reviews system architecture, agent orchestration, memory systems, and integration plans.",
       "role": "architect",
+      "runtime_kind": "model_agent",
       "model": "claude-sonnet-4-6",
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/architect.md",
       "color": "purple",
@@ -35,12 +42,28 @@
         "review worker outputs before they become canonical",
         "avoid unnecessary complexity",
         "produce implementation-ready decisions"
+      ],
+      "linked_skills": [
+        "execution-domain-core",
+        "swarm-coordination",
+        "parallel-clone-orchestrator",
+        "gitnexus-exploring",
+        "gitnexus-impact-analysis",
+        "non-destructive-infinity-guard"
+      ],
+      "best_for": [
+        "architecture reviews",
+        "staged integration plans",
+        "blast-radius checks",
+        "orchestration design",
+        "coherence enforcement"
       ]
     },
     {
       "name": "argus",
       "description": "Logic Scout — Reasoning Error Detector. Observes tool calls and evaluates whether Claude's reasoning is consistent, on-task, and free of logical errors.",
       "role": "logic_scout",
+      "runtime_kind": "native_function",
       "model": null,
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/argus.md",
       "color": null,
@@ -50,13 +73,24 @@
         "catch off-task drift",
         "verify preconditions",
         "check step sequencing"
+      ],
+      "linked_skills": [
+        "oracle-router",
+        "gitnexus-impact-analysis",
+        "non-destructive-infinity-guard"
+      ],
+      "best_for": [
+        "tool-call sequencing checks",
+        "canonical-state precondition checks",
+        "reasoning contradiction detection"
       ]
     },
     {
       "name": "cassandra",
       "description": "Risk Scout — Destructive Action & Consequence Predictor. Evaluates tool calls for destructive, irreversible, or security-critical operations.",
       "role": "risk_scout",
-      "model": null,
+      "runtime_kind": "model_agent",
+      "model": "claude-haiku-4-5-20251001",
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/cassandra.md",
       "color": null,
       "responsibilities": [
@@ -72,6 +106,7 @@
       "name": "doc-cleaner",
       "description": "Cleans, restructures, and normalizes markdown documents without changing technical intent.",
       "role": "worker",
+      "runtime_kind": "model_agent",
       "model": "claude-haiku-4-5-20251001",
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/doc-cleaner.md",
       "color": "green",
@@ -82,12 +117,24 @@
         "normalize lists and tables",
         "preserve original intent",
         "flag contradictions"
+      ],
+      "linked_skills": [
+        "openai-codex-workflow",
+        "codebase-to-course",
+        "graphify"
+      ],
+      "best_for": [
+        "markdown cleanup",
+        "doc normalization",
+        "table and heading repair",
+        "structure extraction"
       ]
     },
     {
       "name": "file-inventory",
       "description": "Creates concise inventories of project files, directories, docs, and likely responsibilities.",
       "role": "worker",
+      "runtime_kind": "model_agent",
       "model": "claude-haiku-4-5-20251001",
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/file-inventory.md",
       "color": "blue",
@@ -97,12 +144,24 @@
         "identify entrypoints",
         "find duplicate/obsolete files",
         "avoid deep architectural claims"
+      ],
+      "linked_skills": [
+        "gitnexus-exploring",
+        "graphify",
+        "sharingan"
+      ],
+      "best_for": [
+        "directory inventories",
+        "entrypoint mapping",
+        "duplicate detection",
+        "responsibility mapping"
       ]
     },
     {
       "name": "hermes",
       "description": "Context Scout — Session Coherence & Task Scope Monitor. Monitors whether a Claude Code session is maintaining coherent focus on its original task.",
       "role": "context_scout",
+      "runtime_kind": "native_function",
       "model": null,
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/hermes.md",
       "color": null,
@@ -112,12 +171,23 @@
         "catch task amnesia",
         "detect premature divergence",
         "check session coherence"
+      ],
+      "linked_skills": [
+        "oracle-memory",
+        "compact-optimizer",
+        "end-of-transmission"
+      ],
+      "best_for": [
+        "scope drift detection",
+        "context pressure alerts",
+        "session coherence checks"
       ]
     },
     {
       "name": "log-summarizer",
       "description": "Summarizes session logs, tool logs, token logs, and error traces into compact structured reports.",
       "role": "worker",
+      "runtime_kind": "model_agent",
       "model": "claude-haiku-4-5-20251001",
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/log-summarizer.md",
       "color": "cyan",
@@ -128,12 +198,24 @@
         "list files mentioned",
         "list unresolved questions",
         "compress noisy details"
+      ],
+      "linked_skills": [
+        "end-of-transmission",
+        "failure-evolution-loop",
+        "compact-optimizer"
+      ],
+      "best_for": [
+        "session log compression",
+        "error trace summarization",
+        "trend extraction",
+        "open-question capture"
       ]
     },
     {
       "name": "memory-curator",
       "description": "Reviews candidate memories, session summaries, skill updates, and EOT reports before persistence.",
       "role": "memory_scout",
+      "runtime_kind": "model_agent",
       "model": "claude-sonnet-4-6",
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/memory-curator.md",
       "color": "orange",
@@ -145,12 +227,24 @@
         "protect from memory poisoning",
         "separate facts, preferences, procedures, hypotheses",
         "write concise memory updates"
+      ],
+      "linked_skills": [
+        "end-of-transmission",
+        "failure-evolution-loop",
+        "non-destructive-infinity-guard"
+      ],
+      "best_for": [
+        "memory promotion review",
+        "session summary cleanup",
+        "durable fact extraction",
+        "poisoning resistance"
       ]
     },
     {
       "name": "noesis-linter",
       "description": "The Unconscious Memory Linter. Performs structural self-therapy on the NUDIMMUD Neural Network by reading all rules and skills, detecting contradictions and redundancies.",
       "role": "memory_scout",
+      "runtime_kind": "scheduled_function",
       "model": null,
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/noesis-linter.md",
       "color": null,
@@ -166,6 +260,7 @@
       "name": "obliteratus-qa",
       "description": "Adversarial Quality Loop / Unbound Red-Teamer. Operates without standard conversational guardrails to ruthlessly attack, break, and expose catastrophic logic flaws.",
       "role": "quality_scout",
+      "runtime_kind": "native_function",
       "model": null,
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/obliteratus-qa.md",
       "color": null,
@@ -177,12 +272,24 @@
         "ruthless reporting",
         "break code with null inputs",
         "detect injection/state mutation"
+      ],
+      "linked_skills": [
+        "gitnexus-impact-analysis",
+        "gitnexus-pr-review",
+        "failure-evolution-loop"
+      ],
+      "best_for": [
+        "promotion gate audits",
+        "high-stakes route review",
+        "adversarial artifact verification",
+        "protected-state mutation review"
       ]
     },
     {
       "name": "security-reviewer",
       "description": "Reviews agentic architecture, permissions, sandboxing, secrets, MCP tools, and execution boundaries.",
       "role": "architect",
+      "runtime_kind": "model_agent",
       "model": "claude-sonnet-4-6",
       "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/security-reviewer.md",
       "color": "red",
@@ -199,6 +306,17 @@
         "review autonomy loops",
         "verify audit logging",
         "ensure recovery/rollback"
+      ],
+      "linked_skills": [
+        "non-destructive-infinity-guard",
+        "gitnexus-impact-analysis",
+        "gitnexus-pr-review"
+      ],
+      "best_for": [
+        "permission review",
+        "sandbox boundary checks",
+        "prompt-injection defense",
+        "rollback and audit validation"
       ]
     }
   ]
