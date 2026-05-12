@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "schema_version": "1.0",
+    "hardware": "macbook_m2_pro",
+    "updated": "2026-05-10T00:00:00Z",
+    "source_session": "2026-05-10_local-model-fit-audit",
+    "notes": "Centralized Ollama model registry. Skills, MCP bridges, and local lanes reference this policy instead of hardcoding model names. Deterministic Yuri functions stay native; local models provide cheap judgment/extraction only."
+  },
+  "local": {
+    "primary": "qwen2.5:7b",
+    "utility": "qwen3.5:4b",
+    "code": "qwen2.5-coder:7b",
+    "code_fallback": "starcoder2:latest",
+    "deep_reasoning": "deepseek-r1:8b",
+    "multimodal": "gemma4:e2b",
+    "embeddings": "nomic-embed-text:latest",
+    "fallback": "llama3.2:latest",
+    "manual_only": [
+      "deepseek-liberated:latest",
+      "deepseek-v2:16b",
+      "gemma4:latest"
+    ],
+    "reasoning": "utility: qwen3.5:4b for fast local-subagent, triage, JSON extraction, and route-plan checks. primary: qwen2.5:7b for stable general local reasoning. code: qwen2.5-coder:7b for code-local, with starcoder2 as a small fallback only if the coder model is missing. deep_reasoning: deepseek-r1:8b for explicit reasoning lanes, never always-on hooks. multimodal: gemma4:e2b for local inspection; gemma4:latest is manual-only on 16 GB unified memory."
+  },
+  "hardware_constraints": {
+    "macbook_m2_pro": {
+      "max_ollama_memory_gb": 10,
+      "unified_memory": true,
+      "note": "Models above 8B or around 9 GB quantized can cold-load slowly and compete with browser/editor/backend memory on this 16 GB MacBook. Prefer qwen3.5:4b for lightweight hooks, qwen2.5:7b for general local work, and keep 14B/16B-class models manual-only."
+    }
+  },
+  "environment_override": {
+    "env_var": "OLLAMA_DEFAULT_MODEL",
+    "precedence": "env_var > this_file > hardcoded_defaults",
+    "note": "User can override any model via OLLAMA_DEFAULT_MODEL=<model_name>. This file provides documented defaults."
+  },
+  "deepseek_v4": {
+    "docs_as_of": "2026-05-02",
+    "base_urls": {
+      "openai": "https://api.deepseek.com",
+      "anthropic": "https://api.deepseek.com/anthropic"
+    },
+    "models": {
+      "flash": "deepseek-v4-flash",
+      "pro": "deepseek-v4-pro",
+      "pro_lite_budget": "deepseek-v4-pro"
+    },
+    "thinking_modes": {
+      "flash": "disabled",
+      "pro": "enabled",
+      "pro_lite_budget": "disabled"
+    },
+    "compatibility_aliases": {
+      "deepseek-chat": "deepseek-v4-flash",
+      "deepseek-reasoner": "deepseek-v4-flash",
+      "deepseek-cloud": "deepseek-v4-pro",
+      "code-deepseek": "deepseek-v4-pro"
+    },
+    "caps": {
+      "flash": {
+        "max_tokens": 4096,
+        "timeout_seconds": 60
+      },
+      "pro": {
+        "max_tokens": 8192,
+        "timeout_seconds": 120
+      },
+      "pro_lite_budget": {
+        "max_tokens": 1024,
+        "timeout_seconds": 45
+      }
+    },
+    "pricing_per_1m_tokens": {
+      "flash": {
+        "cache_hit_input": 0.0028,
+        "cache_miss_input": 0.14,
+        "output": 0.28
+      },
+      "pro_discounted_until_2026_05_31_15_59_utc": {
+        "cache_hit_input": 0.003625,
+        "cache_miss_input": 0.435,
+        "output": 0.87
+      },
+      "pro_list_price": {
+        "cache_hit_input": 0.0145,
+        "cache_miss_input": 1.74,
+        "output": 3.48
+      }
+    },
+    "deprecation_utc": {
+      "deepseek-chat": "2026-07-24T15:59:00Z",
+      "deepseek-reasoner": "2026-07-24T15:59:00Z"
+    }
+  },
+  "codex": {
+    "docs_as_of": "2026-05-09",
+    "source": "local codex debug models and official Codex config schema",
+    "base_url_env": "OPENAI_BASE_URL",
+    "endpoint_env": "CODEX_ENDPOINT",
+    "api_key_env": "OPENAI_API_KEY",
+    "protocol": "openai-responses",
+    "models": {
+      "primary": "gpt-5.5",
+      "mini": "gpt-5.4-mini",
+      "codex": "gpt-5.3-codex"
+    },
+    "reasoning_effort": {
+      "primary": "high",
+      "mini": "medium",
+      "allowed": ["low", "medium", "high", "xhigh"]
+    },
+    "caps": {
+      "primary": {
+        "max_output_tokens": 8192,
+        "timeout_seconds": 180
+      },
+      "mini": {
+        "max_output_tokens": 4096,
+        "timeout_seconds": 90
+      }
+    },
+    "compatibility_aliases": {
+      "codex": "gpt-5.5",
+      "codex-mini": "gpt-5.4-mini"
+    }
+  }
+}

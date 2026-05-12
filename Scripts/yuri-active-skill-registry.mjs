@@ -1,0 +1,374 @@
+import { createHash } from 'node:crypto';
+
+const SCHEMA_VERSION = 1;
+const MAX_ACTIVE = 8;
+const MAX_PER_STAGE = 2;
+const LOADER_SOURCE = 'Scripts/yuri-skill-loader.mjs --json';
+const MANIFEST_SOURCE = '_SYSTEM/skill-hash-registry.json';
+
+const STAGE_IDS = Object.freeze([
+  'intake_classify',
+  'campaign_decompose',
+  'specialist_fanout',
+  'verify_local_truth',
+  'merge_learn',
+]);
+
+const LEGACY_PARSER_ONLY_SKILLS = Object.freeze({
+  'deepseek-workhorse': 'workhorse',
+  'deepseek-offload': 'offload',
+  'openclaw-offload': 'offload',
+});
+
+const CAPABILITY_TO_STAGE = Object.freeze({
+  'intent-normalization': ['intake_classify'],
+  'deep-decomposition': ['campaign_decompose'],
+  'risk-review': ['intake_classify', 'campaign_decompose'],
+  'decision-calibration': ['intake_classify', 'campaign_decompose'],
+  code: ['specialist_fanout'],
+  debugging: ['specialist_fanout'],
+  refactoring: ['specialist_fanout'],
+  summarization: ['specialist_fanout', 'merge_learn'],
+  formatting: ['specialist_fanout', 'merge_learn'],
+  design: ['specialist_fanout'],
+  'private-utility': ['intake_classify', 'specialist_fanout'],
+  'deterministic-verification': ['verify_local_truth'],
+  'mutation-guard': ['verify_local_truth'],
+  'failure-learning': ['verify_local_truth', 'merge_learn'],
+  'reduce-and-learn': ['merge_learn'],
+  'token-efficiency': ['intake_classify', 'merge_learn'],
+  orchestration: ['campaign_decompose', 'specialist_fanout'],
+});
+
+const SKILL_CAPABILITY_PROFILES = Object.freeze({
+  'probabilistic-decision-core': {
+    capabilities: ['risk-review', 'decision-calibration'],
+    traits: ['risk', 'planning', 'calibration'],
+    signals: ['risk', 'campaign'],
+  },
+  'execution-domain-core': {
+    capabilities: ['deterministic-verification', 'mutation-guard'],
+    traits: ['verification', 'execution-policy'],
+    signals: ['risk', 'code'],
+  },
+  'non-destructive-infinity-guard': {
+    capabilities: ['risk-review', 'mutation-guard'],
+    traits: ['safety', 'verification'],
+    signals: ['risk', 'code'],
+  },
+  'failure-evolution-loop': {
+    capabilities: ['failure-learning', 'reduce-and-learn'],
+    traits: ['learning', 'regression'],
+    signals: ['code', 'risk'],
+  },
+  'gitnexus-refactoring': {
+    capabilities: ['code', 'refactoring'],
+    traits: ['code', 'impact-analysis'],
+    signals: ['code'],
+  },
+  'gitnexus-debugging': {
+    capabilities: ['code', 'debugging'],
+    traits: ['code', 'debugging'],
+    signals: ['code'],
+  },
+  'gitnexus-impact-analysis': {
+    capabilities: ['risk-review', 'code'],
+    traits: ['impact-analysis', 'risk'],
+    signals: ['code', 'risk'],
+  },
+  'frontend-design': {
+    capabilities: ['design', 'formatting'],
+    traits: ['frontend', 'visual'],
+    signals: ['design'],
+  },
+  'design-master': {
+    capabilities: ['design', 'formatting'],
+    traits: ['design', 'visual'],
+    signals: ['design'],
+  },
+  'swarm-coordination': {
+    capabilities: ['orchestration', 'deep-decomposition'],
+    traits: ['fanout', 'coordination'],
+    signals: ['campaign'],
+  },
+  'parallel-clone-orchestrator': {
+    capabilities: ['orchestration', 'deep-decomposition'],
+    traits: ['parallel', 'coordination'],
+    signals: ['campaign'],
+  },
+  'ai-pipeline-offloading': {
+    capabilities: ['orchestration', 'intent-normalization'],
+    traits: ['routing', 'capability-map'],
+    signals: ['campaign'],
+  },
+  tokenmaxxing: {
+    capabilities: ['token-efficiency', 'reduce-and-learn'],
+    traits: ['budget', 'compression'],
+    signals: ['campaign'],
+  },
+  'compact-optimizer': {
+    capabilities: ['token-efficiency', 'summarization'],
+    traits: ['compression'],
+    signals: ['docs', 'campaign'],
+  },
+  'codebase-to-course': {
+    capabilities: ['summarization', 'formatting'],
+    traits: ['docs', 'teaching'],
+    signals: ['docs'],
+  },
+});
+
+export function buildActiveSkillRegistry({
+  pulseSeed = {},
+  context = {},
+  routePlan = {},
+  rawSkillRegistry = {},
+  disabled = false,
+} = {}) {
+  const skills = Array.isArray(rawSkillRegistry.skills) ? rawSkillRegistry.skills : [];
+  const capabilityHints = new Set(asStrings(pulseSeed.capabilityHints));
+  const workCapabilities = new Set(asStrings(pulseSeed.workPackets?.map((packet) => packet?.capability)));
+  const signals = new Set(asStrings(context.signals));
+  const legacyAliases = new Set(asStrings(pulseSeed.legacyAliases?.map((alias) => alias?.alias)));
+  const suppressed = [];
+
+  const candidates = [];
+  for (const skill of skills) {
+    const skillId = String(skill?.name || '').trim();
+    if (!skillId) continue;
+    if (isSuppressedLegacySkill(skillId, legacyAliases)) continue;
+
+    if (disabled) {
+      suppressed.push(suppressedSkill(skillId, 'disabled'));
+      continue;
+    }
+
+    if (skill.collision) {
+      suppressed.push(suppressedSkill(skillId, 'collision'));
+      continue;
+    }
+
+    const profile = profileSkill(skill);
+    const matchedCapabilities = profile.capabilities.filter((capability) =>
+      capabilityHints.has(capability) || workCapabilities.has(capability));
+    const matchedSignals = profile.signals.filter((signal) => signals.has(signal));
+
+    if (!matchedCapabilities.length && !matchedSignals.length) {
+      suppressed.push(suppressedSkill(skillId, 'no_capability_match'));
+      continue;
+    }
+
+    candidates.push({
+      skill,
+      profile,
+      matchedCapabilities,
+      matchedSignals,
+      score: scoreSkill({
+        profile,
+        matchedCapabilities,
+        matchedSignals,
+        capabilityHints,
+        workCapabilities,
+        routePlan,
+        context,
+      }),
+    });
+  }
+
+  candidates.sort((a, b) => b.score - a.score || String(a.skill.name).localeCompare(String(b.skill.name)));
+
+  const active = [];
+  const stageBindings = Object.fromEntries(STAGE_IDS.map((stageId) => [stageId, []]));
+
+  for (const candidate of candidates) {
+    if (active.length >= MAX_ACTIVE) {
+      suppressed.push(suppressedSkill(candidate.skill.name, 'stage_budget_exceeded'));
+      continue;
+    }
+
+    const stageIds = selectedStageIds(candidate.profile, stageBindings);
+    if (!stageIds.length) {
+      suppressed.push(suppressedSkill(candidate.skill.name, 'stage_budget_exceeded'));
+      continue;
+    }
+
+    for (const stageId of stageIds) {
+      stageBindings[stageId].push(candidate.skill.name);
+    }
+
+    active.push({
+      skill_id: candidate.skill.name,
+      source_path: candidate.skill.source_path || '',
+      hash: candidate.skill.hash || '',
+      capabilities: candidate.profile.capabilities,
+      stage_ids: stageIds,
+      score: candidate.score,
+      reason: reasonFor(candidate),
+    });
+  }
+
+  const compactStageBindings = Object.fromEntries(
+    Object.entries(stageBindings).filter(([, skillIds]) => skillIds.length > 0),
+  );
+  const capabilityIndex = buildCapabilityIndex(active);
+  const selectionHash = hashSelection({ active, suppressed });
+
+  return {
+    schema_version: SCHEMA_VERSION,
+    source: {
+      loader: LOADER_SOURCE,
+      manifest: MANIFEST_SOURCE,
+      disabled,
+      discovered_at: rawSkillRegistry.discovered_at || null,
+    },
+    policy: {
+      advisoryOnly: true,
+      maxActive: MAX_ACTIVE,
+      maxPerStage: MAX_PER_STAGE,
+      hardFilters: ['no_collision', 'not_disabled', 'has_capability_match'],
+      rankKeys: ['stage_fit', 'capability_fit', 'risk_fit', 'stable_name'],
+    },
+    active,
+    suppressed,
+    capabilityIndex,
+    stageBindings: compactStageBindings,
+    trace: {
+      selectionHash,
+      selectedCount: active.length,
+      suppressedCount: suppressed.length,
+    },
+  };
+}
+
+function isSuppressedLegacySkill(skillId, legacyAliases) {
+  const alias = LEGACY_PARSER_ONLY_SKILLS[skillId];
+  return !!alias && !legacyAliases.has(alias);
+}
+
+function profileSkill(skill) {
+  const skillId = String(skill?.name || '');
+  const known = SKILL_CAPABILITY_PROFILES[skillId];
+  if (known) {
+    return {
+      capabilities: unique(known.capabilities),
+      traits: unique(known.traits),
+      signals: unique(known.signals),
+      stageAffinity: stageAffinityFor(known.capabilities),
+      knownProfile: true,
+    };
+  }
+
+  const text = `${skillId} ${skill?.source_path || ''} ${skill?.body || ''}`.toLowerCase();
+  const capabilities = [];
+  const signals = [];
+
+  addIf(text, capabilities, ['risk', 'security', 'audit', 'review', 'policy'], 'risk-review');
+  addIf(text, capabilities, ['probability', 'uncertainty', 'calibration', 'decision'], 'decision-calibration');
+  addIf(text, capabilities, ['verify', 'verification', 'deterministic', 'test'], 'deterministic-verification');
+  addIf(text, capabilities, ['code', 'refactor', 'debug', 'typescript', 'javascript'], 'code');
+  addIf(text, capabilities, ['summarize', 'summary', 'document', 'docs'], 'summarization');
+  addIf(text, capabilities, ['design', 'frontend', 'visual', 'ui', 'ux'], 'design');
+  addIf(text, capabilities, ['orchestrate', 'swarm', 'parallel', 'fanout', 'decompose'], 'orchestration');
+  addIf(text, capabilities, ['token', 'compact', 'compression'], 'token-efficiency');
+  addIf(text, capabilities, ['learn', 'memory', 'trace'], 'reduce-and-learn');
+
+  addIf(text, signals, ['risk', 'security', 'audit'], 'risk');
+  addIf(text, signals, ['code', 'refactor', 'debug'], 'code');
+  addIf(text, signals, ['docs', 'document', 'summarize'], 'docs');
+  addIf(text, signals, ['design', 'frontend', 'ui', 'ux'], 'design');
+  addIf(text, signals, ['campaign', 'swarm', 'orchestration', 'parallel'], 'campaign');
+
+  return {
+    capabilities: unique(capabilities),
+    traits: unique(signals),
+    signals: unique(signals),
+    stageAffinity: stageAffinityFor(capabilities),
+    knownProfile: false,
+  };
+}
+
+function scoreSkill({ profile, matchedCapabilities, matchedSignals, capabilityHints, workCapabilities, routePlan, context }) {
+  let score = 0;
+  if (profile.knownProfile) score += 30;
+  score += matchedCapabilities.length * 8;
+  score += profile.capabilities.filter((capability) => workCapabilities.has(capability)).length * 5;
+  score += profile.capabilities.filter((capability) => capabilityHints.has(capability)).length * 3;
+  score += matchedSignals.length * 4;
+  score += profile.stageAffinity.length * 2;
+  if (context.risk && profile.capabilities.includes('risk-review')) score += 6;
+  if (context.risk && profile.capabilities.includes('decision-calibration')) score += 12;
+  if (context.code && profile.capabilities.includes('code')) score += 4;
+  if (context.requiresHighReasoning && profile.capabilities.includes('deep-decomposition')) score += 4;
+  if (profile.capabilities.includes('deterministic-verification')) score += 10;
+  if (routePlan?.scenario && profile.signals.includes(String(routePlan.scenario))) score += 2;
+  return profile.knownProfile ? score : Math.min(score, 32);
+}
+
+function selectedStageIds(profile, stageBindings) {
+  return profile.stageAffinity
+    .filter((stageId) => stageBindings[stageId] && stageBindings[stageId].length < MAX_PER_STAGE)
+    .slice(0, 3);
+}
+
+function stageAffinityFor(capabilities) {
+  const stageIds = [];
+  for (const capability of capabilities || []) {
+    stageIds.push(...(CAPABILITY_TO_STAGE[capability] || []));
+  }
+  return unique(stageIds).filter((stageId) => STAGE_IDS.includes(stageId));
+}
+
+function buildCapabilityIndex(active) {
+  const index = {};
+  for (const skill of active) {
+    for (const capability of skill.capabilities) {
+      if (!index[capability]) index[capability] = [];
+      index[capability].push(skill.skill_id);
+    }
+  }
+  return Object.fromEntries(
+    Object.entries(index).sort(([a], [b]) => a.localeCompare(b)).map(([capability, skillIds]) => [
+      capability,
+      unique(skillIds).sort(),
+    ]),
+  );
+}
+
+function reasonFor(candidate) {
+  const parts = [];
+  if (candidate.matchedCapabilities.length) parts.push(`matched capabilities: ${candidate.matchedCapabilities.join(', ')}`);
+  if (candidate.matchedSignals.length) parts.push(`matched signals: ${candidate.matchedSignals.join(', ')}`);
+  return parts.join('; ') || 'Matched active pulse context.';
+}
+
+function suppressedSkill(skillId, reason) {
+  return { skill_id: skillId, reason };
+}
+
+function hashSelection({ active, suppressed }) {
+  const stable = {
+    active: active.map((item) => ({
+      skill_id: item.skill_id,
+      hash: item.hash,
+      stage_ids: item.stage_ids,
+      score: item.score,
+    })),
+    suppressed: suppressed.map((item) => ({
+      skill_id: item.skill_id,
+      reason: item.reason,
+    })).sort((a, b) => a.skill_id.localeCompare(b.skill_id) || a.reason.localeCompare(b.reason)),
+  };
+  return createHash('sha256').update(JSON.stringify(stable)).digest('hex').slice(0, 16);
+}
+
+function addIf(text, out, needles, value) {
+  if (needles.some((needle) => text.includes(needle))) out.push(value);
+}
+
+function asStrings(values) {
+  return (Array.isArray(values) ? values : []).map((value) => String(value || '')).filter(Boolean);
+}
+
+function unique(values) {
+  return [...new Set((values || []).filter(Boolean))];
+}
