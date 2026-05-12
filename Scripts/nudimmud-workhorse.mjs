@@ -1771,6 +1771,7 @@ function runSelftest({ artifactRoot }) {
   }), 'LIVE_FLASH_REVIEW_BLOCKED')
   markers.push('LIVE_SCHEMA_FAIL_CLOSED_PASS')
 
+  const requireGuardedCompat = guardedExecutorCompatRequired()
   const compat = spawnSync(process.execPath, [EXECUTOR_PATH, '--selftest', '--artifact-root', tempRoot], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
@@ -1779,6 +1780,8 @@ function runSelftest({ artifactRoot }) {
   })
   if (compat.status === 0) {
     markers.push('GUARDED_EXECUTOR_COMPAT_PASS')
+  } else if (!requireGuardedCompat) {
+    markers.push('GUARDED_EXECUTOR_COMPAT_SKIPPED_NON_CANONICAL_ROOT')
   }
 
   const afterScoped = scopedRepoStatus()
@@ -1786,7 +1789,7 @@ function runSelftest({ artifactRoot }) {
     markers.push('NO_REPO_MUTATION_FROM_RUNTIME_PASS')
   }
 
-  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('WORKHORSE_PULSE_ARTIFACT_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS') && markers.includes('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS') && markers.includes('GENERATE_PLAN_ALIAS_PASS') && markers.includes('GENERATE_PLAN_USES_LIVE_PIPELINE_PASS') && markers.includes('GENERATE_PLAN_NO_EXECUTE_BY_DEFAULT_PASS') && markers.includes('GENERATE_PLAN_ARTIFACT_MARKER_PASS') && markers.includes('WORKHORSE_DEFAULT_IDEA_TRIGGER_PASS') && markers.includes('DEFAULT_IDEA_USES_GENERATE_PLAN_PASS') && markers.includes('DEFAULT_IDEA_DRY_RUN_PASS')) {
+  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('WORKHORSE_PULSE_ARTIFACT_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS') && markers.includes('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && (!requireGuardedCompat || markers.includes('GUARDED_EXECUTOR_COMPAT_PASS')) && markers.includes('GENERATE_PLAN_ALIAS_PASS') && markers.includes('GENERATE_PLAN_USES_LIVE_PIPELINE_PASS') && markers.includes('GENERATE_PLAN_NO_EXECUTE_BY_DEFAULT_PASS') && markers.includes('GENERATE_PLAN_ARTIFACT_MARKER_PASS') && markers.includes('WORKHORSE_DEFAULT_IDEA_TRIGGER_PASS') && markers.includes('DEFAULT_IDEA_USES_GENERATE_PLAN_PASS') && markers.includes('DEFAULT_IDEA_DRY_RUN_PASS')) {
     markers.push('WORKHORSE_SELFTEST_PASS')
   }
 
@@ -1796,6 +1799,16 @@ function runSelftest({ artifactRoot }) {
 
   fs.rmSync(tempRoot, { recursive: true, force: true })
   return markers.includes('WORKHORSE_SELFTEST_PASS')
+}
+
+function guardedExecutorCompatRequired() {
+  const policyPath = path.join(REPO_ROOT, 'Scripts/policy/yuri-guarded-executor.readonly.json')
+  try {
+    const policy = JSON.parse(fs.readFileSync(policyPath, 'utf8'))
+    return path.resolve(REPO_ROOT) === path.resolve(policy.repo_root || '')
+  } catch {
+    return true
+  }
 }
 
 function executePlanDryRun({ plan, artifactRoot }) {

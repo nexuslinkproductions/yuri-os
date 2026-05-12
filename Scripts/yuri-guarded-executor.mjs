@@ -1001,13 +1001,19 @@ function runSelftest({ artifactRoot, policyRelPath }) {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nudimmud-guarded-executor-selftest-'))
   const scopedStatusBefore = scopedStatus()
   const markers = []
-  const policy = loadPolicy(path.resolve(policyRelPath))
+  let policy = loadPolicy(path.resolve(policyRelPath))
+  let selftestPolicyRelPath = policyRelPath
+  if (path.resolve(policy.repo_root) !== path.resolve(process.cwd())) {
+    policy = { ...policy, repo_root: process.cwd() }
+    selftestPolicyRelPath = path.join(tempRoot, 'yuri-guarded-executor.selftest.policy.json')
+    fs.writeFileSync(selftestPolicyRelPath, JSON.stringify(policy, null, 2))
+  }
   const selftestPreflightOptions = { allowStagedFiles: true, allowNonMainBranch: true }
 
   const baseRequest = {
     protocol_version: PROTOCOL_VERSION,
     request_id: 'selftest-base',
-    repo_root: '/Users/marcelspatz/NUDIMMUD',
+    repo_root: policy.repo_root,
     mode: policy.mode,
     manifest_paths: [
       'package.json',
@@ -1034,7 +1040,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
   const baseOutcome = executeRequest({
     rawRequest: JSON.stringify(baseRequest, null, 2),
     artifactRoot,
-    policyRelPath,
+    policyRelPath: selftestPolicyRelPath,
     preflightOptions: selftestPreflightOptions,
   })
   const baseRun = loadRunArtifacts(baseOutcome.runDir)
@@ -1065,7 +1071,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       ],
     }, null, 2),
     artifactRoot,
-    policyRelPath,
+    policyRelPath: selftestPolicyRelPath,
     preflightOptions: selftestPreflightOptions,
   })
   const manifestOnlyRun = loadRunArtifacts(manifestOnlyOutcome.runDir)
@@ -1083,7 +1089,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       ],
     }, null, 2),
     artifactRoot,
-    policyRelPath,
+    policyRelPath: selftestPolicyRelPath,
     preflightOptions: selftestPreflightOptions,
   })
   const readCapRun = loadRunArtifacts(readCapOutcome.runDir)
@@ -1101,7 +1107,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       ],
     }, null, 2),
     artifactRoot,
-    policyRelPath,
+    policyRelPath: selftestPolicyRelPath,
     preflightOptions: selftestPreflightOptions,
   })
   const searchCapRun = loadRunArtifacts(searchCapOutcome.runDir)
@@ -1125,7 +1131,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       ],
     }, null, 2),
     artifactRoot,
-    policyRelPath,
+    policyRelPath: selftestPolicyRelPath,
     preflightOptions: selftestPreflightOptions,
   })
   const enumRun = loadRunArtifacts(enumOutcome.runDir)
@@ -1144,7 +1150,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       ],
     }, null, 2),
     artifactRoot,
-    policyRelPath,
+    policyRelPath: selftestPolicyRelPath,
     preflightOptions: selftestPreflightOptions,
   })
   const secretDbRun = loadRunArtifacts(secretDbOutcome.runDir)
@@ -1165,7 +1171,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       ],
     }, null, 2),
     artifactRoot,
-    policyRelPath,
+    policyRelPath: selftestPolicyRelPath,
     preflightOptions: selftestPreflightOptions,
   })
   const rawCommandRun = loadRunArtifacts(rawCommandOutcome.runDir)
