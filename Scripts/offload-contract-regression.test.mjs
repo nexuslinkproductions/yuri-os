@@ -42,6 +42,20 @@ assert.deepEqual(contract.claudeCouncilQualityGate.role.requiredSections, [
   'tests_needed',
   'reject_or_accept_reasoning',
 ], 'Claude council response contract changed');
+assert.equal(contract.pulseGovernanceSkeleton.id, 'pulse-governance-skeleton', 'pulse governance skeleton metadata missing');
+assert.equal(contract.pulseGovernanceSkeleton.authority.entryBranch, 'main', 'all pulse intake should begin from main');
+assert.equal(contract.pulseGovernanceSkeleton.authority.exitBranch, 'main', 'all pulse output should collapse back to main');
+assert.deepEqual(contract.pulseGovernanceSkeleton.phaseOrder, [
+  'intake_classify',
+  'campaign_decompose',
+  'specialist_fanout',
+  'verify_local_truth',
+  'merge_learn',
+], 'pulse governance phase spine changed');
+assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles.argus, 'Argus checkpoint profile missing');
+assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles.hermes, 'Hermes checkpoint profile missing');
+assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles.obliteratus, 'Obliteratus checkpoint profile missing');
+assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles['openclaw-derived'], 'OpenClaw-derived pattern profile missing');
 
 const yuriSelftest = execFileSync(
   process.execPath,
@@ -147,6 +161,15 @@ for (const testCase of cases) {
   assert.equal(plan.nativeFunctionGates.argus.runtime, 'native_function', `Argus should be native for "${testCase.prompt}"`);
   assert.equal(plan.nativeFunctionGates.hermes.decision, 'always-on', `Hermes native gate missing for "${testCase.prompt}"`);
   assert.equal(plan.nativeFunctionGates.hermes.runtime, 'native_function', `Hermes should be native for "${testCase.prompt}"`);
+  assert.equal(plan.pulseGovernanceSkeleton.id, 'pulse-governance-skeleton', `pulse governance skeleton missing for "${testCase.prompt}"`);
+  assert.equal(plan.pulseGovernanceSkeleton.authority.entryBranch, 'main', `pulse intake should start on main for "${testCase.prompt}"`);
+  assert.equal(plan.pulseGovernanceSkeleton.authority.exitBranch, 'main', `pulse output should return to main for "${testCase.prompt}"`);
+  assert.ok(plan.pulseGovernanceSkeleton.activeProfiles.includes('argus'), `Argus profile should be active for "${testCase.prompt}"`);
+  assert.ok(plan.pulseGovernanceSkeleton.activeProfiles.includes('hermes'), `Hermes profile should be active for "${testCase.prompt}"`);
+  assert.ok(plan.pulseGovernanceSkeleton.activeProfiles.includes('openclaw-derived'), `OpenClaw-derived profile should be available for "${testCase.prompt}"`);
+  assert.ok(plan.pulseGovernanceSkeleton.phaseCheckpoints.verify_local_truth.some((checkpoint) => checkpoint.profile === 'argus'), `verify phase should include Argus checkpoint for "${testCase.prompt}"`);
+  assert.ok(plan.pulseGovernanceSkeleton.phaseCheckpoints.merge_learn.some((checkpoint) => checkpoint.profile === 'hermes'), `merge phase should include Hermes checkpoint for "${testCase.prompt}"`);
+  assert.ok(plan.pulseGovernanceSkeleton.phaseCheckpoints.intake_classify.some((checkpoint) => checkpoint.profile === 'openclaw-derived'), `intake phase should include OpenClaw-derived manifest pattern for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.lifecycle) && plan.lifecycle.length >= 5, `lifecycle missing for "${testCase.prompt}"`);
   assert.ok(Array.isArray(plan.learningCapture) && plan.learningCapture.includes('next_rule_candidate'), `learning capture missing for "${testCase.prompt}"`);
   if (testCase.scenario === 'cross-domain-lesson-work') {
@@ -169,16 +192,22 @@ assert.equal(councilPlan.claudeAdvisory.outputCapLines, 80, 'Claude council line
 assert.equal(councilPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Obliteratus should gate high-stakes council work');
 assert.equal(councilPlan.nativeFunctionGates.obliteratus.runtime, 'native_function', 'Obliteratus should be a native function gate');
 assert.equal(councilPlan.nativeFunctionGates.obliteratus.alias, 'obliteratus', 'Obliteratus alias should stay stable');
+assert.ok(councilPlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'high-stakes plan should activate Obliteratus profile');
+assert.ok(councilPlan.pulseGovernanceSkeleton.phaseCheckpoints.merge_learn.some((checkpoint) => checkpoint.profile === 'obliteratus' && checkpoint.action === 'durable_promotion_gate'), 'high-stakes plan should include Obliteratus durable promotion checkpoint');
 const sandboxCouncilPlan = routePlan('Yuri sandbox proving run with model council review');
 assert.equal(sandboxCouncilPlan.lane, 'codex-spark', 'model council should not steal sandbox execution lane');
 assert.equal(sandboxCouncilPlan.claudeAdvisory.decision, 'use-sonnet', 'sandbox model council should still attach Claude advisory');
 assert.equal(sandboxCouncilPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Obliteratus should gate sandbox promotion-risk work');
+assert.ok(sandboxCouncilPlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'sandbox promotion-risk plan should activate Obliteratus profile');
 
 const promotionGatePlan = routePlan('promote verified artifact into canonical memory after review');
 assert.equal(promotionGatePlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'promotion candidate should use Obliteratus gate');
 assert.equal(promotionGatePlan.nativeFunctionGates.obliteratus.localTruthRequired, true, 'Obliteratus gate must require local truth');
+assert.ok(promotionGatePlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'promotion candidate should activate Obliteratus profile');
 const smallCodePlan = routePlan('fix typo in one known helper test');
 assert.equal(smallCodePlan.nativeFunctionGates.obliteratus.decision, 'skip', 'small code task should not invoke Obliteratus gate');
+assert.equal(smallCodePlan.pulseGovernanceSkeleton.profileStatus.obliteratus, 'skip', 'small code task should skip Obliteratus profile');
+assert(!smallCodePlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'small code task should not activate Obliteratus profile');
 
 const advisoryCases = [
   {

@@ -256,6 +256,71 @@ const OFFLOAD_CONTRACT = {
       ]
     }
   },
+  pulseGovernanceSkeleton: {
+    id: 'pulse-governance-skeleton',
+    description: 'Shared lifecycle skeleton for native gates and OpenClaw-derived operating patterns. Profiles attach checkpoints to the same main-session pulse spine instead of acting as standalone agents.',
+    authority: {
+      entryBranch: 'main',
+      entrySession: 'main-session',
+      exitBranch: 'main',
+      finalAuthority: 'Codex/main-session',
+      downstreamOnly: ['branches', 'worktrees', 'agents', 'lanes', 'tools', 'advisory models']
+    },
+    phaseOrder: [
+      'intake_classify',
+      'campaign_decompose',
+      'specialist_fanout',
+      'verify_local_truth',
+      'merge_learn'
+    ],
+    checkpointProfiles: {
+      argus: {
+        kind: 'native_gate_profile',
+        activation: 'always-on',
+        focus: 'tool sequencing, meaningful tool use, failed-edit assumptions, evidence-before-commit',
+        checkpoints: [
+          { phase: 'intake_classify', action: 'route_and_tool_sequence_sanity', severity: 'guard' },
+          { phase: 'specialist_fanout', action: 'meaningful_call_and_failed_edit_check', severity: 'guard' },
+          { phase: 'verify_local_truth', action: 'canonical_touch_and_evidence_check', severity: 'blocker' },
+          { phase: 'merge_learn', action: 'scope_and_commit_evidence_integrity', severity: 'guard' }
+        ]
+      },
+      hermes: {
+        kind: 'native_gate_profile',
+        activation: 'always-on',
+        focus: 'session coherence, file-scope drift, context pressure, preservation timing',
+        checkpoints: [
+          { phase: 'campaign_decompose', action: 'session_scope_and_context_pressure_init', severity: 'notice' },
+          { phase: 'specialist_fanout', action: 'scope_drift_and_context_pressure_check', severity: 'guard' },
+          { phase: 'verify_local_truth', action: 'broad_file_scope_drift_check', severity: 'guard' },
+          { phase: 'merge_learn', action: 'compression_and_closeout_trigger_check', severity: 'notice' }
+        ]
+      },
+      obliteratus: {
+        kind: 'native_gate_profile',
+        activation: 'conditional-high-risk',
+        focus: 'adversarial pre-promotion review for high-stakes, protected, protocol, sandbox, and canonical memory changes',
+        checkpoints: [
+          { phase: 'campaign_decompose', action: 'adversarial_plan_review', severity: 'adversarial' },
+          { phase: 'specialist_fanout', action: 'protected_state_and_sandbox_promotion_check', severity: 'adversarial' },
+          { phase: 'verify_local_truth', action: 'protocol_control_plane_and_governance_audit', severity: 'blocker' },
+          { phase: 'merge_learn', action: 'durable_promotion_gate', severity: 'blocker' }
+        ]
+      },
+      'openclaw-derived': {
+        kind: 'pattern_profile',
+        activation: 'reference-pattern',
+        focus: 'manifest-first capabilities, SKILL.md convention, tool profiles, session isolation, sandbox doctrine',
+        rejects: ['channel_sprawl', 'chat_first_identity', 'multi_tenant_gateway', 'in_process_host_trust_plugins', 'host_first_exec_default'],
+        checkpoints: [
+          { phase: 'intake_classify', action: 'manifest_first_capability_load_pattern', severity: 'pattern' },
+          { phase: 'campaign_decompose', action: 'session_model_and_tool_profile_pattern', severity: 'pattern' },
+          { phase: 'specialist_fanout', action: 'sandbox_and_plugin_routing_pattern', severity: 'pattern' },
+          { phase: 'merge_learn', action: 'skill_fragment_promotion_pattern', severity: 'pattern' }
+        ]
+      }
+    }
+  },
   learningLoop: {
     memorySurface: '_SYSTEM/OS_KERNEL/memory.db',
     durableSeed: '.claude/nisaba/learning/global.md',
@@ -708,6 +773,47 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
   };
 }
 
+function buildPulseGovernanceSkeleton(nativeFunctionGates) {
+  const skeleton = OFFLOAD_CONTRACT.pulseGovernanceSkeleton;
+  const profileStatus = {
+    argus: nativeFunctionGates.argus?.decision || 'skip',
+    hermes: nativeFunctionGates.hermes?.decision || 'skip',
+    obliteratus: nativeFunctionGates.obliteratus?.decision || 'skip',
+    'openclaw-derived': 'reference-pattern'
+  };
+  const activeProfiles = Object.entries(profileStatus)
+    .filter(([, status]) => status !== 'skip')
+    .map(([profile]) => profile);
+  const phaseCheckpoints = {};
+
+  for (const phase of skeleton.phaseOrder) {
+    const checkpoints = [];
+    for (const [profile, config] of Object.entries(skeleton.checkpointProfiles)) {
+      const status = profileStatus[profile] || 'skip';
+      if (status === 'skip') continue;
+      for (const checkpoint of config.checkpoints) {
+        if (checkpoint.phase !== phase) continue;
+        checkpoints.push({
+          profile,
+          action: checkpoint.action,
+          severity: checkpoint.severity,
+          status
+        });
+      }
+    }
+    phaseCheckpoints[phase] = checkpoints;
+  }
+
+  return {
+    id: skeleton.id,
+    authority: skeleton.authority,
+    phaseOrder: skeleton.phaseOrder,
+    activeProfiles,
+    profileStatus,
+    phaseCheckpoints
+  };
+}
+
 function selectScenario(prompt, lane = '') {
   const text = normalizePrompt(prompt);
   const matches = OFFLOAD_CONTRACT.scenarios.filter((scenario) => (
@@ -724,6 +830,7 @@ function buildRoutePlan(prompt) {
   const deepseekAdvisory = assessDeepseekAdvisory(prompt, lane, scenario);
   const claudeAdvisory = assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory);
   const nativeFunctionGates = assessNativeFunctionGates(prompt, lane, scenario);
+  const pulseGovernanceSkeleton = buildPulseGovernanceSkeleton(nativeFunctionGates);
   return {
     prompt,
     lane,
@@ -736,6 +843,7 @@ function buildRoutePlan(prompt) {
     deepseekAdvisory,
     claudeAdvisory,
     nativeFunctionGates,
+    pulseGovernanceSkeleton,
     lifecycle: scenario.lifecycle,
     crossReference: OFFLOAD_CONTRACT.crossReference,
     learningCapture: OFFLOAD_CONTRACT.learningLoop.capture,
