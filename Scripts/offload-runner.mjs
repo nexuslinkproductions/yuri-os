@@ -78,7 +78,9 @@ if (options.dryRun) {
 if (
   resolved.status === 'SKIPPED_MISSING_ENDPOINT' ||
   resolved.status === 'SKIPPED_MISSING_KEY' ||
-  resolved.status === 'BLOCKED_PAID_MODEL'
+  resolved.status === 'BLOCKED_PAID_MODEL' ||
+  resolved.status === 'BLOCKED_FROZEN_MODEL' ||
+  resolved.kind === 'blocked'
 ) {
   console.error(`[${lane}] ${resolved.status}: ${resolved.error}`);
   process.exit(0);
@@ -313,9 +315,7 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     },
     'deepseek': resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun),
     'deepseek-local': resolveDeepseekLocalLane(
-      normalizedForcedModel || normalizeForcedModel(process.env.DEEPSEEK_LOCAL_MODEL || process.env.DEEPSEEK_MODEL || '', 'deepseek-local') || '',
-      localModels,
-      dryRun
+      normalizedForcedModel || normalizeForcedModel(process.env.DEEPSEEK_LOCAL_MODEL || process.env.DEEPSEEK_MODEL || '', 'deepseek-local') || ''
     ),
     'kimi': {
       kind: 'cloud',
@@ -698,7 +698,20 @@ function deepseekLane(normalizedForcedModel, options) {
 
 function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun) {
   if (normalizedForcedModel) {
-    return resolveDeepseekLocalLane(normalizedForcedModel, localModels, dryRun);
+    if (isLocalDeepseekModel(normalizedForcedModel)) {
+      return resolveDeepseekLocalLane(normalizedForcedModel);
+    }
+    return {
+      kind: 'cloud',
+      endpoint: deepseekBaseUrl(),
+      apiKey: deepseekApiKey(),
+      model: normalizedForcedModel,
+      extraBody: deepseekThinkingBody(false),
+      maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
+      timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
+      requiresKey: true,
+      resolvedVia: 'cloud-forced',
+    };
   }
 
   if (deepseekApiKey()) {
@@ -715,45 +728,37 @@ function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun) 
     };
   }
 
-  return resolveDeepseekLocalLane('', localModels, dryRun);
-}
-
-function resolveDeepseekLocalLane(forcedModel, localModels, dryRun = false) {
-  if (forcedModel) {
-    if (localModels.has(forcedModel)) {
-      return { kind: 'local', model: forcedModel, resolvedVia: 'forced-local' };
-    }
-    return deepseekLocalBlocked(
-      forcedModel,
-      dryRun,
-      `Lane "deepseek-local" requires "${forcedModel}" to be installed. Run: ollama pull ${forcedModel}`
-    );
-  }
-
-  for (const candidate of [LOCAL_DEEP_REASONING_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_UTILITY_MODEL, LOCAL_FALLBACK_MODEL]) {
-    if (candidate && localModels.has(candidate)) {
-      return { kind: 'local', model: candidate, resolvedVia: 'local-fallback' };
-    }
-  }
-
-  return deepseekLocalBlocked(
+  return blockedDeepseekLocal(
     LOCAL_DEEP_REASONING_MODEL,
-    dryRun,
-    `Lane "deepseek-local" needs a local model. Install ${LOCAL_DEEP_REASONING_MODEL} or set DEEPSEEK_API_KEY for cloud DeepSeek.`
+    'Lane "deepseek" requires DEEPSEEK_API_KEY. Local DeepSeek fallback is frozen to prevent system hangs.',
+    'cloud-required',
+    'SKIPPED_MISSING_KEY',
   );
 }
 
-function deepseekLocalBlocked(model, dryRun, error) {
-  if (dryRun) {
-    return {
-      kind: 'blocked',
-      model,
-      executable: false,
-      error,
-    };
-  }
+function resolveDeepseekLocalLane(forcedModel) {
+  const model = forcedModel || LOCAL_DEEP_REASONING_MODEL;
+  return blockedDeepseekLocal(
+    model,
+    `Lane "deepseek-local" is frozen. Local DeepSeek models are disabled to prevent system hangs: ${model}`,
+    forcedModel ? 'forced-local-frozen' : 'local-frozen',
+  );
+}
 
-  throw new Error(error);
+function isLocalDeepseekModel(model) {
+  return /^deepseek-(r1|v2|liberated)(:|$)/i.test(String(model || ''));
+}
+
+function blockedDeepseekLocal(model, error, resolvedVia, status = 'BLOCKED_FROZEN_MODEL') {
+  return {
+    kind: 'blocked',
+    model,
+    executable: false,
+    status,
+    error,
+    frozen: true,
+    resolvedVia,
+  };
 }
 
 function resolveGemmaLane(lane, normalizedForcedModel, localModels, dryRun = false) {
@@ -986,6 +991,7 @@ function buildInventory(localModels) {
       if (r.protocol) lanes[name].protocol = r.protocol;
       if (r.apiKey !== undefined) lanes[name].hasKey = !!r.apiKey;
       if (r.executable !== undefined) lanes[name].executable = r.executable;
+      if (r.frozen !== undefined) lanes[name].frozen = r.frozen;
       if (r.status) lanes[name].status = r.status;
       if (r.error) lanes[name].error = r.error;
       if (r.resolvedVia) lanes[name].resolvedVia = r.resolvedVia;

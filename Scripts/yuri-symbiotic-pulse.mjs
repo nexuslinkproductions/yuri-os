@@ -699,7 +699,7 @@ function buildArsenalEntry(id, lane, frozenModels) {
     concurrency: lane?.kind === 'local' ? 'serial-local' : 'cloud-bounded',
     traits: [],
   };
-  const frozen = lane?.kind === 'local' && lane?.model && frozenModels.has(lane.model);
+  const frozen = lane?.frozen === true || (lane?.kind === 'local' && lane?.model && frozenModels.has(lane.model));
   const availability = {
     available: laneAvailable(lane) && !frozen,
     reason: frozen ? `frozen local model: ${lane.model}` : laneUnavailableReason(lane),
@@ -733,6 +733,7 @@ function laneAvailable(lane) {
   if (!lane || lane.error) return false;
   if (lane.executable === false) return false;
   if (lane.status && String(lane.status).startsWith('SKIPPED')) return false;
+  if (lane.status && String(lane.status).startsWith('BLOCKED')) return false;
   if (lane.kind === 'cloud') return lane.hasKey === true || lane.requiresKey === false;
   if (lane.kind === 'local') return !!lane.model;
   if (lane.kind === 'native') return true;

@@ -73,7 +73,7 @@ Commands:
       Run the bounded Codex Spark offload lane (gpt-5.3-codex-spark).
 
   @deepseek [prompt]
-      Run the direct DeepSeek local offload lane.
+      Run the default DeepSeek cloud lane. Local DeepSeek is frozen.
 
   @deepseek-v4-flash [prompt]
       Run the official DeepSeek V4 Flash lane (non-thinking default).

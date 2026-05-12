@@ -198,12 +198,12 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2
         run_offload_runner "$target_model" "$prompt"
         ;;
-      deepseek-r1:8b)
-        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK..." >&2
-        run_offload_runner deepseek "$prompt" --model "$target_model"
+      deepseek-r1:8b|deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b)
+        printf '%s\n' "⬡ DEEPSEEK_LOCAL_FROZEN :: local DeepSeek models disabled to prevent system hangs" >&2
+        run_offload_runner deepseek-local "$prompt" --model "$target_model" --dry-run
         ;;
-      deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b|deepseek)
-        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK..." >&2
+      deepseek)
+        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_CLOUD..." >&2
         run_offload_runner deepseek "$prompt"
         ;;
       nvidia-deepseek|deepseek-ai/*)
@@ -363,7 +363,7 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   echo "    offload --swarm deepseek-v4-flash,deepseek-v4-pro \"<prompt>\"   # swarm" >&2
   echo "    ai route-plan \"<prompt>\"                         # shared automatic route plan" >&2
   echo "    ai @kimi \"<prompt>\"                              # deprecated Kimi compatibility" >&2
-  echo "    ai @deepseek \"<prompt>\"                          # deepseek local" >&2
+  echo "    ai @deepseek-v4-flash \"<prompt>\"                 # DeepSeek cloud flash" >&2
   exit 1
 fi
 

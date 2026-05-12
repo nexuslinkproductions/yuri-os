@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const offloadRunnerPath = resolve(__dirname, 'offload-runner.mjs');
 const benchmarkPath = resolve(__dirname, 'yuri-local-model-benchmark.mjs');
-const heavyModels = new Set(['deepseek-liberated:latest', 'deepseek-v2:16b', 'gemma4:latest']);
+const heavyModels = new Set(['deepseek-r1:8b', 'deepseek-liberated:latest', 'deepseek-v2:16b', 'gemma4:latest']);
 
 const manifestRoot = mkdtempSync(join(tmpdir(), 'yuri-local-model-policy-'));
 
@@ -35,6 +35,7 @@ try {
     OLLAMA_MANIFEST_DIR: manifestRoot,
     OLLAMA_API_KEY: '',
     GEMMA_CLOUD_API_KEY: '',
+    DEEPSEEK_API_KEY: '',
   };
 
   assert.equal(route('triage-local', env).model, 'qwen3.5:4b');
@@ -43,10 +44,17 @@ try {
   assert.equal(route('ollama-local', env).model, 'qwen3.5:4b');
   assert.equal(route('gpt-oss', env).model, 'qwen3.5:4b');
   assert.equal(route('code-local', env).model, 'qwen2.5-coder:7b');
-  assert.equal(route('deepseek', env).model, 'deepseek-r1:8b');
+  const deepseekDefault = route('deepseek', env);
+  assert.equal(deepseekDefault.kind, 'blocked');
+  assert.equal(deepseekDefault.status, 'SKIPPED_MISSING_KEY');
+  assert.match(deepseekDefault.error, /Local DeepSeek fallback is frozen/);
+  const deepseekLocal = route('deepseek-local', env);
+  assert.equal(deepseekLocal.kind, 'blocked');
+  assert.equal(deepseekLocal.status, 'BLOCKED_FROZEN_MODEL');
+  assert.equal(deepseekLocal.frozen, true);
   assert.equal(route('gemma-local', env).model, 'gemma4:e2b');
 
-  const checkedLanes = ['triage-local', 'summarize-local', 'ollama', 'ollama-local', 'gpt-oss', 'code-local', 'deepseek', 'gemma-local'];
+  const checkedLanes = ['triage-local', 'summarize-local', 'ollama', 'ollama-local', 'gpt-oss', 'code-local', 'gemma-local'];
   for (const lane of checkedLanes) {
     const model = route(lane, env).model;
     assert(!heavyModels.has(model), `${lane} must not auto-select heavy manual-only model ${model}`);
@@ -134,9 +142,10 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
 
     const dispatchedArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
     assert.equal(dispatchedArgs[0].endsWith('Scripts/offload-runner.mjs'), true);
-    assert.equal(dispatchedArgs[1], 'deepseek');
-    assert(!dispatchedArgs.includes('--model'));
-    assert(!dispatchedArgs.includes('deepseek-liberated:latest'));
+    assert.equal(dispatchedArgs[1], 'deepseek-local');
+    assert(dispatchedArgs.includes('--model'));
+    assert(dispatchedArgs.includes('deepseek-liberated:latest'));
+    assert(dispatchedArgs.includes('--dry-run'));
   } finally {
     rmSync(offloadCaptureRoot, { recursive: true, force: true });
   }

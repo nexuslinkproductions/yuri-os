@@ -16,11 +16,19 @@
     "embeddings": "nomic-embed-text:latest",
     "fallback": "llama3.2:latest",
     "manual_only": [
+      "deepseek-r1:8b",
       "deepseek-liberated:latest",
       "deepseek-v2:16b",
       "gemma4:latest"
     ],
-    "reasoning": "utility: qwen3.5:4b for fast local-subagent, triage, JSON extraction, and route-plan checks. primary: qwen2.5:7b for stable general local reasoning. code: qwen2.5-coder:7b for code-local, with starcoder2 as a small fallback only if the coder model is missing. deep_reasoning: deepseek-r1:8b for explicit reasoning lanes, never always-on hooks. multimodal: gemma4:e2b for local inspection; gemma4:latest is manual-only on 16 GB unified memory."
+    "frozen": [
+      "deepseek-r1:8b",
+      "deepseek-r1:latest",
+      "deepseek-liberated:latest",
+      "deepseek-v2:16b",
+      "gemma4:latest"
+    ],
+    "reasoning": "utility: qwen3.5:4b for fast local-subagent, triage, JSON extraction, and route-plan checks. primary: qwen2.5:7b for stable general local reasoning. code: qwen2.5-coder:7b for code-local, with starcoder2 as a small fallback only if the coder model is missing. deep_reasoning: deepseek-r1:8b is frozen for now because local DeepSeek causes system hangs; use cloud DeepSeek V4 only when explicitly keyed. multimodal: gemma4:e2b for local inspection; gemma4:latest is manual-only on 16 GB unified memory."
   },
   "hardware_constraints": {
     "macbook_m2_pro": {
