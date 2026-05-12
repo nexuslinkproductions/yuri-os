@@ -88,6 +88,9 @@ yuri-os/
 # Local cache and nested snapshot artifacts
 .smart-env/
 NUDIMMUD/
+!Scripts/nudimmud/
+!Scripts/nudimmud/symbiotic-pulse.mjs
+!Scripts/nudimmud/symbiotic-pulse.test.mjs
 gemini_env/
 
 # Graphify generated runtime artifacts

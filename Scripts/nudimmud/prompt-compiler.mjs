@@ -7,8 +7,16 @@ export const DEFAULT_COMPILER_FLAGS = Object.freeze({
   report_line_cap: 25,
 });
 
+const DEFAULT_INTERNAL_CHECKLIST = Object.freeze([
+  'Run symbiotic self-pulse before claims, tool calls, mutation, or handoff.',
+]);
+
 function normalizeList(value) {
   return Array.isArray(value) ? [...value] : [];
+}
+
+function uniqueList(values) {
+  return [...new Set(values.filter((value) => typeof value === 'string' && value.length > 0))];
 }
 
 function normalizeReportLineCap(value) {
@@ -54,7 +62,10 @@ export function compileOneTransactionContract(input = {}) {
     stable_header: normalizedInput.stable_header ?? 'NUDIMMUD harness core skeleton',
     allowed_scope: normalizeList(normalizedInput.allowed_scope),
     forbidden_scope: normalizeList(normalizedInput.forbidden_scope),
-    internal_checklist: normalizeList(normalizedInput.internal_checklist),
+    internal_checklist: uniqueList([
+      ...DEFAULT_INTERNAL_CHECKLIST,
+      ...normalizeList(normalizedInput.internal_checklist),
+    ]),
     output_schema: normalizedInput.output_schema ?? {
       type: 'final_report',
       fields: ['RESULT_LABEL', 'HEAD', 'STAGED', 'FILES_CHANGED', 'VALIDATION'],

@@ -2,6 +2,7 @@ import { join as joinPath } from 'node:path';
 
 export const DEFAULT_RUN_ARTIFACTS = Object.freeze([
   'request.md',
+  'pulse.json',
   'output.md',
   'meta.json',
   'events.jsonl',
@@ -69,9 +70,10 @@ export function createRunArtifactPaths(input = {}) {
   return {
     run_dir: runDir,
     request_path: joinPath(runDir, DEFAULT_RUN_ARTIFACTS[0]),
-    output_path: joinPath(runDir, DEFAULT_RUN_ARTIFACTS[1]),
-    meta_path: joinPath(runDir, DEFAULT_RUN_ARTIFACTS[2]),
-    events_path: joinPath(runDir, DEFAULT_RUN_ARTIFACTS[3]),
+    pulse_path: joinPath(runDir, DEFAULT_RUN_ARTIFACTS[1]),
+    output_path: joinPath(runDir, DEFAULT_RUN_ARTIFACTS[2]),
+    meta_path: joinPath(runDir, DEFAULT_RUN_ARTIFACTS[3]),
+    events_path: joinPath(runDir, DEFAULT_RUN_ARTIFACTS[4]),
   };
 }
 
@@ -81,6 +83,9 @@ export function serializeEventForJsonl(event) {
 
 export function createRunRecord(input = {}) {
   const artifactPaths = isPlainObject(input.artifact_paths) ? { ...input.artifact_paths } : createRunArtifactPaths(input);
+  if (typeof artifactPaths.pulse_path !== 'string' && typeof artifactPaths.run_dir === 'string' && artifactPaths.run_dir.length > 0) {
+    artifactPaths.pulse_path = joinPath(artifactPaths.run_dir, 'pulse.json');
+  }
 
   return {
     run_id: toStringOrEmpty(input.run_id),
@@ -133,6 +138,9 @@ export function validateRunRecord(record) {
       if (typeof record.artifact_paths[key] !== 'string' || record.artifact_paths[key].length === 0) {
         issues.push(`artifact_paths.${key} must be a non-empty string`);
       }
+    }
+    if ('pulse_path' in record.artifact_paths && (typeof record.artifact_paths.pulse_path !== 'string' || record.artifact_paths.pulse_path.length === 0)) {
+      issues.push('artifact_paths.pulse_path must be a non-empty string when present');
     }
   }
 

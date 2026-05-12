@@ -5,6 +5,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { runSymbioticPulse } from './nudimmud/symbiotic-pulse.mjs'
 
 const WORKHORSE_VERSION = '0.1.0'
 const PLAN_VERSION = 'nudimmud.workhorse.x1'
@@ -246,6 +247,14 @@ function forgePipeline({ idea, execute, live = false, noFlash = false, generateP
   const run = createRunContext({ artifactRoot, mode: execute ? 'execute' : 'dry_run', source: live ? 'forge-live' : 'forge' })
   const request = buildRequestArtifact({ run, idea, execute, live, noFlash, generatePlan, sourcePath: 'forge' })
   const files = writeCoreArtifacts({ run, request, sourceLabel: live ? 'forge-live' : 'forge' })
+  const requestPulse = evaluateAndRecordPulse({
+    files,
+    source: 'user',
+    content: idea,
+    requestedAction: execute ? 'execute workhorse forge request' : 'dry-run workhorse forge request',
+    turnId: run.runId,
+    context: { executionMode: execute ? 'execute' : 'dry_run' },
+  })
 
   if (!live) {
     const intent = buildIntent({ idea, execute, artifactRoot, run })
@@ -258,6 +267,7 @@ function forgePipeline({ idea, execute, live = false, noFlash = false, generateP
     const flashReview = buildFlashReview({ intent, plan, execute })
     writeJson(files.flashReview, flashReview)
     writeText(files.executorPrompt, buildExecutorPrompt({ run, intent, plan, flashReview, execute }))
+    recordExecutorPulse({ files, run, plan, execute, parentPulse: requestPulse })
 
     const executorSummary = executorRunner({
       planPath: files.actionPlan,
@@ -303,6 +313,7 @@ function forgePipeline({ idea, execute, live = false, noFlash = false, generateP
     artifactRoot,
     transport,
     executorRunner,
+    parentPulse: requestPulse,
   })
   return liveOutcome
 }
@@ -322,6 +333,15 @@ function runPlanPipeline({ planPath, execute, artifactRoot }) {
   const plan = sourcePlan
   const request = buildRequestArtifact({ run, planPath: sourcePlanPath, execute, live: false, noFlash: false, sourcePath: sourcePlanPath })
   const files = writeCoreArtifacts({ run, request, sourceLabel: 'run' })
+  const requestPulse = evaluateAndRecordPulse({
+    files,
+    source: 'user',
+    content: sourcePlanPath,
+    requestedAction: execute ? 'execute workhorse action plan' : 'dry-run workhorse action plan',
+    claims: [`action plan source: ${sourcePlanPath}`],
+    turnId: run.runId,
+    context: { localValidationPassed: true },
+  })
   writeJson(files.intent, intent)
   writeJson(files.actionPlan, plan)
   const flashReview = buildFlashReview({ intent, plan, execute })
@@ -334,6 +354,7 @@ function runPlanPipeline({ planPath, execute, artifactRoot }) {
     execute,
     sourcePlanPath,
   }))
+  recordExecutorPulse({ files, run, plan, execute, parentPulse: requestPulse })
 
   const executorSummary = runExecutorPlan({
     planPath: files.actionPlan,
@@ -386,6 +407,7 @@ function createRunContext({ artifactRoot, mode, source }) {
 function writeCoreArtifacts({ run, request, sourceLabel }) {
   const files = {
     request: path.join(run.runDir, 'request.json'),
+    pulse: path.join(run.runDir, 'pulse.json'),
     intent: path.join(run.runDir, 'intent.json'),
     actionPlan: path.join(run.runDir, 'action-plan.json'),
     proPrompt: path.join(run.runDir, 'pro-prompt.md'),
@@ -402,6 +424,60 @@ function writeCoreArtifacts({ run, request, sourceLabel }) {
   writeText(path.join(run.runDir, 'run-source.txt'), `${sourceLabel}\n`)
 
   return files
+}
+
+function evaluateAndRecordPulse({ files, source, content, requestedAction = '', claims = [], turnId, parentEventId = null, context = {} }) {
+  const pulse = runSymbioticPulse({
+    source,
+    content,
+    requestedAction,
+    claims,
+    turnId,
+    parentEventId,
+    context,
+  })
+  appendPulseArtifact(files.pulse, pulse)
+  enforcePulseDecision(pulse)
+  return pulse
+}
+
+function recordExecutorPulse({ files, run, plan, execute, parentPulse }) {
+  return evaluateAndRecordPulse({
+    files,
+    source: 'assistant_self',
+    content: `Dispatch validated workhorse plan ${plan.id} with tier ${plan.tier_required} and ${plan.steps.length} step(s).`,
+    requestedAction: execute ? 'dispatch guarded executor execute' : 'dispatch guarded executor dry-run',
+    claims: [`validated plan ${plan.id}`],
+    turnId: run.runId,
+    parentEventId: parentPulse?.pulseId,
+    context: { localValidationPassed: true },
+  })
+}
+
+function appendPulseArtifact(filePath, pulse) {
+  const artifact = fileExists(filePath)
+    ? readJsonFile(filePath)
+    : {
+        pulse_artifact_version: 'nudimmud.symbiotic-pulse.artifact.x1',
+        governanceSkeletonId: pulse.governanceSkeletonId,
+        pulses: [],
+      }
+
+  if (!Array.isArray(artifact.pulses)) {
+    artifact.pulses = []
+  }
+  artifact.governanceSkeletonId = artifact.governanceSkeletonId || pulse.governanceSkeletonId
+  artifact.pulses.push(pulse)
+  writeJson(filePath, artifact)
+}
+
+function enforcePulseDecision(pulse) {
+  if (pulse.decision === 'block') {
+    throw new Error(`SYMBIOTIC_PULSE_BLOCKED: ${pulse.warnings.join(',') || pulse.riskLevel}`)
+  }
+  if (pulse.decision === 'ask') {
+    throw new Error(`SYMBIOTIC_PULSE_OWNER_CONFIRMATION_REQUIRED: ${pulse.warnings.join(',') || pulse.riskLevel}`)
+  }
 }
 
 function buildIntent({ idea, execute, run }) {
@@ -942,7 +1018,7 @@ function buildRequestArtifact({ run, idea = '', execute = false, live = false, n
   }
 }
 
-function runLiveForgePipeline({ idea, execute, noFlash, run, request, files, artifactRoot, transport, executorRunner }) {
+function runLiveForgePipeline({ idea, execute, noFlash, run, request, files, artifactRoot, transport, executorRunner, parentPulse }) {
   const proPrompt = buildLiveRequestPrompt({
     idea,
     execute,
@@ -962,6 +1038,15 @@ function runLiveForgePipeline({ idea, execute, noFlash, run, request, files, art
     ].join('\n'),
   })
   writeText(files.proOutputRaw, proRaw)
+  evaluateAndRecordPulse({
+    files,
+    source: 'docked_llm',
+    content: proRaw,
+    requestedAction: 'accept live pro intent and action plan',
+    claims: ['live pro produced intent and action_plan'],
+    turnId: run.runId,
+    parentEventId: parentPulse?.pulseId,
+  })
 
   const proPayload = parseSingleJsonObject(proRaw, 'LIVE_PRO_JSON_CONTRACT_FAIL')
   validateLiveProPayload(proPayload)
@@ -1002,6 +1087,15 @@ function runLiveForgePipeline({ idea, execute, noFlash, run, request, files, art
       ].join('\n'),
     })
     writeText(files.flashOutputRaw, flashRaw)
+    evaluateAndRecordPulse({
+      files,
+      source: 'docked_llm',
+      content: flashRaw,
+      requestedAction: 'accept live flash review',
+      claims: ['live flash produced review verdict'],
+      turnId: run.runId,
+      parentEventId: parentPulse?.pulseId,
+    })
     const flashPayload = parseSingleJsonObject(flashRaw, 'LIVE_FLASH_REVIEW_BLOCKED')
     flashReview = validateLiveFlashReview(flashPayload)
     flashReviewStatus = flashReview.flash_review_status
@@ -1019,6 +1113,7 @@ function runLiveForgePipeline({ idea, execute, noFlash, run, request, files, art
     execute,
     sourcePlanPath: 'forge --live',
   }))
+  recordExecutorPulse({ files, run, plan, execute, parentPulse })
 
   const shouldExecute = execute
   const executorSummary = executorRunner({
@@ -1232,7 +1327,7 @@ function buildFinalReport({ run, intent, plan, flashReview, executorSummary, exe
     `VALIDATION: ${formatValidation(executorSummary)}`,
     `SELFTEST_MARKERS: ${formatMarkers(executorSummary?.markers ?? [])}`,
     `LIVE_SMOKE: ${liveSmokeStatus}`,
-    `ARTIFACT_SAMPLE: ${path.basename(path.join(run.runDir, 'request.json'))}, ${path.basename(path.join(run.runDir, 'intent.json'))}, ${path.basename(path.join(run.runDir, 'action-plan.json'))}, ${path.basename(path.join(run.runDir, 'flash-review.json'))}, ${path.basename(path.join(run.runDir, 'final-executor-prompt.md'))}`,
+    `ARTIFACT_SAMPLE: ${path.basename(path.join(run.runDir, 'request.json'))}, ${path.basename(path.join(run.runDir, 'pulse.json'))}, ${path.basename(path.join(run.runDir, 'intent.json'))}, ${path.basename(path.join(run.runDir, 'action-plan.json'))}, ${path.basename(path.join(run.runDir, 'flash-review.json'))}, ${path.basename(path.join(run.runDir, 'final-executor-prompt.md'))}`,
     'COMMIT: none',
     `RISKS: ${plan.tier_required === 'tier1_blocked' ? 'tier1 blocked in X1' : 'readonly only; no repo mutation'}`,
     'NON_CLAIMS: no Claude routing | no Agent/subagent routing | no raw shell from model | no source writes | no commit | no auto-commit',
@@ -1296,6 +1391,18 @@ function runSelftest({ artifactRoot }) {
   }
   if (artifactPackExists(dryForge.runDir, false)) {
     markers.push('ARTIFACT_PACK_PASS')
+  }
+  const dryPulsePath = path.join(dryForge.runDir, 'pulse.json')
+  if (fileExists(dryPulsePath)) {
+    const dryPulse = readJsonFile(dryPulsePath)
+    if (
+      dryPulse.governanceSkeletonId === 'pulse-governance-skeleton' &&
+      Array.isArray(dryPulse.pulses) &&
+      dryPulse.pulses.some((pulse) => pulse.source === 'user') &&
+      dryPulse.pulses.some((pulse) => pulse.source === 'assistant_self')
+    ) {
+      markers.push('WORKHORSE_PULSE_ARTIFACT_PASS')
+    }
   }
 
   const dryPlan = readJsonFile(path.join(dryForge.runDir, 'action-plan.json'))
@@ -1679,7 +1786,7 @@ function runSelftest({ artifactRoot }) {
     markers.push('NO_REPO_MUTATION_FROM_RUNTIME_PASS')
   }
 
-  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS') && markers.includes('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS') && markers.includes('GENERATE_PLAN_ALIAS_PASS') && markers.includes('GENERATE_PLAN_USES_LIVE_PIPELINE_PASS') && markers.includes('GENERATE_PLAN_NO_EXECUTE_BY_DEFAULT_PASS') && markers.includes('GENERATE_PLAN_ARTIFACT_MARKER_PASS') && markers.includes('WORKHORSE_DEFAULT_IDEA_TRIGGER_PASS') && markers.includes('DEFAULT_IDEA_USES_GENERATE_PLAN_PASS') && markers.includes('DEFAULT_IDEA_DRY_RUN_PASS')) {
+  if (dryForge.ok && executeForge.ok && markers.includes('WORKHORSE_HELP_PASS') && markers.includes('WORKHORSE_DRY_FORGE_PASS') && markers.includes('WORKHORSE_EXECUTE_TIER0_PASS') && markers.includes('ACTION_SCHEMA_VALIDATION_PASS') && markers.includes('FORBIDDEN_COMMAND_BLOCK_PASS') && markers.includes('PATH_TRAVERSAL_BLOCK_PASS') && markers.includes('ABSOLUTE_PATH_BLOCK_PASS') && markers.includes('SECRET_PATH_BLOCK_PASS') && markers.includes('TIER1_BLOCKED_IN_X1_PASS') && markers.includes('ARTIFACT_PACK_PASS') && markers.includes('WORKHORSE_PULSE_ARTIFACT_PASS') && markers.includes('LIVE_PRO_SCHEMA_PROMPT_EXACT_KEYS_PASS') && markers.includes('LIVE_FLASH_REVIEW_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_INTENT_SCHEMA_ALIGNMENT_PASS') && markers.includes('LIVE_FLASH_NOTES_ARRAY_CONTRACT_PASS') && markers.includes('LIVE_FLASH_NOTES_STRING_NORMALIZER_PASS') && markers.includes('LIVE_SCHEMA_FAIL_CLOSED_PASS') && markers.includes('WORKHORSE_LIVE_ARTIFACTS_PASS') && markers.includes('WORKHORSE_LIVE_NO_EXECUTE_ON_BLOCK_PASS') && markers.includes('NO_REPO_MUTATION_FROM_RUNTIME_PASS') && markers.includes('GUARDED_EXECUTOR_COMPAT_PASS') && markers.includes('GENERATE_PLAN_ALIAS_PASS') && markers.includes('GENERATE_PLAN_USES_LIVE_PIPELINE_PASS') && markers.includes('GENERATE_PLAN_NO_EXECUTE_BY_DEFAULT_PASS') && markers.includes('GENERATE_PLAN_ARTIFACT_MARKER_PASS') && markers.includes('WORKHORSE_DEFAULT_IDEA_TRIGGER_PASS') && markers.includes('DEFAULT_IDEA_USES_GENERATE_PLAN_PASS') && markers.includes('DEFAULT_IDEA_DRY_RUN_PASS')) {
     markers.push('WORKHORSE_SELFTEST_PASS')
   }
 
@@ -1759,6 +1866,7 @@ function makeBlockedPlan(target) {
 function artifactPackExists(runDir, expectExecutionSummary) {
   const required = [
     'request.json',
+    'pulse.json',
     'intent.json',
     'action-plan.json',
     'flash-review.json',
@@ -1774,6 +1882,7 @@ function artifactPackExists(runDir, expectExecutionSummary) {
 function liveArtifactPackExists(runDir, expectExecutionSummary) {
   const required = [
     'request.json',
+    'pulse.json',
     'pro-prompt.md',
     'pro-output.raw.txt',
     'intent.json',
