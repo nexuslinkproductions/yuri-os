@@ -1,0 +1,1663 @@
+#!/usr/bin/env node
+
+import { existsSync, readdirSync, statSync, readFileSync, writeFileSync } from 'fs';
+import { execSync } from 'child_process';
+import path from 'path';
+import { evaluateToolCall } from './policy/nudimmud-safety-core.mjs';
+import {
+  estimateTokensFromText,
+  hashPayload,
+  normalizeProviderUsage,
+  recordTokenEvent,
+} from './token-ledger.mjs';
+import {
+  resolveOllamaAdditiveLane,
+  runOllamaCloudChat,
+  runOllamaLocalChat,
+} from './ollama-adapter.mjs';
+import {
+  appendPulseTraceEvent,
+  compactPulseSnapshot,
+  resolvePulseTracePaths,
+  writePulseTraceSnapshot,
+} from './pulse-trace-ledger.mjs';
+
+const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
+const MODEL_POLICY = loadModelPolicy();
+const LOCAL_MODEL_POLICY = MODEL_POLICY.local || {};
+const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'qwen2.5:7b';
+const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || 'qwen3.5:4b';
+const LOCAL_CODE_MODEL = LOCAL_MODEL_POLICY.code || 'qwen2.5-coder:7b';
+const LOCAL_CODE_FALLBACK_MODEL = LOCAL_MODEL_POLICY.code_fallback || 'starcoder2:latest';
+const LOCAL_DEEP_REASONING_MODEL = LOCAL_MODEL_POLICY.deep_reasoning || 'deepseek-r1:8b';
+const LOCAL_MULTIMODAL_MODEL = LOCAL_MODEL_POLICY.multimodal || 'gemma4:e2b';
+const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || 'llama3.2:latest';
+const LOCAL_FROZEN_MODELS = LOCAL_MODEL_POLICY.frozen || LOCAL_MODEL_POLICY.manual_only || [];
+const LOCAL_MANUAL_ONLY_MODELS = LOCAL_MODEL_POLICY.manual_only || LOCAL_FROZEN_MODELS;
+
+const argv = process.argv.slice(2);
+
+if (argv.includes('--inventory')) {
+  const localModels = listLocalModels();
+  console.log(JSON.stringify(buildInventory(localModels), null, 2));
+  process.exit(0);
+}
+
+const lane = (argv.shift() || '').toLowerCase();
+const options = parseArgs(argv);
+const envPrompt = process.env.OFFLOAD_PROMPT_TEXT;
+const prompt = envPrompt !== undefined ? envPrompt : options.prompt.trim();
+const ledgerTraceId = process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || `offload-${Date.now()}-${process.pid}`;
+
+if (!lane) {
+  console.error('Usage: offload-runner <lane|pulse> [--model <id>] [--system <prompt>] [--dry-run] [--inventory] [--plan-json <json>] [--plan-file <path>] <prompt>');
+  process.exit(1);
+}
+
+if (lane === 'pulse' || lane === 'symbiotic-pulse') {
+  const result = await runPulsePlan(options, prompt, ledgerTraceId);
+  process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  process.exit(0);
+}
+
+if (!prompt && !options.dryRun) {
+  console.error('Missing prompt.');
+  process.exit(1);
+}
+
+const localModels = listLocalModels();
+const resolved = resolveLane(lane, options.model, localModels, options.dryRun, options);
+
+if (options.dryRun) {
+  const out = { lane, ...resolved };
+  if (out.apiKey) out.apiKey = '[set]';
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(0);
+}
+
+if (
+  resolved.status === 'SKIPPED_MISSING_ENDPOINT' ||
+  resolved.status === 'SKIPPED_MISSING_KEY' ||
+  resolved.status === 'BLOCKED_PAID_MODEL'
+) {
+  console.error(`[${lane}] ${resolved.status}: ${resolved.error}`);
+  process.exit(0);
+}
+
+if (resolved.kind === 'local') {
+  const result = await runLocalChat(resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
+  process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+  process.exit(0);
+}
+
+if (resolved.protocol === 'ollama-native') {
+  const result = await runOllamaCloudChat(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
+  process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+  process.exit(0);
+}
+
+if (resolved.protocol === 'responses') {
+  const result = await runOpenAIResponses(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, {
+    maxTokens: resolved.maxTokens,
+    reasoningEffort: resolved.reasoningEffort,
+    timeout: resolved.timeout,
+    lane,
+    traceId: ledgerTraceId,
+  });
+  process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+  process.exit(0);
+}
+
+const result = await runOpenAICompatibleChat(
+  resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody,
+  { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout, lane, traceId: ledgerTraceId }
+);
+process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+
+function parseArgs(rest) {
+  const out = {
+    model: '',
+    system: '',
+    prompt: '',
+    dryRun: false,
+    inventory: false,
+    reasoning: '',
+    maxOutputTokens: undefined,
+    planJson: '',
+    planFile: '',
+    executePulse: false,
+  };
+  const promptParts = [];
+
+  for (let i = 0; i < rest.length; i += 1) {
+    const token = rest[i];
+    if (token === '--model' && rest[i + 1]) {
+      out.model = rest[++i];
+      continue;
+    }
+    if (token === '--system' && rest[i + 1]) {
+      out.system = rest[++i];
+      continue;
+    }
+    if (token === '--reasoning' && rest[i + 1]) {
+      out.reasoning = rest[++i];
+      continue;
+    }
+    if (token === '--max-output-tokens' && rest[i + 1]) {
+      out.maxOutputTokens = parseInt(rest[++i], 10);
+      continue;
+    }
+    if (token === '--plan-json' && rest[i + 1]) {
+      out.planJson = rest[++i];
+      continue;
+    }
+    if (token === '--plan-file' && rest[i + 1]) {
+      out.planFile = rest[++i];
+      continue;
+    }
+    if (token === '--execute-pulse' || token === '--execute') {
+      out.executePulse = true;
+      continue;
+    }
+    if (token === '--dry-run' || token === '--route-only') {
+      out.dryRun = true;
+      continue;
+    }
+    if (token === '--inventory') {
+      out.inventory = true;
+      continue;
+    }
+    promptParts.push(token);
+  }
+
+  out.prompt = promptParts.join(' ');
+  return out;
+}
+
+async function runPulsePlan(options, promptText, traceId) {
+  const pulsePlan = readPulsePlan(options);
+  const stages = pulsePlan?.symbioticPulse?.stages || [];
+  const requestedExecute = options.executePulse === true && options.dryRun !== true;
+  const planMode = pulsePlan?.mode || 'plan_only';
+  const execute = requestedExecute && !String(planMode).includes('observe');
+  const pulseTraceId = pulsePlan?.pulseTrace?.traceId || traceId;
+  const selectedLaneIds = [...new Set(stages.flatMap((stage) => stage.laneIds || stage.lanes || []))]
+    .filter((id) => id && id !== 'main-session');
+  const stageOrder = stages.map((stage) => stage.id).filter(Boolean);
+  const tracePaths = resolvePulseTracePaths();
+  const pulseTraceEvents = [];
+
+  const base = {
+    schema_version: 1,
+    executor: 'offload-runner',
+    mode: execute ? 'pulse_execute' : 'pulse_dry_run',
+    advisory_only: true,
+    local_truth_claim: false,
+    pulse_plan_schema_version: pulsePlan?.schema_version || null,
+    pulse_trace_id: pulseTraceId,
+    pulse_seed_sha256: pulsePlan?.pulseTrace?.decisionTrace?.pulseSeedSha256 || '',
+    selected_lane_ids: selectedLaneIds,
+    stage_order: stageOrder,
+    stage_count: stages.length,
+    trigger_all_at_once: false,
+    pulse_trace_ledger_path: tracePaths.ledgerPath,
+    non_claims: [
+      'no hidden chain-of-thought storage',
+      'no automatic mutation',
+      'no local-truth claim from model output',
+    ],
+  };
+
+  recordPulseEvent(pulseTraceEvents, {
+    traceId: pulseTraceId,
+    type: execute ? 'pulse.execute.started' : 'pulse.dry_run.planned',
+    status: execute ? 'started' : 'planned',
+    payload: {
+      plan_schema_version: pulsePlan?.schema_version || null,
+      mode: base.mode,
+      stage_order: stageOrder,
+      selected_lane_ids: selectedLaneIds,
+      trigger_all_at_once: false,
+      pulse_seed_sha256: base.pulse_seed_sha256,
+    },
+  });
+
+  if (!execute) {
+    const result = {
+      ...base,
+      stages: stages.map((stage) => ({
+        id: stage.id,
+        capability: stage.capability,
+        laneIds: stage.laneIds || stage.lanes || [],
+        skillIds: stage.skillIds || [],
+        executionMode: stage.executionMode,
+        status: 'planned',
+        nativeOnly: !!stage.nativeOnly,
+      })),
+    };
+    const snapshotPath = persistPulseTraceSnapshot(pulsePlan, result, pulseTraceId, pulseTraceEvents);
+    if (snapshotPath) result.pulse_trace_snapshot_path = snapshotPath;
+    recordPulseEvent(pulseTraceEvents, {
+      traceId: pulseTraceId,
+      type: 'pulse.dry_run.completed',
+      status: 'completed',
+      payload: {
+        stage_order: stageOrder,
+        selected_lane_ids: selectedLaneIds,
+        snapshot_path: snapshotPath || '',
+        verification_status: 'not_run',
+      },
+    });
+    result.pulse_trace_events = pulseTraceEvents;
+    return result;
+  }
+
+  const localModels = listLocalModels();
+  const promptForLanes = promptText || pulsePlan?.intent?.text || pulsePlan?.pulseSeed?.objective || '';
+  const stageResults = [];
+
+  for (const stage of stages) {
+    const laneIds = stage.laneIds || stage.lanes || [];
+    const stageResult = {
+      id: stage.id,
+      capability: stage.capability,
+      executionMode: stage.executionMode,
+      skillIds: stage.skillIds || [],
+      status: stage.nativeOnly ? 'native_pending' : 'completed',
+      laneResults: [],
+    };
+    recordPulseEvent(pulseTraceEvents, {
+      traceId: pulseTraceId,
+      type: 'pulse.stage.started',
+      status: 'started',
+      stageId: stage.id,
+      payload: {
+        capability: stage.capability || '',
+        execution_mode: stage.executionMode || '',
+        lane_ids: laneIds,
+        native_only: !!stage.nativeOnly,
+      },
+    });
+
+    if (stage.nativeOnly) {
+      stageResult.note = 'native verification/merge must run in main session with deterministic tools';
+      stageResults.push(stageResult);
+      recordPulseEvent(pulseTraceEvents, {
+        traceId: pulseTraceId,
+        type: 'pulse.stage.deferred',
+        status: 'native_pending',
+        stageId: stage.id,
+        payload: {
+          reason: 'main session deterministic verification required',
+          lane_ids: laneIds,
+        },
+      });
+      continue;
+    }
+
+    for (const laneId of laneIds) {
+      try {
+        recordPulseEvent(pulseTraceEvents, {
+          traceId: pulseTraceId,
+          type: 'pulse.lane.started',
+          status: 'started',
+          stageId: stage.id,
+          laneId,
+          payload: {
+            capability: stage.capability || '',
+          },
+        });
+        const resolved = resolveLane(laneId, '', localModels, false, options);
+        if (
+          resolved.status === 'SKIPPED_MISSING_ENDPOINT' ||
+          resolved.status === 'SKIPPED_MISSING_KEY' ||
+          resolved.status === 'BLOCKED_PAID_MODEL'
+        ) {
+          stageResult.laneResults.push({
+            laneId,
+            status: 'skipped',
+            reason: resolved.error || resolved.status,
+          });
+          recordPulseEvent(pulseTraceEvents, {
+            traceId: pulseTraceId,
+            type: 'pulse.lane.skipped',
+            status: 'skipped',
+            stageId: stage.id,
+            laneId,
+            payload: {
+              reason: resolved.error || resolved.status,
+            },
+          });
+          continue;
+        }
+
+        const output = await executeResolvedLane(laneId, resolved, promptForLanes, buildPulseStageSystem(stage), {
+          traceId: pulseTraceId,
+          maxBytes: 12000,
+        });
+        const outputSha256 = hashPayload(output);
+        stageResult.laneResults.push({
+          laneId,
+          status: 'completed',
+          kind: resolved.kind,
+          model: resolved.model || '',
+          outputSha256,
+          outputPreview: capText(output, 4000),
+          advisory_only: true,
+          local_truth_claim: false,
+        });
+        recordPulseEvent(pulseTraceEvents, {
+          traceId: pulseTraceId,
+          type: 'pulse.lane.completed',
+          status: 'completed',
+          stageId: stage.id,
+          laneId,
+          payload: {
+            kind: resolved.kind || '',
+            model: resolved.model || '',
+            output_sha256: outputSha256,
+            advisory_only: true,
+            local_truth_claim: false,
+          },
+        });
+      } catch (error) {
+        stageResult.status = 'partial';
+        stageResult.laneResults.push({
+          laneId,
+          status: 'error',
+          error: error.message,
+        });
+        recordPulseEvent(pulseTraceEvents, {
+          traceId: pulseTraceId,
+          type: 'pulse.lane.error',
+          status: 'error',
+          stageId: stage.id,
+          laneId,
+          payload: {
+            error_sha256: hashPayload(error.message),
+            error_class: error.name || 'Error',
+          },
+        });
+      }
+    }
+
+    stageResults.push(stageResult);
+    recordPulseEvent(pulseTraceEvents, {
+      traceId: pulseTraceId,
+      type: 'pulse.stage.completed',
+      status: stageResult.status,
+      stageId: stage.id,
+      payload: {
+        lane_results: stageResult.laneResults.map((lane) => ({
+          lane_id: lane.laneId,
+          status: lane.status,
+          model: lane.model || '',
+          output_sha256: lane.outputSha256 || '',
+          reason: lane.reason || '',
+        })),
+      },
+    });
+  }
+
+  const result = {
+    ...base,
+    stages: stageResults,
+    verification_status: 'requires_main_session_local_verification',
+  };
+  const snapshotPath = persistPulseTraceSnapshot(pulsePlan, result, pulseTraceId, pulseTraceEvents);
+  if (snapshotPath) result.pulse_trace_snapshot_path = snapshotPath;
+  recordPulseEvent(pulseTraceEvents, {
+    traceId: pulseTraceId,
+    type: 'pulse.execute.completed',
+    status: 'completed',
+    payload: {
+      stage_order: stageOrder,
+      selected_lane_ids: selectedLaneIds,
+      snapshot_path: snapshotPath || '',
+      verification_status: result.verification_status,
+    },
+  });
+  result.pulse_trace_events = pulseTraceEvents;
+  return result;
+}
+
+function recordPulseEvent(events, event) {
+  try {
+    const written = appendPulseTraceEvent(event);
+    events.push({
+      event_id: written.event_id,
+      type: written.type,
+      status: written.status,
+      stage_id: written.stage_id,
+      lane_id: written.lane_id,
+    });
+    return written;
+  } catch (error) {
+    events.push({
+      type: event.type || 'pulse.event',
+      status: 'ledger_error',
+      stage_id: event.stageId || '',
+      lane_id: event.laneId || '',
+      error: error.message,
+    });
+    return null;
+  }
+}
+
+function persistPulseTraceSnapshot(plan, result, traceId, events) {
+  try {
+    return writePulseTraceSnapshot(traceId, compactPulseSnapshot(plan, result));
+  } catch (error) {
+    events.push({
+      type: 'pulse.snapshot.error',
+      status: 'ledger_error',
+      stage_id: '',
+      lane_id: '',
+      error: error.message,
+    });
+    return '';
+  }
+}
+
+function readPulsePlan(options) {
+  let raw = options.planJson || '';
+  if (!raw && options.planFile) {
+    raw = readFileSync(options.planFile, 'utf8');
+  }
+  if (!raw) {
+    throw new Error('pulse execution requires --plan-json <json> or --plan-file <path>');
+  }
+  const plan = JSON.parse(raw);
+  if (plan.contract !== 'PulsePlan' || plan.schema_version < 2) {
+    throw new Error('pulse execution requires PulsePlan schema_version >= 2');
+  }
+  return plan;
+}
+
+function buildPulseStageSystem(stage) {
+  return [
+    'You are one bounded specialist inside symbioticPulse.',
+    `Stage: ${stage.id}`,
+    `Capability: ${stage.capability || 'general'}`,
+    'Return compact advisory output only.',
+    'Do not claim local truth.',
+    'Do not request writes, staging, commits, or protected-path mutation.',
+  ].join('\n');
+}
+
+async function executeResolvedLane(laneId, resolved, promptText, systemText, opts = {}) {
+  let output;
+  if (resolved.kind === 'local') {
+    output = await runLocalChat(resolved.model, promptText, systemText, { lane: laneId, traceId: opts.traceId });
+  } else if (resolved.protocol === 'ollama-native') {
+    output = await runOllamaCloudChat(resolved.endpoint, resolved.apiKey, resolved.model, promptText, systemText, { lane: laneId, traceId: opts.traceId });
+  } else if (resolved.protocol === 'responses') {
+    output = await runOpenAIResponses(resolved.endpoint, resolved.apiKey, resolved.model, promptText, systemText, {
+      maxTokens: resolved.maxTokens,
+      reasoningEffort: resolved.reasoningEffort,
+      timeout: resolved.timeout,
+      lane: laneId,
+      traceId: opts.traceId,
+    });
+  } else {
+    output = await runOpenAICompatibleChat(
+      resolved.endpoint,
+      resolved.apiKey,
+      resolved.model,
+      promptText,
+      systemText,
+      resolved.extraBody,
+      {
+        extraHeaders: resolved.extraHeaders,
+        maxTokens: resolved.maxTokens,
+        timeout: resolved.timeout,
+        lane: laneId,
+        traceId: opts.traceId,
+      },
+    );
+  }
+  return capText(output, opts.maxBytes || 12000);
+}
+
+function capText(value, maxBytes) {
+  const text = String(value || '');
+  if (Buffer.byteLength(text, 'utf8') <= maxBytes) return text;
+  return `${Buffer.from(text).subarray(0, maxBytes).toString('utf8')}\n[truncated]`;
+}
+
+function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, options = {}) {
+  const normalizedForcedModel = normalizeForcedModel(forcedModel, requestedLane);
+
+  if (requestedLane === 'gemma' || requestedLane === 'gemma-local' || requestedLane === 'gemma-cloud') {
+    return resolveGemmaLane(requestedLane, normalizedForcedModel, localModels, dryRun);
+  }
+
+  if (requestedLane === 'ollama' || requestedLane === 'ollama-local' || requestedLane === 'ollama-cloud') {
+    return resolveOllamaAdditiveLane(requestedLane, normalizedForcedModel, localModels, dryRun);
+  }
+
+  if (requestedLane === 'code-local') {
+    return resolveCodeLocalLane(
+      normalizedForcedModel || normalizeForcedModel(process.env.CODE_LOCAL_MODEL || '', 'code-local') || '',
+      localModels,
+      dryRun
+    );
+  }
+
+  const laneMap = {
+    'gpt-oss': {
+      kind: 'local',
+      model: normalizedForcedModel || normalizeForcedModel(process.env.GPT_OSS_MODEL || '', 'gpt-oss') || pickFirstExisting([
+        LOCAL_UTILITY_MODEL,
+        LOCAL_PRIMARY_MODEL,
+        LOCAL_FALLBACK_MODEL
+      ], localModels)
+    },
+    'deepseek': resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun),
+    'deepseek-local': resolveDeepseekLocalLane(
+      normalizedForcedModel || normalizeForcedModel(process.env.DEEPSEEK_LOCAL_MODEL || process.env.DEEPSEEK_MODEL || '', 'deepseek-local') || '',
+      localModels,
+      dryRun
+    ),
+    'kimi': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.KIMI_BASE_URL || ''),
+      apiKey: process.env.KIMI_API_KEY || '',
+      model: normalizedForcedModel || process.env.KIMI_MODEL || 'kimi-k2.6',
+      extraBody: cloudExtraBody('kimi')
+    },
+    'moonshot': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.MOONSHOT_BASE_URL || 'https://api.moonshot.ai/v1'),
+      apiKey: process.env.MOONSHOT_API_KEY || '',
+      model: normalizedForcedModel || process.env.MOONSHOT_MODEL || 'kimi-k2.6',
+      extraBody: cloudExtraBody('moonshot')
+    },
+    'deepseek-v4-flash': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-flash',
+      envVars: ['DEEPSEEK_FLASH_MODEL'],
+      thinking: false,
+      maxTokens: 4096,
+      timeout: 60000,
+    }),
+    'deepseek-v4-pro': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-pro',
+      envVars: ['DEEPSEEK_PRO_MODEL'],
+      thinking: true,
+      maxTokens: 8192,
+      timeout: 120000,
+    }),
+    'deepseek-v4-pro-lite-budget': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-pro',
+      envVars: ['DEEPSEEK_PRO_LITE_MODEL', 'DEEPSEEK_PRO_MODEL'],
+      thinking: false,
+      maxTokens: 1024,
+      timeout: 45000,
+    }),
+    'deepseek-chat': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-flash',
+      envVars: ['DEEPSEEK_FLASH_MODEL'],
+      thinking: false,
+      maxTokens: 4096,
+      timeout: 60000,
+    }),
+    'deepseek-reasoner': deepseekLane(normalizedForcedModel, {
+      defaultModel: 'deepseek-v4-flash',
+      envVars: ['DEEPSEEK_FLASH_MODEL'],
+      thinking: true,
+      maxTokens: 4096,
+      timeout: 60000,
+    }),
+    'deepseek-cloud': {
+      kind: 'cloud',
+      endpoint: deepseekBaseUrl(),
+      apiKey: deepseekApiKey(),
+      model: normalizedForcedModel || process.env.DEEPSEEK_PRO_MODEL || process.env.DEEPSEEK_CLOUD_MODEL || 'deepseek-v4-pro',
+      extraBody: deepseekThinkingBody(true),
+      maxTokens: 8192,
+      timeout: 120000,
+      requiresKey: true,
+    },
+    'triage-local': {
+      kind: 'local',
+      model: normalizedForcedModel || normalizeForcedModel(process.env.TRIAGE_LOCAL_MODEL || '', 'triage-local') || pickFirstExisting([
+        LOCAL_UTILITY_MODEL,
+        LOCAL_PRIMARY_MODEL,
+        LOCAL_FALLBACK_MODEL
+      ], localModels)
+    },
+    'summarize-local': {
+      kind: 'local',
+      model: normalizedForcedModel || normalizeForcedModel(process.env.SUMMARIZE_LOCAL_MODEL || '', 'summarize-local') || pickFirstExisting([
+        LOCAL_UTILITY_MODEL,
+        LOCAL_PRIMARY_MODEL,
+        LOCAL_FALLBACK_MODEL
+      ], localModels)
+    },
+    'reason-kimi': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.REASON_KIMI_BASE_URL || process.env.KIMI_BASE_URL || 'https://api.moonshot.ai/v1'),
+      apiKey: process.env.REASON_KIMI_API_KEY || process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY || '',
+      model: normalizedForcedModel || process.env.REASON_KIMI_MODEL || 'kimi-k2.6',
+      extraBody: cloudExtraBody('reason-kimi')
+    },
+    'reason-cloud': {
+      kind: 'cloud',
+      protocol: 'ollama-native',
+      endpoint: process.env.REASON_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
+      apiKey: process.env.REASON_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '',
+      model: normalizedForcedModel || process.env.REASON_CLOUD_MODEL || 'qwen2.5:72b',
+    },
+    'code-deepseek': {
+      kind: 'cloud',
+      endpoint: deepseekBaseUrl(),
+      apiKey: deepseekApiKey(),
+      model: normalizedForcedModel || process.env.DEEPSEEK_PRO_MODEL || process.env.CODE_DEEPSEEK_MODEL || 'deepseek-v4-pro',
+      extraBody: deepseekThinkingBody(true),
+      maxTokens: 8192,
+      timeout: 120000,
+      requiresKey: true,
+    },
+    'code-cloud': {
+      kind: 'cloud',
+      protocol: 'ollama-native',
+      endpoint: process.env.CODE_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
+      apiKey: process.env.CODE_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '',
+      model: normalizedForcedModel || process.env.CODE_CLOUD_MODEL || 'qwen2.5-coder:32b',
+    },
+    'nvidia-deepseek': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || process.env.NVIDIA_NIM_MODEL || 'deepseek-ai/deepseek-v4-pro',
+    },
+    'openrouter-free': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'),
+      apiKey: process.env.OPENROUTER_API_KEY || '',
+      model: normalizedForcedModel || process.env.OPENROUTER_MODEL || 'openrouter/free',
+      maxTokens: parseInt(process.env.OPENROUTER_MAX_TOKENS || '2048', 10),
+      timeout: 30000,
+      extraHeaders: {
+        'HTTP-Referer': 'https://nudimmud.local',
+        'X-OpenRouter-Title': 'NUDIMMUD',
+      },
+      requiresKey: true,
+    },
+    'codex': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: process.env.CODEX_MODEL || 'gpt-5.5',
+      defaultReasoningEffort: 'high',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'codex-mini': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: process.env.CODEX_MINI_MODEL || 'gpt-5.4-mini',
+      defaultReasoningEffort: 'medium',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
+      timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || '90000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'gpt-5.5': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: 'gpt-5.5',
+      defaultReasoningEffort: 'high',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'gpt-5.4': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: 'gpt-5.4',
+      defaultReasoningEffort: 'medium',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'gpt-5.4-mini': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: 'gpt-5.4-mini',
+      defaultReasoningEffort: 'medium',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
+      timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || '90000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+    'gpt-5.3-codex': openAiResponsesLane(normalizedForcedModel, {
+      defaultModel: 'gpt-5.3-codex',
+      defaultReasoningEffort: 'high',
+      maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      reasoningEffort: options.reasoning,
+    }),
+  };
+
+  const resolved = laneMap[requestedLane];
+  if (!resolved) {
+    if (requestedLane === 'claude') {
+      throw new Error('Lane "claude" removed: it routed to DeepSeek Cloud, not Claude. Use "deepseek-cloud" instead.');
+    }
+    throw new Error(`Unsupported lane: ${requestedLane}`);
+  }
+
+  if (resolved.kind === 'blocked') {
+    return resolved;
+  }
+
+  if (resolved.kind === 'local') {
+    if (!resolved.model || !localModels.has(resolved.model)) {
+      const error = !resolved.model
+        ? `Lane "${requestedLane}" needs a local model installed.`
+        : `Lane "${requestedLane}" requires "${resolved.model}" to be installed.`;
+      if (dryRun) {
+        return {
+          kind: 'blocked',
+          model: resolved.model || '',
+          executable: false,
+          error,
+        };
+      }
+      throw new Error(error);
+    }
+    return { kind: 'local', model: resolved.model };
+  }
+
+  if (!resolved.endpoint) {
+    if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
+      return {
+        kind: resolved.kind,
+        protocol: resolved.protocol,
+        endpoint: '',
+        apiKey: resolved.apiKey || '',
+        model: resolved.model,
+        extraBody: resolved.extraBody,
+        executable: false,
+        status: 'SKIPPED_MISSING_ENDPOINT',
+        error: `Missing endpoint for lane: ${requestedLane}`,
+      };
+    }
+    throw new Error(`Missing endpoint for lane: ${requestedLane}`);
+  }
+
+  if (resolved.requiresKey && !resolved.apiKey) {
+    if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
+      return {
+        kind: resolved.kind,
+        protocol: resolved.protocol,
+        endpoint: resolved.endpoint,
+        apiKey: '',
+        model: resolved.model,
+        extraBody: resolved.extraBody,
+        maxTokens: resolved.maxTokens,
+        timeout: resolved.timeout,
+        reasoningEffort: resolved.reasoningEffort,
+        executable: false,
+        status: 'SKIPPED_MISSING_KEY',
+        error: `Missing API key for lane: ${requestedLane}`,
+      };
+    }
+    throw new Error(`Missing API key for lane: ${requestedLane}`);
+  }
+
+  if (requestedLane === 'openrouter-free') {
+    const model = resolved.model;
+    const isFree = model === 'openrouter/free' || model.endsWith(':free');
+    if (!isFree && process.env.OPENROUTER_ALLOW_PAID !== '1') {
+      if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
+        return {
+          kind: 'blocked',
+          model,
+          executable: false,
+          status: 'BLOCKED_PAID_MODEL',
+          error: `Model "${model}" requires OPENROUTER_ALLOW_PAID=1`,
+        };
+      }
+      throw new Error(`OpenRouter paid model blocked: "${model}". Set OPENROUTER_ALLOW_PAID=1 to allow.`);
+    }
+  }
+
+  return resolved;
+}
+
+function normalizeForcedModel(forcedModel, lane) {
+  if (!forcedModel) return '';
+
+  // Strip routing suffixes (:cloud, :local, :remote) — they're routing hints, not model IDs
+  forcedModel = forcedModel.replace(/:(?:cloud|local|remote)$/i, '');
+
+  const normalized = forcedModel.replace(/[_]/g, '-').toLowerCase();
+  const laneName = lane.replace(/[_]/g, '-').toLowerCase();
+
+  if (normalized === laneName) return '';
+  if (laneName === 'gpt-oss' && (normalized === 'gptoss' || normalized === 'gpt-oss')) return '';
+  if (laneName === 'deepseek' && normalized === 'deepseek') return '';
+  if (laneName === 'deepseek-local' && (normalized === 'deepseek-local' || normalized === 'deepseek')) return '';
+  if ((laneName === 'ollama' || laneName === 'ollama-local' || laneName === 'ollama-cloud') && (normalized === 'ollama' || normalized === 'ollama-local' || normalized === 'ollama-cloud')) return '';
+  if (laneName === 'kimi' && (normalized === 'kimi' || normalized === 'moonshot')) return '';
+  if (laneName === 'moonshot' && (normalized === 'moonshot' || normalized === 'kimi')) return '';
+  if (laneName === 'deepseek-cloud' && normalized === 'deepseek-cloud') return '';
+  if (laneName === 'triage-local' && normalized === 'triage-local') return '';
+  if (laneName === 'summarize-local' && normalized === 'summarize-local') return '';
+  if (laneName === 'code-local' && normalized === 'code-local') return '';
+  if (laneName === 'reason-cloud' && normalized === 'reason-cloud') return '';
+  if (laneName === 'code-cloud' && normalized === 'code-cloud') return '';
+  if (laneName === 'reason-kimi' && (normalized === 'reason-kimi' || normalized === 'kimi')) return '';
+  if (laneName === 'code-deepseek' && (normalized === 'code-deepseek' || normalized === 'deepseek')) return '';
+  if (laneName === 'gemma-local' && normalized === 'gemma-local') return '';
+  if (laneName === 'gemma-cloud' && normalized === 'gemma-cloud') return '';
+  if (laneName === 'gemma' && normalized === 'gemma') return '';
+  if (laneName === 'codex' && normalized === 'codex') return '';
+  if (laneName === 'codex-mini' && normalized === 'codex-mini') return '';
+
+  if (['ollama', 'ollama-local', 'ollama-cloud', 'triage-local', 'summarize-local', 'gpt-oss'].includes(laneName)) {
+    if (['qwen3.5', 'qwen3.5:4b', 'qwen3.5:latest', 'qwen-liberated', 'qwen-liberated:latest'].includes(normalized)) return LOCAL_UTILITY_MODEL;
+    if (['qwen2.5', 'qwen2.5:7b', 'qwen2.5:latest'].includes(normalized)) return LOCAL_PRIMARY_MODEL;
+    if (['llama3.2', 'llama3.2:latest'].includes(normalized)) return LOCAL_FALLBACK_MODEL;
+  }
+
+  if (laneName === 'code-local') {
+    if (['qwen2.5-coder', 'qwen2.5-coder:7b', 'qwen2.5-coder:latest'].includes(normalized)) return LOCAL_CODE_MODEL;
+    if (['starcoder2', 'starcoder2:latest'].includes(normalized)) return LOCAL_CODE_FALLBACK_MODEL;
+  }
+
+  if (laneName === 'deepseek' || laneName === 'deepseek-local') {
+    if (['deepseek-r1', 'deepseek-r1:8b', 'deepseek-r1:latest'].includes(normalized)) return LOCAL_DEEP_REASONING_MODEL;
+    if (['qwen2.5', 'qwen2.5:7b', 'qwen2.5:latest'].includes(normalized)) return LOCAL_PRIMARY_MODEL;
+    if (['qwen3.5', 'qwen3.5:4b', 'qwen3.5:latest'].includes(normalized)) return LOCAL_UTILITY_MODEL;
+    if (['llama3.2', 'llama3.2:latest'].includes(normalized)) return LOCAL_FALLBACK_MODEL;
+  }
+
+  if (laneName === 'gemma' || laneName === 'gemma-local') {
+    if (['gemma4', 'gemma4:e2b', 'gemma4:latest', 'gemma'].includes(normalized)) return LOCAL_MULTIMODAL_MODEL;
+  }
+
+  if (laneName === 'gemma-cloud') {
+    if (['gemma4', 'gemma4:latest', 'gemma'].includes(normalized)) return 'gemma4:e4b';
+  }
+
+  return forcedModel;
+}
+
+function openAiResponsesLane(normalizedForcedModel, options) {
+  return {
+    kind: 'cloud',
+    protocol: 'responses',
+    endpoint: normalizeOpenAIBaseUrl(process.env.CODEX_ENDPOINT || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'),
+    apiKey: process.env.OPENAI_API_KEY || '',
+    model: normalizedForcedModel || options.defaultModel,
+    reasoningEffort: validateReasoningEffort(
+      options.reasoningEffort || process.env.CODEX_REASONING_EFFORT || options.defaultReasoningEffort,
+    ),
+    maxTokens: options.maxTokens,
+    timeout: options.timeout,
+    requiresKey: true,
+  };
+}
+
+function validateReasoningEffort(value) {
+  const effort = (value || '').toLowerCase();
+  if (['low', 'medium', 'high', 'xhigh'].includes(effort)) return effort;
+  throw new Error(`Invalid reasoning effort "${value}". Use low, medium, high, or xhigh.`);
+}
+
+function cloudExtraBody(provider) {
+  if (provider === 'kimi' || provider === 'reason-kimi') {
+    return { chat_template_kwargs: { thinking: true } };
+  }
+  return undefined;
+}
+
+function deepseekBaseUrl() {
+  const raw = process.env.DEEPSEEK_BASE_URL || process.env.CODE_DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
+  const trimmed = raw.replace(/\/$/, '');
+  return trimmed.endsWith('/v1') ? trimmed.slice(0, -3) : trimmed;
+}
+
+function deepseekApiKey() {
+  return process.env.DEEPSEEK_API_KEY || process.env.CODE_DEEPSEEK_API_KEY || '';
+}
+
+function deepseekThinkingBody(enabled) {
+  return { thinking: { type: enabled ? 'enabled' : 'disabled' } };
+}
+
+function resolveDeepseekModel(options) {
+  for (const envName of options.envVars || []) {
+    const val = process.env[envName] || '';
+    if (val) return val;
+  }
+  return options.defaultModel;
+}
+
+function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun = false) {
+  if (normalizedForcedModel && isLocalDeepseekCandidate(normalizedForcedModel, localModels)) {
+    return resolveDeepseekLocalLane(normalizedForcedModel, localModels, dryRun);
+  }
+
+  if (deepseekApiKey()) {
+    return {
+      kind: 'cloud',
+      endpoint: deepseekBaseUrl(),
+      apiKey: deepseekApiKey(),
+      model: normalizedForcedModel || process.env.DEEPSEEK_DEFAULT_MODEL || process.env.DEEPSEEK_FLASH_MODEL || 'deepseek-v4-flash',
+      extraBody: deepseekThinkingBody(false),
+      maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
+      timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
+      requiresKey: true,
+      resolvedVia: 'cloud-default',
+    };
+  }
+
+  return resolveDeepseekLocalLane(normalizedForcedModel, localModels, dryRun);
+}
+
+function resolveDeepseekLocalLane(forcedModel, localModels, dryRun = false) {
+  if (forcedModel) {
+    if (localModels.has(forcedModel)) {
+      return { kind: 'local', model: forcedModel, resolvedVia: 'forced-local' };
+    }
+    return deepseekLocalBlocked(
+      forcedModel,
+      dryRun,
+      `Lane "deepseek-local" requires "${forcedModel}" to be installed. Run: ollama pull ${forcedModel}`
+    );
+  }
+
+  for (const candidate of [LOCAL_DEEP_REASONING_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_UTILITY_MODEL, LOCAL_FALLBACK_MODEL]) {
+    if (candidate && localModels.has(candidate)) {
+      return { kind: 'local', model: candidate, resolvedVia: 'local-fallback' };
+    }
+  }
+
+  return deepseekLocalBlocked(
+    LOCAL_DEEP_REASONING_MODEL,
+    dryRun,
+    `Lane "deepseek-local" needs a local model. Install ${LOCAL_DEEP_REASONING_MODEL} or set DEEPSEEK_API_KEY for cloud DeepSeek.`
+  );
+}
+
+function deepseekLocalBlocked(model, dryRun, error) {
+  if (dryRun) {
+    return {
+      kind: 'blocked',
+      model,
+      executable: false,
+      error,
+    };
+  }
+
+  throw new Error(error);
+}
+
+function isLocalDeepseekCandidate(model, localModels) {
+  const clean = String(model || '').toLowerCase();
+  return localModels.has(model)
+    || clean.startsWith('deepseek-r1:')
+    || clean.startsWith('deepseek-v2:')
+    || clean.startsWith('deepseek-liberated:')
+    || clean.startsWith('qwen')
+    || clean.startsWith('llama3.2');
+}
+
+function deepseekLane(normalizedForcedModel, options) {
+  return {
+    kind: 'cloud',
+    endpoint: deepseekBaseUrl(),
+    apiKey: deepseekApiKey(),
+    model: normalizedForcedModel || resolveDeepseekModel(options),
+    extraBody: deepseekThinkingBody(!!options.thinking),
+    maxTokens: options.maxTokens,
+    timeout: options.timeout,
+    requiresKey: true,
+  };
+}
+
+function resolveGemmaLane(lane, normalizedForcedModel, localModels, dryRun = false) {
+  if (normalizedForcedModel && !normalizedForcedModel.startsWith('gemma4:')) {
+    throw new Error(`Lane "${lane}" requires a gemma4: model, got "${normalizedForcedModel}".`);
+  }
+
+  if (lane === 'gemma-local') {
+    const model = normalizedForcedModel || normalizeGemmaLocalModel(envGemmaModel('GEMMA_LOCAL_MODEL')) || pickGemmaLocal(localModels);
+    if (!model) {
+      if (dryRun) {
+        return {
+          kind: 'local',
+          model: 'gemma4:e2b',
+          installed: false,
+          executable: false,
+          error: 'No local gemma4 model installed. Run: ollama pull gemma4:e2b',
+        };
+      }
+      throw new Error('Lane "gemma-local": no local gemma4 model installed. Run: ollama pull gemma4:e2b');
+    }
+    return { kind: 'local', model, installed: true, executable: true };
+  }
+
+  if (lane === 'gemma-cloud') {
+    const apiKey = process.env.GEMMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '';
+    const endpoint = process.env.GEMMA_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat';
+    const model = normalizedForcedModel || normalizeGemmaCloudModel(envGemmaModel('GEMMA_CLOUD_MODEL')) || 'gemma4:e4b';
+    if (!apiKey) {
+      if (dryRun) {
+        return {
+          kind: 'cloud',
+          protocol: 'ollama-native',
+          endpoint,
+          model,
+          hasKey: false,
+          executable: false,
+          error: 'Missing OLLAMA_API_KEY or GEMMA_CLOUD_API_KEY',
+        };
+      }
+      throw new Error('Lane "gemma-cloud" requires OLLAMA_API_KEY or GEMMA_CLOUD_API_KEY.');
+    }
+    return { kind: 'cloud', protocol: 'ollama-native', endpoint, apiKey, model, hasKey: true, executable: true };
+  }
+
+  // lane === 'gemma' — cloud-first, local fallback
+  const hasCloudKey = !!(process.env.OLLAMA_API_KEY || process.env.GEMMA_CLOUD_API_KEY);
+  if (hasCloudKey) {
+      return {
+        kind: 'cloud',
+        protocol: 'ollama-native',
+        endpoint: process.env.GEMMA_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
+        apiKey: process.env.GEMMA_CLOUD_API_KEY || process.env.OLLAMA_API_KEY,
+      model: normalizedForcedModel || normalizeGemmaCloudModel(envGemmaModel('GEMMA_MODEL')) || 'gemma4:e4b',
+        resolvedVia: 'cloud',
+        executable: true,
+      };
+  }
+
+  const localModel = normalizedForcedModel || normalizeGemmaLocalModel(envGemmaModel('GEMMA_MODEL')) || pickGemmaLocal(localModels);
+  if (localModel) return { kind: 'local', model: localModel, resolvedVia: 'local', executable: true };
+
+  if (dryRun) {
+    return {
+      kind: 'blocked',
+      model: 'gemma4:e2b',
+      hasCloudKey: false,
+      hasLocalModel: false,
+      executable: false,
+      error: 'No OLLAMA_API_KEY for cloud and no local gemma4 model installed. Install gemma4:e2b or set OLLAMA_API_KEY.',
+    };
+  }
+  throw new Error('Lane "gemma": no OLLAMA_API_KEY for cloud and no local gemma4 model installed. Install gemma4:e2b or set OLLAMA_API_KEY.');
+}
+
+function resolveCodeLocalLane(forcedModel, localModels, dryRun = false) {
+  if (forcedModel) {
+    if (!isCoderModel(forcedModel)) {
+      return codeLaneBlocked(forcedModel, dryRun, `Lane "code-local" requires a coder model, got "${forcedModel}".`);
+    }
+
+    if (localModels.has(forcedModel)) {
+      return { kind: 'local', model: forcedModel, resolvedVia: 'forced', additive: false };
+    }
+
+    return codeLaneBlocked(
+      forcedModel,
+      dryRun,
+      `Lane "code-local" requires "${forcedModel}" to be installed. Run: ollama pull ${forcedModel}`
+    );
+  }
+
+  for (const candidate of [LOCAL_CODE_MODEL, LOCAL_CODE_FALLBACK_MODEL]) {
+    if (candidate && localModels.has(candidate)) {
+      return { kind: 'local', model: candidate, resolvedVia: 'local', additive: false };
+    }
+  }
+
+  return codeLaneBlocked(
+    LOCAL_CODE_MODEL,
+    dryRun,
+    `Lane "code-local" needs a coder model. Install ${LOCAL_CODE_MODEL} or ${LOCAL_CODE_FALLBACK_MODEL}.`
+  );
+}
+
+function codeLaneBlocked(model, dryRun, error) {
+  if (dryRun) {
+    return {
+      kind: 'blocked',
+      model,
+      executable: false,
+      additive: false,
+      error,
+    };
+  }
+
+  throw new Error(error);
+}
+
+function isCoderModel(model) {
+  const clean = String(model || '').toLowerCase();
+  return clean.startsWith('qwen2.5-coder') || clean.startsWith('starcoder2');
+}
+
+function loadModelPolicy() {
+  try {
+    if (!existsSync(MODEL_POLICY_PATH)) return {};
+    return JSON.parse(readFileSync(MODEL_POLICY_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function envGemmaModel(envName) {
+  const val = process.env[envName] || '';
+  if (!val) return '';
+  if (val.startsWith('gemma4:')) return val;
+  throw new Error(`${envName}="${val}" is not a gemma4: model. Gemma lanes require gemma4: models only.`);
+}
+
+function normalizeGemmaLocalModel(model) {
+  const clean = String(model || '').toLowerCase();
+  if (!clean) return '';
+  if (['gemma4', 'gemma4:latest', 'gemma'].includes(clean)) return LOCAL_MULTIMODAL_MODEL;
+  return clean.startsWith('gemma4:') ? model : '';
+}
+
+function normalizeGemmaCloudModel(model) {
+  const clean = String(model || '').toLowerCase();
+  if (!clean) return '';
+  if (['gemma4', 'gemma4:latest', 'gemma'].includes(clean)) return 'gemma4:e4b';
+  return clean.startsWith('gemma4:') ? model : '';
+}
+
+function pickGemmaLocal(localModels) {
+  for (const c of ['gemma4:e2b', 'gemma4:e4b']) {
+    if (localModels.has(c)) return c;
+  }
+  return '';
+}
+
+function normalizeOpenAIBaseUrl(url) {
+  const trimmed = (url || '').replace(/\/$/, '');
+  if (!trimmed) return '';
+  return trimmed.endsWith('/v1') ? trimmed : `${trimmed}/v1`;
+}
+
+function pickFirstExisting(candidates, localModels) {
+  for (const candidate of candidates) {
+    if (localModels.has(candidate)) return candidate;
+  }
+  return candidates[0];
+}
+
+function listLocalModels() {
+  const models = new Set();
+  const manifestRoot = process.env.OLLAMA_MANIFEST_DIR || path.join(process.env.HOME || '', '.ollama/models/manifests/registry.ollama.ai/library');
+
+  if (!existsSync(manifestRoot)) {
+    return models;
+  }
+
+  const stack = [manifestRoot];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    for (const entry of safeReadDir(current)) {
+      const full = path.join(current, entry);
+      const stat = safeStat(full);
+      if (!stat) continue;
+      if (stat.isDirectory()) {
+        stack.push(full);
+        continue;
+      }
+
+      const rel = path.relative(manifestRoot, full);
+      const parts = rel.split(path.sep);
+      if (parts.length >= 2) {
+        models.add(`${parts[0]}:${parts[1]}`);
+      }
+    }
+  }
+
+  return models;
+}
+
+function safeReadDir(dir) {
+  try {
+    return readdirSync(dir) || [];
+  } catch {
+    return [];
+  }
+}
+
+function safeStat(file) {
+  try {
+    return statSync(file);
+  } catch {
+    return null;
+  }
+}
+
+function buildInventory(localModels) {
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-cloud', 'code-deepseek', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const lanes = {};
+  for (const name of laneNames) {
+    try {
+      const r = resolveLane(name, '', localModels, true);
+      lanes[name] = { kind: r.kind, model: r.model };
+      if (r.endpoint) lanes[name].endpoint = r.endpoint;
+      if (r.protocol) lanes[name].protocol = r.protocol;
+      if (r.apiKey !== undefined) lanes[name].hasKey = !!r.apiKey;
+      if (r.executable !== undefined) lanes[name].executable = r.executable;
+      if (r.status) lanes[name].status = r.status;
+      if (r.error) lanes[name].error = r.error;
+      if (r.resolvedVia) lanes[name].resolvedVia = r.resolvedVia;
+      if (r.extraBody?.thinking?.type) lanes[name].thinking = r.extraBody.thinking.type;
+      if (r.reasoningEffort !== undefined) lanes[name].reasoningEffort = r.reasoningEffort;
+      if (r.maxTokens !== undefined) lanes[name].maxTokens = r.maxTokens;
+      if (r.timeout !== undefined) lanes[name].timeout = r.timeout;
+      if (r.requiresKey !== undefined) lanes[name].requiresKey = r.requiresKey;
+    } catch (e) {
+      lanes[name] = { error: e.message };
+    }
+  }
+  return {
+    lanes,
+    localModels: [...localModels].sort(),
+    localPolicy: {
+      primary: LOCAL_PRIMARY_MODEL,
+      utility: LOCAL_UTILITY_MODEL,
+      code: LOCAL_CODE_MODEL,
+      codeFallback: LOCAL_CODE_FALLBACK_MODEL,
+      deepReasoning: LOCAL_DEEP_REASONING_MODEL,
+      multimodal: LOCAL_MULTIMODAL_MODEL,
+      fallback: LOCAL_FALLBACK_MODEL,
+      frozen: [...LOCAL_FROZEN_MODELS],
+      manualOnly: [...LOCAL_MANUAL_ONLY_MODELS],
+    },
+  };
+}
+
+async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemText, opts = {}) {
+  const startedAt = Date.now();
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+
+  const body = {
+    model,
+    input: promptText,
+    store: false,
+    ...(systemText ? { instructions: systemText } : {}),
+    ...(opts.maxTokens ? { max_output_tokens: opts.maxTokens } : {}),
+    ...(opts.reasoningEffort ? { reasoning: { effort: opts.reasoningEffort } } : {}),
+  };
+
+  const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) };
+  let timeoutId;
+  if (opts.timeout) {
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), opts.timeout);
+    fetchOpts.signal = controller.signal;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${endpoint}/responses`, fetchOpts);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+
+  if (!response.ok) {
+    const errText = await response.text();
+    await recordOffloadLedger({
+      lane: opts.lane,
+      traceId: opts.traceId,
+      provider: 'openai-responses',
+      requestModel: model,
+      status: 'error',
+      measurement: { measurement_type: 'unobservable', accuracy_class: 'not_measurable' },
+      startedAt,
+      promptText,
+      systemText,
+      endpoint,
+      metadata: { http_status: response.status, error_hash: hashPayload(errText) },
+    });
+    if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
+    if (response.status === 429) throw new Error('RATE_LIMITED');
+    throw new Error(`OPENAI_RESPONSES_${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  const output = extractResponseText(data);
+  await recordOffloadLedger({
+    lane: opts.lane,
+    traceId: opts.traceId,
+    provider: 'openai-responses',
+    requestModel: model,
+    responseModel: data.model || model,
+    status: 'ok',
+    measurement: normalizeProviderUsage('openai', data.usage, {
+      input_tokens: estimateTokensFromText([systemText, promptText].filter(Boolean).join('\n')),
+      output_tokens: estimateTokensFromText(output),
+    }),
+    startedAt,
+    promptText,
+    systemText,
+    endpoint,
+    metadata: { response_id_hash: data.id ? hashPayload(data.id) : '' },
+  });
+  return output;
+}
+
+function extractResponseText(data) {
+  if (typeof data.output_text === 'string' && data.output_text.length > 0) {
+    return data.output_text;
+  }
+
+  const parts = [];
+  for (const item of data.output || []) {
+    for (const content of item.content || []) {
+      if (content.type === 'output_text' && typeof content.text === 'string') {
+        parts.push(content.text);
+      }
+    }
+  }
+
+  if (parts.length > 0) return parts.join('\n');
+
+  if (data.status === 'incomplete') {
+    const reason = data.incomplete_details?.reason || 'unknown';
+    throw new Error(`OPENAI_RESPONSES_INCOMPLETE: ${reason}`);
+  }
+
+  throw new Error('No text output from Responses API');
+}
+
+async function runLocalChat(model, promptText, systemText, ledger = {}) {
+  return runOllamaLocalChat(model, promptText, systemText, ledger);
+}
+
+async function runOllamaRemote(endpoint, apiKey, model, promptText, systemText, ledger = {}) {
+  return runOllamaCloudChat(endpoint, apiKey, model, promptText, systemText, ledger);
+}
+
+async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, systemText, extraBody, opts = {}) {
+  const messages = [];
+  if (systemText) messages.push({ role: 'system', content: systemText });
+  messages.push({ role: 'user', content: promptText });
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+  if (opts.extraHeaders) Object.assign(headers, opts.extraHeaders);
+
+  const toolDefinitions = [
+    {
+      type: 'function',
+      function: {
+        name: 'bash',
+        description: 'Execute bash shell commands and return output',
+        parameters: {
+          type: 'object',
+          properties: {
+            cmd: { type: 'string', description: 'Bash command to execute' },
+            cwd: { type: 'string', description: 'Working directory (optional, defaults to current)' }
+          },
+          required: ['cmd']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'read_file',
+        description: 'Read contents of a file',
+        parameters: {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'File path to read' },
+            lines: { type: 'number', description: 'Max lines to read (optional)' }
+          },
+          required: ['path']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'write_file',
+        description: 'Write content to a file',
+        parameters: {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'File path to write' },
+            content: { type: 'string', description: 'Content to write' }
+          },
+          required: ['path', 'content']
+        }
+      }
+    }
+  ];
+
+  // Try with tools first; fall back to text-only if not supported
+  let supportsTools = true;
+  const maxIterations = 50; // Increased from 10 for complex multi-step reasoning tasks
+  let iteration = 0;
+  let lastToolCallNames = []; // Track last tool calls to detect loops
+
+  while (iteration < maxIterations) {
+    iteration++;
+
+    const body = {
+      model,
+      messages,
+      ...(supportsTools && { tools: toolDefinitions, tool_choice: 'auto' }),
+      ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
+      ...(extraBody || {})
+    };
+
+    const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) };
+    let timeoutId;
+    if (opts.timeout) {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), opts.timeout);
+      fetchOpts.signal = controller.signal;
+    }
+
+    let response;
+    const startedAt = Date.now();
+    try {
+      response = await fetch(`${endpoint}/chat/completions`, fetchOpts);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+
+    if (!response.ok) {
+      const errText = await response.text();
+      // If tool-use is not supported, disable it and retry
+      if (supportsTools && (errText.includes('unknown variant') || errText.includes('tool'))) {
+        supportsTools = false;
+        iteration = 0; // Reset iteration counter
+        messages.pop(); // Remove last message if it was a tool attempt
+        continue;
+      }
+      await recordOffloadLedger({
+        lane: opts.lane,
+        traceId: opts.traceId,
+        provider: providerFromEndpoint(endpoint),
+        requestModel: model,
+        status: 'error',
+        measurement: { measurement_type: 'unobservable', accuracy_class: 'not_measurable' },
+        startedAt,
+        promptText,
+        systemText,
+        endpoint,
+        metadata: { http_status: response.status, iteration, error_hash: hashPayload(errText) },
+      });
+      if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
+      if (response.status === 429) throw new Error('RATE_LIMITED');
+      throw new Error(`OPENAI_COMPAT_${response.status}: ${errText}`);
+    }
+
+    const data = await response.json();
+    const message = data.choices?.[0]?.message;
+
+    if (!message) throw new Error('No response from model');
+    await recordOffloadLedger({
+      lane: opts.lane,
+      traceId: opts.traceId,
+      provider: providerFromEndpoint(endpoint),
+      requestModel: model,
+      responseModel: data.model || model,
+      status: 'ok',
+      measurement: normalizeProviderUsage('openai-compatible', data.usage, {
+        input_tokens: estimateTokensFromText(messages.map((m) => m.content || '').join('\n')),
+        output_tokens: estimateTokensFromText(message.content || ''),
+      }),
+      startedAt,
+      promptText,
+      systemText,
+      endpoint,
+      metadata: {
+        iteration,
+        supports_tools: supportsTools,
+        tool_call_count: Array.isArray(message.tool_calls) ? message.tool_calls.length : 0,
+      },
+    });
+
+    // Add assistant's response to conversation
+    messages.push({ role: 'assistant', content: message.content || '' });
+
+    // Check if model requested tool calls (only if tools are supported)
+    if (supportsTools && message.tool_calls && message.tool_calls.length > 0) {
+      // Detect infinite loops: if same tools called 3 times in a row, break and return what we have
+      const currentToolNames = message.tool_calls.map(tc => tc.function.name).sort().join(',');
+      if (lastToolCallNames === currentToolNames && iteration >= 6) {
+        // Same tools being called repeatedly — likely stuck loop, return best effort
+        return message.content || 'Reached tool call repetition limit; returning partial result.';
+      }
+      lastToolCallNames = currentToolNames;
+
+      // Execute tools and collect results
+      const toolResults = [];
+      for (const toolCall of message.tool_calls) {
+        const result = await executeTool(toolCall.function.name, toolCall.function.arguments);
+        toolResults.push(`Tool ${toolCall.function.name}: ${result}`);
+      }
+
+      // Add tool results as user message
+      messages.push({
+        role: 'user',
+        content: `Tool execution results:\n${toolResults.join('\n')}`
+      });
+      continue;
+    }
+
+    // No more tool calls or tools disabled — return final answer
+    return message.content || '';
+  }
+
+  throw new Error(`Loop exceeded max iterations (${maxIterations})`);
+}
+
+async function recordOffloadLedger({
+  lane,
+  traceId,
+  provider,
+  requestModel,
+  responseModel,
+  status,
+  measurement,
+  startedAt,
+  promptText,
+  systemText,
+  endpoint,
+  metadata = {},
+}) {
+  const safeMeasurement = measurement || { measurement_type: 'unobservable', accuracy_class: 'not_measurable' };
+  await recordTokenEvent({
+    trace_id: traceId,
+    source_path: 'Scripts/offload-runner.mjs',
+    lane,
+    provider,
+    request_model: requestModel,
+    response_model: responseModel || requestModel,
+    operation_type: 'model_call',
+    status,
+    ...safeMeasurement,
+    latency_ms: Date.now() - startedAt,
+    payload_hash: hashPayload({ prompt: promptText, system: systemText, model: requestModel, lane }),
+    metadata: {
+      prompt_chars: promptText?.length || 0,
+      system_chars: systemText?.length || 0,
+      endpoint_host: endpointHost(endpoint),
+      ...metadata,
+    },
+  });
+}
+
+function endpointHost(endpoint) {
+  try {
+    return new URL(endpoint).host;
+  } catch {
+    return '';
+  }
+}
+
+function providerFromEndpoint(endpoint) {
+  const host = endpointHost(endpoint);
+  if (host.includes('deepseek')) return 'deepseek';
+  if (host.includes('moonshot')) return 'moonshot';
+  if (host.includes('openrouter')) return 'openrouter';
+  if (host.includes('openai')) return 'openai-compatible';
+  return 'openai-compatible';
+}
+
+async function executeTool(name, argsStr) {
+  try {
+    let args = {};
+    if (typeof argsStr === 'string') {
+      args = JSON.parse(argsStr);
+    } else {
+      args = argsStr;
+    }
+
+    if (name === 'bash') {
+      const { cmd, cwd } = args;
+      if (!cmd) return 'ERROR: Missing cmd parameter';
+      const safety = evaluateToolCall('bash', { cmd, cwd }, { source: 'offload-runner' });
+      if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
+      try {
+        const output = execSync(cmd, {
+          cwd: cwd || '/Users/marcelspatz/NUDIMMUD',
+          encoding: 'utf-8',
+          maxBuffer: 10 * 1024 * 1024,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        return output.trim();
+      } catch (e) {
+        return `bash error (exit ${e.status}): ${e.stderr?.toString() || e.message}`;
+      }
+    }
+
+    if (name === 'read_file') {
+      const { path: filePath, lines } = args;
+      if (!filePath) return 'ERROR: Missing path parameter';
+      try {
+        let content = readFileSync(filePath, 'utf-8');
+        if (lines) {
+          const fileLines = content.split('\n');
+          content = fileLines.slice(0, lines).join('\n');
+        }
+        return content;
+      } catch (e) {
+        return `read_file error: ${e.message}`;
+      }
+    }
+
+    if (name === 'write_file') {
+      const { path: filePath, content } = args;
+      if (!filePath || content === undefined) return 'ERROR: Missing path or content parameter';
+      const safety = evaluateToolCall('write_file', { path: filePath }, { source: 'offload-runner' });
+      if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
+      try {
+        writeFileSync(filePath, content, 'utf-8');
+        return `✓ Wrote ${content.length} bytes to ${filePath}`;
+      } catch (e) {
+        return `write_file error: ${e.message}`;
+      }
+    }
+
+    return `ERROR: Unknown tool "${name}"`;
+  } catch (e) {
+    return `Tool execution error: ${e.message}`;
+  }
+}
