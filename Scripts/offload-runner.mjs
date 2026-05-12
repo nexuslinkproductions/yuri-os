@@ -15,6 +15,12 @@ import {
   runOllamaCloudChat,
   runOllamaLocalChat,
 } from './ollama-adapter.mjs';
+import {
+  appendPulseTraceEvent,
+  compactPulseSnapshot,
+  resolvePulseTracePaths,
+  writePulseTraceSnapshot,
+} from './pulse-trace-ledger.mjs';
 
 const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
 const MODEL_POLICY = loadModelPolicy();
@@ -26,6 +32,8 @@ const LOCAL_CODE_FALLBACK_MODEL = LOCAL_MODEL_POLICY.code_fallback || 'starcoder
 const LOCAL_DEEP_REASONING_MODEL = LOCAL_MODEL_POLICY.deep_reasoning || 'deepseek-r1:8b';
 const LOCAL_MULTIMODAL_MODEL = LOCAL_MODEL_POLICY.multimodal || 'gemma4:e2b';
 const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || 'llama3.2:latest';
+const LOCAL_FROZEN_MODELS = LOCAL_MODEL_POLICY.frozen || LOCAL_MODEL_POLICY.manual_only || [];
+const LOCAL_MANUAL_ONLY_MODELS = LOCAL_MODEL_POLICY.manual_only || LOCAL_FROZEN_MODELS;
 
 const argv = process.argv.slice(2);
 
@@ -42,8 +50,14 @@ const prompt = envPrompt !== undefined ? envPrompt : options.prompt.trim();
 const ledgerTraceId = process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || `offload-${Date.now()}-${process.pid}`;
 
 if (!lane) {
-  console.error('Usage: offload-runner <lane> [--model <id>] [--system <prompt>] [--dry-run] [--inventory] <prompt>');
+  console.error('Usage: offload-runner <lane|pulse> [--model <id>] [--system <prompt>] [--dry-run] [--inventory] [--plan-json <json>] [--plan-file <path>] <prompt>');
   process.exit(1);
+}
+
+if (lane === 'pulse' || lane === 'symbiotic-pulse') {
+  const result = await runPulsePlan(options, prompt, ledgerTraceId);
+  process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  process.exit(0);
 }
 
 if (!prompt && !options.dryRun) {
@@ -109,6 +123,9 @@ function parseArgs(rest) {
     inventory: false,
     reasoning: '',
     maxOutputTokens: undefined,
+    planJson: '',
+    planFile: '',
+    executePulse: false,
   };
   const promptParts = [];
 
@@ -130,6 +147,18 @@ function parseArgs(rest) {
       out.maxOutputTokens = parseInt(rest[++i], 10);
       continue;
     }
+    if (token === '--plan-json' && rest[i + 1]) {
+      out.planJson = rest[++i];
+      continue;
+    }
+    if (token === '--plan-file' && rest[i + 1]) {
+      out.planFile = rest[++i];
+      continue;
+    }
+    if (token === '--execute-pulse' || token === '--execute') {
+      out.executePulse = true;
+      continue;
+    }
     if (token === '--dry-run' || token === '--route-only') {
       out.dryRun = true;
       continue;
@@ -143,6 +172,115 @@ function parseArgs(rest) {
 
   out.prompt = promptParts.join(' ');
   return out;
+}
+
+async function runPulsePlan(options, promptText, traceId) {
+  const pulsePlan = readPulsePlan(options);
+  const stages = pulsePlan?.symbioticPulse?.stages || [];
+  const requestedExecute = options.executePulse === true && options.dryRun !== true;
+  const planMode = pulsePlan?.mode || 'plan_only';
+  const execute = requestedExecute && !String(planMode).includes('observe');
+  const pulseTraceId = pulsePlan?.pulseTrace?.traceId || traceId;
+  const selectedLaneIds = [...new Set(stages.flatMap((stage) => stage.laneIds || stage.lanes || []))]
+    .filter((id) => id && id !== 'main-session');
+  const stageOrder = stages.map((stage) => stage.id).filter(Boolean);
+  const tracePaths = resolvePulseTracePaths();
+  const pulseTraceEvents = [];
+
+  const base = {
+    schema_version: 1,
+    executor: 'offload-runner',
+    mode: execute ? 'pulse_execute' : 'pulse_dry_run',
+    advisory_only: true,
+    local_truth_claim: false,
+    pulse_plan_schema_version: pulsePlan?.schema_version || null,
+    pulse_trace_id: pulseTraceId,
+    pulse_seed_sha256: pulsePlan?.pulseTrace?.decisionTrace?.pulseSeedSha256 || '',
+    selected_lane_ids: selectedLaneIds,
+    stage_order: stageOrder,
+    stage_count: stages.length,
+    trigger_all_at_once: false,
+    pulse_trace_ledger_path: tracePaths.ledgerPath,
+    non_claims: [
+      'no hidden chain-of-thought storage',
+      'no automatic mutation',
+      'no local-truth claim from model output',
+    ],
+  };
+
+  recordPulseEvent(pulseTraceEvents, {
+    traceId: pulseTraceId,
+    type: execute ? 'pulse.execute.started' : 'pulse.dry_run.planned',
+    status: execute ? 'started' : 'planned',
+    payload: {
+      plan_schema_version: pulsePlan?.schema_version || null,
+      mode: base.mode,
+      stage_order: stageOrder,
+      selected_lane_ids: selectedLaneIds,
+      prompt_sha256: hashPayload(promptText || ''),
+    },
+  });
+
+  const result = {
+    ...base,
+    stages: stages.map((stage) => ({
+      id: stage.id,
+      capability: stage.capability,
+      laneIds: stage.laneIds || stage.lanes || [],
+      skillIds: stage.skillIds || [],
+      executionMode: stage.executionMode,
+      status: execute ? 'not_executed_in_reconciliation_port' : 'planned',
+      nativeOnly: !!stage.nativeOnly,
+    })),
+  };
+
+  recordPulseEvent(pulseTraceEvents, {
+    traceId: pulseTraceId,
+    type: execute ? 'pulse.execute.completed' : 'pulse.dry_run.completed',
+    status: execute ? 'completed' : 'planned',
+    payload: {
+      stage_count: stages.length,
+      selected_lane_ids: selectedLaneIds,
+      trigger_all_at_once: false,
+    },
+  });
+
+  const snapshotPath = persistPulseTraceSnapshot(pulsePlan, result, pulseTraceId, pulseTraceEvents);
+  if (snapshotPath) result.pulse_trace_snapshot_path = snapshotPath;
+  result.pulse_trace_events = pulseTraceEvents;
+  return result;
+}
+
+function readPulsePlan(options) {
+  if (options.planJson) {
+    return JSON.parse(options.planJson);
+  }
+  if (options.planFile) {
+    return JSON.parse(readFileSync(path.resolve(options.planFile), 'utf8'));
+  }
+  throw new Error('pulse lane requires --plan-json or --plan-file');
+}
+
+function recordPulseEvent(events, event) {
+  const recorded = appendPulseTraceEvent(event);
+  events.push({
+    event_id: recorded.event_id,
+    trace_id: recorded.trace_id,
+    type: recorded.type,
+    status: recorded.status,
+    stage_id: recorded.stage_id,
+    lane_id: recorded.lane_id,
+    payload_sha256: recorded.payload_sha256,
+  });
+  return recorded;
+}
+
+function persistPulseTraceSnapshot(pulsePlan, result, pulseTraceId, events) {
+  const snapshot = compactPulseSnapshot(pulsePlan, {
+    ...result,
+    pulse_trace_events: events,
+  });
+  return writePulseTraceSnapshot(pulseTraceId, snapshot);
 }
 
 function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, options = {}) {
@@ -173,15 +311,12 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
         LOCAL_FALLBACK_MODEL
       ], localModels)
     },
-    'deepseek': {
-      kind: 'local',
-      model: normalizedForcedModel || normalizeForcedModel(process.env.DEEPSEEK_MODEL || '', 'deepseek') || pickFirstExisting([
-        LOCAL_DEEP_REASONING_MODEL,
-        LOCAL_PRIMARY_MODEL,
-        LOCAL_UTILITY_MODEL,
-        LOCAL_FALLBACK_MODEL
-      ], localModels)
-    },
+    'deepseek': resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun),
+    'deepseek-local': resolveDeepseekLocalLane(
+      normalizedForcedModel || normalizeForcedModel(process.env.DEEPSEEK_LOCAL_MODEL || process.env.DEEPSEEK_MODEL || '', 'deepseek-local') || '',
+      localModels,
+      dryRun
+    ),
     'kimi': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.KIMI_BASE_URL || ''),
@@ -450,6 +585,7 @@ function normalizeForcedModel(forcedModel, lane) {
   if (normalized === laneName) return '';
   if (laneName === 'gpt-oss' && (normalized === 'gptoss' || normalized === 'gpt-oss')) return '';
   if (laneName === 'deepseek' && normalized === 'deepseek') return '';
+  if (laneName === 'deepseek-local' && (normalized === 'deepseek-local' || normalized === 'deepseek')) return '';
   if ((laneName === 'ollama' || laneName === 'ollama-local' || laneName === 'ollama-cloud') && (normalized === 'ollama' || normalized === 'ollama-local' || normalized === 'ollama-cloud')) return '';
   if (laneName === 'kimi' && (normalized === 'kimi' || normalized === 'moonshot')) return '';
   if (laneName === 'moonshot' && (normalized === 'moonshot' || normalized === 'kimi')) return '';
@@ -558,6 +694,66 @@ function deepseekLane(normalizedForcedModel, options) {
     timeout: options.timeout,
     requiresKey: true,
   };
+}
+
+function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun) {
+  if (normalizedForcedModel) {
+    return resolveDeepseekLocalLane(normalizedForcedModel, localModels, dryRun);
+  }
+
+  if (deepseekApiKey()) {
+    return {
+      kind: 'cloud',
+      endpoint: deepseekBaseUrl(),
+      apiKey: deepseekApiKey(),
+      model: process.env.DEEPSEEK_DEFAULT_MODEL || process.env.DEEPSEEK_FLASH_MODEL || 'deepseek-v4-flash',
+      extraBody: deepseekThinkingBody(false),
+      maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
+      timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
+      requiresKey: true,
+      resolvedVia: 'cloud-default',
+    };
+  }
+
+  return resolveDeepseekLocalLane('', localModels, dryRun);
+}
+
+function resolveDeepseekLocalLane(forcedModel, localModels, dryRun = false) {
+  if (forcedModel) {
+    if (localModels.has(forcedModel)) {
+      return { kind: 'local', model: forcedModel, resolvedVia: 'forced-local' };
+    }
+    return deepseekLocalBlocked(
+      forcedModel,
+      dryRun,
+      `Lane "deepseek-local" requires "${forcedModel}" to be installed. Run: ollama pull ${forcedModel}`
+    );
+  }
+
+  for (const candidate of [LOCAL_DEEP_REASONING_MODEL, LOCAL_PRIMARY_MODEL, LOCAL_UTILITY_MODEL, LOCAL_FALLBACK_MODEL]) {
+    if (candidate && localModels.has(candidate)) {
+      return { kind: 'local', model: candidate, resolvedVia: 'local-fallback' };
+    }
+  }
+
+  return deepseekLocalBlocked(
+    LOCAL_DEEP_REASONING_MODEL,
+    dryRun,
+    `Lane "deepseek-local" needs a local model. Install ${LOCAL_DEEP_REASONING_MODEL} or set DEEPSEEK_API_KEY for cloud DeepSeek.`
+  );
+}
+
+function deepseekLocalBlocked(model, dryRun, error) {
+  if (dryRun) {
+    return {
+      kind: 'blocked',
+      model,
+      executable: false,
+      error,
+    };
+  }
+
+  throw new Error(error);
 }
 
 function resolveGemmaLane(lane, normalizedForcedModel, localModels, dryRun = false) {
@@ -780,7 +976,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-cloud', 'code-deepseek', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-cloud', 'code-deepseek', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -802,7 +998,21 @@ function buildInventory(localModels) {
       lanes[name] = { error: e.message };
     }
   }
-  return { lanes, localModels: [...localModels].sort() };
+  return {
+    lanes,
+    localModels: [...localModels].sort(),
+    localPolicy: {
+      primary: LOCAL_PRIMARY_MODEL,
+      utility: LOCAL_UTILITY_MODEL,
+      code: LOCAL_CODE_MODEL,
+      codeFallback: LOCAL_CODE_FALLBACK_MODEL,
+      deepReasoning: LOCAL_DEEP_REASONING_MODEL,
+      multimodal: LOCAL_MULTIMODAL_MODEL,
+      fallback: LOCAL_FALLBACK_MODEL,
+      frozen: [...LOCAL_FROZEN_MODELS],
+      manualOnly: [...LOCAL_MANUAL_ONLY_MODELS],
+    },
+  };
 }
 
 async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemText, opts = {}) {
