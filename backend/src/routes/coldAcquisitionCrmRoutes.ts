@@ -101,6 +101,14 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
         }
     });
 
+    api.get('/today-mission', requireAuth, (_req, res) => {
+        try {
+            res.json({ mission: service.getTodayMission() });
+        } catch (error: any) {
+            sendError(res, error);
+        }
+    });
+
     api.get('/leads', requireAuth, (req, res) => {
         try {
             const view = typeof req.query.view === 'string' ? req.query.view : undefined;
@@ -197,18 +205,37 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
     const assetDir = fs.existsSync(path.join(builtDir, 'assets')) ? path.join(builtDir, 'assets') : path.join(sourceDir, 'assets');
     const builtIndex = path.join(builtDir, 'index.html');
     const sourceIndex = path.join(sourceDir, 'index.html');
+    const shellDir = fs.existsSync(builtIndex) ? builtDir : sourceDir;
 
-    app.use('/acquisition/assets', express.static(assetDir, { index: false }));
-    app.get(/^\/acquisition(?:\/.*)?$/, (req, res, next) => {
-        if (req.path.startsWith('/acquisition/api')) {
-            next();
-            return;
-        }
+    const sendAcquisitionShell: express.RequestHandler = (_req, res) => {
         const indexPath = fs.existsSync(builtIndex) ? builtIndex : sourceIndex;
         if (!fs.existsSync(indexPath)) {
             res.status(404).send('acquisition bundle missing');
             return;
         }
-        res.sendFile(indexPath);
+        res.type('html').send(fs.readFileSync(indexPath, 'utf8'));
+    };
+
+    const acquisitionShellRoutes = [
+        '/acquisition',
+        '/acquisition/',
+        '/acquisition/login',
+        '/acquisition/login/',
+        '/acquisition/today',
+        '/acquisition/today/',
+        '/acquisition/leads',
+        '/acquisition/leads/'
+    ];
+
+    app.use('/acquisition/assets', express.static(assetDir, { index: false }));
+    acquisitionShellRoutes.forEach((route) => app.get(route, sendAcquisitionShell));
+    app.use('/acquisition/login', express.static(shellDir, { index: 'index.html' }));
+    app.use('/acquisition', express.static(shellDir, { index: 'index.html' }));
+    app.use('/acquisition', (req, res, next) => {
+        if (req.originalUrl.startsWith('/acquisition/api') || req.originalUrl.startsWith('/acquisition/assets')) {
+            next();
+            return;
+        }
+        sendAcquisitionShell(req, res, next);
     });
 }

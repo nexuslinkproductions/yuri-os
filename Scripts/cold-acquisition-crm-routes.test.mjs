@@ -28,9 +28,14 @@ try {
   const loginPage = await request('GET', '/acquisition/login');
   assert.equal(loginPage.status, 200, 'acquisition login route should serve the standalone CRM app');
   assert.match(loginPage.text, /acquisition-root/, 'served CRM shell should include acquisition root');
+  const todayPage = await request('GET', '/acquisition/today');
+  assert.equal(todayPage.status, 200, 'acquisition today route should serve the standalone CRM app');
+  assert.match(todayPage.text, /acquisition-root/, 'today route should serve the CRM shell for direct visits');
 
   const unauthenticated = await request('GET', '/acquisition/api/leads');
   assert.equal(unauthenticated.status, 401, 'CRM leads should require CRM session auth');
+  const unauthenticatedMission = await request('GET', '/acquisition/api/today-mission');
+  assert.equal(unauthenticatedMission.status, 401, 'today mission should require CRM session auth');
 
   const fannyLogin = await request('POST', '/acquisition/api/auth/login', {
     email: FANNY_EMAIL,
@@ -56,35 +61,105 @@ try {
   assert.equal(fannyList.json.leads[0].fanny_notes, '');
   assert.equal(fannyList.json.leads[0].next_follow_up_at, null);
 
-  const fannyPatch = await request('PATCH', `/acquisition/api/leads/${leadId}`, {
-    fanny_notes: 'Fanny checked the diagnosis and will send manually.',
+  const blockedSend = await request('PATCH', `/acquisition/api/leads/${leadId}`, {
+    status: 'sent',
+    crm_stage: 'sent'
+  }, { cookie: fannyCookie });
+  assert.equal(blockedSend.status, 409, 'Fanny should not mark CH review-needed leads as sent');
+  assert.equal(blockedSend.json.error, 'COMPLIANCE_SEND_BLOCKED');
+
+  const sendable = await request('POST', '/api/cold-acquisition/leads', austriaSendableLeadBody(), { apiKey: API_KEY });
+  assert.equal(sendable.status, 201, 'local admin API should create sendable AT acquisition leads');
+  const sendableLeadId = sendable.json.lead.id;
+
+  const sendableDuePatch = await request('PATCH', `/acquisition/api/leads/${sendableLeadId}`, {
+    next_follow_up_at: '2026-05-01'
+  }, { cookie: fannyCookie });
+  assert.equal(sendableDuePatch.status, 200, 'sendable lead should accept date-only follow-up values');
+
+  const lowerScoreSendable = await request('POST', '/api/cold-acquisition/leads', lowerScoreSendableLeadBody(), { apiKey: API_KEY });
+  assert.equal(lowerScoreSendable.status, 201, 'local admin API should create lower-score sendable AT lead');
+
+  const thinEvidence = await request('POST', '/api/cold-acquisition/leads', thinEvidenceLeadBody(), { apiKey: API_KEY });
+  assert.equal(thinEvidence.status, 201, 'local admin API should create thin-evidence lead');
+
+  const blocked = await request('POST', '/api/cold-acquisition/leads', blockedLeadBody(), { apiKey: API_KEY });
+  assert.equal(blocked.status, 201, 'local admin API should create blocked lead');
+
+  const followUp = await request('POST', '/api/cold-acquisition/leads', followUpLeadBody(), { apiKey: API_KEY });
+  assert.equal(followUp.status, 201, 'local admin API should create follow-up lead');
+  const followUpPatch = await request('PATCH', `/acquisition/api/leads/${followUp.json.lead.id}`, {
+    status: 'sent',
+    crm_stage: 'sent',
+    next_follow_up_at: '2026-05-02'
+  }, { cookie: fannyCookie });
+  assert.equal(followUpPatch.status, 200, 'sent lead should accept due follow-up date');
+
+  const mission = await request('GET', '/acquisition/api/today-mission', null, { cookie: fannyCookie });
+  assert.equal(mission.status, 200, 'today mission should be readable');
+  assert.equal(typeof mission.json.mission.generated_at, 'string');
+  assert.equal(mission.json.mission.weekly.target, 20);
+  assert.equal(mission.json.mission.counts.sendable, mission.json.mission.sendable.length);
+  assert.equal(mission.json.mission.counts.follow_ups_due, mission.json.mission.follow_ups_due.length);
+  assert.equal(mission.json.mission.counts.needs_research, 1);
+  assert.equal(mission.json.mission.counts.review_needed, 1);
+  assert.ok(mission.json.mission.counts.blocked >= 1);
+  assert.ok(mission.json.mission.counts.overdue >= 1);
+
+  const dashboardForMission = await request('GET', '/acquisition/api/dashboard', null, { cookie: fannyCookie });
+  assert.deepEqual(mission.json.mission.weekly, dashboardForMission.json.dashboard.weekly_quota);
+
+  const missionSendableIds = mission.json.mission.sendable.map((lead) => lead.id);
+  assert.ok(missionSendableIds.includes(sendableLeadId), 'AT published B2B email lead should be sendable');
+  assert.ok(
+    missionSendableIds.indexOf(sendableLeadId) < missionSendableIds.indexOf(lowerScoreSendable.json.lead.id),
+    'sendable mission queue should sort by score descending'
+  );
+  assert.equal(missionSendableIds.includes(leadId), false, 'CH review-needed lead should not be sendable');
+  assert.equal(missionSendableIds.includes(thinEvidence.json.lead.id), false, 'thin-evidence lead should not be sendable');
+  assert.equal(missionSendableIds.includes(blocked.json.lead.id), false, 'blocked lead should not be sendable');
+  const missionSendableLead = mission.json.mission.sendable.find((lead) => lead.id === sendableLeadId);
+  assert.equal(missionSendableLead.preferred_draft_type, 'linkedin_intro');
+  assert.equal(missionSendableLead.due_state, 'overdue');
+  assert.deepEqual(missionSendableLead.send_blockers, []);
+  assert.ok(missionSendableLead.draft_excerpt.length <= 143);
+
+  const missionFollowUpIds = mission.json.mission.follow_ups_due.map((lead) => lead.id);
+  assert.ok(missionFollowUpIds.includes(followUp.json.lead.id), 'sent due lead should appear in follow-ups due');
+  assert.equal(missionFollowUpIds.includes(sendableLeadId), false, 'sendable due lead should not appear twice');
+  const missionFollowUpLead = mission.json.mission.follow_ups_due.find((lead) => lead.id === followUp.json.lead.id);
+  assert.equal(missionFollowUpLead.due_state, 'overdue');
+  assert.ok(Array.isArray(missionFollowUpLead.send_blockers));
+
+  const fannyPatch = await request('PATCH', `/acquisition/api/leads/${sendableLeadId}`, {
+    fanny_notes: 'Fanny checked the observed signal and will send manually.',
     next_follow_up_at: '2026-05-20T09:00:00.000Z',
     status: 'sent',
     crm_stage: 'sent',
     outreach_drafts: {
-      ...created.json.lead.outreach_drafts,
-      email_cold: `${created.json.lead.outreach_drafts.email_cold}\n\nManual note: trimmed for Fanny.`
+      ...sendable.json.lead.outreach_drafts,
+      email_cold: `${sendable.json.lead.outreach_drafts.email_cold}\n\nManual note: trimmed for Fanny.`
     }
   }, { cookie: fannyCookie });
   assert.equal(fannyPatch.status, 200, 'Fanny should update notes, status, follow-up, and drafts');
   assert.equal(fannyPatch.json.lead.status, 'sent');
   assert.equal(fannyPatch.json.lead.crm_stage, 'sent');
-  assert.match(fannyPatch.json.lead.fanny_notes, /diagnosis/);
+  assert.match(fannyPatch.json.lead.fanny_notes, /observed signal/);
 
-  const copy = await request('POST', `/acquisition/api/leads/${leadId}/copy-draft`, {
+  const copy = await request('POST', `/acquisition/api/leads/${sendableLeadId}/copy-draft`, {
     draft_type: 'email_cold'
   }, { cookie: fannyCookie });
   assert.equal(copy.status, 200, 'copy-draft should return the selected draft and log activity');
   assert.equal(copy.json.draft_type, 'email_cold');
   assert.match(copy.json.text, /Manual note/);
 
-  const customActivity = await request('POST', `/acquisition/api/leads/${leadId}/activity`, {
+  const customActivity = await request('POST', `/acquisition/api/leads/${sendableLeadId}/activity`, {
     type: 'reply_logged',
     detail: 'Prospect replied and asked for the overview.'
   }, { cookie: fannyCookie });
   assert.equal(customActivity.status, 201, 'Fanny should log lead activity');
 
-  const leadDetail = await request('GET', `/acquisition/api/leads/${leadId}`, null, { cookie: fannyCookie });
+  const leadDetail = await request('GET', `/acquisition/api/leads/${sendableLeadId}`, null, { cookie: fannyCookie });
   assert.equal(leadDetail.status, 200, 'lead detail should be readable');
   assert.ok(leadDetail.json.activity.length >= 3, 'activity timeline should include patch, copy, and manual activity');
   assert.ok(leadDetail.json.activity.some((entry) => entry.type === 'draft_copied'));
@@ -156,6 +231,233 @@ function swissLeadBody() {
       legal_basis: 'public_register'
     },
     notes: 'Newcomer track; biotech positioning.'
+  };
+}
+
+function austriaSendableLeadBody() {
+  return {
+    company: {
+      name: 'Donaustadt Robotics GmbH',
+      country: 'AT',
+      canton_or_bezirk: '1220',
+      postal_code: '1220',
+      city: 'Wien',
+      uid_or_fn: 'FN987654a',
+      legal_form: 'GmbH',
+      date_of_entry: '2026-03-28',
+      employee_count: 34,
+      industry: 'SaaS robotics',
+      website: 'https://donaustadt-robotics.at/en',
+      linkedin_url: 'https://linkedin.com/company/donaustadt-robotics'
+    },
+    contact: {
+      name: 'Jonas Weiss',
+      title: 'CEO',
+      email: 'business@donaustadt-robotics.at',
+      linkedin_url: 'https://linkedin.com/in/jonas-weiss'
+    },
+    scoringSignals: {
+      websiteHasEnglish: true,
+      linkedinCompanyEnglish: true,
+      decisionMakerEnglish: true,
+      dotComTld: false,
+      highFitIndustry: true
+    },
+    evidence: [
+      {
+        kind: 'website_language',
+        label: 'Product section',
+        detail: 'The product section explains robotics deployment for international clients.',
+        url: 'https://donaustadt-robotics.at/en'
+      }
+    ],
+    compliance: {
+      source: 'wko',
+      source_url: 'https://firmen.wko.at/donaustadt-robotics',
+      source_timestamp: '2026-05-12T11:45:00.000Z',
+      legal_basis: 'website_published_email'
+    },
+    notes: 'Published B2B inquiry route documented.'
+  };
+}
+
+function thinEvidenceLeadBody() {
+  return {
+    company: {
+      name: 'Generic Growth Systems GmbH',
+      country: 'AT',
+      canton_or_bezirk: '1220',
+      postal_code: '1220',
+      city: 'Wien',
+      uid_or_fn: 'FN111222g',
+      legal_form: 'GmbH',
+      date_of_entry: '2026-04-18',
+      employee_count: 18,
+      industry: 'SaaS',
+      website: 'https://generic-growth-systems.at/en',
+      linkedin_url: 'https://linkedin.com/company/generic-growth-systems'
+    },
+    contact: {
+      name: 'Lea Graf',
+      title: 'CEO',
+      email: 'business@generic-growth-systems.at',
+      linkedin_url: 'https://linkedin.com/in/lea-graf'
+    },
+    scoringSignals: {
+      websiteHasEnglish: true,
+      linkedinCompanyEnglish: true,
+      decisionMakerEnglish: true,
+      dotComTld: false,
+      highFitIndustry: true
+    },
+    evidence: [
+      {
+        kind: 'website_language',
+        label: 'Website exists',
+        detail: 'Company website exists.',
+        url: 'https://generic-growth-systems.at/en'
+      }
+    ],
+    compliance: {
+      source: 'wko',
+      source_url: 'https://firmen.wko.at/generic-growth-systems',
+      source_timestamp: '2026-05-12T11:46:00.000Z',
+      legal_basis: 'website_published_email'
+    }
+  };
+}
+
+function lowerScoreSendableLeadBody() {
+  return {
+    company: {
+      name: 'Floridsdorf Sensor Ops GmbH',
+      country: 'AT',
+      canton_or_bezirk: '1220',
+      postal_code: '1220',
+      city: 'Wien',
+      uid_or_fn: 'FN777888l',
+      legal_form: 'GmbH',
+      date_of_entry: '2026-03-22',
+      employee_count: 16,
+      industry: 'SaaS sensors',
+      website: 'https://floridsdorf-sensor-ops.at/en'
+    },
+    contact: {
+      name: 'Nora Leitner',
+      title: 'CEO',
+      email: 'business@floridsdorf-sensor-ops.at'
+    },
+    scoringSignals: {
+      websiteHasEnglish: true,
+      linkedinCompanyEnglish: false,
+      decisionMakerEnglish: false,
+      dotComTld: false,
+      highFitIndustry: true
+    },
+    evidence: [
+      {
+        kind: 'website_language',
+        label: 'Sensor workflow page',
+        detail: 'The sensor workflow page describes deployment dashboards for industrial operators.',
+        url: 'https://floridsdorf-sensor-ops.at/en'
+      }
+    ],
+    compliance: {
+      source: 'wko',
+      source_url: 'https://firmen.wko.at/floridsdorf-sensor-ops',
+      source_timestamp: '2026-05-12T11:46:30.000Z',
+      legal_basis: 'website_published_email'
+    }
+  };
+}
+
+function blockedLeadBody() {
+  return {
+    company: {
+      name: 'Innere Stadt Analytics GmbH',
+      country: 'AT',
+      canton_or_bezirk: '1010',
+      postal_code: '1010',
+      city: 'Wien',
+      uid_or_fn: 'FN333444b',
+      legal_form: 'GmbH',
+      date_of_entry: '2026-03-15',
+      employee_count: 24,
+      industry: 'analytics software',
+      website: 'https://innere-analytics.at/en',
+      linkedin_url: 'https://linkedin.com/company/innere-analytics'
+    },
+    contact: {
+      name: 'Paul Novak',
+      title: 'Founder',
+      email: 'business@innere-analytics.at',
+      linkedin_url: 'https://linkedin.com/in/paul-novak'
+    },
+    scoringSignals: {
+      websiteHasEnglish: true,
+      linkedinCompanyEnglish: true,
+      decisionMakerEnglish: true,
+      highFitIndustry: true
+    },
+    evidence: [
+      {
+        kind: 'website_language',
+        label: 'Product page',
+        detail: 'The product page describes analytics workflow software for finance teams.',
+        url: 'https://innere-analytics.at/en'
+      }
+    ],
+    compliance: {
+      source: 'wko',
+      source_url: 'https://firmen.wko.at/innere-analytics',
+      source_timestamp: '2026-05-12T11:47:00.000Z',
+      legal_basis: 'website_published_email'
+    }
+  };
+}
+
+function followUpLeadBody() {
+  return {
+    company: {
+      name: 'Leopoldstadt Cloud Robotics GmbH',
+      country: 'AT',
+      canton_or_bezirk: '1220',
+      postal_code: '1220',
+      city: 'Wien',
+      uid_or_fn: 'FN555666f',
+      legal_form: 'GmbH',
+      date_of_entry: '2026-02-20',
+      employee_count: 31,
+      industry: 'robotics SaaS',
+      website: 'https://leopoldstadt-cloud-robotics.at/en',
+      linkedin_url: 'https://linkedin.com/company/leopoldstadt-cloud-robotics'
+    },
+    contact: {
+      name: 'Mara Steiner',
+      title: 'Managing Director',
+      email: 'business@leopoldstadt-cloud-robotics.at',
+      linkedin_url: 'https://linkedin.com/in/mara-steiner'
+    },
+    scoringSignals: {
+      websiteHasEnglish: true,
+      linkedinCompanyEnglish: true,
+      decisionMakerEnglish: true,
+      highFitIndustry: true
+    },
+    evidence: [
+      {
+        kind: 'website_language',
+        label: 'Robotics workflow page',
+        detail: 'The workflow page explains cloud robotics deployments for international logistics teams.',
+        url: 'https://leopoldstadt-cloud-robotics.at/en'
+      }
+    ],
+    compliance: {
+      source: 'wko',
+      source_url: 'https://firmen.wko.at/leopoldstadt-cloud-robotics',
+      source_timestamp: '2026-05-12T11:48:00.000Z',
+      legal_basis: 'website_published_email'
+    }
   };
 }
 

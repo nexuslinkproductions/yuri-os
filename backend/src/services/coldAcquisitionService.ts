@@ -93,19 +93,24 @@ export interface ColdLeadDedupe {
     matched_on: 'uid_or_fn' | 'domain' | 'none';
 }
 
+export type ColdLeadDraftReadiness = 'ready_to_rework' | 'needs_research' | 'needs_rework' | 'blocked';
+
+export interface ColdLeadOutreachProfile {
+    observed_signal: string;
+    why_it_might_matter: string;
+    opening_angle: string;
+    source_urls: string[];
+    do_not_claim: string[];
+    confidence: 'low' | 'medium' | 'high';
+}
+
 export interface ColdLeadDraftSpecificity {
     valid: boolean;
     proof_chips: string[];
     missing: string[];
-}
-
-interface ColdLeadPainDiagnosis {
-    subject: string;
-    observation: string;
-    pain: string;
-    impact: string;
-    solution: string;
-    cta: string;
+    warnings: string[];
+    readiness: ColdLeadDraftReadiness;
+    profile: ColdLeadOutreachProfile;
 }
 
 export interface ColdLeadRecord {
@@ -246,7 +251,6 @@ type ColdLeadRow = {
     updated_at: string;
 };
 
-const DEFAULT_BOOKING_LINK = process.env.C2MOVIEZ_BOOKING_LINK || 'the c2moviez booking link';
 const WEEKLY_TARGET = 20;
 const ACTIVE_CUSTOMER_NAMES = [
     'PDR Tech',
@@ -525,8 +529,22 @@ export class ColdAcquisitionService {
             updated_at: this.nowIso()
         };
         next.draft_specificity = this.validateDraftSpecificity(next.outreach_drafts, next.company, next.contact, next.evidence);
+        if ((patch.status === 'sent' || patch.crm_stage === 'sent') && current.status !== 'sent') {
+            this.assertCanMarkSent({ ...next, status: current.status, crm_stage: current.crm_stage });
+        }
         this.replaceRecord(next);
         return next;
+    }
+
+    getSendBlockers(lead: ColdLeadRecord): string[] {
+        const blockers: string[] = [];
+        if (lead.crm_stage !== 'ready') blockers.push('stage_not_ready');
+        if (lead.compliance.compliance_badge !== 'ok') blockers.push('compliance_not_cleared');
+        if (lead.channel === 'blocked') blockers.push('channel_blocked');
+        if (lead.dedupe.is_duplicate) blockers.push('duplicate_candidate');
+        if (!lead.draft_specificity.valid || lead.draft_specificity.readiness !== 'ready_to_rework') blockers.push('draft_not_ready');
+        if (!this.hasUsableDraftForChannel(lead)) blockers.push('draft_missing');
+        return blockers;
     }
 
     markReady(id: string): ColdLeadRecord {
@@ -781,42 +799,35 @@ export class ColdAcquisitionService {
         channel: ColdLeadChannel,
         compliance: ColdLeadComplianceRecord
     ): ColdLeadDrafts {
-        const proof = this.bestEvidence(evidence, company);
-        const diagnosis = this.diagnosePainPoint(company, contact, proof);
+        const profile = this.buildOutreachProfile(company, contact, evidence);
+        const proof = profile.observed_signal;
         const firstName = contact.name ? contact.name.split(/\s+/)[0] : '';
         const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
-        const followupGreeting = firstName ? `Hi ${firstName},` : 'Hi,';
-        const quickFollowup = firstName ? `Quick follow-up, ${firstName}:` : 'Quick follow-up:';
-        const booking = DEFAULT_BOOKING_LINK;
+        const shortSubject = `quick thought on ${this.companyNameForSubject(company.name)}`;
 
         const linkedin_intro = [
-            `${greeting} ${diagnosis.observation}`,
-            `The likely friction I see is this: ${diagnosis.pain}`,
-            `A practical fix: ${diagnosis.solution}`,
-            `If this is relevant, I can ${diagnosis.cta} and send a short booking option via ${booking}.`
+            `${greeting} I noticed ${proof}.`,
+            `Tiny thought: ${profile.opening_angle}`,
+            `I can send the short angle if useful.`
         ].join(' ');
 
         const linkedin_followup = [
-            `${quickFollowup} I saved ${company.name} because ${proof}.`,
-            `The useful angle is not "more content"; it is reducing this bottleneck: ${diagnosis.impact}`,
-            `Open to seeing the 5-min c2moviez overview for that acquisition path?`
+            `${greeting} circling back once on ${company.name}.`,
+            `I saved this because ${proof}.`,
+            `If it is not relevant, no need to reply; if it is, I can send the short angle and leave it there.`
         ].join(' ');
 
         const email_cold = compliance.email_allowed && ['email', 'both'].includes(channel)
             ? [
-                `Subject: ${diagnosis.subject}`,
+                `Subject: ${shortSubject}`,
                 '',
                 greeting,
                 '',
-                `I came across ${company.name} while researching B2B teams with clear growth signals. ${diagnosis.observation}`,
+                `I noticed this while looking at ${company.name}: ${proof}.`,
                 '',
-                `Likely friction: ${diagnosis.pain}`,
+                `Tiny thought: ${profile.why_it_might_matter}`,
                 '',
-                `Why it matters: ${diagnosis.impact}`,
-                '',
-                `Potential solution: ${diagnosis.solution}`,
-                '',
-                `If this is a live priority, I can ${diagnosis.cta} and suggest a short slot via ${booking}.`,
+                `Worth sending you the short angle?`,
                 '',
                 `Best,`,
                 `Fanny`,
@@ -828,104 +839,155 @@ export class ColdAcquisitionService {
 
         const email_followup = email_cold
             ? [
-                `Subject: Re: ${diagnosis.subject}`,
+                `Subject: Re: ${shortSubject}`,
                 '',
-                followupGreeting,
+                greeting,
                 '',
-                `Circling back once on ${company.name}. The reason I reached out was not a generic production pitch; it was this signal: ${proof}.`,
+                `Circling back once. The reason I saved ${company.name} was this concrete signal: ${proof}.`,
                 '',
-                `The problem I would test first is whether ${diagnosis.impact.toLowerCase()}`,
+                `If that is not relevant, no need to reply. If it is, I can send the short angle and leave it there.`,
                 '',
-                `If useful, I can ${diagnosis.cta} and send a booking link. If this is not relevant, I will close the loop here.`
+                `Best,`,
+                `Fanny`
             ].join('\n')
             : null;
 
         return { linkedin_intro, linkedin_followup, email_cold, email_followup };
     }
 
-    private diagnosePainPoint(
+    private buildOutreachProfile(
         company: Required<ColdLeadCompany>,
         contact: Required<ColdLeadContact>,
-        proof: string
-    ): ColdLeadPainDiagnosis {
-        const context = `${company.name} ${company.industry} ${proof}`.toLowerCase();
-        const audience = contact.title ? `${contact.title.toLowerCase()}s` : 'leadership teams';
-        const cityOrMarket = company.city ? `${company.city} market` : company.country === 'CH' ? 'Swiss market' : 'Vienna market';
-
-        if (/bio|pharma|clinical|medical|health|life science/.test(context)) {
-            return {
-                subject: `Making ${company.name}'s technical value easier to trust`,
-                observation: `${company.name} shows a specialist health or biotech signal: ${proof}.`,
-                pain: `complex biotech value can be clear to technical readers but still hard for non-specialist buyers, partners, or investors to trust quickly.`,
-                impact: `the first touch may educate people on the science without giving them enough proof, clarity, and momentum to book the next conversation.`,
-                solution: `c2moviez could package the core promise into a founder-led explainer, proof-led website section, LinkedIn thought-leadership clips, and search/social campaigns that all point to one clear conversion path.`,
-                cta: `share a 5-min overview of that trust-building acquisition stack`
-            };
-        }
-
-        if (/saas|software|cloud|data|analytics|robot|automation|technology|it\b|web-app|platform|digital/.test(context)) {
-            return {
-                subject: `Turning ${company.name}'s technical offer into qualified demand`,
-                observation: `${company.name} shows a technical B2B signal: ${proof}.`,
-                pain: `technical companies often explain what the product does before the buyer understands why it is urgent, credible, and worth a call.`,
-                impact: `paid traffic, LinkedIn attention, and website visits can leak if demo proof, positioning, landing-page copy, and retargeting do not tell the same story.`,
-                solution: `c2moviez could build an acquisition path around one sharp use case: a concise demo/explainer, outcome-led landing section, founder or product clips for LinkedIn, Google Ads intent capture, and retargeting assets with the same message.`,
-                cta: `share a 5-min overview of that demand-generation stack`
-            };
-        }
-
-        if (/marketing|communication|agency|creative|media|film|video|studio|content|social/.test(context)) {
-            return {
-                subject: `Sharper proof for ${company.name}'s next client conversations`,
-                observation: `${company.name} shows a marketing or creative-services signal: ${proof}.`,
-                pain: `service firms can look capable but still blend into a crowded vendor set when the proof, offer, and distribution are not packaged into a concrete business case.`,
-                impact: `good referrals and profile visits may not convert because prospects cannot quickly see the before/after, the process, and the commercial outcome.`,
-                solution: `c2moviez could turn one strongest offer into a visible proof system: short case-story video, founder-led positioning clips, landing-page rewrite, paid-social variants, and Google Ads aligned around the same niche pain.`,
-                cta: `share a 5-min overview of that proof-led acquisition stack`
-            };
-        }
-
-        if (/hotel|hospitality|restaurant|tourism|event|gastronomie|guest/.test(context)) {
-            return {
-                subject: `More direct qualified demand for ${company.name}`,
-                observation: `${company.name} shows a hospitality or guest-facing signal: ${proof}.`,
-                pain: `hospitality demand is highly visual, but content, booking pages, paid social, and Google intent often operate as separate pieces instead of one booking journey.`,
-                impact: `international guests may like the experience but never get a crisp reason to choose, book, or enquire now.`,
-                solution: `c2moviez could build a direct-demand package with high-trust video, short social cuts, Google Ads for intent, paid-social retargeting, and a landing page that turns the strongest experience into bookings or enquiries.`,
-                cta: `share a 5-min overview of that direct-demand stack`
-            };
-        }
-
-        if (/fintech|finance|payment|bank|insurance|regulated|legal|compliance/.test(context)) {
-            return {
-                subject: `Building trust before the first call with ${company.name}`,
-                observation: `${company.name} shows a regulated or trust-heavy business signal: ${proof}.`,
-                pain: `trust-heavy services need clarity before persuasion; prospects need to understand the risk reduction, proof, and next step before they engage.`,
-                impact: `performance campaigns can underperform when the creative says "we are credible" but the page and proof do not make that credibility easy to verify.`,
-                solution: `c2moviez could create a compliance-conscious trust path: executive explainer, proof-led landing section, educational LinkedIn assets, and search/social campaigns that make the safe next step obvious.`,
-                cta: `share a 5-min overview of that trust-building stack`
-            };
-        }
-
-        if (/ngo|foundation|international|un city|non-profit|association|organisation/.test(context)) {
-            return {
-                subject: `A clearer partner story for ${company.name}`,
-                observation: `${company.name} shows an international or partner-facing signal: ${proof}.`,
-                pain: `international service teams often have strong work but a story that is split across pages, decks, posts, and stakeholder conversations.`,
-                impact: `partners may understand the mission yet miss the concrete reason to start a project, fund an initiative, or introduce the right person.`,
-                solution: `c2moviez could turn the strongest partner story into a short overview film, proof-led web narrative, LinkedIn cuts, and campaign assets that make the next action concrete.`,
-                cta: `share a 5-min overview of that partner-acquisition stack`
-            };
-        }
+        evidence: ColdLeadEvidence[]
+    ): ColdLeadOutreachProfile {
+        const observed_signal = this.bestEvidence(evidence, company);
+        const source_urls = this.outreachSourceUrls(company, contact, evidence);
+        const confidence = this.outreachConfidence(evidence, company, source_urls);
 
         return {
-            subject: `A clearer acquisition path for ${company.name}`,
-            observation: `${company.name} stood out in the ${cityOrMarket}: ${proof}.`,
-            pain: `${audience} often have a credible offer, but prospects still need a faster way to understand the problem, trust the proof, and see the next step.`,
-            impact: `attention from LinkedIn, search, referrals, and the website can stay fragmented instead of becoming qualified conversations.`,
-            solution: `c2moviez could build a compact acquisition path: one sharp message, proof-led video, supporting social cuts, Google Ads intent capture, and a landing page that carries the same argument from first impression to booked call.`,
-            cta: `share a 5-min overview of that acquisition stack`
+            observed_signal,
+            why_it_might_matter: this.whySignalMightMatter(company, observed_signal),
+            opening_angle: this.openingAngle(company, observed_signal),
+            source_urls,
+            do_not_claim: [
+                'Do not claim revenue, conversion, demand, or pipeline lift.',
+                'Do not say the company is struggling, failing, leaking attention, or doing something wrong.',
+                'Do not claim our work will fix, clarify, or improve the prospect issue.',
+                'Do not mention ads, retargeting, production stacks, or campaigns unless the source evidence shows that exact topic.'
+            ],
+            confidence
         };
+    }
+
+    private openingAngle(company: Required<ColdLeadCompany>, observedSignal: string) {
+        const surface = this.signalSurface(observedSignal);
+        if (/bio|pharma|clinical|medical|health|life science/i.test(`${company.industry} ${observedSignal}`)) {
+            return `if ${surface} is a first stop for partners, buyers, or investors, a concise first-impression angle may be worth checking.`;
+        }
+        if (/saas|software|cloud|data|analytics|robot|automation|technology|platform/i.test(`${company.industry} ${observedSignal}`)) {
+            return `if ${surface} is where technical buyers first orient themselves, a concise first-impression angle may be worth checking.`;
+        }
+        if (/hotel|hospitality|restaurant|tourism|event|guest/i.test(`${company.industry} ${observedSignal}`)) {
+            return `if ${surface} is where guests or operators first decide whether to enquire, a concise first-impression angle may be worth checking.`;
+        }
+        if (/fintech|finance|payment|bank|insurance|regulated|legal|compliance/i.test(`${company.industry} ${observedSignal}`)) {
+            return `if ${surface} is where cautious buyers first decide whether to keep reading, a concise first-impression angle may be worth checking.`;
+        }
+        return `if ${surface} is part of the first impression for potential clients, a concise angle may be worth checking.`;
+    }
+
+    private whySignalMightMatter(company: Required<ColdLeadCompany>, observedSignal: string) {
+        const surface = this.signalSurface(observedSignal);
+        if (/bio|pharma|clinical|medical|health|life science/i.test(`${company.industry} ${observedSignal}`)) {
+            return `if ${surface} is often someone's first look, a short proof-led angle can make the next question easier to ask without turning it into a sales pitch.`;
+        }
+        if (/saas|software|cloud|data|analytics|robot|automation|technology|platform/i.test(`${company.industry} ${observedSignal}`)) {
+            return `if ${surface} is where a buyer first frames the product, a short example angle can show what to notice before anyone books time.`;
+        }
+        if (/hotel|hospitality|restaurant|tourism|event|guest/i.test(`${company.industry} ${observedSignal}`)) {
+            return `if ${surface} is part of the first booking or enquiry moment, a short example angle can show the strongest reason to look twice.`;
+        }
+        if (/fintech|finance|payment|bank|insurance|regulated|legal|compliance/i.test(`${company.industry} ${observedSignal}`)) {
+            return `if ${surface} is where cautious prospects first look, a short example angle can focus on trust without overclaiming.`;
+        }
+        return `if ${surface} is part of the first client impression, a short example angle can be useful before anyone commits to a call.`;
+    }
+
+    private signalSurface(observedSignal: string) {
+        if (/\/en\/|page|website|landing|platform|services?|product/i.test(observedSignal)) return 'that page';
+        if (/linkedin|profile|post|describes/i.test(observedSignal)) return 'that public profile';
+        return 'that signal';
+    }
+
+    private companyNameForSubject(name: string) {
+        return name
+            .replace(/\b(AG|GmbH|Sarl|SARL|SA|Ltd\.?|Limited|Inc\.?)\b\.?/g, '')
+            .replace(/\s+/g, ' ')
+            .trim() || name;
+    }
+
+    private outreachSourceUrls(
+        company: Required<ColdLeadCompany>,
+        contact: Required<ColdLeadContact>,
+        evidence: ColdLeadEvidence[]
+    ) {
+        return Array.from(new Set([
+            ...evidence.map((item) => item.url || ''),
+            company.website,
+            company.linkedin_url,
+            contact.linkedin_url
+        ].filter(Boolean)));
+    }
+
+    private outreachConfidence(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>, sourceUrls: string[]): 'low' | 'medium' | 'high' {
+        if (this.hasThinEvidence(evidence, company)) return 'low';
+        if (evidence.length >= 2 && sourceUrls.length > 0) return 'high';
+        if (sourceUrls.length > 0) return 'medium';
+        return 'low';
+    }
+
+    private hasThinEvidence(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
+        if (evidence.length === 0) return true;
+        const proof = this.bestEvidence(evidence, company).toLowerCase();
+        const words = proof.split(/\s+/).filter((word) => /[a-z0-9]/i.test(word) && word.length > 2);
+        return words.length < 6 || /\b(company website exists|website exists|has a website|is listed|listed in|public business presence)\b/i.test(proof);
+    }
+
+    private hasDraftClaimRisk(combinedDraft: string) {
+        return [
+            /likely friction/i,
+            /potential solution/i,
+            /why it matters/i,
+            /c2moviez could/i,
+            /Fanny can/i,
+            /B2B teams with clear growth signals/i,
+            /share a 5-min overview/i,
+            /booking option|booking link/i,
+            /acquisition stack|demand-generation stack|trust-building stack/i,
+            /paid traffic|retargeting|Google Ads/i
+        ].some((pattern) => pattern.test(combinedDraft));
+    }
+
+    private hasOverlongDraft(drafts: ColdLeadDrafts) {
+        const linkedinWords = drafts.linkedin_intro.split(/\s+/).filter(Boolean).length;
+        const emailWords = drafts.email_cold ? this.emailBodyWordCount(drafts.email_cold) : 0;
+        return linkedinWords > 75 || emailWords > 95;
+    }
+
+    private emailBodyWordCount(draft: string) {
+        return draft
+            .replace(/^Subject:.*$/im, '')
+            .replace(/Best,[\s\S]*$/i, '')
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean).length;
+    }
+
+    private resolveDraftReadiness(missing: string[], warnings: string[]): ColdLeadDraftReadiness {
+        if (warnings.includes('thin_evidence') || missing.includes('evidence_detail')) return 'needs_research';
+        if (warnings.includes('claim_risk') || warnings.includes('overlong_draft')) return 'needs_rework';
+        if (missing.length > 0) return 'needs_rework';
+        return 'ready_to_rework';
     }
 
     private validateDraftSpecificity(
@@ -936,18 +998,29 @@ export class ColdAcquisitionService {
     ): ColdLeadDraftSpecificity {
         const combined = Object.values(drafts).filter(Boolean).join('\n').toLowerCase();
         const proof_chips = evidence
-            .filter((item) => item.detail && combined.includes(item.detail.toLowerCase().slice(0, 32)))
+            .filter((item) => item.detail && combined.includes(this.prospectFacingEvidence(item.detail).toLowerCase().slice(0, 32)))
             .map((item) => item.label);
 
-        const missing = [];
+        const missing: string[] = [];
         if (!combined.includes(company.name.toLowerCase())) missing.push('company_name');
         if (contact.name && !combined.includes(contact.name.split(/\s+/)[0].toLowerCase())) missing.push('contact_reference');
         if (proof_chips.length === 0) missing.push('evidence_detail');
 
+        const warnings: string[] = [];
+        const profile = this.buildOutreachProfile(company, contact, evidence);
+        if (this.hasThinEvidence(evidence, company)) warnings.push('thin_evidence');
+        if (this.hasDraftClaimRisk(combined)) warnings.push('claim_risk');
+        if (this.hasOverlongDraft(drafts)) warnings.push('overlong_draft');
+
+        const readiness = this.resolveDraftReadiness(missing, warnings);
+
         return {
-            valid: missing.length === 0,
+            valid: missing.length === 0 && readiness === 'ready_to_rework',
             proof_chips,
-            missing
+            missing,
+            warnings,
+            readiness,
+            profile
         };
     }
 
@@ -1044,6 +1117,22 @@ export class ColdAcquisitionService {
         if (!lead.compliance.source_url || !lead.compliance.source_timestamp) errors.push('source_audit_missing');
         if (lead.compliance.compliance_badge === 'blocked') errors.push('compliance_blocked');
         return errors;
+    }
+
+    private assertCanMarkSent(lead: ColdLeadRecord) {
+        const blockers = this.getSendBlockers(lead);
+        if (blockers.length > 0) {
+            throw Object.assign(new Error('COMPLIANCE_SEND_BLOCKED'), { statusCode: 409, blockers });
+        }
+    }
+
+    private hasUsableDraftForChannel(lead: ColdLeadRecord) {
+        const hasLinkedIn = Boolean(lead.outreach_drafts.linkedin_intro?.trim());
+        const hasEmail = Boolean(lead.outreach_drafts.email_cold?.trim());
+        if (lead.channel === 'linkedin') return hasLinkedIn;
+        if (lead.channel === 'email') return hasEmail;
+        if (lead.channel === 'both') return hasLinkedIn || hasEmail;
+        return false;
     }
 
     private initialStatus(
@@ -1416,7 +1505,7 @@ export class ColdAcquisitionService {
         const evidence = JSON.parse(row.evidence_json);
         const compliance = JSON.parse(row.compliance_json);
         const outreach_drafts = JSON.parse(row.outreach_drafts_json);
-        const draft_specificity = JSON.parse(row.draft_specificity_json);
+        const draft_specificity = this.normalizeDraftSpecificity(JSON.parse(row.draft_specificity_json), outreach_drafts, company, contact, evidence);
         const dedupe = JSON.parse(row.dedupe_json);
         return {
             id: row.id,
@@ -1445,6 +1534,17 @@ export class ColdAcquisitionService {
             created_at: row.created_at,
             updated_at: row.updated_at
         };
+    }
+
+    private normalizeDraftSpecificity(
+        stored: Partial<ColdLeadDraftSpecificity>,
+        drafts: ColdLeadDrafts,
+        company: Required<ColdLeadCompany>,
+        contact: Required<ColdLeadContact>,
+        evidence: ColdLeadEvidence[]
+    ): ColdLeadDraftSpecificity {
+        if (stored?.warnings && stored?.readiness && stored?.profile) return stored as ColdLeadDraftSpecificity;
+        return this.validateDraftSpecificity(drafts, company, contact, evidence);
     }
 
     private requireLead(id: string) {

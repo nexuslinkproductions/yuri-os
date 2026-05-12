@@ -7,6 +7,30 @@ const service = new ColdAcquisitionService(db, {
     now: () => new Date('2026-05-12T12:00:00.000Z')
 });
 
+const bannedColdDraftPatterns = [
+    /likely friction/i,
+    /potential solution/i,
+    /why it matters/i,
+    /c2moviez could/i,
+    /Fanny can/i,
+    /B2B teams with clear growth signals/i,
+    /share a 5-min overview/i,
+    /booking option/i,
+    /acquisition stack/i,
+    /demand-generation stack/i,
+    /trust-building stack/i,
+    /paid traffic|retargeting|Google Ads/i
+];
+
+function bodyWordCount(draft: string) {
+    return draft
+        .replace(/^Subject:.*$/im, '')
+        .replace(/Best,[\s\S]*$/i, '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+}
+
 const swissLead = service.createLead({
     company: {
         name: 'Alpine Bio Analytics AG',
@@ -68,17 +92,77 @@ assert.equal(swissLead.priority_flag, true);
 assert.equal(swissLead.channel, 'both');
 assert.equal(swissLead.compliance.email_allowed, true);
 assert.equal(swissLead.compliance.legal_review_required, true);
-assert.match(swissLead.outreach_drafts.linkedin_intro, /clinical analytics workflows/i);
-assert.match(swissLead.outreach_drafts.linkedin_intro, /likely friction/i);
-assert.match(swissLead.outreach_drafts.email_cold || '', /Likely friction:/i);
-assert.match(swissLead.outreach_drafts.email_cold || '', /Potential solution:/i);
-assert.match(swissLead.outreach_drafts.email_cold || '', /complex biotech value/i);
-assert.match(swissLead.outreach_drafts.email_cold || '', /founder-led explainer/i);
-assert.match(swissLead.outreach_drafts.email_cold || '', /B2B teams with clear growth signals/i);
+const swissDraftText = Object.values(swissLead.outreach_drafts).filter(Boolean).join('\n');
+bannedColdDraftPatterns.forEach((pattern) => {
+    assert.doesNotMatch(swissDraftText, pattern);
+});
+assert.match(swissLead.outreach_drafts.linkedin_intro, /noticed.*clinical analytics workflows/i);
+assert.match(swissLead.outreach_drafts.linkedin_intro, /short angle/i);
+assert.ok(swissLead.outreach_drafts.linkedin_intro.split(/\s+/).length <= 75);
+assert.match(swissLead.outreach_drafts.email_cold || '', /Subject: quick thought/i);
+assert.match(swissLead.outreach_drafts.email_cold || '', /I noticed/i);
+assert.match(swissLead.outreach_drafts.email_cold || '', /Worth sending you the short angle\?/i);
+assert.ok(bodyWordCount(swissLead.outreach_drafts.email_cold || '') <= 95);
 assert.doesNotMatch(swissLead.outreach_drafts.email_cold || '', /\bEnglish\b|English-speaking|English-first|English-language/i);
 assert.doesNotMatch(swissLead.outreach_drafts.linkedin_intro, /\bEnglish\b|English-speaking|English-first|English-language/i);
-assert.doesNotMatch(swissLead.outreach_drafts.email_cold || '', /Fanny can/i);
 assert.equal(swissLead.draft_specificity.valid, true);
+const swissSpecificity = swissLead.draft_specificity as any;
+assert.equal(swissSpecificity.readiness, 'ready_to_rework');
+assert.equal(swissSpecificity.profile.confidence, 'high');
+assert.match(swissSpecificity.profile.observed_signal, /clinical analytics workflows/i);
+assert.ok(swissSpecificity.profile.source_urls.includes('https://alpinebio.com/en/platform'));
+assert.ok(swissSpecificity.profile.do_not_claim.some((claim: string) => /revenue|conversion|struggling/i.test(claim)));
+
+const thinEvidenceDb = new Database(':memory:');
+const thinEvidenceService = new ColdAcquisitionService(thinEvidenceDb, {
+    now: () => new Date('2026-05-12T12:00:00.000Z')
+});
+const thinEvidenceLead = thinEvidenceService.createLead({
+    company: {
+        name: 'Generic Growth GmbH',
+        country: 'CH',
+        canton_or_bezirk: 'ZH',
+        postal_code: '8004',
+        city: 'Zuerich',
+        uid_or_fn: 'CHE000111222',
+        legal_form: 'GmbH',
+        date_of_entry: '2026-04-18',
+        employee_count: 18,
+        industry: 'SaaS',
+        website: 'https://generic-growth.example',
+        linkedin_url: 'https://linkedin.com/company/generic-growth'
+    },
+    contact: {
+        name: 'Leo Graf',
+        title: 'CEO',
+        email: 'hello@generic-growth.example',
+        linkedin_url: 'https://linkedin.com/in/leo-graf'
+    },
+    scoringSignals: {
+        websiteHasEnglish: true,
+        linkedinCompanyEnglish: true,
+        decisionMakerEnglish: true,
+        dotComTld: true,
+        highFitIndustry: true
+    },
+    evidence: [
+        {
+            kind: 'website_language',
+            label: 'Website exists',
+            detail: 'Company website exists.',
+            url: 'https://generic-growth.example'
+        }
+    ],
+    compliance: {
+        source: 'zefix',
+        source_url: 'https://www.zefix.ch/en/search/entity/list/firm/000111222',
+        source_timestamp: '2026-05-12T11:42:00.000Z',
+        legal_basis: 'public_register'
+    }
+});
+assert.equal(thinEvidenceLead.status, 'needs_review');
+assert.equal((thinEvidenceLead.draft_specificity as any).readiness, 'needs_research');
+assert.ok((thinEvidenceLead.draft_specificity as any).warnings.includes('thin_evidence'));
 
 const austriaLead = service.createLead({
     company: {

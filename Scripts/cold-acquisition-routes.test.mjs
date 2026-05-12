@@ -30,6 +30,13 @@ try {
   assert.equal(created.json.lead.scoring.total_score, 100);
   assert.equal(created.json.lead.channel, 'both');
 
+  const blockedAdminSend = await request('PATCH', `/api/cold-acquisition/leads/${created.json.lead.id}`, {
+    status: 'sent',
+    crm_stage: 'sent'
+  }, API_KEY);
+  assert.equal(blockedAdminSend.status, 409, 'admin patch should not bypass send compliance gate');
+  assert.equal(blockedAdminSend.json.error, 'COMPLIANCE_SEND_BLOCKED');
+
   const atCreated = await request('POST', '/api/cold-acquisition/leads', austriaLeadBody(), API_KEY);
   assert.equal(atCreated.status, 201, 'AT lead endpoint should create a lead');
   assert.equal(atCreated.json.lead.channel, 'linkedin');

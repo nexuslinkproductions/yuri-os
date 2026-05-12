@@ -70,6 +70,35 @@ export interface CrmLeadPatch {
     owner_user_id?: string | null;
 }
 
+export type TodayMissionDraftType = 'linkedin_intro' | 'email_cold';
+export type TodayMissionDueState = 'none' | 'due_today' | 'overdue';
+
+export interface TodayMissionLead extends ColdLeadRecord {
+    send_blockers: string[];
+    preferred_draft_type: TodayMissionDraftType;
+    draft_excerpt: string;
+    due_state: TodayMissionDueState;
+}
+
+export interface TodayMission {
+    generated_at: string;
+    weekly: {
+        target: number;
+        pushed: number;
+        remaining: number;
+    };
+    counts: {
+        sendable: number;
+        follow_ups_due: number;
+        needs_research: number;
+        review_needed: number;
+        blocked: number;
+        overdue: number;
+    };
+    sendable: TodayMissionLead[];
+    follow_ups_due: TodayMissionLead[];
+}
+
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 const CRM_VIEW_KEYS = ['ready', 'needs_review', 'email_eligible', 'linkedin_first', 'sent', 'replied', 'qualified', 'blocked'] as const;
 
@@ -156,6 +185,40 @@ export class ColdAcquisitionCrmService {
             CRM_VIEW_KEYS.map((view) => [view, this.applyView(leads, view).length])
         );
         return { ...dashboard, view_counts };
+    }
+
+    getTodayMission(): TodayMission {
+        const generated_at = this.nowIso();
+        const dashboard = this.leads.getDashboard();
+        const leads = this.leads.listLeads();
+
+        const sendable = leads
+            .filter((lead) => this.leads.getSendBlockers(lead).length === 0)
+            .sort((a, b) => b.scoring.total_score - a.scoring.total_score || String(b.updated_at).localeCompare(String(a.updated_at)))
+            .map((lead) => this.toTodayMissionLead(lead));
+        const sendableIds = new Set(sendable.map((lead) => lead.id));
+
+        const follow_ups_due = leads
+            .filter((lead) => !sendableIds.has(lead.id))
+            .filter((lead) => !this.isBlockedMissionLead(lead))
+            .filter((lead) => this.dueState(lead) !== 'none')
+            .sort((a, b) => this.followUpSortTime(a.next_follow_up_at) - this.followUpSortTime(b.next_follow_up_at))
+            .map((lead) => this.toTodayMissionLead(lead));
+
+        return {
+            generated_at,
+            weekly: dashboard.weekly_quota,
+            counts: {
+                sendable: sendable.length,
+                follow_ups_due: follow_ups_due.length,
+                needs_research: leads.filter((lead) => lead.draft_specificity.readiness === 'needs_research').length,
+                review_needed: leads.filter((lead) => lead.compliance.compliance_badge === 'review').length,
+                blocked: leads.filter((lead) => this.isBlockedMissionLead(lead)).length,
+                overdue: leads.filter((lead) => !this.isBlockedMissionLead(lead) && this.dueState(lead) === 'overdue').length
+            },
+            sendable,
+            follow_ups_due
+        };
     }
 
     listLeads(filters: { view?: string; q?: string; sort?: string } = {}) {
@@ -404,6 +467,63 @@ export class ColdAcquisitionCrmService {
         if (status === 'needs_review') return 'needs_review';
         if (status === 'ready' || status === 'pushed' || status === 'scored') return fallback === 'qualified' ? 'qualified' : 'ready';
         return fallback;
+    }
+
+    private toTodayMissionLead(lead: ColdLeadRecord): TodayMissionLead {
+        const preferred_draft_type = this.preferredDraftType(lead);
+        return {
+            ...lead,
+            send_blockers: this.leads.getSendBlockers(lead),
+            preferred_draft_type,
+            draft_excerpt: this.draftExcerpt(lead.outreach_drafts[preferred_draft_type] || ''),
+            due_state: this.dueState(lead)
+        };
+    }
+
+    private preferredDraftType(lead: ColdLeadRecord): TodayMissionDraftType {
+        if (['linkedin', 'both'].includes(lead.channel) && lead.outreach_drafts.linkedin_intro?.trim()) return 'linkedin_intro';
+        if (['email', 'both'].includes(lead.channel) && lead.outreach_drafts.email_cold?.trim()) return 'email_cold';
+        return ['email'].includes(lead.channel) ? 'email_cold' : 'linkedin_intro';
+    }
+
+    private draftExcerpt(value: string) {
+        const compact = value.replace(/\s+/g, ' ').trim();
+        return compact.length > 140 ? `${compact.slice(0, 140)}...` : compact;
+    }
+
+    private isBlockedMissionLead(lead: ColdLeadRecord) {
+        return lead.crm_stage === 'blocked'
+            || lead.channel === 'blocked'
+            || lead.compliance.compliance_badge === 'blocked'
+            || lead.dedupe.is_duplicate;
+    }
+
+    private dueState(lead: ColdLeadRecord): TodayMissionDueState {
+        const value = lead.next_follow_up_at;
+        if (!value) return 'none';
+        const datePart = this.followUpDatePart(value);
+        if (!datePart) return 'none';
+        const today = this.nowIso().slice(0, 10);
+        if (datePart < today) return 'overdue';
+        if (datePart > today) return 'none';
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return 'due_today';
+        const timestamp = Date.parse(value);
+        if (Number.isNaN(timestamp)) return 'none';
+        return timestamp <= this.now().getTime() ? 'due_today' : 'none';
+    }
+
+    private followUpDatePart(value: string) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return null;
+        return date.toISOString().slice(0, 10);
+    }
+
+    private followUpSortTime(value: string | null) {
+        if (!value) return Number.POSITIVE_INFINITY;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return Date.parse(`${value}T00:00:00.000Z`);
+        const timestamp = Date.parse(value);
+        return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp;
     }
 
     private publicUser(row: UserRow): ColdAcquisitionCrmUser {
