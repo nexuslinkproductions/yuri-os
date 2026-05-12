@@ -7,6 +7,7 @@ import path from 'node:path';
 const healthScripts = [
   'Scripts/research-rag-health.mjs',
   'Scripts/prompt-rag-health.mjs',
+  'Scripts/sales-rag-health.mjs',
 ];
 const helper = fs.readFileSync(path.join(process.cwd(), 'Scripts/lib/db-health.mjs'), 'utf8');
 

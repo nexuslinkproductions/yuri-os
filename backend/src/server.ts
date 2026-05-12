@@ -33,6 +33,7 @@ import { StabilityGuard } from './services/stabilityGuard';
 import { EventBus } from './conclave/EventBus';
 import { SessionRuntimeService } from './services/sessionRuntimeService';
 import { DesignAssistantBridgeService } from './services/designAssistantBridgeService';
+import { initColdAcquisitionCrmRoutes } from './routes/coldAcquisitionCrmRoutes';
 
 dotenv.config();
 
@@ -46,6 +47,12 @@ const suppressIntervals = isTestMode || isTruthy(process.env.NUDIMMUD_DISABLE_IN
 const suppressSwarm = isTestMode || isTruthy(process.env.NUDIMMUD_DISABLE_SWARM_ORCHESTRATOR);
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost']);
+const PUBLIC_CORS_ORIGINS = new Set(
+    String(process.env.COLD_ACQ_ALLOWED_ORIGINS || process.env.COLD_ACQ_PUBLIC_ORIGIN || '')
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+);
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = Number(process.env.PORT || 3004);
 const MAX_PORT = DEFAULT_PORT + 10;
@@ -191,28 +198,37 @@ function listenOnPort(port: number): Promise<void> {
     });
 }
 
-function isAllowedCorsOrigin(origin: string) {
+function isAllowedCorsOrigin(origin: string, req?: express.Request) {
     try {
         const parsed = new URL(origin);
         if (parsed.protocol === 'chrome-extension:') return true;
+        if (PUBLIC_CORS_ORIGINS.has(origin)) return true;
+        if (isTruthy(process.env.COLD_ACQ_ALLOW_TRYCLOUDFLARE) && parsed.hostname.endsWith('.trycloudflare.com')) return true;
+        if (req) {
+            const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+            const proto = String(req.headers['x-forwarded-proto'] || req.protocol || '').split(',')[0].trim();
+            if (host && parsed.host === host && (!proto || parsed.protocol === `${proto}:`)) return true;
+        }
         return LOOPBACK_HOSTS.has(parsed.hostname);
     } catch {
         return false;
     }
 }
 
-const corsOptions: CorsOptions = {
-    origin(origin, callback) {
-        if (!origin || isAllowedCorsOrigin(origin)) {
-            callback(null, true);
-            return;
-        }
+const corsOptionsDelegate = (req: express.Request, callback: (error: Error | null, options?: CorsOptions) => void) => {
+    callback(null, {
+        origin(origin, originCallback) {
+            if (!origin || isAllowedCorsOrigin(origin, req)) {
+                originCallback(null, true);
+                return;
+            }
 
-        const error = new Error('CORS_BLOCKED') as Error & { code: string; statusCode: number };
-        error.code = 'CORS_BLOCKED';
-        error.statusCode = 403;
-        callback(error);
-    }
+            const error = new Error('CORS_BLOCKED') as Error & { code: string; statusCode: number };
+            error.code = 'CORS_BLOCKED';
+            error.statusCode = 403;
+            originCallback(error);
+        }
+    });
 };
 
 app.use((req, res, next) => {
@@ -240,7 +256,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(cors(corsOptions));
+app.use(cors(corsOptionsDelegate));
 app.use(express.json({ limit: '25mb' }));
 
 clearRecentEvents(db);
@@ -633,6 +649,8 @@ app.post('/api/neural/recalibrate', authMiddleware, (req, res) => {
         res.status(500).json({ status: 'ERROR', message: error.message });
     }
 });
+
+initColdAcquisitionCrmRoutes(app, db);
 
 const jsonErrorHandler: express.ErrorRequestHandler = (error, req, res, next) => {
     if (res.headersSent) {
