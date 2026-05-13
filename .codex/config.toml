@@ -52,6 +52,13 @@ enabled = true
 startup_timeout_sec = 10
 tool_timeout_sec = 180
 
+[mcp_servers.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+enabled = true
+startup_timeout_sec = 15
+tool_timeout_sec = 60
+
 [[hooks.PreToolUse]]
 matcher = "*"
 hooks = [{ type = "command", command = "node /Users/marcelspatz/NUDIMMUD/.codex/hooks/pre-tool-use.mjs" }]
