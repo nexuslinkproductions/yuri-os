@@ -410,12 +410,25 @@ export class ColdAcquisitionCrmService {
         return this.leads.pushReadyBatch(options);
     }
 
-    ingestZefixBulk(records: ZefixBulkRecord[]) {
+    async ingestZefixBulk(records: ZefixBulkRecord[]) {
         return this.leads.ingestZefixBulk(records);
     }
 
-    ingestAustriaDirectory(records: AustriaDirectoryRecord[]) {
+    async ingestAustriaDirectory(records: AustriaDirectoryRecord[]) {
         return this.leads.ingestAustriaDirectory(records);
+    }
+
+    async regenerateDraft(leadId: string, userId: string) {
+        const current = this.leads.getLead(leadId);
+        if (!current) throw Object.assign(new Error('COLD_LEAD_NOT_FOUND'), { statusCode: 404 });
+
+        const regenerated = await this.leads.regenerateDraftsForLead(current);
+        const next = this.leads.updateLead(leadId, {
+            outreach_drafts: regenerated.outreach_drafts,
+            draft_specificity: regenerated.draft_specificity
+        });
+        this.logActivity({ id: userId }, leadId, 'draft_regenerated', 'Regenerated outreach drafts with compiled company profile.', null);
+        return this.toCrmLead(next);
     }
 
     getSourceConfig(): AcquisitionSourceConfigResponse {

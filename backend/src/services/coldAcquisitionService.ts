@@ -1,5 +1,13 @@
 import { execFileSync } from 'node:child_process';
 import Database from 'better-sqlite3';
+import OpenAI from 'openai';
+
+const deepseekClient = process.env.DEEPSEEK_API_KEY || process.env.CODE_DEEPSEEK_API_KEY
+    ? new OpenAI({
+        apiKey: process.env.DEEPSEEK_API_KEY || process.env.CODE_DEEPSEEK_API_KEY || '',
+        baseURL: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
+    })
+    : null;
 
 export type ColdLeadCountry = 'CH' | 'AT';
 export type ColdLeadChannel = 'linkedin' | 'email' | 'both' | 'blocked';
@@ -91,6 +99,22 @@ export interface ColdLeadComplianceRecord extends ColdLeadComplianceInput {
     guardrail_notes: string[];
 }
 
+export interface CompiledCompanyProfile {
+    company_name: string;
+    contact_name: string;
+    contact_role: string;
+    market: string;
+    website: string;
+    primary_source_url: string;
+    best_surface: string;
+    what_we_noticed: string;
+    why_it_might_matter: string;
+    c2moviez_relevance: string;
+    safe_opening_angle: string;
+    claims_to_avoid: string[];
+    evidence_confidence: 'high' | 'medium' | 'low';
+}
+
 export interface ColdLeadDrafts {
     linkedin_intro: string;
     linkedin_followup: string;
@@ -127,7 +151,7 @@ export interface DraftEvaluationResult {
     flags: DraftFlag[];
 }
 
-export interface ColdLeadOutreachProfile {
+export interface ColdLeadOutreachProfile extends CompiledCompanyProfile {
     observed_signal: string;
     why_it_might_matter: string;
     opening_angle: string;
@@ -183,6 +207,10 @@ export interface ColdLeadRecord {
     created_at: string;
     updated_at: string;
 }
+
+type DraftsWithCompiledProfile = ColdLeadDrafts & {
+    __compiledProfile?: CompiledCompanyProfile;
+};
 
 export interface ColdAcquisitionDashboard {
     total_leads: number;
@@ -486,7 +514,7 @@ export class ColdAcquisitionService {
         this.ensureSchema();
     }
 
-    createLead(input: ColdLeadInput): ColdLeadRecord {
+    async createLead(input: ColdLeadInput): Promise<ColdLeadRecord> {
         const timestamp = this.nowIso();
         const company = this.normalizeCompany(input.company);
         const contact = this.normalizeContact(input.contact);
@@ -499,8 +527,14 @@ export class ColdAcquisitionService {
         const dedupe = this.buildDedupe(company, contact);
         const compliance = this.evaluateCompliance(company, contact, input.compliance);
         const channel = this.resolveChannel(company, contact, compliance);
-        const outreach_drafts = this.generateDrafts(company, contact, evidence, channel, compliance);
-        const draft_specificity = this.validateDraftSpecificity(outreach_drafts, company, contact, evidence);
+        const outreach_drafts = await this.generateDrafts(company, contact, evidence, channel, compliance, computeSourceConfidence({
+            company,
+            contact,
+            evidence,
+            compliance
+        }).level);
+        const profile = this.buildOutreachProfile(company, contact, evidence, (outreach_drafts as DraftsWithCompiledProfile).__compiledProfile);
+        const draft_specificity = this.validateDraftSpecificity(outreach_drafts, company, contact, evidence, profile);
         const status = this.initialStatus(scoring, dedupe, draft_specificity, channel);
         const crm_stage = this.initialCrmStage(status, scoring, channel, compliance);
         const priority_flag = scoring.total_score >= 90;
@@ -540,7 +574,7 @@ export class ColdAcquisitionService {
         return record;
     }
 
-    ingestZefixBulk(records: ZefixBulkRecord[]): IngestResult {
+    async ingestZefixBulk(records: ZefixBulkRecord[]): Promise<IngestResult> {
         const result: IngestResult = { created: 0, skipped: 0, errors: [], lead_ids: [] };
         const acceptedRecords: Array<{
             record: ZefixBulkRecord;
@@ -578,7 +612,7 @@ export class ColdAcquisitionService {
             const sourceUrl = sourceUrlLive ? record.source_url : 'unavailable';
 
             try {
-                const lead = this.createLead({
+                const lead = await this.createLead({
                     company: {
                         name: record.name,
                         country: 'CH',
@@ -632,7 +666,7 @@ export class ColdAcquisitionService {
         return result;
     }
 
-    ingestAustriaDirectory(records: AustriaDirectoryRecord[]): IngestResult {
+    async ingestAustriaDirectory(records: AustriaDirectoryRecord[]): Promise<IngestResult> {
         const result: IngestResult = { created: 0, skipped: 0, errors: [], lead_ids: [] };
         const acceptedRecords: Array<{
             record: AustriaDirectoryRecord;
@@ -668,7 +702,7 @@ export class ColdAcquisitionService {
             const sourceUrl = sourceUrlLive ? record.source_url : 'unavailable';
 
             try {
-                const lead = this.createLead({
+                const lead = await this.createLead({
                     company: {
                         name: record.name,
                         country: 'AT',
@@ -762,7 +796,9 @@ export class ColdAcquisitionService {
             | 'last_touch_at'
             | 'next_follow_up_at'
             | 'fanny_notes'
-        >>
+        >> & {
+            draft_specificity?: ColdLeadDraftSpecificity;
+        }
     ): ColdLeadRecord {
         const current = this.requireLead(id);
         const status = patch.status || current.status;
@@ -783,7 +819,8 @@ export class ColdAcquisitionService {
                 : current.draft_versions,
             updated_at: this.nowIso()
         };
-        next.draft_specificity = this.validateDraftSpecificity(next.outreach_drafts, next.company, next.contact, next.evidence);
+        next.draft_specificity = patch.draft_specificity
+            || this.validateDraftSpecificity(next.outreach_drafts, next.company, next.contact, next.evidence);
         if ((patch.status === 'sent' || patch.crm_stage === 'sent') && current.status !== 'sent') {
             this.assertCanMarkSent({ ...next, status: current.status, crm_stage: current.crm_stage });
         }
@@ -1057,41 +1094,51 @@ export class ColdAcquisitionService {
         return 'blocked';
     }
 
-    private generateDrafts(
+    private async generateDrafts(
         company: Required<ColdLeadCompany>,
         contact: Required<ColdLeadContact>,
         evidence: ColdLeadEvidence[],
         channel: ColdLeadChannel,
+        compliance: ColdLeadComplianceRecord,
+        confidence: 'high' | 'medium' | 'low'
+    ): Promise<ColdLeadDrafts> {
+        const compiled = await this.compileCompanyProfile(company, contact, evidence, confidence);
+        const profile = this.buildOutreachProfile(company, contact, evidence, compiled);
+        const drafts = this.buildDraftsFromProfile(profile, company, contact, channel, compliance);
+        Object.defineProperty(drafts, '__compiledProfile', {
+            value: compiled,
+            enumerable: false,
+            configurable: false
+        });
+        return drafts;
+    }
+
+    private buildDraftsFromProfile(
+        profile: ColdLeadOutreachProfile,
+        company: Required<ColdLeadCompany>,
+        contact: Required<ColdLeadContact>,
+        channel: ColdLeadChannel,
         compliance: ColdLeadComplianceRecord
     ): ColdLeadDrafts {
-        const profile = this.buildOutreachProfile(company, contact, evidence);
         const companyName = company.name;
         const companyNameClean = this.companyNameForSubject(company.name);
         const firstName = this.resolveFirstName(contact);
         const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
-        const techSignal = evidence.find((entry) => entry.kind === 'website_tech_signal');
-        const newsSignal = evidence.find((entry) => entry.kind === 'website_news');
-        const subjectDetail = techSignal
-            ? ` — ${techSignal.detail.toLowerCase()}`
-            : newsSignal
-                ? ' — active recently'
-                : '';
-        const shortSubject = `quick note on ${companyNameClean}${subjectDetail}`;
-        const bestDetail = profile.observed_signal.trim();
-        const introLead = bestDetail.length > 0
-            ? `I came across ${companyName} — ${bestDetail.slice(0, 120)}.`
-            : `I noticed ${companyName} and wanted to reach out.`;
+        const shortSubject = `quick thought on ${profile.safe_opening_angle || companyNameClean}`;
+        const observation = profile.observed_signal || `${companyName} has a visible public presence`;
+        const relevance = profile.c2moviez_relevance || 'a short first-impression angle may be worth checking';
+        const surface = profile.safe_opening_angle || 'that page';
 
         const linkedin_intro = [
-            `${greeting} ${introLead}`,
-            `One thing that stood out: ${this.lowercaseStart(profile.opening_angle)}`,
-            `If useful, I can send a short angle.`
+            `${greeting} I noticed ${observation}.`,
+            `Tiny thought: if ${surface} is part of a first impression for potential clients, ${relevance} may be worth checking.`,
+            `I can send the short angle if useful.`
         ].join(' ');
 
         const linkedin_followup = [
             `${greeting} quick follow-up on ${companyNameClean}.`,
-            `The same detail still stands: ${this.ensureCompanyMention(company.name, profile.observed_signal)}.`,
-            `If useful, I can send a short angle. If not, I will leave it here.`
+            `The same detail still stands - I noticed ${observation}.`,
+            `If useful, I can send the short angle. If not, I will leave it here.`
         ].join(' ');
 
         const email_cold = compliance.email_allowed && ['email', 'both'].includes(channel)
@@ -1100,14 +1147,15 @@ export class ColdAcquisitionService {
                 '',
                 greeting,
                 '',
-                introLead,
+                `I came across ${companyName}. I noticed ${observation}.`,
                 '',
-                `One thing that stood out: ${this.lowercaseStart(profile.why_it_might_matter)}`,
+                `Tiny thought: if ${surface} is often a first impression for enterprise clients, ${relevance} may be worth checking before they enquire.`,
                 '',
-                `If you'd like, I can send a short angle.`,
+                `I can send a short example angle if useful.`,
                 '',
                 `Best,`,
                 `Fanny`,
+                `c2moviez`,
                 '',
                 `If this is not relevant, just reply "no thanks" and I will close the loop.`
             ].join('\n')
@@ -1121,7 +1169,7 @@ export class ColdAcquisitionService {
                 '',
                 `Quick follow-up on ${companyNameClean}.`,
                 '',
-                `The same detail still stands: ${this.ensureCompanyMention(company.name, profile.observed_signal)}.`,
+                `The same detail still stands - I noticed ${observation}.`,
                 '',
                 `If useful, I can send the short angle. If not, I will leave it here.`,
                 '',
@@ -1133,32 +1181,186 @@ export class ColdAcquisitionService {
         return { linkedin_intro, linkedin_followup, email_cold, email_followup };
     }
 
+    private async compileCompanyProfile(
+        company: Required<ColdLeadCompany>,
+        contact: Required<ColdLeadContact>,
+        evidence: ColdLeadEvidence[],
+        confidence: 'high' | 'medium' | 'low'
+    ): Promise<CompiledCompanyProfile> {
+        const base = this.buildCompanyProfileFallback(company, contact, evidence);
+        const fallback: CompiledCompanyProfile = {
+            ...base,
+            evidence_confidence: confidence
+        };
+
+        if (!deepseekClient) {
+            return fallback;
+        }
+
+        const evidenceLines = evidence
+            .filter((entry) => entry.detail?.trim().length > 10)
+            .slice(0, 4)
+            .map((entry) => `- ${entry.label}: ${entry.detail.trim().slice(0, 120)}`)
+            .join('\n');
+
+        const prompt = `You are a B2B outreach profiler for c2moviez, a video production company that creates short first-impression video angles for B2B companies. Given raw evidence about a company, produce a prospect-facing outreach profile in JSON.
+
+Company: ${company.name}
+Industry: ${company.industry || 'unknown'}
+Website: ${company.website || 'unknown'}
+Evidence:
+${evidenceLines || '- No specific evidence available'}
+
+Return ONLY valid JSON, no explanation, no markdown:
+{
+  "what_we_noticed": "<One sentence, max 90 chars. What is specifically observable about this company from the outside - their positioning, main service, or visible feature of their communication surface. Second-person framing preferred ('your X describes...'). No geography, no postal codes, no internal notes.>",
+  "why_it_might_matter": "<One sentence, max 90 chars. Why the observable thing matters commercially for their potential clients. Prospect-facing only.>",
+  "c2moviez_relevance": "<One sentence, max 110 chars. What specific short video angle c2moviez could offer this company. Reference the surface.>",
+  "safe_opening_angle": "<The specific surface Fanny is commenting on, max 50 chars. E.g. 'your services page', 'your homepage', 'your LinkedIn intro'.>",
+  "claims_to_avoid": ["<thing not in evidence 1>", "<thing not in evidence 2>"]
+}`;
+
+        try {
+            const response = await deepseekClient.chat.completions.create({
+                model: 'deepseek-chat',
+                messages: [{ role: 'user', content: prompt }],
+                max_tokens: 350,
+                temperature: 0.3,
+                response_format: { type: 'json_object' }
+            });
+
+            const raw = response.choices[0]?.message?.content?.trim();
+            if (!raw) throw new Error('empty response');
+            const parsed = JSON.parse(raw);
+            return {
+                company_name: company.name,
+                contact_name: contact.name || '',
+                contact_role: contact.title || '',
+                market: company.city || (company.country === 'AT' ? 'Austria' : 'Switzerland'),
+                website: company.website || '',
+                primary_source_url: evidence.find((entry) => entry.url)?.url || company.website || '',
+                best_surface: base.best_surface,
+                what_we_noticed: String(parsed.what_we_noticed || fallback.what_we_noticed).slice(0, 120),
+                why_it_might_matter: String(parsed.why_it_might_matter || fallback.why_it_might_matter).slice(0, 120),
+                c2moviez_relevance: String(parsed.c2moviez_relevance || fallback.c2moviez_relevance).slice(0, 130),
+                safe_opening_angle: String(parsed.safe_opening_angle || base.safe_opening_angle).slice(0, 60),
+                claims_to_avoid: Array.isArray(parsed.claims_to_avoid) ? parsed.claims_to_avoid.slice(0, 3) : fallback.claims_to_avoid,
+                evidence_confidence: confidence
+            };
+        } catch {
+            return fallback;
+        }
+    }
+
+    async regenerateDraftsForLead(lead: ColdLeadRecord): Promise<{ outreach_drafts: ColdLeadDrafts; draft_specificity: ColdLeadDraftSpecificity }> {
+        const confidence = computeSourceConfidence({
+            company: lead.company,
+            contact: lead.contact,
+            evidence: lead.evidence,
+            compliance: lead.compliance
+        }).level;
+        const outreach_drafts = await this.generateDrafts(lead.company, lead.contact, lead.evidence, lead.channel, lead.compliance, confidence);
+        const compiled = (outreach_drafts as DraftsWithCompiledProfile).__compiledProfile;
+        const profile = this.buildOutreachProfile(lead.company, lead.contact, lead.evidence, compiled);
+        const draft_specificity = this.validateDraftSpecificity(outreach_drafts, lead.company, lead.contact, lead.evidence, profile);
+        return { outreach_drafts, draft_specificity };
+    }
+
     private buildOutreachProfile(
         company: Required<ColdLeadCompany>,
         contact: Required<ColdLeadContact>,
-        evidence: ColdLeadEvidence[]
+        evidence: ColdLeadEvidence[],
+        compiled?: CompiledCompanyProfile
     ): ColdLeadOutreachProfile {
-        const observed_signal = this.buildProspectObservation(evidence, company);
+        const base = compiled || this.buildCompanyProfileFallback(company, contact, evidence);
         const source_urls = this.outreachSourceUrls(company, contact, evidence);
-        const confidence = this.outreachConfidence(evidence, company, source_urls);
+        return {
+            ...base,
+            observed_signal: base.what_we_noticed,
+            why_it_might_matter: base.why_it_might_matter,
+            opening_angle: base.c2moviez_relevance,
+            source_urls,
+            do_not_claim: base.claims_to_avoid.length > 0
+                ? base.claims_to_avoid
+                : [
+                    'Do not claim revenue, conversion, demand, or pipeline lift.',
+                    'Do not say the company is struggling, failing, leaking attention, or doing something wrong.',
+                    'Do not claim our work will fix, clarify, or improve the prospect issue.',
+                    'Do not mention ads, retargeting, production stacks, or campaigns unless the source evidence shows that exact topic.'
+                ],
+            confidence: base.evidence_confidence
+        };
+    }
+
+    private buildCompanyProfileFallback(
+        company: Required<ColdLeadCompany>,
+        contact: Required<ColdLeadContact>,
+        evidence: ColdLeadEvidence[]
+    ): CompiledCompanyProfile {
+        const bestSurface = (() => {
+            if (evidence.some((item) => item.kind === 'website_about' || item.kind === 'website_about_page')) return 'your website';
+            if (evidence.some((item) => item.kind === 'website_tech_signal')) return 'your product page';
+            if (evidence.some((item) => item.kind === 'website_news')) return 'your recent activity';
+            if (evidence.some((item) => item.kind === 'zefix_purpose' || item.kind === 'wko_directory')) return 'your public listing';
+            return 'your company page';
+        })();
+
+        const bestEvidence = evidence.find((item) =>
+            ['website_about', 'website_about_page', 'zefix_purpose'].includes(item.kind) && item.detail?.trim()
+        ) || evidence.find((item) => item.detail?.trim().length > 30) || evidence.find((item) => item.detail?.trim());
+        const cleanedDetail = bestEvidence?.detail?.trim()
+            ? this.prospectFacingEvidence(this.stripSourceArtifacts(bestEvidence.detail)).slice(0, 120)
+            : '';
+        const whatWeNoticed = cleanedDetail || `${company.name} is a ${company.industry || 'business'} company`;
+        const whyItMightMatter = this.pickWhyItMightMatter(bestSurface, whatWeNoticed);
+        const c2moviezRelevance = this.pickVideoAngle(bestSurface, whatWeNoticed);
 
         return {
-            observed_signal,
-            why_it_might_matter: this.whySignalMightMatter(company, evidence),
-            opening_angle: this.openingAngle(company, observed_signal),
-            source_urls,
-            do_not_claim: [
+            company_name: company.name,
+            contact_name: contact.name || '',
+            contact_role: contact.title || '',
+            market: company.city || (company.country === 'AT' ? 'Austria' : 'Switzerland'),
+            website: company.website || '',
+            primary_source_url: bestEvidence?.url || company.website || '',
+            best_surface: bestSurface,
+            what_we_noticed: whatWeNoticed,
+            why_it_might_matter: whyItMightMatter,
+            c2moviez_relevance: c2moviezRelevance,
+            safe_opening_angle: bestSurface,
+            claims_to_avoid: [
                 'Do not claim revenue, conversion, demand, or pipeline lift.',
                 'Do not say the company is struggling, failing, leaking attention, or doing something wrong.',
                 'Do not claim our work will fix, clarify, or improve the prospect issue.',
                 'Do not mention ads, retargeting, production stacks, or campaigns unless the source evidence shows that exact topic.'
             ],
-            confidence
+            evidence_confidence: this.outreachConfidence(evidence, company, this.outreachSourceUrls(company, contact, evidence))
         };
     }
 
-    private buildObservationSentence(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
-        return this.buildProspectObservation(evidence, company);
+    private pickWhyItMightMatter(surface: string, whatWeNoticed: string) {
+        if (/website|page|listing|home/i.test(surface)) {
+            return `A first-time visitor may use ${surface} to decide whether ${whatWeNoticed} is clear enough.`;
+        }
+        if (/product/i.test(surface)) {
+            return `A first-time visitor may use ${surface} to decide whether ${whatWeNoticed} is easy to understand.`;
+        }
+        if (/recent activity/i.test(surface)) {
+            return `A first-time visitor may use ${surface} to decide whether ${whatWeNoticed} looks current and credible.`;
+        }
+        return `A first-time visitor may use ${surface} to decide whether ${whatWeNoticed} makes sense quickly.`;
+    }
+
+    private pickVideoAngle(surface: string, whatWeNoticed: string) {
+        if (/website|page|listing|home/i.test(surface)) {
+            return `a short explainer angle that translates ${whatWeNoticed} for a first-time visitor`;
+        }
+        if (/product/i.test(surface)) {
+            return `a short explainer angle that translates ${whatWeNoticed} for technical readers`;
+        }
+        if (/recent activity/i.test(surface)) {
+            return `a short first-impression angle that ties ${whatWeNoticed} to the company story`;
+        }
+        return `a short first-impression angle that helps translate ${whatWeNoticed}`;
     }
 
     private ensureCompanyMention(companyName: string, observation: string) {
@@ -1168,77 +1370,40 @@ export class ColdAcquisitionService {
         return `${companyName}; ${observation}`;
     }
 
-    private openingAngle(company: Required<ColdLeadCompany>, observedSignal: string) {
-        const surface = this.signalSurface(observedSignal);
-        if (/bio|pharma|clinical|medical|health|life science/i.test(`${company.industry} ${observedSignal}`)) {
-            return `${this.sentenceStart(surface)} is doing a lot of the first-pass explanation already.`;
-        }
-        if (/saas|software|cloud|data|analytics|robot|automation|technology|platform/i.test(`${company.industry} ${observedSignal}`)) {
-            return `${this.sentenceStart(surface)} is doing the first-pass explanation for technical readers already.`;
-        }
-        if (/hotel|hospitality|restaurant|tourism|event|guest/i.test(`${company.industry} ${observedSignal}`)) {
-            return `${this.sentenceStart(surface)} is carrying the first impression before anyone enquires.`;
-        }
-        if (/fintech|finance|payment|bank|insurance|regulated|legal|compliance/i.test(`${company.industry} ${observedSignal}`)) {
-            return `${this.sentenceStart(surface)} has to do the trust work before a cautious reader keeps going.`;
-        }
-        return '';
+    private bestEvidence(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
+        const observed = this.buildEvidenceObservation(evidence, company);
+        return observed || `${company.name} has a visible public presence`;
     }
 
-    private whySignalMightMatter(company: Required<ColdLeadCompany>, evidence: ColdLeadEvidence[]) {
+    private buildEvidenceObservation(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
         const priorityKinds: ColdLeadEvidence['kind'][] = [
             'website_about',
             'website_about_page',
             'zefix_purpose',
             'website_tech_signal',
-            'website_news',
-            'website_team'
+            'website_news'
         ];
-        const richEvidence = priorityKinds
-            .map((kind) => evidence.find((item) => item.kind === kind && item.detail?.trim()))
-            .find(Boolean);
-        if (richEvidence?.kind === 'website_about' || richEvidence?.kind === 'website_about_page' || richEvidence?.kind === 'zefix_purpose') {
-            return `This is how ${company.name} describes itself — the right angle usually comes from here.`;
+        for (const kind of priorityKinds) {
+            const match = evidence.find((item) => item.kind === kind && item.detail?.trim());
+            if (match?.detail?.trim()) {
+                const cleaned = this.prospectFacingEvidence(this.stripSourceArtifacts(match.detail)).replace(/\s+/g, ' ').trim();
+                if (cleaned) return cleaned.slice(0, 160);
+            }
         }
-        if (richEvidence?.kind === 'website_tech_signal') {
-            return 'Their tech stack is visible from the outside — that\'s a concrete reason to reach out.';
+
+        const otherEvidence = evidence.find((item) => item.detail?.trim().length > 30);
+        if (otherEvidence?.detail?.trim()) {
+            const cleaned = this.prospectFacingEvidence(this.stripSourceArtifacts(otherEvidence.detail)).replace(/\s+/g, ' ').trim();
+            if (cleaned) return cleaned.slice(0, 160);
         }
-        if (richEvidence?.kind === 'website_news') {
-            return 'They published recently — active companies respond faster.';
+
+        const anyEvidence = evidence.find((item) => item.detail?.trim());
+        if (anyEvidence?.detail?.trim()) {
+            const cleaned = this.prospectFacingEvidence(this.stripSourceArtifacts(anyEvidence.detail)).replace(/\s+/g, ' ').trim();
+            if (cleaned) return cleaned.slice(0, 160);
         }
-        if (richEvidence?.kind === 'website_team') {
-            return 'A named contact was found — personalised outreach converts higher than generic.';
-        }
-        const observedSignal = this.buildProspectObservation(evidence, company);
-        const surface = this.signalSurface(observedSignal);
-        if (/bio|pharma|clinical|medical|health|life science/i.test(`${company.industry} ${observedSignal}`)) {
-            return `A new reader is deciding quickly whether ${surface} makes the proof easy to understand without a call first.`;
-        }
-        if (/saas|software|cloud|data|analytics|robot|automation|technology|platform/i.test(`${company.industry} ${observedSignal}`)) {
-            return `A new reader is deciding quickly whether ${surface} makes the product easy to understand.`;
-        }
-        if (/hotel|hospitality|restaurant|tourism|event|guest/i.test(`${company.industry} ${observedSignal}`)) {
-            return `A new reader is deciding quickly whether ${surface} gives enough reason to enquire.`;
-        }
-        if (/fintech|finance|payment|bank|insurance|regulated|legal|compliance/i.test(`${company.industry} ${observedSignal}`)) {
-            return `A new reader is deciding quickly whether ${surface} builds enough trust to keep going.`;
-        }
+
         return '';
-    }
-
-    private sentenceStart(value: string) {
-        return value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : value;
-    }
-
-    private lowercaseStart(value: string) {
-        return value ? `${value.charAt(0).toLowerCase()}${value.slice(1)}` : value;
-    }
-
-    private signalSurface(observedSignal: string) {
-        if (/\/en\/|page|website|landing|platform|services?|product/i.test(observedSignal)) return 'that page';
-        if (/workflow|software|solutions?|tools?|positioning|described as|presents?|targets/i.test(observedSignal)) return 'that positioning';
-        if (/post|activity/i.test(observedSignal)) return 'that activity';
-        return 'that detail';
     }
 
     private resolveFirstName(contact: ColdLeadContact) {
@@ -1338,10 +1503,12 @@ export class ColdAcquisitionService {
         drafts: ColdLeadDrafts,
         company: Required<ColdLeadCompany>,
         contact: Required<ColdLeadContact>,
-        evidence: ColdLeadEvidence[]
+        evidence: ColdLeadEvidence[],
+        profile?: ColdLeadOutreachProfile
     ): ColdLeadDraftSpecificity {
         const combined = Object.values(drafts).filter(Boolean).join('\n').toLowerCase();
-        const observation = this.buildObservationSentence(evidence, company);
+        const observedProfile = profile || this.buildOutreachProfile(company, contact, evidence);
+        const observation = observedProfile.observed_signal || this.buildEvidenceObservation(evidence, company);
         const proof_chips = evidence
             .filter((item) => {
                 if (!item.detail) return false;
@@ -1357,12 +1524,11 @@ export class ColdAcquisitionService {
         if (proof_chips.length === 0) missing.push('evidence_detail');
 
         const warnings: string[] = [];
-        const profile = this.buildOutreachProfile(company, contact, evidence);
         if (this.hasThinEvidence(evidence, company)) warnings.push('thin_evidence');
         if (this.hasDraftClaimRisk(combined)) warnings.push('claim_risk');
         if (this.hasSourceLeakage(combined)) warnings.push('source_leakage');
         if (this.hasOverlongDraft(drafts)) warnings.push('overlong_draft');
-        if (this.hasDuplicateObservation(profile.observed_signal, company.name)) warnings.push('duplicate_observation');
+        if (this.hasDuplicateObservation(observedProfile.observed_signal, company.name)) warnings.push('duplicate_observation');
 
         const evaluation = this.evaluateDrafts(drafts, company, contact, evidence);
         const readiness = this.resolveDraftReadiness(missing, warnings, evaluation);
@@ -1373,7 +1539,7 @@ export class ColdAcquisitionService {
             missing,
             warnings,
             readiness,
-            profile,
+            profile: observedProfile,
             evaluation_flags: evaluation.flags
         };
     }
@@ -1684,38 +1850,6 @@ export class ColdAcquisitionService {
             duplicate_of: existing?.id || (activeCustomer ? `active_customer:${activeCustomer}` : null),
             matched_on: activeCustomer ? 'domain' : matched_on
         };
-    }
-
-    private bestEvidence(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
-        return this.buildProspectObservation(evidence, company);
-    }
-
-    private buildProspectObservation(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
-        const priorityKinds: ColdLeadEvidence['kind'][] = [
-            'website_about',
-            'website_about_page',
-            'zefix_purpose',
-            'website_tech_signal',
-            'website_news'
-        ];
-        for (const kind of priorityKinds) {
-            const match = evidence.find((item) => item.kind === kind && item.detail?.trim());
-            if (match?.detail?.trim()) {
-                return match.detail.trim().slice(0, 160);
-            }
-        }
-
-        const otherEvidence = evidence.find((item) => item.detail?.trim().length > 30);
-        if (otherEvidence?.detail?.trim()) {
-            return otherEvidence.detail.trim().slice(0, 160);
-        }
-
-        const anyDetail = evidence.find((item) => item.detail?.trim());
-        if (anyDetail?.detail?.trim()) {
-            return anyDetail.detail.trim().slice(0, 160);
-        }
-
-        return this.openingAngle(company, '');
     }
 
     private polishProspectObservation(detail: string, company: Required<ColdLeadCompany>) {
@@ -2232,10 +2366,9 @@ const check = (url) => new Promise((resolve) => {
             || /Subject:\s*quick thought on your (?:positioning|services page|workflow page|product page)/i.test(combined)
             || /Subject:\s*quick note on your (?:positioning|services page|workflow page|product page)/i.test(combined)
             || /quick follow-up on your (?:positioning|services page|workflow page|product page)/i.test(combined)
-            || /Tiny thought:/i.test(combined)
             || /Worth sending you a short example angle\?/i.test(combined)
             || /I came across .* while looking at/i.test(combined);
-        return stale ? this.generateDrafts(company, contact, evidence, channel, compliance) : drafts;
+        return stale ? this.buildDraftsFromProfile(this.buildOutreachProfile(company, contact, evidence), company, contact, channel, compliance) : drafts;
     }
 
     private requireLead(id: string) {

@@ -271,6 +271,15 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
         }
     });
 
+    api.post('/leads/:id/regenerate-draft', requireAuth, async (req: CrmRequest, res) => {
+        try {
+            const lead = await service.regenerateDraft(String(req.params.id || ''), req.crmUser!.id);
+            res.json({ lead });
+        } catch (error: any) {
+            sendError(res, error);
+        }
+    });
+
     api.get('/admin/webhook-config', requireAuth, requireAdmin, (_req, res) => {
         res.json({ config: service.getWebhookConfig() });
     });
@@ -291,19 +300,19 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
         }
     });
 
-    api.post('/admin/ingest/zefix-bulk', requireAuth, requireAdmin, (req, res) => {
+    api.post('/admin/ingest/zefix-bulk', requireAuth, requireAdmin, async (req, res) => {
         try {
             const records = Array.isArray(req.body?.records) ? req.body.records : [];
-            res.status(201).json({ result: service.ingestZefixBulk(records) });
+            res.status(201).json({ result: await service.ingestZefixBulk(records) });
         } catch (error: any) {
             sendError(res, error);
         }
     });
 
-    api.post('/admin/ingest/austria-directory', requireAuth, requireAdmin, (req, res) => {
+    api.post('/admin/ingest/austria-directory', requireAuth, requireAdmin, async (req, res) => {
         try {
             const records = Array.isArray(req.body?.records) ? req.body.records : [];
-            res.status(201).json({ result: service.ingestAustriaDirectory(records) });
+            res.status(201).json({ result: await service.ingestAustriaDirectory(records) });
         } catch (error: any) {
             sendError(res, error);
         }

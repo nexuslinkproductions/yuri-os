@@ -84,6 +84,11 @@ assert.match(app, /wrong_lead_risk|WrongLeadRiskChip/, 'workbench should consume
 assert.match(app, /WRONG-LEAD RISK/, 'dossier/header should render wrong-lead risk chip when flagged');
 assert.match(app, /shouldShowWrongLeadRisk/, 'wrong-lead risk chip should be gated for confirmed research-needed leads');
 assert.match(app, /What was observed/, 'dossier should include observed evidence');
+assert.match(app, /Company Profile/, 'dossier should include the compiled company profile');
+assert.match(app, /company-profile-section/, 'dossier should render the company profile section');
+assert.match(app, /profile-observation/, 'dossier should highlight the observed signal');
+assert.match(app, /profile-why/, 'dossier should show why it might matter');
+assert.match(app, /profile-angle/, 'dossier should show the offer angle');
 assert.match(app, /Safe opening angle/, 'dossier should include safe opening angle');
 assert.match(app, /What not to mention/, 'dossier should include compact avoidance chips');
 assert.match(app, /EvidenceList|sourceLabel/, 'inspector should render labeled source evidence');
@@ -99,6 +104,8 @@ assert.match(app, /draft_review/, 'draft workspace should handle draft review re
 assert.match(app, /Draft needs review/, 'draft review readiness should show a human badge');
 assert.match(app, /No company\/contact reference|AI-spam phrases|Familiarity without LinkedIn/, 'draft flags should use human-readable labels');
 assert.match(app, /personalizationChecklist|personalization-checklist/, 'draft workspace should expose personalization checklist');
+assert.match(app, /Regenerate profile/, 'draft workspace should expose profile regeneration action');
+assert.match(app, /regenerate-draft-btn/, 'draft workspace should render regenerate draft button');
 assert.match(app, /draftSubject|Subject/, 'draft workspace should expose email subject');
 assert.match(app, /quality_label|quality_blockers|source_confidence|evidence_confidence/, 'mission lead should expose quality metadata');
 assert.match(app, /mark-sent/, 'workbench should use explicit mark-sent endpoint');
@@ -122,6 +129,11 @@ assert.match(css, /draft-flags-section/, 'workbench should style draft flags sec
 assert.match(css, /draft-flag-chip/, 'workbench should style draft flag chips');
 assert.match(css, /open-next-lead-btn/, 'workbench should style Open next lead CTA');
 assert.match(css, /personalization-checklist/, 'workbench should style draft checklist');
+assert.match(css, /company-profile-section/, 'workbench should style company profile section');
+assert.match(css, /profile-observation/, 'workbench should style profile observation');
+assert.match(css, /profile-why/, 'workbench should style profile rationale');
+assert.match(css, /profile-angle/, 'workbench should style profile angle');
+assert.match(css, /regenerate-draft-btn/, 'workbench should style regenerate draft button');
 assert.match(css, /draft-version-list/, 'workbench should style draft versions');
 assert.match(css, /admin-sources-shell/, 'workbench should style Admin Sources view');
 assert.match(css, /send-block-reason/, 'workbench should style send block reason');
