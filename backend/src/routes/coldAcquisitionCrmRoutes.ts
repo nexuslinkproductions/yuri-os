@@ -161,6 +161,15 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
         }
     });
 
+    api.get('/next-lead', requireAuth, (req: CrmRequest, res) => {
+        try {
+            const next = service.getNextLead((req.crmUser as ColdAcquisitionCrmUser).id);
+            res.json(next || { lead_id: null });
+        } catch (error: any) {
+            sendError(res, error);
+        }
+    });
+
     api.get('/leads', requireAuth, (req, res) => {
         try {
             const view = typeof req.query.view === 'string' ? req.query.view : undefined;

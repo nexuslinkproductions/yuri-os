@@ -1036,6 +1036,14 @@ form {
   background: var(--subtle);
 }
 
+.readiness-chip.draft_review {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0 0 8px;
+  background: #fff7e8;
+  color: var(--warn);
+}
+
 .draft-quality-bar {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -1081,6 +1089,36 @@ form {
   font-size: 13px;
   line-height: 1.58;
   resize: vertical;
+}
+
+.draft-flags-section {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(183, 107, 0, 0.24);
+  border-radius: 8px;
+  background: #fffaf0;
+  padding: 10px;
+}
+
+.draft-flags-section .pane-title {
+  margin: 0;
+  color: var(--warn);
+}
+
+.draft-flags-section div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.draft-flag-chip {
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: #fff0d6;
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .personalization-checklist {
@@ -1286,6 +1324,27 @@ form {
   margin: 0;
   font-size: 24px;
   letter-spacing: 0;
+}
+
+.today-header-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.open-next-lead-btn {
+  min-height: 38px;
+  border: 1px solid var(--brand-strong);
+  border-radius: 6px;
+  background: var(--brand);
+  color: #062533;
+  font-weight: 800;
+}
+
+.next-lead-message {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
 }
 
 .weekly-progress {
