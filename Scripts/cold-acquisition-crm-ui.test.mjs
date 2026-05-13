@@ -1,0 +1,117 @@
+#!/usr/bin/env node
+
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const appPath = 'acquisition/src/AcquisitionApp.tsx';
+const cssPath = 'acquisition/src/acquisition.css';
+const indexPath = 'acquisition/index.html';
+const vitePath = 'acquisition/vite.config.mts';
+const shellPath = 'src/operator/OperatorShell.tsx';
+const navPath = 'src/operator/components/OperatorNav.tsx';
+const oldSectionPath = 'src/operator/sections/ColdAcquisitionSection.tsx';
+
+for (const file of [appPath, cssPath, indexPath, vitePath]) {
+  assert.equal(fs.existsSync(file), true, `${file} should exist for standalone acquisition workbench`);
+}
+
+const app = fs.readFileSync(appPath, 'utf8');
+const css = fs.readFileSync(cssPath, 'utf8');
+const index = fs.readFileSync(indexPath, 'utf8');
+const vite = fs.readFileSync(vitePath, 'utf8');
+const shell = fs.readFileSync(shellPath, 'utf8');
+const nav = fs.readFileSync(navPath, 'utf8');
+
+assert.match(index, /id="acquisition-root"/, 'standalone app should mount to acquisition-root');
+assert.match(index, /c2moviez PRISM Workbench/, 'browser title should use PRISM Workbench naming');
+assert.match(vite, /backend\/public\/acquisition/, 'workbench build should output to backend public acquisition directory');
+assert.match(app, /\/acquisition\/api\/auth\/login/, 'workbench should use same-origin acquisition login');
+assert.match(app, /PRISM Workbench/, 'visible app name should be PRISM Workbench');
+assert.doesNotMatch(app, /Acquisition CRM|Loading acquisition CRM/, 'visible app copy should not call the tool a CRM');
+assert.match(app, /\/acquisition\/api\/leads/, 'workbench should use acquisition lead API');
+assert.match(app, /\/acquisition\/api\/today-mission/, 'workbench should fetch today mission queue API');
+assert.match(app, /TodayMission|today mission|Today Mission/i, 'workbench should expose Today Mission UI');
+assert.match(app, /review_ready/, 'Today Mission should consume review-ready leads');
+assert.match(app, /sendable/, 'Today Mission should keep sendable compatibility alias');
+assert.match(app, /follow_ups_due/, 'Today Mission should render due follow-up leads');
+assert.match(app, /needs_research/, 'Today Mission should render needs-research leads');
+assert.match(app, /Ready for Review/, 'operator queue should use review language, not send language');
+assert.match(app, /AdminIntakePanel|admin-intake-panel/, 'workbench should expose admin prospect intake');
+assert.match(app, /AdminSourcesView|admin-sources-shell/, 'source controls should live in Admin Sources view');
+assert.match(app, /\/acquisition\/admin\/sources/, 'workbench should expose the Admin Sources route');
+assert.match(app, /\/acquisition\/api\/admin\/ingest\/zefix-bulk/, 'admin intake should post Swiss register records');
+assert.match(app, /\/acquisition\/api\/admin\/ingest\/austria-directory/, 'admin intake should post Austria directory records');
+assert.match(app, /\/acquisition\/api\/admin\/source-config/, 'admin intake should load linked source API config');
+assert.match(app, /\/acquisition\/api\/admin\/source-reload/, 'admin intake should refresh linked source API status');
+assert.match(app, /\/acquisition\/api\/admin\/live-feed/, 'admin sources should run the real live-feed loader');
+assert.match(app, /Import live feed/, 'admin sources should expose live source intake');
+assert.match(app, /SourceApiCard|source-api-card/, 'workbench should render linked source API cards from backend config');
+assert.match(app, /api_docs_url|api_base_url|required_env/, 'workbench should expose source API docs, base URL, and required env state');
+assert.doesNotMatch(app, /Demo Alpine|Demo Donaustadt|Demo Ottakring/, 'workbench source intake should not ship demo prospects');
+assert.doesNotMatch(app, /Fanny workbench/, 'Today should not use Fanny workbench heading');
+assert.match(app, /MissionEmptyState|mission-empty-state/, 'Today Mission should include a whole-mission empty state');
+assert.match(app, /Needs Research/, 'Today Mission should label the research queue');
+assert.match(app, /ResearchCard|research-card/, 'Today Mission should use a dedicated research card');
+assert.match(app, /weekly-progress/, 'Today Mission should render weekly quota progress');
+assert.match(app, /Copy & mark sent/i, 'Send modal should require draft copy before marking sent');
+assert.match(app, /Copy only/, 'Send modal should support manual copy without changing state');
+assert.match(app, /followUp|Follow-up date/, 'Send modal should require a follow-up decision');
+assert.match(app, /COMPLIANCE_SEND_BLOCKED/, 'Send modal should handle backend compliance send blocks');
+assert.match(app, /clearFollowUp|Follow-up done/, 'Today Mission should support clearing completed follow-ups');
+assert.match(app, /savedViews|SAVED_VIEWS/, 'workbench should expose saved views');
+assert.match(app, /table|<thead|<tbody/i, 'workbench should be table-first');
+assert.match(app, /copyDraft|copy-draft/, 'workbench should support manual draft copy workflow');
+assert.doesNotMatch(app, /Outreach Profile/, 'inspector should replace outreach profile with dossier');
+assert.match(app, /DossierPanel|dossier-panel/, 'inspector should expose a structured dossier');
+assert.match(app, /What we know/, 'dossier should include known facts');
+assert.match(app, /What was observed/, 'dossier should include observed evidence');
+assert.match(app, /Safe opening angle/, 'dossier should include safe opening angle');
+assert.match(app, /What not to mention/, 'dossier should include compact avoidance chips');
+assert.match(app, /EvidenceList|sourceLabel/, 'inspector should render labeled source evidence');
+assert.doesNotMatch(app, /Source \{index|Source 1/, 'inspector should not render generic Source 1 labels');
+assert.doesNotMatch(app, /claim-guardrails/, 'inspector should not render internal claim guardrail clutter');
+assert.match(app, /observed_signal/, 'workbench should show the observed signal behind draft copy');
+assert.match(app, /do_not_claim/, 'workbench should show draft claim guardrails');
+assert.match(app, /readiness/, 'workbench should expose draft readiness state');
+assert.match(app, /draft_versions/, 'draft workspace should expose version history');
+assert.match(app, /personalizationChecklist|personalization-checklist/, 'draft workspace should expose personalization checklist');
+assert.match(app, /draftSubject|Subject/, 'draft workspace should expose email subject');
+assert.match(app, /quality_label|quality_blockers|source_confidence|evidence_confidence/, 'mission lead should expose quality metadata');
+assert.match(app, /mark-sent/, 'workbench should use explicit mark-sent endpoint');
+assert.match(app, /\/follow-up/, 'workbench should use explicit follow-up endpoint');
+assert.match(app, /\/reply/, 'workbench should use explicit reply endpoint');
+assert.match(app, /markSent|status: 'sent'|status: "sent"/, 'workbench should support mark sent workflow');
+assert.match(app, /sendBlockReason|Compliance not cleared/, 'workbench should block mark-sent when send gates fail');
+assert.match(app, /qualif/i, 'workbench should support qualify workflow');
+assert.match(app, /next_follow_up_at/, 'workbench should support next follow-up field');
+assert.doesNotMatch(app, /draggable=\{true\}|onDragStart|onDrop=/, 'workbench must not use draggable card board');
+
+assert.match(css, /#56bcec/i, 'workbench should use c2moviez brand blue');
+assert.match(css, /Montserrat/i, 'workbench should use Montserrat');
+assert.match(css, /dossier-panel/, 'workbench should style dossier context');
+assert.match(css, /inspector-tabs/, 'workbench should style inspector tabs');
+assert.match(css, /draft-quality-bar/, 'workbench should style draft quality metadata');
+assert.match(css, /personalization-checklist/, 'workbench should style draft checklist');
+assert.match(css, /draft-version-list/, 'workbench should style draft versions');
+assert.match(css, /admin-sources-shell/, 'workbench should style Admin Sources view');
+assert.match(css, /send-block-reason/, 'workbench should style send block reason');
+assert.match(css, /today-shell/, 'workbench should style Today Mission shell');
+assert.match(css, /mission-queue/, 'workbench should style mission queues');
+assert.match(css, /mission-card/, 'workbench should style mission cards');
+assert.match(css, /admin-intake-panel/, 'workbench should style admin intake');
+assert.match(css, /source-api-panel/, 'workbench should style linked source API panel');
+assert.match(css, /source-api-card/, 'workbench should style source API cards');
+assert.match(css, /live-feed-result/, 'workbench should style live feed import results');
+assert.match(css, /mission-empty-state/, 'workbench should style whole-mission empty state');
+assert.match(css, /research-card/, 'workbench should style research cards');
+assert.match(css, /research-queue/, 'workbench should style research queue layout');
+assert.match(css, /send-modal/, 'workbench should style send confirmation modal');
+assert.match(css, /weekly-progress/, 'workbench should style weekly quota progress');
+assert.match(css, /position:\s*sticky/i, 'workbench table should use sticky UI affordances');
+assert.doesNotMatch(css, /--bg-void|--cyan-glow|op-shell|HUD/i, 'workbench CSS should not reuse NUDIMMUD HUD styling');
+
+assert.doesNotMatch(shell, /ColdAcquisitionSection|cold-acquisition/, 'operator shell should not expose Cold Acquisition');
+assert.doesNotMatch(nav, /Cold Acquisition|\/operator\/cold-acquisition/, 'operator nav should not expose Cold Acquisition');
+assert.equal(fs.existsSync(oldSectionPath), false, 'old draggable ColdAcquisitionSection should be removed');
+
+process.stdout.write('cold-acquisition-crm-ui: pass\n');

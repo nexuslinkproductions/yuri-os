@@ -933,6 +933,9 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     const { initDesignStudioRoutes } = require('./designStudioRoutes');
     initDesignStudioRoutes(router);
 
+    const { initColdAcquisitionRoutes } = require('./coldAcquisitionRoutes');
+    initColdAcquisitionRoutes(router, db);
+
     // Notebook module (NotebookLM clone) — additive, no existing routes touched
     const { initNotebookRoutes } = require('./notebookRoutes');
     initNotebookRoutes(router, db);

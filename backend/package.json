@@ -10,7 +10,8 @@
     "bugs": "ts-node src/scripts/bugFinder.ts",
     "wiki:rag": "ts-node src/scripts/ingestWikiControlPlane.ts",
     "research:rag": "ts-node src/scripts/ingestYuriEnterpriseResearch.ts",
-    "prompt:rag": "ts-node src/scripts/ingestYuriPromptEngineeringResearch.ts"
+    "prompt:rag": "ts-node src/scripts/ingestYuriPromptEngineeringResearch.ts",
+    "sales:rag": "ts-node src/scripts/ingestYuriSalesPsychologyResearch.ts"
   },
   "keywords": [],
   "author": "",

@@ -127,6 +127,14 @@ NUDIMMUD supports by: helping draft discovery questions calibrated to the specif
 
 The deeper function: aligning Marcel's natural depth-first, meaning-over-volume orientation with the practical architecture of closing business — not by making him into a sales machine but by showing him where the sales process already reflects the deeper patterns he knows (the descent-and-return, the guide archetype, the trust scaffold as initiatory path).
 
+### 2026 Sales Psychology Engine Upgrade
+
+Yuri now treats positive signals and omissions as first-class sales data. Praise, curiosity, fast replies, implementation questions, future-tense language, referral behavior, and emotional lift are recorded separately from objections and pain. Missing budget, authority, timeline, pain ownership, curiosity, or emotional reaction are not ignored; they are omission signals and often decide the next move.
+
+Depth psychology is available as an interpretive layer, not as diagnosis. Jungian concepts such as persona, shadow, projection, complex, archetype, guide/client role, and compensation can help generate hypotheses about the conversation, but they do not override direct evidence. Adjacent systems include attachment theory, self-determination theory, motivational interviewing, person-centered psychology, Frankl/logotherapy, Cialdini persuasion, and decision psychology.
+
+The native archive and runtime live at `_SYSTEM/research-archive/yuri-sales-psychology-1980-2026/`, `.agents/skills/sales-psychology/`, and `backend/src/services/salesPsychologyEngine.ts`.
+
 ---
 
 *Related: [[influence]] · [[narrative]] · [[somatic]] · [[emotional]] · [[linguistic]] · [[archetypes]] · [[isomorphisms]]*

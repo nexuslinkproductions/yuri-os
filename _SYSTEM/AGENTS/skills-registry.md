@@ -42,6 +42,7 @@
 | design-master | design | Design system and visual architecture |
 | frontend-design | frontend-design | Anti-generic frontend design workflow, source selection, motion budget, and browser verification |
 | prompt-engineering | prompt, prompt audit, prompting strategy | Source-backed prompt design as task contracts with evidence, constraints, tool policy, schemas, and evals |
+| sales-psychology | sales, buyer psychology, objection, close, NEPQ, Jeremy Miner, Raving Fans, Jungian | Evidence-tiered sales reasoning with positive signals, omissions, depth-psychology hypotheses, and ethical guardrails |
 | probabilistic-decision-core | `/yuri probability` | Probability, expected value, and calibration for operational decisions |
 | swarm-coordination | automatic | Multi-agent coordination |
 | taskflow | automatic | Task flow management |
