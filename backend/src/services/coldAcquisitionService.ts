@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import Database from 'better-sqlite3';
 
 export type ColdLeadCountry = 'CH' | 'AT';
@@ -30,7 +31,17 @@ export interface ColdLeadContact {
 }
 
 export interface ColdLeadEvidence {
-    kind: string;
+    kind:
+        | 'zefix_bulk'
+        | 'zefix_purpose'
+        | 'wko_directory'
+        | 'firmenabc_directory'
+        | 'website_check'
+        | 'website_about'
+        | 'website_about_page'
+        | 'website_team'
+        | 'website_tech_signal'
+        | 'website_news';
     label: string;
     detail: string;
     url?: string;
@@ -531,6 +542,12 @@ export class ColdAcquisitionService {
 
     ingestZefixBulk(records: ZefixBulkRecord[]): IngestResult {
         const result: IngestResult = { created: 0, skipped: 0, errors: [], lead_ids: [] };
+        const acceptedRecords: Array<{
+            record: ZefixBulkRecord;
+            sourceUrlIndex: number;
+            websiteIndex: number;
+        }> = [];
+        const urls: Array<string | null | undefined> = [];
 
         for (const record of records || []) {
             const legalForm = String(record.legal_form || '').toLowerCase();
@@ -542,6 +559,23 @@ export class ColdAcquisitionService {
                 result.skipped += 1;
                 continue;
             }
+
+            acceptedRecords.push({
+                record,
+                sourceUrlIndex: urls.length,
+                websiteIndex: urls.length + 1
+            });
+            urls.push(record.source_url, record.website);
+        }
+
+        const urlLiveStatuses = this.checkUrlsLiveSync(urls);
+
+        for (const entry of acceptedRecords) {
+            const record = entry.record;
+            const sourceUrlLive = urlLiveStatuses[entry.sourceUrlIndex];
+            const websiteLive = urlLiveStatuses[entry.websiteIndex];
+            const website = websiteLive ? record.website : undefined;
+            const sourceUrl = sourceUrlLive ? record.source_url : 'unavailable';
 
             try {
                 const lead = this.createLead({
@@ -556,7 +590,7 @@ export class ColdAcquisitionService {
                         date_of_entry: record.date_of_entry || '',
                         employee_count: record.employee_count || null,
                         industry: record.industry || this.inferIndustry(record.purpose || ''),
-                        website: record.website || '',
+                        website,
                         linkedin_url: record.linkedin_url || ''
                     },
                     contact: {
@@ -566,10 +600,10 @@ export class ColdAcquisitionService {
                         linkedin_url: record.contact_linkedin_url || ''
                     },
                     scoringSignals: {
-                        websiteHasEnglish: this.hasEnglishUrl(record.website),
+                        websiteHasEnglish: websiteLive ? this.hasEnglishUrl(record.website) : false,
                         linkedinCompanyEnglish: Boolean(record.linkedin_url),
                         decisionMakerEnglish: Boolean(record.contact_name || record.contact_linkedin_url),
-                        dotComTld: this.domainFromUrl(record.website)?.endsWith('.com') || false,
+                        dotComTld: websiteLive ? this.domainFromUrl(record.website)?.endsWith('.com') || false : false,
                         highFitIndustry: this.highFitIndustry(record.industry || record.purpose || '')
                     },
                     evidence: [
@@ -577,12 +611,12 @@ export class ColdAcquisitionService {
                             kind: 'zefix_bulk',
                             label: 'Zefix open-data record',
                             detail: record.purpose || `${record.name} is an active ${record.legal_form || 'Swiss company'} in ${record.canton || 'Switzerland'}.`,
-                            url: record.source_url
+                            url: sourceUrlLive ? record.source_url : undefined
                         }
                     ],
                     compliance: {
                         source: 'zefix',
-                        source_url: record.source_url,
+                        source_url: sourceUrl,
                         source_timestamp: this.nowIso(),
                         legal_basis: 'public_register'
                     },
@@ -600,6 +634,13 @@ export class ColdAcquisitionService {
 
     ingestAustriaDirectory(records: AustriaDirectoryRecord[]): IngestResult {
         const result: IngestResult = { created: 0, skipped: 0, errors: [], lead_ids: [] };
+        const acceptedRecords: Array<{
+            record: AustriaDirectoryRecord;
+            sourceUrlIndex: number;
+            websiteIndex: number;
+            district: string;
+        }> = [];
+        const urls: Array<string | null | undefined> = [];
 
         for (const record of records || []) {
             const district = record.postal_code || record.bezirk || '';
@@ -607,6 +648,24 @@ export class ColdAcquisitionService {
                 result.skipped += 1;
                 continue;
             }
+
+            acceptedRecords.push({
+                record,
+                sourceUrlIndex: urls.length,
+                websiteIndex: urls.length + 1,
+                district
+            });
+            urls.push(record.source_url, record.website);
+        }
+
+        const urlLiveStatuses = this.checkUrlsLiveSync(urls);
+
+        for (const entry of acceptedRecords) {
+            const record = entry.record;
+            const sourceUrlLive = urlLiveStatuses[entry.sourceUrlIndex];
+            const websiteLive = urlLiveStatuses[entry.websiteIndex];
+            const website = websiteLive ? record.website : undefined;
+            const sourceUrl = sourceUrlLive ? record.source_url : 'unavailable';
 
             try {
                 const lead = this.createLead({
@@ -621,7 +680,7 @@ export class ColdAcquisitionService {
                         date_of_entry: record.date_of_entry || '',
                         employee_count: record.employee_count || null,
                         industry: record.industry || '',
-                        website: record.website || '',
+                        website,
                         linkedin_url: record.linkedin_url || ''
                     },
                     contact: {
@@ -631,23 +690,23 @@ export class ColdAcquisitionService {
                         linkedin_url: record.contact_linkedin_url || ''
                     },
                     scoringSignals: {
-                        websiteHasEnglish: this.hasEnglishUrl(record.website),
+                        websiteHasEnglish: websiteLive ? this.hasEnglishUrl(record.website) : false,
                         linkedinCompanyEnglish: Boolean(record.linkedin_url),
                         decisionMakerEnglish: Boolean(record.contact_name || record.contact_linkedin_url),
-                        dotComTld: this.domainFromUrl(record.website)?.endsWith('.com') || false,
+                        dotComTld: websiteLive ? this.domainFromUrl(record.website)?.endsWith('.com') || false : false,
                         highFitIndustry: this.highFitIndustry(record.industry || record.evidence_detail || '')
                     },
                     evidence: [
                         {
                             kind: `${record.source}_directory`,
                             label: `${record.source.toUpperCase()} directory record`,
-                            detail: record.evidence_detail || `${record.name} is listed in Vienna ${district}.`,
-                            url: record.source_url
+                            detail: record.evidence_detail || `${record.name} is listed in Vienna ${entry.district}.`,
+                            url: sourceUrlLive ? record.source_url : undefined
                         }
                     ],
                     compliance: {
                         source: record.source,
-                        source_url: record.source_url,
+                        source_url: sourceUrl,
                         source_timestamp: this.nowIso(),
                         legal_basis: record.published_b2b_email ? 'website_published_email' : 'linkedin_platform'
                     },
@@ -1006,13 +1065,23 @@ export class ColdAcquisitionService {
         compliance: ColdLeadComplianceRecord
     ): ColdLeadDrafts {
         const profile = this.buildOutreachProfile(company, contact, evidence);
-        const observation = this.buildObservationSentence(evidence, company);
-        const companyLabel = this.companyNameForSubject(company.name);
+        const companyName = company.name;
+        const companyNameClean = this.companyNameForSubject(company.name);
         const researchContext = this.researchContext(company);
-        const firstName = contact.name ? contact.name.split(/\s+/)[0] : '';
+        const firstName = this.resolveFirstName(contact);
         const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
-        const shortSubject = this.buildSubjectLine(company);
-        const introLead = `I was reviewing ${researchContext} and noticed ${this.ensureCompanyMention(company.name, observation)}.`;
+        const techSignal = evidence.find((entry) => entry.kind === 'website_tech_signal');
+        const newsSignal = evidence.find((entry) => entry.kind === 'website_news');
+        const subjectDetail = techSignal
+            ? ` — ${techSignal.detail.toLowerCase()}`
+            : newsSignal
+                ? ' — active recently'
+                : '';
+        const shortSubject = `quick note on ${companyNameClean}${subjectDetail}`;
+        const bestDetail = profile.observed_signal.trim();
+        const introLead = bestDetail.length > 0
+            ? `I came across ${companyName} while reviewing ${researchContext} — ${bestDetail.slice(0, 120)}.`
+            : `I was reviewing ${researchContext} and noticed ${companyName}.`;
 
         const linkedin_intro = [
             `${greeting} ${introLead}`,
@@ -1021,8 +1090,8 @@ export class ColdAcquisitionService {
         ].join(' ');
 
         const linkedin_followup = [
-            `${greeting} quick follow-up on ${companyLabel}.`,
-            `The same detail still stands: ${this.ensureCompanyMention(company.name, observation)}.`,
+            `${greeting} quick follow-up on ${companyNameClean}.`,
+            `The same detail still stands: ${this.ensureCompanyMention(company.name, profile.observed_signal)}.`,
             `If useful, I can send a short angle. If not, I will leave it here.`
         ].join(' ');
 
@@ -1051,9 +1120,9 @@ export class ColdAcquisitionService {
                 '',
                 greeting,
                 '',
-                `Quick follow-up on ${companyLabel}.`,
+                `Quick follow-up on ${companyNameClean}.`,
                 '',
-                `The same detail still stands: ${this.ensureCompanyMention(company.name, observation)}.`,
+                `The same detail still stands: ${this.ensureCompanyMention(company.name, profile.observed_signal)}.`,
                 '',
                 `If useful, I can send the short angle. If not, I will leave it here.`,
                 '',
@@ -1076,7 +1145,7 @@ export class ColdAcquisitionService {
 
         return {
             observed_signal,
-            why_it_might_matter: this.whySignalMightMatter(company, observed_signal),
+            why_it_might_matter: this.whySignalMightMatter(company, evidence),
             opening_angle: this.openingAngle(company, observed_signal),
             source_urls,
             do_not_claim: [
@@ -1091,11 +1160,6 @@ export class ColdAcquisitionService {
 
     private buildObservationSentence(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
         return this.buildProspectObservation(evidence, company);
-    }
-
-    private buildSubjectLine(company: Required<ColdLeadCompany>) {
-        const companyLabel = this.companyNameForSubject(company.name);
-        return `quick note on ${companyLabel}`;
     }
 
     private ensureCompanyMention(companyName: string, observation: string) {
@@ -1122,7 +1186,31 @@ export class ColdAcquisitionService {
         return `${this.sentenceStart(surface)} is shaping the first impression already.`;
     }
 
-    private whySignalMightMatter(company: Required<ColdLeadCompany>, observedSignal: string) {
+    private whySignalMightMatter(company: Required<ColdLeadCompany>, evidence: ColdLeadEvidence[]) {
+        const priorityKinds: ColdLeadEvidence['kind'][] = [
+            'website_about',
+            'website_about_page',
+            'zefix_purpose',
+            'website_tech_signal',
+            'website_news',
+            'website_team'
+        ];
+        const richEvidence = priorityKinds
+            .map((kind) => evidence.find((item) => item.kind === kind && item.detail?.trim()))
+            .find(Boolean);
+        if (richEvidence?.kind === 'website_about' || richEvidence?.kind === 'website_about_page' || richEvidence?.kind === 'zefix_purpose') {
+            return `This is how ${company.name} describes itself — the right angle usually comes from here.`;
+        }
+        if (richEvidence?.kind === 'website_tech_signal') {
+            return 'Their tech stack is visible from the outside — that\'s a concrete reason to reach out.';
+        }
+        if (richEvidence?.kind === 'website_news') {
+            return 'They published recently — active companies respond faster.';
+        }
+        if (richEvidence?.kind === 'website_team') {
+            return 'A named contact was found — personalised outreach converts higher than generic.';
+        }
+        const observedSignal = this.buildProspectObservation(evidence, company);
         const surface = this.signalSurface(observedSignal);
         if (/bio|pharma|clinical|medical|health|life science/i.test(`${company.industry} ${observedSignal}`)) {
             return `A new reader is deciding quickly whether ${surface} makes the proof easy to understand without a call first.`;
@@ -1152,6 +1240,12 @@ export class ColdAcquisitionService {
         if (/workflow|software|solutions?|tools?|positioning|described as|presents?|targets/i.test(observedSignal)) return 'that positioning';
         if (/post|activity/i.test(observedSignal)) return 'that activity';
         return 'that detail';
+    }
+
+    private resolveFirstName(contact: ColdLeadContact) {
+        const name = contact.name?.trim();
+        if (!name) return '';
+        return name.split(/\s+/)[0] || '';
     }
 
     private researchContext(company: Required<ColdLeadCompany>) {
@@ -1526,9 +1620,9 @@ export class ColdAcquisitionService {
             date_of_entry: company.date_of_entry || '',
             employee_count: Number(company.employee_count || 0),
             industry: company.industry || '',
-            website: company.website || '',
+            website: company.website || undefined,
             linkedin_url: company.linkedin_url || ''
-        };
+        } as Required<ColdLeadCompany>;
     }
 
     private normalizeContact(contact?: ColdLeadContact): Required<ColdLeadContact> {
@@ -1541,7 +1635,7 @@ export class ColdAcquisitionService {
     }
 
     private deriveScoringSignals(company: Required<ColdLeadCompany>, signals: ColdLeadScoringSignals): ColdLeadScoringSignals {
-        const website = company.website.toLowerCase();
+        const website = String(company.website || '').toLowerCase();
         const industry = company.industry.toLowerCase();
         return {
             websiteHasEnglish: signals.websiteHasEnglish ?? (website.includes('/en') || website.includes('lang=en')),
@@ -1604,12 +1698,31 @@ export class ColdAcquisitionService {
     }
 
     private buildProspectObservation(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
-        const best = evidence.find((item) => item.detail?.trim()) || evidence[0];
-        if (best?.detail) {
-            return this.polishProspectObservation(this.prospectFacingEvidence(best.detail), company);
+        const priorityKinds: ColdLeadEvidence['kind'][] = [
+            'website_about',
+            'website_about_page',
+            'zefix_purpose',
+            'website_tech_signal',
+            'website_news'
+        ];
+        for (const kind of priorityKinds) {
+            const match = evidence.find((item) => item.kind === kind && item.detail?.trim());
+            if (match?.detail?.trim()) {
+                return match.detail.trim().slice(0, 160);
+            }
         }
-        if (company.website) return 'their website is present, but the available evidence is still too thin';
-        return `${company.industry || 'their market'} suggests a visible B2B context`;
+
+        const otherEvidence = evidence.find((item) => item.detail?.trim().length > 30);
+        if (otherEvidence?.detail?.trim()) {
+            return otherEvidence.detail.trim().slice(0, 160);
+        }
+
+        const anyDetail = evidence.find((item) => item.detail?.trim());
+        if (anyDetail?.detail?.trim()) {
+            return anyDetail.detail.trim().slice(0, 160);
+        }
+
+        return this.openingAngle(company, '');
     }
 
     private polishProspectObservation(detail: string, company: Required<ColdLeadCompany>) {
@@ -1777,6 +1890,80 @@ export class ColdAcquisitionService {
 
     private slug(value: string) {
         return value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '');
+    }
+
+    private async checkUrlLive(url: string | null | undefined): Promise<boolean> {
+        return this.checkUrlsLiveSync([url])[0] || false;
+    }
+
+    private checkUrlsLiveSync(urls: Array<string | null | undefined>): boolean[] {
+        const normalizedUrls = urls.map((value) => String(value || '').trim());
+        if (normalizedUrls.length === 0) return [];
+        if (normalizedUrls.every((value) => !value)) {
+            return normalizedUrls.map(() => false);
+        }
+
+        const script = `
+const { execFile } = require('node:child_process');
+const urls = JSON.parse(process.argv[1] || '[]');
+const check = (url) => new Promise((resolve) => {
+  if (!url) {
+    resolve(false);
+    return;
+  }
+  execFile(
+    'curl',
+    [
+      '--head',
+      '--location',
+      '--noproxy',
+      '*',
+      '--max-time',
+      '5',
+      '--user-agent',
+      'PRISM-Workbench/1.0',
+      '--silent',
+      '--show-error',
+      '--output',
+      '/dev/null',
+      '--write-out',
+      '%{http_code}',
+      url
+    ],
+    { encoding: 'utf8' },
+    (error, stdout) => {
+      if (error && !stdout) {
+        resolve(false);
+        return;
+      }
+      const status = Number.parseInt(String(stdout || '').trim(), 10);
+      resolve(!Number.isNaN(status) && status >= 200 && status < 400);
+    }
+  );
+});
+(async () => {
+  try {
+    const results = await Promise.all(urls.map(check));
+    process.stdout.write(JSON.stringify(results));
+  } catch {
+    process.stdout.write(JSON.stringify(urls.map(() => false)));
+  }
+})().catch(() => process.stdout.write(JSON.stringify(urls.map(() => false))));
+`;
+
+        try {
+            const stdout = execFileSync(process.execPath, ['-e', script, JSON.stringify(normalizedUrls)], {
+                encoding: 'utf8',
+                timeout: 8000
+            });
+            const parsed = JSON.parse(stdout.trim() || '[]');
+            if (!Array.isArray(parsed) || parsed.length !== normalizedUrls.length) {
+                return normalizedUrls.map(() => false);
+            }
+            return parsed.map((value) => Boolean(value));
+        } catch {
+            return normalizedUrls.map(() => false);
+        }
     }
 
     private domainFromUrl(url: string | undefined | null) {
