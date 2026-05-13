@@ -26,6 +26,7 @@ type PreferredDraftType = 'linkedin_intro' | 'email_cold';
 type RouteMode = 'today' | 'leads' | 'admin-sources';
 type InspectorTab = 'dossier' | 'draft' | 'activity' | 'compliance' | 'notes';
 type SourceConfidenceLevel = 'high' | 'medium' | 'low';
+type DraftFlag = 'unrelated_claim' | 'generic_language' | 'fake_familiarity' | 'ai_spam_tone' | 'inflated_promise' | 'diagnosis_heavy';
 
 type SourceConfidence = {
   score: number;
@@ -112,7 +113,8 @@ type Lead = {
     proof_chips: string[];
     missing: string[];
     warnings?: string[];
-    readiness?: 'ready_to_rework' | 'needs_research' | 'needs_rework' | 'blocked';
+    readiness?: 'ready_to_rework' | 'draft_review' | 'needs_research' | 'needs_rework' | 'blocked';
+    evaluation_flags?: DraftFlag[];
     profile?: {
       observed_signal: string;
       why_it_might_matter: string;
@@ -374,6 +376,7 @@ export function AcquisitionApp() {
   const [sendModalDone, setSendModalDone] = useState(false);
   const [sendModalError, setSendModalError] = useState('');
   const [sendModalBusy, setSendModalBusy] = useState(false);
+  const [nextLeadMessage, setNextLeadMessage] = useState('');
 
   const activeLead = selectedLead || leads.find((lead) => lead.id === selectedId) || leads[0] || null;
   const sendBlockReason = useMemo(() => {
@@ -666,6 +669,18 @@ export function AcquisitionApp() {
     await Promise.all([loadLeads(), loadDashboard(), loadTodayMission(), loadLeadDetail(lead.id)]);
   };
 
+  const openNextLead = async () => {
+    setNextLeadMessage('');
+    const payload = await api<{ lead_id: string | null; score?: number }>('/acquisition/api/next-lead');
+    if (!payload.lead_id) {
+      setNextLeadMessage('No sendable leads available');
+      return;
+    }
+    setSelectedId(payload.lead_id);
+    setInspectorTab('dossier');
+    await loadLeadDetail(payload.lead_id);
+  };
+
   const onTableKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (!leads.length) return;
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
@@ -775,7 +790,9 @@ export function AcquisitionApp() {
               mission={mission}
               loading={missionLoading}
               onSelectLead={setSelectedId}
+              onOpenNextLead={openNextLead}
               onClearFollowUp={clearFollowUp}
+              nextLeadMessage={nextLeadMessage}
             />
           ) : routeMode === 'admin-sources' && user.role === 'admin' ? (
             <AdminSourcesView
@@ -965,6 +982,7 @@ function LeadInspector({
     .filter((version) => version.draft_type === draftType)
     .slice()
     .sort((left, right) => right.created_at.localeCompare(left.created_at));
+  const draftFlags = activeLead.draft_specificity.evaluation_flags || [];
 
   return (
     <>
@@ -1009,6 +1027,9 @@ function LeadInspector({
               </button>
             ))}
           </div>
+          {activeLead.draft_specificity.readiness === 'draft_review' ? (
+            <span className="readiness-chip draft_review">Draft needs review</span>
+          ) : null}
           <div className="draft-quality-bar">
             <div className="subject-preview">
               <span>Subject</span>
@@ -1019,6 +1040,14 @@ function LeadInspector({
               {activeLead.draft_specificity.profile?.confidence || 'low'} confidence
             </span>
           </div>
+          {draftFlags.length ? (
+            <section className="draft-flags-section" aria-label="Draft quality flags">
+              <div className="pane-title">DRAFT FLAGS</div>
+              <div>
+                {draftFlags.map((flag) => <span key={flag} className="draft-flag-chip">{draftFlagLabel(flag)}</span>)}
+              </div>
+            </section>
+          ) : null}
           <textarea value={draftText} onChange={(event) => onDraftTextChange(event.target.value)} />
           <div className="personalization-checklist">
             {personalizationChecklist(activeLead, draftText).map((item) => (
@@ -1121,12 +1150,16 @@ function TodayMissionView({
   mission,
   loading,
   onSelectLead,
-  onClearFollowUp
+  onOpenNextLead,
+  onClearFollowUp,
+  nextLeadMessage
 }: {
   mission: TodayMission | null;
   loading: boolean;
   onSelectLead: (id: string) => void;
+  onOpenNextLead: () => void;
   onClearFollowUp: (lead: TodayMissionLead) => void;
+  nextLeadMessage: string;
 }) {
   const weekly = mission?.weekly || { target: 20, pushed: 0, remaining: 20 };
   const reviewReady = mission?.review_ready || mission?.sendable || [];
@@ -1142,7 +1175,13 @@ function TodayMissionView({
           <div className="pane-title">Today Mission</div>
           <h2>Review queue</h2>
         </div>
-        <WeeklyProgress weekly={weekly} />
+        <div className="today-header-actions">
+          <WeeklyProgress weekly={weekly} />
+          {reviewReady.length > 0 ? (
+            <button className="open-next-lead-btn" onClick={onOpenNextLead}>Open next lead -&gt;</button>
+          ) : null}
+          {nextLeadMessage ? <span className="next-lead-message">{nextLeadMessage}</span> : null}
+        </div>
       </div>
 
       <div className="mission-stats" aria-label="Mission blockers">
@@ -1837,6 +1876,7 @@ function channelRecommendation(lead: Lead) {
 
 function draftReadinessLabel(lead: Lead) {
   if (lead.draft_specificity.readiness === 'ready_to_rework') return 'Ready for Review';
+  if (lead.draft_specificity.readiness === 'draft_review') return 'Draft needs review';
   if (lead.draft_specificity.readiness === 'needs_research') return 'Needs research';
   if (lead.draft_specificity.readiness === 'needs_rework') return 'Needs rework';
   if (lead.draft_specificity.readiness === 'blocked') return 'Blocked';
@@ -1863,6 +1903,18 @@ function WrongLeadRiskChip() {
 
 function shouldShowWrongLeadRisk(lead: Lead) {
   return Boolean(lead.source_pipeline.wrong_lead_risk && lead.draft_specificity.readiness !== 'needs_research');
+}
+
+function draftFlagLabel(flag: DraftFlag) {
+  const labels: Record<DraftFlag, string> = {
+    generic_language: 'No company/contact reference',
+    fake_familiarity: 'Familiarity without LinkedIn',
+    ai_spam_tone: 'AI-spam phrases',
+    inflated_promise: 'Inflated promise',
+    diagnosis_heavy: 'Ungrounded diagnosis',
+    unrelated_claim: 'Unrelated claim'
+  };
+  return labels[flag] || flag.replace(/_/g, ' ');
 }
 
 function Progress({ label, value }: { label: string; value: number }) {

@@ -95,13 +95,25 @@ export interface ColdLeadDedupe {
     matched_on: 'uid_or_fn' | 'domain' | 'none';
 }
 
-export type ColdLeadDraftReadiness = 'ready_to_rework' | 'needs_research' | 'needs_rework' | 'blocked';
+export type ColdLeadDraftReadiness = 'ready_to_rework' | 'draft_review' | 'needs_research' | 'needs_rework' | 'blocked';
 export type SourceConfidenceLevel = 'high' | 'medium' | 'low';
+export type DraftFlag =
+    | 'unrelated_claim'
+    | 'generic_language'
+    | 'fake_familiarity'
+    | 'ai_spam_tone'
+    | 'inflated_promise'
+    | 'diagnosis_heavy';
 
 export interface SourceConfidence {
     score: number;
     level: SourceConfidenceLevel;
     signals: string[];
+}
+
+export interface DraftEvaluationResult {
+    passed: boolean;
+    flags: DraftFlag[];
 }
 
 export interface ColdLeadOutreachProfile {
@@ -128,6 +140,7 @@ export interface ColdLeadDraftSpecificity {
     warnings: string[];
     readiness: ColdLeadDraftReadiness;
     profile: ColdLeadOutreachProfile;
+    evaluation_flags?: DraftFlag[];
 }
 
 export interface ColdLeadRecord {
@@ -353,6 +366,103 @@ export function computeSourceConfidence(lead: Pick<ColdLeadRecord, 'company' | '
     const normalized = Math.max(0, Math.min(1, Number(score.toFixed(2))));
     const level: SourceConfidenceLevel = normalized >= 0.75 ? 'high' : normalized >= 0.4 ? 'medium' : 'low';
     return { score: normalized, level, signals };
+}
+
+export function evaluateDraftQuality(draft: string, lead: ColdLeadRecord): DraftEvaluationResult {
+    const flags = new Set<DraftFlag>();
+    const draftText = String(draft || '');
+    const normalizedDraft = normalizeText(draftText);
+    const dossierText = normalizeText([
+        lead.company.name,
+        lead.company.country,
+        lead.company.canton_or_bezirk,
+        lead.company.postal_code,
+        lead.company.city,
+        lead.company.uid_or_fn,
+        lead.company.legal_form,
+        lead.company.date_of_entry,
+        lead.company.industry,
+        lead.company.website,
+        lead.company.linkedin_url,
+        lead.contact.name,
+        lead.contact.title,
+        lead.contact.email || '',
+        lead.contact.linkedin_url,
+        ...lead.evidence.flatMap((item) => [item.kind, item.label, item.detail, item.url || ''])
+    ].join(' '));
+
+    const companyOrContactMentioned = [
+        lead.company.name,
+        companyNameWithoutLegalSuffix(lead.company.name),
+        lead.contact.name,
+        lead.contact.name?.split(/\s+/)[0] || ''
+    ].some((candidate) => includesNormalized(normalizedDraft, candidate));
+    if (!companyOrContactMentioned) flags.add('generic_language');
+
+    if (/\b(i['’]?ve been following|i['’]?ve been watching|huge fan|love your work|i['’]?ve admired)\b/i.test(draftText) && !lead.contact.linkedin_url) {
+        flags.add('fake_familiarity');
+    }
+
+    if (/\b(game-changer|revolutionize|disrupting|cutting-edge|seamlessly|unlock your potential|skyrocket)\b/i.test(draftText)
+        || /\btake your [a-z0-9 -]+ to the next level\b/i.test(draftText)) {
+        flags.add('ai_spam_tone');
+    }
+
+    if (/\b(guaranteed|100%|proven results|transform your business|double your revenue)\b/i.test(draftText)) {
+        flags.add('inflated_promise');
+    }
+
+    const diagnosisMatch = draftText.match(/\b(struggling with|pain point|i know you(?:'|’)?re facing|challenge you(?:'|’)?re dealing with)\s+([^.!?\n]+)/i);
+    if (diagnosisMatch) {
+        const topic = normalizeText(diagnosisMatch[2] || '');
+        const topicTokens = topic.split(' ').filter((token) => token.length > 3);
+        if (!topicTokens.length || !topicTokens.some((token) => dossierText.includes(token))) {
+            flags.add('diagnosis_heavy');
+        }
+    }
+
+    const unsupportedTerms = specificClaimTerms(draftText)
+        .filter((term) => !dossierText.includes(normalizeText(term)));
+    if (unsupportedTerms.length > 0) flags.add('unrelated_claim');
+
+    const criticalFlags: DraftFlag[] = ['generic_language', 'fake_familiarity', 'ai_spam_tone'];
+    const hasCriticalFlag = criticalFlags.some((flag) => flags.has(flag));
+    const nonCriticalCount = Array.from(flags).filter((flag) => !criticalFlags.includes(flag)).length;
+    return {
+        passed: !hasCriticalFlag && nonCriticalCount < 2,
+        flags: Array.from(flags)
+    };
+}
+
+function normalizeText(value: string) {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function includesNormalized(haystack: string, needle: string) {
+    const normalizedNeedle = normalizeText(needle);
+    return Boolean(normalizedNeedle && haystack.includes(normalizedNeedle));
+}
+
+function companyNameWithoutLegalSuffix(name: string) {
+    return name
+        .replace(/\b(AG|GmbH|Sarl|SARL|SA|Ltd\.?|Limited|Inc\.?)\b\.?/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function specificClaimTerms(draft: string) {
+    const terms = new Set<string>();
+    const patterns = [
+        /\b(AI|CRM|ERP|Shopify|Salesforce|HubSpot|React|Kubernetes|AWS|Google Ads|retargeting)\b/gi,
+        /\b(ROI|conversion|pipeline|revenue|traffic)\b/gi,
+        /\b\d+(?:\.\d+)?%\b/g
+    ];
+    for (const pattern of patterns) {
+        for (const match of draft.matchAll(pattern)) {
+            terms.add(match[0]);
+        }
+    }
+    return Array.from(terms);
 }
 
 export class ColdAcquisitionService {
@@ -1129,8 +1239,9 @@ export class ColdAcquisitionService {
             .filter(Boolean).length;
     }
 
-    private resolveDraftReadiness(missing: string[], warnings: string[]): ColdLeadDraftReadiness {
+    private resolveDraftReadiness(missing: string[], warnings: string[], evaluation: DraftEvaluationResult): ColdLeadDraftReadiness {
         if (warnings.includes('thin_evidence') || missing.includes('evidence_detail')) return 'needs_research';
+        if (!evaluation.passed) return 'draft_review';
         if (warnings.includes('claim_risk') || warnings.includes('source_leakage') || warnings.includes('overlong_draft') || warnings.includes('duplicate_observation')) return 'needs_rework';
         if (missing.length > 0) return 'needs_rework';
         return 'ready_to_rework';
@@ -1166,15 +1277,42 @@ export class ColdAcquisitionService {
         if (this.hasOverlongDraft(drafts)) warnings.push('overlong_draft');
         if (this.hasDuplicateObservation(profile.observed_signal, company.name)) warnings.push('duplicate_observation');
 
-        const readiness = this.resolveDraftReadiness(missing, warnings);
+        const evaluation = this.evaluateDrafts(drafts, company, contact, evidence);
+        const readiness = this.resolveDraftReadiness(missing, warnings, evaluation);
 
         return {
-            valid: missing.length === 0 && readiness === 'ready_to_rework',
+            valid: missing.length === 0 && readiness === 'ready_to_rework' && evaluation.passed,
             proof_chips,
             missing,
             warnings,
             readiness,
-            profile
+            profile,
+            evaluation_flags: evaluation.flags
+        };
+    }
+
+    private evaluateDrafts(
+        drafts: ColdLeadDrafts,
+        company: Required<ColdLeadCompany>,
+        contact: Required<ColdLeadContact>,
+        evidence: ColdLeadEvidence[]
+    ): DraftEvaluationResult {
+        const flags = new Set<DraftFlag>();
+        for (const draft of Object.values(drafts)) {
+            if (!draft?.trim()) continue;
+            const result = evaluateDraftQuality(draft, {
+                company,
+                contact,
+                evidence
+            } as ColdLeadRecord);
+            result.flags.forEach((flag) => flags.add(flag));
+        }
+        const criticalFlags: DraftFlag[] = ['generic_language', 'fake_familiarity', 'ai_spam_tone'];
+        const hasCriticalFlag = criticalFlags.some((flag) => flags.has(flag));
+        const nonCriticalCount = Array.from(flags).filter((flag) => !criticalFlags.includes(flag)).length;
+        return {
+            passed: !hasCriticalFlag && nonCriticalCount < 2,
+            flags: Array.from(flags)
         };
     }
 

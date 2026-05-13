@@ -273,6 +273,13 @@ export class ColdAcquisitionCrmService {
         };
     }
 
+    getNextLead(_userId: string): { lead_id: string; score: number } | null {
+        const next = this.leads.listLeads()
+            .filter((lead) => this.isNextLeadEligible(lead))
+            .sort((a, b) => b.scoring.total_score - a.scoring.total_score || String(b.updated_at).localeCompare(String(a.updated_at)))[0];
+        return next ? { lead_id: next.id, score: next.scoring.total_score } : null;
+    }
+
     listLeads(filters: { view?: string; q?: string; sort?: string } = {}) {
         let leads = this.leads.listLeads({ q: filters.q });
         if (filters.view) leads = this.applyView(leads, filters.view);
@@ -656,6 +663,7 @@ export class ColdAcquisitionCrmService {
 
     private qualityLabel(lead: ColdLeadRecord) {
         if (lead.draft_specificity.readiness === 'ready_to_rework') return 'Ready for review';
+        if (lead.draft_specificity.readiness === 'draft_review') return 'Needs draft review';
         if (lead.draft_specificity.readiness === 'needs_research') return 'Needs research';
         if (lead.draft_specificity.readiness === 'needs_rework') return 'Needs draft rework';
         return 'Blocked';
@@ -683,6 +691,23 @@ export class ColdAcquisitionCrmService {
         return lead.draft_specificity.readiness === 'needs_research'
             || lead.draft_specificity.missing.includes('evidence_detail')
             || (lead.draft_specificity.warnings || []).includes('thin_evidence');
+    }
+
+    private isNextLeadEligible(lead: ColdLeadRecord) {
+        if (lead.status === 'sent' || lead.status === 'replied') return false;
+        if (lead.crm_stage === 'sent' || lead.crm_stage === 'replied') return false;
+        if (lead.company.country === 'CH' && (lead.status === 'needs_review' || lead.compliance.compliance_badge === 'review')) return false;
+        if (this.isSuppressedLead(lead)) return false;
+        return this.leads.getSendBlockers(lead).length === 0;
+    }
+
+    private isSuppressedLead(lead: ColdLeadRecord) {
+        const text = [
+            lead.notes,
+            lead.fanny_notes,
+            lead.reply_text || ''
+        ].join(' ').toLowerCase();
+        return /\b(opt[- ]?out|unsubscribe|do not contact|no thanks|suppressed)\b/.test(text);
     }
 
     private toCrmLead(lead: ColdLeadRecord): CrmLead {

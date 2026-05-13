@@ -50,6 +50,10 @@ try {
   assert.equal(me.status, 200, 'session should authenticate /me');
   assert.equal(me.json.user.email, FANNY_EMAIL);
 
+  const emptyNextLead = await request('GET', '/acquisition/api/next-lead', null, { cookie: fannyCookie });
+  assert.equal(emptyNextLead.status, 200, 'next lead should be readable when authenticated');
+  assert.deepEqual(emptyNextLead.json, { lead_id: null }, 'next lead should return null when no sendable leads exist');
+
   const created = await request('POST', '/api/cold-acquisition/leads', swissLeadBody(), { apiKey: API_KEY });
   assert.equal(created.status, 201, 'local admin API should still create acquisition leads');
   const leadId = created.json.lead.id;
@@ -154,6 +158,12 @@ try {
   assertSourcePipeline(missionSendableLead, 'today mission sendable lead');
   assert.ok(['high', 'medium'].includes(missionSendableLead.source_pipeline.confidence.level), 'LinkedIn plus multi-evidence lead should be high or medium confidence');
 
+  const nextLead = await request('GET', '/acquisition/api/next-lead', null, { cookie: fannyCookie });
+  assert.equal(nextLead.status, 200, 'next lead endpoint should return an eligible lead');
+  assert.equal(nextLead.json.lead_id, sendableLeadId, 'next lead should choose the highest-score sendable lead');
+  assert.equal(nextLead.json.lead_id === leadId, false, 'CH review-needed lead should be excluded from next lead');
+  assert.equal(typeof nextLead.json.score, 'number', 'next lead should include score');
+
   const lowConfidenceMissionLead = mission.json.mission.sendable.find((lead) => lead.id === lowConfidence.json.lead.id);
   assert.ok(lowConfidenceMissionLead, 'low-confidence sendable lead should appear in mission sendable queue');
   assert.equal(lowConfidenceMissionLead.source_pipeline.confidence.level, 'low');
@@ -238,8 +248,20 @@ try {
   assertSourcePipeline(leadDetail.json.lead, 'CRM lead detail');
   assert.equal(leadDetail.json.lead.source_pipeline.public_email_basis, true);
   assert.equal(leadDetail.json.lead.source_pipeline.batch_id, null);
+  assert.deepEqual(leadDetail.json.lead.draft_specificity.evaluation_flags || [], [], 'clean draft should pass evaluator with no flags');
   assert.ok(leadDetail.json.activity.length >= 3, 'activity timeline should include patch, copy, and manual activity');
   assert.ok(leadDetail.json.activity.some((entry) => entry.type === 'draft_copied'));
+
+  const genericDraftPatch = await request('PATCH', `/acquisition/api/leads/${lowerScoreSendable.json.lead.id}`, {
+    outreach_drafts: {
+      ...lowerScoreSendable.json.lead.outreach_drafts,
+      linkedin_intro: 'Hi, this could be a game-changer for your team. I can help you take your workflow to the next level.'
+    }
+  }, { cookie: fannyCookie });
+  assert.equal(genericDraftPatch.status, 200, 'draft evaluator should run after draft edits');
+  assert.equal(genericDraftPatch.json.lead.draft_specificity.readiness, 'draft_review', 'failed evaluator should move draft to review');
+  assert.ok(genericDraftPatch.json.lead.draft_specificity.evaluation_flags.includes('generic_language'), 'draft without company/contact reference should flag generic language');
+  assert.ok(genericDraftPatch.json.lead.draft_specificity.evaluation_flags.includes('ai_spam_tone'), 'draft with game-changer should flag AI-spam tone');
 
   const fannyAdminBlocked = await request('POST', '/acquisition/api/admin/push', { dryRun: true }, { cookie: fannyCookie });
   assert.equal(fannyAdminBlocked.status, 403, 'operator should be blocked from admin-only push');
