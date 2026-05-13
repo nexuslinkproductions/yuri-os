@@ -96,6 +96,13 @@ export interface ColdLeadDedupe {
 }
 
 export type ColdLeadDraftReadiness = 'ready_to_rework' | 'needs_research' | 'needs_rework' | 'blocked';
+export type SourceConfidenceLevel = 'high' | 'medium' | 'low';
+
+export interface SourceConfidence {
+    score: number;
+    level: SourceConfidenceLevel;
+    signals: string[];
+}
 
 export interface ColdLeadOutreachProfile {
     observed_signal: string;
@@ -148,6 +155,7 @@ export interface ColdLeadRecord {
     last_touch_at: string | null;
     next_follow_up_at: string | null;
     fanny_notes: string;
+    source_batch?: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -259,6 +267,7 @@ type ColdLeadRow = {
     fanny_notes: string | null;
     uid_or_fn: string | null;
     primary_domain: string | null;
+    source_batch?: string | null;
     created_at: string;
     updated_at: string;
 };
@@ -285,6 +294,66 @@ const ACTIVE_CUSTOMER_NAMES = [
     'ALPEAHOMES',
     'Balas Pflasterungen GmbH'
 ];
+
+export function computeSourceConfidence(lead: Pick<ColdLeadRecord, 'company' | 'contact' | 'evidence' | 'compliance'>): SourceConfidence {
+    const signals: string[] = [];
+    let score = 0;
+    const source = String(lead.compliance.source || '').toLowerCase();
+    const sourceUrl = String(lead.compliance.source_url || '').toLowerCase();
+
+    if (source === 'zefix' || sourceUrl.includes('zefix')) {
+        score += 0.35;
+        signals.push('Zefix source');
+    } else if (source === 'wko' || sourceUrl.includes('wko.at') || sourceUrl.includes('firmen.wko')) {
+        score += 0.25;
+        signals.push('WKO source');
+    } else if (source === 'firmenabc' || sourceUrl.includes('firmenabc')) {
+        score += 0.15;
+        signals.push('Directory source');
+    } else {
+        score += 0.05;
+        signals.push('Unknown source type');
+    }
+
+    const evidenceCount = lead.evidence.length;
+    signals.push(`${evidenceCount} evidence ${evidenceCount === 1 ? 'item' : 'items'}`);
+    if (evidenceCount > 3) {
+        score += 0.2;
+        signals.push('More than 3 evidence items');
+    }
+
+    const uniqueEvidenceKinds = new Set(lead.evidence.map((item) => item.kind).filter(Boolean));
+    if (uniqueEvidenceKinds.size > 1) {
+        const diversityScore = (uniqueEvidenceKinds.size - 1) * 0.1;
+        score += diversityScore;
+        signals.push(`${uniqueEvidenceKinds.size} evidence types`);
+    }
+
+    if (lead.contact.linkedin_url || lead.company.linkedin_url) {
+        score += 0.15;
+        signals.push('LinkedIn URL present');
+    } else {
+        signals.push('No LinkedIn URL');
+    }
+
+    if (lead.contact.email && lead.compliance.legal_basis === 'website_published_email') {
+        score += 0.2;
+        signals.push('Public email basis');
+    } else {
+        signals.push('No public email basis');
+    }
+
+    if (lead.company.website) {
+        score += 0.1;
+        signals.push('Website captured');
+    } else {
+        signals.push('No website captured');
+    }
+
+    const normalized = Math.max(0, Math.min(1, Number(score.toFixed(2))));
+    const level: SourceConfidenceLevel = normalized >= 0.75 ? 'high' : normalized >= 0.4 ? 'medium' : 'low';
+    return { score: normalized, level, signals };
+}
 
 export class ColdAcquisitionService {
     private db: Database.Database;
@@ -341,6 +410,7 @@ export class ColdAcquisitionService {
             last_touch_at: null,
             next_follow_up_at: null,
             fanny_notes: '',
+            source_batch: null,
             created_at: timestamp,
             updated_at: timestamp
         };
@@ -1805,6 +1875,7 @@ export class ColdAcquisitionService {
             last_touch_at: row.last_touch_at,
             next_follow_up_at: row.next_follow_up_at,
             fanny_notes: row.fanny_notes || '',
+            source_batch: row.source_batch || null,
             created_at: row.created_at,
             updated_at: row.updated_at
         };

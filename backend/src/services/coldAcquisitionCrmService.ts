@@ -7,6 +7,8 @@ import {
     ColdLeadDrafts,
     ColdLeadRecord,
     ColdLeadStatus,
+    computeSourceConfidence,
+    SourceConfidence,
     ZefixBulkRecord
 } from './coldAcquisitionService';
 
@@ -73,7 +75,18 @@ export interface CrmLeadPatch {
 export type TodayMissionDraftType = 'linkedin_intro' | 'email_cold';
 export type TodayMissionDueState = 'none' | 'due_today' | 'overdue';
 
-export interface TodayMissionLead extends ColdLeadRecord {
+export interface SourcePipeline {
+    confidence: SourceConfidence;
+    batch_id: string | null;
+    public_email_basis: boolean;
+    wrong_lead_risk: boolean;
+}
+
+export interface CrmLead extends ColdLeadRecord {
+    source_pipeline: SourcePipeline;
+}
+
+export interface TodayMissionLead extends CrmLead {
     send_blockers: string[];
     preferred_draft_type: TodayMissionDraftType;
     draft_excerpt: string;
@@ -270,14 +283,14 @@ export class ColdAcquisitionCrmService {
             if (sort === 'date_asc') return String(a.updated_at).localeCompare(String(b.updated_at));
             if (sort === 'stage') return a.crm_stage.localeCompare(b.crm_stage) || b.scoring.total_score - a.scoring.total_score;
             return String(b.updated_at).localeCompare(String(a.updated_at));
-        });
+        }).map((lead) => this.toCrmLead(lead));
     }
 
     getLead(id: string) {
         const lead = this.leads.getLead(id);
         if (!lead) throw Object.assign(new Error('COLD_LEAD_NOT_FOUND'), { statusCode: 404 });
         return {
-            lead,
+            lead: this.toCrmLead(lead),
             activity: this.listActivity(id)
         };
     }
@@ -303,7 +316,7 @@ export class ColdAcquisitionCrmService {
         });
 
         this.logLeadUpdateActivity(user, current, next, patch);
-        return next;
+        return this.toCrmLead(next);
     }
 
     copyDraft(user: ColdAcquisitionCrmUser, leadId: string, draftType: keyof ColdLeadDrafts) {
@@ -334,7 +347,7 @@ export class ColdAcquisitionCrmService {
             next_follow_up_at: body.next_follow_up_at
         });
         this.logActivity(user, next.id, 'marked_sent', `Marked sent via ${channel}.`, { channel, next_follow_up_at: body.next_follow_up_at });
-        return next;
+        return this.toCrmLead(next);
     }
 
     scheduleFollowUp(user: ColdAcquisitionCrmUser, id: string, next_follow_up_at: string | null) {
@@ -601,6 +614,7 @@ export class ColdAcquisitionCrmService {
 
     private toTodayMissionLead(lead: ColdLeadRecord): TodayMissionLead {
         const preferred_draft_type = this.preferredDraftType(lead);
+        const source_pipeline = this.sourcePipeline(lead);
         const quality_blockers = Array.from(new Set([
             ...this.leads.getSendBlockers(lead),
             ...lead.draft_specificity.missing,
@@ -609,13 +623,14 @@ export class ColdAcquisitionCrmService {
         const evidence_confidence = lead.draft_specificity.profile?.confidence || 'low';
         return {
             ...lead,
+            source_pipeline,
             send_blockers: this.leads.getSendBlockers(lead),
             preferred_draft_type,
             draft_excerpt: this.draftExcerpt(lead.outreach_drafts[preferred_draft_type] || ''),
             due_state: this.dueState(lead),
             quality_label: this.qualityLabel(lead),
             quality_blockers,
-            source_confidence: this.sourceConfidence(lead),
+            source_confidence: source_pipeline.confidence.level,
             evidence_confidence
         };
     }
@@ -630,7 +645,7 @@ export class ColdAcquisitionCrmService {
     private reviewReadySort(lead: ColdLeadRecord) {
         return lead.scoring.total_score
             + this.confidenceWeight(lead.draft_specificity.profile?.confidence || 'low')
-            + this.confidenceWeight(this.sourceConfidence(lead));
+            + this.confidenceWeight(computeSourceConfidence(lead).level);
     }
 
     private confidenceWeight(value: 'low' | 'medium' | 'high') {
@@ -644,13 +659,6 @@ export class ColdAcquisitionCrmService {
         if (lead.draft_specificity.readiness === 'needs_research') return 'Needs research';
         if (lead.draft_specificity.readiness === 'needs_rework') return 'Needs draft rework';
         return 'Blocked';
-    }
-
-    private sourceConfidence(lead: ColdLeadRecord): 'low' | 'medium' | 'high' {
-        if (!lead.compliance.source_url || !lead.compliance.source_timestamp) return 'low';
-        const sourceUrls = lead.draft_specificity.profile?.source_urls || [];
-        if (sourceUrls.length >= 2) return 'high';
-        return 'medium';
     }
 
     private preferredDraftType(lead: ColdLeadRecord): TodayMissionDraftType {
@@ -675,6 +683,36 @@ export class ColdAcquisitionCrmService {
         return lead.draft_specificity.readiness === 'needs_research'
             || lead.draft_specificity.missing.includes('evidence_detail')
             || (lead.draft_specificity.warnings || []).includes('thin_evidence');
+    }
+
+    private toCrmLead(lead: ColdLeadRecord): CrmLead {
+        return {
+            ...lead,
+            source_pipeline: this.sourcePipeline(lead)
+        };
+    }
+
+    private sourcePipeline(lead: ColdLeadRecord): SourcePipeline {
+        const confidence = computeSourceConfidence(lead);
+        return {
+            confidence,
+            batch_id: lead.source_batch || null,
+            public_email_basis: this.hasPublicEmailBasis(lead),
+            wrong_lead_risk: confidence.score < 0.4 && this.isSendableOrNearSendable(lead)
+        };
+    }
+
+    private hasPublicEmailBasis(lead: ColdLeadRecord) {
+        return Boolean(lead.contact.email && lead.compliance.legal_basis === 'website_published_email');
+    }
+
+    private isSendableOrNearSendable(lead: ColdLeadRecord) {
+        if (this.isBlockedMissionLead(lead) || this.isResearchMissionLead(lead)) return false;
+        if (this.leads.getSendBlockers(lead).length === 0) return true;
+        return lead.channel !== 'blocked'
+            && !lead.dedupe.is_duplicate
+            && lead.compliance.compliance_badge !== 'blocked'
+            && (lead.crm_stage === 'ready' || lead.scoring.total_score >= 60);
     }
 
     private dueState(lead: ColdLeadRecord): TodayMissionDueState {

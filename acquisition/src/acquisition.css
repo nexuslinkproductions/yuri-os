@@ -497,6 +497,14 @@ form {
   font-size: 13px;
 }
 
+.inspector-head-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+  align-items: center;
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -665,6 +673,49 @@ form {
   line-height: 1.4;
 }
 
+.source-pipeline-section {
+  display: grid;
+  gap: 9px;
+}
+
+.source-pipeline-summary,
+.source-signal-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+}
+
+.source-basis-label,
+.source-batch-label,
+.source-signal-list span,
+.wrong-lead-risk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.source-basis-label.ok {
+  background: #eaf8f1;
+  color: var(--ok);
+}
+
+.source-basis-label.muted,
+.source-batch-label,
+.source-signal-list span {
+  background: #eef2f5;
+  color: var(--muted);
+}
+
+.source-signal-list span {
+  background: #eef6fb;
+  color: var(--brand-strong);
+}
+
 .confidence-chip,
 .compliance-mini,
 .avoid-chip,
@@ -702,6 +753,12 @@ form {
 .avoid-chip {
   background: #fff7e8;
   color: var(--warn);
+}
+
+.wrong-lead-risk-chip {
+  background: #fff0e6;
+  color: #9a4b00;
+  border: 1px solid rgba(183, 107, 0, 0.2);
 }
 
 .compliance-line {

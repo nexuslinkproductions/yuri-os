@@ -64,6 +64,14 @@ assert.match(app, /copyDraft|copy-draft/, 'workbench should support manual draft
 assert.doesNotMatch(app, /Outreach Profile/, 'inspector should replace outreach profile with dossier');
 assert.match(app, /DossierPanel|dossier-panel/, 'inspector should expose a structured dossier');
 assert.match(app, /What we know/, 'dossier should include known facts');
+assert.match(app, /Source Pipeline/, 'dossier should include source pipeline section');
+assert.match(app, /source_pipeline/, 'workbench should consume source pipeline metadata');
+assert.match(app, /source-pipeline-section/, 'dossier should render source pipeline section');
+assert.match(app, /confidence-chip/, 'dossier should render confidence chips');
+assert.match(app, /Public email basis|No public email basis/, 'dossier should show public email basis state');
+assert.match(app, /wrong_lead_risk|WrongLeadRiskChip/, 'workbench should consume wrong-lead risk state');
+assert.match(app, /WRONG-LEAD RISK/, 'dossier/header should render wrong-lead risk chip when flagged');
+assert.match(app, /shouldShowWrongLeadRisk/, 'wrong-lead risk chip should be gated for confirmed research-needed leads');
 assert.match(app, /What was observed/, 'dossier should include observed evidence');
 assert.match(app, /Safe opening angle/, 'dossier should include safe opening angle');
 assert.match(app, /What not to mention/, 'dossier should include compact avoidance chips');
@@ -89,6 +97,9 @@ assert.doesNotMatch(app, /draggable=\{true\}|onDragStart|onDrop=/, 'workbench mu
 assert.match(css, /#56bcec/i, 'workbench should use c2moviez brand blue');
 assert.match(css, /Montserrat/i, 'workbench should use Montserrat');
 assert.match(css, /dossier-panel/, 'workbench should style dossier context');
+assert.match(css, /source-pipeline-section/, 'workbench should style source pipeline context');
+assert.match(css, /confidence-chip/, 'workbench should style confidence chip');
+assert.match(css, /wrong-lead-risk-chip/, 'workbench should style wrong-lead risk chip');
 assert.match(css, /inspector-tabs/, 'workbench should style inspector tabs');
 assert.match(css, /draft-quality-bar/, 'workbench should style draft quality metadata');
 assert.match(css, /personalization-checklist/, 'workbench should style draft checklist');
