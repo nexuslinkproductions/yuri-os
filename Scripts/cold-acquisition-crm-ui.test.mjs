@@ -58,8 +58,15 @@ assert.match(app, /Needs Research/, 'Today Mission should label the research que
 assert.match(app, /ResearchCard|research-card/, 'Today Mission should use a dedicated research card');
 assert.match(app, /weekly-progress/, 'Today Mission should render weekly quota progress');
 assert.match(app, /Copy & mark sent/i, 'Send modal should require draft copy before marking sent');
-assert.match(app, /Copy only/, 'Send modal should support manual copy without changing state');
-assert.match(app, /followUp|Follow-up date/, 'Send modal should require a follow-up decision');
+assert.match(app, /SendConfirmModal|send-confirm-modal/, 'send flow should use SendConfirmModal');
+assert.match(app, /channel-selector-btn/, 'Send modal should include channel selector buttons');
+assert.match(app, /LinkedIn|Email/, 'Send modal should expose LinkedIn and Email channels');
+assert.match(app, /followUp|Follow-up date/, 'Send modal should include follow-up date input');
+assert.match(app, /Mark sent \+ copy draft/, 'Send modal should use manual mark-sent copy action');
+assert.match(app, /PostSendPrompt|post-send-prompt/, 'inspector should show post-send prompt after manual send');
+assert.match(app, /What's next\?/, 'post-send prompt should ask for the next action');
+assert.match(app, /ReplyModal|reply-modal/, 'Reply modal should be present in UI code');
+assert.match(app, /Opted out|This will suppress the contact and disqualify the lead/, 'Reply modal should warn on opt-out');
 assert.match(app, /COMPLIANCE_SEND_BLOCKED/, 'Send modal should handle backend compliance send blocks');
 assert.match(app, /clearFollowUp|Follow-up done/, 'Today Mission should support clearing completed follow-ups');
 assert.match(app, /savedViews|SAVED_VIEWS/, 'workbench should expose saved views');
@@ -129,6 +136,10 @@ assert.match(css, /mission-empty-state/, 'workbench should style whole-mission e
 assert.match(css, /research-card/, 'workbench should style research cards');
 assert.match(css, /research-queue/, 'workbench should style research queue layout');
 assert.match(css, /send-modal/, 'workbench should style send confirmation modal');
+assert.match(css, /send-confirm-modal/, 'workbench should style send confirmation modal');
+assert.match(css, /channel-selector-btn/, 'workbench should style channel selector buttons');
+assert.match(css, /post-send-prompt/, 'workbench should style post-send prompt');
+assert.match(css, /reply-modal/, 'workbench should style reply modal');
 assert.match(css, /weekly-progress/, 'workbench should style weekly quota progress');
 assert.match(css, /position:\s*sticky/i, 'workbench table should use sticky UI affordances');
 assert.doesNotMatch(css, /--bg-void|--cyan-glow|op-shell|HUD/i, 'workbench CSS should not reuse NUDIMMUD HUD styling');

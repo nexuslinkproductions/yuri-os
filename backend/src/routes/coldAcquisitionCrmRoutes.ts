@@ -6,6 +6,7 @@ import Database from 'better-sqlite3';
 import {
     ColdAcquisitionCrmService,
     ColdAcquisitionCrmUser,
+    ReplyType,
     CRM_SESSION_COOKIE
 } from '../services/coldAcquisitionCrmService';
 import { ColdLeadDrafts } from '../services/coldAcquisitionService';
@@ -44,6 +45,10 @@ function sessionCookieOptions(req: Request, expires?: Date) {
 
 function allowedDraftType(value: string): value is keyof ColdLeadDrafts {
     return ['linkedin_intro', 'linkedin_followup', 'email_cold', 'email_followup'].includes(value);
+}
+
+function allowedReplyType(value: string): value is ReplyType {
+    return ['interested', 'not_now', 'opt_out', 'other'].includes(value);
 }
 
 function requestOrigin(req: Request): string {
@@ -223,9 +228,11 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
 
     api.post('/leads/:id/mark-sent', requireAuth, (req: CrmRequest, res) => {
         try {
+            const channel = String(req.body?.channel || '').trim();
+            if (!channel) throw Object.assign(new Error('channel required'), { statusCode: 400 });
             const lead = service.markSent(req.crmUser as ColdAcquisitionCrmUser, String(req.params.id || ''), {
-                channel: req.body?.channel,
-                next_follow_up_at: req.body?.next_follow_up_at
+                channel,
+                follow_up_date: req.body?.follow_up_date ?? req.body?.next_follow_up_at ?? null
             });
             res.json({ lead });
         } catch (error: any) {
@@ -247,8 +254,18 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
 
     api.post('/leads/:id/reply', requireAuth, (req: CrmRequest, res) => {
         try {
-            const lead = service.recordReply(req.crmUser as ColdAcquisitionCrmUser, String(req.params.id || ''), String(req.body?.reply_text || ''));
-            res.json({ lead });
+            const replyType = String(req.body?.reply_type || '').trim();
+            if (!allowedReplyType(replyType)) throw Object.assign(new Error('reply_type is required'), { statusCode: 400 });
+            if (!Object.prototype.hasOwnProperty.call(req.body || {}, 'note')) {
+                throw Object.assign(new Error('note is required'), { statusCode: 400 });
+            }
+            const result = service.logReply(
+                String(req.params.id || ''),
+                (req.crmUser as ColdAcquisitionCrmUser).id,
+                replyType,
+                String(req.body?.note || '')
+            );
+            res.json(result);
         } catch (error: any) {
             sendError(res, error);
         }

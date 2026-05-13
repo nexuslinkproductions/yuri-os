@@ -27,6 +27,8 @@ type RouteMode = 'today' | 'leads' | 'admin-sources';
 type InspectorTab = 'dossier' | 'draft' | 'activity' | 'compliance' | 'notes';
 type SourceConfidenceLevel = 'high' | 'medium' | 'low';
 type DraftFlag = 'unrelated_claim' | 'generic_language' | 'fake_familiarity' | 'ai_spam_tone' | 'inflated_promise' | 'diagnosis_heavy';
+type SendChannel = 'linkedin' | 'email';
+type ReplyType = 'interested' | 'not_now' | 'opt_out' | 'other';
 
 type SourceConfidence = {
   score: number;
@@ -372,11 +374,17 @@ export function AcquisitionApp() {
   const [error, setError] = useState('');
   const [sendModalLead, setSendModalLead] = useState<TodayMissionLead | null>(null);
   const [sendModalDraftType, setSendModalDraftType] = useState<PreferredDraftType>('linkedin_intro');
+  const [sendModalChannel, setSendModalChannel] = useState<SendChannel | ''>('');
   const [sendModalFollowUp, setSendModalFollowUp] = useState('');
-  const [sendModalDone, setSendModalDone] = useState(false);
   const [sendModalError, setSendModalError] = useState('');
   const [sendModalBusy, setSendModalBusy] = useState(false);
   const [nextLeadMessage, setNextLeadMessage] = useState('');
+  const [postSendLeadId, setPostSendLeadId] = useState<string | null>(null);
+  const [replyModalLead, setReplyModalLead] = useState<Lead | null>(null);
+  const [replyType, setReplyType] = useState<ReplyType>('other');
+  const [replyNote, setReplyNote] = useState('');
+  const [replyModalError, setReplyModalError] = useState('');
+  const [replyModalBusy, setReplyModalBusy] = useState(false);
 
   const activeLead = selectedLead || leads.find((lead) => lead.id === selectedId) || leads[0] || null;
   const sendBlockReason = useMemo(() => {
@@ -536,8 +544,8 @@ export function AcquisitionApp() {
     setSelectedId(lead.id);
     setSendModalLead(lead);
     setSendModalDraftType(lead.preferred_draft_type);
+    setSendModalChannel('');
     setSendModalFollowUp(lead.next_follow_up_at?.slice(0, 10) || '');
-    setSendModalDone(false);
     setSendModalError('');
   };
 
@@ -552,13 +560,17 @@ export function AcquisitionApp() {
       due_state: 'none'
     });
     setSendModalDraftType(preferred_draft_type);
+    setSendModalChannel('');
     setSendModalFollowUp(activeLead.next_follow_up_at?.slice(0, 10) || '');
-    setSendModalDone(false);
     setSendModalError('');
   };
 
   const copyAndMarkSent = async () => {
     if (!sendModalLead) return;
+    if (!sendModalChannel) {
+      setSendModalError('channel required');
+      return;
+    }
     setSendModalBusy(true);
     setSendModalError('');
     try {
@@ -566,14 +578,15 @@ export function AcquisitionApp() {
       const payload = await api<{ lead: Lead }>(`/acquisition/api/leads/${sendModalLead.id}/mark-sent`, {
         method: 'POST',
         body: JSON.stringify({
-          channel: sendModalDraftType.startsWith('email') ? 'email' : 'linkedin',
-          next_follow_up_at: sendModalFollowUp || null
+          channel: sendModalChannel,
+          follow_up_date: sendModalFollowUp || null
         })
       });
       setNotice('Draft copied and marked sent');
       setSelectedLead(payload.lead);
       await Promise.all([loadLeads(), loadDashboard(), loadTodayMission(), loadLeadDetail(sendModalLead.id)]);
-      setSendModalDone(true);
+      setPostSendLeadId(sendModalLead.id);
+      setSendModalLead(null);
     } catch (err: any) {
       const message = err?.message || 'Send check failed';
       if (err?.status === 409 || message === 'COMPLIANCE_SEND_BLOCKED') {
@@ -587,33 +600,44 @@ export function AcquisitionApp() {
     }
   };
 
-  const copyOnlyFromModal = async () => {
-    if (!sendModalLead) return;
-    setSendModalBusy(true);
-    setSendModalError('');
-    try {
-      await copyMissionDraft(sendModalLead, sendModalDraftType);
-      setNotice(`${DRAFT_LABELS[sendModalDraftType]} copied`);
-      setSendModalLead(null);
-    } catch (err: any) {
-      setSendModalError(err?.message || 'Copy failed');
-    } finally {
-      setSendModalBusy(false);
-    }
-  };
-
   const markSent = async () => {
     if (!activeLead || sendBlockReason) return;
     openActiveLeadSendModal();
   };
 
+  const openReplyModal = () => {
+    if (!activeLead) return;
+    setReplyModalLead(activeLead);
+    setReplyType('other');
+    setReplyNote(activeLead.reply_text || '');
+    setReplyModalError('');
+  };
+
+  const submitReply = async () => {
+    if (!replyModalLead) return;
+    setReplyModalBusy(true);
+    setReplyModalError('');
+    try {
+      const payload = await api<{ suppressed: boolean; lead_id: string; lead?: Lead }>(`/acquisition/api/leads/${replyModalLead.id}/reply`, {
+        method: 'POST',
+        body: JSON.stringify({ reply_type: replyType, note: replyNote })
+      });
+      setNotice(payload.suppressed ? 'Contact suppressed. Lead disqualified.' : 'Reply logged.');
+      setReplyModalLead(null);
+      await Promise.all([loadLeads(), loadDashboard(), loadTodayMission(), loadLeadDetail(replyModalLead.id)]);
+    } catch (err: any) {
+      setReplyModalError(err?.message || 'Reply logging failed');
+    } finally {
+      setReplyModalBusy(false);
+    }
+  };
+
   const recordReply = async () => {
-    if (!activeLead || !replyText.trim()) return;
-    const payload = await api<{ lead: Lead }>(`/acquisition/api/leads/${activeLead.id}/reply`, {
+    if (!activeLead) return;
+    await api<{ suppressed: boolean; lead_id: string }>(`/acquisition/api/leads/${activeLead.id}/reply`, {
       method: 'POST',
-      body: JSON.stringify({ reply_text: replyText.trim() })
+      body: JSON.stringify({ reply_type: 'other', note: replyText.trim() })
     });
-    setSelectedLead(payload.lead);
     setNotice('Reply recorded');
     await Promise.all([loadLeads(), loadDashboard(), loadTodayMission(), loadLeadDetail(activeLead.id)]);
   };
@@ -679,6 +703,15 @@ export function AcquisitionApp() {
     setSelectedId(payload.lead_id);
     setInspectorTab('dossier');
     await loadLeadDetail(payload.lead_id);
+  };
+
+  const postSendOpenNextLead = async () => {
+    setPostSendLeadId(null);
+    await openNextLead();
+  };
+
+  const postSendAddNote = () => {
+    setInspectorTab('notes');
   };
 
   const onTableKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -891,23 +924,38 @@ export function AcquisitionApp() {
               replyText={replyText}
               onReplyTextChange={setReplyText}
               onRecordReply={recordReply}
+              onOpenReplyModal={openReplyModal}
+              postSendVisible={Boolean(activeLead && postSendLeadId === activeLead.id)}
+              onPostSendOpenNext={postSendOpenNextLead}
+              onPostSendAddNote={postSendAddNote}
+              onPostSendDone={() => setPostSendLeadId(null)}
             />
           </aside>
         ) : null}
       </div>
-      <SendConfirmationModal
+      <SendConfirmModal
         lead={sendModalLead}
         draftType={sendModalDraftType}
+        channel={sendModalChannel}
         followUp={sendModalFollowUp}
-        done={sendModalDone}
         error={sendModalError}
         busy={sendModalBusy}
         onDraftTypeChange={setSendModalDraftType}
+        onChannelChange={setSendModalChannel}
         onFollowUpChange={setSendModalFollowUp}
-        onCopyOnly={copyOnlyFromModal}
-        onOpenNext={openNextReviewReady}
         onCancel={() => setSendModalLead(null)}
         onConfirm={copyAndMarkSent}
+      />
+      <ReplyModal
+        lead={replyModalLead}
+        replyType={replyType}
+        note={replyNote}
+        error={replyModalError}
+        busy={replyModalBusy}
+        onReplyTypeChange={setReplyType}
+        onNoteChange={setReplyNote}
+        onCancel={() => setReplyModalLead(null)}
+        onSubmit={submitReply}
       />
     </div>
   );
@@ -936,7 +984,12 @@ function LeadInspector({
   onBlock,
   replyText,
   onReplyTextChange,
-  onRecordReply
+  onRecordReply,
+  onOpenReplyModal,
+  postSendVisible,
+  onPostSendOpenNext,
+  onPostSendAddNote,
+  onPostSendDone
 }: {
   activeLead: Lead | null;
   activity: Activity[];
@@ -961,6 +1014,11 @@ function LeadInspector({
   replyText: string;
   onReplyTextChange: (value: string) => void;
   onRecordReply: () => Promise<void>;
+  onOpenReplyModal: () => void;
+  postSendVisible: boolean;
+  onPostSendOpenNext: () => Promise<void>;
+  onPostSendAddNote: () => void;
+  onPostSendDone: () => void;
 }) {
   if (!activeLead) {
     return (
@@ -992,6 +1050,7 @@ function LeadInspector({
           <p>{activeLead.company.city || activeLead.company.country} · {activeLead.company.industry || 'Industry pending'}</p>
         </div>
         <div className="inspector-head-badges">
+          <button className="secondary-action compact-action" onClick={onOpenReplyModal}><MessageSquare size={14} /> Log reply</button>
           {shouldShowWrongLeadRisk(activeLead) ? <WrongLeadRiskChip /> : null}
           <span className={`score-pill ${scoreClass(activeLead.scoring.total_score)}`}>{activeLead.scoring.total_score}</span>
         </div>
@@ -1134,6 +1193,13 @@ function LeadInspector({
             <button onClick={onQualify}><UserCheck size={15} /> Qualify</button>
             <button onClick={onBlock}><XCircle size={15} /> Block</button>
           </section>
+          {postSendVisible ? (
+            <PostSendPrompt
+              onOpenNext={onPostSendOpenNext}
+              onAddNote={onPostSendAddNote}
+              onDone={onPostSendDone}
+            />
+          ) : null}
           {sendBlockReason ? <p className="send-block-reason"><AlertTriangle size={14} /> {sendBlockReason}</p> : null}
           <section className="inspector-section">
             <div className="pane-title">Reply</div>
@@ -1729,30 +1795,28 @@ function researchBlockerLabels(lead: Lead) {
   return labels.length ? labels : ['Missing: specific company evidence'];
 }
 
-function SendConfirmationModal({
+function SendConfirmModal({
   lead,
   draftType,
+  channel,
   followUp,
-  done,
   error,
   busy,
   onDraftTypeChange,
+  onChannelChange,
   onFollowUpChange,
-  onCopyOnly,
-  onOpenNext,
   onCancel,
   onConfirm
 }: {
   lead: TodayMissionLead | null;
   draftType: PreferredDraftType;
+  channel: SendChannel | '';
   followUp: string;
-  done: boolean;
   error: string;
   busy: boolean;
   onDraftTypeChange: (type: PreferredDraftType) => void;
+  onChannelChange: (channel: SendChannel) => void;
   onFollowUpChange: (value: string) => void;
-  onCopyOnly: () => void;
-  onOpenNext: () => void;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -1763,7 +1827,7 @@ function SendConfirmationModal({
 
   return (
     <div className="send-modal-backdrop" role="presentation">
-      <section className="send-modal" role="dialog" aria-modal="true" aria-label="Manual send confirmation">
+      <section className="send-modal send-confirm-modal" role="dialog" aria-modal="true" aria-label="Manual send confirmation">
         <div className="send-modal-head">
           <div>
             <div className="pane-title">Manual Send</div>
@@ -1776,6 +1840,19 @@ function SendConfirmationModal({
           {draftOptions.map((type) => (
             <button key={type} className={draftType === type ? 'active' : ''} onClick={() => onDraftTypeChange(type)}>
               {DRAFT_LABELS[type]}
+            </button>
+          ))}
+        </div>
+
+        <div className="channel-selector" aria-label="Send channel">
+          {(['linkedin', 'email'] as SendChannel[]).map((item) => (
+            <button
+              key={item}
+              className={channel === item ? 'channel-selector-btn selected' : 'channel-selector-btn'}
+              onClick={() => onChannelChange(item)}
+              type="button"
+            >
+              {item === 'linkedin' ? 'LinkedIn' : 'Email'}
             </button>
           ))}
         </div>
@@ -1797,21 +1874,99 @@ function SendConfirmationModal({
           </div>
         ) : null}
         {error ? <div className="notice error"><AlertTriangle size={16} /> {error}</div> : null}
-        {done ? (
-          <div className="modal-done">
-            <strong>Sent state recorded.</strong>
-            <div className="modal-actions">
-              <button className="secondary-action" onClick={onCancel}>Stay</button>
-              <button className="primary-action" onClick={onOpenNext}><Search size={15} /> Next review</button>
-            </div>
+        <div className="modal-actions">
+          <button className="secondary-action" onClick={onCancel}>Cancel</button>
+          <button className="primary-action" disabled={busy || !draft || !channel} onClick={onConfirm}><Send size={15} /> Mark sent + copy draft</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PostSendPrompt({
+  onOpenNext,
+  onAddNote,
+  onDone
+}: {
+  onOpenNext: () => Promise<void>;
+  onAddNote: () => void;
+  onDone: () => void;
+}) {
+  return (
+    <section className="post-send-prompt" aria-label="Post-send next action">
+      <strong>Sent. What's next?</strong>
+      <div>
+        <button type="button" onClick={onOpenNext}>Open next lead -&gt;</button>
+        <button type="button" onClick={onAddNote}>Add a note</button>
+        <button type="button" onClick={onDone}>Done for today</button>
+      </div>
+    </section>
+  );
+}
+
+function ReplyModal({
+  lead,
+  replyType,
+  note,
+  error,
+  busy,
+  onReplyTypeChange,
+  onNoteChange,
+  onCancel,
+  onSubmit
+}: {
+  lead: Lead | null;
+  replyType: ReplyType;
+  note: string;
+  error: string;
+  busy: boolean;
+  onReplyTypeChange: (type: ReplyType) => void;
+  onNoteChange: (value: string) => void;
+  onCancel: () => void;
+  onSubmit: () => void;
+}) {
+  if (!lead) return null;
+  const options: Array<[ReplyType, string]> = [
+    ['interested', 'Interested'],
+    ['not_now', 'Not now'],
+    ['opt_out', 'Opted out'],
+    ['other', 'Other']
+  ];
+
+  return (
+    <div className="send-modal-backdrop" role="presentation">
+      <section className="send-modal reply-modal" role="dialog" aria-modal="true" aria-label="Log reply">
+        <div className="send-modal-head">
+          <div>
+            <div className="pane-title">Reply</div>
+            <h2>{lead.company.name}</h2>
           </div>
-        ) : (
-          <div className="modal-actions">
-            <button className="secondary-action" onClick={onCancel}>Cancel</button>
-            <button className="secondary-action" disabled={busy || !draft} onClick={onCopyOnly}><Clipboard size={15} /> Copy only</button>
-            <button className="primary-action" disabled={busy || !draft} onClick={onConfirm}><Send size={15} /> Copy & mark sent</button>
-          </div>
-        )}
+          <button className="icon-button" onClick={onCancel} aria-label="Close reply modal"><XCircle size={17} /></button>
+        </div>
+        <div className="reply-type-selector" aria-label="Reply type">
+          {options.map(([value, label]) => (
+            <button
+              key={value}
+              className={replyType === value ? 'channel-selector-btn selected' : 'channel-selector-btn'}
+              onClick={() => onReplyTypeChange(value)}
+              type="button"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {replyType === 'opt_out' ? (
+          <div className="opt-out-warning"><AlertTriangle size={15} /> This will suppress the contact and disqualify the lead.</div>
+        ) : null}
+        <label>
+          Note
+          <textarea value={note} onChange={(event) => onNoteChange(event.target.value)} placeholder="Paste or summarize the reply" />
+        </label>
+        {error ? <div className="notice error"><AlertTriangle size={16} /> {error}</div> : null}
+        <div className="modal-actions">
+          <button className="secondary-action" onClick={onCancel}>Cancel</button>
+          <button className="primary-action" disabled={busy} onClick={onSubmit}><MessageSquare size={15} /> Log reply</button>
+        </div>
       </section>
     </div>
   );

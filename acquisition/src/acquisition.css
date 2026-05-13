@@ -1914,6 +1914,11 @@ form {
   box-shadow: 0 24px 60px rgba(25, 38, 52, 0.18);
 }
 
+.send-confirm-modal,
+.reply-modal {
+  width: min(680px, calc(100vw - 48px));
+}
+
 .send-modal-head {
   display: flex;
   justify-content: space-between;
@@ -1945,6 +1950,34 @@ form {
   border-color: var(--brand);
   background: var(--subtle);
   color: #073347;
+}
+
+.channel-selector,
+.reply-type-selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reply-type-selector {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.channel-selector-btn {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #52616f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.channel-selector-btn.selected {
+  border-color: var(--brand);
+  background: var(--subtle);
+  color: #073347;
+  box-shadow: inset 0 -2px 0 var(--brand);
 }
 
 .modal-draft {
@@ -1979,6 +2012,56 @@ form {
 .modal-done strong {
   color: var(--ok);
   font-size: 13px;
+}
+
+.post-send-prompt {
+  display: grid;
+  gap: 8px;
+  margin: -4px 0 12px;
+  border: 1px solid rgba(24, 117, 76, 0.2);
+  border-radius: 8px;
+  background: #f0faf5;
+  padding: 11px;
+}
+
+.post-send-prompt strong {
+  color: var(--ok);
+  font-size: 13px;
+}
+
+.post-send-prompt div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.post-send-prompt button {
+  border: 1px solid rgba(24, 117, 76, 0.22);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--ok);
+  padding: 6px 9px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.opt-out-warning {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(183, 107, 0, 0.24);
+  border-radius: 8px;
+  background: #fff7e8;
+  color: var(--warn);
+  padding: 9px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.compact-action {
+  min-height: 30px;
+  padding: 5px 8px;
+  font-size: 11px;
 }
 
 .modal-actions {
