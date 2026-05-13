@@ -610,7 +610,7 @@ export class ColdAcquisitionService {
                         {
                             kind: 'zefix_bulk',
                             label: 'Zefix open-data record',
-                            detail: record.purpose || `${record.name} is an active ${record.legal_form || 'Swiss company'} in ${record.canton || 'Switzerland'}.`,
+                            detail: record.purpose || `${record.name} — registered ${record.legal_form || 'company'}${record.date_of_entry ? ', since ' + record.date_of_entry.slice(0, 4) : ''}.`,
                             url: sourceUrlLive ? record.source_url : undefined
                         }
                     ],
@@ -700,7 +700,7 @@ export class ColdAcquisitionService {
                         {
                             kind: `${record.source}_directory`,
                             label: `${record.source.toUpperCase()} directory record`,
-                            detail: record.evidence_detail || `${record.name} is listed in Vienna ${entry.district}.`,
+                            detail: record.evidence_detail || `${record.name} — WKO directory listing.`,
                             url: sourceUrlLive ? record.source_url : undefined
                         }
                     ],
@@ -1015,7 +1015,7 @@ export class ColdAcquisitionService {
         if (company.country === 'AT') {
             const inTargetDistrict = ['1220', '1160'].includes(company.postal_code) || ['1220', '1160'].includes(company.canton_or_bezirk);
             if (!inTargetDistrict) {
-                guardrail_notes.push('AT lead is outside Vienna 1220/1160 target scope.');
+                guardrail_notes.push('Outside primary target area.');
             }
             email_allowed = Boolean(contact.email && compliance.legal_basis === 'website_published_email');
             if (contact.email && !email_allowed) {
@@ -1067,7 +1067,6 @@ export class ColdAcquisitionService {
         const profile = this.buildOutreachProfile(company, contact, evidence);
         const companyName = company.name;
         const companyNameClean = this.companyNameForSubject(company.name);
-        const researchContext = this.researchContext(company);
         const firstName = this.resolveFirstName(contact);
         const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
         const techSignal = evidence.find((entry) => entry.kind === 'website_tech_signal');
@@ -1080,8 +1079,8 @@ export class ColdAcquisitionService {
         const shortSubject = `quick note on ${companyNameClean}${subjectDetail}`;
         const bestDetail = profile.observed_signal.trim();
         const introLead = bestDetail.length > 0
-            ? `I came across ${companyName} while reviewing ${researchContext} — ${bestDetail.slice(0, 120)}.`
-            : `I was reviewing ${researchContext} and noticed ${companyName}.`;
+            ? `I came across ${companyName} — ${bestDetail.slice(0, 120)}.`
+            : `I noticed ${companyName} and wanted to reach out.`;
 
         const linkedin_intro = [
             `${greeting} ${introLead}`,
@@ -1183,7 +1182,7 @@ export class ColdAcquisitionService {
         if (/fintech|finance|payment|bank|insurance|regulated|legal|compliance/i.test(`${company.industry} ${observedSignal}`)) {
             return `${this.sentenceStart(surface)} has to do the trust work before a cautious reader keeps going.`;
         }
-        return `${this.sentenceStart(surface)} is shaping the first impression already.`;
+        return '';
     }
 
     private whySignalMightMatter(company: Required<ColdLeadCompany>, evidence: ColdLeadEvidence[]) {
@@ -1224,7 +1223,7 @@ export class ColdAcquisitionService {
         if (/fintech|finance|payment|bank|insurance|regulated|legal|compliance/i.test(`${company.industry} ${observedSignal}`)) {
             return `A new reader is deciding quickly whether ${surface} builds enough trust to keep going.`;
         }
-        return `A new reader is deciding quickly whether ${surface} gives enough context to keep going.`;
+        return '';
     }
 
     private sentenceStart(value: string) {
@@ -1246,12 +1245,6 @@ export class ColdAcquisitionService {
         const name = contact.name?.trim();
         if (!name) return '';
         return name.split(/\s+/)[0] || '';
-    }
-
-    private researchContext(company: Required<ColdLeadCompany>) {
-        return company.country === 'AT'
-            ? 'a few Vienna software and services firms'
-            : 'Swiss company records and websites';
     }
 
     private companyNameForSubject(name: string) {

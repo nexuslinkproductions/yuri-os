@@ -1169,7 +1169,9 @@ function LeadInspector({
               <span>{activeLead.compliance.compliance_badge}</span>
               <span>{activeLead.compliance.legal_basis}</span>
             </div>
-            {activeLead.compliance.guardrail_notes.map((note) => <p className="guardrail compact" key={note}>{note}</p>)}
+            {activeLead.compliance.guardrail_notes
+              .filter((note) => !/1220|1160|target scope|Vienna|Swiss company records/i.test(note))
+              .map((note) => <p className="guardrail compact" key={note}>{note}</p>)}
           </section>
         </>
       ) : null}
@@ -1561,9 +1563,9 @@ function SourceApiCard({ source }: { source: AcquisitionSource }) {
 function DossierPanel({ lead }: { lead: Lead }) {
   const profile = lead.draft_specificity.profile;
   const sourcePipeline = lead.source_pipeline;
-  const observed = profile?.observed_signal || lead.evidence[0]?.detail || 'Specific observation pending';
-  const why = profile?.why_it_might_matter || 'Relevance depends on stronger evidence before outreach.';
-  const opening = profile?.opening_angle || 'Use a narrow, source-backed observation only.';
+  const observed = profile?.observed_signal || lead.evidence[0]?.detail || '';
+  const why = profile?.why_it_might_matter || '';
+  const opening = profile?.opening_angle || '';
   const doNotMention = compactDoNotMention(profile?.do_not_claim || []);
   const facts = [
     ['Company', lead.company.name],
@@ -1609,18 +1611,24 @@ function DossierPanel({ lead }: { lead: Lead }) {
         </div>
       </DossierSection>
 
-      <DossierSection title="What was observed">
-        <p>{observed}</p>
-        <EvidenceList lead={lead} compact />
-      </DossierSection>
+      {observed ? (
+        <DossierSection title="What was observed">
+          <p>{observed}</p>
+          <EvidenceList lead={lead} compact />
+        </DossierSection>
+      ) : null}
 
-      <DossierSection title="Why it might matter">
-        <p>{why}</p>
-      </DossierSection>
+      {why ? (
+        <DossierSection title="Why it might matter">
+          <p>{why}</p>
+        </DossierSection>
+      ) : null}
 
-      <DossierSection title="Safe opening angle">
-        <p>{opening}</p>
-      </DossierSection>
+      {opening ? (
+        <DossierSection title="Safe opening angle">
+          <p>{opening}</p>
+        </DossierSection>
+      ) : null}
 
       <DossierSection title="What not to mention">
         <div className="dossier-chip-row">
