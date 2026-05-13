@@ -60,6 +60,7 @@ try {
   assert.equal(fannyList.json.leads[0].crm_stage, 'ready');
   assert.equal(fannyList.json.leads[0].fanny_notes, '');
   assert.equal(fannyList.json.leads[0].next_follow_up_at, null);
+  assertSourcePipeline(fannyList.json.leads[0], 'listed CRM lead');
 
   const blockedSend = await request('PATCH', `/acquisition/api/leads/${leadId}`, {
     status: 'sent',
@@ -89,6 +90,9 @@ try {
   const thinEvidence = await request('POST', '/api/cold-acquisition/leads', thinEvidenceLeadBody(), { apiKey: API_KEY });
   assert.equal(thinEvidence.status, 201, 'local admin API should create thin-evidence lead');
   assert.ok(thinEvidence.json.lead.scoring.total_score <= 40, 'thin-evidence leads should be capped at low score');
+
+  const lowConfidence = await request('POST', '/api/cold-acquisition/leads', lowConfidenceSendableLeadBody(), { apiKey: API_KEY });
+  assert.equal(lowConfidence.status, 201, 'local admin API should create low-confidence sendable lead');
 
   const blocked = await request('POST', '/api/cold-acquisition/leads', blockedLeadBody(), { apiKey: API_KEY });
   assert.equal(blocked.status, 201, 'local admin API should create blocked lead');
@@ -147,6 +151,24 @@ try {
   assert.equal(missionSendableLead.due_state, 'overdue');
   assert.deepEqual(missionSendableLead.send_blockers, []);
   assert.ok(missionSendableLead.draft_excerpt.length <= 143);
+  assertSourcePipeline(missionSendableLead, 'today mission sendable lead');
+  assert.ok(['high', 'medium'].includes(missionSendableLead.source_pipeline.confidence.level), 'LinkedIn plus multi-evidence lead should be high or medium confidence');
+
+  const lowConfidenceMissionLead = mission.json.mission.sendable.find((lead) => lead.id === lowConfidence.json.lead.id);
+  assert.ok(lowConfidenceMissionLead, 'low-confidence sendable lead should appear in mission sendable queue');
+  assert.equal(lowConfidenceMissionLead.source_pipeline.confidence.level, 'low');
+  assert.equal(lowConfidenceMissionLead.source_pipeline.wrong_lead_risk, true, 'low-confidence sendable lead should be flagged as wrong-lead risk');
+
+  const thinEvidenceDetail = await request('GET', `/acquisition/api/leads/${thinEvidence.json.lead.id}`, null, { cookie: fannyCookie });
+  assert.equal(thinEvidenceDetail.status, 200, 'thin-evidence detail should be readable');
+  assertSourcePipeline(thinEvidenceDetail.json.lead, 'needs-research lead detail');
+  assert.equal(thinEvidenceDetail.json.lead.source_pipeline.wrong_lead_risk, false, 'wrong-lead risk should be false for needs-research leads');
+
+  const unknownSource = await request('POST', '/api/cold-acquisition/leads', unknownSourceLeadBody(), { apiKey: API_KEY });
+  assert.equal(unknownSource.status, 201, 'local admin API should create unknown-source low evidence lead');
+  const unknownSourceDetail = await request('GET', `/acquisition/api/leads/${unknownSource.json.lead.id}`, null, { cookie: fannyCookie });
+  assert.equal(unknownSourceDetail.status, 200, 'unknown-source detail should be readable');
+  assert.equal(unknownSourceDetail.json.lead.source_pipeline.confidence.level, 'low', 'unknown source with no evidence should be low confidence');
   const blockedCopy = await request('POST', `/acquisition/api/leads/${leadId}/copy-draft`, {
     draft_type: 'linkedin_intro'
   }, { cookie: fannyCookie });
@@ -213,6 +235,9 @@ try {
 
   const leadDetail = await request('GET', `/acquisition/api/leads/${sendableLeadId}`, null, { cookie: fannyCookie });
   assert.equal(leadDetail.status, 200, 'lead detail should be readable');
+  assertSourcePipeline(leadDetail.json.lead, 'CRM lead detail');
+  assert.equal(leadDetail.json.lead.source_pipeline.public_email_basis, true);
+  assert.equal(leadDetail.json.lead.source_pipeline.batch_id, null);
   assert.ok(leadDetail.json.activity.length >= 3, 'activity timeline should include patch, copy, and manual activity');
   assert.ok(leadDetail.json.activity.some((entry) => entry.type === 'draft_copied'));
 
@@ -354,6 +379,18 @@ function austriaSendableLeadBody() {
         label: 'Product section',
         detail: 'The product section explains robotics deployment for international clients.',
         url: 'https://donaustadt-robotics.at/en'
+      },
+      {
+        kind: 'linkedin_company',
+        label: 'LinkedIn company page',
+        detail: 'The LinkedIn company page positions Donaustadt Robotics around deployment teams.',
+        url: 'https://linkedin.com/company/donaustadt-robotics'
+      },
+      {
+        kind: 'directory_profile',
+        label: 'WKO directory profile',
+        detail: 'The WKO directory profile connects Donaustadt Robotics to Vienna software services.',
+        url: 'https://firmen.wko.at/donaustadt-robotics'
       }
     ],
     compliance: {
@@ -363,6 +400,75 @@ function austriaSendableLeadBody() {
       legal_basis: 'website_published_email'
     },
     notes: 'Published B2B inquiry route documented.'
+  };
+}
+
+function lowConfidenceSendableLeadBody() {
+  return {
+    company: {
+      name: 'Manual Signal Studio GmbH',
+      country: 'AT',
+      canton_or_bezirk: '1220',
+      postal_code: '1220',
+      city: 'Wien',
+      uid_or_fn: 'FN222333m',
+      legal_form: 'GmbH',
+      date_of_entry: '2026-04-02',
+      employee_count: 22,
+      industry: 'creative software',
+      website: 'https://manual-signal-studio.at/en'
+    },
+    contact: {
+      name: 'Eva Brandner',
+      title: 'Founder',
+      email: 'business@manual-signal-studio.at'
+    },
+    scoringSignals: {
+      websiteHasEnglish: true,
+      decisionMakerEnglish: true,
+      highFitIndustry: true
+    },
+    evidence: [
+      {
+        kind: 'website_language',
+        label: 'Service page',
+        detail: 'The service page describes customer-facing video workflow reviews for product teams.',
+        url: 'https://manual-signal-studio.at/en'
+      }
+    ],
+    compliance: {
+      source: 'manual',
+      source_url: 'https://example.test/manual-signal-studio-source',
+      source_timestamp: '2026-05-12T11:46:45.000Z',
+      legal_basis: 'website_published_email'
+    }
+  };
+}
+
+function unknownSourceLeadBody() {
+  return {
+    company: {
+      name: 'Unknown Source Holding GmbH',
+      country: 'AT',
+      canton_or_bezirk: '1220',
+      postal_code: '1220',
+      city: 'Wien',
+      uid_or_fn: 'FN444555u',
+      legal_form: 'GmbH',
+      date_of_entry: '2026-04-05',
+      employee_count: 14,
+      industry: 'services'
+    },
+    contact: {
+      name: 'Tina Moser',
+      title: 'Managing Director'
+    },
+    compliance: {
+      source: 'manual',
+      source_url: 'https://example.test/unknown-source-holding',
+      source_timestamp: '2026-05-12T11:46:50.000Z',
+      legal_basis: 'linkedin_platform'
+    }
   };
 }
 
@@ -622,6 +728,17 @@ async function stopBackend(proc) {
 function sessionCookie(response) {
   const cookie = response.headers.get('set-cookie') || '';
   return cookie.split(';')[0];
+}
+
+function assertSourcePipeline(lead, label) {
+  assert.ok(lead.source_pipeline, `${label} should include source_pipeline`);
+  assert.equal(typeof lead.source_pipeline.confidence.score, 'number', `${label} should include confidence score`);
+  assert.ok(['high', 'medium', 'low'].includes(lead.source_pipeline.confidence.level), `${label} should include confidence level`);
+  assert.ok(Array.isArray(lead.source_pipeline.confidence.signals), `${label} should include confidence signals`);
+  assert.ok(lead.source_pipeline.confidence.signals.length > 0, `${label} should include human-readable confidence signals`);
+  assert.ok(Object.prototype.hasOwnProperty.call(lead.source_pipeline, 'batch_id'), `${label} should include batch_id`);
+  assert.equal(typeof lead.source_pipeline.public_email_basis, 'boolean', `${label} should include public_email_basis`);
+  assert.equal(typeof lead.source_pipeline.wrong_lead_risk, 'boolean', `${label} should include wrong_lead_risk`);
 }
 
 async function request(method, route, body, options = {}) {

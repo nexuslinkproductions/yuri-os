@@ -25,6 +25,20 @@ type DraftType = 'linkedin_intro' | 'linkedin_followup' | 'email_cold' | 'email_
 type PreferredDraftType = 'linkedin_intro' | 'email_cold';
 type RouteMode = 'today' | 'leads' | 'admin-sources';
 type InspectorTab = 'dossier' | 'draft' | 'activity' | 'compliance' | 'notes';
+type SourceConfidenceLevel = 'high' | 'medium' | 'low';
+
+type SourceConfidence = {
+  score: number;
+  level: SourceConfidenceLevel;
+  signals: string[];
+};
+
+type SourcePipeline = {
+  confidence: SourceConfidence;
+  batch_id: string | null;
+  public_email_basis: boolean;
+  wrong_lead_risk: boolean;
+};
 
 type User = {
   id: string;
@@ -81,6 +95,7 @@ type Lead = {
     compliance_badge: 'ok' | 'review' | 'blocked';
     guardrail_notes: string[];
   };
+  source_pipeline: SourcePipeline;
   channel: 'linkedin' | 'email' | 'both' | 'blocked';
   status: string;
   crm_stage: CrmStage;
@@ -958,7 +973,10 @@ function LeadInspector({
           <h2>{activeLead.company.name}</h2>
           <p>{activeLead.company.city || activeLead.company.country} · {activeLead.company.industry || 'Industry pending'}</p>
         </div>
-        <span className={`score-pill ${scoreClass(activeLead.scoring.total_score)}`}>{activeLead.scoring.total_score}</span>
+        <div className="inspector-head-badges">
+          {shouldShowWrongLeadRisk(activeLead) ? <WrongLeadRiskChip /> : null}
+          <span className={`score-pill ${scoreClass(activeLead.scoring.total_score)}`}>{activeLead.scoring.total_score}</span>
+        </div>
       </section>
 
       <section className="detail-grid compact">
@@ -1437,6 +1455,7 @@ function SourceApiCard({ source }: { source: AcquisitionSource }) {
 
 function DossierPanel({ lead }: { lead: Lead }) {
   const profile = lead.draft_specificity.profile;
+  const sourcePipeline = lead.source_pipeline;
   const observed = profile?.observed_signal || lead.evidence[0]?.detail || 'Specific observation pending';
   const why = profile?.why_it_might_matter || 'Relevance depends on stronger evidence before outreach.';
   const opening = profile?.opening_angle || 'Use a narrow, source-backed observation only.';
@@ -1454,6 +1473,7 @@ function DossierPanel({ lead }: { lead: Lead }) {
         <ChannelBadge channel={lead.channel} />
         <span className={`confidence-chip ${profile?.confidence || 'low'}`}>{profile?.confidence || 'low'} evidence</span>
         <span className={`compliance-mini ${lead.compliance.compliance_badge}`}>{lead.compliance.compliance_badge}</span>
+        {shouldShowWrongLeadRisk(lead) ? <WrongLeadRiskChip /> : null}
       </div>
 
       <DossierSection title="What we know">
@@ -1464,6 +1484,23 @@ function DossierPanel({ lead }: { lead: Lead }) {
               <strong>{value}</strong>
             </div>
           ))}
+        </div>
+      </DossierSection>
+
+      <DossierSection title="Source Pipeline">
+        <div className="source-pipeline-section">
+          <div className="source-pipeline-summary">
+            <span className={`confidence-chip ${sourcePipeline.confidence.level}`}>
+              {sourcePipeline.confidence.level} source confidence
+            </span>
+            <span className={sourcePipeline.public_email_basis ? 'source-basis-label ok' : 'source-basis-label muted'}>
+              {sourcePipeline.public_email_basis ? 'Public email basis ✓' : 'No public email basis'}
+            </span>
+            {sourcePipeline.batch_id ? <span className="source-batch-label">Batch: {sourcePipeline.batch_id}</span> : null}
+          </div>
+          <div className="source-signal-list" aria-label="Source confidence signals">
+            {sourcePipeline.confidence.signals.map((signal) => <span key={signal}>{signal}</span>)}
+          </div>
         </div>
       </DossierSection>
 
@@ -1818,6 +1855,14 @@ function ChannelBadge({ channel }: { channel: Lead['channel'] }) {
 
 function StageBadge({ stage }: { stage: CrmStage }) {
   return <span className={`stage-badge ${stage}`}>{stage.replace(/_/g, ' ')}</span>;
+}
+
+function WrongLeadRiskChip() {
+  return <span className="wrong-lead-risk-chip"><AlertTriangle size={13} /> WRONG-LEAD RISK</span>;
+}
+
+function shouldShowWrongLeadRisk(lead: Lead) {
+  return Boolean(lead.source_pipeline.wrong_lead_risk && lead.draft_specificity.readiness !== 'needs_research');
 }
 
 function Progress({ label, value }: { label: string; value: number }) {
