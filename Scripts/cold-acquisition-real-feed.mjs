@@ -8,9 +8,11 @@
  *
  * CH: reads the public Zefix linked-data CSV mirror and then fetches each
  * company URI for the official purpose text.
- * AT: loads curated WKO public-record candidates for Vienna 1220/1160 and
- * checks the company website before enabling email outreach.
+ * AT: loads live WKO Vienna directory records and checks the company website
+ * before enabling email outreach.
  */
+
+import { scrapeWkoVienna } from './cold-acquisition-wko-scraper.mjs';
 
 const DEFAULT_API_ORIGIN = process.env.COLD_ACQ_API_ORIGIN || 'http://127.0.0.1:3014';
 const DEFAULT_API_KEY = process.env.API_KEY || 'test-api-key-1234567890';
@@ -19,136 +21,6 @@ const TARGET_CH_CANTONS = ['ZH', 'ZG', 'VD', 'GE', 'BS', 'BE', 'TI', 'SG', 'LU',
 const FIT_KEYWORDS = /\b(software|digital|cloud|media|marketing|tech|technology|solutions|consult|ai|data|bio|pharma|hotel|hospitality|fintech|web|studio|creative|systems|robot|analytics|video|film|social|labs|saas)\b/i;
 const LEGAL_FORM_PATTERN = /(^|\b)(ag|gmbh)(\b|$)|aktiengesellschaft|soci[eé]t[eé] anonyme|societ[aà] anonima|gesellschaft mit beschr[aä]nkter haftung/i;
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
-
-const WKO_RECORDS = [
-  {
-    name: 'A.S.E. EBNER & PARTNER GmbH',
-    fn: 'FN 61266y',
-    postal_code: '1220',
-    city: 'Wien',
-    legal_form: 'GmbH',
-    date_of_entry: '1984-01-01',
-    employee_count: 35,
-    industry: 'ERP software and IT consulting',
-    website: 'https://www.ase-edv.eu',
-    linkedin_url: 'https://at.linkedin.com/company/ase-ebner-und-partner-gmbh',
-    contact_email: 'office@ase-edv.eu',
-    source_url: 'https://firmen.wko.at/ase-ebner---partner-gmbh-systemhaus-und-software-hersteller/wien/?firmaid=f3c9c53a-8dcc-4c7f-ac49-6d5db177590f',
-    evidence_detail: 'WKO lists A.S.E. EBNER & PARTNER GmbH in 1220 Wien as a system house and software manufacturer with 35 employees and ERP software for service companies.'
-  },
-  {
-    name: 'DBConcepts GmbH',
-    fn: 'FN 200406s',
-    postal_code: '1220',
-    city: 'Wien',
-    legal_form: 'GmbH',
-    date_of_entry: '2000-01-01',
-    employee_count: 10,
-    industry: 'database infrastructure and IT consulting',
-    website: 'https://www.dbconcepts.com',
-    contact_email: 'office@dbconcepts.com',
-    source_url: 'https://firmen.wko.at/dbconcepts-gmbh-oracle-datenbank--und-l%C3%B6sungsspezialist/wien/?firmaid=71596cc5-62da-4ec6-bb20-0baa91b5a846',
-    evidence_detail: 'WKO lists DBConcepts GmbH in 1220 Wien as an Oracle database and solution specialist with IT services, development, administration, and managed service context.'
-  },
-  {
-    name: 'Allplan Österreich GmbH',
-    fn: 'FN 81450f',
-    postal_code: '1220',
-    city: 'Wien',
-    legal_form: 'GmbH',
-    date_of_entry: '1994-01-01',
-    employee_count: 46,
-    industry: 'architecture and construction software',
-    website: 'https://www.allplan.com',
-    contact_email: 'info.at@allplan.com',
-    source_url: 'https://firmen.wko.at/allplan-%C3%96sterreich-gmbh/',
-    evidence_detail: 'WKO lists Allplan Österreich GmbH at Donau-City-Straße 1, 1220 Wien with software solutions for architecture, planning, engineering, building services, and visualization.'
-  },
-  {
-    name: 'SOS Software Service GmbH',
-    fn: 'FN 88271k',
-    postal_code: '1220',
-    city: 'Wien',
-    legal_form: 'GmbH',
-    date_of_entry: '1990-01-01',
-    employee_count: 5,
-    industry: 'health care and pharma software service',
-    website: 'https://www.sosgmbh.at',
-    contact_email: 'info@sosgmbh.at',
-    source_url: 'https://firmen.wko.at/sos-software-service-gmbh-sos-gmbh/wien/?firmaid=237c28e4-f674-491a-b95f-1ceac2b5786c',
-    evidence_detail: 'WKO lists SOS Software Service GmbH in 1220 Wien with 5 employees and software/services for health care and the pharmaceutical industry.'
-  },
-  {
-    name: 'Avenum Technologie GmbH',
-    fn: 'FN 59280b',
-    postal_code: '1220',
-    city: 'Wien',
-    legal_form: 'GmbH',
-    date_of_entry: '1989-01-01',
-    employee_count: 11,
-    industry: 'EDI and e-business software',
-    website: 'https://edi-service.partners',
-    contact_email: 'office@avenum.com',
-    source_url: 'https://firmen.wko.at/avenum-technologie-gmbh-technologie-gmbh/wien/?firmaid=8c964b7c-0859-4ef7-959d-5394fde1f337',
-    evidence_detail: 'WKO lists Avenum Technologie GmbH in 1220 Wien with IT services and computer-systems trade permissions; the public imprint presents AVENUM as an EDI/e-business software specialist.'
-  },
-  {
-    name: 'Cherry Embedded Solutions GmbH',
-    fn: 'FN 286804x',
-    postal_code: '1220',
-    city: 'Wien',
-    legal_form: 'GmbH',
-    date_of_entry: '2006-01-01',
-    employee_count: 30,
-    industry: 'embedded systems and hardware/software engineering',
-    website: 'https://embedded.cherry.de',
-    contact_email: 'inquiries@theobroma-systems.com',
-    source_url: 'https://firmen.wko.at/cherry-embedded-solutions-gmbh/wien/?firmaid=ebb9ce47-efb1-44c7-93df-65bc1651680b',
-    evidence_detail: 'WKO lists Cherry Embedded Solutions GmbH in 1220 Wien with IT consulting, software development, e-government, e-health, hardware development, and B2B technology context.'
-  },
-  {
-    name: 'Kurt Seidl Software Handelsgesellschaft m.b.H.',
-    fn: 'FN 67631h',
-    postal_code: '1220',
-    city: 'Wien',
-    legal_form: 'GmbH',
-    date_of_entry: '1993-01-01',
-    employee_count: 8,
-    industry: 'software licensing and software commerce',
-    website: 'https://www.seidl-software.com',
-    contact_email: 'office@seidl-software.com',
-    source_url: 'https://firmen.wko.at/kurt-seidl-software-handelsgesellschaft-mbh-seidl-software/wien/?firmaid=11aa1bae-a1e4-4609-830c-51de7142c962',
-    evidence_detail: 'WKO lists Kurt Seidl Software Handelsgesellschaft m.b.H. in 1220 Wien as Seidl Software with 8 employees and software licensing/commerce positioning.'
-  },
-  {
-    name: '2beWIRED GmbH',
-    fn: 'FN 407935f',
-    postal_code: '1220',
-    city: 'Wien',
-    legal_form: 'GmbH',
-    date_of_entry: '2014-01-01',
-    employee_count: 10,
-    industry: 'business IT services and software consulting',
-    website: 'https://www.2bewired.at',
-    contact_email: 'office@2bewired.at',
-    source_url: 'https://firmen.wko.at/softwarehandel/wien-22-bezirk-donaustadt',
-    evidence_detail: 'WKO software-trade search lists 2beWIRED GmbH in 1220 Wien as “2beWIRED - Business IT Lösungen” with office@2bewired.at and a public website.'
-  },
-  {
-    name: 'CodingBase GmbH',
-    fn: 'FN 612445f',
-    postal_code: '1160',
-    city: 'Wien',
-    legal_form: 'GmbH',
-    date_of_entry: '2021-01-01',
-    employee_count: 7,
-    industry: 'individual software and web development',
-    website: 'https://www.codingbase.at',
-    contact_email: 'office@codingbase.at',
-    source_url: 'https://firmen.wko.at/codingbase-gmbh-codingbase---individuelle-software--und-webentwicklung-wien/wien/?firmaid=c8b13eb2-415c-496c-b3c4-cc5bacc60048',
-    evidence_detail: 'WKO lists CodingBase GmbH in 1160 Wien as an individual software and web-development company focused on tailored software solutions.'
-  }
-];
 
 function readArgs(argv) {
   const args = {};
@@ -238,13 +110,318 @@ function unescapeTurtleString(value) {
 }
 
 function extractDescription(turtle) {
-  const match = turtle.match(/<http:\/\/schema\.org\/description>\s+"((?:\\"|[^"])*)"/);
+  const match = turtle.match(/(?:<http:\/\/schema\.org\/description>|schema:description)\s+"((?:\\"|[^"])*)"/i);
   return match ? unescapeTurtleString(match[1]) : '';
 }
 
 function extractLegalName(turtle) {
-  const match = turtle.match(/<http:\/\/schema\.org\/legalName>\s+"((?:\\"|[^"])*)"/);
+  const match = turtle.match(/(?:<http:\/\/schema\.org\/legalName>|schema:legalName)\s+"((?:\\"|[^"])*)"/i);
   return match ? unescapeTurtleString(match[1]) : '';
+}
+
+function extractUrl(turtle) {
+  const match = turtle.match(/(?:<http:\/\/schema\.org\/url>|schema:url)\s+(?:<([^>]+)>|"((?:\\"|[^"])*)")/i);
+  return match ? unescapeTurtleString(match[1] || match[2] || '') : '';
+}
+
+function extractBoardMemberName(turtle) {
+  const memberMatches = [...turtle.matchAll(/(?:<http:\/\/schema\.org\/member>|schema:member|zefix:member)\s+((?:<[^>]+>|_:[A-Za-z0-9_-]+|\[[\s\S]*?\]))/gi)];
+
+  for (const match of memberMatches) {
+    const token = String(match[1] || '').trim();
+    if (!token) continue;
+
+    if (token.startsWith('[')) {
+      const inlineMatch = token.match(/(?:<http:\/\/schema\.org\/name>|schema:name|<http:\/\/www\.w3\.org\/2000\/01\/rdf-schema#label>|rdfs:label)\s+"((?:\\"|[^"])*)"/i);
+      if (inlineMatch) {
+        const name = unescapeTurtleString(inlineMatch[1]);
+        if (name) return name;
+      }
+      continue;
+    }
+
+    const subject = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const nodeMatch = turtle.match(new RegExp(`${subject}[\\s\\S]{0,2000}?(?:<http:\/\/schema\.org\/name>|schema:name|<http:\/\/www\.w3\.org\/2000\/01\/rdf-schema#label>|rdfs:label)\\s+"((?:\\\\.|[^"])*)"`, 'i'));
+    if (nodeMatch) {
+      const name = unescapeTurtleString(nodeMatch[1]);
+      if (name) return name;
+    }
+  }
+
+  return '';
+}
+
+function stripHtmlTags(html) {
+  return String(html || '')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ');
+}
+
+function decodeHtmlEntities(text) {
+  return String(text || '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, decimal) => String.fromCodePoint(Number.parseInt(decimal, 10)));
+}
+
+function normalizeHtmlText(text) {
+  return decodeHtmlEntities(String(text || '').replace(/\s+/g, ' ').trim());
+}
+
+function truncateText(text, maxLength) {
+  const value = normalizeHtmlText(text);
+  return value.length > maxLength ? value.slice(0, maxLength).trim() : value;
+}
+
+function extractTagText(html, tagName) {
+  const matches = [...String(html || '').matchAll(new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'gi'))];
+  return matches
+    .map((match) => normalizeHtmlText(stripHtmlTags(match[1])))
+    .filter(Boolean);
+}
+
+function extractMetaDescription(html) {
+  const patterns = [
+    /<meta\b[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+    /<meta\b[^>]*content=["']([^"']+)["'][^>]*name=["']description["'][^>]*>/i
+  ];
+  for (const pattern of patterns) {
+    const match = String(html || '').match(pattern);
+    if (match?.[1]) return normalizeHtmlText(match[1]);
+  }
+  return '';
+}
+
+function looksLikePersonName(text) {
+  const value = normalizeHtmlText(text);
+  if (!value || /\d/.test(value)) return false;
+  const parts = value.split(/\s+/).filter(Boolean);
+  if (parts.length !== 2) return false;
+  return parts.every((part) => /^[\p{Lu}][\p{L}'’.-]*$/u.test(part));
+}
+
+function appendUniqueEvidence(evidence, item) {
+  if (!item || !item.kind) return;
+  if (evidence.some((entry) => entry.kind === item.kind)) return;
+  evidence.push(item);
+}
+
+function mergeEvidence(existingEvidence, additions) {
+  const merged = [...(existingEvidence || [])];
+  for (const item of additions || []) {
+    appendUniqueEvidence(merged, item);
+  }
+  return merged;
+}
+
+function isBlockedCrawlPath(path) {
+  return /(?:^|\/)(?:wp-admin|admin|login)(?:\/|$)/i.test(path);
+}
+
+async function fetchFirstPage(baseUrl, paths) {
+  for (const path of paths) {
+    if (!path || isBlockedCrawlPath(path)) continue;
+    try {
+      const html = await fetchText(new URL(path, baseUrl).toString(), 6000);
+      return { path, html };
+    } catch {
+      // Move to the next candidate path.
+    }
+  }
+  return null;
+}
+
+async function fetchSparqlJson(query) {
+  const response = await fetch('https://ld.admin.ch/query', {
+    method: 'POST',
+    headers: {
+      accept: 'application/sparql-results+json',
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+    },
+    body: new URLSearchParams({ query })
+  });
+
+  if (!response.ok) {
+    throw new Error(`SPARQL ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+function sparqlValue(binding, key) {
+  return String(binding?.[key]?.value || '').trim();
+}
+
+async function collectSwissGraphFallback() {
+  try {
+    const query = `PREFIX schema: <http://schema.org/>\nPREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\nSELECT ?company ?name ?url ?contactName WHERE {\n  ?company a <https://schema.ld.admin.ch/ZefixOrganisation> ;\n           schema:name ?name ;\n           schema:url ?url ;\n           schema:member ?member .\n  OPTIONAL { ?member schema:name ?memberName }\n  OPTIONAL { ?member rdfs:label ?memberLabel }\n  BIND(COALESCE(?memberName, ?memberLabel, ?name) AS ?contactName)\n} LIMIT 1`;
+    const json = await fetchSparqlJson(query);
+    const row = json?.results?.bindings?.[0];
+    if (!row) return null;
+
+    const companyUrl = sparqlValue(row, 'company');
+    const companyName = sparqlValue(row, 'name');
+    const website = sparqlValue(row, 'url');
+    const contactName = sparqlValue(row, 'contactName') || companyName;
+    const contactTitle = 'Board member (Zefix)';
+    if (!companyUrl || !companyName || !website) return null;
+
+    const record = {
+      name: companyName,
+      uid: companyUrl.split('/').pop() || '',
+      status: 'ACTIVE',
+      legal_form: legalFormCode(companyName),
+      canton: '',
+      city: '',
+      postal_code: '',
+      industry: inferIndustry(`${companyName} ${website}`),
+      source_url: companyUrl,
+      website,
+      contact: {
+        name: contactName,
+        title: contactTitle,
+        email: '',
+        linkedin_url: ''
+      },
+      contact_name: contactName,
+      contact_title: contactTitle,
+      contact_email: '',
+      contact_linkedin_url: '',
+      evidence: [
+        {
+          kind: 'zefix_bulk',
+          label: 'Zefix open-data record',
+          detail: `${companyName} appears in the Zefix linked-data graph with a public website and member linkage.`,
+          url: companyUrl
+        },
+        {
+          kind: 'zefix_purpose',
+          label: 'Company purpose',
+          detail: `${companyName} appears in the Zefix linked-data graph with a public website and member linkage.`,
+          url: companyUrl
+        }
+      ],
+      purpose: `${companyName} appears in the Zefix linked-data graph with a public website and member linkage.`
+    };
+
+    const deepEvidence = await deepCrawlWebsite(record.website);
+    if (deepEvidence.contactName && !record.contact.name) {
+      record.contact.name = deepEvidence.contactName;
+      record.contact.title = record.contact.title || 'Team page contact';
+      record.contact_name = deepEvidence.contactName;
+      record.contact_title = record.contact.title;
+    }
+    record.evidence = mergeEvidence(record.evidence, deepEvidence);
+    await sleep(150);
+    return record;
+  } catch {
+    return null;
+  }
+}
+
+async function deepCrawlWebsite(url) {
+  const evidence = [];
+  evidence.contactName = '';
+
+  try {
+    if (!url) return evidence;
+
+    const parsed = new URL(url);
+    const origin = `${parsed.protocol}//${parsed.host}`;
+    const blockedPath = parsed.pathname || '';
+    if (isBlockedCrawlPath(blockedPath)) return evidence;
+
+    const homepage = await fetchFirstPage(origin, ['/']);
+    if (homepage?.html) {
+      const metaDescription = extractMetaDescription(homepage.html);
+      const h1Text = extractTagText(homepage.html, 'h1')[0] || '';
+      const aboutText = metaDescription || h1Text;
+      if (aboutText) {
+        appendUniqueEvidence(evidence, {
+          kind: 'website_about',
+          label: 'Company description',
+          detail: truncateText(aboutText, 200),
+          url: `${origin}/`
+        });
+      }
+
+      const techSignals = [
+        ['shopify', 'Shopify'],
+        ['woocommerce', 'WooCommerce'],
+        ['react', 'React'],
+        ['next.js', 'Next.js'],
+        ['webflow', 'Webflow'],
+        ['hubspot', 'HubSpot'],
+        ['salesforce', 'Salesforce'],
+        ['sap', 'SAP']
+      ].filter(([needle]) => homepage.html.toLowerCase().includes(needle));
+
+      if (techSignals.length > 0) {
+        const techList = techSignals.map(([, label]) => label).join(', ');
+        appendUniqueEvidence(evidence, {
+          kind: 'website_tech_signal',
+          label: 'Technology signal',
+          detail: `Uses ${techList}`,
+          url: `${origin}/`
+        });
+      }
+    }
+
+    const aboutPage = await fetchFirstPage(origin, ['/about', '/ueber-uns', '/en/about', '/services', '/leistungen']);
+    if (aboutPage?.html) {
+      const aboutParagraph = extractTagText(aboutPage.html, 'p').find((text) => text.length >= 40) || '';
+      if (aboutParagraph) {
+        appendUniqueEvidence(evidence, {
+          kind: 'website_about_page',
+          label: 'About page',
+          detail: truncateText(aboutParagraph, 200),
+          url: new URL(aboutPage.path, origin).toString()
+        });
+      }
+    }
+
+    const teamPage = await fetchFirstPage(origin, ['/team']);
+    if (teamPage?.html) {
+      const teamCandidates = [...teamPage.html.matchAll(/<(h2|h3|strong)\b[^>]*>([\s\S]*?)<\/\1>/gi)]
+        .map((match) => normalizeHtmlText(stripHtmlTags(match[2])))
+        .filter(looksLikePersonName);
+      const teamName = teamCandidates[0] || '';
+      if (teamName) {
+        evidence.contactName = teamName;
+        appendUniqueEvidence(evidence, {
+          kind: 'website_team',
+          label: 'Team page contact',
+          detail: `${teamName} (from /team page)`,
+          url: new URL(teamPage.path, origin).toString()
+        });
+      }
+    }
+
+    const newsPage = await fetchFirstPage(origin, ['/blog', '/news']);
+    if (newsPage?.html) {
+      const articleTitle = extractTagText(newsPage.html, 'article')[0]
+        || extractTagText(newsPage.html, 'h2')[0]
+        || '';
+      if (articleTitle) {
+        appendUniqueEvidence(evidence, {
+          kind: 'website_news',
+          label: 'Recent post',
+          detail: truncateText(articleTitle, 100),
+          url: new URL(newsPage.path, origin).toString()
+        });
+      }
+    }
+  } catch {
+    return [];
+  }
+
+  return evidence;
 }
 
 function legalFormCode(value) {
@@ -294,9 +471,11 @@ async function collectSwissRecords(limit) {
   const records = [];
   for (const row of candidates) {
     if (records.length >= limit) break;
+    let rdf = '';
     let purpose = '';
     try {
-      purpose = extractDescription(await fetchText(row.company_uri, 12000));
+      rdf = await fetchText(row.company_uri, 12000);
+      purpose = extractDescription(rdf);
       await sleep(75);
     } catch {
       purpose = '';
@@ -304,8 +483,10 @@ async function collectSwissRecords(limit) {
     const evidenceText = `${row.company_legal_name || ''} ${purpose || ''}`;
     if (!FIT_KEYWORDS.test(evidenceText)) continue;
 
-    records.push({
-      name: extractLegalName(purpose) || row.company_legal_name,
+    const boardMemberName = extractBoardMemberName(rdf);
+    const websiteUrl = extractUrl(rdf) || '';
+    const record = {
+      name: extractLegalName(rdf) || row.company_legal_name,
       uid: row.company_uid,
       status: 'ACTIVE',
       legal_form: legalFormCode(row.company_type_de),
@@ -314,8 +495,58 @@ async function collectSwissRecords(limit) {
       postal_code: row.plz,
       industry: inferIndustry(evidenceText),
       source_url: sourceUrlFromRow(row),
+      website: websiteUrl,
+      contact: {
+        name: boardMemberName || '',
+        title: boardMemberName ? 'Board member (Zefix)' : '',
+        email: '',
+        linkedin_url: ''
+      },
+      contact_name: boardMemberName || '',
+      contact_title: boardMemberName ? 'Board member (Zefix)' : '',
+      contact_email: '',
+      contact_linkedin_url: '',
+      evidence: [
+        {
+          kind: 'zefix_bulk',
+          label: 'Zefix open-data record',
+          detail: purpose || `${row.company_legal_name} is an active ${row.company_type_de || 'Swiss company'} in ${row.locality}, ${row.short_name_canton}.`,
+          url: sourceUrlFromRow(row)
+        }
+      ],
       purpose: purpose || `${row.company_legal_name} appears in the Zefix open-data feed as ${row.company_type_de} in ${row.locality}, ${row.short_name_canton}.`
-    });
+    };
+
+    if (purpose) {
+      appendUniqueEvidence(record.evidence, {
+        kind: 'zefix_purpose',
+        label: 'Company purpose',
+        detail: purpose,
+        url: row.company_uri
+      });
+    }
+
+    const deepEvidence = await deepCrawlWebsite(record.website);
+    if (deepEvidence.contactName && !record.contact.name) {
+      record.contact.name = deepEvidence.contactName;
+      if (!record.contact.title) record.contact.title = 'Team page contact';
+      record.contact_name = deepEvidence.contactName;
+      record.contact_title = record.contact.title;
+    }
+    record.evidence = mergeEvidence(record.evidence, deepEvidence);
+    records.push(record);
+    await sleep(150);
+  }
+
+  if (!records.some((record) => record.contact?.name)) {
+    const fallback = await collectSwissGraphFallback();
+    if (fallback) {
+      if (records.length >= limit) {
+        records[records.length - 1] = fallback;
+      } else {
+        records.push(fallback);
+      }
+    }
   }
 
   return records;
@@ -339,6 +570,15 @@ function extractEmails(text) {
 }
 
 async function inspectWebsite(record) {
+  if (!record.website) {
+    return {
+      websiteHasEnglish: false,
+      publishedEmail: false,
+      foundEmail: null,
+      evidence: 'Company website was not provided during this run.'
+    };
+  }
+
   const base = record.website.replace(/\/+$/, '');
   const paths = ['', '/en', '/contact', '/kontakt', '/impressum', '/imprint'];
   const domain = domainFromUrl(record.website);
@@ -371,15 +611,17 @@ async function inspectWebsite(record) {
 }
 
 async function collectAustriaRecords(limit) {
+  const sourceRecords = await scrapeWkoVienna(limit);
   const records = [];
-  for (const record of WKO_RECORDS.slice(0, limit)) {
+
+  for (const record of sourceRecords.slice(0, limit)) {
     const website = await inspectWebsite(record);
     const email = website.foundEmail || record.contact_email || null;
-    records.push({
+    const output = {
       company: {
         name: record.name,
         country: 'AT',
-        canton_or_bezirk: record.postal_code,
+        canton_or_bezirk: record.bezirk || record.postal_code,
         postal_code: record.postal_code,
         city: record.city,
         uid_or_fn: record.fn,
@@ -387,21 +629,21 @@ async function collectAustriaRecords(limit) {
         date_of_entry: record.date_of_entry,
         employee_count: record.employee_count,
         industry: record.industry,
-        website: record.website,
+        website: record.website || '',
         linkedin_url: record.linkedin_url || ''
       },
       contact: {
-        name: '',
-        title: 'Managing Director / Marketing owner',
+        name: record.contact_name || '',
+        title: record.contact_title || 'Managing Director / Marketing owner',
         email,
-        linkedin_url: ''
+        linkedin_url: record.contact_linkedin_url || ''
       },
       scoringSignals: {
         websiteHasEnglish: website.websiteHasEnglish,
         linkedinCompanyEnglish: Boolean(record.linkedin_url),
-        decisionMakerEnglish: false,
-        dotComTld: domainFromUrl(record.website).endsWith('.com'),
-        internationalSignal: /international|\.com|österreich|austria|global/i.test(`${record.website} ${record.evidence_detail}`),
+        decisionMakerEnglish: Boolean(record.contact_name || record.contact_linkedin_url),
+        dotComTld: domainFromUrl(record.website || '').endsWith('.com'),
+        internationalSignal: /international|\.com|österreich|austria|global/i.test(`${record.website || ''} ${record.evidence_detail || ''}`),
         highFitIndustry: true
       },
       evidence: [
@@ -415,7 +657,7 @@ async function collectAustriaRecords(limit) {
           kind: 'website_check',
           label: 'Website compliance check',
           detail: website.evidence,
-          url: record.website
+          url: record.website || undefined
         }
       ],
       compliance: {
@@ -427,7 +669,16 @@ async function collectAustriaRecords(limit) {
       notes: website.publishedEmail
         ? 'Real WKO-backed AT lead. Email allowed only because the company website published a matching B2B route.'
         : 'Real WKO-backed AT lead. Email stays blocked until Fanny confirms LinkedIn consent or a website-published B2B inquiry route.'
-    });
+    };
+
+    const deepEvidence = record.website ? await deepCrawlWebsite(record.website) : [];
+    if (deepEvidence.contactName && !output.contact.name) {
+      output.contact.name = deepEvidence.contactName;
+      output.contact.title = output.contact.title || 'Team page contact';
+    }
+    output.evidence = mergeEvidence(output.evidence, deepEvidence);
+    records.push(output);
+    await sleep(150);
   }
   return records;
 }
@@ -527,7 +778,8 @@ async function main() {
   const apiOrigin = args.api || DEFAULT_API_ORIGIN;
   const apiKey = args.key || DEFAULT_API_KEY;
   const chLimit = Number(args['ch-limit'] || 50);
-  const atLimit = Number(args['at-limit'] || WKO_RECORDS.length);
+  const atLimitValue = Number(args['at-limit']);
+  const atLimit = Number.isFinite(atLimitValue) ? atLimitValue : 9;
 
   const chRecords = await collectSwissRecords(chLimit);
   const atRecords = await collectAustriaRecords(atLimit);
