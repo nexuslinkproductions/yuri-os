@@ -45,7 +45,7 @@
       "MultiEdit(.claude/state/token-session.json)"
     ]
   },
-  "model": "haiku",
+  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
