@@ -185,6 +185,11 @@ try {
   assert.equal(blockedCopy.status, 409, 'copy-draft should use the same send blockers as mark-sent');
   assert.equal(blockedCopy.json.error, 'COMPLIANCE_SEND_BLOCKED');
 
+  const regenerated = await request('POST', `/acquisition/api/leads/${leadId}/regenerate-draft`, null, { cookie: fannyCookie });
+  assert.equal(regenerated.status, 200, 'regenerate draft should return updated lead');
+  assert.equal(regenerated.json.lead.id, leadId);
+  assert.match(regenerated.json.lead.draft_specificity.profile.observed_signal, /./, 'regenerated lead should include a compiled company profile');
+
   const missionFollowUpIds = mission.json.mission.follow_ups_due.map((lead) => lead.id);
   assert.ok(missionFollowUpIds.includes(followUp.json.lead.id), 'sent due lead should appear in follow-ups due');
   assert.equal(missionFollowUpIds.includes(sendableLeadId), false, 'sendable due lead should not appear twice');
@@ -215,7 +220,7 @@ try {
   }, { cookie: fannyCookie });
   assert.equal(copy.status, 200, 'copy-draft should return the selected draft and log activity');
   assert.equal(copy.json.draft_type, 'email_cold');
-  assert.match(copy.json.subject, /quick note on/i, 'email copy should expose subject separately');
+  assert.match(copy.json.subject, /quick thought on/i, 'email copy should expose subject separately');
   assert.match(copy.json.body, /Manual note/, 'email copy should expose body separately');
   assert.match(copy.json.text, /Manual note/);
 

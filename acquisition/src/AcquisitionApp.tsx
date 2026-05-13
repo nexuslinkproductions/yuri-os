@@ -523,6 +523,18 @@ export function AcquisitionApp() {
     }, 'Notes saved');
   };
 
+  const regenerateDraft = async () => {
+    if (!activeLead) return;
+    setError('');
+    const payload = await api<{ lead: Lead }>(`/acquisition/api/leads/${activeLead.id}/regenerate-draft`, {
+      method: 'POST'
+    });
+    setNotice('Profile regenerated');
+    setSelectedLead(payload.lead);
+    setDraftText(payload.lead.outreach_drafts[draftType] || '');
+    await Promise.all([loadLeads(), loadDashboard(), loadTodayMission(), loadLeadDetail(activeLead.id)]);
+  };
+
   const copyDraft = async () => {
     if (sendBlockReason) {
       setError(sendBlockReason);
@@ -911,6 +923,7 @@ export function AcquisitionApp() {
               onDraftTextChange={setDraftText}
               onSaveDraft={saveDraft}
               onCopyDraft={copyDraft}
+              onRegenerateDraft={regenerateDraft}
               fannyNotes={fannyNotes}
               onFannyNotesChange={setFannyNotes}
               followUp={followUp}
@@ -972,6 +985,7 @@ function LeadInspector({
   onDraftTextChange,
   onSaveDraft,
   onCopyDraft,
+  onRegenerateDraft,
   fannyNotes,
   onFannyNotesChange,
   followUp,
@@ -1001,6 +1015,7 @@ function LeadInspector({
   onDraftTextChange: (value: string) => void;
   onSaveDraft: () => Promise<void>;
   onCopyDraft: () => void;
+  onRegenerateDraft: () => Promise<void>;
   fannyNotes: string;
   onFannyNotesChange: (value: string) => void;
   followUp: string;
@@ -1107,6 +1122,13 @@ function LeadInspector({
               </div>
             </section>
           ) : null}
+          <button
+            className="secondary-action regenerate-draft-btn"
+            onClick={onRegenerateDraft}
+            disabled={activeLead.source_pipeline?.confidence?.level === 'low'}
+          >
+            <RefreshCw size={15} /> Regenerate profile
+          </button>
           <textarea value={draftText} onChange={(event) => onDraftTextChange(event.target.value)} />
           <div className="personalization-checklist">
             {personalizationChecklist(activeLead, draftText).map((item) => (
@@ -1610,6 +1632,22 @@ function DossierPanel({ lead }: { lead: Lead }) {
           </div>
         </div>
       </DossierSection>
+
+      {lead.draft_specificity?.profile?.observed_signal ? (
+        <DossierSection title="Company Profile">
+          <div className="company-profile-section">
+            <p className="profile-observation">{lead.draft_specificity.profile.observed_signal}</p>
+            {lead.draft_specificity.profile.why_it_might_matter ? (
+              <p className="profile-why">{lead.draft_specificity.profile.why_it_might_matter}</p>
+            ) : null}
+            {lead.draft_specificity.profile.opening_angle ? (
+              <p className="profile-angle">
+                <span className="profile-angle-label">Offer angle:</span> {lead.draft_specificity.profile.opening_angle}
+              </p>
+            ) : null}
+          </div>
+        </DossierSection>
+      ) : null}
 
       {observed ? (
         <DossierSection title="What was observed">
