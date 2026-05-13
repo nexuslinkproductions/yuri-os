@@ -19,7 +19,11 @@ const bannedColdDraftPatterns = [
     /acquisition stack/i,
     /demand-generation stack/i,
     /trust-building stack/i,
-    /paid traffic|retargeting|Google Ads/i
+    /paid traffic|retargeting|Google Ads/i,
+    /quick thought on your (?:positioning|services page|workflow page|product page)/i,
+    /Tiny thought:/i,
+    /Worth sending you a short example angle\?/i,
+    /I came across .* while looking at/i
 ];
 
 function bodyWordCount(draft: string) {
@@ -87,6 +91,8 @@ assert.equal(swissLead.scoring.english_score, 100);
 assert.equal(swissLead.scoring.size_score, 100);
 assert.equal(swissLead.scoring.industry_fit_score, 100);
 assert.equal(swissLead.scoring.recency_score, 100);
+assert.equal(swissLead.scoring.evidence_score, 100);
+assert.equal(swissLead.scoring.personalization_score, 100);
 assert.equal(swissLead.scoring.total_score, 100);
 assert.equal(swissLead.priority_flag, true);
 assert.equal(swissLead.channel, 'both');
@@ -94,17 +100,24 @@ assert.equal(swissLead.compliance.email_allowed, true);
 assert.equal(swissLead.compliance.legal_review_required, true);
 const swissDraftText = Object.values(swissLead.outreach_drafts).filter(Boolean).join('\n');
 bannedColdDraftPatterns.forEach((pattern) => {
-    assert.doesNotMatch(swissDraftText, pattern);
+assert.doesNotMatch(swissDraftText, pattern);
 });
 assert.match(swissLead.outreach_drafts.linkedin_intro, /noticed.*clinical analytics workflows/i);
 assert.match(swissLead.outreach_drafts.linkedin_intro, /short angle/i);
+assert.doesNotMatch(swissLead.outreach_drafts.linkedin_intro, /\/en\/platform/i);
 assert.ok(swissLead.outreach_drafts.linkedin_intro.split(/\s+/).length <= 75);
-assert.match(swissLead.outreach_drafts.email_cold || '', /Subject: quick thought/i);
-assert.match(swissLead.outreach_drafts.email_cold || '', /I noticed/i);
-assert.match(swissLead.outreach_drafts.email_cold || '', /Worth sending you the short angle\?/i);
-assert.ok(bodyWordCount(swissLead.outreach_drafts.email_cold || '') <= 95);
+assert.ok(swissLead.outreach_drafts.linkedin_intro.length <= 450);
+assert.match(swissLead.outreach_drafts.email_cold || '', /Subject: quick note on Alpine Bio Analytics/i);
+assert.match(swissLead.outreach_drafts.email_cold || '', /I was reviewing Swiss company records and websites and noticed/i);
+assert.match(swissLead.outreach_drafts.email_cold || '', /One thing that stood out:/i);
+assert.match(swissLead.outreach_drafts.email_cold || '', /If you'd like, I can send a short angle\./i);
+assert.doesNotMatch(swissLead.outreach_drafts.email_cold || '', /\bc2moviez\b/i);
+assert.doesNotMatch(swissLead.outreach_drafts.email_cold || '', /\/en\/platform/i);
+assert.ok(bodyWordCount(swissLead.outreach_drafts.email_cold || '') <= 110);
 assert.doesNotMatch(swissLead.outreach_drafts.email_cold || '', /\bEnglish\b|English-speaking|English-first|English-language/i);
 assert.doesNotMatch(swissLead.outreach_drafts.linkedin_intro, /\bEnglish\b|English-speaking|English-first|English-language/i);
+assert.doesNotMatch(swissLead.outreach_drafts.linkedin_intro, /Tiny thought:/i);
+assert.ok(swissLead.draft_versions.length >= 3, 'generated drafts should be versioned');
 assert.equal(swissLead.draft_specificity.valid, true);
 const swissSpecificity = swissLead.draft_specificity as any;
 assert.equal(swissSpecificity.readiness, 'ready_to_rework');
@@ -161,8 +174,166 @@ const thinEvidenceLead = thinEvidenceService.createLead({
     }
 });
 assert.equal(thinEvidenceLead.status, 'needs_review');
+assert.ok(thinEvidenceLead.scoring.total_score <= 40);
 assert.equal((thinEvidenceLead.draft_specificity as any).readiness, 'needs_research');
 assert.ok((thinEvidenceLead.draft_specificity as any).warnings.includes('thin_evidence'));
+
+const normalizationDb = new Database(':memory:');
+const normalizationService = new ColdAcquisitionService(normalizationDb, {
+    now: () => new Date('2026-05-12T12:00:00.000Z')
+});
+const wkoLead = normalizationService.createLead({
+    company: {
+        name: '2beWIRED GmbH',
+        country: 'AT',
+        canton_or_bezirk: '1220',
+        postal_code: '1220',
+        city: 'Wien',
+        uid_or_fn: 'FN407935f',
+        legal_form: 'GmbH',
+        date_of_entry: '2014-01-01',
+        employee_count: 10,
+        industry: 'business IT services and software consulting',
+        website: 'https://www.2bewired.at',
+        linkedin_url: 'https://linkedin.com/company/2bewired'
+    },
+    contact: {
+        name: '',
+        title: 'Managing Director / Marketing owner',
+        email: 'office@2bewired.at',
+        linkedin_url: ''
+    },
+    scoringSignals: {
+        websiteHasEnglish: false,
+        linkedinCompanyEnglish: true,
+        decisionMakerEnglish: false,
+        dotComTld: false,
+        internationalSignal: false,
+        highFitIndustry: true
+    },
+    evidence: [
+        {
+            kind: 'wko_directory',
+            label: 'WKO public record',
+            detail: 'WKO software-trade search lists 2beWIRED GmbH in 1220 Wien as “2beWIRED - Business IT Lösungen” with office@2bewired.at and a public website.',
+            url: 'https://firmen.wko.at/softwarehandel/wien-22-bezirk-donaustadt'
+        },
+        {
+            kind: 'website_check',
+            label: 'Website compliance check',
+            detail: 'Company website fetched /, /kontakt, /impressum; B2B email appears on-site.',
+            url: 'https://www.2bewired.at'
+        }
+    ],
+    compliance: {
+        source: 'wko',
+        source_url: 'https://firmen.wko.at/softwarehandel/wien-22-bezirk-donaustadt',
+        source_timestamp: '2026-05-12T11:43:00.000Z',
+        legal_basis: 'website_published_email'
+    }
+});
+const wkoDraftText = Object.values(wkoLead.outreach_drafts).filter(Boolean).join('\n');
+assert.match(wkoDraftText, /2beWIRED/i);
+assert.match(wkoDraftText, /Business IT Lösungen|business IT/i);
+assert.match(wkoLead.outreach_drafts.email_cold || '', /^Subject: quick note on 2beWIRED/im);
+assert.match(wkoLead.outreach_drafts.linkedin_intro, /One thing that stood out:/i);
+assert.ok(wkoLead.outreach_drafts.linkedin_intro.length <= 450);
+assert.ok(bodyWordCount(wkoLead.outreach_drafts.email_cold || '') <= 110);
+[
+    /\bWKO\b/i,
+    /wko/i,
+    /public WKO profile/i,
+    /software-trade search lists/i,
+    /office@2bewired\.at/i,
+    /workbench/i,
+    /Acquisition CRM/i
+].forEach((pattern) => assert.doesNotMatch(wkoDraftText, pattern));
+assert.doesNotMatch((wkoLead.draft_specificity as any).profile.observed_signal, /\bWKO\b|office@|software-trade search lists/i);
+assert.equal((wkoLead.draft_specificity as any).readiness, 'ready_to_rework');
+const staleWkoDrafts = {
+    linkedin_intro: 'Hi, I was reviewing Vienna software and services firms and noticed 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien. One thing that stood out: that positioning is doing the first-pass explanation already. If useful, I can send a short angle.',
+    linkedin_followup: 'Hi, quick follow-up on 2beWIRED. The same detail still stands: 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien.',
+    email_cold: 'Subject: quick thought on your positioning\n\nHi,\n\nI was reviewing Vienna software and services firms and noticed 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien.\n\nTiny thought: that positioning is doing the first-pass explanation already.\n\nIf you\'d like, I can send a short angle.\n\nBest,\nFanny',
+    email_followup: 'Subject: Re: quick thought on your positioning\n\nHi,\n\nQuick follow-up on 2beWIRED.\n\nThe same detail still stands: 2beWIRED GmbH is described as 2beWIRED - Business IT Lösungen in 1220 Wien.\n\nBest,\nFanny'
+};
+normalizationDb.prepare('UPDATE cold_acquisition_leads SET outreach_drafts_json = ?, draft_versions_json = ? WHERE id = ?').run(
+    JSON.stringify(staleWkoDrafts),
+    JSON.stringify(Object.entries(staleWkoDrafts).map(([draft_type, text]) => ({
+        id: `stale_${draft_type}`,
+        draft_type,
+        text,
+        source: 'generated',
+        created_at: '2026-05-12T11:43:00.000Z'
+    }))),
+    wkoLead.id
+);
+const regeneratedWkoLead = normalizationService.getLead(wkoLead.id);
+assert.ok(regeneratedWkoLead);
+const regeneratedWkoText = Object.values(regeneratedWkoLead?.outreach_drafts || {}).filter(Boolean).join('\n');
+assert.doesNotMatch(regeneratedWkoText, /\bWKO\b|public WKO profile|office@2bewired\.at|public company profile|quick thought on your positioning|Tiny thought:/i);
+assert.match(regeneratedWkoText, /Subject: quick note on 2beWIRED/i);
+assert.match(regeneratedWkoText, /Business IT Lösungen|business IT/i);
+
+const zefixLead = normalizationService.createLead({
+    company: {
+        name: 'Romandie SaaS Growth AG',
+        country: 'CH',
+        canton_or_bezirk: 'VD',
+        postal_code: '1003',
+        city: 'Lausanne',
+        uid_or_fn: 'CHE555111222',
+        legal_form: 'AG',
+        date_of_entry: '2026-03-02',
+        employee_count: 18,
+        industry: 'SaaS',
+        website: 'https://romandie-growth.com/en',
+        linkedin_url: 'https://linkedin.com/company/romandie-growth'
+    },
+    contact: {
+        name: 'Claire Martin',
+        title: 'CEO',
+        email: 'hello@romandie-growth.com',
+        linkedin_url: 'https://linkedin.com/in/claire-martin'
+    },
+    scoringSignals: {
+        websiteHasEnglish: true,
+        linkedinCompanyEnglish: true,
+        decisionMakerEnglish: true,
+        dotComTld: true,
+        highFitIndustry: true
+    },
+    evidence: [
+        {
+            kind: 'zefix_bulk',
+            label: 'Zefix open-data record',
+            detail: 'Zefix open-data record shows Romandie SaaS Growth AG builds English-language SaaS growth tools for international hospitality groups.',
+            url: 'https://www.zefix.ch/en/search/entity/list/firm/555111222'
+        }
+    ],
+    compliance: {
+        source: 'zefix',
+        source_url: 'https://www.zefix.ch/en/search/entity/list/firm/555111222',
+        source_timestamp: '2026-05-12T11:44:00.000Z',
+        legal_basis: 'public_register'
+    }
+});
+const zefixDraftText = Object.values(zefixLead.outreach_drafts).filter(Boolean).join('\n');
+assert.match(zefixDraftText, /Romandie SaaS Growth/i);
+assert.match(zefixDraftText, /SaaS growth tools/i);
+assert.match(zefixLead.outreach_drafts.email_cold || '', /^Subject: quick note on Romandie SaaS Growth/im);
+assert.match(zefixLead.outreach_drafts.linkedin_intro, /One thing that stood out:/i);
+assert.ok(zefixLead.outreach_drafts.linkedin_intro.length <= 450);
+assert.ok(bodyWordCount(zefixLead.outreach_drafts.email_cold || '') <= 110);
+[
+    /\bZefix\b/i,
+    /open-data record/i,
+    /company register profile/i,
+    /public company profile/i,
+    /workbench/i,
+    /Acquisition CRM/i
+].forEach((pattern) => assert.doesNotMatch(zefixDraftText, pattern));
+assert.doesNotMatch((zefixLead.draft_specificity as any).profile.observed_signal, /\bZefix\b|open-data record/i);
+assert.equal((zefixLead.draft_specificity as any).readiness, 'ready_to_rework');
 
 const austriaLead = service.createLead({
     company: {
@@ -242,6 +413,7 @@ const duplicate = service.createLead({
 
 assert.equal(duplicate.dedupe.is_duplicate, true);
 assert.equal(duplicate.status, 'needs_review');
+assert.ok((duplicate.draft_specificity as any).warnings.includes('duplicate_observation'));
 
 const dashboard = service.getDashboard();
 assert.equal(dashboard.total_leads, 3);

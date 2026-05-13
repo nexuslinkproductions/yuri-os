@@ -67,6 +67,12 @@ try {
   }, { cookie: fannyCookie });
   assert.equal(blockedSend.status, 409, 'Fanny should not mark CH review-needed leads as sent');
   assert.equal(blockedSend.json.error, 'COMPLIANCE_SEND_BLOCKED');
+  const blockedExplicitSend = await request('POST', `/acquisition/api/leads/${leadId}/mark-sent`, {
+    channel: 'email',
+    next_follow_up_at: null
+  }, { cookie: fannyCookie });
+  assert.equal(blockedExplicitSend.status, 409, 'CH review-needed leads should fail explicit mark-sent');
+  assert.equal(blockedExplicitSend.json.error, 'COMPLIANCE_SEND_BLOCKED');
 
   const sendable = await request('POST', '/api/cold-acquisition/leads', austriaSendableLeadBody(), { apiKey: API_KEY });
   assert.equal(sendable.status, 201, 'local admin API should create sendable AT acquisition leads');
@@ -82,6 +88,7 @@ try {
 
   const thinEvidence = await request('POST', '/api/cold-acquisition/leads', thinEvidenceLeadBody(), { apiKey: API_KEY });
   assert.equal(thinEvidence.status, 201, 'local admin API should create thin-evidence lead');
+  assert.ok(thinEvidence.json.lead.scoring.total_score <= 40, 'thin-evidence leads should be capped at low score');
 
   const blocked = await request('POST', '/api/cold-acquisition/leads', blockedLeadBody(), { apiKey: API_KEY });
   assert.equal(blocked.status, 201, 'local admin API should create blocked lead');
@@ -100,29 +107,51 @@ try {
   assert.equal(typeof mission.json.mission.generated_at, 'string');
   assert.equal(mission.json.mission.weekly.target, 20);
   assert.equal(mission.json.mission.counts.sendable, mission.json.mission.sendable.length);
+  assert.ok(Array.isArray(mission.json.mission.review_ready), 'today mission should expose review-ready queue');
+  assert.equal(mission.json.mission.counts.review_ready, mission.json.mission.review_ready.length);
+  assert.deepEqual(
+    mission.json.mission.review_ready.map((lead) => lead.id),
+    mission.json.mission.sendable.map((lead) => lead.id),
+    'deprecated sendable alias should mirror review-ready queue'
+  );
   assert.equal(mission.json.mission.counts.follow_ups_due, mission.json.mission.follow_ups_due.length);
   assert.equal(mission.json.mission.counts.needs_research, 1);
   assert.equal(mission.json.mission.counts.review_needed, 1);
   assert.ok(mission.json.mission.counts.blocked >= 1);
   assert.ok(mission.json.mission.counts.overdue >= 1);
+  assert.ok(Array.isArray(mission.json.mission.needs_research), 'today mission should expose a renderable needs-research queue');
+  assert.ok(
+    mission.json.mission.needs_research.length <= mission.json.mission.counts.needs_research,
+    'needs-research queue can be narrower than raw count because blocked records are filtered'
+  );
 
   const dashboardForMission = await request('GET', '/acquisition/api/dashboard', null, { cookie: fannyCookie });
   assert.deepEqual(mission.json.mission.weekly, dashboardForMission.json.dashboard.weekly_quota);
 
   const missionSendableIds = mission.json.mission.sendable.map((lead) => lead.id);
-  assert.ok(missionSendableIds.includes(sendableLeadId), 'AT published B2B email lead should be sendable');
+  const missionReviewReadyIds = mission.json.mission.review_ready.map((lead) => lead.id);
+  assert.ok(missionReviewReadyIds.includes(sendableLeadId), 'AT published B2B email lead should be review-ready');
   assert.ok(
-    missionSendableIds.indexOf(sendableLeadId) < missionSendableIds.indexOf(lowerScoreSendable.json.lead.id),
-    'sendable mission queue should sort by score descending'
+    missionReviewReadyIds.indexOf(sendableLeadId) < missionReviewReadyIds.indexOf(lowerScoreSendable.json.lead.id),
+    'review-ready mission queue should sort by score and confidence descending'
   );
-  assert.equal(missionSendableIds.includes(leadId), false, 'CH review-needed lead should not be sendable');
-  assert.equal(missionSendableIds.includes(thinEvidence.json.lead.id), false, 'thin-evidence lead should not be sendable');
-  assert.equal(missionSendableIds.includes(blocked.json.lead.id), false, 'blocked lead should not be sendable');
+  assert.equal(missionReviewReadyIds.includes(leadId), false, 'CH review-needed lead should not be review-ready');
+  assert.equal(missionReviewReadyIds.includes(thinEvidence.json.lead.id), false, 'thin-evidence lead should not be review-ready');
+  assert.equal(missionReviewReadyIds.includes(blocked.json.lead.id), false, 'blocked lead should not be review-ready');
+  const missionResearchIds = mission.json.mission.needs_research.map((lead) => lead.id);
+  assert.ok(missionResearchIds.includes(thinEvidence.json.lead.id), 'thin-evidence lead should appear in needs research');
+  assert.equal(missionResearchIds.includes(sendableLeadId), false, 'sendable lead should not appear in needs research');
+  assert.equal(missionResearchIds.includes(blocked.json.lead.id), false, 'blocked lead should not appear in needs research');
   const missionSendableLead = mission.json.mission.sendable.find((lead) => lead.id === sendableLeadId);
   assert.equal(missionSendableLead.preferred_draft_type, 'linkedin_intro');
   assert.equal(missionSendableLead.due_state, 'overdue');
   assert.deepEqual(missionSendableLead.send_blockers, []);
   assert.ok(missionSendableLead.draft_excerpt.length <= 143);
+  const blockedCopy = await request('POST', `/acquisition/api/leads/${leadId}/copy-draft`, {
+    draft_type: 'linkedin_intro'
+  }, { cookie: fannyCookie });
+  assert.equal(blockedCopy.status, 409, 'copy-draft should use the same send blockers as mark-sent');
+  assert.equal(blockedCopy.json.error, 'COMPLIANCE_SEND_BLOCKED');
 
   const missionFollowUpIds = mission.json.mission.follow_ups_due.map((lead) => lead.id);
   assert.ok(missionFollowUpIds.includes(followUp.json.lead.id), 'sent due lead should appear in follow-ups due');
@@ -130,20 +159,23 @@ try {
   const missionFollowUpLead = mission.json.mission.follow_ups_due.find((lead) => lead.id === followUp.json.lead.id);
   assert.equal(missionFollowUpLead.due_state, 'overdue');
   assert.ok(Array.isArray(missionFollowUpLead.send_blockers));
+  const followUpDone = await request('POST', `/acquisition/api/leads/${followUp.json.lead.id}/follow-up`, {
+    next_follow_up_at: null
+  }, { cookie: fannyCookie });
+  assert.equal(followUpDone.status, 200, 'explicit follow-up done should clear next follow-up');
+  assert.equal(followUpDone.json.lead.next_follow_up_at, null, 'next_follow_up_at should clear to null');
 
   const fannyPatch = await request('PATCH', `/acquisition/api/leads/${sendableLeadId}`, {
     fanny_notes: 'Fanny checked the observed signal and will send manually.',
     next_follow_up_at: '2026-05-20T09:00:00.000Z',
-    status: 'sent',
-    crm_stage: 'sent',
     outreach_drafts: {
       ...sendable.json.lead.outreach_drafts,
       email_cold: `${sendable.json.lead.outreach_drafts.email_cold}\n\nManual note: trimmed for Fanny.`
     }
   }, { cookie: fannyCookie });
-  assert.equal(fannyPatch.status, 200, 'Fanny should update notes, status, follow-up, and drafts');
-  assert.equal(fannyPatch.json.lead.status, 'sent');
-  assert.equal(fannyPatch.json.lead.crm_stage, 'sent');
+  assert.equal(fannyPatch.status, 200, 'Fanny should update notes, follow-up, and drafts before manual send');
+  assert.notEqual(fannyPatch.json.lead.status, 'sent');
+  assert.equal(fannyPatch.json.lead.crm_stage, 'ready');
   assert.match(fannyPatch.json.lead.fanny_notes, /observed signal/);
 
   const copy = await request('POST', `/acquisition/api/leads/${sendableLeadId}/copy-draft`, {
@@ -151,7 +183,27 @@ try {
   }, { cookie: fannyCookie });
   assert.equal(copy.status, 200, 'copy-draft should return the selected draft and log activity');
   assert.equal(copy.json.draft_type, 'email_cold');
+  assert.match(copy.json.subject, /quick note on/i, 'email copy should expose subject separately');
+  assert.match(copy.json.body, /Manual note/, 'email copy should expose body separately');
   assert.match(copy.json.text, /Manual note/);
+
+  const markSentMissingDecision = await request('POST', `/acquisition/api/leads/${sendableLeadId}/mark-sent`, {
+    channel: 'linkedin'
+  }, { cookie: fannyCookie });
+  assert.equal(markSentMissingDecision.status, 400, 'mark-sent should require a follow-up decision');
+  const explicitMarkSent = await request('POST', `/acquisition/api/leads/${sendableLeadId}/mark-sent`, {
+    channel: 'linkedin',
+    next_follow_up_at: '2026-05-20'
+  }, { cookie: fannyCookie });
+  assert.equal(explicitMarkSent.status, 200, 'review-ready lead should support explicit mark-sent');
+  assert.equal(explicitMarkSent.json.lead.status, 'sent');
+  assert.equal(explicitMarkSent.json.lead.crm_stage, 'sent');
+
+  const explicitReply = await request('POST', `/acquisition/api/leads/${sendableLeadId}/reply`, {
+    reply_text: 'Prospect replied and asked for the overview.'
+  }, { cookie: fannyCookie });
+  assert.equal(explicitReply.status, 200, 'reply endpoint should record manual replies');
+  assert.equal(explicitReply.json.lead.status, 'replied');
 
   const customActivity = await request('POST', `/acquisition/api/leads/${sendableLeadId}/activity`, {
     type: 'reply_logged',
@@ -166,6 +218,16 @@ try {
 
   const fannyAdminBlocked = await request('POST', '/acquisition/api/admin/push', { dryRun: true }, { cookie: fannyCookie });
   assert.equal(fannyAdminBlocked.status, 403, 'operator should be blocked from admin-only push');
+  const fannyIngestBlocked = await request('POST', '/acquisition/api/admin/ingest/austria-directory', {
+    records: [austriaIngestRecord()]
+  }, { cookie: fannyCookie });
+  assert.equal(fannyIngestBlocked.status, 403, 'operator should be blocked from admin-only ingest');
+  const fannySourceConfigBlocked = await request('GET', '/acquisition/api/admin/source-config', null, { cookie: fannyCookie });
+  assert.equal(fannySourceConfigBlocked.status, 403, 'operator should be blocked from admin-only source config');
+  const fannyLiveFeedBlocked = await request('POST', '/acquisition/api/admin/live-feed', {
+    apply: true
+  }, { cookie: fannyCookie });
+  assert.equal(fannyLiveFeedBlocked.status, 403, 'operator should be blocked from admin-only live source intake');
 
   const adminLogin = await request('POST', '/acquisition/api/auth/login', {
     email: ADMIN_EMAIL,
@@ -175,6 +237,29 @@ try {
   const adminCookie = sessionCookie(adminLogin);
   const adminPush = await request('POST', '/acquisition/api/admin/push', { dryRun: true, limit: 20 }, { cookie: adminCookie });
   assert.equal(adminPush.status, 200, 'admin should access CRM admin push');
+  const adminSourceConfig = await request('GET', '/acquisition/api/admin/source-config', null, { cookie: adminCookie });
+  assert.equal(adminSourceConfig.status, 200, 'admin should access source API configuration');
+  assert.ok(Array.isArray(adminSourceConfig.json.source_config.sources), 'source config should include sources');
+  const zefixSource = adminSourceConfig.json.source_config.sources.find((source) => source.key === 'zefix');
+  const firmafindSource = adminSourceConfig.json.source_config.sources.find((source) => source.key === 'firmafind');
+  const compassSource = adminSourceConfig.json.source_config.sources.find((source) => source.key === 'wirtschaftscompass');
+  assert.ok(zefixSource, 'source config should link Zefix');
+  assert.ok(firmafindSource, 'source config should link FirmaFind');
+  assert.ok(compassSource, 'source config should link Wirtschafts-Compass');
+  assert.equal(zefixSource.api_docs_url, 'https://www.zefix.admin.ch/ZefixPublicREST/v3/api-docs');
+  assert.ok(zefixSource.required_env.includes('ZEFIX_API_USERNAME'));
+  assert.equal(firmafindSource.api_base_url, 'https://firmafind.at/api');
+  assert.equal(compassSource.status, 'requires_provider_access');
+  const adminSourceReload = await request('POST', '/acquisition/api/admin/source-reload', null, { cookie: adminCookie });
+  assert.equal(adminSourceReload.status, 200, 'admin should refresh linked source API status');
+  assert.equal(adminSourceReload.json.status, 'source_api_links_ready');
+  const adminIngest = await request('POST', '/acquisition/api/admin/ingest/austria-directory', {
+    records: [austriaIngestRecord()]
+  }, { cookie: adminCookie });
+  assert.equal(adminIngest.status, 201, 'admin should access Austria directory ingest');
+  assert.equal(typeof adminIngest.json.result.created, 'number');
+  assert.equal(typeof adminIngest.json.result.skipped, 'number');
+  assert.ok(Array.isArray(adminIngest.json.result.errors));
 
   const logout = await request('POST', '/acquisition/api/auth/logout', null, { cookie: fannyCookie });
   assert.equal(logout.status, 200, 'logout should clear session server-side');
@@ -458,6 +543,30 @@ function followUpLeadBody() {
       source_timestamp: '2026-05-12T11:48:00.000Z',
       legal_basis: 'website_published_email'
     }
+  };
+}
+
+function austriaIngestRecord() {
+  return {
+    source: 'wko',
+    name: 'Demo Intake Motion GmbH',
+    fn: 'FN121212i',
+    bezirk: '1220',
+    postal_code: '1220',
+    city: 'Wien',
+    legal_form: 'GmbH',
+    date_of_entry: '2026-04-11',
+    employee_count: 19,
+    industry: 'video operations software',
+    website: 'https://demo-intake-motion.at/en',
+    linkedin_url: 'https://linkedin.com/company/demo-intake-motion',
+    contact_name: 'Selina Berger',
+    contact_title: 'Founder',
+    contact_email: 'business@demo-intake-motion.at',
+    contact_linkedin_url: 'https://linkedin.com/in/selina-berger',
+    source_url: 'https://firmen.wko.at/demo-intake-motion',
+    published_b2b_email: true,
+    evidence_detail: 'The company page describes video operations tooling for international production teams.'
   };
 }
 

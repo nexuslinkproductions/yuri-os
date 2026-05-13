@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { spawn } from 'child_process';
 import express, { NextFunction, Request, Response, Router } from 'express';
 import Database from 'better-sqlite3';
 import {
@@ -43,6 +44,57 @@ function sessionCookieOptions(req: Request, expires?: Date) {
 
 function allowedDraftType(value: string): value is keyof ColdLeadDrafts {
     return ['linkedin_intro', 'linkedin_followup', 'email_cold', 'email_followup'].includes(value);
+}
+
+function requestOrigin(req: Request): string {
+    const proto = String(req.headers['x-forwarded-proto'] || req.protocol || 'http').split(',')[0].trim();
+    const host = req.get('host') || `127.0.0.1:${process.env.PORT || 3014}`;
+    return `${proto}://${host}`;
+}
+
+function runRealFeedLoader(req: Request, options: { chLimit: number; atLimit: number; apply: boolean }): Promise<any> {
+    const scriptPath = path.resolve(__dirname, '../../../Scripts/cold-acquisition-real-feed.mjs');
+    const apiKey = process.env.API_KEY || '';
+    if (!apiKey) throw Object.assign(new Error('API_KEY is required for live source intake'), { statusCode: 400 });
+    if (!fs.existsSync(scriptPath)) throw Object.assign(new Error('live source intake script is missing'), { statusCode: 500 });
+
+    return new Promise((resolve, reject) => {
+        const child = spawn(process.execPath, [
+            scriptPath,
+            `--api=${requestOrigin(req)}`,
+            `--key=${apiKey}`,
+            `--ch-limit=${options.chLimit}`,
+            `--at-limit=${options.atLimit}`,
+            `--apply=${options.apply ? 'true' : 'false'}`
+        ], {
+            cwd: path.resolve(__dirname, '../../..'),
+            env: process.env,
+            stdio: ['ignore', 'pipe', 'pipe']
+        });
+
+        let stdout = '';
+        let stderr = '';
+        child.stdout.on('data', (chunk) => {
+            stdout += String(chunk);
+            if (stdout.length > 2_000_000) stdout = stdout.slice(-2_000_000);
+        });
+        child.stderr.on('data', (chunk) => {
+            stderr += String(chunk);
+            if (stderr.length > 200_000) stderr = stderr.slice(-200_000);
+        });
+        child.on('error', reject);
+        child.on('close', (code) => {
+            if (code !== 0) {
+                reject(Object.assign(new Error(stderr || `live source intake failed with exit ${code}`), { statusCode: 502 }));
+                return;
+            }
+            try {
+                resolve(JSON.parse(stdout));
+            } catch {
+                reject(Object.assign(new Error('live source intake returned invalid JSON'), { statusCode: 502 }));
+            }
+        });
+    });
 }
 
 export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.Database): void {
@@ -160,8 +212,45 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
         }
     });
 
+    api.post('/leads/:id/mark-sent', requireAuth, (req: CrmRequest, res) => {
+        try {
+            const lead = service.markSent(req.crmUser as ColdAcquisitionCrmUser, String(req.params.id || ''), {
+                channel: req.body?.channel,
+                next_follow_up_at: req.body?.next_follow_up_at
+            });
+            res.json({ lead });
+        } catch (error: any) {
+            sendError(res, error);
+        }
+    });
+
+    api.post('/leads/:id/follow-up', requireAuth, (req: CrmRequest, res) => {
+        try {
+            if (!Object.prototype.hasOwnProperty.call(req.body || {}, 'next_follow_up_at')) {
+                throw Object.assign(new Error('next_follow_up_at is required'), { statusCode: 400 });
+            }
+            const lead = service.scheduleFollowUp(req.crmUser as ColdAcquisitionCrmUser, String(req.params.id || ''), req.body.next_follow_up_at ?? null);
+            res.json({ lead });
+        } catch (error: any) {
+            sendError(res, error);
+        }
+    });
+
+    api.post('/leads/:id/reply', requireAuth, (req: CrmRequest, res) => {
+        try {
+            const lead = service.recordReply(req.crmUser as ColdAcquisitionCrmUser, String(req.params.id || ''), String(req.body?.reply_text || ''));
+            res.json({ lead });
+        } catch (error: any) {
+            sendError(res, error);
+        }
+    });
+
     api.get('/admin/webhook-config', requireAuth, requireAdmin, (_req, res) => {
         res.json({ config: service.getWebhookConfig() });
+    });
+
+    api.get('/admin/source-config', requireAuth, requireAdmin, (_req, res) => {
+        res.json({ source_config: service.getSourceConfig() });
     });
 
     api.post('/admin/push', requireAuth, requireAdmin, async (req, res) => {
@@ -195,7 +284,23 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
     });
 
     api.post('/admin/source-reload', requireAuth, requireAdmin, (_req, res) => {
-        res.json({ ok: true, status: 'source_reload_not_configured' });
+        res.json({
+            ok: true,
+            status: 'source_api_links_ready',
+            source_config: service.getSourceConfig()
+        });
+    });
+
+    api.post('/admin/live-feed', requireAuth, requireAdmin, async (req, res) => {
+        try {
+            const chLimit = Math.max(0, Math.min(200, Number(req.body?.ch_limit ?? 40)));
+            const atLimit = Math.max(0, Math.min(25, Number(req.body?.at_limit ?? 9)));
+            const apply = req.body?.apply !== false;
+            const result = await runRealFeedLoader(req, { chLimit, atLimit, apply });
+            res.status(apply ? 201 : 200).json({ result });
+        } catch (error: any) {
+            sendError(res, error);
+        }
     });
 
     app.use('/acquisition/api', api);
@@ -223,6 +328,8 @@ export function initColdAcquisitionCrmRoutes(app: express.Express, db: Database.
         '/acquisition/login/',
         '/acquisition/today',
         '/acquisition/today/',
+        '/acquisition/admin/sources',
+        '/acquisition/admin/sources/',
         '/acquisition/leads',
         '/acquisition/leads/'
     ];

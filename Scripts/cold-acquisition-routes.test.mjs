@@ -27,7 +27,9 @@ try {
   const created = await request('POST', '/api/cold-acquisition/leads', swissLeadBody(), API_KEY);
   assert.equal(created.status, 201, 'lead endpoint should create a lead');
   assert.equal(created.json.lead.company.name, 'Alpine Bio Analytics AG');
-  assert.equal(created.json.lead.scoring.total_score, 100);
+  assert.equal(created.json.lead.scoring.total_score, 96);
+  assert.equal(typeof created.json.lead.scoring.evidence_score, 'number');
+  assert.equal(typeof created.json.lead.scoring.personalization_score, 'number');
   assert.equal(created.json.lead.channel, 'both');
 
   const blockedAdminSend = await request('PATCH', `/api/cold-acquisition/leads/${created.json.lead.id}`, {

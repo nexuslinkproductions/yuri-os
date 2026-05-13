@@ -67,6 +67,8 @@ export interface ColdLeadScoring {
     size_score: number;
     industry_fit_score: number;
     recency_score: number;
+    evidence_score: number;
+    personalization_score: number;
     total_score: number;
 }
 
@@ -104,6 +106,14 @@ export interface ColdLeadOutreachProfile {
     confidence: 'low' | 'medium' | 'high';
 }
 
+export interface ColdLeadDraftVersion {
+    id: string;
+    draft_type: keyof ColdLeadDrafts;
+    text: string;
+    source: 'generated' | 'fanny_edit';
+    created_at: string;
+}
+
 export interface ColdLeadDraftSpecificity {
     valid: boolean;
     proof_chips: string[];
@@ -125,6 +135,7 @@ export interface ColdLeadRecord {
     status: ColdLeadStatus;
     priority_flag: boolean;
     outreach_drafts: ColdLeadDrafts;
+    draft_versions: ColdLeadDraftVersion[];
     draft_specificity: ColdLeadDraftSpecificity;
     dedupe: ColdLeadDedupe;
     notes: string;
@@ -233,6 +244,7 @@ type ColdLeadRow = {
     status: ColdLeadStatus;
     priority_flag: number;
     outreach_drafts_json: string;
+    draft_versions_json: string | null;
     draft_specificity_json: string;
     dedupe_json: string;
     notes: string | null;
@@ -293,7 +305,7 @@ export class ColdAcquisitionService {
             captured_at: item.captured_at || timestamp
         }));
         const scoringSignals = this.deriveScoringSignals(company, input.scoringSignals || {});
-        const scoring = this.calculateScores(company, scoringSignals);
+        const scoring = this.calculateScores(company, contact, evidence, scoringSignals);
         const dedupe = this.buildDedupe(company, contact);
         const compliance = this.evaluateCompliance(company, contact, input.compliance);
         const channel = this.resolveChannel(company, contact, compliance);
@@ -316,6 +328,7 @@ export class ColdAcquisitionService {
             status,
             priority_flag,
             outreach_drafts,
+            draft_versions: this.initialDraftVersions(outreach_drafts, timestamp),
             draft_specificity,
             dedupe,
             notes,
@@ -523,9 +536,12 @@ export class ColdAcquisitionService {
             crm_stage: patch.crm_stage || this.crmStageForStatus(status, current.crm_stage),
             owner_user_id: patch.owner_user_id ?? current.owner_user_id,
             last_touch_at: patch.last_touch_at ?? current.last_touch_at,
-            next_follow_up_at: patch.next_follow_up_at ?? current.next_follow_up_at,
+            next_follow_up_at: patch.next_follow_up_at === undefined ? current.next_follow_up_at : patch.next_follow_up_at,
             fanny_notes: patch.fanny_notes ?? current.fanny_notes,
             outreach_drafts: patch.outreach_drafts || current.outreach_drafts,
+            draft_versions: patch.outreach_drafts
+                ? this.appendDraftVersions(current.draft_versions, current.outreach_drafts, patch.outreach_drafts, this.nowIso())
+                : current.draft_versions,
             updated_at: this.nowIso()
         };
         next.draft_specificity = this.validateDraftSpecificity(next.outreach_drafts, next.company, next.contact, next.evidence);
@@ -703,7 +719,12 @@ export class ColdAcquisitionService {
         };
     }
 
-    private calculateScores(company: Required<ColdLeadCompany>, signals: ColdLeadScoringSignals): ColdLeadScoring {
+    private calculateScores(
+        company: Required<ColdLeadCompany>,
+        contact: Required<ColdLeadContact>,
+        evidence: ColdLeadEvidence[],
+        signals: ColdLeadScoringSignals
+    ): ColdLeadScoring {
         const englishRaw =
             (signals.websiteHasEnglish ? 40 : 0)
             + (signals.linkedinCompanyEnglish ? 30 : 0)
@@ -716,14 +737,19 @@ export class ColdAcquisitionService {
         const size_score = this.sizeScore(company.employee_count || 0);
         const industry_fit_score = this.industryFitScore(company.industry);
         const recency_score = this.recencyScore(company.date_of_entry);
-        const total_score = Math.round(
-            english_score * 0.4
-            + size_score * 0.2
+        const evidence_score = this.evidenceScore(evidence, company);
+        const personalization_score = this.personalizationScore(company, contact);
+        const rawTotal = Math.round(
+            english_score * 0.3
+            + size_score * 0.15
             + industry_fit_score * 0.2
-            + recency_score * 0.2
+            + recency_score * 0.1
+            + evidence_score * 0.15
+            + personalization_score * 0.1
         );
+        const total_score = this.hasThinEvidence(evidence, company) ? Math.min(40, rawTotal) : rawTotal;
 
-        return { english_score, size_score, industry_fit_score, recency_score, total_score };
+        return { english_score, size_score, industry_fit_score, recency_score, evidence_score, personalization_score, total_score };
     }
 
     private evaluateCompliance(
@@ -800,21 +826,24 @@ export class ColdAcquisitionService {
         compliance: ColdLeadComplianceRecord
     ): ColdLeadDrafts {
         const profile = this.buildOutreachProfile(company, contact, evidence);
-        const proof = profile.observed_signal;
+        const observation = this.buildObservationSentence(evidence, company);
+        const companyLabel = this.companyNameForSubject(company.name);
+        const researchContext = this.researchContext(company);
         const firstName = contact.name ? contact.name.split(/\s+/)[0] : '';
         const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
-        const shortSubject = `quick thought on ${this.companyNameForSubject(company.name)}`;
+        const shortSubject = this.buildSubjectLine(company);
+        const introLead = `I was reviewing ${researchContext} and noticed ${this.ensureCompanyMention(company.name, observation)}.`;
 
         const linkedin_intro = [
-            `${greeting} I noticed ${proof}.`,
-            `Tiny thought: ${profile.opening_angle}`,
-            `I can send the short angle if useful.`
+            `${greeting} ${introLead}`,
+            `One thing that stood out: ${this.lowercaseStart(profile.opening_angle)}`,
+            `If useful, I can send a short angle.`
         ].join(' ');
 
         const linkedin_followup = [
-            `${greeting} circling back once on ${company.name}.`,
-            `I saved this because ${proof}.`,
-            `If it is not relevant, no need to reply; if it is, I can send the short angle and leave it there.`
+            `${greeting} quick follow-up on ${companyLabel}.`,
+            `The same detail still stands: ${this.ensureCompanyMention(company.name, observation)}.`,
+            `If useful, I can send a short angle. If not, I will leave it here.`
         ].join(' ');
 
         const email_cold = compliance.email_allowed && ['email', 'both'].includes(channel)
@@ -823,17 +852,16 @@ export class ColdAcquisitionService {
                 '',
                 greeting,
                 '',
-                `I noticed this while looking at ${company.name}: ${proof}.`,
+                introLead,
                 '',
-                `Tiny thought: ${profile.why_it_might_matter}`,
+                `One thing that stood out: ${this.lowercaseStart(profile.why_it_might_matter)}`,
                 '',
-                `Worth sending you the short angle?`,
+                `If you'd like, I can send a short angle.`,
                 '',
                 `Best,`,
                 `Fanny`,
-                `c2moviez`,
                 '',
-                `You can opt out of further messages by replying "no thanks".`
+                `If this is not relevant, just reply "no thanks" and I will close the loop.`
             ].join('\n')
             : null;
 
@@ -843,9 +871,11 @@ export class ColdAcquisitionService {
                 '',
                 greeting,
                 '',
-                `Circling back once. The reason I saved ${company.name} was this concrete signal: ${proof}.`,
+                `Quick follow-up on ${companyLabel}.`,
                 '',
-                `If that is not relevant, no need to reply. If it is, I can send the short angle and leave it there.`,
+                `The same detail still stands: ${this.ensureCompanyMention(company.name, observation)}.`,
+                '',
+                `If useful, I can send the short angle. If not, I will leave it here.`,
                 '',
                 `Best,`,
                 `Fanny`
@@ -860,7 +890,7 @@ export class ColdAcquisitionService {
         contact: Required<ColdLeadContact>,
         evidence: ColdLeadEvidence[]
     ): ColdLeadOutreachProfile {
-        const observed_signal = this.bestEvidence(evidence, company);
+        const observed_signal = this.buildProspectObservation(evidence, company);
         const source_urls = this.outreachSourceUrls(company, contact, evidence);
         const confidence = this.outreachConfidence(evidence, company, source_urls);
 
@@ -879,44 +909,75 @@ export class ColdAcquisitionService {
         };
     }
 
+    private buildObservationSentence(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
+        return this.buildProspectObservation(evidence, company);
+    }
+
+    private buildSubjectLine(company: Required<ColdLeadCompany>) {
+        const companyLabel = this.companyNameForSubject(company.name);
+        return `quick note on ${companyLabel}`;
+    }
+
+    private ensureCompanyMention(companyName: string, observation: string) {
+        const normalizedObservation = observation.toLowerCase();
+        const normalizedCompany = companyName.toLowerCase();
+        if (normalizedObservation.includes(normalizedCompany)) return observation;
+        return `${companyName}; ${observation}`;
+    }
+
     private openingAngle(company: Required<ColdLeadCompany>, observedSignal: string) {
         const surface = this.signalSurface(observedSignal);
         if (/bio|pharma|clinical|medical|health|life science/i.test(`${company.industry} ${observedSignal}`)) {
-            return `if ${surface} is a first stop for partners, buyers, or investors, a concise first-impression angle may be worth checking.`;
+            return `${this.sentenceStart(surface)} is doing a lot of the first-pass explanation already.`;
         }
         if (/saas|software|cloud|data|analytics|robot|automation|technology|platform/i.test(`${company.industry} ${observedSignal}`)) {
-            return `if ${surface} is where technical buyers first orient themselves, a concise first-impression angle may be worth checking.`;
+            return `${this.sentenceStart(surface)} is doing the first-pass explanation for technical readers already.`;
         }
         if (/hotel|hospitality|restaurant|tourism|event|guest/i.test(`${company.industry} ${observedSignal}`)) {
-            return `if ${surface} is where guests or operators first decide whether to enquire, a concise first-impression angle may be worth checking.`;
+            return `${this.sentenceStart(surface)} is carrying the first impression before anyone enquires.`;
         }
         if (/fintech|finance|payment|bank|insurance|regulated|legal|compliance/i.test(`${company.industry} ${observedSignal}`)) {
-            return `if ${surface} is where cautious buyers first decide whether to keep reading, a concise first-impression angle may be worth checking.`;
+            return `${this.sentenceStart(surface)} has to do the trust work before a cautious reader keeps going.`;
         }
-        return `if ${surface} is part of the first impression for potential clients, a concise angle may be worth checking.`;
+        return `${this.sentenceStart(surface)} is shaping the first impression already.`;
     }
 
     private whySignalMightMatter(company: Required<ColdLeadCompany>, observedSignal: string) {
         const surface = this.signalSurface(observedSignal);
         if (/bio|pharma|clinical|medical|health|life science/i.test(`${company.industry} ${observedSignal}`)) {
-            return `if ${surface} is often someone's first look, a short proof-led angle can make the next question easier to ask without turning it into a sales pitch.`;
+            return `A new reader is deciding quickly whether ${surface} makes the proof easy to understand without a call first.`;
         }
         if (/saas|software|cloud|data|analytics|robot|automation|technology|platform/i.test(`${company.industry} ${observedSignal}`)) {
-            return `if ${surface} is where a buyer first frames the product, a short example angle can show what to notice before anyone books time.`;
+            return `A new reader is deciding quickly whether ${surface} makes the product easy to understand.`;
         }
         if (/hotel|hospitality|restaurant|tourism|event|guest/i.test(`${company.industry} ${observedSignal}`)) {
-            return `if ${surface} is part of the first booking or enquiry moment, a short example angle can show the strongest reason to look twice.`;
+            return `A new reader is deciding quickly whether ${surface} gives enough reason to enquire.`;
         }
         if (/fintech|finance|payment|bank|insurance|regulated|legal|compliance/i.test(`${company.industry} ${observedSignal}`)) {
-            return `if ${surface} is where cautious prospects first look, a short example angle can focus on trust without overclaiming.`;
+            return `A new reader is deciding quickly whether ${surface} builds enough trust to keep going.`;
         }
-        return `if ${surface} is part of the first client impression, a short example angle can be useful before anyone commits to a call.`;
+        return `A new reader is deciding quickly whether ${surface} gives enough context to keep going.`;
+    }
+
+    private sentenceStart(value: string) {
+        return value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : value;
+    }
+
+    private lowercaseStart(value: string) {
+        return value ? `${value.charAt(0).toLowerCase()}${value.slice(1)}` : value;
     }
 
     private signalSurface(observedSignal: string) {
         if (/\/en\/|page|website|landing|platform|services?|product/i.test(observedSignal)) return 'that page';
-        if (/linkedin|profile|post|describes/i.test(observedSignal)) return 'that public profile';
-        return 'that signal';
+        if (/workflow|software|solutions?|tools?|positioning|described as|presents?|targets/i.test(observedSignal)) return 'that positioning';
+        if (/post|activity/i.test(observedSignal)) return 'that activity';
+        return 'that detail';
+    }
+
+    private researchContext(company: Required<ColdLeadCompany>) {
+        return company.country === 'AT'
+            ? 'a few Vienna software and services firms'
+            : 'Swiss company records and websites';
     }
 
     private companyNameForSubject(name: string) {
@@ -950,7 +1011,7 @@ export class ColdAcquisitionService {
         if (evidence.length === 0) return true;
         const proof = this.bestEvidence(evidence, company).toLowerCase();
         const words = proof.split(/\s+/).filter((word) => /[a-z0-9]/i.test(word) && word.length > 2);
-        return words.length < 6 || /\b(company website exists|website exists|has a website|is listed|listed in|public business presence)\b/i.test(proof);
+        return words.length < 6 || /\b(company website exists|website exists|website is present|available evidence is still too thin|has a website|is listed|listed in|public business presence)\b/i.test(proof);
     }
 
     private hasDraftClaimRisk(combinedDraft: string) {
@@ -968,10 +1029,25 @@ export class ColdAcquisitionService {
         ].some((pattern) => pattern.test(combinedDraft));
     }
 
+    private hasSourceLeakage(combinedDraft: string) {
+        return [
+            /\bWKO\b/i,
+            /\bZefix\b/i,
+            /\bFirmenABC\b/i,
+            /\bopen-data record\b/i,
+            /\bsoftware-trade search\b/i,
+            /\bcompany register profile\b/i,
+            /\bpublic\s+(?:WKO|company|business|directory|register)\s+profile\b/i,
+            /\bSource\s+\d+\b/i,
+            /\bAcquisition CRM\b/i,
+            /\bworkbench\b/i
+        ].some((pattern) => pattern.test(combinedDraft));
+    }
+
     private hasOverlongDraft(drafts: ColdLeadDrafts) {
-        const linkedinWords = drafts.linkedin_intro.split(/\s+/).filter(Boolean).length;
+        const linkedinChars = drafts.linkedin_intro.trim().length;
         const emailWords = drafts.email_cold ? this.emailBodyWordCount(drafts.email_cold) : 0;
-        return linkedinWords > 75 || emailWords > 95;
+        return linkedinChars > 450 || emailWords > 110;
     }
 
     private emailBodyWordCount(draft: string) {
@@ -985,7 +1061,7 @@ export class ColdAcquisitionService {
 
     private resolveDraftReadiness(missing: string[], warnings: string[]): ColdLeadDraftReadiness {
         if (warnings.includes('thin_evidence') || missing.includes('evidence_detail')) return 'needs_research';
-        if (warnings.includes('claim_risk') || warnings.includes('overlong_draft')) return 'needs_rework';
+        if (warnings.includes('claim_risk') || warnings.includes('source_leakage') || warnings.includes('overlong_draft') || warnings.includes('duplicate_observation')) return 'needs_rework';
         if (missing.length > 0) return 'needs_rework';
         return 'ready_to_rework';
     }
@@ -997,8 +1073,14 @@ export class ColdAcquisitionService {
         evidence: ColdLeadEvidence[]
     ): ColdLeadDraftSpecificity {
         const combined = Object.values(drafts).filter(Boolean).join('\n').toLowerCase();
+        const observation = this.buildObservationSentence(evidence, company);
         const proof_chips = evidence
-            .filter((item) => item.detail && combined.includes(this.prospectFacingEvidence(item.detail).toLowerCase().slice(0, 32)))
+            .filter((item) => {
+                if (!item.detail) return false;
+                const raw = this.prospectFacingEvidence(item.detail).toLowerCase().slice(0, 32);
+                const observed = observation.toLowerCase().slice(0, 32);
+                return combined.includes(raw) || combined.includes(observed);
+            })
             .map((item) => item.label);
 
         const missing: string[] = [];
@@ -1010,7 +1092,9 @@ export class ColdAcquisitionService {
         const profile = this.buildOutreachProfile(company, contact, evidence);
         if (this.hasThinEvidence(evidence, company)) warnings.push('thin_evidence');
         if (this.hasDraftClaimRisk(combined)) warnings.push('claim_risk');
+        if (this.hasSourceLeakage(combined)) warnings.push('source_leakage');
         if (this.hasOverlongDraft(drafts)) warnings.push('overlong_draft');
+        if (this.hasDuplicateObservation(profile.observed_signal, company.name)) warnings.push('duplicate_observation');
 
         const readiness = this.resolveDraftReadiness(missing, warnings);
 
@@ -1022,6 +1106,60 @@ export class ColdAcquisitionService {
             readiness,
             profile
         };
+    }
+
+    private initialDraftVersions(drafts: ColdLeadDrafts, createdAt: string): ColdLeadDraftVersion[] {
+        return (Object.entries(drafts) as Array<[keyof ColdLeadDrafts, string | null]>)
+            .filter(([, text]) => Boolean(text?.trim()))
+            .map(([draft_type, text]) => ({
+                id: `draft_version_${createdAt}_${draft_type}`,
+                draft_type,
+                text: text as string,
+                source: 'generated',
+                created_at: createdAt
+            }));
+    }
+
+    private appendDraftVersions(
+        currentVersions: ColdLeadDraftVersion[],
+        previousDrafts: ColdLeadDrafts,
+        nextDrafts: ColdLeadDrafts,
+        createdAt: string
+    ): ColdLeadDraftVersion[] {
+        const versions = [...currentVersions];
+        for (const [draft_type, text] of Object.entries(nextDrafts) as Array<[keyof ColdLeadDrafts, string | null]>) {
+            if (!text?.trim() || text === previousDrafts[draft_type]) continue;
+            versions.push({
+                id: `draft_version_${createdAt}_${draft_type}_${versions.length}`,
+                draft_type,
+                text,
+                source: 'fanny_edit',
+                created_at: createdAt
+            });
+        }
+        return versions;
+    }
+
+    private hasDuplicateObservation(observedSignal: string, companyName: string) {
+        const normalized = this.normalizeComparableText(observedSignal);
+        if (!normalized) return false;
+        const rows = this.db.prepare('SELECT company_json, draft_specificity_json, dedupe_json FROM cold_acquisition_leads').all() as Array<{ company_json: string; draft_specificity_json: string; dedupe_json: string }>;
+        return rows.some((row) => {
+            try {
+                const company = JSON.parse(row.company_json);
+                const dedupe = JSON.parse(row.dedupe_json);
+                if (dedupe?.is_duplicate) return false;
+                if (this.sameCompanyName(company.name || '', companyName)) return false;
+                const specificity = JSON.parse(row.draft_specificity_json);
+                return this.normalizeComparableText(specificity?.profile?.observed_signal || '') === normalized;
+            } catch {
+                return false;
+            }
+        });
+    }
+
+    private normalizeComparableText(value: string) {
+        return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     }
 
     private buildWebhookUpdatePayload(lead: ColdLeadRecord, replyText: string) {
@@ -1254,20 +1392,116 @@ export class ColdAcquisitionService {
     }
 
     private bestEvidence(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
+        return this.buildProspectObservation(evidence, company);
+    }
+
+    private buildProspectObservation(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
         const best = evidence.find((item) => item.detail?.trim()) || evidence[0];
-        if (best?.detail) return this.prospectFacingEvidence(best.detail);
-        if (company.website) return `${company.website} shows a public business presence`;
-        return `${company.industry || 'their market'} suggests a visible B2B growth motion`;
+        if (best?.detail) {
+            return this.polishProspectObservation(this.prospectFacingEvidence(best.detail), company);
+        }
+        if (company.website) return 'their website is present, but the available evidence is still too thin';
+        return `${company.industry || 'their market'} suggests a visible B2B context`;
+    }
+
+    private polishProspectObservation(detail: string, company: Required<ColdLeadCompany>) {
+        let text = this.stripSourceArtifacts(detail)
+            .replace(/^the\s+\/en\/([^/\s]+)\s+page\s+explains\s+/i, 'their $1 page describes ')
+            .replace(/^the\s+english\s+([^.!?]+?)\s+(page|section)\s+(explains|targets|describes)\s+/i, 'their $1 $2 describes ')
+            .replace(/^the\s+([^.!?]+?)\s+(page|section)\s+(explains|targets|describes)\s+/i, 'their $1 $2 describes ')
+            .replace(new RegExp(`^${this.escapeRegExp(company.name)}\\s+`, 'i'), `${company.name} `);
+
+        if (/^company website exists$/i.test(text) || /^website exists$/i.test(text)) {
+            return 'their website is present, but the available evidence is still too thin';
+        }
+
+        text = this.rewriteDirectoryObservation(text, company);
+        text = this.stripSourceArtifacts(text)
+            .replace(/\s+/g, ' ')
+            .replace(/\s+([,.;:])/g, '$1')
+            .replace(/\(\s*\)/g, '')
+            .replace(/\s+-\s*$/g, '')
+            .replace(/^[,;:\s-]+/, '')
+            .replace(/[.!?]+$/, '')
+            .trim();
+
+        if (!text) return `${company.name} has source-backed public company context`;
+        return text;
     }
 
     private prospectFacingEvidence(detail: string) {
         return detail
             .replace(/\s+/g, ' ')
+            .replace(/\s+with\s+[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\s+and\s+a\s+public\s+website\b/gi, '')
+            .replace(/\s+with\s+[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '')
+            .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '')
             .replace(/\bEnglish-speaking\s+/gi, '')
             .replace(/\bEnglish-first\s+/gi, '')
             .replace(/\bEnglish-language\s+/gi, '')
             .replace(/\bEnglish\s+(product|services?|website|landing|company)\s+(page|pages|section|sections)\b/gi, 'public $1 $2')
             .replace(/\bin English\b/gi, 'clearly')
+            .replace(/\band a public website\b/gi, '')
+            .replace(/[.!?]+$/, '')
+            .trim();
+    }
+
+    private stripSourceArtifacts(value: string) {
+        return value
+            .replace(/\bWKO\s+software-trade search\s+lists\s+/gi, '')
+            .replace(/\bWKO\s+lists\s+/gi, '')
+            .replace(/\bZefix\s+open-data\s+record\s+shows\s+/gi, '')
+            .replace(/\bZefix\s+[^.!?;,:]{0,80}?\s+record\s+shows\s+/gi, '')
+            .replace(/\bFirmenABC\s+[^.!?;,:]{0,80}?\s+(?:lists|shows)\s+/gi, '')
+            .replace(/\b(?:Zefix|WKO|FirmenABC)\b/gi, '')
+            .replace(/\b(?:open-data|public)\s+(?:record|profile|directory|register)\b/gi, '')
+            .replace(/\bsoftware-trade search\b/gi, '')
+            .replace(/\b(?:company|business)\s+register\s+profile\b/gi, '')
+            .replace(/\bpublic\s+(?:company|business|directory)\s+profile\b/gi, '')
+            .replace(/\bsource\s+\d+\b/gi, '')
+            .replace(/\bPRISM Workbench\b/gi, '')
+            .replace(/\bAcquisition CRM\b/gi, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    private rewriteDirectoryObservation(value: string, company: Required<ColdLeadCompany>) {
+        const companyPattern = this.escapeRegExp(company.name);
+        const atOrInAs = new RegExp(`^(${companyPattern})\\s+(?:in|at)\\s+(.+?)\\s+as\\s+[“"]?(.+?)[”"]?(?:\\s+with\\s+(.+))?$`, 'i');
+        const atOrInWith = new RegExp(`^(${companyPattern})\\s+(?:in|at)\\s+(.+?)\\s+with\\s+(.+)$`, 'i');
+        const plainAs = new RegExp(`^(${companyPattern})\\s+as\\s+[“"]?(.+?)[”"]?$`, 'i');
+
+        const asMatch = value.match(atOrInAs);
+        if (asMatch) {
+            const place = this.cleanObservationClause(asMatch[2]);
+            const position = this.cleanObservationClause(asMatch[3]);
+            const extra = this.cleanObservationClause(asMatch[4] || '');
+            return [
+                `${company.name} is described as ${position}`,
+                place ? `in ${place}` : '',
+                extra ? `with ${extra}` : ''
+            ].filter(Boolean).join(' ');
+        }
+
+        const withMatch = value.match(atOrInWith);
+        if (withMatch) {
+            const place = this.cleanObservationClause(withMatch[2]);
+            const detail = this.cleanObservationClause(withMatch[3]);
+            return `${company.name} is connected to ${detail}${place ? ` in ${place}` : ''}`;
+        }
+
+        const plainAsMatch = value.match(plainAs);
+        if (plainAsMatch) {
+            return `${company.name} is described as ${this.cleanObservationClause(plainAsMatch[2])}`;
+        }
+
+        return value;
+    }
+
+    private cleanObservationClause(value: string) {
+        return this.stripSourceArtifacts(value || '')
+            .replace(/\s+with\s*$/i, '')
+            .replace(/\s+and\s*$/i, '')
+            .replace(/\s+/g, ' ')
             .replace(/[.!?]+$/, '')
             .trim();
     }
@@ -1296,6 +1530,24 @@ export class ColdAcquisitionService {
         if (days < 365) return 60;
         if (days >= 365 * 5) return 70;
         return 50;
+    }
+
+    private evidenceScore(evidence: ColdLeadEvidence[], company: Required<ColdLeadCompany>) {
+        if (this.hasThinEvidence(evidence, company)) return 20;
+        const sourcedItems = evidence.filter((item) => this.validUrl(item.url));
+        if (sourcedItems.length >= 2) return 100;
+        if (sourcedItems.length === 1) return 75;
+        return 35;
+    }
+
+    private personalizationScore(company: Required<ColdLeadCompany>, contact: Required<ColdLeadContact>) {
+        let score = 0;
+        if (company.website) score += 25;
+        if (company.industry) score += 20;
+        if (contact.name) score += 25;
+        if (contact.title) score += 15;
+        if (contact.linkedin_url || company.linkedin_url) score += 15;
+        return Math.min(100, score);
     }
 
     private decorateNotes(notes: string, priority: boolean, compliance: ColdLeadComplianceRecord, dedupe: ColdLeadDedupe) {
@@ -1329,6 +1581,20 @@ export class ColdAcquisitionService {
         }
     }
 
+    private validUrl(value: string | undefined | null) {
+        if (!value) return false;
+        try {
+            const parsed = new URL(value.startsWith('http') ? value : `https://${value}`);
+            return ['http:', 'https:'].includes(parsed.protocol);
+        } catch {
+            return false;
+        }
+    }
+
+    private escapeRegExp(value: string) {
+        return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     private domainFromEmail(email: string | null | undefined) {
         const domain = email?.split('@')[1]?.trim().toLowerCase();
         return domain || null;
@@ -1356,6 +1622,7 @@ export class ColdAcquisitionService {
                 status TEXT NOT NULL,
                 priority_flag INTEGER NOT NULL DEFAULT 0,
                 outreach_drafts_json TEXT NOT NULL,
+                draft_versions_json TEXT NOT NULL DEFAULT '[]',
                 draft_specificity_json TEXT NOT NULL,
                 dedupe_json TEXT NOT NULL,
                 notes TEXT,
@@ -1385,6 +1652,7 @@ export class ColdAcquisitionService {
         this.ensureLeadColumn('last_touch_at', 'TEXT');
         this.ensureLeadColumn('next_follow_up_at', 'TEXT');
         this.ensureLeadColumn('fanny_notes', "TEXT NOT NULL DEFAULT ''");
+        this.ensureLeadColumn('draft_versions_json', "TEXT NOT NULL DEFAULT '[]'");
     }
 
     private ensureLeadColumn(name: string, definition: string) {
@@ -1398,11 +1666,11 @@ export class ColdAcquisitionService {
             INSERT INTO cold_acquisition_leads (
                 id, company_json, contact_json, scoring_json, scoring_signals_json, evidence_json,
                 compliance_json, channel, status, priority_flag, outreach_drafts_json,
-                draft_specificity_json, dedupe_json, notes, webhook_lead_id, webhook_status,
+                draft_versions_json, draft_specificity_json, dedupe_json, notes, webhook_lead_id, webhook_status,
                 webhook_response_json, reply_text, crm_stage, owner_user_id, last_touch_at,
                 next_follow_up_at, fanny_notes, uid_or_fn, primary_domain, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(...this.recordValues(record));
     }
 
@@ -1419,6 +1687,7 @@ export class ColdAcquisitionService {
                 status = ?,
                 priority_flag = ?,
                 outreach_drafts_json = ?,
+                draft_versions_json = ?,
                 draft_specificity_json = ?,
                 dedupe_json = ?,
                 notes = ?,
@@ -1446,6 +1715,7 @@ export class ColdAcquisitionService {
             record.status,
             record.priority_flag ? 1 : 0,
             JSON.stringify(record.outreach_drafts),
+            JSON.stringify(record.draft_versions || []),
             JSON.stringify(record.draft_specificity),
             JSON.stringify(record.dedupe),
             record.notes,
@@ -1478,6 +1748,7 @@ export class ColdAcquisitionService {
             record.status,
             record.priority_flag ? 1 : 0,
             JSON.stringify(record.outreach_drafts),
+            JSON.stringify(record.draft_versions || []),
             JSON.stringify(record.draft_specificity),
             JSON.stringify(record.dedupe),
             record.notes,
@@ -1500,13 +1771,15 @@ export class ColdAcquisitionService {
     private rowToRecord(row: ColdLeadRow): ColdLeadRecord {
         const company = JSON.parse(row.company_json);
         const contact = JSON.parse(row.contact_json);
-        const scoring = JSON.parse(row.scoring_json);
         const scoringSignals = JSON.parse(row.scoring_signals_json);
         const evidence = JSON.parse(row.evidence_json);
         const compliance = JSON.parse(row.compliance_json);
-        const outreach_drafts = JSON.parse(row.outreach_drafts_json);
+        const storedDrafts = JSON.parse(row.outreach_drafts_json);
+        const draft_versions = row.draft_versions_json ? JSON.parse(row.draft_versions_json) : this.initialDraftVersions(storedDrafts, row.created_at);
+        const outreach_drafts = this.normalizeGeneratedDrafts(storedDrafts, draft_versions, company, contact, evidence, row.channel, compliance);
         const draft_specificity = this.normalizeDraftSpecificity(JSON.parse(row.draft_specificity_json), outreach_drafts, company, contact, evidence);
         const dedupe = JSON.parse(row.dedupe_json);
+        const scoring = this.calculateScores(company, contact, evidence, scoringSignals);
         return {
             id: row.id,
             company,
@@ -1519,6 +1792,7 @@ export class ColdAcquisitionService {
             status: row.status,
             priority_flag: Boolean(row.priority_flag),
             outreach_drafts,
+            draft_versions,
             draft_specificity,
             dedupe,
             notes: row.notes || '',
@@ -1543,8 +1817,36 @@ export class ColdAcquisitionService {
         contact: Required<ColdLeadContact>,
         evidence: ColdLeadEvidence[]
     ): ColdLeadDraftSpecificity {
-        if (stored?.warnings && stored?.readiness && stored?.profile) return stored as ColdLeadDraftSpecificity;
+        if (!stored?.warnings || !stored?.readiness || !stored?.profile) return this.validateDraftSpecificity(drafts, company, contact, evidence);
+        const current = this.validateDraftSpecificity(drafts, company, contact, evidence);
+        if (current.readiness !== stored.readiness || current.profile.observed_signal !== stored.profile.observed_signal) return current;
         return this.validateDraftSpecificity(drafts, company, contact, evidence);
+    }
+
+    private normalizeGeneratedDrafts(
+        drafts: ColdLeadDrafts,
+        versions: ColdLeadDraftVersion[],
+        company: Required<ColdLeadCompany>,
+        contact: Required<ColdLeadContact>,
+        evidence: ColdLeadEvidence[],
+        channel: ColdLeadChannel,
+        compliance: ColdLeadComplianceRecord
+    ): ColdLeadDrafts {
+        if (versions.some((version) => version.source === 'fanny_edit')) return drafts;
+        const combined = Object.values(drafts).filter(Boolean).join('\n');
+        const stale = this.hasDraftClaimRisk(combined)
+            || this.hasSourceLeakage(combined)
+            || /Open to me sending the short note/i.test(combined)
+            || /Subject:\s*small observation/i.test(combined)
+            || /c2moviez could/i.test(combined)
+            || /Fanny workbench/i.test(combined)
+            || /Subject:\s*quick thought on your (?:positioning|services page|workflow page|product page)/i.test(combined)
+            || /Subject:\s*quick note on your (?:positioning|services page|workflow page|product page)/i.test(combined)
+            || /quick follow-up on your (?:positioning|services page|workflow page|product page)/i.test(combined)
+            || /Tiny thought:/i.test(combined)
+            || /Worth sending you a short example angle\?/i.test(combined)
+            || /I came across .* while looking at/i.test(combined);
+        return stale ? this.generateDrafts(company, contact, evidence, channel, compliance) : drafts;
     }
 
     private requireLead(id: string) {

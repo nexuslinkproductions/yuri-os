@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * Source-backed loader for the c2moviez cold-acquisition cockpit.
+ * Source-backed loader for PRISM Workbench.
+ *
+ * Dry-run first by default. It collects and prints source-backed records, but
+ * imports nothing unless called with --apply=true.
  *
  * CH: reads the public Zefix linked-data CSV mirror and then fetches each
  * company URI for the official purpose text.
@@ -451,6 +454,74 @@ async function postJson(apiOrigin, apiKey, path, body) {
   return json;
 }
 
+async function getJson(apiOrigin, apiKey, path) {
+  const response = await fetch(`${apiOrigin}${path}`, {
+    headers: { 'x-api-key': apiKey }
+  });
+  const text = await response.text();
+  let json = {};
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    json = { raw: text };
+  }
+  if (!response.ok) {
+    throw new Error(`${path} failed: ${response.status} ${JSON.stringify(json)}`);
+  }
+  return json;
+}
+
+function compactName(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function addLeadKeys(keys, lead) {
+  const company = lead.company || {};
+  const contact = lead.contact || {};
+  const uid = company.uid_or_fn || '';
+  const domain = domainFromUrl(company.website || '') || String(contact.email || '').split('@')[1] || '';
+  const name = compactName(company.name);
+  if (uid) keys.add(`uid:${uid.toLowerCase()}`);
+  if (domain) keys.add(`domain:${domain.toLowerCase()}`);
+  if (name) keys.add(`name:${company.country || ''}:${name}`);
+}
+
+function sourceRecordKeys(record) {
+  const company = record.company || {};
+  const contact = record.contact || {};
+  const country = company.country || (record.uid ? 'CH' : '');
+  const uid = record.uid || company.uid_or_fn || '';
+  const domain = domainFromUrl(record.website || company.website || '') || String(record.contact_email || contact.email || '').split('@')[1] || '';
+  const name = compactName(record.name || company.name);
+  return [
+    uid ? `uid:${uid.toLowerCase()}` : '',
+    domain ? `domain:${domain.toLowerCase()}` : '',
+    name ? `name:${country}:${name}` : ''
+  ].filter(Boolean);
+}
+
+function skipExisting(records, existingKeys) {
+  const kept = [];
+  const skipped = [];
+  const seenThisRun = new Set();
+  for (const record of records) {
+    const keys = sourceRecordKeys(record);
+    const duplicate = keys.some((key) => existingKeys.has(key) || seenThisRun.has(key));
+    if (duplicate) {
+      skipped.push(record);
+      continue;
+    }
+    kept.push(record);
+    keys.forEach((key) => seenThisRun.add(key));
+  }
+  return { kept, skipped };
+}
+
 async function main() {
   const args = readArgs(process.argv.slice(2));
   const apiOrigin = args.api || DEFAULT_API_ORIGIN;
@@ -461,14 +532,32 @@ async function main() {
   const chRecords = await collectSwissRecords(chLimit);
   const atRecords = await collectAustriaRecords(atLimit);
 
-  if (args['dry-run'] === 'true') {
-    console.log(JSON.stringify({ chRecords, atRecords }, null, 2));
+  const apply = args.apply === 'true';
+  if (!apply) {
+    console.log(JSON.stringify({
+      mode: 'dry_run',
+      apply_hint: 'Re-run with --apply=true to import these source-backed records.',
+      apiOrigin,
+      counts: {
+        ch: chRecords.length,
+        at: atRecords.length
+      },
+      chRecords,
+      atRecords
+    }, null, 2));
     return;
   }
 
-  const chResult = await postJson(apiOrigin, apiKey, '/api/cold-acquisition/ingest/zefix-bulk', { records: chRecords });
+  const existing = await getJson(apiOrigin, apiKey, '/api/cold-acquisition/leads');
+  const existingKeys = new Set();
+  for (const lead of existing.leads || []) addLeadKeys(existingKeys, lead);
+
+  const chFiltered = skipExisting(chRecords, existingKeys);
+  const atFiltered = skipExisting(atRecords, existingKeys);
+
+  const chResult = await postJson(apiOrigin, apiKey, '/api/cold-acquisition/ingest/zefix-bulk', { records: chFiltered.kept });
   const atResults = [];
-  for (const record of atRecords) {
+  for (const record of atFiltered.kept) {
     const created = await postJson(apiOrigin, apiKey, '/api/cold-acquisition/leads', record);
     atResults.push({ id: created.lead?.id, company: created.lead?.company?.name, score: created.lead?.scoring?.total_score, channel: created.lead?.channel });
   }
@@ -480,6 +569,10 @@ async function main() {
     ok: true,
     apiOrigin,
     zefix: chResult.result,
+    skipped_existing: {
+      ch: chFiltered.skipped.length,
+      at: atFiltered.skipped.length
+    },
     austria: {
       created: atResults.length,
       leads: atResults

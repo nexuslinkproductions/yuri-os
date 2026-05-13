@@ -78,6 +78,10 @@ export interface TodayMissionLead extends ColdLeadRecord {
     preferred_draft_type: TodayMissionDraftType;
     draft_excerpt: string;
     due_state: TodayMissionDueState;
+    quality_label: string;
+    quality_blockers: string[];
+    source_confidence: 'low' | 'medium' | 'high';
+    evidence_confidence: 'low' | 'medium' | 'high';
 }
 
 export interface TodayMission {
@@ -88,6 +92,7 @@ export interface TodayMission {
         remaining: number;
     };
     counts: {
+        review_ready: number;
         sendable: number;
         follow_ups_due: number;
         needs_research: number;
@@ -95,8 +100,30 @@ export interface TodayMission {
         blocked: number;
         overdue: number;
     };
+    review_ready: TodayMissionLead[];
     sendable: TodayMissionLead[];
     follow_ups_due: TodayMissionLead[];
+    needs_research: TodayMissionLead[];
+}
+
+export type AcquisitionSourceStatus = 'configured' | 'missing_credentials' | 'available_discovery_only' | 'requires_provider_access';
+
+export interface AcquisitionSourceConfig {
+    key: 'zefix' | 'firmafind' | 'wirtschaftscompass';
+    label: string;
+    market: 'CH' | 'AT';
+    status: AcquisitionSourceStatus;
+    api_base_url: string;
+    api_docs_url: string;
+    ingest_endpoint: string | null;
+    required_env: string[];
+    configured_env: string[];
+    notes: string[];
+}
+
+export interface AcquisitionSourceConfigResponse {
+    generated_at: string;
+    sources: AcquisitionSourceConfig[];
 }
 
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
@@ -131,7 +158,7 @@ export class ColdAcquisitionCrmService {
             ) VALUES (?, ?, ?, ?, ?, ?, NULL)
         `).run(sessionId, row.id, this.hashToken(token), expiresAt, this.nowIso(), this.nowIso());
 
-        this.logActivity(row, null, 'login', 'Signed in to acquisition CRM.', null);
+        this.logActivity(row, null, 'login', 'Signed in to PRISM Workbench.', null);
         return {
             user: this.publicUser(row),
             token,
@@ -192,32 +219,44 @@ export class ColdAcquisitionCrmService {
         const dashboard = this.leads.getDashboard();
         const leads = this.leads.listLeads();
 
-        const sendable = leads
+        const review_ready = leads
             .filter((lead) => this.leads.getSendBlockers(lead).length === 0)
-            .sort((a, b) => b.scoring.total_score - a.scoring.total_score || String(b.updated_at).localeCompare(String(a.updated_at)))
+            .sort((a, b) => this.reviewReadySort(b) - this.reviewReadySort(a) || String(b.updated_at).localeCompare(String(a.updated_at)))
             .map((lead) => this.toTodayMissionLead(lead));
-        const sendableIds = new Set(sendable.map((lead) => lead.id));
+        const sendable = review_ready;
+        const reviewReadyIds = new Set(review_ready.map((lead) => lead.id));
 
         const follow_ups_due = leads
-            .filter((lead) => !sendableIds.has(lead.id))
+            .filter((lead) => !reviewReadyIds.has(lead.id))
             .filter((lead) => !this.isBlockedMissionLead(lead))
             .filter((lead) => this.dueState(lead) !== 'none')
             .sort((a, b) => this.followUpSortTime(a.next_follow_up_at) - this.followUpSortTime(b.next_follow_up_at))
+            .map((lead) => this.toTodayMissionLead(lead));
+        const occupiedIds = new Set([...review_ready.map((lead) => lead.id), ...follow_ups_due.map((lead) => lead.id)]);
+
+        const needs_research = leads
+            .filter((lead) => !occupiedIds.has(lead.id))
+            .filter((lead) => !this.isBlockedMissionLead(lead))
+            .filter((lead) => this.isResearchMissionLead(lead))
+            .sort((a, b) => b.scoring.total_score - a.scoring.total_score || String(b.updated_at).localeCompare(String(a.updated_at)))
             .map((lead) => this.toTodayMissionLead(lead));
 
         return {
             generated_at,
             weekly: dashboard.weekly_quota,
             counts: {
-                sendable: sendable.length,
+                review_ready: review_ready.length,
+                sendable: review_ready.length,
                 follow_ups_due: follow_ups_due.length,
                 needs_research: leads.filter((lead) => lead.draft_specificity.readiness === 'needs_research').length,
                 review_needed: leads.filter((lead) => lead.compliance.compliance_badge === 'review').length,
                 blocked: leads.filter((lead) => this.isBlockedMissionLead(lead)).length,
                 overdue: leads.filter((lead) => !this.isBlockedMissionLead(lead) && this.dueState(lead) === 'overdue').length
             },
+            review_ready,
             sendable,
-            follow_ups_due
+            follow_ups_due,
+            needs_research
         };
     }
 
@@ -270,10 +309,43 @@ export class ColdAcquisitionCrmService {
     copyDraft(user: ColdAcquisitionCrmUser, leadId: string, draftType: keyof ColdLeadDrafts) {
         const lead = this.leads.getLead(leadId);
         if (!lead) throw Object.assign(new Error('COLD_LEAD_NOT_FOUND'), { statusCode: 404 });
+        const blockers = this.leads.getSendBlockers(lead);
+        if (blockers.length > 0) throw Object.assign(new Error('COMPLIANCE_SEND_BLOCKED'), { statusCode: 409, blockers });
         const text = lead.outreach_drafts[draftType];
         if (!text) throw Object.assign(new Error('DRAFT_NOT_AVAILABLE'), { statusCode: 400 });
         this.logActivity(user, lead.id, 'draft_copied', `Copied ${draftType} draft.`, { draft_type: draftType });
-        return { draft_type: draftType, text };
+        const { subject, body } = this.splitDraft(text);
+        return { draft_type: draftType, subject, body, text };
+    }
+
+    markSent(user: ColdAcquisitionCrmUser, id: string, body: { channel?: string; next_follow_up_at?: string | null }) {
+        const current = this.leads.getLead(id);
+        if (!current) throw Object.assign(new Error('COLD_LEAD_NOT_FOUND'), { statusCode: 404 });
+        const channel = String(body.channel || '').trim();
+        if (!channel) throw Object.assign(new Error('channel is required'), { statusCode: 400 });
+        if (!['email', 'linkedin'].includes(channel)) throw Object.assign(new Error('channel must be email or linkedin'), { statusCode: 400 });
+        if (body.next_follow_up_at === undefined) throw Object.assign(new Error('next_follow_up_at is required'), { statusCode: 400 });
+        const blockers = this.leads.getSendBlockers(current);
+        if (blockers.length > 0) throw Object.assign(new Error('COMPLIANCE_SEND_BLOCKED'), { statusCode: 409, blockers });
+        const next = this.leads.updateLead(id, {
+            status: 'sent',
+            crm_stage: 'sent',
+            last_touch_at: this.nowIso(),
+            next_follow_up_at: body.next_follow_up_at
+        });
+        this.logActivity(user, next.id, 'marked_sent', `Marked sent via ${channel}.`, { channel, next_follow_up_at: body.next_follow_up_at });
+        return next;
+    }
+
+    scheduleFollowUp(user: ColdAcquisitionCrmUser, id: string, next_follow_up_at: string | null) {
+        const next = this.updateLead(user, id, { next_follow_up_at });
+        this.logActivity(user, id, 'follow_up_scheduled', next_follow_up_at ? `Follow-up set for ${next_follow_up_at}.` : 'Follow-up cleared.', { next_follow_up_at });
+        return next;
+    }
+
+    recordReply(user: ColdAcquisitionCrmUser, id: string, replyText: string) {
+        if (!replyText.trim()) throw Object.assign(new Error('reply_text is required'), { statusCode: 400 });
+        return this.updateLead(user, id, { status: 'replied', crm_stage: 'replied', reply_text: replyText.trim() });
     }
 
     addActivity(user: ColdAcquisitionCrmUser, leadId: string, type: string, detail: string, metadata: unknown = null) {
@@ -291,6 +363,64 @@ export class ColdAcquisitionCrmService {
 
     ingestAustriaDirectory(records: AustriaDirectoryRecord[]) {
         return this.leads.ingestAustriaDirectory(records);
+    }
+
+    getSourceConfig(): AcquisitionSourceConfigResponse {
+        const zefixRequired = ['ZEFIX_API_USERNAME', 'ZEFIX_API_PASSWORD'];
+        const compassRequired = ['WIRTSCHAFTSCOMPASS_API_TOKEN'];
+        return {
+            generated_at: this.nowIso(),
+            sources: [
+                {
+                    key: 'zefix',
+                    label: 'Swiss Zefix PublicREST',
+                    market: 'CH',
+                    status: this.envConfigured(zefixRequired) ? 'configured' : 'missing_credentials',
+                    api_base_url: process.env.ZEFIX_API_BASE || 'https://www.zefix.admin.ch/ZefixPublicREST',
+                    api_docs_url: 'https://www.zefix.admin.ch/ZefixPublicREST/v3/api-docs',
+                    ingest_endpoint: '/acquisition/api/admin/ingest/zefix-bulk',
+                    required_env: zefixRequired,
+                    configured_env: this.configuredEnv(zefixRequired),
+                    notes: [
+                        'Official Swiss central business name index API.',
+                        'Company search is POST /api/v1/company/search.',
+                        'Authenticated detail records can be transformed into PRISM Swiss register records.'
+                    ]
+                },
+                {
+                    key: 'firmafind',
+                    label: 'FirmaFind Austrian company search',
+                    market: 'AT',
+                    status: process.env.FIRMAFIND_API_KEY ? 'configured' : 'available_discovery_only',
+                    api_base_url: process.env.FIRMAFIND_API_BASE || 'https://firmafind.at/api',
+                    api_docs_url: 'https://firmafind.at/',
+                    ingest_endpoint: null,
+                    required_env: ['FIRMAFIND_API_KEY'],
+                    configured_env: this.configuredEnv(['FIRMAFIND_API_KEY']),
+                    notes: [
+                        'Public search endpoint is GET /companies/public?q=...',
+                        'Public search is useful for Vienna discovery, but the free result shape is not enough for sendable outreach.',
+                        'Use paid/API-key details or a verified website/email enrichment step before PRISM ingest.'
+                    ]
+                },
+                {
+                    key: 'wirtschaftscompass',
+                    label: 'Wirtschafts-Compass API',
+                    market: 'AT',
+                    status: this.envConfigured(compassRequired) ? 'configured' : 'requires_provider_access',
+                    api_base_url: process.env.WIRTSCHAFTSCOMPASS_API_BASE || 'https://api.wirtschaftscompass.at',
+                    api_docs_url: 'https://api.wirtschaftscompass.at/de/dokumentation',
+                    ingest_endpoint: '/acquisition/api/admin/ingest/austria-directory',
+                    required_env: compassRequired,
+                    configured_env: this.configuredEnv(compassRequired),
+                    notes: [
+                        'Richer Austrian company/provider API with search, reports, and register-backed details.',
+                        'Requires Bearer token/provider access.',
+                        'Best candidate for a full Vienna feed once credentials are available.'
+                    ]
+                }
+            ]
+        };
     }
 
     getWebhookConfig() {
@@ -471,13 +601,56 @@ export class ColdAcquisitionCrmService {
 
     private toTodayMissionLead(lead: ColdLeadRecord): TodayMissionLead {
         const preferred_draft_type = this.preferredDraftType(lead);
+        const quality_blockers = Array.from(new Set([
+            ...this.leads.getSendBlockers(lead),
+            ...lead.draft_specificity.missing,
+            ...(lead.draft_specificity.warnings || [])
+        ]));
+        const evidence_confidence = lead.draft_specificity.profile?.confidence || 'low';
         return {
             ...lead,
             send_blockers: this.leads.getSendBlockers(lead),
             preferred_draft_type,
             draft_excerpt: this.draftExcerpt(lead.outreach_drafts[preferred_draft_type] || ''),
-            due_state: this.dueState(lead)
+            due_state: this.dueState(lead),
+            quality_label: this.qualityLabel(lead),
+            quality_blockers,
+            source_confidence: this.sourceConfidence(lead),
+            evidence_confidence
         };
+    }
+
+    private splitDraft(text: string) {
+        const match = text.match(/^Subject:\s*(.+)$/im);
+        const subject = match?.[1]?.trim();
+        const body = text.replace(/^Subject:.*$(\r?\n)?/im, '').trim();
+        return { subject, body };
+    }
+
+    private reviewReadySort(lead: ColdLeadRecord) {
+        return lead.scoring.total_score
+            + this.confidenceWeight(lead.draft_specificity.profile?.confidence || 'low')
+            + this.confidenceWeight(this.sourceConfidence(lead));
+    }
+
+    private confidenceWeight(value: 'low' | 'medium' | 'high') {
+        if (value === 'high') return 20;
+        if (value === 'medium') return 10;
+        return 0;
+    }
+
+    private qualityLabel(lead: ColdLeadRecord) {
+        if (lead.draft_specificity.readiness === 'ready_to_rework') return 'Ready for review';
+        if (lead.draft_specificity.readiness === 'needs_research') return 'Needs research';
+        if (lead.draft_specificity.readiness === 'needs_rework') return 'Needs draft rework';
+        return 'Blocked';
+    }
+
+    private sourceConfidence(lead: ColdLeadRecord): 'low' | 'medium' | 'high' {
+        if (!lead.compliance.source_url || !lead.compliance.source_timestamp) return 'low';
+        const sourceUrls = lead.draft_specificity.profile?.source_urls || [];
+        if (sourceUrls.length >= 2) return 'high';
+        return 'medium';
     }
 
     private preferredDraftType(lead: ColdLeadRecord): TodayMissionDraftType {
@@ -496,6 +669,12 @@ export class ColdAcquisitionCrmService {
             || lead.channel === 'blocked'
             || lead.compliance.compliance_badge === 'blocked'
             || lead.dedupe.is_duplicate;
+    }
+
+    private isResearchMissionLead(lead: ColdLeadRecord) {
+        return lead.draft_specificity.readiness === 'needs_research'
+            || lead.draft_specificity.missing.includes('evidence_detail')
+            || (lead.draft_specificity.warnings || []).includes('thin_evidence');
     }
 
     private dueState(lead: ColdLeadRecord): TodayMissionDueState {
@@ -524,6 +703,14 @@ export class ColdAcquisitionCrmService {
         if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return Date.parse(`${value}T00:00:00.000Z`);
         const timestamp = Date.parse(value);
         return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp;
+    }
+
+    private envConfigured(keys: string[]) {
+        return keys.every((key) => Boolean(process.env[key]));
+    }
+
+    private configuredEnv(keys: string[]) {
+        return keys.filter((key) => Boolean(process.env[key]));
     }
 
     private publicUser(row: UserRow): ColdAcquisitionCrmUser {
