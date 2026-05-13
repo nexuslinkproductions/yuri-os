@@ -32,7 +32,7 @@ try {
     },
     symbioticPulse: {
       selectedLanes: ['triage-local'],
-      skippedCandidates: [{ laneId: 'deepseek-cloud', reason: 'missing key' }],
+      skippedCandidates: [{ laneId: 'deepseek-v4-pro', reason: 'missing key' }],
       activationGraph: {
         schema_version: 1,
         type: 'bounded_dag',

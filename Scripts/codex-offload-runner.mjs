@@ -12,6 +12,7 @@ const SPARK_ALIASES = new Set(['codex-spark', 'spark', 'fast-codex', SPARK_MODEL
 const SPARK_SMOKE_PROMPT = 'Reply exactly CODEX_SPARK_SMOKE_OK and do not inspect files.';
 const SPARK_READY_MARKER = 'CODEX_SPARK_LANE_READY';
 const SKIP_RE = /(?:rate limit|rate-limited|queued|unavailable|temporarily unavailable|capacity|retry later|busy)/i;
+const DEFAULT_CODEX_SPARK_TIMEOUT_MS = 6 * 60 * 60 * 1000;
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '..');
@@ -39,6 +40,7 @@ if (options.dryRun) {
     prompt,
     artifactDir,
     workspaceRoot: options.workspaceRoot,
+    timeoutMs: options.timeoutMs,
   });
   writeArtifact(artifactDir, 'dry-run.json', preview);
   emitStatus(preview);
@@ -119,6 +121,7 @@ if (options.proveRoute) {
       prompt,
       artifactDir,
       workspaceRoot: options.workspaceRoot,
+      timeoutMs: options.timeoutMs,
     }),
     smoke: {
       status: smokeOk ? 'SMOKE_OK' : 'SMOKE_MISMATCH',
@@ -149,7 +152,7 @@ function parseArgs(rest) {
     promptParts: [],
     artifactDir: '',
     workspaceRoot: process.env.CODEX_SPARK_WORKSPACE || repoRoot,
-    timeoutMs: parseInt(process.env.CODEX_SPARK_TIMEOUT_MS || '180000', 10),
+    timeoutMs: parseInt(process.env.CODEX_SPARK_TIMEOUT_MS || String(DEFAULT_CODEX_SPARK_TIMEOUT_MS), 10),
   };
 
   const args = [...rest];
@@ -193,7 +196,7 @@ function parseArgs(rest) {
   out.prompt = out.promptParts.join(' ').trim();
   out.lane = normalizeLane(out.lane);
   if (!Number.isFinite(out.timeoutMs) || out.timeoutMs <= 0) {
-    out.timeoutMs = 180000;
+    out.timeoutMs = DEFAULT_CODEX_SPARK_TIMEOUT_MS;
   }
   out.workspaceRoot = path.resolve(out.workspaceRoot || repoRoot);
   return out;
@@ -211,7 +214,7 @@ function prepareArtifactDir(overrideDir) {
   return path.resolve(base);
 }
 
-function buildPreview({ lane, model, prompt, artifactDir, workspaceRoot = repoRoot }) {
+function buildPreview({ lane, model, prompt, artifactDir, workspaceRoot = repoRoot, timeoutMs }) {
   return {
     lane,
     model,
@@ -219,6 +222,7 @@ function buildPreview({ lane, model, prompt, artifactDir, workspaceRoot = repoRo
     routeMarker: '',
     artifactDir,
     workspaceRoot,
+    timeoutMs,
     env_redirects: sandboxEnvRedirects(process.env),
     command: [
       'codex',

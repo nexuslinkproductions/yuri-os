@@ -223,7 +223,7 @@ const advisoryCases = [
   {
     prompt: 'review architecture of DeepSeek and Codex collaboration for quality risk',
     decision: 'use-swarm',
-    models: ['deepseek-v4-pro-lite-budget', 'deepseek-v4-flash']
+    models: ['deepseek-v4-pro', 'deepseek-v4-flash']
   },
   {
     prompt: 'diagnose ambiguous bug in parser',
@@ -268,7 +268,24 @@ assert.ok(crossDomainScenario.lifecycle.some((step) => /Consolidate/i.test(step)
 assert.equal(contract.lanes.codexSpark.alias, '@codex-spark', 'codexSpark lane metadata missing');
 
 const swarmDefault = runContract(['swarm-default']);
-assert.equal(swarmDefault, 'deepseek-v4-pro-lite-budget,deepseek-v4-flash', 'shared swarm default changed unexpectedly');
+assert.equal(swarmDefault, 'deepseek-v4-pro,deepseek-v4-flash', 'shared swarm default changed unexpectedly');
+
+const deepseekReasoningRoute = JSON.parse(execFileSync(
+  process.execPath,
+  [offloadRunnerPath, 'deepseek-v4-pro:max-reasoning', '--dry-run', 'review deeply'],
+  { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
+));
+assert.equal(deepseekReasoningRoute.lane, 'deepseek-v4-pro', 'DeepSeek reasoning suffix should normalize to canonical Pro lane');
+assert.equal(deepseekReasoningRoute.model, 'deepseek-v4-pro', 'DeepSeek reasoning suffix should preserve Pro model');
+assert.equal(deepseekReasoningRoute.reasoningDepth, 'xhigh', 'max-reasoning suffix should become xhigh depth');
+assert.equal(deepseekReasoningRoute.tools, false, 'DeepSeek must be text-only by default');
+
+const deepseekAliasRoute = JSON.parse(execFileSync(
+  process.execPath,
+  [offloadRunnerPath, 'code-deepseek', '--dry-run', 'review code architecture'],
+  { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
+));
+assert.equal(deepseekAliasRoute.lane, 'deepseek-v4-pro', 'code-deepseek alias should normalize to canonical Pro lane');
 
 const claudeStubRoot = mkdtempSync(join(tmpdir(), 'claude-council-regression-'));
 try {

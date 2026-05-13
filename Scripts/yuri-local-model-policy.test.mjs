@@ -150,6 +150,41 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
     rmSync(offloadCaptureRoot, { recursive: true, force: true });
   }
 
+  const deepseekCloudCaptureRoot = mkdtempSync(join(tmpdir(), 'yuri-deepseek-cloud-normalization-'));
+  try {
+    const nodeStub = join(deepseekCloudCaptureRoot, 'node');
+    const captureFile = join(deepseekCloudCaptureRoot, 'capture.txt');
+writeFileSync(nodeStub, `#!/usr/bin/env bash
+set -euo pipefail
+: "\${CAPTURE_FILE:?missing capture file}"
+printf '%s\n' "$@" > "$CAPTURE_FILE"
+`);
+    chmodSync(nodeStub, 0o755);
+
+    execFileSync(
+      'bash',
+      ['Scripts/offload.sh', '--model', 'deepseek-v4-pro:max-reasoning', 'cloud reasoning policy check'],
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          CAPTURE_FILE: captureFile,
+          PATH: `${deepseekCloudCaptureRoot}:${process.env.PATH}`,
+          OFFLOAD_QUEUE_BYPASS: '1',
+        },
+      }
+    );
+
+    const dispatchedArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
+    assert.equal(dispatchedArgs[0].endsWith('Scripts/offload-runner.mjs'), true);
+    assert.equal(dispatchedArgs[1], 'deepseek-v4-pro');
+    assert(dispatchedArgs.includes('--reasoning'));
+    assert(dispatchedArgs.includes('xhigh'));
+    assert(dispatchedArgs.includes('--no-tools'));
+  } finally {
+    rmSync(deepseekCloudCaptureRoot, { recursive: true, force: true });
+  }
+
   process.stdout.write('yuri-local-model-policy: pass\n');
 } finally {
   rmSync(manifestRoot, { recursive: true, force: true });

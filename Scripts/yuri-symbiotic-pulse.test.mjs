@@ -93,7 +93,7 @@ try {
     'pulse stage order changed',
   );
   assert(plan.symbioticPulse.selectedLanes.includes('triage-local'), 'local triage should be selected');
-  assert(plan.symbioticPulse.selectedLanes.includes('deepseek-cloud'), 'cloud DeepSeek decomposition should be selected when available');
+  assert(plan.symbioticPulse.selectedLanes.includes('deepseek-v4-pro'), 'cloud DeepSeek decomposition should be selected when available');
   assert(plan.symbioticPulse.selectedLanes.includes('code-local'), 'code specialist should be selected');
   assert(plan.symbioticPulse.selectedLanes.includes('summarize-local'), 'summarization specialist should be selected');
   assert(plan.symbioticPulse.stages.every((stage) => stage.triggerAllAtOnce === false), 'no stage should trigger all lanes at once');
@@ -106,7 +106,7 @@ try {
   );
 
   const availableIds = plan.symbioticPulse.availableArsenal.map((lane) => lane.id);
-  assert(availableIds.includes('deepseek-cloud'), 'available arsenal should include deepseek-cloud');
+  assert(availableIds.includes('deepseek-v4-pro'), 'available arsenal should include deepseek-v4-pro');
   assert(availableIds.includes('triage-local'), 'available arsenal should include triage-local');
 
   const frozenManifestRoot = mkdtempSync(join(tmpdir(), 'yuri-symbiotic-pulse-frozen-'));
