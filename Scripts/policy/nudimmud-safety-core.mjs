@@ -118,17 +118,35 @@ function evaluateShellCommand(command, cwd) {
     if (pattern.re.test(command)) return block(pattern.reason);
   }
 
-  const protectedLiteral = protectedLiteralHit(command);
-  if (protectedLiteral && MUTATING_COMMAND_RE.test(command)) {
-    return block(`mutation of protected target blocked: ${protectedLiteral.label}`);
-  }
-
   for (const targetPath of extractLikelyWriteTargets(command)) {
     const hit = protectedPathHit(targetPath, cwd);
     if (hit) return block(`write to protected target blocked: ${hit.label}`);
   }
 
+  const protectedLiteral = protectedLiteralHit(command);
+  if (protectedLiteral && MUTATING_COMMAND_RE.test(command)) {
+    if (isAllowedProtectedReadForOffload(command, protectedLiteral.label)) return allow();
+    return block(`mutation of protected target blocked: ${protectedLiteral.label}`);
+  }
+
   return allow();
+}
+
+function isAllowedProtectedReadForOffload(command, protectedLabel) {
+  if (protectedLabel !== '.env') return false;
+
+  const readsEnv =
+    /\b(?:source|\.)\s+\.env\b/u.test(command) ||
+    /\bgrep\b[^;&|]*\bDEEPSEEK_API_KEY\b[^;&|]*\s\.env\b/u.test(command);
+  if (!readsEnv) return false;
+
+  const invokesOffload =
+    /\b(?:node\s+)?Scripts\/offload-runner\.mjs\b[^;&|]*\bdeepseek-v4-(?:pro|flash)\b/u.test(command) ||
+    /\bScripts\/offload\.sh\b[^;&|]*--model\s+deepseek-v4-(?:pro|flash)\b/u.test(command) ||
+    /\b(?:bash\s+)?\.codex\/deepseek-offload\.sh\b/u.test(command);
+  if (!invokesOffload) return false;
+
+  return !/\s(?:>|>>|2>|&>)\s*['"]?\.env(?:['"]?|\s|$)/u.test(command);
 }
 
 function extractLikelyWriteTargets(command) {

@@ -34,6 +34,9 @@ Options:
   -l, --list             List available neural models in the registry
   -m, --model <id>       Force offload to a specific model ID
   --intent <id>          Pass a router intent hint for auto routing
+  --reasoning <depth>    Reasoning depth hint: low, medium, high, xhigh
+  --tools                Allow model tool calls (default: disabled for DeepSeek)
+  --no-tools             Force text-only model output
   -s, --swarm <id,id,..|default>
                          Run task via multiple models (cloud parallel, local serialized)
   -d, --dry-run, --route-only
@@ -56,19 +59,16 @@ list_models() {
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
   printf '  [%-16s] %s\n' "gpt-oss" "active via offload-runner (local wrapper)"
-  printf '  [%-16s] %s\n' "deepseek" "$(command -v deepseek >/dev/null 2>&1 && command -v deepseek || echo "MISSING")"
+  printf '  [%-16s] %s\n' "deepseek" "compat cloud default via offload-runner"
   printf '  [%-16s] %s\n' "openrouter-free" "active via offload-runner (needs OPENROUTER_API_KEY; supports openrouter/free and provider/model:free)"
   printf '  [%-16s] %s\n' "nvidia-deepseek" "active via offload-runner (needs NVIDIA_API_KEY; defaults to deepseek-ai/deepseek-v4-pro)"
 
   echo
   echo "DeepSeek API lanes:"
-  printf '  [%-30s] %s\n' "deepseek-v4-flash" "official V4 Flash (non-thinking default)"
-  printf '  [%-30s] %s\n' "deepseek-v4-pro" "official V4 Pro (thinking default)"
-  printf '  [%-30s] %s\n' "deepseek-v4-pro-lite-budget" "V4 Pro budget lane (non-thinking, tight caps)"
-  printf '  [%-30s] %s\n' "deepseek-chat" "compat alias -> deepseek-v4-flash (non-thinking)"
-  printf '  [%-30s] %s\n' "deepseek-reasoner" "compat alias -> deepseek-v4-flash (thinking)"
-  printf '  [%-30s] %s\n' "deepseek-cloud" "compat alias -> deepseek-v4-pro"
-  printf '  [%-30s] %s\n' "code-deepseek" "compat alias -> deepseek-v4-pro"
+  printf '  [%-30s] %s\n' "deepseek-v4-flash" "official V4 Flash, text-only advisory default"
+  printf '  [%-30s] %s\n' "deepseek-v4-pro" "official V4 Pro, reasoning depth via --reasoning"
+  printf '  [%-30s] %s\n' "deepseek" "compat default -> deepseek-v4-flash when key is set"
+  echo "  Deprecated DeepSeek aliases normalize into the two official lanes above."
 
   echo
   echo "OpenRouter free lanes:"
@@ -141,6 +141,62 @@ run_offload_runner() {
   OFFLOAD_PROMPT_TEXT="$prompt" node "$OFFLOAD_RUNNER" "$lane" "$@"
 }
 
+normalize_reasoning_depth() {
+  case "$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')" in
+    off|none|false|disabled) printf 'off' ;;
+    lite|light|low|budget|cheap) printf 'low' ;;
+    medium|normal|standard|balanced) printf 'medium' ;;
+    reasoning|deep|high|thinking) printf 'high' ;;
+    max|maximum|max-reasoning|xhigh|extra-high|ultra) printf 'xhigh' ;;
+    *) printf '%s' "${1:-}" ;;
+  esac
+}
+
+normalize_deepseek_model() {
+  local raw="$1"
+  local model="${raw#@}"
+  local suffix=""
+
+  if [[ "$model" == deepseek-v4-*:* || "$model" == deepseek-cloud:* || "$model" == code-deepseek:* || "$model" == deepseek-reasoner:* || "$model" == deepseek-chat:* ]]; then
+    suffix="${model#*:}"
+    model="${model%%:*}"
+  fi
+
+  case "$model" in
+    deepseek-cloud|code-deepseek|deepseek-reasoner)
+      printf '%s\n' "⬡ DEEPSEEK_ALIAS_NORMALIZED :: $raw -> deepseek-v4-pro" >&2
+      model="deepseek-v4-pro"
+      ;;
+    deepseek-chat)
+      printf '%s\n' "⬡ DEEPSEEK_ALIAS_NORMALIZED :: $raw -> deepseek-v4-flash" >&2
+      model="deepseek-v4-flash"
+      ;;
+    deepseek-v4-pro-lite-budget)
+      printf '%s\n' "⬡ DEEPSEEK_ALIAS_NORMALIZED :: $raw -> deepseek-v4-pro --reasoning low" >&2
+      model="deepseek-v4-pro"
+      suffix="${suffix:-low}"
+      ;;
+  esac
+
+  if [[ -n "$suffix" ]]; then
+    suffix="$(normalize_reasoning_depth "$suffix")"
+  fi
+
+  printf '%s|%s' "$model" "$suffix"
+}
+
+apply_deepseek_normalization() {
+  local var_name="$1"
+  local normalized model depth
+  normalized="$(normalize_deepseek_model "${!var_name}")"
+  model="${normalized%%|*}"
+  depth="${normalized#*|}"
+  printf -v "$var_name" '%s' "$model"
+  if [[ -n "$depth" ]]; then
+    REASONING_DEPTH="$depth"
+  fi
+}
+
 build_route_payload() {
   local prompt="$1"
   local intent="${2:-}"
@@ -150,6 +206,11 @@ build_route_payload() {
 dry_run_model_override() {
   local target_model="$1"
   local prompt="$2"
+  apply_deepseek_normalization target_model
+  local reasoning_args=()
+  if [[ -n "${REASONING_DEPTH:-}" ]]; then
+    reasoning_args=(--reasoning "$REASONING_DEPTH")
+  fi
 
   case "$target_model" in
       codex-spark|spark|fast-codex|gpt-5.3-codex-spark)
@@ -169,6 +230,9 @@ dry_run_model_override() {
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
         run_offload_runner gpt-oss "$prompt" --dry-run
         ;;
+      deepseek-v4-flash|deepseek-v4-pro|deepseek)
+        run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} --no-tools
+        ;;
       *)
         route_log "$(printf '⬡ DRY_RUN :: model=%s lane=%s' "$target_model" "$(classify_lane "$target_model")")"
         ;;
@@ -178,6 +242,17 @@ dry_run_model_override() {
 dispatch_model() {
     local target_model="$1"
     local prompt="$2"
+    apply_deepseek_normalization target_model
+    local reasoning_args=()
+    if [[ -n "${REASONING_DEPTH:-}" ]]; then
+      reasoning_args=(--reasoning "$REASONING_DEPTH")
+    fi
+    local tool_args=()
+    if [[ "${ALLOW_MODEL_TOOLS:-0}" == "1" ]]; then
+      tool_args=(--tools)
+    else
+      tool_args=(--no-tools)
+    fi
     
     # Normalize model IDs to agent names where possible
   case "$target_model" in
@@ -194,9 +269,9 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_GPT_OSS..." >&2
         run_offload_runner gpt-oss "$prompt"
         ;;
-      deepseek-v4-flash|deepseek-v4-pro|deepseek-v4-pro-lite-budget|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek)
+      deepseek-v4-flash|deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2
-        run_offload_runner "$target_model" "$prompt"
+        run_offload_runner "$target_model" "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} "${tool_args[@]}"
         ;;
       deepseek-r1:8b|deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b)
         printf '%s\n' "⬡ DEEPSEEK_LOCAL_FROZEN :: local DeepSeek models disabled to prevent system hangs" >&2
@@ -204,7 +279,7 @@ dispatch_model() {
         ;;
       deepseek)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_CLOUD..." >&2
-        run_offload_runner deepseek "$prompt"
+        run_offload_runner deepseek "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} "${tool_args[@]}"
         ;;
       nvidia-deepseek|deepseek-ai/*)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
@@ -247,6 +322,8 @@ MODEL_OVERRIDE=""
 SWARM_MODELS=""
 DRY_RUN=0
 ROUTE_INTENT="${OFFLOAD_INTENT:-}"
+REASONING_DEPTH=""
+ALLOW_MODEL_TOOLS=0
 PROMPT_PARTS=()
 
 while [[ $# -gt 0 ]]; do
@@ -266,6 +343,18 @@ while [[ $# -gt 0 ]]; do
     --intent)
       ROUTE_INTENT="$2"
       shift 2
+      ;;
+    --reasoning)
+      REASONING_DEPTH="$(normalize_reasoning_depth "$2")"
+      shift 2
+      ;;
+    --tools)
+      ALLOW_MODEL_TOOLS=1
+      shift
+      ;;
+    --no-tools|--text-only)
+      ALLOW_MODEL_TOOLS=0
+      shift
       ;;
     -d|--dry-run|--route-only)
       DRY_RUN=1
@@ -340,7 +429,8 @@ if [[ -n "$SWARM_MODELS" ]]; then
 fi
 
 if [[ -n "$MODEL_OVERRIDE" ]]; then
-        printf '%s\n' "⬡ MANUAL_OVERRIDE :: model=$MODEL_OVERRIDE" >&2
+        apply_deepseek_normalization MODEL_OVERRIDE
+        printf '%s\n' "⬡ MANUAL_OVERRIDE :: model=$MODEL_OVERRIDE${REASONING_DEPTH:+ reasoning=$REASONING_DEPTH}" >&2
         dispatch_model "$MODEL_OVERRIDE" "$PROMPT"
         exit 0
 fi

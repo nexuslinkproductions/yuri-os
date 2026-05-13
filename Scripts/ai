@@ -76,22 +76,10 @@ Commands:
       Run the default DeepSeek cloud lane. Local DeepSeek is frozen.
 
   @deepseek-v4-flash [prompt]
-      Run the official DeepSeek V4 Flash lane (non-thinking default).
+      Run the official DeepSeek V4 Flash lane (text-only advisory default).
 
   @deepseek-v4-pro [prompt]
-      Run the official DeepSeek V4 Pro lane (thinking default).
-
-  @deepseek-v4-pro-lite-budget [prompt]
-      Run the DeepSeek V4 Pro budget lane (non-thinking, tight caps).
-
-  @deepseek-chat [prompt]
-      Compatibility alias for DeepSeek V4 Flash non-thinking mode.
-
-  @deepseek-reasoner [prompt]
-      Compatibility alias for DeepSeek V4 Flash thinking mode.
-
-  @deepseek-cloud [prompt]
-      Compatibility alias for DeepSeek V4 Pro.
+      Run the official DeepSeek V4 Pro lane. Add reasoning depth in the prompt or use offload.sh --reasoning.
 
   @triage-local [prompt]
       Run the triage-local lane (fast lightweight local model).
@@ -113,9 +101,6 @@ Commands:
 
   @reason-kimi [prompt]
       Deprecated compatibility route for Kimi reasoning (cloud, thinking enabled).
-
-  @code-deepseek [prompt]
-      Run the code-deepseek lane (compatibility alias for DeepSeek V4 Pro).
 
   @deepseek-workhorse [prompt]
       Run DeepSeek workhorse swarm (cloud): shared workhorse pair from Scripts/offload-contract.mjs.
@@ -408,6 +393,12 @@ run_offload_lane() {
   local runner="$OFFLOAD_RUNNER"
 
   case "$lane" in
+    deepseek-cloud|code-deepseek|deepseek-reasoner|deepseek-v4-pro-lite-budget)
+      lane="deepseek-v4-pro"
+      ;;
+    deepseek-chat)
+      lane="deepseek-v4-flash"
+      ;;
     codex-spark|spark|fast-codex|gpt-5.3-codex-spark)
       runner="$SCRIPT_DIR/codex-offload-runner.mjs"
       lane="codex-spark"
@@ -1405,13 +1396,13 @@ case "${1:-help}" in
     fi
     run_offload_lane deepseek-v4-pro "$@"
     ;;
-  @deepseek-v4-pro-lite-budget|deepseek-v4-pro-lite-budget)
+  @deepseek-v4-pro-lite-budget|deepseek-v4-pro-lite-budget|@deepseek-reasoner|deepseek-reasoner|@deepseek-cloud|deepseek-cloud|@code-deepseek|code-deepseek)
     shift || true
     if [ "$#" -eq 0 ]; then
       usage
       exit 1
     fi
-    run_offload_lane deepseek-v4-pro-lite-budget "$@"
+    run_offload_lane deepseek-v4-pro "$@"
     ;;
   @deepseek-chat|deepseek-chat)
     shift || true
@@ -1419,23 +1410,7 @@ case "${1:-help}" in
       usage
       exit 1
     fi
-    run_offload_lane deepseek-chat "$@"
-    ;;
-  @deepseek-reasoner|deepseek-reasoner)
-    shift || true
-    if [ "$#" -eq 0 ]; then
-      usage
-      exit 1
-    fi
-    run_offload_lane deepseek-reasoner "$@"
-    ;;
-  @deepseek-cloud|deepseek-cloud)
-    shift || true
-    if [ "$#" -eq 0 ]; then
-      usage
-      exit 1
-    fi
-    run_offload_lane deepseek-cloud "$@"
+    run_offload_lane deepseek-v4-flash "$@"
     ;;
   @triage-local|triage-local)
     shift || true
@@ -1468,14 +1443,6 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane reason-kimi "$@"
-    ;;
-  @code-deepseek|code-deepseek)
-    shift || true
-    if [ "$#" -eq 0 ]; then
-      usage
-      exit 1
-    fi
-    run_offload_lane code-deepseek "$@"
     ;;
   @claude|claude-council)
     shift || true

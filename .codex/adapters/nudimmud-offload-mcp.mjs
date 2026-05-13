@@ -2,12 +2,15 @@
 
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD';
 const OFFLOAD_SH = path.join(REPO_ROOT, 'Scripts/offload.sh');
 const KERNEL_PY = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/syscalls/kernel.py');
 const TOOL_NAME = 'nudimmud.offload_task';
+const DEFAULT_FILE_CHAR_BUDGET = 120000;
+const TOOL_REPETITION_SENTINEL = 'Reached tool call repetition limit; returning partial result.';
 
 const TOOL = {
   name: TOOL_NAME,
@@ -123,8 +126,10 @@ async function callTool(params) {
   try {
     logMemory(taskId, input, lane, promptHash, 'dispatch_started');
     const routed = runOffload(input, taskId);
-    const status = routed.status === 0 ? 'COMPLETED' : 'FAILED';
-    updateTask(taskId, status, summarizeResult(routed));
+    const repetitionFailure = hasToolRepetitionSentinel(routed.stdout);
+    const status = routed.status === 0 && !repetitionFailure ? 'COMPLETED' : 'FAILED';
+    const exitCode = repetitionFailure && routed.status === 0 ? 70 : routed.status;
+    updateTask(taskId, status, summarizeResult(routed, exitCode, repetitionFailure));
     logMemory(taskId, input, lane, promptHash, `dispatch_${status.toLowerCase()}`);
 
     return {
@@ -136,9 +141,10 @@ async function callTool(params) {
             lane,
             dry_run: !!input.dry_run,
             status,
-            exit_code: routed.status,
+            exit_code: exitCode,
             stdout: routed.stdout.trim(),
             stderr: routed.stderr.trim(),
+            ...(repetitionFailure ? { failure_reason: 'tool_call_repetition_limit' } : {}),
           }, null, 2),
         },
       ],
@@ -186,9 +192,20 @@ function validateInput(raw) {
 }
 
 function selectLane(input) {
-  if (input.fanout_lanes.length > 0) return input.fanout_lanes.join(',');
-  if (input.lane_hint) return input.lane_hint;
+  if (input.fanout_lanes.length > 0) return input.fanout_lanes.map(canonicalLaneLabel).join(',');
+  if (input.lane_hint) return canonicalLaneLabel(input.lane_hint);
   return 'auto';
+}
+
+function canonicalLaneLabel(lane) {
+  const clean = String(lane || '').trim().toLowerCase();
+  const base = clean.split(':')[0];
+  if (/^deepseek-v4-(pro|flash)$/.test(base)) return base;
+  if (['deepseek-cloud', 'code-deepseek', 'deepseek-reasoner', 'deepseek-v4-pro-lite-budget'].includes(base)) {
+    return 'deepseek-v4-pro';
+  }
+  if (base === 'deepseek-chat') return 'deepseek-v4-flash';
+  return clean;
 }
 
 function createTask(input, lane, promptHash) {
@@ -235,6 +252,7 @@ function runKernel(args) {
 
 function runOffload(input, taskId) {
   const args = [OFFLOAD_SH];
+  const prompt = buildOffloadPrompt(input);
   args.push('--intent', input.intent);
   if (input.fanout_lanes.length > 0) {
     args.push('--swarm', input.fanout_lanes.join(','));
@@ -242,7 +260,7 @@ function runOffload(input, taskId) {
     args.push('--model', input.lane_hint);
   }
   if (input.dry_run) args.push('--dry-run');
-  args.push(input.prompt);
+  args.push(prompt);
 
   return spawnSync('bash', args, {
     cwd: REPO_ROOT,
@@ -252,11 +270,57 @@ function runOffload(input, taskId) {
   });
 }
 
-function summarizeResult(result) {
+function buildOffloadPrompt(input) {
+  if (input.files.length === 0) return input.prompt;
+
+  const budget = Math.max(
+    1000,
+    Math.floor(Number(process.env.OFFLOAD_MCP_FILE_CHAR_BUDGET || DEFAULT_FILE_CHAR_BUDGET))
+  );
+  let remaining = budget;
+  const sections = [];
+
+  for (const file of input.files) {
+    const resolved = path.resolve(REPO_ROOT, file);
+    if (!existsSync(resolved)) {
+      throw new Error(`offload file not found: ${resolved}`);
+    }
+    const stat = statSync(resolved);
+    if (!stat.isFile()) {
+      throw new Error(`offload file is not a regular file: ${resolved}`);
+    }
+    if (remaining <= 0) {
+      sections.push(`### ${resolved}\n[omitted: file attachment budget exhausted]`);
+      continue;
+    }
+
+    const content = readFileSync(resolved, 'utf8');
+    const excerpt = content.slice(0, remaining);
+    remaining -= excerpt.length;
+    const truncated = excerpt.length < content.length
+      ? `\n[truncated: ${content.length - excerpt.length} chars omitted by MCP attachment budget]`
+      : '';
+    sections.push(`### ${resolved}\n\`\`\`\n${excerpt}${truncated}\n\`\`\``);
+  }
+
+  return [
+    input.prompt,
+    '',
+    'Attached files are source context for this offload. Use them directly; do not call tools to inspect them.',
+    sections.join('\n\n'),
+  ].join('\n');
+}
+
+function hasToolRepetitionSentinel(stdout) {
+  return String(stdout || '').includes(TOOL_REPETITION_SENTINEL);
+}
+
+function summarizeResult(result, exitCode = result.status, repetitionFailure = false) {
   return JSON.stringify({
-    exit_code: result.status,
+    exit_code: exitCode,
     stdout: result.stdout.slice(0, 1000),
     stderr: result.stderr.slice(0, 1000),
+    ...(repetitionFailure ? { failure_reason: 'tool_call_repetition_limit' } : {}),
   });
 }
 

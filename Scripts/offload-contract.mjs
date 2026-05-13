@@ -117,8 +117,8 @@ const OFFLOAD_CONTRACT = {
     }
   },
   swarm: {
-    defaultModels: ['deepseek-v4-pro-lite-budget', 'deepseek-v4-flash'],
-    workhorseModels: ['deepseek-v4-pro-lite-budget', 'deepseek-v4-flash'],
+    defaultModels: ['deepseek-v4-pro', 'deepseek-v4-flash'],
+    workhorseModels: ['deepseek-v4-pro', 'deepseek-v4-flash'],
     description: 'Shared swarm default for Ruflo-backed workhorse fan-out'
   },
   deepseekCodexQualityGate: {
@@ -139,7 +139,7 @@ const OFFLOAD_CONTRACT = {
         outputCapLines: 80
       },
       swarm: {
-        models: ['deepseek-v4-pro-lite-budget', 'deepseek-v4-flash'],
+        models: ['deepseek-v4-pro', 'deepseek-v4-flash'],
         use: ['high-stakes review', 'audit', 'architecture/protocol consensus', 'material uncertainty after local inspection'],
         outputCapLines: 80
       }

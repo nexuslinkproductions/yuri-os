@@ -71,25 +71,15 @@ const CAPABILITY_TRAITS = {
     concurrency: 'cloud-bounded',
     traits: ['cloud', 'reasoning', 'analysis', 'multi-step'],
   },
-  'deepseek-cloud': {
-    capabilities: ['deep-reasoning', 'decomposition', 'architecture-review', 'risk-review'],
-    cost: 'high',
-    latency: 'medium',
-    privacy: 'cloud',
-    memoryLoad: 'none-local',
-    contextSize: 'large',
-    concurrency: 'cloud-bounded',
-    traits: ['cloud', 'high-reasoning', 'architecture', 'risk', 'pulse'],
-  },
   'deepseek-v4-pro': {
-    capabilities: ['deep-reasoning', 'architecture-review', 'risk-review'],
+    capabilities: ['deep-reasoning', 'decomposition', 'architecture-review', 'risk-review', 'deep-code-analysis'],
     cost: 'high',
     latency: 'medium',
     privacy: 'cloud',
     memoryLoad: 'none-local',
     contextSize: 'large',
     concurrency: 'cloud-bounded',
-    traits: ['cloud', 'high-reasoning', 'architecture', 'risk'],
+    traits: ['cloud', 'high-reasoning', 'architecture', 'risk', 'pulse', 'code', 'deep-analysis'],
   },
   'deepseek-v4-flash': {
     capabilities: ['fast-triage', 'condensation', 'sanity-review'],
@@ -100,26 +90,6 @@ const CAPABILITY_TRAITS = {
     contextSize: 'large',
     concurrency: 'cloud-bounded',
     traits: ['cloud', 'fast-triage', 'condensation', 'sanity-review'],
-  },
-  'deepseek-v4-pro-lite-budget': {
-    capabilities: ['budget-review', 'triage', 'risk-check'],
-    cost: 'medium',
-    latency: 'low',
-    privacy: 'cloud',
-    memoryLoad: 'none-local',
-    contextSize: 'medium',
-    concurrency: 'cloud-bounded',
-    traits: ['cloud', 'budget-pro', 'triage', 'review'],
-  },
-  'code-deepseek': {
-    capabilities: ['code', 'deep-code-analysis'],
-    cost: 'high',
-    latency: 'medium',
-    privacy: 'cloud',
-    memoryLoad: 'none-local',
-    contextSize: 'large',
-    concurrency: 'cloud-bounded',
-    traits: ['cloud', 'code', 'deep-analysis'],
   },
   kimi: {
     capabilities: ['long-context', 'deep-synthesis'],
@@ -389,12 +359,12 @@ function buildPulsePlan(intent, routePlan, inventory, options) {
   });
 
   if (context.requiresHighReasoning) {
-    const plannerEntry = stageBuilder.firstAvailable(['deepseek-cloud', 'deepseek-v4-pro', 'kimi', 'nvidia-deepseek', 'deepseek']);
+    const plannerEntry = stageBuilder.firstAvailable(['deepseek-v4-pro', 'kimi', 'nvidia-deepseek', 'deepseek']);
     stageBuilder.addStage(stages, {
       id: 'campaign_decompose',
       capability: 'deep-decomposition',
       purpose: 'Dissect the Pulse Seed into independent work packets, constraints, success criteria, and stop conditions.',
-      candidates: ['deepseek-cloud', 'deepseek-v4-pro', 'kimi', 'nvidia-deepseek', 'deepseek'],
+      candidates: ['deepseek-v4-pro', 'kimi', 'nvidia-deepseek', 'deepseek'],
       laneIds: plannerEntry ? [plannerEntry] : [],
       skillIds: activeSkillRegistry.stageBindings.campaign_decompose || [],
       dependsOn: ['intake_classify'],
@@ -629,22 +599,22 @@ function analyzeIntent(intent, routePlan) {
     private: signals.includes('private'),
     multimodal: signals.includes('multimodal'),
     requiresHighReasoning: signals.some((signal) => ['campaign', 'risk', 'research'].includes(signal)) ||
-      ['swarm', 'deepseek-cloud', 'kimi'].includes(routePlan.lane),
+      ['swarm', 'deepseek-v4-pro', 'kimi'].includes(routePlan.lane),
   };
 }
 
 function buildSpecialistCandidates(context, routePlan) {
   const groups = [];
 
-  if (context.code) groups.push(['code-local', 'code-deepseek', 'code-cloud']);
+  if (context.code) groups.push(['code-local', 'deepseek-v4-pro', 'code-cloud']);
   if (context.docs) groups.push(['summarize-local', 'deepseek-v4-flash', 'gpt-oss']);
   if (context.research) groups.push(['openrouter-free', 'deepseek-v4-flash', 'kimi']);
   if (context.design) groups.push(['gpt-oss', 'gemma', 'gemma-cloud']);
-  if (context.risk) groups.push(['deepseek-cloud', 'deepseek-v4-pro', 'claude', 'kimi']);
+  if (context.risk) groups.push(['deepseek-v4-pro', 'claude', 'kimi']);
   if (context.private) groups.push(['ollama-local', 'triage-local']);
   if (context.multimodal) groups.push(['gemma-local', 'gemma-cloud', 'gemma']);
 
-  groups.push(['deepseek-v4-pro-lite-budget', 'deepseek-v4-flash']);
+  groups.push(['deepseek-v4-pro', 'deepseek-v4-flash']);
   if (routePlan.lane && routePlan.lane !== 'swarm') groups.push([routePlan.lane]);
 
   return groups;

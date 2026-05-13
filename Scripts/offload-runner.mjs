@@ -35,6 +35,9 @@ const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || 'llama3.2:latest';
 const LOCAL_FROZEN_MODELS = LOCAL_MODEL_POLICY.frozen || LOCAL_MODEL_POLICY.manual_only || [];
 const LOCAL_MANUAL_ONLY_MODELS = LOCAL_MODEL_POLICY.manual_only || LOCAL_FROZEN_MODELS;
 
+const TOOL_REPETITION_SENTINEL = 'Reached tool call repetition limit; returning partial result.';
+const DEFAULT_LONG_OFFLOAD_TIMEOUT_MS = 6 * 60 * 60 * 1000;
+
 const argv = process.argv.slice(2);
 
 if (argv.includes('--inventory')) {
@@ -43,14 +46,17 @@ if (argv.includes('--inventory')) {
   process.exit(0);
 }
 
-const lane = (argv.shift() || '').toLowerCase();
+let lane = (argv.shift() || '').toLowerCase();
 const options = parseArgs(argv);
+const laneRequest = normalizeLaneRequest(lane, options.reasoning);
+lane = laneRequest.lane;
+options.reasoning = laneRequest.reasoning || options.reasoning;
 const envPrompt = process.env.OFFLOAD_PROMPT_TEXT;
 const prompt = envPrompt !== undefined ? envPrompt : options.prompt.trim();
 const ledgerTraceId = process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || `offload-${Date.now()}-${process.pid}`;
 
 if (!lane) {
-  console.error('Usage: offload-runner <lane|pulse> [--model <id>] [--system <prompt>] [--dry-run] [--inventory] [--plan-json <json>] [--plan-file <path>] <prompt>');
+  console.error('Usage: offload-runner <lane|pulse> [--model <id>] [--system <prompt>] [--reasoning <low|medium|high|xhigh>] [--tools|--no-tools] [--dry-run] [--inventory] [--plan-json <json>] [--plan-file <path>] <prompt>');
   process.exit(1);
 }
 
@@ -112,7 +118,7 @@ if (resolved.protocol === 'responses') {
 
 const result = await runOpenAICompatibleChat(
   resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody,
-  { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout, lane, traceId: ledgerTraceId }
+  { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout, lane, traceId: ledgerTraceId, tools: options.tools }
 );
 process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
 
@@ -128,6 +134,7 @@ function parseArgs(rest) {
     planJson: '',
     planFile: '',
     executePulse: false,
+    tools: false,
   };
   const promptParts = [];
 
@@ -143,6 +150,14 @@ function parseArgs(rest) {
     }
     if (token === '--reasoning' && rest[i + 1]) {
       out.reasoning = rest[++i];
+      continue;
+    }
+    if (token === '--tools') {
+      out.tools = true;
+      continue;
+    }
+    if (token === '--no-tools' || token === '--text-only') {
+      out.tools = false;
       continue;
     }
     if (token === '--max-output-tokens' && rest[i + 1]) {
@@ -174,6 +189,37 @@ function parseArgs(rest) {
 
   out.prompt = promptParts.join(' ');
   return out;
+}
+
+function normalizeLaneRequest(rawLane, rawReasoning = '') {
+  const cleanLane = String(rawLane || '').toLowerCase();
+  const suffixCapable = /^(deepseek-v4-|deepseek-cloud|code-deepseek|deepseek-reasoner|deepseek-chat)/.test(cleanLane);
+  const parts = suffixCapable ? cleanLane.split(':') : [cleanLane];
+  const baseLane = parts.shift() || '';
+  const suffix = parts.join(':');
+  const suffixReasoning = normalizeReasoningDepth(suffix);
+  const explicitReasoning = normalizeReasoningDepth(rawReasoning);
+  const alias = {
+    'deepseek-cloud': 'deepseek-v4-pro',
+    'code-deepseek': 'deepseek-v4-pro',
+    'deepseek-reasoner': 'deepseek-v4-pro',
+    'deepseek-chat': 'deepseek-v4-flash',
+    'deepseek-v4-pro-lite-budget': 'deepseek-v4-pro',
+  };
+  const lane = alias[baseLane] || baseLane;
+  const reasoning = explicitReasoning || suffixReasoning || (baseLane === 'deepseek-v4-pro-lite-budget' ? 'low' : '');
+  return { lane, reasoning };
+}
+
+function normalizeReasoningDepth(value = '') {
+  const v = String(value || '').toLowerCase().trim();
+  if (!v) return '';
+  if (['off', 'none', 'false', 'disabled'].includes(v)) return 'off';
+  if (['lite', 'light', 'low', 'budget', 'cheap'].includes(v)) return 'low';
+  if (['medium', 'normal', 'standard', 'balanced'].includes(v)) return 'medium';
+  if (['reasoning', 'deep', 'high', 'thinking'].includes(v)) return 'high';
+  if (['max', 'maximum', 'max-reasoning', 'xhigh', 'extra-high', 'ultra'].includes(v)) return 'xhigh';
+  return '';
 }
 
 async function runPulsePlan(options, promptText, traceId) {
@@ -336,46 +382,15 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       envVars: ['DEEPSEEK_FLASH_MODEL'],
       thinking: false,
       maxTokens: 4096,
-      timeout: 60000,
-    }),
+      timeout: parseInt(process.env.DEEPSEEK_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
+    }, options),
     'deepseek-v4-pro': deepseekLane(normalizedForcedModel, {
       defaultModel: 'deepseek-v4-pro',
       envVars: ['DEEPSEEK_PRO_MODEL'],
       thinking: true,
       maxTokens: 8192,
-      timeout: 120000,
-    }),
-    'deepseek-v4-pro-lite-budget': deepseekLane(normalizedForcedModel, {
-      defaultModel: 'deepseek-v4-pro',
-      envVars: ['DEEPSEEK_PRO_LITE_MODEL', 'DEEPSEEK_PRO_MODEL'],
-      thinking: false,
-      maxTokens: 1024,
-      timeout: 45000,
-    }),
-    'deepseek-chat': deepseekLane(normalizedForcedModel, {
-      defaultModel: 'deepseek-v4-flash',
-      envVars: ['DEEPSEEK_FLASH_MODEL'],
-      thinking: false,
-      maxTokens: 4096,
-      timeout: 60000,
-    }),
-    'deepseek-reasoner': deepseekLane(normalizedForcedModel, {
-      defaultModel: 'deepseek-v4-flash',
-      envVars: ['DEEPSEEK_FLASH_MODEL'],
-      thinking: true,
-      maxTokens: 4096,
-      timeout: 60000,
-    }),
-    'deepseek-cloud': {
-      kind: 'cloud',
-      endpoint: deepseekBaseUrl(),
-      apiKey: deepseekApiKey(),
-      model: normalizedForcedModel || process.env.DEEPSEEK_PRO_MODEL || process.env.DEEPSEEK_CLOUD_MODEL || 'deepseek-v4-pro',
-      extraBody: deepseekThinkingBody(true),
-      maxTokens: 8192,
-      timeout: 120000,
-      requiresKey: true,
-    },
+      timeout: parseInt(process.env.DEEPSEEK_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
+    }, options),
     'triage-local': {
       kind: 'local',
       model: normalizedForcedModel || normalizeForcedModel(process.env.TRIAGE_LOCAL_MODEL || '', 'triage-local') || pickFirstExisting([
@@ -405,16 +420,6 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       endpoint: process.env.REASON_CLOUD_ENDPOINT || process.env.OLLAMA_CLOUD_ENDPOINT || 'https://ollama.com/api/chat',
       apiKey: process.env.REASON_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '',
       model: normalizedForcedModel || process.env.REASON_CLOUD_MODEL || 'qwen2.5:72b',
-    },
-    'code-deepseek': {
-      kind: 'cloud',
-      endpoint: deepseekBaseUrl(),
-      apiKey: deepseekApiKey(),
-      model: normalizedForcedModel || process.env.DEEPSEEK_PRO_MODEL || process.env.CODE_DEEPSEEK_MODEL || 'deepseek-v4-pro',
-      extraBody: deepseekThinkingBody(true),
-      maxTokens: 8192,
-      timeout: 120000,
-      requiresKey: true,
     },
     'code-cloud': {
       kind: 'cloud',
@@ -446,42 +451,42 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       defaultModel: process.env.CODEX_MODEL || 'gpt-5.5',
       defaultReasoningEffort: 'high',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
-      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'codex-mini': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: process.env.CODEX_MINI_MODEL || 'gpt-5.4-mini',
       defaultReasoningEffort: 'medium',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
-      timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || '90000', 10),
+      timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.5': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.5',
       defaultReasoningEffort: 'high',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
-      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.4': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.4',
       defaultReasoningEffort: 'medium',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
-      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.4-mini': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.4-mini',
       defaultReasoningEffort: 'medium',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MINI_MAX_OUTPUT_TOKENS || '4096', 10),
-      timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || '90000', 10),
+      timeout: parseInt(process.env.CODEX_MINI_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
     'gpt-5.3-codex': openAiResponsesLane(normalizedForcedModel, {
       defaultModel: 'gpt-5.3-codex',
       defaultReasoningEffort: 'high',
       maxTokens: options.maxOutputTokens || parseInt(process.env.CODEX_MAX_OUTPUT_TOKENS || '8192', 10),
-      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || '180000', 10),
+      timeout: parseInt(process.env.CODEX_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
       reasoningEffort: options.reasoning,
     }),
   };
@@ -489,7 +494,7 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
   const resolved = laneMap[requestedLane];
   if (!resolved) {
     if (requestedLane === 'claude') {
-      throw new Error('Lane "claude" removed: it routed to DeepSeek Cloud, not Claude. Use "deepseek-cloud" instead.');
+      throw new Error('Lane "claude" removed from this runner. Use "deepseek-v4-pro" for DeepSeek advisory work.');
     }
     throw new Error(`Unsupported lane: ${requestedLane}`);
   }
@@ -589,14 +594,12 @@ function normalizeForcedModel(forcedModel, lane) {
   if ((laneName === 'ollama' || laneName === 'ollama-local' || laneName === 'ollama-cloud') && (normalized === 'ollama' || normalized === 'ollama-local' || normalized === 'ollama-cloud')) return '';
   if (laneName === 'kimi' && (normalized === 'kimi' || normalized === 'moonshot')) return '';
   if (laneName === 'moonshot' && (normalized === 'moonshot' || normalized === 'kimi')) return '';
-  if (laneName === 'deepseek-cloud' && normalized === 'deepseek-cloud') return '';
   if (laneName === 'triage-local' && normalized === 'triage-local') return '';
   if (laneName === 'summarize-local' && normalized === 'summarize-local') return '';
   if (laneName === 'code-local' && normalized === 'code-local') return '';
   if (laneName === 'reason-cloud' && normalized === 'reason-cloud') return '';
   if (laneName === 'code-cloud' && normalized === 'code-cloud') return '';
   if (laneName === 'reason-kimi' && (normalized === 'reason-kimi' || normalized === 'kimi')) return '';
-  if (laneName === 'code-deepseek' && (normalized === 'code-deepseek' || normalized === 'deepseek')) return '';
   if (laneName === 'gemma-local' && normalized === 'gemma-local') return '';
   if (laneName === 'gemma-cloud' && normalized === 'gemma-cloud') return '';
   if (laneName === 'gemma' && normalized === 'gemma') return '';
@@ -649,7 +652,7 @@ function openAiResponsesLane(normalizedForcedModel, options) {
 }
 
 function validateReasoningEffort(value) {
-  const effort = (value || '').toLowerCase();
+  const effort = normalizeReasoningDepth(value) || (value || '').toLowerCase();
   if (['low', 'medium', 'high', 'xhigh'].includes(effort)) return effort;
   throw new Error(`Invalid reasoning effort "${value}". Use low, medium, high, or xhigh.`);
 }
@@ -683,15 +686,44 @@ function resolveDeepseekModel(options) {
   return options.defaultModel;
 }
 
-function deepseekLane(normalizedForcedModel, options) {
+function resolveDeepseekRuntime(options, runnerOptions = {}) {
+  const depth = normalizeReasoningDepth(runnerOptions.reasoning);
+  const baseThinking = !!options.thinking;
+  const thinking = depth === 'off' || depth === 'low' ? false : depth ? true : baseThinking;
+  const maxTokenByDepth = {
+    off: Math.min(options.maxTokens, 2048),
+    low: Math.min(options.maxTokens, 2048),
+    medium: Math.max(options.maxTokens, 4096),
+    high: Math.max(options.maxTokens, 8192),
+    xhigh: Math.max(options.maxTokens, 8192),
+  };
+  const timeoutByDepth = {
+    off: options.timeout,
+    low: options.timeout,
+    medium: options.timeout,
+    high: options.timeout,
+    xhigh: options.timeout,
+  };
+  return {
+    reasoningDepth: depth || (baseThinking ? 'high' : 'off'),
+    thinking,
+    maxTokens: depth ? maxTokenByDepth[depth] : options.maxTokens,
+    timeout: depth ? timeoutByDepth[depth] : options.timeout,
+  };
+}
+
+function deepseekLane(normalizedForcedModel, options, runnerOptions = {}) {
+  const runtime = resolveDeepseekRuntime(options, runnerOptions);
   return {
     kind: 'cloud',
     endpoint: deepseekBaseUrl(),
     apiKey: deepseekApiKey(),
     model: normalizedForcedModel || resolveDeepseekModel(options),
-    extraBody: deepseekThinkingBody(!!options.thinking),
-    maxTokens: options.maxTokens,
-    timeout: options.timeout,
+    extraBody: deepseekThinkingBody(runtime.thinking),
+    maxTokens: runtime.maxTokens,
+    timeout: runtime.timeout,
+    reasoningDepth: runtime.reasoningDepth,
+    tools: false,
     requiresKey: true,
   };
 }
@@ -709,6 +741,8 @@ function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun) 
       extraBody: deepseekThinkingBody(false),
       maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
       timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
+      reasoningDepth: 'off',
+      tools: false,
       requiresKey: true,
       resolvedVia: 'cloud-forced',
     };
@@ -723,6 +757,8 @@ function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun) 
       extraBody: deepseekThinkingBody(false),
       maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
       timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
+      reasoningDepth: 'off',
+      tools: false,
       requiresKey: true,
       resolvedVia: 'cloud-default',
     };
@@ -981,7 +1017,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-pro-lite-budget', 'deepseek-chat', 'deepseek-reasoner', 'deepseek-cloud', 'code-deepseek', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -997,6 +1033,8 @@ function buildInventory(localModels) {
       if (r.resolvedVia) lanes[name].resolvedVia = r.resolvedVia;
       if (r.extraBody?.thinking?.type) lanes[name].thinking = r.extraBody.thinking.type;
       if (r.reasoningEffort !== undefined) lanes[name].reasoningEffort = r.reasoningEffort;
+      if (r.reasoningDepth !== undefined) lanes[name].reasoningDepth = r.reasoningDepth;
+      if (r.tools !== undefined) lanes[name].tools = r.tools;
       if (r.maxTokens !== undefined) lanes[name].maxTokens = r.maxTokens;
       if (r.timeout !== undefined) lanes[name].timeout = r.timeout;
       if (r.requiresKey !== undefined) lanes[name].requiresKey = r.requiresKey;
@@ -1182,7 +1220,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
   ];
 
   // Try with tools first; fall back to text-only if not supported
-  let supportsTools = true;
+  let supportsTools = opts.tools === true;
   const maxIterations = 50; // Increased from 10 for complex multi-step reasoning tasks
   let iteration = 0;
   let lastToolCallNames = []; // Track last tool calls to detect loops
@@ -1276,7 +1314,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
       const currentToolNames = message.tool_calls.map(tc => tc.function.name).sort().join(',');
       if (lastToolCallNames === currentToolNames && iteration >= 6) {
         // Same tools being called repeatedly — likely stuck loop, return best effort
-        return message.content || 'Reached tool call repetition limit; returning partial result.';
+        throw new Error(`TOOL_CALL_REPETITION_LIMIT: ${TOOL_REPETITION_SENTINEL}`);
       }
       lastToolCallNames = currentToolNames;
 

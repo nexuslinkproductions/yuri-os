@@ -12,6 +12,7 @@ Expected:
 - `nudimmudOffload` is enabled.
 - `agents.max_threads = 1`, `agents.max_depth = 1`, `features.enable_fanout = false`, and `features.multi_agent = false` parse without warnings.
 - `[[hooks.PreToolUse]]` uses `.codex/hooks/pre-tool-use.mjs`.
+- `mcp_servers.nudimmudOffload.tool_timeout_sec` stays high enough for long-running offload work; cancellation should be owned by lane-level budgets, not the Codex MCP parent process.
 
 ## Lane Cheat Sheet
 
