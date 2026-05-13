@@ -187,5 +187,8 @@ logs/
 # Local IDE runtime state
 .cursor/environment.json
 
+# Codex worktrees (active git worktrees, not source files)
+.codex-worktrees/
+
 # Python bytecode / cache
 _SYSTEM/OS_KERNEL/__pycache__/
