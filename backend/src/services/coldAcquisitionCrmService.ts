@@ -74,6 +74,7 @@ export interface CrmLeadPatch {
 
 export type TodayMissionDraftType = 'linkedin_intro' | 'email_cold';
 export type TodayMissionDueState = 'none' | 'due_today' | 'overdue';
+export type ReplyType = 'interested' | 'not_now' | 'opt_out' | 'other';
 
 export interface SourcePipeline {
     confidence: SourceConfidence;
@@ -338,22 +339,23 @@ export class ColdAcquisitionCrmService {
         return { draft_type: draftType, subject, body, text };
     }
 
-    markSent(user: ColdAcquisitionCrmUser, id: string, body: { channel?: string; next_follow_up_at?: string | null }) {
+    markSent(user: ColdAcquisitionCrmUser, id: string, body: { channel?: string; follow_up_date?: string | null; next_follow_up_at?: string | null }) {
         const current = this.leads.getLead(id);
         if (!current) throw Object.assign(new Error('COLD_LEAD_NOT_FOUND'), { statusCode: 404 });
         const channel = String(body.channel || '').trim();
-        if (!channel) throw Object.assign(new Error('channel is required'), { statusCode: 400 });
+        if (!channel) throw Object.assign(new Error('channel required'), { statusCode: 400 });
         if (!['email', 'linkedin'].includes(channel)) throw Object.assign(new Error('channel must be email or linkedin'), { statusCode: 400 });
-        if (body.next_follow_up_at === undefined) throw Object.assign(new Error('next_follow_up_at is required'), { statusCode: 400 });
+        const followUpDate = body.follow_up_date === undefined ? body.next_follow_up_at ?? null : body.follow_up_date;
         const blockers = this.leads.getSendBlockers(current);
         if (blockers.length > 0) throw Object.assign(new Error('COMPLIANCE_SEND_BLOCKED'), { statusCode: 409, blockers });
         const next = this.leads.updateLead(id, {
             status: 'sent',
             crm_stage: 'sent',
+            channel: channel as any,
             last_touch_at: this.nowIso(),
-            next_follow_up_at: body.next_follow_up_at
+            next_follow_up_at: followUpDate
         });
-        this.logActivity(user, next.id, 'marked_sent', `Marked sent via ${channel}.`, { channel, next_follow_up_at: body.next_follow_up_at });
+        this.logActivity(user, next.id, 'marked_sent', `Marked sent via ${channel}.`, { channel, follow_up_date: followUpDate });
         return this.toCrmLead(next);
     }
 
@@ -366,6 +368,37 @@ export class ColdAcquisitionCrmService {
     recordReply(user: ColdAcquisitionCrmUser, id: string, replyText: string) {
         if (!replyText.trim()) throw Object.assign(new Error('reply_text is required'), { statusCode: 400 });
         return this.updateLead(user, id, { status: 'replied', crm_stage: 'replied', reply_text: replyText.trim() });
+    }
+
+    logReply(leadId: string, userId: string, replyType: ReplyType, note: string) {
+        const current = this.leads.getLead(leadId);
+        if (!current) throw Object.assign(new Error('COLD_LEAD_NOT_FOUND'), { statusCode: 404 });
+        const user = { id: userId };
+        const cleanNote = String(note || '').trim();
+        const detail = cleanNote ? `Reply logged: ${replyType}. ${cleanNote}` : `Reply logged: ${replyType}.`;
+
+        if (replyType === 'opt_out') {
+            const suppression = this.suppressionKeys(current);
+            const next = this.leads.updateLead(leadId, {
+                status: 'disqualified' as any,
+                crm_stage: 'blocked',
+                reply_text: cleanNote,
+                last_touch_at: this.nowIso(),
+                fanny_notes: this.appendCrmNote(current.fanny_notes, cleanNote || 'Opt-out recorded.')
+            } as any);
+            this.logActivity(user, leadId, 'reply_logged', detail, { reply_type: replyType, note: cleanNote });
+            this.logActivity(user, leadId, 'suppression_recorded', 'Contact suppression recorded after opt-out reply.', suppression);
+            return { suppressed: true, lead_id: leadId, lead: this.toCrmLead(next) };
+        }
+
+        const next = this.leads.updateLead(leadId, {
+            status: 'replied',
+            crm_stage: 'replied',
+            reply_text: cleanNote,
+            last_touch_at: this.nowIso()
+        });
+        this.logActivity(user, leadId, 'reply_logged', detail, { reply_type: replyType, note: cleanNote });
+        return { suppressed: false, lead_id: leadId, lead: this.toCrmLead(next) };
     }
 
     addActivity(user: ColdAcquisitionCrmUser, leadId: string, type: string, detail: string, metadata: unknown = null) {
@@ -708,6 +741,18 @@ export class ColdAcquisitionCrmService {
             lead.reply_text || ''
         ].join(' ').toLowerCase();
         return /\b(opt[- ]?out|unsubscribe|do not contact|no thanks|suppressed)\b/.test(text);
+    }
+
+    private suppressionKeys(lead: ColdLeadRecord) {
+        return {
+            email: lead.contact.email || null,
+            linkedin_url: lead.contact.linkedin_url || lead.company.linkedin_url || null,
+            contact_company: [lead.contact.name, lead.company.name].filter(Boolean).join(' :: ') || null
+        };
+    }
+
+    private appendCrmNote(current: string, note: string) {
+        return [current, note].filter(Boolean).join('\n');
     }
 
     private toCrmLead(lead: ColdLeadRecord): CrmLead {

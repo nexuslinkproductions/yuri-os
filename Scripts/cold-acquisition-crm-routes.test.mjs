@@ -222,20 +222,50 @@ try {
   const markSentMissingDecision = await request('POST', `/acquisition/api/leads/${sendableLeadId}/mark-sent`, {
     channel: 'linkedin'
   }, { cookie: fannyCookie });
-  assert.equal(markSentMissingDecision.status, 400, 'mark-sent should require a follow-up decision');
-  const explicitMarkSent = await request('POST', `/acquisition/api/leads/${sendableLeadId}/mark-sent`, {
+  assert.equal(markSentMissingDecision.status, 200, 'mark-sent should allow a missing follow-up date when channel is present');
+  assert.equal(markSentMissingDecision.json.lead.status, 'sent');
+
+  const sendableForExplicitMark = await request('POST', '/api/cold-acquisition/leads', explicitMarkSentLeadBody(), { apiKey: API_KEY });
+  assert.equal(sendableForExplicitMark.status, 201, 'local admin API should create explicit mark-sent lead');
+  const markSentWithoutChannel = await request('POST', `/acquisition/api/leads/${sendableForExplicitMark.json.lead.id}/mark-sent`, {
+    follow_up_date: '2026-05-20'
+  }, { cookie: fannyCookie });
+  assert.equal(markSentWithoutChannel.status, 400, 'mark-sent should require channel');
+  assert.equal(markSentWithoutChannel.json.error, 'channel required');
+  const explicitMarkSent = await request('POST', `/acquisition/api/leads/${sendableForExplicitMark.json.lead.id}/mark-sent`, {
     channel: 'linkedin',
-    next_follow_up_at: '2026-05-20'
+    follow_up_date: '2026-05-20'
   }, { cookie: fannyCookie });
   assert.equal(explicitMarkSent.status, 200, 'review-ready lead should support explicit mark-sent');
   assert.equal(explicitMarkSent.json.lead.status, 'sent');
   assert.equal(explicitMarkSent.json.lead.crm_stage, 'sent');
+  assert.equal(explicitMarkSent.json.lead.next_follow_up_at, '2026-05-20');
 
   const explicitReply = await request('POST', `/acquisition/api/leads/${sendableLeadId}/reply`, {
-    reply_text: 'Prospect replied and asked for the overview.'
+    reply_type: 'interested',
+    note: 'Prospect replied and asked for the overview.'
   }, { cookie: fannyCookie });
   assert.equal(explicitReply.status, 200, 'reply endpoint should record manual replies');
-  assert.equal(explicitReply.json.lead.status, 'replied');
+  assert.equal(explicitReply.json.suppressed, false);
+  assert.equal(explicitReply.json.lead_id, sendableLeadId);
+
+  const optOutLead = await request('POST', '/api/cold-acquisition/leads', optOutLeadBody(), { apiKey: API_KEY });
+  assert.equal(optOutLead.status, 201, 'local admin API should create opt-out test lead');
+  const optOutReply = await request('POST', `/acquisition/api/leads/${optOutLead.json.lead.id}/reply`, {
+    reply_type: 'opt_out',
+    note: 'Please do not contact me again.'
+  }, { cookie: fannyCookie });
+  assert.equal(optOutReply.status, 200, 'opt-out replies should be accepted');
+  assert.equal(optOutReply.json.suppressed, true);
+  assert.equal(optOutReply.json.lead_id, optOutLead.json.lead.id);
+  const optOutDetail = await request('GET', `/acquisition/api/leads/${optOutLead.json.lead.id}`, null, { cookie: fannyCookie });
+  assert.equal(optOutDetail.json.lead.status, 'disqualified', 'opt-out should disqualify the lead');
+  const afterOptOutMission = await request('GET', '/acquisition/api/today-mission', null, { cookie: fannyCookie });
+  assert.equal(
+    afterOptOutMission.json.mission.sendable.some((lead) => lead.id === optOutLead.json.lead.id),
+    false,
+    'suppressed contact should not appear in sendable pool'
+  );
 
   const customActivity = await request('POST', `/acquisition/api/leads/${sendableLeadId}/activity`, {
     type: 'reply_logged',
@@ -669,6 +699,69 @@ function followUpLeadBody() {
       source: 'wko',
       source_url: 'https://firmen.wko.at/leopoldstadt-cloud-robotics',
       source_timestamp: '2026-05-12T11:48:00.000Z',
+      legal_basis: 'website_published_email'
+    }
+  };
+}
+
+function explicitMarkSentLeadBody() {
+  return {
+    ...lowerScoreSendableLeadBody(),
+    company: {
+      ...lowerScoreSendableLeadBody().company,
+      name: 'Brigittenau Motion Stack GmbH',
+      uid_or_fn: 'FN121314e',
+      website: 'https://brigittenau-motion-stack.at/en'
+    },
+    contact: {
+      ...lowerScoreSendableLeadBody().contact,
+      name: 'Pia Auer',
+      email: 'business@brigittenau-motion-stack.at'
+    },
+    evidence: [
+      {
+        kind: 'website_language',
+        label: 'Motion stack page',
+        detail: 'The motion stack page describes visual workflow reviews for production operators.',
+        url: 'https://brigittenau-motion-stack.at/en'
+      }
+    ],
+    compliance: {
+      source: 'wko',
+      source_url: 'https://firmen.wko.at/brigittenau-motion-stack',
+      source_timestamp: '2026-05-12T11:49:30.000Z',
+      legal_basis: 'website_published_email'
+    }
+  };
+}
+
+function optOutLeadBody() {
+  return {
+    ...lowerScoreSendableLeadBody(),
+    company: {
+      ...lowerScoreSendableLeadBody().company,
+      name: 'Ottakring Reply Loop GmbH',
+      uid_or_fn: 'FN151617o',
+      website: 'https://ottakring-reply-loop.at/en'
+    },
+    contact: {
+      ...lowerScoreSendableLeadBody().contact,
+      name: 'Karin Hofer',
+      email: 'business@ottakring-reply-loop.at',
+      linkedin_url: 'https://linkedin.com/in/karin-hofer'
+    },
+    evidence: [
+      {
+        kind: 'website_language',
+        label: 'Reply operations page',
+        detail: 'The reply operations page describes customer message handling for sales teams.',
+        url: 'https://ottakring-reply-loop.at/en'
+      }
+    ],
+    compliance: {
+      source: 'wko',
+      source_url: 'https://firmen.wko.at/ottakring-reply-loop',
+      source_timestamp: '2026-05-12T11:49:40.000Z',
       legal_basis: 'website_published_email'
     }
   };
