@@ -84,8 +84,15 @@ export function resolveOllamaAdditiveLane(requestedLane, forcedModel, localModel
   throw new Error('Lane "ollama": no local model found and no OLLAMA_API_KEY for cloud fallback.');
 }
 
+function coerceHttpScheme(raw) {
+  const trimmed = String(raw || '').replace(/\/$/, '');
+  if (!trimmed) return 'http://127.0.0.1:11434';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `http://${trimmed}`;
+}
+
 export async function runOllamaLocalChat(model, promptText, systemText, ledger = {}) {
-  const host = (process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
+  const host = coerceHttpScheme(process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434');
   const additiveLane = String(ledger.lane || '').startsWith('ollama');
   return runOllamaNativeChat({
     endpoint: `${host}/api/chat`,

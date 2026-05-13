@@ -9,12 +9,28 @@ const { execFileSync } = require('child_process');
 const bus = require('./scout-bus.js');
 
 const ERROR_LOG = path.join(__dirname, '..', 'state', 'scout-errors.log');
-const MODEL_SCOUT = 'claude-haiku-4-5-20251001';
+const REPO_ROOT = path.resolve(__dirname, '..', '..');
+const OFFLOAD_SH = process.env.SCOUT_OFFLOAD_SH || path.join(REPO_ROOT, 'Scripts', 'offload.sh');
+const MAX_LOG_BYTES = 1 * 1024 * 1024; // 1 MB ring cap
+const MODEL_SCOUT = 'deepseek';
 const NATIVE_SCOUTS = new Set(['ARGUS', 'HERMES']);
+
+function rotateErrorLogIfNeeded() {
+  try {
+    const st = fs.statSync(ERROR_LOG);
+    if (st.size <= MAX_LOG_BYTES) return;
+    const buf = fs.readFileSync(ERROR_LOG);
+    const keep = buf.subarray(Math.max(0, buf.length - Math.floor(MAX_LOG_BYTES / 2)));
+    const nlIdx = keep.indexOf(10);
+    const trimmed = nlIdx >= 0 ? keep.subarray(nlIdx + 1) : keep;
+    fs.writeFileSync(ERROR_LOG, trimmed);
+  } catch (_) { /* no-op */ }
+}
 
 function logError(msg) {
   try {
     fs.appendFileSync(ERROR_LOG, `${new Date().toISOString()} [scout-runner] ${msg}\n`);
+    rotateErrorLogIfNeeded();
   } catch (_) {}
 }
 
@@ -147,12 +163,14 @@ function runModelScout(scoutType, contextText) {
   let rawOutput = '';
   try {
     rawOutput = execFileSync(
-      process.env.CLAUDE_BIN || 'claude',
-      ['-p', '--model', MODEL_SCOUT, fullPrompt],
-      { encoding: 'utf8', timeout: 60_000, cwd: process.cwd(), stdio: ['ignore', 'pipe', 'ignore'] }
+      'bash',
+      [OFFLOAD_SH, '-m', MODEL_SCOUT, '--no-tools', fullPrompt],
+      { encoding: 'utf8', timeout: 90_000, cwd: REPO_ROOT, stdio: ['ignore', 'pipe', 'pipe'] }
     );
   } catch (e) {
-    logError(`claude -p failed for ${scoutType}: ${e.message?.slice(0, 200)}`);
+    const stderr = e.stderr ? String(e.stderr).trim().slice(0, 300) : '';
+    const detail = stderr ? `${e.message?.slice(0, 200)} | stderr: ${stderr}` : e.message?.slice(0, 200);
+    logError(`offload.sh -m ${MODEL_SCOUT} failed for ${scoutType}: ${detail}`);
   }
 
   return parseScoutOutput(rawOutput, scoutType);

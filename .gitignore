@@ -148,6 +148,9 @@ backend/src/scripts/importPlaneTickets.ts
 .claude/state/token-tracker.md
 .claude/state/token-weekly.json
 .claude/state/tokenmaxxing-state.json
+.claude/state/progress.log
+.claude/state/eot-refresh.out.log
+.claude/state/eot-refresh.err.log
 01_PROJECTS/claude-mem/
 01_PROJECTS/gstack/.agents/
 01_PROJECTS/gstack/.cursor/

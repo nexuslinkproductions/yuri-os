@@ -7,6 +7,21 @@ const os = require('os');
 const path = require('path');
 
 const repoRoot = path.resolve(__dirname, '../../..');
+
+// Stub offload.sh BEFORE requiring scout-runner — scout-runner reads SCOUT_OFFLOAD_SH at module load.
+const offloadStubDir = fs.mkdtempSync(path.join(os.tmpdir(), 'scout-offload-stub-'));
+const offloadLogFile = path.join(offloadStubDir, 'offload.log');
+const offloadStub = path.join(offloadStubDir, 'offload.sh');
+fs.writeFileSync(offloadStub, [
+  '#!/usr/bin/env bash',
+  `printf "%s\\n" "$*" >> "${offloadLogFile}"`,
+  'printf "SEVERITY: WARN\\n"',
+  'printf "FINDING: Cassandra model path invoked.\\n"',
+  '',
+].join('\n'));
+fs.chmodSync(offloadStub, 0o755);
+process.env.SCOUT_OFFLOAD_SH = offloadStub;
+
 const runner = require(path.join(repoRoot, '.claude/hooks/scout-runner.js'));
 const bus = require(path.join(repoRoot, '.claude/hooks/scout-bus.js'));
 
@@ -45,25 +60,12 @@ function entries() {
 try {
   bus.writeBus(bus.createEmpty());
 
-  const stubDir = fs.mkdtempSync(path.join(os.tmpdir(), 'scout-claude-stub-'));
-  const logFile = path.join(stubDir, 'claude.log');
-  const claudeStub = path.join(stubDir, 'claude');
-  fs.writeFileSync(claudeStub, [
-    '#!/usr/bin/env bash',
-    `printf "%s\\n" "$*" >> "${logFile}"`,
-    'printf "SEVERITY: WARN\\n"',
-    'printf "FINDING: Cassandra model path invoked.\\n"',
-    '',
-  ].join('\n'));
-  fs.chmodSync(claudeStub, 0o755);
-  process.env.CLAUDE_BIN = claudeStub;
-
   const argusContext = writeContext(baseContext('Write', {
     file_path: '_SYSTEM/OS_KERNEL/memory.db',
     content: 'raw mutation',
   }));
   assert.equal(runner.runScout('ARGUS', argusContext), 0);
-  assert.equal(fs.existsSync(logFile), false, 'ARGUS must not invoke claude');
+  assert.equal(fs.existsSync(offloadLogFile), false, 'ARGUS must not invoke offload lane');
   const argusEntry = entries().at(-1);
   assert.equal(argusEntry.scout, 'ARGUS');
   assert.equal(argusEntry.runtime_kind, 'native_function');
@@ -71,7 +73,7 @@ try {
 
   const hermesContext = writeContext(baseContext('Edit', { file_path: 'src/a.ts' }, { contextPct: 85 }));
   assert.equal(runner.runScout('HERMES', hermesContext), 0);
-  assert.equal(fs.existsSync(logFile), false, 'HERMES must not invoke claude');
+  assert.equal(fs.existsSync(offloadLogFile), false, 'HERMES must not invoke offload lane');
   const hermesEntry = entries().at(-1);
   assert.equal(hermesEntry.scout, 'HERMES');
   assert.equal(hermesEntry.runtime_kind, 'native_function');
@@ -79,13 +81,18 @@ try {
 
   const cassandraContext = writeContext(baseContext('Bash', { command: 'chmod 777 tmp' }));
   assert.equal(runner.runScout('CASSANDRA', cassandraContext), 0);
-  assert.equal(fs.existsSync(logFile), true, 'CASSANDRA should invoke claude model path');
+  assert.equal(fs.existsSync(offloadLogFile), true, 'CASSANDRA should invoke offload model path');
   const cassandraEntry = entries().at(-1);
   assert.equal(cassandraEntry.scout, 'CASSANDRA');
   assert.equal(cassandraEntry.runtime_kind, 'model_agent');
   assert.equal(cassandraEntry.severity, 'WARN');
 
-  fs.rmSync(stubDir, { recursive: true, force: true });
+  // Verify the offload stub was invoked with the expected lane args.
+  const logContents = fs.readFileSync(offloadLogFile, 'utf8');
+  assert.ok(/-m deepseek/.test(logContents), 'offload invocation must request -m deepseek');
+  assert.ok(/--no-tools/.test(logContents), 'offload invocation must include --no-tools');
+
+  fs.rmSync(offloadStubDir, { recursive: true, force: true });
   console.log('scout-runner.dispatch: pass');
 } finally {
   if (previousBus === null) {
@@ -94,5 +101,5 @@ try {
     fs.mkdirSync(path.dirname(bus.BUS_PATH), { recursive: true });
     fs.writeFileSync(bus.BUS_PATH, previousBus);
   }
-  delete process.env.CLAUDE_BIN;
+  delete process.env.SCOUT_OFFLOAD_SH;
 }

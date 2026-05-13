@@ -17,7 +17,7 @@ API_KEY="nudimmud-master-key-2026-04-23"
 # When invoked from non-zsh contexts, hydrate lane API keys from ~/.zshrc if absent.
 # Only fires when a key is missing — zsh users see no overhead.
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY OPENAI_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -87,16 +87,15 @@ list_models() {
   printf '  [%-30s] %s\n' "ollama-cloud" "temporary Ollama Cloud fallback using OLLAMA_API_KEY"
 
   echo
-  echo "OpenAI Responses lanes:"
-  printf '  [%-30s] %s\n' "codex" "OpenAI Responses API (default gpt-5.5)"
-  printf '  [%-30s] %s\n' "codex-mini" "OpenAI Responses API (default gpt-5.4-mini)"
-  printf '  [%-30s] %s\n' "gpt-5.3-codex" "OpenAI Codex model alias"
-
-  echo
-  echo "Codex Spark lane:"
+  echo "Codex lanes (all route through codex-spark CLI; OpenAI Responses API disabled — no API key):"
   printf '  [%-30s] %s\n' "codex-spark" "Bounded Codex CLI lane pinned to gpt-5.3-codex-spark"
   printf '  [%-30s] %s\n' "spark" "Alias for codex-spark"
   printf '  [%-30s] %s\n' "fast-codex" "Alias for codex-spark"
+  printf '  [%-30s] %s\n' "codex" "Alias for codex-spark"
+  printf '  [%-30s] %s\n' "codex-mini" "Alias for codex-spark"
+  printf '  [%-30s] %s\n' "gpt-5.5" "Alias for codex-spark"
+  printf '  [%-30s] %s\n' "gpt-5.4-mini" "Alias for codex-spark"
+  printf '  [%-30s] %s\n' "gpt-5.3-codex" "Alias for codex-spark"
 
   echo
 }
@@ -213,11 +212,8 @@ dry_run_model_override() {
   fi
 
   case "$target_model" in
-      codex-spark|spark|fast-codex|gpt-5.3-codex-spark)
+      codex|codex-mini|codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" --dry-run
-        ;;
-      codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
-        run_offload_runner "$target_model" "$prompt" --dry-run
         ;;
       nvidia-deepseek|deepseek-ai/*)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
@@ -289,13 +285,9 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
         run_offload_runner openrouter-free "$prompt" --model "$target_model"
         ;;
-      codex-spark|spark|fast-codex|gpt-5.3-codex-spark)
+      codex|codex-mini|codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_SPARK..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model"
-        ;;
-      codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
-        printf '%s\n' "⬡ ROUTING_TO_CODEX_RESPONSES..." >&2
-        run_offload_runner "$target_model" "$prompt"
         ;;
       triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|reason-cloud|code-cloud|nvidia-deepseek|gemma|gemma-local|gemma-cloud)
         printf '%s\n' "⬡ ROUTING_TO_OFFLOAD_RUNNER..." >&2

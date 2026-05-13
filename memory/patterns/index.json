@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "description": "Procedural memory tier — successful task-sequence patterns. atime-based LRU eviction at 90 days.",
+  "patterns": {}
+}
