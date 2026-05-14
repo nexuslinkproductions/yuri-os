@@ -1279,6 +1279,10 @@ case "${1:-help}" in
     fi
     check_cmd "codex" codex || status=1
     check_cmd "amp" amp || status=1
+    if command -v amp >/dev/null 2>&1; then
+      _amp_credits="$(amp usage 2>/dev/null | grep -o '\$[0-9.]*' | head -1)"
+      printf 'ok  amp credits -> %s remaining\n' "${_amp_credits:-unknown (run: node Scripts/amp-usage-tracker.mjs)}"
+    fi
     check_cmd "btw" btw || status=1
     if command -v ruflo >/dev/null 2>&1; then
       printf 'ok  ruflo -> %s\n' "$(command -v ruflo)"
