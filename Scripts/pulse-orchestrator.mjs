@@ -192,14 +192,48 @@ async function dispatchOpenClawPreflight(prompt, plan, turnId) {
 }
 
 async function dispatchHermesForecast(prompt, plan, turnId) {
-  // Placeholder for PATCH 034 — native function lives in scout-runner.js
-  // For PATCH 031 the orchestrator emits a stub finding so the bus sees the slot.
+  // PATCH 034 — native predictive temporal/scope forecast.
+  // Inputs: .claude/state/session-state.json (context.pct + files_written),
+  // plus the prompt itself (file path mentions, top-level scope breadth).
+  // Output: 1-line forecast with severity scaled to predicted pressure.
+  const SESSION_STATE = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
+  let contextPct = 0;
+  let filesWrittenCount = 0;
+  try {
+    const raw = await fsp.readFile(SESSION_STATE, 'utf8');
+    const state = JSON.parse(raw);
+    contextPct = Math.round(state?.context?.pct || 0);
+    filesWrittenCount = Array.isArray(state?.files_written) ? state.files_written.length : 0;
+  } catch (_) { /* missing state = fresh session, leave zeros */ }
+
+  const pathMatches = String(prompt).match(/[/][\w./-]+\.[a-z]+/gi) || [];
+  const topLevels = new Set(pathMatches.map(p => p.replace(/^\//, '').split('/')[0]).filter(Boolean));
+  const fileCount = pathMatches.length;
+
+  let severity = 'INFO';
+  let finding;
+  if (contextPct >= 70) {
+    severity = 'WARN';
+    finding = `Context at ${contextPct}% before this turn; high risk of crossing auto-compact threshold mid-task.`;
+  } else if (contextPct >= 55 && fileCount > 2) {
+    severity = 'WARN';
+    finding = `Context at ${contextPct}% + ${fileCount} file paths in prompt; scope likely pushes past 70%.`;
+  } else if (topLevels.size >= 4) {
+    severity = 'WARN';
+    finding = `Prompt scope spans ${topLevels.size} top-level areas (${[...topLevels].slice(0,4).join(', ')}); consider scoping down.`;
+  } else if (filesWrittenCount >= 10 && fileCount > 0) {
+    severity = 'INFO';
+    finding = `Session has written ${filesWrittenCount} files already; cumulative drift risk elevated.`;
+  } else {
+    finding = `Forecast clean: ctx=${contextPct}% scope=${topLevels.size}-area session_writes=${filesWrittenCount}.`;
+  }
+
   return {
     source: 'HERMES_FC',
     runtimeKind: 'native_function',
-    severity: 'INFO',
-    finding: '(PATCH 034 stub) Hermes-forecast not yet wired',
-    confidence: 0.5,
+    severity,
+    finding,
+    confidence: 0.85, // native heuristic, deterministic inputs
   };
 }
 
