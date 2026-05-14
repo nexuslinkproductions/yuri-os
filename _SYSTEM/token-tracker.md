@@ -381,3 +381,7 @@ If token usage exceeds budgets consistently, auto-disable:
 | 2026-05-14T04:44 | 9m | 35 | ~17,800 | Edit×13, Read×12, Bash×10 |
 | 2026-05-14T08:29 | 14m | 4 | ~2,200 | Read×2, Bash×2 |
 | 2026-05-14T11:52 | 0m | 0 | ~0 | none |
+| 2026-05-14T13:50 | 5m | 24 | ~7,500 | Bash×21, TodoWrite×2, Edit×1 |
+| 2026-05-14T13:55 | 0m | 5 | ~2,600 | Read×2, Bash×2, TodoWrite×1 |
+| 2026-05-14T14:55 | 4m | 7 | ~3,100 | Bash×3, Write×3, mcp__ccd_session__mark_chapter×1 |
+| 2026-05-14T15:01 | 6m | 23 | ~8,500 | Bash×17, Read×2, Write×1 |

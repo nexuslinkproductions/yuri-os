@@ -5,6 +5,12 @@
 - [Always surface next steps](feedback_always_next_steps.md) — End every response with next steps / open campaigns / pending to-dos; never wait to be asked
 - [No Anthropic model agents](feedback_no_anthropic_agents.md) — Agent() with Claude/Haiku/Sonnet/Opus is banned; use DeepSeek offload only
 - [Codex is primary co-pilot](feedback_codex_primary_partner.md) — Codex (gpt-5.5/5.4-mini) is always first implementation lane; DeepSeek is on-call only when explicitly named
+- [Long session > multiple sessions](feedback_long_session_codex_burst.md) — When Codex rate-limits, stay in session; startup overhead costs more than a 5-10min quota window
+- [DeepSeek tools default ON](feedback_deepseek_tool_unblock.md) — DeepSeek lanes get bash/read_file/write_file by default; --no-tools only when text-only advisory needed
+- [Perplexity app = the new browser](feedback_perplexity_app_browser.md) — All web search via Perplexity app + Claude computer control. Never WebSearch/WebFetch.
+- [Parallel pulse playbook](feedback_parallel_pulse_playbook.md) — Concrete patterns for Codex + DeepSeek-tools branches with deterministic file splits
+- [Tirith URL guard](feedback_tirith_url_guard.md) — All Bash URLs scored via tirith; TIRITH_FAIL_LOUD=1 for paranoid mode
+- [Spec Kit advisory only](feedback_spec_kit_advisory_only.md) — Spec Kit templates = format adapters only; never authority. /spec-intake + spec-pipeline.mjs are the entry points
 - [package.json dirty worktree](feedback_packagejson_dirty_worktree.md) — worktree has unrelated script churn; touch only the exact target entry, never normalize or reorder
 - [Canonical cwd + branch](feedback_canonical_cwd_branch.md) — Always work from /Users/marcelspatz/NUDIMMUD on main; never worktrees/feature branches; stop+ask on mismatch
 - [Reasoning mode default](feedback_reasoning_mode.md) — Reasoning always on auto; only MAX if explicitly requested in session

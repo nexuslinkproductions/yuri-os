@@ -462,6 +462,12 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 ## Session Notes
 
 ### 2026-05-14
+- session: 78m | peak ctx: 0% | compacts: 0
+- tools: Bash×94, Read×20, Write×18, Edit×18, TodoWrite×6, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
 - session: 200m | peak ctx: 0% | compacts: 0
 - tools: Bash×207, Read×41, Edit×40, Write×17, ExitPlanMode×4, AskUserQuestion×2, Agent×2, Skill×1
 - corrections: none

@@ -1,0 +1,143 @@
+{
+  "schema_version": "1",
+  "ring": [
+    {
+      "id": "j1pakngj",
+      "turn_id": "8ce8acb8",
+      "source": "DEEPSEEK",
+      "ts": "2026-05-14T16:12:37.398Z",
+      "expires_at": "2026-05-14T16:17:37.398Z",
+      "runtime_kind": "model_advisor",
+      "severity": "CRITICAL",
+      "finding": "The single biggest risk is that the refactor could change the behavioral assumptions for the routing protocol mid-swarm (e.g., switching from TCP to UDP reordering or dropping connection retries), causing silent packet loss or state divergence across nodes. Without explicit test coverage for protocol-change scenarios in the swarm lane, the refactored offload script may break se",
+      "confidence": 0.35,
+      "consumed": false
+    },
+    {
+      "id": "qu5ayvw4",
+      "turn_id": "8ce8acb8",
+      "source": "OPENCLAW",
+      "ts": "2026-05-14T16:12:37.399Z",
+      "expires_at": "2026-05-14T16:17:37.399Z",
+      "runtime_kind": "bridge_advisory",
+      "severity": "INFO",
+      "finding": "[bridge_advisory] Memory 144 logged [episodic] governed_item=1171: {\"task_id\": \"78\", \"source\": \"OPENCLAW\", \"channel\":...",
+      "confidence": 0.95,
+      "consumed": false
+    },
+    {
+      "id": "byox8n7e",
+      "turn_id": "8ce8acb8",
+      "source": "HERMES_FC",
+      "ts": "2026-05-14T16:12:37.399Z",
+      "expires_at": "2026-05-14T16:17:37.399Z",
+      "runtime_kind": "native_function",
+      "severity": "INFO",
+      "finding": "Session has written 16 files already; cumulative drift risk elevated.",
+      "confidence": 0.85,
+      "consumed": false
+    },
+    {
+      "id": "rudpfzna",
+      "turn_id": "8ce8acb8",
+      "source": "CASSANDRA",
+      "ts": "2026-05-14T16:12:37.399Z",
+      "expires_at": "2026-05-14T16:17:37.399Z",
+      "runtime_kind": "native_function",
+      "severity": "INFO",
+      "finding": "CRITICAL :: `offload.sh` contains a codepath referencing an `.ssh` config that diverges from the orchestration wire introduced in PATCH 037, causing silent routing failures when the beacon invokes offload.",
+      "confidence": 0.7,
+      "consumed": false
+    },
+    {
+      "id": "1tn9ojye",
+      "turn_id": "8ce8acb8",
+      "source": "CORTEX",
+      "ts": "2026-05-14T16:12:37.399Z",
+      "expires_at": "2026-05-14T16:17:37.399Z",
+      "runtime_kind": "meta",
+      "severity": "WARN",
+      "finding": "Advisor disagreement detected across 4 findings on turn 8ce8acb8",
+      "confidence": 0.9,
+      "consumed": false
+    },
+    {
+      "id": "mks7lom8",
+      "turn_id": "5495371c",
+      "source": "DEEPSEEK",
+      "ts": "2026-05-14T16:13:04.086Z",
+      "expires_at": "2026-05-14T16:18:04.086Z",
+      "runtime_kind": "model_advisor",
+      "severity": "CRITICAL",
+      "finding": "The single biggest risk is that the refactored routing logic in `offload.sh` could break load distribution across the swarm nodes if the new script misinterprets lane identifiers or fails to handle partial connection drops during protocol transitions—leading to cascading offload failures in the critical tier. The primary ambiguity is whether the routing relies on implicit order",
+      "confidence": 0.35,
+      "consumed": false
+    },
+    {
+      "id": "fhh559i3",
+      "turn_id": "5495371c",
+      "source": "OPENCLAW",
+      "ts": "2026-05-14T16:13:04.086Z",
+      "expires_at": "2026-05-14T16:18:04.086Z",
+      "runtime_kind": "bridge_advisory",
+      "severity": "INFO",
+      "finding": "[bridge_advisory] Memory 145 logged [episodic] governed_item=1172: {\"task_id\": \"79\", \"source\": \"OPENCLAW\", \"channel\":...",
+      "confidence": 0.95,
+      "consumed": false
+    },
+    {
+      "id": "5950nkf7",
+      "turn_id": "5495371c",
+      "source": "HERMES_FC",
+      "ts": "2026-05-14T16:13:04.086Z",
+      "expires_at": "2026-05-14T16:18:04.086Z",
+      "runtime_kind": "native_function",
+      "severity": "INFO",
+      "finding": "Session has written 16 files already; cumulative drift risk elevated.",
+      "confidence": 0.85,
+      "consumed": false
+    },
+    {
+      "id": "kbxhnkx9",
+      "turn_id": "5495371c",
+      "source": "CASSANDRA",
+      "ts": "2026-05-14T16:13:04.087Z",
+      "expires_at": "2026-05-14T16:18:04.087Z",
+      "runtime_kind": "native_function",
+      "severity": "INFO",
+      "finding": "HIGH:WARN :: The offload.sh refactor breaks the routing precedence between Pulse Beacon sink and Cortex orchestrator wire, causing job failures to silently fall through to the stale-protection error handler.",
+      "confidence": 0.7,
+      "consumed": false
+    },
+    {
+      "id": "6y21f2g8",
+      "turn_id": "5495371c",
+      "source": "CORTEX",
+      "ts": "2026-05-14T16:13:04.087Z",
+      "expires_at": "2026-05-14T16:18:04.087Z",
+      "runtime_kind": "meta",
+      "severity": "WARN",
+      "finding": "Advisor disagreement detected across 4 findings on turn 5495371c",
+      "confidence": 0.9,
+      "consumed": false
+    }
+  ],
+  "throttle": {
+    "DEEPSEEK": {
+      "last_emit": 1778775184086
+    },
+    "OPENCLAW": {
+      "last_emit": 1778775184086
+    },
+    "HERMES_FC": {
+      "last_emit": 1778775184086
+    },
+    "CASSANDRA": {
+      "last_emit": 1778775184087
+    },
+    "SWARM": {
+      "last_emit": 0
+    }
+  },
+  "last_updated": "2026-05-14T16:13:04.087Z"
+}

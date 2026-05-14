@@ -1,0 +1,373 @@
+{
+  "turn_id": "5495371c",
+  "ts": "2026-05-14T16:12:47.989Z",
+  "plan": {
+    "prompt": "refactor Scripts/offload.sh routing logic",
+    "lane": "swarm",
+    "scenario": "protocol-change",
+    "title": "Rules, protocols, IDE sync, or agent harness behavior",
+    "automatic": true,
+    "entrypoint": "./Scripts/ai auto",
+    "qualityGate": "main-session",
+    "dispatch": "parallel-fan-out",
+    "complexityTier": "critical",
+    "ensemble": [
+      "deepseek-preflight",
+      "openclaw-preflight",
+      "hermes-forecast",
+      "cassandra",
+      "swarm-fanout",
+      "obliteratus-hint"
+    ],
+    "beaconLevel": "notify+obsidian",
+    "codexPolicy": "none",
+    "openClawAdvisory": {
+      "decision": "use-bridge",
+      "role": "pattern advisory (bridge-only, advisory-only)",
+      "model": "deepseek/deepseek-v4-flash",
+      "preflight": true,
+      "postflight": false,
+      "outputCapLines": 60,
+      "runtimeKind": "bridge_advisory",
+      "authority": "bridge-only-advisory",
+      "reason": "swarm_dispatch_pattern_lens",
+      "quarantine": [
+        "May inform research/background patterns.",
+        "Must not directly edit code.",
+        "Must not become canonical memory authority without local verification.",
+        "Must not bypass native Hermes, Argus, or Obliteratus gates."
+      ],
+      "bridgeCommand": "echo \"<payload>\" | bash _SYSTEM/OS_KERNEL/openclaw-bridge.sh",
+      "localTruthRequired": true,
+      "codexFinalAuthority": true
+    },
+    "deepseekAdvisory": {
+      "decision": "use-swarm",
+      "models": [
+        "deepseek-v4-pro",
+        "deepseek-v4-flash"
+      ],
+      "role": "independent advisory review",
+      "reason": "protocol_or_routing_quality_risk",
+      "preflight": true,
+      "postflight": true,
+      "outputCapLines": 80,
+      "localTruthRequired": true,
+      "codexFinalAuthority": true,
+      "discardWhenAny": [
+        "Claims repo state without exact file/path evidence.",
+        "Suggests writes, staging, commits, broad search, secrets access, DB reads, or protected path access.",
+        "Contradicts deterministic local evidence.",
+        "Produces unbounded prose instead of the requested schema.",
+        "Expands scope beyond the user request.",
+        "Gives more than 5 alternatives without ranking.",
+        "Cannot state acceptance criteria or test ideas.",
+        "Adds uncertainty without a concrete decision."
+      ],
+      "blockInfluenceWhenAny": [
+        "Two or more material repo claims are unverifiable.",
+        "One claim conflicts with deterministic local evidence.",
+        "A forbidden operation is recommended.",
+        "Flash and Pro disagree and local evidence cannot resolve it.",
+        "Review adds no actionable finding within 10 minutes or 20% task time."
+      ]
+    },
+    "claudeAdvisory": {
+      "decision": "use-sonnet",
+      "models": [
+        "claude-sonnet-4-6"
+      ],
+      "reasoning": "xhigh",
+      "role": "bounded architecture/risk/protocol advisory review",
+      "advisoryOnly": true,
+      "localTruthRequired": true,
+      "codexFinalAuthority": true,
+      "outputCapLines": 80,
+      "requiredSections": [
+        "findings",
+        "risks",
+        "upgrade_candidates",
+        "tests_needed",
+        "reject_or_accept_reasoning"
+      ],
+      "discardWhenAny": [
+        "Claims repo state without exact file/path evidence.",
+        "Suggests writes, staging, commits, broad search, secrets access, DB reads, or protected path access.",
+        "Contradicts deterministic local evidence.",
+        "Expands scope beyond the requested risk review.",
+        "Omits any required council section.",
+        "Exceeds the configured output cap."
+      ]
+    },
+    "claudeProtocolGate": {
+      "mode": "warn-first",
+      "mainSessionFinalAuthority": true,
+      "scope": "repo-local Claude Code control-plane work",
+      "codexSpecCompatibility": {
+        "requiredSpec": "## CODEX TASK SPEC",
+        "source": "CODEX_PROTOCOL.md",
+        "appliesTo": [
+          "codex exec",
+          "Scripts/ai codex",
+          "codex-spark",
+          "Scripts/codex-offload-runner.mjs"
+        ],
+        "rule": "Codex-bound work keeps the Codex task spec unchanged; Claude control-plane work uses a broader CLAUDE CONTROL PACKET."
+      },
+      "claudeControlPacket": {
+        "requiredFields": [
+          "Goal",
+          "Target files",
+          "Constraints",
+          "Acceptance criteria",
+          "Test command",
+          "Rollback boundary",
+          "Route-plan classification",
+          "GitNexus impact for symbol edits",
+          "Verification before merge or promotion"
+        ],
+        "routePlanEvidence": "Scripts/ai route-plan output for protocol, routing, memory, promotion, protected-path, or high-stakes work",
+        "advisoryExpectations": [
+          "symbioticPulse routing",
+          "DeepSeek Pro/Flash advisory for protocol/high-risk work"
+        ]
+      },
+      "nativeFunctionGates": {
+        "hermes": "always-on",
+        "argus": "always-on",
+        "obliteratus": "conditional-high-risk"
+      },
+      "openClaw": {
+        "authority": "bridge-only-advisory",
+        "runtimeRequirement": "none for v1",
+        "quarantine": [
+          "May inform research/background patterns.",
+          "Must not directly edit code.",
+          "Must not become canonical memory authority without local verification.",
+          "Must not bypass native Hermes, Argus, or Obliteratus gates."
+        ]
+      },
+      "hardBlocksRemainOwnedBy": "bash-security-guard.js",
+      "denyPermissionDecision": false
+    },
+    "nativeFunctionGates": {
+      "argus": {
+        "decision": "always-on",
+        "runtime": "native_function",
+        "activation": "PostToolUse scout dispatcher",
+        "role": "logic and sequencing check for meaningful tool calls",
+        "linkedSkills": [
+          "oracle-router",
+          "gitnexus-impact-analysis",
+          "non-destructive-infinity-guard"
+        ]
+      },
+      "hermes": {
+        "decision": "always-on",
+        "runtime": "native_function",
+        "activation": "PostToolUse scout dispatcher for file mutation tools",
+        "role": "session scope, context pressure, and drift check",
+        "linkedSkills": [
+          "oracle-memory",
+          "compact-optimizer",
+          "end-of-transmission"
+        ]
+      },
+      "obliteratus": {
+        "decision": "use-native-gate",
+        "runtime": "native_function",
+        "alias": "obliteratus",
+        "doc": ".claude/agents/obliteratus-qa.md",
+        "stage": "pre-promotion",
+        "role": "adversarial promotion gate for high-stakes artifacts",
+        "output": "structured_adversarial_audit",
+        "linkedSkills": [
+          "gitnexus-impact-analysis",
+          "gitnexus-pr-review",
+          "codex-security:security-scan",
+          "failure-evolution-loop"
+        ],
+        "requireWhenAny": [
+          "high-stakes review or protocol change",
+          "control-plane orchestration plan",
+          "sandbox promotion candidate",
+          "canonical state or memory promotion",
+          "protected path or governance mutation"
+        ],
+        "localTruthRequired": true,
+        "codexFinalAuthority": true,
+        "reason": "scenario:protocol-change"
+      }
+    },
+    "pulseGovernanceSkeleton": {
+      "id": "pulse-governance-skeleton",
+      "authority": {
+        "entryBranch": "main",
+        "entrySession": "main-session",
+        "exitBranch": "main",
+        "finalAuthority": "Codex/main-session",
+        "downstreamOnly": [
+          "branches",
+          "worktrees",
+          "agents",
+          "lanes",
+          "tools",
+          "advisory models"
+        ]
+      },
+      "phaseOrder": [
+        "intake_classify",
+        "campaign_decompose",
+        "specialist_fanout",
+        "verify_local_truth",
+        "merge_learn"
+      ],
+      "activeProfiles": [
+        "argus",
+        "hermes",
+        "obliteratus",
+        "openclaw-derived"
+      ],
+      "profileStatus": {
+        "argus": "always-on",
+        "hermes": "always-on",
+        "obliteratus": "use-native-gate",
+        "openclaw-derived": "reference-pattern"
+      },
+      "phaseCheckpoints": {
+        "intake_classify": [
+          {
+            "profile": "argus",
+            "action": "route_and_tool_sequence_sanity",
+            "severity": "guard",
+            "status": "always-on"
+          },
+          {
+            "profile": "openclaw-derived",
+            "action": "manifest_first_capability_load_pattern",
+            "severity": "pattern",
+            "status": "reference-pattern"
+          }
+        ],
+        "campaign_decompose": [
+          {
+            "profile": "hermes",
+            "action": "session_scope_and_context_pressure_init",
+            "severity": "notice",
+            "status": "always-on"
+          },
+          {
+            "profile": "obliteratus",
+            "action": "adversarial_plan_review",
+            "severity": "adversarial",
+            "status": "use-native-gate"
+          },
+          {
+            "profile": "openclaw-derived",
+            "action": "session_model_and_tool_profile_pattern",
+            "severity": "pattern",
+            "status": "reference-pattern"
+          }
+        ],
+        "specialist_fanout": [
+          {
+            "profile": "argus",
+            "action": "meaningful_call_and_failed_edit_check",
+            "severity": "guard",
+            "status": "always-on"
+          },
+          {
+            "profile": "hermes",
+            "action": "scope_drift_and_context_pressure_check",
+            "severity": "guard",
+            "status": "always-on"
+          },
+          {
+            "profile": "obliteratus",
+            "action": "protected_state_and_sandbox_promotion_check",
+            "severity": "adversarial",
+            "status": "use-native-gate"
+          },
+          {
+            "profile": "openclaw-derived",
+            "action": "sandbox_and_plugin_routing_pattern",
+            "severity": "pattern",
+            "status": "reference-pattern"
+          }
+        ],
+        "verify_local_truth": [
+          {
+            "profile": "argus",
+            "action": "canonical_touch_and_evidence_check",
+            "severity": "blocker",
+            "status": "always-on"
+          },
+          {
+            "profile": "hermes",
+            "action": "broad_file_scope_drift_check",
+            "severity": "guard",
+            "status": "always-on"
+          },
+          {
+            "profile": "obliteratus",
+            "action": "protocol_control_plane_and_governance_audit",
+            "severity": "blocker",
+            "status": "use-native-gate"
+          }
+        ],
+        "merge_learn": [
+          {
+            "profile": "argus",
+            "action": "scope_and_commit_evidence_integrity",
+            "severity": "guard",
+            "status": "always-on"
+          },
+          {
+            "profile": "hermes",
+            "action": "compression_and_closeout_trigger_check",
+            "severity": "notice",
+            "status": "always-on"
+          },
+          {
+            "profile": "obliteratus",
+            "action": "durable_promotion_gate",
+            "severity": "blocker",
+            "status": "use-native-gate"
+          },
+          {
+            "profile": "openclaw-derived",
+            "action": "skill_fragment_promotion_pattern",
+            "severity": "pattern",
+            "status": "reference-pattern"
+          }
+        ]
+      }
+    },
+    "lifecycle": [
+      "Intake: identify every rule surface that must stay aligned.",
+      "Impact: inspect existing protocol inheritance and stale wording.",
+      "Edit: update the shared contract first, then dependent docs.",
+      "Verify: search for old lane tables, trigger-only wording, and syntax errors.",
+      "Learn: add scenario examples when they reduce future routing ambiguity."
+    ],
+    "crossReference": {
+      "taxonomySurface": "_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md",
+      "indexSurface": "_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-index.md",
+      "rulesSurface": "_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/prevention-rules.md"
+    },
+    "learningCapture": [
+      "request_class",
+      "chosen_lane",
+      "fallbacks",
+      "evidence_used",
+      "files_touched",
+      "tests_run",
+      "user_correction",
+      "canonical_tags",
+      "bridge_domains",
+      "next_rule_candidate",
+      "prevention_rule_candidate"
+    ],
+    "memorySurface": "_SYSTEM/OS_KERNEL/memory.db"
+  }
+}

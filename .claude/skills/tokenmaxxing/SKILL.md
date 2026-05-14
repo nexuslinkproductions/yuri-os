@@ -94,6 +94,12 @@ Output: `TOKENMAXXING OFF`
 
 ## Session Notes
 
+### 2026-05-14
+- session: 78m | peak ctx: 0% | compacts: 0
+- tools: Bash×94, Read×20, Write×18, Edit×18, TodoWrite×6, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
 ### 2026-05-02
 - session: 4m | peak ctx: 14% | compacts: 0
 - tools: Bash×16, Read×4, Edit×4, Skill×1

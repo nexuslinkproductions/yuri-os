@@ -63,6 +63,18 @@ Before invoking any source, run this 5-step check:
 
 ## Session Notes
 
+### 2026-05-14
+- session: 55m | peak ctx: 0% | compacts: 0
+- tools: Bash×91, Read×25, TodoWrite×9, Edit×6, WebFetch×5, Write×4, Agent×2, ExitPlanMode×2, mcp×1, ToolSearch×1, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 48m | peak ctx: 0% | compacts: 0
+- tools: Bash×88, Read×23, TodoWrite×8, Edit×6, WebFetch×5, Write×4, Agent×2, ExitPlanMode×2, mcp×1, ToolSearch×1, AskUserQuestion×1
+- corrections: none
+- errors: none
+
 ### 2026-04-27
 - session: 6m | peak ctx: 53% | compacts: 0
 - tools: Read×27, Bash×8, Write×2, mcp×1
