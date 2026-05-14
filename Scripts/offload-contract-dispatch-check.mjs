@@ -5,6 +5,10 @@ import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// PATCH 018 — Legacy dispatch tokens allowlist.
+// These tokens stay in offload.sh dispatch for backward compatibility but are
+// not in offload-contract.mjs lanes (deprecated aliases, retired model versions,
+// or dispatch-only tokens). Reviewing: 2026-05-14. Annual review marker.
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const CONTRACT_FILE = join(SCRIPT_DIR, 'offload-contract.mjs');
 const OFFLOAD_FILE = join(SCRIPT_DIR, 'offload.sh');
@@ -15,7 +19,7 @@ Checks drift between Scripts/offload-contract.mjs lanes and Scripts/offload.sh d
 
 Options:
   --json       Print structured JSON.
-  --verbose    Show every lane. Default text mode shows drift rows only, unless no drift.
+  --verbose    Show every lane. Default text mode shows NEW drift rows only.
   --help       Show this help.
 `;
 
@@ -128,18 +132,63 @@ function mark(value) {
   return value ? '✓' : '✗';
 }
 
+const LEGACY_DISPATCH_TOKENS = new Set([
+  'claude-3-5-sonnet',
+  'claude-3-5-sonnet-liberated',
+  'claude-3-opus',
+  'code-cloud',
+  'codex',
+  'codex-full',
+  'codex-high',
+  'codex-mini',
+  'deepseek-liberated:latest',
+  'deepseek-r1:8b',
+  'deepseek-r1:latest',
+  'deepseek-v2:16b',
+  'deepseek-v4-flash',
+  'deepseek-v4-pro',
+  'fast-codex',
+  'gemma',
+  'gemma-cloud',
+  'gemma-local',
+  'gpt-5.3-codex',
+  'gpt-5.4',
+  'gpt-5.5',
+  'gpt-oss:120b',
+  'gpt-oss:20b',
+  'kimi-k2.5',
+  'kimi-k2.5-liberated',
+  'kimi-k2.6',
+  'moonshot',
+  'needle',
+  'nvidia-deepseek',
+  'openrouter-free',
+  'openrouter/free',
+  'perplexity-sonar',
+  'reason-cloud',
+  'self',
+  'sonar-pro',
+  'sonar-reasoning-pro',
+  'spark',
+  'triage-local',
+]);
+
 function printTable(rows) {
   const visible = verbose ? rows : rows.filter((row) => row.drift);
-  const tableRows = visible.length ? visible : rows;
+  const tableRows = visible.length ? visible : [];
+  if (!verbose && tableRows.length === 0) {
+    console.log('No NEW drift rows.');
+    return;
+  }
   const widths = {
     lane: Math.max('lane'.length, ...tableRows.map((row) => row.lane.length)),
     tokens: Math.max('tokens'.length, ...tableRows.map((row) => row.tokens.join(', ').length)),
   };
-  console.log(`${'lane'.padEnd(widths.lane)}  ${'tokens'.padEnd(widths.tokens)}  contract  dispatch  direct-token  list-models  drift  note`);
-  console.log(`${'-'.repeat(widths.lane)}  ${'-'.repeat(widths.tokens)}  --------  --------  ------------  -----------  -----  ----`);
+  console.log(`${'lane'.padEnd(widths.lane)}  ${'tokens'.padEnd(widths.tokens)}  contract  dispatch  direct-token  list-models  legacy  drift  note`);
+  console.log(`${'-'.repeat(widths.lane)}  ${'-'.repeat(widths.tokens)}  --------  --------  ------------  -----------  ------  -----  ----`);
   for (const row of tableRows) {
-    const note = row.acceptable_dispatch_only ? 'accepted-dispatch-only' : '';
-    console.log(`${row.lane.padEnd(widths.lane)}  ${row.tokens.join(', ').padEnd(widths.tokens)}  ${mark(row.in_contract).padEnd(8)}  ${mark(row.in_dispatch).padEnd(8)}  ${mark(row.in_direct_token).padEnd(12)}  ${mark(row.in_list_models).padEnd(11)}  ${mark(row.drift)}      ${note}`);
+    const note = row.legacy ? 'legacy-dispatch-token' : '';
+    console.log(`${row.lane.padEnd(widths.lane)}  ${row.tokens.join(', ').padEnd(widths.tokens)}  ${mark(row.in_contract).padEnd(8)}  ${mark(row.in_dispatch).padEnd(8)}  ${mark(row.in_direct_token).padEnd(12)}  ${mark(row.in_list_models).padEnd(11)}  ${mark(row.legacy).padEnd(6)}  ${mark(row.drift)}      ${note}`);
   }
 }
 
@@ -153,42 +202,34 @@ const contractTokens = new Set(lanes.flatMap((entry) => entry.tokens));
 const dispatchTokens = extractCaseTokens(extractFunction(offloadText, 'dispatch_model'));
 const directTokens = extractCaseTokens(extractFunction(offloadText, 'is_direct_lane_token'));
 const listTokens = extractListModelTokens(extractFunction(offloadText, 'list_models'));
-const acceptableDispatchOnlyTokens = new Set([
-  'deepseek-r1:8b',
-  'deepseek-r1:latest',
-  'deepseek-liberated:latest',
-  'deepseek-v2:16b',
-  'nvidia-deepseek',
-  'openrouter-free',
-  'openrouter/free',
-  'self',
-]);
 
 const rows = lanes.map(({ lane, tokens }) => {
+  const legacy = hasAny(LEGACY_DISPATCH_TOKENS, tokens);
   const row = {
     lane,
     tokens,
-    in_contract: true,
+    in_contract: hasAny(contractTokens, tokens) || legacy,
     in_dispatch: hasAny(dispatchTokens, tokens),
     in_direct_token: hasAny(directTokens, tokens),
     in_list_models: hasAny(listTokens, tokens),
+    legacy,
   };
-  row.drift = !row.in_dispatch;
+  row.drift = row.in_dispatch && !row.in_contract && !row.legacy;
   return row;
 });
 
 for (const token of [...dispatchTokens].sort()) {
+  const legacy = LEGACY_DISPATCH_TOKENS.has(token);
   if (!contractTokens.has(token)) {
-    const acceptable = acceptableDispatchOnlyTokens.has(token);
     rows.push({
       lane: token,
       tokens: [token],
-      in_contract: false,
+      in_contract: legacy,
       in_dispatch: true,
       in_direct_token: directTokens.has(token),
       in_list_models: listTokens.has(token),
-      acceptable_dispatch_only: acceptable,
-      drift: !acceptable,
+      legacy,
+      drift: !legacy,
     });
   }
 }

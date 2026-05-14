@@ -53,7 +53,26 @@ PROMPT
 )"
 ```
 
-After DeepSeek writes the draft, present the spec to user with summary of [TBD] markers.
+After DeepSeek writes the draft, **PATCH 016 content filter** runs:
+
+```bash
+# Block secrets/credentials/keys from being embedded in generated spec
+node Scripts/spec-content-filter.mjs specs/active/<slug>.md
+```
+
+The filter scans for these patterns and replaces matches with `[REDACTED:<pattern-name>]`:
+- `\.env` paths or contents
+- `BEGIN (RSA |EC )?PRIVATE KEY`
+- `Bearer\s+[A-Za-z0-9_\-\.]{20,}`
+- `(?i)password\s*[=:]\s*\S+`
+- `(?i)api[_-]?key\s*[=:]\s*\S+`
+- `(?i)secret\s*[=:]\s*\S+`
+- AWS-style: `AKIA[0-9A-Z]{16}`
+- GitHub PAT-style: `ghp_[A-Za-z0-9]{36}`
+
+Filter exits 0 always (advisory). If redactions occurred, prints summary to stderr.
+
+Then present the spec to user with summary of [TBD] markers AND any [REDACTED:*] placeholders.
 User reviews, edits inline, then proceeds to Phase 3.
 
 **Manual fallback** (if DeepSeek unavailable or user prefers): main thread fills the same template structure interactively with the user.
