@@ -34,7 +34,9 @@ function cleanUrl(url) {
 
 function extractUrls(command) {
   const matches = command.match(URL_RE) || [];
-  return [...new Set(matches.map(cleanUrl))];
+  return [...new Set(matches
+    .map(cleanUrl)
+    .map(u => { try { const d = decodeURIComponent(u); return d.includes(' ') ? u : d; } catch { return u; } }))];
 }
 
 function parseAssessment(output) {

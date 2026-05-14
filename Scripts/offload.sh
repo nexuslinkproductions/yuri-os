@@ -392,6 +392,7 @@ dispatch_model() {
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|reason-cloud|code-cloud|nvidia-deepseek|gemma|gemma-local|gemma-cloud)
+        if ! curl -sf --max-time 2 localhost:11434/api/tags >/dev/null 2>&1; then printf '%s\n' '⚠ [offload] Ollama not responding on :11434 — lane may cold-start' >&2; fi
         printf '%s\n' "⬡ ROUTING_TO_OFFLOAD_RUNNER..." >&2
         run_offload_runner "$target_model" "$prompt"
         ;;
