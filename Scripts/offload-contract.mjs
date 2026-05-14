@@ -857,6 +857,130 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
   };
 }
 
+// =====================================================================
+// PATCH 030 — Pulse Cortex classifier extensions
+// =====================================================================
+// Adds the four cortex fields (complexityTier, ensemble, beaconLevel,
+// codexPolicy) plus the OpenClaw advisory assessor. All advisory-only;
+// none of these grant write or canonical authority. The orchestrator
+// at Scripts/pulse-orchestrator.mjs consumes these to fan out advisors.
+
+function assessOpenClawAdvisory(prompt, lane, scenario) {
+  const text = normalizePrompt(prompt);
+  const quarantine = OFFLOAD_CONTRACT.claudeProtocolGate.openClaw;
+  const eligibleScenarios = [
+    'control-plane-orchestration', 'protocol-change',
+    'high-stakes-review', 'sandbox-improvement',
+    'cross-domain-lesson-work'
+  ];
+  const patternSignals = [
+    'pattern', 'architecture', 'design', 'system', 'cross-cutting',
+    'refactor', 'protocol', 'governance', 'cortex'
+  ];
+  const shouldFire = lane === 'swarm' ||
+    eligibleScenarios.includes(scenario.id) ||
+    includesAny(text, patternSignals);
+
+  if (!shouldFire) {
+    return {
+      decision: 'skip',
+      role: 'none',
+      preflight: false,
+      postflight: false,
+      runtimeKind: 'bridge_advisory',
+      authority: quarantine.authority,
+      reason: 'below_pattern_advisory_threshold',
+      quarantine: quarantine.quarantine
+    };
+  }
+  return {
+    decision: 'use-bridge',
+    role: 'pattern advisory (bridge-only, advisory-only)',
+    model: 'deepseek/deepseek-v4-flash',
+    preflight: true,
+    postflight: scenario.id === 'code-change',
+    outputCapLines: 60,
+    runtimeKind: 'bridge_advisory',
+    authority: quarantine.authority,
+    reason: lane === 'swarm' ? 'swarm_dispatch_pattern_lens' : `scenario:${scenario.id}_or_pattern_signal`,
+    quarantine: quarantine.quarantine,
+    bridgeCommand: 'echo "<payload>" | bash _SYSTEM/OS_KERNEL/openclaw-bridge.sh',
+    localTruthRequired: true,
+    codexFinalAuthority: true
+  };
+}
+
+function classifyComplexity(prompt, lane, scenario) {
+  const text = normalizePrompt(prompt);
+  const length = text.length;
+  const mutateVerbs = /(implement|fix|patch|refactor|debug|rename|delete|migrate|audit|review|deploy|create|add|remove|build|wire|extend|promote)/i;
+  const hasMutate = mutateVerbs.test(text);
+  const hasFilePath = /[/][\w-]+\.[a-z]+/i.test(text);
+  const hasLane = /@\w+/.test(text);
+
+  if (length < 60 && !hasMutate && !hasFilePath && !hasLane) {
+    return 'trivial';
+  }
+
+  const criticalSignals = [
+    'memory.db', 'protected path', 'promotion', 'canonical', 'governance',
+    'launchd', 'production', 'rollout', 'migrate', 'kernel', 'protected'
+  ];
+  const protocolSwarm = lane === 'swarm' &&
+    ['protocol-change', 'control-plane-orchestration', 'high-stakes-review'].includes(scenario.id);
+  if (protocolSwarm || includesAny(text, criticalSignals)) {
+    return 'critical';
+  }
+
+  const complexSignals = ['audit', 'review', 'architecture', 'refactor', 'protocol', 'security', 'cortex'];
+  const fileCount = (text.match(/[/][\w-]+\.[a-z]+/gi) || []).length;
+  if (fileCount > 1 || includesAny(text, complexSignals) || scenario.id === 'protocol-change') {
+    return 'complex';
+  }
+
+  return 'standard';
+}
+
+function buildEnsemble(complexityTier, scenario, openClawAdvisory) {
+  const ensemble = [];
+  if (complexityTier === 'trivial') return ensemble;
+
+  ensemble.push('deepseek-preflight');
+
+  if (complexityTier === 'complex' || complexityTier === 'critical') {
+    if (openClawAdvisory && openClawAdvisory.decision !== 'skip') {
+      ensemble.push('openclaw-preflight');
+    }
+    ensemble.push('hermes-forecast');
+    ensemble.push('cassandra');
+  }
+  if (complexityTier === 'critical') {
+    ensemble.push('swarm-fanout');
+    ensemble.push('obliteratus-hint');
+  }
+  return ensemble;
+}
+
+function pickBeaconLevel(complexityTier, scenario) {
+  if (complexityTier === 'critical') return 'notify+obsidian';
+  if (complexityTier === 'complex' &&
+      ['protocol-change', 'high-stakes-review', 'control-plane-orchestration'].includes(scenario.id)) {
+    return 'notify';
+  }
+  return 'none';
+}
+
+function pickCodexPolicy(prompt, scenario, complexityTier) {
+  if (complexityTier === 'critical' || complexityTier === 'trivial') return 'none';
+  const text = normalizePrompt(prompt);
+  const hasFilePath = /[/][\w-]+\.[a-z]+/i.test(text);
+  const mutateVerbs = /(implement|fix|patch|refactor|rename|add|remove|extend|wire|create)/i;
+  if (hasFilePath && mutateVerbs.test(text) && complexityTier === 'standard') {
+    return 'dry-run-only';
+  }
+  return 'none';
+}
+
 function buildPulseGovernanceSkeleton(nativeFunctionGates) {
   const skeleton = OFFLOAD_CONTRACT.pulseGovernanceSkeleton;
   const profileStatus = {
@@ -915,6 +1039,12 @@ function buildRoutePlan(prompt) {
   const claudeAdvisory = assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory);
   const nativeFunctionGates = assessNativeFunctionGates(prompt, lane, scenario);
   const pulseGovernanceSkeleton = buildPulseGovernanceSkeleton(nativeFunctionGates);
+  // PATCH 030 — Pulse Cortex extensions
+  const openClawAdvisory = assessOpenClawAdvisory(prompt, lane, scenario);
+  const complexityTier = classifyComplexity(prompt, lane, scenario);
+  const ensemble = buildEnsemble(complexityTier, scenario, openClawAdvisory);
+  const beaconLevel = pickBeaconLevel(complexityTier, scenario);
+  const codexPolicy = pickCodexPolicy(prompt, scenario, complexityTier);
   return {
     prompt,
     lane,
@@ -924,6 +1054,13 @@ function buildRoutePlan(prompt) {
     entrypoint: './Scripts/ai auto',
     qualityGate: 'main-session',
     dispatch: lane === 'swarm' ? 'parallel-fan-out' : 'single-lane',
+    // PATCH 030 — Pulse Cortex fields (consumed by pulse-orchestrator.mjs)
+    complexityTier,
+    ensemble,
+    beaconLevel,
+    codexPolicy,
+    openClawAdvisory,
+    // existing fields
     deepseekAdvisory,
     claudeAdvisory,
     claudeProtocolGate: OFFLOAD_CONTRACT.claudeProtocolGate,
