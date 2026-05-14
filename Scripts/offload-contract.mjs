@@ -135,8 +135,10 @@ const OFFLOAD_CONTRACT = {
     },
     perplexity: {
       alias: '@perplexity',
-      description: 'Browser research lane',
-      preferredUsage: ['web research', 'latest facts', 'citations']
+      description: 'Perplexity app via Claude computer control — the canonical browser for web research. Default path = computer-use MCP drives the desktop app, NOT the API adapter. API adapter (Scripts/perplexity-adapter.mjs) only when explicitly requested via -m perplexity.',
+      preferredUsage: ['web research', 'latest facts', 'citations', 'deep research', 'current events'],
+      defaultRoute: 'computer-control-app',
+      apiFallback: 'Scripts/perplexity-adapter.mjs'
     }
   },
   swarm: {
