@@ -6,11 +6,12 @@ import {
   normalizeOllamaUsage,
   recordTokenEvent,
 } from './token-ledger.mjs';
+import { runNeedleLocalChat } from './needle-adapter.mjs';
 
 const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
 const LOCAL_MODEL_POLICY = loadModelPolicy().local || {};
-const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || 'qwen3.5:4b';
-const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'qwen2.5:7b';
+const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || 'needle';
+const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'needle';
 const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || 'llama3.2:latest';
 
 export const OLLAMA_LOCAL_MODELS = Object.freeze([
@@ -92,6 +93,10 @@ function coerceHttpScheme(raw) {
 }
 
 export async function runOllamaLocalChat(model, promptText, systemText, ledger = {}) {
+  if (isNeedleModel(model)) {
+    return runNeedleLocalChat(promptText, systemText, ledger);
+  }
+
   const host = coerceHttpScheme(process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434');
   const additiveLane = String(ledger.lane || '').startsWith('ollama');
   return runOllamaNativeChat({
@@ -103,6 +108,10 @@ export async function runOllamaLocalChat(model, promptText, systemText, ledger =
     ledger,
     metadata: { local_runtime: 'ollama', additive_lane: additiveLane },
   });
+}
+
+function isNeedleModel(model) {
+  return String(model || '').toLowerCase() === 'needle';
 }
 
 export async function runOllamaCloudChat(endpoint, apiKey, model, promptText, systemText, ledger = {}) {
@@ -123,7 +132,7 @@ export async function postOllamaEmbedding({ text, model, baseUrl, traceId = '', 
   const startedAt = Date.now();
   const endpoint = `${baseUrl.replace(/\/$/, '')}/api/embeddings`;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), Number(process.env.OFFLOAD_OLLAMA_TIMEOUT_MS) || 300000);
   try {
     const response = await fetch(endpoint, {
       method: 'POST',

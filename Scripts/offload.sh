@@ -91,15 +91,23 @@ list_models() {
   printf '  [%-30s] %s\n' "needle" "active local default for general tasks while qwen2.5:7b remains retired"
 
   echo
-  echo "Codex lanes (all route through codex-spark CLI; OpenAI Responses API disabled — no API key):"
-  printf '  [%-30s] %s\n' "codex-spark" "Bounded Codex CLI lane pinned to gpt-5.3-codex-spark"
-  printf '  [%-30s] %s\n' "spark" "Alias for codex-spark"
-  printf '  [%-30s] %s\n' "fast-codex" "Alias for codex-spark"
-  printf '  [%-30s] %s\n' "codex" "Alias for codex-spark"
-  printf '  [%-30s] %s\n' "codex-mini" "Alias for codex-spark"
-  printf '  [%-30s] %s\n' "gpt-5.5" "Alias for codex-spark"
-  printf '  [%-30s] %s\n' "gpt-5.4-mini" "Alias for codex-spark"
+  echo "Codex lanes (Codex CLI; OpenAI Responses API disabled — no API key):"
+  echo "  ── Spark tier (gpt-5.3-codex-spark — read-only sandbox, bounded tasks):"
+  printf '  [%-30s] %s\n' "codex-spark" "pinned to gpt-5.3-codex-spark, read-only sandbox"
+  printf '  [%-30s] %s\n' "spark" "alias → codex-spark"
+  printf '  [%-30s] %s\n' "fast-codex" "alias → codex-spark"
+  echo "  ── Mini tier (gpt-5.4-mini — workspace-write, reasoning=high default):"
+  printf '  [%-30s] %s\n' "gpt-5.4-mini" "gpt-5.4-mini, workspace-write, --reasoning high"
+  printf '  [%-30s] %s\n' "codex-mini" "alias → gpt-5.4-mini"
+  echo "  ── Full tier (gpt-5.5 — workspace-write, reasoning=high→xhigh, project rules on):"
+  printf '  [%-30s] %s\n' "gpt-5.5" "gpt-5.5, workspace-write, --reasoning high (xhigh supported)"
+  printf '  [%-30s] %s\n' "codex" "alias → gpt-5.5"
+  printf '  [%-30s] %s\n' "codex-high" "alias → gpt-5.5"
   printf '  [%-30s] %s\n' "gpt-5.3-codex" "Alias for codex-spark"
+
+  echo
+  echo "Perplexity API lane (requires PERPLEXITY_API_KEY):"
+  printf '  [%-30s] %s\n' "perplexity" "sonar-pro default; --reasoning high/xhigh → sonar-reasoning-pro"
 
   echo
 }
@@ -234,8 +242,14 @@ dry_run_model_override() {
   fi
 
   case "$target_model" in
-      codex|codex-mini|codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
+      codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.3-codex)
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" --dry-run
+        ;;
+      gpt-5.4-mini|gpt-5.4|codex-mini)
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        ;;
+      gpt-5.5|codex|codex-high|codex-full)
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       nvidia-deepseek|deepseek-ai/*)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
@@ -251,6 +265,9 @@ dry_run_model_override() {
       needle)
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
         run_offload_runner ollama-local "$prompt" --dry-run --model needle
+        ;;
+      perplexity|perplexity-sonar|sonar-pro|sonar-reasoning-pro)
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/perplexity-adapter.mjs" --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       deepseek-v4-flash|deepseek-v4-pro|deepseek)
         run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} --no-tools
@@ -295,6 +312,10 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
         run_offload_runner ollama-local "$prompt" --model needle
         ;;
+      perplexity|perplexity-sonar|sonar-pro|sonar-reasoning-pro)
+        printf '%s\n' "⬡ ROUTING_TO_PERPLEXITY [${REASONING_DEPTH:+sonar-reasoning-pro}${REASONING_DEPTH:-sonar-pro}]..." >&2
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/perplexity-adapter.mjs" ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        ;;
       deepseek-v4-flash|deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2
         run_offload_runner "$target_model" "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} "${tool_args[@]}"
@@ -315,9 +336,17 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
         run_offload_runner openrouter-free "$prompt" --model "$target_model"
         ;;
-      codex|codex-mini|codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex)
-        printf '%s\n' "⬡ ROUTING_TO_CODEX_SPARK..." >&2
+      codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.3-codex)
+        printf '%s\n' "⬡ ROUTING_TO_CODEX_SPARK [gpt-5.3-codex-spark, read-only]..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model"
+        ;;
+      gpt-5.4-mini|gpt-5.4|codex-mini)
+        printf '%s\n' "⬡ ROUTING_TO_CODEX_MINI [gpt-5.4-mini, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        ;;
+      gpt-5.5|codex|codex-high|codex-full)
+        printf '%s\n' "⬡ ROUTING_TO_CODEX_FULL [gpt-5.5, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|reason-cloud|code-cloud|nvidia-deepseek|gemma|gemma-local|gemma-cloud)
         printf '%s\n' "⬡ ROUTING_TO_OFFLOAD_RUNNER..." >&2

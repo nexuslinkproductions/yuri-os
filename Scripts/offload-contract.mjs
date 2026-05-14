@@ -87,8 +87,25 @@ const OFFLOAD_CONTRACT = {
     },
     codexSpark: {
       alias: '@codex-spark',
-      description: 'Bounded Codex Spark sandbox lane',
+      description: 'Bounded Codex Spark sandbox lane — gpt-5.3-codex-spark, read-only sandbox',
       preferredUsage: ['sandbox improvement', 'read-only experiments', 'isolated verification', 'live operational trials']
+    },
+    gpt54Mini: {
+      alias: '@gpt-5.4-mini',
+      model: 'gpt-5.4-mini',
+      sandbox: 'workspace-write',
+      defaultReasoning: 'high',
+      description: 'Codex mini tier — gpt-5.4-mini, workspace-write, reasoning=high default',
+      preferredUsage: ['bounded implementation', 'fast coding tasks', 'file edits with write access', 'mid-weight reasoning']
+    },
+    gpt55: {
+      alias: '@gpt-5.5',
+      model: 'gpt-5.5',
+      sandbox: 'workspace-write',
+      defaultReasoning: 'high',
+      maxReasoning: 'xhigh',
+      description: 'Codex full tier — gpt-5.5, workspace-write, reasoning=high (escalates to xhigh), project rules enabled',
+      preferredUsage: ['full implementation', 'complex multi-step coding', 'deep reasoning tasks', 'maximum codex features', 'high-stakes code generation']
     },
     swarm: {
       alias: '@swarm',
