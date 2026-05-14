@@ -90,6 +90,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/scout-log-trim.js"
+          },
+          {
+            "type": "command",
+            "command": "node Scripts/memory-archive.mjs --dry-run"
           }
         ]
       }
@@ -179,6 +183,11 @@
           {
             "type": "command",
             "command": "node .claude/hooks/token-tool-logger.js",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/session-checkpoint.js",
             "async": true
           }
         ]
