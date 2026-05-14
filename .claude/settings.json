@@ -126,6 +126,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/claude-protocol-guard.js"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/scout-inject.js"
           },
           {
@@ -206,5 +210,6 @@
   "theme": "dark-ansi",
   "autoScrollEnabled": true,
   "showTurnDuration": true,
-  "terminalProgressBarEnabled": true
+  "terminalProgressBarEnabled": true,
+  "agentPushNotifEnabled": true
 }
