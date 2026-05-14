@@ -69,7 +69,7 @@ function section(markdown, names) {
   const wanted = names.map((name) => name.toLowerCase())
   for (let i = 0; i < lines.length; i += 1) {
     const match = lines[i].match(/^(#{1,6})\s+(.+?)\s*$/)
-    if (!match || !wanted.includes(cleanText(match[2]).toLowerCase())) continue
+    if (!match || !wanted.includes(cleanHeading(match[2]).toLowerCase())) continue
     const level = match[1].length
     const body = []
     for (let j = i + 1; j < lines.length; j += 1) {
@@ -90,6 +90,17 @@ function cleanText(text) {
     .trim()
 }
 
+function cleanHeading(text) {
+  return cleanText(text)
+    .replace(/^\d+(?:\.\d+)*\.\s*/, '')
+    .replace(/\s*\([^)]*\)\s*$/g, '')
+    .trim()
+}
+
+function cleanCriterionText(text) {
+  return text.replace(/\s+/g, ' ').trim()
+}
+
 function extractScope(markdown) {
   const explicit = markdown.match(/^scope\s*:\s*(.+)$/im)
   if (explicit) return cleanText(explicit[1])
@@ -97,17 +108,16 @@ function extractScope(markdown) {
   return paragraph ? cleanText(paragraph) : 'To be determined from spec during planning.'
 }
 
-function extractCriteria(markdown) {
-  const source = section(markdown, ['Acceptance Criteria', 'Acceptance']) || markdown
+function extractAcceptanceCriteria(markdown) {
+  const source = section(markdown, ['Acceptance Criteria'])
   const criteria = []
+  if (!source) return { foundSection: false, criteria }
   for (const line of source.split(/\r?\n/)) {
-    if (/^\s{2,}/.test(line)) continue
-    const bullet = line.match(/^\s*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s+)?(.+)$/)
-    const ac = line.match(/^\s*(?:AC|Acceptance Criterion)\s*\d*\s*[:.-]\s+(.+)$/i)
-    const text = cleanText((bullet && bullet[1]) || (ac && ac[1]) || '')
+    const bullet = line.match(/^- \[ \] (.+)$/)
+    const text = cleanCriterionText((bullet && bullet[1]) || '')
     if (text) criteria.push(text)
   }
-  return [...new Set(criteria)]
+  return { foundSection: true, criteria: [...new Set(criteria)] }
 }
 
 function metadataFor(specPath, markdown) {
@@ -178,11 +188,19 @@ function isGenericSymbol(value) {
   return false
 }
 
+function warnGitNexusSkipped(symbol, reason) {
+  console.error(`[spec-pipeline] GitNexus impact skipped for symbol "${symbol}" (reason: ${reason})`)
+}
+
 function detectCodeReferences(markdown) {
   const references = []
   const add = (value) => {
     const cleaned = cleanText(value)
-    if (!cleaned || isGenericSymbol(cleaned)) return
+    if (!cleaned) return
+    if (isGenericSymbol(cleaned)) {
+      warnGitNexusSkipped(cleaned, 'generic identifier')
+      return
+    }
     references.push(cleaned)
   }
 
@@ -212,17 +230,33 @@ function parseImpact(symbol, output) {
 
 function gitnexusImpact(symbol) {
   const options = { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 5000 }
-  try {
-    return parseImpact(symbol, execSync(`npx gitnexus impact ${shellQuote(symbol)} --json`, options))
-  } catch (error) {
-    if (!String(error.stderr || '').includes("unknown option '--json'")) return null
-  }
+  const targets = symbol.includes('/') ? [symbol, path.basename(symbol)] : [symbol]
+  let lastReason = 'no matching impact returned'
+  for (const target of targets) {
+    try {
+      const impact = parseImpact(symbol, execSync(`npx gitnexus impact ${shellQuote(target)} --json`, options))
+      if (impact) return impact
+      lastReason = 'ambiguous or empty impact response'
+    } catch (error) {
+      const stderr = String(error.stderr || '').trim()
+      if (!stderr.includes("unknown option '--json'")) {
+        lastReason = stderr || error.message || 'gitnexus impact failed'
+        continue
+      }
+      lastReason = stderr
+    }
 
-  try {
-    return parseImpact(symbol, execSync(`npx gitnexus impact ${shellQuote(symbol)} --repo nudimmud-vault`, options))
-  } catch {
-    return null
+    try {
+      const impact = parseImpact(symbol, execSync(`npx gitnexus impact ${shellQuote(target)} --repo nudimmud-vault`, options))
+      if (impact) return impact
+      lastReason = 'ambiguous or empty impact response'
+    } catch (error) {
+      lastReason = String(error.stderr || '').trim() || error.message || 'gitnexus impact failed'
+      continue
+    }
   }
+  warnGitNexusSkipped(symbol, lastReason)
+  return null
 }
 
 function gitnexusImpacts(markdown) {
@@ -244,20 +278,31 @@ function impactSection(impacts) {
 }
 
 function taskScaffolds(criteria, impacts = []) {
-  if (criteria.length === 0) return '\n## Generated CODEX Task Scaffolds\n\n_No acceptance criteria found._\n'
   const impact = impactSection(impacts)
   const impactBlock = impact ? `${impact}\n` : ''
   const blocks = criteria.map((criterion, index) => `### Task ${index + 1}: ${criterion}
 
-${impactBlock}\
-CODEX TASK SPEC SCAFFOLD:
+${impactBlock}CODEX TASK SPEC SCAFFOLD:
   Goal: ${criterion}
   Target files: <to be determined during implementation>
-  Constraints: Preserve existing behavior; follow repository task spec and protected-path rules.
+  Constraints: anime DNA gates apply; respect protected surfaces
   Acceptance criteria: ${criterion}
-  Test command: <to be determined during implementation>
-  Rollback boundary: Revert files changed for this task only.`)
+  Test command: <to be defined>
+  Rollback boundary: git checkout <files>`)
   return `\n## Generated CODEX Task Scaffolds\n\n${blocks.join('\n\n')}\n`
+}
+
+function taskTemplateHeader(template) {
+  const marker = '\n## Phase 1: Setup (Shared Infrastructure)'
+  const index = template.indexOf(marker)
+  if (index === -1) return template.trimEnd()
+  return template.slice(0, index).trimEnd()
+}
+
+function buildTasks(template, metadata, criteria, impacts) {
+  const applied = applyTemplate(template, metadata)
+  if (criteria.length === 0) return applied
+  return `${taskTemplateHeader(applied)}\n${taskScaffolds(criteria, impacts)}`
 }
 
 function atomicWrite(filePath, content) {
@@ -296,10 +341,15 @@ function main() {
 
     const specMarkdown = fs.readFileSync(specPath, 'utf8')
     const metadata = metadataFor(specPath, specMarkdown)
-    const criteria = extractCriteria(specMarkdown)
+    const { foundSection, criteria } = extractAcceptanceCriteria(specMarkdown)
+    if (!foundSection) {
+      console.error('[spec-pipeline] No Acceptance criteria section found; keeping template task defaults')
+    } else if (criteria.length === 0) {
+      console.error('[spec-pipeline] No unchecked acceptance criteria found; keeping template task defaults')
+    }
     const impacts = gitnexusImpacts(specMarkdown)
     const plan = applyTemplate(fs.readFileSync(planTemplatePath, 'utf8'), metadata)
-    const tasks = `${applyTemplate(fs.readFileSync(tasksTemplatePath, 'utf8'), metadata).trimEnd()}\n${taskScaffolds(criteria, impacts)}`
+    const tasks = buildTasks(fs.readFileSync(tasksTemplatePath, 'utf8'), metadata, criteria, impacts)
     const planPath = path.join(outputDir, 'plan.md')
     const tasksPath = path.join(outputDir, 'tasks.md')
 
