@@ -60,9 +60,10 @@ fi
 LANE_LABEL="${LANE_PREFIX}_$(echo "$MESSAGE" | head -c 40 | tr '[:space:]' '_' | tr -cd 'A-Za-z0-9_')_DIRECT_COMMITTED"
 
 # --- Execute OpenClaw agent ---
-# The --json flag gives structured output we can parse.
+# PATCH 043 — removed --model override: gateway rejects caller-specified model overrides
+# (GatewayClientRequestError: provider/model overrides are not authorized for this caller).
+# Model is now controlled by the OpenClaw agent config, not the caller.
 OC_OUTPUT=$($OPENCLAW_CLI agent --agent main --json --timeout 120 \
-    --model "$MODEL" \
     --message "$MESSAGE" 2>&1 || echo '{"error":"openclaw agent call failed"}')
 
 # --- Parse result ---

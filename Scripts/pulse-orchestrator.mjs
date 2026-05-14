@@ -119,9 +119,12 @@ function parseAdvisorOutput(raw) {
   else if (/\b(high risk|hard block|blocker|broken)\b/i.test(text)) severity = 'HIGH';
   else if (/\b(warn|warning|caution|risk|concern|stale|leak|race)\b/i.test(text)) severity = 'WARN';
 
-  // Extract first non-empty content line, trimmed
+  // Extract first non-empty content line; skip pure markdown headers/bullets
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  const finding = (lines[0] || '(no finding)').slice(0, 380);
+  // PATCH 043 — skip lines that are only markdown decoration (bold headers, h2/h3, bare bullets)
+  const isHeaderOnly = l => /^\*\*[^*]+\*\*:?\s*$/.test(l) || /^#{1,3}\s/.test(l) || /^[-*]\s*$/.test(l);
+  const contentLine = lines.find(l => !isHeaderOnly(l)) || lines[0] || '(no finding)';
+  const finding = contentLine.slice(0, 380);
   // Crude confidence: bigger output + multiple lines = more confidence
   const confidence = Math.min(0.95, 0.3 + lines.length * 0.05);
   return { severity, finding, confidence };

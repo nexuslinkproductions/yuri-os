@@ -134,6 +134,12 @@ Commands:
   triage [prompt]
       Run safe Claude, gemini, and codex in parallel and print all three outputs.
 
+  cortex|pulse|pulse-status
+      Print Pulse Cortex self-inspection status.
+
+  soak|trivial-audit|pulse-soak
+      Run the Pulse soak audit against pulse-hook telemetry.
+
 Examples:
   ai code .
   ai claude "Trace the auth flow in this repo"
