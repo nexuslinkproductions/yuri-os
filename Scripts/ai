@@ -1185,6 +1185,11 @@ case "${1:-help}" in
     shift || true
     offload_contract examples
     ;;
+  cortex|pulse|pulse-status)
+    # PATCH 038 — Pulse Cortex self-inspection
+    shift || true
+    exec node "$SCRIPT_DIR/pulse-cortex-status.mjs" "$@"
+    ;;
   mythos|openmythos|openmythos-swarm)
     shift || true
     prompt="$(join_prompt "$@")"
