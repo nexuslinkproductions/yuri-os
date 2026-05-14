@@ -114,6 +114,12 @@ for (const file of activePromptFiles) {
   assert.equal(/https?:\/\//.test(read(file)), false, `${file} should not contain research URLs`);
 }
 
+assertIncludes('CLAUDE.md', '## CLAUDE_ULTRA_CONTROL_PLANE');
+assertIncludes('CLAUDE.md', 'CODEX_PROTOCOL.md');
+assertIncludes('CLAUDE.md', 'GitNexus impact');
+assertIncludes('CLAUDE.md', 'Protected Paths');
+assertIncludes('CLAUDE.md', 'CLAUDE CONTROL PACKET');
+
 const rationale = read('_SYSTEM/yuri-cognitive-persona-rationale.md');
 for (const url of [
   'https://pmc.ncbi.nlm.nih.gov/articles/PMC4724474/',

@@ -422,6 +422,102 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 ## Session Notes
 
 ### 2026-05-14
+- session: 200m | peak ctx: 0% | compacts: 0
+- tools: Bash×207, Read×41, Edit×40, Write×17, ExitPlanMode×4, AskUserQuestion×2, Agent×2, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 198m | peak ctx: 0% | compacts: 0
+- tools: Bash×207, Read×41, Edit×40, Write×17, ExitPlanMode×4, AskUserQuestion×2, Agent×2, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 169m | peak ctx: 0% | compacts: 0
+- tools: Bash×183, Read×35, Edit×34, Write×14, ExitPlanMode×3, AskUserQuestion×2, Agent×2, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 167m | peak ctx: 0% | compacts: 0
+- tools: Bash×183, Read×35, Edit×34, Write×14, ExitPlanMode×3, AskUserQuestion×2, Agent×2, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 158m | peak ctx: 0% | compacts: 0
+- tools: Bash×173, Read×35, Edit×34, Write×14, ExitPlanMode×3, AskUserQuestion×2, Agent×2, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 134m | peak ctx: 0% | compacts: 0
+- tools: Bash×167, Read×34, Edit×34, Write×13, ExitPlanMode×3, Agent×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 132m | peak ctx: 0% | compacts: 0
+- tools: Bash×167, Read×34, Edit×34, Write×13, ExitPlanMode×3, Agent×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 120m | peak ctx: 0% | compacts: 0
+- tools: Bash×161, Read×34, Edit×34, Write×10, ExitPlanMode×3, Agent×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 119m | peak ctx: 0% | compacts: 0
+- tools: Bash×161, Read×34, Edit×34, Write×10, ExitPlanMode×3, Agent×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 113m | peak ctx: 0% | compacts: 0
+- tools: Bash×153, Read×34, Edit×30, Write×10, ExitPlanMode×3, Agent×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 112m | peak ctx: 0% | compacts: 0
+- tools: Bash×153, Read×34, Edit×30, Write×10, ExitPlanMode×3, Agent×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 89m | peak ctx: 0% | compacts: 0
+- tools: Bash×114, Edit×22, Read×21, Write×7, ExitPlanMode×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 85m | peak ctx: 0% | compacts: 0
+- tools: Bash×110, Edit×22, Read×20, Write×6, ExitPlanMode×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 80m | peak ctx: 0% | compacts: 0
+- tools: Bash×104, Edit×22, Read×20, Write×6, ExitPlanMode×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 79m | peak ctx: 0% | compacts: 0
+- tools: Bash×104, Edit×22, Read×20, Write×6, ExitPlanMode×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 75m | peak ctx: 0% | compacts: 0
+- tools: Bash×96, Edit×22, Read×20, Write×6, ExitPlanMode×2, AskUserQuestion×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
 - session: 53m | peak ctx: 0% | compacts: 0
 - tools: Bash×55, Read×14, Edit×14, Write×2, ExitPlanMode×1
 - corrections: none

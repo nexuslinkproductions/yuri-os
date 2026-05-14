@@ -4,6 +4,8 @@
 **Machine:** M2 Pro, 16GB unified memory
 **RAM cap:** 10GB per model
 **Rule:** ONE model at a time. Ollama killed between models.
+**Active local default:** `needle`
+**Retired default:** `qwen2.5:7b` is historical only until the Mac can carry a heavier local general model again.
 
 ---
 
@@ -72,7 +74,7 @@
 ### code_gen — 8235ms
 ```
 ```typescript
-function debounce<T>(fn: (arg: any) => T, delay: number = 100): (arg: any) 
+function debounce<T>(fn: (arg: any) => T, delay: number = 100): (arg: any)
 => T {
     let timeoutId: NodeJS.Timeout | null = null;
 
@@ -94,7 +96,7 @@ function debounce<T>(fn: (arg: any) => T, delay: number = 100): (arg: any)
 
 ### reasoning — 5750ms
 ```
-To find the cost of the ball, we can start by setting up an equation based 
+To find the cost of the ball, we can start by setting up an equation based
 on the given information.
 
 Let x be the cost of the ball.
@@ -126,7 +128,7 @@ So, the cost of the ball is $0.05 o
 Vercel's design system is built around a set of guiding principles that pri
 prioritize simplicity and consistency, including the use of sharp tokens, d
 deliberate spacing, and thoughtful typography. The system also incorporates
-incorporates minimal grid layouts and well-structured, stateful components 
+incorporates minimal grid layouts and well-structured, stateful components
 to create a cohesive and efficient user experience.
 ```
 
@@ -220,8 +222,8 @@ System.](/img/docs/designsystem-colors.png)
 ## Description
 
 CSS custom properties are defined using the ``` --``` prefix. This task tak
-takes three properties as input to set the foreground and background color 
-of the listbox. 
+takes three properties as input to set the foreground and background color
+of the listbox.
 ```
 
 ### speed — 1495ms
@@ -238,7 +240,7 @@ All messages are sent as text, and can therefore be customized using markdo
 markdown.
 
 You may add a timestamp to each message by adding a pipe character to the e
-end of your message. When someone reads this message they will receive the 
+end of your message. When someone reads this message they will receive the
 message with a timestamp appended at the bottom.
 ```
 Reply with only the word: READY
@@ -270,7 +272,7 @@ Let's define the variables to make this problem easier to solve:
 - Then, the bat would cost \( B + 1.00 \) because it costs $1 more than the
 the ball.
 
-According to the problem, the total cost of the bat and the ball is $1.10. 
+According to the problem, the total cost of the bat and the ball is $1.10.
 So we can write the equation:
 
 \[ B + (B + 1.00) = 1.10 \]
@@ -354,9 +356,9 @@ So, the ball costs $0.05.
 ### summarization — 2040ms
 ```
 Vercel's design system emphasizes the use of sharp tokens for precise styli
-styling, consistent spacing to maintain visual harmony, and typography-led 
+styling, consistent spacing to maintain visual harmony, and typography-led
 composition to guide the user experience. It also incorporates minimal grid
-grids for flexible layout structures and employs strong empty and stateful 
+grids for flexible layout structures and employs strong empty and stateful
 components to enhance usability and visual clarity.
 ```
 

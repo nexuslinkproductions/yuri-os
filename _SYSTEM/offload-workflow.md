@@ -23,7 +23,7 @@ Three-tier offload routing:
 | Lane | Provider | Model | Use Case | Status |
 |------|----------|-------|----------|--------|
 | `@deepseek` | Local Ollama | deepseek-r1:latest | Reasoning, code analysis | ✓ Ready |
-| `@qwen` | Local Ollama | qwen2.5:7b | General tasks, fallback | ✓ Ready |
+| `@qwen` | Needle local runtime | needle | General tasks, fallback | ✓ Ready |
 | `@gpt-oss` | Local wrapper | GPT-OSS:20b/120b | Rendering, formatting | ✓ Ready |
 | `@ollama` | Local Ollama | Any registered | Custom models | ✓ Ready |
 | `@comet` | Browser (Comet) | Integrated via browser-use MCP | Web interaction, browser control | 🔄 In Progress |
@@ -47,7 +47,7 @@ Three-tier offload routing:
 ### Manual Override
 ```bash
 ./Scripts/ai --model deepseek "analyze this code"
-./Scripts/ai --swarm deepseek,qwen "fact-check this"
+./Scripts/ai --swarm deepseek,needle "fact-check this"
 ```
 
 ---
@@ -259,8 +259,8 @@ Response to user
 
 ### Gemini CLI Lane (`g`)
 
-**Status:** Active — primary free workhorse for all non-Claude tasks  
-**Token cost:** Zero (Google paid tier, unlimited)  
+**Status:** Active — primary free workhorse for all non-Claude tasks
+**Token cost:** Zero (Google paid tier, unlimited)
 **Context window:** 1M tokens (Gemini Flash 3.1)
 
 | Trigger | Command | Use Case |
@@ -300,7 +300,7 @@ apip x "review code" | apip g "write documentation for it"
 | Lane | CLI | Provider | Use Case | Status |
 |------|-----|----------|----------|--------|
 | `@deepseek` | `./Scripts/ai` | Local Ollama | Reasoning, code analysis | ✓ Ready |
-| `@qwen` | `./Scripts/ai` | Local Ollama | General tasks, fallback | ✓ Ready |
+| `@qwen` | `./Scripts/ai` | Needle local runtime | General tasks, fallback | ✓ Ready |
 | `@gpt-oss` | `./Scripts/ai` | Local wrapper | Rendering, formatting | ✓ Ready |
 | `@ollama` | `./Scripts/ai` | Local Ollama | Custom models | ✓ Ready |
 | `@gemini` | `g` | Google (unlimited) | Free workhorse, RLM loops | ✓ Active |

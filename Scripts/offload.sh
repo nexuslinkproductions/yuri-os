@@ -277,7 +277,7 @@ dry_run_model_override() {
         ;;
       needle)
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
-        run_offload_runner ollama-local "$prompt" --dry-run --model needle
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/needle-adapter.mjs" --dry-run
         ;;
       perplexity|perplexity-sonar|sonar-pro|sonar-reasoning-pro)
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/perplexity-adapter.mjs" --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
@@ -345,7 +345,7 @@ dispatch_model() {
         ;;
       needle)
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
-        run_offload_runner ollama-local "$prompt" --model needle
+        OFFLOAD_PROMPT_TEXT="$prompt" node --input-type=module -e 'import { pathToFileURL } from "node:url"; const { runNeedleLocalChat } = await import(pathToFileURL(process.argv[1]).href); await runNeedleLocalChat(process.env.OFFLOAD_PROMPT_TEXT ?? "", "", {});' "$SCRIPT_DIR/needle-adapter.mjs"
         ;;
       perplexity|perplexity-sonar|sonar-pro|sonar-reasoning-pro)
         printf '%s\n' "⬡ ROUTING_TO_PERPLEXITY [${REASONING_DEPTH:+sonar-reasoning-pro}${REASONING_DEPTH:-sonar-pro}]..." >&2

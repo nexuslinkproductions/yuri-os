@@ -35,6 +35,14 @@ CLAUDE.local.md
 .claude/state/scout-errors.log
 .claude/state/session-state.json
 .claude/state/token-session.json
+.claude/state/branch-lock.json
+.claude/state/session-checkpoint.json
+
+# ML checkpoints (binary, large — track via git-lfs if needed)
+checkpoints/
+
+# Needle local model — separate git repo (decide submodule vs vendor later)
+/needle/
 .claude/nisaba/learning/.dream-lock
 .claude/nisaba/learning/.dream-prompt.txt
 

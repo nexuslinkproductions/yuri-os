@@ -1,0 +1,187 @@
+#!/usr/bin/env node
+'use strict';
+
+const MUTATION_TOOLS = new Set(['Write', 'Edit', 'MultiEdit']);
+const CODEX_DISPATCH_MARKERS = [
+  'codex exec',
+  'Scripts/ai codex',
+  'Scripts/ai @codex',
+  'codex-spark',
+  'Scripts/codex-offload-runner.mjs',
+];
+const HIGH_RISK_MARKERS = [
+  'protocol',
+  'routing',
+  'memory',
+  'promotion',
+  'promote',
+  'protected path',
+  'protected-path',
+  'high-stakes',
+  'governance',
+  'control plane',
+  'control-plane',
+  'canonical state',
+  'canonical memory',
+];
+const MUTATING_COMMAND_MARKERS = [
+  ' apply_patch',
+  ' git commit',
+  ' git add',
+  ' npm install',
+  ' pnpm add',
+  ' yarn add',
+  ' tee ',
+  ' sed -i',
+  ' chmod ',
+  ' mv ',
+  ' cp ',
+];
+const IMPLEMENTATION_MARKERS = [
+  'edit',
+  'write',
+  'change',
+  'modify',
+  'patch',
+  'implement',
+  'promote',
+  'canonical',
+  'merge',
+];
+
+function textOf(value) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return value.map(textOf).join('\n');
+  if (typeof value === 'object') {
+    return Object.values(value).map(textOf).join('\n');
+  }
+  return String(value);
+}
+
+function normalize(value) {
+  return textOf(value).toLowerCase();
+}
+
+function includesAny(text, markers) {
+  return markers.some((marker) => text.includes(marker.toLowerCase()));
+}
+
+function hasClaudeControlPacket(text) {
+  const source = textOf(text);
+  return source.includes('## CLAUDE CONTROL PACKET') &&
+    source.includes('**Goal:**') &&
+    source.includes('**Target files:**') &&
+    source.includes('**Acceptance criteria:**') &&
+    source.includes('**Test command:**') &&
+    source.includes('**Rollback boundary:**');
+}
+
+function hasCodexTaskSpec(text) {
+  const source = textOf(text);
+  return source.includes('## CODEX TASK SPEC') &&
+    source.includes('**Goal:**') &&
+    source.includes('**Target files:**') &&
+    source.includes('**Constraints:**') &&
+    source.includes('**Acceptance criteria:**') &&
+    source.includes('**Test command:**') &&
+    source.includes('**Rollback boundary:**') &&
+    source.includes('**Prohibited:**');
+}
+
+function hasRoutePlanEvidence(text) {
+  const source = textOf(text);
+  const lower = source.toLowerCase();
+  return (
+    lower.includes('route-plan evidence') ||
+    lower.includes('scripts/ai route-plan evidence') ||
+    lower.includes('symbioticpulse route-plan')
+  ) &&
+    lower.includes('deepseek') &&
+    lower.includes('symbioticpulse');
+}
+
+function bashCommand(input) {
+  return input?.tool_input?.command || '';
+}
+
+function needsDirectMutationWarning(input) {
+  const toolName = input?.tool_name || '';
+  if (MUTATION_TOOLS.has(toolName)) return true;
+  if (toolName === 'Agent') {
+    const text = normalize(input?.tool_input);
+    return includesAny(text, IMPLEMENTATION_MARKERS);
+  }
+  if (toolName === 'Bash') {
+    const command = ` ${normalize(bashCommand(input))} `;
+    return includesAny(command, MUTATING_COMMAND_MARKERS);
+  }
+  return false;
+}
+
+function inspect(input) {
+  const toolText = textOf(input?.tool_input);
+  const lowerToolText = toolText.toLowerCase();
+  const warnings = [];
+
+  if (needsDirectMutationWarning(input) && !hasClaudeControlPacket(toolText) && !hasCodexTaskSpec(toolText)) {
+    warnings.push({
+      code: 'missing-control-packet',
+      message: 'Direct mutation or implementation tool use needs a CLAUDE CONTROL PACKET with goal, target files, constraints, acceptance criteria, test command, and rollback boundary.',
+    });
+  }
+
+  if (input?.tool_name === 'Bash' && includesAny(lowerToolText, CODEX_DISPATCH_MARKERS) && !hasCodexTaskSpec(toolText)) {
+    warnings.push({
+      code: 'missing-codex-task-spec',
+      message: 'Codex-bound dispatch must include a valid ## CODEX TASK SPEC from CODEX_PROTOCOL.md.',
+    });
+  }
+
+  if (includesAny(lowerToolText, HIGH_RISK_MARKERS) && !hasRoutePlanEvidence(toolText)) {
+    warnings.push({
+      code: 'missing-route-plan-evidence',
+      message: 'Protocol, routing, memory, promotion, protected-path, or high-stakes work needs Scripts/ai route-plan evidence plus DeepSeek and symbioticPulse advisory expectations.',
+    });
+  }
+
+  if (lowerToolText.includes('openclaw') && includesAny(lowerToolText, IMPLEMENTATION_MARKERS)) {
+    warnings.push({
+      code: 'openclaw-quarantine',
+      message: 'OpenClaw output is bridge-only advisory research in v1; it is not implementation authority or canonical memory authority without local verification.',
+    });
+  }
+
+  return warnings;
+}
+
+function formatWarnings(warnings) {
+  const items = warnings
+    .map((warning) => `- ${warning.code}: ${warning.message}`)
+    .join('\n');
+  return `<claude-protocol-gate severity="WARN">\n${items}\nCorrective steps: add the relevant control packet/spec, run route-plan evidence for high-risk work, and verify locally before merge or promotion.\n</claude-protocol-gate>`;
+}
+
+function emitWarnings(warnings) {
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      additionalContext: formatWarnings(warnings),
+    },
+  }) + '\n');
+}
+
+let raw = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => { raw += chunk; });
+process.stdin.on('end', () => {
+  let input;
+  try {
+    input = JSON.parse(raw);
+  } catch {
+    process.exit(0);
+  }
+
+  const warnings = inspect(input);
+  if (warnings.length > 0) emitWarnings(warnings);
+});

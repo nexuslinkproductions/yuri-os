@@ -89,17 +89,17 @@ function getWeekStart() {
   return d.toISOString().slice(0, 10);
 }
 
-// Palace status
-const palacePath = '/Volumes/T7/claude-palace-out/palace-index.md';
+// Palace status — local only (T7 is dead, never fall back)
+const palacePath = '/Users/marcelspatz/NUDIMMUD/claude-palace-out/palace-index.md';
 let palaceStatus;
 try {
   if (fs.existsSync(palacePath)) {
     const age = Math.floor((Date.now() - fs.statSync(palacePath).mtimeMs) / 86400000);
     palaceStatus = age > 7
-      ? `⚠️ STALE (${age}d) — call mcp__obsidian-vault__rebuild_index`
+      ? `⚠️ STALE (${age}d) — run python3 _SYSTEM/palace-rebuild.py --output claude-palace-out`
       : `✅ Current (${age}d old) — use palace-index.md before raw vault reads`;
   } else {
-    palaceStatus = '❌ MISSING — call mcp__obsidian-vault__rebuild_index';
+    palaceStatus = '❌ MISSING — run python3 _SYSTEM/palace-rebuild.py --output claude-palace-out';
   }
 } catch(e) {
   palaceStatus = '⚠️ Check failed';

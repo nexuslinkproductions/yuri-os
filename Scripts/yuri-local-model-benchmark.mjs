@@ -160,7 +160,7 @@ function buildScenarios(modelConfig) {
       id: 'summarize_long_doc',
       metric: 'cold-load/tokens/sec',
       role: 'utility',
-      model: local.utility || 'qwen3.5:4b',
+      model: local.utility || 'needle',
       system: 'Return a compact factual summary.',
       prompt: `Summarize the following orchestration note in five bullets:\n\n${'Yuri receives raw operator intent, normalizes it, compiles a graph plan, dispatches work, verifies artifacts, sanitizes tainted output, and promotes only reviewed facts. '.repeat(90)}`,
       validatorName: 'non_empty_summary',
@@ -170,7 +170,7 @@ function buildScenarios(modelConfig) {
       id: 'route_plan_accuracy',
       metric: 'route-plan accuracy',
       role: 'utility',
-      model: local.utility || 'qwen3.5:4b',
+      model: local.utility || 'needle',
       system: 'Return only strict JSON.',
       prompt: 'Classify this Yuri request into a scenario: "brain dump to durable orchestration control plane with graph plan, verify, sanitize, promote". Return {"scenario":"...","confidence":0.0}.',
       validatorName: 'control_plane_scenario_json',
@@ -189,7 +189,7 @@ function buildScenarios(modelConfig) {
       role: 'code',
       model: local.code || 'qwen2.5-coder:7b',
       system: 'Return only strict JSON.',
-      prompt: 'Given TypeScript `function resolveLane(lane: string) { return lane === "code-local" ? "qwen2.5-coder:7b" : "qwen3.5:4b"; }`, return {"symbol":"...","code_local_model":"..."}.',
+      prompt: 'Given TypeScript `function resolveLane(lane: string) { return lane === "code-local" ? "qwen2.5-coder:7b" : "needle"; }`, return {"symbol":"...","code_local_model":"..."}.',
       validatorName: 'symbol_and_model_json',
       validate: (output) => {
         const json = parseJsonObject(output);
@@ -204,7 +204,7 @@ function buildScenarios(modelConfig) {
       id: 'native_function_candidate_json',
       metric: 'JSON compliance',
       role: 'utility',
-      model: local.utility || 'qwen3.5:4b',
+      model: local.utility || 'needle',
       system: 'Return only valid JSON. No markdown.',
       prompt: 'Evaluate whether "obliteratus QA gate" should be a deterministic native Yuri function or a model. Return {"native_function":true,"reason":"...","requires_model":false}.',
       validatorName: 'strict_native_function_json',
@@ -221,7 +221,7 @@ function buildScenarios(modelConfig) {
       id: 'gitnexus_file_inventory',
       metric: 'file-inventory accuracy',
       role: 'primary',
-      model: local.primary || 'qwen2.5:7b',
+      model: local.primary || 'needle',
       system: 'Return only strict JSON.',
       prompt: 'Which repo file owns automatic offload lane selection? Choose one: Scripts/offload-contract.mjs, backend/src/services/smartRouter.ts, README.md. Return {"source_of_truth":"..."}.',
       validatorName: 'offload_contract_source_json',
@@ -279,7 +279,11 @@ function listInstalledModels() {
   }
 
   const manifestRoot = process.env.OLLAMA_MANIFEST_DIR || path.join(process.env.HOME || '', '.ollama/models/manifests/registry.ollama.ai/library');
-  if (!existsSync(manifestRoot)) return models;
+  const needleRepo = process.env.NEEDLE_REPO_DIR || path.join(process.cwd(), 'needle');
+  if (!existsSync(manifestRoot)) {
+    if (existsSync(needleRepo)) models.add('needle');
+    return models;
+  }
 
   const stack = [manifestRoot];
   while (stack.length > 0) {
@@ -296,6 +300,10 @@ function listInstalledModels() {
       const parts = rel.split(path.sep);
       if (parts.length >= 2) models.add(`${parts[0]}:${parts[1]}`);
     }
+  }
+
+  if (existsSync(needleRepo)) {
+    models.add('needle');
   }
 
   return models;

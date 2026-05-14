@@ -3,9 +3,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Local only — T7 is dead, never fall back
 const PALACE_PATHS = [
-  '/Users/marcelspatz/NUDIMMUD/Volumes/T7/claude-palace-out/palace-index.md',
-  '/Volumes/T7/claude-palace-out/palace-index.md',
+  '/Users/marcelspatz/NUDIMMUD/claude-palace-out/palace-index.md',
 ];
 
 let palaceContext = null;
