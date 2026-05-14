@@ -52,52 +52,62 @@ const OFFLOAD_CONTRACT = {
   lanes: {
     codeLocal: {
       alias: '@code-local',
+      dispatchTokens: ['code-local', 'code-cloud', 'reason-cloud', 'gemma', 'gemma-local', 'gemma-cloud'],
       description: 'Qwen-backed local coding lane',
       preferredUsage: ['implementation', 'debugging', 'patch planning', 'test repair']
     },
     deepseek: {
       alias: '@deepseek',
+      dispatchTokens: ['deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro'],
       description: 'DeepSeek reasoning + autonomous tool-use lane (bash/read_file/write_file, 50-step loop, 1M context)',
       toolsByDefault: true,
       preferredUsage: ['reasoning', 'analysis', 'multi-step logic', 'code review', 'autonomous file edits', 'multi-file refactors', 'parallel implementer during Codex rate-limit windows']
     },
     triageLocal: {
       alias: '@triage-local',
+      dispatchTokens: ['triage-local'],
       description: 'Qwen-backed local triage lane',
       preferredUsage: ['classification', 'quick read', 'initial sort', 'small decisions']
     },
     summarizeLocal: {
       alias: '@summarize-local',
+      dispatchTokens: ['summarize-local'],
       description: 'Qwen-backed local summarization lane',
       preferredUsage: ['summarization', 'extraction', 'condensation', 'note cleanup']
     },
     ollamaLocal: {
       alias: '@ollama-local',
+      dispatchTokens: ['ollama-local', 'needle'],
       description: 'Additive Ollama local utility lane',
       preferredUsage: ['private utility work', 'bounded summarization', 'low-risk extraction', 'embeddings', 'offline-friendly triage']
     },
     ollamaCloud: {
       alias: '@ollama-cloud',
+      dispatchTokens: ['ollama-cloud'],
       description: 'Temporary Ollama cloud fallback lane',
       preferredUsage: ['Ollama-compatible fallback when local model is missing', 'bounded utility work with existing OLLAMA_API_KEY']
     },
     ollama: {
       alias: '@ollama',
+      dispatchTokens: ['ollama'],
       description: 'Ollama auto lane, local first with cloud fallback',
       preferredUsage: ['explicit Ollama requests', 'local/private task trials', 'low-risk utility prompts']
     },
     gptOss: {
       alias: '@gpt-oss',
+      dispatchTokens: ['gpt-oss', 'gpt-oss:20b', 'gpt-oss:120b'],
       description: 'Formatting and synthesis lane',
       preferredUsage: ['formatting', 'template generation', 'ui text']
     },
     codexSpark: {
       alias: '@codex-spark',
+      dispatchTokens: ['codex-spark', 'spark', 'fast-codex', 'gpt-5.3-codex-spark', 'gpt-5.3-codex'],
       description: 'Bounded Codex Spark sandbox lane — gpt-5.3-codex-spark, read-only sandbox',
       preferredUsage: ['sandbox improvement', 'read-only experiments', 'isolated verification', 'live operational trials']
     },
     gpt54Mini: {
       alias: '@gpt-5.4-mini',
+      dispatchTokens: ['gpt-5.4-mini', 'gpt-5.4', 'codex-mini'],
       model: 'gpt-5.4-mini',
       sandbox: 'workspace-write',
       defaultReasoning: 'high',
@@ -106,6 +116,7 @@ const OFFLOAD_CONTRACT = {
     },
     gpt55: {
       alias: '@gpt-5.5',
+      dispatchTokens: ['gpt-5.5', 'codex', 'codex-high', 'codex-full'],
       model: 'gpt-5.5',
       sandbox: 'workspace-write',
       defaultReasoning: 'high',
@@ -115,26 +126,31 @@ const OFFLOAD_CONTRACT = {
     },
     swarm: {
       alias: '@swarm',
+      dispatchTokens: ['swarm'],
       description: 'Ruflo-backed swarm orchestration',
       preferredUsage: ['consensus', 'parallel checks', 'high-stakes review']
     },
     kimi: {
       alias: '@kimi',
+      dispatchTokens: ['kimi', 'kimi-k2.6', 'kimi-k2.5-liberated', 'kimi-k2.5', 'moonshot'],
       description: 'Remote high-grade reasoning',
       preferredUsage: ['cloud reasoning', 'deep context', 'heavy synthesis']
     },
     claude: {
       alias: '@claude',
+      dispatchTokens: ['claude', 'claude-3-5-sonnet', 'claude-3-5-sonnet-liberated', 'claude-3-opus'],
       description: 'Bounded Claude Sonnet advisory lane',
       preferredUsage: ['architecture review', 'risk review', 'protocol review', 'model council']
     },
     comet: {
       alias: '@comet',
+      dispatchTokens: ['comet'],
       description: 'Browser interaction lane',
       preferredUsage: ['screenshot', 'click', 'type', 'browser control']
     },
     perplexity: {
       alias: '@perplexity',
+      dispatchTokens: ['perplexity', 'perplexity-sonar', 'sonar-pro', 'sonar-reasoning-pro'],
       description: 'Perplexity app via Claude computer control — the canonical browser for web research. Default path = computer-use MCP drives the desktop app, NOT the API adapter. API adapter (Scripts/perplexity-adapter.mjs) only when explicitly requested via -m perplexity.',
       preferredUsage: ['web research', 'latest facts', 'citations', 'deep research', 'current events'],
       defaultRoute: 'computer-control-app',

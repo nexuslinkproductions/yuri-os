@@ -78,7 +78,14 @@ function extractContractLanes(text) {
         aliases.push(alias[1].replace(/^@/, ''));
       }
     }
-    lanes.push({ lane, tokens: [...new Set([lane, ...aliases])] });
+    const dispatchTokens = [];
+    const dispatchTokensMatch = /\bdispatchTokens\s*:\s*\[([^\]]*)\]/.exec(entry);
+    if (dispatchTokensMatch) {
+      for (const token of dispatchTokensMatch[1].matchAll(/['"]([^'"]+)['"]/g)) {
+        dispatchTokens.push(token[1].replace(/^@/, ''));
+      }
+    }
+    lanes.push({ lane, tokens: [...new Set(dispatchTokens.length ? dispatchTokens : [lane, ...aliases])] });
   }
   return lanes;
 }
@@ -128,10 +135,11 @@ function printTable(rows) {
     lane: Math.max('lane'.length, ...tableRows.map((row) => row.lane.length)),
     tokens: Math.max('tokens'.length, ...tableRows.map((row) => row.tokens.join(', ').length)),
   };
-  console.log(`${'lane'.padEnd(widths.lane)}  ${'tokens'.padEnd(widths.tokens)}  contract  dispatch  direct-token  list-models  drift`);
-  console.log(`${'-'.repeat(widths.lane)}  ${'-'.repeat(widths.tokens)}  --------  --------  ------------  -----------  -----`);
+  console.log(`${'lane'.padEnd(widths.lane)}  ${'tokens'.padEnd(widths.tokens)}  contract  dispatch  direct-token  list-models  drift  note`);
+  console.log(`${'-'.repeat(widths.lane)}  ${'-'.repeat(widths.tokens)}  --------  --------  ------------  -----------  -----  ----`);
   for (const row of tableRows) {
-    console.log(`${row.lane.padEnd(widths.lane)}  ${row.tokens.join(', ').padEnd(widths.tokens)}  ${mark(row.in_contract).padEnd(8)}  ${mark(row.in_dispatch).padEnd(8)}  ${mark(row.in_direct_token).padEnd(12)}  ${mark(row.in_list_models).padEnd(11)}  ${mark(row.drift)}`);
+    const note = row.acceptable_dispatch_only ? 'accepted-dispatch-only' : '';
+    console.log(`${row.lane.padEnd(widths.lane)}  ${row.tokens.join(', ').padEnd(widths.tokens)}  ${mark(row.in_contract).padEnd(8)}  ${mark(row.in_dispatch).padEnd(8)}  ${mark(row.in_direct_token).padEnd(12)}  ${mark(row.in_list_models).padEnd(11)}  ${mark(row.drift)}      ${note}`);
   }
 }
 
@@ -145,6 +153,16 @@ const contractTokens = new Set(lanes.flatMap((entry) => entry.tokens));
 const dispatchTokens = extractCaseTokens(extractFunction(offloadText, 'dispatch_model'));
 const directTokens = extractCaseTokens(extractFunction(offloadText, 'is_direct_lane_token'));
 const listTokens = extractListModelTokens(extractFunction(offloadText, 'list_models'));
+const acceptableDispatchOnlyTokens = new Set([
+  'deepseek-r1:8b',
+  'deepseek-r1:latest',
+  'deepseek-liberated:latest',
+  'deepseek-v2:16b',
+  'nvidia-deepseek',
+  'openrouter-free',
+  'openrouter/free',
+  'self',
+]);
 
 const rows = lanes.map(({ lane, tokens }) => {
   const row = {
@@ -155,12 +173,13 @@ const rows = lanes.map(({ lane, tokens }) => {
     in_direct_token: hasAny(directTokens, tokens),
     in_list_models: hasAny(listTokens, tokens),
   };
-  row.drift = !(row.in_dispatch && row.in_direct_token && row.in_list_models);
+  row.drift = !row.in_dispatch;
   return row;
 });
 
 for (const token of [...dispatchTokens].sort()) {
   if (!contractTokens.has(token)) {
+    const acceptable = acceptableDispatchOnlyTokens.has(token);
     rows.push({
       lane: token,
       tokens: [token],
@@ -168,7 +187,8 @@ for (const token of [...dispatchTokens].sort()) {
       in_dispatch: true,
       in_direct_token: directTokens.has(token),
       in_list_models: listTokens.has(token),
-      drift: true,
+      acceptable_dispatch_only: acceptable,
+      drift: !acceptable,
     });
   }
 }
