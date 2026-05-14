@@ -274,6 +274,15 @@ async function main() {
   });
 
   for (const f of findings) {
+    // PATCH 033 — explicit OpenClaw quarantine: force bridge_advisory tagging
+    // and cap severity at HIGH (never CRITICAL) so OpenClaw advisories cannot
+    // auto-trigger downstream critical-tier escalation by themselves. Codex
+    // and main thread are the final authority.
+    if (f.source === 'OPENCLAW') {
+      f.runtimeKind = 'bridge_advisory';
+      if (f.severity === 'CRITICAL') f.severity = 'HIGH';
+      f.finding = `[bridge_advisory] ${f.finding}`;
+    }
     pulseBus.appendFinding(f.source, f.severity, f.runtimeKind, f.finding, {
       turnId,
       confidence: f.confidence,

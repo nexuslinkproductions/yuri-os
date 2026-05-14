@@ -92,6 +92,14 @@ function hasCodexTaskSpec(text) {
 function hasRoutePlanEvidence(text) {
   const source = textOf(text);
   const lower = source.toLowerCase();
+  // PATCH 033 — Pulse Cortex evidence paths count as route-plan evidence.
+  // Any commit/tool-input that points to a stored route-plan JSON satisfies
+  // the gate without needing the historical "deepseek + symbioticpulse" pair.
+  const pulseCortexEvidence =
+    lower.includes('.claude/state/pulse-plan.json') ||
+    lower.includes('.claude/eot/pulse-cortex/route-plans/') ||
+    lower.includes('pulse-cortex/route-plans');
+  if (pulseCortexEvidence) return true;
   return (
     lower.includes('route-plan evidence') ||
     lower.includes('scripts/ai route-plan evidence') ||
