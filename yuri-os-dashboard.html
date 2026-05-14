@@ -1,379 +1,853 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Yuri OS — Mirror Axis Instrument</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YURI OS - NUDIMMUD Engineering System Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#080808;font-family:'JetBrains Mono',monospace;font-weight:300;-webkit-font-smoothing:antialiased}
-#mirror-graph{position:fixed;top:0;left:0;width:100%;height:100%}
-
-/* Boot states */
-.boot-node{opacity:0;transition:opacity 480ms cubic-bezier(.455,.03,.515,.955)}
-.boot-node.boot-visible{opacity:1}
-.boot-edge{opacity:0;transition:opacity 400ms ease}
-.boot-edge.boot-visible{opacity:1}
-
-/* Animations */
-@keyframes march{to{stroke-dashoffset:-100}}
-@keyframes spinePulse{from{opacity:.5}to{opacity:.85}}
-@keyframes beaconPulse{from{opacity:.6}to{opacity:1}}
-@keyframes swarmOrbitA{from{transform:translateY(-12px)}to{transform:translateY(12px)}}
-@keyframes swarmOrbitB{from{transform:translateY(12px)}to{transform:translateY(-12px)}}
-
-.data-edge{will-change:stroke-dashoffset;animation:march 2.4s linear infinite}
-.spine-line{animation:spinePulse 2.4s cubic-bezier(.455,.03,.515,.955) infinite alternate}
-.swarm-a{transform-box:fill-box;transform-origin:center;animation:swarmOrbitA 8s ease-in-out infinite alternate}
-.swarm-b{transform-box:fill-box;transform-origin:center;animation:swarmOrbitB 8s ease-in-out infinite alternate}
-
-@media(prefers-reduced-motion:reduce){
-  .data-edge,.spine-line,.swarm-a,.swarm-b{animation:none}
-  .boot-node,.boot-edge{transition:none;opacity:1}
-  *{will-change:auto!important}
+:root {
+  --bg: #080808;
+  --gold: #D4AF37;
+  --blue: #1E3A8A;
+  --mist: #A8BCC6;
+  --bone: #F2E9D2;
+  --fire: #C95A3B;
+  --cyan: #00e5bf;
+  --local: #76b900;
+  --codex: #9B59FF;
+  --swarm: #64d8e6;
+  --idle: rgba(255,255,255,0.25);
+  --line: rgba(212,175,55,0.2);
+  --line-strong: rgba(212,175,55,0.5);
 }
 
-/* HUD */
-#hud-tl{position:fixed;top:16px;left:20px;display:flex;flex-direction:column;gap:3px;z-index:100;pointer-events:none}
-.sys-id{font-size:11px;color:#D4AF37;letter-spacing:.15em;text-transform:uppercase}
-.sys-sub{font-size:9px;color:#A8BCC6;letter-spacing:.1em;text-transform:uppercase}
-.sys-git{font-size:9px;color:#4A3B32;letter-spacing:.06em}
-#hud-tr{position:fixed;top:16px;right:20px;display:flex;align-items:center;gap:10px;z-index:100;pointer-events:none}
-#soak-label{font-size:9px;color:#A8BCC6;letter-spacing:.08em}
-#beacon{font-size:9px;color:#C95A3B;letter-spacing:.06em;animation:beaconPulse 2s ease-in-out infinite alternate}
-#tier-strip{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:9px;color:#A8BCC6;letter-spacing:.12em;text-transform:uppercase;z-index:100;pointer-events:none;white-space:nowrap}
+* {
+  box-sizing: border-box;
+}
 
-/* Tooltip */
-#tooltip{position:fixed;display:none;pointer-events:none;border-left:2px solid #D4AF37;padding:4px 0 4px 8px;font-size:9px;color:#F2E9D2;letter-spacing:.06em;line-height:1.6;z-index:200;max-width:300px}
-#tooltip .t-id{color:#D4AF37;font-size:10px;letter-spacing:.12em;display:block}
-#tooltip .t-role{color:#A8BCC6;display:block}
-#tooltip .t-kind{color:#4A3B32;display:block}
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--mist);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  line-height: 1.55;
+}
 
-/* Drawer */
-#drawer{position:fixed;top:0;right:0;bottom:0;width:320px;background:#0d0d0d;border-left:1px solid rgba(212,175,55,.15);clip-path:polygon(20px 0,100% 0,100% 100%,0 100%,0 20px);transform:translateX(100%);transition:transform 320ms cubic-bezier(.4,0,.2,1);will-change:transform;z-index:300;padding:28px 20px 20px;overflow-y:auto}
-#drawer.open{transform:translateX(0)}
-#drawer-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#4A3B32;font-size:16px;cursor:pointer;font-family:inherit;padding:4px 8px;line-height:1}
-#drawer-close:hover{color:#D4AF37}
-#drawer h2{font-size:11px;color:#D4AF37;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;font-weight:400}
-.dr{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:9px}
-.dr:last-child{border-bottom:none}
-.dk{color:#4A3B32;font-size:8px;letter-spacing:.08em;text-transform:uppercase}
-.dv{color:#F2E9D2;text-align:right;max-width:200px;word-break:break-word}
-#drawer-finding{margin-top:14px;padding:8px;border-left:1px solid rgba(212,175,55,.3);color:#A8BCC6;font-size:8.5px;line-height:1.6}
+body {
+  overflow-x: hidden;
+}
 
-/* Spine hover label */
-#spine-label{position:fixed;bottom:48px;left:50%;transform:translateX(-50%);font-size:9px;color:#D4AF37;letter-spacing:.12em;text-transform:uppercase;opacity:0;transition:opacity 240ms ease;pointer-events:none;z-index:50;white-space:nowrap}
+body::selection {
+  background: rgba(212,175,55,0.25);
+  color: var(--bone);
+}
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 32px;
+  background: var(--bg);
+  border-bottom: 1px solid rgba(212,175,55,0.15);
+}
+
+.topbar-left,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.brand {
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.system-name {
+  color: var(--mist);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.branch {
+  color: #4A3B32;
+  font-size: 11px;
+}
+
+.header-value {
+  color: var(--bone);
+  font-size: 14px;
+}
+
+.header-muted {
+  color: var(--mist);
+  font-size: 14px;
+}
+
+.header-critical {
+  color: var(--fire);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.soak-ring {
+  display: block;
+  width: 28px;
+  height: 28px;
+}
+
+.pulse-dot {
+  display: inline-block;
+  color: var(--fire);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+main {
+  padding-top: 56px;
+  background: var(--bg);
+}
+
+section {
+  padding: 24px 32px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  transition: border-color 180ms linear;
+}
+
+section:hover {
+  border-top-color: var(--line-strong);
+}
+
+.section-label {
+  margin: 0 0 20px;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-5 {
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+}
+
+.panel,
+.flow-box,
+.tier,
+.agent-row,
+.service-row,
+.gate-card,
+.phase {
+  border: 1px solid rgba(212,175,55,0.16);
+  background: #0a0a0a;
+}
+
+.panel,
+.tier,
+.gate-card,
+.phase {
+  padding: 16px;
+}
+
+.panel-title,
+.flow-title,
+.tier-title,
+.phase-title,
+.gate-title {
+  margin: 0 0 10px;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--mist);
+}
+
+.value {
+  color: var(--bone);
+}
+
+.fire {
+  color: var(--fire);
+}
+
+.cyan {
+  color: var(--cyan);
+}
+
+.gold {
+  color: var(--gold);
+}
+
+.blue {
+  color: var(--blue);
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  color: var(--mist);
+  font-size: 14px;
+}
+
+.kv-list li,
+.hook-list li,
+.patch-list li {
+  padding: 6px 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.kv-list li:first-child,
+.hook-list li:first-child,
+.patch-list li:first-child {
+  border-top: 0;
+}
+
+.flow-wrap {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: stretch;
+}
+
+.flow-box {
+  position: relative;
+  flex: 1 1 220px;
+  min-width: 220px;
+  padding: 14px;
+}
+
+.flow-copy {
+  color: var(--mist);
+  font-size: 14px;
+}
+
+.flow-copy .value {
+  display: block;
+  margin-top: 4px;
+}
+
+.arrow {
+  width: 32px;
+  min-width: 32px;
+  align-self: center;
+}
+
+.arrow svg {
+  display: block;
+  width: 32px;
+  height: 20px;
+  overflow: visible;
+}
+
+.authority-line {
+  stroke: var(--gold);
+  stroke-width: 2;
+  fill: none;
+}
+
+.data-line {
+  stroke: var(--blue);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  fill: none;
+  animation: dash 1.2s linear infinite;
+}
+
+.route-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+th,
+td {
+  padding: 12px 10px;
+  text-align: left;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 14px;
+  vertical-align: top;
+}
+
+th {
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border-top: 0;
+}
+
+td {
+  color: var(--mist);
+}
+
+td .value {
+  display: inline-block;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  color: #080808;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.badge-local { background: var(--local); }
+.badge-cloud { background: var(--cyan); }
+.badge-codex { background: var(--codex); color: var(--bone); }
+.badge-bridge { background: var(--fire); color: var(--bone); }
+.badge-swarm { background: var(--swarm); }
+.badge-last { background: rgba(255,255,255,0.3); color: var(--bone); }
+.badge-native,
+.badge-main,
+.badge-sandbox {
+  background: rgba(212,175,55,0.15);
+  color: var(--bone);
+  border: 1px solid rgba(212,175,55,0.28);
+}
+
+.memory-rows {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.agent-list,
+.service-list {
+  display: grid;
+  gap: 8px;
+}
+
+.agent-row,
+.service-row {
+  display: grid;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+}
+
+.agent-row {
+  grid-template-columns: 140px minmax(220px, 1.4fr) 160px minmax(180px, 1fr) minmax(180px, 1fr);
+}
+
+.service-row {
+  grid-template-columns: 96px 220px 100px minmax(260px, 1fr);
+}
+
+.agent-id {
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--bone);
+  font-size: 14px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--idle);
+}
+
+.dot.running {
+  background: var(--cyan);
+}
+
+.dot.throttled,
+.dot.blocked {
+  background: var(--fire);
+}
+
+.phase {
+  min-width: 0;
+}
+
+.gate-pipeline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 32px;
+}
+
+.gate-card {
+  position: relative;
+}
+
+.gate-card::after {
+  content: "";
+  position: absolute;
+  top: 34px;
+  right: -32px;
+  width: 32px;
+  height: 2px;
+  background: var(--gold);
+}
+
+.gate-card:last-child::after {
+  display: none;
+}
+
+.passfail {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mist);
+  font-size: 14px;
+}
+
+.self-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(320px, 1.4fr) minmax(280px, 1fr);
+  gap: 16px;
+}
+
+.soak-block {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.soak-gauge {
+  width: 88px;
+  height: 88px;
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -18; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+@media (max-width: 1180px) {
+  .grid-3,
+  .grid-5,
+  .gate-pipeline,
+  .self-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gate-card::after {
+    display: none;
+  }
+
+  .agent-row,
+  .service-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    height: auto;
+    min-height: 48px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 16px;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    flex-wrap: wrap;
+    white-space: normal;
+    gap: 8px;
+  }
+
+  main {
+    padding-top: 96px;
+  }
+
+  section {
+    padding: 24px 16px;
+  }
+
+  .flow-wrap {
+    gap: 12px;
+  }
+
+  .arrow {
+    display: none;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot,
+  .data-line {
+    animation: none;
+  }
+
+  section {
+    transition: none;
+  }
+}
 </style>
 </head>
 <body>
+<header class="topbar" aria-label="YURI OS status header">
+  <div class="topbar-left">
+    <span class="brand">YURI OS</span>
+    <span class="system-name">NUDIMMUD</span>
+    <span class="branch">main &middot; ca0df14c</span>
+  </div>
+  <div class="topbar-right">
+    <svg class="soak-ring" viewBox="0 0 32 32" aria-label="Soak ring 32 percent filled">
+      <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(168,188,198,0.22)" stroke-width="3"></circle>
+      <circle cx="16" cy="16" r="12" fill="none" stroke="#A8BCC6" stroke-width="3" stroke-linecap="butt" stroke-dasharray="24.13 75.4" transform="rotate(-90 16 16)"></circle>
+    </svg>
+    <span class="header-muted">16/50 SOAK</span>
+    <span class="header-value">5/5 <span class="pulse-dot">&bull;</span></span>
+    <span class="header-critical">TIER CRITICAL &middot; PROTOCOL-CHANGE</span>
+  </div>
+</header>
 
-<svg id="mirror-graph" viewBox="0 0 1920 720" preserveAspectRatio="xMidYMid meet">
-  <g id="g-arcs"></g>
-  <g id="g-spine"></g>
-  <g id="g-auth"></g>
-  <g id="g-data"></g>
-  <g id="g-nodes"></g>
-  <g id="g-labels"></g>
-</svg>
+<main>
+  <section id="nexuspulse">
+    <h1 class="section-label">NEXUSPULSE - SYMBIOTIC PULSE CORTEX &middot; per-turn intelligence pipeline &middot; fires on every non-trivial prompt</h1>
+    <div class="flow-wrap" aria-label="NexusPulse per-turn pipeline">
+      <article class="flow-box">
+        <h2 class="flow-title">1 - User Prompt</h2>
+        <p class="flow-copy">user-prompt-submit.js fires <span class="value">&rarr; pulse-orchestrator.mjs spawned detached</span></p>
+      </article>
+      <div class="arrow" aria-hidden="true"><svg viewBox="0 0 32 20"><defs><marker id="arrow-gold" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#D4AF37"></path></marker></defs><polyline class="authority-line" points="0,10 29,10" marker-end="url(#arrow-gold)"></polyline></svg></div>
+      <article class="flow-box">
+        <h2 class="flow-title">2 - Classify</h2>
+        <ul class="kv-list">
+          <li><span class="value">TRIVIAL</span> &rarr; [] no advisors &middot; main thread direct</li>
+          <li><span class="value">STANDARD</span> &rarr; [DEEPSEEK] preflight</li>
+          <li><span class="value">COMPLEX</span> &rarr; [DEEPSEEK &middot; OPENCLAW &middot; HERMES_FC &middot; CASSANDRA]</li>
+          <li><span class="value">CRITICAL</span> &rarr; [DEEPSEEK &middot; OPENCLAW &middot; HERMES_FC &middot; CASSANDRA &middot; SWARM &middot; OBLITERATUS]</li>
+        </ul>
+      </article>
+      <div class="arrow" aria-hidden="true"><svg viewBox="0 0 32 20"><defs><marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#1E3A8A"></path></marker></defs><polyline class="data-line" points="0,10 29,10" marker-end="url(#arrow-blue)"></polyline></svg></div>
+      <article class="flow-box">
+        <h2 class="flow-title">3 - Advisor Fanout</h2>
+        <ul class="kv-list">
+          <li><span class="value">DEEPSEEK</span> model_advisor &middot; deepseek-v4-flash/pro &middot; 60s timeout</li>
+          <li><span class="value">OPENCLAW</span> bridge_advisory &middot; 127.0.0.1:18789 &middot; 60s &middot; HIGH cap &middot; QUARANTINED</li>
+          <li><span class="value">HERMES_FC</span> native_function &middot; context pressure &middot; no model</li>
+          <li><span class="value">CASSANDRA</span> native_function &middot; strategic foresight &middot; no model &middot; cassandra-lite.js</li>
+          <li><span class="value">SWARM</span> swarm_dispatch &middot; flash+pro parallel &middot; 60s timeout</li>
+          <li><span class="value">OBLITERATUS</span> native_function &middot; adversarial QA gate &middot; critical only</li>
+        </ul>
+      </article>
+      <div class="arrow" aria-hidden="true"><svg viewBox="0 0 32 20"><polyline class="data-line" points="0,10 29,10" marker-end="url(#arrow-blue)"></polyline></svg></div>
+      <article class="flow-box">
+        <h2 class="flow-title">4 - Pulse-Bus</h2>
+        <p class="flow-copy">ring buffer &middot; 14 slots &middot; 5min TTL <span class="value">.claude/state/pulse-bus.json &middot; consumed by main thread</span></p>
+      </article>
+      <div class="arrow" aria-hidden="true"><svg viewBox="0 0 32 20"><polyline class="authority-line" points="0,10 29,10" marker-end="url(#arrow-gold)"></polyline></svg></div>
+      <article class="flow-box">
+        <h2 class="flow-title">5 - ENKI</h2>
+        <p class="flow-copy">main thread reads pulse-plan.json + bus findings <span class="value">&rarr; decides routing + impl &rarr; final authority</span></p>
+      </article>
+      <div class="arrow" aria-hidden="true"><svg viewBox="0 0 32 20"><polyline class="authority-line" points="0,10 29,10" marker-end="url(#arrow-gold)"></polyline></svg></div>
+      <article class="flow-box">
+        <h2 class="flow-title">6 - Codex Two-Phase Gate</h2>
+        <p class="flow-copy">propose &rarr; pulse-codex-pending.json &rarr; .approved marker &rarr; HEAD SHA verify &rarr; apply</p>
+      </article>
+      <div class="arrow" aria-hidden="true"><svg viewBox="0 0 32 20"><polyline class="data-line" points="0,10 29,10" marker-end="url(#arrow-blue)"></polyline></svg></div>
+      <article class="flow-box">
+        <h2 class="flow-title">7 - Beacon</h2>
+        <p class="flow-copy">notify/notify+obsidian &middot; throttled 5/session <span class="value">pulse-beacon-state.json</span></p>
+      </article>
+    </div>
+  </section>
 
-<div id="hud-tl">
-  <span class="sys-id">Yuri OS</span>
-  <span class="sys-sub">NUDIMMUD · Fashioner of likenesses of minds</span>
-  <span class="sys-git" id="git-info"></span>
-</div>
-<div id="hud-tr">
-  <svg width="44" height="44" viewBox="0 0 44 44" style="overflow:visible">
-    <circle cx="22" cy="22" r="16" fill="none" stroke="rgba(168,188,198,.12)" stroke-width="2"/>
-    <circle id="soak-ring" cx="22" cy="22" r="16" fill="none" stroke="#A8BCC6" stroke-width="2"
-      stroke-dasharray="0 100.5" stroke-linecap="round" transform="rotate(-90 22 22)"
-      style="transition:stroke-dasharray 1.2s ease"/>
-  </svg>
-  <span id="soak-label"></span>
-  <span id="beacon"></span>
-</div>
-<div id="tier-strip"></div>
-<div id="tooltip">
-  <span class="t-id" id="tt-id"></span>
-  <span class="t-role" id="tt-role"></span>
-  <span class="t-kind" id="tt-kind"></span>
-</div>
-<div id="spine-label">← AUTHORITY = DATA FLOW →</div>
-<div id="drawer">
-  <button id="drawer-close" onclick="closeDrawer()">✕</button>
-  <h2 id="drawer-title"></h2>
-  <div id="drawer-body"></div>
-  <div id="drawer-finding"></div>
-</div>
+  <section id="routing-lanes">
+    <h1 class="section-label">SYMBIOTIC PULSE - ROUTING LANES &middot; offload-contract.mjs &rarr; offload.sh &middot; 12 lanes priority order</h1>
+    <div class="table-scroll">
+      <table class="route-table">
+        <thead>
+          <tr>
+            <th>Priority</th>
+            <th>Lane Name</th>
+            <th>Model</th>
+            <th>Type</th>
+            <th>Scenario Triggers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="value">1</td><td class="value">code-local</td><td>qwen2.5-coder:7b</td><td><span class="badge badge-local">LOCAL</span></td><td>code-change &middot; bug-triage</td></tr>
+          <tr><td class="value">2</td><td class="value">deepseek-v4-flash</td><td>deepseek/deepseek-chat</td><td><span class="badge badge-cloud">CLOUD</span></td><td>standard advisory &middot; text analysis</td></tr>
+          <tr><td class="value">3</td><td class="value">deepseek-v4-pro</td><td>deepseek/deepseek-r1</td><td><span class="badge badge-cloud">CLOUD</span></td><td>complex reasoning &middot; protocol review</td></tr>
+          <tr><td class="value">4</td><td class="value">triage-local</td><td>qwen2.5:7b</td><td><span class="badge badge-local">LOCAL</span></td><td>document-synthesis &middot; research</td></tr>
+          <tr><td class="value">5</td><td class="value">summarize-local</td><td>qwen2.5:7b</td><td><span class="badge badge-local">LOCAL</span></td><td>data-extract &middot; summarize</td></tr>
+          <tr><td class="value">6</td><td class="value">gpt-oss</td><td>gpt-oss-20b/120b</td><td><span class="badge badge-local">LOCAL</span></td><td>code-change &middot; ui-change (local GPU)</td></tr>
+          <tr><td class="value">7</td><td class="value">codex-spark</td><td>gpt-5.3-codex</td><td><span class="badge badge-codex">CODEX</span></td><td>read-only sandbox &middot; dry-run only</td></tr>
+          <tr><td class="value">8</td><td class="value">codex-mini</td><td>gpt-5.4-mini</td><td><span class="badge badge-codex">CODEX</span></td><td>workspace write &middot; impl authority</td></tr>
+          <tr><td class="value">9</td><td class="value">codex</td><td>gpt-5.5</td><td><span class="badge badge-codex">CODEX</span></td><td>full workspace &middot; max reasoning</td></tr>
+          <tr><td class="value">10</td><td class="value">openclaw</td><td>09OC deepseek/v4-flash</td><td><span class="badge badge-bridge">BRIDGE</span></td><td>bridge-only advisory &middot; quarantined</td></tr>
+          <tr><td class="value">11</td><td class="value">swarm</td><td>flash + pro fan-out</td><td><span class="badge badge-swarm">SWARM</span></td><td>parallel dual advisory</td></tr>
+          <tr><td class="value">12</td><td class="value">kimi</td><td>moonshot/kimi-k2-6</td><td><span class="badge badge-cloud">CLOUD</span></td><td>cloud reasoning &middot; long context</td></tr>
+          <tr><td class="value">--</td><td class="value">claude</td><td>claude-sonnet-4-6</td><td><span class="badge badge-last">LAST</span></td><td>last resort &middot; advisory only</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-<script>
-// ── Live state ──────────────────────────────────────────────────────────────
-const LS = {
-  git: { branch:'main', commit:'110c0587' },
-  soak: { turns:16, target:50 },
-  beacon: { used:5, max:5 },
-  tier:'critical', scenario:'protocol-change',
-  ensemble:['deepseek-preflight','openclaw-preflight','hermes-forecast','cassandra','swarm-fanout','obliteratus-hint']
-};
+  <section id="memory-architecture">
+    <h1 class="section-label">MEMORY ARCHITECTURE &middot; 3-tier tiered knowledge + SQLite kernel + MLM sandbox</h1>
+    <div class="grid grid-3">
+      <article class="tier">
+        <h2 class="tier-title">Tier 1 Hot</h2>
+        <ul class="kv-list">
+          <li><span class="value">pulse-plan.json</span> - tier, ensemble, codexPolicy, beacon level</li>
+          <li><span class="value">pulse-bus.json</span> - advisor findings ring: 14 slots, 5min TTL</li>
+          <li><span class="value">Session context</span> - active tool calls, current turn state</li>
+        </ul>
+      </article>
+      <article class="tier">
+        <h2 class="tier-title">Tier 2 Warm</h2>
+        <ul class="kv-list">
+          <li><span class="value">.claude/eot/</span> - boot packets, reflection reports, skill patches, ledgers</li>
+          <li><span class="value">session-journal.md</span> - dated entries, compact hints, skill notes</li>
+          <li><span class="value">pulse-archive/</span> - daily WARN+/CASSANDRA/CORTEX findings with outcome_markers</li>
+        </ul>
+      </article>
+      <article class="tier">
+        <h2 class="tier-title">Tier 3 Cold</h2>
+        <ul class="kv-list">
+          <li><span class="value">system-overlays/karpathy-llm-wiki/</span> - atomic wiki pages</li>
+          <li><span class="value">_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md</span></li>
+          <li><span class="value">_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/prevention-rules.md</span></li>
+        </ul>
+      </article>
+    </div>
+    <div class="memory-rows">
+      <article class="panel">
+        <h2 class="panel-title">Kernel</h2>
+        <p><span class="value">_SYSTEM/OS_KERNEL/memory.db</span> (SQLite) &middot; kernel.py syscalls: <span class="value">mem-log</span> &middot; <span class="value">task-create</span> &middot; <span class="value">task-update</span> &middot; <span class="value">handoff</span></p>
+      </article>
+      <article class="panel">
+        <h2 class="panel-title">MLM Sandbox</h2>
+        <p>isolated research zone &middot; unapproved model outputs quarantined &middot; promoted to COLD only after <span class="value">outcome_marker</span> verification &middot; never canonical without local verification</p>
+      </article>
+    </div>
+  </section>
 
-const AGENTS = {
-  ENKI:        {role:'Control plane — final authority',      rk:'main-session',    arc:'nucleus', auth:'unrestricted',        finding:'Main thread owns all final authority. Advisors are bounded and discardable. No advisory output is canonical without local verification.'},
-  OPENCLAW:    {role:'Bridge advisory — channel surface',    rk:'bridge_advisory', arc:'130px',   auth:'HIGH cap · never impl', finding:'Quarantined: severity capped at HIGH. Never canonical memory authority without local verification. Bridge-only, advisory research v1. Gateway: 127.0.0.1:18789.'},
-  HERMES_FC:   {role:'Session coherence + context pressure', rk:'native_function', arc:'130px',   auth:'always-on',             finding:'Forecast clean: ctx=0% scope=0-area session_writes=1. No context pressure or scope drift detected.'},
-  ARGUS:       {role:'Tool-call sequencing guard',           rk:'native_function', arc:'260px',   auth:'always-on',             finding:'Sequencing guard active on every PostToolUse. Monitors for failed edits, out-of-order tool calls, and canonical touch violations.'},
-  OBLITERATUS: {role:'Adversarial QA gate',                  rk:'native_function', arc:'260px',   auth:'pre-promotion blocker', finding:'Invoked on high-stakes changes: protocol, sandbox promotion, canonical state, protected paths. Last scenario: protocol-change.'},
-  CASSANDRA:   {role:'Strategic foresight (no model)',       rk:'native_function', arc:'260px',   auth:'advisory only',         finding:'DPR mismatch risk: SVG scope transforms + dual-edge chromatic encoding may overflow viewport clipping on non-standard displays. Mitigated: vector-effect non-scaling-stroke applied.'},
-  SWARM:       {role:'Dual DeepSeek flash+pro fan-out',      rk:'swarm_dispatch',  arc:'400px',   auth:'advisory only',         finding:'Color-deficiency risk on gold/blue dual encoding. Mitigated: AUTHORITY/DATA FLOW text labels at spine flanks. Last finding: routing stale endpoint risk for protocol-change turns.'},
-  OC_AGENT:    {role:'Discord/Telegram channel surface',     rk:'bridge_advisory', arc:'400px',   auth:'channel-native',        finding:'Channel-native agent. Routes through openclaw-bridge.sh. All quarantine rules from OPENCLAW apply. Quarantined authority model.'}
-};
+  <section id="agent-hierarchy">
+    <h1 class="section-label">AGENT HIERARCHY - 8 canonical agents &middot; authority chain</h1>
+    <div class="agent-list">
+      <div class="agent-row"><span class="agent-id">ENKI</span><span>Control plane - final authority</span><span class="badge badge-main">main-session</span><span class="value">unrestricted</span><span>always active</span></div>
+      <div class="agent-row"><span class="agent-id">OPENCLAW</span><span>Bridge advisory (channel surface)</span><span class="badge badge-bridge">bridge_advisory</span><span class="fire">HIGH cap &middot; never impl</span><span>complex/critical &middot; quarantined</span></div>
+      <div class="agent-row"><span class="agent-id">HERMES_FC</span><span>Session coherence + context pressure</span><span class="badge badge-native">native_function</span><span class="value">always-on</span><span>every PostToolUse</span></div>
+      <div class="agent-row"><span class="agent-id">ARGUS</span><span>Tool-call sequencing guard</span><span class="badge badge-native">native_function</span><span class="value">always-on</span><span>every PostToolUse</span></div>
+      <div class="agent-row"><span class="agent-id">OBLITERATUS</span><span>Adversarial QA gate</span><span class="badge badge-native">native_function</span><span class="value">pre-promotion blocker</span><span>high-stakes only</span></div>
+      <div class="agent-row"><span class="agent-id">CASSANDRA</span><span>Strategic foresight (no model)</span><span class="badge badge-native">native_function</span><span>advisory only</span><span>complex/critical</span></div>
+      <div class="agent-row"><span class="agent-id">SWARM</span><span>Dual DeepSeek flash+pro fan-out</span><span class="badge badge-swarm">swarm_dispatch</span><span>advisory only</span><span>critical turns</span></div>
+      <div class="agent-row"><span class="agent-id">OC_AGENT</span><span>Discord/Telegram channel surface</span><span class="badge badge-bridge">bridge_advisory</span><span>channel-native</span><span>channel events</span></div>
+    </div>
+  </section>
 
-// ── SVG helpers ─────────────────────────────────────────────────────────────
-const NS = 'http://www.w3.org/2000/svg';
-function el(tag, attrs, cls){
-  const e = document.createElementNS(NS, tag);
-  for(const [k,v] of Object.entries(attrs)) e.setAttribute(k, String(v));
-  if(cls) e.className.baseVal = cls;
-  return e;
-}
-function hex(cx, cy, r){
-  return Array.from({length:6}, (_,i) => {
-    const a = (i*60+30) * Math.PI/180;
-    return `${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`;
-  }).join(' ');
-}
+  <section id="session-lifecycle">
+    <h1 class="section-label">SESSION LIFECYCLE - 30+ hooks across 5 phases</h1>
+    <div class="grid grid-5">
+      <article class="phase">
+        <h2 class="phase-title">Startup</h2>
+        <ul class="hook-list">
+          <li>yuri-boot.js</li>
+          <li>token-session-init.js</li>
+          <li>palace-context-inject.js</li>
+          <li>soul-persona-inject.js</li>
+          <li>mnemosyne-seed.js</li>
+        </ul>
+      </article>
+      <article class="phase">
+        <h2 class="phase-title">User-Prompt-Submit</h2>
+        <ul class="hook-list">
+          <li>pulse-orchestrator.mjs</li>
+          <li>aeonic-enforce.js</li>
+          <li>claude-protocol-guard.js</li>
+          <li>scout-spawn.js</li>
+          <li>tirith-url-guard.js</li>
+        </ul>
+      </article>
+      <article class="phase">
+        <h2 class="phase-title">Pre-Tool-Use</h2>
+        <ul class="hook-list">
+          <li>bash-security-guard.js</li>
+          <li>tirith-url-guard.js</li>
+          <li>agent-spawn-guard.js</li>
+          <li>gitnexus-impact-check.js</li>
+          <li>context-gate.js</li>
+        </ul>
+      </article>
+      <article class="phase">
+        <h2 class="phase-title">Post-Tool-Use</h2>
+        <ul class="hook-list">
+          <li>token-tool-logger.js</li>
+          <li>scout-log-trim.js</li>
+          <li>session-checkpoint.js</li>
+          <li>pulse-bus-consume.js</li>
+          <li>nisaba-argus-dispatch.js</li>
+        </ul>
+      </article>
+      <article class="phase">
+        <h2 class="phase-title">Stop</h2>
+        <ul class="hook-list">
+          <li>nisaba-on-stop.js</li>
+          <li>token-session-end.js</li>
+          <li>eot-background-start.js</li>
+          <li>compact-hint-write.js</li>
+        </ul>
+      </article>
+    </div>
+  </section>
 
-// ── Arc guides ──────────────────────────────────────────────────────────────
-const gArcs = document.getElementById('g-arcs');
-[130,260,400].forEach(r =>
-  gArcs.appendChild(el('circle',{cx:960,cy:360,r,fill:'none',stroke:'#D4AF37',
-    'stroke-width':0.5,opacity:0.07,'vector-effect':'non-scaling-stroke'}))
-);
-// Accessibility text labels (SWARM advisory: supplement color encoding with text)
-[{x:170,y:22,a:'middle',t:'← AUTHORITY'},{x:1750,y:22,a:'middle',t:'DATA FLOW →'}].forEach(({x,y,a,t}) => {
-  const txt = el('text',{x,y,'text-anchor':a,fill:'#D4AF37',opacity:0.42,
-    'font-size':9,'font-family':'JetBrains Mono,monospace','letter-spacing':'0.12em'});
-  txt.textContent = t;
-  gArcs.appendChild(txt);
-});
+  <section id="cicd-gates">
+    <h1 class="section-label">CI/CD GATES - pre-commit + GitNexus + Codex two-phase + Obliteratus</h1>
+    <div class="gate-pipeline">
+      <article class="gate-card">
+        <div class="passfail"><span class="indicator"><span class="dot running"></span>PASS</span><span class="indicator"><span class="dot blocked"></span>FAIL</span></div>
+        <h2 class="gate-title">Pre-Commit</h2>
+        <ul class="kv-list">
+          <li>offload-contract-regression.sh</li>
+          <li>dispatch-drift-check.sh</li>
+        </ul>
+      </article>
+      <article class="gate-card">
+        <div class="passfail"><span class="indicator"><span class="dot running"></span>PASS</span><span class="indicator"><span class="dot blocked"></span>FAIL</span></div>
+        <h2 class="gate-title">GitNexus</h2>
+        <ul class="kv-list">
+          <li>gitnexus_impact - blast radius before symbol edits</li>
+          <li>gitnexus_detect_changes - before commit</li>
+        </ul>
+      </article>
+      <article class="gate-card">
+        <div class="passfail"><span class="indicator"><span class="dot running"></span>PASS</span><span class="indicator"><span class="dot blocked"></span>FAIL</span></div>
+        <h2 class="gate-title">Codex Two-Phase</h2>
+        <p>propose &rarr; pulse-codex-pending.json &rarr; .approved marker &rarr; HEAD SHA verify &rarr; apply</p>
+      </article>
+      <article class="gate-card">
+        <div class="passfail"><span class="indicator"><span class="dot running"></span>PASS</span><span class="indicator"><span class="dot blocked"></span>FAIL</span></div>
+        <h2 class="gate-title">Obliteratus Gate</h2>
+        <p>required for protocol change &middot; canonical state mutation &middot; protected path &middot; sandbox promotion</p>
+      </article>
+    </div>
+  </section>
 
-// ── Spine ───────────────────────────────────────────────────────────────────
-const gSpine = document.getElementById('g-spine');
-const spineLine = el('line',{x1:960,y1:0,x2:960,y2:720,
-  stroke:'#D4AF37','stroke-width':1,'stroke-dasharray':'4 3',opacity:0.7,
-  'vector-effect':'non-scaling-stroke'},'spine-line');
-gSpine.appendChild(spineLine);
-const triTxt = el('text',{x:960,y:28,'text-anchor':'middle',
-  fill:'#D4AF37','font-size':16,'font-family':'JetBrains Mono,monospace',opacity:0.75});
-triTxt.textContent = '⬡';
-gSpine.appendChild(triTxt);
+  <section id="launchd-services">
+    <h1 class="section-label">LAUNCHD - 7 managed services &middot; com.nudimmud.*</h1>
+    <div class="service-list">
+      <div class="service-row"><span class="status"><span class="dot running"></span>RUNNING</span><span class="value">shellservice</span><span>PID 816</span><span>Oracle terminal shell service &middot; port 3098 &middot; shellService.js</span></div>
+      <div class="service-row"><span class="status"><span class="dot running"></span>RUNNING</span><span class="value">yuri-session-runtime</span><span>PID 819</span><span>Session runtime orchestrator</span></div>
+      <div class="service-row"><span class="status"><span class="dot running"></span>RUNNING</span><span class="value">wiki-rag</span><span>PID 821</span><span>RAG search over karpathy wiki atoms</span></div>
+      <div class="service-row"><span class="status"><span class="dot"></span>SCHED</span><span class="value">lane-health</span><span>-</span><span>Routing lane health checker &middot; periodic</span></div>
+      <div class="service-row"><span class="status"><span class="dot"></span>SCHED</span><span class="value">token-digest</span><span>-</span><span>Session token usage digest &middot; periodic</span></div>
+      <div class="service-row"><span class="status"><span class="dot"></span>SCHED</span><span class="value">eot-refresh</span><span>-</span><span>EOT archive refresh &middot; eot-archive.mjs --execute (PATCH 046)</span></div>
+      <div class="service-row"><span class="status"><span class="dot"></span>IDLE</span><span class="value">ollama-kv</span><span>-</span><span>Ollama KV cache manager</span></div>
+    </div>
+  </section>
 
-// ── Authority edges (left, solid gold) ──────────────────────────────────────
-const gAuth = document.getElementById('g-auth');
-[[960,360,830,300],[960,360,830,360],[960,360,700,280],
- [960,360,700,360],[960,360,700,440],[960,360,560,300],[960,360,560,420]]
-.forEach(([x1,y1,x2,y2]) => {
-  gAuth.appendChild(el('line',{x1,y1,x2,y2,stroke:'#D4AF37','stroke-width':1.5,
-    opacity:0.65,'vector-effect':'non-scaling-stroke'},'boot-edge'));
-});
-
-// ── Data pulse edges (right, animated dashed abzu-blue) ──────────────────────
-const gData = document.getElementById('g-data');
-// Pulse path: ENKI→OPENCLAW_r→HERMES_r→CASSANDRA_r→SWARM_r→OBLITERATUS_r + ENKI→ARGUS_r + ENKI→OC_AGENT_r
-[[960,360,1090,300],[1090,300,1090,360],[1090,360,1220,440],
- [1220,440,1360,300],[1360,300,1220,360],[960,360,1220,280],[960,360,1360,420]]
-.forEach(([x1,y1,x2,y2]) => {
-  gData.appendChild(el('line',{x1,y1,x2,y2,stroke:'#1E3A8A','stroke-width':1.5,
-    'stroke-dasharray':'6 4','vector-effect':'non-scaling-stroke'},'data-edge boot-edge'));
-});
-
-// ── Nodes ───────────────────────────────────────────────────────────────────
-const gNodes  = document.getElementById('g-nodes');
-const gLabels = document.getElementById('g-labels');
-const nodeEls = {}; // id -> {left, right}
-
-// Left nodes: hexagons
-const LEFT = [
-  {id:'ENKI',        cx:960,cy:360,r:18,fill:'#D4AF37',stroke:'#F2E9D2',sw:2},
-  {id:'OPENCLAW',    cx:830,cy:300,r:14,fill:'#1E3A8A',stroke:'#D4AF37',sw:1.5,cage:true},
-  {id:'HERMES_FC',   cx:830,cy:360,r:12,fill:'#1E3A8A',stroke:'#D4AF37',sw:1.5},
-  {id:'ARGUS',       cx:700,cy:280,r:10,fill:'#1E3A8A',stroke:'#D4AF37',sw:1},
-  {id:'OBLITERATUS', cx:700,cy:360,r:10,fill:'#C95A3B',stroke:'#D4AF37',sw:1},
-  {id:'CASSANDRA',   cx:700,cy:440,r:10,fill:'#1E3A8A',stroke:'#D4AF37',sw:1},
-  {id:'SWARM',       cx:560,cy:300,r:9, fill:'#080808',stroke:'#D4AF37',sw:0.8,twin:true},
-  {id:'OC_AGENT',    cx:560,cy:420,r:12,fill:'#080808',stroke:'#1E3A8A',sw:0.8}
-];
-
-LEFT.forEach(n => {
-  const g = document.createElementNS(NS,'g');
-  g.classList.add('boot-node');
-  g.dataset.nid = n.id;
-  g.dataset.side = 'left';
-  g.style.cursor = 'pointer';
-
-  if(n.twin){
-    // SWARM: two hexagons offset ±12px (DS-pro advisory: ±4px invisible at r=400)
-    const pA = el('polygon',{points:hex(n.cx,n.cy-12,n.r),fill:n.fill,stroke:n.stroke,'stroke-width':n.sw},'swarm-a');
-    const pB = el('polygon',{points:hex(n.cx,n.cy+12,n.r),fill:n.fill,stroke:n.stroke,'stroke-width':n.sw},'swarm-b');
-    g.appendChild(pA); g.appendChild(pB);
-  } else {
-    g.appendChild(el('polygon',{points:hex(n.cx,n.cy,n.r),fill:n.fill,stroke:n.stroke,'stroke-width':n.sw}));
-    if(n.cage){
-      // OPENCLAW quarantine cage: separate polygon at r+8 (DS-pro: NOT scale transform)
-      g.appendChild(el('polygon',{points:hex(n.cx,n.cy,n.r+8),fill:'none',
-        stroke:'#C95A3B','stroke-width':1,'stroke-dasharray':'4 4',opacity:0.5,
-        'vector-effect':'non-scaling-stroke'}));
-    }
-  }
-
-  g.addEventListener('mouseenter', e => highlight(e, n.id));
-  g.addEventListener('mouseleave', unhighlight);
-  g.addEventListener('click', () => openDrawer(n.id));
-  gNodes.appendChild(g);
-  nodeEls[n.id] = nodeEls[n.id] || {};
-  nodeEls[n.id].left = g;
-});
-
-// Right nodes: circles
-const RIGHT = [
-  {id:'OPENCLAW',    cx:1090,cy:300,r:10,stroke:'#1E3A8A',sw:1.5},
-  {id:'HERMES_FC',   cx:1090,cy:360,r:10,stroke:'#1E3A8A',sw:1.5},
-  {id:'ARGUS',       cx:1220,cy:280,r:9, stroke:'#1E3A8A',sw:1},
-  {id:'OBLITERATUS', cx:1220,cy:360,r:9, stroke:'#C95A3B',sw:1},
-  {id:'CASSANDRA',   cx:1220,cy:440,r:9, stroke:'#D4AF37',sw:1},
-  {id:'SWARM',       cx:1360,cy:300,r:8, stroke:'#1E3A8A',sw:0.8},
-  {id:'OC_AGENT',    cx:1360,cy:420,r:12,stroke:'#1E3A8A',sw:0.8}
-];
-
-RIGHT.forEach(n => {
-  const g = document.createElementNS(NS,'g');
-  g.classList.add('boot-node');
-  g.dataset.nid = n.id;
-  g.dataset.side = 'right';
-  g.style.cursor = 'pointer';
-  g.appendChild(el('circle',{cx:n.cx,cy:n.cy,r:n.r,fill:'none',stroke:n.stroke,'stroke-width':n.sw}));
-  g.addEventListener('mouseenter', e => highlight(e, n.id));
-  g.addEventListener('mouseleave', unhighlight);
-  g.addEventListener('click', () => openDrawer(n.id));
-  gNodes.appendChild(g);
-  nodeEls[n.id] = nodeEls[n.id] || {};
-  nodeEls[n.id].right = g;
-});
-
-// ── Labels ──────────────────────────────────────────────────────────────────
-const LPOS = {
-  ENKI:        {lx:960, ly:337},
-  OPENCLAW:    {lx:830, ly:280, rx:1090, ry:280},
-  HERMES_FC:   {lx:830, ly:342, rx:1090, ry:342},
-  ARGUS:       {lx:700, ly:263, rx:1220, ry:263},
-  OBLITERATUS: {lx:700, ly:343, rx:1220, ry:343},
-  CASSANDRA:   {lx:700, ly:423, rx:1220, ry:423},
-  SWARM:       {lx:560, ly:278, rx:1360, ry:283},
-  OC_AGENT:    {lx:560, ly:400, rx:1360, ry:400}
-};
-Object.entries(LPOS).forEach(([id,p]) => {
-  const g = document.createElementNS(NS,'g');
-  g.classList.add('boot-node');
-  g.style.pointerEvents = 'none';
-  const mk = (x,y,t) => {
-    const txt = el('text',{x,y,'text-anchor':'middle',fill:'#A8BCC6',
-      'font-size':8,'font-family':'JetBrains Mono,monospace','letter-spacing':'0.1em'});
-    txt.textContent = t;
-    return txt;
-  };
-  g.appendChild(mk(p.lx, p.ly, id));
-  if(p.rx) g.appendChild(mk(p.rx, p.ry, id));
-  gLabels.appendChild(g);
-});
-
-// ── Spine hit area (hover) ───────────────────────────────────────────────────
-const spineHit = el('rect',{x:950,y:0,width:20,height:720,fill:'transparent'});
-spineHit.style.cursor = 'crosshair';
-const spLbl = document.getElementById('spine-label');
-spineHit.addEventListener('mouseenter', () => spLbl.style.opacity = '1');
-spineHit.addEventListener('mouseleave', () => spLbl.style.opacity = '0');
-gSpine.appendChild(spineHit);
-
-// ── HUD wiring ───────────────────────────────────────────────────────────────
-document.getElementById('git-info').textContent = `${LS.git.branch} · ${LS.git.commit}`;
-// Soak ring: r=16, circumference=100.53
-const soakPct = LS.soak.turns / LS.soak.target;
-setTimeout(() => {
-  const fill = (soakPct * 100.53).toFixed(1);
-  const gap  = (100.53 - fill).toFixed(1);
-  document.getElementById('soak-ring').setAttribute('stroke-dasharray', `${fill} ${gap}`);
-}, 900);
-document.getElementById('soak-label').textContent = `${LS.soak.turns}/${LS.soak.target} SOAK`;
-document.getElementById('beacon').textContent = `${LS.beacon.used}/${LS.beacon.max} ●`;
-document.getElementById('tier-strip').textContent =
-  `TIER  ${LS.tier.toUpperCase()}  ·  ${LS.scenario.toUpperCase()}  ·  ENSEMBLE ${LS.ensemble.length}`;
-
-// ── Interactions ─────────────────────────────────────────────────────────────
-const tooltip = document.getElementById('tooltip');
-let curNode = null;
-
-function highlight(e, id){
-  curNode = id;
-  const {left,right} = nodeEls[id] || {};
-  if(left)  [...left.querySelectorAll('polygon,circle')].forEach(s => { s.style.filter='brightness(1.4)'; s.style.opacity='1'; });
-  if(right) [...right.querySelectorAll('circle')].forEach(s => { s.style.opacity='0.55'; });
-  const a = AGENTS[id];
-  if(!a) return;
-  document.getElementById('tt-id').textContent   = id;
-  document.getElementById('tt-role').textContent = a.role;
-  document.getElementById('tt-kind').textContent = a.rk + ' · ' + a.auth;
-  tooltip.style.display = 'block';
-  move(e);
-}
-function unhighlight(){
-  if(curNode){
-    const {left,right} = nodeEls[curNode] || {};
-    if(left)  [...left.querySelectorAll('polygon,circle')].forEach(s => { s.style.filter=''; s.style.opacity=''; });
-    if(right) [...right.querySelectorAll('circle')].forEach(s => { s.style.opacity=''; });
-  }
-  curNode = null;
-  tooltip.style.display = 'none';
-}
-function move(e){
-  tooltip.style.left = Math.min(e.clientX+16, window.innerWidth-310) + 'px';
-  tooltip.style.top  = Math.min(e.clientY-10, window.innerHeight-80) + 'px';
-}
-document.addEventListener('mousemove', e => { if(tooltip.style.display==='block') move(e); });
-
-// ── Drawer ───────────────────────────────────────────────────────────────────
-function openDrawer(id){
-  const a = AGENTS[id]; if(!a) return;
-  document.getElementById('drawer-title').textContent = id;
-  document.getElementById('drawer-body').innerHTML = [
-    ['role', a.role], ['runtimeKind', a.rk], ['authority', a.auth], ['arc', a.arc]
-  ].map(([k,v]) => `<div class="dr"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join('');
-  document.getElementById('drawer-finding').textContent = a.finding;
-  document.getElementById('drawer').classList.add('open');
-}
-function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); }
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
-
-// ── Boot stagger ─────────────────────────────────────────────────────────────
-// Phase 0: ENKI
-setTimeout(() => document.querySelectorAll('[data-nid="ENKI"]').forEach(g => g.classList.add('boot-visible')), 0);
-// Phase 1: inner ring
-setTimeout(() => {
-  ['OPENCLAW','HERMES_FC'].forEach(id =>
-    document.querySelectorAll(`[data-nid="${id}"]`).forEach(g => g.classList.add('boot-visible'))
-  );
-}, 80);
-// Phase 2: mid + outer ring + edges
-setTimeout(() => {
-  ['ARGUS','OBLITERATUS','CASSANDRA','SWARM','OC_AGENT'].forEach(id =>
-    document.querySelectorAll(`[data-nid="${id}"]`).forEach(g => g.classList.add('boot-visible'))
-  );
-  document.querySelectorAll('.boot-edge').forEach(g => g.classList.add('boot-visible'));
-}, 160);
-// Phase 3: labels
-setTimeout(() => {
-  document.querySelectorAll('#g-labels .boot-node').forEach(g => g.classList.add('boot-visible'));
-}, 240);
-</script>
+  <section id="self-improvement">
+    <h1 class="section-label">SELF-IMPROVEMENT ENGINE - soak calibration &middot; EOT pipeline &middot; skill patches</h1>
+    <div class="self-grid">
+      <article class="panel">
+        <h2 class="panel-title">Soak Calibration</h2>
+        <div class="soak-block">
+          <svg class="soak-gauge" viewBox="0 0 100 100" aria-label="Current soak 16 of 50 turns, 32 percent filled">
+            <circle cx="50" cy="50" r="36" fill="none" stroke="rgba(168,188,198,0.22)" stroke-width="8"></circle>
+            <circle cx="50" cy="50" r="36" fill="none" stroke="#A8BCC6" stroke-width="8" stroke-dasharray="72.38 226.19" transform="rotate(-90 50 50)"></circle>
+            <text x="50" y="47" text-anchor="middle" fill="#F2E9D2" font-family="JetBrains Mono" font-size="14">16/50</text>
+            <text x="50" y="64" text-anchor="middle" fill="#A8BCC6" font-family="JetBrains Mono" font-size="14">32%</text>
+          </svg>
+          <ul class="kv-list">
+            <li><span class="value">Current:</span> 16/50 turns - arc gauge SVG 32% fill</li>
+            <li><span class="value">Gate at 50:</span> classifier tuning eligible</li>
+            <li><span class="value">Gate at 200+:</span> full calibration loop</li>
+            <li><span class="value">Method:</span> pulse-archive outcome_markers vs CASSANDRA/DEEPSEEK predictions &rarr; classifier drift</li>
+          </ul>
+        </div>
+      </article>
+      <article class="panel">
+        <h2 class="panel-title">EOT Pipeline</h2>
+        <ul class="kv-list">
+          <li>Phase 1 Evidence inventory &middot; Phase 2 Timeline &middot; Phase 3 Claim audit &middot; Phase 4 Ledger</li>
+          <li>Phase 5 Improvement review &middot; Phase 5.5 MANGEKYO hardening &middot; Phase 6 Skill patches</li>
+          <li>Phase 7 Self-improvement update &middot; Phase 7.5 LLM-wiki atoms &middot; Phase 8 Boot packet</li>
+          <li>Phase 9 Synthesis &middot; Phase 10 pulse-archive promotion</li>
+          <li><span class="value">Workers:</span> Haiku 4.5 run_in_background for mechanical phases &middot; main thread for synthesis</li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2 class="panel-title">Active Skill Patches</h2>
+        <ul class="patch-list">
+          <li><span class="value">EOT-013:</span> Verify mtime before retry on Codex SKIPPED_OR_RATE_LIMITED</li>
+          <li><span class="value">EOT-014:</span> Force split prompts &gt;100 lines under OUTPUT_CAP into &lt;80-line sub-prompts</li>
+          <li><span class="value">EOT-015:</span> Pre-supply canonical IDs to advisor agents - mark renames forbidden</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+</main>
 </body>
 </html>
