@@ -22,6 +22,7 @@ import {
   writePulseTraceSnapshot,
 } from './pulse-trace-ledger.mjs';
 
+const writeScope = process.env.DEEPSEEK_WRITE_SCOPE ? new Set(process.env.DEEPSEEK_WRITE_SCOPE.split(':').map(p => path.resolve(p))) : null;
 const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
 const MODEL_POLICY = loadModelPolicy();
 const LOCAL_MODEL_POLICY = MODEL_POLICY.local || {};
@@ -1448,6 +1449,9 @@ async function executeTool(name, argsStr) {
     if (name === 'write_file') {
       const { path: filePath, content } = args;
       if (!filePath || content === undefined) return 'ERROR: Missing path or content parameter';
+      if (writeScope && !writeScope.has(path.resolve(filePath))) {
+        return 'SCOPE_BLOCKED: write to ' + filePath + ' is outside the dispatch write-scope manifest';
+      }
       const safety = evaluateToolCall('write_file', { path: filePath }, { source: 'offload-runner' });
       if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
       try {

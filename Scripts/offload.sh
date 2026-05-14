@@ -37,6 +37,7 @@ Options:
   --reasoning <depth>    Reasoning depth hint: low, medium, high, xhigh
   --tools                Allow model tool calls (default: disabled for DeepSeek)
   --no-tools             Force text-only model output
+  --write-scope <paths>  Colon-delimited write allowlist for DeepSeek write_file
   -s, --swarm <id,id,..|default>
                          Run task via multiple models (cloud parallel, local serialized)
   -d, --dry-run, --route-only
@@ -157,9 +158,33 @@ run_offload_runner() {
   local lane="$1"
   local prompt="$2"
   local queue_needed=1
+  local write_scope="${WRITE_SCOPE:-}"
+  local runner_args=()
   shift 2
 
-  for arg in "$@"; do
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --write-scope)
+        write_scope="$2"
+        shift 2
+        ;;
+      *)
+        runner_args+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  local env_args=(OFFLOAD_PROMPT_TEXT="$prompt")
+  case "$lane" in
+    deepseek|deepseek-v4-*|nvidia-deepseek|deepseek-ai/*)
+      if [[ -n "$write_scope" ]]; then
+        env_args+=(DEEPSEEK_WRITE_SCOPE="$write_scope")
+      fi
+      ;;
+  esac
+
+  for arg in "${runner_args[@]}"; do
     if [[ "$arg" == "--dry-run" || "$arg" == "--route-only" ]]; then
       queue_needed=0
       break
@@ -167,11 +192,11 @@ run_offload_runner() {
   done
 
   if [[ "$queue_needed" -eq 1 && "$(classify_lane "$lane")" == "cloud" && "${OFFLOAD_QUEUE_BYPASS:-0}" != "1" ]]; then
-    OFFLOAD_PROMPT_TEXT="$prompt" node "$OFFLOAD_QUEUE" run --lane "$lane" -- node "$OFFLOAD_RUNNER" "$lane" "$@"
+    env "${env_args[@]}" node "$OFFLOAD_QUEUE" run --lane "$lane" -- node "$OFFLOAD_RUNNER" "$lane" "${runner_args[@]}"
     return
   fi
 
-  OFFLOAD_PROMPT_TEXT="$prompt" node "$OFFLOAD_RUNNER" "$lane" "$@"
+  env "${env_args[@]}" node "$OFFLOAD_RUNNER" "$lane" "${runner_args[@]}"
 }
 
 normalize_reasoning_depth() {
@@ -445,6 +470,7 @@ ROUTE_INTENT="${OFFLOAD_INTENT:-}"
 REASONING_DEPTH=""
 ALLOW_MODEL_TOOLS=0
 TOOLS_EXPLICIT=0   # 1 if user explicitly passed --tools or --no-tools
+WRITE_SCOPE=""
 PROMPT_PARTS=()
 
 while [[ $# -gt 0 ]]; do
@@ -478,6 +504,10 @@ while [[ $# -gt 0 ]]; do
       ALLOW_MODEL_TOOLS=0
       TOOLS_EXPLICIT=1
       shift
+      ;;
+    --write-scope)
+      WRITE_SCOPE="$2"
+      shift 2
       ;;
     -d|--dry-run|--route-only)
       DRY_RUN=1
