@@ -87,6 +87,10 @@ list_models() {
   printf '  [%-30s] %s\n' "ollama-cloud" "temporary Ollama Cloud fallback using OLLAMA_API_KEY"
 
   echo
+  echo "Needle local runtime:"
+  printf '  [%-30s] %s\n' "needle" "active local default for general tasks while qwen2.5:7b remains retired"
+
+  echo
   echo "Codex lanes (all route through codex-spark CLI; OpenAI Responses API disabled — no API key):"
   printf '  [%-30s] %s\n' "codex-spark" "Bounded Codex CLI lane pinned to gpt-5.3-codex-spark"
   printf '  [%-30s] %s\n' "spark" "Alias for codex-spark"
@@ -105,6 +109,24 @@ classify_lane() {
     deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
+}
+
+is_direct_lane_token() {
+  local token="${1#@}"
+  token="${token%%:*}"
+  case "$token" in
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle)
+      return 0
+      ;;
+  esac
+
+  case "$token" in
+    deepseek-v4-*|deepseek-ai/*|kimi*|moonshot*|ollama*|openrouter*|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*)
+      return 0
+      ;;
+  esac
+
+  return 1
 }
 
 resolve_swarm_models() {
@@ -226,6 +248,10 @@ dry_run_model_override() {
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
         run_offload_runner gpt-oss "$prompt" --dry-run
         ;;
+      needle)
+        printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
+        run_offload_runner ollama-local "$prompt" --dry-run --model needle
+        ;;
       deepseek-v4-flash|deepseek-v4-pro|deepseek)
         run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} --no-tools
         ;;
@@ -264,6 +290,10 @@ dispatch_model() {
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
         printf '%s\n' "⬡ ROUTING_TO_GPT_OSS..." >&2
         run_offload_runner gpt-oss "$prompt"
+        ;;
+      needle)
+        printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
+        run_offload_runner ollama-local "$prompt" --model needle
         ;;
       deepseek-v4-flash|deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2
@@ -365,6 +395,12 @@ done
 
 PROMPT="${PROMPT_PARTS[*]:-}"
 
+if [[ -z "$MODEL_OVERRIDE" && "${#PROMPT_PARTS[@]}" -gt 1 ]] && is_direct_lane_token "${PROMPT_PARTS[0]}"; then
+  MODEL_OVERRIDE="${PROMPT_PARTS[0]#@}"
+  PROMPT_PARTS=("${PROMPT_PARTS[@]:1}")
+  PROMPT="${PROMPT_PARTS[*]:-}"
+fi
+
 # ── Dry-run gate ────────────────────────────────────────────
 if [[ "$DRY_RUN" -eq 1 ]]; then
   if [[ -n "$SWARM_MODELS" ]]; then
@@ -386,7 +422,16 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
     "$BACKEND_URL/api/swarm/route" 2>/dev/null) || DECISION=""
   MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
   if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
-    route_log '⬡ DRY_RUN :: backend unreachable, would fall back to local default'
+    FALLBACK_MODEL="deepseek-v4-flash"
+    case "${ROUTE_INTENT,,}" in
+      architecture_review|audit_security|strategy|review|code_edit_large)
+        FALLBACK_MODEL="deepseek-v4-pro"
+        ;;
+    esac
+    if [[ "${REASONING_DEPTH,,}" == "high" || "${REASONING_DEPTH,,}" == "xhigh" ]]; then
+      FALLBACK_MODEL="deepseek-v4-pro"
+    fi
+    route_log "$(printf '⬡ DRY_RUN :: backend unreachable, would fall back to %s' "$FALLBACK_MODEL")"
   else
     RUNTIME=$(echo "$DECISION" | jq -r '.preferredRuntime // empty' 2>/dev/null) || RUNTIME=""
     INTENT=$(echo "$DECISION" | jq -r '.intent // empty' 2>/dev/null) || INTENT=""
@@ -438,7 +483,16 @@ RUNTIME=$(echo "$DECISION" | jq -r '.preferredRuntime // empty' 2>/dev/null) || 
 INTENT=$(echo "$DECISION" | jq -r '.intent // empty' 2>/dev/null) || INTENT=""
 
 if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
-  echo "⬡ BACKEND_UNREACHABLE — cannot auto-route." >&2
+  FALLBACK_MODEL="deepseek-v4-flash"
+  case "${ROUTE_INTENT,,}" in
+    architecture_review|audit_security|strategy|review|code_edit_large)
+      FALLBACK_MODEL="deepseek-v4-pro"
+      ;;
+  esac
+  if [[ "${REASONING_DEPTH,,}" == "high" || "${REASONING_DEPTH,,}" == "xhigh" ]]; then
+    FALLBACK_MODEL="deepseek-v4-pro"
+  fi
+  echo "⬡ BACKEND_UNREACHABLE — using direct DeepSeek fallback ($FALLBACK_MODEL)." >&2
   echo "  Manual fallback options:" >&2
   echo "    offload --model <id> \"<prompt>\"                  # direct model" >&2
   echo "    offload --model codex-spark \"<prompt>\"          # bounded Codex Spark lane" >&2
@@ -446,7 +500,8 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
   echo "    ai route-plan \"<prompt>\"                         # shared automatic route plan" >&2
   echo "    ai @kimi \"<prompt>\"                              # deprecated Kimi compatibility" >&2
   echo "    ai @deepseek-v4-flash \"<prompt>\"                 # DeepSeek cloud flash" >&2
-  exit 1
+  MODEL="$FALLBACK_MODEL"
+  RUNTIME="cloud"
 fi
 
 printf '%s\n' "⬡ OFFLOAD_ASSESSMENT :: intent=$INTENT runtime=$RUNTIME model=$MODEL" >&2

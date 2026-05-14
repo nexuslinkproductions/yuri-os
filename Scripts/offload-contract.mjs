@@ -218,6 +218,49 @@ const OFFLOAD_CONTRACT = {
       'Exceeds the configured output cap.'
     ]
   },
+  claudeProtocolGate: {
+    mode: 'warn-first',
+    mainSessionFinalAuthority: true,
+    scope: 'repo-local Claude Code control-plane work',
+    codexSpecCompatibility: {
+      requiredSpec: '## CODEX TASK SPEC',
+      source: 'CODEX_PROTOCOL.md',
+      appliesTo: ['codex exec', 'Scripts/ai codex', 'codex-spark', 'Scripts/codex-offload-runner.mjs'],
+      rule: 'Codex-bound work keeps the Codex task spec unchanged; Claude control-plane work uses a broader CLAUDE CONTROL PACKET.'
+    },
+    claudeControlPacket: {
+      requiredFields: [
+        'Goal',
+        'Target files',
+        'Constraints',
+        'Acceptance criteria',
+        'Test command',
+        'Rollback boundary',
+        'Route-plan classification',
+        'GitNexus impact for symbol edits',
+        'Verification before merge or promotion'
+      ],
+      routePlanEvidence: 'Scripts/ai route-plan output for protocol, routing, memory, promotion, protected-path, or high-stakes work',
+      advisoryExpectations: ['symbioticPulse routing', 'DeepSeek Pro/Flash advisory for protocol/high-risk work']
+    },
+    nativeFunctionGates: {
+      hermes: 'always-on',
+      argus: 'always-on',
+      obliteratus: 'conditional-high-risk'
+    },
+    openClaw: {
+      authority: 'bridge-only-advisory',
+      runtimeRequirement: 'none for v1',
+      quarantine: [
+        'May inform research/background patterns.',
+        'Must not directly edit code.',
+        'Must not become canonical memory authority without local verification.',
+        'Must not bypass native Hermes, Argus, or Obliteratus gates.'
+      ]
+    },
+    hardBlocksRemainOwnedBy: 'bash-security-guard.js',
+    denyPermissionDecision: false
+  },
   nativeFunctionGates: {
     authority: {
       executor: 'Codex/main-session',
@@ -842,6 +885,7 @@ function buildRoutePlan(prompt) {
     dispatch: lane === 'swarm' ? 'parallel-fan-out' : 'single-lane',
     deepseekAdvisory,
     claudeAdvisory,
+    claudeProtocolGate: OFFLOAD_CONTRACT.claudeProtocolGate,
     nativeFunctionGates,
     pulseGovernanceSkeleton,
     lifecycle: scenario.lifecycle,

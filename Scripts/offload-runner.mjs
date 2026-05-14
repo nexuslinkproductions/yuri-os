@@ -25,8 +25,8 @@ import {
 const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
 const MODEL_POLICY = loadModelPolicy();
 const LOCAL_MODEL_POLICY = MODEL_POLICY.local || {};
-const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'qwen2.5:7b';
-const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || 'qwen3.5:4b';
+const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'needle';
+const LOCAL_UTILITY_MODEL = LOCAL_MODEL_POLICY.utility || 'needle';
 const LOCAL_CODE_MODEL = LOCAL_MODEL_POLICY.code || 'qwen2.5-coder:7b';
 const LOCAL_CODE_FALLBACK_MODEL = LOCAL_MODEL_POLICY.code_fallback || 'starcoder2:latest';
 const LOCAL_DEEP_REASONING_MODEL = LOCAL_MODEL_POLICY.deep_reasoning || 'deepseek-r1:8b';
@@ -972,8 +972,10 @@ function pickFirstExisting(candidates, localModels) {
 function listLocalModels() {
   const models = new Set();
   const manifestRoot = process.env.OLLAMA_MANIFEST_DIR || path.join(process.env.HOME || '', '.ollama/models/manifests/registry.ollama.ai/library');
+  const needleRepo = process.env.NEEDLE_REPO_DIR || path.join(process.cwd(), 'needle');
 
   if (!existsSync(manifestRoot)) {
+    if (existsSync(needleRepo)) models.add('needle');
     return models;
   }
 
@@ -995,6 +997,10 @@ function listLocalModels() {
         models.add(`${parts[0]}:${parts[1]}`);
       }
     }
+  }
+
+  if (existsSync(needleRepo)) {
+    models.add('needle');
   }
 
   return models;
