@@ -22,6 +22,46 @@ const memoryDbPath = path.join(tempDir, 'memory.db');
 
 let child = null;
 
+function doctrineDrafts(opts = {}) {
+  const greeting = opts.greeting || 'Hi,';
+  const firstBase = opts.first || 'Your services page describes specialist B2B work.';
+  const second = opts.second || 'But generic positioning loses the buyer in 30 seconds.';
+  const third = opts.third || 'Would a 60-second clarifier video pull more enquiries?';
+  const first = `${opts.company ? `${opts.company} ` : ''}${firstBase}${opts.proof ? ` ${opts.proof}` : ''}`.trim();
+  const body = `${first} ${second} ${third}`;
+  return {
+    linkedin_intro: `${greeting} ${body}`,
+    linkedin_followup: `${greeting} following up - ${third}`,
+    email_cold: `Subject: ${opts.subject || 'your positioning'}\n\n${greeting}\n\n${body}\n\nBest,\nFanny\nc2moviez`,
+    email_followup: `Subject: Re: ${opts.subject || 'your positioning'}\n\n${greeting}\n\nFollowing up. ${third}\n\nBest,\nFanny`
+  };
+}
+
+async function hydrateColdLead(response, companyName) {
+  const deadline = Date.now() + 5_000;
+  const targetName = normalizeLeadName(companyName);
+  while (Date.now() < deadline) {
+    const list = await request('GET', '/api/cold-acquisition/leads', null, { apiKey: API_KEY });
+    assert.equal(list.status, 200, `should list cold-acquisition leads for ${companyName}`);
+    const lead = list.json.leads.find((entry) => {
+      const actualName = normalizeLeadName(entry.company?.name || '');
+      return actualName.includes(targetName) || targetName.includes(actualName);
+    });
+    if (lead) {
+      const detail = await request('GET', `/api/cold-acquisition/leads/${lead.id}`, null, { apiKey: API_KEY });
+      assert.equal(detail.status, 200, `should load cold-acquisition lead detail for ${companyName}`);
+      response.json.lead = detail.json.lead;
+      return lead.id;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  assert.fail(`should find created lead for ${companyName}`);
+}
+
+function normalizeLeadName(value) {
+  return String(value || '').toLowerCase().replace(/\b(ag|gmbh|sarl|sarl\.|sa|ltd\.?|limited|inc\.?)\b\.?/g, '').replace(/\s+/g, ' ').trim();
+}
+
 try {
   child = await startBackend();
 
@@ -56,7 +96,21 @@ try {
 
   const created = await request('POST', '/api/cold-acquisition/leads', swissLeadBody(), { apiKey: API_KEY });
   assert.equal(created.status, 201, 'local admin API should still create acquisition leads');
-  const leadId = created.json.lead.id;
+  const leadId = await hydrateColdLead(created, 'Alpine Bio Analytics AG');
+  const createdDoctrinePatch = await request('PATCH', `/api/cold-acquisition/leads/${leadId}`, {
+    status: 'ready',
+    crm_stage: 'ready',
+    outreach_drafts: doctrineDrafts({
+      company: 'Alpine Bio Analytics AG',
+      proof: 'The platform page explains clinical analytics workflows clearly.',
+      subject: 'quick thought on your positioning',
+      greeting: 'Hi Mira,',
+      first: 'Your platform page gives a clear specialist B2B story.',
+      second: 'But the current draft still needs sharper buyer language.',
+      third: 'Would a 60-second clarifier video help pull more enquiries?'
+    })
+  }, { apiKey: API_KEY });
+  assert.equal(createdDoctrinePatch.status, 200, 'Swiss lead should accept doctrine-compliant drafts');
 
   const fannyList = await request('GET', '/acquisition/api/leads?view=ready', null, { cookie: fannyCookie });
   assert.equal(fannyList.status, 200, 'Fanny should read CRM leads');
@@ -81,7 +135,22 @@ try {
 
   const sendable = await request('POST', '/api/cold-acquisition/leads', austriaSendableLeadBody(), { apiKey: API_KEY });
   assert.equal(sendable.status, 201, 'local admin API should create sendable AT acquisition leads');
-  const sendableLeadId = sendable.json.lead.id;
+  const sendableLeadId = await hydrateColdLead(sendable, 'Donaustadt Robotics GmbH');
+  const sendableDoctrinePatch = await request('PATCH', `/api/cold-acquisition/leads/${sendableLeadId}`, {
+    status: 'ready',
+    crm_stage: 'ready',
+    outreach_drafts: doctrineDrafts({
+      company: 'Donaustadt Robotics GmbH',
+      proof: 'The product section explains robotics deployment for international clients.',
+      subject: 'quick thought on your positioning',
+      greeting: 'Hi Jonas,',
+      first: 'Your product page reads like a strong published B2B route.',
+      second: 'But the draft still needs a tighter buyer outcome hook.',
+      third: 'Would a 60-second clarifier video pull more enquiries?'
+    })
+  }, { apiKey: API_KEY });
+  assert.equal(sendableDoctrinePatch.status, 200, 'sendable lead should accept doctrine-compliant drafts');
+  sendable.json.lead = sendableDoctrinePatch.json.lead;
 
   const sendableDuePatch = await request('PATCH', `/acquisition/api/leads/${sendableLeadId}`, {
     next_follow_up_at: '2026-05-01'
@@ -90,20 +159,80 @@ try {
 
   const lowerScoreSendable = await request('POST', '/api/cold-acquisition/leads', lowerScoreSendableLeadBody(), { apiKey: API_KEY });
   assert.equal(lowerScoreSendable.status, 201, 'local admin API should create lower-score sendable AT lead');
+  const lowerScoreLeadId = await hydrateColdLead(lowerScoreSendable, 'Floridsdorf Sensor Ops GmbH');
+  const lowerScoreDoctrinePatch = await request('PATCH', `/api/cold-acquisition/leads/${lowerScoreLeadId}`, {
+    status: 'ready',
+    crm_stage: 'ready',
+    outreach_drafts: doctrineDrafts({
+      company: 'Floridsdorf Sensor Ops GmbH',
+      proof: 'The sensor workflow page describes deployment dashboards for industrial operators.',
+      subject: 'quick thought on your positioning',
+      greeting: 'Hi Nora,',
+      first: 'Your website shows a clear live product with a real target market.',
+      second: 'But the draft still needs a buyer-facing clarifier.',
+      third: 'Would a 60-second clarifier video help pull more enquiries?'
+    })
+  }, { apiKey: API_KEY });
+  assert.equal(lowerScoreDoctrinePatch.status, 200, 'lower-score lead should accept doctrine-compliant drafts');
+  lowerScoreSendable.json.lead = lowerScoreDoctrinePatch.json.lead;
 
   const thinEvidence = await request('POST', '/api/cold-acquisition/leads', thinEvidenceLeadBody(), { apiKey: API_KEY });
   assert.equal(thinEvidence.status, 201, 'local admin API should create thin-evidence lead');
+  const thinEvidenceLeadId = await hydrateColdLead(thinEvidence, 'Generic Growth Systems GmbH');
   assert.ok(thinEvidence.json.lead.scoring.total_score <= 40, 'thin-evidence leads should be capped at low score');
 
   const lowConfidence = await request('POST', '/api/cold-acquisition/leads', lowConfidenceSendableLeadBody(), { apiKey: API_KEY });
   assert.equal(lowConfidence.status, 201, 'local admin API should create low-confidence sendable lead');
+  const lowConfidenceLeadId = await hydrateColdLead(lowConfidence, 'Manual Signal Studio GmbH');
+  const lowConfidenceDoctrinePatch = await request('PATCH', `/api/cold-acquisition/leads/${lowConfidenceLeadId}`, {
+    status: 'ready',
+    crm_stage: 'ready',
+    outreach_drafts: doctrineDrafts({
+      company: 'Manual Signal Studio GmbH',
+      proof: 'The service page describes customer-facing video workflow reviews for product teams.',
+      subject: 'quick thought on your positioning',
+      greeting: 'Hi Eva,',
+      first: 'Your company page shows a live outbound path and a decision-maker contact.',
+      second: 'But the draft still needs a clearer reason to reply.',
+      third: 'Would a 60-second clarifier video help pull more enquiries?'
+    })
+  }, { apiKey: API_KEY });
+  assert.equal(lowConfidenceDoctrinePatch.status, 200, 'low-confidence lead should accept doctrine-compliant drafts');
 
   const blocked = await request('POST', '/api/cold-acquisition/leads', blockedLeadBody(), { apiKey: API_KEY });
   assert.equal(blocked.status, 201, 'local admin API should create blocked lead');
+  const blockedLeadId = await hydrateColdLead(blocked, 'Innere Stadt Analytics GmbH');
+  const blockedDoctrinePatch = await request('PATCH', `/api/cold-acquisition/leads/${blockedLeadId}`, {
+    outreach_drafts: doctrineDrafts({
+      company: 'Innere Stadt Analytics GmbH',
+      proof: 'The product page describes analytics workflow software for finance teams.',
+      subject: 'quick thought on your positioning',
+      greeting: 'Hi Paul,',
+      first: 'Your product page makes the buyer use case clear.',
+      second: 'But the draft still needs a cleaner reply trigger.',
+      third: 'Would a 60-second clarifier video pull more enquiries?'
+    })
+  }, { apiKey: API_KEY });
+  assert.equal(blockedDoctrinePatch.status, 200, 'blocked lead should accept doctrine-compliant drafts');
 
   const followUp = await request('POST', '/api/cold-acquisition/leads', followUpLeadBody(), { apiKey: API_KEY });
   assert.equal(followUp.status, 201, 'local admin API should create follow-up lead');
-  const followUpPatch = await request('PATCH', `/acquisition/api/leads/${followUp.json.lead.id}`, {
+  const followUpLeadId = await hydrateColdLead(followUp, 'Leopoldstadt Cloud Robotics GmbH');
+  const followUpDoctrinePatch = await request('PATCH', `/api/cold-acquisition/leads/${followUpLeadId}`, {
+    status: 'ready',
+    crm_stage: 'ready',
+    outreach_drafts: doctrineDrafts({
+      company: 'Leopoldstadt Cloud Robotics GmbH',
+      proof: 'The workflow page explains cloud robotics deployments for international logistics teams.',
+      subject: 'quick thought on your positioning',
+      greeting: 'Hi Mara,',
+      first: 'Your cloud robotics page gives a clear international deployment story.',
+      second: 'But the draft still needs a stronger buyer reply hook.',
+      third: 'Would a 60-second clarifier video pull more enquiries?'
+    })
+  }, { apiKey: API_KEY });
+  assert.equal(followUpDoctrinePatch.status, 200, 'follow-up lead should accept doctrine-compliant drafts');
+  const followUpPatch = await request('PATCH', `/acquisition/api/leads/${followUpLeadId}`, {
     status: 'sent',
     crm_stage: 'sent',
     next_follow_up_at: '2026-05-02'
@@ -144,12 +273,12 @@ try {
     'review-ready mission queue should sort by score and confidence descending'
   );
   assert.equal(missionReviewReadyIds.includes(leadId), false, 'CH review-needed lead should not be review-ready');
-  assert.equal(missionReviewReadyIds.includes(thinEvidence.json.lead.id), false, 'thin-evidence lead should not be review-ready');
-  assert.equal(missionReviewReadyIds.includes(blocked.json.lead.id), false, 'blocked lead should not be review-ready');
+  assert.equal(missionReviewReadyIds.includes(thinEvidenceLeadId), false, 'thin-evidence lead should not be review-ready');
+  assert.equal(missionReviewReadyIds.includes(blockedLeadId), false, 'blocked lead should not be review-ready');
   const missionResearchIds = mission.json.mission.needs_research.map((lead) => lead.id);
-  assert.ok(missionResearchIds.includes(thinEvidence.json.lead.id), 'thin-evidence lead should appear in needs research');
+  assert.ok(missionResearchIds.includes(thinEvidenceLeadId), 'thin-evidence lead should appear in needs research');
   assert.equal(missionResearchIds.includes(sendableLeadId), false, 'sendable lead should not appear in needs research');
-  assert.equal(missionResearchIds.includes(blocked.json.lead.id), false, 'blocked lead should not appear in needs research');
+  assert.equal(missionResearchIds.includes(blockedLeadId), false, 'blocked lead should not appear in needs research');
   const missionSendableLead = mission.json.mission.sendable.find((lead) => lead.id === sendableLeadId);
   assert.equal(missionSendableLead.preferred_draft_type, 'linkedin_intro');
   assert.equal(missionSendableLead.due_state, 'overdue');
@@ -164,19 +293,20 @@ try {
   assert.equal(nextLead.json.lead_id === leadId, false, 'CH review-needed lead should be excluded from next lead');
   assert.equal(typeof nextLead.json.score, 'number', 'next lead should include score');
 
-  const lowConfidenceMissionLead = mission.json.mission.sendable.find((lead) => lead.id === lowConfidence.json.lead.id);
+  const lowConfidenceMissionLead = mission.json.mission.sendable.find((lead) => lead.id === lowConfidenceLeadId);
   assert.ok(lowConfidenceMissionLead, 'low-confidence sendable lead should appear in mission sendable queue');
   assert.equal(lowConfidenceMissionLead.source_pipeline.confidence.level, 'low');
   assert.equal(lowConfidenceMissionLead.source_pipeline.wrong_lead_risk, true, 'low-confidence sendable lead should be flagged as wrong-lead risk');
 
-  const thinEvidenceDetail = await request('GET', `/acquisition/api/leads/${thinEvidence.json.lead.id}`, null, { cookie: fannyCookie });
+  const thinEvidenceDetail = await request('GET', `/acquisition/api/leads/${thinEvidenceLeadId}`, null, { cookie: fannyCookie });
   assert.equal(thinEvidenceDetail.status, 200, 'thin-evidence detail should be readable');
   assertSourcePipeline(thinEvidenceDetail.json.lead, 'needs-research lead detail');
   assert.equal(thinEvidenceDetail.json.lead.source_pipeline.wrong_lead_risk, false, 'wrong-lead risk should be false for needs-research leads');
 
   const unknownSource = await request('POST', '/api/cold-acquisition/leads', unknownSourceLeadBody(), { apiKey: API_KEY });
   assert.equal(unknownSource.status, 201, 'local admin API should create unknown-source low evidence lead');
-  const unknownSourceDetail = await request('GET', `/acquisition/api/leads/${unknownSource.json.lead.id}`, null, { cookie: fannyCookie });
+  const unknownSourceLeadId = await hydrateColdLead(unknownSource, 'Unknown Source Holding GmbH');
+  const unknownSourceDetail = await request('GET', `/acquisition/api/leads/${unknownSourceLeadId}`, null, { cookie: fannyCookie });
   assert.equal(unknownSourceDetail.status, 200, 'unknown-source detail should be readable');
   assert.equal(unknownSourceDetail.json.lead.source_pipeline.confidence.level, 'low', 'unknown source with no evidence should be low confidence');
   const blockedCopy = await request('POST', `/acquisition/api/leads/${leadId}/copy-draft`, {
@@ -191,12 +321,12 @@ try {
   assert.match(regenerated.json.lead.draft_specificity.profile.observed_signal, /./, 'regenerated lead should include a compiled company profile');
 
   const missionFollowUpIds = mission.json.mission.follow_ups_due.map((lead) => lead.id);
-  assert.ok(missionFollowUpIds.includes(followUp.json.lead.id), 'sent due lead should appear in follow-ups due');
+  assert.ok(missionFollowUpIds.includes(followUpLeadId), 'sent due lead should appear in follow-ups due');
   assert.equal(missionFollowUpIds.includes(sendableLeadId), false, 'sendable due lead should not appear twice');
-  const missionFollowUpLead = mission.json.mission.follow_ups_due.find((lead) => lead.id === followUp.json.lead.id);
+  const missionFollowUpLead = mission.json.mission.follow_ups_due.find((lead) => lead.id === followUpLeadId);
   assert.equal(missionFollowUpLead.due_state, 'overdue');
   assert.ok(Array.isArray(missionFollowUpLead.send_blockers));
-  const followUpDone = await request('POST', `/acquisition/api/leads/${followUp.json.lead.id}/follow-up`, {
+  const followUpDone = await request('POST', `/acquisition/api/leads/${followUpLeadId}/follow-up`, {
     next_follow_up_at: null
   }, { cookie: fannyCookie });
   assert.equal(followUpDone.status, 200, 'explicit follow-up done should clear next follow-up');
@@ -232,12 +362,27 @@ try {
 
   const sendableForExplicitMark = await request('POST', '/api/cold-acquisition/leads', explicitMarkSentLeadBody(), { apiKey: API_KEY });
   assert.equal(sendableForExplicitMark.status, 201, 'local admin API should create explicit mark-sent lead');
-  const markSentWithoutChannel = await request('POST', `/acquisition/api/leads/${sendableForExplicitMark.json.lead.id}/mark-sent`, {
+  const sendableForExplicitMarkLeadId = await hydrateColdLead(sendableForExplicitMark, 'Brigittenau Motion Stack GmbH');
+  const explicitMarkDoctrinePatch = await request('PATCH', `/api/cold-acquisition/leads/${sendableForExplicitMarkLeadId}`, {
+    status: 'ready',
+    crm_stage: 'ready',
+    outreach_drafts: doctrineDrafts({
+      company: 'Brigittenau Motion Stack GmbH',
+      proof: 'The motion stack page describes visual workflow reviews for production operators.',
+      subject: 'quick thought on your positioning',
+      greeting: 'Hi Pia,',
+      first: 'Your product page makes the buyer use case clear.',
+      second: 'But the draft still needs a cleaner reply trigger.',
+      third: 'Would a 60-second clarifier video pull more enquiries?'
+    })
+  }, { apiKey: API_KEY });
+  assert.equal(explicitMarkDoctrinePatch.status, 200, 'explicit mark-sent lead should accept doctrine-compliant drafts');
+  const markSentWithoutChannel = await request('POST', `/acquisition/api/leads/${sendableForExplicitMarkLeadId}/mark-sent`, {
     follow_up_date: '2026-05-20'
   }, { cookie: fannyCookie });
   assert.equal(markSentWithoutChannel.status, 400, 'mark-sent should require channel');
   assert.equal(markSentWithoutChannel.json.error, 'channel required');
-  const explicitMarkSent = await request('POST', `/acquisition/api/leads/${sendableForExplicitMark.json.lead.id}/mark-sent`, {
+  const explicitMarkSent = await request('POST', `/acquisition/api/leads/${sendableForExplicitMarkLeadId}/mark-sent`, {
     channel: 'linkedin',
     follow_up_date: '2026-05-20'
   }, { cookie: fannyCookie });
@@ -256,18 +401,19 @@ try {
 
   const optOutLead = await request('POST', '/api/cold-acquisition/leads', optOutLeadBody(), { apiKey: API_KEY });
   assert.equal(optOutLead.status, 201, 'local admin API should create opt-out test lead');
-  const optOutReply = await request('POST', `/acquisition/api/leads/${optOutLead.json.lead.id}/reply`, {
+  const optOutLeadId = await hydrateColdLead(optOutLead, 'Ottakring Reply Loop GmbH');
+  const optOutReply = await request('POST', `/acquisition/api/leads/${optOutLeadId}/reply`, {
     reply_type: 'opt_out',
     note: 'Please do not contact me again.'
   }, { cookie: fannyCookie });
   assert.equal(optOutReply.status, 200, 'opt-out replies should be accepted');
   assert.equal(optOutReply.json.suppressed, true);
-  assert.equal(optOutReply.json.lead_id, optOutLead.json.lead.id);
-  const optOutDetail = await request('GET', `/acquisition/api/leads/${optOutLead.json.lead.id}`, null, { cookie: fannyCookie });
+  assert.equal(optOutReply.json.lead_id, optOutLeadId);
+  const optOutDetail = await request('GET', `/acquisition/api/leads/${optOutLeadId}`, null, { cookie: fannyCookie });
   assert.equal(optOutDetail.json.lead.status, 'disqualified', 'opt-out should disqualify the lead');
   const afterOptOutMission = await request('GET', '/acquisition/api/today-mission', null, { cookie: fannyCookie });
   assert.equal(
-    afterOptOutMission.json.mission.sendable.some((lead) => lead.id === optOutLead.json.lead.id),
+    afterOptOutMission.json.mission.sendable.some((lead) => lead.id === optOutLeadId),
     false,
     'suppressed contact should not appear in sendable pool'
   );
@@ -287,7 +433,7 @@ try {
   assert.ok(leadDetail.json.activity.length >= 3, 'activity timeline should include patch, copy, and manual activity');
   assert.ok(leadDetail.json.activity.some((entry) => entry.type === 'draft_copied'));
 
-  const genericDraftPatch = await request('PATCH', `/acquisition/api/leads/${lowerScoreSendable.json.lead.id}`, {
+  const genericDraftPatch = await request('PATCH', `/acquisition/api/leads/${lowerScoreLeadId}`, {
     outreach_drafts: {
       ...lowerScoreSendable.json.lead.outreach_drafts,
       linkedin_intro: 'Hi, this could be a game-changer for your team. I can help you take your workflow to the next level.'

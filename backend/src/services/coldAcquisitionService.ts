@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import Database from 'better-sqlite3';
 import OpenAI from 'openai';
 
@@ -8,6 +10,17 @@ const deepseekClient = process.env.DEEPSEEK_API_KEY || process.env.CODE_DEEPSEEK
         baseURL: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
     })
     : null;
+
+const DOCTRINE_HEADER = (() => {
+    try {
+        return readFileSync(
+            join(process.cwd(), '_SYSTEM/campaigns/c2moviez-acquisition-workbench/18-profiler-prompt-header.md'),
+            'utf-8'
+        );
+    } catch {
+        return 'You are a B2B outreach profiler. Generate 3-sentence bodies, end with a direct question, max 60 words, no hedging.';
+    }
+})();
 
 export type ColdLeadCountry = 'CH' | 'AT';
 export type ColdLeadChannel = 'linkedin' | 'email' | 'both' | 'blocked';
@@ -111,6 +124,9 @@ export interface CompiledCompanyProfile {
     why_it_might_matter: string;
     c2moviez_relevance: string;
     safe_opening_angle: string;
+    subject_line: string;
+    cold_outreach_body: string;
+    linkedin_body: string;
     claims_to_avoid: string[];
     evidence_confidence: 'high' | 'medium' | 'low';
 }
@@ -534,7 +550,7 @@ export class ColdAcquisitionService {
             compliance
         }).level);
         const profile = this.buildOutreachProfile(company, contact, evidence, (outreach_drafts as DraftsWithCompiledProfile).__compiledProfile);
-        const draft_specificity = this.validateDraftSpecificity(outreach_drafts, company, contact, evidence, profile);
+        const draft_specificity = this.validateDraftSpecificity(outreach_drafts, company, contact, evidence, profile, channel);
         const status = this.initialStatus(scoring, dedupe, draft_specificity, channel);
         const crm_stage = this.initialCrmStage(status, scoring, channel, compliance);
         const priority_flag = scoring.total_score >= 90;
@@ -820,7 +836,7 @@ export class ColdAcquisitionService {
             updated_at: this.nowIso()
         };
         next.draft_specificity = patch.draft_specificity
-            || this.validateDraftSpecificity(next.outreach_drafts, next.company, next.contact, next.evidence);
+            || this.validateDraftSpecificity(next.outreach_drafts, next.company, next.contact, next.evidence, undefined, next.channel);
         if ((patch.status === 'sent' || patch.crm_stage === 'sent') && current.status !== 'sent') {
             this.assertCanMarkSent({ ...next, status: current.status, crm_stage: current.crm_stage });
         }
@@ -1104,13 +1120,218 @@ export class ColdAcquisitionService {
     ): Promise<ColdLeadDrafts> {
         const compiled = await this.compileCompanyProfile(company, contact, evidence, confidence);
         const profile = this.buildOutreachProfile(company, contact, evidence, compiled);
-        const drafts = this.buildDraftsFromProfile(profile, company, contact, channel, compliance);
+        const companyName = company.name;
+        const companyNameClean = this.companyNameForSubject(company.name);
+        const firstName = this.resolveFirstName(contact);
+        const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
+
+        const subjectLine = profile.subject_line || companyNameClean;
+        const coldBody = profile.cold_outreach_body || '';
+        const liBody = profile.linkedin_body || '';
+
+        const linkedin_intro = liBody
+            ? `${greeting} ${liBody}`
+            : '';
+
+        const liQuestion = (liBody.match(/[^.!?]*\?$/) || [''])[0].trim();
+        const linkedin_followup = liBody
+            ? `${greeting} following up on ${companyNameClean} — ${liQuestion || 'still curious if this is worth a quick look.'}`
+            : '';
+
+        const email_cold = (compliance.email_allowed && ['email', 'both'].includes(channel) && coldBody)
+            ? [
+                `Subject: ${subjectLine}`,
+                '',
+                greeting,
+                '',
+                coldBody,
+                '',
+                `Best,`,
+                `Fanny`,
+                `c2moviez`,
+            ].join('\n')
+            : null;
+
+        const emailQuestion = (coldBody.match(/[^.!?]*\?$/) || [''])[0].trim();
+        const email_followup = email_cold
+            ? [
+                `Subject: Re: ${subjectLine}`,
+                '',
+                greeting,
+                '',
+                `Following up on ${companyName}. ${emailQuestion || 'Still worth a look — happy to ship the example if so.'}`,
+                '',
+                `Best,`,
+                `Fanny`
+            ].join('\n')
+            : null;
+
+        const drafts = { linkedin_intro, linkedin_followup, email_cold, email_followup };
         Object.defineProperty(drafts, '__compiledProfile', {
             value: compiled,
             enumerable: false,
             configurable: false
         });
         return drafts;
+    }
+
+    private async compileCompanyProfile(
+        company: Required<ColdLeadCompany>,
+        contact: Required<ColdLeadContact>,
+        evidence: ColdLeadEvidence[],
+        confidence: 'high' | 'medium' | 'low'
+    ): Promise<CompiledCompanyProfile> {
+        const base = this.buildCompanyProfileFallback(company, contact, evidence);
+        const fallback: CompiledCompanyProfile = {
+            ...base,
+            evidence_confidence: confidence,
+            subject_line: '',
+            cold_outreach_body: '',
+            linkedin_body: ''
+        };
+
+        if (!deepseekClient) {
+            return fallback;
+        }
+
+        const evidenceLines = evidence
+            .filter((entry) => entry.detail?.trim().length > 10)
+            .slice(0, 4)
+            .map((entry) => `- ${entry.label}: ${entry.detail.trim().slice(0, 120)}`)
+            .join('\n');
+        const userMessage = [
+            `Company: ${company.name}`,
+            `Industry: ${company.industry || 'unknown'}`,
+            `Website: ${company.website || 'unknown'}`,
+            `Market: ${company.country === 'AT' ? 'Austria' : 'Switzerland'} (${company.city || 'unknown city'})`,
+            `Evidence (most important first):`,
+            evidenceLines || '- No specific evidence available',
+            '',
+            `c2moviez offers: short first-impression video angles for B2B companies — explainer videos, testimonial vignettes, behind-the-scenes, case-study reels. The goal is to help the target company convert more inbound by improving their visible communication surface.`,
+            '',
+            `Generate the outreach profile. Return ONLY valid JSON, no markdown fences, no commentary:`,
+            '',
+            `{`,
+            `  "what_we_noticed": "<analytical, 3rd person, max 100 chars — what you observed about the company for Dossier display>",`,
+            `  "why_it_might_matter": "<analytical, max 100 chars — the hidden cost or gap, for Dossier display>",`,
+            `  "c2moviez_relevance": "<analytical, max 120 chars — what specific c2moviez angle could help, for Dossier display>",`,
+            `  "safe_opening_angle": "<the specific surface, max 50 chars, e.g. 'your services page'>",`,
+            `  "subject_line": "<4-7 words, specific to the observation, NO 'quick thought on', NO 'about' — e.g. 'your DBA-to-DBA copy' or '847 words, zero visuals'>",`,
+            `  "cold_outreach_body": "<EXACTLY 3 sentences. ≤60 words total. S1: specificity anchor (concrete observation from evidence). S2: gap reframe with consequence. S3: direct question ending with '?'. Second-person POV. Earned-authority voice. NO first-person familiarity openers, no tiny-thought framing, no may-be-worth language, no perhaps/hope-this/I'd-love-to-chat phrasing. Follow the doctrine PATTERN LIBRARY examples in the system message.>",`,
+            `  "linkedin_body": "<2-3 sentences, ≤55 words. Same doctrine. Slightly more conversational. End with direct question.>",`,
+            `  "claims_to_avoid": ["<phrase 1 not in evidence>", "<phrase 2>"]`,
+            `}`
+        ].join('\n');
+
+        const createMessages = (extraNote = '') => ([
+            { role: 'system' as const, content: DOCTRINE_HEADER },
+            { role: 'user' as const, content: `${userMessage}${extraNote}` }
+        ]);
+
+        const parseProfile = (parsed: Record<string, unknown>) => {
+            const coldBody = typeof parsed.cold_outreach_body === 'string' ? parsed.cold_outreach_body.trim() : '';
+            const linkedinBody = typeof parsed.linkedin_body === 'string' ? parsed.linkedin_body.trim() : '';
+            const subjectLine = typeof parsed.subject_line === 'string' ? parsed.subject_line.trim() : '';
+            return {
+                company_name: company.name,
+                contact_name: contact.name || '',
+                contact_role: contact.title || '',
+                market: company.city || (company.country === 'AT' ? 'Austria' : 'Switzerland'),
+                website: company.website || '',
+                primary_source_url: evidence.find((entry) => entry.url)?.url || company.website || '',
+                best_surface: base.best_surface,
+                what_we_noticed: String(parsed.what_we_noticed || fallback.what_we_noticed).slice(0, 120),
+                why_it_might_matter: String(parsed.why_it_might_matter || fallback.why_it_might_matter).slice(0, 120),
+                c2moviez_relevance: String(parsed.c2moviez_relevance || fallback.c2moviez_relevance).slice(0, 130),
+                safe_opening_angle: String(parsed.safe_opening_angle || base.safe_opening_angle).slice(0, 60),
+                subject_line: subjectLine.slice(0, 80),
+                cold_outreach_body: coldBody,
+                linkedin_body: linkedinBody,
+                claims_to_avoid: Array.isArray(parsed.claims_to_avoid) ? parsed.claims_to_avoid.slice(0, 3) : fallback.claims_to_avoid,
+                evidence_confidence: confidence
+            };
+        };
+
+        const fetchProfile = async (extraNote = '') => {
+            const response = await deepseekClient.chat.completions.create({
+                model: 'deepseek-chat',
+                messages: createMessages(extraNote),
+                max_tokens: 700,
+                temperature: 0.4,
+                response_format: { type: 'json_object' }
+            });
+
+            const raw = response.choices[0]?.message?.content?.trim();
+            if (!raw) throw new Error('empty response');
+            return JSON.parse(raw) as Record<string, unknown>;
+        };
+
+        try {
+            let parsed = await fetchProfile();
+            let coldValidation = this.validateDoctrineCompliance(String(parsed.cold_outreach_body || ''));
+            let linkedinValidation = this.validateDoctrineCompliance(String(parsed.linkedin_body || ''));
+
+            if (!coldValidation.passed || !linkedinValidation.passed) {
+                const reason = !coldValidation.passed ? coldValidation.reason : linkedinValidation.reason;
+                console.error('Doctrine validation failed', {
+                    company: company.name,
+                    cold_reason: coldValidation.reason,
+                    linkedin_reason: linkedinValidation.reason,
+                    reason
+                });
+                try {
+                    parsed = await fetchProfile(`\n\nYour previous attempt FAILED: ${reason}. Regenerate strictly following the doctrine.`);
+                    coldValidation = this.validateDoctrineCompliance(String(parsed.cold_outreach_body || ''));
+                    linkedinValidation = this.validateDoctrineCompliance(String(parsed.linkedin_body || ''));
+                } catch (error) {
+                    console.error('Doctrine retry failed', {
+                        company: company.name,
+                        reason,
+                        error: error instanceof Error ? error.message : String(error)
+                    });
+                }
+            }
+
+            const profile = parseProfile(parsed);
+            if (!coldValidation.passed) profile.cold_outreach_body = '';
+            if (!linkedinValidation.passed) profile.linkedin_body = '';
+            return profile;
+        } catch {
+            return fallback;
+        }
+    }
+
+    private validateDoctrineCompliance(body: string): { passed: boolean; reason: string } {
+        if (!body || body.trim().length === 0) return { passed: false, reason: 'empty body' };
+
+        const forbidden = [
+            /I came across/i,
+            /I was looking at/i,
+            /Tiny thought/i,
+            /Quick idea/i,
+            /Just wondering/i,
+            /may be worth/i,
+            /might help/i,
+            /\bperhaps\b/i,
+            /I'd love to chat/i,
+            /let me know if interested/i,
+            /hope this/i,
+            /no pressure/i,
+        ];
+
+        for (const pattern of forbidden) {
+            if (pattern.test(body)) {
+                return { passed: false, reason: `forbidden phrase: ${pattern.source}` };
+            }
+        }
+
+        const wordCount = body.trim().split(/\s+/).length;
+        if (wordCount > 70) return { passed: false, reason: `too long: ${wordCount} words` };
+        if (wordCount < 8) return { passed: false, reason: `too short: ${wordCount} words` };
+
+        if (!/\?\s*$/.test(body.trim())) return { passed: false, reason: 'must end with a question mark' };
+
+        return { passed: true, reason: '' };
     }
 
     private buildDraftsFromProfile(
@@ -1124,54 +1345,42 @@ export class ColdAcquisitionService {
         const companyNameClean = this.companyNameForSubject(company.name);
         const firstName = this.resolveFirstName(contact);
         const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
-        const shortSubject = `quick thought on ${profile.safe_opening_angle || companyNameClean}`;
-        const observation = profile.observed_signal || `${companyName} has a visible public presence`;
-        const relevance = profile.c2moviez_relevance || 'a short first-impression angle may be worth checking';
-        const surface = profile.safe_opening_angle || 'that page';
 
-        const linkedin_intro = [
-            `${greeting} I noticed ${observation}.`,
-            `Tiny thought: if ${surface} is part of a first impression for potential clients, ${relevance} may be worth checking.`,
-            `I can send the short angle if useful.`
-        ].join(' ');
+        const subjectLine = profile.subject_line || companyNameClean;
+        const coldBody = profile.cold_outreach_body || '';
+        const liBody = profile.linkedin_body || '';
 
-        const linkedin_followup = [
-            `${greeting} quick follow-up on ${companyNameClean}.`,
-            `The same detail still stands - I noticed ${observation}.`,
-            `If useful, I can send the short angle. If not, I will leave it here.`
-        ].join(' ');
+        const linkedin_intro = liBody
+            ? `${greeting} ${liBody}`
+            : '';
 
-        const email_cold = compliance.email_allowed && ['email', 'both'].includes(channel)
+        const liQuestion = (liBody.match(/[^.!?]*\?$/) || [''])[0].trim();
+        const linkedin_followup = liBody
+            ? `${greeting} following up on ${companyNameClean} — ${liQuestion || 'still curious if this is worth a quick look.'}`
+            : '';
+
+        const email_cold = (compliance.email_allowed && ['email', 'both'].includes(channel) && coldBody)
             ? [
-                `Subject: ${shortSubject}`,
+                `Subject: ${subjectLine}`,
                 '',
                 greeting,
                 '',
-                `I came across ${companyName}. I noticed ${observation}.`,
-                '',
-                `Tiny thought: if ${surface} is often a first impression for enterprise clients, ${relevance} may be worth checking before they enquire.`,
-                '',
-                `I can send a short example angle if useful.`,
+                coldBody,
                 '',
                 `Best,`,
                 `Fanny`,
                 `c2moviez`,
-                '',
-                `If this is not relevant, just reply "no thanks" and I will close the loop.`
             ].join('\n')
             : null;
 
+        const emailQuestion = (coldBody.match(/[^.!?]*\?$/) || [''])[0].trim();
         const email_followup = email_cold
             ? [
-                `Subject: Re: ${shortSubject}`,
+                `Subject: Re: ${subjectLine}`,
                 '',
                 greeting,
                 '',
-                `Quick follow-up on ${companyNameClean}.`,
-                '',
-                `The same detail still stands - I noticed ${observation}.`,
-                '',
-                `If useful, I can send the short angle. If not, I will leave it here.`,
+                `Following up on ${companyName}. ${emailQuestion || 'Still worth a look — happy to ship the example if so.'}`,
                 '',
                 `Best,`,
                 `Fanny`
@@ -1179,77 +1388,6 @@ export class ColdAcquisitionService {
             : null;
 
         return { linkedin_intro, linkedin_followup, email_cold, email_followup };
-    }
-
-    private async compileCompanyProfile(
-        company: Required<ColdLeadCompany>,
-        contact: Required<ColdLeadContact>,
-        evidence: ColdLeadEvidence[],
-        confidence: 'high' | 'medium' | 'low'
-    ): Promise<CompiledCompanyProfile> {
-        const base = this.buildCompanyProfileFallback(company, contact, evidence);
-        const fallback: CompiledCompanyProfile = {
-            ...base,
-            evidence_confidence: confidence
-        };
-
-        if (!deepseekClient) {
-            return fallback;
-        }
-
-        const evidenceLines = evidence
-            .filter((entry) => entry.detail?.trim().length > 10)
-            .slice(0, 4)
-            .map((entry) => `- ${entry.label}: ${entry.detail.trim().slice(0, 120)}`)
-            .join('\n');
-
-        const prompt = `You are a B2B outreach profiler for c2moviez, a video production company that creates short first-impression video angles for B2B companies. Given raw evidence about a company, produce a prospect-facing outreach profile in JSON.
-
-Company: ${company.name}
-Industry: ${company.industry || 'unknown'}
-Website: ${company.website || 'unknown'}
-Evidence:
-${evidenceLines || '- No specific evidence available'}
-
-Return ONLY valid JSON, no explanation, no markdown:
-{
-  "what_we_noticed": "<One sentence, max 90 chars. What is specifically observable about this company from the outside - their positioning, main service, or visible feature of their communication surface. Second-person framing preferred ('your X describes...'). No geography, no postal codes, no internal notes.>",
-  "why_it_might_matter": "<One sentence, max 90 chars. Why the observable thing matters commercially for their potential clients. Prospect-facing only.>",
-  "c2moviez_relevance": "<One sentence, max 110 chars. What specific short video angle c2moviez could offer this company. Reference the surface.>",
-  "safe_opening_angle": "<The specific surface Fanny is commenting on, max 50 chars. E.g. 'your services page', 'your homepage', 'your LinkedIn intro'.>",
-  "claims_to_avoid": ["<thing not in evidence 1>", "<thing not in evidence 2>"]
-}`;
-
-        try {
-            const response = await deepseekClient.chat.completions.create({
-                model: 'deepseek-chat',
-                messages: [{ role: 'user', content: prompt }],
-                max_tokens: 350,
-                temperature: 0.3,
-                response_format: { type: 'json_object' }
-            });
-
-            const raw = response.choices[0]?.message?.content?.trim();
-            if (!raw) throw new Error('empty response');
-            const parsed = JSON.parse(raw);
-            return {
-                company_name: company.name,
-                contact_name: contact.name || '',
-                contact_role: contact.title || '',
-                market: company.city || (company.country === 'AT' ? 'Austria' : 'Switzerland'),
-                website: company.website || '',
-                primary_source_url: evidence.find((entry) => entry.url)?.url || company.website || '',
-                best_surface: base.best_surface,
-                what_we_noticed: String(parsed.what_we_noticed || fallback.what_we_noticed).slice(0, 120),
-                why_it_might_matter: String(parsed.why_it_might_matter || fallback.why_it_might_matter).slice(0, 120),
-                c2moviez_relevance: String(parsed.c2moviez_relevance || fallback.c2moviez_relevance).slice(0, 130),
-                safe_opening_angle: String(parsed.safe_opening_angle || base.safe_opening_angle).slice(0, 60),
-                claims_to_avoid: Array.isArray(parsed.claims_to_avoid) ? parsed.claims_to_avoid.slice(0, 3) : fallback.claims_to_avoid,
-                evidence_confidence: confidence
-            };
-        } catch {
-            return fallback;
-        }
     }
 
     async regenerateDraftsForLead(lead: ColdLeadRecord): Promise<{ outreach_drafts: ColdLeadDrafts; draft_specificity: ColdLeadDraftSpecificity }> {
@@ -1262,7 +1400,7 @@ Return ONLY valid JSON, no explanation, no markdown:
         const outreach_drafts = await this.generateDrafts(lead.company, lead.contact, lead.evidence, lead.channel, lead.compliance, confidence);
         const compiled = (outreach_drafts as DraftsWithCompiledProfile).__compiledProfile;
         const profile = this.buildOutreachProfile(lead.company, lead.contact, lead.evidence, compiled);
-        const draft_specificity = this.validateDraftSpecificity(outreach_drafts, lead.company, lead.contact, lead.evidence, profile);
+        const draft_specificity = this.validateDraftSpecificity(outreach_drafts, lead.company, lead.contact, lead.evidence, profile, lead.channel);
         return { outreach_drafts, draft_specificity };
     }
 
@@ -1327,6 +1465,9 @@ Return ONLY valid JSON, no explanation, no markdown:
             why_it_might_matter: whyItMightMatter,
             c2moviez_relevance: c2moviezRelevance,
             safe_opening_angle: bestSurface,
+            subject_line: '',
+            cold_outreach_body: '',
+            linkedin_body: '',
             claims_to_avoid: [
                 'Do not claim revenue, conversion, demand, or pipeline lift.',
                 'Do not say the company is struggling, failing, leaking attention, or doing something wrong.',
@@ -1504,7 +1645,8 @@ Return ONLY valid JSON, no explanation, no markdown:
         company: Required<ColdLeadCompany>,
         contact: Required<ColdLeadContact>,
         evidence: ColdLeadEvidence[],
-        profile?: ColdLeadOutreachProfile
+        profile?: ColdLeadOutreachProfile,
+        channel?: ColdLeadChannel
     ): ColdLeadDraftSpecificity {
         const combined = Object.values(drafts).filter(Boolean).join('\n').toLowerCase();
         const observedProfile = profile || this.buildOutreachProfile(company, contact, evidence);
@@ -1529,9 +1671,12 @@ Return ONLY valid JSON, no explanation, no markdown:
         if (this.hasSourceLeakage(combined)) warnings.push('source_leakage');
         if (this.hasOverlongDraft(drafts)) warnings.push('overlong_draft');
         if (this.hasDuplicateObservation(observedProfile.observed_signal, company.name)) warnings.push('duplicate_observation');
+        const doctrineComplianceFailed = ['email', 'both'].includes(channel || '') && !drafts.email_cold?.trim();
+        if (doctrineComplianceFailed) warnings.push('doctrine_compliance_failed');
 
         const evaluation = this.evaluateDrafts(drafts, company, contact, evidence);
-        const readiness = this.resolveDraftReadiness(missing, warnings, evaluation);
+        let readiness = this.resolveDraftReadiness(missing, warnings, evaluation);
+        if (doctrineComplianceFailed && readiness === 'ready_to_rework') readiness = 'draft_review';
 
         return {
             valid: missing.length === 0 && readiness === 'ready_to_rework' && evaluation.passed,
@@ -2299,7 +2444,7 @@ const check = (url) => new Promise((resolve) => {
         const storedDrafts = JSON.parse(row.outreach_drafts_json);
         const draft_versions = row.draft_versions_json ? JSON.parse(row.draft_versions_json) : this.initialDraftVersions(storedDrafts, row.created_at);
         const outreach_drafts = this.normalizeGeneratedDrafts(storedDrafts, draft_versions, company, contact, evidence, row.channel, compliance);
-        const draft_specificity = this.normalizeDraftSpecificity(JSON.parse(row.draft_specificity_json), outreach_drafts, company, contact, evidence);
+        const draft_specificity = this.normalizeDraftSpecificity(JSON.parse(row.draft_specificity_json), outreach_drafts, company, contact, evidence, row.channel);
         const dedupe = JSON.parse(row.dedupe_json);
         const scoring = this.calculateScores(company, contact, evidence, scoringSignals);
         return {
@@ -2338,12 +2483,13 @@ const check = (url) => new Promise((resolve) => {
         drafts: ColdLeadDrafts,
         company: Required<ColdLeadCompany>,
         contact: Required<ColdLeadContact>,
-        evidence: ColdLeadEvidence[]
+        evidence: ColdLeadEvidence[],
+        channel: ColdLeadChannel
     ): ColdLeadDraftSpecificity {
-        if (!stored?.warnings || !stored?.readiness || !stored?.profile) return this.validateDraftSpecificity(drafts, company, contact, evidence);
-        const current = this.validateDraftSpecificity(drafts, company, contact, evidence);
+        if (!stored?.warnings || !stored?.readiness || !stored?.profile) return this.validateDraftSpecificity(drafts, company, contact, evidence, undefined, channel);
+        const current = this.validateDraftSpecificity(drafts, company, contact, evidence, undefined, channel);
         if (current.readiness !== stored.readiness || current.profile.observed_signal !== stored.profile.observed_signal) return current;
-        return this.validateDraftSpecificity(drafts, company, contact, evidence);
+        return this.validateDraftSpecificity(drafts, company, contact, evidence, undefined, channel);
     }
 
     private normalizeGeneratedDrafts(
@@ -2367,7 +2513,7 @@ const check = (url) => new Promise((resolve) => {
             || /Subject:\s*quick note on your (?:positioning|services page|workflow page|product page)/i.test(combined)
             || /quick follow-up on your (?:positioning|services page|workflow page|product page)/i.test(combined)
             || /Worth sending you a short example angle\?/i.test(combined)
-            || /I came across .* while looking at/i.test(combined);
+            || /\bI\s+came\s+across\b.*\bwhile looking at\b/i.test(combined);
         return stale ? this.buildDraftsFromProfile(this.buildOutreachProfile(company, contact, evidence), company, contact, channel, compliance) : drafts;
     }
 

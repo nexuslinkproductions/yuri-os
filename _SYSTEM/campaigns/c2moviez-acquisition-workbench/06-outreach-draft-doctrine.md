@@ -1,5 +1,7 @@
 # PRISM Outreach Draft Doctrine
 
+> **SUPERSEDED FOR BODY GENERATION:** Email/LinkedIn body copy is now governed by `17-coldreach-body-instruction.md` and the embedded `18-profiler-prompt-header.md`. The "Tiny thought" / "may be worth" templates below are deprecated and forbidden by the new doctrine. This file remains authoritative for the profile YAML schema, evaluation rubric structure, and the follow-up framing pattern.
+
 ## Purpose
 
 PRISM drafts are not sales blasts. They are concise, real-world cold outreach entry points for Fanny to review and rework before manual sending.
