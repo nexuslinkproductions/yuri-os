@@ -2,7 +2,9 @@
 
 - [Oracle Shell Service](project_shell_service.md) — launchd-managed shellService.js on port 3098; fixes pm2 posix_spawn EBADF for Oracle terminal
 
+- [Always surface next steps](feedback_always_next_steps.md) — End every response with next steps / open campaigns / pending to-dos; never wait to be asked
 - [No Anthropic model agents](feedback_no_anthropic_agents.md) — Agent() with Claude/Haiku/Sonnet/Opus is banned; use DeepSeek offload only
+- [Codex is primary co-pilot](feedback_codex_primary_partner.md) — Codex (gpt-5.5/5.4-mini) is always first implementation lane; DeepSeek is on-call only when explicitly named
 - [package.json dirty worktree](feedback_packagejson_dirty_worktree.md) — worktree has unrelated script churn; touch only the exact target entry, never normalize or reorder
 - [Canonical cwd + branch](feedback_canonical_cwd_branch.md) — Always work from /Users/marcelspatz/NUDIMMUD on main; never worktrees/feature branches; stop+ask on mismatch
 - [Reasoning mode default](feedback_reasoning_mode.md) — Reasoning always on auto; only MAX if explicitly requested in session
@@ -10,6 +12,7 @@
 - [offload.sh DeepSeek timeout](feedback_offload_timeout.md) — Set timeout: 600000 on all Bash calls to Scripts/offload.sh for DeepSeek lanes
 - [DeepSeek may call tools](feedback_deepseek_tools.md) — Do not forbid tool use in DeepSeek workhorse system prompts; tools are allowed by design
 - [Display setup — wide viewports](feedback_display_setup.md) — User on 16" MBP + 34" Asus ProArt ultrawide; verify hero framing at 1920–2560px, not just 1280px preset
+- [T7 paths are intentional](feedback_t7_paths_are_intentional.md) — /Volumes/T7/NUDIMMUD references in repo files are by design (sync mirror); never mass-rewrite — flagged BIG ERROR by user 2026-05-13
 
 - [Nexus Link Document Template](document_template_nexus_link.md) — Brand-aligned legal letter + equipment schedule template (HTML→PDF via Puppeteer)
 - [HUD OS Revamp Apr 2026](project_hud_revamp.md) — Oracle rebuilt as React + SSE streaming, token bars, pixel logo, design-master skill, VSCode primary IDE
@@ -21,3 +24,6 @@
 - [Wake Word Daemon](project_wake_word_system.md) — SpeechRecognition single-instance constraint, isSpeechActive flag, __resumeWakeWord global, oracle-mic-toggle ID, 450ms retry
 - [session-state.json Wipe Bug](project_session_state_bug.md) — token-session-init.js subagent-wipe fix; 4h active guard preserves session state across subagent spawns
 - [End of Transmission Command](project_eot_command.md) — global session-close; triggers on "end of transmission"/eot; 9-phase evidence reflection → skill patches → boot packet → Sonnet finalisation
+- [Claude-First Transition](project_claude_first_transition.md) — Claude Code = control plane, Codex = impl lane; AGENTS.md + CODEX_PROTOCOL.md done; model/MCP credentials pending
+- [PRISM v1 Complete](project_prism_v1_complete.md) — c2moviez Workbench v1 core loop: source pipeline + quality engine + send/reply/opt-out merged main 2026-05-13
+- [Perplexity Pro Integration](feedback_perplexity_integration.md) — Primary research/browser tool: Deep Research (125-source), 9 models incl GPT-5.5 Max + Opus 4.7, Filesystem full disk access, watch_folder, Comet; never use Safari

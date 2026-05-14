@@ -11,7 +11,12 @@ const OFFLOAD_CONTRACT = {
     steeringPrefixes: ['btw', '/btw'],
     compatibilityOnly: ['@lane', '/tokenmaxxing', 'btw', '/btw', 'btw offload this']
   },
-  routingPriority: ['@code-local', '@deepseek', '@triage-local', '@summarize-local', '@ollama-local', '@gpt-oss', '@swarm', '@kimi', '@claude'],
+  // HARD RULE (2026-05-14): Codex is Claude's permanent implementation co-pilot.
+  // Codex (gpt-5.5 / gpt-5.4-mini) is ALWAYS first for implementation tasks.
+  // DeepSeek = on-call only when explicitly named or for analysis-only work.
+  // Symbiotic Pulse = Claude (control) + Codex (implementation) + DeepSeek (analysis on demand).
+  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@swarm', '@kimi', '@deepseek', '@claude'],
+  routingPriorityAnalysis: ['@deepseek-v4-pro', '@deepseek-v4-flash', '@gpt-5.5'],
   universalWorkflow: [
     {
       phase: 'intake',
