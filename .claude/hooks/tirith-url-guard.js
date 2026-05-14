@@ -8,6 +8,21 @@ const TIRITH_BIN = process.env.HOME ? `${process.env.HOME}/.hermes/bin/tirith` :
 const URL_RE = /https?:\/\/[^\s"'`<>]+/gi;
 const FLAGGED = new Set(['MEDIUM', 'HIGH', 'CRITICAL']);
 const SAFE = new Set(['LOW', 'SAFE']);
+const FAIL_LOUD = process.env.TIRITH_FAIL_LOUD === '1';
+
+// PATCH 007: fail-loud mode. When TIRITH_FAIL_LOUD=1, error/missing-binary paths
+// emit permissionDecision="ask" instead of silent exit(0). Default OFF preserves
+// backward compatibility; set in user environment when paranoid security is desired.
+function emitFailLoudAsk(reason) {
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'ask',
+      permissionDecisionReason: `tirith check failed (fail-loud mode): ${reason} — review URL manually`,
+    },
+  }) + '\n');
+  process.exit(0);
+}
 
 function quote(arg) {
   return `'${String(arg).replace(/'/g, `'\"'\"'`)}'`;
@@ -28,7 +43,7 @@ function parseAssessment(output) {
 
   try {
     const parsed = JSON.parse(text);
-    const candidate = parsed?.risk || parsed?.riskLevel || parsed?.level || parsed?.severity;
+    const candidate = parsed?.risk || parsed?.riskLevel || parsed?.risk_level || parsed?.level || parsed?.severity;
     const reason = parsed?.reason || parsed?.message || parsed?.details || '';
     if (candidate) return { level: String(candidate).toUpperCase(), reason: String(reason).trim() };
   } catch (_) {}
@@ -66,9 +81,15 @@ try {
   if (!urls.length) process.exit(0);
 
   for (const url of urls) {
-    if (!TIRITH_BIN || !fs.existsSync(TIRITH_BIN)) process.exit(0);
+    if (!TIRITH_BIN || !fs.existsSync(TIRITH_BIN)) {
+      if (FAIL_LOUD) emitFailLoudAsk('tirith binary missing');
+      process.exit(0);
+    }
     const assessment = runTirith(url);
-    if (!assessment) continue;
+    if (!assessment) {
+      if (FAIL_LOUD) emitFailLoudAsk(`could not parse tirith score for ${url}`);
+      continue;
+    }
     if (FLAGGED.has(assessment.level)) {
       process.stdout.write(JSON.stringify({
         hookSpecificOutput: {
@@ -82,6 +103,7 @@ try {
     if (!SAFE.has(assessment.level)) continue;
   }
   process.exit(0);
-} catch (_) {
+} catch (err) {
+  if (FAIL_LOUD) emitFailLoudAsk(`uncaught error: ${err.message || err}`);
   process.exit(0);
 }

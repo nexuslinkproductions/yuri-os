@@ -24,12 +24,12 @@ if (opts.dryRun) {
 
 const apiKey = process.env.PERPLEXITY_API_KEY || '';
 if (!apiKey) {
-  process.stderr.write(JSON.stringify({ lane: 'perplexity', model: opts.model, status: 'BLOCKED_MISSING_KEY', reason: 'Missing PERPLEXITY_API_KEY', exitCode: 1 }) + '\n');
+  process.stderr.write(JSON.stringify({ envelopeVersion: "1.0", lane: 'perplexity', model: opts.model, status: 'BLOCKED_MISSING_KEY', reason: 'Missing PERPLEXITY_API_KEY', exitCode: 1 }) + '\n');
   process.exit(1);
 }
 
 if (!prompt) {
-  process.stderr.write(JSON.stringify({ lane: 'perplexity', model: opts.model, status: 'BLOCKED_MISSING_PROMPT', reason: 'Missing prompt.', exitCode: 1 }) + '\n');
+  process.stderr.write(JSON.stringify({ envelopeVersion: "1.0", lane: 'perplexity', model: opts.model, status: 'BLOCKED_MISSING_PROMPT', reason: 'Missing prompt.', exitCode: 1 }) + '\n');
   process.exit(1);
 }
 
@@ -38,7 +38,7 @@ if (result.ok) {
   process.stdout.write(result.text + (result.text.endsWith('\n') ? '' : '\n'));
   process.exit(0);
 } else {
-  process.stderr.write(JSON.stringify({ lane: 'perplexity', model: result.model, status: 'FAILED', reason: result.reason, exitCode: result.exitCode }) + '\n');
+  process.stderr.write(JSON.stringify({ envelopeVersion: "1.0", lane: 'perplexity', model: result.model, status: 'FAILED', reason: result.reason, exitCode: result.exitCode }) + '\n');
   process.exit(1);
 }
 
@@ -120,6 +120,7 @@ function parseArgs(rest) {
 
 function buildPreview(opts, prompt) {
   return {
+    envelopeVersion: "1.0",
     lane:     'perplexity',
     model:    opts.model,
     status:   'DRY_RUN',

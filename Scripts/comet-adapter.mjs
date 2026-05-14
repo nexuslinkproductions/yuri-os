@@ -12,14 +12,43 @@ const TOOL_MAP = Object.freeze({
 const argv = process.argv.slice(2);
 const dryRun = argv.includes('--dry-run');
 const prompt = resolvePrompt(argv);
+const lane = 'comet';
+const model = 'comet-browser';
 
 if (!prompt && !dryRun) {
-  writeJson({ offload: 'comet', error: 'Missing prompt', prompt: '' });
+  emitStatus({ envelopeVersion: "1.0", lane, model, status: 'BLOCKED_MISSING_PROMPT', reason: 'Missing prompt.', exitCode: 61 });
+  process.exit(1);
+}
+
+const plan = buildPlan(prompt, dryRun);
+
+if (dryRun) {
+  emitStatus({
+    envelopeVersion: "1.0",
+    lane,
+    model,
+    status: 'DRY_RUN',
+    reason: 'Comet dry-run plan generated.',
+    exitCode: 0,
+    ...plan,
+  });
   process.exit(0);
 }
 
-writeJson(buildPlan(prompt, dryRun));
+// ── Live dispatch ────────────────────────────────────────────────
+emitStatus({
+  envelopeVersion: "1.0",
+  lane,
+  model,
+  status: 'OK',
+  reason: 'Comet plan dispatched.',
+  exitCode: 0,
+  ...plan,
+});
 
+process.exit(0);
+
+// ── Helpers ─────────────────────────────────────────────────────
 function resolvePrompt(args) {
   const envPrompt = (process.env.OFFLOAD_PROMPT_TEXT || '').trim();
   if (envPrompt) return envPrompt;
@@ -29,7 +58,6 @@ function resolvePrompt(args) {
 function buildPlan(originalPrompt, previewOnly) {
   const plannedActions = planActions(originalPrompt);
   return {
-    offload: 'comet',
     ...(previewOnly ? { preview: true } : { dispatchId: randomUUID() }),
     originalPrompt,
     plannedActions,
@@ -86,6 +114,6 @@ function hasWord(text, word) {
   return new RegExp(`\\b${word}\\b`, 'i').test(text);
 }
 
-function writeJson(value) {
-  process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
+function emitStatus(data) {
+  process.stderr.write(`${JSON.stringify(data, null, 2)}\n`);
 }

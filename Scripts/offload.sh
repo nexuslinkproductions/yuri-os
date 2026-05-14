@@ -326,6 +326,8 @@ dispatch_model() {
       tool_args=(--no-tools)
     fi
 
+    check_branch_lock_advisory "$prompt"
+
     # Normalize model IDs to agent names where possible
   case "$target_model" in
       claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)
@@ -403,6 +405,31 @@ dispatch_model() {
         return 1
         ;;
     esac
+}
+
+check_branch_lock_advisory() {
+  local prompt="$1"
+  local candidate
+  local json_tmp
+  local check_output
+  local conflict_id
+
+  while IFS= read -r candidate; do
+    case "$candidate" in
+      */*|.*|*.*) ;;
+      *) continue ;;
+    esac
+
+    json_tmp="$(mktemp "${TMPDIR:-/tmp}/branch-lock.XXXXXX")"
+    check_output="$(node "$SCRIPT_DIR/branch-lock.mjs" --check "$candidate" --json 2>"$json_tmp" || true)"
+
+    if [[ "$check_output" == "LOCKED" ]]; then
+      conflict_id="$(node -e 'const fs = require("fs"); const file = process.argv[1]; try { const payload = JSON.parse(fs.readFileSync(file, "utf8")); const lock = payload.conflict; process.stdout.write(lock && lock.id ? lock.id : "unknown"); } catch { process.stdout.write("unknown"); }' "$json_tmp")"
+      printf '%s\n' "⬡ BRANCH_LOCK_ADVISORY :: file=$candidate locked_by=$conflict_id" >&2
+    fi
+
+    rm -f "$json_tmp"
+  done < <(printf '%s\n' "$prompt" | grep -oE "\"[^\"]+\"|'[^']+'" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//" || true)
 }
 
 route_log() {

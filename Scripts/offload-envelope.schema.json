@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NUDIMMUD Offload Adapter Envelope v1.0",
+  "type": "object",
+  "required": ["lane", "model", "status", "envelopeVersion"],
+  "properties": {
+    "envelopeVersion": { "type": "string", "const": "1.0" },
+    "lane": { "type": "string" },
+    "model": { "type": "string" },
+    "status": { "type": "string", "enum": ["OK", "DRY_RUN", "FAILED", "BLOCKED_MISSING_KEY", "BLOCKED_MISSING_PROMPT", "SKIPPED_OR_RATE_LIMITED", "SMOKE_OK", "SMOKE_MISMATCH"] },
+    "reason": { "type": "string" },
+    "exitCode": { "type": "integer" },
+    "artifactDir": { "type": "string" }
+  },
+  "additionalProperties": true
+}
