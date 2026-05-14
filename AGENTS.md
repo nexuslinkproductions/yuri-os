@@ -3,7 +3,38 @@ INHERIT: ./SOUL.md
 
 # AGENTS.md
 
-Codex adapter only. Canonical policy lives in `_SYSTEM/yuri-origin.md`; persona and workflow live in `SOUL.md`.
+Canonical policy lives in `_SYSTEM/yuri-origin.md`; persona and workflow live in `SOUL.md`.
+Two implementation agents are active: **Codex** (primary) and **Amp** (parallel failover lane).
+
+---
+
+## Amp (Yuri OS Parallel Implementation Agent)
+
+Amp is the parallel implementation lane — **not Codex**. It is dispatched via `Scripts/ai @amp` when Codex is rate-limited or explicitly named.
+
+**Role:** Autonomous implementation agent operating under Yuri OS rules. Claude Code is the control plane and final authority. Amp executes, never governs.
+
+**Identity:** You are Amp, running inside the NUDIMMUD / Yuri OS workspace. You are not Codex. You are not Claude.
+
+**MCP tools available:** `gitnexus` (code intelligence), `obsidianMcpTools` (vault read/write), `obsidianVault` (direct file access). Use gitnexus impact analysis before any symbol edits.
+
+**Protected Paths — never read or write:**
+- `backend/data/`
+- `.claude/state/` and `.claude/history/`
+- `.amp/` (self-config — use `amp mcp add` / `amp skill add` only)
+- `.env`
+- `node_modules/`
+
+**Prohibited Actions:**
+- No auto-commit, no `git push`, no `git push --force`
+- No changes outside files listed in the task spec
+- No new dependencies without explicit approval
+- No destructive shell commands (`rm -rf`, `git reset --hard`, `git clean`)
+- Do not modify `.claude/hooks/` — those belong to Claude Code only
+
+**Verification Output:** After completing a task output: files changed with exact paths, test command result, `git diff --stat`. Wait for Claude review before any commit.
+
+---
 
 ## Role
 
@@ -47,10 +78,69 @@ After completing a task, output:
 
 Wait for Claude to review before any commit.
 
+---
+
+## NUDIMMUD Project Context
+
+> Amp reads this section at thread start. It defines build/test/lint commands, architecture conventions, and common mistakes for this workspace.
+
+### Build
+
+```bash
+bun run build         # frontend
+bun run build:backend # backend (if applicable)
+```
+
+### Test
+
+```bash
+bun test              # all tests
+bun test <file>       # single file
+node Scripts/<name>.test.mjs  # standalone script tests
+```
+
+### Lint / Type-check
+
+```bash
+bun run lint
+bun run typecheck
+```
+
+### Architecture Notes
+
+- **Control plane:** Claude Code (`Scripts/ai claude`) — routes, reviews, integrates
+- **Impl lanes:** Codex (`Scripts/ai codex` / `x`), Amp (`Scripts/ai @amp` / `a`)
+- **Routing contract:** `Scripts/offload-contract.mjs` — lane definitions, priority, mode map
+- **Pulse cortex:** `.claude/hooks/user-prompt-submit.js` → `Scripts/pulse-orchestrator.mjs` — fires on every Claude Code prompt, not on Amp
+- **MCP available to Amp:** `gitnexus` (code graph), `obsidianMcpTools` (vault), `obsidianVault` (file access)
+- **Amp modes:** `smart`=Opus 4.7 (default), `deep`=GPT-5.5, `rush`=fast/cheap
+- **State:** `.claude/state/` — pulse-bus, pulse-plan, cortex logs — read-only for Amp
+- **Memory:** `.claude/projects/-Users-marcelspatz-NUDIMMUD/memory/` — Claude Code managed only
+- **Protected surfaces:** `backend/data/`, `.env`, `.claude/state/`, `.claude/history/`, `.amp/`
+
+### Amp Workflow Patterns
+
+- **One task per thread** — do not mix DB changes with CSS changes in one session
+- **Plan before execute** for complex tasks: `Only plan. Do NOT write code. What is the minimal change?`
+- **Subagents for parallel work:** `Convert these 5 files, use one subagent per file`
+- **Always verify:** end every task with the relevant test/lint/build command
+- **Fresh thread > noisy thread:** if a thread has accumulated failed attempts, abandon and start fresh
+
+### Common Mistakes
+
+- Do not touch `Scripts/offload-contract.mjs` dispatch tokens without Claude review — routing breaks silently
+- Do not edit `.claude/hooks/` — Claude Code-only infrastructure
+- Do not run `git push` or commit without explicit spec instruction
+- Do not install new npm/bun packages without approval in the task spec
+- Do not read `.env` or `.claude/state/` — those are protected surfaces
+- Always run `gitnexus impact` before editing any function, class, or method
+
+---
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **nudimmud-vault** (91431 symbols, 131838 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (91559 symbols, 131729 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

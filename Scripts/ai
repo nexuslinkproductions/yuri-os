@@ -391,6 +391,42 @@ run_codex_offload() {
   exec codex exec --cd "$ROOT_DIR" "@${agent} $(join_prompt "$@")"
 }
 
+run_amp_offload() {
+  local mode="${1:-rush}"
+  shift
+
+  # Mode-hint flags: --deep → GPT-5.5 reasoning, --rush → fast/cheap
+  while [[ "${1:-}" == --* ]]; do
+    case "$1" in
+      --deep) mode="deep"; shift ;;
+      --rush) mode="rush"; shift ;;
+      *) break ;;
+    esac
+  done
+
+  local prompt
+  prompt="$(join_prompt "$@")"
+
+  if [ -z "$prompt" ]; then
+    usage
+    exit 1
+  fi
+
+  if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
+    printf 'amp -x --mode %s --cd %s "[YURI_OS] %s"\n' "$mode" "$ROOT_DIR" "$prompt"
+    return
+  fi
+
+  require_cmd amp
+  # Preamble tells Amp its Yuri OS identity before every headless task.
+  # smart=Opus 4.7 (default, unconstrained), deep=GPT-5.5 (architecture/reasoning), rush=fast (mechanical tasks)
+  local preamble="YURI_OS: You are the Amp parallel implementation lane in the NUDIMMUD workspace. Read ## Amp in AGENTS.md before acting. Run gitnexus impact before symbol edits. Claude Code is the control plane."
+  # --dangerously-allow-all: safe here — all dispatches are Claude-controlled, internal workspace only
+  exec amp -x --mode "$mode" --no-notifications --no-ide --dangerously-allow-all --cd "$ROOT_DIR" "$preamble
+
+$prompt"
+}
+
 run_offload_lane() {
   local lane="$1"
   shift
@@ -1242,6 +1278,7 @@ case "${1:-help}" in
       status=1
     fi
     check_cmd "codex" codex || status=1
+    check_cmd "amp" amp || status=1
     check_cmd "btw" btw || status=1
     if command -v ruflo >/dev/null 2>&1; then
       printf 'ok  ruflo -> %s\n' "$(command -v ruflo)"
@@ -1259,7 +1296,6 @@ case "${1:-help}" in
     check_cmd "openmythos" openmythos || status=1
     check_cmd "openmythos-swarm" openmythos-swarm || status=1
     check_lane "offload swarm proceed" swarm || status=1
-    check_lane "frontend design audit" gpt-oss || status=1
     check_lane "deep architecture review" swarm || status=1
     exit "$status"
     ;;
@@ -1459,6 +1495,20 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane reason-kimi "$@"
+    ;;
+  @amp|amp-deep|amp-rush)
+    _amp_mode="rush"
+    case "${1:-}" in
+      @amp)     _amp_mode="rush" ;;
+      amp-deep) _amp_mode="deep" ;;
+      amp-rush) _amp_mode="rush" ;;
+    esac
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_amp_offload "$_amp_mode" "$@"
     ;;
   @claude|claude-council)
     shift || true
