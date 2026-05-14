@@ -262,6 +262,15 @@ dry_run_model_override() {
       gpt-oss:20b|gpt-oss:120b|gpt-oss)
         run_offload_runner gpt-oss "$prompt" --dry-run
         ;;
+      swarm)
+        local swarm_models
+        swarm_models="$(resolve_swarm_models default)"
+        route_log "$(printf '⬡ DRY_RUN_SWARM :: models=[%s]' "$swarm_models")"
+        IFS=',' read -ra ADDR <<< "$swarm_models"
+        for m in "${ADDR[@]}"; do
+          route_log "$(printf '  [%s] %s' "$(classify_lane "$m")" "$m")"
+        done
+        ;;
       needle)
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
         run_offload_runner ollama-local "$prompt" --dry-run --model needle
@@ -339,6 +348,10 @@ dispatch_model() {
       codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.3-codex)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_SPARK [gpt-5.3-codex-spark, read-only]..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model"
+        ;;
+      swarm)
+        printf '%s\n' "⬡ ROUTING_TO_SWARM..." >&2
+        exec bash "$0" -s default "$prompt"
         ;;
       gpt-5.4-mini|gpt-5.4|codex-mini)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_MINI [gpt-5.4-mini, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
