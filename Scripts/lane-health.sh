@@ -39,11 +39,14 @@ check_codex() {
 check_deepseek() {
   local model="$1"
   local out
-  out="$(bash "$SCRIPT_DIR/offload.sh" --dry-run -m "$model" "test" 2>&1 | head -20)"
-  if echo "$out" | grep -qE '"status"\s*:\s*"DRY_RUN"' || echo "$out" | grep -q 'DRY_RUN'; then
+  out="$(bash "$SCRIPT_DIR/offload.sh" --dry-run -m "$model" "test" 2>&1 | head -30)"
+  # DeepSeek dry-run prints lane resolution JSON with "apiKey": "[set]" and "endpoint"
+  if echo "$out" | grep -qE '"apiKey"\s*:\s*"\[set\]"' && echo "$out" | grep -qE '"endpoint"\s*:\s*"https://api\.deepseek\.com"'; then
     print_row "$model" LIVE "dry-run OK"
-  elif echo "$out" | grep -qE 'BLOCKED_MISSING|DEEPSEEK_API_KEY'; then
+  elif echo "$out" | grep -qE 'BLOCKED_MISSING|DEEPSEEK_API_KEY|requires DEEPSEEK_API_KEY'; then
     print_row "$model" DOWN "DEEPSEEK_API_KEY missing"
+  elif echo "$out" | grep -qE '"lane"\s*:\s*"deepseek'; then
+    print_row "$model" LIVE "dry-run OK (key state unknown)"
   else
     print_row "$model" DOWN "no response"
   fi
@@ -77,8 +80,8 @@ check_perplexity_api() {
 
 check_comet() {
   local out
-  out="$(OFFLOAD_PROMPT_TEXT="test" node "$SCRIPT_DIR/comet-adapter.mjs" 2>&1 | head -1)"
-  if echo "$out" | grep -q '"offload"'; then
+  out="$(OFFLOAD_PROMPT_TEXT="test" node "$SCRIPT_DIR/comet-adapter.mjs" 2>&1 | head -10)"
+  if echo "$out" | grep -qE '"lane"\s*:\s*"comet"'; then
     print_row "comet" LIVE "adapter responds"
   else
     print_row "comet" DOWN "adapter not responding"

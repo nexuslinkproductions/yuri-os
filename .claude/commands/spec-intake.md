@@ -22,19 +22,41 @@ Before writing anything:
 3. Read `integrations/spec-kit/templates/spec-template.md` to understand the spec format
 4. Read `_SYSTEM/spec-kit-workflow-bridge.md` to confirm authority chain
 
-## Phase 2 — Spec Authoring
+## Phase 2 — Spec Authoring (DeepSeek auto-fill, then user review)
 
 Generate `specs/active/<slug>.md` where:
 - `<slug>` = `slugify(feature_title).slice(0, 40)` — kebab-case, lowercase
-- Content follows `templates/spec-template.md` structure with these sections filled:
-  - **Title** + one-line summary
-  - **Goal** (deterministic outcome)
-  - **Non-goals** (explicit out-of-scope)
-  - **Stakeholders** (who benefits, who reviews)
-  - **Acceptance criteria** (testable bullets — each becomes a task)
-  - **Constraints** (T7 paths, protected surfaces, anime DNA gates)
-  - **Risks** (with likelihood + mitigation)
-  - **Open questions** (require user input before implementation)
+
+**Auto-fill via DeepSeek-with-tools** (C7 from plan — saves manual section drafting):
+
+```bash
+bash Scripts/offload.sh -m deepseek-v4-pro --reasoning high "$(cat <<PROMPT
+Use your tools (read_file, bash) to autonomously draft a NUDIMMUD spec for: <feature_title>
+
+PATTERN-MIRROR FIRST: scan codebase for similar prior implementations
+(use bash + grep to find related files, then read_file the top 3-5 most relevant ones)
+
+THEN write_file specs/active/<slug>.md with this structure (fill EVERY section
+with concrete content; mark unknowns as [TBD: <specific question>]):
+
+- Title + one-line summary
+- Goal (deterministic outcome — what success looks like)
+- Non-goals (explicit out-of-scope to prevent scope creep)
+- Stakeholders (who benefits, who reviews)
+- Acceptance criteria (testable bullets — each becomes a task scaffold)
+- Constraints (T7 paths NEVER touch, protected surfaces, anime DNA gates apply)
+- Risks (with likelihood + mitigation)
+- Open questions (require user input before implementation)
+
+Reference any existing patterns from the codebase scan with file:line citations.
+PROMPT
+)"
+```
+
+After DeepSeek writes the draft, present the spec to user with summary of [TBD] markers.
+User reviews, edits inline, then proceeds to Phase 3.
+
+**Manual fallback** (if DeepSeek unavailable or user prefers): main thread fills the same template structure interactively with the user.
 
 ## Phase 3 — Hand-off
 
