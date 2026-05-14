@@ -173,17 +173,22 @@ async function dispatchOpenClawPreflight(prompt, plan, turnId) {
     logError(`OpenClaw preflight failed (code=${result.code} timeout=${!!result.timedOut})`);
     return null;
   }
-  // OpenClaw bridge returns JSON envelope; extract summary
+  // OpenClaw bridge returns JSON envelope; extract summary.
+  // PATCH 044 — use lastIndexOf('\n{') to find the final JSON block, preventing
+  // kernel.py stdout (which contains inline JSON) from polluting the greedy regex match.
   let summary = '';
   try {
-    const env = JSON.parse(result.stdout.match(/\{[\s\S]*\}\s*$/)?.[0] || result.stdout);
+    const raw = result.stdout;
+    const lastBrace = raw.lastIndexOf('\n{');
+    const jsonStr = lastBrace >= 0 ? raw.slice(lastBrace + 1).trim() : raw.trim();
+    const env = JSON.parse(jsonStr);
     if (env.status === 'FAILED') {
       logError(`OpenClaw bridge returned FAILED: ${env.error || env.summary || 'empty'}`);
       return null;
     }
     summary = (env.summary || '').trim();
   } catch (_) {
-    summary = result.stdout.trim();
+    summary = '';  // parse failed — treat as empty, let the null-check below handle it
   }
   if (!summary) {
     // PATCH 041 — surface raw output for diagnostics instead of silent "gateway may be down"
