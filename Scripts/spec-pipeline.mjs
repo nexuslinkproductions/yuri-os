@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs'
 import path from 'node:path'
+import { execSync } from 'node:child_process'
 
 const ROOT = process.cwd()
 const PLAN_TEMPLATE = 'integrations/spec-kit/templates/plan-template.md'
@@ -138,10 +139,117 @@ function applyTemplate(template, metadata) {
     .reduce((content, [token, value]) => content.replaceAll(token, value), template)
 }
 
-function taskScaffolds(criteria) {
+const COMMON_SYMBOL_WORDS = new Set([
+  'about',
+  'acceptance',
+  'after',
+  'before',
+  'class',
+  'code',
+  'data',
+  'file',
+  'from',
+  'function',
+  'given',
+  'goal',
+  'have',
+  'into',
+  'must',
+  'only',
+  'path',
+  'plan',
+  'risk',
+  'scope',
+  'spec',
+  'task',
+  'test',
+  'that',
+  'then',
+  'this',
+  'when',
+  'with',
+  'work',
+])
+
+function isGenericSymbol(value) {
+  const normalized = value.trim()
+  if (normalized.length < 4) return true
+  if (COMMON_SYMBOL_WORDS.has(normalized.toLowerCase())) return true
+  return false
+}
+
+function detectCodeReferences(markdown) {
+  const references = []
+  const add = (value) => {
+    const cleaned = cleanText(value)
+    if (!cleaned || isGenericSymbol(cleaned)) return
+    references.push(cleaned)
+  }
+
+  for (const match of markdown.matchAll(/`([^`\n]+)`/g)) add(match[1])
+  for (const match of markdown.matchAll(/\bsrc\/[^\s`),]+?\.(?:ts|tsx|mjs|js|py)\b/g)) add(match[0])
+  for (const match of markdown.matchAll(/\b([A-Za-z_$][\w$]*)\s*\(\s*\)/g)) add(match[1])
+
+  return [...new Set(references)]
+}
+
+function shellQuote(value) {
+  return `'${String(value).replaceAll("'", "'\\''")}'`
+}
+
+function parseImpact(symbol, output) {
+  const impact = JSON.parse(output)
+  if (impact.status === 'ambiguous' || impact.error) return null
+  const directDependents = Number.isFinite(impact.summary?.direct)
+    ? impact.summary.direct
+    : (impact.byDepth?.['1'] || []).length
+  const affectedProcesses = Number.isFinite(impact.summary?.processes_affected)
+    ? impact.summary.processes_affected
+    : (impact.affected_processes || []).length
+  const risk = impact.risk || 'UNKNOWN'
+  return { symbol, directDependents, affectedProcesses, risk }
+}
+
+function gitnexusImpact(symbol) {
+  const options = { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 5000 }
+  try {
+    return parseImpact(symbol, execSync(`npx gitnexus impact ${shellQuote(symbol)} --json`, options))
+  } catch (error) {
+    if (!String(error.stderr || '').includes("unknown option '--json'")) return null
+  }
+
+  try {
+    return parseImpact(symbol, execSync(`npx gitnexus impact ${shellQuote(symbol)} --repo nudimmud-vault`, options))
+  } catch {
+    return null
+  }
+}
+
+function gitnexusImpacts(markdown) {
+  return detectCodeReferences(markdown)
+    .map((symbol) => gitnexusImpact(symbol))
+    .filter(Boolean)
+}
+
+function impactSection(impacts) {
+  if (impacts.length === 0) return ''
+  const lines = ['GITNEXUS IMPACT (auto-generated):']
+  for (const impact of impacts) {
+    lines.push(`  symbol: ${impact.symbol}`)
+    lines.push(`  direct dependents: ${impact.directDependents}`)
+    lines.push(`  affected processes: ${impact.affectedProcesses}`)
+    lines.push(`  risk: ${impact.risk}`)
+  }
+  return `${lines.join('\n')}\n`
+}
+
+function taskScaffolds(criteria, impacts = []) {
   if (criteria.length === 0) return '\n## Generated CODEX Task Scaffolds\n\n_No acceptance criteria found._\n'
+  const impact = impactSection(impacts)
+  const impactBlock = impact ? `${impact}\n` : ''
   const blocks = criteria.map((criterion, index) => `### Task ${index + 1}: ${criterion}
 
+${impactBlock}\
 CODEX TASK SPEC SCAFFOLD:
   Goal: ${criterion}
   Target files: <to be determined during implementation>
@@ -189,8 +297,9 @@ function main() {
     const specMarkdown = fs.readFileSync(specPath, 'utf8')
     const metadata = metadataFor(specPath, specMarkdown)
     const criteria = extractCriteria(specMarkdown)
+    const impacts = gitnexusImpacts(specMarkdown)
     const plan = applyTemplate(fs.readFileSync(planTemplatePath, 'utf8'), metadata)
-    const tasks = `${applyTemplate(fs.readFileSync(tasksTemplatePath, 'utf8'), metadata).trimEnd()}\n${taskScaffolds(criteria)}`
+    const tasks = `${applyTemplate(fs.readFileSync(tasksTemplatePath, 'utf8'), metadata).trimEnd()}\n${taskScaffolds(criteria, impacts)}`
     const planPath = path.join(outputDir, 'plan.md')
     const tasksPath = path.join(outputDir, 'tasks.md')
 
