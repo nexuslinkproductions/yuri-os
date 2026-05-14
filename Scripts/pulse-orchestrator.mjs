@@ -121,8 +121,12 @@ function parseAdvisorOutput(raw) {
 
   // Extract first non-empty content line; skip pure markdown headers/bullets
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  // PATCH 043 — skip lines that are only markdown decoration (bold headers, h2/h3, bare bullets)
-  const isHeaderOnly = l => /^\*\*[^*]+\*\*:?\s*$/.test(l) || /^#{1,3}\s/.test(l) || /^[-*]\s*$/.test(l);
+  // PATCH 043/047 — skip markdown decoration + natural-language preamble sentences (e.g. "Here are 3 risks:")
+  const isHeaderOnly = l =>
+    /^\*\*[^*]+\*\*:?\s*$/.test(l) ||
+    /^#{1,3}\s/.test(l) ||
+    /^[-*]\s*$/.test(l) ||
+    /^[A-Z][^.!?]*:\s*$/.test(l);
   const contentLine = lines.find(l => !isHeaderOnly(l)) || lines[0] || '(no finding)';
   const finding = contentLine.slice(0, 380);
   // Crude confidence: bigger output + multiple lines = more confidence

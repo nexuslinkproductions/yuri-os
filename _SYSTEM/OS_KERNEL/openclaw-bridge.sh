@@ -124,17 +124,17 @@ print(json.dumps(d))
 ")
 python3 "$KERNEL_PY" mem-log "$MEMORY_PAYLOAD" \
     --type episodic \
-    --agent OPENCLAW 2>/dev/null || true
+    --agent OPENCLAW >/dev/null 2>&1 || true
 
 # --- Update task ---
 python3 "$KERNEL_PY" task-update "$TASK_ID" "$STATUS" \
     --result "{\"lane_label\":\"${LANE_LABEL}\",\"channel\":\"${CHANNEL}\",\"origin\":\"${ORIGIN}\"}" \
-    2>/dev/null || true
+    >/dev/null 2>&1 || true
 
 # --- Log handoff if from another agent ---
 if [ "$FROM_AGENT" != "OPENCLAW" ]; then
     python3 "$KERNEL_PY" handoff 0 "$FROM_AGENT" "OPENCLAW" \
-        "bridge: ${LANE_LABEL}" 2>/dev/null || true
+        "bridge: ${LANE_LABEL}" >/dev/null 2>&1 || true
 fi
 
 # --- Output result ---
