@@ -1,6 +1,15 @@
 ---
 name: design-source-pack
 description: "Turn a design system or design reference into a reusable pack and portable skill. Use when extracting visual language from docs, PDFs, or curated design sources into a build/style/audit workflow."
+triggers:
+  - "extract design system"
+  - "design pack"
+  - "design reference"
+  - "extract visual language"
+  - "turn this design into a skill"
+  - "design source"
+  - "import design system"
+routing_note: "Upstream of design-master and frontend-design. Run first when a new design reference needs to be extracted before building UI."
 ---
 
 # Design Source Pack

@@ -1,6 +1,18 @@
 ---
 name: frontend-design
 description: "Anthropic's leaked UI/UX skill designed to prevent 'AI slop' by enforcing high-end, intentional design systems. Use when asked to 'build a UI', 'design a landing page', 'fix UX', or create any visual interface to ensure a production-grade, non-generic aesthetic."
+triggers:
+  - "build a UI"
+  - "design a landing page"
+  - "fix UX"
+  - "create a page"
+  - "build a website"
+  - "make it look professional"
+  - "no AI slop"
+  - "production design"
+  - "web design"
+  - "design principles"
+routing_note: "Secondary to design-master for NUDIMMUD surfaces. Use for general web UI, external products, or non-NUDIMMUD interfaces. Pairs with design:design-critique for feedback and design:accessibility-review for a11y."
 ---
 
 # Frontend Design (Anthropic Unpacked)

@@ -10,6 +10,20 @@ triggers:
   - "HUD"
   - "component layout"
   - "visual revamp"
+  - "build the UI"
+  - "design the"
+  - "redesign"
+  - "CSS for"
+  - "layout for"
+  - "dashboard UI"
+  - "interface for"
+  - "visual design"
+  - "make it look"
+  - "design system"
+  - "landing page"
+  - "build a page"
+  - "design the dashboard"
+routing_note: "Primary for all NUDIMMUD UI work — reads design-memory.json and enforces HUD system. For non-NUDIMMUD surfaces use /frontend-design. Anthropic design:* skills handle critique, accessibility audits, and handoff docs."
 ---
 
 # Design Master — NUDIMMUD Visual Artist
