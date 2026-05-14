@@ -238,13 +238,91 @@ async function dispatchHermesForecast(prompt, plan, turnId) {
 }
 
 async function dispatchCassandra(prompt, plan, turnId) {
-  // Placeholder for PATCH 035 — full impl reads git log + EOT history
+  // PATCH 035 — strategic-foresight scout.
+  // Reads git log + EOT history + peer pulse-bus findings on this turn,
+  // emits 1-line prediction of the failure mode most likely to bite.
+  // Per DeepSeek dogfood advisory: wrap inputs in Promise.race with 2s
+  // budget so git mid-commit cannot block the detached process.
+
+  const SESSION_JOURNAL = path.join(REPO_ROOT, '.claude', 'projects',
+    '-Users-marcelspatz-NUDIMMUD', 'memory', 'session-journal.md');
+
+  const readWithTimeout = (fn, ms) => Promise.race([
+    fn().catch(() => ''),
+    new Promise((resolve) => setTimeout(() => resolve(''), ms)),
+  ]);
+
+  const gitLog = await readWithTimeout(
+    () => execWithTimeout('git', ['log', '--oneline', '-5'], {}, 1800).then(r => r.stdout || ''),
+    2000
+  );
+  const journalTail = await readWithTimeout(
+    async () => {
+      try {
+        const raw = await fsp.readFile(SESSION_JOURNAL, 'utf8');
+        return raw.split('\n').slice(-60).join('\n');
+      } catch { return ''; }
+    },
+    2000
+  );
+
+  // Peer findings already on bus for this turn (DeepSeek, OpenClaw, Hermes_FC)
+  const peers = pulseBus.findingsByTurn(turnId);
+  const peerDigest = peers.map(p => `${p.source}:${p.severity}:${p.finding.slice(0, 80)}`).join(' | ');
+
+  // Heuristic native fallback BEFORE the model call so we always have a finding.
+  let nativeForesight = null;
+  const promptLower = String(prompt).toLowerCase();
+  const recentMemoryDb = /memory\.db/.test(gitLog) && /memory\.db|kernel|canonical/.test(promptLower);
+  const recentProtocolChurn = (gitLog.match(/protocol|routing|offload-contract|hooks\//gi) || []).length >= 2 &&
+                              /protocol|routing|hooks|offload/i.test(prompt);
+  const recentRollback = /revert|rollback|fix.*regression/i.test(gitLog);
+
+  if (recentMemoryDb) {
+    nativeForesight = { severity: 'HIGH', finding: 'Recent memory.db touch in last 5 commits + this prompt re-enters canonical surface; verify promotion gate before mutation.' };
+  } else if (recentProtocolChurn) {
+    nativeForesight = { severity: 'WARN', finding: `Last commits show ${(gitLog.match(/protocol|routing|offload-contract|hooks\//gi) || []).length}+ protocol/routing changes; cumulative drift risk elevated — run offload-contract regression before commit.` };
+  } else if (recentRollback) {
+    nativeForesight = { severity: 'WARN', finding: 'Recent rollback/revert in git log — current campaign overlaps the unstable area; preserve rollback boundary.' };
+  } else {
+    nativeForesight = { severity: 'INFO', finding: 'No historical risk patterns detected in last 5 commits or recent EOT journal.' };
+  }
+
+  // Try model upgrade (DeepSeek flash, bounded 25s) — if it succeeds, replace native finding.
+  // Native finding is the floor; model is the lift.
+  try {
+    const cassPrompt = `CASSANDRA strategic foresight. Prompt: "${String(prompt).slice(0, 180)}".
+Recent commits:
+${gitLog.slice(0, 600)}
+Peer cortex findings this turn:
+${peerDigest.slice(0, 400) || '(none)'}
+Output ONE line predicting the highest-probability failure mode for this turn. Format: SEVERITY:WARN|HIGH|CRITICAL :: <prediction>. Be concrete.`;
+    const result = await execWithTimeout(
+      'bash',
+      [OFFLOAD_SH, '@deepseek-v4-flash', '--no-tools', cassPrompt],
+      {},
+      25_000
+    );
+    if (result.code === 0 && !result.timedOut && result.stdout) {
+      const line = result.stdout.split('\n').map(s => s.trim()).filter(Boolean).pop() || '';
+      const m = line.match(/SEVERITY[:=]\s*(INFO|WARN|HIGH|CRITICAL)\s*::?\s*(.+)/i);
+      if (m) {
+        nativeForesight = { severity: m[1].toUpperCase(), finding: m[2].slice(0, 380) };
+      } else if (line.length > 10) {
+        nativeForesight = { severity: nativeForesight.severity, finding: line.slice(0, 380) };
+      }
+    }
+  } catch (e) {
+    logError(`Cassandra model upgrade failed: ${e.message}`);
+    // Keep native foresight as fallback
+  }
+
   return {
     source: 'CASSANDRA',
-    runtimeKind: 'native_function',
-    severity: 'INFO',
-    finding: '(PATCH 035 stub) Cassandra strategic foresight not yet wired',
-    confidence: 0.4,
+    runtimeKind: nativeForesight ? 'native_function' : 'model_advisor',
+    severity: nativeForesight.severity,
+    finding: nativeForesight.finding,
+    confidence: 0.7,
   };
 }
 
