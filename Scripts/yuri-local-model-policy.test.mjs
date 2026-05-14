@@ -2,7 +2,7 @@
 
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,6 +11,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const offloadRunnerPath = resolve(__dirname, 'offload-runner.mjs');
 const benchmarkPath = resolve(__dirname, 'yuri-local-model-benchmark.mjs');
 const heavyModels = new Set(['deepseek-r1:8b', 'deepseek-liberated:latest', 'deepseek-v2:16b', 'gemma4:latest']);
+const needleRepo = resolve(process.cwd(), 'needle');
+const needleCheckpoint = resolve(process.cwd(), 'checkpoints/needle.pkl');
+const needleCli = resolve(needleRepo, '.venv/bin/needle');
+const needlePython = resolve(needleRepo, '.venv/bin/python');
+const needleCacheHome = mkdtempSync(join(tmpdir(), 'needle-hf-'));
 
 const manifestRoot = mkdtempSync(join(tmpdir(), 'yuri-local-model-policy-'));
 
@@ -38,11 +43,11 @@ try {
     DEEPSEEK_API_KEY: '',
   };
 
-  assert.equal(route('triage-local', env).model, 'qwen3.5:4b');
-  assert.equal(route('summarize-local', env).model, 'qwen3.5:4b');
-  assert.equal(route('ollama', env).model, 'qwen3.5:4b');
-  assert.equal(route('ollama-local', env).model, 'qwen3.5:4b');
-  assert.equal(route('gpt-oss', env).model, 'qwen3.5:4b');
+  assert.equal(route('triage-local', env).model, 'needle');
+  assert.equal(route('summarize-local', env).model, 'needle');
+  assert.equal(route('ollama', env).model, 'needle');
+  assert.equal(route('ollama-local', env).model, 'needle');
+  assert.equal(route('gpt-oss', env).model, 'needle');
   assert.equal(route('code-local', env).model, 'qwen2.5-coder:7b');
   const deepseekDefault = route('deepseek', env);
   assert.equal(deepseekDefault.kind, 'blocked');
@@ -111,10 +116,55 @@ try {
     { encoding: 'utf8', env },
   ));
   assert.equal(benchmark.dry_run, true);
-  assert.equal(benchmark.policy.utility, 'qwen3.5:4b');
+  assert.equal(benchmark.policy.utility, 'needle');
+  assert.equal(benchmark.policy.primary, 'needle');
   assert.equal(benchmark.policy.code, 'qwen2.5-coder:7b');
   assert.equal(benchmark.summary.failed, 0);
   assert.deepEqual(benchmark.summary.heavy_models_selected, []);
+
+  if (!existsSync(needleCheckpoint)) {
+    execFileSync(
+      needlePython,
+      [
+        '-c',
+        'from huggingface_hub import hf_hub_download; import sys; print(hf_hub_download(repo_id="Cactus-Compute/needle", filename="needle.pkl", repo_type="model", local_dir=sys.argv[1], force_download=True))',
+        dirname(needleCheckpoint),
+      ],
+      {
+        cwd: needleRepo,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          HF_HOME: needleCacheHome,
+          HF_HUB_DISABLE_XET: '1',
+        },
+      },
+    );
+  }
+
+  const needleSmoke = execFileSync(
+    needleCli,
+    [
+      'run',
+      '--checkpoint',
+      needleCheckpoint,
+      '--query',
+      "What's the weather in San Francisco?",
+      '--tools',
+      '[{"name":"get_weather","parameters":{"location":"string"}}]',
+    ],
+    {
+      cwd: needleRepo,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        HF_HOME: needleCacheHome,
+        HF_HUB_DISABLE_XET: '1',
+      },
+    },
+  );
+  assert.match(needleSmoke, /get_weather/i);
+  assert.match(needleSmoke, /SanFrancisco|San Francisco/);
 
   const offloadCaptureRoot = mkdtempSync(join(tmpdir(), 'yuri-local-model-policy-offload-'));
   try {
@@ -146,6 +196,44 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
     assert(dispatchedArgs.includes('--model'));
     assert(dispatchedArgs.includes('deepseek-liberated:latest'));
     assert(dispatchedArgs.includes('--dry-run'));
+
+    execFileSync(
+      'bash',
+      ['Scripts/offload.sh', 'deepseek-v4-flash', 'lane-first compatibility check'],
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          CAPTURE_FILE: captureFile,
+          PATH: `${offloadCaptureRoot}:${process.env.PATH}`,
+          OFFLOAD_QUEUE_BYPASS: '1',
+        },
+      }
+    );
+
+    const laneFirstArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
+    assert.equal(laneFirstArgs[0].endsWith('Scripts/offload-runner.mjs'), true);
+    assert.equal(laneFirstArgs[1], 'deepseek-v4-flash');
+
+    execFileSync(
+      'bash',
+      ['Scripts/offload.sh', '--model', 'needle', 'needle smoke test'],
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          CAPTURE_FILE: captureFile,
+          PATH: `${offloadCaptureRoot}:${process.env.PATH}`,
+          OFFLOAD_QUEUE_BYPASS: '1',
+        },
+      }
+    );
+
+    const needleArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
+    assert.equal(needleArgs[0].endsWith('Scripts/offload-runner.mjs'), true);
+    assert.equal(needleArgs[1], 'ollama-local');
+    assert(needleArgs.includes('--model'));
+    assert(needleArgs.includes('needle'));
   } finally {
     rmSync(offloadCaptureRoot, { recursive: true, force: true });
   }

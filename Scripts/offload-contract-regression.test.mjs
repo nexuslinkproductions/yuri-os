@@ -28,6 +28,13 @@ assert.equal(contract.deepseekCodexQualityGate.authority.executor, 'Codex/main-s
 assert.equal(contract.deepseekCodexQualityGate.authority.modelOutput, 'advisory_only=true; local_truth_claim=false', 'DeepSeek output must remain advisory');
 assert.ok(contract.deepseekCodexQualityGate.discardWhenAny.includes('Contradicts deterministic local evidence.'), 'degradation guard missing');
 assert.ok(contract.deepseekCodexQualityGate.metrics.includes('accepted_findings'), 'quality metrics missing');
+assert.equal(contract.claudeProtocolGate.mode, 'warn-first', 'Claude protocol gate should warn first');
+assert.equal(contract.claudeProtocolGate.mainSessionFinalAuthority, true, 'Claude main session must keep final authority');
+assert.equal(contract.claudeProtocolGate.codexSpecCompatibility.requiredSpec, '## CODEX TASK SPEC', 'Claude gate must preserve Codex spec compatibility');
+assert.equal(contract.claudeProtocolGate.nativeFunctionGates.hermes, 'always-on', 'Claude gate should keep Hermes native gate always-on');
+assert.equal(contract.claudeProtocolGate.nativeFunctionGates.argus, 'always-on', 'Claude gate should keep Argus native gate always-on');
+assert.equal(contract.claudeProtocolGate.nativeFunctionGates.obliteratus, 'conditional-high-risk', 'Claude gate should make Obliteratus conditional');
+assert.equal(contract.claudeProtocolGate.openClaw.authority, 'bridge-only-advisory', 'OpenClaw must stay advisory in Claude protocol gate');
 assert.equal(contract.lanes.ollama.alias, '@ollama', 'additive Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaCloud.alias, '@ollama-cloud', 'additive Ollama Cloud lane metadata missing');
@@ -194,6 +201,15 @@ assert.equal(councilPlan.nativeFunctionGates.obliteratus.runtime, 'native_functi
 assert.equal(councilPlan.nativeFunctionGates.obliteratus.alias, 'obliteratus', 'Obliteratus alias should stay stable');
 assert.ok(councilPlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'high-stakes plan should activate Obliteratus profile');
 assert.ok(councilPlan.pulseGovernanceSkeleton.phaseCheckpoints.merge_learn.some((checkpoint) => checkpoint.profile === 'obliteratus' && checkpoint.action === 'durable_promotion_gate'), 'high-stakes plan should include Obliteratus durable promotion checkpoint');
+const claudeUltraPlan = routePlan('claude ultra deep hardening protocol promotion OpenClaw symbioticPulse routing');
+assert.equal(claudeUltraPlan.scenario, 'protocol-change', 'Claude ultra hardening should classify as protocol-change');
+assert.equal(claudeUltraPlan.lane, 'swarm', 'Claude ultra hardening should route to swarm');
+assert.equal(claudeUltraPlan.deepseekAdvisory.decision, 'use-swarm', 'Claude ultra hardening should use DeepSeek swarm advisory');
+assert.deepEqual(claudeUltraPlan.deepseekAdvisory.models, ['deepseek-v4-pro', 'deepseek-v4-flash'], 'Claude ultra hardening should use DeepSeek Pro/Flash advisory');
+assert.equal(claudeUltraPlan.nativeFunctionGates.argus.decision, 'always-on', 'Claude ultra hardening should keep Argus always-on');
+assert.equal(claudeUltraPlan.nativeFunctionGates.hermes.decision, 'always-on', 'Claude ultra hardening should keep Hermes always-on');
+assert.equal(claudeUltraPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Claude ultra hardening should activate Obliteratus');
+assert.ok(claudeUltraPlan.pulseGovernanceSkeleton.activeProfiles.includes('openclaw-derived'), 'Claude ultra hardening should expose OpenClaw-derived profile');
 const sandboxCouncilPlan = routePlan('Yuri sandbox proving run with model council review');
 assert.equal(sandboxCouncilPlan.lane, 'codex-spark', 'model council should not steal sandbox execution lane');
 assert.equal(sandboxCouncilPlan.claudeAdvisory.decision, 'use-sonnet', 'sandbox model council should still attach Claude advisory');
@@ -321,15 +337,15 @@ try {
   const ollamaLocal = JSON.parse(execFileSync(
     process.execPath,
     [offloadRunnerPath, 'ollama-local', '--dry-run', 'private summary'],
-    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot } }
+    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'qwen2.5:7b' } }
   ));
   assert.equal(ollamaLocal.kind, 'local', 'ollama-local should resolve as local');
-  assert.equal(ollamaLocal.model, 'qwen2.5:7b', 'ollama-local should pick installed local model');
+  assert.equal(ollamaLocal.model, 'needle', 'ollama-local should pick the active primary local model');
 
   const ollamaAuto = JSON.parse(execFileSync(
     process.execPath,
     [offloadRunnerPath, 'ollama', '--dry-run', 'private summary'],
-    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot } }
+    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'qwen2.5:7b' } }
   ));
   assert.equal(ollamaAuto.resolvedVia, 'local', 'ollama auto lane should prefer local when available');
 } finally {
