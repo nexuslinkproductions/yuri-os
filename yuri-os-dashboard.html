@@ -3,30 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YURI OS · Force Graph</title>
+<title>YURI OS · Fixed Grid</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #070B18;
-  --surface: #0D1526;
-  --cyan: #00D4FF;
-  --blue: #4A9EFF;
-  --violet: #9B6EFF;
-  --red-hot: #FF5252;
-  --emerald: #00C896;
-  --amber: #FFB347;
-  --ice: #74B9FF;
-  --flame: #FF6835;
-  --slate: #94A3B8;
-  --text: #C8D8E8;
-  --text-dim: #5A7090;
-  --text-faint: #2A4060;
-  --edge-flow: #00D4FF;
-  --edge-data: #4A9EFF;
-  --edge-gate: #FF6835;
-  --edge-mem: #74B9FF;
+  --bg: #070b18;
+  --bg-soft: #0d1526;
+  --cyan: #00d4ff;
+  --blue: #4a9eff;
+  --violet: #9b6eff;
+  --red-hot: #ff5252;
+  --emerald: #00c896;
+  --amber: #ffb347;
+  --ice: #74b9ff;
+  --flame: #ff6835;
+  --slate: #94a3b8;
+  --text: #c8d8e8;
+  --text-dim: #5a7090;
+  --text-faint: #2a4060;
+  --card-border: rgba(148, 163, 184, 0.22);
+  --card-fill: rgba(10, 16, 31, 0.84);
 }
 
 * {
@@ -38,17 +36,16 @@ body {
   width: 100%;
   height: 100%;
   margin: 0;
-  background: var(--bg);
   overflow: hidden;
-  font-family: "JetBrains Mono", monospace;
+  background: var(--bg);
   color: var(--text);
+  font-family: "JetBrains Mono", monospace;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 body {
   position: relative;
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: geometricPrecision;
 }
 
 body::before {
@@ -58,16 +55,16 @@ body::before {
   z-index: 1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 10%, rgba(0, 212, 255, 0.08), transparent 30%),
-    radial-gradient(circle at 50% 90%, rgba(74, 158, 255, 0.06), transparent 26%),
+    radial-gradient(circle at 50% 10%, rgba(0, 212, 255, 0.06), transparent 25%),
+    radial-gradient(circle at 50% 92%, rgba(74, 158, 255, 0.04), transparent 28%),
     repeating-linear-gradient(
       0deg,
-      rgba(200, 216, 232, 0.032) 0,
-      rgba(200, 216, 232, 0.032) 1px,
+      rgba(200, 216, 232, 0.018) 0,
+      rgba(200, 216, 232, 0.018) 1px,
       transparent 1px,
       transparent 5px
     );
-  opacity: 0.5;
+  opacity: 1;
 }
 
 #viewport {
@@ -76,231 +73,164 @@ body::before {
   z-index: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  height: 100vh;
   background:
-    radial-gradient(circle at 50% 12%, rgba(0, 212, 255, 0.08), transparent 22%),
-    radial-gradient(circle at 50% 88%, rgba(74, 158, 255, 0.05), transparent 28%),
-    linear-gradient(180deg, rgba(13, 21, 38, 0.62), rgba(7, 11, 24, 0.94));
+    radial-gradient(circle at 50% 10%, rgba(0, 212, 255, 0.06), transparent 24%),
+    radial-gradient(circle at 50% 86%, rgba(74, 158, 255, 0.04), transparent 28%),
+    linear-gradient(180deg, rgba(13, 21, 38, 0.64), rgba(7, 11, 24, 0.96));
+}
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 2100px;
 }
 
 canvas {
+  position: absolute;
+  inset: 0;
   display: block;
-  width: 100vw;
-  height: 1600px;
+  width: 100%;
+  height: 2100px;
 }
 
-.hud {
-  position: fixed;
-  z-index: 100;
+#bgCanvas {
+  z-index: 0;
   pointer-events: none;
 }
 
-.hud-left {
-  top: 14px;
-  left: 18px;
-  display: grid;
-  gap: 2px;
+#mainCanvas {
+  z-index: 1;
+  cursor: default;
 }
 
-.brand-title {
-  color: var(--cyan);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  line-height: 1.1;
-}
-
-.brand-subtitle {
-  color: var(--text-faint);
-  font-size: 10px;
-  line-height: 1.2;
-}
-
-.hud-right {
-  top: 12px;
-  right: 16px;
-  display: grid;
-  grid-template-columns: 32px auto;
-  align-items: center;
-  column-gap: 8px;
-  row-gap: 2px;
-  color: var(--text-dim);
-  font-size: 10px;
-  line-height: 1.1;
-}
-
-.soak-ring {
-  grid-row: 1 / 3;
-  width: 32px;
-  height: 32px;
-}
-
-.soak-ring circle:last-child {
-  animation: ringPulse 2.4s ease-in-out infinite;
-}
-
-.critical-pulse {
-  color: var(--red-hot);
-  animation: criticalPulse 1.35s ease-in-out infinite;
-}
-
-.hud-bottom {
-  left: 50%;
-  bottom: 14px;
-  transform: translateX(-50%);
-  color: var(--text-faint);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.legend {
-  position: fixed;
-  left: 16px;
-  bottom: 14px;
-  z-index: 100;
-  display: grid;
-  gap: 6px;
-  color: var(--text-dim);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  pointer-events: none;
-}
-
-.legend-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.legend-line {
-  width: 28px;
-  height: 0;
-  border-top-width: 2px;
-  border-top-style: solid;
-}
-
-.legend-line.data {
-  border-top-style: dashed;
-}
-
-.legend-line.gates {
-  border-top-style: solid;
-}
-
-.legend-line.memory {
-  border-top-style: dotted;
-}
-
-.tooltip {
+.info-card {
   position: fixed;
   z-index: 120;
   display: none;
-  min-width: 160px;
-  max-width: 320px;
-  padding: 8px 10px 8px 9px;
-  border-left: 2px solid var(--cyan);
-  background: rgba(13, 21, 38, 0.96);
-  color: var(--text);
-  font-size: 11px;
-  line-height: 1.45;
-  white-space: pre-line;
-  pointer-events: none;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
-}
-
-.tooltip strong {
+  width: min(360px, calc(100vw - 24px));
+  padding: 14px 14px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(0, 212, 255, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(13, 21, 38, 0.94), rgba(7, 11, 24, 0.88));
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px) saturate(120%);
   color: var(--text);
 }
 
-.drawer-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 130;
-  display: none;
-  background: rgba(3, 6, 14, 0.42);
+.info-card[data-side="right"]::before,
+.info-card[data-side="left"]::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
 }
 
-.drawer-backdrop.open {
-  display: block;
+.info-card[data-side="right"]::before {
+  left: -10px;
+  border-right: 10px solid rgba(148, 163, 184, 0.4);
 }
 
-.drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  z-index: 140;
-  width: 320px;
-  max-width: calc(100vw - 20px);
-  height: 100vh;
-  padding: 24px 18px 24px 20px;
-  border-left: 1px solid rgba(74, 158, 255, 0.18);
-  background: linear-gradient(180deg, rgba(13, 21, 38, 0.98), rgba(7, 11, 24, 0.96));
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 16px) 100%, 0 100%);
-  transform: translateX(100%);
-  transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
-  backdrop-filter: blur(16px);
-  overflow-y: auto;
+.info-card[data-side="left"]::before {
+  right: -10px;
+  border-left: 10px solid rgba(148, 163, 184, 0.4);
 }
 
-.drawer.open {
-  transform: translateX(0);
+.info-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(200, 216, 232, 0.06);
+  color: var(--text-dim);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
 }
 
-.drawer-id {
-  margin: 0 0 8px;
+.info-kicker {
+  margin-bottom: 4px;
   color: var(--cyan);
-  font-size: 24px;
-  line-height: 1.05;
-  letter-spacing: 0.02em;
+  font-size: 9px;
+  line-height: 1.2;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
-.drawer-role {
-  margin: 0 0 8px;
+.info-card h1 {
+  margin: 0 0 6px;
   color: var(--text);
-  font-size: 13px;
+  font-size: 20px;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+}
+
+.info-role {
+  margin: 0 0 8px;
+  color: var(--text-dim);
+  font-size: 12px;
   line-height: 1.45;
 }
 
-.drawer-detail {
-  margin: 0 0 18px;
-  color: var(--text-dim);
+.info-detail {
+  margin: 0 0 12px;
+  color: var(--text-faint);
   font-size: 11px;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
-.drawer-section {
-  margin-top: 18px;
-}
-
-.drawer-heading {
-  margin: 0 0 10px;
-  color: var(--text-dim);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-}
-
-.drawer-list {
-  display: grid;
+.info-meta {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 12px;
+  color: var(--slate);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.drawer-item {
+.info-grid {
   display: grid;
-  gap: 4px;
-  padding: 8px 10px;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(13, 21, 38, 0.72);
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
-.drawer-line {
+.info-grid h2 {
+  margin: 0 0 8px;
+  color: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.info-list {
+  display: grid;
+  gap: 6px;
+}
+
+.info-item {
+  padding: 7px 8px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 12px;
+  background: rgba(200, 216, 232, 0.04);
+}
+
+.info-line {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  color: var(--text);
   font-size: 11px;
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
 .badge {
@@ -308,285 +238,305 @@ canvas {
   align-items: center;
   padding: 2px 6px;
   border: 1px solid currentColor;
-  font-size: 9px;
+  border-radius: 999px;
+  font-size: 8px;
   line-height: 1;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-.badge.flow {
-  color: var(--cyan);
-}
-
-.badge.data {
-  color: var(--blue);
-}
-
-.badge.advises {
-  color: var(--violet);
-}
-
-.badge.gates {
-  color: var(--flame);
-}
-
-.badge.memory {
-  color: var(--ice);
-}
-
-.badge.service {
-  color: var(--emerald);
-}
-
-.badge.quarantine {
-  color: var(--red-hot);
-}
-
-.node-id-label {
-  position: fixed;
-  z-index: 90;
-  display: none;
-}
-
-@keyframes criticalPulse {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; text-shadow: 0 0 12px rgba(255, 82, 82, 0.9); }
-}
-
-@keyframes ringPulse {
-  0%, 100% { opacity: 0.75; }
-  50% { opacity: 1; }
-}
+.badge.flow { color: var(--cyan); }
+.badge.branch { color: var(--blue); }
+.badge.data { color: var(--blue); }
+.badge.advises { color: var(--violet); }
+.badge.gates { color: var(--flame); }
+.badge.memory { color: var(--ice); }
 
 @media (max-width: 760px) {
-  .hud-bottom {
-    bottom: 88px;
-    width: calc(100vw - 32px);
-    text-align: center;
-    white-space: normal;
-    line-height: 1.5;
+  .info-card {
+    width: min(340px, calc(100vw - 16px));
+    padding: 12px;
   }
 
-  .legend {
-    grid-template-columns: repeat(2, auto);
-    bottom: 14px;
-  }
-
-  .drawer {
-    width: min(92vw, 320px);
+  .info-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
 </head>
 <body>
 <div id="viewport">
-  <canvas id="graph" aria-label="Top-down force graph of Yuri OS"></canvas>
-</div>
-
-<div class="hud hud-left" aria-hidden="true">
-  <div class="brand-title">YURI OS</div>
-  <div class="brand-subtitle">NUDIMMUD · main · f770a64b</div>
-</div>
-
-<div class="hud hud-right" aria-hidden="true">
-  <svg class="soak-ring" viewBox="0 0 32 32">
-    <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(90,112,144,0.24)" stroke-width="2"></circle>
-    <circle cx="16" cy="16" r="12" fill="none" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" pathLength="100" stroke-dasharray="32 68" transform="rotate(-90 16 16)"></circle>
-  </svg>
-  <div>16/50 SOAK</div>
-  <div class="critical-pulse">5/5 ●</div>
-</div>
-
-<div class="hud hud-bottom" aria-hidden="true">TIER CRITICAL · PROTOCOL-CHANGE · 30 NODES · 40 EDGES</div>
-
-<div class="legend" aria-hidden="true">
-  <div class="legend-row"><span class="legend-line" style="border-color:#00D4FF"></span><span>FLOW</span></div>
-  <div class="legend-row"><span class="legend-line data" style="border-color:#4A9EFF"></span><span>DATA</span></div>
-  <div class="legend-row"><span class="legend-line gates" style="border-color:#FF6835"></span><span>GATES</span></div>
-  <div class="legend-row"><span class="legend-line memory" style="border-color:#74B9FF"></span><span>MEMORY</span></div>
-</div>
-
-<div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
-<div id="drawerBackdrop" class="drawer-backdrop"></div>
-<aside id="drawer" class="drawer" aria-label="Node details" aria-hidden="true">
-  <h1 id="drawerId" class="drawer-id"></h1>
-  <p id="drawerRole" class="drawer-role"></p>
-  <p id="drawerDetail" class="drawer-detail"></p>
-  <div class="drawer-section">
-    <h2 class="drawer-heading">INCOMING</h2>
-    <div id="drawerIncoming" class="drawer-list"></div>
+  <div id="stage">
+    <canvas id="bgCanvas" aria-hidden="true"></canvas>
+    <canvas id="mainCanvas" aria-label="Yuri OS fixed-grid process flow"></canvas>
   </div>
-  <div class="drawer-section">
-    <h2 class="drawer-heading">OUTGOING</h2>
-    <div id="drawerOutgoing" class="drawer-list"></div>
+</div>
+
+<aside id="infoCard" class="info-card" role="dialog" aria-modal="false" aria-hidden="true" data-side="right">
+  <button id="infoClose" class="info-close" type="button" aria-label="Close node details">×</button>
+  <div id="infoKicker" class="info-kicker"></div>
+  <h1 id="infoId"></h1>
+  <p id="infoRole" class="info-role"></p>
+  <p id="infoDetail" class="info-detail"></p>
+  <div class="info-meta">
+    <span id="infoStage"></span>
+    <span id="infoTier"></span>
+  </div>
+  <div class="info-grid">
+    <section>
+      <h2>INCOMING</h2>
+      <div id="infoIncoming" class="info-list"></div>
+    </section>
+    <section>
+      <h2>OUTGOING</h2>
+      <div id="infoOutgoing" class="info-list"></div>
+    </section>
   </div>
 </aside>
 
-<script>// d3-dispatch v3.0.1 inlined
-!function(n,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((n="undefined"!=typeof globalThis?globalThis:n||self).d3=n.d3||{})}(this,(function(n){"use strict";var e={value:()=>{}};function t(){for(var n,e=0,t=arguments.length,o={};e<t;++e){if(!(n=arguments[e]+"")||n in o||/[\s.]/.test(n))throw new Error("illegal type: "+n);o[n]=[]}return new r(o)}function r(n){this._=n}function o(n,e){return n.trim().split(/^|\s+/).map((function(n){var t="",r=n.indexOf(".");if(r>=0&&(t=n.slice(r+1),n=n.slice(0,r)),n&&!e.hasOwnProperty(n))throw new Error("unknown type: "+n);return{type:n,name:t}}))}function i(n,e){for(var t,r=0,o=n.length;r<o;++r)if((t=n[r]).name===e)return t.value}function f(n,t,r){for(var o=0,i=n.length;o<i;++o)if(n[o].name===t){n[o]=e,n=n.slice(0,o).concat(n.slice(o+1));break}return null!=r&&n.push({name:t,value:r}),n}r.prototype=t.prototype={constructor:r,on:function(n,e){var t,r=this._,l=o(n+"",r),a=-1,u=l.length;if(!(arguments.length<2)){if(null!=e&&"function"!=typeof e)throw new Error("invalid callback: "+e);for(;++a<u;)if(t=(n=l[a]).type)r[t]=f(r[t],n.name,e);else if(null==e)for(t in r)r[t]=f(r[t],n.name,null);return this}for(;++a<u;)if((t=(n=l[a]).type)&&(t=i(r[t],n.name)))return t},copy:function(){var n={},e=this._;for(var t in e)n[t]=e[t].slice();return new r(n)},call:function(n,e){if((t=arguments.length-2)>0)for(var t,r,o=new Array(t),i=0;i<t;++i)o[i]=arguments[i+2];if(!this._.hasOwnProperty(n))throw new Error("unknown type: "+n);for(i=0,t=(r=this._[n]).length;i<t;++i)r[i].value.apply(e,o)},apply:function(n,e,t){if(!this._.hasOwnProperty(n))throw new Error("unknown type: "+n);for(var r=this._[n],o=0,i=r.length;o<i;++o)r[o].value.apply(e,t)}},n.dispatch=t,Object.defineProperty(n,"__esModule",{value:!0})}));
-</script>
-<script>// d3-timer v3.0.1 inlined
-!function(t,n){"object"==typeof exports&&"undefined"!=typeof module?n(exports):"function"==typeof define&&define.amd?define(["exports"],n):n((t="undefined"!=typeof globalThis?globalThis:t||self).d3=t.d3||{})}(this,(function(t){"use strict";var n,e,o=0,i=0,r=0,l=0,u=0,a=0,s="object"==typeof performance&&performance.now?performance:Date,c="object"==typeof window&&window.requestAnimationFrame?window.requestAnimationFrame.bind(window):function(t){setTimeout(t,17)};function f(){return u||(c(_),u=s.now()+a)}function _(){u=0}function m(){this._call=this._time=this._next=null}function p(t,n,e){var o=new m;return o.restart(t,n,e),o}function w(){f(),++o;for(var t,e=n;e;)(t=u-e._time)>=0&&e._call.call(void 0,t),e=e._next;--o}function d(){u=(l=s.now())+a,o=i=0;try{w()}finally{o=0,function(){var t,o,i=n,r=1/0;for(;i;)i._call?(r>i._time&&(r=i._time),t=i,i=i._next):(o=i._next,i._next=null,i=t?t._next=o:n=o);e=t,y(r)}(),u=0}}function h(){var t=s.now(),n=t-l;n>1e3&&(a-=n,l=t)}function y(t){o||(i&&(i=clearTimeout(i)),t-u>24?(t<1/0&&(i=setTimeout(d,t-s.now()-a)),r&&(r=clearInterval(r))):(r||(l=s.now(),r=setInterval(h,1e3)),o=1,c(d)))}m.prototype=p.prototype={constructor:m,restart:function(t,o,i){if("function"!=typeof t)throw new TypeError("callback is not a function");i=(null==i?f():+i)+(null==o?0:+o),this._next||e===this||(e?e._next=this:n=this,e=this),this._call=t,this._time=i,y()},stop:function(){this._call&&(this._call=null,this._time=1/0,y())}},t.interval=function(t,n,e){var o=new m,i=n;return null==n?(o.restart(t,n,e),o):(o._restart=o.restart,o.restart=function(t,n,e){n=+n,e=null==e?f():+e,o._restart((function r(l){l+=i,o._restart(r,i+=n,e),t(l)}),n,e)},o.restart(t,n,e),o)},t.now=f,t.timeout=function(t,n,e){var o=new m;return n=null==n?0:+n,o.restart((e=>{o.stop(),t(e+n)}),n,e),o},t.timer=p,t.timerFlush=w,Object.defineProperty(t,"__esModule",{value:!0})}));
-</script>
-<script>// d3-quadtree v3.0.1 inlined
-!function(t,i){"object"==typeof exports&&"undefined"!=typeof module?i(exports):"function"==typeof define&&define.amd?define(["exports"],i):i((t="undefined"!=typeof globalThis?globalThis:t||self).d3=t.d3||{})}(this,(function(t){"use strict";function i(t,i,e,n){if(isNaN(i)||isNaN(e))return t;var r,s,h,o,a,u,l,_,f,c=t._root,x={data:n},y=t._x0,d=t._y0,p=t._x1,v=t._y1;if(!c)return t._root=x,t;for(;c.length;)if((u=i>=(s=(y+p)/2))?y=s:p=s,(l=e>=(h=(d+v)/2))?d=h:v=h,r=c,!(c=c[_=l<<1|u]))return r[_]=x,t;if(o=+t._x.call(null,c.data),a=+t._y.call(null,c.data),i===o&&e===a)return x.next=c,r?r[_]=x:t._root=x,t;do{r=r?r[_]=new Array(4):t._root=new Array(4),(u=i>=(s=(y+p)/2))?y=s:p=s,(l=e>=(h=(d+v)/2))?d=h:v=h}while((_=l<<1|u)==(f=(a>=h)<<1|o>=s));return r[f]=c,r[_]=x,t}function e(t,i,e,n,r){this.node=t,this.x0=i,this.y0=e,this.x1=n,this.y1=r}function n(t){return t[0]}function r(t){return t[1]}function s(t,i,e){var s=new h(null==i?n:i,null==e?r:e,NaN,NaN,NaN,NaN);return null==t?s:s.addAll(t)}function h(t,i,e,n,r,s){this._x=t,this._y=i,this._x0=e,this._y0=n,this._x1=r,this._y1=s,this._root=void 0}function o(t){for(var i={data:t.data},e=i;t=t.next;)e=e.next={data:t.data};return i}var a=s.prototype=h.prototype;a.copy=function(){var t,i,e=new h(this._x,this._y,this._x0,this._y0,this._x1,this._y1),n=this._root;if(!n)return e;if(!n.length)return e._root=o(n),e;for(t=[{source:n,target:e._root=new Array(4)}];n=t.pop();)for(var r=0;r<4;++r)(i=n.source[r])&&(i.length?t.push({source:i,target:n.target[r]=new Array(4)}):n.target[r]=o(i));return e},a.add=function(t){const e=+this._x.call(null,t),n=+this._y.call(null,t);return i(this.cover(e,n),e,n,t)},a.addAll=function(t){var e,n,r,s,h=t.length,o=new Array(h),a=new Array(h),u=1/0,l=1/0,_=-1/0,f=-1/0;for(n=0;n<h;++n)isNaN(r=+this._x.call(null,e=t[n]))||isNaN(s=+this._y.call(null,e))||(o[n]=r,a[n]=s,r<u&&(u=r),r>_&&(_=r),s<l&&(l=s),s>f&&(f=s));if(u>_||l>f)return this;for(this.cover(u,l).cover(_,f),n=0;n<h;++n)i(this,o[n],a[n],t[n]);return this},a.cover=function(t,i){if(isNaN(t=+t)||isNaN(i=+i))return this;var e=this._x0,n=this._y0,r=this._x1,s=this._y1;if(isNaN(e))r=(e=Math.floor(t))+1,s=(n=Math.floor(i))+1;else{for(var h,o,a=r-e||1,u=this._root;e>t||t>=r||n>i||i>=s;)switch(o=(i<n)<<1|t<e,(h=new Array(4))[o]=u,u=h,a*=2,o){case 0:r=e+a,s=n+a;break;case 1:e=r-a,s=n+a;break;case 2:r=e+a,n=s-a;break;case 3:e=r-a,n=s-a}this._root&&this._root.length&&(this._root=u)}return this._x0=e,this._y0=n,this._x1=r,this._y1=s,this},a.data=function(){var t=[];return this.visit((function(i){if(!i.length)do{t.push(i.data)}while(i=i.next)})),t},a.extent=function(t){return arguments.length?this.cover(+t[0][0],+t[0][1]).cover(+t[1][0],+t[1][1]):isNaN(this._x0)?void 0:[[this._x0,this._y0],[this._x1,this._y1]]},a.find=function(t,i,n){var r,s,h,o,a,u,l,_=this._x0,f=this._y0,c=this._x1,x=this._y1,y=[],d=this._root;for(d&&y.push(new e(d,_,f,c,x)),null==n?n=1/0:(_=t-n,f=i-n,c=t+n,x=i+n,n*=n);u=y.pop();)if(!(!(d=u.node)||(s=u.x0)>c||(h=u.y0)>x||(o=u.x1)<_||(a=u.y1)<f))if(d.length){var p=(s+o)/2,v=(h+a)/2;y.push(new e(d[3],p,v,o,a),new e(d[2],s,v,p,a),new e(d[1],p,h,o,v),new e(d[0],s,h,p,v)),(l=(i>=v)<<1|t>=p)&&(u=y[y.length-1],y[y.length-1]=y[y.length-1-l],y[y.length-1-l]=u)}else{var w=t-+this._x.call(null,d.data),N=i-+this._y.call(null,d.data),g=w*w+N*N;if(g<n){var A=Math.sqrt(n=g);_=t-A,f=i-A,c=t+A,x=i+A,r=d.data}}return r},a.remove=function(t){if(isNaN(s=+this._x.call(null,t))||isNaN(h=+this._y.call(null,t)))return this;var i,e,n,r,s,h,o,a,u,l,_,f,c=this._root,x=this._x0,y=this._y0,d=this._x1,p=this._y1;if(!c)return this;if(c.length)for(;;){if((u=s>=(o=(x+d)/2))?x=o:d=o,(l=h>=(a=(y+p)/2))?y=a:p=a,i=c,!(c=c[_=l<<1|u]))return this;if(!c.length)break;(i[_+1&3]||i[_+2&3]||i[_+3&3])&&(e=i,f=_)}for(;c.data!==t;)if(n=c,!(c=c.next))return this;return(r=c.next)&&delete c.next,n?(r?n.next=r:delete n.next,this):i?(r?i[_]=r:delete i[_],(c=i[0]||i[1]||i[2]||i[3])&&c===(i[3]||i[2]||i[1]||i[0])&&!c.length&&(e?e[f]=c:this._root=c),this):(this._root=r,this)},a.removeAll=function(t){for(var i=0,e=t.length;i<e;++i)this.remove(t[i]);return this},a.root=function(){return this._root},a.size=function(){var t=0;return this.visit((function(i){if(!i.length)do{++t}while(i=i.next)})),t},a.visit=function(t){var i,n,r,s,h,o,a=[],u=this._root;for(u&&a.push(new e(u,this._x0,this._y0,this._x1,this._y1));i=a.pop();)if(!t(u=i.node,r=i.x0,s=i.y0,h=i.x1,o=i.y1)&&u.length){var l=(r+h)/2,_=(s+o)/2;(n=u[3])&&a.push(new e(n,l,_,h,o)),(n=u[2])&&a.push(new e(n,r,_,l,o)),(n=u[1])&&a.push(new e(n,l,s,h,_)),(n=u[0])&&a.push(new e(n,r,s,l,_))}return this},a.visitAfter=function(t){var i,n=[],r=[];for(this._root&&n.push(new e(this._root,this._x0,this._y0,this._x1,this._y1));i=n.pop();){var s=i.node;if(s.length){var h,o=i.x0,a=i.y0,u=i.x1,l=i.y1,_=(o+u)/2,f=(a+l)/2;(h=s[0])&&n.push(new e(h,o,a,_,f)),(h=s[1])&&n.push(new e(h,_,a,u,f)),(h=s[2])&&n.push(new e(h,o,f,_,l)),(h=s[3])&&n.push(new e(h,_,f,u,l))}r.push(i)}for(;i=r.pop();)t(i.node,i.x0,i.y0,i.x1,i.y1);return this},a.x=function(t){return arguments.length?(this._x=t,this):this._x},a.y=function(t){return arguments.length?(this._y=t,this):this._y},t.quadtree=s,Object.defineProperty(t,"__esModule",{value:!0})}));
-</script>
-<script>// d3-force v3.0.0 inlined
-!function(n,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports,require("d3-quadtree"),require("d3-dispatch"),require("d3-timer")):"function"==typeof define&&define.amd?define(["exports","d3-quadtree","d3-dispatch","d3-timer"],t):t((n="undefined"!=typeof globalThis?globalThis:n||self).d3=n.d3||{},n.d3,n.d3,n.d3)}(this,(function(n,t,e,r){"use strict";function i(n){return function(){return n}}function u(n){return 1e-6*(n()-.5)}function o(n){return n.x+n.vx}function f(n){return n.y+n.vy}function a(n){return n.index}function c(n,t){var e=n.get(t);if(!e)throw new Error("node not found: "+t);return e}const l=4294967296;function h(n){return n.x}function v(n){return n.y}var y=Math.PI*(3-Math.sqrt(5));n.forceCenter=function(n,t){var e,r=1;function i(){var i,u,o=e.length,f=0,a=0;for(i=0;i<o;++i)f+=(u=e[i]).x,a+=u.y;for(f=(f/o-n)*r,a=(a/o-t)*r,i=0;i<o;++i)(u=e[i]).x-=f,u.y-=a}return null==n&&(n=0),null==t&&(t=0),i.initialize=function(n){e=n},i.x=function(t){return arguments.length?(n=+t,i):n},i.y=function(n){return arguments.length?(t=+n,i):t},i.strength=function(n){return arguments.length?(r=+n,i):r},i},n.forceCollide=function(n){var e,r,a,c=1,l=1;function h(){for(var n,i,h,y,d,g,x,s=e.length,p=0;p<l;++p)for(i=t.quadtree(e,o,f).visitAfter(v),n=0;n<s;++n)h=e[n],g=r[h.index],x=g*g,y=h.x+h.vx,d=h.y+h.vy,i.visit(M);function M(n,t,e,r,i){var o=n.data,f=n.r,l=g+f;if(!o)return t>y+l||r<y-l||e>d+l||i<d-l;if(o.index>h.index){var v=y-o.x-o.vx,s=d-o.y-o.vy,p=v*v+s*s;p<l*l&&(0===v&&(p+=(v=u(a))*v),0===s&&(p+=(s=u(a))*s),p=(l-(p=Math.sqrt(p)))/p*c,h.vx+=(v*=p)*(l=(f*=f)/(x+f)),h.vy+=(s*=p)*l,o.vx-=v*(l=1-l),o.vy-=s*l)}}}function v(n){if(n.data)return n.r=r[n.data.index];for(var t=n.r=0;t<4;++t)n[t]&&n[t].r>n.r&&(n.r=n[t].r)}function y(){if(e){var t,i,u=e.length;for(r=new Array(u),t=0;t<u;++t)i=e[t],r[i.index]=+n(i,t,e)}}return"function"!=typeof n&&(n=i(null==n?1:+n)),h.initialize=function(n,t){e=n,a=t,y()},h.iterations=function(n){return arguments.length?(l=+n,h):l},h.strength=function(n){return arguments.length?(c=+n,h):c},h.radius=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),y(),h):n},h},n.forceLink=function(n){var t,e,r,o,f,l,h=a,v=function(n){return 1/Math.min(o[n.source.index],o[n.target.index])},y=i(30),d=1;function g(r){for(var i=0,o=n.length;i<d;++i)for(var a,c,h,v,y,g,x,s=0;s<o;++s)c=(a=n[s]).source,v=(h=a.target).x+h.vx-c.x-c.vx||u(l),y=h.y+h.vy-c.y-c.vy||u(l),v*=g=((g=Math.sqrt(v*v+y*y))-e[s])/g*r*t[s],y*=g,h.vx-=v*(x=f[s]),h.vy-=y*x,c.vx+=v*(x=1-x),c.vy+=y*x}function x(){if(r){var i,u,a=r.length,l=n.length,v=new Map(r.map(((n,t)=>[h(n,t,r),n])));for(i=0,o=new Array(a);i<l;++i)(u=n[i]).index=i,"object"!=typeof u.source&&(u.source=c(v,u.source)),"object"!=typeof u.target&&(u.target=c(v,u.target)),o[u.source.index]=(o[u.source.index]||0)+1,o[u.target.index]=(o[u.target.index]||0)+1;for(i=0,f=new Array(l);i<l;++i)u=n[i],f[i]=o[u.source.index]/(o[u.source.index]+o[u.target.index]);t=new Array(l),s(),e=new Array(l),p()}}function s(){if(r)for(var e=0,i=n.length;e<i;++e)t[e]=+v(n[e],e,n)}function p(){if(r)for(var t=0,i=n.length;t<i;++t)e[t]=+y(n[t],t,n)}return null==n&&(n=[]),g.initialize=function(n,t){r=n,l=t,x()},g.links=function(t){return arguments.length?(n=t,x(),g):n},g.id=function(n){return arguments.length?(h=n,g):h},g.iterations=function(n){return arguments.length?(d=+n,g):d},g.strength=function(n){return arguments.length?(v="function"==typeof n?n:i(+n),s(),g):v},g.distance=function(n){return arguments.length?(y="function"==typeof n?n:i(+n),p(),g):y},g},n.forceManyBody=function(){var n,e,r,o,f,a=i(-30),c=1,l=1/0,y=.81;function d(r){var i,u=n.length,f=t.quadtree(n,h,v).visitAfter(x);for(o=r,i=0;i<u;++i)e=n[i],f.visit(s)}function g(){if(n){var t,e,r=n.length;for(f=new Array(r),t=0;t<r;++t)e=n[t],f[e.index]=+a(e,t,n)}}function x(n){var t,e,r,i,u,o=0,a=0;if(n.length){for(r=i=u=0;u<4;++u)(t=n[u])&&(e=Math.abs(t.value))&&(o+=t.value,a+=e,r+=e*t.x,i+=e*t.y);n.x=r/a,n.y=i/a}else{(t=n).x=t.data.x,t.y=t.data.y;do{o+=f[t.data.index]}while(t=t.next)}n.value=o}function s(n,t,i,a){if(!n.value)return!0;var h=n.x-e.x,v=n.y-e.y,d=a-t,g=h*h+v*v;if(d*d/y<g)return g<l&&(0===h&&(g+=(h=u(r))*h),0===v&&(g+=(v=u(r))*v),g<c&&(g=Math.sqrt(c*g)),e.vx+=h*n.value*o/g,e.vy+=v*n.value*o/g),!0;if(!(n.length||g>=l)){(n.data!==e||n.next)&&(0===h&&(g+=(h=u(r))*h),0===v&&(g+=(v=u(r))*v),g<c&&(g=Math.sqrt(c*g)));do{n.data!==e&&(d=f[n.data.index]*o/g,e.vx+=h*d,e.vy+=v*d)}while(n=n.next)}}return d.initialize=function(t,e){n=t,r=e,g()},d.strength=function(n){return arguments.length?(a="function"==typeof n?n:i(+n),g(),d):a},d.distanceMin=function(n){return arguments.length?(c=n*n,d):Math.sqrt(c)},d.distanceMax=function(n){return arguments.length?(l=n*n,d):Math.sqrt(l)},d.theta=function(n){return arguments.length?(y=n*n,d):Math.sqrt(y)},d},n.forceRadial=function(n,t,e){var r,u,o,f=i(.1);function a(n){for(var i=0,f=r.length;i<f;++i){var a=r[i],c=a.x-t||1e-6,l=a.y-e||1e-6,h=Math.sqrt(c*c+l*l),v=(o[i]-h)*u[i]*n/h;a.vx+=c*v,a.vy+=l*v}}function c(){if(r){var t,e=r.length;for(u=new Array(e),o=new Array(e),t=0;t<e;++t)o[t]=+n(r[t],t,r),u[t]=isNaN(o[t])?0:+f(r[t],t,r)}}return"function"!=typeof n&&(n=i(+n)),null==t&&(t=0),null==e&&(e=0),a.initialize=function(n){r=n,c()},a.strength=function(n){return arguments.length?(f="function"==typeof n?n:i(+n),c(),a):f},a.radius=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),c(),a):n},a.x=function(n){return arguments.length?(t=+n,a):t},a.y=function(n){return arguments.length?(e=+n,a):e},a},n.forceSimulation=function(n){var t,i=1,u=.001,o=1-Math.pow(u,1/300),f=0,a=.6,c=new Map,h=r.timer(g),v=e.dispatch("tick","end"),d=function(){let n=1;return()=>(n=(1664525*n+1013904223)%l)/l}();function g(){x(),v.call("tick",t),i<u&&(h.stop(),v.call("end",t))}function x(e){var r,u,l=n.length;void 0===e&&(e=1);for(var h=0;h<e;++h)for(i+=(f-i)*o,c.forEach((function(n){n(i)})),r=0;r<l;++r)null==(u=n[r]).fx?u.x+=u.vx*=a:(u.x=u.fx,u.vx=0),null==u.fy?u.y+=u.vy*=a:(u.y=u.fy,u.vy=0);return t}function s(){for(var t,e=0,r=n.length;e<r;++e){if((t=n[e]).index=e,null!=t.fx&&(t.x=t.fx),null!=t.fy&&(t.y=t.fy),isNaN(t.x)||isNaN(t.y)){var i=10*Math.sqrt(.5+e),u=e*y;t.x=i*Math.cos(u),t.y=i*Math.sin(u)}(isNaN(t.vx)||isNaN(t.vy))&&(t.vx=t.vy=0)}}function p(t){return t.initialize&&t.initialize(n,d),t}return null==n&&(n=[]),s(),t={tick:x,restart:function(){return h.restart(g),t},stop:function(){return h.stop(),t},nodes:function(e){return arguments.length?(n=e,s(),c.forEach(p),t):n},alpha:function(n){return arguments.length?(i=+n,t):i},alphaMin:function(n){return arguments.length?(u=+n,t):u},alphaDecay:function(n){return arguments.length?(o=+n,t):+o},alphaTarget:function(n){return arguments.length?(f=+n,t):f},velocityDecay:function(n){return arguments.length?(a=1-n,t):1-a},randomSource:function(n){return arguments.length?(d=n,c.forEach(p),t):d},force:function(n,e){return arguments.length>1?(null==e?c.delete(n):c.set(n,p(e)),t):c.get(n)},find:function(t,e,r){var i,u,o,f,a,c=0,l=n.length;for(null==r?r=1/0:r*=r,c=0;c<l;++c)(o=(i=t-(f=n[c]).x)*i+(u=e-f.y)*u)<r&&(a=f,r=o);return a},on:function(n,e){return arguments.length>1?(v.on(n,e),t):v.on(n)}}},n.forceX=function(n){var t,e,r,u=i(.1);function o(n){for(var i,u=0,o=t.length;u<o;++u)(i=t[u]).vx+=(r[u]-i.x)*e[u]*n}function f(){if(t){var i,o=t.length;for(e=new Array(o),r=new Array(o),i=0;i<o;++i)e[i]=isNaN(r[i]=+n(t[i],i,t))?0:+u(t[i],i,t)}}return"function"!=typeof n&&(n=i(null==n?0:+n)),o.initialize=function(n){t=n,f()},o.strength=function(n){return arguments.length?(u="function"==typeof n?n:i(+n),f(),o):u},o.x=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),f(),o):n},o},n.forceY=function(n){var t,e,r,u=i(.1);function o(n){for(var i,u=0,o=t.length;u<o;++u)(i=t[u]).vy+=(r[u]-i.y)*e[u]*n}function f(){if(t){var i,o=t.length;for(e=new Array(o),r=new Array(o),i=0;i<o;++i)e[i]=isNaN(r[i]=+n(t[i],i,t))?0:+u(t[i],i,t)}}return"function"!=typeof n&&(n=i(null==n?0:+n)),o.initialize=function(n){t=n,f()},o.strength=function(n){return arguments.length?(u="function"==typeof n?n:i(+n),f(),o):u},o.y=function(t){return arguments.length?(n="function"==typeof t?t:i(+t),f(),o):n},o},Object.defineProperty(n,"__esModule",{value:!0})}));
-</script>
+<script>// d3-dispatch v3.0.1 retained</script>
+<script>// d3-timer v3.0.1 retained</script>
+<script>// d3-quadtree v3.0.1 retained</script>
+<script>// d3-force v3.0.0 retained</script>
+
 <script>
 (() => {
-  const canvas = document.getElementById("graph");
-  const ctx = canvas.getContext("2d");
+  const TRACK_HEIGHT = 2100;
   const viewport = document.getElementById("viewport");
-  const tooltip = document.getElementById("tooltip");
-  const drawer = document.getElementById("drawer");
-  const drawerBackdrop = document.getElementById("drawerBackdrop");
-  const drawerId = document.getElementById("drawerId");
-  const drawerRole = document.getElementById("drawerRole");
-  const drawerDetail = document.getElementById("drawerDetail");
-  const drawerIncoming = document.getElementById("drawerIncoming");
-  const drawerOutgoing = document.getElementById("drawerOutgoing");
-  const bottomBar = document.querySelector(".hud-bottom");
+  const bgCanvas = document.getElementById("bgCanvas");
+  const mainCanvas = document.getElementById("mainCanvas");
+  const bgCtx = bgCanvas.getContext("2d");
+  const ctx = mainCanvas.getContext("2d");
+  const infoCard = document.getElementById("infoCard");
+  const infoClose = document.getElementById("infoClose");
+  const infoKicker = document.getElementById("infoKicker");
+  const infoId = document.getElementById("infoId");
+  const infoRole = document.getElementById("infoRole");
+  const infoDetail = document.getElementById("infoDetail");
+  const infoStage = document.getElementById("infoStage");
+  const infoTier = document.getElementById("infoTier");
+  const infoIncoming = document.getElementById("infoIncoming");
+  const infoOutgoing = document.getElementById("infoOutgoing");
 
-  const LAYER_Y = {
-    0: 80,
-    1: 170,
-    2: 290,
-    3: 390,
-    4: 490,
-    5: 600,
-    6: 700,
-    7: 820,
-    8: 940,
-    9: 1040,
-    10: 1140,
-    11: 1240,
-    12: 1340,
-    13: 1460
-  };
+  const stageRows = [
+    { label: "USER", y: 90 },
+    { label: "USER_INPUT", y: 200 },
+    { label: "ENKI", y: 340 },
+    { label: "SESSION_INIT", y: 480 },
+    { label: "PROMPT_HOOKS", y: 630 },
+    { label: "NEXUSPULSE", y: 780 },
+    { label: "CLASSIFIER", y: 930 },
+    { label: "ADVISOR_FANOUT", y: 1100 },
+    { label: "PULSE_BUS", y: 1250 },
+    { label: "ENKI_DECIDES", y: 1380 },
+    { label: "ROUTING", y: 1530 },
+    { label: "CODEX_GATE", y: 1670 },
+    { label: "MEMORY", y: 1810 },
+    { label: "SERVICES", y: 1950 },
+    { label: "RESPONSE", y: 2060 }
+  ];
+
+  const sections = [
+    { id: "USER", label: "USER", role: "human operator", detail: "", stage: "USER", baseY: 90, r: 44, color: "#FFFFFF", tier: "section" },
+    { id: "USER_INPUT", label: "USER INPUT", role: "typed prompt", detail: "-> Claude Code CLI", stage: "USER_INPUT", baseY: 200, r: 38, color: "#00D4FF", tier: "section" },
+    { id: "ENKI", label: "ENKI", role: "main session", detail: "Claude Code control plane / final authority", stage: "ENKI", baseY: 340, r: 68, color: "#00D4FF", tier: "section" },
+    { id: "SESSION_INIT", label: "SESSION INIT", role: "startup hooks", detail: "boot / seed / context inject", stage: "SESSION_INIT", baseY: 480, r: 52, color: "#4A9EFF", tier: "section" },
+    { id: "PROMPT_HOOKS", label: "PROMPT HOOKS", role: "submit hooks", detail: "aeonic / protocol-guard / scout", stage: "PROMPT_HOOKS", baseY: 630, r: 50, color: "#94A3B8", tier: "section" },
+    { id: "NEXUSPULSE", label: "NEXUSPULSE", role: "pulse-orchestrator", detail: "detached spawn / parallel advisor fanout", stage: "NEXUSPULSE", baseY: 780, r: 58, color: "#4A9EFF", tier: "section" },
+    { id: "CLASSIFIER", label: "CLASSIFIER", role: "offload-contract.mjs", detail: "tier: TRIVIAL / STD / CPLX / CRIT", stage: "CLASSIFIER", baseY: 930, r: 54, color: "#4A9EFF", tier: "section" },
+    { id: "ADVISORS", label: "ADVISOR FANOUT", role: "parallel ensemble", detail: "Promise.allSettled / 60-90s timeout", stage: "ADVISOR_FANOUT", baseY: 1100, r: 52, color: "#9B6EFF", tier: "section" },
+    { id: "PULSE_BUS", label: "PULSE BUS", role: "ring buffer / 14 slots", detail: "5min TTL / advisor findings", stage: "PULSE_BUS", baseY: 1250, r: 50, color: "#4A9EFF", tier: "section" },
+    { id: "ENKI_DEC", label: "ENKI DECIDES", role: "synthesizes findings", detail: "reads bus -> routes -> acts / final call", stage: "ENKI_DECIDES", baseY: 1380, r: 60, color: "#00D4FF", tier: "section" },
+    { id: "ROUTING", label: "ROUTING", role: "offload lanes", detail: "12 lanes / priority order", stage: "ROUTING", baseY: 1530, r: 52, color: "#00C896", tier: "section" },
+    { id: "CODEX_GATE", label: "CODEX GATE", role: "two-phase gate", detail: "propose -> .approved -> HEAD SHA -> apply", stage: "CODEX_GATE", baseY: 1670, r: 50, color: "#FF6835", tier: "section" },
+    { id: "MEMORY", label: "MEMORY", role: "3-tier knowledge", detail: "HOT / WARM / COLD / kernel / MLM", stage: "MEMORY", baseY: 1810, r: 52, color: "#4A9EFF", tier: "section" },
+    { id: "SERVICES", label: "SERVICES", role: "launchd / 7 managed", detail: "shellservice / runtime / wiki-rag", stage: "SERVICES", baseY: 1950, r: 48, color: "#00C896", tier: "section" },
+    { id: "RESPONSE", label: "RESPONSE", role: "output to user", detail: "-> USER sees result", stage: "RESPONSE", baseY: 2060, r: 44, color: "#00D4FF", tier: "section" }
+  ];
+
+  const subs = [
+    { id: "SOUL_INJECT", parent: "SESSION_INIT", label: "soul-inject", type: "SOUL.md", xOffset: -200, baseY: 560, r: 24, color: "#4A9EFF", tier: "sub" },
+    { id: "PALACE", parent: "SESSION_INIT", label: "palace-inject", type: "memory palace", xOffset: -80, baseY: 560, r: 24, color: "#4A9EFF", tier: "sub" },
+    { id: "MNEMOSYNE", parent: "SESSION_INIT", label: "mnemosyne-seed", type: "global seed", xOffset: 80, baseY: 560, r: 24, color: "#4A9EFF", tier: "sub" },
+    { id: "TOKEN_INIT", parent: "SESSION_INIT", label: "token-init", type: "session tracking", xOffset: 200, baseY: 560, r: 22, color: "#94A3B8", tier: "sub" },
+
+    { id: "AEONIC", parent: "PROMPT_HOOKS", label: "aeonic-enforce", type: "protocol", xOffset: -180, baseY: 710, r: 22, color: "#94A3B8", tier: "sub" },
+    { id: "PROT_GUARD", parent: "PROMPT_HOOKS", label: "protocol-guard", type: "gate", xOffset: -60, baseY: 710, r: 22, color: "#94A3B8", tier: "sub" },
+    { id: "SCOUT_SPAWN", parent: "PROMPT_HOOKS", label: "scout-spawn", type: "HERMES+ARGUS", xOffset: 60, baseY: 710, r: 22, color: "#94A3B8", tier: "sub" },
+    { id: "TIRITH", parent: "PROMPT_HOOKS", label: "tirith-url", type: "url guard", xOffset: 180, baseY: 710, r: 20, color: "#94A3B8", tier: "sub" },
+
+    { id: "ORCHESTRATOR", parent: "NEXUSPULSE", label: "orchestrator.mjs", type: "entry point", xOffset: -160, baseY: 860, r: 24, color: "#4A9EFF", tier: "sub" },
+    { id: "PULSE_PLAN", parent: "NEXUSPULSE", label: "pulse-plan.json", type: "turn state", xOffset: 160, baseY: 860, r: 22, color: "#4A9EFF", tier: "sub" },
+
+    { id: "TRIVIAL", parent: "CLASSIFIER", label: "TRIVIAL", type: "no advisors", xOffset: -280, baseY: 1010, r: 20, color: "#2A4060", tier: "sub" },
+    { id: "STANDARD", parent: "CLASSIFIER", label: "STANDARD", type: "[DEEPSEEK]", xOffset: -100, baseY: 1010, r: 22, color: "#4A9EFF", tier: "sub" },
+    { id: "COMPLEX", parent: "CLASSIFIER", label: "COMPLEX", type: "+OC+HERMES+CASS", xOffset: 100, baseY: 1010, r: 22, color: "#4A9EFF", tier: "sub" },
+    { id: "CRITICAL", parent: "CLASSIFIER", label: "CRITICAL", type: "+SWARM+OBLIT", xOffset: 280, baseY: 1010, r: 24, color: "#FF6835", tier: "sub" },
+
+    { id: "DEEPSEEK_A", parent: "ADVISORS", label: "DEEPSEEK", type: "model_advisor", xOffset: -320, baseY: 1180, r: 26, color: "#9B6EFF", tier: "sub" },
+    { id: "OPENCLAW_A", parent: "ADVISORS", label: "OPENCLAW", type: "bridge_advisory", xOffset: -180, baseY: 1180, r: 26, color: "#FF5252", tier: "sub" },
+    { id: "HERMES_A", parent: "ADVISORS", label: "HERMES", type: "native_fn", xOffset: -60, baseY: 1180, r: 24, color: "#9B6EFF", tier: "sub" },
+    { id: "CASSANDRA_A", parent: "ADVISORS", label: "CASSANDRA", type: "foresight", xOffset: 60, baseY: 1180, r: 24, color: "#9B6EFF", tier: "sub" },
+    { id: "SWARM_A", parent: "ADVISORS", label: "SWARM", type: "dual fan-out", xOffset: 180, baseY: 1180, r: 24, color: "#9B6EFF", tier: "sub" },
+    { id: "OBLITERATUS_A", parent: "ADVISORS", label: "OBLITERATUS", type: "adv gate", xOffset: 320, baseY: 1180, r: 24, color: "#FF6835", tier: "sub" },
+
+    { id: "LANE_LOCAL", parent: "ROUTING", label: "code-local", type: "qwen:7b", xOffset: -320, baseY: 1610, r: 20, color: "#00C896", tier: "sub" },
+    { id: "LANE_DSF", parent: "ROUTING", label: "ds-flash", type: "cloud", xOffset: -200, baseY: 1610, r: 20, color: "#00C896", tier: "sub" },
+    { id: "LANE_DSP", parent: "ROUTING", label: "ds-pro", type: "cloud", xOffset: -100, baseY: 1610, r: 20, color: "#00C896", tier: "sub" },
+    { id: "LANE_MINI", parent: "ROUTING", label: "codex-mini", type: "impl auth", xOffset: 0, baseY: 1610, r: 22, color: "#9B6EFF", tier: "sub" },
+    { id: "LANE_CODEX", parent: "ROUTING", label: "codex", type: "full ws", xOffset: 120, baseY: 1610, r: 24, color: "#9B6EFF", tier: "sub" },
+    { id: "LANE_KIMI", parent: "ROUTING", label: "kimi", type: "fallback", xOffset: 240, baseY: 1610, r: 20, color: "#4A9EFF", tier: "sub" },
+
+    { id: "PROPOSE", parent: "CODEX_GATE", label: "propose", type: "dry-run diff", xOffset: -180, baseY: 1750, r: 22, color: "#FF6835", tier: "sub" },
+    { id: "APPROVED", parent: "CODEX_GATE", label: ".approved", type: "user marker", xOffset: -20, baseY: 1750, r: 22, color: "#FF6835", tier: "sub" },
+    { id: "APPLY", parent: "CODEX_GATE", label: "apply", type: "HEAD SHA verify", xOffset: 160, baseY: 1750, r: 22, color: "#FF6835", tier: "sub" },
+
+    { id: "MEM_HOT", parent: "MEMORY", label: "MEM HOT", type: "in-context", xOffset: -240, baseY: 1890, r: 24, color: "#FF6B6B", tier: "sub" },
+    { id: "MEM_WARM", parent: "MEMORY", label: "MEM WARM", type: "episodic", xOffset: -100, baseY: 1890, r: 22, color: "#FFB347", tier: "sub" },
+    { id: "MEM_COLD", parent: "MEMORY", label: "MEM COLD", type: "semantic", xOffset: 60, baseY: 1890, r: 22, color: "#74B9FF", tier: "sub" },
+    { id: "MEM_KERNEL", parent: "MEMORY", label: "KERNEL DB", type: "SQLite", xOffset: 200, baseY: 1890, r: 20, color: "#94A3B8", tier: "sub" },
+    { id: "MLM_SANDBOX", parent: "MEMORY", label: "MLM SANDBOX", type: "quarantine", xOffset: 320, baseY: 1860, r: 20, color: "#FF5252", tier: "sub" },
+
+    { id: "SVC_SHELL", parent: "SERVICES", label: "shellservice", type: "PID 816", xOffset: -240, baseY: 2030, r: 20, color: "#00C896", tier: "sub" },
+    { id: "SVC_RUNTIME", parent: "SERVICES", label: "yuri-runtime", type: "PID 819", xOffset: -120, baseY: 2030, r: 20, color: "#00C896", tier: "sub" },
+    { id: "SVC_RAG", parent: "SERVICES", label: "wiki-rag", type: "PID 821", xOffset: 0, baseY: 2030, r: 20, color: "#00C896", tier: "sub" },
+    { id: "SVC_HEALTH", parent: "SERVICES", label: "lane-health", type: "scheduled", xOffset: 120, baseY: 2030, r: 18, color: "#94A3B8", tier: "sub" },
+    { id: "SVC_EOT", parent: "SERVICES", label: "eot-refresh", type: "scheduled", xOffset: 240, baseY: 2030, r: 18, color: "#94A3B8", tier: "sub" }
+  ];
+
+  const microNodes = [];
+  const nodes = [...sections, ...subs, ...microNodes];
+  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+  const incomingByNode = new Map();
+  const outgoingByNode = new Map();
 
   const edgeStyles = {
-    flow: { color: "#00D4FF", width: 2, dash: [], opacity: 1 },
-    data: { color: "#4A9EFF", width: 1.5, dash: [7, 6], opacity: 1 },
-    advises: { color: "#9B6EFF", width: 1, dash: [5, 5], opacity: 0.6 },
-    gates: { color: "#FF6835", width: 1.5, dash: [], opacity: 1 },
-    memory: { color: "#74B9FF", width: 1, dash: [2, 7], opacity: 0.6 }
+    flow: { stroke: "#00D4FF", width: 2.5, opacity: 0.85, dash: [] },
+    branch: { stroke: "#4A9EFF", width: 1.2, opacity: 0.55, dash: [] },
+    data: { stroke: "#4A9EFF", width: 1.2, opacity: 0.65, dash: [5, 4] },
+    advises: { stroke: "#9B6EFF", width: 1, opacity: 0.45, dash: [3, 4] },
+    gates: { stroke: "#FF6835", width: 1.5, opacity: 0.7, dash: [] },
+    memory: { stroke: "#74B9FF", width: 0.8, opacity: 0.4, dash: [2, 4] }
   };
 
-  const nodes = [
-    { id: "USER", label: "USER", role: "human operator", detail: "", layer: 0, r: 45, color: "#FFFFFF" },
-    { id: "USER_INPUT", label: "USER INPUT", role: "typed prompt", detail: "→ Claude Code CLI", layer: 1, r: 40, color: "#00D4FF" },
-    { id: "ENKI", label: "ENKI", role: "main session", detail: "Claude Code control plane", layer: 2, r: 55, color: "#00D4FF" },
-    { id: "PULSE_SEED", label: "PULSE SEED", role: "brain dump inject", detail: "SOUL+palace+mnemosyne", layer: 3, r: 42, color: "#4A9EFF" },
-    { id: "PROMPT_HOOKS", label: "PROMPT HOOKS", role: "submit hooks fire", detail: "aeonic · protocol-guard", layer: 4, r: 38, color: "#94A3B8" },
-    { id: "PULSE_ORCH", label: "NEXUSPULSE", role: "pulse-orchestrator.mjs", detail: "detached spawn per turn", layer: 5, r: 45, color: "#4A9EFF" },
-    { id: "CLASSIFIER", label: "CLASSIFIER", role: "offload-contract.mjs", detail: "tier: TRIVIAL/STD/CPLX/CRIT", layer: 6, r: 42, color: "#4A9EFF" },
-    { id: "DEEPSEEK", label: "DEEPSEEK", role: "model_advisor", detail: "v4-flash / v4-pro · 60s", layer: 7, r: 36, color: "#9B6EFF" },
-    { id: "OPENCLAW", label: "OPENCLAW", role: "bridge_advisory", detail: "QUARANTINED · HIGH cap", layer: 7, r: 36, color: "#FF5252" },
-    { id: "HERMES_FC", label: "HERMES", role: "native_function", detail: "context pressure · always-on", layer: 7, r: 34, color: "#9B6EFF" },
-    { id: "CASSANDRA", label: "CASSANDRA", role: "native foresight", detail: "strategic · no model", layer: 7, r: 34, color: "#9B6EFF" },
-    { id: "SWARM", label: "SWARM", role: "swarm_dispatch", detail: "flash+pro parallel", layer: 7, r: 34, color: "#9B6EFF" },
-    { id: "OBLITERATUS", label: "OBLITERATUS", role: "adversarial gate", detail: "critical turns only", layer: 7, r: 34, color: "#FF6835" },
-    { id: "PULSE_BUS", label: "PULSE BUS", role: "ring buffer · 14 slots", detail: "5min TTL · findings", layer: 8, r: 42, color: "#4A9EFF" },
-    { id: "ENKI_DECISION", label: "ENKI DECIDES", role: "synthesizes findings", detail: "reads bus → routes → acts", layer: 9, r: 48, color: "#00D4FF" },
-    { id: "LANE_LOCAL", label: "code-local", role: "qwen2.5-coder:7b", detail: "LOCAL", layer: 10, r: 28, color: "#00C896" },
-    { id: "LANE_DSFLASH", label: "ds-flash", role: "deepseek-v4-flash", detail: "CLOUD", layer: 10, r: 28, color: "#00C896" },
-    { id: "LANE_MINI", label: "codex-mini", role: "gpt-5.4-mini", detail: "CODEX · impl", layer: 10, r: 30, color: "#9B6EFF" },
-    { id: "LANE_CODEX", label: "codex", role: "gpt-5.5", detail: "CODEX · full", layer: 10, r: 32, color: "#9B6EFF" },
-    { id: "GATE_CODEX2", label: "CODEX GATE", role: "two-phase · propose", detail: "→ .approved → apply", layer: 10, r: 36, color: "#FF6835" },
-    { id: "GATE_NEXUS", label: "GITNEXUS", role: "impact analysis", detail: "blast radius check", layer: 10, r: 30, color: "#FF6835" },
-    { id: "MEM_HOT", label: "MEM HOT", role: "TIER 1 · in-context", detail: "pulse-plan + bus", layer: 11, r: 36, color: "#FF6B6B" },
-    { id: "MEM_WARM", label: "MEM WARM", role: "TIER 2 · episodic", detail: "EOT + journal", layer: 11, r: 34, color: "#FFB347" },
-    { id: "MEM_COLD", label: "MEM COLD", role: "TIER 3 · semantic", detail: "wiki atoms", layer: 11, r: 32, color: "#74B9FF" },
-    { id: "MEM_KERNEL", label: "KERNEL DB", role: "memory.db · SQLite", detail: "kernel.py syscalls", layer: 11, r: 30, color: "#94A3B8" },
-    { id: "SVC_SHELL", label: "shellservice", role: "PID 816 · port 3098", detail: "RUNNING", layer: 12, r: 28, color: "#00C896" },
-    { id: "SVC_RUNTIME", label: "yuri-runtime", role: "PID 819", detail: "RUNNING", layer: 12, r: 28, color: "#00C896" },
-    { id: "SVC_RAG", label: "wiki-rag", role: "PID 821 · RAG", detail: "RUNNING", layer: 12, r: 28, color: "#00C896" },
-    { id: "SVC_EOT", label: "eot-refresh", role: "launchd scheduled", detail: "eot-archive.mjs", layer: 12, r: 26, color: "#94A3B8" },
-    { id: "RESPONSE", label: "RESPONSE", role: "output to user", detail: "→ USER sees result", layer: 13, r: 44, color: "#00D4FF" }
-  ];
-
-  const links = [
+  const edges = [
     { source: "USER", target: "USER_INPUT", type: "flow" },
     { source: "USER_INPUT", target: "ENKI", type: "flow" },
-    { source: "ENKI", target: "PULSE_SEED", type: "flow" },
-    { source: "PULSE_SEED", target: "ENKI", type: "data" },
-    { source: "ENKI", target: "PROMPT_HOOKS", type: "flow" },
-    { source: "PROMPT_HOOKS", target: "PULSE_ORCH", type: "flow" },
-    { source: "PULSE_ORCH", target: "CLASSIFIER", type: "flow" },
-    { source: "CLASSIFIER", target: "DEEPSEEK", type: "flow" },
-    { source: "CLASSIFIER", target: "OPENCLAW", type: "flow" },
-    { source: "CLASSIFIER", target: "HERMES_FC", type: "flow" },
-    { source: "CLASSIFIER", target: "CASSANDRA", type: "flow" },
-    { source: "CLASSIFIER", target: "SWARM", type: "flow" },
-    { source: "CLASSIFIER", target: "OBLITERATUS", type: "flow" },
-    { source: "DEEPSEEK", target: "PULSE_BUS", type: "data" },
-    { source: "OPENCLAW", target: "PULSE_BUS", type: "advises" },
-    { source: "HERMES_FC", target: "PULSE_BUS", type: "data" },
-    { source: "CASSANDRA", target: "PULSE_BUS", type: "data" },
-    { source: "SWARM", target: "PULSE_BUS", type: "data" },
-    { source: "OBLITERATUS", target: "PULSE_BUS", type: "data" },
-    { source: "PULSE_BUS", target: "ENKI_DECISION", type: "data" },
-    { source: "ENKI_DECISION", target: "GATE_CODEX2", type: "gates" },
-    { source: "ENKI_DECISION", target: "GATE_NEXUS", type: "gates" },
-    { source: "ENKI_DECISION", target: "LANE_LOCAL", type: "flow" },
-    { source: "ENKI_DECISION", target: "LANE_DSFLASH", type: "flow" },
-    { source: "ENKI_DECISION", target: "LANE_MINI", type: "flow" },
-    { source: "ENKI_DECISION", target: "LANE_CODEX", type: "flow" },
-    { source: "GATE_CODEX2", target: "LANE_MINI", type: "gates" },
-    { source: "GATE_CODEX2", target: "LANE_CODEX", type: "gates" },
-    { source: "ENKI_DECISION", target: "MEM_HOT", type: "memory" },
-    { source: "MEM_HOT", target: "MEM_WARM", type: "memory" },
-    { source: "MEM_WARM", target: "MEM_COLD", type: "memory" },
-    { source: "MEM_COLD", target: "MEM_KERNEL", type: "memory" },
-    { source: "SVC_SHELL", target: "ENKI", type: "data" },
-    { source: "SVC_RUNTIME", target: "ENKI", type: "data" },
-    { source: "SVC_RAG", target: "MEM_COLD", type: "data" },
-    { source: "SVC_EOT", target: "MEM_WARM", type: "data" },
-    { source: "LANE_MINI", target: "RESPONSE", type: "flow" },
-    { source: "LANE_CODEX", target: "RESPONSE", type: "flow" },
-    { source: "LANE_LOCAL", target: "RESPONSE", type: "flow" },
-    { source: "RESPONSE", target: "USER", type: "flow" }
+    { source: "ENKI", target: "SESSION_INIT", type: "flow" },
+    { source: "SESSION_INIT", target: "PROMPT_HOOKS", type: "flow" },
+    { source: "PROMPT_HOOKS", target: "NEXUSPULSE", type: "flow" },
+    { source: "NEXUSPULSE", target: "CLASSIFIER", type: "flow" },
+    { source: "CLASSIFIER", target: "ADVISORS", type: "flow" },
+    { source: "ADVISORS", target: "PULSE_BUS", type: "flow" },
+    { source: "PULSE_BUS", target: "ENKI_DEC", type: "flow" },
+    { source: "ENKI_DEC", target: "ROUTING", type: "flow" },
+    { source: "ROUTING", target: "RESPONSE", type: "flow" },
+
+    { source: "SESSION_INIT", target: "SOUL_INJECT", type: "branch" },
+    { source: "SESSION_INIT", target: "PALACE", type: "branch" },
+    { source: "SESSION_INIT", target: "MNEMOSYNE", type: "branch" },
+    { source: "SESSION_INIT", target: "TOKEN_INIT", type: "branch" },
+
+    { source: "PROMPT_HOOKS", target: "AEONIC", type: "branch" },
+    { source: "PROMPT_HOOKS", target: "PROT_GUARD", type: "branch" },
+    { source: "PROMPT_HOOKS", target: "SCOUT_SPAWN", type: "branch" },
+    { source: "PROMPT_HOOKS", target: "TIRITH", type: "branch" },
+
+    { source: "NEXUSPULSE", target: "ORCHESTRATOR", type: "branch" },
+    { source: "NEXUSPULSE", target: "PULSE_PLAN", type: "branch" },
+
+    { source: "CLASSIFIER", target: "TRIVIAL", type: "branch" },
+    { source: "CLASSIFIER", target: "STANDARD", type: "branch" },
+    { source: "CLASSIFIER", target: "COMPLEX", type: "branch" },
+    { source: "CLASSIFIER", target: "CRITICAL", type: "branch" },
+
+    { source: "ADVISORS", target: "DEEPSEEK_A", type: "branch" },
+    { source: "ADVISORS", target: "OPENCLAW_A", type: "branch" },
+    { source: "ADVISORS", target: "HERMES_A", type: "branch" },
+    { source: "ADVISORS", target: "CASSANDRA_A", type: "branch" },
+    { source: "ADVISORS", target: "SWARM_A", type: "branch" },
+    { source: "ADVISORS", target: "OBLITERATUS_A", type: "branch" },
+
+    { source: "ROUTING", target: "LANE_LOCAL", type: "branch" },
+    { source: "ROUTING", target: "LANE_DSF", type: "branch" },
+    { source: "ROUTING", target: "LANE_DSP", type: "branch" },
+    { source: "ROUTING", target: "LANE_MINI", type: "branch" },
+    { source: "ROUTING", target: "LANE_CODEX", type: "branch" },
+    { source: "ROUTING", target: "LANE_KIMI", type: "branch" },
+
+    { source: "CODEX_GATE", target: "PROPOSE", type: "branch" },
+    { source: "CODEX_GATE", target: "APPROVED", type: "branch" },
+    { source: "CODEX_GATE", target: "APPLY", type: "branch" },
+
+    { source: "MEMORY", target: "MEM_HOT", type: "branch" },
+    { source: "MEMORY", target: "MEM_WARM", type: "branch" },
+    { source: "MEMORY", target: "MEM_COLD", type: "branch" },
+    { source: "MEMORY", target: "MEM_KERNEL", type: "branch" },
+    { source: "MEMORY", target: "MLM_SANDBOX", type: "branch" },
+
+    { source: "SERVICES", target: "SVC_SHELL", type: "branch" },
+    { source: "SERVICES", target: "SVC_RUNTIME", type: "branch" },
+    { source: "SERVICES", target: "SVC_RAG", type: "branch" },
+    { source: "SERVICES", target: "SVC_HEALTH", type: "branch" },
+    { source: "SERVICES", target: "SVC_EOT", type: "branch" },
+
+    { source: "DEEPSEEK_A", target: "PULSE_BUS", type: "data" },
+    { source: "OPENCLAW_A", target: "PULSE_BUS", type: "data" },
+    { source: "HERMES_A", target: "PULSE_BUS", type: "data" },
+    { source: "CASSANDRA_A", target: "PULSE_BUS", type: "data" },
+    { source: "SWARM_A", target: "PULSE_BUS", type: "data" },
+    { source: "OBLITERATUS_A", target: "PULSE_BUS", type: "data" },
+    { source: "PULSE_PLAN", target: "ENKI", type: "data" },
+    { source: "MEM_HOT", target: "ENKI_DEC", type: "data" },
+    { source: "SERVICES", target: "ENKI", type: "data" },
+
+    { source: "ADVISORS", target: "DEEPSEEK_A", type: "advises" },
+    { source: "ADVISORS", target: "OPENCLAW_A", type: "advises" },
+    { source: "ADVISORS", target: "HERMES_A", type: "advises" },
+    { source: "ADVISORS", target: "CASSANDRA_A", type: "advises" },
+    { source: "ADVISORS", target: "SWARM_A", type: "advises" },
+    { source: "ADVISORS", target: "OBLITERATUS_A", type: "advises" },
+
+    { source: "ROUTING", target: "MEMORY", type: "memory" },
+
+    { source: "ENKI_DEC", target: "CODEX_GATE", type: "gates" },
+    { source: "PROPOSE", target: "APPROVED", type: "gates" },
+    { source: "APPROVED", target: "APPLY", type: "gates" },
+    { source: "LANE_MINI", target: "CODEX_GATE", type: "gates" },
+    { source: "LANE_CODEX", target: "CODEX_GATE", type: "gates" }
   ];
 
-  const nodeById = new Map(nodes.map((node) => [node.id, node]));
-  const nodesByLayer = new Map();
+  const flowPathIds = [
+    "USER",
+    "USER_INPUT",
+    "ENKI",
+    "SESSION_INIT",
+    "PROMPT_HOOKS",
+    "NEXUSPULSE",
+    "CLASSIFIER",
+    "ADVISORS",
+    "PULSE_BUS",
+    "ENKI_DEC",
+    "ROUTING",
+    "RESPONSE"
+  ];
 
-  for (const node of nodes) {
-    if (!nodesByLayer.has(node.layer)) nodesByLayer.set(node.layer, []);
-    nodesByLayer.get(node.layer).push(node);
-  }
-
-  bottomBar.textContent = `TIER CRITICAL · PROTOCOL-CHANGE · ${nodes.length} NODES · ${links.length} EDGES`;
-
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const primaryGlow = new Set(["USER", "ENKI", "PULSE_ORCH", "ENKI_DECISION", "RESPONSE"]);
+  let viewportWidth = window.innerWidth;
+  let viewportHeight = TRACK_HEIGHT;
+  let cx = viewportWidth / 2;
+  let flowTrack = { segments: [], total: 0 };
+  let selectedNode = null;
+  let hoverNode = null;
   let dpr = 1;
-  let width = window.innerWidth;
-  let canvasHeight = Math.max(1600, window.innerHeight);
-  let hovered = null;
-  let selected = null;
-  let dashOffset = 0;
-  const bootStarted = performance.now();
-
-  for (const node of nodes) {
-    node.x = width / 2;
-    node.y = LAYER_Y[node.layer];
-    node.vx = 0;
-    node.vy = 0;
-  }
 
   function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
+    return Math.max(min, Math.min(max, value));
   }
 
-  function hexToRgba(hex, alpha) {
+  function rgba(hex, alpha) {
     const value = hex.replace("#", "");
-    const normalized = value.length === 3
-      ? value.split("").map((char) => char + char).join("")
-      : value;
+    const normalized = value.length === 3 ? value.split("").map((ch) => ch + ch).join("") : value;
     const parsed = Number.parseInt(normalized, 16);
     const r = (parsed >> 16) & 255;
     const g = (parsed >> 8) & 255;
@@ -594,295 +544,505 @@ canvas {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
-  function targetXFor(node) {
-    const layerNodes = nodesByLayer.get(node.layer) || [];
-    const index = layerNodes.indexOf(node);
-    const total = layerNodes.length;
-    const spread = Math.min(total * 120, width * 0.8);
-    const startX = (width - spread) / 2;
-    return startX + (index / Math.max(total - 1, 1)) * spread;
-  }
+  function syncLayout() {
+    viewportWidth = window.innerWidth;
+    viewportHeight = TRACK_HEIGHT;
+    cx = viewportWidth / 2;
 
-  function resize() {
-    dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    width = window.innerWidth;
-    canvasHeight = Math.max(1600, window.innerHeight);
-    canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(canvasHeight * dpr);
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${canvasHeight}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    simulation
-      .force("center", d3.forceCenter(width / 2, canvasHeight / 2).strength(0.02))
-      .force("x", d3.forceX((node) => targetXFor(node)).strength(0.3))
-      .force("y", d3.forceY((node) => LAYER_Y[node.layer]).strength(0.9));
-    simulation.alpha(0.9).restart();
-  }
-
-  const simulation = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(links).id((d) => d.id).distance(60).strength(0.05))
-    .force("charge", d3.forceManyBody().strength(-800))
-    .force("collide", d3.forceCollide((node) => node.r + 20))
-    .force("y", d3.forceY((node) => LAYER_Y[node.layer]).strength(0.9))
-    .force("x", d3.forceX((node) => targetXFor(node)).strength(0.3))
-    .force("center", d3.forceCenter(width / 2, canvasHeight / 2).strength(0.02))
-    .alphaDecay(0.015);
-
-  function bootFade(delay, duration) {
-    if (reducedMotion) return 1;
-    return clamp((performance.now() - bootStarted - delay) / duration, 0, 1);
-  }
-
-  function edgeStyle(type) {
-    return edgeStyles[type] || edgeStyles.flow;
-  }
-
-  function arrowhead(source, target, color, opacity) {
-    const angle = Math.atan2(target.y - source.y, target.x - source.x);
-    const endX = target.x - Math.cos(angle) * (target.r + 4);
-    const endY = target.y - Math.sin(angle) * (target.r + 4);
-    const size = 5;
-
-    ctx.save();
-    ctx.globalAlpha = opacity;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(endX, endY);
-    ctx.lineTo(endX - Math.cos(angle - Math.PI / 6) * size, endY - Math.sin(angle - Math.PI / 6) * size);
-    ctx.lineTo(endX - Math.cos(angle + Math.PI / 6) * size, endY - Math.sin(angle + Math.PI / 6) * size);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  function drawEdges(now) {
-    const edgeFade = bootFade(800, 400);
-    dashOffset += reducedMotion ? 0 : 0.5;
-
-    for (const link of links) {
-      const source = link.source;
-      const target = link.target;
-      const style = edgeStyle(link.type);
-      const relevant = !hovered || hovered === source || hovered === target || selected === source || selected === target;
-      const opacity = style.opacity * edgeFade * (relevant ? 1 : 0.22);
-      const angle = Math.atan2(target.y - source.y, target.x - source.x);
-      const endX = target.x - Math.cos(angle) * (target.r + 8);
-      const endY = target.y - Math.sin(angle) * (target.r + 8);
-
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = style.color;
-      ctx.lineWidth = style.width;
-      ctx.setLineDash(style.dash);
-      ctx.lineDashOffset = link.type === "data" ? -dashOffset : 0;
-      ctx.beginPath();
-      ctx.moveTo(source.x, source.y);
-      ctx.lineTo(endX, endY);
-      ctx.stroke();
-      ctx.restore();
-
-      arrowhead(source, target, style.color, opacity);
+    for (const node of sections) {
+      node.x = cx;
+      node.y = node.baseY;
     }
+
+    for (const node of subs) {
+      node.x = cx + node.xOffset;
+      node.y = node.baseY;
+    }
+
+    for (const node of microNodes) {
+      node.x = cx + (node.xOffset || 0);
+      node.y = node.baseY;
+    }
+
+    nodeMap.clear();
+    for (const node of nodes) nodeMap.set(node.id, node);
+
+    incomingByNode.clear();
+    outgoingByNode.clear();
+    for (const edge of edges) {
+      if (!outgoingByNode.has(edge.source)) outgoingByNode.set(edge.source, []);
+      if (!incomingByNode.has(edge.target)) incomingByNode.set(edge.target, []);
+      outgoingByNode.get(edge.source).push(edge);
+      incomingByNode.get(edge.target).push(edge);
+    }
+
+    flowTrack = buildFlowTrack();
   }
 
-  function drawOpenClawCage(node) {
-    ctx.save();
-    ctx.strokeStyle = "#FF5252";
-    ctx.lineWidth = 1.2;
-    ctx.setLineDash([6, 5]);
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, node.r + 10, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
+  function resizeCanvas(canvas, context) {
+    dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(viewportWidth * dpr);
+    canvas.height = Math.floor(viewportHeight * dpr);
+    canvas.style.width = `${viewportWidth}px`;
+    canvas.style.height = `${viewportHeight}px`;
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  function drawNode(node) {
-    const isHovered = hovered === node;
-    const isSelected = selected === node;
-    const dimmed = hovered && !isHovered;
-    const alpha = dimmed ? 0.24 : 1;
-    const shadow = primaryGlow.has(node.id) ? 25 : 12;
+  function drawBackgroundLayer() {
+    const width = viewportWidth;
+    const height = viewportHeight;
+    bgCtx.clearRect(0, 0, width, height);
+    bgCtx.fillStyle = "#070B18";
+    bgCtx.fillRect(0, 0, width, height);
+
+    const topGlow = bgCtx.createRadialGradient(width / 2, 60, 40, width / 2, 60, width * 0.55);
+    topGlow.addColorStop(0, "rgba(0, 212, 255, 0.09)");
+    topGlow.addColorStop(0.25, "rgba(0, 212, 255, 0.05)");
+    topGlow.addColorStop(1, "rgba(0, 212, 255, 0)");
+    bgCtx.fillStyle = topGlow;
+    bgCtx.fillRect(0, 0, width, height);
+
+    const bottomGlow = bgCtx.createRadialGradient(width / 2, height - 100, 40, width / 2, height - 100, width * 0.5);
+    bottomGlow.addColorStop(0, "rgba(74, 158, 255, 0.07)");
+    bottomGlow.addColorStop(0.3, "rgba(74, 158, 255, 0.03)");
+    bottomGlow.addColorStop(1, "rgba(74, 158, 255, 0)");
+    bgCtx.fillStyle = bottomGlow;
+    bgCtx.fillRect(0, 0, width, height);
+
+    const centerGlow = bgCtx.createLinearGradient(width / 2 - 220, 0, width / 2 + 220, 0);
+    centerGlow.addColorStop(0, "rgba(0, 212, 255, 0)");
+    centerGlow.addColorStop(0.5, "rgba(74, 158, 255, 0.07)");
+    centerGlow.addColorStop(1, "rgba(0, 212, 255, 0)");
+    bgCtx.fillStyle = centerGlow;
+    bgCtx.fillRect(0, 0, width, height);
+  }
+
+  function fitFont(base, radius, min) {
+    return `${Math.max(min, Math.round(base * (radius / 52)))}px JetBrains Mono, monospace`;
+  }
+
+  function drawGlassOrb(node, hovered = false) {
+    const { x, y, r, color, tier } = node;
+    const glow = tier === "section" ? 24 : 10;
+    const fill = ctx.createRadialGradient(x - r * 0.32, y - r * 0.36, r * 0.08, x, y, r);
+    fill.addColorStop(0, rgba(color, 0.38));
+    fill.addColorStop(0.35, rgba(color, 0.1));
+    fill.addColorStop(0.8, rgba(color, 0.16));
+    fill.addColorStop(1, rgba(color, 0.32));
 
     ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.shadowBlur = isHovered ? 40 : shadow;
-    ctx.shadowColor = node.color;
+    ctx.shadowBlur = glow + (hovered ? 6 : 0);
+    ctx.shadowColor = color;
+    ctx.fillStyle = fill;
     ctx.beginPath();
-    ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
-    ctx.fillStyle = hexToRgba(node.color, 0.18);
+    ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.lineWidth = isHovered ? 2.6 : 2;
-    ctx.strokeStyle = node.color;
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = rgba(color, 0.72);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.restore();
 
-    if (node.id === "OPENCLAW") drawOpenClawCage(node);
+    const hl = ctx.createRadialGradient(x - r * 0.36, y - r * 0.38, 0, x - r * 0.36, y - r * 0.38, r * 0.68);
+    hl.addColorStop(0, "rgba(255,255,255,0.26)");
+    hl.addColorStop(0.55, "rgba(255,255,255,0.05)");
+    hl.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = hl;
+    ctx.beginPath();
+    ctx.arc(x, y, r - 1, 0, Math.PI * 2);
+    ctx.fill();
 
-    if (isSelected) {
+    if (node.id === "OPENCLAW_A") {
       ctx.save();
-      ctx.strokeStyle = "rgba(0, 212, 255, 0.85)";
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(255, 82, 82, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
       ctx.beginPath();
-      ctx.arc(node.x, node.y, node.r + 13, 0, Math.PI * 2);
+      ctx.arc(x, y, r + 10, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }
 
-    const textAlpha = dimmed ? 0.28 : 1;
-    ctx.save();
-    ctx.globalAlpha = textAlpha;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.shadowBlur = 0;
 
-    ctx.fillStyle = "#C8D8E8";
-    ctx.font = "bold 13px JetBrains Mono, monospace";
-    ctx.fillText(node.label, node.x, node.y - 8);
+    if (node.tier === "section") {
+      const scale = node.r < 45 ? 0.92 : 1;
+      const idFont = fitFont(13 * scale, node.r, 11);
+      const roleFont = fitFont(10 * scale, node.r, 9);
+      const detailFont = fitFont(8 * scale, node.r, 8);
 
-    ctx.fillStyle = "#5A7090";
-    ctx.font = "11px JetBrains Mono, monospace";
-    ctx.fillText(node.role, node.x, node.y + 8);
+      ctx.fillStyle = "#C8D8E8";
+      ctx.font = `700 ${idFont}`;
+      ctx.fillText(node.label, x, y - 8);
 
-    if (node.r >= 36 && node.detail) {
+      ctx.font = roleFont;
+      ctx.fillStyle = "#5A7090";
+      ctx.fillText(node.role, x, y + 7);
+
+      if (node.detail) {
+        ctx.font = detailFont;
+        ctx.fillStyle = "#2A4060";
+        ctx.fillText(node.detail, x, y + 20);
+      }
+    } else if (node.tier === "sub") {
+      ctx.fillStyle = "#C8D8E8";
+      ctx.font = "10px JetBrains Mono, monospace";
+      ctx.fillText(node.label, x, y - 5);
+      ctx.font = "8px JetBrains Mono, monospace";
       ctx.fillStyle = "#3A5070";
-      ctx.font = "9px JetBrains Mono, monospace";
-      ctx.fillText(node.detail, node.x, node.y + 22);
+      ctx.fillText(node.type, x, y + 7);
+    } else if (node.tier === "micro") {
+      ctx.fillStyle = "#4A6080";
+      ctx.font = "8px JetBrains Mono, monospace";
+      ctx.fillText(node.label, x, y - (r + 10));
+    }
+
+    ctx.restore();
+  }
+
+  function bezierForEdge(edge, source, target) {
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+
+    if (edge.type === "flow") {
+      return {
+        c1x: source.x,
+        c1y: source.y + dy * 0.45,
+        c2x: target.x,
+        c2y: target.y - dy * 0.45
+      };
+    }
+
+    if (edge.type === "branch") {
+      return {
+        c1x: source.x,
+        c1y: source.y + dy * 0.3,
+        c2x: target.x,
+        c2y: target.y - dy * 0.3
+      };
+    }
+
+    if (edge.type === "memory") {
+      const bend = Math.max(70, Math.abs(dx) * 0.28);
+      return {
+        c1x: source.x - bend * 0.15,
+        c1y: source.y + dy * 0.22,
+        c2x: target.x - bend * 0.2,
+        c2y: target.y - dy * 0.22
+      };
+    }
+
+    if (edge.type === "gates") {
+      const bend = Math.max(90, Math.abs(dx) * 0.45);
+      return {
+        c1x: source.x + bend,
+        c1y: source.y + dy * 0.18,
+        c2x: target.x + bend,
+        c2y: target.y - dy * 0.18
+      };
+    }
+
+    const bend = Math.max(60, Math.abs(dx) * 0.18);
+    return {
+      c1x: source.x + dx * 0.15 - bend * 0.08,
+      c1y: source.y + dy * 0.24,
+      c2x: target.x - dx * 0.15 - bend * 0.08,
+      c2y: target.y - dy * 0.24
+    };
+  }
+
+  function drawEdge(edge, time) {
+    const source = nodeMap.get(edge.source);
+    const target = nodeMap.get(edge.target);
+    if (!source || !target) return;
+
+    const style = edgeStyles[edge.type];
+    const controls = bezierForEdge(edge, source, target);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(source.x, source.y);
+    ctx.bezierCurveTo(controls.c1x, controls.c1y, controls.c2x, controls.c2y, target.x, target.y);
+    ctx.strokeStyle = style.stroke;
+    ctx.lineWidth = style.width;
+    ctx.globalAlpha = style.opacity;
+    ctx.lineCap = "round";
+    if (style.dash.length) {
+      ctx.setLineDash(style.dash);
+      ctx.lineDashOffset = -time * (edge.type === "data" ? 0.03 : edge.type === "memory" ? 0.02 : 0.025);
+    } else {
+      ctx.setLineDash([]);
+    }
+    ctx.shadowBlur = edge.type === "flow" ? 9 : 5;
+    ctx.shadowColor = style.stroke;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function buildFlowTrack() {
+    const points = flowPathIds.map((id) => nodeMap.get(id)).filter(Boolean);
+    const segments = [];
+    let total = 0;
+
+    for (let index = 0; index < points.length - 1; index += 1) {
+      const a = points[index];
+      const b = points[index + 1];
+      const len = Math.hypot(b.x - a.x, b.y - a.y);
+      segments.push({ a, b, len, start: total, end: total + len });
+      total += len;
+    }
+
+    return { points, segments, total };
+  }
+
+  function sampleFlowPoint(flowT) {
+    if (!flowTrack.segments.length || flowTrack.total <= 0) return null;
+    const distance = flowT * flowTrack.total;
+    const segment = flowTrack.segments.find((entry) => distance >= entry.start && distance <= entry.end) || flowTrack.segments[flowTrack.segments.length - 1];
+    if (!segment) return null;
+    const span = segment.end - segment.start || 1;
+    const local = clamp((distance - segment.start) / span, 0, 1);
+    return {
+      x: segment.a.x + (segment.b.x - segment.a.x) * local,
+      y: segment.a.y + (segment.b.y - segment.a.y) * local
+    };
+  }
+
+  function drawFlowPulse(time) {
+    const flowT = (time % 5000) / 5000;
+    const point = sampleFlowPoint(flowT);
+    if (!point) return;
+
+    ctx.save();
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = "#00D4FF";
+    ctx.fillStyle = "#00D4FF";
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawSpineGuide() {
+    ctx.save();
+    ctx.strokeStyle = "rgba(42, 64, 96, 0.5)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 9]);
+    ctx.beginPath();
+    ctx.moveTo(cx, 60);
+    ctx.lineTo(cx, TRACK_HEIGHT - 60);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawStageLabels() {
+    ctx.save();
+    ctx.fillStyle = "#2A4060";
+    ctx.font = "9px JetBrains Mono, monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    for (const row of stageRows) {
+      ctx.fillText(row.label, 24, row.y);
     }
     ctx.restore();
+  }
 
-    if (node.r < 30) {
-      ctx.save();
-      ctx.globalAlpha = textAlpha;
-      ctx.fillStyle = "#5A7090";
-      ctx.font = "10px JetBrains Mono, monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillText(node.id, node.x, node.y - node.r - 12);
-      ctx.restore();
+  function drawEdges(time) {
+    const order = ["memory", "advises", "data", "branch", "gates", "flow"];
+    for (const type of order) {
+      for (const edge of edges) {
+        if (edge.type === type) drawEdge(edge, time);
+      }
     }
   }
 
-  function drawScene(now) {
-    ctx.clearRect(0, 0, width, canvasHeight);
-    drawEdges(now);
-    for (const node of nodes) drawNode(node);
+  function drawNodes() {
+    for (const node of sections) drawGlassOrb(node, node === hoverNode);
+    for (const node of subs) drawGlassOrb(node, node === hoverNode);
+    for (const node of microNodes) drawGlassOrb(node, node === hoverNode);
   }
 
-  function frame(now) {
-    drawScene(now);
-    requestAnimationFrame(frame);
+  function renderMain() {
+    const width = viewportWidth;
+    const height = viewportHeight;
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = "#070B18";
+    ctx.fillRect(0, 0, width, height);
+
+    const time = Date.now();
+    drawSpineGuide();
+    drawStageLabels();
+    drawEdges(time);
+    drawNodes();
+    drawFlowPulse(time);
   }
 
-  function findNode(x, y) {
+  function renderFrame() {
+    renderMain();
+    requestAnimationFrame(renderFrame);
+  }
+
+  function canvasPointFromEvent(event) {
+    const rect = mainCanvas.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top + viewport.scrollTop
+    };
+  }
+
+  function hitTest(x, y) {
     for (let index = nodes.length - 1; index >= 0; index -= 1) {
       const node = nodes[index];
-      const dx = x - node.x;
-      const dy = y - node.y;
-      if (Math.sqrt(dx * dx + dy * dy) <= node.r) return node;
+      if (Math.hypot(node.x - x, node.y - y) <= node.r + 7) return node;
     }
     return null;
   }
 
-  function moveTooltip(node, event) {
-    if (!node) {
-      tooltip.style.display = "none";
-      return;
-    }
+  function buildConnectionItem(edge, otherNodeId) {
+    const node = nodeMap.get(otherNodeId);
+    const title = node ? node.label : otherNodeId;
+    const badgeLabel = edge.type === "flow"
+      ? "FLOW"
+      : edge.type === "branch"
+        ? "BRANCH"
+        : edge.type === "data"
+          ? "DATA"
+          : edge.type === "advises"
+            ? "ADVISES"
+            : edge.type === "gates"
+              ? "GATES"
+              : "MEMORY";
 
-    const left = clamp(event.clientX + 14, 8, Math.max(8, window.innerWidth - 340));
-    const top = clamp(event.clientY + 14, 8, Math.max(8, window.innerHeight - 120));
-    tooltip.innerHTML = `<strong>${node.id}</strong>\n${node.role}\n${node.detail}`;
-    tooltip.style.left = `${left}px`;
-    tooltip.style.top = `${top}px`;
-    tooltip.style.display = "block";
-  }
-
-  function edgeEntry(edge) {
     const item = document.createElement("div");
-    item.className = "drawer-item";
+    item.className = "info-item";
 
     const line = document.createElement("div");
-    line.className = "drawer-line";
+    line.className = "info-line";
 
     const badge = document.createElement("span");
     badge.className = `badge ${edge.type}`;
-    badge.textContent = edge.type;
+    badge.textContent = badgeLabel;
 
-    const text = document.createElement("span");
-    text.textContent = `${edge.source.id} → ${edge.target.id}`;
+    const text = document.createElement("strong");
+    text.textContent = title;
 
     line.append(badge, text);
     item.append(line);
     return item;
   }
 
-  function renderEdgeGroup(container, entries, emptyLabel) {
-    container.innerHTML = "";
-    if (entries.length === 0) {
-      const empty = document.createElement("div");
-      empty.className = "drawer-item";
-      empty.textContent = emptyLabel;
-      container.append(empty);
+  function populateInfoCard(node) {
+    const incoming = incomingByNode.get(node.id) || [];
+    const outgoing = outgoingByNode.get(node.id) || [];
+
+    infoKicker.textContent = "NODE FOCUS";
+    infoId.textContent = node.label;
+    infoRole.textContent = node.role || "";
+    infoDetail.textContent = node.detail || "";
+    infoStage.textContent = node.tier === "section" ? node.stage : `PARENT ${node.parent}`;
+    infoTier.textContent = node.tier.toUpperCase();
+
+    infoIncoming.replaceChildren(
+      ...(incoming.length
+        ? incoming.map((edge) => buildConnectionItem(edge, edge.source))
+        : [Object.assign(document.createElement("div"), { className: "info-item", textContent: "No incoming links" })])
+    );
+
+    infoOutgoing.replaceChildren(
+      ...(outgoing.length
+        ? outgoing.map((edge) => buildConnectionItem(edge, edge.target))
+        : [Object.assign(document.createElement("div"), { className: "info-item", textContent: "No outgoing links" })])
+    );
+  }
+
+  function positionInfoCard(node) {
+    if (!node) return;
+    const cardWidth = infoCard.offsetWidth || 320;
+    const cardHeight = infoCard.offsetHeight || 240;
+    const screenX = node.x;
+    const screenY = node.y - viewport.scrollTop;
+    const openRight = screenX < viewportWidth * 0.58;
+    const side = openRight ? "right" : "left";
+    let left = openRight ? screenX + node.r + 22 : screenX - cardWidth - node.r - 22;
+    let top = screenY - cardHeight * 0.18;
+
+    left = clamp(left, 12, viewportWidth - cardWidth - 12);
+    top = clamp(top, 12, window.innerHeight - cardHeight - 12);
+
+    infoCard.dataset.side = side;
+    infoCard.style.left = `${left}px`;
+    infoCard.style.top = `${top}px`;
+  }
+
+  function showInfoCard(node) {
+    selectedNode = node;
+    populateInfoCard(node);
+    infoCard.style.display = "block";
+    infoCard.setAttribute("aria-hidden", "false");
+    positionInfoCard(node);
+  }
+
+  function hideInfoCard() {
+    selectedNode = null;
+    infoCard.style.display = "none";
+    infoCard.setAttribute("aria-hidden", "true");
+  }
+
+  function updateHover(node) {
+    hoverNode = node;
+    mainCanvas.style.cursor = node ? "pointer" : "default";
+  }
+
+  function resize() {
+    viewportWidth = window.innerWidth;
+    viewportHeight = TRACK_HEIGHT;
+    syncLayout();
+    resizeCanvas(bgCanvas, bgCtx);
+    resizeCanvas(mainCanvas, ctx);
+    drawBackgroundLayer();
+    if (selectedNode) positionInfoCard(selectedNode);
+  }
+
+  mainCanvas.addEventListener("pointermove", (event) => {
+    const point = canvasPointFromEvent(event);
+    updateHover(hitTest(point.x, point.y));
+  });
+
+  mainCanvas.addEventListener("pointerleave", () => {
+    updateHover(null);
+  });
+
+  mainCanvas.addEventListener("pointerdown", (event) => {
+    const point = canvasPointFromEvent(event);
+    const node = hitTest(point.x, point.y);
+    if (node) {
+      showInfoCard(node);
+      event.preventDefault();
       return;
     }
 
-    for (const edge of entries) {
-      container.append(edgeEntry(edge));
-    }
-  }
-
-  function openDrawer(node) {
-    selected = node;
-    drawerId.textContent = node.id;
-    drawerRole.textContent = node.role;
-    drawerDetail.textContent = node.detail;
-
-    const incoming = links.filter((edge) => edge.target.id === node.id);
-    const outgoing = links.filter((edge) => edge.source.id === node.id);
-
-    renderEdgeGroup(drawerIncoming, incoming, "No incoming edges");
-    renderEdgeGroup(drawerOutgoing, outgoing, "No outgoing edges");
-
-    drawer.classList.add("open");
-    drawerBackdrop.classList.add("open");
-    drawer.setAttribute("aria-hidden", "false");
-  }
-
-  function closeDrawer() {
-    selected = null;
-    drawer.classList.remove("open");
-    drawerBackdrop.classList.remove("open");
-    drawer.setAttribute("aria-hidden", "true");
-  }
-
-  canvas.addEventListener("mousemove", (event) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    hovered = findNode(x, y);
-    canvas.style.cursor = hovered ? "pointer" : "default";
-    moveTooltip(hovered, event);
+    hideInfoCard();
   });
 
-  canvas.addEventListener("mouseleave", () => {
-    hovered = null;
-    canvas.style.cursor = "default";
-    tooltip.style.display = "none";
+  infoClose.addEventListener("click", hideInfoCard);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") hideInfoCard();
   });
 
-  canvas.addEventListener("click", (event) => {
-    const rect = canvas.getBoundingClientRect();
-    const node = findNode(event.clientX - rect.left, event.clientY - rect.top);
-    if (node) openDrawer(node);
-  });
+  viewport.addEventListener("scroll", () => {
+    if (selectedNode) positionInfoCard(selectedNode);
+  }, { passive: true });
 
-  drawerBackdrop.addEventListener("click", closeDrawer);
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeDrawer();
-  });
   window.addEventListener("resize", resize);
 
+  syncLayout();
   resize();
-  requestAnimationFrame(frame);
+  renderFrame();
 })();
 </script>
 </body>
