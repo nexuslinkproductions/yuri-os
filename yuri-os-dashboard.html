@@ -40,7 +40,23 @@ body {
 }
 
 body {
+  position: relative;
   overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.012) 0px,
+    rgba(255,255,255,0.012) 1px,
+    transparent 1px,
+    transparent 3px
+  );
 }
 
 body::selection {
@@ -78,6 +94,7 @@ body::selection {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.08em;
+  text-shadow: 0 0 30px rgba(212,175,55,0.5);
 }
 
 .system-name {
@@ -106,12 +123,24 @@ body::selection {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.08em;
+  text-shadow: 0 0 20px rgba(201,90,59,0.6);
 }
 
 .soak-ring {
   display: block;
   width: 28px;
   height: 28px;
+}
+
+.topbar::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #D4AF37 30%, #D4AF37 70%, transparent 100%);
+  opacity: 0.3;
 }
 
 .pulse-dot {
@@ -121,6 +150,8 @@ body::selection {
 }
 
 main {
+  position: relative;
+  z-index: 1;
   padding-top: 56px;
   background: var(--bg);
 }
@@ -128,8 +159,11 @@ main {
 section {
   padding: 24px 32px;
   border-top: 1px solid var(--line);
-  background: var(--bg);
-  transition: border-color 180ms linear;
+  background: linear-gradient(180deg, rgba(212,175,55,0.035) 0%, transparent 60%), var(--bg);
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  transition: border-color 180ms linear, box-shadow 180ms;
 }
 
 section:hover {
@@ -137,12 +171,25 @@ section:hover {
 }
 
 .section-label {
+  position: relative;
   margin: 0 0 20px;
+  padding-bottom: 10px;
+  margin-bottom: 24px;
   color: var(--gold);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+}
+
+.section-label::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, #D4AF37, transparent);
 }
 
 .grid {
@@ -170,7 +217,9 @@ section:hover {
 .gate-card,
 .phase {
   border: 1px solid rgba(212,175,55,0.16);
-  background: #0a0a0a;
+  border-top: 1px solid rgba(212,175,55,0.3);
+  background: linear-gradient(180deg, rgba(212,175,55,0.04) 0%, #0a0a0a 24px);
+  transition: border-color 180ms, box-shadow 180ms;
 }
 
 .panel,
@@ -254,6 +303,7 @@ li {
   flex: 1 1 220px;
   min-width: 220px;
   padding: 14px;
+  animation: boxIn 400ms cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
 .flow-copy {
@@ -328,6 +378,19 @@ td .value {
   display: inline-block;
 }
 
+tr {
+  transition: background 120ms linear;
+}
+
+tr:hover td {
+  background: rgba(212,175,55,0.04);
+}
+
+tbody tr {
+  animation: rowIn 300ms ease both;
+  animation-delay: var(--row-delay, 0ms);
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -338,12 +401,24 @@ td .value {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.04em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
 }
 
-.badge-local { background: var(--local); }
+.badge-local {
+  background: var(--local);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 0 10px rgba(118,185,0,0.3);
+}
 .badge-cloud { background: var(--cyan); }
-.badge-codex { background: var(--codex); color: var(--bone); }
-.badge-bridge { background: var(--fire); color: var(--bone); }
+.badge-codex {
+  background: var(--codex);
+  color: var(--bone);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 0 10px rgba(155,89,255,0.3);
+}
+.badge-bridge {
+  background: var(--fire);
+  color: var(--bone);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 0 10px rgba(201,90,59,0.3);
+}
 .badge-swarm { background: var(--swarm); }
 .badge-last { background: rgba(255,255,255,0.3); color: var(--bone); }
 .badge-native,
@@ -372,6 +447,7 @@ td .value {
   align-items: center;
   gap: 14px;
   padding: 12px 14px;
+  transition: border-color 180ms, box-shadow 180ms, background 180ms;
 }
 
 .agent-row {
@@ -387,6 +463,7 @@ td .value {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.08em;
+  text-shadow: 0 0 24px rgba(212,175,55,0.35);
 }
 
 .status {
@@ -407,11 +484,13 @@ td .value {
 
 .dot.running {
   background: var(--cyan);
+  animation: dotPulse 2s ease-in-out infinite;
 }
 
 .dot.throttled,
 .dot.blocked {
   background: var(--fire);
+  box-shadow: 0 0 6px rgba(201,90,59,0.6);
 }
 
 .phase {
@@ -474,13 +553,91 @@ td .value {
   height: 88px;
 }
 
+.panel:hover,
+.tier:hover,
+.gate-card:hover,
+.phase:hover,
+.flow-box:hover {
+  box-shadow: 0 0 0 1px rgba(212,175,55,0.18), 0 4px 24px rgba(0,0,0,0.4);
+}
+
+.flow-box:hover {
+  border-color: rgba(212,175,55,0.5);
+  box-shadow: 0 0 20px rgba(212,175,55,0.08), inset 0 0 40px rgba(212,175,55,0.04);
+}
+
+.agent-row:hover {
+  background: rgba(212,175,55,0.03);
+  border-color: rgba(212,175,55,0.35);
+}
+
+.service-row:hover {
+  background: rgba(0,229,191,0.02);
+  border-color: rgba(0,229,191,0.2);
+}
+
+.agent-row:hover,
+.service-row:hover {
+  box-shadow: 0 0 0 1px rgba(212,175,55,0.18), 0 4px 24px rgba(0,0,0,0.4);
+}
+
+.flow-box:nth-child(1) { animation-delay: 100ms; }
+.flow-box:nth-child(2) { animation-delay: 200ms; }
+.flow-box:nth-child(3) { animation-delay: 300ms; }
+.flow-box:nth-child(4) { animation-delay: 400ms; }
+.flow-box:nth-child(5) { animation-delay: 500ms; }
+.flow-box:nth-child(6) { animation-delay: 600ms; }
+.flow-box:nth-child(7) { animation-delay: 700ms; }
+
 @keyframes dash {
   to { stroke-dashoffset: -18; }
+}
+
+@keyframes boxIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rowIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sectionIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,191,0.6); }
+  50% { box-shadow: 0 0 0 5px rgba(0,229,191,0); }
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 0.45; }
   50% { opacity: 1; }
+}
+
+.soak-ring circle:last-child {
+  transition: stroke-dasharray 1.2s cubic-bezier(0.25, 1, 0.5, 1) 800ms;
+}
+
+section.visible {
+  animation: sectionIn 500ms cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
 @media (max-width: 1180px) {
@@ -545,6 +702,17 @@ td .value {
     animation: none;
   }
 
+  .flow-box,
+  tbody tr,
+  section.visible,
+  .dot.running {
+    animation: none;
+  }
+
+  section {
+    opacity: 1;
+  }
+
   section {
     transition: none;
   }
@@ -561,7 +729,7 @@ td .value {
   <div class="topbar-right">
     <svg class="soak-ring" viewBox="0 0 32 32" aria-label="Soak ring 32 percent filled">
       <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(168,188,198,0.22)" stroke-width="3"></circle>
-      <circle cx="16" cy="16" r="12" fill="none" stroke="#A8BCC6" stroke-width="3" stroke-linecap="butt" stroke-dasharray="24.13 75.4" transform="rotate(-90 16 16)"></circle>
+    <circle cx="16" cy="16" r="12" fill="none" stroke="#A8BCC6" stroke-width="3" stroke-linecap="butt" stroke-dasharray="0 75.4" transform="rotate(-90 16 16)"></circle>
     </svg>
     <span class="header-muted">16/50 SOAK</span>
     <span class="header-value">5/5 <span class="pulse-dot">&bull;</span></span>
@@ -849,5 +1017,41 @@ td .value {
     </div>
   </section>
 </main>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.flow-box').forEach((box, index) => {
+    box.style.animationDelay = `${(index + 1) * 100}ms`;
+  });
+
+  document.querySelectorAll('tbody tr').forEach((row, index) => {
+    row.style.setProperty('--row-delay', `${(index + 1) * 40}ms`);
+  });
+
+  const sections = document.querySelectorAll('section');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.05 });
+
+    sections.forEach(section => io.observe(section));
+  } else {
+    sections.forEach(section => section.classList.add('visible'));
+  }
+
+  const soakCircle = document.querySelector('.soak-ring circle:last-child');
+  if (soakCircle) {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        soakCircle.style.strokeDasharray = '24.1 51.3';
+      }, 0);
+    });
+  }
+});
+</script>
 </body>
 </html>
