@@ -9,14 +9,24 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #080808;
-  --gold: #D4AF37;
-  --blue: #1E3A8A;
-  --mist: #A8BCC6;
-  --bone: #F2E9D2;
-  --fire: #C95A3B;
-  --cyan: #00e5bf;
-  --soil: #4A3B32;
+  --bg: #070B18;
+  --surface: #0D1526;
+  --cyan: #00D4FF;
+  --blue: #4A9EFF;
+  --violet: #9B6EFF;
+  --red-hot: #FF5252;
+  --emerald: #00C896;
+  --amber: #FFB347;
+  --ice: #74B9FF;
+  --flame: #FF6835;
+  --slate: #94A3B8;
+  --text: #C8D8E8;
+  --text-dim: #5A7090;
+  --text-faint: #2A4060;
+  --edge-flow: #00D4FF;
+  --edge-data: #4A9EFF;
+  --edge-gate: #FF6835;
+  --edge-mem: #74B9FF;
 }
 
 * {
@@ -28,14 +38,17 @@ body {
   width: 100%;
   height: 100%;
   margin: 0;
-  overflow: hidden;
   background: var(--bg);
-  color: var(--bone);
+  overflow: hidden;
   font-family: "JetBrains Mono", monospace;
+  color: var(--text);
 }
 
 body {
   position: relative;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 body::before {
@@ -45,62 +58,75 @@ body::before {
   z-index: 1;
   pointer-events: none;
   background:
+    radial-gradient(circle at 50% 10%, rgba(0, 212, 255, 0.08), transparent 30%),
+    radial-gradient(circle at 50% 90%, rgba(74, 158, 255, 0.06), transparent 26%),
     repeating-linear-gradient(
       0deg,
-      rgba(255, 255, 255, 0.018) 0,
-      rgba(255, 255, 255, 0.018) 1px,
+      rgba(200, 216, 232, 0.032) 0,
+      rgba(200, 216, 232, 0.032) 1px,
       transparent 1px,
-      transparent 4px
+      transparent 5px
     );
-  opacity: 0.42;
+  opacity: 0.5;
+}
+
+#viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100vh;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(0, 212, 255, 0.08), transparent 22%),
+    radial-gradient(circle at 50% 88%, rgba(74, 158, 255, 0.05), transparent 28%),
+    linear-gradient(180deg, rgba(13, 21, 38, 0.62), rgba(7, 11, 24, 0.94));
 }
 
 canvas {
   display: block;
   width: 100vw;
-  height: 100vh;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.075), transparent 34%),
-    #080808;
+  height: 1600px;
 }
 
-.brand-lockup {
+.hud {
   position: fixed;
-  top: 12px;
-  left: 16px;
-  z-index: 5;
+  z-index: 100;
   pointer-events: none;
+}
+
+.hud-left {
+  top: 14px;
+  left: 18px;
+  display: grid;
+  gap: 2px;
 }
 
 .brand-title {
-  color: var(--gold);
+  color: var(--cyan);
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  line-height: 1.2;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
 }
 
 .brand-subtitle {
-  margin-top: 4px;
-  color: var(--soil);
+  color: var(--text-faint);
   font-size: 10px;
   line-height: 1.2;
 }
 
-.soak-status {
-  position: fixed;
+.hud-right {
   top: 12px;
   right: 16px;
-  z-index: 5;
   display: grid;
   grid-template-columns: 32px auto;
+  align-items: center;
   column-gap: 8px;
   row-gap: 2px;
-  align-items: center;
-  color: var(--mist);
+  color: var(--text-dim);
   font-size: 10px;
-  line-height: 1.2;
-  pointer-events: none;
+  line-height: 1.1;
 }
 
 .soak-ring {
@@ -109,32 +135,33 @@ canvas {
   height: 32px;
 }
 
+.soak-ring circle:last-child {
+  animation: ringPulse 2.4s ease-in-out infinite;
+}
+
 .critical-pulse {
-  color: var(--fire);
+  color: var(--red-hot);
   animation: criticalPulse 1.35s ease-in-out infinite;
 }
 
-.bottom-strip {
-  position: fixed;
+.hud-bottom {
   left: 50%;
-  bottom: 12px;
-  z-index: 5;
+  bottom: 14px;
   transform: translateX(-50%);
-  color: var(--mist);
+  color: var(--text-faint);
   font-size: 10px;
   letter-spacing: 0.08em;
   white-space: nowrap;
-  pointer-events: none;
 }
 
 .legend {
   position: fixed;
   left: 16px;
   bottom: 14px;
-  z-index: 5;
+  z-index: 100;
   display: grid;
   gap: 6px;
-  color: var(--mist);
+  color: var(--text-dim);
   font-size: 9px;
   letter-spacing: 0.08em;
   pointer-events: none;
@@ -153,40 +180,45 @@ canvas {
   border-top-style: solid;
 }
 
-.legend-line.data,
-.legend-line.advises {
+.legend-line.data {
   border-top-style: dashed;
 }
 
-.legend-line.stores {
+.legend-line.gates {
+  border-top-style: solid;
+}
+
+.legend-line.memory {
   border-top-style: dotted;
 }
 
 .tooltip {
   position: fixed;
-  z-index: 10;
+  z-index: 120;
   display: none;
-  max-width: 300px;
-  padding-left: 8px;
-  border-left: 2px solid var(--gold);
-  color: var(--bone);
+  min-width: 160px;
+  max-width: 320px;
+  padding: 8px 10px 8px 9px;
+  border-left: 2px solid var(--cyan);
+  background: rgba(13, 21, 38, 0.96);
+  color: var(--text);
   font-size: 11px;
   line-height: 1.45;
   white-space: pre-line;
   pointer-events: none;
-  text-shadow: 0 0 16px rgba(0, 0, 0, 0.95);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
 }
 
-.tooltip .group {
-  color: var(--mist);
+.tooltip strong {
+  color: var(--text);
 }
 
 .drawer-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 130;
   display: none;
-  background: rgba(0, 0, 0, 0.24);
+  background: rgba(3, 6, 14, 0.42);
 }
 
 .drawer-backdrop.open {
@@ -197,16 +229,18 @@ canvas {
   position: fixed;
   top: 0;
   right: 0;
-  z-index: 21;
+  z-index: 140;
   width: 320px;
-  max-width: calc(100vw - 32px);
+  max-width: calc(100vw - 20px);
   height: 100vh;
-  padding: 24px 20px;
-  border-left: 1px solid rgba(212, 175, 55, 0.26);
-  background: rgba(8, 8, 8, 0.88);
-  backdrop-filter: blur(14px);
+  padding: 24px 18px 24px 20px;
+  border-left: 1px solid rgba(74, 158, 255, 0.18);
+  background: linear-gradient(180deg, rgba(13, 21, 38, 0.98), rgba(7, 11, 24, 0.96));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 16px) 100%, 0 100%);
   transform: translateX(100%);
-  transition: transform 260ms cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+  backdrop-filter: blur(16px);
+  overflow-y: auto;
 }
 
 .drawer.open {
@@ -214,59 +248,119 @@ canvas {
 }
 
 .drawer-id {
-  margin: 0 0 12px;
-  color: var(--gold);
-  font-size: 22px;
+  margin: 0 0 8px;
+  color: var(--cyan);
+  font-size: 24px;
   line-height: 1.05;
-  word-break: break-word;
+  letter-spacing: 0.02em;
 }
 
-.drawer-badge {
-  display: inline-block;
-  margin-bottom: 20px;
-  padding: 4px 7px;
-  border: 1px solid rgba(168, 188, 198, 0.34);
-  color: var(--mist);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+.drawer-role {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
-.drawer-label {
-  margin: 0 0 24px;
-  color: var(--bone);
-  font-size: 12px;
-  line-height: 1.6;
+.drawer-detail {
+  margin: 0 0 18px;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.drawer-section {
+  margin-top: 18px;
 }
 
 .drawer-heading {
   margin: 0 0 10px;
-  color: var(--mist);
+  color: var(--text-dim);
   font-size: 10px;
   letter-spacing: 0.14em;
 }
 
-.drawer-edges {
+.drawer-list {
   display: grid;
   gap: 8px;
-  margin: 0;
-  padding: 0;
-  color: var(--mist);
-  font-size: 11px;
-  line-height: 1.45;
-  list-style: none;
 }
 
-.drawer-edges li {
-  overflow-wrap: anywhere;
+.drawer-item {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(13, 21, 38, 0.72);
+}
+
+.drawer-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge.flow {
+  color: var(--cyan);
+}
+
+.badge.data {
+  color: var(--blue);
+}
+
+.badge.advises {
+  color: var(--violet);
+}
+
+.badge.gates {
+  color: var(--flame);
+}
+
+.badge.memory {
+  color: var(--ice);
+}
+
+.badge.service {
+  color: var(--emerald);
+}
+
+.badge.quarantine {
+  color: var(--red-hot);
+}
+
+.node-id-label {
+  position: fixed;
+  z-index: 90;
+  display: none;
 }
 
 @keyframes criticalPulse {
   0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; text-shadow: 0 0 12px rgba(201, 90, 59, 0.9); }
+  50% { opacity: 1; text-shadow: 0 0 12px rgba(255, 82, 82, 0.9); }
+}
+
+@keyframes ringPulse {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
 }
 
 @media (max-width: 760px) {
-  .bottom-strip {
+  .hud-bottom {
     bottom: 88px;
     width: calc(100vw - 32px);
     text-align: center;
@@ -278,44 +372,55 @@ canvas {
     grid-template-columns: repeat(2, auto);
     bottom: 14px;
   }
+
+  .drawer {
+    width: min(92vw, 320px);
+  }
 }
 </style>
 </head>
 <body>
-<canvas id="graph" aria-label="Force-directed node graph of Yuri OS"></canvas>
-
-<div class="brand-lockup" aria-hidden="true">
-  <div class="brand-title">YURI OS</div>
-  <div class="brand-subtitle">NUDIMMUD · main · 77cba552</div>
+<div id="viewport">
+  <canvas id="graph" aria-label="Top-down force graph of Yuri OS"></canvas>
 </div>
 
-<div class="soak-status" aria-hidden="true">
+<div class="hud hud-left" aria-hidden="true">
+  <div class="brand-title">YURI OS</div>
+  <div class="brand-subtitle">NUDIMMUD · main · f770a64b</div>
+</div>
+
+<div class="hud hud-right" aria-hidden="true">
   <svg class="soak-ring" viewBox="0 0 32 32">
-    <circle cx="16" cy="16" r="14" fill="none" stroke="rgba(168,188,198,0.18)" stroke-width="2"></circle>
-    <circle cx="16" cy="16" r="14" fill="none" stroke="#A8BCC6" stroke-width="2" stroke-linecap="round" pathLength="100" stroke-dasharray="32 68" transform="rotate(-90 16 16)"></circle>
+    <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(90,112,144,0.24)" stroke-width="2"></circle>
+    <circle cx="16" cy="16" r="12" fill="none" stroke="#00D4FF" stroke-width="2" stroke-linecap="round" pathLength="100" stroke-dasharray="32 68" transform="rotate(-90 16 16)"></circle>
   </svg>
   <div>16/50 SOAK</div>
   <div class="critical-pulse">5/5 ●</div>
 </div>
 
+<div class="hud hud-bottom" aria-hidden="true">TIER CRITICAL · PROTOCOL-CHANGE · 30 NODES · 40 EDGES</div>
+
 <div class="legend" aria-hidden="true">
-  <div class="legend-row"><span class="legend-line invokes" style="border-color:#D4AF37"></span><span>INVOKES</span></div>
-  <div class="legend-row"><span class="legend-line data" style="border-color:#1E3A8A"></span><span>DATA</span></div>
-  <div class="legend-row"><span class="legend-line advises" style="border-color:#A8BCC6"></span><span>ADVISES</span></div>
-  <div class="legend-row"><span class="legend-line gates" style="border-color:#C95A3B"></span><span>GATES</span></div>
-  <div class="legend-row"><span class="legend-line stores" style="border-color:#4A3B32"></span><span>STORES</span></div>
-  <div class="legend-row"><span class="legend-line runs" style="border-color:#00e5bf"></span><span>RUNS</span></div>
+  <div class="legend-row"><span class="legend-line" style="border-color:#00D4FF"></span><span>FLOW</span></div>
+  <div class="legend-row"><span class="legend-line data" style="border-color:#4A9EFF"></span><span>DATA</span></div>
+  <div class="legend-row"><span class="legend-line gates" style="border-color:#FF6835"></span><span>GATES</span></div>
+  <div class="legend-row"><span class="legend-line memory" style="border-color:#74B9FF"></span><span>MEMORY</span></div>
 </div>
 
-<div class="bottom-strip" aria-hidden="true">TIER CRITICAL · PROTOCOL-CHANGE · 51 NODES · 46 EDGES</div>
-<div id="tooltip" class="tooltip" role="status"></div>
+<div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
 <div id="drawerBackdrop" class="drawer-backdrop"></div>
 <aside id="drawer" class="drawer" aria-label="Node details" aria-hidden="true">
   <h1 id="drawerId" class="drawer-id"></h1>
-  <div id="drawerBadge" class="drawer-badge"></div>
-  <p id="drawerLabel" class="drawer-label"></p>
-  <h2 class="drawer-heading">OUTGOING EDGES</h2>
-  <ul id="drawerEdges" class="drawer-edges"></ul>
+  <p id="drawerRole" class="drawer-role"></p>
+  <p id="drawerDetail" class="drawer-detail"></p>
+  <div class="drawer-section">
+    <h2 class="drawer-heading">INCOMING</h2>
+    <div id="drawerIncoming" class="drawer-list"></div>
+  </div>
+  <div class="drawer-section">
+    <h2 class="drawer-heading">OUTGOING</h2>
+    <div id="drawerOutgoing" class="drawer-list"></div>
+  </div>
 </aside>
 
 <script>// d3-dispatch v3.0.1 inlined
@@ -334,224 +439,213 @@ canvas {
 (() => {
   const canvas = document.getElementById("graph");
   const ctx = canvas.getContext("2d");
+  const viewport = document.getElementById("viewport");
   const tooltip = document.getElementById("tooltip");
   const drawer = document.getElementById("drawer");
   const drawerBackdrop = document.getElementById("drawerBackdrop");
   const drawerId = document.getElementById("drawerId");
-  const drawerBadge = document.getElementById("drawerBadge");
-  const drawerLabel = document.getElementById("drawerLabel");
-  const drawerEdges = document.getElementById("drawerEdges");
-  const bottomStrip = document.querySelector(".bottom-strip");
+  const drawerRole = document.getElementById("drawerRole");
+  const drawerDetail = document.getElementById("drawerDetail");
+  const drawerIncoming = document.getElementById("drawerIncoming");
+  const drawerOutgoing = document.getElementById("drawerOutgoing");
+  const bottomBar = document.querySelector(".hud-bottom");
+
+  const LAYER_Y = {
+    0: 80,
+    1: 170,
+    2: 290,
+    3: 390,
+    4: 490,
+    5: 600,
+    6: 700,
+    7: 820,
+    8: 940,
+    9: 1040,
+    10: 1140,
+    11: 1240,
+    12: 1340,
+    13: 1460
+  };
 
   const edgeStyles = {
-    invokes: { color: "#D4AF37", width: 1.5, dash: [], opacity: 1 },
-    data: { color: "#1E3A8A", width: 1.2, dash: [5, 4], opacity: 1 },
-    advises: { color: "#A8BCC6", width: 0.8, dash: [5, 4], opacity: 0.5 },
-    gates: { color: "#C95A3B", width: 1.2, dash: [], opacity: 1 },
-    stores: { color: "#4A3B32", width: 0.8, dash: [1, 4], opacity: 1 },
-    runs: { color: "#00e5bf", width: 0.8, dash: [], opacity: 0.6 }
+    flow: { color: "#00D4FF", width: 2, dash: [], opacity: 1 },
+    data: { color: "#4A9EFF", width: 1.5, dash: [7, 6], opacity: 1 },
+    advises: { color: "#9B6EFF", width: 1, dash: [5, 5], opacity: 0.6 },
+    gates: { color: "#FF6835", width: 1.5, dash: [], opacity: 1 },
+    memory: { color: "#74B9FF", width: 1, dash: [2, 7], opacity: 0.6 }
   };
 
   const nodes = [
-    { id: "ENKI", label: "ENKI · main session", group: "nucleus", r: 28, color: "#D4AF37", x_hint: 0, y_hint: 0 },
-
-    { id: "PULSE_ORCH", label: "pulse-orchestrator.mjs", group: "cortex", r: 16, color: "#A8BCC6", x_hint: -0.3, y_hint: -0.25 },
-    { id: "CLASSIFIER", label: "offload-contract.mjs", group: "cortex", r: 14, color: "#A8BCC6", x_hint: 0.35, y_hint: -0.18 },
-    { id: "PULSE_BUS", label: "pulse-bus.json · ring buffer", group: "cortex", r: 14, color: "#A8BCC6", x_hint: 0, y_hint: 0.36 },
-
-    { id: "DEEPSEEK", label: "DEEPSEEK · model_advisor", group: "advisors", r: 13, color: "#1E3A8A", x_hint: -0.74, y_hint: -0.25 },
-    { id: "OPENCLAW", label: "OPENCLAW · bridge_advisory · QUARANTINED", group: "advisors", r: 13, color: "#C95A3B", x_hint: -0.52, y_hint: -0.58 },
-    { id: "HERMES_FC", label: "HERMES_FC · native_function", group: "advisors", r: 12, color: "#1E3A8A", x_hint: -0.18, y_hint: -0.78 },
-    { id: "CASSANDRA", label: "CASSANDRA · foresight · no model", group: "advisors", r: 12, color: "#1E3A8A", x_hint: 0.22, y_hint: -0.76 },
-    { id: "SWARM", label: "SWARM · dual fan-out", group: "advisors", r: 12, color: "#64d8e6", x_hint: 0.58, y_hint: -0.48 },
-    { id: "OBLITERATUS", label: "OBLITERATUS · adversarial gate", group: "advisors", r: 12, color: "#C95A3B", x_hint: 0.75, y_hint: -0.12 },
-
-    { id: "MEM_HOT", label: "MEMORY TIER 1 · HOT · pulse-plan + bus", group: "memory", r: 14, color: "#D4AF37", x_hint: -0.42, y_hint: 0.5 },
-    { id: "MEM_WARM", label: "MEMORY TIER 2 · WARM · EOT + journal", group: "memory", r: 13, color: "#c8a45c", x_hint: -0.66, y_hint: 0.66 },
-    { id: "MEM_COLD", label: "MEMORY TIER 3 · COLD · wiki atoms", group: "memory", r: 12, color: "#4A3B32", x_hint: -0.82, y_hint: 0.36 },
-    { id: "MEM_KERNEL", label: "memory.db · SQLite · kernel.py", group: "memory", r: 11, color: "#A8BCC6", x_hint: -0.92, y_hint: 0.08 },
-    { id: "MEM_MLM", label: "MLM SANDBOX · quarantined zone", group: "memory", r: 10, color: "#C95A3B", x_hint: -0.62, y_hint: 0.9 },
-
-    { id: "LANE_LOCAL", label: "code-local · qwen2.5-coder:7b", group: "routing", r: 9, color: "#76b900", x_hint: 0.26, y_hint: 0.92 },
-    { id: "LANE_DSFLASH", label: "deepseek-v4-flash", group: "routing", r: 9, color: "#00e5bf", x_hint: 0.46, y_hint: 0.82 },
-    { id: "LANE_DSPRO", label: "deepseek-v4-pro", group: "routing", r: 9, color: "#00e5bf", x_hint: 0.62, y_hint: 0.68 },
-    { id: "LANE_TRIAGE", label: "triage-local · qwen2.5:7b", group: "routing", r: 8, color: "#76b900", x_hint: 0.75, y_hint: 0.5 },
-    { id: "LANE_SUMM", label: "summarize-local", group: "routing", r: 8, color: "#76b900", x_hint: 0.84, y_hint: 0.31 },
-    { id: "LANE_GPTOSS", label: "gpt-oss · 20b/120b", group: "routing", r: 8, color: "#76b900", x_hint: 0.9, y_hint: 0.1 },
-    { id: "LANE_SPARK", label: "codex-spark · gpt-5.3", group: "routing", r: 9, color: "#9B59FF", x_hint: 0.9, y_hint: -0.12 },
-    { id: "LANE_MINI", label: "codex-mini · gpt-5.4-mini · impl authority", group: "routing", r: 10, color: "#9B59FF", x_hint: 0.82, y_hint: -0.33 },
-    { id: "LANE_CODEX", label: "codex · gpt-5.5 · full workspace", group: "routing", r: 11, color: "#9B59FF", x_hint: 0.72, y_hint: -0.52 },
-    { id: "LANE_OC", label: "openclaw lane · bridge-only", group: "routing", r: 9, color: "#C95A3B", x_hint: 0.44, y_hint: -0.86 },
-    { id: "LANE_SWARM", label: "swarm lane · dual fan-out", group: "routing", r: 9, color: "#64d8e6", x_hint: 0.16, y_hint: -0.96 },
-    { id: "LANE_KIMI", label: "kimi · moonshot · fallback", group: "routing", r: 8, color: "#00e5bf", x_hint: -0.1, y_hint: -0.98 },
-
-    { id: "HOOK_STARTUP", label: "STARTUP · yuri-boot + soul-inject", group: "hooks", r: 10, color: "#A8BCC6", x_hint: -0.86, y_hint: -0.48 },
-    { id: "HOOK_PROMPT", label: "PROMPT-SUBMIT · orchestrator trigger", group: "hooks", r: 10, color: "#A8BCC6", x_hint: -0.96, y_hint: -0.18 },
-    { id: "HOOK_PRE", label: "PRE-TOOL · security + impact gates", group: "hooks", r: 10, color: "#A8BCC6", x_hint: -0.96, y_hint: 0.13 },
-    { id: "HOOK_POST", label: "POST-TOOL · logger + checkpoint", group: "hooks", r: 10, color: "#A8BCC6", x_hint: -0.86, y_hint: 0.44 },
-    { id: "HOOK_STOP", label: "STOP · EOT + session-end", group: "hooks", r: 10, color: "#A8BCC6", x_hint: -0.66, y_hint: 0.72 },
-
-    { id: "GATE_PRECOMMIT", label: "pre-commit · contract regression", group: "gates", r: 9, color: "#D4AF37", x_hint: 0.03, y_hint: 0.72 },
-    { id: "GATE_NEXUS", label: "GitNexus · impact + detect_changes", group: "gates", r: 9, color: "#D4AF37", x_hint: 0.21, y_hint: 0.62 },
-    { id: "GATE_CODEX2", label: "Codex two-phase gate · propose→apply", group: "gates", r: 9, color: "#9B59FF", x_hint: 0.38, y_hint: 0.54 },
-    { id: "GATE_OBLIT", label: "Obliteratus gate · adversarial audit", group: "gates", r: 9, color: "#C95A3B", x_hint: 0.02, y_hint: -0.72 },
-
-    { id: "SVC_SHELL", label: "shellservice · PID 816 · port 3098", group: "services", r: 9, color: "#00e5bf", x_hint: -0.38, y_hint: -0.94 },
-    { id: "SVC_RUNTIME", label: "yuri-session-runtime · PID 819", group: "services", r: 9, color: "#00e5bf", x_hint: -0.62, y_hint: -0.78 },
-    { id: "SVC_RAG", label: "wiki-rag · PID 821 · karpathy atoms", group: "services", r: 9, color: "#00e5bf", x_hint: -0.86, y_hint: -0.6 },
-    { id: "SVC_HEALTH", label: "lane-health · scheduled", group: "services", r: 7, color: "#A8BCC6", x_hint: -0.98, y_hint: -0.36 },
-    { id: "SVC_DIGEST", label: "token-digest · scheduled", group: "services", r: 7, color: "#A8BCC6", x_hint: -0.98, y_hint: -0.03 },
-    { id: "SVC_EOT", label: "eot-refresh · scheduled", group: "services", r: 7, color: "#A8BCC6", x_hint: -0.92, y_hint: 0.28 },
-    { id: "SVC_OLLAMA", label: "ollama-kv · idle", group: "services", r: 7, color: "#A8BCC6", x_hint: -0.76, y_hint: 0.56 },
-
-    { id: "SOAK", label: "SOAK · 16/50 · classifier gate at 50", group: "selfimprove", r: 11, color: "#D4AF37", x_hint: 0.12, y_hint: 0.98 },
-    { id: "EOT_PIPE", label: "EOT PIPELINE · 10 phases", group: "selfimprove", r: 10, color: "#A8BCC6", x_hint: -0.16, y_hint: 0.88 },
-    { id: "PULSE_ARCHIVE", label: "pulse-archive · daily findings", group: "selfimprove", r: 9, color: "#A8BCC6", x_hint: -0.04, y_hint: 0.78 }
+    { id: "USER", label: "USER", role: "human operator", detail: "", layer: 0, r: 45, color: "#FFFFFF" },
+    { id: "USER_INPUT", label: "USER INPUT", role: "typed prompt", detail: "→ Claude Code CLI", layer: 1, r: 40, color: "#00D4FF" },
+    { id: "ENKI", label: "ENKI", role: "main session", detail: "Claude Code control plane", layer: 2, r: 55, color: "#00D4FF" },
+    { id: "PULSE_SEED", label: "PULSE SEED", role: "brain dump inject", detail: "SOUL+palace+mnemosyne", layer: 3, r: 42, color: "#4A9EFF" },
+    { id: "PROMPT_HOOKS", label: "PROMPT HOOKS", role: "submit hooks fire", detail: "aeonic · protocol-guard", layer: 4, r: 38, color: "#94A3B8" },
+    { id: "PULSE_ORCH", label: "NEXUSPULSE", role: "pulse-orchestrator.mjs", detail: "detached spawn per turn", layer: 5, r: 45, color: "#4A9EFF" },
+    { id: "CLASSIFIER", label: "CLASSIFIER", role: "offload-contract.mjs", detail: "tier: TRIVIAL/STD/CPLX/CRIT", layer: 6, r: 42, color: "#4A9EFF" },
+    { id: "DEEPSEEK", label: "DEEPSEEK", role: "model_advisor", detail: "v4-flash / v4-pro · 60s", layer: 7, r: 36, color: "#9B6EFF" },
+    { id: "OPENCLAW", label: "OPENCLAW", role: "bridge_advisory", detail: "QUARANTINED · HIGH cap", layer: 7, r: 36, color: "#FF5252" },
+    { id: "HERMES_FC", label: "HERMES", role: "native_function", detail: "context pressure · always-on", layer: 7, r: 34, color: "#9B6EFF" },
+    { id: "CASSANDRA", label: "CASSANDRA", role: "native foresight", detail: "strategic · no model", layer: 7, r: 34, color: "#9B6EFF" },
+    { id: "SWARM", label: "SWARM", role: "swarm_dispatch", detail: "flash+pro parallel", layer: 7, r: 34, color: "#9B6EFF" },
+    { id: "OBLITERATUS", label: "OBLITERATUS", role: "adversarial gate", detail: "critical turns only", layer: 7, r: 34, color: "#FF6835" },
+    { id: "PULSE_BUS", label: "PULSE BUS", role: "ring buffer · 14 slots", detail: "5min TTL · findings", layer: 8, r: 42, color: "#4A9EFF" },
+    { id: "ENKI_DECISION", label: "ENKI DECIDES", role: "synthesizes findings", detail: "reads bus → routes → acts", layer: 9, r: 48, color: "#00D4FF" },
+    { id: "LANE_LOCAL", label: "code-local", role: "qwen2.5-coder:7b", detail: "LOCAL", layer: 10, r: 28, color: "#00C896" },
+    { id: "LANE_DSFLASH", label: "ds-flash", role: "deepseek-v4-flash", detail: "CLOUD", layer: 10, r: 28, color: "#00C896" },
+    { id: "LANE_MINI", label: "codex-mini", role: "gpt-5.4-mini", detail: "CODEX · impl", layer: 10, r: 30, color: "#9B6EFF" },
+    { id: "LANE_CODEX", label: "codex", role: "gpt-5.5", detail: "CODEX · full", layer: 10, r: 32, color: "#9B6EFF" },
+    { id: "GATE_CODEX2", label: "CODEX GATE", role: "two-phase · propose", detail: "→ .approved → apply", layer: 10, r: 36, color: "#FF6835" },
+    { id: "GATE_NEXUS", label: "GITNEXUS", role: "impact analysis", detail: "blast radius check", layer: 10, r: 30, color: "#FF6835" },
+    { id: "MEM_HOT", label: "MEM HOT", role: "TIER 1 · in-context", detail: "pulse-plan + bus", layer: 11, r: 36, color: "#FF6B6B" },
+    { id: "MEM_WARM", label: "MEM WARM", role: "TIER 2 · episodic", detail: "EOT + journal", layer: 11, r: 34, color: "#FFB347" },
+    { id: "MEM_COLD", label: "MEM COLD", role: "TIER 3 · semantic", detail: "wiki atoms", layer: 11, r: 32, color: "#74B9FF" },
+    { id: "MEM_KERNEL", label: "KERNEL DB", role: "memory.db · SQLite", detail: "kernel.py syscalls", layer: 11, r: 30, color: "#94A3B8" },
+    { id: "SVC_SHELL", label: "shellservice", role: "PID 816 · port 3098", detail: "RUNNING", layer: 12, r: 28, color: "#00C896" },
+    { id: "SVC_RUNTIME", label: "yuri-runtime", role: "PID 819", detail: "RUNNING", layer: 12, r: 28, color: "#00C896" },
+    { id: "SVC_RAG", label: "wiki-rag", role: "PID 821 · RAG", detail: "RUNNING", layer: 12, r: 28, color: "#00C896" },
+    { id: "SVC_EOT", label: "eot-refresh", role: "launchd scheduled", detail: "eot-archive.mjs", layer: 12, r: 26, color: "#94A3B8" },
+    { id: "RESPONSE", label: "RESPONSE", role: "output to user", detail: "→ USER sees result", layer: 13, r: 44, color: "#00D4FF" }
   ];
 
-  const edges = [
-    { source: "ENKI", target: "PULSE_ORCH", type: "invokes" },
-    { source: "ENKI", target: "CLASSIFIER", type: "invokes" },
-    { source: "ENKI", target: "MEM_HOT", type: "stores" },
-    { source: "ENKI", target: "GATE_OBLIT", type: "gates" },
-    { source: "PULSE_ORCH", target: "CLASSIFIER", type: "invokes" },
-    { source: "PULSE_ORCH", target: "PULSE_BUS", type: "data" },
-    { source: "PULSE_ORCH", target: "DEEPSEEK", type: "invokes" },
-    { source: "PULSE_ORCH", target: "OPENCLAW", type: "invokes" },
-    { source: "PULSE_ORCH", target: "HERMES_FC", type: "invokes" },
-    { source: "PULSE_ORCH", target: "CASSANDRA", type: "invokes" },
-    { source: "PULSE_ORCH", target: "SWARM", type: "invokes" },
-    { source: "PULSE_ORCH", target: "OBLITERATUS", type: "invokes" },
+  const links = [
+    { source: "USER", target: "USER_INPUT", type: "flow" },
+    { source: "USER_INPUT", target: "ENKI", type: "flow" },
+    { source: "ENKI", target: "PULSE_SEED", type: "flow" },
+    { source: "PULSE_SEED", target: "ENKI", type: "data" },
+    { source: "ENKI", target: "PROMPT_HOOKS", type: "flow" },
+    { source: "PROMPT_HOOKS", target: "PULSE_ORCH", type: "flow" },
+    { source: "PULSE_ORCH", target: "CLASSIFIER", type: "flow" },
+    { source: "CLASSIFIER", target: "DEEPSEEK", type: "flow" },
+    { source: "CLASSIFIER", target: "OPENCLAW", type: "flow" },
+    { source: "CLASSIFIER", target: "HERMES_FC", type: "flow" },
+    { source: "CLASSIFIER", target: "CASSANDRA", type: "flow" },
+    { source: "CLASSIFIER", target: "SWARM", type: "flow" },
+    { source: "CLASSIFIER", target: "OBLITERATUS", type: "flow" },
     { source: "DEEPSEEK", target: "PULSE_BUS", type: "data" },
     { source: "OPENCLAW", target: "PULSE_BUS", type: "advises" },
     { source: "HERMES_FC", target: "PULSE_BUS", type: "data" },
     { source: "CASSANDRA", target: "PULSE_BUS", type: "data" },
     { source: "SWARM", target: "PULSE_BUS", type: "data" },
-    { source: "OBLITERATUS", target: "PULSE_BUS", type: "advises" },
-    { source: "PULSE_BUS", target: "ENKI", type: "data" },
-    { source: "CLASSIFIER", target: "LANE_LOCAL", type: "invokes" },
-    { source: "CLASSIFIER", target: "LANE_DSFLASH", type: "invokes" },
-    { source: "CLASSIFIER", target: "LANE_DSPRO", type: "invokes" },
-    { source: "CLASSIFIER", target: "LANE_MINI", type: "invokes" },
-    { source: "CLASSIFIER", target: "LANE_CODEX", type: "invokes" },
-    { source: "CLASSIFIER", target: "LANE_SWARM", type: "invokes" },
-    { source: "LANE_MINI", target: "ENKI", type: "data" },
-    { source: "LANE_CODEX", target: "GATE_CODEX2", type: "gates" },
-    { source: "GATE_CODEX2", target: "ENKI", type: "data" },
-    { source: "MEM_HOT", target: "MEM_WARM", type: "stores" },
-    { source: "MEM_WARM", target: "MEM_COLD", type: "stores" },
-    { source: "MEM_COLD", target: "MEM_KERNEL", type: "stores" },
-    { source: "MEM_MLM", target: "MEM_COLD", type: "stores" },
-    { source: "HOOK_STARTUP", target: "ENKI", type: "invokes" },
-    { source: "HOOK_PROMPT", target: "PULSE_ORCH", type: "invokes" },
-    { source: "HOOK_PRE", target: "GATE_NEXUS", type: "gates" },
-    { source: "HOOK_POST", target: "MEM_HOT", type: "stores" },
-    { source: "HOOK_STOP", target: "EOT_PIPE", type: "invokes" },
-    { source: "GATE_PRECOMMIT", target: "GATE_NEXUS", type: "gates" },
-    { source: "GATE_NEXUS", target: "GATE_CODEX2", type: "gates" },
-    { source: "SVC_SHELL", target: "ENKI", type: "runs" },
-    { source: "SVC_RUNTIME", target: "ENKI", type: "runs" },
+    { source: "OBLITERATUS", target: "PULSE_BUS", type: "data" },
+    { source: "PULSE_BUS", target: "ENKI_DECISION", type: "data" },
+    { source: "ENKI_DECISION", target: "GATE_CODEX2", type: "gates" },
+    { source: "ENKI_DECISION", target: "GATE_NEXUS", type: "gates" },
+    { source: "ENKI_DECISION", target: "LANE_LOCAL", type: "flow" },
+    { source: "ENKI_DECISION", target: "LANE_DSFLASH", type: "flow" },
+    { source: "ENKI_DECISION", target: "LANE_MINI", type: "flow" },
+    { source: "ENKI_DECISION", target: "LANE_CODEX", type: "flow" },
+    { source: "GATE_CODEX2", target: "LANE_MINI", type: "gates" },
+    { source: "GATE_CODEX2", target: "LANE_CODEX", type: "gates" },
+    { source: "ENKI_DECISION", target: "MEM_HOT", type: "memory" },
+    { source: "MEM_HOT", target: "MEM_WARM", type: "memory" },
+    { source: "MEM_WARM", target: "MEM_COLD", type: "memory" },
+    { source: "MEM_COLD", target: "MEM_KERNEL", type: "memory" },
+    { source: "SVC_SHELL", target: "ENKI", type: "data" },
+    { source: "SVC_RUNTIME", target: "ENKI", type: "data" },
     { source: "SVC_RAG", target: "MEM_COLD", type: "data" },
-    { source: "SVC_EOT", target: "EOT_PIPE", type: "invokes" },
-    { source: "EOT_PIPE", target: "PULSE_ARCHIVE", type: "stores" },
-    { source: "PULSE_ARCHIVE", target: "SOAK", type: "data" },
-    { source: "SOAK", target: "CLASSIFIER", type: "data" }
+    { source: "SVC_EOT", target: "MEM_WARM", type: "data" },
+    { source: "LANE_MINI", target: "RESPONSE", type: "flow" },
+    { source: "LANE_CODEX", target: "RESPONSE", type: "flow" },
+    { source: "LANE_LOCAL", target: "RESPONSE", type: "flow" },
+    { source: "RESPONSE", target: "USER", type: "flow" }
   ];
 
-  bottomStrip.textContent = `TIER CRITICAL · PROTOCOL-CHANGE · ${nodes.length} NODES · ${edges.length} EDGES`;
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const nodesByLayer = new Map();
 
-  let width = 0;
-  let height = 0;
-  let cx = 0;
-  let cy = 0;
+  for (const node of nodes) {
+    if (!nodesByLayer.has(node.layer)) nodesByLayer.set(node.layer, []);
+    nodesByLayer.get(node.layer).push(node);
+  }
+
+  bottomBar.textContent = `TIER CRITICAL · PROTOCOL-CHANGE · ${nodes.length} NODES · ${links.length} EDGES`;
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const primaryGlow = new Set(["USER", "ENKI", "PULSE_ORCH", "ENKI_DECISION", "RESPONSE"]);
   let dpr = 1;
+  let width = window.innerWidth;
+  let canvasHeight = Math.max(1600, window.innerHeight);
   let hovered = null;
   let selected = null;
-  let pointer = { x: -1000, y: -1000 };
   let dashOffset = 0;
   const bootStarted = performance.now();
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  function roleLine(node) {
-    const parts = node.label.split("·").map(part => part.trim());
-    return parts.slice(1).join(" · ");
+  for (const node of nodes) {
+    node.x = width / 2;
+    node.y = LAYER_Y[node.layer];
+    node.vx = 0;
+    node.vy = 0;
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function hexToRgba(hex, alpha) {
+    const value = hex.replace("#", "");
+    const normalized = value.length === 3
+      ? value.split("").map((char) => char + char).join("")
+      : value;
+    const parsed = Number.parseInt(normalized, 16);
+    const r = (parsed >> 16) & 255;
+    const g = (parsed >> 8) & 255;
+    const b = parsed & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function targetXFor(node) {
+    const layerNodes = nodesByLayer.get(node.layer) || [];
+    const index = layerNodes.indexOf(node);
+    const total = layerNodes.length;
+    const spread = Math.min(total * 120, width * 0.8);
+    const startX = (width - spread) / 2;
+    return startX + (index / Math.max(total - 1, 1)) * spread;
   }
 
   function resize() {
     dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     width = window.innerWidth;
-    height = window.innerHeight;
-    cx = width / 2;
-    cy = height / 2;
+    canvasHeight = Math.max(1600, window.innerHeight);
     canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(height * dpr);
+    canvas.height = Math.floor(canvasHeight * dpr);
     canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+    canvas.style.height = `${canvasHeight}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    updateForces();
-    simulation.alpha(0.65).restart();
+    simulation
+      .force("center", d3.forceCenter(width / 2, canvasHeight / 2).strength(0.02))
+      .force("x", d3.forceX((node) => targetXFor(node)).strength(0.3))
+      .force("y", d3.forceY((node) => LAYER_Y[node.layer]).strength(0.9));
+    simulation.alpha(0.9).restart();
   }
-
-  nodes.forEach(node => {
-    node.x = window.innerWidth / 2 + (Math.random() * 10 - 5);
-    node.y = window.innerHeight / 2 + (Math.random() * 10 - 5);
-  });
 
   const simulation = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(edges).id(d => d.id).distance(d => {
-      if (d.type === "invokes") return 80;
-      if (d.type === "data") return 100;
-      if (d.type === "advises") return 120;
-      if (d.type === "gates") return 90;
-      if (d.type === "stores") return 110;
-      if (d.type === "runs") return 130;
-      return 100;
-    }).strength(0.4))
-    .force("charge", d3.forceManyBody().strength(d => -Math.pow(d.r, 2) * 8))
-    .force("collision", d3.forceCollide(d => d.r + 12))
-    .alpha(1)
-    .alphaDecay(reducedMotion ? 0.08 : 0.02);
+    .force("link", d3.forceLink(links).id((d) => d.id).distance(60).strength(0.05))
+    .force("charge", d3.forceManyBody().strength(-800))
+    .force("collide", d3.forceCollide((node) => node.r + 20))
+    .force("y", d3.forceY((node) => LAYER_Y[node.layer]).strength(0.9))
+    .force("x", d3.forceX((node) => targetXFor(node)).strength(0.3))
+    .force("center", d3.forceCenter(width / 2, canvasHeight / 2).strength(0.02))
+    .alphaDecay(0.015);
 
-  function scaledRadius(value) {
-    const scale = Math.min(width, height) / 900;
-    return value * Math.max(0.62, Math.min(1.08, scale));
-  }
-
-  function updateForces() {
-    const hintScale = Math.min(width, height) * 0.46;
-    simulation
-      .force("center", d3.forceCenter(cx, cy).strength(0.05))
-      .force("hintX", d3.forceX(d => cx + d.x_hint * hintScale).strength(0.035))
-      .force("hintY", d3.forceY(d => cy + d.y_hint * hintScale).strength(0.035))
-      .force("radial_nucleus", d3.forceRadial(0, cx, cy).strength(d => d.group === "nucleus" ? 1 : 0))
-      .force("radial_cortex", d3.forceRadial(scaledRadius(140), cx, cy).strength(d => d.group === "cortex" ? 0.6 : 0))
-      .force("radial_advisors", d3.forceRadial(scaledRadius(240), cx, cy).strength(d => d.group === "advisors" ? 0.5 : 0))
-      .force("radial_memory", d3.forceRadial(scaledRadius(280), cx, cy).strength(d => d.group === "memory" ? 0.4 : 0))
-      .force("radial_routing", d3.forceRadial(scaledRadius(380), cx, cy).strength(d => d.group === "routing" ? 0.4 : 0))
-      .force("radial_hooks", d3.forceRadial(scaledRadius(320), cx, cy).strength(d => d.group === "hooks" ? 0.4 : 0))
-      .force("radial_gates", d3.forceRadial(scaledRadius(300), cx, cy).strength(d => d.group === "gates" ? 0.4 : 0))
-      .force("radial_services", d3.forceRadial(scaledRadius(440), cx, cy).strength(d => d.group === "services" ? 0.4 : 0))
-      .force("radial_selfimprove", d3.forceRadial(scaledRadius(360), cx, cy).strength(d => d.group === "selfimprove" ? 0.4 : 0));
-  }
-
-  function bootOpacity(delay) {
+  function bootFade(delay, duration) {
     if (reducedMotion) return 1;
-    return Math.max(0, Math.min(1, (performance.now() - bootStarted - delay) / 700));
+    return clamp((performance.now() - bootStarted - delay) / duration, 0, 1);
   }
 
-  function drawArrowhead(edge, style, opacity) {
-    const sx = edge.source.x;
-    const sy = edge.source.y;
-    const tx = edge.target.x;
-    const ty = edge.target.y;
-    const angle = Math.atan2(ty - sy, tx - sx);
-    const endX = tx - Math.cos(angle) * (edge.target.r + 4);
-    const endY = ty - Math.sin(angle) * (edge.target.r + 4);
+  function edgeStyle(type) {
+    return edgeStyles[type] || edgeStyles.flow;
+  }
+
+  function arrowhead(source, target, color, opacity) {
+    const angle = Math.atan2(target.y - source.y, target.x - source.x);
+    const endX = target.x - Math.cos(angle) * (target.r + 4);
+    const endY = target.y - Math.sin(angle) * (target.r + 4);
     const size = 5;
 
     ctx.save();
     ctx.globalAlpha = opacity;
-    ctx.fillStyle = style.color;
+    ctx.fillStyle = color;
     ctx.beginPath();
     ctx.moveTo(endX, endY);
     ctx.lineTo(endX - Math.cos(angle - Math.PI / 6) * size, endY - Math.sin(angle - Math.PI / 6) * size);
@@ -561,173 +655,192 @@ canvas {
     ctx.restore();
   }
 
-  function drawEdges() {
-    const fade = bootOpacity(800);
-    edges.forEach(edge => {
-      const style = edgeStyles[edge.type];
-      const opacity = style.opacity * fade * (hovered && hovered !== edge.source && hovered !== edge.target ? 0.24 : 1);
-      const sx = edge.source.x;
-      const sy = edge.source.y;
-      const tx = edge.target.x;
-      const ty = edge.target.y;
-      const angle = Math.atan2(ty - sy, tx - sx);
-      const endX = tx - Math.cos(angle) * (edge.target.r + 5);
-      const endY = ty - Math.sin(angle) * (edge.target.r + 5);
+  function drawEdges(now) {
+    const edgeFade = bootFade(800, 400);
+    dashOffset += reducedMotion ? 0 : 0.5;
+
+    for (const link of links) {
+      const source = link.source;
+      const target = link.target;
+      const style = edgeStyle(link.type);
+      const relevant = !hovered || hovered === source || hovered === target || selected === source || selected === target;
+      const opacity = style.opacity * edgeFade * (relevant ? 1 : 0.22);
+      const angle = Math.atan2(target.y - source.y, target.x - source.x);
+      const endX = target.x - Math.cos(angle) * (target.r + 8);
+      const endY = target.y - Math.sin(angle) * (target.r + 8);
 
       ctx.save();
       ctx.globalAlpha = opacity;
       ctx.strokeStyle = style.color;
       ctx.lineWidth = style.width;
       ctx.setLineDash(style.dash);
-      ctx.lineDashOffset = edge.type === "data" ? -dashOffset : 0;
+      ctx.lineDashOffset = link.type === "data" ? -dashOffset : 0;
       ctx.beginPath();
-      ctx.moveTo(sx, sy);
+      ctx.moveTo(source.x, source.y);
       ctx.lineTo(endX, endY);
       ctx.stroke();
       ctx.restore();
 
-      drawArrowhead(edge, style, opacity);
-    });
+      arrowhead(source, target, style.color, opacity);
+    }
   }
 
-  function drawDashedCircle(x, y, radius, color) {
+  function drawOpenClawCage(node) {
     ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "#FF5252";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([6, 5]);
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.arc(node.x, node.y, node.r + 10, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }
 
   function drawNode(node) {
     const isHovered = hovered === node;
+    const isSelected = selected === node;
     const dimmed = hovered && !isHovered;
-    const alpha = dimmed ? 0.3 : 1;
-    const fillAlpha = isHovered ? 1 : alpha;
-    const isRunningService = node.id === "SVC_SHELL" || node.id === "SVC_RUNTIME" || node.id === "SVC_RAG";
+    const alpha = dimmed ? 0.24 : 1;
+    const shadow = primaryGlow.has(node.id) ? 25 : 12;
 
     ctx.save();
-    ctx.globalAlpha = Math.min(1, fillAlpha);
-    if (node.id === "ENKI") {
-      ctx.shadowBlur = 30;
-      ctx.shadowColor = "#D4AF37";
-    } else if (node.group === "nucleus" || node.group === "cortex") {
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = node.color;
-    } else if (isRunningService) {
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = "#00e5bf";
-    } else if (isHovered) {
-      ctx.shadowBlur = 16;
-      ctx.shadowColor = node.color;
-    }
-
-    ctx.fillStyle = node.color;
-    ctx.strokeStyle = "rgba(255,255,255,0.15)";
-    ctx.lineWidth = 1;
+    ctx.globalAlpha = alpha;
+    ctx.shadowBlur = isHovered ? 40 : shadow;
+    ctx.shadowColor = node.color;
     ctx.beginPath();
-    ctx.arc(node.x, node.y, node.r + (isHovered ? 2 : 0), 0, Math.PI * 2);
+    ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+    ctx.fillStyle = hexToRgba(node.color, 0.18);
     ctx.fill();
+    ctx.lineWidth = isHovered ? 2.6 : 2;
+    ctx.strokeStyle = node.color;
     ctx.stroke();
     ctx.restore();
 
-    if (node.id === "OPENCLAW") {
-      ctx.save();
-      ctx.globalAlpha = Math.min(1, alpha);
-      drawDashedCircle(node.x, node.y, node.r + 8, "#C95A3B");
-      ctx.restore();
-    }
+    if (node.id === "OPENCLAW") drawOpenClawCage(node);
 
-    if (selected === node) {
+    if (isSelected) {
       ctx.save();
-      ctx.strokeStyle = "rgba(212,175,55,0.72)";
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(0, 212, 255, 0.85)";
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.arc(node.x, node.y, node.r + 10, 0, Math.PI * 2);
+      ctx.arc(node.x, node.y, node.r + 13, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }
-  }
 
-  function drawLabels() {
-    const fade = bootOpacity(1200);
-    nodes.forEach(node => {
-      if (node.r < 9) return;
-      const dimmed = hovered && hovered !== node;
+    const textAlpha = dimmed ? 0.28 : 1;
+    ctx.save();
+    ctx.globalAlpha = textAlpha;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillStyle = "#C8D8E8";
+    ctx.font = "bold 13px JetBrains Mono, monospace";
+    ctx.fillText(node.label, node.x, node.y - 8);
+
+    ctx.fillStyle = "#5A7090";
+    ctx.font = "11px JetBrains Mono, monospace";
+    ctx.fillText(node.role, node.x, node.y + 8);
+
+    if (node.r >= 36 && node.detail) {
+      ctx.fillStyle = "#3A5070";
+      ctx.font = "9px JetBrains Mono, monospace";
+      ctx.fillText(node.detail, node.x, node.y + 22);
+    }
+    ctx.restore();
+
+    if (node.r < 30) {
       ctx.save();
-      ctx.globalAlpha = fade * (dimmed ? 0.3 : 1);
+      ctx.globalAlpha = textAlpha;
+      ctx.fillStyle = "#5A7090";
+      ctx.font = "10px JetBrains Mono, monospace";
       ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = "11px 'JetBrains Mono', monospace";
-      ctx.fillStyle = "#F2E9D2";
-      ctx.fillText(node.id, node.x, node.y + node.r + 14);
-
-      if (node.r >= 12) {
-        const role = roleLine(node);
-        if (role) {
-          ctx.font = "9px 'JetBrains Mono', monospace";
-          ctx.fillStyle = "#A8BCC6";
-          ctx.fillText(role.slice(0, 34), node.x, node.y + node.r + 26);
-        }
-      }
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText(node.id, node.x, node.y - node.r - 12);
       ctx.restore();
-    });
+    }
   }
 
-  function render() {
-    ctx.clearRect(0, 0, width, height);
-    dashOffset += reducedMotion ? 0 : 0.3;
-    drawEdges();
-    nodes.forEach(drawNode);
-    drawLabels();
-    requestAnimationFrame(render);
+  function drawScene(now) {
+    ctx.clearRect(0, 0, width, canvasHeight);
+    drawEdges(now);
+    for (const node of nodes) drawNode(node);
+  }
+
+  function frame(now) {
+    drawScene(now);
+    requestAnimationFrame(frame);
   }
 
   function findNode(x, y) {
-    for (let i = nodes.length - 1; i >= 0; i -= 1) {
-      const node = nodes[i];
+    for (let index = nodes.length - 1; index >= 0; index -= 1) {
+      const node = nodes[index];
       const dx = x - node.x;
       const dy = y - node.y;
-      if (Math.sqrt(dx * dx + dy * dy) <= node.r + 4) return node;
+      if (Math.sqrt(dx * dx + dy * dy) <= node.r) return node;
     }
     return null;
   }
 
-  function setHovered(node, event) {
-    hovered = node;
-    canvas.style.cursor = node ? "pointer" : "default";
+  function moveTooltip(node, event) {
     if (!node) {
       tooltip.style.display = "none";
       return;
     }
 
-    tooltip.textContent = `${node.label}\n${node.group.toUpperCase()}`;
+    const left = clamp(event.clientX + 14, 8, Math.max(8, window.innerWidth - 340));
+    const top = clamp(event.clientY + 14, 8, Math.max(8, window.innerHeight - 120));
+    tooltip.innerHTML = `<strong>${node.id}</strong>\n${node.role}\n${node.detail}`;
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
     tooltip.style.display = "block";
-    tooltip.style.left = `${Math.min(window.innerWidth - 320, event.clientX + 16)}px`;
-    tooltip.style.top = `${Math.min(window.innerHeight - 80, event.clientY + 16)}px`;
+  }
+
+  function edgeEntry(edge) {
+    const item = document.createElement("div");
+    item.className = "drawer-item";
+
+    const line = document.createElement("div");
+    line.className = "drawer-line";
+
+    const badge = document.createElement("span");
+    badge.className = `badge ${edge.type}`;
+    badge.textContent = edge.type;
+
+    const text = document.createElement("span");
+    text.textContent = `${edge.source.id} → ${edge.target.id}`;
+
+    line.append(badge, text);
+    item.append(line);
+    return item;
+  }
+
+  function renderEdgeGroup(container, entries, emptyLabel) {
+    container.innerHTML = "";
+    if (entries.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "drawer-item";
+      empty.textContent = emptyLabel;
+      container.append(empty);
+      return;
+    }
+
+    for (const edge of entries) {
+      container.append(edgeEntry(edge));
+    }
   }
 
   function openDrawer(node) {
     selected = node;
     drawerId.textContent = node.id;
-    drawerBadge.textContent = node.group.toUpperCase();
-    drawerLabel.textContent = node.label;
-    drawerEdges.innerHTML = "";
+    drawerRole.textContent = node.role;
+    drawerDetail.textContent = node.detail;
 
-    const outgoing = edges.filter(edge => edge.source.id === node.id || edge.source === node.id);
-    if (!outgoing.length) {
-      const li = document.createElement("li");
-      li.textContent = "No outgoing edges";
-      drawerEdges.appendChild(li);
-    } else {
-      outgoing.forEach(edge => {
-        const li = document.createElement("li");
-        li.textContent = `→ ${edge.target.id || edge.target} (${edge.type})`;
-        drawerEdges.appendChild(li);
-      });
-    }
+    const incoming = links.filter((edge) => edge.target.id === node.id);
+    const outgoing = links.filter((edge) => edge.source.id === node.id);
+
+    renderEdgeGroup(drawerIncoming, incoming, "No incoming edges");
+    renderEdgeGroup(drawerOutgoing, outgoing, "No outgoing edges");
 
     drawer.classList.add("open");
     drawerBackdrop.classList.add("open");
@@ -741,29 +854,35 @@ canvas {
     drawer.setAttribute("aria-hidden", "true");
   }
 
-  canvas.addEventListener("mousemove", event => {
-    pointer = { x: event.clientX, y: event.clientY };
-    setHovered(findNode(pointer.x, pointer.y), event);
+  canvas.addEventListener("mousemove", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    hovered = findNode(x, y);
+    canvas.style.cursor = hovered ? "pointer" : "default";
+    moveTooltip(hovered, event);
   });
 
   canvas.addEventListener("mouseleave", () => {
-    pointer = { x: -1000, y: -1000 };
-    setHovered(null);
+    hovered = null;
+    canvas.style.cursor = "default";
+    tooltip.style.display = "none";
   });
 
-  canvas.addEventListener("click", event => {
-    const node = findNode(event.clientX, event.clientY);
+  canvas.addEventListener("click", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const node = findNode(event.clientX - rect.left, event.clientY - rect.top);
     if (node) openDrawer(node);
   });
 
   drawerBackdrop.addEventListener("click", closeDrawer);
-  window.addEventListener("keydown", event => {
+  window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeDrawer();
   });
   window.addEventListener("resize", resize);
 
   resize();
-  render();
+  requestAnimationFrame(frame);
 })();
 </script>
 </body>
