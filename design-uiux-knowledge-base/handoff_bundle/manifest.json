@@ -1,5 +1,5 @@
 {
-  "bundle_path": "/Users/marcelspatz/design-uiux-knowledge-base/handoff_bundle/design_uiux_knowledge_base_bundle.zip",
+  "bundle_path": "/Users/marcelspatz/NUDIMMUD/design-uiux-knowledge-base/handoff_bundle/design_uiux_knowledge_base_bundle.zip",
   "included": [
     "graph.json",
     "GRAPH_REPORT.md",
@@ -10,12 +10,12 @@
     "obsidian-vault/"
   ],
   "counts": {
-    "graph_nodes": 58,
-    "graph_edges": 64,
-    "obsidian_notes": 58,
+    "graph_nodes": 64,
+    "graph_edges": 68,
+    "obsidian_notes": 64,
     "ingest_csv_files": 3,
     "offload_jsonl_files": 3,
-    "vector_chunks": 54
+    "vector_chunks": 58
   },
   "recommended_use": [
     "Share one archive instead of many loose files",

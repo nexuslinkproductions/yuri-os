@@ -1,17 +1,17 @@
 {
-  "graph_path": "/Users/marcelspatz/design-uiux-knowledge-base/graph.json",
-  "node_count": 58,
-  "edge_count": 64,
+  "graph_path": "/Users/marcelspatz/NUDIMMUD/design-uiux-knowledge-base/graph.json",
+  "node_count": 64,
+  "edge_count": 68,
   "node_types": {
-    "inspiration": 9,
+    "inspiration": 13,
     "design_system": 17,
     "curated_list": 4,
     "ux_skill": 12,
     "ai_tool": 10,
-    "cluster": 6
+    "cluster": 8
   },
   "relation_types": {
-    "contains": 55,
+    "contains": 59,
     "supports": 5,
     "reinforces": 4
   },

@@ -7,7 +7,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 
-ROOT = Path("/Users/marcelspatz/design-uiux-knowledge-base")
+ROOT = Path(__file__).resolve().parent
 GRAPH = ROOT / "graph.json"
 OUT = ROOT / "ingest_bundle"
 

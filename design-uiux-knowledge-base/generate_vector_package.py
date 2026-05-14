@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 
-ROOT = Path("/Users/marcelspatz/design-uiux-knowledge-base")
+ROOT = Path(__file__).resolve().parent
 GRAPH = ROOT / "graph.json"
 REPORT = ROOT / "GRAPH_REPORT.md"
 PLAYBOOK = ROOT / "PLAYBOOK.md"

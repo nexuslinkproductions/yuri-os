@@ -57,3 +57,9 @@ theme_ux_skills,UI/UX Skill Resources,cluster,,cluster,12,0
 theme_ai_builders,AI Landing Builders,cluster,,cluster,10,0
 theme_prompting,Prompting Heuristics,cluster,,cluster,9,0
 theme_flow_references,Flow References,cluster,,cluster,3,0
+repo_shadergradient,ShaderGradient,inspiration,https://github.com/ruucm/shadergradient,inspiration,0,1
+repo_liquid_logo,Liquid Logo (paper-design demo),inspiration,https://github.com/paper-design/liquid-logo,inspiration,0,1
+repo_liquid_glass_js,Liquid Glass JS,inspiration,https://github.com/dashersw/liquid-glass-js,inspiration,0,1
+repo_react_three_fiber,react-three-fiber (R3F),inspiration,https://github.com/pmndrs/react-three-fiber,inspiration,0,1
+theme_visual_effects,Visual Effects,cluster,,cluster,3,0
+theme_brand_treatments,Brand Treatments,cluster,,cluster,1,0

@@ -5,3 +5,5 @@ theme_ux_skills,UI/UX Skill Resources,12,ux_baymard_homepage | ux_baymard_checko
 theme_ai_builders,AI Landing Builders,10,ai_framer | ai_webflow_builder | ai_webflow_help | ai_relume | ai_v0_text | ai_v0_prompt | ai_wix | ai_uizard | ai_landingi | ai_unbounce
 theme_prompting,Prompting Heuristics,0,
 theme_flow_references,Flow References,3,inspiration_page_flows | inspiration_rge | inspiration_one_page_love
+theme_visual_effects,Visual Effects,3,repo_shadergradient | repo_liquid_glass_js | repo_react_three_fiber
+theme_brand_treatments,Brand Treatments,1,repo_liquid_logo

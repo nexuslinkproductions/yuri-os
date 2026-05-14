@@ -11,6 +11,10 @@
 - [[sources/inspiration_awwwwards|Awwwards]]
 - [[sources/inspiration_dribbble|Dribbble]]
 - [[sources/inspiration_behance|Behance]]
+- [[sources/repo_shadergradient|ShaderGradient]]
+- [[sources/repo_liquid_logo|Liquid Logo (paper-design demo)]]
+- [[sources/repo_liquid_glass_js|Liquid Glass JS]]
+- [[sources/repo_react_three_fiber|react-three-fiber (R3F)]]
 
 ### Design Systems
 - [[sources/repo_atlassian_design|Atlassian Design System]]

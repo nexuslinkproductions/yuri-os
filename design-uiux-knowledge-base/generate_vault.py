@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 
-ROOT = Path("/Users/marcelspatz/design-uiux-knowledge-base")
+ROOT = Path(__file__).resolve().parent
 GRAPH = ROOT / "graph.json"
 OUT = ROOT / "obsidian-vault"
 SOURCES = OUT / "sources"
@@ -117,6 +117,15 @@ def main() -> None:
         ]
         if node.get("url"):
             frontmatter.append(f"url: {node['url']}")
+        use_when = node.get("use_when", "")
+        if use_when:
+            frontmatter.append(f"use_when: {use_when}")
+        avoid_when = node.get("avoid_when", "")
+        if avoid_when:
+            frontmatter.append(f"avoid_when: {avoid_when}")
+        fallback = node.get("fallback", "")
+        if fallback:
+            frontmatter.append(f"fallback: {fallback}")
         frontmatter.append("tags:")
         for tag in tags:
             frontmatter.append(f"  - {tag}")

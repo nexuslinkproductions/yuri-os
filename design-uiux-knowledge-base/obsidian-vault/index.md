@@ -3,11 +3,11 @@
 This vault is generated from `graph.json`.
 
 ## Counts
-- Total nodes: 58
-- Total edges: 64
+- Total nodes: 64
+- Total edges: 68
 
 ## Categories
-- Inspiration: 9
+- Inspiration: 13
   - [[sources/inspiration_lapa_ninja|Lapa Ninja]]
   - [[sources/inspiration_land_book|Land-book]]
   - [[sources/inspiration_mobbin|Mobbin]]
@@ -17,6 +17,10 @@ This vault is generated from `graph.json`.
   - [[sources/inspiration_awwwwards|Awwwards]]
   - [[sources/inspiration_dribbble|Dribbble]]
   - [[sources/inspiration_behance|Behance]]
+  - [[sources/repo_shadergradient|ShaderGradient]]
+  - [[sources/repo_liquid_logo|Liquid Logo (paper-design demo)]]
+  - [[sources/repo_liquid_glass_js|Liquid Glass JS]]
+  - [[sources/repo_react_three_fiber|react-three-fiber (R3F)]]
 - Design Systems: 17
   - [[sources/repo_atlassian_design|Atlassian Design System]]
   - [[sources/repo_shopify_polaris|Shopify Polaris]]
@@ -64,10 +68,12 @@ This vault is generated from `graph.json`.
   - [[sources/repo_awesome_ui|Awesome UI]]
   - [[sources/repo_awesome_design_systems|Awesome Design Systems]]
   - [[sources/repo_awesome_landing_page|Awesome Landing Page]]
-- Clusters: 6
+- Clusters: 8
   - [[sources/theme_inspiration|Inspiration Libraries]]
   - [[sources/theme_design_systems|Design Systems]]
   - [[sources/theme_ux_skills|UI/UX Skill Resources]]
   - [[sources/theme_ai_builders|AI Landing Builders]]
   - [[sources/theme_prompting|Prompting Heuristics]]
   - [[sources/theme_flow_references|Flow References]]
+  - [[sources/theme_visual_effects|Visual Effects]]
+  - [[sources/theme_brand_treatments|Brand Treatments]]

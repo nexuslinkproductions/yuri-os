@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 
-ROOT = Path("/Users/marcelspatz/design-uiux-knowledge-base")
+ROOT = Path(__file__).resolve().parent
 GRAPH = ROOT / "graph.json"
 OUT = ROOT / "offload_package"
 

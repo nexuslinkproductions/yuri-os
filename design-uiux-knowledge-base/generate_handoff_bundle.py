@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 
 
-ROOT = Path("/Users/marcelspatz/design-uiux-knowledge-base")
+ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "handoff_bundle"
 ZIP_PATH = OUT / "design_uiux_knowledge_base_bundle.zip"
 

@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "canonicalPath": "design-memory.json",
-  "lastUpdated": "2026-05-10T20:00:45.292Z",
+  "lastUpdated": "2026-05-14T16:00:00.000Z",
   "note": "Canonical NUDIMMUD design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
   "entries": [
     {
@@ -793,6 +793,25 @@
         "frontier-design-intelligence"
       ],
       "pattern": "Source hierarchy: memory first, design radar second, frontier and Framer packs third, Pinterest mood board last."
+    },
+    {
+      "date": "2026-05-14",
+      "component": "Design source pack selection matrix",
+      "file": ".claude/skills/design-source-pack/SKILL.md, design-uiux-knowledge-base/graph.json",
+      "action": "rule-add",
+      "decision": "Encoded a 4x3 selection matrix for visual-effects and brand-treatment tasks: ambient/hero motion -> ShaderGradient (R3F fallback); logo treatment -> liquid-logo demo (inspiration only, real lib is @paper-design/shaders-react, PolyForm Shield 1.0.0 license blocks repo code in production); glass UI prototype -> liquid-glass-js (MIT, prototype-grade); custom 3D scene -> react-three-fiber (last-resort only). Added 6 graph nodes (4 repos + 2 cluster nodes: theme_visual_effects, theme_brand_treatments) + 4 containment edges. SKILL.md gained Symbiotic-Pulse Preflight (Source -> Intent -> Risk -> Evidence -> Action). React-three-fiber demoted to fallback-only when ShaderGradient and liquid-glass-js cannot cover.",
+      "tokens_used": [
+        "design-memory.json",
+        "design-uiux-knowledge-base/graph.json",
+        ".claude/skills/design-source-pack/SKILL.md",
+        "repo_shadergradient",
+        "repo_liquid_logo",
+        "repo_liquid_glass_js",
+        "repo_react_three_fiber",
+        "theme_visual_effects",
+        "theme_brand_treatments"
+      ],
+      "pattern": "Visual-effects and brand-treatment design tasks: load source pack FIRST, route via 4x3 selection matrix, license-check before integration, react-three-fiber stays last-resort. Out-of-scope: non-design prompts, pure typography (use frontend-design), refactors (use design-master)."
     }
   ]
 }

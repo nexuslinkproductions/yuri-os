@@ -63,3 +63,7 @@ theme_prompting,Prompting Heuristics,cluster,ux_baymard_homepage,Baymard Homepag
 theme_prompting,Prompting Heuristics,cluster,ux_nngroup_principles,NNGroup Visual Design Principles,ux_skill,reinforces,1
 theme_prompting,Prompting Heuristics,cluster,ux_w3c_structure,W3C Page Structure,ux_skill,reinforces,1
 theme_prompting,Prompting Heuristics,cluster,ux_w3c_forms,W3C Forms,ux_skill,reinforces,1
+theme_visual_effects,Visual Effects,cluster,repo_shadergradient,ShaderGradient,inspiration,contains,1.0
+theme_visual_effects,Visual Effects,cluster,repo_liquid_glass_js,Liquid Glass JS,inspiration,contains,1.0
+theme_visual_effects,Visual Effects,cluster,repo_react_three_fiber,react-three-fiber (R3F),inspiration,contains,1.0
+theme_brand_treatments,Brand Treatments,cluster,repo_liquid_logo,Liquid Logo (paper-design demo),inspiration,contains,1.0

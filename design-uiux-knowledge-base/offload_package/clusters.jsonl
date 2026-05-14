@@ -4,3 +4,5 @@
 {"id": "theme_ai_builders", "label": "AI Landing Builders", "member_count": 10, "members": ["ai_framer", "ai_webflow_builder", "ai_webflow_help", "ai_relume", "ai_v0_text", "ai_v0_prompt", "ai_wix", "ai_uizard", "ai_landingi", "ai_unbounce"]}
 {"id": "theme_prompting", "label": "Prompting Heuristics", "member_count": 0, "members": []}
 {"id": "theme_flow_references", "label": "Flow References", "member_count": 3, "members": ["inspiration_page_flows", "inspiration_rge", "inspiration_one_page_love"]}
+{"id": "theme_visual_effects", "label": "Visual Effects", "member_count": 3, "members": ["repo_shadergradient", "repo_liquid_glass_js", "repo_react_three_fiber"]}
+{"id": "theme_brand_treatments", "label": "Brand Treatments", "member_count": 1, "members": ["repo_liquid_logo"]}

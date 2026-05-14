@@ -62,3 +62,7 @@
 {"source": "theme_prompting", "target": "ux_nngroup_principles", "relation": "reinforces", "weight": 1}
 {"source": "theme_prompting", "target": "ux_w3c_structure", "relation": "reinforces", "weight": 1}
 {"source": "theme_prompting", "target": "ux_w3c_forms", "relation": "reinforces", "weight": 1}
+{"source": "theme_visual_effects", "target": "repo_shadergradient", "relation": "contains", "weight": 1.0}
+{"source": "theme_visual_effects", "target": "repo_liquid_glass_js", "relation": "contains", "weight": 1.0}
+{"source": "theme_visual_effects", "target": "repo_react_three_fiber", "relation": "contains", "weight": 1.0}
+{"source": "theme_brand_treatments", "target": "repo_liquid_logo", "relation": "contains", "weight": 1.0}
