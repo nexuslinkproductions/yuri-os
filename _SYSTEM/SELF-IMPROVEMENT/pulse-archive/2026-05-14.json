@@ -131,7 +131,8 @@
     "trivial_skip_count": 8,
     "pulse_spawn_count": 8,
     "disagreement_count": 2,
-    "session_3_note": "session-3 turns: boot-packet continuation, PATCH 046+047+eot-refresh fix. Soak: 16/50."
+    "session_3_note": "session-3 turns: boot-packet continuation, PATCH 046+047+eot-refresh fix. Soak: 16/50.",
+    "session_4_note": "session-4: v3 dashboard build + v4 design sprint (ABZU & CLAY ⨯ FOSSIL COMPRESSION, mirror axis topology, Dark Netflix patterns). EOT-013/014/015 skill patches adopted. v4 PDF design sheet awaiting Marcel review. Codex agentic completion validated despite SKIPPED wrapper response."
   },
   "calibration_notes": {
     "cassandra_accuracy": "4/4 CASSANDRA findings marked 'wrong' this session — hallucinated specifics (tainted token replay, --swarm-native flag, import path break, file transfer failure). Cassandra foresight is strategically framed but technically fabricated on test prompts. Lower confidence weight at 20+ findings milestone.",
