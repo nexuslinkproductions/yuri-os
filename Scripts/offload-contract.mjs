@@ -57,8 +57,9 @@ const OFFLOAD_CONTRACT = {
     },
     deepseek: {
       alias: '@deepseek',
-      description: 'DeepSeek reasoning lane',
-      preferredUsage: ['reasoning', 'analysis', 'multi-step logic', 'code review']
+      description: 'DeepSeek reasoning + autonomous tool-use lane (bash/read_file/write_file, 50-step loop, 1M context)',
+      toolsByDefault: true,
+      preferredUsage: ['reasoning', 'analysis', 'multi-step logic', 'code review', 'autonomous file edits', 'multi-file refactors', 'parallel implementer during Codex rate-limit windows']
     },
     triageLocal: {
       alias: '@triage-local',

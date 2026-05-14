@@ -723,7 +723,9 @@ function deepseekLane(normalizedForcedModel, options, runnerOptions = {}) {
     maxTokens: runtime.maxTokens,
     timeout: runtime.timeout,
     reasoningDepth: runtime.reasoningDepth,
-    tools: false,
+    // Tools default ON for DeepSeek — runner has bash/read_file/write_file with 50-iter loop.
+    // Caller can pass --no-tools to force text-only advisory mode.
+    tools: runnerOptions.tools !== false,
     requiresKey: true,
   };
 }
@@ -742,7 +744,8 @@ function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun) 
       maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
       timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
       reasoningDepth: 'off',
-      tools: false,
+      // Tools default ON — see deepseekLane() for full rationale
+      tools: true,
       requiresKey: true,
       resolvedVia: 'cloud-forced',
     };
@@ -758,7 +761,8 @@ function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun) 
       maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
       timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
       reasoningDepth: 'off',
-      tools: false,
+      // Tools default ON — see deepseekLane() for full rationale
+      tools: true,
       requiresKey: true,
       resolvedVia: 'cloud-default',
     };

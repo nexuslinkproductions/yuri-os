@@ -279,7 +279,12 @@ dry_run_model_override() {
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/perplexity-adapter.mjs" --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       deepseek-v4-flash|deepseek-v4-pro|deepseek)
-        run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} --no-tools
+        # DeepSeek dry-run: tools default ON unless --no-tools explicit
+        local _ds_tool_arg="--tools"
+        if [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" == "0" ]]; then
+          _ds_tool_arg="--no-tools"
+        fi
+        run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} "$_ds_tool_arg"
         ;;
       *)
         route_log "$(printf '⬡ DRY_RUN :: model=%s lane=%s' "$target_model" "$(classify_lane "$target_model")")"
@@ -295,13 +300,24 @@ dispatch_model() {
     if [[ -n "${REASONING_DEPTH:-}" ]]; then
       reasoning_args=(--reasoning "$REASONING_DEPTH")
     fi
+    # Per-lane tool default: DeepSeek lanes get tools ON by default (full bash/read/write capability,
+    # 50-iter loop). Other lanes default to --no-tools. User can override either direction with explicit
+    # --tools / --no-tools flags (TOOLS_EXPLICIT=1).
     local tool_args=()
-    if [[ "${ALLOW_MODEL_TOOLS:-0}" == "1" ]]; then
+    local effective_tools="$ALLOW_MODEL_TOOLS"
+    if [[ "${TOOLS_EXPLICIT:-0}" != "1" ]]; then
+      case "$target_model" in
+        deepseek|deepseek-v4-flash|deepseek-v4-pro)
+          effective_tools=1
+          ;;
+      esac
+    fi
+    if [[ "$effective_tools" == "1" ]]; then
       tool_args=(--tools)
     else
       tool_args=(--no-tools)
     fi
-    
+
     # Normalize model IDs to agent names where possible
   case "$target_model" in
       claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)
@@ -388,6 +404,7 @@ DRY_RUN=0
 ROUTE_INTENT="${OFFLOAD_INTENT:-}"
 REASONING_DEPTH=""
 ALLOW_MODEL_TOOLS=0
+TOOLS_EXPLICIT=0   # 1 if user explicitly passed --tools or --no-tools
 PROMPT_PARTS=()
 
 while [[ $# -gt 0 ]]; do
@@ -414,10 +431,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --tools)
       ALLOW_MODEL_TOOLS=1
+      TOOLS_EXPLICIT=1
       shift
       ;;
     --no-tools|--text-only)
       ALLOW_MODEL_TOOLS=0
+      TOOLS_EXPLICIT=1
       shift
       ;;
     -d|--dry-run|--route-only)
