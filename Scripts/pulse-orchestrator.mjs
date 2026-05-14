@@ -413,6 +413,23 @@ async function main() {
     );
   }
 
+  // PATCH 037 — Pulse Beacon: emit outward sinks for critical findings.
+  // Detached spawn so beacon failures (osascript, vault path missing) never
+  // block the orchestrator's clean exit. Beacon honors plan.beaconLevel.
+  if (plan.beaconLevel && plan.beaconLevel !== 'none') {
+    try {
+      const beaconScript = path.join(REPO_ROOT, 'Scripts', 'pulse-beacon.mjs');
+      const beacon = spawn('node', [beaconScript, 'emit'], {
+        cwd: REPO_ROOT,
+        detached: true,
+        stdio: 'ignore',
+      });
+      beacon.unref();
+    } catch (e) {
+      logError(`beacon spawn failed: ${e.message}`);
+    }
+  }
+
   process.exit(0);
 }
 
