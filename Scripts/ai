@@ -1190,6 +1190,11 @@ case "${1:-help}" in
     shift || true
     exec node "$SCRIPT_DIR/pulse-cortex-status.mjs" "$@"
     ;;
+  soak|trivial-audit|pulse-soak)
+    # PATCH 042 — Soak audit: analyze pulse-hook-telemetry.log
+    shift || true
+    exec node "$SCRIPT_DIR/pulse-trivial-audit.mjs" "$@"
+    ;;
   mythos|openmythos|openmythos-swarm)
     shift || true
     prompt="$(join_prompt "$@")"

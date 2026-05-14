@@ -23,6 +23,9 @@ KERNEL_PY="$(cd "$(dirname "$0")" && pwd)/syscalls/kernel.py"
 OPENCLAW_CLI="${OPENCLAW_CLI:-openclaw}"
 LANE_PREFIX="09OC"
 DEFAULT_MODEL="deepseek/deepseek-v4-flash"
+# PATCH 041 — derive repo root for debug logging; never fail if path missing
+_BRIDGE_REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd 2>/dev/null || echo "/tmp")"
+_PULSE_ERRORS_LOG="${_BRIDGE_REPO_ROOT}/.claude/state/pulse-errors.log"
 
 # --- Parse input ---
 if [ $# -ge 1 ]; then
@@ -35,6 +38,8 @@ TASK_ID=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin);
 FROM_AGENT=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('from_agent','ENKI'))")
 CHANNEL=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('channel',''))")
 MODEL=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('model_override','') or '${DEFAULT_MODEL}')")
+# PATCH 041 — env var override lets us swap model without touching script or payload
+MODEL="${OPENCLAW_FALLBACK_MODEL:-$MODEL}"
 MESSAGE=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('message',''))")
 ORIGIN=$(echo "$PAYLOAD" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('origin','${FROM_AGENT}'))")
 
@@ -94,6 +99,11 @@ except:
 STATUS="COMPLETED"
 if [ -z "$RESULT_TEXT" ]; then
     STATUS="FAILED"
+    # PATCH 041 — log raw OC_OUTPUT snippet so next session can diagnose model/prompt failure
+    _OC_SNIPPET=$(printf '%s' "$OC_OUTPUT" | head -c 200 | tr '\n' ' ' 2>/dev/null || echo "(unreadable)")
+    printf '%s [openclaw-bridge] openclaw_empty_result model="%s" raw_oc_output="%s"\n' \
+        "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" "$MODEL" "$_OC_SNIPPET" \
+        >> "$_PULSE_ERRORS_LOG" 2>/dev/null || true
 fi
 
 # --- Log memory ---

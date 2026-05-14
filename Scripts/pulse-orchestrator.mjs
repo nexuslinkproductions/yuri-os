@@ -183,7 +183,10 @@ async function dispatchOpenClawPreflight(prompt, plan, turnId) {
     summary = result.stdout.trim();
   }
   if (!summary) {
-    logError(`OpenClaw preflight empty summary; gateway may be down or model returned nothing`);
+    // PATCH 041 — surface raw output for diagnostics instead of silent "gateway may be down"
+    const rawSnippet = result.stdout.trim().slice(0, 200).replace(/\n/g, '\\n') || '(empty stdout)';
+    const stderrSnippet = result.stderr.trim().slice(0, 100).replace(/\n/g, '\\n') || '(empty stderr)';
+    logError(`openclaw_empty_model_output raw="${rawSnippet}" stderr="${stderrSnippet}"`);
     return null;
   }
   const parsed = parseAdvisorOutput(summary);
@@ -327,19 +330,37 @@ Output ONE line predicting the highest-probability failure mode for this turn. F
 }
 
 async function dispatchSwarmFanout(prompt, plan, turnId) {
-  // Critical-tier only. Ruflo @swarm fan-out via offload.sh.
-  const result = await execWithTimeout(
-    'bash',
-    [OFFLOAD_SH, '@swarm', `PULSE_SWARM (turn=${turnId}) ${String(prompt).slice(0, 300)}`],
-    {},
-    TIMEOUT_SWARM_MS
-  );
-  if (result.code !== 0 || result.timedOut) {
-    logError(`@swarm fan-out failed (code=${result.code} timeout=${!!result.timedOut})`);
-    return null;
+  // PATCH 040 — native two-model DeepSeek fan-out replacing Ruflo @swarm backend call.
+  // Runs deepseek-v4-flash + deepseek-v4-pro in parallel; merges findings.
+  // No external service dependency — eliminates the port-3004 hard fail.
+  const swarmPrompt = `PULSE_SWARM (turn=${turnId}) tier=${plan.complexityTier} scenario=${plan.scenario}
+${String(prompt).slice(0, 300)}
+TASK: Independent strategic risk scan. What could go wrong that the primary analysis missed? 1-3 lines.`;
+
+  const [flashResult, proResult] = await Promise.allSettled([
+    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-flash', '--no-tools', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
+    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-pro',   '--no-tools', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
+  ]);
+
+  const outputs = [];
+  for (const [label, r] of [['flash', flashResult], ['pro', proResult]]) {
+    if (r.status === 'fulfilled' && r.value.code === 0 && !r.value.timedOut && r.value.stdout.trim()) {
+      outputs.push(r.value.stdout.trim());
+    } else {
+      const err = r.status === 'rejected' ? r.reason?.message : `code=${r.value?.code}`;
+      logError(`@swarm ${label} failed: ${err}`);
+    }
   }
-  const parsed = parseAdvisorOutput(result.stdout);
-  return { source: 'SWARM', runtimeKind: 'swarm_dispatch', ...parsed };
+
+  if (outputs.length === 0) return null;
+
+  // Merge: use highest-severity finding across both outputs
+  const candidates = outputs.map(parseAdvisorOutput);
+  const severityRank = { CRITICAL: 4, HIGH: 3, WARN: 2, INFO: 1 };
+  candidates.sort((a, b) => (severityRank[b.severity] || 0) - (severityRank[a.severity] || 0));
+  const best = candidates[0];
+
+  return { source: 'SWARM', runtimeKind: 'swarm_dispatch', ...best };
 }
 
 function buildTaskMap(ensemble, prompt, plan, turnId) {
