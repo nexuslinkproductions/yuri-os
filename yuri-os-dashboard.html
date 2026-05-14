@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Yuri OS — Mirror Axis Instrument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#080808;font-family:'JetBrains Mono',monospace;font-weight:300;-webkit-font-smoothing:antialiased}
+#mirror-graph{position:fixed;top:0;left:0;width:100%;height:100%}
+
+/* Boot states */
+.boot-node{opacity:0;transition:opacity 480ms cubic-bezier(.455,.03,.515,.955)}
+.boot-node.boot-visible{opacity:1}
+.boot-edge{opacity:0;transition:opacity 400ms ease}
+.boot-edge.boot-visible{opacity:1}
+
+/* Animations */
+@keyframes march{to{stroke-dashoffset:-100}}
+@keyframes spinePulse{from{opacity:.5}to{opacity:.85}}
+@keyframes beaconPulse{from{opacity:.6}to{opacity:1}}
+@keyframes swarmOrbitA{from{transform:translateY(-12px)}to{transform:translateY(12px)}}
+@keyframes swarmOrbitB{from{transform:translateY(12px)}to{transform:translateY(-12px)}}
+
+.data-edge{will-change:stroke-dashoffset;animation:march 2.4s linear infinite}
+.spine-line{animation:spinePulse 2.4s cubic-bezier(.455,.03,.515,.955) infinite alternate}
+.swarm-a{transform-box:fill-box;transform-origin:center;animation:swarmOrbitA 8s ease-in-out infinite alternate}
+.swarm-b{transform-box:fill-box;transform-origin:center;animation:swarmOrbitB 8s ease-in-out infinite alternate}
+
+@media(prefers-reduced-motion:reduce){
+  .data-edge,.spine-line,.swarm-a,.swarm-b{animation:none}
+  .boot-node,.boot-edge{transition:none;opacity:1}
+  *{will-change:auto!important}
+}
+
+/* HUD */
+#hud-tl{position:fixed;top:16px;left:20px;display:flex;flex-direction:column;gap:3px;z-index:100;pointer-events:none}
+.sys-id{font-size:11px;color:#D4AF37;letter-spacing:.15em;text-transform:uppercase}
+.sys-sub{font-size:9px;color:#A8BCC6;letter-spacing:.1em;text-transform:uppercase}
+.sys-git{font-size:9px;color:#4A3B32;letter-spacing:.06em}
+#hud-tr{position:fixed;top:16px;right:20px;display:flex;align-items:center;gap:10px;z-index:100;pointer-events:none}
+#soak-label{font-size:9px;color:#A8BCC6;letter-spacing:.08em}
+#beacon{font-size:9px;color:#C95A3B;letter-spacing:.06em;animation:beaconPulse 2s ease-in-out infinite alternate}
+#tier-strip{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);font-size:9px;color:#A8BCC6;letter-spacing:.12em;text-transform:uppercase;z-index:100;pointer-events:none;white-space:nowrap}
+
+/* Tooltip */
+#tooltip{position:fixed;display:none;pointer-events:none;border-left:2px solid #D4AF37;padding:4px 0 4px 8px;font-size:9px;color:#F2E9D2;letter-spacing:.06em;line-height:1.6;z-index:200;max-width:300px}
+#tooltip .t-id{color:#D4AF37;font-size:10px;letter-spacing:.12em;display:block}
+#tooltip .t-role{color:#A8BCC6;display:block}
+#tooltip .t-kind{color:#4A3B32;display:block}
+
+/* Drawer */
+#drawer{position:fixed;top:0;right:0;bottom:0;width:320px;background:#0d0d0d;border-left:1px solid rgba(212,175,55,.15);clip-path:polygon(20px 0,100% 0,100% 100%,0 100%,0 20px);transform:translateX(100%);transition:transform 320ms cubic-bezier(.4,0,.2,1);will-change:transform;z-index:300;padding:28px 20px 20px;overflow-y:auto}
+#drawer.open{transform:translateX(0)}
+#drawer-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#4A3B32;font-size:16px;cursor:pointer;font-family:inherit;padding:4px 8px;line-height:1}
+#drawer-close:hover{color:#D4AF37}
+#drawer h2{font-size:11px;color:#D4AF37;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;font-weight:400}
+.dr{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:9px}
+.dr:last-child{border-bottom:none}
+.dk{color:#4A3B32;font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.dv{color:#F2E9D2;text-align:right;max-width:200px;word-break:break-word}
+#drawer-finding{margin-top:14px;padding:8px;border-left:1px solid rgba(212,175,55,.3);color:#A8BCC6;font-size:8.5px;line-height:1.6}
+
+/* Spine hover label */
+#spine-label{position:fixed;bottom:48px;left:50%;transform:translateX(-50%);font-size:9px;color:#D4AF37;letter-spacing:.12em;text-transform:uppercase;opacity:0;transition:opacity 240ms ease;pointer-events:none;z-index:50;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<svg id="mirror-graph" viewBox="0 0 1920 720" preserveAspectRatio="xMidYMid meet">
+  <g id="g-arcs"></g>
+  <g id="g-spine"></g>
+  <g id="g-auth"></g>
+  <g id="g-data"></g>
+  <g id="g-nodes"></g>
+  <g id="g-labels"></g>
+</svg>
+
+<div id="hud-tl">
+  <span class="sys-id">Yuri OS</span>
+  <span class="sys-sub">NUDIMMUD · Fashioner of likenesses of minds</span>
+  <span class="sys-git" id="git-info"></span>
+</div>
+<div id="hud-tr">
+  <svg width="44" height="44" viewBox="0 0 44 44" style="overflow:visible">
+    <circle cx="22" cy="22" r="16" fill="none" stroke="rgba(168,188,198,.12)" stroke-width="2"/>
+    <circle id="soak-ring" cx="22" cy="22" r="16" fill="none" stroke="#A8BCC6" stroke-width="2"
+      stroke-dasharray="0 100.5" stroke-linecap="round" transform="rotate(-90 22 22)"
+      style="transition:stroke-dasharray 1.2s ease"/>
+  </svg>
+  <span id="soak-label"></span>
+  <span id="beacon"></span>
+</div>
+<div id="tier-strip"></div>
+<div id="tooltip">
+  <span class="t-id" id="tt-id"></span>
+  <span class="t-role" id="tt-role"></span>
+  <span class="t-kind" id="tt-kind"></span>
+</div>
+<div id="spine-label">← AUTHORITY = DATA FLOW →</div>
+<div id="drawer">
+  <button id="drawer-close" onclick="closeDrawer()">✕</button>
+  <h2 id="drawer-title"></h2>
+  <div id="drawer-body"></div>
+  <div id="drawer-finding"></div>
+</div>
+
+<script>
+// ── Live state ──────────────────────────────────────────────────────────────
+const LS = {
+  git: { branch:'main', commit:'110c0587' },
+  soak: { turns:16, target:50 },
+  beacon: { used:5, max:5 },
+  tier:'critical', scenario:'protocol-change',
+  ensemble:['deepseek-preflight','openclaw-preflight','hermes-forecast','cassandra','swarm-fanout','obliteratus-hint']
+};
+
+const AGENTS = {
+  ENKI:        {role:'Control plane — final authority',      rk:'main-session',    arc:'nucleus', auth:'unrestricted',        finding:'Main thread owns all final authority. Advisors are bounded and discardable. No advisory output is canonical without local verification.'},
+  OPENCLAW:    {role:'Bridge advisory — channel surface',    rk:'bridge_advisory', arc:'130px',   auth:'HIGH cap · never impl', finding:'Quarantined: severity capped at HIGH. Never canonical memory authority without local verification. Bridge-only, advisory research v1. Gateway: 127.0.0.1:18789.'},
+  HERMES_FC:   {role:'Session coherence + context pressure', rk:'native_function', arc:'130px',   auth:'always-on',             finding:'Forecast clean: ctx=0% scope=0-area session_writes=1. No context pressure or scope drift detected.'},
+  ARGUS:       {role:'Tool-call sequencing guard',           rk:'native_function', arc:'260px',   auth:'always-on',             finding:'Sequencing guard active on every PostToolUse. Monitors for failed edits, out-of-order tool calls, and canonical touch violations.'},
+  OBLITERATUS: {role:'Adversarial QA gate',                  rk:'native_function', arc:'260px',   auth:'pre-promotion blocker', finding:'Invoked on high-stakes changes: protocol, sandbox promotion, canonical state, protected paths. Last scenario: protocol-change.'},
+  CASSANDRA:   {role:'Strategic foresight (no model)',       rk:'native_function', arc:'260px',   auth:'advisory only',         finding:'DPR mismatch risk: SVG scope transforms + dual-edge chromatic encoding may overflow viewport clipping on non-standard displays. Mitigated: vector-effect non-scaling-stroke applied.'},
+  SWARM:       {role:'Dual DeepSeek flash+pro fan-out',      rk:'swarm_dispatch',  arc:'400px',   auth:'advisory only',         finding:'Color-deficiency risk on gold/blue dual encoding. Mitigated: AUTHORITY/DATA FLOW text labels at spine flanks. Last finding: routing stale endpoint risk for protocol-change turns.'},
+  OC_AGENT:    {role:'Discord/Telegram channel surface',     rk:'bridge_advisory', arc:'400px',   auth:'channel-native',        finding:'Channel-native agent. Routes through openclaw-bridge.sh. All quarantine rules from OPENCLAW apply. Quarantined authority model.'}
+};
+
+// ── SVG helpers ─────────────────────────────────────────────────────────────
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, cls){
+  const e = document.createElementNS(NS, tag);
+  for(const [k,v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+  if(cls) e.className.baseVal = cls;
+  return e;
+}
+function hex(cx, cy, r){
+  return Array.from({length:6}, (_,i) => {
+    const a = (i*60+30) * Math.PI/180;
+    return `${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+}
+
+// ── Arc guides ──────────────────────────────────────────────────────────────
+const gArcs = document.getElementById('g-arcs');
+[130,260,400].forEach(r =>
+  gArcs.appendChild(el('circle',{cx:960,cy:360,r,fill:'none',stroke:'#D4AF37',
+    'stroke-width':0.5,opacity:0.07,'vector-effect':'non-scaling-stroke'}))
+);
+// Accessibility text labels (SWARM advisory: supplement color encoding with text)
+[{x:170,y:22,a:'middle',t:'← AUTHORITY'},{x:1750,y:22,a:'middle',t:'DATA FLOW →'}].forEach(({x,y,a,t}) => {
+  const txt = el('text',{x,y,'text-anchor':a,fill:'#D4AF37',opacity:0.42,
+    'font-size':9,'font-family':'JetBrains Mono,monospace','letter-spacing':'0.12em'});
+  txt.textContent = t;
+  gArcs.appendChild(txt);
+});
+
+// ── Spine ───────────────────────────────────────────────────────────────────
+const gSpine = document.getElementById('g-spine');
+const spineLine = el('line',{x1:960,y1:0,x2:960,y2:720,
+  stroke:'#D4AF37','stroke-width':1,'stroke-dasharray':'4 3',opacity:0.7,
+  'vector-effect':'non-scaling-stroke'},'spine-line');
+gSpine.appendChild(spineLine);
+const triTxt = el('text',{x:960,y:28,'text-anchor':'middle',
+  fill:'#D4AF37','font-size':16,'font-family':'JetBrains Mono,monospace',opacity:0.75});
+triTxt.textContent = '⬡';
+gSpine.appendChild(triTxt);
+
+// ── Authority edges (left, solid gold) ──────────────────────────────────────
+const gAuth = document.getElementById('g-auth');
+[[960,360,830,300],[960,360,830,360],[960,360,700,280],
+ [960,360,700,360],[960,360,700,440],[960,360,560,300],[960,360,560,420]]
+.forEach(([x1,y1,x2,y2]) => {
+  gAuth.appendChild(el('line',{x1,y1,x2,y2,stroke:'#D4AF37','stroke-width':1.5,
+    opacity:0.65,'vector-effect':'non-scaling-stroke'},'boot-edge'));
+});
+
+// ── Data pulse edges (right, animated dashed abzu-blue) ──────────────────────
+const gData = document.getElementById('g-data');
+// Pulse path: ENKI→OPENCLAW_r→HERMES_r→CASSANDRA_r→SWARM_r→OBLITERATUS_r + ENKI→ARGUS_r + ENKI→OC_AGENT_r
+[[960,360,1090,300],[1090,300,1090,360],[1090,360,1220,440],
+ [1220,440,1360,300],[1360,300,1220,360],[960,360,1220,280],[960,360,1360,420]]
+.forEach(([x1,y1,x2,y2]) => {
+  gData.appendChild(el('line',{x1,y1,x2,y2,stroke:'#1E3A8A','stroke-width':1.5,
+    'stroke-dasharray':'6 4','vector-effect':'non-scaling-stroke'},'data-edge boot-edge'));
+});
+
+// ── Nodes ───────────────────────────────────────────────────────────────────
+const gNodes  = document.getElementById('g-nodes');
+const gLabels = document.getElementById('g-labels');
+const nodeEls = {}; // id -> {left, right}
+
+// Left nodes: hexagons
+const LEFT = [
+  {id:'ENKI',        cx:960,cy:360,r:18,fill:'#D4AF37',stroke:'#F2E9D2',sw:2},
+  {id:'OPENCLAW',    cx:830,cy:300,r:14,fill:'#1E3A8A',stroke:'#D4AF37',sw:1.5,cage:true},
+  {id:'HERMES_FC',   cx:830,cy:360,r:12,fill:'#1E3A8A',stroke:'#D4AF37',sw:1.5},
+  {id:'ARGUS',       cx:700,cy:280,r:10,fill:'#1E3A8A',stroke:'#D4AF37',sw:1},
+  {id:'OBLITERATUS', cx:700,cy:360,r:10,fill:'#C95A3B',stroke:'#D4AF37',sw:1},
+  {id:'CASSANDRA',   cx:700,cy:440,r:10,fill:'#1E3A8A',stroke:'#D4AF37',sw:1},
+  {id:'SWARM',       cx:560,cy:300,r:9, fill:'#080808',stroke:'#D4AF37',sw:0.8,twin:true},
+  {id:'OC_AGENT',    cx:560,cy:420,r:12,fill:'#080808',stroke:'#1E3A8A',sw:0.8}
+];
+
+LEFT.forEach(n => {
+  const g = document.createElementNS(NS,'g');
+  g.classList.add('boot-node');
+  g.dataset.nid = n.id;
+  g.dataset.side = 'left';
+  g.style.cursor = 'pointer';
+
+  if(n.twin){
+    // SWARM: two hexagons offset ±12px (DS-pro advisory: ±4px invisible at r=400)
+    const pA = el('polygon',{points:hex(n.cx,n.cy-12,n.r),fill:n.fill,stroke:n.stroke,'stroke-width':n.sw},'swarm-a');
+    const pB = el('polygon',{points:hex(n.cx,n.cy+12,n.r),fill:n.fill,stroke:n.stroke,'stroke-width':n.sw},'swarm-b');
+    g.appendChild(pA); g.appendChild(pB);
+  } else {
+    g.appendChild(el('polygon',{points:hex(n.cx,n.cy,n.r),fill:n.fill,stroke:n.stroke,'stroke-width':n.sw}));
+    if(n.cage){
+      // OPENCLAW quarantine cage: separate polygon at r+8 (DS-pro: NOT scale transform)
+      g.appendChild(el('polygon',{points:hex(n.cx,n.cy,n.r+8),fill:'none',
+        stroke:'#C95A3B','stroke-width':1,'stroke-dasharray':'4 4',opacity:0.5,
+        'vector-effect':'non-scaling-stroke'}));
+    }
+  }
+
+  g.addEventListener('mouseenter', e => highlight(e, n.id));
+  g.addEventListener('mouseleave', unhighlight);
+  g.addEventListener('click', () => openDrawer(n.id));
+  gNodes.appendChild(g);
+  nodeEls[n.id] = nodeEls[n.id] || {};
+  nodeEls[n.id].left = g;
+});
+
+// Right nodes: circles
+const RIGHT = [
+  {id:'OPENCLAW',    cx:1090,cy:300,r:10,stroke:'#1E3A8A',sw:1.5},
+  {id:'HERMES_FC',   cx:1090,cy:360,r:10,stroke:'#1E3A8A',sw:1.5},
+  {id:'ARGUS',       cx:1220,cy:280,r:9, stroke:'#1E3A8A',sw:1},
+  {id:'OBLITERATUS', cx:1220,cy:360,r:9, stroke:'#C95A3B',sw:1},
+  {id:'CASSANDRA',   cx:1220,cy:440,r:9, stroke:'#D4AF37',sw:1},
+  {id:'SWARM',       cx:1360,cy:300,r:8, stroke:'#1E3A8A',sw:0.8},
+  {id:'OC_AGENT',    cx:1360,cy:420,r:12,stroke:'#1E3A8A',sw:0.8}
+];
+
+RIGHT.forEach(n => {
+  const g = document.createElementNS(NS,'g');
+  g.classList.add('boot-node');
+  g.dataset.nid = n.id;
+  g.dataset.side = 'right';
+  g.style.cursor = 'pointer';
+  g.appendChild(el('circle',{cx:n.cx,cy:n.cy,r:n.r,fill:'none',stroke:n.stroke,'stroke-width':n.sw}));
+  g.addEventListener('mouseenter', e => highlight(e, n.id));
+  g.addEventListener('mouseleave', unhighlight);
+  g.addEventListener('click', () => openDrawer(n.id));
+  gNodes.appendChild(g);
+  nodeEls[n.id] = nodeEls[n.id] || {};
+  nodeEls[n.id].right = g;
+});
+
+// ── Labels ──────────────────────────────────────────────────────────────────
+const LPOS = {
+  ENKI:        {lx:960, ly:337},
+  OPENCLAW:    {lx:830, ly:280, rx:1090, ry:280},
+  HERMES_FC:   {lx:830, ly:342, rx:1090, ry:342},
+  ARGUS:       {lx:700, ly:263, rx:1220, ry:263},
+  OBLITERATUS: {lx:700, ly:343, rx:1220, ry:343},
+  CASSANDRA:   {lx:700, ly:423, rx:1220, ry:423},
+  SWARM:       {lx:560, ly:278, rx:1360, ry:283},
+  OC_AGENT:    {lx:560, ly:400, rx:1360, ry:400}
+};
+Object.entries(LPOS).forEach(([id,p]) => {
+  const g = document.createElementNS(NS,'g');
+  g.classList.add('boot-node');
+  g.style.pointerEvents = 'none';
+  const mk = (x,y,t) => {
+    const txt = el('text',{x,y,'text-anchor':'middle',fill:'#A8BCC6',
+      'font-size':8,'font-family':'JetBrains Mono,monospace','letter-spacing':'0.1em'});
+    txt.textContent = t;
+    return txt;
+  };
+  g.appendChild(mk(p.lx, p.ly, id));
+  if(p.rx) g.appendChild(mk(p.rx, p.ry, id));
+  gLabels.appendChild(g);
+});
+
+// ── Spine hit area (hover) ───────────────────────────────────────────────────
+const spineHit = el('rect',{x:950,y:0,width:20,height:720,fill:'transparent'});
+spineHit.style.cursor = 'crosshair';
+const spLbl = document.getElementById('spine-label');
+spineHit.addEventListener('mouseenter', () => spLbl.style.opacity = '1');
+spineHit.addEventListener('mouseleave', () => spLbl.style.opacity = '0');
+gSpine.appendChild(spineHit);
+
+// ── HUD wiring ───────────────────────────────────────────────────────────────
+document.getElementById('git-info').textContent = `${LS.git.branch} · ${LS.git.commit}`;
+// Soak ring: r=16, circumference=100.53
+const soakPct = LS.soak.turns / LS.soak.target;
+setTimeout(() => {
+  const fill = (soakPct * 100.53).toFixed(1);
+  const gap  = (100.53 - fill).toFixed(1);
+  document.getElementById('soak-ring').setAttribute('stroke-dasharray', `${fill} ${gap}`);
+}, 900);
+document.getElementById('soak-label').textContent = `${LS.soak.turns}/${LS.soak.target} SOAK`;
+document.getElementById('beacon').textContent = `${LS.beacon.used}/${LS.beacon.max} ●`;
+document.getElementById('tier-strip').textContent =
+  `TIER  ${LS.tier.toUpperCase()}  ·  ${LS.scenario.toUpperCase()}  ·  ENSEMBLE ${LS.ensemble.length}`;
+
+// ── Interactions ─────────────────────────────────────────────────────────────
+const tooltip = document.getElementById('tooltip');
+let curNode = null;
+
+function highlight(e, id){
+  curNode = id;
+  const {left,right} = nodeEls[id] || {};
+  if(left)  [...left.querySelectorAll('polygon,circle')].forEach(s => { s.style.filter='brightness(1.4)'; s.style.opacity='1'; });
+  if(right) [...right.querySelectorAll('circle')].forEach(s => { s.style.opacity='0.55'; });
+  const a = AGENTS[id];
+  if(!a) return;
+  document.getElementById('tt-id').textContent   = id;
+  document.getElementById('tt-role').textContent = a.role;
+  document.getElementById('tt-kind').textContent = a.rk + ' · ' + a.auth;
+  tooltip.style.display = 'block';
+  move(e);
+}
+function unhighlight(){
+  if(curNode){
+    const {left,right} = nodeEls[curNode] || {};
+    if(left)  [...left.querySelectorAll('polygon,circle')].forEach(s => { s.style.filter=''; s.style.opacity=''; });
+    if(right) [...right.querySelectorAll('circle')].forEach(s => { s.style.opacity=''; });
+  }
+  curNode = null;
+  tooltip.style.display = 'none';
+}
+function move(e){
+  tooltip.style.left = Math.min(e.clientX+16, window.innerWidth-310) + 'px';
+  tooltip.style.top  = Math.min(e.clientY-10, window.innerHeight-80) + 'px';
+}
+document.addEventListener('mousemove', e => { if(tooltip.style.display==='block') move(e); });
+
+// ── Drawer ───────────────────────────────────────────────────────────────────
+function openDrawer(id){
+  const a = AGENTS[id]; if(!a) return;
+  document.getElementById('drawer-title').textContent = id;
+  document.getElementById('drawer-body').innerHTML = [
+    ['role', a.role], ['runtimeKind', a.rk], ['authority', a.auth], ['arc', a.arc]
+  ].map(([k,v]) => `<div class="dr"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join('');
+  document.getElementById('drawer-finding').textContent = a.finding;
+  document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
+
+// ── Boot stagger ─────────────────────────────────────────────────────────────
+// Phase 0: ENKI
+setTimeout(() => document.querySelectorAll('[data-nid="ENKI"]').forEach(g => g.classList.add('boot-visible')), 0);
+// Phase 1: inner ring
+setTimeout(() => {
+  ['OPENCLAW','HERMES_FC'].forEach(id =>
+    document.querySelectorAll(`[data-nid="${id}"]`).forEach(g => g.classList.add('boot-visible'))
+  );
+}, 80);
+// Phase 2: mid + outer ring + edges
+setTimeout(() => {
+  ['ARGUS','OBLITERATUS','CASSANDRA','SWARM','OC_AGENT'].forEach(id =>
+    document.querySelectorAll(`[data-nid="${id}"]`).forEach(g => g.classList.add('boot-visible'))
+  );
+  document.querySelectorAll('.boot-edge').forEach(g => g.classList.add('boot-visible'));
+}, 160);
+// Phase 3: labels
+setTimeout(() => {
+  document.querySelectorAll('#g-labels .boot-node').forEach(g => g.classList.add('boot-visible'));
+}, 240);
+</script>
+</body>
+</html>
