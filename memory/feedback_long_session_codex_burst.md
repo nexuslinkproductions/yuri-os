@@ -34,15 +34,37 @@ Stay in session. The rate limit pause costs less than a fresh session startup.
 - Codex artifact directories accessible
 - BLOCKED file guards already computed
 
-## The Operational Pattern
+## DeepSeek 1M Context — Large Burst Advantage
 
+DeepSeek V4 Pro has a **1 million token context window**. During a Codex rate-limit window,
+this is not just a fallback — it is an opportunity for deep analysis impossible at smaller context sizes.
+
+**What to send DeepSeek during a Codex window:**
+- Multiple full source files (no summarization needed)
+- Entire directory trees dumped raw
+- Full session history + prior EOT reports
+- Large spec documents + existing implementations side-by-side
+- Cross-file dependency analysis spanning 10-20 files at once
+
+**Do NOT send DeepSeek summarized context packs** (old pattern: max 5 facts, 3 refs).
+That was for rate-limited/token-scarce contexts. At 1M tokens: send everything raw.
+DeepSeek can hold the full picture and produce more accurate analysis.
+
+**Burst pattern:**
 ```
 Codex burst → rate limited →
-  ├── Dispatch @deepseek for analysis/spec work
-  ├── Run llama3.2 local tasks (summaries, file reads)
-  ├── Run deterministic Bash checks, git operations, gitnexus
-  └── 5-10min passes naturally → Codex quota resets → next burst
+  ├── @deepseek LARGE BURST: send 10-30 full files + full session context
+  │   → deep analysis, comprehensive spec, full blast radius map
+  ├── llama3.2: local lightweight tasks (summaries, quick reads)
+  ├── Deterministic: Bash checks, git operations, gitnexus
+  └── 5-10min passes → Codex quota resets → implement from deepseek spec
 ```
+
+**Why this is better than splitting into sessions:**
+- DeepSeek in session already has the accumulated context from prior turns
+- No re-sending of background/rules/prior decisions
+- DeepSeek's spec feeds directly into Codex implementation — no handoff gap
+- 1M tokens = can analyze the entire ruflo subproject in one call
 
 ## When TO Start a New Session
 
