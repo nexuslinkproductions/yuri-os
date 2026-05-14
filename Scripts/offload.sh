@@ -110,11 +110,15 @@ list_models() {
   printf '  [%-30s] %s\n' "perplexity" "sonar-pro default; --reasoning high/xhigh → sonar-reasoning-pro"
 
   echo
+  echo "Browser control lane:"
+  printf '  [%-30s] %s\n' "comet" "browser-control adapter via Scripts/comet-adapter.mjs"
+
+  echo
 }
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -123,7 +127,7 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle)
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
       return 0
       ;;
   esac
@@ -278,6 +282,10 @@ dry_run_model_override() {
       perplexity|perplexity-sonar|sonar-pro|sonar-reasoning-pro)
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/perplexity-adapter.mjs" --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
+      comet)
+        printf '%s\n' "⬡ ROUTING_TO_COMET..." >&2
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/comet-adapter.mjs" --dry-run
+        ;;
       deepseek-v4-flash|deepseek-v4-pro|deepseek)
         # DeepSeek dry-run: tools default ON unless --no-tools explicit
         local _ds_tool_arg="--tools"
@@ -340,6 +348,10 @@ dispatch_model() {
       perplexity|perplexity-sonar|sonar-pro|sonar-reasoning-pro)
         printf '%s\n' "⬡ ROUTING_TO_PERPLEXITY [${REASONING_DEPTH:+sonar-reasoning-pro}${REASONING_DEPTH:-sonar-pro}]..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/perplexity-adapter.mjs" ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        ;;
+      comet)
+        printf '%s\n' "⬡ ROUTING_TO_COMET..." >&2
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/comet-adapter.mjs"
         ;;
       deepseek-v4-flash|deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2

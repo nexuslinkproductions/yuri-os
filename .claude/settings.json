@@ -86,6 +86,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/eot-background-start.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/scout-log-trim.js"
           }
         ]
       }
@@ -166,6 +170,11 @@
           {
             "type": "command",
             "command": "node .claude/hooks/scout-spawn.js",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/token-tool-logger.js",
             "async": true
           }
         ]

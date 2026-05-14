@@ -349,6 +349,7 @@ Seat duties:
 
 ```xml
 <end_of_transmission_routing mode="full_auto" user_permission="pre_granted">
+  <task id="eot-000" owner="main_thread" permission="granted">Codex quota smoke pre-check: run 'node Scripts/codex-offload-runner.mjs gpt-5.4-mini --smoke' before dispatching any Codex task. If status is SKIPPED_OR_RATE_LIMITED, skip eot-006/eot-007 Codex routes and use main-thread synthesis directly. Avoids wasted dispatches when quota saturated. Per PATCH 005 in this skill's Session Notes.</task>
   <task id="eot-001" owner="deterministic_tool" permission="granted">Collect session artifacts, file paths, timestamps, sizes, and generated outputs.</task>
   <task id="eot-002" owner="deterministic_tool" permission="granted">Extract tool calls, errors, checks, command outputs, and validation evidence.</task>
   <task id="eot-003" owner="deterministic_tool" permission="granted">Search current self-improvement docs, related protocols, TODOs, and duplicated prompt sections.</task>
@@ -419,6 +420,36 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 ---
 
 ## Session Notes
+
+### 2026-05-14
+- session: 53m | peak ctx: 0% | compacts: 0
+- tools: Bash×55, Read×14, Edit×14, Write×2, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 51m | peak ctx: 0% | compacts: 0
+- tools: Bash×55, Read×14, Edit×14, Write×2, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 47m | peak ctx: 0% | compacts: 0
+- tools: Bash×52, Read×12, Edit×12, ExitPlanMode×1, Write×1
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 29m | peak ctx: 0% | compacts: 0
+- tools: Bash×24, Read×7, Edit×4
+- corrections: none
+- errors: none
+
+### 2026-05-14
+- session: 22m | peak ctx: 0% | compacts: 0
+- tools: Bash×8, Read×6, Edit×3
+- corrections: none
+- errors: none
 
 ### 2026-04-27
 - session: 3m | peak ctx: 50% | compacts: 0
@@ -522,3 +553,25 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 - corrections: none
 - errors: none
 - notes: added Full Auto Permission Grant + No-Interruption Rule + Hard Boundaries sections; updated Phase 0/Routing/Council/Output XMLs with full_auto attrs and blocked_items field; updated both CLAUDE.md inject blocks to full-auto version
+
+### 2026-05-14
+- session: YURI OS 75%+ campaign + Codex multi-tier + palace rebuild
+- peak ctx: high | compacts: 0
+- tools: Bash×80+, Read×30+, Edit×20+, Write×5, Skill×1, Agent×0
+- corrections: Codex rate-limited during EOT dispatch → main thread fallback; artifacts written by earlier Codex invocation at 09:04
+- errors: gpt-5.5 + gpt-5.4-mini both SKIPPED_OR_RATE_LIMITED during EOT burst; palace-context-inject.js pointed at wrong paths
+- notes: PATCH 005 added — single long session > multiple short sessions for Codex burst work
+
+## PATCH 005 — Stay in session through Codex rate-limit windows
+
+**Skill:** `end-of-transmission` / session lifecycle
+**Trigger:** Codex returns SKIPPED_OR_RATE_LIMITED during any multi-dispatch pipeline
+**Rule:** Do NOT end the session and start a new one when Codex hits a rate limit. Session startup
+overhead (hooks, tool loads, palace inject, model warm-up) costs 2-3min per session. A Codex
+rate-limit window is only 5-10min. During the window: dispatch DeepSeek analysis, run llama3.2
+local tasks, do git/gitnexus/deterministic work. Quota auto-resets; resume Codex in same session.
+Only EOT when context window forces it (80%+) or user explicitly requests it.
+**Validation:** No new session spawned within 15min of a Codex rate-limit event.
+**Evidence:** 2026-05-14 — multiple parallel Codex dispatches (EOT 6 artifacts + Q-2 + Q-4 + hook fix)
+saturated burst quota. Subsequent sessions required re-paying startup overhead unnecessarily.
+See: `memory/feedback_long_session_codex_burst.md`
