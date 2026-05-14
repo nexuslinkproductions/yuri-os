@@ -38,7 +38,7 @@ VERSION        = "2.0"
 EXCLUDE_DIRS = {
     ".obsidian", ".git", "claude-palace-out", "graphify-out",
     "graph", "node_modules", ".claude", "deleted-backups",
-    "__pycache__", ".DS_Store",
+    "__pycache__", ".DS_Store", "RESEARCH", "_QUARANTINE_2026-05-07",
 }
 
 WIKILINK_RE = re.compile(r'\[\[([^\]|#\n]+?)(?:[|#][^\]\n]*)?\]\]')
