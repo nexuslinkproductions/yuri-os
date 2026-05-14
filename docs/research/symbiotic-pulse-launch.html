@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Symbiotic Pulse V1 - Internal Yuri OS Launch</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --void: #050607;
+      --panel: rgba(255, 255, 255, 0.045);
+      --panel-strong: rgba(255, 255, 255, 0.075);
+      --line: rgba(218, 238, 219, 0.22);
+      --line-hot: rgba(178, 238, 146, 0.86);
+      --text: #f3f7f0;
+      --muted: #aeb9ac;
+      --lime: #b6ef82;
+      --amber: #d4bc63;
+      --coral: #ef765f;
+      --cyan: #84d8d9;
+      --ink: #0b0f0d;
+      --font-display: "Bricolage Grotesque", "Aptos Display", ui-sans-serif, system-ui, sans-serif;
+      --font-body: "DM Sans", "Aptos", ui-sans-serif, system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      --ease: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background: var(--void);
+      color: var(--text);
+      font-family: var(--font-body);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgba(5, 6, 7, 0.8), rgba(5, 6, 7, 1)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 96px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 80px),
+        var(--void);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 8%, rgba(182, 239, 130, 0.16), transparent 34%);
+      opacity: 0.85;
+    }
+
+    .page {
+      position: relative;
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero {
+      min-height: 92vh;
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+      gap: 36px;
+      align-items: center;
+      padding: 24px 0 16px;
+    }
+
+    .kicker, .tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.4;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      color: var(--lime);
+    }
+
+    h1 {
+      margin: 18px 0 18px;
+      font-family: var(--font-display);
+      font-size: 92px;
+      line-height: 0.88;
+      letter-spacing: 0;
+      max-width: 820px;
+    }
+
+    .lead {
+      max-width: 620px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1.45;
+    }
+
+    .proof {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 30px;
+      max-width: 620px;
+    }
+
+    .proof div {
+      min-height: 88px;
+      padding: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .proof strong {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .proof span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .graph-shell {
+      position: relative;
+      min-height: 720px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02));
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .graph-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(182,239,130,0.08), transparent 30%, rgba(132,216,217,0.06));
+      pointer-events: none;
+    }
+
+    .graph {
+      position: relative;
+      height: 860px;
+      display: grid;
+      grid-template-rows: repeat(11, minmax(54px, 1fr));
+      align-items: center;
+      justify-items: center;
+      isolation: isolate;
+    }
+
+    .node {
+      width: min(100%, 330px);
+      min-height: 58px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      background: rgba(5, 6, 7, 0.68);
+      border-radius: 6px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025);
+      display: grid;
+      gap: 4px;
+      align-content: center;
+      opacity: 0.7;
+      transform: translateY(8px);
+      animation: nodePulse 9s var(--ease) infinite;
+    }
+
+    .node strong {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      color: var(--text);
+    }
+
+    .node span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .node.seed { border-color: rgba(182,239,130,0.7); }
+    .node.core { width: min(100%, 390px); border-color: rgba(132,216,217,0.7); }
+    .node.verify { border-color: rgba(212,188,99,0.72); }
+    .node.output { border-color: rgba(239,118,95,0.66); }
+
+    .fanout {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(92px, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .fanout .node {
+      width: 100%;
+      min-height: 86px;
+      padding: 10px;
+    }
+
+    .wire {
+      position: absolute;
+      left: 50%;
+      width: 2px;
+      height: 46px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, transparent, var(--line-hot), transparent);
+      opacity: 0.4;
+      animation: wirePulse 2.6s linear infinite;
+      z-index: -1;
+    }
+
+    .w1 { top: 78px; animation-delay: 0s; }
+    .w2 { top: 156px; animation-delay: 0.3s; }
+    .w3 { top: 234px; animation-delay: 0.6s; }
+    .w4 { top: 545px; animation-delay: 0.9s; }
+    .w5 { top: 628px; animation-delay: 1.2s; }
+    .w6 { top: 712px; animation-delay: 1.5s; }
+
+    .split-wire {
+      position: absolute;
+      top: 318px;
+      left: 12%;
+      right: 12%;
+      height: 82px;
+      border-top: 1px solid rgba(182,239,130,0.45);
+      border-left: 1px solid rgba(182,239,130,0.25);
+      border-right: 1px solid rgba(182,239,130,0.25);
+      pointer-events: none;
+      animation: splitPulse 2.6s linear infinite;
+      z-index: -1;
+    }
+
+    .chapter {
+      padding: 56px 0 8px;
+      display: grid;
+      grid-template-columns: 0.72fr 1.28fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .chapter h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 54px;
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .copy {
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.62;
+      margin: 0;
+    }
+
+    .matrix {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .matrix div {
+      min-height: 124px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.035);
+      border-radius: 6px;
+    }
+
+    .matrix strong {
+      display: block;
+      margin-bottom: 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--lime);
+      text-transform: uppercase;
+    }
+
+    .matrix span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.42;
+    }
+
+    .footer {
+      margin-top: 56px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    @keyframes nodePulse {
+      0%, 100% { opacity: 0.68; transform: translateY(8px); border-color: var(--line); }
+      12%, 28% { opacity: 1; transform: translateY(0); border-color: var(--line-hot); box-shadow: 0 0 18px rgba(182,239,130,0.14); }
+      42% { opacity: 0.78; transform: translateY(3px); }
+    }
+
+    @keyframes wirePulse {
+      0% { opacity: 0.12; transform: translateX(-50%) scaleY(0.2); }
+      45% { opacity: 0.92; transform: translateX(-50%) scaleY(1); }
+      100% { opacity: 0.12; transform: translateX(-50%) scaleY(0.2); }
+    }
+
+    @keyframes splitPulse {
+      0%, 100% { opacity: 0.18; }
+      50% { opacity: 0.88; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+
+    @media (max-width: 920px) {
+      .hero, .chapter { grid-template-columns: 1fr; }
+      .hero { padding-top: 18px; }
+      h1 { font-size: 68px; }
+      .chapter h2 { font-size: 42px; }
+      .graph-shell { min-height: auto; }
+      .graph { height: auto; min-height: 760px; gap: 14px; grid-template-rows: none; }
+      .wire, .split-wire { display: none; }
+      .fanout, .proof, .matrix { grid-template-columns: 1fr; }
+      .fanout .node { min-height: 58px; }
+      .footer { flex-direction: column; }
+    }
+
+    @media (max-width: 520px) {
+      .page { width: min(100% - 20px, 1180px); padding-top: 16px; }
+      h1 { font-size: 46px; }
+      .chapter h2 { font-size: 34px; }
+      .lead { font-size: 16px; }
+      .graph-shell { padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <div class="kicker">Internal Yuri OS launch artifact / V1 operation preview</div>
+        <h1 id="title">Symbiotic Pulse V1</h1>
+        <p class="lead">Every input is already inside the pulse. Yuri decodes it into an envelope, forms a Pulse Seed, activates only the capabilities needed, verifies useful claims, and collapses the work back into one coherent output.</p>
+        <div class="proof" aria-label="Pulse proof points">
+          <div><strong>Always On</strong><span>Chat, UI, shortcut, voice, cron, and hook inputs enter the same intake path.</span></div>
+          <div><strong>Pulse Seed</strong><span>Raw braindump becomes objective, constraints, risks, work packets, and model-affinity signals.</span></div>
+          <div><strong>Capability DAG</strong><span>Local, cloud, browser, sandbox, learning, and deterministic tools activate only when justified.</span></div>
+          <div><strong>Trace Ledger</strong><span>Decisions, evidence, failures, and verification scores are stored. Hidden reasoning is not.</span></div>
+        </div>
+      </div>
+
+      <div class="graph-shell" aria-label="Animated Symbiotic Pulse operation graph">
+        <div class="graph">
+          <div class="wire w1"></div>
+          <div class="wire w2"></div>
+          <div class="wire w3"></div>
+          <div class="split-wire"></div>
+          <div class="wire w4"></div>
+          <div class="wire w5"></div>
+          <div class="wire w6"></div>
+
+          <div class="node" style="animation-delay: 0s"><strong>Any Input</strong><span>chat / UI / shortcut / voice / hook</span></div>
+          <div class="node seed" style="animation-delay: .25s"><strong>Pulse Envelope</strong><span>source, text, metadata, always-on flag</span></div>
+          <div class="node seed" style="animation-delay: .5s"><strong>Pulse Seed</strong><span>intent, modes, gates, work packets</span></div>
+          <div class="node core" style="animation-delay: .75s"><strong>Symbiotic Pulse Core</strong><span>one native runtime, no command trigger required</span></div>
+          <div class="node" style="animation-delay: 1s"><strong>Skill Registry</strong><span>loader + manifest + .agents skills</span></div>
+          <div class="node" style="animation-delay: 1.2s"><strong>Mode Classifier</strong><span>reply, plan, execute, research, learn, train, sandbox</span></div>
+          <div class="node" style="animation-delay: 1.4s"><strong>Capability Planner</strong><span>cost, risk, privacy, latency, model fit</span></div>
+
+          <div class="fanout" aria-label="Specialist activations">
+            <div class="node" style="animation-delay: 1.55s"><strong>Direct Reply</strong><span>observe only</span></div>
+            <div class="node" style="animation-delay: 1.7s"><strong>Local Specialist</strong><span>cheap precise work</span></div>
+            <div class="node" style="animation-delay: 1.85s"><strong>Cloud Reasoning</strong><span>bounded deep review</span></div>
+            <div class="node" style="animation-delay: 2s"><strong>Sandbox</strong><span>isolated probes</span></div>
+            <div class="node" style="animation-delay: 2.15s"><strong>Learn / Train</strong><span>novelty gated / operator gated</span></div>
+          </div>
+
+          <div class="node verify" style="animation-delay: 2.45s"><strong>Verifier</strong><span>shell, tests, source, git</span></div>
+          <div class="node output" style="animation-delay: 2.75s"><strong>Reducer / Merge</strong><span>accepted output only</span></div>
+          <div class="node" style="animation-delay: 3.05s"><strong>Pulse Trace Ledger</strong><span>improvement without hidden chain-of-thought</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" aria-labelledby="why">
+      <div>
+        <div class="tag">The operating shift</div>
+        <h2 id="why">From model picking to capability formation.</h2>
+      </div>
+      <div>
+        <p class="copy">The old stack asked which route should answer. Symbiotic Pulse asks what the work needs before any response leaves the system. The runtime detects the arsenal, selects advisory skills, classifies modes, short-circuits simple replies, builds a bounded DAG for complex work, and verifies before merge.</p>
+        <div class="matrix">
+          <div><strong>Offloading</strong><span>Becomes the live capability map.</span></div>
+          <div><strong>Fan-out</strong><span>Becomes one activation mode inside the graph.</span></div>
+          <div><strong>DeepSeek</strong><span>Becomes deep-reasoning capacity, selected when justified.</span></div>
+          <div><strong>Local Models</strong><span>Stay role-specific and memory-bounded.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapter" aria-labelledby="proof">
+      <div>
+        <div class="tag">V1 proof</div>
+        <h2 id="proof">A coherent system, not a pile of aliases.</h2>
+      </div>
+      <p class="copy">PulsePlan v2 is now the contract. The executor accepts the staged plan directly. Legacy route words enter only through parser compatibility, then disappear into the unified pulse. Every run can be traced, scored, skipped, verified, and improved.</p>
+    </section>
+
+    <footer class="footer">
+      <span>Symbiotic Pulse V1 / internal Yuri OS operation artifact</span>
+      <span>One input. Every model in formation.</span>
+    </footer>
+  </main>
+</body>
+</html>
