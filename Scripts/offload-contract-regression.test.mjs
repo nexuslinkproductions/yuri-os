@@ -332,20 +332,23 @@ try {
 
 const manifestRoot = mkdtempSync(join(tmpdir(), 'ollama-lane-regression-'));
 try {
+  // Primary local model is now llama3.2:latest — add it to the test manifest
   mkdirSync(join(manifestRoot, 'qwen2.5'), { recursive: true });
   writeFileSync(join(manifestRoot, 'qwen2.5', '7b'), '{}');
+  mkdirSync(join(manifestRoot, 'llama3.2'), { recursive: true });
+  writeFileSync(join(manifestRoot, 'llama3.2', 'latest'), '{}');
   const ollamaLocal = JSON.parse(execFileSync(
     process.execPath,
     [offloadRunnerPath, 'ollama-local', '--dry-run', 'private summary'],
-    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'qwen2.5:7b' } }
+    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'llama3.2:latest' } }
   ));
   assert.equal(ollamaLocal.kind, 'local', 'ollama-local should resolve as local');
-  assert.equal(ollamaLocal.model, 'needle', 'ollama-local should pick the active primary local model');
+  assert.equal(ollamaLocal.model, 'llama3.2:latest', 'ollama-local should pick the active primary local model');
 
   const ollamaAuto = JSON.parse(execFileSync(
     process.execPath,
     [offloadRunnerPath, 'ollama', '--dry-run', 'private summary'],
-    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'qwen2.5:7b' } }
+    { encoding: 'utf8', env: { ...process.env, OLLAMA_MANIFEST_DIR: manifestRoot, OLLAMA_LOCAL_MODEL: 'llama3.2:latest' } }
   ));
   assert.equal(ollamaAuto.resolvedVia, 'local', 'ollama auto lane should prefer local when available');
 } finally {

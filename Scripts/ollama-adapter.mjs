@@ -1,5 +1,7 @@
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
+import http from 'node:http';
+import https from 'node:https';
 import {
   estimateTokensFromText,
   hashPayload,
@@ -7,6 +9,38 @@ import {
   recordTokenEvent,
 } from './token-ledger.mjs';
 import { runNeedleLocalChat } from './needle-adapter.mjs';
+
+// Cold model loads need extended timeouts — native fetch headersTimeout is 10s (too short).
+// Use node:http directly for full socket + response timeout control.
+const OLLAMA_TIMEOUT_MS = Number(process.env.OFFLOAD_OLLAMA_TIMEOUT_MS) || 300_000;
+
+function ollamaHttpPost(url, body, extraHeaders = {}) {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const mod = parsed.protocol === 'https:' ? https : http;
+    const bodyStr = JSON.stringify(body);
+    const req = mod.request({
+      hostname: parsed.hostname,
+      port:     parsed.port || (parsed.protocol === 'https:' ? 443 : 80),
+      path:     parsed.pathname + (parsed.search || ''),
+      method:   'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(bodyStr), ...extraHeaders },
+    }, (res) => {
+      let raw = '';
+      res.on('data', (c) => { raw += c; });
+      res.on('end', () => resolve({
+        ok:     res.statusCode >= 200 && res.statusCode < 300,
+        status: res.statusCode,
+        text:   () => Promise.resolve(raw),
+        json:   () => Promise.resolve(JSON.parse(raw)),
+      }));
+    });
+    req.setTimeout(OLLAMA_TIMEOUT_MS, () => req.destroy(new Error(`ollama_timeout_${OLLAMA_TIMEOUT_MS}ms`)));
+    req.on('error', reject);
+    req.write(bodyStr);
+    req.end();
+  });
+}
 
 const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
 const LOCAL_MODEL_POLICY = loadModelPolicy().local || {};
@@ -131,15 +165,8 @@ export async function runOllamaCloudChat(endpoint, apiKey, model, promptText, sy
 export async function postOllamaEmbedding({ text, model, baseUrl, traceId = '', sourcePath = 'Scripts/ollama-adapter.mjs', operationType = 'ollama_embedding' }) {
   const startedAt = Date.now();
   const endpoint = `${baseUrl.replace(/\/$/, '')}/api/embeddings`;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Number(process.env.OFFLOAD_OLLAMA_TIMEOUT_MS) || 300000);
   try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, prompt: text }),
-      signal: controller.signal,
-    });
+    const response = await ollamaHttpPost(endpoint, { model, prompt: text });
 
     if (!response.ok) return null;
     const data = await response.json();
@@ -179,8 +206,6 @@ export async function postOllamaEmbedding({ text, model, baseUrl, traceId = '', 
       metadata: { additive_lane: true },
     });
     return null;
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
@@ -195,11 +220,7 @@ async function runOllamaNativeChat({ endpoint, apiKey = '', provider, model, pro
 
   let response;
   try {
-    response = await fetch(endpoint, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ model, messages, stream: false }),
-    });
+    response = await ollamaHttpPost(endpoint, { model, messages, stream: false }, apiKey ? { Authorization: `Bearer ${apiKey}` } : {});
   } catch (error) {
     const errText = error?.message || String(error);
     await recordOllamaLedger({ provider, model, status: 'error', startedAt, promptText, systemText, endpoint, ledger, metadata, errorText: errText });
