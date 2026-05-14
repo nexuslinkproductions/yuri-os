@@ -1,26 +1,139 @@
 {
   "date": "2026-05-14",
-  "session_id": 1778770907024,
+  "session_id": "multi-session-2026-05-14",
   "commits": [
-    "af934083",
-    "dc06744b",
-    "990161d6",
-    "79a2ee89",
-    "ad8ed558",
-    "dcd45ac5",
-    "9c9dd779",
-    "9c608185",
-    "387b6592",
-    "88205843",
-    "d412b597",
-    "c08cc422",
-    "27447196",
-    "3d6e41f9"
+    "af934083", "dc06744b", "990161d6", "79a2ee89", "ad8ed558",
+    "dcd45ac5", "9c9dd779", "9c608185", "387b6592", "88205843",
+    "d412b597", "c08cc422", "27447196", "3d6e41f9", "8e8b0fb4",
+    "679fb31d", "d1e18a94", "47933f08", "a020ff34", "7383fdff"
   ],
-  "findings": [],
+  "findings": [
+    {
+      "ts": "2026-05-14T16:35:29.588Z",
+      "turn_id": "test-040-live",
+      "source": "DEEPSEEK",
+      "severity": "CRITICAL",
+      "finding": "Confirmation bias risk: prompt assumes security audit scope without file paths, tech stack, or user role context. Main thread could waste effort on irrelevant paths.",
+      "runtime_kind": "model_advisor",
+      "outcome_marker": null
+    },
+    {
+      "ts": "2026-05-14T16:35:29.590Z",
+      "turn_id": "test-040-live",
+      "source": "CASSANDRA",
+      "severity": "INFO",
+      "finding": "CRITICAL :: Tainted token replay in PATCH 040-042 swarm fan-out due to missing nonce deduplication across OpenClaw diagnostics paths.",
+      "runtime_kind": "native_function",
+      "outcome_marker": "wrong"
+    },
+    {
+      "ts": "2026-05-14T16:35:29.590Z",
+      "turn_id": "test-040-live",
+      "source": "SWARM",
+      "severity": "WARN",
+      "finding": "Mixed old/new routing logic during rolling updates causes silent packet drops or loops between nodes running different offload.sh versions without detection.",
+      "runtime_kind": "swarm_dispatch",
+      "outcome_marker": null
+    },
+    {
+      "ts": "2026-05-14T16:35:29.590Z",
+      "turn_id": "test-040-live",
+      "source": "CORTEX",
+      "severity": "WARN",
+      "finding": "Advisor disagreement detected across 5 findings on turn test-040-live",
+      "runtime_kind": "meta",
+      "outcome_marker": null
+    },
+    {
+      "ts": "2026-05-14T16:37:56.040Z",
+      "turn_id": "70c4f157",
+      "source": "DEEPSEEK",
+      "severity": "WARN",
+      "finding": "offload.sh uses shell variables and PID tracking — not atomic across threads. Race condition risk: two agents could overwrite routing state or kill the wrong process.",
+      "runtime_kind": "model_advisor",
+      "outcome_marker": null
+    },
+    {
+      "ts": "2026-05-14T16:37:56.041Z",
+      "turn_id": "70c4f157",
+      "source": "CASSANDRA",
+      "severity": "INFO",
+      "finding": "HIGH:WARN :: Offload routing logic will fail to handle new swarm fan-out paths from d1e18a94, causing duplicate or missed file transfers.",
+      "runtime_kind": "native_function",
+      "outcome_marker": "wrong"
+    },
+    {
+      "ts": "2026-05-14T16:41:52.189Z",
+      "turn_id": "f9c6e702",
+      "source": "DEEPSEEK",
+      "severity": "WARN",
+      "finding": "protocol-change could alter offload routing destination format midway, leaving offload.sh pointing at stale endpoints. Verify routing variables are dynamically sourced from the updated contract.",
+      "runtime_kind": "model_advisor",
+      "outcome_marker": null
+    },
+    {
+      "ts": "2026-05-14T16:41:52.190Z",
+      "turn_id": "f9c6e702",
+      "source": "CASSANDRA",
+      "severity": "INFO",
+      "finding": "HIGH:CRITICAL :: Offload.sh routing logic refactor breaks pulse-cortex swarm fan-out path by ignoring new --swarm-native flag from d1e18a94.",
+      "runtime_kind": "native_function",
+      "outcome_marker": "wrong"
+    },
+    {
+      "ts": "2026-05-14T16:41:52.190Z",
+      "turn_id": "f9c6e702",
+      "source": "SWARM",
+      "severity": "CRITICAL",
+      "finding": "Refactored routing logic may silently drop $? exit codes from nested offload subroutines, causing critical failures in cascading scripts to appear as success.",
+      "runtime_kind": "swarm_dispatch",
+      "outcome_marker": null
+    },
+    {
+      "ts": "2026-05-14T16:42:45.845Z",
+      "turn_id": "test-043a-oc",
+      "source": "DEEPSEEK",
+      "severity": "HIGH",
+      "finding": "'Extract the offload routing contract' is undefined: no shared specification of contract boundaries or behavioral invariants — misaligned extraction, broken integrations, untestable edge cases.",
+      "runtime_kind": "model_advisor",
+      "outcome_marker": null
+    },
+    {
+      "ts": "2026-05-14T16:42:45.846Z",
+      "turn_id": "test-043a-oc",
+      "source": "CASSANDRA",
+      "severity": "INFO",
+      "finding": "CRITICAL :: Refactor will silently break test-pulse-cortex.sh e2e suite by exporting new module path that pulse-cortex runtime imports cannot resolve.",
+      "runtime_kind": "native_function",
+      "outcome_marker": "wrong"
+    },
+    {
+      "ts": "2026-05-14T16:42:45.846Z",
+      "turn_id": "test-043a-oc",
+      "source": "SWARM",
+      "severity": "WARN",
+      "finding": "Primary analysis may focus on TypeScript typing surface while missing runtime behavior divergence between extracted module and existing callers that depend on implicit side-effects.",
+      "runtime_kind": "swarm_dispatch",
+      "outcome_marker": null
+    },
+    {
+      "ts": "2026-05-14T16:42:45.847Z",
+      "turn_id": "test-043a-oc",
+      "source": "CORTEX",
+      "severity": "WARN",
+      "finding": "Advisor disagreement detected across 5 findings on turn test-043a-oc",
+      "runtime_kind": "meta",
+      "outcome_marker": null
+    }
+  ],
   "telemetry": {
-    "trivial_skip_count": 3,
-    "pulse_spawn_count": 3,
-    "disagreement_count": 0
+    "trivial_skip_count": 7,
+    "pulse_spawn_count": 7,
+    "disagreement_count": 2
+  },
+  "calibration_notes": {
+    "cassandra_accuracy": "4/4 CASSANDRA findings marked 'wrong' this session — hallucinated specifics (tainted token replay, --swarm-native flag, import path break, file transfer failure). Cassandra foresight is strategically framed but technically fabricated on test prompts. Lower confidence weight at 20+ findings milestone.",
+    "deepseek_accuracy": "DEEPSEEK findings are bounded and architecturally plausible. CRITICAL on confirmation-bias was appropriate. WARN on race conditions and stale endpoints are valid concerns.",
+    "swarm_accuracy": "SWARM findings are generic strategic risks — useful framing, low specificity. CRITICAL on $? exit codes is plausible but unverified. Preamble-sentence issue (not the risk itself) partially resolved by PATCH 043b."
   }
 }
