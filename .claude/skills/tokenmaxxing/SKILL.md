@@ -1,18 +1,17 @@
 ---
 name: tokenmaxxing
-description: "Master token efficiency mode. Activates ultra-caveman, full offload-default, auto-compact, and ctrl+b background task routing. One command to engage everything."
+description: "Native token efficiency mode (auto-activated at SessionStart). Rules below are loaded automatically by token-session-init.js — no manual command needed. /tokenmaxxing is a re-activate alias for the rare case of mid-session deactivation."
 triggers:
-  - "/tokenmaxxing"
   - "tokenmaxxing"
 ---
 
 # TOKENMAXXING MODE
 
-## Auto-Activation (full bake — 2026-04-25)
+## Auto-Activation (full bake — 2026-04-25, verified 2026-05-14 PATCH 039)
 
-`token-session-init.js` sets `tokenmaxxing: true` AND injects the full `## Rules` block from this SKILL.md into Claude's startup context on every SessionStart. No manual command needed. Rules are live from turn 1.
+`token-session-init.js` sets `tokenmaxxing: true` (L56) AND injects the full `## Rules` block from this SKILL.md into Claude's startup context (L127) on every SessionStart. **No manual command needed. Rules are live from turn 1.**
 
-Use `/tokenmaxxing` only to **re-activate** after a `tokenmaxxing off` mid-session.
+`/tokenmaxxing` is preserved only as a re-activate alias after `tokenmaxxing off` mid-session. Subsequent docs should describe tokenmaxxing as "native default" rather than as a triggerable command.
 
 ## Activation Steps (re-activate only — run when skill fires after `tokenmaxxing off`)
 

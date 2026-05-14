@@ -313,6 +313,46 @@ After deterministic/offloaded work is complete, main thread synthesises directly
 
 Main thread must reject vague learning summaries and require evidence-backed updates. No additional model spawn; synthesis performed on main thread using cached context from Haiku outputs.
 
+### Phase 10 — Pulse Cortex Archive Promotion (PATCH 039)
+
+Promote high-signal pulse-bus findings to durable learning. Reads `.claude/state/pulse-bus.json` ring, filters to entries from this session (matching session_id or recent turn_ids), and writes a daily archive at `_SYSTEM/SELF-IMPROVEMENT/pulse-archive/YYYY-MM-DD.json`.
+
+Filter rules:
+- Keep all `severity >= WARN` findings
+- Keep all `source === 'CORTEX'` (advisor disagreement markers)
+- Keep all `source === 'CASSANDRA'` strategic foresights regardless of severity
+- Drop pure INFO findings from DeepSeek/OpenClaw/Hermes-forecast (too noisy)
+- Drop expired entries
+
+Archive shape:
+```json
+{
+  "date": "YYYY-MM-DD",
+  "session_id": "...",
+  "commits": ["sha1", "sha2"],
+  "findings": [
+    {
+      "ts": "...",
+      "turn_id": "...",
+      "source": "DEEPSEEK|OPENCLAW|HERMES_FC|CASSANDRA|CORTEX",
+      "severity": "WARN|HIGH|CRITICAL",
+      "finding": "...",
+      "runtime_kind": "model_advisor|bridge_advisory|native_function|meta",
+      "outcome_marker": null // future EOT phase fills this with "applied|ignored|wrong"
+    }
+  ],
+  "telemetry": {
+    "trivial_skip_count": N,
+    "pulse_spawn_count": M,
+    "disagreement_count": K
+  }
+}
+```
+
+This archive becomes the calibration corpus for Innovation A (pulse memory + learning loop). After 100+ archived findings, classifier heuristics in `Scripts/offload-contract.mjs` can be tuned against actual outcomes rather than vibes.
+
+Implementation note for Phase 10 worker: read `.claude/state/pulse-bus.json`, filter, write archive, then call `bash .claude/state/pulse-bus.json:resetForNewSession` equivalent via the Node module (see `.claude/hooks/pulse-bus.js` `resetForNewSession`).
+
 ---
 
 ## 33 Architect Council Reflection Review

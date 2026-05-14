@@ -86,10 +86,43 @@ Yes: "Changes global model default for all sessions; requires explicit user appr
 
 This ensures session handoff is clear and future readers understand the decision boundary.
 
+### PULSE_CORTEX_PROTOCOL (PATCH 030–039, 2026-05-14)
+
+Yuri runs a **Pulse Cortex** on every non-trivial user prompt. Auto-triggered by `.claude/hooks/user-prompt-submit.js` (PATCH 032), classified by `Scripts/offload-contract.mjs` (PATCH 030), executed by `Scripts/pulse-orchestrator.mjs` (PATCH 031, 033–037), observed via `Scripts/ai cortex` (PATCH 038), archived via EOT Phase 10 (PATCH 039).
+
+**Per-turn protocol for main thread (this is mandatory pre-action behavior):**
+
+1. **Read pulse-plan.json** if it exists for the current turn. The `plan.complexityTier` field drives behavior:
+   - `trivial` → no cortex; answer directly
+   - `standard` → DeepSeek preflight only; impl direct; check `codexPolicy` for dry-run gate
+   - `complex` → DeepSeek + OpenClaw + Hermes-forecast + Cassandra; impl per `codexPolicy`
+   - `critical` → full ensemble + @swarm fan-out + Obliteratus gate hint; ALL impl manual (`codexPolicy=none`)
+
+2. **Read pulse-bus.json findings** for the current turn before non-trivial tool calls. Cite findings when they materially change approach. Mark consumed entries via `markConsumed(ids)` (CommonJS module `.claude/hooks/pulse-bus.js`).
+
+3. **Respect advisor authority boundaries:**
+   - DeepSeek + Hermes-forecast + Cassandra = `model_advisor` / `native_function` — advisory only
+   - OpenClaw = `bridge_advisory` — quarantined per OFFLOAD_CONTRACT.claudeProtocolGate.openClaw; never canonical, never impl authority
+   - **Codex is the only impl authority** (via two-phase `Scripts/pulse-codex-runner.mjs` propose → approve → apply)
+
+4. **Codex two-phase gate (PATCH 036):**
+   - Phase A `propose`: Codex outputs unified-diff to `.claude/state/pulse-codex-pending.json`. No file writes.
+   - Phase B `apply`: Only fires when (a) `.approved` marker exists, (b) not expired (10 min TTL), (c) `git rev-parse HEAD` matches snapshot from Phase A (DeepSeek stale-protection guard).
+   - User says "go" / "apply" / "lgtm" → main thread touches the `.approved` marker.
+
+5. **Beacon emission (PATCH 037):**
+   - Honors `plan.beaconLevel` (`none` / `notify` / `notify+obsidian`)
+   - Throttled 5/session
+   - Detached spawn; never blocks orchestrator
+
+6. **Self-inspection: `Scripts/ai cortex`** prints live state (plan, bus counts, pending Codex, beacon throttle, OpenClaw gateway health, error tail).
+
+**Authority chain:** Codex/main-session = final authority. All advisors are bounded, advisory, discardable. The cortex is built UNDER the existing Hermes/Argus/Obliteratus gates, not around them. Tokenmaxxing native at SessionStart; no manual `/tokenmaxxing` required.
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **nudimmud-vault** (93054 symbols, 134029 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (91180 symbols, 131474 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
