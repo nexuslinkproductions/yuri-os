@@ -4,4 +4,4 @@
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export HOME="/Users/marcelspatz"
 cd /Users/marcelspatz/NUDIMMUD
-exec /Users/marcelspatz/NUDIMMUD/Scripts/ai eot
+exec /opt/homebrew/bin/node /Users/marcelspatz/NUDIMMUD/Scripts/eot-archive.mjs --execute
