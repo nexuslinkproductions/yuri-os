@@ -24,12 +24,12 @@ if (opts.dryRun) {
 
 const apiKey = process.env.PERPLEXITY_API_KEY || '';
 if (!apiKey) {
-  process.stderr.write(JSON.stringify({ lane: 'perplexity', status: 'BLOCKED_MISSING_KEY', reason: 'Missing PERPLEXITY_API_KEY' }) + '\n');
+  process.stderr.write(JSON.stringify({ lane: 'perplexity', model: opts.model, status: 'BLOCKED_MISSING_KEY', reason: 'Missing PERPLEXITY_API_KEY', exitCode: 1 }) + '\n');
   process.exit(1);
 }
 
 if (!prompt) {
-  process.stderr.write(JSON.stringify({ lane: 'perplexity', status: 'BLOCKED_MISSING_PROMPT', reason: 'Missing prompt.' }) + '\n');
+  process.stderr.write(JSON.stringify({ lane: 'perplexity', model: opts.model, status: 'BLOCKED_MISSING_PROMPT', reason: 'Missing prompt.', exitCode: 1 }) + '\n');
   process.exit(1);
 }
 
@@ -38,7 +38,7 @@ if (result.ok) {
   process.stdout.write(result.text + (result.text.endsWith('\n') ? '' : '\n'));
   process.exit(0);
 } else {
-  process.stderr.write(JSON.stringify({ lane: 'perplexity', model: result.model, status: 'FAILED', reason: result.reason }) + '\n');
+  process.stderr.write(JSON.stringify({ lane: 'perplexity', model: result.model, status: 'FAILED', reason: result.reason, exitCode: result.exitCode }) + '\n');
   process.exit(1);
 }
 
@@ -61,7 +61,7 @@ async function run(opts, prompt, apiKey, traceId) {
 
     if (!resp.ok) {
       const body = await resp.text().catch(() => '');
-      return { ok: false, model, reason: `HTTP ${resp.status}: ${body.slice(0, 200)}` };
+      return { ok: false, model, reason: `HTTP ${resp.status}: ${body.slice(0, 200)}`, exitCode: resp.status };
     }
 
     const data  = await resp.json();
@@ -90,8 +90,9 @@ async function run(opts, prompt, apiKey, traceId) {
     return { ok: true, model, text };
   } catch (err) {
     clearTimeout(timer);
-    const reason = err.name === 'AbortError' ? `Timed out after ${TIMEOUT_MS}ms` : (err.message || String(err));
-    return { ok: false, model, reason };
+    const isTimeout = err.name === 'AbortError';
+    const reason = isTimeout ? `Timed out after ${TIMEOUT_MS}ms` : (err.message || String(err));
+    return { ok: false, model, reason, exitCode: isTimeout ? 124 : 1 };
   }
 }
 
@@ -122,6 +123,8 @@ function buildPreview(opts, prompt) {
     lane:     'perplexity',
     model:    opts.model,
     status:   'DRY_RUN',
+    reason:   'Dry-run preview.',
+    exitCode: 0,
     endpoint: PERPLEXITY_ENDPOINT,
     keySet:   !!(process.env.PERPLEXITY_API_KEY),
     prompt,
