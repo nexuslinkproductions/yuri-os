@@ -5,7 +5,8 @@
     "af934083", "dc06744b", "990161d6", "79a2ee89", "ad8ed558",
     "dcd45ac5", "9c9dd779", "9c608185", "387b6592", "88205843",
     "d412b597", "c08cc422", "27447196", "3d6e41f9", "8e8b0fb4",
-    "679fb31d", "d1e18a94", "47933f08", "a020ff34", "7383fdff"
+    "679fb31d", "d1e18a94", "47933f08", "a020ff34", "7383fdff",
+    "9acdd5c9", "f5635c39", "5b5ad46a"
   ],
   "findings": [
     {
@@ -127,9 +128,10 @@
     }
   ],
   "telemetry": {
-    "trivial_skip_count": 7,
-    "pulse_spawn_count": 7,
-    "disagreement_count": 2
+    "trivial_skip_count": 8,
+    "pulse_spawn_count": 8,
+    "disagreement_count": 2,
+    "session_3_note": "session-3 turns: boot-packet continuation, PATCH 046+047+eot-refresh fix. Soak: 16/50."
   },
   "calibration_notes": {
     "cassandra_accuracy": "4/4 CASSANDRA findings marked 'wrong' this session — hallucinated specifics (tainted token replay, --swarm-native flag, import path break, file transfer failure). Cassandra foresight is strategically framed but technically fabricated on test prompts. Lower confidence weight at 20+ findings milestone.",
