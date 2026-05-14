@@ -164,6 +164,17 @@
             "statusMessage": "Enriching with GitNexus graph context..."
           }
         ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/agent-spawn-guard.js",
+            "timeout": 5,
+            "statusMessage": "Agent spawn guard (NUDIMMUD policy)"
+          }
+        ]
       }
     ],
     "PostToolUse": [
