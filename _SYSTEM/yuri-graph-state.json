@@ -1,5 +1,5 @@
 {
-  "version": "v11",
+  "version": "v12",
   "generated_at": "2026-05-15T12:48:50.957Z",
   "commit": "381f9876",
   "sectors": [
@@ -36,7 +36,7 @@
     },
     {
       "name": "prompt_hooks",
-      "color": "#94A3B8",
+      "color": "#A398B8",
       "nodes": [
         "PROMPT_HOOKS",
         "AEONIC",
@@ -66,7 +66,7 @@
     },
     {
       "name": "classification",
-      "color": "#4A9EFF",
+      "color": "#48C3D8",
       "nodes": [
         "CLASSIFIER",
         "TRIVIAL",
@@ -157,6 +157,32 @@
         "SVC_DIGEST",
         "SVC_OLLAMA"
       ]
+    },
+    {
+      "name": "code_intelligence",
+      "color": "#76B900",
+      "nodes": [
+        "GITNEXUS",
+        "GN_IMPACT",
+        "GN_DETECT",
+        "GN_QUERY",
+        "GN_SYMBOL_GRAPH",
+        "GN_FLOW_TRACE"
+      ]
+    },
+    {
+      "name": "self_improvement",
+      "color": "#FF8855",
+      "nodes": [
+        "SELF_IMPROVE",
+        "EOT_PIPELINE",
+        "SOAK_LOOP",
+        "PULSE_ARCHIVE",
+        "INTROSPECT",
+        "SKILL_REGISTRY",
+        "PRECOMMIT_REGRESS",
+        "BEACON_OBSIDIAN"
+      ]
     }
   ],
   "layout": {
@@ -222,18 +248,28 @@
         "twist": 2.8797932657906435
       },
       {
+        "id": "GITNEXUS",
+        "y": -1260,
+        "twist": 1.832595714594046
+      },
+      {
+        "id": "SELF_IMPROVE",
+        "y": -1340,
+        "twist": 2.356194490192345
+      },
+      {
         "id": "MEMORY",
         "y": -1400,
         "twist": 3.141592653589793
       },
       {
         "id": "SERVICES",
-        "y": -1560,
+        "y": -1620,
         "twist": 3.4033920413889427
       },
       {
         "id": "RESPONSE",
-        "y": -1720,
+        "y": -1780,
         "twist": 3.665191429188092
       }
     ]
@@ -267,7 +303,8 @@
         ],
         "dependencies": [],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": null
       },
       "parent": null,
       "children": []
@@ -300,7 +337,8 @@
         ],
         "dependencies": [],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "USER"
       },
       "parent": null,
       "children": []
@@ -341,7 +379,8 @@
           ".claude/state/pulse-plan.json",
           ".claude/state/pulse-bus.json"
         ],
-        "notes": "Evidence: CLAUDE.md authority chain and yuri-origin local-evidence hierarchy. State file paths are referenced only; protected state was not read."
+        "notes": "Evidence: CLAUDE.md authority chain and yuri-origin local-evidence hierarchy. State file paths are referenced only; protected state was not read.",
+        "returns_to": "RESPONSE"
       },
       "parent": null,
       "children": [
@@ -378,7 +417,8 @@
         ],
         "dependencies": [],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": null,
       "children": [
@@ -395,7 +435,7 @@
       "role": "submit hooks",
       "detail": "aeonic / protocol-guard / scout",
       "radius": 48,
-      "color": "#94A3B8",
+      "color": "#A398B8",
       "position": {
         "x": 0,
         "y": 360,
@@ -415,7 +455,8 @@
         ],
         "dependencies": [],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": null,
       "children": [
@@ -461,7 +502,8 @@
           ".claude/state/pulse-plan.json",
           ".claude/state/pulse-bus.json"
         ],
-        "notes": "Evidence: pulse-orchestrator comments and main() flow."
+        "notes": "Evidence: pulse-orchestrator comments and main() flow.",
+        "returns_to": "ENKI_DECIDES"
       },
       "parent": null,
       "children": [
@@ -478,7 +520,7 @@
       "role": "offload-contract.mjs",
       "detail": "tier: TRIVIAL / STD / CPLX / CRIT",
       "radius": 50,
-      "color": "#4A9EFF",
+      "color": "#48C3D8",
       "position": {
         "x": 0,
         "y": -160,
@@ -503,7 +545,8 @@
         "state_files": [
           ".claude/state/pulse-plan.json"
         ],
-        "notes": "Tuning file documents advisor disagreement and classifier calibration."
+        "notes": "Tuning file documents advisor disagreement and classifier calibration.",
+        "returns_to": "ENKI"
       },
       "parent": null,
       "children": [
@@ -551,7 +594,8 @@
         "state_files": [
           ".claude/state/pulse-bus.json"
         ],
-        "notes": "Authority bounds from CLAUDE.md: model_advisor/native_function/bridge_advisory, all advisory only."
+        "notes": "Authority bounds from CLAUDE.md: model_advisor/native_function/bridge_advisory, all advisory only.",
+        "returns_to": "PULSE_BUS"
       },
       "parent": null,
       "children": [
@@ -596,7 +640,8 @@
         "state_files": [
           ".claude/state/pulse-bus.json"
         ],
-        "notes": "CLAUDE.md says main thread reads pulse-bus before non-trivial tool calls."
+        "notes": "CLAUDE.md says main thread reads pulse-bus before non-trivial tool calls.",
+        "returns_to": "ENKI_DECIDES"
       },
       "parent": null,
       "children": [
@@ -639,7 +684,8 @@
           ".claude/state/pulse-bus.json",
           ".claude/state/pulse-plan.json"
         ],
-        "notes": "Closed-loop return to ENKI models main-thread authority after advisor fanout."
+        "notes": "Closed-loop return to ENKI models main-thread authority after advisor fanout.",
+        "returns_to": "ENKI"
       },
       "parent": null,
       "children": [
@@ -678,7 +724,8 @@
           "OFFLOAD_CONTRACT.lanes"
         ],
         "state_files": [],
-        "notes": "Evidence: offload-contract routingPriority and universalWorkflow."
+        "notes": "Evidence: offload-contract routingPriority and universalWorkflow.",
+        "returns_to": "RESPONSE"
       },
       "parent": null,
       "children": [
@@ -726,7 +773,8 @@
         "state_files": [
           ".claude/state/pulse-codex-pending.json"
         ],
-        "notes": "Protected state path referenced only; not read."
+        "notes": "Protected state path referenced only; not read.",
+        "returns_to": "RESPONSE"
       },
       "parent": null,
       "children": [
@@ -772,7 +820,8 @@
           ".claude/state/pulse-plan.json",
           ".claude/state/pulse-bus.json"
         ],
-        "notes": "Return edge MEMORY->ENKI models memory availability on the next turn."
+        "notes": "Return edge MEMORY->ENKI models memory availability on the next turn.",
+        "returns_to": "ENKI"
       },
       "parent": null,
       "children": [
@@ -793,7 +842,7 @@
       "color": "#00C896",
       "position": {
         "x": 0,
-        "y": -1560,
+        "y": -1620,
         "z": 0
       },
       "sector": "services",
@@ -811,7 +860,8 @@
         ],
         "dependencies": [],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": null,
       "children": [
@@ -834,7 +884,7 @@
       "color": "#E8F4FD",
       "position": {
         "x": 0,
-        "y": -1720,
+        "y": -1780,
         "z": 0
       },
       "sector": "operator_io",
@@ -855,7 +905,8 @@
           "memory context"
         ],
         "state_files": [],
-        "notes": "Closed return RESPONSE->USER models the prompt-response cycle."
+        "notes": "Closed return RESPONSE->USER models the prompt-response cycle.",
+        "returns_to": "USER"
       },
       "parent": null,
       "children": []
@@ -890,7 +941,8 @@
           "ENKI"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ENKI",
       "children": []
@@ -925,7 +977,8 @@
           "ENKI"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ENKI",
       "children": []
@@ -960,7 +1013,8 @@
           "ENKI"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ENKI",
       "children": []
@@ -995,7 +1049,8 @@
           "SESSION_INIT"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SESSION_INIT",
       "children": [
@@ -1033,7 +1088,8 @@
           "SESSION_INIT"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SESSION_INIT",
       "children": [
@@ -1070,7 +1126,8 @@
           "SESSION_INIT"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SESSION_INIT",
       "children": []
@@ -1105,7 +1162,8 @@
           "SESSION_INIT"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SESSION_INIT",
       "children": []
@@ -1117,7 +1175,7 @@
       "role": "protocol",
       "detail": "",
       "radius": 22,
-      "color": "#94A3B8",
+      "color": "#A398B8",
       "position": {
         "x": 210.94,
         "y": 290,
@@ -1139,7 +1197,8 @@
           "PROMPT_HOOKS"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "PROMPT_HOOKS",
       "children": []
@@ -1151,7 +1210,7 @@
       "role": "gate",
       "detail": "",
       "radius": 22,
-      "color": "#94A3B8",
+      "color": "#A398B8",
       "position": {
         "x": 213.372,
         "y": 290,
@@ -1173,7 +1232,8 @@
           "PROMPT_HOOKS"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "PROMPT_HOOKS",
       "children": []
@@ -1185,7 +1245,7 @@
       "role": "HERMES+ARGUS",
       "detail": "",
       "radius": 22,
-      "color": "#94A3B8",
+      "color": "#A398B8",
       "position": {
         "x": 156.376,
         "y": 290,
@@ -1207,7 +1267,8 @@
           "PROMPT_HOOKS"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "PROMPT_HOOKS",
       "children": [
@@ -1222,7 +1283,7 @@
       "role": "url guard",
       "detail": "",
       "radius": 20,
-      "color": "#94A3B8",
+      "color": "#A398B8",
       "position": {
         "x": 55.827,
         "y": 290,
@@ -1244,7 +1305,8 @@
           "PROMPT_HOOKS"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "PROMPT_HOOKS",
       "children": []
@@ -1256,7 +1318,7 @@
       "role": "destructive ops gate",
       "detail": "",
       "radius": 14,
-      "color": "#FF5252",
+      "color": "#A398B8",
       "position": {
         "x": -60.271,
         "y": 290,
@@ -1278,7 +1340,8 @@
           "PROMPT_HOOKS"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "PROMPT_HOOKS",
       "children": []
@@ -1290,7 +1353,7 @@
       "role": "blast radius",
       "detail": "",
       "radius": 14,
-      "color": "#FFB347",
+      "color": "#A398B8",
       "position": {
         "x": -159.582,
         "y": 290,
@@ -1312,7 +1375,8 @@
           "PROMPT_HOOKS"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "PROMPT_HOOKS",
       "children": []
@@ -1346,7 +1410,8 @@
           "NEXUSPULSE"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI_DECIDES"
       },
       "parent": "NEXUSPULSE",
       "children": []
@@ -1380,7 +1445,8 @@
           "NEXUSPULSE"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI_DECIDES"
       },
       "parent": "NEXUSPULSE",
       "children": []
@@ -1414,10 +1480,13 @@
           "NEXUSPULSE"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI_DECIDES"
       },
       "parent": "NEXUSPULSE",
-      "children": []
+      "children": [
+        "BEACON_OBSIDIAN"
+      ]
     },
     {
       "id": "NP_CODEX_RUNNER",
@@ -1448,7 +1517,8 @@
           "NEXUSPULSE"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI_DECIDES"
       },
       "parent": "NEXUSPULSE",
       "children": []
@@ -1460,7 +1530,7 @@
       "role": "no advisors",
       "detail": "",
       "radius": 20,
-      "color": "#4A9EFF",
+      "color": "#48C3D8",
       "position": {
         "x": 213.921,
         "y": -230,
@@ -1482,7 +1552,8 @@
           "CLASSIFIER"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1494,7 +1565,7 @@
       "role": "[DEEPSEEK]",
       "detail": "",
       "radius": 22,
-      "color": "#4A9EFF",
+      "color": "#48C3D8",
       "position": {
         "x": 157.988,
         "y": -230,
@@ -1516,7 +1587,8 @@
           "CLASSIFIER"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1528,7 +1600,7 @@
       "role": "+OC+HERMES+CASS",
       "detail": "",
       "radius": 22,
-      "color": "#4A9EFF",
+      "color": "#48C3D8",
       "position": {
         "x": 58.052,
         "y": -230,
@@ -1550,7 +1622,8 @@
           "CLASSIFIER"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1562,7 +1635,7 @@
       "role": "+SWARM+OBLIT",
       "detail": "",
       "radius": 24,
-      "color": "#FF6835",
+      "color": "#48C3D8",
       "position": {
         "x": -58.052,
         "y": -230,
@@ -1584,7 +1657,8 @@
           "CLASSIFIER"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1596,7 +1670,7 @@
       "role": "ui-change · code-change · ...",
       "detail": "",
       "radius": 12,
-      "color": "#4A9EFF",
+      "color": "#48C3D8",
       "position": {
         "x": -157.988,
         "y": -230,
@@ -1618,7 +1692,8 @@
           "CLASSIFIER"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1630,7 +1705,7 @@
       "role": "lane mapping",
       "detail": "",
       "radius": 12,
-      "color": "#4A9EFF",
+      "color": "#48C3D8",
       "position": {
         "x": -213.921,
         "y": -230,
@@ -1652,7 +1727,8 @@
           "CLASSIFIER"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "CLASSIFIER",
       "children": []
@@ -1690,7 +1766,8 @@
         "state_files": [],
         "runtime_kind": "model_advisor",
         "authority_bounds": "advisory_only; local verification required",
-        "notes": "dispatchDeepSeekPreflight tags runtimeKind model_advisor."
+        "notes": "dispatchDeepSeekPreflight tags runtimeKind model_advisor.",
+        "returns_to": "PULSE_BUS"
       },
       "parent": "ADVISORS",
       "children": [
@@ -1731,7 +1808,8 @@
         "state_files": [],
         "runtime_kind": "bridge_advisory",
         "authority_bounds": "quarantined; never canonical; never implementation authority",
-        "notes": "pulse-orchestrator forces bridge_advisory and caps CRITICAL to HIGH."
+        "notes": "pulse-orchestrator forces bridge_advisory and caps CRITICAL to HIGH.",
+        "returns_to": "PULSE_BUS"
       },
       "parent": "ADVISORS",
       "children": [
@@ -1771,7 +1849,8 @@
         ],
         "runtime_kind": "native_function",
         "authority_bounds": "advisory heuristic only",
-        "notes": "dispatchHermesForecast returns runtimeKind native_function; protected state path referenced only."
+        "notes": "dispatchHermesForecast returns runtimeKind native_function; protected state path referenced only.",
+        "returns_to": "PULSE_BUS"
       },
       "parent": "ADVISORS",
       "children": []
@@ -1809,7 +1888,8 @@
         "state_files": [],
         "runtime_kind": "native_function_or_model_advisor",
         "authority_bounds": "advisory; known hallucination risk tracked in pulse archive",
-        "notes": "Pulse archive records Cassandra accuracy concerns; use with local verification."
+        "notes": "Pulse archive records Cassandra accuracy concerns; use with local verification.",
+        "returns_to": "PULSE_BUS"
       },
       "parent": "ADVISORS",
       "children": []
@@ -1846,7 +1926,8 @@
         "state_files": [],
         "runtime_kind": "swarm_dispatch",
         "authority_bounds": "advisory_only",
-        "notes": "dispatchSwarmFanout uses Promise.allSettled over flash and pro."
+        "notes": "dispatchSwarmFanout uses Promise.allSettled over flash and pro.",
+        "returns_to": "PULSE_BUS"
       },
       "parent": "ADVISORS",
       "children": [
@@ -1886,7 +1967,8 @@
         "state_files": [],
         "runtime_kind": "gate_advisory",
         "authority_bounds": "conditional gate; owner/local evidence remain decisive",
-        "notes": "CLAUDE.md names Obliteratus as gate hint under critical-tier manual implementation."
+        "notes": "CLAUDE.md names Obliteratus as gate hint under critical-tier manual implementation.",
+        "returns_to": "PULSE_BUS"
       },
       "parent": "ADVISORS",
       "children": []
@@ -1920,7 +2002,8 @@
           "PULSE_BUS"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI_DECIDES"
       },
       "parent": "PULSE_BUS",
       "children": []
@@ -1954,7 +2037,8 @@
           "PULSE_BUS"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI_DECIDES"
       },
       "parent": "PULSE_BUS",
       "children": []
@@ -1988,7 +2072,8 @@
           "PULSE_BUS"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI_DECIDES"
       },
       "parent": "PULSE_BUS",
       "children": []
@@ -2023,7 +2108,8 @@
           "ENKI_DECIDES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "ENKI_DECIDES",
       "children": []
@@ -2058,7 +2144,8 @@
           "ENKI_DECIDES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "ENKI_DECIDES",
       "children": []
@@ -2093,7 +2180,8 @@
           "ENKI_DECIDES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "ENKI_DECIDES",
       "children": []
@@ -2128,7 +2216,8 @@
         ],
         "state_files": [],
         "model": "qwen:7b / code-local",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs."
+        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
       "children": []
@@ -2163,7 +2252,8 @@
         ],
         "state_files": [],
         "model": "deepseek-v4-flash",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs."
+        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
       "children": []
@@ -2198,7 +2288,8 @@
         ],
         "state_files": [],
         "model": "deepseek-v4-pro",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs."
+        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
       "children": []
@@ -2233,7 +2324,8 @@
         ],
         "state_files": [],
         "model": "gpt-5.4-mini",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs."
+        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
       "children": [
@@ -2270,7 +2362,8 @@
         ],
         "state_files": [],
         "model": "gpt-5.5",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs."
+        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
       "children": [
@@ -2307,7 +2400,8 @@
         ],
         "state_files": [],
         "model": "kimi-k2.6",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs."
+        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
       "children": []
@@ -2342,7 +2436,8 @@
         ],
         "state_files": [],
         "model": "qwen:7b",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs."
+        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
       "children": []
@@ -2377,7 +2472,8 @@
         ],
         "state_files": [],
         "model": "gpt-oss 120b",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs."
+        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
       "children": []
@@ -2411,7 +2507,8 @@
           "CODEX_GATE"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "RESPONSE"
       },
       "parent": "CODEX_GATE",
       "children": [
@@ -2447,7 +2544,8 @@
           "CODEX_GATE"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "RESPONSE"
       },
       "parent": "CODEX_GATE",
       "children": []
@@ -2481,7 +2579,8 @@
           "CODEX_GATE"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "RESPONSE"
       },
       "parent": "CODEX_GATE",
       "children": [
@@ -2520,7 +2619,8 @@
           ".claude/state/pulse-plan.json",
           ".claude/state/pulse-bus.json"
         ],
-        "notes": "Hot memory paths referenced only."
+        "notes": "Hot memory paths referenced only.",
+        "returns_to": "ENKI"
       },
       "parent": "MEMORY",
       "children": [
@@ -2558,7 +2658,8 @@
           "EOT packets"
         ],
         "state_files": [],
-        "notes": "Warm evidence from self-improvement archive."
+        "notes": "Warm evidence from self-improvement archive.",
+        "returns_to": "ENKI"
       },
       "parent": "MEMORY",
       "children": [
@@ -2597,7 +2698,8 @@
           "semantic wiki"
         ],
         "state_files": [],
-        "notes": "Cold layer feeds future architecture and classifier tuning."
+        "notes": "Cold layer feeds future architecture and classifier tuning.",
+        "returns_to": "ENKI"
       },
       "parent": "MEMORY",
       "children": [
@@ -2634,7 +2736,8 @@
           "SQLite runtime"
         ],
         "state_files": [],
-        "notes": "Represented as metadata surface only; no database read performed."
+        "notes": "Represented as metadata surface only; no database read performed.",
+        "returns_to": "ENKI"
       },
       "parent": "MEMORY",
       "children": []
@@ -2668,7 +2771,8 @@
           "promotion rules"
         ],
         "state_files": [],
-        "notes": "Matches yuri-origin local evidence hierarchy."
+        "notes": "Matches yuri-origin local evidence hierarchy.",
+        "returns_to": "ENKI"
       },
       "parent": "MEMORY",
       "children": []
@@ -2703,7 +2807,8 @@
           "SERVICES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SERVICES",
       "children": []
@@ -2738,7 +2843,8 @@
           "SERVICES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SERVICES",
       "children": []
@@ -2773,7 +2879,8 @@
           "SERVICES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SERVICES",
       "children": []
@@ -2808,7 +2915,8 @@
           "SERVICES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SERVICES",
       "children": []
@@ -2843,7 +2951,8 @@
           "SERVICES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SERVICES",
       "children": []
@@ -2878,7 +2987,8 @@
           "SERVICES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SERVICES",
       "children": []
@@ -2913,7 +3023,8 @@
           "SERVICES"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "ENKI"
       },
       "parent": "SERVICES",
       "children": []
@@ -2948,7 +3059,8 @@
           "SOUL_INJECT"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "SOUL_INJECT"
       },
       "parent": "SOUL_INJECT",
       "children": []
@@ -2983,7 +3095,8 @@
           "SOUL_INJECT"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "SOUL_INJECT"
       },
       "parent": "SOUL_INJECT",
       "children": []
@@ -3018,7 +3131,8 @@
           "PALACE"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "PALACE"
       },
       "parent": "PALACE",
       "children": []
@@ -3030,7 +3144,7 @@
       "role": "context check",
       "detail": "",
       "radius": 8,
-      "color": "#9B6EFF",
+      "color": "#A398B8",
       "position": {
         "x": 225.456,
         "y": 255,
@@ -3052,7 +3166,8 @@
           "SCOUT_SPAWN"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "SCOUT_SPAWN"
       },
       "parent": "SCOUT_SPAWN",
       "children": []
@@ -3064,7 +3179,7 @@
       "role": "tool sequencing",
       "detail": "",
       "radius": 8,
-      "color": "#9B6EFF",
+      "color": "#A398B8",
       "position": {
         "x": 145.788,
         "y": 255,
@@ -3086,7 +3201,8 @@
           "SCOUT_SPAWN"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "SCOUT_SPAWN"
       },
       "parent": "SCOUT_SPAWN",
       "children": []
@@ -3120,7 +3236,8 @@
           "DEEPSEEK_A"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "DEEPSEEK_A"
       },
       "parent": "DEEPSEEK_A",
       "children": []
@@ -3154,7 +3271,8 @@
           "DEEPSEEK_A"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "DEEPSEEK_A"
       },
       "parent": "DEEPSEEK_A",
       "children": []
@@ -3188,7 +3306,8 @@
           "OPENCLAW_A"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "OPENCLAW_A"
       },
       "parent": "OPENCLAW_A",
       "children": []
@@ -3222,7 +3341,8 @@
           "SWARM_A"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "SWARM_A"
       },
       "parent": "SWARM_A",
       "children": []
@@ -3256,7 +3376,8 @@
           "SWARM_A"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "SWARM_A"
       },
       "parent": "SWARM_A",
       "children": []
@@ -3289,7 +3410,8 @@
           "LANE_MINI"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "LANE_MINI"
       },
       "parent": "LANE_MINI",
       "children": []
@@ -3322,7 +3444,8 @@
           "LANE_CODEX"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "LANE_CODEX"
       },
       "parent": "LANE_CODEX",
       "children": []
@@ -3356,7 +3479,8 @@
           "PROPOSE"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "PROPOSE"
       },
       "parent": "PROPOSE",
       "children": []
@@ -3390,7 +3514,8 @@
           "APPLY"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "APPLY"
       },
       "parent": "APPLY",
       "children": []
@@ -3424,7 +3549,8 @@
           "MEM_HOT"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "MEM_HOT"
       },
       "parent": "MEM_HOT",
       "children": []
@@ -3458,7 +3584,8 @@
           "MEM_HOT"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "MEM_HOT"
       },
       "parent": "MEM_HOT",
       "children": []
@@ -3492,7 +3619,8 @@
           "MEM_WARM"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "MEM_WARM"
       },
       "parent": "MEM_WARM",
       "children": []
@@ -3526,7 +3654,8 @@
           "MEM_WARM"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "MEM_WARM"
       },
       "parent": "MEM_WARM",
       "children": []
@@ -3560,7 +3689,8 @@
           "MEM_WARM"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "MEM_WARM"
       },
       "parent": "MEM_WARM",
       "children": []
@@ -3594,7 +3724,8 @@
           "MEM_COLD"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "MEM_COLD"
       },
       "parent": "MEM_COLD",
       "children": []
@@ -3628,7 +3759,8 @@
           "MEM_COLD"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "MEM_COLD"
       },
       "parent": "MEM_COLD",
       "children": []
@@ -3662,9 +3794,503 @@
           "MEM_COLD"
         ],
         "state_files": [],
-        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above."
+        "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
+        "returns_to": "MEM_COLD"
       },
       "parent": "MEM_COLD",
+      "children": []
+    },
+    {
+      "id": "GITNEXUS",
+      "tier": "section",
+      "label": "GITNEXUS",
+      "role": "code intelligence",
+      "detail": "impact + flow graph",
+      "radius": 50,
+      "color": "#76B900",
+      "position": {
+        "x": 0,
+        "y": -1260,
+        "z": 0
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Code intelligence graph — 91k symbols, 131k relationships, 300 execution flows. Mandatory blast-radius analysis before symbol edits, change detection before commits.",
+        "files": [
+          "package.json (gitnexus dep)",
+          "CLAUDE.md (gitnexus section)"
+        ],
+        "capabilities": [
+          "impact analysis",
+          "detect changes",
+          "query symbols",
+          "trace flows"
+        ],
+        "dependencies": [
+          "ENKI",
+          "CODEX_GATE"
+        ],
+        "state_files": [],
+        "notes": "New v12 sector closes code-impact checks back into ENKI and Codex gate validation.",
+        "returns_to": "ENKI"
+      },
+      "parent": null,
+      "children": [
+        "GN_IMPACT",
+        "GN_DETECT",
+        "GN_QUERY"
+      ]
+    },
+    {
+      "id": "GN_IMPACT",
+      "tier": "sub",
+      "label": "impact",
+      "role": "blast radius",
+      "detail": "",
+      "radius": 14,
+      "color": "#76B900",
+      "position": {
+        "x": 193.34,
+        "y": -1330,
+        "z": 104.975
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Blast radius analysis on symbol edits",
+        "files": [
+          "package.json (gitnexus dep)",
+          "CLAUDE.md (gitnexus section)"
+        ],
+        "capabilities": [
+          "upstream dependency scan"
+        ],
+        "dependencies": [
+          "GITNEXUS"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "ENKI"
+      },
+      "parent": "GITNEXUS",
+      "children": []
+    },
+    {
+      "id": "GN_DETECT",
+      "tier": "sub",
+      "label": "detect_changes",
+      "role": "pre-commit scope",
+      "detail": "",
+      "radius": 14,
+      "color": "#76B900",
+      "position": {
+        "x": -56.94,
+        "y": -1330,
+        "z": 212.504
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Pre-commit change detection",
+        "files": [
+          "package.json (gitnexus dep)",
+          "CLAUDE.md (gitnexus section)"
+        ],
+        "capabilities": [
+          "changed-symbol detection"
+        ],
+        "dependencies": [
+          "GITNEXUS",
+          "CODEX_GATE"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "ENKI"
+      },
+      "parent": "GITNEXUS",
+      "children": []
+    },
+    {
+      "id": "GN_QUERY",
+      "tier": "sub",
+      "label": "query",
+      "role": "symbol + flow query",
+      "detail": "",
+      "radius": 14,
+      "color": "#76B900",
+      "position": {
+        "x": -219.925,
+        "y": -1330,
+        "z": -5.759
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Symbol + flow query layer",
+        "files": [
+          "package.json (gitnexus dep)",
+          "CLAUDE.md (gitnexus section)"
+        ],
+        "capabilities": [
+          "symbol search",
+          "flow trace lookup"
+        ],
+        "dependencies": [
+          "GITNEXUS"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "ENKI"
+      },
+      "parent": "GITNEXUS",
+      "children": [
+        "GN_SYMBOL_GRAPH",
+        "GN_FLOW_TRACE"
+      ]
+    },
+    {
+      "id": "GN_SYMBOL_GRAPH",
+      "tier": "leaf",
+      "label": "91k symbols",
+      "role": "relationship index",
+      "detail": "",
+      "radius": 8,
+      "color": "#76B900",
+      "position": {
+        "x": 205.061,
+        "y": -1365,
+        "z": 205.061
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Indexed symbol relationship substrate for GitNexus queries",
+        "files": [
+          "package.json (gitnexus dep)"
+        ],
+        "capabilities": [
+          "relationship graph"
+        ],
+        "dependencies": [
+          "GN_QUERY"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "GN_QUERY"
+      },
+      "parent": "GN_QUERY",
+      "children": []
+    },
+    {
+      "id": "GN_FLOW_TRACE",
+      "tier": "leaf",
+      "label": "300 flows",
+      "role": "execution traces",
+      "detail": "",
+      "radius": 8,
+      "color": "#76B900",
+      "position": {
+        "x": -278.485,
+        "y": -1365,
+        "z": 80.907
+      },
+      "sector": "code_intelligence",
+      "metadata": {
+        "purpose": "Indexed execution-flow traces for code intelligence",
+        "files": [
+          "CLAUDE.md (gitnexus section)"
+        ],
+        "capabilities": [
+          "trace flows"
+        ],
+        "dependencies": [
+          "GN_QUERY"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "GN_QUERY"
+      },
+      "parent": "GN_QUERY",
+      "children": []
+    },
+    {
+      "id": "SELF_IMPROVE",
+      "tier": "section",
+      "label": "SELF_IMPROVE",
+      "role": "learning loop",
+      "detail": "EOT / soak / introspect",
+      "radius": 52,
+      "color": "#FF8855",
+      "position": {
+        "x": 0,
+        "y": -1340,
+        "z": 0
+      },
+      "sector": "self_improvement",
+      "metadata": {
+        "purpose": "Continuous self-improvement engine: EOT pipeline, soak calibration, pulse-archive, visual introspection. Feeds learnings back to ENKI.",
+        "files": [
+          "_SYSTEM/SELF-IMPROVEMENT/",
+          "CLAUDE.md"
+        ],
+        "capabilities": [
+          "reflection pipeline",
+          "classifier calibration",
+          "pulse archive",
+          "skill registry"
+        ],
+        "dependencies": [
+          "ENKI",
+          "MEMORY",
+          "CLASSIFIER"
+        ],
+        "state_files": [],
+        "notes": "New v12 sector makes learning loops explicit and closes them back into ENKI.",
+        "returns_to": "ENKI"
+      },
+      "parent": null,
+      "children": [
+        "EOT_PIPELINE",
+        "SOAK_LOOP",
+        "PULSE_ARCHIVE",
+        "INTROSPECT",
+        "SKILL_REGISTRY"
+      ]
+    },
+    {
+      "id": "EOT_PIPELINE",
+      "tier": "sub",
+      "label": "EOT pipeline",
+      "role": "9-phase reflection",
+      "detail": "",
+      "radius": 14,
+      "color": "#FF8855",
+      "position": {
+        "x": 114.95,
+        "y": -1410,
+        "z": 187.581
+      },
+      "sector": "self_improvement",
+      "metadata": {
+        "purpose": "9-phase end-of-session reflection: evidence inventory → timeline → claim audit → ledger → MANGEKYO hardening → skill patches → boot packet → synthesis → pulse-archive",
+        "files": [
+          ".agents/skills/end-of-transmission/SKILL.md"
+        ],
+        "capabilities": [
+          "reflection",
+          "claim audit",
+          "skill patching"
+        ],
+        "dependencies": [
+          "SELF_IMPROVE"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "ENKI"
+      },
+      "parent": "SELF_IMPROVE",
+      "children": []
+    },
+    {
+      "id": "SOAK_LOOP",
+      "tier": "sub",
+      "label": "soak loop",
+      "role": "classifier tuning",
+      "detail": "",
+      "radius": 14,
+      "color": "#FF8855",
+      "position": {
+        "x": -25.858,
+        "y": -1410,
+        "z": 218.475
+      },
+      "sector": "self_improvement",
+      "metadata": {
+        "purpose": "Calibration: 16/50 turns toward classifier tuning gate. 200+ turns toward full calibration loop",
+        "files": [
+          "_SYSTEM/SELF-IMPROVEMENT/pulse-classifier-tuning.md"
+        ],
+        "capabilities": [
+          "calibration",
+          "routing feedback"
+        ],
+        "dependencies": [
+          "SELF_IMPROVE",
+          "CLASSIFIER"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "ENKI"
+      },
+      "parent": "SELF_IMPROVE",
+      "children": []
+    },
+    {
+      "id": "PULSE_ARCHIVE",
+      "tier": "sub",
+      "label": "pulse archive",
+      "role": "learning corpus",
+      "detail": "",
+      "radius": 14,
+      "color": "#FF8855",
+      "position": {
+        "x": -155.563,
+        "y": -1410,
+        "z": 155.563
+      },
+      "sector": "self_improvement",
+      "metadata": {
+        "purpose": "Daily WARN+ promotable findings; canonical learning corpus",
+        "files": [
+          "_SYSTEM/SELF-IMPROVEMENT/pulse-archive/"
+        ],
+        "capabilities": [
+          "archive findings",
+          "promote learnings"
+        ],
+        "dependencies": [
+          "SELF_IMPROVE",
+          "MEM_COLD"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "ENKI"
+      },
+      "parent": "SELF_IMPROVE",
+      "children": [
+        "PRECOMMIT_REGRESS"
+      ]
+    },
+    {
+      "id": "INTROSPECT",
+      "tier": "sub",
+      "label": "introspect",
+      "role": "visual analysis",
+      "detail": "",
+      "radius": 14,
+      "color": "#FF8855",
+      "position": {
+        "x": -218.475,
+        "y": -1410,
+        "z": 25.858
+      },
+      "sector": "self_improvement",
+      "metadata": {
+        "purpose": "Visual introspection skill — engineering analysis from graph state",
+        "files": [
+          ".claude/commands/introspect.md",
+          "_SYSTEM/yuri-graph-state.json"
+        ],
+        "capabilities": [
+          "audit graph state",
+          "detect dead ends"
+        ],
+        "dependencies": [
+          "SELF_IMPROVE",
+          "ENKI"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "ENKI"
+      },
+      "parent": "SELF_IMPROVE",
+      "children": []
+    },
+    {
+      "id": "SKILL_REGISTRY",
+      "tier": "sub",
+      "label": "skill registry",
+      "role": "35+ active skills",
+      "detail": "",
+      "radius": 14,
+      "color": "#FF8855",
+      "position": {
+        "x": -187.581,
+        "y": -1410,
+        "z": -114.95
+      },
+      "sector": "self_improvement",
+      "metadata": {
+        "purpose": "35+ active skills",
+        "files": [
+          "_SYSTEM/skill-hash-registry.json",
+          "_SYSTEM/AGENTS/skills-registry.md"
+        ],
+        "capabilities": [
+          "skill inventory",
+          "capability routing"
+        ],
+        "dependencies": [
+          "SELF_IMPROVE",
+          "ENKI"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "ENKI"
+      },
+      "parent": "SELF_IMPROVE",
+      "children": []
+    },
+    {
+      "id": "PRECOMMIT_REGRESS",
+      "tier": "leaf",
+      "label": "precommit regress",
+      "role": "offload-contract",
+      "detail": "",
+      "radius": 8,
+      "color": "#FF8855",
+      "position": {
+        "x": -202.902,
+        "y": -1445,
+        "z": 207.197
+      },
+      "sector": "self_improvement",
+      "metadata": {
+        "purpose": "offload-contract-regression.sh",
+        "files": [
+          "Scripts/offload-contract-regression.test.mjs"
+        ],
+        "capabilities": [
+          "regression gate"
+        ],
+        "dependencies": [
+          "PULSE_ARCHIVE",
+          "CODEX_GATE"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "PULSE_ARCHIVE"
+      },
+      "parent": "PULSE_ARCHIVE",
+      "children": []
+    },
+    {
+      "id": "BEACON_OBSIDIAN",
+      "tier": "leaf",
+      "label": "beacon obsidian",
+      "role": "vault writes",
+      "detail": "",
+      "radius": 8,
+      "color": "#FF8855",
+      "position": {
+        "x": 77.987,
+        "y": -5,
+        "z": 279.317
+      },
+      "sector": "self_improvement",
+      "metadata": {
+        "purpose": "Obsidian vault writes for beacon=notify+obsidian",
+        "files": [
+          "Scripts/pulse-orchestrator.mjs"
+        ],
+        "capabilities": [
+          "obsidian notification logging"
+        ],
+        "dependencies": [
+          "NP_BEACON",
+          "MEM_WARM"
+        ],
+        "state_files": [],
+        "notes": "",
+        "returns_to": "NP_BEACON"
+      },
+      "parent": "NP_BEACON",
       "children": []
     }
   ],
@@ -4328,18 +4954,670 @@
       "target": "ENKI",
       "type": "return",
       "is_return": true
+    },
+    {
+      "source": "SESSION_INIT",
+      "target": "ENKI",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "PROMPT_HOOKS",
+      "target": "ENKI",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "NEXUSPULSE",
+      "target": "ENKI_DECIDES",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "CLASSIFIER",
+      "target": "ENKI",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "ROUTING",
+      "target": "RESPONSE",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "CODEX_GATE",
+      "target": "RESPONSE",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "SERVICES",
+      "target": "ENKI",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "OPENCLAW_A",
+      "target": "PULSE_BUS",
+      "type": "advises",
+      "is_return": true
+    },
+    {
+      "source": "APPLY",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "LANE_LOCAL",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "LANE_DSF",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "LANE_DSP",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "LANE_KIMI",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "LANE_TRIAGE",
+      "target": "MEMORY",
+      "type": "memory",
+      "is_return": true
+    },
+    {
+      "source": "LANE_GPTOSS",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "AEONIC",
+      "target": "ENKI",
+      "type": "validates",
+      "is_return": true
+    },
+    {
+      "source": "PROT_GUARD",
+      "target": "ENKI",
+      "type": "validates",
+      "is_return": true
+    },
+    {
+      "source": "SCOUT_SPAWN",
+      "target": "PULSE_BUS",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "TIRITH",
+      "target": "ENKI",
+      "type": "validates",
+      "is_return": true
+    },
+    {
+      "source": "BASH_GUARD",
+      "target": "ENKI",
+      "type": "validates",
+      "is_return": true
+    },
+    {
+      "source": "GITNEX_PRE",
+      "target": "CODEX_GATE",
+      "type": "gates",
+      "is_return": true
+    },
+    {
+      "source": "TRIVIAL",
+      "target": "ENKI_DECIDES",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "STANDARD",
+      "target": "ENKI_DECIDES",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "COMPLEX",
+      "target": "ENKI_DECIDES",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "CRITICAL",
+      "target": "ENKI_DECIDES",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "CLF_SCENARIO",
+      "target": "ENKI_DECIDES",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "CLF_ROUTE_PLAN",
+      "target": "ENKI_DECIDES",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_PLAN",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_BUS",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_CTX",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "SOUL_INJECT",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "PALACE",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "MNEMOSYNE",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "TOKEN_INIT",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "ORCHESTRATOR",
+      "target": "CLASSIFIER",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "PULSE_PLAN",
+      "target": "ENKI_DECIDES",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "NP_BEACON",
+      "target": "RESPONSE",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "NP_CODEX_RUNNER",
+      "target": "CODEX_GATE",
+      "type": "gates",
+      "is_return": true
+    },
+    {
+      "source": "PB_RING",
+      "target": "ENKI_DECIDES",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "PB_CONSUME",
+      "target": "ENKI_DECIDES",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "PB_THROTTLE",
+      "target": "PULSE_BUS",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "ED_SYNTH",
+      "target": "ROUTING",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "ED_ROUTE",
+      "target": "ROUTING",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "ED_FINAL",
+      "target": "CODEX_GATE",
+      "type": "gates",
+      "is_return": true
+    },
+    {
+      "source": "MEM_KERNEL",
+      "target": "ENKI",
+      "type": "memory",
+      "is_return": true
+    },
+    {
+      "source": "MLM_SANDBOX",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "SVC_SHELL",
+      "target": "ENKI",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "SVC_RUNTIME",
+      "target": "ENKI",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "SVC_RAG",
+      "target": "MEM_COLD",
+      "type": "memory",
+      "is_return": true
+    },
+    {
+      "source": "SVC_HEALTH",
+      "target": "ENKI",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "SVC_EOT",
+      "target": "MEM_WARM",
+      "type": "memory",
+      "is_return": true
+    },
+    {
+      "source": "SVC_DIGEST",
+      "target": "MEM_WARM",
+      "type": "memory",
+      "is_return": true
+    },
+    {
+      "source": "SVC_OLLAMA",
+      "target": "ENKI",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "ENKI",
+      "target": "GITNEXUS",
+      "type": "flow",
+      "is_return": false
+    },
+    {
+      "source": "GITNEXUS",
+      "target": "ENKI",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "GN_IMPACT",
+      "target": "GITNEXUS",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "GN_DETECT",
+      "target": "CODEX_GATE",
+      "type": "gates",
+      "is_return": true
+    },
+    {
+      "source": "GN_QUERY",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "GITNEX_PRE",
+      "target": "GITNEXUS",
+      "type": "flow",
+      "is_return": true
+    },
+    {
+      "source": "GN_SYMBOL_GRAPH",
+      "target": "GN_QUERY",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "GN_FLOW_TRACE",
+      "target": "GN_QUERY",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "ENKI",
+      "target": "SELF_IMPROVE",
+      "type": "flow",
+      "is_return": false
+    },
+    {
+      "source": "SELF_IMPROVE",
+      "target": "ENKI",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "EOT_PIPELINE",
+      "target": "MEM_WARM",
+      "type": "memory",
+      "is_return": true
+    },
+    {
+      "source": "SOAK_LOOP",
+      "target": "CLASSIFIER",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "PULSE_ARCHIVE",
+      "target": "MEM_COLD",
+      "type": "memory",
+      "is_return": true
+    },
+    {
+      "source": "INTROSPECT",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "SKILL_REGISTRY",
+      "target": "ENKI",
+      "type": "data",
+      "is_return": true
+    },
+    {
+      "source": "PRECOMMIT_REGRESS",
+      "target": "CODEX_GATE",
+      "type": "gates",
+      "is_return": true
+    },
+    {
+      "source": "BEACON_OBSIDIAN",
+      "target": "MEM_WARM",
+      "type": "memory",
+      "is_return": true
+    },
+    {
+      "source": "SOUL_FILE",
+      "target": "SOUL_INJECT",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "NUDIMMUD_COG",
+      "target": "SOUL_INJECT",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "PALACE_IDX",
+      "target": "PALACE",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "SCOUT_HERMES",
+      "target": "SCOUT_SPAWN",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "SCOUT_ARGUS",
+      "target": "SCOUT_SPAWN",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "DS_FLASH",
+      "target": "DEEPSEEK_A",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "DS_PRO",
+      "target": "DEEPSEEK_A",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "OC_BRIDGE",
+      "target": "OPENCLAW_A",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "SWARM_FLASH",
+      "target": "SWARM_A",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "SWARM_PRO",
+      "target": "SWARM_A",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "MINI_WRITE",
+      "target": "LANE_MINI",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "CDX_FULL",
+      "target": "LANE_CODEX",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "PROP_DRYRUN",
+      "target": "PROPOSE",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "APPLY_HEAD",
+      "target": "APPLY",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "HOT_PLAN",
+      "target": "MEM_HOT",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "HOT_BUS",
+      "target": "MEM_HOT",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "WARM_EOT",
+      "target": "MEM_WARM",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "WARM_JOURNAL",
+      "target": "MEM_WARM",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "WARM_ARCHIVE",
+      "target": "MEM_WARM",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "COLD_WIKI",
+      "target": "MEM_COLD",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "COLD_TAXONOMY",
+      "target": "MEM_COLD",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "COLD_RULES",
+      "target": "MEM_COLD",
+      "type": "logs",
+      "is_return": true
+    },
+    {
+      "source": "GITNEXUS",
+      "target": "GN_IMPACT",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "GITNEXUS",
+      "target": "GN_DETECT",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "GITNEXUS",
+      "target": "GN_QUERY",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "GN_QUERY",
+      "target": "GN_SYMBOL_GRAPH",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "GN_QUERY",
+      "target": "GN_FLOW_TRACE",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "SELF_IMPROVE",
+      "target": "EOT_PIPELINE",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "SELF_IMPROVE",
+      "target": "SOAK_LOOP",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "SELF_IMPROVE",
+      "target": "PULSE_ARCHIVE",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "SELF_IMPROVE",
+      "target": "INTROSPECT",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "SELF_IMPROVE",
+      "target": "SKILL_REGISTRY",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "PULSE_ARCHIVE",
+      "target": "PRECOMMIT_REGRESS",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "NP_BEACON",
+      "target": "BEACON_OBSIDIAN",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "MEM_WARM",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "MEM_COLD",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "ENKI",
+      "target": "SERVICES",
+      "type": "flow",
+      "is_return": false
     }
   ],
   "telemetry": {
-    "total_nodes": 95,
-    "total_edges": 110,
-    "section_count": 15,
-    "sub_count": 58,
-    "leaf_count": 22,
+    "total_nodes": 109,
+    "total_edges": 217,
+    "section_count": 17,
+    "sub_count": 66,
+    "leaf_count": 26,
     "closed_loops": [
       "RESPONSE→USER",
       "ENKI_DECIDES→ENKI",
-      "MEMORY→ENKI"
-    ]
+      "MEMORY→ENKI",
+      "SESSION_INIT→ENKI",
+      "PROMPT_HOOKS→ENKI",
+      "NEXUSPULSE→ENKI_DECIDES",
+      "CLASSIFIER→ENKI",
+      "ROUTING→RESPONSE",
+      "CODEX_GATE→RESPONSE",
+      "SERVICES→ENKI",
+      "GITNEXUS→ENKI",
+      "SELF_IMPROVE→ENKI"
+    ],
+    "dead_ends_eliminated": "v11→v12 reduced from 73 to 0"
   }
 }
