@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #010416;
+  --bg: #0b1f3e;
   --text: #c8d8e8;
   --text-bright: #e8f4fd;
   --text-dim: #4a6080;
@@ -95,6 +95,16 @@ canvas:active {
   color: var(--text);
 }
 
+.instruction-strip {
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: rgba(200,216,232,0.5);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
 .soak {
   width: 34px;
   height: 34px;
@@ -129,6 +139,21 @@ canvas:active {
   width: 28px;
   height: 1px;
   box-shadow: 0 0 10px currentColor;
+}
+
+.legend-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  height: 14px;
+  padding: 0 4px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  color: var(--cyan);
+  font-family: "Space Mono", monospace;
+  font-size: 8px;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(0,212,255,0.22);
 }
 
 .status-strip {
@@ -191,7 +216,7 @@ canvas:active {
   font-size: 13px;
   color: var(--text-bright);
   letter-spacing: 0.08em;
-  text-shadow: 0 0 12px rgba(0,212,255,0.4);
+  text-shadow: 0 0 8px rgba(0,212,255,0.35);
   white-space: nowrap;
 }
 
@@ -201,6 +226,60 @@ canvas:active {
   font-weight: 400;
   color: rgba(168,188,198,0.7);
   letter-spacing: 0.04em;
+  text-shadow: 0 0 8px rgba(0,212,255,0.35);
+}
+
+.node-label[data-tier="section"] .lbl-id {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #E8F4FD;
+  letter-spacing: 0.10em;
+  text-shadow: 0 0 10px rgba(0,212,255,0.4);
+}
+
+.node-label[data-tier="section"] .lbl-role {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 11px;
+  color: rgba(168,188,198,0.85);
+  text-shadow: 0 0 8px rgba(0,212,255,0.35);
+}
+
+.node-label[data-tier="sub"] .lbl-id {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 400;
+  font-size: 11px;
+  color: #C8D8E8;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 8px rgba(0,212,255,0.35);
+}
+
+.node-label[data-tier="sub"] .lbl-role {
+  font-family: "Inter", sans-serif;
+  font-weight: 300;
+  font-size: 9px;
+  color: rgba(168,188,198,0.6);
+  text-shadow: 0 0 8px rgba(0,212,255,0.35);
+}
+
+.node-label[data-tier="leaf"] {
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  color: rgba(200,216,232,0.7);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 8px rgba(0,212,255,0.35);
+}
+
+.node-label[data-tier="leaf"] .lbl-id {
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+.node-label[data-tier="leaf"] .lbl-role {
+  font-size: 8px;
 }
 
 .lbl-detail {
@@ -210,16 +289,6 @@ canvas:active {
   color: rgba(168,188,198,0.62);
   font-size: 10px;
   line-height: 1.35;
-}
-
-.node-label.is-sub .lbl-id {
-  font-family: "Space Mono", monospace;
-  font-size: 9px;
-  letter-spacing: 0.04em;
-}
-
-.node-label.is-sub .lbl-role {
-  font-size: 8px;
 }
 
 .node-label.expanded {
@@ -235,6 +304,24 @@ canvas:active {
   display: block;
 }
 
+.collapse-badge {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: rgba(11,31,62,0.72);
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--cyan);
+  text-shadow: 0 0 8px currentColor;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
 @keyframes alertBreath {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
@@ -242,7 +329,8 @@ canvas:active {
 
 @media (max-width: 760px) {
   .legend,
-  .status-strip {
+  .status-strip,
+  .instruction-strip {
     display: none;
   }
 
@@ -263,7 +351,8 @@ canvas:active {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .alert-dot {
+  .alert-dot,
+  .collapse-badge {
     animation: none;
   }
 
@@ -297,15 +386,18 @@ canvas:active {
   <span class="alert-dot">5/5 ●</span>
 </div>
 
+<div class="hud instruction-strip" aria-hidden="true">DRAG: rotate · SCROLL: zoom · DOUBLE-CLICK: expand/collapse · HOVER: highlight links</div>
+
 <div class="hud legend" aria-hidden="true">
   <span class="legend-item"><span class="legend-line" style="color:#00D4FF;background:#00D4FF"></span>FLOW</span>
   <span class="legend-item"><span class="legend-line" style="color:#4A9EFF;background:#4A9EFF"></span>DATA</span>
   <span class="legend-item"><span class="legend-line" style="color:#9B6EFF;background:#9B6EFF"></span>ADVISES</span>
   <span class="legend-item"><span class="legend-line" style="color:#FF6835;background:#FF6835"></span>GATES</span>
   <span class="legend-item"><span class="legend-line" style="color:#74B9FF;background:#74B9FF"></span>MEMORY</span>
+  <span class="legend-item"><span class="legend-badge">3</span>COLLAPSED</span>
 </div>
 
-<div class="hud status-strip" aria-hidden="true">TIER CRITICAL · PROTOCOL-CHANGE · 44 NODES · 52 EDGES · v9</div>
+<div class="hud status-strip" aria-hidden="true">TIER CRITICAL · PROTOCOL-CHANGE · <span id="node-count">0</span> NODES · <span id="edge-count">0</span> EDGES · v10</div>
 
 <nav class="view-controls" aria-label="Camera presets">
   <button type="button" data-view="FRONT">FRONT</button>
@@ -326,10 +418,10 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x010416);
-scene.fog = new THREE.FogExp2(0x010416, 0.00045);
+scene.background = new THREE.Color(0x0B1F3E);
+scene.fog = null;
 
-const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 8000);
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 65000);
 camera.position.set(0, 0, 1900);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -350,7 +442,7 @@ document.body.appendChild(labelRenderer.domElement);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.05, 0.55, 0.2);
+const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.55, 0.42, 0.32);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -393,7 +485,7 @@ const stageById = new Map(STAGES.map(stage => [stage.id, stage]));
 
 const sections = [
   { id: 'USER', label: 'USER', role: 'human operator', detail: '', r: 42, color: '#E8F4FD', tier: 'section' },
-  { id: 'USER_INPUT', label: 'USER INPUT', role: 'typed prompt', detail: 'to Claude Code CLI', r: 45, color: '#00D4FF', tier: 'section' },
+  { id: 'USER_INPUT', label: 'USER INPUT', role: 'typed prompt', detail: 'to Claude Code CLI', r: 45, color: '#E8F4FD', tier: 'section' },
   { id: 'ENKI', label: 'ENKI', role: 'main session', detail: 'Claude Code control plane / final authority', r: 60, color: '#00D4FF', tier: 'section' },
   { id: 'SESSION_INIT', label: 'SESSION INIT', role: 'startup hooks', detail: 'boot / seed / context inject', r: 50, color: '#4A9EFF', tier: 'section' },
   { id: 'PROMPT_HOOKS', label: 'PROMPT HOOKS', role: 'submit hooks', detail: 'aeonic / protocol-guard / scout', r: 48, color: '#94A3B8', tier: 'section' },
@@ -410,32 +502,49 @@ const sections = [
 ];
 
 const subs = [
+  { id: 'ENKI_PLAN', parent: 'ENKI', label: 'pulse-plan.json', role: 'turn state', r: 14, color: '#00D4FF', tier: 'sub' },
+  { id: 'ENKI_BUS', parent: 'ENKI', label: 'pulse-bus.json', role: 'findings ring', r: 14, color: '#4A9EFF', tier: 'sub' },
+  { id: 'ENKI_CTX', parent: 'ENKI', label: 'session context', role: 'active window', r: 12, color: '#00D4FF', tier: 'sub' },
   { id: 'SOUL_INJECT', parent: 'SESSION_INIT', label: 'soul-inject', role: 'SOUL.md', r: 24, color: '#4A9EFF', tier: 'sub' },
   { id: 'PALACE', parent: 'SESSION_INIT', label: 'palace-inject', role: 'memory palace', r: 24, color: '#4A9EFF', tier: 'sub' },
   { id: 'MNEMOSYNE', parent: 'SESSION_INIT', label: 'mnemosyne-seed', role: 'global seed', r: 24, color: '#4A9EFF', tier: 'sub' },
-  { id: 'TOKEN_INIT', parent: 'SESSION_INIT', label: 'token-init', role: 'session tracking', r: 22, color: '#94A3B8', tier: 'sub' },
+  { id: 'TOKEN_INIT', parent: 'SESSION_INIT', label: 'token-init', role: 'session tracking', r: 22, color: '#4A9EFF', tier: 'sub' },
   { id: 'AEONIC', parent: 'PROMPT_HOOKS', label: 'aeonic-enforce', role: 'protocol', r: 22, color: '#94A3B8', tier: 'sub' },
   { id: 'PROT_GUARD', parent: 'PROMPT_HOOKS', label: 'protocol-guard', role: 'gate', r: 22, color: '#94A3B8', tier: 'sub' },
   { id: 'SCOUT_SPAWN', parent: 'PROMPT_HOOKS', label: 'scout-spawn', role: 'HERMES+ARGUS', r: 22, color: '#94A3B8', tier: 'sub' },
   { id: 'TIRITH', parent: 'PROMPT_HOOKS', label: 'tirith-url', role: 'url guard', r: 20, color: '#94A3B8', tier: 'sub' },
+  { id: 'BASH_GUARD', parent: 'PROMPT_HOOKS', label: 'bash-security-guard.js', role: 'destructive ops gate', r: 14, color: '#FF5252', tier: 'sub' },
+  { id: 'GITNEX_PRE', parent: 'PROMPT_HOOKS', label: 'gitnexus-impact-check', role: 'blast radius', r: 14, color: '#FFB347', tier: 'sub' },
   { id: 'ORCHESTRATOR', parent: 'NEXUSPULSE', label: 'orchestrator.mjs', role: 'entry point', r: 24, color: '#4A9EFF', tier: 'sub' },
   { id: 'PULSE_PLAN', parent: 'NEXUSPULSE', label: 'pulse-plan.json', role: 'turn state', r: 22, color: '#4A9EFF', tier: 'sub' },
-  { id: 'TRIVIAL', parent: 'CLASSIFIER', label: 'TRIVIAL', role: 'no advisors', r: 20, color: '#2A4060', tier: 'sub' },
+  { id: 'NP_BEACON', parent: 'NEXUSPULSE', label: 'beacon-emit', role: 'notify+obsidian', r: 14, color: '#00D4FF', tier: 'sub' },
+  { id: 'NP_CODEX_RUNNER', parent: 'NEXUSPULSE', label: 'pulse-codex-runner.mjs', role: 'two-phase impl', r: 14, color: '#9B6EFF', tier: 'sub' },
+  { id: 'TRIVIAL', parent: 'CLASSIFIER', label: 'TRIVIAL', role: 'no advisors', r: 20, color: '#4A9EFF', tier: 'sub' },
   { id: 'STANDARD', parent: 'CLASSIFIER', label: 'STANDARD', role: '[DEEPSEEK]', r: 22, color: '#4A9EFF', tier: 'sub' },
   { id: 'COMPLEX', parent: 'CLASSIFIER', label: 'COMPLEX', role: '+OC+HERMES+CASS', r: 22, color: '#4A9EFF', tier: 'sub' },
   { id: 'CRITICAL', parent: 'CLASSIFIER', label: 'CRITICAL', role: '+SWARM+OBLIT', r: 24, color: '#FF6835', tier: 'sub' },
+  { id: 'CLF_SCENARIO', parent: 'CLASSIFIER', label: 'scenario detector', role: 'ui-change · code-change · ...', r: 12, color: '#4A9EFF', tier: 'sub' },
+  { id: 'CLF_ROUTE_PLAN', parent: 'CLASSIFIER', label: 'route-plan output', role: 'lane mapping', r: 12, color: '#4A9EFF', tier: 'sub' },
   { id: 'DEEPSEEK_A', parent: 'ADVISORS', label: 'DEEPSEEK', role: 'model_advisor', r: 26, color: '#9B6EFF', tier: 'sub' },
   { id: 'OPENCLAW_A', parent: 'ADVISORS', label: 'OPENCLAW', role: 'bridge_advisory', r: 26, color: '#FF5252', tier: 'sub' },
   { id: 'HERMES_A', parent: 'ADVISORS', label: 'HERMES', role: 'native_fn', r: 24, color: '#9B6EFF', tier: 'sub' },
   { id: 'CASSANDRA_A', parent: 'ADVISORS', label: 'CASSANDRA', role: 'foresight', r: 24, color: '#9B6EFF', tier: 'sub' },
   { id: 'SWARM_A', parent: 'ADVISORS', label: 'SWARM', role: 'dual fan-out', r: 24, color: '#9B6EFF', tier: 'sub' },
   { id: 'OBLITERATUS_A', parent: 'ADVISORS', label: 'OBLITERATUS', role: 'adv. gate', r: 24, color: '#FF6835', tier: 'sub' },
+  { id: 'PB_RING', parent: 'PULSE_BUS', label: 'ring buffer · 14 slots', role: '5min TTL', r: 14, color: '#4A9EFF', tier: 'sub' },
+  { id: 'PB_CONSUME', parent: 'PULSE_BUS', label: 'consumed marker', role: 'main thread reads', r: 12, color: '#4A9EFF', tier: 'sub' },
+  { id: 'PB_THROTTLE', parent: 'PULSE_BUS', label: 'advisor throttle', role: 'rate-limited', r: 12, color: '#94A3B8', tier: 'sub' },
+  { id: 'ED_SYNTH', parent: 'ENKI_DEC', label: 'synthesis', role: 'merge findings', r: 14, color: '#00D4FF', tier: 'sub' },
+  { id: 'ED_ROUTE', parent: 'ENKI_DEC', label: 'route decision', role: 'lane select', r: 14, color: '#00D4FF', tier: 'sub' },
+  { id: 'ED_FINAL', parent: 'ENKI_DEC', label: 'final authority', role: 'act or defer', r: 12, color: '#00D4FF', tier: 'sub' },
   { id: 'LANE_LOCAL', parent: 'ROUTING', label: 'code-local', role: 'qwen:7b', r: 20, color: '#00C896', tier: 'sub' },
   { id: 'LANE_DSF', parent: 'ROUTING', label: 'ds-flash', role: 'cloud', r: 20, color: '#00C896', tier: 'sub' },
   { id: 'LANE_DSP', parent: 'ROUTING', label: 'ds-pro', role: 'cloud', r: 20, color: '#00C896', tier: 'sub' },
   { id: 'LANE_MINI', parent: 'ROUTING', label: 'codex-mini', role: 'impl auth', r: 22, color: '#9B6EFF', tier: 'sub' },
   { id: 'LANE_CODEX', parent: 'ROUTING', label: 'codex', role: 'full ws', r: 24, color: '#9B6EFF', tier: 'sub' },
   { id: 'LANE_KIMI', parent: 'ROUTING', label: 'kimi', role: 'fallback', r: 20, color: '#4A9EFF', tier: 'sub' },
+  { id: 'LANE_TRIAGE', parent: 'ROUTING', label: 'triage-local', role: 'qwen:7b summarize', r: 14, color: '#00C896', tier: 'sub' },
+  { id: 'LANE_GPTOSS', parent: 'ROUTING', label: 'gpt-oss 120b', role: 'local GPU', r: 14, color: '#00C896', tier: 'sub' },
   { id: 'PROPOSE', parent: 'CODEX_GATE', label: 'propose', role: 'dry-run diff', r: 22, color: '#FF6835', tier: 'sub' },
   { id: 'APPROVED', parent: 'CODEX_GATE', label: '.approved', role: 'user marker', r: 22, color: '#FF6835', tier: 'sub' },
   { id: 'APPLY', parent: 'CODEX_GATE', label: 'apply', role: 'HEAD SHA verify', r: 22, color: '#FF6835', tier: 'sub' },
@@ -448,7 +557,34 @@ const subs = [
   { id: 'SVC_RUNTIME', parent: 'SERVICES', label: 'yuri-runtime', role: 'PID 819', r: 20, color: '#00C896', tier: 'sub' },
   { id: 'SVC_RAG', parent: 'SERVICES', label: 'wiki-rag', role: 'PID 821', r: 20, color: '#00C896', tier: 'sub' },
   { id: 'SVC_HEALTH', parent: 'SERVICES', label: 'lane-health', role: 'scheduled', r: 18, color: '#94A3B8', tier: 'sub' },
-  { id: 'SVC_EOT', parent: 'SERVICES', label: 'eot-refresh', role: 'scheduled', r: 18, color: '#94A3B8', tier: 'sub' }
+  { id: 'SVC_EOT', parent: 'SERVICES', label: 'eot-refresh', role: 'scheduled', r: 18, color: '#94A3B8', tier: 'sub' },
+  { id: 'SVC_DIGEST', parent: 'SERVICES', label: 'token-digest', role: 'scheduled', r: 12, color: '#94A3B8', tier: 'sub' },
+  { id: 'SVC_OLLAMA', parent: 'SERVICES', label: 'ollama-kv', role: 'cache idle', r: 12, color: '#94A3B8', tier: 'sub' }
+];
+
+const leaves = [
+  { id: 'SOUL_FILE', parent: 'SOUL_INJECT', label: 'SOUL.md', role: 'behavioral rules', r: 8, color: '#4A9EFF', tier: 'leaf' },
+  { id: 'NUDIMMUD_COG', parent: 'SOUL_INJECT', label: 'NUDIMMUD-COGNITION.md', role: 'paradigm rules', r: 8, color: '#4A9EFF', tier: 'leaf' },
+  { id: 'PALACE_IDX', parent: 'PALACE', label: 'palace-index.md', role: 'vault navigator', r: 8, color: '#4A9EFF', tier: 'leaf' },
+  { id: 'SCOUT_HERMES', parent: 'SCOUT_SPAWN', label: 'HERMES_FC', role: 'context check', r: 8, color: '#9B6EFF', tier: 'leaf' },
+  { id: 'SCOUT_ARGUS', parent: 'SCOUT_SPAWN', label: 'ARGUS', role: 'tool sequencing', r: 8, color: '#9B6EFF', tier: 'leaf' },
+  { id: 'DS_FLASH', parent: 'DEEPSEEK_A', label: 'deepseek-v4-flash', role: '60s preflight', r: 8, color: '#9B6EFF', tier: 'leaf' },
+  { id: 'DS_PRO', parent: 'DEEPSEEK_A', label: 'deepseek-v4-pro', role: 'complex reasoning', r: 8, color: '#9B6EFF', tier: 'leaf' },
+  { id: 'OC_BRIDGE', parent: 'OPENCLAW_A', label: 'openclaw-bridge.sh', role: '127.0.0.1:18789', r: 8, color: '#FF5252', tier: 'leaf' },
+  { id: 'SWARM_FLASH', parent: 'SWARM_A', label: 'swarm flash lane', role: 'flash fan-out', r: 8, color: '#64D8E6', tier: 'leaf' },
+  { id: 'SWARM_PRO', parent: 'SWARM_A', label: 'swarm pro lane', role: 'pro fan-out', r: 8, color: '#64D8E6', tier: 'leaf' },
+  { id: 'MINI_WRITE', parent: 'LANE_MINI', label: 'workspace-write', role: 'sandbox impl auth', r: 8, color: '#9B6EFF', tier: 'leaf' },
+  { id: 'CDX_FULL', parent: 'LANE_CODEX', label: 'full workspace', role: 'max reasoning', r: 8, color: '#9B6EFF', tier: 'leaf' },
+  { id: 'PROP_DRYRUN', parent: 'PROPOSE', label: 'dry-run diff', role: 'no writes', r: 8, color: '#FF6835', tier: 'leaf' },
+  { id: 'APPLY_HEAD', parent: 'APPLY', label: 'HEAD SHA verify', role: 'stale-protection', r: 8, color: '#FF6835', tier: 'leaf' },
+  { id: 'HOT_PLAN', parent: 'MEM_HOT', label: 'pulse-plan.json', role: 'turn state', r: 8, color: '#FF6B6B', tier: 'leaf' },
+  { id: 'HOT_BUS', parent: 'MEM_HOT', label: 'pulse-bus.json', role: 'findings ring', r: 8, color: '#FF6B6B', tier: 'leaf' },
+  { id: 'WARM_EOT', parent: 'MEM_WARM', label: '.claude/eot/', role: 'boot packets', r: 8, color: '#FFB347', tier: 'leaf' },
+  { id: 'WARM_JOURNAL', parent: 'MEM_WARM', label: 'session-journal.md', role: 'dated entries', r: 8, color: '#FFB347', tier: 'leaf' },
+  { id: 'WARM_ARCHIVE', parent: 'MEM_WARM', label: 'pulse-archive/', role: 'daily findings', r: 8, color: '#FFB347', tier: 'leaf' },
+  { id: 'COLD_WIKI', parent: 'MEM_COLD', label: 'karpathy wiki atoms', role: 'semantic', r: 8, color: '#74B9FF', tier: 'leaf' },
+  { id: 'COLD_TAXONOMY', parent: 'MEM_COLD', label: 'cross-reference-taxonomy.md', role: 'graph', r: 8, color: '#74B9FF', tier: 'leaf' },
+  { id: 'COLD_RULES', parent: 'MEM_COLD', label: 'prevention-rules.md', role: 'lessons', r: 8, color: '#74B9FF', tier: 'leaf' }
 ];
 
 const edgeSpecs = [
@@ -458,6 +594,7 @@ const edgeSpecs = [
   ['ENKI_DEC', 'ROUTING', 'flow'], ['ENKI_DEC', 'CODEX_GATE', 'gates'], ['ROUTING', 'MEMORY', 'memory'],
   ['SERVICES', 'ENKI', 'data'], ['ROUTING', 'RESPONSE', 'flow'],
   ...subs.map(node => [node.parent, node.id, node.parent === 'CODEX_GATE' ? 'gates' : 'branch']),
+  ...leaves.map(node => [node.parent, node.id, node.parent === 'PROPOSE' || node.parent === 'APPLY' ? 'gates' : 'branch']),
   ['DEEPSEEK_A', 'PULSE_BUS', 'data'], ['OPENCLAW_A', 'PULSE_BUS', 'data'], ['HERMES_A', 'PULSE_BUS', 'data'],
   ['CASSANDRA_A', 'PULSE_BUS', 'data'], ['SWARM_A', 'PULSE_BUS', 'data'], ['OBLITERATUS_A', 'PULSE_BUS', 'data'],
   ['PULSE_PLAN', 'ENKI', 'data'], ['MEM_HOT', 'ENKI_DEC', 'memory'],
@@ -485,11 +622,14 @@ function makeStarLayer(count, range, size, opacity) {
   return new THREE.Points(geom, mat);
 }
 
-scene.add(makeStarLayer(2000, 6000, 1.2, 0.45));
-scene.add(makeStarLayer(3000, 9000, 0.8, 0.30));
-scene.add(makeStarLayer(2000, 12000, 0.5, 0.20));
+const starLayers = [
+  makeStarLayer(800, 6000, 0.9, 0.30),
+  makeStarLayer(1200, 9000, 0.6, 0.20),
+  makeStarLayer(800, 12000, 0.4, 0.12)
+];
+starLayers.forEach(layer => scene.add(layer));
 
-const nebulaGeom = new THREE.SphereGeometry(6000, 64, 64);
+const nebulaGeom = new THREE.SphereGeometry(30000, 64, 64);
 const nebulaMat = new THREE.ShaderMaterial({
   side: THREE.BackSide,
   depthWrite: false,
@@ -500,16 +640,22 @@ const nebulaMat = new THREE.ShaderMaterial({
     uniform float uTime;
     void main(){
       float h = (vPos.y + 4000.0) / 8000.0;
-      vec3 deep = vec3(0.004, 0.016, 0.086);
-      vec3 mid  = vec3(0.000, 0.052, 0.130);
-      vec3 high = vec3(0.027, 0.108, 0.218);
+      vec3 deep = vec3(0.043, 0.122, 0.243);
+      vec3 mid  = vec3(0.074, 0.157, 0.310);
+      vec3 high = vec3(0.122, 0.220, 0.412);
       vec3 col = mix(deep, mix(mid, high, smoothstep(0.5,1.0,h)), smoothstep(0.0,0.5,h));
-      col += 0.018 * sin(vPos.x*0.001 + uTime*0.05) * sin(vPos.z*0.0015);
+      col += 0.012 * sin(vPos.x*0.001 + uTime*0.05) * sin(vPos.z*0.0015);
       gl_FragColor = vec4(col, 1.0);
     }
   `
 });
-scene.add(new THREE.Mesh(nebulaGeom, nebulaMat));
+const nebulaMesh = new THREE.Mesh(nebulaGeom, nebulaMat);
+scene.add(nebulaMesh);
+
+function updateRealmPosition() {
+  nebulaMesh.position.copy(camera.position);
+  starLayers.forEach(layer => layer.position.copy(camera.position));
+}
 
 function colorToHex(hex) {
   return new THREE.Color(hex);
@@ -523,35 +669,25 @@ function makeOrb(r, hex) {
   const coreMat = new THREE.MeshPhysicalMaterial({
     color,
     emissive: color,
-    emissiveIntensity: 0.85,
+    emissiveIntensity: 0.55,
     metalness: 0.25,
-    roughness: 0.35,
-    clearcoat: 0.6,
-    clearcoatRoughness: 0.3,
+    roughness: 0.40,
+    clearcoat: 0.45,
+    clearcoatRoughness: 0.35,
     transparent: false
   });
   const core = new THREE.Mesh(coreGeom, coreMat);
   group.add(core);
 
-  const atmGeom = new THREE.SphereGeometry(r * 1.45, 32, 32);
+  const atmGeom = new THREE.SphereGeometry(r * 1.22, 32, 32);
   const atmMat = new THREE.MeshBasicMaterial({
     color,
     transparent: true,
-    opacity: 0.18,
+    opacity: 0.10,
     side: THREE.BackSide,
     depthWrite: false
   });
   group.add(new THREE.Mesh(atmGeom, atmMat));
-
-  const farGeom = new THREE.SphereGeometry(r * 2.2, 24, 24);
-  const farMat = new THREE.MeshBasicMaterial({
-    color,
-    transparent: true,
-    opacity: 0.05,
-    side: THREE.BackSide,
-    depthWrite: false
-  });
-  group.add(new THREE.Mesh(farGeom, farMat));
 
   group.userData.core = core;
   return group;
@@ -559,11 +695,22 @@ function makeOrb(r, hex) {
 
 function makeLabel(node) {
   const labelDiv = document.createElement('div');
-  labelDiv.className = `node-label ${node.tier === 'sub' ? 'is-sub' : 'is-section'}`;
-  labelDiv.innerHTML = `<div class="lbl-id">${node.id}</div><div class="lbl-role">${node.role}</div><div class="lbl-detail">${node.detail || node.label}</div>`;
+  labelDiv.className = `node-label is-${node.tier}`;
+  labelDiv.dataset.tier = node.tier;
+  labelDiv.innerHTML = `<div class="lbl-id">${node.label}</div><div class="lbl-role">${node.role}</div><div class="lbl-detail">${node.detail || node.id}</div>`;
   const label = new CSS2DObject(labelDiv);
   label.position.set(0, -(node.r + 28), 0);
   return { label, labelDiv };
+}
+
+function makeCollapseBadge(node) {
+  const badgeDiv = document.createElement('div');
+  badgeDiv.className = 'collapse-badge';
+  badgeDiv.textContent = node.children.length;
+  badgeDiv.style.color = node.color;
+  const badge = new CSS2DObject(badgeDiv);
+  badge.position.set(node.r + 14, node.r + 14, 0);
+  return { badge, badgeDiv };
 }
 
 function addOpenClawRing(node, group) {
@@ -607,6 +754,18 @@ function positionSubNodes(nodesForStage, stage) {
   });
 }
 
+function placeGrandchild(parentSub, idx, total) {
+  const baseAngle = Math.atan2(parentSub.position.z, parentSub.position.x);
+  const arc = Math.PI * 0.6;
+  const t = total === 1 ? 0 : (idx / (total - 1)) - 0.5;
+  const angle = baseAngle + t * arc;
+  return new THREE.Vector3(
+    parentSub.position.x + 70 * Math.cos(angle),
+    parentSub.position.y - 35,
+    parentSub.position.z + 70 * Math.sin(angle)
+  );
+}
+
 const nodes = [];
 const nodeById = new Map();
 const raycastMeshes = [];
@@ -621,7 +780,16 @@ for (const stage of STAGES) {
   positionSubNodes(childNodes, stage);
 }
 
-[...sections, ...subs].forEach(node => {
+const nodeDefs = [...sections, ...subs, ...leaves];
+
+subs.forEach(parentSub => {
+  const childNodes = leaves.filter(node => node.parent === parentSub.id);
+  childNodes.forEach((node, index) => {
+    node.position = placeGrandchild(parentSub, index, childNodes.length);
+  });
+});
+
+nodeDefs.forEach(node => {
   const group = makeOrb(node.r, node.color);
   group.position.copy(node.position);
   const { label, labelDiv } = makeLabel(node);
@@ -639,13 +807,43 @@ for (const stage of STAGES) {
     group,
     labelDiv,
     core,
+    parentNode: null,
+    children: [],
+    expanded: node.tier === 'section',
+    expansionFactor: node.tier === 'leaf' ? 0.05 : 1,
+    labelOpacity: node.tier === 'section' ? 1 : 0,
+    badgeDiv: null,
     origPos: node.position.clone(),
     breathPhase: Math.random() * Math.PI * 2,
     hoverScale: 1,
-    pulseBoost: 0
+    pulseBoost: 0,
+    baseEmissive: 0.55
   };
   nodes.push(record);
   nodeById.set(node.id, record);
+});
+
+nodes.forEach(node => {
+  if (!node.parent) return;
+  const parentNode = nodeById.get(node.parent);
+  if (!parentNode) return;
+  node.parentNode = parentNode;
+  parentNode.children.push(node);
+});
+
+nodes.forEach(node => {
+  if (!node.children.length) return;
+  const { badge, badgeDiv } = makeCollapseBadge(node);
+  node.group.add(badge);
+  node.badgeDiv = badgeDiv;
+});
+
+nodes.forEach(node => {
+  if (node.tier !== 'leaf') return;
+  const parentNode = node.parentNode;
+  if (!parentNode || parentNode.expanded) return;
+  node.group.position.copy(parentNode.group.position);
+  node.group.scale.setScalar(0.05);
 });
 
 function arcCurve(start, end, archHeight, archDir) {
@@ -729,7 +927,7 @@ function addEdge(source, target, type) {
   const mesh = new THREE.Mesh(tubeGeom, tubeMat);
   edgeGroup.add(mesh);
 
-  const edge = { source, target, type, curve, mesh };
+  const edge = { source, target, type, curve, mesh, baseOpacity: edgeOpacityByType[type] };
   edges.push(edge);
   edgesByPair.set(`${source}->${target}`, edge);
   if (!adjacency.has(source)) adjacency.set(source, []);
@@ -740,6 +938,9 @@ const edgeOrder = { memory: 0, advises: 1, data: 2, branch: 3, gates: 4, flow: 5
 edgeSpecs
   .sort((a, b) => edgeOrder[a[2]] - edgeOrder[b[2]])
   .forEach(([source, target, type]) => addEdge(source, target, type));
+
+document.getElementById('node-count').textContent = nodes.length;
+document.getElementById('edge-count').textContent = edges.length;
 
 class Pulse {
   constructor(path) {
@@ -842,6 +1043,20 @@ function maybeSpawnPulse(dt) {
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2(-2, -2);
 let hovered = null;
+let clickTimer = null;
+
+function isNodeExpandedInTree(node) {
+  let current = node.parentNode;
+  while (current) {
+    if (!current.expanded) return false;
+    current = current.parentNode;
+  }
+  return true;
+}
+
+function isNodeInteractable(node) {
+  return node.expansionFactor > 0.2 && isNodeExpandedInTree(node);
+}
 
 window.addEventListener('pointermove', event => {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -863,19 +1078,124 @@ function setHovered(node) {
 function updateRaycast() {
   raycaster.setFromCamera(pointer, camera);
   const hits = raycaster.intersectObjects(raycastMeshes, false);
-  const hit = hits.length ? nodeById.get(hits[0].object.userData.nodeId) : null;
+  const visibleHit = hits.find(hit => {
+    const node = nodeById.get(hit.object.userData.nodeId);
+    return node && isNodeInteractable(node);
+  });
+  const hit = visibleHit ? nodeById.get(visibleHit.object.userData.nodeId) : null;
   setHovered(hit || null);
+}
+
+function toggleExpansion(node) {
+  if (!node.children.length) return;
+  node.expanded = !node.expanded;
+  node.children.forEach(child => {
+    child.expansionFactor = node.expanded ? 1 : 0.05;
+    if (reduceMotion) {
+      child.group.position.copy(node.expanded ? child.origPos : node.group.position);
+      child.group.scale.setScalar(node.expanded ? 1 : 0.05);
+      child.labelOpacity = node.expanded ? (child.tier === 'section' ? 1 : child.labelOpacity) : 0;
+      child.labelDiv.style.opacity = child.labelOpacity;
+    }
+  });
+}
+
+function handleNodeClick(node, isDouble) {
+  if (!node || !isDouble) return;
+  toggleExpansion(node);
+}
+
+renderer.domElement.addEventListener('click', event => {
+  raycaster.setFromCamera(
+    new THREE.Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1),
+    camera
+  );
+  const hits = raycaster.intersectObjects(raycastMeshes, false);
+  const visibleHit = hits.find(hit => {
+    const node = nodeById.get(hit.object.userData.nodeId);
+    return node && isNodeInteractable(node);
+  });
+  const picked = visibleHit ? nodeById.get(visibleHit.object.userData.nodeId) : null;
+
+  if (clickTimer) {
+    clearTimeout(clickTimer);
+    clickTimer = null;
+    handleNodeClick(picked, true);
+  } else {
+    clickTimer = setTimeout(() => {
+      handleNodeClick(picked, false);
+      clickTimer = null;
+    }, 250);
+  }
+});
+
+function getCollapsedAncestor(node) {
+  let current = node.parentNode;
+  while (current) {
+    if (!current.expanded) return current;
+    current = current.parentNode;
+  }
+  return null;
+}
+
+function updateLabelLOD() {
+  nodes.forEach(node => {
+    const visibleInTree = isNodeExpandedInTree(node);
+    const dist = camera.position.distanceTo(node.group.position);
+    let targetOpacity = 1.0;
+    if (node.tier === 'sub') targetOpacity = dist < 600 ? 1.0 : 0.0;
+    if (node.tier === 'leaf') targetOpacity = dist < 250 ? 1.0 : 0.0;
+    if (!visibleInTree || node.expansionFactor < 0.2) targetOpacity = 0.0;
+    if (node === hovered) targetOpacity = 1.0;
+    node.labelOpacity += (targetOpacity - node.labelOpacity) * (reduceMotion ? 1 : 0.12);
+    node.labelDiv.style.opacity = node.labelOpacity;
+  });
+}
+
+function updateBadges() {
+  nodes.forEach(node => {
+    if (!node.badgeDiv) return;
+    const targetOpacity = !node.expanded && isNodeExpandedInTree(node) ? 1 : 0;
+    node.badgeDiv.style.opacity = targetOpacity;
+    node.badgeDiv.textContent = node.children.length;
+  });
+}
+
+function applyHoverHighlight(activeNode) {
+  edges.forEach(edge => {
+    const sourceNode = nodeById.get(edge.source);
+    const targetNode = nodeById.get(edge.target);
+    const edgeVisible = sourceNode && targetNode && isNodeExpandedInTree(sourceNode) && isNodeExpandedInTree(targetNode) &&
+      sourceNode.expansionFactor > 0.2 && targetNode.expansionFactor > 0.2;
+    const connected = !activeNode || edge.source === activeNode.id || edge.target === activeNode.id;
+    const targetOpacity = !edgeVisible ? 0 : activeNode ? (connected ? 0.95 : 0.06) : edge.baseOpacity;
+    edge.mesh.material.opacity += (targetOpacity - edge.mesh.material.opacity) * (reduceMotion ? 1 : 0.15);
+  });
+
+  nodes.forEach(node => {
+    const linked = !activeNode || node === activeNode || edges.some(edge =>
+      (edge.source === activeNode.id && edge.target === node.id) ||
+      (edge.target === activeNode.id && edge.source === node.id)
+    );
+    const targetEmiss = activeNode ? (linked ? node.baseEmissive * 2.0 : node.baseEmissive * 0.5) : node.baseEmissive;
+    node.core.material.emissiveIntensity += (targetEmiss + node.pulseBoost - node.core.material.emissiveIntensity) * (reduceMotion ? 1 : 0.12);
+  });
 }
 
 function updateHoverPhysics(time) {
   nodes.forEach(node => {
+    const collapsedAncestor = getCollapsedAncestor(node);
+    const targetExpansion = collapsedAncestor ? 0.05 : 1;
+    node.expansionFactor += (targetExpansion - node.expansionFactor) * (reduceMotion ? 1 : 0.16);
+
     const targetHoverScale = node === hovered ? 1.45 : 1.0;
     node.hoverScale += (targetHoverScale - node.hoverScale) * 0.15;
 
-    let tx = node.origPos.x;
-    let ty = node.origPos.y;
-    let tz = node.origPos.z;
-    if (hovered && node !== hovered) {
+    const targetBase = collapsedAncestor ? collapsedAncestor.group.position : node.origPos;
+    let tx = targetBase.x;
+    let ty = targetBase.y;
+    let tz = targetBase.z;
+    if (!collapsedAncestor && hovered && node !== hovered) {
       const delta = node.origPos.clone().sub(hovered.origPos);
       const d = delta.length();
       if (d < 350 && d > 0) {
@@ -892,11 +1212,10 @@ function updateHoverPhysics(time) {
     node.group.position.z += (tz - node.group.position.z) * 0.15;
 
     const breath = reduceMotion ? 1 : 1.0 + Math.sin(time * 0.0008 + node.breathPhase) * 0.025;
-    const finalScale = node.hoverScale * breath;
+    const finalScale = node.hoverScale * breath * node.expansionFactor;
     node.group.scale.setScalar(finalScale);
 
     node.pulseBoost += (0 - node.pulseBoost) * 0.08;
-    node.core.material.emissiveIntensity += ((node === hovered ? 1.4 : 0.85) + node.pulseBoost - node.core.material.emissiveIntensity) * 0.18;
     node.group.userData.hoverRing.material.opacity += ((node === hovered ? 0.55 : 0) - node.group.userData.hoverRing.material.opacity) * 0.16;
     if (node.group.userData.cageRing) {
       node.group.userData.cageRing.rotation.y += reduceMotion ? 0 : 0.008;
@@ -969,6 +1288,9 @@ function animate(time) {
   controls.update();
   updateRaycast();
   updateHoverPhysics(time);
+  applyHoverHighlight(hovered);
+  updateLabelLOD();
+  updateBadges();
   maybeSpawnPulse(dt);
 
   for (let i = activePulses.length - 1; i >= 0; i--) {
@@ -976,6 +1298,7 @@ function animate(time) {
   }
 
   nebulaMat.uniforms.uTime.value = time * 0.001;
+  updateRealmPosition();
   composer.render();
   labelRenderer.render(scene, camera);
 }
