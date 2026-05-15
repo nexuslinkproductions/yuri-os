@@ -1283,6 +1283,12 @@ case "${1:-help}" in
       _amp_credits="$(amp usage 2>/dev/null | grep -o '\$[0-9.]*' | head -1)"
       printf 'ok  amp credits -> %s remaining\n' "${_amp_credits:-unknown (run: node Scripts/amp-usage-tracker.mjs)}"
     fi
+    if [ -n "${NVIDIA_API_KEY:-}" ]; then
+      printf 'ok  nvidia-nim -> key set (%s...)\n' "${NVIDIA_API_KEY:0:12}"
+    else
+      printf 'miss nvidia-nim -> NVIDIA_API_KEY not set\n'
+      status=1
+    fi
     check_cmd "btw" btw || status=1
     if command -v ruflo >/dev/null 2>&1; then
       printf 'ok  ruflo -> %s\n' "$(command -v ruflo)"
@@ -1499,6 +1505,22 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane reason-kimi "$@"
+    ;;
+  @nvidia*|nvidia-deepseek|nvidia-llama-405b|nvidia-llama-70b|nvidia-nemotron|nvidia-mistral|nvidia-qwen|nvidia-phi)
+    _nvidia_lane="${1#@}"
+    [ "$_nvidia_lane" = "nvidia" ] && _nvidia_lane="nvidia-deepseek"
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
+      printf '%s\n' "$_nvidia_lane"
+      exit 0
+    fi
+    require_cmd node
+    # Pass --tools explicitly — nvidia lanes have tool use on by default (same as DeepSeek)
+    OFFLOAD_PROMPT_TEXT="$(join_prompt "$@")" exec node "$OFFLOAD_RUNNER" "$_nvidia_lane" --tools
     ;;
   @amp|amp-deep|amp-rush)
     _amp_mode="rush"

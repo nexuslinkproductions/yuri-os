@@ -16,7 +16,7 @@ const OFFLOAD_CONTRACT = {
   // Amp (@amp) is the parallel impl lane — same tier as Codex, auto-failover on Codex rate-limit.
   // DeepSeek = on-call only when explicitly named or for analysis-only work.
   // Symbiotic Pulse = Claude (control) + Codex (implementation) + Amp (failover impl) + DeepSeek (analysis on demand).
-  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@amp', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@swarm', '@kimi', '@deepseek', '@claude'],
+  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@amp', '@nvidia', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@swarm', '@kimi', '@deepseek', '@claude'],
   routingPriorityAnalysis: ['@deepseek-v4-pro', '@deepseek-v4-flash', '@gpt-5.5'],
   universalWorkflow: [
     {
@@ -114,6 +114,25 @@ const OFFLOAD_CONTRACT = {
       defaultMode: 'smart',
       threadDiscipline: 'one task per thread; start fresh thread when context has failed attempts',
       preferredUsage: ['complex impl (smart→Opus 4.7)', 'architecture reasoning (deep→GPT-5.5)', 'mechanical edits (rush)', 'Codex rate-limit failover', 'parallel file-isolated subagent work']
+    },
+    nvidia: {
+      alias: '@nvidia',
+      dispatchTokens: ['nvidia', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-mistral', 'nvidia-qwen', 'nvidia-phi'],
+      description: 'NVIDIA NIM cloud inference — OpenAI-compatible, tools default ON. Default: deepseek-r1. Suite: llama-405b, llama-70b, nemotron-70b, mistral-large, qwen-72b, phi-4.',
+      envKey: 'NVIDIA_API_KEY',
+      toolsByDefault: true,
+      defaultModel: 'meta/llama-3.3-70b-instruct',
+      note: 'nvidia-deepseek defaults to llama-3.3-70b; DeepSeek models on NIM require elevated access — set NVIDIA_NIM_MODEL=deepseek-ai/deepseek-r1 to override',
+      models: {
+        'nvidia-deepseek':   'meta/llama-3.3-70b-instruct',
+        'nvidia-llama-405b': 'meta/llama-3.1-405b-instruct',
+        'nvidia-llama-70b':  'meta/llama-3.3-70b-instruct',
+        'nvidia-nemotron':   'nvidia/llama-3.1-nemotron-70b-instruct',
+        'nvidia-mistral':    'mistralai/mistral-large-2-instruct',
+        'nvidia-qwen':       'qwen/qwen2.5-72b-instruct',
+        'nvidia-phi':        'microsoft/phi-4',
+      },
+      preferredUsage: ['cloud reasoning with tool use', 'DeepSeek failover', 'large-context analysis', 'multi-model comparison', 'frontier inference without OpenAI dependency']
     },
     codexSpark: {
       alias: '@codex-spark',
