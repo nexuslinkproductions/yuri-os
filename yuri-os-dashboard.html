@@ -19,7 +19,9 @@
   --red: #ff5252;
   --green: #00c896;
   --orange: #ff6835;
+  --peach: #ff8855;
   --cold: #74b9ff;
+  --memory-read: #a8dcff;
 }
 
 * {
@@ -93,6 +95,34 @@ canvas:active {
   gap: 12px;
   font-size: 11px;
   color: var(--text);
+}
+
+.upgrade-toggle {
+  position: fixed;
+  top: 68px;
+  right: 24px;
+  z-index: 12;
+  min-width: 132px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0,212,255,0.28);
+  border-radius: 4px;
+  background: rgba(7,15,38,0.82);
+  color: var(--text-bright);
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.10em;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+}
+
+.upgrade-toggle:hover,
+.upgrade-toggle:focus-visible,
+.upgrade-toggle.is-active {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(0,212,255,0.10);
+  outline: none;
 }
 
 .graph-state {
@@ -504,6 +534,178 @@ canvas:active {
   border-color: rgba(255,82,82,0.4);
 }
 
+.info-panel__commands {
+  display: grid;
+  gap: 8px;
+}
+
+.info-panel__command-family {
+  border: 1px solid rgba(200,216,232,0.10);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.025);
+}
+
+.info-panel__command-family summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 9px;
+  cursor: pointer;
+  color: rgba(232,244,253,0.88);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+  list-style: none;
+}
+
+.info-panel__command-family summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-panel__command-family summary:hover,
+.info-panel__command-family summary:focus-visible {
+  color: var(--cyan);
+  outline: none;
+}
+
+.info-panel__command-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 9px 9px;
+}
+
+.info-panel__command-list code {
+  display: inline-block;
+}
+
+.upgrades-panel {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  z-index: 15;
+  width: 420px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 120px);
+  padding: 20px;
+  overflow-y: auto;
+  border: 1px solid rgba(0,212,255,0.25);
+  border-left: 3px solid var(--cyan);
+  background: linear-gradient(180deg, rgba(11,31,62,0.97), rgba(7,15,38,0.97));
+  backdrop-filter: blur(20px);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 16px) 100%, 0 100%);
+  color: var(--text);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.upgrades-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.upgrades-panel__title {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 14px;
+  color: var(--text-bright);
+  letter-spacing: 0.08em;
+}
+
+.upgrades-panel__close,
+.upgrade-item__apply {
+  border: 1px solid rgba(200,216,232,0.16);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  font-family: "Space Mono", monospace;
+  cursor: pointer;
+}
+
+.upgrades-panel__close {
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.upgrade-list {
+  display: grid;
+  gap: 10px;
+}
+
+.upgrade-item {
+  padding: 12px;
+  border: 1px solid rgba(200,216,232,0.10);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.025);
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.upgrade-item:hover,
+.upgrade-item:focus-visible,
+.upgrade-item.is-active {
+  border-color: var(--cyan);
+  background: rgba(0,212,255,0.07);
+  outline: none;
+}
+
+.upgrade-item__top {
+  display: grid;
+  grid-template-columns: 8px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.upgrade-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cold);
+  box-shadow: 0 0 10px currentColor;
+}
+
+.upgrade-item__title {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 14px;
+  color: var(--text-bright);
+}
+
+.upgrade-item__status {
+  padding: 2px 5px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-family: "Space Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.upgrade-item__description {
+  margin-top: 9px;
+  color: rgba(200,216,232,0.76);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.upgrade-item__apply {
+  margin-top: 10px;
+  padding: 5px 8px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.upgrades-panel__close:hover,
+.upgrades-panel__close:focus-visible,
+.upgrade-item__apply:hover,
+.upgrade-item__apply:focus-visible {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  outline: none;
+}
+
 @keyframes alertBreath {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
@@ -526,11 +728,17 @@ canvas:active {
     right: 16px;
   }
 
+  .upgrade-toggle {
+    top: 58px;
+    right: 16px;
+  }
+
   .graph-state {
     display: none;
   }
 
-  .info-panel {
+  .info-panel,
+  .upgrades-panel {
     inset: auto 16px 76px 16px;
     width: auto;
     max-height: 60vh;
@@ -566,7 +774,7 @@ canvas:active {
 <body>
 <div class="hud hud-title" aria-hidden="true">
   <div class="hud-title__name">YURI OS</div>
-  <div class="hud-title__meta">NUDIMMUD · main · 381f9876 · v11</div>
+  <div class="hud-title__meta">NUDIMMUD · main · 381f9876 · v13</div>
 </div>
 
 <div class="hud hud-status" aria-hidden="true">
@@ -578,6 +786,8 @@ canvas:active {
   <span class="alert-dot">5/5 ●</span>
 </div>
 
+<button class="upgrade-toggle" type="button" aria-expanded="false">UPGRADES (0)</button>
+
 <div class="hud graph-state" aria-hidden="true">GRAPH STATE: yuri-graph-state.json</div>
 
 <div class="hud instruction-strip" aria-hidden="true">DRAG: rotate · SCROLL: zoom · DOUBLE-CLICK: expand/collapse · HOVER: highlight links</div>
@@ -588,6 +798,7 @@ canvas:active {
   <span class="legend-item"><span class="legend-line" style="color:#9B6EFF;background:#9B6EFF"></span>ADVISES</span>
   <span class="legend-item"><span class="legend-line" style="color:#FF6835;background:#FF6835"></span>GATES</span>
   <span class="legend-item"><span class="legend-line" style="color:#74B9FF;background:#74B9FF"></span>MEMORY</span>
+  <span class="legend-item"><span class="legend-line legend-line--dashed" style="color:#A8DCFF"></span>MEMORY-READ</span>
   <span class="legend-item"><span class="legend-line legend-line--return" style="color:#00D4FF"></span>RETURN</span>
   <span class="legend-item"><span class="legend-line legend-line--dashed" style="color:#74B9FF"></span>FEEDBACK</span>
   <span class="legend-item"><span class="legend-line" style="color:#FFB347;background:#FFB347"></span>VALIDATES</span>
@@ -595,7 +806,7 @@ canvas:active {
   <span class="legend-item"><span class="legend-badge">3</span>COLLAPSED</span>
 </div>
 
-<div class="hud status-strip" aria-hidden="true">TIER CRITICAL · PROTOCOL-CHANGE · <span id="node-count">0</span> NODES · <span id="edge-count">0</span> EDGES · <span id="loop-count">0</span> CLOSED LOOPS · DEAD ENDS: <span id="dead-end-count" class="dead-end-count">0</span> · v12</div>
+<div class="hud status-strip" aria-hidden="true">TIER CRITICAL · PROTOCOL-CHANGE · <span id="node-count">0</span> NODES · <span id="edge-count">0</span> EDGES · <span id="loop-count">0</span> CLOSED LOOPS · DEAD ENDS: <span id="dead-end-count" class="dead-end-count">0</span> · v13</div>
 
 <nav class="view-controls" aria-label="Camera presets">
   <button type="button" data-view="FRONT">FRONT</button>
@@ -659,12 +870,12 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = reduceMotion ? 0 : 0.06;
 controls.minDistance = 200;
-controls.maxDistance = 4000;
+controls.maxDistance = 8000;
 controls.target.set(0, -200, 0);
 
 const GRAPH_STATE = {
-  "version": "v12",
-  "generated_at": "2026-05-15T12:48:50.957Z",
+  "version": "v13",
+  "generated_at": "2026-05-15T17:02:57.023Z",
   "commit": "381f9876",
   "sectors": [
     {
@@ -847,96 +1058,131 @@ const GRAPH_STATE = {
         "PRECOMMIT_REGRESS",
         "BEACON_OBSIDIAN"
       ]
+    },
+    {
+      "name": "command_registry",
+      "color": "#00D4FF",
+      "nodes": [
+        "ENKI_COMMANDS",
+        "CMD_GITNEXUS_FAMILY",
+        "CMD_DEEPSEEK_FAMILY",
+        "CMD_DESIGN_FAMILY",
+        "CMD_SPEC_FAMILY",
+        "CMD_PROBABILITY",
+        "CMD_EOT",
+        "CMD_OFFLOAD",
+        "CMD_SOLO"
+      ]
     }
   ],
   "layout": {
     "stages": [
       {
         "id": "USER",
-        "y": 1300,
+        "y": 1100,
         "twist": 0
       },
       {
         "id": "USER_INPUT",
-        "y": 1100,
-        "twist": 0.2617993877991494
+        "y": 930,
+        "twist": 0.36959913571644626
       },
       {
         "id": "ENKI",
-        "y": 880,
-        "twist": 0.5235987755982988
-      },
-      {
-        "id": "SESSION_INIT",
-        "y": 620,
-        "twist": 0.7853981633974483
-      },
-      {
-        "id": "PROMPT_HOOKS",
-        "y": 360,
-        "twist": 1.0471975511965976
-      },
-      {
-        "id": "NEXUSPULSE",
-        "y": 100,
-        "twist": 1.3089969389957472
-      },
-      {
-        "id": "CLASSIFIER",
-        "y": -160,
-        "twist": 1.5707963267948966
-      },
-      {
-        "id": "ADVISORS",
-        "y": -420,
-        "twist": 1.832595714594046
-      },
-      {
-        "id": "PULSE_BUS",
-        "y": -680,
-        "twist": 2.0943951023931953
-      },
-      {
-        "id": "ENKI_DECIDES",
-        "y": -880,
-        "twist": 2.356194490192345
-      },
-      {
-        "id": "ROUTING",
-        "y": -1080,
-        "twist": 2.6179938779914944
-      },
-      {
-        "id": "CODEX_GATE",
-        "y": -1240,
-        "twist": 2.8797932657906435
-      },
-      {
-        "id": "GITNEXUS",
-        "y": -1260,
-        "twist": 1.832595714594046
-      },
-      {
-        "id": "SELF_IMPROVE",
-        "y": -1340,
-        "twist": 2.356194490192345
+        "y": 760,
+        "twist": 0.7391982714328925
       },
       {
         "id": "MEMORY",
-        "y": -1400,
-        "twist": 3.141592653589793
+        "y": 620,
+        "twist": 1.1087974071493387
+      },
+      {
+        "id": "SESSION_INIT",
+        "y": 470,
+        "twist": 1.478396542865785
+      },
+      {
+        "id": "PROMPT_HOOKS",
+        "y": 300,
+        "twist": 1.8479956785822313
+      },
+      {
+        "id": "NEXUSPULSE",
+        "y": 130,
+        "twist": 2.2175948142986774
+      },
+      {
+        "id": "CLASSIFIER",
+        "y": -40,
+        "twist": 2.5871939500151235
+      },
+      {
+        "id": "ADVISORS",
+        "y": -210,
+        "twist": 2.95679308573157
+      },
+      {
+        "id": "PULSE_BUS",
+        "y": -380,
+        "twist": 3.326392221448016
+      },
+      {
+        "id": "ENKI_DECIDES",
+        "y": -540,
+        "twist": 3.6959913571644627
+      },
+      {
+        "id": "ROUTING",
+        "y": -700,
+        "twist": 4.065590492880908
+      },
+      {
+        "id": "CODEX_GATE",
+        "y": -860,
+        "twist": 4.435189628597355
+      },
+      {
+        "id": "GITNEXUS",
+        "y": -1020,
+        "twist": 4.804788764313802
+      },
+      {
+        "id": "SELF_IMPROVE",
+        "y": -1180,
+        "twist": 5.174387900030247
       },
       {
         "id": "SERVICES",
-        "y": -1620,
-        "twist": 3.4033920413889427
+        "y": -1340,
+        "twist": 5.543987035746693
       },
       {
         "id": "RESPONSE",
-        "y": -1780,
-        "twist": 3.665191429188092
+        "y": -1500,
+        "twist": 5.91358617146314
       }
-    ]
+    ],
+    "twist_step": 0.36959913571644626,
+    "lod": {
+      "sub_label_distance": 800,
+      "leaf_label_distance": 500
+    },
+    "camera": {
+      "minDistance": 200,
+      "maxDistance": 8000
+    },
+    "vertical_compression": {
+      "from": [
+        1300,
+        -1780
+      ],
+      "to": [
+        1100,
+        -1500
+      ],
+      "factor": 0.8
+    }
   },
   "nodes": [
     {
@@ -949,7 +1195,7 @@ const GRAPH_STATE = {
       "color": "#E8F4FD",
       "position": {
         "x": 0,
-        "y": 1300,
+        "y": 1100,
         "z": 0
       },
       "sector": "operator_io",
@@ -983,7 +1229,7 @@ const GRAPH_STATE = {
       "color": "#E8F4FD",
       "position": {
         "x": 0,
-        "y": 1100,
+        "y": 930,
         "z": 0
       },
       "sector": "operator_io",
@@ -1017,7 +1263,7 @@ const GRAPH_STATE = {
       "color": "#00D4FF",
       "position": {
         "x": 0,
-        "y": 880,
+        "y": 760,
         "z": 0
       },
       "sector": "control_plane",
@@ -1044,13 +1290,19 @@ const GRAPH_STATE = {
           ".claude/state/pulse-bus.json"
         ],
         "notes": "Evidence: CLAUDE.md authority chain and yuri-origin local-evidence hierarchy. State file paths are referenced only; protected state was not read.",
-        "returns_to": "RESPONSE"
+        "returns_to": "RESPONSE",
+        "command_registry": {
+          "total": 50,
+          "family_count": 8,
+          "duplicate_groups": 7
+        }
       },
       "parent": null,
       "children": [
         "ENKI_PLAN",
         "ENKI_BUS",
-        "ENKI_CTX"
+        "ENKI_CTX",
+        "ENKI_COMMANDS"
       ]
     },
     {
@@ -1063,7 +1315,7 @@ const GRAPH_STATE = {
       "color": "#4A9EFF",
       "position": {
         "x": 0,
-        "y": 620,
+        "y": 470,
         "z": 0
       },
       "sector": "initialization",
@@ -1102,7 +1354,7 @@ const GRAPH_STATE = {
       "color": "#A398B8",
       "position": {
         "x": 0,
-        "y": 360,
+        "y": 300,
         "z": 0
       },
       "sector": "prompt_hooks",
@@ -1142,7 +1394,7 @@ const GRAPH_STATE = {
       "color": "#4A9EFF",
       "position": {
         "x": 0,
-        "y": 100,
+        "y": 130,
         "z": 0
       },
       "sector": "pulse_cortex",
@@ -1187,7 +1439,7 @@ const GRAPH_STATE = {
       "color": "#48C3D8",
       "position": {
         "x": 0,
-        "y": -160,
+        "y": -40,
         "z": 0
       },
       "sector": "classification",
@@ -1232,7 +1484,7 @@ const GRAPH_STATE = {
       "color": "#9B6EFF",
       "position": {
         "x": 0,
-        "y": -420,
+        "y": -210,
         "z": 0
       },
       "sector": "advisors",
@@ -1281,7 +1533,7 @@ const GRAPH_STATE = {
       "color": "#4A9EFF",
       "position": {
         "x": 0,
-        "y": -680,
+        "y": -380,
         "z": 0
       },
       "sector": "pulse_cortex",
@@ -1324,7 +1576,7 @@ const GRAPH_STATE = {
       "color": "#00D4FF",
       "position": {
         "x": 0,
-        "y": -880,
+        "y": -540,
         "z": 0
       },
       "sector": "control_plane",
@@ -1368,7 +1620,7 @@ const GRAPH_STATE = {
       "color": "#00C896",
       "position": {
         "x": 0,
-        "y": -1080,
+        "y": -700,
         "z": 0
       },
       "sector": "routing_lanes",
@@ -1413,7 +1665,7 @@ const GRAPH_STATE = {
       "color": "#FF6835",
       "position": {
         "x": 0,
-        "y": -1240,
+        "y": -860,
         "z": 0
       },
       "sector": "codex_gate",
@@ -1457,16 +1709,18 @@ const GRAPH_STATE = {
       "color": "#4A9EFF",
       "position": {
         "x": 0,
-        "y": -1400,
+        "y": 620,
         "z": 0
       },
       "sector": "memory",
       "metadata": {
-        "purpose": "Three-tier memory substrate: hot turn state, warm episodic logs, cold semantic lessons, plus kernel and quarantine surfaces.",
+        "purpose": "Foundational tiered knowledge substrate read FIRST in every turn and updated throughout. Hot/warm/cold tiers + SQLite kernel + MLM sandbox. Every operational section reads from memory before acting.",
         "files": [
-          "CLAUDE.md",
-          "_SYSTEM/SELF-IMPROVEMENT/pulse-classifier-tuning.md",
-          "_SYSTEM/SELF-IMPROVEMENT/pulse-archive/2026-05-14.json"
+          "_SYSTEM/OS_KERNEL/memory.db",
+          ".claude/state/pulse-plan.json",
+          ".claude/state/pulse-bus.json",
+          "_SYSTEM/SELF-IMPROVEMENT/pulse-archive/",
+          "system-overlays/karpathy-llm-wiki/"
         ],
         "capabilities": [
           "Expose prior findings",
@@ -1484,8 +1738,10 @@ const GRAPH_STATE = {
           ".claude/state/pulse-plan.json",
           ".claude/state/pulse-bus.json"
         ],
-        "notes": "Return edge MEMORY->ENKI models memory availability on the next turn.",
-        "returns_to": "ENKI"
+        "notes": "v13 relocates MEMORY immediately after ENKI so palace, soul, Mnemosyne, classifiers, advisors, routing, GitNexus, and self-improvement can read context before acting.",
+        "returns_to": "ENKI",
+        "lifecycle_position": "early",
+        "access_pattern": "global - read by all sections, written by EOT/services/archive"
       },
       "parent": null,
       "children": [
@@ -1506,7 +1762,7 @@ const GRAPH_STATE = {
       "color": "#00C896",
       "position": {
         "x": 0,
-        "y": -1620,
+        "y": -1340,
         "z": 0
       },
       "sector": "services",
@@ -1548,7 +1804,7 @@ const GRAPH_STATE = {
       "color": "#E8F4FD",
       "position": {
         "x": 0,
-        "y": -1780,
+        "y": -1500,
         "z": 0
       },
       "sector": "operator_io",
@@ -1584,9 +1840,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#00D4FF",
       "position": {
-        "x": 151.438,
-        "y": 810,
-        "z": -159.582
+        "x": 182.072,
+        "y": 704,
+        "z": -123.49
       },
       "sector": "unassigned",
       "metadata": {
@@ -1620,9 +1876,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#4A9EFF",
       "position": {
-        "x": 190.526,
-        "y": 810,
-        "z": 110
+        "x": 162.582,
+        "y": 704,
+        "z": 148.213
       },
       "sector": "unassigned",
       "metadata": {
@@ -1656,9 +1912,9 @@ const GRAPH_STATE = {
       "radius": 12,
       "color": "#00D4FF",
       "position": {
-        "x": -62.483,
-        "y": 810,
-        "z": 210.94
+        "x": -106.163,
+        "y": 704,
+        "z": 192.689
       },
       "sector": "unassigned",
       "metadata": {
@@ -1692,9 +1948,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#4A9EFF",
       "position": {
-        "x": 187.581,
-        "y": 550,
-        "z": -114.95
+        "x": 217.748,
+        "y": 414,
+        "z": 31.401
       },
       "sector": "initialization",
       "metadata": {
@@ -1731,9 +1987,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#4A9EFF",
       "position": {
-        "x": 207.381,
-        "y": 550,
-        "z": 73.438
+        "x": 112.63,
+        "y": 414,
+        "z": 188.983
       },
       "sector": "initialization",
       "metadata": {
@@ -1769,9 +2025,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#4A9EFF",
       "position": {
-        "x": 73.438,
-        "y": 550,
-        "z": 207.381
+        "x": -75.986,
+        "y": 414,
+        "z": 206.461
       },
       "sector": "initialization",
       "metadata": {
@@ -1805,9 +2061,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#4A9EFF",
       "position": {
-        "x": -114.95,
-        "y": 550,
-        "z": 187.581
+        "x": -208.27,
+        "y": 414,
+        "z": 70.877
       },
       "sector": "initialization",
       "metadata": {
@@ -1841,9 +2097,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#A398B8",
       "position": {
-        "x": 210.94,
-        "y": 290,
-        "z": -62.483
+        "x": 191.7,
+        "y": 244,
+        "z": 107.94
       },
       "sector": "prompt_hooks",
       "metadata": {
@@ -1876,9 +2132,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#A398B8",
       "position": {
-        "x": 213.372,
-        "y": 290,
-        "z": 53.595
+        "x": 110.059,
+        "y": 244,
+        "z": 190.492
       },
       "sector": "prompt_hooks",
       "metadata": {
@@ -1911,9 +2167,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#A398B8",
       "position": {
-        "x": 156.376,
-        "y": 290,
-        "z": 154.747
+        "x": -2.236,
+        "y": 244,
+        "z": 219.989
       },
       "sector": "prompt_hooks",
       "metadata": {
@@ -1949,9 +2205,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#A398B8",
       "position": {
-        "x": 55.827,
-        "y": 290,
-        "z": 212.799
+        "x": -113.908,
+        "y": 244,
+        "z": 188.215
       },
       "sector": "prompt_hooks",
       "metadata": {
@@ -1984,9 +2240,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#A398B8",
       "position": {
-        "x": -60.271,
-        "y": 290,
-        "z": 211.583
+        "x": -193.855,
+        "y": 244,
+        "z": 104.021
       },
       "sector": "prompt_hooks",
       "metadata": {
@@ -2019,9 +2275,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#A398B8",
       "position": {
-        "x": -159.582,
-        "y": 290,
-        "z": 151.438
+        "x": -219.81,
+        "y": 244,
+        "z": -9.145
       },
       "sector": "prompt_hooks",
       "metadata": {
@@ -2054,9 +2310,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#4A9EFF",
       "position": {
-        "x": 219.925,
-        "y": 30,
-        "z": -5.759
+        "x": 139.763,
+        "y": 74,
+        "z": 169.901
       },
       "sector": "pulse_cortex",
       "metadata": {
@@ -2089,9 +2345,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#4A9EFF",
       "position": {
-        "x": 142.879,
-        "y": 30,
-        "z": 167.289
+        "x": -44.082,
+        "y": 74,
+        "z": 215.538
       },
       "sector": "pulse_cortex",
       "metadata": {
@@ -2124,9 +2380,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#00D4FF",
       "position": {
-        "x": -40.092,
-        "y": 30,
-        "z": 216.316
+        "x": -195.247,
+        "y": 74,
+        "z": 101.384
       },
       "sector": "pulse_cortex",
       "metadata": {
@@ -2161,9 +2417,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#9B6EFF",
       "position": {
-        "x": -193.34,
-        "y": 30,
-        "z": 104.975
+        "x": -201.663,
+        "y": 74,
+        "z": -87.932
       },
       "sector": "pulse_cortex",
       "metadata": {
@@ -2196,9 +2452,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#48C3D8",
       "position": {
-        "x": 213.921,
-        "y": -230,
-        "z": 51.358
+        "x": 68.949,
+        "y": -96,
+        "z": 208.916
       },
       "sector": "classification",
       "metadata": {
@@ -2231,9 +2487,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#48C3D8",
       "position": {
-        "x": 157.988,
-        "y": -230,
-        "z": 153.101
+        "x": -46.999,
+        "y": -96,
+        "z": 214.921
       },
       "sector": "classification",
       "metadata": {
@@ -2266,9 +2522,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#48C3D8",
       "position": {
-        "x": 58.052,
-        "y": -230,
-        "z": 212.203
+        "x": -149.858,
+        "y": -96,
+        "z": 161.067
       },
       "sector": "classification",
       "metadata": {
@@ -2301,9 +2557,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#48C3D8",
       "position": {
-        "x": -58.052,
-        "y": -230,
-        "z": 212.203
+        "x": -210.979,
+        "y": -96,
+        "z": 62.354
       },
       "sector": "classification",
       "metadata": {
@@ -2336,9 +2592,9 @@ const GRAPH_STATE = {
       "radius": 12,
       "color": "#48C3D8",
       "position": {
-        "x": -157.988,
-        "y": -230,
-        "z": 153.101
+        "x": -213.339,
+        "y": -96,
+        "z": -53.727
       },
       "sector": "classification",
       "metadata": {
@@ -2371,9 +2627,9 @@ const GRAPH_STATE = {
       "radius": 12,
       "color": "#48C3D8",
       "position": {
-        "x": -213.921,
-        "y": -230,
-        "z": 51.358
+        "x": -156.28,
+        "y": -96,
+        "z": -154.843
       },
       "sector": "classification",
       "metadata": {
@@ -2406,9 +2662,9 @@ const GRAPH_STATE = {
       "radius": 26,
       "color": "#9B6EFF",
       "position": {
-        "x": 193.34,
-        "y": -490,
-        "z": 104.975
+        "x": -11.176,
+        "y": -266,
+        "z": 219.716
       },
       "sector": "advisors",
       "metadata": {
@@ -2448,9 +2704,9 @@ const GRAPH_STATE = {
       "radius": 26,
       "color": "#FF5252",
       "position": {
-        "x": 112.979,
-        "y": -490,
-        "z": 188.774
+        "x": -121.464,
+        "y": -266,
+        "z": 183.43
       },
       "sector": "advisors",
       "metadata": {
@@ -2489,9 +2745,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#9B6EFF",
       "position": {
-        "x": 1.152,
-        "y": -490,
-        "z": 219.997
+        "x": -197.922,
+        "y": -266,
+        "z": 96.056
       },
       "sector": "advisors",
       "metadata": {
@@ -2528,9 +2784,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#9B6EFF",
       "position": {
-        "x": -110.996,
-        "y": -490,
-        "z": 189.947
+        "x": -219.256,
+        "y": -266,
+        "z": -18.071
       },
       "sector": "advisors",
       "metadata": {
@@ -2567,9 +2823,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#9B6EFF",
       "position": {
-        "x": -192.23,
-        "y": -490,
-        "z": 106.994
+        "x": -179.524,
+        "y": -266,
+        "z": -127.166
       },
       "sector": "advisors",
       "metadata": {
@@ -2608,9 +2864,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#FF6835",
       "position": {
-        "x": -219.925,
-        "y": -490,
-        "z": -5.759
+        "x": -89.792,
+        "y": -266,
+        "z": -200.842
       },
       "sector": "advisors",
       "metadata": {
@@ -2646,9 +2902,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#4A9EFF",
       "position": {
-        "x": 159.582,
-        "y": -750,
-        "z": 151.438
+        "x": -89.792,
+        "y": -436,
+        "z": 200.842
       },
       "sector": "pulse_cortex",
       "metadata": {
@@ -2681,9 +2937,9 @@ const GRAPH_STATE = {
       "radius": 12,
       "color": "#4A9EFF",
       "position": {
-        "x": -110,
-        "y": -750,
-        "z": 190.526
+        "x": -216.254,
+        "y": -436,
+        "z": -40.425
       },
       "sector": "pulse_cortex",
       "metadata": {
@@ -2716,9 +2972,9 @@ const GRAPH_STATE = {
       "radius": 12,
       "color": "#94A3B8",
       "position": {
-        "x": -210.94,
-        "y": -750,
-        "z": -62.483
+        "x": -11.176,
+        "y": -436,
+        "z": -219.716
       },
       "sector": "pulse_cortex",
       "metadata": {
@@ -2751,9 +3007,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#00D4FF",
       "position": {
-        "x": 114.95,
-        "y": -950,
-        "z": 187.581
+        "x": -156.281,
+        "y": -596,
+        "z": 154.843
       },
       "sector": "unassigned",
       "metadata": {
@@ -2787,9 +3043,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#00D4FF",
       "position": {
-        "x": -155.563,
-        "y": -950,
-        "z": 155.563
+        "x": -187.047,
+        "y": -596,
+        "z": -115.815
       },
       "sector": "unassigned",
       "metadata": {
@@ -2823,9 +3079,9 @@ const GRAPH_STATE = {
       "radius": 12,
       "color": "#00D4FF",
       "position": {
-        "x": -187.581,
-        "y": -950,
-        "z": -114.95
+        "x": 68.95,
+        "y": -596,
+        "z": -208.916
       },
       "sector": "unassigned",
       "metadata": {
@@ -2859,9 +3115,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#00C896",
       "position": {
-        "x": 62.483,
-        "y": -1150,
-        "z": 210.94
+        "x": -201.663,
+        "y": -756,
+        "z": 87.931
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -2895,9 +3151,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#00C896",
       "position": {
-        "x": -20.54,
-        "y": -1150,
-        "z": 219.039
+        "x": -219.903,
+        "y": -756,
+        "z": 6.533
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -2931,9 +3187,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#00C896",
       "position": {
-        "x": -100.61,
-        "y": -1150,
-        "z": 195.647
+        "x": -206.528,
+        "y": -756,
+        "z": -75.805
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -2967,9 +3223,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#9B6EFF",
       "position": {
-        "x": -166.216,
-        "y": -1150,
-        "z": 144.126
+        "x": -163.46,
+        "y": -756,
+        "z": -147.245
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -3005,9 +3261,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#9B6EFF",
       "position": {
-        "x": -207.925,
-        "y": -1150,
-        "z": 71.884
+        "x": -96.891,
+        "y": -756,
+        "z": -197.515
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -3043,9 +3299,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#4A9EFF",
       "position": {
-        "x": -219.74,
-        "y": -1150,
-        "z": -10.692
+        "x": -16.393,
+        "y": -756,
+        "z": -219.388
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -3079,9 +3335,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#00C896",
       "position": {
-        "x": -199.963,
-        "y": -1150,
-        "z": -91.731
+        "x": 66.463,
+        "y": -756,
+        "z": -209.72
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -3115,9 +3371,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#00C896",
       "position": {
-        "x": -151.438,
-        "y": -1150,
-        "z": -159.582
+        "x": 139.762,
+        "y": -756,
+        "z": -169.901
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -3151,9 +3407,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#FF6835",
       "position": {
-        "x": 5.759,
-        "y": -1310,
-        "z": 219.925
+        "x": -219.81,
+        "y": -916,
+        "z": 9.145
       },
       "sector": "codex_gate",
       "metadata": {
@@ -3188,9 +3444,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#FF6835",
       "position": {
-        "x": -212.504,
-        "y": -1310,
-        "z": 56.94
+        "x": -60.206,
+        "y": -916,
+        "z": -211.602
       },
       "sector": "codex_gate",
       "metadata": {
@@ -3223,9 +3479,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#FF6835",
       "position": {
-        "x": -104.975,
-        "y": -1310,
-        "z": -193.34
+        "x": 191.701,
+        "y": -916,
+        "z": -107.94
       },
       "sector": "codex_gate",
       "metadata": {
@@ -3260,9 +3516,9 @@ const GRAPH_STATE = {
       "radius": 24,
       "color": "#FF6B6B",
       "position": {
-        "x": -51.358,
-        "y": -1470,
-        "z": 213.921
+        "x": 214.386,
+        "y": 564,
+        "z": -49.379
       },
       "sector": "memory",
       "metadata": {
@@ -3301,9 +3557,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#FFB347",
       "position": {
-        "x": -172.77,
-        "y": -1470,
-        "z": 136.201
+        "x": 198.932,
+        "y": 564,
+        "z": 93.947
       },
       "sector": "memory",
       "metadata": {
@@ -3341,9 +3597,9 @@ const GRAPH_STATE = {
       "radius": 22,
       "color": "#74B9FF",
       "position": {
-        "x": -220,
-        "y": -1470,
-        "z": 0
+        "x": 98.062,
+        "y": 564,
+        "z": 196.936
       },
       "sector": "memory",
       "metadata": {
@@ -3381,9 +3637,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#94A3B8",
       "position": {
-        "x": -172.77,
-        "y": -1470,
-        "z": -136.201
+        "x": -44.912,
+        "y": 564,
+        "z": 215.367
       },
       "sector": "memory",
       "metadata": {
@@ -3415,9 +3671,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#FF5252",
       "position": {
-        "x": -51.358,
-        "y": -1470,
-        "z": -213.921
+        "x": -168.602,
+        "y": 564,
+        "z": 141.327
       },
       "sector": "memory",
       "metadata": {
@@ -3450,9 +3706,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#00C896",
       "position": {
-        "x": -104.975,
-        "y": -1630,
-        "z": 193.34
+        "x": -106.164,
+        "y": -1348,
+        "z": -192.69
       },
       "sector": "services",
       "metadata": {
@@ -3486,9 +3742,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#00C896",
       "position": {
-        "x": -177.984,
-        "y": -1630,
-        "z": 129.313
+        "x": -12.867,
+        "y": -1348,
+        "z": -219.624
       },
       "sector": "services",
       "metadata": {
@@ -3522,9 +3778,9 @@ const GRAPH_STATE = {
       "radius": 20,
       "color": "#00C896",
       "position": {
-        "x": -216.316,
-        "y": -1630,
-        "z": 40.092
+        "x": 82.937,
+        "y": -1348,
+        "z": -203.768
       },
       "sector": "services",
       "metadata": {
@@ -3558,9 +3814,9 @@ const GRAPH_STATE = {
       "radius": 18,
       "color": "#94A3B8",
       "position": {
-        "x": -212.504,
-        "y": -1630,
-        "z": -56.94
+        "x": 162.582,
+        "y": -1348,
+        "z": -148.213
       },
       "sector": "services",
       "metadata": {
@@ -3594,9 +3850,9 @@ const GRAPH_STATE = {
       "radius": 18,
       "color": "#94A3B8",
       "position": {
-        "x": -167.289,
-        "y": -1630,
-        "z": -142.879
+        "x": 210.552,
+        "y": -1348,
+        "z": -63.781
       },
       "sector": "services",
       "metadata": {
@@ -3630,9 +3886,9 @@ const GRAPH_STATE = {
       "radius": 12,
       "color": "#94A3B8",
       "position": {
-        "x": -89.482,
-        "y": -1630,
-        "z": -200.98
+        "x": 217.499,
+        "y": -1348,
+        "z": 33.076
       },
       "sector": "services",
       "metadata": {
@@ -3666,9 +3922,9 @@ const GRAPH_STATE = {
       "radius": 12,
       "color": "#94A3B8",
       "position": {
-        "x": 5.759,
-        "y": -1630,
-        "z": -219.925
+        "x": 182.072,
+        "y": -1348,
+        "z": 123.49
       },
       "sector": "services",
       "metadata": {
@@ -3702,9 +3958,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#4A9EFF",
       "position": {
-        "x": 193.073,
-        "y": 515,
-        "z": -184.734
+        "x": 266.554,
+        "y": 386,
+        "z": -18.778
       },
       "sector": "initialization",
       "metadata": {
@@ -3738,9 +3994,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#4A9EFF",
       "position": {
-        "x": 252.252,
-        "y": 515,
-        "z": -88.162
+        "x": 250.388,
+        "y": 386,
+        "z": 93.324
       },
       "sector": "initialization",
       "metadata": {
@@ -3774,9 +4030,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#4A9EFF",
       "position": {
-        "x": 273.366,
-        "y": 515,
-        "z": 96.804
+        "x": 148.467,
+        "y": 386,
+        "z": 249.114
       },
       "sector": "initialization",
       "metadata": {
@@ -3810,9 +4066,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#A398B8",
       "position": {
-        "x": 225.456,
-        "y": 255,
-        "z": 143.435
+        "x": 53.974,
+        "y": 216,
+        "z": 261.708
       },
       "sector": "prompt_hooks",
       "metadata": {
@@ -3845,9 +4101,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#A398B8",
       "position": {
-        "x": 145.788,
-        "y": 255,
-        "z": 223.941
+        "x": -59.282,
+        "y": 216,
+        "z": 260.556
       },
       "sector": "prompt_hooks",
       "metadata": {
@@ -3880,9 +4136,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#9B6EFF",
       "position": {
-        "x": 256.521,
-        "y": -525,
-        "z": 74.839
+        "x": 43.293,
+        "y": -294,
+        "z": 263.685
       },
       "sector": "advisors",
       "metadata": {
@@ -3915,9 +4171,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#9B6EFF",
       "position": {
-        "x": 202.477,
-        "y": -525,
-        "z": 174.376
+        "x": -69.823,
+        "y": -294,
+        "z": 257.931
       },
       "sector": "advisors",
       "metadata": {
@@ -3950,9 +4206,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FF5252",
       "position": {
-        "x": 148.927,
-        "y": -525,
-        "z": 248.839
+        "x": -160.112,
+        "y": -294,
+        "z": 241.794
       },
       "sector": "advisors",
       "metadata": {
@@ -3985,9 +4241,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#64D8E6",
       "position": {
-        "x": -200.639,
-        "y": -525,
-        "z": 176.487
+        "x": -245.833,
+        "y": -294,
+        "z": -104.736
       },
       "sector": "advisors",
       "metadata": {
@@ -4020,9 +4276,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#64D8E6",
       "position": {
-        "x": -255.723,
-        "y": -525,
-        "z": 77.521
+        "x": -180.365,
+        "y": -294,
+        "z": -197.161
       },
       "sector": "advisors",
       "metadata": {
@@ -4055,9 +4311,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#9B6EFF",
       "position": {
-        "x": -219.103,
-        "y": -1185,
-        "z": 189.984
+        "x": -215.469,
+        "y": -784,
+        "z": -194.096
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -4089,9 +4345,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#9B6EFF",
       "position": {
-        "x": -274.082,
-        "y": -1185,
-        "z": 94.757
+        "x": -127.72,
+        "y": -784,
+        "z": -260.36
       },
       "sector": "routing_lanes",
       "metadata": {
@@ -4123,9 +4379,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FF6835",
       "position": {
-        "x": 7.591,
-        "y": -1345,
-        "z": 289.901
+        "x": -289.75,
+        "y": -944,
+        "z": 12.054
       },
       "sector": "codex_gate",
       "metadata": {
@@ -4158,9 +4414,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FF6835",
       "position": {
-        "x": -138.376,
-        "y": -1345,
-        "z": -254.857
+        "x": 252.696,
+        "y": -944,
+        "z": -142.284
       },
       "sector": "codex_gate",
       "metadata": {
@@ -4193,9 +4449,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FF6B6B",
       "position": {
-        "x": -5.897,
-        "y": -1505,
-        "z": 267.15
+        "x": 241.771,
+        "y": 536,
+        "z": -113.8
       },
       "sector": "memory",
       "metadata": {
@@ -4228,9 +4484,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FF6B6B",
       "position": {
-        "x": -116.03,
-        "y": -1505,
-        "z": 240.709
+        "x": 267.193,
+        "y": 536,
+        "z": -3.427
       },
       "sector": "memory",
       "metadata": {
@@ -4263,9 +4519,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FFB347",
       "position": {
-        "x": -170.022,
-        "y": -1505,
-        "z": 206.147
+        "x": 260.321,
+        "y": 536,
+        "z": 60.31
       },
       "sector": "memory",
       "metadata": {
@@ -4298,9 +4554,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FFB347",
       "position": {
-        "x": -227.742,
-        "y": -1505,
-        "z": 179.537
+        "x": 262.228,
+        "y": 536,
+        "z": 123.84
       },
       "sector": "memory",
       "metadata": {
@@ -4333,9 +4589,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FFB347",
       "position": {
-        "x": -240.142,
-        "y": -1505,
-        "z": 117.2
+        "x": 211.954,
+        "y": 536,
+        "z": 162.726
       },
       "sector": "memory",
       "metadata": {
@@ -4368,9 +4624,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#74B9FF",
       "position": {
-        "x": -261.145,
-        "y": -1505,
-        "z": 56.631
+        "x": 167.096,
+        "y": 536,
+        "z": 208.525
       },
       "sector": "memory",
       "metadata": {
@@ -4403,9 +4659,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#74B9FF",
       "position": {
-        "x": -290,
-        "y": -1505,
-        "z": 0
+        "x": 129.264,
+        "y": 536,
+        "z": 259.597
       },
       "sector": "memory",
       "metadata": {
@@ -4438,9 +4694,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#74B9FF",
       "position": {
-        "x": -261.145,
-        "y": -1505,
-        "z": -56.631
+        "x": 65.708,
+        "y": 536,
+        "z": 259.01
       },
       "sector": "memory",
       "metadata": {
@@ -4474,7 +4730,7 @@ const GRAPH_STATE = {
       "color": "#76B900",
       "position": {
         "x": 0,
-        "y": -1260,
+        "y": -1020,
         "z": 0
       },
       "sector": "code_intelligence",
@@ -4514,9 +4770,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#76B900",
       "position": {
-        "x": 193.34,
-        "y": -1330,
-        "z": 104.975
+        "x": -208.27,
+        "y": -1076,
+        "z": -70.877
       },
       "sector": "code_intelligence",
       "metadata": {
@@ -4547,9 +4803,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#76B900",
       "position": {
-        "x": -56.94,
-        "y": -1330,
-        "z": 212.504
+        "x": 20.299,
+        "y": -1076,
+        "z": -219.062
       },
       "sector": "code_intelligence",
       "metadata": {
@@ -4581,9 +4837,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#76B900",
       "position": {
-        "x": -219.925,
-        "y": -1330,
-        "z": -5.759
+        "x": 217.748,
+        "y": -1076,
+        "z": -31.401
       },
       "sector": "code_intelligence",
       "metadata": {
@@ -4618,9 +4874,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#76B900",
       "position": {
-        "x": 205.061,
-        "y": -1365,
-        "z": 205.061
+        "x": -236.697,
+        "y": -1104,
+        "z": -167.554
       },
       "sector": "code_intelligence",
       "metadata": {
@@ -4650,9 +4906,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#76B900",
       "position": {
-        "x": -278.485,
-        "y": -1365,
-        "z": 80.907
+        "x": 260.859,
+        "y": -1104,
+        "z": -126.699
       },
       "sector": "code_intelligence",
       "metadata": {
@@ -4683,7 +4939,7 @@ const GRAPH_STATE = {
       "color": "#FF8855",
       "position": {
         "x": 0,
-        "y": -1340,
+        "y": -1180,
         "z": 0
       },
       "sector": "self_improvement",
@@ -4726,9 +4982,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#FF8855",
       "position": {
-        "x": 114.95,
-        "y": -1410,
-        "z": 187.581
+        "x": -168.603,
+        "y": -1236,
+        "z": -141.327
       },
       "sector": "self_improvement",
       "metadata": {
@@ -4760,9 +5016,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#FF8855",
       "position": {
-        "x": -25.858,
-        "y": -1410,
-        "z": 218.475
+        "x": -44.912,
+        "y": -1236,
+        "z": -215.367
       },
       "sector": "self_improvement",
       "metadata": {
@@ -4794,9 +5050,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#FF8855",
       "position": {
-        "x": -155.563,
-        "y": -1410,
-        "z": 155.563
+        "x": 98.062,
+        "y": -1236,
+        "z": -196.935
       },
       "sector": "self_improvement",
       "metadata": {
@@ -4830,9 +5086,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#FF8855",
       "position": {
-        "x": -218.475,
-        "y": -1410,
-        "z": 25.858
+        "x": 198.932,
+        "y": -1236,
+        "z": -93.947
       },
       "sector": "self_improvement",
       "metadata": {
@@ -4865,9 +5121,9 @@ const GRAPH_STATE = {
       "radius": 14,
       "color": "#FF8855",
       "position": {
-        "x": -187.581,
-        "y": -1410,
-        "z": -114.95
+        "x": 214.387,
+        "y": -1236,
+        "z": 49.379
       },
       "sector": "self_improvement",
       "metadata": {
@@ -4900,9 +5156,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FF8855",
       "position": {
-        "x": -202.902,
-        "y": -1445,
-        "z": 207.197
+        "x": 126.538,
+        "y": -1264,
+        "z": -260.937
       },
       "sector": "self_improvement",
       "metadata": {
@@ -4933,9 +5189,9 @@ const GRAPH_STATE = {
       "radius": 8,
       "color": "#FF8855",
       "position": {
-        "x": 77.987,
-        "y": -5,
-        "z": 279.317
+        "x": -172.331,
+        "y": 46,
+        "z": 233.243
       },
       "sector": "self_improvement",
       "metadata": {
@@ -4955,6 +5211,375 @@ const GRAPH_STATE = {
         "returns_to": "NP_BEACON"
       },
       "parent": "NP_BEACON",
+      "children": []
+    },
+    {
+      "id": "ENKI_COMMANDS",
+      "tier": "sub",
+      "label": "COMMANDS",
+      "role": "slash registry",
+      "detail": "50 active commands grouped by domain",
+      "radius": 20,
+      "color": "#00D4FF",
+      "position": {
+        "x": -219.746,
+        "y": 704,
+        "z": -10.566
+      },
+      "sector": "command_registry",
+      "metadata": {
+        "purpose": "Slash command registry - 50 active commands grouped by domain",
+        "command_count": 50,
+        "capabilities": [
+          "Expose command families",
+          "Flag duplicate command surfaces",
+          "Propose consolidation paths"
+        ],
+        "dependencies": [
+          "ENKI"
+        ],
+        "returns_to": "ENKI"
+      },
+      "parent": "ENKI",
+      "children": [
+        "CMD_GITNEXUS_FAMILY",
+        "CMD_DEEPSEEK_FAMILY",
+        "CMD_DESIGN_FAMILY",
+        "CMD_SPEC_FAMILY",
+        "CMD_PROBABILITY",
+        "CMD_EOT",
+        "CMD_OFFLOAD",
+        "CMD_SOLO"
+      ]
+    },
+    {
+      "id": "CMD_GITNEXUS_FAMILY",
+      "tier": "leaf",
+      "label": "GITNEXUS family",
+      "role": "8 commands",
+      "detail": "8 commands",
+      "radius": 8,
+      "color": "#00D4FF",
+      "position": {
+        "x": -281.319,
+        "y": 668,
+        "z": 200.642
+      },
+      "sector": "command_registry",
+      "metadata": {
+        "purpose": "GITNEXUS family command family",
+        "command_count": 8,
+        "commands": [
+          "gitnexus",
+          "gitnexus-cli",
+          "gitnexus-guide",
+          "gitnexus-exploring",
+          "gitnexus-debugging",
+          "gitnexus-pr-review",
+          "gitnexus-impact-analysis",
+          "gitnexus-refactoring"
+        ],
+        "duplicates_flagged": [
+          "gitnexus-cli",
+          "gitnexus-guide",
+          "gitnexus-exploring",
+          "gitnexus-debugging",
+          "gitnexus-pr-review",
+          "gitnexus-impact-analysis",
+          "gitnexus-refactoring"
+        ],
+        "merge_proposal": "Suggested unified /gitnexus with subcommands",
+        "current_size": "8 separate /commands files",
+        "ideal_size": "1 /gitnexus with subcommands",
+        "dependencies": [
+          "ENKI_COMMANDS"
+        ],
+        "returns_to": "ENKI_COMMANDS"
+      },
+      "parent": "ENKI_COMMANDS",
+      "children": []
+    },
+    {
+      "id": "CMD_DEEPSEEK_FAMILY",
+      "tier": "leaf",
+      "label": "DEEPSEEK family",
+      "role": "4 commands",
+      "detail": "4 commands",
+      "radius": 8,
+      "color": "#00D4FF",
+      "position": {
+        "x": -355.524,
+        "y": 668,
+        "z": 162.536
+      },
+      "sector": "command_registry",
+      "metadata": {
+        "purpose": "DEEPSEEK family command family",
+        "command_count": 4,
+        "commands": [
+          "deepseek-offload",
+          "deepseek-workhorse",
+          "ds-flash",
+          "ds-pro"
+        ],
+        "duplicates_flagged": [
+          "deepseek-offload",
+          "deepseek-workhorse",
+          "ds-flash",
+          "ds-pro"
+        ],
+        "merge_proposal": "Keep /ds-flash and /ds-pro as direct lane calls; route generic use through /offload",
+        "current_size": "4 overlapping deepseek commands",
+        "ideal_size": "2 direct lane commands plus /offload routing",
+        "dependencies": [
+          "ENKI_COMMANDS"
+        ],
+        "returns_to": "ENKI_COMMANDS"
+      },
+      "parent": "ENKI_COMMANDS",
+      "children": []
+    },
+    {
+      "id": "CMD_DESIGN_FAMILY",
+      "tier": "leaf",
+      "label": "DESIGN family",
+      "role": "3 commands",
+      "detail": "3 commands",
+      "radius": 8,
+      "color": "#00D4FF",
+      "position": {
+        "x": -410.209,
+        "y": 668,
+        "z": 99.543
+      },
+      "sector": "command_registry",
+      "metadata": {
+        "purpose": "DESIGN family command family",
+        "command_count": 3,
+        "commands": [
+          "design-master",
+          "design-source-pack",
+          "frontend-design"
+        ],
+        "duplicates_flagged": [
+          "design-master",
+          "design-source-pack",
+          "frontend-design"
+        ],
+        "merge_proposal": "Suggested unified /design with --mode flag",
+        "current_size": "3 design command surfaces",
+        "ideal_size": "1 /design dispatcher with modes",
+        "dependencies": [
+          "ENKI_COMMANDS"
+        ],
+        "returns_to": "ENKI_COMMANDS"
+      },
+      "parent": "ENKI_COMMANDS",
+      "children": []
+    },
+    {
+      "id": "CMD_SPEC_FAMILY",
+      "tier": "leaf",
+      "label": "SPEC family",
+      "role": "4 commands",
+      "detail": "4 commands",
+      "radius": 8,
+      "color": "#00D4FF",
+      "position": {
+        "x": -437.51,
+        "y": 668,
+        "z": 20.72
+      },
+      "sector": "command_registry",
+      "metadata": {
+        "purpose": "SPEC family command family",
+        "command_count": 4,
+        "commands": [
+          "spec-intake",
+          "spec-clarify",
+          "spec-analyze",
+          "spec-promote"
+        ],
+        "duplicates_flagged": [
+          "spec-intake",
+          "spec-clarify",
+          "spec-analyze",
+          "spec-promote"
+        ],
+        "merge_proposal": "Suggested /spec <stage> with --next flag",
+        "current_size": "4 sequential spec commands",
+        "ideal_size": "1 /spec pipeline dispatcher",
+        "dependencies": [
+          "ENKI_COMMANDS"
+        ],
+        "returns_to": "ENKI_COMMANDS"
+      },
+      "parent": "ENKI_COMMANDS",
+      "children": []
+    },
+    {
+      "id": "CMD_PROBABILITY",
+      "tier": "leaf",
+      "label": "PROBABILITY family",
+      "role": "3 commands",
+      "detail": "3 commands",
+      "radius": 8,
+      "color": "#00D4FF",
+      "position": {
+        "x": -433.504,
+        "y": 668,
+        "z": -62.601
+      },
+      "sector": "command_registry",
+      "metadata": {
+        "purpose": "PROBABILITY family command family",
+        "command_count": 3,
+        "commands": [
+          "probabilistic-decision-core",
+          "probability",
+          "pdc"
+        ],
+        "duplicates_flagged": [
+          "probabilistic-decision-core",
+          "probability",
+          "pdc"
+        ],
+        "merge_proposal": "Choose one canonical probability command and keep aliases thin",
+        "current_size": "3 aliases",
+        "ideal_size": "1 canonical command",
+        "dependencies": [
+          "ENKI_COMMANDS"
+        ],
+        "returns_to": "ENKI_COMMANDS"
+      },
+      "parent": "ENKI_COMMANDS",
+      "children": []
+    },
+    {
+      "id": "CMD_EOT",
+      "tier": "leaf",
+      "label": "EOT family",
+      "role": "2 commands",
+      "detail": "2 commands",
+      "radius": 8,
+      "color": "#00D4FF",
+      "position": {
+        "x": -398.765,
+        "y": 668,
+        "z": -138.441
+      },
+      "sector": "command_registry",
+      "metadata": {
+        "purpose": "EOT family command family",
+        "command_count": 2,
+        "commands": [
+          "eot",
+          "end-of-transmission"
+        ],
+        "duplicates_flagged": [
+          "eot",
+          "end-of-transmission"
+        ],
+        "merge_proposal": "Keep /eot as canonical and make /end-of-transmission synonym-only",
+        "current_size": "2 command files",
+        "ideal_size": "1 command plus alias",
+        "dependencies": [
+          "ENKI_COMMANDS"
+        ],
+        "returns_to": "ENKI_COMMANDS"
+      },
+      "parent": "ENKI_COMMANDS",
+      "children": []
+    },
+    {
+      "id": "CMD_OFFLOAD",
+      "tier": "leaf",
+      "label": "OFFLOAD family",
+      "role": "2 commands",
+      "detail": "2 commands",
+      "radius": 8,
+      "color": "#00D4FF",
+      "position": {
+        "x": -338.289,
+        "y": 668,
+        "z": -195.897
+      },
+      "sector": "command_registry",
+      "metadata": {
+        "purpose": "OFFLOAD family command family",
+        "command_count": 2,
+        "commands": [
+          "offload",
+          "ai-pipeline-offloading"
+        ],
+        "duplicates_flagged": [
+          "offload",
+          "ai-pipeline-offloading"
+        ],
+        "merge_proposal": "Use /offload as the visible command and keep ai-pipeline-offloading as implementation skill",
+        "current_size": "2 command surfaces",
+        "ideal_size": "1 /offload command",
+        "dependencies": [
+          "ENKI_COMMANDS"
+        ],
+        "returns_to": "ENKI_COMMANDS"
+      },
+      "parent": "ENKI_COMMANDS",
+      "children": []
+    },
+    {
+      "id": "CMD_SOLO",
+      "tier": "leaf",
+      "label": "STANDALONE",
+      "role": "24 commands",
+      "detail": "24 commands",
+      "radius": 8,
+      "color": "#00D4FF",
+      "position": {
+        "x": -260.77,
+        "y": 668,
+        "z": -226.707
+      },
+      "sector": "command_registry",
+      "metadata": {
+        "purpose": "STANDALONE command family",
+        "command_count": 24,
+        "commands": [
+          "bg",
+          "codebase-to-course",
+          "compact-optimizer",
+          "constitution",
+          "execution-domain-core",
+          "failure-evolution-loop",
+          "gpt-oss-local-runtime",
+          "graphify",
+          "introspect",
+          "kimi-k2-6-server-adapter",
+          "local-subagent",
+          "math-curve-loaders",
+          "non-destructive-infinity-guard",
+          "openai-codex-workflow",
+          "openclaw-offload",
+          "parallel-clone-orchestrator",
+          "pattern-mirror-core",
+          "reflect",
+          "research",
+          "research-artifact-factory",
+          "sharingan",
+          "swarm-coordination",
+          "tokenmaxxing",
+          "anthropic-managed-agents"
+        ],
+        "duplicates_flagged": [],
+        "merge_proposal": "No merge proposed; keep standalone unless usage data says otherwise",
+        "current_size": "24 standalone commands",
+        "ideal_size": "24 standalone commands",
+        "dependencies": [
+          "ENKI_COMMANDS"
+        ],
+        "returns_to": "ENKI_COMMANDS"
+      },
+      "parent": "ENKI_COMMANDS",
       "children": []
     }
   ],
@@ -6260,6 +6885,276 @@ const GRAPH_STATE = {
       "target": "SERVICES",
       "type": "flow",
       "is_return": false
+    },
+    {
+      "source": "ENKI",
+      "target": "ENKI_COMMANDS",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "ENKI_COMMANDS",
+      "target": "ENKI",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_COMMANDS",
+      "target": "CMD_GITNEXUS_FAMILY",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "CMD_GITNEXUS_FAMILY",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_COMMANDS",
+      "target": "CMD_DEEPSEEK_FAMILY",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "CMD_DEEPSEEK_FAMILY",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_COMMANDS",
+      "target": "CMD_DESIGN_FAMILY",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "CMD_DESIGN_FAMILY",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_COMMANDS",
+      "target": "CMD_SPEC_FAMILY",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "CMD_SPEC_FAMILY",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_COMMANDS",
+      "target": "CMD_PROBABILITY",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "CMD_PROBABILITY",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_COMMANDS",
+      "target": "CMD_EOT",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "CMD_EOT",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_COMMANDS",
+      "target": "CMD_OFFLOAD",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "CMD_OFFLOAD",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_COMMANDS",
+      "target": "CMD_SOLO",
+      "type": "branch",
+      "is_return": false
+    },
+    {
+      "source": "CMD_SOLO",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "is_return": true
+    },
+    {
+      "source": "MEMORY",
+      "target": "SESSION_INIT",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "PROMPT_HOOKS",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "NEXUSPULSE",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "CLASSIFIER",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "ADVISORS",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "ENKI_DECIDES",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "ROUTING",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "CODEX_GATE",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "GITNEXUS",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "SELF_IMPROVE",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "DEEPSEEK_A",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "OPENCLAW_A",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "HERMES_A",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "CASSANDRA_A",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "SWARM_A",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "MEMORY",
+      "target": "OBLITERATUS_A",
+      "type": "memory",
+      "is_return": false
+    },
+    {
+      "source": "SESSION_INIT",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "PROMPT_HOOKS",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "NEXUSPULSE",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "CLASSIFIER",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "ADVISORS",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "PULSE_BUS",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "ENKI_DECIDES",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "CODEX_GATE",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "GITNEXUS",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "SELF_IMPROVE",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
+    },
+    {
+      "source": "SERVICES",
+      "target": "MEMORY",
+      "type": "feedback",
+      "is_return": true
     }
   ],
   "telemetry": {
@@ -6282,8 +7177,124 @@ const GRAPH_STATE = {
       "GITNEXUS→ENKI",
       "SELF_IMPROVE→ENKI"
     ],
-    "dead_ends_eliminated": "v11→v12 reduced from 73 to 0"
-  }
+    "dead_ends_eliminated": "v11→v12 reduced from 73 to 0",
+    "v13": {
+      "lod_leaf_threshold": 500,
+      "max_distance": 8000,
+      "memory_read_edges": 16,
+      "command_registry_nodes": 9,
+      "edge_arrowheads": true,
+      "memory_incoming_feedback_edges": 11
+    }
+  },
+  "upgrades_pending": [
+    {
+      "id": "memory-early-lifecycle",
+      "title": "Memory now early in lifecycle",
+      "status": "applied-v13",
+      "description": "Moved MEMORY from y=-1400 to y=620. Added 16 new memory-read edges to all major sections + advisors.",
+      "introspected_by": "visual-introspection v1",
+      "severity": "high",
+      "affected_nodes": [
+        "MEMORY",
+        "SESSION_INIT",
+        "PROMPT_HOOKS",
+        "NEXUSPULSE",
+        "CLASSIFIER",
+        "ADVISORS",
+        "ENKI_DECIDES",
+        "ROUTING",
+        "CODEX_GATE",
+        "GITNEXUS",
+        "SELF_IMPROVE",
+        "DEEPSEEK_A",
+        "OPENCLAW_A",
+        "HERMES_A",
+        "CASSANDRA_A",
+        "SWARM_A",
+        "OBLITERATUS_A"
+      ]
+    },
+    {
+      "id": "command-duplicates-gitnexus",
+      "title": "Consolidate 8 gitnexus commands -> 1",
+      "status": "pending",
+      "description": "Currently 8 separate /commands files: gitnexus, gitnexus-cli, gitnexus-guide, gitnexus-exploring, gitnexus-debugging, gitnexus-pr-review, gitnexus-impact-analysis, gitnexus-refactoring. Propose: single /gitnexus <subcommand> dispatcher.",
+      "severity": "medium",
+      "affected_files": [
+        ".claude/commands/gitnexus*.md"
+      ],
+      "affected_nodes": [
+        "ENKI_COMMANDS",
+        "CMD_GITNEXUS_FAMILY"
+      ]
+    },
+    {
+      "id": "command-duplicates-deepseek",
+      "title": "Consolidate 4 deepseek commands -> 2",
+      "status": "pending",
+      "description": "/deepseek-offload, /deepseek-workhorse, /ds-flash, /ds-pro overlap. Propose: keep /ds-flash and /ds-pro as direct lane calls; deprecate -offload and -workhorse through /offload.",
+      "severity": "low",
+      "affected_nodes": [
+        "ENKI_COMMANDS",
+        "CMD_DEEPSEEK_FAMILY"
+      ]
+    },
+    {
+      "id": "command-duplicates-probability",
+      "title": "Consolidate 3 probability commands -> 1",
+      "status": "pending",
+      "description": "/probabilistic-decision-core, /probability, /pdc are aliases. Pick one canonical.",
+      "severity": "low",
+      "affected_nodes": [
+        "ENKI_COMMANDS",
+        "CMD_PROBABILITY"
+      ]
+    },
+    {
+      "id": "command-duplicates-eot",
+      "title": "Merge /eot and /end-of-transmission",
+      "status": "pending",
+      "description": "Both point to the same skill. /eot is the short alias; make /end-of-transmission a synonym only.",
+      "severity": "low",
+      "affected_nodes": [
+        "ENKI_COMMANDS",
+        "CMD_EOT"
+      ]
+    },
+    {
+      "id": "command-duplicates-design",
+      "title": "Audit design command overlap",
+      "status": "pending",
+      "description": "/design-master, /design-source-pack, /frontend-design have different scopes but overlapping entry points. Consider unified /design with --mode flag.",
+      "severity": "low",
+      "affected_nodes": [
+        "ENKI_COMMANDS",
+        "CMD_DESIGN_FAMILY"
+      ]
+    },
+    {
+      "id": "enki-density",
+      "title": "ENKI has 30 incoming edges - high choke risk",
+      "status": "monitoring",
+      "description": "ENKI is the control plane convergence point. Consider whether some incoming returns could go to a separate state-aggregator node before ENKI.",
+      "severity": "medium",
+      "affected_nodes": [
+        "ENKI"
+      ]
+    },
+    {
+      "id": "command-spec-family",
+      "title": "Spec family - consider single /spec dispatcher",
+      "status": "pending",
+      "description": "/spec-intake, /spec-clarify, /spec-analyze, /spec-promote are 4 sequential pipeline stages. Could be /spec <stage> with --next flag.",
+      "severity": "low",
+      "affected_nodes": [
+        "ENKI_COMMANDS",
+        "CMD_SPEC_FAMILY"
+      ]
+    }
+  ]
 };
 
 const STAGES = GRAPH_STATE.layout.stages;
@@ -6608,7 +7619,7 @@ const edgeColorByType = {
   data: 0x4A9EFF,
   advises: 0x9B6EFF,
   gates: 0xFF6835,
-  memory: 0x74B9FF,
+  memory: 0xA8DCFF,
   return: 0x00D4FF,
   feedback: 0x74B9FF,
   validates: 0xFFB347,
@@ -6621,7 +7632,7 @@ const edgeOpacityByType = {
   data: 0.55,
   advises: 0.35,
   gates: 0.65,
-  memory: 0.30,
+  memory: 0.48,
   return: 0.35,
   feedback: 0.45,
   validates: 0.60,
@@ -6634,7 +7645,7 @@ const edgeWeightByType = {
   data: 0.7,
   advises: 0.5,
   gates: 1.0,
-  memory: 0.4,
+  memory: 0.5,
   return: 0.6,
   feedback: 0.8,
   validates: 1.0,
@@ -6713,6 +7724,24 @@ function makeDashedEdge(curve, type) {
   return group;
 }
 
+function makeArrowhead(curve, type) {
+  const color = type === 'return' ? 0xFF8855 : edgeColorByType[type];
+  const point = curve.getPoint(0.9);
+  const tangent = curve.getTangent(0.9).normalize();
+  const geom = new THREE.ConeGeometry(type === 'flow' ? 7 : 5, type === 'flow' ? 18 : 14, 16);
+  const mat = new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity: Math.min(1, edgeOpacityByType[type] + 0.24),
+    depthWrite: false
+  });
+  const arrow = new THREE.Mesh(geom, mat);
+  arrow.position.copy(point);
+  arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tangent);
+  arrow.userData.isArrowhead = true;
+  return arrow;
+}
+
 function setEdgeOpacity(edge, opacity) {
   edge.mesh.traverse(child => {
     if (child.material && 'opacity' in child.material) child.material.opacity = opacity;
@@ -6742,7 +7771,7 @@ function addEdge(source, target, type) {
     mesh = root.group;
   } else {
     curve = makeBezier(startNode.origPos, endNode.origPos, type);
-    if (type === 'return' || type === 'feedback' || type === 'logs') {
+    if (type === 'return' || type === 'feedback' || type === 'logs' || type === 'memory') {
       mesh = makeDashedEdge(curve, type);
     } else {
       const tubeGeom = new THREE.TubeGeometry(curve, 64, edgeWeightByType[type], 8, false);
@@ -6755,6 +7784,7 @@ function addEdge(source, target, type) {
       mesh = new THREE.Mesh(tubeGeom, tubeMat);
     }
   }
+  mesh.add(makeArrowhead(curve, type));
   edgeGroup.add(mesh);
 
   const edge = { source, target, type, curve, mesh, baseOpacity: edgeOpacityByType[type] };
@@ -6965,6 +7995,8 @@ function handleNodeClick(node, isDouble) {
 }
 
 let infoPanel = null;
+let upgradesPanel = null;
+const activeUpgradeNodeIds = new Set();
 
 function escHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -6997,6 +8029,31 @@ function returnRows(targets, isClosed) {
     ? '<span class="info-panel__badge info-panel__badge--closed">✓ CLOSED</span>'
     : '<span class="info-panel__badge info-panel__badge--dead">⚠ DEAD END</span>';
   return targets.map(target => `<div class="info-panel__edge"><span>${escHtml(target)}</span>${badge}</div>`).join('');
+}
+
+function commandRegistrySection(node) {
+  if (node.id !== 'ENKI') return '';
+  const commandRoot = GRAPH_STATE.nodes.find(item => item.id === 'ENKI_COMMANDS');
+  if (!commandRoot) return '';
+  const families = GRAPH_STATE.nodes.filter(item => item.parent === 'ENKI_COMMANDS');
+  const rows = families.map(family => {
+    const meta = family.metadata || {};
+    const commands = meta.commands || [];
+    const duplicateCount = (meta.duplicates_flagged || []).length;
+    const warning = duplicateCount ? '<span class="info-panel__badge" style="color:var(--orange)">MERGE</span>' : '<span class="info-panel__badge" style="color:var(--green)">OK</span>';
+    return `
+      <details class="info-panel__command-family">
+        <summary><span>${escHtml(family.label)} (${escHtml(meta.command_count || commands.length)})</span>${warning}</summary>
+        <div class="info-panel__command-list">${commands.map(command => `<code>/${escHtml(command)}</code>`).join('')}</div>
+      </details>
+    `;
+  }).join('');
+  return `
+    <div class="info-panel__section">
+      <div class="info-panel__heading">COMMANDS (${escHtml(commandRoot.metadata?.command_count || 50)} TOTAL)</div>
+      <div class="info-panel__commands">${rows}</div>
+    </div>
+  `;
 }
 
 function showInfoPanel(node) {
@@ -7042,6 +8099,7 @@ function showInfoPanel(node) {
       <div class="info-panel__heading">RETURNS TO ↑</div>
       <div class="info-panel__list">${returnRows(uniqueReturns, isClosed)}</div>
     </div>
+    ${commandRegistrySection(node)}
     <div class="info-panel__section">
       <div class="info-panel__heading">NOTES</div>
       <div class="info-panel__notes">${escHtml(meta.notes || 'No notes recorded.')}</div>
@@ -7056,6 +8114,97 @@ function closeInfoPanel() {
   infoPanel.remove();
   infoPanel = null;
 }
+
+function severityColor(severity, status) {
+  if (status === 'applied-v13') return '#00C896';
+  if (status === 'monitoring') return '#9B6EFF';
+  if (severity === 'high') return '#FF5252';
+  if (severity === 'medium') return '#FFB347';
+  return '#74B9FF';
+}
+
+function setUpgradeHighlight(upgrade, itemEl) {
+  activeUpgradeNodeIds.clear();
+  (upgrade.affected_nodes || []).forEach(id => activeUpgradeNodeIds.add(id));
+  document.querySelectorAll('.upgrade-item.is-active').forEach(item => item.classList.remove('is-active'));
+  if (itemEl) itemEl.classList.add('is-active');
+}
+
+function renderUpgradesPanel() {
+  const upgrades = GRAPH_STATE.upgrades_pending || [];
+  const rows = upgrades.map(upgrade => {
+    const color = severityColor(upgrade.severity, upgrade.status);
+    return `
+      <article class="upgrade-item" tabindex="0" data-upgrade-id="${escHtml(upgrade.id)}">
+        <div class="upgrade-item__top">
+          <span class="upgrade-item__dot" style="color:${color};background:${color}"></span>
+          <span class="upgrade-item__title">${escHtml(upgrade.title)}</span>
+          <span class="upgrade-item__status" style="color:${color}">${escHtml(upgrade.status)}</span>
+        </div>
+        <div class="upgrade-item__description">${escHtml(upgrade.description)}</div>
+        <button class="upgrade-item__apply" type="button" data-apply-id="${escHtml(upgrade.id)}">APPLY</button>
+      </article>
+    `;
+  }).join('');
+  return `
+    <aside class="upgrades-panel" aria-label="Architecture upgrades">
+      <div class="upgrades-panel__header">
+        <div class="upgrades-panel__title">UPGRADES</div>
+        <button class="upgrades-panel__close" type="button" aria-label="Close upgrades">×</button>
+      </div>
+      <div class="upgrade-list">${rows}</div>
+    </aside>
+  `;
+}
+
+function closeUpgradesPanel() {
+  if (!upgradesPanel) return;
+  upgradesPanel.remove();
+  upgradesPanel = null;
+  activeUpgradeNodeIds.clear();
+  upgradeToggle.classList.remove('is-active');
+  upgradeToggle.setAttribute('aria-expanded', 'false');
+}
+
+function openUpgradesPanel() {
+  closeInfoPanel();
+  closeUpgradesPanel();
+  const holder = document.createElement('div');
+  holder.innerHTML = renderUpgradesPanel();
+  upgradesPanel = holder.firstElementChild;
+  document.body.appendChild(upgradesPanel);
+  upgradeToggle.classList.add('is-active');
+  upgradeToggle.setAttribute('aria-expanded', 'true');
+  upgradesPanel.querySelector('.upgrades-panel__close').addEventListener('click', closeUpgradesPanel);
+  upgradesPanel.querySelectorAll('.upgrade-item').forEach(item => {
+    const upgrade = (GRAPH_STATE.upgrades_pending || []).find(entry => entry.id === item.dataset.upgradeId);
+    item.addEventListener('click', event => {
+      if (event.target.closest('.upgrade-item__apply')) return;
+      setUpgradeHighlight(upgrade, item);
+    });
+    item.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      setUpgradeHighlight(upgrade, item);
+    });
+  });
+  upgradesPanel.querySelectorAll('.upgrade-item__apply').forEach(button => {
+    button.addEventListener('click', event => {
+      const upgrade = (GRAPH_STATE.upgrades_pending || []).find(entry => entry.id === event.currentTarget.dataset.applyId);
+      if (!upgrade) return;
+      upgrade.status = 'applied-stub';
+      event.currentTarget.closest('.upgrade-item').querySelector('.upgrade-item__status').textContent = upgrade.status;
+    });
+  });
+}
+
+const upgradeToggle = document.querySelector('.upgrade-toggle');
+const pendingUpgradeCount = (GRAPH_STATE.upgrades_pending || []).filter(upgrade => upgrade.status === 'pending').length;
+upgradeToggle.textContent = `UPGRADES (${pendingUpgradeCount})`;
+upgradeToggle.addEventListener('click', () => {
+  if (upgradesPanel) closeUpgradesPanel();
+  else openUpgradesPanel();
+});
 
 renderer.domElement.addEventListener('click', event => {
   raycaster.setFromCamera(
@@ -7082,9 +8231,8 @@ renderer.domElement.addEventListener('click', event => {
 });
 
 window.addEventListener('pointerdown', event => {
-  if (!infoPanel) return;
-  if (infoPanel.contains(event.target) || event.target === renderer.domElement) return;
-  closeInfoPanel();
+  if (infoPanel && !infoPanel.contains(event.target) && event.target !== renderer.domElement) closeInfoPanel();
+  if (upgradesPanel && !upgradesPanel.contains(event.target) && event.target !== upgradeToggle) closeUpgradesPanel();
 });
 
 function getCollapsedAncestor(node) {
@@ -7101,10 +8249,10 @@ function updateLabelLOD() {
     const visibleInTree = isNodeExpandedInTree(node);
     const dist = camera.position.distanceTo(node.group.position);
     let targetOpacity = 1.0;
-    if (node.tier === 'sub') targetOpacity = dist < 600 ? 1.0 : 0.0;
-    if (node.tier === 'leaf') targetOpacity = dist < 350 ? 1.0 : 0.0;
+    if (node.tier === 'sub') targetOpacity = dist < 800 ? 1.0 : 0.0;
+    if (node.tier === 'leaf') targetOpacity = dist < 500 ? 1.0 : 0.0;
     if (!visibleInTree || node.expansionFactor < 0.2) targetOpacity = 0.0;
-    if (node === hovered) targetOpacity = 1.0;
+    if (node === hovered || activeUpgradeNodeIds.has(node.id)) targetOpacity = 1.0;
     node.labelOpacity += (targetOpacity - node.labelOpacity) * (reduceMotion ? 1 : 0.12);
     node.labelDiv.style.opacity = node.labelOpacity;
   });
@@ -7120,22 +8268,27 @@ function updateBadges() {
 }
 
 function applyHoverHighlight(activeNode) {
+  const hasUpgradeHighlight = activeUpgradeNodeIds.size > 0;
   edges.forEach(edge => {
     const sourceNode = nodeById.get(edge.source);
     const targetNode = nodeById.get(edge.target);
     const edgeVisible = sourceNode && targetNode && isNodeExpandedInTree(sourceNode) && isNodeExpandedInTree(targetNode) &&
       sourceNode.expansionFactor > 0.2 && targetNode.expansionFactor > 0.2;
-    const connected = !activeNode || edge.source === activeNode.id || edge.target === activeNode.id;
-    const targetOpacity = !edgeVisible ? 0 : activeNode ? (connected ? 0.95 : 0.06) : edge.baseOpacity;
+    const connected = activeNode
+      ? edge.source === activeNode.id || edge.target === activeNode.id
+      : hasUpgradeHighlight && (activeUpgradeNodeIds.has(edge.source) || activeUpgradeNodeIds.has(edge.target));
+    const targetOpacity = !edgeVisible ? 0 : (activeNode || hasUpgradeHighlight) ? (connected ? 0.95 : 0.06) : edge.baseOpacity;
     lerpEdgeOpacity(edge, targetOpacity, reduceMotion ? 1 : 0.15);
   });
 
   nodes.forEach(node => {
-    const linked = !activeNode || node === activeNode || edges.some(edge =>
-      (edge.source === activeNode.id && edge.target === node.id) ||
-      (edge.target === activeNode.id && edge.source === node.id)
-    );
-    const targetEmiss = activeNode ? (linked ? node.baseEmissive * 2.0 : node.baseEmissive * 0.5) : node.baseEmissive;
+    const linked = activeNode
+      ? node === activeNode || edges.some(edge =>
+        (edge.source === activeNode.id && edge.target === node.id) ||
+        (edge.target === activeNode.id && edge.source === node.id)
+      )
+      : !hasUpgradeHighlight || activeUpgradeNodeIds.has(node.id);
+    const targetEmiss = (activeNode || hasUpgradeHighlight) ? (linked ? node.baseEmissive * 2.0 : node.baseEmissive * 0.5) : node.baseEmissive;
     node.core.material.emissiveIntensity += (targetEmiss + node.pulseBoost - node.core.material.emissiveIntensity) * (reduceMotion ? 1 : 0.12);
   });
 }
