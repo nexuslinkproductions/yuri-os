@@ -72,6 +72,24 @@ Commands:
   @codex-spark|@spark|@fast-codex [prompt]
       Run the bounded Codex Spark offload lane (gpt-5.3-codex-spark).
 
+  @nvidia [prompt]
+      Run the default NVIDIA NIM lane (meta/llama-3.3-70b-instruct). Tools default ON.
+
+  @nvidia-llama-405b [prompt]
+      Run NVIDIA NIM with meta/llama-3.1-405b-instruct.
+
+  @nvidia-nemotron [prompt]
+      Run NVIDIA NIM with nvidia/llama-3.1-nemotron-70b-instruct.
+
+  @nvidia-mistral [prompt]
+      Run NVIDIA NIM with mistralai/mistral-large-2-instruct.
+
+  @nvidia-qwen [prompt]
+      Run NVIDIA NIM with qwen/qwen2.5-72b-instruct.
+
+  @nvidia-phi [prompt]
+      Run NVIDIA NIM with microsoft/phi-4.
+
   @deepseek [prompt]
       Run the default DeepSeek cloud lane. Local DeepSeek is frozen.
 

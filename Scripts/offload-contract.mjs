@@ -983,6 +983,8 @@ function buildEnsemble(complexityTier, scenario, openClawAdvisory) {
   ensemble.push('deepseek-preflight');
 
   if (complexityTier === 'complex' || complexityTier === 'critical') {
+    // nvidia-preflight runs in parallel with OpenClaw — different model family, additive perspective
+    ensemble.push('nvidia-preflight');
     if (openClawAdvisory && openClawAdvisory.decision !== 'skip') {
       ensemble.push('openclaw-preflight');
     }

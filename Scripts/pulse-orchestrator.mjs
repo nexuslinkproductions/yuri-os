@@ -36,6 +36,7 @@ const OPENCLAW_BRIDGE = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'openclaw-b
 const TIMEOUT_DEEPSEEK_MS = 60_000;
 const TIMEOUT_OPENCLAW_MS = 60_000;
 const TIMEOUT_SWARM_MS    = 90_000;
+const TIMEOUT_NVIDIA_MS   = 60_000;
 
 // Lazy require for the CommonJS pulse-bus module from ESM context
 const requireFromCjs = (await import('node:module')).createRequire(import.meta.url);
@@ -156,6 +157,30 @@ OUTPUT_CAP: 40 lines`;
   }
   const parsed = parseAdvisorOutput(result.stdout);
   return { source: 'DEEPSEEK', runtimeKind: 'model_advisor', ...parsed };
+}
+
+async function dispatchNvidiaPreflight(prompt, plan, turnId) {
+  if (!process.env.NVIDIA_API_KEY) return null;
+  const preflightPrompt = `PULSE_PREFLIGHT nvidia-advisory. Scenario=${plan.scenario}, tier=${plan.complexityTier}.
+LANE: ${plan.lane}
+TIER: ${plan.complexityTier}
+PROMPT: "${String(prompt).slice(0, 240)}"
+
+QUESTION: From your perspective as a different model family than DeepSeek, what risk, blind spot, or alternative approach should the main thread consider? 1-3 lines, 30 lines max.
+OUTPUT_CAP: 30 lines`;
+
+  const result = await execWithTimeout(
+    'bash',
+    [OFFLOAD_SH, '@nvidia', '--no-tools', preflightPrompt],
+    {},
+    TIMEOUT_NVIDIA_MS
+  );
+  if (result.code !== 0 || result.timedOut) {
+    logError(`NVIDIA preflight failed (code=${result.code} timeout=${!!result.timedOut})`);
+    return null;
+  }
+  const parsed = parseAdvisorOutput(result.stdout);
+  return { source: 'NVIDIA', runtimeKind: 'model_advisor', ...parsed };
 }
 
 async function dispatchOpenClawPreflight(prompt, plan, turnId) {
@@ -379,6 +404,7 @@ function buildTaskMap(ensemble, prompt, plan, turnId) {
   const m = {};
   for (const slot of ensemble) {
     if (slot === 'deepseek-preflight') m.deepseek = () => dispatchDeepSeekPreflight(prompt, plan, turnId);
+    if (slot === 'nvidia-preflight')   m.nvidia   = () => dispatchNvidiaPreflight(prompt, plan, turnId);
     if (slot === 'openclaw-preflight') m.openclaw = () => dispatchOpenClawPreflight(prompt, plan, turnId);
     if (slot === 'hermes-forecast')    m.hermesFC = () => dispatchHermesForecast(prompt, plan, turnId);
     if (slot === 'cassandra')          m.cassandra = () => dispatchCassandra(prompt, plan, turnId);

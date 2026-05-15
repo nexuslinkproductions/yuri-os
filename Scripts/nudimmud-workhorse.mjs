@@ -13,8 +13,10 @@ const INTENT_SCHEMA_PATH = 'Scripts/intent-schema.json'
 const ACTION_SCHEMA_PATH = 'Scripts/deepseek-action-schema.json'
 const OFFLOAD_RUNNER_PATH = 'Scripts/offload-runner.mjs'
 const EXECUTOR_PATH = 'Scripts/yuri-guarded-executor.mjs'
-const LIVE_PRO_LANE = 'deepseek-v4-pro'
-const LIVE_FLASH_LANE = 'deepseek-v4-flash'
+const LIVE_PRO_LANE = process.env.NUDIMMUD_WORKHORSE_PRO_LANE || 'deepseek-v4-pro'
+const LIVE_FLASH_LANE = process.env.NUDIMMUD_WORKHORSE_FLASH_LANE || 'deepseek-v4-flash'
+// Set NUDIMMUD_WORKHORSE_PRO_LANE=nvidia-nemotron (or any @nvidia variant) to use NVIDIA NIM
+// as the primary workhorse reasoning lane instead of DeepSeek.
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud', 'workhorse-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/nudimmud-workhorse-runs'
 const DEFAULT_MAX_LINES = 80
