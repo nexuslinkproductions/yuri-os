@@ -45,12 +45,15 @@ body::after {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 4;
   pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.025), transparent 12%, transparent 86%, rgba(0,0,0,0.28)),
-    repeating-linear-gradient(0deg, rgba(200,216,232,0.014) 0, rgba(200,216,232,0.014) 1px, transparent 1px, transparent 5px);
-  mix-blend-mode: screen;
+  z-index: 3;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0,0,0,0.0) 0%,
+    rgba(0,0,0,0.0) 30%,
+    rgba(80,140,200,0.04) 70%,
+    rgba(120,180,240,0.06) 100%
+  );
 }
 
 canvas {
@@ -99,20 +102,25 @@ canvas:active {
 
 .upgrade-toggle {
   position: fixed;
-  top: 68px;
-  right: 24px;
-  z-index: 12;
+  top: 80px;
+  left: 24px;
+  z-index: 200;
   min-width: 132px;
   padding: 8px 12px;
-  border: 1px solid rgba(0,212,255,0.28);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 2px solid rgba(0,212,255,0.4);
   border-radius: 4px;
-  background: rgba(7,15,38,0.82);
+  background: linear-gradient(180deg, rgba(11,31,62,0.55), rgba(7,15,38,0.45));
   color: var(--text-bright);
   font-family: "Space Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.10em;
   cursor: pointer;
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    0 10px 34px rgba(0,0,0,0.38),
+    inset 0 1px 0 rgba(255,255,255,0.10);
   transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
 }
 
@@ -123,6 +131,10 @@ canvas:active {
   color: var(--cyan);
   background: rgba(0,212,255,0.10);
   outline: none;
+}
+
+.upgrade-toggle.is-hidden {
+  display: none;
 }
 
 .graph-state {
@@ -581,21 +593,35 @@ canvas:active {
 
 .upgrades-panel {
   position: fixed;
+  left: 24px;
   top: 80px;
-  right: 24px;
-  z-index: 15;
+  bottom: 80px;
   width: 420px;
+  z-index: 200;
   max-width: calc(100vw - 48px);
-  max-height: calc(100vh - 120px);
-  padding: 20px;
+  padding: 26px 22px;
   overflow-y: auto;
-  border: 1px solid rgba(0,212,255,0.25);
-  border-left: 3px solid var(--cyan);
-  background: linear-gradient(180deg, rgba(11,31,62,0.97), rgba(7,15,38,0.97));
-  backdrop-filter: blur(20px);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), calc(100% - 16px) 100%, 0 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-left: 2px solid rgba(0,212,255,0.4);
+  background: linear-gradient(180deg, rgba(11,31,62,0.55) 0%, rgba(7,15,38,0.45) 100%);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  box-shadow:
+    0 12px 48px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    inset 0 -1px 0 rgba(0,0,0,0.30);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 16px) 100%, 0 100%);
   color: var(--text);
   font-family: "Inter", system-ui, sans-serif;
+}
+
+.upgrades-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 60%;
+  background: radial-gradient(ellipse at top, rgba(0,212,255,0.06), transparent 70%);
+  pointer-events: none;
 }
 
 .upgrades-panel__header {
@@ -608,9 +634,12 @@ canvas:active {
 
 .upgrades-panel__title {
   font-family: "Space Grotesk", sans-serif;
+  font-weight: 400;
   font-size: 14px;
-  color: var(--text-bright);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.16em;
+  color: #E8F4FD;
+  text-shadow: 0 0 14px rgba(0,212,255,0.4);
+  margin-bottom: 18px;
 }
 
 .upgrades-panel__close,
@@ -632,14 +661,17 @@ canvas:active {
 
 .upgrade-list {
   display: grid;
-  gap: 10px;
+  gap: 0;
 }
 
 .upgrade-item {
-  padding: 12px;
-  border: 1px solid rgba(200,216,232,0.10);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-left: 2px solid var(--severity-color);
   border-radius: 4px;
-  background: rgba(255,255,255,0.025);
+  background: rgba(13,21,38,0.45);
+  backdrop-filter: blur(10px);
   cursor: pointer;
   transition: border-color 180ms ease, background 180ms ease;
 }
@@ -730,7 +762,7 @@ canvas:active {
 
   .upgrade-toggle {
     top: 58px;
-    right: 16px;
+    left: 16px;
   }
 
   .graph-state {
@@ -774,7 +806,7 @@ canvas:active {
 <body>
 <div class="hud hud-title" aria-hidden="true">
   <div class="hud-title__name">YURI OS</div>
-  <div class="hud-title__meta">NUDIMMUD · main · 381f9876 · v13</div>
+  <div class="hud-title__meta">NUDIMMUD · main · 381f9876 · v14</div>
 </div>
 
 <div class="hud hud-status" aria-hidden="true">
@@ -806,7 +838,7 @@ canvas:active {
   <span class="legend-item"><span class="legend-badge">3</span>COLLAPSED</span>
 </div>
 
-<div class="hud status-strip" aria-hidden="true">TIER CRITICAL · PROTOCOL-CHANGE · <span id="node-count">0</span> NODES · <span id="edge-count">0</span> EDGES · <span id="loop-count">0</span> CLOSED LOOPS · DEAD ENDS: <span id="dead-end-count" class="dead-end-count">0</span> · v13</div>
+<div class="hud status-strip" aria-hidden="true">TIER CRITICAL · PROTOCOL-CHANGE · <span id="node-count">0</span> NODES · <span id="edge-count">0</span> EDGES · <span id="loop-count">0</span> CLOSED LOOPS · DEAD ENDS: <span id="dead-end-count" class="dead-end-count">0</span> · v14</div>
 
 <nav class="view-controls" aria-label="Camera presets">
   <button type="button" data-view="FRONT">FRONT</button>
@@ -827,7 +859,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0B1F3E);
+scene.background = new THREE.Color(0x040A1C);
 scene.fog = null;
 
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 65000);
@@ -7299,6 +7331,12 @@ const GRAPH_STATE = {
 
 const STAGES = GRAPH_STATE.layout.stages;
 const stageById = new Map(STAGES.map(stage => [stage.id, stage]));
+const planeRadiusByNodeId = new Map();
+GRAPH_STATE.sectors.forEach(sector => {
+  Object.entries(sector.plane_radii || {}).forEach(([id, radius]) => {
+    planeRadiusByNodeId.set(id, radius);
+  });
+});
 const graphNodeDefs = GRAPH_STATE.nodes.map(node => ({
   id: node.id,
   label: node.label,
@@ -7309,6 +7347,8 @@ const graphNodeDefs = GRAPH_STATE.nodes.map(node => ({
   tier: node.tier,
   parent: node.parent,
   sector: node.sector,
+  plane_radius: planeRadiusByNodeId.get(node.id) || node.plane_radius,
+  twist: stageById.get(node.id)?.twist || 0,
   metadata: node.metadata || {},
   position: new THREE.Vector3(node.position.x, node.position.y, node.position.z)
 }));
@@ -7354,11 +7394,15 @@ const nebulaMat = new THREE.ShaderMaterial({
     varying vec3 vPos;
     uniform float uTime;
     void main(){
+      float radial = length(vec2(vPos.x, vPos.z)) / 5500.0;
+      radial = clamp(radial, 0.0, 1.0);
       float h = (vPos.y + 4000.0) / 8000.0;
-      vec3 deep = vec3(0.043, 0.122, 0.243);
-      vec3 mid  = vec3(0.074, 0.157, 0.310);
-      vec3 high = vec3(0.122, 0.220, 0.412);
-      vec3 col = mix(deep, mix(mid, high, smoothstep(0.5,1.0,h)), smoothstep(0.0,0.5,h));
+      vec3 deepCenter = vec3(0.002, 0.010, 0.045);
+      vec3 midRing    = vec3(0.020, 0.060, 0.155);
+      vec3 outerLight = vec3(0.050, 0.140, 0.275);
+      vec3 base = mix(deepCenter, midRing, smoothstep(0.0, 0.45, radial));
+      vec3 col = mix(base, outerLight, smoothstep(0.45, 1.0, radial));
+      col *= mix(0.85, 1.05, smoothstep(0.0, 1.0, h));
       col += 0.012 * sin(vPos.x*0.001 + uTime*0.05) * sin(vPos.z*0.0015);
       gl_FragColor = vec4(col, 1.0);
     }
@@ -7510,6 +7554,48 @@ function addHoverRing(node, group) {
   group.userData.hoverRing = ring;
 }
 
+function makeDistrictPlane(stageY, radius, colorHex, twist) {
+  const shape = new THREE.Shape();
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * 60 + 30) * Math.PI / 180;
+    const x = radius * Math.cos(angle);
+    const z = radius * Math.sin(angle);
+    if (i === 0) shape.moveTo(x, z);
+    else shape.lineTo(x, z);
+  }
+  shape.closePath();
+
+  const geometry = new THREE.ShapeGeometry(shape);
+  geometry.rotateX(Math.PI / 2);
+
+  const fillMat = new THREE.MeshBasicMaterial({
+    color: colorHex,
+    transparent: true,
+    opacity: 0.025,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+  const fillMesh = new THREE.Mesh(geometry, fillMat);
+  fillMesh.position.y = stageY;
+  fillMesh.rotation.y = twist;
+
+  const outlineGeom = new THREE.EdgesGeometry(geometry);
+  const outlineMat = new THREE.LineBasicMaterial({
+    color: colorHex,
+    transparent: true,
+    opacity: 0.30,
+    depthWrite: false
+  });
+  const outline = new THREE.LineSegments(outlineGeom, outlineMat);
+  outline.position.y = stageY;
+  outline.rotation.y = twist;
+
+  fillMesh.userData.isDistrictPlane = true;
+  outline.userData.isDistrictPlane = true;
+
+  return { fill: fillMesh, outline };
+}
+
 const nodes = [];
 const nodeById = new Map();
 const raycastMeshes = [];
@@ -7563,6 +7649,16 @@ nodes.forEach(node => {
   const { badge, badgeDiv } = makeCollapseBadge(node);
   node.group.add(badge);
   node.badgeDiv = badgeDiv;
+});
+
+const districtPlanes = {};
+nodes.filter(node => node.tier === 'section').forEach((section, sectionIndex) => {
+  const sectorColor = parseInt(section.color.replace('#', ''), 16);
+  const radius = section.plane_radius || 320;
+  const { fill, outline } = makeDistrictPlane(section.position.y, radius, sectorColor, section.twist || 0);
+  scene.add(fill);
+  scene.add(outline);
+  districtPlanes[section.id] = { fill, outline, sectionIndex };
 });
 
 nodes.forEach(node => {
@@ -7925,6 +8021,10 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2(-2, -2);
 let hovered = null;
 let clickTimer = null;
+let focusedNode = null;
+let savedCameraPos = null;
+let savedTarget = null;
+let cameraTweenToken = 0;
 
 function isNodeExpandedInTree(node) {
   let current = node.parentNode;
@@ -7956,15 +8056,95 @@ function setHovered(node) {
   if (hovered) hovered.labelDiv.classList.add('expanded');
 }
 
-function updateRaycast() {
-  raycaster.setFromCamera(pointer, camera);
+function raycastPickFromPointer(pointerValue) {
+  raycaster.setFromCamera(pointerValue, camera);
   const hits = raycaster.intersectObjects(raycastMeshes, false);
   const visibleHit = hits.find(hit => {
     const node = nodeById.get(hit.object.userData.nodeId);
     return node && isNodeInteractable(node);
   });
-  const hit = visibleHit ? nodeById.get(visibleHit.object.userData.nodeId) : null;
+  return visibleHit ? nodeById.get(visibleHit.object.userData.nodeId) : null;
+}
+
+function raycastPick(event) {
+  return raycastPickFromPointer(new THREE.Vector2(
+    (event.clientX / window.innerWidth) * 2 - 1,
+    -(event.clientY / window.innerHeight) * 2 + 1
+  ));
+}
+
+function updateRaycast() {
+  const hit = raycastPickFromPointer(pointer);
   setHovered(hit || null);
+}
+
+function focusedFamilyIds(node) {
+  const family = new Set([node.id]);
+  node.children.forEach(child => family.add(child.id));
+  edges.forEach(edge => {
+    if (edge.source === node.id) family.add(edge.target);
+    if (edge.target === node.id) family.add(edge.source);
+  });
+  return family;
+}
+
+function isInFocusedFamily(nodeId) {
+  if (!focusedNode) return false;
+  return focusedFamilyIds(focusedNode).has(nodeId);
+}
+
+function computeFamilyExtent(node) {
+  const family = focusedFamilyIds(node);
+  let maxDist = node.r || 50;
+  family.forEach(id => {
+    const other = nodeById.get(id);
+    if (!other) return;
+    const dist = node.position.distanceTo(other.position);
+    if (dist > maxDist) maxDist = dist;
+  });
+  return maxDist + 100;
+}
+
+function tweenCamera(targetPos, targetLook, duration) {
+  const token = ++cameraTweenToken;
+  const startTime = performance.now();
+  const startPos = camera.position.clone();
+  const startTarget = controls.target.clone();
+  function tick() {
+    if (token !== cameraTweenToken) return;
+    const t = Math.min(1, (performance.now() - startTime) / (reduceMotion ? 1 : duration));
+    const e = 0.5 - 0.5 * Math.cos(Math.PI * t);
+    camera.position.lerpVectors(startPos, targetPos, e);
+    controls.target.lerpVectors(startTarget, targetLook, e);
+    controls.update();
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function focusNode(node) {
+  if (focusedNode === node) return;
+  if (!focusedNode) {
+    savedCameraPos = camera.position.clone();
+    savedTarget = controls.target.clone();
+  }
+  focusedNode = node;
+  const nodePos = node.position.clone();
+  const familyExtent = computeFamilyExtent(node);
+  const camDistance = Math.max(familyExtent * 2.5, 400);
+  const forward = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+  const targetCamPos = nodePos.clone().add(forward.multiplyScalar(camDistance));
+  tweenCamera(targetCamPos, nodePos, 900);
+}
+
+function unfocusNode() {
+  if (!focusedNode) return;
+  focusedNode = null;
+  if (savedCameraPos && savedTarget) {
+    tweenCamera(savedCameraPos, savedTarget, 900);
+  }
+  savedCameraPos = null;
+  savedTarget = null;
 }
 
 function toggleExpansion(node) {
@@ -7983,13 +8163,19 @@ function toggleExpansion(node) {
 
 function handleNodeClick(node, isDouble) {
   if (!node) {
-    if (!isDouble) closeInfoPanel();
+    if (!isDouble) {
+      closeInfoPanel();
+      if (focusedNode) unfocusNode();
+    }
     return;
   }
   if (isDouble) {
     closeInfoPanel();
     toggleExpansion(node);
     return;
+  }
+  if (!focusedNode || !isInFocusedFamily(node.id)) {
+    focusNode(node);
   }
   showInfoPanel(node);
 }
@@ -8135,7 +8321,7 @@ function renderUpgradesPanel() {
   const rows = upgrades.map(upgrade => {
     const color = severityColor(upgrade.severity, upgrade.status);
     return `
-      <article class="upgrade-item" tabindex="0" data-upgrade-id="${escHtml(upgrade.id)}">
+      <article class="upgrade-item" tabindex="0" data-upgrade-id="${escHtml(upgrade.id)}" style="--severity-color:${color}">
         <div class="upgrade-item__top">
           <span class="upgrade-item__dot" style="color:${color};background:${color}"></span>
           <span class="upgrade-item__title">${escHtml(upgrade.title)}</span>
@@ -8163,6 +8349,7 @@ function closeUpgradesPanel() {
   upgradesPanel = null;
   activeUpgradeNodeIds.clear();
   upgradeToggle.classList.remove('is-active');
+  upgradeToggle.classList.remove('is-hidden');
   upgradeToggle.setAttribute('aria-expanded', 'false');
 }
 
@@ -8174,6 +8361,7 @@ function openUpgradesPanel() {
   upgradesPanel = holder.firstElementChild;
   document.body.appendChild(upgradesPanel);
   upgradeToggle.classList.add('is-active');
+  upgradeToggle.classList.add('is-hidden');
   upgradeToggle.setAttribute('aria-expanded', 'true');
   upgradesPanel.querySelector('.upgrades-panel__close').addEventListener('click', closeUpgradesPanel);
   upgradesPanel.querySelectorAll('.upgrade-item').forEach(item => {
@@ -8207,24 +8395,13 @@ upgradeToggle.addEventListener('click', () => {
 });
 
 renderer.domElement.addEventListener('click', event => {
-  raycaster.setFromCamera(
-    new THREE.Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1),
-    camera
-  );
-  const hits = raycaster.intersectObjects(raycastMeshes, false);
-  const visibleHit = hits.find(hit => {
-    const node = nodeById.get(hit.object.userData.nodeId);
-    return node && isNodeInteractable(node);
-  });
-  const picked = visibleHit ? nodeById.get(visibleHit.object.userData.nodeId) : null;
-
   if (clickTimer) {
     clearTimeout(clickTimer);
     clickTimer = null;
-    handleNodeClick(picked, true);
+    handleNodeClick(raycastPick(event), true);
   } else {
     clickTimer = setTimeout(() => {
-      handleNodeClick(picked, false);
+      handleNodeClick(raycastPick(event), false);
       clickTimer = null;
     }, 250);
   }
@@ -8233,6 +8410,16 @@ renderer.domElement.addEventListener('click', event => {
 window.addEventListener('pointerdown', event => {
   if (infoPanel && !infoPanel.contains(event.target) && event.target !== renderer.domElement) closeInfoPanel();
   if (upgradesPanel && !upgradesPanel.contains(event.target) && event.target !== upgradeToggle) closeUpgradesPanel();
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  if (focusedNode) {
+    unfocusNode();
+    return;
+  }
+  if (upgradesPanel) closeUpgradesPanel();
+  else closeInfoPanel();
 });
 
 function getCollapsedAncestor(node) {
@@ -8245,6 +8432,8 @@ function getCollapsedAncestor(node) {
 }
 
 function updateLabelLOD() {
+  const activeNode = focusedNode || hovered;
+  const activeFamily = activeNode ? focusedFamilyIds(activeNode) : null;
   nodes.forEach(node => {
     const visibleInTree = isNodeExpandedInTree(node);
     const dist = camera.position.distanceTo(node.group.position);
@@ -8252,7 +8441,7 @@ function updateLabelLOD() {
     if (node.tier === 'sub') targetOpacity = dist < 800 ? 1.0 : 0.0;
     if (node.tier === 'leaf') targetOpacity = dist < 500 ? 1.0 : 0.0;
     if (!visibleInTree || node.expansionFactor < 0.2) targetOpacity = 0.0;
-    if (node === hovered || activeUpgradeNodeIds.has(node.id)) targetOpacity = 1.0;
+    if ((activeFamily && activeFamily.has(node.id)) || activeUpgradeNodeIds.has(node.id)) targetOpacity = 1.0;
     node.labelOpacity += (targetOpacity - node.labelOpacity) * (reduceMotion ? 1 : 0.12);
     node.labelDiv.style.opacity = node.labelOpacity;
   });
@@ -8290,6 +8479,23 @@ function applyHoverHighlight(activeNode) {
       : !hasUpgradeHighlight || activeUpgradeNodeIds.has(node.id);
     const targetEmiss = (activeNode || hasUpgradeHighlight) ? (linked ? node.baseEmissive * 2.0 : node.baseEmissive * 0.5) : node.baseEmissive;
     node.core.material.emissiveIntensity += (targetEmiss + node.pulseBoost - node.core.material.emissiveIntensity) * (reduceMotion ? 1 : 0.12);
+  });
+}
+
+function updateDistrictPlanes(time) {
+  let focusedSectionId = null;
+  if (focusedNode) {
+    let current = focusedNode;
+    while (current && current.tier !== 'section') current = current.parentNode;
+    focusedSectionId = current?.id || null;
+  }
+  Object.entries(districtPlanes).forEach(([sectionId, plane]) => {
+    const focused = focusedSectionId && sectionId === focusedSectionId;
+    const dimmed = focusedNode && !focused;
+    const baseOpacity = dimmed ? 0.10 : (focused ? 0.60 : 0.30);
+    const breath = reduceMotion || focusedNode ? baseOpacity : baseOpacity + 0.05 * Math.sin(time * 0.0008 + plane.sectionIndex * 0.5);
+    plane.outline.material.opacity += (breath - plane.outline.material.opacity) * (reduceMotion ? 1 : 0.12);
+    plane.fill.material.opacity += ((dimmed ? 0.010 : 0.025) - plane.fill.material.opacity) * (reduceMotion ? 1 : 0.12);
   });
 }
 
@@ -8417,7 +8623,8 @@ function animate(time) {
   updateRaycast();
   updateHoverPhysics(time);
   updateEdgeMotion();
-  applyHoverHighlight(hovered);
+  applyHoverHighlight(focusedNode || hovered);
+  updateDistrictPlanes(time);
   updateLabelLOD();
   updateBadges();
   maybeSpawnPulse(dt);

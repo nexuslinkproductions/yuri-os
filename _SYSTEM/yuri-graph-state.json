@@ -1,5 +1,5 @@
 {
-  "version": "v13",
+  "version": "v14",
   "generated_at": "2026-05-15T17:02:57.023Z",
   "commit": "381f9876",
   "sectors": [
@@ -9,7 +9,11 @@
       "nodes": [
         "ENKI",
         "ENKI_DECIDES"
-      ]
+      ],
+      "plane_radii": {
+        "ENKI": 360,
+        "ENKI_DECIDES": 300
+      }
     },
     {
       "name": "operator_io",
@@ -18,7 +22,12 @@
         "USER",
         "USER_INPUT",
         "RESPONSE"
-      ]
+      ],
+      "plane_radii": {
+        "USER": 140,
+        "USER_INPUT": 140,
+        "RESPONSE": 140
+      }
     },
     {
       "name": "initialization",
@@ -32,7 +41,10 @@
         "SOUL_FILE",
         "NUDIMMUD_COG",
         "PALACE_IDX"
-      ]
+      ],
+      "plane_radii": {
+        "SESSION_INIT": 320
+      }
     },
     {
       "name": "prompt_hooks",
@@ -47,7 +59,10 @@
         "GITNEX_PRE",
         "SCOUT_HERMES",
         "SCOUT_ARGUS"
-      ]
+      ],
+      "plane_radii": {
+        "PROMPT_HOOKS": 340
+      }
     },
     {
       "name": "pulse_cortex",
@@ -62,7 +77,11 @@
         "PB_RING",
         "PB_CONSUME",
         "PB_THROTTLE"
-      ]
+      ],
+      "plane_radii": {
+        "NEXUSPULSE": 300,
+        "PULSE_BUS": 280
+      }
     },
     {
       "name": "classification",
@@ -75,7 +94,10 @@
         "CRITICAL",
         "CLF_SCENARIO",
         "CLF_ROUTE_PLAN"
-      ]
+      ],
+      "plane_radii": {
+        "CLASSIFIER": 340
+      }
     },
     {
       "name": "advisors",
@@ -93,7 +115,10 @@
         "OC_BRIDGE",
         "SWARM_FLASH",
         "SWARM_PRO"
-      ]
+      ],
+      "plane_radii": {
+        "ADVISORS": 400
+      }
     },
     {
       "name": "routing_lanes",
@@ -110,7 +135,10 @@
         "LANE_GPTOSS",
         "MINI_WRITE",
         "CDX_FULL"
-      ]
+      ],
+      "plane_radii": {
+        "ROUTING": 400
+      }
     },
     {
       "name": "codex_gate",
@@ -122,7 +150,10 @@
         "APPLY",
         "PROP_DRYRUN",
         "APPLY_HEAD"
-      ]
+      ],
+      "plane_radii": {
+        "CODEX_GATE": 300
+      }
     },
     {
       "name": "memory",
@@ -142,7 +173,10 @@
         "COLD_WIKI",
         "COLD_TAXONOMY",
         "COLD_RULES"
-      ]
+      ],
+      "plane_radii": {
+        "MEMORY": 360
+      }
     },
     {
       "name": "services",
@@ -156,7 +190,10 @@
         "SVC_EOT",
         "SVC_DIGEST",
         "SVC_OLLAMA"
-      ]
+      ],
+      "plane_radii": {
+        "SERVICES": 360
+      }
     },
     {
       "name": "code_intelligence",
@@ -168,7 +205,10 @@
         "GN_QUERY",
         "GN_SYMBOL_GRAPH",
         "GN_FLOW_TRACE"
-      ]
+      ],
+      "plane_radii": {
+        "GITNEXUS": 280
+      }
     },
     {
       "name": "self_improvement",
@@ -182,7 +222,10 @@
         "SKILL_REGISTRY",
         "PRECOMMIT_REGRESS",
         "BEACON_OBSIDIAN"
-      ]
+      ],
+      "plane_radii": {
+        "SELF_IMPROVE": 300
+      }
     },
     {
       "name": "command_registry",
