@@ -883,8 +883,11 @@ document.body.appendChild(labelRenderer.domElement);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.55, 0.42, 0.32);
-composer.addPass(bloom);
+// v15 hotfix — bloom disabled per user request. Pass instance kept for future re-enable.
+// Previous bloom params caused MRT alpha-clipping at low-brightness regions producing
+// large black rectangles especially visible when zoomed out.
+const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.15, 0.42, 0.85);
+// composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
 scene.add(new THREE.AmbientLight(0x1B2540, 0.35));
@@ -7757,9 +7760,9 @@ const nebulaMat = new THREE.ShaderMaterial({
       float radial = length(vec2(vPos.x, vPos.z)) / 5500.0;
       radial = clamp(radial, 0.0, 1.0);
       float h = (vPos.y + 4000.0) / 8000.0;
-      vec3 deepCenter = vec3(0.002, 0.010, 0.045);
-      vec3 midRing    = vec3(0.020, 0.060, 0.155);
-      vec3 outerLight = vec3(0.050, 0.140, 0.275);
+      vec3 deepCenter = vec3(0.030, 0.075, 0.155);
+      vec3 midRing    = vec3(0.045, 0.110, 0.205);
+      vec3 outerLight = vec3(0.075, 0.165, 0.295);
       vec3 base = mix(deepCenter, midRing, smoothstep(0.0, 0.45, radial));
       vec3 col = mix(base, outerLight, smoothstep(0.45, 1.0, radial));
       col *= mix(0.85, 1.05, smoothstep(0.0, 1.0, h));
@@ -7933,22 +7936,26 @@ function makeDistrictPlane(stageY, radius, colorHex, twist) {
     transparent: true,
     opacity: 0.025,
     side: THREE.DoubleSide,
-    depthWrite: false
+    depthWrite: false,
+    depthTest: true
   });
   const fillMesh = new THREE.Mesh(geometry, fillMat);
   fillMesh.position.y = stageY;
   fillMesh.rotation.y = twist;
+  fillMesh.renderOrder = -1;
 
   const outlineGeom = new THREE.EdgesGeometry(geometry);
   const outlineMat = new THREE.LineBasicMaterial({
     color: colorHex,
     transparent: true,
     opacity: 0.30,
-    depthWrite: false
+    depthWrite: false,
+    depthTest: true
   });
   const outline = new THREE.LineSegments(outlineGeom, outlineMat);
   outline.position.y = stageY;
   outline.rotation.y = twist;
+  outline.renderOrder = -1;
 
   fillMesh.userData.isDistrictPlane = true;
   outline.userData.isDistrictPlane = true;
@@ -8012,14 +8019,17 @@ nodes.forEach(node => {
 });
 
 const districtPlanes = {};
+const DISTRICT_PLANES_ENABLED = true;  // v15 hotfix — restored after confirming bloom was the actual culprit
+if (DISTRICT_PLANES_ENABLED) {
 nodes.filter(node => node.tier === 'section').forEach((section, sectionIndex) => {
   const sectorColor = parseInt(section.color.replace('#', ''), 16);
   const radius = section.plane_radius || 320;
   const { fill, outline } = makeDistrictPlane(section.position.y, radius, sectorColor, section.twist || 0);
   scene.add(fill);
   scene.add(outline);
-  districtPlanes[section.id] = { fill, outline, sectionIndex };
+  districtPlanes[section.id] = { fill, outline, sectionIndex, sectionNode: section };
 });
+}
 
 nodes.forEach(node => {
   if (node.tier !== 'leaf') return;
@@ -8854,6 +8864,17 @@ function updateDistrictPlanes(time) {
     const dimmed = focusedNode && !focused;
     const baseOpacity = dimmed ? 0.10 : (focused ? 0.60 : 0.30);
     const breath = reduceMotion || focusedNode ? baseOpacity : baseOpacity + 0.05 * Math.sin(time * 0.0008 + plane.sectionIndex * 0.5);
+    const sectionY = plane.sectionNode?.group?.position?.y ?? plane.sectionNode?.position?.y;
+    if (Number.isFinite(sectionY)) {
+      plane.fill.position.y = sectionY;
+      plane.outline.position.y = sectionY;
+    }
+    plane.fill.renderOrder = -1;
+    plane.outline.renderOrder = -1;
+    plane.fill.material.transparent = true;
+    plane.outline.material.transparent = true;
+    plane.fill.material.depthWrite = false;
+    plane.outline.material.depthWrite = false;
     plane.outline.material.opacity += (breath - plane.outline.material.opacity) * (reduceMotion ? 1 : 0.12);
     plane.fill.material.opacity += ((dimmed ? 0.010 : 0.025) - plane.fill.material.opacity) * (reduceMotion ? 1 : 0.12);
   });
