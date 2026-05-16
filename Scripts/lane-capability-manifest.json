@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "updated": "2026-05-16",
+  "lanes": {
+    "deepseek-v4-pro": { "models": ["deepseek-chat"], "ctx_window": "large", "tools": true, "latency_tier": "medium", "cost_tier": "medium", "privacy": "cloud", "capabilities": ["deep-reasoning", "architecture", "risk-review", "decomposition"], "available": true },
+    "deepseek-v4-flash": { "models": ["deepseek-chat"], "ctx_window": "large", "tools": true, "latency_tier": "low", "cost_tier": "low", "privacy": "cloud", "capabilities": ["fast-triage", "condensation", "sanity-review"], "available": true },
+    "deepseek-r1:8b": { "models": ["deepseek-r1:8b"], "ctx_window": "medium", "tools": false, "latency_tier": "medium", "cost_tier": "free", "privacy": "local", "capabilities": ["local-reasoning", "deep-reasoning"], "available": false },
+    "gpt-5.5": { "models": ["gpt-5.5"], "ctx_window": "extended", "tools": true, "latency_tier": "medium", "cost_tier": "high", "privacy": "cloud", "capabilities": ["implementation", "architecture", "code", "extended-reasoning"], "available": true },
+    "gpt-5.4-mini": { "models": ["gpt-5.4-mini"], "ctx_window": "medium", "tools": true, "latency_tier": "low", "cost_tier": "low", "privacy": "cloud", "capabilities": ["implementation", "code", "mechanical"], "available": true },
+    "qwen2.5:7b": { "models": ["qwen2.5:7b"], "ctx_window": "medium", "tools": false, "latency_tier": "low", "cost_tier": "free", "privacy": "local", "capabilities": ["summarization", "triage", "extraction"], "available": true },
+    "qwen2.5-coder:7b": { "models": ["qwen2.5-coder:7b"], "ctx_window": "medium", "tools": false, "latency_tier": "low", "cost_tier": "free", "privacy": "local", "capabilities": ["code", "local-code", "patch"], "available": true },
+    "kimi-k2.6": { "models": ["moonshot-v1-128k"], "ctx_window": "extended", "tools": true, "latency_tier": "medium", "cost_tier": "medium", "privacy": "cloud", "capabilities": ["long-context", "deep-synthesis"], "available": true },
+    "nvidia-nemotron-70b": { "models": ["nvidia/llama-3.1-nemotron-70b-instruct"], "ctx_window": "large", "tools": true, "latency_tier": "medium", "cost_tier": "medium", "privacy": "cloud", "capabilities": ["hosted-reasoning", "ensemble"], "available": true },
+    "ollama-local": { "models": ["qwen2.5:7b"], "ctx_window": "medium", "tools": false, "latency_tier": "low", "cost_tier": "free", "privacy": "local", "capabilities": ["private-utility", "local-reasoning"], "available": true },
+    "codex-spark": { "models": ["gpt-5.4-mini"], "ctx_window": "medium", "tools": true, "latency_tier": "low", "cost_tier": "low", "privacy": "cloud", "capabilities": ["implementation", "sandbox", "code"], "available": true },
+    "claude": { "models": [], "ctx_window": "large", "tools": true, "latency_tier": "medium", "cost_tier": "high", "privacy": "external", "capabilities": ["advisory", "architecture", "risk-review"], "available": false, "note": "opt-in only - set available: true only with explicit ANTHROPIC_API_KEY" }
+  }
+}
