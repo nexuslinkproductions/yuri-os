@@ -57,7 +57,15 @@ function updateSkillNotes(state) {
     : (state.context?.pct || 0);
   const compactCount = state.compact_history.filter(h => h.action !== 'logged').length;
   const toolSummary = summarizeTools(state.tools_used);
-  const corrections = ''; // populated by nisaba dream; not available here
+  const corrections = (() => {
+    try {
+      const date = new Date().toISOString().slice(0, 10);
+      const file = path.join(process.cwd(), '.claude', 'nisaba', 'learning', 'sessions', `${date}.jsonl`);
+      const lines = fs.readFileSync(file, 'utf8').trim().split('\n').filter(Boolean);
+      const last = JSON.parse(lines[lines.length - 1]);
+      return (last.corrections || []).slice(0, 3).join(' | ');
+    } catch { return ''; }
+  })();
   const errors = state.errors.length ? state.errors.map(e => e.snippet).slice(0, 2).join('; ') : 'none';
 
   const noteBlock =

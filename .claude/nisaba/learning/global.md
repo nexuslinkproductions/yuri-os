@@ -45,3 +45,10 @@ Subagents get this through the start hook; the root session must still treat it 
 - Root `SessionStart` hook loads this file automatically.
 - Keep the active session as router, overseer, and finalizer.
 - Return results to the overseer for merge only.
+
+### Auto-synthesized 2026-05-16
+- **Diagnose before iterating.** When a visual bug repeats across zoom levels (black boxes, LOD cutoffs), stop tweaking parameters. Find the rendering root cause first — likely a frustum culling or bounding-box calculation error, not a distance/LOD setting.
+- **Complete one pipeline before starting another.** Deepseek triage, design iterations, and EOT reflection cannot all be in-flight simultaneously. Finish or explicitly kill a thread before spawning the next.
+- **Verify offload artifacts before declaring done.** When delegating to @deepseek or codex, confirm the output was received and usable. "Proceed delicately" without confirming receipt guarantees orphaned work.
+- **Treat CASSANDRA CRITICAL findings as blockers, not info.** Tainted token replay with `outcome_marker: "wrong"` means a real vulnerability was misclassified. Route CRITICAL findings through a human-visible interrupt gate before continuing.
+- **Lock EOT mode until completion.** `/end-of-transmission` invoked three times in one session means it's not completing. Gate subsequent invocations behind a completion check — no new EOT while one is still writing artifacts.

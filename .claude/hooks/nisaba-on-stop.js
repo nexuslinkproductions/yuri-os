@@ -6,6 +6,7 @@ const { spawn } = require('child_process');
 
 const PROJECT_LEARNING_DIR = path.join(process.cwd(), '.claude', 'nisaba', 'learning');
 const SESSIONS_DIR = path.join(PROJECT_LEARNING_DIR, 'sessions');
+const STATE_FILE = path.join(process.cwd(), '.claude', 'state', 'session-state.json');
 
 const COOLDOWN_MS = 4 * 3_600_000;
 const MIN_SESSIONS = 3;
@@ -56,7 +57,7 @@ function parseSession(sessionId, transcriptPath) {
       if (role === 'user' && block.type === 'text') {
         const text = (block.text || '').trim();
         if (text.length > 2) {
-          humanMessages.push(text.slice(0, 300));
+          humanMessages.push(text.slice(0, 800));
           const correctionPatterns = [
             /\bno[,.]?\s+(don'?t|remove|stop|never|avoid)/i,
             /\bwrong\b/i,
@@ -98,6 +99,20 @@ function parseSession(sessionId, transcriptPath) {
     }
   }
 
+  let files_modified = [];
+  let error_snippets = [];
+  let commit_messages = [];
+  try {
+    const state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+    files_modified = (state.files_written || []).map(f => path.basename(f));
+    error_snippets = (state.errors || []).slice(0, 3).map(e => (e.snippet || '').slice(0, 120));
+  } catch {}
+  try {
+    const { execSync } = require('child_process');
+    const log = execSync('git log --oneline -5 --no-merges', { cwd: process.cwd(), timeout: 3000, encoding: 'utf8' });
+    commit_messages = log.trim().split('\n').filter(Boolean).slice(0, 5);
+  } catch {}
+
   return {
     id: `sess-${Date.now()}-${crypto.randomBytes(2).toString('hex')}`,
     ts: new Date().toISOString(),
@@ -107,6 +122,9 @@ function parseSession(sessionId, transcriptPath) {
     corrections: corrections,
     agents_run: agentsRun,
     skills_read: [...skillsRead],
+    files_modified,
+    error_snippets,
+    commit_messages,
   };
 }
 
