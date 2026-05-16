@@ -14,7 +14,7 @@ _NEW_ANTHROPIC=$(git diff --cached -- '*.mjs' '*.js' '*.ts' '*.sh' '*.md' \
   | grep "^+" \
   | grep -vE "^\+\+\+|PRICING\[|pricing_per_million|opt-in|# date-verified|tracking|// date-verified" \
   | grep -E "claude-(sonnet|haiku|opus)|api\.anthropic\.com|claude-[0-9]" \
-  | head -5)
+  | head -5 || true)
 
 if [ -n "$_NEW_ANTHROPIC" ]; then
   echo "[pre-commit] ⚠️  New Anthropic model reference detected in staged files:" >&2

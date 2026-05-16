@@ -26,3 +26,7 @@ if ! node Scripts/offload-contract-dispatch-check.mjs > /dev/null 2>&1; then
   echo "[pre-commit]   Reference: PATCH 015 in .claude/plans/" >&2
   exit 1
 fi
+
+# PACKET 13 — sovereignty regression gate
+echo "[pre-commit] independence gate"
+bash Scripts/pre-commit-independence.sh
