@@ -45,7 +45,7 @@
       "MultiEdit(.claude/state/token-session.json)"
     ]
   },
-  "model": "sonnet",
+  "model": "user-selected",
   "hooks": {
     "SessionStart": [
       {

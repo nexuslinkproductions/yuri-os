@@ -65,6 +65,17 @@ const DEFAULT_POLICY = Object.freeze({
     'claude-sonnet-4-6': { input: 3, output: 15, cache_read: 0.3, cache_write: 3.75, reasoning: 15 },
     'claude-opus-4-7': { input: 15, output: 75, cache_read: 1.5, cache_write: 18.75, reasoning: 75 },
     'claude-haiku-4-5': { input: 0.8, output: 4, cache_read: 0.08, cache_write: 1, reasoning: 4 },
+    'deepseek-v4-pro': { input: 0.27, output: 1.10, cache_read: 0.07, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'deepseek-v4-flash': { input: 0.07, output: 0.28, cache_read: 0.018, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'deepseek-r1:8b': { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 }, // local ollama - no cost
+    'kimi-k2.6': { input: 0.15, output: 0.60, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'nvidia/llama-3.1-nemotron-70b-instruct': { input: 0.20, output: 0.20, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'meta/llama-3.3-70b-instruct': { input: 0.15, output: 0.15, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'gpt-5.5': { input: 5, output: 20, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'gpt-5.4-mini': { input: 0.15, output: 0.60, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'gpt-5.3-codex-spark': { input: 0.10, output: 0.40, cache_read: 0, cache_write: 0, reasoning: 0 }, // date-verified: 2026-05-16
+    'qwen2.5:7b': { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 }, // local ollama - no cost
+    'qwen2.5-coder:7b': { input: 0, output: 0, cache_read: 0, cache_write: 0, reasoning: 0 }, // local ollama - no cost
   },
   model_multipliers: {},
 });
