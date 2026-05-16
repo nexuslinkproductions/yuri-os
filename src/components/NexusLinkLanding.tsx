@@ -1,6 +1,7 @@
 import React from 'react';
 import {
     designRadarSources,
+    independenceData,
     launchOrder,
     navItems,
     researchChecklist,
@@ -415,6 +416,76 @@ export default function NexusLinkLanding({ surfaceLabel = 'NexusLink' }: NexusLi
                         <div style={{ marginTop: '20px', color: 'rgba(255,255,255,0.68)', lineHeight: 1.65 }}>
                             Keep the workspace narrow and legible. One source of truth, one clear next step.
                         </div>
+                    </div>
+                </section>
+
+                {/* Symbiotic Independence — Packet 14 */}
+                <section
+                    style={{
+                        padding: '26px',
+                        borderRadius: '28px',
+                        border: '1px solid rgba(56,200,100,0.22)',
+                        background: 'linear-gradient(180deg, rgba(56,200,100,0.07), rgba(0,0,0,0.28))'
+                    }}
+                >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '18px' }}>
+                        <div>
+                            <div className="text-mono" style={{ fontSize: '0.55rem', letterSpacing: '0.34em', color: 'rgba(56,200,100,0.8)', marginBottom: '10px' }}>
+                                SYMBIOTIC INDEPENDENCE
+                            </div>
+                            <div style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.03em' }}>
+                                {independenceData.tagline}
+                            </div>
+                            <div style={{ marginTop: '8px', color: 'rgba(255,255,255,0.54)', fontSize: '0.88rem' }}>
+                                Target ≥{independenceData.target}/100 by {independenceData.deadline} · Current: {independenceData.score}/100 · Fails: {independenceData.failCount}
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
+                            <div style={{ padding: '10px 16px', borderRadius: '999px', border: '1px solid rgba(56,200,100,0.3)', background: 'rgba(56,200,100,0.1)', color: 'rgba(56,200,100,0.9)', fontWeight: 700, fontSize: '0.82rem' }}>
+                                {independenceData.score} / 100
+                            </div>
+                            <div style={{ padding: '10px 16px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: 'rgba(255,255,255,0.54)', fontSize: '0.78rem', fontFamily: 'monospace' }}>
+                                {independenceData.verifyCommand}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px', marginTop: '20px' }}>
+                        {independenceData.activeLanes.map((lane) => (
+                            <div
+                                key={lane.id}
+                                style={{
+                                    padding: '12px 14px',
+                                    borderRadius: '16px',
+                                    border: '1px solid rgba(255,255,255,0.07)',
+                                    background: 'rgba(0,0,0,0.22)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    gap: '10px'
+                                }}
+                            >
+                                <div>
+                                    <div className="text-mono" style={{ fontSize: '0.64rem', color: 'rgba(255,255,255,0.88)', fontWeight: 700 }}>{lane.id}</div>
+                                    <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.48)', marginTop: '3px' }}>{lane.role}</div>
+                                </div>
+                                <div
+                                    className="text-mono"
+                                    style={{
+                                        fontSize: '0.46rem',
+                                        letterSpacing: '0.2em',
+                                        padding: '4px 8px',
+                                        borderRadius: '999px',
+                                        border: `1px solid ${lane.tier === 'local' ? 'rgba(56,200,100,0.35)' : 'rgba(100,160,255,0.25)'}`,
+                                        color: lane.tier === 'local' ? 'rgba(56,200,100,0.8)' : 'rgba(100,160,255,0.7)',
+                                        flexShrink: 0
+                                    }}
+                                >
+                                    {lane.tier.toUpperCase()}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </section>
             </div>

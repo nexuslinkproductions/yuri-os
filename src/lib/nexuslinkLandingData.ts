@@ -78,3 +78,22 @@ export const designRadarSources = [
         apply: 'Directory feel and native shell integration.'
     }
 ];
+
+export const independenceData = {
+    tagline: 'Sovereign by default. Cloud by consent.',
+    score: 67,
+    target: 90,
+    deadline: '2026-06-14',
+    failCount: 0,
+    activeLanes: [
+        { id: 'deepseek-v4-pro',    role: 'Deep reasoning · architecture review',  tier: 'cloud' },
+        { id: 'deepseek-v4-flash',  role: 'Fast triage · condensation',             tier: 'cloud' },
+        { id: 'gpt-5.5',            role: 'Implementation · extended reasoning',    tier: 'cloud' },
+        { id: 'gpt-5.4-mini',       role: 'Mechanical implementation',              tier: 'cloud' },
+        { id: 'qwen2.5:7b',         role: 'Local general reasoning',                tier: 'local' },
+        { id: 'qwen2.5-coder:7b',   role: 'Local code execution',                  tier: 'local' },
+        { id: 'nvidia-nemotron-70b',role: 'Signal engine · hosted reasoning',       tier: 'cloud' },
+        { id: 'kimi-k2.6',          role: 'Long context · deep synthesis',          tier: 'cloud' },
+    ],
+    verifyCommand: 'node nexbox/verify --strict',
+};
