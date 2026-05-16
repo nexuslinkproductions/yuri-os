@@ -1,1 +1,3 @@
-Invoke the `gitnexus-guide` skill — GitNexus tools reference, graph schema, MCP resources, workflow guide.
+/gitnexus guide
+30-day soft alias: /gitnexus-guide is deprecated.
+Use /gitnexus guide.

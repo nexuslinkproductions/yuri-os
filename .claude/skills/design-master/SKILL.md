@@ -118,6 +118,12 @@ Write to root `design-memory.json`:
 
 ## Session Notes
 
+### 2026-05-14
+- session: 57m | peak ctx: 0% | compacts: 0
+- tools: Bash×47, Edit×21, Read×14, mcp×8, Write×5, ToolSearch×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
 ### 2026-04-27
 - session: 6m | peak ctx: 53% | compacts: 0
 - tools: Read×27, Bash×8, Write×2, mcp×1

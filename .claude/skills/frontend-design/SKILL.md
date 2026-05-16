@@ -55,3 +55,11 @@ Ensure the final UI is:
 ## References
 - [Core Principles & Guidelines](references/design-principles.md)
 - `03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md`
+
+## Session Notes
+
+### 2026-05-14
+- session: 57m | peak ctx: 0% | compacts: 0
+- tools: Bash×47, Edit×21, Read×14, mcp×8, Write×5, ToolSearch×1, ExitPlanMode×1
+- corrections: none
+- errors: none

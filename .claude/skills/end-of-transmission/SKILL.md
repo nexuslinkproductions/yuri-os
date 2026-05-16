@@ -353,6 +353,12 @@ This archive becomes the calibration corpus for Innovation A (pulse memory + lea
 
 Implementation note for Phase 10 worker: read `.claude/state/pulse-bus.json`, filter, write archive, then call `bash .claude/state/pulse-bus.json:resetForNewSession` equivalent via the Node module (see `.claude/hooks/pulse-bus.js` `resetForNewSession`).
 
+After archive write, record Amp usage telemetry:
+```bash
+node Scripts/amp-usage-tracker.mjs
+```
+This appends a dated entry to `_SYSTEM/amp-usage-log.md` (credits remaining + thread count). Non-blocking — if amp is unavailable, log the error and continue.
+
 ---
 
 ## 33 Architect Council Reflection Review
@@ -460,6 +466,12 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 ---
 
 ## Session Notes
+
+### 2026-05-14
+- session: 27m | peak ctx: 0% | compacts: 0
+- tools: Bash×70, Read×14, Edit×11, mcp×9, Write×6
+- corrections: none
+- errors: none
 
 ### 2026-05-14
 - session: 78m | peak ctx: 0% | compacts: 0

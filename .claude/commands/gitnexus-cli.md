@@ -1,1 +1,3 @@
-Invoke the `gitnexus-cli` skill — run GitNexus CLI commands: analyze, index, status, clean, generate wiki, list repos.
+/gitnexus cli
+30-day soft alias: /gitnexus-cli is deprecated.
+Use /gitnexus cli.

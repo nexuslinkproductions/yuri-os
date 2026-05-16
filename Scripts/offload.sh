@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# Tier-gated pulse routing
+if [ -z "$PULSE_LANE_BYPASS" ] && [ -z "$INSIDE_PULSE_WRAPPER" ]; then
+  PULSE_TIER=$(node Scripts/pulse-classify-stdin.mjs "$@" 2>/dev/null)
+  if [ "$PULSE_TIER" = "complex" ] || [ "$PULSE_TIER" = "critical" ]; then
+    export INSIDE_PULSE_WRAPPER=1
+    exec node Scripts/pulse-lane-dispatch.mjs "$@"
+  fi
+fi
+
 # NUDIMMUD Task Offloader (Enhanced)
 # Automatically assesses context or allows manual model/swarm selection.
 

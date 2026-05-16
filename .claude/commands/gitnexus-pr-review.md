@@ -1,1 +1,3 @@
-Invoke the `gitnexus-pr-review` skill — review a pull request, assess risk, check test coverage.
+/gitnexus pr-review
+30-day soft alias: /gitnexus-pr-review is deprecated.
+Use /gitnexus pr-review.

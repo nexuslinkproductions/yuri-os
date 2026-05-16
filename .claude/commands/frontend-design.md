@@ -1,1 +1,5 @@
-Invoke the `frontend-design` skill — Anthropic UI/UX skill enforcing high-end intentional design systems. Use for any UI build, landing page, or visual interface.
+Invoke the frontend-design skill — high-end interface design and UX polish.
+
+Related: /design-master for Yuri HUD/product execution.
+Related: /design-source-pack for design-system extraction.
+Related index: /design.

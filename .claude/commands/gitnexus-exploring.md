@@ -1,1 +1,3 @@
-Invoke the `gitnexus-exploring` skill — understand architecture, trace execution flows, explore unfamiliar codebase areas.
+/gitnexus explore
+30-day soft alias: /gitnexus-exploring is deprecated.
+Use /gitnexus explore.

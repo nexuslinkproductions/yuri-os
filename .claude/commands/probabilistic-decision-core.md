@@ -1,1 +1,3 @@
-Invoke the `probabilistic-decision-core` skill — operational probability, calibration, and expected-value discipline.
+/pdc
+30-day soft alias: /probabilistic-decision-core is deprecated.
+Use /pdc.

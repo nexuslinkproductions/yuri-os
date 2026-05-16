@@ -1,1 +1,3 @@
-Invoke the `gitnexus-debugging` skill — trace bugs, find error sources, debug failing code via GitNexus.
+/gitnexus debug
+30-day soft alias: /gitnexus-debugging is deprecated.
+Use /gitnexus debug.

@@ -906,8 +906,8 @@ controls.maxDistance = 8000;
 controls.target.set(0, -200, 0);
 
 const GRAPH_STATE = {
-  "version": "v13",
-  "generated_at": "2026-05-15T17:02:57.023Z",
+  "version": "v15",
+  "generated_at": "2026-05-16T12:19:15.860Z",
   "commit": "381f9876",
   "sectors": [
     {
@@ -915,8 +915,14 @@ const GRAPH_STATE = {
       "color": "#00D4FF",
       "nodes": [
         "ENKI",
+        "ENKI_INBOX",
         "ENKI_DECIDES"
-      ]
+      ],
+      "plane_radii": {
+        "ENKI": 360,
+        "ENKI_DECIDES": 300,
+        "ENKI_INBOX": 220
+      }
     },
     {
       "name": "operator_io",
@@ -925,7 +931,12 @@ const GRAPH_STATE = {
         "USER",
         "USER_INPUT",
         "RESPONSE"
-      ]
+      ],
+      "plane_radii": {
+        "USER": 140,
+        "USER_INPUT": 140,
+        "RESPONSE": 140
+      }
     },
     {
       "name": "initialization",
@@ -939,7 +950,10 @@ const GRAPH_STATE = {
         "SOUL_FILE",
         "NUDIMMUD_COG",
         "PALACE_IDX"
-      ]
+      ],
+      "plane_radii": {
+        "SESSION_INIT": 320
+      }
     },
     {
       "name": "prompt_hooks",
@@ -953,8 +967,13 @@ const GRAPH_STATE = {
         "BASH_GUARD",
         "GITNEX_PRE",
         "SCOUT_HERMES",
-        "SCOUT_ARGUS"
-      ]
+        "SCOUT_ARGUS",
+        "HOOK_PIPELINE"
+      ],
+      "plane_radii": {
+        "PROMPT_HOOKS": 340,
+        "HOOK_PIPELINE": 240
+      }
     },
     {
       "name": "pulse_cortex",
@@ -969,7 +988,11 @@ const GRAPH_STATE = {
         "PB_RING",
         "PB_CONSUME",
         "PB_THROTTLE"
-      ]
+      ],
+      "plane_radii": {
+        "NEXUSPULSE": 300,
+        "PULSE_BUS": 280
+      }
     },
     {
       "name": "classification",
@@ -982,7 +1005,10 @@ const GRAPH_STATE = {
         "CRITICAL",
         "CLF_SCENARIO",
         "CLF_ROUTE_PLAN"
-      ]
+      ],
+      "plane_radii": {
+        "CLASSIFIER": 340
+      }
     },
     {
       "name": "advisors",
@@ -999,8 +1025,13 @@ const GRAPH_STATE = {
         "DS_PRO",
         "OC_BRIDGE",
         "SWARM_FLASH",
-        "SWARM_PRO"
-      ]
+        "SWARM_PRO",
+        "NATIVE_GATES"
+      ],
+      "plane_radii": {
+        "ADVISORS": 400,
+        "NATIVE_GATES": 220
+      }
     },
     {
       "name": "routing_lanes",
@@ -1017,7 +1048,10 @@ const GRAPH_STATE = {
         "LANE_GPTOSS",
         "MINI_WRITE",
         "CDX_FULL"
-      ]
+      ],
+      "plane_radii": {
+        "ROUTING": 400
+      }
     },
     {
       "name": "codex_gate",
@@ -1028,8 +1062,13 @@ const GRAPH_STATE = {
         "APPROVED",
         "APPLY",
         "PROP_DRYRUN",
-        "APPLY_HEAD"
-      ]
+        "APPLY_HEAD",
+        "CODEX_FLOW"
+      ],
+      "plane_radii": {
+        "CODEX_GATE": 300,
+        "CODEX_FLOW": 220
+      }
     },
     {
       "name": "memory",
@@ -1049,7 +1088,10 @@ const GRAPH_STATE = {
         "COLD_WIKI",
         "COLD_TAXONOMY",
         "COLD_RULES"
-      ]
+      ],
+      "plane_radii": {
+        "MEMORY": 360
+      }
     },
     {
       "name": "services",
@@ -1063,7 +1105,10 @@ const GRAPH_STATE = {
         "SVC_EOT",
         "SVC_DIGEST",
         "SVC_OLLAMA"
-      ]
+      ],
+      "plane_radii": {
+        "SERVICES": 360
+      }
     },
     {
       "name": "code_intelligence",
@@ -1075,7 +1120,10 @@ const GRAPH_STATE = {
         "GN_QUERY",
         "GN_SYMBOL_GRAPH",
         "GN_FLOW_TRACE"
-      ]
+      ],
+      "plane_radii": {
+        "GITNEXUS": 280
+      }
     },
     {
       "name": "self_improvement",
@@ -1089,7 +1137,10 @@ const GRAPH_STATE = {
         "SKILL_REGISTRY",
         "PRECOMMIT_REGRESS",
         "BEACON_OBSIDIAN"
-      ]
+      ],
+      "plane_radii": {
+        "SELF_IMPROVE": 300
+      }
     },
     {
       "name": "command_registry",
@@ -1103,7 +1154,9 @@ const GRAPH_STATE = {
         "CMD_PROBABILITY",
         "CMD_EOT",
         "CMD_OFFLOAD",
-        "CMD_SOLO"
+        "CMD_SOLO",
+        "CMD_SHURA",
+        "CMD_REPORT"
       ]
     }
   ],
@@ -2150,10 +2203,13 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "ENKI",
+        "collapsed_into": "HOOK_PIPELINE",
+        "status": "collapsed-v15"
       },
       "parent": "PROMPT_HOOKS",
-      "children": []
+      "children": [],
+      "collapsed_into": "HOOK_PIPELINE"
     },
     {
       "id": "PROT_GUARD",
@@ -2185,10 +2241,13 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "ENKI",
+        "collapsed_into": "HOOK_PIPELINE",
+        "status": "collapsed-v15"
       },
       "parent": "PROMPT_HOOKS",
-      "children": []
+      "children": [],
+      "collapsed_into": "HOOK_PIPELINE"
     },
     {
       "id": "SCOUT_SPAWN",
@@ -2220,13 +2279,16 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "ENKI",
+        "collapsed_into": "HOOK_PIPELINE",
+        "status": "collapsed-v15"
       },
       "parent": "PROMPT_HOOKS",
       "children": [
         "SCOUT_HERMES",
         "SCOUT_ARGUS"
-      ]
+      ],
+      "collapsed_into": "HOOK_PIPELINE"
     },
     {
       "id": "TIRITH",
@@ -2258,10 +2320,13 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "ENKI",
+        "collapsed_into": "HOOK_PIPELINE",
+        "status": "collapsed-v15"
       },
       "parent": "PROMPT_HOOKS",
-      "children": []
+      "children": [],
+      "collapsed_into": "HOOK_PIPELINE"
     },
     {
       "id": "BASH_GUARD",
@@ -2293,10 +2358,13 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "ENKI",
+        "collapsed_into": "HOOK_PIPELINE",
+        "status": "collapsed-v15"
       },
       "parent": "PROMPT_HOOKS",
-      "children": []
+      "children": [],
+      "collapsed_into": "HOOK_PIPELINE"
     },
     {
       "id": "GITNEX_PRE",
@@ -2328,10 +2396,13 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "ENKI"
+        "returns_to": "ENKI",
+        "collapsed_into": "HOOK_PIPELINE",
+        "status": "collapsed-v15"
       },
       "parent": "PROMPT_HOOKS",
-      "children": []
+      "children": [],
+      "collapsed_into": "HOOK_PIPELINE"
     },
     {
       "id": "ORCHESTRATOR",
@@ -3460,12 +3531,15 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "RESPONSE"
+        "returns_to": "RESPONSE",
+        "collapsed_into": "CODEX_FLOW",
+        "status": "collapsed-v15"
       },
       "parent": "CODEX_GATE",
       "children": [
         "PROP_DRYRUN"
-      ]
+      ],
+      "collapsed_into": "CODEX_FLOW"
     },
     {
       "id": "APPROVED",
@@ -3497,10 +3571,13 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "RESPONSE"
+        "returns_to": "RESPONSE",
+        "collapsed_into": "CODEX_FLOW",
+        "status": "collapsed-v15"
       },
       "parent": "CODEX_GATE",
-      "children": []
+      "children": [],
+      "collapsed_into": "CODEX_FLOW"
     },
     {
       "id": "APPLY",
@@ -3532,12 +3609,15 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "RESPONSE"
+        "returns_to": "RESPONSE",
+        "collapsed_into": "CODEX_FLOW",
+        "status": "collapsed-v15"
       },
       "parent": "CODEX_GATE",
       "children": [
         "APPLY_HEAD"
-      ]
+      ],
+      "collapsed_into": "CODEX_FLOW"
     },
     {
       "id": "MEM_HOT",
@@ -4119,10 +4199,13 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "SCOUT_SPAWN"
+        "returns_to": "SCOUT_SPAWN",
+        "collapsed_into": "NATIVE_GATES",
+        "status": "collapsed-v15"
       },
       "parent": "SCOUT_SPAWN",
-      "children": []
+      "children": [],
+      "collapsed_into": "NATIVE_GATES"
     },
     {
       "id": "SCOUT_ARGUS",
@@ -4154,10 +4237,13 @@ const GRAPH_STATE = {
         ],
         "state_files": [],
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
-        "returns_to": "SCOUT_SPAWN"
+        "returns_to": "SCOUT_SPAWN",
+        "collapsed_into": "NATIVE_GATES",
+        "status": "collapsed-v15"
       },
       "parent": "SCOUT_SPAWN",
-      "children": []
+      "children": [],
+      "collapsed_into": "NATIVE_GATES"
     },
     {
       "id": "DS_FLASH",
@@ -4434,7 +4520,7 @@ const GRAPH_STATE = {
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
         "returns_to": "PROPOSE"
       },
-      "parent": "PROPOSE",
+      "parent": "CODEX_FLOW",
       "children": []
     },
     {
@@ -4469,7 +4555,7 @@ const GRAPH_STATE = {
         "notes": "Inferred from dashboard v10 node label/role and sector assignment; evidence files listed above.",
         "returns_to": "APPLY"
       },
-      "parent": "APPLY",
+      "parent": "CODEX_FLOW",
       "children": []
     },
     {
@@ -5613,6 +5699,156 @@ const GRAPH_STATE = {
       },
       "parent": "ENKI_COMMANDS",
       "children": []
+    },
+    {
+      "id": "ENKI_INBOX",
+      "label": "ENKI INBOX",
+      "role": "feedback aggregator",
+      "tier": "sub",
+      "sector": "control_plane",
+      "stage": 0,
+      "radius": 34,
+      "color": "#00D4FF",
+      "parent": "ENKI",
+      "metadata": {
+        "purpose": "Aggregates service feedback and memory-write returns before control-plane synthesis.",
+        "status": "applied-v15",
+        "reduces_incoming_edges_for": "ENKI",
+        "returns_to": "ENKI"
+      },
+      "position": {
+        "x": 260,
+        "y": 120,
+        "z": 0
+      }
+    },
+    {
+      "id": "NATIVE_GATES",
+      "tier": "sub",
+      "label": "NATIVE GATES",
+      "role": "native advisory gates",
+      "detail": "Promise.allSettled / 60-90s timeout",
+      "radius": 36,
+      "color": "#9B6EFF",
+      "position": {
+        "x": 240,
+        "y": -210,
+        "z": 120
+      },
+      "sector": "advisors",
+      "metadata": {
+        "purpose": "Aggregate native HERMES forecast and ARGUS tool-sequencing gates.",
+        "returns_to": "PULSE_BUS",
+        "status": "applied-v15",
+        "collapsed_count": 2,
+        "collapsed_sources": [
+          "SCOUT_HERMES",
+          "SCOUT_ARGUS"
+        ]
+      },
+      "parent": "ADVISORS",
+      "children": []
+    },
+    {
+      "id": "HOOK_PIPELINE",
+      "tier": "sub",
+      "label": "HOOK PIPELINE",
+      "role": "prompt hook cluster",
+      "detail": "aeonic / protocol-guard / scout",
+      "radius": 40,
+      "color": "#A398B8",
+      "position": {
+        "x": 260,
+        "y": 300,
+        "z": -120
+      },
+      "sector": "prompt_hooks",
+      "metadata": {
+        "purpose": "Collapsed prompt-hook pipeline: aeonic, protection guard, scout spawn, Tirith, bash guard, and GitNexus preflight.",
+        "returns_to": "ENKI",
+        "status": "applied-v15",
+        "collapsed_count": 6,
+        "collapsed_sources": [
+          "AEONIC",
+          "PROT_GUARD",
+          "SCOUT_SPAWN",
+          "TIRITH",
+          "BASH_GUARD",
+          "GITNEX_PRE"
+        ]
+      },
+      "parent": "PROMPT_HOOKS",
+      "children": []
+    },
+    {
+      "id": "CODEX_FLOW",
+      "tier": "sub",
+      "label": "CODEX FLOW",
+      "role": "propose approve apply",
+      "detail": "propose / .approved / HEAD SHA / apply",
+      "radius": 38,
+      "color": "#FF6835",
+      "position": {
+        "x": 220,
+        "y": -860,
+        "z": 100
+      },
+      "sector": "codex_gate",
+      "metadata": {
+        "purpose": "Merged Codex two-phase gate with visible propose, approve, and apply phase badge.",
+        "returns_to": "RESPONSE",
+        "status": "applied-v15",
+        "collapsed_count": 3,
+        "collapsed_sources": [
+          "PROPOSE",
+          "APPROVED",
+          "APPLY"
+        ]
+      },
+      "parent": "CODEX_GATE",
+      "children": []
+    },
+    {
+      "id": "CMD_SHURA",
+      "label": "/shura",
+      "role": "strategic review",
+      "tier": "leaf",
+      "sector": "command_registry",
+      "parent": "ENKI_COMMANDS",
+      "radius": 18,
+      "color": "#00D4FF",
+      "position": {
+        "x": -39.74600000000001,
+        "y": 584,
+        "z": 79.434
+      },
+      "children": [],
+      "metadata": {
+        "purpose": "Command registry entry for /shura.",
+        "returns_to": "ENKI_COMMANDS",
+        "status": "applied-v15"
+      }
+    },
+    {
+      "id": "CMD_REPORT",
+      "label": "/report",
+      "role": "report generator",
+      "tier": "leaf",
+      "sector": "command_registry",
+      "parent": "ENKI_COMMANDS",
+      "radius": 18,
+      "color": "#00D4FF",
+      "position": {
+        "x": 0.2539999999999907,
+        "y": 584,
+        "z": 99.434
+      },
+      "children": [],
+      "metadata": {
+        "purpose": "Command registry entry for /report.",
+        "returns_to": "ENKI_COMMANDS",
+        "status": "applied-v15"
+      }
     }
   ],
   "edges": [
@@ -5690,9 +5926,10 @@ const GRAPH_STATE = {
     },
     {
       "source": "SERVICES",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "data",
-      "is_return": false
+      "is_return": false,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "ROUTING",
@@ -5744,39 +5981,10 @@ const GRAPH_STATE = {
     },
     {
       "source": "PROMPT_HOOKS",
-      "target": "AEONIC",
+      "target": "HOOK_PIPELINE",
       "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "PROMPT_HOOKS",
-      "target": "PROT_GUARD",
-      "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "PROMPT_HOOKS",
-      "target": "SCOUT_SPAWN",
-      "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "PROMPT_HOOKS",
-      "target": "TIRITH",
-      "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "PROMPT_HOOKS",
-      "target": "BASH_GUARD",
-      "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "PROMPT_HOOKS",
-      "target": "GITNEX_PRE",
-      "type": "branch",
-      "is_return": false
+      "is_return": false,
+      "redirected_from": []
     },
     {
       "source": "NEXUSPULSE",
@@ -5960,21 +6168,10 @@ const GRAPH_STATE = {
     },
     {
       "source": "CODEX_GATE",
-      "target": "PROPOSE",
+      "target": "CODEX_FLOW",
       "type": "gates",
-      "is_return": false
-    },
-    {
-      "source": "CODEX_GATE",
-      "target": "APPROVED",
-      "type": "gates",
-      "is_return": false
-    },
-    {
-      "source": "CODEX_GATE",
-      "target": "APPLY",
-      "type": "gates",
-      "is_return": false
+      "is_return": false,
+      "redirected_from": []
     },
     {
       "source": "MEMORY",
@@ -6067,16 +6264,11 @@ const GRAPH_STATE = {
       "is_return": false
     },
     {
-      "source": "SCOUT_SPAWN",
-      "target": "SCOUT_HERMES",
+      "source": "HOOK_PIPELINE",
+      "target": "NATIVE_GATES",
       "type": "branch",
-      "is_return": false
-    },
-    {
-      "source": "SCOUT_SPAWN",
-      "target": "SCOUT_ARGUS",
-      "type": "branch",
-      "is_return": false
+      "is_return": false,
+      "redirected_from": []
     },
     {
       "source": "DEEPSEEK_A",
@@ -6121,16 +6313,18 @@ const GRAPH_STATE = {
       "is_return": false
     },
     {
-      "source": "PROPOSE",
+      "source": "CODEX_FLOW",
       "target": "PROP_DRYRUN",
       "type": "gates",
-      "is_return": false
+      "is_return": false,
+      "redirected_from": []
     },
     {
-      "source": "APPLY",
+      "source": "CODEX_FLOW",
       "target": "APPLY_HEAD",
       "type": "gates",
-      "is_return": false
+      "is_return": false,
+      "redirected_from": []
     },
     {
       "source": "MEM_HOT",
@@ -6229,18 +6423,6 @@ const GRAPH_STATE = {
       "is_return": false
     },
     {
-      "source": "PROPOSE",
-      "target": "APPROVED",
-      "type": "gates",
-      "is_return": false
-    },
-    {
-      "source": "APPROVED",
-      "target": "APPLY",
-      "type": "gates",
-      "is_return": false
-    },
-    {
       "source": "LANE_MINI",
       "target": "CODEX_GATE",
       "type": "gates",
@@ -6272,9 +6454,10 @@ const GRAPH_STATE = {
     },
     {
       "source": "MEMORY",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "return",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "SESSION_INIT",
@@ -6314,9 +6497,10 @@ const GRAPH_STATE = {
     },
     {
       "source": "SERVICES",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "feedback",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "OPENCLAW_A",
@@ -6325,10 +6509,11 @@ const GRAPH_STATE = {
       "is_return": true
     },
     {
-      "source": "APPLY",
+      "source": "CODEX_FLOW",
       "target": "RESPONSE",
       "type": "flow",
-      "is_return": true
+      "is_return": true,
+      "redirected_from": []
     },
     {
       "source": "LANE_LOCAL",
@@ -6367,40 +6552,25 @@ const GRAPH_STATE = {
       "is_return": true
     },
     {
-      "source": "AEONIC",
+      "source": "HOOK_PIPELINE",
       "target": "ENKI",
       "type": "validates",
-      "is_return": true
+      "is_return": true,
+      "redirected_from": []
     },
     {
-      "source": "PROT_GUARD",
-      "target": "ENKI",
-      "type": "validates",
-      "is_return": true
-    },
-    {
-      "source": "SCOUT_SPAWN",
+      "source": "HOOK_PIPELINE",
       "target": "PULSE_BUS",
       "type": "data",
-      "is_return": true
+      "is_return": true,
+      "redirected_from": []
     },
     {
-      "source": "TIRITH",
-      "target": "ENKI",
-      "type": "validates",
-      "is_return": true
-    },
-    {
-      "source": "BASH_GUARD",
-      "target": "ENKI",
-      "type": "validates",
-      "is_return": true
-    },
-    {
-      "source": "GITNEX_PRE",
+      "source": "HOOK_PIPELINE",
       "target": "CODEX_GATE",
       "type": "gates",
-      "is_return": true
+      "is_return": true,
+      "redirected_from": []
     },
     {
       "source": "TRIVIAL",
@@ -6542,9 +6712,10 @@ const GRAPH_STATE = {
     },
     {
       "source": "MEM_KERNEL",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "memory",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "MLM_SANDBOX",
@@ -6554,15 +6725,17 @@ const GRAPH_STATE = {
     },
     {
       "source": "SVC_SHELL",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "feedback",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "SVC_RUNTIME",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "feedback",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "SVC_RAG",
@@ -6572,9 +6745,10 @@ const GRAPH_STATE = {
     },
     {
       "source": "SVC_HEALTH",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "feedback",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "SVC_EOT",
@@ -6590,9 +6764,10 @@ const GRAPH_STATE = {
     },
     {
       "source": "SVC_OLLAMA",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "feedback",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "ENKI",
@@ -6625,10 +6800,11 @@ const GRAPH_STATE = {
       "is_return": true
     },
     {
-      "source": "GITNEX_PRE",
+      "source": "HOOK_PIPELINE",
       "target": "GITNEXUS",
       "type": "flow",
-      "is_return": true
+      "is_return": true,
+      "redirected_from": []
     },
     {
       "source": "GN_SYMBOL_GRAPH",
@@ -6715,16 +6891,11 @@ const GRAPH_STATE = {
       "is_return": true
     },
     {
-      "source": "SCOUT_HERMES",
-      "target": "SCOUT_SPAWN",
+      "source": "NATIVE_GATES",
+      "target": "HOOK_PIPELINE",
       "type": "logs",
-      "is_return": true
-    },
-    {
-      "source": "SCOUT_ARGUS",
-      "target": "SCOUT_SPAWN",
-      "type": "logs",
-      "is_return": true
+      "is_return": true,
+      "redirected_from": []
     },
     {
       "source": "DS_FLASH",
@@ -6770,15 +6941,17 @@ const GRAPH_STATE = {
     },
     {
       "source": "PROP_DRYRUN",
-      "target": "PROPOSE",
+      "target": "CODEX_FLOW",
       "type": "logs",
-      "is_return": true
+      "is_return": true,
+      "redirected_from": []
     },
     {
       "source": "APPLY_HEAD",
-      "target": "APPLY",
+      "target": "CODEX_FLOW",
       "type": "logs",
-      "is_return": true
+      "is_return": true,
+      "redirected_from": []
     },
     {
       "source": "HOT_PLAN",
@@ -7187,6 +7360,157 @@ const GRAPH_STATE = {
       "target": "MEMORY",
       "type": "feedback",
       "is_return": true
+    },
+    {
+      "source": "ENKI_INBOX",
+      "target": "ENKI",
+      "type": "feedback-aggregate",
+      "strength": 0.95,
+      "status": "applied-v15"
+    },
+    {
+      "source": "HOOK_PIPELINE",
+      "target": "AEONIC",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "AEONIC",
+      "target": "HOOK_PIPELINE",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "HOOK_PIPELINE",
+      "target": "PROT_GUARD",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "PROT_GUARD",
+      "target": "HOOK_PIPELINE",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "HOOK_PIPELINE",
+      "target": "SCOUT_SPAWN",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "SCOUT_SPAWN",
+      "target": "HOOK_PIPELINE",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "HOOK_PIPELINE",
+      "target": "TIRITH",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "TIRITH",
+      "target": "HOOK_PIPELINE",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "HOOK_PIPELINE",
+      "target": "BASH_GUARD",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "BASH_GUARD",
+      "target": "HOOK_PIPELINE",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "HOOK_PIPELINE",
+      "target": "GITNEX_PRE",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "GITNEX_PRE",
+      "target": "HOOK_PIPELINE",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "CODEX_FLOW",
+      "target": "PROPOSE",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "PROPOSE",
+      "target": "CODEX_FLOW",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "CODEX_FLOW",
+      "target": "APPROVED",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "APPROVED",
+      "target": "CODEX_FLOW",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "CODEX_FLOW",
+      "target": "APPLY",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "APPLY",
+      "target": "CODEX_FLOW",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "NATIVE_GATES",
+      "target": "SCOUT_HERMES",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "SCOUT_HERMES",
+      "target": "NATIVE_GATES",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "NATIVE_GATES",
+      "target": "SCOUT_ARGUS",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "SCOUT_ARGUS",
+      "target": "NATIVE_GATES",
+      "type": "collapsed-membership",
+      "hidden": true
+    },
+    {
+      "source": "CMD_SHURA",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "status": "applied-v15"
+    },
+    {
+      "source": "CMD_REPORT",
+      "target": "ENKI_COMMANDS",
+      "type": "return",
+      "status": "applied-v15"
     }
   ],
   "telemetry": {
@@ -7223,7 +7547,7 @@ const GRAPH_STATE = {
     {
       "id": "memory-early-lifecycle",
       "title": "Memory now early in lifecycle",
-      "status": "applied-v13",
+      "status": "applied-v15",
       "description": "Moved MEMORY from y=-1400 to y=620. Added 16 new memory-read edges to all major sections + advisors.",
       "introspected_by": "visual-introspection v1",
       "severity": "high",
@@ -7245,12 +7569,13 @@ const GRAPH_STATE = {
         "CASSANDRA_A",
         "SWARM_A",
         "OBLITERATUS_A"
-      ]
+      ],
+      "applied_in": "v15"
     },
     {
       "id": "command-duplicates-gitnexus",
       "title": "Consolidate 8 gitnexus commands -> 1",
-      "status": "pending",
+      "status": "applied-v15",
       "description": "Currently 8 separate /commands files: gitnexus, gitnexus-cli, gitnexus-guide, gitnexus-exploring, gitnexus-debugging, gitnexus-pr-review, gitnexus-impact-analysis, gitnexus-refactoring. Propose: single /gitnexus <subcommand> dispatcher.",
       "severity": "medium",
       "affected_files": [
@@ -7259,74 +7584,107 @@ const GRAPH_STATE = {
       "affected_nodes": [
         "ENKI_COMMANDS",
         "CMD_GITNEXUS_FAMILY"
-      ]
+      ],
+      "applied_in": "v15"
     },
     {
       "id": "command-duplicates-deepseek",
       "title": "Consolidate 4 deepseek commands -> 2",
-      "status": "pending",
+      "status": "applied-v15",
       "description": "/deepseek-offload, /deepseek-workhorse, /ds-flash, /ds-pro overlap. Propose: keep /ds-flash and /ds-pro as direct lane calls; deprecate -offload and -workhorse through /offload.",
       "severity": "low",
       "affected_nodes": [
         "ENKI_COMMANDS",
         "CMD_DEEPSEEK_FAMILY"
-      ]
+      ],
+      "applied_in": "v15"
     },
     {
       "id": "command-duplicates-probability",
       "title": "Consolidate 3 probability commands -> 1",
-      "status": "pending",
+      "status": "applied-v15",
       "description": "/probabilistic-decision-core, /probability, /pdc are aliases. Pick one canonical.",
       "severity": "low",
       "affected_nodes": [
         "ENKI_COMMANDS",
         "CMD_PROBABILITY"
-      ]
+      ],
+      "applied_in": "v15"
     },
     {
       "id": "command-duplicates-eot",
       "title": "Merge /eot and /end-of-transmission",
-      "status": "pending",
+      "status": "applied-v15",
       "description": "Both point to the same skill. /eot is the short alias; make /end-of-transmission a synonym only.",
       "severity": "low",
       "affected_nodes": [
         "ENKI_COMMANDS",
         "CMD_EOT"
-      ]
+      ],
+      "applied_in": "v15"
     },
     {
       "id": "command-duplicates-design",
       "title": "Audit design command overlap",
-      "status": "pending",
+      "status": "applied-v15",
       "description": "/design-master, /design-source-pack, /frontend-design have different scopes but overlapping entry points. Consider unified /design with --mode flag.",
       "severity": "low",
       "affected_nodes": [
         "ENKI_COMMANDS",
         "CMD_DESIGN_FAMILY"
-      ]
+      ],
+      "applied_in": "v15"
     },
     {
       "id": "enki-density",
       "title": "ENKI has 30 incoming edges - high choke risk",
-      "status": "monitoring",
+      "status": "applied-v15",
       "description": "ENKI is the control plane convergence point. Consider whether some incoming returns could go to a separate state-aggregator node before ENKI.",
       "severity": "medium",
       "affected_nodes": [
         "ENKI"
-      ]
+      ],
+      "applied_in": "v15"
     },
     {
       "id": "command-spec-family",
       "title": "Spec family - consider single /spec dispatcher",
-      "status": "pending",
+      "status": "applied-v15",
       "description": "/spec-intake, /spec-clarify, /spec-analyze, /spec-promote are 4 sequential pipeline stages. Could be /spec <stage> with --next flag.",
       "severity": "low",
       "affected_nodes": [
         "ENKI_COMMANDS",
         "CMD_SPEC_FAMILY"
-      ]
+      ],
+      "applied_in": "v15"
     }
-  ]
+  ],
+  "metrics": {
+    "v15": {
+      "upgrades_applied": 8,
+      "enki_inbox_added": true,
+      "wp2_lane_wrapper": "applied",
+      "tier_gated_wrapping": true,
+      "pulse_lane_files": [
+        "Scripts/pulse-lane-dispatch.mjs",
+        "Scripts/pulse-memory-context.mjs",
+        ".claude/config/pulse-lanes.json"
+      ],
+      "wp3_memory_report": "_SYSTEM/SELF-IMPROVEMENT/memory-placement-impact.md",
+      "wp4_node_merges": [
+        "NATIVE_GATES",
+        "HOOK_PIPELINE",
+        "CODEX_FLOW"
+      ],
+      "collapsed_rendering": true,
+      "skill_pruning": "gitnexus compatibility mirrors pruned",
+      "wp5_external_patterns": [
+        "yuri-shura",
+        "yuri-report"
+      ],
+      "strategic_review_scenario": true
+    }
+  }
 };
 
 const STAGES = GRAPH_STATE.layout.stages;
@@ -7347,6 +7705,8 @@ const graphNodeDefs = GRAPH_STATE.nodes.map(node => ({
   tier: node.tier,
   parent: node.parent,
   sector: node.sector,
+  collapsed_into: node.collapsed_into || node.metadata?.collapsed_into,
+  collapsed_count: node.metadata?.collapsed_count || 0,
   plane_radius: planeRadiusByNodeId.get(node.id) || node.plane_radius,
   twist: stageById.get(node.id)?.twist || 0,
   metadata: node.metadata || {},
@@ -7516,7 +7876,7 @@ function makeLabel(node) {
 function makeCollapseBadge(node) {
   const badgeDiv = document.createElement('div');
   badgeDiv.className = 'collapse-badge';
-  badgeDiv.textContent = node.children.length;
+  badgeDiv.textContent = node.collapsed_count || node.children.length;
   badgeDiv.style.color = node.color;
   const badge = new CSS2DObject(badgeDiv);
   badge.position.set(node.r + 14, node.r + 14, 0);
@@ -7600,7 +7960,7 @@ const nodes = [];
 const nodeById = new Map();
 const raycastMeshes = [];
 
-const nodeDefs = [...sections, ...subs, ...leaves];
+const nodeDefs = [...sections, ...subs, ...leaves].filter(node => !node.collapsed_into);
 
 nodeDefs.forEach(node => {
   const group = makeNucleusOrb(node.r, node.color, node.tier);

@@ -1,1 +1,3 @@
-Invoke the `gitnexus-refactoring` skill — rename, extract, split, move, or restructure code safely.
+/gitnexus refactor
+30-day soft alias: /gitnexus-refactoring is deprecated.
+Use /gitnexus refactor.

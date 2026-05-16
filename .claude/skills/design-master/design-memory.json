@@ -1,9 +1,37 @@
 {
   "version": "2.0",
   "canonicalPath": "design-memory.json",
-  "lastUpdated": "2026-05-10T20:00:45.292Z",
+  "lastUpdated": "2026-05-15T15:58:06.209Z",
   "note": "Canonical NUDIMMUD design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
   "entries": [
+    {
+      "date": "2026-05-15",
+      "component": "SymbiOS-Trademark-Audit",
+      "file": "_SYSTEM/SymbiOS-Trademark-Audit.html",
+      "action": "create",
+      "decision": "New component created: SymbiOS-Trademark-Audit"
+    },
+    {
+      "date": "2026-05-14",
+      "component": "yuri-os-dashboard",
+      "file": "yuri-os-dashboard.html",
+      "action": "edit",
+      "decision": "Updated: yuri-os-dashboard"
+    },
+    {
+      "date": "2026-05-14",
+      "component": "yuri-os-v4-design-sheet",
+      "file": "yuri-os-v4-design-sheet.html",
+      "action": "create",
+      "decision": "New component created: yuri-os-v4-design-sheet"
+    },
+    {
+      "date": "2026-05-14",
+      "component": "yuri-os-dashboard",
+      "file": "yuri-os-dashboard.html",
+      "action": "create",
+      "decision": "New component created: yuri-os-dashboard"
+    },
     {
       "date": "2026-04-24",
       "component": "ChatInput",
