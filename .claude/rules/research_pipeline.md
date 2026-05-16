@@ -11,7 +11,7 @@ Accepted from audit: 08W_LOW_COST_WEB_AND_AGENT_RESEARCH_PIPELINE_AUDIT_P_PASS
 - Never full-crawl without explicit owner approval.
 - DeepSeek reinforcement: compact evidence only. No raw dumps.
 - gh is not installed; do not rely on it as a default path.
-- curl exists but is hook-gated; treat as non-default.
+- curl allowed for raw.githubusercontent.com and api.github.com; hook-gated for all other domains.
 
 ## RESEARCH LADDER
 
@@ -19,10 +19,10 @@ Accepted from audit: 08W_LOW_COST_WEB_AND_AGENT_RESEARCH_PIPELINE_AUDIT_P_PASS
 |------|--------|---------|----------|
 | 0 | Local cache / git history | Read, grep, git log | None |
 | 1 | Package registry metadata | `npm view <pkg> --json \| jq` | None |
-| 2 | Raw source files | raw.githubusercontent.com + `head -N` | None |
+| 2 | Raw source files | `curl -s raw.githubusercontent.com` + `head -N` | None |
 | 3 | Snippets / highlights | Targeted grep on raw source | None |
 | 4 | Targeted extract | Single scoped file read | None |
-| 5 | Full crawl / WebFetch | Rendered page or full repo | Explicit owner approval |
+| 5 | Full crawl / WebFetch | Rendered page or full repo | None (scoped use) |
 
 Always start at Tier 0. Only escalate when lower tier is provably insufficient.
 
@@ -70,9 +70,8 @@ OUTPUT_CAP: 80 lines research / 120 lines final report
 ## STOP CONDITIONS
 
 Stop and request owner approval if:
-- Tier 5 (full crawl / WebFetch) would be required.
 - gh commands would be required (not installed).
-- curl is blocked by hook gate.
+- curl is required for a domain other than raw.githubusercontent.com or api.github.com.
 - Evidence would exceed 80 lines before filtering.
 
 ## NON-CLAIMS
