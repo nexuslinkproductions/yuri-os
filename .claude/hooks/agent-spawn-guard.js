@@ -29,10 +29,20 @@ process.stdin.on('end', () => {
     console.error('[agent-spawn-guard] NUDIMMUD_ALLOW_AGENT=1 — Agent spawn allowed (logged)');
     process.exit(0);
   }
-
   const subagentType = (payload.tool_input && payload.tool_input.subagent_type) || '<unspecified>';
   const description = (payload.tool_input && payload.tool_input.description) || '';
   const model = (payload.tool_input && payload.tool_input.model) || 'inherited';
+    // Allow built-in read-only subagent types (no model pinning, no Anthropic risk)
+  const SAFE_SUBAGENT_TYPES = ['Explore', 'Plan', 'statusline-setup', 'claude-code-guide'];
+  if (SAFE_SUBAGENT_TYPES.includes(subagentType)) {
+    process.exit(0);
+  }
+
+  // Allow explicit non-Anthropic model strings
+  const NON_ANTHROPIC_PATTERNS = ['deepseek', 'gpt-', 'qwen', 'nvidia', 'nemotron', 'kimi', 'gemini', 'ollama', 'mistral', 'llama'];
+  if (model !== 'inherited' && NON_ANTHROPIC_PATTERNS.some(p => model.toLowerCase().includes(p))) {
+    process.exit(0);
+  }
 
   const reason = [
     'NUDIMMUD policy: Agent() with Anthropic models (Claude/Haiku/Sonnet/Opus) is BANNED.',
