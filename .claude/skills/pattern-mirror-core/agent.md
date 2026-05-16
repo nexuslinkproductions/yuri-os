@@ -1,7 +1,7 @@
 ---
 name: pattern-mirror-core-agent
 description: Artifact perception, pattern extraction, weakness detection, and Yuri-native reconstruction. Operates read-only, produces analysis reports and clean-room blueprints.
-model: claude-sonnet-4-6
+model: deepseek-v4-pro
 color: "#95E1D3"
 ---
 

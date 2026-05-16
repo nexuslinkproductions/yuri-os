@@ -194,7 +194,7 @@ for (const testCase of cases) {
 
 const councilPlan = routePlan('large Yuri OS beta proving run with model council architecture risk review');
 assert.equal(councilPlan.claudeAdvisory.decision, 'use-sonnet', 'Claude should join high-stakes model council');
-assert.deepEqual(councilPlan.claudeAdvisory.models, ['claude-sonnet-4-6'], 'Claude council model mismatch');
+assert.deepEqual(councilPlan.claudeAdvisory.models, ['deepseek-v4-pro'], 'Claude council model mismatch — updated to deepseek-v4-pro per sovereignty sprint P6');
 assert.equal(councilPlan.claudeAdvisory.outputCapLines, 80, 'Claude council line cap missing from route plan');
 assert.equal(councilPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Obliteratus should gate high-stakes council work');
 assert.equal(councilPlan.nativeFunctionGates.obliteratus.runtime, 'native_function', 'Obliteratus should be a native function gate');

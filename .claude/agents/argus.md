@@ -1,3 +1,4 @@
+runtime: native_function
 # ARGUS Native Function Spec
 
 ## Identity
@@ -33,7 +34,7 @@ Outputs:
 - Repeated failure shapes across domains: preserve the canonical cross-reference tag before escalation.
 
 ## Boundaries
-- Does not call `claude -p`.
+- Uses the native hook runner only; no CLI prompt bridge.
 - Does not mutate files, memory, git history, or canonical state.
 - Does not replace GitNexus, tests, owner approval, or sandbox gates.
 - Does not perform broad architectural review; escalate that through the offload contract.

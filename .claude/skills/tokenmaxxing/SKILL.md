@@ -57,10 +57,10 @@ triggers:
 - Only escalate to cloud Agent for: unknown paths + local insufficient + cross-file reasoning required
 
 ### Local-Fail Fallback
-- Local (Ollama) fails → fetch/read/skill-lookup tasks → `Agent({ model: "haiku" })`
-- Subagents and background agents → always `model: "haiku"`, no exception
+- Local (Ollama) fails → fetch/read/skill-lookup tasks → `Scripts/offload.sh -m deepseek-v4-flash`
+- Subagents and background agents → always `deepseek-v4-flash` lane, no exception
 - Planning, implementation, testing → Sonnet 4.6 (main thread only)
-- Never escalate a failed fetch task to Sonnet — Haiku is the fallback ceiling for utility work
+- Never escalate a failed fetch task to Sonnet — deepseek-v4-flash is the fallback ceiling for utility work
 
 ### Background Tasks (`ctrl+b` / `[bg]` prefix)
 - If user input starts with `[bg]` or `/bg`: spawn as `Agent({ run_in_background: true })` immediately.

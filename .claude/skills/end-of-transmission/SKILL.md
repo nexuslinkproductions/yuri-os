@@ -26,7 +26,7 @@ Micro-EOT auto-triggers after:
 - Error recovery: after backtracking, error resolution, or failed branch analysis
 - Cycle completion: Plan-Act-Validate loop finishes
 
-Trigger action: Spawn `Agent({ model: "haiku-4-5-20251001", run_in_background: true })` with micro-EOT prompt. Main thread continues unblocked. Output written to `.claude/eot/continuous/micro-{timestamp}.md`.
+Trigger action: Dispatch `Scripts/offload.sh -m deepseek-v4-flash` with micro-EOT prompt (run_in_background via queue). Main thread continues unblocked. Output written to `.claude/eot/continuous/micro-{timestamp}.md`.
 
 ### Manual (Full EOT)
 
@@ -401,9 +401,9 @@ Seat duties:
   <task id="eot-003" owner="deterministic_tool" permission="granted">Search current self-improvement docs, related protocols, TODOs, and duplicated prompt sections.</task>
   <task id="eot-004" owner="deterministic_tool" permission="granted">Compare promised artifacts against actual files and inspect generated artifact headers where practical.</task>
   <task id="eot-005" owner="local_subagent" model="deepseek-r1:latest | qwen2.5-coder:latest" permission="granted">MANGEKYO Phase 1-2: Observe session evidence + decompose into reusable patterns vs. surface observations. Output: source map + decomposition table.</task>
-  <task id="eot-005b" owner="haiku_worker" model="haiku-4-5-20251001" run_in_background="true" permission="granted">MANGEKYO Phase 3: Audit hardened evidence for weaknesses (architecture, security, reliability, maintainability, Yuri fit). Synthesize into evidence-backed findings ready for skill transformation.</task>
-  <task id="eot-006" owner="haiku_worker" model="haiku-4-5-20251001" run_in_background="true" permission="granted">Draft success, failure, partial, and risk ledgers from evidence (informed by Phase 5.5 hardening).</task>
-  <task id="eot-007" owner="haiku_worker" model="haiku-4-5-20251001" run_in_background="true" permission="granted">Draft skill patch candidates with trigger, rule, validation, and evidence (operating on Phase 5.5 hardened findings).</task>
+  <task id="eot-005b" owner="deepseek_worker" model="deepseek-v4-flash" run_in_background="true" permission="granted">MANGEKYO Phase 3: Audit hardened evidence for weaknesses (architecture, security, reliability, maintainability, Yuri fit). Synthesize into evidence-backed findings ready for skill transformation.</task>
+  <task id="eot-006" owner="deepseek_worker" model="deepseek-v4-flash" run_in_background="true" permission="granted">Draft success, failure, partial, and risk ledgers from evidence (informed by Phase 5.5 hardening).</task>
+  <task id="eot-007" owner="deepseek_worker" model="deepseek-v4-flash" run_in_background="true" permission="granted">Draft skill patch candidates with trigger, rule, validation, and evidence (operating on Phase 5.5 hardened findings).</task>
   <task id="eot-008" owner="deterministic_tool" permission="granted" conditional="system-overlays/karpathy-llm-wiki/ exists">Run LLM-Wiki EOT reflection: extract session atoms, update wiki pages, update indexes, append logs. Prompt: system-overlays/karpathy-llm-wiki/prompts/end-of-transmission-wiki-reflection.md. Skip silently if overlay absent.</task>
   <task id="eot-009" owner="main_thread" permission="granted">Perform final synthesis of ledgers, skill patches, and self-improvement updates. No model spawn; main thread synthesizes from Haiku worker and local-subagent outputs.</task>
 </end_of_transmission_routing>
@@ -449,7 +449,7 @@ When environment allows file output, produce or update in `.claude/eot/YYYY-MM-D
   </next_session_boot_packet>
   <offload_summary>
     <tools_used></tools_used>
-    <haiku_workers_used></haiku_workers_used>
+    <deepseek_workers_used></deepseek_workers_used>
     <main_thread_synthesis></main_thread_synthesis>
   </offload_summary>
   <blocked_items>
@@ -657,7 +657,7 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 - EOT v2 implementation: auto-triggered micro-EOT, Sonnet removal, tiered memory integration
 - changes: added auto-trigger conditions (≥15 tool calls, context ≥60%, error recovery, cycle completion)
 - added micro-EOT mode (background Haiku, phases 1/4/7.5/8 only, outputs to .claude/eot/continuous/)
-- removed Sonnet 4.6 auto from all phases: eot-005/006 now haiku workers, eot-007 now main thread synthesis
+- removed Sonnet 4.6 auto from all phases: eot-005/006 now deepseek workers, eot-007 now main thread synthesis
 - updated Phase 7.5: tiered memory framing, micro-EOT wiki atom creation limited to steps 1-3
 - updated frontmatter description, Full Auto Permission Grant, Execution Model, routing table
 - harmony with Karpathy wiki: continuous atom creation via every micro-EOT, not just full EOT

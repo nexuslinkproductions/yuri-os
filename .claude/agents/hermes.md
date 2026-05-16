@@ -1,3 +1,4 @@
+runtime: native_function
 # HERMES Native Function Spec
 
 ## Identity
@@ -32,7 +33,7 @@ Outputs:
 - Recent writes that bridge domains: preserve canonical cross-reference tags and the bridge domains in the session trail.
 
 ## Boundaries
-- Does not call `claude -p`.
+- Uses the native hook runner only; no CLI prompt bridge.
 - Does not summarize raw output into memory.
 - Does not decide promotion, ownership, or route selection.
 - Does not replace the offload contract or session handoff protocol.

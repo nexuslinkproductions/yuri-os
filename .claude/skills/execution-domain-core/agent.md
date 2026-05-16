@@ -1,7 +1,7 @@
 ---
 name: execution-domain-core-agent
 description: Scoped execution environment, task policy, and exit criteria system. Operates read-only, produces domain contracts and audit events.
-model: claude-sonnet-4-6
+model: deepseek-v4-pro
 color: "#4ECDC4"
 ---
 

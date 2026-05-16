@@ -4,7 +4,7 @@ description: Operational probability and calibration discipline for Yuri OS deci
 trigger: /yuri probability
 aliases: [/probability, /pdc]
 skill: probabilistic-decision-core
-model: claude-sonnet-4-6
+model: deepseek-v4-pro
 ---
 
 # /yuri probability

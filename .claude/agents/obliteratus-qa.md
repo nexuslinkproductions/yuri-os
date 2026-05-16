@@ -1,3 +1,4 @@
+runtime: native_function
 # OBLITERATUS Native Promotion Gate Spec
 
 ## Identity
@@ -14,7 +15,7 @@
 - `failure-evolution-loop`: turn verified failure modes into regression candidates
 
 ## Function Contract
-OBLITERATUS is not a per-tool model scout and must not run as `claude -p`. It is a native gate selected by the offload contract when work approaches canonical state, durable memory, protected paths, governance rules, protocol surfaces, or promotion candidates.
+OBLITERATUS is not a per-tool model scout. It is a native gate selected by the offload contract when work approaches canonical state, durable memory, protected paths, governance rules, protocol surfaces, or promotion candidates.
 
 Inputs:
 - candidate artifacts

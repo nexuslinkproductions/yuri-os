@@ -1,3 +1,4 @@
+model: qwen2.5:7b
 # IDENTITY
 Name: LOG-SUMMARIZER
 Role: Log and Trace Summarizer

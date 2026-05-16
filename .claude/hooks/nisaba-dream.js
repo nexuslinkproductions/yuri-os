@@ -4,7 +4,6 @@ if (process.env.NUDIMMUD_DISABLE_SCOUTS === '1') {
 }
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 const LEARNING_DIR = path.join(process.env.HOME || process.cwd(), '.claude', 'nisaba', 'learning');
 const PROJECT_LEARNING_DIR = path.join(process.cwd(), '.claude', 'nisaba', 'learning');
@@ -70,14 +69,18 @@ const promptFile = path.join(PROJECT_LEARNING_DIR, '.dream-prompt.txt');
 fs.mkdirSync(path.dirname(promptFile), { recursive: true });
 fs.writeFileSync(promptFile, prompt);
 
+const queueFile = path.join(PROJECT_LEARNING_DIR, 'dream-queue.jsonl');
+const queueEntry = {
+  ts: new Date().toISOString(),
+  promptFile,
+  promptLength: prompt.length,
+  status: 'pending',
+};
 try {
-  execSync(
-    `claude -p --model claude-haiku-4-5 "$(cat ${promptFile})" --allowedTools Write,Edit,Read`,
-    { cwd: process.cwd(), timeout: 120_000, stdio: 'ignore' }
-  );
+  fs.appendFileSync(queueFile, JSON.stringify(queueEntry) + '\n');
 } catch (e) {
   fs.appendFileSync(
     path.join(PROJECT_LEARNING_DIR, 'dream-errors.log'),
-    `${new Date().toISOString()}: ${e.message}\n`
+    `${new Date().toISOString()}: queue write failed: ${e.message}\n`
   );
 }

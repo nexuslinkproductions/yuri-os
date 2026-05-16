@@ -16,7 +16,7 @@ const OFFLOAD_CONTRACT = {
   // Amp (@amp) is the parallel impl lane — same tier as Codex, auto-failover on Codex rate-limit.
   // DeepSeek = on-call only when explicitly named or for analysis-only work.
   // Symbiotic Pulse = Claude (control) + Codex (implementation) + Amp (failover impl) + DeepSeek (analysis on demand).
-  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@amp', '@nvidia', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@swarm', '@kimi', '@deepseek', '@claude'],
+  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@amp', '@nvidia', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@swarm', '@kimi', '@deepseek'],
   routingPriorityAnalysis: ['@deepseek-v4-pro', '@deepseek-v4-flash', '@gpt-5.5'],
   universalWorkflow: [
     {
@@ -107,7 +107,7 @@ const OFFLOAD_CONTRACT = {
       envKey: 'AMP_API_KEY',
       executeFlag: '-x',
       modes: {
-        smart: { model: 'claude-opus-4-7', context: '300k', use: 'unconstrained impl, complex tasks, state-of-the-art work' },
+        smart: { model: 'gpt-5.5', reasoning: 'high', context: 'extended', use: 'unconstrained impl, complex tasks, state-of-the-art work' },
         deep:  { model: 'gpt-5.5',         context: 'extended', use: 'architecture, extended reasoning, hard problems' },
         rush:  { model: 'fast',             context: 'standard', use: 'mechanical tasks, well-defined scoped edits' }
       },
@@ -267,7 +267,7 @@ const OFFLOAD_CONTRACT = {
       modelOutput: 'advisory_only=true; local_truth_claim=false'
     },
     role: {
-      model: 'claude-sonnet-4-6',
+      model: 'deepseek-v4-pro',
       reasoning: 'xhigh',
       use: ['architecture review', 'protocol review', 'risk review', 'council dissent'],
       outputCapLines: 80,
@@ -541,6 +541,19 @@ const OFFLOAD_CONTRACT = {
         'Edit: main session applies minimal patch.',
         'Verify: run targeted tests, syntax checks, and detect-changes before commit.',
         'Learn: record route, failures, and reusable fix pattern.'
+      ]
+    },
+    {
+      id: 'strategic-review',
+      title: 'Strategic architecture, refactor, or deployment review',
+      match: ['strategic review', 'architecture review', 'should we refactor', 'deployment plan', 'before we ship'],
+      defaultLane: 'swarm',
+      lifecycle: [
+        'Intake: define the decision, options, and irreversible risks.',
+        'Fan-out: run Yuri Shura perspectives in addition to the pulse ensemble.',
+        'Verify: ground claims in source, tests, GitNexus, or deployment evidence.',
+        'Merge: main session consolidates assessment, risks, and recommendation.',
+        'Learn: promote repeated strategic risks into routing guardrails.'
       ]
     },
     {
@@ -962,7 +975,7 @@ function classifyComplexity(prompt, lane, scenario) {
     'launchd', 'production', 'rollout', 'migrate', 'kernel', 'protected'
   ];
   const protocolSwarm = lane === 'swarm' &&
-    ['protocol-change', 'control-plane-orchestration', 'high-stakes-review'].includes(scenario.id);
+    ['protocol-change', 'control-plane-orchestration', 'high-stakes-review', 'strategic-review'].includes(scenario.id);
   if (protocolSwarm || includesAny(text, criticalSignals)) {
     return 'critical';
   }
@@ -991,6 +1004,9 @@ function buildEnsemble(complexityTier, scenario, openClawAdvisory) {
     ensemble.push('hermes-forecast');
     ensemble.push('cassandra');
   }
+  if (scenario.id === 'strategic-review') {
+    ensemble.push('shura-review');
+  }
   if (complexityTier === 'critical') {
     ensemble.push('swarm-fanout');
     ensemble.push('obliteratus-hint');
@@ -1001,7 +1017,7 @@ function buildEnsemble(complexityTier, scenario, openClawAdvisory) {
 function pickBeaconLevel(complexityTier, scenario) {
   if (complexityTier === 'critical') return 'notify+obsidian';
   if (complexityTier === 'complex' &&
-      ['protocol-change', 'high-stakes-review', 'control-plane-orchestration'].includes(scenario.id)) {
+      ['protocol-change', 'high-stakes-review', 'strategic-review', 'control-plane-orchestration'].includes(scenario.id)) {
     return 'notify';
   }
   return 'none';

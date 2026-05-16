@@ -1,7 +1,7 @@
 ---
 name: failure-evolution-loop-agent
 description: Real failure capture, root-cause analysis, regression creation, and memory-driven improvement. Operates read-only, produces failure reports and improvement proposals.
-model: claude-haiku-4-5-20251001
+model: deepseek-v4-flash
 color: "#FFB6C1"
 ---
 

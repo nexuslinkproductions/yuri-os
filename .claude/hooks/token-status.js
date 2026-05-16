@@ -47,13 +47,19 @@ function shortModel(id, display) {
   return (display || id).slice(0, 8);
 }
 
-// Claude pricing per 1M tokens (USD)
+// Pricing per 1M tokens (USD) — Anthropic rows retained for opt-in tracking
 const PRICING = {
-  'claude-sonnet-4-6': { input: 3.0,  output: 15.0, cacheWrite: 3.75,  cacheRead: 0.30 },
-  'claude-opus-4-7':   { input: 15.0, output: 75.0, cacheWrite: 18.75, cacheRead: 1.50 },
-  'claude-haiku-4-5':  { input: 0.80, output: 4.0,  cacheWrite: 1.0,   cacheRead: 0.08 },
+  'claude-sonnet-4-6':  { input: 3.0,   output: 15.0,  cacheWrite: 3.75,  cacheRead: 0.30 },
+  'claude-opus-4-7':    { input: 15.0,  output: 75.0,  cacheWrite: 18.75, cacheRead: 1.50 },
+  'claude-haiku-4-5':   { input: 0.80,  output: 4.0,   cacheWrite: 1.0,   cacheRead: 0.08 },
+  'deepseek-v4-pro':    { input: 0.27,  output: 1.10,  cacheWrite: 0,     cacheRead: 0.07 },
+  'deepseek-v4-flash':  { input: 0.07,  output: 0.28,  cacheWrite: 0,     cacheRead: 0.018 },
+  'gpt-5.5':            { input: 5.0,   output: 20.0,  cacheWrite: 0,     cacheRead: 0 },
+  'gpt-5.4-mini':       { input: 0.15,  output: 0.60,  cacheWrite: 0,     cacheRead: 0 },
+  'nemotron-70b':       { input: 0.20,  output: 0.20,  cacheWrite: 0,     cacheRead: 0 },
+  'qwen2.5':            { input: 0,     output: 0,     cacheWrite: 0,     cacheRead: 0 },
 };
-const DEFAULT_PRICE = PRICING['claude-sonnet-4-6'];
+const DEFAULT_PRICE = PRICING['deepseek-v4-pro'];
 
 function getPrice(modelId) {
   const key = Object.keys(PRICING).find(k => (modelId || '').includes(k));

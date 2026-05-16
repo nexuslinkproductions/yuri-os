@@ -247,7 +247,6 @@ const EXTERNAL_LANES = {
   claude: {
     command: process.env.CLAUDE_BIN || 'claude',
     kind: 'external',
-    model: 'claude-sonnet-4-6',
   },
 };
 

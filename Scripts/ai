@@ -269,7 +269,7 @@ emit_claude_advisory_output() {
 
   printf '# ADVISORY_CLAUDE_COUNCIL_OUTPUT\n'
   printf '# lane: @claude\n'
-  printf '# model: claude-sonnet-4-6\n'
+  printf '# model: %s\n' "${NUDIMMUD_COUNCIL_MODEL:-user-configured}"
   printf '# reasoning: xhigh\n'
   printf '# advisory_only=true\n'
   printf '# local_truth_claim=false\n'
@@ -1100,7 +1100,7 @@ case "${1:-help}" in
       printf "\n"
       printf "${_AU}  ◆ CLAUDE CODE${_RS}  ${_G2}──────────────────────────────────────${_RS}\n"
       printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "safe / no Agent"
-      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "claude-sonnet-4-6"
+      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${NUDIMMUD_MODEL:-user-selected}"
       printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "NUDIMMUD"
       printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
       printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
@@ -1125,7 +1125,7 @@ case "${1:-help}" in
       printf "\n"
       printf "${_AU}  ◆ CLAUDE CODE RAW${_RS}  ${_G2}──────────────────────────────${_RS}\n"
       printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "full / Agent allowed"
-      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "claude-sonnet-4-6"
+      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${NUDIMMUD_MODEL:-user-selected}"
       printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "NUDIMMUD"
       printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
       printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"

@@ -79,4 +79,24 @@ All results appear in memory.db. Cline can poll and summarize.
 ## Model Selection
 
 Default: `deepseek/deepseek-v4-flash` (fast, cheap, 977k context).  
-Override with `--model openrouter/auto` for flexibility or `--model anthropic/claude-opus-4-6` for premium.
+Override with `--model openrouter/auto` for flexibility or `--model nvidia/llama-3.1-nemotron-70b-instruct` for premium.
+
+## Session Notes
+
+### 2026-05-16
+- session: 77m | peak ctx: 0% | compacts: 0
+- tools: Bash×88, Read×36, mcp×15, Edit×13, Write×10, ToolSearch×4, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 72m | peak ctx: 0% | compacts: 0
+- tools: Bash×87, Read×36, mcp×15, Edit×13, Write×10, ToolSearch×4, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 57m | peak ctx: 0% | compacts: 0
+- tools: Bash×78, Read×23, mcp×14, Write×8, Edit×7, ToolSearch×4, ExitPlanMode×1
+- corrections: none
+- errors: none

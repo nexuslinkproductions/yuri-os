@@ -21,10 +21,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // ─── Default Model Configuration ────────────────────────────────────────────
 
 const DEFAULT_MODEL_CONFIG = {
-  claude: {
-    baseUrl: 'https://api.anthropic.com/v1',
-    apiKeyEnv: 'ANTHROPIC_API_KEY',
-    model: 'claude-sonnet-4-20250514',
+  nemotron: {
+    baseUrl: 'https://integrate.api.nvidia.com/v1',
+    apiKeyEnv: 'NVIDIA_API_KEY',
+    model: 'nvidia/llama-3.1-nemotron-70b-instruct',
     weight: 0.25,
   },
   grok: {
@@ -1236,7 +1236,7 @@ Usage:
   node ensemble-inference.mjs test                                                 Run self-tests
 
 Environment (set at least one for model access):
-  ANTHROPIC_API_KEY    — Claude
+  NVIDIA_API_KEY       — Nemotron
   XAI_API_KEY          — Grok
   OPENAI_API_KEY       — GPT-4o
   DEEPSEEK_API_KEY     — DeepSeek

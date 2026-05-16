@@ -1,7 +1,7 @@
 ---
 name: parallel-clone-orchestrator-agent
 description: Budgeted multi-agent decomposition, specialist execution, and synthesis. Operates read-only, produces decomposition plans and synthesis reports.
-model: claude-sonnet-4-6
+model: deepseek-v4-pro
 color: "#F38181"
 ---
 

@@ -1,3 +1,4 @@
+model: qwen2.5:7b
 # IDENTITY
 Name: FILE-INVENTORY
 Role: File and Directory Inventory Scout
