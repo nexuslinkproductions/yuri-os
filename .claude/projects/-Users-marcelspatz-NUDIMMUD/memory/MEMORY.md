@@ -1,6 +1,9 @@
 # Project Memory Index
 
 - [Oracle Shell Service](project_shell_service.md) — launchd-managed shellService.js on port 3098; fixes pm2 posix_spawn EBADF for Oracle terminal
+- [Amp impl lane](project_amp_lane.md) — @amp parallel impl lane; smart=gpt-5.5 reasoning-high (was Opus 4.7, changed sovereignty sprint), deep=GPT-5.5, rush=fast; Claude-dispatch only (`a "prompt"`)
+- [NVIDIA NIM lane](project_nvidia_lane.md) — @nvidia 7-model suite; tools on; default llama-3.3-70b; DeepSeek needs elevated access
+- [Amp via Claude only](feedback_amp_claude_only.md) — never suggest direct amp terminal/IDE use; always `a "prompt"` or `ai @amp`
 
 - [Always surface next steps](feedback_always_next_steps.md) — End every response with next steps / open campaigns / pending to-dos; never wait to be asked
 - [No Anthropic model agents](feedback_no_anthropic_agents.md) — Agent() with Claude/Haiku/Sonnet/Opus is banned; use DeepSeek offload only
@@ -33,3 +36,4 @@
 - [Claude-First Transition](project_claude_first_transition.md) — Claude Code = control plane, Codex = impl lane; AGENTS.md + CODEX_PROTOCOL.md done; model/MCP credentials pending
 - [PRISM v1 Complete](project_prism_v1_complete.md) — c2moviez Workbench v1 core loop: source pipeline + quality engine + send/reply/opt-out merged main 2026-05-13
 - [Perplexity Pro Integration](feedback_perplexity_integration.md) — Primary research/browser tool: Deep Research (125-source), 9 models incl GPT-5.5 Max + Opus 4.7, Filesystem full disk access, watch_folder, Comet; never use Safari
+- [Sovereignty Sprint Jun 2026](project_sovereignty_sprint.md) — Independence score 8→67/100, fail 16→0; nexbox bundle, lane-dispatcher (manifest-driven routing), settings.json de-pinned, 15 packets landed; T-30d Anthropic repricing mitigation

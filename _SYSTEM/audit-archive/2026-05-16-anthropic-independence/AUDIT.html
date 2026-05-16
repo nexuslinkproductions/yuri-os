@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yuri OS Independence Audit — Pre-15-June Sovereignty Sprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#06080d;--bg-2:#0a0e16;--bg-3:#10151f;--panel:#0d1320;--panel-2:#111827;
+    --line:#1c2638;--line-2:#243149;--text:#e6ebf2;--mute:#8a96ab;--dim:#5d6a82;
+    --accent:#7cc6ff;--accent-2:#5b8dff;--cyan:#3ddbd9;--green:#3df097;--amber:#ffc857;--red:#ff5b6f;--magenta:#c084fc;
+    --grad: linear-gradient(135deg,#5b8dff 0%,#7cc6ff 50%,#3ddbd9 100%);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-weight:400;line-height:1.55;-webkit-font-smoothing:antialiased}
+  body{background-image:
+    radial-gradient(900px 500px at 12% -10%, rgba(91,141,255,.10), transparent 60%),
+    radial-gradient(900px 500px at 110% 0%, rgba(61,219,217,.07), transparent 60%);
+    background-attachment:fixed}
+  code,kbd,pre,.mono{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;font-weight:500}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:48px 32px 96px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:32px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand .mark{width:36px;height:36px;border-radius:9px;background:var(--grad);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 8px 24px rgba(91,141,255,.20)}
+  .brand .name{font-weight:800;letter-spacing:.02em;font-size:14px}
+  .brand .name span{color:var(--mute);font-weight:500;margin-left:6px}
+  .meta{display:flex;gap:20px;font-size:12px;color:var(--mute)}
+  .meta b{color:var(--text);font-weight:600;margin-right:4px}
+
+  .hero{display:grid;grid-template-columns:1.4fr 1fr;gap:32px;align-items:stretch;margin-bottom:48px}
+  .hero .left{padding:32px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,var(--bg-2),var(--bg)); position:relative; overflow:hidden}
+  .hero .left::after{content:"";position:absolute;inset:auto -10% -50% auto;width:520px;height:520px;background:radial-gradient(circle at center, rgba(91,141,255,.18), transparent 60%);pointer-events:none}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px}
+  h1{font-size:42px;line-height:1.07;letter-spacing:-.018em;font-weight:800;margin:0 0 14px}
+  .sub{color:var(--mute);font-size:16px;max-width:55ch;margin:0 0 22px}
+  .verdict{display:inline-flex;gap:10px;align-items:center;padding:8px 14px;border:1px solid var(--line-2);border-radius:999px;font-size:12px;color:var(--amber);background:rgba(255,200,87,.05)}
+  .verdict .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px var(--amber)}
+
+  .hero .right{padding:0;border:1px solid var(--line);border-radius:18px;background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+  .countdown{padding:28px;border-bottom:1px solid var(--line)}
+  .cd-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
+  .cd-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:64px;line-height:1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.02em}
+  .cd-meta{display:flex;justify-content:space-between;margin-top:14px;font-size:12px;color:var(--mute)}
+  .score-card{padding:24px 28px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+  .score-card .lbl{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute)}
+  .score-card .val{font-weight:700;font-size:28px;font-family:'JetBrains Mono',monospace}
+  .score-card .val .of{color:var(--mute);font-size:14px;font-weight:500;margin-left:4px}
+  .score-bar{grid-column:1/3;height:6px;background:var(--bg-3);border-radius:999px;overflow:hidden;margin-top:6px;position:relative}
+  .score-bar .fill{height:100%;width:31.6%;background:linear-gradient(90deg,var(--red),var(--amber));border-radius:999px}
+  .score-bar .tgt{position:absolute;left:90%;top:-3px;width:2px;height:12px;background:var(--green);box-shadow:0 0 8px var(--green)}
+
+  section{margin:56px 0}
+  h2{font-size:28px;letter-spacing:-.01em;font-weight:700;margin:0 0 8px;display:flex;align-items:baseline;gap:14px}
+  h2 .n{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);font-weight:600}
+  .lede{color:var(--mute);max-width:80ch;margin:0 0 26px;font-size:15px}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .card{padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+  .card h3{margin:0 0 8px;font-size:14px;font-weight:600;color:var(--accent);letter-spacing:.02em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+  .card .big{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;margin:6px 0}
+  .card .desc{color:var(--mute);font-size:13px;line-height:1.5}
+
+  .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;padding:3px 8px;border-radius:6px;border:1px solid var(--line-2);color:var(--mute);text-transform:uppercase}
+  .tag.red{color:var(--red);border-color:rgba(255,91,111,.4);background:rgba(255,91,111,.06)}
+  .tag.amb{color:var(--amber);border-color:rgba(255,200,87,.4);background:rgba(255,200,87,.06)}
+  .tag.grn{color:var(--green);border-color:rgba(61,240,151,.4);background:rgba(61,240,151,.06)}
+  .tag.blu{color:var(--accent);border-color:rgba(124,198,255,.4);background:rgba(124,198,255,.06)}
+  .tag.mag{color:var(--magenta);border-color:rgba(192,132,252,.4);background:rgba(192,132,252,.06)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:var(--bg-3);font-weight:600;letter-spacing:.02em;font-size:11px;text-transform:uppercase;color:var(--mute);font-family:'JetBrains Mono',monospace}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(124,198,255,.02)}
+  td .mono{color:var(--cyan);font-size:12px}
+  td.num{font-family:'JetBrains Mono',monospace;text-align:right;color:var(--mute)}
+  td.center{text-align:center}
+
+  .mermaid-card{padding:24px;border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:auto}
+  .chart-card{padding:24px;border:1px solid var(--line);border-radius:14px;background:var(--panel);min-height:340px;position:relative}
+  .chart-card h3{margin:0 0 14px;font-size:14px;font-weight:600;color:var(--accent);letter-spacing:.02em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12px;color:var(--mute)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+  .build-table th.eta, .build-table td.eta{text-align:right}
+  .build-table td .file{font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:11px;display:block;margin-top:3px}
+
+  .callout{padding:20px 24px;border-left:3px solid var(--accent);background:linear-gradient(90deg,rgba(91,141,255,.07),transparent);border-radius:0 12px 12px 0;margin:20px 0}
+  .callout.warn{border-color:var(--amber);background:linear-gradient(90deg,rgba(255,200,87,.06),transparent)}
+  .callout.danger{border-color:var(--red);background:linear-gradient(90deg,rgba(255,91,111,.06),transparent)}
+  .callout.good{border-color:var(--green);background:linear-gradient(90deg,rgba(61,240,151,.06),transparent)}
+  .callout h4{margin:0 0 4px;font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--accent);font-family:'JetBrains Mono',monospace}
+  .callout.warn h4{color:var(--amber)}.callout.danger h4{color:var(--red)}.callout.good h4{color:var(--green)}
+  .callout p{margin:0;color:var(--mute);font-size:14px}
+
+  footer{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;color:var(--dim);font-size:12px}
+  footer .mono{color:var(--mute)}
+
+  @media print{
+    body{background:#fff;color:#000}
+    .wrap{max-width:none;padding:24px}
+  }
+  @media (max-width: 960px){
+    .hero,.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+    h1{font-size:32px}
+    .cd-num{font-size:48px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============================================================ HEADER -->
+  <header class="top">
+    <div class="brand">
+      <div class="mark"></div>
+      <div class="name">YURI OS <span>· NUDIMMUD</span></div>
+    </div>
+    <div class="meta">
+      <span><b>Audit ID</b>2026-05-16/anthropic-independence</span>
+      <span><b>Classification</b>critical · swarm · parallel-fan-out</span>
+      <span><b>Author</b>main-session (Codex final authority)</span>
+    </div>
+  </header>
+
+  <!-- ============================================================ HERO -->
+  <div class="hero">
+    <div class="left">
+      <div class="eyebrow">Pre-15-June Sovereignty Sprint · Independence Audit</div>
+      <h1>Yuri OS still inherits Anthropic on 8 of 11 subagents,<br>the session default, the cortex, and every <span class="mono" style="color:var(--cyan)">/eot</span>.</h1>
+      <p class="sub">On <b>15 June 2026</b> Claude Agent SDK operations move to a separately billed pay-per-token API. Today the audit surface shows <b>31.6 / 100</b> independence. With a focused, parallel-tracked 17-day burn we reach <b>≥ 90 / 100</b> with 13 calendar days of buffer — and a NEXUSLINK nexbox client wrap that inherits sovereignty by default.</p>
+      <span class="verdict"><span class="dot"></span> VERDICT — actionable, on-time, parallelizable. No new hardware. No new vendor.</span>
+    </div>
+    <div class="right">
+      <div class="countdown">
+        <div class="cd-label">Countdown to API-Tier Cutover</div>
+        <div class="cd-num">30 <span style="font-size:24px;color:var(--mute);font-weight:500;margin-left:6px">DAYS</span></div>
+        <div class="cd-meta">
+          <span>Today · 2026-05-16</span>
+          <span>D-Day · 2026-06-15</span>
+        </div>
+      </div>
+      <div class="score-card">
+        <div class="lbl">Independence Score</div>
+        <div class="val">31.6<span class="of">/ 100</span></div>
+        <div class="score-bar"><div class="fill"></div><div class="tgt" title="Target 90"></div></div>
+        <div class="lbl" style="grid-column:1/3;color:var(--green);margin-top:4px">Target by 2026-06-14: <b>≥ 90 / 100</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ §1 THREAT MODEL -->
+  <section>
+    <h2><span class="n">§1</span> Threat Model — What Changes on 15 June</h2>
+    <p class="lede">Claude Code remains the IDE / CLI surface. What changes is the <i>cost shape</i> of every operation that currently inherits Anthropic implicitly: subagents that carry no <code>model:</code> field, hooks that shell <code>claude -p</code>, the EOT skill that spawns Haiku workers, the Symbiotic Pulse runtime that defaults to Sonnet, and the offload contract's <code>@amp.smart</code> + <code>@claude</code> lanes. Each becomes metered pay-per-token. The independence score above is the percentage of the system that <b>does not</b> generate that meter.</p>
+
+    <div class="grid-4">
+      <div class="card">
+        <h3>Subagents</h3>
+        <div class="big">8 / 11</div>
+        <div class="desc">model-backed agents that inherit the session default (currently Sonnet). 3/11 are already <code>native_function</code> deterministic.</div>
+      </div>
+      <div class="card">
+        <h3>Hooks · Active Spawns</h3>
+        <div class="big">1</div>
+        <div class="desc"><code>nisaba-dream.js:75</code> directly shells <code>claude -p --model claude-haiku-4-5</code> — only live Anthropic spawn outside subagent inheritance.</div>
+      </div>
+      <div class="card">
+        <h3>EOT Haiku Workers</h3>
+        <div class="big">≥ 4</div>
+        <div class="desc">spawned per <code>/eot</code> session-close. Auto-triggers at context ≥ 60% — recurring cost surface, exponential under heavy use.</div>
+      </div>
+      <div class="card">
+        <h3>Direct API Imports</h3>
+        <div class="big">2</div>
+        <div class="desc"><code>@anthropic-ai/sdk</code> in <code>backend/</code> (^0.39) and <code>NEURAL-NETWORK/GitNexus/gitnexus-web/</code> (^0.71). Billed under standard API tier, not affected by Agent SDK pricing change — but inventoried.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ §2 CURRENT PHASE MAP -->
+  <section>
+    <h2><span class="n">§2</span> Current Phase Map — Subsystem Independence Status</h2>
+    <p class="lede">Mermaid graph of every routing surface, coloured by dependency tier. Red = Anthropic-only. Amber = hybrid with Anthropic fallback. Green = non-Anthropic cloud. Blue = local. The path from <i>raw input</i> to <i>verified merge</i> still passes through a red node at <b>line 250</b> of the Symbiotic Pulse — the very system designed to make routing independent.</p>
+
+    <div class="mermaid-card">
+      <pre class="mermaid">
+flowchart LR
+  classDef red    fill:#3a0d18,stroke:#ff5b6f,color:#ffd5dc,stroke-width:1.5px;
+  classDef amber  fill:#3a2a0a,stroke:#ffc857,color:#fff1cc,stroke-width:1.5px;
+  classDef green  fill:#0e3a23,stroke:#3df097,color:#d5f7e5,stroke-width:1.5px;
+  classDef blue   fill:#0e2238,stroke:#7cc6ff,color:#d8ecff,stroke-width:1.5px;
+  classDef gate   fill:#1a1325,stroke:#c084fc,color:#ebd7ff,stroke-width:1.5px;
+
+  U([User Input / Raw Braindump]):::blue
+  PS[Pulse Seed]:::blue
+  SP{Symbiotic Pulse Cortex<br/>line 250 default = claude-sonnet-4-6}:::red
+  AR[Arsenal Registry]:::blue
+
+  SUB[(.claude/agents/ · 11 subagents<br/>no model: → inherit Sonnet)]:::red
+  EOT[/EOT skill<br/>4+ Haiku workers per /eot/]:::red
+  NIS[nisaba-dream.js:75<br/>claude -p haiku-4-5]:::red
+  AMP_S[@amp.smart<br/>claude-opus-4-7]:::red
+  CLA[@claude lane<br/>sonnet-4-6 advisory]:::amber
+  SETT[settings.json:89<br/>default = sonnet]:::red
+
+  DS[@deepseek<br/>v4-pro · v4-flash]:::green
+  KIMI[@kimi K2.6]:::green
+  NVID[@nvidia NIM<br/>nemotron · llama-3.3-70b]:::green
+  CDX[@gpt-5.5 · gpt-5.4-mini<br/>Codex impl primary]:::green
+  PRP[@perplexity · @comet]:::green
+
+  OL_C[qwen2.5-coder:7b]:::blue
+  OL_G[qwen2.5:7b · qwen3.5:4b]:::blue
+  OL_R[deepseek-r1:8b<br/>frozen → re-test M4 Pro]:::blue
+  OL_E[nomic-embed-text]:::blue
+
+  ARG[ARGUS]:::gate
+  HER[HERMES]:::gate
+  OBL[OBLITERATUS]:::gate
+  CASS[CASSANDRA / lite]:::gate
+  GUARD[agent-spawn-guard.js<br/>HARD FLOOR]:::gate
+
+  U --> PS --> SP
+  SP --> AR
+  AR -->|model-backed| SUB
+  AR -->|hooks| NIS
+  AR -->|impl| AMP_S
+  AR -->|advisory| CLA
+  AR -->|impl primary| CDX
+  AR -->|deep reasoning| DS
+  AR -->|cloud reasoning| KIMI
+  AR -->|tool-use| NVID
+  AR -->|local code| OL_C
+  AR -->|local triage| OL_G
+  AR -->|deep local| OL_R
+  AR -->|embeddings| OL_E
+  AR -->|research| PRP
+
+  SUB --> EOT
+  SETT -.inherits.-> SUB
+  GUARD -.blocks Agent() Anthropic.-> SUB
+
+  SP --> ARG --> HER --> OBL
+  CASS --> SP
+      </pre>
+    </div>
+    <div class="legend">
+      <span><i style="background:#ff5b6f"></i>Anthropic-only</span>
+      <span><i style="background:#ffc857"></i>Hybrid · Anthropic fallback</span>
+      <span><i style="background:#3df097"></i>Non-Anthropic cloud</span>
+      <span><i style="background:#7cc6ff"></i>Local (Ollama / native)</span>
+      <span><i style="background:#c084fc"></i>Native gate / function</span>
+    </div>
+  </section>
+
+  <!-- ============================================================ §3 INDEPENDENCE SCORE -->
+  <section>
+    <h2><span class="n">§3</span> Independence Score — Weighted by Exposure</h2>
+    <p class="lede">Weights reflect token-volume exposure and frequency of automatic firing. Subagents and EOT score zero because every triggered call inherits Anthropic. Hooks score high because <code>agent-spawn-guard.js</code> already blocks <code>Agent()</code> spawns of Anthropic models — only <code>nisaba-dream</code> slips through via direct CLI shell-out.</p>
+
+    <div class="grid-2">
+      <div class="chart-card"><h3>Subsystem Independence — Today vs Target</h3><canvas id="radar"></canvas></div>
+      <div class="chart-card"><h3>Weighted Exposure Contribution</h3><canvas id="contrib"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ §4 TOP-10 -->
+  <section>
+    <h2><span class="n">§4</span> Top-10 Highest-Risk Anthropic Dependencies</h2>
+    <p class="lede">Ranked by <i>exposure × auto-fire-frequency</i>. Replacement lane and 30-day ETA shown. Every replacement is <b>non-Anthropic</b> — either a paid cloud lane Marcel already operates (DeepSeek V4, Codex gpt-5.x, Kimi K2.6, NVIDIA NIM, Amp non-smart modes) or local Ollama (qwen2.5:7b / qwen2.5-coder:7b / deepseek-r1:8b after M4 Pro re-test).</p>
+
+    <table>
+      <thead><tr><th>#</th><th>Dependency</th><th>Location</th><th>Replacement</th><th>Tier</th><th>ETA</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><b>Symbiotic Pulse default cortex</b><br><span class="mono" style="color:var(--mute);font-size:11px">control-plane — fix before subagents per DeepSeek advisory</span></td><td><span class="mono">Scripts/yuri-symbiotic-pulse.mjs:250</span></td><td>@deepseek-v4-pro</td><td><span class="tag grn">cloud</span></td><td class="num">1d</td></tr>
+        <tr><td>2</td><td><b>Session default model</b></td><td><span class="mono">.claude/settings.json:89</span></td><td>remove key · or Codex wrapper</td><td><span class="tag blu">config</span></td><td class="num">0.5d</td></tr>
+        <tr><td>3</td><td><b>11 subagents w/o model field</b></td><td><span class="mono">.claude/agents/*.md</span></td><td>per-agent: native_function · qwen2.5:7b · @deepseek-v4-pro</td><td><span class="tag blu">local</span> + <span class="tag grn">cloud</span></td><td class="num">2d</td></tr>
+        <tr><td>4</td><td><b>EOT Haiku worker spawns</b></td><td><span class="mono">.claude/skills/end-of-transmission/SKILL.md:29,404-406</span></td><td>deepseek-r1:8b local · DeepSeek-flash cloud overflow</td><td><span class="tag blu">local</span></td><td class="num">2d</td></tr>
+        <tr><td>5</td><td><b>nisaba-dream shell</b></td><td><span class="mono">.claude/hooks/nisaba-dream.js:75</span></td><td>deepseek-r1:8b · or strip model call (router-only)</td><td><span class="tag blu">local</span></td><td class="num">0.5d</td></tr>
+        <tr><td>6</td><td><b>@amp.smart = claude-opus-4-7</b></td><td><span class="mono">Scripts/offload-contract.mjs:110</span></td><td>route smart → gpt-5.5 (Codex)</td><td><span class="tag grn">cloud</span></td><td class="num">0.5d</td></tr>
+        <tr><td>7</td><td><b>@claude advisory lane default</b></td><td><span class="mono">Scripts/offload-contract.mjs:270</span></td><td>opt-in only — strip from default fan-out chain</td><td><span class="tag blu">config</span></td><td class="num">0.5d</td></tr>
+        <tr><td>8</td><td><b>trading-bot ensemble</b></td><td><span class="mono">Scripts/trading-bot/ensemble-inference.mjs:25-27</span></td><td>DeepSeek + Kimi + Nemotron tri-ensemble</td><td><span class="tag grn">cloud</span></td><td class="num">1d</td></tr>
+        <tr><td>9</td><td><b>pulse-orchestrator @claude security advisor</b></td><td><span class="mono">Scripts/pulse-orchestrator.mjs:414</span></td><td>['security','@deepseek-v4-pro'] · or NVIDIA nemotron</td><td><span class="tag grn">cloud</span></td><td class="num">0.5d</td></tr>
+        <tr><td>10</td><td><b>Scripts/ai banner asserts sonnet</b></td><td><span class="mono">Scripts/ai:272,1103,1128</span></td><td>cosmetic — read from settings</td><td><span class="tag blu">config</span></td><td class="num">0.5d</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn" style="margin-top:24px">
+      <h4>DeepSeek Advisory Insight</h4>
+      <p>Control-plane (#1 Symbiotic Pulse) is fixed <b>before</b> data-plane (#3 subagents). Otherwise subagents migrate against a still-Anthropic cortex, then need a second pass when the cortex itself migrates.</p>
+    </div>
+
+    <div class="callout danger" style="margin-top:14px">
+      <h4>Verifier-Discovered Surface (2026-05-16 smoke test)</h4>
+      <p>Running <span class="mono">node Scripts/independence-check.mjs</span> against the live repo surfaced <b>5 skill-scoped <span class="mono">agent.md</span> files</b> with explicit Anthropic models that the initial grep missed: <span class="mono">execution-domain-core</span>, <span class="mono">failure-evolution-loop</span>, <span class="mono">non-destructive-infinity-guard</span>, <span class="mono">parallel-clone-orchestrator</span>, <span class="mono">pattern-mirror-core</span>. Captured as Packet #17 in <span class="mono">build-list.md</span>. Demonstrates the value of the verifier landing early — it catches surfaces a static manual sweep misses.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ §5 SYMBIOTIC PULSE HEALTH -->
+  <section>
+    <h2><span class="n">§5</span> Symbiotic Pulse · Canonical Memory Health</h2>
+    <p class="lede">The Symbiotic Pulse V1 contract (<span class="mono">docs/SYMBIOTIC_PULSE_V1.md</span>) collapses the older <i>offload / swarm / council / workhorse</i> vocabulary into one routing runtime. Architecturally it is provider-agnostic — but the implementation hardcodes <span class="mono">claude-sonnet-4-6</span> at line 250 of <span class="mono">Scripts/yuri-symbiotic-pulse.mjs</span>. The cortex that decides which lane handles which work is itself a single Anthropic call.</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <h3>Today</h3>
+        <p class="desc">Pulse runtime defaults to <span class="mono" style="color:var(--red)">claude-sonnet-4-6</span>. Capability planner, activation graph builder, and trace synthesis all share this default unless an explicit lane is requested.</p>
+      </div>
+      <div class="card">
+        <h3>Packet #1 Target</h3>
+        <p class="desc">Default to <span class="mono" style="color:var(--green)">deepseek-v4-pro</span>. Claude becomes opt-in only via explicit dispatch token. <span class="mono">claudeAdvisory</span> in offload-contract retained as <i>council dissent</i> override.</p>
+      </div>
+      <div class="card">
+        <h3>Lane Dispatcher</h3>
+        <p class="desc"><b>DeepSeek's #1 architectural call.</b> Build a capability-manifest-driven dispatcher (each lane declares ctx-window, tool-use, latency, cost-tier). Every subsequent migration becomes a config change, not a hardcoded string swap. Listed as Packet #15.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h4>Canonical Memory · Authority Chain</h4>
+      <p>Per <span class="mono">_SYSTEM/yuri-origin.md</span>: owner intent &gt; local evidence &gt; yuri-origin &gt; SOUL &gt; adapters &gt; offload-contract &gt; skills &gt; model inference. <b>Codex is the only implementation authority.</b> All advisor output from this audit (including the DeepSeek pass triggered during execution) is <span class="mono">advisory_only=true · local_truth_claim=false</span>.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ §6 NEXUSLINK -->
+  <section>
+    <h2><span class="n">§6</span> NEXUSLINK · Nexbox Independence Profile</h2>
+    <p class="lede">NEXUSLINK landing today (<span class="mono">src/components/NexusLinkLanding.tsx</span>, 423 lines) is a research / design-radar surface. There is no client-deliverable bundle that ships a self-contained Symbiotic Pulse runtime. The "full symbiotic solution" promise to <i>nexbox</i> clients is currently a frontend assertion without a backing runtime.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>What a Client Gets Today</h3>
+        <p class="desc">NEXUSLINK landing pages, research workspace shell, design radar references (Linear · Vercel · Apple HIG · Primer · Atlassian · Notion). Zero runtime. Zero pulse engine. Zero model independence.</p>
+      </div>
+      <div class="card">
+        <h3>What a Client Should Get (Nexbox v1)</h3>
+        <p class="desc">Self-contained bundle: local Ollama bootstrap, pinned models, Symbiotic Pulse engine (de-Claude'd), canonical-memory shim with client-owned <span class="mono">memory.db</span>, slim offload-contract exposing only client-allowed lanes, verification harness (<span class="mono">independence-check.mjs</span>), Mac Mini M4 Pro hardware spec sheet, operating runbook.</p>
+      </div>
+    </div>
+
+    <div class="callout good" style="margin-top:18px">
+      <h4>Promise — Nexbox Handoff v1</h4>
+      <p><i>"A client receives NEXUSLINK / nexbox bundled with a NUDIMMUD-grade Symbiotic Pulse runtime that requires zero Anthropic credentials to operate."</i> Full packet shape in <span class="mono">_SYSTEM/NEXUSLINK/nexbox-handoff-v1.md</span>. Bundles ship with identity attestation, schema-versioned pulse packets, trust-chain nonces (tied to CASSANDRA), local model catalog, declared fallback policy, and TTL/heartbeat liveness — six layers DeepSeek's advisory flagged as missing from a naive bundle.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ §7 BUILD LIST -->
+  <section>
+    <h2><span class="n">§7</span> Ranked Build List · 14 Packets · 17-day Burn</h2>
+    <p class="lede">Each packet shaped per <i>CLAUDE CONTROL PACKET</i> grammar (goal, target, constraints, acceptance, test, rollback, route-plan, GitNexus impact, verification). Ranked per DeepSeek's control-plane-first reorder. Parallelization map below.</p>
+
+    <table class="build-table">
+      <thead><tr><th>#</th><th>Packet</th><th>Replacement Tier</th><th class="eta">ETA</th><th>Owner</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><b>De-Claude Symbiotic Pulse default</b> <span class="file">Scripts/yuri-symbiotic-pulse.mjs:250</span></td><td><span class="tag grn">@deepseek-v4-pro</span></td><td class="eta">1d</td><td>Codex</td></tr>
+        <tr><td>2</td><td><b>Switch session default away from sonnet</b> <span class="file">.claude/settings.json:89</span></td><td><span class="tag blu">config</span></td><td class="eta">0.5d</td><td>Claude CP</td></tr>
+        <tr><td>3</td><td><b>Add model: to all 11 subagents · convert 3 to native_function-only</b> <span class="file">.claude/agents/*.md</span></td><td><span class="tag blu">local</span> + <span class="tag grn">cloud</span></td><td class="eta">2d</td><td>Codex</td></tr>
+        <tr><td>4</td><td><b>EOT skill — migrate haiku workers to deepseek-r1:8b local</b> <span class="file">.claude/skills/end-of-transmission/SKILL.md:29,404-406</span></td><td><span class="tag blu">local</span></td><td class="eta">2d</td><td>Codex</td></tr>
+        <tr><td>5</td><td><b>Rip Anthropic from nisaba-dream</b> <span class="file">.claude/hooks/nisaba-dream.js:75</span></td><td><span class="tag blu">local</span></td><td class="eta">0.5d</td><td>Codex</td></tr>
+        <tr><td>6</td><td><b>Strip @claude lane from default routing · @amp.smart → gpt-5.5</b> <span class="file">Scripts/offload-contract.mjs:110, 270</span></td><td><span class="tag grn">cloud</span></td><td class="eta">1d</td><td>Codex</td></tr>
+        <tr><td>7</td><td><b>trading-bot ensemble replacement</b> <span class="file">Scripts/trading-bot/ensemble-inference.mjs:25-27</span></td><td><span class="tag grn">cloud</span></td><td class="eta">1d</td><td>Codex</td></tr>
+        <tr><td>8</td><td><b>token-ledger pricing rows for non-Anthropic lanes</b> <span class="file">Scripts/token-ledger.mjs, token-status.js</span></td><td><span class="tag blu">config</span></td><td class="eta">1d</td><td>Codex</td></tr>
+        <tr><td>9</td><td><b>Local-first reasoning fallback · un-freeze deepseek-r1:8b on M4 Pro · models.json refresh</b></td><td><span class="tag blu">local</span></td><td class="eta">2d</td><td>Marcel + Codex</td></tr>
+        <tr><td>10</td><td><b>Hook-by-hook audit · quarantine any Claude spawn</b> <span class="file">.claude/hooks/*.js (37)</span></td><td><span class="tag blu">audit</span></td><td class="eta">3d</td><td>Codex</td></tr>
+        <tr><td>11</td><td><b>Skill model-routing sweep · per-skill body audit</b> <span class="file">.claude/skills/*/SKILL.md (34)</span></td><td><span class="tag blu">audit</span></td><td class="eta">2d</td><td>Codex</td></tr>
+        <tr><td>12</td><td><b>Scripts/ai banner defaults</b> <span class="file">Scripts/ai:272,1103,1128</span></td><td><span class="tag blu">config</span></td><td class="eta">0.5d</td><td>Codex</td></tr>
+        <tr><td>13</td><td><b>Independence smoke test — NUDIMMUD_NO_ANTHROPIC=1</b> <span class="file">new: Scripts/independence-check.mjs</span></td><td><span class="tag blu">verifier</span></td><td class="eta">1.5d</td><td>Codex</td></tr>
+        <tr><td>14</td><td><b>NEXUSLINK nexbox handoff packet</b> <span class="file">new: _SYSTEM/NEXUSLINK/nexbox-handoff-v1.md + landing extension</span></td><td><span class="tag mag">packet</span></td><td class="eta">2d</td><td>Marcel + Codex</td></tr>
+        <tr><td>15</td><td><b>Lane dispatcher abstraction (capability manifest router)</b> <span class="file">new: Scripts/lane-dispatcher.mjs · DeepSeek's #1 architectural call</span></td><td><span class="tag mag">runtime</span></td><td class="eta">3d</td><td>Codex</td></tr>
+        <tr><td>16</td><td><b>Kill-switch drill (14 June)</b> — disable Anthropic key, full day, measure delta</td><td><span class="tag amb">drill</span></td><td class="eta">0.5d</td><td>Marcel</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="3" style="text-align:right;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;font-size:11px;font-family:'JetBrains Mono',monospace">Total burn</td><td class="eta" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text)">~24d sequential · ~17d parallel</td><td></td></tr>
+      </tfoot>
+    </table>
+
+    <div class="callout" style="margin-top:24px">
+      <h4>Parallelization Plan</h4>
+      <p><b>Track A · Codex impl (5 concurrent branches):</b> packets 1, 5, 6, 7, 12 — independent files, no cross-dependency.<br>
+      <b>Track B · Codex impl (sequential):</b> packets 2 → 3 → 4 → 8 → 10 → 11 — settings.json affects subagent inheritance, so order matters.<br>
+      <b>Track C · Marcel + Codex:</b> packets 9, 14 — hardware verification + product packet need Marcel input.<br>
+      <b>Track D · Architectural:</b> packet 15 (lane dispatcher) runs in parallel; lands by day 12 and makes every later config change a one-liner.<br>
+      <b>Track E · Verification:</b> packet 13 runs day 10–11; packet 16 is the final drill on day 29.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ §8 RISK -->
+  <section>
+    <h2><span class="n">§8</span> Risk Projection — If We Slip 15 June</h2>
+    <p class="lede">Cost projection assumes EOT fires 6×/day with 4 Haiku workers (24K input + 8K output tokens average per worker), nisaba-dream fires 2×/day with similar profile, plus ambient subagent inheritance averaging 8 Sonnet-equivalent calls/day at 60K input + 12K output. Pricing per Anthropic public schedule: Sonnet 4.6 $3/$15 per M, Opus 4.7 $15/$75 per M, Haiku 4.5 $0.80/$4.0 per M.</p>
+
+    <div class="grid-2">
+      <div class="chart-card"><h3>Monthly Anthropic API Spend — Status-quo vs Mitigated</h3><canvas id="cost"></canvas></div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center">
+        <h3 style="color:var(--red)">Slip Cost</h3>
+        <div style="display:flex;gap:20px;margin:14px 0">
+          <div><div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--red)">≈ $850 / mo</div><div style="color:var(--mute);font-size:12px">if status-quo on 15 June</div></div>
+          <div><div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;color:var(--green)">≈ $40 / mo</div><div style="color:var(--mute);font-size:12px">post-sprint (opt-in council only)</div></div>
+        </div>
+        <p class="desc" style="margin:8px 0 0">Estimates use a single-developer profile. Cost projection is for ranking purposes — actual numbers vary with usage. The point is the <b>~20×</b> ratio between status-quo and post-sprint, not the absolute dollars.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ §9 VERIFICATION -->
+  <section>
+    <h2><span class="n">§9</span> Verification Plan — Proving Independence on 14 June</h2>
+    <p class="lede">Acceptance is binary, not qualitative. The kill-switch drill is the canonical test. If a fresh session boots cleanly with no Anthropic key for 24 hours and the independence score holds ≥ 90, the sprint passed.</p>
+
+    <ol style="color:var(--text);line-height:1.8;font-size:14px;padding-left:22px">
+      <li><span class="mono" style="color:var(--cyan)">Scripts/independence-check.mjs --strict</span> returns <span class="mono">exit 0</span> with <span class="mono">NUDIMMUD_NO_ANTHROPIC=1</span>. Verifier walks every subagent, hook, skill, and offload lane to confirm no Anthropic surface fires unprompted.</li>
+      <li>Open <span class="mono">AUDIT.html</span>, <span class="mono">AUDIT-DECK.html</span> → confirm Mermaid + Chart.js render in a cold browser.</li>
+      <li>Run a full <span class="mono">/eot</span> cycle under <span class="mono">NUDIMMUD_NO_ANTHROPIC=1</span> → confirm no Claude API calls in <span class="mono">_SYSTEM/cost-trends.md</span> · no Haiku worker spawns.</li>
+      <li>Boot a fresh session, kill-switch on, for <b>24 h continuous</b> → measure productivity delta vs the prior 24 h baseline.</li>
+      <li>Run <span class="mono">gitnexus_detect_changes()</span> after each packet → confirm scope matches expectation (no spillover into protected paths).</li>
+      <li>Re-run independence score formula → ≥ 90 / 100 required to declare PASS.</li>
+    </ol>
+
+    <div class="callout good" style="margin-top:18px">
+      <h4>Out of Scope (Explicit)</h4>
+      <p>Migrating away from Claude Code itself (it stays the IDE/CLI surface; only the Anthropic API cost is the target). Re-architecting the Codex protocol (already non-Anthropic). Replacing Perplexity, NVIDIA NIM, Kimi, Amp (all non-Anthropic, all stay). New hardware purchases beyond the existing Mac Mini M4 Pro 16 GB floor.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ FOOTER -->
+  <footer>
+    <div>
+      <div class="mono">_SYSTEM/audit-archive/2026-05-16-anthropic-independence/AUDIT.html</div>
+      <div>Generated 2026-05-16 · Main-session control plane · Codex final authority · DeepSeek V4 Pro advisory</div>
+    </div>
+    <div style="text-align:right">
+      <div class="mono">authority=codex/main-session</div>
+      <div class="mono">advisor_output=advisory_only · local_truth_claim=false</div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // ============================================================ MERMAID
+  mermaid.initialize({
+    startOnLoad:true,
+    theme:'base',
+    themeVariables:{
+      background:'#0d1320',
+      primaryColor:'#0e2238',
+      primaryTextColor:'#e6ebf2',
+      primaryBorderColor:'#7cc6ff',
+      lineColor:'#5d6a82',
+      fontFamily:'JetBrains Mono, monospace',
+      fontSize:'13px'
+    }
+  });
+
+  // ============================================================ CHART.JS
+  Chart.defaults.color='#8a96ab';
+  Chart.defaults.borderColor='rgba(255,255,255,.05)';
+  Chart.defaults.font.family="'Inter', sans-serif";
+
+  // RADAR — subsystem independence
+  new Chart(document.getElementById('radar'),{
+    type:'radar',
+    data:{
+      labels:['Subagents','Hooks','Default model','EOT skill','Pulse cortex','Offload contract','Trading bot','Scripts banners'],
+      datasets:[
+        {label:'Today',data:[27,97,0,0,0,50,0,75],
+          backgroundColor:'rgba(255,91,111,.18)',borderColor:'#ff5b6f',pointBackgroundColor:'#ff5b6f',pointRadius:3},
+        {label:'Target 14-Jun',data:[95,98,100,100,95,95,100,100],
+          backgroundColor:'rgba(61,240,151,.12)',borderColor:'#3df097',pointBackgroundColor:'#3df097',pointRadius:3}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      scales:{r:{
+        beginAtZero:true,max:100,
+        angleLines:{color:'rgba(255,255,255,.06)'},
+        grid:{color:'rgba(255,255,255,.06)'},
+        pointLabels:{color:'#c0c8d6',font:{size:11}},
+        ticks:{display:false,backdropColor:'transparent'}
+      }},
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,padding:14}}}
+    }
+  });
+
+  // CONTRIB — weighted contribution to score gap
+  new Chart(document.getElementById('contrib'),{
+    type:'bar',
+    data:{
+      labels:['Subagents','Default model','EOT skill','Pulse cortex','Offload chain','Trading bot','Hook spawn','Banners'],
+      datasets:[{
+        label:'Points lost (of 100)',
+        data:[21.9,15.0,15.0,10.0,2.5,3.0,0.6,0.5],
+        backgroundColor:[
+          '#ff5b6f','#ff5b6f','#ff5b6f','#ff5b6f',
+          '#ffc857','#ff5b6f','#ffc857','#ffc857'
+        ],
+        borderRadius:6
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      indexAxis:'y',
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8a96ab'}},
+        y:{grid:{display:false},ticks:{color:'#c0c8d6',font:{size:11}}}
+      },
+      plugins:{legend:{display:false}}
+    }
+  });
+
+  // COST — monthly spend projection
+  new Chart(document.getElementById('cost'),{
+    type:'line',
+    data:{
+      labels:['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26'],
+      datasets:[
+        {label:'Status-quo (no sprint)',data:[0,0,425,860,920,980],
+          borderColor:'#ff5b6f',backgroundColor:'rgba(255,91,111,.10)',fill:true,tension:.35,pointRadius:4},
+        {label:'Post-sprint (council opt-in only)',data:[0,0,15,40,45,40],
+          borderColor:'#3df097',backgroundColor:'rgba(61,240,151,.08)',fill:true,tension:.35,pointRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8a96ab'}},
+        y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8a96ab',callback:v=>'$'+v}}
+      },
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,padding:14}}}
+    }
+  });
+</script>
+</body>
+</html>
