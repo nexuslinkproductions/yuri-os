@@ -8,7 +8,7 @@ import { execFileSync } from 'node:child_process'
 
 const EXECUTOR_VERSION = '0.1.0'
 const PROTOCOL_VERSION = '1.0'
-const DEFAULT_POLICY_REL = 'Scripts/policy/yuri-guarded-executor.readonly.json'
+const DEFAULT_POLICY_REL = '_SYSTEM/Scripts/policy/yuri-guarded-executor.readonly.json'
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud/guarded-executor-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/nudimmud-guarded-executor-runs'
 const STRUCTURED_PLAN_VERSION = 'nudimmud.workhorse.x1'
@@ -1019,8 +1019,8 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       'package.json',
       '.claude/rules/nudimmud_operating_dna.md',
       '.claude/config/models.json',
-      'Scripts/ai',
-      'Scripts/offload-runner.mjs',
+      '_SYSTEM/Scripts/ai',
+      '_SYSTEM/Scripts/offload-runner.mjs',
     ],
     actions: [
       { type: 'READ_MANIFEST_FILE', path: 'package.json', start_line: 1, end_line: 30, reason: 'small file full read test' },
@@ -1030,9 +1030,9 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       { type: 'RUN_ALLOWED_CHECK', check_id: 'GIT_REV_PARSE_SHORT_HEAD' },
       { type: 'RUN_ALLOWED_CHECK', check_id: 'GIT_DIFF_CACHED_NAME_ONLY' },
       { type: 'RUN_ALLOWED_CHECK', check_id: 'GIT_STATUS_SCOPED_MANIFEST_AND_DB_FILES' },
-      { type: 'RUN_ALLOWED_CHECK', check_id: 'GREP_Q_MARKER', path: '.claude/rules/nudimmud_operating_dna.md', args: { marker: 'Caveman Protocol' } },
+      { type: 'RUN_ALLOWED_CHECK', check_id: 'GREP_Q_MARKER', path: '.claude/rules/nudimmud_operating_dna.md', args: { marker: 'YURI-OS-MUSUBI' } },
       { type: 'RUN_ALLOWED_CHECK', check_id: 'WC_L_FILE', path: 'package.json' },
-      { type: 'RUN_ALLOWED_CHECK', check_id: 'NODE_CHECK_SCRIPT', path: 'Scripts/offload-runner.mjs' },
+      { type: 'RUN_ALLOWED_CHECK', check_id: 'NODE_CHECK_SCRIPT', path: '_SYSTEM/Scripts/offload-runner.mjs' },
       { type: 'SUMMARIZE_EVIDENCE' },
       { type: 'FINAL_REPORT' },
     ],
@@ -1084,7 +1084,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       ...baseRequest,
       request_id: 'selftest-read-cap',
       actions: [
-        { type: 'READ_MANIFEST_FILE', path: 'Scripts/ai', start_line: 1, end_line: 81 },
+        { type: 'READ_MANIFEST_FILE', path: '_SYSTEM/Scripts/ai', start_line: 1, end_line: 81 },
         { type: 'FINAL_REPORT' },
       ],
     }, null, 2),
@@ -1102,7 +1102,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       ...baseRequest,
       request_id: 'selftest-search-cap',
       actions: [
-        { type: 'SEARCH_MANIFEST_PATHS', query: ' ', paths: ['Scripts/ai'], case_sensitive: true, context_lines: 5 },
+        { type: 'SEARCH_MANIFEST_PATHS', query: ' ', paths: ['_SYSTEM/Scripts/ai'], case_sensitive: true, context_lines: 5 },
         { type: 'FINAL_REPORT' },
       ],
     }, null, 2),
@@ -1261,7 +1261,7 @@ function runCommand(argv, allowFailure = false) {
   const [command, ...args] = argv
   try {
     const stdout = execFileSync(command, args, {
-      cwd: '/Users/marcelspatz/YURI-OS-MUSUBI',
+      cwd: process.cwd(),
       encoding: 'utf8',
       maxBuffer: 1024 * 1024,
       stdio: ['ignore', 'pipe', 'pipe'],

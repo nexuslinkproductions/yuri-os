@@ -4,7 +4,7 @@ module.exports = {
       name: 'yuri-os-musubi-backend',
       script: 'node',
       args: 'dist/server.js',
-      cwd: '/Users/marcelspatz/YURI-OS-MUSUBI/backend',
+      cwd: '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/backend',
       exec_mode: 'fork',
       instances: 1,
       env: {

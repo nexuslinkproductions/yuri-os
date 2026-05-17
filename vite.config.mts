@@ -3,9 +3,11 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: 4200, host: '127.0.0.1' },
-  appType: 'spa',
+  root: '_SYSTEM/src',
+  publicDir: '../public',
   build: {
+    outDir: '../../dist',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -16,4 +18,6 @@ export default defineConfig({
       },
     },
   },
+  server: { port: 4200, host: '127.0.0.1' },
+  appType: 'spa',
 });

@@ -23,6 +23,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
+  "include": ["_SYSTEM/src"],
   "exclude": ["node_modules"]
 }

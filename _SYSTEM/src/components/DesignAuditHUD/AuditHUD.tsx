@@ -5,7 +5,7 @@ import {
   AuditSection,
   AuditFinding,
   AuditSuggestion,
-  NUDIMMUD_DESIGN_HANDOFF,
+  YURI_DESIGN_HANDOFF,
   MOCK_AUDIT_SECTIONS,
   MOCK_SUGGESTIONS,
 } from './types';
@@ -197,7 +197,7 @@ export default function AuditHUD({ config, onReset }: AuditHUDProps) {
   const strongest = MOCK_AUDIT_SECTIONS.reduce((a, b) => (a.score > b.score ? a : b));
   const weakest = MOCK_AUDIT_SECTIONS.reduce((a, b) => (a.score < b.score ? a : b));
 
-  const buildHandoff = (): NUDIMMUD_DESIGN_HANDOFF => ({
+  const buildHandoff = (): YURI_DESIGN_HANDOFF => ({
     schema: '1.0.0',
     generated: generatedAt.current,
     config,
@@ -226,7 +226,7 @@ export default function AuditHUD({ config, onReset }: AuditHUDProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `NUDIMMUD_DESIGN_HANDOFF_${Date.now()}.json`;
+    a.download = `YURI_DESIGN_HANDOFF_${Date.now()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -804,7 +804,7 @@ export default function AuditHUD({ config, onReset }: AuditHUDProps) {
                 letterSpacing: '0.1em',
                 marginTop: 4,
               }}>
-                NUDIMMUD_DESIGN_HANDOFF
+                YURI_DESIGN_HANDOFF
               </div>
               <pre style={{
                 margin: 0,
