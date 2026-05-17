@@ -229,3 +229,8 @@ _SYSTEM/corpus-output/
 
 # NEURAL-NETWORK is 895MB of eval/experimental data — local only
 NEURAL-NETWORK/
+
+# Large local-only tool directories
+needle/
+checkpoints/
+integrations/gemini-env/
