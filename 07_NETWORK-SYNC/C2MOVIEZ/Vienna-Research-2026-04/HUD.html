@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VIENNA HUD · c2moviez × exeoflow · 40 Targets</title>
+<style>
+  :root {
+    --bg:#000; --bg-1:#0a0a0a; --bg-2:#121212; --bg-3:#1a1a1a;
+    --line:#262626; --line-2:#333;
+    --ink:#e9e9e9; --ink-2:#a8a8a8; --ink-3:#6a6a6a;
+    --red:#dc143c; --red-glow:rgba(220,20,60,.18);
+    --font: ui-sans-serif,-apple-system,"Inter","Helvetica Neue",Arial,sans-serif;
+    --mono: ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
+    /* status colors */
+    --s-un-bg:rgba(30,30,30,.5);   --s-un-b:#333;    --s-un-t:#666;
+    --s-co-bg:rgba(15,40,80,.5);   --s-co-b:#2a5a8a; --s-co-t:#6ab0f0;
+    --s-me-bg:rgba(50,42,8,.6);    --s-me-b:#8a7010; --s-me-t:#d4a84a;
+    --s-pr-bg:rgba(55,32,8,.6);    --s-pr-b:#8a5218; --s-pr-t:#d47a3a;
+    --s-wo-bg:rgba(10,44,10,.6);   --s-wo-b:#1a7a1a; --s-wo-t:#5acf5a;
+    --s-lo-bg:rgba(50,12,12,.5);   --s-lo-b:#7a2020; --s-lo-t:#c06060;
+  }
+  *{box-sizing:border-box}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--font);margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  a{color:var(--ink-2);border-bottom:1px solid var(--line-2);text-decoration:none}
+  a:hover{color:var(--red)}
+  button{font-family:inherit;cursor:pointer;border:none;outline:none}
+
+  /* ── TOP BAR ── */
+  .bar{
+    position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;
+    padding:11px 24px;background:rgba(10,10,10,.88);
+    border-bottom:1px solid var(--line);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:11px;white-space:nowrap}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red)}
+  .vtoggle{display:flex;gap:2px;background:var(--bg-2);border:1px solid var(--line);border-radius:3px;padding:2px}
+  .vbtn{
+    background:transparent;color:var(--ink-3);padding:5px 14px;
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;border-radius:2px;
+    transition:all .12s;white-space:nowrap;
+  }
+  .vbtn:hover{color:var(--ink)}
+  .vbtn.on{background:var(--red);color:#fff}
+  .spacer{flex:1}
+  .bar-stat{font-size:11px;letter-spacing:.14em;color:var(--ink-3);white-space:nowrap}
+  .bar-stat b{color:var(--ink);font-family:var(--mono)}
+  .pipe-mini{display:flex;gap:8px;align-items:center}
+  .pipe-dot{font-size:10px;letter-spacing:.1em;padding:3px 8px;border-radius:2px;border:1px solid transparent;white-space:nowrap}
+  .io-btn{
+    background:transparent;border:1px solid var(--line);color:var(--ink-3);
+    padding:5px 10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;border-radius:2px;
+    transition:all .12s;
+  }
+  .io-btn:hover{border-color:var(--line-2);color:var(--ink)}
+
+  /* ── LAYOUT ── */
+  .wrap{display:grid;grid-template-columns:248px 1fr;min-height:calc(100vh - 44px)}
+  .wrap.aside-hidden{grid-template-columns:0 1fr}
+  aside{
+    border-right:1px solid var(--line);padding:20px 16px;
+    background:linear-gradient(180deg,var(--bg-1),var(--bg));
+    position:sticky;top:44px;height:calc(100vh - 44px);overflow-y:auto;
+    transition:all .2s;
+  }
+  .aside-hidden aside{width:0;padding:0;overflow:hidden;border:none}
+  aside::-webkit-scrollbar{width:4px}
+  aside::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:2px}
+  aside h3{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px;font-weight:600}
+  aside h3:not(:first-child){margin-top:22px}
+  .chip{
+    display:block;width:100%;text-align:left;background:transparent;
+    color:var(--ink-3);border:1px solid var(--line);
+    padding:7px 10px;margin-bottom:5px;font-size:11px;letter-spacing:.04em;
+    border-radius:2px;transition:all .1s;
+  }
+  .chip:hover{border-color:var(--line-2);color:var(--ink-2)}
+  .chip.on{background:var(--red-glow);border-color:var(--red);color:#fff}
+  .chip .n{font-family:var(--mono);font-size:10px;color:var(--ink-3);float:right}
+  .chip.on .n{color:#fff}
+  .search{
+    width:100%;background:var(--bg-2);border:1px solid var(--line);color:var(--ink);
+    padding:9px 10px;font-size:11px;font-family:var(--mono);letter-spacing:.05em;border-radius:2px;outline:none;
+  }
+  .search:focus{border-color:var(--red)}
+
+  /* ── MAIN ── */
+  main{padding:24px 28px 80px;min-width:0;overflow-x:hidden}
+
+  /* ── HERO ── */
+  .hero{
+    border:1px solid var(--line);padding:24px 28px;margin-bottom:24px;border-radius:3px;
+    background:radial-gradient(1200px 280px at 100% -40%,var(--red-glow),transparent 60%),
+               linear-gradient(180deg,var(--bg-1),var(--bg-2));
+  }
+  .hero .eyebrow{font-size:9px;letter-spacing:.3em;color:var(--red);text-transform:uppercase;font-weight:700}
+  .hero h1{margin:6px 0 4px;font-size:22px;letter-spacing:-.01em;font-weight:600;line-height:1.3}
+  .hero p{margin:0;color:var(--ink-2);font-size:13px;max-width:800px;line-height:1.55}
+  .hero-kpi{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:18px}
+  .kpi{border:1px solid var(--line);padding:12px;border-radius:2px;background:rgba(0,0,0,.3)}
+  .kpi .l{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
+  .kpi .v{font-family:var(--mono);font-size:19px;color:var(--ink)}
+  .kpi .v small{color:var(--ink-3);font-size:10px;margin-left:3px}
+  .kpi.red .v{color:var(--red)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0 0;font-size:11px;color:var(--ink-3)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+
+  /* ── GRID ── */
+  .tier-head{display:flex;align-items:baseline;gap:12px;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .tier-head h2{margin:0;font-size:13px;letter-spacing:.28em;text-transform:uppercase;font-weight:600}
+  .tier-head h2 .t{color:var(--red)}
+  .tier-head span{font-size:10px;letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase}
+  .tier-head .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+
+  /* ── CARD ── */
+  .card{
+    border:1px solid var(--line);background:linear-gradient(180deg,var(--bg-1),var(--bg-2));
+    padding:16px 18px 0;border-radius:3px;position:relative;cursor:pointer;
+    transition:transform .16s,border-color .16s,box-shadow .16s;display:flex;flex-direction:column;
+  }
+  .card:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(0,0,0,.5)}
+  .card.s-contacted{border-color:var(--s-co-b)}
+  .card.s-meeting   {border-color:var(--s-me-b)}
+  .card.s-proposal  {border-color:var(--s-pr-b)}
+  .card.s-won       {border-color:var(--s-wo-b)}
+  .card.s-lost      {border-color:var(--s-lo-b);opacity:.7}
+  .card .tier-badge{
+    position:absolute;top:0;right:0;font-size:8px;letter-spacing:.3em;font-weight:700;
+    padding:4px 9px;background:var(--red);color:#fff;border-bottom-left-radius:3px;
+  }
+  .card .tier-badge.b{background:#8b0000}
+  .card .tier-badge.c{background:#242424;color:var(--ink-3)}
+  .card .num{font-family:var(--mono);font-size:9px;color:var(--ink-3);letter-spacing:.2em}
+  .card h4{margin:3px 0 1px;font-size:15px;font-weight:600;padding-right:44px;line-height:1.25}
+  .card .ind{font-size:11px;color:var(--ink-2);margin-bottom:10px}
+  .card .gaps{display:flex;gap:4px;margin-bottom:8px;font-size:14px}
+  .card .gap-icon{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:2px;background:var(--bg-3)}
+  .card .pitch{font-size:11px;color:var(--ink-2);line-height:1.5;font-style:italic;margin-bottom:10px;flex:1}
+  .card .card-footer{display:flex;align-items:stretch;border-top:1px solid var(--line);margin:0 -18px}
+  .card .card-meta{display:flex;flex-wrap:wrap;gap:8px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding:8px 10px;flex:1}
+  .card .card-meta b{color:var(--ink-2);font-weight:500}
+  .card .card-meta .star{color:var(--red)}
+  .spill{
+    border-left:1px solid var(--line);padding:0 12px;cursor:pointer;
+    display:flex;align-items:center;font-size:9px;font-weight:600;letter-spacing:.18em;
+    text-transform:uppercase;white-space:nowrap;transition:background .1s;
+    border-bottom-right-radius:3px;
+  }
+  .spill:hover{filter:brightness(1.3)}
+  .spill.s-untouched{color:var(--s-un-t);background:var(--s-un-bg)}
+  .spill.s-contacted{color:var(--s-co-t);background:var(--s-co-bg)}
+  .spill.s-meeting  {color:var(--s-me-t);background:var(--s-me-bg)}
+  .spill.s-proposal {color:var(--s-pr-t);background:var(--s-pr-bg)}
+  .spill.s-won      {color:var(--s-wo-t);background:var(--s-wo-bg)}
+  .spill.s-lost     {color:var(--s-lo-t);background:var(--s-lo-bg)}
+
+  /* ── PIPELINE VIEW ── */
+  .pipeline-wrap{display:flex;gap:12px;overflow-x:auto;padding-bottom:20px;min-height:60vh}
+  .pipeline-wrap::-webkit-scrollbar{height:6px}
+  .pipeline-wrap::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
+  .pcol{min-width:240px;max-width:240px;display:flex;flex-direction:column;gap:8px}
+  .pcol-head{
+    padding:10px 12px;border-radius:3px;border:1px solid transparent;
+    font-size:9px;letter-spacing:.28em;text-transform:uppercase;font-weight:700;
+    display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2;
+  }
+  .pcol-head .cnt{font-family:var(--mono);font-size:14px;font-weight:400}
+  .pcol-head .rev{font-size:8px;opacity:.7;letter-spacing:.1em}
+  .pcol-head.s-untouched{border-color:var(--s-un-b);background:var(--s-un-bg);color:var(--s-un-t)}
+  .pcol-head.s-contacted{border-color:var(--s-co-b);background:var(--s-co-bg);color:var(--s-co-t)}
+  .pcol-head.s-meeting  {border-color:var(--s-me-b);background:var(--s-me-bg);color:var(--s-me-t)}
+  .pcol-head.s-proposal {border-color:var(--s-pr-b);background:var(--s-pr-bg);color:var(--s-pr-t)}
+  .pcol-head.s-won      {border-color:var(--s-wo-b);background:var(--s-wo-bg);color:var(--s-wo-t)}
+  .pcol-head.s-lost     {border-color:var(--s-lo-b);background:var(--s-lo-bg);color:var(--s-lo-t)}
+  .pcard{
+    border:1px solid var(--line);background:var(--bg-1);
+    padding:12px;border-radius:3px;cursor:pointer;transition:all .14s;
+  }
+  .pcard:hover{border-color:var(--line-2);transform:translateX(2px)}
+  .pcard .pt{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+  .pcard h5{margin:0;font-size:12px;font-weight:600;line-height:1.3}
+  .pcard .pi{font-size:9px;color:var(--ink-3);margin-bottom:6px;letter-spacing:.04em}
+  .pcard .pg{font-size:12px;letter-spacing:.05em}
+  .pbadge{font-size:7px;letter-spacing:.2em;text-transform:uppercase;padding:2px 5px;border-radius:1px;font-weight:700;white-space:nowrap}
+  .pbadge.a{background:var(--red);color:#fff}
+  .pbadge.b{background:#8b0000;color:#fff}
+  .pbadge.c{background:#242424;color:#888}
+  .pcard .prev{font-size:9px;color:var(--ink-3);margin-top:6px;font-family:var(--mono)}
+  .empty-col{color:var(--ink-3);font-size:11px;text-align:center;padding:20px 0;letter-spacing:.08em}
+
+  /* ── DAY PLAN ── */
+  .dayplan{display:flex;flex-direction:column;gap:20px}
+  .route{border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .route-head{
+    padding:14px 18px;background:var(--bg-2);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:12px;
+  }
+  .route-head .rname{font-size:11px;letter-spacing:.24em;text-transform:uppercase;font-weight:700}
+  .route-head .rbadge{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .route-head .rstat{margin-left:auto;font-size:10px;font-family:var(--mono);color:var(--ink-2)}
+  .route-rows{}
+  .rrow{
+    display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:start;
+    padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .1s;
+  }
+  .rrow:last-child{border-bottom:none}
+  .rrow:hover{background:var(--bg-2)}
+  .rrow .rn{font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:2px}
+  .rrow .rinfo .rname2{font-size:13px;font-weight:600}
+  .rrow .rinfo .rind{font-size:10px;color:var(--ink-3);margin-top:1px;letter-spacing:.04em}
+  .rrow .rinfo .rpitch{font-size:11px;color:var(--ink-2);margin-top:6px;font-style:italic;line-height:1.45}
+  .rrow .rmeta{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+  .rtier{font-size:8px;letter-spacing:.24em;font-weight:700;padding:2px 7px;background:var(--red);color:#fff;border-radius:1px}
+  .rtier.b{background:#8b0000}
+  .rtier.c{background:#242424;color:#888}
+  .rspill{font-size:8px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;padding:3px 7px;border-radius:1px;border:1px solid transparent;white-space:nowrap}
+  .rspill.s-untouched{color:var(--s-un-t);border-color:var(--s-un-b);background:var(--s-un-bg)}
+  .rspill.s-contacted{color:var(--s-co-t);border-color:var(--s-co-b);background:var(--s-co-bg)}
+  .rspill.s-meeting  {color:var(--s-me-t);border-color:var(--s-me-b);background:var(--s-me-bg)}
+  .rspill.s-proposal {color:var(--s-pr-t);border-color:var(--s-pr-b);background:var(--s-pr-bg)}
+  .rspill.s-won      {color:var(--s-wo-t);border-color:var(--s-wo-b);background:var(--s-wo-bg)}
+  .rspill.s-lost     {color:var(--s-lo-t);border-color:var(--s-lo-b);background:var(--s-lo-bg)}
+  .rgaps{font-size:12px;letter-spacing:.03em}
+
+  /* ── MODAL ── */
+  .modal{
+    position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.8);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:36px 20px;overflow-y:auto;
+  }
+  .modal.on{display:flex}
+  .sheet{
+    max-width:900px;width:100%;background:var(--bg-1);border:1px solid var(--line);
+    border-radius:4px;padding:32px 36px;position:relative;
+    box-shadow:0 28px 72px rgba(0,0,0,.8),0 0 0 1px var(--red-glow);
+  }
+  .sheet .close{
+    position:absolute;top:12px;right:12px;background:transparent;
+    border:1px solid var(--line);color:var(--ink-2);width:30px;height:30px;
+    border-radius:50%;font-size:15px;line-height:1;transition:all .12s;
+  }
+  .sheet .close:hover{border-color:var(--red);color:var(--red)}
+  .sheet .eyebrow{font-size:9px;letter-spacing:.3em;color:var(--red);text-transform:uppercase;font-weight:700}
+  .sheet h2{margin:5px 0 2px;font-size:24px;letter-spacing:-.01em;font-weight:600}
+  .sheet .sub{color:var(--ink-2);font-size:12px;margin-bottom:20px}
+  .sheet h3{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--red);margin:20px 0 8px;font-weight:700}
+  .sheet p,.sheet li{font-size:13px;line-height:1.6;color:var(--ink)}
+  .sheet ol{padding-left:16px;margin:0}
+  .sheet ol li{margin-bottom:5px}
+
+  .sheet-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+  .skpi{border:1px solid var(--line);padding:10px 12px;border-radius:2px;background:var(--bg-2)}
+  .skpi .l{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+  .skpi .v{font-family:var(--mono);font-size:12px;color:var(--ink)}
+
+  /* status selector */
+  .status-sel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+  .sbtn{
+    padding:6px 12px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;
+    border-radius:2px;border:1px solid transparent;transition:all .12s;cursor:pointer;
+  }
+  .sbtn:hover{filter:brightness(1.2)}
+  .sbtn.s-untouched{color:var(--s-un-t);border-color:var(--s-un-b);background:var(--s-un-bg)}
+  .sbtn.s-contacted{color:var(--s-co-t);border-color:var(--s-co-b);background:var(--s-co-bg)}
+  .sbtn.s-meeting  {color:var(--s-me-t);border-color:var(--s-me-b);background:var(--s-me-bg)}
+  .sbtn.s-proposal {color:var(--s-pr-t);border-color:var(--s-pr-b);background:var(--s-pr-bg)}
+  .sbtn.s-won      {color:var(--s-wo-t);border-color:var(--s-wo-b);background:var(--s-wo-bg)}
+  .sbtn.s-lost     {color:var(--s-lo-t);border-color:var(--s-lo-b);background:var(--s-lo-bg)}
+  .sbtn.active{box-shadow:inset 0 0 0 2px currentColor}
+
+  /* notes */
+  .notes-area{
+    width:100%;background:var(--bg-2);border:1px solid var(--line);color:var(--ink);
+    padding:10px 12px;font-size:12px;font-family:var(--font);line-height:1.55;
+    border-radius:2px;resize:vertical;min-height:72px;outline:none;
+    transition:border-color .12s;
+  }
+  .notes-area:focus{border-color:var(--red)}
+  .notes-saved{font-size:10px;color:var(--ink-3);letter-spacing:.1em;margin-top:4px;text-align:right;height:14px;transition:opacity .3s}
+
+  /* pitch box */
+  .pitch-box{
+    border:1px solid var(--red);background:var(--red-glow);padding:14px 18px;border-radius:2px;
+    font-style:italic;color:#fff;font-size:13px;line-height:1.6;position:relative;margin-bottom:4px;
+  }
+
+  /* revenue estimator */
+  .rev-rows{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+  .rev-row{display:flex;align-items:center;gap:10px;cursor:pointer}
+  .rev-row input[type=checkbox]{accent-color:var(--red);width:14px;height:14px;cursor:pointer}
+  .rev-row .rev-label{flex:1;font-size:12px;color:var(--ink-2)}
+  .rev-row .rev-val{font-family:var(--mono);font-size:12px;color:var(--ink);text-align:right;min-width:80px}
+  .rev-total{
+    border:1px solid var(--line);padding:12px 14px;border-radius:2px;background:var(--bg-2);
+    display:flex;justify-content:space-between;align-items:baseline;
+  }
+  .rev-total .l{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+  .rev-total .v{font-family:var(--mono);font-size:20px;color:var(--red)}
+  .rev-total .ann{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+
+  /* action buttons */
+  .sheet-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+  .act-btn{
+    font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    padding:8px 14px;border-radius:2px;border:1px solid var(--line);color:var(--ink-2);background:transparent;
+    transition:all .12s;
+  }
+  .act-btn:hover{border-color:var(--line-2);color:var(--ink)}
+  .act-btn.primary{background:var(--red);border-color:var(--red);color:#fff}
+  .act-btn.primary:hover{background:#c01232;border-color:#c01232}
+
+  /* ── MEETING MODE ── */
+  .meeting-overlay{
+    position:fixed;inset:0;z-index:100;background:#000;
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    padding:60px 80px;text-align:center;
+  }
+  .meeting-overlay.on{display:flex}
+  .meeting-overlay .m-eyebrow{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--red);margin-bottom:16px;font-weight:700}
+  .meeting-overlay .m-name{font-size:52px;font-weight:700;letter-spacing:-.02em;line-height:1;margin-bottom:8px}
+  .meeting-overlay .m-meta{font-size:14px;color:var(--ink-3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:48px}
+  .meeting-overlay .m-pitch-label{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--red);margin-bottom:12px;font-weight:700}
+  .meeting-overlay .m-pitch{font-size:22px;color:#fff;line-height:1.5;max-width:860px;font-style:italic;margin-bottom:48px}
+  .meeting-overlay .m-prios{text-align:left;max-width:700px;width:100%}
+  .meeting-overlay .m-prios h4{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--red);margin:0 0 12px;font-weight:700}
+  .meeting-overlay .m-prios ol{margin:0;padding-left:18px}
+  .meeting-overlay .m-prios li{font-size:15px;color:var(--ink-2);line-height:1.7;margin-bottom:2px}
+  .m-close{
+    position:fixed;top:20px;right:24px;background:transparent;border:1px solid var(--line-2);
+    color:var(--ink-3);padding:8px 16px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;border-radius:2px;
+    transition:all .12s;
+  }
+  .m-close:hover{border-color:var(--red);color:var(--red)}
+  .m-timer{position:fixed;bottom:24px;right:28px;font-family:var(--mono);font-size:28px;color:var(--ink-3)}
+
+  /* empty */
+  .empty{border:1px dashed var(--line);padding:50px;text-align:center;color:var(--ink-3);border-radius:3px;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+
+  /* print */
+  @media print{aside,.bar,.modal,.meeting-overlay{display:none!important}.wrap{grid-template-columns:1fr}main{padding:0}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ TOP BAR -->
+<div class="bar">
+  <div class="brand"><span class="dot"></span><span>NEXUS · HUD</span></div>
+  <div class="vtoggle">
+    <button class="vbtn on" data-view="grid">Grid</button>
+    <button class="vbtn" data-view="pipeline">Pipeline</button>
+    <button class="vbtn" data-view="dayplan">Day Plan</button>
+  </div>
+  <div class="pipe-mini" id="pipeMini"></div>
+  <div class="spacer"></div>
+  <div class="bar-stat" id="countStat">SHOWING <b>40</b> / 40</div>
+  <button class="io-btn" onclick="exportState()">↓ Export</button>
+  <label class="io-btn" style="cursor:pointer">↑ Import<input type="file" accept=".json" onchange="importState(this)" style="display:none"/></label>
+</div>
+
+<!-- ══════════════════════════════════════════ LAYOUT -->
+<div class="wrap" id="wrap">
+  <aside id="aside">
+    <h3>Search</h3>
+    <input id="q" class="search" placeholder="company, district, sector…"/>
+    <h3>Tier</h3><div id="f-tier"></div>
+    <h3>Sector</h3><div id="f-sector"></div>
+    <h3>District</h3><div id="f-district"></div>
+    <h3>Service gap</h3><div id="f-gap"></div>
+    <h3>Status</h3><div id="f-status"></div>
+    <h3>Reset</h3>
+    <button class="chip" id="resetBtn">Clear all filters</button>
+  </aside>
+  <main id="main">
+    <div id="stage"></div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════ MODAL -->
+<div class="modal" id="modal">
+  <div class="sheet" id="sheet">
+    <button class="close" onclick="closeSheet()">×</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ MEETING MODE -->
+<div class="meeting-overlay" id="meetingOverlay">
+  <button class="m-close" onclick="closeMeeting()">ESC · Exit</button>
+  <div id="meetingContent"></div>
+  <div class="m-timer" id="meetingTimer">0:00</div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════ DATA */
+const DATA = [
+ {n:1,name:"TD The Detailer",url:"thedetailer.at",district:"1220",sector:"Automotive",tier:"A",rev:"€300k–€800k",web:"2/5",social:"IG · FB",contact:"Marc Bachhofner · Paul Pichler",star:true,
+  gaps:["🎥","📱","💻","📣","🎨"],
+  pitch:"We made OREA's car care content cinematic. Same thing for your detailing — your work is visual, we make it impossible to scroll past.",
+  why:"Exact structural parallel to OREA. Founder accessible. Premium niche with high visual appeal. Services gap crystal-clear from a 30-second website review.",
+  priorities:["Cinematic video content (premium detailing = natural c2moviez content)","Social media strategy + content calendar","Online booking system / IT support","Meta / Instagram ad campaign management","Brand motion — titles, before/after reels, brand shorts"]},
+ {n:2,name:"Lorry Internationale Spedition",url:"lorry.at",district:"1220",sector:"Logistics",tier:"A",rev:"€2M–€8M",web:"4/5",social:"ZERO",contact:"lorry@lorry.at · +43 1 28 58 000",star:true,
+  gaps:["🌐","📱","🎥","💻","📊"],
+  pitch:"30 years, 22 countries, 43 million tons. Your website doesn't show any of it. One visit and we'll show you exactly what we'd change.",
+  why:"Enormous gap between actual company strength and digital presence. Zero social = first-mover advantage. Claudio walks in, shows two screens, closes within the meeting.",
+  priorities:["Website redesign (urgent — dated for 30-year company)","Social from scratch (LinkedIn B2B, Instagram fleet/brand)","Company video / fleet showcase / team culture","IT infrastructure / cybersecurity","Digital strategy / brand positioning"]},
+ {n:3,name:"ARG BAU GmbH",url:"arg-bau.at",district:"1210",sector:"Construction",tier:"A",rev:"€1M–€4M",web:"2/5",social:"ZERO",contact:"Founder-run GmbH since 2010 · Partners: Strabag, ÖBB, Swietelsky",star:true,
+  gaps:["📱","🎥","💻","🌐","🎨"],
+  pitch:"You've built with Strabag and ÖBB. Nobody can see it — your Instagram doesn't exist. Companies your size in Germany use project content to win their next €500k contract.",
+  why:"Construction with tier-1 partners, zero social. Decision-maker (GmbH founder) almost certainly not outsourcing marketing yet.",
+  priorities:["Social presence (Instagram/LinkedIn)","Project documentation video + timelapse","IT/cybersecurity (sensitive project data)","Website upgrade with dynamic portfolio","Brand design + motion for social"]},
+ {n:4,name:"Baecker & Partner GmbH",url:"bewachung-baecker.at",district:"1030",sector:"Security",tier:"A",rev:"€500k–€2M",web:"3/5",social:"ZERO",contact:"GmbH — direct owner contact likely",star:true,
+  gaps:["🌐","🎥","📱","💻","📣"],
+  pitch:"You work with police, fire, and emergency services. Your website needs to feel like that level of professionalism. We've done it for a security brand — let us show you.",
+  why:"Zero digital presence for a company that sells trust is a gaping pitch opportunity. IT security (exeoflow) is a direct add-on.",
+  priorities:["Website modernization","Company video / trust-building content","LinkedIn + corporate social","IT security consulting (exeoflow fit)","B2B lead generation campaigns"]},
+ {n:5,name:"PSM Austria",url:"psm-austria.at",district:"Vienna",sector:"Security",tier:"A",rev:"€300k–€1.5M",web:"1/5",social:"ZERO",contact:"No named CEO surfaced",
+  gaps:["📱","🎥","📣","💻","📊"],
+  pitch:"Your website is clean. Your social doesn't exist. Every corporate client you want is on LinkedIn right now — and your competition is already there.",
+  why:"Modern website = digital understanding exists, but social gap is total. Easy add-on: social + content + ads.",
+  priorities:["Social from scratch (LinkedIn B2B + Instagram)","Video content (team, capability, trust)","Meta / LinkedIn ads","IT/cybersecurity (exeoflow)","Brand strategy — differentiation"]},
+ {n:6,name:"AutoSPA Wien",url:"autospa.at",district:"1190 · 1210",sector:"Automotive",tier:"A",rev:"€400k–€1.2M",web:"2/5",social:"IG · FB · TikTok",contact:"2-location retail, shopping center ops",
+  gaps:["🎥","📱","📣","💻","🎨"],
+  pitch:"You're already on TikTok. The gap is that your content doesn't show what your best work looks like. We have a client who does this — let us show you 30 seconds of what car care content looks like shot right.",
+  why:"OREA-adjacent. Has social channels but weak content. Multi-location = bigger campaign budget potential.",
+  priorities:["Professional video (before/after, process, seasonal)","Social strategy — upgrade volume/quality","Meta / TikTok Ads for both locations","IT — booking system, loyalty tech","Motion design for social"]},
+ {n:7,name:"Keusch GmbH (Das Autohaus)",url:"keusch.com",district:"1200",sector:"Automotive",tier:"B",rev:"€10M–€30M",web:"2/5",social:"FB · IG · YT · LI",contact:"+43 1 330 34 47-0 · 80+ employees · 3 locations",
+  gaps:["🎥","📣","🎨","💻","📊"],
+  pitch:"Maserati and Lexus are cinematic brands. You're selling emotion — your current social doesn't reflect that. We produce content that matches what those brands expect from their dealers.",
+  why:"Larger company = longer sales cycle, but premium brands = premium budgets. Claudio's in-person style is perfect here.",
+  priorities:["Premium video production (Maserati/Lexus deserve cinematic)","Meta / YouTube Ads management","Motion design for showroom + events","IT/cybersecurity (customer + finance data)","Content calendar / campaign strategy"]},
+ {n:8,name:"AG Motors",url:"agmotors.at",district:"1110",sector:"Automotive",tier:"B",rev:"€2M–€6M",web:"2/5",social:"FB · IG · YT",contact:"DI A. Gefairi (Geschäftsführer)",
+  gaps:["🎥","📣","📱","💻","🎨"],
+  pitch:"You're rated #1 in Vienna. Your content should look like #1. Right now it doesn't — and that gap costs you on every new customer who finds you on Instagram before calling.",
+  why:"Named decision-maker (DI Gefairi) = direct approach. Multi-channel social = clear service expansion path.",
+  priorities:["Video — reveals, inventory, workshop stories","Meta / YouTube Ads management","Social strategy — volume and consistency","IT support / cybersecurity","Motion for vehicle listings"]},
+ {n:9,name:"VIPROTECT GmbH",url:"viprotect.at",district:"1190",sector:"Security",tier:"B",rev:"€800k–€2.5M",web:"2/5",social:"FB · IG · LI · X · YT",contact:"Martin Wagner · Deni Khachukaev",
+  gaps:["🎥","🎨","💻","📣","📱"],
+  pitch:"You protect Erste Bank and the City of Vienna. Your content should reflect that caliber of client. Right now it's stock images — we make it real footage of your team and operations.",
+  why:"High-status clients validate quality. Replacing stock with real production is a clear immediate win.",
+  priorities:["Original video production (replace stock footage)","Brand design elevation","IT/cybersecurity consulting","B2B LinkedIn ad campaigns","Social content strategy"]},
+ {n:10,name:"KLASAN & Partner Immobilien",url:"klasan-immobilien.at",district:"1220",sector:"Real Estate",tier:"B",rev:"€400k–€1.5M",web:"3/5",social:"YT · FB · IG · LI · TikTok",contact:"Katharina Klasan (CEO) · office@klasan-immobilien.at",
+  gaps:["🌐","🎥","📣","💻","📊"],
+  pitch:"Katharina, you're already on TikTok — ahead of most Vienna agencies. The next step is the production quality that makes those videos stop people mid-scroll.",
+  why:"Named CEO is the decision-maker. Already has all social channels. Direct email available.",
+  priorities:["Website redesign","Professional property video + drone","Meta / TikTok Ads for listings","IT support + CRM (exeoflow)","Content calendar + social strategy"]},
+ {n:11,name:"BURG IMMO (RAVENA GmbH)",url:"burgimmo.at",district:"1030",sector:"Real Estate",tier:"B",rev:"€300k–€1M",web:"2/5",social:"IG · FB",contact:"RAVENA GmbH — direct owner",
+  gaps:["🎥","🌐","📱","💻","📣"],
+  pitch:"Luxury real estate sells through emotion. A €1.5M apartment video shot like an Airbnb listing loses €100k in perceived value. We shoot luxury — you know the difference.",
+  why:"Luxury niche with cluttered frontend. Clear cinematic mandate. HNW clients = premium pricing.",
+  priorities:["Luxury property video + drone","Website restructure (cluttered Elementor)","Instagram content strategy","IT support + data security","Meta Ads targeting HNW buyers"]},
+ {n:12,name:"WIENRAUM Immobilien",url:"wienraum.at",district:"1070",sector:"Real Estate",tier:"B",rev:"€300k–€900k",web:"2/5",social:"FB · YT",contact:"Sebastian Huppmann · Clemens Lettmayer (MDs)",
+  gaps:["🎥","📱","📣","🌐","💻"],
+  pitch:"You're already doing video for listings — smart. The question is whether those videos are losing you clients vs. your premium competitors. Let's look at three examples together.",
+  why:"Two named co-founders, direct addressability. Already doing video = open to upgrades.",
+  priorities:["Property video production upgrade","Instagram / TikTok expansion","Social Ads management","Website refinement","IT / CRM (exeoflow)"]},
+ {n:13,name:"Smile Lounge Wien",url:"wien-zahnarzt.at",district:"1010",sector:"Dental",tier:"B",rev:"€400k–€1.2M",web:"2/5",social:"IG likely",contact:"Practice owner — direct",
+  gaps:["🎥","📱","🌐","📣","💻"],
+  pitch:"Your practice is in the 1st district — every patient who finds you on Google is expecting premium before they call. Does your website reflect that?",
+  why:"Prime district = premium patients, high AOV. Trust-building content is fastest patient acquisition.",
+  priorities:["Practice video + team introduction","Instagram / social (before/after, trust)","Website redesign for premium positioning","Meta Ads targeting nearby residents","Patient data security / IT (GDPR)"]},
+ {n:14,name:"Zahnärzte Wien Mitte",url:"zahnarztwienmitte.at",district:"1030",sector:"Dental",tier:"B",rev:"€500k–€1.5M",web:"TBD",social:"Minimal",contact:"Practice management — direct owner access",
+  gaps:["🎥","📱","🌐","💻","📣"],
+  pitch:"You've positioned as private — no waiting, full attention. Does your digital presence feel that way to a new patient before they make the appointment?",
+  why:"Private-only = premium AOV. Same service pattern as Smile Lounge.",
+  priorities:["Practice video + team content","Social strategy","Website upgrade","IT/GDPR compliance","Meta Ads for private patients"]},
+ {n:15,name:"Zahnklinik Wien Döbling",url:"zahnklinik-wien-doebling.at",district:"1190",sector:"Dental",tier:"B",rev:"€600k–€2M",web:"TBD",social:"Minimal",contact:"Clinic director / Prokurist",
+  gaps:["🎥","📱","🌐","💻","📣"],
+  pitch:"Implants and orthodontics are €5k+ decisions. Patients spend weeks researching online before calling. Your digital presence either earns that research — or loses it to a competitor.",
+  why:"Multi-specialist premium clinic. High AOV procedures = content pays back fast.",
+  priorities:["Specialist video (implants, orthodontics)","Patient trust-building social","Website for premium positioning","Patient data security / IT","Ads targeting premium"]},
+ {n:16,name:"eigensinnig wien",url:"eigensinnig-wien.com",district:"1070",sector:"Fashion",tier:"B",rev:"€400k–€1.5M",web:"2/5",social:"IG · FB · X · Pinterest · YT",contact:"Boutique = direct founder access",
+  gaps:["🎥","🌐","📣","💻","🎨"],
+  pitch:"You carry Mühlbauer and avant-garde European labels. Your Instagram should feel like those brands sound. Right now it doesn't — let us show you what fashion content looks like when it's shot intentionally.",
+  why:"Shopify Plus (backend modern), visually cluttered frontend. Avant-garde niche = cinematic wins.",
+  priorities:["Fashion video / editorial film","Website visual redesign","Meta / Pinterest Ads","IT/e-commerce security + CRM","Motion/animation for social"]},
+ {n:17,name:"FitnessGoesOffice",url:"fitnessgoesoffice.com",district:"Vienna",sector:"B2B Services",tier:"B",rev:"€500k–€2M",web:"2/5",social:"FB · LI · IG · YT",contact:"office@fitnessgoesoffice.com · +43-664-4000 875",
+  gaps:["🎥","📱","📣","💻","📊"],
+  pitch:"You've landed Erste Bank and STRABAG — 20,000+ employees. Do you have a case study video that closes the next corporate deal? We can make that in a day.",
+  why:"Fortune-grade clients already in. Case study video is quickest-ROI deliverable for B2B wellness.",
+  priorities:["Corporate video (training, testimonials, case studies)","LinkedIn content strategy","LinkedIn Ads targeting HR + wellness budget","IT / platform optimization","Brand strategy — differentiation"]},
+ {n:18,name:"R.E.P. Steuerberatungs GmbH",url:"rep.at",district:"1010",sector:"Finance",tier:"B",rev:"€300k–€1M",web:"TBD",social:"Minimal",contact:"Managing partner (Kanzlei-Inhaber)",
+  gaps:["🌐","💻","📱","🎥","📣"],
+  pitch:"Your clients trust you with their financial lives. Does your digital presence reflect that trust? An accountant with a great website and clean IT setup closes better clients.",
+  why:"1010 location = premium clients. Accounting firms have some of the worst websites — huge upside.",
+  priorities:["Website redesign","IT security + GDPR tools (exeoflow's strongest pitch)","LinkedIn content strategy","Firm introduction video","LinkedIn Ads targeting founders + CFOs"]},
+ {n:19,name:"HALLAS & Partner",url:"hallas-partner.at",district:"1020",sector:"Finance",tier:"B",rev:"€300k–€800k",web:"TBD",social:"Minimal",contact:"Hallas (partner/founder)",
+  gaps:["💻","🌐","📱","🎥"],
+  pitch:"GDPR and cybersecurity are your clients' biggest risk right now. But do you have the IT setup to protect their data on your end? That's where we start — with exeoflow.",
+  why:"Same pattern as #18. IT security (exeoflow lead) is the strongest opener for audit/tax firms.",
+  priorities:["IT security (exeoflow lead)","Website","LinkedIn content","Firm video"]},
+ {n:20,name:"Artivive",url:"artivive.com",district:"Vienna",sector:"SaaS / Startup",tier:"B",rev:"€500k–€3M",web:"TBD",social:"LI heavy likely",contact:"Co-founders — direct access",
+  gaps:["🎥","🎨","📱","📣","💻"],
+  pitch:"You're selling augmented reality — your own marketing content should be reality-augmented. Let's shoot something that proves the product in 30 seconds without anyone opening an app.",
+  why:"VC-backed AR startup. Visual product = visual marketing mandate. Founders move fast.",
+  priorities:["Brand/product video (AR is visual)","Motion design for demos, explainers","Social content strategy","Meta / LinkedIn Ads","IT security scaling"]},
+ {n:21,name:"Orderlion",url:"orderlion.com",district:"Vienna",sector:"SaaS / Startup",tier:"B",rev:"€1M–€5M",web:"TBD",social:"TBD",contact:"Founders / CMO",
+  gaps:["🎥","📱","📣","💻","🎨"],
+  pitch:"You have a working product and paying customers. The next growth phase is content that makes your customers sell for you. A 90-second testimonial video pays for itself in one new deal.",
+  why:"Series A stage. 100+ employees. Budget exists. Testimonial video = fast ROI.",
+  priorities:["Customer testimonial videos, explainer production","Social strategy (LinkedIn + case study)","LinkedIn Ads + retargeting","IT infrastructure support","Motion design for product marketing"]},
+ {n:22,name:"Rendity",url:"rendity.com",district:"Vienna",sector:"SaaS / Startup",tier:"B",rev:"€500k–€2M",web:"TBD",social:"TBD",contact:"Founders",
+  gaps:["🎥","📱","📣","💻","📊"],
+  pitch:"Retail investors make €10k+ decisions based on trust. Video is the fastest trust-builder — a well-produced 2-minute explainer will outperform any landing page copy you've written.",
+  why:"Fintech = regulated + trust-dependent = video advantage is structural.",
+  priorities:["Investor education video content","Social content strategy (investor trust)","Meta / YouTube Ads targeting investors","Platform security / IT support","Brand positioning strategy"]},
+ {n:23,name:"VIBE Vienna",url:"vibevienna.at",district:"Vienna",sector:"PR / Agency",tier:"B",rev:"€200k–€600k",web:"TBD",social:"Active",contact:"Agency founder/MD",
+  gaps:["🎥","🎨","💻","📊"],
+  pitch:"You're running lifestyle campaigns and events. When clients ask for video, who do you call? Let's be that call — with quality that makes you look better to your clients.",
+  why:"PR agencies are multiplier clients — one deal brings 3-5 downstream projects.",
+  priorities:["Video production partnership","Motion design for client campaigns","IT support + content management","Strategic partnership for full-service delivery"]},
+ {n:24,name:"Putz & Stingl",url:"putzstingl.at",district:"Vienna",sector:"PR / Agency",tier:"B",rev:"€300k–€800k",web:"TBD",social:"Active",contact:"Agency founders",
+  gaps:["🎥","💻","📊"],
+  pitch:"You do PR, events, social, and design. The one gap in most agencies' offer is video production. We can be your production partner — on your terms, under your delivery.",
+  why:"Full-service SME agency. Video is almost certainly outsourced. Clean partnership fit.",
+  priorities:["Video production partner","IT/cybersecurity (client data)","Strategic partnership for scaling"]},
+ {n:25,name:"Momentum Wien",url:"momentum.wien",district:"Vienna",sector:"PR / Agency",tier:"B",rev:"€200k–€600k",web:"TBD",social:"TBD",contact:"Agency founder",
+  gaps:["🎥","💻","🎨"],
+  pitch:"Content strategy without video is half a strategy in 2026. Let's build the production side of your offer together — you keep the client relationship, we deliver the footage.",
+  why:"Content-strategy agency with no in-house video = natural production partnership.",
+  priorities:["Video production partnership","IT support for digital campaigns","Motion design for client content"]},
+ {n:26,name:"Finmatics",url:"finmatics.com",district:"Vienna",sector:"SaaS / Startup",tier:"C",rev:"€1M–€4M",web:"TBD",social:"TBD",contact:"CEO / Marketing",
+  gaps:["🎥","📱","📣","💻","🎨"],
+  pitch:"AI tools win when they're explained simply. A 90-second video of how Finmatics saves an accountant 4 hours per week will close more trials than any landing page.",
+  why:"Established AI product, 100 employees. Budget exists. Explainer video = SaaS conversion lift.",
+  priorities:["Explainer video","LinkedIn content","Social strategy","IT security","Brand motion"]},
+ {n:27,name:"iClean.at",url:"iclean.at",district:"Vienna",sector:"Automotive",tier:"C",rev:"€300k–€1M",web:"TBD",social:"TBD",contact:"E-commerce ops",
+  gaps:["🎥","📱","📣","🌐","💻"],
+  pitch:"Car care products look like commodities until someone films them in slow motion on a wet hood at golden hour. That's OREA's playbook — we made it. Same for you.",
+  why:"6000+ SKUs e-commerce. Product video = direct conversion lift. OREA-adjacent.",
+  priorities:["Product video","Social content","Meta Ads e-commerce","Website optimization","IT/e-commerce security"]},
+ {n:28,name:"Unique Logistik Transport",url:"uniquelogistik.at",district:"Vienna",sector:"Logistics",tier:"C",rev:"€300k–€1M",web:"TBD",social:"TBD",contact:"GmbH — direct owner",
+  gaps:["🌐","📱","🎥","💻"],
+  pitch:"Same playbook as Lorry: 30-year business, dated digital, zero social, clear gap. Walk in, show two screens, close it.",
+  why:"Smaller Lorry analogue. Clean pitch if Lorry closes well first.",
+  priorities:["Website","Social","Company video","IT"]},
+ {n:29,name:"Baumeister Jovicic GmbH",url:"baumeister-jovicic.at",district:"Vienna",sector:"Construction",tier:"C",rev:"€500k–€2M",web:"TBD",social:"TBD",contact:"Baumeister / founder",
+  gaps:["📱","🎥","🌐","💻"],
+  pitch:"Your work is visible all over Vienna. Your social isn't. That's a marketing asset sitting uncaptured on every job site.",
+  why:"Construction + zero social = pattern repeat. Predictable close.",
+  priorities:["Social","Project documentation video","Website","IT"]},
+ {n:30,name:"AK-M Bau GmbH",url:"ak-m.at",district:"Vienna",sector:"Construction",tier:"C",rev:"€500k–€2M",web:"TBD",social:"TBD",contact:"GmbH — direct owner",
+  gaps:["📱","🎥","🌐"],
+  pitch:"Construction company social presence is a wide-open field in Vienna. You go first, you win the next €500k contract.",
+  why:"Same construction sector play as ARG BAU and Jovicic.",
+  priorities:["Social","Video documentation","Website"]},
+ {n:31,name:"Zeitgeist Events & PR",url:"zeitgeist.at",district:"Vienna",sector:"PR / Agency",tier:"C",rev:"€200k–€600k",web:"TBD",social:"Active",contact:"Agency founder",
+  gaps:["🎥","🎨","💻"],
+  pitch:"Events are one of the hardest things to sell without video. We shoot events. When you need production, we're faster than any internal alternative.",
+  why:"Event agency = recurring production need. Partnership play.",
+  priorities:["Video production partner","Motion design","IT for event platforms"]},
+ {n:32,name:"Dr. Lukas Hallmann Zahnarzt",url:"zahnarzt-hallmann.at",district:"Vienna",sector:"Dental",tier:"C",rev:"€400k–€1M",web:"TBD",social:"Minimal",contact:"Practice owner",
+  gaps:["🌐","📱","💻"],
+  pitch:"You're private, which means you choose your patients. Your digital presence should do the same screening — attracting premium patients before they even call.",
+  why:"Private-only dental = premium AOV. GDPR/IT via exeoflow is natural add.",
+  priorities:["Website","Social content","IT / GDPR compliance"]},
+ {n:33,name:"HEL-WACHT Bewachung",url:"helwacht.at",district:"Vienna",sector:"Security",tier:"C",rev:"€300k–€1M",web:"TBD",social:"TBD",contact:"Management",
+  gaps:["🌐","📱","🎥","💻"],
+  pitch:"Security companies without social are easy first pitches. Trust is their product — their digital presence doesn't reflect that yet.",
+  why:"Security sector play continues. Lower priority than Tier A but clean close.",
+  priorities:["Website","Social","Video","IT security consulting"]},
+ {n:34,name:"AFS Wien",url:"afs-wien.at",district:"Vienna",sector:"Security",tier:"C",rev:"€300k–€800k",web:"4/5",social:"TBD",contact:"Management",
+  gaps:["🌐","📱","🎥","💻"],
+  pitch:"Your website still uses Flash-era design patterns. Your competitors are on Instagram. That's the conversation.",
+  why:"Very dated web = impossible to argue against the pitch.",
+  priorities:["Website modernization","Social","Video","IT"]},
+ {n:35,name:"Bodycult",url:"bodycult.at",district:"Vienna / AT",sector:"E-Commerce",tier:"C",rev:"€500k–€2M",web:"TBD",social:"TBD",contact:"office@bodycult.at · +43 316 225 290",
+  gaps:["🎥","📱","📣","💻"],
+  pitch:"25 years of supplements. Your product video doesn't exist. Nutrition brands that invest in content 3x their order volume — we have the case studies.",
+  why:"25-year e-commerce, 20k customers. Product video = direct conversion lift.",
+  priorities:["Product video","Social strategy upgrade","Meta Ads","IT (e-commerce security)"]},
+ {n:36,name:"tubics",url:"tubics.com",district:"Vienna",sector:"SaaS / Startup",tier:"C",rev:"€500k–€2M",web:"TBD",social:"TBD",contact:"Founder / Marketing",
+  gaps:["🎥","🎨","📱"],
+  pitch:"You help other brands win on YouTube — who's making your own brand's video? Let's fix the cobbler's shoes.",
+  why:"YouTube SEO SaaS without cinematic brand video = ironic pitch that works.",
+  priorities:["Brand video","Motion design","Content marketing"]},
+ {n:37,name:"Artivive (followup)",url:"artivive.com",district:"Vienna",sector:"SaaS / Startup",tier:"C",rev:"€500k–€3M",web:"TBD",social:"TBD",contact:"Co-founders",
+  gaps:["🎥","🎨"],
+  pitch:"Second touch if Tier B doesn't convert on first pass.",
+  why:"Backup slot for AR platform.",
+  priorities:["Follow-up on Tier B pitch"]},
+ {n:38,name:"Glanzmanufaktur",url:"glanzmanufaktur.at",district:"1230",sector:"Automotive",tier:"C",rev:"€200k–€500k",web:"TBD",social:"TBD",contact:"+43 660 118 45 46",
+  gaps:["📱","🎥","🌐","💻"],
+  pitch:"Certification + premium work + zero digital presence = growth blocked. OREA playbook applies.",
+  why:"Smaller detailing shop, clean add-on to detailing cluster day.",
+  priorities:["Social from scratch","Video","Website content","IT/booking"]},
+ {n:39,name:"IFIN Immobilien",url:"ifin.at",district:"Vienna",sector:"Real Estate",tier:"C",rev:"€200k–€600k",web:"TBD",social:"TBD",contact:"Agency management",
+  gaps:["🌐","📱","🎥","💻"],
+  pitch:"Real estate pattern — video + social is table stakes now. You're not at table stakes.",
+  why:"Standard RE pattern. Fast close if motivated.",
+  priorities:["Website","Social","Video","IT"]},
+ {n:40,name:"Orderlion (followup)",url:"orderlion.com",district:"Vienna",sector:"SaaS / Startup",tier:"C",rev:"€1M–€5M",web:"TBD",social:"TBD",contact:"CMO / Founders",
+  gaps:["🎥","📱"],
+  pitch:"Second touch if Tier B doesn't convert on first pass.",
+  why:"Backup slot for B2B food SaaS.",
+  priorities:["Follow-up on Tier B pitch"]},
+];
+
+/* ═══════════════════════════════════════════ CONSTANTS */
+const GAP_LABELS = {"🎥":"Video","📱":"Social","🌐":"Web","📣":"Ads","💻":"IT","🎨":"Motion","📊":"Strategy"};
+const SVC_VALUE  = {"🎥":1800,"📱":1000,"🌐":400,"📣":800,"💻":800,"🎨":1000,"📊":600};
+const STATUSES = [
+  {key:"untouched", label:"Untouched"},
+  {key:"contacted", label:"Contacted"},
+  {key:"meeting",   label:"Meeting"},
+  {key:"proposal",  label:"Proposal Sent"},
+  {key:"won",       label:"Won ✓"},
+  {key:"lost",      label:"Lost"},
+];
+const DISTRICT_ROUTES = [
+  {id:"inner",  name:"Inner City Loop",  districts:["1010","1020","1030","1070","1040","1050","1060","1080","1090"], note:"Walk — cluster these in sequence"},
+  {id:"north",  name:"North Arc",        districts:["1190","1200","1210"],                                           note:"Drive or U-Bahn north"},
+  {id:"east",   name:"East Corridor",    districts:["1100","1110","1120","1130","1220","1120"],                       note:"Simmering + Donaustadt"},
+  {id:"south",  name:"South",            districts:["1230","1140","1130"],                                           note:"Liesing + surrounds"},
+  {id:"other",  name:"Unzoned / TBD",    districts:[],                                                              note:"City-wide or district TBD"},
+];
+const LS_KEY = "nexus-hud-vienna";
+
+/* ═══════════════════════════════════════════ LOCALSTORAGE */
+function lsLoad(){
+  try{return JSON.parse(localStorage.getItem(LS_KEY)||"{}")}catch{return{}}
+}
+function lsSave(data){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(data))}catch{}
+}
+function getTarget(n){return (lsLoad()[n]||{status:"untouched",notes:""})}
+function setTarget(n,obj){
+  const d=lsLoad();
+  d[n]={...getTarget(n),...obj};
+  lsSave(d);
+}
+
+/* ═══════════════════════════════════════════ STATE */
+const state={view:"grid",tier:null,sector:null,district:null,gap:null,status:null,q:""};
+
+/* ═══════════════════════════════════════════ FILTERS */
+function filtered(){
+  const q=state.q.trim().toLowerCase();
+  return DATA.filter(d=>{
+    if(state.tier&&d.tier!==state.tier)return false;
+    if(state.sector&&d.sector!==state.sector)return false;
+    if(state.district&&d.district!==state.district)return false;
+    if(state.gap&&!d.gaps.includes(state.gap))return false;
+    if(state.status){const t=getTarget(d.n);if((t.status||"untouched")!==state.status)return false;}
+    if(q){const h=`${d.name} ${d.sector} ${d.district} ${d.url}`.toLowerCase();if(!h.includes(q))return false;}
+    return true;
+  });
+}
+
+/* ═══════════════════════════════════════════ SIDEBAR CHIPS */
+function buildChips(){
+  const countFor=(key,val)=>DATA.filter(d=>{
+    if(key==="gap") return d.gaps.includes(val);
+    if(key==="status") return (getTarget(d.n).status||"untouched")===val;
+    return d[key]===val;
+  }).length;
+
+  // tier
+  const tu=document.getElementById("f-tier");tu.innerHTML="";
+  ["A","B","C"].forEach(v=>{
+    const c=countFor("tier",v);
+    const b=document.createElement("button");
+    b.className="chip"+(state.tier===v?" on":"");
+    b.innerHTML=`${v}<span class="n">${c}</span>`;
+    b.onclick=()=>{state.tier=state.tier===v?null:v;render()};
+    tu.appendChild(b);
+  });
+
+  // sector
+  const su=document.getElementById("f-sector");su.innerHTML="";
+  const sectors=[...new Set(DATA.map(d=>d.sector))].sort();
+  sectors.forEach(v=>{
+    const c=countFor("sector",v);
+    const b=document.createElement("button");
+    b.className="chip"+(state.sector===v?" on":"");
+    b.innerHTML=`${v}<span class="n">${c}</span>`;
+    b.onclick=()=>{state.sector=state.sector===v?null:v;render()};
+    su.appendChild(b);
+  });
+
+  // district
+  const du=document.getElementById("f-district");du.innerHTML="";
+  const dists=[...new Set(DATA.map(d=>d.district))].sort();
+  dists.forEach(v=>{
+    const c=countFor("district",v);
+    const b=document.createElement("button");
+    b.className="chip"+(state.district===v?" on":"");
+    b.innerHTML=`${v}<span class="n">${c}</span>`;
+    b.onclick=()=>{state.district=state.district===v?null:v;render()};
+    du.appendChild(b);
+  });
+
+  // gaps
+  const gu=document.getElementById("f-gap");gu.innerHTML="";
+  Object.keys(GAP_LABELS).forEach(v=>{
+    const c=countFor("gap",v);
+    const b=document.createElement("button");
+    b.className="chip"+(state.gap===v?" on":"");
+    b.innerHTML=`${v} ${GAP_LABELS[v]}<span class="n">${c}</span>`;
+    b.onclick=()=>{state.gap=state.gap===v?null:v;render()};
+    gu.appendChild(b);
+  });
+
+  // status
+  const stsu=document.getElementById("f-status");stsu.innerHTML="";
+  STATUSES.forEach(({key,label})=>{
+    const c=countFor("status",key);
+    const b=document.createElement("button");
+    b.className="chip"+(state.status===key?" on":"");
+    b.innerHTML=`${label}<span class="n">${c}</span>`;
+    b.onclick=()=>{state.status=state.status===key?null:key;render()};
+    stsu.appendChild(b);
+  });
+}
+
+/* ═══════════════════════════════════════════ PIPE MINI BAR */
+function updatePipeMini(){
+  const el=document.getElementById("pipeMini");
+  const style={
+    untouched:{bg:"var(--s-un-bg)",border:"var(--s-un-b)",color:"var(--s-un-t)"},
+    contacted:{bg:"var(--s-co-bg)",border:"var(--s-co-b)",color:"var(--s-co-t)"},
+    meeting:  {bg:"var(--s-me-bg)",border:"var(--s-me-b)",color:"var(--s-me-t)"},
+    proposal: {bg:"var(--s-pr-bg)",border:"var(--s-pr-b)",color:"var(--s-pr-t)"},
+    won:      {bg:"var(--s-wo-bg)",border:"var(--s-wo-b)",color:"var(--s-wo-t)"},
+    lost:     {bg:"var(--s-lo-bg)",border:"var(--s-lo-b)",color:"var(--s-lo-t)"},
+  };
+  el.innerHTML=STATUSES.map(({key,label})=>{
+    const cnt=DATA.filter(d=>(getTarget(d.n).status||"untouched")===key).length;
+    if(cnt===0)return"";
+    const s=style[key];
+    return `<span class="pipe-dot" style="background:${s.bg};border-color:${s.border};color:${s.color}">${label.replace(" ✓","")} <b style="font-family:var(--mono)">${cnt}</b></span>`;
+  }).join("");
+}
+
+/* ═══════════════════════════════════════════ CYCLE STATUS */
+function cycleStatus(e,n){
+  e.stopPropagation();
+  const cur=(getTarget(n).status||"untouched");
+  const keys=STATUSES.map(s=>s.key);
+  const next=keys[(keys.indexOf(cur)+1)%keys.length];
+  setTarget(n,{status:next});
+  render();
+}
+
+/* ═══════════════════════════════════════════ GRID RENDER */
+function renderGrid(list){
+  const byTier={A:[],B:[],C:[]};
+  list.forEach(d=>byTier[d.tier].push(d));
+  const meta={A:["A","First week · highest gap · fastest decision-makers"],
+              B:["B","First/second week · strong · multi-service"],
+              C:["C","Week 2–3 · solid pipeline · lower urgency"]};
+  const out=[];
+  ["A","B","C"].forEach(t=>{
+    if(!byTier[t].length)return;
+    const [,sub]=meta[t];
+    out.push(`<div class="tier-head"><h2><span class="t">Tier ${t}</span></h2><span>${sub}</span><div class="ln"></div><span style="font-family:var(--mono);font-size:12px;color:var(--ink-3)">${byTier[t].length}</span></div>`);
+    out.push(`<div class="grid">${byTier[t].map(cardHtml).join("")}</div>`);
+  });
+  return out.join("");
+}
+
+function cardHtml(d){
+  const tgt=getTarget(d.n);
+  const status=tgt.status||"untouched";
+  const sLabel=STATUSES.find(s=>s.key===status).label;
+  const gaps=d.gaps.map(g=>`<span class="gap-icon" title="${GAP_LABELS[g]||""}">${g}</span>`).join("");
+  return `
+<div class="card s-${status}" onclick="openSheet(${d.n})">
+  <div class="tier-badge ${d.tier.toLowerCase()}">${d.tier}</div>
+  <div class="num">#${String(d.n).padStart(2,"0")}${d.star?' <span style="color:var(--red)">★</span>':""}</div>
+  <h4>${d.name}</h4>
+  <div class="ind">${d.sector} · ${d.district}</div>
+  <div class="gaps">${gaps}</div>
+  <div class="pitch">"${d.pitch}"</div>
+  <div class="card-footer">
+    <div class="card-meta">
+      <span>REV <b>${d.rev}</b></span>
+      <span>WEB <b>${d.web}</b></span>
+    </div>
+    <div class="spill s-${status}" onclick="cycleStatus(event,${d.n})" title="Click to advance status">${sLabel}</div>
+  </div>
+</div>`;
+}
+
+/* ═══════════════════════════════════════════ PIPELINE RENDER */
+function renderPipeline(list){
+  const cols={};
+  STATUSES.forEach(s=>{cols[s.key]=[]});
+  list.forEach(d=>{
+    const status=(getTarget(d.n).status||"untouched");
+    if(cols[status])cols[status].push(d);
+  });
+
+  const colStyle={
+    untouched:{bg:"var(--s-un-bg)",border:"var(--s-un-b)",color:"var(--s-un-t)"},
+    contacted:{bg:"var(--s-co-bg)",border:"var(--s-co-b)",color:"var(--s-co-t)"},
+    meeting:  {bg:"var(--s-me-bg)",border:"var(--s-me-b)",color:"var(--s-me-t)"},
+    proposal: {bg:"var(--s-pr-bg)",border:"var(--s-pr-b)",color:"var(--s-pr-t)"},
+    won:      {bg:"var(--s-wo-bg)",border:"var(--s-wo-b)",color:"var(--s-wo-t)"},
+    lost:     {bg:"var(--s-lo-bg)",border:"var(--s-lo-b)",color:"var(--s-lo-t)"},
+  };
+
+  const revenue=(d)=>d.gaps.reduce((s,g)=>s+(SVC_VALUE[g]||0),0);
+  const fmtk=(n)=>n>=1000?`€${(n/1000).toFixed(1)}k`:n?"€"+n:"";
+
+  const colsHtml=STATUSES.map(({key,label})=>{
+    const items=cols[key];
+    const totalRev=items.reduce((s,d)=>s+revenue(d),0);
+    const cards=items.length?items.map(d=>`
+      <div class="pcard" onclick="openSheet(${d.n})">
+        <div class="pt">
+          <h5>${d.name}</h5>
+          <span class="pbadge ${d.tier.toLowerCase()}">${d.tier}</span>
+        </div>
+        <div class="pi">${d.sector} · ${d.district}</div>
+        <div class="pg">${d.gaps.slice(0,4).join(" ")}</div>
+        <div class="prev">${fmtk(revenue(d))}/mo est.</div>
+      </div>`).join(""):`<div class="empty-col">—</div>`;
+    return `
+      <div class="pcol">
+        <div class="pcol-head s-${key}">
+          <div>
+            <div>${label}</div>
+            ${(key!=="untouched"&&totalRev)?`<div class="rev">${fmtk(totalRev)}/mo total</div>`:""}
+          </div>
+          <div class="cnt">${items.length}</div>
+        </div>
+        ${cards}
+      </div>`;
+  }).join("");
+  return `<div class="pipeline-wrap">${colsHtml}</div>`;
+}
+
+/* ═══════════════════════════════════════════ DAY PLAN RENDER */
+function renderDayPlan(list){
+  function getRoute(d){
+    for(const r of DISTRICT_ROUTES){
+      if(r.id==="other")continue;
+      if(r.districts.some(dist=>d.district.startsWith(dist)))return r.id;
+    }
+    return "other";
+  }
+  const routeMap={};
+  DISTRICT_ROUTES.forEach(r=>{routeMap[r.id]=[]});
+  list.forEach(d=>{routeMap[getRoute(d)].push(d)});
+  // sort within route: Tier A first, then B, then C
+  const tierOrder={A:0,B:1,C:2};
+  Object.keys(routeMap).forEach(k=>{routeMap[k].sort((a,b)=>tierOrder[a.tier]-tierOrder[b.tier])});
+
+  const revenue=(d)=>d.gaps.reduce((s,g)=>s+(SVC_VALUE[g]||0),0);
+  const fmtk=(n)=>n>=1000?`€${(n/1000).toFixed(1)}k/mo`:n?"€"+n+"/mo":"";
+
+  const sections=DISTRICT_ROUTES.map(r=>{
+    const items=routeMap[r.id];
+    if(!items.length)return"";
+    const rows=items.map((d,i)=>{
+      const status=(getTarget(d.n).status||"untouched");
+      return `
+        <div class="rrow" onclick="openSheet(${d.n})">
+          <div class="rn">${String(i+1).padStart(2,"0")}</div>
+          <div class="rinfo">
+            <div class="rname2">${d.name}${d.star?' <span style="color:var(--red);font-size:11px">★</span>':""}</div>
+            <div class="rind">${d.sector} · ${d.district}</div>
+            <div class="rgaps">${d.gaps.slice(0,5).join(" ")}</div>
+            <div class="rpitch">"${d.pitch}"</div>
+          </div>
+          <div class="rmeta">
+            <span class="rtier ${d.tier.toLowerCase()}">${d.tier}</span>
+            <span class="rspill s-${status}">${STATUSES.find(s=>s.key===status).label}</span>
+            <span style="font-size:10px;color:var(--ink-3);font-family:var(--mono)">${fmtk(revenue(d))}</span>
+          </div>
+        </div>`;
+    }).join("");
+    const tierA=items.filter(d=>d.tier==="A").length;
+    const tierB=items.filter(d=>d.tier==="B").length;
+    return `
+      <div class="route">
+        <div class="route-head">
+          <div class="rname">${r.name}</div>
+          <div class="rbadge">${r.note}</div>
+          <div class="rstat">${items.length} targets · ${tierA?"A:"+tierA+" ":""}${tierB?"B:"+tierB:""}</div>
+        </div>
+        <div class="route-rows">${rows}</div>
+      </div>`;
+  }).join("");
+  return `<div class="dayplan">${sections||'<div class="empty">No targets match filters.</div>'}</div>`;
+}
+
+/* ═══════════════════════════════════════════ MAIN RENDER */
+function render(){
+  buildChips();
+  updatePipeMini();
+  const list=filtered();
+  const cs=document.getElementById("countStat");
+  cs.innerHTML=`SHOWING <b>${list.length}</b> / ${DATA.length}`;
+
+  const stage=document.getElementById("stage");
+  if(state.view==="grid"){
+    stage.innerHTML=list.length
+      ?renderGrid(list)
+      :`<div class="empty">No targets match these filters.</div>`;
+  } else if(state.view==="pipeline"){
+    stage.innerHTML=renderPipeline(list);
+  } else if(state.view==="dayplan"){
+    stage.innerHTML=renderDayPlan(list);
+  }
+}
+
+/* ═══════════════════════════════════════════ VIEW TOGGLE */
+document.querySelectorAll(".vbtn").forEach(b=>{
+  b.addEventListener("click",()=>{
+    state.view=b.dataset.view;
+    document.querySelectorAll(".vbtn").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    render();
+  });
+});
+
+/* ═══════════════════════════════════════════ MODAL */
+let notesTimer=null;
+function openSheet(n){
+  const d=DATA.find(x=>x.n===n);if(!d)return;
+  const tgt=getTarget(n);
+  const status=tgt.status||"untouched";
+  const notes=tgt.notes||"";
+
+  // revenue estimator rows
+  const revRows=d.gaps.map(g=>`
+    <label class="rev-row">
+      <input type="checkbox" checked data-g="${g}" onchange="calcRev(${n})"/>
+      <span class="rev-label">${g} ${GAP_LABELS[g]||""}</span>
+      <span class="rev-val">€${SVC_VALUE[g]||0}/mo</span>
+    </label>`).join("");
+
+  // status buttons
+  const statusSel=STATUSES.map(s=>`
+    <button class="sbtn s-${s.key}${s.key===status?" active":""}" onclick="setStatus(${n},'${s.key}')">${s.label}</button>`).join("");
+
+  // pitch, priorities
+  const prios=d.priorities.map(p=>`<li>${p}</li>`).join("");
+  const safePitch=d.pitch.replace(/"/g,"&quot;");
+
+  document.getElementById("sheet").innerHTML=`
+    <button class="close" onclick="closeSheet()">×</button>
+    <div class="eyebrow">Target #${String(n).padStart(2,"0")} · Tier ${d.tier}${d.star?" · ★ Top Priority":""}</div>
+    <h2>${d.name}</h2>
+    <div class="sub">${d.sector} · ${d.district}${d.url?` · <a href="https://${d.url}" target="_blank" rel="noopener">${d.url}</a>`:""}</div>
+    <div class="sheet-kpi-row">
+      <div class="skpi"><div class="l">Revenue est.</div><div class="v">${d.rev}</div></div>
+      <div class="skpi"><div class="l">Web quality</div><div class="v">${d.web}</div></div>
+      <div class="skpi"><div class="l">Social</div><div class="v">${d.social}</div></div>
+      <div class="skpi"><div class="l">Contact</div><div class="v" style="font-size:10px;line-height:1.4">${d.contact}</div></div>
+    </div>
+
+    <h3>Status</h3>
+    <div class="status-sel" id="statusSel-${n}">${statusSel}</div>
+
+    <h3>Visit Notes</h3>
+    <textarea class="notes-area" id="notes-${n}" placeholder="What happened? Who answered? Next step?" onInput="scheduleNoteSave(${n})">${notes}</textarea>
+    <div class="notes-saved" id="notes-saved-${n}"></div>
+
+    <h3>Pitch Angle</h3>
+    <div class="pitch-box">${d.pitch}</div>
+
+    <h3>Service Priorities</h3>
+    <ol>${prios}</ol>
+
+    <h3>Why Tier ${d.tier}</h3>
+    <p style="color:var(--ink-2);font-size:13px">${d.why}</p>
+
+    <h3>Revenue Estimator</h3>
+    <div class="rev-rows" id="revRows-${n}">${revRows}</div>
+    <div class="rev-total">
+      <div>
+        <div class="l">Selected services · monthly</div>
+        <div class="ann" id="rev-ann-${n}"></div>
+      </div>
+      <div class="v" id="rev-total-${n}">€0</div>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="act-btn primary" onclick="openMeeting(${n})">▶ Meeting Mode</button>
+      <button class="act-btn" onclick="copyPitch(${n})">Copy Pitch</button>
+      ${d.url?`<a class="act-btn" href="https://${d.url}" target="_blank" rel="noopener">Open Site →</a>`:""}
+      <button class="act-btn" onclick="window.print()">Print</button>
+    </div>`;
+
+  calcRev(n);
+  document.getElementById("modal").classList.add("on");
+}
+
+function calcRev(n){
+  const boxes=document.querySelectorAll(`#revRows-${n} input[type=checkbox]`);
+  let total=0;
+  boxes.forEach(b=>{if(b.checked)total+=SVC_VALUE[b.dataset.g]||0});
+  const te=document.getElementById(`rev-total-${n}`);
+  const ae=document.getElementById(`rev-ann-${n}`);
+  if(te)te.textContent=`€${total.toLocaleString("de-AT")}/mo`;
+  if(ae)ae.textContent=total?`Annual: €${(total*12).toLocaleString("de-AT")}`:"";
+}
+
+function setStatus(n,key){
+  setTarget(n,{status:key});
+  // update buttons in modal
+  document.querySelectorAll(`#statusSel-${n} .sbtn`).forEach(b=>{
+    b.classList.toggle("active",b.textContent===STATUSES.find(s=>s.key===key).label);
+  });
+  // re-render sidebar + pipeline mini without closing modal
+  buildChips();updatePipeMini();
+  // re-render cards in background
+  const list=filtered();
+  const stage=document.getElementById("stage");
+  if(state.view==="grid")stage.innerHTML=renderGrid(list);
+  else if(state.view==="pipeline")stage.innerHTML=renderPipeline(list);
+  else stage.innerHTML=renderDayPlan(list);
+}
+
+function scheduleNoteSave(n){
+  clearTimeout(notesTimer);
+  const savedEl=document.getElementById(`notes-saved-${n}`);
+  if(savedEl){savedEl.textContent="";savedEl.style.opacity="1";}
+  notesTimer=setTimeout(()=>{
+    const el=document.getElementById(`notes-${n}`);
+    if(!el)return;
+    setTarget(n,{notes:el.value});
+    if(savedEl){savedEl.textContent="Saved";setTimeout(()=>{savedEl.style.opacity="0"},1200);}
+  },600);
+}
+
+function copyPitch(n){
+  const d=DATA.find(x=>x.n===n);if(!d)return;
+  navigator.clipboard&&navigator.clipboard.writeText(d.pitch).catch(()=>{});
+}
+
+function closeSheet(){document.getElementById("modal").classList.remove("on")}
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeSheet()});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    if(document.getElementById("meetingOverlay").classList.contains("on"))closeMeeting();
+    else closeSheet();
+  }
+});
+
+/* ═══════════════════════════════════════════ MEETING MODE */
+let meetingStart=null,meetingTick=null;
+function openMeeting(n){
+  const d=DATA.find(x=>x.n===n);if(!d)return;
+  const prios=d.priorities.map((p,i)=>`<li>${p}</li>`).join("");
+  document.getElementById("meetingContent").innerHTML=`
+    <div class="m-eyebrow">${d.sector} · ${d.district} · Tier ${d.tier}</div>
+    <div class="m-name">${d.name}</div>
+    <div class="m-meta">${d.district} · ${d.rev}</div>
+    <div class="m-pitch-label">Your Pitch</div>
+    <div class="m-pitch">"${d.pitch}"</div>
+    <div class="m-prios">
+      <h4>Offer in this order</h4>
+      <ol>${prios}</ol>
+    </div>`;
+  meetingStart=Date.now();
+  meetingTick=setInterval(()=>{
+    const s=Math.floor((Date.now()-meetingStart)/1000);
+    const mm=Math.floor(s/60),ss=String(s%60).padStart(2,"0");
+    const el=document.getElementById("meetingTimer");
+    if(el)el.textContent=`${mm}:${ss}`;
+    if(mm>=10&&!el.style.color.includes("red"))el.style.color="var(--red)";
+  },1000);
+  document.getElementById("meetingOverlay").classList.add("on");
+}
+function closeMeeting(){
+  clearInterval(meetingTick);meetingTick=null;meetingStart=null;
+  const el=document.getElementById("meetingTimer");
+  if(el){el.textContent="0:00";el.style.color=""}
+  document.getElementById("meetingOverlay").classList.remove("on");
+}
+
+/* ═══════════════════════════════════════════ EXPORT / IMPORT */
+function exportState(){
+  const data=lsLoad();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download=`vienna-hud-${new Date().toISOString().slice(0,10)}.json`;a.click();
+}
+function importState(input){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      lsSave(d);render();
+    }catch{alert("Invalid HUD export file.")}
+  };
+  r.readAsText(file);input.value="";
+}
+
+/* ═══════════════════════════════════════════ HERO (grid only) */
+const HERO_HTML=`
+<section class="hero">
+  <div class="eyebrow">In-person sales sprint · Claudio Tinner + Fanny</div>
+  <h1>Vienna has hundreds of companies operating with 2015-era digital. We close them in the room.</h1>
+  <p>40 pre-qualified targets. Video + social + web + IT, bundled. Click any card to see pitch, track status, and enter meeting mode. Status syncs to localStorage — open on Claudio's laptop, stays between sessions.</p>
+  <div class="hero-kpi">
+    <div class="kpi red"><div class="l">Targets</div><div class="v">40</div></div>
+    <div class="kpi"><div class="l">Tier A</div><div class="v">6<small>/40</small></div></div>
+    <div class="kpi"><div class="l">Video need</div><div class="v">38<small>/40</small></div></div>
+    <div class="kpi"><div class="l">Social need</div><div class="v">35<small>/40</small></div></div>
+    <div class="kpi"><div class="l">Web rebuild</div><div class="v">28<small>/40</small></div></div>
+    <div class="kpi"><div class="l">IT/exeoflow</div><div class="v">22<small>/40</small></div></div>
+    <div class="kpi"><div class="l">Max/mo rev</div><div class="v" style="font-size:14px">€296k</div></div>
+  </div>
+  <div class="legend">
+    <span><b>🎥</b> Video €1.8k/mo</span>
+    <span><b>📱</b> Social €1k/mo</span>
+    <span><b>🌐</b> Web €400/mo</span>
+    <span><b>📣</b> Ads €800/mo</span>
+    <span><b>💻</b> IT €800/mo</span>
+    <span><b>🎨</b> Motion €1k/mo</span>
+    <span><b>📊</b> Strategy €600/mo</span>
+  </div>
+</section>`;
+
+/* ═══════════════════════════════════════════ INIT */
+document.getElementById("q").addEventListener("input",e=>{state.q=e.target.value;render()});
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  state.tier=null;state.sector=null;state.district=null;state.gap=null;state.status=null;state.q="";
+  document.getElementById("q").value="";render();
+});
+
+// Inject hero once
+document.getElementById("main").insertAdjacentHTML("afterbegin",HERO_HTML);
+
+render();
+</script>
+</body>
+</html>

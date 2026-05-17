@@ -1,9 +1,16 @@
 {
   "version": "2.0",
   "canonicalPath": "design-memory.json",
-  "lastUpdated": "2026-05-16T22:13:20.581Z",
+  "lastUpdated": "2026-05-17T11:44:48.044Z",
   "note": "Canonical NUDIMMUD design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
   "entries": [
+    {
+      "date": "2026-05-17",
+      "component": "audit-2026-05-17",
+      "file": "_SYSTEM/audit-2026-05-17.html",
+      "action": "create",
+      "decision": "New component created: audit-2026-05-17"
+    },
     {
       "date": "2026-05-16",
       "component": "musubi-intelligence-v2-audit-v2",
