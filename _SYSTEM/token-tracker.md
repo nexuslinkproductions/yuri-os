@@ -420,3 +420,4 @@ If token usage exceeds budgets consistently, auto-disable:
 | 2026-05-17T11:29 | 15m | 73 | ~28,500 | Bash×53, Read×10, Write×3 |
 | 2026-05-17T13:26 | 36m | 101 | ~52,600 | mcp__computer-use__screenshot×23, Bash×20, WebFetch×12 |
 | 2026-05-17T14:59 | 13m | 114 | ~55,200 | Bash×44, Read×35, Edit×34 |
+| 2026-05-17T17:05 | 7m | 25 | ~9,300 | Bash×19, Read×3, Edit×3 |
