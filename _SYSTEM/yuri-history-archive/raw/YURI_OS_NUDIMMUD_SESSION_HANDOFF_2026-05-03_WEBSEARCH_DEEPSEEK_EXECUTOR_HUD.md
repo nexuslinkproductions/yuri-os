@@ -42,8 +42,8 @@ HEAD: 81722e778
 Commit: fix(cli): refine NUDIMMUD HUD from restored baseline
 Result label: 08T_YURI_HUD_REFINEMENT_FROM_RESTORATION_AND_GOAL_PASS_COMMITTED
 Changed files:
-- Scripts/nudimmud-repl.mjs
-- Scripts/nudimmud/status-line.mjs
+- _SYSTEM/Scripts/nudimmud-repl.mjs
+- _SYSTEM/Scripts/nudimmud/status-line.mjs
 ```
 
 Validation from that Codex run:
@@ -103,7 +103,7 @@ Result: 08T_YURI_BOOT_LAYER_DUPLICATE_HUD_AUDIT_P_PASS
 
 ### Diagnosis
 
-The upper block is **not** rendered by `Scripts/nudimmud-repl.mjs`.
+The upper block is **not** rendered by `_SYSTEM/Scripts/nudimmud-repl.mjs`.
 
 It is rendered by:
 
@@ -121,7 +121,7 @@ Known lines from audit:
 
 ```text
 ~/.zshrc line ~51: sources _SYSTEM/nudimmud-boot.zsh
-~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs
+~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs
 _SYSTEM/nudimmud-boot.zsh line ~38: render_context_bar() / precmd() renders upper boot HUD
 ```
 
@@ -144,7 +144,7 @@ The duplicated visual layers are:
 
 ### Safe next HUD direction
 
-Do **not** keep patching `Scripts/nudimmud-repl.mjs` blindly.
+Do **not** keep patching `_SYSTEM/Scripts/nudimmud-repl.mjs` blindly.
 
 The next HUD fix should target boot-layer gating:
 
@@ -183,7 +183,7 @@ Current deepseek CLI behavior:
   no read/write agent loop
 
 NUDIMMUD current DeepSeek route:
-  Scripts/ai / Scripts/offload.sh / Scripts/offload-runner.mjs / Scripts/nudimmud-repl.mjs
+  _SYSTEM/Scripts/ai / _SYSTEM/Scripts/offload.sh / _SYSTEM/Scripts/offload-runner.mjs / _SYSTEM/Scripts/nudimmud-repl.mjs
   model-only lane
   text in → text out
 ```
@@ -654,7 +654,7 @@ Continue Yuri OS / NUDIMMUD from the 2026-05-03 handoff.
 
 Current accepted repo state:
 HEAD 81722e778 fix(cli): refine NUDIMMUD HUD from restored baseline.
-REPL HUD is improved and committed. Remaining duplicate visual layer comes from _SYSTEM/nudimmud-boot.zsh sourced by ~/.zshrc, not from Scripts/nudimmud-repl.mjs.
+REPL HUD is improved and committed. Remaining duplicate visual layer comes from _SYSTEM/nudimmud-boot.zsh sourced by ~/.zshrc, not from _SYSTEM/Scripts/nudimmud-repl.mjs.
 
 Current priority:
 Stop expensive web/search behavior. We need 08W_LOW_COST_WEB_AND_AGENT_RESEARCH_PIPELINE_AUDIT_P before continuing DeepCode install/provenance or DeepSeek executor setup.

@@ -23,7 +23,7 @@ The session completed the 08N local claim authority lane through two accepted co
 1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
 ```
 
-The first commit added the local claim verifier into `Scripts/nudimmud-repl.mjs`. The second commit added a deterministic no-model smoke path that proves the verifier writes normal NUDIMMUD run artifacts while preserving raw output and recording `MODEL_CLAIM_ONLY` in `meta.json`.
+The first commit added the local claim verifier into `_SYSTEM/Scripts/nudimmud-repl.mjs`. The second commit added a deterministic no-model smoke path that proves the verifier writes normal NUDIMMUD run artifacts while preserving raw output and recording `MODEL_CLAIM_ONLY` in `meta.json`.
 
 The confusing Qwen/Ollama/DeepSeek path was explicitly clarified: using `DEEPSEEK_BASE_URL=http://127.0.0.1:11434/v1` with `DEEPSEEK_PRO_MODEL=qwen2.5:7b` is **local Ollama/Qwen through a DeepSeek-compatible path**, not real DeepSeek V4 Pro. This was not accepted as DeepSeek validation. The final accepted smoke uses **no model at all**, avoiding that confusion.
 
@@ -50,7 +50,7 @@ repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 latest accepted HEAD: 1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
 staged files: none expected
-Scripts/nudimmud-repl.mjs: clean after commit
+_SYSTEM/Scripts/nudimmud-repl.mjs: clean after commit
 ```
 
 Known tolerated dirty state remains:
@@ -114,7 +114,7 @@ HEAD 97b8c2d66
 
 Local truth:
 - commit 97b8c2d66 did not exist locally
-- Scripts/nudimmud-repl.mjs was clean
+- _SYSTEM/Scripts/nudimmud-repl.mjs was clean
 - DeepSeek-generated PASS_COMMITTED reports were non-authoritative
 ```
 
@@ -148,12 +148,12 @@ Mutation scope:
 
 ```text
 Allowed:
-- Scripts/nudimmud-repl.mjs only
+- _SYSTEM/Scripts/nudimmud-repl.mjs only
 
 Forbidden:
-- Scripts/offload.sh
-- Scripts/offload-runner.mjs
-- Scripts/ai
+- _SYSTEM/Scripts/offload.sh
+- _SYSTEM/Scripts/offload-runner.mjs
+- _SYSTEM/Scripts/ai
 - docs
 - backend/RAG
 - .claude/settings.json
@@ -167,7 +167,7 @@ Forbidden:
 
 ### 5.2 Key implementation details
 
-Codex added the following local verifier helpers in `Scripts/nudimmud-repl.mjs`:
+Codex added the following local verifier helpers in `_SYSTEM/Scripts/nudimmud-repl.mjs`:
 
 ```text
 - gitLines(cmd)
@@ -230,8 +230,8 @@ Self-test now includes a fake output containing:
 ```text
 RESULT_LABEL: X_PASS_COMMITTED
 HEAD: 97b8c2d66
-STAGED: Scripts/nudimmud-repl.mjs
-FILES_CHANGED: Scripts/nudimmud-repl.mjs
+STAGED: _SYSTEM/Scripts/nudimmud-repl.mjs
+FILES_CHANGED: _SYSTEM/Scripts/nudimmud-repl.mjs
 VALIDATION: PASS
 git commit success
 ```
@@ -265,8 +265,8 @@ Initial self-test failed because `X_PASS_COMMITTED` was not detected by the `\bP
 After that:
 
 ```text
-node --check Scripts/nudimmud-repl.mjs: PASS
-YURI_REPL_SELFTEST=1 node Scripts/nudimmud-repl.mjs: PASS
+node --check _SYSTEM/Scripts/nudimmud-repl.mjs: PASS
+YURI_REPL_SELFTEST=1 node _SYSTEM/Scripts/nudimmud-repl.mjs: PASS
 ```
 
 ### 5.5 Commit accepted
@@ -324,7 +324,7 @@ Run one safe real turn so NUDIMMUD processes output containing a fake committed-
 Codex attempted to run:
 
 ```bash
-DEEPSEEK_BASE_URL=http://127.0.0.1:11434/v1 DEEPSEEK_PRO_MODEL=qwen2.5:7b node Scripts/nudimmud-repl.mjs
+DEEPSEEK_BASE_URL=http://127.0.0.1:11434/v1 DEEPSEEK_PRO_MODEL=qwen2.5:7b node _SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 The user correctly asked:
@@ -378,7 +378,7 @@ Observed facts:
 ```text
 - HEAD stayed 6b188fb83.
 - no staged files.
-- Scripts/nudimmud-repl.mjs stayed clean.
+- _SYSTEM/Scripts/nudimmud-repl.mjs stayed clean.
 - local qwen2.5:7b was not mislabeled as DeepSeek V4 Pro.
 - the fake claim block went through visible REPL interaction but did not reliably become saved model output.
 ```
@@ -417,7 +417,7 @@ Findings:
 
 ```text
 SAVE_PATH:
-makeTurnId() + callDeepSeek() + saveTranscript() in Scripts/nudimmud-repl.mjs create ~/.nudimmud/runs/NMD-*/{request.md, output.md, meta.json, transcript.md} after the spawned offload process closes.
+makeTurnId() + callDeepSeek() + saveTranscript() in _SYSTEM/Scripts/nudimmud-repl.mjs create ~/.nudimmud/runs/NMD-*/{request.md, output.md, meta.json, transcript.md} after the spawned offload process closes.
 
 PRIOR_FAILURE_CAUSE:
 /paste only enables multiline capture. It does not dispatch. In multiline mode, only /send or blank Enter calls submitMultilineComposer(). The prior fake PASS_COMMITTED text would have been request text, not output.md. If the session exited before /send, nothing was saved.
@@ -447,7 +447,7 @@ Sprint:
 Goal:
 
 ```text
-Add a deterministic no-model harness path to Scripts/nudimmud-repl.mjs that:
+Add a deterministic no-model harness path to _SYSTEM/Scripts/nudimmud-repl.mjs that:
 1. injects fake model output containing committed-state claims,
 2. runs the local claim verifier,
 3. saves normal NUDIMMUD run artifacts,
@@ -461,7 +461,7 @@ Add a deterministic no-model harness path to Scripts/nudimmud-repl.mjs that:
 Added env-gated path:
 
 ```bash
-YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node Scripts/nudimmud-repl.mjs
+YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node _SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Added/used fake output:
@@ -469,8 +469,8 @@ Added/used fake output:
 ```text
 RESULT_LABEL: 08N_FAKE_PASS_COMMITTED
 HEAD: 97b8c2d66
-STAGED: Scripts/nudimmud-repl.mjs
-FILES_CHANGED: Scripts/nudimmud-repl.mjs
+STAGED: _SYSTEM/Scripts/nudimmud-repl.mjs
+FILES_CHANGED: _SYSTEM/Scripts/nudimmud-repl.mjs
 VALIDATION: PASS
 git commit success
 ```
@@ -671,7 +671,7 @@ No DeepSeek, no swarm, no web, no MCP, no live model calls.
 Mutation scope:
 
 ```text
-Scripts/nudimmud-repl.mjs only
+_SYSTEM/Scripts/nudimmud-repl.mjs only
 ```
 
 Commit message if validation passes:
@@ -718,7 +718,7 @@ Current accepted local truth:
 - Latest accepted HEAD: 1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
 - Branch: main
 - Staged files: none expected
-- Scripts/nudimmud-repl.mjs clean after latest accepted commit
+- _SYSTEM/Scripts/nudimmud-repl.mjs clean after latest accepted commit
 - Local claim authority lane is closed as 08N_LOCAL_CLAIM_AUTHORITY_LANE_CLOSED
 
 Known tolerated dirty state:
@@ -761,7 +761,7 @@ Prompt requirements:
 - forbid broad git/status/diff
 - forbid touching tolerated dirty state
 - preflight exact scoped paths only
-- mutate only Scripts/nudimmud-repl.mjs
+- mutate only _SYSTEM/Scripts/nudimmud-repl.mjs
 - no DeepSeek, no Qwen, no Ollama, no model calls, no swarm, no web, no MCP
 - preserve local claim verifier and no-model artifact smoke
 - require validation markers:
@@ -777,7 +777,7 @@ Prompt requirements:
   - QUIET_TURN_END
   - LOCAL_CLAIM_VERIFIER
   - CLAIM_VERIFIER_ARTIFACT_SMOKE
-- if validation passes, commit only Scripts/nudimmud-repl.mjs
+- if validation passes, commit only _SYSTEM/Scripts/nudimmud-repl.mjs
 - commit message: fix(cli): auto-send NUDIMMUD pasted multiline input
 - final report under 40 lines
 ```

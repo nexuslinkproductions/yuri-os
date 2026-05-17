@@ -174,7 +174,7 @@ Commit:
 `8173d4bc7 chore(test): add reusable backend smoke probe runner`
 
 File created:
-- `Scripts/backend-smoke-probe.mjs`
+- `_SYSTEM/Scripts/backend-smoke-probe.mjs`
 
 Runner capabilities:
 - Port busy check
@@ -199,7 +199,7 @@ Result label:
 
 Runner command:
 ```bash
-node Scripts/backend-smoke-probe.mjs --path=/api/health/auth --expect-unauth=401 --expect-auth=200 --expect-body=AUTH_OK
+node _SYSTEM/Scripts/backend-smoke-probe.mjs --path=/api/health/auth --expect-unauth=401 --expect-auth=200 --expect-body=AUTH_OK
 ```
 
 Result markers:
@@ -307,7 +307,7 @@ Finding:
 - No active marker found.
 
 #### 07V0C patch attempt
-Patch added a deterministic marker write to `.claude/hooks/token-session-init.js`, but stopped before commit because unrelated `Scripts/swarm-proxy.sh` drift appeared.
+Patch added a deterministic marker write to `.claude/hooks/token-session-init.js`, but stopped before commit because unrelated `_SYSTEM/Scripts/swarm-proxy.sh` drift appeared.
 
 #### 07V0C2 commit
 Result:
@@ -627,17 +627,17 @@ Commit:
 `ac2c846c1 chore(offload): add DeepSeek V4 API lanes`
 
 Files committed:
-- `Scripts/offload-runner.mjs`
-- `Scripts/ai`
-- `Scripts/offload.sh`
+- `_SYSTEM/Scripts/offload-runner.mjs`
+- `_SYSTEM/Scripts/ai`
+- `_SYSTEM/Scripts/offload.sh`
 - `_SYSTEM/model-registry.md`
 - `backend/.env.example`
 - `.claude/config/models.json`
 
 Validation passed:
-- `node --check Scripts/offload-runner.mjs`
-- `bash -n Scripts/ai`
-- `bash -n Scripts/offload.sh`
+- `node --check _SYSTEM/Scripts/offload-runner.mjs`
+- `bash -n _SYSTEM/Scripts/ai`
+- `bash -n _SYSTEM/Scripts/offload.sh`
 - JSON parse for `.claude/config/models.json`
 - `git diff --check`
 - inventory/list/help surfaced lanes
@@ -769,7 +769,7 @@ Proposed integration stack:
 - Perplexity MCP registration/provenance/pinning lane.
 - Browser-use / Comet MCP capability verification.
 - DeepSeek V4 Pro routing bench and cost telemetry.
-- Lean Context runtime guardrails for `Scripts/ai`, `offload.sh`, `offload-runner.mjs`.
+- Lean Context runtime guardrails for `_SYSTEM/Scripts/ai`, `offload.sh`, `offload-runner.mjs`.
 - Source registry schema implementation.
 - License/provenance verification pack for unresolved sources.
 - Clean-room intake governance sprint.
@@ -790,7 +790,7 @@ Latest known HEAD:
 
 Known tolerated/pre-existing dirty:
 - `.claude/settings.json` model/effort drift
-- `Scripts/swarm-proxy.sh`
+- `_SYSTEM/Scripts/swarm-proxy.sh`
 - `backend/data/yuri.db-shm`
 - `backend/data/yuri.db-wal`
 - `src/index.tsx`
@@ -906,9 +906,9 @@ Recent completed work:
 3. DeepSeek V4 API lanes are implemented, committed, dry-run verified, and live-smoke verified from normal macOS Terminal:
    - Commit: ac2c846c1
    - Files committed:
-     Scripts/offload-runner.mjs
-     Scripts/ai
-     Scripts/offload.sh
+     _SYSTEM/Scripts/offload-runner.mjs
+     _SYSTEM/Scripts/ai
+     _SYSTEM/Scripts/offload.sh
      _SYSTEM/model-registry.md
      backend/.env.example
      .claude/config/models.json
@@ -948,7 +948,7 @@ Recent completed work:
 
 Known current dirty state:
 - .claude/settings.json model/effort drift
-- Scripts/swarm-proxy.sh
+- _SYSTEM/Scripts/swarm-proxy.sh
 - backend/data/yuri.db-shm
 - backend/data/yuri.db-wal
 - src/index.tsx

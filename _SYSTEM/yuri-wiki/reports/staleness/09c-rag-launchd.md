@@ -7,7 +7,7 @@ launchd_label: `com.nudimmud.wiki-rag`
 plist_path: `/Users/marcelspatz/Library/LaunchAgents/com.nudimmud.wiki-rag.plist`
 launchd_domain: `gui/501`
 launchd_state: `running`
-watcher_entrypoint: `Scripts/wiki-rag-launchd.mjs run`
+watcher_entrypoint: `_SYSTEM/Scripts/wiki-rag-launchd.mjs run`
 watch_command: `npm run wiki:rag:watch`
 health_command: `npm run wiki:rag:health`
 install_command: `npm run wiki:rag:launchd:install`

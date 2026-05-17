@@ -48,7 +48,7 @@
     "learning:weekly": "node _SYSTEM/Scripts/self-improvement/weekly-comp.mjs",
     "test:self-improvement": "node _SYSTEM/Scripts/self-improvement/cross-reference.test.mjs",
     "test:learning-loop": "backend/node_modules/.bin/ts-node backend/src/test_learning_loop.ts && node _SYSTEM/Scripts/yuri-learning-capture-smoke.mjs",
-    "auto:offload": "bash Scripts/ai auto",
+    "auto:offload": "bash _SYSTEM/Scripts/ai auto",
     "hooks:install": "node _SYSTEM/Scripts/install-hooks.mjs",
     "prepare": "node _SYSTEM/Scripts/install-hooks.mjs",
     "graphify": "bash scripts/graphify-run.sh",

@@ -40,8 +40,8 @@
       "final_status": "verified_reference",
       "evidence_used": [
         "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/YURI_OS_YURI_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md first 15 lines",
-        "Scripts/nudimmud-repl.mjs:1",
-        "git log --oneline --follow -- Scripts/nudimmud-repl.mjs includes e17a9012d and 81722e778"
+        "_SYSTEM/Scripts/nudimmud-repl.mjs:1",
+        "git log --oneline --follow -- _SYSTEM/Scripts/nudimmud-repl.mjs includes e17a9012d and 81722e778"
       ],
       "repo_truth_result": "The closure note matches current repo state: the HUD REPL is present and the current REPL file explicitly carries no Hermes code.",
       "validation_needed_before_future_use": "Recheck if a Hermes sidecar or alternate executor path is reintroduced.",
@@ -54,7 +54,7 @@
       "final_status": "historical_only",
       "evidence_used": [
         "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07K_RAG_QUERY_SWARM_COMMITS_2026-05-01.md first 15 lines",
-        "git log --oneline --follow -- Scripts/nudimmud-repl.mjs",
+        "git log --oneline --follow -- _SYSTEM/Scripts/nudimmud-repl.mjs",
         "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json sequence_rank 20"
       ],
       "repo_truth_result": "Keep as a historical continuity record only. Current repo history does not directly prove the exact 07K swarm-commit state described in the handoff.",
@@ -68,7 +68,7 @@
       "final_status": "superseded",
       "evidence_used": [
         "_SYSTEM/yuri-history-archive/raw_2026-05-03_30/YURI_OS_YURI_GPT_SESSION_ARCHIVE_2026-05-03_PART2_YURI_HUD_CONTINUATION.md first 15 lines",
-        "git log --oneline --follow -- Scripts/nudimmud-repl.mjs includes 000baeb8c, e17a9012d, 81722e778",
+        "git log --oneline --follow -- _SYSTEM/Scripts/nudimmud-repl.mjs includes 000baeb8c, e17a9012d, 81722e778",
         "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json says it is superseded by HUD_DEEPSEEK_TOKENOPS archive"
       ],
       "repo_truth_result": "Do not use. Part 2 is superseded by the later HUD/DeepSeek/TokenOps archive.",

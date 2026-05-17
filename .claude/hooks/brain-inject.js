@@ -82,7 +82,7 @@ function loadSessionContext() {
 
 function loadLaneHealth() {
   try {
-    if (!fs.existsSync(LANE_HEALTH_FILE)) return '(no health snapshot — run Scripts/lane-health.sh)';
+    if (!fs.existsSync(LANE_HEALTH_FILE)) return '(no health snapshot — run _SYSTEM/Scripts/lane-health.sh)';
     const h = JSON.parse(fs.readFileSync(LANE_HEALTH_FILE, 'utf8'));
     const age = Math.round((Date.now() - new Date(h.ts).getTime()) / 60000);
     const lanes = h.lanes || {};
@@ -147,7 +147,7 @@ function loadSemanticMemory(sessionContext) {
     const { execSync } = require('child_process');
     if (!sessionContext) throw new Error('missing session context');
     const raw = execSync(
-      'node Scripts/memory-query.mjs "$MEMORY_QUERY_CONTEXT" --top 8',
+      'node _SYSTEM/Scripts/memory-query.mjs "$MEMORY_QUERY_CONTEXT" --top 8',
       {
         cwd: REPO_ROOT,
         timeout: 10000,
@@ -343,7 +343,7 @@ function loadNvidiaLanes() {
 }
 
 // ── Neuron loop last run ──────────────────────────────────────────────────────
-// Source: .claude/state/neuron-loop.log (written by Scripts/neuron-loop.mjs)
+// Source: .claude/state/neuron-loop.log (written by _SYSTEM/Scripts/neuron-loop.mjs)
 
 function loadNeuronLoopState() {
   try {

@@ -22,7 +22,7 @@ When ingesting, preserve both files as one chronological session. Part 2 contain
 
 ## 1. Executive summary
 
-This GPT session started because Claude/Sonnet was burning extreme time and tokens on small local file reads and synthesis around `Scripts/nudimmud-repl.mjs`. The user reported a concrete failure mode: reading a single 582-line file could take Sonnet around five minutes and burn roughly 51.3k tokens before being stopped.
+This GPT session started because Claude/Sonnet was burning extreme time and tokens on small local file reads and synthesis around `_SYSTEM/Scripts/nudimmud-repl.mjs`. The user reported a concrete failure mode: reading a single 582-line file could take Sonnet around five minutes and burn roughly 51.3k tokens before being stopped.
 
 The session then moved through several NUDIMMUD terminal improvements:
 
@@ -44,8 +44,8 @@ The session began with the user reporting that Sonnet took around five minutes t
 
 ```text
 Read 1 file
-wc -l /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs
-582 /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs
+wc -l /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs
+582 /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs
 HEAD 4f4312fe9 fix(cli): calm NUDIMMUD HUD theme and move footer below input
 Synthesizing… 6m49s · ↑ 1.6k tokens · thought for 361s
 ```
@@ -65,7 +65,7 @@ This reinforced existing TokenOps principles:
 
 ---
 
-## 3. Initial exact-symbol scan of `Scripts/nudimmud-repl.mjs`
+## 3. Initial exact-symbol scan of `_SYSTEM/Scripts/nudimmud-repl.mjs`
 
 The user provided a compact terminal symbol scan instead of a full file dump.
 
@@ -99,7 +99,7 @@ STATUS:
 
 Interpretation:
 
-- `Scripts/nudimmud-repl.mjs` was the relevant mutation target.
+- `_SYSTEM/Scripts/nudimmud-repl.mjs` was the relevant mutation target.
 - The other dirty/untracked paths were tolerated/pre-existing and should not be touched.
 
 ---
@@ -146,7 +146,7 @@ TURN_SUMMARY_HIDDEN_PASS
 Commit scope:
 
 ```text
-Scripts/nudimmud-repl.mjs only
+_SYSTEM/Scripts/nudimmud-repl.mjs only
 ```
 
 Post-commit status still showed the same tolerated dirty/untracked paths:
@@ -211,7 +211,7 @@ The terminal displayed the now-cleaner flow:
 ...
 ┌─ NUDIMMUD ROUTE
 │ LANE      deepseek-v4-pro
-│ TYPE      local-offload › Scripts/offload.sh
+│ TYPE      local-offload › _SYSTEM/Scripts/offload.sh
 │ BRANCH    main  HEAD 262ff9319  STAGED 0
 │ TMX       TOKENMAXXING::ACTIVE
 ...
@@ -254,7 +254,7 @@ df1e8ee98 fix(cli): add natural NUDIMMUD input composer
 ### Files changed
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 ### Reported validation
@@ -326,9 +326,9 @@ chore(cli): add NUDIMMUD harness core skeleton
 Files changed:
 
 ```text
-Scripts/nudimmud/event-protocol.mjs
-Scripts/nudimmud/harness-state.mjs
-Scripts/nudimmud/prompt-compiler.mjs
+_SYSTEM/Scripts/nudimmud/event-protocol.mjs
+_SYSTEM/Scripts/nudimmud/harness-state.mjs
+_SYSTEM/Scripts/nudimmud/prompt-compiler.mjs
 docs/nudimmud-harness-core.md
 ```
 
@@ -376,7 +376,7 @@ chore(cli): add NUDIMMUD prompt compiler dry run
 Files changed:
 
 ```text
-Scripts/nudimmud/prompt-compiler.mjs
+_SYSTEM/Scripts/nudimmud/prompt-compiler.mjs
 docs/nudimmud-harness-core.md
 ```
 
@@ -433,8 +433,8 @@ chore(cli): add NUDIMMUD recorder and status skeleton
 Files changed:
 
 ```text
-Scripts/nudimmud/run-recorder.mjs
-Scripts/nudimmud/status-line.mjs
+_SYSTEM/Scripts/nudimmud/run-recorder.mjs
+_SYSTEM/Scripts/nudimmud/status-line.mjs
 docs/nudimmud-harness-core.md
 ```
 
@@ -522,13 +522,13 @@ ce1fa159d chore(cli): wire NUDIMMUD HUD status provider
 Files changed:
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 docs/nudimmud-harness-core.md
 ```
 
 Main change:
 
-- `Scripts/nudimmud-repl.mjs` imports:
+- `_SYSTEM/Scripts/nudimmud-repl.mjs` imports:
   - `createStatusSnapshot`
   - `renderCompactStatusLine`
   - `renderBudgetStatusLine`

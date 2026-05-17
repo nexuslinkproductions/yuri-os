@@ -208,7 +208,7 @@ Use swarm for cheap planning/search where appropriate, but verify commits, file 
 
 Reason:
 
-Several `Scripts/ai codex @swarm` runs produced plausible but false or incomplete reports, including incorrect commit/state claims.
+Several `_SYSTEM/Scripts/ai codex @swarm` runs produced plausible but false or incomplete reports, including incorrect commit/state claims.
 
 ### 4.6 Prefer direct guarded shell for tiny deterministic backend patches
 
@@ -427,9 +427,9 @@ Important rule:
 ```text
 Raw codex exec does not automatically activate repo-level @swarm.
 Use:
-  Scripts/ai codex @swarm ...
+  _SYSTEM/Scripts/ai codex @swarm ...
 or:
-  Scripts/ai swarm ...
+  _SYSTEM/Scripts/ai swarm ...
 ```
 
 Current desired Codex MCP surface from prior state:
@@ -896,9 +896,9 @@ GEMINI.md
 graphify-out
 package.json
 package-lock.json
-Scripts/offload-runner.mjs
-Scripts/offload.sh
-Scripts/ai
+_SYSTEM/Scripts/offload-runner.mjs
+_SYSTEM/Scripts/offload.sh
+_SYSTEM/Scripts/ai
 ```
 
 Exception:

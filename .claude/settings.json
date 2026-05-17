@@ -82,7 +82,7 @@
           },
           {
             "type": "command",
-            "command": "node Scripts/memory-archive.mjs --execute",
+            "command": "node _SYSTEM/Scripts/memory-archive.mjs --execute",
             "async": true
           }
         ]
@@ -230,7 +230,7 @@
           },
           {
             "type": "command",
-            "command": "node Scripts/memory-session-write.mjs",
+            "command": "node _SYSTEM/Scripts/memory-session-write.mjs",
             "async": true
           }
         ]

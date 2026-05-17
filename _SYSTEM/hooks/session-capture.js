@@ -17,7 +17,7 @@ const REPO_ROOT = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
 const LEARNING_DIR = path.join(REPO_ROOT, '_SYSTEM/learning');
 const CONFIG_PATH = path.join(LEARNING_DIR, 'config.json');
 const SESSIONS_LOG = path.join(LEARNING_DIR, 'sessions.jsonl');
-const LEARNING_CLI = path.join(REPO_ROOT, 'Scripts/yuri-learning-capture.mjs');
+const LEARNING_CLI = path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-learning-capture.mjs');
 
 async function captureSession() {
   try {

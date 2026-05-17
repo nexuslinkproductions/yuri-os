@@ -7,7 +7,7 @@ health_command: `npm run wiki:rag:health`
 launchd_label: `com.nudimmud.wiki-rag`
 launchd_report: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-launchd.md`
 ingest_report: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-ingested.md`
-automated_by: `Scripts/wiki-rag-watch.mjs`
+automated_by: `_SYSTEM/Scripts/wiki-rag-watch.mjs`
 notebook_stable_key: `yuri-os/wiki-control-plane`
 
 ## Purpose

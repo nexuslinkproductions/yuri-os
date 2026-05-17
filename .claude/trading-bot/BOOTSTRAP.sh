@@ -34,7 +34,7 @@ DIRS=(
   ".claude/trading-bot/schemas"
   ".claude/trading-bot/data"
   ".claude/trading-bot/logs"
-  "Scripts/trading-bot"
+  "_SYSTEM/Scripts/trading-bot"
 )
 
 for dir in "${DIRS[@]}"; do
@@ -127,7 +127,7 @@ if grep -q '"trading-bot:phase-3"' package.json; then
 else
   echo "  WARNING: npm trading-bot scripts not found in package.json"
   echo "  Add scripts section with:"
-  echo "    \"trading-bot:phase-3\": \"node Scripts/trading-bot/evidence-collector.mjs\""
+  echo "    \"trading-bot:phase-3\": \"node _SYSTEM/Scripts/trading-bot/evidence-collector.mjs\""
   echo "    ... etc for phases 4-8"
 fi
 
@@ -162,12 +162,12 @@ done
 echo ""
 echo "✓ Checking implementation files..."
 IMPL_FILES=(
-  "Scripts/trading-bot/evidence-collector.mjs"
-  "Scripts/trading-bot/ensemble-inference.mjs"
-  "Scripts/trading-bot/risk-engine.mjs"
-  "Scripts/trading-bot/execution-engine.mjs"
-  "Scripts/trading-bot/paper-trading.mjs"
-  "Scripts/trading-bot/live-rollout.mjs"
+  "_SYSTEM/Scripts/trading-bot/evidence-collector.mjs"
+  "_SYSTEM/Scripts/trading-bot/ensemble-inference.mjs"
+  "_SYSTEM/Scripts/trading-bot/risk-engine.mjs"
+  "_SYSTEM/Scripts/trading-bot/execution-engine.mjs"
+  "_SYSTEM/Scripts/trading-bot/paper-trading.mjs"
+  "_SYSTEM/Scripts/trading-bot/live-rollout.mjs"
 )
 
 MISSING_COUNT=0

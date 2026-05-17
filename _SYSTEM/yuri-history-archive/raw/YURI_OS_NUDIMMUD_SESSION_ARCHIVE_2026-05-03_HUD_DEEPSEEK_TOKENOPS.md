@@ -159,7 +159,7 @@ Branch: main
 Latest accepted HEAD:
 1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
 Staged files: none
-Scripts/nudimmud-repl.mjs: clean after accepted commit
+_SYSTEM/Scripts/nudimmud-repl.mjs: clean after accepted commit
 ```
 
 Known tolerated dirty state:
@@ -202,7 +202,7 @@ Key accepted commits:
 File changed:
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Behavior added:
@@ -225,13 +225,13 @@ Behavior added:
 File changed:
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Added deterministic no-model artifact smoke:
 
 ```bash
-YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node Scripts/nudimmud-repl.mjs
+YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node _SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Verified markers:
@@ -275,7 +275,7 @@ Commit:
 File changed:
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Key behavior:
@@ -333,9 +333,9 @@ Planning result:
 
 Problem diagnosed:
 
-- Route logs from `Scripts/offload.sh` and `Scripts/ai` could leak into visible terminal/wrapper output.
+- Route logs from `_SYSTEM/Scripts/offload.sh` and `_SYSTEM/Scripts/ai` could leak into visible terminal/wrapper output.
 - `output.md` was already model-only in many paths, but terminal/wrapper capture still had contamination risk.
-- `Scripts/ai` used combined `2>&1` capture in some paths.
+- `_SYSTEM/Scripts/ai` used combined `2>&1` capture in some paths.
 
 Implementation result:
 
@@ -352,9 +352,9 @@ ee60bccd3 fix(cli): separate NUDIMMUD route logs from model output
 Files changed:
 
 ```text
-Scripts/nudimmud-repl.mjs
-Scripts/offload.sh
-Scripts/ai
+_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/offload.sh
+_SYSTEM/Scripts/ai
 ```
 
 Key changes:
@@ -364,8 +364,8 @@ Key changes:
 - `stderr` route logs treated as route metadata.
 - `route_output` stored in `meta.json`.
 - `output.md` stays model-only.
-- `Scripts/offload.sh` route/dry-run logs moved to stderr.
-- `Scripts/ai` triage/swarm wrappers split stdout model text and stderr route text.
+- `_SYSTEM/Scripts/offload.sh` route/dry-run logs moved to stderr.
+- `_SYSTEM/Scripts/ai` triage/swarm wrappers split stdout model text and stderr route text.
 
 Validation markers passed:
 
@@ -444,7 +444,7 @@ Important artifact verification:
 Recommendation preserved:
 
 ```text
-Keep this smoke in the review path for any future Scripts/nudimmud-repl.mjs change.
+Keep this smoke in the review path for any future _SYSTEM/Scripts/nudimmud-repl.mjs change.
 ```
 
 ---
@@ -479,7 +479,7 @@ Commit:
 File changed:
 
 ```text
-Scripts/nudimmud/status-line.mjs
+_SYSTEM/Scripts/nudimmud/status-line.mjs
 ```
 
 Key change:
@@ -653,8 +653,8 @@ Commit:
 Files changed:
 
 ```text
-Scripts/nudimmud/status-line.mjs
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud/status-line.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Validation markers passed:
@@ -703,8 +703,8 @@ f2b7a1640 fix(cli): repair NUDIMMUD HUD visual layout
 Changed:
 
 ```text
-Scripts/nudimmud-repl.mjs
-Scripts/nudimmud/status-line.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud/status-line.mjs
 ```
 
 Visual result:
@@ -738,7 +738,7 @@ Commit:
 Changed:
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Behavior:
@@ -785,13 +785,13 @@ token usage exceeded acceptable ceiling during HUD rebuild
 DeepSeek status:
 
 ```text
-used — Scripts/offload.sh --model deepseek-v4-pro, exit 0, design plan received
+used — _SYSTEM/Scripts/offload.sh --model deepseek-v4-pro, exit 0, design plan received
 ```
 
 Mutation status:
 
 ```text
-Mutated files: Scripts/nudimmud-repl.mjs
+Mutated files: _SYSTEM/Scripts/nudimmud-repl.mjs
 Staged files: none
 Validation state:
   NODE_CHECK_PASS
@@ -865,8 +865,8 @@ Result label:
 Changed:
 
 ```text
-Scripts/nudimmud-repl.mjs
-Scripts/nudimmud/status-line.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud/status-line.mjs
 ```
 
 Validation reported:
@@ -912,7 +912,7 @@ Diagnosis:
 The upper block is not from:
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 It is rendered by:
@@ -931,7 +931,7 @@ Known facts:
 
 ```text
 ~/.zshrc line ~51: sources _SYSTEM/nudimmud-boot.zsh
-~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs
+~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs
 _SYSTEM/nudimmud-boot.zsh line ~38: render_context_bar() / precmd() renders upper boot HUD
 ```
 
@@ -961,7 +961,7 @@ Renders:
 
 ### 11.3 Safe next HUD direction
 
-Do not keep blindly patching `Scripts/nudimmud-repl.mjs`.
+Do not keep blindly patching `_SYSTEM/Scripts/nudimmud-repl.mjs`.
 
 Next HUD fix should target boot-layer gating.
 
@@ -1014,10 +1014,10 @@ no read/write agent loop
 NUDIMMUD route path:
 
 ```text
-Scripts/ai
-Scripts/offload.sh
-Scripts/offload-runner.mjs
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/ai
+_SYSTEM/Scripts/offload.sh
+_SYSTEM/Scripts/offload-runner.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Current behavior:
@@ -1309,7 +1309,7 @@ Wrong:
 ```text
 Use DeepSeek V4 Pro with max reasoning.
 Check whether you can mutate files.
-Call Scripts/offload.sh.
+Call _SYSTEM/Scripts/offload.sh.
 Commit the patch.
 ```
 
@@ -1526,7 +1526,7 @@ Hard rules:
 
 Current key state:
 - Latest reported HUD refinement commit: 81722e778 fix(cli): refine NUDIMMUD HUD from restored baseline.
-- HUD duplicate layer audit found upper block comes from _SYSTEM/nudimmud-boot.zsh sourced by ~/.zshrc, not Scripts/nudimmud-repl.mjs.
+- HUD duplicate layer audit found upper block comes from _SYSTEM/nudimmud-boot.zsh sourced by ~/.zshrc, not _SYSTEM/Scripts/nudimmud-repl.mjs.
 - Next HUD fix should target boot-layer gating, not more REPL HUD patching.
 - NUDIMMUD direct DeepSeek route is model-only, not a local file executor.
 - DeepSeek direct prompts should audit/spec/self-assess and produce executor prompts, not mutate.
@@ -1547,5 +1547,5 @@ Acknowledge the trusted state and ask me which lane to continue:
 If only one compact memory atom is ingested, use this:
 
 ```text
-As of 2026-05-03, Yuri OS / NUDIMMUD HUD work passed several mechanical commits but visual work remained difficult. The latest reported useful HUD commit is 81722e778, restoring/refining a stronger NUDIMMUD baseline HUD while preserving route separation, output.md cleanliness, claim verifier, composer, and no visible budget. A later audit found the remaining double-HUD problem comes from _SYSTEM/nudimmud-boot.zsh sourced by ~/.zshrc, not Scripts/nudimmud-repl.mjs. Next HUD work should gate the boot layer for nudimmud launches, not patch the REPL blindly. DeepSeek V4 Pro should be used heavily but correctly: current NUDIMMUD DeepSeek route is model-only and cannot mutate files. Direct DeepSeek prompts should audit/design/spec and produce local executor prompts, not commit. DeepCode/@vegamo/deepcode-cli is the main candidate for future DeepSeek-backed executor, but provenance audit must be repaired with strict cheap research protocol. Web/search token burn is now a system issue: no subagents/full WebFetch by default, use local/cache/npm/raw-line-capped source ladder, compact evidence, DeepSeek reinforcement only from compact evidence. ChatGPT Web should not generate images unless explicitly requested and should act as visual architect/gatekeeper for HUD/design work.
+As of 2026-05-03, Yuri OS / NUDIMMUD HUD work passed several mechanical commits but visual work remained difficult. The latest reported useful HUD commit is 81722e778, restoring/refining a stronger NUDIMMUD baseline HUD while preserving route separation, output.md cleanliness, claim verifier, composer, and no visible budget. A later audit found the remaining double-HUD problem comes from _SYSTEM/nudimmud-boot.zsh sourced by ~/.zshrc, not _SYSTEM/Scripts/nudimmud-repl.mjs. Next HUD work should gate the boot layer for nudimmud launches, not patch the REPL blindly. DeepSeek V4 Pro should be used heavily but correctly: current NUDIMMUD DeepSeek route is model-only and cannot mutate files. Direct DeepSeek prompts should audit/design/spec and produce local executor prompts, not commit. DeepCode/@vegamo/deepcode-cli is the main candidate for future DeepSeek-backed executor, but provenance audit must be repaired with strict cheap research protocol. Web/search token burn is now a system issue: no subagents/full WebFetch by default, use local/cache/npm/raw-line-capped source ladder, compact evidence, DeepSeek reinforcement only from compact evidence. ChatGPT Web should not generate images unless explicitly requested and should act as visual architect/gatekeeper for HUD/design work.
 ```

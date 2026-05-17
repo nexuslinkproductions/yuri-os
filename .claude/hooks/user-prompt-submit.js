@@ -357,7 +357,7 @@ process.stdin.on('end', () => {
     if (DESIGN_PATTERN.test(userPrompt)) {
       try {
         const { execSync } = require('child_process');
-        const designCtx = execSync('node Scripts/design-context-inject.mjs', {
+        const designCtx = execSync('node _SYSTEM/Scripts/design-context-inject.mjs', {
           cwd: ROOT, timeout: 5000, encoding: 'utf8'
         }).trim();
         if (designCtx) {

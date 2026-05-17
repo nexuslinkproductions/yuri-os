@@ -191,7 +191,7 @@ Accepted interpretation:
 ```text
 Codex CLI can still have high baseline overhead.
 Use Codex strategically, not automatically, especially when raw Codex startup loads tool/MCP context.
-Prefer local scripts, Haiku, Gemini, or Scripts/ai @swarm routing for cheap evidence collection.
+Prefer local scripts, Haiku, Gemini, or _SYSTEM/Scripts/ai @swarm routing for cheap evidence collection.
 ```
 
 ### 5.2 Raw `codex exec` does not activate repo `@swarm`
@@ -201,16 +201,16 @@ Accepted:
 ```text
 Raw Codex does not automatically activate repo-level @swarm behavior.
 Use the repo launcher:
-  Scripts/ai codex @swarm ...
+  _SYSTEM/Scripts/ai codex @swarm ...
 or:
-  Scripts/ai swarm ...
+  _SYSTEM/Scripts/ai swarm ...
 ```
 
-### 5.3 `Scripts/ai codex @swarm` routing fix
+### 5.3 `_SYSTEM/Scripts/ai codex @swarm` routing fix
 
 Initial diagnosis:
 
-- `Scripts/ai` recognized `swarm|triage`, but not `@swarm` in the Codex route.
+- `_SYSTEM/Scripts/ai` recognized `swarm|triage`, but not `@swarm` in the Codex route.
 - Patch changed the route case from:
 
 ```text
@@ -230,14 +230,14 @@ This was later expanded into a fuller robustness patch.
 Final committed patch in `a741664c` included:
 
 ```text
-Scripts/ai
-Scripts/offload-runner.mjs
-Scripts/offload.sh
+_SYSTEM/Scripts/ai
+_SYSTEM/Scripts/offload-runner.mjs
+_SYSTEM/Scripts/offload.sh
 ```
 
 Purpose:
 
-- Make `Scripts/ai codex @swarm ...` route into swarm fan-out.
+- Make `_SYSTEM/Scripts/ai codex @swarm ...` route into swarm fan-out.
 - Avoid `tmpdir: unbound variable` cleanup bug.
 - Make missing optional cloud lanes such as `kimi` skip cleanly instead of throwing.
 - Pass `OFFLOAD_OPTIONAL=1` through swarm/offload paths.
@@ -245,9 +245,9 @@ Purpose:
 Observed validation before commit:
 
 ```text
-AI_DRY_RUN=1 Scripts/ai codex @swarm ... -> kimi, gpt-oss, ollama
-node Scripts/offload-runner.mjs kimi --dry-run ... -> JSON with status SKIPPED_MISSING_ENDPOINT
-OFFLOAD_OPTIONAL=1 node Scripts/offload-runner.mjs kimi ... -> [kimi] SKIPPED_MISSING_ENDPOINT: Missing endpoint for lane: kimi
+AI_DRY_RUN=1 _SYSTEM/Scripts/ai codex @swarm ... -> kimi, gpt-oss, ollama
+node _SYSTEM/Scripts/offload-runner.mjs kimi --dry-run ... -> JSON with status SKIPPED_MISSING_ENDPOINT
+OFFLOAD_OPTIONAL=1 node _SYSTEM/Scripts/offload-runner.mjs kimi ... -> [kimi] SKIPPED_MISSING_ENDPOINT: Missing endpoint for lane: kimi
 ```
 
 Committed as:
@@ -259,11 +259,11 @@ a741664c chore(cli): harden swarm routing for codex offload
 Important:
 
 - This does not mean raw `codex exec` now routes through swarm.
-- Use `Scripts/ai codex @swarm ...` or `Scripts/ai swarm ...`.
+- Use `_SYSTEM/Scripts/ai codex @swarm ...` or `_SYSTEM/Scripts/ai swarm ...`.
 
 ### 5.5 Unreliable generated reports from lower lanes
 
-At least one `Scripts/ai codex @swarm` run produced unreliable/fabricated-looking results from `gpt-oss` / `ollama`, including fake recent commit hashes and incorrect staging claims.
+At least one `_SYSTEM/Scripts/ai codex @swarm` run produced unreliable/fabricated-looking results from `gpt-oss` / `ollama`, including fake recent commit hashes and incorrect staging claims.
 
 User then manually verified the real state with direct shell commands.
 
@@ -716,8 +716,8 @@ Diagnosis:
 
 - `.codex/config.toml` was only skills scoping.
 - `@swarm` was a Claude skill trigger.
-- `Scripts/swarm` forwards to `Scripts/ai swarm`.
-- Missing route was in `Scripts/ai` Codex branch.
+- `_SYSTEM/Scripts/swarm` forwards to `_SYSTEM/Scripts/ai swarm`.
+- Missing route was in `_SYSTEM/Scripts/ai` Codex branch.
 - Patch added `@swarm` to the route match.
 
 Initial result:
@@ -726,12 +726,12 @@ Initial result:
 CODEX_SWARM_TRIGGER_FIX_PASS_PATCHED_AND_SMOKE_VERIFIED
 ```
 
-### 7.2 Follow-up actual error from running `Scripts/ai codex @swarm`
+### 7.2 Follow-up actual error from running `_SYSTEM/Scripts/ai codex @swarm`
 
 User ran:
 
 ```bash
-Scripts/ai codex @swarm "$(cat /tmp/07k_pending_patches_commit_p.txt)"
+_SYSTEM/Scripts/ai codex @swarm "$(cat /tmp/07k_pending_patches_commit_p.txt)"
 ```
 
 Observed failures:
@@ -751,14 +751,14 @@ BEGIN_EXECUTION
 Prompt: PASTE THE PROMPT TEXT HERE...
 END_EXECUTION
 
-Scripts/ai: line 579: tmpdir: unbound variable
+_SYSTEM/Scripts/ai: line 579: tmpdir: unbound variable
 ```
 
 Interpretation:
 
 - `@swarm` route itself worked.
 - Kimi lane lacked endpoint and crashed.
-- `Scripts/ai` cleanup trap referenced unbound `tmpdir` under `set -u`.
+- `_SYSTEM/Scripts/ai` cleanup trap referenced unbound `tmpdir` under `set -u`.
 - Some lower lanes executed placeholder prompt text because the prompt file still contained placeholder text.
 - Need robust optional lane skip and tmpdir cleanup fix.
 
@@ -773,9 +773,9 @@ CODEX_SWARM_LANE_ROBUSTNESS_PASS_PATCHED_AND_SMOKE_VERIFIED
 Files changed:
 
 ```text
-Scripts/ai
-Scripts/offload-runner.mjs
-Scripts/offload.sh
+_SYSTEM/Scripts/ai
+_SYSTEM/Scripts/offload-runner.mjs
+_SYSTEM/Scripts/offload.sh
 ```
 
 Core changes:
@@ -790,9 +790,9 @@ Core changes:
 Validation:
 
 ```text
-AI_DRY_RUN=1 Scripts/ai codex @swarm ... -> kimi, gpt-oss, ollama
-node Scripts/offload-runner.mjs kimi --dry-run ... -> status SKIPPED_MISSING_ENDPOINT
-OFFLOAD_OPTIONAL=1 node Scripts/offload-runner.mjs kimi ... -> [kimi] SKIPPED_MISSING_ENDPOINT
+AI_DRY_RUN=1 _SYSTEM/Scripts/ai codex @swarm ... -> kimi, gpt-oss, ollama
+node _SYSTEM/Scripts/offload-runner.mjs kimi --dry-run ... -> status SKIPPED_MISSING_ENDPOINT
+OFFLOAD_OPTIONAL=1 node _SYSTEM/Scripts/offload-runner.mjs kimi ... -> [kimi] SKIPPED_MISSING_ENDPOINT
 ```
 
 Committed as:
@@ -812,13 +812,13 @@ cd /Users/marcelspatz/YURI-OS-MUSUBI
 set -e
 
 git diff --cached --name-only
-git diff --check -- backend/src/services/notebookService.ts Scripts/ai Scripts/offload-runner.mjs Scripts/offload.sh
+git diff --check -- backend/src/services/notebookService.ts _SYSTEM/Scripts/ai _SYSTEM/Scripts/offload-runner.mjs _SYSTEM/Scripts/offload.sh
 
 git add backend/src/services/notebookService.ts
 git diff --cached --name-only
 git commit -m "chore(rag): filter notebook query retrieval to ready sources"
 
-git add Scripts/ai Scripts/offload-runner.mjs Scripts/offload.sh
+git add _SYSTEM/Scripts/ai _SYSTEM/Scripts/offload-runner.mjs _SYSTEM/Scripts/offload.sh
 git diff --cached --name-only
 git commit -m "chore(cli): harden swarm routing for codex offload"
 ```
@@ -913,7 +913,7 @@ Needs post-commit verification.
 Recently fixed:
 
 ```text
-Scripts/ai codex @swarm routes into swarm
+_SYSTEM/Scripts/ai codex @swarm routes into swarm
 optional missing Kimi endpoint skips
 tmpdir cleanup fixed
 ```
@@ -1004,12 +1004,12 @@ Purpose:
 - Verify target status only shows WAL/SHM churn.
 - Verify `.claude/settings.json` protected diff clean.
 - Verify `notebookService.ts` at HEAD contains `ns.status='ready'`.
-- Verify `Scripts/ai` route includes `@swarm|swarm|triage`.
-- Verify `Scripts/offload-runner.mjs` includes optional `SKIPPED_MISSING_ENDPOINT`.
-- Verify `Scripts/offload.sh` passes `OFFLOAD_OPTIONAL=1` in swarm dispatch.
+- Verify `_SYSTEM/Scripts/ai` route includes `@swarm|swarm|triage`.
+- Verify `_SYSTEM/Scripts/offload-runner.mjs` includes optional `SKIPPED_MISSING_ENDPOINT`.
+- Verify `_SYSTEM/Scripts/offload.sh` passes `OFFLOAD_OPTIONAL=1` in swarm dispatch.
 - Optionally run dry-run smoke:
-  - `AI_DRY_RUN=1 Scripts/ai codex @swarm "Report route only. Do not inspect files. Do not run repo commands."`
-  - `OFFLOAD_OPTIONAL=1 node Scripts/offload-runner.mjs kimi "probe optional skip"`
+  - `AI_DRY_RUN=1 _SYSTEM/Scripts/ai codex @swarm "Report route only. Do not inspect files. Do not run repo commands."`
+  - `OFFLOAD_OPTIONAL=1 node _SYSTEM/Scripts/offload-runner.mjs kimi "probe optional skip"`
 
 No mutation. No cleanup. No commit.
 
@@ -1063,9 +1063,9 @@ Latest accepted committed work:
    - Sandbox proof showed filtered_ready_rows=13 while unfiltered_rows=14 after synthetic non-ready embedded source.
 
 3. a741664c chore(cli): harden swarm routing for codex offload
-   - Scripts/ai now routes codex @swarm into swarm launcher.
-   - Scripts/offload-runner.mjs skips optional missing endpoints with SKIPPED_MISSING_ENDPOINT.
-   - Scripts/offload.sh passes OFFLOAD_OPTIONAL=1 for swarm/offload dispatch.
+   - _SYSTEM/Scripts/ai now routes codex @swarm into swarm launcher.
+   - _SYSTEM/Scripts/offload-runner.mjs skips optional missing endpoints with SKIPPED_MISSING_ENDPOINT.
+   - _SYSTEM/Scripts/offload.sh passes OFFLOAD_OPTIONAL=1 for swarm/offload dispatch.
    - tmpdir cleanup under set -u was hardened.
 
 Important workflow rules to preserve:
@@ -1155,7 +1155,7 @@ git log --oneline --decorate -n 7
 git diff --cached --name-only
 git diff -I '^[[:space:]]*"model":' -- .claude/settings.json
 git diff -- .claude/settings.json | grep -E '^[+-][[:space:]]*"model":' || true
-git status --short -- .gitignore .claude/settings.json Scripts/ai Scripts/offload-runner.mjs Scripts/offload.sh backend/src/services/notebookService.ts backend/src/services/notebookIngestService.ts backend/src/services/notebookRagService.ts backend/src/services/neuralForgeService.ts backend/src/models/notebookSchema.ts backend/src/models/database.ts backend/data/yuri.db backend/data/yuri.db-shm backend/data/yuri.db-wal
+git status --short -- .gitignore .claude/settings.json _SYSTEM/Scripts/ai _SYSTEM/Scripts/offload-runner.mjs _SYSTEM/Scripts/offload.sh backend/src/services/notebookService.ts backend/src/services/notebookIngestService.ts backend/src/services/notebookRagService.ts backend/src/services/neuralForgeService.ts backend/src/models/notebookSchema.ts backend/src/models/database.ts backend/data/yuri.db backend/data/yuri.db-shm backend/data/yuri.db-wal
 
 Hard stop if:
 - cwd is not /Users/marcelspatz/YURI-OS-MUSUBI
@@ -1174,7 +1174,7 @@ git show --stat --oneline --name-only 9dc0f871
 git show --stat --oneline --name-only 73ff7ac8
 
 Verify:
-- a741664c touches only Scripts/ai, Scripts/offload-runner.mjs, Scripts/offload.sh
+- a741664c touches only _SYSTEM/Scripts/ai, _SYSTEM/Scripts/offload-runner.mjs, _SYSTEM/Scripts/offload.sh
 - 9dc0f871 touches only backend/src/services/notebookService.ts
 - 73ff7ac8 touches only backend/src/services/notebookService.ts and backend/src/services/notebookIngestService.ts
 
@@ -1194,12 +1194,12 @@ Verify:
 Stage 3 — Swarm/offload patch marker verification
 
 Run:
-rg -n "@swarm\\|swarm\\|triage|cleanup_tmpdir|OFFLOAD_OPTIONAL|run_codex_swarm" Scripts/ai
-rg -n "SKIPPED_MISSING_ENDPOINT|OFFLOAD_OPTIONAL|dryRun|Missing endpoint for lane|status" Scripts/offload-runner.mjs
-rg -n "OFFLOAD_OPTIONAL=1|dispatch_model|classify_lane|swarm" Scripts/offload.sh
+rg -n "@swarm\\|swarm\\|triage|cleanup_tmpdir|OFFLOAD_OPTIONAL|run_codex_swarm" _SYSTEM/Scripts/ai
+rg -n "SKIPPED_MISSING_ENDPOINT|OFFLOAD_OPTIONAL|dryRun|Missing endpoint for lane|status" _SYSTEM/Scripts/offload-runner.mjs
+rg -n "OFFLOAD_OPTIONAL=1|dispatch_model|classify_lane|swarm" _SYSTEM/Scripts/offload.sh
 
 Verify:
-- Scripts/ai routes @swarm into swarm/triage path
+- _SYSTEM/Scripts/ai routes @swarm into swarm/triage path
 - tmpdir cleanup is guarded
 - offload-runner skips optional missing endpoint
 - offload.sh propagates OFFLOAD_OPTIONAL=1
@@ -1207,8 +1207,8 @@ Verify:
 Stage 4 — Dry-run smoke only
 
 Run:
-AI_DRY_RUN=1 Scripts/ai codex @swarm "Report route only. Do not inspect files. Do not run repo commands."
-OFFLOAD_OPTIONAL=1 node Scripts/offload-runner.mjs kimi "probe optional skip"
+AI_DRY_RUN=1 _SYSTEM/Scripts/ai codex @swarm "Report route only. Do not inspect files. Do not run repo commands."
+OFFLOAD_OPTIONAL=1 node _SYSTEM/Scripts/offload-runner.mjs kimi "probe optional skip"
 
 Expected:
 - first command returns route/lane evidence without real model call
@@ -1219,7 +1219,7 @@ Stage 5 — Final safety check
 Run:
 git diff --cached --name-only
 git diff -I '^[[:space:]]*"model":' -- .claude/settings.json
-git status --short -- .gitignore .claude/settings.json Scripts/ai Scripts/offload-runner.mjs Scripts/offload.sh backend/src/services/notebookService.ts backend/src/services/notebookIngestService.ts backend/src/services/notebookRagService.ts backend/src/services/neuralForgeService.ts backend/src/models/notebookSchema.ts backend/src/models/database.ts backend/data/yuri.db backend/data/yuri.db-shm backend/data/yuri.db-wal
+git status --short -- .gitignore .claude/settings.json _SYSTEM/Scripts/ai _SYSTEM/Scripts/offload-runner.mjs _SYSTEM/Scripts/offload.sh backend/src/services/notebookService.ts backend/src/services/notebookIngestService.ts backend/src/services/notebookRagService.ts backend/src/services/neuralForgeService.ts backend/src/models/notebookSchema.ts backend/src/models/database.ts backend/data/yuri.db backend/data/yuri.db-shm backend/data/yuri.db-wal
 
 Final report format:
 Result

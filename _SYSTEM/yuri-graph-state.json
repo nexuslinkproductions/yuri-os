@@ -450,7 +450,7 @@
         "files": [
           "CLAUDE.md",
           "SOUL.md",
-          "Scripts/pulse-orchestrator.mjs"
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs"
         ],
         "capabilities": [
           "Read pulse-plan and pulse-bus summaries",
@@ -459,7 +459,7 @@
           "Veto advisory output"
         ],
         "dependencies": [
-          "Scripts/offload-contract.mjs",
+          "_SYSTEM/Scripts/offload-contract.mjs",
           "CLAUDE.md",
           "_SYSTEM/yuri-origin.md"
         ],
@@ -579,7 +579,7 @@
       "metadata": {
         "purpose": "Detached pulse orchestrator that classifies the turn and fans out advisors in parallel.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs"
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs"
         ],
         "capabilities": [
           "Build route plan",
@@ -588,7 +588,7 @@
           "Emit beacon when configured"
         ],
         "dependencies": [
-          "Scripts/offload-contract.mjs",
+          "_SYSTEM/Scripts/offload-contract.mjs",
           "OFFLOAD_SH",
           "OPENCLAW_BRIDGE"
         ],
@@ -624,7 +624,7 @@
       "metadata": {
         "purpose": "Complexity and scenario classifier from offload contract; maps prompts to tier and lane expectations.",
         "files": [
-          "Scripts/offload-contract.mjs",
+          "_SYSTEM/Scripts/offload-contract.mjs",
           "_SYSTEM/SELF-IMPROVEMENT/pulse-classifier-tuning.md"
         ],
         "capabilities": [
@@ -669,7 +669,7 @@
       "metadata": {
         "purpose": "Parallel ensemble of bounded advisory systems; findings are advisory only until verified locally.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md",
           "_SYSTEM/yuri-origin.md"
         ],
@@ -718,7 +718,7 @@
       "metadata": {
         "purpose": "Ring buffer of advisor findings consumed by main thread during a turn.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -762,7 +762,7 @@
         "purpose": "Decision stage where ENKI consumes pulse findings, synthesizes risk, selects route, and acts or defers.",
         "files": [
           "CLAUDE.md",
-          "Scripts/pulse-orchestrator.mjs"
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs"
         ],
         "capabilities": [
           "Merge findings",
@@ -805,7 +805,7 @@
       "metadata": {
         "purpose": "Offload lane router using priority and scenario rules from the shared contract.",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Select smallest reliable lane",
@@ -851,7 +851,7 @@
         "purpose": "Two-phase implementation gate for propose/apply with approval marker and HEAD SHA protection.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Propose dry-run diff",
@@ -1514,7 +1514,7 @@
       "metadata": {
         "purpose": "orchestrator.mjs supports the pulse cortex sector as entry point.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1549,7 +1549,7 @@
       "metadata": {
         "purpose": "pulse-plan.json supports the pulse cortex sector as turn state.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1584,7 +1584,7 @@
       "metadata": {
         "purpose": "beacon-emit supports the pulse cortex sector as notify+obsidian.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1621,7 +1621,7 @@
       "metadata": {
         "purpose": "pulse-codex-runner.mjs supports the pulse cortex sector as two-phase impl.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1656,7 +1656,7 @@
       "metadata": {
         "purpose": "TRIVIAL supports the classification sector as no advisors.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1691,7 +1691,7 @@
       "metadata": {
         "purpose": "STANDARD supports the classification sector as [DEEPSEEK].",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1726,7 +1726,7 @@
       "metadata": {
         "purpose": "COMPLEX supports the classification sector as +OC+HERMES+CASS.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1761,7 +1761,7 @@
       "metadata": {
         "purpose": "CRITICAL supports the classification sector as +SWARM+OBLIT.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1796,7 +1796,7 @@
       "metadata": {
         "purpose": "scenario detector supports the classification sector as ui-change · code-change · ....",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1831,7 +1831,7 @@
       "metadata": {
         "purpose": "route-plan output supports the classification sector as lane mapping.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -1866,8 +1866,8 @@
       "metadata": {
         "purpose": "DeepSeek preflight/model advisor for biggest risk, ambiguity, or missing context.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Standard-tier preflight",
@@ -1908,7 +1908,7 @@
       "metadata": {
         "purpose": "OpenClaw bridge advisory lane for pattern critique, explicitly quarantined from canonical authority.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "_SYSTEM/OS_KERNEL/openclaw-bridge.sh",
           "CLAUDE.md"
         ],
@@ -1949,7 +1949,7 @@
       "metadata": {
         "purpose": "Native forecast advisor for context pressure, scope breadth, and session drift.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs"
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs"
         ],
         "capabilities": [
           "Predict context pressure",
@@ -1988,7 +1988,7 @@
       "metadata": {
         "purpose": "Strategic foresight advisor combining recent git/EOT signals with optional model lift.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "_SYSTEM/SELF-IMPROVEMENT/pulse-archive/2026-05-14.json"
         ],
         "capabilities": [
@@ -2027,8 +2027,8 @@
       "metadata": {
         "purpose": "Dual DeepSeek fanout for high-stakes independent risk scan.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Run flash and pro in parallel",
@@ -2106,7 +2106,7 @@
       "metadata": {
         "purpose": "ring buffer · 14 slots supports the pulse cortex sector as 5min TTL.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -2141,7 +2141,7 @@
       "metadata": {
         "purpose": "consumed marker supports the pulse cortex sector as main thread reads.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -2176,7 +2176,7 @@
       "metadata": {
         "purpose": "advisor throttle supports the pulse cortex sector as rate-limited.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -2319,7 +2319,7 @@
       "metadata": {
         "purpose": "Qwen-backed local coding lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Route to qwen:7b / code-local",
@@ -2332,7 +2332,7 @@
         ],
         "state_files": [],
         "model": "qwen:7b / code-local",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2355,7 +2355,7 @@
       "metadata": {
         "purpose": "DeepSeek flash cloud analysis lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Route to deepseek-v4-flash",
@@ -2368,7 +2368,7 @@
         ],
         "state_files": [],
         "model": "deepseek-v4-flash",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2391,7 +2391,7 @@
       "metadata": {
         "purpose": "DeepSeek pro cloud reasoning lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Route to deepseek-v4-pro",
@@ -2404,7 +2404,7 @@
         ],
         "state_files": [],
         "model": "deepseek-v4-pro",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2427,7 +2427,7 @@
       "metadata": {
         "purpose": "Codex mini bounded implementation lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-5.4-mini",
@@ -2440,7 +2440,7 @@
         ],
         "state_files": [],
         "model": "gpt-5.4-mini",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2465,7 +2465,7 @@
       "metadata": {
         "purpose": "Codex full workspace implementation lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-5.5",
@@ -2478,7 +2478,7 @@
         ],
         "state_files": [],
         "model": "gpt-5.5",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2503,7 +2503,7 @@
       "metadata": {
         "purpose": "Remote high-grade fallback reasoning lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Route to kimi-k2.6",
@@ -2516,7 +2516,7 @@
         ],
         "state_files": [],
         "model": "kimi-k2.6",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2539,7 +2539,7 @@
       "metadata": {
         "purpose": "Qwen-backed local triage and summarization lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Route to qwen:7b",
@@ -2552,7 +2552,7 @@
         ],
         "state_files": [],
         "model": "qwen:7b",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2575,7 +2575,7 @@
       "metadata": {
         "purpose": "Formatting and synthesis local GPU lane",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Route to gpt-oss 120b",
@@ -2588,7 +2588,7 @@
         ],
         "state_files": [],
         "model": "gpt-oss 120b",
-        "notes": "Lane metadata evidence from Scripts/offload-contract.mjs.",
+        "notes": "Lane metadata evidence from _SYSTEM/Scripts/offload-contract.mjs.",
         "returns_to": "RESPONSE"
       },
       "parent": "ROUTING",
@@ -2612,7 +2612,7 @@
         "purpose": "propose supports the codex gate sector as dry-run diff.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Represent dry-run diff",
@@ -2652,7 +2652,7 @@
         "purpose": ".approved supports the codex gate sector as user marker.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Represent user marker",
@@ -2690,7 +2690,7 @@
         "purpose": "apply supports the codex gate sector as HEAD SHA verify.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Represent HEAD SHA verify",
@@ -3355,7 +3355,7 @@
       "metadata": {
         "purpose": "deepseek-v4-flash supports the advisors sector as 60s preflight.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -3390,7 +3390,7 @@
       "metadata": {
         "purpose": "deepseek-v4-pro supports the advisors sector as complex reasoning.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -3425,7 +3425,7 @@
       "metadata": {
         "purpose": "openclaw-bridge.sh supports the advisors sector as 127.0.0.1:18789.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -3460,7 +3460,7 @@
       "metadata": {
         "purpose": "swarm flash lane supports the advisors sector as flash fan-out.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -3495,7 +3495,7 @@
       "metadata": {
         "purpose": "swarm pro lane supports the advisors sector as pro fan-out.",
         "files": [
-          "Scripts/pulse-orchestrator.mjs",
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs",
           "CLAUDE.md"
         ],
         "capabilities": [
@@ -3530,7 +3530,7 @@
       "metadata": {
         "purpose": "workspace-write supports the routing lanes sector as sandbox impl auth.",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Represent sandbox impl auth",
@@ -3564,7 +3564,7 @@
       "metadata": {
         "purpose": "full workspace supports the routing lanes sector as max reasoning.",
         "files": [
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Represent max reasoning",
@@ -3599,7 +3599,7 @@
         "purpose": "dry-run diff supports the codex gate sector as no writes.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Represent no writes",
@@ -3634,7 +3634,7 @@
         "purpose": "HEAD SHA verify supports the codex gate sector as stale-protection.",
         "files": [
           "CLAUDE.md",
-          "Scripts/offload-contract.mjs"
+          "_SYSTEM/Scripts/offload-contract.mjs"
         ],
         "capabilities": [
           "Represent stale-protection",
@@ -4375,7 +4375,7 @@
       "metadata": {
         "purpose": "offload-contract-regression.sh",
         "files": [
-          "Scripts/offload-contract-regression.test.mjs"
+          "_SYSTEM/Scripts/offload-contract-regression.test.mjs"
         ],
         "capabilities": [
           "regression gate"
@@ -4408,7 +4408,7 @@
       "metadata": {
         "purpose": "Obsidian vault writes for beacon=notify+obsidian",
         "files": [
-          "Scripts/pulse-orchestrator.mjs"
+          "_SYSTEM/Scripts/pulse-orchestrator.mjs"
         ],
         "capabilities": [
           "obsidian notification logging"
@@ -6759,8 +6759,8 @@
       "wp2_lane_wrapper": "applied",
       "tier_gated_wrapping": true,
       "pulse_lane_files": [
-        "Scripts/pulse-lane-dispatch.mjs",
-        "Scripts/pulse-memory-context.mjs",
+        "_SYSTEM/Scripts/pulse-lane-dispatch.mjs",
+        "_SYSTEM/Scripts/pulse-memory-context.mjs",
         ".claude/config/pulse-lanes.json"
       ],
       "wp3_memory_report": "_SYSTEM/SELF-IMPROVEMENT/memory-placement-impact.md",

@@ -278,7 +278,7 @@ The `head` field in each event records the HEAD commit at event-time (verificati
 - head: `b5ac69333`
 - reviewer: `owner:marcel-spatz`
 - rag_eligibility: `ACTIVE`
-- notes: `Added smart auto-refresh watcher at Scripts/wiki-rag-watch.mjs and npm run wiki:rag:watch to rerun the dedicated lane on authoritative control-plane input changes.`
+- notes: `Added smart auto-refresh watcher at _SYSTEM/Scripts/wiki-rag-watch.mjs and npm run wiki:rag:watch to rerun the dedicated lane on authoritative control-plane input changes.`
 
 ### 09q-0001
 

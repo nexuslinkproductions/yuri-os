@@ -88,7 +88,7 @@ The installed deepseek CLI is a one-shot wrapper, not an interactive REPL.
 It also exposes legacy/default model names, not Yuri's verified deepseek-v4-pro / deepseek-v4-flash lanes.
 ```
 
-Therefore, GPT-5.5 recommended building a Yuri-native `nudimmud` REPL around the verified `Scripts/offload.sh` DeepSeek lanes instead of relying on the raw package defaults.
+Therefore, GPT-5.5 recommended building a Yuri-native `nudimmud` REPL around the verified `_SYSTEM/Scripts/offload.sh` DeepSeek lanes instead of relying on the raw package defaults.
 
 ---
 
@@ -167,7 +167,7 @@ Use direct shell evidence only.
 Create a repo-local Node script:
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Expected behavior:
@@ -175,7 +175,7 @@ Expected behavior:
 ```text
 - Yuri-native DeepSeek HUD REPL
 - no Hermes code
-- routes through Scripts/offload.sh
+- routes through _SYSTEM/Scripts/offload.sh
 - default model deepseek-v4-pro
 - flash available via /model flash
 - pro available via /model pro
@@ -187,7 +187,7 @@ Expected behavior:
 Optional allowed file:
 
 ```text
-package.json, only to add script alias: "nudimmud": "node Scripts/nudimmud-repl.mjs"
+package.json, only to add script alias: "nudimmud": "node _SYSTEM/Scripts/nudimmud-repl.mjs"
 ```
 
 Forbidden:
@@ -198,9 +198,9 @@ Forbidden:
 - backend files
 - DB files
 - frontend files
-- Scripts/offload-runner.mjs
-- Scripts/offload.sh
-- Scripts/ai
+- _SYSTEM/Scripts/offload-runner.mjs
+- _SYSTEM/Scripts/offload.sh
+- _SYSTEM/Scripts/ai
 - .zshrc
 - Hermes code
 - dependency install
@@ -214,7 +214,7 @@ Forbidden:
 Claude Sonnet created:
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 It also updated:
@@ -226,7 +226,7 @@ package.json
 to add:
 
 ```json
-"nudimmud": "node Scripts/nudimmud-repl.mjs"
+"nudimmud": "node _SYSTEM/Scripts/nudimmud-repl.mjs"
 ```
 
 ### Initial validation
@@ -234,9 +234,9 @@ to add:
 Commands reported:
 
 ```text
-node --check Scripts/nudimmud-repl.mjs -> SYNTAX_OK
-node Scripts/nudimmud-repl.mjs --help -> header + command table rendered
-printf '/status\n/exit\n' | node Scripts/nudimmud-repl.mjs -> status pipe PASS
+node --check _SYSTEM/Scripts/nudimmud-repl.mjs -> SYNTAX_OK
+node _SYSTEM/Scripts/nudimmud-repl.mjs --help -> header + command table rendered
+printf '/status\n/exit\n' | node _SYSTEM/Scripts/nudimmud-repl.mjs -> status pipe PASS
 ```
 
 ### First live DeepSeek smoke issue
@@ -287,7 +287,7 @@ IN / OUT / ELAPSED counters
 Files changed:
 
 ```text
-Scripts/nudimmud-repl.mjs  (created, 270 lines)
+_SYSTEM/Scripts/nudimmud-repl.mjs  (created, 270 lines)
 package.json               (added nudimmud script alias)
 ```
 
@@ -333,7 +333,7 @@ No package-lock change occurred.
 GPT-5.5 instructed the user to add a manual shell alias:
 
 ```bash
-printf "\n# NUDIMMUD DeepSeek HUD REPL\nalias nudimmud='node /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs'\n" >> ~/.zshrc
+printf "\n# NUDIMMUD DeepSeek HUD REPL\nalias nudimmud='node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs'\n" >> ~/.zshrc
 source ~/.zshrc
 ```
 
@@ -389,7 +389,7 @@ The user ran the scoped commit command.
  M package.json
  M src/index.tsx
  M src/main.ts
-?? Scripts/nudimmud-repl.mjs
+?? _SYSTEM/Scripts/nudimmud-repl.mjs
 ?? src/components/NeuralViz/
 ?? src/yuri/
 ```
@@ -403,7 +403,7 @@ HUD_STATUS_CHECK_PASS
 ### Staged files
 
 ```text
-Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/nudimmud-repl.mjs
 package.json
 ```
 
@@ -412,7 +412,7 @@ package.json
 ```text
 [main e17a9012d] feat(cli): add NUDIMMUD DeepSeek HUD REPL
  2 files changed, 282 insertions(+), 1 deletion(-)
- create mode 100644 Scripts/nudimmud-repl.mjs
+ create mode 100644 _SYSTEM/Scripts/nudimmud-repl.mjs
 ```
 
 Pre-commit ledger:
@@ -439,7 +439,7 @@ Accepted:
 
 ```text
 - commit is scoped correctly
-- only Scripts/nudimmud-repl.mjs and package.json committed
+- only _SYSTEM/Scripts/nudimmud-repl.mjs and package.json committed
 - no package-lock drift
 - no DB main file
 - no frontend staging
@@ -478,7 +478,7 @@ Tiny exact-path bugfix; no live DeepSeek call needed.
 ### Allowed mutation scope
 
 ```text
-Scripts/nudimmud-repl.mjs only
+_SYSTEM/Scripts/nudimmud-repl.mjs only
 ```
 
 ### Expected behavior
@@ -503,7 +503,7 @@ Add one-shot finalizer:
 
 ## 9. R1 Execution Result
 
-Claude Haiku patched `Scripts/nudimmud-repl.mjs`.
+Claude Haiku patched `_SYSTEM/Scripts/nudimmud-repl.mjs`.
 
 ### Reported patch
 
@@ -659,7 +659,7 @@ Capabilities:
 
 ```text
 - command: nudimmud
-- launches Scripts/nudimmud-repl.mjs
+- launches _SYSTEM/Scripts/nudimmud-repl.mjs
 - routes through verified Yuri DeepSeek lane
 - default model: deepseek-v4-pro
 - supports flash/pro switching
@@ -761,7 +761,7 @@ Latest accepted repo state:
   - deepseek-v4-pro-lite-budget
 - NUDIMMUD HUD REPL is now accepted:
   - command: nudimmud
-  - launches Scripts/nudimmud-repl.mjs
+  - launches _SYSTEM/Scripts/nudimmud-repl.mjs
   - routes through verified Yuri DeepSeek lane
   - shows branch/head/staged/tokenmaxxing/model/token estimates
   - /exit duplicate summary bug fixed and manually verified

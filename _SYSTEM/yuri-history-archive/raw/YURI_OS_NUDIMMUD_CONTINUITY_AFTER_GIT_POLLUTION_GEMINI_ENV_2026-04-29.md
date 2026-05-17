@@ -147,7 +147,7 @@ RESEARCH/ruflo
 - later verified as 6,019 files / 1.7G / 240 SKILL.md
 - untracked embedded repo
 - path is soft-reference
-- ruflo CLI is hard-integrated via Scripts/ai using npx fallback
+- ruflo CLI is hard-integrated via _SYSTEM/Scripts/ai using npx fallback
 
 RESEARCH/ORACLE-CORPUS/openclaw-openclaw
 - 14,978 files
@@ -243,7 +243,7 @@ RESEARCH/ruflo
 - 1.7G
 - untracked embedded repo
 - path soft reference
-- ruflo CLI hard-integrated via Scripts/ai npx fallback
+- ruflo CLI hard-integrated via _SYSTEM/Scripts/ai npx fallback
 
 .smart-env
 - 11,740 files
@@ -712,7 +712,7 @@ Do not run `gemini skills list`.
 Do not touch `.claude/settings.json`.
 Do not touch `GEMINI.md`.
 Do not touch `.claude/**`.
-Do not touch `Scripts/**`.
+Do not touch `_SYSTEM/Scripts/**`.
 Do not touch `RESEARCH/**`.
 Do not touch `01_PROJECTS/**`.
 Do not touch `gemini_env/**`.

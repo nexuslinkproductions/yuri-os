@@ -70,8 +70,8 @@
     "source_file": "YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
     "trust_policy": "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document.",
     "key_facts": [
-      "Built readonly Yuri guarded executor (Scripts/yuri-guarded-executor.mjs) with strict action allowlist and policy file",
-      "Implemented DeepSeek handoff wrapper (Scripts/deepseek-guarded-handoff.mjs) that validates DeepSeek JSON, bridges to executor",
+      "Built readonly Yuri guarded executor (_SYSTEM/Scripts/yuri-guarded-executor.mjs) with strict action allowlist and policy file",
+      "Implemented DeepSeek handoff wrapper (_SYSTEM/Scripts/deepseek-guarded-handoff.mjs) that validates DeepSeek JSON, bridges to executor",
       "Live DeepSeek V4 Pro smoke succeeded via normal Terminal (HANDOFF_PASS); Codex DNS blocked",
       "Observation phase established: no write/patch/staging/commit capability; only readonly runs",
       "DeepSeek allowed to invent, but inventions become candidate protocol extensions, not runtime behavior",
@@ -94,7 +94,7 @@
     ],
     "repo_state_claims_to_verify": [
       "HEAD at session end 025ba4c8f (verify actual repo state)",
-      "Scripts/yuri-guarded-executor.mjs, Scripts/policy/yuri-guarded-executor.readonly.json, Scripts/deepseek-guarded-handoff.mjs exist",
+      "_SYSTEM/Scripts/yuri-guarded-executor.mjs, _SYSTEM/Scripts/policy/yuri-guarded-executor.readonly.json, _SYSTEM/Scripts/deepseek-guarded-handoff.mjs exist",
       "Readonly executor policy only allows READ_MANIFEST_FILE, SEARCH_MANIFEST_PATHS, RUN_ALLOWED_CHECK, SUMMARIZE_EVIDENCE, FINAL_REPORT",
       "Wrapper selftest markers include HANDOFF_SELFTEST_PASS, HANDOFF_OFFSET_FIELD_REJECT_PASS etc.",
       "No write/stage/commit code paths activated in these files",
@@ -111,8 +111,8 @@
       "No autonomous safety claims; observation only"
     ],
     "routing_rules": [
-      "DeepSeek V4 Pro: model prompt via Scripts/offload-runner.mjs direct lane (not offload.sh or REPL for first handoff)",
-      "Wrapper sanitizes DeepSeek output and passes to Scripts/yuri-guarded-executor.mjs readonly mode",
+      "DeepSeek V4 Pro: model prompt via _SYSTEM/Scripts/offload-runner.mjs direct lane (not offload.sh or REPL for first handoff)",
+      "Wrapper sanitizes DeepSeek output and passes to _SYSTEM/Scripts/yuri-guarded-executor.mjs readonly mode",
       "Readonly executor carries out READ_MANIFEST_FILE, SEARCH_MANIFEST_PATHS, and allowed check commands only",
       "GPT-5.5 reviews final executor artifact pack and wrapper review packet before widening",
       "All mutation decisions use local truth from executor evidence, not model claims"

@@ -213,8 +213,8 @@ Out-of-scope non-.claude mutations:
 .gitignore
 CLAUDE.md
 GEMINI.md
-Scripts/offload-runner.mjs
-Scripts/swarm-proxy.sh
+_SYSTEM/Scripts/offload-runner.mjs
+_SYSTEM/Scripts/swarm-proxy.sh
 backend/data/yuri.db-shm
 backend/data/yuri.db-wal
 backend/src/services/vaultIngestion.ts
@@ -772,8 +772,8 @@ Please review the continuity extract and prepare/validate the next safest action
     ".gitignore was resolved by 07E but other non-.claude mutations remain out of scope",
     "root CLAUDE.md",
     "GEMINI.md",
-    "Scripts/offload-runner.mjs",
-    "Scripts/swarm-proxy.sh",
+    "_SYSTEM/Scripts/offload-runner.mjs",
+    "_SYSTEM/Scripts/swarm-proxy.sh",
     "backend/data/yuri.db-shm",
     "backend/data/yuri.db-wal",
     "backend/src/services/vaultIngestion.ts",

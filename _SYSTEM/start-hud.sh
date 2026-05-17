@@ -3,7 +3,7 @@
 cd /Users/marcelspatz/.cline/worktrees/51d5c/NUDIMMUD
 
 echo "Starting feed aggregator (:4201)..."
-node Scripts/feeds/feed-aggregator.mjs &
+node _SYSTEM/Scripts/feeds/feed-aggregator.mjs &
 AGG_PID=$!
 sleep 2
 
@@ -24,7 +24,7 @@ echo "   Trading API: http://localhost:3004/api/ping-test"
 echo "   Aggregator: http://localhost:4201/health"
 echo ""
 echo "PIDs: aggregator=$AGG_PID  api=$API_PID  vite=$VITE_PID"
-echo "Run 'node Scripts/feeds/yuri-validate.mjs' to verify"
+echo "Run 'node _SYSTEM/Scripts/feeds/yuri-validate.mjs' to verify"
 echo ""
 echo "Press Ctrl+C to stop all"
 wait

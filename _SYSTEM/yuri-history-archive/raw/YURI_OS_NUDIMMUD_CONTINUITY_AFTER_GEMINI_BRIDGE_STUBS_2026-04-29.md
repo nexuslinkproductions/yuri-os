@@ -75,7 +75,7 @@ Recent evidence for this rule:
 ```text
 Large Sonnet/Haiku audit prompts cost 10k–39k tokens.
 A reusable script was added to reduce repeated census cost:
-Scripts/yuri-capability-census.mjs
+_SYSTEM/Scripts/yuri-capability-census.mjs
 ```
 
 Future prompts should be compact and exact-path scoped.
@@ -212,13 +212,13 @@ c26a29b8 chore(audit): add Yuri capability census script
 Committed file:
 
 ```text
-Scripts/yuri-capability-census.mjs
+_SYSTEM/Scripts/yuri-capability-census.mjs
 ```
 
 Purpose:
 
 ```bash
-node Scripts/yuri-capability-census.mjs
+node _SYSTEM/Scripts/yuri-capability-census.mjs
 ```
 
 The script provides a reusable, compact capability surface inventory to reduce repeated long prompts.
@@ -494,7 +494,7 @@ Cost discipline is a very high-priority rule:
 - reserve Sonnet for security-sensitive gates, settings/global config edits, hook/schema/permission work, and ambiguous final decisions,
 - use compact delta prompts,
 - avoid repeated large context dumps,
-- prefer reusable local scripts such as `node Scripts/yuri-capability-census.mjs`.
+- prefer reusable local scripts such as `node _SYSTEM/Scripts/yuri-capability-census.mjs`.
 
 Gemini current state:
 - repo-local GEMINI.md repaired

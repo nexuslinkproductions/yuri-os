@@ -5,7 +5,7 @@ checked_at: `2026-05-09T20:31:49+02:00`
 head: `b5ac69333cf34915863f65fa6dcb4c6918a29107`
 watch_command: `npm run wiki:rag:watch`
 auto_command: `npm run wiki:rag:auto`
-watcher_path: `Scripts/wiki-rag-watch.mjs`
+watcher_path: `_SYSTEM/Scripts/wiki-rag-watch.mjs`
 runner_path: `backend/src/scripts/ingestWikiControlPlane.ts`
 poll_interval_ms: `30000`
 
@@ -30,8 +30,8 @@ Provide a smart auto-refresh lane for the wiki control plane. The runner compute
 - `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-health.md`
 - `_SYSTEM/yuri-wiki/schema/page.schema.md`
 - `_SYSTEM/yuri-wiki/schema/lint-contract.md`
-- `Scripts/wiki-rag-launchd.mjs`
-- `Scripts/wiki-rag-health.mjs`
+- `_SYSTEM/Scripts/wiki-rag-launchd.mjs`
+- `_SYSTEM/Scripts/wiki-rag-health.mjs`
 - `backend/src/scripts/ingestWikiControlPlane.ts`
 - `backend/package.json`
 - `package.json`

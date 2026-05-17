@@ -73,7 +73,7 @@ a741664c chore(cli): harden swarm routing for codex offload
 
 ### 3.1 Swarm/lower-lane summaries were unreliable for code mutation verification
 
-Several `Scripts/ai codex @swarm` runs produced plausible but false or incomplete reports.
+Several `_SYSTEM/Scripts/ai codex @swarm` runs produced plausible but false or incomplete reports.
 
 Examples:
 

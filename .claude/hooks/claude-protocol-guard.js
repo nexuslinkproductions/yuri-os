@@ -4,10 +4,10 @@
 const MUTATION_TOOLS = new Set(['Write', 'Edit', 'MultiEdit']);
 const CODEX_DISPATCH_MARKERS = [
   'codex exec',
-  'Scripts/ai codex',
-  'Scripts/ai @codex',
+  '_SYSTEM/Scripts/ai codex',
+  '_SYSTEM/Scripts/ai @codex',
   'codex-spark',
-  'Scripts/codex-offload-runner.mjs',
+  '_SYSTEM/Scripts/codex-offload-runner.mjs',
 ];
 // Only fire route-plan gate when 2+ of these appear together (reduces false positives)
 const HIGH_RISK_MARKERS = [
@@ -32,9 +32,9 @@ const PROTECTED_PATHS = [
   'AGENTS.md',
   'CODEX_PROTOCOL.md',
   'CLAUDE.md',
-  'Scripts/pulse-orchestrator',
-  'Scripts/offload-contract',
-  'Scripts/neuron-loop',
+  '_SYSTEM/Scripts/pulse-orchestrator',
+  '_SYSTEM/Scripts/offload-contract',
+  '_SYSTEM/Scripts/neuron-loop',
 ];
 const MUTATING_COMMAND_MARKERS = [
   ' apply_patch',
@@ -179,7 +179,7 @@ function inspect(input) {
   if (highRiskCount >= 2 && !hasRoutePlanEvidence(toolText)) {
     warnings.push({
       code: 'missing-route-plan-evidence',
-      message: 'Protocol, routing, memory, promotion, protected-path, or high-stakes work needs Scripts/ai route-plan evidence plus DeepSeek and symbioticPulse advisory expectations.',
+      message: 'Protocol, routing, memory, promotion, protected-path, or high-stakes work needs _SYSTEM/Scripts/ai route-plan evidence plus DeepSeek and symbioticPulse advisory expectations.',
     });
   }
 

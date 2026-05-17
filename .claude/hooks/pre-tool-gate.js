@@ -64,8 +64,8 @@ function isBroadBash(cmd) {
 function buildReadAdvisory(filePath) {
   return [
     `⬢ pre-tool-gate: Large file read — ${path.basename(filePath)}`,
-    `  → Delegation option: bash Scripts/offload.sh @deepseek-flash "summarize key points from ${filePath}"`,
-    `  → Or: bash Scripts/offload.sh @deepseek-flash "extract <specific section> from ${filePath}"`,
+    `  → Delegation option: bash _SYSTEM/Scripts/offload.sh @deepseek-flash "summarize key points from ${filePath}"`,
+    `  → Or: bash _SYSTEM/Scripts/offload.sh @deepseek-flash "extract <specific section> from ${filePath}"`,
     `  Proceeding with direct read — route to deepseek-flash if output is noisy.`,
   ].join('\n');
 }
@@ -74,7 +74,7 @@ function buildBashAdvisory(cmd) {
   const snippet = cmd.slice(0, 80).replace(/\n/g, ' ');
   return [
     `⬢ pre-tool-gate: Broad search detected — "${snippet}..."`,
-    `  → Delegation option: bash Scripts/offload.sh @deepseek-flash "run: ${snippet} and summarize findings"`,
+    `  → Delegation option: bash _SYSTEM/Scripts/offload.sh @deepseek-flash "run: ${snippet} and summarize findings"`,
     `  Proceeding — consider routing result analysis to deepseek-flash if output is large.`,
   ].join('\n');
 }

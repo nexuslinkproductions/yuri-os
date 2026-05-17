@@ -87,7 +87,7 @@ Known dirty state at the beginning:
 
 ```text
 .claude/settings.json model/effort drift
-Scripts/swarm-proxy.sh
+_SYSTEM/Scripts/swarm-proxy.sh
 backend/data/yuri.db-shm
 backend/data/yuri.db-wal
 src/index.tsx
@@ -113,9 +113,9 @@ ac2c846c1 chore(offload): add DeepSeek V4 API lanes
 Files committed in that lane:
 
 ```text
-Scripts/offload-runner.mjs
-Scripts/ai
-Scripts/offload.sh
+_SYSTEM/Scripts/offload-runner.mjs
+_SYSTEM/Scripts/ai
+_SYSTEM/Scripts/offload.sh
 _SYSTEM/model-registry.md
 backend/.env.example
 .claude/config/models.json
@@ -477,7 +477,7 @@ It incorrectly treated known tolerated dirty state as hard blockers:
 ```text
 backend/data/yuri.db-shm
 backend/data/yuri.db-wal
-Scripts/swarm-proxy.sh
+_SYSTEM/Scripts/swarm-proxy.sh
 src/index.tsx
 src/main.ts
 src/components/NeuralViz/
