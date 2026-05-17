@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-palace-rebuild.py — NUDIMMUD Claude Palace Generator
-Scans the NUDIMMUD vault, parses wikilinks, builds semantic index outputs.
+palace-rebuild.py — YURI-OS-MUSUBI Claude Palace Generator
+Scans the YURI-OS-MUSUBI vault, parses wikilinks, builds semantic index outputs.
 
 Usage:
   python3 palace-rebuild.py
@@ -31,8 +31,8 @@ from collections import defaultdict, Counter, deque
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-DEFAULT_VAULT  = Path("/Volumes/T7/NUDIMMUD")
-DEFAULT_OUTPUT = Path("/Volumes/T7/claude-palace-out")
+DEFAULT_VAULT  = Path("/Users/marcelspatz/YURI-OS-MUSUBI")
+DEFAULT_OUTPUT = Path("/Users/marcelspatz/YURI-OS-MUSUBI/claude-palace-out")
 VERSION        = "2.0"
 
 EXCLUDE_DIRS = {
@@ -554,7 +554,7 @@ def write_suggested_connections(output_dir, suggestions):
 # ─── ENTRY POINT ─────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="Rebuild NUDIMMUD Claude Palace")
+    parser = argparse.ArgumentParser(description="Rebuild YURI-OS-MUSUBI Claude Palace")
     parser.add_argument("--vault",   default=str(DEFAULT_VAULT),  help="Vault root path")
     parser.add_argument("--output",  default=str(DEFAULT_OUTPUT), help="Output directory")
     parser.add_argument("--dry-run", action="store_true",         help="Scan only, no writes")
