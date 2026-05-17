@@ -211,3 +211,9 @@ YURI-SENTINEL/08_INGESTION/skool/venv/
 03_RESOURCES/RESEARCH/corpus/awesome-deepseek-integration/
 03_RESOURCES/RESEARCH/ruflo/
 integrations/gemini-env/
+
+# Stray macOS app bundles and canvas files at root
+/*.app/
+*.canvas
+GeneratedContent
+Volumes

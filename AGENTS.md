@@ -140,7 +140,7 @@ bun run typecheck
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **yuri-os-musubi** (96136 symbols, 138244 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (96146 symbols, 138247 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -163,10 +163,10 @@ This project is indexed by GitNexus as **yuri-os-musubi** (96136 symbols, 138244
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/yuri-os-musubi/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/yuri-os-musubi/clusters` | All functional areas |
-| `gitnexus://repo/yuri-os-musubi/processes` | All execution flows |
-| `gitnexus://repo/yuri-os-musubi/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/nudimmud-vault/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/nudimmud-vault/clusters` | All functional areas |
+| `gitnexus://repo/nudimmud-vault/processes` | All execution flows |
+| `gitnexus://repo/nudimmud-vault/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 
