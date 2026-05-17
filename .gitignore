@@ -206,3 +206,5 @@ logs/
 
 # Python bytecode / cache
 _SYSTEM/OS_KERNEL/__pycache__/
+YURI-SENTINEL/08_INGESTION/skool/playwright_data/
+YURI-SENTINEL/08_INGESTION/skool/venv/
