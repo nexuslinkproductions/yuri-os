@@ -1,3 +1,5 @@
-2026-05-06T19:27:53.958Z: Command failed: claude -p --model claude-haiku-4-5 "$(cat /Users/marcelspatz/NUDIMMUD/.claude/nisaba/learning/.dream-prompt.txt)" --allowedTools Write,Edit,Read
-2026-05-07T01:28:51.597Z: Command failed: claude -p --model claude-haiku-4-5 "$(cat /Users/marcelspatz/NUDIMMUD/.claude/nisaba/learning/.dream-prompt.txt)" --allowedTools Write,Edit,Read
-2026-05-07T09:53:18.949Z: Command failed: claude -p --model claude-haiku-4-5 "$(cat /Users/marcelspatz/NUDIMMUD/.claude/nisaba/learning/.dream-prompt.txt)" --allowedTools Write,Edit,Read
+# Dream errors — active log (reset 2026-05-17)
+# Archived: 4 stale errors from 2026-05-06 to 2026-05-16
+#   - 3x claude-haiku-4-5 failures: pre-refactor invocations, replaced by deepseek-v4-flash
+#   - 1x ETIMEDOUT: DeepSeek timeout on 2026-05-16 (transient)
+# Current processor: Scripts/nisaba-dream-processor.mjs → offload.sh -m deepseek-v4-flash

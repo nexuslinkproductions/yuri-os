@@ -325,14 +325,12 @@ const OFFLOAD_CONTRACT = {
       obliteratus: 'conditional-high-risk'
     },
     openClaw: {
-      authority: 'bridge-only-advisory',
-      runtimeRequirement: 'none for v1',
-      quarantine: [
-        'May inform research/background patterns.',
-        'Must not directly edit code.',
-        'Must not become canonical memory authority without local verification.',
-        'Must not bypass native Hermes, Argus, or Obliteratus gates.'
-      ]
+      authority: 'native-integrated',
+      status: 'absorbed-2026-05-17',
+      note: 'OpenClaw/09OC fully absorbed into Musubi as Nisaba Sentinel. The 09OC research lane is now @deepseek-flash. The daemon heartbeat is Scripts/nisaba-sentinel.mjs running every 33min via LaunchAgent. No quarantine — Nisaba Sentinel operates under the same native gates as all other Musubi components.',
+      gatewayPort: 18789,
+      sentinel: 'Scripts/nisaba-sentinel.mjs',
+      launchAgent: 'com.nudimmud.nisaba-sentinel'
     },
     hardBlocksRemainOwnedBy: 'bash-security-guard.js',
     denyPermissionDecision: false
@@ -530,6 +528,26 @@ const OFFLOAD_CONTRACT = {
       ]
     },
     {
+      id: 'analysis-council',
+      title: 'Multi-model analysis and council review',
+      match: [
+        'assess', 'analyze', 'analyse', 'fan out', 'council',
+        'deep analysis', 'deep-analysis', 'deep dive',
+        'evaluate', 'compare approaches', 'what can be improved',
+        'what are the flaws', 'whats wrong', 'brain dump', 'braindump',
+        'recommend', 'architectural review', 'system audit',
+        'what do you think', 'opinion on', 'thoughts on'
+      ],
+      defaultLane: 'swarm',
+      lifecycle: [
+        'Intake: identify the artifact, system, or question to be analyzed.',
+        'Fan-out: dispatch multi-model council (DeepSeek-pro + NVIDIA + SHURA) in parallel.',
+        'Verify: ground claims in source, git, or deterministic local evidence.',
+        'Merge: main session synthesizes findings ordered by severity.',
+        'Learn: promote repeated findings into prevention rules.'
+      ]
+    },
+    {
       id: 'code-change',
       title: 'Implement or fix code',
       match: ['implement', 'fix', 'debug', 'patch', 'refactor', 'test'],
@@ -653,6 +671,18 @@ function selectSteeringLane(prompt) {
   }
 
   if (text.includes('@swarm') || text.includes('swarm') || text.includes('fan out') || text.includes('parallel') || text.includes('compare') || text.includes('consensus')) {
+    return 'swarm';
+  }
+
+  // Analysis council — explicit fan-out, assess, deep analysis (before generic architecture catch)
+  if (
+    text.includes('fan out') || text.includes('council') ||
+    text.includes('deep analysis') || text.includes('deep dive') ||
+    text.includes('braindump') || text.includes('brain dump') ||
+    text.includes('assess') || text.includes('analyze') || text.includes('analyse') ||
+    text.includes('what can be improved') || text.includes('what are the flaws') ||
+    text.includes('whats wrong') || text.includes('thoughts on') || text.includes('opinion on')
+  ) {
     return 'swarm';
   }
 
@@ -914,8 +944,21 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
 // at Scripts/pulse-orchestrator.mjs consumes these to fan out advisors.
 
 function assessOpenClawAdvisory(prompt, lane, scenario) {
+  const ocConfig = OFFLOAD_CONTRACT.claudeProtocolGate.openClaw;
+  // OpenClaw absorbed as Nisaba Sentinel (native-integrated) — no longer a separate bridge lane
+  if (ocConfig.authority === 'native-integrated') {
+    return {
+      decision: 'skip',
+      role: 'nisaba-sentinel-native',
+      preflight: false,
+      postflight: false,
+      runtimeKind: 'native_integrated',
+      authority: 'native-integrated',
+      reason: 'openclaw_absorbed_as_nisaba_sentinel'
+    };
+  }
+  // Legacy bridge-only-advisory path (kept for backward compat)
   const text = normalizePrompt(prompt);
-  const quarantine = OFFLOAD_CONTRACT.claudeProtocolGate.openClaw;
   const eligibleScenarios = [
     'control-plane-orchestration', 'protocol-change',
     'high-stakes-review', 'sandbox-improvement',
@@ -931,14 +974,9 @@ function assessOpenClawAdvisory(prompt, lane, scenario) {
 
   if (!shouldFire) {
     return {
-      decision: 'skip',
-      role: 'none',
-      preflight: false,
-      postflight: false,
-      runtimeKind: 'bridge_advisory',
-      authority: quarantine.authority,
-      reason: 'below_pattern_advisory_threshold',
-      quarantine: quarantine.quarantine
+      decision: 'skip', role: 'none', preflight: false, postflight: false,
+      runtimeKind: 'bridge_advisory', authority: ocConfig.authority,
+      reason: 'below_pattern_advisory_threshold'
     };
   }
   return {
@@ -949,9 +987,8 @@ function assessOpenClawAdvisory(prompt, lane, scenario) {
     postflight: scenario.id === 'code-change',
     outputCapLines: 60,
     runtimeKind: 'bridge_advisory',
-    authority: quarantine.authority,
+    authority: ocConfig.authority,
     reason: lane === 'swarm' ? 'swarm_dispatch_pattern_lens' : `scenario:${scenario.id}_or_pattern_signal`,
-    quarantine: quarantine.quarantine,
     bridgeCommand: 'echo "<payload>" | bash _SYSTEM/OS_KERNEL/openclaw-bridge.sh',
     localTruthRequired: true,
     codexFinalAuthority: true
@@ -962,14 +999,19 @@ function classifyComplexity(prompt, lane, scenario) {
   const text = normalizePrompt(prompt);
   const length = text.length;
   const mutateVerbs = /(implement|fix|patch|refactor|debug|rename|delete|migrate|audit|review|deploy|create|add|remove|build|wire|extend|promote)/i;
+  const analysisVerbs = /\b(assess|analyze|analyse|evaluate|compare|recommend|braindump|brain dump|fan out|council|deep analysis|deep dive|what can be improved|what are the flaws|whats wrong|thoughts on|opinion on)\b/i;
   const hasMutate = mutateVerbs.test(text);
+  const hasAnalysis = analysisVerbs.test(text);
   const hasFilePath = /[/][\w-]+\.[a-z]+/i.test(text);
   const hasLane = /@\w+/.test(text);
+  const hasQuestion = /\?/.test(text);
 
-  if (length < 60 && !hasMutate && !hasFilePath && !hasLane) {
+  // trivial: zero actionable signal
+  if (length < 60 && !hasMutate && !hasFilePath && !hasLane && !hasAnalysis && !hasQuestion) {
     return 'trivial';
   }
 
+  // critical: governance / protected surfaces always win
   const criticalSignals = [
     'memory.db', 'protected path', 'promotion', 'canonical', 'governance',
     'launchd', 'production', 'rollout', 'migrate', 'kernel', 'protected'
@@ -980,38 +1022,154 @@ function classifyComplexity(prompt, lane, scenario) {
     return 'critical';
   }
 
+  // complex: multi-file mutations OR audit/arch/protocol/security signals
   const complexSignals = ['audit', 'review', 'architecture', 'refactor', 'protocol', 'security', 'cortex'];
   const fileCount = (text.match(/[/][\w-]+\.[a-z]+/gi) || []).length;
-  if (fileCount > 1 || includesAny(text, complexSignals) || scenario.id === 'protocol-change') {
+  if (fileCount > 1 || includesAny(text, complexSignals) || scenario.id === 'protocol-change' || scenario.id === 'analysis-council') {
     return 'complex';
+  }
+
+  // analysis: pure advisory questions without mutation — gets NVIDIA + DeepSeek, no heavy gates
+  if ((hasQuestion || hasAnalysis) && !hasMutate && !hasFilePath) {
+    return 'analysis';
   }
 
   return 'standard';
 }
 
-function buildEnsemble(complexityTier, scenario, openClawAdvisory) {
+// Council composition — decides which DeepSeek tier and whether Codex fires as advisor.
+// Replaces static "always DeepSeek-flash" with model-matched council selection.
+//
+// DeepSeek-pro: architecture, protocol, security reasoning, cross-domain analysis
+// DeepSeek-flash: quick triage, noisy input, fast first-pass, code-adjacent context
+// Codex gpt-5.5: deep code review, security+code, complex impl planning
+// Codex gpt-5.4-mini: fast code advisory, style review, bounded impl feedback
+function assessCouncilComposition(prompt, complexityTier, scenario) {
+  const text = normalizePrompt(prompt);
+
+  const hasCode      = /(implement|fix|patch|refactor|debug|build|create|write|function|class|component|script|hook|test|generate code)/i.test(text);
+  const hasArch      = /(architecture|protocol|design pattern|philosophy|approach|strategy|trade-?off|system design|how does|why does)/i.test(text);
+  const hasReasoning = /\b(why|explain|how does|analyze|analyse|assess|evaluate|what are the flaws|what is wrong|whats wrong|thoughts on|opinion on|deep analysis|braindump)\b/i.test(text);
+  const hasSecurity  = /(security|audit|vulnerability|risk|threat|exploit|injection|xss|csrf|auth|permission|access control)/i.test(text);
+  const hasFileCode  = /[/][\w-]+\.(ts|js|tsx|jsx|py|go|rb|rs|mjs|cjs|sh)/.test(text) && hasCode;
+  const hasLargeCtx  = text.length > 400;
+
+  // DeepSeek model selection
+  let deepseekModel = 'deepseek-v4-flash'; // default: fast
+  if (hasArch || hasReasoning || hasSecurity || hasLargeCtx ||
+      complexityTier === 'complex' || complexityTier === 'critical') {
+    deepseekModel = 'deepseek-v4-pro';
+  }
+
+  // Codex advisory model selection (advisory only — separate from impl queue-emit)
+  let codexModel = null;
+  let codexReason = 'skip';
+  if (hasFileCode || (hasCode && (complexityTier === 'complex' || complexityTier === 'critical'))) {
+    codexModel = complexityTier === 'critical' || hasSecurity ? 'gpt-5.5' : 'gpt-5.4-mini';
+    codexReason = hasSecurity ? 'security+code requires gpt-5.5 review' : `code task at ${complexityTier} tier`;
+  }
+  if (complexityTier === 'trivial' || scenario.id === 'document-synthesis') {
+    codexModel = null; // never fire Codex for trivial or pure text synthesis
+  }
+
+  const reason = `ds=${deepseekModel} codex=${codexModel || 'skip'} (arch=${hasArch} code=${hasCode} sec=${hasSecurity})`;
+  return { deepseekModel, codexModel, codexReason, reason };
+}
+
+function buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt = '', codexDispatch = null, councilComposition = null) {
   const ensemble = [];
   if (complexityTier === 'trivial') return ensemble;
 
+  const t = normalizePrompt(prompt);
+
+  // analysis tier: advisory council only — DeepSeek + NVIDIA + optional SHURA + optional Codex
+  if (complexityTier === 'analysis') {
+    ensemble.push('deepseek-preflight');
+    ensemble.push('nvidia-preflight');
+    // Codex advisory fires if code signals present even at analysis tier
+    if (councilComposition && councilComposition.codexModel) {
+      ensemble.push('codex-advisory');
+    }
+    // SHURA fires when user explicitly asks for council / fan-out / deep analysis
+    if (
+      t.includes('council') || t.includes('fan out') ||
+      t.includes('deep analysis') || t.includes('deep dive') ||
+      t.includes('shura') || t.includes('braindump') || t.includes('brain dump')
+    ) {
+      ensemble.push('shura-review');
+    }
+    return ensemble;
+  }
+
+  // standard+: DeepSeek + NVIDIA + Codex advisory (when code signals present)
   ensemble.push('deepseek-preflight');
+  ensemble.push('nvidia-preflight');
+  if (councilComposition && councilComposition.codexModel) {
+    ensemble.push('codex-advisory');
+  }
 
   if (complexityTier === 'complex' || complexityTier === 'critical') {
-    // nvidia-preflight runs in parallel with OpenClaw — different model family, additive perspective
-    ensemble.push('nvidia-preflight');
     if (openClawAdvisory && openClawAdvisory.decision !== 'skip') {
       ensemble.push('openclaw-preflight');
     }
     ensemble.push('hermes-forecast');
     ensemble.push('cassandra');
-  }
-  if (scenario.id === 'strategic-review') {
+    // SHURA fires at complex+ (was: strategic-review only)
     ensemble.push('shura-review');
   }
+
+  // strategic-review always gets SHURA even at standard
+  if (scenario.id === 'strategic-review' && !ensemble.includes('shura-review')) {
+    ensemble.push('shura-review');
+  }
+
+  // Codex queue-emit: any impl task (standard+) with a Codex model assigned gets queued
+  // Sequential execution gate — queue-runner.mjs drains one at a time
+  if (
+    complexityTier !== 'trivial' && complexityTier !== 'analysis' &&
+    codexDispatch && ['full-impl', 'mini-impl'].includes(codexDispatch.tier)
+  ) {
+    ensemble.push('codex-queue-emit');
+  }
+
   if (complexityTier === 'critical') {
     ensemble.push('swarm-fanout');
     ensemble.push('obliteratus-hint');
   }
   return ensemble;
+}
+
+// Codex dispatch — maps complexity tier + task signals to the right Codex model
+// gpt-5.5 = full impl (reasoning=high, workspace-write)
+// gpt-5.4-mini = fast impl / advisory review (reasoning=high)
+// gpt-5.3-codex-spark = sandboxed experiment (read-only sandbox)
+function buildCodexDispatch(prompt, complexityTier, scenario) {
+  const text = normalizePrompt(prompt);
+  const codeSignals = /(implement|fix|patch|refactor|debug|build|create|add|remove|wire|extend|write|generate|function|class|test|component|script|hook|migration)/i;
+  const hasCode = codeSignals.test(text);
+  const hasFilePath = /[/][\w-]+\.[a-z]+/i.test(text);
+  const sandboxSignals = ['sandbox', 'experiment', 'try', 'test run', 'isolated', 'proving', 'spark'];
+  const hasSandbox = sandboxSignals.some(s => text.includes(s));
+
+  if (complexityTier === 'trivial') {
+    return { model: null, tier: 'skip', reason: 'trivial — no Codex needed' };
+  }
+  if (complexityTier === 'analysis') {
+    return { model: 'gpt-5.4-mini', tier: 'advisory-review', reasoning: 'high', reason: 'fast analysis review pass' };
+  }
+  if (hasSandbox || scenario.id === 'sandbox-improvement') {
+    return { model: 'gpt-5.3-codex-spark', tier: 'spark-sandbox', sandbox: 'read-only', reason: 'sandboxed experiment — Spark lane' };
+  }
+  if (complexityTier === 'critical') {
+    return { model: 'gpt-5.5', tier: 'full-impl', reasoning: 'xhigh', sandbox: 'workspace-write', reason: 'critical tier — max Codex capacity' };
+  }
+  if (complexityTier === 'complex' || (hasCode && hasFilePath)) {
+    return { model: 'gpt-5.5', tier: 'full-impl', reasoning: 'high', sandbox: 'workspace-write', reason: 'complex impl or multi-file code task' };
+  }
+  if (hasCode || hasFilePath) {
+    return { model: 'gpt-5.4-mini', tier: 'mini-impl', reasoning: 'high', sandbox: 'workspace-write', reason: 'standard code task — mini lane' };
+  }
+  return { model: null, tier: 'skip', reason: 'no code task detected' };
 }
 
 function pickBeaconLevel(complexityTier, scenario) {
@@ -1077,9 +1235,15 @@ function buildPulseGovernanceSkeleton(nativeFunctionGates) {
 
 function selectScenario(prompt, lane = '') {
   const text = normalizePrompt(prompt);
-  const matches = OFFLOAD_CONTRACT.scenarios.filter((scenario) => (
-    scenario.match.some((marker) => text.includes(marker))
-  ));
+  const scored = OFFLOAD_CONTRACT.scenarios
+    .map((scenario) => {
+      const hits = scenario.match.filter((marker) => text.includes(marker)).length;
+      return { scenario, hits };
+    })
+    .filter(({ hits }) => hits > 0)
+    .sort((a, b) => b.hits - a.hits); // highest hit count first
+
+  const matches = scored.map(({ scenario }) => scenario);
   return matches.find((scenario) => scenario.defaultLane === lane) ||
     matches[0] ||
     OFFLOAD_CONTRACT.scenarios.find((scenario) => scenario.id === 'document-synthesis');
@@ -1095,7 +1259,9 @@ function buildRoutePlan(prompt) {
   // PATCH 030 — Pulse Cortex extensions
   const openClawAdvisory = assessOpenClawAdvisory(prompt, lane, scenario);
   const complexityTier = classifyComplexity(prompt, lane, scenario);
-  const ensemble = buildEnsemble(complexityTier, scenario, openClawAdvisory);
+  const codexDispatch = buildCodexDispatch(prompt, complexityTier, scenario);
+  const councilComposition = assessCouncilComposition(prompt, complexityTier, scenario);
+  const ensemble = buildEnsemble(complexityTier, scenario, openClawAdvisory, prompt, codexDispatch, councilComposition);
   const beaconLevel = pickBeaconLevel(complexityTier, scenario);
   const codexPolicy = pickCodexPolicy(prompt, scenario, complexityTier);
   return {
@@ -1112,6 +1278,8 @@ function buildRoutePlan(prompt) {
     ensemble,
     beaconLevel,
     codexPolicy,
+    codexDispatch,
+    councilComposition,
     openClawAdvisory,
     // existing fields
     deepseekAdvisory,

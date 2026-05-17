@@ -1,0 +1,189 @@
+{
+  "communities": {
+    "0": [
+      "alt_clerqai",
+      "alt_nexelos",
+      "alt_velosync",
+      "celonis_symbioworld",
+      "euipo_filing_cost",
+      "mike_founder",
+      "oesterreich_patentamt",
+      "sony_symbiotic",
+      "symbios_target",
+      "wipo"
+    ],
+    "1": [
+      "canon_doctrine",
+      "euipo",
+      "finland_symbio",
+      "ipmed_symbio",
+      "nizza_class_42",
+      "sabel_v_puma",
+      "wte_symbio"
+    ],
+    "2": [
+      "eutmr_art19",
+      "symbios_workspaces"
+    ],
+    "3": [
+      "mars_symbioscience",
+      "nizza_class_35"
+    ],
+    "4": [
+      "alt_cogniflos",
+      "alt_synaptiq"
+    ],
+    "5": [
+      "run_graphify_py"
+    ]
+  },
+  "cohesion": {
+    "0": 0.2,
+    "1": 0.48,
+    "2": 1.0,
+    "3": 1.0,
+    "4": 1.0,
+    "5": 1.0
+  },
+  "gods": [
+    {
+      "id": "symbios_target",
+      "label": "SymbiOS (Target)",
+      "degree": 18
+    },
+    {
+      "id": "ipmed_symbio",
+      "label": "SYMBIO \u2014 IPMED S.\u00e0.r.l.",
+      "degree": 5
+    },
+    {
+      "id": "finland_symbio",
+      "label": "SYMBIO \u2014 Symbio Finland Oy",
+      "degree": 5
+    },
+    {
+      "id": "nizza_class_42",
+      "label": "Nizza Class 42 \u2014 IT/Software/AI",
+      "degree": 5
+    },
+    {
+      "id": "wte_symbio",
+      "label": "SymBio \u2014 WTE Wassertechnik",
+      "degree": 3
+    },
+    {
+      "id": "mars_symbioscience",
+      "label": "SYMBIOSCIENCE \u2014 Mars Inc.",
+      "degree": 3
+    },
+    {
+      "id": "sabel_v_puma",
+      "label": "Sabel v Puma (CJEU C-251/95)",
+      "degree": 3
+    },
+    {
+      "id": "euipo",
+      "label": "EUIPO \u2014 EU Trademark Registry",
+      "degree": 3
+    },
+    {
+      "id": "symbios_workspaces",
+      "label": "SYMBIOS Workspaces GmbH",
+      "degree": 2
+    },
+    {
+      "id": "nizza_class_35",
+      "label": "Nizza Class 35 \u2014 Business Consulting",
+      "degree": 2
+    }
+  ],
+  "surprises": [
+    {
+      "source": "SymbiOS (Target)",
+      "target": "SYMBIO \u2014 IPMED S.\u00e0.r.l.",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "conflicts_with",
+      "note": "Bridges community 0 \u2192 community 1"
+    },
+    {
+      "source": "SymbiOS (Target)",
+      "target": "SYMBIOS Workspaces GmbH",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "name_conflict_with",
+      "note": "Bridges community 0 \u2192 community 2"
+    },
+    {
+      "source": "SymbiOS (Target)",
+      "target": "SYMBIOSCIENCE \u2014 Mars Inc.",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "secondary_conflict_with",
+      "note": "Bridges community 0 \u2192 community 3"
+    },
+    {
+      "source": "SymbiOS (Target)",
+      "target": "CogniFlow OS (Alternative)",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "safer_alternative",
+      "note": "Bridges community 0 \u2192 community 4"
+    },
+    {
+      "source": "SYMBIOSCIENCE \u2014 Mars Inc.",
+      "target": "Nizza Class 42 \u2014 IT/Software/AI",
+      "source_files": [
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "registered_in",
+      "note": "Bridges community 3 \u2192 community 1"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `SymbiOS (Target)` connect `Safe Name Alternatives` to `EU Legal Framework`, `EU Legal Framework`, `EU Legal Framework`, `Safe Name Alternatives`?",
+      "why": "High betweenness centrality (0.806) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `SYMBIO \u2014 IPMED S.\u00e0.r.l.` connect `EU Legal Framework` to `Safe Name Alternatives`?",
+      "why": "High betweenness centrality (0.097) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `SYMBIO \u2014 Symbio Finland Oy` connect `EU Legal Framework` to `Safe Name Alternatives`?",
+      "why": "High betweenness centrality (0.097) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 2 inferred relationships involving `SYMBIO \u2014 IPMED S.\u00e0.r.l.` (e.g. with `Sabel v Puma (CJEU C-251/95)` and `SYMBIO \u2014 Symbio Finland Oy`) actually correct?",
+      "why": "`SYMBIO \u2014 IPMED S.\u00e0.r.l.` has 2 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 2 inferred relationships involving `SYMBIO \u2014 Symbio Finland Oy` (e.g. with `Sabel v Puma (CJEU C-251/95)` and `SYMBIO \u2014 IPMED S.\u00e0.r.l.`) actually correct?",
+      "why": "`SYMBIO \u2014 Symbio Finland Oy` has 2 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `Symbioworld (Celonis)`, `SYMBIOTIC DIGITAL FLORA \u2014 Sony`, `\u00d6sterreichisches Patentamt` to the rest of the system?",
+      "why": "11 weakly-connected nodes found - possible documentation gaps or missing edges."
+    }
+  ]
+}

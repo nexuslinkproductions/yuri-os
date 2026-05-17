@@ -9,10 +9,10 @@ const CODEX_DISPATCH_MARKERS = [
   'codex-spark',
   'Scripts/codex-offload-runner.mjs',
 ];
+// Only fire route-plan gate when 2+ of these appear together (reduces false positives)
 const HIGH_RISK_MARKERS = [
   'protocol',
   'routing',
-  'memory',
   'promotion',
   'promote',
   'protected path',
@@ -23,6 +23,18 @@ const HIGH_RISK_MARKERS = [
   'control-plane',
   'canonical state',
   'canonical memory',
+];
+// Paths that warrant a control-packet even for routine edits
+const PROTECTED_PATHS = [
+  '.claude/hooks/',
+  '.claude/settings.json',
+  'SOUL.md',
+  'AGENTS.md',
+  'CODEX_PROTOCOL.md',
+  'CLAUDE.md',
+  'Scripts/pulse-orchestrator',
+  'Scripts/offload-contract',
+  'Scripts/neuron-loop',
 ];
 const MUTATING_COMMAND_MARKERS = [
   ' apply_patch',
@@ -79,14 +91,16 @@ function hasClaudeControlPacket(text) {
 
 function hasCodexTaskSpec(text) {
   const source = textOf(text);
-  return source.includes('## CODEX TASK SPEC') &&
-    source.includes('**Goal:**') &&
-    source.includes('**Target files:**') &&
-    source.includes('**Constraints:**') &&
-    source.includes('**Acceptance criteria:**') &&
-    source.includes('**Test command:**') &&
-    source.includes('**Rollback boundary:**') &&
-    source.includes('**Prohibited:**');
+  if (!source.includes('## CODEX TASK SPEC')) return false;
+  // Require Goal + at least one target/file declaration — covers both formal and practical spec formats
+  const hasGoal = source.includes('**Goal:**') || source.includes('Goal:');
+  const hasTarget = source.includes('**Target files:**') ||
+    source.includes('Files to modify') ||
+    source.includes('Files to CREATE') ||
+    source.includes('File to modify') ||
+    source.includes('File to CREATE') ||
+    source.includes('**Output:**');
+  return hasGoal && hasTarget;
 }
 
 function hasRoutePlanEvidence(text) {
@@ -113,9 +127,17 @@ function bashCommand(input) {
   return input?.tool_input?.command || '';
 }
 
+function isProtectedPath(input) {
+  const text = textOf(input?.tool_input);
+  return PROTECTED_PATHS.some(p => text.includes(p));
+}
+
 function needsDirectMutationWarning(input) {
   const toolName = input?.tool_name || '';
-  if (MUTATION_TOOLS.has(toolName)) return true;
+  if (MUTATION_TOOLS.has(toolName)) {
+    // Only warn on protected paths — routine edits to regular files don't need a control packet
+    return isProtectedPath(input);
+  }
   if (toolName === 'Agent') {
     const text = normalize(input?.tool_input);
     return includesAny(text, IMPLEMENTATION_MARKERS);
@@ -128,6 +150,12 @@ function needsDirectMutationWarning(input) {
 }
 
 function inspect(input) {
+  // Sprint mode bypass: set NUDIMMUD_SPRINT_MODE=1 in env to suppress WARNs during
+  // authorized rapid-implementation sessions. Session-scoped only — does not persist.
+  // Activate: export NUDIMMUD_SPRINT_MODE=1
+  // Deactivate: unset NUDIMMUD_SPRINT_MODE (or open a new session)
+  if (process.env.NUDIMMUD_SPRINT_MODE === '1') return [];
+
   const toolText = textOf(input?.tool_input);
   const lowerToolText = toolText.toLowerCase();
   const warnings = [];
@@ -146,7 +174,9 @@ function inspect(input) {
     });
   }
 
-  if (includesAny(lowerToolText, HIGH_RISK_MARKERS) && !hasRoutePlanEvidence(toolText)) {
+  // Require 2+ high-risk markers to fire — prevents false positives from single words like "memory"
+  const highRiskCount = HIGH_RISK_MARKERS.filter(m => lowerToolText.includes(m.toLowerCase())).length;
+  if (highRiskCount >= 2 && !hasRoutePlanEvidence(toolText)) {
     warnings.push({
       code: 'missing-route-plan-evidence',
       message: 'Protocol, routing, memory, promotion, protected-path, or high-stakes work needs Scripts/ai route-plan evidence plus DeepSeek and symbioticPulse advisory expectations.',

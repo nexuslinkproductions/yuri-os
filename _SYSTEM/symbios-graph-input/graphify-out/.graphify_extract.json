@@ -1,0 +1,741 @@
+{
+  "nodes": [
+    {
+      "id": "run_graphify_py",
+      "label": "run_graphify.py",
+      "file_type": "code",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "symbios_target",
+      "label": "SymbiOS (Target)",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": "Mike",
+      "contributor": null
+    },
+    {
+      "id": "ipmed_symbio",
+      "label": "SYMBIO \u2014 IPMED S.\u00e0.r.l.",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Class 42, Oct 2022",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "finland_symbio",
+      "label": "SYMBIO \u2014 Symbio Finland Oy",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "TM 008771461, Class 42, 2009",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "wte_symbio",
+      "label": "SymBio \u2014 WTE Wassertechnik",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "TM 000291328, Class 42, 1996",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "celonis_symbioworld",
+      "label": "Symbioworld (Celonis)",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Germany, AI BPM software",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "symbios_workspaces",
+      "label": "SYMBIOS Workspaces GmbH",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Austria, Linz, INSOLVENT",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mars_symbioscience",
+      "label": "SYMBIOSCIENCE \u2014 Mars Inc.",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "TM 004741526, Class 35+42, 2005",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sony_symbiotic",
+      "label": "SYMBIOTIC DIGITAL FLORA \u2014 Sony",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Class 35+42, IR accepted",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sabel_v_puma",
+      "label": "Sabel v Puma (CJEU C-251/95)",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Global Appreciation Test",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "nizza_class_42",
+      "label": "Nizza Class 42 \u2014 IT/Software/AI",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "EU Trademark Classification",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "nizza_class_35",
+      "label": "Nizza Class 35 \u2014 Business Consulting",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "EU Trademark Classification",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "euipo",
+      "label": "EUIPO \u2014 EU Trademark Registry",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Alicante, Spain",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "oesterreich_patentamt",
+      "label": "\u00d6sterreichisches Patentamt",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Austria national authority",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "wipo",
+      "label": "WIPO \u2014 International TM",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Madrid Protocol",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "canon_doctrine",
+      "label": "Canon Doctrine \u2014 Goods/Services Similarity",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "EU trademark law",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "eutmr_art19",
+      "label": "EUTMR Art.19 \u2014 Marks Survive Insolvency",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Austrian IO + EUTMR",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "alt_cogniflos",
+      "label": "CogniFlow OS (Alternative)",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Phonetic divergence strategy",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "alt_synaptiq",
+      "label": "SynaptiQ (Alternative)",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Phonetic divergence strategy",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "alt_nexelos",
+      "label": "NexelOS (Alternative)",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Phonetic divergence strategy",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "alt_velosync",
+      "label": "Velosync (Alternative)",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Neologism strategy",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "alt_clerqai",
+      "label": "Clerq AI (Alternative)",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Descriptive+fanciful strategy",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mike_founder",
+      "label": "Mike \u2014 Austrian Startup Founder",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "Austria, early stage",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "euipo_filing_cost",
+      "label": "EUIPO Filing Cost \u20ac900 (Cl.35+42)",
+      "file_type": "document",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": "\u20ac850 base + \u20ac50 second class",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "run_graphify_py",
+      "target": "json",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "sys",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "pathlib",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "graphify_detect",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "graphify_extract",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "graphify_cache",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "graphify_build",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "graphify_cluster",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L164",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "graphify_analyze",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "graphify_report",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L166",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "graphify_export",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "run_graphify_py",
+      "target": "shutil",
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/run_graphify.py",
+      "source_location": "L246",
+      "weight": 1.0
+    },
+    {
+      "source": "symbios_target",
+      "target": "ipmed_symbio",
+      "relation": "conflicts_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.95
+    },
+    {
+      "source": "symbios_target",
+      "target": "finland_symbio",
+      "relation": "conflicts_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.75
+    },
+    {
+      "source": "symbios_target",
+      "target": "wte_symbio",
+      "relation": "conflicts_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.6
+    },
+    {
+      "source": "symbios_target",
+      "target": "celonis_symbioworld",
+      "relation": "market_conflict_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.9,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.47
+    },
+    {
+      "source": "symbios_target",
+      "target": "symbios_workspaces",
+      "relation": "name_conflict_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.9,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.2
+    },
+    {
+      "source": "symbios_target",
+      "target": "mars_symbioscience",
+      "relation": "secondary_conflict_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.8,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.25
+    },
+    {
+      "source": "symbios_target",
+      "target": "sony_symbiotic",
+      "relation": "secondary_conflict_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.7,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.12
+    },
+    {
+      "source": "symbios_target",
+      "target": "nizza_class_42",
+      "relation": "targets_class",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "symbios_target",
+      "target": "nizza_class_35",
+      "relation": "targets_class",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ipmed_symbio",
+      "target": "nizza_class_42",
+      "relation": "registered_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "finland_symbio",
+      "target": "nizza_class_42",
+      "relation": "registered_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "wte_symbio",
+      "target": "nizza_class_42",
+      "relation": "registered_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mars_symbioscience",
+      "target": "nizza_class_35",
+      "relation": "registered_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mars_symbioscience",
+      "target": "nizza_class_42",
+      "relation": "registered_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ipmed_symbio",
+      "target": "sabel_v_puma",
+      "relation": "evaluated_by",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.9
+    },
+    {
+      "source": "finland_symbio",
+      "target": "sabel_v_puma",
+      "relation": "evaluated_by",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.9
+    },
+    {
+      "source": "sabel_v_puma",
+      "target": "canon_doctrine",
+      "relation": "supplements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.95,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.9
+    },
+    {
+      "source": "symbios_workspaces",
+      "target": "eutmr_art19",
+      "relation": "governed_by",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "euipo",
+      "target": "ipmed_symbio",
+      "relation": "administers",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "euipo",
+      "target": "finland_symbio",
+      "relation": "administers",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "euipo",
+      "target": "wte_symbio",
+      "relation": "administers",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "oesterreich_patentamt",
+      "target": "symbios_target",
+      "relation": "can_advise",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.9,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.9
+    },
+    {
+      "source": "wipo",
+      "target": "symbios_target",
+      "relation": "international_option_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.8
+    },
+    {
+      "source": "mike_founder",
+      "target": "symbios_target",
+      "relation": "founded_by",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "symbios_target",
+      "target": "euipo_filing_cost",
+      "relation": "faces_cost",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "symbios_target",
+      "target": "alt_cogniflos",
+      "relation": "safer_alternative",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.9,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.9
+    },
+    {
+      "source": "symbios_target",
+      "target": "alt_synaptiq",
+      "relation": "safer_alternative",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.9,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.9
+    },
+    {
+      "source": "symbios_target",
+      "target": "alt_nexelos",
+      "relation": "safer_alternative",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.9,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.9
+    },
+    {
+      "source": "symbios_target",
+      "target": "alt_velosync",
+      "relation": "safer_alternative",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.85,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "symbios_target",
+      "target": "alt_clerqai",
+      "relation": "safer_alternative",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.85,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "ipmed_symbio",
+      "target": "finland_symbio",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.92,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.92
+    },
+    {
+      "source": "alt_cogniflos",
+      "target": "alt_synaptiq",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+      "source_location": null,
+      "weight": 0.85
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "class42_conflict_cluster",
+      "label": "Class 42 Conflict Cluster",
+      "nodes": [
+        "ipmed_symbio",
+        "finland_symbio",
+        "wte_symbio"
+      ],
+      "relation": "block_registration_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.95,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+    },
+    {
+      "id": "safe_alternatives_cluster",
+      "label": "Safe Alternative Names",
+      "nodes": [
+        "alt_cogniflos",
+        "alt_synaptiq",
+        "alt_nexelos",
+        "alt_velosync",
+        "alt_clerqai"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.9,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+    },
+    {
+      "id": "eu_legal_framework",
+      "label": "EU Trademark Legal Framework",
+      "nodes": [
+        "sabel_v_puma",
+        "canon_doctrine",
+        "eutmr_art19",
+        "nizza_class_42",
+        "nizza_class_35"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 0.95,
+      "source_file": "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

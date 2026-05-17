@@ -58,43 +58,42 @@
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/palace-context-inject.js"
+            "command": "node .claude/hooks/brain-inject.js"
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/aeonic-ingest.js"
+            "command": "node .claude/hooks/aeonic-ingest.js",
+            "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/soul-persona-inject.js"
+            "command": "node .claude/hooks/yuri-boot.js",
+            "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/yuri-boot.js"
+            "command": "node .claude/hooks/startup-offload.js",
+            "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/startup-offload.js"
+            "command": "node .claude/hooks/nisaba-subagent-start.js",
+            "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/nisaba-subagent-start.js"
+            "command": "node .claude/hooks/scout-orchestrator.js",
+            "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/scout-init.js"
+            "command": "node .claude/hooks/eot-background-start.js",
+            "async": true
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/eot-background-start.js"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/scout-log-trim.js"
-          },
-          {
-            "type": "command",
-            "command": "node Scripts/memory-archive.mjs --dry-run"
+            "command": "node Scripts/memory-archive.mjs --execute",
+            "async": true
           }
         ]
       }
@@ -134,6 +133,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node .claude/hooks/pre-tool-gate.js",
+            "async": true
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/bash-security-guard.js"
           },
           {
@@ -143,10 +147,6 @@
           {
             "type": "command",
             "command": "node .claude/hooks/claude-protocol-guard.js"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/scout-inject.js"
           },
           {
             "type": "command",
@@ -195,7 +195,7 @@
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/scout-spawn.js",
+            "command": "node .claude/hooks/scout-orchestrator.js",
             "async": true
           },
           {
@@ -236,6 +236,11 @@
           {
             "type": "command",
             "command": "node .claude/hooks/token-session-end.js",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "node Scripts/memory-session-write.mjs",
             "async": true
           }
         ]

@@ -1,4 +1,3142 @@
-<!-- session-journal: newest entry first -->
+## 2026-05-17 | Session 1778968185238 | 160m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission, deepseek-offload, deepseek-workhorse, openclaw-offload
+**Skills updated:** end-of-transmission, deepseek-offload, deepseek-workhorse, openclaw-offload
+
+**Tools:** Bash×119, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=openclaw-offload.md,offload-contract.mjs,CLAUDE.md`
+
+---
+
+## 2026-05-17 | Session 1778968185238 | 157m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission, deepseek-offload, deepseek-workhorse, openclaw-offload
+**Skills updated:** end-of-transmission, deepseek-offload, deepseek-workhorse, openclaw-offload
+
+**Tools:** Bash×116, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=openclaw-offload.md,offload-contract.mjs,CLAUDE.md`
+
+---
+
+## 2026-05-17 | Session 1778968185238 | 141m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission, deepseek-offload, deepseek-workhorse
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×93, Read×45, Edit×26, Write×4, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=user-prompt-submit.js,SKILL.md,SKILL.md`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 126m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×76, Read×36, Edit×17, Write×4, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=claude-protocol-guard.js,codex-mem-new-scripts.md,memory-embed.mjs`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 77m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** none
+
+**Tools:** Bash×61, Read×32, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md,musubi-intelligence-v2-audit-v2.html`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 77m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×61, Read×32, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md,musubi-intelligence-v2-audit-v2.html`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 70m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×58, Read×32, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md,musubi-intelligence-v2-audit-v2.html`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 65m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×49, Read×32, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md,musubi-intelligence-v2-audit-v2.html`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 60m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×45, Read×29, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md,musubi-intelligence-v2-audit-v2.html`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 52m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×41, Read×29, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md,musubi-intelligence-v2-audit-v2.html`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 50m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×40, Read×29, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md,musubi-intelligence-v2-audit-v2.html`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 45m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×33, Read×27, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md,musubi-intelligence-v2-audit-v2.html`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 24m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Read×27, Bash×27, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md,musubi-intelligence-v2-audit-v2.html`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 21m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Read×25, Bash×25, Edit×3, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=feedback_no_anthropic_agents.md,let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 20m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Read×25, Bash×25, Edit×2, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=feedback_no_anthropic_agents.md,let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md`
+
+---
+
+## 2026-05-16 | Session 1778968185238 | 19m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×25, Read×24, ToolSearch×2, Write×2, mcp×1, Edit×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=feedback_no_anthropic_agents.md,let-the-neuron-loop-run-wondrous-lynx.md,codex-audit-v2-task.md`
+
+---
+
+## 2026-05-16 | Session 1778964342647 | 62m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** anime-dna-extensions, failure-evolution-loop, non-destructive-infinity-guard, end-of-transmission
+**Skills updated:** failure-evolution-loop, non-destructive-infinity-guard, end-of-transmission
+
+**Tools:** Bash×23, Write×21, Edit×17, Read×14, TodoWrite×9, mcp×3, ToolSearch×2, Agent×1, ExitPlanMode×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=izanagi-postmortem.mjs,musubi-intelligence-v2-audit.html,HANDOFF-musubi-hyperintelligence-v2-eot.md`
+
+---
+
+## 2026-05-16 | Session 1778964342647 | 32m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** anime-dna-extensions, failure-evolution-loop, non-destructive-infinity-guard
+**Skills updated:** failure-evolution-loop, non-destructive-infinity-guard
+
+**Tools:** Bash×21, Write×20, Edit×17, Read×12, TodoWrite×9, mcp×2, ToolSearch×2, Agent×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=user-prompt-submit.js,izanagi-postmortem.mjs,musubi-intelligence-v2-audit.html`
+
+---
+
+## 2026-05-16 | Session 1778964342647 | 23m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** anime-dna-extensions, failure-evolution-loop, non-destructive-infinity-guard
+**Skills updated:** failure-evolution-loop, non-destructive-infinity-guard
+
+**Tools:** Write×19, Bash×17, Edit×17, Read×12, TodoWrite×9, mcp×2, ToolSearch×2, Agent×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,user-prompt-submit.js,izanagi-postmortem.mjs`
+
+---
+
+## 2026-05-16 | Session 1778964342647 | 17m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** anime-dna-extensions, failure-evolution-loop, non-destructive-infinity-guard
+**Skills updated:** failure-evolution-loop, non-destructive-infinity-guard
+
+**Tools:** Write×18, Bash×13, Edit×12, Read×11, TodoWrite×7, mcp×2, ToolSearch×2, Agent×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=HANDOFF-musubi-intelligence-sprint-v2.md,project_musubi_hyperintelligence_v2.md,MEMORY.md`
+
+---
+
+## 2026-05-16 | Session 1778961817755 | 41m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** probabilistic-decision-core
+**Skills updated:** probabilistic-decision-core
+
+**Tools:** Bash×44, Write×25, Edit×21, TodoWrite×6, Read×5, mcp×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,NEXT_SESSION_BOOT_PACKET.md,SESSION_REFLECTION_REPORT.md`
+
+---
+
+## 2026-05-16 | Session 1778961817755 | 37m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** probabilistic-decision-core
+**Skills updated:** probabilistic-decision-core
+
+**Tools:** Bash×40, Write×23, Edit×21, TodoWrite×6, Read×5, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=project_yuri_cortex.md,project_neuron_loop.md,MEMORY.md`
+
+---
+
+## 2026-05-16 | Session 1778961817755 | 27m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** probabilistic-decision-core
+**Skills updated:** probabilistic-decision-core
+
+**Tools:** Bash×31, Edit×19, Write×10, TodoWrite×6, Read×4, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=calibration-tracker.mjs,neuron-loop.mjs,com.nudimmud.neuron-loop.plist`
+
+---
+
+## 2026-05-16 | Session 1778961817755 | 13m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** probabilistic-decision-core
+**Skills updated:** probabilistic-decision-core
+
+**Tools:** Bash×16, Edit×4, Write×3, TodoWrite×3, Read×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=brain-inject.js,palace-auto-rebuild.mjs,com.nudimmud.palace-auto-rebuild.plist`
+
+---
+
+## 2026-05-16 | Session 1778961817755 | 2m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×3, Edit×3, Write×1, TodoWrite×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=scout-orchestrator.js,settings.json`
+
+---
+
+## 2026-05-16 | Session 1778959434359 | 33m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×34, Edit×29, TodoWrite×6, Read×5, mcp×2, Write×2, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=settings.json,lane-health.sh,task-queue.mjs`
+
+---
+
+## 2026-05-16 | Session 1778959434359 | 23m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×21, Edit×17, Read×5, TodoWrite×3, mcp×2, ToolSearch×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=pre-tool-gate.js,user-prompt-submit.js,settings.json`
+
+---
+
+## 2026-05-16 | Session 1778959434359 | 6m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×7, Read×3, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-16 | Session 1778958747388 | 10m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×12, Read×5, Write×5, mcp×3 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=skill-patches.md,boot-packet.md,eot-final-report.md`
+
+---
+
+## 2026-05-16 | Session 1778954808107 | 61m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×50, Edit×28, Write×13, Read×12 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=lane-health.sh,com.nudimmud.lane-health.plist,roadmap-state.json`
+
+---
+
+## 2026-05-16 | Session 1778954808107 | 56m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×38, Edit×16, Write×12, Read×10 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=project_brain_architecture.md,claude-protocol-guard.js,feedback_sprint_mode.md`
+
+---
+
+## 2026-05-16 | Session 1778954808107 | 49m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×30, Write×11, Edit×9, Read×6 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=feedback_destructive_file_ops.md,brain-inject.js,project_brain_architecture.md`
+
+---
+
+## 2026-05-16 | Session 1778954808107 | 41m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×21, Write×8, Edit×7, Read×5 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=claudio-nex-phase-pattern.md,scout-session-start.js,settings.json`
+
+---
+
+## 2026-05-16 | Session 1778954808107 | 37m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×16, Write×7, Edit×6, Read×3 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SKILL.md,cable-management-findings.md,claudio-nex-phase-pattern.md`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 52m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×43, Edit×21, Write×7, Read×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=user-prompt-submit.js,launch-readiness-check.mjs,project_sovereignty_model.md`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 46m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×41, Edit×16, Write×6, Read×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=memory-rag-inject.js,user-prompt-submit.js,launch-readiness-check.mjs`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 44m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×41, Edit×16, Write×6, Read×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=memory-rag-inject.js,user-prompt-submit.js,launch-readiness-check.mjs`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 44m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×41, Edit×15, Write×6, Read×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=memory-rag-inject.js,user-prompt-submit.js,launch-readiness-check.mjs`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 34m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×29, Edit×9, Write×5, Read×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-launch-readiness.html,yuri-os-launch-brief.md,memory-rag-inject.js`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 32m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×27, Edit×9, Write×5, Read×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-launch-readiness.html,yuri-os-launch-brief.md,memory-rag-inject.js`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 28m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×21, Edit×8, Write×5, Read×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-design-readiness-brief.md,yuri-os-launch-readiness.html,yuri-os-launch-brief.md`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 24m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×20, Edit×7, Write×5, Read×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-design-readiness-brief.md,yuri-os-launch-readiness.html,yuri-os-launch-brief.md`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 23m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×20, Write×5, Read×2, Edit×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-design-readiness-brief.md,yuri-os-launch-readiness.html,yuri-os-launch-brief.md`
+
+---
+
+## 2026-05-16 | Session 1778951051673 | 20m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×20, Write×4, Read×2, Edit×2, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,yuri-os-design-readiness-brief.md,yuri-os-launch-readiness.html`
+
+---
+
+## 2026-05-16 | Session 1778948367242 | 39m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×53, Write×14, Edit×12, WebFetch×10, Read×8, mcp×1, ToolSearch×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SESSION_SUCCESS_FAILURE_LEDGER.md,SKILL_REFINEMENT_PATCH.md,NEXT_SESSION_BOOT_PACKET.md`
+
+---
+
+## 2026-05-16 | Session 1778948367242 | 33m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×45, Edit×12, WebFetch×10, Write×9, Read×8, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=pattern-brief.md,pattern-brief.md,HANDOFF-memory-sovereignty-sprint.md`
+
+---
+
+## 2026-05-16 | Session 1778948367242 | 32m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×42, Edit×12, WebFetch×10, Write×9, Read×7, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=pattern-brief.md,pattern-brief.md,HANDOFF-memory-sovereignty-sprint.md`
+
+---
+
+## 2026-05-16 | Session 1778948367242 | 27m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×40, Edit×12, WebFetch×10, Write×8, Read×6, mcp×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=pattern-brief.md,pattern-brief.md,pattern-brief.md`
+
+---
+
+## 2026-05-16 | Session 1778948367242 | 19m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×38, Edit×9, Read×4, Write×4 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=musubi-brand-identity.html,pre-commit,pre-commit-independence.sh`
+
+---
+
+## 2026-05-16 | Session 1778948367242 | 14m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×34, Edit×7, Write×4, Read×3 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=memory-rag-inject.js,memory-learning-score.mjs,musubi-brand-identity.html`
+
+---
+
+## 2026-05-16 | Session 1778948367242 | 8m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×31, Edit×7, Write×4, Read×3 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=memory-rag-inject.js,memory-learning-score.mjs,musubi-brand-identity.html`
+
+---
+
+## 2026-05-16 | Session 1778948367242 | 8m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×31, Edit×7, Write×4, Read×3 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=memory-rag-inject.js,memory-learning-score.mjs,musubi-brand-identity.html`
+
+---
+
+## 2026-05-16 | Session 1778946893967 | 22m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×25, Read×16, Edit×6, Write×3, mcp×2, Skill×1, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=nisaba-dream-processor.mjs,feedback_design_not_hud_for_identity.md,MEMORY.md`
+
+---
+
+## 2026-05-16 | Session 1778946893967 | 13m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×5, Bash×3, mcp×1, Skill×1, Write×1, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=musubi-brand-identity.html,design-memory.json`
+
+---
+
+## 2026-05-16 | Session 1778946893967 | 3m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-16 | Session 1778946893967 | 1m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-16 | Session 1778941475570 | 90m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** local-subagent, openclaw-offload
+**Skills updated:** local-subagent, openclaw-offload
+
+**Tools:** Bash×98, Read×40, mcp×16, Edit×15, Write×10, ToolSearch×4, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=project_sovereignty_sprint.md,MEMORY.md,offload-contract-regression.test.mjs`
+
+---
+
+## 2026-05-16 | Session 1778941475570 | 88m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** local-subagent, openclaw-offload
+**Skills updated:** local-subagent, openclaw-offload
+
+**Tools:** Bash×98, Read×38, mcp×16, Edit×15, Write×10, ToolSearch×4, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=project_sovereignty_sprint.md,MEMORY.md,offload-contract-regression.test.mjs`
+
+---
+
+## 2026-05-16 | Session 1778941475570 | 77m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** local-subagent, openclaw-offload
+**Skills updated:** local-subagent, openclaw-offload
+
+**Tools:** Bash×88, Read×36, mcp×15, Edit×13, Write×10, ToolSearch×4, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=HANDOFF-v15-post-sprint.md,project_sovereignty_sprint.md,MEMORY.md`
+
+---
+
+## 2026-05-16 | Session 1778941475570 | 72m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** local-subagent, openclaw-offload
+**Skills updated:** local-subagent, openclaw-offload
+
+**Tools:** Bash×87, Read×36, mcp×15, Edit×13, Write×10, ToolSearch×4, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=HANDOFF-v15-post-sprint.md,project_sovereignty_sprint.md,MEMORY.md`
+
+---
+
+## 2026-05-16 | Session 1778941475570 | 57m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** local-subagent, openclaw-offload
+**Skills updated:** local-subagent, openclaw-offload
+
+**Tools:** Bash×78, Read×23, mcp×14, Write×8, Edit×7, ToolSearch×4, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=RUNBOOK.md,verify.mjs,pre-commit-independence.sh`
+
+---
+
+## 2026-05-16 | Session 1778940550398 | 7m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=HANDOFF.md`
+
+---
+
+## 2026-05-16 | Session 1778938648621 | 26m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×11, Edit×5, mcp×2, Read×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-dashboard.html,HANDOFF-v15.md`
+
+---
+
+## 2026-05-16 | Session 1778938648621 | 23m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×9, Edit×5, mcp×2, Read×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-dashboard.html,HANDOFF-v15.md`
+
+---
+
+## 2026-05-16 | Session 1778938648621 | 15m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Edit×5, Bash×5, mcp×2, Read×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-dashboard.html`
+
+---
+
+## 2026-05-16 | Session 1778937945297 | 6m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×7, Write×2, Read×1, Edit×1, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-sections-check.mjs,yuri-os-dashboard.html,MASTER.md`
+
+---
+
+## 2026-05-16 | Session 1778937525048 | 5m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×2, Bash×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-16 | Session 1778935968837 | 26m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×33, mcp×10, Write×8, Read×4, Edit×4, AskUserQuestion×1, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=build-list.md,nexbox-handoff-v1.md,independence-check.mjs`
+
+---
+
+## 2026-05-16 | Session 1778860935589 | 1250m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×22, mcp×8, Read×5, Write×5, WebFetch×4, Edit×4, ToolSearch×3, AskUserQuestion×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v14-spec.md,continue-users-marcelspatz-nudimmud-clau-luminous-tiger.md,dashboard-v15-spec.md`
+
+---
+
+## 2026-05-16 | Session 1778860935589 | 1239m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×19, Write×5, WebFetch×4, Edit×4, Read×3, mcp×3, ToolSearch×2, AskUserQuestion×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v14-spec.md,continue-users-marcelspatz-nudimmud-clau-luminous-tiger.md,dashboard-v15-spec.md`
+
+---
+
+## 2026-05-15 | Session 1778860935589 | 89m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×8, Write×4, mcp×3, Read×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-memory-enki-analysis.mjs,dashboard-v13-spec.md,dashboard-v14-spec.md`
+
+---
+
+## 2026-05-15 | Session 1778860935589 | 65m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×4, Write×3, Read×2, mcp×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-memory-enki-analysis.mjs,dashboard-v13-spec.md`
+
+---
+
+## 2026-05-15 | Session 1778860935589 | 63m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×4, Write×3, Read×2, mcp×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-memory-enki-analysis.mjs,dashboard-v13-spec.md`
+
+---
+
+## 2026-05-15 | Session 1778860081070 | 14m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** mcp×12, Bash×12, Skill×2, Read×2, Write×2, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SymbiOS-Trademark-Audit.html,run_graphify.py`
+
+---
+
+## 2026-05-15 | Session 1778860081070 | 0m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-15 | Session 1778859834685 | 3m | peak 0% | compacts: 0
+
+**Branch:** unknown | **Cwd:** /Users/marcelspatz
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×11, Read×2, ToolSearch×1, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: `
+
+---
+
+## 2026-05-15 | Session 1778858721027 | 6m | peak 0% | compacts: 0
+
+**Branch:** unknown | **Cwd:** /Users/marcelspatz
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×14, Read×1, AskUserQuestion×1, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: files=claude_desktop_config.json`
+
+---
+
+## 2026-05-15 | Session 1778852001592 | 24m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×38, Edit×22, Read×18, mcp×4, Write×3, ToolSearch×1, Skill×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,pulse-orchestrator.mjs,nudimmud-workhorse.mjs`
+
+---
+
+## 2026-05-15 | Session 1778852001592 | 24m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×38, Edit×22, Read×18, mcp×4, Write×3, ToolSearch×1, Skill×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,pulse-orchestrator.mjs,nudimmud-workhorse.mjs`
+
+---
+
+## 2026-05-15 | Session 1778852001592 | 21m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×33, Edit×16, Read×13, mcp×4, Write×3, ToolSearch×1, Skill×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v12-spec.md,project_nvidia_lane.md,MEMORY.md`
+
+---
+
+## 2026-05-15 | Session 1778852001592 | 20m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×29, Edit×16, Read×13, mcp×4, Write×3, ToolSearch×1, Skill×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v12-spec.md,project_nvidia_lane.md,MEMORY.md`
+
+---
+
+## 2026-05-15 | Session 1778852001592 | 17m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×28, Edit×16, Read×13, Write×3, ToolSearch×1, Skill×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v12-spec.md,project_nvidia_lane.md,MEMORY.md`
+
+---
+
+## 2026-05-15 | Session 1778852001592 | 10m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Edit×10, Read×6, Bash×5, ToolSearch×1, Skill×1, ExitPlanMode×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=offload-runner.mjs,offload-contract.mjs,ai`
+
+---
+
+## 2026-05-15 | Session 1778846401035 | 79m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×11, Read×4, WebFetch×3, mcp×2, Write×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v11-spec.md`
+
+---
+
+## 2026-05-15 | Session 1778846401035 | 59m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×9, Read×2, mcp×2, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v11-spec.md`
+
+---
+
+## 2026-05-15 | Session 1778846401035 | 56m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×9, Read×2, mcp×2, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v11-spec.md`
+
+---
+
+## 2026-05-15 | Session 1778846401035 | 3m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×2, Bash×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-15 | Session 1778800279320 | 769m | peak 0% | compacts: 0
+
+**Branch:** claude/goofy-yalow-f0eef2 | **Cwd:** /Users/marcelspatz/NUDIMMUD/.claude/worktrees/goofy-yalow-f0eef2
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×32, mcp×27, Write×7, Read×3, Edit×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=claude/goofy-yalow-f0eef2 | files=SKILL.md,dashboard-v9-spec.md,dashboard-v10-spec.md`
+
+---
+
+## 2026-05-15 | Session 1778800279320 | 715m | peak 0% | compacts: 0
+
+**Branch:** claude/goofy-yalow-f0eef2 | **Cwd:** /Users/marcelspatz/NUDIMMUD/.claude/worktrees/goofy-yalow-f0eef2
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×25, mcp×25, Write×6, Read×3, Edit×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=claude/goofy-yalow-f0eef2 | files=neural-forge-guide.md,SKILL.md,dashboard-v9-spec.md`
+
+---
+
+## 2026-05-15 | Session 1778800279320 | 712m | peak 0% | compacts: 0
+
+**Branch:** claude/goofy-yalow-f0eef2 | **Cwd:** /Users/marcelspatz/NUDIMMUD/.claude/worktrees/goofy-yalow-f0eef2
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×25, mcp×25, Write×6, Read×3, Edit×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=claude/goofy-yalow-f0eef2 | files=neural-forge-guide.md,SKILL.md,dashboard-v9-spec.md`
+
+---
+
+## 2026-05-14 | Session 1778800279320 | 15m | peak 0% | compacts: 0
+
+**Branch:** claude/goofy-yalow-f0eef2 | **Cwd:** /Users/marcelspatz/NUDIMMUD/.claude/worktrees/goofy-yalow-f0eef2
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×13, Write×5, Read×2, mcp×2, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=claude/goofy-yalow-f0eef2 | files=SKILL.md,neural-forge-guide.md,SKILL.md`
+
+---
+
+## 2026-05-14 | Session 1778800279320 | 13m | peak 0% | compacts: 0
+
+**Branch:** claude/goofy-yalow-f0eef2 | **Cwd:** /Users/marcelspatz/NUDIMMUD/.claude/worktrees/goofy-yalow-f0eef2
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×13, Write×5, Read×2, mcp×2, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=claude/goofy-yalow-f0eef2 | files=SKILL.md,neural-forge-guide.md,SKILL.md`
+
+---
+
+## 2026-05-14 | Session 1778800279320 | 6m | peak 0% | compacts: 0
+
+**Branch:** claude/goofy-yalow-f0eef2 | **Cwd:** /Users/marcelspatz/NUDIMMUD/.claude/worktrees/goofy-yalow-f0eef2
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×10, Write×5, Read×2, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=claude/goofy-yalow-f0eef2 | files=SKILL.md,neural-forge-guide.md,SKILL.md`
+
+---
+
+## 2026-05-14 | Session 1778800279320 | 1m | peak 0% | compacts: 0
+
+**Branch:** claude/goofy-yalow-f0eef2 | **Cwd:** /Users/marcelspatz/NUDIMMUD/.claude/worktrees/goofy-yalow-f0eef2
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×2, Read×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=claude/goofy-yalow-f0eef2`
+
+---
+
+## 2026-05-14 | Session 1778800279320 | 1m | peak 0% | compacts: 0
+
+**Branch:** claude/goofy-yalow-f0eef2 | **Cwd:** /Users/marcelspatz/NUDIMMUD/.claude/worktrees/goofy-yalow-f0eef2
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×1, Bash×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=claude/goofy-yalow-f0eef2`
+
+---
+
+## 2026-05-14 | Session 1778800279320 | 0m | peak 0% | compacts: 0
+
+**Branch:** claude/goofy-yalow-f0eef2 | **Cwd:** /Users/marcelspatz/NUDIMMUD/.claude/worktrees/goofy-yalow-f0eef2
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=claude/goofy-yalow-f0eef2`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 57m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** design-master, frontend-design, design-source-pack
+**Skills updated:** design-master, frontend-design
+
+**Tools:** Bash×47, Edit×21, Read×14, mcp×8, Write×5, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SKILL.md,SKILL.md,SKILL.md`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 26m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×34, Edit×15, Read×11, mcp×8, Write×4, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,we-will-be-using-crispy-aho.md,dashboard-v7-spec.md`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 23m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×34, Edit×15, Read×11, mcp×8, Write×4, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,we-will-be-using-crispy-aho.md,dashboard-v7-spec.md`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 23m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×32, Edit×15, Read×11, mcp×6, Write×4, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,we-will-be-using-crispy-aho.md,dashboard-v7-spec.md`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 21m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×29, Edit×13, Read×8, Write×4, mcp×3, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,we-will-be-using-crispy-aho.md,dashboard-v7-spec.md`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 17m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×25, Read×8, Edit×8, Write×4, mcp×2, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=MEMORY.md,we-will-be-using-crispy-aho.md,dashboard-v7-spec.md`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 7m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×8, Bash×8, Edit×6, Write×2, mcp×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-dashboard.html,feedback_amp_claude_only.md,MEMORY.md`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 5m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×8, Bash×8, Edit×6, Write×2, mcp×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-dashboard.html,feedback_amp_claude_only.md,MEMORY.md`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 4m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×8, Bash×6, Edit×6, Write×2, mcp×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-dashboard.html,feedback_amp_claude_only.md,MEMORY.md`
+
+---
+
+## 2026-05-14 | Session 1778796288760 | 3m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Read×8, Bash×6, Edit×3, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=offload-contract.mjs,AGENTS.md,project_amp_lane.md`
+
+---
+
+## 2026-05-14 | Session 1778794644851 | 27m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** end-of-transmission
+**Skills updated:** end-of-transmission
+
+**Tools:** Bash×70, Read×14, Edit×11, mcp×9, Write×6 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-graph-spec.md,AGENTS.md,SKILL.md`
+
+---
+
+## 2026-05-14 | Session 1778794644851 | 17m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×48, Read×11, Edit×8, Write×5, mcp×4 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v5-premium.md,settings.json,amp-usage-tracker.mjs`
+
+---
+
+## 2026-05-14 | Session 1778794644851 | 14m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×48, Read×11, Edit×8, Write×5, mcp×4 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v5-premium.md,settings.json,amp-usage-tracker.mjs`
+
+---
+
+## 2026-05-14 | Session 1778794644851 | 13m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×45, Read×11, Edit×8, Write×5, mcp×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v5-premium.md,settings.json,amp-usage-tracker.mjs`
+
+---
+
+## 2026-05-14 | Session 1778794644851 | 9m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×26, Read×10, Edit×8, mcp×2, Write×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=ai,project_amp_lane.md,MEMORY.md`
+
+---
+
+## 2026-05-14 | Session 1778794644851 | 6m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×21, Read×10, Edit×8, Write×2, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=ai,project_amp_lane.md,MEMORY.md`
+
+---
+
+## 2026-05-14 | Session 1778794644851 | 1m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×6, mcp×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dashboard-v5-spec.md`
+
+---
+
+## 2026-05-14 | Session 1778791704226 | 41m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×18, Read×7, mcp×6, ToolSearch×4, Edit×2, ExitPlanMode×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=continue-users-marcelspatz-nudimmud-clau-luminous-tiger.md,yuri-os-dashboard.html`
+
+---
+
+## 2026-05-14 | Session 1778791704226 | 0m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** none | **Success rate:** n/a
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778790747831 | 12m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×14, ScheduleWakeup×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-os-v4-design-sheet.html`
+
+---
+
+## 2026-05-14 | Session 1778790747831 | 8m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×8, ScheduleWakeup×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778790747831 | 6m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×7, ScheduleWakeup×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 88m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×50, Read×7, ScheduleWakeup×7, Write×3, mcp×1, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SESSION_SUCCESS_FAILURE_LEDGER.md,SKILL_REFINEMENT_PATCH.md,2026-05-14.json`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 85m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×47, ScheduleWakeup×7, Read×6, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 79m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×42, ScheduleWakeup×7, Read×6 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 77m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×41, Read×6, ScheduleWakeup×6 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 76m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×41, Read×6, ScheduleWakeup×6 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 76m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×41, Read×6, ScheduleWakeup×6 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 74m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×40, Read×6, ScheduleWakeup×6 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 73m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×39, Read×6, ScheduleWakeup×6 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 72m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×39, Read×6, ScheduleWakeup×6 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 65m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×37, Read×6, ScheduleWakeup×4 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 65m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×37, Read×6, ScheduleWakeup×4 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 61m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×35, Read×6, ScheduleWakeup×4 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 54m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×30, Read×6, ScheduleWakeup×3 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 54m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×30, Read×6, ScheduleWakeup×3 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 51m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×29, Read×6, ScheduleWakeup×3 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 48m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×28, Read×6, ScheduleWakeup×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 48m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×28, Read×6, ScheduleWakeup×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 42m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×22, Read×4, ScheduleWakeup×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 32m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×19, Read×4, ScheduleWakeup×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 29m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×17, Read×4, ScheduleWakeup×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 9m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×13, Read×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 7m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×5, Read×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778785305497 | 5m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main`
+
+---
+
+## 2026-05-14 | Session 1778781690034 | 59m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×10, Read×3, Edit×1, ExitPlanMode×1, Write×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=continue-users-marcelspatz-nudimmud-clau-luminous-tiger.md,yuri-os-dashboard.html`
+
+---
+
+## 2026-05-14 | Session 1778779674069 | 34m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×15, Write×6, Edit×5, Read×4, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=2026-05-14.json,continue-users-marcelspatz-nudimmud-clau-luminous-tiger.md,yuri-os-dashboard.html`
+
+---
+
+## 2026-05-14 | Session 1778779674069 | 3m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Write×5, Read×2, Edit×2, Bash×2 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SELF_IMPROVEMENT_SYSTEM_UPDATE.md,NEXT_SESSION_BOOT_PACKET.md,2026-05-14.json`
+
+---
+
+## 2026-05-14 | Session 1778777786630 | 27m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×47, Read×14, Edit×3, Write×2, mcp×2, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=pulse-orchestrator.mjs,_swarm-test.mjs,eot-refresh.sh`
+
+---
+
+## 2026-05-14 | Session 1778777786630 | 23m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×31, Read×11, Write×2, mcp×2, Edit×2, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=openclaw-bridge.sh,pulse-orchestrator.mjs,_swarm-test.mjs`
+
+---
+
+## 2026-05-14 | Session 1778777786630 | 20m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×30, Read×11, Write×2, mcp×2, Edit×2, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=openclaw-bridge.sh,pulse-orchestrator.mjs,_swarm-test.mjs`
+
+---
+
+## 2026-05-14 | Session 1778777786630 | 19m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×29, Read×11, Write×2, mcp×2, Edit×2, ToolSearch×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=openclaw-bridge.sh,pulse-orchestrator.mjs,_swarm-test.mjs`
+
+---
+
+## 2026-05-14 | Session 1778777786630 | 15m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×19, Read×5, Edit×2, ToolSearch×1, Write×1, ExitPlanMode×1, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=continue-users-marcelspatz-nudimmud-clau-luminous-tiger.md,openclaw-bridge.sh,pulse-orchestrator.mjs`
+
+---
+
+## 2026-05-14 | Session 1778777786630 | 7m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×19, Read×5, Edit×2, ToolSearch×1, Write×1, ExitPlanMode×1, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=continue-users-marcelspatz-nudimmud-clau-luminous-tiger.md,openclaw-bridge.sh,pulse-orchestrator.mjs`
+
+---
+
+## 2026-05-14 | Session 1778777786630 | 5m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×17, Read×5, Edit×2, ToolSearch×1, Write×1, ExitPlanMode×1, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=continue-users-marcelspatz-nudimmud-clau-luminous-tiger.md,openclaw-bridge.sh,pulse-orchestrator.mjs`
+
+---
+
+## 2026-05-14 | Session 1778775709329 | 34m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×46, Read×21, Write×10, Edit×9, ToolSearch×1, ExitPlanMode×1, mcp×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SELF_IMPROVEMENT_SYSTEM_UPDATE.md,NEXT_SESSION_BOOT_PACKET.md,2026-05-14.json`
+
+---
+
+## 2026-05-14 | Session 1778775709329 | 33m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×46, Read×21, Write×10, Edit×9, ToolSearch×1, ExitPlanMode×1, mcp×1, Skill×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SELF_IMPROVEMENT_SYSTEM_UPDATE.md,NEXT_SESSION_BOOT_PACKET.md,2026-05-14.json`
+
+---
+
+## 2026-05-14 | Session 1778775709329 | 26m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×41, Read×20, Edit×9, Write×3, ToolSearch×1, ExitPlanMode×1, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=pulse-trivial-audit.mjs,ai,pulse-classifier-tuning.md`
+
+---
+
+## 2026-05-14 | Session 1778775709329 | 18m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×25, Read×19, Edit×8, Write×2, ToolSearch×1, ExitPlanMode×1, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=openclaw-bridge.sh,pulse-trivial-audit.mjs,ai`
+
+---
+
+## 2026-05-14 | Session 1778775709329 | 11m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×19, Read×9, Edit×6, Write×2, ToolSearch×1, ExitPlanMode×1, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=openclaw-bridge.sh,pulse-trivial-audit.mjs,ai`
+
+---
+
+## 2026-05-14 | Session 1778775709329 | 8m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×18, Read×9, Edit×6, Write×2, ToolSearch×1, ExitPlanMode×1, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=openclaw-bridge.sh,pulse-trivial-audit.mjs,ai`
+
+---
 
 ## 2026-05-14 | Session 1778770907024 | 78m | peak 0% | compacts: 0
 

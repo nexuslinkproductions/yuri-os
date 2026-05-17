@@ -1,9 +1,93 @@
 {
   "version": "2.0",
   "canonicalPath": "design-memory.json",
-  "lastUpdated": "2026-05-15T15:58:06.209Z",
+  "lastUpdated": "2026-05-16T22:13:20.581Z",
   "note": "Canonical NUDIMMUD design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
   "entries": [
+    {
+      "date": "2026-05-16",
+      "component": "musubi-intelligence-v2-audit-v2",
+      "file": "_SYSTEM/musubi-intelligence-v2-audit-v2.html",
+      "action": "edit",
+      "decision": "Updated: musubi-intelligence-v2-audit-v2"
+    },
+    {
+      "date": "2026-05-16",
+      "component": "musubi-intelligence-v2-audit",
+      "file": "_SYSTEM/musubi-intelligence-v2-audit.html",
+      "action": "create",
+      "decision": "New component created: musubi-intelligence-v2-audit"
+    },
+    {
+      "date": "2026-05-16",
+      "component": "yuri-os-launch-readiness",
+      "file": "_SYSTEM/yuri-os-launch-readiness.html",
+      "action": "edit",
+      "decision": "Updated: yuri-os-launch-readiness"
+    },
+    {
+      "date": "2026-05-16",
+      "component": "yuri-os-launch-readiness",
+      "file": "_SYSTEM/yuri-os-launch-readiness.html",
+      "action": "create",
+      "decision": "New component created: yuri-os-launch-readiness"
+    },
+    {
+      "date": "2026-05-16",
+      "component": "Musubi Brand Identity Sheet",
+      "file": "_SYSTEM/musubi-brand-identity.html",
+      "action": "create",
+      "decision": "Full Yuri OS — Musubi (結び) brand identity. Two new palette tokens: --musubi-ember hsl(36,72%,65%) for binding/identity accent (warm amber, NOT a system warning — distinct from gold-solar), --musubi-ink hsl(210,8%,90%) for kanji rendering. Thread motif derived from 糸 (thread radical inside 結): lines converge from network nodes to central ember knot, representing agent topology not decoration. Wordmark: Bricolage Grotesque 700 + Noto Serif JP 700/300. 5 mark scales: 160px full, 96px, 56px, 32px, 16px. 4 Nexus Link header variants: document, nav glass, PDF cover, symbiotic solutions.",
+      "tokens_used": [
+        "--bg-void",
+        "--bg-surface",
+        "--cyan-glow",
+        "--silver-albedo",
+        "--text-dim",
+        "--musubi-ember",
+        "--musubi-ink",
+        "--font-display",
+        "--font-kanji",
+        "--font-mono",
+        "--ease-neural"
+      ],
+      "pattern": "Musubi brand layer: ember knot mark + thread convergence motif + Bricolage+NotoSerifJP pairing. Reuse for any Yuri OS identity surface."
+    },
+    {
+      "date": "2026-05-16",
+      "component": "NexusLinkLanding",
+      "file": "src/components/NexusLinkLanding.tsx",
+      "action": "edit",
+      "decision": "Updated: NexusLinkLanding"
+    },
+    {
+      "date": "2026-05-16",
+      "component": "yuri-os-dashboard",
+      "file": "yuri-os-dashboard.html",
+      "action": "edit",
+      "decision": "Updated: yuri-os-dashboard"
+    },
+    {
+      "date": "2026-05-16",
+      "component": "AUDIT",
+      "file": "_SYSTEM/audit-archive/2026-05-16-anthropic-independence/AUDIT.html",
+      "action": "edit",
+      "decision": "Updated: AUDIT"
+    },
+    {
+      "date": "2026-05-16",
+      "component": "AUDIT-DECK",
+      "file": "_SYSTEM/audit-archive/2026-05-16-anthropic-independence/AUDIT-DECK.html",
+      "action": "create",
+      "decision": "New component created: AUDIT-DECK"
+    },
+    {
+      "date": "2026-05-16",
+      "component": "AUDIT",
+      "file": "_SYSTEM/audit-archive/2026-05-16-anthropic-independence/AUDIT.html",
+      "action": "create",
+      "decision": "New component created: AUDIT"
+    },
     {
       "date": "2026-05-15",
       "component": "SymbiOS-Trademark-Audit",

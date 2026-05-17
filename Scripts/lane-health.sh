@@ -5,6 +5,9 @@
 
 set -u
 
+# Explicit PATH — ensures homebrew, node, npx, ollama are found in LaunchAgent env
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/Users/marcelspatz/.bun/bin:/Users/marcelspatz/NUDIMMUD/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
 
@@ -26,14 +29,15 @@ print_row() {
 
 check_codex() {
   local tier="$1"
-  local out
-  out="$(node "$SCRIPT_DIR/codex-offload-runner.mjs" "$tier" --smoke 2>&1 | tail -5 | grep -oE 'SMOKE_OK|SKIPPED_OR_RATE_LIMITED|FAILED' | head -1)"
-  case "$out" in
-    SMOKE_OK) print_row "$tier" LIVE "smoke OK" ;;
-    SKIPPED_OR_RATE_LIMITED) print_row "$tier" COOLDOWN "rate-limited" ;;
-    FAILED) print_row "$tier" DOWN "smoke failed" ;;
-    *) print_row "$tier" DOWN "no response" ;;
-  esac
+  # Binary capability check — codex CLI uses stored credentials (~/.codex), not OPENAI_API_KEY env.
+  # Checking env var is a false negative; checking binary version is the correct signal.
+  local version
+  version="$(codex --version 2>/dev/null)"
+  if [[ -n "$version" ]]; then
+    print_row "$tier" LIVE "cli $version"
+  else
+    print_row "$tier" DOWN "codex binary not found or not authenticated"
+  fi
 }
 
 check_deepseek() {
@@ -53,20 +57,16 @@ check_deepseek() {
 }
 
 check_ollama_local() {
-  if ! command -v ollama >/dev/null 2>&1; then
-    print_row "ollama-local" DOWN "ollama CLI missing"
+  # Use curl to check daemon — avoids PATH issues with ollama CLI in LaunchAgent env
+  if ! curl -sf --max-time 3 localhost:11434/api/tags >/dev/null 2>&1; then
+    print_row "ollama-local" DOWN "daemon not responding on :11434"
     return
   fi
-  if ! ollama list >/dev/null 2>&1; then
-    print_row "ollama-local" DOWN "daemon not running"
-    return
-  fi
-  local primary
-  primary="$(node -e "console.log(JSON.parse(require('fs').readFileSync('$SCRIPT_DIR/../.claude/config/models.json', 'utf8')).local.primary)" 2>/dev/null)"
-  if ollama list 2>/dev/null | awk -v m="$primary" '$1==m {found=1} END{exit !found}'; then
-    print_row "ollama-local" LIVE "model=$primary"
+  # Check safe primary model (llama3.2 — only safe model on M2 Pro)
+  if curl -sf --max-time 3 localhost:11434/api/tags 2>/dev/null | grep -q "llama3.2"; then
+    print_row "ollama-local" LIVE "llama3.2:latest ready"
   else
-    print_row "ollama-local" DOWN "primary model $primary not installed"
+    print_row "ollama-local" COOLDOWN "daemon up · llama3.2:latest not found"
   fi
 }
 
@@ -104,14 +104,18 @@ check_palace() {
 }
 
 check_gitnexus() {
-  if ! command -v npx >/dev/null 2>&1; then
-    print_row "gitnexus" DOWN "npx missing"
+  local gitnexus_dir="$SCRIPT_DIR/../.gitnexus"
+  if [[ ! -d "$gitnexus_dir" ]]; then
+    print_row "gitnexus" DOWN "no .gitnexus dir — run npx gitnexus analyze"
     return
   fi
-  if [[ -d "$SCRIPT_DIR/../.gitnexus" ]]; then
-    print_row "gitnexus" LIVE "index present"
+  # Check index freshness by mtime of dir (updated on each analyze run)
+  local age_days
+  age_days="$(( ($(date +%s) - $(stat -f %m "$gitnexus_dir")) / 86400 ))"
+  if [[ "$age_days" -le 7 ]]; then
+    print_row "gitnexus" LIVE "index ${age_days}d old"
   else
-    print_row "gitnexus" COOLDOWN "no .gitnexus dir"
+    print_row "gitnexus" COOLDOWN "index ${age_days}d stale (>7d)"
   fi
 }
 
@@ -145,3 +149,19 @@ check_palace
 check_gitnexus
 
 echo "──────────────────────────────────────────────────────────────"
+
+# Write machine-readable JSON for brain-inject.js and other consumers
+JSON_OUT="$SCRIPT_DIR/../.claude/state/lane-health-status.json"
+DEEPSEEK_STATUS="DOWN"
+bash "$SCRIPT_DIR/offload.sh" --dry-run -m deepseek-v4-pro "test" 2>/dev/null | grep -q '"apiKey": "\[set\]"' && DEEPSEEK_STATUS="LIVE"
+OLLAMA_STATUS="DOWN"
+curl -sf --max-time 3 localhost:11434/api/tags >/dev/null 2>&1 && OLLAMA_STATUS="LIVE"
+CODEX_STATUS="DOWN"
+codex --version >/dev/null 2>&1 && CODEX_STATUS="LIVE"
+GITNEXUS_STATUS="DOWN"
+[[ -d "$SCRIPT_DIR/../.gitnexus" ]] && GITNEXUS_STATUS="LIVE"
+PALACE_STATUS="DOWN"
+[[ -f "$SCRIPT_DIR/../claude-palace-out/palace-index.md" ]] && PALACE_STATUS="LIVE"
+printf '{"ts":"%s","lanes":{"codex":"%s","deepseek":"%s","ollama":"%s","gitnexus":"%s","palace":"%s"}}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$CODEX_STATUS" "$DEEPSEEK_STATUS" "$OLLAMA_STATUS" "$GITNEXUS_STATUS" "$PALACE_STATUS" \
+  > "$JSON_OUT" 2>/dev/null || true

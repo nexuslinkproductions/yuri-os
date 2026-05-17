@@ -1282,9 +1282,11 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
   // Try with tools first; fall back to text-only if not supported
   let supportsTools = opts.tools === true;
-  const maxIterations = 50; // Increased from 10 for complex multi-step reasoning tasks
+  const maxIterations = 20;
   let iteration = 0;
   let lastToolCallNames = []; // Track last tool calls to detect loops
+  let lastCallSig = '';
+  let consecutiveToolCalls = 0;
 
   while (iteration < maxIterations) {
     iteration++;
@@ -1371,13 +1373,24 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
     // Check if model requested tool calls (only if tools are supported)
     if (supportsTools && message.tool_calls && message.tool_calls.length > 0) {
-      // Detect infinite loops: if same tools called 3 times in a row, break and return what we have
+      const currentCallSig = message.tool_calls
+        .map(tc => tc.function.name + ':' + JSON.stringify(tc.function.arguments))
+        .sort()
+        .join('|');
+      if (lastCallSig === currentCallSig && iteration >= 2) {
+        throw new Error('TOOL_ARG_REPETITION: identical tool+args called twice in a row');
+      }
+      lastCallSig = currentCallSig;
+
       const currentToolNames = message.tool_calls.map(tc => tc.function.name).sort().join(',');
-      if (lastToolCallNames === currentToolNames && iteration >= 6) {
-        // Same tools being called repeatedly — likely stuck loop, return best effort
-        throw new Error(`TOOL_CALL_REPETITION_LIMIT: ${TOOL_REPETITION_SENTINEL}`);
+      if (lastToolCallNames === currentToolNames && iteration >= 3) {
+        throw new Error('TOOL_LOOP_DETECTED: same tools called 3+ times: ' + currentToolNames);
       }
       lastToolCallNames = currentToolNames;
+      consecutiveToolCalls++;
+      if (consecutiveToolCalls > 12) {
+        throw new Error('TOOL_RUNAWAY: model has made ' + consecutiveToolCalls + ' consecutive tool calls without text output');
+      }
 
       // Execute tools and collect results
       const toolResults = [];
@@ -1395,6 +1408,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
     }
 
     // No more tool calls or tools disabled — return final answer
+    consecutiveToolCalls = 0;
     return message.content || '';
   }
 

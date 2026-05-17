@@ -18,7 +18,7 @@
 //     pulse-errors.log; bus still receives whatever returned.
 
 import { spawn } from 'node:child_process';
-import { promises as fsp, existsSync, mkdirSync, writeFileSync, appendFileSync, renameSync } from 'node:fs';
+import { promises as fsp, existsSync, readFileSync, mkdirSync, writeFileSync, appendFileSync, renameSync, rmSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -41,6 +41,9 @@ const TIMEOUT_NVIDIA_MS   = 60_000;
 // Lazy require for the CommonJS pulse-bus module from ESM context
 const requireFromCjs = (await import('node:module')).createRequire(import.meta.url);
 const pulseBus = requireFromCjs(path.join(REPO_ROOT, '.claude', 'hooks', 'pulse-bus.js'));
+
+// M1 — Brain amplifier: enriches advisor prompts with SOUL+LTM+PDC+palace context
+import { amplifyPrompt, amplifyPromptCompact } from './brain-amplifier.mjs';
 
 function logError(msg) {
   try {
@@ -100,13 +103,45 @@ async function buildRoutePlan(prompt) {
 function writePlanFile(plan, turnId) {
   try {
     mkdirSync(STATE_DIR, { recursive: true });
-    const payload = { turn_id: turnId, ts: new Date().toISOString(), plan };
+    let storedPlan = null;
+    try {
+      const raw = JSON.parse(readFileSync(PLAN_PATH, 'utf8'));
+      storedPlan = raw?.plan && typeof raw.plan === 'object' && !Array.isArray(raw.plan) ? raw.plan : raw;
+    } catch (_) {}
+
+    const payloadPlan = { ...(plan || {}) };
+    if (storedPlan && typeof storedPlan === 'object' && !Array.isArray(storedPlan)) {
+      if (storedPlan.haki_intent !== undefined) payloadPlan.haki_intent = storedPlan.haki_intent;
+      if (storedPlan.haki_dominant !== undefined) payloadPlan.haki_dominant = storedPlan.haki_dominant;
+    }
+
+    const payload = { turn_id: turnId, ts: new Date().toISOString(), plan: payloadPlan };
     const tmp = PLAN_PATH + '.tmp';
     writeFileSync(tmp, JSON.stringify(payload, null, 2));
     renameSync(tmp, PLAN_PATH);
   } catch (e) {
     logError(`writePlanFile failed: ${e.message}`);
   }
+}
+
+function readHakiDominantPrompt() {
+  try {
+    const raw = JSON.parse(readFileSync(PLAN_PATH, 'utf8'));
+    const plan = raw?.plan && typeof raw.plan === 'object' && !Array.isArray(raw.plan) ? raw.plan : raw;
+    const dominant = plan?.haki_dominant;
+    const label = String(dominant?.label || '').trim();
+    const probability = Number(dominant?.probability);
+    if (!label || !Number.isFinite(probability)) return null;
+    return { label: label.replace(/\s+/g, ' '), probability: Math.round(probability) };
+  } catch {
+    return null;
+  }
+}
+
+function buildAdvisorPrompt(prompt) {
+  const haki = readHakiDominantPrompt();
+  if (!haki) return prompt;
+  return `User intent (Haki): ${haki.label} ${haki.probability}%\n\n${prompt}`;
 }
 
 function parseAdvisorOutput(raw) {
@@ -136,18 +171,38 @@ function parseAdvisorOutput(raw) {
 }
 
 async function dispatchDeepSeekPreflight(prompt, plan, turnId) {
+  // PATCH 041: inject per-task semantic memory context written by user-prompt-submit PATCH 040
+  let ragBlock = '';
+  try {
+    const ragPath = path.join(STATE_DIR, 'rag-turn-context.json');
+    if (existsSync(ragPath)) {
+      const rag = JSON.parse(readFileSync(ragPath, 'utf8'));
+      // Only use if written for this turn (within 120s)
+      if (rag.turnId === turnId || (Date.now() - (rag.ts || 0)) < 120_000) {
+        const lines = (rag.items || [])
+          .filter(m => m.status === 'active' && m.canonical_summary)
+          .slice(0, 8)
+          .map(m => `  - [${m.memory_type || m.tier}] ${m.canonical_summary.slice(0, 180)}`);
+        if (lines.length) ragBlock = `\nRELEVANT_MEMORY:\n${lines.join('\n')}\n`;
+      }
+    }
+  } catch (_) { /* never block preflight */ }
+
+  // M1: compact amplification (spatial+PDC prefix) — ragBlock already handles LTM
+  const amplifiedSlice = amplifyPromptCompact(String(prompt).slice(0, 240));
   const preflightPrompt = `PULSE_PREFLIGHT (turn=${turnId})
 SCENARIO: ${plan.scenario}
 LANE: ${plan.lane}
 TIER: ${plan.complexityTier}
-PROMPT: "${String(prompt).slice(0, 240)}"
-
+PROMPT: "${amplifiedSlice}"${ragBlock}
 QUESTION: Identify the single biggest risk, ambiguity, or missing context the main thread should weigh before acting. Be concrete. 1-3 lines.
 OUTPUT_CAP: 40 lines`;
 
+  // Use council-selected DeepSeek tier (pro vs flash) — defaults to deepseek-v4-flash
+  const dsModel = plan.councilComposition?.deepseekModel || 'deepseek-v4-flash';
   const result = await execWithTimeout(
     'bash',
-    [OFFLOAD_SH, '@deepseek', '--no-tools', preflightPrompt],
+    [OFFLOAD_SH, '-m', dsModel, '--no-tools', preflightPrompt],
     {},
     TIMEOUT_DEEPSEEK_MS
   );
@@ -161,10 +216,12 @@ OUTPUT_CAP: 40 lines`;
 
 async function dispatchNvidiaPreflight(prompt, plan, turnId) {
   if (!process.env.NVIDIA_API_KEY) return null;
+  // M1: full brain amplification for NVIDIA (no ragBlock here, so full context)
+  const nvidiaAmplified = amplifyPrompt(String(prompt).slice(0, 300));
   const preflightPrompt = `PULSE_PREFLIGHT nvidia-advisory. Scenario=${plan.scenario}, tier=${plan.complexityTier}.
 LANE: ${plan.lane}
 TIER: ${plan.complexityTier}
-PROMPT: "${String(prompt).slice(0, 240)}"
+PROMPT: "${nvidiaAmplified.slice(0, 600)}"
 
 QUESTION: From your perspective as a different model family than DeepSeek, what risk, blind spot, or alternative approach should the main thread consider? 1-3 lines, 30 lines max.
 OUTPUT_CAP: 30 lines`;
@@ -400,15 +457,249 @@ TASK: Independent strategic risk scan. What could go wrong that the primary anal
   return { source: 'SWARM', runtimeKind: 'swarm_dispatch', ...best };
 }
 
-function buildTaskMap(ensemble, prompt, plan, turnId) {
+async function dispatchShuraReview(prompt, plan, turnId) {
+  const shuraPrompt = `YURI_SHURA (turn=${turnId}) scenario=${plan.scenario} tier=${plan.complexityTier}
+${String(prompt).slice(0, 500)}
+TASK: 6-perspective strategic review. Return compact sections for architect, adversary, maintainer, ops, product, and security. Each section: assessment, risks, recommendation. Advisory only.`;
+
+  const lanes = [
+    ['architect', '@nvidia-nemotron'],
+    ['adversary', '@deepseek-v4-pro'],
+    ['maintainer', '@codex-spark'],
+    ['ops', '@kimi'],
+    ['product', '@deepseek-v4-flash'],
+    ['security', '@claude'],
+  ];
+
+  const results = await Promise.allSettled(lanes.map(([role, lane]) => (
+    execWithTimeout('bash', [OFFLOAD_SH, lane, '--no-tools', `${shuraPrompt}\nPERSPECTIVE: ${role}`], {}, TIMEOUT_SWARM_MS)
+  )));
+
+  const outputs = [];
+  results.forEach((result, index) => {
+    const role = lanes[index][0];
+    if (result.status === 'fulfilled' && result.value.code === 0 && !result.value.timedOut && result.value.stdout.trim()) {
+      outputs.push(`${role}: ${result.value.stdout.trim().slice(0, 600)}`);
+    } else {
+      const err = result.status === 'rejected' ? result.reason?.message : `code=${result.value?.code}`;
+      logError(`SHURA ${role} failed: ${err}`);
+    }
+  });
+
+  if (!outputs.length) return null;
+  const parsed = parseAdvisorOutput(outputs.join('\n\n'));
+  return { source: 'SHURA', runtimeKind: 'strategic_review', ...parsed };
+}
+
+// CODEX ADVISORY — Codex as council member (advisory only, no file writes)
+// Uses gpt-5.4-mini for fast code feedback, gpt-5.5 for deep code/security review.
+// Different from codex-queue-emit: advisory reads + comments, never queues impl work.
+async function dispatchCodexAdvisory(prompt, plan, turnId) {
+  const codexModel = plan.councilComposition?.codexModel;
+  if (!codexModel) return null;
+
+  // M1: full brain amplification for Codex advisory (code-level needs full context)
+  const codexAmplified = amplifyPrompt(String(prompt).slice(0, 300));
+  const advisoryPrompt = `CODEX_ADVISORY (turn=${turnId}) model=${codexModel}
+SCENARIO: ${plan.scenario}
+TIER: ${plan.complexityTier}
+PROMPT: "${codexAmplified.slice(0, 700)}"
+QUESTION: From a code-level perspective, what is the most important risk, pattern problem, or implementation consideration? Be specific and concrete. 1-3 lines max.
+OUTPUT_CAP: 20 lines`;
+
+  const result = await execWithTimeout(
+    'bash',
+    [OFFLOAD_SH, '-m', codexModel, '--no-tools', advisoryPrompt],
+    {},
+    TIMEOUT_DEEPSEEK_MS
+  );
+  if (result.code !== 0 || result.timedOut) {
+    logError(`Codex advisory failed (model=${codexModel} code=${result.code} timeout=${!!result.timedOut})`);
+    return null;
+  }
+  const parsed = parseAdvisorOutput(result.stdout);
+  return { source: 'CODEX_ADVISORY', runtimeKind: 'model_advisor', model: codexModel, ...parsed };
+}
+
+// CODEX QUEUE EMIT — adds impl task to sequential task queue (never runs Codex directly)
+async function dispatchCodexQueueEmit(prompt, plan, turnId) {
+  if (!plan.codexDispatch || plan.codexDispatch.tier === 'skip') return null;
+  if (!['full-impl', 'mini-impl'].includes(plan.codexDispatch.tier)) return null;
+
+  const QUEUE_FILE = path.join(STATE_DIR, 'task-queue.json');
+  let q = { version: 2, created: new Date().toISOString(), lastRun: null, currentTask: null, tasks: [] };
+  try {
+    if (existsSync(QUEUE_FILE)) q = JSON.parse(readFileSync(QUEUE_FILE, 'utf8'));
+  } catch (_) {}
+  if (!Array.isArray(q.tasks)) q.tasks = [];
+
+  const taskId = randomUUID().slice(0, 12);
+  q.tasks.push({
+    id: taskId,
+    ts: new Date().toISOString(),
+    prompt: String(prompt).slice(0, 4000),
+    lane: plan.codexDispatch.model,
+    priority: plan.complexityTier === 'critical' ? 9 : 6,
+    status: 'pending',
+    stateHash: null,
+    addedBy: 'pulse-orchestrator',
+    meta: { turnId, tier: plan.complexityTier, codexTier: plan.codexDispatch.tier },
+    result: null, error: null, startedAt: null, completedAt: null,
+  });
+
+  try {
+    const tmp = QUEUE_FILE + '.tmp';
+    writeFileSync(tmp, JSON.stringify(q, null, 2));
+    renameSync(tmp, QUEUE_FILE);
+  } catch (e) {
+    logError(`codexQueueEmit write failed: ${e.message}`);
+    return null;
+  }
+
+  return {
+    source: 'CODEX_QUEUE',
+    runtimeKind: 'impl_executor',
+    severity: 'INFO',
+    finding: `Codex task queued [${taskId}] ${plan.codexDispatch.model} (${plan.codexDispatch.tier}). Run: node Scripts/task-queue.mjs run-next`,
+    confidence: 0.95,
+  };
+}
+
+// M2 + M3 — Council synthesis writeback + brain:stale sentinel
+function writeCouncilSynthesis(findings, turnId, plan) {
+  const SYNTH_LOG  = path.join(STATE_DIR, 'council-synthesis.jsonl');
+  const STALE_FILE = path.join(STATE_DIR, 'brain-stale.sentinel');
+  const NISABA_DIR = path.join(path.dirname(STATE_DIR), 'nisaba', 'logs');
+
+  try {
+    // M2a: extract consensus findings (≥2 distinct sources agree on WARN+)
+    const warnPlus = findings.filter(f => ['WARN', 'HIGH', 'CRITICAL'].includes(f.severity));
+    const domainMap = {};
+    for (const f of warnPlus) {
+      // Key by truncated finding to detect cross-source agreement
+      const key = f.finding.slice(0, 50).replace(/\W+/g, '_');
+      if (!domainMap[key]) domainMap[key] = [];
+      domainMap[key].push(f.source);
+    }
+    const consensus = Object.entries(domainMap)
+      .filter(([, sources]) => sources.length >= 2)
+      .map(([key, sources]) => ({
+        key,
+        sources,
+        finding: warnPlus.find(f => f.finding.slice(0, 50).replace(/\W+/g, '_') === key)?.finding || key,
+        severity: warnPlus.find(f => f.finding.slice(0, 50).replace(/\W+/g, '_') === key)?.severity,
+        confidence: Math.min(0.95, 0.5 + sources.length * 0.15),
+      }));
+
+    // M2b: write synthesis record to council-synthesis.jsonl (append)
+    const record = {
+      ts: new Date().toISOString(),
+      turnId,
+      complexityTier: plan.complexityTier,
+      scenario: plan.scenario,
+      totalFindings: findings.length,
+      consensusCount: consensus.length,
+      consensus: consensus.slice(0, 5),
+      highestSeverity: findings.reduce((max, f) => {
+        const rank = { CRITICAL: 4, HIGH: 3, WARN: 2, INFO: 1 };
+        return (rank[f.severity] || 0) > (rank[max] || 0) ? f.severity : max;
+      }, 'INFO'),
+    };
+
+    try { mkdirSync(NISABA_DIR, { recursive: true }); } catch (_) {}
+    const nisabaSynthLog = path.join(NISABA_DIR, 'council-synthesis.jsonl');
+    appendFileSync(nisabaSynthLog, JSON.stringify(record) + '\n');
+
+    // M3: touch brain:stale sentinel if consensus findings exist
+    // user-prompt-submit.js reads this next turn and triggers brain re-injection
+    if (consensus.length > 0 || plan.complexityTier === 'critical') {
+      writeFileSync(STALE_FILE, JSON.stringify({
+        ts: new Date().toISOString(),
+        turnId,
+        reason: consensus.length > 0 ? `${consensus.length} consensus finding(s)` : 'critical tier',
+        consensusSummaries: consensus.slice(0, 3).map(c => c.finding.slice(0, 80)),
+      }));
+    }
+  } catch (e) {
+    logError(`writeCouncilSynthesis failed: ${e.message}`);
+  }
+}
+
+// SPRINT 2 — Persist accumulated risk cross-turn so brain-inject.js can build DYNAMIC section
+function writeCortexState(findings, turnId, plan) {
+  const CORTEX_STATE = path.join(STATE_DIR, 'cortex-state.json');
+  try {
+    let existing = {};
+    try { existing = JSON.parse(readFileSync(CORTEX_STATE, 'utf8')); } catch (_) {}
+    const accumulatedRisk = existing.accumulatedRisk || {};
+
+    for (const f of findings) {
+      if (f.severity === 'WARN' || f.severity === 'HIGH' || f.severity === 'CRITICAL') {
+        // Stable key from first 60 chars of finding
+        const key = f.finding.slice(0, 60).replace(/\W+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+        if (!accumulatedRisk[key]) {
+          accumulatedRisk[key] = {
+            count: 0,
+            firstSeen: new Date().toISOString(),
+            severity: f.severity,
+            source: f.source,
+            summary: f.finding.slice(0, 120),
+            escalated: false,
+          };
+        }
+        accumulatedRisk[key].count++;
+        accumulatedRisk[key].lastSeen = new Date().toISOString();
+        accumulatedRisk[key].escalated = accumulatedRisk[key].count >= 2;
+        // Always keep highest severity seen
+        const rank = { CRITICAL: 4, HIGH: 3, WARN: 2, INFO: 1 };
+        if ((rank[f.severity] || 0) > (rank[accumulatedRisk[key].severity] || 0)) {
+          accumulatedRisk[key].severity = f.severity;
+        }
+      }
+    }
+
+    // Decay: drop single-occurrence risks older than 30 minutes
+    const cutoff = Date.now() - 30 * 60 * 1000;
+    for (const key of Object.keys(accumulatedRisk)) {
+      const r = accumulatedRisk[key];
+      if (r.count === 1 && new Date(r.firstSeen).getTime() < cutoff) {
+        delete accumulatedRisk[key];
+      }
+    }
+
+    const payload = {
+      ts: new Date().toISOString(),
+      turnId,
+      complexityTier: plan.complexityTier,
+      ensembleUsed: plan.ensemble,
+      codexDispatch: plan.codexDispatch || null,
+      accumulatedRisk,
+      lastFindings: findings.slice(0, 5).map(f => ({
+        source: f.source,
+        severity: f.severity,
+        finding: f.finding.slice(0, 100),
+      })),
+    };
+    const tmp = CORTEX_STATE + '.tmp';
+    writeFileSync(tmp, JSON.stringify(payload, null, 2));
+    renameSync(tmp, CORTEX_STATE);
+  } catch (e) {
+    logError(`writeCortexState failed: ${e.message}`);
+  }
+}
+
+function buildTaskMap(ensemble, prompt, plan, turnId, advisorPrompt = prompt) {
   const m = {};
   for (const slot of ensemble) {
-    if (slot === 'deepseek-preflight') m.deepseek = () => dispatchDeepSeekPreflight(prompt, plan, turnId);
-    if (slot === 'nvidia-preflight')   m.nvidia   = () => dispatchNvidiaPreflight(prompt, plan, turnId);
-    if (slot === 'openclaw-preflight') m.openclaw = () => dispatchOpenClawPreflight(prompt, plan, turnId);
-    if (slot === 'hermes-forecast')    m.hermesFC = () => dispatchHermesForecast(prompt, plan, turnId);
-    if (slot === 'cassandra')          m.cassandra = () => dispatchCassandra(prompt, plan, turnId);
-    if (slot === 'swarm-fanout')       m.swarm    = () => dispatchSwarmFanout(prompt, plan, turnId);
+    if (slot === 'deepseek-preflight') m.deepseek = () => dispatchDeepSeekPreflight(advisorPrompt, plan, turnId);
+    if (slot === 'nvidia-preflight')   m.nvidia   = () => dispatchNvidiaPreflight(advisorPrompt, plan, turnId);
+    if (slot === 'openclaw-preflight') m.openclaw = () => dispatchOpenClawPreflight(advisorPrompt, plan, turnId);
+    if (slot === 'hermes-forecast')    m.hermesFC = () => dispatchHermesForecast(advisorPrompt, plan, turnId);
+    if (slot === 'cassandra')          m.cassandra = () => dispatchCassandra(advisorPrompt, plan, turnId);
+    if (slot === 'swarm-fanout')       m.swarm    = () => dispatchSwarmFanout(advisorPrompt, plan, turnId);
+    if (slot === 'shura-review')       m.shura      = () => dispatchShuraReview(advisorPrompt, plan, turnId);
+    if (slot === 'codex-advisory')     m.codexAdvisory = () => dispatchCodexAdvisory(advisorPrompt, plan, turnId);
+    if (slot === 'codex-queue-emit')   m.codexQueue    = () => dispatchCodexQueueEmit(prompt, plan, turnId);
   }
   return m;
 }
@@ -434,7 +725,8 @@ async function main() {
     process.exit(0); // trivial: orchestrator just publishes the plan and stops
   }
 
-  const tasks = buildTaskMap(plan.ensemble, prompt, plan, turnId);
+  const advisorPrompt = buildAdvisorPrompt(prompt);
+  const tasks = buildTaskMap(plan.ensemble, prompt, plan, turnId, advisorPrompt);
   const entries = Object.entries(tasks);
   const results = await Promise.allSettled(entries.map(([, fn]) => fn()));
 
@@ -471,6 +763,13 @@ async function main() {
       { turnId, confidence: 0.9 }
     );
   }
+
+  // SPRINT 2 — Write accumulated risk to cortex-state.json for cross-turn brain injection
+  writeCortexState(findings, turnId, plan);
+
+  // M2 — Council writeback: extract consensus findings → write to synthesis log + update priors
+  // M3 — After writeback, touch brain:stale sentinel → next turn brain re-injects with fresh council knowledge
+  writeCouncilSynthesis(findings, turnId, plan);
 
   // PATCH 037 — Pulse Beacon: emit outward sinks for critical findings.
   // Detached spawn so beacon failures (osascript, vault path missing) never

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yuri OS — Musubi · 結び</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200;12..96,300;12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+JP:wght@200;300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --void:   hsl(228, 30%, 4.5%);
+      --ember:  hsl(34, 78%, 66%);
+      --edim:   hsla(34, 78%, 66%, 0.14);
+      --indigo: hsl(228, 55%, 68%);
+      --g1: rgba(210,220,255,0.04);
+      --g2: rgba(210,220,255,0.07);
+      --gb: rgba(255,255,255,0.09);
+      --gt: rgba(255,255,255,0.19);
+      --t1: rgba(255,255,255,0.93);
+      --t2: rgba(255,255,255,0.50);
+      --t3: rgba(255,255,255,0.24);
+      --t4: rgba(255,255,255,0.09);
+      --fd: 'Bricolage Grotesque', system-ui;
+      --fk: 'Noto Serif JP', serif;
+      --fm: 'JetBrains Mono', monospace;
+      --e:  cubic-bezier(.23,1,.32,1);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px;scroll-behavior:smooth}
+    body{background:var(--void);color:var(--t1);font-family:var(--fd);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+    /* ATMOSPHERE */
+    #atm{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+    .ao{position:absolute;border-radius:50%;filter:blur(72px)}
+    .ao1{width:1100px;height:400px;background:radial-gradient(ellipse,hsla(34,80%,56%,0.11) 0%,transparent 68%);top:22%;left:50%;transform:translateX(-50%)}
+    .ao2{width:720px;height:260px;background:radial-gradient(ellipse,hsla(228,65%,60%,0.08) 0%,transparent 65%);top:68%;left:18%}
+    .ao3{width:520px;height:200px;background:radial-gradient(ellipse,hsla(245,55%,55%,0.06) 0%,transparent 65%);top:4%;right:4%}
+    .ao4{width:380px;height:380px;background:radial-gradient(circle,hsla(34,78%,54%,0.05) 0%,transparent 60%);top:34%;left:14%;filter:blur(88px)}
+    .sk{position:absolute;left:-8%;right:-8%;height:1px}
+    .sk1{top:29.6%;background:linear-gradient(90deg,transparent 5%,rgba(255,195,100,.03) 22%,rgba(255,222,150,.19) 50%,rgba(255,195,100,.03) 78%,transparent 95%);filter:blur(.4px)}
+    .sk2{top:29.85%;background:linear-gradient(90deg,transparent 12%,rgba(255,245,210,.03) 35%,rgba(255,255,255,.10) 50%,rgba(255,245,210,.03) 65%,transparent 88%)}
+    .sk3{top:29.35%;background:linear-gradient(90deg,transparent 15%,rgba(195,210,255,.025) 35%,rgba(195,210,255,.07) 50%,rgba(195,210,255,.025) 65%,transparent 85%)}
+    .sk4{top:30.2%;height:2px;background:linear-gradient(90deg,transparent 22%,rgba(255,200,120,.012) 42%,rgba(255,210,140,.06) 50%,rgba(255,200,120,.012) 58%,transparent 78%);filter:blur(1px)}
+    .sk5{top:28.9%;height:2px;background:linear-gradient(90deg,transparent 25%,rgba(180,200,255,.01) 42%,rgba(180,200,255,.045) 50%,rgba(180,200,255,.01) 58%,transparent 75%);filter:blur(1px)}
+
+    /* GLASS UTIL */
+    .glass{
+      background:var(--g1);
+      backdrop-filter:blur(36px) saturate(180%);
+      -webkit-backdrop-filter:blur(36px) saturate(180%);
+      border:1px solid var(--gb);
+      border-top-color:var(--gt);
+      border-left-color:rgba(255,255,255,0.13);
+      box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 -1px 0 rgba(0,0,0,.15) inset,0 36px 72px rgba(0,0,0,.48),0 8px 24px rgba(0,0,0,.26),0 0 56px var(--edim);
+      border-radius:18px;
+      transition:box-shadow .3s var(--e),transform .3s var(--e)
+    }
+    .glass:hover{box-shadow:0 1px 0 rgba(255,255,255,.11) inset,0 44px 88px rgba(0,0,0,.52),0 12px 32px rgba(0,0,0,.3),0 0 72px var(--edim);transform:translateY(-2px)}
+
+    /* CONTENT */
+    .page{position:relative;z-index:1}
+
+    /* ══ HERO ══ */
+    .hero{position:relative;height:100vh;min-height:680px;overflow:hidden}
+    #hc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+    /* THE MOVE: kanji dominates */
+    .hk{
+      position:absolute;
+      font-family:var(--fk);font-weight:200;
+      font-size:clamp(420px,68vw,860px);
+      color:rgba(255,255,255,.055);
+      line-height:1;top:50%;left:-1vw;
+      transform:translateY(-50%);
+      pointer-events:none;user-select:none;
+      letter-spacing:-.04em;
+      mix-blend-mode:screen
+    }
+
+    /* Vertical thread */
+    .hvl{
+      position:absolute;left:50%;top:12%;bottom:12%;width:1px;
+      background:linear-gradient(180deg,transparent,rgba(255,255,255,.07) 30%,rgba(255,255,255,.07) 70%,transparent);
+      transform:translateX(-50%)
+    }
+
+    /* Wordmark — annotation style, bottom-right */
+    .hlabel{
+      position:absolute;bottom:9vh;right:max(5vw,40px);
+      z-index:2;text-align:right
+    }
+    .hwm{font-family:var(--fd);font-size:clamp(1.7rem,3.2vw,3rem);font-weight:700;letter-spacing:-.03em;line-height:1}
+    .hwm .sep{color:var(--t3);font-weight:200;margin:0 .15em}
+    .hwm .ali{color:var(--ember)}
+    .hsub{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:12px}
+    .hrd{font-family:var(--fm);font-size:.57rem;letter-spacing:.18em;text-transform:uppercase;color:var(--t3)}
+    .hkj{font-family:var(--fk);font-weight:300;font-size:1.15rem;color:var(--ember);line-height:1}
+    .hmeta{margin-top:18px;font-family:var(--fm);font-size:.48rem;letter-spacing:.13em;text-transform:uppercase;color:var(--t3)}
+
+    /* Scroll hint */
+    .hscr{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px}
+    .hscrl{width:1px;height:44px;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent);animation:sdrop 2.2s var(--e) infinite}
+    @keyframes sdrop{0%,100%{opacity:0;transform:scaleY(0);transform-origin:top}25%,75%{opacity:1;transform:scaleY(1)}}
+
+    /* ══ TYPE SCALE ══ */
+    .tcanvas{
+      padding:120px max(5vw,44px) 80px;
+      display:grid;
+      grid-template-columns:1fr min(200px,28vw);
+      gap:0;align-items:start;overflow:hidden
+    }
+    .tstack{position:relative;z-index:1}
+    .tey{font-family:var(--fm);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:52px;display:flex;align-items:center;gap:14px}
+    .tey::before{content:'02';color:var(--t4);font-size:.46rem;letter-spacing:.1em}
+    .ti{display:flex;align-items:baseline;gap:14px;padding:20px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+    .ti:last-child{border-bottom:none}
+    .til{font-family:var(--fm);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);min-width:76px;flex-shrink:0;padding-top:4px;line-height:1.6}
+    .tfloat{position:sticky;top:20vh;font-family:var(--fk);font-size:clamp(100px,16vw,180px);font-weight:200;color:rgba(255,255,255,.03);line-height:1;text-align:center;pointer-events:none;user-select:none}
+
+    /* ══ ETYMOLOGY ══ */
+    .etym{padding:60px max(5vw,44px) 100px}
+    .eey{font-family:var(--fm);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:60px;display:flex;align-items:center;gap:14px}
+    .eey::before{content:'03';color:var(--t4);font-size:.46rem;letter-spacing:.1em}
+    .erow{display:flex;align-items:center;gap:clamp(20px,3.5vw,56px);overflow-x:auto;padding-bottom:8px}
+    .eitem{display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0}
+    .echar{font-family:var(--fk);line-height:1;color:rgba(255,255,255,.72)}
+    .etag{font-family:var(--fm);font-size:.46rem;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);text-align:center;line-height:1.6}
+    .eplus{font-family:var(--fd);font-size:2rem;font-weight:200;color:var(--t4);flex-shrink:0}
+    .earr{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
+    .earr span{font-family:var(--fm);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+    .earrl{width:clamp(28px,4vw,68px);height:1px;background:linear-gradient(90deg,rgba(255,255,255,.08),var(--ember),rgba(255,255,255,.08))}
+    .efinal{flex-shrink:0;padding:28px 40px;text-align:center;box-shadow:0 24px 56px rgba(0,0,0,.42),0 0 0 .5px rgba(255,255,255,.04) inset,0 0 44px var(--edim)}
+
+    /* ══ APPLICATION ══ */
+    .app{padding:0 max(5vw,44px) 96px}
+    .aey{font-family:var(--fm);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:36px;display:flex;align-items:center;gap:14px}
+    .aey::before{content:'04';color:var(--t4);font-size:.46rem;letter-spacing:.1em}
+    .docm{background:var(--g1);backdrop-filter:blur(44px) saturate(190%);-webkit-backdrop-filter:blur(44px) saturate(190%);border:1px solid var(--gb);border-top-color:var(--gt);border-radius:20px;overflow:hidden;box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 52px 104px rgba(0,0,0,.55),0 16px 36px rgba(0,0,0,.3),0 0 88px var(--edim)}
+    .dh{padding:26px 38px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:18px}
+    .dmono{width:34px;height:34px;border:1.5px solid rgba(255,255,255,.18);border-radius:7px;display:grid;place-items:center;font-family:var(--fd);font-size:.62rem;font-weight:700;color:rgba(255,255,255,.62);flex-shrink:0}
+    .dsep{width:1px;height:18px;background:rgba(255,255,255,.1)}
+    .dtb{flex:1}
+    .dtitle{font-family:var(--fd);font-size:.86rem;font-weight:600;display:flex;align-items:baseline;gap:6px}
+    .dtitle .ae{color:var(--ember)}
+    .dtitle .ki{font-family:var(--fk);font-weight:300;font-size:.82rem;color:var(--ember)}
+    .dsub{font-family:var(--fm);font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-top:4px}
+    .dstatus{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+    .ddot{width:5px;height:5px;border-radius:50%;background:var(--ember);box-shadow:0 0 7px var(--ember)}
+    .dbody{padding:38px;display:grid;grid-template-columns:2fr 1fr;gap:40px}
+    .dsh{font-family:var(--fm);font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .dp{font-family:var(--fk);font-size:.78rem;font-weight:300;color:var(--t2);line-height:1.95}
+    .dkp{font-family:var(--fk);font-size:3.2rem;font-weight:200;color:rgba(255,255,255,.05);margin-top:20px;line-height:1}
+    .df{margin-bottom:18px}
+    .dfl{font-family:var(--fm);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);display:block;margin-bottom:3px}
+    .dfv{font-family:var(--fd);font-size:.8rem;font-weight:400}
+    .dfoot{padding:18px 38px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.15)}
+    .dfl2{font-family:var(--fm);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+    .dfkj{font-family:var(--fk);font-size:1rem;font-weight:200;color:rgba(255,255,255,.14)}
+
+    /* ══ NEXUS LINK HEADERS ══ */
+    .nlz{padding:0 max(5vw,44px) 96px}
+    .nley{font-family:var(--fm);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:36px;display:flex;align-items:center;gap:14px}
+    .nley::before{content:'05';color:var(--t4);font-size:.46rem;letter-spacing:.1em}
+    .nl{display:flex;align-items:center;gap:16px;padding:18px 28px;margin-bottom:3px;backdrop-filter:blur(24px) saturate(170%);-webkit-backdrop-filter:blur(24px) saturate(170%);border:1px solid rgba(255,255,255,.08);border-top-color:rgba(255,255,255,.15);border-radius:14px;transition:background .18s}
+    .nl:hover{background:rgba(255,255,255,.05)}
+    .nlm{width:30px;height:30px;border:1px solid rgba(255,255,255,.2);border-radius:7px;display:grid;place-items:center;font-family:var(--fd);font-size:.6rem;font-weight:700;color:rgba(255,255,255,.62);flex-shrink:0}
+    .nld{width:1px;height:14px;background:rgba(255,255,255,.1)}
+    .nlt{margin-left:auto;font-family:var(--fm);font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.2)}
+
+    /* ══ PALETTE ══ */
+    .palz{padding:0 max(5vw,44px) 96px}
+    .paley{font-family:var(--fm);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:36px;display:flex;align-items:center;gap:14px}
+    .paley::before{content:'06';color:var(--t4);font-size:.46rem;letter-spacing:.1em}
+    .inkwash{height:148px;border-radius:16px;background:linear-gradient(108deg,hsl(228,32%,7%) 0%,rgba(210,220,255,.12) 16%,rgba(255,255,255,.09) 26%,hsl(34,78%,66%) 44%,rgba(255,255,255,.11) 50%,hsl(228,55%,68%) 64%,rgba(180,190,255,.07) 74%,hsl(96,68%,74%) 86%,hsl(12,84%,58%) 94%,transparent 100%);margin-bottom:28px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.42)}
+    .inkwash::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.04) 0%,transparent 35%,rgba(0,0,0,.32) 100%)}
+    .chips{display:flex;flex-wrap:wrap;gap:22px}
+    .chip{display:flex;align-items:center;gap:9px}
+    .cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+    .cn{font-family:var(--fm);font-size:.46rem;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);display:block}
+    .cv{font-family:var(--fm);font-size:.42rem;color:var(--t3);display:block;margin-top:2px}
+    .cnew{font-family:var(--fm);font-size:.40rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ember);display:block;margin-top:2px}
+
+    /* ══ MARKS ══ */
+    .markz{padding:0 max(5vw,44px) 88px}
+    .markey{font-family:var(--fm);font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--t3);margin-bottom:44px;display:flex;align-items:center;gap:14px}
+    .markey::before{content:'07';color:var(--t4);font-size:.46rem;letter-spacing:.1em}
+    .mrow{display:flex;align-items:flex-end;gap:clamp(22px,4.5vw,56px);flex-wrap:wrap}
+    .mi{display:flex;flex-direction:column;align-items:center;gap:12px}
+    .ml{font-family:var(--fm);font-size:.44rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+
+    /* ══ FOOTER ══ */
+    .mfoot{padding:44px max(5vw,44px) 68px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.05)}
+    .mfk{font-family:var(--fk);font-weight:200;font-size:4.5rem;line-height:1;color:rgba(255,255,255,.07);letter-spacing:-.02em}
+    .mfi{text-align:right;display:flex;flex-direction:column;gap:4px}
+    .mfl{font-family:var(--fm);font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+
+    @keyframes epulse{0%,100%{text-shadow:none}50%{text-shadow:0 0 24px hsla(34,78%,64%,.42),0 0 48px hsla(34,78%,64%,.12)}}
+
+    @media(prefers-reduced-motion:reduce){#atm,#hc{display:none}.hk,.echar{animation:none!important}.glass:hover{transform:none}}
+    @media(max-width:860px){
+      .tcanvas{grid-template-columns:1fr;padding:80px 24px}
+      .tfloat{position:static;font-size:100px;opacity:.5;margin-top:20px}
+      .dbody{grid-template-columns:1fr}
+      .mfoot{flex-direction:column;align-items:flex-start;gap:20px}
+      .mfi{text-align:left}
+    }
+    @media(max-width:600px){
+      .erow{gap:16px}
+      .hk{font-size:260px;left:-4vw}
+    }
+  </style>
+</head>
+<body>
+
+<div id="atm">
+  <div class="ao ao1"></div><div class="ao ao2"></div>
+  <div class="ao ao3"></div><div class="ao ao4"></div>
+  <div class="sk sk1"></div><div class="sk sk2"></div>
+  <div class="sk sk3"></div><div class="sk sk4"></div><div class="sk sk5"></div>
+</div>
+
+<div class="page">
+
+  <!-- ══ 01 HERO ══ -->
+  <section class="hero">
+    <canvas id="hc"></canvas>
+    <div class="hk">結び</div>
+    <div class="hvl"></div>
+    <div class="hlabel">
+      <div class="hwm"><strong>YURI OS</strong><span class="sep">—</span><span class="ali">Musubi</span></div>
+      <div class="hsub">
+        <span class="hrd">musubi · むすび</span>
+        <span class="hkj">結び</span>
+      </div>
+      <div class="hmeta">Symbiotic Intelligence Layer · Nexus Link Productions</div>
+    </div>
+    <div class="hscr"><div class="hscrl"></div></div>
+  </section>
+
+  <!-- ══ 02 WORDMARK SCALE ══ -->
+  <section class="tcanvas">
+    <div class="tstack">
+      <div class="tey">Wordmark Scale System</div>
+
+      <div class="ti">
+        <span class="til">Display<br>4rem · 700</span>
+        <div style="font-family:var(--fd);font-size:clamp(2.2rem,4.8vw,3.8rem);font-weight:700;letter-spacing:-.025em;line-height:1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+          <span>YURI OS</span>
+          <span style="color:var(--t3);font-weight:200">—</span>
+          <span style="color:var(--ember)">Musubi</span>
+          <span style="font-family:var(--fk);font-size:.68em;font-weight:300;color:var(--ember)">結び</span>
+        </div>
+      </div>
+
+      <div class="ti">
+        <span class="til">Large<br>2.2rem · 600</span>
+        <div>
+          <div style="font-family:var(--fd);font-size:clamp(1.4rem,2.8vw,2.2rem);font-weight:600;letter-spacing:-.02em;line-height:1;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+            <span>YURI OS</span><span style="color:var(--t3)"> — </span>
+            <span style="color:var(--ember)">Musubi</span>
+            <span style="font-family:var(--fk);font-size:.75em;font-weight:300;color:var(--ember);margin-left:4px">結び</span>
+          </div>
+          <div style="font-family:var(--fk);font-size:.66rem;font-weight:300;color:var(--t2);margin-top:6px;font-style:italic">symbiotic binding layer</div>
+        </div>
+      </div>
+
+      <div class="ti">
+        <span class="til">Medium<br>1.4rem · 500</span>
+        <div style="font-family:var(--fd);font-size:clamp(.95rem,2vw,1.4rem);font-weight:500;letter-spacing:-.01em;line-height:1;display:flex;align-items:baseline;gap:7px">
+          <span>Yuri OS</span><span style="color:var(--t3)">·</span>
+          <span style="color:var(--ember)">Musubi</span>
+          <span style="font-family:var(--fk);font-size:.88em;font-weight:300;color:var(--ember)">結び</span>
+        </div>
+      </div>
+
+      <div class="ti">
+        <span class="til">Compact<br>mono</span>
+        <div>
+          <div style="font-family:var(--fm);font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:baseline;gap:5px">
+            <span style="color:var(--t2)">YURI-OS</span>
+            <span style="color:rgba(255,255,255,.16)">:</span>
+            <span style="color:var(--ember)">MUSUBI</span>
+            <span style="font-family:var(--fk);font-size:.96rem;color:var(--ember);font-weight:300;text-transform:none;letter-spacing:0">結び</span>
+          </div>
+          <div style="font-family:var(--fm);font-size:.44rem;color:var(--t3);margin-top:7px;letter-spacing:.06em">// symbiotic binding layer · v1.1</div>
+        </div>
+      </div>
+
+      <div class="ti" style="border-bottom:none">
+        <span class="til">Japanese<br>prose · 300</span>
+        <div style="font-family:var(--fk);font-weight:300;color:var(--t2);line-height:2.1">
+          <div style="font-size:clamp(.82rem,1.4vw,.98rem)">結びとは、万物を生み出す創造的な力である。</div>
+          <div style="font-size:.66rem;font-style:italic;margin-top:4px;color:var(--t3)">Musubi is the creative force that generates and binds all things.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tfloat">結び</div>
+  </section>
+
+  <!-- ══ 03 ETYMOLOGY ══ -->
+  <section class="etym">
+    <div class="eey">Mark Anatomy · Etymology</div>
+    <div class="erow">
+
+      <div class="eitem">
+        <div class="echar" style="font-size:clamp(3.5rem,7vw,6.5rem)">糸</div>
+        <div class="etag">ito<br>thread radical</div>
+      </div>
+
+      <div class="eplus">+</div>
+
+      <div class="eitem">
+        <div class="echar" style="font-size:clamp(3.5rem,7vw,6.5rem)">吉</div>
+        <div class="etag">kichi<br>good fortune</div>
+      </div>
+
+      <div class="earr"><div class="earrl"></div><span>bind</span></div>
+
+      <div class="eitem">
+        <div class="echar" style="font-size:clamp(3.5rem,7vw,6.5rem);color:var(--ember);animation:epulse 4.5s var(--e) infinite">結</div>
+        <div class="etag">musu<br>to tie · bind</div>
+      </div>
+
+      <div class="earr"><div class="earrl"></div><span>force</span></div>
+
+      <div class="efinal glass">
+        <div style="font-family:var(--fk);font-size:clamp(2.8rem,5.5vw,5rem);font-weight:700;color:var(--ember);line-height:1">結び</div>
+        <div style="font-family:var(--fm);font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);margin-top:10px">musubi</div>
+        <div style="font-family:var(--fk);font-size:.7rem;font-weight:300;color:var(--t2);margin-top:4px;font-style:italic">generative binding force</div>
+      </div>
+
+      <div class="earr"><div class="earrl"></div><span>mark</span></div>
+
+      <div class="eitem">
+        <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+          <line x1="9" y1="9" x2="50" y2="50" stroke="rgba(255,255,255,.32)" stroke-width=".75"/>
+          <line x1="91" y1="9" x2="50" y2="50" stroke="rgba(255,255,255,.32)" stroke-width=".75"/>
+          <line x1="9" y1="91" x2="50" y2="50" stroke="rgba(255,255,255,.32)" stroke-width=".75"/>
+          <line x1="91" y1="91" x2="50" y2="50" stroke="rgba(255,255,255,.32)" stroke-width=".75"/>
+          <line x1="50" y1="4" x2="50" y2="50" stroke="rgba(255,255,255,.16)" stroke-width=".7"/>
+          <line x1="50" y1="96" x2="50" y2="50" stroke="rgba(255,255,255,.16)" stroke-width=".7"/>
+          <line x1="4" y1="50" x2="50" y2="50" stroke="rgba(255,255,255,.16)" stroke-width=".7"/>
+          <line x1="96" y1="50" x2="50" y2="50" stroke="rgba(255,255,255,.16)" stroke-width=".7"/>
+          <circle cx="9" cy="9" r="2.2" fill="rgba(255,255,255,.42)"/>
+          <circle cx="91" cy="9" r="2.2" fill="rgba(255,255,255,.42)"/>
+          <circle cx="9" cy="91" r="2.2" fill="rgba(255,255,255,.42)"/>
+          <circle cx="91" cy="91" r="2.2" fill="rgba(255,255,255,.42)"/>
+          <circle cx="50" cy="50" r="5" fill="hsl(34,78%,66%)"/>
+          <circle cx="50" cy="50" r="10.5" fill="none" stroke="hsl(34,78%,66%)" stroke-width=".8" opacity=".38"/>
+          <text x="50" y="57" text-anchor="middle" font-family="Noto Serif JP,serif" font-size="13" font-weight="700" fill="hsl(34,78%,66%)" opacity=".88">結</text>
+        </svg>
+        <div class="etag">thread mark<br>brand sigil</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 04 DOCUMENT IN USE ══ -->
+  <section class="app">
+    <div class="aey">Application · Document in Use</div>
+    <div class="docm">
+      <div class="dh">
+        <div class="dmono">NL</div>
+        <div class="dsep"></div>
+        <div class="dtb">
+          <div class="dtitle">Nexus Link<span class="ae"> · </span><span class="ae">Musubi</span><span class="ki">結び</span></div>
+          <div class="dsub">Symbiotic Intelligence Solutions — Nexus Link Productions</div>
+        </div>
+        <div class="dstatus"><div class="ddot"></div>Active · v1.1 · 2026</div>
+      </div>
+      <div class="dbody">
+        <div>
+          <div class="dsh">System Overview</div>
+          <div class="dp">Musubi — 結び — is the Shinto concept of the generative force that binds all things into being. Applied to Yuri OS, it names the symbiotic layer through which intelligence and operator become one productive entity. The binding is not metaphorical. It is structural.</div>
+          <div class="dkp">結び</div>
+        </div>
+        <div>
+          <div class="df"><span class="dfl">System</span><div class="dfv">Yuri OS</div></div>
+          <div class="df"><span class="dfl">Alias</span><div class="dfv" style="color:var(--ember)">Musubi · 結び</div></div>
+          <div class="df"><span class="dfl">Producer</span><div class="dfv">Nexus Link Productions</div></div>
+          <div class="df"><span class="dfl">Layer</span><div class="dfv">Symbiotic Intelligence</div></div>
+          <div class="df"><span class="dfl">Version</span><div class="dfv" style="font-family:var(--fm);font-size:.72rem">v1.1 · 2026-05-16</div></div>
+        </div>
+      </div>
+      <div class="dfoot">
+        <span class="dfl2">Nexus Link Productions · Confidential · 2026</span>
+        <span class="dfkj">結び</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 05 NEXUS LINK HEADERS ══ -->
+  <section class="nlz">
+    <div class="nley">Nexus Link · Musubi Headers</div>
+
+    <div class="nl" style="background:rgba(255,255,255,.04)">
+      <div class="nlm">NL</div>
+      <span style="font-family:var(--fd);font-size:.88rem;font-weight:600">Nexus Link</span>
+      <div class="nld"></div>
+      <span style="font-family:var(--fd);font-size:.88rem;font-weight:600;color:var(--ember)">Musubi</span>
+      <span style="font-family:var(--fk);font-size:.93rem;color:var(--ember);font-weight:300;margin-left:5px">結び</span>
+      <div class="nlt">Full · letterhead</div>
+    </div>
+
+    <div class="nl" style="background:rgba(0,0,0,.22);padding:10px 24px">
+      <span style="font-family:var(--fd);font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.52)">NEXUS LINK</span>
+      <div class="nld"></div>
+      <span style="font-family:var(--fd);font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ember)">MUSUBI</span>
+      <span style="font-family:var(--fk);font-size:.84rem;color:var(--ember);font-weight:300;margin-left:4px">結び</span>
+      <div class="nlt">Glass nav · compact</div>
+    </div>
+
+    <div class="nl" style="flex-direction:column;align-items:flex-start;gap:6px;background:rgba(255,255,255,.025);padding:28px 32px">
+      <span style="font-family:var(--fm);font-size:.46rem;letter-spacing:.14em;text-transform:uppercase;color:var(--t3)">Nexus Link Productions — Musubi Interface Layer</span>
+      <div style="display:flex;align-items:baseline;gap:14px;line-height:1">
+        <span style="font-family:var(--fd);font-size:1.85rem;font-weight:700;letter-spacing:-.025em">Nexus Link</span>
+        <span style="color:rgba(255,255,255,.18);font-size:1.4rem;font-weight:200">·</span>
+        <span style="font-family:var(--fd);font-size:1.85rem;font-weight:700;letter-spacing:-.025em;color:var(--ember)">Musubi</span>
+        <span style="font-family:var(--fk);font-size:1.4rem;color:var(--ember);font-weight:200">結び</span>
+      </div>
+      <span style="font-family:var(--fm);font-size:.46rem;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-top:3px">PDF · Report Cover · Document Header</span>
+    </div>
+
+    <div class="nl" style="background:rgba(255,255,255,.04)">
+      <div class="nlm">NL</div>
+      <div>
+        <div style="display:flex;align-items:baseline;gap:9px;line-height:1">
+          <span style="font-family:var(--fd);font-size:1.05rem;font-weight:700;letter-spacing:-.015em">Nexus Link</span>
+          <span style="color:rgba(255,255,255,.18);font-weight:200">·</span>
+          <span style="font-family:var(--fd);font-size:1.05rem;font-weight:700;letter-spacing:-.015em;color:var(--ember)">Musubi</span>
+          <span style="font-family:var(--fk);font-size:.88rem;color:var(--ember);font-weight:300">結び</span>
+        </div>
+        <div style="font-family:var(--fm);font-size:.46rem;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-top:5px">Symbiotic Intelligence Solutions</div>
+      </div>
+      <div class="nlt">Branded tagline</div>
+    </div>
+  </section>
+
+  <!-- ══ 06 ATMOSPHERE PALETTE ══ -->
+  <section class="palz">
+    <div class="paley">Atmosphere Palette</div>
+    <div class="inkwash"></div>
+    <div class="chips">
+      <div class="chip"><div class="cdot" style="background:hsl(228,32%,4%);border:1px solid rgba(255,255,255,.12)"></div><div><span class="cn">void-deep</span><span class="cv">hsl(228,32%,4%)</span></div></div>
+      <div class="chip"><div class="cdot" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16)"></div><div><span class="cn">glass-mid</span><span class="cv">rgba(255,255,255,.07)</span></div></div>
+      <div class="chip"><div class="cdot" style="background:rgba(255,255,255,.95)"></div><div><span class="cn">text-primary</span><span class="cv">rgba(255,255,255,.95)</span></div></div>
+      <div class="chip"><div class="cdot" style="background:hsl(34,78%,66%);box-shadow:0 0 8px hsl(34,78%,66%)"></div><div><span class="cn">musubi-ember</span><span class="cv">hsl(34,78%,66%)</span><span class="cnew">NEW</span></div></div>
+      <div class="chip"><div class="cdot" style="background:hsl(228,55%,68%)"></div><div><span class="cn">indigo-depth</span><span class="cv">hsl(228,55%,68%)</span><span class="cnew">NEW</span></div></div>
+      <div class="chip"><div class="cdot" style="background:hsl(96,68%,74%)"></div><div><span class="cn">cyan-glow</span><span class="cv">hsl(96,68%,74%)</span></div></div>
+      <div class="chip"><div class="cdot" style="background:hsl(90,100%,36%)"></div><div><span class="cn">gold-solar</span><span class="cv">hsl(90,100%,36%)</span></div></div>
+      <div class="chip"><div class="cdot" style="background:hsl(12,84%,58%)"></div><div><span class="cn">red-fusion</span><span class="cv">hsl(12,84%,58%)</span></div></div>
+    </div>
+  </section>
+
+  <!-- ══ 07 THREAD MARKS ══ -->
+  <section class="markz">
+    <div class="markey">Thread Mark · Scale System</div>
+    <div class="mrow">
+
+      <div class="mi">
+        <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
+          <defs><radialGradient id="eg" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="hsl(34,78%,66%)" stop-opacity=".2"/><stop offset="100%" stop-color="hsl(34,78%,66%)" stop-opacity="0"/></radialGradient></defs>
+          <circle cx="80" cy="80" r="72" fill="none" stroke="rgba(255,255,255,.04)" stroke-width=".8"/>
+          <circle cx="80" cy="80" r="50" fill="none" stroke="rgba(255,255,255,.03)" stroke-width=".8"/>
+          <line x1="14" y1="14" x2="80" y2="80" stroke="rgba(255,255,255,.24)" stroke-width=".75"/>
+          <line x1="146" y1="14" x2="80" y2="80" stroke="rgba(255,255,255,.24)" stroke-width=".75"/>
+          <line x1="14" y1="146" x2="80" y2="80" stroke="rgba(255,255,255,.24)" stroke-width=".75"/>
+          <line x1="146" y1="146" x2="80" y2="80" stroke="rgba(255,255,255,.24)" stroke-width=".75"/>
+          <line x1="80" y1="6" x2="80" y2="80" stroke="rgba(255,255,255,.12)" stroke-width=".75"/>
+          <line x1="80" y1="154" x2="80" y2="80" stroke="rgba(255,255,255,.12)" stroke-width=".75"/>
+          <line x1="6" y1="80" x2="80" y2="80" stroke="rgba(255,255,255,.12)" stroke-width=".75"/>
+          <line x1="154" y1="80" x2="80" y2="80" stroke="rgba(255,255,255,.12)" stroke-width=".75"/>
+          <circle cx="14" cy="14" r="2.5" fill="rgba(255,255,255,.4)"/><circle cx="146" cy="14" r="2.5" fill="rgba(255,255,255,.4)"/>
+          <circle cx="14" cy="146" r="2.5" fill="rgba(255,255,255,.4)"/><circle cx="146" cy="146" r="2.5" fill="rgba(255,255,255,.4)"/>
+          <circle cx="80" cy="80" r="20" fill="url(#eg)"/>
+          <circle cx="80" cy="80" r="5" fill="hsl(34,78%,66%)"/>
+          <circle cx="80" cy="80" r="11" fill="none" stroke="hsl(34,78%,66%)" stroke-width=".8" opacity=".38"/>
+          <text x="80" y="88" text-anchor="middle" font-family="Noto Serif JP,serif" font-size="16" font-weight="700" fill="hsl(34,78%,66%)" opacity=".88">結</text>
+        </svg>
+        <div class="ml">Full · 160px</div>
+      </div>
+
+      <div class="mi">
+        <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
+          <line x1="10" y1="10" x2="48" y2="48" stroke="rgba(255,255,255,.26)" stroke-width=".8"/>
+          <line x1="86" y1="10" x2="48" y2="48" stroke="rgba(255,255,255,.26)" stroke-width=".8"/>
+          <line x1="10" y1="86" x2="48" y2="48" stroke="rgba(255,255,255,.26)" stroke-width=".8"/>
+          <line x1="86" y1="86" x2="48" y2="48" stroke="rgba(255,255,255,.26)" stroke-width=".8"/>
+          <line x1="48" y1="4" x2="48" y2="48" stroke="rgba(255,255,255,.13)" stroke-width=".7"/>
+          <line x1="48" y1="92" x2="48" y2="48" stroke="rgba(255,255,255,.13)" stroke-width=".7"/>
+          <line x1="4" y1="48" x2="48" y2="48" stroke="rgba(255,255,255,.13)" stroke-width=".7"/>
+          <line x1="92" y1="48" x2="48" y2="48" stroke="rgba(255,255,255,.13)" stroke-width=".7"/>
+          <circle cx="10" cy="10" r="2" fill="rgba(255,255,255,.44)"/><circle cx="86" cy="10" r="2" fill="rgba(255,255,255,.44)"/>
+          <circle cx="10" cy="86" r="2" fill="rgba(255,255,255,.44)"/><circle cx="86" cy="86" r="2" fill="rgba(255,255,255,.44)"/>
+          <circle cx="48" cy="48" r="4.5" fill="hsl(34,78%,66%)"/>
+          <circle cx="48" cy="48" r="9" fill="none" stroke="hsl(34,78%,66%)" stroke-width=".8" opacity=".34"/>
+        </svg>
+        <div class="ml">Standard · 96px</div>
+      </div>
+
+      <div class="mi">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+          <line x1="5" y1="5" x2="28" y2="28" stroke="rgba(255,255,255,.32)" stroke-width=".9"/>
+          <line x1="51" y1="5" x2="28" y2="28" stroke="rgba(255,255,255,.32)" stroke-width=".9"/>
+          <line x1="5" y1="51" x2="28" y2="28" stroke="rgba(255,255,255,.32)" stroke-width=".9"/>
+          <line x1="51" y1="51" x2="28" y2="28" stroke="rgba(255,255,255,.32)" stroke-width=".9"/>
+          <circle cx="5" cy="5" r="1.8" fill="rgba(255,255,255,.5)"/><circle cx="51" cy="5" r="1.8" fill="rgba(255,255,255,.5)"/>
+          <circle cx="5" cy="51" r="1.8" fill="rgba(255,255,255,.5)"/><circle cx="51" cy="51" r="1.8" fill="rgba(255,255,255,.5)"/>
+          <circle cx="28" cy="28" r="3.5" fill="hsl(34,78%,66%)"/>
+        </svg>
+        <div class="ml">Compact · 56px</div>
+      </div>
+
+      <div class="mi">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <line x1="3" y1="3" x2="16" y2="16" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+          <line x1="29" y1="3" x2="16" y2="16" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+          <line x1="3" y1="29" x2="16" y2="16" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+          <line x1="29" y1="29" x2="16" y2="16" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+          <circle cx="16" cy="16" r="3" fill="hsl(34,78%,66%)"/>
+        </svg>
+        <div class="ml">Icon · 32px</div>
+      </div>
+
+      <div class="mi">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <line x1="1" y1="1" x2="8" y2="8" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/>
+          <line x1="15" y1="1" x2="8" y2="8" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/>
+          <line x1="1" y1="15" x2="8" y2="8" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/>
+          <line x1="15" y1="15" x2="8" y2="8" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/>
+          <circle cx="8" cy="8" r="2.2" fill="hsl(34,78%,66%)"/>
+        </svg>
+        <div class="ml">Favicon · 16px</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="mfoot">
+    <div class="mfk">結び</div>
+    <div class="mfi">
+      <span class="mfl">Yuri OS · Musubi · v1.1</span>
+      <span class="mfl">Nexus Link Productions · 2026</span>
+      <span class="mfl" style="color:var(--ember);margin-top:3px">結び — the generative binding force</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const cv = document.getElementById('hc');
+  if(!cv) return;
+  const c = cv.getContext('2d');
+  const sz = () => { cv.width = cv.parentElement.offsetWidth; cv.height = cv.parentElement.offsetHeight; };
+  sz(); window.addEventListener('resize', sz);
+  const N = 26;
+  const T = Array.from({length:N},(_,i)=>{
+    const a = (i/N)*Math.PI*2+(Math.random()-.5)*.7;
+    return{a, r:.46+Math.random()*.44, p:Math.random(), sp:.00042+Math.random()*.00068, op:.022+Math.random()*.06, w:.22+Math.random()*.52};
+  });
+  let t=0;
+  (function draw(){
+    c.clearRect(0,0,cv.width,cv.height);
+    const cx=cv.width/2, cy=cv.height/2, mr=Math.min(cv.width,cv.height)*.46;
+    T.forEach(th=>{
+      th.p=(th.p+th.sp)%1;
+      const ex=cx+Math.cos(th.a)*mr*th.r, ey=cy+Math.sin(th.a)*mr*th.r;
+      c.beginPath(); c.moveTo(cx,cy); c.lineTo(ex,ey);
+      c.strokeStyle=`rgba(255,255,255,${th.op*.16})`; c.lineWidth=th.w*.32; c.stroke();
+      const ps=Math.max(0,1-th.p-.25), pe=1-th.p;
+      const x0=cx+(ex-cx)*ps,y0=cy+(ey-cy)*ps,x1=cx+(ex-cx)*pe,y1=cy+(ey-cy)*pe;
+      const g=c.createLinearGradient(x0,y0,x1,y1);
+      g.addColorStop(0,'rgba(255,255,255,0)'); g.addColorStop(1,`rgba(255,255,255,${th.op*1.85})`);
+      c.beginPath(); c.moveTo(x0,y0); c.lineTo(x1,y1); c.strokeStyle=g; c.lineWidth=th.w; c.stroke();
+    });
+    const p=.44+.56*Math.sin(t*.36);
+    const gr=c.createRadialGradient(cx,cy,0,cx,cy,34);
+    gr.addColorStop(0,`hsla(34,78%,63%,${.17*p})`); gr.addColorStop(.6,`hsla(34,78%,63%,${.04*p})`); gr.addColorStop(1,'transparent');
+    c.beginPath(); c.arc(cx,cy,34,0,Math.PI*2); c.fillStyle=gr; c.fill();
+    t+=.016; requestAnimationFrame(draw);
+  })();
+})();
+</script>
+</body>
+</html>

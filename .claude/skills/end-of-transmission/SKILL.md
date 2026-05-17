@@ -467,6 +467,102 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 
 ## Session Notes
 
+### 2026-05-17
+- session: 160m | peak ctx: 0% | compacts: 0
+- tools: Bash×119, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
+- session: 157m | peak ctx: 0% | compacts: 0
+- tools: Bash×116, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
+- session: 141m | peak ctx: 0% | compacts: 0
+- tools: Bash×93, Read×45, Edit×26, Write×4, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 126m | peak ctx: 0% | compacts: 0
+- tools: Bash×76, Read×36, Edit×17, Write×4, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 77m | peak ctx: 0% | compacts: 0
+- tools: Bash×61, Read×32, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 70m | peak ctx: 0% | compacts: 0
+- tools: Bash×58, Read×32, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 65m | peak ctx: 0% | compacts: 0
+- tools: Bash×49, Read×32, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 60m | peak ctx: 0% | compacts: 0
+- tools: Bash×45, Read×29, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 52m | peak ctx: 0% | compacts: 0
+- tools: Bash×41, Read×29, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 50m | peak ctx: 0% | compacts: 0
+- tools: Bash×40, Read×29, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 45m | peak ctx: 0% | compacts: 0
+- tools: Bash×33, Read×27, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 24m | peak ctx: 0% | compacts: 0
+- tools: Read×27, Bash×27, Edit×8, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 21m | peak ctx: 0% | compacts: 0
+- tools: Read×25, Bash×25, Edit×3, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 20m | peak ctx: 0% | compacts: 0
+- tools: Read×25, Bash×25, Edit×2, ToolSearch×2, Write×2, mcp×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 19m | peak ctx: 0% | compacts: 0
+- tools: Bash×25, Read×24, ToolSearch×2, Write×2, mcp×1, Edit×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 62m | peak ctx: 0% | compacts: 0
+- tools: Bash×23, Write×21, Edit×17, Read×14, TodoWrite×9, mcp×3, ToolSearch×2, Agent×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
 ### 2026-05-14
 - session: 27m | peak ctx: 0% | compacts: 0
 - tools: Bash×70, Read×14, Edit×11, mcp×9, Write×6

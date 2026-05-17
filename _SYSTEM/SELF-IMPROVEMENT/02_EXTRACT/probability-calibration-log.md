@@ -33,3 +33,12 @@ Overconfident cases:
 Underconfident cases:
 Adjustment for next month:
 ```
+2026-05-16 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
+2026-05-16 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
+2026-05-16 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
+2026-05-16 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
+2026-05-16 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
+2026-05-16 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
+2026-05-16 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
+2026-05-16 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]
+2026-05-17 | evaluated=0 | deprioritized=[none] | f1_dropped=[none]

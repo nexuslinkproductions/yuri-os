@@ -1,0 +1,22 @@
+# Binary files — exempt from whitespace checks
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.mp4 binary
+*.mp3 binary
+*.zip binary
+*.tar.gz binary
+*.db binary
+*.sqlite binary
+*.jsonl linguist-language=JSON
+
+# Markdown uses trailing spaces for line breaks — disable trailing-space check
+*.md whitespace=-trailing-space
+*.txt whitespace=-trailing-space

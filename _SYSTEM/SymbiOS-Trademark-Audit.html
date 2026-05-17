@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SymbiOS — Markenrechtliches Risikoaudit</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --cyan-glow: hsl(96,68%,74%);
+    --gold-solar: hsl(90,100%,36%);
+    --red-fusion: hsl(12,84%,58%);
+    --amber: hsl(38,100%,55%);
+    --silver-albedo: hsl(0,0%,97%);
+    --text-dim: hsl(0,0%,66%);
+    --text-muted: hsl(0,0%,44%);
+    --bg-void: #000;
+    --bg-surface: hsla(0,0%,8%,0.92);
+    --bg-glass: hsla(0,0%,8%,0.72);
+    --bg-card: hsla(0,0%,6%,0.95);
+    --border: rgba(159,232,115,0.14);
+    --border-dim: rgba(159,232,115,0.07);
+    --danger: hsl(12,84%,58%);
+    --warning: hsl(38,100%,55%);
+    --safe: hsl(96,68%,74%);
+    --neutral: hsl(0,0%,55%);
+    --risk-critical: hsl(0,80%,52%);
+    --risk-high: hsl(12,84%,58%);
+    --risk-mid: hsl(38,100%,55%);
+    --risk-low: hsl(68,60%,48%);
+    --risk-minimal: hsl(96,68%,60%);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    background: var(--bg-void);
+    color: var(--silver-albedo);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Ambient grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(159,232,115,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(159,232,115,0.03) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Top scanline */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan-glow), transparent);
+    opacity: 0.6;
+    z-index: 100;
+  }
+
+  .page-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* ── HEADER ── */
+  .doc-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+    margin-bottom: 48px;
+  }
+
+  .doc-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .doc-badge {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border: 1px solid var(--border-dim);
+    background: var(--bg-card);
+  }
+
+  .doc-date {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .doc-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--silver-albedo);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .doc-title span {
+    color: var(--cyan-glow);
+  }
+
+  .doc-subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── VERDICT BANNER ── */
+  .verdict-banner {
+    background: hsla(12,84%,8%,0.9);
+    border: 1px solid hsla(12,84%,38%,0.4);
+    border-left: 3px solid var(--risk-critical);
+    padding: 20px 24px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .verdict-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 200px; height: 100%;
+    background: radial-gradient(ellipse at right, hsla(12,84%,28%,0.12), transparent);
+    pointer-events: none;
+  }
+
+  .verdict-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--risk-high);
+    margin-bottom: 8px;
+  }
+
+  .verdict-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--silver-albedo);
+    margin-bottom: 12px;
+  }
+
+  .verdict-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .verdict-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    padding: 12px;
+  }
+
+  .verdict-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .verdict-stat-label {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── SECTION ── */
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-dim);
+  }
+
+  .section-num {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+    min-width: 24px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan-glow);
+    font-weight: 600;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border-dim);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+
+  .card-label {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  /* ── RISK TABLE ── */
+  .risk-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+  }
+
+  .risk-table th {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+  }
+
+  .risk-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-dim);
+    font-size: 12px;
+    vertical-align: middle;
+  }
+
+  .risk-table tr:last-child td { border-bottom: none; }
+
+  .risk-table tr { transition: background 0.15s; }
+  .risk-table tr:hover td { background: hsla(96,68%,74%,0.03); }
+
+  /* Risk badges */
+  .risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    border: 1px solid currentColor;
+  }
+
+  .risk-critical { color: var(--risk-critical); border-color: hsla(0,80%,52%,0.35); background: hsla(0,80%,52%,0.08); }
+  .risk-high     { color: var(--risk-high);     border-color: hsla(12,84%,58%,0.35); background: hsla(12,84%,58%,0.08); }
+  .risk-mid      { color: var(--risk-mid);      border-color: hsla(38,100%,55%,0.35); background: hsla(38,100%,55%,0.08); }
+  .risk-low      { color: var(--risk-low);      border-color: hsla(68,60%,48%,0.35); background: hsla(68,60%,48%,0.08); }
+  .risk-minimal  { color: var(--risk-minimal);  border-color: hsla(96,68%,60%,0.35); background: hsla(96,68%,60%,0.08); }
+
+  .status-registered { color: var(--risk-high); }
+  .status-insolvent  { color: var(--text-muted); }
+  .status-market     { color: var(--risk-mid); }
+
+  /* ── RISK BAR ── */
+  .risk-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .risk-bar-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.06);
+    position: relative;
+    max-width: 100px;
+  }
+
+  .risk-bar-fill {
+    height: 100%;
+    transition: width 0.6s cubic-bezier(.22,.68,0,1.2);
+  }
+
+  .risk-pct {
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 44px;
+    text-align: right;
+  }
+
+  /* ── NETWORK DIAGRAM ── */
+  .network-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .network-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, hsla(96,68%,74%,0.04), transparent 70%);
+    pointer-events: none;
+  }
+
+  #trademark-network {
+    width: 100%;
+    height: 420px;
+    display: block;
+  }
+
+  /* ── LEGAL PILLARS ── */
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .pillar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-top: 2px solid var(--cyan-glow);
+    padding: 16px;
+  }
+
+  .pillar-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cyan-glow);
+    opacity: 0.4;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+
+  .pillar-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--silver-albedo);
+    margin-bottom: 6px;
+  }
+
+  .pillar-body {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── COST TABLE ── */
+  .cost-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .cost-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .cost-item-label { font-size: 11px; color: var(--text-dim); }
+  .cost-item-value { font-size: 14px; font-weight: 600; color: var(--amber); }
+
+  .cost-total {
+    grid-column: 1 / -1;
+    background: hsla(38,100%,15%,0.3);
+    border: 1px solid hsla(38,100%,55%,0.25);
+    border-top: 2px solid var(--amber);
+  }
+
+  /* ── STEPS ── */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    padding: 16px;
+    position: relative;
+  }
+
+  .step::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+  }
+
+  .step-1::before { background: var(--cyan-glow); }
+  .step-2::before { background: var(--amber); }
+  .step-3::before { background: var(--risk-high); }
+
+  .step-num {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    min-width: 60px;
+    padding-top: 1px;
+  }
+
+  .step-content { flex: 1; }
+
+  .step-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .step-1 .step-title { color: var(--cyan-glow); }
+  .step-2 .step-title { color: var(--amber); }
+  .step-3 .step-title { color: var(--risk-high); }
+
+  .step-items { list-style: none; }
+  .step-items li {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 3px 0;
+    display: flex;
+    gap: 8px;
+  }
+  .step-items li::before { content: '›'; color: var(--text-muted); flex-shrink: 0; }
+
+  /* ── NAME ALTERNATIVES ── */
+  .alt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .alt-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    padding: 16px;
+  }
+
+  .alt-strategy {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-dim);
+  }
+
+  .alt-name {
+    font-size: 12px;
+    color: var(--cyan-glow);
+    padding: 4px 0;
+    transition: color 0.15s;
+  }
+
+  .alt-name:hover { color: var(--silver-albedo); }
+
+  .alt-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  /* ── DISCLAIMER ── */
+  .disclaimer {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-left: 2px solid var(--text-muted);
+    padding: 16px 20px;
+    margin-top: 48px;
+  }
+
+  .disclaimer-label {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .disclaimer p {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  .side-nav {
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 50;
+  }
+
+  .nav-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .nav-dot:hover, .nav-dot.active {
+    background: var(--cyan-glow);
+    box-shadow: 0 0 8px rgba(159,232,115,0.5);
+  }
+
+  .nav-dot[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--silver-albedo);
+    white-space: nowrap;
+  }
+
+  /* ── INLINE HIGHLIGHT ── */
+  .hl-red    { color: var(--risk-critical); font-weight: 600; }
+  .hl-amber  { color: var(--amber); font-weight: 600; }
+  .hl-green  { color: var(--cyan-glow); font-weight: 600; }
+  .hl-dim    { color: var(--text-dim); }
+  .mono      { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── KEY RULE ── */
+  .key-rule {
+    background: hsla(12,84%,8%,0.7);
+    border: 1px solid hsla(12,84%,38%,0.3);
+    border-left: 3px solid var(--risk-high);
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 12px;
+    color: var(--silver-albedo);
+  }
+
+  .key-rule strong { color: var(--risk-high); }
+
+  /* ── SOURCE TAG ── */
+  .source-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 3px 8px;
+    border: 1px solid var(--border-dim);
+    background: var(--bg-card);
+    margin-bottom: 16px;
+  }
+
+  .source-dot { width: 5px; height: 5px; background: var(--cyan-glow); border-radius: 50%; flex-shrink: 0; animation: pulse 2s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── ZOMBIE MARK BOX ── */
+  .zombie-box {
+    background: hsla(0,0%,10%,0.6);
+    border: 1px solid var(--border-dim);
+    padding: 14px 16px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .zombie-box strong { color: var(--amber); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .verdict-grid, .pillars, .alt-grid, .cost-grid { grid-template-columns: 1fr; }
+    .side-nav { display: none; }
+    .doc-meta { flex-direction: column; gap: 8px; }
+    .page-wrap { padding: 24px 16px 60px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Side Navigation -->
+<nav class="side-nav" aria-label="Seitennavigation">
+  <div class="nav-dot active" title="Fazit"    onclick="scrollTo('verdict')"></div>
+  <div class="nav-dot"        title="Konzept"  onclick="scrollTo('concept')"></div>
+  <div class="nav-dot"        title="EUIPO"    onclick="scrollTo('euipo')"></div>
+  <div class="nav-dot"        title="Netzwerk" onclick="scrollTo('network')"></div>
+  <div class="nav-dot"        title="Recht"    onclick="scrollTo('legal')"></div>
+  <div class="nav-dot"        title="Kosten"   onclick="scrollTo('costs')"></div>
+  <div class="nav-dot"        title="Aktion"   onclick="scrollTo('action')"></div>
+  <div class="nav-dot"        title="Alternat" onclick="scrollTo('alternatives')"></div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- ── HEADER ── -->
+  <header class="doc-header">
+    <div class="doc-meta">
+      <span class="doc-badge">Markenrechtliches Risikoaudit</span>
+      <span class="doc-date">Erstellt: 15.05.2026 · NUDIMMUD NexusPulse</span>
+    </div>
+    <h1 class="doc-title"><span>SymbiOS</span> — EU-Markenrecht Audit</h1>
+    <p class="doc-subtitle">Startup-Gründer Österreich · Nizza-Klassen 35 + 42 · KI-gestützte Büro-IT &amp; Workflow-Optimierung</p>
+  </header>
+
+  <!-- ── VERDICT BANNER ── -->
+  <section id="verdict" class="section">
+    <div class="verdict-banner">
+      <div class="verdict-label">⬡ Gesamtbewertung</div>
+      <div class="verdict-title">HOHES RISIKO — "SymbiOS" ist in den Zielklassen 35 + 42 stark belegt</div>
+      <p style="font-size:12px;color:var(--text-dim);max-width:700px;">
+        Es existieren mindestens 3 aktive EU-Marken mit identischem phonetischen Kern in Klasse 42. Celonis/Symbioworld deckt denselben Markt ab. Eine EUIPO-Anmeldung von "SymbiOS" würde mit hoher Wahrscheinlichkeit einen Widerspruch provozieren.
+      </p>
+      <div class="verdict-grid">
+        <div class="verdict-stat">
+          <div class="verdict-stat-value hl-red">85–95%</div>
+          <div class="verdict-stat-label">Konfliktwahrscheinlichkeit (höchster Einzelkonflikt)</div>
+        </div>
+        <div class="verdict-stat">
+          <div class="verdict-stat-value hl-amber">3</div>
+          <div class="verdict-stat-label">Aktive Klasse-42-Treffer in EUIPO</div>
+        </div>
+        <div class="verdict-stat">
+          <div class="verdict-stat-value hl-red">€900+</div>
+          <div class="verdict-stat-label">Anmeldekosten zzgl. Widerspruchsrisiko €320–€1.200</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 1: KONZEPT ── -->
+  <section id="concept" class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="section-title">Geschäftskonzept</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="card">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <div>
+          <div class="card-label">Startup-Profil</div>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:5px 0;color:var(--text-muted);font-size:11px;min-width:120px;">Name</td><td style="font-size:12px;color:var(--silver-albedo);">SymbiOS</td></tr>
+            <tr><td style="padding:5px 0;color:var(--text-muted);font-size:11px;">Gründer</td><td style="font-size:12px;color:var(--silver-albedo);">Mike (Österreich, Frühphase)</td></tr>
+            <tr><td style="padding:5px 0;color:var(--text-muted);font-size:11px;">Markt</td><td style="font-size:12px;color:var(--silver-albedo);">Österreich / EU</td></tr>
+            <tr><td style="padding:5px 0;color:var(--text-muted);font-size:11px;">Stadium</td><td style="font-size:12px;color:var(--silver-albedo);">Ideenphase / Vorgründung</td></tr>
+          </table>
+        </div>
+        <div>
+          <div class="card-label">Leistungsangebot</div>
+          <p style="font-size:12px;color:var(--text-dim);line-height:1.6;">KI-gestützte Optimierung von IT-Systemen und Arbeitsabläufen in Büroumgebungen. Vereinfachung und Automation von Computer-Workflows mittels künstlicher Intelligenz.</p>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border:1px solid hsla(12,84%,58%,0.4);color:var(--risk-high);background:hsla(12,84%,58%,0.06);">Klasse 42 · IT/Software/KI</span>
+            <span style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border:1px solid hsla(38,100%,55%,0.4);color:var(--amber);background:hsla(38,100%,55%,0.06);">Klasse 35 · Unternehmensberatung</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 2: EUIPO LANDSCAPE ── -->
+  <section id="euipo" class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="section-title">EUIPO Markenlandschaft — Live-Daten</span>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="source-tag">
+      <span class="source-dot"></span>
+      Quelle: euipo.europa.eu/eSearch · Suchanfrage "SYMBIO" · 288 Treffer · Abfrage 15.05.2026
+    </div>
+
+    <!-- Class 42 Critical -->
+    <div class="card-label" style="margin-bottom:8px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--risk-high);">⚠ Klasse 42 — Kritische Konflikte (Direkte Zielklasse)</div>
+    <table class="risk-table" style="margin-bottom:24px;">
+      <thead>
+        <tr>
+          <th>Marke</th>
+          <th>Inhaber</th>
+          <th>TM-Nummer</th>
+          <th>Klassen</th>
+          <th>Status</th>
+          <th>Konflikt</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:600;color:var(--silver-albedo);">SYMBIO</td>
+          <td style="color:var(--text-dim);">IPMED S.à.r.l.</td>
+          <td style="color:var(--text-muted);font-size:11px;">Okt. 2022</td>
+          <td><span style="font-size:10px;font-weight:600;color:var(--risk-critical);">42</span></td>
+          <td><span class="status-registered">● REGISTRIERT</span></td>
+          <td>
+            <div class="risk-bar-wrap">
+              <div class="risk-bar-track"><div class="risk-bar-fill" style="width:90%;background:var(--risk-critical);"></div></div>
+              <span class="risk-pct hl-red">85–95%</span>
+            </div>
+            <span class="risk-badge risk-critical" style="margin-top:4px;">KRITISCH</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:var(--silver-albedo);">SYMBIO</td>
+          <td style="color:var(--text-dim);">Symbio Finland Oy</td>
+          <td style="color:var(--text-muted);font-size:11px;">008771461</td>
+          <td><span style="font-size:10px;font-weight:600;color:var(--risk-high);">9, 41, <span style="color:var(--risk-critical);">42</span></span></td>
+          <td><span class="status-registered">● REGISTRIERT 2009</span></td>
+          <td>
+            <div class="risk-bar-wrap">
+              <div class="risk-bar-track"><div class="risk-bar-fill" style="width:75%;background:var(--risk-high);"></div></div>
+              <span class="risk-pct hl-red">70–80%</span>
+            </div>
+            <span class="risk-badge risk-high" style="margin-top:4px;">HOCH</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:var(--silver-albedo);">SymBio</td>
+          <td style="color:var(--text-dim);">WTE Wassertechnik GmbH</td>
+          <td style="color:var(--text-muted);font-size:11px;">000291328</td>
+          <td><span style="font-size:10px;font-weight:600;color:var(--risk-mid);">9, 11, 37, 40, <span style="color:var(--risk-critical);">42</span></span></td>
+          <td><span class="status-registered">● REGISTRIERT 1996, aktiv Feb. 2026</span></td>
+          <td>
+            <div class="risk-bar-wrap">
+              <div class="risk-bar-track"><div class="risk-bar-fill" style="width:60%;background:var(--risk-mid);"></div></div>
+              <span class="risk-pct hl-amber">55–65%</span>
+            </div>
+            <span class="risk-badge risk-mid" style="margin-top:4px;">MITTEL-HOCH</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Class 35 Secondary -->
+    <div class="card-label" style="margin-bottom:8px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);">▲ Klasse 35 — Sekundäre Konflikte (Beratungsklasse)</div>
+    <table class="risk-table" style="margin-bottom:24px;">
+      <thead>
+        <tr>
+          <th>Marke</th>
+          <th>Inhaber</th>
+          <th>Klassen</th>
+          <th>Status</th>
+          <th>Konflikt</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:600;color:var(--silver-albedo);">SYMBIOSCIENCE</td>
+          <td style="color:var(--text-dim);">Mars, Incorporated</td>
+          <td><span style="font-size:10px;">5, 30, <span style="color:var(--amber);">35</span>, 42, 44</span></td>
+          <td><span class="status-registered">● REGISTRIERT 2005</span></td>
+          <td>
+            <div class="risk-bar-wrap">
+              <div class="risk-bar-track"><div class="risk-bar-fill" style="width:25%;background:var(--risk-low);"></div></div>
+              <span class="risk-pct" style="color:var(--risk-low);">20–30%</span>
+            </div>
+            <span class="risk-badge risk-low" style="margin-top:4px;">NIEDRIG</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:var(--silver-albedo);">MARS SYMBIOSCIENCE</td>
+          <td style="color:var(--text-dim);">Mars, Incorporated</td>
+          <td><span style="font-size:10px;">5, 30, <span style="color:var(--amber);">35</span>, 42, 44</span></td>
+          <td><span class="status-registered">● REGISTRIERT 2005</span></td>
+          <td>
+            <div class="risk-bar-wrap">
+              <div class="risk-bar-track"><div class="risk-bar-fill" style="width:25%;background:var(--risk-low);"></div></div>
+              <span class="risk-pct" style="color:var(--risk-low);">20–30%</span>
+            </div>
+            <span class="risk-badge risk-low" style="margin-top:4px;">NIEDRIG</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Market Conflicts -->
+    <div class="card-label" style="margin-bottom:8px;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted);">◈ Operative Marktkonkurrenz (keine EU-TM, aber gleicher Markt)</div>
+    <table class="risk-table">
+      <thead>
+        <tr>
+          <th>Unternehmen</th>
+          <th>Land</th>
+          <th>Geschäftsfeld</th>
+          <th>Risiko</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:600;color:var(--silver-albedo);">Symbioworld GmbH <span style="font-weight:400;font-size:10px;color:var(--text-muted);">(Celonis)</span></td>
+          <td style="color:var(--text-dim);">Deutschland</td>
+          <td style="color:var(--text-dim);font-size:12px;">KI-gestützte BPM- und Workflow-Software — nahezu identisches Produktprofil</td>
+          <td>
+            <div class="risk-bar-wrap">
+              <div class="risk-bar-track"><div class="risk-bar-fill" style="width:47%;background:var(--risk-mid);"></div></div>
+              <span class="risk-pct hl-amber">40–55%</span>
+            </div>
+            <span class="risk-badge risk-mid" style="margin-top:4px;">MITTEL</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:var(--silver-albedo);">SYMBIOS Workspaces GmbH</td>
+          <td style="color:var(--text-dim);">Österreich (Linz)</td>
+          <td style="color:var(--text-dim);font-size:12px;">Büroplanung &amp; Change Management — <span class="status-insolvent">IN INSOLVENZ/LIQUIDATION</span></td>
+          <td>
+            <div class="risk-bar-wrap">
+              <div class="risk-bar-track"><div class="risk-bar-fill" style="width:20%;background:var(--risk-low);"></div></div>
+              <span class="risk-pct" style="color:var(--risk-low);">15–25%</span>
+            </div>
+            <span class="risk-badge risk-low" style="margin-top:4px;">NIEDRIG</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── SECTION 3: NETWORK DIAGRAM ── -->
+  <section id="network" class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <span class="section-title">Markennetzwerk — Visuelle Risikolandschaft</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="network-wrap">
+      <canvas id="trademark-network"></canvas>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:10px;flex-wrap:wrap;justify-content:center;">
+      <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:var(--risk-critical);display:inline-block;"></span>KRITISCH (85–95%)</span>
+      <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:var(--risk-high);display:inline-block;"></span>HOCH (70–80%)</span>
+      <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:var(--risk-mid);display:inline-block;"></span>MITTEL (40–65%)</span>
+      <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:var(--risk-low);display:inline-block;"></span>NIEDRIG (15–30%)</span>
+      <span style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:hsl(96,68%,60%);display:inline-block;"></span>ZIEL (SymbiOS)</span>
+    </div>
+  </section>
+
+  <!-- ── SECTION 4: RECHTLICHE GRUNDLAGEN ── -->
+  <section id="legal" class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <span class="section-title">Rechtliche Grundlagen</span>
+      <div class="section-line"></div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver-albedo);margin-bottom:12px;">EU-Verwechslungsschutz: <em style="font-style:normal;color:var(--cyan-glow);">Sabel v Puma</em> Test (CJEU C-251/95)</div>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">Grundlage aller EU-Markenkonflikte ist der <strong style="color:var(--silver-albedo);">Global Appreciation Test</strong> aus dem EuGH-Urteil Sabel v Puma. Drei interdependente Säulen bestimmen, ob Verwechslungsgefahr vorliegt:</p>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="pillar-num">01</div>
+          <div class="pillar-title">Zeichenähnlichkeit</div>
+          <div class="pillar-body">Visuell, phonetisch und konzeptionell. Das dominante Element ist entscheidend. Der Verbraucher vergleicht <em>aus dem Gedächtnis</em>, nicht nebeneinander.</div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-num">02</div>
+          <div class="pillar-title">Waren-/Dienstleistungsähnlichkeit</div>
+          <div class="pillar-body">Natur, Zweck, Vertriebskanäle, Komplementarität, Wettbewerb (Canon-Kriterien). Geringere Ähnlichkeit hier kann durch hohe Zeichenähnlichkeit ausgeglichen werden.</div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-num">03</div>
+          <div class="pillar-title">Unterscheidungskraft</div>
+          <div class="pillar-body">Je stärker die ältere Marke, desto breiter ihr Schutzbereich. Schwächere ältere Marken schützen weniger weit — aber "SYMBIO" ist durchaus kennzeichnungskräftig.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="key-rule">
+      <strong>Schlüsselanalyse für SymbiOS:</strong> Das dominante Element ist <strong>"Symbi"</strong> — konzeptionell eindeutig auf "Symbiose" verweisend. Das Suffix <strong>"OS"</strong> ist beschreibend (Operating System) und gilt als schwaches Element. EUIPO-Prüfer und -Gerichte werden die phonetische und konzeptionelle Identität mit <strong>SYMBIO</strong> als Verwechslungsgefahr werten. Der "imperfect recollection"-Grundsatz verstärkt dies weiter.
+    </div>
+
+    <div style="margin-top:20px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver-albedo);margin-bottom:12px;">Zombie-Marken: SYMBIOS Workspaces GmbH in Insolvenz</div>
+      <div class="zombie-box">
+        <strong>Wichtig:</strong> Marken überleben die Insolvenz des Inhabers automatisch. Nach österreichischem Insolvenzrecht (IO) und EU-Markenverordnung (Art. 19 EUTMR) bleiben Zeichen voll im Register eingetragen und durchsetzbar — bis Nichtverlängerung, Aufgabe oder Löschungsklage. Der Insolvenzverwalter verwaltet die Marke als Vermögenswert. <strong>Eine Insolvenz beseitigt nicht das Prioritätsrecht.</strong> Zombie-Marken blockieren neue Anmeldungen, auch wenn der Inhaber praktisch nicht klagen kann.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 5: KOSTEN & ZEITPLAN ── -->
+  <section id="costs" class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <span class="section-title">Kosten &amp; Zeitplan</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="cost-grid">
+      <div class="cost-item">
+        <span class="cost-item-label">EUIPO Grundgebühr (1. Klasse)</span>
+        <span class="cost-item-value">€ 850</span>
+      </div>
+      <div class="cost-item">
+        <span class="cost-item-label">Aufschlag 2. Klasse</span>
+        <span class="cost-item-value">€ 50</span>
+      </div>
+      <div class="cost-item">
+        <span class="cost-item-label">Widerspruchsverfahren (Verteidigung)</span>
+        <span class="cost-item-value" style="color:var(--risk-high);">€ 320–1.200</span>
+      </div>
+      <div class="cost-item">
+        <span class="cost-item-label">Markenanwalt (150–400 €/h)</span>
+        <span class="cost-item-value" style="color:var(--amber);">€ 100–400</span>
+      </div>
+      <div class="cost-item cost-total">
+        <span class="cost-item-label" style="color:var(--amber);font-weight:600;">Gesamtrisiko bei Widerspruch</span>
+        <span class="cost-item-value" style="color:var(--risk-high);font-size:18px;">€ 1.270–2.650+</span>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:var(--bg-card);border:1px solid var(--border-dim);padding:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Zeitplan — Unbestrittene Anmeldung</div>
+          <div style="font-size:12px;color:var(--text-dim);">4–6 Monate bis Eintragung</div>
+        </div>
+        <div>
+          <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Zeitplan — Mit Widerspruch</div>
+          <div style="font-size:12px;color:var(--risk-high);">1–2+ Jahre, ungewisser Ausgang</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-dim);">
+        <div style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Widerspruchsfenster nach Veröffentlichung</div>
+        <div style="font-size:12px;color:var(--amber);">3 Monate — in dieser Zeit kann jeder Inhaber einer älteren ähnlichen Marke Widerspruch einlegen</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 6: HANDLUNGSEMPFEHLUNGEN ── -->
+  <section id="action" class="section">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <span class="section-title">Handlungsempfehlungen</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="steps">
+      <div class="step step-1">
+        <div class="step-num">Stufe 1<br><span style="color:var(--cyan-glow);">Sofort<br>Kostenlos</span></div>
+        <div class="step-content">
+          <div class="step-title">Eigenrecherche — Vor jedem anderen Schritt</div>
+          <ul class="step-items">
+            <li>EUIPO eSearch: exakt "symbiOS", "symbios", "symbio" — Filter: Klassen 35 + 42</li>
+            <li>TMview.eu — breite internationale Datenbank (WIPO, nationale Ämter)</li>
+            <li>WIPO Global Brand Database</li>
+            <li>Google + LinkedIn: nicht-registrierte kommerzielle Nutzung in AT/DE prüfen</li>
+            <li>Domainverfügbarkeit: .com, .io, .at, .ai</li>
+          </ul>
+        </div>
+      </div>
+      <div class="step step-2">
+        <div class="step-num">Stufe 2<br><span style="color:var(--amber);">Vor Anmeldung<br>€ 0–200</span></div>
+        <div class="step-content">
+          <div class="step-title">Professionelle Ähnlichkeitsrecherche</div>
+          <ul class="step-items">
+            <li>Österreichisches Patentamt — Ähnlichkeitsrecherche-Service: schriftlicher Bericht in &lt;24h, günstiger als Anwalt</li>
+            <li>Markenanwalt Kurzberatung (30 Min, ~€100–200): WKO bietet oft kostenlose Erstberatung für Gründer</li>
+            <li>Ergebnis: verbindliche Risikoeinschätzung mit Rechtsgrundlage — NICHT durch dieses Dokument ersetzbar</li>
+          </ul>
+        </div>
+      </div>
+      <div class="step step-3">
+        <div class="step-num">Stufe 3<br><span style="color:var(--risk-high);">Strategische<br>Entscheidung</span></div>
+        <div class="step-content">
+          <div class="step-title">Drei Szenarien</div>
+          <ul class="step-items">
+            <li><strong style="color:var(--cyan-glow);">Option A (Empfohlen):</strong> Anderen Namen wählen — Neustart mit gecleantem Namespace, Vorab-Clearance via TMview, minimales Risiko</li>
+            <li><strong style="color:var(--amber);">Option B (Mittelweg):</strong> Markennamen mit starker Differenzierung — aber "SymbiOS.ai" hilft wenig, wenn der Wortstamm identisch bleibt; der Prüfer sieht "Symbi" als dominant</li>
+            <li><strong style="color:var(--risk-high);">Option C (Hohes Risiko):</strong> Anmeldung trotzdem versuchen — Kalkül: vielleicht kein Widerspruch in 3 Monaten — aber IPMED und Symbio Finland haben Ressourcen und Incentive; nicht empfohlen ohne Anwalt</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 7: ALTERNATIVE NAMEN ── -->
+  <section id="alternatives" class="section">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <span class="section-title">Alternative Namenstrategien</span>
+      <div class="section-line"></div>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:16px;">Bei aktuellem Risikoprofil wird Option A (Namensänderung) empfohlen. Drei Strategietypen mit Beispielen — alle vor Verwendung selbst auf TMview + EUIPO prüfen:</p>
+    <div class="alt-grid">
+      <div class="alt-card">
+        <div class="alt-strategy">Strategie A — Phonetische Divergenz</div>
+        <div class="alt-name">CogniFlow OS</div>
+        <div class="alt-name">SynaptiQ</div>
+        <div class="alt-name">NexelOS</div>
+        <div class="alt-desc">Andere Wortwurzel, technisches Suffix bleibt. Klare Distanz von "Symbi"-Stamm. Am einfachsten zu clearen.</div>
+      </div>
+      <div class="alt-card">
+        <div class="alt-strategy">Strategie B — Neologismus</div>
+        <div class="alt-name">Opthrium</div>
+        <div class="alt-name">Velosync</div>
+        <div class="alt-name">TessaraFlow</div>
+        <div class="alt-desc">Vollständig erfundenes Wort ohne Vorbild. Höchste Unterscheidungskraft, breitester Markenschutz. Erfordert aktive Markenbildung.</div>
+      </div>
+      <div class="alt-card">
+        <div class="alt-strategy">Strategie C — Beschreibend + Fantasieelement</div>
+        <div class="alt-name">Fluxly Office</div>
+        <div class="alt-name">Aptiv Workspace</div>
+        <div class="alt-name">Clerq AI</div>
+        <div class="alt-desc">Suggestiver Begriff + arbiträres Morphem. Leicht zu kommunizieren, oft noch verfügbar. Balance zwischen Originalität und Merkfähigkeit.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;background:var(--bg-card);border:1px solid var(--border-dim);padding:16px;">
+      <div style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--cyan-glow);margin-bottom:10px;">Mindest-Clearance-Checkliste vor Namensadoption</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+        <div style="font-size:11px;color:var(--text-dim);display:flex;gap:8px;"><span style="color:var(--cyan-glow);">①</span>EUIPO eSearch + TMview</div>
+        <div style="font-size:11px;color:var(--text-dim);display:flex;gap:8px;"><span style="color:var(--cyan-glow);">②</span>WIPO Global Brand Database</div>
+        <div style="font-size:11px;color:var(--text-dim);display:flex;gap:8px;"><span style="color:var(--cyan-glow);">③</span>Google + LinkedIn (nicht-registrierte Nutzung)</div>
+        <div style="font-size:11px;color:var(--text-dim);display:flex;gap:8px;"><span style="color:var(--cyan-glow);">④</span>Domain: .com + .io + .at + .ai</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DISCLAIMER ── -->
+  <div class="disclaimer">
+    <div class="disclaimer-label">Haftungsausschluss</div>
+    <p>Dieses Dokument ist ein KI-generiertes Recherche-Audit auf Basis öffentlich verfügbarer EUIPO-Daten (Live-Abfrage 15.05.2026) und allgemeiner Rechtssystematik. Es stellt <strong>keine Rechtsberatung</strong> dar und ersetzt nicht die Einschätzung eines zugelassenen Markenanwalts oder des Österreichischen Patentamts. Alle Konfliktwahrscheinlichkeiten sind analytische Schätzwerte, keine Rechtsgutachten. Für verbindliche Einschätzungen: Markenanwalt konsultieren oder beim Österreichischen Patentamt eine Ähnlichkeitsrecherche beauftragen. Erstellt mit NUDIMMUD NexusPulse · DeepSeek V4 Pro · EUIPO eSearch API.</p>
+  </div>
+
+</div><!-- .page-wrap -->
+
+<!-- ── NETWORK CANVAS ── -->
+<script>
+(function() {
+  const canvas = document.getElementById('trademark-network');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    const wrap = canvas.parentElement;
+    canvas.width = wrap.clientWidth - 48;
+    canvas.height = 420;
+    draw();
+  }
+
+  const nodes = [
+    // Center target
+    { id: 'symbios', label: 'SymbiOS', sub: '(Ziel)', x: 0.5, y: 0.5, r: 28, color: 'hsl(96,68%,60%)', risk: null, class42: true },
+    // Critical class 42
+    { id: 'ipmed',     label: 'SYMBIO', sub: 'IPMED S.à.r.l.\nKl.42 · 2022', x: 0.25, y: 0.28, r: 22, color: 'hsl(0,80%,52%)',   risk: '85–95%', class42: true },
+    { id: 'finland',   label: 'SYMBIO', sub: 'Symbio Finland\nKl.42 · 2009', x: 0.72, y: 0.22, r: 20, color: 'hsl(12,84%,58%)',  risk: '70–80%', class42: true },
+    { id: 'wte',       label: 'SymBio', sub: 'WTE Wassertechnik\nKl.42 · 1996', x: 0.78, y: 0.68, r: 18, color: 'hsl(38,100%,55%)', risk: '55–65%', class42: true },
+    // Market conflict
+    { id: 'celonis',   label: 'Symbioworld', sub: 'Celonis (DE)\nKI-Workflow', x: 0.22, y: 0.72, r: 16, color: 'hsl(38,100%,45%)', risk: '40–55%', class42: false },
+    // Low risk
+    { id: 'symbios_at', label: 'SYMBIOS', sub: 'Workspaces AT\nInsolvenz', x: 0.5, y: 0.15, r: 13, color: 'hsl(68,60%,48%)',   risk: '15–25%', class42: false },
+    { id: 'mars',      label: 'SYMBIO-\nSCIENCE', sub: 'Mars Inc.\nKl.35+42', x: 0.12, y: 0.5, r: 13, color: 'hsl(68,60%,42%)', risk: '20–30%', class42: false },
+  ];
+
+  const edges = [
+    { from: 'symbios', to: 'ipmed',      color: 'rgba(180,40,40,0.55)',  width: 2.5 },
+    { from: 'symbios', to: 'finland',    color: 'rgba(220,80,40,0.45)',  width: 2 },
+    { from: 'symbios', to: 'wte',        color: 'rgba(220,160,0,0.40)',  width: 1.5 },
+    { from: 'symbios', to: 'celonis',    color: 'rgba(200,130,0,0.30)',  width: 1.5 },
+    { from: 'symbios', to: 'symbios_at', color: 'rgba(140,180,60,0.25)', width: 1 },
+    { from: 'symbios', to: 'mars',       color: 'rgba(140,180,60,0.25)', width: 1 },
+  ];
+
+  let t = 0;
+  let hovered = null;
+
+  function draw() {
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = 'rgba(4,4,4,0.0)';
+    ctx.fillRect(0, 0, W, H);
+
+    // Edges
+    edges.forEach(e => {
+      const fromNode = nodes.find(n => n.id === e.from);
+      const toNode   = nodes.find(n => n.id === e.to);
+      const fx = fromNode.x * W, fy = fromNode.y * H;
+      const tx = toNode.x * W,   ty = toNode.y * H;
+
+      // Pulse along edge
+      const pulse = (Math.sin(t * 0.04 + edges.indexOf(e)) + 1) / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      ctx.lineTo(tx, ty);
+      ctx.strokeStyle = e.color;
+      ctx.lineWidth = e.width * (0.7 + 0.3 * pulse);
+      ctx.setLineDash([4, 6]);
+      ctx.lineDashOffset = -t * 0.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Arrow head
+      const angle = Math.atan2(ty - fy, tx - fx);
+      const arrowX = tx - toNode.r * Math.cos(angle);
+      const arrowY = ty - toNode.r * Math.sin(angle);
+      ctx.beginPath();
+      ctx.moveTo(arrowX, arrowY);
+      ctx.lineTo(arrowX - 8 * Math.cos(angle - 0.4), arrowY - 8 * Math.sin(angle - 0.4));
+      ctx.lineTo(arrowX - 8 * Math.cos(angle + 0.4), arrowY - 8 * Math.sin(angle + 0.4));
+      ctx.closePath();
+      ctx.fillStyle = e.color;
+      ctx.fill();
+    });
+
+    // Nodes
+    nodes.forEach(node => {
+      const x = node.x * W;
+      const y = node.y * H;
+      const isHovered = hovered === node.id;
+      const r = node.r * (isHovered ? 1.15 : 1);
+      const breathe = node.id === 'symbios' ? Math.sin(t * 0.05) * 2 : 0;
+
+      // Glow
+      const grd = ctx.createRadialGradient(x, y, 0, x, y, r * 2.5);
+      grd.addColorStop(0, node.color.replace('hsl', 'hsla').replace(')', ',0.2)'));
+      grd.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(x, y, r * 2.5 + breathe, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+
+      // Circle
+      ctx.beginPath();
+      ctx.arc(x, y, r + breathe, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(8,8,8,0.92)';
+      ctx.fill();
+      ctx.strokeStyle = node.color;
+      ctx.lineWidth = isHovered ? 2.5 : 1.5;
+      ctx.stroke();
+
+      // Label
+      ctx.font = `600 10px 'JetBrains Mono', monospace`;
+      ctx.fillStyle = node.color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const lines = node.label.split('\n');
+      lines.forEach((line, i) => {
+        ctx.fillText(line, x, y + (i - (lines.length - 1) / 2) * 11);
+      });
+
+      // Sub-label (below node)
+      if (isHovered || node.id === 'symbios') {
+        ctx.font = `400 9px 'JetBrains Mono', monospace`;
+        ctx.fillStyle = 'rgba(200,200,200,0.7)';
+        const subLines = node.sub.split('\n');
+        subLines.forEach((line, i) => {
+          ctx.fillText(line, x, y + r + breathe + 12 + i * 11);
+        });
+      }
+
+      // Risk badge
+      if (node.risk) {
+        const bw = 44, bh = 14;
+        ctx.fillStyle = 'rgba(10,10,10,0.9)';
+        ctx.strokeStyle = node.color + '88';
+        ctx.lineWidth = 1;
+        ctx.fillRect(x - bw/2, y - r - breathe - 18, bw, bh);
+        ctx.strokeRect(x - bw/2, y - r - breathe - 18, bw, bh);
+        ctx.font = `600 8px 'JetBrains Mono', monospace`;
+        ctx.fillStyle = node.color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(node.risk, x, y - r - breathe - 11);
+      }
+    });
+
+    t++;
+    requestAnimationFrame(draw);
+  }
+
+  // Hover
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    const W = canvas.width, H = canvas.height;
+    hovered = null;
+    nodes.forEach(n => {
+      const dx = n.x * W - mx, dy = n.y * H - my;
+      if (Math.sqrt(dx*dx + dy*dy) < n.r + 8) hovered = n.id;
+    });
+    canvas.style.cursor = hovered ? 'pointer' : 'default';
+  });
+  canvas.addEventListener('mouseleave', () => { hovered = null; });
+
+  window.addEventListener('resize', resize);
+  resize();
+})();
+
+// Nav scroll
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Active nav dots on scroll
+const sections = ['verdict','concept','euipo','network','legal','costs','action','alternatives'];
+const dots = document.querySelectorAll('.nav-dot');
+window.addEventListener('scroll', () => {
+  let active = 0;
+  sections.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top < window.innerHeight * 0.5) active = i;
+  });
+  dots.forEach((d, i) => d.classList.toggle('active', i === active));
+}, { passive: true });
+</script>
+
+</body>
+</html>

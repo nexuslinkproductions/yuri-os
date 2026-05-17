@@ -17,9 +17,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OFFLOAD_RUNNER="$SCRIPT_DIR/offload-runner.mjs"
 OFFLOAD_QUEUE="$SCRIPT_DIR/offload-queue.mjs"
 OFFLOAD_CONTRACT="$SCRIPT_DIR/offload-contract.mjs"
+AUTH_HOOK="$SCRIPT_DIR/auth.mjs"
 BACKEND_URL="http://127.0.0.1:3004"
-# Master key for internal API access
-API_KEY="nudimmud-master-key-2026-04-23"
 # Ollama paths removed — lane deprecated
 
 # Bash subprocesses (e.g. Claude Code Bash tool) don't inherit ~/.zshrc exports.
@@ -128,7 +127,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-qwen|nvidia-phi|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -137,7 +136,7 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-qwen|nvidia-phi|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
       return 0
       ;;
   esac
@@ -270,6 +269,15 @@ build_route_payload() {
   node -e 'const prompt = process.argv[1] ?? ""; const intent = process.argv[2] ?? ""; const payload = { prompt }; if (intent) payload.intent = intent; process.stdout.write(JSON.stringify(payload));' "$prompt" "$intent"
 }
 
+load_route_auth_headers() {
+  ROUTE_AUTH_HEADERS=()
+  if [[ -f "$AUTH_HOOK" ]]; then
+    while IFS= read -r auth_arg; do
+      ROUTE_AUTH_HEADERS+=("$auth_arg")
+    done < <(node "$AUTH_HOOK" curl-headers "$BACKEND_URL" 2>/dev/null || true)
+  fi
+}
+
 dry_run_model_override() {
   local target_model="$1"
   local prompt="$2"
@@ -292,6 +300,20 @@ dry_run_model_override() {
       nvidia-deepseek|deepseek-ai/*)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$target_model"
+        ;;
+      nvidia|nvidia-nemotron|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-qwen|nvidia-phi|nvidia/*)
+        case "$target_model" in
+          nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
+          nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
+          nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
+          nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
+          nvidia-qwen)            _nim_model="qwen/qwen2.5-72b-instruct" ;;
+          nvidia-phi)             _nim_model="microsoft/phi-4" ;;
+          nvidia/*)               _nim_model="$target_model" ;;
+          *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
+        esac
+        printf '%s\n' "⬡ ROUTING_TO_NVIDIA [${_nim_model}]..." >&2
+        run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$_nim_model"
         ;;
       openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
@@ -404,6 +426,20 @@ dispatch_model() {
       nvidia-deepseek|deepseek-ai/*)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --model "$target_model"
+        ;;
+      nvidia|nvidia-nemotron|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-qwen|nvidia-phi|nvidia/*)
+        case "$target_model" in
+          nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
+          nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
+          nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
+          nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
+          nvidia-qwen)            _nim_model="qwen/qwen2.5-72b-instruct" ;;
+          nvidia-phi)             _nim_model="microsoft/phi-4" ;;
+          nvidia/*)               _nim_model="$target_model" ;;  # pass full NIM path directly
+          *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
+        esac
+        printf '%s\n' "⬡ ROUTING_TO_NVIDIA [${_nim_model}]..." >&2
+        run_offload_runner nvidia-deepseek "$prompt" --model "$_nim_model"
         ;;
       openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
@@ -556,8 +592,10 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
     dry_run_model_override "$MODEL_OVERRIDE" "$PROMPT"
     exit 0
   fi
+  load_route_auth_headers
   DECISION=$(curl -s --connect-timeout 3 --max-time 5 -X POST \
     -H "Content-Type: application/json" \
+    "${ROUTE_AUTH_HEADERS[@]}" \
     -d "$(build_route_payload "$PROMPT" "$ROUTE_INTENT")" \
     "$BACKEND_URL/api/swarm/route" 2>/dev/null) || DECISION=""
   MODEL=$(echo "$DECISION" | jq -r '.preferredModel // empty' 2>/dev/null) || MODEL=""
@@ -613,8 +651,10 @@ if [[ -n "$MODEL_OVERRIDE" ]]; then
 fi
 
 # ── Auto routing: try backend, fall back to local default ──
+load_route_auth_headers
 DECISION=$(curl -s --connect-timeout 3 --max-time 5 -X POST \
   -H "Content-Type: application/json" \
+  "${ROUTE_AUTH_HEADERS[@]}" \
   -d "$(build_route_payload "$PROMPT" "$ROUTE_INTENT")" \
   "$BACKEND_URL/api/swarm/route" 2>/dev/null) || DECISION=""
 
@@ -645,4 +685,17 @@ if [[ -z "$MODEL" || "$MODEL" == "null" ]]; then
 fi
 
 printf '%s\n' "⬡ OFFLOAD_ASSESSMENT :: intent=$INTENT runtime=$RUNTIME model=$MODEL" >&2
-dispatch_model "$MODEL" "$PROMPT"
+
+# Auto-fallback: if primary lane fails (429, auth error, timeout), route to DeepSeek.
+# This eliminates rate-limit time gates — work completes on fallback rather than blocking.
+if ! dispatch_model "$MODEL" "$PROMPT"; then
+  FAIL_EXIT=$?
+  if [[ "$MODEL" != "deepseek-v4-flash" && "$MODEL" != "deepseek-v4-pro" && "$MODEL" != "deepseek" ]]; then
+    AUTO_FALLBACK="deepseek-v4-flash"
+    [[ "${REASONING_DEPTH,,}" == "high" || "${REASONING_DEPTH,,}" == "xhigh" ]] && AUTO_FALLBACK="deepseek-v4-pro"
+    printf '%s\n' "⬡ LANE_FAILURE [model=$MODEL exit=$FAIL_EXIT] — auto-fallback to $AUTO_FALLBACK" >&2
+    dispatch_model "$AUTO_FALLBACK" "$PROMPT"
+  else
+    exit "$FAIL_EXIT"
+  fi
+fi

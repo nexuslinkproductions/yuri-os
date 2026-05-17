@@ -385,3 +385,34 @@ If token usage exceeds budgets consistently, auto-disable:
 | 2026-05-14T13:55 | 0m | 5 | ~2,600 | Read×2, Bash×2, TodoWrite×1 |
 | 2026-05-14T14:55 | 4m | 7 | ~3,100 | Bash×3, Write×3, mcp__ccd_session__mark_chapter×1 |
 | 2026-05-14T15:01 | 6m | 23 | ~8,500 | Bash×17, Read×2, Write×1 |
+| 2026-05-14T16:21 | 8m | 39 | ~17,700 | Bash×19, Read×9, Edit×6 |
+| 2026-05-14T16:56 | 4m | 28 | ~11,700 | Bash×17, Read×5, Edit×2 |
+| 2026-05-14T17:27 | 3m | 11 | ~6,000 | Write×5, Read×2, Edit×2 |
+| 2026-05-14T18:01 | 59m | 16 | ~6,800 | Bash×10, Read×3, Edit×1 |
+| 2026-05-14T19:06 | 0m | 2 | ~600 | Bash×2 |
+| 2026-05-14T20:32 | 5m | 8 | ~2,500 | Bash×7, ScheduleWakeup×1 |
+| 2026-05-14T20:48 | 0m | 0 | ~0 | none |
+| 2026-05-14T21:37 | 1m | 8 | ~2,800 | Bash×6, mcp__ccd_session__mark_chapter×1, Write×1 |
+| 2026-05-14T22:04 | 2m | 18 | ~10,000 | Read×8, Bash×6, Edit×3 |
+| 2026-05-14T23:11 | 0m | 1 | ~800 | Read×1 |
+| 2026-05-15T12:00 | 3m | 4 | ~2,200 | Read×2, Bash×2 |
+| 2026-05-15T13:33 | 9m | 25 | ~12,100 | Edit×10, Read×6, Bash×5 |
+| 2026-05-15T15:28 | 2m | 17 | ~5,800 | Bash×14, Read×1, AskUserQuestion×1 |
+| 2026-05-15T15:44 | 2m | 15 | ~5,700 | Bash×11, Read×2, ToolSearch×1 |
+| 2026-05-15T15:48 | 0m | 1 | ~400 | mcp__ccd_session__mark_chapter×1 |
+| 2026-05-15T16:50 | 14m | 6 | ~2,300 | Bash×3, Write×1, mcp__Control_Chrome__open_url×1 |
+| 2026-05-16T12:52 | 25m | 62 | ~24,700 | Bash×33, Write×8, mcp__Control_Chrome__execute_javascript×5 |
+| 2026-05-16T13:22 | 1m | 0 | ~0 | none |
+| 2026-05-16T13:25 | 5m | 12 | ~4,900 | Bash×7, Write×2, Read×1 |
+| 2026-05-16T13:39 | 12m | 13 | ~5,100 | Edit×5, Bash×5, mcp__computer-use__screenshot×2 |
+| 2026-05-16T14:09 | 6m | 1 | ~600 | Write×1 |
+| 2026-05-16T14:24 | 56m | 135 | ~57,000 | Bash×78, Read×23, Write×8 |
+| 2026-05-16T15:54 | 0m | 1 | ~400 | mcp__ccd_session__mark_chapter×1 |
+| 2026-05-16T16:19 | 8m | 45 | ~16,900 | Bash×31, Edit×7, Write×4 |
+| 2026-05-16T17:04 | 20m | 30 | ~11,600 | Bash×20, Write×4, Read×2 |
+| 2026-05-16T18:10 | 33m | 32 | ~13,800 | Bash×16, Write×7, Edit×6 |
+| 2026-05-16T19:19 | 2m | 9 | ~3,700 | Bash×5, Write×3, mcp__ccd_session__mark_chapter×1 |
+| 2026-05-16T19:23 | 6m | 12 | ~5,700 | Bash×7, Read×4, mcp__ccd_session__mark_chapter×1 |
+| 2026-05-16T20:03 | 1m | 8 | ~3,100 | Bash×3, Edit×3, Write×1 |
+| 2026-05-16T20:45 | 16m | 67 | ~41,100 | Write×18, Bash×13, Edit×12 |
+| 2026-05-16T21:49 | 19m | 57 | ~30,200 | Bash×26, Read×24, ToolSearch×2 |

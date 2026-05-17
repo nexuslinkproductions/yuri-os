@@ -23,7 +23,19 @@ triggers:
   - "landing page"
   - "build a page"
   - "design the dashboard"
-routing_note: "Primary for all NUDIMMUD UI work — reads design-memory.json and enforces HUD system. For non-NUDIMMUD surfaces use /frontend-design. Anthropic design:* skills handle critique, accessibility audits, and handoff docs."
+  - "color palette"
+  - "dark theme"
+  - "musubi brand"
+  - "ember accent"
+  - "build a report"
+  - "html report"
+  - "audit html"
+  - "glassmorphism"
+  - "atmosphere"
+  - "depth"
+  - "background depth"
+  - "design the audit"
+routing_note: "Primary for all NUDIMMUD UI work — reads design-memory.json and enforces HUD system. For non-NUDIMMUD surfaces use /frontend-design. Anthropic design:* skills handle critique, accessibility audits, and handoff docs. design-master is the single entry point for design prompts. Auto-activates via user-prompt-submit.js hook on design intent detection. design-context-inject.mjs provides live context from design-memory.json at prompt time."
 ---
 
 # Design Master — NUDIMMUD Visual Artist

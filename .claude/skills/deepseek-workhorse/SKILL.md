@@ -1,8 +1,11 @@
 ---
 name: deepseek-workhorse
-description: "NUDIMMUD Workhorse X1 — DeepSeek-backed orchestration for structured reasoning, planning, and execution."
+description: "NUDIMMUD Workhorse X1 — DeepSeek-backed orchestration for structured reasoning, planning, and execution via forge/plan/execute pipeline."
 triggers:
   - "/deepseek-workhorse"
+  - "/ds-pro"
+  - "/offload --reasoning high"
+routing_note: "For direct lane routing (flash/pro/research) use /deepseek-offload. Workhorse adds forge→plan→execute orchestration on top."
 ---
 
 # NUDIMMUD Workhorse X1
@@ -100,3 +103,17 @@ node Scripts/nudimmud-workhorse.mjs forge --generate-plan "analyze what Obsidian
 
 - `.claude/commands/deepseek-workhorse.md` — Claude Code command entry
 - `.codex/config.toml` — Codex CLI skill registration
+
+## Session Notes
+
+### 2026-05-17
+- session: 160m | peak ctx: 0% | compacts: 0
+- tools: Bash×119, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
+- session: 157m | peak ctx: 0% | compacts: 0
+- tools: Bash×116, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none

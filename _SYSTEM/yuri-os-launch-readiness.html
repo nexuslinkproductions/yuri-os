@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Yuri OS · Launch Readiness · 起動準備</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+JP:wght@200;300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void:    hsl(228, 30%, 4.5%);
+    --void2:   hsl(228, 28%, 7%);
+    --ember:   hsl(34, 78%, 66%);
+    --ember2:  hsla(34, 78%, 66%, 0.18);
+    --ember3:  hsla(34, 78%, 66%, 0.08);
+    --cyan:    #00e5bf;
+    --cyan2:   rgba(0, 229, 191, 0.12);
+    --purple:  #9B59FF;
+    --purple2: rgba(155, 89, 255, 0.12);
+    --green:   #00e676;
+    --red:     #ff5252;
+    --t1:      rgba(255,255,255,0.92);
+    --t2:      rgba(255,255,255,0.62);
+    --t3:      rgba(255,255,255,0.38);
+    --t4:      rgba(255,255,255,0.15);
+    --bd:      rgba(255,255,255,0.07);
+    --bd2:     hsla(34,78%,66%,0.22);
+    --glass:   rgba(255,255,255,0.03);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--void);
+    color: var(--t1);
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse 1200px 800px at 12% 8%,  hsla(34,78%,66%,0.09),  transparent 60%),
+      radial-gradient(ellipse 900px  600px at 88% 85%, hsla(228,65%,55%,0.07), transparent 60%),
+      radial-gradient(ellipse 500px  320px at 70% 18%, hsla(160,90%,50%,0.04), transparent 60%),
+      var(--void);
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+
+  .ghost-kanji {
+    position: absolute;
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 200;
+    color: rgba(255,255,255,0.026);
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+    right: -1%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* ── HERO ── */
+  .hero { padding: 88px 0 64px; position: relative; overflow: hidden; }
+
+  .hero-meta {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--t3);
+  }
+
+  .hero-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ember); box-shadow: 0 0 14px var(--ember);
+    animation: emberpulse 2.4s ease-in-out infinite;
+  }
+  @keyframes emberpulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%     { opacity:0.5; transform:scale(1.5); }
+  }
+
+  .hero .ghost-kanji { font-size: clamp(160px, 24vw, 280px); }
+
+  h1 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: clamp(46px, 6.5vw, 84px); font-weight: 800;
+    letter-spacing: -0.03em; line-height: 1.02; margin-bottom: 18px; color: var(--t1);
+  }
+  h1 .accent { color: var(--ember); }
+
+  .hero-kana {
+    display: block;
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(12px, 1.8vw, 17px); font-weight: 300;
+    color: var(--ember); opacity: 0.72; letter-spacing: 0.14em; margin-bottom: 6px;
+  }
+
+  .hero-sub {
+    font-size: 18px; color: var(--t2); max-width: 680px;
+    margin-bottom: 40px; line-height: 1.65;
+  }
+
+  /* readiness meter */
+  .readiness {
+    display: inline-flex; align-items: center; gap: 28px;
+    padding: 24px 32px; background: var(--glass);
+    border: 1px solid var(--bd2); border-radius: 16px; backdrop-filter: blur(24px);
+  }
+  .readiness-score { text-align: center; }
+  .readiness-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 62px; font-weight: 500; color: var(--ember);
+    letter-spacing: -0.04em; line-height: 1;
+  }
+  .readiness-denom { font-family: 'JetBrains Mono', monospace; font-size: 22px; color: var(--t3); }
+  .readiness-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.14em; margin-top: 5px; }
+  .readiness-bar-wrap { flex: 1; min-width: 260px; border-left: 1px solid var(--bd); padding-left: 28px; }
+  .readiness-bar-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--t3);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;
+    display: flex; justify-content: space-between; gap: 8px;
+  }
+  .readiness-bar-label .status-tag { color: var(--ember); }
+  .readiness-track { height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+  .readiness-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--ember), hsl(44,90%,60%));
+    box-shadow: 0 0 18px var(--ember2); width: 0;
+    transition: width 2.2s cubic-bezier(0.22,1,0.36,1);
+  }
+  .readiness-gates { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .gate-pip {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    padding: 3px 8px; border-radius: 4px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .gate-pip.fail { background: rgba(255,82,82,0.12); color: var(--red);   border: 1px solid rgba(255,82,82,0.22); }
+  .gate-pip.warn { background: var(--ember3);         color: var(--ember); border: 1px solid var(--ember2); }
+  .gate-pip.pass { background: rgba(0,230,118,0.1);   color: var(--green); border: 1px solid rgba(0,230,118,0.22); }
+
+  /* ── SECTIONS ── */
+  section { padding: 80px 0; position: relative; overflow: hidden; }
+  .section-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 44px; }
+  .section-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ember); letter-spacing: 0.16em; }
+  .section-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 36px; font-weight: 700; letter-spacing: -0.02em; color: var(--t1); }
+  .section-desc { color: var(--t2); max-width: 640px; margin-bottom: 44px; font-size: 15px; }
+  section .ghost-kanji { font-size: clamp(100px, 16vw, 190px); }
+
+  /* ── KPI ── */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+  .kpi-card { background: var(--glass); border: 1px solid var(--bd); border-radius: 14px; padding: 22px; backdrop-filter: blur(20px); transition: border-color 0.3s; }
+  .kpi-card:hover { border-color: var(--bd2); }
+  .kpi-num { font-family: 'JetBrains Mono', monospace; font-size: 38px; font-weight: 500; color: var(--ember); letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px; }
+  .kpi-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* ── TIMELINE ── */
+  .timeline-wrap { padding: 60px 0 40px; }
+  .timeline-track { position: relative; height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; margin: 80px 0; }
+  .timeline-progress { position: absolute; top: 0; left: 0; height: 100%; background: linear-gradient(90deg, var(--ember), hsla(34,78%,66%,0.4)); border-radius: 2px; box-shadow: 0 0 22px hsla(34,78%,66%,0.45); width: 0; }
+  .timeline-marker { position: absolute; transform: translate(-50%,-50%); top: 50%; }
+  .timeline-marker .node { width: 13px; height: 13px; border-radius: 50%; background: var(--void2); border: 2px solid rgba(255,255,255,0.14); position: relative; z-index: 2; }
+  .timeline-marker.done .node { background: var(--ember); border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember3), 0 0 18px hsla(34,78%,66%,0.5); }
+  .timeline-marker.now .node  { background: var(--cyan);  border-color: var(--cyan);  box-shadow: 0 0 0 5px var(--cyan2), 0 0 22px rgba(0,229,191,0.7); animation: nowping 2.4s ease-in-out infinite; }
+  @keyframes nowping {
+    0%,100% { box-shadow: 0 0 0 5px var(--cyan2), 0 0 22px rgba(0,229,191,0.7); }
+    50%     { box-shadow: 0 0 0 12px rgba(0,229,191,0.04), 0 0 36px rgba(0,229,191,0.9); }
+  }
+  .timeline-marker.future .node { background: var(--void2); border-color: var(--purple); box-shadow: 0 0 0 3px rgba(155,89,255,0.08); }
+  .timeline-marker .label { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--t3); letter-spacing: 0.08em; }
+  .timeline-marker.up .label { top: -34px; }
+  .timeline-marker.dn .label { top: 22px; }
+  .timeline-marker .name { display: block; font-family: 'Bricolage Grotesque', sans-serif; font-size: 11px; font-weight: 600; color: var(--t2); margin-top: 2px; text-transform: none; letter-spacing: 0; }
+  .timeline-marker.done .name   { color: var(--ember); }
+  .timeline-marker.now .name    { color: var(--cyan); }
+  .timeline-marker.future .name { color: var(--purple); }
+  .timeline-legend { display: flex; gap: 28px; justify-content: center; margin-top: 80px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--t3); }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .legend-dot.done   { background: var(--ember);  box-shadow: 0 0 8px var(--ember); }
+  .legend-dot.now    { background: var(--cyan);   box-shadow: 0 0 8px var(--cyan); }
+  .legend-dot.future { background: var(--purple); box-shadow: 0 0 8px var(--purple); }
+
+  /* ── GRID / CARDS ── */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px,1fr)); gap: 18px; }
+  .card { background: var(--glass); border: 1px solid var(--bd); border-radius: 14px; padding: 22px; backdrop-filter: blur(20px); position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  .card::before { content:""; position: absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, var(--ember2), transparent); opacity:0; transition: opacity 0.3s; }
+  .card:hover { border-color: var(--bd2); transform: translateY(-2px); }
+  .card:hover::before { opacity: 1; }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px; }
+  .card-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--t3); letter-spacing: 0.12em; text-transform: uppercase; }
+  .badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 9px; border-radius: 999px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; white-space: nowrap; }
+  .badge.done       { background: rgba(0,230,118,0.1);   color: var(--green);  border: 1px solid rgba(0,230,118,0.22); }
+  .badge.live       { background: var(--ember3);          color: var(--ember);  border: 1px solid var(--ember2); }
+  .badge.foundation { background: var(--cyan2);           color: var(--cyan);   border: 1px solid rgba(0,229,191,0.22); }
+  .badge.wip        { background: var(--purple2);         color: var(--purple); border: 1px solid rgba(155,89,255,0.22); }
+  .badge.next       { background: rgba(155,89,255,0.06); color: var(--purple); border: 1px solid rgba(155,89,255,0.15); }
+  .badge.blocked    { background: rgba(255,82,82,0.1);   color: var(--red);    border: 1px solid rgba(255,82,82,0.22); }
+  .card-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: var(--t1); margin-bottom: 8px; letter-spacing: -0.01em; }
+  .card-desc  { font-size: 13px; color: var(--t2); margin-bottom: 18px; line-height: 1.55; }
+  .progress { height: 5px; background: rgba(255,255,255,0.04); border-radius: 3px; overflow: hidden; margin-bottom: 7px; }
+  .progress-fill { height: 100%; border-radius: 3px; width: 0; transition: width 1.4s cubic-bezier(0.22,1,0.36,1); }
+  .progress-fill.done       { background: linear-gradient(90deg, var(--green), #34d399); }
+  .progress-fill.live       { background: linear-gradient(90deg, var(--ember), hsl(44,90%,60%)); box-shadow: 0 0 10px var(--ember2); }
+  .progress-fill.foundation { background: linear-gradient(90deg, var(--cyan),  #38bdf8); }
+  .progress-fill.wip        { background: linear-gradient(90deg, var(--purple), #a78bfa); }
+  .progress-fill.next       { background: linear-gradient(90deg, var(--purple), #a78bfa); opacity: 0.4; }
+  .progress-fill.blocked    { background: var(--red); opacity: 0.55; }
+  .progress-meta { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--t3); }
+
+  /* ── CORTEX CANVAS ── */
+  .cortex-wrap { position: relative; background: var(--glass); border: 1px solid var(--bd); border-radius: 20px; padding: 36px; backdrop-filter: blur(20px); overflow: hidden; }
+  .cortex-wrap::before { content:""; position:absolute; top:-60%; left:-30%; width:200%; height:220%; background: radial-gradient(ellipse 500px 350px at 35% 45%, hsla(34,78%,66%,0.06), transparent 60%), radial-gradient(ellipse 400px 300px at 70% 55%, hsla(228,65%,55%,0.05), transparent 60%); pointer-events: none; animation: cortexdrift 22s ease-in-out infinite alternate; }
+  @keyframes cortexdrift { 0%{transform:translate(0,0)} 100%{transform:translate(36px,-22px)} }
+  .cortex-head { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; position: relative; z-index: 2; }
+  .cortex-total { font-family: 'Bricolage Grotesque', sans-serif; font-size: 56px; font-weight: 800; color: var(--t1); letter-spacing: -0.04em; line-height: 1; }
+  .cortex-total .accent { color: var(--ember); }
+  .cortex-total-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 6px; }
+  .cortex-legend { display: flex; flex-wrap: wrap; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--t2); }
+  .cl-item { display: flex; align-items: center; gap: 7px; }
+  .cl-dot  { width: 7px; height: 7px; border-radius: 50%; }
+  #cortex-canvas { width: 100%; height: 520px; display: block; position: relative; z-index: 1; }
+  .lane-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 12px; margin-top: 24px; position: relative; z-index: 2; }
+  .lane-item { padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--bd); border-radius: 10px; }
+  .lane-name  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--t3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; }
+  .lane-model { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--t1); }
+
+  /* ── CHECKLIST ── */
+  .checklist { background: var(--glass); border: 1px solid var(--bd); border-radius: 18px; overflow: hidden; backdrop-filter: blur(20px); }
+  .check-item { display: flex; gap: 18px; padding: 22px 26px; border-bottom: 1px solid var(--bd); transition: background 0.3s; align-items: flex-start; }
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { background: hsla(34,78%,66%,0.025); }
+  .check-box { flex-shrink: 0; width: 26px; height: 26px; border-radius: 7px; border: 2px solid rgba(255,255,255,0.12); background: var(--void2); display: flex; align-items: center; justify-content: center; margin-top: 2px; transition: all 0.3s; }
+  .check-box svg { opacity: 0; transition: opacity 0.3s; }
+  .check-item.done .check-box     { background: var(--green); border-color: var(--green); box-shadow: 0 0 14px rgba(0,230,118,0.4); }
+  .check-item.done .check-box svg { opacity: 1; }
+  .check-item.critical .check-box { border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember3); }
+  .check-item.blocked  .check-box { border-color: var(--red);   box-shadow: 0 0 0 3px rgba(255,82,82,0.08); }
+  .check-body  { flex: 1; }
+  .check-row   { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; flex-wrap: wrap; }
+  .check-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 16px; font-weight: 700; color: var(--t1); letter-spacing: -0.01em; }
+  .check-tag   { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 4px; background: var(--ember3); color: var(--ember); letter-spacing: 0.1em; text-transform: uppercase; }
+  .check-desc  { font-size: 13px; color: var(--t2); line-height: 1.55; }
+  .check-meta  { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--t4); margin-top: 7px; }
+
+  /* ── FOOTER ── */
+  .footer { padding: 80px 0 60px; text-align: center; border-top: 1px solid var(--bd); margin-top: 80px; }
+  .footer-kana  { font-family: 'Noto Serif JP', serif; font-size: 32px; font-weight: 200; color: var(--ember); opacity: 0.55; margin-bottom: 16px; letter-spacing: 0.1em; }
+  .footer-quote { font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 400; color: var(--t1); max-width: 680px; margin: 0 auto 20px; letter-spacing: -0.01em; line-height: 1.4; }
+  .footer-quote em { color: var(--ember); font-style: normal; font-weight: 700; }
+  .footer-meta  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--t4); letter-spacing: 0.14em; text-transform: uppercase; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 960px) {
+    .container { padding: 0 20px; }
+    .hero { padding: 60px 0 40px; }
+    .readiness { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .readiness-bar-wrap { border-left: none; padding-left: 0; border-top: 1px solid var(--bd); padding-top: 14px; min-width: 0; width: 100%; }
+    .kpi-strip { grid-template-columns: repeat(2,1fr); }
+    .section-title { font-size: 26px; }
+    #cortex-canvas { height: 380px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,*::before,*::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-meta">
+      <div class="hero-dot"></div>
+      <span>NUDIMMUD · YURI OS · LAUNCH READINESS</span>
+      <span>/</span>
+      <span>2026-05-16</span>
+    </div>
+    <div class="ghost-kanji">覚</div>
+    <h1>
+      <span class="hero-kana">起動準備完了</span>
+      Launch<br><span class="accent">Readiness.</span>
+    </h1>
+    <p class="hero-sub">Eight phases shipped. The brain is alive, the routes are sovereign, the dream loop is running. What remains is 19 points of independence, two drills, and one hardware soak.</p>
+    <div class="readiness">
+      <div class="readiness-score">
+        <div><span class="readiness-num">71</span><span class="readiness-denom">/100</span></div>
+        <div class="readiness-label">Independence</div>
+      </div>
+      <div class="readiness-bar-wrap">
+        <div class="readiness-bar-label">
+          <span>Gate: fail = 0 · warns intentional</span>
+          <span class="status-tag">READY — pending P9 hardware only</span>
+        </div>
+        <div class="readiness-track"><div class="readiness-fill" id="readiness-fill"></div></div>
+        <div class="readiness-gates">
+          <span class="gate-pip pass">fail = 0</span>
+          <span class="gate-pip pass">P16 cleared</span>
+          <span class="gate-pip warn">learn 59/100</span>
+          <span class="gate-pip warn">P9 pending</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KPI STRIP -->
+<section style="padding:10px 0 40px;">
+  <div class="container">
+    <div class="kpi-strip">
+      <div class="kpi-card"><div class="kpi-num" data-count="71">71</div><div class="kpi-label">Independence score</div></div>
+      <div class="kpi-card"><div class="kpi-num" data-count="59">59</div><div class="kpi-label">Learning score</div></div>
+      <div class="kpi-card"><div class="kpi-num" data-count="45">45</div><div class="kpi-label">Active agents</div></div>
+      <div class="kpi-card"><div class="kpi-num" data-count="8">8</div><div class="kpi-label">Phases shipped</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 TIMELINE -->
+<section id="timeline">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <h2 class="section-title">Progress Timeline</h2>
+    </div>
+    <div class="ghost-kanji">道</div>
+    <p class="section-desc">Cognition to sovereignty to portable runtime. Each milestone is a working system on disk — no slides, no promises.</p>
+    <div class="timeline-wrap">
+      <div class="timeline-track">
+        <div class="timeline-progress"></div>
+        <div class="timeline-marker done up"   style="left:5%">  <div class="node"></div><div class="label">JAN<span class="name">Ω-A Cognition</span></div></div>
+        <div class="timeline-marker done dn"   style="left:15%"> <div class="node"></div><div class="label">FEB<span class="name">Ω-B Memory</span></div></div>
+        <div class="timeline-marker done up"   style="left:25%"> <div class="node"></div><div class="label">MAR<span class="name">Ω-C Routing</span></div></div>
+        <div class="timeline-marker done dn"   style="left:36%"> <div class="node"></div><div class="label">MAR<span class="name">Ω-D Agents</span></div></div>
+        <div class="timeline-marker done up"   style="left:47%"> <div class="node"></div><div class="label">APR<span class="name">Ω-E Independence</span></div></div>
+        <div class="timeline-marker done dn"   style="left:56%"> <div class="node"></div><div class="label">MAY 06<span class="name">Ω-F GitNexus</span></div></div>
+        <div class="timeline-marker done up"   style="left:65%"> <div class="node"></div><div class="label">MAY 14<span class="name">Ω-G nexbox</span></div></div>
+        <div class="timeline-marker done dn"   style="left:74%"> <div class="node"></div><div class="label">MAY 16<span class="name">Ω-H Learning</span></div></div>
+        <div class="timeline-marker now  up"   style="left:79%"> <div class="node"></div><div class="label">TODAY<span class="name">Here</span></div></div>
+        <div class="timeline-marker future dn" style="left:87%"> <div class="node"></div><div class="label">P9<span class="name">M4 Soak</span></div></div>
+        <div class="timeline-marker future up" style="left:94%"> <div class="node"></div><div class="label">JUN 14<span class="name">Kill-Switch</span></div></div>
+        <div class="timeline-marker future dn" style="left:100%"><div class="node"></div><div class="label">≥ 90<span class="name">LAUNCH</span></div></div>
+      </div>
+      <div class="timeline-legend">
+        <div class="legend-item"><div class="legend-dot done"></div> Shipped</div>
+        <div class="legend-item"><div class="legend-dot now"></div> In flight</div>
+        <div class="legend-item"><div class="legend-dot future"></div> Before launch</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 WORKSTREAM STATUS -->
+<section id="status">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-num">02</div>
+      <h2 class="section-title">Workstream Status</h2>
+    </div>
+    <p class="section-desc">Every surface, hard signal. Ember = live and sovereign. Cyan = live, still gaining mass. Violet = next.</p>
+    <div class="grid" id="status-grid"></div>
+  </div>
+</section>
+
+<!-- 03 PULSE CORTEX -->
+<section id="cortex">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-num">03</div>
+      <h2 class="section-title">Pulse Cortex</h2>
+    </div>
+    <div class="ghost-kanji">脈</div>
+    <p class="section-desc">10 routing lanes. Zero Anthropic in default fan-out. Every non-trivial prompt classified, preflight-checked by DeepSeek, and routed before any tool call fires.</p>
+    <div class="cortex-wrap">
+      <div class="cortex-head">
+        <div>
+          <div class="cortex-total"><span class="accent">10</span></div>
+          <div class="cortex-total-label">Active routing lanes — deepseek · nvidia · codex · local + 6 advisory</div>
+        </div>
+        <div class="cortex-legend">
+          <div class="cl-item"><div class="cl-dot" style="background:#00e5bf"></div> @deepseek</div>
+          <div class="cl-item"><div class="cl-dot" style="background:#76b900"></div> @nvidia</div>
+          <div class="cl-item"><div class="cl-dot" style="background:#ff8c42"></div> @codex</div>
+          <div class="cl-item"><div class="cl-dot" style="background:rgba(255,255,255,0.6)"></div> @local</div>
+          <div class="cl-item"><div class="cl-dot" style="background:var(--ember)"></div> Learning loop</div>
+        </div>
+      </div>
+      <canvas id="cortex-canvas"></canvas>
+      <div class="lane-breakdown">
+        <div class="lane-item"><div class="lane-name">@deepseek</div><div class="lane-model" style="color:#00e5bf">v4-pro</div></div>
+        <div class="lane-item"><div class="lane-name">@nvidia</div><div class="lane-model" style="color:#76b900">nemotron-70b</div></div>
+        <div class="lane-item"><div class="lane-name">@codex</div><div class="lane-model" style="color:#ff8c42">gpt-5.5</div></div>
+        <div class="lane-item"><div class="lane-name">@local</div><div class="lane-model" style="color:rgba(255,255,255,0.6)">qwen2.5:7b</div></div>
+      </div>
+    </div>
+    <div style="margin-top:28px;">
+      <div class="grid">
+        <div class="card"><div class="card-head"><div class="card-tag">PATCH 030–039</div><div class="badge live">Active</div></div><div class="card-title">Pulse Classifier</div><div class="card-desc">Every prompt scored: trivial / standard / complex / critical. Drives cortex depth. DeepSeek preflight on standard+. Swarm fan-out on critical.</div></div>
+        <div class="card"><div class="card-head"><div class="card-tag">PATCH 036</div><div class="badge live">Active</div></div><div class="card-title">Codex Two-Phase Gate</div><div class="card-desc">Phase A: unified-diff to pulse-codex-pending.json. Phase B: fires only on .approved marker + HEAD snapshot match. No blind writes.</div></div>
+        <div class="card"><div class="card-head"><div class="card-tag">M1–M5</div><div class="badge live">Active</div></div><div class="card-title">Dream Processor</div><div class="card-desc">nisaba-dream-processor consuming dream-queue.jsonl via DeepSeek. Synthesizes rules to global.md. Fixed this session — 389 sessions now have voice.</div></div>
+        <div class="card"><div class="card-head"><div class="card-tag">MEMORY RAG</div><div class="badge wip">Needs Upgrade</div></div><div class="card-title">RAG Injection — Static → Semantic</div><div class="card-desc">Current: static top-10 by score at SessionStart only. Target: SessionStart = identity + critical rules only (~5 fixed); user-prompt-submit runs semantic query per task, injects threshold-based relevant items — no hard cap.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 LAUNCH GATE -->
+<section id="checklist">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <h2 class="section-title">Launch Gate</h2>
+    </div>
+    <div class="ghost-kanji">門</div>
+    <p class="section-desc">What must pass before Yuri OS leaves prototype. Ember = blocking in-flight. Red = blocked externally. Green = cleared and committed.</p>
+    <div class="checklist">
+
+      <div class="check-item done">
+        <div class="check-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="#07080f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-body">
+          <div class="check-row"><span class="check-title">Memory Architecture M1–M5</span><span class="check-tag">CORE</span><span class="badge done">Shipped</span></div>
+          <div class="check-desc">Dream processor, session capture, corrections signal, memory.db writes, RAG injection — all wired and committed. global.md receiving synthesized rules from session 399 onwards.</div>
+          <div class="check-meta">2026-05-16 · 1da68165 · 00d325c6 · cf872704</div>
+        </div>
+      </div>
+
+      <div class="check-item done">
+        <div class="check-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="#07080f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-body">
+          <div class="check-row"><span class="check-title">nexbox Bundle — zero-Anthropic runtime</span><span class="check-tag">NEXBOX</span><span class="badge done">Ready</span></div>
+          <div class="check-desc">symbiotic-pulse.mjs, offload-contract.mjs, verify.mjs, RUNBOOK.md, bootstrap-ollama.sh. Single-command install. verify --strict passes clean.</div>
+          <div class="check-meta">2026-05-16 · nexbox/</div>
+        </div>
+      </div>
+
+      <div class="check-item done">
+        <div class="check-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="#07080f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-body">
+          <div class="check-row"><span class="check-title">Pre-commit Independence Gate (P13)</span><span class="check-tag">P13</span><span class="badge done">Live</span></div>
+          <div class="check-desc">_SYSTEM/git-hooks/pre-commit + Scripts/pre-commit-independence.sh. Blocks new Anthropic model refs at source. fail=0 enforced on every commit.</div>
+          <div class="check-meta">2026-05-16 · pre-commit hook active</div>
+        </div>
+      </div>
+
+      <div class="check-item critical">
+        <div class="check-box"></div>
+        <div class="check-body">
+          <div class="check-row"><span class="check-title">Independence Score ≥ 90/100</span><span class="check-tag">GATE-1</span><span class="badge wip">71/100 — 19pts gap</span></div>
+          <div class="check-desc">5 warns: yuri-shura @claude-sonnet-advisory, dispatchTokens legacy entries (intentional opt-ins), offload.sh legacy aliases. P9 soak + P16 drill unlock +4 pts.</div>
+          <div class="check-meta">node Scripts/independence-check.mjs | tail -3</div>
+        </div>
+      </div>
+
+      <div class="check-item done">
+        <div class="check-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="#07080f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-body">
+          <div class="check-row"><span class="check-title">P16 — Kill-Switch Drill</span><span class="check-tag">P16</span><span class="badge done">Cleared</span></div>
+          <div class="check-desc">ANTHROPIC_API_KEY was already unset. Both independence-check --strict and nexbox verify --strict pass. Gate cleared 2026-05-16 — no need to wait for Jun 14.</div>
+          <div class="check-meta">2026-05-16 · fail=0 warn=5 pass=12 · nexbox PASS</div>
+        </div>
+      </div>
+
+      <div class="check-item done">
+        <div class="check-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="#07080f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="check-body">
+          <div class="check-row"><span class="check-title">Learning Score</span><span class="check-tag">TRACKING</span><span class="badge done">Informational</span></div>
+          <div class="check-desc">59/100. Not a hard gate — corr component lags 15 sessions after M1–M5 correction capture fix. Score improves naturally each session. M1–M5 live as of 2026-05-16.</div>
+          <div class="check-meta">node Scripts/memory-learning-score.mjs --report</div>
+        </div>
+      </div>
+
+      <div class="check-item critical">
+        <div class="check-box"></div>
+        <div class="check-body">
+          <div class="check-row"><span class="check-title">P9 — Mac Mini M4 Pro 24h Soak</span><span class="check-tag">P9</span><span class="badge next">Pending hardware</span></div>
+          <div class="check-desc">ollama run deepseek-r1:8b, 24h stability. Updates models.json local.deep_reasoning. Sole remaining gate before first external client deployment.</div>
+          <div class="check-meta">When Mac Mini M4 Pro arrives</div>
+        </div>
+      </div>
+
+      <div class="check-item blocked">
+        <div class="check-box"></div>
+        <div class="check-body">
+          <div class="check-row"><span class="check-title">GitNexus Index Refresh</span><span class="check-tag">GITNEXUS</span><span class="badge blocked">Stale</span></div>
+          <div class="check-desc">92,307 symbols / 132,828 relationships stale since commit 3d83566. Impact analysis unreliable until refreshed. No symbol-level work until this clears.</div>
+          <div class="check-meta">npx gitnexus analyze — ~10 min, no mutations</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-kana">結び</div>
+    <div class="footer-quote">The system that knows its own weight. <em>The OS that tests itself.</em></div>
+    <div class="footer-meta">NUDIMMUD · Yuri OS · Launch Readiness · 2026-05-16 · 71/100</div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script>
+/* ============================================================
+   WORKSTREAM DATA
+============================================================ */
+const workstreams = [
+  { tag:"Ω-A", title:"Cognition Foundation",   desc:"SOUL.md, CLAUDE.md, git hooks, rule architecture, NUDIMMUD-COGNITION.md. The operating contract.",                                                   progress:100, status:"done",       label:"Done" },
+  { tag:"Ω-B", title:"Memory Architecture",    desc:"M1–M5 all wired: dream processor, session capture, corrections signal, memory.db writes, RAG injection. global.md receiving synthesized rules.",    progress:100, status:"done",       label:"Done" },
+  { tag:"Ω-C", title:"Routing Sovereignty",    desc:"lane-dispatcher.mjs + capability-manifest.json. 12 lanes. Model migrations = JSON edit only. selectLane({privacy, cost_tier}) returns best match.", progress:100, status:"done",       label:"Done" },
+  { tag:"Ω-D", title:"45 LaunchAgents Active", desc:"obsidian-queue, plane-sync, vault-watch, intel-analyst, heartbeat, embed-refresh, pulse-beacon — all green.",                                        progress:100, status:"done",       label:"Done" },
+  { tag:"Ω-E", title:"Independence Sprint",    desc:"P1–P15 shipped. Score 8 → 71/100. Pre-commit gate live. 5 warns remaining: 2 intentional opt-ins, 1 skills advisory, 2 drill-gated.",               progress:71,  status:"live",       label:"71/100" },
+  { tag:"Ω-F", title:"GitNexus Intelligence",  desc:"92,307 symbols, 132,828 relationships, 300 execution flows indexed. Impact analysis before every symbol edit. Index currently stale.",               progress:85,  status:"foundation", label:"Stale" },
+  { tag:"Ω-G", title:"nexbox Bundle",          desc:"Zero-Anthropic portable runtime. verify --strict passes. symbiotic-pulse, offload-contract, bootstrap-ollama. M4 Pro deploy pending.",               progress:88,  status:"foundation", label:"Ready" },
+  { tag:"Ω-H", title:"Memory Dream Loop",      desc:"nisaba dream-processor consuming queue via DeepSeek → global.md. 398 sessions. Score 59/100. M1–M5 now live — first synthesized rules inbound.",    progress:59,  status:"live",       label:"59/100" },
+  { tag:"P9",  title:"Mac Mini M4 Pro Soak",   desc:"24h ollama deepseek-r1:8b stability test. Confirms nexbox local-first path. Updates models.json. +2 independence points. Awaiting hardware.",        progress:0,   status:"next",       label:"Hardware pending" },
+  { tag:"P16", title:"Kill-Switch Drill",      desc:"unset ANTHROPIC_API_KEY && independence-check --strict. Full local-only verification. +2 independence points on pass. Scheduled Jun 14.",            progress:0,   status:"next",       label:"Jun 14" },
+];
+
+const grid = document.getElementById("status-grid");
+workstreams.forEach(w => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="card-head"><div class="card-tag">${w.tag}</div><div class="badge ${w.status}">${w.label}</div></div>
+    <div class="card-title">${w.title}</div>
+    <div class="card-desc">${w.desc}</div>
+    <div class="progress"><div class="progress-fill ${w.status}" data-target="${w.progress}"></div></div>
+    <div class="progress-meta"><span>Progress</span><span><b>${w.progress}%</b></span></div>
+  `;
+  grid.appendChild(card);
+});
+
+/* ============================================================
+   PULSE CORTEX CANVAS
+============================================================ */
+const canvas = document.getElementById("cortex-canvas");
+const ctx    = canvas.getContext("2d");
+const dpr    = Math.min(window.devicePixelRatio || 1, 2);
+
+const lanes = [
+  { name:"@deepseek", color:"#00e5bf",              tasks:8 },
+  { name:"@nvidia",   color:"#76b900",              tasks:5 },
+  { name:"@codex",    color:"#ff8c42",              tasks:9 },
+  { name:"@local",    color:"rgba(255,255,255,0.6)",tasks:9 }
+];
+
+let W, H, nodes, edges, loopEdges, t = 0;
+
+function setupCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  W = rect.width; H = rect.height;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+}
+
+function buildGraph() {
+  nodes = []; edges = []; loopEdges = [];
+  nodes.push({ x:W/2, y:H/2, r:16, color:"#ffffff", isCore:true, pulse:0, pulseSpeed:0.012 });
+
+  lanes.forEach((lane, i) => {
+    const angle = (i / lanes.length) * Math.PI * 2 - Math.PI / 2;
+    const dist  = Math.min(W, H) * 0.30;
+    const cx    = W/2 + Math.cos(angle) * dist;
+    const cy    = H/2 + Math.sin(angle) * dist;
+
+    const cluster = { x:cx, y:cy, r:8, color:lane.color, label:lane.name, isCluster:true, angle, pulse:Math.random()*Math.PI*2, pulseSpeed:0.013+Math.random()*0.009 };
+    nodes.push(cluster);
+    edges.push({ a:0, b:nodes.length-1, strength:1, color:lane.color });
+
+    const sats = Math.max(3, Math.min(9, lane.tasks));
+    for (let s = 0; s < sats; s++) {
+      const sa = Math.random() * Math.PI * 2;
+      const sd = 26 + Math.random() * 36;
+      nodes.push({
+        x:cx+Math.cos(sa)*sd, y:cy+Math.sin(sa)*sd, r:1.5+Math.random()*2.4, color:lane.color,
+        baseX:cx+Math.cos(sa)*sd, baseY:cy+Math.sin(sa)*sd,
+        floatPhase:Math.random()*Math.PI*2, floatSpeed:0.004+Math.random()*0.007, floatAmp:1.2+Math.random()*2.4,
+        pulse:Math.random()*Math.PI*2, pulseSpeed:0.02+Math.random()*0.018, active:Math.random()>0.55
+      });
+      edges.push({ a:nodes.indexOf(cluster), b:nodes.length-1, strength:0.32, color:lane.color });
+    }
+  });
+
+  const ci = nodes.map((n,i) => n.isCluster ? i : -1).filter(i => i >= 0);
+  for (let i = 0; i < ci.length; i++) {
+    for (let j = i+1; j < ci.length; j++) {
+      const d = Math.abs(i-j);
+      if (d===1 || d===2 || (i===0 && j===ci.length-1)) {
+        loopEdges.push({ a:ci[i], b:ci[j], phase:Math.random()*Math.PI*2, speed:0.005+Math.random()*0.007 });
+      }
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  t++;
+
+  edges.forEach(e => {
+    const a = nodes[e.a], b = nodes[e.b];
+    if (!a||!b) return;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle = e.color;
+    ctx.globalAlpha = e.strength===1 ? 0.18 : 0.06;
+    ctx.lineWidth   = e.strength===1 ? 1.0  : 0.4;
+    ctx.stroke(); ctx.globalAlpha = 1;
+  });
+
+  loopEdges.forEach(l => {
+    const a = nodes[l.a], b = nodes[l.b];
+    if (!a||!b) return;
+    l.phase += l.speed;
+    ctx.beginPath();
+    ctx.setLineDash([3,7]);
+    ctx.lineDashOffset = -((t*0.44)%28);
+    ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle = "hsla(34,78%,66%,0.20)";
+    ctx.lineWidth = 0.7; ctx.stroke(); ctx.setLineDash([]);
+    const prog = (Math.sin(l.phase)+1)/2;
+    const px = a.x+(b.x-a.x)*prog, py = a.y+(b.y-a.y)*prog;
+    ctx.beginPath(); ctx.arc(px,py,2.2,0,Math.PI*2);
+    ctx.fillStyle = "hsla(34,78%,66%,0.9)";
+    ctx.shadowColor = "hsla(34,78%,66%,0.8)"; ctx.shadowBlur = 9;
+    ctx.fill(); ctx.shadowBlur = 0;
+  });
+
+  nodes.forEach(n => {
+    if (n.baseX !== undefined) {
+      n.floatPhase += n.floatSpeed;
+      n.x = n.baseX + Math.cos(n.floatPhase)*n.floatAmp;
+      n.y = n.baseY + Math.sin(n.floatPhase*1.3)*n.floatAmp;
+    }
+    n.pulse += n.pulseSpeed;
+    const ps = 1 + Math.sin(n.pulse)*(n.isCore?0.13:n.isCluster?0.17:0.24);
+    const r  = n.r * ps;
+
+    if (n.isCore || n.isCluster) {
+      const grd = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,r*4.2);
+      grd.addColorStop(0, n.color+"55"); grd.addColorStop(1, n.color+"00");
+      ctx.beginPath(); ctx.arc(n.x,n.y,r*4.2,0,Math.PI*2); ctx.fillStyle=grd; ctx.fill();
+    }
+
+    ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2); ctx.fillStyle=n.color;
+    if      (n.isCore)    { ctx.shadowColor="#fff";  ctx.shadowBlur=22; }
+    else if (n.isCluster) { ctx.shadowColor=n.color; ctx.shadowBlur=11; }
+    else if (n.active)    { ctx.shadowColor=n.color; ctx.shadowBlur=5; }
+    ctx.fill(); ctx.shadowBlur=0;
+
+    if (n.isCore) {
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+5,0,Math.PI*2);
+      ctx.strokeStyle="rgba(255,255,255,0.22)"; ctx.lineWidth=1; ctx.stroke();
+      ctx.font='700 11px "Bricolage Grotesque",sans-serif';
+      ctx.fillStyle="rgba(0,0,0,0.85)"; ctx.textAlign="center";
+      ctx.fillText("NEX",n.x,n.y+4);
+    }
+    if (n.isCluster) {
+      ctx.font='500 10px "JetBrains Mono",monospace';
+      ctx.fillStyle="rgba(230,237,243,0.78)"; ctx.textAlign="center";
+      ctx.fillText(n.label, n.x+Math.cos(n.angle)*22, n.y+Math.sin(n.angle)*22+4);
+    }
+  });
+
+  requestAnimationFrame(draw);
+}
+
+setupCanvas(); buildGraph(); draw();
+window.addEventListener("resize", () => { setupCanvas(); buildGraph(); });
+
+/* ============================================================
+   GSAP ANIMATIONS
+============================================================ */
+gsap.registerPlugin(ScrollTrigger);
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+if (!reduced) {
+  gsap.from(".hero h1",   { y:44, opacity:0, duration:1.1, ease:"power3.out" });
+  gsap.from(".hero-sub",  { y:30, opacity:0, duration:1,   delay:0.18, ease:"power3.out" });
+  gsap.from(".hero-meta", { opacity:0, duration:0.8, delay:0.06, ease:"power2.out" });
+  gsap.from(".readiness", { y:30, opacity:0, duration:1, delay:0.36, ease:"power3.out",
+    onComplete: () => { document.getElementById("readiness-fill").style.width = "71%"; }
+  });
+
+  document.querySelectorAll(".kpi-num[data-count]").forEach(el => {
+    const target = parseInt(el.dataset.count), obj = {v:0};
+    ScrollTrigger.create({ trigger:el, start:"top 90%", once:true,
+      onEnter:() => gsap.to(obj, { v:target, duration:1.5, ease:"power2.out",
+        onUpdate:() => { el.textContent = Math.floor(obj.v); }
+      })
+    });
+  });
+
+  gsap.from(".kpi-card", { scrollTrigger:{trigger:".kpi-strip",start:"top 85%"}, y:28, opacity:0, duration:0.8, stagger:0.07, ease:"power2.out" });
+
+  gsap.to(".timeline-progress", { scrollTrigger:{trigger:".timeline-track",start:"top 75%"}, width:"79%", duration:2.2, ease:"power2.inOut" });
+  gsap.from(".timeline-marker", { scrollTrigger:{trigger:".timeline-track",start:"top 80%"}, scale:0, opacity:0, duration:0.5, stagger:0.07, ease:"back.out(2)" });
+
+  gsap.utils.toArray("#status-grid .card").forEach((card,i) => {
+    gsap.from(card, { scrollTrigger:{trigger:card,start:"top 88%"}, y:36, opacity:0, duration:0.65, delay:(i%3)*0.05, ease:"power2.out" });
+  });
+
+  ScrollTrigger.batch(".progress-fill", {
+    onEnter: batch => batch.forEach(el => gsap.to(el, {width:el.dataset.target+"%", duration:1.3, ease:"power2.out"})),
+    start: "top 90%"
+  });
+
+  gsap.from(".cortex-wrap", { scrollTrigger:{trigger:".cortex-wrap",start:"top 80%"}, y:48, opacity:0, duration:1, ease:"power3.out" });
+
+  gsap.from(".check-item", { scrollTrigger:{trigger:".checklist",start:"top 80%"}, x:-28, opacity:0, duration:0.65, stagger:0.07, ease:"power2.out" });
+
+  gsap.from(".footer-quote", { scrollTrigger:{trigger:".footer",start:"top 85%"}, y:20, opacity:0, duration:1, ease:"power2.out" });
+
+} else {
+  document.querySelectorAll(".progress-fill").forEach(el => { el.style.width = el.dataset.target+"%"; });
+  document.querySelectorAll(".kpi-num[data-count]").forEach(el => { el.textContent = parseInt(el.dataset.count); });
+  document.querySelector(".timeline-progress").style.width = "79%";
+  document.getElementById("readiness-fill").style.width = "71%";
+}
+</script>
+</body>
+</html>

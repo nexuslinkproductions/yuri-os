@@ -1,11 +1,15 @@
 ---
 name: deepseek-offload
-description: Offload task to DeepSeek or other neural lanes (no Agent spawning)
+description: "Offload task to DeepSeek or other neural lanes (no Agent spawning). Primary DeepSeek entry point — use for flash extraction, pro reasoning, research, and NVIDIA lanes."
 triggers:
   - /offload
   - /ds-flash
   - /ds-pro
   - /research
+  - /deepseek
+  - /nvidia
+  - /nvidia-deepseek
+routing_note: "Primary lane router. For structured forge/plan/execute orchestration use /deepseek-workhorse. NVIDIA lanes: /nvidia-deepseek (llama-70b), /nvidia-nemotron (requires elevated NIM access)."
 ---
 
 # DeepSeek Offload Skill
@@ -54,6 +58,18 @@ Routes via `Scripts/offload.sh` → `offload-runner.mjs`. Environment:
 Use Flash for extraction; Pro only for reasoning that needs it.
 
 ## Session Notes
+
+### 2026-05-17
+- session: 160m | peak ctx: 0% | compacts: 0
+- tools: Bash×119, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
+- session: 157m | peak ctx: 0% | compacts: 0
+- tools: Bash×116, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
 
 ### 2026-05-05
 - Skill created, all lanes verified wired

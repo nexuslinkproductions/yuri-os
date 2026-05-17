@@ -1,102 +1,76 @@
-# OpenClaw Offload — 09OC Lane
+---
+name: nisaba-sentinel
+description: "Always-on autonomous check daemon absorbed from OpenClaw into Musubi natively. Runs every 33min via LaunchAgent — proactive system health, memory pulse, external signal checks, vault alerts. The 09OC research lane is retired into @deepseek-flash."
+triggers:
+  - "/nisaba-sentinel"
+  - "/sentinel"
+  - "nisaba check"
+  - "sentinel status"
+routing_note: "This is no longer a 'call OpenClaw' skill. Nisaba Sentinel runs autonomously. Use /sentinel to check its last state or trigger a manual run."
+---
 
-Trigger: "offload to OpenClaw", "send to 09OC", "background research", "daemon lane", "openclaw this"
+# Nisaba Sentinel — Always-On Autonomous Layer
 
-## Purpose
+*Formerly OpenClaw 09OC. Fully absorbed into Musubi as of 2026-05-17.*
 
-OpenClaw/09OC is the daemon-native parallel execution lane. Use it for fire-and-forget reasoning, research, or background work that doesn't require code edits or vault surgery.
+## What it is
 
-## When to Use
+Not a CLI tool to call on. A persistent autonomous process that runs every 33 minutes via LaunchAgent, integrated into Musubi's native loop.
 
-**Offload to 09OC:**
-- Research / summarization (NABU blueprints, NISABA logs, market analysis)
-- Long-running watchers (feed monitoring, periodic health checks)
-- Branching exploration (try multiple approaches in parallel)
-- Any prompt that benefits from DeepSeek V4 Flash but doesn't need the terminal
+- **Script**: `Scripts/nisaba-sentinel.mjs`
+- **LaunchAgent**: `_SYSTEM/launch-agents/com.nudimmud.nisaba-sentinel.plist`
+- **State**: `.claude/state/nisaba-sentinel-state.json`
+- **Alerts**: appended to `.claude/state/pulse-vault-log/YYYY-MM-DD.md`
 
-**Keep in ENKI/Cline:**
-- Code edits, multi-file refactors, security patches
-- Vault surgery (file moves, taxonomy changes)
-- Git operations (commits, merges)
-- Kernel modifications (schema.sql, kernel.py)
-- Tasks under 500 tokens — keep it local, it's cheaper
+## What it checks every 33 minutes
 
-## How to Offload
+1. **Liveness** — OpenClaw gateway at port 18789 (non-fatal, advisory only)
+2. **System health** — pulse-plan.json, pulse-bus.json, hypotheses.json, CRITICAL bus entries
+3. **Memory pulse** — runs memory-consolidate.mjs (flags near-duplicates and contradictions)
+4. **External signals** — knowledge scout freshness, overdue neuron-loop detection
 
-### 1. Create the task
-
-```bash
-python3 _SYSTEM/OS_KERNEL/syscalls/kernel.py task-create "<description>" --agent OPENCLAW
-```
-
-### 2. Hand off to 09OC
-
-```bash
-bash _SYSTEM/OS_KERNEL/swarm-handoff.sh <task_id> ENKI OPENCLAW "<prompt>"
-```
-
-Or use the npm shortcut:
+## Manual trigger
 
 ```bash
-echo '{"from_agent":"ENKI","channel":"internal:09oc","message":"<prompt>"}' | npm run openclaw
+node Scripts/nisaba-sentinel.mjs
 ```
 
-### 3. Retrieve the result
+## Install LaunchAgent (one-time)
 
 ```bash
-python3 _SYSTEM/OS_KERNEL/syscalls/kernel.py task-update <task_id> COMPLETED?  # check status
+cp _SYSTEM/launch-agents/com.nudimmud.nisaba-sentinel.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.nudimmud.nisaba-sentinel.plist
 ```
 
-Then query memory.db for the result:
+## What happened to OpenClaw / 09OC?
 
-```sql
-SELECT content FROM memories WHERE source_agent='OPENCLAW' AND task_id=<task_id> ORDER BY timestamp DESC LIMIT 1;
-```
+The 09OC research lane → now just `@deepseek-flash` which does the same thing cheaper and faster.
+The daemon heartbeat behavior → now `nisaba-sentinel.mjs` + LaunchAgent.
+The multi-model routing → already in offload-contract.mjs.
+The identity/SOUL → already in SOUL.md.
+The memory system → already in semantic-memory.db.
+The plugin system → already in .claude/skills/.
+The tool approval system → already in non-destructive-infinity-guard.
 
-### 4. Present to user
-
-Format the result cleanly:
-
-```
-⬡ 09OC RESULT :: task <id> :: model deepseek-v4-flash
-<content>
-```
-
-## Batch Offload Pattern
-
-For multiple independent tasks:
-
-```bash
-# Create N tasks
-for prompt in "<prompt1>" "<prompt2>"; do
-  TID=$(python3 _SYSTEM/OS_KERNEL/syscalls/kernel.py task-create "$prompt" --agent OPENCLAW | sed 's/.*Task \([0-9]*\).*/\1/')
-  bash _SYSTEM/OS_KERNEL/swarm-handoff.sh "$TID" ENKI OPENCLAW "$prompt" &
-done
-```
-
-All results appear in memory.db. Cline can poll and summarize.
-
-## Model Selection
-
-Default: `deepseek/deepseek-v4-flash` (fast, cheap, 977k context).  
-Override with `--model openrouter/auto` for flexibility or `--model nvidia/llama-3.1-nemotron-70b-instruct` for premium.
+Nothing was lost. Everything was absorbed.
 
 ## Session Notes
 
-### 2026-05-16
-- session: 77m | peak ctx: 0% | compacts: 0
-- tools: Bash×88, Read×36, mcp×15, Edit×13, Write×10, ToolSearch×4, ExitPlanMode×1
+### 2026-05-17
+- session: 160m | peak ctx: 0% | compacts: 0
+- tools: Bash×119, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
 - corrections: none
 - errors: none
 
-### 2026-05-16
-- session: 72m | peak ctx: 0% | compacts: 0
-- tools: Bash×87, Read×36, mcp×15, Edit×13, Write×10, ToolSearch×4, ExitPlanMode×1
+### 2026-05-17
+- session: 157m | peak ctx: 0% | compacts: 0
+- tools: Bash×116, Read×52, Edit×34, Write×5, ToolSearch×2, mcp×1, ExitPlanMode×1, Skill×1
 - corrections: none
 - errors: none
 
-### 2026-05-16
-- session: 57m | peak ctx: 0% | compacts: 0
-- tools: Bash×78, Read×23, mcp×14, Write×8, Edit×7, ToolSearch×4, ExitPlanMode×1
-- corrections: none
-- errors: none
+### 2026-05-17
+- Converted from openclaw-offload (09OC bridge skill) to native Musubi autonomous layer
+- Scripts/nisaba-sentinel.mjs created (461 lines, 5 phases)
+- LaunchAgent plist created (every 33min, offset from neuron-loop)
+- 09OC research lane retired → @deepseek-flash
+- OpenClaw gateway kept running on port 18789 (Sentinel queries it, doesn't replace it)

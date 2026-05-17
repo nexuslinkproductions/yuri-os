@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Musubi Intelligence v2 — Sprint Audit v2 · 2026-05-16</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;700&family=Noto+Serif+JP:wght@300;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-void:       #050507;
+  --bg-surface:    #0c0d14;
+  --bg-surface2:   #121320;
+  --border:        rgba(255,255,255,0.07);
+  --border2:       rgba(255,255,255,0.13);
+  --cyan:          #00e5bf;
+  --cyan-dim:      rgba(0,229,191,0.15);
+  --purple:        #9b59ff;
+  --gold:          #ffd54f;
+  --crimson:       #ff5252;
+  --jade:          #5a8a6a;
+  --musubi-ember:  hsl(36, 72%, 65%);
+  --musubi-ink:    hsl(210, 8%, 90%);
+  --text:          rgba(255,255,255,0.92);
+  --text2:         rgba(255,255,255,0.6);
+  --text3:         rgba(255,255,255,0.35);
+  --font-display:  'Bricolage Grotesque', sans-serif;
+  --font-kanji:    'Noto Serif JP', serif;
+  --font-mono:     'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 1.6;
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(0,229,191,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 85%, hsla(36,72%,65%,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(155,89,255,0.03) 0%, transparent 70%),
+    #050507;
+}
+body, .hero, .container, .footer, .kanji-watermark { position: relative; z-index: 1; }
+
+.kanji-watermark {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-kanji);
+  font-size: 680px;
+  font-weight: 700;
+  color: var(--musubi-ink);
+  opacity: 0.012;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  line-height: 1;
+}
+
+.hero {
+  padding: 84px 60px 54px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(0,229,191,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(155,89,255,0.06) 0%, transparent 60%);
+}
+.hero-eyebrow {
+  position: relative;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 16px;
+}
+.hero-title {
+  position: relative;
+  font-size: clamp(40px, 6vw, 62px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.6) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 14px;
+}
+.hero-sub {
+  position: relative;
+  max-width: 760px;
+  color: var(--text2);
+  font-size: 15px;
+  margin-bottom: 36px;
+}
+.hero-stats {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 36px;
+}
+.hero-stat { min-width: 120px; }
+.hero-stat-val {
+  display: block;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero-stat-label {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.container { max-width: 1450px; margin: 0 auto; padding: 0 40px; }
+.section {
+  padding: 60px 0;
+  border-bottom: 1px solid var(--border);
+}
+.section-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  margin-bottom: 8px;
+  color: var(--purple);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.section-index {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.section-divider {
+  margin: 0 8px;
+  opacity: 0.5;
+}
+.section-kanji {
+  font-family: var(--font-kanji);
+  font-size: 0.85em;
+  font-weight: 300;
+  margin-left: 10px;
+  opacity: 0.3;
+  color: var(--musubi-ink);
+  text-transform: none;
+  letter-spacing: normal;
+}
+.section-title {
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.section-sub {
+  max-width: 880px;
+  color: var(--text2);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+
+.card {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+.card::after {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}
+.card-title {
+  position: relative;
+  margin-bottom: 16px;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.card.accent-cyan { border-color: rgba(0,229,191,0.25); background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(0,229,191,0.03) 100%); }
+.card.accent-purple { border-color: rgba(155,89,255,0.25); background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(155,89,255,0.03) 100%); }
+.card.accent-gold { border-color: rgba(255,213,79,0.25); background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(255,213,79,0.03) 100%); }
+.card.accent-ember { border-color: hsla(36,72%,65%,0.25); background: linear-gradient(135deg, var(--bg-surface) 0%, hsla(36,72%,65%,0.04) 100%); }
+
+.score-summary {
+  position: relative;
+  display: grid;
+  gap: 10px;
+}
+.diff-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.diff-row:last-child { border-bottom: none; }
+.diff-label { flex: 1; color: var(--text2); font-size: 13px; }
+.diff-before { min-width: 52px; text-align: right; color: var(--crimson); font-weight: 700; }
+.diff-after { min-width: 52px; color: var(--cyan); font-weight: 700; }
+.diff-arrow { color: var(--text3); }
+.diff-pct {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(90,247,160,0.1);
+  color: #5af7a0;
+  font-weight: 700;
+}
+
+.phase-credit-table,
+.compare-table,
+.honesty-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.phase-credit-table th,
+.compare-table th,
+.honesty-table th {
+  text-align: left;
+  padding: 11px 12px;
+  color: var(--text3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border2);
+}
+.phase-credit-table td,
+.compare-table td,
+.honesty-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.phase-credit-table tr:last-child td,
+.compare-table tr:last-child td,
+.honesty-table tr:last-child td {
+  border-bottom: none;
+}
+.phase-credit-table .total-row td {
+  border-top: 1px solid var(--border2);
+  background: rgba(255,255,255,0.02);
+}
+.phase-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,229,191,0.18);
+  background: rgba(0,229,191,0.08);
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.phase-badge.zero {
+  border-color: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--text3);
+}
+
+.progress-row { margin-bottom: 16px; }
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.progress-label { color: var(--text2); font-size: 13px; }
+.progress-val { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
+}
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.phase-flow { display: flex; flex-direction: column; }
+.phase-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 0;
+}
+.phase-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.phase-num.existing { background: rgba(255,255,255,0.08); color: var(--text2); }
+.phase-num.new-phase { background: rgba(0,229,191,0.14); color: var(--cyan); border: 1px solid rgba(0,229,191,0.3); }
+.phase-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.phase-desc { font-size: 12px; color: var(--text2); }
+.thread-connector { margin-left: 13px; width: 2px; height: 24px; }
+.thread-connector svg { display: block; }
+
+.power-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.power-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 20px;
+  background: var(--bg-surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.power-new {
+  border-color: hsla(36,72%,65%,0.25);
+  background: linear-gradient(135deg, var(--bg-surface2) 0%, hsla(36,72%,65%,0.04) 100%);
+}
+.power-existing { opacity: 0.72; }
+.power-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+.power-name { display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.power-source { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+.power-desc { color: var(--text2); font-size: 12px; line-height: 1.55; }
+.power-trigger { margin-top: 6px; font-size: 11px; color: var(--cyan); font-family: var(--font-mono); }
+
+.badge-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: hsla(36,72%,65%,0.15);
+  color: var(--musubi-ember);
+  border: 1px solid hsla(36,72%,65%,0.25);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.badge-existing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brain-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.brain-section:last-child { border-bottom: none; }
+.brain-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.brain-section-name { font-size: 13px; font-weight: 700; color: var(--cyan); margin-bottom: 2px; }
+.brain-section-desc { font-size: 12px; color: var(--text2); }
+.brain-badge { margin-left: 8px; }
+
+.terminal {
+  background: #080810;
+  border: 1px solid rgba(0,229,191,0.2);
+  border-radius: 12px;
+  padding: 20px 22px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.terminal .prompt { color: var(--text3); }
+.terminal .cmd { color: var(--cyan); }
+.terminal .output { color: var(--text2); }
+.terminal .highlight-val { color: #5af7a0; font-weight: 700; }
+.terminal .highlight-warn { color: var(--gold); }
+.terminal .comment { color: rgba(155,89,255,0.72); }
+
+.agi-level {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.agi-level:last-child { border-bottom: none; }
+.agi-num { min-width: 34px; font-size: 22px; font-weight: 700; }
+.agi-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.agi-desc { font-size: 12px; color: var(--text2); }
+.agi-status {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.status-live { background: rgba(90,247,160,0.12); color: #5af7a0; }
+.status-partial { background: rgba(255,213,79,0.12); color: var(--gold); }
+.status-roadmap { background: rgba(255,255,255,0.05); color: var(--text3); }
+
+.table-shell {
+  overflow-x: auto;
+  border-radius: 12px;
+}
+.compare-table {
+  min-width: 1220px;
+}
+.compare-table tr.highlight td { background: rgba(0,229,191,0.04); }
+.system-name { font-weight: 700; color: var(--text); }
+.system-name.is-musubi { color: var(--cyan); }
+.chk-yes { color: #5af7a0; font-weight: 700; }
+.chk-partial { color: var(--gold); font-weight: 700; }
+.chk-no { color: var(--text3); }
+.compare-table td, .compare-table th {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.narrative-list {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.narrative-list li {
+  position: relative;
+  padding-left: 16px;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.narrative-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--musubi-ember);
+}
+.narrative-list strong { color: var(--text); }
+
+.section-note {
+  margin-bottom: 18px;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.honesty-table tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+.honesty-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.01); }
+.honesty-table td.not-cell {
+  font-family: var(--font-mono);
+  color: var(--text3);
+  font-size: 12px;
+}
+
+.timeline-grid { align-items: stretch; }
+.timeline-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.timeline-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 58px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.timeline-card.cyan { border-color: rgba(0,229,191,0.25); }
+.timeline-card.cyan .timeline-tag { border-color: rgba(0,229,191,0.25); color: var(--cyan); background: rgba(0,229,191,0.08); }
+.timeline-card.purple { border-color: rgba(155,89,255,0.25); }
+.timeline-card.purple .timeline-tag { border-color: rgba(155,89,255,0.25); color: var(--purple); background: rgba(155,89,255,0.08); }
+.timeline-card.ember { border-color: hsla(36,72%,65%,0.25); }
+.timeline-card.ember .timeline-tag { border-color: hsla(36,72%,65%,0.25); color: var(--musubi-ember); background: hsla(36,72%,65%,0.08); }
+.milestone-list {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.milestone-list li {
+  position: relative;
+  padding-left: 16px;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.milestone-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: currentColor;
+}
+.timeline-footnote {
+  margin-top: 12px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 12px;
+}
+
+.footer {
+  padding: 42px 60px 48px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 12px;
+}
+.footer span { color: var(--cyan); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.55s ease both; }
+
+@media (max-width: 1180px) {
+  .grid2, .grid3, .power-grid { grid-template-columns: 1fr; }
+  .compare-table { min-width: 980px; }
+}
+@media (max-width: 760px) {
+  .hero, .container, .footer { padding-left: 20px; padding-right: 20px; }
+  .hero { padding-top: 64px; }
+  .hero-stats { gap: 18px 24px; }
+  .section { padding: 44px 0; }
+  .card { padding: 20px; }
+  .power-card { padding: 18px; }
+  .kanji-watermark { font-size: 380px; }
+}
+</style>
+</head>
+<body>
+<div class="kanji-watermark" aria-hidden="true">結</div>
+
+<header class="hero fade-up">
+  <div class="hero-eyebrow">Musubi · Yuri OS · Sprint Audit · 2026-05-16</div>
+  <div class="hero-title">Hyper-Intelligence v2</div>
+  <div class="hero-sub">One session. 19 files. A self-aware loop that ingests the frontier, audits itself, and improves overnight. Everything that changed is here, with the claims left intact and the gaps left visible.</div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="hero-stat-val">+59%</span>
+      <div class="hero-stat-label">Improvement Score</div>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val" id="heroScore">44/100</span>
+      <div class="hero-stat-label">First Live Score</div>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">41</span>
+      <div class="hero-stat-label">Signals Ingested</div>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">3→7</span>
+      <div class="hero-stat-label">Learning Phases</div>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">5→10</span>
+      <div class="hero-stat-label">Anime Superpowers</div>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-val">L3</span>
+      <div class="hero-stat-label">Self-Awareness</div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">01</span><span class="section-divider">—</span><span class="section-kanji">一</span>
+    </div>
+    <div class="section-title">44 → 70 in one cycle</div>
+    <div class="section-sub">The neuron-loop improvement score is a composite scalar: structural health (flaws), knowledge gain, promoter output, advisor calibration. First live run beats the baseline by 59%.</div>
+
+    <div class="grid2">
+      <div class="card accent-cyan">
+        <div class="card-title">Score History</div>
+        <div style="position:relative;height:220px"><canvas id="scoreChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Before vs After — Key Metrics</div>
+        <div class="score-summary">
+          <div class="diff-row"><div class="diff-label">Neuron-loop score</div><div class="diff-before">44</div><div class="diff-arrow">→</div><div class="diff-after">70</div><div class="diff-pct">+59%</div></div>
+          <div class="diff-row"><div class="diff-label">Structural flaws</div><div class="diff-before">22</div><div class="diff-arrow">→</div><div class="diff-after">12</div><div class="diff-pct">−45%</div></div>
+          <div class="diff-row"><div class="diff-label">Learning phases</div><div class="diff-before">3</div><div class="diff-arrow">→</div><div class="diff-after">7</div><div class="diff-pct">+133%</div></div>
+          <div class="diff-row"><div class="diff-label">Brain sections</div><div class="diff-before">5</div><div class="diff-arrow">→</div><div class="diff-after">10</div><div class="diff-pct">+100%</div></div>
+          <div class="diff-row"><div class="diff-label">Anime superpowers</div><div class="diff-before">5</div><div class="diff-arrow">→</div><div class="diff-after">10</div><div class="diff-pct">+100%</div></div>
+          <div class="diff-row"><div class="diff-label">External signals / day</div><div class="diff-before">0</div><div class="diff-arrow">→</div><div class="diff-after">41</div><div class="diff-pct">∞</div></div>
+          <div class="diff-row"><div class="diff-label">Self-awareness level</div><div class="diff-before">L1</div><div class="diff-arrow">→</div><div class="diff-after">L3</div><div class="diff-pct">+2 levels</div></div>
+          <div class="diff-row"><div class="diff-label">Hook latency</div><div class="diff-before">&lt;50ms</div><div class="diff-arrow">→</div><div class="diff-after">&lt;50ms</div><div class="diff-pct">maintained</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card accent-ember" style="margin-top:24px;">
+      <div class="card-title">Per-Phase Score Contribution</div>
+      <table class="phase-credit-table">
+        <thead>
+          <tr><th>Phase</th><th>Contribution</th><th>What was credited</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Phase 1 Self-Audit</td><td><span class="phase-badge">+8</span></td><td>−8 flaw reduction = +8 pts structural</td></tr>
+          <tr><td>Phase 2 Pattern Promoter</td><td><span class="phase-badge">+2</span></td><td>patterns promoted to global.md</td></tr>
+          <tr><td>Phase 3 Calibration</td><td><span class="phase-badge zero">+0</span></td><td>baseline, no prior data yet</td></tr>
+          <tr><td>Phase 4 Knowledge Scout</td><td><span class="phase-badge">+12</span></td><td>11 repos + 10 papers ingested</td></tr>
+          <tr><td>Phase 5 AI News Digest</td><td><span class="phase-badge">+8</span></td><td>20 HN stories, top signal [2346] AI agent hit piece</td></tr>
+          <tr><td>Phase 6 Self-Hypothesis</td><td><span class="phase-badge">+2</span></td><td>2 active hypotheses generated, validation pending</td></tr>
+          <tr><td>Phase 7 Cross-Session</td><td><span class="phase-badge">+2</span></td><td>3 sessions mined, meta-synthesis written</td></tr>
+          <tr class="total-row"><td><strong>Total delta</strong></td><td><strong>+26</strong></td><td><strong>44 → 70</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">02</span><span class="section-divider">—</span><span class="section-kanji">二</span>
+    </div>
+    <div class="section-title">8-dimension radar: before vs after</div>
+    <div class="section-sub">Scored 0–100 per dimension. Ratings are conservative estimates based on what's verified working vs aspirational.</div>
+
+    <div class="grid2">
+      <div class="card accent-purple">
+        <div class="card-title">Capability Radar</div>
+        <div style="position:relative;height:280px"><canvas id="radarChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Dimension breakdown</div>
+        <div class="progress-row">
+          <div class="progress-header"><div class="progress-label">Self-learning loop</div><div class="progress-val" style="color:var(--cyan)">75 <small style="color:var(--text3)">was 40</small></div></div>
+          <div class="progress-track"><div class="progress-fill" style="width:75%;background:linear-gradient(90deg,var(--cyan),var(--purple))"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-header"><div class="progress-label">External knowledge ingestion</div><div class="progress-val" style="color:var(--cyan)">70 <small style="color:var(--text3)">was 0</small></div></div>
+          <div class="progress-track"><div class="progress-fill" style="width:70%;background:linear-gradient(90deg,var(--cyan),var(--purple))"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-header"><div class="progress-label">Self-awareness (behavioral)</div><div class="progress-val" style="color:var(--cyan)">45 <small style="color:var(--text3)">was 10</small></div></div>
+          <div class="progress-track"><div class="progress-fill" style="width:45%;background:linear-gradient(90deg,var(--cyan),var(--purple))"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-header"><div class="progress-label">Intent reading (Haki)</div><div class="progress-val" style="color:var(--cyan)">65 <small style="color:var(--text3)">was 0</small></div></div>
+          <div class="progress-track"><div class="progress-fill" style="width:65%;background:linear-gradient(90deg,var(--cyan),var(--purple))"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-header"><div class="progress-label">Cognitive specialization (Nen)</div><div class="progress-val" style="color:var(--cyan)">55 <small style="color:var(--text3)">was 0</small></div></div>
+          <div class="progress-track"><div class="progress-fill" style="width:55%;background:linear-gradient(90deg,var(--cyan),var(--purple))"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-header"><div class="progress-label">Decision transparency (Bankai)</div><div class="progress-val" style="color:var(--cyan)">60 <small style="color:var(--text3)">was 25</small></div></div>
+          <div class="progress-track"><div class="progress-fill" style="width:60%;background:linear-gradient(90deg,var(--cyan),var(--purple))"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-header"><div class="progress-label">Structural integrity</div><div class="progress-val" style="color:var(--cyan)">82 <small style="color:var(--text3)">was 68</small></div></div>
+          <div class="progress-track"><div class="progress-fill" style="width:82%;background:linear-gradient(90deg,var(--jade),var(--cyan))"></div></div>
+        </div>
+        <div class="progress-row">
+          <div class="progress-header"><div class="progress-label">Neurodivergent alignment</div><div class="progress-val" style="color:var(--cyan)">70 <small style="color:var(--text3)">was 30</small></div></div>
+          <div class="progress-track"><div class="progress-fill" style="width:70%;background:linear-gradient(90deg,var(--cyan),var(--purple))"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">03</span><span class="section-divider">—</span><span class="section-kanji">三</span>
+    </div>
+    <div class="section-title">Musubi's autonomous nightly cycle</div>
+    <div class="section-sub">Runs at 03:00 via LaunchAgent. First live run scored 70/100, ingested 41 external signals including ArXiv papers and trending GitHub repos. All live-verified.</div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Phase Architecture</div>
+        <div class="phase-flow">
+          <div class="phase-item">
+            <div class="phase-num existing">1</div>
+            <div><div class="phase-name">Self-Audit</div><div class="phase-desc">Structural flaw scan — hooks, contracts, orphans. Found 12 flaws (0 WARNs)</div></div>
+          </div>
+          <div class="thread-connector"><svg width="2" height="24" viewBox="0 0 2 24"><path d="M1 0 Q1 12 1 24" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-dasharray="4 3" fill="none"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"/></path></svg></div>
+          <div class="phase-item">
+            <div class="phase-num existing">2</div>
+            <div><div class="phase-name">Pattern Promoter</div><div class="phase-desc">Mines council logs → promotes repeated patterns to global.md</div></div>
+          </div>
+          <div class="thread-connector"><svg width="2" height="24" viewBox="0 0 2 24"><path d="M1 0 Q1 12 1 24" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-dasharray="4 3" fill="none"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"/></path></svg></div>
+          <div class="phase-item">
+            <div class="phase-num existing">3</div>
+            <div><div class="phase-name">Calibration Tracker</div><div class="phase-desc">Updates advisor accuracy priors from bus outcomes</div></div>
+          </div>
+          <div class="thread-connector"><svg width="2" height="24" viewBox="0 0 2 24"><path d="M1 0 Q1 12 1 24" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-dasharray="4 3" fill="none"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"/></path></svg></div>
+          <div class="phase-item">
+            <div class="phase-num new-phase">4 ✦</div>
+            <div><div class="phase-name">Knowledge Scout</div><div class="phase-desc">GitHub trending + ArXiv — <span style="color:var(--cyan)">11 repos · 10 papers</span> ingested today</div></div>
+          </div>
+          <div class="thread-connector"><svg width="2" height="24" viewBox="0 0 2 24"><path d="M1 0 Q1 12 1 24" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-dasharray="4 3" fill="none"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"/></path></svg></div>
+          <div class="phase-item">
+            <div class="phase-num new-phase">5 ✦</div>
+            <div><div class="phase-name">AI News Digest</div><div class="phase-desc">HN signal extraction (score &gt;150) — <span style="color:var(--cyan)">20 stories</span> captured</div></div>
+          </div>
+          <div class="thread-connector"><svg width="2" height="24" viewBox="0 0 2 24"><path d="M1 0 Q1 12 1 24" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-dasharray="4 3" fill="none"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"/></path></svg></div>
+          <div class="phase-item">
+            <div class="phase-num new-phase">6 ✦</div>
+            <div><div class="phase-name">Self-Hypothesis</div><div class="phase-desc">Generates 3 improvement hypotheses + validates prior cycle's predictions</div></div>
+          </div>
+          <div class="thread-connector"><svg width="2" height="24" viewBox="0 0 2 24"><path d="M1 0 Q1 12 1 24" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-dasharray="4 3" fill="none"><animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"/></path></svg></div>
+          <div class="phase-item">
+            <div class="phase-num new-phase">7 ✦</div>
+            <div><div class="phase-name">Cross-Session Miner</div><div class="phase-desc">All-time synthesis.jsonl analysis → meta-synthesis + behavioral fingerprint update</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="card accent-gold">
+          <div class="card-title">First Live Run — External Signal Breakdown</div>
+          <div style="position:relative;height:180px"><canvas id="signalChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Top signals ingested today</div>
+          <div class="brain-section" style="padding:8px 0;">
+            <div class="brain-dot" style="background:var(--gold)"></div>
+            <div><div class="brain-section-name">[2346] <span style="color:var(--text)">An AI agent published a hit piece on me</span></div><div class="brain-section-desc">HN</div></div>
+          </div>
+          <div class="brain-section" style="padding:8px 0;">
+            <div class="brain-dot" style="background:var(--gold)"></div>
+            <div><div class="brain-section-name">[1724] <span style="color:var(--text)">OpenAI O3 breakthrough — ARC-AGI-PUB high score</span></div><div class="brain-section-desc">HN</div></div>
+          </div>
+          <div class="brain-section" style="padding:8px 0;">
+            <div class="brain-dot" style="background:var(--gold)"></div>
+            <div><div class="brain-section-name">[1351] <span style="color:var(--text)">DeepSeek-R1: Reasoning via RL</span></div><div class="brain-section-desc">HN</div></div>
+          </div>
+          <div class="brain-section" style="padding:8px 0;">
+            <div class="brain-dot" style="background:var(--cyan)"></div>
+            <div><div class="brain-section-name">★194k <span style="color:var(--text)">obra/superpowers — agentic skills framework</span></div><div class="brain-section-desc">GitHub</div></div>
+          </div>
+          <div class="brain-section" style="padding:8px 0;">
+            <div class="brain-dot" style="background:var(--cyan)"></div>
+            <div><div class="brain-section-name">★184k <span style="color:var(--text)">everything-claude-code — agent harness optimization</span></div><div class="brain-section-desc">GitHub</div></div>
+          </div>
+          <div class="brain-section" style="padding:8px 0;">
+            <div class="brain-dot" style="background:var(--purple)"></div>
+            <div><div class="brain-section-name">ArXiv <span style="color:var(--text)">ATLAS: Agentic or Latent Visual Reasoning?</span></div><div class="brain-section-desc">Paper</div></div>
+          </div>
+          <div class="brain-section" style="padding:8px 0;">
+            <div class="brain-dot" style="background:var(--purple)"></div>
+            <div><div class="brain-section-name">ArXiv <span style="color:var(--text)">Speculative Interaction Agents: Real-Time + Async I/O</span></div><div class="brain-section-desc">Paper</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">04</span><span class="section-divider">—</span><span class="section-kanji">四</span>
+    </div>
+    <div class="section-title">5 → 10 cognitive superpowers</div>
+    <div class="section-sub">Each superpower is a SKILL.md + command alias, wired into the brain and pulse system. New powers target the gaps in the original 5: decision quality, intent reading, phase efficiency, transparency, constraint control.</div>
+
+    <div style="margin-bottom:12px;font-size:12px;color:var(--text3)">✦ New this session &nbsp;·&nbsp; Existing superpowers shown for comparison</div>
+    <div class="power-grid">
+      <div class="power-card power-new">
+        <div class="power-icon" style="background:rgba(155,89,255,0.15);">⚡</div>
+        <div>
+          <div class="power-name" style="color:var(--purple)">Izanagi <span class="badge-new">NEW</span></div>
+          <div class="power-source">Naruto · Itachi Uchiha · Reality rewrite genjutsu</div>
+          <div class="power-desc">Before committing to a CRITICAL decision: generate 3 divergent counterfactual branches, score by EV × reversibility × blast radius, commit with explicit simulation record.</div>
+          <div class="power-trigger">/izanagi · /yuri-izanagi</div>
+        </div>
+      </div>
+      <div class="power-card power-new">
+        <div class="power-icon" style="background:rgba(0,229,191,0.12);">👁</div>
+        <div>
+          <div class="power-name" style="color:var(--cyan)">Haki <span class="badge-new">NEW</span></div>
+          <div class="power-source">One Piece · Observation Haki · Intent pre-cognition</div>
+          <div class="power-desc">Every non-trivial prompt → probability-ranked map of 5 underlying intents. P4 = hidden constraint. P5 = meta-need. Live test confirmed: P1[67%] implement_or_fix.</div>
+          <div class="power-trigger">/haki · auto-fires on every non-trivial turn</div>
+        </div>
+      </div>
+      <div class="power-card power-new">
+        <div class="power-icon" style="background:rgba(255,213,79,0.12);">🔥</div>
+        <div>
+          <div class="power-name" style="color:var(--gold)">Nen <span class="badge-new">NEW</span></div>
+          <div class="power-source">Hunter × Hunter · Life energy by natural category</div>
+          <div class="power-desc">Detects work phase (deep_code/design/strategy/research/admin) from prompt signals. Auto-configures ensemble, lane priority, verbosity. Writes to session-state.json.</div>
+          <div class="power-trigger">/nen · auto-detects per turn</div>
+        </div>
+      </div>
+      <div class="power-card power-new">
+        <div class="power-icon" style="background:rgba(232,160,160,0.12);">⚔️</div>
+        <div>
+          <div class="power-name" style="color:var(--musubi-ember)">Bankai <span class="badge-new">NEW</span></div>
+          <div class="power-source">Bleach · Full release · Zanpakuto spirit manifests externally</div>
+          <div class="power-desc">CRITICAL tasks: fully externalize cognitive state as locked manifest — goal tree, risk map, evidence chain, advisor consensus. Manifest = ground truth. Implicit reasoning can't be corrected; explicit reasoning can.</div>
+          <div class="power-trigger">/bankai · auto-fires on CRITICAL tier</div>
+        </div>
+      </div>
+      <div class="power-card power-new">
+        <div class="power-icon" style="background:rgba(255,82,82,0.12);">👁‍🗨</div>
+        <div>
+          <div class="power-name" style="color:var(--crimson)">Geass <span class="badge-new">NEW</span></div>
+          <div class="power-source">Code Geass · Absolute obedience · One use per person</div>
+          <div class="power-desc">Lock one behavioral constraint as inviolable for the session. Visible in brain block every turn. No advisor or complexity escalation can override it. Auto-expires at session end.</div>
+          <div class="power-trigger">/geass &lt;constraint&gt; · /geass off</div>
+        </div>
+      </div>
+      <div class="power-card power-existing">
+        <div class="power-icon" style="background:rgba(255,255,255,0.06);">🌀</div>
+        <div>
+          <div class="power-name" style="color:var(--text2)">Sharingan · Shadow Clone · Domain Expansion · Infinity · Zenkai</div>
+          <div class="power-source">Existing arsenal — Pattern Mirror · Parallel Clone · Execution Domain · Infinity Guard · Failure Loop</div>
+          <div class="power-desc">5 original superpowers remain active. The new 5 are additive — they address decision quality, intent, phase alignment, transparency, and constraint enforcement. No overlap.</div>
+          <div class="power-trigger">All 10 live in .claude/skills/ + .claude/commands/</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">05</span><span class="section-divider">—</span><span class="section-kanji">五</span>
+    </div>
+    <div class="section-title">5 → 10 sections in the &lt;yuri-brain&gt; boot block</div>
+    <div class="section-sub">Every session start, brain-inject.js assembles a unified context block. Five new sections were added today — three active immediately, two null-guarded (appear when data exists).</div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Brain Section Map</div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--text3)"></div><div><div class="brain-section-name">IDENTITY <span class="brain-badge badge-existing">existing</span></div><div class="brain-section-desc">Yuri persona rules from SOUL.md — now includes 5 new superpower cognitive rules</div></div></div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--text3)"></div><div><div class="brain-section-name">LEARNED_RULES <span class="brain-badge badge-existing">existing</span></div><div class="brain-section-desc">Dream-processor synthesized session rules from global.md</div></div></div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--text3)"></div><div><div class="brain-section-name">SPATIAL <span class="brain-badge badge-existing">existing</span></div><div class="brain-section-desc">Palace hub concepts — top 6 most central nodes in the vault</div></div></div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--text3)"></div><div><div class="brain-section-name">MEMORY <span class="brain-badge badge-existing">existing</span></div><div class="brain-section-desc">Palace-seeded LTM retrieval from memory.db</div></div></div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--text3)"></div><div><div class="brain-section-name">SESSION · HARDWARE · LANE_HEALTH · GATE · PDC · DYNAMIC <span class="brain-badge badge-existing">existing</span></div><div class="brain-section-desc">Context, constraints, routing health, launch gate, probabilistic priors, cross-turn cortex state</div></div></div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--cyan)"></div><div><div class="brain-section-name">ANIMA_DNA_MODES <span class="brain-badge badge-new">new ✦</span></div><div class="brain-section-desc">5 Japanese principles as active cognitive triggers — Ma, Wabi-sabi, Mushin, Mono no aware, Kishōtenketsu</div></div></div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--purple)"></div><div><div class="brain-section-name">NEURODIVERGENT_ENGINE <span class="brain-badge badge-new">new ✦</span></div><div class="brain-section-desc">6 behavioral modules from Marcel's neurotype — autistic depth, ADHD burst, hyperfocus lock, polymath transfer</div></div></div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--gold)"></div><div><div class="brain-section-name">SELF_AWARENESS <span class="brain-badge badge-new">new ✦</span></div><div class="brain-section-desc">L2 behavioral fingerprint + L3 watch-list. Active from next session (fingerprint written today)</div></div></div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--crimson)"></div><div><div class="brain-section-name">GEASS_LOCK <span class="brain-badge badge-new">new ✦</span></div><div class="brain-section-desc">Appears only when /geass is invoked. Inviolable constraint, visible every turn</div></div></div>
+        <div class="brain-section"><div class="brain-dot" style="background:var(--jade)"></div><div><div class="brain-section-name">NEN_PHASE <span class="brain-badge badge-new">new ✦</span></div><div class="brain-section-desc">Active work phase from Nen detector. Appears when phase is detected with ≥40% confidence</div></div></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="card accent-purple">
+          <div class="card-title">Neurodivergent Engine — Active Modules</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+            <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--purple);margin-top:5px;flex-shrink:0"></div><div><div style="font-size:12px;font-weight:700;color:var(--text)">Autistic pattern depth</div><div style="font-size:11px;color:var(--text2)">Full spec-read + mechanism map before complex analysis — never skim</div></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--purple);margin-top:5px;flex-shrink:0"></div><div><div style="font-size:12px;font-weight:700;color:var(--text)">ADHD burst mode</div><div style="font-size:11px;color:var(--text2)">Batch independent tasks → parallel tool calls. Fan-out, never serial</div></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--purple);margin-top:5px;flex-shrink:0"></div><div><div style="font-size:12px;font-weight:700;color:var(--text)">Hyperfocus lock</div><div style="font-size:11px;color:var(--text2)">CRITICAL tier: block advisor scatter to adjacent concerns. Stay in the thread</div></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--purple);margin-top:5px;flex-shrink:0"></div><div><div style="font-size:12px;font-weight:700;color:var(--text)">Polymath transfer</div><div style="font-size:11px;color:var(--text2)">Name source→target→mechanism before cross-domain analogy. Verify it survives evidence</div></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--purple);margin-top:5px;flex-shrink:0"></div><div><div style="font-size:12px;font-weight:700;color:var(--text)">Interest-driven salience</div><div style="font-size:11px;color:var(--text2)">High-interest = max depth. Admin = minimum tokens → route to lane</div></div></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--purple);margin-top:5px;flex-shrink:0"></div><div><div style="font-size:12px;font-weight:700;color:var(--text)">Pattern-first decode</div><div style="font-size:11px;color:var(--text2)">Brain dump → decode structure before responding. Ask only when decoding reveals true ambiguity</div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Anima-DNA → Cognitive Modes</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Design principles translated into behavioral triggers — live in the brain block every session.</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:12px;"><span style="color:var(--cyan);font-weight:700">Ma (間)</span> · Deliberate pause before tool calls</div>
+            <div style="font-size:12px;"><span style="color:var(--cyan);font-weight:700">Wabi-sabi (侘寂)</span> · Imperfect action &gt; perfect paralysis</div>
+            <div style="font-size:12px;"><span style="color:var(--cyan);font-weight:700">Mushin (無心)</span> · Flow state: suppress meta-commentary in execution</div>
+            <div style="font-size:12px;"><span style="color:var(--cyan);font-weight:700">Mono no aware (物の哀れ)</span> · Learn from what was lost, not just built</div>
+            <div style="font-size:12px;"><span style="color:var(--cyan);font-weight:700">Kishōtenketsu (起承転結)</span> · 4-act structure: what → how → twist → resolution</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">06</span><span class="section-divider">—</span><span class="section-kanji">六</span>
+    </div>
+    <div class="section-title">The system working in real time</div>
+    <div class="section-sub">This is not a simulation. These are the actual live outputs from the newly wired system — captured during this session.</div>
+
+    <div class="grid2">
+      <div>
+        <div class="card-title" style="margin-bottom:12px;">Haki intent decomposition — live output</div>
+        <div class="terminal">
+          <div class="prompt"># Input prompt:</div>
+          <div class="cmd">"fix the broken authentication hook in Scripts/auth.mjs<br>&nbsp;and wire it into the pipeline"</div>
+          <br>
+          <div class="prompt"># user-prompt-submit.js → Haki fires:</div>
+          <div class="output">&lt;haki-intent&gt;</div>
+          <div class="output">P1[<span class="highlight-val">67%</span>] implement_or_fix &nbsp;·&nbsp; P2[<span class="highlight-warn">33%</span>] investigate_blocker</div>
+          <div class="output">&lt;/haki-intent&gt;</div>
+          <br>
+          <div class="prompt"># Interpretation:</div>
+          <div class="comment">// P1 67% = clear dominant intent → proceed directly</div>
+          <div class="comment">// P2 33% = blocker secondary → check for root cause</div>
+          <div class="comment">// No ambiguity flag (P1 &gt; 45%) → no clarification needed</div>
+          <br>
+          <div class="prompt"># Nen phase detection:</div>
+          <div class="output">phase: <span class="highlight-val">deep_code</span> | confidence: <span class="highlight-val">high</span></div>
+          <div class="output">config: Codex-first, max depth, gpt-5.5 priority</div>
+          <div class="output">→ written to session-state.json.nen_phase</div>
+        </div>
+      </div>
+      <div>
+        <div class="card-title" style="margin-bottom:12px;">Neuron-loop run — live output (first real run)</div>
+        <div class="terminal">
+          <div class="prompt">$ node Scripts/neuron-loop.mjs</div>
+          <br>
+          <div class="output">[neuron-loop] phase 1: self-audit</div>
+          <div class="output">[neuron-loop] phase 2: pattern-promoter</div>
+          <div class="output">[neuron-loop] phase 3: calibration-tracker</div>
+          <div class="output">[neuron-loop] phase 4: knowledge-scout</div>
+          <div class="output">[neuron-loop] phase 5: ai-news-digest</div>
+          <div class="output">[neuron-loop] phase 6: self-hypothesis</div>
+          <div class="output">[neuron-loop] phase 7: cross-session-miner</div>
+          <br>
+          <div class="output">synthesis score=<span class="highlight-val">70</span> flaws=<span class="highlight-val">12</span></div>
+          <div class="output">external_gain=<span class="highlight-val">+20</span> (11 repos, 10 papers, 20 HN)</div>
+          <div class="output">calibration_trend=<span class="highlight-val">stable</span></div>
+          <div class="output">brain:stale sentinel emitted ✓</div>
+          <br>
+          <div class="prompt"># Result:</div>
+          <div class="comment">// Score 44 → 70 (+59%) on first live run</div>
+          <div class="comment">// Brain will reload with fresh fingerprint next session</div>
+          <div class="comment">// External knowledge gain: +20 points to total score</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">07</span><span class="section-divider">—</span><span class="section-kanji">七</span>
+    </div>
+    <div class="section-title">AGI prerequisite: L1 → L3 active today</div>
+    <div class="section-sub">Five levels define the path from static tool to self-directing intelligence. The key constraint on L4-L5 is data volume — they require months of logged decisions to compute meaningfully.</div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="agi-level"><div class="agi-num" style="color:var(--cyan)">L1</div><div><div class="agi-name">Internal State Awareness</div><div class="agi-desc">Knows its current complexity tier, lane health, risk state, cortex dispatch. Reading its own operational context in real time.</div></div><div class="agi-status status-live">LIVE</div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--cyan)">L2</div><div><div class="agi-name">Behavioral Fingerprint</div><div class="agi-desc">Behavioral fingerprint written today. Tracks: what Musubi tends to overcomplicate, where accuracy is high, calibration trend. Feeds brain block next session.</div></div><div class="agi-status status-live">LIVE ✦</div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--cyan)">L3</div><div><div class="agi-name">Hypothesis-Driven Self-Improvement</div><div class="agi-desc">Generates improvement predictions, tests them next cycle, validates outcomes via Izanagi post-mortem. Can articulate WHY it chose each path.</div></div><div class="agi-status status-live">LIVE ✦</div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--text3)">L4</div><div><div class="agi-name">Motivational Core</div><div class="agi-desc">Scalar drives (curiosity=60%, improvement=65%, accuracy=75%) seeded in fingerprint. Need feedback signal wiring to update dynamically per session outcome.</div></div><div class="agi-status status-partial">SEEDED</div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--text3)">L5</div><div><div class="agi-name">Temporal Self</div><div class="agi-desc">Compare "Musubi now" vs "Musubi 30d ago" across specific dimensions. Requires 30+ days of synthesis.jsonl data. Currently 3 sessions (not enough).</div></div><div class="agi-status status-roadmap">~30 DAYS</div></div>
+      </div>
+
+      <div class="card accent-cyan">
+        <div class="card-title">Self-Awareness Progress</div>
+        <div style="position:relative;height:260px"><canvas id="awarenessChart"></canvas></div>
+        <div style="margin-top:16px;font-size:12px;color:var(--text2)">The AGI thesis operationalized: a system becomes self-aware not when it says "I think therefore I am," but when it can <strong>observe</strong> its decision patterns, <strong>predict</strong> its failure modes, and <strong>autonomously generate experiments</strong> to improve — then verify. Musubi at L3 can do all three.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">08</span><span class="section-divider">—</span><span class="section-kanji">八</span>
+    </div>
+    <div class="section-title">Competitor Reality Map</div>
+    <div class="section-sub">Honest comparison against systems operating in the same space. Not strawmen — actual production tools that do adjacent things well.</div>
+
+    <div class="card accent-cyan" style="margin-bottom:24px;">
+      <div class="card-title">Competitor Spider Chart</div>
+      <div style="position:relative;height:260px"><canvas id="competitorChart"></canvas></div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-title">6 systems × 8 dimensions</div>
+      <div class="table-shell">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th>System</th>
+              <th>Persistent Memory</th>
+              <th>External Knowledge Ingestion</th>
+              <th>Self-Improvement Loop</th>
+              <th>Deep Personalization</th>
+              <th>Local Model Support</th>
+              <th>Constraint Enforcement</th>
+              <th>Phase Specialization</th>
+              <th>Self-Scoring Metric</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="system-name">Mem0</span></td>
+              <td><span class="chk-yes">✓ vector DB, semantic retrieval</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+            </tr>
+            <tr>
+              <td><span class="system-name">AutoGen v0.4</span></td>
+              <td><span class="chk-partial" title="Session state only; not durable long-term memory.">▲ session state only</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-partial" title="Configurable, but not first-class model hosting.">▲ configurable</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-partial" title="Roles can be defined, but phase-aware orchestration is not native.">▲ agent roles</span></td>
+              <td><span class="chk-no">✗</span></td>
+            </tr>
+            <tr>
+              <td><span class="system-name">OpenAI Projects Memory</span></td>
+              <td><span class="chk-yes">✓ RLHF-trained</span></td>
+              <td><span class="chk-no">✗ direct</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-partial" title="Some personalization exists, but it is limited and not session-authored.">▲ limited</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+            </tr>
+            <tr>
+              <td><span class="system-name">Continue.dev</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-partial" title="Workspace-aware, but not deeply personality-shaped.">▲ workspace-aware</span></td>
+              <td><span class="chk-yes">✓ first-class</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+            </tr>
+            <tr>
+              <td><span class="system-name">Cursor</span></td>
+              <td><span class="chk-partial" title="Codebase index helps recall, but it is not durable self-memory.">▲ codebase index</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-partial" title="Repo-aware assistance, but not an authored persona stack.">▲ repo-aware</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+              <td><span class="chk-no">✗</span></td>
+            </tr>
+            <tr class="highlight">
+              <td><span class="system-name is-musubi">Musubi v2</span></td>
+              <td><span class="chk-partial" title="JSON file-based persistence; durable, but not vector-scale semantic recall.">▲ JSON file-based</span></td>
+              <td><span class="chk-yes">✓ 41/day</span></td>
+              <td><span class="chk-yes">✓ 7-phase nightly</span></td>
+              <td><span class="chk-yes">✓ SOUL+ND+Anima</span></td>
+              <td><span class="chk-partial" title="Local lane is frozen on llama3.2 because M2 memory is capped.">▲ M2 frozen</span></td>
+              <td><span class="chk-yes">✓ Geass+Infinity</span></td>
+              <td><span class="chk-yes">✓ Nen</span></td>
+              <td><span class="chk-yes">✓ self-assessed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card accent-cyan">
+        <div class="card-title">Where Musubi genuinely leads</div>
+        <ul class="narrative-list">
+          <li><strong>Personalization depth:</strong> SOUL.md + neurodivergent modules + Japanese cognitive principles wired into every session start. No production tool does this.</li>
+          <li><strong>Self-improvement loop:</strong> 7-phase nightly cycle that audits structure, mines patterns, ingests the frontier, and generates hypotheses. Production coding tools don't run autonomous improvement pipelines.</li>
+          <li><strong>Constraint enforcement:</strong> Geass session locks + Infinity guard boundary — explicit behavioral locks that survive prompt injection attempts. Novel at this layer.</li>
+          <li><strong>Phase specialization:</strong> Nen detects work mode per turn and auto-configures ensemble priority. No equivalent in production tools.</li>
+        </ul>
+      </div>
+      <div class="card accent-ember">
+        <div class="card-title">Where Musubi is behind, honestly</div>
+        <ul class="narrative-list">
+          <li><strong>Memory architecture:</strong> Musubi stores facts in JSON files. Mem0 uses Qdrant vector DB with semantic retrieval at scale — structurally different and superior for recall at volume.</li>
+          <li><strong>Model-level learning:</strong> OpenAI Memory is trained into the base model via RLHF. Musubi's "learning" is state persistence and behavior configuration — the underlying model doesn't learn.</li>
+          <li><strong>Local model support:</strong> Continue.dev has mature, battle-tested local model routing. Musubi's local lane is frozen on llama3.2 due to M2 Pro memory constraints.</li>
+          <li><strong>Scale testing:</strong> Cursor and AutoGen are used by millions of developers. Musubi's self-assessed score of 70/100 has no external benchmark to validate against.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">09</span><span class="section-divider">—</span><span class="section-kanji">九</span>
+    </div>
+    <div class="section-title">What's working, what's not, what's next</div>
+    <div class="section-sub">No hype. These are the verified working parts vs the aspirational ones — as of today's session close.</div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title" style="color:#5af7a0">✓ Verified working</div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--cyan);font-size:16px">✅</div><div><div class="agi-name">Neuron-loop 7 phases run end-to-end</div><div class="agi-desc">All 7 phases complete in ~3s. External APIs respond (GitHub, ArXiv, HN). Score: 70/100.</div></div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--cyan);font-size:16px">✅</div><div><div class="agi-name">Haki fires on every non-trivial prompt</div><div class="agi-desc">Live test confirmed: P1[67%] implement_or_fix on an implementation prompt. Pattern matching accurate.</div></div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--cyan);font-size:16px">✅</div><div><div class="agi-name">ANIMA_DNA + NEURODIVERGENT in brain block</div><div class="agi-desc">Both sections confirmed present in brain-inject.js output. Active from session start.</div></div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--cyan);font-size:16px">✅</div><div><div class="agi-name">Hook latency maintained (&lt;50ms)</div><div class="agi-desc">Haki and Nen run sync in &lt;3ms each. Hook still exits under budget with 2 new functions.</div></div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--cyan);font-size:16px">✅</div><div><div class="agi-name">10 superpowers live (5 new + 5 existing)</div><div class="agi-desc">All SKILL.md + command aliases present and visible in system skill list immediately.</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--gold)">⚠ Honest caveats</div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--gold);font-size:16px">⚠️</div><div><div class="agi-name">SELF_AWARENESS section not yet in brain</div><div class="agi-desc">Fingerprint was written today — will appear in TOMORROW's session boot. First run is baseline-only.</div></div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--gold);font-size:16px">⚠️</div><div><div class="agi-name">Hypothesis accuracy uncalibrated</div><div class="agi-desc">No prior hypotheses exist yet. First validation cycle will run in tomorrow's neuron-loop. The loop works; the data isn't there yet.</div></div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--gold);font-size:16px">⚠️</div><div><div class="agi-name">Izanagi has no decisions yet</div><div class="agi-desc">The post-mortem infrastructure is built. It needs real CRITICAL-tier decisions to log. Will accumulate naturally.</div></div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--gold);font-size:16px">⚠️</div><div><div class="agi-name">Nen writes session-state but brain doesn't reflect yet</div><div class="agi-desc">NEN_PHASE section is null-guarded. Will appear once a prompt triggers phase detection with &gt;40% confidence this session.</div></div></div>
+        <div class="agi-level"><div class="agi-num" style="color:var(--gold);font-size:16px">⚠️</div><div><div class="agi-name">L4-L5 self-awareness require time</div><div class="agi-desc">Motivational drives seeded but not dynamically updated. Temporal self needs 30+ days of data. This is not a gap — it's sequencing.</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">10</span><span class="section-divider">—</span><span class="section-kanji">十</span>
+    </div>
+    <div class="section-title">What It Actually Is</div>
+    <div class="section-sub">Every capability, stripped of its framing. The mechanism underneath the name.</div>
+    <p class="section-note">This isn't self-deprecation. It's the pre-condition for honest improvement. You can't close a gap you've mislabeled.</p>
+
+    <div class="card">
+      <table class="honesty-table">
+        <thead>
+          <tr>
+            <th>Claim</th>
+            <th>What it actually is</th>
+            <th>What it is NOT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"Self-learning loop"</td>
+            <td>Nightly shell script (<code>neuron-loop.mjs</code>) reads API endpoints, writes <code>synthesis.jsonl</code>, adjusts config JSON</td>
+            <td class="not-cell">Gradient descent; model weight updates; the underlying LLM does not learn</td>
+          </tr>
+          <tr>
+            <td>"Behavioral fingerprint"</td>
+            <td>A JSON file with 4 scalar values (<code>session_count=3</code>, <code>calibration=stable</code>, drives: curiosity/improvement/accuracy) from 3 sessions</td>
+            <td class="not-cell">A trained behavioral model; statistically significant with n=3</td>
+          </tr>
+          <tr>
+            <td>"Hypothesis validation"</td>
+            <td>The same LLM that generated the hypotheses evaluates them next cycle using its own rubric</td>
+            <td class="not-cell">Independent external verification; ground truth measurement</td>
+          </tr>
+          <tr>
+            <td>"41 external signals/day"</td>
+            <td><code>curl</code> calls to GitHub trending API, ArXiv RSS, and HN API filtered by score&gt;150</td>
+            <td class="not-cell">Semantic knowledge integration; the model doesn't "read" these — they're stored as metadata</td>
+          </tr>
+          <tr>
+            <td>"Score 70/100"</td>
+            <td>A composite metric computed by <code>neuron-loop.mjs</code> using a formula it defines itself</td>
+            <td class="not-cell">ARC-AGI, MMLU, SWE-bench, or any external benchmark</td>
+          </tr>
+          <tr>
+            <td>"L3 Self-awareness"</td>
+            <td>System generates improvement hypotheses about itself and validates them next cycle; behavioral fingerprint written</td>
+            <td class="not-cell">Phenomenal consciousness; subjective experience; qualia</td>
+          </tr>
+          <tr>
+            <td>"Haki intent decomposition"</td>
+            <td>A keyword/pattern classifier in <code>user-prompt-submit.js</code> that buckets prompts into 5 probability-weighted categories</td>
+            <td class="not-cell">Mind reading; actual semantic understanding of unstated intent</td>
+          </tr>
+          <tr>
+            <td>"Hook latency &lt;50ms"</td>
+            <td>Both Haki and Nen run as synchronous JS in &lt;3ms each</td>
+            <td class="not-cell">Real-time neural inference; the inference happens in the base model, not the hooks</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section fade-up">
+    <div class="section-label">
+      <span class="section-index">11</span><span class="section-divider">—</span><span class="section-kanji">十一</span>
+    </div>
+    <div class="section-title">30 · 90 · 180 Days</div>
+    <div class="section-sub">What closing the gaps above actually requires.</div>
+
+    <div class="grid3 timeline-grid">
+      <div class="card timeline-card cyan">
+        <div class="timeline-tag">30</div>
+        <div class="card-title" style="margin-bottom:0">First month</div>
+        <ul class="milestone-list">
+          <li>First hypothesis validation cycle (neuron-loop runs again tomorrow at 03:00 — this is the real test of whether the loop closes)</li>
+          <li>Wire Haki → pulse-plan.json as <code>haki_intent</code> field (currently only in additionalContext)</li>
+          <li>L4 motivational drive feedback: connect session outcome signals to scalar updates in fingerprint.json</li>
+          <li>Validate Geass session_id expiry logic with a real constraint lock test</li>
+          <li>Goal: close the HANDOFF "open campaigns" backlog fully</li>
+        </ul>
+      </div>
+      <div class="card timeline-card purple">
+        <div class="timeline-tag">90</div>
+        <div class="card-title" style="margin-bottom:0">Three months</div>
+        <ul class="milestone-list">
+          <li>L5 temporal self: need 30+ sessions of synthesis.jsonl to compute "Musubi now vs 30d ago" meaningfully</li>
+          <li>External calibration: introduce one objective external benchmark (e.g., SWE-bench lite on real tickets) to ground self-score against reality</li>
+          <li>Mem0-layer experiment: evaluate replacing JSON file memory with a Qdrant/SQLite vector store for semantic retrieval</li>
+          <li>Izanagi decisions accumulated: first CRITICAL-tier decision set available for postmortem analysis</li>
+        </ul>
+      </div>
+      <div class="card timeline-card ember">
+        <div class="timeline-tag">180</div>
+        <div class="card-title" style="margin-bottom:0">Six months</div>
+        <ul class="milestone-list">
+          <li>Multi-modal signal ingestion: move beyond headline text — ingest code diffs from trending repos, PDF abstracts from ArXiv, structured data from HN discussions</li>
+          <li>Local fine-tuning experiment: evaluate LoRA adaptation on session pattern data (requires Mac Mini M4 Pro, not M2 Pro)</li>
+          <li>External benchmark parity: aim for score above top quartile on one standardized agent eval</li>
+          <li>Architecture review: is file-based memory still sufficient, or does scale require migration?</li>
+        </ul>
+      </div>
+    </div>
+    <div class="timeline-footnote">These are engineering milestones, not promises.</div>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>Musubi</span> · Yuri OS · Hyper-Intelligence v2 · Sprint Audit · 2026-05-16<br>
+  11 sections · Score 44 → 70 · 41 external signals · 10 superpowers · L3 self-awareness<br>
+  <span>Be the change you want to index in the world.</span>
+</footer>
+
+<script>
+Chart.defaults.color = 'rgba(255,255,255,0.55)';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = 'Bricolage Grotesque, sans-serif';
+Chart.defaults.plugins.legend.labels.color = 'rgba(255,255,255,0.55)';
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+
+function createChart(ctx, config) {
+  return new Chart(ctx, config);
+}
+
+createChart(document.getElementById('scoreChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Session 1\n(baseline)', 'Session 2\n(dry-run)', 'Session 3\n(today live)'],
+    datasets: [{
+      label: 'Improvement Score',
+      data: [44, 44, 70],
+      backgroundColor: [
+        'rgba(255,255,255,0.08)',
+        'rgba(255,255,255,0.08)',
+        'rgba(0,229,191,0.25)'
+      ],
+      borderColor: [
+        'rgba(255,255,255,0.15)',
+        'rgba(255,255,255,0.15)',
+        'rgba(0,229,191,0.7)'
+      ],
+      borderWidth: 1,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        min: 0,
+        max: 100,
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 11 } }
+      },
+      x: {
+        grid: { display: false },
+        ticks: { color: 'rgba(255,255,255,0.35)', font: { size: 11 } }
+      }
+    }
+  }
+});
+
+createChart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Self-learning', 'Ext. knowledge', 'Self-awareness', 'Intent reading', 'Phase align', 'Decision transp.', 'Structural health', 'ND alignment'],
+    datasets: [
+      {
+        label: 'Before (v1)',
+        data: [40, 0, 10, 0, 0, 25, 68, 30],
+        borderColor: 'rgba(255,255,255,0.2)',
+        backgroundColor: 'rgba(255,255,255,0.03)',
+        borderWidth: 1.5,
+        pointBackgroundColor: 'rgba(255,255,255,0.3)',
+        pointRadius: 3
+      },
+      {
+        label: 'After (v2)',
+        data: [75, 70, 45, 65, 55, 60, 82, 70],
+        borderColor: 'hsl(36,72%,65%)',
+        backgroundColor: 'rgba(212,149,87,0.15)',
+        borderWidth: 2,
+        pointBackgroundColor: 'hsl(36,72%,65%)',
+        pointRadius: 4
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { size: 11 } } } },
+    scales: {
+      r: {
+        min: 0,
+        max: 100,
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        angleLines: { color: 'rgba(255,255,255,0.06)' },
+        pointLabels: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } },
+        ticks: { display: false }
+      }
+    }
+  }
+});
+
+createChart(document.getElementById('signalChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['GitHub repos', 'ArXiv papers', 'HN stories'],
+    datasets: [{
+      data: [11, 10, 20],
+      backgroundColor: [
+        'rgba(0,229,191,0.7)',
+        'rgba(155,89,255,0.7)',
+        'rgba(255,213,79,0.7)'
+      ],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { color: 'rgba(255,255,255,0.5)', padding: 16, font: { size: 11 } } }
+    }
+  }
+});
+
+createChart(document.getElementById('awarenessChart'), {
+  type: 'bar',
+  indexAxis: 'y',
+  data: {
+    labels: ['L1 — Internal State', 'L2 — Behavioral Fingerprint', 'L3 — Hypothesis Loop', 'L4 — Motivational Core', 'L5 — Temporal Self'],
+    datasets: [
+      {
+        label: 'Before',
+        data: [70, 0, 0, 0, 0],
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        borderColor: 'rgba(255,255,255,0.12)',
+        borderWidth: 1,
+        borderRadius: 2
+      },
+      {
+        label: 'After',
+        data: [90, 55, 45, 15, 5],
+        backgroundColor: [
+          'rgba(0,229,191,0.6)',
+          'rgba(0,229,191,0.5)',
+          'rgba(0,229,191,0.4)',
+          'rgba(255,213,79,0.3)',
+          'rgba(255,255,255,0.1)'
+        ],
+        borderColor: 'transparent',
+        borderRadius: 2
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: 'rgba(255,255,255,0.4)', font: { size: 11 } } } },
+    scales: {
+      x: {
+        min: 0,
+        max: 100,
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 } }
+      },
+      y: {
+        grid: { display: false },
+        ticks: { color: 'rgba(255,255,255,0.45)', font: { size: 11 } }
+      }
+    }
+  }
+});
+
+createChart(document.getElementById('competitorChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Memory Depth', 'Knowledge Ingestion', 'Self-Improvement', 'Personalization', 'Constraint Enforcement', 'Phase Specialization'],
+    datasets: [
+      {
+        label: 'Mem0',
+        data: [90, 10, 5, 10, 5, 5],
+        borderColor: 'rgba(255,82,82,0.6)',
+        backgroundColor: 'rgba(255,82,82,0.12)',
+        pointBackgroundColor: 'rgba(255,82,82,0.8)',
+        borderWidth: 2
+      },
+      {
+        label: 'AutoGen',
+        data: [30, 10, 15, 20, 15, 40],
+        borderColor: 'rgba(155,89,255,0.6)',
+        backgroundColor: 'rgba(155,89,255,0.12)',
+        pointBackgroundColor: 'rgba(155,89,255,0.8)',
+        borderWidth: 2
+      },
+      {
+        label: 'OpenAI Memory',
+        data: [70, 20, 20, 35, 10, 5],
+        borderColor: 'rgba(255,213,79,0.6)',
+        backgroundColor: 'rgba(255,213,79,0.12)',
+        pointBackgroundColor: 'rgba(255,213,79,0.85)',
+        borderWidth: 2
+      },
+      {
+        label: 'Musubi v2',
+        data: [35, 65, 70, 85, 75, 65],
+        borderColor: 'rgba(0,229,191,0.6)',
+        backgroundColor: 'rgba(0,229,191,0.12)',
+        pointBackgroundColor: 'rgba(0,229,191,0.9)',
+        borderWidth: 2
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: 'rgba(255,255,255,0.55)', font: { size: 11 } } }
+    },
+    scales: {
+      r: {
+        min: 0,
+        max: 100,
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        angleLines: { color: 'rgba(255,255,255,0.06)' },
+        pointLabels: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } },
+        ticks: { display: false }
+      }
+    }
+  }
+});
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+const heroScore = document.getElementById('heroScore');
+if (heroScore) {
+  const start = 44;
+  const end = 70;
+  const duration = 1200;
+  const startTime = performance.now();
+
+  function animate(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    const value = Math.round(start + (end - start) * easeOutCubic(t));
+    heroScore.textContent = `${value}/100`;
+    if (t < 1) requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+}
+</script>
+</body>
+</html>

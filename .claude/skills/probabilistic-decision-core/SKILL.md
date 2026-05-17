@@ -185,6 +185,36 @@ failure:
 
 ## Session Notes
 
+### 2026-05-16
+- session: 41m | peak ctx: 0% | compacts: 0
+- tools: Bash×44, Write×25, Edit×21, TodoWrite×6, Read×5, mcp×1, Skill×1
+- corrections: Base directory for this skill: /Users/marcelspatz/.claude/skills/end-of-transmission
+
+# End of Transmission
+
+Continuous background reflection engine for NUDIMMUD. Runs **two modes**:
+
+1. **Micro-EOT**
+- errors: none
+
+### 2026-05-16
+- session: 37m | peak ctx: 0% | compacts: 0
+- tools: Bash×40, Write×23, Edit×21, TodoWrite×6, Read×5, mcp×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 27m | peak ctx: 0% | compacts: 0
+- tools: Bash×31, Edit×19, Write×10, TodoWrite×6, Read×4, mcp×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 13m | peak ctx: 0% | compacts: 0
+- tools: Bash×16, Edit×4, Write×3, TodoWrite×3, Read×2
+- corrections: none
+- errors: none
+
 ### 2026-05-10
 - tools used: web research, local file inspection, apply_patch
 - corrections: none

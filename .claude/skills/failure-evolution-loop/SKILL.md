@@ -145,6 +145,30 @@ failure:
 
 ## Session Notes
 
+### 2026-05-16
+- session: 62m | peak ctx: 0% | compacts: 0
+- tools: Bash×23, Write×21, Edit×17, Read×14, TodoWrite×9, mcp×3, ToolSearch×2, Agent×1, ExitPlanMode×1, Skill×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 32m | peak ctx: 0% | compacts: 0
+- tools: Bash×21, Write×20, Edit×17, Read×12, TodoWrite×9, mcp×2, ToolSearch×2, Agent×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 23m | peak ctx: 0% | compacts: 0
+- tools: Write×19, Bash×17, Edit×17, Read×12, TodoWrite×9, mcp×2, ToolSearch×2, Agent×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 17m | peak ctx: 0% | compacts: 0
+- tools: Write×18, Bash×13, Edit×12, Read×11, TodoWrite×7, mcp×2, ToolSearch×2, Agent×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
 ### 2026-04-27
 - session: 6m | peak ctx: 53% | compacts: 0
 - tools: Read×27, Bash×8, Write×2, mcp×1

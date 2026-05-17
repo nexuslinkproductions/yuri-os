@@ -48,7 +48,7 @@ Codex dispatch remains governed by `CODEX_PROTOCOL.md` and must include `## CODE
 - Protocol, routing, memory, promotion, Protected Paths, or high-stakes work requires `Scripts/ai route-plan` evidence and explicit DeepSeek/symbioticPulse advisory expectations.
 - Run GitNexus impact before symbol edits and `gitnexus_detect_changes` before merge or promotion review.
 - Hermes and Argus native gates stay always-on. Obliteratus is required for high-risk protocol, promotion, governance, sandbox, protected-path, or canonical memory work.
-- OpenClaw is bridge-only advisory research in v1. It is not direct code-edit authority and not canonical memory authority without local verification.
+- OpenClaw/09OC has been fully absorbed into Musubi as **Nisaba Sentinel** (`Scripts/nisaba-sentinel.mjs`). The 09OC research lane is now `@deepseek-flash`. The daemon heartbeat runs every 33min via LaunchAgent `com.nudimmud.nisaba-sentinel`. No special quarantine — Nisaba Sentinel operates under Musubi's native gates.
 - Existing hard-blocks for secrets, destructive commands, and protected surfaces stay owned by `bash-security-guard.js`.
 
 ### END OF TRANSMISSION (Global Session-Close Command - Full Auto)
@@ -95,14 +95,14 @@ Yuri runs a **Pulse Cortex** on every non-trivial user prompt. Auto-triggered by
 1. **Read pulse-plan.json** if it exists for the current turn. The `plan.complexityTier` field drives behavior:
    - `trivial` → no cortex; answer directly
    - `standard` → DeepSeek preflight only; impl direct; check `codexPolicy` for dry-run gate
-   - `complex` → DeepSeek + OpenClaw + Hermes-forecast + Cassandra; impl per `codexPolicy`
+   - `complex` → DeepSeek + Nisaba-Sentinel-state + Hermes-forecast + Cassandra; impl per `codexPolicy`
    - `critical` → full ensemble + @swarm fan-out + Obliteratus gate hint; ALL impl manual (`codexPolicy=none`)
 
 2. **Read pulse-bus.json findings** for the current turn before non-trivial tool calls. Cite findings when they materially change approach. Mark consumed entries via `markConsumed(ids)` (CommonJS module `.claude/hooks/pulse-bus.js`).
 
 3. **Respect advisor authority boundaries:**
    - DeepSeek + Hermes-forecast + Cassandra = `model_advisor` / `native_function` — advisory only
-   - OpenClaw = `bridge_advisory` — quarantined per OFFLOAD_CONTRACT.claudeProtocolGate.openClaw; never canonical, never impl authority
+   - Nisaba Sentinel = native autonomous layer; `nisaba-sentinel-state.json` is advisory input, not impl authority
    - **Codex is the only impl authority** (via two-phase `Scripts/pulse-codex-runner.mjs` propose → approve → apply)
 
 4. **Codex two-phase gate (PATCH 036):**
@@ -122,7 +122,7 @@ Yuri runs a **Pulse Cortex** on every non-trivial user prompt. Auto-triggered by
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **nudimmud-vault** (92135 symbols, 132370 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (92487 symbols, 132744 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

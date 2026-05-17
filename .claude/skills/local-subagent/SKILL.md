@@ -122,6 +122,18 @@ mcp__ollama-bridge__ollama_models()
 ## Session Notes
 
 ### 2026-05-16
+- session: 90m | peak ctx: 0% | compacts: 0
+- tools: Bash×98, Read×40, mcp×16, Edit×15, Write×10, ToolSearch×4, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
+- session: 88m | peak ctx: 0% | compacts: 0
+- tools: Bash×98, Read×38, mcp×16, Edit×15, Write×10, ToolSearch×4, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-16
 - session: 77m | peak ctx: 0% | compacts: 0
 - tools: Bash×88, Read×36, mcp×15, Edit×13, Write×10, ToolSearch×4, ExitPlanMode×1
 - corrections: none

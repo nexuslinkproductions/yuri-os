@@ -6,6 +6,8 @@
 - [Amp via Claude only](feedback_amp_claude_only.md) — never suggest direct amp terminal/IDE use; always `a "prompt"` or `ai @amp`
 
 - [Always surface next steps](feedback_always_next_steps.md) — End every response with next steps / open campaigns / pending to-dos; never wait to be asked
+- [Use pulse lanes — main thread is overseer only](feedback_use_pulse_lanes.md) — All substantive work (HTML, synthesis, research, docs) routes through lane system; Claude surface = communication only
+- [Sovereignty model — fail=0, warns intentional](project_sovereignty_model.md) — nexbox = local-first, Claude/Codex = licensed opt-in add-ons by design; target fail=0 not warn=0
 - [No Anthropic model agents](feedback_no_anthropic_agents.md) — Agent() with Claude/Haiku/Sonnet/Opus is banned; use DeepSeek offload only
 - [Codex is primary co-pilot](feedback_codex_primary_partner.md) — Codex (gpt-5.5/5.4-mini) is always first implementation lane; DeepSeek is on-call only when explicitly named
 - [Long session > multiple sessions](feedback_long_session_codex_burst.md) — When Codex rate-limits, stay in session; startup overhead costs more than a 5-10min quota window
@@ -22,6 +24,7 @@
 - [DeepSeek may call tools](feedback_deepseek_tools.md) — Do not forbid tool use in DeepSeek workhorse system prompts; tools are allowed by design
 - [Display setup — wide viewports](feedback_display_setup.md) — User on 16" MBP + 34" Asus ProArt ultrawide; verify hero framing at 1920–2560px, not just 1280px preset
 - [T7 paths are intentional](feedback_t7_paths_are_intentional.md) — /Volumes/T7/NUDIMMUD references in repo files are by design (sync mirror); never mass-rewrite — flagged BIG ERROR by user 2026-05-13
+- [No HUD style for brand identity](feedback_design_not_hud_for_identity.md) — HUD neon/spec-sheet is product UI only; brand identity/marketing = glass morphism + indigo atmosphere + anamorphic depth
 
 - [Nexus Link Document Template](document_template_nexus_link.md) — Brand-aligned legal letter + equipment schedule template (HTML→PDF via Puppeteer)
 - [HUD OS Revamp Apr 2026](project_hud_revamp.md) — Oracle rebuilt as React + SSE streaming, token bars, pixel logo, design-master skill, VSCode primary IDE
@@ -36,4 +39,10 @@
 - [Claude-First Transition](project_claude_first_transition.md) — Claude Code = control plane, Codex = impl lane; AGENTS.md + CODEX_PROTOCOL.md done; model/MCP credentials pending
 - [PRISM v1 Complete](project_prism_v1_complete.md) — c2moviez Workbench v1 core loop: source pipeline + quality engine + send/reply/opt-out merged main 2026-05-13
 - [Perplexity Pro Integration](feedback_perplexity_integration.md) — Primary research/browser tool: Deep Research (125-source), 9 models incl GPT-5.5 Max + Opus 4.7, Filesystem full disk access, watch_folder, Comet; never use Safari
+- [Local model hardware constraint](feedback_local_model_hardware_constraint.md) — M2 Pro: ONLY llama3.2:latest + needle are safe; deepseek-r1:8b/qwen2.5:7b/all others FREEZE machine; P9 soak requires M4 Pro hardware
+- [File deletion: use trash command](feedback_destructive_file_ops.md) — use `trash <path>` not rm/mv; parallel bash + destructive op = all calls cancelled; flag manual if trash fails
+- [Yuri OS unified brain architecture](project_brain_architecture.md) — brain-inject.js unifies palace+persona+memory into one palace-seeded `<yuri-brain>` block at SessionStart
 - [Sovereignty Sprint Jun 2026](project_sovereignty_sprint.md) — Independence score 8→67/100, fail 16→0; nexbox bundle, lane-dispatcher (manifest-driven routing), settings.json de-pinned, 15 packets landed; T-30d Anthropic repricing mitigation
+- [Yuri Cortex — Living Brain](project_yuri_cortex.md) — M1/M2/M3 braindump supercharge LIVE; brain amplifier enriches advisors with SOUL+LTM+PDC+palace; PDC in brain block; brain:stale sentinel for cross-turn learning
+- [Neuron Loop — Self-Learning](project_neuron_loop.md) — Daily autonomous audit+promote+calibrate pipeline; baseline 44/100; LaunchAgent 03:00; self-audit found 22→12 flaws (0 WARNs)
+- [Musubi Hyper-Intelligence v2](project_musubi_hyperintelligence_v2.md) — 7-phase neuron loop, 5 new superpowers (Izanagi/Haki/Nen/Bankai/Geass), ANIMA_DNA+NEURODIVERGENT+SELF_AWARENESS brain sections, L1-L3 self-awareness scaffold
