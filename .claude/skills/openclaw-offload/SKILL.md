@@ -49,6 +49,12 @@ Nothing was lost. Everything was absorbed.
 ## Session Notes
 
 ### 2026-05-17
+- session: 124m | peak ctx: 0% | compacts: 0
+- tools: Bash×124, mcp×71, Read×47, Edit×42, WebFetch×12, Write×10, ToolSearch×6, TodoWrite×2, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
 - session: 118m | peak ctx: 0% | compacts: 0
 - tools: Bash×109, mcp×70, Read×44, Edit×41, WebFetch×12, Write×9, ToolSearch×6, TodoWrite×2, ExitPlanMode×1
 - corrections: none
