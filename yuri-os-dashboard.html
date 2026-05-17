@@ -8997,7 +8997,8 @@ upgradeToggle.addEventListener('click', () => {
 });
 
 // === SYMBIOSIS HEALTH PANEL (v16 — vault restructure overlay) ===
-(function initSymbiosisPanel() {
+// Wrapped in try/catch so a panel failure can never block animate() below.
+try { (function initSymbiosisPanel() {
   const toggle = document.getElementById('symbiosis-toggle');
   const panel = document.getElementById('symbiosis-health-panel');
   if (!toggle || !panel) return;
@@ -9053,7 +9054,7 @@ upgradeToggle.addEventListener('click', () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
-})();
+})(); } catch (e) { console.error('[symbiosis-panel] init failed (non-fatal):', e); }
 
 renderer.domElement.addEventListener('click', event => {
   if (clickTimer) {
