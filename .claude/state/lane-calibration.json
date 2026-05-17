@@ -1,0 +1,19 @@
+{
+  "computed_at": "2026-05-17T19:47:00.594Z",
+  "feedback_count": 1,
+  "window_size_per_lane": 200,
+  "lanes": {
+    "@deepseek-flash": {
+      "total_calls": 1,
+      "verified_count": 1,
+      "actual_success_rate": 1,
+      "claimed_success_rate": 1,
+      "overconfidence_gap": 0,
+      "median_latency_ms": 1850,
+      "p90_latency_ms": 1850,
+      "trend_7s": "flat",
+      "degraded": false,
+      "overconfident": false
+    }
+  }
+}

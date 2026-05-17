@@ -1,0 +1,1 @@
+{"ts":"2026-05-17T19:47:00.519Z","lane":"@deepseek-flash","prompt_hash":"abc123def4567890","prompt_tokens":1200,"output_tokens":340,"latency_ms":1850,"exit_code":0,"self_reported_success":true,"downstream_verified_ok":true,"verifier_pass_token":null}
