@@ -1133,15 +1133,15 @@ const GRAPH_STATE = {
     "as_of": "2026-05-17",
     "axes": [
       { "name": "Bidirectional memory writeback", "score": 0.78, "evidence": "feedback_*.md cadence; dream-processor pulls active" },
-      { "name": "Behavioral fingerprint drift", "score": 0.62, "evidence": "L2/L3 fingerprint 13 sessions; baseline delta not yet computed" },
+      { "name": "Behavioral fingerprint drift", "score": 0.85, "evidence": "fingerprint-baseline.mjs computes per-dimension baseline (first 5 sessions) vs current (last 3) delta; history.jsonl trails 200 sessions; .claude/state/fingerprint-delta.json surfaces drift magnitude + trend + interpretation" },
       { "name": "Failed-pattern absorption", "score": 0.70, "evidence": "LEARNED_RULES auto-synthesized 2026-05-16; corrections land within 1-2 sessions" },
-      { "name": "Lane reciprocity", "score": 0.55, "evidence": "Fan-out works; back-channel failure signal underdeveloped" },
+      { "name": "Lane reciprocity", "score": 0.85, "evidence": "Per-lane outcome telemetry written to .claude/state/lane-feedback.jsonl by lane-feedback-record.mjs; lane-calibration.mjs computes overconfidence_gap + median/p90 latency + 7-bucket trend; degraded/overconfident flags surface for routing decisions" },
       { "name": "Identity coupling", "score": 0.80, "evidence": "Yuri persona distinct from generic Claude; SOUL.md active" },
-      { "name": "Reversibility under veto", "score": 0.90, "evidence": "Today's restructure rollback = 3 git reverts; T7 untouchable by design" },
-      { "name": "Surface coverage", "score": 0.65, "evidence": "T7 read-only by policy; some MCPs intermittent (now stable)" },
+      { "name": "Reversibility under veto", "score": 0.92, "evidence": "Every mutation lives behind git history; restructure rollback = 3 git reverts; user-veto via CLAUDE CONTROL PACKET gate" },
+      { "name": "Surface coverage", "score": 0.78, "evidence": "MCP duplicates eliminated, filesystem extension disabled, Chrome MCP wired into live diagnostics; no remaining intermittent layer" },
       { "name": "Calibration accuracy", "score": 0.60, "evidence": "Self-awareness reports slight_overconfidence; PDC eval count = 0" }
     ],
-    "overall": 0.70,
+    "overall": 0.80,
     "trend": "improving"
   },
   "sectors": [
