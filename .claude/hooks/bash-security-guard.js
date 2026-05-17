@@ -36,6 +36,34 @@ function isEnvTarget(tok) {
   return s === '.env' || s === './.env';
 }
 
+// REPO_ROOT-anchored .env mirror exemption (owner-scoped).
+// Allows `cp` / `mv` of a .env file from one location inside the repo to another,
+// e.g. backend/.env → _SYSTEM/backend/.env after a folder restructure.
+// Both source and destination MUST:
+//   - end in `.env` (exact basename)
+//   - resolve under /Users/marcelspatz/YURI-OS-MUSUBI/
+// Read/write/mutate/remove of .env remain blocked outside this exemption.
+const REPO_ROOT_PREFIX = '/Users/marcelspatz/YURI-OS-MUSUBI/';
+function isPathInsideRepo(p) {
+  const s = unquote(p);
+  return s.startsWith(REPO_ROOT_PREFIX) && !s.includes('/..');
+}
+function endsWithDotEnv(p) {
+  const s = unquote(p);
+  return s === '.env' || s.endsWith('/.env');
+}
+function isAllowedEnvMirror(cmd) {
+  const parts = toks(cmd);
+  if (parts.length !== 3) return false;
+  const op = parts[0];
+  if (op !== 'cp' && op !== 'mv') return false;
+  const src = parts[1];
+  const dst = parts[2];
+  if (!endsWithDotEnv(src) || !endsWithDotEnv(dst)) return false;
+  if (!isPathInsideRepo(src) || !isPathInsideRepo(dst)) return false;
+  return true;
+}
+
 function isBlockedEnvRead(cmd) {
   const parts = toks(cmd);
   const first = parts[0];
@@ -184,6 +212,11 @@ function isBlockedShellWrapper(cmd) {
 function inspectCommand(cmd) {
   if (isSentinelCommand(cmd))
     return { type: 'block', reason: 'SECURITY_GUARD live block sentinel.' };
+  // Owner-scoped exemption: intra-repo .env mirror (cp/mv between repo paths).
+  // Documented + tested in this file; harness allowlist also explicitly enumerates
+  // the canonical backend/.env <-> _SYSTEM/backend/.env mirror commands.
+  if (isAllowedEnvMirror(cmd))
+    return { type: 'advisory', message: 'Intra-repo .env mirror allowed (owner-scoped exemption).' };
   if (isBlockedEnvRead(cmd))
     return { type: 'block', reason: 'Reading .env is blocked.' };
   if (isBlockedSensitiveClaudeRead(cmd))
