@@ -15,7 +15,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const REPO = join(__dirname, '..');
+const REPO = join(__dirname, '..', '..');
 const GOVERNOR_PY = join(REPO, '_SYSTEM', 'OS_KERNEL', 'memory_governor.py');
 // memory-rag-inject.js was absorbed into brain-inject.js (unified boot injection)
 const RAG_HOOK    = join(REPO, '.claude', 'hooks', 'brain-inject.js');
@@ -59,7 +59,7 @@ function check(name, fn) {
 // opt-ins are by design — shipped nexbox is local-first, Claude/Codex
 // are optional licensed add-ons customers bring. warn count is informational.
 check('independence', () => {
-  const r = run('node', ['Scripts/independence-check.mjs'], { timeout: 20000 });
+  const r = run('node', ['_SYSTEM/Scripts/independence-check.mjs'], { timeout: 20000 });
   const scoreMatch = r.stdout.match(/Independence score.*?:\s*(\d+)\s*\/\s*100/);
   const failMatch  = r.stdout.match(/fail=(\d+)/);
   const warnMatch  = r.stdout.match(/warn=(\d+)/);
@@ -78,7 +78,7 @@ check('independence', () => {
 // capture fix (2026-05-16). Hard gate is fail=0 on independence; learning score
 // tracks system maturity trend and will improve naturally as sessions accumulate.
 check('learning', () => {
-  const r = run('node', ['Scripts/memory-learning-score.mjs', '--report'], { timeout: 15000 });
+  const r = run('node', ['_SYSTEM/Scripts/memory-learning-score.mjs', '--report'], { timeout: 15000 });
   const match = r.stdout.match(/(\d+)\/100/);
   const score = match ? parseInt(match[1]) : 0;
   return {
@@ -109,7 +109,7 @@ check('memory-health', () => {
 
 // 5. Dream processor queue state
 check('dream-processor', () => {
-  const script = join(REPO, 'Scripts', 'yuri-dream-processor.mjs');
+  const script = join(REPO, '_SYSTEM', 'Scripts', 'yuri-dream-processor.mjs');
   if (!existsSync(script)) return { pass: false, value: 'MISSING', detail: 'nisaba-dream-processor.mjs not found' };
   const r = run('node', [script, '--dry-run'], { timeout: 20000 });
   const pass = r.status === 0;

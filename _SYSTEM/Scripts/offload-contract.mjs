@@ -651,7 +651,7 @@ const OFFLOAD_CONTRACT = {
       'Load OPERATOR_PROTOCOL.md or an inheriting rule file at startup.',
       'Treat offload routing as automatic for every non-trivial task.',
       'Use Scripts/offload-contract.mjs as the only lane and scenario source.',
-      'Use ./Scripts/ai auto "<prompt>" as the execution entrypoint for automatic classification and dispatch.',
+      'Use ./_SYSTEM/Scripts/ai auto "<prompt>" as the execution entrypoint for automatic classification and dispatch.',
       'Keep explicit triggers as compatibility aliases only.',
       'Log durable corrections and route outcomes to the shared memory surface.',
       'Add new IDEs by inheriting the protocol, not by copying lane tables.'
@@ -1288,7 +1288,7 @@ function buildRoutePlan(prompt) {
     scenario: scenario.id,
     title: scenario.title,
     automatic: OFFLOAD_CONTRACT.activation.triggerless,
-    entrypoint: './Scripts/ai auto',
+    entrypoint: './_SYSTEM/Scripts/ai auto',
     qualityGate: 'main-session',
     dispatch: lane === 'swarm' ? 'parallel-fan-out' : 'single-lane',
     // PATCH 030 — Pulse Cortex fields (consumed by pulse-orchestrator.mjs)
