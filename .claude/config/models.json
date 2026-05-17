@@ -222,22 +222,22 @@
     },
     "live_status": {
       "tested": "2026-05-17",
-      "live":   ["nvidia-llama-70b", "nvidia-qwen", "nvidia-mistral-medium", "nvidia-kimi", "nvidia-nemotron-120b", "nvidia-qwen-coder"],
-      "dead":   ["nvidia-nemotron", "nvidia-phi", "nvidia-llama-405b"],
-      "untested": ["nvidia-gemma", "nvidia-vision", "nvidia-embed"],
-      "note": "dead = 404 from NIM endpoint on this account tier; re-test after plan upgrade"
+      "live":   ["nvidia-llama-70b", "nvidia-qwen", "nvidia-mistral-medium", "nvidia-kimi", "nvidia-nemotron-120b", "nvidia-qwen-coder", "nvidia-vision"],
+      "dead":   ["nvidia-nemotron", "nvidia-phi", "nvidia-llama-405b", "nvidia-gemma"],
+      "untested": ["nvidia-embed"],
+      "note": "dead = 404 on this account tier; re-test after NIM plan upgrade"
     },
     "routing_decision_guide": {
-      "quick_fix_or_review":        "@nvidia-nemotron-120b (architect — nemotron-70b is dead)",
-      "large_refactor_or_codegen":  "@nvidia-qwen-coder (code_mega) ✓ LIVE",
-      "architecture_or_planning":   "@nvidia-nemotron-120b (architect) ✓ LIVE",
-      "deep_analysis_or_research":  "@nvidia-qwen (reasoning_heavy) ✓ LIVE",
-      "general_triage_or_summary":  "@nvidia-llama-70b (instruction_fast) ✓ LIVE",
-      "high_stakes_broad_knowledge":"@nvidia-llama-70b (405b dead — use llama-70b as fallback)",
-      "image_or_screenshot_review": "@nvidia-vision (untested — verify before use)",
-      "long_document_over_128k":    "@nvidia-kimi (kimi_reasoning) ✓ LIVE",
-      "cheap_fast_classification":  "@nvidia-mistral-medium (phi dead — use mistral as next cheapest) ✓ LIVE",
-      "rag_or_similarity_search":   "@nvidia-embed (untested — verify before use)"
+      "quick_fix_or_review":        "@nvidia-nemotron-120b ✓",
+      "large_refactor_or_codegen":  "@nvidia-qwen-coder ✓",
+      "architecture_or_planning":   "@nvidia-nemotron-120b ✓",
+      "deep_analysis_or_research":  "@nvidia-qwen ✓",
+      "general_triage_or_summary":  "@nvidia-llama-70b ✓",
+      "high_stakes_broad_knowledge":"@nvidia-llama-70b (405b dead)",
+      "image_or_screenshot_review": "@nvidia-vision ✓",
+      "long_document_over_128k":    "@nvidia-kimi ✓",
+      "cheap_fast_classification":  "@nvidia-mistral-medium ✓ (phi dead)",
+      "rag_or_similarity_search":   "@nvidia-embed (untested)"
     }
   },
   "codex": {
