@@ -1,6 +1,6 @@
 ---
 name: yuri-shura
-description: 6-perspective adversarial review for high-stakes turns. Fires when classifier detects scenario=strategic-review (architecture decisions, refactor planning, deployment review). Fans out 6 lanes in parallel: NVIDIA-nemotron (architect), DS-pro (adversary), codex-spark (maintainer), kimi (ops), deepseek-flash (product), claude-sonnet-advisory (security). Additive -- does not replace per-turn 6-advisor ensemble.
+description: 6-perspective adversarial review for high-stakes turns. Fires when classifier detects scenario=strategic-review (architecture decisions, refactor planning, deployment review). Fans out 6 lanes in parallel: nvidia-nemotron-120b (architect), DS-pro (adversary), codex-spark (maintainer), nvidia-kimi (ops/long-ctx), deepseek-flash (product), nvidia-mistral-medium (security). Additive -- does not replace per-turn 6-advisor ensemble.
 triggers:
   - "/shura"
   - "strategic review"
@@ -21,12 +21,12 @@ Manual: `/shura <topic>` from user
 
 | Lane | Model | Perspective |
 |---|---|---|
-| @nvidia-nemotron | nvidia/llama-3.1-nemotron-70b | Architect -- soundness of design |
+| @nvidia-nemotron-120b | nvidia/nemotron-3-super-120b-a12b | Architect -- soundness of design |
 | @ds-pro | deepseek-v4-pro | Adversary -- 7-vector attack protocol (see below) |
 | @codex-spark | gpt-5.3-codex | Maintainer -- long-term cost |
-| @kimi | moonshot/kimi-k2-6 | Ops -- production readiness |
+| @nvidia-kimi | moonshotai/kimi-k2.6 | Ops -- production readiness (1M ctx) |
 | @ds-flash | deepseek-v4-flash | Product -- user impact |
-| @claude-sonnet-advisory | sonnet-4-6 | Security -- risk surface |
+| @nvidia-mistral-medium | mistralai/mistral-medium-3.5-128b | Security -- risk surface |
 
 ## Output format
 
