@@ -18,7 +18,7 @@ const path = require("path");
 const { execSync } = require("child_process");
 
 const CONFIG_PATH = path.join(__dirname, "config.json");
-const VAULT_ROOT = "/Volumes/T7/NUDIMMUD";
+const VAULT_ROOT = "/Users/marcelspatz/YURI-OS-MUSUBI";
 const GENERATED_DIR = path.join(__dirname, "generated");
 const VALIDATED_DIR = path.join(__dirname, "validated");
 const DEPLOYMENTS_DIR = path.join(__dirname, "deployments");

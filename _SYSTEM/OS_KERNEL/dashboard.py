@@ -119,7 +119,7 @@ def generate_panel_resources():
     return Panel(Text(status, justify="center"), title="[bold]Resources", border_style="yellow")
 
 def update_dashboard(layout):
-    layout["header"].update(Panel(Text("NUDIMMUD AGENTIC OS | KERNEL v1.0", justify="center", style="bold white on blue")))
+    layout["header"].update(Panel(Text("YURI-OS-MUSUBI AGENTIC OS | KERNEL v1.0", justify="center", style="bold white on blue")))
     layout["agents"].update(generate_panel_agents())
     layout["resources"].update(generate_panel_resources())
     layout["tasks"].update(generate_panel_tasks_container())

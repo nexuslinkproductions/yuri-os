@@ -12,7 +12,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const LEARNING_DIR = '/Volumes/T7/NUDIMMUD/_SYSTEM/learning';
+const LEARNING_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/learning';
 const CONFIG_PATH = path.join(LEARNING_DIR, 'config.json');
 
 async function loadLearningRules() {

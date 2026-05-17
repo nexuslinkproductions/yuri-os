@@ -15,8 +15,8 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const SYSTEM_DIR = '/Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop';
-const OUTPUT_DIR = '/Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/outputs';
+const SYSTEM_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/gan-loop';
+const OUTPUT_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/gan-loop/outputs';
 
 // Ensure output dir exists
 if (!fs.existsSync(OUTPUT_DIR)) {

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// nexbox/symbiotic-pulse.mjs — standalone nexbox runtime. Derived from Yuri OS symbiotic-pulse, de-coupled from NUDIMMUD internals.
+// nexbox/symbiotic-pulse.mjs — standalone nexbox runtime. Derived from Yuri OS symbiotic-pulse, de-coupled from YURI-OS-MUSUBI internals.
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';

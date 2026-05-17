@@ -7,7 +7,7 @@
 set -e
 
 HOOKS_DIR="/Users/marcelspatz/.claude/hooks"
-TRACKER_FILE="/Volumes/T7/NUDIMMUD/_SYSTEM/token-tracker.md"
+TRACKER_FILE="/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/token-tracker.md"
 SESSION_DIR="/tmp"
 
 # Colors for output

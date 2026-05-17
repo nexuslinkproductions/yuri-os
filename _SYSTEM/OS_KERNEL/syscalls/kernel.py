@@ -97,7 +97,7 @@ def handoff(task_id, from_agent, to_agent, note, snapshot=None):
         print(f"Handoff recorded for Task {task_id}: {from_agent} -> {to_agent}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="NUDIMMUD OS Kernel Syscall Interface")
+    parser = argparse.ArgumentParser(description="YURI-OS-MUSUBI OS Kernel Syscall Interface")
     subparsers = parser.add_subparsers(dest="command")
 
     # task-create

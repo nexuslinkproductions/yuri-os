@@ -17,8 +17,8 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const CONFIG_PATH = '/Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/config.json';
-const SYSTEM_DIR = '/Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill';
+const CONFIG_PATH = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/trace-to-skill/config.json';
+const SYSTEM_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/trace-to-skill';
 
 const args = process.argv.slice(2);
 const taskId = args[0];
@@ -115,7 +115,7 @@ async function traceToSkill() {
       edgeAnalysis
     );
 
-    const finalPath = outputPath || `/Volumes/T7/NUDIMMUD/.claude/skills/${taskId}/SKILL.md`;
+    const finalPath = outputPath || `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/${taskId}/SKILL.md`;
     const finalDir = path.dirname(finalPath);
     if (!fs.existsSync(finalDir)) {
       fs.mkdirSync(finalDir, { recursive: true });

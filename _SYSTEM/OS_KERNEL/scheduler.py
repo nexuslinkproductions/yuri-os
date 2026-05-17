@@ -48,7 +48,7 @@ def print_status_line():
     governor_health = memory_health()
     
     print("\n" + "="*50)
-    print(f"NUDIMMUD OS KERNEL | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"YURI-OS-MUSUBI OS KERNEL | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"ACTIVE PROCESSES: {len(tasks)}")
     print(
         "MEMORY GOVERNOR: "
@@ -67,7 +67,7 @@ def print_status_line():
     print("="*50 + "\n")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="NUDIMMUD OS Kernel Scheduler")
+    parser = argparse.ArgumentParser(description="YURI-OS-MUSUBI OS Kernel Scheduler")
     parser.add_argument("--loop", action="store_true", help="Run in continuous monitoring mode")
     parser.add_argument("--interval", type=int, default=10, help="Refresh interval for loop mode (seconds)")
     parser.add_argument("--memory-governor", choices=["daily", "weekly", "monthly"], help="Run a governed memory lifecycle cycle")
