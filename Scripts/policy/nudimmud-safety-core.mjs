@@ -2,7 +2,7 @@
 
 import path from 'path';
 
-const PROJECT_ROOT = '/Users/marcelspatz/NUDIMMUD';
+const PROJECT_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
 
 const PROTECTED_TARGETS = [
   { path: path.join(PROJECT_ROOT, '.env'), type: 'file', label: '.env' },

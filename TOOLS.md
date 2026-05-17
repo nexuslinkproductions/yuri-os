@@ -35,12 +35,6 @@ Things like:
 
 Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
 
-### Linear
-
-- Workspace: NUDIMMUD (team key: NUD)
-- API key stored in `.env` as `LINEAR_API_KEY`
-- Available for queries: issues, projects, teams, cycles, users
-
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.

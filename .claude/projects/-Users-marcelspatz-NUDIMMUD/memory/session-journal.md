@@ -1,5 +1,165 @@
 <!-- session-journal: newest entry first -->
 
+## 2026-05-17 | Session 1779024367085 | 37m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** mcp×62, Bash×20, WebFetch×12, ToolSearch×3, Read×2, Write×1, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=system-handoff-spring-clean-naming-spri-fancy-hanrahan.md`
+
+---
+
+## 2026-05-17 | Session 1779024367085 | 37m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** mcp×62, Bash×20, WebFetch×12, ToolSearch×3, Read×2, Write×1, Edit×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=system-handoff-spring-clean-naming-spri-fancy-hanrahan.md`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 113m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×168, Edit×41, Read×33, mcp×33, Write×11, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=feedback_naming_overhaul.md,MEMORY.md,HANDOFF-spring-clean-naming-sprint-2026-05-17.md`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 111m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×167, Edit×41, Read×33, mcp×33, Write×11, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=feedback_naming_overhaul.md,MEMORY.md,HANDOFF-spring-clean-naming-sprint-2026-05-17.md`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 108m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×164, Edit×41, Read×33, mcp×33, Write×11, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=feedback_naming_overhaul.md,MEMORY.md,HANDOFF-spring-clean-naming-sprint-2026-05-17.md`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 107m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×157, Edit×41, Read×33, mcp×33, Write×10, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=project_brain_architecture.md,feedback_naming_overhaul.md,MEMORY.md`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 100m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×153, Edit×41, mcp×33, Read×32, Write×9, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=project_brain_architecture.md,feedback_naming_overhaul.md,MEMORY.md`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 98m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×152, Edit×41, mcp×33, Read×32, Write×9, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=project_brain_architecture.md,feedback_naming_overhaul.md,MEMORY.md`
+
+---
+
 ## 2026-05-17 | Session 1779017391801 | 84m | peak 0% | compacts: 0
 
 **Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD

@@ -1,4 +1,4 @@
-# NUDIMMUD Operational Protocol
+# Yuri OS / Musubi — Operational Protocol
 
 INHERIT: ./_SYSTEM/yuri-origin.md
 INHERIT: ./SOUL.md
@@ -122,7 +122,7 @@ Yuri runs a **Pulse Cortex** on every non-trivial user prompt. Auto-triggered by
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **nudimmud-vault** (97651 symbols, 139734 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (97076 symbols, 139160 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

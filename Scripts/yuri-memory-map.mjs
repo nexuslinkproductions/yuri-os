@@ -21,7 +21,7 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { stdout } from 'node:process'
 
-const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD'
+const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI'
 const HOME = os.homedir()
 const WORKHORSE_ARTIFACT_ROOT = path.join(HOME, '.nudimmud', 'workhorse-runs')
 const ARCHIVE_DIR = '_SYSTEM/yuri-history-archive'

@@ -1261,7 +1261,7 @@ function runCommand(argv, allowFailure = false) {
   const [command, ...args] = argv
   try {
     const stdout = execFileSync(command, args, {
-      cwd: '/Users/marcelspatz/NUDIMMUD',
+      cwd: '/Users/marcelspatz/YURI-OS-MUSUBI',
       encoding: 'utf8',
       maxBuffer: 1024 * 1024,
       stdio: ['ignore', 'pipe', 'pipe'],

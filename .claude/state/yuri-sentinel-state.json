@@ -1,0 +1,63 @@
+{
+  "lastRun": "2026-05-17T13:57:29.632Z",
+  "phases": {
+    "liveness": {
+      "status": "ok",
+      "msg": "GET http://localhost:18789/health -> 200 (62ms)",
+      "url": "http://localhost:18789/health",
+      "httpStatus": 200,
+      "elapsedMs": 62
+    },
+    "health": {
+      "status": "warn",
+      "msg": "plan turn=3c92f221 tier=standard scenario=code-change; 6 bus entries; 0 CRITICAL; 2 pending hypotheses; neuron-loop age=missing",
+      "plan": {
+        "turn_id": "3c92f221",
+        "complexityTier": "standard",
+        "scenario": "code-change"
+      },
+      "bus": {
+        "total": 6,
+        "critical": 0
+      },
+      "hypotheses": {
+        "active": 2,
+        "pending": 2
+      },
+      "neuronLoop": {
+        "ageHours": null,
+        "overdue": false
+      }
+    },
+    "memory": {
+      "status": "ok",
+      "msg": "memory-consolidate exit=0",
+      "exitCode": 0,
+      "signal": null,
+      "stdoutLines": 1,
+      "stderrLines": 0
+    },
+    "external": {
+      "status": "ok",
+      "msg": "github-trending age=0.7h",
+      "ageHours": 0.710059287516276,
+      "overdue": false
+    }
+  },
+  "alerts": [
+    {
+      "phase": "health",
+      "severity": "warn",
+      "msg": "2 pending hypotheses not yet validated",
+      "pending": [
+        "If self-audit auto-fixable count increases by 3+, improvement_score will rise above 78",
+        "Integrating technique from \"An AI agent published a hit piece on me\" into knowledge-scout relevance filter will improve external_signal_quality score"
+      ]
+    },
+    {
+      "phase": "health",
+      "severity": "warn",
+      "msg": "neuron-loop synthesis.jsonl missing"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "ts": "2026-05-17T14:18:20.032Z",
+  "window_hours": 72,
+  "threshold": 3,
+  "dry_run": false,
+  "records_scanned": 2,
+  "candidates": 0,
+  "promoted_count": 0,
+  "skipped_count": 0,
+  "promoted": [],
+  "skipped": []
+}

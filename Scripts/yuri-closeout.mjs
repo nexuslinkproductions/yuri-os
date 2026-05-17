@@ -17,7 +17,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { stdout } from 'node:process'
 
-const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD'
+const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI'
 const FORBIDDEN_MARKERS = [
   '.env',
   '.npmrc',

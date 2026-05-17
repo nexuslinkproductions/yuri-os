@@ -1,0 +1,5 @@
+PASS (12)
+
+Independence score (this run): 71 / 100
+  fail=0  warn=5  pass=12
+

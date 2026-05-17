@@ -24,7 +24,7 @@
 
 set -euo pipefail
 
-ROOT="/Users/marcelspatz/NUDIMMUD"
+ROOT="/Users/marcelspatz/YURI-OS-MUSUBI"
 QUARANTINE="${ROOT}/_QUARANTINE_2026-05-07"
 APPLY="${APPLY:-0}"
 

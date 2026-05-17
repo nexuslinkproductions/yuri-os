@@ -1,0 +1,173 @@
+{
+  "ts": "2026-05-17T14:18:35.864Z",
+  "stories": [
+    {
+      "title": "An AI agent published a hit piece on me",
+      "score": 2346,
+      "url": "https://theshamblog.com/an-ai-agent-published-a-hit-piece-on-me/",
+      "author": "scottshambaugh",
+      "created": "2026-02-12",
+      "query": "AI agent"
+    },
+    {
+      "title": "LLM Inevitabilism",
+      "score": 1773,
+      "url": "https://tomrenner.com/posts/llm-inevitabilism/",
+      "author": "SwoopsFromAbove",
+      "created": "2025-07-15",
+      "query": "LLM"
+    },
+    {
+      "title": "OpenAI O3 breakthrough high score on ARC-AGI-PUB",
+      "score": 1724,
+      "url": "https://arcprize.org/blog/oai-o3-pub-breakthrough",
+      "author": "maurycy",
+      "created": "2024-12-20",
+      "query": "AGI"
+    },
+    {
+      "title": "Learning to Reason with LLMs",
+      "score": 1654,
+      "url": "https://openai.com/index/learning-to-reason-with-llms/",
+      "author": "fofoz",
+      "created": "2024-09-12",
+      "query": "LLM"
+    },
+    {
+      "title": "LLM Visualization",
+      "score": 1592,
+      "url": "https://bbycroft.net/llm",
+      "author": "plibither8",
+      "created": "2023-12-03",
+      "query": "LLM"
+    },
+    {
+      "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via RL",
+      "score": 1351,
+      "url": "https://arxiv.org/abs/2501.12948",
+      "author": "gradus_ad",
+      "created": "2025-01-25",
+      "query": "LLM"
+    },
+    {
+      "title": "OpenCode – Open source AI coding agent",
+      "score": 1274,
+      "url": "https://opencode.ai/",
+      "author": "rbanffy",
+      "created": "2026-03-20",
+      "query": "AI agent"
+    },
+    {
+      "title": "Google achieves AI 'breakthrough' by beating Go champion",
+      "score": 1207,
+      "url": "http://www.bbc.co.uk/news/technology-35420579",
+      "author": "xianshou",
+      "created": "2016-01-27",
+      "query": "AI breakthrough"
+    },
+    {
+      "title": "A small number of samples can poison LLMs of any size",
+      "score": 1202,
+      "url": "https://www.anthropic.com/research/small-samples-poison",
+      "author": "meetpateltech",
+      "created": "2025-10-09",
+      "query": "LLM"
+    },
+    {
+      "title": "Show HN: Clippy – 90s UI for local LLMs",
+      "score": 1122,
+      "url": "https://felixrieseberg.github.io/clippy/",
+      "author": "felixrieseberg",
+      "created": "2025-05-06",
+      "query": "LLM"
+    },
+    {
+      "title": "Llamafile lets you distribute and run LLMs with a single file",
+      "score": 1075,
+      "url": "https://github.com/Mozilla-Ocho/llamafile",
+      "author": "tfinch",
+      "created": "2023-11-29",
+      "query": "LLM"
+    },
+    {
+      "title": "Llm.c – LLM training in simple, pure C/CUDA",
+      "score": 1050,
+      "url": "https://github.com/karpathy/llm.c",
+      "author": "tosh",
+      "created": "2024-04-08",
+      "query": "LLM"
+    },
+    {
+      "title": "The Era of 1-bit LLMs: ternary parameters for cost-effective computing",
+      "score": 1040,
+      "url": "https://arxiv.org/abs/2402.17764",
+      "author": "fgfm",
+      "created": "2024-02-28",
+      "query": "LLM"
+    },
+    {
+      "title": "OpenAI researchers warned board of AI breakthrough ahead of CEO ouster",
+      "score": 990,
+      "url": "https://www.reuters.com/technology/sam-altmans-ouster-openai-was-precipitated-by-letter-board-about-ai-breakthrough-2023-11-22/",
+      "author": "mfiguiere",
+      "created": "2023-11-22",
+      "query": "AI breakthrough"
+    },
+    {
+      "title": "Things we learned about LLMs in 2024",
+      "score": 984,
+      "url": "https://simonwillison.net/2024/Dec/31/llms-in-2024/",
+      "author": "simonw",
+      "created": "2024-12-31",
+      "query": "LLM"
+    },
+    {
+      "title": "AI agent opens a PR write a blogpost to shames the maintainer who closes it",
+      "score": 953,
+      "url": "https://github.com/matplotlib/matplotlib/pull/31132",
+      "author": "wrxd",
+      "created": "2026-02-12",
+      "query": "AI agent"
+    },
+    {
+      "title": "Magistral — the first reasoning model by Mistral AI",
+      "score": 941,
+      "url": "https://mistral.ai/news/magistral",
+      "author": "meetpateltech",
+      "created": "2025-06-10",
+      "query": "reasoning model"
+    },
+    {
+      "title": "Kimi K2 Thinking, a SOTA open-source trillion-parameter reasoning model",
+      "score": 936,
+      "url": "https://moonshotai.github.io/Kimi-K2/thinking.html",
+      "author": "nekofneko",
+      "created": "2025-11-06",
+      "query": "reasoning model"
+    },
+    {
+      "title": "Opus 4.5 is not the normal AI agent experience that I have had thus far",
+      "score": 879,
+      "url": "https://burkeholland.github.io/posts/opus-4-5-change-everything/",
+      "author": "tbassetto",
+      "created": "2026-01-06",
+      "query": "AI agent"
+    },
+    {
+      "title": "An AI agent deleted our production database. The agent's confession is below",
+      "score": 860,
+      "url": "https://twitter.com/lifeof_jer/status/2048103471019434248",
+      "author": "jeremyccrane",
+      "created": "2026-04-26",
+      "query": "AI agent"
+    }
+  ],
+  "queries": [
+    "AI agent",
+    "AGI",
+    "LLM",
+    "reasoning model",
+    "AI breakthrough"
+  ],
+  "threshold": 150
+}

@@ -1,9 +1,16 @@
 {
   "version": "2.0",
   "canonicalPath": "design-memory.json",
-  "lastUpdated": "2026-05-17T11:44:48.044Z",
+  "lastUpdated": "2026-05-17T14:22:52.339Z",
   "note": "Canonical NUDIMMUD design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
   "entries": [
+    {
+      "date": "2026-05-17",
+      "component": "graph-neural",
+      "file": ".obsidian/snippets/graph-neural.css",
+      "action": "create",
+      "decision": "New component created: graph-neural"
+    },
     {
       "date": "2026-05-17",
       "component": "audit-2026-05-17",

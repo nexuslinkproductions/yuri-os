@@ -1,0 +1,55 @@
+{
+  "ts": "2026-05-17T14:18:35.937Z",
+  "active": [
+    {
+      "id": "H-1779027515937-1",
+      "hypothesis": "If self-audit auto-fixable count increases by 3+, improvement_score will rise above 76",
+      "confidence": 0.65,
+      "metric": "improvement_score",
+      "predicted_value": 76,
+      "experiment": "Track auto_fixable delta over next 2 neuron-loop cycles",
+      "source": "synthesis_trend",
+      "generated_at": "2026-05-17T14:18:35.937Z"
+    },
+    {
+      "id": "H-1779027515937-3",
+      "hypothesis": "Integrating technique from \"An AI agent published a hit piece on me\" into knowledge-scout relevance filter will improve external_signal_quality score",
+      "confidence": 0.4,
+      "metric": "external_signal_quality",
+      "predicted_value": null,
+      "experiment": "Add signal to RELEVANCE_KEYWORDS and measure filter hit rate over 7 days",
+      "source": "external_signal",
+      "generated_at": "2026-05-17T14:18:35.937Z"
+    }
+  ],
+  "validated": [
+    {
+      "id": "H-1779023694436-1",
+      "hypothesis": "If self-audit auto-fixable count increases by 3+, improvement_score will rise above 78",
+      "confidence": 0.65,
+      "metric": "improvement_score",
+      "predicted_value": 78,
+      "experiment": "Track auto_fixable delta over next 2 neuron-loop cycles",
+      "source": "synthesis_trend",
+      "generated_at": "2026-05-17T13:14:54.436Z",
+      "outcome": "confirmed",
+      "evidence": "predicted=78, actual=68, delta=10",
+      "validated_at": "2026-05-17T14:18:35.936Z"
+    },
+    {
+      "id": "H-1779023694436-3",
+      "hypothesis": "Integrating technique from \"An AI agent published a hit piece on me\" into knowledge-scout relevance filter will improve external_signal_quality score",
+      "confidence": 0.4,
+      "metric": "external_signal_quality",
+      "predicted_value": null,
+      "experiment": "Add signal to RELEVANCE_KEYWORDS and measure filter hit rate over 7 days",
+      "source": "external_signal",
+      "generated_at": "2026-05-17T13:14:54.436Z",
+      "outcome": "unverifiable",
+      "evidence": "",
+      "validated_at": "2026-05-17T14:18:35.937Z"
+    }
+  ],
+  "izanagi": null,
+  "prior_count": 2
+}

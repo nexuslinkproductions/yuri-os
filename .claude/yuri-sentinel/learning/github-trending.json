@@ -1,0 +1,148 @@
+{
+  "repos": [
+    {
+      "name": "obra/superpowers",
+      "description": "An agentic skills framework & software development methodology that works.",
+      "stars": 194754,
+      "topics": [],
+      "url": "https://github.com/obra/superpowers",
+      "pushed": "2026-05-14"
+    },
+    {
+      "name": "ohmyzsh/ohmyzsh",
+      "description": "🙃   A delightful community-driven (with 2,500+ contributors) framework for managing your zsh configuration. Includes 30",
+      "stars": 187091,
+      "topics": [
+        "cli",
+        "cli-app",
+        "oh-my-zsh",
+        "oh-my-zsh-plugin",
+        "oh-my-zsh-theme"
+      ],
+      "url": "https://github.com/ohmyzsh/ohmyzsh",
+      "pushed": "2026-05-17"
+    },
+    {
+      "name": "affaan-m/everything-claude-code",
+      "description": "The agent harness performance optimization system. Skills, instincts, memory, security, and research-first development f",
+      "stars": 185312,
+      "topics": [
+        "ai-agents",
+        "anthropic",
+        "claude",
+        "claude-code",
+        "developer-tools"
+      ],
+      "url": "https://github.com/affaan-m/everything-claude-code",
+      "pushed": "2026-05-17"
+    },
+    {
+      "name": "Significant-Gravitas/AutoGPT",
+      "description": "AutoGPT is the vision of accessible AI for everyone, to use and to build on. Our mission is to provide the tools, so tha",
+      "stars": 184372,
+      "topics": [
+        "agentic-ai",
+        "agents",
+        "ai",
+        "artificial-intelligence",
+        "autonomous-agents"
+      ],
+      "url": "https://github.com/Significant-Gravitas/AutoGPT",
+      "pushed": "2026-05-17"
+    },
+    {
+      "name": "ollama/ollama",
+      "description": "Get up and running with Kimi-K2.5, GLM-5, MiniMax, DeepSeek, gpt-oss, Qwen, Gemma and other models.",
+      "stars": 171605,
+      "topics": [
+        "deepseek",
+        "gemma",
+        "gemma3",
+        "glm",
+        "go"
+      ],
+      "url": "https://github.com/ollama/ollama",
+      "pushed": "2026-05-15"
+    },
+    {
+      "name": "f/prompts.chat",
+      "description": "f.k.a. Awesome ChatGPT Prompts. Share, discover, and collect prompts from the community. Free and open source — self-hos",
+      "stars": 162401,
+      "topics": [
+        "ai",
+        "artificial-intelligence",
+        "awesome-list",
+        "chatgpt",
+        "chatgpt-prompts"
+      ],
+      "url": "https://github.com/f/prompts.chat",
+      "pushed": "2026-05-17"
+    },
+    {
+      "name": "anomalyco/opencode",
+      "description": "The open source coding agent.",
+      "stars": 161514,
+      "topics": [],
+      "url": "https://github.com/anomalyco/opencode",
+      "pushed": "2026-05-17"
+    },
+    {
+      "name": "huggingface/transformers",
+      "description": "🤗 Transformers: the model-definition framework for state-of-the-art machine learning models in text, vision, audio, and",
+      "stars": 160683,
+      "topics": [
+        "audio",
+        "deep-learning",
+        "deepseek",
+        "gemma",
+        "glm"
+      ],
+      "url": "https://github.com/huggingface/transformers",
+      "pushed": "2026-05-17"
+    },
+    {
+      "name": "Snailclimb/JavaGuide",
+      "description": "Java 面试 & 后端通用面试指南，覆盖计算机基础、数据库、分布式、高并发、系统设计与 AI 应用开发",
+      "stars": 155726,
+      "topics": [
+        "agent",
+        "context-engineering",
+        "interview",
+        "java",
+        "jvm"
+      ],
+      "url": "https://github.com/Snailclimb/JavaGuide",
+      "pushed": "2026-05-15"
+    },
+    {
+      "name": "NousResearch/hermes-agent",
+      "description": "The agent that grows with you",
+      "stars": 154226,
+      "topics": [
+        "ai",
+        "ai-agent",
+        "ai-agents",
+        "anthropic",
+        "chatgpt"
+      ],
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "pushed": "2026-05-17"
+    },
+    {
+      "name": "langflow-ai/langflow",
+      "description": "Langflow is a powerful tool for building and deploying AI-powered agents and workflows.",
+      "stars": 148349,
+      "topics": [
+        "agents",
+        "chatgpt",
+        "generative-ai",
+        "large-language-models",
+        "multiagent"
+      ],
+      "url": "https://github.com/langflow-ai/langflow",
+      "pushed": "2026-05-17"
+    }
+  ],
+  "ts": "2026-05-17T14:18:22.902Z",
+  "source": "github-api"
+}

@@ -13,7 +13,7 @@ import {
   renderBudgetStatusLine,
 } from './nudimmud/status-line.mjs';
 
-const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD';
+const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
 const OFFLOAD_SH = path.join(REPO_ROOT, 'Scripts/offload.sh');
 const TOKENMAXXING_STATE = path.join(REPO_ROOT, '.claude/state/tokenmaxxing-state.json');
 const RUNS_DIR = path.join(os.homedir(), '.nudimmud', 'runs');

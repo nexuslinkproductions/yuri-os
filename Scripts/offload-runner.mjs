@@ -1484,7 +1484,7 @@ async function executeTool(name, argsStr) {
       if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
       try {
         const output = execSync(cmd, {
-          cwd: cwd || '/Users/marcelspatz/NUDIMMUD',
+          cwd: cwd || '/Users/marcelspatz/YURI-OS-MUSUBI',
           encoding: 'utf-8',
           maxBuffer: 10 * 1024 * 1024,
           stdio: ['pipe', 'pipe', 'pipe']

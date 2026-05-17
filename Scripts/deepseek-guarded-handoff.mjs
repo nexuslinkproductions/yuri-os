@@ -7,7 +7,7 @@ import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 
 const PROTOCOL_VERSION = '1.0'
-const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD'
+const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI'
 const DEFAULT_MODEL = 'deepseek-v4-pro'
 const DEFAULT_MAX_MODEL_OUTPUT_BYTES = 16000
 const DEFAULT_MAX_ACTIONS = 12

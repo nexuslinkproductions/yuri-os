@@ -27,7 +27,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from '
 import path from 'node:path'
 import { stdout, stderr } from 'node:process'
 
-const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD'
+const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI'
 const MANIFEST_PATH = path.join(REPO_ROOT, '_SYSTEM', 'skill-hash-registry.json')
 
 // Discovery paths (order = precedence; first match wins for duplicate names)

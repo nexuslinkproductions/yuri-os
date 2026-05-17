@@ -6,7 +6,7 @@
 set -u
 
 # Explicit PATH — ensures homebrew, node, npx, ollama are found in LaunchAgent env
-export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/Users/marcelspatz/.bun/bin:/Users/marcelspatz/NUDIMMUD/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/Users/marcelspatz/.bun/bin:/Users/marcelspatz/YURI-OS-MUSUBI/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"

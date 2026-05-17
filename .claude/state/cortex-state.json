@@ -1,0 +1,73 @@
+{
+  "ts": "2026-05-16T21:12:54.775Z",
+  "turnId": "3c92f221",
+  "complexityTier": "standard",
+  "ensembleUsed": [
+    "deepseek-preflight",
+    "nvidia-preflight",
+    "codex-advisory",
+    "codex-queue-emit"
+  ],
+  "codexDispatch": {
+    "model": "gpt-5.5",
+    "tier": "full-impl",
+    "reasoning": "high",
+    "sandbox": "workspace-write",
+    "reason": "complex impl or multi-file code task"
+  },
+  "accumulatedRisk": {
+    "The_spec_anchor_is_named_but_its_contents_aren_t_provided_s": {
+      "count": 1,
+      "firstSeen": "2026-05-16T21:08:52.673Z",
+      "severity": "HIGH",
+      "source": "DEEPSEEK",
+      "summary": "The spec anchor is named but its contents aren't provided, so wiring the hook may violate offload pipeline contracts (or",
+      "escalated": false,
+      "lastSeen": "2026-05-16T21:08:52.673Z"
+    },
+    "Biggest_code_level_risk_readiness_gates_look_declarative_in": {
+      "count": 1,
+      "firstSeen": "2026-05-16T21:08:52.673Z",
+      "severity": "WARN",
+      "source": "CODEX_ADVISORY",
+      "summary": "Biggest code-level risk: readiness gates look declarative instead of enforced at execution boundaries.",
+      "escalated": false,
+      "lastSeen": "2026-05-16T21:08:52.673Z"
+    },
+    "PULSE_The_prompt_drops_fix_the_authentication_bug_without": {
+      "count": 1,
+      "firstSeen": "2026-05-16T21:12:54.775Z",
+      "severity": "WARN",
+      "source": "DEEPSEEK",
+      "summary": "PULSE: The prompt drops “fix the authentication bug” without the bug’s symptom, trigger, or reproduction — and “implemen",
+      "escalated": false,
+      "lastSeen": "2026-05-16T21:12:54.775Z"
+    },
+    "Most_important_risk_rules_are_mostly_declarative_unless_bac": {
+      "count": 1,
+      "firstSeen": "2026-05-16T21:12:54.775Z",
+      "severity": "WARN",
+      "source": "CODEX_ADVISORY",
+      "summary": "Most important risk: rules are mostly declarative unless backed by executable gates. Any “Yuri readiness” policy should ",
+      "escalated": false,
+      "lastSeen": "2026-05-16T21:12:54.775Z"
+    }
+  },
+  "lastFindings": [
+    {
+      "source": "DEEPSEEK",
+      "severity": "WARN",
+      "finding": "PULSE: The prompt drops “fix the authentication bug” without the bug’s symptom, trigger, or reproduc"
+    },
+    {
+      "source": "CODEX_ADVISORY",
+      "severity": "WARN",
+      "finding": "Most important risk: rules are mostly declarative unless backed by executable gates. Any “Yuri readi"
+    },
+    {
+      "source": "CODEX_QUEUE",
+      "severity": "INFO",
+      "finding": "Codex task queued [35bb0d54-627] gpt-5.5 (full-impl). Run: node Scripts/task-queue.mjs run-next"
+    }
+  ]
+}

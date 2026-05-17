@@ -63,6 +63,30 @@ Standard advisory output. No impl authority. Findings logged to pulse-bus with s
 ## Session Notes
 
 ### 2026-05-17
+- session: 113m | peak ctx: 0% | compacts: 0
+- tools: Bash×168, Edit×41, Read×33, mcp×33, Write×11, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
+- session: 111m | peak ctx: 0% | compacts: 0
+- tools: Bash×167, Edit×41, Read×33, mcp×33, Write×11, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
+- session: 108m | peak ctx: 0% | compacts: 0
+- tools: Bash×164, Edit×41, Read×33, mcp×33, Write×11, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
+- session: 107m | peak ctx: 0% | compacts: 0
+- tools: Bash×157, Edit×41, Read×33, mcp×33, Write×10, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
 - session: 100m | peak ctx: 0% | compacts: 0
 - tools: Bash×153, Edit×41, mcp×33, Read×32, Write×9, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1
 - corrections: none

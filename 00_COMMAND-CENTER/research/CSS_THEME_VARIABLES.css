@@ -1,0 +1,40 @@
+:root {
+  /* Core Palette */
+  --color-void: hsl(240, 15%, 7%);
+  --color-surface: hsla(240, 15%, 15%, 0.7);
+  --color-neon-cyan: hsl(183, 100%, 50%);
+  --color-cyber-pink: hsl(306, 100%, 50%);
+  --color-ghost-white: hsl(0, 0%, 95%);
+  --color-muted-slate: hsl(240, 10%, 60%);
+
+  /* Accents & Borders */
+  --border-glass: 1px solid hsla(0, 0%, 100%, 0.125);
+  --shadow-albedo: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  /* Layout */
+  --grid-unit: 8px;
+  --sidebar-width: 250px;
+  --deck-width: 320px;
+
+  /* Animation */
+  --transition-smooth: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.albedo-glass {
+  background: var(--color-surface);
+  backdrop-filter: blur(25px) saturate(200%);
+  -webkit-backdrop-filter: blur(25px) saturate(200%);
+  border: var(--border-glass);
+  border-radius: 12px;
+  box-shadow: var(--shadow-albedo);
+}
+
+.telemetry-pulse {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.8; filter: drop-shadow(0 0 2px var(--color-neon-cyan)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px var(--color-neon-cyan)); }
+  100% { opacity: 0.8; filter: drop-shadow(0 0 2px var(--color-neon-cyan)); }
+}

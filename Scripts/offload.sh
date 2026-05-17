@@ -127,7 +127,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-qwen|nvidia-phi|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -136,7 +136,7 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-qwen|nvidia-phi|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
       return 0
       ;;
   esac
@@ -301,14 +301,21 @@ dry_run_model_override() {
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$target_model"
         ;;
-      nvidia|nvidia-nemotron|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-qwen|nvidia-phi|nvidia/*)
+      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*)
         case "$target_model" in
           nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
+          nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
           nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
           nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
           nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
-          nvidia-qwen)            _nim_model="qwen/qwen2.5-72b-instruct" ;;
+          nvidia-mistral-medium)  _nim_model="mistralai/mistral-medium-3.5-128b" ;;
+          nvidia-qwen)            _nim_model="qwen/qwen3.5-122b-a10b" ;;
+          nvidia-qwen-coder)      _nim_model="qwen/qwen3-coder-480b-a35b-instruct" ;;
           nvidia-phi)             _nim_model="microsoft/phi-4" ;;
+          nvidia-kimi)            _nim_model="moonshotai/kimi-k2.6" ;;
+          nvidia-gemma)           _nim_model="google/gemma-4-31b-it" ;;
+          nvidia-vision)          _nim_model="meta/llama-3.2-11b-vision-instruct" ;;
+          nvidia-embed)           _nim_model="nvidia/llama-nemotron-embed-1b-v2" ;;
           nvidia/*)               _nim_model="$target_model" ;;
           *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
         esac
@@ -388,7 +395,7 @@ dispatch_model() {
   case "$target_model" in
       claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)
         printf '%s\n' "⬡ ROUTING_TO_CLAUDE..." >&2
-        /Users/marcelspatz/NUDIMMUD/Scripts/ai claude "$prompt"
+        /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/ai claude "$prompt"
         ;;
       # Deprecated Moonshot/Kimi compatibility path. Keep manual aliasing only.
       kimi-k2.6|kimi-k2.5-liberated|kimi-k2.5|kimi|moonshot)
@@ -427,14 +434,21 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --model "$target_model"
         ;;
-      nvidia|nvidia-nemotron|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-qwen|nvidia-phi|nvidia/*)
+      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*)
         case "$target_model" in
           nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
+          nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
           nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
           nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
           nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
-          nvidia-qwen)            _nim_model="qwen/qwen2.5-72b-instruct" ;;
+          nvidia-mistral-medium)  _nim_model="mistralai/mistral-medium-3.5-128b" ;;
+          nvidia-qwen)            _nim_model="qwen/qwen3.5-122b-a10b" ;;
+          nvidia-qwen-coder)      _nim_model="qwen/qwen3-coder-480b-a35b-instruct" ;;
           nvidia-phi)             _nim_model="microsoft/phi-4" ;;
+          nvidia-kimi)            _nim_model="moonshotai/kimi-k2.6" ;;
+          nvidia-gemma)           _nim_model="google/gemma-4-31b-it" ;;
+          nvidia-vision)          _nim_model="meta/llama-3.2-11b-vision-instruct" ;;
+          nvidia-embed)           _nim_model="nvidia/llama-nemotron-embed-1b-v2" ;;
           nvidia/*)               _nim_model="$target_model" ;;  # pass full NIM path directly
           *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
         esac

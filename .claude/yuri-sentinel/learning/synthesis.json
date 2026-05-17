@@ -1,0 +1,45 @@
+{
+  "run_id": "NL-2026-05-17",
+  "ts": "2026-05-17T14:18:36.175Z",
+  "dry_run": false,
+  "audit": {
+    "flaws_found": 10,
+    "auto_fixable": 1,
+    "criticals": 0,
+    "warns": 1,
+    "flaws_delta": -8
+  },
+  "promoter": {
+    "candidates": 0,
+    "promoted": 0,
+    "rules_added": [],
+    "rules_delta": 0
+  },
+  "calibration": {
+    "advisors_deprioritized": [],
+    "f1_dropped": [],
+    "recalibration_needed": false,
+    "f1_per_advisor": {}
+  },
+  "external_knowledge": {
+    "github_repos": 11,
+    "arxiv_papers": 0,
+    "hn_stories": 20,
+    "signal_gain": 20
+  },
+  "self_learning": {
+    "hypotheses_generated": 2,
+    "hypotheses_validated": 2,
+    "hypothesis_accuracy": 50,
+    "fingerprint_updated": true,
+    "calibration_trend": "stable",
+    "confidence_bias": "slight_overconfidence",
+    "drives": {
+      "curiosity": 0.8,
+      "improvement": 1,
+      "accuracy": 0.75
+    }
+  },
+  "improvement_score": 69,
+  "brain_reloaded": true
+}

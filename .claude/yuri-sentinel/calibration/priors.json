@@ -1,0 +1,87 @@
+{
+  "updated_ts": "2026-05-17T14:18:20.106Z",
+  "window_days": 7,
+  "advisors": {
+    "DEEPSEEK": {
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "f1_delta": null,
+      "n_total": 0,
+      "n_warn_plus": 0,
+      "n_evaluated": 0,
+      "deprioritize": false,
+      "last_updated": "2026-05-17T14:18:20.105Z"
+    },
+    "NVIDIA": {
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "f1_delta": null,
+      "n_total": 0,
+      "n_warn_plus": 0,
+      "n_evaluated": 0,
+      "deprioritize": false,
+      "last_updated": "2026-05-17T14:18:20.106Z"
+    },
+    "OPENCLAW": {
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "f1_delta": null,
+      "n_total": 0,
+      "n_warn_plus": 0,
+      "n_evaluated": 0,
+      "deprioritize": false,
+      "last_updated": "2026-05-17T14:18:20.106Z"
+    },
+    "CASSANDRA": {
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "f1_delta": null,
+      "n_total": 0,
+      "n_warn_plus": 0,
+      "n_evaluated": 0,
+      "deprioritize": false,
+      "last_updated": "2026-05-17T14:18:20.106Z"
+    },
+    "SWARM": {
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "f1_delta": null,
+      "n_total": 0,
+      "n_warn_plus": 0,
+      "n_evaluated": 0,
+      "deprioritize": false,
+      "last_updated": "2026-05-17T14:18:20.106Z"
+    },
+    "HERMES_FC": {
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "f1_delta": null,
+      "n_total": 0,
+      "n_warn_plus": 0,
+      "n_evaluated": 0,
+      "deprioritize": false,
+      "last_updated": "2026-05-17T14:18:20.106Z"
+    },
+    "CODEX_ADVISORY": {
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "f1_delta": null,
+      "n_total": 0,
+      "n_warn_plus": 0,
+      "n_evaluated": 0,
+      "deprioritize": false,
+      "last_updated": "2026-05-17T14:18:20.106Z"
+    }
+  },
+  "deprioritized": [],
+  "f1_dropped_advisors": [],
+  "recalibration_threshold_exceeded": false,
+  "total_findings_evaluated": 0
+}

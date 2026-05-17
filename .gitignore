@@ -208,3 +208,6 @@ logs/
 _SYSTEM/OS_KERNEL/__pycache__/
 YURI-SENTINEL/08_INGESTION/skool/playwright_data/
 YURI-SENTINEL/08_INGESTION/skool/venv/
+03_RESOURCES/RESEARCH/corpus/awesome-deepseek-integration/
+03_RESOURCES/RESEARCH/ruflo/
+integrations/gemini-env/

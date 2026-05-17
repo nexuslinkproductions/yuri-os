@@ -1,0 +1,211 @@
+2026-05-16T20:30:01.750Z [neuron-loop] starting run=NL-2026-05-16 dry=true
+2026-05-16T20:30:01.751Z [neuron-loop] phase 1: self-audit
+2026-05-16T20:30:01.827Z [neuron-loop] phase 2: pattern-promoter
+2026-05-16T20:30:01.897Z [neuron-loop] phase 3: calibration-tracker
+2026-05-16T20:30:01.967Z [neuron-loop] synthesis score=44 flaws=22 rules_added=0
+2026-05-16T20:30:01.967Z [neuron-loop] run complete: NL-2026-05-16
+2026-05-16T21:01:17.401Z [neuron-loop] starting run=NL-2026-05-16 dry=true
+2026-05-16T21:01:17.403Z [neuron-loop] phase 1: self-audit
+2026-05-16T21:01:17.494Z [neuron-loop] phase 2: pattern-promoter
+2026-05-16T21:01:17.564Z [neuron-loop] phase 3: calibration-tracker
+2026-05-16T21:01:17.634Z [neuron-loop] phase 4: knowledge-scout
+2026-05-16T21:01:29.856Z [neuron-loop] phase 5: ai-news-digest
+2026-05-16T21:01:30.471Z [neuron-loop] phase 6: self-hypothesis
+2026-05-16T21:01:30.558Z [neuron-loop] phase 7: cross-session-miner
+2026-05-16T21:01:30.630Z [neuron-loop] synthesis score=50 flaws=12 rules_added=0 external_gain=0 hypo_accuracy=n/a
+2026-05-16T21:01:30.630Z [neuron-loop] run complete: NL-2026-05-16
+2026-05-16T21:01:35.962Z [neuron-loop] starting run=NL-2026-05-16 dry=true
+2026-05-16T21:01:35.963Z [neuron-loop] phase 1: self-audit
+2026-05-16T21:01:36.051Z [neuron-loop] phase 2: pattern-promoter
+2026-05-16T21:01:36.120Z [neuron-loop] phase 3: calibration-tracker
+2026-05-16T21:01:36.189Z [neuron-loop] phase 4: knowledge-scout
+2026-05-16T21:01:36.497Z [neuron-loop] phase 5: ai-news-digest
+2026-05-16T21:01:37.128Z [neuron-loop] phase 6: self-hypothesis
+2026-05-16T21:01:37.219Z [neuron-loop] phase 7: cross-session-miner
+2026-05-16T21:01:37.293Z [neuron-loop] synthesis score=50 flaws=12 rules_added=0 external_gain=0 hypo_accuracy=n/a
+2026-05-16T21:01:37.293Z [neuron-loop] run complete: NL-2026-05-16
+2026-05-16T21:04:00.451Z [neuron-loop] starting run=NL-2026-05-16 dry=false
+2026-05-16T21:04:00.453Z [neuron-loop] phase 1: self-audit
+2026-05-16T21:04:00.537Z [neuron-loop] phase 2: pattern-promoter
+2026-05-16T21:04:00.610Z [neuron-loop] phase 3: calibration-tracker
+2026-05-16T21:04:00.682Z [neuron-loop] phase 4: knowledge-scout
+2026-05-16T21:04:02.053Z [neuron-loop] phase 5: ai-news-digest
+2026-05-16T21:04:02.677Z [neuron-loop] phase 6: self-hypothesis
+2026-05-16T21:04:02.753Z [neuron-loop] phase 7: cross-session-miner
+2026-05-16T21:04:02.893Z [neuron-loop] synthesis score=70 flaws=12 rules_added=0 external_gain=20 hypo_accuracy=n/a
+2026-05-16T21:04:02.893Z [neuron-loop] brain:stale sentinel emitted — next session will reload brain context
+2026-05-16T21:04:02.893Z [neuron-loop] run complete: NL-2026-05-16
+2026-05-16T21:08:41.566Z [neuron-loop] starting run=NL-2026-05-16 dry=true
+2026-05-16T21:08:41.568Z [neuron-loop] phase 1: self-audit
+2026-05-16T21:08:41.656Z [neuron-loop] phase 2: pattern-promoter
+2026-05-16T21:08:41.724Z [neuron-loop] phase 3: calibration-tracker
+2026-05-16T21:08:41.794Z [neuron-loop] phase 4: knowledge-scout
+2026-05-16T21:08:42.962Z [neuron-loop] phase 5: ai-news-digest
+2026-05-16T21:08:43.918Z [neuron-loop] phase 6: self-hypothesis
+2026-05-16T21:08:44.009Z [neuron-loop] phase 7: cross-session-miner
+2026-05-16T21:08:44.081Z [neuron-loop] synthesis score=70 flaws=12 rules_added=0 external_gain=20 hypo_accuracy=n/a
+2026-05-16T21:08:44.082Z [neuron-loop] run complete: NL-2026-05-16
+2026-05-16T22:32:07.636Z [neuron-loop] starting run=NL-2026-05-16 dry=true
+2026-05-16T22:32:07.638Z [neuron-loop] phase 0: memory-embed
+2026-05-16T22:32:07.890Z [neuron-loop] phase 1: self-audit
+2026-05-16T22:32:07.984Z [neuron-loop] phase 2: pattern-promoter
+2026-05-16T22:32:08.053Z [neuron-loop] phase 3: calibration-tracker
+2026-05-16T22:32:08.147Z [neuron-loop] phase 4: knowledge-scout
+2026-05-16T22:32:09.384Z [neuron-loop] phase 5: ai-news-digest
+2026-05-16T22:32:10.003Z [neuron-loop] phase 6: self-hypothesis
+2026-05-16T22:32:10.087Z [neuron-loop] phase 7: cross-session-miner
+2026-05-16T22:32:10.158Z [neuron-loop] synthesis score=70 flaws=12 rules_added=0 external_gain=20 hypo_accuracy=n/a
+2026-05-16T22:32:10.158Z [neuron-loop] run complete: NL-2026-05-16
+2026-05-16T23:49:03.989Z [neuron-loop] starting run=NL-2026-05-16 dry=true
+2026-05-16T23:49:03.990Z [neuron-loop] phase 0: memory-embed
+2026-05-16T23:49:04.303Z [neuron-loop] phase 0: memory-embed failed (non-fatal): [memory-embed] failed: no such column: contradiction_flag
+2026-05-16T23:49:04.303Z [neuron-loop] phase 0.5a: memory-consolidate
+2026-05-16T23:49:04.383Z [neuron-loop] phase 0.5b: memory-synthesize
+2026-05-16T23:49:04.530Z [neuron-loop] phase 1: self-audit
+2026-05-16T23:49:04.615Z [neuron-loop] phase 2: pattern-promoter
+2026-05-16T23:49:04.685Z [neuron-loop] phase 3: calibration-tracker
+2026-05-16T23:49:04.753Z [neuron-loop] phase 4: knowledge-scout
+2026-05-16T23:49:05.942Z [neuron-loop] phase 5: ai-news-digest
+2026-05-16T23:49:06.646Z [neuron-loop] phase 6: self-hypothesis
+2026-05-16T23:49:06.717Z [neuron-loop] phase 7: cross-session-miner
+2026-05-16T23:49:06.787Z [neuron-loop] synthesis score=70 flaws=12 rules_added=0 external_gain=20 hypo_accuracy=n/a
+2026-05-16T23:49:06.787Z [neuron-loop] run complete: NL-2026-05-16
+2026-05-16T23:49:23.422Z [neuron-loop] starting run=NL-2026-05-16 dry=true
+2026-05-16T23:49:23.423Z [neuron-loop] phase 0: memory-embed
+2026-05-16T23:49:23.696Z [neuron-loop] phase 0.5a: memory-consolidate
+2026-05-16T23:49:23.776Z [neuron-loop] phase 0.5b: memory-synthesize
+2026-05-16T23:49:23.923Z [neuron-loop] phase 1: self-audit
+2026-05-16T23:49:24.005Z [neuron-loop] phase 2: pattern-promoter
+2026-05-16T23:49:24.076Z [neuron-loop] phase 3: calibration-tracker
+2026-05-16T23:49:24.173Z [neuron-loop] phase 4: knowledge-scout
+2026-05-16T23:49:24.465Z [neuron-loop] phase 5: ai-news-digest
+2026-05-16T23:49:25.156Z [neuron-loop] phase 6: self-hypothesis
+2026-05-16T23:49:25.244Z [neuron-loop] phase 7: cross-session-miner
+2026-05-16T23:49:25.316Z [neuron-loop] synthesis score=70 flaws=12 rules_added=0 external_gain=20 hypo_accuracy=n/a
+2026-05-16T23:49:25.316Z [neuron-loop] run complete: NL-2026-05-16
+2026-05-17T00:08:47.798Z [neuron-loop] starting run=NL-2026-05-17 dry=true
+2026-05-17T00:08:47.799Z [neuron-loop] phase 0: memory-embed
+2026-05-17T00:08:48.179Z [neuron-loop] phase 0.5a: memory-consolidate
+2026-05-17T00:08:48.260Z [neuron-loop] phase 0.5b: memory-synthesize
+2026-05-17T00:08:48.419Z [neuron-loop] phase 1: self-audit
+2026-05-17T00:08:48.506Z [neuron-loop] phase 2: pattern-promoter
+2026-05-17T00:08:48.577Z [neuron-loop] izanagi-promoter: 0 patterns promoted
+2026-05-17T00:08:48.578Z [neuron-loop] phase 3: calibration-tracker
+2026-05-17T00:08:48.648Z [neuron-loop] phase 4: knowledge-scout
+2026-05-17T00:08:49.820Z [neuron-loop] phase 5: ai-news-digest
+2026-05-17T00:08:50.500Z [neuron-loop] phase 6: self-hypothesis
+2026-05-17T00:08:50.572Z [neuron-loop] phase 7: cross-session-miner
+2026-05-17T00:08:50.645Z [neuron-loop] phase 7b: self-model-feedback
+2026-05-17T00:08:50.715Z [neuron-loop] synthesis score=70 flaws=12 rules_added=0 external_gain=20 hypo_accuracy=n/a
+2026-05-17T00:08:50.715Z [neuron-loop] run complete: NL-2026-05-17
+2026-05-17T01:00:04.821Z [neuron-loop] starting run=NL-2026-05-17 dry=false
+2026-05-17T01:00:04.821Z [neuron-loop] starting run=NL-2026-05-17 dry=false
+2026-05-17T01:00:04.822Z [neuron-loop] phase 0: memory-embed
+2026-05-17T01:00:04.822Z [neuron-loop] phase 0: memory-embed
+[memory-embed] embedded: session-journal.md
+[memory-embed] done: 1 embedded, 46 skipped (unchanged), 0 contradictions
+2026-05-17T01:00:05.262Z [neuron-loop] phase 0.5a: memory-consolidate
+2026-05-17T01:00:05.262Z [neuron-loop] phase 0.5a: memory-consolidate
+[memory-consolidate] summary: 0 consolidated 0 contradictions
+2026-05-17T01:00:05.367Z [neuron-loop] phase 0.5b: memory-synthesize
+2026-05-17T01:00:05.367Z [neuron-loop] phase 0.5b: memory-synthesize
+[memory-synthesize] summary: 0 created, 0 skipped (recent synthesis)
+2026-05-17T01:00:05.617Z [neuron-loop] phase 1: self-audit
+2026-05-17T01:00:05.617Z [neuron-loop] phase 1: self-audit
+2026-05-17T01:00:05.704Z [neuron-loop] phase 2: pattern-promoter
+2026-05-17T01:00:05.704Z [neuron-loop] phase 2: pattern-promoter
+2026-05-17T01:00:05.778Z [neuron-loop] izanagi-promoter: 0 patterns promoted
+2026-05-17T01:00:05.778Z [neuron-loop] izanagi-promoter: 0 patterns promoted
+2026-05-17T01:00:05.778Z [neuron-loop] phase 3: calibration-tracker
+2026-05-17T01:00:05.778Z [neuron-loop] phase 3: calibration-tracker
+2026-05-17T01:00:05.851Z [neuron-loop] phase 4: knowledge-scout
+2026-05-17T01:00:05.851Z [neuron-loop] phase 4: knowledge-scout
+2026-05-17T01:00:21.025Z [neuron-loop] phase 5: ai-news-digest
+2026-05-17T01:00:21.025Z [neuron-loop] phase 5: ai-news-digest
+2026-05-17T01:00:22.131Z [neuron-loop] phase 6: self-hypothesis
+2026-05-17T01:00:22.131Z [neuron-loop] phase 6: self-hypothesis
+2026-05-17T01:00:22.212Z [neuron-loop] phase 7: cross-session-miner
+2026-05-17T01:00:22.212Z [neuron-loop] phase 7: cross-session-miner
+2026-05-17T01:00:22.356Z [neuron-loop] phase 7b: self-model-feedback
+2026-05-17T01:00:22.356Z [neuron-loop] phase 7b: self-model-feedback
+2026-05-17T01:00:22.438Z [neuron-loop] synthesis score=65 flaws=13 rules_added=0 external_gain=20 hypo_accuracy=0
+2026-05-17T01:00:22.438Z [neuron-loop] synthesis score=65 flaws=13 rules_added=0 external_gain=20 hypo_accuracy=0
+2026-05-17T01:00:22.438Z [neuron-loop] brain:stale sentinel emitted — next session will reload brain context
+2026-05-17T01:00:22.438Z [neuron-loop] brain:stale sentinel emitted — next session will reload brain context
+2026-05-17T01:00:22.438Z [neuron-loop] run complete: NL-2026-05-17
+2026-05-17T01:00:22.438Z [neuron-loop] run complete: NL-2026-05-17
+
+⬡ Neuron Loop Complete — NL-2026-05-17
+  Improvement score: 65/100
+  Flaws: 13 (+1 vs prior)
+  Rules promoted: 0
+  Advisors deprioritized: [none]
+  External knowledge gain: +20 (11 repos, 0 papers, 20 HN stories)
+  Hypothesis accuracy: 0%
+  Calibration trend: stable
+  Confidence bias: overconfident_on_novel_tasks
+  ⚠ Watch: Novel task detected → engage Izanagi counterfactual scan
+2026-05-17T01:29:20.056Z [neuron-loop] starting run=NL-2026-05-17 dry=false
+2026-05-17T01:29:20.058Z [neuron-loop] phase 0: memory-embed
+2026-05-17T01:29:20.428Z [neuron-loop] phase 0.5a: memory-consolidate
+2026-05-17T01:29:20.510Z [neuron-loop] phase 0.5b: memory-synthesize
+2026-05-17T01:29:20.742Z [neuron-loop] phase 1: self-audit
+2026-05-17T01:29:20.831Z [neuron-loop] phase 2: pattern-promoter
+2026-05-17T01:29:20.900Z [neuron-loop] izanagi-promoter: 0 patterns promoted
+2026-05-17T01:29:20.900Z [neuron-loop] phase 3: calibration-tracker
+2026-05-17T01:29:20.967Z [neuron-loop] phase 4: knowledge-scout
+2026-05-17T01:29:22.451Z [neuron-loop] phase 5: ai-news-digest
+2026-05-17T01:29:23.327Z [neuron-loop] phase 6: self-hypothesis
+2026-05-17T01:29:23.398Z [neuron-loop] phase 7: cross-session-miner
+2026-05-17T01:29:23.537Z [neuron-loop] phase 7b: self-model-feedback
+2026-05-17T01:29:23.615Z [neuron-loop] synthesis score=65 flaws=16 rules_added=0 external_gain=20 hypo_accuracy=0
+2026-05-17T01:29:23.615Z [neuron-loop] brain:stale sentinel emitted — next session will reload brain context
+2026-05-17T01:29:23.615Z [neuron-loop] run complete: NL-2026-05-17
+2026-05-17T12:02:53.963Z [neuron-loop] starting run=NL-2026-05-17 dry=false
+2026-05-17T12:02:53.974Z [neuron-loop] phase 0: memory-embed
+2026-05-17T12:02:55.247Z [neuron-loop] phase 0.5a: memory-consolidate
+2026-05-17T12:02:55.337Z [neuron-loop] phase 0.5b: memory-synthesize
+2026-05-17T12:02:56.103Z [neuron-loop] phase 1: self-audit
+2026-05-17T12:02:56.266Z [neuron-loop] phase 2: pattern-promoter
+2026-05-17T12:02:56.345Z [neuron-loop] izanagi-promoter: 0 patterns promoted
+2026-05-17T12:02:56.345Z [neuron-loop] phase 3: calibration-tracker
+2026-05-17T12:02:56.424Z [neuron-loop] phase 4: knowledge-scout
+2026-05-17T12:03:11.542Z [neuron-loop] phase 5: ai-news-digest
+2026-05-17T12:03:12.459Z [neuron-loop] phase 6: self-hypothesis
+2026-05-17T12:03:12.540Z [neuron-loop] phase 7: cross-session-miner
+2026-05-17T12:03:12.757Z [neuron-loop] phase 7b: self-model-feedback
+2026-05-17T12:03:12.837Z [neuron-loop] synthesis score=70 flaws=16 rules_added=0 external_gain=20 hypo_accuracy=50
+2026-05-17T12:03:12.837Z [neuron-loop] brain:stale sentinel emitted — next session will reload brain context
+2026-05-17T12:03:12.838Z [neuron-loop] run complete: NL-2026-05-17
+2026-05-17T13:14:51.065Z [neuron-loop] starting run=NL-2026-05-17 dry=false
+2026-05-17T13:14:51.067Z [neuron-loop] phase 0: memory-embed
+2026-05-17T13:14:51.652Z [neuron-loop] phase 0.5a: memory-consolidate
+2026-05-17T13:14:51.732Z [neuron-loop] phase 0.5b: memory-synthesize
+2026-05-17T13:14:51.968Z [neuron-loop] phase 1: self-audit
+2026-05-17T13:14:52.049Z [neuron-loop] phase 2: pattern-promoter
+2026-05-17T13:14:52.118Z [neuron-loop] izanagi-promoter: 0 patterns promoted
+2026-05-17T13:14:52.118Z [neuron-loop] phase 3: calibration-tracker
+2026-05-17T13:14:52.187Z [neuron-loop] phase 4: knowledge-scout
+2026-05-17T13:14:53.593Z [neuron-loop] phase 5: ai-news-digest
+2026-05-17T13:14:54.347Z [neuron-loop] phase 6: self-hypothesis
+2026-05-17T13:14:54.439Z [neuron-loop] phase 7: cross-session-miner
+2026-05-17T13:14:54.576Z [neuron-loop] phase 7b: self-model-feedback
+2026-05-17T13:14:54.654Z [neuron-loop] synthesis score=68 flaws=18 rules_added=0 external_gain=20 hypo_accuracy=50
+2026-05-17T13:14:54.654Z [neuron-loop] brain:stale sentinel emitted — next session will reload brain context
+2026-05-17T13:14:54.654Z [neuron-loop] run complete: NL-2026-05-17
+2026-05-17T14:18:19.153Z [neuron-loop] starting run=NL-2026-05-17 dry=false
+2026-05-17T14:18:19.163Z [neuron-loop] phase 0: memory-embed
+2026-05-17T14:18:19.562Z [neuron-loop] phase 0.5a: memory-consolidate
+2026-05-17T14:18:19.642Z [neuron-loop] phase 0.5b: memory-synthesize
+2026-05-17T14:18:19.876Z [neuron-loop] phase 1: self-audit
+2026-05-17T14:18:19.969Z [neuron-loop] phase 2: pattern-promoter
+2026-05-17T14:18:20.038Z [neuron-loop] izanagi-promoter: 0 patterns promoted
+2026-05-17T14:18:20.039Z [neuron-loop] phase 3: calibration-tracker
+2026-05-17T14:18:20.112Z [neuron-loop] phase 4: knowledge-scout
+2026-05-17T14:18:35.240Z [neuron-loop] phase 5: ai-news-digest
+2026-05-17T14:18:35.869Z [neuron-loop] phase 6: self-hypothesis
+2026-05-17T14:18:35.941Z [neuron-loop] phase 7: cross-session-miner
+2026-05-17T14:18:36.094Z [neuron-loop] phase 7b: self-model-feedback
+2026-05-17T14:18:36.175Z [neuron-loop] synthesis score=69 flaws=10 rules_added=0 external_gain=20 hypo_accuracy=50
+2026-05-17T14:18:36.176Z [neuron-loop] brain:stale sentinel emitted — next session will reload brain context
+2026-05-17T14:18:36.176Z [neuron-loop] run complete: NL-2026-05-17

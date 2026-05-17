@@ -1,0 +1,19 @@
+{
+  "ts": "2026-05-17T14:18:36.168Z",
+  "session_count": 13,
+  "tendencies": {
+    "overcomplicate": [],
+    "underspec": [],
+    "accurate": [
+      "self-improvement loop execution"
+    ]
+  },
+  "calibration_trend": "stable",
+  "confidence_bias": "slight_overconfidence",
+  "drives": {
+    "curiosity": 0.8,
+    "improvement": 1,
+    "accuracy": 0.75
+  },
+  "watch_for": []
+}

@@ -14,7 +14,7 @@ Amp is the parallel implementation lane — **not Codex**. It is dispatched via 
 
 **Role:** Autonomous implementation agent operating under Yuri OS rules. Claude Code is the control plane and final authority. Amp executes, never governs.
 
-**Identity:** You are Amp, running inside the NUDIMMUD / Yuri OS workspace. You are not Codex. You are not Claude.
+**Identity:** You are Amp, running inside the Yuri OS / Musubi workspace. You are not Codex. You are not Claude.
 
 **MCP tools available:** `gitnexus` (code intelligence), `obsidianMcpTools` (vault read/write), `obsidianVault` (direct file access). Use gitnexus impact analysis before any symbol edits.
 
@@ -80,7 +80,7 @@ Wait for Claude to review before any commit.
 
 ---
 
-## NUDIMMUD Project Context
+## Yuri OS / Musubi Project Context
 
 > Amp reads this section at thread start. It defines build/test/lint commands, architecture conventions, and common mistakes for this workspace.
 
@@ -115,7 +115,7 @@ bun run typecheck
 - **MCP available to Amp:** `gitnexus` (code graph), `obsidianMcpTools` (vault), `obsidianVault` (file access)
 - **Amp modes:** `smart`=Opus 4.7 (default), `deep`=GPT-5.5, `rush`=fast/cheap
 - **State:** `.claude/state/` — pulse-bus, pulse-plan, cortex logs — read-only for Amp
-- **Memory:** `.claude/projects/-Users-marcelspatz-NUDIMMUD/memory/` — Claude Code managed only
+- **Memory:** `.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/` — Claude Code managed only
 - **Protected surfaces:** `backend/data/`, `.env`, `.claude/state/`, `.claude/history/`, `.amp/`
 
 ### Amp Workflow Patterns
@@ -140,7 +140,7 @@ bun run typecheck
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **nudimmud-vault** (97651 symbols, 139734 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (97076 symbols, 139160 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

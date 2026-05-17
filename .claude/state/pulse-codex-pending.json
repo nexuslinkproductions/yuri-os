@@ -1,0 +1,28 @@
+{
+  "turn_id": "codex-live-test-001",
+  "ts": "2026-05-14T16:38:34.308Z",
+  "expires_at": "2026-05-14T16:48:34.309Z",
+  "snapshot_head": "d1e18a94b4ca71ae530612c88ce59b103fa539f2",
+  "task_spec": {
+    "goal": "Add cortex and soak subcommand entries to the usage() help text in Scripts/ai",
+    "targetFiles": [
+      "Scripts/ai"
+    ],
+    "constraints": "Insert both entries after the triage entry (around line 135), before the Examples: block. Documentation only — no logic changes.",
+    "acceptance": "bash Scripts/ai help 2>&1 | grep -E cortex.*soak or both lines present",
+    "testCommand": "bash Scripts/ai help 2>&1 | grep -E \"cortex|soak\"",
+    "rollbackBoundary": "git diff HEAD -- Scripts/ai"
+  },
+  "proposed_diff": "diff --git a/Scripts/ai b/Scripts/ai\nindex 0000000..0000000 100755\n--- a/Scripts/ai\n+++ b/Scripts/ai\n@@ -133,6 +133,12 @@ Commands:\n   triage [prompt]\n       Run safe Claude, gemini, and codex in parallel and print all three outputs.\n \n+  cortex|pulse|pulse-status\n+      Print Pulse Cortex self-inspection status.\n+\n+  soak|trivial-audit|pulse-soak\n+      Run the Pulse soak audit against pulse-hook telemetry.\n+\n Examples:\n   ai code .\n   ai claude \"Trace the auth flow in this repo\"",
+  "files_touched": [
+    "Scripts/ai"
+  ],
+  "stats": {
+    "added": 6,
+    "deleted": 0
+  },
+  "status": "APPLIED",
+  "approval_marker_path": "/Users/marcelspatz/NUDIMMUD/.claude/state/pulse-codex-pending.approved",
+  "applied_at": "2026-05-14T16:41:32.075Z",
+  "applied_head": "d1e18a94b4ca71ae530612c88ce59b103fa539f2"
+}

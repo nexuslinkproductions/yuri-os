@@ -1,0 +1,110 @@
+{
+  "ts": "2026-05-17T14:18:36.006Z",
+  "session_count": 13,
+  "avg_score": 64,
+  "recent_avg_score": 68,
+  "improvement_trend": "improving",
+  "flaw_history": {
+    "avg_total": 14,
+    "all_sessions": [
+      {
+        "ts": "2026-05-16T20:30:01.967Z",
+        "total": 22,
+        "criticals": 0,
+        "warns": 6,
+        "delta": null
+      },
+      {
+        "ts": "2026-05-16T21:01:30.629Z",
+        "total": 12,
+        "criticals": 0,
+        "warns": 0,
+        "delta": -10
+      },
+      {
+        "ts": "2026-05-16T21:01:37.292Z",
+        "total": 12,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 0
+      },
+      {
+        "ts": "2026-05-16T21:04:02.892Z",
+        "total": 12,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 0
+      },
+      {
+        "ts": "2026-05-16T21:08:44.081Z",
+        "total": 12,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 0
+      },
+      {
+        "ts": "2026-05-16T22:32:10.158Z",
+        "total": 12,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 0
+      },
+      {
+        "ts": "2026-05-16T23:49:06.786Z",
+        "total": 12,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 0
+      },
+      {
+        "ts": "2026-05-16T23:49:25.316Z",
+        "total": 12,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 0
+      },
+      {
+        "ts": "2026-05-17T00:08:50.714Z",
+        "total": 12,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 0
+      },
+      {
+        "ts": "2026-05-17T01:00:22.438Z",
+        "total": 13,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 1
+      },
+      {
+        "ts": "2026-05-17T01:29:23.614Z",
+        "total": 16,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 3
+      },
+      {
+        "ts": "2026-05-17T12:03:12.837Z",
+        "total": 16,
+        "criticals": 0,
+        "warns": 0,
+        "delta": 0
+      },
+      {
+        "ts": "2026-05-17T13:14:54.653Z",
+        "total": 18,
+        "criticals": 0,
+        "warns": 2,
+        "delta": 2
+      }
+    ]
+  },
+  "rules": {
+    "total_promoted": 0,
+    "frequent_rules": []
+  },
+  "advisors": {
+    "problematic": []
+  }
+}

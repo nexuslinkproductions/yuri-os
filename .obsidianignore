@@ -1,0 +1,33 @@
+# Yuri OS — Obsidian Vault Ignore
+# Code, build, data, and tool folders — not vault content
+
+backend/
+bin/
+checkpoints/
+dist/
+docs/
+graph/
+integrations/
+logs/
+memory/
+needle/
+NEURAL-NETWORK/
+node_modules/
+public/
+src/
+test/
+tools/
+Volumes/
+.gitnexus/
+.smart-env/
+.codex/
+.codex-worktrees/
+.amp/
+.cursor/
+.gemini/
+.cline/
+.tmp/
+GeneratedContent/
+claude-palace-out/
+graphify-out/
+YURI-SENTINEL/
