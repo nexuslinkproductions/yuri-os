@@ -1,7 +1,7 @@
 import { writeFileSync } from 'fs';
 
 const CHANNEL = '@JEVanClief';
-const BASE = '/Users/marcelspatz/NUDIMMUD/RESEARCH/jake-van-klief';
+const BASE = '/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/jake-van-klief';
 
 async function scanChannel() {
   // Use web_fetch equivalent to get channel page with all videos

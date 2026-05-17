@@ -1,7 +1,7 @@
 # Yuri Archive Classification Report
 
 **Generated:** 2026-05-03T13:40:00Z
-**Source:** `/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json`
+**Source:** `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json`
 **Files analyzed:** 30
 
 ## Purpose

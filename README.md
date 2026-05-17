@@ -1,14 +1,14 @@
-# NUDIMMUD — Operator System
+# YURI-OS-MUSUBI — Operator System
 
 **Marcel Spatz · Vienna**
 
-NUDIMMUD is a unified operator system for running creative, technical, and business workflows from a single interface. It combines video production management, AI infrastructure engineering, financial operations, and premium tooling design into one integrated surface — not a collection of vaults, not a second brain, but a command center for multi-domain operation.
+YURI-OS-MUSUBI is a unified operator system for running creative, technical, and business workflows from a single interface. It combines video production management, AI infrastructure engineering, financial operations, and premium tooling design into one integrated surface — not a collection of vaults, not a second brain, but a command center for multi-domain operation.
 
 ---
 
 ## Who It Is For
 
-Built for Marcel Spatz, whose work spans video production, AI systems engineering, financial operations, and tooling design across multiple pipelines and geographies. By extension, NUDIMMUD is for anyone running a multi-domain creative or technical operation who needs a single surface to manage projects, dispatch agent workflows, track commitments, and surface live intelligence — without switching contexts across a dozen tools.
+Built for Marcel Spatz, whose work spans video production, AI systems engineering, financial operations, and tooling design across multiple pipelines and geographies. By extension, YURI-OS-MUSUBI is for anyone running a multi-domain creative or technical operation who needs a single surface to manage projects, dispatch agent workflows, track commitments, and surface live intelligence — without switching contexts across a dozen tools.
 
 ---
 
@@ -42,7 +42,7 @@ These files live at vault root by design. They are the system layer, not project
 
 - Governance: [AGENTS.md](AGENTS.md), [AEONIC_PROTOCOL.md](AEONIC_PROTOCOL.md), [CODEX_PROTOCOL.md](CODEX_PROTOCOL.md), [LOCAL_EXECUTION_POLICY.md](LOCAL_EXECUTION_POLICY.md), [NEURAL_FORGE.md](NEURAL_FORGE.md), [YURI.md](YURI.md)
 - Identity and memory: [identity.md](identity.md), [enki_state.md](enki_state.md), [memory-core.md](memory-core.md), [session_log.md](session_log.md), [session_prompt.md](session_prompt.md), [SOUL.md](SOUL.md), [USER.md](USER.md), [TOOLS.md](TOOLS.md)
-- Doctrine and logs: [CLAUDE.md](CLAUDE.md), [CONCLAVE_COGNITIVE_LOG.md](CONCLAVE_COGNITIVE_LOG.md), [creative_codex.md](creative_codex.md), [DESIGN.md](DESIGN.md), [esoteric_codex.md](esoteric_codex.md), [GEMINI.md](GEMINI.md), [geopolitical_log.md](geopolitical_log.md), [HEARTBEAT.md](HEARTBEAT.md), [language_codex.md](language_codex.md), [nabu.md](nabu.md), [NUDIMMUD_AUDIT_README.md](NUDIMMUD_AUDIT_README.md)
+- Doctrine and logs: [CLAUDE.md](CLAUDE.md), [CONCLAVE_COGNITIVE_LOG.md](CONCLAVE_COGNITIVE_LOG.md), [creative_codex.md](creative_codex.md), [DESIGN.md](DESIGN.md), [esoteric_codex.md](esoteric_codex.md), [GEMINI.md](GEMINI.md), [geopolitical_log.md](geopolitical_log.md), [HEARTBEAT.md](HEARTBEAT.md), [language_codex.md](language_codex.md), [nabu.md](nabu.md)
 - Navigation: [README.md](README.md), [STRUCTURE.md](STRUCTURE.md)
 
 ---
@@ -70,4 +70,4 @@ Open [http://localhost:5173](http://localhost:5173).
 
 ---
 
-**NUDIMMUD means "the place between the stars."** A system that unifies operations across domains, seasons, and collaborators.
+**YURI-OS-MUSUBI** (formerly NUDIMMUD, "the place between the stars") — a system that unifies operations across domains, seasons, and collaborators.

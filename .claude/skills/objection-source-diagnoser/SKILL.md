@@ -1,4 +1,4 @@
-# ABSORBED FROM: /Users/marcelspatz/NUDIMMUD/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/quochungto/bookforge-objection-source-diagnoser | scanned: 2026-05-17 | score: 0
+# ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/quochungto/bookforge-objection-source-diagnoser | scanned: 2026-05-17 | score: 0
 
 ---
 name: objection-source-diagnoser

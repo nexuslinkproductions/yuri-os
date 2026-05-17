@@ -7,7 +7,7 @@ The project is currently in a state where the `/Volumes/T7` drive acts as a read
 ## Rules
 
 1. **Path Restriction**:
-   - Primary development happens locally within `/Users/marcelspatz/NUDIMMUD/`.
+   - Primary development happens locally within `/Users/marcelspatz/YURI-OS-MUSUBI/`.
    - Before performing any `write_to_file`, `replace_file_content`, or `run_command` that modifies `/Volumes/T7/`, verify it is a supervised "manual" sync-back operation.
 
 2. **T7 to Local (Automatic Ingestion)**:
@@ -20,8 +20,8 @@ The project is currently in a state where the `/Volumes/T7` drive acts as a read
    - Always request confirmation before writing to T7.
 
 4. **Terminal CWD**:
-   - Ensure all commands are executed with `Cwd` set to `/Users/marcelspatz/NUDIMMUD/` or a subdirectory thereof unless performing a supervised sync operation.
+   - Ensure all commands are executed with `Cwd` set to `/Users/marcelspatz/YURI-OS-MUSUBI/` or a subdirectory thereof unless performing a supervised sync operation.
 
 ## Verification
 
-- If you find yourself in a session where the active document is on `/Volumes/T7/`, immediately shift focus to the equivalent file in `/Users/marcelspatz/NUDIMMUD/`.
+- If you find yourself in a session where the active document is on `/Volumes/T7/`, immediately shift focus to the equivalent file in `/Users/marcelspatz/YURI-OS-MUSUBI/`.

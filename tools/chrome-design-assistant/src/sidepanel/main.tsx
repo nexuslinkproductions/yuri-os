@@ -82,7 +82,7 @@ const CUSTOM_STYLE_PRESET: StylePreset = {
     assetIds: []
 };
 
-const DEFAULT_ROOT = '/Users/marcelspatz/NUDIMMUD';
+const DEFAULT_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
 const DEFAULT_CONSTRAINTS = ['Extension cannot mutate source files', 'Codex owns implementation and verification'];
 const ASSET_BASE_URL = 'http://localhost:4200/';
 

@@ -58,10 +58,10 @@ Expected: OS_KERNEL task row created, memory log written, and Codex dry-run JSON
 ## Safety Smokes
 
 ```bash
-printf '%s' '{"tool_name":"Bash","tool_input":{"command":"echo x > .env","cwd":"/Users/marcelspatz/NUDIMMUD"}}' \
+printf '%s' '{"tool_name":"Bash","tool_input":{"command":"echo x > .env","cwd":"/Users/marcelspatz/YURI-OS-MUSUBI"}}' \
 | node .codex/hooks/pre-tool-use.mjs --check
 
-printf '%s' '{"tool_name":"Bash","tool_input":{"command":"echo x > /Volumes/T7/probe","cwd":"/Users/marcelspatz/NUDIMMUD"}}' \
+printf '%s' '{"tool_name":"Bash","tool_input":{"command":"echo x > /Volumes/T7/probe","cwd":"/Users/marcelspatz/YURI-OS-MUSUBI"}}' \
 | node .codex/hooks/pre-tool-use.mjs --check
 ```
 

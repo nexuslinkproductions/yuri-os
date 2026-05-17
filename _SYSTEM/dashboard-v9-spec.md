@@ -1,18 +1,18 @@
 ## CODEX TASK SPEC
 
-Goal: Complete rebuild of /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html as a real 3D WebGL Yuri OS instrument.
+Goal: Complete rebuild of /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html as a real 3D WebGL Yuri OS instrument.
 
 This is a Canvas2D → Three.js rebuild. Real 3D spheres, real spiral helical positioning, real bloom post-processing, real orbit camera with preset views, real physics-driven hover expansion, random energy pulse traversal, deep-space immersion with starfield + fog depth.
 
 Design inspiration: Destiny (Bungie) — cinematic spatial depth, faint stars, luminous orbs, breathing energy. NOT cyberpunk neon. Architectural sci-fi.
 
-Output: single file /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html — replace entirely.
+Output: single file /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html — replace entirely.
 
 ---
 
 ## DEPENDENCIES (already present in workspace node_modules)
 
-Use importmap with relative paths to /Users/marcelspatz/NUDIMMUD/node_modules/three/:
+Use importmap with relative paths to /Users/marcelspatz/YURI-OS-MUSUBI/node_modules/three/:
 
 ```html
 <script type="importmap">

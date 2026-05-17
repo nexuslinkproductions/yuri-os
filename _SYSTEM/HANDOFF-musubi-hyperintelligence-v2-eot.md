@@ -1,7 +1,7 @@
 # EOT HANDOFF — Musubi Hyper-Intelligence v2
 **Date:** 2026-05-16  
 **Session duration:** ~3h  
-**Branch:** main · `/Users/marcelspatz/NUDIMMUD`  
+**Branch:** main · `/Users/marcelspatz/YURI-OS-MUSUBI`  
 **Gate:** 0 CRITICAL · 0 WARN · 12 INFO flaws · Score 44 → 70/100
 
 ---
@@ -168,7 +168,7 @@ New feature work halted. Reflection mode active. No interruptions.
 ```
 ## NEXT SESSION BOOT — Musubi Hyper-Intelligence v2
 
-Branch: main | CWD: /Users/marcelspatz/NUDIMMUD
+Branch: main | CWD: /Users/marcelspatz/YURI-OS-MUSUBI
 Last commit: (pre-EOT)
 
 ### What changed this session (carry into reasoning)

@@ -45,13 +45,13 @@ Configured in `.claude/settings.json` — automatically enabled for Claude Code 
 
 - **Language**: TypeScript with @modelcontextprotocol/sdk v1.29.0
 - **Transport**: stdio (local subprocess communication)
-- **Vault Root**: `/Users/marcelspatz/NUDIMMUD`
+- **Vault Root**: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - **Index Caching**: Files indexed on startup; use rebuild_index if vault changes
 
 ## Configuration
 
-- **Server Path**: `/Users/marcelspatz/NUDIMMUD/.claude/mcp-servers/obsidian-vault/`
-- **Config**: `/Users/marcelspatz/NUDIMMUD/.claude/settings.json`
+- **Server Path**: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/mcp-servers/obsidian-vault/`
+- **Config**: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/settings.json`
 - **Built**: `dist/index.js` (compile with `npm run build`)
 
 ## Development

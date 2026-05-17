@@ -1,10 +1,10 @@
 ## CODEX TASK SPEC
 
-Goal: Rebuild /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html as a complete Yuri OS engineering system map. Shows HOW the system operates end-to-end with visual flow. Not a node graph. A live instrument for understanding system operation.
+Goal: Rebuild /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html as a complete Yuri OS engineering system map. Shows HOW the system operates end-to-end with visual flow. Not a node graph. A live instrument for understanding system operation.
 
 Problem to fix: Current file shows 8 agent hexagons only. Missing: NexusPulse pipeline, Symbiotic Pulse routing, all 12 routing lanes, 3-tier memory + MLM sandbox, hook pipeline, CI/CD gates, launchd services, self-improvement engine. All labels are 8px SVG text unreadable.
 
-OUTPUT: Single file /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html — replace completely.
+OUTPUT: Single file /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html — replace completely.
 
 ---
 

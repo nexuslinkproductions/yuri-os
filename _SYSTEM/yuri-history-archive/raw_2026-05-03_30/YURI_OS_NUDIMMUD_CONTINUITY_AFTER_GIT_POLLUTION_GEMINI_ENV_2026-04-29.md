@@ -24,7 +24,7 @@ This next sprint is read-only. It should not mutate `graphify-out/` or anything 
 ## 2. Current Accepted Repo State
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current accepted HEAD: 43c59fe4 chore(git): untrack committed gemini_env venv
 staged files expected: none
@@ -733,7 +733,7 @@ Latest accepted result:
 Current expected repo state:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 43c59fe4 chore(git): untrack committed gemini_env venv
 staged files expected: none
@@ -800,7 +800,7 @@ git status --short -- .claude/settings.json GEMINI.md .gitignore graphify-out ge
 
 Hard stop if:
 
-- cwd is not `/Users/marcelspatz/NUDIMMUD`
+- cwd is not `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch is not `main`
 - HEAD is not `43c59fe4`
 - any files are staged
@@ -1158,7 +1158,7 @@ Continue Yuri OS / NUDIMMUD from the uploaded continuity markdown.
 
 Current accepted repo state:
 
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - current accepted HEAD: 43c59fe4 chore(git): untrack committed gemini_env venv
 - staged files expected: none

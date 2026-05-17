@@ -1,12 +1,12 @@
 {
-  "lastRun": "2026-05-17T13:57:29.632Z",
+  "lastRun": "2026-05-17T15:01:06.028Z",
   "phases": {
     "liveness": {
       "status": "ok",
-      "msg": "GET http://localhost:18789/health -> 200 (62ms)",
+      "msg": "GET http://localhost:18789/health -> 200 (49ms)",
       "url": "http://localhost:18789/health",
       "httpStatus": 200,
-      "elapsedMs": 62
+      "elapsedMs": 49
     },
     "health": {
       "status": "warn",
@@ -40,7 +40,7 @@
     "external": {
       "status": "ok",
       "msg": "github-trending age=0.7h",
-      "ageHours": 0.710059287516276,
+      "ageHours": 0.7086008519151475,
       "overdue": false
     }
   },
@@ -50,7 +50,7 @@
       "severity": "warn",
       "msg": "2 pending hypotheses not yet validated",
       "pending": [
-        "If self-audit auto-fixable count increases by 3+, improvement_score will rise above 78",
+        "If self-audit auto-fixable count increases by 3+, improvement_score will rise above 76",
         "Integrating technique from \"An AI agent published a hit piece on me\" into knowledge-scout relevance filter will improve external_signal_quality score"
       ]
     },

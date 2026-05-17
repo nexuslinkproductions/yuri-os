@@ -75,8 +75,8 @@ Notes:
 
 ### Repository context
 
-- Trusted state: Canonical repo root is `/Users/marcelspatz/NUDIMMUD`.
-- Evidence from chat: Multiple sprints reported `cwd: /Users/marcelspatz/NUDIMMUD`.
+- Trusted state: Canonical repo root is `/Users/marcelspatz/YURI-OS-MUSUBI`.
+- Evidence from chat: Multiple sprints reported `cwd: /Users/marcelspatz/YURI-OS-MUSUBI`.
 - Confidence: High from visible reports, not independently re-run here.
 
 - Trusted state: Expected branch is `main`.
@@ -567,7 +567,7 @@ Note:
 
 Stop immediately if:
 
-- cwd is not `/Users/marcelspatz/NUDIMMUD`
+- cwd is not `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch is not `main`
 - HEAD is not `bc75bd2a`
 - any files are staged
@@ -592,7 +592,7 @@ Allowed commands:
 
 Verify:
 
-1. cwd is `/Users/marcelspatz/NUDIMMUD`
+1. cwd is `/Users/marcelspatz/YURI-OS-MUSUBI`
 2. branch is `main`
 3. HEAD is:
    - `bc75bd2a chore(git): untrack Claude ephemeral session and snapshot files`
@@ -712,7 +712,7 @@ Please review the continuity extract and prepare/validate the next safest action
   "date": "2026-04-27",
   "document_type": "session_continuity_extract_after_07g",
   "status": "handoff_not_independent_repo_audit",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "branch": "main",
   "latest_accepted_sprint": "Sprint 07G",
   "latest_accepted_result": "07G_PASS_SCOPE_ACCEPTED_WITH_COMMIT_MESSAGE_NOTE",

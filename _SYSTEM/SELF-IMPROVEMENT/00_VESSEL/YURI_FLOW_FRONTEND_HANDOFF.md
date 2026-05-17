@@ -23,11 +23,11 @@ Capture the current Yuri-native model for the workflow cockpit: Yuri Flow is the
 
 ## What We Know From the Current Repo
 
-- Yuri already behaves like an operator system rather than a simple app. See [README.md](/Users/marcelspatz/NUDIMMUD/README.md).
-- The current backend is local-first, auth-gated, and control-plane oriented. See [backend/src/server.ts](/Users/marcelspatz/NUDIMMUD/backend/src/server.ts) and [backend/src/routes/api.ts](/Users/marcelspatz/NUDIMMUD/backend/src/routes/api.ts).
-- The Yuri Flow sync path is modeled as local persistence first, then outbound transmission when available. See [backend/src/services/yuriFlow.ts](/Users/marcelspatz/NUDIMMUD/backend/src/services/yuriFlow.ts).
-- The fusion protocol states that Nudimmud wraps partner workflow records and never overwrites the external source. See [\_SYSTEM/EVONEXUS_PROTOCOLS.md](/Users/marcelspatz/NUDIMMUD/_SYSTEM/EVONEXUS_PROTOCOLS.md).
-- The frontend already has a shell/module separation pattern that can support a top-layer / face-layer split. See [src/operator/OperatorShell.tsx](/Users/marcelspatz/NUDIMMUD/src/operator/OperatorShell.tsx) and [src/lib/moduleRegistry.tsx](/Users/marcelspatz/NUDIMMUD/src/lib/moduleRegistry.tsx).
+- Yuri already behaves like an operator system rather than a simple app. See [README.md](/Users/marcelspatz/YURI-OS-MUSUBI/README.md).
+- The current backend is local-first, auth-gated, and control-plane oriented. See [backend/src/server.ts](/Users/marcelspatz/YURI-OS-MUSUBI/backend/src/server.ts) and [backend/src/routes/api.ts](/Users/marcelspatz/YURI-OS-MUSUBI/backend/src/routes/api.ts).
+- The Yuri Flow sync path is modeled as local persistence first, then outbound transmission when available. See [backend/src/services/yuriFlow.ts](/Users/marcelspatz/YURI-OS-MUSUBI/backend/src/services/yuriFlow.ts).
+- The fusion protocol states that Nudimmud wraps partner workflow records and never overwrites the external source. See [\_SYSTEM/EVONEXUS_PROTOCOLS.md](/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/EVONEXUS_PROTOCOLS.md).
+- The frontend already has a shell/module separation pattern that can support a top-layer / face-layer split. See [src/operator/OperatorShell.tsx](/Users/marcelspatz/YURI-OS-MUSUBI/src/operator/OperatorShell.tsx) and [src/lib/moduleRegistry.tsx](/Users/marcelspatz/YURI-OS-MUSUBI/src/lib/moduleRegistry.tsx).
 
 ## Working Model
 

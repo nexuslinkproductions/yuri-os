@@ -2,7 +2,7 @@
 
 **Slice name:** Real Austrian company records from WKO.at (replaces 9 hardcoded demos)
 **Branch:** `codex/c2moviez-acquisition-crm`
-**Workspace:** `/Users/marcelspatz/NUDIMMUD/.codex-worktrees/prism-workbench`
+**Workspace:** `/Users/marcelspatz/YURI-OS-MUSUBI/.codex-worktrees/prism-workbench`
 
 ---
 

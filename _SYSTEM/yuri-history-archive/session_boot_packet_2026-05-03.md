@@ -3,7 +3,7 @@ title: Yuri Session Boot Packet
 date: 2026-05-03
 status: continuity_aid_only
 trust_policy: current_repo_truth_outvotes_this_packet
-repo_root: /Users/marcelspatz/NUDIMMUD
+repo_root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 head: 3c9cece72
 staged_state: empty
@@ -29,7 +29,7 @@ Direct current repo truth outranks this packet.
 
 ## Preflight
 
-- Repo root: `/Users/marcelspatz/NUDIMMUD`
+- Repo root: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - Branch: `main`
 - HEAD: `3c9cece72`
 - Staged state: empty

@@ -2,7 +2,7 @@
 
 > Target: GPT-5.5 at extra-high reasoning
 > Stack: React + Vite + Framer Motion + TypeScript
-> Source: /Users/marcelspatz/NUDIMMUD/
+> Source: /Users/marcelspatz/YURI-OS-MUSUBI/
 > Dev server: http://127.0.0.1:4200/ (auto-reloads on save)
 
 ---
@@ -192,7 +192,7 @@ From analyzed sites (RAG-MLM-HANDOVER / 06-ANALYZED-WEBSITES.md):
 
 ## EXISTING COMPONENTS (Read Before Overwriting)
 
-Key files in /Users/marcelspatz/NUDIMMUD/src/:
+Key files in /Users/marcelspatz/YURI-OS-MUSUBI/src/:
 
 - **App.tsx** — main router, renders ArchitecturalGrid + CineGlow globally
 - **index.tsx** — ENTRY POINT, imports CSS (do NOT switch to main.tsx)
@@ -223,4 +223,4 @@ Key files in /Users/marcelspatz/NUDIMMUD/src/:
 4. Implement page by page, starting with the ArchitecturalGrid (visual foundation)
 5. Test each page after implementing
 
-The dev server auto-reloads on save. Source is at /Users/marcelspatz/NUDIMMUD/src/.
+The dev server auto-reloads on save. Source is at /Users/marcelspatz/YURI-OS-MUSUBI/src/.

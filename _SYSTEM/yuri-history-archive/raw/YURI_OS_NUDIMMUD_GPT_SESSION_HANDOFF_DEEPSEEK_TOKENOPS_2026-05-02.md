@@ -1,7 +1,7 @@
 # Yuri OS / NUDIMMUD — GPT Session Handoff  
 **Session focus:** RAG startup smoke validation, tokenmaxxing/token-budget hardening, Anime-DNA/RAG source registry planning, DeepSeek V4 API lane implementation, PULSE/TokenOps intake preparation  
 **Prepared:** 2026-05-02  
-**Repo root:** `/Users/marcelspatz/NUDIMMUD`  
+**Repo root:** `/Users/marcelspatz/YURI-OS-MUSUBI`  
 **Branch:** `main`  
 **Latest confirmed HEAD in session:** `ac2c846c1` after DeepSeek V4 lane commit  
 **Live DeepSeek smoke status:** Flash and Pro both passed from normal macOS Terminal  
@@ -857,7 +857,7 @@ Copy from below into the new GPT chat.
 You are GPT-5.5 Thinking acting as senior AI systems architect, LLMOps engineer, systems engineer, prompt architect, RAG architect, clean-room/IP gatekeeper, and Yuri OS/Nudimmud strategic coordinator.
 
 Project: Yuri OS / NUDIMMUD
-Repo root: /Users/marcelspatz/NUDIMMUD
+Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Latest confirmed HEAD: ac2c846c1
 Timezone: Europe/Vienna

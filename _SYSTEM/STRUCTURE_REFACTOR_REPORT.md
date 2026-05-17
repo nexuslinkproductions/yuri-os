@@ -42,7 +42,7 @@ Idempotent, quarantine-pattern. **Move-not-delete.** Reversible until you `rm -r
 
 **Recommended workflow:**
 ```bash
-cd /Users/marcelspatz/NUDIMMUD
+cd /Users/marcelspatz/YURI-OS-MUSUBI
 bash Scripts/structure-refactor-2026-05-07.sh           # DRY-RUN: preview every action
 APPLY=1 bash Scripts/structure-refactor-2026-05-07.sh   # apply
 # review _QUARANTINE_2026-05-07/, then:
@@ -128,7 +128,7 @@ mv graphify-out/GRAPH_REPORT_OLD*.md 07_ARCHIVE/graph-reports/
 ### E. macOS-level claude:// handler
 `Claude Code URL Handler.app` was registered in Launch Services. To remove cleanly:
 ```bash
-/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -u "/Users/marcelspatz/NUDIMMUD/Claude Code URL Handler.app"
+/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -u "/Users/marcelspatz/YURI-OS-MUSUBI/Claude Code URL Handler.app"
 rm -rf "Claude Code URL Handler.app"
 ```
 Do NOT skip the `lsregister -u` step.

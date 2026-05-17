@@ -1,4 +1,4 @@
-# NUDIMMUD Operating DNA — Claude Bridge
+# YURI-OS-MUSUBI Operating DNA — Claude Bridge
 
 INHERIT: _SYSTEM/yuri-origin.md
 INHERIT: ../../SOUL.md

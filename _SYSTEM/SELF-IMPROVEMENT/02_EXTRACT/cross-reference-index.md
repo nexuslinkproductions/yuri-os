@@ -83,4 +83,4 @@ Domains indexed: 1
 ## Domains
 
 ### operations
-- Yuri readiness gates must be live, not declarative -> /Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/archive/raw-lessons/2026-W20/operations/yuri-readiness-gates-2026-05-11.md
+- Yuri readiness gates must be live, not declarative -> /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/archive/raw-lessons/2026-W20/operations/yuri-readiness-gates-2026-05-11.md

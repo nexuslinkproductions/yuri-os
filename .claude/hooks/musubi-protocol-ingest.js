@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const stateModule = require('./session-state.js');
 
-const NUDIMMUD_ROOT = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/NUDIMMUD';
+const NUDIMMUD_ROOT = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
 const PROTOCOL_FILE = path.join(NUDIMMUD_ROOT, 'MUSUBI_PROTOCOL.md');
 
 /**

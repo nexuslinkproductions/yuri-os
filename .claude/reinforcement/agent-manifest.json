@@ -32,7 +32,7 @@
       "role": "architect",
       "runtime_kind": "model_agent",
       "model": "claude-sonnet-4-6",
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/architect.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/architect.md",
       "color": "purple",
       "responsibilities": [
         "protect the core architecture",
@@ -65,7 +65,7 @@
       "role": "logic_scout",
       "runtime_kind": "native_function",
       "model": null,
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/argus.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/argus.md",
       "color": null,
       "responsibilities": [
         "detect reasoning contradictions",
@@ -91,7 +91,7 @@
       "role": "risk_scout",
       "runtime_kind": "model_agent",
       "model": "claude-haiku-4-5-20251001",
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/cassandra.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/cassandra.md",
       "color": null,
       "responsibilities": [
         "identify destructive operations",
@@ -108,7 +108,7 @@
       "role": "worker",
       "runtime_kind": "model_agent",
       "model": "claude-haiku-4-5-20251001",
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/doc-cleaner.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/doc-cleaner.md",
       "color": "green",
       "responsibilities": [
         "fix headings",
@@ -136,7 +136,7 @@
       "role": "worker",
       "runtime_kind": "model_agent",
       "model": "claude-haiku-4-5-20251001",
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/file-inventory.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/file-inventory.md",
       "color": "blue",
       "responsibilities": [
         "inspect files/directories",
@@ -163,7 +163,7 @@
       "role": "context_scout",
       "runtime_kind": "native_function",
       "model": null,
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/hermes.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/hermes.md",
       "color": null,
       "responsibilities": [
         "detect context drift",
@@ -189,7 +189,7 @@
       "role": "worker",
       "runtime_kind": "model_agent",
       "model": "claude-haiku-4-5-20251001",
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/log-summarizer.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/log-summarizer.md",
       "color": "cyan",
       "responsibilities": [
         "summarize logs",
@@ -217,7 +217,7 @@
       "role": "memory_scout",
       "runtime_kind": "model_agent",
       "model": "claude-sonnet-4-6",
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/memory-curator.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/memory-curator.md",
       "color": "orange",
       "responsibilities": [
         "decide what should become persistent memory",
@@ -246,7 +246,7 @@
       "role": "memory_scout",
       "runtime_kind": "scheduled_function",
       "model": null,
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/noesis-linter.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/noesis-linter.md",
       "color": null,
       "responsibilities": [
         "semantic scan of rules/skills",
@@ -262,7 +262,7 @@
       "role": "quality_scout",
       "runtime_kind": "native_function",
       "model": null,
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/obliteratus-qa.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/obliteratus-qa.md",
       "color": null,
       "responsibilities": [
         "zero compliance bias",
@@ -291,7 +291,7 @@
       "role": "architect",
       "runtime_kind": "model_agent",
       "model": "claude-sonnet-4-6",
-      "location": "/Users/marcelspatz/NUDIMMUD/.claude/agents/security-reviewer.md",
+      "location": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/security-reviewer.md",
       "color": "red",
       "responsibilities": [
         "review permission boundaries",

@@ -26,7 +26,7 @@ Do not assume the design plan passed until the pasted Claude report is reviewed.
 Expected repository state at handoff:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current accepted HEAD: 61fdeeb3 chore(policy): add exact protected deny rules
 staged files expected: none
@@ -580,7 +580,7 @@ Do not authorize execution automatically.
 
 Current trusted repo context:
 
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - current accepted HEAD:
   61fdeeb3 chore(policy): add exact protected deny rules
@@ -646,7 +646,7 @@ END COPY HERE
   "date": "2026-04-29",
   "document_type": "gpt_session_continuity_after_07j_bash_hook_schema_validation",
   "status": "handoff_not_independent_repo_audit",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "branch": "main",
   "current_expected_head": {
     "hash": "61fdeeb3",

@@ -16,7 +16,7 @@ const readDir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
 
-const VAULT_ROOT = "/Users/marcelspatz/NUDIMMUD";
+const VAULT_ROOT = "/Users/marcelspatz/YURI-OS-MUSUBI";
 
 interface VaultFile {
   path: string;
@@ -101,7 +101,7 @@ async function getVaultStructure(): Promise<string> {
     .sort();
   const markdownFiles = files.filter((f) => f.isFile && f.name.endsWith(".md"));
 
-  let output = "# NUDIMMUD Vault Structure\n\n";
+  let output = "# YURI-OS-MUSUBI Vault Structure\n\n";
   output += `**Total Markdown Files:** ${markdownFiles.length}\n`;
   output += `**Total Folders:** ${folders.length}\n\n`;
 
@@ -191,7 +191,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     {
       name: "vault_structure",
       description:
-        "Get an overview of the NUDIMMUD vault structure with folder counts and key files",
+        "Get an overview of the YURI-OS-MUSUBI vault structure with folder counts and key files",
       inputSchema: {
         type: "object" as const,
         properties: {},

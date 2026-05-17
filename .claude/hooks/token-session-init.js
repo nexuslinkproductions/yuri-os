@@ -5,7 +5,7 @@ const { execSync } = require('child_process');
 
 const sessionId = Date.now();
 const sessionFile = `/tmp/claude-session-${sessionId}.json`;
-const STATE_DIR = '/Users/marcelspatz/NUDIMMUD/.claude/state';
+const STATE_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state';
 const SESSION_FILE = `${STATE_DIR}/token-session.json`;
 const WEEKLY_FILE = `${STATE_DIR}/token-weekly.json`;
 
@@ -90,7 +90,7 @@ function getWeekStart() {
 }
 
 // Palace status — local only (T7 is dead, never fall back)
-const palacePath = '/Users/marcelspatz/NUDIMMUD/claude-palace-out/palace-index.md';
+const palacePath = '/Users/marcelspatz/YURI-OS-MUSUBI/claude-palace-out/palace-index.md';
 let palaceStatus;
 try {
   if (fs.existsSync(palacePath)) {
@@ -109,7 +109,7 @@ try {
 // Check project path first (most up-to-date), fallback to global
 const TM_PATHS = [
   `${process.cwd()}/.claude/skills/tokenmaxxing/SKILL.md`,
-  '/Users/marcelspatz/NUDIMMUD/.claude/skills/tokenmaxxing/SKILL.md',
+  '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/tokenmaxxing/SKILL.md',
   '/Users/marcelspatz/.claude/skills/tokenmaxxing/SKILL.md',
 ];
 let tokenmaxxingRules = '';

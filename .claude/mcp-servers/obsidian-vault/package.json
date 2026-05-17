@@ -1,7 +1,7 @@
 {
   "name": "obsidian-vault-mcp",
   "version": "1.0.0",
-  "description": "MCP server for querying Obsidian NUDIMMUD vault",
+  "description": "MCP server for querying Obsidian YURI-OS-MUSUBI vault",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {

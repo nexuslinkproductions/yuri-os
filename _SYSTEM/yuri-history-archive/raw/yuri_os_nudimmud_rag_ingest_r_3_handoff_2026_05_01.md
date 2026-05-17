@@ -26,7 +26,7 @@ Do not assume R3 passed until the pasted result is reviewed.
 Expected live repo state throughout this lane:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 expected HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 staged files expected: none
@@ -258,7 +258,7 @@ Accepted as:
 Useful findings:
 
 ```text
-- cwd: /Users/marcelspatz/NUDIMMUD
+- cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - HEAD: 74fa466b
 - staged files: none
@@ -326,7 +326,7 @@ import side effects:
   - no watcher, route, or scheduler startup found in imported chain.
 
 NODE_PATH:
-  - NODE_PATH=/Users/marcelspatz/NUDIMMUD/backend/node_modules can affect bare dependency lookup.
+  - NODE_PATH=/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules can affect bare dependency lookup.
   - It does not affect runner relative source imports.
   - It is dependency-only, not live-source escape.
 
@@ -400,7 +400,7 @@ Accepted as:
 Important evidence:
 
 ```text
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 staged files: none
@@ -479,7 +479,7 @@ Accepted as:
 Key evidence:
 
 ```text
-live cwd before: /Users/marcelspatz/NUDIMMUD
+live cwd before: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 staged files before: none
@@ -559,7 +559,7 @@ Accepted diagnosis behind R3:
 
 ```text
 - Sandbox is intentionally minimal and has no local node_modules.
-- Runtime dependency resolution uses NODE_PATH=/Users/marcelspatz/NUDIMMUD/backend/node_modules.
+- Runtime dependency resolution uses NODE_PATH=/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules.
 - TypeScript type resolution does not automatically use NODE_PATH for @types/node.
 - --transpile-only avoids typechecking the runner and imported TS files while preserving runtime assertions.
 - This is acceptable for the smoke because runtime assertions verify cwd, env, SystemConfig root, DB path, fixture path, word count, chunk count, embeddings, source status, and error state.
@@ -577,7 +577,7 @@ Expected start state for R3:
 Expected live repo state:
 
 ```text
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 staged files: none
@@ -605,9 +605,9 @@ OPENAI_BASE_URL= \
 MOONSHOT_BASE_URL= \
 KIMI_BASE_URL= \
 OLLAMA_CLOUD_ENDPOINT= \
-NODE_PATH=/Users/marcelspatz/NUDIMMUD/backend/node_modules \
+NODE_PATH=/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules \
 TS_NODE_TRANSPILE_ONLY=1 \
-/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin/ts-node --transpile-only --project tsconfig.json src/scripts/sandbox-ingest-one.ts
+/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin/ts-node --transpile-only --project tsconfig.json src/scripts/sandbox-ingest-one.ts
 ```
 
 Expected success line:
@@ -695,7 +695,7 @@ Review the R3 result I will paste next.
 Do not assume R3 passed until I paste the result.
 
 Current trusted live repo state before R3:
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - expected HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 - staged files expected: none
@@ -726,7 +726,7 @@ R3 repair strategy:
 - use direct ts-node binary
 - use --transpile-only
 - keep TS_NODE_TRANSPILE_ONLY=1
-- keep NODE_PATH=/Users/marcelspatz/NUDIMMUD/backend/node_modules
+- keep NODE_PATH=/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules
 - keep all sandbox env guards
 - keep provider keys/base URLs blank
 - do not use npx
@@ -751,9 +751,9 @@ OPENAI_BASE_URL= \
 MOONSHOT_BASE_URL= \
 KIMI_BASE_URL= \
 OLLAMA_CLOUD_ENDPOINT= \
-NODE_PATH=/Users/marcelspatz/NUDIMMUD/backend/node_modules \
+NODE_PATH=/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules \
 TS_NODE_TRANSPILE_ONLY=1 \
-/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin/ts-node --transpile-only --project tsconfig.json src/scripts/sandbox-ingest-one.ts
+/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin/ts-node --transpile-only --project tsconfig.json src/scripts/sandbox-ingest-one.ts
 
 Expected success line:
 SANDBOX_INGEST_PASS
@@ -794,7 +794,7 @@ I’ll gate it before we decide whether to verify evidence, repair again, or sto
   "project": "Yuri OS / NUDIMMUD",
   "date": "2026-05-01",
   "status": "handoff_after_rag_ingest_sandbox_runner_repair_lane",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "branch": "main",
   "expected_head": {
     "hash": "74fa466b",
@@ -811,10 +811,10 @@ I’ll gate it before we decide whether to verify evidence, repair again, or sto
   "expected_embedding_dim": 768,
   "r3_expected_success_line": "SANDBOX_INGEST_PASS",
   "r3_strategy": {
-    "direct_ts_node": "/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin/ts-node",
+    "direct_ts_node": "/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin/ts-node",
     "transpile_only": true,
     "npx_allowed": false,
-    "node_path": "/Users/marcelspatz/NUDIMMUD/backend/node_modules",
+    "node_path": "/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules",
     "cleanup_allowed": false
   },
   "safety_boundaries": {

@@ -7,7 +7,7 @@
       "runtimeArgs": ["run", "dev"],
       "port": 4200,
       "description": "NUDIMMUD Command Center frontend (Vite + React 19)",
-      "cwd": "/Users/marcelspatz/NUDIMMUD"
+      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI"
     },
     {
       "name": "nudimmud-backend",
@@ -15,7 +15,7 @@
       "runtimeArgs": ["ts-node", "src/server.ts"],
       "port": 3004,
       "description": "NUDIMMUD backend API (Express + WebSocket, ts-node dev)",
-      "cwd": "/Users/marcelspatz/NUDIMMUD/backend"
+      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/backend"
     },
     {
       "name": "nudimmud-shell-service",
@@ -23,7 +23,7 @@
       "runtimeArgs": ["backend/shellService.js"],
       "port": 3098,
       "description": "Oracle terminal shell service (launchd-managed in production)",
-      "cwd": "/Users/marcelspatz/NUDIMMUD"
+      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI"
     },
     {
       "name": "nexus-link-landing",

@@ -101,7 +101,7 @@ Drafted but withheld until Spec 1 lands. Once scout-runner uses DeepSeek, this p
   <array>
     <string>/bin/bash</string>
     <string>-lc</string>
-    <string>/Users/marcelspatz/NUDIMMUD/Scripts/ai eot</string>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/ai eot</string>
   </array>
   <key>StartCalendarInterval</key>
   <array>
@@ -110,9 +110,9 @@ Drafted but withheld until Spec 1 lands. Once scout-runner uses DeepSeek, this p
     <dict><key>Hour</key><integer>14</integer><key>Minute</key><integer>0</integer></dict>
     <dict><key>Hour</key><integer>20</integer><key>Minute</key><integer>0</integer></dict>
   </array>
-  <key>StandardOutPath</key><string>/Users/marcelspatz/NUDIMMUD/.claude/state/eot-refresh.out.log</string>
-  <key>StandardErrorPath</key><string>/Users/marcelspatz/NUDIMMUD/.claude/state/eot-refresh.err.log</string>
-  <key>WorkingDirectory</key><string>/Users/marcelspatz/NUDIMMUD</string>
+  <key>StandardOutPath</key><string>/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/eot-refresh.out.log</string>
+  <key>StandardErrorPath</key><string>/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/eot-refresh.err.log</string>
+  <key>WorkingDirectory</key><string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
   <key>RunAtLoad</key><false/>
 </dict>
 </plist>

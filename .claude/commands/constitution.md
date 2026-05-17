@@ -1,11 +1,11 @@
 ---
 name: constitution
-description: Generate or display the NUDIMMUD project constitution — anime DNA gates, hard rules, authority chain — auto-derived from _SYSTEM/yuri-origin.md + memory/feedback_*.md. Spec Kit equivalent of /constitution but NUDIMMUD-native.
+description: Generate or display the YURI-OS-MUSUBI project constitution — anime DNA gates, hard rules, authority chain — auto-derived from _SYSTEM/yuri-origin.md + memory/feedback_*.md. Spec Kit equivalent of /constitution but YURI-OS-MUSUBI-native.
 triggers:
   - "/constitution"
 ---
 
-# /constitution — NUDIMMUD Project Constitution
+# /constitution — YURI-OS-MUSUBI Project Constitution
 
 When invoked, generate or display the project constitution (read-only by default).
 
@@ -15,7 +15,7 @@ When invoked, generate or display the project constitution (read-only by default
 cat _SYSTEM/yuri-origin.md     # canonical contract
 cat SOUL.md                    # persona contract
 ls memory/feedback_*.md        # all hard rules
-cat .claude/projects/-Users-marcelspatz-NUDIMMUD/memory/MEMORY.md  # rule index (gitignored)
+cat .claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/MEMORY.md  # rule index (gitignored)
 ```
 
 ## Phase 2 — Constitution Output
@@ -23,7 +23,7 @@ cat .claude/projects/-Users-marcelspatz-NUDIMMUD/memory/MEMORY.md  # rule index 
 Render to stdout (or `--write _SYSTEM/CONSTITUTION.md`):
 
 ```markdown
-# NUDIMMUD Constitution
+# YURI-OS-MUSUBI Constitution
 Generated: <YYYY-MM-DD HH:MM>
 Source authority: _SYSTEM/yuri-origin.md (canonical) + memory/feedback_*.md (rules)
 
@@ -58,7 +58,7 @@ Claude (control) + Codex (implementation, primary) + DeepSeek (analysis + parall
 - backend/data/, .claude/state/, .claude/history/
 - .env, secrets, credentials
 - Conclave (never modify)
-- T7 paths (/Volumes/T7/NUDIMMUD — sync mirror, never mass-rewrite)
+- T7 paths (/Volumes/T7/YURI-OS-MUSUBI — sync mirror, never mass-rewrite)
 - node_modules/
 
 ## What's Forbidden
@@ -86,7 +86,7 @@ If `--write _SYSTEM/CONSTITUTION.md` is passed, write the rendered constitution 
 
 ## Spec Kit Equivalence
 
-Spec Kit defines `/constitution` as a project-rules doc generated from team conventions. NUDIMMUD's version derives instead from yuri-origin (authority) + anime DNA gates (technique) + memory/feedback (locked rules). Same purpose, different source authority.
+Spec Kit defines `/constitution` as a project-rules doc generated from team conventions. YURI-OS-MUSUBI's version derives instead from yuri-origin (authority) + anime DNA gates (technique) + memory/feedback (locked rules). Same purpose, different source authority.
 
 ## When to Use
 

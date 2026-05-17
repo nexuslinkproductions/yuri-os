@@ -13,7 +13,7 @@ date_generated: "2026-05-03"
 source: "GPT-5.5 Thinking web session plus user-provided Codex/Gemini/Terminal outputs and screenshots"
 status: "archive_ready_for_rag_ingestion"
 project: "Yuri OS / NUDIMMUD"
-repo_root: "/Users/marcelspatz/NUDIMMUD"
+repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
 latest_head_at_end_of_session: "025ba4c8f fix(cli): classify DeepSeek handoff inventions"
 trust_policy: "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document."
@@ -364,7 +364,7 @@ A compact fresh-session starter was used in Codex. Codex validated live repo tru
 ### Observed live state
 
 ```text
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 574feac4d
 staged: none
@@ -449,7 +449,7 @@ date_generated: "2026-05-03"
 source: "GPT-5.5 Thinking web session plus user-provided Codex/Terminal outputs and screenshots"
 status: "archive_ready_for_rag_ingestion"
 project: "Yuri OS / NUDIMMUD"
-repo_root: "/Users/marcelspatz/NUDIMMUD"
+repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
 latest_head_at_end_of_session: "025ba4c8f fix(cli): classify DeepSeek handoff inventions"
 trust_policy: "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document."
@@ -516,7 +516,7 @@ Safest architecture: hybrid, with Yuri owning truth, scope, approvals, diffs, ve
 ### Observed local preflight
 
 ```text
-pwd: /Users/marcelspatz/NUDIMMUD
+pwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 35c59e4ab
 staged: empty
@@ -1220,7 +1220,7 @@ No write/stage/commit capability until DeepSeek proves stability and trustworthi
 ### Local preflight observed
 
 ```text
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: b16272493
 staged: empty

@@ -155,7 +155,7 @@ Added 2026-04-17. Noesis tracks the Asian AI frontier as a continuous research d
 - Chinese models (DeepSeek V4, Qwen3.6-Plus, Kling, Wan 2.5) now lead or match US models on key benchmarks at 10-50x lower cost
 - Agentic AI funding in Asia rose 320% from 2023-2025
 - Japan's creative industries are the most culturally relevant AI adoption case for Marcel's Japan trajectory
-- The engineering intelligence being built in Asia directly affects the systems NUDIMMUD operates within
+- The engineering intelligence being built in Asia directly affects the systems YURI-OS-MUSUBI operates within
 
 **Tracked in:** noesis-intake.md (Asian AI Intelligence Track section)
 

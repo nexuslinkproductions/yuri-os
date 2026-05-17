@@ -32,7 +32,7 @@ This next sprint should be plan-only / read-only unless GPT-5.5 explicitly autho
 ## 2. Current Accepted Repo State
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current accepted HEAD: f3b8aac1 chore(gemini): add Claude skill bridge stubs
 staged files: none expected
@@ -473,7 +473,7 @@ Continue Yuri OS / NUDIMMUD from this continuity handoff.
 
 Current accepted repo state:
 
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - current accepted HEAD: f3b8aac1 chore(gemini): add Claude skill bridge stubs
 - staged files expected: none
@@ -562,7 +562,7 @@ Allowed mutation only if needed:
 Repo:
 
 ```text
-/Users/marcelspatz/NUDIMMUD
+/Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: f3b8aac1 chore(gemini): add Claude skill bridge stubs
 ```
@@ -625,7 +625,7 @@ git checkout -- .claude/settings.json
 
 Hard stop if:
 
-- cwd is not `/Users/marcelspatz/NUDIMMUD`
+- cwd is not `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch is not `main`
 - HEAD is not `f3b8aac1`
 - any files are staged

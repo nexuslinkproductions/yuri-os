@@ -1,6 +1,6 @@
 {
   "version": "2026-05-05.scoped-mutation.v1",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "mode": "scoped_mutation_default",
   "allowed_mutation_paths": [
     ".claude/trading-bot/**",

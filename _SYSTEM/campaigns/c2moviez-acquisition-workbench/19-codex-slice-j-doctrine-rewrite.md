@@ -2,7 +2,7 @@
 
 **Slice name:** Replace "Tiny thought" templates with 3-sentence direct-question bodies (new doctrine)
 **Branch:** `codex/c2moviez-acquisition-crm`
-**Workspace:** `/Users/marcelspatz/NUDIMMUD/.codex-worktrees/prism-workbench`
+**Workspace:** `/Users/marcelspatz/YURI-OS-MUSUBI/.codex-worktrees/prism-workbench`
 
 ---
 
@@ -248,7 +248,7 @@ After `generateDrafts()` returns, if `email_cold === null` or empty due to valid
 ```bash
 node Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
-PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
 npx vite build --config acquisition/vite.config.mts
 ```
 

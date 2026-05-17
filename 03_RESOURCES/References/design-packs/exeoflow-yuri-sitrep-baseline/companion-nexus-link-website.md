@@ -15,13 +15,13 @@ This file documents the current Nexus Link Productions website as the benchmark 
 
 ## Source Files
 
-- [index.html](/Users/marcelspatz/NUDIMMUD/index.html)
-- [index-hud.html](/Users/marcelspatz/NUDIMMUD/index-hud.html)
-- [ConsumerSite.tsx](/Users/marcelspatz/NUDIMMUD/src/consumer/ConsumerSite.tsx)
-- [consumer.css](/Users/marcelspatz/NUDIMMUD/src/consumer/consumer.css)
-- [site.ts](/Users/marcelspatz/NUDIMMUD/src/content/site.ts)
-- [HeroSection.tsx](/Users/marcelspatz/NUDIMMUD/src/consumer/sections/HeroSection.tsx)
-- [Navigation.tsx](/Users/marcelspatz/NUDIMMUD/src/consumer/components/Navigation.tsx)
+- [index.html](/Users/marcelspatz/YURI-OS-MUSUBI/index.html)
+- [index-hud.html](/Users/marcelspatz/YURI-OS-MUSUBI/index-hud.html)
+- [ConsumerSite.tsx](/Users/marcelspatz/YURI-OS-MUSUBI/src/consumer/ConsumerSite.tsx)
+- [consumer.css](/Users/marcelspatz/YURI-OS-MUSUBI/src/consumer/consumer.css)
+- [site.ts](/Users/marcelspatz/YURI-OS-MUSUBI/src/content/site.ts)
+- [HeroSection.tsx](/Users/marcelspatz/YURI-OS-MUSUBI/src/consumer/sections/HeroSection.tsx)
+- [Navigation.tsx](/Users/marcelspatz/YURI-OS-MUSUBI/src/consumer/components/Navigation.tsx)
 
 ## Why It Is The Better Benchmark
 

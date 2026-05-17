@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-INPUT_PATH = Path("/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input")
+INPUT_PATH = Path("/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input")
 OUT_DIR = INPUT_PATH / "graphify-out"
 OUT_DIR.mkdir(exist_ok=True)
 
@@ -244,7 +244,7 @@ analysis = {
 
 # ── Copy HTML to target path ──
 import shutil
-target = Path("/Users/marcelspatz/NUDIMMUD/_SYSTEM/SymbiOS-Trademark-Graph.html")
+target = Path("/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/SymbiOS-Trademark-Graph.html")
 shutil.copy(OUT_DIR / "graph.html", target)
 print(f"\nGraph saved to: {target}")
 print(f"Report: {OUT_DIR}/GRAPH_REPORT.md")

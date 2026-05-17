@@ -1,6 +1,6 @@
 ## CODEX TASK SPEC
 
-Goal: Rebuild /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html as the definitive Yuri OS process flow instrument.
+Goal: Rebuild /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html as the definitive Yuri OS process flow instrument.
 
 Design references: Dark operator/HUD aesthetic (NUDIMMUD HUD system). Liquid glass node rendering. Bezier pipeline routing. Fixed symmetrical grid — NO force simulation.
 
@@ -306,7 +306,7 @@ Legend (bottom-left):
 
 ## OUTPUT
 
-Replace /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html entirely.
+Replace /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html entirely.
 Keep the four inlined d3 script tags (d3-dispatch, d3-timer, d3-quadtree, d3-force). They may be unused but keep them.
 No new CDN links.
 Single HTML file.

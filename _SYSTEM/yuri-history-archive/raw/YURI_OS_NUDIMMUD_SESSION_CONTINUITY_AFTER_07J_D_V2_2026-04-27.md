@@ -20,7 +20,7 @@ The user explicitly said not to continue yet. The next chat should first ingest 
 Expected repo context:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 31f3b7dd chore(git): untrack Claude runtime and debug ephemeral files
 staged files: none
@@ -311,7 +311,7 @@ Reported state:
 Claude reported Stage 0 cleared:
 
 ```text
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 31f3b7dd
 staging: clean
@@ -463,7 +463,7 @@ Important: do not continue execution yet. I am going to provide a new full syste
 
 Current latest reported state before Opus reconciliation:
 
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - HEAD: 31f3b7dd chore(git): untrack Claude runtime and debug ephemeral files
 - staged files: none
@@ -493,7 +493,7 @@ Need next:
   "date": "2026-04-27",
   "document_type": "session_continuity_after_07j_d_v2",
   "status": "handoff_not_independent_repo_audit",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "branch": "main",
   "expected_head": {
     "hash": "31f3b7dd",

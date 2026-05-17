@@ -22,7 +22,7 @@ Do not assume production readiness, full RAG readiness, enterprise readiness, co
 Based on the user's direct terminal output after the final two commits:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current accepted HEAD: a741664c chore(cli): harden swarm routing for codex offload
 previous commit: 9dc0f871 chore(rag): filter notebook query retrieval to ready sources
@@ -808,7 +808,7 @@ a741664c chore(cli): harden swarm routing for codex offload
 The user manually ran the two separated commits:
 
 ```bash
-cd /Users/marcelspatz/NUDIMMUD
+cd /Users/marcelspatz/YURI-OS-MUSUBI
 set -e
 
 git diff --cached --name-only
@@ -1042,7 +1042,7 @@ Continue Yuri OS / NUDIMMUD from this uploaded continuity handoff.
 
 Current accepted repo state from the last GPT session:
 
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - current accepted HEAD: a741664c chore(cli): harden swarm routing for codex offload
 - previous commit: 9dc0f871 chore(rag): filter notebook query retrieval to ready sources
@@ -1139,7 +1139,7 @@ Verify the latest two commits after manual commit execution:
 - a741664c chore(cli): harden swarm routing for codex offload
 
 Expected repo:
-- cwd /Users/marcelspatz/NUDIMMUD
+- cwd /Users/marcelspatz/YURI-OS-MUSUBI
 - branch main
 - HEAD a741664c chore(cli): harden swarm routing for codex offload
 - previous commit 9dc0f871 chore(rag): filter notebook query retrieval to ready sources
@@ -1158,7 +1158,7 @@ git diff -- .claude/settings.json | grep -E '^[+-][[:space:]]*"model":' || true
 git status --short -- .gitignore .claude/settings.json Scripts/ai Scripts/offload-runner.mjs Scripts/offload.sh backend/src/services/notebookService.ts backend/src/services/notebookIngestService.ts backend/src/services/notebookRagService.ts backend/src/services/neuralForgeService.ts backend/src/models/notebookSchema.ts backend/src/models/database.ts backend/data/nudimmud.db backend/data/nudimmud.db-shm backend/data/nudimmud.db-wal
 
 Hard stop if:
-- cwd is not /Users/marcelspatz/NUDIMMUD
+- cwd is not /Users/marcelspatz/YURI-OS-MUSUBI
 - branch is not main
 - HEAD is not a741664c
 - any files are staged

@@ -376,7 +376,7 @@ Generation:
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
   --headless --disable-gpu --no-pdf-header-footer \
   --print-to-pdf="yuri-os-v15-system-audit.pdf" \
-  "file:///Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/yuri-os-v15-system-audit.html"
+  "file:///Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/SELF-IMPROVEMENT/yuri-os-v15-system-audit.html"
 ```
 
 Verify:

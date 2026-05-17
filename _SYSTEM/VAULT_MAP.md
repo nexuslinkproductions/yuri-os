@@ -3,13 +3,13 @@
 **Status:** Unified Evolutionary State.
 
 ## ⬡ SKELETON CORE (Claudio's Vault)
-**Path:** `/Users/marcelspatz/NUDIMMUD/iC2M` | `/06_NETWORK-SYNC/C2MOVIEZ`
+**Path:** `/Users/marcelspatz/YURI-OS-MUSUBI/iC2M` | `/06_NETWORK-SYNC/C2MOVIEZ`
 *   **Role**: **Barebone Support & Security Infrastructure**.
 *   **Nature**: Highly structured, security-oriented, provides the foundational protocols.
 *   **Function**: Acts as the "Skeleton" that holds the entire system together. Without the skeleton, the enhancement has no form.
 
 ## ⬡ ENHANCEMENT LAYER (NUDIMMUD Vault)
-**Path:** `/Users/marcelspatz/NUDIMMUD`
+**Path:** `/Users/marcelspatz/YURI-OS-MUSUBI`
 *   **Role**: **Cognitive Augmentation & Synthesis**.
 *   **Nature**: Evolving knowledge nodes, agentic swarm logic, creative synthesis.
 *   **Function**: Acts as the "Pulse" and "Flesh" that enhances the skeleton. It provides the intelligence and adaptability to the structural foundation.

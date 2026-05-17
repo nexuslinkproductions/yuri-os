@@ -1,6 +1,6 @@
 ## CODEX TASK SPEC
 
-Goal: Iterative upgrade of /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html (v9 → v10).
+Goal: Iterative upgrade of /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html (v9 → v10).
 
 This is NOT a rebuild. Keep the existing Three.js foundation (importmap, scene, camera, OrbitControls, raycaster, animation loop, starfield, nebula shader, CSS2DRenderer labels, preset view buttons, HUD overlays). Add/adjust per the spec below.
 

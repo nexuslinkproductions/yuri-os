@@ -22,7 +22,7 @@ const fs   = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const REPO_ROOT        = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/NUDIMMUD';
+const REPO_ROOT        = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
 const SOUL_FILE        = path.join(REPO_ROOT, 'SOUL.md');
 const GLOBAL_MD        = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'global.md');
 const PALACE_PATHS     = [path.join(REPO_ROOT, 'claude-palace-out', 'palace-index.md')];
@@ -163,7 +163,7 @@ function loadSemanticMemory(sessionContext) {
     return results.map(r => `- **${r.name}** (${r.type}): ${r.description}`).join('\n');
   } catch (e) {
     try {
-      const fallback = fs.readFileSync(path.join(REPO_ROOT, '.claude/projects/-Users-marcelspatz-NUDIMMUD/memory/MEMORY.md'), 'utf8')
+      const fallback = fs.readFileSync(path.join(REPO_ROOT, '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/MEMORY.md'), 'utf8')
         .split('\n').filter(l => l.startsWith('-')).slice(0, 8).join('\n');
       return fallback || '(memory unavailable)';
     } catch { return '(memory unavailable)'; }

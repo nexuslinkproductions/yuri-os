@@ -1,6 +1,6 @@
 ## CODEX TASK SPEC
 
-Goal: Replace /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html with a full-viewport force-directed node graph of Yuri OS. Every system, agent, memory tier, routing lane, hook phase, and service is a node. Edges show how they connect. Boot animation explodes nodes outward from center. Interactive: hover = tooltip, click = detail panel.
+Goal: Replace /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html with a full-viewport force-directed node graph of Yuri OS. Every system, agent, memory tier, routing lane, hook phase, and service is a node. Edges show how they connect. Boot animation explodes nodes outward from center. Interactive: hover = tooltip, click = detail panel.
 
 Technology: Canvas2D (getContext('2d')) + D3-force v3 via CDN (jsDelivr). No WebGL. No build step. Single HTML file.
 
@@ -237,4 +237,4 @@ Background: #080808. Full viewport canvas (width=window.innerWidth, height=windo
 All node text: JetBrains Mono. No other font.
 No panels, no cards, no scroll. Pure graph.
 Single external dep: d3-force v3 CDN + JetBrains Mono Google Fonts.
-Output: /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html — replace entirely.
+Output: /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html — replace entirely.

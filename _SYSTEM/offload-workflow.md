@@ -55,7 +55,7 @@ Three-tier offload routing:
 ## Integration: Ruflo + Openclaw
 
 ### Ruflo Agent Coordination
-**File:** `/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/.agents/skills/agent-coordination/`
+**File:** `/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ruflo/.agents/skills/agent-coordination/`
 
 **How it works:**
 1. Ruflo `agent-coordination` skill detects multi-agent opportunity
@@ -65,7 +65,7 @@ Three-tier offload routing:
 5. Results aggregated back to primary agent
 
 ### Openclaw Skill Discovery
-**File:** `/Users/marcelspatz/NUDIMMUD/RESEARCH/ORACLE-CORPUS/openclaw-openclaw/`
+**File:** `/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-openclaw/`
 
 **Setup:**
 ```bash
@@ -84,7 +84,7 @@ openclaw mcp set offload '{"url":"http://127.0.0.1:8081/mcp","transport":"stream
 ### Comet Integration
 
 **Protocol:** browser-use MCP + remote agent orchestration
-**Location:** `/Users/marcelspatz/NUDIMMUD/_SYSTEM/browser-offload.md` (WIP)
+**Location:** `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/browser-offload.md` (WIP)
 
 **Triggers:**
 ```bash
@@ -125,7 +125,7 @@ OpenClaw stays the router. Real Chrome work belongs to the browser worker.
 
 ## Task State Tracking
 
-**Database:** `/Users/marcelspatz/NUDIMMUD/_SYSTEM/OS_KERNEL/memory.db` (SQLite)
+**Database:** `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/OS_KERNEL/memory.db` (SQLite)
 
 **Schema:** (from schema.sql)
 - `agent_id` | `task_id` | `state` | `model` | `created_at` | `completed_at`
@@ -314,8 +314,8 @@ apip x "review code" | apip g "write documentation for it"
 
 ## References
 
-- **Existing offload.sh:** `/Users/marcelspatz/NUDIMMUD/Scripts/offload.sh`
-- **Offload runner:** `/Users/marcelspatz/NUDIMMUD/Scripts/offload-runner.mjs`
-- **OS_KERNEL:** `/Users/marcelspatz/NUDIMMUD/_SYSTEM/OS_KERNEL/`
-- **Ruflo:** `/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo/`
-- **Openclaw docs:** `/Users/marcelspatz/NUDIMMUD/RESEARCH/ORACLE-CORPUS/openclaw-openclaw/docs/providers/`
+- **Existing offload.sh:** `/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/offload.sh`
+- **Offload runner:** `/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/offload-runner.mjs`
+- **OS_KERNEL:** `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/OS_KERNEL/`
+- **Ruflo:** `/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ruflo/`
+- **Openclaw docs:** `/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-openclaw/docs/providers/`

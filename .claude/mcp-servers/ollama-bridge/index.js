@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD';
+const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
 const OLLAMA_URL = process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434';
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:7b';
 const MAX_FILE_BYTES = 64 * 1024;

@@ -1,10 +1,10 @@
 ## CODEX TASK SPEC
 
-Goal: Full rebuild of /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html.
+Goal: Full rebuild of /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html.
 
 Replace the yellow/gold explosion graph with a top-down canonical process flow graph — a directed visualization of exactly what happens when a USER sends a single prompt through Yuri OS. The graph flows TOP → BOTTOM like a circuit diagram. All nodes are large orbs with text rendered INSIDE them.
 
-Output: /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html — replace entirely.
+Output: /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html — replace entirely.
 
 ---
 
@@ -272,4 +272,4 @@ JetBrains Mono from Google Fonts — link tag in head only. All canvas text uses
 
 DO NOT USE CDN FOR D3. The existing file already has d3-dispatch, d3-timer, d3-quadtree, d3-force inlined as script tags. Keep them. Do not add any new CDN script tags.
 
-STRICTLY: replace the entire file content. Output: /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html
+STRICTLY: replace the entire file content. Output: /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html

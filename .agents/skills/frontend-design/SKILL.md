@@ -7,7 +7,7 @@ description: "Anthropic's leaked UI/UX skill designed to prevent 'AI slop' by en
 
 Use this skill to act as a Creative Director for all UI/UX tasks, ensuring a level of aesthetic intentionality and execution that avoids generic "AI-generated" looks.
 
-## NUDIMMUD Load Order
+## YURI-OS-MUSUBI Load Order
 Before any interface work, load context in this order:
 1. `DESIGN.md`
 2. Root `design-memory.json`

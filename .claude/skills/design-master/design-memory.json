@@ -1,9 +1,16 @@
 {
   "version": "2.0",
   "canonicalPath": "design-memory.json",
-  "lastUpdated": "2026-05-17T14:22:52.339Z",
+  "lastUpdated": "2026-05-17T15:11:12.879Z",
   "note": "Canonical NUDIMMUD design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
   "entries": [
+    {
+      "date": "2026-05-17",
+      "component": "main",
+      "file": "tools/chrome-design-assistant/src/sidepanel/main.tsx",
+      "action": "edit",
+      "decision": "Updated: main"
+    },
     {
       "date": "2026-05-17",
       "component": "graph-neural",

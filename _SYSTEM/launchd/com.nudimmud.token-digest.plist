@@ -9,7 +9,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/opt/homebrew/bin/node</string>
-    <string>/Users/marcelspatz/NUDIMMUD/Scripts/token-spend-report.mjs</string>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/token-spend-report.mjs</string>
     <string>--daily-digest</string>
   </array>
 
@@ -22,13 +22,13 @@
   </dict>
 
   <key>StandardOutPath</key>
-  <string>/Users/marcelspatz/NUDIMMUD/.claude/state/token-digest.log</string>
+  <string>/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/token-digest.log</string>
 
   <key>StandardErrorPath</key>
-  <string>/Users/marcelspatz/NUDIMMUD/.claude/state/token-digest.err</string>
+  <string>/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/token-digest.err</string>
 
   <key>WorkingDirectory</key>
-  <string>/Users/marcelspatz/NUDIMMUD</string>
+  <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
 
   <key>RunAtLoad</key>
   <false/>

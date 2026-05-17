@@ -2,7 +2,7 @@
 
 **Slice name:** Zefix RDF Contact Extraction + Website Deep Crawl
 **Branch:** `codex/c2moviez-acquisition-crm`
-**Workspace:** `/Users/marcelspatz/NUDIMMUD/.codex-worktrees/prism-workbench`
+**Workspace:** `/Users/marcelspatz/YURI-OS-MUSUBI/.codex-worktrees/prism-workbench`
 
 ---
 

@@ -28,7 +28,7 @@ Do not assume the Opus result passed until reviewed.
 Expected repo context from latest verified reports:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current expected HEAD: 9e250efb chore(hooks): persist referenced Aeonic, Yuri, and EOT hooks
 staged files: none expected
@@ -162,7 +162,7 @@ Accepted Stage 0:
 
 ```text
 Stage 0 PASS
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 9e250efb
 staged files: none
@@ -325,7 +325,7 @@ Syntax findings produced:
    Read(.claude/permission-syntax-test/deny-target.txt)
 
 2. Absolute repo path deny rule did not work:
-   Read(/Users/marcelspatz/NUDIMMUD/.claude/permission-syntax-test/deny-target.txt)
+   Read(/Users/marcelspatz/YURI-OS-MUSUBI/.claude/permission-syntax-test/deny-target.txt)
 
 3. Relative deny rule blocked both relative and absolute Read calls.
 
@@ -413,7 +413,7 @@ Do not use for repo-local paths:
 
 ```json
 "deny": [
-  "Read(/Users/marcelspatz/NUDIMMUD/.claude/some-path/file.md)"
+  "Read(/Users/marcelspatz/YURI-OS-MUSUBI/.claude/some-path/file.md)"
 ]
 ```
 
@@ -558,7 +558,7 @@ Accepted syntax findings:
 
 Current trusted state:
 
-- repo root: `/Users/marcelspatz/NUDIMMUD`
+- repo root: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch: `main`
 - expected HEAD: `9e250efb chore(hooks): persist referenced Aeonic, Yuri, and EOT hooks`
 - staged files: none expected
@@ -834,7 +834,7 @@ Output style:
   "date": "2026-04-28",
   "document_type": "gpt_session_continuity_after_07j_permission_deny_s_x_cleanup",
   "status": "handoff_not_independent_repo_audit",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "branch": "main",
   "expected_head": {
     "hash": "9e250efb",

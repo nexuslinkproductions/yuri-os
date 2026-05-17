@@ -9,7 +9,7 @@
 
 PASS=0
 FAIL=0
-NUDIMMUD_ROOT="/Users/marcelspatz/NUDIMMUD"
+NUDIMMUD_ROOT="/Users/marcelspatz/YURI-OS-MUSUBI"
 
 # Colors
 GREEN='\033[0;32m'

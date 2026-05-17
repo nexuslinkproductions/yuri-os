@@ -1,6 +1,6 @@
-# Spec Kit Workflow Bridge — How Spec Kit Maps to NUDIMMUD
+# Spec Kit Workflow Bridge — How Spec Kit Maps to YURI-OS-MUSUBI
 
-**Status:** AUTHORITATIVE bridge document. Spec Kit phases are FORMAT-ONLY adapters into NUDIMMUD's authoritative pipeline.
+**Status:** AUTHORITATIVE bridge document. Spec Kit phases are FORMAT-ONLY adapters into YURI-OS-MUSUBI's authoritative pipeline.
 
 ## Authority Reminder
 
@@ -19,7 +19,7 @@ Spec Kit (vendored at `integrations/spec-kit/`) is **advisory templates only**. 
 
 ## Phase Mapping
 
-| Spec Kit phase | NUDIMMUD universal workflow phase | Owner | Notes |
+| Spec Kit phase | YURI-OS-MUSUBI universal workflow phase | Owner | Notes |
 |---|---|---|---|
 | `/specify` | **intake** | main-session | User idea → spec template fill |
 | `/clarify` | **intake** (refinement loop) | DeepSeek-tools (1M ctx) | Optional ambiguity audit pass |
@@ -27,16 +27,16 @@ Spec Kit (vendored at `integrations/spec-kit/`) is **advisory templates only**. 
 | `/tasks` | **delegate** (per-task scope-lock) | main-session | Each task = one CODEX TASK SPEC scaffold |
 | `/analyze` | **route** (risk + complexity scoring) | DeepSeek-pro (text-only advisory) | Optional — informs lane selection |
 | `/implement` | **delegate** (Codex/DeepSeek dispatch) | Codex primary, DeepSeek-tools parallel | Goes through anime DNA gates |
-| (no Spec Kit equivalent) | **verify** | local-tools (shell/tests/GitNexus) | NUDIMMUD-only, deterministic |
-| (no Spec Kit equivalent) | **merge** | main-session | NUDIMMUD-only |
-| (no Spec Kit equivalent) | **learn** | memory layer | NUDIMMUD-only — memory/feedback_*.md |
+| (no Spec Kit equivalent) | **verify** | local-tools (shell/tests/GitNexus) | YURI-OS-MUSUBI-only, deterministic |
+| (no Spec Kit equivalent) | **merge** | main-session | YURI-OS-MUSUBI-only |
+| (no Spec Kit equivalent) | **learn** | memory layer | YURI-OS-MUSUBI-only — memory/feedback_*.md |
 
 ## Anime DNA Gates STILL Apply
 
 Every Spec Kit-formatted task that triggers a mutation passes through:
 
 1. **Pattern-Mirror (Sharingan)** — read existing code first
-2. **Execution-Domain** — scope-lock with exit criteria (Spec Kit `/tasks` provides this format, NUDIMMUD enforces it)
+2. **Execution-Domain** — scope-lock with exit criteria (Spec Kit `/tasks` provides this format, YURI-OS-MUSUBI enforces it)
 3. **Clone-Orchestrator** — parallel branches when scopes are disjoint
 4. **Infinity-Guard** — dry-run before live writes
 5. **Failure-Evolution** — capture + regression on any break
@@ -49,9 +49,9 @@ Spec Kit phases do NOT pause Symbiotic Pulse. While `/specify` is being filled b
 
 Spec Kit `/implement` IS the dispatch into Codex (primary) + DeepSeek-tools (parallel implementer when scopes are disjoint).
 
-## What Spec Kit Adds vs NUDIMMUD Native
+## What Spec Kit Adds vs YURI-OS-MUSUBI Native
 
-| Capability | NUDIMMUD native | Spec Kit adds |
+| Capability | YURI-OS-MUSUBI native | Spec Kit adds |
 |---|---|---|
 | Routing | offload-contract.mjs | nothing — Spec Kit has no routing |
 | Tasks | CODEX TASK SPEC | `templates/tasks-template.md` format |
@@ -62,16 +62,16 @@ Spec Kit `/implement` IS the dispatch into Codex (primary) + DeepSeek-tools (par
 | Memory | memory/feedback_*.md + MEMORY.md | nothing — Spec Kit has no memory layer |
 | Methodology doc | _SYSTEM/yuri-origin.md | `spec-driven.md` reference (advisory) |
 
-**Net add:** Spec Kit gives us 4 reusable template formats (spec / plan / tasks / commands) and one methodology reference. Everything else stays NUDIMMUD-native.
+**Net add:** Spec Kit gives us 4 reusable template formats (spec / plan / tasks / commands) and one methodology reference. Everything else stays YURI-OS-MUSUBI-native.
 
 ## What Spec Kit MUST NOT Do
 
 - ❌ Override `Scripts/offload-contract.mjs` routing decisions
 - ❌ Bypass anime DNA gates
 - ❌ Replace Codex-primary rule
-- ❌ Run its own Python `specify` CLI inside NUDIMMUD workflows
+- ❌ Run its own Python `specify` CLI inside YURI-OS-MUSUBI workflows
 - ❌ Touch `.claude/state/`, `nudimmud.db`, secrets, T7 paths
-- ❌ Become canonical memory authority (memory/ directory stays NUDIMMUD)
+- ❌ Become canonical memory authority (memory/ directory stays YURI-OS-MUSUBI)
 
 ## Practical Invocation Pattern
 
@@ -104,7 +104,7 @@ User wants to build feature X:
 
 ## Evidence
 
-- `integrations/spec-kit/NUDIMMUD-ADOPTION.md` — original advisory-only declaration
+- `integrations/spec-kit/YURI-OS-MUSUBI-ADOPTION.md` — original advisory-only declaration
 - `integrations/README.md` — vendored integration contract
 - This document operationalizes the abstract decision into concrete phase mapping
 - See also: `memory/feedback_spec_kit_advisory_only.md`

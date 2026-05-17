@@ -6,22 +6,22 @@ Make offloading the default execution path, with Ruflo as the swarm routing plan
 
 ## Current State
 
-- Global startup seed lives in [`.claude/nisaba/learning/global.md`](/Users/marcelspatz/NUDIMMUD/.claude/nisaba/learning/global.md).
-- [`SessionStart`] and [`SubagentStart`] hooks in [`.claude/settings.json`](/Users/marcelspatz/NUDIMMUD/.claude/settings.json) inject that seed.
-- Root session guidance now points to the same seed in [`.claude/nisaba/learning/global.md`](/Users/marcelspatz/NUDIMMUD/.claude/nisaba/learning/global.md).
-- `@swarm` routes through Ruflo-aware logic in [`Scripts/ai`](/Users/marcelspatz/NUDIMMUD/Scripts/ai).
+- Global startup seed lives in [`.claude/nisaba/learning/global.md`](/Users/marcelspatz/YURI-OS-MUSUBI/.claude/nisaba/learning/global.md).
+- [`SessionStart`] and [`SubagentStart`] hooks in [`.claude/settings.json`](/Users/marcelspatz/YURI-OS-MUSUBI/.claude/settings.json) inject that seed.
+- Root session guidance now points to the same seed in [`.claude/nisaba/learning/global.md`](/Users/marcelspatz/YURI-OS-MUSUBI/.claude/nisaba/learning/global.md).
+- `@swarm` routes through Ruflo-aware logic in [`Scripts/ai`](/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/ai).
 - `Scripts/swarm-proxy.sh` normalizes `@swarm` and `swarm` to the same entrypoint.
 
 ## Exact Files
 
-- [AGENTS.md](/Users/marcelspatz/NUDIMMUD/AGENTS.md)
-- [CLAUDE.md](/Users/marcelspatz/NUDIMMUD/CLAUDE.md)
-- [Scripts/ai](/Users/marcelspatz/NUDIMMUD/Scripts/ai)
-- [Scripts/swarm-proxy.sh](/Users/marcelspatz/NUDIMMUD/Scripts/swarm-proxy.sh)
-- [`.claude/nisaba/learning/global.md`](/Users/marcelspatz/NUDIMMUD/.claude/nisaba/learning/global.md)
-- [`.claude/settings.json`](/Users/marcelspatz/NUDIMMUD/.claude/settings.json)
-- [`.claude/skills/ai-pipeline-offloading/SKILL.md`](/Users/marcelspatz/NUDIMMUD/.claude/skills/ai-pipeline-offloading/SKILL.md)
-- [`.claude/skills/swarm-coordination/SKILL.md`](/Users/marcelspatz/NUDIMMUD/.claude/skills/swarm-coordination/SKILL.md)
+- [AGENTS.md](/Users/marcelspatz/YURI-OS-MUSUBI/AGENTS.md)
+- [CLAUDE.md](/Users/marcelspatz/YURI-OS-MUSUBI/CLAUDE.md)
+- [Scripts/ai](/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/ai)
+- [Scripts/swarm-proxy.sh](/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/swarm-proxy.sh)
+- [`.claude/nisaba/learning/global.md`](/Users/marcelspatz/YURI-OS-MUSUBI/.claude/nisaba/learning/global.md)
+- [`.claude/settings.json`](/Users/marcelspatz/YURI-OS-MUSUBI/.claude/settings.json)
+- [`.claude/skills/ai-pipeline-offloading/SKILL.md`](/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/ai-pipeline-offloading/SKILL.md)
+- [`.claude/skills/swarm-coordination/SKILL.md`](/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/swarm-coordination/SKILL.md)
 
 ## Startup Chain
 

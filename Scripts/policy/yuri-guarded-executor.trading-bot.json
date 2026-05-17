@@ -1,6 +1,6 @@
 {
   "version": "2026-05-05.trading-bot.v1",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "mode": "scoped_mutation_trading_bot",
   "description": "Mutation policy for trading bot Phase 0-2 implementation: allows file creation/write in .claude/trading-bot only",
   "allowed_mutation_paths": [

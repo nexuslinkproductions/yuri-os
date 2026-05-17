@@ -3,7 +3,7 @@ title: "Yuri OS / NUDIMMUD — Session Archive: HUD, DeepSeek Direct Routing, To
 date: "2026-05-03"
 prepared_for: "Yuri OS / NUDIMMUD ingestion archive"
 prepared_by: "GPT-5.5 Thinking"
-repo_root: "/Users/marcelspatz/NUDIMMUD"
+repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
 status: "Archive-ready continuity file, not an independently executed repo audit"
 scope: "Current ChatGPT Web session plus user-pasted local Claude/Codex/DeepSeek/NUDIMMUD results"
@@ -24,7 +24,7 @@ primary_lanes:
 ## HUD, DeepSeek Direct Routing, TokenOps, and Websearch Cost Control
 
 Prepared: 2026-05-03  
-Repo root: `/Users/marcelspatz/NUDIMMUD`  
+Repo root: `/Users/marcelspatz/YURI-OS-MUSUBI`  
 Branch: `main`  
 Timezone context: Europe/Vienna  
 
@@ -154,7 +154,7 @@ The session began from a handoff that placed the project after the 08N local cla
 Accepted local truth at that point:
 
 ```text
-Repo: /Users/marcelspatz/NUDIMMUD
+Repo: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Latest accepted HEAD:
 1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
@@ -918,7 +918,7 @@ Scripts/nudimmud-repl.mjs
 It is rendered by:
 
 ```text
-/Users/marcelspatz/NUDIMMUD/_SYSTEM/nudimmud-boot.zsh
+/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/nudimmud-boot.zsh
 ```
 
 and sourced by:
@@ -931,7 +931,7 @@ Known facts:
 
 ```text
 ~/.zshrc line ~51: sources _SYSTEM/nudimmud-boot.zsh
-~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/NUDIMMUD/Scripts/nudimmud-repl.mjs
+~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs
 _SYSTEM/nudimmud-boot.zsh line ~38: render_context_bar() / precmd() renders upper boot HUD
 ```
 
@@ -969,7 +969,7 @@ Likely allowed files:
 
 ```text
 /Users/marcelspatz/.zshrc
-/Users/marcelspatz/NUDIMMUD/_SYSTEM/nudimmud-boot.zsh
+/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/nudimmud-boot.zsh
 ```
 
 Goal:
@@ -1147,7 +1147,7 @@ Intended executor:
 Claude Code CLI
 claude-sonnet-4-6
 high reasoning
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 ```
 
 Purpose:
@@ -1506,7 +1506,7 @@ Continue Yuri OS / NUDIMMUD from this archive-ready session handoff.
 
 You are GPT-5.5 Thinking acting as senior AI systems architect, terminal UI architect, CLI UX designer, LLMOps engineer, TokenOps engineer, prompt architect, Anime-DNA gatekeeper, clean-room/IP gatekeeper, and Yuri OS / NUDIMMUD strategic coordinator.
 
-Repo root: /Users/marcelspatz/NUDIMMUD
+Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Timezone: Europe/Vienna
 Current date context: 2026-05-03

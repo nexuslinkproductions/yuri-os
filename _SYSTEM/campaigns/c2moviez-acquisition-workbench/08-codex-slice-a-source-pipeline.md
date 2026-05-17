@@ -2,7 +2,7 @@
 
 **Slice name:** Source Pipeline
 **Branch:** `codex/c2moviez-acquisition-crm`
-**Workspace:** `/Users/marcelspatz/NUDIMMUD/.codex-worktrees/prism-workbench`
+**Workspace:** `/Users/marcelspatz/YURI-OS-MUSUBI/.codex-worktrees/prism-workbench`
 
 ---
 
@@ -87,7 +87,7 @@
 - [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` passes
 - [ ] `npx tsc -p acquisition/tsconfig.json --noEmit` exits 0
 - [ ] `npx vite build --config acquisition/vite.config.mts` exits 0
-- [ ] `PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules" npm --prefix backend run build` exits 0
+- [ ] `PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" npm --prefix backend run build` exits 0
 - [ ] Dossier tab shows SOURCE PIPELINE section for a seeded lead
 - [ ] Confidence chip matches evidence quality of lead
 - [ ] Wrong-lead risk chip visible for low-confidence sendable lead
@@ -97,8 +97,8 @@
 ```bash
 node Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
-PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
-PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules" npm --prefix backend run build
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" npm --prefix backend run build
 npx vite build --config acquisition/vite.config.mts
 ```
 
@@ -115,7 +115,7 @@ COLD_ACQ_ADMIN_PASSWORD='admin-pass-123456' \
 COLD_ACQ_FANNY_EMAIL='fanny@example.test' \
 COLD_ACQ_FANNY_PASSWORD='fanny-pass-123456' \
 TS_NODE_TRANSPILE_ONLY=1 \
-PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" \
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" \
 npm --prefix backend run dev
 ```
 

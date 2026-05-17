@@ -243,19 +243,19 @@ Status: unknown for this session.
 ## 5. Files, Reports, and Artifacts Mentioned
 
 - Name: `skill-manifest.json`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest.json`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json`
   - Purpose: Main skill registry / manifest.
   - Status: Current source of truth after Sprint 04C-H, according to visible reports.
   - Notes: Contains 29 skills, lifecycle status counts, invocation metadata, command surface status, and trigger metadata.
 
 - Name: `skill-manifest-04a-patch.json`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest-04a-patch.json`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest-04a-patch.json`
   - Purpose: Initial registry metadata patch created during Sprint 04A.
   - Status: Superseded / do not import.
   - Notes: Had trigger count mismatches.
 
 - Name: `skill-manifest-04a-patch-v2.json`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest-04a-patch-v2.json`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest-04a-patch-v2.json`
   - Purpose: Corrected registry metadata patch.
   - Status: Imported in Sprint 04B, then lifecycle status semantics repaired in Sprint 04C and 04C-H.
   - Notes: Safe to import at the time, but import caused or preserved status semantics drift that required later correction.
@@ -327,20 +327,20 @@ Status: unknown for this session.
   - Notes: Set `active_count: 5`, added `by_lifecycle_status`, and `metadata_coverage_count: 29`.
 
 - Name: `.claude/skills/**/SKILL.md`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/skills/`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/`
   - Purpose: Skill definitions.
   - Status: 29 accounted for according to visible reports.
   - Notes: 4 received trigger arrays in Sprint 03B.
 
 - Name: GitNexus nested skills
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/skills/gitnexus/*/SKILL.md`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/gitnexus/*/SKILL.md`
   - Purpose: Nested subskills under GitNexus.
   - Status: Exist and unchanged according to reports.
   - Notes: Six listed: `gitnexus-cli`, `gitnexus-debugging`, `gitnexus-exploring`, `gitnexus-guide`, `gitnexus-impact-analysis`, `gitnexus-refactoring`.
 
 - Name: `.claude/commands/`
   - Path if known:
-    - `/Users/marcelspatz/NUDIMMUD/.claude/commands/`
+    - `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/commands/`
     - `/Users/marcelspatz/.claude/commands/`
   - Purpose: Command surface inventory for Sprint 05A.
   - Status: To be inspected by Claude in Sprint 05A.
@@ -683,19 +683,19 @@ Next task: Sprint 05A Command-Surface Coverage Planning. Claude Code should exec
   "files_or_artifacts": [
     {
       "name": "skill-manifest.json",
-      "path": "/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest.json",
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json",
       "purpose": "Main skill registry and current source of truth",
       "status": "ready according to visible reports"
     },
     {
       "name": "skill-manifest-04a-patch.json",
-      "path": "/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest-04a-patch.json",
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest-04a-patch.json",
       "purpose": "Initial Sprint 04A metadata patch",
       "status": "superseded; do not import"
     },
     {
       "name": "skill-manifest-04a-patch-v2.json",
-      "path": "/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest-04a-patch-v2.json",
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest-04a-patch-v2.json",
       "purpose": "Corrected registry patch",
       "status": "imported, then lifecycle status repaired"
     },
@@ -713,13 +713,13 @@ Next task: Sprint 05A Command-Surface Coverage Planning. Claude Code should exec
     },
     {
       "name": ".claude/skills/",
-      "path": "/Users/marcelspatz/NUDIMMUD/.claude/skills/",
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/",
       "purpose": "Skill definitions",
       "status": "29 skills accounted for according to reports"
     },
     {
       "name": ".claude/commands/",
-      "path": "/Users/marcelspatz/NUDIMMUD/.claude/commands/ and /Users/marcelspatz/.claude/commands/",
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/commands/ and /Users/marcelspatz/.claude/commands/",
       "purpose": "Command surface inventory for Sprint 05A",
       "status": "to be inspected"
     }

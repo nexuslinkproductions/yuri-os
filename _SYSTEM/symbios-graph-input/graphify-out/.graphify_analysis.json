@@ -102,8 +102,8 @@
       "source": "SymbiOS (Target)",
       "target": "SYMBIO \u2014 IPMED S.\u00e0.r.l.",
       "source_files": [
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
       ],
       "confidence": "EXTRACTED",
       "relation": "conflicts_with",
@@ -113,8 +113,8 @@
       "source": "SymbiOS (Target)",
       "target": "SYMBIOS Workspaces GmbH",
       "source_files": [
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
       ],
       "confidence": "EXTRACTED",
       "relation": "name_conflict_with",
@@ -124,8 +124,8 @@
       "source": "SymbiOS (Target)",
       "target": "SYMBIOSCIENCE \u2014 Mars Inc.",
       "source_files": [
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
       ],
       "confidence": "EXTRACTED",
       "relation": "secondary_conflict_with",
@@ -135,8 +135,8 @@
       "source": "SymbiOS (Target)",
       "target": "CogniFlow OS (Alternative)",
       "source_files": [
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
       ],
       "confidence": "EXTRACTED",
       "relation": "safer_alternative",
@@ -146,8 +146,8 @@
       "source": "SYMBIOSCIENCE \u2014 Mars Inc.",
       "target": "Nizza Class 42 \u2014 IT/Software/AI",
       "source_files": [
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
-        "/Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md",
+        "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md"
       ],
       "confidence": "EXTRACTED",
       "relation": "registered_in",

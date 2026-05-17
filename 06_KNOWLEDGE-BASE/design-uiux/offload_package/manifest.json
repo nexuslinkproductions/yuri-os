@@ -1,6 +1,6 @@
 {
-  "graph_path": "/Users/marcelspatz/NUDIMMUD/design-uiux-knowledge-base/graph.json",
-  "sqlite_path": "/Users/marcelspatz/NUDIMMUD/design-uiux-knowledge-base/offload_package/design_uiux.db",
+  "graph_path": "/Users/marcelspatz/YURI-OS-MUSUBI/design-uiux-knowledge-base/graph.json",
+  "sqlite_path": "/Users/marcelspatz/YURI-OS-MUSUBI/design-uiux-knowledge-base/offload_package/design_uiux.db",
   "jsonl": {
     "nodes": "nodes.jsonl",
     "edges": "edges.jsonl",

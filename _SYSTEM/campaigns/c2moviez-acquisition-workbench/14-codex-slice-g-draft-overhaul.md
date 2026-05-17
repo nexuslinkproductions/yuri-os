@@ -2,7 +2,7 @@
 
 **Slice name:** Draft generation rewrite — evidence-driven, no blank contact slots
 **Branch:** `codex/c2moviez-acquisition-crm`
-**Workspace:** `/Users/marcelspatz/NUDIMMUD/.codex-worktrees/prism-workbench`
+**Workspace:** `/Users/marcelspatz/YURI-OS-MUSUBI/.codex-worktrees/prism-workbench`
 
 ---
 
@@ -116,7 +116,7 @@ const shortSubject = `quick note on ${companyNameClean}${subjectDetail}`;
 ```bash
 node Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
-PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
 npx vite build --config acquisition/vite.config.mts
 ```
 

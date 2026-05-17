@@ -7,7 +7,7 @@ Three-screen flow: Design Catalog → Confirmation → Document Audit HUD.
 
 ## How to Launch
 
-1. `npm run dev` from `/Users/marcelspatz/NUDIMMUD/`
+1. `npm run dev` from `/Users/marcelspatz/YURI-OS-MUSUBI/`
 2. Open `http://localhost:5173`
 3. Click **Design Audit** in the left sidebar (OPS section, after Catalog)
 4. Or type `/audit` in the global command input (routes to DIRECTIVE module — use sidebar instead)

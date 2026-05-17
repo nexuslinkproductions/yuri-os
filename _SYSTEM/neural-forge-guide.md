@@ -3,7 +3,7 @@
 > Reference doc. Promoted from `.claude/skills/neural-forge-orchestration.md`.
 
 ## 1. Context
-The **Neural Forge** is a hybrid local/cloud inference system for NUDIMMUD. It uses a local Ollama daemon as the primary engine and **Ollama Cloud** as a high-availability fallback.
+The **Neural Forge** is a hybrid local/cloud inference system for YURI-OS-MUSUBI. It uses a local Ollama daemon as the primary engine and **Ollama Cloud** as a high-availability fallback.
 
 ## 2. Model Registry & Naming
 Always check the registry in `backend/src/services/neuralService.ts` before querying a model.

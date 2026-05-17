@@ -910,7 +910,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
     // Token telemetry — HUD polls this for session + weekly status bar
     router.get('/telemetry/tokens', authMiddleware, (_, res) => {
         const fs = require('fs');
-        const STATE_DIR = '/Users/marcelspatz/NUDIMMUD/.claude/state';
+        const STATE_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state';
         try {
             const session = fs.existsSync(`${STATE_DIR}/token-session.json`)
                 ? JSON.parse(fs.readFileSync(`${STATE_DIR}/token-session.json`, 'utf-8'))

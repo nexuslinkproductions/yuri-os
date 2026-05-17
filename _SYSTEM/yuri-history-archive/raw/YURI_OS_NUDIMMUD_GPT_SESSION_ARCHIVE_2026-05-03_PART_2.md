@@ -2,7 +2,7 @@
 
 **Generated:** 2026-05-03  
 **Session focus:** DeepSeek routing/transport repair, paste auto-send claim confusion, local-truth authority audit, final continuation state.  
-**Repo root:** `/Users/marcelspatz/NUDIMMUD`  
+**Repo root:** `/Users/marcelspatz/YURI-OS-MUSUBI`  
 **Expected branch:** `main`  
 **Archive status:** Detailed continuity archive for ingestion. Not an independently executed repo audit.  
 **Source basis:** Visible GPT conversation and user-pasted local terminal/model outputs.  
@@ -404,7 +404,7 @@ This audit does not implement a fix.
 The final trusted state from the session is:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: b1f060d55 fix(offload): harden DeepSeek prompt transport
 staged files: none
@@ -583,7 +583,7 @@ Use this in a new GPT session:
 Continue Yuri OS / NUDIMMUD from the uploaded two-part archive.
 
 Current trusted final state from the archive:
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - HEAD: b1f060d55 fix(offload): harden DeepSeek prompt transport
 - staged files: none

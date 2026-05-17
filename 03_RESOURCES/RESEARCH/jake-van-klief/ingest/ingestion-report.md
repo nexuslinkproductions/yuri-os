@@ -102,7 +102,7 @@
 2. **Re-run the ingest script** from the task description to POST each transcript to `/api/vault/ingest`
 3. **Add to OS kernel memory** once backend confirms ingestion:
    ```bash
-   cd /Users/marcelspatz/NUDIMMUD && node _SYSTEM/OS_KERNEL/memory.db.js add "jake-van-clief-youtube" "30 videos ingested into RAG backend"
+   cd /Users/marcelspatz/YURI-OS-MUSUBI && node _SYSTEM/OS_KERNEL/memory.db.js add "jake-van-clief-youtube" "30 videos ingested into RAG backend"
    ```
 
 ---

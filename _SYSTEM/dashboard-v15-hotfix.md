@@ -122,9 +122,9 @@ This gives a STATIC visual flowchart in the PDF without needing JS to render.
 Render:
 ```
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --disable-gpu \
-  --no-pdf-header-footer --print-to-pdf="/Users/marcelspatz/NUDIMMUD/yuri-os-v15-system-audit.pdf" \
+  --no-pdf-header-footer --print-to-pdf="/Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-v15-system-audit.pdf" \
   --virtual-time-budget=10000 \
-  "file:///Users/marcelspatz/NUDIMMUD/_SYSTEM/SELF-IMPROVEMENT/yuri-os-v15-system-audit.html"
+  "file:///Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/SELF-IMPROVEMENT/yuri-os-v15-system-audit.html"
 ```
 
 Verify:

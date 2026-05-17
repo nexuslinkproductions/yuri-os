@@ -2,7 +2,7 @@
 
 **Slice name:** Update `cold-acquisition-crm-routes.test.mjs` to work with the new doctrine behavior (empty drafts when DEEPSEEK_API_KEY absent)
 **Branch:** main
-**Workspace:** `/Users/marcelspatz/NUDIMMUD`
+**Workspace:** `/Users/marcelspatz/YURI-OS-MUSUBI`
 
 ---
 
@@ -69,7 +69,7 @@ Then continue with the existing assertions.
 ---
 
 **Acceptance:**
-- [ ] `PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs` -> pass
+- [ ] `PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs` -> pass
 - [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` -> pass
 - [ ] All existing assertion messages still present (no removals)
 - [ ] The needs_research length-vs-count assertion at line ~228 passes

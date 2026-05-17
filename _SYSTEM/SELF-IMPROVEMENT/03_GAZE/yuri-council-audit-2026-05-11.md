@@ -27,7 +27,7 @@ Right now Yuri has several strong pieces, but too many local lifecycles: offload
 
 ## Evidence Ledger
 
-All commands were rerun from `/Users/marcelspatz/NUDIMMUD` on 2026-05-11 local time unless noted.
+All commands were rerun from `/Users/marcelspatz/YURI-OS-MUSUBI` on 2026-05-11 local time unless noted.
 
 | Command | Result | Evidence | What it proves |
 | --- | --- | --- | --- |

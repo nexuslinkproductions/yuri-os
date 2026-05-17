@@ -223,4 +223,4 @@ Per browser instance:
 - **Browser-use MCP docs:** https://github.com/anthropics/browser-use
 - **Comet browser:** https://comet.com
 - **Perplexity:** https://perplexity.com
-- **Offload workflow:** `/Users/marcelspatz/NUDIMMUD/_SYSTEM/offload-workflow.md`
+- **Offload workflow:** `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/offload-workflow.md`

@@ -9,11 +9,11 @@
     <key>ProgramArguments</key>
     <array>
       <string>/opt/homebrew/bin/node</string>
-      <string>/Users/marcelspatz/NUDIMMUD/Scripts/nisaba-sentinel.mjs</string>
+      <string>/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nisaba-sentinel.mjs</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/marcelspatz/NUDIMMUD</string>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI</string>
 
     <key>RunAtLoad</key>
     <false/>

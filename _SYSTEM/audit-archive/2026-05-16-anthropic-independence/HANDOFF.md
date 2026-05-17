@@ -78,7 +78,7 @@ Total burn: ~17 working days parallel · ~13-day buffer vs cutover.
 
 ```bash
 # 1. Confirm position
-pwd                          # must be /Users/marcelspatz/NUDIMMUD
+pwd                          # must be /Users/marcelspatz/YURI-OS-MUSUBI
 git branch --show-current    # must be main
 
 # 2. Re-baseline the verifier

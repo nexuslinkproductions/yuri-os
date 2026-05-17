@@ -24,11 +24,11 @@ launchctl list | grep nudimmud
 
 Logs append to:
 
-`/Users/marcelspatz/NUDIMMUD/.claude/state/lane-health.log`
+`/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-health.log`
 
 Errors append to:
 
-`/Users/marcelspatz/NUDIMMUD/.claude/state/lane-health.err`
+`/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-health.err`
 
 ## Token Digest
 
@@ -42,8 +42,8 @@ cp _SYSTEM/launchd/com.nudimmud.token-digest.plist ~/Library/LaunchAgents/
 
 Logs append to:
 
-`/Users/marcelspatz/NUDIMMUD/.claude/state/token-digest.log`
+`/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/token-digest.log`
 
 Errors append to:
 
-`/Users/marcelspatz/NUDIMMUD/.claude/state/token-digest.err`
+`/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/token-digest.err`

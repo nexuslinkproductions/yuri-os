@@ -1,7 +1,7 @@
 ---
 title: Recursive Language Models (RLM) — Synthesis & Application
 source: Zhang, Kraska, Khattab (MIT, 2025) · arXiv:2512.24601v2
-archived: /Users/marcelspatz/NUDIMMUD/RESEARCH/papers/Recursive Language Models - MIT.pdf
+archived: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/papers/Recursive Language Models - MIT.pdf
 date: 2026-04-24
 tags: [rlm, offloading, token-optimization, gemini-flash, architecture]
 ---
@@ -59,9 +59,9 @@ RLM-Qwen3-8B outperformed base Qwen3-8B by **28.3%** and approached GPT-5 qualit
 ---
 
 ## Links
-- [`offload-workflow.md`](/Users/marcelspatz/NUDIMMUD/_SYSTEM/offload-workflow.md) — Gemini Flash lane + dispatch
-- [`ai-pipeline-offloading`](/Users/marcelspatz/NUDIMMUD/.claude/skills/ai-pipeline-offloading/) — skill for multi-model dispatch
-- [`EVONEXUS_INTEGRATION_MAP.md`](/Users/marcelspatz/NUDIMMUD/_SYSTEM/EVONEXUS_INTEGRATION_MAP.md) — platform map
+- [`offload-workflow.md`](/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/offload-workflow.md) — Gemini Flash lane + dispatch
+- [`ai-pipeline-offloading`](/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/ai-pipeline-offloading/) — skill for multi-model dispatch
+- [`EVONEXUS_INTEGRATION_MAP.md`](/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/EVONEXUS_INTEGRATION_MAP.md) — platform map
 
 ---
 

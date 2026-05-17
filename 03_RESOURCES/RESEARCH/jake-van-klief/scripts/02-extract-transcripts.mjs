@@ -1,7 +1,7 @@
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { YoutubeTranscript } from 'youtube-transcript';
 
-const BASE = '/Users/marcelspatz/NUDIMMUD/RESEARCH/jake-van-klief';
+const BASE = '/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/jake-van-klief';
 
 const videos = JSON.parse(process.argv[2] || '[]');
 

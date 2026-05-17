@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 const SOURCE = '/Volumes/T7/NUDIMMUD';
-const TARGET = '/Users/marcelspatz/NUDIMMUD';
+const TARGET = '/Users/marcelspatz/YURI-OS-MUSUBI';
 
 console.log(`⬡ VESTA_MIGRATION :: IGNITING :: [${SOURCE}] -> [${TARGET}]`);
 

@@ -49,7 +49,7 @@ Default web research path is the app, not the API.
 
 - `mcp__computer-use__*` — full computer control (loaded via deferred ToolSearch)
 - `mcp__Claude_in_Chrome__*` — Chrome browser tools (also loaded)
-- `mcp__obsidian-mcp-tools__*` — vault ingestion of Comet clippings (loaded, points to /Users/marcelspatz/NUDIMMUD)
+- `mcp__obsidian-mcp-tools__*` — vault ingestion of Comet clippings (loaded, points to /Users/marcelspatz/YURI-OS-MUSUBI)
 
 ## Evidence
 

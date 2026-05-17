@@ -1,7 +1,7 @@
 import { writeFileSync, existsSync } from 'fs';
 import { YoutubeTranscript } from 'youtube-transcript';
 
-const BASE = '/Users/marcelspatz/NUDIMMUD/RESEARCH/jake-van-klief';
+const BASE = '/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/jake-van-klief';
 const videos = [
   {id:'AZ1l-oaD3tk',title:'Afternoon Tea #2: Stop Building Production-Ready AI'},
   {id:'hALln9wrrQo',title:'How I Manage Creative, Software, and Business Work'},

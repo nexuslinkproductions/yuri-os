@@ -3,7 +3,7 @@
 **Generated:** 2026-05-03  
 **Prepared for:** new GPT-5.5 / Codex / Claude continuation chat  
 **Project:** Yuri OS / NUDIMMUD  
-**Repo root:** `/Users/marcelspatz/NUDIMMUD`  
+**Repo root:** `/Users/marcelspatz/YURI-OS-MUSUBI`  
 **Expected branch:** `main`  
 **Status:** archive-ready continuity handoff, based on visible GPT session + user-pasted Codex outputs. Not an independently executed repo audit.  
 **Primary session outcome:** local model-claim authority boundary was hardened and closed; next lane should be NUDIMMUD composer auto-send paste repair, not HUD redesign yet.
@@ -46,7 +46,7 @@ Next recommended sprint:
 Based on the latest accepted Codex report:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 latest accepted HEAD: 1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
 staged files: none expected
@@ -97,7 +97,7 @@ The user opened this session with a detailed handoff asserting:
 
 ```text
 Project: Yuri OS / NUDIMMUD
-Repo root: /Users/marcelspatz/NUDIMMUD
+Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Current date context: 2026-05-02
 ```
@@ -709,7 +709,7 @@ Continue Yuri OS / NUDIMMUD from this archive handoff.
 You are GPT-5.5 Thinking acting as senior AI systems architect, LLMOps engineer, systems engineer, prompt architect, RAG architect, clean-room/IP gatekeeper, TokenOps engineer, and Yuri OS / NUDIMMUD strategic coordinator.
 
 Project: Yuri OS / NUDIMMUD
-Repo root: /Users/marcelspatz/NUDIMMUD
+Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Timezone: Europe/Vienna
 Current date context: 2026-05-03

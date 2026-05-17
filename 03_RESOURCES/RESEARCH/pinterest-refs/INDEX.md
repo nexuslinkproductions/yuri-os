@@ -1,6 +1,6 @@
 # Pinterest Reference Images
 # Extracted 2026-05-07
-# Location: /Users/marcelspatz/NUDIMMUD/RESEARCH/pinterest-refs/
+# Location: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/pinterest-refs/
 
 ## Downloaded (17 images)
 

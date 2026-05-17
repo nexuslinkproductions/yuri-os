@@ -15,7 +15,7 @@ const service = new DesignStudioService(db, {
 const project = service.createProject({
     name: 'Homepage redesign control surface',
     description: 'Visual design work across website and reference screenshots.',
-    targetRoot: '/Users/marcelspatz/NUDIMMUD'
+    targetRoot: '/Users/marcelspatz/YURI-OS-MUSUBI'
 });
 assert.equal(project.name, 'Homepage redesign control surface');
 assert.equal(project.status, 'active');

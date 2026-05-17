@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync, readdirSync } from 'fs';
 
-const BASE = '/Users/marcelspatz/NUDIMMUD/RESEARCH/jake-van-klief';
+const BASE = '/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/jake-van-klief';
 const outDir = `${BASE}/analysis`;
 
 // Classification categories based on trading bot pipeline

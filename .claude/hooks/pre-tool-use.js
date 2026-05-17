@@ -7,7 +7,7 @@ const os = require('os');
 const bus = require('./memory-bus.js');
 const ss = require('./session-state.js');
 
-const MEMORY_INDEX = path.join(os.homedir(), '.claude', 'projects', '-Users-marcelspatz-NUDIMMUD', 'memory', 'MEMORY.md');
+const MEMORY_INDEX = path.join(os.homedir(), '.claude', 'projects', '-Users-marcelspatz-YURI-OS-MUSUBI', 'memory', 'MEMORY.md');
 
 const HEAVY_TOOLS = new Set(['Agent', 'WebSearch', 'WebFetch', 'TaskCreate']);
 

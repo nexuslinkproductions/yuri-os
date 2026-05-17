@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
-const REPO_ROOT = '/Users/marcelspatz/NUDIMMUD';
+const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
 const OFFLOAD_SH = path.join(REPO_ROOT, 'Scripts/offload.sh');
 const KERNEL_PY = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/syscalls/kernel.py');
 const TOOL_NAME = 'nudimmud.offload_task';

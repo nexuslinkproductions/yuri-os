@@ -105,7 +105,7 @@ If no git repository exists, create a working folder:
 For NUDIMMUD projects, prefer:
 
 ```text
-/Users/marcelspatz/NUDIMMUD/.sharingan/<source-name>/<timestamp>/
+/Users/marcelspatz/YURI-OS-MUSUBI/.sharingan/<source-name>/<timestamp>/
 ```
 
 ---

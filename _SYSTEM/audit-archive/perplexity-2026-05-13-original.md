@@ -10,7 +10,7 @@
 
 ## Why Archived (False / Partial Claims)
 
-Fact-check performed 2026-05-13 against `/Users/marcelspatz/NUDIMMUD`:
+Fact-check performed 2026-05-13 against `/Users/marcelspatz/YURI-OS-MUSUBI`:
 
 | # | Claim | Reality |
 |---|---|---|

@@ -32,7 +32,7 @@ Important: this document is a continuity file, not a live repo audit. The next c
 Latest accepted state from the uploaded 07K RAG query-hardening handoff:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current accepted HEAD: fe97ec8e chore(rag): prevent cloud embedding fallback in notebook query
 staged files: none
@@ -725,7 +725,7 @@ Use the uploaded markdown as current GPT-5.5 trusted continuity state, but do no
 
 Current accepted repo state from the handoff:
 
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - current accepted HEAD: fe97ec8e chore(rag): prevent cloud embedding fallback in notebook query
 - staged files expected: none

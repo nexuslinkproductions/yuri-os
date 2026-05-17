@@ -1,6 +1,6 @@
 # Implementation Plan: Feature Spec: contract-dispatch-drift-reconcile
 
-**Branch**: `active` | **Date**: 2026-05-14 | **Spec**: /Users/marcelspatz/NUDIMMUD/specs/active/contract-dispatch-drift-reconcile.md
+**Branch**: `active` | **Date**: 2026-05-14 | **Spec**: /Users/marcelspatz/YURI-OS-MUSUBI/specs/active/contract-dispatch-drift-reconcile.md
 
 **Input**: Feature specification from `/specs/active/spec.md`
 

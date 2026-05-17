@@ -1,4 +1,4 @@
-# ABSORBED FROM: /Users/marcelspatz/NUDIMMUD/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/balkanblbn/audit-log-firewall | scanned: 2026-05-17 | score: 20
+# ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/balkanblbn/audit-log-firewall | scanned: 2026-05-17 | score: 20
 
 ---
 name: audit-log-firewall

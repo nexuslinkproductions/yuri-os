@@ -168,7 +168,7 @@ If running through Claude Code, settings.json may have deny rules on `Bash(mv:*)
 After all workhorses report success, run:
 
 ```bash
-cd /Users/marcelspatz/NUDIMMUD
+cd /Users/marcelspatz/YURI-OS-MUSUBI
 echo "=== Root dirs ===" && ls -d */ 2>/dev/null | sort
 echo "=== Numbered dirs ===" && ls -d [0-9][0-9]_*/ 2>/dev/null | sort
 echo "=== NUDIMMUD/ exists? ===" && test -d NUDIMMUD && echo "STILL EXISTS — verify intentional" || echo "REMOVED — OK"

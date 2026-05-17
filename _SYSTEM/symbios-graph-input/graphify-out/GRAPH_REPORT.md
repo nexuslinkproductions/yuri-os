@@ -1,4 +1,4 @@
-# Graph Report - /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input  (2026-05-15)
+# Graph Report - /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input  (2026-05-15)
 
 ## Corpus Check
 - Corpus is ~2,986 words - fits in a single context window. You may not need a graph.
@@ -29,15 +29,15 @@
 
 ## Surprising Connections (you probably didn't know these)
 - `SymbiOS (Target)` --conflicts_with--> `SYMBIO — IPMED S.à.r.l.`  [EXTRACTED]
-  /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 0 → community 1_
+  /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 0 → community 1_
 - `SymbiOS (Target)` --name_conflict_with--> `SYMBIOS Workspaces GmbH`  [EXTRACTED]
-  /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 0 → community 2_
+  /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 0 → community 2_
 - `SymbiOS (Target)` --secondary_conflict_with--> `SYMBIOSCIENCE — Mars Inc.`  [EXTRACTED]
-  /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 0 → community 3_
+  /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 0 → community 3_
 - `SymbiOS (Target)` --safer_alternative--> `CogniFlow OS (Alternative)`  [EXTRACTED]
-  /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 0 → community 4_
+  /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 0 → community 4_
 - `SYMBIOSCIENCE — Mars Inc.` --registered_in--> `Nizza Class 42 — IT/Software/AI`  [EXTRACTED]
-  /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/NUDIMMUD/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 3 → community 1_
+  /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md → /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/symbios-graph-input/symbios-trademark-research.md  _Bridges community 3 → community 1_
 
 ## Hyperedges (group relationships)
 - **Class 42 Conflict Cluster** — ipmed_symbio, finland_symbio, wte_symbio [EXTRACTED 0.95]

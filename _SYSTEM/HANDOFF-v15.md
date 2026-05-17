@@ -8,7 +8,7 @@
 
 ## What shipped
 - **v15 consolidation** (`d6e63fef`): WP1–WP5 — 8 PENDING upgrades applied, lane wrapper, memory feedback report, NATIVE_GATES + HOOK_PIPELINE + CODEX_FLOW node merges, 2 new MIT-clean skills (yuri-shura, yuri-report), 124 nodes, 273 edges, DEAD_ENDS: 0.
-- **v15 WP6 audit PDF** (`yuri-os-v15-system-audit.pdf`, 304 KB, 30 pages A4) — dense visual layout (KPI grids, stat bars, palette swatches, inline SVG flowcharts, tables with borders). Path: `/Users/marcelspatz/NUDIMMUD/yuri-os-v15-system-audit.pdf`. Source HTML: `_SYSTEM/SELF-IMPROVEMENT/yuri-os-v15-system-audit.html`.
+- **v15 WP6 audit PDF** (`yuri-os-v15-system-audit.pdf`, 304 KB, 30 pages A4) — dense visual layout (KPI grids, stat bars, palette swatches, inline SVG flowcharts, tables with borders). Path: `/Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-v15-system-audit.pdf`. Source HTML: `_SYSTEM/SELF-IMPROVEMENT/yuri-os-v15-system-audit.html`.
 
 ## Hotfix in this turn — UnrealBloomPass black-box regression
 **Symptom:** When zooming out, large opaque black rectangles obscured USER → PULSE_BUS nodes. Boxes grew larger with zoom-out distance.

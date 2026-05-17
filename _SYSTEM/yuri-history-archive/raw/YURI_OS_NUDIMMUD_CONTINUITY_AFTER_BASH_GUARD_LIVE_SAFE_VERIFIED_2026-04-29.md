@@ -17,7 +17,7 @@ The session should stop here because the user was at ~96% of the 5-hour Claude s
 ## 2. Current Accepted Repo State
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current accepted HEAD: e83a6d9d fix(hooks): add PreToolUse event name to Bash guard output
 staged files: none
@@ -325,7 +325,7 @@ Current accepted state:
 Current expected repo state:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: e83a6d9d fix(hooks): add PreToolUse event name to Bash guard output
 staged files: none
@@ -395,7 +395,7 @@ test -f .claude/hooks/block-schema-test.js && echo "TEMP_HOOK_STILL_EXISTS" || e
 
 Hard stop if:
 
-- cwd is not `/Users/marcelspatz/NUDIMMUD`
+- cwd is not `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch is not `main`
 - HEAD is not `e83a6d9d`
 - any files are staged
@@ -623,7 +623,7 @@ Continue Yuri OS / NUDIMMUD from this continuity handoff.
 
 Current accepted state:
 
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - current accepted HEAD: e83a6d9d fix(hooks): add PreToolUse event name to Bash guard output
 - latest accepted result:

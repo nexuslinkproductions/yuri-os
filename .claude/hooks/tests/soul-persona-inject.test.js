@@ -11,7 +11,7 @@ function runHook(input = '') {
     {
       input,
       encoding: 'utf8',
-      cwd: '/Users/marcelspatz/NUDIMMUD',
+      cwd: '/Users/marcelspatz/YURI-OS-MUSUBI',
     },
   ).trim());
 }

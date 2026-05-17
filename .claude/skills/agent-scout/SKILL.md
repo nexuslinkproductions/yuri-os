@@ -1,4 +1,4 @@
-# ABSORBED FROM: /Users/marcelspatz/NUDIMMUD/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/stefanferreira/agent-scout | scanned: 2026-05-17 | score: 0
+# ABSORBED FROM: /Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-skills/skills/stefanferreira/agent-scout | scanned: 2026-05-17 | score: 0
 
 ---
 name: agent-scout

@@ -40,7 +40,7 @@ No hidden reasoning is included here. This file summarizes only visible chat con
   - Status: Accepted.
 
 - Decision: Pause command deployment to run a whole-repo skill census.
-  - Reason: The user reported many scattered skill-like artifacts across `/Users/marcelspatz/NUDIMMUD`.
+  - Reason: The user reported many scattered skill-like artifacts across `/Users/marcelspatz/YURI-OS-MUSUBI`.
   - Impact: Sprint 05A-S was created to avoid treating the 29-skill registry as whole-repo truth without evidence.
   - Status: Completed and accepted for census only.
 
@@ -149,7 +149,7 @@ No hidden reasoning is included here. This file summarizes only visible chat con
   - Evidence from chat: Sprint 06E completion report.
   - Confidence: High
 
-- Trusted state: Registry file is `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest.json`.
+- Trusted state: Registry file is `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json`.
   - Evidence from chat: Repeated in multiple sprint prompts and reports.
   - Confidence: High
 
@@ -287,31 +287,31 @@ No hidden reasoning is included here. This file summarizes only visible chat con
 ## 5. Files, Reports, and Artifacts Mentioned
 
 - Name: skill-manifest.json
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest.json`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json`
   - Purpose: Trusted skill registry manifest.
   - Status: Baseline committed in Sprint 06E.
   - Notes: Version `1.0.2`; 29 skills; command status now `12/5/12`.
 
 - Name: agent-manifest.json
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/agent-manifest.json`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/agent-manifest.json`
   - Purpose: Agent registry manifest.
   - Status: Baseline committed in Sprint 06E.
   - Notes: Mentioned as Sprint 01/05 reinforcement infrastructure.
 
 - Name: audit-gate.js
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/audit-gate.js`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/audit-gate.js`
   - Purpose: Reinforcement audit gate script.
   - Status: Baseline committed in Sprint 06E.
   - Notes: Not deeply reviewed in this chat beyond baseline inclusion.
 
 - Name: test-harness.js
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/test-harness.js`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/test-harness.js`
   - Purpose: Reinforcement test harness.
   - Status: Baseline committed in Sprint 06E.
   - Notes: Not deeply reviewed in this chat beyond baseline inclusion.
 
 - Name: `.claude/commands/`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/commands/`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/commands/`
   - Purpose: Project command files.
   - Status: 15 accepted command files after Sprint 05.
   - Notes: Project-local and user-global command directories were reported as identical/hardlinked/synced.
@@ -404,7 +404,7 @@ No hidden reasoning is included here. This file summarizes only visible chat con
   - Status: Accepted and committed.
 
 - Name: `.claude/skills/`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/skills/`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/`
   - Purpose: Canonical registered skill directory.
   - Status: 29 registered SKILL.md files exist; 23 top-level plus 6 GitNexus nested.
   - Notes: Current trusted registry scope.
@@ -422,13 +422,13 @@ No hidden reasoning is included here. This file summarizes only visible chat con
   - Notes: Count is 5; do not assume 2.
 
 - Name: `.claude/plugins/`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/plugins/`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/plugins/`
   - Purpose: Plugin/example/reference ecosystem.
   - Status: Isolated and non-blocking.
   - Notes: 22 plugin/example SKILL.md files found.
 
 - Name: `compact-optimizer` draft
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/02_AREAS/skills/drafts/compact-optimizer/`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/02_AREAS/skills/drafts/compact-optimizer/`
   - Purpose: Draft duplicate.
   - Status: Non-blocking; not current registry authority.
 
@@ -439,7 +439,7 @@ No hidden reasoning is included here. This file summarizes only visible chat con
   - Notes: Do not commit or promote by default.
 
 - Name: `.claude/CLAUDE.md`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/CLAUDE.md`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/CLAUDE.md`
   - Purpose: Claude/Yuri OS policy and operating rules.
   - Status: Baseline committed in Sprint 06E.
   - Notes: Diff reviewed in 06D-R.
@@ -464,19 +464,19 @@ No hidden reasoning is included here. This file summarizes only visible chat con
   - Notes: Path not provided in visible chat.
 
 - Name: `.claude/settings.json`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/settings.json`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/settings.json`
   - Purpose: Hook registration configuration.
   - Status: Inspected in 06D-H.
   - Notes: 15 hooks reportedly registered and present.
 
 - Name: `.claude/settings.local.json`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.claude/settings.local.json`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/settings.local.json`
   - Purpose: Local settings.
   - Status: Mentioned as allowable read target.
   - Notes: Actual contents unknown.
 
 - Name: `.claude/memory-sessions/`, `.claude/sessions/`, `.claude/shell-snapshots/`, `.claude/ide/`
-  - Path if known: Under `/Users/marcelspatz/NUDIMMUD/.claude/`
+  - Path if known: Under `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/`
   - Purpose: Ephemeral/session/snapshot/IDE artifacts.
   - Status: 1,162 tracked deletions mostly in this class.
   - Notes: Candidate for later ignore/cleanup policy.
@@ -494,13 +494,13 @@ No hidden reasoning is included here. This file summarizes only visible chat con
   - Notes: Not part of baseline.
 
 - Name: `GEMINI.md`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/GEMINI.md`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/GEMINI.md`
   - Purpose: Proposed Gemini CLI operating instructions.
   - Status: Proposed in prompt only; not created in visible chat.
   - Notes: Would define Gemini as secondary validator/executor.
 
 - Name: `.gemini/settings.json`
-  - Path if known: `/Users/marcelspatz/NUDIMMUD/.gemini/settings.json`
+  - Path if known: `/Users/marcelspatz/YURI-OS-MUSUBI/.gemini/settings.json`
   - Purpose: Proposed project-level Gemini CLI settings.
   - Status: Proposed in prompt only; not created in visible chat.
   - Notes: Should be conservative/read-only by default if created.
@@ -521,7 +521,7 @@ No hidden reasoning is included here. This file summarizes only visible chat con
 
 - Prompt name: Sprint 05A-S — Whole-Repo Skill Census
   - Target: Claude Code CLI
-  - Purpose: Inventory all skill-like artifacts across `/Users/marcelspatz/NUDIMMUD`.
+  - Purpose: Inventory all skill-like artifacts across `/Users/marcelspatz/YURI-OS-MUSUBI`.
   - When to use: After user reported many scattered skill artifacts.
   - Key instructions: Read-only; find SKILL.md files, commands, agents, manifests, prompt packs; classify unregistered artifacts; do not import or register.
 
@@ -775,7 +775,7 @@ Suggested next sequence after 06E-V:
 Yuri OS / NUDIMMUD boring reinforcement continued through Sprint 05 and Sprint 06. GPT-5.5 acted as architecture reviewer/gatekeeper, and Claude Code acted as local executor/validator.
 
 Sprint 05 was closed and accepted. The registry baseline is:
-- `skill-manifest.json` at `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest.json`
+- `skill-manifest.json` at `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json`
 - 29 registered skills
 - 23 top-level skills
 - 6 GitNexus nested skills
@@ -846,7 +846,7 @@ The next recommended task is Sprint 06E-V Post-Baseline Commit Validation. Best 
   ],
   "trusted_state": [
     "Sprint 06E baseline committed on branch main",
-    "Registry file is /Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest.json",
+    "Registry file is /Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json",
     "Manifest version reported as 1.0.2",
     "total_skills: 29",
     "top_level_skills: 23",

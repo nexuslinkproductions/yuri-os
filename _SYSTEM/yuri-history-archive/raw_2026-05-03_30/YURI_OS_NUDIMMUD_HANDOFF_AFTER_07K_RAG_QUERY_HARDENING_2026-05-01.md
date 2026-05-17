@@ -29,7 +29,7 @@ Do not assume production readiness, full RAG readiness, enterprise readiness, co
 Direct shell verification after the final accepted gate shows:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current accepted HEAD: fe97ec8e chore(rag): prevent cloud embedding fallback in notebook query
 staged files: none
@@ -120,7 +120,7 @@ Accepted result:
 Direct evidence:
 
 ```text
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD at that point: c96c9e89 chore(node): add CLI wrapper, evidence validator, and offload lane support
 staged files: none
@@ -688,7 +688,7 @@ Do:
 Continue Yuri OS / NUDIMMUD from the uploaded handoff.
 
 Current trusted state:
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - current accepted HEAD: fe97ec8e chore(rag): prevent cloud embedding fallback in notebook query
 - staged files: none

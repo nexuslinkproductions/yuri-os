@@ -34,7 +34,7 @@ No claim should be made that the repository is clean, production-ready, enterpri
 
 ### Repository context
 
-- Canonical repo root: `/Users/marcelspatz/NUDIMMUD`
+- Canonical repo root: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - Expected branch: `main`
 - Current expected HEAD: `31f3b7dd`
 - Expected HEAD message:
@@ -579,7 +579,7 @@ Known risk:
 
 ## Expected Repo State
 
-- cwd: /Users/marcelspatz/NUDIMMUD
+- cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - HEAD: 31f3b7dd
 - staged files: none
@@ -599,7 +599,7 @@ git status --short -- .claude/settings.json .claude/hooks/user-prompt-submit.js 
 
 Stop and report only if:
 
-- cwd is not /Users/marcelspatz/NUDIMMUD
+- cwd is not /Users/marcelspatz/YURI-OS-MUSUBI
 - branch is not main
 - HEAD is not 31f3b7dd
 - any files are staged
@@ -790,7 +790,7 @@ Do not continue into the recommended next sprint.
   "date": "2026-04-27",
   "document_type": "session_continuity_extract_after_07i_g_v_and_eot_hotfix",
   "status": "handoff_not_independent_repo_audit",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "branch": "main",
   "current_expected_head": {
     "hash": "31f3b7dd",

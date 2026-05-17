@@ -2,8 +2,8 @@
 
 Goal: v10 → v11 iterative upgrade. Three coordinated deliverables:
 
-1. /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html — visual upgrades
-2. /Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-graph-state.json — machine-readable graph for AI orchestrators to read
+1. /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html — visual upgrades
+2. /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-graph-state.json — machine-readable graph for AI orchestrators to read
 3. /Users/marcelspatz/.claude/skills/visual-introspection/SKILL.md — new skill for visual engineering analysis
 
 Model: gpt-5.5 reasoning xhigh (already default).
@@ -554,8 +554,8 @@ Also create a commands alias: `/Users/marcelspatz/.claude/commands/introspect.md
 
 3 files modified or created:
 
-1. `/Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html` — v11 visual updates
-2. `/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-graph-state.json` — NEW machine-readable graph
+1. `/Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html` — v11 visual updates
+2. `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-graph-state.json` — NEW machine-readable graph
 3. `/Users/marcelspatz/.claude/skills/visual-introspection/SKILL.md` — NEW skill
 4. `/Users/marcelspatz/.claude/commands/introspect.md` — NEW slash command alias
 

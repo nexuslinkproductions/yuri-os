@@ -5,8 +5,8 @@
 - **Person:** Marcel Spatz
 - **Company:** Nexus Link: Productions — Vienna, Austria (EPU, est. Autumn 2023)
 - **Role:** Videography · Photography · On-Set Capture · Cinematography · Location Management
-- **Vault:** NUDIMMUD (`/Volumes/T7/NUDIMMUD/`) — primary knowledge OS
-- **Session protocol:** Open with *"NUDIMMUD. The Abzu is open. We work."*
+- **Vault:** YURI-OS-MUSUBI (`/Users/marcelspatz/YURI-OS-MUSUBI/`) — primary knowledge OS
+- **Session protocol:** Open with *"YURI-OS-MUSUBI. The Abzu is open. We work."*
 
 ## Active Pipelines
 | Client | Status | Notes |
@@ -28,7 +28,7 @@
 ## Key Paths
 | Resource | Path |
 |----------|------|
-| Vault root | `/Volumes/T7/NUDIMMUD/` |
+| Vault root | `/Users/marcelspatz/YURI-OS-MUSUBI/` |
 | Projects | `01_PROJECTS/` |
 | Finance | `04_FINANCE/2026/` |
 | Network sync | `06_NETWORK-SYNC/C2MOVIEZ/` |

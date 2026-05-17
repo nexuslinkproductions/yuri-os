@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'fs';
 import { apiFetch } from '../../src/lib/runtime.js';
 
-const BASE = '/Users/marcelspatz/NUDIMMUD/RESEARCH/jake-van-klief';
+const BASE = '/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/jake-van-klief';
 const BACKEND = 'http://127.0.0.1:3004';
 
 async function ingestToRAG() {

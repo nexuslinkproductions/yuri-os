@@ -5,8 +5,8 @@ Goal: v12 → v13 iterative upgrade. 7 coordinated changes.
 Driver: /design-master + /visual-introspection findings on v12. Build on v12. Keep all working systems.
 
 Deliverables (update in place):
-1. `/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-graph-state.json`
-2. `/Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html`
+1. `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-graph-state.json`
+2. `/Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html`
 
 Lead designer: codex gpt-5.5 reasoning xhigh.
 

@@ -5,7 +5,7 @@ const os = require('os');
 
 const STATE_FILE = path.join(__dirname, '..', 'state', 'session-state.json');
 const SKILLS_DIR = path.join(__dirname, '..', 'skills');
-const MEMORY_DIR = path.join(os.homedir(), '.claude', 'projects', '-Users-marcelspatz-NUDIMMUD', 'memory');
+const MEMORY_DIR = path.join(os.homedir(), '.claude', 'projects', '-Users-marcelspatz-YURI-OS-MUSUBI', 'memory');
 const JOURNAL_FILE = path.join(MEMORY_DIR, 'session-journal.md');
 const MEMORY_INDEX = path.join(MEMORY_DIR, 'MEMORY.md');
 

@@ -7,8 +7,8 @@ Lead designer: codex gpt-5.5 reasoning xhigh.
 Build ON v13. Keep all working systems (importmap, scene, controls, raycaster, animation loop, starfield, nebula, CSS2D labels, hover physics, LOD, expand/collapse, info panel, UPGRADES popup, memory placement, helix symmetry, command registry, edge types, arrowheads).
 
 Deliverables (update in place):
-1. `/Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html`
-2. `/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-graph-state.json` (sectors metadata only — add `plane_radius` per sector)
+1. `/Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html`
+2. `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-graph-state.json` (sectors metadata only — add `plane_radius` per sector)
 
 5 coordinated changes: A–E.
 

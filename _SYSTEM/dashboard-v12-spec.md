@@ -5,8 +5,8 @@ Goal: v11 → v12. Eliminate ALL true dead-ends in the Yuri OS graph by adding r
 Source of findings: `/introspect` audit identified 73 true dead-ends (cannot reach USER or RESPONSE), 1 orphan section (SERVICES), and 8+ missing subsystems.
 
 Deliverables (in-repo + global):
-1. `/Users/marcelspatz/NUDIMMUD/_SYSTEM/yuri-graph-state.json` — updated with 40+ new edges, 14+ new nodes, populated returns_to metadata
-2. `/Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html` — render updates for new nodes/edges/sectors
+1. `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-graph-state.json` — updated with 40+ new edges, 14+ new nodes, populated returns_to metadata
+2. `/Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html` — render updates for new nodes/edges/sectors
 
 Build ON v11. Keep all working systems. Add/change only what's specified.
 

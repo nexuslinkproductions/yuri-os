@@ -45,7 +45,7 @@ process.stdin.on('end', () => {
   }
 
   const reason = [
-    'NUDIMMUD policy: Agent() with Anthropic models (Claude/Haiku/Sonnet/Opus) is BANNED.',
+    'YURI-OS-MUSUBI policy: Agent() with Anthropic models (Claude/Haiku/Sonnet/Opus) is BANNED.',
     'Memory rule: memory/feedback_no_anthropic_agents.md',
     `Attempted spawn: subagent_type="${subagentType}" model="${model}" description="${description}"`,
     '',

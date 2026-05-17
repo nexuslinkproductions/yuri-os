@@ -1,11 +1,11 @@
 {
-  "graph_path": "/Users/marcelspatz/NUDIMMUD/design-uiux-knowledge-base/graph.json",
-  "chunk_path": "/Users/marcelspatz/NUDIMMUD/design-uiux-knowledge-base/vector_package/chunks.jsonl",
+  "graph_path": "/Users/marcelspatz/YURI-OS-MUSUBI/design-uiux-knowledge-base/graph.json",
+  "chunk_path": "/Users/marcelspatz/YURI-OS-MUSUBI/design-uiux-knowledge-base/vector_package/chunks.jsonl",
   "chunk_count": 58,
   "source_note_count": 56,
   "summary_docs": [
-    "/Users/marcelspatz/NUDIMMUD/design-uiux-knowledge-base/GRAPH_REPORT.md",
-    "/Users/marcelspatz/NUDIMMUD/design-uiux-knowledge-base/PLAYBOOK.md"
+    "/Users/marcelspatz/YURI-OS-MUSUBI/design-uiux-knowledge-base/GRAPH_REPORT.md",
+    "/Users/marcelspatz/YURI-OS-MUSUBI/design-uiux-knowledge-base/PLAYBOOK.md"
   ],
   "recommended_use": [
     "Use chunks.jsonl for embeddings",

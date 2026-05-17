@@ -34,7 +34,7 @@ No claim should be made that the repository is clean, production-ready, enterpri
 
 ### Repository context
 
-- Canonical repo root: `/Users/marcelspatz/NUDIMMUD`
+- Canonical repo root: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - Expected branch: `main`
 - Current expected HEAD after 07I-E: `c682dd3b`
 - Expected HEAD message:
@@ -469,7 +469,7 @@ Important correction:
 
 ## Expected Repo State
 
-- cwd: `/Users/marcelspatz/NUDIMMUD`
+- cwd: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch: `main`
 - HEAD: `c682dd3b`
 - staged files: none
@@ -489,7 +489,7 @@ git status --short
 
 Stop immediately if:
 
-- cwd is not `/Users/marcelspatz/NUDIMMUD`
+- cwd is not `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch is not `main`
 - HEAD is not `c682dd3b`
 - any files are staged
@@ -711,7 +711,7 @@ Please review the continuity extract and prepare/validate the next safest action
   "date": "2026-04-27",
   "document_type": "session_continuity_extract_after_07i_e_v_partial",
   "status": "handoff_not_independent_repo_audit",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "branch": "main",
   "expected_head": {
     "hash": "c682dd3b",

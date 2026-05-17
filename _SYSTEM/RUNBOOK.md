@@ -10,7 +10,7 @@
 
 | Check | Command | Healthy when |
 |---|---|---|
-| Cwd + branch guard | `pwd && git branch --show-current` | `/Users/marcelspatz/NUDIMMUD` on `main` |
+| Cwd + branch guard | `pwd && git branch --show-current` | `/Users/marcelspatz/YURI-OS-MUSUBI` on `main` |
 | Memory core present | `[ -s memory-core.md ] && echo OK` | prints `OK` |
 | Palace index parseable | `grep -q '^#\+ ' claude-palace-out/palace-index.md && echo OK` | prints `OK` |
 | Session state schema | `jq -e .schema_version .claude/state/session-state.json` | non-zero exit means corruption |
@@ -95,7 +95,7 @@ Watch live: `tail -f .claude/state/progress.log`.
 ## Pre-Session Quick Check
 
 ```bash
-pwd                                              # /Users/marcelspatz/NUDIMMUD
+pwd                                              # /Users/marcelspatz/YURI-OS-MUSUBI
 git branch --show-current                        # main
 git status --short                               # not blocking, but inspect
 launchctl list | grep nudimmud | wc -l           # >= 4

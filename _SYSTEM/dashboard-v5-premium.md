@@ -1,6 +1,6 @@
 ## CODEX TASK SPEC
 
-Goal: Premium aesthetic upgrade of /Users/marcelspatz/NUDIMMUD/yuri-os-dashboard.html.
+Goal: Premium aesthetic upgrade of /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html.
 Do NOT change any content, text, structure, or section order.
 Only upgrade visual treatment: depth, motion, glow, hierarchy.
 

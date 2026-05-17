@@ -4,7 +4,7 @@ date_generated: "2026-05-03"
 source: "Visible GPT-5.5 session transcript and user-provided local execution outputs"
 status: "Archive-ready continuity document; not an independent repo audit"
 project: "Yuri OS / NUDIMMUD"
-repo_root: "/Users/marcelspatz/NUDIMMUD"
+repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
 latest_head_at_end_of_session: "000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary"
 related_sprints:
@@ -333,7 +333,7 @@ No package-lock change occurred.
 GPT-5.5 instructed the user to add a manual shell alias:
 
 ```bash
-printf "\n# NUDIMMUD DeepSeek HUD REPL\nalias nudimmud='node /Users/marcelspatz/NUDIMMUD/Scripts/nudimmud-repl.mjs'\n" >> ~/.zshrc
+printf "\n# NUDIMMUD DeepSeek HUD REPL\nalias nudimmud='node /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs'\n" >> ~/.zshrc
 source ~/.zshrc
 ```
 
@@ -745,7 +745,7 @@ The user asked to start a new GPT session. GPT-5.5 produced this clean continuat
 You are GPT-5.5 Thinking acting as senior AI systems architect, LLMOps engineer, systems engineer, prompt architect, RAG architect, clean-room/IP gatekeeper, TokenOps engineer, and Yuri OS / NUDIMMUD strategic coordinator.
 
 Project: Yuri OS / NUDIMMUD
-Repo root: /Users/marcelspatz/NUDIMMUD
+Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Timezone: Europe/Vienna
 Current date context: 2026-05-02

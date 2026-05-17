@@ -33,7 +33,7 @@ Invoke Pattern Mirror Core for artifact analysis and clean-room reconstruction.
 
 ```
 /yuri pattern-mirror --target ./external-repo --artifact-type repo
-/yuri pattern-mirror --target ./research.pdf --artifact-type pdf --goal "rebuild as NUDIMMUD skill"
+/yuri pattern-mirror --target ./research.pdf --artifact-type pdf --goal "rebuild as YURI-OS-MUSUBI skill"
 /yuri pattern-mirror --target ./prompt.md --artifact-type prompt
 ```
 

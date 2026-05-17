@@ -11,7 +11,7 @@ You are GPT-5.5 at high reasoning. You will receive a complex multi-system integ
 1. **Plan** — read the full context below. Produce a complete integration architecture.
 2. **Execute** — spawn DeepSeek V4 Pro/Flash workhorses for every file operation, config write, and test.
 3. **Validate** — after every phase, verify the result before proceeding.
-4. **Report** — output a final status document at `/Users/marcelspatz/NUDIMMUD/YURI_OS_DEPLOYMENT_STATUS.md`.
+4. **Report** — output a final status document at `/Users/marcelspatz/YURI-OS-MUSUBI/YURI_OS_DEPLOYMENT_STATUS.md`.
 
 **You do NOT execute commands directly.** Every shell command, file write, and config edit runs through a DeepSeek workhorse. You plan and validate.
 
@@ -402,7 +402,7 @@ hermes
 
 ### Step 7.1 — Write deployment status
 ```bash
-cat > /Users/marcelspatz/NUDIMMUD/YURI_OS_DEPLOYMENT_STATUS.md << 'STATUSEOF'
+cat > /Users/marcelspatz/YURI-OS-MUSUBI/YURI_OS_DEPLOYMENT_STATUS.md << 'STATUSEOF'
 # YURI OS Deployment Status
 # Generated: $(date)
 

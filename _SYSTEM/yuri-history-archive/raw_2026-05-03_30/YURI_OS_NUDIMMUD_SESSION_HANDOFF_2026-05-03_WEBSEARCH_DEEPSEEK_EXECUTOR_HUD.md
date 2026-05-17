@@ -2,7 +2,7 @@
 
 **Generated:** 2026-05-03  
 **Project:** Yuri OS / NUDIMMUD  
-**Repo root:** `/Users/marcelspatz/NUDIMMUD`  
+**Repo root:** `/Users/marcelspatz/YURI-OS-MUSUBI`  
 **Branch:** `main`  
 **Primary user goal:** Make DeepSeek a real, safe, low-cost, high-capability executor lane for Yuri OS / NUDIMMUD while preserving local truth, reducing token burn, and stabilizing the NUDIMMUD terminal/HUD workflow.
 
@@ -108,7 +108,7 @@ The upper block is **not** rendered by `Scripts/nudimmud-repl.mjs`.
 It is rendered by:
 
 ```text
-/Users/marcelspatz/NUDIMMUD/_SYSTEM/nudimmud-boot.zsh
+/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/nudimmud-boot.zsh
 ```
 
 It is sourced from:
@@ -121,7 +121,7 @@ Known lines from audit:
 
 ```text
 ~/.zshrc line ~51: sources _SYSTEM/nudimmud-boot.zsh
-~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/NUDIMMUD/Scripts/nudimmud-repl.mjs
+~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs
 _SYSTEM/nudimmud-boot.zsh line ~38: render_context_bar() / precmd() renders upper boot HUD
 ```
 
@@ -150,7 +150,7 @@ The next HUD fix should target boot-layer gating:
 
 - allowed likely files:
   - `/Users/marcelspatz/.zshrc`
-  - `/Users/marcelspatz/NUDIMMUD/_SYSTEM/nudimmud-boot.zsh`
+  - `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/nudimmud-boot.zsh`
 - goal:
   - gate the boot banner and CTX prompt behind an environment flag
   - keep REPL HUD unchanged
@@ -285,7 +285,7 @@ It was intended to run with:
 Claude Code CLI
 claude-sonnet-4-6
 high reasoning
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 ```
 
 Purpose:
@@ -365,7 +365,7 @@ For now, the cleanest temporary setup is a Claude Code cheap-research mode, not 
 One-off pattern:
 
 ```bash
-cd /Users/marcelspatz/NUDIMMUD
+cd /Users/marcelspatz/YURI-OS-MUSUBI
 
 claude -p "$(
 cat <<'EOF'
@@ -418,7 +418,7 @@ Recommended executor:
 Claude Code CLI
 claude-sonnet-4-6
 high reasoning
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 ```
 
 ### Copy-ready prompt for next chat

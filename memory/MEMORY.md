@@ -1,6 +1,6 @@
 # Memory Index
 
-Durable session memory index for NUDIMMUD operational updates.
+Durable session memory index for YURI-OS-MUSUBI operational updates.
 
 ## Active Entries
 

@@ -26,7 +26,7 @@ Do not assume the execution sprint passed until the next Claude report is review
 Expected repository state before execution:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 31f3b7dd chore(git): untrack Claude runtime and debug ephemeral files
 staged files: none
@@ -332,7 +332,7 @@ chore(git): ignore Claude session runtime state
 
 ## Expected Repo State
 
-- cwd: `/Users/marcelspatz/NUDIMMUD`
+- cwd: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch: `main`
 - HEAD: `31f3b7dd chore(git): untrack Claude runtime and debug ephemeral files`
 - staged files: none
@@ -357,7 +357,7 @@ git check-ignore -v --no-index .claude/state/session-state.json || true
 
 Stop immediately and report only if:
 
-- cwd is not `/Users/marcelspatz/NUDIMMUD`
+- cwd is not `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch is not `main`
 - HEAD is not `31f3b7dd`
 - any files are staged
@@ -628,7 +628,7 @@ Do:
   "date": "2026-04-27",
   "document_type": "session_continuity_after_07j_state_i_p",
   "status": "handoff_not_independent_repo_audit",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "branch": "main",
   "expected_head_before_07j_state_i_x": {
     "hash": "31f3b7dd",

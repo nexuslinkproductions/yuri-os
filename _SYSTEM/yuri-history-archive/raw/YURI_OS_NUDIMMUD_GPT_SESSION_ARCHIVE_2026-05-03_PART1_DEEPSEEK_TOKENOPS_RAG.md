@@ -4,7 +4,7 @@ date_generated: "2026-05-03"
 source: "Visible GPT-5.5 session transcript and user-provided local execution outputs"
 status: "Archive-ready continuity document; not an independent repo audit"
 project: "Yuri OS / NUDIMMUD"
-repo_root: "/Users/marcelspatz/NUDIMMUD"
+repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
 latest_head_at_end_of_part: "000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary"
 related_sprints:
@@ -43,7 +43,7 @@ The session began from a handoff state where DeepSeek V4 lanes had just been add
 
 ```text
 Project: Yuri OS / NUDIMMUD
-Repo root: /Users/marcelspatz/NUDIMMUD
+Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Latest confirmed HEAD at session start: ac2c846c1
 Timezone: Europe/Vienna
@@ -198,7 +198,7 @@ Claude Sonnet executed the sprint and reported:
 Key repo evidence:
 
 ```text
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 head: ac2c846c1
 staged: CLEAN
@@ -324,7 +324,7 @@ Claude reported:
 Trusted repo evidence:
 
 ```text
-cwd: /Users/marcelspatz/NUDIMMUD
+cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 head: ac2c846c1
 staged: empty

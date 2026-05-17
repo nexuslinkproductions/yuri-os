@@ -2,7 +2,7 @@
 
 **Generated:** 2026-05-03  
 **Session focus:** NUDIMMUD REPL/HUD usability, turn-output cleanup, natural composer, harness-core scaffolding, status-provider integration, paste handling, and early HUD transformation attempts.  
-**Repo root:** `/Users/marcelspatz/NUDIMMUD`  
+**Repo root:** `/Users/marcelspatz/YURI-OS-MUSUBI`  
 **Expected branch:** `main`  
 **Archive status:** Detailed continuity archive for ingestion. Not an independently executed repo audit.  
 **Source basis:** Visible GPT conversation, user-pasted terminal/Codex/Claude/DeepSeek outputs, and user screenshots/descriptions.  
@@ -44,8 +44,8 @@ The session began with the user reporting that Sonnet took around five minutes t
 
 ```text
 Read 1 file
-wc -l /Users/marcelspatz/NUDIMMUD/Scripts/nudimmud-repl.mjs
-582 /Users/marcelspatz/NUDIMMUD/Scripts/nudimmud-repl.mjs
+wc -l /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs
+582 /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/nudimmud-repl.mjs
 HEAD 4f4312fe9 fix(cli): calm NUDIMMUD HUD theme and move footer below input
 Synthesizing… 6m49s · ↑ 1.6k tokens · thought for 361s
 ```

@@ -4,7 +4,7 @@
 'use strict';
 const http = require('http');
 const { spawn } = require('child_process');
-const ROOT = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/NUDIMMUD';
+const ROOT = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
 const PORT = parseInt(process.env.SHELL_SERVICE_PORT || '3098', 10);
 const API_KEY = process.env.SHELL_SERVICE_KEY || 'nudimmud-master-key-2026-04-23';
 const SHELL_ENV = { ...process.env, PATH: process.env.PATH || '/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin' };

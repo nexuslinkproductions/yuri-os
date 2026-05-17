@@ -92,7 +92,7 @@ Generate a bounded task spec in NUDIMMUD format:
    - **Method B (Screenshot OCR):** Screenshot the response area, OCR the text
    - **Method C (Copy-paste simulation):** Select all response text, Cmd+C, read clipboard
 8. **Extract citations** (if present): Capture all `[1]`, `[2]` citation markers + their URLs
-9. **Save artifact:** Write response to `/Users/marcelspatz/NUDIMMUD/.claude/state/perplexity-responses/response-{timestamp}.md`
+9. **Save artifact:** Write response to `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/perplexity-responses/response-{timestamp}.md`
 10. **Return to Claude:** Close browser tab, report success + artifact path
 
 **Error handling:**

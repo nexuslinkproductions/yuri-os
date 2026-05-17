@@ -5,11 +5,11 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
 
-const TRACKER = '/Users/marcelspatz/NUDIMMUD/_SYSTEM/token-tracker.md';
-const STATE_DIR = '/Users/marcelspatz/NUDIMMUD/.claude/state';
+const TRACKER = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/token-tracker.md';
+const STATE_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state';
 const SESSION_FILE = `${STATE_DIR}/token-session.json`;
 const WEEKLY_FILE = `${STATE_DIR}/token-weekly.json`;
-const TOKEN_LEDGER = '/Users/marcelspatz/NUDIMMUD/Scripts/token-ledger.mjs';
+const TOKEN_LEDGER = '/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/token-ledger.mjs';
 
 try {
   const sessionPath = '/tmp/claude-current-session';

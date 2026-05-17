@@ -52,7 +52,7 @@ git commit -m "chore: stop tracking auto-generated graph/ artifacts"
 The mirror has 38 diverged files and ~50 unique documents. Before deletion can happen, produce a complete inventory:
 ```bash
 # List all unique files in mirror not at root
-cd /Users/marcelspatz/NUDIMMUD
+cd /Users/marcelspatz/YURI-OS-MUSUBI
 diff -rq NUDIMMUD/ . --exclude=node_modules --exclude=.git 2>/dev/null | grep "Only in NUDIMMUD" > _QUARANTINE_2026-05-07/mirror-unique-files.txt
 # Show size + date for each diverged file
 diff -rq NUDIMMUD/ . --exclude=node_modules --exclude=.git 2>/dev/null | grep "differ" > _QUARANTINE_2026-05-07/mirror-diverged-files.txt
@@ -106,7 +106,7 @@ Workhorse instructions template:
 ```
 /spawn /deepseek-workhorse
 Task: [task name from above]
-Working directory: /Users/marcelspatz/NUDIMMUD
+Working directory: /Users/marcelspatz/YURI-OS-MUSUBI
 Commands:
   [exact commands to run]
 Verification:

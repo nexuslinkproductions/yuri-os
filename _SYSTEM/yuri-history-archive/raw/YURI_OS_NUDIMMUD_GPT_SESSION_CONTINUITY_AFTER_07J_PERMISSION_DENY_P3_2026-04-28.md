@@ -25,7 +25,7 @@ The next GPT chat should review that Sonnet P3 plan before authorizing any Claud
 Expected current repo context, based on the latest user-provided Claude reports:
 
 ```text
-repo root: /Users/marcelspatz/NUDIMMUD
+repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current expected HEAD: 9e250efb chore(hooks): persist referenced Aeonic, Yuri, and EOT hooks
 staged files: none expected
@@ -462,7 +462,7 @@ Define a smaller exact deny Phase 1 patch or owner-decision matrix.
 Continue Yuri OS / NUDIMMUD from this continuity file.
 
 Latest committed state expected:
-- repo root: /Users/marcelspatz/NUDIMMUD
+- repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 - branch: main
 - HEAD: 9e250efb chore(hooks): persist referenced Aeonic, Yuri, and EOT hooks
 - staged files: none expected
@@ -544,7 +544,7 @@ Do:
   "date": "2026-04-28",
   "document_type": "gpt_session_continuity_after_07j_permission_deny_p3",
   "status": "handoff_not_independent_repo_audit",
-  "repo_root": "/Users/marcelspatz/NUDIMMUD",
+  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
   "branch": "main",
   "expected_head": {
     "hash": "9e250efb",

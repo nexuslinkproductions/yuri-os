@@ -150,7 +150,7 @@ Tasks 1-7 above are fully independent. Spawn them all in parallel. Only Task 6 (
 After all workhorses report success, run:
 
 ```bash
-cd /Users/marcelspatz/NUDIMMUD
+cd /Users/marcelspatz/YURI-OS-MUSUBI
 echo "=== Root items ===" && ls -d */ 2>/dev/null | wc -l
 echo "=== graph/ files ===" && find graph/ -type f 2>/dev/null | wc -l || echo "graph/ removed"
 echo "=== NUDIMMOD/ exists? ===" && test -d NUDIMMOD && echo "STILL EXISTS — FAIL" || echo "REMOVED — OK"

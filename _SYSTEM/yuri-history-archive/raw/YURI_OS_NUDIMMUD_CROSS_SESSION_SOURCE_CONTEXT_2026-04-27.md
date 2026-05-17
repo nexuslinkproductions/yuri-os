@@ -91,7 +91,7 @@ Recommended next task: **Sprint 06E-V — Post-Baseline Commit Validation**.
 ### 5.2 Registry Baseline
 
 - Registry file:
-  - `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest.json`
+  - `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json`
 
 - Manifest version:
   - Reported as `1.0.2`
@@ -123,7 +123,7 @@ Recommended next task: **Sprint 06E-V — Post-Baseline Commit Validation**.
 ### 5.3 Agent Baseline
 
 - Agent manifest:
-  - `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/agent-manifest.json`
+  - `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/agent-manifest.json`
 
 - Agent count:
   - `11` agents were reported in Sprint 01/Sprint 02 and baseline work.
@@ -638,7 +638,7 @@ GPT-5.5 cross-checked the current session reports and resolved the latest accept
   - `b940f900 feat(skills): add Yuri OS core skill directories`
   - `5b4ad58c refactor(infrastructure): baseline Claude policy and hooks`
 - Registry path:
-  - `/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest.json`
+  - `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json`
 - Expected manifest version:
   - `1.0.2`
 - Expected skill counts:
@@ -736,7 +736,7 @@ Do not fix anything in this sprint.
     "5b4ad58c"
   ],
   "registry": {
-    "path": "/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/skill-manifest.json",
+    "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json",
     "manifest_version_reported": "1.0.2",
     "total_skills": 29,
     "top_level_skills": 23,
@@ -756,7 +756,7 @@ Do not fix anything in this sprint.
     "accepted_command_files": 15
   },
   "agents": {
-    "agent_manifest_path": "/Users/marcelspatz/NUDIMMUD/.claude/reinforcement/agent-manifest.json",
+    "agent_manifest_path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/agent-manifest.json",
     "reported_agent_count": 11,
     "model_assignment_gap_from_sprint_02": [
       "argus",

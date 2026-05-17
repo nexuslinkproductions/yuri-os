@@ -20,7 +20,7 @@ Do not implement bulk sending. Do not automate outreach. Fanny remains the manua
 Workspace:
 
 ```text
-/Users/marcelspatz/NUDIMMUD/.codex-worktrees/prism-workbench
+/Users/marcelspatz/YURI-OS-MUSUBI/.codex-worktrees/prism-workbench
 ```
 
 Branch:
@@ -447,8 +447,8 @@ Run at minimum:
 node Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
 npx vite build --config acquisition/vite.config.mts
-PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
-PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules" npm --prefix backend run build
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" npm --prefix backend run build
 ```
 
 If the isolated worktree lacks `backend/node_modules`, use the existing main repo dependency path as shown above. Do not vendor dependencies into the worktree.
@@ -471,7 +471,7 @@ COLD_ACQ_ADMIN_PASSWORD='admin-pass-123456' \
 COLD_ACQ_FANNY_EMAIL='fanny@example.test' \
 COLD_ACQ_FANNY_PASSWORD='fanny-pass-123456' \
 TS_NODE_TRANSPILE_ONLY=1 \
-PATH="/Users/marcelspatz/NUDIMMUD/backend/node_modules/.bin:$PATH" \
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" \
 npm --prefix backend run dev
 ```
 

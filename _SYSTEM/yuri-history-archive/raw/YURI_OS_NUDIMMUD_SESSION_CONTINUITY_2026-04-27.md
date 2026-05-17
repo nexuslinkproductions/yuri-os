@@ -22,7 +22,7 @@ Main outcomes:
   - Project owner remains final authority.
 - Sprint 06E-V was run by Claude and returned `06E_V_PASS`.
 - A persistent workspace/session-start guard was added to `.claude/CLAUDE.md` through Sprint 06F-W-BOOTSTRAP.
-- VS Code was configured so the integrated terminal starts in `/Users/marcelspatz/NUDIMMUD`.
+- VS Code was configured so the integrated terminal starts in `/Users/marcelspatz/YURI-OS-MUSUBI`.
 - A shell alias / shortcut named `yuri` was created and confirmed operational, launching Claude from the correct repo.
 - Sprint 07A — Ephemeral Artifact Policy Audit was run and produced a no-mutation policy audit.
 - The next recommended sprint is `Sprint 06F-W-C — Commit Workspace Root Guard`.
@@ -38,11 +38,11 @@ Reason for the next sprint:
 
 ### Repository context
 
-- Canonical repo root: `/Users/marcelspatz/NUDIMMUD`
+- Canonical repo root: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - Expected branch: `main`
-- VS Code global terminal cwd now configured to `/Users/marcelspatz/NUDIMMUD`
-- `yuri` shortcut confirmed operational and opens Claude from `/Users/marcelspatz/NUDIMMUD`
-- Claude trust prompt should show `/Users/marcelspatz/NUDIMMUD`
+- VS Code global terminal cwd now configured to `/Users/marcelspatz/YURI-OS-MUSUBI`
+- `yuri` shortcut confirmed operational and opens Claude from `/Users/marcelspatz/YURI-OS-MUSUBI`
+- Claude trust prompt should show `/Users/marcelspatz/YURI-OS-MUSUBI`
 
 Do not approve Claude workspace trust for `/Users/marcelspatz`.
 
@@ -54,7 +54,7 @@ Claude reported:
 
 Validated:
 
-- working directory: `/Users/marcelspatz/NUDIMMUD`
+- working directory: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch: `main`
 - all five Sprint 06E commits present:
   - `5b4ad58c refactor(infrastructure): baseline Claude policy and hooks`
@@ -163,7 +163,7 @@ Result: `06F_W_BOOTSTRAP_PASS_GUARD_PERSISTED_NO_COMMIT`
 
 File modified:
 
-- `/Users/marcelspatz/NUDIMMUD/.claude/CLAUDE.md`
+- `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/CLAUDE.md`
 
 Status:
 
@@ -176,7 +176,7 @@ Inserted guard content:
 
 Canonical repository root:
 
-- `/Users/marcelspatz/NUDIMMUD`
+- `/Users/marcelspatz/YURI-OS-MUSUBI`
 
 Canonical branch:
 
@@ -184,7 +184,7 @@ Canonical branch:
 
 Before any Yuri OS / NUDIMMUD sprint, audit, validation, cleanup, patch, report, config work, or local CLI task, first verify:
 
-- `pwd` equals `/Users/marcelspatz/NUDIMMUD`
+- `pwd` equals `/Users/marcelspatz/YURI-OS-MUSUBI`
 - `git branch --show-current` equals `main`
 
 If either check fails:
@@ -221,7 +221,7 @@ Result accepted by GPT-5.5:
 
 Claude reported:
 
-- cwd: `/Users/marcelspatz/NUDIMMUD`
+- cwd: `/Users/marcelspatz/YURI-OS-MUSUBI`
 - branch: `main`
 - git status summary:
   - `69 modified`
@@ -408,7 +408,7 @@ Current accepted state:
 
 Canonical repo:
 
-- `/Users/marcelspatz/NUDIMMUD`
+- `/Users/marcelspatz/YURI-OS-MUSUBI`
 
 Canonical branch:
 
@@ -419,7 +419,7 @@ Expected committed change:
 - `.claude/CLAUDE.md`
 - adds Yuri OS / NUDIMMUD Session Start Guard
 - guard requires future sessions to verify:
-  - `pwd` equals `/Users/marcelspatz/NUDIMMUD`
+  - `pwd` equals `/Users/marcelspatz/YURI-OS-MUSUBI`
   - `git branch --show-current` equals `main`
 - guard requires Claude to stop if either check fails
 - guard forbids automatic directory switching, automatic branch switching, mutation, staging, or commit when context mismatches
@@ -432,7 +432,7 @@ Commit message:
 
 Stop immediately and report if any occur:
 
-- Current directory is not `/Users/marcelspatz/NUDIMMUD`.
+- Current directory is not `/Users/marcelspatz/YURI-OS-MUSUBI`.
 - Current branch is not `main`.
 - `.claude/CLAUDE.md` is missing.
 - `.claude/CLAUDE.md` does not contain the session-start guard.
@@ -562,7 +562,7 @@ Verify:
 3. No staged files remain.
 4. Existing unrelated dirty/deleted files remain unstaged.
 5. No cleanup occurred.
-6. cwd remains `/Users/marcelspatz/NUDIMMUD`.
+6. cwd remains `/Users/marcelspatz/YURI-OS-MUSUBI`.
 7. branch remains `main`.
 
 ## Final Report

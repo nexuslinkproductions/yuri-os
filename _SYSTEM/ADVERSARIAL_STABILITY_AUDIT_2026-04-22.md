@@ -155,7 +155,7 @@ This is a **corrupted or never-initialized database**. The system initialized it
 
 **Test:** Run this to confirm:
 ```bash
-sqlite3 /Users/marcelspatz/NUDIMMUD/backend/data/nudimmud.db ".tables"
+sqlite3 /Users/marcelspatz/YURI-OS-MUSUBI/backend/data/nudimmud.db ".tables"
 # Expected: error or empty output
 ```
 
