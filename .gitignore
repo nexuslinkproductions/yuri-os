@@ -228,3 +228,6 @@ _SYSTEM/corpus-output/
 
 # T7 session data (local only, never push)
 .claude/projects/-Volumes-T7/
+
+# NEURAL-NETWORK is 895MB of eval/experimental data — local only
+NEURAL-NETWORK/
