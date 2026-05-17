@@ -25,7 +25,6 @@ This is an **internal report for Marcel only** (not client-facing). Tone: Direct
 Read from finance folder:
 
 ```
-/Volumes/T7/NUDIMMUD/04_FINANCE/2026/
 ├── invoices/
 │   ├── INV-2026-001_C2MOVIEZ.pdf
 │   ├── INV-2026-002_PLANZERFILMS.pdf
@@ -149,7 +148,6 @@ Any context or comments:
 Save as markdown email-ready:
 
 ```
-/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/[YYYY-MM-DD]-weekly-digest.md
 ```
 
 Also prepare plain-text email version:

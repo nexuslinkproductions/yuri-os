@@ -83,7 +83,6 @@ Four agents run on a schedule, each building a different part of your brand:
 ## Architecture
 
 ```
-/Volumes/T7/NUDIMMUD/_SYSTEM/distribution-agents/
 ├── config.json                           [Schedule, brand voice, outputs]
 ├── AGENT-behind-the-scenes-writer.md     [Blog post generation protocol]
 ├── AGENT-carousel-maker.md               [Instagram carousel protocol]
@@ -108,7 +107,6 @@ Four agents run on a schedule, each building a different part of your brand:
 
 ```bash
 # Create scheduled task for each agent
-node /Volumes/T7/NUDIMMUD/.claude/commands/schedule.js \
   --task behind-the-scenes-writer \
   --cron "0 9 * * 1-5" \
   --script AGENT-behind-the-scenes-writer.md

@@ -11,7 +11,6 @@ The original master prompt contained **catastrophic misclassifications**. Follow
 
 - Deleted the entire **launch + offload + trading-bot pipeline** (`_SYSTEM/Scripts/`, `bin/`)
 - Severed the **macOS `claude://` URL handler** (`Claude Code URL Handler.app`)
-- Removed the **T7 sync mount stub** (`Volumes/`)
 - Force-removed a **symlink to `/Users/marcelspatz/GeneratedContent`** (with risky `rm -rf` semantics on the linked target)
 - Risked deleting the **NUDIMMUD/ mirror** before reconciling 38 diverged files and 50+ unique markdown documents
 
@@ -57,7 +56,6 @@ The original prompt called these "dead artifacts" and proposed `rm`. **All are l
 |------|---------|----------|
 | `_SYSTEM/Scripts/` | Live launch + offload + trading-bot pipeline | `package.json` references `_SYSTEM/Scripts/nudimmud-repl.mjs` and 11 `_SYSTEM/Scripts/trading-bot/*.mjs` entries; `CORE_PROTOCOL §9` references `_SYSTEM/Scripts/offload.sh` |
 | `bin/` | `claude` wrapper + `design-audit` | Memory `project_claude_launch_stack.md`: "boot.zsh → ~/NUDIMMUD/bin/claude → _SYSTEM/Scripts/ai" |
-| `Volumes/T7` | Read-only sync source | `local_execution.md`: "high-risk, supervised only" |
 | `GeneratedContent` | **Symlink** to `/Users/marcelspatz/GeneratedContent` | `lrwxr-xr-x@ 1 marcelspatz staff 35 → /Users/marcelspatz/GeneratedContent` — `rm -rf` of dir-symlinks has historically followed the link on some platforms |
 | `Claude Code URL Handler.app` | macOS `claude://` deep-link handler bundle | `Contents/Info.plist` + `Contents/MacOS/` present; registered in macOS Launch Services |
 | `DOMAIN EXPANSION - INFINITE VOID/` | Archived domain content; tied to `execution-domain-core` skill | Contains `01_PROJECTS/{01_Superpowers,03_GStack}.md` (archived plans); referenced by skills index |

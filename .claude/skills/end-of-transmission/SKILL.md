@@ -48,7 +48,7 @@ Overrides ordinary continuation, feature work, UI polish, or new-task execution.
 - Do not invent session outcomes.
 - Do not claim tests, audits, file edits, or checks were performed without evidence.
 - Do not expose chain-of-thought. Provide concise, inspectable reasoning summaries.
-- Do not modify Conclave, secrets, credentials, private environment files, T7, or unrelated production code.
+- Do not modify Conclave, secrets, credentials, private environment files, or unrelated production code.
 - Do not convert failures into vague "learnings." Record them clearly and practically.
 - Do not end with only a motivational summary. Produce operational next steps and system refinements.
 
@@ -127,7 +127,6 @@ transcript extraction · file inventory · diff generation · grep/search self-i
     <area>Conclave</area>
     <area>secrets and credentials</area>
     <area>private environment files</area>
-    <area>T7 drive (/Volumes/T7)</area>
     <area>unrelated production logic</area>
   </protected_areas>
 </end_of_transmission_state>

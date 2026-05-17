@@ -89,7 +89,7 @@ function getWeekStart() {
   return d.toISOString().slice(0, 10);
 }
 
-// Palace status — local only (T7 is dead, never fall back)
+// Palace status
 const palacePath = '/Users/marcelspatz/YURI-OS-MUSUBI/claude-palace-out/palace-index.md';
 let palaceStatus;
 try {

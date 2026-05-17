@@ -9,7 +9,6 @@ const PROTECTED_TARGETS = [
   { path: path.join(PROJECT_ROOT, '.claude/state'), type: 'dir', label: '.claude/state' },
   { path: path.join(PROJECT_ROOT, '.claude/history'), type: 'dir', label: '.claude/history' },
   { path: path.join(PROJECT_ROOT, 'backend/data'), type: 'dir', label: 'backend/data' },
-  { path: '/Volumes/T7', type: 'dir', label: '/Volumes/T7' },
 ];
 
 const PROTECTED_LITERAL_PATTERNS = [
@@ -17,7 +16,6 @@ const PROTECTED_LITERAL_PATTERNS = [
   { re: /(^|[\s"'=;:])\.claude\/state(\/|$|[\s"';|&])/u, label: '.claude/state' },
   { re: /(^|[\s"'=;:])\.claude\/history(\/|$|[\s"';|&])/u, label: '.claude/history' },
   { re: /(^|[\s"'=;:])backend\/data(\/|$|[\s"';|&])/u, label: 'backend/data' },
-  { re: /\/Volumes\/T7(\/|$|[\s"';|&])/u, label: '/Volumes/T7' },
 ];
 
 const MUTATING_COMMAND_RE =

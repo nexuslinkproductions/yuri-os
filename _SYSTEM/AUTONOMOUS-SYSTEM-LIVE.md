@@ -102,8 +102,6 @@ You will see:
 - ✅ Monthly summaries auto-generated on 28th
 
 You can optionally:
-- Check status: `/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh status`
-- View recent sessions: `/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh tracker`
 - Review monthly reports: Check `04_FINANCE/2026/token-tracking/`
 
 ---
@@ -131,16 +129,13 @@ Run this monthly to verify everything is working:
 ls -lh /tmp/claude-session-*.json | tail -1
 
 # Check tracker has entries
-tail -5 /Volumes/T7/NUDIMMUD/_SYSTEM/token-tracker.md
 
 # Check monthly summaries being created
-ls -lh /Volumes/T7/NUDIMMUD/04_FINANCE/2026/token-tracking/
 
 # Check no orphaned session files (older than 8 hours)
 find /tmp -name "claude-session-*.json" -mtime +1
 
 # Run orchestrator status
-/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh status
 ```
 
 ---
@@ -151,11 +146,9 @@ find /tmp -name "claude-session-*.json" -mtime +1
 1. Check hook scripts exist: `ls /Users/marcelspatz/.claude/hooks/token-*.js`
 2. Check settings.json is valid: `cat /Users/marcelspatz/.claude/settings.json | jq . >/dev/null`
 3. Restart Claude Code
-4. Run orchestrator: `/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh status`
 
 **If monthly summary doesn't generate:**
 1. Manual trigger: `node /Users/marcelspatz/.claude/hooks/token-aggregate-monthly.js`
-2. Check output: `ls -lh /Volumes/T7/NUDIMMUD/04_FINANCE/2026/token-tracking/2026-04-summary.md`
 3. Review logs in hook output
 
 **If status line doesn't show tokens:**
@@ -200,8 +193,6 @@ If estimates drift significantly in first month of data, will recalibrate in Q2 
 
 **Where token data is stored:**
 - `/tmp/claude-session-*.json` — Temporary, auto-deleted after 8 hours
-- `/Volumes/T7/NUDIMMUD/_SYSTEM/token-tracker.md` — Persistent log (local)
-- `/Volumes/T7/NUDIMMUD/04_FINANCE/2026/token-tracking/` — Monthly summaries (local)
 
 **What's tracked:**
 - Token estimates (never actual API counts)
@@ -215,7 +206,6 @@ If estimates drift significantly in first month of data, will recalibrate in Q2 
 - File contents
 - Sensitive data
 
-**Security:** All data local to T7 SSD. No external calls. No API key exposure.
 
 ---
 

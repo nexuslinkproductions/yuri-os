@@ -445,7 +445,6 @@ Accepted direction:
 - Use Claude Code’s official `allow`, `ask`, and `deny` permission structure.
 - Keep destructive and sensitive operations denied.
 - Keep normal package installs ask-gated, not silently allowed.
-- Keep global installs, publish commands, sudo, destructive deletes, secret reads, git remote mutation, and `/Volumes/T7` access denied unless a very narrow approved workflow exists.
 
 Known caveat:
 

@@ -23,7 +23,6 @@ function copyRecursive(src: string, dest: string) {
         if (src.endsWith('.ts') || src.endsWith('.tsx') || src.endsWith('.js') || src.endsWith('.json') || src.endsWith('.env')) {
             let text = content.toString('utf8');
             const original = text;
-            text = text.replace(/\/Volumes\/T7\/NUDIMMUD/g, TARGET);
             if (original !== text) {
                 console.log(`⬡ PATCHED_PATHS :: ${path.basename(src)}`);
             }

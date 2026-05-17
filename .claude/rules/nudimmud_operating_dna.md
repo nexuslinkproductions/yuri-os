@@ -7,10 +7,9 @@ This file is a Claude-specific workflow bridge. Shared policy lives in the canon
 
 ## On-demand references
 
-- `.claude/rules/local_execution.md` - T7 and file-flow specifics
 - `.claude/rules/research_pipeline.md` - research workflow
 - `.claude/rules/skill-creation.md` - skill creation workflow
-- `Scripts/offload-contract.mjs` - routing and lifecycle contract
+- `_SYSTEM/Scripts/offload-contract.mjs` - routing and lifecycle contract
 
 ## Local exception handling
 

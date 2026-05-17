@@ -46,7 +46,6 @@ The Autonomous AI Swarm is a five-phase orchestration system that runs every nig
 ## Architecture Overview
 
 ```
-/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/
 ├── config.json                           [Master configuration]
 ├── orchestrator.js                       [Main orchestration script]
 ├── SWARM-ORCHESTRATOR.md                 [Detailed phase instructions]
@@ -86,7 +85,6 @@ crontab -e
 Add this line:
 
 ```
-0 22 * * * /usr/bin/node /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/orchestrator.js >> /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/logs/cron.log 2>&1
 ```
 
 This runs the swarm every night at 22:00 Vienna time.
@@ -104,7 +102,6 @@ This runs the swarm every night at 22:00 Vienna time.
 ### Option 3: Manual Trigger (Testing)
 
 ```bash
-node /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/orchestrator.js
 ```
 
 Runs immediately (useful for testing or manual runs).
@@ -116,13 +113,11 @@ Runs immediately (useful for testing or manual runs).
 ### Before Sleeping (Evening)
 
 1. **Write debrief notes** (if you shot today)
-   - Location: `/Volumes/T7/NUDIMMUD/01_PROJECTS/[CLIENT]/[PROJECT]/DEBRIEF.md`
    - Include: what worked, what failed, techniques, insights
    - Time: 5 minutes
    - This feeds the Blog Writer agent
 
 2. **Ensure finance folder is up to date** (if new invoices/expenses)
-   - Location: `/Volumes/T7/NUDIMMUD/04_FINANCE/2026/`
    - Include: invoices in `invoices/`, expenses in `expenses/`
    - Format: `INV-[YYYY]-###_Client.pdf` or `EXP-[YYYY-MM-DD]_Vendor.pdf`
    - This feeds the Finance Digest agent
@@ -135,26 +130,21 @@ That's it. Go to sleep. The swarm works while you sleep.
 ### When You Wake (Morning)
 
 1. **Check morning briefing** (10 minutes)
-   - Location: `/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/reports/[today]-morning-brief.md`
    - Review: What was approved? What was rejected? Any action items?
 
 2. **Review approved blog posts** (5 minutes)
-   - Location: `/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/`
    - Files with `.deployment.json` → awaiting your approval
    - Approve and publish, or reject and send feedback
 
 3. **Post Instagram carousel** (2 minutes, optional)
-   - Location: `/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/ready/`
    - Copy 7 PNG files to Instagram app or Meta Business Suite
    - Or skip and leave for later
 
 4. **Review Reddit drafts** (5 minutes, optional)
-   - Location: `/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/ready/`
    - Read for tone, verify 90/10 rule
    - Post manually to Reddit (maintains authenticity)
 
 5. **Act on finance digest** (5 minutes)
-   - Location: `/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/`
    - Email to self or Claudio
    - Chase overdue invoices (if any marked URGENT)
 
@@ -290,19 +280,14 @@ Adjust thresholds based on quality standards:
 
 ```bash
 # View today's morning briefing
-cat /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/reports/$(date +%Y-%m-%d)-morning-brief.md
 
 # View generation outputs
-ls -lah /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/generated/$(date +%Y-%m-%d)/
 
 # View validation results
-cat /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/validated/$(date +%Y-%m-%d)/results.json
 
 # View rejected content (needs review)
-ls -lah /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/rejected/$(date +%Y-%m-%d)/
 
 # View last run log
-tail -50 /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/logs/$(date +%Y-%m-%d)-run.log
 ```
 
 ### Common Issues
@@ -381,23 +366,19 @@ If approval rate is low, thresholds may be too strict. If content quality is low
 
 1. **Verify orchestrator.js is executable:**
    ```bash
-   chmod +x /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/orchestrator.js
    ```
 
 2. **Test manually (dry run):**
    ```bash
-   node /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/orchestrator.js
    ```
 
 3. **Check morning briefing was created:**
    ```bash
-   cat /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/reports/[today]-morning-brief.md
    ```
 
 4. **If successful, activate cron:**
    ```bash
    crontab -e
-   # Add: 0 22 * * * /usr/bin/node /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/orchestrator.js >> /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/logs/cron.log 2>&1
    ```
 
 5. **Monitor first week, then adjust config.json based on results:**

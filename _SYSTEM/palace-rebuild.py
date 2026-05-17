@@ -5,7 +5,6 @@ Scans the YURI-OS-MUSUBI vault, parses wikilinks, builds semantic index outputs.
 
 Usage:
   python3 palace-rebuild.py
-  python3 palace-rebuild.py --vault /Users/marcelspatz/YURI-OS-MUSUBI --output /Volumes/T7/claude-palace-out
   python3 palace-rebuild.py --dry-run   (scan only, no file writes)
 
 Outputs (in OUTPUT_DIR):

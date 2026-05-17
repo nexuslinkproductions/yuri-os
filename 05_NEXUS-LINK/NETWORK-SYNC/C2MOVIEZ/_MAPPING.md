@@ -44,11 +44,6 @@ Additional projects tracked in Claudio's `03 - Projects/` but not yet requiring 
 
 | Purpose | Location | Access |
 |---|---|---|
-| **Integrated iC2M Vault** | `/Volumes/T7/NUDIMMUD/iC2M/` | Live Sync (Obsidian + GitHub) |
-| **Raw Claudio Database** | `/Volumes/T7/NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/Database/` | Read-only (git clone) |
-| **Mapping** | `/Volumes/T7/NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/_MAPPING.md` | This file |
-| **Sync status** | `/Volumes/T7/NUDIMMUD/06_NETWORK-SYNC/C2MOVIEZ/_SYNC-STATUS.md` | Sync log |
-| **Production Projects** | `/Volumes/T7/NUDIMMUD/01_PROJECTS/C2MOVIEZ/` | Main vault (read-write) |
 
 ## Sync Protocol
 

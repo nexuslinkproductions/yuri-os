@@ -36,7 +36,6 @@ Operating under NexusLinkProductions — integrated as c2moviez member
 | **Systems** | Obsidian knowledge management, AI integration (Claude), Bash/Zsh scripting |
 
 ## Equipment & Tools
-- **Hardware:** Mac Studio, T7 SSD, macOS ecosystem
 - **Editing:** Adobe Premiere Pro, DaVinci Resolve
 - **Motion/VFX:** After Effects, mocha tracking
 - **Design:** Illustrator, Figma

@@ -1,5 +1,4 @@
 # SESSION RECONSTRUCTION — 2026-04-17 @ 15:30
-*Produced by NUDIMMUD on 2026-04-18 from T7 source files*
 
 ---
 
@@ -7,8 +6,6 @@
 
 **Session path was:** `/sessions/zealous-gallant-clarke/` (no longer accessible)  
 **Current session path:** `/sessions/great-dreamy-planck/`  
-**T7 vault intact at:** `/sessions/great-dreamy-planck/mnt/T7/NUDIMMUD/`  
-**Data loss:** Zero — all 24 built files confirmed present on T7.
 
 ---
 
@@ -113,7 +110,6 @@ All four engines had seeded data in noesis-intake.md:
 
 ---
 
-## FILE MANIFEST (April 17 builds — confirmed present on T7)
 
 From session_log.md DELTA statement: 24 files, 4,990 lines, 233 wikilinks. Key confirmed files:
 - `/NUDIMMUD/session_log.md` — complete, current
@@ -128,4 +124,3 @@ From session_log.md DELTA statement: 24 files, 4,990 lines, 233 wikilinks. Key c
 
 ---
 
-*Reconstruction accuracy: HIGH — sourced directly from T7 files, not from memory.*

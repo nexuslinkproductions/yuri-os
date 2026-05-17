@@ -58,7 +58,6 @@ Claude (control) + Codex (implementation, primary) + DeepSeek (analysis + parall
 - backend/data/, .claude/state/, .claude/history/
 - .env, secrets, credentials
 - Conclave (never modify)
-- T7 paths (/Volumes/T7/YURI-OS-MUSUBI — sync mirror, never mass-rewrite)
 - node_modules/
 
 ## What's Forbidden

@@ -215,10 +215,8 @@ Consolidated into your skill file:
 ### Command
 
 ```bash
-node /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/orchestrator.js \
   shot-list-generation \
   --samples 20 \
-  --output /Volumes/T7/NUDIMMUD/.claude/skills/shot-list-generation/SKILL.md
 ```
 
 ### What Happens
@@ -238,7 +236,6 @@ node /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/orchestrator.js \
 All outputs saved for review:
 
 ```
-/Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/evidence/shot-list-generation/
 ├── run-01-easy.md         [Score: 8.2/10]
 ├── run-02-easy.md         [Score: 9.1/10]
 ├── ...

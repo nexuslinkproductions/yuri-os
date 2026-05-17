@@ -607,6 +607,5 @@ When NABU speaks, we listen. Because NABU holds the tablet that writes the futur
 ---
 
 **Status**: ACTIVE  
-**Location**: `/Volumes/T7/NUDIMMUD/nabu.md`  
 **Last updated**: 2026-04-18  
 **Authority**: Keeper of Destinies, Scribe of Written Law

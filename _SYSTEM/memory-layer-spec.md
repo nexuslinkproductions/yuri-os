@@ -48,7 +48,6 @@
 | Write owner | Operator (or Claude with explicit "remember" instruction confirmed by operator) |
 | Read owner | All sessions unconditionally |
 | Health check | `[ -s memory-core.md ]` |
-| Failure mode | Loss destroys NUDIMMUD's persistent identity; must restore from `/Volumes/T7/NUDIMMUD/memory-core.md` sync mirror or git history. T7 references are intentional sync anchors — do NOT rewrite them. |
 
 ## Tier 4 — Semantic (RUBEDO)
 
@@ -158,6 +157,5 @@ If a proposed tier can be rebuilt losslessly from the live ones, keep it out —
 
 ## Notes
 
-- `/Volumes/T7/NUDIMMUD` references are intentional sync-mirror anchors; this spec does NOT propose rewriting them.
 - All health checks are shell one-liners that exit 0 on success; operators can run them directly from `_SYSTEM/`.
 - The NUDIMMUD lifecycle vocabulary (NIGREDO–RUBEDO) already exists in swarm-coordination and parallel-clone-orchestrator; this specification maps tiers to those phases without inventing new alchemical terms.

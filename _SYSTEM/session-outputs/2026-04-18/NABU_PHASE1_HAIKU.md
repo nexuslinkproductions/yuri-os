@@ -1821,7 +1821,6 @@ Together with NUDIMMUD (fashioner), ENKI (strategist), and NOESIS (learner), NAB
 
 ---
 
-**Output Path:** `/sessions/zealous-gallant-clarke/mnt/T7/NUDIMMUD/_SYSTEM/session-outputs/2026-04-18/NABU_PHASE1_HAIKU.md`
 
 **Status:** READY FOR SONNET PHASE
 

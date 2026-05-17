@@ -15,8 +15,8 @@ Plan → design → execute → commit → ship. End state: production-ready, ty
 ## 2. NON-NEGOTIABLE CONSTRAINTS
 - DeepSeek + @swarm only. No Claude/Anthropic agent spawning. No Opus author edits beyond minor copy/typo level.
 - Match the visual + interaction DNA of `src/consumer/*` (sections, motion, gradient/texture vocabulary, scroll feel, type system, brand voice).
-- Do NOT touch: `backend/data/`, `.env`, `.claude/state/` (write only `.claude/state/operator-revamp-*.md`), `/Volumes/T7`, Conclave, secrets.
-- Stay on branch `main` at cwd `/Users/marcelspatz/NUDIMMUD`. Verify before any write.
+- Do NOT touch: `backend/data/`, `.env`, `.claude/state/` (write only `.claude/state/operator-revamp-*.md`), Conclave, secrets.
+- Stay on branch `main` at cwd `/Users/marcelspatz/YURI-OS-MUSUBI`. Verify before any write.
 - One coherent transaction. SPLIT_REQUIRED if scope balloons beyond 1 sprint — log split, request re-entry.
 - No `--no-verify`, no `git push --force`, no `rm -rf` of unrelated paths.
 - All commits authored under existing git identity. Commit messages = imperative, concise, evidence-backed.
@@ -100,7 +100,7 @@ Each phase ends with an artifact written to `.claude/state/operator-revamp-<phas
 - No raw stdout dumps. Compact evidence packs only.
 
 ## 10. STOP CONDITIONS
-- Hard stop + report if: scope > 1 sprint, deps need adding, breaking change in App.tsx routing required beyond the `/operator` block, T7 access needed, secrets needed.
+- Hard stop + report if: scope > 1 sprint, deps need adding, breaking change in App.tsx routing required beyond the `/operator` block, secrets needed.
 - On stop: write `.claude/state/operator-revamp-BLOCKED.md` with exact blocker, scope, requested approval.
 
 ## 11. TOOL ACCESS GRANTED

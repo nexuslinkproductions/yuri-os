@@ -695,7 +695,6 @@ She writes the grain into the granary. She measures the sky. She distributes the
 ---
 
 **Status**: ACTIVE
-**Location**: `/Volumes/T7/NUDIMMUD/NISABA/nisaba.md`
 **Pantheon position**: 5th Deity (Deployment, Evolution, Distribution, Quality, Defense)
 **Created**: 2026-04-19
 **Authority**: Measurer of Empires, Writer of the Annual Account, Distributor of the Harvest

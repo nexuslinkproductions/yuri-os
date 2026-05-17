@@ -49,7 +49,6 @@ Marcel brings the following to the 3-way collaboration:
 **Production Layer:**
 - Full video production pipeline (pre-production through delivery)
 - Post-production specialist: Premiere Pro, DaVinci Resolve, After Effects, mocha tracking
-- Mac Studio + T7 SSD editing setup — can handle parallel editing workloads
 
 **Creative Layer:**
 - Motion graphics (After Effects) — complements Silas's animation work

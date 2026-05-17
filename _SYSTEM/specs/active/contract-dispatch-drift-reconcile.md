@@ -43,7 +43,6 @@ Add a `dispatchTokens` array field to every lane in `_SYSTEM/Scripts/offload-con
 
 - Anime DNA gates apply (evidence-forward, no speculation).
 - Codex-primary for implementation (gpt-5.5 / gpt-5.4-mini).
-- No T7 writes; keep changes scoped to `_SYSTEM/Scripts/offload-contract.mjs` lanes object and, minimally, `_SYSTEM/Scripts/offload-contract-dispatch-check.mjs`.
 - Preserve all existing dispatch behavior in `offload.sh`.
 - Max 90 lines in this spec file.
 

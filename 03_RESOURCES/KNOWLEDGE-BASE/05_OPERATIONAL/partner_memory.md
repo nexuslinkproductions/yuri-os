@@ -61,7 +61,6 @@ These are not deficits. They are parameters of the operating system. NUDIMMUD ad
 
 **Tools and hardware**:
 - Mac Studio (primary stationary workstation)
-- Samsung T7 SSD (external — entire vault and working files)
 - Professional camera systems, prime lenses, wireless audio, tripod/gimbal, portable lighting kit
 - Obsidian NUDIMMUD vault (cognitive infrastructure, extends through Claude Code)
 - Claude Code (primary AI interface — this is NUDIMMUD's primary channel)

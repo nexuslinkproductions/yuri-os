@@ -46,7 +46,6 @@ Both operate through NUDIMMUD. What is fashioned serves the dual-core system.
 
 **Hardware Ecosystem:**
 - Mac Studio (desktop core)
-- T7 SSD (external storage, primary working drive)
 - Professional camera bodies + cinema lenses
 - Wireless audio rig (Sennheiser or equivalent)
 - Gimbal/tripod stabilization systems
@@ -254,7 +253,6 @@ Commands:
 /enki temporal       → concepts gaining/losing centrality
 /enki god            → top god nodes (core abstractions)
 
-Obsidian export: graphify --obsidian --obsidian-dir /Volumes/T7/NUDIMMUD/graph
 
 ## V. OUTPUT DOCTRINE
 

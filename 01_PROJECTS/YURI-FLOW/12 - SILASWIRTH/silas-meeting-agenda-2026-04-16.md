@@ -58,7 +58,6 @@ This is the core of the dinner. Present the vision for a 3-way creative studio.
 
 **Marcel's profile to share with Silas:**
 - Full video production pipeline: Premiere Pro, DaVinci Resolve, After Effects, mocha tracking
-- Mac Studio + T7 SSD editing rig — handles parallel workloads
 - Nocturnal work schedule (21:00-05:00 peak) — extends c2moviez into overnight production
 - Vienna base — opens DACH client acquisition and on-location Austrian work
 - Systems thinker — AI integration, workflow automation

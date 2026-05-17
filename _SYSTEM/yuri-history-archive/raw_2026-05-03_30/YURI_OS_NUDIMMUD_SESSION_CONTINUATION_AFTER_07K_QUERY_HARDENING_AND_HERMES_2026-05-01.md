@@ -377,7 +377,6 @@ Non-claims:
 - cron remains out of scope
 - MCP tool safety remains out of scope
 - Agent prompt inspection remains out of scope
-- T7 enforcement remains out of scope
 - process substitution / variable indirection / heredoc / multi-hop chains remain out of scope
 ```
 

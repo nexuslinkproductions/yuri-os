@@ -78,13 +78,11 @@ npm run dev 2>&1 | grep "ANTHROPIC_PROVIDER"
 
 **Current:**
 ```typescript
-const df = execSync("df -h /Volumes/T7 | tail -1 | awk '{print $5}'").toString().trim();
 ```
 
 **Fix Option 1 (Quick):**
 ```typescript
 // Use array syntax to avoid shell injection
-const result = execSync(['df', '-h', '/Volumes/T7']).toString();
 const match = result.split('\n').pop()?.split(/\s+/)[4];
 const diskUsage = match || 'unknown';
 ```
@@ -93,7 +91,6 @@ const diskUsage = match || 'unknown';
 ```typescript
 import { statfsSync } from 'fs';
 try {
-    const stats = statfsSync('/Volumes/T7');
     const percentUsed = ((stats.blocks - stats.bavail) / stats.blocks) * 100;
     const diskUsage = `${percentUsed.toFixed(1)}%`;
 } catch (e) {

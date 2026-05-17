@@ -99,7 +99,6 @@ bash _SYSTEM/Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC from build-list.md 
 - ARGUS · HERMES · OBLITERATUS · CASSANDRA-lite native gates — always-on.
 - `agent-spawn-guard.js` hard floor — do not set `YURI_ALLOW_AGENT=1`.
 - Per packet: `gitnexus_impact()` BEFORE edit · `gitnexus_detect_changes()` BEFORE commit.
-- Protected paths untouched: `backend/data/`, `.claude/state/`, `.claude/history/`, `.env`, `node_modules/`, `/Volumes/T7/*` (Marcel-only).
 - No auto-commit. Marcel approves every commit.
 
 ## 9 · Authority chain (per `_SYSTEM/yuri-origin.md`)

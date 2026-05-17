@@ -11,11 +11,9 @@ NUDIMMUD vault improvement plan + OREA (C2MOVIEZ pipeline)
 **Vault Improvement — Phase 1 (2026-04-13)**
 - Filled `enki_state.md` with real project state (OREA, NUDIMMUD stack, income pipeline)
 - Populated `creative_codex.md` with full aesthetic doctrine and decision framework
-- Initialized `session_log.md` with first two entries (T7 incident + OREA migration)
 - Synced this primer to vault
 
 **Previous: OREA Migration (2026-04-13)**
-- Created `/Volumes/T7/NUDIMMUD/01_PROJECTS/C2MOVIEZ/OREA/` with edit/export/docs folders
 - Copied PP/ (Porsche) + DR/ (G-Wagon) to OREA/04_Edit/ — verified (PP: 2.3M, DR: 896K)
 - Removed originals from _UNSORTED-EDITS/
 - AE/ left in _UNSORTED-EDITS/ — unknown project (R logo.aep, TEST VIDEO KAI.aep)
@@ -33,12 +31,5 @@ Continue vault improvement plan:
 - enki_state.md: personal constraint fields (time blocks, energy, money) need Marcel to fill in
 
 ## Key Files (Canonical Locations)
-- T7 config: `/Volumes/T7/CLAUDE.md`
-- NUDIMMUD vault: `/Volumes/T7/NUDIMMUD/`
-- enki_state: `/Volumes/T7/NUDIMMUD/enki_state.md`
-- identity: `/Volumes/T7/NUDIMMUD/identity.md`
-- creative_codex: `/Volumes/T7/NUDIMMUD/creative_codex.md`
-- session_log: `/Volumes/T7/NUDIMMUD/session_log.md`
-- OREA project: `/Volumes/T7/NUDIMMUD/01_PROJECTS/C2MOVIEZ/OREA/`
 - Skills: `/Users/marcelspatz/.claude/skills/`
 - Rules: `/Users/marcelspatz/.claude/rules/`

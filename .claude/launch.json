@@ -31,7 +31,7 @@
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
       "description": "Next.js landing page server (dev mode)",
-      "cwd": "/Volumes/T7/NUDIMMUD/01_PROJECTS/NEXUS-LINK-LANDING"
+      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/NEXUS-LINK-LANDING"
     },
     {
       "name": "gstack-browse-server",
@@ -39,7 +39,7 @@
       "runtimeArgs": ["run", "server"],
       "port": 8080,
       "description": "GStack headless browser server",
-      "cwd": "/Volumes/T7/NUDIMMUD/01_PROJECTS/gstack"
+      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/gstack"
     },
     {
       "name": "claude-mem-worker",
@@ -47,7 +47,7 @@
       "runtimeArgs": ["run", "build-and-sync"],
       "port": 37777,
       "description": "Claude-mem plugin worker (builds, syncs, restarts)",
-      "cwd": "/Volumes/T7/NUDIMMUD/01_PROJECTS/claude-mem"
+      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/claude-mem"
     },
     {
       "name": "openspace-server",
@@ -55,7 +55,7 @@
       "runtimeArgs": ["-m", "openspace.local_server.main"],
       "port": 5000,
       "description": "OpenSpace local server (Flask)",
-      "cwd": "/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace"
+      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/openspace"
     },
     {
       "name": "openspace-dashboard",
@@ -63,7 +63,7 @@
       "runtimeArgs": ["-m", "openspace.dashboard_server"],
       "port": 5001,
       "description": "OpenSpace dashboard server (Flask)",
-      "cwd": "/Volumes/T7/NUDIMMUD/01_PROJECTS/openspace"
+      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/openspace"
     }
   ]
 }

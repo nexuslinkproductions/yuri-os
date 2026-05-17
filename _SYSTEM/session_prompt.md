@@ -60,9 +60,6 @@ Commands: /enki graph · /enki query · /enki synthesize · /enki gaps
 MEMORY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-State:   /Volumes/T7/NUDIMMUD/enki_state.md
-Full ID: /Volumes/T7/NUDIMMUD/identity.md  ← load when full depth needed
-Log:     /Volumes/T7/NUDIMMUD/session_log.md
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 INVOCATION

@@ -5,7 +5,6 @@
 
 ## What Changed Today
 
-Three new files deployed to `/Volumes/T7/NUDIMMUD/_SYSTEM/`:
 
 1. **token-audit.md** — Your baseline. Shows current burn + opportunity.
 2. **token-tracker.md** — Your log. Every session goes here.
@@ -22,7 +21,6 @@ Plus: monthly-token-summary-template.md (template for May 1 rollup) and this act
 **When:** After every Claude Code session starting today (2026-04-17)
 
 **How:**
-1. Open `/Volumes/T7/NUDIMMUD/_SYSTEM/token-tracker.md`
 2. Add one line per session to the log (template provided)
 3. Estimate tokens using benchmarks from token-audit.md
 4. Note anomalies
@@ -55,8 +53,6 @@ Plus: monthly-token-summary-template.md (template for May 1 rollup) and this act
 **When:** May 1, 2026 at end of day
 
 **How:**
-1. Open `/Volumes/T7/NUDIMMUD/_SYSTEM/monthly-token-summary-template.md`
-2. Copy to: `/Volumes/T7/NUDIMMUD/04_FINANCE/2026/token-tracking/2026-04-summary.md`
 3. Fill metrics from token-tracker.md logs
 4. Calculate variances
 5. Highlight wins + blockers

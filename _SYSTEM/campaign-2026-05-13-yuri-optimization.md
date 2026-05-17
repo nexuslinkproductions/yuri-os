@@ -17,8 +17,6 @@
 | `_SYSTEM/scout-errors-2026-05-13-triage.md` | Scout failure cluster + root cause (banned `claude -p` pattern) + 3 Codex specs | Claude (pattern was uniform, no DeepSeek needed) |
 | `_SYSTEM/memory-layer-spec.md` | Five-tier memory specification (NIGREDO→RUBEDO mapping); spec only | DeepSeek V4 Pro (reasoning=high); Claude merge |
 | `_SYSTEM/Scripts/_lib/progress.mjs` | Progress notification emitter; tested, live | codex-spark; Claude verified self-test |
-| `_SYSTEM/RUNBOOK.md` | Operational runbook (daily/weekly/emergency procedures, T7 boundary, lane discipline) | Claude |
-| `memory/feedback_t7_paths_are_intentional.md` | New persistent memory locking the T7 boundary | Claude |
 
 ## Headline Findings (real gaps, evidence-backed)
 
@@ -37,7 +35,6 @@
 | Regenerate enki_state.md | Not stale. 8 days old. |
 | Fix auth default-key vuln | Already fixed. |
 | MCP server health checks (per Perplexity's recipe) | `.claude/settings.json` has no project-root MCP block; MCPs are user-scope. Out of campaign domain. |
-| T7 path standardization (20 files) | **User directive 2026-05-13: BIG ERROR.** T7 references are intentional sync-mirror anchors. Locked in memory. |
 | Install `com.nudimmud.eot-refresh.plist` now | Would schedule the broken `claude -p` scout pattern every 6h. **Deferred** until Codex Spec 1 (scout migration) lands. |
 | Token-budget proactive offload | Token tracker shows all-zeros — instrumentation comes first, optimisation later. |
 
@@ -76,7 +73,6 @@ Post-campaign **measurable** state:
 - 5 memory tiers: 3 already operating, 1 partial, 1 missing scaffold (procedural).
 - 1 progress emitter: live and tested.
 - 1 operational runbook: shipped.
-- 1 T7-boundary feedback memory: shipped, won't be repeated.
 
 There is no honest single-number "operational %" — that framing was the audit's own anti-pattern. The campaign replaced it with a verifiable per-component status grid above.
 

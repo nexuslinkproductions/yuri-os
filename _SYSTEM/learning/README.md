@@ -141,8 +141,5 @@ Once you and Claudio sync:
 ## Technical Details
 
 - **Hook entry points:** `/Users/marcelspatz/.claude/settings.json`
-- **Hook scripts:** All in `_SYSTEM/hooks/` (runs from T7)
-- **Learning data:** All in `_SYSTEM/learning/` (runs from T7)
 - **Token tracking:** Separate system in `.claude/hooks/` (machine-local)
 
-Everything stays on T7 for backup and sync with your network.

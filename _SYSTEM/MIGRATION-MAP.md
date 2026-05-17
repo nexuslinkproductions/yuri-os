@@ -1,11 +1,9 @@
-# Migration Map — T7 SSD
 # What to move WHERE (manually, when you're ready)
 # Nothing has been moved automatically.
 
 ---
 
 ## ⚠️ NOTE ON ACTUAL SSD STRUCTURE
-The T7 SSD structure differs from the original plan. Key corrections:
 - `USER/` and `NEXUS LINK/` are inside `2026/` — NOT at root
 - `CLIENTS/` and `EXPORTS/` were not found — check `2026/NEXUS LINK/` for client folders
 - Obsidian vault is at `NEXUS LINK AI/OBSIDIAN/NEXUS HUB/` — NOT at root `OBSIDIAN/`

@@ -234,32 +234,25 @@ RESULT: Same brief quality achieved faster, with less iteration
 
 ```bash
 # Check what's been learned
-cat /Volumes/T7/NUDIMMUD/_SYSTEM/learning/*.md | grep "^-"
 
 # See sessions captured
-tail -20 /Volumes/T7/NUDIMMUD/_SYSTEM/learning/sessions.jsonl
 
 # Adjust thresholds
-nano /Volumes/T7/NUDIMMUD/_SYSTEM/learning/config.json
 ```
 
 ### GAN Loop
 
 ```bash
 # Generate shot list
-node /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/orchestrator.js \
   shot-list ~/my-brief.md
 
 # Generate brief
-node /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/orchestrator.js \
   brief ~/requirements.txt
 
 # Use custom rubric
-node /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/orchestrator.js \
   brief ~/requirements.txt ~/my-custom-rubric.md
 
 # Check outputs
-ls /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/outputs/
 ```
 
 ---

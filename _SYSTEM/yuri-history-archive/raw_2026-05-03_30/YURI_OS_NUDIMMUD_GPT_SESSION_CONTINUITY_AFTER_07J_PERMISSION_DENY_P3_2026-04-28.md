@@ -273,7 +273,6 @@ Sonnet explicitly marked these as out of scope for Phase 1:
 - Bash ask rules
 - WebFetch / WebSearch restrictions
 - Agent wildcard narrowing
-- T7 drive restrictions
 - global /Users/marcelspatz/.claude/settings.json changes
 - settings.local.json changes
 - allowlist changes
@@ -300,7 +299,6 @@ The P3 plan improved over earlier attempts because it:
 ```text
 - avoids Bash deny rules for now
 - avoids WebFetch/WebSearch restrictions for now
-- avoids T7 path matching uncertainty for now
 - avoids global settings changes
 - avoids settings.local.json changes
 - avoids allowlist rewrite

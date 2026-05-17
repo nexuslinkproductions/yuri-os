@@ -32,7 +32,6 @@ const apiKey = process.env.API_KEY || 'nudimmud-default-key-change-me';
 
 **Cascade Impact:**
 - `/execute` endpoint (line 204 in [backend/src/routes/api.ts](backend/src/routes/api.ts#L204)) allows arbitrary shell command execution with `executeCommand(db, command)`
-- Attacker can execute: `rm -rf /Volumes/T7`, modify databases, inject malicious vault files
 - `POST /swarm/execute` (line 235) allows swarm orchestration — attacker can trigger autonomous agents
 - No audit trail for who executed what
 
@@ -99,13 +98,10 @@ bootLog(`⬡ ANTHROPIC_PROVIDER :: INITIALIZED (Key: ${keyPreview(process.env.AN
 **File:** [backend/src/services/metrics.ts](backend/src/services/metrics.ts#L47)
 
 ```typescript
-const df = execSync("df -h /Volumes/T7 | tail -1 | awk '{print $5}'").toString().trim();
 ```
 
 **The Exploit Path:**
-1. If `/Volumes/T7` is ever mounted via a remote share with an attacker-controlled name
 2. Or if volume name is user-configurable anywhere
-3. The shell metacharacters could be injected: `/Volumes/T7; rm -rf /; #`
 4. `execSync` will execute arbitrary commands
 
 **Cascade Impact:**
@@ -118,10 +114,8 @@ const df = execSync("df -h /Volumes/T7 | tail -1 | awk '{print $5}'").toString()
 ```typescript
 // ✅ SAFE PATTERN
 const { execSync } = require('child_process');
-const diskUsage = execSync(['df', '-h', '/Volumes/T7'], { encoding: 'utf8' });
 // Or use Node.js native APIs:
 const fs = require('fs');
-const diskStats = fs.statfsSync('/Volumes/T7');
 ```
 
 **Severity:** HIGH (requires mount point manipulation)
@@ -677,30 +671,23 @@ class TokenTracker {
 
 ## ⬡ SECTION 8: SYNC & PERSISTENCE RISKS
 
-### 🟠 HIGH: T7 Volume Dependency Without Fallback
 
 **File:** [backend/src/services/metrics.ts](backend/src/services/metrics.ts#L47)
 
 ```typescript
-const TRACKER_FILE = '/Volumes/T7/NUDIMMUD/_SYSTEM/token-tracker.md';
 ```
 
 **The Problem:**
-1. System assumes `/Volumes/T7` is always mounted
-2. If T7 volume unmounts, metrics collection crashes
 3. No fallback storage (local disk not used)
 4. Database queries fail silently (caught by try-catch, but then returns incomplete metrics)
 
 **Cascade Impact:**
-- If T7 unmounts, token tracking stops
 - Metrics endpoint returns incomplete data
 - Monitoring systems see gaps in data
 - System stability audits are based on incomplete telemetry
 
 **Test that breaks this:**
 ```bash
-# Simulate T7 unmount
-sudo umount /Volumes/T7
 
 # Now curl the metrics endpoint
 curl -X GET http://localhost:3004/api/metrics \
@@ -712,7 +699,6 @@ curl -X GET http://localhost:3004/api/metrics \
 **Required Defense:**
 ```typescript
 // ✅ FALLBACK STORAGE PATTERN
-const PRIMARY_TRACKER = '/Volumes/T7/NUDIMMUD/_SYSTEM/token-tracker.md';
 const FALLBACK_TRACKER = '/tmp/token-tracker-fallback.db'; // Local backup
 
 async function recordTokenUsage(usage: TokenUsage) {
@@ -753,7 +739,6 @@ async function syncTokenUsageFromFallback() {
 | Obsidian Connection Loss | 🟠 HIGH | Medium | Stale vault data | 3 hours |
 | Uncontrolled Process Lifecycle | 🟠 HIGH | High | Memory leaks | 2 hours |
 | Token Tracking Data Loss | 🟠 HIGH | High | Incomplete billing | 3 hours |
-| T7 Volume Dependency | 🟠 HIGH | Medium | Silent metrics failure | 2 hours |
 
 ---
 
@@ -775,7 +760,6 @@ async function syncTokenUsageFromFallback() {
 
 ### Phase 3: MEDIUM (Deploy Within 2 Weeks)
 - [ ] Migrate token tracking to database (not `/tmp`)
-- [ ] Implement T7 fallback storage strategy
 - [ ] Add comprehensive error telemetry
 - [ ] Implement database schema versioning
 
@@ -783,7 +767,6 @@ async function syncTokenUsageFromFallback() {
 - [ ] Distributed tracing across agents
 - [ ] Automated backup of NUDIMMUD database
 - [ ] Token budget alerts (warning at 80%, critical at 95%)
-- [ ] Chaos engineering tests (kill Obsidian, unmount T7, etc.)
 
 ---
 
@@ -798,7 +781,6 @@ async function syncTokenUsageFromFallback() {
 - ❌ Security posture is weak (default keys, credential logs)
 - ❌ Durability is broken (1-byte database, no schema)
 - ❌ Observability is missing (no health checks, noisy logs)
-- ❌ Resilience is fragile (single points of failure: Obsidian, T7, Anthropic)
 
 **Estimated Time to Production-Ready:**
 - **Critical fixes:** 10 hours

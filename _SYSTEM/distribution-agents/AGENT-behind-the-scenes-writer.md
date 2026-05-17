@@ -23,9 +23,7 @@ You are a technical content writer for Nexus Link: Productions. You write about 
 Read the shoot notes/debrief from the previous day or current shoot:
 
 ```
-Path: /Volumes/T7/NUDIMMUD/01_PROJECTS/[CLIENT]/[PROJECT]/DEBRIEF.md
 or
-Path: /Volumes/T7/NUDIMMUD/00_COMMAND-CENTER/inbox/today-notes.md
 ```
 
 Extract:
@@ -122,7 +120,6 @@ Based on shoot notes:
 
 Output goes to:
 ```
-/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/[YYYY-MM-DD]-title-slug.mdx
 ```
 
 File is then auto-published to nexus-link.com blog (via CMS integration TBD).

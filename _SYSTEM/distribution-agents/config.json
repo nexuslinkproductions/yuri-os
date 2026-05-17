@@ -17,7 +17,6 @@
       "frequency": "Daily (Mon-Fri)",
       "input": "shoot notes from today or previous day",
       "output": "One blog post (500–800 words), MDX format",
-      "output_dir": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/",
       "mcp_tools": ["web-search", "file-read", "file-write"],
       "examples": [
         "Color grading workflow for Alexa vs. Red",
@@ -35,7 +34,6 @@
       "frequency": "3x per week",
       "input": "recent blog posts or shoot highlight notes",
       "output": "7-slide carousel (PNG), ready to post to Instagram",
-      "output_dir": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/",
       "mcp_tools": ["file-read", "playwright-render", "file-write"],
       "examples": [
         "Gimbal technique carousel (hook → 5 teaching slides → CTA)",
@@ -61,7 +59,6 @@
       "frequency": "Daily",
       "input": "target subreddits (r/videography, r/filmmaking, r/cinematography, etc.)",
       "output": "Curated thread list with drafted replies (zero self-promotion)",
-      "output_dir": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/",
       "mcp_tools": ["web-search", "reddit-api", "file-write"],
       "examples": [
         "Thread: 'Best gimbal for wedding videography?'",
@@ -85,7 +82,6 @@
       "frequency": "Weekly",
       "input": "04_FINANCE/2026/ folder contents",
       "output": "One digest (email-ready markdown) with action items",
-      "output_dir": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/",
       "mcp_tools": ["file-read", "file-list", "file-write"],
       "examples": [
         "Outstanding invoice summary (who owes, how much, how long)",
@@ -103,11 +99,6 @@
     "notification": "Slack/email on completion"
   },
   "outputs": {
-    "blog_posts": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/",
-    "carousels": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/",
-    "reddit_drafts": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/",
-    "finance_reports": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/",
-    "all_archived": "/Volumes/T7/NUDIMMUD/07_ARCHIVE/distribution-agents/"
   },
   "expected_30_day_results": {
     "blog_posts": "20 posts (weekday cadence)",

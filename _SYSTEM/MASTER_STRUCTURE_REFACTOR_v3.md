@@ -30,7 +30,6 @@ Phase 1 (Opus, May 7) completed:
 **Phase 1 discovered:** The original master prompt misclassified live infrastructure as "dead artifacts":
 - `_SYSTEM/Scripts/` = live launch + offload + trading-bot pipeline (NOT dead)
 - `bin/` = claude wrapper + design-audit (NOT dead)
-- `Volumes/` = T7 SSD sync mount (NOT dead)
 - `GeneratedContent` = symlink to `/Users/marcelspatz/GeneratedContent` (rm -rf would follow the link on some platforms)
 - `Claude Code URL Handler.app` = macOS claude:// deep-link handler (registered in Launch Services)
 - `DOMAIN EXPANSION - INFINITE VOID/` = archived domain content tied to active skills
@@ -86,7 +85,6 @@ find . -name "._*" -type f 2>/dev/null | grep -v ".git" | while read f; do mv "$
 These are LIVE INFRASTRUCTURE — do not move, delete, or touch:
 - `_SYSTEM/Scripts/` — launch pipeline
 - `bin/` — claude wrapper
-- `Volumes/` — T7 SSD mount
 - `GeneratedContent` — external symlink
 - `Claude Code URL Handler.app` — macOS deep-link handler
 - `DOMAIN EXPANSION - INFINITE VOID/` — archived domain content

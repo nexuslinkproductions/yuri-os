@@ -13,7 +13,6 @@
 | **IDENTITY/MEMORY SYNC** | GREEN | identity.md root exists (338 lines, full NUDIMMUD codex). enki_state.md current (Apr 18). All 05_OPERATIONAL files exist (mode_triggers, response_architecture, partner_memory, pneuma-profile). External memory store: MEMORY.md index + 8 files in .auto-memory/. |
 | **HERMETICS V2** | GREEN | hermetics.md = 648 lines (confirmed expanded v2 — not the 119-line original). Located: 06_KNOWLEDGE-BASE/01_COSMOLOGY/hermetics.md. |
 | **NOESIS REINSTATEMENT** | GREEN | All 4 reinstatement docs present in _SYSTEM/session-outputs/2026-04-18/: NOESIS_REINSTATEMENT.md, session_reconstruction_20260417.md, enki_state_updated.md, hermetics_v2.md. |
-| **DEV-BROWSER INSTALL** | GREEN | install-dev-browser.command exists at T7 root (821 bytes, executable). Script is correct. |
 | **MISSING DIRECTORIES** | FIXED | 02_AREAS/skills/ and 02_AREAS/research-intake/ were missing. Created 2026-04-18 @ 18:50 UTC. |
 
 ---
@@ -143,7 +142,6 @@
 **File:** `session_log.md` (sealed, up-to-date)
 
 **Entry History:**
-1. **2026-04-11** — T7 INCIDENT · Destructive bash commands without backup. SAFETY RULES formalized.
 2. **2026-04-17** — KNOWLEDGE BASE EXPANSION · 7 rounds, rate limits hit. 24 files, 4,990 lines, 233 wikilinks added.
 3. **2026-04-13** — OREA MIGRATION · Project architecture, enki_state.md filled.
 4. **2026-04-18** — NOESIS · Autonomous learning consolidation. Memory store populated (17 entries), palette pollution purged, state files current.
@@ -151,7 +149,6 @@
 **NEXT Items (All Open):**
 1. External palace build script (`_SYSTEM/palace-rebuild.py`) — ✓ DONE
 2. `~/.zshrc` create + `~/.zprofile` update — ✓ DONE
-3. T7 ._ cleanup (NUDIMMUD + .claude) — ✓ DONE (0 remaining)
 4. ~~MASTER/ review~~ — Paused, awaiting confirmation on Finder label use
 5. Review memory entries after one session cycle — Pending (target: next session cycle)
 6. Review token system's first auto-generated April summary — 2026-05-01
@@ -223,7 +220,6 @@ All 4 critical reinstatement documents present:
 
 ### 10. DEV-BROWSER INSTALL
 
-**File:** `/Volumes/T7/install-dev-browser.command` (T7 root)  
 **Size:** 821 bytes  
 **Permissions:** -rwx------ (executable)  
 **Status:** ✓ **EXISTS AND EXECUTABLE**
@@ -234,7 +230,6 @@ All 4 critical reinstatement documents present:
 - Clones skill into ~/.claude/skills/
 - Verifies installation
 
-Ready to run: `bash /Volumes/T7/install-dev-browser.command`
 
 ---
 
@@ -280,10 +275,8 @@ From **2026-04-18 — NOESIS · Autonomous Learning Consolidation**:
    - Created `~/.zshrc`, updated `~/.zprofile`
    - `dot_clean_t7` alias available for manual control
 
-3. ~~T7 ._ cleanup~~ → **DONE**
    - NUDIMMUD: 30,528 → 0
    - .claude/: 4,322 → 0
-   - T7 root: 14 (minimal, paused MASTER/ review — awaiting Finder label confirmation)
 
 4. **Review memory entries after one session cycle** (Pending)
    - Target: After next full session cycle

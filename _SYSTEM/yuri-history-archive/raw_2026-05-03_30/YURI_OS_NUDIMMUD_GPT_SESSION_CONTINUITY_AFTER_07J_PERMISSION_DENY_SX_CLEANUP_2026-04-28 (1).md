@@ -427,7 +427,6 @@ Still unknown:
 - whether Edit deny blocks MultiEdit
 - Bash(pattern) behavior
 - permissions.ask behavior
-- safe absolute out-of-repo path syntax, especially /Volumes/T7
 ```
 
 ---
@@ -530,7 +529,6 @@ Do not change permissions.
 Do not create test files.
 Do not run cleanup.
 Do not use `/tmp`.
-Do not touch `/Volumes/T7/`.
 Do not read or touch global `/Users/marcelspatz/.claude/settings.local.json`.
 Do not touch `.claude/projects/`, `.claude/history.jsonl`, `.claude/memory-bus.json`, `.claude/state/*`, `.claude/plugins/**`, database files, package/source/script files, or any non-test path.
 Do not continue into execution.
@@ -614,7 +612,6 @@ It must delete both at the end.
 
 It must not touch:
 
-- `/Volumes/T7/`
 - `/tmp`
 - global settings
 - `.claude/projects/**`
@@ -630,7 +627,6 @@ It must not test:
 
 - Bash deny
 - settings.json deny
-- T7 deny
 - database deny
 - broad `Write(*)`, `Edit(*)`, or `MultiEdit(*)`
 

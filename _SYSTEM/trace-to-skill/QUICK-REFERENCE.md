@@ -11,13 +11,10 @@
 
 ```bash
 # Extract shot list skill (core on-set work)
-node /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/orchestrator.js shot-list-generation
 
 # Extract brief skill
-node /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/orchestrator.js client-brief-generation
 
 # Extract invoice skill
-node /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/orchestrator.js invoice-preparation
 ```
 
 ---

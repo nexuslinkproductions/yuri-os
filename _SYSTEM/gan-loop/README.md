@@ -31,7 +31,6 @@ Result: High-quality, validated shot lists and briefs without manual back-and-fo
 ### Generate a Shot List
 
 ```bash
-node /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/orchestrator.js shot-list ~/brief.md
 ```
 
 Input: A markdown file with shoot requirements  
@@ -40,7 +39,6 @@ Output: `shot-list_[date]_[id]-final.md` — ready to send to crew
 ### Generate a Client Brief
 
 ```bash
-node /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/orchestrator.js brief ~/requirements.txt
 ```
 
 Input: Text file with client name, deliverables, timeline, budget  
@@ -129,13 +127,10 @@ Output: `brief_[date]_[id]-final.md` — ready to send to Claudio/Marc
 
 1. **Create input file:**
    ```
-   /Volumes/T7/NUDIMMUD/01_PROJECTS/MACL-ONE/Q2-Campaign-Requirements.md
    ```
 
 2. **Run GAN loop:**
    ```bash
-   node /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/orchestrator.js brief \
-     /Volumes/T7/NUDIMMUD/01_PROJECTS/MACL-ONE/Q2-Campaign-Requirements.md
    ```
 
 3. **Watch iterations:**
@@ -147,7 +142,6 @@ Output: `brief_[date]_[id]-final.md` — ready to send to Claudio/Marc
 
 4. **Send to client:**
    ```bash
-   open /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/outputs/brief_2026-04-19_abc123-final.md
    ```
 
 ---
@@ -165,7 +159,6 @@ Both rubrics are adjustable. You and Claudio can:
 
 Example:
 ```bash
-node /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/orchestrator.js brief \
   ~/requirements.txt \
   ~/custom-brief-rubric-claudio.md
 ```

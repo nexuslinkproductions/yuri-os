@@ -109,7 +109,6 @@ What camera/gimbal setup are you using? Context helps.
 Save curated threads and drafted replies to:
 
 ```
-/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/[YYYY-MM-DD]-reddit-daily.md
 ```
 
 Format:

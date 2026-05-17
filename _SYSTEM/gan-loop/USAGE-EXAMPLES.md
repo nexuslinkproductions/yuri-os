@@ -45,7 +45,6 @@
 ### Run GAN Loop
 
 ```bash
-node /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/orchestrator.js shot-list ~/brief.md
 ```
 
 ### Iteration 1: Generator Output (Simplified)
@@ -116,7 +115,6 @@ Strength: Clear equipment choices show deep understanding of brief's lighting ne
 
 ```
 Final shot list saved to:
-/Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/outputs/shot-list_2026-04-19_abc123-final.md
 
 Ready to send to crew.
 ```
@@ -153,7 +151,6 @@ Known Constraints:
 ### Run GAN Loop
 
 ```bash
-node /Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/orchestrator.js brief ~/macl-requirements.txt
 ```
 
 ### Iteration 1: Generator Output
@@ -238,7 +235,6 @@ Strength: Sustainability messaging now clear and woven throughout. Shows you und
 
 ```
 Final brief saved to:
-/Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/outputs/brief_2026-04-19_def456-final.md
 
 Ready to send to MACL ONE.
 ```

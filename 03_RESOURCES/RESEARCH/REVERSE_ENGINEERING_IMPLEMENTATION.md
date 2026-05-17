@@ -31,6 +31,5 @@ I have integrated specifications for:
 - **Adversarial QA Loop**: High-stakes tasks (SECURITY, DEPLOY) now automatically spawn an `OBLITERATUS_ADVERSARY` agent to audit code without compliance bias.
 
 ## 4. Next Steps
-1. **Model Provisioning**: Download the `.gguf` files for the newly registered models to the `/Volumes/T7/models/` directory.
 2. **Execute Rebuild**: Run `python3 _SYSTEM/palace-rebuild.py` to re-index the vault with the new cognitive nodes.
 3. **Trigger Neural Forge**: Command JARVIS to "Analyze the backend security using Thinking Mode" to test the new adversarial loop.

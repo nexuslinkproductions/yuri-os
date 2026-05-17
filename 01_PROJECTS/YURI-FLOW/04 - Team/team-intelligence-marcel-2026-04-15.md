@@ -13,7 +13,6 @@
 | Visual Design | Content strategy, brand assets | Figma, Illustrator |
 | Systems Architecture | AI workflows, knowledge mgmt, scripting | Obsidian, Claude, Bash/Zsh |
 
-**Hardware:** Mac Studio + T7 SSD (production-ready editing rig)
 **Schedule:** Nocturnal — peak output 21:00-05:00. Client-facing window 11:00-16:00.
 **Location:** Vienna, Austria
 

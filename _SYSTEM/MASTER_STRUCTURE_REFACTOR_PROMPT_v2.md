@@ -28,7 +28,6 @@ You are the orchestrator. Your job is exactly three things:
 **LIVE INFRASTRUCTURE — DO NOT TOUCH:**
 - `_SYSTEM/Scripts/` — `ai`, `offload.sh`, `nudimmud-repl.mjs`, `swarm`, all `trading-bot/*.mjs`, `graphify-run.sh`, `install_daemon.sh` (referenced from `package.json`, CORE_PROTOCOL §9, CLAUDE.md launch chain)
 - `bin/` — `claude` wrapper, `design-audit` (per memory: `boot.zsh → bin/claude → _SYSTEM/Scripts/ai`)
-- `Volumes/T7` — read-only sync mount (per `.claude/rules/local_execution.md`)
 - `GeneratedContent` — symlink to `/Users/marcelspatz/GeneratedContent` (NOT a regular dir; `rm -rf` of a dir-symlink is risky)
 - `Claude Code URL Handler.app` — registered macOS `claude://` deep-link handler
 
@@ -82,7 +81,6 @@ A NUDIMMUD root that:
 1. Run `diff -rq . NUDIMMUD/ | grep "^Only in NUDIMMUD"` — list mirror-only paths
 2. Run `diff -rq . NUDIMMUD/ | grep "^Files .* differ"` — list diverged files
 3. For each diverged file, take `wc -l` of both versions; if mirror has more lines or newer relevant content, flag for manual diff
-4. Inspect `Volumes/T7` symlink target with `readlink Volumes/T7` (T7 is per `.claude/rules/local_execution.md` — never auto-touch)
 5. Inspect `GeneratedContent` symlink with `readlink GeneratedContent`
 6. Run `lsregister -dump | grep -i "claude code url handler"` to confirm the `.app` is registered before any unregister
 
@@ -193,6 +191,5 @@ After this executes successfully:
 - The numbered skeleton (00–08) is the source of truth
 - The launch + offload + trading-bot pipeline is intact
 - The macOS `claude://` handler still works
-- The T7 sync mount is untouched
 
 **Execute with precision. Quarantine, don't delete. No wasted motion.**

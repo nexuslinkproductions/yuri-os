@@ -52,7 +52,6 @@ When projects arrive from Marc:
 
 | Marc's path structure | Marcel's vault path |
 |-----------------------|---------------------|
-| TBD | `/Volumes/T7/NUDIMMUD/01_PROJECTS/PLANZERFILMS/[CLIENT]/` |
 
 <!-- NEEDS: ask Marc how he organizes project files — establish mapping when first project arrives -->
 

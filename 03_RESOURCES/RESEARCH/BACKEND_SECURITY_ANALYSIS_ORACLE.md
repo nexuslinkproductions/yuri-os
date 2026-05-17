@@ -24,7 +24,6 @@
     -   `executor.ts:L31-38`: `ALLOWED_COMMANDS` is a hardcoded object. `api.ts:L123` uses `(ALLOWED_COMMANDS as any)[commandKey]`. This is **safe** as long as `commandKey` is checked against the keys of the object.
     -   `api.ts:L125`: `if (!command) return res.status(400).json({ error: 'Invalid or unauthorized command key' });`. This **prevents** injection of arbitrary strings into `executeCommand`.
     -   *Vulnerability Detected*: No authentication on `/execute` or `/oracle/command`. Any local agent or local network actor can trigger system updates or re-indexing.
-*   **Verification**: The system relies on being a "local-first" tool, but as it scales to the Samsung T7 SSD (portable), the lack of a session/token layer on the backend is a risk if the machine is shared.
 </thinking>
 
 ---
@@ -51,7 +50,6 @@
 ### 4. Adversarial Audit (OBLITERATUS_ADVERSARY)
 The liberated auditor identified a potential **Insecure Direct Object Reference (IDOR)** pattern in the knowledge detail route:
 - `api.ts:L97-100`: `getNoteDetail(req.query.path)`. 
-- **Exploit**: If `getNoteDetail` does not sanitize the `path` to stay within `/Volumes/T7/NUDIMMUD/`, an attacker could use `../../` to read sensitive files elsewhere on the Samsung T7 or the host OS.
 - **Fix**: Implement a `Path.resolve` check to ensure the resolved path starts with the vault root.
 
 ---

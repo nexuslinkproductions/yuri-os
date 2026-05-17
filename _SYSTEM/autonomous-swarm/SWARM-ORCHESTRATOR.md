@@ -46,7 +46,6 @@ Each agent produces output:
 
 Store all outputs in:
 ```
-/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/generated/[YYYY-MM-DD]/
 ├── blog-post.mdx
 ├── carousel/
 ├── reddit-drafts.md
@@ -106,7 +105,6 @@ For each piece of generated content:
 ### Output: Validation Log
 
 ```
-/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/validation/[YYYY-MM-DD]-results.json
 
 {
   "blog_post": {
@@ -145,7 +143,6 @@ For each approved content piece:
   4. Any new techniques or insights from the content itself?
 
 → Store findings in:
-/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/learning/[YYYY-MM-DD]-insights.md
 ```
 
 ### Update Hooks (Optional)
@@ -167,7 +164,6 @@ Example: If three consecutive blog posts used specific interview lighting techni
 #### Blog Posts
 ```
 Action: Copy to blog queue folder
-Destination: /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/
 Manual approval required: YES (Marcel reviews before publishing)
 Note: Ready for manual publishing to nexus-link.com
 ```
@@ -175,7 +171,6 @@ Note: Ready for manual publishing to nexus-link.com
 #### Instagram Carousels
 ```
 Action: Copy PNGs to Instagram queue
-Destination: /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/ready/
 Manual approval required: NO
 Note: Can post immediately or schedule via Meta Business Suite
 Naming: [YYYY-MM-DD]-[topic]-READY.zip (all 7 slides + PDF)
@@ -184,7 +179,6 @@ Naming: [YYYY-MM-DD]-[topic]-READY.zip (all 7 slides + PDF)
 #### Reddit Drafts
 ```
 Action: Copy to Reddit queue
-Destination: /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/ready/
 Manual approval required: YES (verify 90/10 rule maintained)
 Note: Marcel posts manually to maintain authenticity
 ```
@@ -192,7 +186,6 @@ Note: Marcel posts manually to maintain authenticity
 #### Finance Digest
 ```
 Action: Email-ready format
-Destination: /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/
 Manual approval required: NO
 Note: Can be sent to Marcel or Claudio immediately
 Format: Markdown email-ready
@@ -202,7 +195,6 @@ Format: Markdown email-ready
 
 All rejected content:
 ```
-Move to: /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/rejected/[YYYY-MM-DD]/
 Include: Original content + validation feedback + suggested fixes
 Awaits: Manual review in morning
 ```
@@ -213,7 +205,6 @@ Awaits: Manual review in morning
 
 ### Generate Morning Briefing
 
-Create comprehensive report: `/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/reports/[YYYY-MM-DD]-morning-brief.md`
 
 ### Briefing Structure
 

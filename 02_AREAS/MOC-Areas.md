@@ -21,5 +21,4 @@
 
 ## Tech Setup
 - [ ] Mac Studio config ← populate
-- [ ] T7 SSD structure → [[../_SYSTEM/MIGRATION-MAP]]
 - [ ] Software stack ← populate

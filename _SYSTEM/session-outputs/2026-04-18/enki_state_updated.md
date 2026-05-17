@@ -1,6 +1,4 @@
 # ENKI_STATE · REVIEW — 2026-04-18
-*NUDIMMUD assessment of enki_state.md against current T7 data*
-*Draft for Marcel review — do NOT write back to T7 without confirmation*
 
 ---
 
@@ -56,7 +54,6 @@ Add to Focus Domains section:
 Add:
 
 - Always check noesis-intake.md for pending research signals before starting a new research session — signals may already be logged
-- Graphify runs should be scoped explicitly to NUDIMMUD vault markdown files, not the full T7 directory (which includes code projects)
 - When NOESIS engines surface a milestone (skill candidate, capacity alert, vision shift) — surface it to Marcel as the output, not buried in the intake log
 - Identity.md is the external-facing document; enki_state.md is the operational truth. When they diverge, update both.
 
@@ -65,7 +62,6 @@ Add:
 ## WHAT IS ALREADY CORRECT (DO NOT CHANGE)
 
 The following sections are accurate and do not need modification:
-- All four active projects (0-3) — statuses correct as of T7 data
 - Constraints section (Time/Energy/Money) — accurate, detailed, actionable
 - All three Focus domains (On-Set Capture, Skill Development, Income Pipeline)
 - Core guidance rules (one action per response, no monument-building, style specs)
@@ -79,4 +75,3 @@ The current enki_state.md is functionally accurate for the four existing project
 **Minimum viable update**: Add PROJECT 4 (NOESIS) and the graphify rebuild note to PROJECT 5 (KB).  
 **Full update**: Add both projects + updated Focus Domains + updated NUDIMMUD guidance.
 
-**Confirm which scope before writing back to T7.**

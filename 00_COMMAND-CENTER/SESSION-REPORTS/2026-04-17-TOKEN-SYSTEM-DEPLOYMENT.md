@@ -5,7 +5,6 @@
 
 ## What Was Built
 
-**Three interconnected systems deployed to `/Volumes/T7/NUDIMMUD/_SYSTEM/`:**
 
 ### 1. Token Audit (Baseline Analysis)
 - **File:** token-audit.md
@@ -84,7 +83,6 @@
 
 ## Memory Integration
 
-Added to `/Users/marcelspatz/.claude/projects/-Volumes-T7/memory/MEMORY.md`:
 
 - `reference_token_tracking_system.md` — How to use the system
 - Updated MEMORY.md index to include token system

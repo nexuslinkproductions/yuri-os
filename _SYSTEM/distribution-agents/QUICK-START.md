@@ -9,7 +9,6 @@
 ### 1. Review Configuration
 
 ```bash
-cat /Volumes/T7/NUDIMMUD/_SYSTEM/distribution-agents/config.json
 ```
 
 Verify:
@@ -40,10 +39,6 @@ Repeat for each agent (carousel, reddit, finance).
 ### 3. Create Output Directories
 
 ```bash
-mkdir -p /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/
-mkdir -p /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/
-mkdir -p /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/
-mkdir -p /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/
 ```
 
 ---
@@ -55,7 +50,6 @@ mkdir -p /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/
 Write debrief notes (5 min):
 
 ```
-/Volumes/T7/NUDIMMUD/01_PROJECTS/[CLIENT]/[PROJECT]/DEBRIEF.md
 ```
 
 Include:
@@ -213,17 +207,12 @@ claude code schedule list
 
 ### Manually trigger an agent (test)
 ```bash
-node /Volumes/T7/NUDIMMUD/_SYSTEM/distribution-agents/orchestrator.js \
   --agent behind-the-scenes-writer \
   --manual
 ```
 
 ### View recent outputs
 ```bash
-ls -lah /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/
-ls -lah /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/
-ls -lah /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/
-ls -lah /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/
 ```
 
 ---

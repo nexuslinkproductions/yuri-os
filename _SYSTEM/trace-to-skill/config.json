@@ -13,7 +13,6 @@
         "hard": 4,
         "adversarial": 3
       },
-      "evaluation_rubric": "/Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/shot-list-rubric.md",
       "passing_score": 7.0,
       "analysts": ["error", "success", "structure", "edge"]
     },
@@ -29,7 +28,6 @@
         "hard": 4,
         "adversarial": 3
       },
-      "evaluation_rubric": "/Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/client-brief-rubric.md",
       "passing_score": 7.0,
       "analysts": ["error", "success", "structure", "edge"]
     },
@@ -57,8 +55,6 @@
     "edge_analyst": "Analyze boundary cases and adversarial inputs. What breaks? What defensive checks are needed?"
   },
   "output": {
-    "skill_file": "/Volumes/T7/NUDIMMUD/.claude/skills/[task_id]/SKILL.md",
-    "evidence_dir": "/Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/evidence/[task_id]/",
     "max_rules": 50,
     "rule_ranking": "by_frequency_and_confidence"
   }

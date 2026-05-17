@@ -11,7 +11,6 @@
 ## WHAT WAS BUILT IN PHASE 2
 
 ### 1. NABU IDENTITY CODEX
-**File**: `/Volumes/T7/NUDIMMUD/nabu.md` (165 lines, full depth)
 
 Complete mythic + operational identity of NABU as:
 - Sumerian/Akkadian god of wisdom, writing, scribal arts, keeper of Tablet of Destinies
@@ -21,7 +20,6 @@ Complete mythic + operational identity of NABU as:
 - Authority: The written law governs. NABU's word is non-negotiable.
 
 ### 2. DIRECTORY STRUCTURE (7 HOUSES)
-Location: `/Volumes/T7/NUDIMMUD/NABU/`
 
 ```
 NABU/
@@ -73,7 +71,6 @@ NABU/
 ```
 
 ### 3. BLUEPRINT INDEX & ROUTING INTELLIGENCE
-**File**: `/Volumes/T7/NUDIMMUD/NABU/01_BLUEPRINTS/_INDEX.md`
 
 - 20-blueprint inventory table (category, use case, cost, timeline)
 - Decision tree (given problem X, return blueprint(s))
@@ -97,7 +94,6 @@ Each includes:
 - Integration hooks (which blueprints compose with this one)
 
 ### 5. ENRICHED OUTLINES FOR BLUEPRINTS 3-20
-**File**: `/Volumes/T7/NUDIMMUD/NABU/01_BLUEPRINTS/03-20-blueprints.md`
 
 Each of 18 blueprints has:
 - Category, cost, timeline
@@ -108,7 +104,6 @@ Each of 18 blueprints has:
 - Ready for full expansion in Phase 3
 
 ### 6. SEVEN HOUSES FOUNDATION DOCUMENTS
-**Files**: `/Volumes/T7/NUDIMMUD/NABU/[02-07]_[HOUSE]/README.md`
 
 Each House has:
 - Purpose statement
@@ -118,7 +113,6 @@ Each House has:
 - Placeholder files for Phase 3 expansion
 
 ### 7. ESOTERIC CODEX INTEGRATION
-**File**: `/Volumes/T7/NUDIMMUD/esoteric_codex.md` (updated)
 
 Added new section:
 - NABU entity definition in pantheon
@@ -128,7 +122,6 @@ Added new section:
 - Invocation protocol
 
 ### 8. SESSION LOG ENTRY
-**File**: `/Volumes/T7/NUDIMMUD/session_log.md` (appended)
 
 Sealed entry documenting:
 - Drift: None (full depth achieved)
@@ -228,9 +221,7 @@ Sealed entry documenting:
 - `NOESIS-CORE.md` — Learning organism architecture
 
 ### Output Locations
-- All Phase 3 work goes into `/Volumes/T7/NUDIMMUD/NABU/` tree
 - No new directories needed; structure is complete
-- Session output: `/Volumes/T7/NUDIMMUD/_SYSTEM/session-outputs/2026-04-18/NABU_PHASE3_OPUS_FINAL.md`
 
 ### Success Metrics
 - [ ] All 20 blueprints fully enriched with real examples

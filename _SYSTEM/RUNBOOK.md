@@ -25,13 +25,8 @@
 - `cat .claude/state/token-weekly.json` — token roll-up sanity check.
 - Inspect `_SYSTEM/audit-archive/` — confirm no recent deep-research audits sit unactioned.
 
-## T7 Boundary (CRITICAL)
 
-`/Volumes/T7/NUDIMMUD` is a read-only sync source mirror from Claudio's system per `.claude/rules/local_execution.md`.
 
-- Reads from T7 → automatic.
-- Writes to T7 → supervised only.
-- **References to T7 paths inside NUDIMMUD repo files are INTENTIONAL — never mass-rewrite them.** Doing so corrupts dual-machine sync. Flagged BIG ERROR by user 2026-05-13. See `memory/feedback_t7_paths_are_intentional.md`.
 
 ## Lane Routing Discipline
 
@@ -56,7 +51,6 @@
 **Action:**
 1. `./_SYSTEM/Scripts/ai eot` to regenerate enki_state + palace.
 2. If still broken, restore from git: `git checkout HEAD -- claude-palace-out/palace-index.md`.
-3. Worst case: restore from T7 mirror at `/Volumes/T7/NUDIMMUD/claude-palace-out/palace-index.md` (read-only copy).
 
 ### MCP server unresponsive
 **Symptom:** Obsidian-vault, nexus-core, or ollama-bridge tools time out.
@@ -77,7 +71,6 @@
 **Action:**
 1. `git log --oneline -- memory-core.md | head` — find last good commit.
 2. `git checkout <sha> -- memory-core.md` — restore.
-3. If git history is also lost: `cp /Volumes/T7/NUDIMMUD/memory-core.md .` (T7 read).
 
 ## Long-Operation Progress
 
@@ -112,5 +105,4 @@ If any line fails, stop and reconcile before starting work. Do not switch direct
 - `_SYSTEM/scout-errors-2026-05-13-triage.md` — scout failure root cause + Codex specs
 - `_SYSTEM/memory-layer-spec.md` — five-tier memory model
 - `_SYSTEM/audit-archive/perplexity-2026-05-13-original.md` — archived audit (DO-NOT-EXECUTE-AS-WRITTEN)
-- `.claude/rules/local_execution.md` — T7 supervision rule
 - `CODEX_PROTOCOL.md` — Codex task spec format

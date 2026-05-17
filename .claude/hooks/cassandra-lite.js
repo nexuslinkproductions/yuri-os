@@ -15,9 +15,6 @@ const PATTERNS = [
   { re: /\btruncate\s+-s\s+0\b/i,           severity: 'HIGH',     msg: 'truncate to zero bytes' },
   { re: />(\/dev\/sda|\/dev\/nvme)/i,       severity: 'CRITICAL', msg: 'raw disk write detected' },
 
-  // T7 path violations (from local_execution.md — T7 is read-only sync source)
-  { re: /\/Volumes\/T7\//,                  severity: 'HIGH',     msg: 'T7 drive path accessed' },
-
   // SQL destructive
   { re: /DROP\s+TABLE\b/i,                  severity: 'CRITICAL', msg: 'DROP TABLE detected' },
   { re: /DROP\s+DATABASE\b/i,               severity: 'CRITICAL', msg: 'DROP DATABASE detected' },

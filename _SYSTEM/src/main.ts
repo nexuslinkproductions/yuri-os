@@ -2088,7 +2088,6 @@ class NudimmudEngine {
                     <div style="position:relative; padding-left:20px; border-left:2px solid rgba(255,255,255,0.03);">
                         <div style="position:relative; margin-bottom:18px;">
                             <div style="position:absolute; left:-26px; top:4px; width:10px; height:10px; border-radius:3px; background:var(--cyan-glow); box-shadow:0 0 15px var(--cyan-glow);"></div>
-                            <div class="text-mono" style="font-size:0.65rem; color:var(--cyan-glow);">01: Scan T7 filesystem [complete]</div>
                         </div>
                         <div style="position:relative; margin-bottom:18px;">
                             <div style="position:absolute; left:-26px; top:4px; width:10px; height:10px; border-radius:3px; background:var(--gold-solar); box-shadow:0 0 15px var(--gold-solar); animation: pulse 1s infinite;"></div>

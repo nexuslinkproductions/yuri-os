@@ -39,7 +39,6 @@
       "enabled": true,
       "morning_briefing": true,
       "metrics_summary": true,
-      "report_path": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/swarm/"
     }
   },
   "thresholds": {
@@ -52,23 +51,19 @@
   "deployment_rules": {
     "blog_posts": {
       "action": "queue_for_review",
-      "destination": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/",
       "requires_manual_approval": true
     },
     "instagram_carousels": {
       "action": "queue_for_posting",
-      "destination": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/ready/",
       "requires_manual_approval": false,
       "auto_post_after_days": 0
     },
     "reddit_drafts": {
       "action": "queue_for_review",
-      "destination": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/ready/",
       "requires_manual_approval": true
     },
     "finance_digest": {
       "action": "email_ready",
-      "destination": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/",
       "requires_manual_approval": false
     }
   },
@@ -102,7 +97,6 @@
   },
   "monitoring": {
     "track_metrics": true,
-    "metrics_file": "/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/metrics/nightly-log.jsonl",
     "alert_on_failure_rate_above": 0.3,
     "health_check_interval_minutes": 15
   }

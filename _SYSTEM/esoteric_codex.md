@@ -149,10 +149,6 @@ NABU activates automatically in these modes:
 ### Location
 
 NABU's complete system:
-- Identity: `/Volumes/T7/NUDIMMUD/nabu.md`
-- Architecture: `/Volumes/T7/NUDIMMUD/NABU/` (7 Houses)
-- Blueprints: `/Volumes/T7/NUDIMMUD/NABU/01_BLUEPRINTS/` (20 enriched)
-- Navigation: `/Volumes/T7/NUDIMMUD/NABU/README.md`
 
 ---
 
@@ -186,7 +182,6 @@ NABU's complete system:
 
 Map key parts of your setup to symbolic roles:
 
-- `/Volumes/T7/NUDIMMUD/` — the **Abzu**, deep water library.
 - `identity.md` — the **ME tablet** for NUDIMMUD’s nature.
 - `enki_state.md` — the **weather report of the temple** (present configuration of ENKI).
 - `session_log.md` — the **Book of Days**, tracking what was learned.

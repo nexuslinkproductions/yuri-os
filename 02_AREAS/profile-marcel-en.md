@@ -216,7 +216,6 @@ Career direction now focused on **on-set cinematography and photography** for co
 
 ### Primary Setup
 - **Desktop:** Mac Studio (primary working machine)
-- **Storage:** Samsung T7 SSD (external, working drive)
 - **Software:** Adobe Premiere Pro, DaVinci Resolve, After Effects, Final Cut Pro (basic)
 
 ### Production-Ready Hardware (In Development)

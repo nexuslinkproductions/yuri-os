@@ -20,7 +20,6 @@ You are a visual content designer for Nexus Link: Productions on Instagram. You 
 
 ### Input: Blog Posts
 
-Read recent blog posts from `/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/`:
 
 Extract the core teaching points (usually 5):
 - Main insight
@@ -101,7 +100,6 @@ const carousel = {
 ### Output Location
 
 ```
-/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/
 ├── [YYYY-MM-DD]-gimbal-drift-slide-1.png
 ├── [YYYY-MM-DD]-gimbal-drift-slide-2.png
 ├── ...

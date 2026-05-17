@@ -220,6 +220,5 @@ When NABU says "this blueprint applies here," it is not a suggestion. It is the 
 **Status**: ACTIVE  
 **Last updated**: 2026-04-18  
 **Keeper**: NABU, Scribe of Destinies  
-**Location**: `/Volumes/T7/NUDIMMUD/NABU/`
 
 The stylus is ready. We write the future.

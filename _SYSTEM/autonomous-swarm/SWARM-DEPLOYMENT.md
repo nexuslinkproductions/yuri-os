@@ -15,7 +15,6 @@ After GAN Loop validation approves content, deployment agent moves it from stagi
 ## Blog Posts
 
 ### Input
-- Approved MDX file from Writer agent: `/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/generated/[date]/blog-post.mdx`
 - Validation score: ≥7.0/10
 - Status: approved
 
@@ -23,11 +22,8 @@ After GAN Loop validation approves content, deployment agent moves it from stagi
 
 ```
 1. Copy approved post to blog queue:
-   SOURCE: /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/generated/[date]/blog-post.mdx
-   DEST:   /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/[date]-[slug].mdx
    
 2. Create deployment metadata:
-   /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/[date]-[slug].deployment.json
    {
      "source": "autonomous-swarm",
      "generated_date": "[date]",
@@ -39,7 +35,6 @@ After GAN Loop validation approves content, deployment agent moves it from stagi
    }
 
 3. Log deployment:
-   /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/deployments/[date]-blog-deployed.log
 ```
 
 ### Manual Approval Process
@@ -72,11 +67,8 @@ If blog post is never manually approved within 7 days:
 
 ```
 1. Create carousel ready folder:
-   DEST: /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/ready/[date]-[topic]/
 
 2. Copy PNG slides:
-   SOURCE: /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/generated/[date]/carousel/
-   DEST:   /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/ready/[date]-[topic]/
    Files:
    ├── slide-1.png
    ├── slide-2.png
@@ -89,7 +81,6 @@ If blog post is never manually approved within 7 days:
    └── deployment.json
 
 3. Create deployment metadata:
-   /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/ready/[date]-[topic]/deployment.json
    {
      "source": "autonomous-swarm",
      "generated_date": "[date]",
@@ -109,12 +100,9 @@ If blog post is never manually approved within 7 days:
    }
 
 4. Create posting reminder:
-   /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/deployments/[date]-carousel-ready.notification
    Subject: "Instagram carousel ready to post: [topic]"
-   Link: /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/ready/[date]-[topic]/
 
 5. Log deployment:
-   /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/deployments/[date]-carousel-deployed.log
 ```
 
 ### Posting Process (Manual)
@@ -133,7 +121,6 @@ If configured, carousel posts automatically to Instagram at scheduled time (e.g.
 ## Reddit Drafts
 
 ### Input
-- Markdown file with curated threads + drafted replies: `/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/generated/[date]/reddit-drafts.md`
 - 8–10 threads with replies
 - Validation score: ≥7.5/10
 - Status: approved (but requires tone verification)
@@ -142,11 +129,8 @@ If configured, carousel posts automatically to Instagram at scheduled time (e.g.
 
 ```
 1. Copy to Reddit queue:
-   SOURCE: /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/generated/[date]/reddit-drafts.md
-   DEST:   /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/ready/[date]-reddit-ready.md
 
 2. Create deployment metadata:
-   /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/ready/[date]-reddit-deployment.json
    {
      "source": "autonomous-swarm",
      "generated_date": "[date]",
@@ -172,10 +156,8 @@ If configured, carousel posts automatically to Instagram at scheduled time (e.g.
 
 3. Create posting reminder:
    Subject: "Reddit threads ready for posting: 9 replies drafted"
-   Link: /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/ready/[date]-reddit-ready.md
 
 4. Log deployment:
-   /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/deployments/[date]-reddit-deployed.log
 ```
 
 ### Posting Process (Manual)
@@ -190,7 +172,6 @@ Marcel reviews drafted replies:
 
 After posting:
 ```
-Move to: /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/posted/[date]-posted-results.md
 
 Include:
 - Original drafted replies
@@ -204,7 +185,6 @@ Include:
 ## Finance Digest
 
 ### Input
-- Markdown digest from Finance Digest agent: `/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/generated/[date]/finance-digest.md`
 - Validation score: ≥8.5/10
 - Status: approved (no manual review required)
 
@@ -212,17 +192,13 @@ Include:
 
 ```
 1. Copy to finance reports:
-   SOURCE: /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/generated/[date]/finance-digest.md
-   DEST:   /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/[date]-weekly-digest.md
 
 2. Create email-ready version:
-   /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/[date]-weekly-digest.email.txt
    Format: Plain text, email headers included
    Subject: Finance Digest — Week of [X–Y], 2026
    To: Marcel (optionally: Claudio for shared visibility)
 
 3. Create deployment metadata:
-   /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/[date]-deployment.json
    {
      "source": "autonomous-swarm",
      "generated_date": "[date]",
@@ -231,7 +207,6 @@ Include:
      "deployed_at": "[timestamp]",
      "manual_approval_required": false,
      "delivery_instructions": [
-       "1. Open /Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/[date]-weekly-digest.email.txt",
        "2. Copy content",
        "3. Paste into email to self (or share with Claudio)",
        "4. Send"
@@ -244,7 +219,6 @@ Include:
    }
 
 4. Log deployment:
-   /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/deployments/[date]-finance-deployed.log
 
 5. Create reminder:
    Subject: "Finance digest ready: review action items"
@@ -261,7 +235,6 @@ Include:
 After Marcel reads digest, he:
 1. Marks off completed action items
 2. Notes any new client payment issues
-3. Archives digest with notes: `/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/[date]-acted-on.md`
 
 ---
 
@@ -270,7 +243,6 @@ After Marcel reads digest, he:
 ### When Content Fails Validation
 
 ```
-Move to: /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/rejected/[YYYY-MM-DD]/
 Include:
 ├── original-content.[ext]
 ├── validation-feedback.md (what failed + why)
@@ -299,7 +271,6 @@ If content fails GAN Loop validation twice:
 After all deployments complete, create manifest:
 
 ```
-/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/deployments/[date]-manifest.json
 
 {
   "date": "2026-04-19",
@@ -308,27 +279,22 @@ After all deployments complete, create manifest:
     "blog_posts": {
       "deployed": 1,
       "status": "awaiting_manual_approval",
-      "location": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/blog/posts/"
     },
     "instagram_carousels": {
       "deployed": 0.5,
       "status": "ready_to_post",
-      "location": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/carousels/ready/"
     },
     "reddit_drafts": {
       "deployed": 9,
       "status": "ready_for_manual_posting",
-      "location": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/social/reddit-drafts/ready/"
     },
     "finance_digest": {
       "deployed": 1,
       "status": "ready_for_email",
-      "location": "/Volumes/T7/NUDIMMUD/05_NEXUS-LINK/reports/finance/"
     }
   },
   "rejected": {
     "count": 0,
-    "location": "/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/rejected/[date]/"
   },
   "deployment_success_rate": 100,
   "manifest_created": "[timestamp]"
@@ -343,7 +309,6 @@ After all deployments complete, create manifest:
 
 If any deployment fails:
 ```
-Action: Log to /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/errors/[date]-errors.log
 Include: Error type, content piece, attempted destination, suggested fix
 Notify: Send error summary to morning report
 ```
@@ -352,7 +317,6 @@ Notify: Send error summary to morning report
 
 Content that fails deployment goes to:
 ```
-/Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/failover/[date]/
 
 Morning: Marcel is alerted in briefing + can manually retry or skip
 ```
@@ -365,7 +329,6 @@ Morning: Marcel is alerted in briefing + can manually retry or skip
 
 After Marcel publishes:
 ```
-Track in: /Volumes/T7/NUDIMMUD/_SYSTEM/autonomous-swarm/analytics/[date]-metrics.md
 
 Metrics:
 ├─ Blog: Google Analytics hits, SEO ranking progress

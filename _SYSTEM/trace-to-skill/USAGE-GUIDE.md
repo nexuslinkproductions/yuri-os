@@ -7,7 +7,6 @@
 ### Run Shot List Extraction
 
 ```bash
-cd /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill
 node orchestrator.js shot-list-generation
 ```
 
@@ -19,7 +18,6 @@ node orchestrator.js shot-list-generation
 
 **Output:**
 ```
-/Volumes/T7/NUDIMMUD/.claude/skills/shot-list-generation/SKILL.md
 ```
 
 **Timeline:** ~20–30 minutes (depending on Claude API latency)
@@ -285,7 +283,6 @@ Each produces its own SKILL.md file.
 
 ### Add a New Task
 
-Edit `/Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/config.json`:
 
 ```json
 {

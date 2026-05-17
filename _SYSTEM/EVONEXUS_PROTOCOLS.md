@@ -20,7 +20,6 @@ The NUDIMMUD layer provides the **Cognitive Enhancement**.
 The **Liquid Active Memory** service acts as the connective tissue.
 *   **Structural Stabilization**: When the skeleton is updated, the system enters a stabilization state, ensuring the bones are strong before expansion.
 *   **Cognitive Expansion**: When the enhancement is updated, the system enters an expansion state, leveraging the skeleton's strength to reach new knowledge heights.
-*   **Unified Sync**: Local work is batched and synchronized to the T7 `EVONEXUS` core, maintaining a distributed "Golden Copy" of the fusion.
 
 ---
 

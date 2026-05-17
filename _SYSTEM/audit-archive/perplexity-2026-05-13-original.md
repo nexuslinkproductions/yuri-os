@@ -22,7 +22,6 @@ Fact-check performed 2026-05-13 against `/Users/marcelspatz/YURI-OS-MUSUBI`:
 | 6 | 29 hooks | Actual: 23 in `.claude/hooks/`. |
 | 7 | 5 lanes defined (@perplexity/@comet/@code-local + 2) | Actual: **15 lanes** in `_SYSTEM/Scripts/offload-contract.mjs`. Severe undercount. |
 | 8 | scout-errors.log 179KB and growing | 176KB, last write 2026-05-09 — stale, not actively growing. |
-| 9 | T7 path drift in `memory-core.md` only | Actually in 20 files. |
 | 10 | Hermes/DeerFlow autonomous loop must be built | 4 launchd plists already active (`com.nudimmud.{ollama-kv, shellservice, wiki-rag, yuri-session-runtime}`). |
 
 **Aggregate accuracy: ~55%.** Architectural shape is reasonable; specific dates, counts, package names, and vuln content are unreliable.

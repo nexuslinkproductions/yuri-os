@@ -3,11 +3,10 @@
  * palace-auto-rebuild.mjs — Autonomous palace-index rebuild
  *
  * Runs nightly via LaunchAgent. Logic:
- *   1. Detect active vault (T7 preferred, local NUDIMMUD fallback)
+ *   1. Resolve active vault (local YURI-OS-MUSUBI)
  *   2. Check if rebuild is needed: palace-index.md mtime vs most recent vault .md mtime
  *   3. If stale (vault changed since last rebuild), run palace-rebuild.py
- *   4. Copy outputs to local claude-palace-out/ if T7 was used
- *   5. Log result to .claude/state/palace-rebuild.log
+ *   4. Log result to .claude/state/palace-rebuild.log
  *
  * CLI:
  *   node _SYSTEM/Scripts/palace-auto-rebuild.mjs           # auto (stale-check + rebuild if needed)
@@ -26,9 +25,8 @@ const STATE_DIR  = path.join(REPO_ROOT, '.claude', 'state');
 const LOG_FILE   = path.join(STATE_DIR, 'palace-rebuild.log');
 const REBUILD_PY = path.join(REPO_ROOT, '_SYSTEM', 'palace-rebuild.py');
 
-// Vault candidates: T7 preferred, local fallback
+// Vault: local YURI-OS-MUSUBI only
 const VAULT_CANDIDATES = [
-  { vault: '/Users/marcelspatz/YURI-OS-MUSUBI', output: '/Volumes/T7/claude-palace-out' },
   { vault: REPO_ROOT,              output: path.join(REPO_ROOT, 'claude-palace-out') },
 ];
 
@@ -119,7 +117,7 @@ const checkOnly    = args.includes('--check');
 
 const vault = detectVault();
 if (!vault) {
-  log('ERROR: no vault found (T7 not mounted, local vault missing)');
+  log('ERROR: no vault found (local vault missing)');
   process.exit(1);
 }
 

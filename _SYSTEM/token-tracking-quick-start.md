@@ -5,7 +5,6 @@
 
 ## At Session End (60 seconds)
 
-Open `/Volumes/T7/NUDIMMUD/_SYSTEM/token-tracker.md` and add:
 
 ```markdown
 ### SESSION [YYYY-MM-DD HH:MM] — [Task Type]

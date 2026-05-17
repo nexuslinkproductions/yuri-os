@@ -92,4 +92,3 @@ Server runs on `http://localhost:3000` by default.
 
 All colors are defined in `tailwind.config.ts` and `src/app/globals.css`. Update the `colors` object in the Tailwind config to modify the brand palette.
 
-Brand standards live in `/Volumes/T7/.claude/rules/brand-standards.md`.

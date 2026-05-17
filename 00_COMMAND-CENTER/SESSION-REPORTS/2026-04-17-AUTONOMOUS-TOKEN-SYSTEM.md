@@ -56,7 +56,6 @@
 ### Monthly Aggregation (Automatic)
 1. On April 28 at 7pm, scheduled task fires
 2. Runs: `token-aggregate-monthly.js`
-3. Generates: `/Volumes/T7/NUDIMMUD/04_FINANCE/2026/token-tracking/2026-04-summary.md`
 4. Auto-fills:
    - Total sessions
    - Average cost
@@ -127,22 +126,16 @@ Use the orchestrator script for manual control:
 
 ```bash
 # Show current session status
-/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh status
 
 # Manually finalize session
-/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh finalize
 
 # Generate monthly summary early
-/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh monthly
 
 # Show recent sessions
-/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh tracker
 
 # Show May report
-/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh report 2026-05
 
 # Help
-/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh help
 ```
 
 ---
@@ -187,7 +180,6 @@ Use the orchestrator script for manual control:
 ## What Still Requires Your Attention
 
 **Monthly (30 minutes on May 1, June 1, etc.):**
-- Review auto-generated summary in `/Volumes/T7/NUDIMMUD/04_FINANCE/2026/token-tracking/`
 - Note wins/blockers in quarterly review
 - Adjust budget caps if patterns have changed
 
@@ -229,7 +221,6 @@ Use the orchestrator script for manual control:
 - Budget status (green/yellow/red)
 - Top anomalies
 
-**File location:** `/Volumes/T7/NUDIMMUD/04_FINANCE/2026/token-tracking/[month]-summary.md`
 
 **Review schedule:** Monthly (30 min), Quarterly (1 hour)
 
@@ -331,12 +322,9 @@ The system will:
 
 **Questions?**
 - Read: `/Users/marcelspatz/.claude/hooks/` for hook implementations
-- Read: `/Volumes/T7/NUDIMMUD/_SYSTEM/token-*.md` for documentation
-- Run: `/Volumes/T7/NUDIMMUD/_SYSTEM/token-orchestrator.sh help`
 
 **Issues?**
 - Check `/tmp/claude-session-*.json` for session state
-- Review `/Volumes/T7/NUDIMMUD/_SYSTEM/token-tracker.md` for log entries
 - Run orchestrator `status` to see current session
 
 **Optimization ideas?**

@@ -203,7 +203,6 @@ The principle underlying all cross-domain synthesis. Patterns that appear at one
 
 **In creative direction for MACL-ONE (premium sports clothing)**: The athletic body in motion is a visual correspondence for a specific quality of will — *disciplined force*, the physical expression of the Martian (Geburah) principle. Effective visual work for this client resonates because it activates the correct correspondence: not just *showing* the product on an attractive body but *embodying* the quality of will that makes the product meaningful. Color, motion, rhythm — everything tuned to the Martian correspondence.
 
-**In system architecture**: The structure of your file system (T7/NUDIMMUD as the Abzu) *corresponds to and therefore reinforces* the mental structure of how you organize knowledge. This is not just metaphor — the physical organization of information shapes the cognitive operations you can perform on it. Building correspondence between the physical structure and the conceptual structure is operative Hermeticism applied to personal knowledge management.
 
 ### IV.3 — Vibration: "Nothing rests; everything moves; everything vibrates"
 
@@ -534,7 +533,6 @@ The *Hermetic cognition* model Bruno developed: certain mental structures — wh
 
 **Critical assessment**: Bruno was the most intellectually ambitious figure in the Hermetic tradition and paid for it with his life. He was burned at the stake not primarily for the heliocentric cosmology (which Galileo would also propose, without being burned) but for the panpsychist-Hermetic cosmology that accompanied it — the claim that every world in the infinite universe carries intelligence, that the divine Nous pervades everything, that there is no central privileged seat of divine dispensation. This was theologically intolerable.
 
-**Usable legacy**: The memory-palace-as-cosmological-architecture concept, applied to knowledge management: T7/NUDIMMUD as Bruno's memory theatre, built to *correspond to* the structure of the operating intelligence rather than merely storing its outputs. The cross-domain synthesis method: Bruno could take any symbol and, by mapping its correspondences, extract information about apparently unrelated domains. This is the Principle of Correspondence operated at full professional capability.
 
 ### IX.6 — Thomas Vaughan (1621–1666)
 

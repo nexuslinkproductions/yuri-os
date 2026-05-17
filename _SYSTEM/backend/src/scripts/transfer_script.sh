@@ -4,7 +4,6 @@
 # This script migrates the NUDIMMUD infrastructure from SSD to Local Mac.
 # EXCLUDES: Images, Videos, Archives, and Heavy Binary Clutter.
 
-SOURCE="/Volumes/T7/NUDIMMUD/"
 TARGET="/Users/marcelspatz/NUDIMMUD"
 
 echo "⬡ RUBEDO :: STARTING_TRANSFERENCE..."

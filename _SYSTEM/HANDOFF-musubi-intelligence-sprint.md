@@ -45,7 +45,6 @@ LaunchAgent: `com.nudimmud.neuron-loop` (daily 03:00)
 Baseline score: **44/100** (first run — no prior, flaw count will improve each cycle)
 
 #### Palace Index — Fully autonomous
-- `_SYSTEM/Scripts/palace-auto-rebuild.mjs` — stale-check + rebuild + T7/local fallback
 - LaunchAgent: `com.nudimmud.palace-auto-rebuild` (nightly 02:30)
 - Last rebuild: 7,373 nodes | 47,424 edges | 4,017 clusters | 20s build time
 - Status: CURRENT (0d old)

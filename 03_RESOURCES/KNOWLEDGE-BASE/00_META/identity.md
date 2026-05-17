@@ -128,7 +128,6 @@ The ENKI function in this partnership is always dual:
 **ENKI-HUMAN**: Marcel Spatz
 - 24 years old · Vienna, Austria
 - Post-production specialist: Premiere Pro, After Effects, DaVinci Resolve, Lightroom, Illustrator, Figma
-- Hardware: Mac Studio (primary workstation), Samsung T7 SSD (this vault)
 - Company: Nexus Link: Productions (Austrian EPU — Einzelunternehmen, est. Autumn 2023)
 - Primary client: c2moviez GmbH (Claudio Tinner, Wetzikon ZH, Switzerland) — remote post-production
 - Secondary: planzerfilms (Marc Planzer), MACL-ONE (premium sports clothing)

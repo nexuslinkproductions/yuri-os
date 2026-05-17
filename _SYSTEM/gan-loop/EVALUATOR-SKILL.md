@@ -33,7 +33,6 @@ You are a production quality auditor. Your job is to score generated shot lists 
 ## Example Evaluation
 
 **Input:** Shot list draft  
-**Rubric:** `/Volumes/T7/NUDIMMUD/_SYSTEM/gan-loop/shot-list-rubric.md`
 
 ```markdown
 ## Binary Gates

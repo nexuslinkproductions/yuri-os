@@ -566,7 +566,6 @@ T3 null embeddings
 T4 empty notebook
 T5 duplicate chunk rows
 T6 message write contract
-T7 citation fields
 T8 abort signal
 ```
 
@@ -600,7 +599,6 @@ Key findings:
   - duplicate semantic chunk inserted -> no duplicate chunk IDs, but semantic duplicate can appear as distinct citation
 - T6:
   - exactly 1 assistant message, `sources_used` valid JSON, all chunk IDs exist
-- T7:
   - all citation fields valid, excerpt <= 200 chars
 - T8:
   - pre-aborted signal -> 5 citations emitted, 0 messages, no onError/onDone, silent abort

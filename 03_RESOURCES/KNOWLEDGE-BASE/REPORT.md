@@ -17,12 +17,9 @@ total-lines: 4654
 
 ---
 
-## I. What Was Found on T7 — Existing State
 
-### T7 Root Structure
 
 ```
-/Volumes/T7/
 ├── CLAUDE.md               ← primary project context (safety rules, environment)
 ├── CLAUDE.local.md         ← private financial identifiers (gitignored)
 ├── NUDIMMUD/               ← ACTIVE VAULT (primary working vault)
@@ -36,11 +33,6 @@ total-lines: 4654
 
 | Vault | Path | Status |
 |-------|------|--------|
-| NUDIMMUD (primary) | `/Volumes/T7/NUDIMMUD/` | Active, well-structured |
-| NEXUS HUB (legacy) | `/Volumes/T7/MASTER/NEXUS LINK AI/OBSIDIAN/NEXUS HUB/` | Legacy, do not modify |
-| DOMAIN EXPANSION - INFINITE VOID | `/Volumes/T7/MASTER/DOMAIN EXPANSION - INFINITE VOID/` | Legacy |
-| iC2M | `/Volumes/T7/MASTER/iC2M/` | **Empty** — no markdown files found |
-| RECOVERY copies | `/Volumes/T7/RECOVERY/` | Backup copies only |
 
 ### NUDIMMUD Vault State Before This Session
 
@@ -55,7 +47,6 @@ The vault had 6 root-level knowledge files:
 
 **Critical gap identified**: No actual knowledge base. The esoteric_codex.md contained operational principles but zero substantive content on any of the traditions it referenced. NUDIMMUD was operating with skeletal frameworks for Kabbalah, Sumerian cosmology, alchemy, etc. — names without content.
 
-**The Claudio vault situation**: `iC2M/` at `/Volumes/T7/MASTER/iC2M/` is empty. No markdown files, no Obsidian structure. Cross-vault linking with Claudio is architecturally impossible in the current state. The `06_NETWORK-SYNC/C2MOVIEZ/` folder in NUDIMMUD is the current bridge.
 
 ---
 
@@ -317,7 +308,6 @@ NUDIMMUD now: has `partner_memory.md` as a dedicated living profile with the ful
 
 1. **Update esoteric_codex.md** to link into 06_KNOWLEDGE-BASE — the root file should now be a thin navigation layer pointing into the knowledge base rather than trying to contain everything
 2. **Update identity.md** at root to reference the new 05_OPERATIONAL files
-3. **Establish Claudio's vault** — the iC2M Obsidian vault at `/Volumes/T7/MASTER/iC2M/` needs to be seeded with basic structure so cross-vault linking can begin
 4. **Rebuild graphify** — run graphify on the updated vault to reflect all new knowledge base nodes in the graph
 5. **Rebuild claude-palace** — the palace-index is stale relative to the new 06_KNOWLEDGE-BASE folder
 

@@ -323,19 +323,15 @@ This sequence appears in all top runs (#2, #5, #8, #11, #14, #19).
 ```bash
 # Error Analyst
 node analyst.js error-analyst \
-  /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/evidence/shot-list-generation/
 
 # Success Analyst
 node analyst.js success-analyst \
-  /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/evidence/shot-list-generation/
 
 # Structure Analyst
 node analyst.js structure-analyst \
-  /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/evidence/shot-list-generation/
 
 # Edge Analyst
 node analyst.js edge-analyst \
-  /Volumes/T7/NUDIMMUD/_SYSTEM/trace-to-skill/evidence/shot-list-generation/
 ```
 
 ### Output

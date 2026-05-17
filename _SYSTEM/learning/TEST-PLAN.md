@@ -14,7 +14,6 @@
 | Hook scripts | ✓ | All 3 hooks: syntax valid, no runtime errors |
 | Settings wired | ✓ | `settings.json` SessionStart + Stop hooks configured |
 | Learning files | ✓ | 5 domain files + README in place |
-| T7 architecture | ✓ | All files on T7 (vault-centric) |
 
 ---
 
@@ -34,7 +33,6 @@
 3. Watch status: "Finalizing session and updating learning rules..."
 4. Check `sessions.jsonl` was created:
    ```bash
-   ls -lh /Volumes/T7/NUDIMMUD/_SYSTEM/learning/sessions.jsonl
    ```
 5. ✓ If file exists: capture is working
 
@@ -44,11 +42,9 @@
 
 1. Wait 4+ hours idle, OR manually trigger:
    ```bash
-   node /Volumes/T7/NUDIMMUD/_SYSTEM/hooks/dream.js
    ```
 2. Check if `finance.md` (or other domain) was updated:
    ```bash
-   cat /Volumes/T7/NUDIMMUD/_SYSTEM/learning/finance.md | grep -A 5 "## Rules"
    ```
 3. ✓ If rules appear: dream worker is learning
 
@@ -91,17 +87,14 @@ To bootstrap learning, intentionally correct Claude on:
 
 ### Check Session Signals
 ```bash
-tail -20 /Volumes/T7/NUDIMMUD/_SYSTEM/learning/sessions.jsonl
 ```
 
 ### Check Learning Rules
 ```bash
-cat /Volumes/T7/NUDIMMUD/_SYSTEM/learning/*.md | grep "^-"
 ```
 
 ### Check Dream Worker State
 ```bash
-cat /Volumes/T7/NUDIMMUD/_SYSTEM/learning/.last-dream
 ```
 
 ---

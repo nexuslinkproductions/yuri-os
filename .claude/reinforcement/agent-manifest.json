@@ -97,7 +97,6 @@
         "identify destructive operations",
         "predict consequences of sequences",
         "detect security implications",
-        "check T7 write violations",
         "catch git history rewrites",
         "identify safety bypass attempts"
       ]
