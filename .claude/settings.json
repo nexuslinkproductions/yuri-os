@@ -62,22 +62,12 @@
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/aeonic-ingest.js",
-            "async": true
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/yuri-boot.js",
+            "command": "node .claude/hooks/musubi-protocol-ingest.js",
             "async": true
           },
           {
             "type": "command",
             "command": "node .claude/hooks/startup-offload.js",
-            "async": true
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/nisaba-subagent-start.js",
             "async": true
           },
           {
@@ -121,7 +111,7 @@
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/nisaba-subagent-start.js"
+            "command": "node .claude/hooks/yuri-sentinel-start.js"
           }
         ]
       }
@@ -154,7 +144,7 @@
           },
           {
             "type": "command",
-            "command": "node .claude/hooks/aeonic-enforce.js"
+            "command": "node .claude/hooks/musubi-protocol-enforce.js"
           }
         ]
       },
@@ -230,7 +220,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/nisaba-on-stop.js",
+            "command": "node .claude/hooks/yuri-sentinel-stop.js",
             "async": true
           },
           {

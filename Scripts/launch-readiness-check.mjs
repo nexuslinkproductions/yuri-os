@@ -90,7 +90,7 @@ check('learning', () => {
 
 // 3. nexbox verify
 check('nexbox-verify', () => {
-  const verifyPath = join(REPO, 'nexbox', 'verify.mjs');
+  const verifyPath = join(REPO, '_SYSTEM', 'nexbox', 'verify.mjs');
   if (!existsSync(verifyPath)) return { pass: false, value: 'MISSING', detail: 'nexbox/verify.mjs not found' };
   const r = run('node', [verifyPath], { timeout: 15000 });
   const pass = r.status === 0;
@@ -109,7 +109,7 @@ check('memory-health', () => {
 
 // 5. Dream processor queue state
 check('dream-processor', () => {
-  const script = join(REPO, 'Scripts', 'nisaba-dream-processor.mjs');
+  const script = join(REPO, 'Scripts', 'yuri-dream-processor.mjs');
   if (!existsSync(script)) return { pass: false, value: 'MISSING', detail: 'nisaba-dream-processor.mjs not found' };
   const r = run('node', [script, '--dry-run'], { timeout: 20000 });
   const pass = r.status === 0;

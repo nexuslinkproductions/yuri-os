@@ -569,7 +569,7 @@ async function dispatchCodexQueueEmit(prompt, plan, turnId) {
 function writeCouncilSynthesis(findings, turnId, plan) {
   const SYNTH_LOG  = path.join(STATE_DIR, 'council-synthesis.jsonl');
   const STALE_FILE = path.join(STATE_DIR, 'brain-stale.sentinel');
-  const NISABA_DIR = path.join(path.dirname(STATE_DIR), 'nisaba', 'logs');
+  const NISABA_DIR = path.join(path.dirname(STATE_DIR), 'yuri-sentinel', 'logs');
 
   try {
     // M2a: extract consensus findings (≥2 distinct sources agree on WARN+)

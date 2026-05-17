@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
-const NISABA_DIR = path.join(REPO_ROOT, '.claude', 'nisaba');
+const NISABA_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
 const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 
 const PATHS = {

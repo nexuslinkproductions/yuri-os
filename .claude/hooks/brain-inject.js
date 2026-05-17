@@ -24,7 +24,7 @@ const { spawnSync } = require('child_process');
 
 const REPO_ROOT        = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/NUDIMMUD';
 const SOUL_FILE        = path.join(REPO_ROOT, 'SOUL.md');
-const GLOBAL_MD        = path.join(REPO_ROOT, '.claude', 'nisaba', 'learning', 'global.md');
+const GLOBAL_MD        = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'global.md');
 const PALACE_PATHS     = [path.join(REPO_ROOT, 'claude-palace-out', 'palace-index.md')];
 const STATE_FILE       = path.join(REPO_ROOT, '.claude', 'state', 'session-state.json');
 const LAUNCH_GATE      = path.join(REPO_ROOT, '.claude', 'state', 'launch-gate.json');
@@ -283,7 +283,7 @@ function loadNeurodivergentEngine(cortexTier) {
 // L2: behavioral fingerprint from nisaba/self-model/fingerprint.json
 // L3: watch-list + active drives
 
-const FINGERPRINT_PATH = path.join(REPO_ROOT, '.claude', 'nisaba', 'self-model', 'fingerprint.json');
+const FINGERPRINT_PATH = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'self-model', 'fingerprint.json');
 
 function loadSelfAwareness() {
   try {
@@ -361,9 +361,32 @@ function loadNeuronLoopState() {
   } catch { return null; }
 }
 
+// ── Roadmap state — active sprint phase ──────────────────────────────────────
+// Source: .claude/state/roadmap-state.json (managed by yuri-boot.js / roadmap tracker)
+
+function loadRoadmapState() {
+  try {
+    const STATE_PATH = path.join(REPO_ROOT, '.claude', 'state', 'roadmap-state.json');
+    if (!fs.existsSync(STATE_PATH)) return null;
+    const state = JSON.parse(fs.readFileSync(STATE_PATH, 'utf8'));
+    const lines = [];
+    if (state.active_initiative) lines.push(`initiative: ${state.active_initiative}`);
+    if (state.gate_status) lines.push(`gate: ${state.gate_status}`);
+    // phases can be object or array
+    const phases = Array.isArray(state.phases)
+      ? state.phases
+      : Object.values(state.phases || {});
+    const inProgress = phases.filter(p => p.status === 'in_progress' || p.status === 'IN_PROGRESS').map(p => p.name || p.id || '?').join(', ');
+    if (inProgress) lines.push(`in_progress: ${inProgress}`);
+    const completed = phases.filter(p => p.status === 'COMPLETE' || p.status === 'passed').length;
+    lines.push(`phases: ${completed}/${phases.length} complete`);
+    return lines.join('\n');
+  } catch { return null; }
+}
+
 // ── Geass lock — active session constraint ───────────────────────────────────
 
-const GEASS_LOCK_PATH = path.join(REPO_ROOT, '.claude', 'nisaba', 'geass', 'active-lock.json');
+const GEASS_LOCK_PATH = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'geass', 'active-lock.json');
 
 function loadGeassLock() {
   try {
@@ -397,7 +420,7 @@ function loadNenPhase() {
 
 // ── Compose unified block ───────────────────────────────────────────────────
 
-function buildBrainBlock({ rules, learnedRules, palace, memoryLines, palaceStatus, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop }) {
+function buildBrainBlock({ rules, learnedRules, palace, memoryLines, palaceStatus, sessionCtx, gateSnapshot, laneHealth, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState }) {
   const identityLines = rules.map(r => `- ${r}`).join('\n');
 
   const spatialLines = palace.length
@@ -437,6 +460,10 @@ function buildBrainBlock({ rules, learnedRules, palace, memoryLines, palaceStatu
     ? `\n### NEURON_LOOP — Self-improvement baseline\n${neuronLoop}`
     : '';
 
+  const roadmapSection = roadmapState
+    ? `\n### ROADMAP — Active sprint state\n${roadmapState}`
+    : '';
+
   const geassSection = geassLock
     ? `\n### GEASS_LOCK — Active inviolable constraint\n🔴 ${geassLock}`
     : '';
@@ -470,7 +497,7 @@ ${HARDWARE.note}
 ${laneHealth}
 
 ### GATE — Launch readiness
-${gateSnapshot}${pdcSection}${dynamicSection}${animaDNASection}${neurodivSection}${selfAwarenessSection}${nvidiaSection}${neuronSection}${geassSection}${nenSection}
+${gateSnapshot}${pdcSection}${dynamicSection}${animaDNASection}${neurodivSection}${selfAwarenessSection}${nvidiaSection}${neuronSection}${roadmapSection}${geassSection}${nenSection}
 </yuri-brain>`;
 }
 
@@ -540,8 +567,9 @@ function main() {
   const nenPhase      = loadNenPhase();
   const nvidiaLanes   = loadNvidiaLanes();
   const neuronLoop    = loadNeuronLoopState();
+  const roadmapState  = loadRoadmapState();
 
-  const block = buildBrainBlock({ rules, learnedRules, palace, memoryLines, palaceStatus, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop });
+  const block = buildBrainBlock({ rules, learnedRules, palace, memoryLines, palaceStatus, sessionCtx, laneHealth, gateSnapshot, cortexDynamic, pdcContext, animaDNA, neurodivergent, selfAwareness, geassLock, nenPhase, nvidiaLanes, neuronLoop, roadmapState });
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {

@@ -5,8 +5,8 @@ if (process.env.NUDIMMUD_DISABLE_SCOUTS === '1') {
 const fs = require('fs');
 const path = require('path');
 
-const LEARNING_DIR = path.join(process.env.HOME || process.cwd(), '.claude', 'nisaba', 'learning');
-const PROJECT_LEARNING_DIR = path.join(process.cwd(), '.claude', 'nisaba', 'learning');
+const LEARNING_DIR = path.join(process.env.HOME || process.cwd(), '.claude', 'yuri-sentinel', 'learning');
+const PROJECT_LEARNING_DIR = path.join(process.cwd(), '.claude', 'yuri-sentinel', 'learning');
 const SESSIONS_DIR = path.join(PROJECT_LEARNING_DIR, 'sessions');
 
 function buildDreamPrompt() {

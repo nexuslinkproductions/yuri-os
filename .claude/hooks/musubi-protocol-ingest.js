@@ -10,7 +10,7 @@ const path = require('path');
 const stateModule = require('./session-state.js');
 
 const NUDIMMUD_ROOT = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/NUDIMMUD';
-const PROTOCOL_FILE = path.join(NUDIMMUD_ROOT, 'AEONIC_PROTOCOL.md');
+const PROTOCOL_FILE = path.join(NUDIMMUD_ROOT, 'MUSUBI_PROTOCOL.md');
 
 /**
  * Extract sections from AEONIC_PROTOCOL.md via ## heading boundaries
@@ -38,7 +38,7 @@ function formatXmlBlock(sections) {
   const offloadDirective = sections.GLOBAL_OFFLOAD_DIRECTIVE || '';
   const coreDirectives = sections.CORE_DIRECTIVES || '';
 
-  return `<aeonic-protocol version="1" loaded_at="${timestamp}">
+  return `<musubi-protocol version="1" loaded_at="${timestamp}">
 ### ROLE_MATRIX
 
 ${roleMatrix}
@@ -51,7 +51,7 @@ ${offloadDirective}
 
 ${coreDirectives}
 
-</aeonic-protocol>`;
+</musubi-protocol>`;
 }
 
 /**

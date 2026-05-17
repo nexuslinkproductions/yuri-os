@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const cwd = process.cwd();
-const sessionsDir = path.join(cwd, '.claude', 'nisaba', 'learning', 'sessions');
+const sessionsDir = path.join(cwd, '.claude', 'yuri-sentinel', 'learning', 'sessions');
 const reportMode = process.argv.includes('--report');
 
 if (!fs.existsSync(sessionsDir)) {

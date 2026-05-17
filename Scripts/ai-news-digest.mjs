@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
-const OUT_PATH  = path.join(REPO_ROOT, '.claude', 'nisaba', 'learning', 'hn-digest.json');
+const OUT_PATH  = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'hn-digest.json');
 
 const SIGNAL_QUERIES = ['AI agent', 'AGI', 'LLM', 'reasoning model', 'AI breakthrough'];
 const SCORE_THRESHOLD = 150;

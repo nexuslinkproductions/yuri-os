@@ -4,7 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
 
-const PROJECT_LEARNING_DIR = path.join(process.cwd(), '.claude', 'nisaba', 'learning');
+const PROJECT_LEARNING_DIR = path.join(process.cwd(), '.claude', 'yuri-sentinel', 'learning');
 const SESSIONS_DIR = path.join(PROJECT_LEARNING_DIR, 'sessions');
 const STATE_FILE = path.join(process.cwd(), '.claude', 'state', 'session-state.json');
 
@@ -153,7 +153,7 @@ function spawnDream() {
   fs.mkdirSync(path.dirname(lockFile), { recursive: true });
   fs.writeFileSync(lockFile, String(Date.now()));
 
-  const dreamScript = path.join(__dirname, 'nisaba-dream.js');
+  const dreamScript = path.join(__dirname, 'yuri-dream.js');
   const child = spawn('node', [dreamScript], {
     detached: true,
     stdio: 'ignore',

@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = path.resolve(__dirname, '..');
-const NISABA     = path.join(REPO_ROOT, '.claude', 'nisaba');
+const NISABA     = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
 
 const PATHS = {
   synthLog:       path.join(NISABA, 'learning', 'synthesis.jsonl'),

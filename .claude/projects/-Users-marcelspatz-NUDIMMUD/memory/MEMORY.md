@@ -2,7 +2,7 @@
 
 - [Oracle Shell Service](project_shell_service.md) — launchd-managed shellService.js on port 3098; fixes pm2 posix_spawn EBADF for Oracle terminal
 - [Amp impl lane](project_amp_lane.md) — @amp parallel impl lane; smart=gpt-5.5 reasoning-high (was Opus 4.7, changed sovereignty sprint), deep=GPT-5.5, rush=fast; Claude-dispatch only (`a "prompt"`)
-- [NVIDIA NIM lane](project_nvidia_lane.md) — @nvidia 7-model suite; tools on; default llama-3.3-70b; DeepSeek needs elevated access
+- [NVIDIA NIM lane](project_nvidia_lane.md) — @nvidia 7 live / 5 dead (embed+gemma+phi+405b+nemotron-70b = 404); embed=DEAD, use kimi for long-ctx RAG
 - [Amp via Claude only](feedback_amp_claude_only.md) — never suggest direct amp terminal/IDE use; always `a "prompt"` or `ai @amp`
 
 - [Always surface next steps](feedback_always_next_steps.md) — End every response with next steps / open campaigns / pending to-dos; never wait to be asked
@@ -41,7 +41,8 @@
 - [Perplexity Pro Integration](feedback_perplexity_integration.md) — Primary research/browser tool: Deep Research (125-source), 9 models incl GPT-5.5 Max + Opus 4.7, Filesystem full disk access, watch_folder, Comet; never use Safari
 - [Local model hardware constraint](feedback_local_model_hardware_constraint.md) — M2 Pro: ONLY llama3.2:latest + needle are safe; deepseek-r1:8b/qwen2.5:7b/all others FREEZE machine; P9 soak requires M4 Pro hardware
 - [File deletion: use trash command](feedback_destructive_file_ops.md) — use `trash <path>` not rm/mv; parallel bash + destructive op = all calls cancelled; flag manual if trash fails
-- [Yuri OS unified brain architecture](project_brain_architecture.md) — brain-inject.js unifies palace+persona+memory into one palace-seeded `<yuri-brain>` block at SessionStart
+- [Yuri OS unified brain architecture](project_brain_architecture.md) — brain-inject.js v3: 16-section yuri-brain block; paths now .claude/yuri-sentinel/ (was nisaba/)
+- [Naming overhaul 2026-05-17](feedback_naming_overhaul.md) — all mythological names (NISABA/ARGUS/CASSANDRA/HERMES/OBLITERATUS/AEONIC/CONCLAVE/NOESIS/NABU) → Yuri/Musubi functional names
 - [Sovereignty Sprint Jun 2026](project_sovereignty_sprint.md) — Independence score 8→67/100, fail 16→0; nexbox bundle, lane-dispatcher (manifest-driven routing), settings.json de-pinned, 15 packets landed; T-30d Anthropic repricing mitigation
 - [Yuri Cortex — Living Brain](project_yuri_cortex.md) — M1/M2/M3 braindump supercharge LIVE; brain amplifier enriches advisors with SOUL+LTM+PDC+palace; PDC in brain block; brain:stale sentinel for cross-turn learning
 - [Neuron Loop — Self-Learning](project_neuron_loop.md) — Daily autonomous audit+promote+calibrate pipeline; baseline 44/100; LaunchAgent 03:00; self-audit found 22→12 flaws (0 WARNs)

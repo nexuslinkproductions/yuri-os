@@ -223,8 +223,8 @@
     "live_status": {
       "tested": "2026-05-17",
       "live":   ["nvidia-llama-70b", "nvidia-qwen", "nvidia-mistral-medium", "nvidia-kimi", "nvidia-nemotron-120b", "nvidia-qwen-coder", "nvidia-vision"],
-      "dead":   ["nvidia-nemotron", "nvidia-phi", "nvidia-llama-405b", "nvidia-gemma"],
-      "untested": ["nvidia-embed"],
+      "dead":   ["nvidia-nemotron", "nvidia-phi", "nvidia-llama-405b", "nvidia-gemma", "nvidia-embed"],
+      "untested": [],
       "note": "dead = 404 on this account tier; re-test after NIM plan upgrade"
     },
     "routing_decision_guide": {
@@ -237,7 +237,7 @@
       "image_or_screenshot_review": "@nvidia-vision ✓",
       "long_document_over_128k":    "@nvidia-kimi ✓",
       "cheap_fast_classification":  "@nvidia-mistral-medium ✓ (phi dead)",
-      "rag_or_similarity_search":   "@nvidia-embed (untested)"
+      "rag_or_similarity_search":   "@nvidia-embed (DEAD — 404 on current tier)"
     }
   },
   "codex": {

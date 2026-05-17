@@ -458,7 +458,7 @@ const OFFLOAD_CONTRACT = {
   },
   learningLoop: {
     memorySurface: '_SYSTEM/OS_KERNEL/memory.db',
-    durableSeed: '.claude/nisaba/learning/global.md',
+    durableSeed: '.claude/yuri-sentinel/learning/global.md',
     capture: ['request_class', 'chosen_lane', 'fallbacks', 'evidence_used', 'files_touched', 'tests_run', 'user_correction', 'canonical_tags', 'bridge_domains', 'next_rule_candidate', 'prevention_rule_candidate'],
     promoteRuleWhen: [
       'The same correction repeats.',

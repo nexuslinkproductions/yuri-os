@@ -26,7 +26,7 @@ const PATHS = {
   palaceIndex:  path.join(REPO_ROOT, 'claude-palace-out', 'palace-index.md'),
   pdcSkill:     path.join(REPO_ROOT, '.claude', 'skills', 'probabilistic-decision-core', 'SKILL.md'),
   pdcCalibLog:  path.join(REPO_ROOT, '_SYSTEM', 'SELF-IMPROVEMENT', '02_EXTRACT', 'probability-calibration-log.md'),
-  globalMd:     path.join(REPO_ROOT, '.claude', 'nisaba', 'learning', 'global.md'),
+  globalMd:     path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'global.md'),
 };
 
 const RAG_TTL_MS = 10 * 60 * 1000; // 10 min — wider window for amplifier

@@ -1,3 +1,305 @@
+<!-- session-journal: newest entry first -->
+
+## 2026-05-17 | Session 1779017391801 | 84m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×136, Edit×34, mcp×33, Read×27, Write×7, ToolSearch×2, Skill×1, AskUserQuestion×1, ExitPlanMode×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=yuri-sentinel-start.js,yuri-sentinel-stop.js,com.nudimmud.yuri-sentinel.plist`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 67m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×119, Read×18, Edit×13, Write×5, mcp×4, Skill×1, ToolSearch×1, AskUserQuestion×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SKILL.md,brain-inject.js,offload-contract.mjs`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 61m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×110, Read×17, Edit×13, Write×4, mcp×3, Skill×1, ToolSearch×1, AskUserQuestion×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SKILL.md,brain-inject.js,offload-contract.mjs`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 59m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** yuri-shura
+**Skills updated:** yuri-shura
+
+**Tools:** Bash×109, Read×17, Edit×13, Write×4, mcp×3, Skill×1, ToolSearch×1, AskUserQuestion×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=SKILL.md,brain-inject.js,offload-contract.mjs`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 47m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×89, Read×12, Edit×5, Write×4, mcp×2, Skill×1, ToolSearch×1, AskUserQuestion×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dream-errors.log,audit-2026-05-17.html,.obsidianignore`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 44m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×82, Read×12, Edit×5, Write×4, mcp×2, Skill×1, ToolSearch×1, AskUserQuestion×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dream-errors.log,audit-2026-05-17.html,.obsidianignore`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 44m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×81, Read×12, Edit×5, Write×4, mcp×2, Skill×1, ToolSearch×1, AskUserQuestion×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dream-errors.log,audit-2026-05-17.html,.obsidianignore`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 42m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×80, Read×12, Edit×5, Write×4, mcp×2, Skill×1, ToolSearch×1, AskUserQuestion×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=dream-errors.log,audit-2026-05-17.html,.obsidianignore`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 26m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×56, Read×10, Write×3, Edit×3, mcp×2, Skill×1, ToolSearch×1, AskUserQuestion×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=models.json,dream-errors.log,audit-2026-05-17.html`
+
+---
+
+## 2026-05-17 | Session 1779017391801 | 15m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×53, Read×10, Write×3, Edit×3, mcp×2, Skill×1, ToolSearch×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=models.json,dream-errors.log,audit-2026-05-17.html`
+
+---
+
+## 2026-05-17 | Session 1778980794826 | 610m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×42, Edit×12, Write×12, Read×10, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=nvidia-test-v2.mjs,nvidia-fix-test.mjs,nvidia-fix2.mjs`
+
+---
+
+## 2026-05-17 | Session 1778980794826 | 608m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×41, Edit×12, Write×12, Read×10, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=nvidia-test-v2.mjs,nvidia-fix-test.mjs,nvidia-fix2.mjs`
+
+---
+
+## 2026-05-17 | Session 1778980794826 | 588m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×34, Read×7, Edit×7, Write×7, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=nvidia-nim-test.mjs,offload-contract.mjs,offload.sh`
+
+---
+
+## 2026-05-17 | Session 1778980794826 | 10m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×27, Write×6, Read×4, Edit×4, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=video-script.md,code-intelligence.md,sales-intelligence.md`
+
+---
+
+## 2026-05-17 | Session 1778980794826 | 9m | peak 0% | compacts: 0
+
+**Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD
+
+**Skills used:** none
+**Skills updated:** none
+
+**Tools:** Bash×21, Write×6, Read×4, Edit×4, mcp×1 | **Success rate:** 100%
+
+**Errors:**
+- none
+
+**Compact history:**
+- none
+
+**Compact hint for next /compact:**
+`/compact Preserve: branch=main | files=video-script.md,code-intelligence.md,sales-intelligence.md`
+
+---
+
 ## 2026-05-17 | Session 1778968185238 | 160m | peak 0% | compacts: 0
 
 **Branch:** main | **Cwd:** /Users/marcelspatz/NUDIMMUD

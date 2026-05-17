@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname   = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT   = path.resolve(__dirname, '..');
-const NISABA_DIR  = path.join(REPO_ROOT, '.claude', 'nisaba');
+const NISABA_DIR  = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
 const SYNTH_LOG   = path.join(NISABA_DIR, 'logs', 'council-synthesis.jsonl');
 const PULSE_LOG   = path.join(REPO_ROOT, '.claude', 'state', 'pulse-bus.json');
 const CALIB_DIR   = path.join(NISABA_DIR, 'calibration');

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const cwd = process.cwd();
-const sessionsDir = path.join(cwd, '.claude', 'nisaba', 'learning', 'sessions');
+const sessionsDir = path.join(cwd, '.claude', 'yuri-sentinel', 'learning', 'sessions');
 const governorPy = path.join(cwd, '_SYSTEM', 'OS_KERNEL', 'memory_governor.py');
 
 if (!fs.existsSync(governorPy)) process.exit(0);

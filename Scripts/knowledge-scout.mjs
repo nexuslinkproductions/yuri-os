@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
-const NISABA_DIR = path.join(REPO_ROOT, '.claude', 'nisaba', 'learning');
+const NISABA_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning');
 
 const PATHS = {
   githubTrending: path.join(NISABA_DIR, 'github-trending.json'),
