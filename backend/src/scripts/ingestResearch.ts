@@ -1,5 +1,5 @@
 /**
- * Bulk-ingest NUDIMMUD vault research into a Notebook.
+ * Bulk-ingest YURI-OS-MUSUBI vault research into a Notebook.
  * Run: npx ts-node src/scripts/ingestResearch.ts
  */
 import path from 'path';
@@ -8,7 +8,7 @@ import { initDatabase } from '../models/database';
 import { NotebookService } from '../services/notebookService';
 import { NotebookIngestService } from '../services/notebookIngestService';
 
-const NOTEBOOK_TITLE = 'NUDIMMUD Research Vault';
+const NOTEBOOK_TITLE = 'YURI-OS-MUSUBI Research Vault';
 
 const VAULT_SOURCES: Array<{ path: string; description: string }> = [
     // NISABA — operational theology & mechanics

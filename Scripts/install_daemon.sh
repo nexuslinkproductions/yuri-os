@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # ⬡ YURI_DAEMON_INSTALLER
-# This script configures the NUDIMMUD Command Center to start automatically on boot.
+# This script configures the YURI-OS-MUSUBI to start automatically on boot.
 
-PROJECT_ROOT="/Volumes/T7/NUDIMMUD"
+PROJECT_ROOT="/Users/marcelspatz/YURI-OS-MUSUBI"
 
 echo "⬡ INITIATING_STARTUP_HOOK_INTEGRATION..."
 

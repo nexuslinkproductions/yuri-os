@@ -55,7 +55,7 @@ export function getRuntimeApiKey(): string {
 }
 
 /**
- * Simple API Key Middleware for NUDIMMUD Backend.
+ * Simple API Key Middleware for YURI-OS-MUSUBI Backend.
  * Requires an X-API-KEY header matching the environment configuration.
  */
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {

@@ -13,7 +13,7 @@
 // 'notify+obsidian' = both.
 //
 // Failure modes degrade silently: osascript unavailable / DnD on → log
-// only. Obsidian path missing → fallback to NUDIMMUD vault log.
+// only. Obsidian path missing → fallback to YURI-OS-MUSUBI vault log.
 
 import { spawn } from 'node:child_process';
 import { promises as fsp, existsSync, mkdirSync, writeFileSync, renameSync, appendFileSync } from 'node:fs';

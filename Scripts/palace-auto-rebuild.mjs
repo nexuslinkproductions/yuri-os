@@ -28,7 +28,7 @@ const REBUILD_PY = path.join(REPO_ROOT, '_SYSTEM', 'palace-rebuild.py');
 
 // Vault candidates: T7 preferred, local fallback
 const VAULT_CANDIDATES = [
-  { vault: '/Volumes/T7/NUDIMMUD', output: '/Volumes/T7/claude-palace-out' },
+  { vault: '/Users/marcelspatz/YURI-OS-MUSUBI', output: '/Volumes/T7/claude-palace-out' },
   { vault: REPO_ROOT,              output: path.join(REPO_ROOT, 'claude-palace-out') },
 ];
 

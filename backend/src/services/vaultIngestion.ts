@@ -1,6 +1,6 @@
 /**
  * VAULT INGESTION SERVICE
- * Crawls the entire NUDIMMUD vault (Obsidian markdown files) and ingests
+ * Crawls the entire YURI-OS-MUSUBI vault (Obsidian markdown files) and ingests
  * knowledge nodes into the Abzu database. The DB is the deduplication layer.
  */
 import fs from 'fs';

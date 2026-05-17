@@ -597,10 +597,10 @@ function seedDatabase(db: Database.Database) {
             
             insertProject.run(
                 'COMMAND_CENTER',
-                'NUDIMMUD Command Center',
+                'YURI-OS-MUSUBI',
                 'ACTIVE',
                 10,
-                'Central nervous system for the NUDIMMUD ecosystem',
+                'Central nervous system for the YURI-OS-MUSUBI ecosystem',
                 'Monitoring, coordination, and strategic oversight of all subsystems',
                 'ENKI'
             );
