@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// brain-inject.js — Unified brain boot for Yuri OS / NUDIMMUD
+// brain-inject.js — Unified brain boot for Yuri OS / YURI
 // Replaces: soul-persona-inject.js + palace-context-inject.js + memory-rag-inject.js
 // at SessionStart. All context injections become one coherent <yuri-brain> block.
 //
@@ -163,7 +163,7 @@ function loadSemanticMemory(sessionContext) {
     return results.map(r => `- **${r.name}** (${r.type}): ${r.description}`).join('\n');
   } catch (e) {
     try {
-      const fallback = fs.readFileSync(path.join(REPO_ROOT, '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/MEMORY.md'), 'utf8')
+      const fallback = fs.readFileSync(path.join(REPO_ROOT, '_SYSTEM/memory/MEMORY.md'), 'utf8')
         .split('\n').filter(l => l.startsWith('-')).slice(0, 8).join('\n');
       return fallback || '(memory unavailable)';
     } catch { return '(memory unavailable)'; }

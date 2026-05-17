@@ -17,8 +17,12 @@ const PROTOCOL_FILE = path.join(YURI_ROOT, '_SYSTEM', 'MUSUBI_PROTOCOL.md');
  */
 function parseSections(content) {
   const sections = {};
-  // Match ## followed by optional number/dot, then section name
-  const headingRegex = /^##\s+(?:\d+\.\s+)?([A-Z_]+)\n([\s\S]*?)(?=^##\s|$)/gm;
+  // Match ## followed by optional number/dot, then section name.
+  // No `m` flag — the previous version's `$` end-anchor inside a lookahead
+  // matched end-of-line and zero-truncated every body capture. Using `\n##`
+  // for the boundary + `$(?![\s\S])` for true end-of-string lets bodies span
+  // blank lines correctly.
+  const headingRegex = /(?:^|\n)##\s+(?:\d+\.\s+)?([A-Z_]+)\n([\s\S]*?)(?=\n##\s|$(?![\s\S]))/g;
 
   let match;
   while ((match = headingRegex.exec(content)) !== null) {
