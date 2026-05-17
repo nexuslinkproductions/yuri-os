@@ -16,7 +16,7 @@
 - ❌ Do NOT call `WebSearch` tool
 - ❌ Do NOT call `WebFetch` tool
 - ❌ Do NOT use `curl` / `wget` for live web content
-- ❌ Do NOT use the Perplexity API adapter (`Scripts/perplexity-adapter.mjs`) for general search
+- ❌ Do NOT use the Perplexity API adapter (`_SYSTEM/Scripts/perplexity-adapter.mjs`) for general search
 - ❌ Do NOT spawn an Agent for web research
 
 ## What TO Do
@@ -40,7 +40,7 @@ For any web search / research need:
 - App is already authenticated — no API key juggling
 - No token cost on the API adapter — token cost is on the Claude session running computer control
 
-## When Perplexity API Adapter (`Scripts/perplexity-adapter.mjs`) IS Used
+## When Perplexity API Adapter (`_SYSTEM/Scripts/perplexity-adapter.mjs`) IS Used
 
 Only when explicitly requested by user (e.g., "use the perplexity API" or `--m perplexity`).
 Default web research path is the app, not the API.

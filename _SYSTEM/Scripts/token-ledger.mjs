@@ -507,7 +507,7 @@ export function reconcileProviderExport(provider, exportRows = [], options = {})
 
     const aged = ageProvisionalRows(db, providerName, now);
     recordTokenEvent({
-      source_path: 'Scripts/token-ledger.mjs',
+      source_path: '_SYSTEM/Scripts/token-ledger.mjs',
       provider: 'local',
       lane: 'tokenops',
       operation_type: 'observatory_reconcile',
@@ -597,7 +597,7 @@ export function auditTokenLedger(options = {}) {
   const paths = resolveTokenLedgerPaths(options);
   const start = Date.now();
   recordTokenEvent({
-    source_path: 'Scripts/token-ledger.mjs',
+    source_path: '_SYSTEM/Scripts/token-ledger.mjs',
     provider: 'local',
     operation_type: 'observatory_audit',
     status: 'ok',

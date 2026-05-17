@@ -54,13 +54,13 @@
 
 **Target files — tests:**
 
-- `Scripts/cold-acquisition-crm-routes.test.mjs`
+- `_SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs`
   - Add: lead response includes `source_pipeline` object with `confidence`, `batch_id`, `public_email_basis`, `wrong_lead_risk`
   - Add: lead with LinkedIn URL + 3+ evidence items produces `confidence.level = 'high'` or `'medium'`
   - Add: lead with no evidence and unknown source produces `confidence.level = 'low'`
   - Add: `wrong_lead_risk` is false for leads already in `needs_research` state
 
-- `Scripts/cold-acquisition-crm-ui.test.mjs`
+- `_SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs`
   - Add: Dossier tab renders `SOURCE PIPELINE` section
   - Add: Confidence chip present in Dossier
   - Add: Wrong-lead risk chip present when `wrong_lead_risk` is true
@@ -83,8 +83,8 @@
 
 **Acceptance criteria:**
 
-- [ ] `node Scripts/cold-acquisition-crm-routes.test.mjs` passes
-- [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` passes
+- [ ] `node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs` passes
+- [ ] `node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs` passes
 - [ ] `npx tsc -p acquisition/tsconfig.json --noEmit` exits 0
 - [ ] `npx vite build --config acquisition/vite.config.mts` exits 0
 - [ ] `PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" npm --prefix backend run build` exits 0
@@ -95,9 +95,9 @@
 
 **Test commands:**
 ```bash
-node Scripts/cold-acquisition-crm-ui.test.mjs
+node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
-PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs
 PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" npm --prefix backend run build
 npx vite build --config acquisition/vite.config.mts
 ```
@@ -132,8 +132,8 @@ git add \
   acquisition/src/acquisition.css \
   backend/public/acquisition/assets/ \
   backend/public/acquisition/index.html \
-  Scripts/cold-acquisition-crm-routes.test.mjs \
-  Scripts/cold-acquisition-crm-ui.test.mjs
+  _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs \
+  _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 ```
 
 **Rollback boundary:** `git restore --staged .` resets everything.

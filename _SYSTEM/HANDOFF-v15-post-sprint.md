@@ -17,7 +17,7 @@ The system no longer has any hard Anthropic model dependencies in its runtime su
 
 | Before | After |
 |--------|-------|
-| `Scripts/yuri-symbiotic-pulse.mjs` EXTERNAL_LANES.claude had `model: 'claude-sonnet-4-6'` | Model field removed — `@claude` lane uses CLI default, no hardcoded Anthropic pin |
+| `_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs` EXTERNAL_LANES.claude had `model: 'claude-sonnet-4-6'` | Model field removed — `@claude` lane uses CLI default, no hardcoded Anthropic pin |
 | `.claude/settings.json` → `"model": "sonnet"` — every session defaulted to Sonnet | `"model": "user-selected"` — session model is user-chosen, not auto-pinned |
 
 ### Lane routing table (offload-contract.mjs)
@@ -50,8 +50,8 @@ All 11 `.claude/agents/` files now have **explicit** `model:` or `runtime: nativ
 
 | Skill | Before | After |
 |-------|--------|-------|
-| EOT (end-of-transmission) | Spawned `Agent({ model: "haiku-4-5-20251001" })` for all worker phases | Dispatches `Scripts/offload.sh -m deepseek-v4-flash`; runs in queue |
-| tokenmaxxing | Fallback `Agent({ model: "haiku" })` | Fallback `Scripts/offload.sh -m deepseek-v4-flash` |
+| EOT (end-of-transmission) | Spawned `Agent({ model: "haiku-4-5-20251001" })` for all worker phases | Dispatches `_SYSTEM/Scripts/offload.sh -m deepseek-v4-flash`; runs in queue |
+| tokenmaxxing | Fallback `Agent({ model: "haiku" })` | Fallback `_SYSTEM/Scripts/offload.sh -m deepseek-v4-flash` |
 | 5 skill agent.md files | `model: claude-sonnet-4-6` / `claude-haiku-4-5-20251001` | deepseek-v4-pro / deepseek-v4-flash |
 
 ### Signal Engine (trading bot)
@@ -76,21 +76,21 @@ Client-portable, zero-Anthropic runtime for Mac Mini M4 Pro deployments.
 | `nexbox/verify.mjs` | Thin wrapper: `node nexbox/verify --strict` runs independence check under YURI_NO_ANTHROPIC=1 |
 | `bin/bootstrap-ollama.sh` | Ollama install check + model pulls (qwen2.5:7b, qwen2.5-coder:7b, qwen3.5:4b, nomic-embed-text) |
 
-### Lane dispatcher (`Scripts/lane-dispatcher.mjs`)
+### Lane dispatcher (`_SYSTEM/Scripts/lane-dispatcher.mjs`)
 Manifest-driven lane selector. **Key property: future model migrations = edit JSON only, no source changes.**
 
 ```bash
-node Scripts/lane-dispatcher.mjs --self-check       # 5/5 PASS
-node Scripts/lane-dispatcher.mjs --list              # all available lanes
-node Scripts/lane-dispatcher.mjs --select '{"capabilities":["deep-reasoning"]}'
+node _SYSTEM/Scripts/lane-dispatcher.mjs --self-check       # 5/5 PASS
+node _SYSTEM/Scripts/lane-dispatcher.mjs --list              # all available lanes
+node _SYSTEM/Scripts/lane-dispatcher.mjs --select '{"capabilities":["deep-reasoning"]}'
 ```
 
-Manifest: `Scripts/lane-capability-manifest.json` — set `available: false` for any lane to remove it from routing without touching source.
+Manifest: `_SYSTEM/Scripts/lane-capability-manifest.json` — set `available: false` for any lane to remove it from routing without touching source.
 
-### Independence verifier (`Scripts/independence-check.mjs`)
-Already existed; sprint verified it runs clean. Hardened with pre-commit regression gate script (`Scripts/pre-commit-independence.sh`).
+### Independence verifier (`_SYSTEM/Scripts/independence-check.mjs`)
+Already existed; sprint verified it runs clean. Hardened with pre-commit regression gate script (`_SYSTEM/Scripts/pre-commit-independence.sh`).
 
-**Wire it manually:** add `bash Scripts/pre-commit-independence.sh` to `.git/hooks/pre-commit`.
+**Wire it manually:** add `bash _SYSTEM/Scripts/pre-commit-independence.sh` to `.git/hooks/pre-commit`.
 
 ### NexusLink landing — "Symbiotic Independence" section
 Added to `src/components/NexusLinkLanding.tsx`. Shows independence score, active non-Anthropic lanes, verify command. Data source: `src/lib/nexuslinkLandingData.ts → independenceData`.
@@ -121,7 +121,7 @@ These are NOT problems. They are the explicit @claude advisory path that stays a
 | **P9 — deepseek-r1:8b soak + models.json update** | Mac Mini M4 Pro hardware | When Marcel has M4 |
 | **Track D — Sharingan 4 repos** | curl hook-gated. Needs `curl` permission or Perplexity app session | Next session w/ permissions |
 | **P16 — kill-switch drill** | Calendar date | 2026-06-14 |
-| **P13 git hook wire** | `.git/hooks` hard-blocked by auto-classifier | Marcel runs: `echo 'bash Scripts/pre-commit-independence.sh' >> .git/hooks/pre-commit` |
+| **P13 git hook wire** | `.git/hooks` hard-blocked by auto-classifier | Marcel runs: `echo 'bash _SYSTEM/Scripts/pre-commit-independence.sh' >> .git/hooks/pre-commit` |
 
 ---
 
@@ -144,7 +144,7 @@ Current: **67/100** · fail=0 · warn=6
 
 ## 7 · Current token ledger pricing
 
-`Scripts/token-ledger.mjs` and `.claude/hooks/token-status.js` now include pricing for all active lanes:
+`_SYSTEM/Scripts/token-ledger.mjs` and `.claude/hooks/token-status.js` now include pricing for all active lanes:
 
 | Lane | Input/1M | Output/1M |
 |------|---------|----------|
@@ -168,13 +168,13 @@ These are the clean, reviewable commits for this sprint:
 
 ```bash
 # Commit 1 — Independence: cortex + hooks + agents (P1+P5+P6+P7+P17+P3+P10+P11+P12)
-git add Scripts/yuri-symbiotic-pulse.mjs .claude/hooks/nisaba-dream.js Scripts/offload-contract.mjs Scripts/trading-bot/ensemble-inference.mjs Scripts/ai .claude/agents/ .claude/skills/*/agent.md .claude/hooks/token-status.js .claude/skills/end-of-transmission/SKILL.md .claude/skills/tokenmaxxing/SKILL.md .claude/skills/local-subagent/SKILL.md .claude/skills/openclaw-offload/SKILL.md .claude/commands/yuri-probability.md
+git add _SYSTEM/Scripts/yuri-symbiotic-pulse.mjs .claude/hooks/nisaba-dream.js _SYSTEM/Scripts/offload-contract.mjs _SYSTEM/Scripts/trading-bot/ensemble-inference.mjs _SYSTEM/Scripts/ai .claude/agents/ .claude/skills/*/agent.md .claude/hooks/token-status.js .claude/skills/end-of-transmission/SKILL.md .claude/skills/tokenmaxxing/SKILL.md .claude/skills/local-subagent/SKILL.md .claude/skills/openclaw-offload/SKILL.md .claude/commands/yuri-probability.md
 
 # Commit 2 — Independence: settings + token ledger (P2+P4+P8)
-git add .claude/settings.json Scripts/token-ledger.mjs
+git add .claude/settings.json _SYSTEM/Scripts/token-ledger.mjs
 
 # Commit 3 — Architecture: lane dispatcher + manifest (P15)
-git add Scripts/lane-dispatcher.mjs Scripts/lane-capability-manifest.json
+git add _SYSTEM/Scripts/lane-dispatcher.mjs _SYSTEM/Scripts/lane-capability-manifest.json
 
 # Commit 4 — nexbox bundle (Track E)
 git add nexbox/ bin/bootstrap-ollama.sh
@@ -183,7 +183,7 @@ git add nexbox/ bin/bootstrap-ollama.sh
 git add src/components/NexusLinkLanding.tsx src/lib/nexuslinkLandingData.ts
 
 # Commit 6 — Design docs + pre-commit gate (C5+C6+P13)
-git add _SYSTEM/SELF-IMPROVEMENT/ Scripts/pre-commit-independence.sh
+git add _SYSTEM/SELF-IMPROVEMENT/ _SYSTEM/Scripts/pre-commit-independence.sh
 ```
 
 Each commit can be reviewed and reverted independently.

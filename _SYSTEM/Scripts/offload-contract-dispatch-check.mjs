@@ -13,9 +13,9 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const CONTRACT_FILE = join(SCRIPT_DIR, 'offload-contract.mjs');
 const OFFLOAD_FILE = join(SCRIPT_DIR, 'offload.sh');
 
-const usage = `Usage: node Scripts/offload-contract-dispatch-check.mjs [--json] [--verbose] [--help]
+const usage = `Usage: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs [--json] [--verbose] [--help]
 
-Checks drift between Scripts/offload-contract.mjs lanes and Scripts/offload.sh dispatch surfaces.
+Checks drift between _SYSTEM/Scripts/offload-contract.mjs lanes and _SYSTEM/Scripts/offload.sh dispatch surfaces.
 
 Options:
   --json       Print structured JSON.

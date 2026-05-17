@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Perplexity API adapter — OpenAI-compatible lane for Scripts/offload.sh
+// Perplexity API adapter — OpenAI-compatible lane for _SYSTEM/Scripts/offload.sh
 // Lane: perplexity | Models: sonar-pro (default), sonar-reasoning-pro (high/xhigh)
 // Auth: PERPLEXITY_API_KEY env var
 
@@ -70,7 +70,7 @@ async function run(opts, prompt, apiKey, traceId) {
 
     await recordTokenEvent({
       trace_id:         traceId,
-      source_path:      'Scripts/perplexity-adapter.mjs',
+      source_path:      '_SYSTEM/Scripts/perplexity-adapter.mjs',
       lane:             'perplexity',
       provider:         'perplexity-api',
       request_model:    model,

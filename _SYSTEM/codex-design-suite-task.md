@@ -3,18 +3,18 @@
 **Goal:** Symbiotic integration of all design skills into a unified auto-triggered suite. design-master becomes the single entry point; a hook auto-activates design context on design-related prompts.
 
 **Target files:**
-- Scripts/design-context-inject.mjs (create)
+- _SYSTEM/Scripts/design-context-inject.mjs (create)
 - .claude/hooks/user-prompt-submit.js (modify)
 - .claude/commands/design.md (modify)
 - .claude/commands/frontend-design.md (modify)
 - .claude/skills/design-master/SKILL.md (modify)
 
-**Rollback boundary:** `git diff HEAD .claude/hooks/user-prompt-submit.js .claude/commands/ .claude/skills/design-master/SKILL.md Scripts/design-context-inject.mjs`
+**Rollback boundary:** `git diff HEAD .claude/hooks/user-prompt-submit.js .claude/commands/ .claude/skills/design-master/SKILL.md _SYSTEM/Scripts/design-context-inject.mjs`
 
 **Prohibited:** Do not modify design-source-pack skill. Do not remove existing Haki/Nen blocks from user-prompt-submit.js. Do not break SKILL.md YAML frontmatter.
 
 Files to CREATE:
-1. Scripts/design-context-inject.mjs — reads design-memory.json, returns compact context block for prompt injection
+1. _SYSTEM/Scripts/design-context-inject.mjs — reads design-memory.json, returns compact context block for prompt injection
 
 Files to MODIFY:
 2. .claude/hooks/user-prompt-submit.js — add design intent detector that injects design-master context into additionalContext
@@ -22,7 +22,7 @@ Files to MODIFY:
 4. .claude/commands/frontend-design.md — add redirect note to design-master at top
 5. .claude/skills/design-master/SKILL.md — expand triggers list, add symbiosis routing note
 
-Spec for Scripts/design-context-inject.mjs:
+Spec for _SYSTEM/Scripts/design-context-inject.mjs:
 - Read .claude/skills/design-master/design-memory.json (root canonical file)
 - Extract: last 5 entries sorted by date, all unique tokens_used across all entries, most recent pattern field
 - Read first 30 lines of DESIGN.md if exists at repo root
@@ -45,7 +45,7 @@ const DESIGN_PATTERN = /design|UI|CSS|visual|layout|component|HUD|dashboard|inte
 if (DESIGN_PATTERN.test(userPrompt)) {
   try {
     const { execSync } = require('child_process');
-    const designCtx = execSync('node Scripts/design-context-inject.mjs', {
+    const designCtx = execSync('node _SYSTEM/Scripts/design-context-inject.mjs', {
       cwd: ROOT, timeout: 5000, encoding: 'utf8'
     }).trim();
     if (designCtx) {
@@ -98,6 +98,6 @@ Constraints:
 - SKILL.md must remain valid YAML frontmatter after trigger additions
 
 Verify:
-node --check Scripts/design-context-inject.mjs
-node Scripts/design-context-inject.mjs | head -10
+node --check _SYSTEM/Scripts/design-context-inject.mjs
+node _SYSTEM/Scripts/design-context-inject.mjs | head -10
 grep -c 'design-auto\|design-master-context' .claude/hooks/user-prompt-submit.js

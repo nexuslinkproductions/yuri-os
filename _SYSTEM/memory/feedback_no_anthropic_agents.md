@@ -13,10 +13,10 @@
 
 | Task type | Lane | Command |
 |---|---|---|
-| Bounded code change (1-3 files) | Codex gpt-5.4-mini | `bash Scripts/offload.sh -m gpt-5.4-mini "<CODEX TASK SPEC>"` |
-| Complex multi-file refactor | Codex gpt-5.5 | `bash Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC>"` |
-| Multi-file analysis + write | DeepSeek v4-pro (bounded per PATCH 011) | `bash Scripts/offload.sh -m deepseek-v4-pro --reasoning high "<bounded prompt>"` |
-| Quick triage / classification | llama3.2 local | `bash Scripts/offload.sh -m ollama-local "<prompt>"` |
+| Bounded code change (1-3 files) | Codex gpt-5.4-mini | `bash _SYSTEM/Scripts/offload.sh -m gpt-5.4-mini "<CODEX TASK SPEC>"` |
+| Complex multi-file refactor | Codex gpt-5.5 | `bash _SYSTEM/Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC>"` |
+| Multi-file analysis + write | DeepSeek v4-pro (bounded per PATCH 011) | `bash _SYSTEM/Scripts/offload.sh -m deepseek-v4-pro --reasoning high "<bounded prompt>"` |
+| Quick triage / classification | llama3.2 local | `bash _SYSTEM/Scripts/offload.sh -m ollama-local "<prompt>"` |
 | Known-path file read | `Read` tool directly | `Read` |
 | Directory exploration | `Bash find/grep` or `mcp__ollama-bridge__ollama_explore_files` | direct |
 | Raw GitHub source | `curl raw.githubusercontent.com` (research_pipeline.md Tier 2) | `curl -s "https://raw.githubusercontent.com/<owner>/<repo>/main/<path>" \| head -200` |

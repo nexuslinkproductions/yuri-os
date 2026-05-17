@@ -48,8 +48,8 @@ const scanRoots = [
 ];
 
 const skippedPathReasons = new Map([
-  ['Scripts/yuri-exeoflow-assimilation.test.mjs', 'guardrail implementation must name retired terms to detect regressions'],
-  ['Scripts/generated-artifact-hygiene.test.mjs', 'generated artifact guardrail must prioritize retired source-path regressions'],
+  ['_SYSTEM/Scripts/yuri-exeoflow-assimilation.test.mjs', 'guardrail implementation must name retired terms to detect regressions'],
+  ['_SYSTEM/Scripts/generated-artifact-hygiene.test.mjs', 'generated artifact guardrail must prioritize retired source-path regressions'],
   ['backend/data', 'protected live database surface'],
   ['.claude/state', 'protected agent state surface'],
   ['.claude/history', 'protected agent history surface'],
@@ -71,7 +71,7 @@ const allowedLineReasons = new Map([
       reason: 'package scripts must invoke the requested guardrail filename',
     },
   ]],
-  ['Scripts/backend-release-gate.mjs', [
+  ['_SYSTEM/Scripts/backend-release-gate.mjs', [
     {
       pattern: /Scripts\/yuri-exeoflow-assimilation\.test\.mjs/,
       reason: 'release gate must execute the requested assimilation guardrail filename while redacting release output',
@@ -81,7 +81,7 @@ const allowedLineReasons = new Map([
       reason: 'release gate display redaction must identify the requested guardrail filename',
     },
   ]],
-  ['Scripts/backend-release-gate.test.mjs', [
+  ['_SYSTEM/Scripts/backend-release-gate.test.mjs', [
     {
       pattern: /yuri-exeoflow-assimilation.*test.*mjs/,
       reason: 'release gate test must prove the requested assimilation guardrail filename is wired',

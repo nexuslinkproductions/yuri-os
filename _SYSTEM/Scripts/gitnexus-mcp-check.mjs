@@ -8,7 +8,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const WRAPPER = path.join(REPO_ROOT, 'Scripts/gitnexus-mcp.mjs');
+const WRAPPER = path.join(REPO_ROOT, '_SYSTEM/Scripts/gitnexus-mcp.mjs');
 const LOCAL_CLI = path.join(REPO_ROOT, 'NEURAL-NETWORK/GitNexus/gitnexus/dist/cli/index.js');
 const CODEX_PROJECT = path.join(REPO_ROOT, '.codex/config.toml');
 const VSCODE_MCP = path.join(REPO_ROOT, '.vscode/mcp.json');

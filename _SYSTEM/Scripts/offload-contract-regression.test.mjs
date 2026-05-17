@@ -68,7 +68,7 @@ assert.ok(contract.pulseGovernanceSkeleton.checkpointProfiles['openclaw-derived'
 const yuriSelftest = execFileSync(
   process.execPath,
   [
-    'Scripts/yuri-guarded-executor.mjs',
+    '_SYSTEM/Scripts/yuri-guarded-executor.mjs',
     '--selftest',
     '--artifact-root',
     '/tmp/nudimmud-yuri-selftest-regression'
@@ -158,7 +158,7 @@ for (const testCase of cases) {
   assert.equal(plan.automatic, true, `automatic routing should be enabled for "${testCase.prompt}"`);
   assert.equal(plan.lane, testCase.lane, `lane mismatch for "${testCase.prompt}"`);
   assert.equal(plan.scenario, testCase.scenario, `scenario mismatch for "${testCase.prompt}"`);
-  assert.equal(plan.entrypoint, './Scripts/ai auto', `entrypoint mismatch for "${testCase.prompt}"`);
+  assert.equal(plan.entrypoint, './_SYSTEM/Scripts/ai auto', `entrypoint mismatch for "${testCase.prompt}"`);
   assert.equal(plan.qualityGate, 'main-session', `quality gate mismatch for "${testCase.prompt}"`);
   assert.ok(plan.dispatch === 'single-lane' || plan.dispatch === 'parallel-fan-out', `dispatch missing for "${testCase.prompt}"`);
   assert.equal(plan.deepseekAdvisory.localTruthRequired, true, `local truth boundary missing for "${testCase.prompt}"`);

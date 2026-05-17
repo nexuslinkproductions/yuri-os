@@ -68,7 +68,7 @@ Core invariants:
 
 1. User input enters as raw braindump.
 2. Pulse Seed normalizes the input into executable intent.
-3. Raw Skill Registry discovers available Yuri skills through `Scripts/yuri-skill-loader.mjs --json`.
+3. Raw Skill Registry discovers available Yuri skills through `_SYSTEM/Scripts/yuri-skill-loader.mjs --json`.
 4. Active Skill Registry validates, scores, selects, orders, and binds advisory skills to planned stages.
 5. Arsenal Registry detects local, cloud, external, browser, and deterministic entries.
 6. Capability Planner builds stages with selected lanes and selected skill bindings.
@@ -107,18 +107,18 @@ flowchart TD
 ## Command Surface
 
 ```bash
-./Scripts/ai pulse-plan "large refactor, architecture audit, launch doc"
-./Scripts/ai pulse --dry-run "large refactor, architecture audit, launch doc"
-./Scripts/ai auto --dry-run "large refactor, architecture audit, launch doc"
-node Scripts/offload-runner.mjs pulse --dry-run --plan-file pulse-plan.json
-node Scripts/pulse-trace-ledger.mjs verify
+./_SYSTEM/Scripts/ai pulse-plan "large refactor, architecture audit, launch doc"
+./_SYSTEM/Scripts/ai pulse --dry-run "large refactor, architecture audit, launch doc"
+./_SYSTEM/Scripts/ai auto --dry-run "large refactor, architecture audit, launch doc"
+node _SYSTEM/Scripts/offload-runner.mjs pulse --dry-run --plan-file pulse-plan.json
+node _SYSTEM/Scripts/pulse-trace-ledger.mjs verify
 ```
 
 Compatibility commands continue to work, but they now enter `symbioticPulse` instead of a separate orchestration system:
 
 ```bash
-./Scripts/ai @swarm "review this architecture"
-./Scripts/ai @deepseek-workhorse "triage this broad task"
+./_SYSTEM/Scripts/ai @swarm "review this architecture"
+./_SYSTEM/Scripts/ai @deepseek-workhorse "triage this broad task"
 ```
 
 ## PulsePlan V2 Operation
@@ -145,7 +145,7 @@ Minimum shape:
 {
   "schema_version": 1,
   "source": {
-    "loader": "Scripts/yuri-skill-loader.mjs --json",
+    "loader": "_SYSTEM/Scripts/yuri-skill-loader.mjs --json",
     "manifest": "_SYSTEM/skill-hash-registry.json",
     "disabled": false,
     "discovered_at": "..."

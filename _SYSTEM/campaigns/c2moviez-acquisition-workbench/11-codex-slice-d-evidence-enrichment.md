@@ -11,14 +11,14 @@
 ---
 
 **Read before changing code:**
-- `Scripts/cold-acquisition-real-feed.mjs` — existing fetch logic (lines 271–370)
+- `_SYSTEM/Scripts/cold-acquisition-real-feed.mjs` — existing fetch logic (lines 271–370)
 - `backend/src/services/coldAcquisitionService.ts` — `ColdLeadEvidence` type, `ingestZefixBulk()`, `ingestAustriaDirectory()`
 
 ---
 
 **Target files:**
 
-**`Scripts/cold-acquisition-real-feed.mjs`**
+**`_SYSTEM/Scripts/cold-acquisition-real-feed.mjs`**
 
 1. In the Zefix per-company RDF fetch (currently around lines 298–320):
    - After extracting `schema:description`, ALSO extract board member nodes:
@@ -63,7 +63,7 @@
 ---
 
 **Acceptance criteria:**
-- [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` passes
+- [ ] `node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs` passes
 - [ ] `npx tsc -p acquisition/tsconfig.json --noEmit` exits 0
 - [ ] Dry-run of live feed returns ≥1 CH record with `evidence` array length ≥ 2
 - [ ] Dry-run returns ≥1 CH record where `contact.name` is non-empty (from RDF board data)
@@ -72,7 +72,7 @@
 
 **Test commands:**
 ```bash
-node Scripts/cold-acquisition-crm-ui.test.mjs
+node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
 # Dry-run live feed (inspect output manually)
 API_KEY='local-dev-api-key-1234567890' node -e "
@@ -87,7 +87,7 @@ console.log(JSON.stringify(await r.json(), null, 2));
 
 **Staging commands (run after tests pass):**
 ```bash
-git add Scripts/cold-acquisition-real-feed.mjs backend/src/services/coldAcquisitionService.ts
+git add _SYSTEM/Scripts/cold-acquisition-real-feed.mjs backend/src/services/coldAcquisitionService.ts
 ```
 
 **Rollback boundary:** `git restore --staged .`

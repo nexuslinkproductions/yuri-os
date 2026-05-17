@@ -14,7 +14,7 @@ const backendRequire = createRequire(path.join(REPO_ROOT, 'backend', 'package.js
 const Database = backendRequire('better-sqlite3');
 const workDir = mkdtempSync(path.join(tmpdir(), 'yuri-learning-'));
 const dbPath = path.join(workDir, 'learning.db');
-const cli = path.join(REPO_ROOT, 'Scripts/yuri-learning-capture.mjs');
+const cli = path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-learning-capture.mjs');
 
 try {
   const summary = run('summary');

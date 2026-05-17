@@ -252,9 +252,9 @@ function randomId() {
 function printHelp() {
   process.stdout.write([
     'Usage:',
-    '  node Scripts/pulse-trace-ledger.mjs path',
-    '  node Scripts/pulse-trace-ledger.mjs tail [--limit n]',
-    '  node Scripts/pulse-trace-ledger.mjs verify',
+    '  node _SYSTEM/Scripts/pulse-trace-ledger.mjs path',
+    '  node _SYSTEM/Scripts/pulse-trace-ledger.mjs tail [--limit n]',
+    '  node _SYSTEM/Scripts/pulse-trace-ledger.mjs verify',
     '',
     'Environment:',
     '  PULSE_TRACE_ROOT=/path/to/trace-root',

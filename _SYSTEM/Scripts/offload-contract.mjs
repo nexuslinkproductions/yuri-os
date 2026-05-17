@@ -204,10 +204,10 @@ const OFFLOAD_CONTRACT = {
     perplexity: {
       alias: '@perplexity',
       dispatchTokens: ['perplexity', 'perplexity-sonar', 'sonar-pro', 'sonar-reasoning-pro'],
-      description: 'Perplexity app via Claude computer control — the canonical browser for web research. Default path = computer-use MCP drives the desktop app, NOT the API adapter. API adapter (Scripts/perplexity-adapter.mjs) only when explicitly requested via -m perplexity.',
+      description: 'Perplexity app via Claude computer control — the canonical browser for web research. Default path = computer-use MCP drives the desktop app, NOT the API adapter. API adapter (_SYSTEM/Scripts/perplexity-adapter.mjs) only when explicitly requested via -m perplexity.',
       preferredUsage: ['web research', 'latest facts', 'citations', 'deep research', 'current events'],
       defaultRoute: 'computer-control-app',
-      apiFallback: 'Scripts/perplexity-adapter.mjs'
+      apiFallback: '_SYSTEM/Scripts/perplexity-adapter.mjs'
     }
   },
   swarm: {
@@ -319,7 +319,7 @@ const OFFLOAD_CONTRACT = {
     codexSpecCompatibility: {
       requiredSpec: '## CODEX TASK SPEC',
       source: 'CODEX_PROTOCOL.md',
-      appliesTo: ['codex exec', 'Scripts/ai codex', 'codex-spark', 'Scripts/codex-offload-runner.mjs'],
+      appliesTo: ['codex exec', '_SYSTEM/Scripts/ai codex', 'codex-spark', '_SYSTEM/Scripts/codex-offload-runner.mjs'],
       rule: 'Codex-bound work keeps the Codex task spec unchanged; Claude control-plane work uses a broader CLAUDE CONTROL PACKET.'
     },
     claudeControlPacket: {
@@ -334,7 +334,7 @@ const OFFLOAD_CONTRACT = {
         'GitNexus impact for symbol edits',
         'Verification before merge or promotion'
       ],
-      routePlanEvidence: 'Scripts/ai route-plan output for protocol, routing, memory, promotion, protected-path, or high-stakes work',
+      routePlanEvidence: '_SYSTEM/Scripts/ai route-plan output for protocol, routing, memory, promotion, protected-path, or high-stakes work',
       advisoryExpectations: ['symbioticPulse routing', 'DeepSeek Pro/Flash advisory for protocol/high-risk work']
     },
     nativeFunctionGates: {
@@ -345,9 +345,9 @@ const OFFLOAD_CONTRACT = {
     openClaw: {
       authority: 'native-integrated',
       status: 'absorbed-2026-05-17',
-      note: 'OpenClaw/09OC fully absorbed into Musubi as Nisaba Sentinel. The 09OC research lane is now @deepseek-flash. The daemon heartbeat is Scripts/nisaba-sentinel.mjs running every 33min via LaunchAgent. No quarantine — Nisaba Sentinel operates under the same native gates as all other Musubi components.',
+      note: 'OpenClaw/09OC fully absorbed into Musubi as Nisaba Sentinel. The 09OC research lane is now @deepseek-flash. The daemon heartbeat is _SYSTEM/Scripts/nisaba-sentinel.mjs running every 33min via LaunchAgent. No quarantine — Nisaba Sentinel operates under the same native gates as all other Musubi components.',
       gatewayPort: 18789,
-      sentinel: 'Scripts/nisaba-sentinel.mjs',
+      sentinel: '_SYSTEM/Scripts/nisaba-sentinel.mjs',
       launchAgent: 'com.nudimmud.nisaba-sentinel'
     },
     hardBlocksRemainOwnedBy: 'bash-security-guard.js',
@@ -650,7 +650,7 @@ const OFFLOAD_CONTRACT = {
     requiredBehavior: [
       'Load OPERATOR_PROTOCOL.md or an inheriting rule file at startup.',
       'Treat offload routing as automatic for every non-trivial task.',
-      'Use Scripts/offload-contract.mjs as the only lane and scenario source.',
+      'Use _SYSTEM/Scripts/offload-contract.mjs as the only lane and scenario source.',
       'Use ./_SYSTEM/Scripts/ai auto "<prompt>" as the execution entrypoint for automatic classification and dispatch.',
       'Keep explicit triggers as compatibility aliases only.',
       'Log durable corrections and route outcomes to the shared memory surface.',
@@ -959,7 +959,7 @@ function assessNativeFunctionGates(prompt, lane, scenario) {
 // Adds the four cortex fields (complexityTier, ensemble, beaconLevel,
 // codexPolicy) plus the OpenClaw advisory assessor. All advisory-only;
 // none of these grant write or canonical authority. The orchestrator
-// at Scripts/pulse-orchestrator.mjs consumes these to fan out advisors.
+// at _SYSTEM/Scripts/pulse-orchestrator.mjs consumes these to fan out advisors.
 
 function assessOpenClawAdvisory(prompt, lane, scenario) {
   const ocConfig = OFFLOAD_CONTRACT.claudeProtocolGate.openClaw;

@@ -24,72 +24,72 @@ const steps = [
   {
     name: 'yuri-assimilation-guardrail',
     command: process.execPath,
-    args: ['Scripts/yuri-exeoflow-assimilation.test.mjs'],
+    args: ['_SYSTEM/Scripts/yuri-exeoflow-assimilation.test.mjs'],
   },
   {
     name: 'generated-artifact-hygiene',
     command: process.execPath,
-    args: ['Scripts/generated-artifact-hygiene.test.mjs'],
+    args: ['_SYSTEM/Scripts/generated-artifact-hygiene.test.mjs'],
   },
   {
     name: 'backend-db-check',
     command: process.execPath,
-    args: ['Scripts/backend-db-check.mjs', ...dbArgs],
+    args: ['_SYSTEM/Scripts/backend-db-check.mjs', ...dbArgs],
   },
   {
     name: 'backend-smoke-cors-readiness',
     command: process.execPath,
-    args: ['Scripts/backend-cors-hardening.test.mjs'],
+    args: ['_SYSTEM/Scripts/backend-cors-hardening.test.mjs'],
   },
   {
     name: 'backend-route-audit',
     command: process.execPath,
-    args: ['Scripts/backend-route-auth-matrix.test.mjs'],
+    args: ['_SYSTEM/Scripts/backend-route-auth-matrix.test.mjs'],
   },
   {
     name: 'backend-telemetry-truth',
     command: process.execPath,
-    args: ['Scripts/backend-telemetry-truth.test.mjs'],
+    args: ['_SYSTEM/Scripts/backend-telemetry-truth.test.mjs'],
   },
   {
     name: 'backend-observability-truth',
     command: process.execPath,
-    args: ['Scripts/backend-observability-truth.test.mjs'],
+    args: ['_SYSTEM/Scripts/backend-observability-truth.test.mjs'],
   },
   {
     name: 'backend-gitnexus-status-truth',
     command: process.execPath,
-    args: ['Scripts/backend-gitnexus-status-truth.test.mjs'],
+    args: ['_SYSTEM/Scripts/backend-gitnexus-status-truth.test.mjs'],
   },
   {
     name: 'backend-db-readiness-migration-status',
     command: process.execPath,
-    args: ['Scripts/backend-db-readiness-migration-status.test.mjs'],
+    args: ['_SYSTEM/Scripts/backend-db-readiness-migration-status.test.mjs'],
   },
   {
     name: 'backend-db-readiness-recovery-metadata',
     command: process.execPath,
-    args: ['Scripts/backend-db-readiness-recovery-metadata.test.mjs'],
+    args: ['_SYSTEM/Scripts/backend-db-readiness-recovery-metadata.test.mjs'],
   },
   {
     name: 'wiki-rag-health-truth',
     command: process.execPath,
-    args: ['Scripts/wiki-rag-health-truth.test.mjs'],
+    args: ['_SYSTEM/Scripts/wiki-rag-health-truth.test.mjs'],
   },
   {
     name: 'archive-rag-health-truth',
     command: process.execPath,
-    args: ['Scripts/archive-rag-health-truth.test.mjs'],
+    args: ['_SYSTEM/Scripts/archive-rag-health-truth.test.mjs'],
   },
   {
     name: 'rag-db-health-fixtures',
     command: process.execPath,
-    args: ['Scripts/rag-db-health-fixtures.test.mjs'],
+    args: ['_SYSTEM/Scripts/rag-db-health-fixtures.test.mjs'],
   },
   {
     name: 'gitnexus-mcp-live-probe',
     command: process.execPath,
-    args: ['Scripts/gitnexus-mcp-check.mjs'],
+    args: ['_SYSTEM/Scripts/gitnexus-mcp-check.mjs'],
   },
 ];
 
@@ -149,7 +149,7 @@ function formatCommand(command, commandArgs) {
 
 function formatDisplayArg(arg) {
   if (String(arg).includes('yuri-exeoflow-assimilation.test.mjs')) {
-    return 'Scripts/yuri-assimilation-guardrail.test.mjs';
+    return '_SYSTEM/Scripts/yuri-assimilation-guardrail.test.mjs';
   }
   return arg;
 }

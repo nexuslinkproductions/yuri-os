@@ -86,7 +86,7 @@ const USER_INPUT_RE = /\b(?:input|user|argv|args|payload|query|body|stdin|reques
 const LOCALHOST_RE = /localhost|127\.0\.0\.1|0\.0\.0\.0|::1/i;
 
 function usage() {
-  return `Usage: node Scripts/corpus-security-scan.mjs <skill-dir-path> [--json]`;
+  return `Usage: node _SYSTEM/Scripts/corpus-security-scan.mjs <skill-dir-path> [--json]`;
 }
 
 function parseArgs(argv) {

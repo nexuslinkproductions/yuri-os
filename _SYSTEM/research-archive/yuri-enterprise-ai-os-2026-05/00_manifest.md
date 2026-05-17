@@ -22,7 +22,7 @@ Enterprise-grade research archive for Yuri OS.
 
 - Canonical origin: `_SYSTEM/yuri-origin.md`
 - Content governance: `_SYSTEM/yuri-content-governance.md`
-- Evidence contract: `Scripts/yuri-evidence-contract.mjs`
+- Evidence contract: `_SYSTEM/Scripts/yuri-evidence-contract.mjs`
 
 ## Rules
 

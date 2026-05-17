@@ -64,11 +64,11 @@ Any lane failure (429, auth, timeout) → auto-routes to DeepSeek. No manual rer
 
 ## Verified Tests
 ```bash
-node Scripts/launch-readiness-check.mjs        # READY 8/8
-node Scripts/independence-check.mjs | tail -3   # fail=0 warn=5
+node _SYSTEM/Scripts/launch-readiness-check.mjs        # READY 8/8
+node _SYSTEM/Scripts/independence-check.mjs | tail -3   # fail=0 warn=5
 node .claude/hooks/brain-inject.js | grep -oE '### [A-Z_]+' | sort  # 8 sections
-bash Scripts/lane-health.sh 2>/dev/null         # DeepSeek LIVE, GitNexus LIVE
-node Scripts/memory-learning-score.mjs --report # 60/100
+bash _SYSTEM/Scripts/lane-health.sh 2>/dev/null         # DeepSeek LIVE, GitNexus LIVE
+node _SYSTEM/Scripts/memory-learning-score.mjs --report # 60/100
 ```
 
 ---
@@ -98,10 +98,10 @@ P9 soak requires physical Mac Mini M4 Pro arrival.
 - `.claude/hooks/scout-session-start.js` — NEW merged SessionStart
 - `.claude/hooks/claude-protocol-guard.js` — sprint mode bypass
 - `.claude/hooks/user-prompt-submit.js` — PATCH 040 per-task RAG
-- `Scripts/pulse-orchestrator.mjs` — PATCH 041 rag-turn-context injection
-- `Scripts/offload.sh` — auto-fallback on lane failure
-- `Scripts/lane-health.sh` — fixed PATH + checks + JSON output
-- `Scripts/launch-readiness-check.mjs` — NEW unified gate runner
+- `_SYSTEM/Scripts/pulse-orchestrator.mjs` — PATCH 041 rag-turn-context injection
+- `_SYSTEM/Scripts/offload.sh` — auto-fallback on lane failure
+- `_SYSTEM/Scripts/lane-health.sh` — fixed PATH + checks + JSON output
+- `_SYSTEM/Scripts/launch-readiness-check.mjs` — NEW unified gate runner
 - `.claude/settings.json` — brain-inject wired, scout-session-start wired
 - `.claude/skills/yuri-shura/SKILL.md` — 7-vector adversary protocol
 - `.claude/config/models.json` — primary confirmed llama3.2:latest

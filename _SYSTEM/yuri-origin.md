@@ -9,7 +9,7 @@ Canonical operating contract for all Yuri OS / NUDIMMUD CLI and agent surfaces. 
 3. `_SYSTEM/yuri-origin.md` - canonical Yuri OS contract
 4. `SOUL.md` - persona and cognitive workflow
 5. Thin adapters - `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.clinerules`, `.cursorrules`, `.windsurfrules`, `.clauderules`, `.cursor/rules/sync.mdc`, `.codex/*`
-6. Executable routing - `Scripts/offload-contract.mjs`
+6. Executable routing - `_SYSTEM/Scripts/offload-contract.mjs`
 7. On-demand references and skills
 8. Model inference - lowest priority
 
@@ -68,9 +68,9 @@ MATCH file=<PATH> term=<TERM> line=<N> excerpt="<bounded text>"
 
 ## Offload Routing
 
-- `Scripts/offload-contract.mjs` is the single lane, scenario, and lifecycle contract.
+- `_SYSTEM/Scripts/offload-contract.mjs` is the single lane, scenario, and lifecycle contract.
 - Do not duplicate lane tables, model tables, or lifecycle matrices in adapters.
-- Route protocol, IDE, and agent harness changes through `Scripts/offload-contract.mjs` first, then sync adapter files.
+- Route protocol, IDE, and agent harness changes through `_SYSTEM/Scripts/offload-contract.mjs` first, then sync adapter files.
 
 ## Safety / Gate Routing
 

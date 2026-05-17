@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Tier-gated pulse routing
 if [ -z "$PULSE_LANE_BYPASS" ] && [ -z "$INSIDE_PULSE_WRAPPER" ]; then
-  PULSE_TIER=$(node Scripts/pulse-classify-stdin.mjs "$@" 2>/dev/null)
+  PULSE_TIER=$(node _SYSTEM/Scripts/pulse-classify-stdin.mjs "$@" 2>/dev/null)
   if [ "$PULSE_TIER" = "complex" ] || [ "$PULSE_TIER" = "critical" ]; then
     export INSIDE_PULSE_WRAPPER=1
-    exec node Scripts/pulse-lane-dispatch.mjs "$@"
+    exec node _SYSTEM/Scripts/pulse-lane-dispatch.mjs "$@"
   fi
 fi
 
@@ -120,7 +120,7 @@ list_models() {
 
   echo
   echo "Browser control lane:"
-  printf '  [%-30s] %s\n' "comet" "browser-control adapter via Scripts/comet-adapter.mjs"
+  printf '  [%-30s] %s\n' "comet" "browser-control adapter via _SYSTEM/Scripts/comet-adapter.mjs"
 
   echo
 }
@@ -395,7 +395,7 @@ dispatch_model() {
   case "$target_model" in
       claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)
         printf '%s\n' "⬡ ROUTING_TO_CLAUDE..." >&2
-        /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/ai claude "$prompt"
+        /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/ai claude "$prompt"
         ;;
       # Deprecated Moonshot/Kimi compatibility path. Keep manual aliasing only.
       kimi-k2.6|kimi-k2.5-liberated|kimi-k2.5|kimi|moonshot)

@@ -26,8 +26,8 @@ const INPUT_PATHS = [
   '_SYSTEM/yuri-wiki/reports/staleness/09c-rag-health.md',
   '_SYSTEM/yuri-wiki/schema/page.schema.md',
   '_SYSTEM/yuri-wiki/schema/lint-contract.md',
-  'Scripts/wiki-rag-launchd.mjs',
-  'Scripts/wiki-rag-health.mjs',
+  '_SYSTEM/Scripts/wiki-rag-launchd.mjs',
+  '_SYSTEM/Scripts/wiki-rag-health.mjs',
   'backend/src/scripts/ingestWikiControlPlane.ts',
   'backend/src/services/notebookService.ts',
   'backend/src/models/notebookSchema.ts',
@@ -116,7 +116,7 @@ function runIngest(reason, digest) {
 }
 
 function runHealth(reason) {
-  const result = spawnSync(process.execPath, ['Scripts/wiki-rag-health.mjs'], {
+  const result = spawnSync(process.execPath, ['_SYSTEM/Scripts/wiki-rag-health.mjs'], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
     env: process.env

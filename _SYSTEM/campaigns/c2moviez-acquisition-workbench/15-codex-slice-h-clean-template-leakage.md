@@ -122,9 +122,9 @@ At line ~1172 where `guardrail_notes` are rendered, add a filter to suppress not
 ---
 
 **Acceptance criteria:**
-- [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` passes
+- [ ] `node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs` passes
 - [ ] `npx tsc -p acquisition/tsconfig.json --noEmit` exits 0
-- [ ] `PATH=... TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs` passes
+- [ ] `PATH=... TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs` passes
 - [ ] `npx vite build --config acquisition/vite.config.mts` exits 0
 - [ ] No draft contains "Swiss company records", "Vienna software", "while reviewing", or "a few"
 - [ ] No evidence detail contains "is listed in Vienna 1220" or "is an active Swiss company"
@@ -133,9 +133,9 @@ At line ~1172 where `guardrail_notes` are rendered, add a filter to suppress not
 
 **Test commands:**
 ```bash
-node Scripts/cold-acquisition-crm-ui.test.mjs
+node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
-PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs
 npx vite build --config acquisition/vite.config.mts
 ```
 

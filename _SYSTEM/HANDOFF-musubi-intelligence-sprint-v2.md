@@ -23,13 +23,13 @@ New scripts created:
 
 | Script | Phase | Purpose |
 |--------|-------|---------|
-| `Scripts/knowledge-scout.mjs` | 4 | GitHub trending repos + ArXiv AI papers (curl, no browser) |
-| `Scripts/ai-news-digest.mjs` | 5 | HN high-score AI stories (score > 150 threshold) |
-| `Scripts/self-hypothesis.mjs` | 6 | Generate 3 improvement hypotheses + validate prior cycle's |
-| `Scripts/cross-session-miner.mjs` | 7 | All-time synthesis.jsonl analysis → meta-synthesis.json |
-| `Scripts/self-model.mjs` | 7b | Behavioral fingerprint builder → nisaba/self-model/fingerprint.json |
+| `_SYSTEM/Scripts/knowledge-scout.mjs` | 4 | GitHub trending repos + ArXiv AI papers (curl, no browser) |
+| `_SYSTEM/Scripts/ai-news-digest.mjs` | 5 | HN high-score AI stories (score > 150 threshold) |
+| `_SYSTEM/Scripts/self-hypothesis.mjs` | 6 | Generate 3 improvement hypotheses + validate prior cycle's |
+| `_SYSTEM/Scripts/cross-session-miner.mjs` | 7 | All-time synthesis.jsonl analysis → meta-synthesis.json |
+| `_SYSTEM/Scripts/self-model.mjs` | 7b | Behavioral fingerprint builder → nisaba/self-model/fingerprint.json |
 
-`Scripts/neuron-loop.mjs` now runs all 7 phases. Improvement score formula expanded: `+2 per relevant external signal (repos/papers/HN)`. Hypothesis accuracy tracked separately.
+`_SYSTEM/Scripts/neuron-loop.mjs` now runs all 7 phases. Improvement score formula expanded: `+2 per relevant external signal (repos/papers/HN)`. Hypothesis accuracy tracked separately.
 
 ### Part C — 5 New Anime Superpowers (10 files: 5 SKILL.md + 5 commands)
 
@@ -67,11 +67,11 @@ SOUL.md entry "Think with a cognitive workflow, not a costume" now has teeth. Si
 
 ```
 CREATED:
-  Scripts/knowledge-scout.mjs
-  Scripts/ai-news-digest.mjs
-  Scripts/self-hypothesis.mjs
-  Scripts/cross-session-miner.mjs
-  Scripts/self-model.mjs
+  _SYSTEM/Scripts/knowledge-scout.mjs
+  _SYSTEM/Scripts/ai-news-digest.mjs
+  _SYSTEM/Scripts/self-hypothesis.mjs
+  _SYSTEM/Scripts/cross-session-miner.mjs
+  _SYSTEM/Scripts/self-model.mjs
   .claude/skills/izanagi-simulator/SKILL.md
   .claude/skills/haki-intent/SKILL.md
   .claude/skills/nen-phase-detector/SKILL.md
@@ -84,7 +84,7 @@ CREATED:
   .claude/commands/geass.md
 
 MODIFIED:
-  Scripts/neuron-loop.mjs     — 3 → 7 phases, expanded scoring, fingerprint+external signal in brain:stale
+  _SYSTEM/Scripts/neuron-loop.mjs     — 3 → 7 phases, expanded scoring, fingerprint+external signal in brain:stale
   .claude/hooks/brain-inject.js — 5 new sections + 5 new loader functions
   SOUL.md                     — 5 new superpower cognitive rules added
 ```
@@ -99,7 +99,7 @@ node .claude/hooks/brain-inject.js 2>/dev/null | grep -o 'ANIMA_DNA\|NEURODIVERG
 # → ANIMA_DNA, NEURODIVERGENT (others appear after first neuron-loop run)
 
 # Neuron loop dry-run shows 7 phases
-node Scripts/neuron-loop.mjs --dry-run 2>/dev/null | grep "phase"
+node _SYSTEM/Scripts/neuron-loop.mjs --dry-run 2>/dev/null | grep "phase"
 
 # All 5 new skills present
 ls .claude/skills/ | grep -E "izanagi|haki|nen|bankai|geass"
@@ -108,10 +108,10 @@ ls .claude/skills/ | grep -E "izanagi|haki|nen|bankai|geass"
 ls .claude/commands/ | grep -E "izanagi|haki|nen|bankai|geass"
 
 # Self-model status (empty until first full neuron-loop)
-node Scripts/self-model.mjs --status
+node _SYSTEM/Scripts/self-model.mjs --status
 
 # Knowledge scout dry-run
-node Scripts/knowledge-scout.mjs --dry-run
+node _SYSTEM/Scripts/knowledge-scout.mjs --dry-run
 ```
 
 ---
@@ -120,7 +120,7 @@ node Scripts/knowledge-scout.mjs --dry-run
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| First live neuron-loop full run | HIGH | Run `node Scripts/neuron-loop.mjs` (not dry-run) at next 03:00 to populate fingerprint + external signals |
+| First live neuron-loop full run | HIGH | Run `node _SYSTEM/Scripts/neuron-loop.mjs` (not dry-run) at next 03:00 to populate fingerprint + external signals |
 | Haki auto-wire into user-prompt-submit.js | HIGH | SKILL.md specifies auto-fire; the user-prompt-submit.js hook needs a call to generate haki_intent for every non-trivial turn |
 | Nen phase auto-detect wiring | MEDIUM | `nen-phase-detector` SKILL.md specifies session-state.json.nen_phase write; needs a hook or LaunchAgent to call the detector each session |
 | Geass lock session_id wiring | MEDIUM | brain-inject.js reads session_id from session-state.json to validate lock expiry; verify session-state.json actually has a stable session_id field |

@@ -19,9 +19,9 @@
  *
  * Output: nisaba/learning/synthesis.json (one record per run)
  * CLI:
- *   node Scripts/neuron-loop.mjs          # full run
- *   node Scripts/neuron-loop.mjs --dry-run # no writes to global.md, priors, or fingerprint
- *   node Scripts/neuron-loop.mjs --status  # show last synthesis only
+ *   node _SYSTEM/Scripts/neuron-loop.mjs          # full run
+ *   node _SYSTEM/Scripts/neuron-loop.mjs --dry-run # no writes to global.md, priors, or fingerprint
+ *   node _SYSTEM/Scripts/neuron-loop.mjs --status  # show last synthesis only
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync, readdirSync } from 'node:fs';

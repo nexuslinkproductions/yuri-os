@@ -1,7 +1,7 @@
 # NUDIMMUD Offload Contract — Lane Callability Matrix
 
 **Verification date:** 2026-05-13
-**Source:** `Scripts/offload-contract.mjs` (15 lane surfaces), `Scripts/offload.sh --list`, smoke tests run today.
+**Source:** `_SYSTEM/Scripts/offload-contract.mjs` (15 lane surfaces), `_SYSTEM/Scripts/offload.sh --list`, smoke tests run today.
 **Drafted by:** DeepSeek V4 (reasoning=medium); root-cause verified by Claude.
 
 ## Matrix
@@ -11,7 +11,7 @@
 | 1 | `code-local` | codeLocal | Qwen-backed local code gen (Ollama) | BLOCKED | 2026-05-13 | Ollama scheme bug (shared adapter) |
 | 2 | `triage-local` | triageLocal | Qwen-backed local triage (Ollama) | BLOCKED | 2026-05-13 | Ollama scheme bug |
 | 3 | `summarize-local` | summarizeLocal | Qwen-backed local summarization (Ollama) | BLOCKED | 2026-05-13 | Ollama scheme bug |
-| 4 | `ollama-local` | ollamaLocal | Ollama local inference (127.0.0.1:11434) | BLOCKED | 2026-05-13 | `ERR_INVALID_URL 127.0.0.1:11434/api/chat` — `OLLAMA_HOST` env lacks `http://` scheme; adapter at `Scripts/ollama-adapter.mjs:88` does not coerce |
+| 4 | `ollama-local` | ollamaLocal | Ollama local inference (127.0.0.1:11434) | BLOCKED | 2026-05-13 | `ERR_INVALID_URL 127.0.0.1:11434/api/chat` — `OLLAMA_HOST` env lacks `http://` scheme; adapter at `_SYSTEM/Scripts/ollama-adapter.mjs:88` does not coerce |
 | 5 | `ollama-cloud` | ollamaCloud | Ollama cloud inference | BLOCKED | 2026-05-13 | Same scheme bug (shared adapter) |
 | 6 | `ollama` | ollama | Auto local-first, cloud fallback | BLOCKED | 2026-05-13 | Same scheme bug |
 | 7 | `gpt-oss` | gptOss | Formatting/synthesis (Ollama path) | BLOCKED | 2026-05-13 | Same scheme bug |
@@ -34,7 +34,7 @@
 
 ## Root Cause (single fix unblocks the most lanes)
 
-`OLLAMA_HOST=127.0.0.1:11434` is set in shell env without the `http://` scheme. `Scripts/ollama-adapter.mjs:88` builds:
+`OLLAMA_HOST=127.0.0.1:11434` is set in shell env without the `http://` scheme. `_SYSTEM/Scripts/ollama-adapter.mjs:88` builds:
 
 ```js
 const host = (process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');
@@ -59,7 +59,7 @@ Per `CODEX_PROTOCOL.md`:
 **Goal:** Defensively coerce OLLAMA_HOST/OLLAMA_BASE_URL to include http:// scheme when missing, restoring 7 blocked offload lanes.
 
 **Target files:**
-- Scripts/ollama-adapter.mjs — line 88 host construction
+- _SYSTEM/Scripts/ollama-adapter.mjs — line 88 host construction
 
 **Constraints:**
 - Do not touch any other line.
@@ -67,13 +67,13 @@ Per `CODEX_PROTOCOL.md`:
 - Keep default `http://127.0.0.1:11434` behavior unchanged.
 
 **Acceptance criteria:**
-- [ ] `OLLAMA_HOST=127.0.0.1:11434 bash Scripts/offload.sh -m ollama-local "say hi"` returns a model response (not ERR_INVALID_URL).
+- [ ] `OLLAMA_HOST=127.0.0.1:11434 bash _SYSTEM/Scripts/offload.sh -m ollama-local "say hi"` returns a model response (not ERR_INVALID_URL).
 - [ ] `OLLAMA_HOST=http://127.0.0.1:11434` continues to work unchanged.
 - [ ] No other lane regresses.
 
-**Test command:** `bash Scripts/offload.sh -m ollama-local "Reply exactly: OK"`
+**Test command:** `bash _SYSTEM/Scripts/offload.sh -m ollama-local "Reply exactly: OK"`
 
-**Rollback boundary:** `git diff` shows only Scripts/ollama-adapter.mjs changed.
+**Rollback boundary:** `git diff` shows only _SYSTEM/Scripts/ollama-adapter.mjs changed.
 
 **Prohibited:** No auto-commit, no git push, no new dependencies.
 ```

@@ -49,7 +49,7 @@ NUDIMMUD/
 │   ├── Claude Code URL Handler.app/
 │   ├── DOMAIN EXPANSION - INFINITE VOID/
 │   ├── GeneratedContent/
-│   ├── Scripts/
+│   ├── _SYSTEM/Scripts/
 │   ├── Volumes/
 │   ├── bin/
 │   └── backend.log (root level)
@@ -154,7 +154,7 @@ cd /Users/marcelspatz/YURI-OS-MUSUBI
 echo "=== Root items ===" && ls -d */ 2>/dev/null | wc -l
 echo "=== graph/ files ===" && find graph/ -type f 2>/dev/null | wc -l || echo "graph/ removed"
 echo "=== NUDIMMOD/ exists? ===" && test -d NUDIMMOD && echo "STILL EXISTS — FAIL" || echo "REMOVED — OK"
-echo "=== Dead files ===" && ls backend*.log Claude\ Code\ URL\ Handler.app/ DOMAIN\ EXPANSION\ -\ INFINITE\ VOID/ GeneratedContent/ Scripts/ Volumes/ bin/ 2>&1 | head -5
+echo "=== Dead files ===" && ls backend*.log Claude\ Code\ URL\ Handler.app/ DOMAIN\ EXPANSION\ -\ INFINITE\ VOID/ GeneratedContent/ _SYSTEM/Scripts/ Volumes/ bin/ 2>&1 | head -5
 echo "=== RESEARCH under KB ===" && test -d 06_KNOWLEDGE-BASE/RESEARCH && echo "OK" || echo "NOT MOVED"
 echo "=== Numbering ===" && ls -d [0-9]*/ 2>/dev/null | sort
 ```

@@ -10,9 +10,9 @@
  *   5. Log result to .claude/state/palace-rebuild.log
  *
  * CLI:
- *   node Scripts/palace-auto-rebuild.mjs           # auto (stale-check + rebuild if needed)
- *   node Scripts/palace-auto-rebuild.mjs --force   # force rebuild regardless of staleness
- *   node Scripts/palace-auto-rebuild.mjs --check   # dry-run: print status and exit
+ *   node _SYSTEM/Scripts/palace-auto-rebuild.mjs           # auto (stale-check + rebuild if needed)
+ *   node _SYSTEM/Scripts/palace-auto-rebuild.mjs --force   # force rebuild regardless of staleness
+ *   node _SYSTEM/Scripts/palace-auto-rebuild.mjs --check   # dry-run: print status and exit
  */
 
 import { existsSync, statSync, mkdirSync, appendFileSync, cpSync } from 'node:fs';

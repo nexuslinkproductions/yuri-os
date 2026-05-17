@@ -39,8 +39,8 @@ ITERATION CAP: 20 iterations max.
 For tasks with a known file scope, list exact paths:
 ```
 REQUIRED FILES TO READ (use these exactly, don't search broadly):
-1. Scripts/foo.mjs
-2. Scripts/bar.mjs
+1. _SYSTEM/Scripts/foo.mjs
+2. _SYSTEM/Scripts/bar.mjs
 ```
 
 This eliminates the "what should I read next?" re-iteration that triggers repetition.

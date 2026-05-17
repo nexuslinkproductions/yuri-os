@@ -53,7 +53,7 @@ Signal aggregation layer for market intelligence. Read-only signal detection —
 
 ## Feed Aggregator Architecture
 
-**Service:** `Scripts/feeds/feed-aggregator.mjs`
+**Service:** `_SYSTEM/Scripts/feeds/feed-aggregator.mjs`
 **Port:** `127.0.0.1:4201`
 **Dependencies:** Node.js built-in `http` module only
 **CORS:** `Access-Control-Allow-Origin: *` on all responses
@@ -156,9 +156,9 @@ Signal aggregation layer for market intelligence. Read-only signal detection —
 
 | File | Purpose |
 |------|---------|
-| `Scripts/feeds/dex-feed.mjs` | DEX Screener new pairs poller, filters, normalizes output |
-| `Scripts/feeds/hl-funding.mjs` | Hyperliquid funding rate monitor, top 20 by abs rate |
-| `Scripts/feeds/whale-feed.mjs` | Whale Alert REST poller + Coinbase env var scaffold |
-| `Scripts/feeds/feed-aggregator.mjs` | Lightweight HTTP server on port 4201, caches and serves feed data |
+| `_SYSTEM/Scripts/feeds/dex-feed.mjs` | DEX Screener new pairs poller, filters, normalizes output |
+| `_SYSTEM/Scripts/feeds/hl-funding.mjs` | Hyperliquid funding rate monitor, top 20 by abs rate |
+| `_SYSTEM/Scripts/feeds/whale-feed.mjs` | Whale Alert REST poller + Coinbase env var scaffold |
+| `_SYSTEM/Scripts/feeds/feed-aggregator.mjs` | Lightweight HTTP server on port 4201, caches and serves feed data |
 
 All feeds log with the prefix `⬡ MARKET_SIGNAL ::` for consistent ingestion by Yuri OS monitoring.

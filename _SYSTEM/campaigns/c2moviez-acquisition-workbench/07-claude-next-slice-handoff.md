@@ -75,9 +75,9 @@ backend/src/routes/coldAcquisitionRoutes.ts
 backend/src/routes/coldAcquisitionCrmRoutes.ts
 acquisition/src/AcquisitionApp.tsx
 acquisition/src/acquisition.css
-Scripts/cold-acquisition-routes.test.mjs
-Scripts/cold-acquisition-crm-routes.test.mjs
-Scripts/cold-acquisition-crm-ui.test.mjs
+_SYSTEM/Scripts/cold-acquisition-routes.test.mjs
+_SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs
+_SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 backend/src/services/coldAcquisitionService.test.ts
 ```
 
@@ -288,14 +288,14 @@ Option A:
 
 Option B:
 
-- Add a script under `Scripts/` that posts fixture records to the local backend.
+- Add a script under `_SYSTEM/Scripts/` that posts fixture records to the local backend.
 
 Prefer Option B unless the UI implementation remains small. Demo seed data must be clearly test/dev oriented and not shown as production source.
 
 Possible script:
 
 ```text
-Scripts/prism-seed-demo-leads.mjs
+_SYSTEM/Scripts/prism-seed-demo-leads.mjs
 ```
 
 Requirements:
@@ -409,7 +409,7 @@ Add or update tests before or with implementation.
 
 ### Route Tests
 
-In `Scripts/cold-acquisition-crm-routes.test.mjs`:
+In `_SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs`:
 
 - authenticated mission includes `needs_research` array if extending mission
 - thin evidence lead appears in `needs_research`
@@ -430,7 +430,7 @@ In `backend/src/services/coldAcquisitionService.test.ts` or CRM service tests:
 
 ### UI Static Tests
 
-In `Scripts/cold-acquisition-crm-ui.test.mjs`:
+In `_SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs`:
 
 - visible app name remains `PRISM Workbench`
 - visible app copy does not include `Acquisition CRM`
@@ -444,10 +444,10 @@ In `Scripts/cold-acquisition-crm-ui.test.mjs`:
 Run at minimum:
 
 ```bash
-node Scripts/cold-acquisition-crm-ui.test.mjs
+node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
 npx vite build --config acquisition/vite.config.mts
-PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs
 PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" npm --prefix backend run build
 ```
 

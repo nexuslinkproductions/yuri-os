@@ -114,7 +114,7 @@ OpenClaw supports MCP as both a server and a runtime integration surface. MCP de
 
 | Pattern | Rationale | Priority |
 |---|---|---|
-| **Plugin architecture** | Extensions/ directory + plugin SDK (api.ts, runtime-api.ts) is clean. Core stays lean; capability ships as plugins. Yuri's Scripts/ and .cline/ layers could adopt this pattern | HIGH |
+| **Plugin architecture** | Extensions/ directory + plugin SDK (api.ts, runtime-api.ts) is clean. Core stays lean; capability ships as plugins. Yuri's _SYSTEM/Scripts/ and .cline/ layers could adopt this pattern | HIGH |
 | **Skills as SKILL.md files** | OpenClaw's workspace `skills/<name>/SKILL.md` matches Yuri's `.claude/skills/*/SKILL.md` and `.cline/rules/*.md`. The skill-loading convention is directly reusable | HIGH |
 | **Sandbox doctrine** | Docker sandbox for non-main sessions, host execution for main. Yuri could adopt this for untrusted/sandboxed agent execution | MEDIUM |
 | **Session model** | Session lifecycle with isolation, subagents (one level deep), and tool permissions per session. Yuri's fused swarm could use this session isolation pattern | MEDIUM |
@@ -135,7 +135,7 @@ OpenClaw supports MCP as both a server and a runtime integration surface. MCP de
 
 ## Next Actions
 
-1. **HIGH**: Prototype a Yuri skill loader based on OpenClaw's `~/.openclaw/workspace/skills/<name>/SKILL.md` convention. Yuri's `.cline/rules/*.md` already mirrors this; formalize the loading path in `Scripts/yuri-skill-loader.mjs`.
+1. **HIGH**: Prototype a Yuri skill loader based on OpenClaw's `~/.openclaw/workspace/skills/<name>/SKILL.md` convention. Yuri's `.cline/rules/*.md` already mirrors this; formalize the loading path in `_SYSTEM/Scripts/yuri-skill-loader.mjs`.
 2. **MEDIUM**: Study OpenClaw's extension plugin API (`src/plugin-sdk/*`) for Yuri's future `extensions/` directory. The barrel export pattern (`api.ts`, `runtime-api.ts`) is clean.
 3. **MEDIUM**: Evaluate OpenClaw's sandbox mode for Yuri's fused swarm execution. Docker sandbox for untrusted lanes, host execution for trusted lanes.
 4. **LOW**: Review OpenClaw's session model for Yuri's multi-agent session isolation. Subagent spawning (one level deep) is a useful pattern.

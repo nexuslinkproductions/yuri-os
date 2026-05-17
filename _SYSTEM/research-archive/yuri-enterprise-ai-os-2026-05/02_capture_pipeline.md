@@ -8,14 +8,14 @@ All research capture uses built-in macOS tools: Node.js, curl, osascript. No ins
 
 ### Tier 0–2: curl / raw source (curl, Node fetch)
 - Public docs, standards, raw GitHub files
-- Tool: `node Scripts/yuri-research-capture.mjs --fetch-url <url> --out <file>`
+- Tool: `node _SYSTEM/Scripts/yuri-research-capture.mjs --fetch-url <url> --out <file>`
 - Captures: URL, HTTP status, content-type, content hash, cleaned excerpt
 - Output: compact Markdown evidence pack with provenance
 - Cost: free, ~0–5000 tokens per source
 
 ### Tier 3: osascript browser text (Safari / Chrome)
 - Rendered pages needing JavaScript execution
-- Tool: `node Scripts/yuri-research-capture.mjs --capture-browser-text --browser safari --out <file>`
+- Tool: `node _SYSTEM/Scripts/yuri-research-capture.mjs --capture-browser-text --browser safari --out <file>`
 - Captures: URL, title, visible text via AppleScript/JXA
 - No cookies, no profile files, no login bypass
 - Cost: free, ~1000 tokens per capture

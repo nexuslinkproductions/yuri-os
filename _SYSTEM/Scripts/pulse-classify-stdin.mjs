@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 const prompt = process.argv.slice(2).filter((arg) => !arg.startsWith('-')).join(' ');
 
 try {
-  const out = execFileSync('node', ['Scripts/offload-contract.mjs', 'route-plan', prompt], {
+  const out = execFileSync('node', ['_SYSTEM/Scripts/offload-contract.mjs', 'route-plan', prompt], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'ignore'],
   });

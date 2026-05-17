@@ -34,13 +34,13 @@ All commands were rerun from `/Users/marcelspatz/YURI-OS-MUSUBI` on 2026-05-11 l
 | `npm test` | PASS | Exit 0. Reported passing modules: `offload-contract-regression`, `yuri-control-plane-schema`, `codex-offload-runner`, `yuri-sandbox-loop`, `yuri-artifact-audit`, `yuri-council-claim-evidence`, `yuri-canonical-memory-import`, `memory_governor_test.py`, `token-ledger`, `ollama-adapter`, `ollama-promotion-readiness`, `ollama-kv-config`, `yuri-local-model-policy`, `backend-cors-hardening`, `control-plane-plan-routes`, `yuri-session-launchd`, `yuri-session-runtime`. | The scripted regression suite is coherent and currently passes. |
 | `npm run build` | FAIL | `tsc` printed generic help and exited 1. `git status --short` shows deleted `tsconfig.json` and deleted `tsconfig.node.json`. | Root app is not buildable in the current worktree. |
 | `python3 _SYSTEM/OS_KERNEL/memory_governor.py health` | FAIL | `sqlite3.OperationalError: foreign key mismatch - "swarm_messages" referencing "agents"`. | The live memory DB/schema path is unhealthy even though memory governor unit tests pass. |
-| `node Scripts/yuri-skill-loader.mjs --validate --json` | FAIL | Summary: `ok=37`, `drift=2`, `missing=0`, `unregistered=0`. Drift: `local-subagent`, `tokenmaxxing`. | Skill registry integrity is mostly good but not clean. |
-| `node Scripts/wiki-rag-health.mjs` | PASS | `ok=true`, launchd label `com.nudimmud.wiki-rag`, `pid=54424`, index `sources=16`, `chunks=22`, `embedded=22`. | Yuri Wiki RAG control plane is alive and indexed. |
-| `node Scripts/offload-contract.mjs route-plan "comprehensive council audit on yuri progression jake van clief goal workflow optimisation"` | PASS | Route: `lane=swarm`, `scenario=high-stakes-review`, `entrypoint=./Scripts/ai auto`, quality gate `main-session`. | The routing contract classifies this audit correctly as high-stakes review. |
-| `node Scripts/yuri-local-model-benchmark.mjs --dry-run` | PASS | Ollama `0.23.2`; policy maps utility to `qwen3.5:4b`, primary to `qwen2.5:7b`, code to `qwen2.5-coder:7b`. | Local model policy exists and dry-run planning is functional. |
-| `node Scripts/ollama-kv-config.mjs status` | PASS | Server `ok=true`, URL `http://127.0.0.1:11434`, status `200`, latency `133ms`; launchctl profile includes `OLLAMA_NO_CLOUD=1`. | Local Ollama runtime is up and configured for local-first operation. |
+| `node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json` | FAIL | Summary: `ok=37`, `drift=2`, `missing=0`, `unregistered=0`. Drift: `local-subagent`, `tokenmaxxing`. | Skill registry integrity is mostly good but not clean. |
+| `node _SYSTEM/Scripts/wiki-rag-health.mjs` | PASS | `ok=true`, launchd label `com.nudimmud.wiki-rag`, `pid=54424`, index `sources=16`, `chunks=22`, `embedded=22`. | Yuri Wiki RAG control plane is alive and indexed. |
+| `node _SYSTEM/Scripts/offload-contract.mjs route-plan "comprehensive council audit on yuri progression jake van clief goal workflow optimisation"` | PASS | Route: `lane=swarm`, `scenario=high-stakes-review`, `entrypoint=./_SYSTEM/Scripts/ai auto`, quality gate `main-session`. | The routing contract classifies this audit correctly as high-stakes review. |
+| `node _SYSTEM/Scripts/yuri-local-model-benchmark.mjs --dry-run` | PASS | Ollama `0.23.2`; policy maps utility to `qwen3.5:4b`, primary to `qwen2.5:7b`, code to `qwen2.5-coder:7b`. | Local model policy exists and dry-run planning is functional. |
+| `node _SYSTEM/Scripts/ollama-kv-config.mjs status` | PASS | Server `ok=true`, URL `http://127.0.0.1:11434`, status `200`, latency `133ms`; launchctl profile includes `OLLAMA_NO_CLOUD=1`. | Local Ollama runtime is up and configured for local-first operation. |
 | `ollama list` | PASS | Models include `qwen2.5-coder:7b`, `gemma4:latest`, `qwen3.5:4b`, `deepseek-r1:8b`, `starcoder2`, `llama3.2`, `nomic-embed-text`, `deepseek-v2:16b`, `qwen2.5:7b`. | Local model substrate is materially present, not aspirational. |
-| `node Scripts/yuri-session-launchd.mjs status` | FAIL | `Could not find service "com.nudimmud.yuri-session-runtime" in domain for user gui: 501`. | Session runtime launchd service is not installed/running, despite unit tests passing. |
+| `node _SYSTEM/Scripts/yuri-session-launchd.mjs status` | FAIL | `Could not find service "com.nudimmud.yuri-session-runtime" in domain for user gui: 501`. | Session runtime launchd service is not installed/running, despite unit tests passing. |
 | `npx gitnexus --help` | FAIL | `Cannot destructure property 'package' of 'node.target' as it is null.` | GitNexus CLI is not currently usable from this workspace. |
 | `git status --short` | FAIL hygiene | Current branch `main`; 139 dirty/untracked/deleted entries. | Current state is difficult to promote, audit, or reason about safely. |
 | `sqlite3 _SYSTEM/OS_KERNEL/memory.db ... counts` | PASS read | `agents=10`, `tasks=50`, `memories=93`, `memory_items=909`, `promoted_lessons=0`, `session_lesson_candidates=0`, `token_ledger=31089`, `projects=0`, `tickets=0`, `telemetry_sessions=0`. | Memory and token telemetry exist, but lesson promotion and operational project/ticket surfaces are empty. |
@@ -51,7 +51,7 @@ All commands were rerun from `/Users/marcelspatz/YURI-OS-MUSUBI` on 2026-05-11 l
 
 Status: PARTIAL PASS.
 
-The shared contract in `Scripts/offload-contract.mjs` is the strongest operational module in the current evidence set. It gives the audit a deterministic route: `swarm`, `high-stakes-review`, `main-session` quality gate, with local truth required. That matches the stated operator protocol.
+The shared contract in `_SYSTEM/Scripts/offload-contract.mjs` is the strongest operational module in the current evidence set. It gives the audit a deterministic route: `swarm`, `high-stakes-review`, `main-session` quality gate, with local truth required. That matches the stated operator protocol.
 
 Observed strength:
 
@@ -137,7 +137,7 @@ Council read: local-first execution is credible. The bottleneck is no longer mod
 
 Status: PASS.
 
-`node Scripts/wiki-rag-health.mjs` reports launchd alive, index present, and 22 embedded chunks in notebook `Yuri Wiki Control Plane`.
+`node _SYSTEM/Scripts/wiki-rag-health.mjs` reports launchd alive, index present, and 22 embedded chunks in notebook `Yuri Wiki Control Plane`.
 
 Council read: RAG is not the weak point. It should be treated as a retrieval module behind the canonical lifecycle, not as another special-purpose path.
 
@@ -229,7 +229,7 @@ Risk:
 Recommendation:
 
 - Keep `OPERATOR_PROTOCOL.md` as the authority.
-- Make `Scripts/offload-contract.mjs` the executable source for routing.
+- Make `_SYSTEM/Scripts/offload-contract.mjs` the executable source for routing.
 - Generate or verify adapter rule files from those two sources, instead of hand-maintaining equivalent doctrine in many files.
 
 ### Control-plane maturity
@@ -286,7 +286,7 @@ This is the central Jake/ICM gap. The file architecture is strong, but behavior-
 Recommendation:
 
 - Treat every repeated failure as one of: prevention rule, routing rule, or experiment.
-- Use `Scripts/self-improvement/weekly-comp.mjs` as the ritualized promotion path.
+- Use `_SYSTEM/Scripts/self-improvement/weekly-comp.mjs` as the ritualized promotion path.
 - Make `promoted_lessons > 0` and non-empty reviewed lesson candidates a concrete metric in `03_GAZE`.
 
 ### Jake progression standing
@@ -421,10 +421,10 @@ This gives callers leverage: they do not need to know whether the work came from
 
 ### Existing modules to preserve
 
-- `Scripts/offload-contract.mjs`: routing source of truth.
-- `Scripts/yuri-sandbox-loop.mjs`: isolation and artifact-first execution.
-- `Scripts/yuri-artifact-audit.mjs`: artifact verification.
-- `Scripts/yuri-learning-capture.mjs`: learning capture.
+- `_SYSTEM/Scripts/offload-contract.mjs`: routing source of truth.
+- `_SYSTEM/Scripts/yuri-sandbox-loop.mjs`: isolation and artifact-first execution.
+- `_SYSTEM/Scripts/yuri-artifact-audit.mjs`: artifact verification.
+- `_SYSTEM/Scripts/yuri-learning-capture.mjs`: learning capture.
 - `backend/src/services/headlessControlPlaneService.ts`: headless planning surface.
 - `backend/src/services/smartRouter.ts`: runtime/model/action-gate routing.
 - `_SYSTEM/OS_KERNEL/memory.db`: canonical durable state.
@@ -461,11 +461,11 @@ Yuri is cleaner and more operational when all P0 gates pass:
 npm test
 npm run build
 python3 _SYSTEM/OS_KERNEL/memory_governor.py health
-node Scripts/yuri-skill-loader.mjs --validate --json
-node Scripts/wiki-rag-health.mjs
-node Scripts/ollama-kv-config.mjs status
-node Scripts/yuri-local-model-benchmark.mjs --dry-run
-node Scripts/yuri-session-launchd.mjs status
+node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json
+node _SYSTEM/Scripts/wiki-rag-health.mjs
+node _SYSTEM/Scripts/ollama-kv-config.mjs status
+node _SYSTEM/Scripts/yuri-local-model-benchmark.mjs --dry-run
+node _SYSTEM/Scripts/yuri-session-launchd.mjs status
 npx gitnexus status
 ```
 

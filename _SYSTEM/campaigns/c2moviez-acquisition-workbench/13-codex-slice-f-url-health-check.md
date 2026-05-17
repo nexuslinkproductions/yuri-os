@@ -51,14 +51,14 @@ Do NOT add URL checks anywhere else. No changes to routes, frontend, or other se
 
 **Acceptance criteria:**
 - [ ] `npx tsc -p acquisition/tsconfig.json --noEmit` exits 0
-- [ ] `PATH=... TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs` passes
+- [ ] `PATH=... TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs` passes
 - [ ] Ingesting a record with a known-dead source_url produces a lead with `compliance.source_url === 'unavailable'`
 - [ ] Ingesting a record with a live source_url keeps the URL intact
 
 **Test commands:**
 ```bash
 npx tsc -p acquisition/tsconfig.json --noEmit
-PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs
 ```
 
 **Staging commands:**

@@ -6,9 +6,9 @@
  * history. Applies small drive updates from recent success signals.
  *
  * CLI:
- *   node Scripts/self-model-feedback.mjs           # update fingerprint
- *   node Scripts/self-model-feedback.mjs --dry-run  # compute only
- *   node Scripts/self-model-feedback.mjs --status   # show current fingerprint
+ *   node _SYSTEM/Scripts/self-model-feedback.mjs           # update fingerprint
+ *   node _SYSTEM/Scripts/self-model-feedback.mjs --dry-run  # compute only
+ *   node _SYSTEM/Scripts/self-model-feedback.mjs --status   # show current fingerprint
  */
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';

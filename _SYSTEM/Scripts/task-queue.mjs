@@ -12,12 +12,12 @@
  *   5. Each task result is written back before the next task starts.
  *
  * CLI usage:
- *   node Scripts/task-queue.mjs enqueue --lane gpt-5.5 --prompt "..." [--priority 5]
- *   node Scripts/task-queue.mjs list [--status pending|running|done|failed|stale]
- *   node Scripts/task-queue.mjs run-next          # execute next pending task, then exit
- *   node Scripts/task-queue.mjs drain             # run all pending tasks sequentially
- *   node Scripts/task-queue.mjs clear-done        # remove completed/stale tasks
- *   node Scripts/task-queue.mjs status            # print queue summary
+ *   node _SYSTEM/Scripts/task-queue.mjs enqueue --lane gpt-5.5 --prompt "..." [--priority 5]
+ *   node _SYSTEM/Scripts/task-queue.mjs list [--status pending|running|done|failed|stale]
+ *   node _SYSTEM/Scripts/task-queue.mjs run-next          # execute next pending task, then exit
+ *   node _SYSTEM/Scripts/task-queue.mjs drain             # run all pending tasks sequentially
+ *   node _SYSTEM/Scripts/task-queue.mjs clear-done        # remove completed/stale tasks
+ *   node _SYSTEM/Scripts/task-queue.mjs status            # print queue summary
  */
 
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';

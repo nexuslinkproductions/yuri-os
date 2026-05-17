@@ -286,7 +286,7 @@ Every node in the dashboard must have full metadata structured uniformly. Add a 
 const NODE_META = {
   ENKI: {
     purpose: "Main session control plane — final authority over all actions. Synthesizes advisor findings, dispatches Codex, vetoes unsafe operations.",
-    files: ["Scripts/pulse-orchestrator.mjs", "CLAUDE.md", "SOUL.md"],
+    files: ["_SYSTEM/Scripts/pulse-orchestrator.mjs", "CLAUDE.md", "SOUL.md"],
     capabilities: [
       "Read advisor findings from pulse-bus",
       "Dispatch Codex via pulse-codex-runner",
@@ -313,8 +313,8 @@ Specific high-value nodes that need accurate metadata:
 Sources for accurate metadata:
 - CLAUDE.md
 - _SYSTEM/yuri-origin.md
-- Scripts/offload-contract.mjs (lane definitions)
-- Scripts/pulse-orchestrator.mjs (advisor definitions)
+- _SYSTEM/Scripts/offload-contract.mjs (lane definitions)
+- _SYSTEM/Scripts/pulse-orchestrator.mjs (advisor definitions)
 - _SYSTEM/SELF-IMPROVEMENT/* (taxonomy)
 
 ## B.1 METADATA EXPORT — `_SYSTEM/yuri-graph-state.json`

@@ -6,7 +6,7 @@
 > Sibling artifacts (rendered surfaces, optional):
 > - `AUDIT.html` — styled one-page audit (Mermaid + Chart.js)
 > - `AUDIT-DECK.html` — 10-slide reveal deck
-> - `Scripts/independence-check.mjs` — runnable verifier
+> - `_SYSTEM/Scripts/independence-check.mjs` — runnable verifier
 > - `_SYSTEM/NEXUSLINK/nexbox-handoff-v1.md` — also embedded below as §D
 
 ---
@@ -34,7 +34,7 @@ If Yuri OS is still implicitly running on Anthropic-backed subagents, hooks, and
 | `.claude/settings.json:89` default `"sonnet"` | implicit Anthropic for all session-default ops | full session metered |
 | EOT skill spawns ≥4 Haiku workers / `/eot` | auto-triggers at context ≥60% | recurring high-volume cost |
 | `.claude/hooks/nisaba-dream.js:75` shells `claude -p haiku` | only live shell-out post-guard | per-fire metered |
-| `Scripts/yuri-symbiotic-pulse.mjs:250` defaults `claude-sonnet-4-6` | cortex routing brain is itself Anthropic | every pulse metered |
+| `_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs:250` defaults `claude-sonnet-4-6` | cortex routing brain is itself Anthropic | every pulse metered |
 | `@amp.smart=claude-opus-4-7` · `@claude` lane | hybrid + opt-in | only `@amp.smart` auto-fires |
 | 5 skill `agent.md` files (verifier-discovered) | hardcoded Anthropic models | per-skill-trigger metered |
 
@@ -48,8 +48,8 @@ If Yuri OS is still implicitly running on Anthropic-backed subagents, hooks, and
 | EOT skill | 15 | 100% | 0.0 |
 | Symbiotic Pulse default | 10 | 100% | 0.0 |
 | offload-contract default lanes | 5 | partial | 2.5 |
-| Scripts/trading-bot | 3 | 100% | 0.0 |
-| Other Scripts/* | 2 | low (cosmetic) | 1.5 |
+| _SYSTEM/Scripts/trading-bot | 3 | 100% | 0.0 |
+| Other _SYSTEM/Scripts/* | 2 | low (cosmetic) | 1.5 |
 | **TOTAL** | **100** | — | **31.6** |
 
 ## A.4 Current Phase Map (text rendering)
@@ -95,7 +95,7 @@ Ratio: **~20×**. Estimates use EOT firing 6×/day with 4 Haiku workers, nisaba-
 
 ## A.6 Verification Plan — proving independence on 14 June
 
-1. `Scripts/independence-check.mjs --strict` returns `exit 0` with `YURI_NO_ANTHROPIC=1`.
+1. `_SYSTEM/Scripts/independence-check.mjs --strict` returns `exit 0` with `YURI_NO_ANTHROPIC=1`.
 2. Full `/eot` cycle under kill-switch → zero Claude calls in `_SYSTEM/cost-trends.md`.
 3. 24h fresh session with kill-switch on → productivity delta vs prior baseline.
 4. `gitnexus_detect_changes()` after every packet → scope matches expectation.
@@ -145,20 +145,20 @@ All 11 files (no `model:` field — inherit parent session model):
 
 **Verdict:** 8/11 model-backed agents inherit session default (currently Sonnet). 3/11 already native_function Anthropic-safe.
 
-## B.3 Direct Anthropic API references — `Scripts/`
+## B.3 Direct Anthropic API references — `_SYSTEM/Scripts/`
 
 ```
-MATCH file=Scripts/offload-contract.mjs line=110 term=claude-opus-4-7 excerpt="smart: { model: 'claude-opus-4-7' }"
-MATCH file=Scripts/offload-contract.mjs line=176 term=claude excerpt="dispatchTokens: ['claude', 'claude-3-5-sonnet', 'claude-3-5-sonnet-liberated', 'claude-3-opus']"
-MATCH file=Scripts/offload-contract.mjs line=270 term=claude-sonnet-4-6 excerpt="model: 'claude-sonnet-4-6'"
-MATCH file=Scripts/yuri-symbiotic-pulse.mjs line=250 term=claude-sonnet-4-6 excerpt="model: 'claude-sonnet-4-6'"
-MATCH file=Scripts/trading-bot/ensemble-inference.mjs line=25 term=api.anthropic.com excerpt="baseUrl: 'https://api.anthropic.com/v1'"
-MATCH file=Scripts/trading-bot/ensemble-inference.mjs line=27 term=claude-sonnet-4 excerpt="model: 'claude-sonnet-4-20250514'"
-MATCH file=Scripts/token-ledger.mjs line=65-67 term=claude-* excerpt="pricing rows for sonnet/opus/haiku"
-MATCH file=Scripts/ai line=272 term=claude-sonnet-4-6 excerpt="printf '# model: claude-sonnet-4-6'"
-MATCH file=Scripts/ai line=1103 term=claude-sonnet-4-6 excerpt='printf MODEL claude-sonnet-4-6'
-MATCH file=Scripts/ai line=1128 term=claude-sonnet-4-6 excerpt='printf MODEL claude-sonnet-4-6'
-MATCH file=Scripts/offload.sh line=367 term=claude-3* excerpt="claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)"
+MATCH file=_SYSTEM/Scripts/offload-contract.mjs line=110 term=claude-opus-4-7 excerpt="smart: { model: 'claude-opus-4-7' }"
+MATCH file=_SYSTEM/Scripts/offload-contract.mjs line=176 term=claude excerpt="dispatchTokens: ['claude', 'claude-3-5-sonnet', 'claude-3-5-sonnet-liberated', 'claude-3-opus']"
+MATCH file=_SYSTEM/Scripts/offload-contract.mjs line=270 term=claude-sonnet-4-6 excerpt="model: 'claude-sonnet-4-6'"
+MATCH file=_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs line=250 term=claude-sonnet-4-6 excerpt="model: 'claude-sonnet-4-6'"
+MATCH file=_SYSTEM/Scripts/trading-bot/ensemble-inference.mjs line=25 term=api.anthropic.com excerpt="baseUrl: 'https://api.anthropic.com/v1'"
+MATCH file=_SYSTEM/Scripts/trading-bot/ensemble-inference.mjs line=27 term=claude-sonnet-4 excerpt="model: 'claude-sonnet-4-20250514'"
+MATCH file=_SYSTEM/Scripts/token-ledger.mjs line=65-67 term=claude-* excerpt="pricing rows for sonnet/opus/haiku"
+MATCH file=_SYSTEM/Scripts/ai line=272 term=claude-sonnet-4-6 excerpt="printf '# model: claude-sonnet-4-6'"
+MATCH file=_SYSTEM/Scripts/ai line=1103 term=claude-sonnet-4-6 excerpt='printf MODEL claude-sonnet-4-6'
+MATCH file=_SYSTEM/Scripts/ai line=1128 term=claude-sonnet-4-6 excerpt='printf MODEL claude-sonnet-4-6'
+MATCH file=_SYSTEM/Scripts/offload.sh line=367 term=claude-3* excerpt="claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)"
 ```
 
 ## B.4 Hooks — `.claude/hooks/*.js`
@@ -186,7 +186,7 @@ MATCH line=406 term=haiku_worker excerpt="eot-007 owner=haiku_worker model=haiku
 ## B.6 Pulse Orchestrator
 
 ```
-FILE_COUNT file=Scripts/pulse-orchestrator.mjs lines=533
+FILE_COUNT file=_SYSTEM/Scripts/pulse-orchestrator.mjs lines=533
 MATCH line=414 term=@claude excerpt="['security', '@claude']"
 ```
 
@@ -233,8 +233,8 @@ FILE_COUNT file=src/components/NexusLinkLanding.tsx lines=423
 FILE_COUNT file=src/lib/nexusLinkLanding.ts lines=122
 FILE_COUNT file=src/lib/nexuslinkLandingData.ts lines=80
 FILE_COUNT file=docs/SYMBIOTIC_PULSE_V1.md present=true
-FILE_COUNT file=Scripts/yuri-symbiotic-pulse.mjs present=true
-FILE_COUNT file=Scripts/yuri-canonical-memory-import.mjs present=true
+FILE_COUNT file=_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs present=true
+FILE_COUNT file=_SYSTEM/Scripts/yuri-canonical-memory-import.mjs present=true
 FILE_COUNT file=_SYSTEM/NEXUSLINK/nexbox-handoff-v1.md present=true (created 2026-05-16)
 ```
 
@@ -257,7 +257,7 @@ Searches for `cache_control`, `betas`, `thinking.budget_tokens`, `anthropic-beta
 
 ## B.11 NEW SURFACE — Skill-bound `agent.md` files (verifier-discovered)
 
-`Scripts/independence-check.mjs` surfaced 5 skill-scoped `agent.md` files carrying **explicit** Anthropic models. Separate surface from `.claude/agents/` parent-inheritance subagents — these are skill-embedded agent definitions that fire when the skill activates.
+`_SYSTEM/Scripts/independence-check.mjs` surfaced 5 skill-scoped `agent.md` files carrying **explicit** Anthropic models. Separate surface from `.claude/agents/` parent-inheritance subagents — these are skill-embedded agent definitions that fire when the skill activates.
 
 ```
 MATCH file=.claude/skills/execution-domain-core/agent.md line=4 term=claude-sonnet-4-6 excerpt="model: claude-sonnet-4-6"
@@ -277,7 +277,7 @@ MATCH file=.claude/skills/pattern-mirror-core/agent.md line=4 term=claude-sonnet
 ## B.12 Verifier Smoke-Test Result (2026-05-16)
 
 ```
-node Scripts/independence-check.mjs
+node _SYSTEM/Scripts/independence-check.mjs
   FAIL: 16
   WARN: 19
   PASS: 3
@@ -294,7 +294,7 @@ Raw score harsher than §A.3 weighted score because verifier counts every Anthro
 3. _SYSTEM/yuri-origin.md
 4. SOUL.md
 5. Thin adapters
-6. Scripts/offload-contract.mjs
+6. _SYSTEM/Scripts/offload-contract.mjs
 7. On-demand references and skills
 8. Model inference (lowest)
 ```
@@ -324,14 +324,14 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 ## Packet 1 — De-Claude Symbiotic Pulse default cortex
 
 - **Goal:** Symbiotic Pulse runtime defaults to a non-Anthropic model. Claude becomes opt-in only via explicit dispatch token.
-- **Target files:** `Scripts/yuri-symbiotic-pulse.mjs:250`
-- **Constraints:** No new dependencies. Existing `Scripts/offload-contract.mjs` lane vocabulary intact. Council-dissent mode (`@claude` advisory) still available when explicitly named.
+- **Target files:** `_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs:250`
+- **Constraints:** No new dependencies. Existing `_SYSTEM/Scripts/offload-contract.mjs` lane vocabulary intact. Council-dissent mode (`@claude` advisory) still available when explicitly named.
 - **Acceptance:**
   - [ ] Default `model:` at line 250 reads `deepseek-v4-pro` (or capability lookup once Packet #15 lands).
-  - [ ] `Scripts/yuri-symbiotic-pulse.test.mjs` passes unchanged.
+  - [ ] `_SYSTEM/Scripts/yuri-symbiotic-pulse.test.mjs` passes unchanged.
   - [ ] Pulse trace shows `lane=@deepseek-v4-pro` on freshly seeded test prompt.
-- **Test:** `node Scripts/yuri-symbiotic-pulse.test.mjs && node Scripts/yuri-symbiotic-pulse.mjs --self-check`
-- **Rollback:** `git diff Scripts/yuri-symbiotic-pulse.mjs` ≤ 6 lines.
+- **Test:** `node _SYSTEM/Scripts/yuri-symbiotic-pulse.test.mjs && node _SYSTEM/Scripts/yuri-symbiotic-pulse.mjs --self-check`
+- **Rollback:** `git diff _SYSTEM/Scripts/yuri-symbiotic-pulse.mjs` ≤ 6 lines.
 - **Route-plan:** critical · architectural · cortex migration.
 - **GitNexus impact:** required upstream.
 - **ETA:** 1d · **Owner:** Codex.
@@ -344,7 +344,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Acceptance:**
   - [ ] `jq '.model' .claude/settings.json` returns `null` or non-Anthropic.
   - [ ] Fresh session boot → no automatic Sonnet usage.
-- **Test:** `node Scripts/independence-check.mjs --check=default-model`
+- **Test:** `node _SYSTEM/Scripts/independence-check.mjs --check=default-model`
 - **Rollback:** single-line edit.
 - **Route-plan:** high-stakes · global config · main-session approval.
 - **ETA:** 0.5d · **Owner:** Claude (control plane) + Marcel (approval).
@@ -366,7 +366,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Acceptance:**
   - [ ] `grep -h "^model:" .claude/agents/*.md | sort | uniq` returns zero `claude-*` values.
   - [ ] EOT Patch 001 verification: all 11 have `model:` AND `description:` non-empty (except 3 native_function with `runtime: native_function`).
-- **Test:** `node Scripts/independence-check.mjs --check=subagents`
+- **Test:** `node _SYSTEM/Scripts/independence-check.mjs --check=subagents`
 - **Rollback:** per-file diff ≤ 4 lines.
 - **Route-plan:** high-stakes · routing · agent harness.
 - **ETA:** 2d · **Owner:** Codex.
@@ -386,7 +386,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 
 ## Packet 5 — Rip Anthropic from `nisaba-dream.js`
 
-- **Goal:** `.claude/hooks/nisaba-dream.js:75` no longer shells `claude -p`. Decide: (a) replace with `Scripts/offload.sh -m deepseek-r1:8b`, OR (b) strip model call entirely and convert to deterministic dispatcher. Prefer (b) if hook is just signal routing.
+- **Goal:** `.claude/hooks/nisaba-dream.js:75` no longer shells `claude -p`. Decide: (a) replace with `_SYSTEM/Scripts/offload.sh -m deepseek-r1:8b`, OR (b) strip model call entirely and convert to deterministic dispatcher. Prefer (b) if hook is just signal routing.
 - **Target files:** `.claude/hooks/nisaba-dream.js`
 - **Acceptance:**
   - [ ] `grep -n "claude" .claude/hooks/nisaba-dream.js` returns 0 hits.
@@ -399,12 +399,12 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 ## Packet 6 — Strip `@claude` default routing · @amp.smart → gpt-5.5
 
 - **Goal:** `@claude` lane opt-in only (removed from default fan-out chains). `@amp.smart` no longer maps to `claude-opus-4-7`.
-- **Target files:** `Scripts/offload-contract.mjs:110, 270` (and dispatch tokens at 176)
+- **Target files:** `_SYSTEM/Scripts/offload-contract.mjs:110, 270` (and dispatch tokens at 176)
 - **Constraints:** `@claude` lane stays defined for explicit `-m claude`. Default tables and scenario fan-outs don't include it. `@amp.smart` → `gpt-5.5`.
 - **Acceptance:**
-  - [ ] `node Scripts/offload-contract-dispatch-check.mjs` passes.
+  - [ ] `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` passes.
   - [ ] `@amp` default mode does not route to Anthropic.
-- **Test:** `node Scripts/offload-contract-dispatch-check.mjs && node Scripts/independence-check.mjs --check=routing`
+- **Test:** `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs && node _SYSTEM/Scripts/independence-check.mjs --check=routing`
 - **Rollback:** ≤ 30 lines.
 - **Route-plan:** critical · routing contract.
 - **GitNexus impact:** required upstream on `offload-contract`.
@@ -412,27 +412,27 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 
 ## Packet 7 — trading-bot ensemble replacement
 
-- **Goal:** `Scripts/trading-bot/ensemble-inference.mjs` no longer calls `api.anthropic.com`. Replace with tri-ensemble: DeepSeek-V4-Pro + Kimi K2.6 + NVIDIA Nemotron-70B.
-- **Target files:** `Scripts/trading-bot/ensemble-inference.mjs:25-27`
+- **Goal:** `_SYSTEM/Scripts/trading-bot/ensemble-inference.mjs` no longer calls `api.anthropic.com`. Replace with tri-ensemble: DeepSeek-V4-Pro + Kimi K2.6 + NVIDIA Nemotron-70B.
+- **Target files:** `_SYSTEM/Scripts/trading-bot/ensemble-inference.mjs:25-27`
 - **Constraints:** Output schema unchanged. Latency budget preserved. Confidence calibration re-validated.
 - **Acceptance:**
   - [ ] `baseUrl` no longer `api.anthropic.com`.
   - [ ] Ensemble produces signal under `YURI_NO_ANTHROPIC=1`.
   - [ ] Backtest replay within ±5% of prior baseline.
-- **Test:** `node Scripts/trading-bot/ensemble-inference.mjs --self-check --replay=last-week`
+- **Test:** `node _SYSTEM/Scripts/trading-bot/ensemble-inference.mjs --self-check --replay=last-week`
 - **Rollback:** single file ≤ 60 lines.
 - **Route-plan:** financial · high-stakes · ensemble.
 - **ETA:** 1d · **Owner:** Codex.
 
 ## Packet 8 — token-ledger pricing rows for non-Anthropic lanes
 
-- **Goal:** `Scripts/token-ledger.mjs` + `.claude/hooks/token-status.js` carry pricing rows for every active non-Anthropic lane.
-- **Target files:** `Scripts/token-ledger.mjs:65-67,112` · `.claude/hooks/token-status.js:52-56`
+- **Goal:** `_SYSTEM/Scripts/token-ledger.mjs` + `.claude/hooks/token-status.js` carry pricing rows for every active non-Anthropic lane.
+- **Target files:** `_SYSTEM/Scripts/token-ledger.mjs:65-67,112` · `.claude/hooks/token-status.js:52-56`
 - **Constraints:** Anthropic rows retained for opt-in usage tracking. New rows: deepseek-v4-pro, deepseek-v4-flash, kimi-k2.6, nemotron-70b, llama-3.3-70b, gpt-5.5, gpt-5.4-mini, gpt-5.3-codex-spark.
 - **Acceptance:**
   - [ ] All active lanes from `offload-contract.mjs` have pricing rows.
-  - [ ] `Scripts/ai status` shows accurate per-lane cost summary.
-- **Test:** `node Scripts/token-ledger.mjs --self-check`
+  - [ ] `_SYSTEM/Scripts/ai status` shows accurate per-lane cost summary.
+- **Test:** `node _SYSTEM/Scripts/token-ledger.mjs --self-check`
 - **Rollback:** ≤ 80 lines across two files.
 - **ETA:** 1d · **Owner:** Codex.
 
@@ -451,7 +451,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 
 ## Packet 10 — Hook-by-hook audit · quarantine any Claude spawn
 
-- **Goal:** Each of 37 hooks in `.claude/hooks/` audited for direct/transitive Anthropic calls. Findings logged. Any Anthropic-firing hook refactored to deterministic JS or routed through `Scripts/offload.sh -m <non-anthropic-lane>`.
+- **Goal:** Each of 37 hooks in `.claude/hooks/` audited for direct/transitive Anthropic calls. Findings logged. Any Anthropic-firing hook refactored to deterministic JS or routed through `_SYSTEM/Scripts/offload.sh -m <non-anthropic-lane>`.
 - **Target files:** `.claude/hooks/*.js` (37 files)
 - **Acceptance:**
   - [ ] `grep -rEn "claude -p|api.anthropic|claude-(opus|sonnet|haiku)" .claude/hooks/ | grep -v "token-status.js" | grep -v "agent-spawn-guard.js"` returns 0 active hits.
@@ -471,21 +471,21 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Rollback:** per-skill small edits.
 - **ETA:** 2d · **Owner:** Codex.
 
-## Packet 12 — `Scripts/ai` banner defaults
+## Packet 12 — `_SYSTEM/Scripts/ai` banner defaults
 
-- **Goal:** Status/banner output in `Scripts/ai` (lines 272, 1103, 1128) doesn't hard-assert `claude-sonnet-4-6`. Read actual session model from settings or display "user-selected".
-- **Target files:** `Scripts/ai:272,1103,1128`
+- **Goal:** Status/banner output in `_SYSTEM/Scripts/ai` (lines 272, 1103, 1128) doesn't hard-assert `claude-sonnet-4-6`. Read actual session model from settings or display "user-selected".
+- **Target files:** `_SYSTEM/Scripts/ai:272,1103,1128`
 - **Constraints:** Cosmetic. No behaviour change.
 - **Acceptance:**
-  - [ ] `Scripts/ai status` doesn't falsely advertise Claude when inactive.
-- **Test:** `bash Scripts/ai status`
+  - [ ] `_SYSTEM/Scripts/ai status` doesn't falsely advertise Claude when inactive.
+- **Test:** `bash _SYSTEM/Scripts/ai status`
 - **Rollback:** ≤ 20 lines.
 - **ETA:** 0.5d · **Owner:** Codex.
 
 ## Packet 13 — Independence smoke test — `YURI_NO_ANTHROPIC=1`
 
-- **Goal:** New script `Scripts/independence-check.mjs` boots verifier walking every subagent, hook, skill, offload lane to assert no Anthropic surface fires when `YURI_NO_ANTHROPIC=1`. (Initial version shipped 2026-05-16 alongside this audit; this packet hardens false-positive suppression and wires into CI.)
-- **Target files:** `Scripts/independence-check.mjs` (exists) + CI hook
+- **Goal:** New script `_SYSTEM/Scripts/independence-check.mjs` boots verifier walking every subagent, hook, skill, offload lane to assert no Anthropic surface fires when `YURI_NO_ANTHROPIC=1`. (Initial version shipped 2026-05-16 alongside this audit; this packet hardens false-positive suppression and wires into CI.)
+- **Target files:** `_SYSTEM/Scripts/independence-check.mjs` (exists) + CI hook
 - **Constraints:** Read-only verifier. < 60s runtime. Exit 0 on PASS, non-zero on FAIL.
 - **Acceptance:**
   - [ ] Script returns 0 on pass.
@@ -510,13 +510,13 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 
 ## Packet 15 — Lane dispatcher abstraction (capability manifest router)
 
-- **Goal:** New `Scripts/lane-dispatcher.mjs` reads capability manifest (each lane declares ctx window, tool-use, latency tier, cost tier, privacy class). Every later migration becomes manifest config change, not hardcoded string swap.
-- **Target files:** new `Scripts/lane-dispatcher.mjs` · new `Scripts/lane-capability-manifest.json` · refactor consumers (`yuri-symbiotic-pulse.mjs`, `pulse-orchestrator.mjs`, hook templates).
+- **Goal:** New `_SYSTEM/Scripts/lane-dispatcher.mjs` reads capability manifest (each lane declares ctx window, tool-use, latency tier, cost tier, privacy class). Every later migration becomes manifest config change, not hardcoded string swap.
+- **Target files:** new `_SYSTEM/Scripts/lane-dispatcher.mjs` · new `_SYSTEM/Scripts/lane-capability-manifest.json` · refactor consumers (`yuri-symbiotic-pulse.mjs`, `pulse-orchestrator.mjs`, hook templates).
 - **Constraints:** Existing dispatch tokens backward-compatible. Dispatcher additive — direct `-m <model>` calls still work.
 - **Acceptance:**
   - [ ] Dispatcher selects correct lane for synthetic capability request.
   - [ ] At least 3 consumers refactored to call dispatcher.
-- **Test:** `node Scripts/lane-dispatcher.mjs --self-check`
+- **Test:** `node _SYSTEM/Scripts/lane-dispatcher.mjs --self-check`
 - **Rollback:** new files; refactors additive.
 - **Route-plan:** critical · architectural · routing runtime.
 - **GitNexus impact:** required after first use.
@@ -532,7 +532,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
   - [ ] 24h continuous operation, no Anthropic key.
   - [ ] No critical workflow blocked.
   - [ ] Independence score ≥ 90 confirmed.
-- **Test:** `unset ANTHROPIC_API_KEY && export YURI_NO_ANTHROPIC=1 && node Scripts/independence-check.mjs --strict && claude` (operate 24h).
+- **Test:** `unset ANTHROPIC_API_KEY && export YURI_NO_ANTHROPIC=1 && node _SYSTEM/Scripts/independence-check.mjs --strict && claude` (operate 24h).
 - **Rollback:** env-only.
 - **Route-plan:** critical · go/no-go drill.
 - **ETA:** 0.5d (scheduled 2026-06-14) · **Owner:** Marcel.
@@ -555,7 +555,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Acceptance:**
   - [ ] `grep -h "^model:" .claude/skills/*/agent.md` returns zero `claude-*` values.
   - [ ] Per-skill smoke run under `YURI_NO_ANTHROPIC=1`.
-- **Test:** `node Scripts/independence-check.mjs --check=skills`
+- **Test:** `node _SYSTEM/Scripts/independence-check.mjs --check=skills`
 - **Rollback:** 5 single-line frontmatter edits.
 - **ETA:** 0.5d · **Owner:** Codex.
 
@@ -594,12 +594,12 @@ Sovereignty is not just an internal Yuri OS property — it is the product wrap.
 - `models.json` template mirroring `.claude/config/models.json`; client overrides via `OLLAMA_DEFAULT_MODEL`.
 
 ### D.1.2 Symbiotic Pulse engine
-- `Scripts/yuri-symbiotic-pulse.mjs` ported to standalone client lib (`nexbox/symbiotic-pulse.mjs`).
+- `_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs` ported to standalone client lib (`nexbox/symbiotic-pulse.mjs`).
 - De-Claude'd per Packet #1 — default cortex routes to `@deepseek-v4-pro` (or local `deepseek-r1:8b` if client declines cloud).
 - `docs/SYMBIOTIC_PULSE_V1.md` shipped verbatim.
 
 ### D.1.3 Canonical memory shim
-- `Scripts/yuri-canonical-memory-import.mjs` adapted to client-owned `nexbox/memory.db`.
+- `_SYSTEM/Scripts/yuri-canonical-memory-import.mjs` adapted to client-owned `nexbox/memory.db`.
 - Memory schema versioned (per §D.3.1).
 - Client owns SQLite file; no upstream sync unless explicitly enabled.
 
@@ -613,7 +613,7 @@ Sovereignty is not just an internal Yuri OS property — it is the product wrap.
 - **No `@claude` lane unless client explicitly adds Anthropic key** via `nexbox config add-lane claude`.
 
 ### D.1.5 Verification harness
-- `Scripts/independence-check.mjs` shipped with bundle.
+- `_SYSTEM/Scripts/independence-check.mjs` shipped with bundle.
 - Client runs `nexbox verify` → asserts zero Anthropic dependency.
 - Reports written to `nexbox/reports/independence-<ISO-DATE>.md`.
 
@@ -780,14 +780,14 @@ nexbox handoff <peer-node-id>   # exchange pulse state with another nexbox
 
 # §E · Verifier Reference
 
-`Scripts/independence-check.mjs` (already shipped 2026-05-16). Read-only static analyzer.
+`_SYSTEM/Scripts/independence-check.mjs` (already shipped 2026-05-16). Read-only static analyzer.
 
 ## E.1 Usage
 
 ```bash
-node Scripts/independence-check.mjs              # full report, exit 0/1
-node Scripts/independence-check.mjs --strict     # fail on any warn too
-node Scripts/independence-check.mjs --check=<s>  # one surface only
+node _SYSTEM/Scripts/independence-check.mjs              # full report, exit 0/1
+node _SYSTEM/Scripts/independence-check.mjs --strict     # fail on any warn too
+node _SYSTEM/Scripts/independence-check.mjs --check=<s>  # one surface only
 ```
 
 Surfaces: `subagents · hooks · skills · scripts · routing · settings · eot · all`
@@ -806,10 +806,10 @@ Surfaces: `subagents · hooks · skills · scripts · routing · settings · eot
 - `.claude/hooks/token-status.js` (pricing telemetry)
 - `.claude/hooks/token-session-end.js` (provider name)
 - `.claude/hooks/pre-tool-use.js` (local-first nudge text)
-- `Scripts/token-ledger.mjs` (pricing rows)
-- `Scripts/offload-contract-dispatch-check.mjs` (test fixture)
-- `Scripts/create-missing-commands.mjs` (skill names)
-- `Scripts/independence-check.mjs` (self)
+- `_SYSTEM/Scripts/token-ledger.mjs` (pricing rows)
+- `_SYSTEM/Scripts/offload-contract-dispatch-check.mjs` (test fixture)
+- `_SYSTEM/Scripts/create-missing-commands.mjs` (skill names)
+- `_SYSTEM/Scripts/independence-check.mjs` (self)
 
 ## E.4 Report shape
 
@@ -844,9 +844,9 @@ Exit codes: `0` PASS · `1` FAIL · `1` with `--strict` and WARN > 0 · `2` inva
   - `_SYSTEM/audit-archive/2026-05-16-anthropic-independence/evidence-pack.md`
   - `_SYSTEM/audit-archive/2026-05-16-anthropic-independence/build-list.md`
   - `_SYSTEM/NEXUSLINK/nexbox-handoff-v1.md`
-  - `Scripts/independence-check.mjs`
-- Canonical authority: `_SYSTEM/yuri-origin.md` · `SOUL.md` · `AGENTS.md` · `Scripts/offload-contract.mjs`
-- Pulse Cortex: `Scripts/pulse-orchestrator.mjs` · `docs/SYMBIOTIC_PULSE_V1.md`
+  - `_SYSTEM/Scripts/independence-check.mjs`
+- Canonical authority: `_SYSTEM/yuri-origin.md` · `SOUL.md` · `AGENTS.md` · `_SYSTEM/Scripts/offload-contract.mjs`
+- Pulse Cortex: `_SYSTEM/Scripts/pulse-orchestrator.mjs` · `docs/SYMBIOTIC_PULSE_V1.md`
 
 ---
 

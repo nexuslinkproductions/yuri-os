@@ -422,3 +422,4 @@ If token usage exceeds budgets consistently, auto-disable:
 | 2026-05-17T14:59 | 13m | 114 | ~55,200 | Bash×44, Read×35, Edit×34 |
 | 2026-05-17T17:05 | 7m | 25 | ~9,300 | Bash×19, Read×3, Edit×3 |
 | 2026-05-17T17:13 | 5m | 16 | ~5,400 | Bash×14, Read×1, Edit×1 |
+| 2026-05-17T18:12 | 4m | 32 | ~12,000 | Bash×24, Read×4, Edit×3 |

@@ -7,7 +7,7 @@
  * deterministic evidence before PASS can be emitted.
  *
  * Usage:
- *   node Scripts/yuri-evidence-contract.mjs <artifact_dir>
+ *   node _SYSTEM/Scripts/yuri-evidence-contract.mjs <artifact_dir>
  *
  * Exit codes:
  *   0 — contract satisfied (evidence is present and valid)
@@ -29,7 +29,7 @@ main()
 function main() {
   const args = process.argv.slice(2)
   if (args.length < 1 || args[0] === '--help') {
-    stdout.write('Usage: node Scripts/yuri-evidence-contract.mjs <artifact_dir>\n')
+    stdout.write('Usage: node _SYSTEM/Scripts/yuri-evidence-contract.mjs <artifact_dir>\n')
     process.exit(args[0] === '--help' ? 0 : 1)
   }
 

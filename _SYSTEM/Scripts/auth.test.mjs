@@ -35,7 +35,7 @@ try {
 
   const cliHeaders = execFileSync(
     process.execPath,
-    ['Scripts/auth.mjs', 'curl-headers', 'http://127.0.0.1:1'],
+    ['_SYSTEM/Scripts/auth.mjs', 'curl-headers', 'http://127.0.0.1:1'],
     {
       encoding: 'utf8',
       env: { ...process.env, API_KEY: 'cli-key-1234567890' },
@@ -60,7 +60,7 @@ printf '{"preferredModel":"deepseek-v4-flash","preferredRuntime":"cloud","intent
 
   execFileSync(
     'bash',
-    ['Scripts/offload.sh', '--dry-run', 'auth hook route probe'],
+    ['_SYSTEM/Scripts/offload.sh', '--dry-run', 'auth hook route probe'],
     {
       encoding: 'utf8',
       env: {

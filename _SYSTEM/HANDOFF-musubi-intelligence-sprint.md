@@ -11,8 +11,8 @@
 #### Yuri Cortex — Brain is now living, not boot-static
 | Component | File | What it does |
 |-----------|------|-------------|
-| **M1 Brain Amplifier** | `Scripts/brain-amplifier.mjs` | Enriches every advisor prompt with SOUL+LTM+PDC+palace BEFORE dispatch. Advisors reason from the same grounded reality. |
-| **M2 Council Writeback** | `Scripts/pulse-orchestrator.mjs` `writeCouncilSynthesis()` | Post-ensemble: extract consensus findings → write to `nisaba/logs/council-synthesis.jsonl` |
+| **M1 Brain Amplifier** | `_SYSTEM/Scripts/brain-amplifier.mjs` | Enriches every advisor prompt with SOUL+LTM+PDC+palace BEFORE dispatch. Advisors reason from the same grounded reality. |
+| **M2 Council Writeback** | `_SYSTEM/Scripts/pulse-orchestrator.mjs` `writeCouncilSynthesis()` | Post-ensemble: extract consensus findings → write to `nisaba/logs/council-synthesis.jsonl` |
 | **M3 Brain Re-injection** | `.claude/hooks/user-prompt-submit.js` `checkBrainStale()` | After council writes consensus, touch `brain-stale.sentinel` → next turn injects fresh council knowledge |
 | **PDC in Brain Block** | `.claude/hooks/brain-inject.js` `### PROBABILISTIC` section | PDC doctrine + active escalated priors + calibration log in every SessionStart block |
 
@@ -28,24 +28,24 @@
 `assessCouncilComposition()` in `offload-contract.mjs` — model-matched per inquiry, not static.
 
 #### Sequential Task Queue — Impl backlog drains one at a time
-- `Scripts/task-queue.mjs` — FIFO queue with priority + state-hash freshness
+- `_SYSTEM/Scripts/task-queue.mjs` — FIFO queue with priority + state-hash freshness
 - Every impl prompt auto-enqueues a Codex task via `codex-queue-emit` ensemble slot
 - LaunchAgent: `com.nudimmud.task-queue-runner` (every 5 min)
-- CLI: `node Scripts/task-queue.mjs drain | run-next | list | status | enqueue`
+- CLI: `node _SYSTEM/Scripts/task-queue.mjs drain | run-next | list | status | enqueue`
 
 #### Self-Learning Neuron Loop — Musubi audits and improves itself daily
 | Script | Purpose |
 |--------|---------|
-| `Scripts/self-audit.mjs` | Scans hooks/skills/contracts for dead code, orphans, drift |
-| `Scripts/pattern-promoter.mjs` | Mines council logs → promotes repeated patterns to `global.md` |
-| `Scripts/calibration-tracker.mjs` | Tracks advisor accuracy → updates PDC priors |
-| `Scripts/neuron-loop.mjs` | Orchestrates all three → improvement score → brain:stale |
+| `_SYSTEM/Scripts/self-audit.mjs` | Scans hooks/skills/contracts for dead code, orphans, drift |
+| `_SYSTEM/Scripts/pattern-promoter.mjs` | Mines council logs → promotes repeated patterns to `global.md` |
+| `_SYSTEM/Scripts/calibration-tracker.mjs` | Tracks advisor accuracy → updates PDC priors |
+| `_SYSTEM/Scripts/neuron-loop.mjs` | Orchestrates all three → improvement score → brain:stale |
 
 LaunchAgent: `com.nudimmud.neuron-loop` (daily 03:00)
 Baseline score: **44/100** (first run — no prior, flaw count will improve each cycle)
 
 #### Palace Index — Fully autonomous
-- `Scripts/palace-auto-rebuild.mjs` — stale-check + rebuild + T7/local fallback
+- `_SYSTEM/Scripts/palace-auto-rebuild.mjs` — stale-check + rebuild + T7/local fallback
 - LaunchAgent: `com.nudimmud.palace-auto-rebuild` (nightly 02:30)
 - Last rebuild: 7,373 nodes | 47,424 edges | 4,017 clusters | 20s build time
 - Status: CURRENT (0d old)
@@ -101,19 +101,19 @@ PDC / Trading knowledge / Psychology / Sales all feed into `brain-amplifier.mjs`
 
 ## Verified Tests
 ```bash
-node Scripts/offload-contract.mjs route-plan "assess the architecture" | jq '{tier,ensemble}'
+node _SYSTEM/Scripts/offload-contract.mjs route-plan "assess the architecture" | jq '{tier,ensemble}'
 # → complex, 6-model ensemble including SHURA
 
-node Scripts/offload-contract.mjs route-plan "fix auth in Scripts/auth.ts" | jq '{codexDispatch}'
+node _SYSTEM/Scripts/offload-contract.mjs route-plan "fix auth in _SYSTEM/Scripts/auth.ts" | jq '{codexDispatch}'
 # → gpt-5.5 full-impl
 
-node Scripts/self-audit.mjs
+node _SYSTEM/Scripts/self-audit.mjs
 # → 12 total, 0 WARN
 
-node Scripts/neuron-loop.mjs --dry-run
+node _SYSTEM/Scripts/neuron-loop.mjs --dry-run
 # → improvement score, 3 phases
 
-bash Scripts/lane-health.sh | grep -E "gpt-5|Codex"
+bash _SYSTEM/Scripts/lane-health.sh | grep -E "gpt-5|Codex"
 # → all 3 LIVE (codex-cli 0.130.0)
 
 node .claude/hooks/brain-inject.js | grep "PROBABILISTIC"
@@ -145,16 +145,16 @@ ALL others freeze the machine. P9 soak requires Mac Mini M4 Pro.
 ---
 
 ## Key Files Modified This Session
-- `Scripts/offload-contract.mjs` — analysis tier, analysis-council scenario, Codex dispatch, council composition, aggressive ensemble
-- `Scripts/pulse-orchestrator.mjs` — M1 brain amplification, M2 council synthesis, M3 brain:stale, Codex advisory + queue-emit
-- `Scripts/brain-amplifier.mjs` — NEW: M1 prompt enrichment (SOUL+LTM+PDC+palace)
-- `Scripts/self-audit.mjs` — NEW: Musubi self-analysis
-- `Scripts/pattern-promoter.mjs` — NEW: council → global.md rule promotion
-- `Scripts/calibration-tracker.mjs` — NEW: advisor accuracy tracking
-- `Scripts/neuron-loop.mjs` — NEW: daily self-improvement orchestrator
-- `Scripts/task-queue.mjs` — NEW: sequential impl task queue
-- `Scripts/palace-auto-rebuild.mjs` — NEW: autonomous palace rebuild
-- `Scripts/lane-health.sh` — Codex detection fix (binary check, not env var)
+- `_SYSTEM/Scripts/offload-contract.mjs` — analysis tier, analysis-council scenario, Codex dispatch, council composition, aggressive ensemble
+- `_SYSTEM/Scripts/pulse-orchestrator.mjs` — M1 brain amplification, M2 council synthesis, M3 brain:stale, Codex advisory + queue-emit
+- `_SYSTEM/Scripts/brain-amplifier.mjs` — NEW: M1 prompt enrichment (SOUL+LTM+PDC+palace)
+- `_SYSTEM/Scripts/self-audit.mjs` — NEW: Musubi self-analysis
+- `_SYSTEM/Scripts/pattern-promoter.mjs` — NEW: council → global.md rule promotion
+- `_SYSTEM/Scripts/calibration-tracker.mjs` — NEW: advisor accuracy tracking
+- `_SYSTEM/Scripts/neuron-loop.mjs` — NEW: daily self-improvement orchestrator
+- `_SYSTEM/Scripts/task-queue.mjs` — NEW: sequential impl task queue
+- `_SYSTEM/Scripts/palace-auto-rebuild.mjs` — NEW: autonomous palace rebuild
+- `_SYSTEM/Scripts/lane-health.sh` — Codex detection fix (binary check, not env var)
 - `.claude/hooks/brain-inject.js` — PDC section, memory-rag async, cortex dynamic
 - `.claude/hooks/user-prompt-submit.js` — M3 brain:stale, skill auto-trigger, handoff detection
 - `.claude/hooks/pre-tool-gate.js` — NEW: pre-tool advisory gate

@@ -96,7 +96,7 @@ Final status:
 LOW:
 
 - `resolveLane`
-- `Function:Scripts/offload-runner.mjs:parseArgs`
+- `Function:_SYSTEM/Scripts/offload-runner.mjs:parseArgs`
 - `buildInventory`
 - `runOpenAICompatibleChat`
 

@@ -19,7 +19,7 @@ const retiredIdentityPattern = new RegExp([
 try {
   const protectedLiveSource = spawnSync(
     process.execPath,
-    ['Scripts/backend-db-recovery.mjs', '--dry-run', '--source', 'backend/data/yuri.db'],
+    ['_SYSTEM/Scripts/backend-db-recovery.mjs', '--dry-run', '--source', 'backend/data/yuri.db'],
     {
       cwd: process.cwd(),
       encoding: 'utf8',
@@ -39,7 +39,7 @@ try {
   createHealthySource(sourceDb);
 
   const protectedTarget = spawnSync(process.execPath, [
-    'Scripts/backend-db-recovery.mjs',
+    '_SYSTEM/Scripts/backend-db-recovery.mjs',
     '--source',
     sourceDb,
     '--target',
@@ -56,7 +56,7 @@ try {
   assert.match(protectedTargetJson.refusalReason, /protected live DB target refused/, 'protected target refusal should be explicit');
 
   const dryRun = spawnSync(process.execPath, [
-    'Scripts/backend-db-recovery.mjs',
+    '_SYSTEM/Scripts/backend-db-recovery.mjs',
     '--source',
     sourceDb,
     '--target',
@@ -83,7 +83,7 @@ try {
   assert.equal(fs.existsSync(outDir), false, 'dry run should not create recovery directory');
 
   const recovery = spawnSync(process.execPath, [
-    'Scripts/backend-db-recovery.mjs',
+    '_SYSTEM/Scripts/backend-db-recovery.mjs',
     '--source',
     sourceDb,
     '--target',
@@ -112,7 +112,7 @@ try {
   assert.equal(manifest.checks.integrityCheck, 'ok', 'manifest should record integrity_check');
   assert.equal(manifest.checks.foreignKeyViolations, 0, 'manifest should record FK violations');
 
-  const dbCheck = spawnSync(process.execPath, ['Scripts/backend-db-check.mjs', '--db', candidatePath], {
+  const dbCheck = spawnSync(process.execPath, ['_SYSTEM/Scripts/backend-db-check.mjs', '--db', candidatePath], {
     cwd: process.cwd(),
     encoding: 'utf8',
   });

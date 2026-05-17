@@ -1432,7 +1432,7 @@ async function recordOffloadLedger({
   const safeMeasurement = measurement || { measurement_type: 'unobservable', accuracy_class: 'not_measurable' };
   await recordTokenEvent({
     trace_id: traceId,
-    source_path: 'Scripts/offload-runner.mjs',
+    source_path: '_SYSTEM/Scripts/offload-runner.mjs',
     lane,
     provider,
     request_model: requestModel,

@@ -8,8 +8,8 @@
  * starts servers, touches DB, or edits files.
  *
  * Usage:
- *   node Scripts/yuri-closeout.mjs
- *   node Scripts/yuri-closeout.mjs --path .clinerules --path Scripts/yuri-closeout.mjs
+ *   node _SYSTEM/Scripts/yuri-closeout.mjs
+ *   node _SYSTEM/Scripts/yuri-closeout.mjs --path .clinerules --path _SYSTEM/Scripts/yuri-closeout.mjs
  */
 
 import { execFileSync } from 'node:child_process'

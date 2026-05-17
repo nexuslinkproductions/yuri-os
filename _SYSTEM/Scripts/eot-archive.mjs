@@ -219,7 +219,7 @@ function printJson(dirs, archived, errors) {
 
 function printHelp() {
   process.stdout.write(
-    `Usage: node Scripts/eot-archive.mjs [--dry-run|--execute] [--json] [--help]\n\n` +
+    `Usage: node _SYSTEM/Scripts/eot-archive.mjs [--dry-run|--execute] [--json] [--help]\n\n` +
       `Scan .claude/eot/ subdirectories and archive old sessions into .claude/eot/_archive/YYYY-MM/.\n\n` +
       `Options:\n` +
       `  --dry-run   Print what would be archived (default)\n` +

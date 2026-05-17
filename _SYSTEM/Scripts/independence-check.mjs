@@ -5,9 +5,9 @@
 // no surface fires Anthropic when YURI_NO_ANTHROPIC=1.
 //
 // Usage:
-//   node Scripts/independence-check.mjs            # full report, exit 0/1
-//   node Scripts/independence-check.mjs --strict   # fail on any warn too
-//   node Scripts/independence-check.mjs --check=<surface>   # one surface only
+//   node _SYSTEM/Scripts/independence-check.mjs            # full report, exit 0/1
+//   node _SYSTEM/Scripts/independence-check.mjs --strict   # fail on any warn too
+//   node _SYSTEM/Scripts/independence-check.mjs --check=<surface>   # one surface only
 //
 // Surfaces: subagents | hooks | skills | scripts | routing | settings | eot | all
 //
@@ -38,10 +38,10 @@ const ALLOWLIST_FILES = new Set([
   '.claude/hooks/token-status.js',
   '.claude/hooks/token-session-end.js',
   '.claude/hooks/pre-tool-use.js',
-  'Scripts/token-ledger.mjs',
-  'Scripts/offload-contract-dispatch-check.mjs',
-  'Scripts/create-missing-commands.mjs',
-  'Scripts/independence-check.mjs',
+  '_SYSTEM/Scripts/token-ledger.mjs',
+  '_SYSTEM/Scripts/offload-contract-dispatch-check.mjs',
+  '_SYSTEM/Scripts/create-missing-commands.mjs',
+  '_SYSTEM/Scripts/independence-check.mjs',
 ]);
 
 const findings = { pass: [], warn: [], fail: [] };
@@ -79,7 +79,7 @@ function scanFile(path, surface) {
     const ln = lines[i];
     if (ANTHROPIC_SHELL_RE.test(ln)) {
       record('fail', surface, rel, i + 1, ln.trim(),
-        'Replace `claude -p` with `Scripts/offload.sh -m <non-anthropic-lane>` or strip the model call entirely.');
+        'Replace `claude -p` with `_SYSTEM/Scripts/offload.sh -m <non-anthropic-lane>` or strip the model call entirely.');
     } else if (HAIKU_AGENT_RE.test(ln)) {
       record('fail', surface, rel, i + 1, ln.trim(),
         'Replace haiku Agent spawn with @deepseek-v4-flash cloud or deepseek-r1:8b local.');
@@ -164,7 +164,7 @@ function checkScripts() {
 
 // ============================================================ ROUTING
 function checkRouting() {
-  const path = join(REPO, 'Scripts/offload-contract.mjs');
+  const path = join(REPO, '_SYSTEM/Scripts/offload-contract.mjs');
   scanFile(path, 'routing');
 }
 

@@ -15,7 +15,7 @@ const LOG_DIR = path.join(HOME, 'Library/Logs/NUDIMMUD');
 const PLIST_PATH = path.join(LAUNCH_AGENTS_DIR, `${LABEL}.plist`);
 const OUT_LOG = path.join(LOG_DIR, 'ollama-kv-launchd.out.log');
 const ERR_LOG = path.join(LOG_DIR, 'ollama-kv-launchd.err.log');
-const APPLY_SCRIPT = path.join(REPO_ROOT, 'Scripts/ollama-kv-config.mjs');
+const APPLY_SCRIPT = path.join(REPO_ROOT, '_SYSTEM/Scripts/ollama-kv-config.mjs');
 const APPLY_ARGS = ['apply', '--restart'];
 
 const mode = process.argv[2] || 'help';
@@ -56,7 +56,7 @@ function resolveBinaryDir(name) {
 }
 
 function renderPlist() {
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n  <dict>\n    <key>Label</key>\n    <string>${plistEscape(LABEL)}</string>\n    <key>RunAtLoad</key>\n    <true/>\n    <key>ThrottleInterval</key>\n    <integer>1</integer>\n    <key>ProgramArguments</key>\n    <array>\n      <string>${plistEscape(process.execPath)}</string>\n      <string>${plistEscape(path.join(REPO_ROOT, 'Scripts/ollama-kv-launchd.mjs'))}</string>\n      <string>run</string>\n    </array>\n    <key>WorkingDirectory</key>\n    <string>${plistEscape(REPO_ROOT)}</string>\n    <key>StandardOutPath</key>\n    <string>${plistEscape(OUT_LOG)}</string>\n    <key>StandardErrorPath</key>\n    <string>${plistEscape(ERR_LOG)}</string>\n    <key>EnvironmentVariables</key>\n    <dict>\n      <key>PATH</key>\n      <string>${plistEscape(buildLaunchPath())}</string>\n    </dict>\n  </dict>\n</plist>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n  <dict>\n    <key>Label</key>\n    <string>${plistEscape(LABEL)}</string>\n    <key>RunAtLoad</key>\n    <true/>\n    <key>ThrottleInterval</key>\n    <integer>1</integer>\n    <key>ProgramArguments</key>\n    <array>\n      <string>${plistEscape(process.execPath)}</string>\n      <string>${plistEscape(path.join(REPO_ROOT, '_SYSTEM/Scripts/ollama-kv-launchd.mjs'))}</string>\n      <string>run</string>\n    </array>\n    <key>WorkingDirectory</key>\n    <string>${plistEscape(REPO_ROOT)}</string>\n    <key>StandardOutPath</key>\n    <string>${plistEscape(OUT_LOG)}</string>\n    <key>StandardErrorPath</key>\n    <string>${plistEscape(ERR_LOG)}</string>\n    <key>EnvironmentVariables</key>\n    <dict>\n      <key>PATH</key>\n      <string>${plistEscape(buildLaunchPath())}</string>\n    </dict>\n  </dict>\n</plist>\n`;
 }
 
 function ensureDirs() {
@@ -135,11 +135,11 @@ function run() {
 function help() {
   console.log([
     'Usage:',
-    '  node Scripts/ollama-kv-launchd.mjs install',
-    '  node Scripts/ollama-kv-launchd.mjs uninstall',
-    '  node Scripts/ollama-kv-launchd.mjs status',
-    '  node Scripts/ollama-kv-launchd.mjs restart',
-    '  node Scripts/ollama-kv-launchd.mjs run'
+    '  node _SYSTEM/Scripts/ollama-kv-launchd.mjs install',
+    '  node _SYSTEM/Scripts/ollama-kv-launchd.mjs uninstall',
+    '  node _SYSTEM/Scripts/ollama-kv-launchd.mjs status',
+    '  node _SYSTEM/Scripts/ollama-kv-launchd.mjs restart',
+    '  node _SYSTEM/Scripts/ollama-kv-launchd.mjs run'
   ].join('\n'));
 }
 

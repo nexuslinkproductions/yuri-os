@@ -23,9 +23,9 @@
 | Formal lane grammar in yuri-origin.md | _SYSTEM/yuri-origin.md |
 | Model routing doctrine | _SYSTEM/yuri-token-ops.md |
 | yuri-incident-log.md stub (EU AI Act Art 12) | _SYSTEM/yuri-incident-log.md |
-| Evidence pack schema extension | Scripts/yuri-research-capture.mjs |
+| Evidence pack schema extension | _SYSTEM/Scripts/yuri-research-capture.mjs |
 | Browser capture policy in origin | _SYSTEM/yuri-origin.md |
-| Scrapling integration | Scripts/yuri-research-capture.py |
+| Scrapling integration | _SYSTEM/Scripts/yuri-research-capture.py |
 
 ## P2 — Future
 

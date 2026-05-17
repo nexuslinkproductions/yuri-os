@@ -25,7 +25,7 @@ The available wrapper is:
 npm run graphify -- <bounded-target>
 ```
 
-This calls `Scripts/graphify-run.sh`, which runs `graphify update "$TARGET"`.
+This calls `_SYSTEM/Scripts/graphify-run.sh`, which runs `graphify update "$TARGET"`.
 
 Do not run root-level regeneration as a reflex. Before regenerating, choose a bounded target, confirm the corpus size, and confirm protected paths are excluded. If the only available command would scan the full repository or an unclear corpus, remove or quarantine the stale artifact instead.
 
@@ -50,15 +50,15 @@ Do not run tests or scripts against live protected databases unless the script a
 
 ## Guardrails
 
-`Scripts/generated-artifact-hygiene.test.mjs` scans tracked generated graph outputs and fails when they preserve deleted active source paths as current graph nodes or edges. The test deliberately treats historical archives as allowlisted only with explicit reasons.
+`_SYSTEM/Scripts/generated-artifact-hygiene.test.mjs` scans tracked generated graph outputs and fails when they preserve deleted active source paths as current graph nodes or edges. The test deliberately treats historical archives as allowlisted only with explicit reasons.
 
 Before committing generated artifact changes, run:
 
 ```bash
-node Scripts/generated-artifact-hygiene.test.mjs
-node Scripts/yuri-exeoflow-assimilation.test.mjs
-node Scripts/backend-release-gate.test.mjs
-node Scripts/gitnexus-mcp-check.mjs
+node _SYSTEM/Scripts/generated-artifact-hygiene.test.mjs
+node _SYSTEM/Scripts/yuri-exeoflow-assimilation.test.mjs
+node _SYSTEM/Scripts/backend-release-gate.test.mjs
+node _SYSTEM/Scripts/gitnexus-mcp-check.mjs
 npm test
 ```
 

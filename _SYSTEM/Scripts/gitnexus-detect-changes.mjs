@@ -6,7 +6,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const WRAPPER = path.join(REPO_ROOT, 'Scripts/gitnexus-mcp.mjs');
+const WRAPPER = path.join(REPO_ROOT, '_SYSTEM/Scripts/gitnexus-mcp.mjs');
 const repo = process.argv[2] || 'yuri-os-musubi';
 const scope = process.argv[3] || 'all';
 

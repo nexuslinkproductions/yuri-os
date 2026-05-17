@@ -6,13 +6,13 @@
 
 ---
 
-**Context:** Slice J shipped the new doctrine-driven profiler. When `DEEPSEEK_API_KEY` is unset (as in test runs), `cold_outreach_body` and `linkedin_body` are empty strings, and `draft_specificity.readiness` becomes `'draft_review'`. The existing test `Scripts/cold-acquisition-crm-routes.test.mjs` was written assuming drafts come out populated and ready — many of its assertions now fail.
+**Context:** Slice J shipped the new doctrine-driven profiler. When `DEEPSEEK_API_KEY` is unset (as in test runs), `cold_outreach_body` and `linkedin_body` are empty strings, and `draft_specificity.readiness` becomes `'draft_review'`. The existing test `_SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs` was written assuming drafts come out populated and ready — many of its assertions now fail.
 
 Run the test to see the failures, then patch the test (NOT the service) to handle the new behavior. The service is correct; the test needs to be updated.
 
 ---
 
-**Goal:** Make `Scripts/cold-acquisition-crm-routes.test.mjs` pass without changing the service. Do NOT regenerate template-based bodies — the empty-fallback is the correct behavior.
+**Goal:** Make `_SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs` pass without changing the service. Do NOT regenerate template-based bodies — the empty-fallback is the correct behavior.
 
 ---
 
@@ -69,7 +69,7 @@ Then continue with the existing assertions.
 ---
 
 **Acceptance:**
-- [ ] `PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs` -> pass
-- [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` -> pass
+- [ ] `PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs` -> pass
+- [ ] `node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs` -> pass
 - [ ] All existing assertion messages still present (no removals)
 - [ ] The needs_research length-vs-count assertion at line ~228 passes

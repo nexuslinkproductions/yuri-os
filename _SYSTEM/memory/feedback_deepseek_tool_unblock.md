@@ -12,7 +12,7 @@ DeepSeek lanes (`deepseek`, `deepseek-v4-flash`, `deepseek-v4-pro`) now run with
 - `write_file` — write content to file (with `evaluateToolCall` safety gate)
 - 50-iteration multi-step reasoning loop
 
-Previously these were hardcoded `tools: false`. Discovered 2026-05-14: the tool capability already existed in `Scripts/offload-runner.mjs` (lines 1180–1226, 1318–1453) but was gated off at three call sites.
+Previously these were hardcoded `tools: false`. Discovered 2026-05-14: the tool capability already existed in `_SYSTEM/Scripts/offload-runner.mjs` (lines 1180–1226, 1318–1453) but was gated off at three call sites.
 
 ## Why It Matters
 
@@ -44,23 +44,23 @@ This makes symbiotic pulse genuinely parallel:
 
 ```bash
 # Default tools-on for deepseek
-bash Scripts/offload.sh --dry-run -m deepseek-v4-pro "test" 2>&1 | grep tools
+bash _SYSTEM/Scripts/offload.sh --dry-run -m deepseek-v4-pro "test" 2>&1 | grep tools
 # → "tools": true
 
 # Explicit text-only still works
-bash Scripts/offload.sh --dry-run --no-tools -m deepseek-v4-pro "test" 2>&1 | grep tools
+bash _SYSTEM/Scripts/offload.sh --dry-run --no-tools -m deepseek-v4-pro "test" 2>&1 | grep tools
 # → "tools": false
 
 # Live tool use proven
-bash Scripts/offload.sh -m deepseek-v4-pro "use read_file to read <path>, summarize"
+bash _SYSTEM/Scripts/offload.sh -m deepseek-v4-pro "use read_file to read <path>, summarize"
 # → DeepSeek autonomously calls read_file, returns analysis
 ```
 
 ## Files Changed
 
-- `Scripts/offload-runner.mjs` L726 (`deepseekLane`), L745+L761 (`resolveDeepseekDefaultLane`)
-- `Scripts/offload.sh` — added `TOOLS_EXPLICIT` flag + per-lane tool default in dispatch_model + dry_run
-- `Scripts/offload-contract.mjs` — `deepseek` lane: `toolsByDefault: true`, expanded `preferredUsage`
+- `_SYSTEM/Scripts/offload-runner.mjs` L726 (`deepseekLane`), L745+L761 (`resolveDeepseekDefaultLane`)
+- `_SYSTEM/Scripts/offload.sh` — added `TOOLS_EXPLICIT` flag + per-lane tool default in dispatch_model + dry_run
+- `_SYSTEM/Scripts/offload-contract.mjs` — `deepseek` lane: `toolsByDefault: true`, expanded `preferredUsage`
 
 ## Evidence
 

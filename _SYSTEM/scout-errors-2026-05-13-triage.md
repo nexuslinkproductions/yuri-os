@@ -26,7 +26,7 @@ The Perplexity audit (and my own initial plan) proposed log rotation. That treat
 ## Decision
 
 - **Rotation:** keep as a secondary patch, NOT as the primary fix. Cap log at 1 MB ring after rebuild.
-- **Rebuild scout-runner:** route through `Scripts/offload.sh -m deepseek` instead of `claude -p`. This unblocks the system AND aligns with the no-Anthropic-agents rule in a single change.
+- **Rebuild scout-runner:** route through `_SYSTEM/Scripts/offload.sh -m deepseek` instead of `claude -p`. This unblocks the system AND aligns with the no-Anthropic-agents rule in a single change.
 - **Capture stderr:** drop `2>/dev/null`; pipe stderr into the log for diagnosable failures going forward.
 - **launchd plist (`com.nudimmud.eot-refresh.plist`):** **DEFERRED** — installing now would schedule the broken pattern to run every 6h. Wait until scout-runner is rebuilt.
 
@@ -39,10 +39,10 @@ Per `CODEX_PROTOCOL.md`. Spec format ready for the Codex CLI.
 ```
 ## CODEX TASK SPEC
 
-**Goal:** Replace `claude -p --model claude-haiku-4-5-20251001` invocation in scout-runner with `bash Scripts/offload.sh -m deepseek`, capturing stderr.
+**Goal:** Replace `claude -p --model claude-haiku-4-5-20251001` invocation in scout-runner with `bash _SYSTEM/Scripts/offload.sh -m deepseek`, capturing stderr.
 
 **Target files:**
-- scout-runner.* (locate via `grep -rl "claude -p --model claude-haiku" .claude/ Scripts/`)
+- scout-runner.* (locate via `grep -rl "claude -p --model claude-haiku" .claude/ _SYSTEM/Scripts/`)
 
 **Constraints:**
 - Do not change scout context-file format or destination directories.
@@ -101,7 +101,7 @@ Drafted but withheld until Spec 1 lands. Once scout-runner uses DeepSeek, this p
   <array>
     <string>/bin/bash</string>
     <string>-lc</string>
-    <string>/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/ai eot</string>
+    <string>/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/ai eot</string>
   </array>
   <key>StartCalendarInterval</key>
   <array>

@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 
-const result = spawnSync(process.execPath, ['Scripts/yuri-session-launchd.mjs', 'print-plist'], {
+const result = spawnSync(process.execPath, ['_SYSTEM/Scripts/yuri-session-launchd.mjs', 'print-plist'], {
   cwd: process.cwd(),
   encoding: 'utf8',
 });

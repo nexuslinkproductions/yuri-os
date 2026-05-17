@@ -29,7 +29,7 @@ The NIST AI RMF (govern, map, measure, manage) maps to Yuri OS as:
 |
 | GOVERN | `_SYSTEM/yuri-origin.md` — canonical origin, authority hierarchy |
 | GOVERN | `_SYSTEM/yuri-content-governance.md` — content classification, provenance |
-| MAP | `Scripts/yuri-evidence-contract.mjs` — evidence grammar, PASS gate |
+| MAP | `_SYSTEM/Scripts/yuri-evidence-contract.mjs` — evidence grammar, PASS gate |
 | MAP | `_SYSTEM/research-archive/01_source_registry.md` — source tracking |
 | MEASURE | `TERM_COUNT` / `FILE_COUNT` / `MATCH` evidence lines — deterministic metrics |
 | MANAGE | Fused swarm timeout doctrine (120s, no GNU timeout) |

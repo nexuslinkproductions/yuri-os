@@ -9,7 +9,7 @@
 
 The original master prompt contained **catastrophic misclassifications**. Following it literally would have:
 
-- Deleted the entire **launch + offload + trading-bot pipeline** (`Scripts/`, `bin/`)
+- Deleted the entire **launch + offload + trading-bot pipeline** (`_SYSTEM/Scripts/`, `bin/`)
 - Severed the **macOS `claude://` URL handler** (`Claude Code URL Handler.app`)
 - Removed the **T7 sync mount stub** (`Volumes/`)
 - Force-removed a **symlink to `/Users/marcelspatz/GeneratedContent`** (with risky `rm -rf` semantics on the linked target)
@@ -27,11 +27,11 @@ What was actually completed autonomously is documented below. What needs your ha
 |---|--------|-----------|
 | 1 | `.gitignore` hardened: `/backend*.log`, `/frontend*.log`, `/*.log`, `graph/`, `_QUARANTINE_*/` added | `Edit` tool |
 | 2 | `03_RESOURCES/CLAUDE.md` created at root (filled the missing #03 numbering gap) | `Write` tool |
-| 3 | `Scripts/structure-refactor-2026-05-07.sh` written (dry-run by default, `APPLY=1` to execute) | `Write` tool |
+| 3 | `_SYSTEM/Scripts/structure-refactor-2026-05-07.sh` written (dry-run by default, `APPLY=1` to execute) | `Write` tool |
 | 4 | `MASTER_STRUCTURE_REFACTOR_PROMPT_v2.md` written — corrected version of the original | `Write` tool |
 | 5 | This report | `Write` tool |
 
-## 2. What the script will do (`APPLY=1 bash Scripts/structure-refactor-2026-05-07.sh`)
+## 2. What the script will do (`APPLY=1 bash _SYSTEM/Scripts/structure-refactor-2026-05-07.sh`)
 
 Idempotent, quarantine-pattern. **Move-not-delete.** Reversible until you `rm -rf _QUARANTINE_2026-05-07/`.
 
@@ -43,8 +43,8 @@ Idempotent, quarantine-pattern. **Move-not-delete.** Reversible until you `rm -r
 **Recommended workflow:**
 ```bash
 cd /Users/marcelspatz/YURI-OS-MUSUBI
-bash Scripts/structure-refactor-2026-05-07.sh           # DRY-RUN: preview every action
-APPLY=1 bash Scripts/structure-refactor-2026-05-07.sh   # apply
+bash _SYSTEM/Scripts/structure-refactor-2026-05-07.sh           # DRY-RUN: preview every action
+APPLY=1 bash _SYSTEM/Scripts/structure-refactor-2026-05-07.sh   # apply
 # review _QUARANTINE_2026-05-07/, then:
 rm -rf _QUARANTINE_2026-05-07/                          # purge once satisfied
 ```
@@ -55,8 +55,8 @@ The original prompt called these "dead artifacts" and proposed `rm`. **All are l
 
 | Path | Reality | Evidence |
 |------|---------|----------|
-| `Scripts/` | Live launch + offload + trading-bot pipeline | `package.json` references `Scripts/nudimmud-repl.mjs` and 11 `Scripts/trading-bot/*.mjs` entries; `CORE_PROTOCOL §9` references `Scripts/offload.sh` |
-| `bin/` | `claude` wrapper + `design-audit` | Memory `project_claude_launch_stack.md`: "boot.zsh → ~/NUDIMMUD/bin/claude → Scripts/ai" |
+| `_SYSTEM/Scripts/` | Live launch + offload + trading-bot pipeline | `package.json` references `_SYSTEM/Scripts/nudimmud-repl.mjs` and 11 `_SYSTEM/Scripts/trading-bot/*.mjs` entries; `CORE_PROTOCOL §9` references `_SYSTEM/Scripts/offload.sh` |
+| `bin/` | `claude` wrapper + `design-audit` | Memory `project_claude_launch_stack.md`: "boot.zsh → ~/NUDIMMUD/bin/claude → _SYSTEM/Scripts/ai" |
 | `Volumes/T7` | Read-only sync source | `local_execution.md`: "high-risk, supervised only" |
 | `GeneratedContent` | **Symlink** to `/Users/marcelspatz/GeneratedContent` | `lrwxr-xr-x@ 1 marcelspatz staff 35 → /Users/marcelspatz/GeneratedContent` — `rm -rf` of dir-symlinks has historically followed the link on some platforms |
 | `Claude Code URL Handler.app` | macOS `claude://` deep-link handler bundle | `Contents/Info.plist` + `Contents/MacOS/` present; registered in macOS Launch Services |
@@ -140,7 +140,7 @@ Do NOT skip the `lsregister -u` step.
 | Root items ≤9 | ❌ currently 12 dirs at root (`00–07`, `NABU`, `NEURAL-NETWORK`, `NISABA`, `NUDIMMUD`, `RESEARCH`, `Volumes`, `bin`, `backend`, `src`, `Scripts`, `node_modules`, `_SYSTEM`, `_QUARANTINE_*` after script run) |
 | `graph/` removed | ✅ does not exist + now gitignored |
 | `NUDIMMUD/` removed | ❌ deferred to manual reconciliation |
-| Dead files removed | ⚠️ logs quarantined by script; `Scripts/`, `bin/`, `Volumes/`, `GeneratedContent`, `URL Handler.app` retained as live infra |
+| Dead files removed | ⚠️ logs quarantined by script; `_SYSTEM/Scripts/`, `bin/`, `Volumes/`, `GeneratedContent`, `URL Handler.app` retained as live infra |
 | `RESEARCH/` under KB | ❌ deferred (CLAUDE.md cross-refs) |
 | Numbering gap-free | ⚠️ `03_RESOURCES` filled; `06_NETWORK-SYNC`/`07_ARCHIVE` renumber done by script if cross-refs allow |
 
@@ -154,7 +154,7 @@ Do NOT skip the `lsregister -u` step.
 2026-05-07 05:32  attempted cp/rm/git mv/find -delete → all denied
 2026-05-07 05:34  Edit .gitignore — added /backend*.log, /frontend*.log, /*.log, graph/, _QUARANTINE_*/
 2026-05-07 05:34  Write 03_RESOURCES/CLAUDE.md
-2026-05-07 05:35  Write Scripts/structure-refactor-2026-05-07.sh
+2026-05-07 05:35  Write _SYSTEM/Scripts/structure-refactor-2026-05-07.sh
 2026-05-07 05:36  Write STRUCTURE_REFACTOR_REPORT.md (this file)
 ```
 

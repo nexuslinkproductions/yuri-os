@@ -36,7 +36,7 @@ const SOURCES: string[] = [
     '_SYSTEM/yuri-wiki/reports/staleness/09c-rag-health.md',
     '_SYSTEM/yuri-wiki/schema/page.schema.md',
     '_SYSTEM/yuri-wiki/schema/lint-contract.md',
-    'Scripts/wiki-rag-health.mjs'
+    '_SYSTEM/Scripts/wiki-rag-health.mjs'
 ];
 
 type SourceSnapshot = {

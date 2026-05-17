@@ -15,7 +15,7 @@ Three-tier offload routing:
 
 ### Entry Point
 ```bash
-./Scripts/ai @<lane> "<prompt>"
+./_SYSTEM/Scripts/ai @<lane> "<prompt>"
 ```
 
 ### Lanes
@@ -46,8 +46,8 @@ Three-tier offload routing:
 
 ### Manual Override
 ```bash
-./Scripts/ai --model deepseek "analyze this code"
-./Scripts/ai --swarm deepseek,needle "fact-check this"
+./_SYSTEM/Scripts/ai --model deepseek "analyze this code"
+./_SYSTEM/Scripts/ai --swarm deepseek,needle "fact-check this"
 ```
 
 ---
@@ -89,10 +89,10 @@ openclaw mcp set offload '{"url":"http://127.0.0.1:8081/mcp","transport":"stream
 **Triggers:**
 ```bash
 # Take screenshot, analyze, return action
-./Scripts/ai @comet "click the 'Sign In' button in the top-right"
+./_SYSTEM/Scripts/ai @comet "click the 'Sign In' button in the top-right"
 
 # Full browser session control
-./Scripts/ai @comet "navigate to perplexity.com and search for 'neural networks'"
+./_SYSTEM/Scripts/ai @comet "navigate to perplexity.com and search for 'neural networks'"
 ```
 
 ### Perplexity Integration
@@ -143,9 +143,9 @@ SELECT agent_id, SUM(CASE WHEN state='COMPLETED' THEN 1 ELSE 0 END) as success_r
 
 ## Yuri Sandbox Improvement Loop
 
-**Entrypoint:** `node Scripts/yuri-sandbox-loop.mjs --live --prompt "<task>"`
-**Launcher alias:** `./Scripts/ai sandbox "<task>"`
-**Route source of truth:** `Scripts/offload-contract.mjs`
+**Entrypoint:** `node _SYSTEM/Scripts/yuri-sandbox-loop.mjs --live --prompt "<task>"`
+**Launcher alias:** `./_SYSTEM/Scripts/ai sandbox "<task>"`
+**Route source of truth:** `_SYSTEM/Scripts/offload-contract.mjs`
 **Default lane:** `@codex-spark`
 
 The sandbox loop is an artifact-first improvement lane. It runs isolated experiments, verifies their effects, and captures only sanitized learning summaries. It does not treat raw model output as canonical truth.
@@ -160,13 +160,13 @@ isolate
 self-probe
   -> verify runner dry-run artifact creation, Codex availability for live mode, and unchanged repo status
 run
-  -> execute Codex Spark through Scripts/codex-offload-runner.mjs
+  -> execute Codex Spark through _SYSTEM/Scripts/codex-offload-runner.mjs
 verify
   -> check route, lane, artifacts, protected-path status, and runner degradation
 sanitize
   -> hash raw output and create compact verified summary
 log
-  -> write sanitized summary through Scripts/yuri-learning-capture.mjs
+  -> write sanitized summary through _SYSTEM/Scripts/yuri-learning-capture.mjs
 promote-check
   -> inspect learning queue without auto-approving candidates
 report
@@ -214,7 +214,7 @@ Total:          8–9 agents + 2–3 browser tabs
 ```
 
 **Overload Handler:**
-- Monitor memory via `./Scripts/ai --list`
+- Monitor memory via `./_SYSTEM/Scripts/ai --list`
 - If >90% memory, gracefully queue remaining tasks
 - OS_KERNEL scheduler auto-retries after 2min cooldown
 
@@ -225,7 +225,7 @@ Total:          8–9 agents + 2–3 browser tabs
 ```
 User Input
     ↓
-./Scripts/ai @<lane> "prompt"
+./_SYSTEM/Scripts/ai @<lane> "prompt"
     ↓
 offload.sh (parse args)
     ↓
@@ -299,14 +299,14 @@ apip x "review code" | apip g "write documentation for it"
 
 | Lane | CLI | Provider | Use Case | Status |
 |------|-----|----------|----------|--------|
-| `@deepseek` | `./Scripts/ai` | Local Ollama | Reasoning, code analysis | ✓ Ready |
-| `@qwen` | `./Scripts/ai` | Needle local runtime | General tasks, fallback | ✓ Ready |
-| `@gpt-oss` | `./Scripts/ai` | Local wrapper | Rendering, formatting | ✓ Ready |
-| `@ollama` | `./Scripts/ai` | Local Ollama | Custom models | ✓ Ready |
+| `@deepseek` | `./_SYSTEM/Scripts/ai` | Local Ollama | Reasoning, code analysis | ✓ Ready |
+| `@qwen` | `./_SYSTEM/Scripts/ai` | Needle local runtime | General tasks, fallback | ✓ Ready |
+| `@gpt-oss` | `./_SYSTEM/Scripts/ai` | Local wrapper | Rendering, formatting | ✓ Ready |
+| `@ollama` | `./_SYSTEM/Scripts/ai` | Local Ollama | Custom models | ✓ Ready |
 | `@gemini` | `g` | Google (unlimited) | Free workhorse, RLM loops | ✓ Active |
-| `@comet` | `./Scripts/ai` | Browser (Comet) | Web interaction | 🔄 In Progress |
-| `@perplexity` | `./Scripts/ai` | Browser | Research, fact-checking | 🔄 In Progress |
-| `@swarm` | `./Scripts/ai` | All parallel | Consensus, cross-check | ✓ Ready |
+| `@comet` | `./_SYSTEM/Scripts/ai` | Browser (Comet) | Web interaction | 🔄 In Progress |
+| `@perplexity` | `./_SYSTEM/Scripts/ai` | Browser | Research, fact-checking | 🔄 In Progress |
+| `@swarm` | `./_SYSTEM/Scripts/ai` | All parallel | Consensus, cross-check | ✓ Ready |
 | `@claude` | `c` | Anthropic | High-nuance, orchestration | ✓ Active |
 | `@codex` | `x` | OpenAI | Code-specific tasks | ✓ Active |
 
@@ -314,8 +314,8 @@ apip x "review code" | apip g "write documentation for it"
 
 ## References
 
-- **Existing offload.sh:** `/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/offload.sh`
-- **Offload runner:** `/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/offload-runner.mjs`
+- **Existing offload.sh:** `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/offload.sh`
+- **Offload runner:** `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/offload-runner.mjs`
 - **OS_KERNEL:** `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/OS_KERNEL/`
 - **Ruflo:** `/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ruflo/`
 - **Openclaw docs:** `/Users/marcelspatz/YURI-OS-MUSUBI/RESEARCH/ORACLE-CORPUS/openclaw-openclaw/docs/providers/`

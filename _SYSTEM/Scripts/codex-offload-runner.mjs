@@ -297,7 +297,7 @@ async function runCodex({ options, prompt, artifactDir, traceId }) {
 async function recordCodexLedger({ traceId, modelId, modelConfig, prompt, output, status, startedAt, artifactDir, metadata = {} }) {
   await recordTokenEvent({
     trace_id:         traceId,
-    source_path:      'Scripts/codex-offload-runner.mjs',
+    source_path:      '_SYSTEM/Scripts/codex-offload-runner.mjs',
     lane:             modelConfig.label,
     provider:         'codex-cli',
     request_model:    modelId,

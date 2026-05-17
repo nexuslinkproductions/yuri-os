@@ -92,8 +92,8 @@ Create and operate a sandbox loop that improves velocity without polluting canon
 npm test
 npm run test:learning-loop
 npm run test:memory-governor
-node Scripts/yuri-guarded-executor.mjs --selftest --artifact-root /tmp/nudimmud-yuri-sandbox-selftest
-node Scripts/yuri-sandbox-loop.mjs --selftest
-node Scripts/yuri-sandbox-loop.mjs --dry-run --prompt "first Yuri sandbox operational proving run"
-node Scripts/yuri-sandbox-loop.mjs --live --prompt "first Yuri sandbox operational proving run"
+node _SYSTEM/Scripts/yuri-guarded-executor.mjs --selftest --artifact-root /tmp/nudimmud-yuri-sandbox-selftest
+node _SYSTEM/Scripts/yuri-sandbox-loop.mjs --selftest
+node _SYSTEM/Scripts/yuri-sandbox-loop.mjs --dry-run --prompt "first Yuri sandbox operational proving run"
+node _SYSTEM/Scripts/yuri-sandbox-loop.mjs --live --prompt "first Yuri sandbox operational proving run"
 ```

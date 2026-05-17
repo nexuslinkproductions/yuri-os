@@ -105,8 +105,8 @@ const shortSubject = `quick note on ${companyNameClean}${subjectDetail}`;
 
 **Acceptance criteria:**
 - [ ] `npx tsc -p acquisition/tsconfig.json --noEmit` exits 0
-- [ ] `PATH=... TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs` passes
-- [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` passes
+- [ ] `PATH=... TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs` passes
+- [ ] `node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs` passes
 - [ ] `npx vite build --config acquisition/vite.config.mts` exits 0
 - [ ] A lead with `website_about` evidence produces a draft whose linkedin_intro contains the evidence detail text
 - [ ] A lead with empty `contact.name` produces a draft starting with `"Hi,"` not `"Hi ,"`
@@ -114,9 +114,9 @@ const shortSubject = `quick note on ${companyNameClean}${subjectDetail}`;
 
 **Test commands:**
 ```bash
-node Scripts/cold-acquisition-crm-ui.test.mjs
+node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
-PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs
 npx vite build --config acquisition/vite.config.mts
 ```
 

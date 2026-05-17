@@ -178,12 +178,12 @@ function usage(message) {
   if (message) process.stderr.write(`ERROR: ${message}\n`);
   process.stderr.write([
     'Usage:',
-    '  node Scripts/yuri-learning-capture.mjs summary [--limit 10]',
-    '  node Scripts/yuri-learning-capture.mjs start --json {...}',
-    '  node Scripts/yuri-learning-capture.mjs finalize --json {...}',
-    '  node Scripts/yuri-learning-capture.mjs review-session --json {...}',
-    '  node Scripts/yuri-learning-capture.mjs review-lesson --json {...}',
-    '  node Scripts/yuri-learning-capture.mjs promote',
+    '  node _SYSTEM/Scripts/yuri-learning-capture.mjs summary [--limit 10]',
+    '  node _SYSTEM/Scripts/yuri-learning-capture.mjs start --json {...}',
+    '  node _SYSTEM/Scripts/yuri-learning-capture.mjs finalize --json {...}',
+    '  node _SYSTEM/Scripts/yuri-learning-capture.mjs review-session --json {...}',
+    '  node _SYSTEM/Scripts/yuri-learning-capture.mjs review-lesson --json {...}',
+    '  node _SYSTEM/Scripts/yuri-learning-capture.mjs promote',
   ].join('\n') + '\n');
   process.exit(1);
 }

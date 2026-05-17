@@ -18,12 +18,12 @@
     "package-lock.json"
   ],
   "allowed_files": [
-    "Scripts/ai",
-    "Scripts/offload.sh",
-    "Scripts/offload-runner.mjs",
-    "Scripts/nudimmud-repl.mjs",
-    "Scripts/yuri-guarded-executor.mjs",
-    "Scripts/policy/yuri-guarded-executor.readonly.json",
+    "_SYSTEM/Scripts/ai",
+    "_SYSTEM/Scripts/offload.sh",
+    "_SYSTEM/Scripts/offload-runner.mjs",
+    "_SYSTEM/Scripts/nudimmud-repl.mjs",
+    "_SYSTEM/Scripts/yuri-guarded-executor.mjs",
+    "_SYSTEM/Scripts/policy/yuri-guarded-executor.readonly.json",
     ".claude/rules/nudimmud_operating_dna.md",
     ".claude/rules/research_pipeline.md",
     ".claude/rules/local_execution.md",

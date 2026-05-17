@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // PATCH 042 — Soak audit script for pulse-hook-telemetry.log
-// Usage: node Scripts/pulse-trivial-audit.mjs [--json]
-//        Scripts/ai soak
+// Usage: node _SYSTEM/Scripts/pulse-trivial-audit.mjs [--json]
+//        _SYSTEM/Scripts/ai soak
 //
 // Reads .claude/state/pulse-hook-telemetry.log and reports:
 //   - trivial-skip count, pulse-spawn count, skip rate

@@ -7,17 +7,17 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 ## Packet 1 — De-Claude Symbiotic Pulse default cortex
 
 - **Goal:** Symbiotic Pulse runtime defaults to a non-Anthropic model. Claude becomes opt-in only via explicit dispatch token.
-- **Target files:** `Scripts/yuri-symbiotic-pulse.mjs:250`
-- **Constraints:** No new dependencies. Existing `Scripts/offload-contract.mjs` lane vocabulary stays intact. Council-dissent mode (`@claude` advisory) still available when explicitly named.
+- **Target files:** `_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs:250`
+- **Constraints:** No new dependencies. Existing `_SYSTEM/Scripts/offload-contract.mjs` lane vocabulary stays intact. Council-dissent mode (`@claude` advisory) still available when explicitly named.
 - **Acceptance:**
   - [ ] Default `model:` at line 250 reads `deepseek-v4-pro` (or capability lookup once Packet #15 lands).
-  - [ ] `Scripts/yuri-symbiotic-pulse.test.mjs` passes unchanged.
+  - [ ] `_SYSTEM/Scripts/yuri-symbiotic-pulse.test.mjs` passes unchanged.
   - [ ] Pulse trace shows `lane=@deepseek-v4-pro` on a freshly seeded test prompt.
-- **Test command:** `node Scripts/yuri-symbiotic-pulse.test.mjs && node Scripts/yuri-symbiotic-pulse.mjs --self-check`
-- **Rollback boundary:** `git diff Scripts/yuri-symbiotic-pulse.mjs` ≤ 6 lines.
+- **Test command:** `node _SYSTEM/Scripts/yuri-symbiotic-pulse.test.mjs && node _SYSTEM/Scripts/yuri-symbiotic-pulse.mjs --self-check`
+- **Rollback boundary:** `git diff _SYSTEM/Scripts/yuri-symbiotic-pulse.mjs` ≤ 6 lines.
 - **Route-plan classification:** critical · architectural · cortex migration.
 - **GitNexus impact:** required upstream — `gitnexus_impact({target:'symbioticPulse', direction:'upstream'})`.
-- **Verification before merge:** `gitnexus_detect_changes()` confirms only `symbioticPulse` runtime changed. Full pulse e2e test (`Scripts/yuri-symbiotic-pulse.test.mjs`).
+- **Verification before merge:** `gitnexus_detect_changes()` confirms only `symbioticPulse` runtime changed. Full pulse e2e test (`_SYSTEM/Scripts/yuri-symbiotic-pulse.test.mjs`).
 - **ETA:** 1d · **Owner:** Codex.
 
 ---
@@ -30,7 +30,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Acceptance:**
   - [ ] `jq '.model' .claude/settings.json` returns `null` or a non-Anthropic placeholder.
   - [ ] Boot a fresh session — no automatic Sonnet usage in token-ledger.
-- **Test command:** `node Scripts/independence-check.mjs --check=default-model`
+- **Test command:** `node _SYSTEM/Scripts/independence-check.mjs --check=default-model`
 - **Rollback boundary:** single-line `.claude/settings.json` edit.
 - **Route-plan classification:** high-stakes · global config · main-session approval.
 - **GitNexus impact:** N/A (config-only).
@@ -57,7 +57,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Acceptance:**
   - [ ] `grep -h "^model:" .claude/agents/*.md | sort | uniq` shows zero `claude-*` values.
   - [ ] EOT Patch 001 verification: all 11 files have `model:` AND `description:` non-empty (except 3 native_function which need `runtime: native_function`).
-- **Test command:** `node Scripts/independence-check.mjs --check=subagents`
+- **Test command:** `node _SYSTEM/Scripts/independence-check.mjs --check=subagents`
 - **Rollback boundary:** per-file `git diff` ≤ 4 lines each.
 - **Route-plan classification:** high-stakes · routing · agent harness.
 - **GitNexus impact:** none (markdown frontmatter).
@@ -74,7 +74,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Acceptance:**
   - [ ] `grep -n "haiku-4-5" .claude/skills/end-of-transmission/SKILL.md` returns 0 hits (or only in commented-out fallback).
   - [ ] `/eot` cycle under `YURI_NO_ANTHROPIC=1` completes successfully.
-- **Test command:** `YURI_NO_ANTHROPIC=1 bash -c 'echo "end of transmission" | claude --plan'` (manual; or scripted `Scripts/independence-check.mjs --check=eot`).
+- **Test command:** `YURI_NO_ANTHROPIC=1 bash -c 'echo "end of transmission" | claude --plan'` (manual; or scripted `_SYSTEM/Scripts/independence-check.mjs --check=eot`).
 - **Rollback boundary:** SKILL.md edits ≤ 30 lines.
 - **Route-plan classification:** critical · skill protocol · auto-firing surface.
 - **GitNexus impact:** none (markdown).
@@ -85,7 +85,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 
 ## Packet 5 — Rip Anthropic from `nisaba-dream.js`
 
-- **Goal:** `.claude/hooks/nisaba-dream.js:75` no longer shells `claude -p`. Decide: (a) replace with `Scripts/offload.sh -m deepseek-r1:8b` shell-out, OR (b) strip the model call entirely and convert the hook to a deterministic dispatcher.
+- **Goal:** `.claude/hooks/nisaba-dream.js:75` no longer shells `claude -p`. Decide: (a) replace with `_SYSTEM/Scripts/offload.sh -m deepseek-r1:8b` shell-out, OR (b) strip the model call entirely and convert the hook to a deterministic dispatcher.
 - **Target files:** `.claude/hooks/nisaba-dream.js`
 - **Constraints:** Hook semantics preserved. `--allowedTools Write,Edit,Read` semantics may need re-implementation if going deterministic. Per DeepSeek advisory: prefer (b) if the hook is just dispatching signals; (a) only if multi-turn pipeline reasoning is actually required.
 - **Acceptance:**
@@ -103,13 +103,13 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 ## Packet 6 — Strip `@claude` default routing · @amp.smart → gpt-5.5
 
 - **Goal:** `@claude` lane in offload-contract is opt-in only — removed from any default fan-out chain. `@amp.smart` default mode no longer points to `claude-opus-4-7`.
-- **Target files:** `Scripts/offload-contract.mjs:110, 270` (and dispatch tokens list at 176)
+- **Target files:** `_SYSTEM/Scripts/offload-contract.mjs:110, 270` (and dispatch tokens list at 176)
 - **Constraints:** `@claude` lane stays *defined* for explicit user requests (`-m claude`). Default routing tables and scenario fan-outs do not include it. `@amp.smart` re-mapped to `gpt-5.5` (Codex full tier) which is already the `@amp.deep` mode — collapse if appropriate, or keep distinct as `smart=gpt-5.5-reasoning-high`.
 - **Acceptance:**
-  - [ ] `node Scripts/offload-contract-dispatch-check.mjs` passes.
+  - [ ] `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` passes.
   - [ ] `@amp` default mode does not route to Anthropic.
-- **Test command:** `node Scripts/offload-contract-dispatch-check.mjs && node Scripts/independence-check.mjs --check=routing`
-- **Rollback boundary:** `git diff Scripts/offload-contract.mjs` ≤ 30 lines.
+- **Test command:** `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs && node _SYSTEM/Scripts/independence-check.mjs --check=routing`
+- **Rollback boundary:** `git diff _SYSTEM/Scripts/offload-contract.mjs` ≤ 30 lines.
 - **Route-plan classification:** critical · routing contract.
 - **GitNexus impact:** `gitnexus_impact({target:'offload-contract', direction:'upstream'})` required.
 - **Verification:** dispatcher-check + smoke runs of @amp + every scenario fan-out under `YURI_NO_ANTHROPIC=1`.
@@ -119,14 +119,14 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 
 ## Packet 7 — trading-bot ensemble · replace claude-sonnet endpoint
 
-- **Goal:** `Scripts/trading-bot/ensemble-inference.mjs` ensemble no longer calls `api.anthropic.com`. Replace with tri-ensemble across DeepSeek-V4-Pro + Kimi K2.6 + NVIDIA Nemotron-70B. Verify ensemble math (voting, weighting, consensus threshold) still produces calibrated signal.
-- **Target files:** `Scripts/trading-bot/ensemble-inference.mjs:25-27` (and any consumers of `claude-sonnet-4-20250514`).
+- **Goal:** `_SYSTEM/Scripts/trading-bot/ensemble-inference.mjs` ensemble no longer calls `api.anthropic.com`. Replace with tri-ensemble across DeepSeek-V4-Pro + Kimi K2.6 + NVIDIA Nemotron-70B. Verify ensemble math (voting, weighting, consensus threshold) still produces calibrated signal.
+- **Target files:** `_SYSTEM/Scripts/trading-bot/ensemble-inference.mjs:25-27` (and any consumers of `claude-sonnet-4-20250514`).
 - **Constraints:** Output schema unchanged. Latency budget preserved. Confidence-calibration tests (if any) re-run.
 - **Acceptance:**
   - [ ] `baseUrl` no longer `api.anthropic.com`.
   - [ ] Ensemble produces signal under `YURI_NO_ANTHROPIC=1`.
   - [ ] Backtest replay produces signal within ±5% of prior baseline (sanity).
-- **Test command:** `node Scripts/trading-bot/ensemble-inference.mjs --self-check --replay=last-week`
+- **Test command:** `node _SYSTEM/Scripts/trading-bot/ensemble-inference.mjs --self-check --replay=last-week`
 - **Rollback boundary:** single file ≤ 60 lines.
 - **Route-plan classification:** financial · high-stakes · ensemble.
 - **GitNexus impact:** check.
@@ -137,13 +137,13 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 
 ## Packet 8 — token-ledger pricing rows for non-Anthropic lanes
 
-- **Goal:** `Scripts/token-ledger.mjs` and `.claude/hooks/token-status.js` carry pricing rows for every active non-Anthropic lane so cost telemetry stays accurate post-cutover.
-- **Target files:** `Scripts/token-ledger.mjs:65-67,112` · `.claude/hooks/token-status.js:52-56`
+- **Goal:** `_SYSTEM/Scripts/token-ledger.mjs` and `.claude/hooks/token-status.js` carry pricing rows for every active non-Anthropic lane so cost telemetry stays accurate post-cutover.
+- **Target files:** `_SYSTEM/Scripts/token-ledger.mjs:65-67,112` · `.claude/hooks/token-status.js:52-56`
 - **Constraints:** Anthropic rows retained for opt-in usage tracking. New rows: deepseek-v4-pro, deepseek-v4-flash, kimi-k2.6, nemotron-70b, llama-3.3-70b, gpt-5.5, gpt-5.4-mini, gpt-5.3-codex-spark.
 - **Acceptance:**
-  - [ ] All active lanes from `Scripts/offload-contract.mjs` have pricing rows.
-  - [ ] `Scripts/ai status` shows accurate per-lane cost summary.
-- **Test command:** `node Scripts/token-ledger.mjs --self-check`
+  - [ ] All active lanes from `_SYSTEM/Scripts/offload-contract.mjs` have pricing rows.
+  - [ ] `_SYSTEM/Scripts/ai status` shows accurate per-lane cost summary.
+- **Test command:** `node _SYSTEM/Scripts/token-ledger.mjs --self-check`
 - **Rollback boundary:** ≤ 80 lines across two files.
 - **Route-plan classification:** standard · telemetry.
 - **GitNexus impact:** none.
@@ -171,7 +171,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 
 ## Packet 10 — Hook-by-hook audit · quarantine any Claude spawn
 
-- **Goal:** Each of the 37 hooks in `.claude/hooks/` audited for direct or transitive Anthropic calls. Findings logged. Any hook that fires Anthropic is either refactored to deterministic JS or routed through `Scripts/offload.sh -m <non-anthropic-lane>`.
+- **Goal:** Each of the 37 hooks in `.claude/hooks/` audited for direct or transitive Anthropic calls. Findings logged. Any hook that fires Anthropic is either refactored to deterministic JS or routed through `_SYSTEM/Scripts/offload.sh -m <non-anthropic-lane>`.
 - **Target files:** `.claude/hooks/*.js` (37 files)
 - **Constraints:** Hook execution order preserved. No new dependencies. Quarantine = comment-out + raise issue if non-trivial refactor needed.
 - **Acceptance:**
@@ -201,14 +201,14 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 
 ---
 
-## Packet 12 — `Scripts/ai` banner defaults
+## Packet 12 — `_SYSTEM/Scripts/ai` banner defaults
 
-- **Goal:** Status / banner output in `Scripts/ai` (lines 272, 1103, 1128) does not hard-assert `claude-sonnet-4-6`. Read actual session model from settings or display "user-selected".
-- **Target files:** `Scripts/ai:272,1103,1128`
+- **Goal:** Status / banner output in `_SYSTEM/Scripts/ai` (lines 272, 1103, 1128) does not hard-assert `claude-sonnet-4-6`. Read actual session model from settings or display "user-selected".
+- **Target files:** `_SYSTEM/Scripts/ai:272,1103,1128`
 - **Constraints:** Cosmetic. No behavior change.
 - **Acceptance:**
-  - [ ] `Scripts/ai status` does not falsely advertise Claude as active model when it isn't.
-- **Test command:** `bash Scripts/ai status`
+  - [ ] `_SYSTEM/Scripts/ai status` does not falsely advertise Claude as active model when it isn't.
+- **Test command:** `bash _SYSTEM/Scripts/ai status`
 - **Rollback boundary:** ≤ 20 lines.
 - **Route-plan classification:** trivial · cosmetic.
 - **ETA:** 0.5d · **Owner:** Codex.
@@ -217,13 +217,13 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 
 ## Packet 13 — Independence smoke test — `YURI_NO_ANTHROPIC=1`
 
-- **Goal:** New script `Scripts/independence-check.mjs` boots a verifier that walks every subagent, hook, skill, and offload lane to assert no Anthropic surface fires when `YURI_NO_ANTHROPIC=1` is set.
-- **Target files:** new file `Scripts/independence-check.mjs`
+- **Goal:** New script `_SYSTEM/Scripts/independence-check.mjs` boots a verifier that walks every subagent, hook, skill, and offload lane to assert no Anthropic surface fires when `YURI_NO_ANTHROPIC=1` is set.
+- **Target files:** new file `_SYSTEM/Scripts/independence-check.mjs`
 - **Constraints:** Read-only verifier — no mutations. Should run in < 60 s. Exit 0 on PASS, non-zero with diagnostic on FAIL.
 - **Acceptance:**
   - [ ] Script exists, executes, returns 0 on pass.
   - [ ] CI hook wires it to pre-commit or pre-push.
-- **Test command:** `node Scripts/independence-check.mjs --strict`
+- **Test command:** `node _SYSTEM/Scripts/independence-check.mjs --strict`
 - **Rollback boundary:** new file, deletable.
 - **Route-plan classification:** standard · verifier.
 - **Verification:** intentionally introduce an Anthropic reference, confirm script catches it; remove reference.
@@ -249,13 +249,13 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 
 ## Packet 15 — Lane dispatcher abstraction (capability manifest router)
 
-- **Goal:** New `Scripts/lane-dispatcher.mjs` reads a capability manifest (each lane declares ctx window, tool-use support, latency tier, cost tier, privacy class) and selects lane per call based on requirements. Every later migration becomes a manifest config change rather than a hardcoded model string swap.
-- **Target files:** new `Scripts/lane-dispatcher.mjs` · new `Scripts/lane-capability-manifest.json` · refactor consumers (`yuri-symbiotic-pulse.mjs`, `pulse-orchestrator.mjs`, hook templates) to call dispatcher.
+- **Goal:** New `_SYSTEM/Scripts/lane-dispatcher.mjs` reads a capability manifest (each lane declares ctx window, tool-use support, latency tier, cost tier, privacy class) and selects lane per call based on requirements. Every later migration becomes a manifest config change rather than a hardcoded model string swap.
+- **Target files:** new `_SYSTEM/Scripts/lane-dispatcher.mjs` · new `_SYSTEM/Scripts/lane-capability-manifest.json` · refactor consumers (`yuri-symbiotic-pulse.mjs`, `pulse-orchestrator.mjs`, hook templates) to call dispatcher.
 - **Constraints:** Existing dispatch tokens (`@deepseek`, `@kimi`, etc.) remain backward-compatible. Dispatcher is additive — direct `-m <model>` calls still work.
 - **Acceptance:**
   - [ ] Dispatcher selects correct lane for a synthetic capability request.
   - [ ] At least 3 consumers refactored to use dispatcher.
-- **Test command:** `node Scripts/lane-dispatcher.mjs --self-check`
+- **Test command:** `node _SYSTEM/Scripts/lane-dispatcher.mjs --self-check`
 - **Rollback boundary:** new files; consumer refactors are additive.
 - **Route-plan classification:** critical · architectural · routing runtime.
 - **GitNexus impact:** required — `gitnexus_impact({target:'lane-dispatcher'})` after first use.
@@ -272,7 +272,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
   - [ ] 24 h continuous operation with no Anthropic key.
   - [ ] No critical workflow blocked.
   - [ ] Independence score ≥ 90 confirmed.
-- **Test command:** `unset ANTHROPIC_API_KEY && export YURI_NO_ANTHROPIC=1 && node Scripts/independence-check.mjs --strict && claude` (then operate normally for 24 h).
+- **Test command:** `unset ANTHROPIC_API_KEY && export YURI_NO_ANTHROPIC=1 && node _SYSTEM/Scripts/independence-check.mjs --strict && claude` (then operate normally for 24 h).
 - **Rollback boundary:** environment-only.
 - **Route-plan classification:** critical · go/no-go drill.
 - **ETA:** 0.5d (execution) — schedule for 2026-06-14.
@@ -299,7 +299,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Acceptance:**
   - [ ] `grep -h "^model:" .claude/skills/*/agent.md` returns zero `claude-*` values.
   - [ ] Invoke each skill via its slash command; verify dispatch goes to DeepSeek not Anthropic.
-- **Test command:** `node Scripts/independence-check.mjs --check=skills`
+- **Test command:** `node _SYSTEM/Scripts/independence-check.mjs --check=skills`
 - **Rollback boundary:** 5 single-line frontmatter edits.
 - **Route-plan classification:** high-stakes · skill harness.
 - **GitNexus impact:** none (frontmatter only).

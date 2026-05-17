@@ -121,7 +121,7 @@ If a proposed tier can be rebuilt losslessly from the live ones, keep it out —
 - memory/patterns/.gitkeep
 - memory/patterns/index.json — empty {} initial
 - memory/patterns-archive/.gitkeep
-- Scripts/memory-evict.mjs — reads memory/patterns, archives files with atime > 90d, updates index.json, has --dry-run
+- _SYSTEM/Scripts/memory-evict.mjs — reads memory/patterns, archives files with atime > 90d, updates index.json, has --dry-run
 
 **Constraints:**
 - No frameworks. Native node:fs.
@@ -129,7 +129,7 @@ If a proposed tier can be rebuilt losslessly from the live ones, keep it out —
 - atime read with fs.statSync, never assumes mtime.
 
 **Acceptance criteria:**
-- [ ] node Scripts/memory-evict.mjs --dry-run on an empty patterns dir prints "no eviction needed" and exits 0.
+- [ ] node _SYSTEM/Scripts/memory-evict.mjs --dry-run on an empty patterns dir prints "no eviction needed" and exits 0.
 - [ ] With a synthetic atime-aged file, --dry-run prints the move plan; without --dry-run it moves the file and updates index.json.
 - [ ] Re-running is idempotent.
 
@@ -144,7 +144,7 @@ If a proposed tier can be rebuilt losslessly from the live ones, keep it out —
 **Goal:** Add a deterministic 7-day eviction pass for short-term tier files.
 
 **Target files (new):**
-- Scripts/memory-evict-shortterm.mjs — removes lines/records older than 7 days from .claude/state/scout-errors.log, .claude/state/decisions.jsonl (skip if missing); does not touch token-weekly.json (which has its own rollover).
+- _SYSTEM/Scripts/memory-evict-shortterm.mjs — removes lines/records older than 7 days from .claude/state/scout-errors.log, .claude/state/decisions.jsonl (skip if missing); does not touch token-weekly.json (which has its own rollover).
 
 **Acceptance criteria:**
 - [ ] On a synthetic log with mixed-age lines, only entries older than 7 days are removed.

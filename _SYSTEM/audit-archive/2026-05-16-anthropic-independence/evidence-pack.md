@@ -37,20 +37,20 @@ Files (all without `model:` field, all inherit parent session model):
 
 **Verdict:** 8/11 are model-backed and will inherit whatever model the parent session uses → currently Sonnet (`.claude/settings.json:89`). 3/11 are already native_function deterministic and Anthropic-safe.
 
-## §2 Direct Anthropic API References — Scripts/
+## §2 Direct Anthropic API References — _SYSTEM/Scripts/
 
 ```
-MATCH file=Scripts/offload-contract.mjs line=110 term=claude-opus-4-7 excerpt="smart: { model: 'claude-opus-4-7', context: '300k', use: 'unconstrained impl' }"
-MATCH file=Scripts/offload-contract.mjs line=176 term=claude excerpt="dispatchTokens: ['claude', 'claude-3-5-sonnet', 'claude-3-5-sonnet-liberated', 'claude-3-opus']"
-MATCH file=Scripts/offload-contract.mjs line=270 term=claude-sonnet-4-6 excerpt="model: 'claude-sonnet-4-6'"
-MATCH file=Scripts/yuri-symbiotic-pulse.mjs line=250 term=claude-sonnet-4-6 excerpt="model: 'claude-sonnet-4-6'"
-MATCH file=Scripts/trading-bot/ensemble-inference.mjs line=25 term=api.anthropic.com excerpt="baseUrl: 'https://api.anthropic.com/v1'"
-MATCH file=Scripts/trading-bot/ensemble-inference.mjs line=27 term=claude-sonnet-4 excerpt="model: 'claude-sonnet-4-20250514'"
-MATCH file=Scripts/token-ledger.mjs line=65-67 term=claude-* excerpt="pricing rows for sonnet/opus/haiku"
-MATCH file=Scripts/ai line=272 term=claude-sonnet-4-6 excerpt="printf '# model: claude-sonnet-4-6\n'"
-MATCH file=Scripts/ai line=1103 term=claude-sonnet-4-6 excerpt='printf MODEL claude-sonnet-4-6'
-MATCH file=Scripts/ai line=1128 term=claude-sonnet-4-6 excerpt='printf MODEL claude-sonnet-4-6'
-MATCH file=Scripts/offload.sh line=367 term=claude-3* excerpt="claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)"
+MATCH file=_SYSTEM/Scripts/offload-contract.mjs line=110 term=claude-opus-4-7 excerpt="smart: { model: 'claude-opus-4-7', context: '300k', use: 'unconstrained impl' }"
+MATCH file=_SYSTEM/Scripts/offload-contract.mjs line=176 term=claude excerpt="dispatchTokens: ['claude', 'claude-3-5-sonnet', 'claude-3-5-sonnet-liberated', 'claude-3-opus']"
+MATCH file=_SYSTEM/Scripts/offload-contract.mjs line=270 term=claude-sonnet-4-6 excerpt="model: 'claude-sonnet-4-6'"
+MATCH file=_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs line=250 term=claude-sonnet-4-6 excerpt="model: 'claude-sonnet-4-6'"
+MATCH file=_SYSTEM/Scripts/trading-bot/ensemble-inference.mjs line=25 term=api.anthropic.com excerpt="baseUrl: 'https://api.anthropic.com/v1'"
+MATCH file=_SYSTEM/Scripts/trading-bot/ensemble-inference.mjs line=27 term=claude-sonnet-4 excerpt="model: 'claude-sonnet-4-20250514'"
+MATCH file=_SYSTEM/Scripts/token-ledger.mjs line=65-67 term=claude-* excerpt="pricing rows for sonnet/opus/haiku"
+MATCH file=_SYSTEM/Scripts/ai line=272 term=claude-sonnet-4-6 excerpt="printf '# model: claude-sonnet-4-6\n'"
+MATCH file=_SYSTEM/Scripts/ai line=1103 term=claude-sonnet-4-6 excerpt='printf MODEL claude-sonnet-4-6'
+MATCH file=_SYSTEM/Scripts/ai line=1128 term=claude-sonnet-4-6 excerpt='printf MODEL claude-sonnet-4-6'
+MATCH file=_SYSTEM/Scripts/offload.sh line=367 term=claude-3* excerpt="claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)"
 ```
 
 ## §3 Hooks — `.claude/hooks/*.js`
@@ -75,10 +75,10 @@ MATCH line=406 term=haiku_worker excerpt="eot-007 owner=haiku_worker model=haiku
 
 **Verdict:** Every `/eot` cycle spawns ≥4 Anthropic Haiku workers by design. Post-15-June this becomes the **single highest token-volume Anthropic dependency** because EOT runs on session-close + auto-triggers at context ≥60%.
 
-## §5 Pulse Orchestrator — `Scripts/pulse-orchestrator.mjs`
+## §5 Pulse Orchestrator — `_SYSTEM/Scripts/pulse-orchestrator.mjs`
 
 ```
-FILE_COUNT file=Scripts/pulse-orchestrator.mjs lines=533
+FILE_COUNT file=_SYSTEM/Scripts/pulse-orchestrator.mjs lines=533
 MATCH line=414 term=@claude excerpt="['security', '@claude']"
 ```
 
@@ -91,7 +91,7 @@ FILE_COUNT file=.claude/skills/*/SKILL.md count=34
 TERM_COUNT term=^model:_in_frontmatter count=0
 ```
 
-No SKILL.md frontmatter declares a model. Model selection happens inside the skill body (most route via `Scripts/offload.sh -m <lane>` which is non-Anthropic) or via Agent() (blocked by guard). Lane discipline is good; specific audit per skill body is packet #10 work.
+No SKILL.md frontmatter declares a model. Model selection happens inside the skill body (most route via `_SYSTEM/Scripts/offload.sh -m <lane>` which is non-Anthropic) or via Agent() (blocked by guard). Lane discipline is good; specific audit per skill body is packet #10 work.
 
 ## §7 Local Runtime Snapshot — `ollama list` (M2 Pro 16 GB, 2026-05-16)
 
@@ -134,8 +134,8 @@ FILE_COUNT file=src/components/NexusLinkLanding.tsx lines=423
 FILE_COUNT file=src/lib/nexusLinkLanding.ts lines=122
 FILE_COUNT file=src/lib/nexuslinkLandingData.ts lines=80
 FILE_COUNT file=docs/SYMBIOTIC_PULSE_V1.md present=true
-FILE_COUNT file=Scripts/yuri-symbiotic-pulse.mjs present=true
-FILE_COUNT file=Scripts/yuri-canonical-memory-import.mjs present=true
+FILE_COUNT file=_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs present=true
+FILE_COUNT file=_SYSTEM/Scripts/yuri-canonical-memory-import.mjs present=true
 FILE_COUNT file=_SYSTEM/NEXUSLINK/nexbox-handoff-v1.md present=false (to-create)
 ```
 
@@ -158,7 +158,7 @@ Plus search for `cache_control`, `betas`, `thinking.budget_tokens`, `anthropic-b
 
 ## §9c NEW SURFACE — Skill-bound `agent.md` files (verifier finding)
 
-`Scripts/independence-check.mjs` surfaced 5 skill-scoped `agent.md` files carrying **explicit** Anthropic models. Separate surface from `.claude/agents/` parent-inheritance subagents — these are skill-embedded agent definitions that fire when the skill activates.
+`_SYSTEM/Scripts/independence-check.mjs` surfaced 5 skill-scoped `agent.md` files carrying **explicit** Anthropic models. Separate surface from `.claude/agents/` parent-inheritance subagents — these are skill-embedded agent definitions that fire when the skill activates.
 
 ```
 MATCH file=.claude/skills/execution-domain-core/agent.md line=4 term=claude-sonnet-4-6 excerpt="model: claude-sonnet-4-6"
@@ -178,7 +178,7 @@ MATCH file=.claude/skills/pattern-mirror-core/agent.md line=4 term=claude-sonnet
 ## §9d Verifier Smoke-Test Result (2026-05-16)
 
 ```
-node Scripts/independence-check.mjs
+node _SYSTEM/Scripts/independence-check.mjs
   FAIL: 16
   WARN: 19
   PASS: 3
@@ -197,7 +197,7 @@ Per `_SYSTEM/yuri-origin.md`:
 3. _SYSTEM/yuri-origin.md
 4. SOUL.md
 5. Thin adapters (CLAUDE.md, AGENTS.md, ...)
-6. Scripts/offload-contract.mjs
+6. _SYSTEM/Scripts/offload-contract.mjs
 7. On-demand references and skills
 8. Model inference (lowest priority)
 ```
@@ -216,8 +216,8 @@ All advisor output from this audit (including the DeepSeek advisory triggered in
 | EOT skill | 15 | 100% (≥4 haiku/session-close) | 0.0 |
 | Symbiotic Pulse default | 10 | 100% (line 250) | 0.0 |
 | offload-contract default lanes | 5 | partial (@amp.smart, @claude exists) | 2.5 |
-| Scripts/trading-bot | 3 | 100% | 0.0 |
-| Other Scripts/* (status banners) | 2 | low (cosmetic) | 1.5 |
+| _SYSTEM/Scripts/trading-bot | 3 | 100% | 0.0 |
+| Other _SYSTEM/Scripts/* (status banners) | 2 | low (cosmetic) | 1.5 |
 | **TOTAL** | **100** | — | **31.6 / 100** |
 
 **Target by 14-June-2026: ≥ 90 / 100.**

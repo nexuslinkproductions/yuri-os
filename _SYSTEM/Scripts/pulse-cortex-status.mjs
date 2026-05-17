@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // PATCH 038 — Pulse Cortex self-inspection
 //
-// `Scripts/ai cortex` invokes this to print the live cortex state:
+// `_SYSTEM/Scripts/ai cortex` invokes this to print the live cortex state:
 //   - current pulse-bus.json findings (unconsumed, by severity)
 //   - pulse-plan.json last turn classification
 //   - pulse-codex-pending.json status

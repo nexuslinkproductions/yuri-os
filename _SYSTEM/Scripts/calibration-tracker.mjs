@@ -7,7 +7,7 @@
  * Low-precision advisors are flagged for deprioritization in next pulse cycle.
  *
  * Output: nisaba/calibration/priors.json
- * CLI: node Scripts/calibration-tracker.mjs [--json]
+ * CLI: node _SYSTEM/Scripts/calibration-tracker.mjs [--json]
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';

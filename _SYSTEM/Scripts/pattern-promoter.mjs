@@ -10,7 +10,7 @@
  *   nisaba/promoter/delta.json   — what was found and what was promoted
  *   nisaba/learning/global.md    — appended with new prevention rules
  *
- * CLI: node Scripts/pattern-promoter.mjs [--dry-run] [--threshold N]
+ * CLI: node _SYSTEM/Scripts/pattern-promoter.mjs [--dry-run] [--threshold N]
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';

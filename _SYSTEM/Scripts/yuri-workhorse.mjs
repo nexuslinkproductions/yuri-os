@@ -9,10 +9,10 @@ import { runSymbioticPulse } from './nudimmud/symbiotic-pulse.mjs'
 
 const WORKHORSE_VERSION = '0.1.0'
 const PLAN_VERSION = 'nudimmud.workhorse.x1'
-const INTENT_SCHEMA_PATH = 'Scripts/intent-schema.json'
-const ACTION_SCHEMA_PATH = 'Scripts/deepseek-action-schema.json'
-const OFFLOAD_RUNNER_PATH = 'Scripts/offload-runner.mjs'
-const EXECUTOR_PATH = 'Scripts/yuri-guarded-executor.mjs'
+const INTENT_SCHEMA_PATH = '_SYSTEM/Scripts/intent-schema.json'
+const ACTION_SCHEMA_PATH = '_SYSTEM/Scripts/deepseek-action-schema.json'
+const OFFLOAD_RUNNER_PATH = '_SYSTEM/Scripts/offload-runner.mjs'
+const EXECUTOR_PATH = '_SYSTEM/Scripts/yuri-guarded-executor.mjs'
 const LIVE_PRO_LANE = process.env.YURI_WORKHORSE_PRO_LANE || 'deepseek-v4-pro'
 const LIVE_FLASH_LANE = process.env.YURI_WORKHORSE_FLASH_LANE || 'deepseek-v4-flash'
 // Set YURI_WORKHORSE_PRO_LANE=nvidia-nemotron (or any @nvidia variant) to use NVIDIA NIM
@@ -204,17 +204,17 @@ function printHelp() {
       'NUDIMMUD Workhorse X1',
       '',
       'Usage:',
-      '  node Scripts/yuri-workhorse.mjs "<rough idea>"',
-      '  node Scripts/yuri-workhorse.mjs forge --execute "<rough idea>"',
-      '  node Scripts/yuri-workhorse.mjs forge --live "<rough idea>"',
-      '  node Scripts/yuri-workhorse.mjs forge --live --execute "<rough idea>"',
-      '  node Scripts/yuri-workhorse.mjs forge --live --no-flash "<rough idea>"',
-      '  node Scripts/yuri-workhorse.mjs forge --generate-plan "<rough idea>"',
-      '  node Scripts/yuri-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
-      '  node Scripts/yuri-workhorse.mjs run --plan <path>',
-      '  node Scripts/yuri-workhorse.mjs run --execute --plan <path>',
-      '  node Scripts/yuri-workhorse.mjs --selftest',
-      '  node Scripts/yuri-workhorse.mjs --help',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs "<rough idea>"',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge --execute "<rough idea>"',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge --live "<rough idea>"',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge --live --execute "<rough idea>"',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge --live --no-flash "<rough idea>"',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge --generate-plan "<rough idea>"',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs run --plan <path>',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs run --execute --plan <path>',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs --selftest',
+      '  node _SYSTEM/Scripts/yuri-workhorse.mjs --help',
       '',
       `Default artifact root: ${DEFAULT_ARTIFACT_ROOT}`,
       `Fallback artifact root: ${FALLBACK_ARTIFACT_ROOT}`,
@@ -547,7 +547,7 @@ function buildActionPlan({ intent, run }) {
     {
       step_id: 'step-04',
       action: 'read_file',
-      target: 'Scripts/yuri-guarded-executor.mjs',
+      target: '_SYSTEM/Scripts/yuri-guarded-executor.mjs',
       params: {
         start_line: 1,
         end_line: 80,
@@ -1804,7 +1804,7 @@ function runSelftest({ artifactRoot }) {
 }
 
 function guardedExecutorCompatRequired() {
-  const policyPath = path.join(REPO_ROOT, 'Scripts/policy/yuri-guarded-executor.readonly.json')
+  const policyPath = path.join(REPO_ROOT, '_SYSTEM/Scripts/policy/yuri-guarded-executor.readonly.json')
   try {
     const policy = JSON.parse(fs.readFileSync(policyPath, 'utf8'))
     return path.resolve(REPO_ROOT) === path.resolve(policy.repo_root || '')
@@ -1915,7 +1915,7 @@ function liveArtifactPackExists(runDir, expectExecutionSummary) {
 }
 
 function scopedRepoStatus() {
-  return runGit(['status', '--short', '--', 'Scripts/yuri-workhorse.mjs', 'Scripts/yuri-guarded-executor.mjs', 'Scripts/deepseek-action-schema.json', 'Scripts/intent-schema.json'])
+  return runGit(['status', '--short', '--', '_SYSTEM/Scripts/yuri-workhorse.mjs', '_SYSTEM/Scripts/yuri-guarded-executor.mjs', '_SYSTEM/Scripts/deepseek-action-schema.json', '_SYSTEM/Scripts/intent-schema.json'])
 }
 
 function runGit(args) {
@@ -2096,15 +2096,15 @@ function helpTextLines() {
   return [
     'NUDIMMUD Workhorse X1',
     'Usage:',
-    '  node Scripts/yuri-workhorse.mjs "<rough idea>"',
-    '  node Scripts/yuri-workhorse.mjs forge "<rough idea>"',
-    '  node Scripts/yuri-workhorse.mjs forge --execute "<rough idea>"',
-    '  node Scripts/yuri-workhorse.mjs forge --generate-plan "<rough idea>"',
-    '  node Scripts/yuri-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
-    '  node Scripts/yuri-workhorse.mjs run --plan <path>',
-    '  node Scripts/yuri-workhorse.mjs run --execute --plan <path>',
-    '  node Scripts/yuri-workhorse.mjs --selftest',
-    '  node Scripts/yuri-workhorse.mjs --help',
+    '  node _SYSTEM/Scripts/yuri-workhorse.mjs "<rough idea>"',
+    '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge "<rough idea>"',
+    '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge --execute "<rough idea>"',
+    '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge --generate-plan "<rough idea>"',
+    '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
+    '  node _SYSTEM/Scripts/yuri-workhorse.mjs run --plan <path>',
+    '  node _SYSTEM/Scripts/yuri-workhorse.mjs run --execute --plan <path>',
+    '  node _SYSTEM/Scripts/yuri-workhorse.mjs --selftest',
+    '  node _SYSTEM/Scripts/yuri-workhorse.mjs --help',
   ]
 }
 

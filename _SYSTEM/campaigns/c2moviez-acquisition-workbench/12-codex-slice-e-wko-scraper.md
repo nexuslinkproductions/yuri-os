@@ -11,14 +11,14 @@
 ---
 
 **Read before changing code:**
-- `Scripts/cold-acquisition-real-feed.mjs` — lines 22–150 (hardcoded `WKO_RECORDS` array) and lines 372–433 (AT ingest loop)
+- `_SYSTEM/Scripts/cold-acquisition-real-feed.mjs` — lines 22–150 (hardcoded `WKO_RECORDS` array) and lines 372–433 (AT ingest loop)
 - `backend/src/services/coldAcquisitionService.ts` — `AustriaDirectoryRecord` type (the shape `ingestAustriaDirectory()` expects)
 
 ---
 
 **Target files:**
 
-**New file: `Scripts/cold-acquisition-wko-scraper.mjs`**
+**New file: `_SYSTEM/Scripts/cold-acquisition-wko-scraper.mjs`**
 
 Implement an async function `scrapeWkoVienna(limit = 60)` that:
 
@@ -77,7 +77,7 @@ Implement an async function `scrapeWkoVienna(limit = 60)` that:
 
 6. If fetching fails (network error, unexpected HTML structure): log the error to stderr and return whatever partial results were collected — never throw.
 
-**`Scripts/cold-acquisition-real-feed.mjs`**
+**`_SYSTEM/Scripts/cold-acquisition-real-feed.mjs`**
 
 1. Import `scrapeWkoVienna` from `./cold-acquisition-wko-scraper.mjs`
 2. Replace the hardcoded `WKO_RECORDS` array (lines 22–150) with a call to `scrapeWkoVienna(at_limit)` — pass the `at_limit` argument from the feed script's config
@@ -98,7 +98,7 @@ Implement an async function `scrapeWkoVienna(limit = 60)` that:
 ---
 
 **Acceptance criteria:**
-- [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` passes
+- [ ] `node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs` passes
 - [ ] `npx tsc -p acquisition/tsconfig.json --noEmit` exits 0
 - [ ] `WKO_RECORDS` constant no longer exists in `cold-acquisition-real-feed.mjs`
 - [ ] `cold-acquisition-wko-scraper.mjs` exists and exports `scrapeWkoVienna`
@@ -107,15 +107,15 @@ Implement an async function `scrapeWkoVienna(limit = 60)` that:
 
 **Test command:**
 ```bash
-node Scripts/cold-acquisition-crm-ui.test.mjs
+node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
 # Quick scraper smoke test
-node -e "import('./Scripts/cold-acquisition-wko-scraper.mjs').then(m => m.scrapeWkoVienna(3)).then(r => console.log(JSON.stringify(r.slice(0,1), null, 2))).catch(console.error)"
+node -e "import('./_SYSTEM/Scripts/cold-acquisition-wko-scraper.mjs').then(m => m.scrapeWkoVienna(3)).then(r => console.log(JSON.stringify(r.slice(0,1), null, 2))).catch(console.error)"
 ```
 
 **Staging commands:**
 ```bash
-git add Scripts/cold-acquisition-wko-scraper.mjs Scripts/cold-acquisition-real-feed.mjs
+git add _SYSTEM/Scripts/cold-acquisition-wko-scraper.mjs _SYSTEM/Scripts/cold-acquisition-real-feed.mjs
 ```
 
 **Rollback boundary:** `git restore --staged .`

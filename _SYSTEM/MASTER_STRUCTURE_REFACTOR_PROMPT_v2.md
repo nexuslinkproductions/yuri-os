@@ -1,7 +1,7 @@
 # MASTER PROMPT v2 — NUDIMMUD Structure Refactor (Corrected)
 ## For Claude Code → DeepSeek Workhorse Swarm
 
-> **v2 changelog (2026-05-07):** v1 contained catastrophic misclassifications. `Scripts/`, `bin/`, `Volumes/`, `GeneratedContent`, and `Claude Code URL Handler.app` are **live infrastructure**, not dead artifacts. The `NUDIMMUD/` mirror is **not a clean duplicate** — it has 50+ unique markdown files and 38 diverged versions of root files requiring reconciliation before any deletion. v2 corrects all of this.
+> **v2 changelog (2026-05-07):** v1 contained catastrophic misclassifications. `_SYSTEM/Scripts/`, `bin/`, `Volumes/`, `GeneratedContent`, and `Claude Code URL Handler.app` are **live infrastructure**, not dead artifacts. The `NUDIMMUD/` mirror is **not a clean duplicate** — it has 50+ unique markdown files and 38 diverged versions of root files requiring reconciliation before any deletion. v2 corrects all of this.
 
 ---
 
@@ -26,8 +26,8 @@ You are the orchestrator. Your job is exactly three things:
 ### Root directory — ~22 dirs + ~25 root files
 
 **LIVE INFRASTRUCTURE — DO NOT TOUCH:**
-- `Scripts/` — `ai`, `offload.sh`, `nudimmud-repl.mjs`, `swarm`, all `trading-bot/*.mjs`, `graphify-run.sh`, `install_daemon.sh` (referenced from `package.json`, CORE_PROTOCOL §9, CLAUDE.md launch chain)
-- `bin/` — `claude` wrapper, `design-audit` (per memory: `boot.zsh → bin/claude → Scripts/ai`)
+- `_SYSTEM/Scripts/` — `ai`, `offload.sh`, `nudimmud-repl.mjs`, `swarm`, all `trading-bot/*.mjs`, `graphify-run.sh`, `install_daemon.sh` (referenced from `package.json`, CORE_PROTOCOL §9, CLAUDE.md launch chain)
+- `bin/` — `claude` wrapper, `design-audit` (per memory: `boot.zsh → bin/claude → _SYSTEM/Scripts/ai`)
 - `Volumes/T7` — read-only sync mount (per `.claude/rules/local_execution.md`)
 - `GeneratedContent` — symlink to `/Users/marcelspatz/GeneratedContent` (NOT a regular dir; `rm -rf` of a dir-symlink is risky)
 - `Claude Code URL Handler.app` — registered macOS `claude://` deep-link handler
@@ -136,7 +136,7 @@ For each independent task:
 /spawn /deepseek-workhorse
 Task: [exact task description]
 Paths: [exact paths, no ambiguity]
-Forbidden paths: Scripts/ bin/ Volumes/ GeneratedContent NUDIMMUD/ Claude\ Code\ URL\ Handler.app DOMAIN\ EXPANSION\ -\ INFINITE\ VOID/
+Forbidden paths: _SYSTEM/Scripts/ bin/ Volumes/ GeneratedContent NUDIMMUD/ Claude\ Code\ URL\ Handler.app DOMAIN\ EXPANSION\ -\ INFINITE\ VOID/
 Commands: [exact shell commands; quarantine pattern only]
 Verification: [exact criteria to check after]
 ```
@@ -150,7 +150,7 @@ Each workhorse must:
 ### Harness considerations
 
 If running through Claude Code, settings.json may have deny rules on `Bash(mv:*)` / `Bash(rm:*)`. **Do not attempt to circumvent them.** Either:
-- Run from your shell directly (`bash Scripts/structure-refactor-2026-05-07.sh`)
+- Run from your shell directly (`bash _SYSTEM/Scripts/structure-refactor-2026-05-07.sh`)
 - Update settings.json explicitly to allow the specific paths needed
 - Or accept that orchestrator can stage the script and human runs it
 

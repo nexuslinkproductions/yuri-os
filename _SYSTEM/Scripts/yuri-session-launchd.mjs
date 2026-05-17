@@ -6,8 +6,8 @@ import process from 'node:process';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const LABEL = 'com.nudimmud.yuri-session-runtime';
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const LABEL = 'com.yuri-os-musubi.yuri-session-runtime';
 const HOME = os.homedir();
 const LAUNCH_AGENTS_DIR = path.join(HOME, 'Library/LaunchAgents');
 const LOG_DIR = path.join(HOME, 'Library/Logs/YURI-OS-MUSUBI');
@@ -69,13 +69,13 @@ function renderPlist() {
   const env = {
     PATH: buildLaunchPath(),
     YURI_SESSION_RUNTIME_ENABLED: '1',
-    YURI_SESSION_RUNTIME_COMMAND: 'npm --prefix backend run dev',
+    YURI_SESSION_RUNTIME_COMMAND: 'npm --prefix _SYSTEM/backend run dev',
   };
   const envXml = Object.entries(env)
     .map(([key, value]) => `\n    <key>${plistEscape(key)}</key>\n    <string>${plistEscape(value)}</string>`)
     .join('');
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n  <dict>\n    <key>Label</key>\n    <string>${plistEscape(LABEL)}</string>\n    <key>RunAtLoad</key>\n    <true/>\n    <key>KeepAlive</key>\n    <true/>\n    <key>ThrottleInterval</key>\n    <integer>5</integer>\n    <key>Umask</key>\n    <integer>63</integer>\n    <key>ProgramArguments</key>\n    <array>\n      <string>${plistEscape(process.execPath)}</string>\n      <string>${plistEscape(path.join(REPO_ROOT, 'Scripts/yuri-session-launchd.mjs'))}</string>\n      <string>run</string>\n    </array>\n    <key>WorkingDirectory</key>\n    <string>${plistEscape(REPO_ROOT)}</string>\n    <key>StandardOutPath</key>\n    <string>${plistEscape(OUT_LOG)}</string>\n    <key>StandardErrorPath</key>\n    <string>${plistEscape(ERR_LOG)}</string>\n    <key>EnvironmentVariables</key>\n    <dict>${envXml}\n    </dict>\n  </dict>\n</plist>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n  <dict>\n    <key>Label</key>\n    <string>${plistEscape(LABEL)}</string>\n    <key>RunAtLoad</key>\n    <true/>\n    <key>KeepAlive</key>\n    <true/>\n    <key>ThrottleInterval</key>\n    <integer>5</integer>\n    <key>Umask</key>\n    <integer>63</integer>\n    <key>ProgramArguments</key>\n    <array>\n      <string>${plistEscape(process.execPath)}</string>\n      <string>${plistEscape(path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-session-launchd.mjs'))}</string>\n      <string>run</string>\n    </array>\n    <key>WorkingDirectory</key>\n    <string>${plistEscape(REPO_ROOT)}</string>\n    <key>StandardOutPath</key>\n    <string>${plistEscape(OUT_LOG)}</string>\n    <key>StandardErrorPath</key>\n    <string>${plistEscape(ERR_LOG)}</string>\n    <key>EnvironmentVariables</key>\n    <dict>${envXml}\n    </dict>\n  </dict>\n</plist>\n`;
 }
 
 function launchctl(args, allowFailure = false) {
@@ -146,11 +146,11 @@ function run() {
     ...process.env,
     PATH: buildLaunchPath(),
     YURI_SESSION_RUNTIME_ENABLED: '1',
-    YURI_SESSION_RUNTIME_COMMAND: 'npm --prefix backend run dev',
+    YURI_SESSION_RUNTIME_COMMAND: 'npm --prefix _SYSTEM/backend run dev',
   };
 
-  console.log(`[yuri-session-launchd] launching ${npmBinary} --prefix backend run dev`);
-  const child = spawn(npmBinary, ['--prefix', 'backend', 'run', 'dev'], {
+  console.log(`[yuri-session-launchd] launching ${npmBinary} --prefix _SYSTEM/backend run dev`);
+  const child = spawn(npmBinary, ['--prefix', '_SYSTEM/backend', 'run', 'dev'], {
     cwd: REPO_ROOT,
     stdio: 'inherit',
     env,
@@ -169,12 +169,12 @@ function run() {
 function help() {
   console.log([
     'Usage:',
-    '  node Scripts/yuri-session-launchd.mjs install',
-    '  node Scripts/yuri-session-launchd.mjs uninstall',
-    '  node Scripts/yuri-session-launchd.mjs status',
-    '  node Scripts/yuri-session-launchd.mjs restart',
-    '  node Scripts/yuri-session-launchd.mjs print-plist',
-    '  node Scripts/yuri-session-launchd.mjs run',
+    '  node _SYSTEM/Scripts/yuri-session-launchd.mjs install',
+    '  node _SYSTEM/Scripts/yuri-session-launchd.mjs uninstall',
+    '  node _SYSTEM/Scripts/yuri-session-launchd.mjs status',
+    '  node _SYSTEM/Scripts/yuri-session-launchd.mjs restart',
+    '  node _SYSTEM/Scripts/yuri-session-launchd.mjs print-plist',
+    '  node _SYSTEM/Scripts/yuri-session-launchd.mjs run',
   ].join('\n'));
 }
 

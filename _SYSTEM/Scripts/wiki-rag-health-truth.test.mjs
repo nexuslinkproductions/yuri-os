@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const source = fs.readFileSync(path.join(process.cwd(), 'Scripts/wiki-rag-health.mjs'), 'utf8');
-const helper = fs.readFileSync(path.join(process.cwd(), 'Scripts/lib/db-health.mjs'), 'utf8');
+const source = fs.readFileSync(path.join(process.cwd(), '_SYSTEM/Scripts/wiki-rag-health.mjs'), 'utf8');
+const helper = fs.readFileSync(path.join(process.cwd(), '_SYSTEM/Scripts/lib/db-health.mjs'), 'utf8');
 
 assert.match(source, /inspectOpenDatabaseHealth/, 'wiki RAG health must use shared DB health helper');
 assert.doesNotMatch(source, /function\s+checkDatabaseHealth/, 'wiki RAG health must not duplicate DB health logic');

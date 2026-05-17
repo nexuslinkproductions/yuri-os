@@ -12,8 +12,8 @@ const repoRoot = path.resolve(__dirname, '..');
 const defaultDb = path.join(repoRoot, '_SYSTEM', 'OS_KERNEL', 'memory.db');
 const usage = [
   'Usage:',
-  '  node Scripts/yuri-canonical-memory-import.mjs import --run-root dir [--db file] [--dry-run]',
-  '  node Scripts/yuri-canonical-memory-import.mjs rollback --run-root dir [--db file] [--dry-run]',
+  '  node _SYSTEM/Scripts/yuri-canonical-memory-import.mjs import --run-root dir [--db file] [--dry-run]',
+  '  node _SYSTEM/Scripts/yuri-canonical-memory-import.mjs rollback --run-root dir [--db file] [--dry-run]',
 ].join('\n');
 
 const [command, ...argv] = process.argv.slice(2);

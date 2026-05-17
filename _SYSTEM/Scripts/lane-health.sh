@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # lane-health.sh — Live status grid for all major NUDIMMUD lanes
-# Usage: bash Scripts/lane-health.sh
+# Usage: bash _SYSTEM/Scripts/lane-health.sh
 # Output: lane × status (LIVE / COOLDOWN / DOWN) × last-check timestamp
 
 set -u

@@ -25,7 +25,7 @@ assert.equal(
 assert.match(
   serverSource,
   /gitnexus-mcp-check\.mjs/,
-  'backend/src/server.ts should derive GITNEXUS_MCP status from Scripts/gitnexus-mcp-check.mjs'
+  'backend/src/server.ts should derive GITNEXUS_MCP status from _SYSTEM/Scripts/gitnexus-mcp-check.mjs'
 );
 
 assert.match(

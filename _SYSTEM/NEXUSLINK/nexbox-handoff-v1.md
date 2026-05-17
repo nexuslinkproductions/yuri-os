@@ -25,12 +25,12 @@ Sovereignty is not just an internal Yuri OS property — it is the product wrap.
 - `models.json` template that mirrors `.claude/config/models.json` shape; client can override via `OLLAMA_DEFAULT_MODEL`.
 
 ### 1.2 Symbiotic Pulse engine
-- `Scripts/yuri-symbiotic-pulse.mjs` ported to standalone client lib (`nexbox/symbiotic-pulse.mjs`).
+- `_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs` ported to standalone client lib (`nexbox/symbiotic-pulse.mjs`).
 - De-Claude'd per Packet #1 — default cortex routes to `@deepseek-v4-pro` (or local `deepseek-r1:8b` if client declines cloud).
 - Pulse contract: `docs/SYMBIOTIC_PULSE_V1.md` shipped verbatim.
 
 ### 1.3 Canonical memory shim
-- `Scripts/yuri-canonical-memory-import.mjs` adapted to client-owned `nexbox/memory.db`.
+- `_SYSTEM/Scripts/yuri-canonical-memory-import.mjs` adapted to client-owned `nexbox/memory.db`.
 - Memory schema versioned (per DeepSeek advisory layer §3.2 below).
 - Client owns the SQLite file; no upstream sync unless explicitly enabled.
 
@@ -44,7 +44,7 @@ Sovereignty is not just an internal Yuri OS property — it is the product wrap.
 - **No `@claude` lane unless client explicitly adds their own Anthropic key** and re-enables it via `nexbox config add-lane claude`.
 
 ### 1.5 Verification harness
-- `Scripts/independence-check.mjs` (same file as Packet #13) shipped with bundle.
+- `_SYSTEM/Scripts/independence-check.mjs` (same file as Packet #13) shipped with bundle.
 - Client runs `nexbox verify` → asserts zero Anthropic dependency in their installation.
 - Reports written to `nexbox/reports/independence-<ISO-DATE>.md`.
 

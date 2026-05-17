@@ -235,9 +235,9 @@ After `generateDrafts()` returns, if `email_cold === null` or empty due to valid
 ---
 
 **Acceptance criteria:**
-- [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` passes
+- [ ] `node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs` passes
 - [ ] `npx tsc -p acquisition/tsconfig.json --noEmit` exits 0
-- [ ] `PATH=... TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs` passes
+- [ ] `PATH=... TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs` passes
 - [ ] `npx vite build --config acquisition/vite.config.mts` exits 0
 - [ ] `validateDoctrineCompliance("Your X does Y. But Z. Would you A?")` returns `{ passed: true }`
 - [ ] `validateDoctrineCompliance("Hi, I came across X. Tiny thought: ...")` returns `{ passed: false, reason: ... }`
@@ -246,9 +246,9 @@ After `generateDrafts()` returns, if `email_cold === null` or empty due to valid
 
 **Test commands:**
 ```bash
-node Scripts/cold-acquisition-crm-ui.test.mjs
+node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
-PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs
 npx vite build --config acquisition/vite.config.mts
 ```
 
@@ -258,8 +258,8 @@ git add \
   backend/src/services/coldAcquisitionService.ts \
   backend/public/acquisition/assets/ \
   backend/public/acquisition/index.html \
-  Scripts/cold-acquisition-crm-routes.test.mjs \
-  Scripts/cold-acquisition-crm-ui.test.mjs
+  _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs \
+  _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 ```
 
 **Rollback boundary:** `git restore --staged .`

@@ -560,7 +560,7 @@ async function dispatchCodexQueueEmit(prompt, plan, turnId) {
     source: 'CODEX_QUEUE',
     runtimeKind: 'impl_executor',
     severity: 'INFO',
-    finding: `Codex task queued [${taskId}] ${plan.codexDispatch.model} (${plan.codexDispatch.tier}). Run: node Scripts/task-queue.mjs run-next`,
+    finding: `Codex task queued [${taskId}] ${plan.codexDispatch.model} (${plan.codexDispatch.tier}). Run: node _SYSTEM/Scripts/task-queue.mjs run-next`,
     confidence: 0.95,
   };
 }

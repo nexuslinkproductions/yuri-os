@@ -12,7 +12,7 @@ const DEFAULT_DEST_ROOT = path.join(REPO_ROOT, '.claude', 'skills');
 const DEFAULT_RECORD_FILE = path.join(REPO_ROOT, '_SYSTEM', 'corpus-output', 'absorbed-skills.jsonl');
 
 function usage() {
-  return 'Usage: node Scripts/corpus-absorb.mjs <skill-dir-path> [--force] [--dry-run]';
+  return 'Usage: node _SYSTEM/Scripts/corpus-absorb.mjs <skill-dir-path> [--force] [--dry-run]';
 }
 
 function parseArgs(argv) {

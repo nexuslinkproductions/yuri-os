@@ -270,8 +270,8 @@ if (!options.intent) {
   process.exit(1);
 }
 
-const routePlan = runJson(['Scripts/offload-contract.mjs', 'route-plan', options.intent]);
-const inventory = runJson(['Scripts/offload-runner.mjs', '--inventory']);
+const routePlan = runJson(['_SYSTEM/Scripts/offload-contract.mjs', 'route-plan', options.intent]);
+const inventory = runJson(['_SYSTEM/Scripts/offload-runner.mjs', '--inventory']);
 const plan = buildPulsePlan(options.intent, routePlan, inventory, options);
 
 process.stdout.write(`${JSON.stringify(plan, null, 2)}\n`);
@@ -303,8 +303,8 @@ function parseArgs(args) {
 function printHelp() {
   process.stdout.write([
     'Usage:',
-    '  node Scripts/yuri-symbiotic-pulse.mjs plan "<campaign or task>"',
-    '  node Scripts/yuri-symbiotic-pulse.mjs observe "<campaign or task>"',
+    '  node _SYSTEM/Scripts/yuri-symbiotic-pulse.mjs plan "<campaign or task>"',
+    '  node _SYSTEM/Scripts/yuri-symbiotic-pulse.mjs observe "<campaign or task>"',
     '',
     'Builds PulsePlan v2 from a Pulse Seed, the route contract, and live LLM/tool inventory.',
   ].join('\n') + '\n');
@@ -334,7 +334,7 @@ function buildPulsePlan(intent, routePlan, inventory, options) {
   const context = analyzeIntent(intent, routePlan);
   const pulseSeed = buildPulseSeed(intent, routePlan, context, aliasContext);
   const skillLoaderDisabled = process.env.YURI_SKILL_LOADER_DISABLE === '1';
-  const rawSkillRegistry = skillLoaderDisabled ? { skills: [], discovered_at: null, count: 0 } : runJson(['Scripts/yuri-skill-loader.mjs', '--json']);
+  const rawSkillRegistry = skillLoaderDisabled ? { skills: [], discovered_at: null, count: 0 } : runJson(['_SYSTEM/Scripts/yuri-skill-loader.mjs', '--json']);
   const activeSkillRegistry = buildActiveSkillRegistry({
     pulseSeed,
     context,

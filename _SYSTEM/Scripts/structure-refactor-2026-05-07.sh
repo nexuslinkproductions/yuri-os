@@ -4,8 +4,8 @@
 # Idempotent. Quarantine-pattern (move-not-delete). Reversible until quarantine is purged.
 #
 # Run modes:
-#   DRY-RUN (default):  bash Scripts/structure-refactor-2026-05-07.sh
-#   APPLY (real):       APPLY=1 bash Scripts/structure-refactor-2026-05-07.sh
+#   DRY-RUN (default):  bash _SYSTEM/Scripts/structure-refactor-2026-05-07.sh
+#   APPLY (real):       APPLY=1 bash _SYSTEM/Scripts/structure-refactor-2026-05-07.sh
 #   PURGE (after review):  rm -rf _QUARANTINE_2026-05-07/
 #
 # What this DOES:
@@ -17,7 +17,7 @@
 #
 # What this DOES NOT touch (left for manual decision — see STRUCTURE_REFACTOR_REPORT.md):
 #   - NUDIMMUD/ mirror (50+ unique markdown files + 38 diverged files needing reconciliation)
-#   - Scripts/, bin/, Volumes/, GeneratedContent (NOT dead artifacts — live infrastructure)
+#   - _SYSTEM/Scripts/, bin/, Volumes/, GeneratedContent (NOT dead artifacts — live infrastructure)
 #   - Claude Code URL Handler.app (registered claude:// handler — needs Launch Services removal)
 #   - DOMAIN EXPANSION - INFINITE VOID/ (archived domain content with 01_PROJECTS skeleton)
 #   - RESEARCH/ move (CLAUDE.md references RESEARCH/04-BRAIN-DUMP-DECODER.md)

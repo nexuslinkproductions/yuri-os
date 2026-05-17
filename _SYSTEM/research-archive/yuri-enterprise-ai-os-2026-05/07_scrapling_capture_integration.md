@@ -42,7 +42,7 @@ scrapling extract get <URL> --stealth content.md
 
 ## Yuri Integration Path
 
-1. P1: Scripts/yuri-research-capture.py wrapping Scrapling CLI
+1. P1: _SYSTEM/Scripts/yuri-research-capture.py wrapping Scrapling CLI
 2. P2: Evaluate MCP server mode (requires owner approval)
 3. StealthyFetcher as upgrade to static-fetch when anti-bot gates block curl
 
@@ -53,9 +53,9 @@ scrapling extract get <URL> --stealth content.md
 - **Python API**: Fetcher.get() works (200 on https://slsa.dev)
 - **Verdict**: CLI_OUTPUT_VERIFIED (Python API) — CLI `extract` subcommand unavailable in installed version
 - **Status**: Scrapling v0.2.99 installed via pip. Playwright/Camoufox browsers also installed as dependencies.
-- **Next**: Evaluate Scripts/yuri-research-capture.py integration in a separate lane.
+- **Next**: Evaluate _SYSTEM/Scripts/yuri-research-capture.py integration in a separate lane.
 
 ## Non-Claims
 
 - Scrapling not installed. MCP server not registered.
-- Scripts/yuri-research-capture.py does not exist yet (P1 backlog).
+- _SYSTEM/Scripts/yuri-research-capture.py does not exist yet (P1 backlog).

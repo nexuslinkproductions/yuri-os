@@ -31,7 +31,7 @@ const generatedArtifactRoots = ['graphify-out/'];
 const protectedRoots = ['backend/data/', '.claude/state/', '.claude/history/', '.env'];
 // Graphify can emit package-local src/tools paths for nested corpora; keep this
 // guardrail to repo-root paths that are unambiguous in this repository.
-const activeSourceRoots = ['backend/src/', 'Scripts/'];
+const activeSourceRoots = ['backend/src/', '_SYSTEM/Scripts/'];
 const historicalPathAllowlist = new Map([
   ['07_ARCHIVE/', 'historical archive paths are not active Yuri OS source truth'],
   ['_SYSTEM/yuri-history-archive/', 'historical session archive paths are not active Yuri OS source truth'],

@@ -7,7 +7,7 @@ const ACTIVE_DIR = path.resolve(ROOT, 'specs/active')
 const DONE_DIR = path.resolve(ROOT, 'specs/done')
 
 function usage() {
-  return `Usage: node Scripts/spec-archive.mjs [options]
+  return `Usage: node _SYSTEM/Scripts/spec-archive.mjs [options]
 
 Archive completed specs from specs/active/ into specs/done/YYYY-MM/<slug>/.
 

@@ -4,7 +4,7 @@
 - status: event recorder and status provider skeleton
 - no HUD integration
 - no runtime behavior change
-- modules added: `Scripts/nudimmud/run-recorder.mjs`, `Scripts/nudimmud/status-line.mjs`
+- modules added: `_SYSTEM/Scripts/nudimmud/run-recorder.mjs`, `_SYSTEM/Scripts/nudimmud/status-line.mjs`
 - pure functions only
 - no file writes yet
 - next phase: X4 HUD reads state instead of owning state, or X3-R if recorder/status provider needs repair
@@ -20,7 +20,7 @@
 - Status: X2 prompt compiler dry-run support.
 - Scope: no HUD integration.
 - Behavior: no behavior change.
-- Modules added: `Scripts/nudimmud/event-protocol.mjs`, `Scripts/nudimmud/harness-state.mjs`, `Scripts/nudimmud/prompt-compiler.mjs`.
+- Modules added: `_SYSTEM/Scripts/nudimmud/event-protocol.mjs`, `_SYSTEM/Scripts/nudimmud/harness-state.mjs`, `_SYSTEM/Scripts/nudimmud/prompt-compiler.mjs`.
 - Authority boundaries:
   - Event protocol: typed event shapes only.
   - Harness state: pure initial state, reducer, and summary helpers.

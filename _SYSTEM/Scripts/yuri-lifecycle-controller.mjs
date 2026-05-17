@@ -13,8 +13,8 @@ const intent = process.argv.slice(3).join(' ').trim();
 if (mode === 'help' || !['observe', 'plan'].includes(mode)) {
   console.log([
     'Usage:',
-    '  node Scripts/yuri-lifecycle-controller.mjs observe "<intent>"',
-    '  node Scripts/yuri-lifecycle-controller.mjs plan "<intent>"',
+    '  node _SYSTEM/Scripts/yuri-lifecycle-controller.mjs observe "<intent>"',
+    '  node _SYSTEM/Scripts/yuri-lifecycle-controller.mjs plan "<intent>"',
     '',
     'Observe mode produces the canonical lifecycle bundle without executing lane work.',
   ].join('\n'));
@@ -52,7 +52,7 @@ const bundle = {
   },
   memory: {
     target: '_SYSTEM/OS_KERNEL/memory.db',
-    promotion_path: 'Scripts/self-improvement/weekly-comp.mjs',
+    promotion_path: '_SYSTEM/Scripts/self-improvement/weekly-comp.mjs',
     rule: 'verified summaries may become lesson candidates; raw outputs must not be promoted directly',
   },
   decision: {
@@ -65,7 +65,7 @@ const bundle = {
 console.log(JSON.stringify(bundle, null, 2));
 
 function routeIntent(text) {
-  const result = spawnSync('node', ['Scripts/offload-contract.mjs', 'route-plan', text], {
+  const result = spawnSync('node', ['_SYSTEM/Scripts/offload-contract.mjs', 'route-plan', text], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 2,

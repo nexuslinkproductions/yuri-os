@@ -14,15 +14,15 @@ const DEFAULT_MAX_ACTIONS = 12
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud/guarded-executor-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/nudimmud-guarded-executor-runs'
 const WRAPPER_VERSION = '1.0'
-const OFFLOAD_RUNNER_REL = 'Scripts/offload-runner.mjs'
-const EXECUTOR_REL = 'Scripts/yuri-guarded-executor.mjs'
+const OFFLOAD_RUNNER_REL = '_SYSTEM/Scripts/offload-runner.mjs'
+const EXECUTOR_REL = '_SYSTEM/Scripts/yuri-guarded-executor.mjs'
 const WRAPPER_FINAL_REPORT_NAME = 'wrapper_final_report.md'
 const WRAPPER_META_NAME = 'wrapper_meta.json'
 const READ_WINDOW_RUNTIME_FIELDS = ['start_line', 'end_line']
 const READ_WINDOW_UNKNOWN_FIELDS = new Set(['offset', 'limit', 'range', 'span', 'cursor'])
 const WRAPPER_MANIFEST_ALLOWLIST = [
-  'Scripts/yuri-guarded-executor.mjs',
-  'Scripts/policy/yuri-guarded-executor.readonly.json',
+  '_SYSTEM/Scripts/yuri-guarded-executor.mjs',
+  '_SYSTEM/Scripts/policy/yuri-guarded-executor.readonly.json',
   '.claude/rules/nudimmud_operating_dna.md',
 ]
 const ALLOWED_TOP_LEVEL_FIELDS = [
@@ -295,11 +295,11 @@ function printHelp() {
       'Readonly DeepSeek-to-Yuri guarded executor wrapper.',
       '',
       'Usage:',
-      '  node Scripts/deepseek-guarded-handoff.mjs --task <text> [options]',
-      '  node Scripts/deepseek-guarded-handoff.mjs --task-file <file> [options]',
-      '  node Scripts/deepseek-guarded-handoff.mjs --dry-run --task <text> [options]',
-      '  node Scripts/deepseek-guarded-handoff.mjs --selftest',
-      '  node Scripts/deepseek-guarded-handoff.mjs --help',
+      '  node _SYSTEM/Scripts/deepseek-guarded-handoff.mjs --task <text> [options]',
+      '  node _SYSTEM/Scripts/deepseek-guarded-handoff.mjs --task-file <file> [options]',
+      '  node _SYSTEM/Scripts/deepseek-guarded-handoff.mjs --dry-run --task <text> [options]',
+      '  node _SYSTEM/Scripts/deepseek-guarded-handoff.mjs --selftest',
+      '  node _SYSTEM/Scripts/deepseek-guarded-handoff.mjs --help',
       '',
       'Options:',
       '  --help',
@@ -1141,10 +1141,10 @@ function scopedStatus() {
     'status',
     '--short',
     '--',
-    'Scripts/deepseek-guarded-handoff.mjs',
-    'Scripts/yuri-guarded-executor.mjs',
-    'Scripts/policy/yuri-guarded-executor.readonly.json',
-    'Scripts/offload-runner.mjs',
+    '_SYSTEM/Scripts/deepseek-guarded-handoff.mjs',
+    '_SYSTEM/Scripts/yuri-guarded-executor.mjs',
+    '_SYSTEM/Scripts/policy/yuri-guarded-executor.readonly.json',
+    '_SYSTEM/Scripts/offload-runner.mjs',
     'backend/data/yuri.db',
     'backend/data/yuri.db-shm',
     'backend/data/yuri.db-wal',

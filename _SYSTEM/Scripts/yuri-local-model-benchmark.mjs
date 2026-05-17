@@ -223,13 +223,13 @@ function buildScenarios(modelConfig) {
       role: 'primary',
       model: local.primary || 'needle',
       system: 'Return only strict JSON.',
-      prompt: 'Which repo file owns automatic offload lane selection? Choose one: Scripts/offload-contract.mjs, backend/src/services/smartRouter.ts, README.md. Return {"source_of_truth":"..."}.',
+      prompt: 'Which repo file owns automatic offload lane selection? Choose one: _SYSTEM/Scripts/offload-contract.mjs, backend/src/services/smartRouter.ts, README.md. Return {"source_of_truth":"..."}.',
       validatorName: 'offload_contract_source_json',
       validate: (output) => {
         const json = parseJsonObject(output);
         return {
-          ok: json?.source_of_truth === 'Scripts/offload-contract.mjs',
-          expected: 'Scripts/offload-contract.mjs',
+          ok: json?.source_of_truth === '_SYSTEM/Scripts/offload-contract.mjs',
+          expected: '_SYSTEM/Scripts/offload-contract.mjs',
           observed: json?.source_of_truth || null,
         };
       },
@@ -390,7 +390,7 @@ function printHuman(payload) {
 }
 
 function printHelp() {
-  console.log(`Usage: node Scripts/yuri-local-model-benchmark.mjs [--dry-run|--execute] [--json] [--scenario-limit N] [--timeout-ms N]
+  console.log(`Usage: node _SYSTEM/Scripts/yuri-local-model-benchmark.mjs [--dry-run|--execute] [--json] [--scenario-limit N] [--timeout-ms N]
 
 Dry-run is the default. Use --execute to call local Ollama and measure cold-load, tokens/sec, JSON compliance, route-plan accuracy, code-symbol accuracy, and memory snapshots.`);
 }

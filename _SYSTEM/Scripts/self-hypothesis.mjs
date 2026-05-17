@@ -10,9 +10,9 @@
  * Output: nisaba/learning/hypotheses.json
  *
  * CLI:
- *   node Scripts/self-hypothesis.mjs           # full run
- *   node Scripts/self-hypothesis.mjs --dry-run
- *   node Scripts/self-hypothesis.mjs --status  # show current hypotheses
+ *   node _SYSTEM/Scripts/self-hypothesis.mjs           # full run
+ *   node _SYSTEM/Scripts/self-hypothesis.mjs --dry-run
+ *   node _SYSTEM/Scripts/self-hypothesis.mjs --status  # show current hypotheses
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';

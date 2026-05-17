@@ -69,13 +69,13 @@ try {
 
   const protectedEnvHydration = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'set -a; source .env; set +a; OFFLOAD_PROMPT_TEXT="Return OK" node Scripts/offload-runner.mjs deepseek-v4-pro',
+    command: 'set -a; source .env; set +a; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/offload-runner.mjs deepseek-v4-pro',
   });
   assert.equal(protectedEnvHydration.allowed, true, 'DeepSeek direct runner should be allowed to read .env for key hydration');
 
   const protectedEnvWrite = evaluateToolCall('Bash', {
     cwd: repoRoot,
-    command: 'echo SECRET=mutated >> .env; OFFLOAD_PROMPT_TEXT="Return OK" node Scripts/offload-runner.mjs deepseek-v4-pro',
+    command: 'echo SECRET=mutated >> .env; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/offload-runner.mjs deepseek-v4-pro',
   });
   assert.equal(protectedEnvWrite.allowed, false, 'DeepSeek hook allowance must not permit .env writes');
 

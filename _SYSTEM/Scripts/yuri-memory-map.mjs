@@ -9,10 +9,10 @@
  * Built-in modules only. No backend startup, DB, RAG, or vault mutation.
  *
  * Usage:
- *   node Scripts/yuri-memory-map.mjs
- *   node Scripts/yuri-memory-map.mjs --inventory
- *   node Scripts/yuri-memory-map.mjs --surface <name>
- *   node Scripts/yuri-memory-map.mjs --help
+ *   node _SYSTEM/Scripts/yuri-memory-map.mjs
+ *   node _SYSTEM/Scripts/yuri-memory-map.mjs --inventory
+ *   node _SYSTEM/Scripts/yuri-memory-map.mjs --surface <name>
+ *   node _SYSTEM/Scripts/yuri-memory-map.mjs --help
  */
 
 import fs from 'node:fs'
@@ -78,10 +78,10 @@ function printHelp() {
     'Yuri Memory Map — read-only memory surface inventory',
     '',
     'Commands:',
-    '  node Scripts/yuri-memory-map.mjs             Inventory all surfaces',
-    '  node Scripts/yuri-memory-map.mjs --inventory  Same as default',
-    '  node Scripts/yuri-memory-map.mjs --surface <name>  Single surface',
-    '  node Scripts/yuri-memory-map.mjs --help       This message',
+    '  node _SYSTEM/Scripts/yuri-memory-map.mjs             Inventory all surfaces',
+    '  node _SYSTEM/Scripts/yuri-memory-map.mjs --inventory  Same as default',
+    '  node _SYSTEM/Scripts/yuri-memory-map.mjs --surface <name>  Single surface',
+    '  node _SYSTEM/Scripts/yuri-memory-map.mjs --help       This message',
     '',
     'Surfaces: rules, vault, archive, workhorse, claude-runtime, secrets, graphify, model-registry, memory-governor',
   ]

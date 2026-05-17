@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const result = spawnSync(process.execPath, ['Scripts/ollama-bridge-mcp-check.mjs'], {
+const result = spawnSync(process.execPath, ['_SYSTEM/Scripts/ollama-bridge-mcp-check.mjs'], {
   cwd: repoRoot,
   encoding: 'utf8',
   maxBuffer: 1024 * 1024,

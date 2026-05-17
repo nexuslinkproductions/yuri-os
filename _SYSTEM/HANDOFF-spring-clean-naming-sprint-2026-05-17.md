@@ -14,7 +14,7 @@ Root went from ~50 loose files/folders → clean numbered hierarchy:
 ```
 _SYSTEM/     00_COMMAND-CENTER/  01_PROJECTS/  02_AREAS/
 03_RESOURCES/ 04_FINANCE/        05_NEXUS-LINK/ 06_KNOWLEDGE-BASE/
-07_ARCHIVE/   07_NETWORK-SYNC/   RESEARCH/      Scripts/
+07_ARCHIVE/   07_NETWORK-SYNC/   RESEARCH/      _SYSTEM/Scripts/
 ```
 30 root docs moved to `_SYSTEM/`. 9 stray folders consolidated.
 
@@ -34,7 +34,7 @@ _SYSTEM/     00_COMMAND-CENTER/  01_PROJECTS/  02_AREAS/
 | NEURAL_FORGE.md | yuri-forge.md | doc |
 
 LaunchAgent reloaded: `com.nudimmud.yuri-sentinel` (was nisaba-sentinel).
-All 30+ path references updated across Scripts/, .claude/hooks/, settings.json.
+All 30+ path references updated across _SYSTEM/Scripts/, .claude/hooks/, settings.json.
 
 ### Brain-inject v3 — 16 sections in `<yuri-brain>`
 Added: `NVIDIA_NIM` (live/dead map), `NEURON_LOOP` (last run), `ROADMAP` (sprint state).

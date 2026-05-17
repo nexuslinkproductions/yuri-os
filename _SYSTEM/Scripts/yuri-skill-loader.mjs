@@ -13,13 +13,13 @@
  * No runtime skill execution. No plugin API.
  *
  * Usage:
- *   node Scripts/yuri-skill-loader.mjs --list
- *   node Scripts/yuri-skill-loader.mjs --skill <name>
- *   node Scripts/yuri-skill-loader.mjs --json
- *   node Scripts/yuri-skill-loader.mjs --validate
- *   node Scripts/yuri-skill-loader.mjs --validate --json
- *   node Scripts/yuri-skill-loader.mjs --write-manifest
- *   node Scripts/yuri-skill-loader.mjs --help
+ *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --list
+ *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --skill <name>
+ *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --json
+ *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate
+ *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json
+ *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --write-manifest
+ *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --help
  */
 
 import { createHash } from 'node:crypto'
@@ -99,13 +99,13 @@ function printHelp() {
     'Yuri Skill Loader — doctrine discovery prototype',
     '',
     'Usage:',
-    '  node Scripts/yuri-skill-loader.mjs --list',
-    '  node Scripts/yuri-skill-loader.mjs --skill <name>',
-    '  node Scripts/yuri-skill-loader.mjs --json',
-    '  node Scripts/yuri-skill-loader.mjs --validate',
-    '  node Scripts/yuri-skill-loader.mjs --validate --json',
-    '  node Scripts/yuri-skill-loader.mjs --write-manifest',
-    '  node Scripts/yuri-skill-loader.mjs --help',
+    '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --list',
+    '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --skill <name>',
+    '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --json',
+    '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate',
+    '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json',
+    '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --write-manifest',
+    '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --help',
     '',
     'Discovery paths:',
     '  .cline/rules/*.md (current)',

@@ -162,7 +162,7 @@ export async function runOllamaCloudChat(endpoint, apiKey, model, promptText, sy
   });
 }
 
-export async function postOllamaEmbedding({ text, model, baseUrl, traceId = '', sourcePath = 'Scripts/ollama-adapter.mjs', operationType = 'ollama_embedding' }) {
+export async function postOllamaEmbedding({ text, model, baseUrl, traceId = '', sourcePath = '_SYSTEM/Scripts/ollama-adapter.mjs', operationType = 'ollama_embedding' }) {
   const startedAt = Date.now();
   const endpoint = `${baseUrl.replace(/\/$/, '')}/api/embeddings`;
   try {
@@ -250,7 +250,7 @@ async function recordOllamaLedger({ provider, model, responseModel, status, usag
   await recordTokenEvent({
     trace_id: ledger.traceId || process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || `ollama-${Date.now()}-${process.pid}`,
     session_id: process.env.OFFLOAD_TASK_ID || '',
-    source_path: 'Scripts/ollama-adapter.mjs',
+    source_path: '_SYSTEM/Scripts/ollama-adapter.mjs',
     lane: ledger.lane || 'ollama',
     provider,
     request_model: model,

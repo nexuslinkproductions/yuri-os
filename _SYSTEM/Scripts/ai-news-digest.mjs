@@ -8,9 +8,9 @@
  * Output: nisaba/learning/hn-digest.json
  *
  * CLI:
- *   node Scripts/ai-news-digest.mjs           # full run
- *   node Scripts/ai-news-digest.mjs --dry-run # fetch only, no writes
- *   node Scripts/ai-news-digest.mjs --status  # show last digest
+ *   node _SYSTEM/Scripts/ai-news-digest.mjs           # full run
+ *   node _SYSTEM/Scripts/ai-news-digest.mjs --dry-run # fetch only, no writes
+ *   node _SYSTEM/Scripts/ai-news-digest.mjs --status  # show last digest
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';

@@ -46,7 +46,7 @@
 
 The following test suites exist but were **not re-run** during this verification:
 
-- `Scripts/backend-route-auth-matrix.test.mjs` (NUDIMMUD backend auth matrix)
+- `_SYSTEM/Scripts/backend-route-auth-matrix.test.mjs` (NUDIMMUD backend auth matrix)
 - `RESEARCH/ruflo/tests/docker-regression/scripts/run-security-tests.sh` (ruflo docker suite)
 
 **Note**: ADR self-attestation + code inspection is the closure evidence for this campaign. Recommend rerun before next `ruflo` release.

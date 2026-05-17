@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # pre-commit-independence.sh — Packet 13 independence regression gate
 # Wire into .git/hooks/pre-commit by adding:
-#   bash Scripts/pre-commit-independence.sh
+#   bash _SYSTEM/Scripts/pre-commit-independence.sh
 
 set -euo pipefail
 

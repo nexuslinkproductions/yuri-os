@@ -19,9 +19,9 @@ The target end state is the **nexbox capsule** — a portable, zero-Anthropic ru
 ## 2. Architecture Overview
 
 ### 2.1 Routing Layer
-- `Scripts/lane-dispatcher.mjs` — manifest-driven routing across 12 lanes
-- `Scripts/offload-contract.mjs` — per-lane capability contracts, cost tiers, privacy ratings
-- `Scripts/lane-capability-manifest.json` — single JSON config; model migrations = JSON edit only
+- `_SYSTEM/Scripts/lane-dispatcher.mjs` — manifest-driven routing across 12 lanes
+- `_SYSTEM/Scripts/offload-contract.mjs` — per-lane capability contracts, cost tiers, privacy ratings
+- `_SYSTEM/Scripts/lane-capability-manifest.json` — single JSON config; model migrations = JSON edit only
 - Primary execution lanes: `@deepseek` (v4-pro), `@amp` (gpt-5.5), `@nvidia` (nemotron-70b), `@codex` (gpt-5.4-mini), `@kimi` (k2), `@local` (qwen2.5:7b on Ollama)
 - Advisory-only lanes: OpenClaw (bridge), Hermes (forecast), Cassandra (risk), Obliteratus (governance gate)
 - **Zero Anthropic in default fan-out.** Claude is present but not in any automatic routing path.
@@ -40,10 +40,10 @@ Codex two-phase gate: Phase A writes unified-diff to `pulse-codex-pending.json` 
 
 ### 2.3 Memory System
 - `memory.db` — 1238 items (432 suppressed, 89 low-trust). SQLite via `_SYSTEM/OS_KERNEL/memory_governor.py`.
-- `Scripts/nisaba-dream-processor.mjs` — consumes `.claude/nisaba/learning/dream-queue.jsonl` via DeepSeek, synthesizes rules to `global.md`. **Fixed this session (M1). Was dead since P5 — 389 sessions of observations had zero synthesis.**
+- `_SYSTEM/Scripts/nisaba-dream-processor.mjs` — consumes `.claude/nisaba/learning/dream-queue.jsonl` via DeepSeek, synthesizes rules to `global.md`. **Fixed this session (M1). Was dead since P5 — 389 sessions of observations had zero synthesis.**
 - `.claude/hooks/memory-rag-inject.js` — queries `memory_governor.py read --limit 12` at SessionStart, injects top 10 LTM items as `<yuri-memory>` block.
 - `.claude/hooks/nisaba-on-stop.js` — captures human messages, files modified, commit messages, errors at session end.
-- `Scripts/memory-session-write.mjs` — writes session observations as episodic memory to `memory.db` on stop.
+- `_SYSTEM/Scripts/memory-session-write.mjs` — writes session observations as episodic memory to `memory.db` on stop.
 - Learning score: **59/100** (398 sessions baseline, trend was degrading, M1–M5 now live to reverse this).
 
 ### 2.4 Agent Ecosystem
@@ -131,7 +131,7 @@ Codex two-phase gate: Phase A writes unified-diff to `pulse-codex-pending.json` 
 
 ```bash
 # 1. Independence gate
-node Scripts/independence-check.mjs | tail -5
+node _SYSTEM/Scripts/independence-check.mjs | tail -5
 # PASS: fail=0, warn≤5, score≥71
 
 # 2. Memory health
@@ -139,7 +139,7 @@ python3 _SYSTEM/OS_KERNEL/memory_governor.py health
 # PASS: ≥1238 items, no fatal errors
 
 # 3. Learning score
-node Scripts/memory-learning-score.mjs --report
+node _SYSTEM/Scripts/memory-learning-score.mjs --report
 # PASS: score visible, sessions≥398
 
 # 4. nexbox integrity
@@ -147,7 +147,7 @@ node nexbox/verify.mjs
 # PASS: all checks green
 
 # 5. Dream processor queue state
-node Scripts/nisaba-dream-processor.mjs --dry-run
+node _SYSTEM/Scripts/nisaba-dream-processor.mjs --dry-run
 # PASS: queue state visible, no fatal errors
 
 # 6. RAG injection
@@ -159,15 +159,15 @@ echo '{"event_type":"SessionStart"}' | node .claude/hooks/memory-rag-inject.js |
 
 ```bash
 # 7. Lane routing logic
-node Scripts/lane-dispatcher.mjs --check
+node _SYSTEM/Scripts/lane-dispatcher.mjs --check
 # PASS: all 12 lanes show capability map, no missing keys
 
 # 8. Cortex classification dry-run
-node Scripts/pulse-orchestrator.mjs --dry-run
+node _SYSTEM/Scripts/pulse-orchestrator.mjs --dry-run
 # PASS: plan.json generated, complexity tier assigned
 
 # 9. Pre-commit gate
-node Scripts/pre-commit-independence.sh
+node _SYSTEM/Scripts/pre-commit-independence.sh
 # PASS: exits 0, no new Anthropic refs detected
 
 # 10. Spawn guard — safe subagent types pass through
@@ -185,9 +185,9 @@ echo '{"tool_name":"Agent","tool_input":{"model":"claude-sonnet-4-6"}}' | \
 
 1. Run a normal working session (3–5 non-trivial tasks)
 2. Confirm `.claude/nisaba/learning/sessions/` gains a new JSONL entry on stop
-3. Run `node Scripts/nisaba-dream-processor.mjs` — confirm rules written to `global.md`
+3. Run `node _SYSTEM/Scripts/nisaba-dream-processor.mjs` — confirm rules written to `global.md`
 4. Start a new session — confirm `<yuri-memory>` block contains synthesized content from the previous session
-5. Run `node Scripts/memory-learning-score.mjs --report` — score should increase vs baseline 59
+5. Run `node _SYSTEM/Scripts/memory-learning-score.mjs --report` — score should increase vs baseline 59
 
 Pass criteria: score increments at least +1 point, synthesized rules visible in `global.md`.
 
@@ -198,7 +198,7 @@ Pass criteria: score increments at least +1 point, synthesized rules visible in 
 unset ANTHROPIC_API_KEY DEEPSEEK_API_KEY OPENAI_API_KEY KIMI_API_KEY NVIDIA_API_KEY
 
 # Verify strict independence
-node Scripts/independence-check.mjs --strict
+node _SYSTEM/Scripts/independence-check.mjs --strict
 # PASS: exit 0
 
 # Verify nexbox local-only
@@ -223,7 +223,7 @@ ollama run deepseek-r1:8b "analyze the nexbox architecture and identify risks"
 # Let run for 24h, check for memory leaks, response quality degradation
 
 # After soak
-node Scripts/independence-check.mjs
+node _SYSTEM/Scripts/independence-check.mjs
 # Expected: +2 points (local.deep_reasoning now verified)
 
 # Update models.json
@@ -242,7 +242,7 @@ node Scripts/independence-check.mjs
 | 4 — P9 M4 soak | 24h ollama stable, models.json updated | ⏳ Hardware pending |
 | 5 — GitNexus fresh | index current | ✅ PASS — refreshed 2026-05-16 |
 | 6 — nexbox verify | --strict pass | ✅ PASS |
-| 7 — All readiness checks | node Scripts/launch-readiness-check.mjs → READY | ✅ PASS — 8/8 green |
+| 7 — All readiness checks | node _SYSTEM/Scripts/launch-readiness-check.mjs → READY | ✅ PASS — 8/8 green |
 | 8 — Spawn guard | ReferenceError resolved, blocking verified | ✅ PASS |
 
 **Gate status: READY (pending P9 hardware soak only)**

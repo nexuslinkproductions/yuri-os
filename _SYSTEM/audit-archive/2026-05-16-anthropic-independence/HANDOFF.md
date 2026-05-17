@@ -24,7 +24,7 @@ Anthropic Claude Agent SDK ops move to separately-billed pay-per-token API on **
 
 Sibling artifacts:
 - `_SYSTEM/NEXUSLINK/nexbox-handoff-v1.md` — client-deliverable bundle spec
-- `Scripts/independence-check.mjs` — runnable verifier (read-only, no mutations)
+- `_SYSTEM/Scripts/independence-check.mjs` — runnable verifier (read-only, no mutations)
 - `~/.claude/plans/nexus-pulse-orchestration-with-abundant-kazoo.md` — original approved plan
 
 ## 3 · What's true (verified, not asserted)
@@ -32,8 +32,8 @@ Sibling artifacts:
 - 11 subagents in `.claude/agents/` carry **zero** `model:` fields → inherit session default = Sonnet.
 - `.claude/settings.json:89` default `"model": "sonnet"`.
 - `.claude/hooks/nisaba-dream.js:75` shells `claude -p --model claude-haiku-4-5` (only live shell-out).
-- `Scripts/yuri-symbiotic-pulse.mjs:250` defaults `claude-sonnet-4-6` (cortex is itself Anthropic).
-- `Scripts/offload-contract.mjs:110` `@amp.smart=claude-opus-4-7` · `:270` `@claude` lane = `claude-sonnet-4-6`.
+- `_SYSTEM/Scripts/yuri-symbiotic-pulse.mjs:250` defaults `claude-sonnet-4-6` (cortex is itself Anthropic).
+- `_SYSTEM/Scripts/offload-contract.mjs:110` `@amp.smart=claude-opus-4-7` · `:270` `@claude` lane = `claude-sonnet-4-6`.
 - EOT skill spawns ≥4 Haiku workers per `/eot` (`SKILL.md:29,404,405,406`).
 - **5 skill `agent.md` files** carry explicit Anthropic models (verifier-discovered, missed by initial grep): `execution-domain-core`, `failure-evolution-loop`, `non-destructive-infinity-guard`, `parallel-clone-orchestrator`, `pattern-mirror-core`.
 - 2 live `@anthropic-ai/sdk` imports (`backend/`, `NEURAL-NETWORK/GitNexus/gitnexus-web/`) — standard API tier, not Agent SDK pricing change, but inventoried.
@@ -82,16 +82,16 @@ pwd                          # must be /Users/marcelspatz/YURI-OS-MUSUBI
 git branch --show-current    # must be main
 
 # 2. Re-baseline the verifier
-node Scripts/independence-check.mjs | tail -20
+node _SYSTEM/Scripts/independence-check.mjs | tail -20
 
 # 3. Get route-plan evidence for execution start
-./Scripts/ai route-plan "Execute Packet 1: De-Claude Symbiotic Pulse default cortex at Scripts/yuri-symbiotic-pulse.mjs:250"
+./_SYSTEM/Scripts/ai route-plan "Execute Packet 1: De-Claude Symbiotic Pulse default cortex at _SYSTEM/Scripts/yuri-symbiotic-pulse.mjs:250"
 
 # 4. GitNexus impact before touching the symbol
 # (via MCP) gitnexus_impact({target:'symbioticPulse', direction:'upstream'})
 
 # 5. Dispatch the first packet to Codex
-bash Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC from build-list.md §Packet 1>"
+bash _SYSTEM/Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC from build-list.md §Packet 1>"
 ```
 
 ## 8 · Pre-execution gates (always-on, do not bypass)
@@ -109,7 +109,7 @@ bash Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC from build-list.md §Packet
 3. `_SYSTEM/yuri-origin.md`
 4. `SOUL.md`
 5. Thin adapters (CLAUDE.md, AGENTS.md, …)
-6. `Scripts/offload-contract.mjs`
+6. `_SYSTEM/Scripts/offload-contract.mjs`
 7. On-demand skills/refs
 8. Model inference (lowest)
 
@@ -123,7 +123,7 @@ bash Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC from build-list.md §Packet
 
 ## 11 · Definition of done
 
-- `Scripts/independence-check.mjs --strict` exits 0 under `YURI_NO_ANTHROPIC=1`.
+- `_SYSTEM/Scripts/independence-check.mjs --strict` exits 0 under `YURI_NO_ANTHROPIC=1`.
 - 24h kill-switch drill on 2026-06-14 completes with no critical-workflow block.
 - Independence score ≥ 90 / 100.
 - NEXUSLINK landing renders "Symbiotic Independence" section live.

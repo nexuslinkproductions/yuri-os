@@ -36,7 +36,7 @@ const STRUCTURED_RUN_COMMANDS = new Set([
   'grep_file',
 ])
 const IMPLEMENTATION_FILES = [
-  'Scripts/yuri-guarded-executor.mjs',
+  '_SYSTEM/Scripts/yuri-guarded-executor.mjs',
   DEFAULT_POLICY_REL,
 ]
 const DB_SCOPE_FILES = [
@@ -202,11 +202,11 @@ function printHelp() {
       'Readonly read/search/check executor.',
       '',
       'Usage:',
-      '  node Scripts/yuri-guarded-executor.mjs --request <file> [--artifact-root <dir>]',
-      '  printf \'{...}\' | node Scripts/yuri-guarded-executor.mjs [--artifact-root <dir>]',
-      '  node Scripts/yuri-guarded-executor.mjs --plan <file> [--execute] [--artifact-root <dir>]',
-      '  node Scripts/yuri-guarded-executor.mjs --selftest [--artifact-root <dir>]',
-      '  node Scripts/yuri-guarded-executor.mjs --help',
+      '  node _SYSTEM/Scripts/yuri-guarded-executor.mjs --request <file> [--artifact-root <dir>]',
+      '  printf \'{...}\' | node _SYSTEM/Scripts/yuri-guarded-executor.mjs [--artifact-root <dir>]',
+      '  node _SYSTEM/Scripts/yuri-guarded-executor.mjs --plan <file> [--execute] [--artifact-root <dir>]',
+      '  node _SYSTEM/Scripts/yuri-guarded-executor.mjs --selftest [--artifact-root <dir>]',
+      '  node _SYSTEM/Scripts/yuri-guarded-executor.mjs --help',
     ].join('\n') + '\n'
   )
 }

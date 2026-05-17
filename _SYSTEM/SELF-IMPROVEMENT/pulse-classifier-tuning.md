@@ -24,7 +24,7 @@ const FILE_PATH    = /[/][\w-]+\.[a-z]+/i;
 const LANE_MENTION = /@\w+/;
 ```
 
-### Complexity classifier (`Scripts/offload-contract.mjs → classifyComplexity`)
+### Complexity classifier (`_SYSTEM/Scripts/offload-contract.mjs → classifyComplexity`)
 
 | Tier | Conditions (heuristic) |
 |------|------------------------|
@@ -61,7 +61,7 @@ FP candidates (len>10)   : 0
 
 | Milestone | Action |
 |-----------|--------|
-| **20 turns** | Run `Scripts/ai soak`. Check FP candidates. If >0, investigate hashes. |
+| **20 turns** | Run `_SYSTEM/Scripts/ai soak`. Check FP candidates. If >0, investigate hashes. |
 | **50 turns** | First calibration pass. Compare skip rate to 40–60% target. Tune length threshold if outside range. |
 | **100 turns** | Review MUTATE_VERBS — add any verbs that appear in spawn turns but were nearly skipped. Check tier mis-classifications via Cassandra/DeepSeek disagreement rate. |
 | **200 turns** | Classifier feedback loop (Backlog #6) — update `classifyComplexity` heuristics from archived WARN+ findings. |
@@ -99,16 +99,16 @@ Candidates to add at 50-turn milestone (if observed in false-negative spawns):
 
 ```bash
 # Quick soak check
-Scripts/ai soak
+_SYSTEM/Scripts/ai soak
 
 # JSON output for programmatic analysis
-node Scripts/pulse-trivial-audit.mjs --json
+node _SYSTEM/Scripts/pulse-trivial-audit.mjs --json
 
 # Full cortex state
-Scripts/ai cortex
+_SYSTEM/Scripts/ai cortex
 
 # Archive snapshot
-Scripts/ai cortex --json > .claude/state/pulse-soak-$(date +%Y%m%d-%H%M).json
+_SYSTEM/Scripts/ai cortex --json > .claude/state/pulse-soak-$(date +%Y%m%d-%H%M).json
 ```
 
 ---

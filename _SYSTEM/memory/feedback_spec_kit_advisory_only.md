@@ -14,7 +14,7 @@ The vendored Spec Kit at `integrations/spec-kit/` provides **format templates an
 ✅ Read `integrations/spec-kit/templates/tasks-template.md` to learn task structure
 ✅ Read `integrations/spec-kit/spec-driven.md` for methodology background
 ✅ Use `/spec-intake` slash command (NUDIMMUD-native authoring with Spec Kit format)
-✅ Use `Scripts/spec-pipeline.mjs` to generate plan + tasks from a spec
+✅ Use `_SYSTEM/Scripts/spec-pipeline.mjs` to generate plan + tasks from a spec
 
 ## What's Forbidden
 
@@ -22,7 +22,7 @@ The vendored Spec Kit at `integrations/spec-kit/` provides **format templates an
 ❌ Use Spec Kit's `scripts/{bash,powershell}/` shell implementations
 ❌ Adopt Spec Kit's `.github/workflows/` CI/CD
 ❌ Install Spec Kit as a dependency or `pip install`
-❌ Let Spec Kit override `Scripts/offload-contract.mjs` routing
+❌ Let Spec Kit override `_SYSTEM/Scripts/offload-contract.mjs` routing
 ❌ Bypass anime DNA gates because Spec Kit "doesn't have them"
 ❌ Replace Codex-primary rule with Spec Kit's own implementer dispatch
 ❌ Use Spec Kit's `extensions/git/` (NUDIMMUD has its own git/gitnexus discipline)
@@ -36,7 +36,7 @@ The vendored Spec Kit at `integrations/spec-kit/` provides **format templates an
 3. `_SYSTEM/yuri-origin.md`
 4. `SOUL.md`
 5. `AGENTS.md`, `CLAUDE.md`, `_SYSTEM/spec-kit-workflow-bridge.md` ← Spec Kit adapter sits here
-6. `Scripts/offload-contract.mjs`
+6. `_SYSTEM/Scripts/offload-contract.mjs`
 7. References / skills
 8. Model inference
 
@@ -89,5 +89,5 @@ See `_SYSTEM/spec-kit-workflow-bridge.md` for the full mapping with phase owners
 - `integrations/spec-kit/NUDIMMUD-ADOPTION.md` — original advisory-only declaration (pre-existing)
 - `_SYSTEM/spec-kit-workflow-bridge.md` — operational bridge doc (this campaign)
 - `.claude/commands/spec-intake.md` — entry-point slash command
-- `Scripts/spec-pipeline.mjs` — spec → plan + tasks generator
+- `_SYSTEM/Scripts/spec-pipeline.mjs` — spec → plan + tasks generator
 - User instruction 2026-05-14: "Be specific about how users will invoke the workflow in this repo"

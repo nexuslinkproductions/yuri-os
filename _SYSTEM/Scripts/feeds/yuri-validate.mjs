@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * ⬡ YURI TRADING :: yuri-validate.mjs — smoke test suite
- * Run: node Scripts/feeds/yuri-validate.mjs
+ * Run: node _SYSTEM/Scripts/feeds/yuri-validate.mjs
  * Exit 0 = all clear, Exit 1 = failures
  */
 const AGG='http://127.0.0.1:4201', API='http://127.0.0.1:3004';

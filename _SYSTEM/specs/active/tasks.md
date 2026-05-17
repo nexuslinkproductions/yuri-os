@@ -47,26 +47,26 @@ description: "Task list template for feature implementation"
 
 ## Generated CODEX Task Scaffolds
 
-### Task 1: `node Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
+### Task 1: `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
 
 GITNEXUS IMPACT (auto-generated):
   symbol: dispatchTokens
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/offload-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/offload.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
@@ -88,10 +88,10 @@ GITNEXUS IMPACT (auto-generated):
   risk: LOW
 
 CODEX TASK SPEC SCAFFOLD:
-  Goal: `node Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
+  Goal: `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
   Target files: <to be determined during implementation>
   Constraints: anime DNA gates apply; respect protected surfaces
-  Acceptance criteria: `node Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
+  Acceptance criteria: `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
   Test command: <to be defined>
   Rollback boundary: git checkout <files>
 
@@ -102,19 +102,19 @@ GITNEXUS IMPACT (auto-generated):
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/offload-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/offload.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
@@ -150,19 +150,19 @@ GITNEXUS IMPACT (auto-generated):
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/offload-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/offload.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
@@ -198,19 +198,19 @@ GITNEXUS IMPACT (auto-generated):
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/offload-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/offload.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
@@ -246,19 +246,19 @@ GITNEXUS IMPACT (auto-generated):
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract.mjs
+  symbol: _SYSTEM/Scripts/offload-contract.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload.sh
+  symbol: _SYSTEM/Scripts/offload.sh
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: Scripts/offload-contract-dispatch-check.mjs
+  symbol: _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW
-  symbol: node Scripts/offload-contract-dispatch-check.mjs
+  symbol: node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs
   direct dependents: 0
   affected processes: 0
   risk: LOW

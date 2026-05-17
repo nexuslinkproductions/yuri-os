@@ -110,7 +110,7 @@ Add `.draft-flags-section`, `.draft-flag-chip`, `.open-next-lead-btn` classes co
 
 **Target files — tests:**
 
-**`Scripts/cold-acquisition-crm-routes.test.mjs`**
+**`_SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs`**
 
 - Add: `GET /acquisition/api/next-lead` returns `lead_id` for a user with sendable leads
 - Add: `GET /acquisition/api/next-lead` returns `{ lead_id: null }` when no sendable leads
@@ -119,7 +119,7 @@ Add `.draft-flags-section`, `.draft-flag-chip`, `.open-next-lead-btn` classes co
 - Add: draft with "game-changer" is flagged `ai_spam_tone`
 - Add: clean draft passes evaluator with no flags
 
-**`Scripts/cold-acquisition-crm-ui.test.mjs`**
+**`_SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs`**
 
 - Add: "Open next lead" button present in Today header
 - Add: Draft tab renders `DRAFT FLAGS` section when flags present
@@ -142,9 +142,9 @@ Add `.draft-flags-section`, `.draft-flag-chip`, `.open-next-lead-btn` classes co
 
 **Acceptance criteria:**
 
-- [ ] `node Scripts/cold-acquisition-crm-ui.test.mjs` passes
+- [ ] `node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs` passes
 - [ ] `npx tsc -p acquisition/tsconfig.json --noEmit` exits 0
-- [ ] `PATH=... NODE_PATH=... TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs` passes
+- [ ] `PATH=... NODE_PATH=... TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs` passes
 - [ ] `npx vite build --config acquisition/vite.config.mts` exits 0
 - [ ] "Open next lead" button visible in Today header when sendable leads exist
 - [ ] Clicking it opens the highest-score sendable lead
@@ -155,9 +155,9 @@ Add `.draft-flags-section`, `.draft-flag-chip`, `.open-next-lead-btn` classes co
 
 **Test commands:**
 ```bash
-node Scripts/cold-acquisition-crm-ui.test.mjs
+node _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 npx tsc -p acquisition/tsconfig.json --noEmit
-PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node Scripts/cold-acquisition-crm-routes.test.mjs
+PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules/.bin:$PATH" NODE_PATH="/Users/marcelspatz/YURI-OS-MUSUBI/backend/node_modules" TS_NODE_TRANSPILE_ONLY=1 node _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs
 npx vite build --config acquisition/vite.config.mts
 ```
 
@@ -171,8 +171,8 @@ git add \
   acquisition/src/acquisition.css \
   backend/public/acquisition/assets/ \
   backend/public/acquisition/index.html \
-  Scripts/cold-acquisition-crm-routes.test.mjs \
-  Scripts/cold-acquisition-crm-ui.test.mjs
+  _SYSTEM/Scripts/cold-acquisition-crm-routes.test.mjs \
+  _SYSTEM/Scripts/cold-acquisition-crm-ui.test.mjs
 ```
 
 **Rollback boundary:** `git restore --staged .`

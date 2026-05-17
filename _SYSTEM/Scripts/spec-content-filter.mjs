@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Scripts/spec-content-filter.mjs — PATCH 016
+// _SYSTEM/Scripts/spec-content-filter.mjs — PATCH 016
 // Scan a spec markdown file for secret/credential patterns; replace with [REDACTED:<name>].
 // Atomic write (tmp + rename). Exits 0 always (advisory). Stderr-only summary.
 
@@ -22,7 +22,7 @@ const PATTERNS = [
 ];
 
 function usage() {
-  console.error('Usage: node Scripts/spec-content-filter.mjs <spec-file>');
+  console.error('Usage: node _SYSTEM/Scripts/spec-content-filter.mjs <spec-file>');
   console.error('       Scans spec markdown for secrets, redacts in-place if found.');
   console.error('       Exits 0 always (advisory). Summary to stderr.');
   process.exit(0);

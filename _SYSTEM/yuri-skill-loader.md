@@ -43,9 +43,9 @@ Each discovered skill is normalised into:
 ## CLI
 
 ```
-node Scripts/yuri-skill-loader.mjs --list
-node Scripts/yuri-skill-loader.mjs --skill <name>
-node Scripts/yuri-skill-loader.mjs --json
+node _SYSTEM/Scripts/yuri-skill-loader.mjs --list
+node _SYSTEM/Scripts/yuri-skill-loader.mjs --skill <name>
+node _SYSTEM/Scripts/yuri-skill-loader.mjs --json
 ```
 
 ## Non-Claims
@@ -60,7 +60,7 @@ node Scripts/yuri-skill-loader.mjs --json
 
 ## Integration into Fused Swarm Context
 
-Skills enter the context assembly path through `Scripts/ai` in the `_fused_swarm_extract_evidence_bundle()` function. After surface evidence and vault term matching are appended, the function calls `node Scripts/yuri-skill-loader.mjs --json` and appends active skills as:
+Skills enter the context assembly path through `_SYSTEM/Scripts/ai` in the `_fused_swarm_extract_evidence_bundle()` function. After surface evidence and vault term matching are appended, the function calls `node _SYSTEM/Scripts/yuri-skill-loader.mjs --json` and appends active skills as:
 
 ```
 surface=skills
@@ -84,11 +84,11 @@ surface=skills
 
 ```bash
 # Skills present (default)
-bash Scripts/ai @swarm 'query with rules and vault'
+bash _SYSTEM/Scripts/ai @swarm 'query with rules and vault'
 grep 'SKILL:' /private/tmp/yuri-artifacts/<run_id>/evidence-bundle.txt
 
 # Skills disabled via env gate
-YURI_SKILL_LOADER_DISABLE=1 bash Scripts/ai @swarm 'query with rules and vault'
+YURI_SKILL_LOADER_DISABLE=1 bash _SYSTEM/Scripts/ai @swarm 'query with rules and vault'
 grep 'SKILL:' /private/tmp/yuri-artifacts/<run_id>/evidence-bundle.txt  # returns empty
 ```
 
@@ -98,7 +98,7 @@ Set `YURI_SKILL_LOADER_DISABLE=1` in the environment to skip skill injection. Us
 
 ### Native Probability Trigger
 
-`Scripts/ai @swarm` treats probability, uncertainty, forecast, expected-value, calibration, risk, and decision language as a skills-context trigger. In those cases, `probabilistic-decision-core` is sorted first in the skills bundle so operational uncertainty doctrine reaches downstream lanes before the bundle line cap.
+`_SYSTEM/Scripts/ai @swarm` treats probability, uncertainty, forecast, expected-value, calibration, risk, and decision language as a skills-context trigger. In those cases, `probabilistic-decision-core` is sorted first in the skills bundle so operational uncertainty doctrine reaches downstream lanes before the bundle line cap.
 
 ### Important
 
@@ -110,9 +110,9 @@ This is **doctrine/context injection, not skill execution**. Skills are exposed 
 The skill loader supports hash-based integrity checking:
 
 ```bash
-node Scripts/yuri-skill-loader.mjs --validate
-node Scripts/yuri-skill-loader.mjs --validate --json
-node Scripts/yuri-skill-loader.mjs --write-manifest
+node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate
+node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json
+node _SYSTEM/Scripts/yuri-skill-loader.mjs --write-manifest
 ```
 
 ### Manifest Location
@@ -147,7 +147,7 @@ Validation is integrity checking, not authority proof. A matching hash means the
 ### Bootstrapping
 
 ```bash
-node Scripts/yuri-skill-loader.mjs --write-manifest
+node _SYSTEM/Scripts/yuri-skill-loader.mjs --write-manifest
 ```
 Generates the initial manifest from the current state of all discovered skills. Run after adding or editing any discovered skill file under `.cline/rules/` or `.claude/skills/`. Commit the manifest alongside skill changes.
 
@@ -175,6 +175,6 @@ Skill registry metadata is emitted into fused swarm artifacts:
 ### Verification
 
 ```bash
-bash Scripts/ai @swarm 'using rules and vault'
+bash _SYSTEM/Scripts/ai @swarm 'using rules and vault'
 jq '.skill_count, .skills_present, .skills[].name' <artifact_dir>/summary.json
 ```

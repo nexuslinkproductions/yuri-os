@@ -16,16 +16,16 @@
 | `_SYSTEM/lane-verification-2026-05-13.md` | 15-lane callability matrix + ollama scheme-bug root cause + Codex spec | DeepSeek V4 + Claude verify |
 | `_SYSTEM/scout-errors-2026-05-13-triage.md` | Scout failure cluster + root cause (banned `claude -p` pattern) + 3 Codex specs | Claude (pattern was uniform, no DeepSeek needed) |
 | `_SYSTEM/memory-layer-spec.md` | Five-tier memory specification (NIGREDO→RUBEDO mapping); spec only | DeepSeek V4 Pro (reasoning=high); Claude merge |
-| `Scripts/_lib/progress.mjs` | Progress notification emitter; tested, live | codex-spark; Claude verified self-test |
+| `_SYSTEM/Scripts/_lib/progress.mjs` | Progress notification emitter; tested, live | codex-spark; Claude verified self-test |
 | `_SYSTEM/RUNBOOK.md` | Operational runbook (daily/weekly/emergency procedures, T7 boundary, lane discipline) | Claude |
 | `memory/feedback_t7_paths_are_intentional.md` | New persistent memory locking the T7 boundary | Claude |
 
 ## Headline Findings (real gaps, evidence-backed)
 
 1. **ADR-061 P0 security items are already closed.** Code inspection confirms S-1 GCS execFileSync, S-2 SENSITIVE_KEYS lowercase compare, S-3 validatePackageName, S-4 isValidCID guard, S-5 10 MB MAX_BUFFER_SIZE. Perplexity's "5 open vulns" claim was false (ADR self-attests Fixed; code matches).
-2. **Live callable lanes today: only 2.** `deepseek` + `codex-spark`. Seven Ollama-family lanes blocked by one trivial bug: `OLLAMA_HOST=127.0.0.1:11434` lacks `http://`. Single defensive coercion in `Scripts/ollama-adapter.mjs:88` unblocks 7 lanes.
+2. **Live callable lanes today: only 2.** `deepseek` + `codex-spark`. Seven Ollama-family lanes blocked by one trivial bug: `OLLAMA_HOST=127.0.0.1:11434` lacks `http://`. Single defensive coercion in `_SYSTEM/Scripts/ollama-adapter.mjs:88` unblocks 7 lanes.
 3. **Codex Responses API is config-locked** — `Missing API key for lane: codex`. Use `codex-spark` (CLI) until credentials land.
-4. **Scout-runner violates a core memory rule.** Spawns `claude -p --model claude-haiku-4-5-20251001` ~99% of failures — that pattern is banned per `memory/feedback_no_anthropic_agents.md`. Rotation alone is wrong fix; needs migration to `Scripts/offload.sh -m deepseek`.
+4. **Scout-runner violates a core memory rule.** Spawns `claude -p --model claude-haiku-4-5-20251001` ~99% of failures — that pattern is banned per `memory/feedback_no_anthropic_agents.md`. Rotation alone is wrong fix; needs migration to `_SYSTEM/Scripts/offload.sh -m deepseek`.
 5. **enki_state.md is NOT stale.** Perplexity claimed 32 days; actual was 8 days. The "stale context" headline was hallucinated.
 6. **Auth middleware is already hardened.** `backend/src/middleware/auth.ts` enforces 16-char API_KEY + boot-fail. Perplexity's "default API key fallback" doesn't exist.
 

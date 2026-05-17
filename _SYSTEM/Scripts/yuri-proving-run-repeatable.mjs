@@ -14,7 +14,7 @@ const canonicalImport = path.join(__dirname, 'yuri-canonical-memory-import.mjs')
 
 const usage = [
   'Usage:',
-  '  node Scripts/yuri-proving-run-repeatable.mjs --run-root dir [--db file] [--timeout-ms n] [--concurrency n] [--contradictions-reviewed]',
+  '  node _SYSTEM/Scripts/yuri-proving-run-repeatable.mjs --run-root dir [--db file] [--timeout-ms n] [--concurrency n] [--contradictions-reviewed]',
   '',
   'Regenerates reference verification, link cleanup, claim graph, promotion gate, canonical import dry-run, rollback rehearsal against a copied DB, and final report.',
 ].join('\n');

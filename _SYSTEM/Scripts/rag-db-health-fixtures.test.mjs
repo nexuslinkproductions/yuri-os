@@ -53,7 +53,7 @@ try {
     'corrupt database should fail integrity, quick check, or open with an error'
   );
 
-  const scriptResult = spawnSync(process.execPath, ['Scripts/prompt-rag-health.mjs'], {
+  const scriptResult = spawnSync(process.execPath, ['_SYSTEM/Scripts/prompt-rag-health.mjs'], {
     cwd: REPO_ROOT,
     env: {
       ...process.env,

@@ -47,7 +47,7 @@ export function curlHeaderArgs(apiKey) {
 }
 
 function usage() {
-  return `Usage: node Scripts/auth.mjs <command> [backend-url]
+  return `Usage: node _SYSTEM/Scripts/auth.mjs <command> [backend-url]
 
 Commands:
   key             Print the resolved backend API key

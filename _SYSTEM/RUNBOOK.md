@@ -15,8 +15,8 @@
 | Palace index parseable | `grep -q '^#\+ ' claude-palace-out/palace-index.md && echo OK` | prints `OK` |
 | Session state schema | `jq -e .schema_version .claude/state/session-state.json` | non-zero exit means corruption |
 | Active launchd agents | `launchctl list \| grep nudimmud` | shows 4+ entries (ollama-kv, shellservice, wiki-rag, yuri-session-runtime) |
-| DeepSeek lane live | `bash Scripts/offload.sh -m deepseek --no-tools "OK?"` | returns a model reply |
-| Codex-spark lane live | `bash Scripts/offload.sh -m codex-spark "OK?"` | returns a model reply |
+| DeepSeek lane live | `bash _SYSTEM/Scripts/offload.sh -m deepseek --no-tools "OK?"` | returns a model reply |
+| Codex-spark lane live | `bash _SYSTEM/Scripts/offload.sh -m codex-spark "OK?"` | returns a model reply |
 
 ## Weekly Maintenance
 
@@ -39,7 +39,7 @@
 - Routing priority: `@code-local → @deepseek → @triage-local → @summarize-local → @ollama-local → @gpt-oss → @swarm → @kimi → @claude`.
 - **Live lanes as of 2026-05-13:** `deepseek`, `codex-spark`. All Ollama-family + `gpt-oss` BLOCKED on a single env/adapter bug — see `_SYSTEM/lane-verification-2026-05-13.md`.
 - Never call `Agent()` with a Claude/Haiku/Sonnet/Opus model (memory rule, banned).
-- All `Scripts/offload.sh` Bash invocations: `timeout: 600000`.
+- All `_SYSTEM/Scripts/offload.sh` Bash invocations: `timeout: 600000`.
 
 ## Emergency Procedures
 
@@ -48,13 +48,13 @@
 **Root cause:** Scout-runner uses banned `claude -p --model claude-haiku-4-5-20251001` pattern. See `_SYSTEM/scout-errors-2026-05-13-triage.md`.
 **Action:**
 1. Do NOT install `com.nudimmud.eot-refresh.plist` (deferred until scout is rebuilt).
-2. Apply the Codex spec from the triage doc to migrate scout to `Scripts/offload.sh -m deepseek`.
+2. Apply the Codex spec from the triage doc to migrate scout to `_SYSTEM/Scripts/offload.sh -m deepseek`.
 3. Add size-based rotation (1 MB ring) as the second spec.
 
 ### Context stale or palace corruption
 **Symptom:** Session-start warns `PALACE: STALE`, or palace-index.md fails `grep -q '^#\+ '` check.
 **Action:**
-1. `./Scripts/ai eot` to regenerate enki_state + palace.
+1. `./_SYSTEM/Scripts/ai eot` to regenerate enki_state + palace.
 2. If still broken, restore from git: `git checkout HEAD -- claude-palace-out/palace-index.md`.
 3. Worst case: restore from T7 mirror at `/Volumes/T7/NUDIMMUD/claude-palace-out/palace-index.md` (read-only copy).
 
@@ -70,7 +70,7 @@
 **Symptom:** Any Ollama-family lane fails with `ERR_INVALID_URL 127.0.0.1:11434/api/chat`.
 **Root cause:** `OLLAMA_HOST` env var lacks `http://` scheme.
 **Quick fix:** `export OLLAMA_HOST=http://127.0.0.1:11434` (and add to `~/.zshrc`).
-**Durable fix:** Apply Codex spec in `_SYSTEM/lane-verification-2026-05-13.md` to add defensive scheme coercion in `Scripts/ollama-adapter.mjs:88`.
+**Durable fix:** Apply Codex spec in `_SYSTEM/lane-verification-2026-05-13.md` to add defensive scheme coercion in `_SYSTEM/Scripts/ollama-adapter.mjs:88`.
 
 ### Memory core lost or corrupted
 **Symptom:** `memory-core.md` empty, truncated, or missing.
@@ -81,7 +81,7 @@
 
 ## Long-Operation Progress
 
-Long-running scripts (palace rebuild, EOT, memory eviction, etc.) should emit progress via `Scripts/_lib/progress.mjs`:
+Long-running scripts (palace rebuild, EOT, memory eviction, etc.) should emit progress via `_SYSTEM/Scripts/_lib/progress.mjs`:
 
 ```js
 import { emitProgress } from './_lib/progress.mjs';
@@ -99,7 +99,7 @@ pwd                                              # /Users/marcelspatz/YURI-OS-MU
 git branch --show-current                        # main
 git status --short                               # not blocking, but inspect
 launchctl list | grep nudimmud | wc -l           # >= 4
-bash Scripts/offload.sh -m deepseek --no-tools "OK?" 2>&1 | tail -1
+bash _SYSTEM/Scripts/offload.sh -m deepseek --no-tools "OK?" 2>&1 | tail -1
 ```
 
 If any line fails, stop and reconcile before starting work. Do not switch directories or branches automatically; report and ask.

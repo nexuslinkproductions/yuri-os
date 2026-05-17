@@ -9,9 +9,9 @@
  *   - Calls self-model.mjs to update behavioral fingerprint
  *
  * CLI:
- *   node Scripts/cross-session-miner.mjs           # full run
- *   node Scripts/cross-session-miner.mjs --dry-run
- *   node Scripts/cross-session-miner.mjs --status
+ *   node _SYSTEM/Scripts/cross-session-miner.mjs           # full run
+ *   node _SYSTEM/Scripts/cross-session-miner.mjs --dry-run
+ *   node _SYSTEM/Scripts/cross-session-miner.mjs --status
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';

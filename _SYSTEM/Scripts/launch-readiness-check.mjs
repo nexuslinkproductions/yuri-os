@@ -4,9 +4,9 @@
  * Unified Yuri OS launch gate runner.
  *
  * Usage:
- *   node Scripts/launch-readiness-check.mjs            # human table (default)
- *   node Scripts/launch-readiness-check.mjs --json     # structured JSON
- *   node Scripts/launch-readiness-check.mjs --gate     # exit 0 = READY, 1 = NOT READY
+ *   node _SYSTEM/Scripts/launch-readiness-check.mjs            # human table (default)
+ *   node _SYSTEM/Scripts/launch-readiness-check.mjs --json     # structured JSON
+ *   node _SYSTEM/Scripts/launch-readiness-check.mjs --gate     # exit 0 = READY, 1 = NOT READY
  */
 
 import { spawnSync } from 'node:child_process';

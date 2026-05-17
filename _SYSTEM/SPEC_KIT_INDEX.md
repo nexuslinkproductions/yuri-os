@@ -28,7 +28,7 @@ Quick reference for the Spec Kit operational surface — what to invoke, in what
                                  │
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  node Scripts/spec-pipeline.mjs --spec specs/active/<slug>.md               │
+│  node _SYSTEM/Scripts/spec-pipeline.mjs --spec specs/active/<slug>.md               │
 │  Generates plan.md + tasks.md siblings.                                     │
 │  PATCH 017: tasks derived from spec acceptance criteria.                    │
 │  PATCH 012: stderr warning when GitNexus impact skipped.                    │
@@ -53,7 +53,7 @@ Quick reference for the Spec Kit operational surface — what to invoke, in what
                                  │ (all tasks committed)
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  node Scripts/spec-archive.mjs --execute                                    │
+│  node _SYSTEM/Scripts/spec-archive.mjs --execute                                    │
 │  Moves completed spec to specs/done/YYYY-MM/<slug>/                         │
 │  Detection: tasks.md tasks all marked - [x] OR frontmatter status: done     │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -65,9 +65,9 @@ Quick reference for the Spec Kit operational surface — what to invoke, in what
 |---|---|---|
 | `/spec-intake "<feature>"` | Author spec from feature idea (DeepSeek auto-fill + content filter) | Slash command |
 | `/spec-clarify [<spec-path>]` | DeepSeek 1M ambiguity audit on a spec | Slash command (optional) |
-| `node Scripts/spec-pipeline.mjs --spec <path>` | Generate plan.md + tasks.md (with GitNexus impact) | Script |
+| `node _SYSTEM/Scripts/spec-pipeline.mjs --spec <path>` | Generate plan.md + tasks.md (with GitNexus impact) | Script |
 | `/spec-analyze [<plan-path>]` | Probabilistic risk + complexity scoring | Slash command (optional) |
-| `node Scripts/spec-archive.mjs [--execute]` | Archive completed specs to specs/done/ | Script |
+| `node _SYSTEM/Scripts/spec-archive.mjs [--execute]` | Archive completed specs to specs/done/ | Script |
 | `/constitution [--write]` | Render NUDIMMUD project constitution from yuri-origin + memory rules | Slash command |
 
 ## Storage
@@ -93,7 +93,7 @@ specs/
 3. `_SYSTEM/yuri-origin.md`
 4. `SOUL.md`
 5. `AGENTS.md`, `_SYSTEM/spec-kit-workflow-bridge.md` ← Spec Kit adapter sits here
-6. `Scripts/offload-contract.mjs`
+6. `_SYSTEM/Scripts/offload-contract.mjs`
 7. References / skills
 8. Model inference
 

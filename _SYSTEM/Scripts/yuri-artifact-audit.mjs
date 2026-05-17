@@ -21,16 +21,16 @@ const RISK_TERMS = [
 
 const USAGE = [
   'Usage:',
-  '  node Scripts/yuri-artifact-audit.mjs source-manifest [--out file] [--derived file] <files...>',
-  '  node Scripts/yuri-artifact-audit.mjs reference-registry [--out file] [--derived file] <files...>',
-  '  node Scripts/yuri-artifact-audit.mjs reference-verify --registry file [--out file] [--limit n] [--timeout-ms n] [--concurrency n]',
-  '  node Scripts/yuri-artifact-audit.mjs link-cleanup-report --registry file --verification file [--out file]',
-  '  node Scripts/yuri-artifact-audit.mjs section-manifest [--out file] [--derived file] <files...>',
-  '  node Scripts/yuri-artifact-audit.mjs document-claims [--out file] [--derived file] <files...>',
-  '  node Scripts/yuri-artifact-audit.mjs claim-evidence-graph --claims file --registry file --verification file --sections file [--out file] [--verified-out file] [--timeout-ms n] [--concurrency n]',
-  '  node Scripts/yuri-artifact-audit.mjs promotion-gate --graph file --verified file [--out file] [--contradictions-reviewed]',
-  '  node Scripts/yuri-artifact-audit.mjs md-vs-html [--format json|markdown] [--out file] --markdown file --html file',
-  '  node Scripts/yuri-artifact-audit.mjs control-surface --manifest file --comparison file [--claims file] [--title text] [--out file]',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs source-manifest [--out file] [--derived file] <files...>',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs reference-registry [--out file] [--derived file] <files...>',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs reference-verify --registry file [--out file] [--limit n] [--timeout-ms n] [--concurrency n]',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs link-cleanup-report --registry file --verification file [--out file]',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs section-manifest [--out file] [--derived file] <files...>',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs document-claims [--out file] [--derived file] <files...>',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs claim-evidence-graph --claims file --registry file --verification file --sections file [--out file] [--verified-out file] [--timeout-ms n] [--concurrency n]',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs promotion-gate --graph file --verified file [--out file] [--contradictions-reviewed]',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs md-vs-html [--format json|markdown] [--out file] --markdown file --html file',
+  '  node _SYSTEM/Scripts/yuri-artifact-audit.mjs control-surface --manifest file --comparison file [--claims file] [--title text] [--out file]',
 ].join('\n');
 
 const [command, ...argv] = process.argv.slice(2);

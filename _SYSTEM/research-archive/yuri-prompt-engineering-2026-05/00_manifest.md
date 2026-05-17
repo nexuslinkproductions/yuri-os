@@ -30,7 +30,7 @@ The doctrine replaces identity-roleplay phrasing with explicit task contracts:
 ## Governance
 
 - Canonical origin: `_SYSTEM/yuri-origin.md`
-- Evidence contract: `Scripts/yuri-evidence-contract.mjs`
+- Evidence contract: `_SYSTEM/Scripts/yuri-evidence-contract.mjs`
 - Skill output: `.agents/skills/prompt-engineering/`
 - Source registry: `01_source_registry.md`
 

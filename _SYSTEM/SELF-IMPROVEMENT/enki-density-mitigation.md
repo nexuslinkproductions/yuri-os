@@ -56,10 +56,10 @@ ENKI receives `{ advisor_findings, gate_status, memory_context, tool_outputs, sc
 Add `STATE_AGGREGATOR` node to `yuri-os-dashboard.html` GRAPH_STATE at position between ADVISORS tier and ENKI. Add 5 aggregation category edges. Reroute existing ENKI-bound edges through STATE_AGGREGATOR.
 
 **Phase 2 (pulse-orchestrator):**
-Add `aggregateAdvisorOutputs()` function to `Scripts/pulse-orchestrator.mjs` that merges advisor findings before passing to main-session synthesis. This reduces the main-session merge loop complexity.
+Add `aggregateAdvisorOutputs()` function to `_SYSTEM/Scripts/pulse-orchestrator.mjs` that merges advisor findings before passing to main-session synthesis. This reduces the main-session merge loop complexity.
 
 **Phase 3 (lane dispatcher):**
-When `Scripts/lane-dispatcher.mjs` (Packet 15) lands, route all advisory outputs through the aggregator as a first-class pipeline stage.
+When `_SYSTEM/Scripts/lane-dispatcher.mjs` (Packet 15) lands, route all advisory outputs through the aggregator as a first-class pipeline stage.
 
 ---
 

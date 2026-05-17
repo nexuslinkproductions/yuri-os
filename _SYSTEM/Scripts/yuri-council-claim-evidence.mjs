@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const USAGE = [
   'Usage:',
-  '  node Scripts/yuri-council-claim-evidence.mjs split [--out file] <advisory.md...>',
+  '  node _SYSTEM/Scripts/yuri-council-claim-evidence.mjs split [--out file] <advisory.md...>',
 ].join('\n');
 
 const [command, ...argv] = process.argv.slice(2);

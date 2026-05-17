@@ -7,7 +7,7 @@ This runbook covers candidate restore verification for the Yuri OS backend SQLit
 Use a temporary or copied source database outside protected paths and a candidate target outside `backend/data/`:
 
 ```bash
-node Scripts/backend-db-recovery.mjs \
+node _SYSTEM/Scripts/backend-db-recovery.mjs \
   --source /tmp/yuri-db/source.db \
   --target /tmp/yuri-db/candidate.db \
   --dry-run \
@@ -23,7 +23,7 @@ Dry run creates a temporary verification candidate under the OS temp directory, 
 3. Create the candidate database:
 
 ```bash
-node Scripts/backend-db-recovery.mjs \
+node _SYSTEM/Scripts/backend-db-recovery.mjs \
   --source /tmp/yuri-db/source.db \
   --target /tmp/yuri-db/candidate.db \
   --json

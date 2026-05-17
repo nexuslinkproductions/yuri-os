@@ -14,7 +14,7 @@ import {
 } from './nudimmud/status-line.mjs';
 
 const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
-const OFFLOAD_SH = path.join(REPO_ROOT, 'Scripts/offload.sh');
+const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
 const TOKENMAXXING_STATE = path.join(REPO_ROOT, '.claude/state/tokenmaxxing-state.json');
 const RUNS_DIR = path.join(os.homedir(), '.nudimmud', 'runs');
 const RUNS_FALLBACK_DIR = path.join('/private/tmp', 'nudimmud-runs');
@@ -190,8 +190,8 @@ const saveTranscript = (turnId, request, output, meta) => {
 const CLAIM_VERIFIER_SMOKE_OUTPUT = [
   'RESULT_LABEL: 08N_FAKE_PASS_COMMITTED',
   'HEAD: 97b8c2d66',
-  'STAGED: Scripts/yuri-repl.mjs',
-  'FILES_CHANGED: Scripts/yuri-repl.mjs',
+  'STAGED: _SYSTEM/Scripts/yuri-repl.mjs',
+  'FILES_CHANGED: _SYSTEM/Scripts/yuri-repl.mjs',
   'VALIDATION: PASS',
   'git commit success',
 ].join('\n');
@@ -356,7 +356,7 @@ const gitLines = (cmd) => {
 const readLocalTruth = () => {
   const head = git('git rev-parse --short HEAD');
   const stagedAfter = gitLines('git diff --cached --name-only');
-  const targetDirty = gitLines('git diff --name-only -- Scripts/yuri-repl.mjs');
+  const targetDirty = gitLines('git diff --name-only -- _SYSTEM/Scripts/yuri-repl.mjs');
   return { head, stagedAfter, targetDirty };
 };
 
@@ -703,7 +703,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   const { branch, head, staged, tmx } = getStatus();
   console.log(sectionTop('NUDIMMUD ROUTE'));
   console.log(`${c('│')} ${d('LANE     ')} ${g(state.model)}`);
-  console.log(`${c('│')} ${d('TYPE     ')} ${g('local-offload › Scripts/offload.sh')}`);
+  console.log(`${c('│')} ${d('TYPE     ')} ${g('local-offload › _SYSTEM/Scripts/offload.sh')}`);
   console.log(`${c('│')} ${d('BRANCH   ')} ${g(branch)}  ${d('HEAD')} ${d(head)}  ${d('STAGED')} ${staged > 0 ? c(String(staged)) : d('0')}`);
   console.log(`${c('│')} ${d('TMX      ')} ${tmx.includes('ACTIVE') ? g(tmx) : d(tmx)}`);
   console.log(`${c('│')} ${d('SENT     ')} ${d(new Date().toISOString())}`);
@@ -713,7 +713,7 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   console.log(outputBanner('MODEL OUTPUT', turnId));
 
   if (!existsSync(OFFLOAD_SH)) {
-    process.stdout.write(`${r('[ERROR] Scripts/offload.sh not found')}\n`);
+    process.stdout.write(`${r('[ERROR] _SYSTEM/Scripts/offload.sh not found')}\n`);
     console.log('');
     printCompactOutputEnd(turnId, 0);
     state.busy = false;
@@ -897,8 +897,8 @@ const runSelfTest = () => {
   const fakeOutput = [
     'RESULT_LABEL: X_PASS_COMMITTED',
     'HEAD: 97b8c2d66',
-    'STAGED: Scripts/yuri-repl.mjs',
-    'FILES_CHANGED: Scripts/yuri-repl.mjs',
+    'STAGED: _SYSTEM/Scripts/yuri-repl.mjs',
+    'FILES_CHANGED: _SYSTEM/Scripts/yuri-repl.mjs',
     'VALIDATION: PASS',
     'git commit success',
   ].join('\n');

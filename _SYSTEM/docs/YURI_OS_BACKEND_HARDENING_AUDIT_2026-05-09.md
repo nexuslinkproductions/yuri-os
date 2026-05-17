@@ -54,7 +54,7 @@ Repo translation:
 | GitNexus | Partially wired / tooling degraded | `npx gitnexus status` up to date; `query` returns no results due read-only FTS write failure; direct `context`/`impact` worked. |
 | Vault ingestion | Partially wired | `backend/src/services/vaultIngestion.ts:279-378`; async embeddings mean ingestion can report before retrieval quality is proven. |
 | Vault watcher | Live but narrow | `backend/src/services/vaultWatcher.ts:32-124`; watches selected dirs, debounced ingestion. |
-| Wiki RAG launchd | Live but incomplete gate | `node Scripts/wiki-rag-health.mjs` returned `ok`; health script opens DB but does not run `PRAGMA integrity_check` (`Scripts/wiki-rag-health.mjs:55-190`). |
+| Wiki RAG launchd | Live but incomplete gate | `node _SYSTEM/Scripts/wiki-rag-health.mjs` returned `ok`; health script opens DB but does not run `PRAGMA integrity_check` (`_SYSTEM/Scripts/wiki-rag-health.mjs:55-190`). |
 | Stability guard | Stubbed / partial | Runs every 10s (`stabilityGuard.ts:20-24`), reconnects Obsidian, but escalation is comment-only (`stabilityGuard.ts:64-66`). |
 | Telemetry/status | Risky / theatrical | Random status fields in `server.ts:282-299`; `GITNEXUS_MCP` hardcoded connected in `server.ts:370-374`; OpenTelemetry absent. |
 | Oracle/Conclave | Partially wired / simulated | `oracleService.ts:35-425`; Conclave nodes use demo/simple parsing and canned fallbacks (`ArchitectNode.ts:27`, `CraftsmanNode.ts:33-36`). |
@@ -171,7 +171,7 @@ Evidence:
 - Random telemetry values: `server.ts:290-294`.
 - Hardcoded `GITNEXUS_MCP` status: `server.ts:370-374`.
 - OpenTelemetry absent; logs are console/file strings without trace/span correlation.
-- `Scripts/wiki-rag-health.mjs` passes despite corrupted backend DB.
+- `_SYSTEM/Scripts/wiki-rag-health.mjs` passes despite corrupted backend DB.
 
 Failure mode:
 
@@ -246,7 +246,7 @@ Required action:
 
 Evidence:
 
-- Watcher hashes `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-deferred.md` (`Scripts/wiki-rag-watch.mjs:19`).
+- Watcher hashes `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-deferred.md` (`_SYSTEM/Scripts/wiki-rag-watch.mjs:19`).
 - Actual file is `09c-rag-gate-deferred.md`; ingest script uses the actual path (`backend/src/scripts/ingestWikiControlPlane.ts:29`).
 
 Failure mode:
@@ -493,5 +493,5 @@ Commands run:
 - Bad CORS origin: 500 HTML stack trace.
 - `sqlite3 backend/data/yuri.db "PRAGMA integrity_check"`: failed.
 - `sqlite3 _SYSTEM/OS_KERNEL/memory.db "PRAGMA integrity_check"`: ok.
-- `node Scripts/wiki-rag-health.mjs`: ok despite backend DB integrity failure.
+- `node _SYSTEM/Scripts/wiki-rag-health.mjs`: ok despite backend DB integrity failure.
 - `npx gitnexus detect-changes --repo yuri-os-musubi --scope unstaged`: high risk due broad pre-existing dirty worktree, 32 files / 152 symbols / 7 affected processes.

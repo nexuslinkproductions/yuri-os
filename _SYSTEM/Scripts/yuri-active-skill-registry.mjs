@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 const SCHEMA_VERSION = 1;
 const MAX_ACTIVE = 8;
 const MAX_PER_STAGE = 2;
-const LOADER_SOURCE = 'Scripts/yuri-skill-loader.mjs --json';
+const LOADER_SOURCE = '_SYSTEM/Scripts/yuri-skill-loader.mjs --json';
 const MANIFEST_SOURCE = '_SYSTEM/skill-hash-registry.json';
 
 const STAGE_IDS = Object.freeze([

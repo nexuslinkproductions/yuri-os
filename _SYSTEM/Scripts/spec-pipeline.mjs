@@ -8,7 +8,7 @@ const PLAN_TEMPLATE = 'integrations/spec-kit/templates/plan-template.md'
 const TASKS_TEMPLATE = 'integrations/spec-kit/templates/tasks-template.md'
 
 function usage() {
-  return `Usage: node Scripts/spec-pipeline.mjs [options]
+  return `Usage: node _SYSTEM/Scripts/spec-pipeline.mjs [options]
 
 Generate plan.md and tasks.md from a spec.md using Spec Kit templates.
 

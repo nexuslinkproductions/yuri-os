@@ -24,7 +24,7 @@ const MARKERS = {
 };
 
 function usage() {
-  console.error('Usage: node Scripts/embed-backfill.mjs --db <absolute-path> [--model <name>] [--limit <n>] [--dry-run] [--apply]');
+  console.error('Usage: node _SYSTEM/Scripts/embed-backfill.mjs --db <absolute-path> [--model <name>] [--limit <n>] [--dry-run] [--apply]');
 }
 
 function fail(marker, message, code = 1) {
@@ -139,7 +139,7 @@ async function postEmbedding(text, model, baseUrl) {
     text,
     model,
     baseUrl,
-    sourcePath: 'Scripts/embed-backfill.mjs',
+    sourcePath: '_SYSTEM/Scripts/embed-backfill.mjs',
     operationType: 'embed_backfill_embedding'
   });
   if (!Array.isArray(embedding) || embedding.some((value) => typeof value !== 'number' || !Number.isFinite(value))) {

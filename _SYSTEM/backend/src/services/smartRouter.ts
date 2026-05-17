@@ -66,7 +66,7 @@ interface RouterPolicy {
     tasks?: Partial<Record<BridgeTaskIntent, RouterPolicyTask>>;
 }
 
-const ROUTER_POLICY_PATH = path.resolve(__dirname, '../../../Scripts/router-policy.json');
+const ROUTER_POLICY_PATH = path.resolve(__dirname, '../../../_SYSTEM/Scripts/router-policy.json');
 const ROUTER_POLICY = loadRouterPolicy();
 const LOCAL_MODEL_POLICY_PATH = path.resolve(__dirname, '../../../.claude/config/models.json');
 const LOCAL_MODEL_POLICY = loadLocalModelPolicy();
@@ -191,7 +191,7 @@ export class SmartRouter {
             reasoningBudget,
             retrievalProfile,
             ...integrationProfile,
-            ...(policyRoute ? { policySource: 'Scripts/router-policy.json', maxFiles: policyRoute.max_files } : {})
+            ...(policyRoute ? { policySource: '_SYSTEM/Scripts/router-policy.json', maxFiles: policyRoute.max_files } : {})
         };
     }
 

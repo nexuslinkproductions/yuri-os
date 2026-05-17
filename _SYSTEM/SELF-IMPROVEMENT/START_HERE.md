@@ -17,6 +17,6 @@ Every lesson must end as a prevention rule, routing rule, or experiment. Raw not
 ## Weekly Command
 
 ```bash
-node Scripts/self-improvement/weekly-comp.mjs --dry-run
-node Scripts/self-improvement/weekly-comp.mjs
+node _SYSTEM/Scripts/self-improvement/weekly-comp.mjs --dry-run
+node _SYSTEM/Scripts/self-improvement/weekly-comp.mjs
 ```

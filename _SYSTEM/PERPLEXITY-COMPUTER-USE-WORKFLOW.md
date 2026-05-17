@@ -2,7 +2,7 @@
 
 **Pattern:** Claude Code → Computer Use → perplexity.ai chat → extract response → integrate into NUDIMMUD context
 **Status:** Design specification (not yet implemented)
-**Authority:** Extends `Scripts/offload-contract.mjs` `@perplexity` lane
+**Authority:** Extends `_SYSTEM/Scripts/offload-contract.mjs` `@perplexity` lane
 **Date:** 2026-05-13
 
 ---
@@ -173,7 +173,7 @@ These may change as Perplexity updates their UI — verify on first use:
 
 ### Offload Contract
 
-Add to `Scripts/offload-contract.mjs` under the `perplexity` lane definition:
+Add to `_SYSTEM/Scripts/offload-contract.mjs` under the `perplexity` lane definition:
 
 ```javascript
 perplexity: {
@@ -388,7 +388,7 @@ PERPLEXITY_QUERY timestamp=2026-05-13T21:05:00Z query="Claude 4 release info" qu
 
 ### Phase 3: Offload Integration (1-2 hours)
 
-1. Update `Scripts/offload-contract.mjs` with implementation notes
+1. Update `_SYSTEM/Scripts/offload-contract.mjs` with implementation notes
 2. Add routing logic: if `@perplexity` selected AND computer use available → execute workflow
 3. Add fallback: if computer use unavailable → route to `@deepseek` with note
 
@@ -438,7 +438,7 @@ This workflow transforms Perplexity from "external service requiring API key" in
 
 **References:**
 
-[1] `Scripts/offload-contract.mjs` — `perplexity` lane definition
+[1] `_SYSTEM/Scripts/offload-contract.mjs` — `perplexity` lane definition
 [2] Anthropic Computer Use API documentation
 [3] `CODEX_PROTOCOL.md` — task spec format
 [4] `_SYSTEM/yuri-origin.md` — evidence contract, verification phase

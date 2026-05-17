@@ -14,7 +14,7 @@ const LOG_DIR = path.join(HOME, 'Library/Logs/NUDIMMUD');
 const PLIST_PATH = path.join(LAUNCH_AGENTS_DIR, `${LABEL}.plist`);
 const OUT_LOG = path.join(LOG_DIR, 'wiki-rag-launchd.out.log');
 const ERR_LOG = path.join(LOG_DIR, 'wiki-rag-launchd.err.log');
-const WATCH_COMMAND = path.join(REPO_ROOT, 'Scripts/wiki-rag-watch.mjs');
+const WATCH_COMMAND = path.join(REPO_ROOT, '_SYSTEM/Scripts/wiki-rag-watch.mjs');
 const DEFAULT_POLL_MS = process.env.WIKI_RAG_POLL_MS ?? '30000';
 
 const mode = process.argv[2] ?? 'help';
@@ -40,7 +40,7 @@ function renderPlist() {
     )
     .join('');
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n  <dict>\n    <key>Label</key>\n    <string>${plistEscape(LABEL)}</string>\n    <key>RunAtLoad</key>\n    <true/>\n    <key>KeepAlive</key>\n    <true/>\n    <key>ThrottleInterval</key>\n    <integer>1</integer>\n    <key>Umask</key>\n    <integer>63</integer>\n    <key>ProgramArguments</key>\n    <array>\n      <string>${plistEscape(process.execPath)}</string>\n      <string>${plistEscape(path.join(REPO_ROOT, 'Scripts/wiki-rag-launchd.mjs'))}</string>\n      <string>run</string>\n    </array>\n    <key>WorkingDirectory</key>\n    <string>${plistEscape(REPO_ROOT)}</string>\n    <key>StandardOutPath</key>\n    <string>${plistEscape(OUT_LOG)}</string>\n    <key>StandardErrorPath</key>\n    <string>${plistEscape(ERR_LOG)}</string>\n    <key>EnvironmentVariables</key>\n    <dict>${envXml}\n    </dict>\n  </dict>\n</plist>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n  <dict>\n    <key>Label</key>\n    <string>${plistEscape(LABEL)}</string>\n    <key>RunAtLoad</key>\n    <true/>\n    <key>KeepAlive</key>\n    <true/>\n    <key>ThrottleInterval</key>\n    <integer>1</integer>\n    <key>Umask</key>\n    <integer>63</integer>\n    <key>ProgramArguments</key>\n    <array>\n      <string>${plistEscape(process.execPath)}</string>\n      <string>${plistEscape(path.join(REPO_ROOT, '_SYSTEM/Scripts/wiki-rag-launchd.mjs'))}</string>\n      <string>run</string>\n    </array>\n    <key>WorkingDirectory</key>\n    <string>${plistEscape(REPO_ROOT)}</string>\n    <key>StandardOutPath</key>\n    <string>${plistEscape(OUT_LOG)}</string>\n    <key>StandardErrorPath</key>\n    <string>${plistEscape(ERR_LOG)}</string>\n    <key>EnvironmentVariables</key>\n    <dict>${envXml}\n    </dict>\n  </dict>\n</plist>\n`;
 }
 
 function buildLaunchPath() {
@@ -178,11 +178,11 @@ function run() {
 function help() {
   console.log([
     'Usage:',
-    '  node Scripts/wiki-rag-launchd.mjs install',
-    '  node Scripts/wiki-rag-launchd.mjs uninstall',
-    '  node Scripts/wiki-rag-launchd.mjs status',
-    '  node Scripts/wiki-rag-launchd.mjs restart',
-    '  node Scripts/wiki-rag-launchd.mjs run',
+    '  node _SYSTEM/Scripts/wiki-rag-launchd.mjs install',
+    '  node _SYSTEM/Scripts/wiki-rag-launchd.mjs uninstall',
+    '  node _SYSTEM/Scripts/wiki-rag-launchd.mjs status',
+    '  node _SYSTEM/Scripts/wiki-rag-launchd.mjs restart',
+    '  node _SYSTEM/Scripts/wiki-rag-launchd.mjs run',
   ].join('\n'));
 }
 

@@ -11,7 +11,7 @@ Spec Kit (vendored at `integrations/spec-kit/`) is **advisory templates only**. 
 3. `_SYSTEM/yuri-origin.md` — canonical contract
 4. `SOUL.md` — persona
 5. `AGENTS.md`, `CLAUDE.md`, **this bridge doc** — thin adapters
-6. `Scripts/offload-contract.mjs` — executable routing
+6. `_SYSTEM/Scripts/offload-contract.mjs` — executable routing
 7. References / skills
 8. Model inference (lowest)
 
@@ -66,7 +66,7 @@ Spec Kit `/implement` IS the dispatch into Codex (primary) + DeepSeek-tools (par
 
 ## What Spec Kit MUST NOT Do
 
-- ❌ Override `Scripts/offload-contract.mjs` routing decisions
+- ❌ Override `_SYSTEM/Scripts/offload-contract.mjs` routing decisions
 - ❌ Bypass anime DNA gates
 - ❌ Replace Codex-primary rule
 - ❌ Run its own Python `specify` CLI inside YURI-OS-MUSUBI workflows
@@ -84,14 +84,14 @@ User wants to build feature X:
    → user reviews + approves
    → spec written to specs/active/<slug>.md
 
-2. node Scripts/spec-pipeline.mjs --spec specs/active/<slug>.md
+2. node _SYSTEM/Scripts/spec-pipeline.mjs --spec specs/active/<slug>.md
    → generates plan.md from templates/plan-template.md
    → generates tasks.md from templates/tasks-template.md
    → each task includes a CODEX TASK SPEC scaffold
 
 3. For each task in tasks.md:
    → main thread issues CLAUDE CONTROL PACKET
-   → dispatches via Scripts/offload.sh -m gpt-5.5 (or appropriate lane)
+   → dispatches via _SYSTEM/Scripts/offload.sh -m gpt-5.5 (or appropriate lane)
    → Codex implements; DeepSeek-tools handles parallel slices
    → anime DNA gates fire as usual
 

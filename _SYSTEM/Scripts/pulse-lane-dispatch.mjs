@@ -36,7 +36,7 @@ function parseArgs(argv) {
 
 function routePlan(prompt) {
   try {
-    const out = execFileSync('node', ['Scripts/offload-contract.mjs', 'route-plan', prompt], {
+    const out = execFileSync('node', ['_SYSTEM/Scripts/offload-contract.mjs', 'route-plan', prompt], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     });
@@ -76,7 +76,7 @@ const tier = plan.complexityTier || 'standard';
 
 if (tier === 'trivial' || tier === 'standard') {
   const env = { ...process.env, PULSE_LANE_BYPASS: '1' };
-  execFileSync('bash', ['Scripts/offload.sh', ...args.passthrough], { stdio: 'inherit', env });
+  execFileSync('bash', ['_SYSTEM/Scripts/offload.sh', ...args.passthrough], { stdio: 'inherit', env });
   process.exit(0);
 }
 
@@ -87,7 +87,7 @@ const enriched = `${persona}\n\n--- MEMORY CONTEXT ---\n${mem}\n\n--- INSTRUCTIO
 appendPulseBus({ kind: 'lane-dispatch-pre', lane: args.model, tier, scenario: plan.scenario });
 
 const env = { ...process.env, INSIDE_PULSE_WRAPPER: '1' };
-const result = execFileSync('bash', ['Scripts/offload.sh', ...withPrompt(process.argv, enriched)], {
+const result = execFileSync('bash', ['_SYSTEM/Scripts/offload.sh', ...withPrompt(process.argv, enriched)], {
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'inherit'],
   env,

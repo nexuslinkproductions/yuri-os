@@ -579,7 +579,7 @@ export class SessionRuntimeService {
         this.lastWorkSliceAt = Date.now();
 
         const mode = process.env.YURI_SESSION_RUNTIME_MODE === 'dry-run' ? '--dry-run' : '--live';
-        const scriptPath = path.join(SystemConfig.ROOT, 'Scripts/yuri-sandbox-loop.mjs');
+        const scriptPath = path.join(SystemConfig.ROOT, '_SYSTEM/Scripts/yuri-sandbox-loop.mjs');
         const prompt = buildWorkSlicePrompt(snapshot, task);
         const args = [scriptPath, mode, '--prompt', prompt];
         if (process.env.YURI_DB_PATH) {

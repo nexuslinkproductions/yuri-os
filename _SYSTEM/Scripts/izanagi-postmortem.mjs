@@ -7,9 +7,9 @@
  * self-hypothesis.mjs validation cycle in the next neuron-loop.
  *
  * CLI:
- *   node Scripts/izanagi-postmortem.mjs --list                    # show all pending manifests
- *   node Scripts/izanagi-postmortem.mjs --close <id> <outcome>    # log outcome: confirmed|refuted|partial
- *   node Scripts/izanagi-postmortem.mjs --status                  # summary stats
+ *   node _SYSTEM/Scripts/izanagi-postmortem.mjs --list                    # show all pending manifests
+ *   node _SYSTEM/Scripts/izanagi-postmortem.mjs --close <id> <outcome>    # log outcome: confirmed|refuted|partial
+ *   node _SYSTEM/Scripts/izanagi-postmortem.mjs --status                  # summary stats
  */
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';

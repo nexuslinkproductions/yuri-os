@@ -6,17 +6,17 @@
 
 **Status**: Draft
 
-**Input**: Reconcile camelCase contract lane keys vs kebab-case offload.sh dispatch tokens so Scripts/offload-contract-dispatch-check.mjs exits 0 (currently exits 1).
+**Input**: Reconcile camelCase contract lane keys vs kebab-case offload.sh dispatch tokens so _SYSTEM/Scripts/offload-contract-dispatch-check.mjs exits 0 (currently exits 1).
 
 ## 1. Title + Summary
 
 **Reconcile Contract Lanes ↔ Dispatch Tokens Drift**
 
-Add a `dispatchTokens` array field to every lane in `Scripts/offload-contract.mjs` so the dispatch-drift checker can perform exact bidirectional reconciliation between contract lanes and `Scripts/offload.sh` dispatch surfaces, making `Scripts/offload-contract-dispatch-check.mjs` exit 0.
+Add a `dispatchTokens` array field to every lane in `_SYSTEM/Scripts/offload-contract.mjs` so the dispatch-drift checker can perform exact bidirectional reconciliation between contract lanes and `_SYSTEM/Scripts/offload.sh` dispatch surfaces, making `_SYSTEM/Scripts/offload-contract-dispatch-check.mjs` exit 0.
 
 ## 2. Goal
 
-`node Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1).
+`node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1).
 
 ## 3. Non-Goals
 
@@ -33,7 +33,7 @@ Add a `dispatchTokens` array field to every lane in `Scripts/offload-contract.mj
 
 ## 5. Acceptance Criteria (Tasks)
 
-- [ ] `node Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
+- [ ] `node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs` exits 0 (was 1)
 - [ ] Every contract lane has a `dispatchTokens` array field listing the kebab-case tokens in `offload.sh` that route to that lane
 - [ ] Every dispatch token listed in `is_direct_lane_token` + `dispatch_model` + `list_models` is referenced by at least one contract lane's `dispatchTokens` (unless explicitly documented as a deprecated/legacy surface-only alias)
 - [ ] No regression in `offload-contract-regression.test.mjs`
@@ -43,7 +43,7 @@ Add a `dispatchTokens` array field to every lane in `Scripts/offload-contract.mj
 
 - Anime DNA gates apply (evidence-forward, no speculation).
 - Codex-primary for implementation (gpt-5.5 / gpt-5.4-mini).
-- No T7 writes; keep changes scoped to `Scripts/offload-contract.mjs` lanes object and, minimally, `Scripts/offload-contract-dispatch-check.mjs`.
+- No T7 writes; keep changes scoped to `_SYSTEM/Scripts/offload-contract.mjs` lanes object and, minimally, `_SYSTEM/Scripts/offload-contract-dispatch-check.mjs`.
 - Preserve all existing dispatch behavior in `offload.sh`.
 - Max 90 lines in this spec file.
 

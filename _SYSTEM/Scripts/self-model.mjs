@@ -12,9 +12,9 @@
  * This file is read by brain-inject.js → SELF_AWARENESS section on every boot.
  *
  * CLI:
- *   node Scripts/self-model.mjs           # full update
- *   node Scripts/self-model.mjs --update  # same (called by cross-session-miner)
- *   node Scripts/self-model.mjs --status  # show current fingerprint
+ *   node _SYSTEM/Scripts/self-model.mjs           # full update
+ *   node _SYSTEM/Scripts/self-model.mjs --update  # same (called by cross-session-miner)
+ *   node _SYSTEM/Scripts/self-model.mjs --status  # show current fingerprint
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';

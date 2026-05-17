@@ -60,7 +60,7 @@ function parseArgs(argv) {
 }
 
 function usage() {
-  console.error('Usage: node Scripts/memory-query.mjs "<query>" [--top N]');
+  console.error('Usage: node _SYSTEM/Scripts/memory-query.mjs "<query>" [--top N]');
 }
 
 function ensureMemorySchema(db) {

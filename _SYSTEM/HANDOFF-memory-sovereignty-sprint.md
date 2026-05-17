@@ -11,12 +11,12 @@
 
 | Component | File | What it does |
 |-----------|------|-------------|
-| Dream processor | `Scripts/nisaba-dream-processor.mjs` | Consumes `dream-queue.jsonl` via DeepSeek, writes rules to `global.md`. Fixed: truncatePrompt (61KB→~4KB), positional arg to offload.sh. |
+| Dream processor | `_SYSTEM/Scripts/nisaba-dream-processor.mjs` | Consumes `dream-queue.jsonl` via DeepSeek, writes rules to `global.md`. Fixed: truncatePrompt (61KB→~4KB), positional arg to offload.sh. |
 | Session capture | `.claude/hooks/nisaba-on-stop.js` | 800-char human messages, files_modified, commit_messages, error_snippets from session-state.json |
 | Corrections signal | `.claude/hooks/session-reflect.js` | `corrections` reads from latest session JSONL instead of hardcoded `''` |
-| Session→memory.db | `Scripts/memory-session-write.mjs` | Writes every session observation as episodic memory to memory.db. Weekly consolidation trigger if >7d. |
+| Session→memory.db | `_SYSTEM/Scripts/memory-session-write.mjs` | Writes every session observation as episodic memory to memory.db. Weekly consolidation trigger if >7d. |
 | RAG injection | `.claude/hooks/memory-rag-inject.js` | Queries memory_governor.py read --limit 12 at SessionStart. Injects top 10 active LTM items as `<yuri-memory>` block. |
-| Learning score | `Scripts/memory-learning-score.mjs` | 0-100 score. Baseline: 59/100 from 390 sessions. `node Scripts/memory-learning-score.mjs --report` |
+| Learning score | `_SYSTEM/Scripts/memory-learning-score.mjs` | 0-100 score. Baseline: 59/100 from 390 sessions. `node _SYSTEM/Scripts/memory-learning-score.mjs --report` |
 
 **settings.json wired:** memory-rag-inject.js in SessionStart, memory-session-write.mjs in StopHooks, memory-archive.mjs changed --dry-run → --execute.
 
@@ -28,7 +28,7 @@
 
 | Packet | Status | Notes |
 |--------|--------|-------|
-| P13 pre-commit gate | ✅ | `_SYSTEM/git-hooks/pre-commit` + `Scripts/pre-commit-independence.sh`. Blocks new Anthropic model refs on commit. |
+| P13 pre-commit gate | ✅ | `_SYSTEM/git-hooks/pre-commit` + `_SYSTEM/Scripts/pre-commit-independence.sh`. Blocks new Anthropic model refs on commit. |
 | Track D sharingan | ✅ | 4 briefs in `.sharingan/` — strategic-thinker (MIT, 6-persona council), socraticode (code_context per-turn schema), codebuff (private/404, documented from public sources), visual-explainer (404, yuri-report already covers domain) |
 | research_pipeline.md | ✅ | curl allowed for raw.githubusercontent.com + api.github.com. WebFetch Tier 5 no longer requires explicit approval. |
 
@@ -72,7 +72,7 @@ Marcel inserted the SAFE_SUBAGENT_TYPES block before the `const subagentType/mod
 | Item | Priority | Notes |
 |------|----------|-------|
 | P9 M4 Pro soak | When Mac Mini arrives | `ollama run deepseek-r1:8b` 24h test; update models.json local.deep_reasoning |
-| P16 Kill-switch drill | Jun 14, 2026 | `unset ANTHROPIC_API_KEY && node Scripts/independence-check.mjs --strict` |
+| P16 Kill-switch drill | Jun 14, 2026 | `unset ANTHROPIC_API_KEY && node _SYSTEM/Scripts/independence-check.mjs --strict` |
 | yuri-shura enhancement | Low | Extract 7-vector adversary checklist from strategic-thinker brief into yuri-shura adversary lane prompt |
 | codebase-to-course update | Low | Add code_context + last_output per-turn schema from socraticode brief |
 | GitNexus index | When convenient | `npx gitnexus analyze` — stale since 3d83566 |
@@ -98,7 +98,7 @@ Marcel inserted the SAFE_SUBAGENT_TYPES block before the `const subagentType/mod
 | gemini | gemini-2.0-flash | 0.15 |
 
 ### Lane Dispatcher
-`Scripts/lane-dispatcher.mjs` + `Scripts/lane-capability-manifest.json` (12 lanes). Future model migrations = JSON edit only. selectLane({ privacy, cost_tier, ctx_window }) returns best match.
+`_SYSTEM/Scripts/lane-dispatcher.mjs` + `_SYSTEM/Scripts/lane-capability-manifest.json` (12 lanes). Future model migrations = JSON edit only. selectLane({ privacy, cost_tier, ctx_window }) returns best match.
 
 ### nexbox Bundle
 `nexbox/` — zero-Anthropic portable runtime. symbiotic-pulse.mjs, offload-contract.mjs, verify.mjs, RUNBOOK.md, bin/bootstrap-ollama.sh. Ready for Mac Mini M4 Pro deployment.
@@ -120,9 +120,9 @@ Current 71/100. Remaining 5 warns:
 
 ## Verified Tests (run to confirm state)
 ```bash
-node Scripts/independence-check.mjs | tail -5          # 71/100 fail=0 warn=5
-node Scripts/memory-learning-score.mjs --report        # 59/100 baseline
-node Scripts/nisaba-dream-processor.mjs --dry-run      # shows queue state
+node _SYSTEM/Scripts/independence-check.mjs | tail -5          # 71/100 fail=0 warn=5
+node _SYSTEM/Scripts/memory-learning-score.mjs --report        # 59/100 baseline
+node _SYSTEM/Scripts/nisaba-dream-processor.mjs --dry-run      # shows queue state
 python3 _SYSTEM/OS_KERNEL/memory_governor.py health    # 1238 items
 echo '{"event_type":"SessionStart"}' | node .claude/hooks/memory-rag-inject.js | head -3  # verify RAG output
 ```

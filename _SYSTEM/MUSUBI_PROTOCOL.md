@@ -12,7 +12,7 @@ Use `_SYSTEM/yuri-origin.md` for authority, evidence, mutation safety, protected
 
 ## GLOBAL_OFFLOAD_DIRECTIVE
 
-Use `Scripts/offload-contract.mjs` as the only lane, scenario, and lifecycle contract. Inspect with `./Scripts/ai route-plan "<request>"`; execute with `./Scripts/ai auto "<request>"`.
+Use `_SYSTEM/Scripts/offload-contract.mjs` as the only lane, scenario, and lifecycle contract. Inspect with `./_SYSTEM/Scripts/ai route-plan "<request>"`; execute with `./_SYSTEM/Scripts/ai auto "<request>"`.
 
 ## ROLE_MATRIX
 

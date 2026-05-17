@@ -5,28 +5,28 @@ import fs from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 const missingDbPath = `/tmp/yuri-release-gate-missing-${process.pid}.db`;
-const releaseGateSource = fs.readFileSync('Scripts/backend-release-gate.mjs', 'utf8');
+const releaseGateSource = fs.readFileSync('_SYSTEM/Scripts/backend-release-gate.mjs', 'utf8');
 const retiredIdentityPattern = new RegExp([
   ['exeo', 'flow'].join(''),
   ['exeo', '-flow'].join(''),
   ['exeo', ' flow'].join(''),
 ].join('|'), 'i');
-const result = spawnSync(process.execPath, ['Scripts/backend-release-gate.mjs', '--dry-run', '--db', '/tmp/restored-candidate.db'], {
+const result = spawnSync(process.execPath, ['_SYSTEM/Scripts/backend-release-gate.mjs', '--dry-run', '--db', '/tmp/restored-candidate.db'], {
   cwd: process.cwd(),
   encoding: 'utf8',
 });
 
-const implicitLiveDb = spawnSync(process.execPath, ['Scripts/backend-release-gate.mjs', '--dry-run'], {
+const implicitLiveDb = spawnSync(process.execPath, ['_SYSTEM/Scripts/backend-release-gate.mjs', '--dry-run'], {
   cwd: process.cwd(),
   encoding: 'utf8',
 });
 
-const explicitLiveDb = spawnSync(process.execPath, ['Scripts/backend-release-gate.mjs', '--dry-run', '--allow-live-db'], {
+const explicitLiveDb = spawnSync(process.execPath, ['_SYSTEM/Scripts/backend-release-gate.mjs', '--dry-run', '--allow-live-db'], {
   cwd: process.cwd(),
   encoding: 'utf8',
 });
 
-const failedChild = spawnSync(process.execPath, ['Scripts/backend-release-gate.mjs', '--db', missingDbPath], {
+const failedChild = spawnSync(process.execPath, ['_SYSTEM/Scripts/backend-release-gate.mjs', '--db', missingDbPath], {
   cwd: process.cwd(),
   encoding: 'utf8',
 });

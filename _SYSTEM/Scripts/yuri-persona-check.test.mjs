@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 
-const output = execFileSync(process.execPath, ['Scripts/yuri-persona-check.mjs'], {
+const output = execFileSync(process.execPath, ['_SYSTEM/Scripts/yuri-persona-check.mjs'], {
   encoding: 'utf8',
 }).trim();
 

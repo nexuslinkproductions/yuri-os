@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Backend startup smoke probe — built-in modules only, no writes, no /tmp.
- * Usage: node Scripts/backend-smoke-probe.mjs [options]
+ * Usage: node _SYSTEM/Scripts/backend-smoke-probe.mjs [options]
  */
 import { spawn }           from 'node:child_process';
 import { statSync }        from 'node:fs';
@@ -49,7 +49,7 @@ const HELP = `\
 backend-smoke-probe.mjs — reusable backend startup smoke runner
 
 Usage:
-  node Scripts/backend-smoke-probe.mjs [options]
+  node _SYSTEM/Scripts/backend-smoke-probe.mjs [options]
 
 Options:
   --path=PATH          API path to probe              (default: /api/health/auth)

@@ -5,11 +5,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const healthScripts = [
-  'Scripts/research-rag-health.mjs',
-  'Scripts/prompt-rag-health.mjs',
-  'Scripts/sales-rag-health.mjs',
+  '_SYSTEM/Scripts/research-rag-health.mjs',
+  '_SYSTEM/Scripts/prompt-rag-health.mjs',
+  '_SYSTEM/Scripts/sales-rag-health.mjs',
 ];
-const helper = fs.readFileSync(path.join(process.cwd(), 'Scripts/lib/db-health.mjs'), 'utf8');
+const helper = fs.readFileSync(path.join(process.cwd(), '_SYSTEM/Scripts/lib/db-health.mjs'), 'utf8');
 
 assert.match(helper, /integrity_check/, 'shared DB health helper must include SQLite integrity_check');
 assert.match(helper, /quick_check/, 'shared DB health helper must include SQLite quick_check');

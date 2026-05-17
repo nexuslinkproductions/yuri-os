@@ -210,7 +210,7 @@ _SYSTEM/
 │   ├── Shoot-Checklist.md
 │   ├── Invoice-Template.md
 │   └── ...
-├── Scripts/
+├── _SYSTEM/Scripts/
 │   ├── organize-footage.sh
 │   ├── backup-vault.sh
 │   └── sync-c2moviez.sh

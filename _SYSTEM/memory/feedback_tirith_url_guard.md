@@ -31,7 +31,7 @@ Bash command → bash-security-guard.js (hard blocks: .env, destructive, etc.)
 Set `TIRITH_BYPASS=1` to skip the check entirely for one command. The hook logs to stderr when bypassed so it's not invisible.
 
 ```bash
-TIRITH_BYPASS=1 bash Scripts/some-script-with-known-safe-url.sh
+TIRITH_BYPASS=1 bash _SYSTEM/Scripts/some-script-with-known-safe-url.sh
 ```
 
 ## What It Catches

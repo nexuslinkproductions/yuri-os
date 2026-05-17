@@ -203,7 +203,7 @@ async function recordQueueLedger({ lane, status, operation, lease = {}, metadata
   await recordTokenEvent({
     trace_id: process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || lease.taskId || `offload-queue-${Date.now()}-${process.pid}`,
     session_id: process.env.OFFLOAD_TASK_ID || '',
-    source_path: 'Scripts/offload-queue.mjs',
+    source_path: '_SYSTEM/Scripts/offload-queue.mjs',
     lane,
     provider: 'local',
     operation_type: operation,

@@ -86,7 +86,7 @@ node /tmp/yuri-introspect.mjs  # DEAD_ENDS:0 preserved
 
 ## WP2 — Lane-as-User-Input Protocol (tier-gated)
 
-Create `Scripts/pulse-lane-dispatch.mjs`:
+Create `_SYSTEM/Scripts/pulse-lane-dispatch.mjs`:
 
 ```js
 #!/usr/bin/env node
@@ -101,7 +101,7 @@ const tier = classify(args.prompt).complexityTier;
 
 if (tier === 'trivial' || tier === 'standard') {
   // Passthrough — preserve current speed for low-stakes
-  return execFileSync('bash', ['Scripts/offload.sh', '-m', args.model, args.prompt], { stdio: 'inherit' });
+  return execFileSync('bash', ['_SYSTEM/Scripts/offload.sh', '-m', args.model, args.prompt], { stdio: 'inherit' });
 }
 
 // complex/critical: wrap with full pulse context
@@ -112,7 +112,7 @@ const enriched = `${persona}\n\n--- MEMORY CONTEXT ---\n${mem}\n\n--- INSTRUCTIO
 // Log to pulse-bus pre-flight
 appendPulseBus({ kind: 'lane-dispatch-pre', lane: args.model, tier });
 
-const result = execFileSync('bash', ['Scripts/offload.sh', '-m', args.model, enriched], { stdio: 'pipe' });
+const result = execFileSync('bash', ['_SYSTEM/Scripts/offload.sh', '-m', args.model, enriched], { stdio: 'pipe' });
 
 // Log return to pulse-bus
 appendPulseBus({ kind: 'lane-dispatch-return', lane: args.model, tier, len: result.length });
@@ -120,7 +120,7 @@ appendPulseBus({ kind: 'lane-dispatch-return', lane: args.model, tier, len: resu
 process.stdout.write(result);
 ```
 
-Create `Scripts/pulse-memory-context.mjs`:
+Create `_SYSTEM/Scripts/pulse-memory-context.mjs`:
 
 ```js
 import fs from 'fs';
@@ -144,14 +144,14 @@ export async function readMemoryContext({ tier, budget }) {
 }
 ```
 
-Patch `Scripts/offload.sh` (top of file, after shebang):
+Patch `_SYSTEM/Scripts/offload.sh` (top of file, after shebang):
 ```bash
 # Tier-gated pulse routing
 if [ -z "$PULSE_LANE_BYPASS" ] && [ -z "$INSIDE_PULSE_WRAPPER" ]; then
-  PULSE_TIER=$(node Scripts/pulse-classify-stdin.mjs "$@" 2>/dev/null)
+  PULSE_TIER=$(node _SYSTEM/Scripts/pulse-classify-stdin.mjs "$@" 2>/dev/null)
   if [ "$PULSE_TIER" = "complex" ] || [ "$PULSE_TIER" = "critical" ]; then
     export INSIDE_PULSE_WRAPPER=1
-    exec node Scripts/pulse-lane-dispatch.mjs "$@"
+    exec node _SYSTEM/Scripts/pulse-lane-dispatch.mjs "$@"
   fi
 fi
 ```
@@ -164,8 +164,8 @@ Add config `.claude/config/pulse-lanes.json`:
 ### Verification
 
 ```bash
-PULSE_LANE_BYPASS=1 bash Scripts/offload.sh -m deepseek-v4-flash "test passthrough" # bypass works
-bash Scripts/offload.sh -m gpt-5.5 --reasoning xhigh "refactor authentication" # complex → wrapped
+PULSE_LANE_BYPASS=1 bash _SYSTEM/Scripts/offload.sh -m deepseek-v4-flash "test passthrough" # bypass works
+bash _SYSTEM/Scripts/offload.sh -m gpt-5.5 --reasoning xhigh "refactor authentication" # complex → wrapped
 cat .claude/state/pulse-bus.json | grep "lane-dispatch" # log entries exist
 ```
 

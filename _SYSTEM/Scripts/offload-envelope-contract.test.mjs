@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // offload-envelope-contract.test.mjs
 // Validates that every adapter emits an envelope conforming to the v1.0 schema.
-// Usage: node Scripts/offload-envelope-contract.test.mjs
+// Usage: node _SYSTEM/Scripts/offload-envelope-contract.test.mjs
 
 import { readFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';

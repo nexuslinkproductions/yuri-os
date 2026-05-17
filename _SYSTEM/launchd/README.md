@@ -1,6 +1,6 @@
 # Lane Health LaunchAgent
 
-Run `Scripts/lane-health.sh` hourly with `launchd`.
+Run `_SYSTEM/Scripts/lane-health.sh` hourly with `launchd`.
 
 ## Install
 
@@ -32,7 +32,7 @@ Errors append to:
 
 ## Token Digest
 
-Run `Scripts/token-spend-report.mjs --daily-digest` daily at 09:00 with `launchd`.
+Run `_SYSTEM/Scripts/token-spend-report.mjs --daily-digest` daily at 09:00 with `launchd`.
 
 Install:
 

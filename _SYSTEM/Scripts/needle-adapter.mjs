@@ -75,7 +75,7 @@ export async function runNeedleLocalChat(promptText, systemText, ledger = {}) {
   await recordTokenEvent({
     trace_id: ledger.traceId || `needle-${Date.now()}-${process.pid}`,
     session_id: process.env.OFFLOAD_TASK_ID || '',
-    source_path: 'Scripts/needle-adapter.mjs',
+    source_path: '_SYSTEM/Scripts/needle-adapter.mjs',
     lane: ledger.lane || 'ollama',
     provider: 'needle-local',
     request_model: 'needle',

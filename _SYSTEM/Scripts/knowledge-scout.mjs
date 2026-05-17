@@ -11,9 +11,9 @@
  *   nisaba/learning/arxiv-pulse.json
  *
  * CLI:
- *   node Scripts/knowledge-scout.mjs           # full run
- *   node Scripts/knowledge-scout.mjs --dry-run # fetch only, no writes
- *   node Scripts/knowledge-scout.mjs --status  # show last results
+ *   node _SYSTEM/Scripts/knowledge-scout.mjs           # full run
+ *   node _SYSTEM/Scripts/knowledge-scout.mjs --dry-run # fetch only, no writes
+ *   node _SYSTEM/Scripts/knowledge-scout.mjs --status  # show last results
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';

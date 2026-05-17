@@ -24,26 +24,26 @@ const CHECKS = [
   {
     id: 'skill_registry',
     label: 'Skill registry drift',
-    command: ['node', ['Scripts/yuri-skill-loader.mjs', '--validate', '--json']],
+    command: ['node', ['_SYSTEM/Scripts/yuri-skill-loader.mjs', '--validate', '--json']],
     required: true,
     evaluate: evaluateSkillRegistry,
   },
   {
     id: 'wiki_rag',
     label: 'Wiki RAG',
-    command: ['node', ['Scripts/wiki-rag-health.mjs']],
+    command: ['node', ['_SYSTEM/Scripts/wiki-rag-health.mjs']],
     required: true,
   },
   {
     id: 'ollama',
     label: 'Ollama local-first runtime',
-    command: ['node', ['Scripts/ollama-kv-config.mjs', 'status']],
+    command: ['node', ['_SYSTEM/Scripts/ollama-kv-config.mjs', 'status']],
     required: true,
   },
   {
     id: 'session_launchd',
     label: 'Yuri session launchd',
-    command: ['node', ['Scripts/yuri-session-launchd.mjs', 'status']],
+    command: ['node', ['_SYSTEM/Scripts/yuri-session-launchd.mjs', 'status']],
     required: true,
   },
   {

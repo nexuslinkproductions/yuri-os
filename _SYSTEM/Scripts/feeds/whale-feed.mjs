@@ -165,7 +165,7 @@ function standalone() {
 
   if (!apiKey) {
     console.log('⬡ YURI_TRADING :: whale-feed — WHALE_ALERT_API_KEY is not set');
-    console.log('Set it via: WHALE_ALERT_API_KEY=your_key node Scripts/feeds/whale-feed.mjs');
+    console.log('Set it via: WHALE_ALERT_API_KEY=your_key node _SYSTEM/Scripts/feeds/whale-feed.mjs');
     checkCoinbaseEnv();
     process.exit(1);
   }

@@ -278,10 +278,10 @@ function runCommand(command, args, allowFailure = false) {
 function help() {
   console.log([
     'Usage:',
-    '  node Scripts/ollama-kv-config.mjs status [--host 127.0.0.1:11434] [--kv-cache-type q8_0]',
-    '  node Scripts/ollama-kv-config.mjs apply [--restart] [--host ...] [--kv-cache-type ...]',
-    '  node Scripts/ollama-kv-config.mjs serve [--host ...] [--kv-cache-type ...]',
-    '  node Scripts/ollama-kv-config.mjs print [--host ...] [--kv-cache-type ...]',
+    '  node _SYSTEM/Scripts/ollama-kv-config.mjs status [--host 127.0.0.1:11434] [--kv-cache-type q8_0]',
+    '  node _SYSTEM/Scripts/ollama-kv-config.mjs apply [--restart] [--host ...] [--kv-cache-type ...]',
+    '  node _SYSTEM/Scripts/ollama-kv-config.mjs serve [--host ...] [--kv-cache-type ...]',
+    '  node _SYSTEM/Scripts/ollama-kv-config.mjs print [--host ...] [--kv-cache-type ...]',
     '',
     'Defaults:',
     `  host=${DEFAULT_HOST}`,

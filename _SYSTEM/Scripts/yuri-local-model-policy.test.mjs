@@ -179,7 +179,7 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
 
     execFileSync(
       'bash',
-      ['Scripts/offload.sh', '--model', 'deepseek-liberated:latest', 'local model policy check'],
+      ['_SYSTEM/Scripts/offload.sh', '--model', 'deepseek-liberated:latest', 'local model policy check'],
       {
         encoding: 'utf8',
         env: {
@@ -191,7 +191,7 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
     );
 
     const dispatchedArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
-    assert.equal(dispatchedArgs[0].endsWith('Scripts/offload-runner.mjs'), true);
+    assert.equal(dispatchedArgs[0].endsWith('_SYSTEM/Scripts/offload-runner.mjs'), true);
     assert.equal(dispatchedArgs[1], 'deepseek-local');
     assert(dispatchedArgs.includes('--model'));
     assert(dispatchedArgs.includes('deepseek-liberated:latest'));
@@ -199,7 +199,7 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
 
     execFileSync(
       'bash',
-      ['Scripts/offload.sh', 'deepseek-v4-flash', 'lane-first compatibility check'],
+      ['_SYSTEM/Scripts/offload.sh', 'deepseek-v4-flash', 'lane-first compatibility check'],
       {
         encoding: 'utf8',
         env: {
@@ -212,12 +212,12 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
     );
 
     const laneFirstArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
-    assert.equal(laneFirstArgs[0].endsWith('Scripts/offload-runner.mjs'), true);
+    assert.equal(laneFirstArgs[0].endsWith('_SYSTEM/Scripts/offload-runner.mjs'), true);
     assert.equal(laneFirstArgs[1], 'deepseek-v4-flash');
 
     execFileSync(
       'bash',
-      ['Scripts/offload.sh', '--model', 'needle', 'needle smoke test'],
+      ['_SYSTEM/Scripts/offload.sh', '--model', 'needle', 'needle smoke test'],
       {
         encoding: 'utf8',
         env: {
@@ -230,7 +230,7 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
     );
 
     const needleArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
-    assert.equal(needleArgs[0].endsWith('Scripts/offload-runner.mjs'), true);
+    assert.equal(needleArgs[0].endsWith('_SYSTEM/Scripts/offload-runner.mjs'), true);
     assert.equal(needleArgs[1], 'ollama-local');
     assert(needleArgs.includes('--model'));
     assert(needleArgs.includes('needle'));
@@ -251,7 +251,7 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
 
     execFileSync(
       'bash',
-      ['Scripts/offload.sh', '--model', 'deepseek-v4-pro:max-reasoning', 'cloud reasoning policy check'],
+      ['_SYSTEM/Scripts/offload.sh', '--model', 'deepseek-v4-pro:max-reasoning', 'cloud reasoning policy check'],
       {
         encoding: 'utf8',
         env: {
@@ -264,7 +264,7 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
     );
 
     const dispatchedArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
-    assert.equal(dispatchedArgs[0].endsWith('Scripts/offload-runner.mjs'), true);
+    assert.equal(dispatchedArgs[0].endsWith('_SYSTEM/Scripts/offload-runner.mjs'), true);
     assert.equal(dispatchedArgs[1], 'deepseek-v4-pro');
     assert(dispatchedArgs.includes('--reasoning'));
     assert(dispatchedArgs.includes('xhigh'));

@@ -4,6 +4,8 @@ set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd "$ROOT_DIR"
+# Path-agnostic: supports root Scripts/ and _SYSTEM/Scripts/ layouts
+SCRIPTS_DIR="Scripts"; [ -d "_SYSTEM/Scripts" ] && SCRIPTS_DIR="_SYSTEM/Scripts"
 
 if ! command -v npm >/dev/null 2>&1; then
   echo "[pre-commit] npm not found" >&2
@@ -19,9 +21,9 @@ npm run test:offload-contract --silent
 # PATCH 015 — drift gate: block if contract↔dispatch drift detected (excluding legacy)
 # Bypass: git commit --no-verify
 echo "[pre-commit] offload contract dispatch drift check"
-if ! node Scripts/offload-contract-dispatch-check.mjs > /dev/null 2>&1; then
+if ! node "$SCRIPTS_DIR/offload-contract-dispatch-check.mjs" > /dev/null 2>&1; then
   echo "[pre-commit] ⚠️  Contract-dispatch drift detected." >&2
-  echo "[pre-commit]   Run: node Scripts/offload-contract-dispatch-check.mjs (for details)" >&2
+  echo "[pre-commit]   Run: node "$SCRIPTS_DIR/offload-contract-dispatch-check.mjs" (for details)" >&2
   echo "[pre-commit]   Bypass: git commit --no-verify" >&2
   echo "[pre-commit]   Reference: PATCH 015 in .claude/plans/" >&2
   exit 1
@@ -29,4 +31,4 @@ fi
 
 # PACKET 13 — sovereignty regression gate
 echo "[pre-commit] independence gate"
-bash Scripts/pre-commit-independence.sh
+bash "$SCRIPTS_DIR/pre-commit-independence.sh"

@@ -29,9 +29,9 @@ Current decision: observe-mode recovery gates are green. Promotion remains lane-
 | GitNexus | Usable through local CLI fallback | `node NEURAL-NETWORK/GitNexus/gitnexus/dist/cli/index.js status` reports index current at commit `778bcab` | Published `npx gitnexus status` should be repaired or pinned to working RC; local index does not cover dirty entries |
 | Memory DB | Healthy after schema repair and lesson promotion | `_SYSTEM/OS_KERNEL/memory_governor.py health`: total `916`, stale `0`, conflicts `0`; `swarm_messages.sender_agent_id` and `receiver_agent_id` now reference `agents.agent_id` as `TEXT` | Keep health gate and retain backups until verified in normal use |
 | Memory backup | Present | `_SYSTEM/OS_KERNEL/memory.db.backup-20260511-071602`; `_SYSTEM/OS_KERNEL/memory.db.backup-20260511-lesson-promotion` | Retain until next clean weekly consolidation |
-| Lifecycle routing | Observe mode available and verified | `node Scripts/yuri-lifecycle-controller.mjs observe "restore Yuri operational readiness after council audit"` emits route, advisory lanes, artifact requirements, verification commands, and memory promotion rules | Decide later whether to add enforce mode |
-| Skill registry | Green | `node Scripts/yuri-skill-loader.mjs --validate --json`: ok `39`, drift `0`, missing `0`, unregistered `0`, collisions `false` | Keep in `npm run yuri:health` |
-| Session runtime | Running | `node Scripts/yuri-session-launchd.mjs status`: `com.nudimmud.yuri-session-runtime` state `running`, pid present | Keep launchd status in health gate |
+| Lifecycle routing | Observe mode available and verified | `node _SYSTEM/Scripts/yuri-lifecycle-controller.mjs observe "restore Yuri operational readiness after council audit"` emits route, advisory lanes, artifact requirements, verification commands, and memory promotion rules | Decide later whether to add enforce mode |
+| Skill registry | Green | `node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json`: ok `39`, drift `0`, missing `0`, unregistered `0`, collisions `false` | Keep in `npm run yuri:health` |
+| Session runtime | Running | `node _SYSTEM/Scripts/yuri-session-launchd.mjs status`: `com.nudimmud.yuri-session-runtime` state `running`, pid present | Keep launchd status in health gate |
 | Weekly promotion | Complete | Dry-run selected one operations lesson; live weekly consolidation wrote 2026-W20 outputs; `session_lesson_candidates=1`, `promoted_lessons=1` | Keep promotion metric above zero when systemic failures produce durable lessons |
 | Model review | Complete | Claude Sonnet xhigh and DeepSeek returned bounded reviews; accepted findings were checked against current local command evidence | Preserve local deterministic evidence as final authority |
 | Worktree partition | Complete as review ledger | `git status --short | wc -l` returned `152`; lane ledger written to `_SYSTEM/SELF-IMPROVEMENT/03_GAZE/worktree-partition-2026-05-11.md` | Do not promote dirty tree as a single unit |
@@ -43,7 +43,7 @@ Current decision: observe-mode recovery gates are green. Promotion remains lane-
 | A1 | Build baseline | Done | Codex | `npm run build` passes |
 | A2 | GitNexus safety path | Done with fallback | Codex | Local CLI status confirms current committed index; dirty-tree limitation documented |
 | A3 | Memory schema and health | Done | Codex | Health command passes with zero stale and zero conflicts |
-| A4 | Skill registry drift | Done | Codex | `node Scripts/yuri-skill-loader.mjs --validate --json` returns drift `0`, missing `0`, collisions `false` |
+| A4 | Skill registry drift | Done | Codex | `node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json` returns drift `0`, missing `0`, collisions `false` |
 | A5 | Lifecycle observe surface | Done | Codex | Observe command returns route, artifact requirements, verification commands, and promotion rules |
 | A6 | Session runtime | Done | Codex | LaunchAgent status works and service is running |
 | A7 | Weekly promotion | Done | Codex | Dry-run selected one expected lesson; live consolidation completed; promoted lesson count is `1` |
@@ -60,11 +60,11 @@ Current decision: observe-mode recovery gates are green. Promotion remains lane-
 
 2. Close registry drift.
    - Treat disk skill files as canonical for this recovery pass.
-   - Rewrite `_SYSTEM/skill-hash-registry.json` from disk using `node Scripts/yuri-skill-loader.mjs --write-manifest`.
+   - Rewrite `_SYSTEM/skill-hash-registry.json` from disk using `node _SYSTEM/Scripts/yuri-skill-loader.mjs --write-manifest`.
    - Re-run validation and require zero drift, zero missing entries, and zero collisions.
 
 3. Install or defer session runtime.
-   - Check `node Scripts/yuri-session-launchd.mjs status`.
+   - Check `node _SYSTEM/Scripts/yuri-session-launchd.mjs status`.
    - If missing and macOS launchd is available, run install.
    - Re-run status.
    - If install fails, record exact launchctl failure and keep observe mode.

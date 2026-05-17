@@ -48,7 +48,7 @@ const second = buildActiveSkillRegistry({ pulseSeed, context, routePlan, rawSkil
 
 assert.deepEqual(second, first, 'active skill selection should be deterministic');
 assert.equal(first.schema_version, 1, 'active skill registry schema mismatch');
-assert.equal(first.source.loader, 'Scripts/yuri-skill-loader.mjs --json', 'loader source mismatch');
+assert.equal(first.source.loader, '_SYSTEM/Scripts/yuri-skill-loader.mjs --json', 'loader source mismatch');
 assert.equal(first.source.disabled, false, 'source should not be disabled');
 assert.equal(first.policy.advisoryOnly, true, 'skills must remain advisory only');
 assert(first.active.length > 0, 'matching skills should be selected');

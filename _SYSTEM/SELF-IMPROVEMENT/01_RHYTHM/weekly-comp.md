@@ -20,6 +20,6 @@ Rewrite lessons into prevention rules, archive raw notes, and choose the next ex
 ## Command
 
 ```bash
-node Scripts/self-improvement/weekly-comp.mjs --dry-run
-node Scripts/self-improvement/weekly-comp.mjs
+node _SYSTEM/Scripts/self-improvement/weekly-comp.mjs --dry-run
+node _SYSTEM/Scripts/self-improvement/weekly-comp.mjs
 ```
