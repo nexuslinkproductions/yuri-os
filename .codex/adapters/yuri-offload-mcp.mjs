@@ -84,7 +84,7 @@ async function handleRequest(request) {
     sendResult(request.id, {
       protocolVersion: request.params?.protocolVersion || '2024-11-05',
       capabilities: { tools: {} },
-      serverInfo: { name: 'nudimmud-offload', version: '1.0.0' },
+      serverInfo: { name: 'yuri-offload', version: '1.0.0' },
     });
     return;
   }
@@ -227,7 +227,7 @@ function logMemory(taskId, input, lane, promptHash, event) {
   const payload = {
     task_id: taskId,
     channel: 'codex-offload',
-    source: 'nudimmud-offload-mcp',
+    source: 'yuri-offload-mcp',
     event,
     intent: input.intent,
     lane,

@@ -18,7 +18,7 @@ const LIVE_FLASH_LANE = process.env.YURI_WORKHORSE_FLASH_LANE || 'deepseek-v4-fl
 // Set YURI_WORKHORSE_PRO_LANE=nvidia-nemotron (or any @nvidia variant) to use NVIDIA NIM
 // as the primary workhorse reasoning lane instead of DeepSeek.
 const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud', 'workhorse-runs')
-const FALLBACK_ARTIFACT_ROOT = '/private/tmp/nudimmud-workhorse-runs'
+const FALLBACK_ARTIFACT_ROOT = '/private/tmp/yuri-workhorse-runs'
 const DEFAULT_MAX_LINES = 80
 const HARD_MAX_LINES = 200
 const REPO_ROOT = process.cwd()
@@ -204,17 +204,17 @@ function printHelp() {
       'NUDIMMUD Workhorse X1',
       '',
       'Usage:',
-      '  node Scripts/nudimmud-workhorse.mjs "<rough idea>"',
-      '  node Scripts/nudimmud-workhorse.mjs forge --execute "<rough idea>"',
-      '  node Scripts/nudimmud-workhorse.mjs forge --live "<rough idea>"',
-      '  node Scripts/nudimmud-workhorse.mjs forge --live --execute "<rough idea>"',
-      '  node Scripts/nudimmud-workhorse.mjs forge --live --no-flash "<rough idea>"',
-      '  node Scripts/nudimmud-workhorse.mjs forge --generate-plan "<rough idea>"',
-      '  node Scripts/nudimmud-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
-      '  node Scripts/nudimmud-workhorse.mjs run --plan <path>',
-      '  node Scripts/nudimmud-workhorse.mjs run --execute --plan <path>',
-      '  node Scripts/nudimmud-workhorse.mjs --selftest',
-      '  node Scripts/nudimmud-workhorse.mjs --help',
+      '  node Scripts/yuri-workhorse.mjs "<rough idea>"',
+      '  node Scripts/yuri-workhorse.mjs forge --execute "<rough idea>"',
+      '  node Scripts/yuri-workhorse.mjs forge --live "<rough idea>"',
+      '  node Scripts/yuri-workhorse.mjs forge --live --execute "<rough idea>"',
+      '  node Scripts/yuri-workhorse.mjs forge --live --no-flash "<rough idea>"',
+      '  node Scripts/yuri-workhorse.mjs forge --generate-plan "<rough idea>"',
+      '  node Scripts/yuri-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
+      '  node Scripts/yuri-workhorse.mjs run --plan <path>',
+      '  node Scripts/yuri-workhorse.mjs run --execute --plan <path>',
+      '  node Scripts/yuri-workhorse.mjs --selftest',
+      '  node Scripts/yuri-workhorse.mjs --help',
       '',
       `Default artifact root: ${DEFAULT_ARTIFACT_ROOT}`,
       `Fallback artifact root: ${FALLBACK_ARTIFACT_ROOT}`,
@@ -1915,7 +1915,7 @@ function liveArtifactPackExists(runDir, expectExecutionSummary) {
 }
 
 function scopedRepoStatus() {
-  return runGit(['status', '--short', '--', 'Scripts/nudimmud-workhorse.mjs', 'Scripts/yuri-guarded-executor.mjs', 'Scripts/deepseek-action-schema.json', 'Scripts/intent-schema.json'])
+  return runGit(['status', '--short', '--', 'Scripts/yuri-workhorse.mjs', 'Scripts/yuri-guarded-executor.mjs', 'Scripts/deepseek-action-schema.json', 'Scripts/intent-schema.json'])
 }
 
 function runGit(args) {
@@ -2096,15 +2096,15 @@ function helpTextLines() {
   return [
     'NUDIMMUD Workhorse X1',
     'Usage:',
-    '  node Scripts/nudimmud-workhorse.mjs "<rough idea>"',
-    '  node Scripts/nudimmud-workhorse.mjs forge "<rough idea>"',
-    '  node Scripts/nudimmud-workhorse.mjs forge --execute "<rough idea>"',
-    '  node Scripts/nudimmud-workhorse.mjs forge --generate-plan "<rough idea>"',
-    '  node Scripts/nudimmud-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
-    '  node Scripts/nudimmud-workhorse.mjs run --plan <path>',
-    '  node Scripts/nudimmud-workhorse.mjs run --execute --plan <path>',
-    '  node Scripts/nudimmud-workhorse.mjs --selftest',
-    '  node Scripts/nudimmud-workhorse.mjs --help',
+    '  node Scripts/yuri-workhorse.mjs "<rough idea>"',
+    '  node Scripts/yuri-workhorse.mjs forge "<rough idea>"',
+    '  node Scripts/yuri-workhorse.mjs forge --execute "<rough idea>"',
+    '  node Scripts/yuri-workhorse.mjs forge --generate-plan "<rough idea>"',
+    '  node Scripts/yuri-workhorse.mjs forge --generate-plan --execute "<rough idea>"',
+    '  node Scripts/yuri-workhorse.mjs run --plan <path>',
+    '  node Scripts/yuri-workhorse.mjs run --execute --plan <path>',
+    '  node Scripts/yuri-workhorse.mjs --selftest',
+    '  node Scripts/yuri-workhorse.mjs --help',
   ]
 }
 

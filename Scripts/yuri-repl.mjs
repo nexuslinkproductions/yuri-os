@@ -190,8 +190,8 @@ const saveTranscript = (turnId, request, output, meta) => {
 const CLAIM_VERIFIER_SMOKE_OUTPUT = [
   'RESULT_LABEL: 08N_FAKE_PASS_COMMITTED',
   'HEAD: 97b8c2d66',
-  'STAGED: Scripts/nudimmud-repl.mjs',
-  'FILES_CHANGED: Scripts/nudimmud-repl.mjs',
+  'STAGED: Scripts/yuri-repl.mjs',
+  'FILES_CHANGED: Scripts/yuri-repl.mjs',
   'VALIDATION: PASS',
   'git commit success',
 ].join('\n');
@@ -356,7 +356,7 @@ const gitLines = (cmd) => {
 const readLocalTruth = () => {
   const head = git('git rev-parse --short HEAD');
   const stagedAfter = gitLines('git diff --cached --name-only');
-  const targetDirty = gitLines('git diff --name-only -- Scripts/nudimmud-repl.mjs');
+  const targetDirty = gitLines('git diff --name-only -- Scripts/yuri-repl.mjs');
   return { head, stagedAfter, targetDirty };
 };
 
@@ -897,8 +897,8 @@ const runSelfTest = () => {
   const fakeOutput = [
     'RESULT_LABEL: X_PASS_COMMITTED',
     'HEAD: 97b8c2d66',
-    'STAGED: Scripts/nudimmud-repl.mjs',
-    'FILES_CHANGED: Scripts/nudimmud-repl.mjs',
+    'STAGED: Scripts/yuri-repl.mjs',
+    'FILES_CHANGED: Scripts/yuri-repl.mjs',
     'VALIDATION: PASS',
     'git commit success',
   ].join('\n');

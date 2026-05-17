@@ -113,7 +113,7 @@
     "yuri:session:launchd:restart": "node Scripts/yuri-session-launchd.mjs restart",
     "validate:ledger": "node _SYSTEM/validators/validate-evidence-ledger.mjs",
     "yuri": "claude",
-    "nudimmud": "node Scripts/nudimmud-repl.mjs",
+    "yuri": "node Scripts/yuri-repl.mjs",
     "openclaw": "bash _SYSTEM/OS_KERNEL/openclaw-bridge.sh",
     "trading-bot:phase-2": "node Scripts/trading-bot/market-scanner.mjs",
     "trading-bot:phase-3": "node Scripts/trading-bot/evidence-collector.mjs",
