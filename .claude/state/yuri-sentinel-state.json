@@ -1,12 +1,12 @@
 {
-  "lastRun": "2026-05-17T15:51:03.863Z",
+  "lastRun": "2026-05-17T16:57:04.533Z",
   "phases": {
     "liveness": {
       "status": "ok",
-      "msg": "GET http://localhost:18789/health -> 200 (59ms)",
+      "msg": "GET http://localhost:18789/health -> 200 (44ms)",
       "url": "http://localhost:18789/health",
       "httpStatus": 200,
-      "elapsedMs": 59
+      "elapsedMs": 44
     },
     "health": {
       "status": "warn",
@@ -39,8 +39,8 @@
     },
     "external": {
       "status": "ok",
-      "msg": "github-trending age=1.5h",
-      "ageHours": 1.5413336296929254,
+      "msg": "github-trending age=2.6h",
+      "ageHours": 2.641508907470703,
       "overdue": false
     }
   },
