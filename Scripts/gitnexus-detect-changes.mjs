@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WRAPPER = path.join(REPO_ROOT, 'Scripts/gitnexus-mcp.mjs');
-const repo = process.argv[2] || 'nudimmud-vault';
+const repo = process.argv[2] || 'yuri-os-musubi';
 const scope = process.argv[3] || 'all';
 
 const result = await callGitNexusTool('detect_changes', { repo, scope });

@@ -36,7 +36,7 @@ Current accepted lane closure:
 Next recommended sprint:
 
 ```text
-08O_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_X
+08O_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_X
 ```
 
 ---
@@ -57,8 +57,8 @@ Known tolerated dirty state remains:
 
 ```text
 .claude/settings.json
-backend/data/nudimmud.db-shm
-backend/data/nudimmud.db-wal
+backend/data/yuri.db-shm
+backend/data/yuri.db-wal
 src/index.tsx
 src/main.ts
 src/components/NeuralViz/
@@ -109,7 +109,7 @@ Latest accepted HEAD before this lane:
 b1f060d55 fix(offload): harden DeepSeek prompt transport
 
 DeepSeek had previously fabricated:
-08K_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_X_PASS_COMMITTED
+08K_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_X_PASS_COMMITTED
 HEAD 97b8c2d66
 
 Local truth:
@@ -121,7 +121,7 @@ Local truth:
 The next priority was defined as:
 
 ```text
-08N-R_NUDIMMUD_LOCAL_CLAIM_VERIFIER_X
+08N-R_YURI_LOCAL_CLAIM_VERIFIER_X
 ```
 
 Goal:
@@ -266,7 +266,7 @@ After that:
 
 ```text
 node --check Scripts/nudimmud-repl.mjs: PASS
-NUDIMMUD_REPL_SELFTEST=1 node Scripts/nudimmud-repl.mjs: PASS
+YURI_REPL_SELFTEST=1 node Scripts/nudimmud-repl.mjs: PASS
 ```
 
 ### 5.5 Commit accepted
@@ -280,7 +280,7 @@ Commit:
 Final reported result:
 
 ```text
-08N_NUDIMMUD_LOCAL_CLAIM_VERIFIER_X_PASS_COMMITTED
+08N_YURI_LOCAL_CLAIM_VERIFIER_X_PASS_COMMITTED
 ```
 
 Accepted behavior:
@@ -310,7 +310,7 @@ Non-claims:
 After the verifier patch landed, the next planned smoke was:
 
 ```text
-08N-RV_NUDIMMUD_LOCAL_CLAIM_VERIFIER_REAL_TURN_V
+08N-RV_YURI_LOCAL_CLAIM_VERIFIER_REAL_TURN_V
 ```
 
 Goal:
@@ -364,13 +364,13 @@ No localhost qwen2.5:7b result may be labeled as DeepSeek V4 Pro validation.
 Codex later reported:
 
 ```text
-08N_NUDIMMUD_LOCAL_CLAIM_VERIFIER_REAL_TURN_V_BLOCKED_NO_SAVED_ARTIFACT
+08N_YURI_LOCAL_CLAIM_VERIFIER_REAL_TURN_V_BLOCKED_NO_SAVED_ARTIFACT
 ```
 
 Then after further diagnosis:
 
 ```text
-08N_NUDIMMUD_LOCAL_CLAIM_VERIFIER_REAL_TURN_V_BLOCKED_MODEL_DID_NOT_ECHO_FAKE_CLAIM
+08N_YURI_LOCAL_CLAIM_VERIFIER_REAL_TURN_V_BLOCKED_MODEL_DID_NOT_ECHO_FAKE_CLAIM
 ```
 
 Observed facts:
@@ -404,13 +404,13 @@ Use a deterministic no-model artifact smoke instead.
 A read-only diagnosis was run:
 
 ```text
-08N-RV-D_NUDIMMUD_REAL_TURN_SAVE_PATH_DIAGNOSIS_P
+08N-RV-D_YURI_REAL_TURN_SAVE_PATH_DIAGNOSIS_P
 ```
 
 Accepted result:
 
 ```text
-08N_NUDIMMUD_REAL_TURN_SAVE_PATH_DIAGNOSIS_P_PASS_NEXT_SMOKE_READY
+08N_YURI_REAL_TURN_SAVE_PATH_DIAGNOSIS_P_PASS_NEXT_SMOKE_READY
 ```
 
 Findings:
@@ -441,7 +441,7 @@ A deterministic no-model harness is cleaner, cheaper, and safer than repeatedly 
 Sprint:
 
 ```text
-08N-RH_NUDIMMUD_LOCAL_CLAIM_VERIFIER_NO_MODEL_HARNESS_X
+08N-RH_YURI_LOCAL_CLAIM_VERIFIER_NO_MODEL_HARNESS_X
 ```
 
 Goal:
@@ -461,7 +461,7 @@ Add a deterministic no-model harness path to Scripts/nudimmud-repl.mjs that:
 Added env-gated path:
 
 ```bash
-NUDIMMUD_REPL_CLAIM_VERIFIER_SMOKE=1 node Scripts/nudimmud-repl.mjs
+YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node Scripts/nudimmud-repl.mjs
 ```
 
 Added/used fake output:
@@ -542,7 +542,7 @@ Commit:
 Accepted result:
 
 ```text
-08N_NUDIMMUD_LOCAL_CLAIM_VERIFIER_NO_MODEL_HARNESS_X_PASS_COMMITTED
+08N_YURI_LOCAL_CLAIM_VERIFIER_NO_MODEL_HARNESS_X_PASS_COMMITTED
 ```
 
 Lane closure:
@@ -645,7 +645,7 @@ Do not:
 Next priority:
 
 ```text
-08O_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_X
+08O_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_X
 ```
 
 Goal:
@@ -723,8 +723,8 @@ Current accepted local truth:
 
 Known tolerated dirty state:
 - .claude/settings.json
-- backend/data/nudimmud.db-shm
-- backend/data/nudimmud.db-wal
+- backend/data/yuri.db-shm
+- backend/data/yuri.db-wal
 - src/index.tsx
 - src/main.ts
 - src/components/NeuralViz/
@@ -741,7 +741,7 @@ Critical correction:
 - No further Qwen/DeepSeek verifier smoke is needed.
 
 Next priority:
-08O_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_X
+08O_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_X
 
 Goal:
 - remove need to hit Enter twice after paste
@@ -751,7 +751,7 @@ Goal:
 - automatic paste must not enter visible duplicate MULTILINE mode
 - do not touch HUD redesign yet
 
-Please first acknowledge this state, then give me one single copy-ready sprint prompt for 08O_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_X.
+Please first acknowledge this state, then give me one single copy-ready sprint prompt for 08O_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_X.
 
 Prompt requirements:
 - ONE_TRANSACTION

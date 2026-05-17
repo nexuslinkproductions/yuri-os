@@ -40,7 +40,7 @@ import { ollamaProvider } from './providers/ollamaProvider';
             {
                 allowCloud: false,
                 intent: 'summarization',
-                retrievalProfile: 'NUDIMMUD_SYSTEM'
+                retrievalProfile: 'YURI_SYSTEM'
             }
         );
 

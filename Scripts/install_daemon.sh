@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ⬡ NUDIMMUD_DAEMON_INSTALLER
+# ⬡ YURI_DAEMON_INSTALLER
 # This script configures the NUDIMMUD Command Center to start automatically on boot.
 
 PROJECT_ROOT="/Volumes/T7/NUDIMMUD"

@@ -28,7 +28,7 @@ try {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: {
         ...process.env,
-        NUDIMMUD_DB_PATH: path.join(tempRoot, 'sandbox-learning.db'),
+        YURI_DB_PATH: path.join(tempRoot, 'sandbox-learning.db'),
       },
     },
   );
@@ -36,7 +36,7 @@ try {
   assert.equal(preview.workspaceRoot, workspace, 'workspace root missing from preview');
   assert(preview.command.includes('--cd'), 'codex command should include --cd');
   assert.equal(preview.command[preview.command.indexOf('--cd') + 1], workspace, 'codex --cd should target isolated workspace');
-  assert.equal(preview.env_redirects.NUDIMMUD_DB_PATH, path.join(tempRoot, 'sandbox-learning.db'), 'sandbox DB redirect should be visible');
+  assert.equal(preview.env_redirects.YURI_DB_PATH, path.join(tempRoot, 'sandbox-learning.db'), 'sandbox DB redirect should be visible');
   assert.equal(preview.timeoutMs, 21600000, 'Codex Spark default timeout must allow long offload work');
 
   const codexConfig = fs.readFileSync(path.join(repoRoot, '.codex/config.toml'), 'utf8');

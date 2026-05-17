@@ -44,7 +44,7 @@ const scanRoots = [
   'nisaba.md',
   'package.json',
   'README.md',
-  'NUDIMMUD_AUDIT_README.md',
+  'YURI_AUDIT_README.md',
 ];
 
 const skippedPathReasons = new Map([

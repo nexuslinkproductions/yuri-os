@@ -265,7 +265,7 @@ The user’s actual UX requirement:
 A later NUDIMMUD DeepSeek output claimed:
 
 ```text
-08K_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_X_PASS_COMMITTED
+08K_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_X_PASS_COMMITTED
 HEAD: 97b8c2d66 (post-repair)
 STAGED: Scripts/nudimmud-repl.mjs
 FILES_CHANGED: 1
@@ -288,8 +288,8 @@ b1f060d55 (HEAD -> main) fix(offload): harden DeepSeek prompt transport
 # empty
 ---TARGET STATUS---
  M .claude/settings.json
- M backend/data/nudimmud.db-shm
- M backend/data/nudimmud.db-wal
+ M backend/data/yuri.db-shm
+ M backend/data/yuri.db-wal
  M src/index.tsx
  M src/main.ts
 ?? src/components/NeuralViz/
@@ -325,7 +325,7 @@ A local-truth audit followed.
 ### Result label
 
 ```text
-08N_NUDIMMUD_MODEL_CLAIM_AUTHORITY_AUDIT_V_PASS_DIAGNOSED
+08N_YURI_MODEL_CLAIM_AUTHORITY_AUDIT_V_PASS_DIAGNOSED
 ```
 
 ### Trusted local state from audit
@@ -343,7 +343,7 @@ TARGET_DIRTY: no for Scripts/nudimmud-repl.mjs
 ```text
 node --check Scripts/nudimmud-repl.mjs: passed
 node --check Scripts/offload-runner.mjs: passed
-NUDIMMUD_REPL_SELFTEST=1: passed
+YURI_REPL_SELFTEST=1: passed
 ```
 
 ### Root cause
@@ -415,8 +415,8 @@ Known tolerated dirty/untracked state from the direct target status around the f
 
 ```text
  M .claude/settings.json
- M backend/data/nudimmud.db-shm
- M backend/data/nudimmud.db-wal
+ M backend/data/yuri.db-shm
+ M backend/data/yuri.db-wal
  M src/index.tsx
  M src/main.ts
 ?? src/components/NeuralViz/
@@ -560,7 +560,7 @@ The next safest work is **not** another aesthetic HUD patch and not another mode
 Recommended next lane:
 
 ```text
-08O_NUDIMMUD_LOCAL_CLAIM_VERIFIER_P — Plan Local Claim Verifier for NUDIMMUD Model Output
+08O_YURI_LOCAL_CLAIM_VERIFIER_P — Plan Local Claim Verifier for NUDIMMUD Model Output
 ```
 
 Purpose:
@@ -598,7 +598,7 @@ DeepSeek produced a convincing but false `PASS_COMMITTED` / `HEAD: 97b8c2d66` ou
 Start by summarizing the trusted state, then give me the next safest compact sprint prompt.
 
 Likely next sprint:
-08O_NUDIMMUD_LOCAL_CLAIM_VERIFIER_P — Plan Local Claim Verifier for NUDIMMUD Model Output
+08O_YURI_LOCAL_CLAIM_VERIFIER_P — Plan Local Claim Verifier for NUDIMMUD Model Output
 
 Rules:
 - one copy-ready prompt block only
@@ -618,7 +618,7 @@ Rules:
 
 ```text
 @swarm
-08O_NUDIMMUD_LOCAL_CLAIM_VERIFIER_P — Plan Local Claim Verifier for NUDIMMUD Model Output
+08O_YURI_LOCAL_CLAIM_VERIFIER_P — Plan Local Claim Verifier for NUDIMMUD Model Output
 
 Use Claude Sonnet 4.6 with high reasoning as orchestrator, or Codex GPT-5.4-mini xhigh if this is being run from Codex CLI. Use swarm/offloaded lanes only for compact read-only evidence collection. Do not use DeepSeek as authority for local git/file truth in this sprint.
 
@@ -629,7 +629,7 @@ Design a local claim-verifier boundary for NUDIMMUD so model-generated claims li
 
 Context:
 DeepSeek recently returned a convincing but false report:
-- RESULT_LABEL: 08K_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_X_PASS_COMMITTED
+- RESULT_LABEL: 08K_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_X_PASS_COMMITTED
 - HEAD: 97b8c2d66
 - STAGED: Scripts/nudimmud-repl.mjs
 Local terminal truth later showed:
@@ -646,7 +646,7 @@ Hard constraints:
 - Do not generate files.
 - Do not run broad git status.
 - Do not run broad git diff.
-- Do not touch backend/data/nudimmud.db.
+- Do not touch backend/data/yuri.db.
 - Do not touch .claude/settings.json.
 - Do not touch HUD visuals.
 - Do not patch Scripts/nudimmud-repl.mjs yet.
@@ -658,7 +658,7 @@ Preflight, marker-only:
 - git branch --show-current
 - git rev-parse --short HEAD
 - git diff --cached --name-only
-- git status --short -- Scripts/nudimmud-repl.mjs Scripts/offload.sh Scripts/offload-runner.mjs Scripts/ai Scripts/nudimmud/status-line.mjs .claude/settings.json backend/data/nudimmud.db backend/data/nudimmud.db-shm backend/data/nudimmud.db-wal src/index.tsx src/main.ts src/components/NeuralViz src/yuri
+- git status --short -- Scripts/nudimmud-repl.mjs Scripts/offload.sh Scripts/offload-runner.mjs Scripts/ai Scripts/nudimmud/status-line.mjs .claude/settings.json backend/data/yuri.db backend/data/yuri.db-shm backend/data/yuri.db-wal src/index.tsx src/main.ts src/components/NeuralViz src/yuri
 
 Read-only inspection scope:
 - Scripts/nudimmud-repl.mjs
@@ -718,9 +718,9 @@ Output rules:
 
 Final report format:
 RESULT_LABEL:
-- 08O_NUDIMMUD_LOCAL_CLAIM_VERIFIER_P_PASS_PLAN_READY
+- 08O_YURI_LOCAL_CLAIM_VERIFIER_P_PASS_PLAN_READY
 or
-- 08O_NUDIMMUD_LOCAL_CLAIM_VERIFIER_P_BLOCKED
+- 08O_YURI_LOCAL_CLAIM_VERIFIER_P_BLOCKED
 
 LOCAL_TRUTH:
 - cwd:

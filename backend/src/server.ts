@@ -41,10 +41,10 @@ function isTruthy(v: string | undefined): boolean {
     return v === '1' || v === 'true';
 }
 
-const isTestMode = isTruthy(process.env.NUDIMMUD_TEST_MODE);
-const suppressWatchers = isTestMode || isTruthy(process.env.NUDIMMUD_DISABLE_WATCHERS);
-const suppressIntervals = isTestMode || isTruthy(process.env.NUDIMMUD_DISABLE_INTERVALS);
-const suppressSwarm = isTestMode || isTruthy(process.env.NUDIMMUD_DISABLE_SWARM_ORCHESTRATOR);
+const isTestMode = isTruthy(process.env.YURI_TEST_MODE);
+const suppressWatchers = isTestMode || isTruthy(process.env.YURI_DISABLE_WATCHERS);
+const suppressIntervals = isTestMode || isTruthy(process.env.YURI_DISABLE_INTERVALS);
+const suppressSwarm = isTestMode || isTruthy(process.env.YURI_DISABLE_SWARM_ORCHESTRATOR);
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost']);
 const PUBLIC_CORS_ORIGINS = new Set(
@@ -89,7 +89,7 @@ process.on('unhandledRejection', (reason) => {
     void gracefulShutdown('unhandledRejection');
 });
 
-bootLog('⬡ NUDIMMUD_SERVER_IGNITING...');
+bootLog('⬡ YURI_SERVER_IGNITING...');
 bootLog('⬡ AUTH_RUNTIME_READY :: Local bootstrap token initialized');
 
 const app = express();
@@ -730,7 +730,7 @@ function attachWebSocketServer(socketServer: WebSocketServer) {
                     const body = JSON.stringify({ command });
                     const proxyReq = http.request({
                         hostname: '127.0.0.1', port: 3098, path: '/run', method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'X-API-KEY': process.env.SHELL_SERVICE_KEY || 'nudimmud-master-key-2026-04-23' },
+                        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body), 'X-API-KEY': process.env.SHELL_SERVICE_KEY || 'yuri-master-key-2026-04-23' },
                     }, (proxyRes: any) => {
                         let buf = '';
                         proxyRes.on('data', (chunk: Buffer) => {
@@ -901,7 +901,7 @@ async function startServer() {
                 bootLog(`⬡ SERVER_ERROR: ${error.message}`);
             });
 
-            bootLog(`⬡ NUDIMMUD_BACKEND_ONLINE :: ${HOST}:${currentPort}`);
+            bootLog(`⬡ YURI_BACKEND_ONLINE :: ${HOST}:${currentPort}`);
             logEvent(db, 'SYSTEM', 'SERVER', `Backend server started on ${HOST}:${currentPort}`, 'INFO');
             return;
         } catch (error) {

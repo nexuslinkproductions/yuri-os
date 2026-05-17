@@ -48,18 +48,18 @@
 
 ---
 
-### Desktop: CLAUDE DESIGN/ + NUDIMMUD_RECOVERY/
+### Desktop: CLAUDE DESIGN/ + YURI_RECOVERY/
 **Blocked by:** Requires Marcel decision on contents
 **Reopen when:** Marcel reviews and decides: merge, archive, or delete
 **What's waiting:**
 - `CLAUDE DESIGN/NUDIMMUD/` — appears to be older vault copy (has full directory structure + `enki_state.md` etc.)
 - `CLAUDE DESIGN/DOMAIN EXPANSION - INFINITE VOID/` — separate Claude setup/project
-- `NUDIMMUD_RECOVERY/backend/src/` — recovery code project
+- `YURI_RECOVERY/backend/src/` — recovery code project
 
 **Action options:**
 1. If CLAUDE DESIGN/NUDIMMUD/ is superseded → delete after confirming local NUDIMMUD is more recent
 2. If it has unique content → merge into main vault
-3. NUDIMMUD_RECOVERY/backend/ → move to `01_PROJECTS/` if still active, or archive
+3. YURI_RECOVERY/backend/ → move to `01_PROJECTS/` if still active, or archive
 
 ---
 

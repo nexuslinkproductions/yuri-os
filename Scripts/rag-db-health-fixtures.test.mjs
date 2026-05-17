@@ -57,7 +57,7 @@ try {
     cwd: REPO_ROOT,
     env: {
       ...process.env,
-      NUDIMMUD_DB_PATH: cleanPath,
+      YURI_DB_PATH: cleanPath,
     },
     encoding: 'utf8',
   });

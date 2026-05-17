@@ -8,7 +8,7 @@ import { once } from 'node:events';
 
 const PORT = 3324;
 const API_KEY = 'test-api-key-123456';
-const SERVER_READY = /NUDIMMUD_BACKEND_ONLINE/;
+const SERVER_READY = /YURI_BACKEND_ONLINE/;
 
 const repoScratch = path.join(process.cwd(), '.tmp');
 fs.mkdirSync(repoScratch, { recursive: true });
@@ -76,12 +76,12 @@ async function startBackend() {
       ...process.env,
       API_KEY,
       PORT: String(PORT),
-      NUDIMMUD_DB_PATH: appDbPath,
+      YURI_DB_PATH: appDbPath,
       YURI_MEMORY_DB_PATH: memoryDbPath,
-      NUDIMMUD_TEST_MODE: '1',
-      NUDIMMUD_DISABLE_WATCHERS: '1',
-      NUDIMMUD_DISABLE_INTERVALS: '1',
-      NUDIMMUD_DISABLE_SWARM_ORCHESTRATOR: '1',
+      YURI_TEST_MODE: '1',
+      YURI_DISABLE_WATCHERS: '1',
+      YURI_DISABLE_INTERVALS: '1',
+      YURI_DISABLE_SWARM_ORCHESTRATOR: '1',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });

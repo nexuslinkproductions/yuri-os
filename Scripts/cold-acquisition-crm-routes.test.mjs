@@ -12,7 +12,7 @@ const ADMIN_EMAIL = 'marcel.crm@example.test';
 const ADMIN_PASSWORD = 'admin-pass-123456';
 const FANNY_EMAIL = 'fanny.crm@example.test';
 const FANNY_PASSWORD = 'fanny-pass-123456';
-const SERVER_READY = /NUDIMMUD_BACKEND_ONLINE/;
+const SERVER_READY = /YURI_BACKEND_ONLINE/;
 
 const repoScratch = path.join(process.cwd(), '.tmp');
 fs.mkdirSync(repoScratch, { recursive: true });
@@ -949,12 +949,12 @@ async function startBackend() {
       ...process.env,
       API_KEY,
       PORT: String(PORT),
-      NUDIMMUD_DB_PATH: appDbPath,
+      YURI_DB_PATH: appDbPath,
       YURI_MEMORY_DB_PATH: memoryDbPath,
-      NUDIMMUD_TEST_MODE: '1',
-      NUDIMMUD_DISABLE_WATCHERS: '1',
-      NUDIMMUD_DISABLE_INTERVALS: '1',
-      NUDIMMUD_DISABLE_SWARM_ORCHESTRATOR: '1',
+      YURI_TEST_MODE: '1',
+      YURI_DISABLE_WATCHERS: '1',
+      YURI_DISABLE_INTERVALS: '1',
+      YURI_DISABLE_SWARM_ORCHESTRATOR: '1',
       COLD_ACQ_ADMIN_EMAIL: ADMIN_EMAIL,
       COLD_ACQ_ADMIN_PASSWORD: ADMIN_PASSWORD,
       COLD_ACQ_FANNY_EMAIL: FANNY_EMAIL,

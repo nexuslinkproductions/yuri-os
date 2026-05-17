@@ -122,7 +122,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const DB_PATH = './data/nudimmud.db';
+const DB_PATH = './data/yuri.db';
 
 export function initDatabase() {
     // Ensure data directory exists
@@ -202,10 +202,10 @@ export function initDatabase() {
 **Validation:**
 ```bash
 # After first run, check schema
-sqlite3 ./data/nudimmud.db ".tables"
+sqlite3 ./data/yuri.db ".tables"
 # Should output: checkpoints events knowledge_nodes telemetry token_usage
 
-sqlite3 ./data/nudimmud.db ".schema knowledge_nodes"
+sqlite3 ./data/yuri.db ".schema knowledge_nodes"
 # Should show full schema with indexes
 ```
 

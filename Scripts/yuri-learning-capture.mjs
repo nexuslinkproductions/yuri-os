@@ -40,13 +40,13 @@ const {
   getSessionImprovementSummary,
 } = service;
 
-const DEFAULT_DB = path.join(REPO_ROOT, 'backend/data/nudimmud.db');
+const DEFAULT_DB = path.join(REPO_ROOT, 'backend/data/yuri.db');
 
 main();
 
 function main() {
   const { command, flags } = parseArgs(process.argv.slice(2));
-  const dbPath = flags.db || process.env.NUDIMMUD_DB_PATH || DEFAULT_DB;
+  const dbPath = flags.db || process.env.YURI_DB_PATH || DEFAULT_DB;
   const db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
   ensureSessionImprovementLog(db);

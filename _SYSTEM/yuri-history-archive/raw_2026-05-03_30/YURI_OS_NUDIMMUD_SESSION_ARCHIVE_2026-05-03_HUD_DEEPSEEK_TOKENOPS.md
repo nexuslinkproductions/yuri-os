@@ -166,8 +166,8 @@ Known tolerated dirty state:
 
 ```text
 .claude/settings.json
-backend/data/nudimmud.db-shm
-backend/data/nudimmud.db-wal
+backend/data/yuri.db-shm
+backend/data/yuri.db-wal
 src/index.tsx
 src/main.ts
 src/components/NeuralViz/
@@ -231,7 +231,7 @@ Scripts/nudimmud-repl.mjs
 Added deterministic no-model artifact smoke:
 
 ```bash
-NUDIMMUD_REPL_CLAIM_VERIFIER_SMOKE=1 node Scripts/nudimmud-repl.mjs
+YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node Scripts/nudimmud-repl.mjs
 ```
 
 Verified markers:
@@ -250,7 +250,7 @@ HEAD_UNCHANGED::true
 Sprint:
 
 ```text
-08O_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_X
+08O_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_X
 ```
 
 Goal:
@@ -263,7 +263,7 @@ Goal:
 Result:
 
 ```text
-08O_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_X_PASS_COMMITTED
+08O_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_X_PASS_COMMITTED
 ```
 
 Commit:
@@ -306,7 +306,7 @@ CLAIM_VERIFIER_ARTIFACT_SMOKE
 Verification sprint result:
 
 ```text
-08O_V_NUDIMMUD_COMPOSER_AUTO_SEND_PASTE_REPAIR_VERIFIED
+08O_V_YURI_COMPOSER_AUTO_SEND_PASTE_REPAIR_VERIFIED
 ```
 
 Artifact path from verification:
@@ -328,7 +328,7 @@ PASS
 Planning result:
 
 ```text
-08P_NUDIMMUD_ROUTE_LOG_OUTPUT_SEPARATION_P_PASS_PLAN_READY
+08P_YURI_ROUTE_LOG_OUTPUT_SEPARATION_P_PASS_PLAN_READY
 ```
 
 Problem diagnosed:
@@ -340,7 +340,7 @@ Problem diagnosed:
 Implementation result:
 
 ```text
-08P_NUDIMMUD_ROUTE_LOG_OUTPUT_SEPARATION_X_PASS_COMMITTED
+08P_YURI_ROUTE_LOG_OUTPUT_SEPARATION_X_PASS_COMMITTED
 ```
 
 Commit:
@@ -385,7 +385,7 @@ COMPOSER_08O_REGRESSION
 Verification result:
 
 ```text
-08P_V_NUDIMMUD_ROUTE_LOG_OUTPUT_SEPARATION_VERIFIED
+08P_V_YURI_ROUTE_LOG_OUTPUT_SEPARATION_VERIFIED
 ```
 
 Artifact path:
@@ -407,7 +407,7 @@ PASS
 Result:
 
 ```text
-08Q_NUDIMMUD_CLAIM_VERIFIER_LOCAL_TRUTH_V_PASS_VERIFIED
+08Q_YURI_CLAIM_VERIFIER_LOCAL_TRUTH_V_PASS_VERIFIED
 ```
 
 HEAD verified:
@@ -454,7 +454,7 @@ Keep this smoke in the review path for any future Scripts/nudimmud-repl.mjs chan
 Planning result:
 
 ```text
-08R_NUDIMMUD_HUD_BUDGET_LINE_REMOVE_P_PASS_PLAN_READY
+08R_YURI_HUD_BUDGET_LINE_REMOVE_P_PASS_PLAN_READY
 ```
 
 Goal:
@@ -467,7 +467,7 @@ Goal:
 Implementation result:
 
 ```text
-08R_NUDIMMUD_HUD_BUDGET_LINE_REMOVE_X_PASS_COMMITTED
+08R_YURI_HUD_BUDGET_LINE_REMOVE_X_PASS_COMMITTED
 ```
 
 Commit:
@@ -508,7 +508,7 @@ CLAIM_VERIFIER_ARTIFACT_SMOKE
 Verification result:
 
 ```text
-08R_V_NUDIMMUD_HUD_BUDGET_LINE_REMOVE_VERIFIED
+08R_V_YURI_HUD_BUDGET_LINE_REMOVE_VERIFIED
 ```
 
 Artifact:
@@ -554,7 +554,7 @@ Regression marker result:
 Manual visual smoke:
 
 ```text
-08S_NUDIMMUD_VISUAL_HUD_SMOKE_PASS
+08S_YURI_VISUAL_HUD_SMOKE_PASS
 ```
 
 Interpretation:
@@ -641,7 +641,7 @@ The target direction was more polished and dashboard-like:
 Result:
 
 ```text
-08T_NUDIMMUD_HUD_USEFUL_POLISH_X1_PASS_COMMITTED
+08T_YURI_HUD_USEFUL_POLISH_X1_PASS_COMMITTED
 ```
 
 Commit:
@@ -691,7 +691,7 @@ Screenshot showed it was significantly worse:
 Result:
 
 ```text
-08T_NUDIMMUD_HUD_VISUAL_REPAIR_X2_PASS_COMMITTED
+08T_YURI_HUD_VISUAL_REPAIR_X2_PASS_COMMITTED
 ```
 
 Commit:
@@ -726,7 +726,7 @@ Manual screenshot showed:
 Result:
 
 ```text
-08T_NUDIMMUD_HUD_VISUAL_REPAIR_X3_PASS_COMMITTED
+08T_YURI_HUD_VISUAL_REPAIR_X3_PASS_COMMITTED
 ```
 
 Commit:
@@ -859,7 +859,7 @@ The latest uploaded handoff indicates a later accepted HUD-related local commit:
 HEAD: 81722e778
 Commit: fix(cli): refine NUDIMMUD HUD from restored baseline
 Result label:
-08T_NUDIMMUD_HUD_REFINEMENT_FROM_RESTORATION_AND_GOAL_PASS_COMMITTED
+08T_YURI_HUD_REFINEMENT_FROM_RESTORATION_AND_GOAL_PASS_COMMITTED
 ```
 
 Changed:
@@ -875,7 +875,7 @@ Validation reported:
 NODE_CHECK_REPL: PASS
 NODE_CHECK_STATUS_LINE: PASS
 SELFTEST: PASS
-HUD_LARGE_NUDIMMUD_IDENTITY: PASS
+HUD_LARGE_YURI_IDENTITY: PASS
 HUD_SUBTITLE_PRESENT: PASS
 HUD_NO_VISIBLE_STARTUP_BUDGET: PASS
 HUD_RESTORATION_BASELINE_STRENGTH: PASS
@@ -904,7 +904,7 @@ Visual summary:
 A later audit found:
 
 ```text
-08T_NUDIMMUD_BOOT_LAYER_DUPLICATE_HUD_AUDIT_P_PASS
+08T_YURI_BOOT_LAYER_DUPLICATE_HUD_AUDIT_P_PASS
 ```
 
 Diagnosis:
@@ -1369,7 +1369,7 @@ no fake repo claims.
 Next safe lane:
 
 ```text
-08T_NUDIMMUD_BOOT_LAYER_GATE_P
+08T_YURI_BOOT_LAYER_GATE_P
 ```
 
 Purpose:

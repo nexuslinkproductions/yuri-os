@@ -22,7 +22,7 @@ const fs   = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const REPO_ROOT        = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
+const REPO_ROOT        = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
 const SOUL_FILE        = path.join(REPO_ROOT, 'SOUL.md');
 const GLOBAL_MD        = path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'global.md');
 const PALACE_PATHS     = [path.join(REPO_ROOT, 'claude-palace-out', 'palace-index.md')];

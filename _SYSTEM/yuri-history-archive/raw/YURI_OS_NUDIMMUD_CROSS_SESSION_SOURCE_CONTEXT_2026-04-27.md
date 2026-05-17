@@ -28,7 +28,7 @@ This document separates current trusted state from historical state and unresolv
 
 The following uploaded session extracts were reconciled:
 
-1. `YURI_OS_NUDIMMUD_SESSION_CONTEXT_EXTRACT_2026-04-27.md`
+1. `YURI_OS_YURI_SESSION_CONTEXT_EXTRACT_2026-04-27.md`
    - Covers ecosystem audit, Sprint 01, Sprint 01.5 recommendation, CLI strategy, and readiness warnings.
 
 2. `yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md`

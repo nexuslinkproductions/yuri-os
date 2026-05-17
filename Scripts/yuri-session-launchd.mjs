@@ -68,8 +68,8 @@ function resolveNpmBinary() {
 function renderPlist() {
   const env = {
     PATH: buildLaunchPath(),
-    NUDIMMUD_SESSION_RUNTIME_ENABLED: '1',
-    NUDIMMUD_SESSION_RUNTIME_COMMAND: 'npm --prefix backend run dev',
+    YURI_SESSION_RUNTIME_ENABLED: '1',
+    YURI_SESSION_RUNTIME_COMMAND: 'npm --prefix backend run dev',
   };
   const envXml = Object.entries(env)
     .map(([key, value]) => `\n    <key>${plistEscape(key)}</key>\n    <string>${plistEscape(value)}</string>`)
@@ -145,8 +145,8 @@ function run() {
   const env = {
     ...process.env,
     PATH: buildLaunchPath(),
-    NUDIMMUD_SESSION_RUNTIME_ENABLED: '1',
-    NUDIMMUD_SESSION_RUNTIME_COMMAND: 'npm --prefix backend run dev',
+    YURI_SESSION_RUNTIME_ENABLED: '1',
+    YURI_SESSION_RUNTIME_COMMAND: 'npm --prefix backend run dev',
   };
 
   console.log(`[yuri-session-launchd] launching ${npmBinary} --prefix backend run dev`);

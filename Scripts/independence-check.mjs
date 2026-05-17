@@ -2,7 +2,7 @@
 // independence-check.mjs
 // Static verifier for Yuri OS Anthropic-independence sprint.
 // Walks subagents, hooks, skills, scripts, and routing contract; asserts
-// no surface fires Anthropic when NUDIMMUD_NO_ANTHROPIC=1.
+// no surface fires Anthropic when YURI_NO_ANTHROPIC=1.
 //
 // Usage:
 //   node Scripts/independence-check.mjs            # full report, exit 0/1

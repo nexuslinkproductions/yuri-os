@@ -45,7 +45,7 @@ export const tokenLedgerService = {
                 output_tokens: estimateMessageTokens([{ role: 'assistant', content: input.fallbackOutputText || '' }])
             });
             const event = {
-                trace_id: process.env.TOKEN_LEDGER_TRACE_ID || process.env.NUDIMMUD_SESSION_ID || `backend-${Date.now()}-${process.pid}`,
+                trace_id: process.env.TOKEN_LEDGER_TRACE_ID || process.env.YURI_SESSION_ID || `backend-${Date.now()}-${process.pid}`,
                 source_path: input.sourcePath || 'backend/src/services/providers',
                 lane: input.lane || 'backend',
                 provider: input.provider,

@@ -5,8 +5,8 @@
 
 set -euo pipefail
 
-# Whitelist: set NUDIMMUD_ALLOW_ANTHROPIC_LANES=1 for intentional opt-in additions
-if [ "${NUDIMMUD_ALLOW_ANTHROPIC_LANES:-0}" = "1" ]; then
+# Whitelist: set YURI_ALLOW_ANTHROPIC_LANES=1 for intentional opt-in additions
+if [ "${YURI_ALLOW_ANTHROPIC_LANES:-0}" = "1" ]; then
   exit 0
 fi
 
@@ -19,7 +19,7 @@ _NEW_ANTHROPIC=$(git diff --cached -- '*.mjs' '*.js' '*.ts' '*.sh' '*.md' \
 if [ -n "$_NEW_ANTHROPIC" ]; then
   echo "[pre-commit] ⚠️  New Anthropic model reference detected in staged files:" >&2
   echo "$_NEW_ANTHROPIC" >&2
-  echo "[pre-commit]   Bypass: NUDIMMUD_ALLOW_ANTHROPIC_LANES=1 git commit" >&2
+  echo "[pre-commit]   Bypass: YURI_ALLOW_ANTHROPIC_LANES=1 git commit" >&2
   echo "[pre-commit]   Reference: Sovereignty Sprint Packet 13" >&2
   exit 1
 fi

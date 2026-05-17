@@ -578,12 +578,12 @@ export class SessionRuntimeService {
     private maybeRunWorkSlice(snapshot: SessionSnapshot, task: BacklogTaskSnapshot) {
         this.lastWorkSliceAt = Date.now();
 
-        const mode = process.env.NUDIMMUD_SESSION_RUNTIME_MODE === 'dry-run' ? '--dry-run' : '--live';
+        const mode = process.env.YURI_SESSION_RUNTIME_MODE === 'dry-run' ? '--dry-run' : '--live';
         const scriptPath = path.join(SystemConfig.ROOT, 'Scripts/yuri-sandbox-loop.mjs');
         const prompt = buildWorkSlicePrompt(snapshot, task);
         const args = [scriptPath, mode, '--prompt', prompt];
-        if (process.env.NUDIMMUD_DB_PATH) {
-            args.push('--db', process.env.NUDIMMUD_DB_PATH);
+        if (process.env.YURI_DB_PATH) {
+            args.push('--db', process.env.YURI_DB_PATH);
         }
 
         this.updateMetadata(snapshot.id, {
@@ -620,7 +620,7 @@ export class SessionRuntimeService {
     }
 
     private canStartWorkSlice() {
-        if (process.env.NUDIMMUD_SESSION_RUNTIME_TEST_MODE === '1') return false;
+        if (process.env.YURI_SESSION_RUNTIME_TEST_MODE === '1') return false;
         if (this.child && this.child.exitCode === null) return false;
         return Date.now() - this.lastWorkSliceAt >= WORK_SLICE_INTERVAL_MS;
     }

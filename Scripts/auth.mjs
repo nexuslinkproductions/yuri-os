@@ -7,15 +7,15 @@ const DEFAULT_TIMEOUT_MS = 1200;
 export function resolveEnvApiKey(env = process.env) {
   return (
     env.API_KEY ||
-    env.NUDIMMUD_API_KEY ||
-    env.NUDIMMUD_BACKEND_API_KEY ||
+    env.YURI_API_KEY ||
+    env.YURI_BACKEND_API_KEY ||
     env.OFFLOAD_API_KEY ||
     ''
   ).trim();
 }
 
 export async function bootstrapApiKey(backendUrl = DEFAULT_BACKEND_URL, options = {}) {
-  const timeoutMs = Number(options.timeoutMs || process.env.NUDIMMUD_AUTH_BOOTSTRAP_TIMEOUT_MS || DEFAULT_TIMEOUT_MS);
+  const timeoutMs = Number(options.timeoutMs || process.env.YURI_AUTH_BOOTSTRAP_TIMEOUT_MS || DEFAULT_TIMEOUT_MS);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -58,7 +58,7 @@ Commands:
 
 async function main(argv) {
   const command = argv[0] || 'curl-headers';
-  const backendUrl = argv[1] || process.env.NUDIMMUD_BACKEND_URL || DEFAULT_BACKEND_URL;
+  const backendUrl = argv[1] || process.env.YURI_BACKEND_URL || DEFAULT_BACKEND_URL;
   const apiKey = await resolveApiKey({ backendUrl });
 
   if (command === 'key') {

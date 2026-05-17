@@ -9,7 +9,7 @@
 
 PASS=0
 FAIL=0
-NUDIMMUD_ROOT="/Users/marcelspatz/YURI-OS-MUSUBI"
+YURI_ROOT="/Users/marcelspatz/YURI-OS-MUSUBI"
 
 # Colors
 GREEN='\033[0;32m'
@@ -33,7 +33,7 @@ echo ""
 
 # Test 1: aeonic-ingest.js outputs valid JSON
 echo "[Test 1] aeonic-ingest.js JSON + sections..."
-cd "$NUDIMMUD_ROOT" || exit 1
+cd "$YURI_ROOT" || exit 1
 OUT=$(node ~/.claude/hooks/aeonic-ingest.js 2>/dev/null)
 if echo "$OUT" | jq . > /dev/null 2>&1; then
   test_pass "aeonic-ingest outputs valid JSON"
@@ -96,7 +96,7 @@ else
   test_fail "~/.claude/settings.json missing hooks"
 fi
 
-if grep -q "aeonic-ingest.js" "$NUDIMMUD_ROOT/.claude/settings.json"; then
+if grep -q "aeonic-ingest.js" "$YURI_ROOT/.claude/settings.json"; then
   test_pass "NUDIMMUD/.claude/settings.json wired correctly"
 else
   test_fail "NUDIMMUD/.claude/settings.json missing hooks"

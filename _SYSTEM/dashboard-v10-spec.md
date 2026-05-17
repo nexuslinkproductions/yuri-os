@@ -156,7 +156,7 @@ New nodes to add (parent → list of new children with id, label, type, color):
 ### SESSION_INIT additional grandchildren (under existing soul-inject):
 - SI_SOUL: existing
   - GC: SOUL_FILE: "SOUL.md", "behavioral rules", #4A9EFF, r=8
-  - GC: NUDIMMUD_COG: "NUDIMMUD-COGNITION.md", "paradigm rules", #4A9EFF, r=8
+  - GC: YURI_COG: "NUDIMMUD-COGNITION.md", "paradigm rules", #4A9EFF, r=8
 - SI_PALACE: existing
   - GC: PALACE_IDX: "palace-index.md", "vault navigator", #4A9EFF, r=8
 

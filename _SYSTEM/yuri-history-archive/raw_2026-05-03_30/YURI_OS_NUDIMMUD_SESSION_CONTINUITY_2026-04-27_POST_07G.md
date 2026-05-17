@@ -215,8 +215,8 @@ CLAUDE.md
 GEMINI.md
 Scripts/offload-runner.mjs
 Scripts/swarm-proxy.sh
-backend/data/nudimmud.db-shm
-backend/data/nudimmud.db-wal
+backend/data/yuri.db-shm
+backend/data/yuri.db-wal
 backend/src/services/vaultIngestion.ts
 index.html
 package-lock.json
@@ -774,8 +774,8 @@ Please review the continuity extract and prepare/validate the next safest action
     "GEMINI.md",
     "Scripts/offload-runner.mjs",
     "Scripts/swarm-proxy.sh",
-    "backend/data/nudimmud.db-shm",
-    "backend/data/nudimmud.db-wal",
+    "backend/data/yuri.db-shm",
+    "backend/data/yuri.db-wal",
     "backend/src/services/vaultIngestion.ts",
     "index.html",
     "package-lock.json",

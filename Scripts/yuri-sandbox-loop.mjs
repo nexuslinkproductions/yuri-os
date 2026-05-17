@@ -483,7 +483,7 @@ function captureLearning({ learningSummary, dbPath, commandsRun }) {
     metadata: startPayload.metadata,
   };
 
-  const env = dbPath ? { ...process.env, NUDIMMUD_DB_PATH: dbPath } : process.env;
+  const env = dbPath ? { ...process.env, YURI_DB_PATH: dbPath } : process.env;
   const start = runJsonCommand(process.execPath, [LEARNING_CLI, 'start', '--json', JSON.stringify(startPayload)], {
     commandsRun,
     label: 'learning-start',
@@ -537,7 +537,7 @@ function applyLearningCaptureGate({ mode, verification, learningCapture }) {
 }
 
 function readLearningSummary({ dbPath, commandsRun }) {
-  const env = dbPath ? { ...process.env, NUDIMMUD_DB_PATH: dbPath } : process.env;
+  const env = dbPath ? { ...process.env, YURI_DB_PATH: dbPath } : process.env;
   const summary = runJsonCommand(process.execPath, [LEARNING_CLI, 'summary', '--limit', '5'], {
     commandsRun,
     label: 'learning-summary',
@@ -800,7 +800,7 @@ function commandAvailable(command) {
 }
 
 function sandboxRunnerEnv(dbPath) {
-  return dbPath ? { ...process.env, NUDIMMUD_DB_PATH: dbPath } : process.env;
+  return dbPath ? { ...process.env, YURI_DB_PATH: dbPath } : process.env;
 }
 
 function runTextCommand(command, args, { commandsRun, label, env = process.env }) {

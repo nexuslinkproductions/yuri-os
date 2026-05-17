@@ -73,7 +73,7 @@ Client-portable, zero-Anthropic runtime for Mac Mini M4 Pro deployments.
 | `nexbox/symbiotic-pulse.mjs` | Standalone routing engine. Self-check: `node nexbox/symbiotic-pulse.mjs --self-check` |
 | `nexbox/offload-contract.mjs` | Slim 5-lane table (deepseek, kimi, nvidia, ollama-local, codex-spark). No @claude default. |
 | `nexbox/RUNBOOK.md` | Install → bootstrap → smoke → optional cloud keys → kill-switch drill |
-| `nexbox/verify.mjs` | Thin wrapper: `node nexbox/verify --strict` runs independence check under NUDIMMUD_NO_ANTHROPIC=1 |
+| `nexbox/verify.mjs` | Thin wrapper: `node nexbox/verify --strict` runs independence check under YURI_NO_ANTHROPIC=1 |
 | `bin/bootstrap-ollama.sh` | Ollama install check + model pulls (qwen2.5:7b, qwen2.5-coder:7b, qwen3.5:4b, nomic-embed-text) |
 
 ### Lane dispatcher (`Scripts/lane-dispatcher.mjs`)

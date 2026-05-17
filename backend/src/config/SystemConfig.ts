@@ -10,7 +10,7 @@ function isWithinRoot(root: string, candidate: string): boolean {
 }
 
 function locateRepoRoot(): string {
-    const envRoot = process.env.NUDIMMUD_ROOT || process.env.SYSTEM_ROOT;
+    const envRoot = process.env.YURI_ROOT || process.env.SYSTEM_ROOT;
     if (envRoot) {
         const resolvedEnvRoot = path.resolve(envRoot);
         console.log(`⬡ SYSTEM_CONFIG :: REPO_ROOT_RESOLVED (via ENV): \${resolvedEnvRoot}`);
@@ -52,7 +52,7 @@ export const SystemConfig = {
         BACKEND: 'backend',
         DATA: 'backend/data',
         LOGS: 'backend/data/logs',
-        DB: 'backend/data/nudimmud.db'
+        DB: 'backend/data/yuri.db'
     },
 
     // Ecosystem B: Knowledge Vaults (Obsidian)

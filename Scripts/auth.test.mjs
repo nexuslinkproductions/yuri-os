@@ -13,7 +13,7 @@ import {
 } from './auth.mjs';
 
 assert.equal(resolveEnvApiKey({ API_KEY: '  test-api-key-123456  ' }), 'test-api-key-123456');
-assert.equal(resolveEnvApiKey({ NUDIMMUD_BACKEND_API_KEY: 'backend-key' }), 'backend-key');
+assert.equal(resolveEnvApiKey({ YURI_BACKEND_API_KEY: 'backend-key' }), 'backend-key');
 assert.deepEqual(curlHeaderArgs('test-api-key-123456'), ['-H', 'X-API-KEY: test-api-key-123456']);
 assert.deepEqual(curlHeaderArgs(''), []);
 

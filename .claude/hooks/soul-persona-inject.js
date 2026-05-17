@@ -4,8 +4,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const NUDIMMUD_ROOT = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
-const SOUL_FILE = path.join(NUDIMMUD_ROOT, 'SOUL.md');
+const YURI_ROOT = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
+const SOUL_FILE = path.join(YURI_ROOT, 'SOUL.md');
 
 const REQUIRED_HEADINGS = [
   'Be an adversarial ally.',

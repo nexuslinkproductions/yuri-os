@@ -35,7 +35,7 @@ The goal is not to prove Yuri is already better. The goal is to identify the sma
 
 Known local evidence:
 
-- `NUDIMMUD_AUDIT_README.md` shows the design audit HUD exists, but real document analysis is still mock data.
+- `YURI_AUDIT_README.md` shows the design audit HUD exists, but real document analysis is still mock data.
 - `_SYSTEM/SWARM_ARCHITECTURE_AUDIT_2026.md` already identifies graph orchestration, MCP/A2A, tiered memory, dynamic model routing, and adversarial gates as gaps.
 - `docs/YURI_OS_BACKEND_HARDENING_AUDIT_2026-05-09.md` says the backend is not production-grade and identifies critical blockers around SQLite integrity, unauthenticated routes, CORS leakage, weak observability, and unproven recovery.
 - `_SYSTEM/research-archive/yuri-enterprise-ai-os-2026-05/` already contains seed governance research mapped to NIST AI RMF, OWASP, SLSA, and EU AI Act, but the archive is reference-only and not approved for RAG ingestion.

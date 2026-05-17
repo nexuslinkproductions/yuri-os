@@ -16,13 +16,13 @@
   },
   "duplicate_hash_groups": {
     "df9153e210956eeffae5e9d93a855b33d49a404f83e8a16dcf3a5d7b7fb83a7e": [
-      "YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_SX_CLEANUP_2026-04-28 (1).md",
-      "YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_SX_CLEANUP_2026-04-28.md"
+      "YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_SX_CLEANUP_2026-04-28 (1).md",
+      "YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_SX_CLEANUP_2026-04-28.md"
     ]
   },
   "files": [
     {
-      "basename": "YURI_OS_NUDIMMUD_CONTINUITY_AFTER_BASH_GUARD_LIVE_SAFE_VERIFIED_2026-04-29.md",
+      "basename": "YURI_OS_YURI_CONTINUITY_AFTER_BASH_GUARD_LIVE_SAFE_VERIFIED_2026-04-29.md",
       "category": "session_continuity",
       "date_hint": "2026-04-29",
       "heading": "YURI OS NUDIMMUD CONTINUITY AFTER BASH GUARD LIVE SAFE VERIFIED 2026-04-29",
@@ -34,7 +34,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_CONTINUITY_AFTER_GEMINI_BRIDGE_STUBS_2026-04-29.md",
+      "basename": "YURI_OS_YURI_CONTINUITY_AFTER_GEMINI_BRIDGE_STUBS_2026-04-29.md",
       "category": "session_continuity",
       "date_hint": "2026-04-29",
       "heading": "YURI OS NUDIMMUD CONTINUITY AFTER GEMINI BRIDGE STUBS 2026-04-29",
@@ -46,7 +46,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_CONTINUITY_AFTER_GIT_POLLUTION_GEMINI_ENV_2026-04-29.md",
+      "basename": "YURI_OS_YURI_CONTINUITY_AFTER_GIT_POLLUTION_GEMINI_ENV_2026-04-29.md",
       "category": "session_continuity",
       "date_hint": "2026-04-29",
       "heading": "YURI OS NUDIMMUD CONTINUITY AFTER GIT POLLUTION GEMINI ENV 2026-04-29",
@@ -58,7 +58,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_CROSS_SESSION_SOURCE_CONTEXT_2026-04-27.md",
+      "basename": "YURI_OS_YURI_CROSS_SESSION_SOURCE_CONTEXT_2026-04-27.md",
       "category": "cross_session_source_context",
       "date_hint": "2026-04-27",
       "heading": "YURI OS NUDIMMUD CROSS SESSION SOURCE CONTEXT 2026-04-27",
@@ -70,7 +70,7 @@
       "recommended_next_use": "verify in repo truth; cross_session_source_context context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART1_DEEPSEEK_TOKENOPS_RAG.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_ARCHIVE_2026-05-03_PART1_DEEPSEEK_TOKENOPS_RAG.md",
       "category": "deepseek_tokenops",
       "date_hint": "2026-05-03",
       "heading": "YURI OS NUDIMMUD GPT SESSION ARCHIVE 2026-05-03 PART1 DEEPSEEK TOKENOPS RAG",
@@ -82,7 +82,7 @@
       "recommended_next_use": "verify in repo truth; deepseek_tokenops context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART2_NUDIMMUD_HUD_CONTINUATION.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_ARCHIVE_2026-05-03_PART2_YURI_HUD_CONTINUATION.md",
       "category": "gpt_session_archive",
       "date_hint": "2026-05-03",
       "heading": "YURI OS NUDIMMUD GPT SESSION ARCHIVE 2026-05-03 PART2 NUDIMMUD HUD CONTINUATION",
@@ -94,7 +94,7 @@
       "recommended_next_use": "verify in repo truth; gpt_session_archive context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_1.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_ARCHIVE_2026-05-03_PART_1.md",
       "category": "gpt_session_archive",
       "date_hint": "2026-05-03",
       "heading": "YURI OS NUDIMMUD GPT SESSION ARCHIVE 2026-05-03 PART 1",
@@ -106,7 +106,7 @@
       "recommended_next_use": "verify in repo truth; gpt_session_archive context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_2.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_ARCHIVE_2026-05-03_PART_2.md",
       "category": "gpt_session_archive",
       "date_hint": "2026-05-03",
       "heading": "YURI OS NUDIMMUD GPT SESSION ARCHIVE 2026-05-03 PART 2",
@@ -118,7 +118,7 @@
       "recommended_next_use": "verify in repo truth; gpt_session_archive context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07J_BASH_HOOK_SCHEMA_VALIDATION_2026-04-29.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07J_BASH_HOOK_SCHEMA_VALIDATION_2026-04-29.md",
       "category": "session_continuity",
       "date_hint": "2026-04-29",
       "heading": "YURI OS NUDIMMUD GPT SESSION CONTINUITY AFTER 07J BASH HOOK SCHEMA VALIDATION 2026-04-29",
@@ -130,7 +130,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_P3_2026-04-28.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_P3_2026-04-28.md",
       "category": "session_continuity",
       "date_hint": "2026-04-28",
       "heading": "YURI OS NUDIMMUD GPT SESSION CONTINUITY AFTER 07J PERMISSION DENY P3 2026-04-28",
@@ -142,7 +142,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_SX_CLEANUP_2026-04-28 (1).md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_SX_CLEANUP_2026-04-28 (1).md",
       "category": "session_continuity",
       "date_hint": "2026-04-28",
       "heading": "YURI OS NUDIMMUD GPT SESSION CONTINUITY AFTER 07J PERMISSION DENY SX CLEANUP 2026-04-28 (1)",
@@ -154,7 +154,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_SX_CLEANUP_2026-04-28.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07J_PERMISSION_DENY_SX_CLEANUP_2026-04-28.md",
       "category": "session_continuity",
       "date_hint": "2026-04-28",
       "heading": "YURI OS NUDIMMUD GPT SESSION CONTINUITY AFTER 07J PERMISSION DENY SX CLEANUP 2026-04-28",
@@ -166,7 +166,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_CONTINUITY_AFTER_07K_RAG_QUERY_SWARM_COMMITS_2026-05-01.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07K_RAG_QUERY_SWARM_COMMITS_2026-05-01.md",
       "category": "session_continuity",
       "date_hint": "2026-05-01",
       "heading": "YURI OS NUDIMMUD GPT SESSION CONTINUITY AFTER 07K RAG QUERY SWARM COMMITS 2026-05-01",
@@ -178,7 +178,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_HANDOFF_DEEPSEEK_TOKENOPS_2026-05-02.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_HANDOFF_DEEPSEEK_TOKENOPS_2026-05-02.md",
       "category": "deepseek_tokenops",
       "date_hint": "2026-05-02",
       "heading": "YURI OS NUDIMMUD GPT SESSION HANDOFF DEEPSEEK TOKENOPS 2026-05-02",
@@ -190,7 +190,7 @@
       "recommended_next_use": "verify in repo truth; deepseek_tokenops context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_HANDOFF_AFTER_07K_RAG_QUERY_HARDENING_2026-05-01.md",
+      "basename": "YURI_OS_YURI_HANDOFF_AFTER_07K_RAG_QUERY_HARDENING_2026-05-01.md",
       "category": "query_hardening_handoff",
       "date_hint": "2026-05-01",
       "heading": "YURI OS NUDIMMUD HANDOFF AFTER 07K RAG QUERY HARDENING 2026-05-01",
@@ -202,7 +202,7 @@
       "recommended_next_use": "verify in repo truth; query_hardening_handoff context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md",
+      "basename": "YURI_OS_YURI_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md",
       "category": "deepseek_tokenops",
       "date_hint": "2026-05-03",
       "heading": "YURI OS NUDIMMUD SESSION ARCHIVE 2026-05-03 HUD DEEPSEEK TOKENOPS",
@@ -214,7 +214,7 @@
       "recommended_next_use": "verify in repo truth; deepseek_tokenops context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTEXT_EXTRACT_2026-04-27.md",
+      "basename": "YURI_OS_YURI_SESSION_CONTEXT_EXTRACT_2026-04-27.md",
       "category": "session_context_extract",
       "date_hint": "2026-04-27",
       "heading": "YURI OS NUDIMMUD SESSION CONTEXT EXTRACT 2026-04-27",
@@ -226,7 +226,7 @@
       "recommended_next_use": "verify in repo truth; session_context_extract context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md",
+      "basename": "YURI_OS_YURI_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md",
       "category": "query_hardening_handoff",
       "date_hint": "2026-05-01",
       "heading": "YURI OS NUDIMMUD SESSION CONTINUATION AFTER 07K QUERY HARDENING AND HERMES 2026-05-01",
@@ -238,7 +238,7 @@
       "recommended_next_use": "verify in repo truth; query_hardening_handoff context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTINUITY_2026-04-27.md",
+      "basename": "YURI_OS_YURI_SESSION_CONTINUITY_2026-04-27.md",
       "category": "session_continuity",
       "date_hint": "2026-04-27",
       "heading": "YURI OS NUDIMMUD SESSION CONTINUITY 2026-04-27",
@@ -250,7 +250,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTINUITY_2026-04-27_POST_07G.md",
+      "basename": "YURI_OS_YURI_SESSION_CONTINUITY_2026-04-27_POST_07G.md",
       "category": "session_continuity",
       "date_hint": "2026-04-27",
       "heading": "YURI OS NUDIMMUD SESSION CONTINUITY 2026-04-27 POST 07G",
@@ -262,7 +262,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTINUITY_2026-04-27_POST_07I_E_V.md",
+      "basename": "YURI_OS_YURI_SESSION_CONTINUITY_2026-04-27_POST_07I_E_V.md",
       "category": "session_continuity",
       "date_hint": "2026-04-27",
       "heading": "YURI OS NUDIMMUD SESSION CONTINUITY 2026-04-27 POST 07I E V",
@@ -274,7 +274,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTINUITY_2026-04-27_POST_07I_G_V_AND_EOT_HOTFIX.md",
+      "basename": "YURI_OS_YURI_SESSION_CONTINUITY_2026-04-27_POST_07I_G_V_AND_EOT_HOTFIX.md",
       "category": "session_continuity",
       "date_hint": "2026-04-27",
       "heading": "YURI OS NUDIMMUD SESSION CONTINUITY 2026-04-27 POST 07I G V AND EOT HOTFIX",
@@ -286,7 +286,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTINUITY_AFTER_07J_D_V2_2026-04-27.md",
+      "basename": "YURI_OS_YURI_SESSION_CONTINUITY_AFTER_07J_D_V2_2026-04-27.md",
       "category": "session_continuity",
       "date_hint": "2026-04-27",
       "heading": "YURI OS NUDIMMUD SESSION CONTINUITY AFTER 07J D V2 2026-04-27",
@@ -298,7 +298,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_CONTINUITY_AFTER_07J_STATE_I_P_2026-04-27.md",
+      "basename": "YURI_OS_YURI_SESSION_CONTINUITY_AFTER_07J_STATE_I_P_2026-04-27.md",
       "category": "session_continuity",
       "date_hint": "2026-04-27",
       "heading": "YURI OS NUDIMMUD SESSION CONTINUITY AFTER 07J STATE I P 2026-04-27",
@@ -310,7 +310,7 @@
       "recommended_next_use": "verify in repo truth; session_continuity context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_HANDOFF_2026-05-03_LOCAL_CLAIM_VERIFIER_TO_COMPOSER.md",
+      "basename": "YURI_OS_YURI_SESSION_HANDOFF_2026-05-03_LOCAL_CLAIM_VERIFIER_TO_COMPOSER.md",
       "category": "local_claim_verifier",
       "date_hint": "2026-05-03",
       "heading": "YURI OS NUDIMMUD SESSION HANDOFF 2026-05-03 LOCAL CLAIM VERIFIER TO COMPOSER",
@@ -322,7 +322,7 @@
       "recommended_next_use": "verify in repo truth; local_claim_verifier context"
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_SESSION_HANDOFF_2026-05-03_WEBSEARCH_DEEPSEEK_EXECUTOR_HUD.md",
+      "basename": "YURI_OS_YURI_SESSION_HANDOFF_2026-05-03_WEBSEARCH_DEEPSEEK_EXECUTOR_HUD.md",
       "category": "websearch_executor_hud",
       "date_hint": "2026-05-03",
       "heading": "YURI OS NUDIMMUD SESSION HANDOFF 2026-05-03 WEBSEARCH DEEPSEEK EXECUTOR HUD",

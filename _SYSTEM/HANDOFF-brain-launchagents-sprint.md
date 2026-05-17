@@ -51,7 +51,7 @@ Policy / Mechanism / Assurance / Incentives / Fragility / Scope creep / Irrevers
 Any lane failure (429, auth, timeout) → auto-routes to DeepSeek. No manual reroute needed.
 
 ### 7. Sprint mode gate bypass
-`export NUDIMMUD_SPRINT_MODE=1` before starting Claude → suppresses protocol-gate WARNs for rapid impl sessions.
+`export YURI_SPRINT_MODE=1` before starting Claude → suppresses protocol-gate WARNs for rapid impl sessions.
 
 ### 8. Scout consolidation
 `scout-init.js` + `scout-log-trim.js` → `scout-session-start.js` (both SessionStart, merged)

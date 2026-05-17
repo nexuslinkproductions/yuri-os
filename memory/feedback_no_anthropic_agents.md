@@ -24,9 +24,9 @@
 
 **Bypass (emergency / explicit user approval only):**
 ```bash
-NUDIMMUD_ALLOW_AGENT=1 <command-that-spawns-agent>
+YURI_ALLOW_AGENT=1 <command-that-spawns-agent>
 ```
-The bypass logs to stderr (`[agent-spawn-guard] NUDIMMUD_ALLOW_AGENT=1 — Agent spawn allowed (logged)`) — never silent.
+The bypass logs to stderr (`[agent-spawn-guard] YURI_ALLOW_AGENT=1 — Agent spawn allowed (logged)`) — never silent.
 
 **Failure mode this rule prevents:**
 - Spawning 3 Explore/Haiku agents costs ~300k+ tokens

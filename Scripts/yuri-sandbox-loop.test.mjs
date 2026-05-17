@@ -29,7 +29,7 @@ try {
   const dryVerification = readJson(path.join(dryDir, 'verification.json'));
   const dryProbePreview = readJson(path.join(dryDir, 'probe', 'dry-run.json'));
   assert.equal(dryVerification.ok, true, 'dry-run should pass verification');
-  assert.equal(dryProbePreview.env_redirects.NUDIMMUD_DB_PATH, dbPath, 'sandbox runner should inherit temp DB path');
+  assert.equal(dryProbePreview.env_redirects.YURI_DB_PATH, dbPath, 'sandbox runner should inherit temp DB path');
   assert(fs.existsSync(path.join(dryDir, 'route-plan.json')), 'route plan artifact missing');
   assert(fs.existsSync(path.join(dryDir, 'normalized-intent.json')), 'normalized intent artifact missing');
   assert(fs.existsSync(path.join(dryDir, 'graph-plan.json')), 'graph plan artifact missing');

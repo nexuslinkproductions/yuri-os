@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_DB_PATH = path.join(REPO_ROOT, 'backend/data/nudimmud.db');
+const DEFAULT_DB_PATH = path.join(REPO_ROOT, 'backend/data/yuri.db');
 const PROTECTED_DB_ROOT = path.join(REPO_ROOT, 'backend/data');
 const DATABASE_SOURCE = path.join(REPO_ROOT, 'backend/src/models/database.ts');
 
@@ -15,7 +15,7 @@ const require = createRequire(import.meta.url);
 const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlite3'));
 
 const args = parseArgs(process.argv.slice(2));
-const dbPath = path.resolve(REPO_ROOT, args.db || process.env.NUDIMMUD_DB_PATH || DEFAULT_DB_PATH);
+const dbPath = path.resolve(REPO_ROOT, args.db || process.env.YURI_DB_PATH || DEFAULT_DB_PATH);
 const latestSchemaVersion = readLatestSchemaVersion();
 const issues = [];
 

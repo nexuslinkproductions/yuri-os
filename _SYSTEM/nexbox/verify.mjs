@@ -13,7 +13,7 @@ const args = process.argv.slice(2);
 const result = spawnSync(process.execPath, [VERIFIER, ...args], {
   cwd: REPO_ROOT,
   stdio: 'inherit',
-  env: { ...process.env, NUDIMMUD_NO_ANTHROPIC: '1' },
+  env: { ...process.env, YURI_NO_ANTHROPIC: '1' },
 });
 
 process.exit(result.status ?? 1);

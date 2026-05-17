@@ -1,7 +1,7 @@
 {
   "env": {
     "CLAUDE_CODE_BASH_NO_TIMEOUT": "1",
-    "NUDIMMUD_WORKHORSE_TIMEOUT": "0"
+    "YURI_WORKHORSE_TIMEOUT": "0"
   },
   "permissions": {
     "allow": [

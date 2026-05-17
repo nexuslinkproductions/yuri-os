@@ -40,7 +40,7 @@ Scripts/offload.sh --model codex --dry-run "ping"
 Live Codex smoke requires `OPENAI_API_KEY`:
 
 ```bash
-OFFLOAD_PROMPT_TEXT="Return NUDIMMUD_CODEX_OK only." node Scripts/offload-runner.mjs codex
+OFFLOAD_PROMPT_TEXT="Return YURI_CODEX_OK only." node Scripts/offload-runner.mjs codex
 ```
 
 ## MCP Smoke

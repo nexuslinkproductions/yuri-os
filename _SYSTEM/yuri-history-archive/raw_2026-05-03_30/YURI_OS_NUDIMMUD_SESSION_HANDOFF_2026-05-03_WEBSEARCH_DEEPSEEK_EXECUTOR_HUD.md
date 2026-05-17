@@ -40,7 +40,7 @@ The last confirmed successful HUD-related local commit from Codex was:
 ```text
 HEAD: 81722e778
 Commit: fix(cli): refine NUDIMMUD HUD from restored baseline
-Result label: 08T_NUDIMMUD_HUD_REFINEMENT_FROM_RESTORATION_AND_GOAL_PASS_COMMITTED
+Result label: 08T_YURI_HUD_REFINEMENT_FROM_RESTORATION_AND_GOAL_PASS_COMMITTED
 Changed files:
 - Scripts/nudimmud-repl.mjs
 - Scripts/nudimmud/status-line.mjs
@@ -52,7 +52,7 @@ Validation from that Codex run:
 NODE_CHECK_REPL: PASS
 NODE_CHECK_STATUS_LINE: PASS
 SELFTEST: PASS
-HUD_LARGE_NUDIMMUD_IDENTITY: PASS
+HUD_LARGE_YURI_IDENTITY: PASS
 HUD_SUBTITLE_PRESENT: PASS
 HUD_NO_VISIBLE_STARTUP_BUDGET: PASS
 HUD_RESTORATION_BASELINE_STRENGTH: PASS
@@ -98,7 +98,7 @@ After the HUD baseline restore, there was still a visual double-layer problem.
 A later audit found:
 
 ```text
-Result: 08T_NUDIMMUD_BOOT_LAYER_DUPLICATE_HUD_AUDIT_P_PASS
+Result: 08T_YURI_BOOT_LAYER_DUPLICATE_HUD_AUDIT_P_PASS
 ```
 
 ### Diagnosis

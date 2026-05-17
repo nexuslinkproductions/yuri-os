@@ -2,7 +2,7 @@
 
 Date: 2026-05-01  
 Prepared for: fresh GPT-5.5 / Claude / Codex / Gemini continuation  
-Source: current GPT chat, user-provided terminal outputs, and uploaded handoff `YURI_OS_NUDIMMUD_HANDOFF_AFTER_07K_RAG_QUERY_HARDENING_2026-05-01.md`  
+Source: current GPT chat, user-provided terminal outputs, and uploaded handoff `YURI_OS_YURI_HANDOFF_AFTER_07K_RAG_QUERY_HARDENING_2026-05-01.md`  
 Status: continuity handoff, not an independently executed repo audit  
 
 ---
@@ -36,14 +36,14 @@ repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current accepted HEAD: fe97ec8e chore(rag): prevent cloud embedding fallback in notebook query
 staged files: none
-backend/data/nudimmud.db: clean
+backend/data/yuri.db: clean
 ```
 
 Expected dirty / untracked state:
 
 ```text
-M backend/data/nudimmud.db-shm
-M backend/data/nudimmud.db-wal
+M backend/data/yuri.db-shm
+M backend/data/yuri.db-wal
 M src/index.tsx
 M src/main.ts
 ?? src/components/NeuralViz/
@@ -53,7 +53,7 @@ M src/main.ts
 Interpretation:
 
 - WAL/SHM churn is expected and remains unstaged.
-- `backend/data/nudimmud.db` itself is clean.
+- `backend/data/yuri.db` itself is clean.
 - Frontend/worktree drift is unrelated to backend RAG hardening:
   - `src/index.tsx`
   - `src/main.ts`
@@ -655,10 +655,10 @@ SANDBOX_DB_PLUS_STARTUP_GUARDS
 Proposed guard strategy from prior plan:
 
 ```text
-1. database.ts — NUDIMMUD_DB_PATH env-var replaces hardcoded DB path.
-2. server.ts — gate initVaultWatcher behind NUDIMMUD_TEST_MODE or NUDIMMUD_DISABLE_WATCHERS.
-3. server.ts — gate SwarmOrchestrator behind NUDIMMUD_TEST_MODE or NUDIMMUD_DISABLE_SWARM.
-4. server.ts — gate three setInterval blocks behind NUDIMMUD_DISABLE_INTERVALS.
+1. database.ts — YURI_DB_PATH env-var replaces hardcoded DB path.
+2. server.ts — gate initVaultWatcher behind YURI_TEST_MODE or YURI_DISABLE_WATCHERS.
+3. server.ts — gate SwarmOrchestrator behind YURI_TEST_MODE or YURI_DISABLE_SWARM.
+4. server.ts — gate three setInterval blocks behind YURI_DISABLE_INTERVALS.
 5. notebookRagService.ts — pass allowCloud:false to embedding/generation calls.
 ```
 
@@ -677,8 +677,8 @@ Potential next RAG work should account for the newer `fe97ec8e` state.
 Expected dirty/untracked files from latest handoff:
 
 ```text
-M backend/data/nudimmud.db-shm
-M backend/data/nudimmud.db-wal
+M backend/data/yuri.db-shm
+M backend/data/yuri.db-wal
 M src/index.tsx
 M src/main.ts
 ?? src/components/NeuralViz/
@@ -687,7 +687,7 @@ M src/main.ts
 
 Interpretation:
 
-- `backend/data/nudimmud.db-shm` and `backend/data/nudimmud.db-wal` are expected WAL/SHM churn.
+- `backend/data/yuri.db-shm` and `backend/data/yuri.db-wal` are expected WAL/SHM churn.
 - `src/index.tsx`, `src/main.ts`, `src/components/NeuralViz/`, `src/yuri/` are sideline frontend/runtime drift.
 - Do not mix those with backend RAG hardening.
 - Do not clean, stage, commit, restore, or inspect broadly unless explicitly scoped by the user.
@@ -705,7 +705,7 @@ did some sideline work, here is for reference. wait for result
 Then uploaded:
 
 ```text
-YURI_OS_NUDIMMUD_HANDOFF_AFTER_07K_RAG_QUERY_HARDENING_2026-05-01.md
+YURI_OS_YURI_HANDOFF_AFTER_07K_RAG_QUERY_HARDENING_2026-05-01.md
 ```
 
 Then asked GPT to create this detailed session markdown file for continuation in a new GPT chat.
@@ -729,10 +729,10 @@ Current accepted repo state from the handoff:
 - branch: main
 - current accepted HEAD: fe97ec8e chore(rag): prevent cloud embedding fallback in notebook query
 - staged files expected: none
-- backend/data/nudimmud.db expected clean
+- backend/data/yuri.db expected clean
 - expected dirty/untracked:
-  - M backend/data/nudimmud.db-shm
-  - M backend/data/nudimmud.db-wal
+  - M backend/data/yuri.db-shm
+  - M backend/data/yuri.db-wal
   - M src/index.tsx
   - M src/main.ts
   - ?? src/components/NeuralViz/
@@ -880,9 +880,9 @@ Do not claim:
 ## 16. Direct “Do Not Touch” List Unless Explicitly Scoped
 
 ```text
-backend/data/nudimmud.db
-backend/data/nudimmud.db-shm
-backend/data/nudimmud.db-wal
+backend/data/yuri.db
+backend/data/yuri.db-shm
+backend/data/yuri.db-wal
 src/index.tsx
 src/main.ts
 src/components/NeuralViz/

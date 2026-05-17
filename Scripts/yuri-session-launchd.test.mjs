@@ -12,6 +12,6 @@ assert.equal(result.status, 0, `print-plist should succeed: ${result.stderr || r
 assert.match(result.stdout, /com\.nudimmud\.yuri-session-runtime/, 'plist should use Yuri runtime launchd label');
 assert.match(result.stdout, /KeepAlive/, 'plist should keep the backend runtime alive');
 assert.match(result.stdout, /backend/, 'plist should launch the backend runtime');
-assert.match(result.stdout, /NUDIMMUD_SESSION_RUNTIME_ENABLED/, 'plist should enable the local session runtime');
+assert.match(result.stdout, /YURI_SESSION_RUNTIME_ENABLED/, 'plist should enable the local session runtime');
 
 process.stdout.write('yuri-session-launchd: pass\n');

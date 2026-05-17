@@ -19,7 +19,7 @@ const retiredIdentityPattern = new RegExp([
 try {
   const protectedLiveSource = spawnSync(
     process.execPath,
-    ['Scripts/backend-db-recovery.mjs', '--dry-run', '--source', 'backend/data/nudimmud.db'],
+    ['Scripts/backend-db-recovery.mjs', '--dry-run', '--source', 'backend/data/yuri.db'],
     {
       cwd: process.cwd(),
       encoding: 'utf8',

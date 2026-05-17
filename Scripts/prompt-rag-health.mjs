@@ -14,10 +14,10 @@ const INGEST_REPORT_PATH = path.join(ARCHIVE_DIR, '07_rag_ingested.md');
 const NOTEBOOK_STABLE_KEY = 'yuri-os/prompt-engineering-research-2026-05';
 const NOTEBOOK_TITLE = 'Yuri Prompt Engineering Research 2026-05';
 const EXPECTED_SOURCE_COUNT = 8;
-const RAW_DB_PATH = process.env.NUDIMMUD_DB_PATH;
+const RAW_DB_PATH = process.env.YURI_DB_PATH;
 const DB_PATH = RAW_DB_PATH && RAW_DB_PATH !== ':memory:'
   ? path.resolve(REPO_ROOT, RAW_DB_PATH)
-  : path.join(REPO_ROOT, 'backend/data/nudimmud.db');
+  : path.join(REPO_ROOT, 'backend/data/yuri.db');
 
 const require = createRequire(import.meta.url);
 const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlite3'));

@@ -88,8 +88,8 @@ Known dirty state at the beginning:
 ```text
 .claude/settings.json model/effort drift
 Scripts/swarm-proxy.sh
-backend/data/nudimmud.db-shm
-backend/data/nudimmud.db-wal
+backend/data/yuri.db-shm
+backend/data/yuri.db-wal
 src/index.tsx
 src/main.ts
 src/components/NeuralViz/
@@ -475,8 +475,8 @@ PRE_DISPATCH_FAILED: PROTECTED_DIRTY_STATE
 It incorrectly treated known tolerated dirty state as hard blockers:
 
 ```text
-backend/data/nudimmud.db-shm
-backend/data/nudimmud.db-wal
+backend/data/yuri.db-shm
+backend/data/yuri.db-wal
 Scripts/swarm-proxy.sh
 src/index.tsx
 src/main.ts
@@ -502,7 +502,7 @@ Repaired guidance:
 ```text
 Known dirty state is tolerated and must not trigger hard stop by itself.
 Hard-stop only if:
-- backend/data/nudimmud.db itself is dirty
+- backend/data/yuri.db itself is dirty
 - staged files are non-empty
 - DeepSeek lane files are dirty
 - .claude/settings.json has non-model/non-effort drift

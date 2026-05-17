@@ -1145,9 +1145,9 @@ function scopedStatus() {
     'Scripts/yuri-guarded-executor.mjs',
     'Scripts/policy/yuri-guarded-executor.readonly.json',
     'Scripts/offload-runner.mjs',
-    'backend/data/nudimmud.db',
-    'backend/data/nudimmud.db-shm',
-    'backend/data/nudimmud.db-wal',
+    'backend/data/yuri.db',
+    'backend/data/yuri.db-shm',
+    'backend/data/yuri.db-wal',
   ], {
     cwd: REPO_ROOT,
     encoding: 'utf8',

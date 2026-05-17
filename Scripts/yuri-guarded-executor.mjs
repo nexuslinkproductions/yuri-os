@@ -40,9 +40,9 @@ const IMPLEMENTATION_FILES = [
   DEFAULT_POLICY_REL,
 ]
 const DB_SCOPE_FILES = [
-  'backend/data/nudimmud.db',
-  'backend/data/nudimmud.db-shm',
-  'backend/data/nudimmud.db-wal',
+  'backend/data/yuri.db',
+  'backend/data/yuri.db-shm',
+  'backend/data/yuri.db-wal',
 ]
 const REQUIRED_REPORT_FIELDS = [
   'result_label',
@@ -440,14 +440,14 @@ function runPreflight(policy, options = {}) {
     'status',
     '--short',
     '--',
-    'backend/data/nudimmud.db',
-    'backend/data/nudimmud.db-shm',
-    'backend/data/nudimmud.db-wal',
+    'backend/data/yuri.db',
+    'backend/data/yuri.db-shm',
+    'backend/data/yuri.db-wal',
   ]).stdout
   preflight.db_status = dbStatus
   const dbLines = linesOf(dbStatus)
-  if (dbLines.some((line) => line.includes('backend/data/nudimmud.db') && !line.includes('.db-shm') && !line.includes('.db-wal'))) {
-    preflight.reasons.push('backend/data/nudimmud.db is dirty')
+  if (dbLines.some((line) => line.includes('backend/data/yuri.db') && !line.includes('.db-shm') && !line.includes('.db-wal'))) {
+    preflight.reasons.push('backend/data/yuri.db is dirty')
   }
 
   preflight.hardStop = preflight.reasons.length > 0
@@ -881,7 +881,7 @@ function generateFinalReport(request, policy, context) {
     `branch=${context.verification.preflight.branch}`,
     `head=${context.verification.preflight.head}`,
     `staged_files=${context.verification.preflight.staged_files.length}`,
-    'backend/data/nudimmud.db clean',
+    'backend/data/yuri.db clean',
     'readonly executor',
   ]
 
@@ -1145,7 +1145,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       request_id: 'selftest-secret-db',
       actions: [
         { type: 'READ_SECRET', path: '.env' },
-        { type: 'READ_DB', path: 'backend/data/nudimmud.db' },
+        { type: 'READ_DB', path: 'backend/data/yuri.db' },
         { type: 'FINAL_REPORT' },
       ],
     }, null, 2),

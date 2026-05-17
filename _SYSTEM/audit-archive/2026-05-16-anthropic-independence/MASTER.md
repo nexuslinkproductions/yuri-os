@@ -95,7 +95,7 @@ Ratio: **~20×**. Estimates use EOT firing 6×/day with 4 Haiku workers, nisaba-
 
 ## A.6 Verification Plan — proving independence on 14 June
 
-1. `Scripts/independence-check.mjs --strict` returns `exit 0` with `NUDIMMUD_NO_ANTHROPIC=1`.
+1. `Scripts/independence-check.mjs --strict` returns `exit 0` with `YURI_NO_ANTHROPIC=1`.
 2. Full `/eot` cycle under kill-switch → zero Claude calls in `_SYSTEM/cost-trends.md`.
 3. 24h fresh session with kill-switch on → productivity delta vs prior baseline.
 4. `gitnexus_detect_changes()` after every packet → scope matches expectation.
@@ -378,8 +378,8 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Constraints:** EOT pipeline structure unchanged. Workers stay `run_in_background:true`. Conditional overflow to `deepseek-v4-flash` cloud when local queue depth > N.
 - **Acceptance:**
   - [ ] `grep -n "haiku-4-5" .claude/skills/end-of-transmission/SKILL.md` returns 0 hits (or only commented fallback).
-  - [ ] `/eot` cycle under `NUDIMMUD_NO_ANTHROPIC=1` completes successfully.
-- **Test:** `NUDIMMUD_NO_ANTHROPIC=1 bash -c 'echo "end of transmission" | claude --plan'`
+  - [ ] `/eot` cycle under `YURI_NO_ANTHROPIC=1` completes successfully.
+- **Test:** `YURI_NO_ANTHROPIC=1 bash -c 'echo "end of transmission" | claude --plan'`
 - **Rollback:** SKILL.md edits ≤ 30 lines.
 - **Route-plan:** critical · skill protocol · auto-firing surface.
 - **ETA:** 2d · **Owner:** Codex.
@@ -390,7 +390,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Target files:** `.claude/hooks/nisaba-dream.js`
 - **Acceptance:**
   - [ ] `grep -n "claude" .claude/hooks/nisaba-dream.js` returns 0 hits.
-  - [ ] Hook fires under `NUDIMMUD_NO_ANTHROPIC=1`.
+  - [ ] Hook fires under `YURI_NO_ANTHROPIC=1`.
 - **Test:** `node .claude/hooks/nisaba-dream.js --dry-run`
 - **Rollback:** single-file edit.
 - **Route-plan:** high-stakes · hook protocol.
@@ -417,7 +417,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Constraints:** Output schema unchanged. Latency budget preserved. Confidence calibration re-validated.
 - **Acceptance:**
   - [ ] `baseUrl` no longer `api.anthropic.com`.
-  - [ ] Ensemble produces signal under `NUDIMMUD_NO_ANTHROPIC=1`.
+  - [ ] Ensemble produces signal under `YURI_NO_ANTHROPIC=1`.
   - [ ] Backtest replay within ±5% of prior baseline.
 - **Test:** `node Scripts/trading-bot/ensemble-inference.mjs --self-check --replay=last-week`
 - **Rollback:** single file ≤ 60 lines.
@@ -455,7 +455,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Target files:** `.claude/hooks/*.js` (37 files)
 - **Acceptance:**
   - [ ] `grep -rEn "claude -p|api.anthropic|claude-(opus|sonnet|haiku)" .claude/hooks/ | grep -v "token-status.js" | grep -v "agent-spawn-guard.js"` returns 0 active hits.
-- **Test:** scripted lint pass + boot session under `NUDIMMUD_NO_ANTHROPIC=1`.
+- **Test:** scripted lint pass + boot session under `YURI_NO_ANTHROPIC=1`.
 - **Rollback:** per-hook small edits.
 - **Route-plan:** high-stakes · hook protocol.
 - **ETA:** 3d · **Owner:** Codex.
@@ -467,7 +467,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Acceptance:**
   - [ ] Skill bodies don't hardcode Anthropic model strings as defaults.
   - [ ] Skill manifests reviewed for `Agent()` spawns — flag any.
-- **Test:** scripted grep + per-skill smoke invocation under `NUDIMMUD_NO_ANTHROPIC=1`.
+- **Test:** scripted grep + per-skill smoke invocation under `YURI_NO_ANTHROPIC=1`.
 - **Rollback:** per-skill small edits.
 - **ETA:** 2d · **Owner:** Codex.
 
@@ -482,9 +482,9 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 - **Rollback:** ≤ 20 lines.
 - **ETA:** 0.5d · **Owner:** Codex.
 
-## Packet 13 — Independence smoke test — `NUDIMMUD_NO_ANTHROPIC=1`
+## Packet 13 — Independence smoke test — `YURI_NO_ANTHROPIC=1`
 
-- **Goal:** New script `Scripts/independence-check.mjs` boots verifier walking every subagent, hook, skill, offload lane to assert no Anthropic surface fires when `NUDIMMUD_NO_ANTHROPIC=1`. (Initial version shipped 2026-05-16 alongside this audit; this packet hardens false-positive suppression and wires into CI.)
+- **Goal:** New script `Scripts/independence-check.mjs` boots verifier walking every subagent, hook, skill, offload lane to assert no Anthropic surface fires when `YURI_NO_ANTHROPIC=1`. (Initial version shipped 2026-05-16 alongside this audit; this packet hardens false-positive suppression and wires into CI.)
 - **Target files:** `Scripts/independence-check.mjs` (exists) + CI hook
 - **Constraints:** Read-only verifier. < 60s runtime. Exit 0 on PASS, non-zero on FAIL.
 - **Acceptance:**
@@ -526,13 +526,13 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 
 ## Packet 16 — Kill-switch drill (14 June)
 
-- **Goal:** Final verification. Disable Anthropic API key, set `NUDIMMUD_NO_ANTHROPIC=1`, run full day. PASS = score ≥ 90 + no critical workflow blocked.
+- **Goal:** Final verification. Disable Anthropic API key, set `YURI_NO_ANTHROPIC=1`, run full day. PASS = score ≥ 90 + no critical workflow blocked.
 - **Target files:** none — runbook + observation.
 - **Acceptance:**
   - [ ] 24h continuous operation, no Anthropic key.
   - [ ] No critical workflow blocked.
   - [ ] Independence score ≥ 90 confirmed.
-- **Test:** `unset ANTHROPIC_API_KEY && export NUDIMMUD_NO_ANTHROPIC=1 && node Scripts/independence-check.mjs --strict && claude` (operate 24h).
+- **Test:** `unset ANTHROPIC_API_KEY && export YURI_NO_ANTHROPIC=1 && node Scripts/independence-check.mjs --strict && claude` (operate 24h).
 - **Rollback:** env-only.
 - **Route-plan:** critical · go/no-go drill.
 - **ETA:** 0.5d (scheduled 2026-06-14) · **Owner:** Marcel.
@@ -554,7 +554,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
   - `pattern-mirror-core` → `deepseek-v4-pro` (artifact perception)
 - **Acceptance:**
   - [ ] `grep -h "^model:" .claude/skills/*/agent.md` returns zero `claude-*` values.
-  - [ ] Per-skill smoke run under `NUDIMMUD_NO_ANTHROPIC=1`.
+  - [ ] Per-skill smoke run under `YURI_NO_ANTHROPIC=1`.
 - **Test:** `node Scripts/independence-check.mjs --check=skills`
 - **Rollback:** 5 single-line frontmatter edits.
 - **ETA:** 0.5d · **Owner:** Codex.

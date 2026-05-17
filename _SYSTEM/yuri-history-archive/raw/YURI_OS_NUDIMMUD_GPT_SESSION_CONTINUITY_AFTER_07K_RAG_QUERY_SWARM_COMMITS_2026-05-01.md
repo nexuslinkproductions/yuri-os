@@ -27,7 +27,7 @@ branch: main
 current accepted HEAD: a741664c chore(cli): harden swarm routing for codex offload
 previous commit: 9dc0f871 chore(rag): filter notebook query retrieval to ready sources
 staged files: none
-target dirty status: only backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal
+target dirty status: only backend/data/yuri.db-shm and backend/data/yuri.db-wal
 ```
 
 Latest real post-commit evidence pasted by user:
@@ -44,14 +44,14 @@ f2bd4496 docs(research): capture GBrain pattern intake
 # empty
 
 ---POST_STATUS_TARGETS---
- M backend/data/nudimmud.db-shm
- M backend/data/nudimmud.db-wal
+ M backend/data/yuri.db-shm
+ M backend/data/yuri.db-wal
 ```
 
 Interpretation:
 
 - The backend service patches and CLI/offload routing patches have now been committed.
-- `backend/data/nudimmud.db` itself was not listed as dirty.
+- `backend/data/yuri.db` itself was not listed as dirty.
 - WAL/SHM churn remains expected because the active backend may own the SQLite DB.
 - No staged files remain.
 - A fresh verification sprint should still confirm this state before more work.
@@ -741,12 +741,12 @@ Observed failures:
 Error: Missing endpoint for lane: kimi
 
 [gpt-oss]
-NUDIMMUD_ENKI_PROTOCOL_ACTIVE
+YURI_ENKI_PROTOCOL_ACTIVE
 BEGIN_EXECUTION
 Prompt: PASTE THE PROMPT TEXT HERE...
 
 [ollama]
-NUDIMMUD_ENKI_PROTOCOL_ACTIVE
+YURI_ENKI_PROTOCOL_ACTIVE
 BEGIN_EXECUTION
 Prompt: PASTE THE PROMPT TEXT HERE...
 END_EXECUTION
@@ -844,7 +844,7 @@ Post state:
 ```text
 HEAD: a741664c
 staged: none
-target dirty: backend/data/nudimmud.db-shm, backend/data/nudimmud.db-wal
+target dirty: backend/data/yuri.db-shm, backend/data/yuri.db-wal
 ```
 
 ---
@@ -960,7 +960,7 @@ Do not:
 - claim repository clean beyond target status
 - run live ingestion
 - restart backend for ingestion
-- query or mutate live backend/data/nudimmud.db
+- query or mutate live backend/data/yuri.db
 - stage WAL/SHM files
 - clean /tmp sandboxes
 - touch .claude/projects/**
@@ -1047,7 +1047,7 @@ Current accepted repo state from the last GPT session:
 - current accepted HEAD: a741664c chore(cli): harden swarm routing for codex offload
 - previous commit: 9dc0f871 chore(rag): filter notebook query retrieval to ready sources
 - staged files expected: none
-- expected target dirty state: backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal only
+- expected target dirty state: backend/data/yuri.db-shm and backend/data/yuri.db-wal only
 - .claude/settings.json expected clean unless model drift was introduced after handoff
 
 Latest accepted committed work:
@@ -1126,11 +1126,11 @@ Do not amend commits.
 Do not clean sandboxes.
 Do not run backend.
 Do not run ingestion.
-Do not query, open, copy, dump, migrate, or mutate live backend/data/nudimmud.db.
+Do not query, open, copy, dump, migrate, or mutate live backend/data/yuri.db.
 Do not touch .claude/projects/**.
 Do not touch archive/transcript policy.
 Do not touch .claude/settings.json except read-only diff checks.
-Do not stage backend/data/nudimmud.db-shm or backend/data/nudimmud.db-wal.
+Do not stage backend/data/yuri.db-shm or backend/data/yuri.db-wal.
 Do not run broad git commands such as git add ., git add -A, git add .claude, git clean, git reset --hard.
 
 Goal:
@@ -1144,7 +1144,7 @@ Expected repo:
 - HEAD a741664c chore(cli): harden swarm routing for codex offload
 - previous commit 9dc0f871 chore(rag): filter notebook query retrieval to ready sources
 - staged files none
-- target dirty status only backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal
+- target dirty status only backend/data/yuri.db-shm and backend/data/yuri.db-wal
 
 Stage 0 — Preflight
 
@@ -1155,7 +1155,7 @@ git log --oneline --decorate -n 7
 git diff --cached --name-only
 git diff -I '^[[:space:]]*"model":' -- .claude/settings.json
 git diff -- .claude/settings.json | grep -E '^[+-][[:space:]]*"model":' || true
-git status --short -- .gitignore .claude/settings.json Scripts/ai Scripts/offload-runner.mjs Scripts/offload.sh backend/src/services/notebookService.ts backend/src/services/notebookIngestService.ts backend/src/services/notebookRagService.ts backend/src/services/neuralForgeService.ts backend/src/models/notebookSchema.ts backend/src/models/database.ts backend/data/nudimmud.db backend/data/nudimmud.db-shm backend/data/nudimmud.db-wal
+git status --short -- .gitignore .claude/settings.json Scripts/ai Scripts/offload-runner.mjs Scripts/offload.sh backend/src/services/notebookService.ts backend/src/services/notebookIngestService.ts backend/src/services/notebookRagService.ts backend/src/services/neuralForgeService.ts backend/src/models/notebookSchema.ts backend/src/models/database.ts backend/data/yuri.db backend/data/yuri.db-shm backend/data/yuri.db-wal
 
 Hard stop if:
 - cwd is not /Users/marcelspatz/YURI-OS-MUSUBI
@@ -1163,8 +1163,8 @@ Hard stop if:
 - HEAD is not a741664c
 - any files are staged
 - .claude/settings.json has non-model diff
-- backend/data/nudimmud.db is dirty
-- any target dirty file other than backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal appears unexpectedly
+- backend/data/yuri.db is dirty
+- any target dirty file other than backend/data/yuri.db-shm and backend/data/yuri.db-wal appears unexpectedly
 
 Stage 1 — Commit scope verification
 
@@ -1219,7 +1219,7 @@ Stage 5 — Final safety check
 Run:
 git diff --cached --name-only
 git diff -I '^[[:space:]]*"model":' -- .claude/settings.json
-git status --short -- .gitignore .claude/settings.json Scripts/ai Scripts/offload-runner.mjs Scripts/offload.sh backend/src/services/notebookService.ts backend/src/services/notebookIngestService.ts backend/src/services/notebookRagService.ts backend/src/services/neuralForgeService.ts backend/src/models/notebookSchema.ts backend/src/models/database.ts backend/data/nudimmud.db backend/data/nudimmud.db-shm backend/data/nudimmud.db-wal
+git status --short -- .gitignore .claude/settings.json Scripts/ai Scripts/offload-runner.mjs Scripts/offload.sh backend/src/services/notebookService.ts backend/src/services/notebookIngestService.ts backend/src/services/notebookRagService.ts backend/src/services/neuralForgeService.ts backend/src/models/notebookSchema.ts backend/src/models/database.ts backend/data/yuri.db backend/data/yuri.db-shm backend/data/yuri.db-wal
 
 Final report format:
 Result

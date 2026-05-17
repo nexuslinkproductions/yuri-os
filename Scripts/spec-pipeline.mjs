@@ -247,7 +247,7 @@ function gitnexusImpact(symbol) {
     }
 
     try {
-      const impact = parseImpact(symbol, execSync(`npx gitnexus impact ${shellQuote(target)} --repo nudimmud-vault`, options))
+      const impact = parseImpact(symbol, execSync(`npx gitnexus impact ${shellQuote(target)} --repo yuri-os-musubi`, options))
       if (impact) return impact
       lastReason = 'ambiguous or empty impact response'
     } catch (error) {

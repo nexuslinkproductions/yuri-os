@@ -38,7 +38,7 @@ export type QueryRisk = 'low' | 'medium' | 'high';
 export type PreferredRuntime = 'local' | 'cloud' | 'hybrid';
 export type CompressionMode = 'off' | 'safe' | 'aggressive';
 export type ReasoningBudget = 'cheap' | 'balanced' | 'deep';
-export type RetrievalProfile = 'NUDIMMUD_SYSTEM' | 'CROSS_VAULT_SYNTHESIS';
+export type RetrievalProfile = 'YURI_SYSTEM' | 'CROSS_VAULT_SYNTHESIS';
 export type YuriIntegrationLane = 'core' | 'trading' | 'growth' | 'browser' | 'inbox' | 'media';
 export type ActionGate =
     'none'
@@ -432,8 +432,8 @@ export class SmartRouter {
 
         const mentionsNudimmud = this.hasAny(queryLower, nudimmudKeywords) || intent === 'coding';
 
-        if (mentionsNudimmud) return 'NUDIMMUD_SYSTEM';
-        return 'NUDIMMUD_SYSTEM';
+        if (mentionsNudimmud) return 'YURI_SYSTEM';
+        return 'YURI_SYSTEM';
     }
 
     private static buildFallbackChain(

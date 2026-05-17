@@ -15,7 +15,7 @@ Qwen's approach focuses on **data-density** within experts. By pre-training on t
 | **Qwen-2.5-MoE** | Low | #1 (Logic/Math) | Code Generation |
 | **InternLM-3-MoE** | Moderate | #1 (Safety/Alignment)| Human Interaction |
 
-## 4. THE_NUDIMMUD_PATH: DISTILLED_MOE
+## 4. THE_YURI_PATH: DISTILLED_MOE
 To achieve competitor-level benchmarks locally, the Neural Forge will focus on **distilling** these large MoE models into a 'Small MoE' (e.g., 8x1B or 16x0.5B) that can run at 100+ TPS on a single high-end GPU.
 - **Goal**: Mimic the 'Shared Expert' strategy to maintain Oracle's consistent persona.
 - **Tooling**: Use **LlamaFactory** for fine-tuning and **OpenCompass** for validation.

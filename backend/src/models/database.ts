@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { SystemConfig } from '../config/SystemConfig';
 
-const rawDbPath = process.env.NUDIMMUD_DB_PATH;
+const rawDbPath = process.env.YURI_DB_PATH;
 const DB_PATH = rawDbPath === ':memory:'
     ? ':memory:'
     : rawDbPath
@@ -494,7 +494,7 @@ export function initDatabase(): Database.Database {
         db.prepare("UPDATE agents SET learning_cycles = 10 WHERE learning_cycles = 0").run();
 
         seedDatabase(db);
-        console.log('⬡ ABZU_DATABASE_INITIALIZED :: nudimmud.db');
+        console.log('⬡ ABZU_DATABASE_INITIALIZED :: yuri.db');
         return db;
     } catch (err: any) {
         console.error('⬡ DATABASE_INIT_ERROR ::', err.message);
@@ -567,7 +567,7 @@ function seedDatabase(db: Database.Database) {
             const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
             const dayAfter = new Date(now); dayAfter.setDate(dayAfter.getDate() + 2);
 
-            insertTemporal.run('NUDIMMUD_BOOT_SEQUENCE', now.toISOString(), 'Initial engine ignition and neural layer stabilization across all domains.', 9);
+            insertTemporal.run('YURI_BOOT_SEQUENCE', now.toISOString(), 'Initial engine ignition and neural layer stabilization across all domains.', 9);
             insertTemporal.run('ALBEDO_ENRICHMENT_PHASE', tomorrow.toISOString(), 'Systemic hardening of UI/UX telemetry and data-linkage protocols.', 8);
             insertTemporal.run('EVONEXUS_VESSEL_MANIFESTATION', dayAfter.toISOString(), 'Final integration of the 3D neural bridge with active command routines.', 10);
         }

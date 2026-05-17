@@ -1,7 +1,7 @@
 [
   {
     "title": "YURI OS / NUDIMMUD GPT Web Session Archive — Part 1: Continuity, Operating DNA, Boot Packet",
-    "source_file": "YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md",
+    "source_file": "YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md",
     "trust_policy": "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document.",
     "key_facts": [
       "Converted handoff-heavy continuity into compact local boot-packet workflow",
@@ -12,7 +12,7 @@
       "Boot packet explicitly not boot config, session config, RAG, or memory artifact",
       "Gemini audit became supportive only after tool policy violation; 08AM hardened policy with TOOL_POLICY_VIOLATION hard stop",
       "Swarm/offload default contract added to Operating DNA",
-      "Git dirty sidecar files (nudimmud.db-shm/db-wal) tolerated when main DB clean"
+      "Git dirty sidecar files (yuri.db-shm/db-wal) tolerated when main DB clean"
     ],
     "accepted_labels": [
       "08AI Operating DNA swarm/Codex routing defaults: closed",
@@ -26,7 +26,7 @@
       "Branch main",
       "File _SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md exists, was 93 lines",
       ".claude/rules/nudimmud_operating_dna.md updated to ~221 lines with Gemini hard stop",
-      "backend/data/nudimmud.db clean; only db-shm/db-wal drift present",
+      "backend/data/yuri.db clean; only db-shm/db-wal drift present",
       "No other staged or uncommitted changes beyond those two files"
     ],
     "safety_boundaries": [
@@ -67,7 +67,7 @@
   },
   {
     "title": "YURI OS / NUDIMMUD GPT Web Session Archive — Part 2: DeepSeek Guarded Executor and Observation Phase",
-    "source_file": "YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
+    "source_file": "YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
     "trust_policy": "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document.",
     "key_facts": [
       "Built readonly Yuri guarded executor (Scripts/yuri-guarded-executor.mjs) with strict action allowlist and policy file",
@@ -98,7 +98,7 @@
       "Readonly executor policy only allows READ_MANIFEST_FILE, SEARCH_MANIFEST_PATHS, RUN_ALLOWED_CHECK, SUMMARIZE_EVIDENCE, FINAL_REPORT",
       "Wrapper selftest markers include HANDOFF_SELFTEST_PASS, HANDOFF_OFFSET_FIELD_REJECT_PASS etc.",
       "No write/stage/commit code paths activated in these files",
-      "backend/data/nudimmud.db clean; db-shm/db-wal drift still present",
+      "backend/data/yuri.db clean; db-shm/db-wal drift still present",
       "No package alias, NUDIMMUD REPL integration, or MCP capabilities enabled"
     ],
     "safety_boundaries": [

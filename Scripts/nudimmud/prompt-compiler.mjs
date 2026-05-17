@@ -71,8 +71,8 @@ export function compileOneTransactionContract(input = {}) {
       fields: ['RESULT_LABEL', 'HEAD', 'STAGED', 'FILES_CHANGED', 'VALIDATION'],
     },
     failure_contract: normalizedInput.failure_contract ?? {
-      blocked_result_label: '08L_NUDIMMUD_HARNESS_CORE_X1_BLOCKED',
-      repair_result_label: '08L_NUDIMMUD_HARNESS_CORE_X1_REPAIR_REQUIRED',
+      blocked_result_label: '08L_YURI_HARNESS_CORE_X1_BLOCKED',
+      repair_result_label: '08L_YURI_HARNESS_CORE_X1_REPAIR_REQUIRED',
     },
     flags: normalizeFlags(normalizedInput.flags),
   };

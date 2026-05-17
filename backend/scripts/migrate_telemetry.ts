@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const dbPath = path.resolve(__dirname, '../data/nudimmud.db');
+const dbPath = path.resolve(__dirname, '../data/yuri.db');
 
 async function setup() {
     console.log('⬡ TELEMETRY_INIT :: Setting up schema in ' + dbPath);

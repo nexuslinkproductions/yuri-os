@@ -49,6 +49,18 @@ Nothing was lost. Everything was absorbed.
 ## Session Notes
 
 ### 2026-05-17
+- session: 109m | peak ctx: 0% | compacts: 0
+- tools: Bash×81, mcp×70, Read×40, Edit×39, WebFetch×12, Write×8, ToolSearch×6, TodoWrite×2, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
+- session: 107m | peak ctx: 0% | compacts: 0
+- tools: Bash×80, mcp×70, Read×40, Edit×39, WebFetch×12, Write×8, ToolSearch×6, TodoWrite×2, ExitPlanMode×1
+- corrections: none
+- errors: none
+
+### 2026-05-17
 - Renamed from nisaba-sentinel → yuri-sentinel (naming overhaul sprint)
 - Triggers updated: /nisaba-sentinel → /yuri-sentinel
 - Script and LaunchAgent paths confirmed correct

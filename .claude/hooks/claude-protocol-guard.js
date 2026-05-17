@@ -150,11 +150,11 @@ function needsDirectMutationWarning(input) {
 }
 
 function inspect(input) {
-  // Sprint mode bypass: set NUDIMMUD_SPRINT_MODE=1 in env to suppress WARNs during
+  // Sprint mode bypass: set YURI_SPRINT_MODE=1 in env to suppress WARNs during
   // authorized rapid-implementation sessions. Session-scoped only — does not persist.
-  // Activate: export NUDIMMUD_SPRINT_MODE=1
-  // Deactivate: unset NUDIMMUD_SPRINT_MODE (or open a new session)
-  if (process.env.NUDIMMUD_SPRINT_MODE === '1') return [];
+  // Activate: export YURI_SPRINT_MODE=1
+  // Deactivate: unset YURI_SPRINT_MODE (or open a new session)
+  if (process.env.YURI_SPRINT_MODE === '1') return [];
 
   const toolText = textOf(input?.tool_input);
   const lowerToolText = toolText.toLowerCase();

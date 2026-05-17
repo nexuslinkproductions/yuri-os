@@ -70,7 +70,7 @@ Spec Kit `/implement` IS the dispatch into Codex (primary) + DeepSeek-tools (par
 - ❌ Bypass anime DNA gates
 - ❌ Replace Codex-primary rule
 - ❌ Run its own Python `specify` CLI inside YURI-OS-MUSUBI workflows
-- ❌ Touch `.claude/state/`, `nudimmud.db`, secrets, T7 paths
+- ❌ Touch `.claude/state/`, `yuri.db`, secrets, T7 paths
 - ❌ Become canonical memory authority (memory/ directory stays YURI-OS-MUSUBI)
 
 ## Practical Invocation Pattern

@@ -97,7 +97,7 @@ console.log('========================================\n');
 console.log('DB End-to-End Verification (post-ingest):');
 console.log('\n1. After running vault ingest, query AEONIC nodes:');
 console.log(`
-   sqlite3 backend/data/nudimmud.db
+   sqlite3 backend/data/yuri.db
    SELECT domain, COUNT(*) as count FROM knowledge_nodes WHERE domain='AEONIC';
    -- Expected: AEONIC | 2
 `);
@@ -106,7 +106,7 @@ console.log('2. Verify both AEONIC files indexed:');
 console.log(`
    SELECT source_path, title, domain FROM knowledge_nodes WHERE domain='AEONIC' ORDER BY source_path;
    -- Expected rows:
-   --   AEONIC_PROTOCOL.md | AEONIC_PROTOCOL // NUDIMMUD_SWARM_GOVERNANCE | AEONIC
+   --   AEONIC_PROTOCOL.md | AEONIC_PROTOCOL // YURI_SWARM_GOVERNANCE | AEONIC
    --   CODEX_PROTOCOL.md  | ... | AEONIC
 `);
 

@@ -32,7 +32,7 @@ process.stdin.on('end', () => {
       reflect.run();
     } catch (_) {}
 
-    if (process.env.NUDIMMUD_DISABLE_SCOUTS !== '1' && shouldDream()) spawnDream();
+    if (process.env.YURI_DISABLE_SCOUTS !== '1' && shouldDream()) spawnDream();
   } catch (e) {}
   process.exit(0);
 });

@@ -8,8 +8,8 @@ repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
 latest_head_at_end_of_session: "000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary"
 related_sprints:
-  - "08K_NUDIMMUD_HUD_REPL_XA"
-  - "08K_NUDIMMUD_HUD_REPL_XA_R1"
+  - "08K_YURI_HUD_REPL_XA"
+  - "08K_YURI_HUD_REPL_XA_R1"
   - "08I-R_TOKENOPS_RAG_ATOM_SCHEMA_CANONICALIZE_P (next)"
 tags:
   - yuri-os
@@ -149,7 +149,7 @@ Do not switch runtimes wholesale.
 ### Sprint label
 
 ```text
-08K_NUDIMMUD_HUD_REPL_XA — Implement Yuri-Native DeepSeek HUD REPL
+08K_YURI_HUD_REPL_XA — Implement Yuri-Native DeepSeek HUD REPL
 ```
 
 ### GPT-5.5 recommendation
@@ -256,7 +256,7 @@ finish() waits for process close and exits after response resolves
 The second live smoke succeeded:
 
 ```text
-NUDIMMUD_HUD_OK
+YURI_HUD_OK
 ```
 
 Visible HUD output included:
@@ -281,7 +281,7 @@ IN / OUT / ELAPSED counters
 ### Claude final report
 
 ```text
-08K_NUDIMMUD_HUD_REPL_XA_RESULT: PASS
+08K_YURI_HUD_REPL_XA_RESULT: PASS
 ```
 
 Files changed:
@@ -340,11 +340,11 @@ source ~/.zshrc
 The user tested the HUD manually:
 
 ```text
-NUDIMMUD> Say NUDIMMUD_ALIAS_OK and nothing else.
+NUDIMMUD> Say YURI_ALIAS_OK and nothing else.
 ⬡ DISPATCHING → deepseek-v4-pro ...
 ⬡ MANUAL_OVERRIDE :: model=deepseek-v4-pro
 ⬡ ROUTING_TO_DEEPSEEK_V4...
-NUDIMMUD_ALIAS_OK
+YURI_ALIAS_OK
 ```
 
 Then:
@@ -384,8 +384,8 @@ The user ran the scoped commit command.
 ```text
 ---STATUS---
  M .claude/settings.json
- M backend/data/nudimmud.db-shm
- M backend/data/nudimmud.db-wal
+ M backend/data/yuri.db-shm
+ M backend/data/yuri.db-wal
  M package.json
  M src/index.tsx
  M src/main.ts
@@ -460,7 +460,7 @@ Duplicate /exit token summary bug is now committed and needs tiny follow-up fix.
 ### Sprint label
 
 ```text
-08K_NUDIMMUD_HUD_REPL_XA_R1 — Fix Duplicate Exit Summary
+08K_YURI_HUD_REPL_XA_R1 — Fix Duplicate Exit Summary
 ```
 
 ### GPT-5.5 recommended model
@@ -570,8 +570,8 @@ The user ran manual commands in normal Terminal.
 
 ---STATUS TARGETS---
  M .claude/settings.json
- M backend/data/nudimmud.db-shm
- M backend/data/nudimmud.db-wal
+ M backend/data/yuri.db-shm
+ M backend/data/yuri.db-wal
  M src/index.tsx
  M src/main.ts
 ?? src/components/NeuralViz/
@@ -639,8 +639,8 @@ git diff --cached --name-only -> empty
 
 ```text
 .claude/settings.json
-backend/data/nudimmud.db-shm
-backend/data/nudimmud.db-wal
+backend/data/yuri.db-shm
+backend/data/yuri.db-wal
 src/index.tsx
 src/main.ts
 src/components/NeuralViz/
@@ -716,7 +716,7 @@ Boundaries:
 Deferred until after using v1 for 08I-R:
 
 ```text
-08K_NUDIMMUD_HUD_REPL_XB
+08K_YURI_HUD_REPL_XB
 ```
 
 Possible features:
@@ -774,8 +774,8 @@ Latest accepted repo state:
 
 Known tolerated dirty state:
 - .claude/settings.json
-- backend/data/nudimmud.db-shm
-- backend/data/nudimmud.db-wal
+- backend/data/yuri.db-shm
+- backend/data/yuri.db-wal
 - src/index.tsx
 - src/main.ts
 - src/components/NeuralViz/
@@ -814,7 +814,7 @@ Important new workflow decision:
 For no-mutation architecture/schema/TokenOps work, avoid routing through Claude as a relay. Use the new `nudimmud` HUD directly for DeepSeek-heavy work, paste compact DeepSeek Pro + Flash outputs back into GPT-5.5, and let GPT-5.5 gate.
 
 Latest completed sprint:
-08K_NUDIMMUD_HUD_REPL_XA + R1
+08K_YURI_HUD_REPL_XA + R1
 Status: PASS
 Outcome:
 - NUDIMMUD DeepSeek HUD REPL implemented, committed, tested, accepted.

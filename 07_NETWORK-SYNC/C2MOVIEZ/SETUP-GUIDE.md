@@ -164,7 +164,7 @@ This vault is a **template**. You can fork/adapt:
 ## How to Access
 
 **Right now:**
-- Clone NUDIMMUD repo: `git clone https://github.com/[Marcel]/nudimmud-vault`
+- Clone NUDIMMUD repo: `git clone https://github.com/[Marcel]/yuri-os-musubi`
 - Read `README.md` for overview
 - Check `06_NETWORK-SYNC/C2MOVIEZ/` for sync protocol
 

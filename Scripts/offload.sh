@@ -64,7 +64,7 @@ require_cmd() {
 }
 
 list_models() {
-  echo "⬡ NUDIMMUD_NEURAL_REGISTRY"
+  echo "⬡ YURI_NEURAL_REGISTRY"
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
   printf '  [%-16s] %s\n' "gpt-oss" "active via offload-runner (local wrapper)"

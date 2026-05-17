@@ -147,7 +147,7 @@ export interface AuditSuggestion {
   impact: string;
 }
 
-export interface NUDIMMUD_DESIGN_HANDOFF {
+export interface YURI_DESIGN_HANDOFF {
   schema: '1.0.0';
   generated: string;
   config: NudimmudDesignConfig;

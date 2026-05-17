@@ -31,8 +31,8 @@ branch: main
 expected HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 staged files expected: none
 .claude/settings.json expected: clean
-backend/data/nudimmud.db expected: clean
-backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal: may be dirty from expected WAL churn
+backend/data/yuri.db expected: clean
+backend/data/yuri.db-shm and backend/data/yuri.db-wal: may be dirty from expected WAL churn
 ```
 
 Protected targets expected clean:
@@ -44,7 +44,7 @@ GEMINI.md
 graphify-out
 backend/src/services/vaultIngestion.ts
 _SYSTEM/model-registry.md
-backend/data/nudimmud.db
+backend/data/yuri.db
 ```
 
 Interpretation:
@@ -236,7 +236,7 @@ Key constraints:
 Purpose:
 
 - Determine whether copying repo root to `/tmp/nudimmud-sandbox` is safe.
-- Determine whether `NUDIMMUD_ROOT=/tmp/nudimmud-sandbox` and `SYSTEM_ROOT=/tmp/nudimmud-sandbox` isolate DB paths.
+- Determine whether `YURI_ROOT=/tmp/nudimmud-sandbox` and `SYSTEM_ROOT=/tmp/nudimmud-sandbox` isolate DB paths.
 - Determine whether `npx ts-node src/scripts/ingestResearch.ts` is safe or whether a smaller fixture harness is required.
 
 ---
@@ -310,7 +310,7 @@ Key red-team findings:
 
 ```text
 SystemConfig/root resolution:
-  - SystemConfig reads NUDIMMUD_ROOT / SYSTEM_ROOT first.
+  - SystemConfig reads YURI_ROOT / SYSTEM_ROOT first.
   - It falls back to process.cwd() and __dirname.
   - It resolves paths inside ROOT and rejects escapes.
 
@@ -405,7 +405,7 @@ branch: main
 HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 staged files: none
 settings diff: clean
-protected target status: backend/data/nudimmud.db clean; WAL/SHM churn expected
+protected target status: backend/data/yuri.db clean; WAL/SHM churn expected
 sandbox exists: absent
 direct ts-node binary: present
 NISABA word count: 4088 exact
@@ -421,7 +421,7 @@ Accepted design:
 - Use exact 4088 word count.
 - Expect 13 chunks and 13 embeddings.
 - Use direct ts-node binary, not npx.
-- Set and assert NUDIMMUD_ROOT and SYSTEM_ROOT before any database import.
+- Set and assert YURI_ROOT and SYSTEM_ROOT before any database import.
 - Import SystemConfig first, assert root and DB path, then import database.ts.
 - Blank provider API keys and provider base URLs.
 - Use OLLAMA_HOST=http://127.0.0.1:11434.
@@ -484,7 +484,7 @@ branch: main
 HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 staged files before: none
 settings diff before: clean
-protected target status before: only backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal dirty
+protected target status before: only backend/data/yuri.db-shm and backend/data/yuri.db-wal dirty
 live DB status before: clean
 WAL/SHM status before: expected churn
 sandbox existed before: absent
@@ -571,7 +571,7 @@ Expected start state for R3:
 /tmp/nudimmud-sandbox exists
 /tmp/nudimmud-sandbox/backend/src/scripts/sandbox-ingest-one.ts exists
 /tmp/nudimmud-sandbox/NISABA/nisaba.md exists
-/tmp/nudimmud-sandbox/backend/data/nudimmud.db does not exist
+/tmp/nudimmud-sandbox/backend/data/yuri.db does not exist
 ```
 
 Expected live repo state:
@@ -582,7 +582,7 @@ branch: main
 HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 staged files: none
 .claude/settings.json: clean
-backend/data/nudimmud.db: clean
+backend/data/yuri.db: clean
 WAL/SHM may show expected churn
 ```
 
@@ -590,7 +590,7 @@ R3 command shape:
 
 ```bash
 cd /tmp/nudimmud-sandbox/backend && \
-NUDIMMUD_ROOT=/tmp/nudimmud-sandbox \
+YURI_ROOT=/tmp/nudimmud-sandbox \
 SYSTEM_ROOT=/tmp/nudimmud-sandbox \
 HOME=/tmp/nudimmud-sandbox/home \
 OLLAMA_HOST=http://127.0.0.1:11434 \
@@ -700,15 +700,15 @@ Current trusted live repo state before R3:
 - expected HEAD: 74fa466b chore(rag): add file-level domain overrides for vault ingestion
 - staged files expected: none
 - .claude/settings.json expected clean
-- backend/data/nudimmud.db expected clean
-- backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal may show expected WAL churn
+- backend/data/yuri.db expected clean
+- backend/data/yuri.db-shm and backend/data/yuri.db-wal may show expected WAL churn
 
 Current trusted sandbox state before R3:
 - /tmp/nudimmud-sandbox exists
 - /tmp/nudimmud-sandbox/backend/src/scripts/sandbox-ingest-one.ts exists
 - /tmp/nudimmud-sandbox/NISABA/nisaba.md exists
 - /tmp/nudimmud-sandbox/NISABA/nisaba.md word count expected: 4088
-- /tmp/nudimmud-sandbox/backend/data/nudimmud.db expected absent before R3
+- /tmp/nudimmud-sandbox/backend/data/yuri.db expected absent before R3
 - sandbox should be left in place after R3
 
 Accepted prior result:
@@ -736,7 +736,7 @@ R3 repair strategy:
 
 Expected R3 command:
 cd /tmp/nudimmud-sandbox/backend && \
-NUDIMMUD_ROOT=/tmp/nudimmud-sandbox \
+YURI_ROOT=/tmp/nudimmud-sandbox \
 SYSTEM_ROOT=/tmp/nudimmud-sandbox \
 HOME=/tmp/nudimmud-sandbox/home \
 OLLAMA_HOST=http://127.0.0.1:11434 \

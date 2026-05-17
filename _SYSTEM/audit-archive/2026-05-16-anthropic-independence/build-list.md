@@ -34,7 +34,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Rollback boundary:** single-line `.claude/settings.json` edit.
 - **Route-plan classification:** high-stakes · global config · main-session approval.
 - **GitNexus impact:** N/A (config-only).
-- **Verification:** session restart smoke test; confirm no Sonnet token charges within first 60 s of fresh session under `NUDIMMUD_NO_ANTHROPIC=1`.
+- **Verification:** session restart smoke test; confirm no Sonnet token charges within first 60 s of fresh session under `YURI_NO_ANTHROPIC=1`.
 - **ETA:** 0.5d · **Owner:** Claude (control plane) + Marcel (approval).
 
 ---
@@ -73,8 +73,8 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Constraints:** EOT pipeline structure unchanged. Workers stay `run_in_background:true`. Local model picked by capability manifest (after Packet #15) or hardcoded fallback to `deepseek-r1:8b`. Conditional overflow to `deepseek-v4-flash` cloud (still non-Anthropic) when local queue depth > N.
 - **Acceptance:**
   - [ ] `grep -n "haiku-4-5" .claude/skills/end-of-transmission/SKILL.md` returns 0 hits (or only in commented-out fallback).
-  - [ ] `/eot` cycle under `NUDIMMUD_NO_ANTHROPIC=1` completes successfully.
-- **Test command:** `NUDIMMUD_NO_ANTHROPIC=1 bash -c 'echo "end of transmission" | claude --plan'` (manual; or scripted `Scripts/independence-check.mjs --check=eot`).
+  - [ ] `/eot` cycle under `YURI_NO_ANTHROPIC=1` completes successfully.
+- **Test command:** `YURI_NO_ANTHROPIC=1 bash -c 'echo "end of transmission" | claude --plan'` (manual; or scripted `Scripts/independence-check.mjs --check=eot`).
 - **Rollback boundary:** SKILL.md edits ≤ 30 lines.
 - **Route-plan classification:** critical · skill protocol · auto-firing surface.
 - **GitNexus impact:** none (markdown).
@@ -90,7 +90,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Constraints:** Hook semantics preserved. `--allowedTools Write,Edit,Read` semantics may need re-implementation if going deterministic. Per DeepSeek advisory: prefer (b) if the hook is just dispatching signals; (a) only if multi-turn pipeline reasoning is actually required.
 - **Acceptance:**
   - [ ] `grep -n "claude" .claude/hooks/nisaba-dream.js` returns 0 hits.
-  - [ ] Hook fires successfully under `NUDIMMUD_NO_ANTHROPIC=1`.
+  - [ ] Hook fires successfully under `YURI_NO_ANTHROPIC=1`.
 - **Test command:** `node .claude/hooks/nisaba-dream.js --dry-run`
 - **Rollback boundary:** single-file hook edit.
 - **Route-plan classification:** high-stakes · hook protocol.
@@ -112,7 +112,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Rollback boundary:** `git diff Scripts/offload-contract.mjs` ≤ 30 lines.
 - **Route-plan classification:** critical · routing contract.
 - **GitNexus impact:** `gitnexus_impact({target:'offload-contract', direction:'upstream'})` required.
-- **Verification:** dispatcher-check + smoke runs of @amp + every scenario fan-out under `NUDIMMUD_NO_ANTHROPIC=1`.
+- **Verification:** dispatcher-check + smoke runs of @amp + every scenario fan-out under `YURI_NO_ANTHROPIC=1`.
 - **ETA:** 1d · **Owner:** Codex.
 
 ---
@@ -124,7 +124,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Constraints:** Output schema unchanged. Latency budget preserved. Confidence-calibration tests (if any) re-run.
 - **Acceptance:**
   - [ ] `baseUrl` no longer `api.anthropic.com`.
-  - [ ] Ensemble produces signal under `NUDIMMUD_NO_ANTHROPIC=1`.
+  - [ ] Ensemble produces signal under `YURI_NO_ANTHROPIC=1`.
   - [ ] Backtest replay produces signal within ±5% of prior baseline (sanity).
 - **Test command:** `node Scripts/trading-bot/ensemble-inference.mjs --self-check --replay=last-week`
 - **Rollback boundary:** single file ≤ 60 lines.
@@ -177,7 +177,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Acceptance:**
   - [ ] `grep -rEn "claude -p|api.anthropic|claude-(opus|sonnet|haiku)" .claude/hooks/ | grep -v "token-status.js" | grep -v "agent-spawn-guard.js"` returns 0 active hits.
   - [ ] `nisaba-dream.js` is the only currently-flagged hook (per Packet #5).
-- **Test command:** scripted lint pass + boot session under `NUDIMMUD_NO_ANTHROPIC=1`.
+- **Test command:** scripted lint pass + boot session under `YURI_NO_ANTHROPIC=1`.
 - **Rollback boundary:** per-hook small edits.
 - **Route-plan classification:** high-stakes · hook protocol.
 - **Verification:** independence-check passes; no automatic Anthropic spawns in 60 s of fresh session.
@@ -193,7 +193,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Acceptance:**
   - [ ] Skill bodies do not hardcode Anthropic model strings as defaults.
   - [ ] Skill manifests reviewed for `Agent()` spawns — flag any.
-- **Test command:** scripted grep + per-skill smoke invocation under `NUDIMMUD_NO_ANTHROPIC=1`.
+- **Test command:** scripted grep + per-skill smoke invocation under `YURI_NO_ANTHROPIC=1`.
 - **Rollback boundary:** per-skill small edits.
 - **Route-plan classification:** standard · skill harness.
 - **Verification:** spawn each skill via `/<command>`, confirm non-Anthropic dispatch.
@@ -215,9 +215,9 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 
 ---
 
-## Packet 13 — Independence smoke test — `NUDIMMUD_NO_ANTHROPIC=1`
+## Packet 13 — Independence smoke test — `YURI_NO_ANTHROPIC=1`
 
-- **Goal:** New script `Scripts/independence-check.mjs` boots a verifier that walks every subagent, hook, skill, and offload lane to assert no Anthropic surface fires when `NUDIMMUD_NO_ANTHROPIC=1` is set.
+- **Goal:** New script `Scripts/independence-check.mjs` boots a verifier that walks every subagent, hook, skill, and offload lane to assert no Anthropic surface fires when `YURI_NO_ANTHROPIC=1` is set.
 - **Target files:** new file `Scripts/independence-check.mjs`
 - **Constraints:** Read-only verifier — no mutations. Should run in < 60 s. Exit 0 on PASS, non-zero with diagnostic on FAIL.
 - **Acceptance:**
@@ -266,13 +266,13 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 
 ## Packet 16 — Kill-switch drill (14 June)
 
-- **Goal:** Final verification. Disable Anthropic API key, set `NUDIMMUD_NO_ANTHROPIC=1`, run full Yuri OS day. Measure productivity delta. Pass = independence-score ≥ 90 + no critical workflow blocked.
+- **Goal:** Final verification. Disable Anthropic API key, set `YURI_NO_ANTHROPIC=1`, run full Yuri OS day. Measure productivity delta. Pass = independence-score ≥ 90 + no critical workflow blocked.
 - **Target files:** none — runbook + observation.
 - **Acceptance:**
   - [ ] 24 h continuous operation with no Anthropic key.
   - [ ] No critical workflow blocked.
   - [ ] Independence score ≥ 90 confirmed.
-- **Test command:** `unset ANTHROPIC_API_KEY && export NUDIMMUD_NO_ANTHROPIC=1 && node Scripts/independence-check.mjs --strict && claude` (then operate normally for 24 h).
+- **Test command:** `unset ANTHROPIC_API_KEY && export YURI_NO_ANTHROPIC=1 && node Scripts/independence-check.mjs --strict && claude` (then operate normally for 24 h).
 - **Rollback boundary:** environment-only.
 - **Route-plan classification:** critical · go/no-go drill.
 - **ETA:** 0.5d (execution) — schedule for 2026-06-14.
@@ -303,7 +303,7 @@ Machine-parseable build queue. Each packet shaped per `CLAUDE CONTROL PACKET` gr
 - **Rollback boundary:** 5 single-line frontmatter edits.
 - **Route-plan classification:** high-stakes · skill harness.
 - **GitNexus impact:** none (frontmatter only).
-- **Verification:** per-skill smoke run under `NUDIMMUD_NO_ANTHROPIC=1`.
+- **Verification:** per-skill smoke run under `YURI_NO_ANTHROPIC=1`.
 - **ETA:** 0.5d (mechanical) · **Owner:** Codex.
 
 ---

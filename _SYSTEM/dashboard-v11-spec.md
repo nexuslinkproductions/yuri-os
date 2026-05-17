@@ -336,7 +336,7 @@ Structure:
     {
       "name": "initialization",
       "color": "#4A9EFF",
-      "nodes": ["SESSION_INIT", "SOUL_INJECT", "PALACE", "MNEMOSYNE", "TOKEN_INIT", "SOUL_FILE", "NUDIMMUD_COG", "PALACE_IDX"]
+      "nodes": ["SESSION_INIT", "SOUL_INJECT", "PALACE", "MNEMOSYNE", "TOKEN_INIT", "SOUL_FILE", "YURI_COG", "PALACE_IDX"]
     },
     // ... all sectors
   ],

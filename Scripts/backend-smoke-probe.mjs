@@ -62,9 +62,9 @@ Options:
 
 Forced env:
   PORT, HOST=127.0.0.1, API_KEY (smoke key)
-  NUDIMMUD_TEST_MODE=1, NUDIMMUD_DB_PATH=:memory:
-  NUDIMMUD_DISABLE_WATCHERS=1, NUDIMMUD_DISABLE_INTERVALS=1
-  NUDIMMUD_DISABLE_SWARM_ORCHESTRATOR=1
+  YURI_TEST_MODE=1, YURI_DB_PATH=:memory:
+  YURI_DISABLE_WATCHERS=1, YURI_DISABLE_INTERVALS=1
+  YURI_DISABLE_SWARM_ORCHESTRATOR=1
   Cloud provider keys blanked
 
 Prerequisite:
@@ -167,7 +167,7 @@ async function main() {
 
   const { path: probePath, expectUnauth, expectAuth, expectBody,
           port, host, apiKey, timeoutMs } = opts;
-  const DB = path.join(REPO_ROOT, 'backend', 'data', 'nudimmud.db');
+  const DB = path.join(REPO_ROOT, 'backend', 'data', 'yuri.db');
 
   // Port busy guard — exits nonzero if already occupied
   if (await portBusy(port)) {
@@ -184,11 +184,11 @@ async function main() {
     PORT:                                String(port),
     HOST:                                host,
     API_KEY:                             apiKey,
-    NUDIMMUD_TEST_MODE:                  '1',
-    NUDIMMUD_DB_PATH:                    ':memory:',
-    NUDIMMUD_DISABLE_WATCHERS:           '1',
-    NUDIMMUD_DISABLE_INTERVALS:          '1',
-    NUDIMMUD_DISABLE_SWARM_ORCHESTRATOR: '1',
+    YURI_TEST_MODE:                  '1',
+    YURI_DB_PATH:                    ':memory:',
+    YURI_DISABLE_WATCHERS:           '1',
+    YURI_DISABLE_INTERVALS:          '1',
+    YURI_DISABLE_SWARM_ORCHESTRATOR: '1',
     // Blank common cloud/provider keys
     OPENAI_API_KEY:                      '',
     ANTHROPIC_API_KEY:                   '',

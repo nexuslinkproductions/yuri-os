@@ -97,7 +97,7 @@ bash Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC from build-list.md §Packet
 ## 8 · Pre-execution gates (always-on, do not bypass)
 
 - ARGUS · HERMES · OBLITERATUS · CASSANDRA-lite native gates — always-on.
-- `agent-spawn-guard.js` hard floor — do not set `NUDIMMUD_ALLOW_AGENT=1`.
+- `agent-spawn-guard.js` hard floor — do not set `YURI_ALLOW_AGENT=1`.
 - Per packet: `gitnexus_impact()` BEFORE edit · `gitnexus_detect_changes()` BEFORE commit.
 - Protected paths untouched: `backend/data/`, `.claude/state/`, `.claude/history/`, `.env`, `node_modules/`, `/Volumes/T7/*` (Marcel-only).
 - No auto-commit. Marcel approves every commit.
@@ -123,7 +123,7 @@ bash Scripts/offload.sh -m gpt-5.5 "<CODEX TASK SPEC from build-list.md §Packet
 
 ## 11 · Definition of done
 
-- `Scripts/independence-check.mjs --strict` exits 0 under `NUDIMMUD_NO_ANTHROPIC=1`.
+- `Scripts/independence-check.mjs --strict` exits 0 under `YURI_NO_ANTHROPIC=1`.
 - 24h kill-switch drill on 2026-06-14 completes with no critical-workflow block.
 - Independence score ≥ 90 / 100.
 - NEXUSLINK landing renders "Symbiotic Independence" section live.

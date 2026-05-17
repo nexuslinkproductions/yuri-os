@@ -13,10 +13,10 @@ const bridgeOrigin = process.env.DESIGN_ASSISTANT_BRIDGE_ORIGIN || 'http://127.0
 const keepAlive = !process.argv.includes('--check-only');
 const backendEnv = {
   ...process.env,
-  NUDIMMUD_TEST_MODE: process.env.NUDIMMUD_TEST_MODE || '1',
-  NUDIMMUD_DISABLE_WATCHERS: process.env.NUDIMMUD_DISABLE_WATCHERS || '1',
-  NUDIMMUD_DISABLE_INTERVALS: process.env.NUDIMMUD_DISABLE_INTERVALS || '1',
-  NUDIMMUD_DISABLE_SWARM_ORCHESTRATOR: process.env.NUDIMMUD_DISABLE_SWARM_ORCHESTRATOR || '1',
+  YURI_TEST_MODE: process.env.YURI_TEST_MODE || '1',
+  YURI_DISABLE_WATCHERS: process.env.YURI_DISABLE_WATCHERS || '1',
+  YURI_DISABLE_INTERVALS: process.env.YURI_DISABLE_INTERVALS || '1',
+  YURI_DISABLE_SWARM_ORCHESTRATOR: process.env.YURI_DISABLE_SWARM_ORCHESTRATOR || '1',
 };
 
 const build = spawnSync(process.execPath, [path.join(extensionRoot, 'scripts/build.mjs')], {

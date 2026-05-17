@@ -71,7 +71,7 @@ export class VectorSearchService {
 
         if (!profile) return isYuriNode;
 
-        if (profile === 'NUDIMMUD_SYSTEM') {
+        if (profile === 'YURI_SYSTEM') {
             return isYuriNode;
         }
 
@@ -86,7 +86,7 @@ export class VectorSearchService {
         const sourcePath = node.source_path || '';
         const domain = node.domain || '';
 
-        if (profile === 'NUDIMMUD_SYSTEM') {
+        if (profile === 'YURI_SYSTEM') {
             if (sourcePath.startsWith('backend/')) return 1.35;
             if (sourcePath.startsWith('_SYSTEM/') || sourcePath.startsWith('NISABA/')) return 1.25;
             if (sourcePath.startsWith('00_COMMAND-CENTER/') || sourcePath.startsWith('NEURAL-NETWORK/')) return 1.15;

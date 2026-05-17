@@ -246,7 +246,7 @@ NudimmudDesignConfig = {
 ### Handoff Payload
 
 ```typescript
-NUDIMMUD_DESIGN_HANDOFF = {
+YURI_DESIGN_HANDOFF = {
   schema: '1.0.0';
   generated: ISO timestamp;
   config: NudimmudDesignConfig;

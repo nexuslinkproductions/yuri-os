@@ -41,7 +41,7 @@
         "MNEMOSYNE",
         "TOKEN_INIT",
         "SOUL_FILE",
-        "NUDIMMUD_COG",
+        "YURI_COG",
         "PALACE_IDX"
       ],
       "plane_radii": {
@@ -1153,7 +1153,7 @@
       "parent": "SESSION_INIT",
       "children": [
         "SOUL_FILE",
-        "NUDIMMUD_COG"
+        "YURI_COG"
       ]
     },
     {
@@ -3191,7 +3191,7 @@
       "children": []
     },
     {
-      "id": "NUDIMMUD_COG",
+      "id": "YURI_COG",
       "tier": "leaf",
       "label": "NUDIMMUD-COGNITION.md",
       "role": "paradigm rules",
@@ -5346,7 +5346,7 @@
     },
     {
       "source": "SOUL_INJECT",
-      "target": "NUDIMMUD_COG",
+      "target": "YURI_COG",
       "type": "branch",
       "is_return": false
     },
@@ -5972,7 +5972,7 @@
       "is_return": true
     },
     {
-      "source": "NUDIMMUD_COG",
+      "source": "YURI_COG",
       "target": "SOUL_INJECT",
       "type": "logs",
       "is_return": true

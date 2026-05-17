@@ -5,7 +5,7 @@
   "reviewed_count": 3,
   "resolutions": [
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_1.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_ARCHIVE_2026-05-03_PART_1.md",
       "prior_status": "needs_review",
       "new_status": "superseded",
       "evidence_used": "metadata_only",
@@ -13,12 +13,12 @@
       "validation_needed_before_use": "Compare body headings with PART1_DEEPSEEK_TOKENOPS_RAG to confirm full coverage before any historical reference use."
     },
     {
-      "basename": "YURI_OS_NUDIMMUD_GPT_SESSION_ARCHIVE_2026-05-03_PART_2.md",
+      "basename": "YURI_OS_YURI_GPT_SESSION_ARCHIVE_2026-05-03_PART_2.md",
       "prior_status": "needs_review",
       "new_status": "superseded",
       "evidence_used": "metadata_only",
-      "reason": "Timeline metadata marks a direct successor at PART2_NUDIMMUD_HUD_CONTINUATION, and the first-10-line header shows a dated GPT session archive with no sign it is the final lane artifact.",
-      "validation_needed_before_use": "Compare body headings with PART2_NUDIMMUD_HUD_CONTINUATION to confirm supersession before any historical reference use."
+      "reason": "Timeline metadata marks a direct successor at PART2_YURI_HUD_CONTINUATION, and the first-10-line header shows a dated GPT session archive with no sign it is the final lane artifact.",
+      "validation_needed_before_use": "Compare body headings with PART2_YURI_HUD_CONTINUATION to confirm supersession before any historical reference use."
     },
     {
       "basename": "yuri_os_nudimmud_session_context_extract.md",

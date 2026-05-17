@@ -40,7 +40,7 @@ Key finding:
 - A live backend process held the DB files and port `3004`.
 - PID `1255` was the live backend.
 - WAL writes/checkpoints seen during smoke window were caused by that live process, not the isolated smoke.
-- Smoke path itself correctly used `NUDIMMUD_DB_PATH=:memory:`.
+- Smoke path itself correctly used `YURI_DB_PATH=:memory:`.
 
 Important evidence:
 - `DATABASE :: ATTEMPTING_CONNECTION_AT: :memory:` appeared in smoke logs.
@@ -48,7 +48,7 @@ Important evidence:
 - No hardcoded live DB path found in `server.ts` or `database.ts`.
 
 Consequence:
-- Future smokes must hard-stop if any process holds `backend/data/nudimmud.db`, `.db-shm`, or `.db-wal`.
+- Future smokes must hard-stop if any process holds `backend/data/yuri.db`, `.db-shm`, or `.db-wal`.
 
 ---
 
@@ -180,8 +180,8 @@ Runner capabilities:
 - Port busy check
 - DB stat/hash before/after
 - Forced safe env:
-  - `NUDIMMUD_DB_PATH=:memory:`
-  - `NUDIMMUD_TEST_MODE=1`
+  - `YURI_DB_PATH=:memory:`
+  - `YURI_TEST_MODE=1`
   - cloud keys blanked
 - Unauthenticated probe first
 - Authenticated probe second
@@ -791,8 +791,8 @@ Latest known HEAD:
 Known tolerated/pre-existing dirty:
 - `.claude/settings.json` model/effort drift
 - `Scripts/swarm-proxy.sh`
-- `backend/data/nudimmud.db-shm`
-- `backend/data/nudimmud.db-wal`
+- `backend/data/yuri.db-shm`
+- `backend/data/yuri.db-wal`
 - `src/index.tsx`
 - `src/main.ts`
 - `src/components/NeuralViz/`
@@ -949,8 +949,8 @@ Recent completed work:
 Known current dirty state:
 - .claude/settings.json model/effort drift
 - Scripts/swarm-proxy.sh
-- backend/data/nudimmud.db-shm
-- backend/data/nudimmud.db-wal
+- backend/data/yuri.db-shm
+- backend/data/yuri.db-wal
 - src/index.tsx
 - src/main.ts
 - src/components/NeuralViz/

@@ -81,7 +81,7 @@ const DEFAULT_POLICY = Object.freeze({
 });
 
 export function resolveTokenLedgerPaths(overrides = {}) {
-  const dbPath = overrides.dbPath || process.env.TOKEN_LEDGER_DB_PATH || process.env.NUDIMMUD_DB_PATH || DEFAULT_DB_PATH;
+  const dbPath = overrides.dbPath || process.env.TOKEN_LEDGER_DB_PATH || process.env.YURI_DB_PATH || DEFAULT_DB_PATH;
   const queueDir = overrides.queueDir || process.env.TOKEN_LEDGER_QUEUE_DIR || DEFAULT_QUEUE_DIR;
   const faultDir = overrides.faultDir || process.env.TOKEN_LEDGER_FAULT_DIR || DEFAULT_FAULT_DIR;
   const vaultDir = overrides.vaultDir || process.env.TOKEN_LEDGER_VAULT_DIR || DEFAULT_VAULT_DIR;

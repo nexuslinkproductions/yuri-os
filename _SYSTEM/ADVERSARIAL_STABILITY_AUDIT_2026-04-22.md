@@ -132,13 +132,13 @@ const diskStats = fs.statfsSync('/Volumes/T7');
 
 ### 🔴 CRITICAL: Database Initialization Failure
 
-**File:** [backend/nudimmud.db](backend/nudimmud.db)
+**File:** [backend/yuri.db](backend/yuri.db)
 
 **Current State:** File exists but is **1 byte** (created Apr 20, 11:29)
 
 **The Problem:**
 ```
--rw-x------ nudimmud.db (1 byte)
+-rw-x------ yuri.db (1 byte)
 ```
 
 This is a **corrupted or never-initialized database**. The system initialized it but:
@@ -155,7 +155,7 @@ This is a **corrupted or never-initialized database**. The system initialized it
 
 **Test:** Run this to confirm:
 ```bash
-sqlite3 /Users/marcelspatz/YURI-OS-MUSUBI/backend/data/nudimmud.db ".tables"
+sqlite3 /Users/marcelspatz/YURI-OS-MUSUBI/backend/data/yuri.db ".tables"
 # Expected: error or empty output
 ```
 
@@ -163,7 +163,7 @@ sqlite3 /Users/marcelspatz/YURI-OS-MUSUBI/backend/data/nudimmud.db ".tables"
 ```typescript
 // ✅ DATABASE SCHEMA INITIALIZATION
 function initDatabase() {
-    const db = new Database('./data/nudimmud.db');
+    const db = new Database('./data/yuri.db');
     
     // Schema migrations must run here
     db.exec(`
@@ -415,7 +415,7 @@ router.get('/health', (req, res) => {
 **Current Logs:**
 ```
 ⬡ ANTHROPIC_PROVIDER :: INITIALIZED (Key: sk-ant-api...)  // CREDENTIALS EXPOSED
-⬡ NUDIMMUD_BACKEND_ONLINE :: 127.0.0.1:3004              // IP EXPOSED
+⬡ YURI_BACKEND_ONLINE :: 127.0.0.1:3004              // IP EXPOSED
 ⬡ VAULT_INGESTION_COMPLETE :: 800 nodes                  // NO FAILURE COUNT
 ⬡ BACKGROUND_SERVICES_STARTING                           // NO CONTEXT
 ```

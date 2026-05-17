@@ -33,14 +33,14 @@ repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 current accepted HEAD: fe97ec8e chore(rag): prevent cloud embedding fallback in notebook query
 staged files: none
-backend/data/nudimmud.db: clean
+backend/data/yuri.db: clean
 ```
 
 Expected dirty/untracked state:
 
 ```text
-M backend/data/nudimmud.db-shm
-M backend/data/nudimmud.db-wal
+M backend/data/yuri.db-shm
+M backend/data/yuri.db-wal
 M src/index.tsx
 M src/main.ts
 ?? src/components/NeuralViz/
@@ -50,7 +50,7 @@ M src/main.ts
 Interpretation:
 
 - WAL/SHM churn is expected and remains unstaged.
-- `backend/data/nudimmud.db` itself is clean.
+- `backend/data/yuri.db` itself is clean.
 - `src/index.tsx`, `src/main.ts`, `src/components/NeuralViz/`, and `src/yuri/` are unrelated frontend/worktree drift and must not be touched by RAG backend hardening unless explicitly scoped.
 - No staged files remain.
 
@@ -124,7 +124,7 @@ cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD at that point: c96c9e89 chore(node): add CLI wrapper, evidence validator, and offload lane support
 staged files: none
-dirty targets: backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal only
+dirty targets: backend/data/yuri.db-shm and backend/data/yuri.db-wal only
 ```
 
 Patch markers verified:
@@ -556,8 +556,8 @@ Do not touch in RAG backend hardening lanes unless a dedicated frontend/viz lane
 Current DB sidecar drift:
 
 ```text
-M backend/data/nudimmud.db-shm
-M backend/data/nudimmud.db-wal
+M backend/data/yuri.db-shm
+M backend/data/yuri.db-wal
 ```
 
 Treat as expected while backend owns SQLite. Do not stage. Do not treat as a blocker unless main DB becomes dirty.
@@ -655,7 +655,7 @@ Do not:
 - claim full cloud/offload readiness
 - claim full sandboxing
 - claim prompt-injection safety
-- mutate or query live backend/data/nudimmud.db
+- mutate or query live backend/data/yuri.db
 - stage WAL/SHM files
 - touch frontend drift without a dedicated lane
 - touch src/index.tsx or src/main.ts in backend hardening
@@ -692,10 +692,10 @@ Current trusted state:
 - branch: main
 - current accepted HEAD: fe97ec8e chore(rag): prevent cloud embedding fallback in notebook query
 - staged files: none
-- backend/data/nudimmud.db clean
+- backend/data/yuri.db clean
 - expected dirty/untracked:
-  - backend/data/nudimmud.db-shm
-  - backend/data/nudimmud.db-wal
+  - backend/data/yuri.db-shm
+  - backend/data/yuri.db-wal
   - src/index.tsx
   - src/main.ts
   - src/components/NeuralViz/

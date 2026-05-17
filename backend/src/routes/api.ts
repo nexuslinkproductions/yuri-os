@@ -73,7 +73,7 @@ const SENSITIVE_QUERY_KEYS = new Set(['apikey', 'api_key', 'key', 'token', 'auth
 
 function redactRequestUrl(rawUrl: string): string {
     try {
-        const parsed = new URL(rawUrl, 'http://nudimmud.local');
+        const parsed = new URL(rawUrl, 'http://yuri-os.local');
         for (const key of Array.from(parsed.searchParams.keys())) {
             if (SENSITIVE_QUERY_KEYS.has(key.toLowerCase())) {
                 parsed.searchParams.set(key, '[redacted]');
@@ -104,7 +104,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
             return;
         }
 
-        res.json({ message: 'NUDIMMUD API ONLINE' });
+        res.json({ message: 'YURI-OS-MUSUBI API ONLINE' });
     });
 
     router.get('/auth/bootstrap', localOnlyMiddleware, (_, res) => {
@@ -732,7 +732,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
 
     // Terminal shell execution — proxies to shell service (avoids pm2 posix_spawn EBADF)
     const SHELL_SERVICE = 'http://127.0.0.1:3098';
-    const SHELL_KEY = process.env.SHELL_SERVICE_KEY || 'nudimmud-master-key-2026-04-23';
+    const SHELL_KEY = process.env.SHELL_SERVICE_KEY || 'yuri-master-key-2026-04-23';
     router.post('/terminal/run', authMiddleware, (req, res) => {
         const { command } = req.body;
         if (typeof command !== 'string' || !command.trim()) {

@@ -62,7 +62,7 @@ Both operate through NUDIMMUD. What is fashioned serves the dual-core system.
 
 **Ventures:**
 - **Nexus Link: Productions** (personal brand) — on-set video/photo capture billing entity
-  - Public operational vault: [github.com/nexuslinkproductions/nudimmud-vault](https://github.com/nexuslinkproductions/nudimmud-vault)
+  - Public operational vault: [github.com/nexuslinkproductions/yuri-os-musubi](https://github.com/nexuslinkproductions/yuri-os-musubi)
   - Demonstrates integrated production + knowledge system
 - **Yuri Flow** (with Claudio) — Yuri-native workflow automation layer for creative and production infrastructure
 - **Trading Portfolio** (activate phase) — market systems and financial independence layer

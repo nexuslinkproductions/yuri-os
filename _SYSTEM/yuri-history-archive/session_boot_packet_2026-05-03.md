@@ -33,11 +33,11 @@ Direct current repo truth outranks this packet.
 - Branch: `main`
 - HEAD: `3c9cece72`
 - Staged state: empty
-- Dirty tolerance: unrelated `backend/data/nudimmud.db-shm` and `backend/data/nudimmud.db-wal` drift only; `backend/data/nudimmud.db` itself is not dirty.
+- Dirty tolerance: unrelated `backend/data/yuri.db-shm` and `backend/data/yuri.db-wal` drift only; `backend/data/yuri.db` itself is not dirty.
 
 ## Accepted Current Anchors
 
-- `08AI_NUDIMMUD_OPERATING_DNA_SWARM_CODEX_ROUTING_REPAIR_P_PASS_CLOSED`
+- `08AI_YURI_OPERATING_DNA_SWARM_CODEX_ROUTING_REPAIR_P_PASS_CLOSED`
   - commit: `3c9cece72`
   - Gemini no-shell audit: PASS
   - risks: none apparent

@@ -19,8 +19,8 @@ const TOKENMAXXING_STATE = path.join(REPO_ROOT, '.claude/state/tokenmaxxing-stat
 const RUNS_DIR = path.join(os.homedir(), '.nudimmud', 'runs');
 const RUNS_FALLBACK_DIR = path.join('/private/tmp', 'nudimmud-runs');
 
-const SELF_TEST = process.env.NUDIMMUD_REPL_SELFTEST === '1';
-const CLAIM_VERIFIER_SMOKE = process.env.NUDIMMUD_REPL_CLAIM_VERIFIER_SMOKE === '1';
+const SELF_TEST = process.env.YURI_REPL_SELFTEST === '1';
+const CLAIM_VERIFIER_SMOKE = process.env.YURI_REPL_CLAIM_VERIFIER_SMOKE === '1';
 
 const MODELS = {
   flash: 'deepseek-v4-flash',
@@ -1092,7 +1092,7 @@ const runSelfTest = () => {
 
 const runClaimVerifierArtifactSmoke = () => {
   const turnId = makeTurnId();
-  const request = 'NUDIMMUD_REPL_CLAIM_VERIFIER_SMOKE=1\nDeterministic no-model artifact smoke.';
+  const request = 'YURI_REPL_CLAIM_VERIFIER_SMOKE=1\nDeterministic no-model artifact smoke.';
   const output = CLAIM_VERIFIER_SMOKE_OUTPUT;
   const headBefore = git('git rev-parse --short HEAD');
   const status = getStatus();

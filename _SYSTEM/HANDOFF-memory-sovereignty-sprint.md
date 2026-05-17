@@ -41,7 +41,7 @@ Marcel inserted the SAFE_SUBAGENT_TYPES block before the `const subagentType/mod
 
 **Fix:** In `.claude/hooks/agent-spawn-guard.js`, ensure this order after line 31:
 ```javascript
-// [NUDIMMUD_ALLOW_AGENT block ends here]
+// [YURI_ALLOW_AGENT block ends here]
 
   const subagentType = (payload.tool_input && payload.tool_input.subagent_type) || '<unspecified>';
   const description = (payload.tool_input && payload.tool_input.description) || '';

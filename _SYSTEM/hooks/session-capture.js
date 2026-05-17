@@ -13,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const REPO_ROOT = process.env.NUDIMMUD_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
+const REPO_ROOT = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
 const LEARNING_DIR = path.join(REPO_ROOT, '_SYSTEM/learning');
 const CONFIG_PATH = path.join(LEARNING_DIR, 'config.json');
 const SESSIONS_LOG = path.join(LEARNING_DIR, 'sessions.jsonl');

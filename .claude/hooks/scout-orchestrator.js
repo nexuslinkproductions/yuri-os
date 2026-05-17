@@ -16,7 +16,7 @@
 
 'use strict';
 
-if (process.env.NUDIMMUD_DISABLE_SCOUTS === '1') {
+if (process.env.YURI_DISABLE_SCOUTS === '1') {
   process.exit(0);
 }
 

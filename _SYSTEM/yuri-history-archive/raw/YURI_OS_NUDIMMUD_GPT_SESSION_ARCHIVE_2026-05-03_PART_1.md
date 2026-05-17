@@ -89,8 +89,8 @@ At that time the repo state shown by the user included:
 HEAD: 4f4312fe9 fix(cli): calm NUDIMMUD HUD theme and move footer below input
 STATUS:
  M .claude/settings.json
- M backend/data/nudimmud.db-shm
- M backend/data/nudimmud.db-wal
+ M backend/data/yuri.db-shm
+ M backend/data/yuri.db-wal
  M src/index.tsx
  M src/main.ts
 ?? src/components/NeuralViz/
@@ -153,8 +153,8 @@ Post-commit status still showed the same tolerated dirty/untracked paths:
 
 ```text
  M .claude/settings.json
- M backend/data/nudimmud.db-shm
- M backend/data/nudimmud.db-wal
+ M backend/data/yuri.db-shm
+ M backend/data/yuri.db-wal
  M src/index.tsx
  M src/main.ts
 ?? src/components/NeuralViz/
@@ -313,7 +313,7 @@ The session then moved into the NUDIMMUD harness-core architecture work. The goa
 Result label:
 
 ```text
-08L_NUDIMMUD_HARNESS_CORE_X1_PASS_COMMITTED
+08L_YURI_HARNESS_CORE_X1_PASS_COMMITTED
 ```
 
 Commit:
@@ -363,7 +363,7 @@ Non-claims:
 Result label:
 
 ```text
-08L_NUDIMMUD_HARNESS_CORE_X2_PASS_COMMITTED
+08L_YURI_HARNESS_CORE_X2_PASS_COMMITTED
 ```
 
 Commit:
@@ -420,7 +420,7 @@ Non-claims:
 Result label:
 
 ```text
-08L_NUDIMMUD_HARNESS_CORE_X3_PASS_COMMITTED
+08L_YURI_HARNESS_CORE_X3_PASS_COMMITTED
 ```
 
 Commit:
@@ -470,7 +470,7 @@ Non-claims:
 Result label:
 
 ```text
-08L_NUDIMMUD_HARNESS_CORE_X3R_CONTRACT_AUDIT_V_PASS_X4_READY
+08L_YURI_HARNESS_CORE_X3R_CONTRACT_AUDIT_V_PASS_X4_READY
 ```
 
 HEAD remained:
@@ -510,7 +510,7 @@ none
 Result label:
 
 ```text
-08L_NUDIMMUD_HARNESS_CORE_X4_STATUS_PROVIDER_INTEGRATION_X_PASS_COMMITTED
+08L_YURI_HARNESS_CORE_X4_STATUS_PROVIDER_INTEGRATION_X_PASS_COMMITTED
 ```
 
 Commit:
@@ -586,7 +586,7 @@ This requirement later fed into the HUD transformation attempt.
 DeepSeek produced a very formal architecture plan labeled:
 
 ```text
-08L_NUDIMMUD_BUDGET_GUARD_PLANNING_P_PASS_PLAN_READY
+08L_YURI_BUDGET_GUARD_PLANNING_P_PASS_PLAN_READY
 ```
 
 The output included concepts like:
@@ -702,7 +702,7 @@ b395f741f fix(cli): add YURI OS terminal HUD foundation
 Result label:
 
 ```text
-08M_NUDIMMUD_TERMINAL_HUD_TRANSFORMATION_X1_PASS_COMMITTED
+08M_YURI_TERMINAL_HUD_TRANSFORMATION_X1_PASS_COMMITTED
 ```
 
 Validation markers:

@@ -332,7 +332,7 @@ function readMaybe(filePath) {
 
 function sandboxEnvRedirects(env) {
   const r = {};
-  if (env.NUDIMMUD_DB_PATH) r.NUDIMMUD_DB_PATH = env.NUDIMMUD_DB_PATH;
+  if (env.YURI_DB_PATH) r.YURI_DB_PATH = env.YURI_DB_PATH;
   return r;
 }
 

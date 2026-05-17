@@ -31,7 +31,7 @@ Three-screen flow: Design Catalog → Confirmation → Document Audit HUD.
 
 **Header bar (top):**
 - Document name + config theme badge + session ID
-- **Copy Handoff** — copies `NUDIMMUD_DESIGN_HANDOFF` JSON to clipboard
+- **Copy Handoff** — copies `YURI_DESIGN_HANDOFF` JSON to clipboard
 - **↓ Export HANDOFF.json** — downloads JSON file
 - **Config** — toggles the right debug panel (shows live `NudimmudDesignConfig`)
 - **↺ Reset** — returns to catalog, clears config
@@ -53,12 +53,12 @@ Three-screen flow: Design Catalog → Confirmation → Document Audit HUD.
 
 **Right debug panel (toggleable):**
 - Live `NudimmudDesignConfig` JSON
-- `NUDIMMUD_DESIGN_HANDOFF` preview metadata
+- `YURI_DESIGN_HANDOFF` preview metadata
 
 ## Exporting the Handoff Payload
 
 Two ways:
-1. **↓ Export HANDOFF.json** — downloads a `.json` file named `NUDIMMUD_DESIGN_HANDOFF_{timestamp}.json`
+1. **↓ Export HANDOFF.json** — downloads a `.json` file named `YURI_DESIGN_HANDOFF_{timestamp}.json`
 2. **Copy Handoff** — copies the full JSON to clipboard (button shows "✓ Copied" for 2s)
 
 The payload schema:

@@ -7,11 +7,11 @@ Scope: backend/control plane only. external workflow frontends are out of implem
 
 Verdict: **not production-grade**. Current risk: **critical**.
 
-Yuri OS has real backend structure, but the release gate fails on data integrity, security boundary discipline, observability truth, and recovery proof. The strongest local evidence is not subtle: `backend/data/nudimmud.db` fails `PRAGMA integrity_check` with b-tree and index corruption. A system with a corrupted operational database cannot be called stable or release-ready.
+Yuri OS has real backend structure, but the release gate fails on data integrity, security boundary discipline, observability truth, and recovery proof. The strongest local evidence is not subtle: `backend/data/yuri.db` fails `PRAGMA integrity_check` with b-tree and index corruption. A system with a corrupted operational database cannot be called stable or release-ready.
 
 Top blockers:
 
-- Corrupted live backend SQLite DB: `backend/data/nudimmud.db`.
+- Corrupted live backend SQLite DB: `backend/data/yuri.db`.
 - Unauthenticated read/control routes expose repo/vault contents and control behavior on loopback HTTP.
 - CORS rejection returns 500 HTML with stack traces.
 - Telemetry mixes real measurements with `Math.random()` and hardcoded integration status.
@@ -49,7 +49,7 @@ Repo translation:
 | HTTP backend boot | Live and wired | `backend/src/server.ts:83-87`, `backend/src/server.ts:639-681`; isolated boot on `127.0.0.1:3314` passed. |
 | API key auth | Partially wired | Boot fails if `API_KEY` missing/short in `backend/src/middleware/auth.ts:8-12`; protected middleware in `auth.ts:60-69`; many routes bypass it. |
 | Health/liveness/readiness | Partially wired | `server.ts:206-277`, `api.ts:85-112`; liveness passed; readiness 503 in isolated test because ingestion never ran; health 503 with guard disabled. |
-| SQLite backend DB | Risky / unstable | `backend/data/nudimmud.db` integrity check reports b-tree/index corruption; schema/migrations in `backend/src/models/database.ts:36-314`, `343-420`. |
+| SQLite backend DB | Risky / unstable | `backend/data/yuri.db` integrity check reports b-tree/index corruption; schema/migrations in `backend/src/models/database.ts:36-314`, `343-420`. |
 | OS kernel memory DB | Live and wired | `_SYSTEM/OS_KERNEL/memory.db` integrity check returned `ok`; schema in `_SYSTEM/OS_KERNEL/schema.sql:1-56`. |
 | GitNexus | Partially wired / tooling degraded | `npx gitnexus status` up to date; `query` returns no results due read-only FTS write failure; direct `context`/`impact` worked. |
 | Vault ingestion | Partially wired | `backend/src/services/vaultIngestion.ts:279-378`; async embeddings mean ingestion can report before retrieval quality is proven. |
@@ -69,7 +69,7 @@ Repo translation:
 
 Evidence:
 
-- Command: `sqlite3 backend/data/nudimmud.db "PRAGMA integrity_check; ..."`
+- Command: `sqlite3 backend/data/yuri.db "PRAGMA integrity_check; ..."`
 - Result includes b-tree errors, repeated page references, wrong index entry counts, and missing ticket index rows.
 - `backend/src/models/database.ts:25-29` enables WAL and foreign keys, but there is no startup integrity gate.
 
@@ -298,7 +298,7 @@ Optional later:
 
 Phase 0: stop false confidence
 
-1. Freeze writes to `backend/data/nudimmud.db` until recovery clone passes integrity.
+1. Freeze writes to `backend/data/yuri.db` until recovery clone passes integrity.
 2. Create DB recovery runbook and restored DB candidate.
 3. Add health gate fields: `dbIntegrity`, `schemaVersion`, `lastBackupAt`, `lastIntegrityCheckAt`.
 4. Remove/random-label simulated telemetry.
@@ -417,7 +417,7 @@ Current Yuri Flow routes must remain backend-owned and auth-protected:
 
 Smoke tests:
 
-- Boot isolated: `PORT=3314 NUDIMMUD_TEST_MODE=1 NUDIMMUD_DB_PATH=:memory: API_KEY=<32 chars> npm --prefix backend run dev`.
+- Boot isolated: `PORT=3314 YURI_TEST_MODE=1 YURI_DB_PATH=:memory: API_KEY=<32 chars> npm --prefix backend run dev`.
 - Probe `/api/health/live`, `/api/health/ready`, `/api/health`, `/api/health/auth`.
 - Probe bad CORS origin and assert 403 JSON, no stack.
 - Probe file/read routes without auth and assert 401/403.
@@ -480,7 +480,7 @@ What would change this verdict:
 Commands run:
 
 - `npx gitnexus status`: index up to date.
-- `npx gitnexus query --repo nudimmud-vault ...`: failed to return useful results due read-only FTS maintenance error.
+- `npx gitnexus query --repo yuri-os-musubi ...`: failed to return useful results due read-only FTS maintenance error.
 - `npx gitnexus context/impact`: direct symbol lookup/impact worked.
 - `npm --prefix backend run build`: failed initially at `backend/src/trading-server.ts:93`; passed after one-line type annotation.
 - Isolated server boot: passed on `127.0.0.1:3314`.
@@ -491,7 +491,7 @@ Commands run:
 - `curl /api/knowledge/detail?path=package.json`: 200 without auth, returned file content.
 - `curl /api/files/ls?path=backend/src`: 200 without auth, returned source tree.
 - Bad CORS origin: 500 HTML stack trace.
-- `sqlite3 backend/data/nudimmud.db "PRAGMA integrity_check"`: failed.
+- `sqlite3 backend/data/yuri.db "PRAGMA integrity_check"`: failed.
 - `sqlite3 _SYSTEM/OS_KERNEL/memory.db "PRAGMA integrity_check"`: ok.
 - `node Scripts/wiki-rag-health.mjs`: ok despite backend DB integrity failure.
-- `npx gitnexus detect-changes --repo nudimmud-vault --scope unstaged`: high risk due broad pre-existing dirty worktree, 32 files / 152 symbols / 7 affected processes.
+- `npx gitnexus detect-changes --repo yuri-os-musubi --scope unstaged`: high risk due broad pre-existing dirty worktree, 32 files / 152 symbols / 7 affected processes.

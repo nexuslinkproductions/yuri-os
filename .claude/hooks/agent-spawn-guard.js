@@ -2,7 +2,7 @@
 // .claude/hooks/agent-spawn-guard.js — PATCH 023
 // Hard-block Agent() spawns with Anthropic models (Claude/Haiku/Sonnet/Opus).
 // Memory rule: memory/feedback_no_anthropic_agents.md
-// Bypass (rare, explicit): NUDIMMUD_ALLOW_AGENT=1 in environment.
+// Bypass (rare, explicit): YURI_ALLOW_AGENT=1 in environment.
 
 'use strict';
 
@@ -25,8 +25,8 @@ process.stdin.on('end', () => {
   }
 
   // Explicit bypass for rare cases (e.g., user-approved one-off)
-  if (process.env.NUDIMMUD_ALLOW_AGENT === '1') {
-    console.error('[agent-spawn-guard] NUDIMMUD_ALLOW_AGENT=1 — Agent spawn allowed (logged)');
+  if (process.env.YURI_ALLOW_AGENT === '1') {
+    console.error('[agent-spawn-guard] YURI_ALLOW_AGENT=1 — Agent spawn allowed (logged)');
     process.exit(0);
   }
   const subagentType = (payload.tool_input && payload.tool_input.subagent_type) || '<unspecified>';
@@ -56,7 +56,7 @@ process.stdin.on('end', () => {
     '  • Local exploration: Read tool / Bash grep / mcp__ollama-bridge__ollama_explore_files',
     '  • Local subagent (Ollama): mcp__ollama-bridge__ollama_run',
     '',
-    'Bypass (rare/explicit only): NUDIMMUD_ALLOW_AGENT=1',
+    'Bypass (rare/explicit only): YURI_ALLOW_AGENT=1',
   ].join('\n');
 
   const output = {
