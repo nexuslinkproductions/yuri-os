@@ -10,7 +10,7 @@ const path = require('path');
 const stateModule = require('./session-state.js');
 
 const YURI_ROOT = process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI';
-const PROTOCOL_FILE = path.join(YURI_ROOT, 'MUSUBI_PROTOCOL.md');
+const PROTOCOL_FILE = path.join(YURI_ROOT, '_SYSTEM', 'MUSUBI_PROTOCOL.md');
 
 /**
  * Extract sections from AEONIC_PROTOCOL.md via ## heading boundaries

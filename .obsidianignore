@@ -31,3 +31,27 @@ GeneratedContent/
 claude-palace-out/
 graphify-out/
 YURI-SENTINEL/
+Scripts/
+.agents/
+.sharingan/
+.openclaw/
+.gstack/
+.vscode/
+.agent/
+NEURAL-NETWORK/
+
+# Root governance files (needed by Claude Code — hidden from vault view)
+CLAUDE.md
+AGENTS.md
+SOUL.md
+README.md
+package.json
+package-lock.json
+tsconfig.json
+tsconfig.node.json
+vite.config.mts
+ecosystem.config.js
+start-hud.sh
+
+# Canvas files
+*.canvas
