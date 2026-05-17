@@ -1,4 +1,4 @@
-# Yuri OS / Nudimmud — Session Context Extract
+# Yuri OS / Yuri — Session Context Extract
 
 ## 1. Session Summary
 
@@ -6,7 +6,7 @@ The user needed a way to reduce repeated manual approvals in Claude Code because
 
 The approach was corrected: instead of trying to bypass Claude’s safety model, the session reframed the goal as configuring Claude Code’s official permission system with conservative `allow`, `ask`, and `deny` rules. The user then used Claude Code to inspect the repository and found that the existing `.claude/settings.local.json` was dangerously permissive, with many pre-approved commands. A safer permission profile was created, smoke-tested, and adjusted.
 
-After permission hardening, the conversation moved into “boring reinforcement” work for Yuri OS / Nudimmud. A Boring Work Queue was created with tasks across permission hygiene, manifest hygiene, skill audit, agent audit, test harness, documentation consistency, safety gates, anti-drift checks, repo cleanup, and next sprint candidates. A Sprint 02 Manifest & Skill Baseline Audit was then produced and iteratively clarified. It confirmed that the skill and agent inventories are structurally consistent, with 29/29 skills and 11/11 agents accounted for. The main follow-up is SA-002: 16 skills lack trigger arrays and need a trigger decision pass.
+After permission hardening, the conversation moved into “boring reinforcement” work for Yuri OS / Yuri. A Boring Work Queue was created with tasks across permission hygiene, manifest hygiene, skill audit, agent audit, test harness, documentation consistency, safety gates, anti-drift checks, repo cleanup, and next sprint candidates. A Sprint 02 Manifest & Skill Baseline Audit was then produced and iteratively clarified. It confirmed that the skill and agent inventories are structurally consistent, with 29/29 skills and 11/11 agents accounted for. The main follow-up is SA-002: 16 skills lack trigger arrays and need a trigger decision pass.
 
 No hidden reasoning is included here. This extract only summarizes visible chat content.
 
@@ -62,7 +62,7 @@ No hidden reasoning is included here. This extract only summarizes visible chat 
   Confidence: Medium.
 
 - Trusted state: `.claude/settings.local.json` is ignored by git.  
-  Evidence from chat: Smoke test states `.claude/settings.local.json` is ignored via NUDIMMUD `.gitignore` line 18.  
+  Evidence from chat: Smoke test states `.claude/settings.local.json` is ignored via YURI `.gitignore` line 18.  
   Confidence: Medium.
 
 - Trusted state: A backup file exists: `.claude/settings.local.backup-unsafe-original.json`.  
@@ -77,7 +77,7 @@ No hidden reasoning is included here. This extract only summarizes visible chat 
   Confidence: Medium.
 
 - Trusted state: A Boring Work Queue exists or was generated with 10 sections and many tasks.  
-  Evidence from chat: User pasted the full “Boring Work Queue — Yuri OS / NUDIMMUD Phase 0B+.”  
+  Evidence from chat: User pasted the full “Boring Work Queue — Yuri OS / YURI Phase 0B+.”  
   Confidence: High.
 
 - Trusted state: The Boring Work Queue initially had metadata inconsistencies.  
@@ -126,7 +126,7 @@ No hidden reasoning is included here. This extract only summarizes visible chat 
 
 ### Claude Code CLI
 
-- Used as the main execution environment for Yuri OS / Nudimmud repo work.
+- Used as the main execution environment for Yuri OS / Yuri repo work.
 - Used to inspect repository structure, modify `.claude/settings.local.json`, run permission smoke tests, generate reports, and execute boring reinforcement tasks.
 - Should use conservative permissions.
 - Should not use prompt-based “special permission” language.
@@ -151,7 +151,7 @@ Not recommended for silent execution of:
 
 ### Codex CLI
 
-- Mentioned in project memory as a secondary working CLI for Yuri OS / Nudimmud.
+- Mentioned in project memory as a secondary working CLI for Yuri OS / Yuri.
 - In this chat, Codex was not directly used.
 - Recommended role from prior context: secondary execution and audit lane, close to Claude Code CLI in repo context but assigned different task types rather than blindly duplicating Claude’s role.
 - In this session’s future workflow, Codex can validate Claude’s outputs where relevant, especially:
@@ -197,7 +197,7 @@ Not recommended for silent execution of:
 
 ### VS Code
 
-- User uses VS Code as the main IDE for Yuri OS / Nudimmud work.
+- User uses VS Code as the main IDE for Yuri OS / Yuri work.
 - In this chat, VS Code was not directly operated.
 - Relevant context:
   - Claude Code CLI/plugin is used in VS Code.
@@ -682,7 +682,7 @@ Next task: run Sprint 03A Trigger Decision Pass in Claude Code CLI. It should cl
 
 ```json
 {
-  "project": "Yuri OS / Nudimmud",
+  "project": "Yuri OS / Yuri",
   "session_theme": "Claude Code permission hardening and boring reinforcement baseline work",
   "main_outputs": [
     "Reframed permission reduction from prompt-based self-approval to official Claude Code permission configuration",
@@ -716,7 +716,7 @@ Next task: run Sprint 03A Trigger Decision Pass in Claude Code CLI. It should cl
   ],
   "cli_model_context": {
     "claude_code_cli": [
-      "Main execution CLI for repo-local Yuri OS / Nudimmud work",
+      "Main execution CLI for repo-local Yuri OS / Yuri work",
       "Use for conservative permission config, audits, metadata hygiene, and documentation/status updates",
       "Do not use prompt-based policy override language",
       "Do not use bypassPermissions in this workflow",

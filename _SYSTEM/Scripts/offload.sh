@@ -8,7 +8,7 @@ if [ -z "$PULSE_LANE_BYPASS" ] && [ -z "$INSIDE_PULSE_WRAPPER" ]; then
   fi
 fi
 
-# NUDIMMUD Task Offloader (Enhanced)
+# YURI Task Offloader (Enhanced)
 # Automatically assesses context or allows manual model/swarm selection.
 
 set -euo pipefail

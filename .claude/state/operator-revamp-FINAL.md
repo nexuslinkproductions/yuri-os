@@ -8,7 +8,7 @@
 ---
 
 ## RESULT
-Total revamp of `/operator` shipped to canonical `/Users/marcelspatz/NUDIMMUD` on `main`.
+Total revamp of `/operator` shipped to canonical `/Users/marcelspatz/YURI` on `main`.
 Pre-existing single-file `OperatorShell.tsx` (167-line DOM-injection w/ 12-portal lobby + THREE.js CDN) replaced by a sectioned React cockpit: 9 routes, Cmd-K palette spine, brand-aligned `--op-*` token system inheriting consumer DNA, motion vocabulary respecting `prefers-reduced-motion`, WCAG AA focus rings + ARIA landmarks, zero new dependencies (framer-motion v12.38 already installed).
 
 ## FILES_CHANGED

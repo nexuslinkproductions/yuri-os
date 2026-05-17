@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { NudimmudDesignConfig, CATALOG_CATEGORIES } from './types';
+import { YuriDesignConfig, CATALOG_CATEGORIES } from './types';
 
 interface ConfirmScreenProps {
-  config: NudimmudDesignConfig;
+  config: YuriDesignConfig;
   onConfirm: () => void;
   onBack: () => void;
 }

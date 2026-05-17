@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — Session Continuity Extract After 07I-G-V + EOT Hook Hotfix
+# Yuri OS / YURI — Session Continuity Extract After 07I-G-V + EOT Hook Hotfix
 
 Date: 2026-04-27  
 Prepared for: new GPT-5.5 / Claude Code continuation chat  
@@ -9,7 +9,7 @@ Status: continuity handoff, not an independently executed repo audit
 
 ## 1. Session Summary
 
-This session continued the Yuri OS / NUDIMMUD repository hygiene workflow after Sprint 07I-E-V-R had repaired the runtime/debug `.gitignore` verification.
+This session continued the Yuri OS / YURI repository hygiene workflow after Sprint 07I-E-V-R had repaired the runtime/debug `.gitignore` verification.
 
 The session also uncovered and hotfixed a blocking EOT hook issue that prevented Claude Code from accepting normal detailed prompts. After that operational repair, the runtime/debug index cleanup lane was completed through verification.
 
@@ -86,7 +86,7 @@ Protected/deferred paths confirmed not ignored:
 .claude/nisaba/learning/global.md
 .claude/nisaba/learning/sessions/2026-04-25.jsonl
 .claude/plugins/known_marketplaces.json
-.claude/projects/-Users-marcelspatz-NUDIMMUD/memory/MEMORY.md
+.claude/projects/-Users-marcelspatz-YURI/memory/MEMORY.md
 ```
 
 ### Sprint 07I-E-V-R — Runtime Ignore Patch Verification Repair
@@ -502,7 +502,7 @@ Important:
 ## 12. Ready-to-Paste New Chat Opening
 
 ```text
-Continue Yuri OS / NUDIMMUD from this continuity extract.
+Continue Yuri OS / YURI from this continuity extract.
 
 Latest accepted sprint:
 - Sprint 07I-G-V
@@ -786,7 +786,7 @@ Do not continue into the recommended next sprint.
 
 ```json
 {
-  "project": "Yuri OS / NUDIMMUD",
+  "project": "Yuri OS / YURI",
   "date": "2026-04-27",
   "document_type": "session_continuity_extract_after_07i_g_v_and_eot_hotfix",
   "status": "handoff_not_independent_repo_audit",

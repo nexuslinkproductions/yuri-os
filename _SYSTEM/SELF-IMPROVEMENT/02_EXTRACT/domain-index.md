@@ -14,7 +14,7 @@
 
 ## Systems
 
-*(NUDIMMUD architecture, RAG, offloading, agent design)*
+*(YURI architecture, RAG, offloading, agent design)*
 
 - [ ] *Awaiting first entries*
 

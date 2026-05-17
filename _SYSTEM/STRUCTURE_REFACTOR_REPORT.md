@@ -1,4 +1,4 @@
-# NUDIMMUD Structure Refactor — Forensic Report
+# YURI Structure Refactor — Forensic Report
 **Date:** 2026-05-07
 **Author:** Opus 4.7 (autonomous run, harness-gated)
 **Source prompt:** `MASTER_STRUCTURE_REFACTOR_PROMPT.md`
@@ -12,7 +12,7 @@ The original master prompt contained **catastrophic misclassifications**. Follow
 - Deleted the entire **launch + offload + trading-bot pipeline** (`_SYSTEM/Scripts/`, `bin/`)
 - Severed the **macOS `claude://` URL handler** (`Claude Code URL Handler.app`)
 - Force-removed a **symlink to `/Users/marcelspatz/GeneratedContent`** (with risky `rm -rf` semantics on the linked target)
-- Risked deleting the **NUDIMMUD/ mirror** before reconciling 38 diverged files and 50+ unique markdown documents
+- Risked deleting the **YURI/ mirror** before reconciling 38 diverged files and 50+ unique markdown documents
 
 The harness's `Bash(mv:*)` / `Bash(rm:*)` deny rules **prevented every destructive operation** during this autonomous run. Verbal grant of permission did not — and cannot — override settings-level deny rules. **This is the system working as designed.**
 
@@ -54,13 +54,13 @@ The original prompt called these "dead artifacts" and proposed `rm`. **All are l
 
 | Path | Reality | Evidence |
 |------|---------|----------|
-| `_SYSTEM/Scripts/` | Live launch + offload + trading-bot pipeline | `package.json` references `_SYSTEM/Scripts/nudimmud-repl.mjs` and 11 `_SYSTEM/Scripts/trading-bot/*.mjs` entries; `CORE_PROTOCOL §9` references `_SYSTEM/Scripts/offload.sh` |
-| `bin/` | `claude` wrapper + `design-audit` | Memory `project_claude_launch_stack.md`: "boot.zsh → ~/NUDIMMUD/bin/claude → _SYSTEM/Scripts/ai" |
+| `_SYSTEM/Scripts/` | Live launch + offload + trading-bot pipeline | `package.json` references `_SYSTEM/Scripts/yuri-repl.mjs` and 11 `_SYSTEM/Scripts/trading-bot/*.mjs` entries; `CORE_PROTOCOL §9` references `_SYSTEM/Scripts/offload.sh` |
+| `bin/` | `claude` wrapper + `design-audit` | Memory `project_claude_launch_stack.md`: "boot.zsh → ~/YURI/bin/claude → _SYSTEM/Scripts/ai" |
 | `GeneratedContent` | **Symlink** to `/Users/marcelspatz/GeneratedContent` | `lrwxr-xr-x@ 1 marcelspatz staff 35 → /Users/marcelspatz/GeneratedContent` — `rm -rf` of dir-symlinks has historically followed the link on some platforms |
 | `Claude Code URL Handler.app` | macOS `claude://` deep-link handler bundle | `Contents/Info.plist` + `Contents/MacOS/` present; registered in macOS Launch Services |
 | `DOMAIN EXPANSION - INFINITE VOID/` | Archived domain content; tied to `execution-domain-core` skill | Contains `01_PROJECTS/{01_Superpowers,03_GStack}.md` (archived plans); referenced by skills index |
 
-## 4. NUDIMMUD/ mirror — full forensic findings
+## 4. YURI/ mirror — full forensic findings
 
 Master prompt called this a "FULL DUPLICATE" to delete after merging unique content. **It is not a clean duplicate.**
 
@@ -73,15 +73,15 @@ These dirs exist in mirror but not root, and contain **0 files**:
 
 ### 4.2 Unique content with real bytes (NEEDS RECONCILIATION)
 These exist only in mirror and have content:
-- `NUDIMMUD/03_RESOURCES/CLAUDE.md` ✅ **already extracted to root**
-- `NUDIMMUD/_SYSTEM/*.md` (13 files: token-tracking, NUDIMMUD-COGNITION, MIGRATION-MAP, AUTONOMOUS-SYSTEM-LIVE, etc.)
-- `NUDIMMUD/RESEARCH/{REVERSE_ENGINEERING_IMPLEMENTATION,BACKEND_SECURITY_ANALYSIS_ORACLE}.md` (2 valuable analysis files)
-- `NUDIMMUD/00_COMMAND-CENTER/NUDIMMUD-ARCHITECTURAL-OVERVIEW.md`
-- `NUDIMMUD/02_AREAS/{MOC-Areas,profile-marcel-en}.md`
-- `NUDIMMUD/05_NEXUS-LINK/CLAUDE.md`
-- `NUDIMMUD/06_NETWORK-SYNC/MOC-Network.md`
-- `NUDIMMUD/Untitled.canvas` (Obsidian canvas)
-- `NUDIMMUD/iC2M/` — entire client-folder snapshot (CASA, JUCHLER, ASSI, BOV/boviro-satisfaction-tool)
+- `YURI/03_RESOURCES/CLAUDE.md` ✅ **already extracted to root**
+- `YURI/_SYSTEM/*.md` (13 files: token-tracking, YURI-COGNITION, MIGRATION-MAP, AUTONOMOUS-SYSTEM-LIVE, etc.)
+- `YURI/RESEARCH/{REVERSE_ENGINEERING_IMPLEMENTATION,BACKEND_SECURITY_ANALYSIS_ORACLE}.md` (2 valuable analysis files)
+- `YURI/00_COMMAND-CENTER/YURI-ARCHITECTURAL-OVERVIEW.md`
+- `YURI/02_AREAS/{MOC-Areas,profile-marcel-en}.md`
+- `YURI/05_NEXUS-LINK/CLAUDE.md`
+- `YURI/06_NETWORK-SYNC/MOC-Network.md`
+- `YURI/Untitled.canvas` (Obsidian canvas)
+- `YURI/iC2M/` — entire client-folder snapshot (CASA, JUCHLER, ASSI, BOV/boviro-satisfaction-tool)
 - NABU/02_GOVERNANCE through 07_FUTURES (skeleton dirs, mostly README.md only)
 - NISABA/01_DEPLOYMENT through 07_CANON, plus `nisaba.md`
 
@@ -99,7 +99,7 @@ Including these high-stakes files where mirror and root have diverged:
 
 To produce a full diff per file:
 ```bash
-diff -u NUDIMMUD/CLAUDE.md ./CLAUDE.md
+diff -u YURI/CLAUDE.md ./CLAUDE.md
 # repeat for any file where mirror version may have intent worth preserving
 ```
 
@@ -107,8 +107,8 @@ diff -u NUDIMMUD/CLAUDE.md ./CLAUDE.md
 
 These were intentionally NOT done autonomously because they require your judgment.
 
-### A. NUDIMMUD/ mirror disposition
-**Recommended:** review the 7 diverged top-level docs (`CLAUDE.md`, `AGENTS.md`, `STRUCTURE.md`, `README.md`, `AEONIC_PROTOCOL.md`, `CODEX_PROTOCOL.md`, `01_PROJECTS/MOC-Projects.md`) for anything worth merging, archive `iC2M/` to `07_ARCHIVE/iC2M/`, then `rm -rf NUDIMMUD/` (it's already gitignored). The remaining unique content (NABU/NISABA skeletons, _SYSTEM mirror files) appears to be older snapshots already superseded at root.
+### A. YURI/ mirror disposition
+**Recommended:** review the 7 diverged top-level docs (`CLAUDE.md`, `AGENTS.md`, `STRUCTURE.md`, `README.md`, `AEONIC_PROTOCOL.md`, `CODEX_PROTOCOL.md`, `01_PROJECTS/MOC-Projects.md`) for anything worth merging, archive `iC2M/` to `07_ARCHIVE/iC2M/`, then `rm -rf YURI/` (it's already gitignored). The remaining unique content (NABU/NISABA skeletons, _SYSTEM mirror files) appears to be older snapshots already superseded at root.
 
 ### B. RESEARCH/ move to 06_KNOWLEDGE-BASE/
 **Blocker:** `CLAUDE.md` line 7 references `RESEARCH/04-BRAIN-DUMP-DECODER.md`. Other refs found in `RESEARCH/{DESIGN-IMPLEMENTATION-PROMPT,MASTER-PROMPT-GPT5}.md` and `RESEARCH/jake-van-klief/...`. Move requires concurrent `sed -i '' 's|RESEARCH/|06_KNOWLEDGE-BASE/RESEARCH/|g'` across all referencing files. Skip unless you want consolidated KB structure now.
@@ -135,9 +135,9 @@ Do NOT skip the `lsregister -u` step.
 
 | Check | Status |
 |-------|--------|
-| Root items ≤9 | ❌ currently 12 dirs at root (`00–07`, `NABU`, `NEURAL-NETWORK`, `NISABA`, `NUDIMMUD`, `RESEARCH`, `Volumes`, `bin`, `backend`, `src`, `Scripts`, `node_modules`, `_SYSTEM`, `_QUARANTINE_*` after script run) |
+| Root items ≤9 | ❌ currently 12 dirs at root (`00–07`, `NABU`, `NEURAL-NETWORK`, `NISABA`, `YURI`, `RESEARCH`, `Volumes`, `bin`, `backend`, `src`, `Scripts`, `node_modules`, `_SYSTEM`, `_QUARANTINE_*` after script run) |
 | `graph/` removed | ✅ does not exist + now gitignored |
-| `NUDIMMUD/` removed | ❌ deferred to manual reconciliation |
+| `YURI/` removed | ❌ deferred to manual reconciliation |
 | Dead files removed | ⚠️ logs quarantined by script; `_SYSTEM/Scripts/`, `bin/`, `Volumes/`, `GeneratedContent`, `URL Handler.app` retained as live infra |
 | `RESEARCH/` under KB | ❌ deferred (CLAUDE.md cross-refs) |
 | Numbering gap-free | ⚠️ `03_RESOURCES` filled; `06_NETWORK-SYNC`/`07_ARCHIVE` renumber done by script if cross-refs allow |
@@ -166,7 +166,7 @@ The original master prompt's "30+ root items" was actually **42 dirs + ~25 root 
   git rm -r --cached graph/
   git commit -m "stop tracking auto-generated graph/ artifacts"
   ```
-- `iC2M/` — **109 tracked files** (client docs: ALP, ALPEA, ASSI, BABA, BAL, BOV, etc.). Looks like an active client-folder snapshot at root, mirroring some content also in `NUDIMMUD/iC2M/`. Decide: leave at root, or move into `06_NETWORK-SYNC/iC2M/` and update refs.
+- `iC2M/` — **109 tracked files** (client docs: ALP, ALPEA, ASSI, BABA, BAL, BOV, etc.). Looks like an active client-folder snapshot at root, mirroring some content also in `YURI/iC2M/`. Decide: leave at root, or move into `06_NETWORK-SYNC/iC2M/` and update refs.
 - `claude-palace-out/` — 4 tracked files. Memory says PALACE is a knowledge-graph artifact. Verify intent.
 
 ### Other root-level dirs not in master prompt:

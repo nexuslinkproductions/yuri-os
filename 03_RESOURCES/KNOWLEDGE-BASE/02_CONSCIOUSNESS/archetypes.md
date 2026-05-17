@@ -125,7 +125,7 @@ Gnostic Aeons are the most direct precursor to Jungian archetypes. The Demiurge 
 
 ---
 
-## Operational Meaning for NUDIMMUD
+## Operational Meaning for YURI
 
 Archetype awareness functions as a reading layer applied to every exchange with Marcel.
 

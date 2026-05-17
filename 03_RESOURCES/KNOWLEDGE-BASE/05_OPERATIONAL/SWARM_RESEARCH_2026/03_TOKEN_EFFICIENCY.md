@@ -13,6 +13,6 @@ Managing token limits requires a hierarchical approach mimicking computer memory
    - **Provider Prompt Caching (KV Cache)**: Caching massive system prompts or reference documents at the API layer (reduces input cost by up to 90%).
    - **Semantic Caching**: Embedding user queries to detect and serve >95% similar cached responses, saving 100% of LLM compute.
 
-### Gap Analysis & Implementation for NUDIMMUD
+### Gap Analysis & Implementation for YURI
 - **Current Gap**: Token context bloat leading to expensive sessions or "amnesia".
 - **Implementation**: Establish a strict Tiered Memory approach for NABU and the Conclave. Enforce Provider Caching for large project context files (like `AGENTS.md` and `SKILL.md` collections).

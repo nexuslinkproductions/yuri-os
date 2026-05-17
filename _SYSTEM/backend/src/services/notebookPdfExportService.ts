@@ -121,14 +121,14 @@ export class NotebookPdfExportService {
 </head>
 <body>
   <div class="header">
-    <div class="label">NUDIMMUD · ${typeLabel[doc.doc_type] || doc.doc_type}</div>
+    <div class="label">YURI · ${typeLabel[doc.doc_type] || doc.doc_type}</div>
     <h1>${doc.title}</h1>
     <div class="meta">Generated: ${new Date(doc.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} · Model: ${doc.model_id || 'Unknown'}</div>
   </div>
   <div class="content">
     <p>${bodyHtml}</p>
   </div>
-  <div class="footer">NUDIMMUD Intelligence System · Notebook ID ${doc.notebook_id}</div>
+  <div class="footer">YURI Intelligence System · Notebook ID ${doc.notebook_id}</div>
 </body>
 </html>`;
     }

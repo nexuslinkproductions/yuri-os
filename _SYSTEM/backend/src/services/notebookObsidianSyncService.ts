@@ -45,7 +45,7 @@ export class NotebookObsidianSyncService {
             `notebook_id: ${doc.notebook_id}`,
             `model: ${doc.model_id || 'unknown'}`,
             `generated: ${doc.created_at}`,
-            `tags: [notebook, ${doc.doc_type}, nudimmud]`,
+            `tags: [notebook, ${doc.doc_type}, yuri]`,
             '---',
             '',
             `# ${typeLabels[doc.doc_type] || doc.title}`,

@@ -3,7 +3,7 @@
 > **STATUS: DO-NOT-EXECUTE-AS-WRITTEN**
 >
 > This document is preserved for traceability and audit-calibration purposes only.
-> It contains substantive factual errors when checked against the live NUDIMMUD repo on 2026-05-13.
+> It contains substantive factual errors when checked against the live YURI repo on 2026-05-13.
 > The corrected, executable campaign lives at:
 > - `/Users/marcelspatz/.claude/plans/be-very-concise-and-encapsulated-sunset.md`
 > - `_SYSTEM/campaign-2026-05-13-yuri-optimization.md` (post-campaign summary)
@@ -22,16 +22,16 @@ Fact-check performed 2026-05-13 against `/Users/marcelspatz/YURI-OS-MUSUBI`:
 | 6 | 29 hooks | Actual: 23 in `.claude/hooks/`. |
 | 7 | 5 lanes defined (@perplexity/@comet/@code-local + 2) | Actual: **15 lanes** in `_SYSTEM/Scripts/offload-contract.mjs`. Severe undercount. |
 | 8 | scout-errors.log 179KB and growing | 176KB, last write 2026-05-09 — stale, not actively growing. |
-| 10 | Hermes/DeerFlow autonomous loop must be built | 4 launchd plists already active (`com.nudimmud.{ollama-kv, shellservice, wiki-rag, yuri-session-runtime}`). |
+| 10 | Hermes/DeerFlow autonomous loop must be built | 4 launchd plists already active (`com.yuri.{ollama-kv, shellservice, wiki-rag, yuri-session-runtime}`). |
 
 **Aggregate accuracy: ~55%.** Architectural shape is reasonable; specific dates, counts, package names, and vuln content are unreliable.
 
 ## Original Audit (verbatim)
 
-# YURI OS / NUDIMMUD: Comprehensive Architecture Optimization Plan
+# YURI OS / YURI: Comprehensive Architecture Optimization Plan
 **Target:** 60-65% → 75%+ Operational
 **Scope:** Full system architecture, memory layer, agent orchestration, operational reliability
 **Date:** 2026-05-13
-**Based on:** Fresh NUDIMMUD scan + 2026 industry best practices
+**Based on:** Fresh YURI scan + 2026 industry best practices
 
 (Full original text preserved in source conversation; archived header above documents the corrections. The original report's prescriptive content — Hermes install commands, security patches against `authMiddleware.js`, enki regeneration, and the 12-fix sequence — must NOT be applied as written. Use the corrected campaign file as the source of truth.)

@@ -15,26 +15,26 @@
   "next_recommended_lane": "session_context_extract",
   "validations": [
     {
-      "basename": "yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md",
+      "basename": "yuri_os_yuri_session_context_extract_2026-04-27 (1).md",
       "lane": "session_context_extract",
       "repo_truth_status": "needs_more_review",
       "current_use_policy": "latest_in_dated_extract_lane; verify body scope before reference",
       "evidence_source": [
         "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 3 latest_candidate",
         "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
-        "_SYSTEM/yuri-history-archive/raw/yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md header"
+        "_SYSTEM/yuri-history-archive/raw/yuri_os_yuri_session_context_extract_2026-04-27 (1).md header"
       ],
       "required_future_repo_check": "compare body scope with the dated 2026-04-27 extract files and confirm no newer extract exists"
     },
     {
-      "basename": "yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md",
+      "basename": "yuri_os_yuri_rag_ingest_r_3_handoff_2026_05_01.md",
       "lane": "rag_ingest_handoff",
       "repo_truth_status": "needs_more_review",
       "current_use_policy": "latest_in_lane; verify current RAG ingest state before reference",
       "evidence_source": [
         "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 17 latest_candidate",
         "_SYSTEM/yuri-history-archive/manifest_2026-05-03_30.json sha256 entry",
-        "_SYSTEM/yuri-history-archive/raw/yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md header"
+        "_SYSTEM/yuri-history-archive/raw/yuri_os_yuri_rag_ingest_r_3_handoff_2026_05_01.md header"
       ],
       "required_future_repo_check": "confirm no R4+ ingest artifact or newer ingest lane exists in current repo history"
     },
@@ -111,14 +111,14 @@
       "required_future_repo_check": "confirm current DeepSeek integration and TokenOps HUD state in repo"
     },
     {
-      "basename": "yuri_os_nudimmud_session_context_extract (1).md",
+      "basename": "yuri_os_yuri_session_context_extract (1).md",
       "lane": "session_context_extract",
       "repo_truth_status": "needs_more_review",
       "current_use_policy": "latest_in_undated_extract_lane; verify extraction date and scope before reference",
       "evidence_source": [
         "_SYSTEM/yuri-history-archive/timeline_supersession_2026-05-03_30.json rank 30 latest_candidate",
         "_SYSTEM/yuri-history-archive/classification_2026-05-03_30.json needs_review entry",
-        "_SYSTEM/yuri-history-archive/raw/yuri_os_nudimmud_session_context_extract (1).md header"
+        "_SYSTEM/yuri-history-archive/raw/yuri_os_yuri_session_context_extract (1).md header"
       ],
       "required_future_repo_check": "verify extraction date from body and compare scope with the dated 2026-04-27 extracts"
     }

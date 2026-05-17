@@ -28,7 +28,7 @@ The Perplexity audit (and my own initial plan) proposed log rotation. That treat
 - **Rotation:** keep as a secondary patch, NOT as the primary fix. Cap log at 1 MB ring after rebuild.
 - **Rebuild scout-runner:** route through `_SYSTEM/Scripts/offload.sh -m deepseek` instead of `claude -p`. This unblocks the system AND aligns with the no-Anthropic-agents rule in a single change.
 - **Capture stderr:** drop `2>/dev/null`; pipe stderr into the log for diagnosable failures going forward.
-- **launchd plist (`com.nudimmud.eot-refresh.plist`):** **DEFERRED** — installing now would schedule the broken pattern to run every 6h. Wait until scout-runner is rebuilt.
+- **launchd plist (`com.yuri.eot-refresh.plist`):** **DEFERRED** — installing now would schedule the broken pattern to run every 6h. Wait until scout-runner is rebuilt.
 
 ## Codex Task Specs (handoff, not executed in-campaign)
 
@@ -96,7 +96,7 @@ Drafted but withheld until Spec 1 lands. Once scout-runner uses DeepSeek, this p
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>com.nudimmud.eot-refresh</string>
+  <key>Label</key><string>com.yuri.eot-refresh</string>
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
@@ -120,9 +120,9 @@ Drafted but withheld until Spec 1 lands. Once scout-runner uses DeepSeek, this p
 
 Install (only after Spec 1 lands):
 ```bash
-cp <this-file> ~/Library/LaunchAgents/com.nudimmud.eot-refresh.plist
-launchctl load ~/Library/LaunchAgents/com.nudimmud.eot-refresh.plist
-launchctl list | grep nudimmud.eot
+cp <this-file> ~/Library/LaunchAgents/com.yuri.eot-refresh.plist
+launchctl load ~/Library/LaunchAgents/com.yuri.eot-refresh.plist
+launchctl list | grep yuri.eot
 ```
 
 ## Phase 3 Exit Status

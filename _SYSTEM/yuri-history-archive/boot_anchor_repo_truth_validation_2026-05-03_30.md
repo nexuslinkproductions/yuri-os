@@ -17,10 +17,10 @@
 
 ## Validations
 
-1. `yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md` -> `needs_more_review`
+1. `yuri_os_yuri_session_context_extract_2026-04-27 (1).md` -> `needs_more_review`
    - Evidence: timeline rank 3 latest candidate; manifest entry; archive header
    - Repo check: compare body scope with the dated 2026-04-27 extracts before any future use
-2. `yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md` -> `needs_more_review`
+2. `yuri_os_yuri_rag_ingest_r_3_handoff_2026_05_01.md` -> `needs_more_review`
    - Evidence: timeline rank 17 latest candidate; manifest entry; archive header
    - Repo check: confirm no R4+ ingest artifact exists in current repo history
 3. `YURI_OS_YURI_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md` -> `needs_more_review`
@@ -41,7 +41,7 @@
 8. `YURI_OS_YURI_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md` -> `verified_reference`
    - Evidence: timeline rank 28 latest candidate; manifest entry; archive header
    - Repo check: confirm current DeepSeek integration and TokenOps HUD state
-9. `yuri_os_nudimmud_session_context_extract (1).md` -> `needs_more_review`
+9. `yuri_os_yuri_session_context_extract (1).md` -> `needs_more_review`
    - Evidence: timeline rank 30 latest candidate; classification needs-review entry; archive header
    - Repo check: verify extraction date from body and compare scope with the dated 2026-04-27 extracts
 

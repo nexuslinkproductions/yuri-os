@@ -65,7 +65,7 @@ last-updated: 2026-04-23
 
 - [ ] Get brief/specs from Claudio for all 6 C2MOVIEZ projects
 - [ ] Confirm MACL-ONE scope and first deliverable
-- [ ] Delete `/NUDIMMUD/NUDIMMUD/` nested folder (pending explicit confirmation)
+- [ ] Delete `/YURI/YURI/` nested folder (pending explicit confirmation)
 - [ ] Sort AE/ in `_UNSORTED-EDITS/` (R logo.aep, TEST VIDEO KAI.aep)
 - [x] Fill enki_state.md personal constraints (time/energy/money)
 

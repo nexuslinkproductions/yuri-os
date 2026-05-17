@@ -1,7 +1,7 @@
 # VIENNA CLIENT RESEARCH — C2MOVIEZ + EXEOFLOW
 ## 40 Premium Target Dashboard
 **Compiled:** 2026-04-16 | **For:** Claudio Tinner (c2moviez) + Fanny
-**Purpose:** In-person sales visit preparation | **Curator:** Marcel Spatz / NUDIMMUD
+**Purpose:** In-person sales visit preparation | **Curator:** Marcel Spatz / YURI
 **Service Stack:** Video · Motion/Design · Social · Web · IT/Cybersecurity · Ad Management
 
 ---

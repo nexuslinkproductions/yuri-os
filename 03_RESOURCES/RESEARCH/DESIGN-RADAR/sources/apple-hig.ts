@@ -9,7 +9,7 @@ export const appleHig: DesignSource = {
         'Harmony across controls',
         'Consistency across devices'
     ],
-    applyToNudimmud: [
+    applyToYuri: [
         'Clear first screen',
         'Platform-aware controls',
         'Less ornamental labeling'

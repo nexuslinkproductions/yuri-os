@@ -9,7 +9,7 @@ export const primer: DesignSource = {
         'Efficient product UI',
         'Documentation as system language'
     ],
-    applyToNudimmud: [
+    applyToYuri: [
         'Operational tables and filters',
         'Direct state feedback',
         'Reusable patterns'

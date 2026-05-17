@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Parallel Clone Orchestrator translates Shadow Clone Jutsu into a Yuri OS / Nudimmud enterprise extension for budgeted multi-agent decomposition, specialist execution, and synthesis.
+Parallel Clone Orchestrator translates Shadow Clone Jutsu into a Yuri OS / Yuri enterprise extension for budgeted multi-agent decomposition, specialist execution, and synthesis.
 
 ## Core principle
 

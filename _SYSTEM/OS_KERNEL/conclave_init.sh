@@ -1,5 +1,5 @@
 #!/bin/bash
-# NUDIMMUD OS Conclave Initializer
+# YURI OS Conclave Initializer
 # Usage: ./conclave_init.sh "Mission Description"
 
 MISSION_DESC=$1
@@ -22,7 +22,7 @@ python3 "$SCHEDULER_PY"
 echo "Mission $TASK_ID initialized and assigned to ENLIL."
 echo "Run the scheduler with --loop to monitor progress."
 
-read -p "Start the NUDIMMUD OS Dashboard? (y/n): " START_DASHBOARD
+read -p "Start the YURI OS Dashboard? (y/n): " START_DASHBOARD
 if [ "$START_DASHBOARD" == "y" ]; then
     python3 "$(dirname "$0")/dashboard.py"
 fi

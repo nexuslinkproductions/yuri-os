@@ -3193,7 +3193,7 @@
     {
       "id": "YURI_COG",
       "tier": "leaf",
-      "label": "NUDIMMUD-COGNITION.md",
+      "label": "YURI-COGNITION.md",
       "role": "paradigm rules",
       "detail": "",
       "radius": 8,
@@ -3205,7 +3205,7 @@
       },
       "sector": "initialization",
       "metadata": {
-        "purpose": "NUDIMMUD-COGNITION.md supports the initialization sector as paradigm rules.",
+        "purpose": "YURI-COGNITION.md supports the initialization sector as paradigm rules.",
         "files": [
           "CLAUDE.md",
           "_SYSTEM/yuri-origin.md",

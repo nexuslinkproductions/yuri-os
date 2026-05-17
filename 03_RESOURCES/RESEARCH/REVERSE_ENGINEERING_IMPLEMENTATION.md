@@ -1,7 +1,7 @@
 # Reverse Engineered LLM Implementation Plan
 
 ## 1. Executive Summary
-The USER objective was to find and implement "reverse engineered" versions of flagship LLMs (Gemini, Claude Sonnet/Opus) within the local NUDIMMUD architecture. My research confirms that while raw model weights are proprietary, the **internal architectures** (MLA, Hybrid-Recurrent) and **behavioral logic** (Thinking Mode, Abliteration) have been successfully "reverse engineered" by the community (DeepSeek, InternLM, OBLITERATUS).
+The USER objective was to find and implement "reverse engineered" versions of flagship LLMs (Gemini, Claude Sonnet/Opus) within the local YURI architecture. My research confirms that while raw model weights are proprietary, the **internal architectures** (MLA, Hybrid-Recurrent) and **behavioral logic** (Thinking Mode, Abliteration) have been successfully "reverse engineered" by the community (DeepSeek, InternLM, OBLITERATUS).
 
 ## 2. Integrated Technologies
 

@@ -135,23 +135,23 @@
       "sha256": "3cd1d156baf05bb848f8601edd19d15dfbc27527dcb300de552d970273837788",
       "size_bytes": 18006
     },
-    "yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md": {
-      "source": "yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md",
+    "yuri_os_yuri_rag_ingest_r_3_handoff_2026_05_01.md": {
+      "source": "yuri_os_yuri_rag_ingest_r_3_handoff_2026_05_01.md",
       "sha256": "8b6ccdbd2fca130d9916158cb16a0065a8e7ebee16cb6066ac6397b1bb65c297",
       "size_bytes": 22260
     },
-    "yuri_os_nudimmud_session_context_extract (1).md": {
-      "source": "yuri_os_nudimmud_session_context_extract (1).md",
+    "yuri_os_yuri_session_context_extract (1).md": {
+      "source": "yuri_os_yuri_session_context_extract (1).md",
       "sha256": "bf7637e3e936bed3514abeddfc3115cfdaf2ac8d83a9a824fb172800ad920845",
       "size_bytes": 49265
     },
-    "yuri_os_nudimmud_session_context_extract.md": {
-      "source": "yuri_os_nudimmud_session_context_extract.md",
+    "yuri_os_yuri_session_context_extract.md": {
+      "source": "yuri_os_yuri_session_context_extract.md",
       "sha256": "547f6dbc8aceb2d963269432b71fd3921ce300cd15958b85bc06e6a0ff81678e",
       "size_bytes": 37142
     },
-    "yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md": {
-      "source": "yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md",
+    "yuri_os_yuri_session_context_extract_2026-04-27 (1).md": {
+      "source": "yuri_os_yuri_session_context_extract_2026-04-27 (1).md",
       "sha256": "78777eacbe194c4a77e1710f67813a9b3b8b1b5aab309bdfe345a95ce2562750",
       "size_bytes": 41910
     }

@@ -7,10 +7,10 @@ import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const LABEL = 'com.nudimmud.wiki-rag';
+const LABEL = 'com.yuri.wiki-rag';
 const HOME = os.homedir();
 const LAUNCH_AGENTS_DIR = path.join(HOME, 'Library/LaunchAgents');
-const LOG_DIR = path.join(HOME, 'Library/Logs/NUDIMMUD');
+const LOG_DIR = path.join(HOME, 'Library/Logs/YURI');
 const PLIST_PATH = path.join(LAUNCH_AGENTS_DIR, `${LABEL}.plist`);
 const OUT_LOG = path.join(LOG_DIR, 'wiki-rag-launchd.out.log');
 const ERR_LOG = path.join(LOG_DIR, 'wiki-rag-launchd.err.log');

@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — Session Continuity Extract After 07I-E-V Partial Verification
+# Yuri OS / YURI — Session Continuity Extract After 07I-E-V Partial Verification
 
 Date: 2026-04-27  
 Prepared for: new GPT-5.5 / Claude Code continuation chat  
@@ -9,7 +9,7 @@ Status: continuity handoff, not an independently executed repo audit
 
 ## 1. Session Summary
 
-This session continued the Yuri OS / NUDIMMUD cleanup and repository-hygiene workflow after Sprint 07G-V had verified the high-confidence Claude ephemeral index cleanup.
+This session continued the Yuri OS / YURI cleanup and repository-hygiene workflow after Sprint 07G-V had verified the high-confidence Claude ephemeral index cleanup.
 
 The main work in this session moved through medium-confidence Claude state review, owner decision planning, a narrow `.gitignore` runtime/debug patch, and then verification repair planning.
 
@@ -560,7 +560,7 @@ git check-ignore -v --no-index .claude/state/token-weekly.json || true
 git check-ignore -v --no-index .claude/nisaba/learning/global.md || true
 git check-ignore -v --no-index .claude/nisaba/learning/sessions/2026-04-25.jsonl || true
 git check-ignore -v --no-index .claude/plugins/known_marketplaces.json || true
-git check-ignore -v --no-index .claude/projects/-Users-marcelspatz-NUDIMMUD/memory/MEMORY.md || true
+git check-ignore -v --no-index .claude/projects/-Users-marcelspatz-YURI/memory/MEMORY.md || true
 ```
 
 Verify these are not matched by the new runtime/debug block:
@@ -684,7 +684,7 @@ Do not continue into the next sprint.
 Use this in the next chat:
 
 ```text
-Continue Yuri OS / NUDIMMUD from this continuity extract.
+Continue Yuri OS / YURI from this continuity extract.
 
 Latest committed sprint:
 - Sprint 07I-E
@@ -707,7 +707,7 @@ Please review the continuity extract and prepare/validate the next safest action
 
 ```json
 {
-  "project": "Yuri OS / NUDIMMUD",
+  "project": "Yuri OS / YURI",
   "date": "2026-04-27",
   "document_type": "session_continuity_extract_after_07i_e_v_partial",
   "status": "handoff_not_independent_repo_audit",

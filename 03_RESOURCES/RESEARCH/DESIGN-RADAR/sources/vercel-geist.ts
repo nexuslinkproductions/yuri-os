@@ -9,7 +9,7 @@ export const vercelGeist: DesignSource = {
         'Sharp tokens and spacing',
         'Premium docs and product surfaces'
     ],
-    applyToNudimmud: [
+    applyToYuri: [
         'Restraint in chrome',
         'Strong state components',
         'One accent per context'

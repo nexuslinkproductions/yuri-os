@@ -14,7 +14,7 @@ Source: https://primer.style/design/ and https://primer.github.io/design/
 - Accessible defaults.
 - Product UI that stays clear under load.
 
-## Apply to NUDIMMUD
+## Apply to YURI
 
 - Use Primer as a guide for the operational surfaces.
 - Make the project board, discovery catalog, and inspectors feel like real tools.

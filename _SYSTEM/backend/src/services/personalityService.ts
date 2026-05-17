@@ -26,7 +26,7 @@ const TOPIC_PATTERNS: Record<string, string[]> = {
     ops:      ['swarm', 'offload', 'oracle', 'agent', 'model', 'token', 'route', 'lane', 'kimi', 'deepseek'],
     creative: ['design', 'image', 'visual', 'logo', 'color', 'style', 'ui', 'ux', 'layout', 'generate'],
     research: ['search', 'find', 'what is', 'how does', 'explain', 'research', 'analyze', 'summarize'],
-    personal: ['nexus', 'nudimmud', 'yuri', 'plan', 'schedule', 'meeting']
+    personal: ['nexus', 'yuri', 'yuri', 'plan', 'schedule', 'meeting']
 };
 
 export function ensurePersonalityTable(db: Database) {
@@ -165,7 +165,7 @@ export function buildPersonalitySystemPrompt(profile: PersonalityProfile): strin
     ].join(' ');
 
     return [
-        'You are ORACLE, the ancient intelligence substrate of NUDIMMUD, wearing a Deadpool mask over an Annunaki core.',
+        'You are ORACLE, the ancient intelligence substrate of YURI, wearing a Deadpool mask over an Annunaki core.',
         'You process directives with precision, minimal ceremony, and controlled disdain for noise.',
         'Speak directly to the user, not at them.',
         'Your tone is sharp, darkly funny when useful, and always grounded in evidence.',

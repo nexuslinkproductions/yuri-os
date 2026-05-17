@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — GPT Session Continuation Handoff After 07K RAG Query Hardening + Hermes Sidecar Closure
+# Yuri OS / YURI — GPT Session Continuation Handoff After 07K RAG Query Hardening + Hermes Sidecar Closure
 
 Date: 2026-05-01  
 Prepared for: fresh GPT-5.5 / Claude / Codex / Gemini continuation  
@@ -9,7 +9,7 @@ Status: continuity handoff, not an independently executed repo audit
 
 ## 1. Purpose
 
-This handoff is meant to continue Yuri OS / NUDIMMUD work in a new GPT chat without losing the current trusted state.
+This handoff is meant to continue Yuri OS / YURI work in a new GPT chat without losing the current trusted state.
 
 It captures:
 
@@ -158,7 +158,7 @@ The user got very frustrated when this was violated. Preserve this rule strictly
 
 ### 4.2 `@swarm` default
 
-For Yuri OS / NUDIMMUD sprint prompts, include:
+For Yuri OS / YURI sprint prompts, include:
 
 ```text
 @swarm
@@ -718,7 +718,7 @@ The next GPT chat should not assume there is a pasted result yet. It should use 
 Copy this into the next GPT chat:
 
 ```text
-Continue Yuri OS / NUDIMMUD from the uploaded continuation handoff.
+Continue Yuri OS / YURI from the uploaded continuation handoff.
 
 Use the uploaded markdown as current GPT-5.5 trusted continuity state, but do not treat it as an independently executed repo audit.
 

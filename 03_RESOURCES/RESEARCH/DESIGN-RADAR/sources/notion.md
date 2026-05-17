@@ -16,7 +16,7 @@ Sources:
 - Lightweight page hierarchy.
 - Comfortable dense layouts without feeling cramped.
 
-## Apply to NUDIMMUD
+## Apply to YURI
 
 - Treat the OS as a directory of systems and workspaces.
 - Make the new NexusLink landing page and client research host feel native to the shell.

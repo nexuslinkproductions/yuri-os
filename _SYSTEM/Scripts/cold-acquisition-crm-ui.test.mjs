@@ -154,7 +154,7 @@ assert.match(css, /post-send-prompt/, 'workbench should style post-send prompt')
 assert.match(css, /reply-modal/, 'workbench should style reply modal');
 assert.match(css, /weekly-progress/, 'workbench should style weekly quota progress');
 assert.match(css, /position:\s*sticky/i, 'workbench table should use sticky UI affordances');
-assert.doesNotMatch(css, /--bg-void|--cyan-glow|op-shell|HUD/i, 'workbench CSS should not reuse NUDIMMUD HUD styling');
+assert.doesNotMatch(css, /--bg-void|--cyan-glow|op-shell|HUD/i, 'workbench CSS should not reuse YURI HUD styling');
 
 assert.doesNotMatch(shell, /ColdAcquisitionSection|cold-acquisition/, 'operator shell should not expose Cold Acquisition');
 assert.doesNotMatch(nav, /Cold Acquisition|\/operator\/cold-acquisition/, 'operator nav should not expose Cold Acquisition');

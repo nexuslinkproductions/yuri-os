@@ -2,7 +2,7 @@
 tags: [weekly-review, template]
 ---
 
-# Weekly Review Template — NUDIMMUD
+# Weekly Review Template — YURI
 
 *Use at the end of each week. Should take 20-30 minutes. Honest, not ceremonial.*
 

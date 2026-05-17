@@ -12,7 +12,7 @@ export class ProjectAnalyzer {
         const taskList = project.tasks.map((t: any) => `- ${t.title} (${t.status})`).join('\n');
         
         const prompt = `
-        As the NUDIMMUD Strategic Overseer, analyze the following project:
+        As the YURI Strategic Overseer, analyze the following project:
         
         NAME: ${project.name}
         DESCRIPTION: ${project.description}

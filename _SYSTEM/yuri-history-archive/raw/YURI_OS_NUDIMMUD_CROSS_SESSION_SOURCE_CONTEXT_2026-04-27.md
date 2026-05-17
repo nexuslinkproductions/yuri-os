@@ -1,4 +1,4 @@
-# Yuri OS / Nudimmud — Cross-Session Project Source Context
+# Yuri OS / Yuri — Cross-Session Project Source Context
 
 Date: 2026-04-27  
 Prepared for: Marcel UwU project source  
@@ -9,7 +9,7 @@ Status: Source-ready continuity file, not an independently executed repo audit
 
 ## 1. Purpose
 
-This Markdown file consolidates the uploaded Yuri OS / Nudimmud session reports into one usable project-source context file.
+This Markdown file consolidates the uploaded Yuri OS / Yuri session reports into one usable project-source context file.
 
 It is meant to help GPT-5.5, Claude Code CLI, Codex CLI, Gemini CLI, or a future human reviewer understand:
 
@@ -31,13 +31,13 @@ The following uploaded session extracts were reconciled:
 1. `YURI_OS_YURI_SESSION_CONTEXT_EXTRACT_2026-04-27.md`
    - Covers ecosystem audit, Sprint 01, Sprint 01.5 recommendation, CLI strategy, and readiness warnings.
 
-2. `yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md`
+2. `yuri_os_yuri_session_context_extract_2026-04-27 (1).md`
    - Covers Claude Code permission hardening, Boring Work Queue, Sprint 02 manifest/skill/agent baseline audit, and Sprint 03A recommendation.
 
-3. `yuri_os_nudimmud_session_context_extract.md`
+3. `yuri_os_yuri_session_context_extract.md`
    - Covers Sprint 03A through Sprint 04C-H, including trigger metadata, invocation metadata, lifecycle status repair, and command-surface planning preparation.
 
-4. `yuri_os_nudimmud_session_context_extract (1).md`
+4. `yuri_os_yuri_session_context_extract (1).md`
    - Covers Sprint 05 and Sprint 06, including command-surface reconciliation, whole-repo skill census, command file creation/validation, git hygiene, hook evidence review, and Sprint 06E baseline commits.
 
 ---
@@ -59,7 +59,7 @@ The Sprint 05/06 report supersedes earlier command-surface counts. Earlier repor
 
 ## 4. Current Executive Summary
 
-Yuri OS / Nudimmud is currently in a protected post-baseline reinforcement state.
+Yuri OS / Yuri is currently in a protected post-baseline reinforcement state.
 
 The system has moved from broad architecture/audit work into controlled repository reinforcement. The latest accepted state is Sprint 06E: a five-commit baseline on branch `main`, covering registries, command surface, reviewed skill documentation updates, core skill directories, Claude policy, and hooks.
 
@@ -288,7 +288,7 @@ Correct interpretation:
 Current rule:
 
 - Use strict readiness labels.
-- Do not call Yuri OS / Nudimmud enterprise-ready or production-ready.
+- Do not call Yuri OS / Yuri enterprise-ready or production-ready.
 - Acceptable phrasing: “committed baseline,” “scaffolded governance,” “audit-oriented baseline,” or “foundation-stage reinforcement state.”
 
 ---
@@ -404,7 +404,7 @@ Use for:
 
 Project-specific prompt convention:
 
-- Every Claude prompt for Yuri OS / Nudimmud should include a `GPT-5.5 Help Context` block summarizing:
+- Every Claude prompt for Yuri OS / Yuri should include a `GPT-5.5 Help Context` block summarizing:
   - gate decisions,
   - trusted state,
   - risks,
@@ -427,7 +427,7 @@ Use for:
 
 Role:
 
-- Main IDE for Yuri OS / Nudimmud work.
+- Main IDE for Yuri OS / Yuri work.
 
 Assumption:
 
@@ -720,7 +720,7 @@ Do not fix anything in this sprint.
 
 ```json
 {
-  "project": "Yuri OS / Nudimmud",
+  "project": "Yuri OS / Yuri",
   "prepared_for": "Marcel UwU project source",
   "date": "2026-04-27",
   "document_type": "cross_session_source_context",

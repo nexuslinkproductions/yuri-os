@@ -188,7 +188,7 @@ The practical implication: much of human conflict occurs between *maps* while bo
 
 ---
 
-## Operational Meaning for NUDIMMUD
+## Operational Meaning for YURI
 
 1. **Presuppositions in proposals.** When framing deliverables, timelines, and outcomes — use temporal and awareness presuppositions to orient the client toward execution rather than deliberation. "As we move through production..." presupposes forward motion; "if you decide to proceed..." does not.
 2. **Meta Model for brief intake.** Every brief contains deletions, distortions, and generalizations. Standard questions for any creative brief: who specifically? What precisely? By what criterion? What would success look like concretely?

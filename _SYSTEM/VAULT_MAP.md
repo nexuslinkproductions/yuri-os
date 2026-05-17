@@ -8,7 +8,7 @@
 *   **Nature**: Highly structured, security-oriented, provides the foundational protocols.
 *   **Function**: Acts as the "Skeleton" that holds the entire system together. Without the skeleton, the enhancement has no form.
 
-## ⬡ ENHANCEMENT LAYER (NUDIMMUD Vault)
+## ⬡ ENHANCEMENT LAYER (YURI Vault)
 **Path:** `/Users/marcelspatz/YURI-OS-MUSUBI`
 *   **Role**: **Cognitive Augmentation & Synthesis**.
 *   **Nature**: Evolving knowledge nodes, agentic swarm logic, creative synthesis.
@@ -39,5 +39,5 @@ graph TD
 
 ### Hierarchy Logic:
 1.  **Skeleton Priority**: Changes in Claudio's vault trigger `EVONEXUS_STRUCTURAL_STABILIZATION`.
-2.  **Enhancement Pulse**: Changes in NUDIMMUD trigger `EVONEXUS_COGNITIVE_EXPANSION`.
+2.  **Enhancement Pulse**: Changes in YURI trigger `EVONEXUS_COGNITIVE_EXPANSION`.
 3.  **Stability Metric**: `skeletonStability` measures how well the foundational structure is reinforced by active work.

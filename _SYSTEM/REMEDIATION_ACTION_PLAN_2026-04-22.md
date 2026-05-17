@@ -1,5 +1,5 @@
 # ⬡ REMEDIATION ACTION PLAN
-**NUDIMMUD Stability Hardening**  
+**YURI Stability Hardening**  
 **Priority:** CRITICAL  
 **Target Completion:** 2026-04-24 EOD
 
@@ -12,7 +12,7 @@
 
 **Current Code:**
 ```typescript
-const apiKey = process.env.API_KEY || 'nudimmud-default-key-change-me';
+const apiKey = process.env.API_KEY || 'yuri-default-key-change-me';
 ```
 
 **Fix:**

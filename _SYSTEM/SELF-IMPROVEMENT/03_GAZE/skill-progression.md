@@ -30,7 +30,7 @@
 - **Hours toward next milestone:**
 - **Notes:**
 
-### Systems (NUDIMMUD, Yuri Flow, Tooling)
+### Systems (YURI, Yuri Flow, Tooling)
 - **Current level:**
 - **Estimated hours invested:**
 - **Last milestone:**

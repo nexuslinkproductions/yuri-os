@@ -1,4 +1,4 @@
-# Spec Kit Index — NUDIMMUD Operational Surface (PATCH 014)
+# Spec Kit Index — YURI Operational Surface (PATCH 014)
 
 Quick reference for the Spec Kit operational surface — what to invoke, in what order, for what purpose.
 
@@ -68,7 +68,7 @@ Quick reference for the Spec Kit operational surface — what to invoke, in what
 | `node _SYSTEM/Scripts/spec-pipeline.mjs --spec <path>` | Generate plan.md + tasks.md (with GitNexus impact) | Script |
 | `/spec-analyze [<plan-path>]` | Probabilistic risk + complexity scoring | Slash command (optional) |
 | `node _SYSTEM/Scripts/spec-archive.mjs [--execute]` | Archive completed specs to specs/done/ | Script |
-| `/constitution [--write]` | Render NUDIMMUD project constitution from yuri-origin + memory rules | Slash command |
+| `/constitution [--write]` | Render YURI project constitution from yuri-origin + memory rules | Slash command |
 
 ## Storage
 
@@ -97,7 +97,7 @@ specs/
 7. References / skills
 8. Model inference
 
-**Spec Kit cannot override anything above level 5.** It is FORMAT-ONLY input adapters into NUDIMMUD's authoritative `intake → route → delegate → verify → merge → learn` pipeline.
+**Spec Kit cannot override anything above level 5.** It is FORMAT-ONLY input adapters into YURI's authoritative `intake → route → delegate → verify → merge → learn` pipeline.
 
 ## Related Memory Rules
 
@@ -111,9 +111,9 @@ specs/
 
 ## Related System Docs
 
-- `_SYSTEM/spec-kit-workflow-bridge.md` — full phase mapping (Spec Kit → NUDIMMUD)
+- `_SYSTEM/spec-kit-workflow-bridge.md` — full phase mapping (Spec Kit → YURI)
 - `_SYSTEM/deepseek-tool-prompt-template.md` — PATCH 011 bounded prompt template
-- `integrations/spec-kit/NUDIMMUD-ADOPTION.md` — original advisory-only declaration
+- `integrations/spec-kit/YURI-ADOPTION.md` — original advisory-only declaration
 - `integrations/spec-kit/templates/{spec,plan,tasks}-template.md` — vendored format references
 
 ## Pre-Commit Gate (PATCH 015)

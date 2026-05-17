@@ -1,12 +1,12 @@
 # ═══════════════════════════════════════════════════════════
-#  NUDIMMUD Boot Sequence v2
-#  Source from ~/.zshrc:  source ~/NUDIMMUD/_SYSTEM/nudimmud-boot.zsh
+#  YURI Boot Sequence v2
+#  Source from ~/.zshrc:  source ~/YURI/_SYSTEM/yuri-boot.zsh
 # ═══════════════════════════════════════════════════════════
 
 clear
 
 # ── Palette (truecolor) ─────────────────────────────────────
-_G="\033[38;2;180;234;144m"    # --cyan-glow  #B4EA90 — NUDIMMUD wordmark
+_G="\033[38;2;180;234;144m"    # --cyan-glow  #B4EA90 — YURI wordmark
 _G2="\033[38;2;56;87;36m"      # --cyan-dim   #385724 — divider
 _AU="\033[38;2;92;184;0m"      # --gold-solar #5CB800 — NLP insignia
 _GR="\033[38;2;168;168;168m"   # --text-dim   #A8A8A8 — labels
@@ -26,7 +26,7 @@ cat << 'EOF'
 EOF
 echo -e "${_RS}"
 
-# ── NUDIMMUD Wordmark ────────────────────────────────────────
+# ── YURI Wordmark ────────────────────────────────────────
 echo -e "${_G}${_BD}"
 cat << 'EOF'
  █▄  █ █  █ █▀▄  ▀ █▀▄▀█ █▀▄▀█ █  █ █▀▄
@@ -37,7 +37,7 @@ echo -e "${_RS}"
 
 # ── Operator Block ───────────────────────────────────────────
 echo ""
-printf "  ${_GR}%-14s${_RS}%s\n"          "OPERATOR"   "NUDIMMUD / NISABA"
+printf "  ${_GR}%-14s${_RS}%s\n"          "OPERATOR"   "YURI / NISABA"
 printf "  ${_GR}%-14s${_RS}%s\n"          "SESSION"    "$(date '+%Y-%m-%d  %H:%M')"
 printf "  ${_GR}%-14s${_CY}%s${_RS}\n"    "MODEL"      "claude-sonnet-4-6"
 printf "  ${_GR}%-14s${_RS}%s\n"          "WS"         "ws://localhost:3004/ws/shell"
@@ -48,7 +48,7 @@ echo -e "  ${_GR}type ${_G}help${_RS}${_GR} for cheatsheet  ·  ${_G}c${_RS}${_G
 echo ""
 
 # ── PATH: wrapper intercepts all claude launches ─────────────
-[[ ":$PATH:" != *":$HOME/NUDIMMUD/bin:"* ]] && export PATH="$HOME/NUDIMMUD/bin:$PATH"
+[[ ":$PATH:" != *":$HOME/YURI/bin:"* ]] && export PATH="$HOME/YURI/bin:$PATH"
 
 # ── Aliases ──────────────────────────────────────────────────
 alias oracle="claude"

@@ -1,4 +1,4 @@
-# GBrain Pattern Intake for Yuri OS / NUDIMMUD
+# GBrain Pattern Intake for Yuri OS / YURI
 
 ## Status
 
@@ -13,13 +13,13 @@ Decision: Document conceptually (`ADOPT_SOON_AS_DOC_PATTERN`). Do not implement.
 - Public reference: `garrytan/gbrain-evals` (GitHub, public)
 - Gemini performed broad pattern extraction. Gemini's claim that the local repo was clean was **not independently verified**.
 - Repo metrics (star counts, scale figures, production claim counts) are versioned and self-reported. Do not treat as independently verified truth.
-- This document captures conceptual patterns only. No gbrain code is present in NUDIMMUD.
+- This document captures conceptual patterns only. No gbrain code is present in YURI.
 
 ## Executive Summary
 
 GBrain is a personal knowledge-graph and memory system built around markdown wikis, typed links, compiled truth/timeline separation, and graph/vector hybrid retrieval. Its core value is the discipline it imposes on how facts are captured, attributed, and retrieved — not its runtime or stack.
 
-Yuri OS / NUDIMMUD can borrow the *conceptual patterns* without adopting the implementation. The stack (Bun, PGLite, Postgres, external enrichment APIs) is not relevant to the current Yuri architecture and should not be imported.
+Yuri OS / YURI can borrow the *conceptual patterns* without adopting the implementation. The stack (Bun, PGLite, Postgres, external enrichment APIs) is not relevant to the current Yuri architecture and should not be imported.
 
 ## Adopt As Yuri Documentation Patterns
 

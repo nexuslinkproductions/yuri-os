@@ -3,4 +3,4 @@
 # Forces workhorse execution via direct script call.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-exec node _SYSTEM/Scripts/nudimmud-workhorse.mjs forge --generate-plan "$@"
+exec node _SYSTEM/Scripts/yuri-workhorse.mjs forge --generate-plan "$@"

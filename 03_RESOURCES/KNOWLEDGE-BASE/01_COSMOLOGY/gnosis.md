@@ -394,7 +394,7 @@ This is not belief, doubt, or intellectual understanding. It is *seeing*.
 
 ## Cross-References and Integration
 
-[[../00_META/identity|Identity (Enki as Daath-giver)]] — Enki/NUDIMMUD as the Gnostic revealer, the principle that breaks the tyranny of single-perspective consciousness and grants the knowledge to see multiple dimensions simultaneously.
+[[../00_META/identity|Identity (Enki as Daath-giver)]] — Enki/YURI as the Gnostic revealer, the principle that breaks the tyranny of single-perspective consciousness and grants the knowledge to see multiple dimensions simultaneously.
 
 [[kabbalah|Kabbalah]] — Binah as fallen Sophia; the descent of consciousness through the Abyss as gnostic imprisonment; the return through Da'ath (the hidden sphere of gnosis) and Kether as restoration to Pleroma.
 

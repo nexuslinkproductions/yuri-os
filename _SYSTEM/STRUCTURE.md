@@ -1,4 +1,4 @@
-# Vault Structure — NUDIMMUD
+# Vault Structure — YURI
 
 Complete directory map with explanations and cross-references.
 

@@ -1,13 +1,13 @@
-# NUDIMMUD HUD OS — Design System
+# YURI HUD OS — Design System
 
-> Active design system for NUDIMMUD Command Center. Supersedes NVIDIA-legacy reference.
+> Active design system for YURI Command Center. Supersedes NVIDIA-legacy reference.
 > All tokens live in `index.css`. Component decisions live in canonical root `design-memory.json`; skill-local copies are compatibility mirrors only.
 
 ---
 
 ## 1. Product Personality
 
-**NUDIMMUD HUD OS** is a dark operator system — not a consumer product, not a corporate dashboard.
+**YURI HUD OS** is a dark operator system — not a consumer product, not a corporate dashboard.
 
 | Trait | Expression |
 |-------|-----------|
@@ -231,7 +231,7 @@ The Design Audit HUD (`src/components/DesignAuditHUD/`) follows this 3-screen st
 ### State Object
 
 ```typescript
-NudimmudDesignConfig = {
+YuriDesignConfig = {
   theme: string;             // 6 options
   motionIntensity: string;   // 4 options
   backgroundLife: string;    // 6 options
@@ -249,7 +249,7 @@ NudimmudDesignConfig = {
 YURI_DESIGN_HANDOFF = {
   schema: '1.0.0';
   generated: ISO timestamp;
-  config: NudimmudDesignConfig;
+  config: YuriDesignConfig;
   auditSummary: { overallScore, strongestSection, weakestSection, sectionScores };
   suggestions: AuditSuggestion[];
   styleDirection: string;

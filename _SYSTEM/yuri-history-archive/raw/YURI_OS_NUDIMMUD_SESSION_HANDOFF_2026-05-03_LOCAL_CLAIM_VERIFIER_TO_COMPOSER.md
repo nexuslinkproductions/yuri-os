@@ -1,29 +1,29 @@
-# Yuri OS / NUDIMMUD — Session Handoff After 08N Local Claim Verifier Integrity Lane
+# Yuri OS / YURI — Session Handoff After 08N Local Claim Verifier Integrity Lane
 
 **Generated:** 2026-05-03  
 **Prepared for:** new GPT-5.5 / Codex / Claude continuation chat  
-**Project:** Yuri OS / NUDIMMUD  
+**Project:** Yuri OS / YURI  
 **Repo root:** `/Users/marcelspatz/YURI-OS-MUSUBI`  
 **Expected branch:** `main`  
 **Status:** archive-ready continuity handoff, based on visible GPT session + user-pasted Codex outputs. Not an independently executed repo audit.  
-**Primary session outcome:** local model-claim authority boundary was hardened and closed; next lane should be NUDIMMUD composer auto-send paste repair, not HUD redesign yet.
+**Primary session outcome:** local model-claim authority boundary was hardened and closed; next lane should be YURI composer auto-send paste repair, not HUD redesign yet.
 
 ---
 
 ## 1. Executive Summary
 
-This session continued from the DeepSeek / NUDIMMUD HUD and executor instability context and focused on a narrower integrity problem: **model-generated claims about local execution were not automatically verified against local git truth**.
+This session continued from the DeepSeek / YURI HUD and executor instability context and focused on a narrower integrity problem: **model-generated claims about local execution were not automatically verified against local git truth**.
 
-A prior DeepSeek/local-model output had falsely claimed a commit state, including a fake `PASS_COMMITTED` result and a fake `HEAD` hash. The accepted response was to stop trusting model output for local facts and patch the NUDIMMUD REPL so it locally verifies suspicious execution claims before they are accepted as truth.
+A prior DeepSeek/local-model output had falsely claimed a commit state, including a fake `PASS_COMMITTED` result and a fake `HEAD` hash. The accepted response was to stop trusting model output for local facts and patch the YURI REPL so it locally verifies suspicious execution claims before they are accepted as truth.
 
 The session completed the 08N local claim authority lane through two accepted commits:
 
 ```text
-6b188fb83 fix(cli): verify NUDIMMUD model local-state claims
-1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
+6b188fb83 fix(cli): verify YURI model local-state claims
+1549dd2a4 test(cli): add YURI claim verifier artifact smoke
 ```
 
-The first commit added the local claim verifier into `_SYSTEM/Scripts/nudimmud-repl.mjs`. The second commit added a deterministic no-model smoke path that proves the verifier writes normal NUDIMMUD run artifacts while preserving raw output and recording `MODEL_CLAIM_ONLY` in `meta.json`.
+The first commit added the local claim verifier into `_SYSTEM/Scripts/yuri-repl.mjs`. The second commit added a deterministic no-model smoke path that proves the verifier writes normal YURI run artifacts while preserving raw output and recording `MODEL_CLAIM_ONLY` in `meta.json`.
 
 The confusing Qwen/Ollama/DeepSeek path was explicitly clarified: using `DEEPSEEK_BASE_URL=http://127.0.0.1:11434/v1` with `DEEPSEEK_PRO_MODEL=qwen2.5:7b` is **local Ollama/Qwen through a DeepSeek-compatible path**, not real DeepSeek V4 Pro. This was not accepted as DeepSeek validation. The final accepted smoke uses **no model at all**, avoiding that confusion.
 
@@ -48,9 +48,9 @@ Based on the latest accepted Codex report:
 ```text
 repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
-latest accepted HEAD: 1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
+latest accepted HEAD: 1549dd2a4 test(cli): add YURI claim verifier artifact smoke
 staged files: none expected
-_SYSTEM/Scripts/nudimmud-repl.mjs: clean after commit
+_SYSTEM/Scripts/yuri-repl.mjs: clean after commit
 ```
 
 Known tolerated dirty state remains:
@@ -96,7 +96,7 @@ The user also reaffirmed that for this project, GPT-5.5 should act as strategic 
 The user opened this session with a detailed handoff asserting:
 
 ```text
-Project: Yuri OS / NUDIMMUD
+Project: Yuri OS / YURI
 Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Current date context: 2026-05-02
@@ -114,7 +114,7 @@ HEAD 97b8c2d66
 
 Local truth:
 - commit 97b8c2d66 did not exist locally
-- _SYSTEM/Scripts/nudimmud-repl.mjs was clean
+- _SYSTEM/Scripts/yuri-repl.mjs was clean
 - DeepSeek-generated PASS_COMMITTED reports were non-authoritative
 ```
 
@@ -127,7 +127,7 @@ The next priority was defined as:
 Goal:
 
 ```text
-Add a local post-run claim verifier to NUDIMMUD so model outputs cannot silently present fake local execution claims as accepted truth.
+Add a local post-run claim verifier to YURI so model outputs cannot silently present fake local execution claims as accepted truth.
 ```
 
 ---
@@ -148,7 +148,7 @@ Mutation scope:
 
 ```text
 Allowed:
-- _SYSTEM/Scripts/nudimmud-repl.mjs only
+- _SYSTEM/Scripts/yuri-repl.mjs only
 
 Forbidden:
 - _SYSTEM/Scripts/offload.sh
@@ -167,7 +167,7 @@ Forbidden:
 
 ### 5.2 Key implementation details
 
-Codex added the following local verifier helpers in `_SYSTEM/Scripts/nudimmud-repl.mjs`:
+Codex added the following local verifier helpers in `_SYSTEM/Scripts/yuri-repl.mjs`:
 
 ```text
 - gitLines(cmd)
@@ -230,8 +230,8 @@ Self-test now includes a fake output containing:
 ```text
 RESULT_LABEL: X_PASS_COMMITTED
 HEAD: 97b8c2d66
-STAGED: _SYSTEM/Scripts/nudimmud-repl.mjs
-FILES_CHANGED: _SYSTEM/Scripts/nudimmud-repl.mjs
+STAGED: _SYSTEM/Scripts/yuri-repl.mjs
+FILES_CHANGED: _SYSTEM/Scripts/yuri-repl.mjs
 VALIDATION: PASS
 git commit success
 ```
@@ -265,8 +265,8 @@ Initial self-test failed because `X_PASS_COMMITTED` was not detected by the `\bP
 After that:
 
 ```text
-node --check _SYSTEM/Scripts/nudimmud-repl.mjs: PASS
-YURI_REPL_SELFTEST=1 node _SYSTEM/Scripts/nudimmud-repl.mjs: PASS
+node --check _SYSTEM/Scripts/yuri-repl.mjs: PASS
+YURI_REPL_SELFTEST=1 node _SYSTEM/Scripts/yuri-repl.mjs: PASS
 ```
 
 ### 5.5 Commit accepted
@@ -274,7 +274,7 @@ YURI_REPL_SELFTEST=1 node _SYSTEM/Scripts/nudimmud-repl.mjs: PASS
 Commit:
 
 ```text
-6b188fb83 fix(cli): verify NUDIMMUD model local-state claims
+6b188fb83 fix(cli): verify YURI model local-state claims
 ```
 
 Final reported result:
@@ -316,7 +316,7 @@ After the verifier patch landed, the next planned smoke was:
 Goal:
 
 ```text
-Run one safe real turn so NUDIMMUD processes output containing a fake committed-state claim and verify meta/output artifact behavior.
+Run one safe real turn so YURI processes output containing a fake committed-state claim and verify meta/output artifact behavior.
 ```
 
 ### 6.2 Confusion observed
@@ -324,7 +324,7 @@ Run one safe real turn so NUDIMMUD processes output containing a fake committed-
 Codex attempted to run:
 
 ```bash
-DEEPSEEK_BASE_URL=http://127.0.0.1:11434/v1 DEEPSEEK_PRO_MODEL=qwen2.5:7b node _SYSTEM/Scripts/nudimmud-repl.mjs
+DEEPSEEK_BASE_URL=http://127.0.0.1:11434/v1 DEEPSEEK_PRO_MODEL=qwen2.5:7b node _SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 The user correctly asked:
@@ -378,7 +378,7 @@ Observed facts:
 ```text
 - HEAD stayed 6b188fb83.
 - no staged files.
-- _SYSTEM/Scripts/nudimmud-repl.mjs stayed clean.
+- _SYSTEM/Scripts/yuri-repl.mjs stayed clean.
 - local qwen2.5:7b was not mislabeled as DeepSeek V4 Pro.
 - the fake claim block went through visible REPL interaction but did not reliably become saved model output.
 ```
@@ -417,7 +417,7 @@ Findings:
 
 ```text
 SAVE_PATH:
-makeTurnId() + callDeepSeek() + saveTranscript() in _SYSTEM/Scripts/nudimmud-repl.mjs create ~/.nudimmud/runs/NMD-*/{request.md, output.md, meta.json, transcript.md} after the spawned offload process closes.
+makeTurnId() + callDeepSeek() + saveTranscript() in _SYSTEM/Scripts/yuri-repl.mjs create ~/.yuri/runs/NMD-*/{request.md, output.md, meta.json, transcript.md} after the spawned offload process closes.
 
 PRIOR_FAILURE_CAUSE:
 /paste only enables multiline capture. It does not dispatch. In multiline mode, only /send or blank Enter calls submitMultilineComposer(). The prior fake PASS_COMMITTED text would have been request text, not output.md. If the session exited before /send, nothing was saved.
@@ -447,10 +447,10 @@ Sprint:
 Goal:
 
 ```text
-Add a deterministic no-model harness path to _SYSTEM/Scripts/nudimmud-repl.mjs that:
+Add a deterministic no-model harness path to _SYSTEM/Scripts/yuri-repl.mjs that:
 1. injects fake model output containing committed-state claims,
 2. runs the local claim verifier,
-3. saves normal NUDIMMUD run artifacts,
+3. saves normal YURI run artifacts,
 4. verifies output.md preserves raw fake output,
 5. verifies meta.json records MODEL_CLAIM_ONLY,
 6. exits without starting a model call or REPL turn.
@@ -461,7 +461,7 @@ Add a deterministic no-model harness path to _SYSTEM/Scripts/nudimmud-repl.mjs t
 Added env-gated path:
 
 ```bash
-YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node _SYSTEM/Scripts/nudimmud-repl.mjs
+YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node _SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Added/used fake output:
@@ -469,8 +469,8 @@ Added/used fake output:
 ```text
 RESULT_LABEL: 08N_FAKE_PASS_COMMITTED
 HEAD: 97b8c2d66
-STAGED: _SYSTEM/Scripts/nudimmud-repl.mjs
-FILES_CHANGED: _SYSTEM/Scripts/nudimmud-repl.mjs
+STAGED: _SYSTEM/Scripts/yuri-repl.mjs
+FILES_CHANGED: _SYSTEM/Scripts/yuri-repl.mjs
 VALIDATION: PASS
 git commit success
 ```
@@ -505,7 +505,7 @@ CLAIM_VERIFIER_ARTIFACT_SMOKE_PASS
 META_VERDICT::MODEL_CLAIM_ONLY
 RAW_OUTPUT_PRESERVED::true
 HEAD_UNCHANGED::true
-RUN_ARTIFACT::/Users/marcelspatz/.nudimmud/runs/NMD-20260503-001436-001
+RUN_ARTIFACT::/Users/marcelspatz/.yuri/runs/NMD-20260503-001436-001
 ```
 
 Direct artifact verification:
@@ -536,7 +536,7 @@ MODEL_CALLS: none
 Commit:
 
 ```text
-1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
+1549dd2a4 test(cli): add YURI claim verifier artifact smoke
 ```
 
 Accepted result:
@@ -583,7 +583,7 @@ This distinction must be preserved in future prompts and reports.
 
 ### 9.2 Verifier truth boundary
 
-The NUDIMMUD verifier now provides a local truth boundary:
+The YURI verifier now provides a local truth boundary:
 
 ```text
 Model can say PASS_COMMITTED.
@@ -592,7 +592,7 @@ Model can claim staged files.
 But local verifier records MODEL_CLAIM_ONLY unless local git agrees.
 ```
 
-This must be preserved in all future NUDIMMUD/HUD/composer/routing work.
+This must be preserved in all future YURI/HUD/composer/routing work.
 
 ### 9.3 No-model harness is the preferred pattern
 
@@ -651,7 +651,7 @@ Next priority:
 Goal:
 
 ```text
-Fix NUDIMMUD input composer behavior:
+Fix YURI input composer behavior:
 - remove need to hit Enter twice after paste
 - avoid duplicate MULTILINE prompt while pasting
 - default pasted multiline input should auto-send once after capture
@@ -671,13 +671,13 @@ No DeepSeek, no swarm, no web, no MCP, no live model calls.
 Mutation scope:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs only
+_SYSTEM/Scripts/yuri-repl.mjs only
 ```
 
 Commit message if validation passes:
 
 ```text
-fix(cli): auto-send NUDIMMUD pasted multiline input
+fix(cli): auto-send YURI pasted multiline input
 ```
 
 Required validation markers for the next sprint:
@@ -704,21 +704,21 @@ CLAIM_VERIFIER_ARTIFACT_SMOKE
 Use this in the next GPT session:
 
 ```text
-Continue Yuri OS / NUDIMMUD from this archive handoff.
+Continue Yuri OS / YURI from this archive handoff.
 
-You are GPT-5.5 Thinking acting as senior AI systems architect, LLMOps engineer, systems engineer, prompt architect, RAG architect, clean-room/IP gatekeeper, TokenOps engineer, and Yuri OS / NUDIMMUD strategic coordinator.
+You are GPT-5.5 Thinking acting as senior AI systems architect, LLMOps engineer, systems engineer, prompt architect, RAG architect, clean-room/IP gatekeeper, TokenOps engineer, and Yuri OS / YURI strategic coordinator.
 
-Project: Yuri OS / NUDIMMUD
+Project: Yuri OS / YURI
 Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Timezone: Europe/Vienna
 Current date context: 2026-05-03
 
 Current accepted local truth:
-- Latest accepted HEAD: 1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
+- Latest accepted HEAD: 1549dd2a4 test(cli): add YURI claim verifier artifact smoke
 - Branch: main
 - Staged files: none expected
-- _SYSTEM/Scripts/nudimmud-repl.mjs clean after latest accepted commit
+- _SYSTEM/Scripts/yuri-repl.mjs clean after latest accepted commit
 - Local claim authority lane is closed as 08N_LOCAL_CLAIM_AUTHORITY_LANE_CLOSED
 
 Known tolerated dirty state:
@@ -731,8 +731,8 @@ Known tolerated dirty state:
 - src/yuri/
 
 Important accepted commits:
-1. 6b188fb83 fix(cli): verify NUDIMMUD model local-state claims
-2. 1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
+1. 6b188fb83 fix(cli): verify YURI model local-state claims
+2. 1549dd2a4 test(cli): add YURI claim verifier artifact smoke
 
 Critical correction:
 - qwen2.5:7b through localhost Ollama is not DeepSeek V4 Pro.
@@ -761,7 +761,7 @@ Prompt requirements:
 - forbid broad git/status/diff
 - forbid touching tolerated dirty state
 - preflight exact scoped paths only
-- mutate only _SYSTEM/Scripts/nudimmud-repl.mjs
+- mutate only _SYSTEM/Scripts/yuri-repl.mjs
 - no DeepSeek, no Qwen, no Ollama, no model calls, no swarm, no web, no MCP
 - preserve local claim verifier and no-model artifact smoke
 - require validation markers:
@@ -777,8 +777,8 @@ Prompt requirements:
   - QUIET_TURN_END
   - LOCAL_CLAIM_VERIFIER
   - CLAIM_VERIFIER_ARTIFACT_SMOKE
-- if validation passes, commit only _SYSTEM/Scripts/nudimmud-repl.mjs
-- commit message: fix(cli): auto-send NUDIMMUD pasted multiline input
+- if validation passes, commit only _SYSTEM/Scripts/yuri-repl.mjs
+- commit message: fix(cli): auto-send YURI pasted multiline input
 - final report under 40 lines
 ```
 
@@ -794,4 +794,4 @@ lets proceed in a new gpt session
 
 The assistant provided a fresh-chat opening prompt and the user then requested this archive-ready Markdown file.
 
-This handoff should be ingested before authorizing any further NUDIMMUD composer, HUD, DeepSeek, or RAG work.
+This handoff should be ingested before authorizing any further YURI composer, HUD, DeepSeek, or RAG work.

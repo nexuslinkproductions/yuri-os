@@ -11,8 +11,8 @@ const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI'
 const DEFAULT_MODEL = 'deepseek-v4-pro'
 const DEFAULT_MAX_MODEL_OUTPUT_BYTES = 16000
 const DEFAULT_MAX_ACTIONS = 12
-const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud/guarded-executor-runs')
-const FALLBACK_ARTIFACT_ROOT = '/private/tmp/nudimmud-guarded-executor-runs'
+const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.yuri/guarded-executor-runs')
+const FALLBACK_ARTIFACT_ROOT = '/private/tmp/yuri-guarded-executor-runs'
 const WRAPPER_VERSION = '1.0'
 const OFFLOAD_RUNNER_REL = '_SYSTEM/Scripts/offload-runner.mjs'
 const EXECUTOR_REL = '_SYSTEM/Scripts/yuri-guarded-executor.mjs'
@@ -23,7 +23,7 @@ const READ_WINDOW_UNKNOWN_FIELDS = new Set(['offset', 'limit', 'range', 'span', 
 const WRAPPER_MANIFEST_ALLOWLIST = [
   '_SYSTEM/Scripts/yuri-guarded-executor.mjs',
   '_SYSTEM/Scripts/policy/yuri-guarded-executor.readonly.json',
-  '.claude/rules/nudimmud_operating_dna.md',
+  '.claude/rules/yuri_operating_dna.md',
 ]
 const ALLOWED_TOP_LEVEL_FIELDS = [
   'protocol_version',
@@ -796,7 +796,7 @@ function runSelftest() {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'deepseek-guarded-handoff-selftest-'))
   const markers = []
   const scopedBefore = scopedStatus()
-  const manifestPaths = ['.claude/rules/nudimmud_operating_dna.md']
+  const manifestPaths = ['.claude/rules/yuri_operating_dna.md']
   const validFixture = JSON.stringify({
     protocol_version: PROTOCOL_VERSION,
     request_id: 'fixture-valid',

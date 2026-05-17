@@ -35,12 +35,12 @@ All commands were rerun from `/Users/marcelspatz/YURI-OS-MUSUBI` on 2026-05-11 l
 | `npm run build` | FAIL | `tsc` printed generic help and exited 1. `git status --short` shows deleted `tsconfig.json` and deleted `tsconfig.node.json`. | Root app is not buildable in the current worktree. |
 | `python3 _SYSTEM/OS_KERNEL/memory_governor.py health` | FAIL | `sqlite3.OperationalError: foreign key mismatch - "swarm_messages" referencing "agents"`. | The live memory DB/schema path is unhealthy even though memory governor unit tests pass. |
 | `node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json` | FAIL | Summary: `ok=37`, `drift=2`, `missing=0`, `unregistered=0`. Drift: `local-subagent`, `tokenmaxxing`. | Skill registry integrity is mostly good but not clean. |
-| `node _SYSTEM/Scripts/wiki-rag-health.mjs` | PASS | `ok=true`, launchd label `com.nudimmud.wiki-rag`, `pid=54424`, index `sources=16`, `chunks=22`, `embedded=22`. | Yuri Wiki RAG control plane is alive and indexed. |
+| `node _SYSTEM/Scripts/wiki-rag-health.mjs` | PASS | `ok=true`, launchd label `com.yuri.wiki-rag`, `pid=54424`, index `sources=16`, `chunks=22`, `embedded=22`. | Yuri Wiki RAG control plane is alive and indexed. |
 | `node _SYSTEM/Scripts/offload-contract.mjs route-plan "comprehensive council audit on yuri progression jake van clief goal workflow optimisation"` | PASS | Route: `lane=swarm`, `scenario=high-stakes-review`, `entrypoint=./_SYSTEM/Scripts/ai auto`, quality gate `main-session`. | The routing contract classifies this audit correctly as high-stakes review. |
 | `node _SYSTEM/Scripts/yuri-local-model-benchmark.mjs --dry-run` | PASS | Ollama `0.23.2`; policy maps utility to `qwen3.5:4b`, primary to `qwen2.5:7b`, code to `qwen2.5-coder:7b`. | Local model policy exists and dry-run planning is functional. |
 | `node _SYSTEM/Scripts/ollama-kv-config.mjs status` | PASS | Server `ok=true`, URL `http://127.0.0.1:11434`, status `200`, latency `133ms`; launchctl profile includes `OLLAMA_NO_CLOUD=1`. | Local Ollama runtime is up and configured for local-first operation. |
 | `ollama list` | PASS | Models include `qwen2.5-coder:7b`, `gemma4:latest`, `qwen3.5:4b`, `deepseek-r1:8b`, `starcoder2`, `llama3.2`, `nomic-embed-text`, `deepseek-v2:16b`, `qwen2.5:7b`. | Local model substrate is materially present, not aspirational. |
-| `node _SYSTEM/Scripts/yuri-session-launchd.mjs status` | FAIL | `Could not find service "com.nudimmud.yuri-session-runtime" in domain for user gui: 501`. | Session runtime launchd service is not installed/running, despite unit tests passing. |
+| `node _SYSTEM/Scripts/yuri-session-launchd.mjs status` | FAIL | `Could not find service "com.yuri.yuri-session-runtime" in domain for user gui: 501`. | Session runtime launchd service is not installed/running, despite unit tests passing. |
 | `npx gitnexus --help` | FAIL | `Cannot destructure property 'package' of 'node.target' as it is null.` | GitNexus CLI is not currently usable from this workspace. |
 | `git status --short` | FAIL hygiene | Current branch `main`; 139 dirty/untracked/deleted entries. | Current state is difficult to promote, audit, or reason about safely. |
 | `sqlite3 _SYSTEM/OS_KERNEL/memory.db ... counts` | PASS read | `agents=10`, `tasks=50`, `memories=93`, `memory_items=909`, `promoted_lessons=0`, `session_lesson_candidates=0`, `token_ledger=31089`, `projects=0`, `tickets=0`, `telemetry_sessions=0`. | Memory and token telemetry exist, but lesson promotion and operational project/ticket surfaces are empty. |
@@ -145,7 +145,7 @@ Council read: RAG is not the weak point. It should be treated as a retrieval mod
 
 Status: MIXED.
 
-Tests pass for session launchd/runtime, but live status fails because `com.nudimmud.yuri-session-runtime` is not installed/running in the GUI domain.
+Tests pass for session launchd/runtime, but live status fails because `com.yuri.yuri-session-runtime` is not installed/running in the GUI domain.
 
 Council read: implementation-level tests exist, but operational installation is incomplete. That should be tracked as an environment readiness gate, not buried inside test success.
 
@@ -336,7 +336,7 @@ Classification key:
 | Inbox/comms | DOCS-ONLY/GATED | Executive integration lane exists with `confirm_before_send`; no dedicated inbox route surfaced in current service inventory. | Keep as planned lane until connector and confirmation flow are proven. |
 | Trading | GATED | Trading scripts and tests exist; router maps market risk to `simulation_only`; live execution and custodial key management are blocked. | Good discipline. Keep paper/simulation gates until kill switch, audit export, and risk logs are proven live end-to-end. |
 | Media/render | GATED | Executive lane maps media to `render_only`; headless guardrails say hyperframes renderer disabled/deferred. | Useful plan lane, not yet live render pipeline. |
-| Session runtime | BROKEN operational install | Tests pass, but launchd status cannot find `com.nudimmud.yuri-session-runtime`. | Implementation exists; operator daemon is absent. |
+| Session runtime | BROKEN operational install | Tests pass, but launchd status cannot find `com.yuri.yuri-session-runtime`. | Implementation exists; operator daemon is absent. |
 | GitNexus safety layer | BROKEN CLI | `npx gitnexus --help` fails. | Do not rely on GitNexus workflow until CLI/MCP health is restored. |
 
 ## Optimisation Backlog

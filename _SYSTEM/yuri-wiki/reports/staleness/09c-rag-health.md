@@ -4,7 +4,7 @@ status: `RAG_HEALTH_CHECK_CREATED`
 checked_at: `2026-05-09T20:41:27+02:00`
 head: `b5ac69333cf34915863f65fa6dcb4c6918a29107`
 health_command: `npm run wiki:rag:health`
-launchd_label: `com.nudimmud.wiki-rag`
+launchd_label: `com.yuri.wiki-rag`
 launchd_report: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-launchd.md`
 ingest_report: `_SYSTEM/yuri-wiki/reports/staleness/09c-rag-ingested.md`
 automated_by: `_SYSTEM/Scripts/wiki-rag-watch.mjs`

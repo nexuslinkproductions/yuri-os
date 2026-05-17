@@ -42,7 +42,7 @@ Sources:
 - Pair radial selectors with keyboard support and clear active states.
 - Add texture layers only when they support the mood of the content.
 
-## Apply To NUDIMMUD
+## Apply To YURI
 
 - Use `X-Ray Hover Effect` for hidden evidence, compare/contrast views, and inspect-on-hover account cards.
 - Use `Particle Sphere` or `SpectraNoise` for subdued ambient energy behind hero or command surfaces.

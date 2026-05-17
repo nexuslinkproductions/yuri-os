@@ -31,7 +31,7 @@ function getDB(): Database.Database {
 }
 
 /**
- * NUDIMMUD KNOWLEDGE SCHEMA
+ * YURI KNOWLEDGE SCHEMA
  */
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS deities (

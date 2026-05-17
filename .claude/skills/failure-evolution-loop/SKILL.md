@@ -1,6 +1,6 @@
 ---
 name: failure-evolution-loop
-description: Real failure capture, root-cause analysis, regression creation, and memory-driven improvement for Yuri OS / Nudimmud. Inspired by Zenkai / Saiyan Power, translated into enterprise-safe system behavior.
+description: Real failure capture, root-cause analysis, regression creation, and memory-driven improvement for Yuri OS / Yuri. Inspired by Zenkai / Saiyan Power, translated into enterprise-safe system behavior.
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -19,7 +19,7 @@ requires:
 
 ## When to use
 
-Use this skill when the user asks Yuri OS / Nudimmud to perform work involving:
+Use this skill when the user asks Yuri OS / Yuri to perform work involving:
 
 - failure_event
 - test_output
@@ -187,5 +187,5 @@ failure:
   1. Replaced `primary_command: /yuri zenkai` with `triggers: ["/yuri zenkai", "/zenkai", "/fel"]`
   2. Changed `status: proposed` → `status: active`
   3. Added `## Session Notes` section (required by `.claude/rules/skill-creation.md`)
-- **Validation:** Schema now matches NUDIMMUD skill-creation checklist
+- **Validation:** Schema now matches YURI skill-creation checklist
 - **Status:** Ready for command file registration

@@ -136,4 +136,4 @@ All others freeze the machine. P9 soak requires Mac Mini M4 Pro.
 
 ---
 
-*NUDIMMUD · Yuri OS · 2026-05-16 · Musubi Hyper-Intelligence v2*
+*YURI · Yuri OS · 2026-05-16 · Musubi Hyper-Intelligence v2*

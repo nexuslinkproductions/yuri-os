@@ -105,11 +105,11 @@ See: [`rlm-synthesis.md`](../06_KNOWLEDGE-BASE/05_OPERATIONAL/rlm-synthesis.md)
 
 ```
 Yuri Flow (Claudio-compatible workflow layer) = structural skeleton: security, client pipeline, billing authority
-Nudimmud OS (Marcel) = cognitive symbiote: agentic execution, synthesis, creative direction
+Yuri OS (Marcel) = cognitive symbiote: agentic execution, synthesis, creative direction
 
 Access pattern:
   Read:  06_NETWORK-SYNC/C2MOVIEZ/Database/ (weekly sync)
-  Write: NEVER — Nudimmud wraps, never overwrites Yuri Flow
+  Write: NEVER — Yuri wraps, never overwrites Yuri Flow
   Sync:  session_log.md entries tagged [YURI-FLOW-SYNC] for Claudio-layer changes
 ```
 

@@ -21,7 +21,7 @@ const DEFAULTS = {
   expectBody:   'AUTH_OK',
   port:         3904,
   host:         '127.0.0.1',
-  apiKey:       'nudimmud-smoke-test-api-key-local-only-000000000000',
+  apiKey:       'yuri-smoke-test-api-key-local-only-000000000000',
   timeoutMs:    8000,
 };
 

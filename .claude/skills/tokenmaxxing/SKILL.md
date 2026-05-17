@@ -207,7 +207,7 @@ Output: `TOKENMAXXING OFF`
 ### 2026-04-25
 - change: hook now dynamically reads ## Rules from SKILL.md and injects into startup additionalContext
 - effect: full behavioral rules arrive in Claude context at turn 1, zero manual activation
-- files: token-session-init.js (hardlinked NUDIMMUD↔global, single edit)
+- files: token-session-init.js (hardlinked YURI↔global, single edit)
 - statusline: token-status.js updated to show ⚡ TM:ON / ○ TM:OFF explicitly
 - risk: if ## Rules heading renamed → injection silently breaks; null-check warn recommended
 - patch: HOOK_REGEX_001 — always use ^## with m flag for Markdown section extraction

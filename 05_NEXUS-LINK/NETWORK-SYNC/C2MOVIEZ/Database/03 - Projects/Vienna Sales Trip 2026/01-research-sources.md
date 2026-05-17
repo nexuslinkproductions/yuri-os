@@ -1,5 +1,5 @@
 # VIENNA RESEARCH — Source Log
-**Date:** 2026-04-16 | **Researcher:** NUDIMMUD (Claude Sonnet 4.6) via Marcel Spatz
+**Date:** 2026-04-16 | **Researcher:** YURI (Claude Sonnet 4.6) via Marcel Spatz
 
 ## Research Method
 

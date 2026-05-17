@@ -1,10 +1,10 @@
-# NUDIMMUD — HOME
+# YURI — HOME
 *Vault entry point. Load this first.*
 
 ## Identity Layer
-- [[../identity]] — Who NUDIMMUD is. Seven Modes. Doctrine.
+- [[../identity]] — Who YURI is. Seven Modes. Doctrine.
 - [[../enki_state]] — Current session state. Projects. Constraints. Focus.
-- [[NUDIMMUD-ARCHITECTURAL-OVERVIEW]] — Architectural overview, systems, and safety measures.
+- [[YURI-ARCHITECTURAL-OVERVIEW]] — Architectural overview, systems, and safety measures.
 - [[../session_prompt]] — Invocation protocol. How to open and close sessions.
 - [[../session_log]] — Learning loop. Drifts and insights log.
 
@@ -32,10 +32,10 @@
 
 ## Daily Briefing
 *This section is auto-populated every morning by the NOESIS Morning Briefing routine.*
-- **Last Sync:** 2026-04-20 19:25 — Documentation standardized to NUDIMMUD/Aeonic Protocol. Graphify (GitNexus/Palace) maintenance triggered.
+- **Last Sync:** 2026-04-20 19:25 — Documentation standardized to YURI/Aeonic Protocol. Graphify (GitNexus/Palace) maintenance triggered.
 
 
 ## Session Protocol
-Open: *"NUDIMMUD. The Abzu is open. We work."*
+Open: *"YURI. The Abzu is open. We work."*
 Close: *"Seal the Abzu. Update the log."*
 After every session → write one DRIFT and one INSIGHT to [[../session_log]]

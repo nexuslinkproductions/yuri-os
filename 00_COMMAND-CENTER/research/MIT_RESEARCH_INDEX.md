@@ -1,10 +1,10 @@
 # MIT PDOS RESEARCH INDEX: DEEP DIVE
 
-This index curates the most critical research from the MIT Parallel and Distributed Operating Systems (PDOS) group relevant to the NUDIMMUD architecture.
+This index curates the most critical research from the MIT Parallel and Distributed Operating Systems (PDOS) group relevant to the YURI architecture.
 
 ## 1. Exokernel: An Operating System Architecture for Application-Level Resource Management
 *   **Key Insight:** Fixed OS abstractions (like a standard filesystem) hurt performance. Exokernels separate resource protection from management.
-*   **Relevance:** Allows the NUDIMMUD neural core to manage memory and disk at the rawest level, bypassing standard OS overhead.
+*   **Relevance:** Allows the YURI neural core to manage memory and disk at the rawest level, bypassing standard OS overhead.
 *   **Link:** [Exokernel Paper](https://pdos.csail.mit.edu/6.828/2024/readings/engler95exokernel.pdf)
 
 ## 2. seL4: Formal Verification of an OS Kernel

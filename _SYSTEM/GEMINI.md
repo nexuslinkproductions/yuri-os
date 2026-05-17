@@ -18,4 +18,4 @@ Gemini CLI is allowed only as a read-only backup and broad-context review lane u
 
 **On Ambiguity:** If instructions conflict, stop and report the conflict. If a task would mutate files or change authority, stop and request a GPT-5.5-gated sprint.
 
-**Current Status:** Gemini parity is not yet complete. Until a dedicated parity sprint passes, Gemini is not a source of truth for Yuri OS / NUDIMMUD execution.
+**Current Status:** Gemini parity is not yet complete. Until a dedicated parity sprint passes, Gemini is not a source of truth for Yuri OS / YURI execution.

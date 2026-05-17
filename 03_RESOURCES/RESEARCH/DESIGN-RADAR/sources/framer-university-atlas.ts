@@ -9,7 +9,7 @@ export const framerUniversityAtlas: DesignSource = {
         'Strong coverage for hover effects, carousels, CMS patterns, forms, navigation, visuals, and interaction micro-patterns',
         'Useful for choosing a motion family before building presentation-heavy websites'
     ],
-    applyToNudimmud: [
+    applyToYuri: [
         'Use for experiential landing pages, portfolio interactions, galleries, cursor effects, and Framer-style motion references',
         'Map Framer patterns to React, CSS, Motion, or Three.js implementations as needed',
         'Prefer one primary motion pattern instead of stacking multiple showcase effects'

@@ -8,7 +8,7 @@
 - Empty states and errors that explain what happened and what to do next.
 - Consistent patterns for tables, filters, and command surfaces.
 
-## What to steal for NUDIMMUD
+## What to steal for YURI
 
 - Linear: velocity, calm structure, direct task surfaces.
 - Vercel / Geist: crisp tokens, developer-forward minimalism, dense but controlled layouts.

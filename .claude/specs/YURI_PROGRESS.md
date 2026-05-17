@@ -1,4 +1,4 @@
-# YURI OS / NUDIMMUD Progress Tracker
+# YURI OS / YURI Progress Tracker
 
 **Last Updated**: 2026-05-05T15:32Z
 **Current Phase**: Phase Three RAG/MLM Audit (COMPLETE) — All Phases Done
@@ -16,7 +16,7 @@
 - [x] Catalog MLM routing (local lanes, cloud lanes, swarm, deprecations)
 - [x] Identify integration points and gaps
 - [x] Compile evidence inventory with tier classification
-- [x] Generate phase one audit report → `/Users/marcelspatz/.nudimmud/phase-one-rag-mlm-audit.md`
+- [x] Generate phase one audit report → `/Users/marcelspatz/.yuri/phase-one-rag-mlm-audit.md`
 
 **Key Findings**:
 - RAG: Oracle command bridge live, council agents (4x) documented, feedback loops (5x) documented but activation unclear
@@ -44,13 +44,13 @@
 - Oracle skills (5): Documented-Only - SKILL.md only, no runtime wiring in Scripts/ or backend/
 - Council agents: Documented-Only - no references anywhere in runtime
 - Feedback loops: Documented-Only - .claude/noesis/feedback-loops.md is conceptual only, no activation code
-- Ruflo HNSW: Live in RESEARCH/ruflo (RvfEmbeddingCache, RvfEmbeddingService) - NOT wired to NUDIMMUD main
+- Ruflo HNSW: Live in RESEARCH/ruflo (RvfEmbeddingCache, RvfEmbeddingService) - NOT wired to YURI main
 - DeepSeek/Ollama lanes: Live; GPT-OSS/Kimi/Moonshot: Conditional (API key gated); Perplexity/Comet: Missing from laneMap
 - Oracle→Council→MLM chain: BROKEN - logically defined, physically absent
 
 **Deliverables**:
-- [x] `~/.nudimmud/phase-two-rag-mlm-audit.md` - full classification + gap analysis
-- [x] `~/.nudimmud/phase-two-routing-matrix.md` - lane status table + local models
+- [x] `~/.yuri/phase-two-rag-mlm-audit.md` - full classification + gap analysis
+- [x] `~/.yuri/phase-two-routing-matrix.md` - lane status table + local models
 - [x] `roadmap-state.json` created (see .claude/state/)
 - [ ] Integration chain diagram - deferred (nothing to diagram; chain is absent)
 - [ ] Feedback loop activation map - deferred (no activation code found)
@@ -79,7 +79,7 @@
 - [x] Ranked action plan (P0–P4, 21 items)
 
 **Deliverables**:
-- [x] `~/.nudimmud/phase-three-rag-mlm-audit.md` — full report with benchmarks + action plan
+- [x] `~/.yuri/phase-three-rag-mlm-audit.md` — full report with benchmarks + action plan
 - [x] Cold-load benchmarks: qwen2.5:7b (4.7GB) 8.6s, llama3.2 (2.0GB) 5.5s, warm 0.7s
 - [x] M2 Pro capacity matrix: 16GB RAM, 12 cores, one Ollama model max
 - [x] Ranked action plan: 4 P0, 4 P1, 5 P2, 5 P3, 3 P4 items
@@ -137,10 +137,10 @@ The RAG/MLM Systems Audit trilogy is done. Core findings summary:
 ### Audit Complete — All Three Phases Delivered
 
 The RAG/MLM Systems Audit ran from 2026-05-05T14:22Z to 15:32Z — 70 minutes total across all three phases. Delivered:
-- `~/.nudimmud/phase-one-rag-mlm-audit.md` — Inventory + integration mapping (25+ files read, 4 major systems cataloged)
-- `~/.nudimmud/phase-two-rag-mlm-audit.md` — Oracle skill integration audit with blockers + ASCII flow (via @swarm / DeepSeek V4 Pro)
-- `~/.nudimmud/phase-two-routing-matrix.md` — Lane status table + local model inventory
-- `~/.nudimmud/phase-three-rag-mlm-audit.md` — Benchmarks, lane verification, integration test suite design, 21-item action plan (via DeepSeek V4 Flash survey + V4 Pro synthesis)
+- `~/.yuri/phase-one-rag-mlm-audit.md` — Inventory + integration mapping (25+ files read, 4 major systems cataloged)
+- `~/.yuri/phase-two-rag-mlm-audit.md` — Oracle skill integration audit with blockers + ASCII flow (via @swarm / DeepSeek V4 Pro)
+- `~/.yuri/phase-two-routing-matrix.md` — Lane status table + local model inventory
+- `~/.yuri/phase-three-rag-mlm-audit.md` — Benchmarks, lane verification, integration test suite design, 21-item action plan (via DeepSeek V4 Flash survey + V4 Pro synthesis)
 
 ### Why This Audit Started
 
@@ -191,5 +191,5 @@ If urgent work needed before audit completion:
 
 ---
 
-**Maintained by**: Yuri OS / NUDIMMUD Boot System
-**Sync**: Project memory at `/Users/marcelspatz/.claude/projects/-Users-marcelspatz-NUDIMMUD/memory/`
+**Maintained by**: Yuri OS / YURI Boot System
+**Sync**: Project memory at `/Users/marcelspatz/.claude/projects/-Users-marcelspatz-YURI/memory/`

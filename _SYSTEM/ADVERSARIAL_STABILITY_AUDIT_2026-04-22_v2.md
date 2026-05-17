@@ -1,5 +1,5 @@
 # ⬡ ADVERSARIAL STABILITY & SECURITY AUDIT — v2
-**NUDIMMUD** — Focused re-audit
+**YURI** — Focused re-audit
 **Date:** 2026-04-22T01:30:00Z
 
 ---

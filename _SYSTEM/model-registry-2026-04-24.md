@@ -1,4 +1,4 @@
-# Model Registry — NUDIMMUD Local LLMs
+# Model Registry — YURI Local LLMs
 
 **Benchmarked:** 2026-04-24 11:02
 **Machine:** M2 Pro, 16GB unified memory

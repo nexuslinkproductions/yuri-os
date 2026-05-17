@@ -23,11 +23,11 @@ What Marcel can do well *today* — these are reliable, deliverable, income-gene
 ### Systems Building
 | Capability | Proof | Est. Level |
 |-----------|-------|------------|
-| NUDIMMUD OS agent architecture | Running system | Building |
+| YURI OS agent architecture | Running system | Building |
 | NeuralForge/Oracle bridge design | Implemented | Functional |
 | Multi-agent coordination patterns | GitNexus integration, agent roles | Functional |
 | AI pipeline design (RAG, embedding, routing) | In development | Intermediate |
-| Vault/knowledge system design | NUDIMMUD vault | Advanced |
+| Vault/knowledge system design | YURI vault | Advanced |
 | IDE/surface protocol synchronization | AGENTS.md, rule files | Functional |
 
 ### Foundation
@@ -52,12 +52,12 @@ One step away. These leverage existing skills with modest new learning (2–6 we
 | **Client retainer architecture** | Existing client relationships | 1–2 weeks |
 | **Yuri Flow production infra** | Systems + creative production | 3–5 weeks |
 | **Medium Japanese conversation** | Hiragana/katakana + grammar base | 6–8 weeks |
-| **RAG-powered production assistant** | NUDIMMUD RAG pipeline + creative knowledge | 3–4 weeks |
+| **RAG-powered production assistant** | YURI RAG pipeline + creative knowledge | 3–4 weeks |
 | **Video compression/codec consulting** | Post-production depth | 1–2 weeks |
 
 ### Current Adjacent Focus
 
-**Prediction market trading bot** — Build from existing system-building skills. The hardest parts (data pipeline, signal logic, compound loop) are adjacent to work already done on NUDIMMUD OS agent infrastructure. Estimated 4–6 weeks of dedicated night-block time.
+**Prediction market trading bot** — Build from existing system-building skills. The hardest parts (data pipeline, signal logic, compound loop) are adjacent to work already done on YURI OS agent infrastructure. Estimated 4–6 weeks of dedicated night-block time.
 
 **Required check:** Confirm data source API stability before building on top of it. If the feed breaks weekly, build a resilient layer first.
 
@@ -92,7 +92,7 @@ Current Capabilities
     │        │                                        │
     │        └── Data pipeline resilience ──────── Trading HUD
     │
-    ├── NUDIMMUD RAG pipeline ───► Production assistant bot
+    ├── YURI RAG pipeline ───► Production assistant bot
     │               │
     │               └── Searchable vault ───► Fast context for client work
     │
@@ -115,7 +115,7 @@ Current Capabilities
 
 At ~140h/quarter effective:
 - **Goal 1 (client stability):** ~10h — mostly conversations, proposals, agreements
-- **Goal 2 (NUDIMMUD maturity):** ~40h — HUD + RAG pipeline
+- **Goal 2 (YURI maturity):** ~40h — HUD + RAG pipeline
 - **Goal 3 (trading bot):** ~40h — scan → signal → compound pipeline
 - **Emergence/rest:** ~60h remainder
 

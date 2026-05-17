@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "yuri://contracts/artifact-contract.json",
   "title": "Advisory Artifact Contract v1.0.0",
-  "description": "Minimal shared contract for artifacts produced by fused @swarm + workhorse systems in Yuri OS / NUDIMMUD. All model output is advisory only; local shell/git/runtime artifacts remain truth.",
+  "description": "Minimal shared contract for artifacts produced by fused @swarm + workhorse systems in Yuri OS / YURI. All model output is advisory only; local shell/git/runtime artifacts remain truth.",
   "type": "object",
   "required": [
     "_meta",
@@ -282,7 +282,7 @@
     "provenance": {
       "genesis": "2025-01-20",
       "anchor_reset": "2026-05-03",
-      "reason": "Phase1 operational baseline corrected after NUDIMMUD systems convergence. Genesis preserved for lineage."
+      "reason": "Phase1 operational baseline corrected after YURI systems convergence. Genesis preserved for lineage."
     },
     "purpose": "minimal phase1 anchor for runtime-gate scaffold",
     "status": "active",

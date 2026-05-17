@@ -49,7 +49,7 @@ function getBudgetLimit(value, fallback) {
 }
 
 function makeContractId(input = {}) {
-  return input.contract_id ?? input.run_id ?? input.turn_id ?? 'nudimmud-one-transaction-contract';
+  return input.contract_id ?? input.run_id ?? input.turn_id ?? 'yuri-one-transaction-contract';
 }
 
 export function compileOneTransactionContract(input = {}) {
@@ -59,7 +59,7 @@ export function compileOneTransactionContract(input = {}) {
     mode: 'ONE_TRANSACTION',
     output_policy: 'FINAL_REPORT_ONLY_UNLESS_BLOCKED',
     task_delta: normalizedInput.task_delta ?? '',
-    stable_header: normalizedInput.stable_header ?? 'NUDIMMUD harness core skeleton',
+    stable_header: normalizedInput.stable_header ?? 'YURI harness core skeleton',
     allowed_scope: normalizeList(normalizedInput.allowed_scope),
     forbidden_scope: normalizeList(normalizedInput.forbidden_scope),
     internal_checklist: uniqueList([

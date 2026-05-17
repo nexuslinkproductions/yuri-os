@@ -2,23 +2,23 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "nudimmud-frontend",
+      "name": "yuri-frontend",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 4200,
-      "description": "NUDIMMUD Command Center frontend (Vite + React 19)",
+      "description": "YURI Command Center frontend (Vite + React 19)",
       "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI"
     },
     {
-      "name": "nudimmud-backend",
+      "name": "yuri-backend",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["ts-node", "src/server.ts"],
       "port": 3004,
-      "description": "NUDIMMUD backend API (Express + WebSocket, ts-node dev)",
+      "description": "YURI backend API (Express + WebSocket, ts-node dev)",
       "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/backend"
     },
     {
-      "name": "nudimmud-shell-service",
+      "name": "yuri-shell-service",
       "runtimeExecutable": "node",
       "runtimeArgs": ["backend/shellService.js"],
       "port": 3098,

@@ -426,13 +426,13 @@ export class SmartRouter {
     }
 
     private static detectRetrievalProfile(queryLower: string, intent: NeuralTaskIntent): RetrievalProfile {
-        const nudimmudKeywords = [
-            'nudimmud', 'forge', 'runtime', 'router', 'provider', 'backend', 'conclave', 'swarm', 'codebase'
+        const yuriKeywords = [
+            'yuri', 'forge', 'runtime', 'router', 'provider', 'backend', 'conclave', 'swarm', 'codebase'
         ];
 
-        const mentionsNudimmud = this.hasAny(queryLower, nudimmudKeywords) || intent === 'coding';
+        const mentionsYuri = this.hasAny(queryLower, yuriKeywords) || intent === 'coding';
 
-        if (mentionsNudimmud) return 'YURI_SYSTEM';
+        if (mentionsYuri) return 'YURI_SYSTEM';
         return 'YURI_SYSTEM';
     }
 

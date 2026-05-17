@@ -577,7 +577,7 @@ Each packet shaped per `CLAUDE CONTROL PACKET` grammar (Goal · Target files · 
 
 ## D.0 Promise
 
-> A client receives NEXUSLINK / nexbox bundled with a NUDIMMUD-grade Symbiotic Pulse runtime that requires **zero Anthropic credentials** to operate, runs on a Mac Mini M4 Pro 16 GB (or upward), and proves its independence through a verifier the client themselves can run.
+> A client receives NEXUSLINK / nexbox bundled with a YURI-grade Symbiotic Pulse runtime that requires **zero Anthropic credentials** to operate, runs on a Mac Mini M4 Pro 16 GB (or upward), and proves its independence through a verifier the client themselves can run.
 
 Sovereignty is not just an internal Yuri OS property — it is the product wrap. Clients inherit it by default.
 

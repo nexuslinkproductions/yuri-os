@@ -3,7 +3,7 @@
 import { existsSync, readdirSync, statSync, readFileSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
 import path from 'path';
-import { evaluateToolCall } from './policy/nudimmud-safety-core.mjs';
+import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import {
   estimateTokensFromText,
   hashPayload,
@@ -493,8 +493,8 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       maxTokens: parseInt(process.env.OPENROUTER_MAX_TOKENS || '2048', 10),
       timeout: 30000,
       extraHeaders: {
-        'HTTP-Referer': 'https://nudimmud.local',
-        'X-OpenRouter-Title': 'NUDIMMUD',
+        'HTTP-Referer': 'https://yuri.local',
+        'X-OpenRouter-Title': 'YURI',
       },
       requiresKey: true,
     },

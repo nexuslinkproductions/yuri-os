@@ -1,4 +1,4 @@
-# NUDIMMUD ECOSYSTEM DIAGNOSTICS — 2026-04-18
+# YURI ECOSYSTEM DIAGNOSTICS — 2026-04-18
 
 ## HEALTH SUMMARY TABLE
 
@@ -10,7 +10,7 @@
 | **PROJECT PIPELINE** | GREEN | 01_PROJECTS/ has 13 active folders (C2MOVIEZ primary with 8 projects: ANGELIKA, BOVIRO, CHEESE-DOCTOR, MUDI, OREA, SHIPSTER, _UNSORTED-EDITS, plus others). _TEMPLATE/ exists. Network sync active (C2MOVIEZ + PLANZERFILMS). |
 | **CLAUDE PALACE** | GREEN | palace-index.md (9.2K), palace-map.md (8.7K), cross-domain.md (11.6K), suggested-connections.md (8.8K) all exist. GRAPH_REPORT.md current (7038 nodes, 20520 edges, 271 communities). graphify-out/ populated. |
 | **SESSION LOG** | GREEN | session_log.md sealed. 4 session entries (2026-04-11, 2026-04-13, 2026-04-17, 2026-04-18). All NEXT items documented. Drift/insight/pattern logging active. |
-| **IDENTITY/MEMORY SYNC** | GREEN | identity.md root exists (338 lines, full NUDIMMUD codex). enki_state.md current (Apr 18). All 05_OPERATIONAL files exist (mode_triggers, response_architecture, partner_memory, pneuma-profile). External memory store: MEMORY.md index + 8 files in .auto-memory/. |
+| **IDENTITY/MEMORY SYNC** | GREEN | identity.md root exists (338 lines, full YURI codex). enki_state.md current (Apr 18). All 05_OPERATIONAL files exist (mode_triggers, response_architecture, partner_memory, pneuma-profile). External memory store: MEMORY.md index + 8 files in .auto-memory/. |
 | **HERMETICS V2** | GREEN | hermetics.md = 648 lines (confirmed expanded v2 — not the 119-line original). Located: 06_KNOWLEDGE-BASE/01_COSMOLOGY/hermetics.md. |
 | **NOESIS REINSTATEMENT** | GREEN | All 4 reinstatement docs present in _SYSTEM/session-outputs/2026-04-18/: NOESIS_REINSTATEMENT.md, session_reconstruction_20260417.md, enki_state_updated.md, hermetics_v2.md. |
 | **MISSING DIRECTORIES** | FIXED | 02_AREAS/skills/ and 02_AREAS/research-intake/ were missing. Created 2026-04-18 @ 18:50 UTC. |
@@ -133,7 +133,7 @@
 - ✓ `graphify-out/` populated with .json graph data + cache/
 - Note: `._GRAPH_REPORT.md` and `._graph.json` are AppleDouble artifacts (harmless; substrate now clean)
 
-**Palace Build Status:** palace-index.md dated 2026-04-17 (one day old). External `palace-rebuild.py` exists in _SYSTEM/ and was run; semantic palace is current against NUDIMMUD (per session_log 2026-04-18). MCP-layer index also current (9,357 files registered).
+**Palace Build Status:** palace-index.md dated 2026-04-17 (one day old). External `palace-rebuild.py` exists in _SYSTEM/ and was run; semantic palace is current against YURI (per session_log 2026-04-18). MCP-layer index also current (9,357 files registered).
 
 ---
 
@@ -159,7 +159,7 @@
 ### 7. IDENTITY/MEMORY SYNC
 
 **Root Identity Files:**
-- ✓ `identity.md` (338 lines, full NUDIMMUD codex) — Dual-core architecture, 7 modes, cosmological position, temporal context
+- ✓ `identity.md` (338 lines, full YURI codex) — Dual-core architecture, 7 modes, cosmological position, temporal context
 - ✓ `enki_state.md` (136 lines, current 2026-04-18) — Focus domains, active projects (PROJECT -1 through 3), constraints, guidance
 
 **Identity Cross-References:**
@@ -178,7 +178,7 @@
 - ✓ MEMORY.md (index, 1.05K)
 - ✓ 8 per-file entries:
   - user_marcel.md (2.4K)
-  - user_nudimmud_system.md (2.1K)
+  - user_yuri_system.md (2.1K)
   - user_esoteric.md (2.0K)
   - project_noesis.md (1.5K)
   - project_clients.md (exists per MEMORY.md index)
@@ -269,13 +269,13 @@ From **2026-04-18 — NOESIS · Autonomous Learning Consolidation**:
 
 1. ~~External palace build script~~ → **DONE** (2026-04-18 @ 07:47)
    - `_SYSTEM/palace-rebuild.py` built and run
-   - Palace now current against NUDIMMUD (1,912 nodes, 840 edges)
+   - Palace now current against YURI (1,912 nodes, 840 edges)
 
 2. ~~`COPYFILE_DISABLE=1` in ~/.zshrc~~ → **DONE**
    - Created `~/.zshrc`, updated `~/.zprofile`
    - `dot_clean_t7` alias available for manual control
 
-   - NUDIMMUD: 30,528 → 0
+   - YURI: 30,528 → 0
    - .claude/: 4,322 → 0
 
 4. **Review memory entries after one session cycle** (Pending)
@@ -320,7 +320,7 @@ From **2026-04-18 — NOESIS · Autonomous Learning Consolidation**:
 
 **Overall System Health: EXCELLENT (GREEN across all 10 areas)**
 
-The NUDIMMUD ecosystem is operationally sound. All critical infrastructure is in place:
+The YURI ecosystem is operationally sound. All critical infrastructure is in place:
 - ✓ Vault structure complete and populated
 - ✓ Knowledge base fully expanded (hermetics v2, 28 files, cross-domain synthesis)
 - ✓ NOESIS system live and instrumenting learning

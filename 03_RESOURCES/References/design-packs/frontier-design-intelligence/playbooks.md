@@ -6,7 +6,7 @@
 2. Classify the task: app, landing, portfolio, dashboard, motion experiment, brand site, or tool surface.
 3. Select 3-7 references from `source-index.json`.
 4. Write a one-sentence visual direction and one-sentence interaction direction.
-5. Define what must stay NUDIMMUD-native and what can borrow from external references.
+5. Define what must stay YURI-native and what can borrow from external references.
 
 ## Build Rules
 

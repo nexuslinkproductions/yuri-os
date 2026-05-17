@@ -35,7 +35,7 @@
 | Regenerate enki_state.md | Not stale. 8 days old. |
 | Fix auth default-key vuln | Already fixed. |
 | MCP server health checks (per Perplexity's recipe) | `.claude/settings.json` has no project-root MCP block; MCPs are user-scope. Out of campaign domain. |
-| Install `com.nudimmud.eot-refresh.plist` now | Would schedule the broken `claude -p` scout pattern every 6h. **Deferred** until Codex Spec 1 (scout migration) lands. |
+| Install `com.yuri.eot-refresh.plist` now | Would schedule the broken `claude -p` scout pattern every 6h. **Deferred** until Codex Spec 1 (scout migration) lands. |
 | Token-budget proactive offload | Token tracker shows all-zeros — instrumentation comes first, optimisation later. |
 
 ## Deferred to Follow-up (Codex specs drafted, awaiting execution)

@@ -1,4 +1,4 @@
-# NUDIMMUD Integration Proposal — exeoflow Client Analysis Layer
+# YURI Integration Proposal — exeoflow Client Analysis Layer
 
 **Status**: Pre-implementation architecture proposal  
 **Date**: 2026-04-17  
@@ -18,14 +18,14 @@ MEETING TRANSCRIPT (live) → SPEAKER ANALYSIS → ONBOARDING PACKAGE → EMAIL 
 
 ---
 
-## NUDIMMUD Integration — The Depth Layer
+## YURI Integration — The Depth Layer
 
-NUDIMMUD becomes the **analytical core** between transcription and offer generation:
+YURI becomes the **analytical core** between transcription and offer generation:
 
 ```
 MEETING TRANSCRIPT (live)
         ↓
-NUDIMMUD ANALYSIS ENGINE
+YURI ANALYSIS ENGINE
 ├─ Conversation dynamics mapping (power structure, emotional subtext, objection roots)
 ├─ Needs filtering (actual → personal → aspirational)
 ├─ Psychology extraction (decision-maker profile, risk tolerance, communication register)
@@ -42,8 +42,8 @@ CLIENT EMAIL (same-day, with psychological precision)
 ## Integration Architecture
 
 ### Layer 1: Real-Time Annotation Feed
-- Transcription data flows into NUDIMMUD annotation system
-- NUDIMMUD tags conversation in real-time (or post-meeting, TBD with Claudio):
+- Transcription data flows into YURI annotation system
+- YURI tags conversation in real-time (or post-meeting, TBD with Claudio):
   - **NEED_TYPE**: actual | aspirational | personal | unstated
   - **EMOTION_STATE**: confidence, hesitation, urgency, defensive, exploratory
   - **DECISION_STRUCTURE**: who decides, criteria, timeline, budget authority
@@ -51,14 +51,14 @@ CLIENT EMAIL (same-day, with psychological precision)
   - **COMMUNICATION_REGISTER**: formal/casual, analytical/emotional, technical/strategic
 
 ### Layer 2: Psychological Modeling
-- NUDIMMUD synthesizes annotated transcript into:
+- YURI synthesizes annotated transcript into:
   - **Client archetype** (decision-maker style, risk profile, communication preference)
   - **Conversation dynamic** (power structure, alliance opportunities, friction points)
   - **Unstated constraints** (budget, timeline, political, competitive pressure)
   - **Emotional trajectory** (opening state → pivotal moment → closing state)
 
 ### Layer 3: Copywriting & Pitch Generation
-- NUDIMMUD generates tailored pitch variants:
+- YURI generates tailored pitch variants:
   - **Rational variant**: addresses actual needs + timeline + ROI
   - **Emotional variant**: addresses aspiration + transformation + status
   - **Risk-mitigation variant**: addresses unstated concerns + proof + relationship
@@ -73,11 +73,11 @@ Each variant includes:
 - Call to action (matches decision-maker urgency)
 
 ### Layer 4: Feedback Loop
-- Claudio's reaction to NUDIMMUD-generated pitches feeds back into system:
+- Claudio's reaction to YURI-generated pitches feeds back into system:
   - Which variant did the client respond to?
   - Which framings worked / backfired?
   - What did Claudio adjust in his approach?
-- NUDIMMUD learns client psychology patterns across meetings
+- YURI learns client psychology patterns across meetings
 - Pitch generation improves with each iteration
 
 ---
@@ -96,46 +96,46 @@ Each variant includes:
 - System is already MCP-integratable
 
 **Integration approach:**
-- NUDIMMUD operates as an **MCP tool** callable from command center
-- Command center sends transcript → NUDIMMUD → returns annotated analysis + pitch variants
+- YURI operates as an **MCP tool** callable from command center
+- Command center sends transcript → YURI → returns annotated analysis + pitch variants
 - Claudio can review, select, customize, and send from command center
 
 **Questions for Claudio:**
 - What's the MCP interface pattern you're using? (standard tool schema, or custom?)
-- Can command center queue transcripts for NUDIMMUD batch processing?
+- Can command center queue transcripts for YURI batch processing?
 - Does the system need real-time streaming responses, or is 2–5 minute post-meeting analysis acceptable?
 
 ### Offer Generation Pipeline
 **Questions for Claudio:**
 - How does current system generate offers? (template-based, dynamic, human-customized?)
 - Where do Claudio's pitch variants currently come from? (manual, template library?)
-- Does NUDIMMUD's variants feed directly into offer, or does Claudio review first?
+- Does YURI's variants feed directly into offer, or does Claudio review first?
 
 ---
 
 ## Expected Outcomes
 
 ### Immediate (Week 1–2)
-- NUDIMMUD connected to exeoflow transcription pipeline
+- YURI connected to exeoflow transcription pipeline
 - Annotation system working (tagging conversations with psychological metadata)
 - Basic pitch generation operational (Claudio can test vs. current approach)
 
 ### Validation (Week 2–4)
-- 5–10 client meetings with NUDIMMUD pitch variants
-- Claudio compares NUDIMMUD pitches to his manual versions
+- 5–10 client meetings with YURI pitch variants
+- Claudio compares YURI pitches to his manual versions
 - Feedback loop tuned based on what converts
 
 ### Scale (Month 2+)
-- NUDIMMUD becomes default pitch generator for all new clients
+- YURI becomes default pitch generator for all new clients
 - Client archetypes learned (system improves with volume)
-- Psychological filtering becomes reliable (team trains on NUDIMMUD insights)
+- Psychological filtering becomes reliable (team trains on YURI insights)
 - Offer personalization achieves 3–5x response rate improvement
 
 ---
 
 ## Protection & IP
 
-- NUDIMMUD's analytical model = core competitive moat
+- YURI's analytical model = core competitive moat
 - Client psychology patterns = proprietary knowledge asset
 - Pitch variants = not shared externally; only final offer sent
 - All analysis stays within exeoflow system (no external dependencies)
@@ -152,17 +152,17 @@ Each variant includes:
 **Pipeline Integration:**
 4. How are current offers generated? (template, dynamic, manual?)
 5. Where do your pitch variants currently come from?
-6. Does NUDIMMUD feed directly to offer, or review-gate?
+6. Does YURI feed directly to offer, or review-gate?
 
 **Validation & Feedback:**
 7. How are client reactions to pitches tracked? (email opens, response times, conversion?)
-8. Can we A/B test NUDIMMUD variants vs. current approach on next 5 meetings?
+8. Can we A/B test YURI variants vs. current approach on next 5 meetings?
 9. What metrics define "better" for Claudio? (conversion rate, deal size, relationship depth?)
 
 **Scaling & Operations:**
 10. How many meetings per week are we analyzing? (volume baseline)
-11. What's acceptable latency for NUDIMMUD analysis? (real-time, 5min, next-day?)
-12. Who reviews NUDIMMUD output before client email? (you, automated, staged rollout?)
+11. What's acceptable latency for YURI analysis? (real-time, 5min, next-day?)
+12. Who reviews YURI output before client email? (you, automated, staged rollout?)
 
 ---
 

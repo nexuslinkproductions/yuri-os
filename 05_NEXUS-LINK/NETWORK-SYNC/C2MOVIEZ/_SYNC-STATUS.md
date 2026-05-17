@@ -11,7 +11,7 @@
 
 ## Sync Protocol
 1. Claudio exports his project filesystem structure
-2. Marcel creates _MAPPING.md (Claudio paths → NUDIMMUD paths)
+2. Marcel creates _MAPPING.md (Claudio paths → YURI paths)
 3. Shared project files go in Database/ (read-only reference)
 4. Active shared projects tracked in Shared-Projects/
 
@@ -29,7 +29,7 @@
 ## Sync Log
 | Date | Action | Notes |
 |------|--------|-------|
-| 2026-04-20 | Documentation standardized | All CLAUDE.md files updated to NUDIMMUD/Aeonic Protocol standard. |
+| 2026-04-20 | Documentation standardized | All CLAUDE.md files updated to YURI/Aeonic Protocol standard. |
 | 2026-04-17 | Integration complete | Cloned c2moviez-vault (GitHub), created _MAPPING.md, 18 folders indexed |
 | 2026-04-20 | FINALIZED | iC2M integrated as root sub-vault. Cross-vault breadcrumbs established. Semantic mapping executed: 2472 nodes, 3381 edges indexed. |
 

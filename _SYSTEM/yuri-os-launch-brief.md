@@ -1,6 +1,6 @@
 # Yuri OS — Launch Readiness Brief + Trial Run Plan
 **For:** Claudio (external audit)
-**From:** Marcel / NUDIMMUD
+**From:** Marcel / YURI
 **Date:** 2026-05-16
 **Status:** NOT READY — gate score 71/100, target ≥ 90
 
@@ -259,4 +259,4 @@ node _SYSTEM/Scripts/independence-check.mjs
 
 ---
 
-*NUDIMMUD · Yuri OS · 2026-05-16*
+*YURI · Yuri OS · 2026-05-16*

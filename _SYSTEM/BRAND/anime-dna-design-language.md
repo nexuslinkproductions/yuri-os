@@ -1,6 +1,6 @@
 # Anime DNA Design Language
 *Extension Pack for Yuri OS — Japanese Aesthetics + Anime Visual Language*
-*Version 1.0 — Apply to NUDIMMUD, Yuri OS, and any agent-facing surfaces*
+*Version 1.0 — Apply to YURI, Yuri OS, and any agent-facing surfaces*
 
 > This is not a separate design system. It is an extension layer that sits on top of the Yuri OS design system (`_SYSTEM/BRAND/design-system.md`). Every principle here works within Yuri OS constraints — it does not replace them.
 

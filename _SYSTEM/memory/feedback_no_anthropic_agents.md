@@ -1,6 +1,6 @@
 # No Anthropic Agents — Hard Rule
 
-**Rule:** `Agent()` with Claude / Haiku / Sonnet / Opus models is **BANNED** in NUDIMMUD.
+**Rule:** `Agent()` with Claude / Haiku / Sonnet / Opus models is **BANNED** in YURI.
 
 **Effective:** Hard-enforced by `.claude/hooks/agent-spawn-guard.js` (PATCH 023, 2026-05-14) — PreToolUse hook returns `permissionDecision: "deny"` on any `tool_name === "Agent"`.
 

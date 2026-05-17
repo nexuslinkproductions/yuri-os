@@ -111,7 +111,7 @@ Based on shoot notes:
 
 ### Tools & Resources
 
-- Read recent shoot notes in NUDIMMUD vault
+- Read recent shoot notes in YURI vault
 - Reference industry standards (SMPTE, Adobe, Blackmagic docs)
 - Link to free tools/resources (don't charge readers)
 - Cite gear by model name (Red Komodo, Arri Mini LF, etc.)

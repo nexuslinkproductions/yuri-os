@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Shell execution service — runs OUTSIDE pm2 to avoid posix_spawn EBADF
-// Communicate via HTTP on port 3098 with the nudimmud-backend
+// Communicate via HTTP on port 3098 with the yuri-backend
 'use strict';
 const http = require('http');
 const { spawn } = require('child_process');
@@ -54,5 +54,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.log(`nudimmud-shell-service listening on 127.0.0.1:${PORT}`);
+    console.log(`yuri-shell-service listening on 127.0.0.1:${PORT}`);
 });

@@ -1,15 +1,15 @@
 ---
-title: "Yuri OS / NUDIMMUD — Session Archive: HUD, DeepSeek Direct Routing, TokenOps, Websearch Cost Control"
+title: "Yuri OS / YURI — Session Archive: HUD, DeepSeek Direct Routing, TokenOps, Websearch Cost Control"
 date: "2026-05-03"
-prepared_for: "Yuri OS / NUDIMMUD ingestion archive"
+prepared_for: "Yuri OS / YURI ingestion archive"
 prepared_by: "GPT-5.5 Thinking"
 repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
 status: "Archive-ready continuity file, not an independently executed repo audit"
-scope: "Current ChatGPT Web session plus user-pasted local Claude/Codex/DeepSeek/NUDIMMUD results"
+scope: "Current ChatGPT Web session plus user-pasted local Claude/Codex/DeepSeek/YURI results"
 primary_lanes:
   - "08N local claim authority / verifier integrity"
-  - "08O NUDIMMUD composer auto-send paste repair"
+  - "08O YURI composer auto-send paste repair"
   - "08P route-log / model-output separation"
   - "08Q claim-verifier local-truth verification"
   - "08R HUD budget-line removal"
@@ -20,7 +20,7 @@ primary_lanes:
   - "Cheap web/search research protocol"
 ---
 
-# Yuri OS / NUDIMMUD — Session Archive  
+# Yuri OS / YURI — Session Archive  
 ## HUD, DeepSeek Direct Routing, TokenOps, and Websearch Cost Control
 
 Prepared: 2026-05-03  
@@ -28,7 +28,7 @@ Repo root: `/Users/marcelspatz/YURI-OS-MUSUBI`
 Branch: `main`  
 Timezone context: Europe/Vienna  
 
-This archive captures the full operational continuity of the session. It is meant for ingestion into Yuri OS / NUDIMMUD as a tracked internal archive, not as proof that the local repository currently matches every claim.
+This archive captures the full operational continuity of the session. It is meant for ingestion into Yuri OS / YURI as a tracked internal archive, not as proof that the local repository currently matches every claim.
 
 Direct shell/local git evidence still outranks this document.
 
@@ -40,7 +40,7 @@ Direct shell/local git evidence still outranks this document.
 
 This file is based on:
 
-- User-provided execution reports from Claude, Codex, DeepSeek/NUDIMMUD, and terminal screenshots.
+- User-provided execution reports from Claude, Codex, DeepSeek/YURI, and terminal screenshots.
 - ChatGPT Web reasoning and prompt-gating decisions.
 - Previously uploaded continuity handoffs and current session context.
 - No independent local repository execution by ChatGPT Web.
@@ -65,11 +65,11 @@ Accepted truth requires direct local verification through exact scoped shell/git
 A major correction from this session:
 
 ```text
-NUDIMMUD direct DeepSeek route is model/reasoning output only.
+YURI direct DeepSeek route is model/reasoning output only.
 It is not currently a local file-editing executor.
 ```
 
-Therefore, prompts pasted directly into `NUDIMMUD ›` must not ask DeepSeek to:
+Therefore, prompts pasted directly into `YURI ›` must not ask DeepSeek to:
 
 - mutate files,
 - stage files,
@@ -80,7 +80,7 @@ Therefore, prompts pasted directly into `NUDIMMUD ›` must not ask DeepSeek to:
 - offload to DeepSeek,
 - pretend shell/file tools exist.
 
-Direct NUDIMMUD/DeepSeek prompts should ask for:
+Direct YURI/DeepSeek prompts should ask for:
 
 ```text
 audit → self-assess → design/spec → produce executor prompt
@@ -94,7 +94,7 @@ Actual local mutation must be handled afterward by Claude, Codex, or direct loca
 
 ### 2.1 Prompt format
 
-For Yuri OS / NUDIMMUD sprint prompts:
+For Yuri OS / YURI sprint prompts:
 
 - Always provide the recommended executor/model.
 - Always tell the user exactly where to paste/run the prompt.
@@ -143,7 +143,7 @@ For HUD/image/design tasks in this project, ChatGPT Web should act as:
 
 not an image generator.
 
-This applies especially to NUDIMMUD HUD work.
+This applies especially to YURI HUD work.
 
 ---
 
@@ -157,9 +157,9 @@ Accepted local truth at that point:
 Repo: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Latest accepted HEAD:
-1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
+1549dd2a4 test(cli): add YURI claim verifier artifact smoke
 Staged files: none
-_SYSTEM/Scripts/nudimmud-repl.mjs: clean after accepted commit
+_SYSTEM/Scripts/yuri-repl.mjs: clean after accepted commit
 ```
 
 Known tolerated dirty state:
@@ -197,12 +197,12 @@ Accepted result:
 
 Key accepted commits:
 
-### 4.1 `6b188fb83 fix(cli): verify NUDIMMUD model local-state claims`
+### 4.1 `6b188fb83 fix(cli): verify YURI model local-state claims`
 
 File changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Behavior added:
@@ -220,18 +220,18 @@ Behavior added:
 - Preserves raw `output.md`.
 - Self-test downgrades fake committed-state claim to `MODEL_CLAIM_ONLY`.
 
-### 4.2 `1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke`
+### 4.2 `1549dd2a4 test(cli): add YURI claim verifier artifact smoke`
 
 File changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Added deterministic no-model artifact smoke:
 
 ```bash
-YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node _SYSTEM/Scripts/nudimmud-repl.mjs
+YURI_REPL_CLAIM_VERIFIER_SMOKE=1 node _SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Verified markers:
@@ -269,13 +269,13 @@ Result:
 Commit:
 
 ```text
-3e7398bcc fix(cli): auto-send NUDIMMUD pasted multiline input
+3e7398bcc fix(cli): auto-send YURI pasted multiline input
 ```
 
 File changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Key behavior:
@@ -312,7 +312,7 @@ Verification sprint result:
 Artifact path from verification:
 
 ```text
-/Users/marcelspatz/.nudimmud/runs/NMD-20260503-002415-001
+/Users/marcelspatz/.yuri/runs/NMD-20260503-002415-001
 ```
 
 Primary artifact path status:
@@ -346,13 +346,13 @@ Implementation result:
 Commit:
 
 ```text
-ee60bccd3 fix(cli): separate NUDIMMUD route logs from model output
+ee60bccd3 fix(cli): separate YURI route logs from model output
 ```
 
 Files changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 _SYSTEM/Scripts/offload.sh
 _SYSTEM/Scripts/ai
 ```
@@ -391,7 +391,7 @@ Verification result:
 Artifact path:
 
 ```text
-/Users/marcelspatz/.nudimmud/runs/NMD-20260503-004352-001
+/Users/marcelspatz/.yuri/runs/NMD-20260503-004352-001
 ```
 
 Primary path status:
@@ -413,7 +413,7 @@ Result:
 HEAD verified:
 
 ```text
-ee60bccd3 fix(cli): separate NUDIMMUD route logs from model output
+ee60bccd3 fix(cli): separate YURI route logs from model output
 ```
 
 Key boundary confirmed:
@@ -427,7 +427,7 @@ output.md route contamination: none
 Smoke artifact:
 
 ```text
-/private/tmp/nudimmud-runs/NMD-20260503-005036-001
+/private/tmp/yuri-runs/NMD-20260503-005036-001
 ```
 
 Important artifact verification:
@@ -444,7 +444,7 @@ Important artifact verification:
 Recommendation preserved:
 
 ```text
-Keep this smoke in the review path for any future _SYSTEM/Scripts/nudimmud-repl.mjs change.
+Keep this smoke in the review path for any future _SYSTEM/Scripts/yuri-repl.mjs change.
 ```
 
 ---
@@ -473,13 +473,13 @@ Implementation result:
 Commit:
 
 ```text
-61b4689a1 fix(cli): hide NUDIMMUD HUD budget line
+61b4689a1 fix(cli): hide YURI HUD budget line
 ```
 
 File changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud/status-line.mjs
+_SYSTEM/Scripts/yuri/status-line.mjs
 ```
 
 Key change:
@@ -514,7 +514,7 @@ Verification result:
 Artifact:
 
 ```text
-/Users/marcelspatz/.nudimmud/runs/NMD-20260503-010043-001
+/Users/marcelspatz/.yuri/runs/NMD-20260503-010043-001
 ```
 
 ---
@@ -587,7 +587,7 @@ The desired terminal HUD is not just functional. It should feel like:
 Visual elements desired:
 
 - large `YURI OS` identity,
-- large `NUDIMMUD` identity,
+- large `YURI` identity,
 - purple `OS` accent,
 - green dominant HUD,
 - modular green bordered panels,
@@ -608,11 +608,11 @@ This older HUD was closer structurally than later compact attempts.
 
 It had:
 
-- large green `NUDIMMUD` identity,
+- large green `YURI` identity,
 - subtitle `YURI OS / DEEPSEEK HUD REPL`,
 - boxed `STATUS` panel,
 - `USER REQUEST`,
-- `NUDIMMUD ROUTE`,
+- `YURI ROUTE`,
 - `MODEL OUTPUT`,
 - saved cue,
 - prompt below.
@@ -631,7 +631,7 @@ The target direction was more polished and dashboard-like:
 
 - dark VS Code terminal setting,
 - green modular panels,
-- large `YURI OS` and `NUDIMMUD`,
+- large `YURI OS` and `YURI`,
 - full sci-fi command HUD feeling,
 - still terminal-native,
 - visually composed rather than generic boxes.
@@ -647,14 +647,14 @@ Result:
 Commit:
 
 ```text
-49731654f fix(cli): polish NUDIMMUD compact HUD
+49731654f fix(cli): polish YURI compact HUD
 ```
 
 Files changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud/status-line.mjs
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri/status-line.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Validation markers passed:
@@ -697,14 +697,14 @@ Result:
 Commit:
 
 ```text
-f2b7a1640 fix(cli): repair NUDIMMUD HUD visual layout
+f2b7a1640 fix(cli): repair YURI HUD visual layout
 ```
 
 Changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
-_SYSTEM/Scripts/nudimmud/status-line.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
+_SYSTEM/Scripts/yuri/status-line.mjs
 ```
 
 Visual result:
@@ -716,8 +716,8 @@ Still bad.
 Manual screenshot showed:
 
 - old upper boot block,
-- small text-only `NUDIMMUD`,
-- then `YURI OS / NUDIMMUD`,
+- small text-only `YURI`,
+- then `YURI OS / YURI`,
 - still looked like a small debug panel,
 - not close to target.
 
@@ -732,18 +732,18 @@ Result:
 Commit:
 
 ```text
-701e24add fix(cli): rebuild NUDIMMUD HUD shell
+701e24add fix(cli): rebuild YURI HUD shell
 ```
 
 Changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Behavior:
 
-- `printStatusBlock()` renders compact boxed `NUDIMMUD / YURI OS` HUD.
+- `printStatusBlock()` renders compact boxed `YURI / YURI OS` HUD.
 - Startup and `/clear` no longer call `printHeader()` separately.
 - `printHeader()` retained for help path.
 
@@ -791,7 +791,7 @@ used — _SYSTEM/Scripts/offload.sh --model deepseek-v4-pro, exit 0, design plan
 Mutation status:
 
 ```text
-Mutated files: _SYSTEM/Scripts/nudimmud-repl.mjs
+Mutated files: _SYSTEM/Scripts/yuri-repl.mjs
 Staged files: none
 Validation state:
   NODE_CHECK_PASS
@@ -805,7 +805,7 @@ Manual visual smoke:
 - Still not enough.
 - Showed:
   - big `YURI OS`,
-  - `YURI OS ◆ NUDIMMUD` panel,
+  - `YURI OS ◆ YURI` panel,
   - SYSTEM and ROUTE/MODEL columns,
   - prompt below.
 - But still primitive and not close to target.
@@ -813,13 +813,13 @@ Manual visual smoke:
 Important correction:
 
 ```text
-DeepSeek inside NUDIMMUD cannot mutate files.
-When using direct NUDIMMUD DeepSeek route, ask for spec/prompt only, not mutation.
+DeepSeek inside YURI cannot mutate files.
+When using direct YURI DeepSeek route, ask for spec/prompt only, not mutation.
 ```
 
 ### 10.7 08T-X5 DeepSeek direct prompt failure
 
-A prompt was created for NUDIMMUD direct route, but it still incorrectly asked for:
+A prompt was created for YURI direct route, but it still incorrectly asked for:
 
 - capability gates,
 - local mutation,
@@ -827,7 +827,7 @@ A prompt was created for NUDIMMUD direct route, but it still incorrectly asked f
 - staging,
 - commit.
 
-Inside NUDIMMUD, DeepSeek responded with:
+Inside YURI, DeepSeek responded with:
 
 ```text
 08T_X5_BLOCKED_OUTPUT_ONLY_NO_LOCAL_MUTATION_TOOLS
@@ -838,7 +838,7 @@ This was judged a prompt design failure, not a model failure.
 Corrected architecture:
 
 ```text
-NUDIMMUD direct DeepSeek prompt should produce:
+YURI direct DeepSeek prompt should produce:
 - blueprint audit
 - weak spot analysis
 - improved X5 visual design
@@ -857,7 +857,7 @@ The latest uploaded handoff indicates a later accepted HUD-related local commit:
 
 ```text
 HEAD: 81722e778
-Commit: fix(cli): refine NUDIMMUD HUD from restored baseline
+Commit: fix(cli): refine YURI HUD from restored baseline
 Result label:
 08T_YURI_HUD_REFINEMENT_FROM_RESTORATION_AND_GOAL_PASS_COMMITTED
 ```
@@ -865,8 +865,8 @@ Result label:
 Changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
-_SYSTEM/Scripts/nudimmud/status-line.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
+_SYSTEM/Scripts/yuri/status-line.mjs
 ```
 
 Validation reported:
@@ -888,12 +888,12 @@ COMPOSER_PRESERVED: PASS
 
 Visual summary:
 
-- Startup shows small mark, large `NUDIMMUD`, and `YURI OS / DEEPSEEK HUD REPL`.
+- Startup shows small mark, large `YURI`, and `YURI OS / DEEPSEEK HUD REPL`.
 - Startup status is a compact modular panel.
 - Visible budget clutter removed.
 - Active turn flow preserved:
   - `USER REQUEST`
-  - `NUDIMMUD ROUTE`
+  - `YURI ROUTE`
   - `MODEL OUTPUT`
   - `OUTPUT SAVED`
 
@@ -912,13 +912,13 @@ Diagnosis:
 The upper block is not from:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 It is rendered by:
 
 ```text
-/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/nudimmud-boot.zsh
+/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-boot.zsh
 ```
 
 and sourced by:
@@ -930,9 +930,9 @@ and sourced by:
 Known facts:
 
 ```text
-~/.zshrc line ~51: sources _SYSTEM/nudimmud-boot.zsh
-~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs
-_SYSTEM/nudimmud-boot.zsh line ~38: render_context_bar() / precmd() renders upper boot HUD
+~/.zshrc line ~51: sources _SYSTEM/yuri-boot.zsh
+~/.zshrc line ~64: binds yuri to node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/yuri-repl.mjs
+_SYSTEM/yuri-boot.zsh line ~38: render_context_bar() / precmd() renders upper boot HUD
 ```
 
 Duplicate visual layers:
@@ -950,18 +950,18 @@ Renders:
 - CTX bar
 - prompt hooks
 
-### 11.2 NUDIMMUD REPL layer
+### 11.2 YURI REPL layer
 
 Renders:
 
 - logo,
 - status,
 - DeepSeek route/model output,
-- NUDIMMUD prompt.
+- YURI prompt.
 
 ### 11.3 Safe next HUD direction
 
-Do not keep blindly patching `_SYSTEM/Scripts/nudimmud-repl.mjs`.
+Do not keep blindly patching `_SYSTEM/Scripts/yuri-repl.mjs`.
 
 Next HUD fix should target boot-layer gating.
 
@@ -969,21 +969,21 @@ Likely allowed files:
 
 ```text
 /Users/marcelspatz/.zshrc
-/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/nudimmud-boot.zsh
+/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-boot.zsh
 ```
 
 Goal:
 
 - Gate boot banner and CTX prompt behind an environment flag.
 - Keep REPL HUD unchanged.
-- Default boot HUD off for the `nudimmud` launch path only.
+- Default boot HUD off for the `yuri` launch path only.
 - Preserve boot HUD for normal shell sessions if wanted.
 
 Acceptance criteria:
 
 - No stacked double logos.
 - No duplicate OPERATOR / SESSION / MODEL / INDEX blocks.
-- No pre-REPL CTX bar when launching `nudimmud`.
+- No pre-REPL CTX bar when launching `yuri`.
 - REPL HUD from `81722e778` remains the visible base.
 
 ---
@@ -1009,15 +1009,15 @@ no git
 no read/write agent loop
 ```
 
-### 12.2 Current NUDIMMUD DeepSeek route
+### 12.2 Current YURI DeepSeek route
 
-NUDIMMUD route path:
+YURI route path:
 
 ```text
 _SYSTEM/Scripts/ai
 _SYSTEM/Scripts/offload.sh
 _SYSTEM/Scripts/offload-runner.mjs
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Current behavior:
@@ -1030,14 +1030,14 @@ text in → text out
 Therefore:
 
 ```text
-DeepSeek V4 Pro inside NUDIMMUD is not yet a Claude/Codex-style local executor.
+DeepSeek V4 Pro inside YURI is not yet a Claude/Codex-style local executor.
 ```
 
 ### 12.3 Safety asset preserved
 
 The local claim verifier is crucial.
 
-When DeepSeek/NUDIMMUD model output claims:
+When DeepSeek/YURI model output claims:
 
 ```text
 PASS_COMMITTED
@@ -1095,7 +1095,7 @@ Reasons:
 - Appears to read skills from:
   - `~/.agents/skills/<name>/SKILL.md`
   - possibly project `.deepcode/skills/<name>/SKILL.md`
-- Aligns with Yuri/NUDIMMUD `.agents/skills/` structure.
+- Aligns with Yuri/YURI `.agents/skills/` structure.
 - Appears to support DeepSeek V4 Pro / Flash.
 - May have VS Code extension support.
 
@@ -1245,7 +1245,7 @@ Current best interpretation:
 
 - DeepSeek V4 Pro is a powerful reasoning/synthesis lane.
 - DeepSeek V4 Flash is a cheap scout/classifier/validator lane.
-- NUDIMMUD direct route currently provides model output only.
+- YURI direct route currently provides model output only.
 - DeepSeek is not local mutation authority unless integrated through a real agent/executor shell.
 
 ### 16.2 Correct current DeepSeek use cases
@@ -1302,7 +1302,7 @@ DeepCode / @vegamo/deepcode-cli provenance audit → controlled install plan →
 
 ## 17. Important Prompt Design Corrections
 
-### 17.1 Do not include “open DeepSeek” inside NUDIMMUD prompt
+### 17.1 Do not include “open DeepSeek” inside YURI prompt
 
 Wrong:
 
@@ -1316,7 +1316,7 @@ Commit the patch.
 Correct:
 
 ```text
-You are already running inside NUDIMMUD through DeepSeek V4 Pro.
+You are already running inside YURI through DeepSeek V4 Pro.
 Do not call DeepSeek.
 Do not offload.
 Do not mutate files.
@@ -1334,16 +1334,16 @@ Answer:
 
 - It included a compact blueprint under `BEGIN BLUEPRINT`.
 - That was better than pasting the full massive old prompt.
-- For NUDIMMUD direct prompts, use condensed authoritative blueprint to reduce token burn.
+- For YURI direct prompts, use condensed authoritative blueprint to reduce token burn.
 
-### 17.3 Future prompt shape for NUDIMMUD direct DeepSeek
+### 17.3 Future prompt shape for YURI direct DeepSeek
 
 Recommended structure:
 
 ```text
 <LANE_LABEL>
 
-You are already inside NUDIMMUD through DeepSeek V4 Pro.
+You are already inside YURI through DeepSeek V4 Pro.
 Do not call/offload/open DeepSeek.
 Do not mutate files.
 Do not claim local truth.
@@ -1377,9 +1377,9 @@ Purpose:
 - Plan boot-layer gating.
 - Do not patch blindly.
 - Identify exact behavior in:
-  - `_SYSTEM/nudimmud-boot.zsh`
+  - `_SYSTEM/yuri-boot.zsh`
   - `~/.zshrc`
-- Plan how to suppress boot HUD only for `nudimmud` launch path.
+- Plan how to suppress boot HUD only for `yuri` launch path.
 - Preserve normal shell boot HUD if desired.
 - Preserve REPL HUD from `81722e778`.
 
@@ -1393,7 +1393,7 @@ Reason:
 
 - This involves shell startup files and user-level `.zshrc`.
 - Needs careful scope.
-- Should not be done by NUDIMMUD direct DeepSeek alone.
+- Should not be done by YURI direct DeepSeek alone.
 
 ### 18.2 If continuing DeepSeek executor lane
 
@@ -1422,7 +1422,7 @@ Claude Haiku or Sonnet depending on risk, with strict no-subagent rules.
 
 ### 18.3 If continuing archive ingestion lane
 
-The user has a full archive of Yuri OS / NUDIMMUD project history markdown files in Downloads.
+The user has a full archive of Yuri OS / YURI project history markdown files in Downloads.
 
 Goal:
 
@@ -1447,14 +1447,14 @@ No mutation until plan is reviewed.
 ## 19. Current Accepted / Mentioned Commits From This Session
 
 ```text
-1549dd2a4 test(cli): add NUDIMMUD claim verifier artifact smoke
-3e7398bcc fix(cli): auto-send NUDIMMUD pasted multiline input
-ee60bccd3 fix(cli): separate NUDIMMUD route logs from model output
-61b4689a1 fix(cli): hide NUDIMMUD HUD budget line
-49731654f fix(cli): polish NUDIMMUD compact HUD
-f2b7a1640 fix(cli): repair NUDIMMUD HUD visual layout
-701e24add fix(cli): rebuild NUDIMMUD HUD shell
-81722e778 fix(cli): refine NUDIMMUD HUD from restored baseline
+1549dd2a4 test(cli): add YURI claim verifier artifact smoke
+3e7398bcc fix(cli): auto-send YURI pasted multiline input
+ee60bccd3 fix(cli): separate YURI route logs from model output
+61b4689a1 fix(cli): hide YURI HUD budget line
+49731654f fix(cli): polish YURI compact HUD
+f2b7a1640 fix(cli): repair YURI HUD visual layout
+701e24add fix(cli): rebuild YURI HUD shell
+81722e778 fix(cli): refine YURI HUD from restored baseline
 ```
 
 Note:
@@ -1471,7 +1471,7 @@ Note:
 
 - Boot-layer duplicate HUD not yet fixed.
 - `.zshrc` mutation is outside repo and must be handled carefully.
-- `_SYSTEM/nudimmud-boot.zsh` may affect normal terminal sessions.
+- `_SYSTEM/yuri-boot.zsh` may affect normal terminal sessions.
 - Further REPL HUD patching may make things worse unless boot-layer issue is resolved first.
 
 ### 20.2 DeepSeek executor risks
@@ -1502,9 +1502,9 @@ Note:
 Use this if continuing from this archive in a new GPT session:
 
 ```text
-Continue Yuri OS / NUDIMMUD from this archive-ready session handoff.
+Continue Yuri OS / YURI from this archive-ready session handoff.
 
-You are GPT-5.5 Thinking acting as senior AI systems architect, terminal UI architect, CLI UX designer, LLMOps engineer, TokenOps engineer, prompt architect, Anime-DNA gatekeeper, clean-room/IP gatekeeper, and Yuri OS / NUDIMMUD strategic coordinator.
+You are GPT-5.5 Thinking acting as senior AI systems architect, terminal UI architect, CLI UX designer, LLMOps engineer, TokenOps engineer, prompt architect, Anime-DNA gatekeeper, clean-room/IP gatekeeper, and Yuri OS / YURI strategic coordinator.
 
 Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
@@ -1525,10 +1525,10 @@ Hard rules:
 - Keep reports compact.
 
 Current key state:
-- Latest reported HUD refinement commit: 81722e778 fix(cli): refine NUDIMMUD HUD from restored baseline.
-- HUD duplicate layer audit found upper block comes from _SYSTEM/nudimmud-boot.zsh sourced by ~/.zshrc, not _SYSTEM/Scripts/nudimmud-repl.mjs.
+- Latest reported HUD refinement commit: 81722e778 fix(cli): refine YURI HUD from restored baseline.
+- HUD duplicate layer audit found upper block comes from _SYSTEM/yuri-boot.zsh sourced by ~/.zshrc, not _SYSTEM/Scripts/yuri-repl.mjs.
 - Next HUD fix should target boot-layer gating, not more REPL HUD patching.
-- NUDIMMUD direct DeepSeek route is model-only, not a local file executor.
+- YURI direct DeepSeek route is model-only, not a local file executor.
 - DeepSeek direct prompts should audit/spec/self-assess and produce executor prompts, not mutate.
 - DeepCode / @vegamo/deepcode-cli is the primary candidate for a future DeepSeek-backed executor, but provenance audit was too expensive and must be rerun with cheap research protocol.
 - Web/search cost control is now a priority. No subagents/full WebFetch unless explicitly authorized.
@@ -1547,5 +1547,5 @@ Acknowledge the trusted state and ask me which lane to continue:
 If only one compact memory atom is ingested, use this:
 
 ```text
-As of 2026-05-03, Yuri OS / NUDIMMUD HUD work passed several mechanical commits but visual work remained difficult. The latest reported useful HUD commit is 81722e778, restoring/refining a stronger NUDIMMUD baseline HUD while preserving route separation, output.md cleanliness, claim verifier, composer, and no visible budget. A later audit found the remaining double-HUD problem comes from _SYSTEM/nudimmud-boot.zsh sourced by ~/.zshrc, not _SYSTEM/Scripts/nudimmud-repl.mjs. Next HUD work should gate the boot layer for nudimmud launches, not patch the REPL blindly. DeepSeek V4 Pro should be used heavily but correctly: current NUDIMMUD DeepSeek route is model-only and cannot mutate files. Direct DeepSeek prompts should audit/design/spec and produce local executor prompts, not commit. DeepCode/@vegamo/deepcode-cli is the main candidate for future DeepSeek-backed executor, but provenance audit must be repaired with strict cheap research protocol. Web/search token burn is now a system issue: no subagents/full WebFetch by default, use local/cache/npm/raw-line-capped source ladder, compact evidence, DeepSeek reinforcement only from compact evidence. ChatGPT Web should not generate images unless explicitly requested and should act as visual architect/gatekeeper for HUD/design work.
+As of 2026-05-03, Yuri OS / YURI HUD work passed several mechanical commits but visual work remained difficult. The latest reported useful HUD commit is 81722e778, restoring/refining a stronger YURI baseline HUD while preserving route separation, output.md cleanliness, claim verifier, composer, and no visible budget. A later audit found the remaining double-HUD problem comes from _SYSTEM/yuri-boot.zsh sourced by ~/.zshrc, not _SYSTEM/Scripts/yuri-repl.mjs. Next HUD work should gate the boot layer for yuri launches, not patch the REPL blindly. DeepSeek V4 Pro should be used heavily but correctly: current YURI DeepSeek route is model-only and cannot mutate files. Direct DeepSeek prompts should audit/design/spec and produce local executor prompts, not commit. DeepCode/@vegamo/deepcode-cli is the main candidate for future DeepSeek-backed executor, but provenance audit must be repaired with strict cheap research protocol. Web/search token burn is now a system issue: no subagents/full WebFetch by default, use local/cache/npm/raw-line-capped source ladder, compact evidence, DeepSeek reinforcement only from compact evidence. ChatGPT Web should not generate images unless explicitly requested and should act as visual architect/gatekeeper for HUD/design work.
 ```

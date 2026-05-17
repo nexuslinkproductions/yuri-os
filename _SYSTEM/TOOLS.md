@@ -37,7 +37,7 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ### Linear
 
-- Workspace: NUDIMMUD (team key: NUD)
+- Workspace: YURI (team key: NUD)
 - API key stored in `.env` as `LINEAR_API_KEY`
 - Available for queries: issues, projects, teams, cycles, users
 

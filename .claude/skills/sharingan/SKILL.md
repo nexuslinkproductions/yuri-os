@@ -1,6 +1,6 @@
 ---
 name: sharingan
-description: "User-invoked reverse-engineering + enhancement protocol for any source artifact: repos, codebases, docs, PDFs, screenshots, specs, workflows. Observe deeply, extract underlying technique (not property), expose weaknesses, then rebuild as a legally clean, Yuri OS / Nudimmud-aligned diamond design via 9-phase pipeline."
+description: "User-invoked reverse-engineering + enhancement protocol for any source artifact: repos, codebases, docs, PDFs, screenshots, specs, workflows. Observe deeply, extract underlying technique (not property), expose weaknesses, then rebuild as a legally clean, Yuri OS / Yuri-aligned diamond design via 9-phase pipeline."
 triggers:
   - "/sharingan"
   - "sharingan"
@@ -11,13 +11,13 @@ triggers:
 
 ## Core identity
 
-You are activating the **Sharingan Protocol**: observe deeply, copy only the underlying technique, expose weaknesses, then reconstruct the concept into a stronger, cleaner, better engineered artifact for **Yuri OS / Nudimmud**.
+You are activating the **Sharingan Protocol**: observe deeply, copy only the underlying technique, expose weaknesses, then reconstruct the concept into a stronger, cleaner, better engineered artifact for **Yuri OS / Yuri**.
 
 This is inspired by Kakashi's "copy ninja" concept, but the operating rule is precise:
 
 > Extract the pattern, not the property. Improve the system, not merely imitate the surface.
 
-You must never blindly clone. You must never launder copyrighted, proprietary, or license-incompatible material. You may analyze public or user-provided artifacts, extract ideas, architecture, patterns, workflows, and failure modes, then create an original implementation or blueprint that is better suited to Yuri OS / Nudimmud.
+You must never blindly clone. You must never launder copyrighted, proprietary, or license-incompatible material. You may analyze public or user-provided artifacts, extract ideas, architecture, patterns, workflows, and failure modes, then create an original implementation or blueprint that is better suited to Yuri OS / Yuri.
 
 Use high reasoning / extended thinking if available. Reason internally, but expose only concise reasoning summaries, evidence, decisions, and artifacts.
 
@@ -35,7 +35,7 @@ Examples:
 
 ```text
 /sharingan https://github.com/org/repo --target "adapt into Yuri OS plugin"
-/sharingan ./external-repos/cool-tool --target "rebuild as Nudimmud skill"
+/sharingan ./external-repos/cool-tool --target "rebuild as Yuri skill"
 /sharingan ./docs/research-paper.pdf --target "turn into implementation blueprint"
 /sharingan "this landing page / workflow / screenshot / spec" --target "extract pattern and improve"
 ```
@@ -102,7 +102,7 @@ If no git repository exists, create a working folder:
 .sharingan/<source-name>/<timestamp>/
 ```
 
-For NUDIMMUD projects, prefer:
+For YURI projects, prefer:
 
 ```text
 /Users/marcelspatz/YURI-OS-MUSUBI/.sharingan/<source-name>/<timestamp>/
@@ -132,7 +132,7 @@ Collect:
 - issue patterns if available
 - public API surface
 
-**For local codebases in NUDIMMUD:** Run GitNexus tools first (before grep):
+**For local codebases in YURI:** Run GitNexus tools first (before grep):
 - `gitnexus_query({query: "architecture"})` — get execution flows
 - `gitnexus_context({name: "symbolName"})` — get callers/callees
 - `gitnexus_impact({target: "functionName", direction: "upstream"})` — understand blast radius
@@ -303,7 +303,7 @@ Audit categories:
 | Testing |  |  |  |  |
 | Documentation |  |  |  |  |
 | Maintainability |  |  |  |  |
-| Yuri/Nudimmud fit |  |  |  |  |
+| Yuri/Yuri fit |  |  |  |  |
 ```
 
 Look specifically for:
@@ -354,9 +354,9 @@ For repo-inspired builds, describe new modules and interfaces using original nam
 
 ---
 
-### Phase 5: Yuri OS / Nudimmud enrichment
+### Phase 5: Yuri OS / Yuri enrichment
 
-Refine the blueprint through Yuri/Nudimmud standards.
+Refine the blueprint through Yuri/Yuri standards.
 
 Apply these lenses:
 
@@ -374,7 +374,7 @@ Apply these lenses:
 Output:
 
 ```markdown
-## Yuri/Nudimmud Enhancement Matrix
+## Yuri/Yuri Enhancement Matrix
 | Standard | Current source | Required upgrade | Implementation note |
 |---|---|---|---|
 | Symbiotic integration |  |  |  |
@@ -435,7 +435,7 @@ Build a step-by-step execution plan.
 - [ ] Write clean-room blueprint
 
 ### Stage 3: Redesign
-- [ ] Define Yuri/Nudimmud fit
+- [ ] Define Yuri/Yuri fit
 - [ ] Define modules and interfaces
 - [ ] Define validation gates
 - [ ] Define rollout plan
@@ -507,7 +507,7 @@ Output:
 | Blueprint completeness |  |  |  |
 | Security |  |  |  |
 | Tests/verification |  |  |  |
-| Yuri/Nudimmud fit |  |  |  |
+| Yuri/Yuri fit |  |  |  |
 ```
 
 ---
@@ -670,11 +670,11 @@ Do not finish with vague advice.
   1. Removed unsupported `disable-model-invocation: true` field
   2. Added `triggers: ["/sharingan", "sharingan", "/sr"]`
   3. Added model routing section (Sonnet 4.6 for analysis, Haiku for extraction, local-subagent for deterministic work)
-  4. Integrated GitNexus tools into Phase 1 (Observe) for local NUDIMMUD codebases
+  4. Integrated GitNexus tools into Phase 1 (Observe) for local YURI codebases
   5. Added swarm coordination note for Phase 7 (large repos >50 files)
   6. Added ecosystem integration section (tokenmaxxing-aware, EOT checkpoint, memory output)
   7. Added Session Notes section (this entry)
-  8. Clarified output folder path for NUDIMMUD workspace
+  8. Clarified output folder path for YURI workspace
 
 ### 2026-04-26 — Renamed MANGEKYO → SHARINGAN (Marcel)
 - **Tools used:** Bash (move/rename dirs), Edit (content updates)

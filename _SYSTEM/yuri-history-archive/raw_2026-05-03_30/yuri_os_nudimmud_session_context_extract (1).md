@@ -1,8 +1,8 @@
-# Yuri OS / Nudimmud — Session Context Extract
+# Yuri OS / Yuri — Session Context Extract
 
 ## 1. Session Summary
 
-This session continued the Yuri OS / NUDIMMUD “boring reinforcement” workstream. The user provided multiple Claude Code sprint reports, and GPT-5.5 acted as external architecture reviewer, sprint gatekeeper, consistency auditor, and prompt designer.
+This session continued the Yuri OS / YURI “boring reinforcement” workstream. The user provided multiple Claude Code sprint reports, and GPT-5.5 acted as external architecture reviewer, sprint gatekeeper, consistency auditor, and prompt designer.
 
 The main work covered:
 
@@ -234,7 +234,7 @@ No hidden reasoning is included here. This file summarizes only visible chat con
 
 ### Codex CLI
 
-- Role from prior project context: Secondary working CLI for Yuri OS / Nudimmud.
+- Role from prior project context: Secondary working CLI for Yuri OS / Yuri.
 - Intended use: Important secondary execution and audit lane, close to Claude Code CLI in repo context and reinforcement setup.
 - Routing note: Should be assigned different task types rather than blindly duplicating Claude’s role.
 - In this chat: No concrete Codex execution occurred.
@@ -261,7 +261,7 @@ No hidden reasoning is included here. This file summarizes only visible chat con
   - Flags count mismatches, scope drift, unsafe expansion, and overclaims.
   - Writes Claude prompts.
   - Maintains continuity and trusted-state interpretation.
-- Required prompt convention: Every Claude prompt for Yuri OS / NUDIMMUD should include a “GPT-5.5 Help Context” block summarizing gate decisions, trusted state, risks, and instructions.
+- Required prompt convention: Every Claude prompt for Yuri OS / YURI should include a “GPT-5.5 Help Context” block summarizing gate decisions, trusted state, risks, and instructions.
 - Status: Strategic guide and external review authority, not local executor.
 
 ### GPT-5.4
@@ -272,7 +272,7 @@ No hidden reasoning is included here. This file summarizes only visible chat con
 
 ### VS Code
 
-- Role from project context: Main IDE for Yuri OS / Nudimmud work.
+- Role from project context: Main IDE for Yuri OS / Yuri work.
 - In this chat: Mentioned as part of the user’s tool stack, but no VS Code-specific action was taken.
 - Status: Main IDE context.
 
@@ -772,7 +772,7 @@ Suggested next sequence after 06E-V:
 
 ## 10. GPT-5.5 Continuity Brief
 
-Yuri OS / NUDIMMUD boring reinforcement continued through Sprint 05 and Sprint 06. GPT-5.5 acted as architecture reviewer/gatekeeper, and Claude Code acted as local executor/validator.
+Yuri OS / YURI boring reinforcement continued through Sprint 05 and Sprint 06. GPT-5.5 acted as architecture reviewer/gatekeeper, and Claude Code acted as local executor/validator.
 
 Sprint 05 was closed and accepted. The registry baseline is:
 - `skill-manifest.json` at `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/reinforcement/skill-manifest.json`
@@ -817,7 +817,7 @@ The next recommended task is Sprint 06E-V Post-Baseline Commit Validation. Best 
 ## 11. Machine-Readable JSON
 
 {
-  "project": "Yuri OS / Nudimmud",
+  "project": "Yuri OS / Yuri",
   "session_theme": "Boring reinforcement, command-surface reconciliation, git hygiene, baseline commits, and Gemini CLI setup planning",
   "main_outputs": [
     "Reviewed and gated Sprint 05A through 05E command-surface work",
@@ -887,7 +887,7 @@ The next recommended task is Sprint 06E-V Post-Baseline Commit Validation. Best 
       "Not directly used in this chat"
     ],
     "vscode": [
-      "Main IDE for Yuri OS / Nudimmud work",
+      "Main IDE for Yuri OS / Yuri work",
       "No direct VS Code task occurred in this chat"
     ]
   },

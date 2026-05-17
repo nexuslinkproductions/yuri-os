@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — GPT Session Continuity After Gemini Bridge Stubs
+# Yuri OS / YURI — GPT Session Continuity After Gemini Bridge Stubs
 
 Date: 2026-04-29  
 Prepared for: fresh GPT-5.5 continuation chat + Claude Code continuation  
@@ -8,7 +8,7 @@ Status: continuity handoff, not an independent repo audit
 
 ## 1. Purpose
 
-This handoff summarizes the current Yuri OS / NUDIMMUD session after:
+This handoff summarizes the current Yuri OS / YURI session after:
 
 - final Bash security guard lane closure,
 - Gemini local/global instruction repairs,
@@ -58,7 +58,7 @@ e9daf01f feat(hooks): register Bash security guard
 
 Cost discipline is now a very high-priority workflow rule.
 
-Apply proactively to all Yuri OS / NUDIMMUD and Claude Code / Codex / Gemini work:
+Apply proactively to all Yuri OS / YURI and Claude Code / Codex / Gemini work:
 
 ```text
 Use the smallest capable model for the task.
@@ -469,7 +469,7 @@ Important:
 ## 8. Ready-to-Paste New GPT Chat Opening
 
 ```text
-Continue Yuri OS / NUDIMMUD from this continuity handoff.
+Continue Yuri OS / YURI from this continuity handoff.
 
 Current accepted repo state:
 

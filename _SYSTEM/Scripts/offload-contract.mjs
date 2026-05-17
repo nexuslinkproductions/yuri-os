@@ -348,7 +348,7 @@ const OFFLOAD_CONTRACT = {
       note: 'OpenClaw/09OC fully absorbed into Musubi as Nisaba Sentinel. The 09OC research lane is now @deepseek-flash. The daemon heartbeat is _SYSTEM/Scripts/nisaba-sentinel.mjs running every 33min via LaunchAgent. No quarantine — Nisaba Sentinel operates under the same native gates as all other Musubi components.',
       gatewayPort: 18789,
       sentinel: '_SYSTEM/Scripts/nisaba-sentinel.mjs',
-      launchAgent: 'com.nudimmud.nisaba-sentinel'
+      launchAgent: 'com.yuri.nisaba-sentinel'
     },
     hardBlocksRemainOwnedBy: 'bash-security-guard.js',
     denyPermissionDecision: false

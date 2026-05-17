@@ -104,7 +104,7 @@ const TelemetryDeck: React.FC = () => {
         const interval = setInterval(fetchIntegrations, 30000);
 
         let unsubscribe: (() => void) | null = null;
-        const engine = (window as any).nudimmudEngine;
+        const engine = (window as any).yuriEngine;
         if (engine) {
             unsubscribe = engine.subscribe((payload: TelemetryData) => {
                 setData(payload);

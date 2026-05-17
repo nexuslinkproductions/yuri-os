@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "NUDIMMUD Offload Adapter Envelope v1.0",
+  "title": "YURI Offload Adapter Envelope v1.0",
   "type": "object",
   "required": ["lane", "model", "status", "envelopeVersion"],
   "properties": {

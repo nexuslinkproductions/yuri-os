@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { NudimmudDesignConfig, DEFAULT_CONFIG } from './types';
+import { YuriDesignConfig, DEFAULT_CONFIG } from './types';
 import DesignCatalog from './DesignCatalog';
 import ConfirmScreen from './ConfirmScreen';
 import AuditHUD from './AuditHUD';
@@ -17,7 +17,7 @@ const SCREEN_TRANSITIONS = {
 
 export default function DesignAuditHUD() {
   const [screen, setScreen] = useState<Screen>('catalog');
-  const [config, setConfig] = useState<NudimmudDesignConfig>({ ...DEFAULT_CONFIG });
+  const [config, setConfig] = useState<YuriDesignConfig>({ ...DEFAULT_CONFIG });
 
   const handleUpdate = (key: string, value: string | string[]) => {
     setConfig((prev) => ({ ...prev, [key]: value }));

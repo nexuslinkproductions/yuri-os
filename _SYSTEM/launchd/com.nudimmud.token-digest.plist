@@ -4,7 +4,7 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.nudimmud.token-digest</string>
+  <string>com.yuri.token-digest</string>
 
   <key>ProgramArguments</key>
   <array>

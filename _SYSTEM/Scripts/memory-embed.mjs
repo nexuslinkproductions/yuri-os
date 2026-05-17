@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
-const MEMORY_DIR = path.join(REPO_ROOT, '.claude', 'projects', '-Users-marcelspatz-NUDIMMUD', 'memory');
+const MEMORY_DIR = path.join(REPO_ROOT, '.claude', 'projects', '-Users-marcelspatz-YURI', 'memory');
 const DB_PATH = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'semantic-memory.db');
 const MODEL_NAME = 'Xenova/all-MiniLM-L6-v2';
 const EMBEDDING_DIMENSIONS = 384;

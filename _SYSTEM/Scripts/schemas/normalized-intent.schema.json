@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://nudimmud.local/schemas/normalized-intent.schema.json",
+  "$id": "https://yuri.local/schemas/normalized-intent.schema.json",
   "title": "Yuri normalized intent",
   "type": "object",
   "additionalProperties": true,

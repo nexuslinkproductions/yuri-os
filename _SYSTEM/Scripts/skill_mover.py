@@ -5,15 +5,15 @@ import shutil
 import glob
 
 # Paths
-NUDIMMUD_ROOT = "/Users/marcelspatz/NUDIMMUD"
+YURI_ROOT = "/Users/marcelspatz/YURI"
 GEMINI_SKILLS_DIR = "/Users/marcelspatz/.gemini/skills"
 
 def unpack_and_register_skills():
-    print(f"Scanning for skills in {NUDIMMUD_ROOT}...")
-    skill_files = glob.glob(os.path.join(NUDIMMUD_ROOT, "*.skill"))
+    print(f"Scanning for skills in {YURI_ROOT}...")
+    skill_files = glob.glob(os.path.join(YURI_ROOT, "*.skill"))
     
     if not skill_files:
-        print("No .skill files found in NUDIMMUD root.")
+        print("No .skill files found in YURI root.")
         return
 
     for skill_path in skill_files:

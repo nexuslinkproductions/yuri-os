@@ -1,6 +1,6 @@
 # Design Radar
 
-Curated UI references for the NUDIMMUD OS redesign.
+Curated UI references for the YURI OS redesign.
 
 ## Sources
 

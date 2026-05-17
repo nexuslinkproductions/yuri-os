@@ -64,7 +64,7 @@ const Bridge: React.FC<BridgeProps> = ({ surfaceLabel = 'Bridge' }) => {
     useEffect(() => {
         loadKnowledge();
 
-        const engine = (window as any).nudimmudEngine;
+        const engine = (window as any).yuriEngine;
         if (!engine) return;
 
         const unsubscribe = engine.subscribe((data: { obsidian?: { activeFile?: string } }) => {
@@ -138,7 +138,7 @@ const Bridge: React.FC<BridgeProps> = ({ surfaceLabel = 'Bridge' }) => {
 
     const openSelectedNode = () => {
         if (!selectedNode) return;
-        (window as any).nudimmudEngine?.openNote(selectedNode.source_path);
+        (window as any).yuriEngine?.openNote(selectedNode.source_path);
     };
 
     return (

@@ -14,7 +14,7 @@ Source: https://atlassian.design/design-system/
 - Reusable controls with clear behavior.
 - Strong content discipline.
 
-## Apply to NUDIMMUD
+## Apply to YURI
 
 - Use Atlassian as the reference for a top nav and command rail.
 - Clean up naming so every label reads like product UI.

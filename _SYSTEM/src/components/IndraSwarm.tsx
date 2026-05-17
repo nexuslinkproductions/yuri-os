@@ -165,8 +165,8 @@ const IndraSwarm: React.FC = () => {
         const interval = setInterval(fetchData, 5000);
         
         let unsubscribe: any = null;
-        if ((window as any).nudimmudEngine) {
-            unsubscribe = (window as any).nudimmudEngine.subscribe((data: { swarmMessage?: boolean, obsidian?: { status: string }, integrations?: Integration[] }) => {
+        if ((window as any).yuriEngine) {
+            unsubscribe = (window as any).yuriEngine.subscribe((data: { swarmMessage?: boolean, obsidian?: { status: string }, integrations?: Integration[] }) => {
                 if (data.swarmMessage) fetchData();
                 if (data.obsidian) setVaultStatus(data.obsidian.status === 'ONLINE' ? 'CONNECTED' : 'OFFLINE');
                 if (data.integrations) {

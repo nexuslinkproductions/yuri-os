@@ -308,7 +308,7 @@ The `head` field in each event records the HEAD commit at event-time (verificati
 - head: `b5ac69333`
 - reviewer: `owner:marcel-spatz`
 - rag_eligibility: `ACTIVE`
-- notes: `Installed com.nudimmud.wiki-rag launchd agent at /Users/marcelspatz/Library/LaunchAgents/com.nudimmud.wiki-rag.plist; launchctl print confirms the agent is running and will start the digest-gated watcher on login.`
+- notes: `Installed com.yuri.wiki-rag launchd agent at /Users/marcelspatz/Library/LaunchAgents/com.yuri.wiki-rag.plist; launchctl print confirms the agent is running and will start the digest-gated watcher on login.`
 
 ### 09s-0001
 
@@ -338,7 +338,7 @@ The `head` field in each event records the HEAD commit at event-time (verificati
 - head: `b5ac69333`
 - reviewer: `owner:marcel-spatz`
 - rag_eligibility: `ACTIVE`
-- notes: `Verified the clean removal path with launchctl remove com.nudimmud.wiki-rag; the label disappeared from gui/501, the plist was removed, and launchctl print no longer finds the job.`
+- notes: `Verified the clean removal path with launchctl remove com.yuri.wiki-rag; the label disappeared from gui/501, the plist was removed, and launchctl print no longer finds the job.`
 
 ### 09u-0001
 
@@ -353,7 +353,7 @@ The `head` field in each event records the HEAD commit at event-time (verificati
 - head: `b5ac69333`
 - reviewer: `owner:marcel-spatz`
 - rag_eligibility: `ACTIVE`
-- notes: `Restored the launchd agent with npm run wiki:rag:launchd:install after teardown verification. launchctl print confirms com.nudimmud.wiki-rag is running again and the label is enabled in gui/501.`
+- notes: `Restored the launchd agent with npm run wiki:rag:launchd:install after teardown verification. launchctl print confirms com.yuri.wiki-rag is running again and the label is enabled in gui/501.`
 
 ### 09v-0001
 

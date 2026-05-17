@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# NUDIMMUD claude launcher — shows HUD splash for interactive sessions.
-# Lives at ~/NUDIMMUD/bin (prepended to PATH) to intercept all launches.
+# YURI claude launcher — shows HUD splash for interactive sessions.
+# Lives at ~/YURI/bin (prepended to PATH) to intercept all launches.
 # Strips itself from PATH before exec'ing the real binary to avoid recursion.
 
-if [[ "${NUDIMMUD_SPLASH_SHOWN:-0}" != "1" ]]; then
+if [[ "${YURI_SPLASH_SHOWN:-0}" != "1" ]]; then
   _interactive=1
   for _arg in "$@"; do
     case "$_arg" in
@@ -44,11 +44,11 @@ if [[ "${NUDIMMUD_SPLASH_SHOWN:-0}" != "1" ]]; then
   unset _interactive
 fi
 
-export NUDIMMUD_SPLASH_SHOWN=1
+export YURI_SPLASH_SHOWN=1
 
 # Strip wrapper dir from PATH so exec resolves the real claude binary.
 # Handle both leading and trailing positions.
-_WRAPPER_DIR="$HOME/NUDIMMUD/bin"
+_WRAPPER_DIR="$HOME/YURI/bin"
 _CLEAN_PATH=":${PATH}:"
 _CLEAN_PATH="${_CLEAN_PATH//:${_WRAPPER_DIR}:/}"
 _CLEAN_PATH="${_CLEAN_PATH#:}"

@@ -423,3 +423,6 @@ If token usage exceeds budgets consistently, auto-disable:
 | 2026-05-17T17:05 | 7m | 25 | ~9,300 | Bash×19, Read×3, Edit×3 |
 | 2026-05-17T17:13 | 5m | 16 | ~5,400 | Bash×14, Read×1, Edit×1 |
 | 2026-05-17T18:12 | 4m | 32 | ~12,000 | Bash×24, Read×4, Edit×3 |
+| 2026-05-17T18:39 | 6m | 25 | ~11,500 | Bash×13, Read×7, Edit×5 |
+| 2026-05-17T19:09 | 6m | 18 | ~6,300 | Bash×13, Edit×4, Read×1 |
+| 2026-05-17T19:18 | 7m | 28 | ~11,400 | mcp__Control_Chrome__execute_javascript×15, Bash×4, mcp__Control_Chrome__open_url×3 |

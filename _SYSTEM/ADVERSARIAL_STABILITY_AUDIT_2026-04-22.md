@@ -1,5 +1,5 @@
 # ⬡ ADVERSARIAL STABILITY & EFFECTIVENESS AUDIT
-**NUDIMMUD System - Production Readiness Assessment**  
+**YURI System - Production Readiness Assessment**  
 **Date:** 2026-04-22T01:15:00Z  
 **Mode:** OBLITERATUS-QA (Unbound Red-Team)  
 **Risk Level:** CRITICAL (5 showstoppers identified)
@@ -8,7 +8,7 @@
 
 ## EXECUTIVE SUMMARY
 
-The NUDIMMUD system demonstrates **solid architectural thinking** but contains **5 CRITICAL vulnerabilities**, **8 HIGH-risk design flaws**, and **multiple cascade failure paths** that will produce catastrophic system degradation under load or during credential rotation.
+The YURI system demonstrates **solid architectural thinking** but contains **5 CRITICAL vulnerabilities**, **8 HIGH-risk design flaws**, and **multiple cascade failure paths** that will produce catastrophic system degradation under load or during credential rotation.
 
 **Verdict:** System is **NOT production-ready**. Requires immediate hardening in security, error resilience, and observability layers before handling sensitive operations.
 
@@ -21,7 +21,7 @@ The NUDIMMUD system demonstrates **solid architectural thinking** but contains *
 **File:** [backend/src/middleware/auth.ts](backend/src/middleware/auth.ts#L8)
 
 ```typescript
-const apiKey = process.env.API_KEY || 'nudimmud-default-key-change-me';
+const apiKey = process.env.API_KEY || 'yuri-default-key-change-me';
 ```
 
 **The Exploit Path:**
@@ -38,7 +38,7 @@ const apiKey = process.env.API_KEY || 'nudimmud-default-key-change-me';
 **Required Defense:**
 ```typescript
 // ❌ WRONG
-const apiKey = process.env.API_KEY || 'nudimmud-default-key-change-me';
+const apiKey = process.env.API_KEY || 'yuri-default-key-change-me';
 
 // ✅ CORRECT
 const apiKey = process.env.API_KEY;
@@ -59,7 +59,7 @@ if (!apiKey) {
 ```typescript
 dotenv.config();
 // ... env vars are now globally accessible
-const SYSTEM_API_KEY = 'nudimmud-default-key-change-me'; // Hard-coded override
+const SYSTEM_API_KEY = 'yuri-default-key-change-me'; // Hard-coded override
 ```
 
 **The Exploit Path:**
@@ -574,7 +574,7 @@ ps aux | grep "npm run dev" # Should be gone, but isn't always
 #!/bin/bash
 # ✅ PROPER PROCESS LIFECYCLE MANAGEMENT
 
-PID_FILE="/tmp/nudimmud.pid"
+PID_FILE="/tmp/yuri.pid"
 
 cleanup() {
     if [ -f "$PID_FILE" ]; then
@@ -691,7 +691,7 @@ class TokenTracker {
 
 # Now curl the metrics endpoint
 curl -X GET http://localhost:3004/api/metrics \
-  -H "X-API-KEY: nudimmud-default-key-change-me"
+  -H "X-API-KEY: yuri-default-key-change-me"
 
 # Returns: { "totalTokens": 0, "recentSessions": [] }  ← Silent failure
 ```
@@ -765,7 +765,7 @@ async function syncTokenUsageFromFallback() {
 
 ### Phase 4: NICE-TO-HAVE (Roadmap)
 - [ ] Distributed tracing across agents
-- [ ] Automated backup of NUDIMMUD database
+- [ ] Automated backup of YURI database
 - [ ] Token budget alerts (warning at 80%, critical at 95%)
 
 ---

@@ -481,7 +481,7 @@ This is ON TOP of the hover scale lerp — combined as: finalScale = hoverScale 
 
 Top-left (Space Grotesk 14px #E8F4FD weight 400 tracking 0.08em):
   "YURI OS"
-  "NUDIMMUD · main · 2e6380d8" (Inter 10px #4A6080)
+  "YURI · main · 2e6380d8" (Inter 10px #4A6080)
 
 Top-right (Inter 11px #C8D8E8):
   Soak ring SVG (r=14, 32% fill, stroke #00D4FF)

@@ -5,10 +5,10 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
-import { runSymbioticPulse } from './nudimmud/symbiotic-pulse.mjs'
+import { runSymbioticPulse } from './yuri/symbiotic-pulse.mjs'
 
 const WORKHORSE_VERSION = '0.1.0'
-const PLAN_VERSION = 'nudimmud.workhorse.x1'
+const PLAN_VERSION = 'yuri.workhorse.x1'
 const INTENT_SCHEMA_PATH = '_SYSTEM/Scripts/intent-schema.json'
 const ACTION_SCHEMA_PATH = '_SYSTEM/Scripts/deepseek-action-schema.json'
 const OFFLOAD_RUNNER_PATH = '_SYSTEM/Scripts/offload-runner.mjs'
@@ -17,7 +17,7 @@ const LIVE_PRO_LANE = process.env.YURI_WORKHORSE_PRO_LANE || 'deepseek-v4-pro'
 const LIVE_FLASH_LANE = process.env.YURI_WORKHORSE_FLASH_LANE || 'deepseek-v4-flash'
 // Set YURI_WORKHORSE_PRO_LANE=nvidia-nemotron (or any @nvidia variant) to use NVIDIA NIM
 // as the primary workhorse reasoning lane instead of DeepSeek.
-const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud', 'workhorse-runs')
+const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.yuri', 'workhorse-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/yuri-workhorse-runs'
 const DEFAULT_MAX_LINES = 80
 const HARD_MAX_LINES = 200
@@ -201,7 +201,7 @@ function parseCli(argv) {
 function printHelp() {
   process.stdout.write(
     [
-      'NUDIMMUD Workhorse X1',
+      'YURI Workhorse X1',
       '',
       'Usage:',
       '  node _SYSTEM/Scripts/yuri-workhorse.mjs "<rough idea>"',
@@ -460,7 +460,7 @@ function appendPulseArtifact(filePath, pulse) {
   const artifact = fileExists(filePath)
     ? readJsonFile(filePath)
     : {
-        pulse_artifact_version: 'nudimmud.symbiotic-pulse.artifact.x1',
+        pulse_artifact_version: 'yuri.symbiotic-pulse.artifact.x1',
         governanceSkeletonId: pulse.governanceSkeletonId,
         pulses: [],
       }
@@ -489,7 +489,7 @@ function buildIntent({ idea, execute, run }) {
 
   return {
     id: `intent-${hashShort(collapsedIdea)}`,
-    intent_version: 'nudimmud.intent.x1',
+    intent_version: 'yuri.intent.x1',
     rough_idea: collapsedIdea,
     normalized_goal: `Turn the idea into a guarded readonly action plan: ${collapsedIdea}`,
     execution_mode: execute ? 'execute' : 'dry_run',
@@ -853,7 +853,7 @@ function validateLiveFlashReview(payload) {
 
 function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath, artifactRoot }) {
   return [
-    '# NUDIMMUD Workhorse Live Request',
+    '# YURI Workhorse Live Request',
     '',
     `rough_idea: ${idea}`,
     `execution_mode: ${execute ? 'execute' : 'dry_run'}`,
@@ -889,7 +889,7 @@ function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath, artifactRo
     'keywords',
     '',
     'intent values:',
-    'intent_version must be "nudimmud.intent.x1".',
+    'intent_version must be "yuri.intent.x1".',
     'execution_mode must be "dry_run" or "execute".',
     'tier_required must be "tier0_readonly".',
     'risk_level must be "low" or "medium".',
@@ -916,7 +916,7 @@ function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath, artifactRo
     'tier_required',
     'steps',
     '',
-    'action_plan.plan_version must be "nudimmud.workhorse.x1".',
+    'action_plan.plan_version must be "yuri.workhorse.x1".',
     'action_plan.id must match or derive from intent.id.',
     'action_plan.intent must be the exact intent object.',
     'action_plan.tier_required must be "tier0_readonly".',
@@ -971,7 +971,7 @@ function buildLiveRequestPrompt({ idea, execute, noFlash, sourcePath, artifactRo
 
 function buildLiveFlashPrompt({ idea, intent, plan, execute }) {
   return [
-    '# NUDIMMUD Workhorse Flash Review',
+    '# YURI Workhorse Flash Review',
     '',
     `rough_idea: ${idea}`,
     `execution_mode: ${execute ? 'execute' : 'dry_run'}`,
@@ -1291,7 +1291,7 @@ function classifyLiveTransportError(message) {
 
 function buildExecutorPrompt({ run, intent, plan, flashReview, execute, sourcePlanPath = 'forge' }) {
   return [
-    '# NUDIMMUD Workhorse Executor Prompt',
+    '# YURI Workhorse Executor Prompt',
     '',
     `run_id: ${run.runId}`,
     `source: ${sourcePlanPath}`,
@@ -1320,7 +1320,7 @@ function buildExecutorPrompt({ run, intent, plan, flashReview, execute, sourcePl
 
 function buildFinalReport({ run, intent, plan, flashReview, executorSummary, execute, live = false, liveSmokeStatus = 'not_run', beforeHead, afterHead, sourcePath }) {
   const lines = [
-    '# NUDIMMUD Workhorse Final Report',
+    '# YURI Workhorse Final Report',
     '',
     `RESULT_LABEL: ${live ? `LIVE_${execute ? 'EXECUTE' : 'DRY_RUN'}` : (execute ? 'EXECUTE' : 'DRY_RUN')}`,
     `HEAD_BEFORE: ${beforeHead}`,
@@ -1375,7 +1375,7 @@ function runExecutorPlan({ planPath, execute, artifactRoot }) {
 }
 
 function runSelftest({ artifactRoot }) {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nudimmud-workhorse-selftest-'))
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-workhorse-selftest-'))
   const markers = []
   const scopedBefore = scopedRepoStatus()
 
@@ -1478,7 +1478,7 @@ function runSelftest({ artifactRoot }) {
   const liveIdea = 'inspect package scripts without mutation'
   const liveIntent = {
     id: `intent-${hashShort(liveIdea)}`,
-    intent_version: 'nudimmud.intent.x1',
+    intent_version: 'yuri.intent.x1',
     rough_idea: liveIdea,
     normalized_goal: `Turn the idea into a guarded readonly action plan: ${liveIdea}`,
     execution_mode: 'dry_run',
@@ -1568,7 +1568,7 @@ function runSelftest({ artifactRoot }) {
       deepEqualJson(parsedPlan.intent, parsedIntent) &&
       parsedPlan.plan_version === PLAN_VERSION &&
       parsedPlan.steps.length > 0 &&
-      parsedIntent.intent_version === 'nudimmud.intent.x1' &&
+      parsedIntent.intent_version === 'yuri.intent.x1' &&
       parsedIntent.tier_required === 'tier0_readonly' &&
       parsedPlan.tier_required === 'tier0_readonly'
     ) {
@@ -1842,7 +1842,7 @@ function makeBlockedPlan(target) {
     id: `blocked-${hashShort(target)}`,
     intent: {
       id: `intent-${hashShort(target)}`,
-      intent_version: 'nudimmud.intent.x1',
+      intent_version: 'yuri.intent.x1',
       rough_idea: 'blocked path test',
       normalized_goal: 'blocked path test',
       execution_mode: 'dry_run',
@@ -2094,7 +2094,7 @@ function isPositiveInteger(value) {
 
 function helpTextLines() {
   return [
-    'NUDIMMUD Workhorse X1',
+    'YURI Workhorse X1',
     'Usage:',
     '  node _SYSTEM/Scripts/yuri-workhorse.mjs "<rough idea>"',
     '  node _SYSTEM/Scripts/yuri-workhorse.mjs forge "<rough idea>"',

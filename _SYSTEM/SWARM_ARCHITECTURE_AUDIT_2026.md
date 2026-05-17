@@ -1,10 +1,10 @@
 # SWARM_ARCHITECTURE_AUDIT_2026.md
 
 ## 1. Overview
-This audit evaluates the current NUDIMMUD Agentic OS architecture against 2024-2025 state-of-the-art (SOTA) methods for LLM coordination, agentic swarms, and AI pipelines.
+This audit evaluates the current YURI Agentic OS architecture against 2024-2025 state-of-the-art (SOTA) methods for LLM coordination, agentic swarms, and AI pipelines.
 
 ## 2. Current Setup Analysis
-NUDIMMUD utilizes a **Fixed-Role Conclave** architecture with a centralized SQL-based process table (`memory.db`).
+YURI utilizes a **Fixed-Role Conclave** architecture with a centralized SQL-based process table (`memory.db`).
 - **Core Agents**: ENLIL (Architect), NABU (Scribe), ENKI (Craftsman), INANNA (Guardian).
 - **Communication**: SQLite process table + `swarm-handoff.sh`.
 - **Memory**: Unified SQL-based episodic/semantic memory.
@@ -12,7 +12,7 @@ NUDIMMUD utilizes a **Fixed-Role Conclave** architecture with a centralized SQL-
 
 ## 3. Gap Analysis
 
-| Feature | NUDIMMUD Current | State-of-the-Art (2025) | Gap / Risk |
+| Feature | YURI Current | State-of-the-Art (2025) | Gap / Risk |
 | :--- | :--- | :--- | :--- |
 | **Coordination** | Linear/Role-based (SQL Task Table) | Graph-based (LangGraph), State Machines | Rigid workflows; lacks native cycle support and complex branching logic. |
 | **Orchestration** | Manual/Scripted Handoffs | Standardized Handoff SDKs (OpenAI SDK), Agent-to-Agent (A2A) | High overhead for inter-agent communication; brittle handoff scripts. |
@@ -41,7 +41,7 @@ NUDIMMUD utilizes a **Fixed-Role Conclave** architecture with a centralized SQL-
 ### R4: Adopt Model Context Protocol (MCP)
 - **Concept**: Standardize all tool and data access via MCP servers.
 - **Benefit**: Seamless integration across Cursor, VS Code, and Claude Code.
-- **Action**: Ensure all NUDIMMUD tools are exposed as MCP servers.
+- **Action**: Ensure all YURI tools are exposed as MCP servers.
 
 ### R5: Adversarial Quality Gates
 - **Concept**: Use INANNA (Guardian) as a dedicated adversarial evaluator.

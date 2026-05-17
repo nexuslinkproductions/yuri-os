@@ -1,12 +1,12 @@
 ---
-title: "Yuri OS / NUDIMMUD — GPT Session Archive, Part 1: DeepSeek, TokenOps, and RAG Atom Schema"
+title: "Yuri OS / YURI — GPT Session Archive, Part 1: DeepSeek, TokenOps, and RAG Atom Schema"
 date_generated: "2026-05-03"
 source: "Visible GPT-5.5 session transcript and user-provided local execution outputs"
 status: "Archive-ready continuity document; not an independent repo audit"
-project: "Yuri OS / NUDIMMUD"
+project: "Yuri OS / YURI"
 repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
-latest_head_at_end_of_part: "000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary"
+latest_head_at_end_of_part: "000baeb8c fix(cli): prevent duplicate YURI HUD exit summary"
 related_sprints:
   - "08G_DEEPSEEK_V4_PRO_ROUTING_BENCH_P"
   - "08H_PULSE_LEAN_CONTEXT_TOKENOPS_INTAKE_P"
@@ -14,7 +14,7 @@ related_sprints:
   - "08I-R_TOKENOPS_RAG_ATOM_SCHEMA_CANONICALIZE_P (next)"
 tags:
   - yuri-os
-  - nudimmud
+  - yuri
   - deepseek-v4
   - tokenops
   - rag
@@ -23,13 +23,13 @@ tags:
   - session-continuity
 ---
 
-# Yuri OS / NUDIMMUD — GPT Session Archive, Part 1
+# Yuri OS / YURI — GPT Session Archive, Part 1
 
 ## 0. Purpose
 
 This Markdown file captures the first major half of the GPT-5.5 session covering DeepSeek V4 Pro routing, TokenOps / Lean Context intake, and the no-ingest RAG atom schema pilot.
 
-It is intended for ingestion into the Yuri OS / NUDIMMUD archive and future RAG/context systems.
+It is intended for ingestion into the Yuri OS / YURI archive and future RAG/context systems.
 
 This file is **not** an independently executed repo audit. It records the session’s accepted state based on visible chat content and user-provided terminal/Claude outputs. Local repository truth must still be verified with direct shell commands before any mutation, staging, commit, DB work, or runtime claim.
 
@@ -42,7 +42,7 @@ The session began from a handoff state where DeepSeek V4 lanes had just been add
 ### Trusted starting context supplied by the user
 
 ```text
-Project: Yuri OS / NUDIMMUD
+Project: Yuri OS / YURI
 Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Latest confirmed HEAD at session start: ac2c846c1
@@ -686,14 +686,14 @@ New preferred workflow:
 
 ```text
 1. GPT-5.5 writes compact DeepSeek Pro prompt.
-2. User runs it directly through the NUDIMMUD / DeepSeek lane.
+2. User runs it directly through the YURI / DeepSeek lane.
 3. User runs compact DeepSeek Flash validation directly.
 4. User pastes only compact Pro + Flash outputs back to GPT-5.5.
 5. GPT-5.5 gates.
 6. Claude/Sonnet is used only if local repo evidence or mutation is necessary.
 ```
 
-This directly motivated the next half of the session: creating a first-class `nudimmud` DeepSeek HUD REPL.
+This directly motivated the next half of the session: creating a first-class `yuri` DeepSeek HUD REPL.
 
 ---
 
@@ -739,9 +739,9 @@ The session did not establish:
 Continue with Part 2 for:
 
 ```text
-- raw DeepSeek CLI vs interactive NUDIMMUD REPL decision
+- raw DeepSeek CLI vs interactive YURI REPL decision
 - Hermes-switch discussion
-- NUDIMMUD DeepSeek HUD REPL implementation
+- YURI DeepSeek HUD REPL implementation
 - commits e17a9012d and 000baeb8c
 - final accepted current state and new-chat continuation prompt
 ```

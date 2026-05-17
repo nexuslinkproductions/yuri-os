@@ -139,7 +139,7 @@ Four agents run on a schedule, each building a different part of your brand:
 
 ```
 Morning: Shoot on location (camera, gimbal, audio, lighting)
-Evening: Write debrief notes in NUDIMMUD
+Evening: Write debrief notes in YURI
   - What worked
   - What failed and how you fixed it
   - Techniques used
@@ -252,7 +252,7 @@ These outputs feed into:
 
 1. **Write debrief notes after shoots** (5 min)
    - What worked, what failed, what you learned
-   - Saved to NUDIMMUD inbox or project folder
+   - Saved to YURI inbox or project folder
 
 2. **Review generated outputs** (optional)
    - Blog posts before auto-publish

@@ -27,7 +27,7 @@
 - [ ] May check — steady for 2 months?
 - [ ] Jun check — 3-month streak?
 
-### Goal 2: NUDIMMUD System Maturity
+### Goal 2: YURI System Maturity
 
 **One sentence:** Get the trading HUD and RAG pipeline to functional — not polished, not perfect, but demonstrably doing the thing they were designed for.
 
@@ -90,7 +90,7 @@
 | Goal | Status | Key Learnings |
 |------|--------|---------------|
 | Client pipeline stability | | |
-| NUDIMMUD system maturity | | |
+| YURI system maturity | | |
 | Trading bot construction | | |
 
 ---

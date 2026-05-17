@@ -2,12 +2,12 @@
 Resolve the 6 archive boot anchors that stayed `needs_more_review` in 08AG. No boot/session/RAG mutation.
 
 # Resolved Anchors
-- `yuri_os_nudimmud_session_context_extract.md` -> `superseded`
-- `yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md` -> `verified_reference`
+- `yuri_os_yuri_session_context_extract.md` -> `superseded`
+- `yuri_os_yuri_rag_ingest_r_3_handoff_2026_05_01.md` -> `verified_reference`
 - `YURI_OS_YURI_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md` -> `verified_reference`
 - `YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07K_RAG_QUERY_SWARM_COMMITS_2026-05-01.md` -> `historical_only`
 - `YURI_OS_YURI_GPT_SESSION_ARCHIVE_2026-05-03_PART2_YURI_HUD_CONTINUATION.md` -> `superseded`
-- `yuri_os_nudimmud_session_context_extract (1).md` -> `verified_reference`
+- `yuri_os_yuri_session_context_extract (1).md` -> `verified_reference`
 
 # Verified References
 - R3 ingest handoff stays the latest R3 historical reference.

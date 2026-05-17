@@ -9,7 +9,7 @@ triggers:
 
 # End of Transmission
 
-Continuous background reflection engine for NUDIMMUD. Runs **two modes**:
+Continuous background reflection engine for YURI. Runs **two modes**:
 
 1. **Micro-EOT** (background, auto-triggered) — lightweight checkpoint reflections during session
 2. **Full EOT** (manual trigger) — comprehensive 9-phase pipeline at session end
@@ -76,7 +76,7 @@ The command itself answers those questions. Proceed automatically.
 Once triggered, the pipeline runs uninterrupted until the final EOT output is produced. No mid-session approval, preference selection, scope confirmation, or optional review.
 
 If a choice is required, resolve using this order:
-1. existing NUDIMMUD CLAUDE.md / masterplan instructions
+1. existing YURI CLAUDE.md / masterplan instructions
 2. current self-improvement system rules
 3. repository or document evidence
 4. safety, protected-area, and data-truth constraints
@@ -225,7 +225,7 @@ Apply **mangekyo Phases 1-3 only** (Observe, Decompose, Audit) to session eviden
 <mangekyo_evidence_audit>
   <source_map>Session findings summary, core patterns, hidden assumptions</source_map>
   <decomposition>Technique extracted vs. property; reusable patterns identified</decomposition>
-  <weakness_audit>Categories: Architecture, Security, Reliability, Maintainability, Yuri/Nudimmud fit</weakness_audit>
+  <weakness_audit>Categories: Architecture, Security, Reliability, Maintainability, Yuri/Yuri fit</weakness_audit>
   <hardened_findings>Evidence-backed, architecture-verified, ready for skill transformation</hardened_findings>
 </mangekyo_evidence_audit>
 ```
@@ -465,6 +465,34 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 ---
 
 ## Session Notes
+
+### 2026-05-17
+- session: 35m | peak ctx: 0% | compacts: 0
+- tools: Bash×29, Edit×29, mcp×22, Read×21, TodoWrite×6, Write×5, ToolSearch×3, AskUserQuestion×1, ExitPlanMode×1
+- corrections: screenshot 1: what is this recommendation, is it useful? if yes, i need yuri to provide inputs like that too.
+screenshot 2/3: done 
+
+i have run both gitnexus and push origin main commands in terminal
+ | i do not use vscode anymore, whatever is left of it there which should be embedded into yuri must be moved there. nothing should be IDE or CLI bound, only to YURI.
+
+there are no loose docs left except | I  cant press F12, im on a macbook. it is also not a cache problem, something got fucked up.
+
+I will say this one last time. all of these annoying manual pushes, bash permission denials, blocks etc ne
+- errors: none
+
+### 2026-05-17
+- session: 34m | peak ctx: 0% | compacts: 0
+- tools: Edit×29, Bash×28, mcp×22, Read×21, TodoWrite×6, Write×5, ToolSearch×3, AskUserQuestion×1, ExitPlanMode×1
+- corrections: screenshot 1: what is this recommendation, is it useful? if yes, i need yuri to provide inputs like that too.
+screenshot 2/3: done 
+
+i have run both gitnexus and push origin main commands in terminal
+ | i do not use vscode anymore, whatever is left of it there which should be embedded into yuri must be moved there. nothing should be IDE or CLI bound, only to YURI.
+
+there are no loose docs left except | I  cant press F12, im on a macbook. it is also not a cache problem, something got fucked up.
+
+I will say this one last time. all of these annoying manual pushes, bash permission denials, blocks etc ne
+- errors: none
 
 ### 2026-05-17
 - session: 160m | peak ctx: 0% | compacts: 0

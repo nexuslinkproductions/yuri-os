@@ -1,4 +1,4 @@
-// Yuri-native NUDIMMUD DeepSeek HUD REPL. No Hermes code. Clean-room inspired terminal workflow only.
+// Yuri-native YURI DeepSeek HUD REPL. No Hermes code. Clean-room inspired terminal workflow only.
 
 import readline from 'readline';
 import { execSync, spawn } from 'child_process';
@@ -11,13 +11,13 @@ import {
   renderCompactStatusLine,
   renderBusyStatusLine,
   renderBudgetStatusLine,
-} from './nudimmud/status-line.mjs';
+} from './yuri/status-line.mjs';
 
 const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
 const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
 const TOKENMAXXING_STATE = path.join(REPO_ROOT, '.claude/state/tokenmaxxing-state.json');
-const RUNS_DIR = path.join(os.homedir(), '.nudimmud', 'runs');
-const RUNS_FALLBACK_DIR = path.join('/private/tmp', 'nudimmud-runs');
+const RUNS_DIR = path.join(os.homedir(), '.yuri', 'runs');
+const RUNS_FALLBACK_DIR = path.join('/private/tmp', 'yuri-runs');
 
 const SELF_TEST = process.env.YURI_REPL_SELFTEST === '1';
 const CLAIM_VERIFIER_SMOKE = process.env.YURI_REPL_CLAIM_VERIFIER_SMOKE === '1';
@@ -41,7 +41,7 @@ const C = {
   reset:   '\x1b[0m',
   bold:    '\x1b[1m',
   dim:     '\x1b[2m',
-  green:   '\x1b[38;5;82m',   // Pip-Boy green — NUDIMMUD logo/brand
+  green:   '\x1b[38;5;82m',   // Pip-Boy green — YURI logo/brand
   purple:  '\x1b[38;5;141m',  // purple — YURI OS accent
   amber:   '\x1b[38;5;214m',  // amber — user requests / warnings
   red:     '\x1b[38;5;196m',  // red — errors / danger
@@ -230,7 +230,7 @@ const splitCapturedText = (text) => {
   return { model, route };
 };
 
-const normalPrompt = () => `${c('NUDIMMUD')} ${C.white}›${C.reset} `;
+const normalPrompt = () => `${c('YURI')} ${C.white}›${C.reset} `;
 
 const multilinePrompt = () => {
   const lines = state.pasteBuffer.length;
@@ -513,7 +513,7 @@ const printStatusBlock = () => {
 
   console.log(`
 ${sectionTop('STATUS')}
-${c('│')} ${d('operator ')} ${b('NUDIMMUD')}   ${d('session ')} ${g(sessionStr)}
+${c('│')} ${d('operator ')} ${b('YURI')}   ${d('session ')} ${g(sessionStr)}
 ${c('│')} ${d('model    ')} ${c(modelLabel)}   ${d('os      ')} ${g('YURI_OS')}
 ${c('│')} ${d('state    ')} ${g(stateLabel)}   ${d('tmx     ')} ${tmx.includes('ACTIVE') ? c(tmx) : d(tmx)}
 ${c('│')} ${d('branch   ')} ${g(branch)}   ${d('head    ')} ${m(head)}
@@ -542,7 +542,7 @@ ${sectionBot()}`);
   printHeader();
   console.log(`
 ${sectionTop('STATUS')}
-${c('│')} ${d('operator ')} ${b('NUDIMMUD')}   ${d('session ')} ${g(sessionStr)}
+${c('│')} ${d('operator ')} ${b('YURI')}   ${d('session ')} ${g(sessionStr)}
 ${c('│')} ${d('model    ')} ${c(modelLabel)}   ${d('os      ')} ${g('YURI_OS')}
 ${c('│')} ${d('branch   ')} ${g(branch)}   ${d('head    ')} ${m(head)}
 ${c('│')} ${d('staged   ')} ${staged > 0 ? c(String(staged)) : d('0')} ${d('files')}   ${d('last    ')} ${g(lastStr)}
@@ -558,7 +558,7 @@ ${sectionBot()}`);
 
 const printHelp = () => {
   console.log(`
-${g('┌─ NUDIMMUD REPL COMMANDS ─────────────────────────────────────┐')}
+${g('┌─ YURI REPL COMMANDS ─────────────────────────────────────┐')}
 ${g('│')} ${c('/help')}          Show this help
 ${g('│')} ${c('/status')}        Print the startup HUD status block
 ${g('│')} ${c('/tokens')}        Print token counters (ESTIMATE only)
@@ -699,9 +699,9 @@ const callDeepSeek = (prompt) => new Promise((resolve) => {
   console.log(g(preview));
   console.log(sectionBot(`${reqChars} chars / ${reqLines} lines`) + '\n');
 
-  // ─ NUDIMMUD ROUTE ─
+  // ─ YURI ROUTE ─
   const { branch, head, staged, tmx } = getStatus();
-  console.log(sectionTop('NUDIMMUD ROUTE'));
+  console.log(sectionTop('YURI ROUTE'));
   console.log(`${c('│')} ${d('LANE     ')} ${g(state.model)}`);
   console.log(`${c('│')} ${d('TYPE     ')} ${g('local-offload › _SYSTEM/Scripts/offload.sh')}`);
   console.log(`${c('│')} ${d('BRANCH   ')} ${g(branch)}  ${d('HEAD')} ${d(head)}  ${d('STAGED')} ${staged > 0 ? c(String(staged)) : d('0')}`);
@@ -932,7 +932,7 @@ const runSelfTest = () => {
     workflow_budget_hard: 40000,
     workflow_budget_used: 321,
     last_turn_id: 'NMD-20260502-225747-002',
-    last_transcript_path: '/tmp/nudimmud/NMD-20260502-225747-002',
+    last_transcript_path: '/tmp/yuri/NMD-20260502-225747-002',
   });
   const hudIdleLine = renderCompactStatusLine(hudIdleSnapshot);
   const hudBusyThinking = renderBusyStatusLine(createStatusSnapshot({
@@ -956,7 +956,7 @@ const runSelfTest = () => {
     lane: 'pro',
     mode: 'idle',
     last_turn_id: 'NMD-20260502-225747-002',
-    last_transcript_path: '/tmp/nudimmud/NMD-20260502-225747-002',
+    last_transcript_path: '/tmp/yuri/NMD-20260502-225747-002',
   }));
   const hudReferenceShapePresent = hudIdleLine.includes('state idle') &&
     hudIdleLine.includes(`model ${MODELS.pro}`) &&
@@ -965,7 +965,7 @@ const runSelfTest = () => {
     hudIdleLine.includes('saved NMD-20260502-225747-002');
   const normalPromptCycle = `${hudIdleLine}\n${stripAnsi(normalPrompt())}`;
   const noDuplicateIdentity = (plainHeader.match(/YURI OS/g) || []).length === 1 &&
-    (plainHeader.match(/NUDIMMUD/g) || []).length === 0 &&
+    (plainHeader.match(/YURI/g) || []).length === 0 &&
     plainHeader.includes('█') &&
     !normalPromptCycle.includes('YURI OS');
   const hudCompactDefault = hudIdleLine.startsWith('state idle |') &&
@@ -1189,8 +1189,8 @@ const run = async () => {
   if (process.stdin.isTTY && process.stdin.setRawMode) process.stdin.setRawMode(true);
   if (process.stdout.isTTY) process.stdout.write(BRACKETED_PASTE_ON);
 
-  // Prompt-first: show NUDIMMUD › , then print footer below, then restore cursor to prompt line
-  const PROMPT_VISIBLE_LEN = 'NUDIMMUD › '.length; // 11 visible chars
+  // Prompt-first: show YURI › , then print footer below, then restore cursor to prompt line
+  const PROMPT_VISIBLE_LEN = 'YURI › '.length; // 11 visible chars
   const renderPrompt = () => {
     if (state.multilineActive) renderMultilinePrompt(rl);
     else renderNormalPrompt(rl);

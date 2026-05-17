@@ -14,7 +14,7 @@ Source: https://developer.apple.com/design/human-interface-guidelines/
 - Platform-aware controls.
 - Clean spacing and understated materials.
 
-## Apply to NUDIMMUD
+## Apply to YURI
 
 - Move the shell toward a calm, layered command interface.
 - Use clearer section naming and fewer ornamental labels.

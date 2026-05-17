@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — Session Handoff After RAG Ingest Sandbox Runner Repair Lane
+# Yuri OS / YURI — Session Handoff After RAG Ingest Sandbox Runner Repair Lane
 
 Date: 2026-05-01  
 Prepared for: new GPT-5.5 / Codex / Claude continuation chat  
@@ -9,7 +9,7 @@ Status: continuity handoff, not an independently executed repo audit
 
 ## 1. Purpose
 
-This handoff captures the current Yuri OS / NUDIMMUD session state after the RAG ingest sandbox planning, red-team, runner repair, and first controlled execution attempt.
+This handoff captures the current Yuri OS / YURI session state after the RAG ingest sandbox planning, red-team, runner repair, and first controlled execution attempt.
 
 The immediate next chat should begin with the user pasting the latest result from:
 
@@ -235,8 +235,8 @@ Key constraints:
 
 Purpose:
 
-- Determine whether copying repo root to `/tmp/nudimmud-sandbox` is safe.
-- Determine whether `YURI_ROOT=/tmp/nudimmud-sandbox` and `SYSTEM_ROOT=/tmp/nudimmud-sandbox` isolate DB paths.
+- Determine whether copying repo root to `/tmp/yuri-sandbox` is safe.
+- Determine whether `YURI_ROOT=/tmp/yuri-sandbox` and `SYSTEM_ROOT=/tmp/yuri-sandbox` isolate DB paths.
 - Determine whether `npx ts-node src/scripts/ingestResearch.ts` is safe or whether a smaller fixture harness is required.
 
 ---
@@ -416,7 +416,7 @@ expected embedding count: 13 exact
 Accepted design:
 
 ```text
-- Use /tmp/nudimmud-sandbox.
+- Use /tmp/yuri-sandbox.
 - Use fixture NISABA/nisaba.md.
 - Use exact 4088 word count.
 - Expect 13 chunks and 13 embeddings.
@@ -450,7 +450,7 @@ Approved, with these extra rules:
 
 ```text
 - Do not improvise around the prompt.
-- Do not clean up /tmp/nudimmud-sandbox in the same sprint.
+- Do not clean up /tmp/yuri-sandbox in the same sprint.
 - Stop on the first hard-stop condition.
 - Do not retry creatively if the runner fails.
 - Preserve the sandbox for inspection if anything fails.
@@ -568,10 +568,10 @@ Accepted diagnosis behind R3:
 Expected start state for R3:
 
 ```text
-/tmp/nudimmud-sandbox exists
-/tmp/nudimmud-sandbox/backend/src/scripts/sandbox-ingest-one.ts exists
-/tmp/nudimmud-sandbox/NISABA/nisaba.md exists
-/tmp/nudimmud-sandbox/backend/data/yuri.db does not exist
+/tmp/yuri-sandbox exists
+/tmp/yuri-sandbox/backend/src/scripts/sandbox-ingest-one.ts exists
+/tmp/yuri-sandbox/NISABA/nisaba.md exists
+/tmp/yuri-sandbox/backend/data/yuri.db does not exist
 ```
 
 Expected live repo state:
@@ -589,10 +589,10 @@ WAL/SHM may show expected churn
 R3 command shape:
 
 ```bash
-cd /tmp/nudimmud-sandbox/backend && \
-YURI_ROOT=/tmp/nudimmud-sandbox \
-SYSTEM_ROOT=/tmp/nudimmud-sandbox \
-HOME=/tmp/nudimmud-sandbox/home \
+cd /tmp/yuri-sandbox/backend && \
+YURI_ROOT=/tmp/yuri-sandbox \
+SYSTEM_ROOT=/tmp/yuri-sandbox \
+HOME=/tmp/yuri-sandbox/home \
 OLLAMA_HOST=http://127.0.0.1:11434 \
 OLLAMA_CLOUD_API_KEY= \
 OPENAI_API_KEY= \
@@ -645,7 +645,7 @@ Do not:
 ```text
 - assume R3 passed
 - assume sandbox DB exists
-- cleanup /tmp/nudimmud-sandbox
+- cleanup /tmp/yuri-sandbox
 - continue into evidence verification until R3 result is reviewed
 - open or query the live DB
 - run backend restart
@@ -684,7 +684,7 @@ Do:
 Use this in the fresh GPT chat.
 
 ```text
-Continue Yuri OS / NUDIMMUD from this handoff.
+Continue Yuri OS / YURI from this handoff.
 
 Current active lane:
 Sprint 07K-RAG-INGEST-CHUNK-R3 — Repair Failed Sandbox Runner
@@ -704,11 +704,11 @@ Current trusted live repo state before R3:
 - backend/data/yuri.db-shm and backend/data/yuri.db-wal may show expected WAL churn
 
 Current trusted sandbox state before R3:
-- /tmp/nudimmud-sandbox exists
-- /tmp/nudimmud-sandbox/backend/src/scripts/sandbox-ingest-one.ts exists
-- /tmp/nudimmud-sandbox/NISABA/nisaba.md exists
-- /tmp/nudimmud-sandbox/NISABA/nisaba.md word count expected: 4088
-- /tmp/nudimmud-sandbox/backend/data/yuri.db expected absent before R3
+- /tmp/yuri-sandbox exists
+- /tmp/yuri-sandbox/backend/src/scripts/sandbox-ingest-one.ts exists
+- /tmp/yuri-sandbox/NISABA/nisaba.md exists
+- /tmp/yuri-sandbox/NISABA/nisaba.md word count expected: 4088
+- /tmp/yuri-sandbox/backend/data/yuri.db expected absent before R3
 - sandbox should be left in place after R3
 
 Accepted prior result:
@@ -735,10 +735,10 @@ R3 repair strategy:
 - do not touch live repo
 
 Expected R3 command:
-cd /tmp/nudimmud-sandbox/backend && \
-YURI_ROOT=/tmp/nudimmud-sandbox \
-SYSTEM_ROOT=/tmp/nudimmud-sandbox \
-HOME=/tmp/nudimmud-sandbox/home \
+cd /tmp/yuri-sandbox/backend && \
+YURI_ROOT=/tmp/yuri-sandbox \
+SYSTEM_ROOT=/tmp/yuri-sandbox \
+HOME=/tmp/yuri-sandbox/home \
 OLLAMA_HOST=http://127.0.0.1:11434 \
 OLLAMA_CLOUD_API_KEY= \
 OPENAI_API_KEY= \
@@ -791,7 +791,7 @@ I’ll gate it before we decide whether to verify evidence, repair again, or sto
 
 ```json
 {
-  "project": "Yuri OS / NUDIMMUD",
+  "project": "Yuri OS / YURI",
   "date": "2026-05-01",
   "status": "handoff_after_rag_ingest_sandbox_runner_repair_lane",
   "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
@@ -803,7 +803,7 @@ I’ll gate it before we decide whether to verify evidence, repair again, or sto
   "current_active_sprint": "07K-RAG-INGEST-CHUNK-R3",
   "current_active_task": "Review pasted R3 result",
   "latest_accepted_result": "07K_RAG_INGEST_CHUNK_X_ACCEPTED_FAIL_RUNNER_ASSERTION_TS_NODE_TYPE_CONTEXT_ONLY",
-  "sandbox_root": "/tmp/nudimmud-sandbox",
+  "sandbox_root": "/tmp/yuri-sandbox",
   "fixture": "NISABA/nisaba.md",
   "fixture_word_count": 4088,
   "expected_chunk_count": 13,

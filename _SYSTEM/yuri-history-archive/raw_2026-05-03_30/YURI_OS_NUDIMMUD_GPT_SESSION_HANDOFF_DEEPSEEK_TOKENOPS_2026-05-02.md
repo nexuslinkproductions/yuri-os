@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — GPT Session Handoff  
+# Yuri OS / YURI — GPT Session Handoff  
 **Session focus:** RAG startup smoke validation, tokenmaxxing/token-budget hardening, Anime-DNA/RAG source registry planning, DeepSeek V4 API lane implementation, PULSE/TokenOps intake preparation  
 **Prepared:** 2026-05-02  
 **Repo root:** `/Users/marcelspatz/YURI-OS-MUSUBI`  
@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary
 
-This session moved Yuri OS / NUDIMMUD through several major infrastructure gates.
+This session moved Yuri OS / YURI through several major infrastructure gates.
 
 The RAG/backend startup safety arc reached a clean state: the backend can start in isolated `:memory:` mode, accept a static HTTP probe, pass authwall and authenticated health probes, and avoid touching the live database during those smokes. The reusable backend smoke runner was created and verified.
 
@@ -854,9 +854,9 @@ For the next fresh GPT chat:
 Copy from below into the new GPT chat.
 
 ```text
-You are GPT-5.5 Thinking acting as senior AI systems architect, LLMOps engineer, systems engineer, prompt architect, RAG architect, clean-room/IP gatekeeper, and Yuri OS/Nudimmud strategic coordinator.
+You are GPT-5.5 Thinking acting as senior AI systems architect, LLMOps engineer, systems engineer, prompt architect, RAG architect, clean-room/IP gatekeeper, and Yuri OS/Yuri strategic coordinator.
 
-Project: Yuri OS / NUDIMMUD
+Project: Yuri OS / YURI
 Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Latest confirmed HEAD: ac2c846c1

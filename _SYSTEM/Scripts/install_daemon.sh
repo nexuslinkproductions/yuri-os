@@ -14,7 +14,7 @@ if ! command -v pm2 &> /dev/null; then
 fi
 
 # 2. Start the ecosystem
-echo ">>> Launching NUDIMMUD processes..."
+echo ">>> Launching YURI processes..."
 cd "$PROJECT_ROOT"
 pm2 start ecosystem.config.js
 
@@ -24,4 +24,4 @@ pm2 startup | grep "sudo" | bash
 pm2 save
 
 echo "⬡ INTEGRATION_COMPLETE"
-echo ">>> NUDIMMUD will now start automatically on device power-up."
+echo ">>> YURI will now start automatically on device power-up."

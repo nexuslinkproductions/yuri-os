@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — Session Continuity After 07J-STATE-I-P
+# Yuri OS / YURI — Session Continuity After 07J-STATE-I-P
 
 Date: 2026-04-27  
 Prepared for: new GPT-5.5 continuation chat + Claude Code continuation  
@@ -9,7 +9,7 @@ Status: continuity handoff, not an independently executed repo audit
 
 ## 1. Purpose
 
-This file captures the current Yuri OS / NUDIMMUD sprint state after the 07J settings / hook / session-state sequencing work.
+This file captures the current Yuri OS / YURI sprint state after the 07J settings / hook / session-state sequencing work.
 
 The immediate purpose of the next chat is to ingest this continuity file, then review the next Claude response from the execution sprint:
 
@@ -55,7 +55,7 @@ a5813603 chore(git): ignore Claude local config and ephemeral buckets
 Accepted enterprise-audit interpretation:
 
 ```text
-Yuri OS / NUDIMMUD is usable for controlled internal research and local development, but not enterprise-ready, not production-ready, and not safe for external or multi-tenant release.
+Yuri OS / YURI is usable for controlled internal research and local development, but not enterprise-ready, not production-ready, and not safe for external or multi-tenant release.
 ```
 
 Key Opus risks preserved:
@@ -624,7 +624,7 @@ Do:
 
 ```json
 {
-  "project": "Yuri OS / NUDIMMUD",
+  "project": "Yuri OS / YURI",
   "date": "2026-04-27",
   "document_type": "session_continuity_after_07j_state_i_p",
   "status": "handoff_not_independent_repo_audit",
@@ -687,7 +687,7 @@ Do:
 ## 9. Suggested New Chat Opening
 
 ```text
-Continue Yuri OS / NUDIMMUD from this continuity file.
+Continue Yuri OS / YURI from this continuity file.
 
 I will paste Claude’s next response from:
 

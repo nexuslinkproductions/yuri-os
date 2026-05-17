@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://nudimmud.local/schemas/intent-schema.json",
-  "title": "NUDIMMUD Workhorse Intent Schema",
+  "$id": "https://yuri.local/schemas/intent-schema.json",
+  "title": "YURI Workhorse Intent Schema",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -24,7 +24,7 @@
     },
     "intent_version": {
       "type": "string",
-      "const": "nudimmud.intent.x1"
+      "const": "yuri.intent.x1"
     },
     "rough_idea": {
       "type": "string",

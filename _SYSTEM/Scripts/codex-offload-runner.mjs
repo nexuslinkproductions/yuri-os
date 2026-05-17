@@ -317,7 +317,7 @@ async function recordCodexLedger({ traceId, modelId, modelConfig, prompt, output
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function prepareArtifactDir(overrideDir) {
-  const base = overrideDir || mkdtempSync(path.join(os.tmpdir(), 'nudimmud-codex-'));
+  const base = overrideDir || mkdtempSync(path.join(os.tmpdir(), 'yuri-codex-'));
   mkdirSync(base, { recursive: true });
   return path.resolve(base);
 }

@@ -9,7 +9,7 @@ import { spawnSync } from 'node:child_process';
 
 const require = createRequire(import.meta.url);
 const Database = require(path.join(process.cwd(), 'backend/node_modules/better-sqlite3'));
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nudimmud-db-recovery-'));
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-db-recovery-'));
 const retiredIdentityPattern = new RegExp([
   ['exeo', 'flow'].join(''),
   ['exeo', '-flow'].join(''),

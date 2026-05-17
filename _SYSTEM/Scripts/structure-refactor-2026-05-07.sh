@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # structure-refactor-2026-05-07.sh
-# NUDIMMUD root-level structure cleanup.
+# YURI root-level structure cleanup.
 # Idempotent. Quarantine-pattern (move-not-delete). Reversible until quarantine is purged.
 #
 # Run modes:
@@ -16,7 +16,7 @@
 #     (only if cross-ref grep finds <=5 hard-coded references; lists them otherwise).
 #
 # What this DOES NOT touch (left for manual decision — see STRUCTURE_REFACTOR_REPORT.md):
-#   - NUDIMMUD/ mirror (50+ unique markdown files + 38 diverged files needing reconciliation)
+#   - YURI/ mirror (50+ unique markdown files + 38 diverged files needing reconciliation)
 #   - _SYSTEM/Scripts/, bin/, Volumes/, GeneratedContent (NOT dead artifacts — live infrastructure)
 #   - Claude Code URL Handler.app (registered claude:// handler — needs Launch Services removal)
 #   - DOMAIN EXPANSION - INFINITE VOID/ (archived domain content with 01_PROJECTS skeleton)
@@ -96,10 +96,10 @@ warn "    1. Update code refs in backend/src/ and src/components/, then 'cd back
 warn "    2. mv 06_NETWORK-SYNC 07_NETWORK-SYNC && mv 07_ARCHIVE 08_ARCHIVE"
 warn "    3. Sed-update doc refs:"
 warn "       grep -rl '06_NETWORK-SYNC' --include='*.md' --include='*.json' \\"
-warn "         --exclude-dir=NUDIMMUD --exclude-dir=node_modules . \\"
+warn "         --exclude-dir=YURI --exclude-dir=node_modules . \\"
 warn "         | xargs sed -i '' 's|06_NETWORK-SYNC|07_NETWORK-SYNC|g'"
 warn "       grep -rl '07_ARCHIVE' --include='*.md' --include='*.json' \\"
-warn "         --exclude-dir=NUDIMMUD --exclude-dir=node_modules . \\"
+warn "         --exclude-dir=YURI --exclude-dir=node_modules . \\"
 warn "         | xargs sed -i '' 's|07_ARCHIVE|08_ARCHIVE|g'"
 warn "    4. Verify: grep -r '06_NETWORK-SYNC\\|07_ARCHIVE' --include='*.{md,ts,tsx,mjs}' ."
 warn "    5. Commit and run integration tests."

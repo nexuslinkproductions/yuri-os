@@ -1,4 +1,4 @@
-# MASTER PROMPT — NUDIMMUD Structure Refactor
+# MASTER PROMPT — YURI Structure Refactor
 ## For Claude Code (Opus 4.7) → DeepSeek Workhorse Swarm
 
 ---
@@ -22,7 +22,7 @@ You are Opus 4.7 at xhigh reasoning. Your job is EXACTLY three things:
 ### Root Directory — 30+ items (target: 7):
 
 ```
-NUDIMMUD/
+YURI/
 ├── [NUMBERED CORE — the intended skeleton]
 │   ├── 00_COMMAND-CENTER/
 │   ├── 01_PROJECTS/          ← 18 mixed items
@@ -33,7 +33,7 @@ NUDIMMUD/
 │   ├── 06_NETWORK-SYNC/     ← duplicate 06
 │   └── 07_ARCHIVE/
 │
-├── NUDIMMUD/                 ← FULL DUPLICATE (848 subdirs)
+├── YURI/                 ← FULL DUPLICATE (848 subdirs)
 ├── NABU/                     ← agent dir, status unclear
 ├── NISABA/                   ← agent dir, ingestion system
 │
@@ -61,7 +61,7 @@ NUDIMMUD/
 ### Critical Numbers:
 - **173** source files
 - **5,349** auto-generated graph/ files (not gitignored)
-- **848** subdirectories in the NUDIMMUD/ mirror
+- **848** subdirectories in the YURI/ mirror
 - **30+** root-level items
 
 ### Git status: `.env` is gitignored. `graph/` is NOT gitignored. `dist/` and `node_modules/` at root need checking.
@@ -70,7 +70,7 @@ NUDIMMUD/
 
 ## THE GOAL
 
-A NUDIMMUD root that:
+A YURI root that:
 - Has **7±2 top-level items** (numbered core + config files + framework extensions)
 - Has **no duplicate trees**
 - Has **no dead artifacts**
@@ -165,7 +165,7 @@ echo "=== Numbering ===" && ls -d [0-9]*/ 2>/dev/null | sort
 
 ## FINAL WORDS
 
-This is a structure refactor. The goal is not to redesign NUDIMMUD — it's to clean, clarify, and compress the existing structure so it ships cleanly.
+This is a structure refactor. The goal is not to redesign YURI — it's to clean, clarify, and compress the existing structure so it ships cleanly.
 
 After this executes successfully:
 - The repo is cloneable and functional on another Mac, zero manual cleanup

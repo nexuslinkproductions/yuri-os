@@ -9,7 +9,7 @@ export const notion: DesignSource = {
         'Wiki-like structure',
         'Docs and action in one space'
     ],
-    applyToNudimmud: [
+    applyToYuri: [
         'Directory feel',
         'NexusLink landing page',
         'Client research workspace'

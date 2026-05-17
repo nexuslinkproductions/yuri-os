@@ -5,14 +5,14 @@
 ```bash
 codex features list
 codex mcp list
-codex debug prompt-input "NUDIMMUD config probe" >/tmp/nudimmud-codex-probe.json
+codex debug prompt-input "YURI config probe" >/tmp/yuri-codex-probe.json
 ```
 
 Expected:
-- `nudimmudOffload` is enabled.
+- `yuriOffload` is enabled.
 - `agents.max_threads = 1`, `agents.max_depth = 1`, `features.enable_fanout = false`, and `features.multi_agent = false` parse without warnings.
 - `[[hooks.PreToolUse]]` uses `.codex/hooks/pre-tool-use.mjs`.
-- `mcp_servers.nudimmudOffload.tool_timeout_sec` stays high enough for long-running offload work; cancellation should be owned by lane-level budgets, not the Codex MCP parent process.
+- `mcp_servers.yuriOffload.tool_timeout_sec` stays high enough for long-running offload work; cancellation should be owned by lane-level budgets, not the Codex MCP parent process.
 
 ## Lane Cheat Sheet
 
@@ -49,8 +49,8 @@ OFFLOAD_PROMPT_TEXT="Return YURI_CODEX_OK only." node Scripts/offload-runner.mjs
 printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"nudimmud.offload_task","arguments":{"prompt":"ping","intent":"custom","lane_hint":"codex","dry_run":true,"mutation_allowed":false}}}' \
-| node .codex/adapters/nudimmud-offload-mcp.mjs
+  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"yuri.offload_task","arguments":{"prompt":"ping","intent":"custom","lane_hint":"codex","dry_run":true,"mutation_allowed":false}}}' \
+| node .codex/adapters/yuri-offload-mcp.mjs
 ```
 
 Expected: OS_KERNEL task row created, memory log written, and Codex dry-run JSON returned.
@@ -82,7 +82,7 @@ Scripts/offload.sh --model codex --dry-run "ping"
 Edit `.codex/config.toml` and disable the MCP server:
 
 ```toml
-[mcp_servers.nudimmudOffload]
+[mcp_servers.yuriOffload]
 enabled = false
 ```
 

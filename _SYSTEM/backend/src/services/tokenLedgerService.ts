@@ -5,7 +5,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 
 const repoRoot = path.resolve(__dirname, '../../..');
-const stateRoot = path.join(os.homedir(), '.nudimmud', 'token-ledger');
+const stateRoot = path.join(os.homedir(), '.yuri', 'token-ledger');
 const queueDir = process.env.TOKEN_LEDGER_QUEUE_DIR || path.join(stateRoot, 'queue');
 const ledgerScript = path.join(repoRoot, 'Scripts', 'token-ledger.mjs');
 

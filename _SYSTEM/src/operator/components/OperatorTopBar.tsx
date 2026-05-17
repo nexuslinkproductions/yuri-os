@@ -19,7 +19,7 @@ export const OperatorTopBar: React.FC = () => {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontFamily: 'var(--op-font-heading)', fontWeight: 700, fontSize: 'var(--op-type-h3)', color: 'var(--op-text-primary)', letterSpacing: '-0.01em' }}>
-          NUDIMMUD
+          YURI
         </span>
         <span style={{ color: 'var(--op-text-tertiary)', fontSize: 'var(--op-type-caption)', fontFamily: 'var(--op-font-mono)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           Operator

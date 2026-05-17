@@ -21,12 +21,12 @@
       "validation_needed_before_use": "Compare body headings with PART2_YURI_HUD_CONTINUATION to confirm supersession before any historical reference use."
     },
     {
-      "basename": "yuri_os_nudimmud_session_context_extract.md",
+      "basename": "yuri_os_yuri_session_context_extract.md",
       "prior_status": "needs_review",
       "new_status": "superseded",
       "evidence_used": "metadata_only",
       "reason": "Timeline metadata points to the (1) variant as the successor, and the first-10-line header is a generic session summary with no date anchor that would override that relationship.",
-      "validation_needed_before_use": "Compare body scope with yuri_os_nudimmud_session_context_extract (1).md and the dated 2026-04-27 extracts before any historical reference use."
+      "validation_needed_before_use": "Compare body scope with yuri_os_yuri_session_context_extract (1).md and the dated 2026-04-27 extracts before any historical reference use."
     }
   ]
 }

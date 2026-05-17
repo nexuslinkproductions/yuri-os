@@ -1,4 +1,4 @@
-# MASTER PROMPT v3 — NUDIMMUD Structure Refactor (Phase 2)
+# MASTER PROMPT v3 — YURI Structure Refactor (Phase 2)
 ## For Claude Code (Opus 4.7 xhigh) → DeepSeek Workhorse Swarm
 
 ---
@@ -52,9 +52,9 @@ The mirror has 38 diverged files and ~50 unique documents. Before deletion can h
 ```bash
 # List all unique files in mirror not at root
 cd /Users/marcelspatz/YURI-OS-MUSUBI
-diff -rq NUDIMMUD/ . --exclude=node_modules --exclude=.git 2>/dev/null | grep "Only in NUDIMMUD" > _QUARANTINE_2026-05-07/mirror-unique-files.txt
+diff -rq YURI/ . --exclude=node_modules --exclude=.git 2>/dev/null | grep "Only in YURI" > _QUARANTINE_2026-05-07/mirror-unique-files.txt
 # Show size + date for each diverged file
-diff -rq NUDIMMUD/ . --exclude=node_modules --exclude=.git 2>/dev/null | grep "differ" > _QUARANTINE_2026-05-07/mirror-diverged-files.txt
+diff -rq YURI/ . --exclude=node_modules --exclude=.git 2>/dev/null | grep "differ" > _QUARANTINE_2026-05-07/mirror-diverged-files.txt
 wc -l _QUARANTINE_2026-05-07/mirror-diverged-files.txt
 wc -l _QUARANTINE_2026-05-07/mirror-unique-files.txt
 ```

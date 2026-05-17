@@ -537,7 +537,7 @@ export class ObsidianRestService {
         return [
             {
                 path: SystemConfig.ROOT,
-                label: 'NUDIMMUD',
+                label: 'YURI',
                 mode: status.mode
             }
         ];

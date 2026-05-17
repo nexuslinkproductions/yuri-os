@@ -9,7 +9,7 @@ export const atlassian: DesignSource = {
         'Content discipline',
         'AI-aware patterns'
     ],
-    applyToNudimmud: [
+    applyToYuri: [
         'Top nav and command rail',
         'Composable OS regions',
         'Clear system naming'

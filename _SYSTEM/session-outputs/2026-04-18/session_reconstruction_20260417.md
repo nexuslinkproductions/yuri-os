@@ -47,18 +47,18 @@
 The cross-tradition structural isomorphism across Sumerian descent, Kabbalistic Lightning Flash, Jungian individuation, Grof BPM, and the sales journey was documented as evidence of a single operating pattern of consciousness — not metaphor. This is the conceptual center of the April 17 expansion.
 
 ### Agent parallelization — what failed
-Rounds 3-7 hit rate limits on three of four spawned agents. Sales.md, operational_map.md, and all 05_OPERATIONAL/ files had to be written directly by NUDIMMUD. The agent parallelization strategy was architecturally correct; rate limits were the constraint. Correction logged: reserve the most critical synthesis and operational files for direct NUDIMMUD writing.
+Rounds 3-7 hit rate limits on three of four spawned agents. Sales.md, operational_map.md, and all 05_OPERATIONAL/ files had to be written directly by YURI. The agent parallelization strategy was architecturally correct; rate limits were the constraint. Correction logged: reserve the most critical synthesis and operational files for direct YURI writing.
 
 ---
 
 ## PENDING AT SESSION CLOSE (NEXT items from session_log.md)
 
 ### 1. Rebuild graphify — STATUS: NOT DONE (wrong corpus)
-`graphify-out/GRAPH_REPORT.md` exists and is dated 2026-04-17 11:36. However, examining the report output, the graph ran on the wrong corpus. The God Nodes are `Logger` (984 edges), `BackendType`, `ToolResult`, `EvolutionSuggestion`, `SkillCategory` — these are code system nodes from `01_PROJECTS/openspace/`. The 406 communities detected are from the skills/system code base, not from the NUDIMMUD knowledge vault.
+`graphify-out/GRAPH_REPORT.md` exists and is dated 2026-04-17 11:36. However, examining the report output, the graph ran on the wrong corpus. The God Nodes are `Logger` (984 edges), `BackendType`, `ToolResult`, `EvolutionSuggestion`, `SkillCategory` — these are code system nodes from `01_PROJECTS/openspace/`. The 406 communities detected are from the skills/system code base, not from the YURI knowledge vault.
 
 The graphify was rebuilt but pointed at the wrong directory. The 06_KNOWLEDGE-BASE nodes are not represented. This task remains open.
 
-**Action needed:** Re-run graphify scoped to NUDIMMUD vault markdown files, excluding `01_PROJECTS/openspace/` code files.
+**Action needed:** Re-run graphify scoped to YURI vault markdown files, excluding `01_PROJECTS/openspace/` code files.
 
 ### 2. Seed iC2M vault — STATUS: NOT DONE
 `06_NETWORK-SYNC/` contains two folders: `C2MOVIEZ/` and `PLANZERFILMS/`. No iC2M structure exists anywhere in the vault. The C2MOVIEZ integration (cloned Database/, _MAPPING.md, _SYNC-STATUS.md) is complete and live, but the iC2M (Integrated C2MovieZ) vault with basic Obsidian structure for cross-vault linking has not been seeded.
@@ -112,15 +112,15 @@ All four engines had seeded data in noesis-intake.md:
 
 
 From session_log.md DELTA statement: 24 files, 4,990 lines, 233 wikilinks. Key confirmed files:
-- `/NUDIMMUD/session_log.md` — complete, current
-- `/NUDIMMUD/enki_state.md` — filled, current
-- `/NUDIMMUD/identity.md` — updated with 05_OPERATIONAL reference
-- `/NUDIMMUD/.claude/noesis/NOESIS-CORE.md` — 173 lines, full spec
-- `/NUDIMMUD/.claude/noesis/noesis-intake.md` — 180 lines, seeded
-- `/NUDIMMUD/.claude/noesis/feedback-loops.md` — present
-- `/NUDIMMUD/.claude/noesis/monthly-reflection-template.md` — present
-- `/NUDIMMUD/06_KNOWLEDGE-BASE/05_OPERATIONAL/` — 4 files present
-- `/NUDIMMUD/graphify-out/GRAPH_REPORT.md` — present (wrong corpus)
+- `/YURI/session_log.md` — complete, current
+- `/YURI/enki_state.md` — filled, current
+- `/YURI/identity.md` — updated with 05_OPERATIONAL reference
+- `/YURI/.claude/noesis/NOESIS-CORE.md` — 173 lines, full spec
+- `/YURI/.claude/noesis/noesis-intake.md` — 180 lines, seeded
+- `/YURI/.claude/noesis/feedback-loops.md` — present
+- `/YURI/.claude/noesis/monthly-reflection-template.md` — present
+- `/YURI/06_KNOWLEDGE-BASE/05_OPERATIONAL/` — 4 files present
+- `/YURI/graphify-out/GRAPH_REPORT.md` — present (wrong corpus)
 
 ---
 

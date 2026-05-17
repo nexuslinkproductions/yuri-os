@@ -13,21 +13,21 @@ The vendored Spec Kit at `integrations/spec-kit/` provides **format templates an
 ✅ Read `integrations/spec-kit/templates/plan-template.md` to learn plan structure
 ✅ Read `integrations/spec-kit/templates/tasks-template.md` to learn task structure
 ✅ Read `integrations/spec-kit/spec-driven.md` for methodology background
-✅ Use `/spec-intake` slash command (NUDIMMUD-native authoring with Spec Kit format)
+✅ Use `/spec-intake` slash command (YURI-native authoring with Spec Kit format)
 ✅ Use `_SYSTEM/Scripts/spec-pipeline.mjs` to generate plan + tasks from a spec
 
 ## What's Forbidden
 
-❌ Run `integrations/spec-kit/src/specify_cli/` Python typer CLI from NUDIMMUD workflows
+❌ Run `integrations/spec-kit/src/specify_cli/` Python typer CLI from YURI workflows
 ❌ Use Spec Kit's `scripts/{bash,powershell}/` shell implementations
 ❌ Adopt Spec Kit's `.github/workflows/` CI/CD
 ❌ Install Spec Kit as a dependency or `pip install`
 ❌ Let Spec Kit override `_SYSTEM/Scripts/offload-contract.mjs` routing
 ❌ Bypass anime DNA gates because Spec Kit "doesn't have them"
 ❌ Replace Codex-primary rule with Spec Kit's own implementer dispatch
-❌ Use Spec Kit's `extensions/git/` (NUDIMMUD has its own git/gitnexus discipline)
+❌ Use Spec Kit's `extensions/git/` (YURI has its own git/gitnexus discipline)
 ❌ Use Spec Kit's `presets/catalog.json` community extension index
-❌ Treat Spec Kit's `AGENTS.md` as authority — NUDIMMUD's `AGENTS.md` wins
+❌ Treat Spec Kit's `AGENTS.md` as authority — YURI's `AGENTS.md` wins
 
 ## Authority Chain (per yuri-origin.md)
 
@@ -44,9 +44,9 @@ The vendored Spec Kit at `integrations/spec-kit/` provides **format templates an
 
 ## Workflow Mapping
 
-Spec Kit phase → NUDIMMUD universal workflow phase:
+Spec Kit phase → YURI universal workflow phase:
 
-| Spec Kit | NUDIMMUD |
+| Spec Kit | YURI |
 |---|---|
 | `/specify` | intake |
 | `/clarify` | intake refinement |
@@ -54,7 +54,7 @@ Spec Kit phase → NUDIMMUD universal workflow phase:
 | `/tasks` | delegate (per-task scope-lock) |
 | `/analyze` | route (risk scoring) — optional |
 | `/implement` | delegate (Codex/DeepSeek dispatch) |
-| (none) | verify, merge, learn — NUDIMMUD-only |
+| (none) | verify, merge, learn — YURI-only |
 
 See `_SYSTEM/spec-kit-workflow-bridge.md` for the full mapping with phase ownership.
 
@@ -86,7 +86,7 @@ See `_SYSTEM/spec-kit-workflow-bridge.md` for the full mapping with phase owners
 
 ## Evidence
 
-- `integrations/spec-kit/NUDIMMUD-ADOPTION.md` — original advisory-only declaration (pre-existing)
+- `integrations/spec-kit/YURI-ADOPTION.md` — original advisory-only declaration (pre-existing)
 - `_SYSTEM/spec-kit-workflow-bridge.md` — operational bridge doc (this campaign)
 - `.claude/commands/spec-intake.md` — entry-point slash command
 - `_SYSTEM/Scripts/spec-pipeline.mjs` — spec → plan + tasks generator

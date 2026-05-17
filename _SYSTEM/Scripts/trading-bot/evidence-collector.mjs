@@ -223,7 +223,7 @@ function getEnvKeys() {
     reddit: {
       clientId: process.env.REDDIT_CLIENT_ID || null,
       clientSecret: process.env.REDDIT_CLIENT_SECRET || null,
-      userAgent: process.env.REDDIT_USER_AGENT || "nudimmud-trading-bot/1.0",
+      userAgent: process.env.REDDIT_USER_AGENT || "yuri-trading-bot/1.0",
     },
   };
 }

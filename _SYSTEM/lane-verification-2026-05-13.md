@@ -1,4 +1,4 @@
-# NUDIMMUD Offload Contract — Lane Callability Matrix
+# YURI Offload Contract — Lane Callability Matrix
 
 **Verification date:** 2026-05-13
 **Source:** `_SYSTEM/Scripts/offload-contract.mjs` (15 lane surfaces), `_SYSTEM/Scripts/offload.sh --list`, smoke tests run today.

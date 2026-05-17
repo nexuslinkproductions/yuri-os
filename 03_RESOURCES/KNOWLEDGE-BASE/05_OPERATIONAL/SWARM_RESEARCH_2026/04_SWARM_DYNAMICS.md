@@ -13,6 +13,6 @@
 1. **Temporal Graphs & Matching**: Offloading is treated as a graph connectivity problem, finding the fastest "temporal paths" to available edge servers or idle sub-agents.
 2. **Agent Economies**: Future-proofing involves agents trading compute credits internally to negotiate task offloading.
 
-### Gap Analysis & Implementation for NUDIMMUD
+### Gap Analysis & Implementation for YURI
 - **Current Gap**: Relying on static, linear, or heavily human-prompted sub-agent dispatch.
 - **Implementation**: Adopt LangGraph or similar graph-based state machine architectures for the Conclave. Implement "Verification Loops" for all autonomous actions before state commits.

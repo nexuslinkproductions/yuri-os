@@ -36,9 +36,9 @@
         "brand-led visual language",
         "design before implementation"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as taste guard before UI generation",
-        "Pair with NUDIMMUD tokens, not instead of them"
+        "Pair with YURI tokens, not instead of them"
       ],
       "riskNotes": [
         "Repo path may move; keep local unpacked copy"
@@ -63,7 +63,7 @@
         "prompt-level taste correction",
         "AI slop avoidance"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Explains why design constraints must be loaded before coding"
       ],
       "riskNotes": [
@@ -89,7 +89,7 @@
         "web design guidelines",
         "100+ UI audit rules"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Add as audit companion to design-master"
       ],
       "riskNotes": [
@@ -115,7 +115,7 @@
         "agent portability",
         "multi-agent compatibility"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for future skill packaging conventions"
       ],
       "riskNotes": [
@@ -141,7 +141,7 @@
         "keyboard support",
         "animation/performance review"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Add as design verification checklist"
       ],
       "riskNotes": [
@@ -167,7 +167,7 @@
         "SKILL.md conventions",
         "reusable agent context"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use when turning design packs into portable skills"
       ],
       "riskNotes": [
@@ -193,7 +193,7 @@
         "explicit skill invocation",
         "agent skill adoption"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Community validation for wiring frontend-design and Vercel rules"
       ],
       "riskNotes": [
@@ -219,7 +219,7 @@
         "developer-grade restraint",
         "interface guidelines"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for calm chrome and high-confidence spacing"
       ],
       "riskNotes": [
@@ -245,7 +245,7 @@
         "tokens",
         "developer UI grammar"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Good baseline for docs and command surfaces"
       ],
       "riskNotes": [
@@ -271,7 +271,7 @@
         "interaction consistency",
         "motion restraint"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as ergonomics check for controls and panels"
       ],
       "riskNotes": [
@@ -297,7 +297,7 @@
         "states",
         "docs clarity"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Good for dense admin and developer surfaces"
       ],
       "riskNotes": [
@@ -323,11 +323,11 @@
         "AI-aware content patterns",
         "modular systems"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for operational workflow clarity"
       ],
       "riskNotes": [
-        "Brand tone differs from NUDIMMUD"
+        "Brand tone differs from YURI"
       ],
       "extractionDate": "2026-05-10",
       "reachable": true,
@@ -349,7 +349,7 @@
         "docs plus action",
         "comfortable density"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Good for knowledge surfaces and nested docs"
       ],
       "riskNotes": [
@@ -375,7 +375,7 @@
         "Tailwind registry",
         "composition over package lock-in"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as structural component reference, then retheme"
       ],
       "riskNotes": [
@@ -401,7 +401,7 @@
         "component implementations",
         "CLI pattern"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for concrete implementation patterns"
       ],
       "riskNotes": [
@@ -427,7 +427,7 @@
         "focus management",
         "composition"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for robust behavior under custom HUD styling"
       ],
       "riskNotes": [
@@ -452,7 +452,7 @@
         "unstyled accessible primitives",
         "modern component APIs"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Alternative to Radix for agent-built controls"
       ],
       "riskNotes": [
@@ -477,7 +477,7 @@
         "unstyled accessible controls",
         "Tailwind-friendly patterns"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for menus, dialogs, comboboxes"
       ],
       "riskNotes": [
@@ -503,7 +503,7 @@
         "internationalization",
         "complex widgets"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for serious interaction ergonomics"
       ],
       "riskNotes": [
@@ -529,7 +529,7 @@
         "tokens via config",
         "responsive primitives"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Useful for implementation discipline"
       ],
       "riskNotes": [
@@ -555,7 +555,7 @@
         "background effects",
         "interactive hero patterns"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for premium motion references"
       ],
       "riskNotes": [
@@ -581,7 +581,7 @@
         "registry model",
         "copyable animated UI"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use source to adapt patterns"
       ],
       "riskNotes": [
@@ -607,7 +607,7 @@
         "3D cards",
         "hero effects"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for inspiration, not default implementation"
       ],
       "riskNotes": [
@@ -633,7 +633,7 @@
         "effect taxonomy",
         "promptable components"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Good for source-selection step in design-master"
       ],
       "riskNotes": [
@@ -659,7 +659,7 @@
         "Motion-based components",
         "animation-focused gaps"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for motion components that stay installable"
       ],
       "riskNotes": [
@@ -685,7 +685,7 @@
         "Tailwind Motion registry",
         "copy/install model"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Good implementation reference"
       ],
       "riskNotes": [
@@ -711,7 +711,7 @@
         "React motion patterns",
         "controlled transitions"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for restrained, production-grade motion"
       ],
       "riskNotes": [
@@ -738,7 +738,7 @@
         "gestures",
         "performance"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Canonical motion implementation docs"
       ],
       "riskNotes": [
@@ -764,7 +764,7 @@
         "scroll-triggered animation",
         "performance animation"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for cinematic sequences when Framer Motion is insufficient"
       ],
       "riskNotes": [
@@ -790,7 +790,7 @@
         "text/cursor/background effects",
         "multiple variants"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Useful for creative component ideas"
       ],
       "riskNotes": [
@@ -816,7 +816,7 @@
         "animated UI patterns",
         "devpack"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as idea source for custom components"
       ],
       "riskNotes": [
@@ -842,7 +842,7 @@
         "WebGL/GSAP examples",
         "templates"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for motif selection and benchmark quality"
       ],
       "riskNotes": [
@@ -868,7 +868,7 @@
         "community component library",
         "variant generation"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as reference for AI-assisted component workflows"
       ],
       "riskNotes": [
@@ -894,7 +894,7 @@
         "agent-connected UI building",
         "component retrieval"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Potential future MCP lane for design generation"
       ],
       "riskNotes": [
@@ -920,7 +920,7 @@
         "agent tool setup",
         "frontend generation"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use when adding actual connector support"
       ],
       "riskNotes": [
@@ -946,7 +946,7 @@
         "Framer motion patterns",
         "component demos"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Already archived; use for motion family selection"
       ],
       "riskNotes": [
@@ -972,7 +972,7 @@
         "creative interaction demos",
         "tutorial source"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for high-end motion and layout experiments"
       ],
       "riskNotes": [
@@ -998,7 +998,7 @@
         "shader/scroll/canvas effects",
         "demo-to-code bridge"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Best source for translating inspiration to code"
       ],
       "riskNotes": [
@@ -1024,7 +1024,7 @@
         "trend scanning",
         "experimental sites"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for taste horizon and benchmark energy"
       ],
       "riskNotes": [
@@ -1050,7 +1050,7 @@
         "modern landing pages",
         "visual density"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for current web aesthetic radar"
       ],
       "riskNotes": [
@@ -1076,7 +1076,7 @@
         "mobile and web app patterns",
         "screen libraries"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for operational UX, not just visual style"
       ],
       "riskNotes": [
@@ -1102,7 +1102,7 @@
         "conversion layouts",
         "startup/site patterns"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for website pacing and section architecture"
       ],
       "riskNotes": [
@@ -1128,7 +1128,7 @@
         "filterable styles",
         "layout references"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for mature website patterns"
       ],
       "riskNotes": [
@@ -1154,7 +1154,7 @@
         "conversion sections",
         "SaaS examples"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Good first pass for landing structure"
       ],
       "riskNotes": [
@@ -1180,7 +1180,7 @@
         "simple flows",
         "responsive landing pages"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for concise page pacing"
       ],
       "riskNotes": [
@@ -1206,7 +1206,7 @@
         "typography examples",
         "real web type usage"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use to improve type decisions beyond default mono/HUD"
       ],
       "riskNotes": [
@@ -1232,8 +1232,8 @@
         "clean web patterns",
         "product screens"
       ],
-      "nudimmudFit": [
-        "Use when NUDIMMUD needs restraint"
+      "yuriFit": [
+        "Use when YURI needs restraint"
       ],
       "riskNotes": [
         "Sparse detail"
@@ -1258,7 +1258,7 @@
         "feature cards",
         "modular content"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for dashboard and landing feature grids"
       ],
       "riskNotes": [
@@ -1284,7 +1284,7 @@
         "brand expression",
         "before/after references"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use when designing brand-level pages"
       ],
       "riskNotes": [
@@ -1310,7 +1310,7 @@
         "web art direction",
         "unusual interfaces"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for divergence checks"
       ],
       "riskNotes": [
@@ -1336,8 +1336,8 @@
         "contrast patterns",
         "premium dark surfaces"
       ],
-      "nudimmudFit": [
-        "Direct fit for NUDIMMUD dark systems"
+      "yuriFit": [
+        "Direct fit for YURI dark systems"
       ],
       "riskNotes": [
         "Can overfit dark aesthetics"
@@ -1362,7 +1362,7 @@
         "inspiration source discovery",
         "design tools"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as expansion watchlist"
       ],
       "riskNotes": [
@@ -1388,7 +1388,7 @@
         "React generation",
         "component iteration"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Benchmark AI-generated UI output"
       ],
       "riskNotes": [
@@ -1414,7 +1414,7 @@
         "visual iteration",
         "builder UX"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as competitor workflow reference"
       ],
       "riskNotes": [
@@ -1440,7 +1440,7 @@
         "fast prototyping",
         "deployment-oriented flow"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for workflow benchmark"
       ],
       "riskNotes": [
@@ -1466,7 +1466,7 @@
         "wireframes",
         "design-to-prototype"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Useful for rapid ideation references"
       ],
       "riskNotes": [
@@ -1492,7 +1492,7 @@
         "screen generation",
         "product design exploration"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for competitive UI generation benchmark"
       ],
       "riskNotes": [
@@ -1518,7 +1518,7 @@
         "design to interactive build",
         "designer-agent loop"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for future design-to-code expectations"
       ],
       "riskNotes": [
@@ -1544,7 +1544,7 @@
         "shadcn/magic/aceternity/radix comparisons",
         "real-world caveats"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for source prioritization and warnings"
       ],
       "riskNotes": [
@@ -1570,7 +1570,7 @@
         "Mobbin/Godly/Lapa/SiteInspire consensus",
         "current curation signals"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use to expand watchlist"
       ],
       "riskNotes": [
@@ -1596,7 +1596,7 @@
         "Land-book/Mobbin/Page Flows consensus",
         "skepticism of art-site references"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Good guardrail against overdoing Awwwards-style visuals"
       ],
       "riskNotes": [
@@ -1622,7 +1622,7 @@
         "Next cache interaction",
         "real integration failure"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as QA reminder for animated copied components"
       ],
       "riskNotes": [
@@ -1648,7 +1648,7 @@
         "reduced motion",
         "component collection feedback"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Good motion accessibility reminder"
       ],
       "riskNotes": [
@@ -1674,7 +1674,7 @@
         "component copy-paste risk",
         "performance/compat issue"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as risk note for animated libraries"
       ],
       "riskNotes": [
@@ -1700,7 +1700,7 @@
         "React 19 compatibility",
         "registry updates"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use during React/Tailwind implementation audits"
       ],
       "riskNotes": [
@@ -1726,7 +1726,7 @@
         "designer workflow concerns",
         "custom design systems"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Supports using shadcn structurally only"
       ],
       "riskNotes": [
@@ -1751,7 +1751,7 @@
         "Vercel design engineering signals",
         "web interface guideline updates"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Watch source for future guidelines updates"
       ],
       "riskNotes": [
@@ -1776,7 +1776,7 @@
         "shadcn registry updates",
         "component ecosystem signals"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Watch for registry and theme changes"
       ],
       "riskNotes": [
@@ -1801,7 +1801,7 @@
         "motion/design engineering examples",
         "microinteraction patterns"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Good taste feed for motion restraint"
       ],
       "riskNotes": [
@@ -1828,7 +1828,7 @@
         "rendering model",
         "event handling basics"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use as React implementation baseline before adding visual complexity",
         "Keep state and component boundaries clear under advanced motion"
       ],
@@ -1854,7 +1854,7 @@
         "hook correctness",
         "compiler-friendly component logic"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Prevents animation and browser effects from contaminating render paths",
         "Use before adding RAF, canvas, or motion hooks"
       ],
@@ -1880,7 +1880,7 @@
         "state reset with keys",
         "sharing state between components"
       ],
-      "nudimmudFit": [
+      "yuriFit": [
         "Use for dashboards, inspectors, mode rails, and multi-panel interaction state",
         "Keep UI state deterministic before layering presentation motion"
       ],

@@ -85,7 +85,7 @@ capture                 behavior change
 - **Regulated environments:** ICM doesn't have audit trails or access control built in. Use a proper DMS.
 - **Pure storage:** If you never revisit or process inputs, you just have a well-organized junk drawer. Use a search tool instead.
 
-## ICM and NUDIMMUD
+## ICM and YURI
 
 This SELF-IMPROVEMENT directory is an ICM-systems directory — it's designed as an architecture, not an archive.
 

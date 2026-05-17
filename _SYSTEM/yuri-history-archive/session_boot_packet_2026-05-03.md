@@ -24,7 +24,7 @@ Direct current repo truth outranks this packet.
 
 ## Operating DNA
 
-- Governing doctrine: [`.claude/rules/nudimmud_operating_dna.md`](../.claude/rules/nudimmud_operating_dna.md)
+- Governing doctrine: [`.claude/rules/yuri_operating_dna.md`](../.claude/rules/yuri_operating_dna.md)
 - Compact reference: [`.claude/rules/research_pipeline.md`](../.claude/rules/research_pipeline.md)
 
 ## Preflight

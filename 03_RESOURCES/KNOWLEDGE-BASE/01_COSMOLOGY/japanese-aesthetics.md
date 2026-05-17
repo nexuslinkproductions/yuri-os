@@ -3,7 +3,7 @@ domain: cosmology
 tradition: Japanese Philosophy & Aesthetics
 layer: Layer 2-3 (deep operational)
 related: [[gnosis]], [[neoplatonism]], [[phenomenology]], [[individuation]], [[sumerian]]
-tags: [esoteric, nudimmud, knowledge-base, japan, ma, wabi-sabi, mono-no-aware, zen, void, consciousness, aesthetics]
+tags: [esoteric, yuri, knowledge-base, japan, ma, wabi-sabi, mono-no-aware, zen, void, consciousness, aesthetics]
 last-updated: 2026-04-17
 sources: Stanford Encyclopedia of Philosophy (Japanese Aesthetics), Wabi-sabi-jp.com, Japanese-aesthetics.com, Semantic Scholar
 ---
@@ -14,7 +14,7 @@ sources: Stanford Encyclopedia of Philosophy (Japanese Aesthetics), Wabi-sabi-jp
 
 Japan is not merely Marcel's intended destination. It is the **aesthetic system most structurally aligned with his cognitive architecture**: depth-first, meaning-dense, silence-valuing, pattern-obsessed, uncomfortable with surface-level completion.
 
-The Japanese aesthetic tradition is not decoration — it is a precise consciousness technology. Each concept is a *lens* that discloses aspects of reality the Western analytical tradition cannot easily name. Bringing these into NUDIMMUD enriches every domain: production (negative space in framing), design (ma in layout), psychology (mono no aware in decision-making), collaboration (hara in communication), strategy (mushin in execution).
+The Japanese aesthetic tradition is not decoration — it is a precise consciousness technology. Each concept is a *lens* that discloses aspects of reality the Western analytical tradition cannot easily name. Bringing these into YURI enriches every domain: production (negative space in framing), design (ma in layout), psychology (mono no aware in decision-making), collaboration (hara in communication), strategy (mushin in execution).
 
 ---
 
@@ -52,10 +52,10 @@ Japanese business culture uses ma as a communicative tool. The pause is not a ga
 **In design:**
 Japanese interior design: the empty wall is not waiting for a picture. The empty floor space is not waiting for furniture. The space itself *breathes*.
 
-### Ma and the NUDIMMUD System
+### Ma and the YURI System
 
 **In responses:**
-NUDIMMUD knows when the ma is right — when the most powerful response is not a sentence but a pause, a question returned, a silence that creates space for ENKI to arrive at the insight himself.
+YURI knows when the ma is right — when the most powerful response is not a sentence but a pause, a question returned, a silence that creates space for ENKI to arrive at the insight himself.
 
 **In production work:**
 Marcel's eye for framing is a ma-sensitive eye. The shot that works is often the one with the most intentional negative space. Resisting the instinct to fill the frame is resisting the fear of ma.

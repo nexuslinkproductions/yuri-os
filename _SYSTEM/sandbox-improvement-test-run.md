@@ -30,7 +30,7 @@ Create and operate a sandbox loop that improves velocity without polluting canon
 **Run ID:** `sandbox-20260509223540-2c2aaa`
 **Mode:** `live`
 **Prompt:** `first Yuri sandbox operational proving run`
-**Final report:** `/Users/marcelspatz/.nudimmud/sandbox-runs/sandbox-20260509223540-2c2aaa/final-report.md`
+**Final report:** `/Users/marcelspatz/.yuri/sandbox-runs/sandbox-20260509223540-2c2aaa/final-report.md`
 
 #### Route
 
@@ -92,7 +92,7 @@ Create and operate a sandbox loop that improves velocity without polluting canon
 npm test
 npm run test:learning-loop
 npm run test:memory-governor
-node _SYSTEM/Scripts/yuri-guarded-executor.mjs --selftest --artifact-root /tmp/nudimmud-yuri-sandbox-selftest
+node _SYSTEM/Scripts/yuri-guarded-executor.mjs --selftest --artifact-root /tmp/yuri-yuri-sandbox-selftest
 node _SYSTEM/Scripts/yuri-sandbox-loop.mjs --selftest
 node _SYSTEM/Scripts/yuri-sandbox-loop.mjs --dry-run --prompt "first Yuri sandbox operational proving run"
 node _SYSTEM/Scripts/yuri-sandbox-loop.mjs --live --prompt "first Yuri sandbox operational proving run"

@@ -3,8 +3,8 @@
 status: `RAG_LAUNCHD_RUNNING`
 checked_at: `2026-05-09T20:41:27+02:00`
 head: `b5ac69333cf34915863f65fa6dcb4c6918a29107`
-launchd_label: `com.nudimmud.wiki-rag`
-plist_path: `/Users/marcelspatz/Library/LaunchAgents/com.nudimmud.wiki-rag.plist`
+launchd_label: `com.yuri.wiki-rag`
+plist_path: `/Users/marcelspatz/Library/LaunchAgents/com.yuri.wiki-rag.plist`
 launchd_domain: `gui/501`
 launchd_state: `running`
 watcher_entrypoint: `_SYSTEM/Scripts/wiki-rag-launchd.mjs run`
@@ -12,8 +12,8 @@ watch_command: `npm run wiki:rag:watch`
 health_command: `npm run wiki:rag:health`
 install_command: `npm run wiki:rag:launchd:install`
 status_command: `npm run wiki:rag:launchd:status`
-log_stdout: `/Users/marcelspatz/Library/Logs/NUDIMMUD/wiki-rag-launchd.out.log`
-log_stderr: `/Users/marcelspatz/Library/Logs/NUDIMMUD/wiki-rag-launchd.err.log`
+log_stdout: `/Users/marcelspatz/Library/Logs/YURI/wiki-rag-launchd.out.log`
+log_stderr: `/Users/marcelspatz/Library/Logs/YURI/wiki-rag-launchd.err.log`
 
 ## Purpose
 

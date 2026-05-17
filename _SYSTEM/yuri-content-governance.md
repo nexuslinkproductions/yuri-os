@@ -1,6 +1,6 @@
 # Yuri OS Content Governance
 
-Enterprise-ready content classification and governance policy for all Markdown and text surfaces in the NUDIMMUD repository.
+Enterprise-ready content classification and governance policy for all Markdown and text surfaces in the YURI repository.
 
 ## Canonical Authority
 

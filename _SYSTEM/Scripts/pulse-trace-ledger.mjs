@@ -13,7 +13,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 export const PULSE_TRACE_LEDGER_SCHEMA_VERSION = 1;
-const DEFAULT_TRACE_ROOT = path.join(os.homedir(), '.nudimmud', 'pulse-trace');
+const DEFAULT_TRACE_ROOT = path.join(os.homedir(), '.yuri', 'pulse-trace');
 const FORBIDDEN_TRACE_KEYS = new Set([
   'chainOfThought',
   'chain_of_thought',

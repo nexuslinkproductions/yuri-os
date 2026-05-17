@@ -66,7 +66,7 @@ Finish PRISM as a polished c2moviez Sales Engagement Workbench: Today-first, vis
 
 ### Phase 7: Premium Visual Finish
 
-- Use light c2moviez design, not NUDIMMUD HUD.
+- Use light c2moviez design, not YURI HUD.
 - Blend Linear's queue discipline, Superhuman's focus flow, and custom internal ops density.
 - Target desktop and tablet.
 - Avoid generic SaaS cards, decorative gradients, kanban boards, and automation-looking send controls.

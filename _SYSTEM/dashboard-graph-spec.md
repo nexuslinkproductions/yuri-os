@@ -216,7 +216,7 @@ FIXED DOM OVERLAYS (not on canvas)
 
 Top-left (position:fixed top:12px left:16px):
   "YURI OS" — JetBrains Mono 13px #D4AF37 bold tracking 0.1em
-  "NUDIMMUD · main · 77cba552" — 10px #4A3B32
+  "YURI · main · 77cba552" — 10px #4A3B32
 
 Top-right:
   Soak ring SVG: r=14, 32% filled, #A8BCC6

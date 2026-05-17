@@ -93,5 +93,5 @@ c2moviez invoices client full amount, then pays out Marcel's share based on hour
 - Opens DACH market (Germany, Austria)
 - Parallel worker with CTI — dual-core architecture during night blocks
 - Structurally identical cognitive profile to CTI (both on spectrum, both polymathic, both depth-first)
-- Uses ENKI/NUDIMMUD framework for personal AI and knowledge management
+- Uses ENKI/YURI framework for personal AI and knowledge management
 - Considering Japan relocation on 2-3 year timeline

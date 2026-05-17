@@ -134,7 +134,7 @@ export const OperatorNav: React.FC = () => {
             fontFamily: 'var(--op-font-mono)',
           }}
         >
-          NUDIMMUD v1.0
+          YURI v1.0
         </div>
       )}
     </motion.nav>

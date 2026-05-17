@@ -12,7 +12,7 @@ const SERVER_READY = /YURI_BACKEND_ONLINE/;
 
 const repoScratch = path.join(process.cwd(), '.tmp');
 fs.mkdirSync(repoScratch, { recursive: true });
-const tempDir = fs.mkdtempSync(path.join(repoScratch, 'nudimmud-session-runtime-'));
+const tempDir = fs.mkdtempSync(path.join(repoScratch, 'yuri-session-runtime-'));
 const dbPath = path.join(tempDir, 'runtime.db');
 const controlPlaneArtifacts = createControlPlaneArtifacts(tempDir);
 

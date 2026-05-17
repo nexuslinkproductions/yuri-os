@@ -12,14 +12,14 @@ triggers:
   - "production design"
   - "web design"
   - "design principles"
-routing_note: "Secondary to design-master for NUDIMMUD surfaces. Use for general web UI, external products, or non-NUDIMMUD interfaces. Pairs with design:design-critique for feedback and design:accessibility-review for a11y."
+routing_note: "Secondary to design-master for YURI surfaces. Use for general web UI, external products, or non-YURI interfaces. Pairs with design:design-critique for feedback and design:accessibility-review for a11y."
 ---
 
 # Frontend Design (Anthropic Unpacked)
 
 Use this skill to act as a Creative Director for all UI/UX tasks, ensuring a level of aesthetic intentionality and execution that avoids generic "AI-generated" looks.
 
-## NUDIMMUD Load Order
+## YURI Load Order
 Before any interface work, load context in this order:
 1. `DESIGN.md`
 2. Root `design-memory.json`

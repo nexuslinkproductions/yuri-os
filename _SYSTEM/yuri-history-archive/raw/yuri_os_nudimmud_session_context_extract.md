@@ -1,8 +1,8 @@
-# Yuri OS / Nudimmud — Session Context Extract
+# Yuri OS / Yuri — Session Context Extract
 
 ## 1. Session Summary
 
-This chat continued Yuri OS / NUDIMMUD “boring reinforcement” work. The user provided sprint reports from Claude Code, and GPT-5.5 reviewed them as an external architecture reviewer, sprint gatekeeper, consistency auditor, and prompt designer.
+This chat continued Yuri OS / YURI “boring reinforcement” work. The user provided sprint reports from Claude Code, and GPT-5.5 reviewed them as an external architecture reviewer, sprint gatekeeper, consistency auditor, and prompt designer.
 
 The session focused on trigger metadata, registry invocation metadata, lifecycle status correction, and preparation for command-surface planning. GPT-5.5 repeatedly checked Claude reports for count mismatches, path issues, stale metadata, scope drift, and unsafe next-step jumps.
 
@@ -408,7 +408,7 @@ Status: unknown for this session.
     - Create `skill-manifest-04a-patch-v2.json` if v1 is wrong.
     - Do not import patch.
 
-- Prompt name: Yuri OS / NUDIMMUD Collaboration Context
+- Prompt name: Yuri OS / YURI Collaboration Context
   - Target: Claude Code CLI
   - Purpose: Explain working relationship between project owner, GPT-5.5, and Claude Code.
   - When to use: Before future Claude sprints.
@@ -591,7 +591,7 @@ Status: unknown for this session.
 
 ## 10. GPT-5.5 Continuity Brief
 
-We are working on Yuri OS / NUDIMMUD boring reinforcement. In this chat, GPT-5.5 acted as an external architecture reviewer and sprint gatekeeper while Claude Code produced local reports and performed approved registry/metadata edits.
+We are working on Yuri OS / YURI boring reinforcement. In this chat, GPT-5.5 acted as an external architecture reviewer and sprint gatekeeper while Claude Code produced local reports and performed approved registry/metadata edits.
 
 The session reviewed and guided the chain from Sprint 03A through Sprint 04C-H. Sprint 03A had trigger-count and GitNexus path issues, which were reconciled in 03A-R. Sprint 03B added trigger arrays to four approved skills and was validated in 03B-V. Sprint 04A classified invocation models and created a registry patch, but its report had count issues. Sprint 04A-V produced corrected `skill-manifest-04a-patch-v2.json`. Sprint 04B imported v2 into `skill-manifest.json`, but 04B-V discovered lifecycle `status` drift. Sprint 04C restored per-skill statuses. Sprint 04C-H fixed the stale top-level metadata header.
 
@@ -605,7 +605,7 @@ Next task: Sprint 05A Command-Surface Coverage Planning. Claude Code should exec
 
 ```json
 {
-  "project": "Yuri OS / Nudimmud",
+  "project": "Yuri OS / Yuri",
   "session_theme": "Boring reinforcement: trigger metadata, registry invocation hygiene, lifecycle status repair, and command-surface planning preparation",
   "main_outputs": [
     "Sprint 03A-R reconciliation prompt",
@@ -731,7 +731,7 @@ Next task: Sprint 05A Command-Surface Coverage Planning. Claude Code should exec
     "Sprint 03B-V Trigger Patch Validation",
     "Sprint 04A Registry Invocation Model Hygiene",
     "Sprint 04A-V Registry Patch Validation and Count Reconciliation",
-    "Yuri OS / NUDIMMUD Collaboration Context",
+    "Yuri OS / YURI Collaboration Context",
     "Sprint 04B Import Validated Registry Patch",
     "Sprint 04B-V Registry Import Status Semantics Validation",
     "Sprint 04C Restore Registry Lifecycle Status Semantics",

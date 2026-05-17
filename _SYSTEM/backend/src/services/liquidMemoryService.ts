@@ -5,7 +5,7 @@ import { SystemConfig } from '../config/SystemConfig';
 /**
  * ⬡ LIQUID_MEMORY_SERVICE
  * Inspired by MIT CSAIL's Liquid Neural Networks (LNNs).
- * Implements a time-continuous, adaptive context bridge for NUDIMMUD.
+ * Implements a time-continuous, adaptive context bridge for YURI.
  */
 
 /**

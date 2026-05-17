@@ -1,4 +1,4 @@
-# C2MOVIEZ ↔ NUDIMMUD — Setup & Collaboration Guide
+# C2MOVIEZ ↔ YURI — Setup & Collaboration Guide
 
 **For:** Claudio Tinner (c2moviez GmbH)  
 **Purpose:** Connect two vaults, enable seamless cross-pipeline workflow  
@@ -36,13 +36,13 @@ You send Marcel a snapshot of your vault structure.
 
 ## Step 2: Create Mapping (Marcel)
 
-Marcel creates `_MAPPING.md` showing how c2moviez paths map to NUDIMMUD paths.
+Marcel creates `_MAPPING.md` showing how c2moviez paths map to YURI paths.
 
 **Example:**
 ```
-# C2MOVIEZ → NUDIMMUD Path Mapping
+# C2MOVIEZ → YURI Path Mapping
 
-| c2moviez Structure | NUDIMMUD Path | Notes |
+| c2moviez Structure | YURI Path | Notes |
 |---|---|---|
 | `/Clients/ANGELIKA/` | `01_PROJECTS/C2MOVIEZ/ANGELIKA/` | Client folder |
 | `/Assets/LUTs/` | `03_RESOURCES/LUTs/` | Shared resources |
@@ -63,7 +63,7 @@ For each active client project:
    - Both vaults use the same slug for the same project
    
 2. **Ownership split:**
-   - **NUDIMMUD owns:** Shoot logs, location info, raw footage references, crew notes
+   - **YURI owns:** Shoot logs, location info, raw footage references, crew notes
    - **C2MOVIEZ owns:** Edit timelines, motion graphics, final deliverables, client proofs
    - **Shared:** Project brief, client contact, budget, timeline
    
@@ -73,7 +73,7 @@ For each active client project:
    ├── brief.md                    # Shared: deliverables, creative direction
    ├── budget.md                   # Shared: costs, invoicing
    ├── timeline.md                 # Shared: milestones
-   ├── [NUDIMMUD OWNS]:
+   ├── [YURI OWNS]:
    │   ├── location-scout/         # Location photos, access notes
    │   ├── shot-list/              # Scene breakdown
    │   ├── crew.md                 # On-set team
@@ -90,7 +90,7 @@ For each active client project:
    # ANGELIKA — February 2026
    
    **Project Slug:** ANGELIKA_2026-02
-   **Lead (Capture):** [[NUDIMMUD/01_PROJECTS/C2MOVIEZ/ANGELIKA/shoot-log|Marcel's Shoot Log]]
+   **Lead (Capture):** [[YURI/01_PROJECTS/C2MOVIEZ/ANGELIKA/shoot-log|Marcel's Shoot Log]]
    **Lead (Post):** [[C2MOVIEZ/ANGELIKA/timeline|Claudio's Edit Timeline]]
    **Client Brief:** [[brief|Shared Brief]]
    ```
@@ -119,7 +119,7 @@ For each active client project:
 
 ## Step 5: Cross-Vault Integration (iC2M) — [LIVE]
 
-The integrated vault `iC2M` is now live in the root of NUDIMMUD.
+The integrated vault `iC2M` is now live in the root of YURI.
 
 **iC2M contains:**
 - **Operational Brain**: Clients, Work Items, Daily Briefings (Claudio's authority)
@@ -142,7 +142,7 @@ The integrated vault `iC2M` is now live in the root of NUDIMMUD.
 - How to scale capture across multiple pipelines
 
 ### 2. Reference the Knowledge Base
-NUDIMMUD includes a 06_KNOWLEDGE-BASE with:
+YURI includes a 06_KNOWLEDGE-BASE with:
 - **Cosmology & consciousness frameworks** — useful for brand/creative briefs
 - **Communication patterns** — apply to client management, sales
 - **Operational systems** — your own production can adopt similar structures
@@ -164,7 +164,7 @@ This vault is a **template**. You can fork/adapt:
 ## How to Access
 
 **Right now:**
-- Clone NUDIMMUD repo: `git clone https://github.com/[Marcel]/yuri-os-musubi`
+- Clone YURI repo: `git clone https://github.com/[Marcel]/yuri-os-musubi`
 - Read `README.md` for overview
 - Check `06_NETWORK-SYNC/C2MOVIEZ/` for sync protocol
 
@@ -186,7 +186,7 @@ This vault is a **template**. You can fork/adapt:
 ## Next Actions — [FINALIZED]
 
 **Marcel:**
-1. ✅ Push NUDIMMUD to GitHub (integrated with iC2M)
+1. ✅ Push YURI to GitHub (integrated with iC2M)
 2. ✅ Finalize semantic mapping (`palace-rebuild.py`)
 3. ✅ Update `Home.md` with unified breadcrumbs
 

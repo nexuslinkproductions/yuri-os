@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — GPT Session Continuity After 07J Hook Commit + Permission Deny Planning
+# Yuri OS / YURI — GPT Session Continuity After 07J Hook Commit + Permission Deny Planning
 
 Date: 2026-04-28  
 Prepared for: new GPT-5.5 continuation chat + Claude/Sonnet plan review  
@@ -457,7 +457,7 @@ Define a smaller exact deny Phase 1 patch or owner-decision matrix.
 ## 7. Ready-to-Paste New GPT Chat Opening
 
 ```text
-Continue Yuri OS / NUDIMMUD from this continuity file.
+Continue Yuri OS / YURI from this continuity file.
 
 Latest committed state expected:
 - repo root: /Users/marcelspatz/YURI-OS-MUSUBI
@@ -538,7 +538,7 @@ Do:
 
 ```json
 {
-  "project": "Yuri OS / NUDIMMUD",
+  "project": "Yuri OS / YURI",
   "date": "2026-04-28",
   "document_type": "gpt_session_continuity_after_07j_permission_deny_p3",
   "status": "handoff_not_independent_repo_audit",

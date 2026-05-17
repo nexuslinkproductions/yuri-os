@@ -129,8 +129,8 @@ Compatibility commands continue to work, but they now enter `symbioticPulse` ins
 
 Trace storage:
 
-- Ledger: `~/.nudimmud/pulse-trace/ledger.ndjson`
-- Snapshots: `~/.nudimmud/pulse-trace/snapshots/*.json`
+- Ledger: `~/.yuri/pulse-trace/ledger.ndjson`
+- Snapshots: `~/.yuri/pulse-trace/snapshots/*.json`
 - Override root: `PULSE_TRACE_ROOT=/path/to/root`
 
 Ledger records are event-based: plan accepted, stage started, lane skipped, lane completed, lane failed, stage completed, dry-run completed, execute completed. Snapshots store compact plan and result structure: stage order, selected lanes, skipped candidates, output hashes, error hashes, and verification status. They do not store hidden chain-of-thought or raw lane output.

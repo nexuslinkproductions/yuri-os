@@ -1,6 +1,6 @@
 # OPERATOR CENTER — TOTAL REVAMP MASTER PROMPT
 **Routing:** DeepSeek-only (Pro lead, Flash workers) + @swarm/Ruflo offload. **NO Anthropic Agent() spawns.**
-**Owner:** Marcel Spatz / NUDIMMUD
+**Owner:** Marcel Spatz / YURI
 **Date:** 2026-05-06
 **Authority:** Opus = thin overseer only. DeepSeek-workhorse owns plan, design, code, ship.
 
@@ -32,7 +32,7 @@ Plan → design → execute → commit → ship. End state: production-ready, ty
 - Dev URL: `http://localhost:4200/operator` (Vite dev server, port 4200).
 
 ## 4. SCOPE — REIMAGINED OPERATOR CENTER
-Operator is the internal command surface for the NUDIMMUD/Yuri OS / Nexus Link operator/admin/console layer. Treat as a "studio cockpit" — not a CRUD admin panel. It must FEEL alive: telemetry, agent state, swarm activity, token spend, queue health, deployment posture, design audit HUD, oracle voice status, wake-word state — all surfaced with motion and clarity.
+Operator is the internal command surface for the YURI/Yuri OS / Nexus Link operator/admin/console layer. Treat as a "studio cockpit" — not a CRUD admin panel. It must FEEL alive: telemetry, agent state, swarm activity, token spend, queue health, deployment posture, design audit HUD, oracle voice status, wake-word state — all surfaced with motion and clarity.
 
 Suggested surfaces (DeepSeek must finalize IA after research):
 - **Dashboard / Cockpit** — live KPIs, token bars, lane utilization, recent sessions, alerts

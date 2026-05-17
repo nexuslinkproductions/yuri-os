@@ -1,11 +1,11 @@
 # C2MOVIEZ Database Mapping
 **Integrated:** 2026-04-17
 
-Maps Claudio's vault structure → NUDIMMUD canonical paths for bidirectional project linking.
+Maps Claudio's vault structure → YURI canonical paths for bidirectional project linking.
 
 ## Mapping Table
 
-| Claudio's Path | Domain | NUDIMMUD Canonical | Purpose | Sync Mode |
+| Claudio's Path | Domain | YURI Canonical | Purpose | Sync Mode |
 |---|---|---|---|---|
 | `02 - Clients/` | Client data | `01_PROJECTS/C2MOVIEZ/Clients/` | Client master records + Marcel context | Read-only reference |
 | `03 - Projects/` | Active projects | `01_PROJECTS/C2MOVIEZ/[PROJECT_SLUG]/` | Project briefs, timelines, deliverables | Bidirectional (slug matching) |
@@ -68,11 +68,11 @@ When Claudio updates a shared project in his vault:
 
 1.  **Authority**: `iC2M/` is the authoritative source for c2moviez operational data (Clients, Work Items, Daily Briefings).
 2.  **Collaboration**: `01_PROJECTS/C2MOVIEZ/` is the production workspace for collaborative media projects.
-3.  **Cross-Linking**: Use absolute wikilinks `[[iC2M/...|link]]` to reference Claudio's operational data from NUDIMMUD.
-4.  **No Duplication**: Do not copy notes from `iC2M/` to NUDIMMUD areas; link them instead to maintain a single source of truth.
+3.  **Cross-Linking**: Use absolute wikilinks `[[iC2M/...|link]]` to reference Claudio's operational data from YURI.
+4.  **No Duplication**: Do not copy notes from `iC2M/` to YURI areas; link them instead to maintain a single source of truth.
 
 ## Notes
 
 - **iC2M/ is the Live Core**: This is where the CEO's operational brain lives.
-- **Production happens in NUDIMMUD**: Media production and capture logs stay in the NUDIMMUD canonical structure.
+- **Production happens in YURI**: Media production and capture logs stay in the YURI canonical structure.
 - Run `palace-rebuild.py` after significant updates to maintain the semantic graph.

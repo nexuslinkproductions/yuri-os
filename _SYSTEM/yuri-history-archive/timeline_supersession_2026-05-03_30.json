@@ -23,13 +23,13 @@
       "sequence_rank": 2,
       "supersession_status": "superseded",
       "supersedes": [],
-      "superseded_by": ["yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md"],
+      "superseded_by": ["yuri_os_yuri_session_context_extract_2026-04-27 (1).md"],
       "trust_status": "historical_record_not_current_truth",
       "current_use_policy": "do_not_use; superseded by larger (1) variant of same date",
       "validation_needed_before_use": "compare body scope with (1) variant to confirm supersession direction"
     },
     {
-      "basename": "yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md",
+      "basename": "yuri_os_yuri_session_context_extract_2026-04-27 (1).md",
       "category": "session_context_extract",
       "date_hint": "2026-04-27",
       "sequence_rank": 3,
@@ -197,7 +197,7 @@
       "validation_needed_before_use": "none; clearly superseded by newer date and sprint progression"
     },
     {
-      "basename": "yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md",
+      "basename": "yuri_os_yuri_rag_ingest_r_3_handoff_2026_05_01.md",
       "category": "rag_ingest_handoff",
       "date_hint": "2026-05-01",
       "sequence_rank": 17,
@@ -344,24 +344,24 @@
       "validation_needed_before_use": "verify current DeepSeek integration and TokenOps HUD state in repo"
     },
     {
-      "basename": "yuri_os_nudimmud_session_context_extract.md",
+      "basename": "yuri_os_yuri_session_context_extract.md",
       "category": "session_context_extract",
       "date_hint": null,
       "sequence_rank": 29,
       "supersession_status": "needs_review",
       "supersedes": [],
-      "superseded_by": ["yuri_os_nudimmud_session_context_extract (1).md"],
+      "superseded_by": ["yuri_os_yuri_session_context_extract (1).md"],
       "trust_status": "historical_record_not_current_truth",
       "current_use_policy": "needs_body_review; undated; relationship to dated 2026-04-27 variants unclear",
       "validation_needed_before_use": "read first heading/date in body; compare scope with (1) variant and dated 2026-04-27 extracts"
     },
     {
-      "basename": "yuri_os_nudimmud_session_context_extract (1).md",
+      "basename": "yuri_os_yuri_session_context_extract (1).md",
       "category": "session_context_extract",
       "date_hint": null,
       "sequence_rank": 30,
       "supersession_status": "latest_candidate",
-      "supersedes": ["yuri_os_nudimmud_session_context_extract.md"],
+      "supersedes": ["yuri_os_yuri_session_context_extract.md"],
       "superseded_by": [],
       "trust_status": "historical_record_not_current_truth",
       "current_use_policy": "latest_in_undated_extract_lane; verify extraction date from body before use",

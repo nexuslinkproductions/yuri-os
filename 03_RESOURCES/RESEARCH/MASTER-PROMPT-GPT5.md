@@ -147,7 +147,7 @@ Every major section has four corner bracket marks (📐 style) in crimson at 0.1
 **DO NOT:**
 - Use Lenis or any smooth scroll library (causes conflicts with scroll listeners)
 - Use React.lazy or lazy loading (causes navigation delay — eager import all pages)
-- Import the nudimmud-logo.svg (contains green)
+- Import the yuri-logo.svg (contains green)
 - Add ANY green, teal, cyan, or purple anywhere
 - Use the old .nlp-shell consumer.css (outdated, not in use)
 - Create placeholder images with text labels (keep image slots completely empty)

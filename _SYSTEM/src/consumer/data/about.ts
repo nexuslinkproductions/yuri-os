@@ -52,6 +52,6 @@ export const milestones: Milestone[] = [
     year: 2026,
     title: 'Operator system live',
     description:
-      'NUDIMMUD command center deployed. Production pipeline fully integrated with infrastructure.',
+      'YURI command center deployed. Production pipeline fully integrated with infrastructure.',
   },
 ];

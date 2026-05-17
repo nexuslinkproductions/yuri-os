@@ -27,7 +27,7 @@ tags:
 | **Team** | [[CTI - Claudio Tinner]] (sales, in-person) + [[Marcel - NexusLinkProductions]] (local logistics, research, follow-up) |
 | **Targets** | 40 curated companies across 8 sectors |
 | **Goal** | Close 8 clients (20% conversion) for recurring monthly engagements |
-| **Research** | Compiled by Marcel Spatz / NUDIMMUD (Claude Sonnet 4.6) |
+| **Research** | Compiled by Marcel Spatz / YURI (Claude Sonnet 4.6) |
 
 Marcel is based in Vienna and operates as c2moviez Austria branch manager. He compiled the full 40-target research dashboard, sector analysis, and logistics plan. Claudio closes in-room; Marcel handles pre-trip outreach, printed materials, and post-meeting follow-up.
 

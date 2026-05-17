@@ -4,23 +4,23 @@
 # Large research / sandbox trees create noisy sessions and skill-list overflow.
 
 [[skills.config]]
-path = "/Users/marcelspatz/NUDIMMUD/RESEARCH/ruflo"
+path = "/Users/marcelspatz/YURI/RESEARCH/ruflo"
 enabled = false
 
 [[skills.config]]
-path = "/Users/marcelspatz/NUDIMMUD/01_PROJECTS/openspace"
+path = "/Users/marcelspatz/YURI/01_PROJECTS/openspace"
 enabled = false
 
 [[skills.config]]
-path = "/Users/marcelspatz/NUDIMMUD/01_PROJECTS/superpowers"
+path = "/Users/marcelspatz/YURI/01_PROJECTS/superpowers"
 enabled = false
 
 [[skills.config]]
-path = "/Users/marcelspatz/NUDIMMUD/01_PROJECTS/claude-cookbooks"
+path = "/Users/marcelspatz/YURI/01_PROJECTS/claude-cookbooks"
 enabled = false
 
 [[skills.config]]
-path = "/Users/marcelspatz/NUDIMMUD/.claude/skills/deepseek-workhorse"
+path = "/Users/marcelspatz/YURI/.claude/skills/deepseek-workhorse"
 enabled = true
 name = "deepseek-workhorse"
 
@@ -36,9 +36,9 @@ max_depth = 1
 enable_fanout = false
 multi_agent = false
 
-[mcp_servers.nudimmudOffload]
+[mcp_servers.yuriOffload]
 command = "node"
-args = ["/Users/marcelspatz/NUDIMMUD/.codex/adapters/nudimmud-offload-mcp.mjs"]
+args = ["/Users/marcelspatz/YURI/.codex/adapters/yuri-offload-mcp.mjs"]
 enabled = true
 startup_timeout_sec = 5
 # Long offload jobs can legitimately spend minutes reasoning before returning text.
@@ -47,7 +47,7 @@ tool_timeout_sec = 21600
 
 [mcp_servers.gitnexus]
 command = "node"
-args = ["/Users/marcelspatz/NUDIMMUD/Scripts/gitnexus-mcp.mjs"]
+args = ["/Users/marcelspatz/YURI/Scripts/gitnexus-mcp.mjs"]
 enabled = true
 startup_timeout_sec = 10
 tool_timeout_sec = 180
@@ -61,4 +61,4 @@ tool_timeout_sec = 60
 
 [[hooks.PreToolUse]]
 matcher = "*"
-hooks = [{ type = "command", command = "node /Users/marcelspatz/NUDIMMUD/.codex/hooks/pre-tool-use.mjs" }]
+hooks = [{ type = "command", command = "node /Users/marcelspatz/YURI/.codex/hooks/pre-tool-use.mjs" }]

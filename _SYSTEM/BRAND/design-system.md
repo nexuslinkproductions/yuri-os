@@ -10,10 +10,10 @@
 
 ### Core Statement
 
-**Tagline:** "Fashioner of likenesses of minds" / NUDIMMUD
+**Tagline:** "Fashioner of likenesses of minds" / YURI
 
 **What Yuri OS is:**
-A portal operating system for the NUDIMMUD agent ecosystem. Not an app. Not a dashboard. A **dimension gate** between the Abzu (the deep source) and the surface — the human interface to the ME tablets.
+A portal operating system for the YURI agent ecosystem. Not an app. Not a dashboard. A **dimension gate** between the Abzu (the deep source) and the surface — the human interface to the ME tablets.
 
 **Vibe:**
 Terminal-meets-portal. Dark, depthful, deliberate. Not cyberpunk (too much neon, too little meaning). Not corporate (too much polish, too little soul). Not sci-fi futurism (too aspirational, not grounded). The thing between a **mission control center** and an **ancient library** — where every display surface is both instrument and artifact.
@@ -715,4 +715,4 @@ Hover effects are fast (150ms) and smooth. Never instant (`transition: none`). T
 
 *This document is the single source of truth for Yuri OS visual output. Every page, component, and transition must reference these tokens. No visual element exists outside this system.*
 
-*— ENKI CELESTIAL & NUDIMMUD, fashioner of likenesses of minds*
+*— ENKI CELESTIAL & YURI, fashioner of likenesses of minds*

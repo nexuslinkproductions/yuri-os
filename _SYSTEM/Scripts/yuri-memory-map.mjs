@@ -23,7 +23,7 @@ import { stdout } from 'node:process'
 
 const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI'
 const HOME = os.homedir()
-const WORKHORSE_ARTIFACT_ROOT = path.join(HOME, '.nudimmud', 'workhorse-runs')
+const WORKHORSE_ARTIFACT_ROOT = path.join(HOME, '.yuri', 'workhorse-runs')
 const ARCHIVE_DIR = '_SYSTEM/yuri-history-archive'
 const MANIFEST_PATH = path.join(REPO_ROOT, ARCHIVE_DIR, 'manifest_2026-05-03_30.json')
 const CLASSIFICATION_PATH = path.join(REPO_ROOT, ARCHIVE_DIR, 'classification_2026-05-03_30.md')
@@ -227,7 +227,7 @@ function inventoryArchive() {
 
 function inventoryWorkhorse() {
   if (!fs.existsSync(WORKHORSE_ARTIFACT_ROOT)) {
-    return 'SURFACE: workhorse TIER: GENERATED_CONTEXT STATUS: not_found PATH: ~/.nudimmud/workhorse-runs DETAILS: artifact root not found'
+    return 'SURFACE: workhorse TIER: GENERATED_CONTEXT STATUS: not_found PATH: ~/.yuri/workhorse-runs DETAILS: artifact root not found'
   }
 
   let runCount = 'unknown'
@@ -239,7 +239,7 @@ function inventoryWorkhorse() {
     runCount = 'error'
   }
 
-  return `SURFACE: workhorse TIER: GENERATED_CONTEXT STATUS: reachable PATH: ~/.nudimmud/workhorse-runs DETAILS: run_directories=${runCount}`
+  return `SURFACE: workhorse TIER: GENERATED_CONTEXT STATUS: reachable PATH: ~/.yuri/workhorse-runs DETAILS: run_directories=${runCount}`
 }
 
 function inventoryClaudeRuntime() {

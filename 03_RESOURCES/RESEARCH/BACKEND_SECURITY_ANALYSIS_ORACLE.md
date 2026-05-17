@@ -10,7 +10,7 @@
 ## 🧠 THOUGHT_PROCESS (Thinking Mode Activated)
 
 <thinking>
-*   **Deep Understanding**: The objective is to audit the `backend` of the NUDIMMUD architecture. Key areas: Command Execution (`executor.ts`), API Surface (`api.ts`), and Environment Management (`.env`).
+*   **Deep Understanding**: The objective is to audit the `backend` of the YURI architecture. Key areas: Command Execution (`executor.ts`), API Surface (`api.ts`), and Environment Management (`.env`).
 *   **Multi-angle Analysis**: 
     1.  **Injection Vulnerabilities**: Does `executeCommand` allow arbitrary command injection? 
     2.  **Access Control**: Are routes protected? (Currently no authentication in `api.ts`).
@@ -67,7 +67,7 @@ The liberated auditor identified a potential **Insecure Direct Object Reference 
 
 ## 🚀 IMPLEMENTATION_NOTES (Post-Audit Fixes)
 
-1. **Path Sanitization**: Updated `knowledgeService.ts` to use `path.resolve()` and a `.startsWith(VAULT_ROOT)` check. This mathematically ensures that no `../../` traversal can escape the NUDIMMUD vault.
+1. **Path Sanitization**: Updated `knowledgeService.ts` to use `path.resolve()` and a `.startsWith(VAULT_ROOT)` check. This mathematically ensures that no `../../` traversal can escape the YURI vault.
 2. **Oracle Auth Layer**: Implemented `authMiddleware.ts` requiring an `X-API-KEY` header for all sensitive routes. This protects the orchestrator from unauthorized local network requests and CSRF attacks.
 3. **Telemetry Alerts**: Security violations (unauthorized access, blocked traversal) are now logged with the `⬡ SECURITY_ALERT` prefix for real-time monitoring.
 

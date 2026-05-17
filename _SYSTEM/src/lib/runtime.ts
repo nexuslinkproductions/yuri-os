@@ -13,7 +13,7 @@ const WS_PROTOCOL = HTTP_PROTOCOL === 'https:' ? 'wss:' : 'ws:';
 const PRIMARY_PORT = runtimeEnv.VITE_API_PORT?.trim() || '3004';
 const CONFIGURED_API_ORIGIN = runtimeEnv.VITE_API_ORIGIN?.trim();
 const AUTH_HEADER_NAME = 'X-API-KEY';
-const AUTH_STORAGE_KEY = 'nudimmud.runtime-api-key';
+const AUTH_STORAGE_KEY = 'yuri.runtime-api-key';
 const BOOTSTRAP_PATH = runtimeEnv.VITE_API_BOOTSTRAP_PATH?.trim() || '/api/auth/bootstrap';
 
 let runtimeAuthToken: string | null | undefined;

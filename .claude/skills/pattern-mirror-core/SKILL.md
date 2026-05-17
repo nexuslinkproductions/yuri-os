@@ -1,6 +1,6 @@
 ---
 name: pattern-mirror-core
-description: Artifact perception, pattern extraction, weakness detection, and yuri-native reconstruction for Yuri OS / Nudimmud. Inspired by Sharingan / Copy Technique, translated into enterprise-safe system behavior.
+description: Artifact perception, pattern extraction, weakness detection, and yuri-native reconstruction for Yuri OS / Yuri. Inspired by Sharingan / Copy Technique, translated into enterprise-safe system behavior.
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -19,7 +19,7 @@ requires:
 
 ## When to use
 
-Use this skill when the user asks Yuri OS / Nudimmud to perform work involving:
+Use this skill when the user asks Yuri OS / Yuri to perform work involving:
 
 - repo
 - document
@@ -164,5 +164,5 @@ failure:
   1. Replaced `primary_command: /yuri pattern-mirror` with `triggers: ["/yuri pattern-mirror", "/pattern-mirror", "/pmc"]`
   2. Changed `status: proposed` → `status: active`
   3. Added `## Session Notes` section (required by `.claude/rules/skill-creation.md`)
-- **Validation:** Schema now matches NUDIMMUD skill-creation checklist
+- **Validation:** Schema now matches YURI skill-creation checklist
 - **Status:** Ready for command file registration

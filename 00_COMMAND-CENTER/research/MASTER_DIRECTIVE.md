@@ -1,7 +1,7 @@
-# MASTER DIRECTIVE: NUDIMMUD Command Hub OS
+# MASTER DIRECTIVE: YURI Command Hub OS
 
 ## 1. VISION: THE ALBEDO-LAYER COGNITIVE ENGINE
-The **NUDIMMUD Command Hub** is not merely a dashboard; it is a high-fidelity, unified **Albedo-layer** interface designed to bridge human cognition with autonomous neural routines. It prioritizes **Geometric Unity**, **Real-time Telemetry**, and a **Master Hub** environment that feels "alive" and responsive.
+The **YURI Command Hub** is not merely a dashboard; it is a high-fidelity, unified **Albedo-layer** interface designed to bridge human cognition with autonomous neural routines. It prioritizes **Geometric Unity**, **Real-time Telemetry**, and a **Master Hub** environment that feels "alive" and responsive.
 
 ---
 

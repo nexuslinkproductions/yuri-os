@@ -15,8 +15,8 @@ from rich.syntax import Syntax
 from rich.align import Align
 
 # Constants
-DB_PATH = "/Users/marcelspatz/NUDIMMUD/_SYSTEM/OS_KERNEL/memory.db"
-PROJECT_DIR = "/Users/marcelspatz/NUDIMMUD"
+DB_PATH = "/Users/marcelspatz/YURI/_SYSTEM/OS_KERNEL/memory.db"
+PROJECT_DIR = "/Users/marcelspatz/YURI"
 
 console = Console()
 
@@ -93,7 +93,7 @@ class EvoNexusTUI:
         grid.add_column(justify="center", ratio=1)
         grid.add_column(justify="right", ratio=1)
         grid.add_row(
-            f"[bold blue]NUDIMMUD[/] [dim]v1.1.0[/]",
+            f"[bold blue]YURI[/] [dim]v1.1.0[/]",
             "[bold white]EVONEXUS VESSEL COMMAND CENTER[/]",
             f"[dim]{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/வதற்காக"
         )

@@ -97,9 +97,9 @@ else
 fi
 
 if grep -q "aeonic-ingest.js" "$YURI_ROOT/.claude/settings.json"; then
-  test_pass "NUDIMMUD/.claude/settings.json wired correctly"
+  test_pass "YURI/.claude/settings.json wired correctly"
 else
-  test_fail "NUDIMMUD/.claude/settings.json missing hooks"
+  test_fail "YURI/.claude/settings.json missing hooks"
 fi
 
 # Summary

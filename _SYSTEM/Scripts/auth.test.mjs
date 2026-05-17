@@ -46,7 +46,7 @@ try {
   globalThis.fetch = originalFetch;
 }
 
-const stubRoot = mkdtempSync(join(tmpdir(), 'nudimmud-auth-hook-'));
+const stubRoot = mkdtempSync(join(tmpdir(), 'yuri-auth-hook-'));
 try {
   const captureFile = join(stubRoot, 'curl-args.txt');
   const curlStub = join(stubRoot, 'curl');

@@ -33,7 +33,7 @@ _SYSTEM/     00_COMMAND-CENTER/  01_PROJECTS/  02_AREAS/
 | HEARTBEAT.md | yuri-pulse.md | doc |
 | NEURAL_FORGE.md | yuri-forge.md | doc |
 
-LaunchAgent reloaded: `com.nudimmud.yuri-sentinel` (was nisaba-sentinel).
+LaunchAgent reloaded: `com.yuri.yuri-sentinel` (was nisaba-sentinel).
 All 30+ path references updated across _SYSTEM/Scripts/, .claude/hooks/, settings.json.
 
 ### Brain-inject v3 — 16 sections in `<yuri-brain>`

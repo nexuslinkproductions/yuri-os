@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — GPT Session Handoff After 07K RAG Query Hardening
+# Yuri OS / YURI — GPT Session Handoff After 07K RAG Query Hardening
 
 Date: 2026-05-01  
 Prepared for: fresh GPT-5.5 / Claude / Codex / Gemini continuation  
@@ -9,7 +9,7 @@ Status: continuity handoff, not an independently executed repo audit
 
 ## 1. Purpose
 
-This handoff captures the current Yuri OS / NUDIMMUD state after the 07K RAG notebook query hardening work, including:
+This handoff captures the current Yuri OS / YURI state after the 07K RAG notebook query hardening work, including:
 
 - verification of the newer repo state after Codex/offload commits,
 - backend-only citation UX repair,
@@ -685,7 +685,7 @@ Do:
 ## 12. Fresh Chat Opening Prompt
 
 ```text
-Continue Yuri OS / NUDIMMUD from the uploaded handoff.
+Continue Yuri OS / YURI from the uploaded handoff.
 
 Current trusted state:
 - repo root: /Users/marcelspatz/YURI-OS-MUSUBI

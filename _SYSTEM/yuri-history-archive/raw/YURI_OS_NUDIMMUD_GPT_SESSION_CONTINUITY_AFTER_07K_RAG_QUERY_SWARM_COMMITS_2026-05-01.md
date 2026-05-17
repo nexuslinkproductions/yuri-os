@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — GPT Session Continuity After 07K RAG Idempotency, Query Validation, and Swarm/Codex Routing Fixes
+# Yuri OS / YURI — GPT Session Continuity After 07K RAG Idempotency, Query Validation, and Swarm/Codex Routing Fixes
 
 Date: 2026-05-01  
 Prepared for: fresh GPT-5.5 continuation chat + Claude/Codex/Gemini continuation  
@@ -9,7 +9,7 @@ Status: continuity handoff, not an independently executed repo audit
 
 ## 1. Purpose
 
-This handoff captures the current Yuri OS / NUDIMMUD state after the 07K RAG ingest/query/idempotency work, the NotebookRagService sandbox validation/hardening lane, and the Codex `@swarm` launcher/offload routing repair.
+This handoff captures the current Yuri OS / YURI state after the 07K RAG ingest/query/idempotency work, the NotebookRagService sandbox validation/hardening lane, and the Codex `@swarm` launcher/offload routing repair.
 
 The immediate next fresh GPT chat should start by reading this handoff, then verify the two latest commits and decide the next safe RAG gate.
 
@@ -101,7 +101,7 @@ Meaning:
 
 ### 4.2 Orchestrator model recommendation must be separate from the copy prompt
 
-Future GPT responses for Yuri/NUDIMMUD sprint prompts should include:
+Future GPT responses for Yuri/YURI sprint prompts should include:
 
 ```text
 Recommended orchestrator model: <model>
@@ -163,7 +163,7 @@ Include all stages, constraints, hard stops, output format, and compact-output r
 
 ### 4.5 Default `@swarm` prompt prefix
 
-For Yuri/NUDIMMUD sprint prompts, include `@swarm` at the very start by default unless:
+For Yuri/YURI sprint prompts, include `@swarm` at the very start by default unless:
 
 ```text
 - the user explicitly says not to use swarm
@@ -358,7 +358,7 @@ Result:
 Sandbox:
 
 ```text
-/tmp/nudimmud-live-patch-regression-sandbox
+/tmp/yuri-live-patch-regression-sandbox
 ```
 
 Evidence:
@@ -482,7 +482,7 @@ Result:
 Sandbox:
 
 ```text
-/tmp/nudimmud-query-validation-sandbox
+/tmp/yuri-query-validation-sandbox
 ```
 
 Runner result:
@@ -852,12 +852,12 @@ target dirty: backend/data/yuri.db-shm, backend/data/yuri.db-wal
 Cleanup has not been authorized. These sandboxes may exist and can be used as evidence, but do not modify/delete unless a cleanup sprint explicitly allows it.
 
 ```text
-/tmp/nudimmud-sandbox
-/tmp/nudimmud-idempotency-sandbox
-/tmp/nudimmud-live-patch-regression-sandbox
-/tmp/nudimmud-query-validation-sandbox
-/tmp/nudimmud-query-harden-sandbox
-/tmp/nudimmud-ready-source-filter-sandbox
+/tmp/yuri-sandbox
+/tmp/yuri-idempotency-sandbox
+/tmp/yuri-live-patch-regression-sandbox
+/tmp/yuri-query-validation-sandbox
+/tmp/yuri-query-harden-sandbox
+/tmp/yuri-ready-source-filter-sandbox
 ```
 
 Important:
@@ -1036,7 +1036,7 @@ After that, choose between:
 Use this to open the next GPT chat.
 
 ```text
-Continue Yuri OS / NUDIMMUD from this uploaded continuity handoff.
+Continue Yuri OS / YURI from this uploaded continuity handoff.
 
 Current accepted repo state from the last GPT session:
 
@@ -1068,7 +1068,7 @@ Latest accepted committed work:
 
 Important workflow rules to preserve:
 
-- Use @swarm by default for Yuri/NUDIMMUD sprint prompts unless unsafe.
+- Use @swarm by default for Yuri/YURI sprint prompts unless unsafe.
 - Always provide the orchestrator model recommendation separately from the copy-ready prompt.
 - Use one single copy-ready prompt block.
 - Include compact-output rule: no verbose narration, no repeated evidence blocks, no tool-output dumps unless failure occurs.

@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — GPT Session Continuity After 07J Permission-Deny Syntax Validation Cleanup
+# Yuri OS / YURI — GPT Session Continuity After 07J Permission-Deny Syntax Validation Cleanup
 
 Date: 2026-04-28  
 Prepared for: new GPT-5.5 continuation chat + upcoming Opus result review  
@@ -9,7 +9,7 @@ Status: continuity handoff, not an independently executed repo audit
 
 ## 1. Purpose
 
-This document summarizes the current GPT-5.5 session around Yuri OS / NUDIMMUD permission hardening.
+This document summarizes the current GPT-5.5 session around Yuri OS / YURI permission hardening.
 
 The immediate next chat should use this as the trusted GPT handoff, then review the next Opus result the user will paste. The expected next pasted result is likely from:
 
@@ -94,7 +94,7 @@ No claim should be made that the repository is clean, production-ready, enterpri
 
 ## 3. High-Level Session Summary
 
-This GPT session continued the Yuri OS / NUDIMMUD permission hardening lane after Sonnet’s `07J-PERMISSION-DENY-P3` plan.
+This GPT session continued the Yuri OS / YURI permission hardening lane after Sonnet’s `07J-PERMISSION-DENY-P3` plan.
 
 The work moved through several phases:
 
@@ -782,7 +782,7 @@ Do:
 Use this prompt in the new GPT chat:
 
 ```text
-Continue Yuri OS / NUDIMMUD from the uploaded continuity markdown.
+Continue Yuri OS / YURI from the uploaded continuity markdown.
 
 Use the uploaded file as the current trusted GPT-5.5 session handoff.
 
@@ -826,7 +826,7 @@ Output style:
 
 ```json
 {
-  "project": "Yuri OS / NUDIMMUD",
+  "project": "Yuri OS / YURI",
   "date": "2026-04-28",
   "document_type": "gpt_session_continuity_after_07j_permission_deny_s_x_cleanup",
   "status": "handoff_not_independent_repo_audit",

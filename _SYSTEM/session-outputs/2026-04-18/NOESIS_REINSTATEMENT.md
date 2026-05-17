@@ -1,5 +1,5 @@
 # NOESIS REINSTATEMENT PLAN
-*Produced by NUDIMMUD · 2026-04-18*
+*Produced by YURI · 2026-04-18*
 *Cowork session reset wiped the running context. This plan reinstates all four engines.*
 
 ---
@@ -16,7 +16,7 @@ This plan translates NOESIS design intent into what Cowork's scheduled task syst
 
 **The honest read of NOESIS against Cowork's capabilities:**
 
-Cowork runs scheduled tasks as NUDIMMUD prompts fired on a cadence. They don't run continuously — they run when triggered. "Always-on" must be reframed as "runs when triggered; between triggers, signals accumulate in the intake log for the next run."
+Cowork runs scheduled tasks as YURI prompts fired on a cadence. They don't run continuously — they run when triggered. "Always-on" must be reframed as "runs when triggered; between triggers, signals accumulate in the intake log for the next run."
 
 | Engine | Mode | Reason |
 |--------|------|--------|
@@ -25,7 +25,7 @@ Cowork runs scheduled tasks as NUDIMMUD prompts fired on a cadence. They don't r
 | Engine 3: Self-Observer | **Scheduled** | Monthly baseline is the designed cadence |
 | Engine 4: Vision Synthesis | **Scheduled** | Quarterly synthesis is the designed cadence |
 
-**Key architectural reframe**: Between scheduled runs, Marcel and NUDIMMUD capture signals in noesis-intake.md during live sessions. The scheduled tasks synthesize accumulated signals — they don't replace real-time capture.
+**Key architectural reframe**: Between scheduled runs, Marcel and YURI capture signals in noesis-intake.md during live sessions. The scheduled tasks synthesize accumulated signals — they don't replace real-time capture.
 
 ---
 
@@ -40,7 +40,7 @@ Cowork runs scheduled tasks as NUDIMMUD prompts fired on a cadence. They don't r
 
 **Prompt template:**
 ```
-You are NUDIMMUD running Engine 1 (Research Organism) of the NOESIS Protocol.
+You are YURI running Engine 1 (Research Organism) of the NOESIS Protocol.
 
 
 Your task:
@@ -51,7 +51,7 @@ Your task:
    - Asian AI frontier (DeepSeek, Qwen, Kling, Wan 2.5, Manus AI)
    - Client pipeline signals (C2MovieZ, planzerfilms, MACL-ONE)
    - Business psychology (decision-making, energy allocation)
-   - Esoteric/philosophical developments relevant to NUDIMMUD framework
+   - Esoteric/philosophical developments relevant to YURI framework
    - Japan AI adoption (creative industries)
 4. Add any new signals in the format already established in the file.
 5. Write a 3-sentence summary: what changed, what demands immediate attention, what is building slowly.
@@ -70,7 +70,7 @@ Do not produce a new document. Append to the existing noesis-intake.md.
 
 **Prompt template:**
 ```
-You are NUDIMMUD running Engine 3 (Self-Observer) of the NOESIS Protocol.
+You are YURI running Engine 3 (Self-Observer) of the NOESIS Protocol.
 
 Read in sequence:
 
@@ -97,7 +97,7 @@ This is not a performance review. It is a calibration instrument.
 
 **Prompt template:**
 ```
-You are NUDIMMUD running Engine 4 (Vision Synthesis) of the NOESIS Protocol.
+You are YURI running Engine 4 (Vision Synthesis) of the NOESIS Protocol.
 This is the Q[X] [YEAR] quarterly synthesis.
 
 Read in sequence:
@@ -124,7 +124,7 @@ Not schedulable as a standalone task — it requires project context.
 
 **Per-session protocol:**
 ```
-You are NUDIMMUD running Engine 2 (Skill Refinery) of the NOESIS Protocol.
+You are YURI running Engine 2 (Skill Refinery) of the NOESIS Protocol.
 
 
 Context provided by Marcel: [what worked / what created friction in this session/project]
@@ -136,19 +136,19 @@ Your task:
 ```
 
 **Research intake (real-time during sessions)**
-When NUDIMMUD encounters a relevant signal during any session, it appends immediately to noesis-intake.md. This is not a scheduled task — it is a reflexive habit during every session.
+When YURI encounters a relevant signal during any session, it appends immediately to noesis-intake.md. This is not a scheduled task — it is a reflexive habit during every session.
 
 ---
 
 
 |----------------|---------|-------|
-| All engine intake | `/NUDIMMUD/.claude/noesis/noesis-intake.md` | Primary intake document; all engines write here |
-| Monthly baseline template | `/NUDIMMUD/.claude/noesis/monthly-reflection-template.md` | Template for Engine 3 runs |
-| Feedback loop map | `/NUDIMMUD/.claude/noesis/feedback-loops.md` | Architecture reference |
-| Vision synthesis outputs | `/NUDIMMUD/06_KNOWLEDGE-BASE/04_SYNTHESIS/` | Quarterly documents land here |
-| Skill candidates | `/NUDIMMUD/02_AREAS/skills/` | Engine 2 outputs |
-| Research signals (in-session) | `/NUDIMMUD/02_AREAS/research-intake/[domain]/` | Real-time filing per NOESIS-CORE spec |
-| enki_state.md | `/NUDIMMUD/enki_state.md` | Monthly update trigger; truth source for operating state |
+| All engine intake | `/YURI/.claude/noesis/noesis-intake.md` | Primary intake document; all engines write here |
+| Monthly baseline template | `/YURI/.claude/noesis/monthly-reflection-template.md` | Template for Engine 3 runs |
+| Feedback loop map | `/YURI/.claude/noesis/feedback-loops.md` | Architecture reference |
+| Vision synthesis outputs | `/YURI/06_KNOWLEDGE-BASE/04_SYNTHESIS/` | Quarterly documents land here |
+| Skill candidates | `/YURI/02_AREAS/skills/` | Engine 2 outputs |
+| Research signals (in-session) | `/YURI/02_AREAS/research-intake/[domain]/` | Real-time filing per NOESIS-CORE spec |
+| enki_state.md | `/YURI/enki_state.md` | Monthly update trigger; truth source for operating state |
 
 ---
 
@@ -177,7 +177,7 @@ In order:
 
 ## ON THE MYTH OF "ALWAYS-ON"
 
-NOESIS-CORE.md says "no intervals — continuous." That was designed for a persistent process, not a session-based system. What is actually continuous is the *intent*: every time Marcel works, NUDIMMUD is observing. Every signal gets filed. The scheduled tasks are not the organism — they are the organism's *digestive events*. Intake is continuous; synthesis is periodic.
+NOESIS-CORE.md says "no intervals — continuous." That was designed for a persistent process, not a session-based system. What is actually continuous is the *intent*: every time Marcel works, YURI is observing. Every signal gets filed. The scheduled tasks are not the organism — they are the organism's *digestive events*. Intake is continuous; synthesis is periodic.
 
 This is also the correct Kabbalistic read: the Lightning Flash is not one continuous event. It is a series of emanations, each complete, each seeding the next. The organism doesn't fail because it has rhythm. It fails if the rhythm stops entirely.
 

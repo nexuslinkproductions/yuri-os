@@ -1,5 +1,5 @@
 #!/bin/bash
-# NUDIMMUD OS Agent Wrapper
+# YURI OS Agent Wrapper
 # Usage: ./agent_wrap.sh <AGENT_ID> <TASK_DESCRIPTION> <COMMAND...>
 
 AGENT_ID=$1

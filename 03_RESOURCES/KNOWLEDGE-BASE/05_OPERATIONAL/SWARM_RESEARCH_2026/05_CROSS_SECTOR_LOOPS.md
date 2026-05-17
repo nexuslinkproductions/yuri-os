@@ -13,6 +13,6 @@ Agentic loops transition AI from "chatbots" to autonomous operators through recu
 2. **Tool Use via MCP**: Model Context Protocol enables seamless interaction with local OS, files, and browsers.
 3. **Multi-Agent Collaboration**: Specialized agents (e.g., Coder, Tester, Critic) interacting over a shared state graph.
 
-### Gap Analysis & Implementation for NUDIMMUD
+### Gap Analysis & Implementation for YURI
 - **Current Gap**: Too much reliance on "single-shot" LLM inference.
 - **Implementation**: Mandate the Plan-Act-Validate loop for all complex tasks. Introduce an internal "Critic" role (e.g., INANNA) to evaluate outputs of execution agents (ENKI/ENLIL) before finalizing.

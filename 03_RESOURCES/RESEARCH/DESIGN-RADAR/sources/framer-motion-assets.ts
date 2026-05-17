@@ -9,7 +9,7 @@ export const framerMotionAssets: DesignSource = {
         'High-impact interaction primitives for reveals, orbital selection, parallax depth, procedural texture, and gallery choreography',
         'Compact asset digest for quick source selection before custom implementation'
     ],
-    applyToNudimmud: [
+    applyToYuri: [
         'Use one of these as the primary motion system for showcase screens',
         'Convert visual tricks into stateful product interactions when possible',
         'Require reduced-motion and performance checks before shipping canvas or 3D variants'

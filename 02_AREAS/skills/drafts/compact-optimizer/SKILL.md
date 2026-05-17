@@ -101,4 +101,4 @@ Rank 3 — **Drop entirely** (reconstructable, low self-information):
 
 ## Aversion Memory Gate
 
-Per the NUDIMMUD Aversion Memory Protocol: if you are compacting after a **failed branch**, first write the failure reason to an Aversion Memory node, THEN compact. The compact hint should reference the aversion: `last aversion: [reason]`.
+Per the YURI Aversion Memory Protocol: if you are compacting after a **failed branch**, first write the failure reason to an Aversion Memory node, THEN compact. The compact hint should reference the aversion: `last aversion: [reason]`.

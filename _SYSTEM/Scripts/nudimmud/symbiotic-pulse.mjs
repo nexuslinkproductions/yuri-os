@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-export const SYMBIOTIC_PULSE_VERSION = 'nudimmud.symbiotic-pulse.x1';
+export const SYMBIOTIC_PULSE_VERSION = 'yuri.symbiotic-pulse.x1';
 export const PULSE_GOVERNANCE_SKELETON_ID = 'pulse-governance-skeleton';
 
 const SOURCE_AUTHORITY = Object.freeze({

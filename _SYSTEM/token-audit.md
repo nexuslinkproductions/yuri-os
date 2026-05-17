@@ -1,4 +1,4 @@
-# TOKEN AUDIT — NUDIMMUD Session Cost Analysis
+# TOKEN AUDIT — YURI Session Cost Analysis
 **Generated:** 2026-04-17 | **Report period:** 2026-04-01 to 2026-04-17
 
 ---

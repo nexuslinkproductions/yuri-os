@@ -6,7 +6,7 @@ import path from 'path';
 import os from 'os';
 import { hashPayload, recordTokenEvent } from './token-ledger.mjs';
 
-const LEASE_ROOT = process.env.OFFLOAD_LEASE_DIR || path.join(os.tmpdir(), 'nudimmud-offload-leases');
+const LEASE_ROOT = process.env.OFFLOAD_LEASE_DIR || path.join(os.tmpdir(), 'yuri-offload-leases');
 const HARD_MAX = parsePositiveInt(process.env.OFFLOAD_HARD_MAX_CONCURRENT_LANES, 14);
 const MAX_LANES = Math.min(parsePositiveInt(process.env.OFFLOAD_MAX_CONCURRENT_LANES, 10), HARD_MAX);
 const WAIT_MS = parsePositiveInt(process.env.OFFLOAD_QUEUE_WAIT_MS, 0);

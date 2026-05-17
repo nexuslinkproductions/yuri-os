@@ -2,7 +2,7 @@
   "schema_version": "1.1",
   "created_at": "2026-05-03T15:10:33Z",
   "repo_archive_path": "_SYSTEM/yuri-history-archive/rag-prep/2026-05-03-web-session/",
-  "temp_artifact_root": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session",
+  "temp_artifact_root": "/private/tmp/yuri-rag-prep-2026-05-03-web-session",
   "trust_policy": "historical_archive_current_repo_truth_outranks",
   "ingestion_status": "prepared_not_ingested",
   "full_report_bodies_committed": false,
@@ -14,7 +14,7 @@
       "byte_size": 12770,
       "line_count": 434,
       "original_source_path": "/Users/marcelspatz/Downloads/YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md",
-      "temp_source_path": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session/YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md"
+      "temp_source_path": "/private/tmp/yuri-rag-prep-2026-05-03-web-session/YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md"
     },
     {
       "filename": "YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
@@ -22,14 +22,14 @@
       "byte_size": 24638,
       "line_count": 1052,
       "original_source_path": "/Users/marcelspatz/Downloads/YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
-      "temp_source_path": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session/YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md"
+      "temp_source_path": "/private/tmp/yuri-rag-prep-2026-05-03-web-session/YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md"
     }
   ],
   "digest": {
     "filename": "rag_prep_digest_deepseek_v4_pro_2026-05-03.json",
     "sha256": "09aafbbb00b22ad8bab6872269e623798c8706768c68d127b927f9a2c34f95dd",
     "byte_size": 8766,
-    "temp_source_path": "/private/tmp/nudimmud-rag-prep-2026-05-03-web-session/rag_prep_digest_deepseek_v4_pro_2026-05-03.json",
+    "temp_source_path": "/private/tmp/yuri-rag-prep-2026-05-03-web-session/rag_prep_digest_deepseek_v4_pro_2026-05-03.json",
     "advisory_only": true,
     "duplication_policy": "compact_advisory_only"
   },

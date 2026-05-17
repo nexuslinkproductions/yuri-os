@@ -2,7 +2,7 @@
 
 Goal: Rebuild /Users/marcelspatz/YURI-OS-MUSUBI/yuri-os-dashboard.html as the definitive Yuri OS process flow instrument.
 
-Design references: Dark operator/HUD aesthetic (NUDIMMUD HUD system). Liquid glass node rendering. Bezier pipeline routing. Fixed symmetrical grid — NO force simulation.
+Design references: Dark operator/HUD aesthetic (YURI HUD system). Liquid glass node rendering. Bezier pipeline routing. Fixed symmetrical grid — NO force simulation.
 
 Replace file entirely. Keep inlined d3 script tags (they exist in the file already; don't remove them even if unused).
 
@@ -270,7 +270,7 @@ Clicking elsewhere on canvas closes the card.
 
 Top-left:
   "YURI OS" — 13px #00D4FF bold tracking 0.08em
-  "NUDIMMUD · main · ececcf4a" — 10px #2A4060
+  "YURI · main · ececcf4a" — 10px #2A4060
 
 Top-right:
   Soak ring SVG (r=13, 32% arc fill, #00D4FF), "16/50 SOAK" 10px #3A5070

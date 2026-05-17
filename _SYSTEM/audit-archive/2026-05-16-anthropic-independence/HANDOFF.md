@@ -16,7 +16,7 @@ Anthropic Claude Agent SDK ops move to separately-billed pay-per-token API on **
 | File | Role |
 |---|---|
 | `MASTER.md` | Single-file consolidation of everything below |
-| `AUDIT.html` | Styled one-page audit (Mermaid + Chart.js, dark NUDIMMUD HUD) |
+| `AUDIT.html` | Styled one-page audit (Mermaid + Chart.js, dark YURI HUD) |
 | `AUDIT-DECK.html` | 10-slide reveal deck for stakeholder walkthrough |
 | `evidence-pack.md` | Deterministic local-grep evidence per Yuri Evidence Contract |
 | `build-list.md` | 17 CLAUDE CONTROL PACKETs, parallelization map |

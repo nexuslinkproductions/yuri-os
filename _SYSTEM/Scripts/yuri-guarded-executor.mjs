@@ -9,9 +9,9 @@ import { execFileSync } from 'node:child_process'
 const EXECUTOR_VERSION = '0.1.0'
 const PROTOCOL_VERSION = '1.0'
 const DEFAULT_POLICY_REL = '_SYSTEM/Scripts/policy/yuri-guarded-executor.readonly.json'
-const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.nudimmud/guarded-executor-runs')
-const FALLBACK_ARTIFACT_ROOT = '/private/tmp/nudimmud-guarded-executor-runs'
-const STRUCTURED_PLAN_VERSION = 'nudimmud.workhorse.x1'
+const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.yuri/guarded-executor-runs')
+const FALLBACK_ARTIFACT_ROOT = '/private/tmp/yuri-guarded-executor-runs'
+const STRUCTURED_PLAN_VERSION = 'yuri.workhorse.x1'
 const STRUCTURED_DEFAULT_MAX_LINES = 80
 const STRUCTURED_HARD_MAX_LINES = 200
 const STRUCTURED_FORBIDDEN_PATH_MARKERS = [
@@ -430,7 +430,7 @@ function runPreflight(policy, options = {}) {
     preflight.reasons.push('Staged files present')
   }
 
-  const operatingDna = path.join(expectedRoot, '.claude/rules/nudimmud_operating_dna.md')
+  const operatingDna = path.join(expectedRoot, '.claude/rules/yuri_operating_dna.md')
   if (!fs.existsSync(operatingDna)) {
     preflight.reasons.push('Missing Operating DNA')
   }
@@ -998,7 +998,7 @@ function buildMeta({ request, policy, context, artifactRoot, end }) {
 }
 
 function runSelftest({ artifactRoot, policyRelPath }) {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nudimmud-guarded-executor-selftest-'))
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-guarded-executor-selftest-'))
   const scopedStatusBefore = scopedStatus()
   const markers = []
   let policy = loadPolicy(path.resolve(policyRelPath))
@@ -1017,7 +1017,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
     mode: policy.mode,
     manifest_paths: [
       'package.json',
-      '.claude/rules/nudimmud_operating_dna.md',
+      '.claude/rules/yuri_operating_dna.md',
       '.claude/config/models.json',
       '_SYSTEM/Scripts/ai',
       '_SYSTEM/Scripts/offload-runner.mjs',
@@ -1030,7 +1030,7 @@ function runSelftest({ artifactRoot, policyRelPath }) {
       { type: 'RUN_ALLOWED_CHECK', check_id: 'GIT_REV_PARSE_SHORT_HEAD' },
       { type: 'RUN_ALLOWED_CHECK', check_id: 'GIT_DIFF_CACHED_NAME_ONLY' },
       { type: 'RUN_ALLOWED_CHECK', check_id: 'GIT_STATUS_SCOPED_MANIFEST_AND_DB_FILES' },
-      { type: 'RUN_ALLOWED_CHECK', check_id: 'GREP_Q_MARKER', path: '.claude/rules/nudimmud_operating_dna.md', args: { marker: 'YURI-OS-MUSUBI' } },
+      { type: 'RUN_ALLOWED_CHECK', check_id: 'GREP_Q_MARKER', path: '.claude/rules/yuri_operating_dna.md', args: { marker: 'YURI-OS-MUSUBI' } },
       { type: 'RUN_ALLOWED_CHECK', check_id: 'WC_L_FILE', path: 'package.json' },
       { type: 'RUN_ALLOWED_CHECK', check_id: 'NODE_CHECK_SCRIPT', path: '_SYSTEM/Scripts/offload-runner.mjs' },
       { type: 'SUMMARIZE_EVIDENCE' },

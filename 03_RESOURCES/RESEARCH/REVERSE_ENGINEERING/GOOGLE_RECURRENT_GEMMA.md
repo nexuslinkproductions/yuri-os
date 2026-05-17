@@ -21,6 +21,6 @@ Unlike standard Transformers (quadratic complexity), RecurrentGemma's recurrent 
 | **Reasoning Depth** | Superior (Global Attention) | Improving (Local + Recurrent) |
 
 ## 4. FORGE_OBJECTIVE: HYBRID_INTEGRATION
-For the NUDIMMUD cognitive core, we should experiment with a **Hybrid-Recurrent** approach:
+For the YURI cognitive core, we should experiment with a **Hybrid-Recurrent** approach:
 - Use standard Transformer layers for short-term, high-precision reasoning.
 - Use Recurrent layers (LRUs) for long-term "world-state" persistence and archival memory retrieval.

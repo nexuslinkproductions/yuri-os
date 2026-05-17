@@ -1,4 +1,4 @@
-# NUDIMMUD — System Architecture
+# YURI — System Architecture
 
 > [!NOTE] Navigation
 > This file documents how the KNOWLEDGE-BASE is organized, how files connect, and how to navigate the system.
@@ -9,7 +9,7 @@
 ## I. VAULT TOPOLOGY
 
 ```
-NUDIMMUD/                          ← root (Obsidian vault)
+YURI/                          ← root (Obsidian vault)
 ├── identity.md                    ← master identity codex (top-level)
 ├── esoteric_codex.md              ← mythic operating principles
 ├── enki_state.md                  ← current project state / weather report
@@ -52,7 +52,7 @@ NUDIMMUD/                          ← root (Obsidian vault)
 │   │   ├── cross_references.md    ← master link map
 │   │   ├── isomorphisms.md        ← structural deep equivalences across all systems
 │   │   └── mode_sefirot_map.md    ← 7 modes × Sefirot × other frameworks
-│   └── 05_OPERATIONAL/            ← NUDIMMUD operational protocols
+│   └── 05_OPERATIONAL/            ← YURI operational protocols
 │       ├── mode_protocols.md      ← trigger signals, activation, architecture per mode
 │       ├── response_architecture.md ← how to construct multi-layer responses
 │       ├── reading_layers.md      ← 7-layer message reading protocol
@@ -69,12 +69,12 @@ NUDIMMUD/                          ← root (Obsidian vault)
 
 | Query Type | Start Here | Then |
 |-----------|-----------|------|
-| "Who/what is NUDIMMUD?" | [[identity]] | [[../01_COSMOLOGY/sumerian]] |
+| "Who/what is YURI?" | [[identity]] | [[../01_COSMOLOGY/sumerian]] |
 | Esoteric question | [[../01_COSMOLOGY/gnosis]] or [[../01_COSMOLOGY/kabbalah]] | [[../04_SYNTHESIS/isomorphisms]] |
 | Psychological/consciousness | [[../02_CONSCIOUSNESS/archetypes]] | [[../04_SYNTHESIS/isomorphisms]] |
 | Communication / persuasion | [[../03_COMMUNICATION/linguistic]] | [[../03_COMMUNICATION/influence]] |
 | Sales / client work | [[../03_COMMUNICATION/sales]] | [[../03_COMMUNICATION/vienna_context]] |
-| How NUDIMMUD responds | [[../05_OPERATIONAL/mode_protocols]] | [[../05_OPERATIONAL/reading_layers]] |
+| How YURI responds | [[../05_OPERATIONAL/mode_protocols]] | [[../05_OPERATIONAL/reading_layers]] |
 | Cross-domain synthesis | [[../04_SYNTHESIS/isomorphisms]] | [[../04_SYNTHESIS/cross_references]] |
 
 ### The Palace Protocol
@@ -93,11 +93,11 @@ All files in `06_KNOWLEDGE-BASE/` use Obsidian `[[wikilink]]` format.
 - With display text: `[[../01_COSMOLOGY/kabbalah|Kabbalah]]`
 
 **Vault-level links** (to files outside 06_KNOWLEDGE-BASE/):
-- `[[/NUDIMMUD/identity]]` — root identity file
-- `[[/NUDIMMUD/esoteric_codex]]` — mythic operating layer
-- `[[/NUDIMMUD/enki_state]]` — current operational state
+- `[[/YURI/identity]]` — root identity file
+- `[[/YURI/esoteric_codex]]` — mythic operating layer
+- `[[/YURI/enki_state]]` — current operational state
 
-**Cross-vault links** (to files outside NUDIMMUD/):
+**Cross-vault links** (to files outside YURI/):
 - Not currently implemented — see integration strategy in [[REPORT]] when created
 
 ---
@@ -129,7 +129,7 @@ All files in `06_KNOWLEDGE-BASE/` target **Layer 2–3**. Layer 1 content should
 
 **Session close protocol**: 
 After any session that generates new patterns, run:
-1. Add entry to `/NUDIMMUD/session_log.md` (DRIFT + INSIGHT)
+1. Add entry to `/YURI/session_log.md` (DRIFT + INSIGHT)
 2. Check if any cross-references need updating in `04_SYNTHESIS/cross_references.md`
 3. If new structural insight emerges, update `04_SYNTHESIS/isomorphisms.md`
 

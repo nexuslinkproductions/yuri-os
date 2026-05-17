@@ -245,7 +245,7 @@ FIXED DOM OVERLAYS (not on canvas)
 
 Top-left (z-index 100):
   "YURI OS" 13px #00D4FF bold tracking 0.08em
-  "NUDIMMUD · main · f770a64b" 10px #2A4060
+  "YURI · main · f770a64b" 10px #2A4060
 
 Top-right:
   Soak ring SVG (r=12, 32% of circumference filled, stroke #00D4FF)

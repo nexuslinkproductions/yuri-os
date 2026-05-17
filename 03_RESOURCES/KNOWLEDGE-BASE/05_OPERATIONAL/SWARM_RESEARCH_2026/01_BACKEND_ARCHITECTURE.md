@@ -10,6 +10,6 @@ The state-of-the-art for 2026 has moved from centralized cloud models to edge-na
 4. **Transport**: WebTransport over QUIC replaces WebSockets, supporting unreliable datagrams to avoid Head-of-Line blocking in high-frequency swarm communications.
 5. **Distributed SQL**: Spanner or CockroachDB for global persistence, paired with Zero-ETL streams (Redpanda/Kafka) for immediate analytical availability.
 
-### Gap Analysis & Implementation for NUDIMMUD
+### Gap Analysis & Implementation for YURI
 - **Current Gap**: Likely relying on standard APIs or central DBs for agent coordination.
 - **Implementation**: Migrate inter-agent state (e.g., memory, current tasks) to local-first CRDTs. Use Wasm isolates for lightweight, fast-booting sub-agents.

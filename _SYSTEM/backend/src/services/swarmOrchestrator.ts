@@ -85,7 +85,7 @@ export class SwarmOrchestrator {
 
         const sopMap: Record<string, string> = {
             'CHRONOS': `ROLE: CHRONOS. ORDER: Maintain timeline integrity. OP: ${op}. Task: ${task}. ${contextString}`,
-            'LOGOS': `ROLE: LOGOS. ORDER: Translate raw data to NUDIMMUD dialect. OP: ${op}. Task: ${task}. ${contextString}`,
+            'LOGOS': `ROLE: LOGOS. ORDER: Translate raw data to YURI dialect. OP: ${op}. Task: ${task}. ${contextString}`,
             'NOMOS': `ROLE: NOMOS. ORDER: Apply strict logic gates. OP: ${op}. Task: ${task}. ${contextString}`
         };
 

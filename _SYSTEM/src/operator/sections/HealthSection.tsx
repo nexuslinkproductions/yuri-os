@@ -23,9 +23,9 @@ const SERVICES: ServiceCard[] = [
 ];
 
 const LAUNCHD_ENTRIES: LaunchdEntry[] = [
-  { service: 'com.nudimmud.shell', status: 'loaded' },
-  { service: 'com.nudimmud.oracle', status: 'loaded' },
-  { service: 'com.nudimmud.boot', status: 'loaded' },
+  { service: 'com.yuri.shell', status: 'loaded' },
+  { service: 'com.yuri.oracle', status: 'loaded' },
+  { service: 'com.yuri.boot', status: 'loaded' },
 ];
 
 // TODO: Replace static healthy='ok' with live data-source polling

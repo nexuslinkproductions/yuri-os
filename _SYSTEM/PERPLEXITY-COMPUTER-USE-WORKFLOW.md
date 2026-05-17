@@ -1,6 +1,6 @@
 # Perplexity via Claude Computer Use — Integration Workflow
 
-**Pattern:** Claude Code → Computer Use → perplexity.ai chat → extract response → integrate into NUDIMMUD context
+**Pattern:** Claude Code → Computer Use → perplexity.ai chat → extract response → integrate into YURI context
 **Status:** Design specification (not yet implemented)
 **Authority:** Extends `_SYSTEM/Scripts/offload-contract.mjs` `@perplexity` lane
 **Date:** 2026-05-13
@@ -9,7 +9,7 @@
 
 ## Strategic Intent
 
-Leverage Perplexity's deep reasoning and live web research capabilities **without API key dependency** by treating perplexity.ai chat as a browser-controlled tool. Claude Code uses computer use (screen capture, click, type) to drive the Perplexity interface directly, extracting responses and feeding them back into NUDIMMUD workflows.
+Leverage Perplexity's deep reasoning and live web research capabilities **without API key dependency** by treating perplexity.ai chat as a browser-controlled tool. Claude Code uses computer use (screen capture, click, type) to drive the Perplexity interface directly, extracting responses and feeding them back into YURI workflows.
 
 **Why this works:**
 - Claude Code has native computer use capabilities (Anthropic Computer Use API)
@@ -55,7 +55,7 @@ Main session routes to `@perplexity` lane.
 
 ### Phase 2: Task Spec Generation (Main Session)
 
-Generate a bounded task spec in NUDIMMUD format:
+Generate a bounded task spec in YURI format:
 
 ```markdown
 ## PERPLEXITY COMPUTER USE TASK SPEC
@@ -169,7 +169,7 @@ These may change as Perplexity updates their UI — verify on first use:
 
 ---
 
-## Integration with Existing NUDIMMUD Systems
+## Integration with Existing YURI Systems
 
 ### Offload Contract
 
@@ -432,7 +432,7 @@ Always implement all three. Try DOM first, fall back to clipboard, OCR as last r
 
 This workflow transforms Perplexity from "external service requiring API key" into "browser-controlled research tool" that Claude Code can invoke as naturally as running a shell command. The `@perplexity` lane already exists in the offload contract — this document defines how to **implement** it via computer use rather than API.
 
-**Next action:** Run Phase 1 proof of concept. One successful query → response artifact → integrate into a real NUDIMMUD task. Then formalize.
+**Next action:** Run Phase 1 proof of concept. One successful query → response artifact → integrate into a real YURI task. Then formalize.
 
 ---
 

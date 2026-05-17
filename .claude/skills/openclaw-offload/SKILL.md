@@ -18,7 +18,7 @@ routing_note: "Yuri Sentinel runs autonomously. Use /sentinel to check its last 
 Not a CLI tool to call on. A persistent autonomous process that runs every 33 minutes via LaunchAgent, integrated into Musubi's native loop.
 
 - **Script**: `Scripts/yuri-sentinel.mjs`
-- **LaunchAgent**: `com.nudimmud.yuri-sentinel.plist` (in `~/Library/LaunchAgents/`)
+- **LaunchAgent**: `com.yuri.yuri-sentinel.plist` (in `~/Library/LaunchAgents/`)
 - **State**: `.claude/state/yuri-sentinel-state.json`
 - **Alerts**: appended to `.claude/state/pulse-vault-log/YYYY-MM-DD.md`
 

@@ -316,12 +316,12 @@ Career direction now focused on **on-set cinematography and photography** for co
 4. **Craft alignment** — Camera work > post-production (stated in identity.md)
 5. **Dual-core system** — Claudio (C2MovieZ client acquisition) + Marcel (on-set execution) = integrated pipeline
 
-### Integration with NUDIMMUD System
+### Integration with YURI System
 - **ENKI-HUMAN (Marcel):** On-set capture specialist; primary producer of visual content; night-block deep work
 - **ENKI-CELESTIAL (Claudio):** Client relationships, operational strategy, revenue optimization
 - **Nexus Link: Productions:** Billing entity for on-set work (Austrian EPU)
 - **Yuri Flow:** Yuri-native production workflow infrastructure (secondary venture)
-- **Knowledge base:** NUDIMMUD vault provides operating memory and skill scaffolding
+- **Knowledge base:** YURI vault provides operating memory and skill scaffolding
 
 ---
 
@@ -382,7 +382,7 @@ Cross-references established:
 
 ## XIII. SUMMARY
 
-**Marcel Spatz is a 24-year-old content production specialist with exceptional technical depth (color grading, high-volume production, end-to-end ownership) transitioning into on-set cinematography/photography work. His core strengths are technical precision, systems thinking, and resilience under pressure. Development gaps exist in business development, team leadership, and strategic positioning. Integration with Claudio (C2MovieZ pipeline) and NUDIMMUD vault provides operating infrastructure for the pivot. Primary focus 2026: establish repeatable on-set workflow and build on-set skill documentation.**
+**Marcel Spatz is a 24-year-old content production specialist with exceptional technical depth (color grading, high-volume production, end-to-end ownership) transitioning into on-set cinematography/photography work. His core strengths are technical precision, systems thinking, and resilience under pressure. Development gaps exist in business development, team leadership, and strategic positioning. Integration with Claudio (C2MovieZ pipeline) and YURI vault provides operating infrastructure for the pivot. Primary focus 2026: establish repeatable on-set workflow and build on-set skill documentation.**
 
 ---
 

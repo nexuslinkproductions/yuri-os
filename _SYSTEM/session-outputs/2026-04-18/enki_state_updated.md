@@ -16,7 +16,7 @@ However, the April 17 session built significant new infrastructure (NOESIS Proto
 
 **PROJECT 4 — NOESIS PROTOCOL (LIVE, NEEDS COWORK REINSTATEMENT)**
 - Goal: Run four-engine continuous learning organism (Research, Skill Refinery, Self-Observer, Vision Synthesis)
-- Established: 2026-04-17 in NUDIMMUD session
+- Established: 2026-04-17 in YURI session
 - System design: `.claude/noesis/NOESIS-CORE.md` — full spec
 - Intake log: `.claude/noesis/noesis-intake.md` — 8 signals seeded
 - Status: DESIGNED AND SEEDED — not yet running as Cowork scheduled tasks
@@ -49,7 +49,7 @@ Add to Focus Domains section:
 
 ---
 
-### UPDATE GUIDANCE FOR NUDIMMUD
+### UPDATE GUIDANCE FOR YURI
 
 Add:
 
@@ -73,5 +73,5 @@ The following sections are accurate and do not need modification:
 The current enki_state.md is functionally accurate for the four existing projects and constraints. The additions above would make it current with the April 17 session builds.
 
 **Minimum viable update**: Add PROJECT 4 (NOESIS) and the graphify rebuild note to PROJECT 5 (KB).  
-**Full update**: Add both projects + updated Focus Domains + updated NUDIMMUD guidance.
+**Full update**: Add both projects + updated Focus Domains + updated YURI guidance.
 

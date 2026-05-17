@@ -48,7 +48,7 @@ Codex dispatch remains governed by `CODEX_PROTOCOL.md` and must include `## CODE
 - Protocol, routing, memory, promotion, Protected Paths, or high-stakes work requires `Scripts/ai route-plan` evidence and explicit DeepSeek/symbioticPulse advisory expectations.
 - Run GitNexus impact before symbol edits and `gitnexus_detect_changes` before merge or promotion review.
 - Hermes and Argus native gates stay always-on. Obliteratus is required for high-risk protocol, promotion, governance, sandbox, protected-path, or canonical memory work.
-- OpenClaw/09OC has been fully absorbed into Musubi as **Nisaba Sentinel** (`Scripts/nisaba-sentinel.mjs`). The 09OC research lane is now `@deepseek-flash`. The daemon heartbeat runs every 33min via LaunchAgent `com.nudimmud.nisaba-sentinel`. No special quarantine — Nisaba Sentinel operates under Musubi's native gates.
+- OpenClaw/09OC has been fully absorbed into Musubi as **Nisaba Sentinel** (`Scripts/nisaba-sentinel.mjs`). The 09OC research lane is now `@deepseek-flash`. The daemon heartbeat runs every 33min via LaunchAgent `com.yuri.nisaba-sentinel`. No special quarantine — Nisaba Sentinel operates under Musubi's native gates.
 - Existing hard-blocks for secrets, destructive commands, and protected surfaces stay owned by `bash-security-guard.js`.
 
 ### END OF TRANSMISSION (Global Session-Close Command - Full Auto)
@@ -122,7 +122,7 @@ Yuri runs a **Pulse Cortex** on every non-trivial user prompt. Auto-triggered by
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **nudimmud-vault** (63993 symbols, 92981 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **yuri-vault** (63911 symbols, 92883 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -145,10 +145,10 @@ This project is indexed by GitNexus as **nudimmud-vault** (63993 symbols, 92981 
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/nudimmud-vault/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/nudimmud-vault/clusters` | All functional areas |
-| `gitnexus://repo/nudimmud-vault/processes` | All execution flows |
-| `gitnexus://repo/nudimmud-vault/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/yuri-vault/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/yuri-vault/clusters` | All functional areas |
+| `gitnexus://repo/yuri-vault/processes` | All execution flows |
+| `gitnexus://repo/yuri-vault/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 

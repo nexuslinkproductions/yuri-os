@@ -1,6 +1,6 @@
 #!/bin/bash
 # ⬡ YURI TRADING — start all services
-cd /Users/marcelspatz/.cline/worktrees/51d5c/NUDIMMUD
+cd /Users/marcelspatz/.cline/worktrees/51d5c/YURI
 
 echo "Starting feed aggregator (:4201)..."
 node _SYSTEM/Scripts/feeds/feed-aggregator.mjs &

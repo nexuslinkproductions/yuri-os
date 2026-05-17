@@ -6,14 +6,14 @@ Invoke the `sharingan` skill on the provided source artifact.
 ```
 
 **What it does:**
-Activates the 9-phase observe→decompose→audit→abstract→enrich→redesign→implement→validate→handoff reverse-engineering pipeline. Analyzes any source (repo, codebase, docs, PDF, screenshot, spec, workflow), extracts underlying technique, audits for weaknesses, then rebuilds as a legally clean, Yuri OS / Nudimmud-aligned artifact.
+Activates the 9-phase observe→decompose→audit→abstract→enrich→redesign→implement→validate→handoff reverse-engineering pipeline. Analyzes any source (repo, codebase, docs, PDF, screenshot, spec, workflow), extracts underlying technique, audits for weaknesses, then rebuilds as a legally clean, Yuri OS / Yuri-aligned artifact.
 
 **Phases:**
 1. Observe — source map + artifact analysis
 2. Copy-eye decomposition — extract technique vs. property
 3. Weakness audit — ruthless structural critique
 4. Clean-room blueprint — license-safe design
-5. Yuri/Nudimmud enrichment — standards alignment
+5. Yuri/Yuri enrichment — standards alignment
 6. Diamond design — improved version
 7. Implementation plan — step-by-step build
 8. Validation — evidence-based checks

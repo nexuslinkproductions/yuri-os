@@ -1,4 +1,4 @@
-# NUDIMMUD :: UI/UX ENGINEERING BLUEPRINT (2026 EDITION)
+# YURI :: UI/UX ENGINEERING BLUEPRINT (2026 EDITION)
 *The Definitive Standard for Mission-Critical Neural Interfaces*
 
 > [!IMPORTANT]
@@ -7,7 +7,7 @@
 ---
 
 ## I. PHILOSOPHICAL FOUNDATIONS: THE "OMNISCIENT OPERATOR"
-The NUDIMMUD interface is not a "website"; it is a **Command Center**. Every pixel must justify its existence relative to the operator's speed of thought.
+The YURI interface is not a "website"; it is a **Command Center**. Every pixel must justify its existence relative to the operator's speed of thought.
 
 1.  **Direct Manipulation & Zero Latency**: The user should feel like they are touching the data. Animations are never for "decoration"; they are spatial cues for state transitions. Aim for <50ms interaction-to-pixel latency.
 2.  **The Glass Cockpit Paradigm**: Borrowing from the F-35 and Tesla. Information is layered by urgency. 
@@ -50,12 +50,12 @@ We do not use hex codes. We use functional HSL variables.
 Never show a form field until it is needed. Use "Dynamic Expansion" where the UI grows to accommodate the user's focus.
 
 ### 3. Error Recovery: The "Undoable" System
-Every destructive action in NUDIMMUD is a staged transaction. Nothing is "deleted" without a 5-second ghosting period where the object persists in a semi-transparent state.
+Every destructive action in YURI is a staged transaction. Nothing is "deleted" without a 5-second ghosting period where the object persists in a semi-transparent state.
 
 ---
 
 ## IV. DATA VISUALIZATION: INDRA'S NET
-The NUDIMMUD Command Center core is a graph.
+The YURI Command Center core is a graph.
 
 *   **The Neural Map**: A WebGL-rendered node-link diagram showing the relationships between Plane tickets, Skool members, and C2MovieZ assets.
 *   **Temporal Heatmaps**: 3D extruded visualizations of activity over time.
@@ -90,6 +90,6 @@ The NUDIMMUD Command Center core is a graph.
 
 ---
 
-**AUTHORITY**: NUDIMMUD UI ARCHITECT  
+**AUTHORITY**: YURI UI ARCHITECT  
 **REVISION**: 2026.04.20.ALPHA  
 **STATUS**: DEPLOYMENT-READY  

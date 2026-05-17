@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — Session Continuity Extract After Sprint 07G
+# Yuri OS / YURI — Session Continuity Extract After Sprint 07G
 
 Date: 2026-04-27  
 Prepared for: new GPT-5.5 / Claude Code continuation chat  
@@ -9,7 +9,7 @@ Status: Continuity handoff, not an independently executed repo audit
 
 ## 1. Session Summary
 
-This session continued the Yuri OS / NUDIMMUD cleanup and reinforcement workflow after the workspace root guard had been committed.
+This session continued the Yuri OS / YURI cleanup and reinforcement workflow after the workspace root guard had been committed.
 
 The main work in this session was focused on safely moving from policy planning into controlled `.gitignore` and Git-index cleanup for Claude-generated ephemeral artifacts.
 
@@ -691,7 +691,7 @@ Do not continue into it.
 Use this in the new chat:
 
 ```text
-Continue Yuri OS / NUDIMMUD from this continuity extract.
+Continue Yuri OS / YURI from this continuity extract.
 
 The last accepted sprint is Sprint 07G:
 - commit `bc75bd2a chore(git): untrack Claude ephemeral session and snapshot files`
@@ -708,7 +708,7 @@ Please review the continuity extract and prepare/validate the next safest action
 
 ```json
 {
-  "project": "Yuri OS / NUDIMMUD",
+  "project": "Yuri OS / YURI",
   "date": "2026-04-27",
   "document_type": "session_continuity_extract_after_07g",
   "status": "handoff_not_independent_repo_audit",

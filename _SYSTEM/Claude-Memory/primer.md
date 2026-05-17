@@ -1,15 +1,15 @@
-# Claude Session Primer — NUDIMMUD Vault Mirror
+# Claude Session Primer — YURI Vault Mirror
 last-updated: 2026-04-13
 
 *This file mirrors `/Users/marcelspatz/Documents/Obsidian Vault/Claude Memory/primer.md`*  
 *Update both in sync at session close.*
 
 ## Active Project
-NUDIMMUD vault improvement plan + OREA (C2MOVIEZ pipeline)
+YURI vault improvement plan + OREA (C2MOVIEZ pipeline)
 
 ## What Was Just Done
 **Vault Improvement — Phase 1 (2026-04-13)**
-- Filled `enki_state.md` with real project state (OREA, NUDIMMUD stack, income pipeline)
+- Filled `enki_state.md` with real project state (OREA, YURI stack, income pipeline)
 - Populated `creative_codex.md` with full aesthetic doctrine and decision framework
 - Synced this primer to vault
 
@@ -26,7 +26,7 @@ Continue vault improvement plan:
 
 ## Open Blockers
 - OREA Brief: needs deadline, rate, specs from Claudio
-- `NUDIMMUD/NUDIMMUD/` nested folder: confirmed Obsidian stub — deletion pending explicit Marcel confirmation
+- `YURI/YURI/` nested folder: confirmed Obsidian stub — deletion pending explicit Marcel confirmation
 - AE/ in _UNSORTED-EDITS/ still needs sorting
 - enki_state.md: personal constraint fields (time blocks, energy, money) need Marcel to fill in
 

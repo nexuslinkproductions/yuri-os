@@ -37,7 +37,7 @@ Retired hooks (still on disk, no longer in SessionStart):
 ### 3. Lane Health — Fixed
 Was: all lanes DOWN (broken PATH, API call smoke tests, no plist)
 Now: key-presence for Codex, dry-run for DeepSeek, curl for Ollama, dir-mtime for GitNexus
-Plist: `~/Library/LaunchAgents/com.nudimmud.lane-health.plist`
+Plist: `~/Library/LaunchAgents/com.yuri.lane-health.plist`
 
 ### 4. PATCH 040+041 — Per-task RAG
 - `user-prompt-submit.js` → spawns detached memory query per non-trivial prompt → writes `rag-turn-context.json`
@@ -112,4 +112,4 @@ P9 soak requires physical Mac Mini M4 Pro arrival.
 
 ---
 
-*NUDIMMUD · Yuri OS · 2026-05-16*
+*YURI · Yuri OS · 2026-05-16*

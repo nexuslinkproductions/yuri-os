@@ -10,7 +10,7 @@ export const linear: DesignSource = {
         'Low-noise surfaces',
         'Shared human-and-agent workflows'
     ],
-    applyToNudimmud: [
+    applyToYuri: [
         'Top command rail',
         'Calm task surfaces',
         'One dominant action per view'

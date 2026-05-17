@@ -71,7 +71,7 @@ const yuriSelftest = execFileSync(
     '_SYSTEM/Scripts/yuri-guarded-executor.mjs',
     '--selftest',
     '--artifact-root',
-    '/tmp/nudimmud-yuri-selftest-regression'
+    '/tmp/yuri-yuri-selftest-regression'
   ],
   { encoding: 'utf8' }
 ).trim();

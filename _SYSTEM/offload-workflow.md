@@ -1,4 +1,4 @@
-# NUDIMMUD Offload Workflow
+# YURI Offload Workflow
 
 **Status:** Integrating Ruflo + Openclaw with existing offload infrastructure.
 **Last Updated:** 2026-04-24

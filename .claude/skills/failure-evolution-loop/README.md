@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Failure Evolution Loop translates Zenkai / Saiyan Power into a Yuri OS / Nudimmud enterprise extension for real failure capture, root-cause analysis, regression creation, and memory-driven improvement.
+Failure Evolution Loop translates Zenkai / Saiyan Power into a Yuri OS / Yuri enterprise extension for real failure capture, root-cause analysis, regression creation, and memory-driven improvement.
 
 ## Core principle
 

@@ -53,7 +53,7 @@
 
   <!-- SLIDE 1 — TITLE -->
   <section class="slide active">
-    <div class="eyebrow"><span class="mark"></span>Yuri OS · NUDIMMUD · Independence Audit</div>
+    <div class="eyebrow"><span class="mark"></span>Yuri OS · YURI · Independence Audit</div>
     <h1>Pre-15-June <span class="grad">Sovereignty Sprint</span></h1>
     <p class="sub">Anthropic moves Claude Agent SDK to separately billed pay-per-token API on 15 June 2026. Yuri OS still inherits Anthropic on 8 of 11 subagents, the session default, the Symbiotic Pulse cortex, and every <span class="mono" style="color:var(--cyan)">/eot</span>. This deck is the 30-day plan to close that exposure to ≥ 90 / 100.</p>
   </section>
@@ -123,7 +123,7 @@
   <section class="slide">
     <div class="eyebrow">§ NEXUSLINK · Nexbox</div>
     <h2>Sovereignty becomes the product wrap.</h2>
-    <p class="sub" style="margin-bottom:24px">Today NEXUSLINK is a research surface. Nexbox v1 ships clients a self-contained NUDIMMUD-grade Symbiotic Pulse runtime that needs <b>zero Anthropic credentials</b> to operate. Six layers DeepSeek flagged as missing from a naive bundle: identity attestation, schema versioning, trust-chain nonces (tied to CASSANDRA), local model catalog, declared fallback policy, TTL/heartbeat liveness.</p>
+    <p class="sub" style="margin-bottom:24px">Today NEXUSLINK is a research surface. Nexbox v1 ships clients a self-contained YURI-grade Symbiotic Pulse runtime that needs <b>zero Anthropic credentials</b> to operate. Six layers DeepSeek flagged as missing from a naive bundle: identity attestation, schema versioning, trust-chain nonces (tied to CASSANDRA), local model catalog, declared fallback policy, TTL/heartbeat liveness.</p>
     <ul class="bullets" style="font-size:18px">
       <li>Local runtime layer — Ollama bootstrap + pinned models + <span class="mono">models.json</span> template.</li>
       <li>Symbiotic Pulse engine (de-Claude'd) packaged as portable client lib.</li>
@@ -146,7 +146,7 @@
     <div class="eyebrow">§ Verification</div>
     <h2>Binary pass/fail. Kill-switch drill is the canonical test.</h2>
     <ul class="bullets" style="margin-top:20px">
-      <li><span class="mono">Scripts/independence-check.mjs --strict</span> returns <span class="mono" style="color:var(--green)">exit 0</span> with <span class="mono">NUDIMMUD_NO_ANTHROPIC=1</span>.</li>
+      <li><span class="mono">Scripts/independence-check.mjs --strict</span> returns <span class="mono" style="color:var(--green)">exit 0</span> with <span class="mono">YURI_NO_ANTHROPIC=1</span>.</li>
       <li>Full <span class="mono">/eot</span> cycle under kill-switch → zero Claude calls in <span class="mono">cost-trends.md</span>.</li>
       <li>24 h fresh session, kill-switch on, productivity delta measured vs baseline.</li>
       <li><span class="mono">gitnexus_detect_changes()</span> after every packet → scope matches expectation.</li>

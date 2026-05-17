@@ -38,7 +38,7 @@ YURI OS is a four-layer stack:
 ├─────────────────────────────────────────────────────────────┤
 │                   LAYER 1: RESEARCH FACTORY                   │
 │              DeerFlow (ByteDance)                             │
-│  ~/NUDIMMUD/deerflow/ — long-horizon research, LangGraph, sandbox    │
+│  ~/YURI/deerflow/ — long-horizon research, LangGraph, sandbox    │
 │  Deep research, competitive analysis, report generation      │
 │  Called by Hermes via MCP or subprocess                      │
 ├─────────────────────────────────────────────────────────────┤
@@ -55,8 +55,8 @@ YURI OS is a four-layer stack:
 
 **Integration points:**
 - Hermes uses DeepSeek V4 Flash as default model (already on DeepSeek + Anthropic)
-- DeerFlow is invoked by Hermes via `bash ~/NUDIMMUD/deerflow/backend/main.py` when deep research is needed
-- Both share `~/NUDIMMUD/yuri-os/outputs/` directory for cross-delivery
+- DeerFlow is invoked by Hermes via `bash ~/YURI/deerflow/backend/main.py` when deep research is needed
+- Both share `~/YURI/yuri-os/outputs/` directory for cross-delivery
 - GPT-5.5 bootstrap is ONE-TIME only — after setup, Hermes runs autonomously
 - OpenClaw is untouched — continues as interactive coding agent
 
@@ -68,12 +68,12 @@ The following already exist and should be used:
 
 | Asset | Path | Status |
 |-------|------|--------|
-| DeepSeek + Anthropic API keys | In ~/NUDIMMUD/yuri-os/.env | ✓ Active |
+| DeepSeek + Anthropic API keys | In ~/YURI/yuri-os/.env | ✓ Active |
 | DeepSeek API key | In ~/.zshrc as $DEEPSEEK_API_KEY | ✓ Active |
 | OpenClaw config | ~/.openclaw/openclaw.json | ✓ Active |
-| Offload scripts | ~/NUDIMMUD/Scripts/offload.sh | ✓ Active |
+| Offload scripts | ~/YURI/Scripts/offload.sh | ✓ Active |
 | MCP servers | Framer MCP in FRAMER_MCP/ | ✓ Built |
-| NUDIMMUD repo | ~/NUDIMMUD/ | ✓ Active |
+| YURI repo | ~/YURI/ | ✓ Active |
 | Claude Code | Installed, version 2.1.x | ✓ Active |
 
 ---
@@ -140,8 +140,8 @@ memory:
 skills:
   auto_create: true
   external_dirs:
-    - ~/NUDIMMUD/.claude/skills
-    - ~/NUDIMMUD/05_NEXUS-LINK/Brand
+    - ~/YURI/.claude/skills
+    - ~/YURI/05_NEXUS-LINK/Brand
 
 toolsets:
   enabled:
@@ -168,8 +168,8 @@ messaging:
   enabled: false
 CONFIGEOF
 
-# Source API keys from `~/NUDIMMUD/yuri-os/.env`
-set -a; source ~/NUDIMMUD/yuri-os/.env; set +a
+# Source API keys from `~/YURI/yuri-os/.env`
+set -a; source ~/YURI/yuri-os/.env; set +a
 ```
 
 ### Step 1.3 — Run migration from OpenClaw
@@ -191,8 +191,8 @@ hermes chat -p "Hello, I am the YURI OS bootstrap agent. Respond with: SYSTEM_CH
 
 ### Step 2.1 — Clone and setup
 ```bash
-git clone https://github.com/bytedance/deer-flow.git ~/NUDIMMUD/deerflow
-cd ~/NUDIMMUD/deerflow
+git clone https://github.com/bytedance/deer-flow.git ~/YURI/deerflow
+cd ~/YURI/deerflow
 uv venv --python 3.11
 source .venv/bin/activate
 uv pip install -e "backend/.[all]"
@@ -209,7 +209,7 @@ cp config.example.yaml config.yaml
 
 ### Step 2.3 — Verify DeerFlow works
 ```bash
-cd ~/NUDIMMUD/deerflow
+cd ~/YURI/deerflow
 uv run python backend/main.py \
   --model deepseek-v4-flash \
   --input "Confirm DeerFlow is operational. Reply with: DEERFLOW_PASSED"
@@ -221,25 +221,25 @@ uv run python backend/main.py \
 
 ### Step 3.1 — Shared output directory
 ```bash
-mkdir -p ~/NUDIMMUD/yuri-os/outputs
-mkdir -p ~/NUDIMMUD/yuri-os/logs
+mkdir -p ~/YURI/yuri-os/outputs
+mkdir -p ~/YURI/yuri-os/logs
 ```
 
 ### Step 3.2 — Bridge: Hermes invokes DeerFlow
 Create a shell bridge script:
 ```bash
-cat > ~/NUDIMMUD/yuri-os/bin/deerflow-bridge.sh << 'BRIDGEEOF'
+cat > ~/YURI/yuri-os/bin/deerflow-bridge.sh << 'BRIDGEEOF'
 #!/usr/bin/env bash
 # YURI OS Bridge: Hermes → DeerFlow
 # Invokes DeerFlow for deep research tasks
 set -euo pipefail
 
 INPUT="$1"
-OUTPUT_DIR="${2:-$HOME/NUDIMMUD/yuri-os/outputs}"
+OUTPUT_DIR="${2:-$HOME/YURI/yuri-os/outputs}"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 OUTPUT_FILE="$OUTPUT_DIR/deerflow-$TIMESTAMP.md"
 
-cd "$HOME/NUDIMMUD/deerflow"
+cd "$HOME/YURI/deerflow"
 source .venv/bin/activate 2>/dev/null
 
 uv run python backend/main.py \
@@ -249,7 +249,7 @@ uv run python backend/main.py \
 
 echo "Done. Output: $OUTPUT_FILE"
 BRIDGEEOF
-chmod +x ~/NUDIMMUD/yuri-os/bin/deerflow-bridge.sh
+chmod +x ~/YURI/yuri-os/bin/deerflow-bridge.sh
 ```
 
 ### Step 3.3 — Bridge: Hermes MCP server for DeerFlow
@@ -277,7 +277,7 @@ metadata:
 
 ## Procedure
 1. Parse the research question from the user's request
-2. Run: `bash ~/NUDIMMUD/yuri-os/bin/deerflow-bridge.sh "<research question>"`
+2. Run: `bash ~/YURI/yuri-os/bin/deerflow-bridge.sh "<research question>"`
 3. Wait for completion (may take 1-5 minutes)
 4. Read the output file
 5. Summarize key findings to the user
@@ -294,17 +294,17 @@ metadata:
 SKILLEOF
 ```
 
-### Step 3.4 — Bridge: NUDIMMUD knowledge via Hermes external dirs
+### Step 3.4 — Bridge: YURI knowledge via Hermes external dirs
 ```bash
-# Already configured: skills.external_dirs points to ~/NUDIMMUD/.claude/skills
-# This means Hermes can load any skill from the NUDIMMUD repo
+# Already configured: skills.external_dirs points to ~/YURI/.claude/skills
+# This means Hermes can load any skill from the YURI repo
 ```
 
 ### Step 3.5 — Bridge: OpenClaw MCP server for Hermes
 Create an MCP server that OpenClaw can discover to talk to Hermes:
 ```bash
 # Not needed yet — both share the filesystem
-# They communicate through ~/NUDIMMUD/yuri-os/outputs/
+# They communicate through ~/YURI/yuri-os/outputs/
 ```
 
 ---
@@ -331,7 +331,7 @@ hermes chat -p "
 Research the top 3 AI video tools for social media content creation in 2026.
 Compare: pricing, output quality, API availability, rendering speed.
 Deliver a markdown comparison table.
-Save the result to ~/NUDIMMUD/yuri-os/outputs/ai-video-tools-2026.md.
+Save the result to ~/YURI/yuri-os/outputs/ai-video-tools-2026.md.
 This is a complex task — create a skill from it for future reuse.
 "
 ```
@@ -349,7 +349,7 @@ hermes chat -p "List all skills you have available."
 ### Step 5.1 — Weekly competitor check
 In Hermes CLI:
 ```
-/cron add "Every Monday at 9AM" "Research competitor video strategies this week. Focus on production companies in Vienna/DACH region. Save to ~/NUDIMMUD/yuri-os/outputs/weekly-competitor.md"
+/cron add "Every Monday at 9AM" "Research competitor video strategies this week. Focus on production companies in Vienna/DACH region. Save to ~/YURI/yuri-os/outputs/weekly-competitor.md"
 ```
 
 ### Step 5.2 — Daily knowledge consolidation
@@ -379,7 +379,7 @@ hermes chat -p "/deerflow-research What are the latest trends in B2B video marke
 
 ### Test 3: Skill auto-creation
 ```bash
-hermes chat -p "Research 5 potential client industries for a Vienna video production company. For each, list: typical video needs, budget range, and 2 competitor examples. Save to ~/NUDIMMUD/yuri-os/outputs/client-industries.md."
+hermes chat -p "Research 5 potential client industries for a Vienna video production company. For each, list: typical video needs, budget range, and 2 competitor examples. Save to ~/YURI/yuri-os/outputs/client-industries.md."
 # Then check: ls ~/.hermes/skills/ for new skill
 ```
 
@@ -410,10 +410,10 @@ cat > /Users/marcelspatz/YURI-OS-MUSUBI/YURI_OS_DEPLOYMENT_STATUS.md << 'STATUSE
 - [ ] Hermes Agent installed: ~/.hermes/
 - [ ] Hermes configured: DeepSeek + Anthropic + DeepSeek V4 Flash/Pro
 - [ ] Hermes migration from OpenClaw complete
-- [ ] DeerFlow installed: ~/NUDIMMUD/deerflow/
+- [ ] DeerFlow installed: ~/YURI/deerflow/
 - [ ] DeerFlow configured and test-passed
-- [ ] YURI-OS bridge directory: ~/NUDIMMUD/yuri-os/
-- [ ] Hermes → DeerFlow bridge script: ~/NUDIMMUD/yuri-os/bin/deerflow-bridge.sh
+- [ ] YURI-OS bridge directory: ~/YURI/yuri-os/
+- [ ] Hermes → DeerFlow bridge script: ~/YURI/yuri-os/bin/deerflow-bridge.sh
 - [ ] DeerFlow research skill: ~/.hermes/skills/yuri-os/deerflow-research/
 - [ ] Initial Honcho user model created
 - [ ] Initial skills auto-created
@@ -445,9 +445,9 @@ grep -c "deepseek:" ~/.hermes/config.yaml
 echo "=== Skills ==="
 find ~/.hermes/skills -name "SKILL.md" | wc -l
 echo "=== DeerFlow ==="
-test -f ~/NUDIMMUD/deerflow/config.yaml && echo "config exists"
+test -f ~/YURI/deerflow/config.yaml && echo "config exists"
 echo "=== Bridge ==="
-test -f ~/NUDIMMUD/yuri-os/bin/deerflow-bridge.sh && echo "bridge exists"
+test -f ~/YURI/yuri-os/bin/deerflow-bridge.sh && echo "bridge exists"
 echo "=== Cron ==="
 ls ~/.hermes/cron/ 2>/dev/null | wc -l
 echo "=== Honcho ==="
@@ -462,7 +462,7 @@ test -d ~/.hermes/memory && echo "memory directory exists"
 - Do NOT set up Telegram (deferred).
 - Do NOT install Docker (deferred — defer until needed).
 - Do NOT install Ollama (frozen).
-- Do NOT modify the NUDIMMUD repo structure.
+- Do NOT modify the YURI repo structure.
 - Do NOT run `hermes setup` interactively — use the direct config write above.
 - Do NOT delete any existing files — only create new ones.
 
@@ -473,7 +473,7 @@ test -d ~/.hermes/memory && echo "memory directory exists"
 1. **Every file write goes through a DeepSeek workhorse.** You do not write files directly.
 2. **After every phase (1-7), spawn a verification workhorse** that runs the check commands.
 3. **If a command fails, retry once with different approach, then flag it.**
-4. **The final status document must be written to NUDIMMUD root.** This is the handoff to the human.
+4. **The final status document must be written to YURI root.** This is the handoff to the human.
 5. **Total execution target: under 30 minutes.** Phases 1+2 (installs) take the longest.
 6. **Hermes `hermes chat -p` is non-interactive.** Use it for all verification.
 7. **If Hermes config needs interactive input, write config files directly instead.**

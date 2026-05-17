@@ -14,7 +14,7 @@ const service = new DesignAssistantBridgeService(db, { artifactRoot: scratch });
 const capture = service.saveCapture({
     tabId: 12,
     url: 'http://localhost:4200/operator',
-    title: 'NUDIMMUD Operator',
+    title: 'YURI Operator',
     viewport: { width: 1440, height: 900, deviceScaleFactor: 1 },
     screenshotDataUrl: 'data:image/png;base64,aGVsbG8=',
     metadata: { source: 'service-test' }

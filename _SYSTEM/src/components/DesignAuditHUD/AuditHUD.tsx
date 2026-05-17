@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
-  NudimmudDesignConfig,
+  YuriDesignConfig,
   AuditSection,
   AuditFinding,
   AuditSuggestion,
@@ -11,7 +11,7 @@ import {
 } from './types';
 
 interface AuditHUDProps {
-  config: NudimmudDesignConfig;
+  config: YuriDesignConfig;
   onReset: () => void;
 }
 
@@ -264,7 +264,7 @@ export default function AuditHUD({ config, onReset }: AuditHUDProps) {
           DOC
         </div>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--silver-albedo)' }}>
-          NUDIMMUD HUD OS — Component Architecture v1
+          YURI HUD OS — Component Architecture v1
         </div>
         <div style={{
           fontFamily: 'var(--font-mono)',
@@ -775,7 +775,7 @@ export default function AuditHUD({ config, onReset }: AuditHUDProps) {
                 display: 'flex',
                 justifyContent: 'space-between',
               }}>
-                NudimmudDesignConfig
+                YuriDesignConfig
                 <button
                   onClick={() => setDebugOpen(false)}
                   style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '0.8rem', outline: 'none' }}

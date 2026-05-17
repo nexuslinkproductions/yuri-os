@@ -1,6 +1,6 @@
 # Yuri OS Canonical Origin
 
-Canonical operating contract for all Yuri OS / NUDIMMUD CLI and agent surfaces. This file is the authority layer; adapters only add surface-specific launch or compatibility rules.
+Canonical operating contract for all Yuri OS / YURI CLI and agent surfaces. This file is the authority layer; adapters only add surface-specific launch or compatibility rules.
 
 ## Authority Hierarchy
 
@@ -82,7 +82,7 @@ MATCH file=<PATH> term=<TERM> line=<N> excerpt="<bounded text>"
 
 ## Professional Operating Lenses
 
-Refer to `nudimmud_operating_dna.md` for the full lens table. Lenses are advisory viewpoint suggestions, not separate authority sources.
+Refer to `yuri_operating_dna.md` for the full lens table. Lenses are advisory viewpoint suggestions, not separate authority sources.
 
 ## Lane Result Grammar
 

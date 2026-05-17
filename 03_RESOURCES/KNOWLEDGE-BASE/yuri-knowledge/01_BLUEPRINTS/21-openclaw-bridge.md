@@ -177,8 +177,8 @@ Each handoff is logged via `kernel.py handoff`:
 - [ ] Implement `_SYSTEM/OS_KERNEL/openclaw-bridge.sh` (Phase 2).
 - [ ] Extend `_SYSTEM/OS_KERNEL/swarm-handoff.sh` for `OPENCLAW` / `09OC`.
 - [ ] Write `NABU/03_MEMORY/openclaw-memory-protocol.md`.
-- [ ] Configure OpenClaw workspace to `~/NUDIMMUD`.
-- [ ] Add OpenClaw identity files in NUDIMMUD workspace.
+- [ ] Configure OpenClaw workspace to `~/YURI`.
+- [ ] Add OpenClaw identity files in YURI workspace.
 - [ ] Repair Discord plugin after bridge proven stable.
 - [ ] Define the browser worker entrypoint used by OPENCLAW for Chrome-backed tasks.
 

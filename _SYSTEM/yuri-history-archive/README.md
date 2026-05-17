@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD History Archive
+# Yuri OS / YURI History Archive
 
 Raw markdown source files documenting session history, continuity, and operational DNA.
 
@@ -7,7 +7,7 @@ Raw markdown source files documenting session history, continuity, and operation
 ### 2026-05-03 Clean Snapshot (30 files)
 - **Path:** `raw_2026-05-03_30/`
 - **Manifest:** `manifest_2026-05-03_30.json`
-- **Source:** ~/Downloads (strict match rule: YURI_OS_NUDIMMUD* or yuri_os_nudimmud* basenames)
+- **Source:** ~/Downloads (strict match rule: YURI_OS_YURI* or yuri_os_yuri* basenames)
 - **Files:** 30 markdown documents
 - **Status:** Verified, de-duplicated, false-positives removed
 
@@ -29,7 +29,7 @@ Each manifest entry contains:
 ## Validation
 
 All files in versioned archives:
-- Start with `YURI_OS_NUDIMMUD` or `yuri_os_nudimmud`
+- Start with `YURI_OS_YURI` or `yuri_os_yuri`
 - End with `.md`
 - Pass content hash verification
 - Are present in corresponding manifest

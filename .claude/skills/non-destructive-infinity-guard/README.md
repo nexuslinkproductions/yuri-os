@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Non-Destructive Infinity Guard translates Limitless / Infinity into a Yuri OS / Nudimmud enterprise extension for always-on action boundary, risk classifier, and mutation approval gate.
+Non-Destructive Infinity Guard translates Limitless / Infinity into a Yuri OS / Yuri enterprise extension for always-on action boundary, risk classifier, and mutation approval gate.
 
 ## Core principle
 

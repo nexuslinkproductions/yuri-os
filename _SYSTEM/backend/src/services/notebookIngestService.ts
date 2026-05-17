@@ -131,7 +131,7 @@ export class NotebookIngestService {
 
     private async fetchAndExtractUrl(url: string): Promise<string> {
         const resp = await fetch(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NUDIMMUD/1.0)' },
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; YURI/1.0)' },
             signal: AbortSignal.timeout(15000)
         });
         if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching ${url}`);

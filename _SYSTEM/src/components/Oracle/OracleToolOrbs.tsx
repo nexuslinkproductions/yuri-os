@@ -21,7 +21,7 @@ const ORBS: OrbDef[] = [
 
     // Research
     { id: 'search',   label: 'Web Search',   summary: 'Live web search via Perplexity or WebSearch tool. Routes through Comet for browser tasks.', type: 'tool',   tab: ['research'], icon: '⊕' },
-    { id: 'albedo',   label: 'Albedo',       summary: 'Semantic knowledge search across the NUDIMMUD vault and project corpus.',                   type: 'skill',  tab: ['research'], icon: '◎' },
+    { id: 'albedo',   label: 'Albedo',       summary: 'Semantic knowledge search across the YURI vault and project corpus.',                   type: 'skill',  tab: ['research'], icon: '◎' },
     { id: 'corpus',   label: 'Corpus',       summary: 'Oracle research corpus — curated papers, transcripts, and reference documents.',            type: 'skill',  tab: ['research'], icon: '▣' },
     { id: 'ingest',   label: 'Ingest',       summary: 'Pull new documents, videos, or URLs into the vault for RAG indexing.',                     type: 'tool',   tab: ['research'], icon: '↓' },
 

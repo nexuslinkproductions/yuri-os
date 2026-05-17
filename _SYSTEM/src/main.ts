@@ -3,7 +3,7 @@ import { selectVoice, subscribeVoiceChange } from './lib/voiceSelector';
 import { humanizeLabel, resolveRouteKey, routeLabel } from './lib/labels';
 import { getOracleCommandState, subscribeOracleCommandState, submitOracleCommand, type OracleCommandState } from './lib/oracleCommandBridge';
 /**
- * NUDIMMUD COMMAND CENTER
+ * YURI COMMAND CENTER
  * Operational Layer Integration: Plane.so & Yuri Flow
  * Stage: ALBEDO ENRICHMENT
  */
@@ -82,10 +82,10 @@ function canonicalizeOracleRoute(module: string) {
 }
 
 function readLastOracleResponse() {
-    const live = (window as any).__nudimmudLastOracle;
+    const live = (window as any).__yuriLastOracle;
     if (live) return live;
     try {
-        const raw = window.sessionStorage.getItem('nudimmud.lastOracle');
+        const raw = window.sessionStorage.getItem('yuri.lastOracle');
         return raw ? JSON.parse(raw) : null;
     } catch {
         return null;
@@ -93,9 +93,9 @@ function readLastOracleResponse() {
 }
 
 function persistLastOracleResponse(response: any) {
-    (window as any).__nudimmudLastOracle = response;
+    (window as any).__yuriLastOracle = response;
     try {
-        window.sessionStorage.setItem('nudimmud.lastOracle', JSON.stringify(response));
+        window.sessionStorage.setItem('yuri.lastOracle', JSON.stringify(response));
     } catch {}
 }
 
@@ -321,13 +321,13 @@ class NexusConstellation {
             // generous hit area
             if (dist < Math.max(node.size * 2, 8 / this.scale)) {
                 if (!node.isHub && node.id) {
-                    (window as any).nudimmudEngine?.openNote(node.id);
+                    (window as any).yuriEngine?.openNote(node.id);
                 } else if (node.isHub) {
                     // Navigate to respective module based on hub
-                    if (node.title === 'C2 CORE') (window as any).nudimmudEngine?.go('LOGOS');
-                    else if (node.title === 'VAULT GATE') (window as any).nudimmudEngine?.go('PHYSIS');
-                    else if (node.title === 'SWARM NET') (window as any).nudimmudEngine?.go('INDRA');
-                    else if (node.title === 'NEURAL FORGE') (window as any).nudimmudEngine?.go('ORACLE');
+                    if (node.title === 'C2 CORE') (window as any).yuriEngine?.go('LOGOS');
+                    else if (node.title === 'VAULT GATE') (window as any).yuriEngine?.go('PHYSIS');
+                    else if (node.title === 'SWARM NET') (window as any).yuriEngine?.go('INDRA');
+                    else if (node.title === 'NEURAL FORGE') (window as any).yuriEngine?.go('ORACLE');
                 }
                 break;
             }
@@ -479,14 +479,14 @@ class Omnibar {
             if (matchedShortcuts.length > 0) {
                 html += '<div style="padding:5px 25px; font-family:var(--font-mono); font-size:0.6rem; color:var(--gold-solar); opacity:0.8;">Workflows</div>';
                 matchedShortcuts.forEach((shortcut) => {
-                    html += `<div style="padding:12px 25px; cursor:pointer; display:flex; justify-content:space-between; gap:16px; border-bottom:1px solid rgba(118,185,0,0.03); transition:background 0.2s;" onmouseover="this.style.background='rgba(118,185,0,0.04)'" onmouseout="this.style.background=''" onclick="window.nudimmudEngine.cmdInput.value='${shortcut.command}'; window.nudimmudEngine.cmdInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); window.omnibar.hide();">
+                    html += `<div style="padding:12px 25px; cursor:pointer; display:flex; justify-content:space-between; gap:16px; border-bottom:1px solid rgba(118,185,0,0.03); transition:background 0.2s;" onmouseover="this.style.background='rgba(118,185,0,0.04)'" onmouseout="this.style.background=''" onclick="window.yuriEngine.cmdInput.value='${shortcut.command}'; window.yuriEngine.cmdInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); window.omnibar.hide();">
                         <span style="font-size:0.78rem; line-height:1.4;">${humanizeLabel(shortcut.title)}</span>
                         <span class="text-mono" style="font-size:0.6rem; opacity:0.65;">${shortcut.command}</span>
                     </div>`;
                 });
             }
 
-            const engine = (window as any).nudimmudEngine;
+            const engine = (window as any).yuriEngine;
             const tickets = engine ? await engine.fetchCached(`http://${SYSTEM_HOST}:3004/api/tickets`, 60000) : [];
             const matchedTickets = tickets.filter((t:any) => t.title.toLowerCase().includes(q.toLowerCase()) || t.external_id.toLowerCase().includes(q.toLowerCase())).slice(0, 5);
             
@@ -494,7 +494,7 @@ class Omnibar {
                 html += '<div style="padding:5px 25px; font-family:var(--font-mono); font-size:0.6rem; color:var(--cyan-glow); opacity:0.7;">Tickets</div>';
                 matchedTickets.forEach((t:any) => {
                     const clientBadge = t.client ? `<span style="font-size:0.5rem; color:var(--gold-solar); margin-left:8px; border:1px solid var(--gold-solar)44; padding:1px 4px; border-radius:2px;">${t.client}</span>` : '';
-                    html += `<div style="padding:12px 25px; cursor:pointer; display:flex; justify-content:space-between; border-bottom:1px solid rgba(118,185,0,0.03); transition:background 0.2s;" onmouseover="this.style.background='rgba(118,185,0,0.05)'" onmouseout="this.style.background=''" onclick="window.nudimmudEngine.go('TICKETS'); window.omnibar.hide();">
+                    html += `<div style="padding:12px 25px; cursor:pointer; display:flex; justify-content:space-between; border-bottom:1px solid rgba(118,185,0,0.03); transition:background 0.2s;" onmouseover="this.style.background='rgba(118,185,0,0.05)'" onmouseout="this.style.background=''" onclick="window.yuriEngine.go('TICKETS'); window.omnibar.hide();">
                         <span style="font-size:0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;">${t.title}${clientBadge}</span>
                         <span class="text-mono" style="font-size:0.6rem; opacity:0.5; color:${t.priority === 'URGENT' ? 'var(--red-fusion)' : 'inherit'}">${t.external_id}</span>
                     </div>`;
@@ -506,7 +506,7 @@ class Omnibar {
             if (matchedAgents.length > 0) {
                 html += '<div style="padding:5px 25px; font-family:var(--font-mono); font-size:0.6rem; color:var(--gold-solar); opacity:0.7; margin-top:10px;">Agents</div>';
                 matchedAgents.forEach((a:any) => {
-                    html += `<div style="padding:12px 25px; cursor:pointer; display:flex; justify-content:space-between; border-bottom:1px solid rgba(118,185,0,0.03); transition:background 0.2s;" onmouseover="this.style.background='rgba(118,185,0,0.05)'" onmouseout="this.style.background=''" onclick="window.nudimmudEngine.go('INDRA'); window.omnibar.hide();">
+                    html += `<div style="padding:12px 25px; cursor:pointer; display:flex; justify-content:space-between; border-bottom:1px solid rgba(118,185,0,0.03); transition:background 0.2s;" onmouseover="this.style.background='rgba(118,185,0,0.05)'" onmouseout="this.style.background=''" onclick="window.yuriEngine.go('INDRA'); window.omnibar.hide();">
                         <span style="font-size:0.8rem;">${a.name}</span>
                         <span class="text-mono" style="font-size:0.6rem; opacity:0.5;">${a.status}</span>
                     </div>`;
@@ -518,7 +518,7 @@ class Omnibar {
             if (matchedMods.length > 0) {
                 html += '<div style="padding:5px 25px; font-family:var(--font-mono); font-size:0.6rem; color:white; opacity:0.7; margin-top:10px;">System navigation</div>';
                 matchedMods.forEach(m => {
-                    html += `<div style="padding:12px 25px; cursor:pointer; font-family:var(--font-mono); font-size:0.8rem; transition:background 0.2s;" onmouseover="this.style.background='rgba(118,185,0,0.04)'" onmouseout="this.style.background=''" onclick="window.nudimmudEngine.go('${m}'); window.nudimmudEngine.showHUD('${m}'); window.omnibar.hide();">
+                    html += `<div style="padding:12px 25px; cursor:pointer; font-family:var(--font-mono); font-size:0.8rem; transition:background 0.2s;" onmouseover="this.style.background='rgba(118,185,0,0.04)'" onmouseout="this.style.background=''" onclick="window.yuriEngine.go('${m}'); window.yuriEngine.showHUD('${m}'); window.omnibar.hide();">
                         Open ${routeLabel(m)}
                     </div>`;
                 });
@@ -702,7 +702,7 @@ class MissionSidebar {
             
             setTimeout(() => {
                 this.close();
-                (window as any).nudimmudEngine.go('DIRECTIVE');
+                (window as any).yuriEngine.go('DIRECTIVE');
             }, 1200);
         } catch (e) {
             btn.textContent = 'Reinstate failed';
@@ -764,12 +764,12 @@ interface ObsidianState {
     activeFile: string | null;
 }
 
-interface NudimmudEvent {
+interface YuriEvent {
     source: string;
     message: string;
 }
 
-class NudimmudEngine {
+class YuriEngine {
     stage: HTMLElement;
     cmdInput: HTMLInputElement;
     currentPath = '';
@@ -1578,22 +1578,22 @@ class NudimmudEngine {
                         <h3 class="text-mono" style="font-size:0.75rem; color:var(--gold-solar); letter-spacing:0.15em; margin-bottom:25px; border-bottom:1px solid rgba(118,185,0,0.15); padding-bottom:10px;">Strategic actions</h3>
                         
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; flex:1;">
-                            <div class="neural-glass" style="padding:15px; border:1px solid rgba(118,185,0,0.12); background:rgba(118,185,0,0.03); cursor:pointer;" onclick="window.nudimmudEngine.go('ORACLE')">
+                            <div class="neural-glass" style="padding:15px; border:1px solid rgba(118,185,0,0.12); background:rgba(118,185,0,0.03); cursor:pointer;" onclick="window.yuriEngine.go('ORACLE')">
                                 <div class="text-mono" style="font-size:0.55rem; color:var(--gold-solar); margin-bottom:8px;">Neural forge</div>
                                 <div style="font-size:0.8rem; font-weight:700;">Enki lab sync</div>
                                 <div class="text-mono" style="font-size:0.5rem; opacity:0.3; margin-top:8px;">Models loaded: 12</div>
                             </div>
-                            <div class="neural-glass" style="padding:15px; border:1px solid rgba(118,185,0,0.12); background:rgba(118,185,0,0.03); cursor:pointer;" onclick="window.nudimmudEngine.go('LOGOS')">
+                            <div class="neural-glass" style="padding:15px; border:1px solid rgba(118,185,0,0.12); background:rgba(118,185,0,0.03); cursor:pointer;" onclick="window.yuriEngine.go('LOGOS')">
                                 <div class="text-mono" style="font-size:0.55rem; color:var(--cyan-glow); margin-bottom:8px;">Project core</div>
                                 <div style="font-size:0.8rem; font-weight:700;">Logos stream</div>
                                 <div class="text-mono" style="font-size:0.5rem; opacity:0.3; margin-top:8px;">Active nodes: 42</div>
                             </div>
-                            <div class="neural-glass" style="padding:15px; border:1px solid rgba(118,185,0,0.12); background:rgba(118,185,0,0.03); cursor:pointer;" onclick="window.nudimmudEngine.go('ORACLE')">
+                            <div class="neural-glass" style="padding:15px; border:1px solid rgba(118,185,0,0.12); background:rgba(118,185,0,0.03); cursor:pointer;" onclick="window.yuriEngine.go('ORACLE')">
                                 <div class="text-mono" style="font-size:0.55rem; color:var(--silver-albedo); margin-bottom:8px;">Guidance</div>
                                 <div style="font-size:0.8rem; font-weight:700;">Summon advisor</div>
                                 <div class="text-mono" style="font-size:0.5rem; opacity:0.3; margin-top:8px;">Ready for briefing</div>
                             </div>
-                            <div class="neural-glass" style="padding:15px; border:1px solid rgba(118,185,0,0.12); background:rgba(118,185,0,0.03); cursor:pointer;" onclick="window.nudimmudEngine.go('PHYSIS')">
+                            <div class="neural-glass" style="padding:15px; border:1px solid rgba(118,185,0,0.12); background:rgba(118,185,0,0.03); cursor:pointer;" onclick="window.yuriEngine.go('PHYSIS')">
                                 <div class="text-mono" style="font-size:0.55rem; color:var(--red-fusion); margin-bottom:8px;">System health</div>
                                 <div style="font-size:0.8rem; font-weight:700;">Physis radar</div>
                                 <div class="text-mono" style="font-size:0.5rem; opacity:0.3; margin-top:8px;">IO pressure: low</div>
@@ -1622,14 +1622,14 @@ class NudimmudEngine {
                                 </div>
                             `).join('') || '<div style="opacity:0.3; font-size:0.7rem; text-align:center; padding-top:50px;">No event data streams active.</div>'}
                         </div>
-                        <button class="text-mono" style="width:100%; margin-top:20px; padding:12px; background:rgba(118,185,0,0.05); border:1px solid rgba(118,185,0,0.2); color:var(--gold-solar); cursor:pointer; font-size:0.65rem;" onclick="window.nudimmudEngine.go('INDRA')">Open swarm radar</button>
+                        <button class="text-mono" style="width:100%; margin-top:20px; padding:12px; background:rgba(118,185,0,0.05); border:1px solid rgba(118,185,0,0.2); color:var(--gold-solar); cursor:pointer; font-size:0.65rem;" onclick="window.yuriEngine.go('INDRA')">Open swarm radar</button>
                     </div>
 
                     <div class="neural-glass card-hover-effect" style="padding:30px; display:flex; flex-direction:column;">
                         <h3 class="text-mono" style="font-size:0.75rem; color:var(--gold-solar); letter-spacing:0.15em; margin-bottom:25px; border-bottom:1px solid rgba(118,185,0,0.15); padding-bottom:10px;">Priority nodes</h3>
                         <div style="flex:1;">
                             ${(await this.fetchCached(`http://${SYSTEM_HOST}:3004/api/tickets`).catch(() => [])).filter((t:any) => t.priority === 'URGENT').slice(0, 4).map((t:any) => `
-                                <div class="neural-glass" style="padding:15px; margin-bottom:12px; background:rgba(118,185,0,0.03); border-left:3px solid var(--red-fusion); cursor:pointer;" onclick="window.nudimmudEngine.go('DIRECTIVE')">
+                                <div class="neural-glass" style="padding:15px; margin-bottom:12px; background:rgba(118,185,0,0.03); border-left:3px solid var(--red-fusion); cursor:pointer;" onclick="window.yuriEngine.go('DIRECTIVE')">
                                     <div class="text-mono" style="font-size:0.55rem; color:var(--red-fusion); margin-bottom:5px;">High priority</div>
                                     <div style="font-size:0.8rem; font-weight:600;">${t.title}</div>
                                     <div class="text-mono" style="font-size:0.5rem; opacity:0.3; margin-top:5px;">Target ref: ${t.external_id}</div>
@@ -1645,9 +1645,9 @@ class NudimmudEngine {
                 </div>
 
                 <div style="display:flex; gap:16px; flex-wrap:wrap; padding-top:8px;">
-                    <button class="text-mono" style="flex:1; min-width:220px; padding:20px; background:rgba(118,185,0,0.05); border:1px solid rgba(118,185,0,0.2); color:var(--cyan-glow); cursor:pointer; font-size:0.78rem; letter-spacing:0.14em;" data-tooltip="Open the client research workspace" onclick="window.nudimmudEngine.go('RESEARCH')">Open research</button>
-                    <button class="text-mono" style="flex:1; min-width:220px; padding:20px; background:rgba(118,185,0,0.05); border:1px solid rgba(118,185,0,0.25); color:var(--gold-solar); cursor:pointer; font-size:0.78rem; letter-spacing:0.14em;" data-tooltip="Summon the oracle briefing" onclick="window.nudimmudEngine.go('ORACLE')">Open oracle</button>
-                    <button class="text-mono" style="flex:1; min-width:220px; padding:20px; background:rgba(255,255,255,0.03); border:1px solid rgba(118,185,0,0.12); color:white; cursor:pointer; font-size:0.78rem; letter-spacing:0.14em;" data-tooltip="Manage strategic projects" onclick="window.nudimmudEngine.go('LOGOS')">Open projects</button>
+                    <button class="text-mono" style="flex:1; min-width:220px; padding:20px; background:rgba(118,185,0,0.05); border:1px solid rgba(118,185,0,0.2); color:var(--cyan-glow); cursor:pointer; font-size:0.78rem; letter-spacing:0.14em;" data-tooltip="Open the client research workspace" onclick="window.yuriEngine.go('RESEARCH')">Open research</button>
+                    <button class="text-mono" style="flex:1; min-width:220px; padding:20px; background:rgba(118,185,0,0.05); border:1px solid rgba(118,185,0,0.25); color:var(--gold-solar); cursor:pointer; font-size:0.78rem; letter-spacing:0.14em;" data-tooltip="Summon the oracle briefing" onclick="window.yuriEngine.go('ORACLE')">Open oracle</button>
+                    <button class="text-mono" style="flex:1; min-width:220px; padding:20px; background:rgba(255,255,255,0.03); border:1px solid rgba(118,185,0,0.12); color:white; cursor:pointer; font-size:0.78rem; letter-spacing:0.14em;" data-tooltip="Manage strategic projects" onclick="window.yuriEngine.go('LOGOS')">Open projects</button>
                 </div>
             </div>
         `;
@@ -1657,7 +1657,7 @@ class NudimmudEngine {
     async chronosHTML() {
         const events = await this.fetchCached(`http://${SYSTEM_HOST}:3004/api/calendar`).catch(() => []);
         const rows = events.map((e: any) => `
-            <div style="display:flex;align-items:center;gap:20px;padding:16px;border-bottom:1px solid rgba(118,185,0,0.08);transition:background 0.2s;cursor:pointer;" onmouseover="this.style.background='rgba(118,185,0,0.04)'" onmouseout="this.style.background=''" onclick="window.nudimmudEngine.go('RESEARCH', '${e.title}')">
+            <div style="display:flex;align-items:center;gap:20px;padding:16px;border-bottom:1px solid rgba(118,185,0,0.08);transition:background 0.2s;cursor:pointer;" onmouseover="this.style.background='rgba(118,185,0,0.04)'" onmouseout="this.style.background=''" onclick="window.yuriEngine.go('RESEARCH', '${e.title}')">
                 <div style="min-width:70px;color:var(--cyan-glow);font-family:var(--font-mono);font-size:0.85rem;letter-spacing:0.05em;">${e.start_time.split('T')[1]?.slice(0,5) ?? '--:--'}</div>
                 <div style="flex:1;">
                     <div style="font-size:0.95rem;font-weight:600;letter-spacing:0.02em;">${e.title}</div>
@@ -1682,7 +1682,7 @@ class NudimmudEngine {
         const cards = agents.map((a: any, i: number) => {
             const type = iconTypes[i % iconTypes.length];
             return `
-            <div class="neural-glass" style="padding:24px; border-left: 3px solid ${statusColor[a.status]}; cursor:pointer; display:flex; gap:20px; align-items:center;" onclick="window.nudimmudEngine.openAgentDetail('${a.name}')">
+            <div class="neural-glass" style="padding:24px; border-left: 3px solid ${statusColor[a.status]}; cursor:pointer; display:flex; gap:20px; align-items:center;" onclick="window.yuriEngine.openAgentDetail('${a.name}')">
                 <div class="agent-icon type-${type}" style="flex-shrink:0;"></div>
                 <div style="flex:1; overflow:hidden;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -1715,8 +1715,8 @@ class NudimmudEngine {
                         <h1 class="gradient-text" style="font-size:2.8rem; font-weight:900; margin:0; letter-spacing:-0.03em;">Knowledge retrieval</h1>
                     </div>
                     <div style="display:flex; gap:15px;">
-                        <button class="text-mono action-btn" style="padding:10px 20px; font-size:0.65rem; background:rgba(0,242,255,0.05); border:1px solid var(--cyan-glow); color:var(--cyan-glow); cursor:pointer;" onclick="window.nudimmudEngine.refreshIndex('vault', this)">Refresh vault</button>
-                        <button class="text-mono action-btn" style="padding:10px 20px; font-size:0.65rem; background:rgba(255,184,0,0.05); border:1px solid var(--gold-solar); color:var(--gold-solar); cursor:pointer;" onclick="window.nudimmudEngine.refreshIndex('plane', this)">Resync plane</button>
+                        <button class="text-mono action-btn" style="padding:10px 20px; font-size:0.65rem; background:rgba(0,242,255,0.05); border:1px solid var(--cyan-glow); color:var(--cyan-glow); cursor:pointer;" onclick="window.yuriEngine.refreshIndex('vault', this)">Refresh vault</button>
+                        <button class="text-mono action-btn" style="padding:10px 20px; font-size:0.65rem; background:rgba(255,184,0,0.05); border:1px solid var(--gold-solar); color:var(--gold-solar); cursor:pointer;" onclick="window.yuriEngine.refreshIndex('plane', this)">Resync plane</button>
                     </div>
                 </header>
 
@@ -1801,13 +1801,13 @@ class NudimmudEngine {
                     
                     ${isAgent ? `
                         <div style="margin-top:15px; display:flex; gap:10px;">
-                            <button class="text-mono" style="flex:1; padding:6px; font-size:0.55rem; background:rgba(118,185,0,0.08); border:1px solid var(--gold-solar); color:var(--gold-solar); cursor:pointer;" onclick="event.stopPropagation(); window.nudimmudEngine.openAgentDetail('${n.title}')">View profile</button>
-                            <button class="text-mono" style="flex:1; padding:6px; font-size:0.55rem; background:rgba(118,185,0,0.08); border:1px solid var(--cyan-glow); color:var(--cyan-glow); cursor:pointer;" onclick="event.stopPropagation(); window.nudimmudEngine.go('INDRA')">View swarm</button>
+                            <button class="text-mono" style="flex:1; padding:6px; font-size:0.55rem; background:rgba(118,185,0,0.08); border:1px solid var(--gold-solar); color:var(--gold-solar); cursor:pointer;" onclick="event.stopPropagation(); window.yuriEngine.openAgentDetail('${n.title}')">View profile</button>
+                            <button class="text-mono" style="flex:1; padding:6px; font-size:0.55rem; background:rgba(118,185,0,0.08); border:1px solid var(--cyan-glow); color:var(--cyan-glow); cursor:pointer;" onclick="event.stopPropagation(); window.yuriEngine.go('INDRA')">View swarm</button>
                         </div>
                     ` : `
                         <div style="margin-top:15px; display:flex; gap:10px;">
-                            <button class="text-mono" style="flex:1; padding:6px; font-size:0.55rem; background:rgba(118,185,0,0.08); border:1px solid var(--cyan-glow); color:var(--cyan-glow); cursor:pointer;" onclick="event.stopPropagation(); window.nudimmudEngine.showKnowledgeHUD('${n.source_path}')">Read data</button>
-                            <button class="text-mono" style="flex:1; padding:6px; font-size:0.55rem; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; opacity:0.6; cursor:pointer;" onclick="event.stopPropagation(); window.nudimmudEngine.openNote('${n.source_path}')">Open external</button>
+                            <button class="text-mono" style="flex:1; padding:6px; font-size:0.55rem; background:rgba(118,185,0,0.08); border:1px solid var(--cyan-glow); color:var(--cyan-glow); cursor:pointer;" onclick="event.stopPropagation(); window.yuriEngine.showKnowledgeHUD('${n.source_path}')">Read data</button>
+                            <button class="text-mono" style="flex:1; padding:6px; font-size:0.55rem; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; opacity:0.6; cursor:pointer;" onclick="event.stopPropagation(); window.yuriEngine.openNote('${n.source_path}')">Open external</button>
                         </div>
                     `}
                 </div>`;
@@ -1984,7 +1984,7 @@ class NudimmudEngine {
 
         panel.innerHTML = `
             <div style="padding:10px; display:flex; justify-content:flex-end;">
-                <button onclick="window.nudimmudEngine.hideContext()" style="background:transparent; border:1px solid rgba(118,185,0,0.15); color:white; cursor:pointer; padding:6px 12px; font-family:var(--font-mono); font-size:0.7rem;">Close</button>
+                <button onclick="window.yuriEngine.hideContext()" style="background:transparent; border:1px solid rgba(118,185,0,0.15); color:white; cursor:pointer; padding:6px 12px; font-family:var(--font-mono); font-size:0.7rem;">Close</button>
             </div>
             ${html}
         `;
@@ -2000,8 +2000,8 @@ class NudimmudEngine {
         
         // Normalize legacy absolute vault roots into repo-relative note paths.
         const cleanPath = filePath
-            .replace(/^\/Volumes\/[^/]+\/NUDIMMUD\//, '')
-            .replace(/^\/Users\/[^/]+\/NUDIMMUD\//, '')
+            .replace(/^\/Volumes\/[^/]+\/YURI\//, '')
+            .replace(/^\/Users\/[^/]+\/YURI\//, '')
             .replace(/^[A-Za-z]:\//, '');
         
         // Use Obsidian REST API if possible for real-time focus
@@ -2020,7 +2020,7 @@ class NudimmudEngine {
         const html = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                 <div class="text-mono" style="font-size:0.65rem; color:var(--cyan-glow); letter-spacing:0.2em;">Knowledge vault // node detail</div>
-                <button onclick="window.nudimmudEngine.hideContext()" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:white; cursor:pointer; padding:6px 12px; font-family:var(--font-mono); font-size:0.7rem;">Close</button>
+                <button onclick="window.yuriEngine.hideContext()" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:white; cursor:pointer; padding:6px 12px; font-family:var(--font-mono); font-size:0.7rem;">Close</button>
             </div>
             
             <h1 class="gradient-text" style="font-size:1.8rem; margin-bottom:10px; font-weight:700;">${note.title && note.title !== 'Untitled' ? note.title : cleanPath.split('/').pop()?.replace('.md', '') || 'Untitled node'}</h1>
@@ -2058,7 +2058,7 @@ class NudimmudEngine {
             <div style="position:relative; z-index:1;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                     <div class="text-mono" style="font-size:0.6rem; color:var(--gold-solar); letter-spacing:0.2em; opacity:0.8;">Cortex interface // ${humanizeLabel(agent.name)} v4.2</div>
-                    <button onclick="window.nudimmudEngine.hideContext()" style="background:transparent; border:1px solid rgba(118,185,0,0.15); color:white; cursor:pointer; padding:6px 14px; font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.1em;">Disconnect</button>
+                    <button onclick="window.yuriEngine.hideContext()" style="background:transparent; border:1px solid rgba(118,185,0,0.15); color:white; cursor:pointer; padding:6px 14px; font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.1em;">Disconnect</button>
                 </div>
                 
                 <div style="display:flex; align-items:flex-start; gap:24px; margin-bottom:40px;">
@@ -2284,7 +2284,7 @@ class NudimmudEngine {
             const statusCol = progress > 80 ? 'var(--cyan-glow)' : (progress > 30 ? 'var(--gold-solar)' : 'rgba(255,255,255,0.2)');
             
             return `
-            <div class="neural-glass" style="padding:30px; border-top: 2px solid ${statusCol}; cursor:pointer; position:relative; overflow:hidden;" onclick="window.nudimmudEngine.openNote('${p.path || ''}')">
+            <div class="neural-glass" style="padding:30px; border-top: 2px solid ${statusCol}; cursor:pointer; position:relative; overflow:hidden;" onclick="window.yuriEngine.openNote('${p.path || ''}')">
                 <div style="position:absolute; top:-10px; right:-10px; font-size:4rem; opacity:0.03; font-weight:900; pointer-events:none;">${p.name[0]}</div>
                 
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
@@ -2674,7 +2674,7 @@ class NudimmudEngine {
                 </div>
                 <div style="display:flex; gap:10px; background:rgba(255,255,255,0.03); padding:5px; border-radius:4px;">
                     ${['LIST', 'COLUMNS', 'PIPELINE'].map(m => `
-                        <button class="text-mono" style="padding:8px 16px; font-size:0.6rem; background:${view === m ? 'var(--cyan-glow)' : 'transparent'}; color:${view === m ? '#0a0d1a' : 'white'}; border:none; cursor:pointer; font-weight:${view === m ? 'bold' : 'normal'}; transition:all 0.2s;" onclick="window.nudimmudEngine.switchTicketView('${m}')">${humanizeLabel(m)}</button>
+                        <button class="text-mono" style="padding:8px 16px; font-size:0.6rem; background:${view === m ? 'var(--cyan-glow)' : 'transparent'}; color:${view === m ? '#0a0d1a' : 'white'}; border:none; cursor:pointer; font-weight:${view === m ? 'bold' : 'normal'}; transition:all 0.2s;" onclick="window.yuriEngine.switchTicketView('${m}')">${humanizeLabel(m)}</button>
                     `).join('')}
                 </div>
             </header>
@@ -2773,13 +2773,13 @@ function initHeroMetrics() {
 }
 
 export function bootEngine() {
-    if ((window as any).nudimmudEngine) return (window as any).nudimmudEngine;
+    if ((window as any).yuriEngine) return (window as any).yuriEngine;
     if (!document.getElementById('app-lobby')) {
         console.warn('[bootEngine] #app-lobby not present; skipping engine init');
         return null;
     }
-    const engine = new NudimmudEngine();
-    (window as any).nudimmudEngine = engine;
+    const engine = new YuriEngine();
+    (window as any).yuriEngine = engine;
 
     initHeroMetrics();
     initLiveModuleCards();

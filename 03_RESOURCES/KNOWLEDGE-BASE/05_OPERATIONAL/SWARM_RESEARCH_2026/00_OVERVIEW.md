@@ -1,7 +1,7 @@
 # Swarm Research 2026 - Overview
 
 ## Mission Context
-This research audit was conducted to identify state-of-the-art improvements for the NUDIMMUD Neural Empire and its agent conclave (ENLIL, NABU, ENKI, INANNA).
+This research audit was conducted to identify state-of-the-art improvements for the YURI Neural Empire and its agent conclave (ENLIL, NABU, ENKI, INANNA).
 
 ## Core Areas of Investigation
 1. [[01_BACKEND_ARCHITECTURE]] - Edge-first, low-latency CRDT state sync.

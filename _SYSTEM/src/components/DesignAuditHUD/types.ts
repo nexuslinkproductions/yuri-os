@@ -1,4 +1,4 @@
-export interface NudimmudDesignConfig {
+export interface YuriDesignConfig {
   theme: string;
   motionIntensity: string;
   backgroundLife: string;
@@ -9,7 +9,7 @@ export interface NudimmudDesignConfig {
   confirmed: boolean;
 }
 
-export const DEFAULT_CONFIG: NudimmudDesignConfig = {
+export const DEFAULT_CONFIG: YuriDesignConfig = {
   theme: '',
   motionIntensity: '',
   backgroundLife: '',
@@ -26,7 +26,7 @@ export interface CatalogOption {
 }
 
 export interface CatalogCategory {
-  key: keyof Pick<NudimmudDesignConfig, 'theme' | 'motionIntensity' | 'backgroundLife' | 'layoutMode' | 'componentStyle' | 'auditTone'>;
+  key: keyof Pick<YuriDesignConfig, 'theme' | 'motionIntensity' | 'backgroundLife' | 'layoutMode' | 'componentStyle' | 'auditTone'>;
   label: string;
   code: string;
   options: CatalogOption[];
@@ -150,7 +150,7 @@ export interface AuditSuggestion {
 export interface YURI_DESIGN_HANDOFF {
   schema: '1.0.0';
   generated: string;
-  config: NudimmudDesignConfig;
+  config: YuriDesignConfig;
   auditSummary: {
     overallScore: number;
     strongestSection: string;

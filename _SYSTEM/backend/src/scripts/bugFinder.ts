@@ -19,7 +19,7 @@ async function runBugFinder() {
     } catch (e) {}
 
     try {
-        // Root is 4 levels up from src/scripts (nudimmud/)
+        // Root is 4 levels up from src/scripts (yuri/)
         const rootDir = path.resolve(__dirname, '../../../../');
         console.log(`⬡ BUG_FINDER :: Executing TSC audit in ${rootDir}...`);
         

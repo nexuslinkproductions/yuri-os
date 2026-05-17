@@ -1,19 +1,19 @@
 ---
-title: "Yuri OS / NUDIMMUD — GPT Session Archive, Part 2: NUDIMMUD DeepSeek HUD REPL and Continuation"
+title: "Yuri OS / YURI — GPT Session Archive, Part 2: YURI DeepSeek HUD REPL and Continuation"
 date_generated: "2026-05-03"
 source: "Visible GPT-5.5 session transcript and user-provided local execution outputs"
 status: "Archive-ready continuity document; not an independent repo audit"
-project: "Yuri OS / NUDIMMUD"
+project: "Yuri OS / YURI"
 repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
-latest_head_at_end_of_session: "000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary"
+latest_head_at_end_of_session: "000baeb8c fix(cli): prevent duplicate YURI HUD exit summary"
 related_sprints:
   - "08K_YURI_HUD_REPL_XA"
   - "08K_YURI_HUD_REPL_XA_R1"
   - "08I-R_TOKENOPS_RAG_ATOM_SCHEMA_CANONICALIZE_P (next)"
 tags:
   - yuri-os
-  - nudimmud
+  - yuri
   - deepseek-v4
   - terminal-hud
   - cli
@@ -21,13 +21,13 @@ tags:
   - session-continuity
 ---
 
-# Yuri OS / NUDIMMUD — GPT Session Archive, Part 2
+# Yuri OS / YURI — GPT Session Archive, Part 2
 
 ## 0. Purpose
 
-This Markdown file captures the second major half of the GPT-5.5 session: building a direct `nudimmud` DeepSeek execution interface, deciding against a wholesale Hermes switch, implementing the first NUDIMMUD DeepSeek HUD REPL, committing it, fixing its duplicate exit-summary bug, and preparing the next continuation state.
+This Markdown file captures the second major half of the GPT-5.5 session: building a direct `yuri` DeepSeek execution interface, deciding against a wholesale Hermes switch, implementing the first YURI DeepSeek HUD REPL, committing it, fixing its duplicate exit-summary bug, and preparing the next continuation state.
 
-This file is intended for ingestion into the Yuri OS / NUDIMMUD archive and future continuity/RAG systems.
+This file is intended for ingestion into the Yuri OS / YURI archive and future continuity/RAG systems.
 
 This is **not** an independently executed repo audit. It records the session's accepted state based on visible chat content and user-provided local terminal/Claude outputs. Any future mutation must first verify local repo truth directly.
 
@@ -48,13 +48,13 @@ Direct shell = source of truth for git, DB, files, processes
 
 The user and GPT-5.5 agreed that no-mutation architecture/schema work should no longer burn Claude tokens as a relay. Instead, the direct DeepSeek lane should be used and outputs pasted back to GPT-5.5 for gating.
 
-This created the need for a proper `nudimmud` interactive HUD/REPL.
+This created the need for a proper `yuri` interactive HUD/REPL.
 
 ---
 
 ## 2. Raw DeepSeek CLI Finding
 
-The user wanted `nudimmud` to behave like `yuri` for Claude: an actual interface, not just a one-shot shell wrapper.
+The user wanted `yuri` to behave like `yuri` for Claude: an actual interface, not just a one-shot shell wrapper.
 
 A test of the installed `deepseek` CLI showed:
 
@@ -88,7 +88,7 @@ The installed deepseek CLI is a one-shot wrapper, not an interactive REPL.
 It also exposes legacy/default model names, not Yuri's verified deepseek-v4-pro / deepseek-v4-flash lanes.
 ```
 
-Therefore, GPT-5.5 recommended building a Yuri-native `nudimmud` REPL around the verified `_SYSTEM/Scripts/offload.sh` DeepSeek lanes instead of relying on the raw package defaults.
+Therefore, GPT-5.5 recommended building a Yuri-native `yuri` REPL around the verified `_SYSTEM/Scripts/offload.sh` DeepSeek lanes instead of relying on the raw package defaults.
 
 ---
 
@@ -144,7 +144,7 @@ Do not switch runtimes wholesale.
 
 ---
 
-## 4. Sprint 08K — NUDIMMUD HUD REPL XA
+## 4. Sprint 08K — YURI HUD REPL XA
 
 ### Sprint label
 
@@ -167,7 +167,7 @@ Use direct shell evidence only.
 Create a repo-local Node script:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Expected behavior:
@@ -187,7 +187,7 @@ Expected behavior:
 Optional allowed file:
 
 ```text
-package.json, only to add script alias: "nudimmud": "node _SYSTEM/Scripts/nudimmud-repl.mjs"
+package.json, only to add script alias: "yuri": "node _SYSTEM/Scripts/yuri-repl.mjs"
 ```
 
 Forbidden:
@@ -214,7 +214,7 @@ Forbidden:
 Claude Sonnet created:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 It also updated:
@@ -226,7 +226,7 @@ package.json
 to add:
 
 ```json
-"nudimmud": "node _SYSTEM/Scripts/nudimmud-repl.mjs"
+"yuri": "node _SYSTEM/Scripts/yuri-repl.mjs"
 ```
 
 ### Initial validation
@@ -234,9 +234,9 @@ to add:
 Commands reported:
 
 ```text
-node --check _SYSTEM/Scripts/nudimmud-repl.mjs -> SYNTAX_OK
-node _SYSTEM/Scripts/nudimmud-repl.mjs --help -> header + command table rendered
-printf '/status\n/exit\n' | node _SYSTEM/Scripts/nudimmud-repl.mjs -> status pipe PASS
+node --check _SYSTEM/Scripts/yuri-repl.mjs -> SYNTAX_OK
+node _SYSTEM/Scripts/yuri-repl.mjs --help -> header + command table rendered
+printf '/status\n/exit\n' | node _SYSTEM/Scripts/yuri-repl.mjs -> status pipe PASS
 ```
 
 ### First live DeepSeek smoke issue
@@ -262,10 +262,10 @@ YURI_HUD_OK
 Visible HUD output included:
 
 ```text
-NUDIMMUD ASCII header
+YURI ASCII header
 YURI OS / DEEPSEEK HUD REPL
 STATUS block:
-- OPERATOR NUDIMMUD
+- OPERATOR YURI
 - SESSION 0 prompts
 - MODEL PRO
 - OS YURI_OS
@@ -287,18 +287,18 @@ IN / OUT / ELAPSED counters
 Files changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs  (created, 270 lines)
-package.json               (added nudimmud script alias)
+_SYSTEM/Scripts/yuri-repl.mjs  (created, 270 lines)
+package.json               (added yuri script alias)
 ```
 
 Validated features:
 
 ```text
-- ASCII NUDIMMUD header
+- ASCII YURI header
 - status block
 - CTX estimate bar
 - IN/OUT/TOTAL/ELAPSED token counters
-- prompt: NUDIMMUD>
+- prompt: YURI>
 - /help /status /tokens /clear /model flash /model pro /exit
 - Ctrl+C graceful
 - missing tokenmaxxing file shows UNKNOWN
@@ -333,14 +333,14 @@ No package-lock change occurred.
 GPT-5.5 instructed the user to add a manual shell alias:
 
 ```bash
-printf "\n# NUDIMMUD DeepSeek HUD REPL\nalias nudimmud='node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs'\n" >> ~/.zshrc
+printf "\n# YURI DeepSeek HUD REPL\nalias yuri='node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/yuri-repl.mjs'\n" >> ~/.zshrc
 source ~/.zshrc
 ```
 
 The user tested the HUD manually:
 
 ```text
-NUDIMMUD> Say YURI_ALIAS_OK and nothing else.
+YURI> Say YURI_ALIAS_OK and nothing else.
 ⬡ DISPATCHING → deepseek-v4-pro ...
 ⬡ MANUAL_OVERRIDE :: model=deepseek-v4-pro
 ⬡ ROUTING_TO_DEEPSEEK_V4...
@@ -350,7 +350,7 @@ YURI_ALIAS_OK
 Then:
 
 ```text
-NUDIMMUD> /exit
+YURI> /exit
 ```
 
 Observed issue:
@@ -389,7 +389,7 @@ The user ran the scoped commit command.
  M package.json
  M src/index.tsx
  M src/main.ts
-?? _SYSTEM/Scripts/nudimmud-repl.mjs
+?? _SYSTEM/Scripts/yuri-repl.mjs
 ?? src/components/NeuralViz/
 ?? src/yuri/
 ```
@@ -403,16 +403,16 @@ HUD_STATUS_CHECK_PASS
 ### Staged files
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 package.json
 ```
 
 ### Commit
 
 ```text
-[main e17a9012d] feat(cli): add NUDIMMUD DeepSeek HUD REPL
+[main e17a9012d] feat(cli): add YURI DeepSeek HUD REPL
  2 files changed, 282 insertions(+), 1 deletion(-)
- create mode 100644 _SYSTEM/Scripts/nudimmud-repl.mjs
+ create mode 100644 _SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 Pre-commit ledger:
@@ -424,7 +424,7 @@ SUMMARY: 29/29 valid, 0 failed
 Post state:
 
 ```text
-e17a9012d (HEAD -> main) feat(cli): add NUDIMMUD DeepSeek HUD REPL
+e17a9012d (HEAD -> main) feat(cli): add YURI DeepSeek HUD REPL
 ac2c846c1 chore(offload): add DeepSeek V4 API lanes
 ff5e237a9 chore(workflow): add tokenmaxxing activation marker
 ```
@@ -439,7 +439,7 @@ Accepted:
 
 ```text
 - commit is scoped correctly
-- only _SYSTEM/Scripts/nudimmud-repl.mjs and package.json committed
+- only _SYSTEM/Scripts/yuri-repl.mjs and package.json committed
 - no package-lock drift
 - no DB main file
 - no frontend staging
@@ -478,7 +478,7 @@ Tiny exact-path bugfix; no live DeepSeek call needed.
 ### Allowed mutation scope
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs only
+_SYSTEM/Scripts/yuri-repl.mjs only
 ```
 
 ### Expected behavior
@@ -503,7 +503,7 @@ Add one-shot finalizer:
 
 ## 9. R1 Execution Result
 
-Claude Haiku patched `_SYSTEM/Scripts/nudimmud-repl.mjs`.
+Claude Haiku patched `_SYSTEM/Scripts/yuri-repl.mjs`.
 
 ### Reported patch
 
@@ -520,7 +520,7 @@ Replaced rl.on('close') handler with finalizeSession('SESSION CLOSED')
 Haiku attempted to run:
 
 ```bash
-rm -f /tmp/nudimmud_exit_check.txt /tmp/nudimmud_status_exit_check.txt
+rm -f /tmp/yuri_exit_check.txt /tmp/yuri_status_exit_check.txt
 ```
 
 Bash denied it.
@@ -530,7 +530,7 @@ Despite this, Haiku staged and committed. The visible transcript did **not** sho
 ### Commit
 
 ```text
-000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary
+000baeb8c fix(cli): prevent duplicate YURI HUD exit summary
 ```
 
 Commit details:
@@ -563,7 +563,7 @@ The user ran manual commands in normal Terminal.
 
 ```text
 ---HEAD---
-000baeb8c (HEAD -> main) fix(cli): prevent duplicate NUDIMMUD HUD exit summary
+000baeb8c (HEAD -> main) fix(cli): prevent duplicate YURI HUD exit summary
 
 ---STAGED---
 # empty
@@ -597,7 +597,7 @@ ACCEPT / PASS
 Accepted:
 
 ```text
-- HEAD is 000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary
+- HEAD is 000baeb8c fix(cli): prevent duplicate YURI HUD exit summary
 - no staged files
 - known tolerated drift only
 - node --check passed
@@ -609,8 +609,8 @@ Accepted:
 Current accepted HUD commits:
 
 ```text
-e17a9012d feat(cli): add NUDIMMUD DeepSeek HUD REPL
-000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary
+e17a9012d feat(cli): add YURI DeepSeek HUD REPL
+000baeb8c fix(cli): prevent duplicate YURI HUD exit summary
 ```
 
 ---
@@ -620,13 +620,13 @@ e17a9012d feat(cli): add NUDIMMUD DeepSeek HUD REPL
 ### Current accepted HEAD
 
 ```text
-000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary
+000baeb8c fix(cli): prevent duplicate YURI HUD exit summary
 ```
 
 ### Previous HUD commit
 
 ```text
-e17a9012d feat(cli): add NUDIMMUD DeepSeek HUD REPL
+e17a9012d feat(cli): add YURI DeepSeek HUD REPL
 ```
 
 ### No staged files after manual verification
@@ -649,7 +649,7 @@ src/yuri/
 
 Do not stage or touch tolerated drift unless explicitly scoped.
 
-### NUDIMMUD HUD REPL status
+### YURI HUD REPL status
 
 ```text
 Accepted / PASS
@@ -658,8 +658,8 @@ Accepted / PASS
 Capabilities:
 
 ```text
-- command: nudimmud
-- launches _SYSTEM/Scripts/nudimmud-repl.mjs
+- command: yuri
+- launches _SYSTEM/Scripts/yuri-repl.mjs
 - routes through verified Yuri DeepSeek lane
 - default model: deepseek-v4-pro
 - supports flash/pro switching
@@ -677,7 +677,7 @@ Accepted pattern:
 
 ```text
 1. GPT-5.5 writes compact DeepSeek Pro prompt.
-2. User pastes prompt into nudimmud HUD.
+2. User pastes prompt into yuri HUD.
 3. DeepSeek V4 Pro produces compact architecture/schema output.
 4. User runs a Flash validation prompt if needed.
 5. User pastes compact Pro + Flash outputs into GPT-5.5.
@@ -742,9 +742,9 @@ Do not begin HUD v2 before 08I-R unless the user explicitly changes priority.
 The user asked to start a new GPT session. GPT-5.5 produced this clean continuation prompt:
 
 ```text
-You are GPT-5.5 Thinking acting as senior AI systems architect, LLMOps engineer, systems engineer, prompt architect, RAG architect, clean-room/IP gatekeeper, TokenOps engineer, and Yuri OS / NUDIMMUD strategic coordinator.
+You are GPT-5.5 Thinking acting as senior AI systems architect, LLMOps engineer, systems engineer, prompt architect, RAG architect, clean-room/IP gatekeeper, TokenOps engineer, and Yuri OS / YURI strategic coordinator.
 
-Project: Yuri OS / NUDIMMUD
+Project: Yuri OS / YURI
 Repo root: /Users/marcelspatz/YURI-OS-MUSUBI
 Branch: main
 Timezone: Europe/Vienna
@@ -752,16 +752,16 @@ Current date context: 2026-05-02
 
 Latest accepted repo state:
 - Current accepted HEAD:
-  000baeb8c fix(cli): prevent duplicate NUDIMMUD HUD exit summary
+  000baeb8c fix(cli): prevent duplicate YURI HUD exit summary
 - Previous HUD commit:
-  e17a9012d feat(cli): add NUDIMMUD DeepSeek HUD REPL
+  e17a9012d feat(cli): add YURI DeepSeek HUD REPL
 - DeepSeek V4 API lanes were previously implemented and live-smoke verified:
   - deepseek-v4-pro
   - deepseek-v4-flash
   - deepseek-v4-pro-lite-budget
-- NUDIMMUD HUD REPL is now accepted:
-  - command: nudimmud
-  - launches _SYSTEM/Scripts/nudimmud-repl.mjs
+- YURI HUD REPL is now accepted:
+  - command: yuri
+  - launches _SYSTEM/Scripts/yuri-repl.mjs
   - routes through verified Yuri DeepSeek lane
   - shows branch/head/staged/tokenmaxxing/model/token estimates
   - /exit duplicate summary bug fixed and manually verified
@@ -811,13 +811,13 @@ Current model/execution routing:
 - Direct shell = truth source for git, DB, files, processes
 
 Important new workflow decision:
-For no-mutation architecture/schema/TokenOps work, avoid routing through Claude as a relay. Use the new `nudimmud` HUD directly for DeepSeek-heavy work, paste compact DeepSeek Pro + Flash outputs back into GPT-5.5, and let GPT-5.5 gate.
+For no-mutation architecture/schema/TokenOps work, avoid routing through Claude as a relay. Use the new `yuri` HUD directly for DeepSeek-heavy work, paste compact DeepSeek Pro + Flash outputs back into GPT-5.5, and let GPT-5.5 gate.
 
 Latest completed sprint:
 08K_YURI_HUD_REPL_XA + R1
 Status: PASS
 Outcome:
-- NUDIMMUD DeepSeek HUD REPL implemented, committed, tested, accepted.
+- YURI DeepSeek HUD REPL implemented, committed, tested, accepted.
 - No Hermes switch performed.
 - No Hermes code copied.
 - Hermes remains a clean-room pattern source only.
@@ -859,7 +859,7 @@ Repairs needed in 08I-R:
 Your first response in the new chat should:
 1. Acknowledge the trusted current state.
 2. Confirm that the next sprint is 08I-R.
-3. Give me a direct DeepSeek Pro prompt to paste into the `nudimmud` HUD.
+3. Give me a direct DeepSeek Pro prompt to paste into the `yuri` HUD.
 4. Give me a direct DeepSeek Flash validation prompt.
 5. Keep both prompts compact.
 6. Do not route this through Claude unless local repo evidence becomes necessary.
@@ -895,7 +895,7 @@ The session achieved a major workflow pivot:
 
 ```text
 DeepSeek V4 Pro is now the intended primary heavy executor for no-mutation architecture/schema work.
-The NUDIMMUD HUD REPL gives the user a direct interactive DeepSeek interface.
+The YURI HUD REPL gives the user a direct interactive DeepSeek interface.
 GPT-5.5 remains the final strategic gate.
 Claude/Sonnet remains reserved for local mutation/security/protected repo work.
 ```
@@ -909,5 +909,5 @@ The immediate next task is:
 with direct execution via:
 
 ```text
-nudimmud
+yuri
 ```

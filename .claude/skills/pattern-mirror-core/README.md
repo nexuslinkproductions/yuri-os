@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Pattern Mirror Core translates Sharingan / Copy Technique into a Yuri OS / Nudimmud enterprise extension for artifact perception, pattern extraction, weakness detection, and Yuri-native reconstruction.
+Pattern Mirror Core translates Sharingan / Copy Technique into a Yuri OS / Yuri enterprise extension for artifact perception, pattern extraction, weakness detection, and Yuri-native reconstruction.
 
 ## Core principle
 

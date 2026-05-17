@@ -9,7 +9,7 @@ export const frontierDesignIntelligence: DesignSource = {
         'Scored design-strength audit with activation gaps and concrete upgrade recommendations',
         'Source-selection workflow requiring 3-7 references before visual direction is chosen'
     ],
-    applyToNudimmud: [
+    applyToYuri: [
         'Use as the first design research atlas after DESIGN.md and design-memory.json',
         'Select references by project type before composing layouts, typography, and motion',
         'Use reachability, authority, freshness, and risk notes to avoid weak or unavailable references'

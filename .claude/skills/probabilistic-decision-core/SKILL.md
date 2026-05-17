@@ -19,7 +19,7 @@ requires:
 
 ## When to use
 
-Use this skill when Yuri OS / NUDIMMUD must make or support an operational decision under uncertainty:
+Use this skill when Yuri OS / YURI must make or support an operational decision under uncertainty:
 
 - task priority
 - route selection
@@ -192,7 +192,7 @@ failure:
 
 # End of Transmission
 
-Continuous background reflection engine for NUDIMMUD. Runs **two modes**:
+Continuous background reflection engine for YURI. Runs **two modes**:
 
 1. **Micro-EOT**
 - errors: none

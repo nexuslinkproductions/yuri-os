@@ -1,6 +1,6 @@
 # Command-Center Research: Entry Point
 
-This repository serves as the master knowledge hub for the **NUDIMMUD Command Hub OS**. The following documents provide the functional guidance for engineering, design, and research enrichment.
+This repository serves as the master knowledge hub for the **YURI Command Hub OS**. The following documents provide the functional guidance for engineering, design, and research enrichment.
 
 ## ⚡ Master Directives
 1.  **[MASTER_DIRECTIVE.md](./MASTER_DIRECTIVE.md)**: The core engineering roadmap, including the "Elite 60" researchers and the overarching project vision.
@@ -16,4 +16,4 @@ This repository serves as the master knowledge hub for the **NUDIMMUD Command Hu
 4.  **Implement Aesthetic Prototype**: Use the Design Spec Sheet to build the first functional glassmorphic UI shell.
 
 ---
-*For technical implementation details, refer to the [NUDIMMUD Core Docs](../NEURAL-NETWORK/evo-nexus/docs/dashboard/overview.md).*
+*For technical implementation details, refer to the [YURI Core Docs](../NEURAL-NETWORK/evo-nexus/docs/dashboard/overview.md).*

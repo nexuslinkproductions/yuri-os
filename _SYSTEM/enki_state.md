@@ -64,7 +64,7 @@
   - Goal: integrate Claudio's vault + establish bidirectional sync protocol.
   - Completed:
     - [x] Cloned c2moviez-vault from GitHub to `06_NETWORK-SYNC/C2MOVIEZ/Database/`
-    - [x] Created `_MAPPING.md` (Claudio paths → NUDIMMUD canonical paths)
+    - [x] Created `_MAPPING.md` (Claudio paths → YURI canonical paths)
     - [x] Updated `_SYNC-STATUS.md` with integration timestamp & metadata
     - [x] Indexed c2moviez data: 18 folders, 200+ files (clients, projects, team, processes)
   - **Status**: LIVE — Database/ is read-only reference layer; active work in `01_PROJECTS/C2MOVIEZ/`
@@ -94,14 +94,14 @@
   - Constraints: Generative Video Pipelines are for storyboards, moodboards, and style frames ONLY. Do not generate B-roll.
   - Next actions:
     - [ ] Concept visual interface / dashboard framework (Electron, Tauri, or Web)
-    - [ ] Map how the 38 agents and NUDIMMUD Pantheon will physically manifest in the UI
+    - [ ] Map how the 38 agents and YURI Pantheon will physically manifest in the UI
     - [ ] Design interactive RAG/Graph traversal UI
 
 - PROJECT 5 — KNOWLEDGE BASE (LIVE)
   - Goal: Maintain the cross-referenced knowledge vault spanning cosmology, consciousness, communication, synthesis, and operational practice.
   - Status: LIVE — content present; graphify rebuild pending on the vault markdown corpus.
   - Next actions:
-    - [ ] Rebuild graphify scoped to NUDIMMUD vault `.md` files
+    - [ ] Rebuild graphify scoped to YURI vault `.md` files
     - [ ] Add missing `identity.md` references to operational files where needed
     - [ ] Keep noesis-intake.md current before starting new research sessions
 
@@ -134,7 +134,7 @@
 
 ---
 
-## Guidance for NUDIMMUD
+## Guidance for YURI
 
 - Prioritize:
   - Keep OREA moving toward delivery. Every session should move the edit or the admin forward.

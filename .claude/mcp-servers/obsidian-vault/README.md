@@ -1,6 +1,6 @@
 # Obsidian Vault MCP Server
 
-Production-grade MCP (Model Context Protocol) server for querying the NUDIMMUD Obsidian vault.
+Production-grade MCP (Model Context Protocol) server for querying the YURI Obsidian vault.
 
 ## Installation
 
@@ -69,7 +69,7 @@ npm run watch
 
 ## Security
 
-- File access limited to NUDIMMUD vault root
+- File access limited to YURI vault root
 - Directory traversal (`../`) prevented
 - Obsidian system files (`.obsidian`) excluded from indexing
 - Hidden files (`.`) excluded from indexing

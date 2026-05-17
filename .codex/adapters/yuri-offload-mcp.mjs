@@ -8,13 +8,13 @@ import path from 'node:path';
 const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
 const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
 const KERNEL_PY = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/syscalls/kernel.py');
-const TOOL_NAME = 'nudimmud.offload_task';
+const TOOL_NAME = 'yuri.offload_task';
 const DEFAULT_FILE_CHAR_BUDGET = 120000;
 const TOOL_REPETITION_SENTINEL = 'Reached tool call repetition limit; returning partial result.';
 
 const TOOL = {
   name: TOOL_NAME,
-  description: 'Route a Codex task through the NUDIMMUD offload spine with OS_KERNEL task logging.',
+  description: 'Route a Codex task through the YURI offload spine with OS_KERNEL task logging.',
   inputSchema: {
     type: 'object',
     additionalProperties: false,

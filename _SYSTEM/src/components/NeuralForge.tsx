@@ -401,7 +401,7 @@ const NeuralForge: React.FC = () => {
             }
 
             if (commandState.source === 'typed' && shouldShowMissionSynthesis(data)) {
-                (window as any).nudimmudEngine?.showHolographicResult(data);
+                (window as any).yuriEngine?.showHolographicResult(data);
             }
             return;
         }

@@ -33,7 +33,7 @@ const VAULT_SOURCES: Array<{ path: string; description: string }> = [
     { path: 'NEURAL-NETWORK/OBLITERATUS/docs/RESEARCH_SURVEY.md', description: 'OBLITERATUS — Research Survey' },
 
     // Command Center — system architecture & operations
-    { path: '00_COMMAND-CENTER/NUDIMMUD-ARCHITECTURAL-OVERVIEW.md', description: 'NUDIMMUD — Full Architectural Overview' },
+    { path: '00_COMMAND-CENTER/YURI-ARCHITECTURAL-OVERVIEW.md', description: 'YURI — Full Architectural Overview' },
 
     // Research — design & security
     { path: 'RESEARCH/BACKEND_SECURITY_ANALYSIS_ORACLE.md',   description: 'Oracle Backend Security Analysis' },
@@ -57,7 +57,7 @@ async function main() {
 
     // Find or create the notebook
     const existing = notebookSvc.listNotebooks().find(n => n.title === NOTEBOOK_TITLE);
-    const notebook = existing ?? notebookSvc.createNotebook(NOTEBOOK_TITLE, 'Accumulated NUDIMMUD research, operational theology, and system documentation');
+    const notebook = existing ?? notebookSvc.createNotebook(NOTEBOOK_TITLE, 'Accumulated YURI research, operational theology, and system documentation');
     console.log(`\n⬡ NOTEBOOK: "${notebook.title}" (id=${notebook.id})\n`);
 
     const allSources = [

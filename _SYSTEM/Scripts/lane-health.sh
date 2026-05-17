@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lane-health.sh — Live status grid for all major NUDIMMUD lanes
+# lane-health.sh — Live status grid for all major YURI lanes
 # Usage: bash _SYSTEM/Scripts/lane-health.sh
 # Output: lane × status (LIVE / COOLDOWN / DOWN) × last-check timestamp
 
@@ -121,7 +121,7 @@ check_gitnexus() {
 
 # ─── Output ──────────────────────────────────────────────────────────────────
 
-echo "⬡ NUDIMMUD LANE HEALTH @ $TIMESTAMP"
+echo "⬡ YURI LANE HEALTH @ $TIMESTAMP"
 echo "──────────────────────────────────────────────────────────────"
 
 echo "Codex tiers:"

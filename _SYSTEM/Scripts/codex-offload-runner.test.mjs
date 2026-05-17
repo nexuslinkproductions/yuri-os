@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { evaluateToolCall } from './policy/nudimmud-safety-core.mjs';
+import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const script = path.join(__dirname, 'codex-offload-runner.mjs');
@@ -40,13 +40,13 @@ try {
   assert.equal(preview.timeoutMs, 21600000, 'Codex Spark default timeout must allow long offload work');
 
   const codexConfig = fs.readFileSync(path.join(repoRoot, '.codex/config.toml'), 'utf8');
-  const offloadMcpConfig = codexConfig.match(/\[mcp_servers\.nudimmudOffload\]([\s\S]*?)(?=\n\[|\n\[\[|$)/);
-  assert(offloadMcpConfig, 'nudimmudOffload MCP config missing');
+  const offloadMcpConfig = codexConfig.match(/\[mcp_servers\.yuriOffload\]([\s\S]*?)(?=\n\[|\n\[\[|$)/);
+  assert(offloadMcpConfig, 'yuriOffload MCP config missing');
   const timeoutMatch = offloadMcpConfig[1].match(/\btool_timeout_sec\s*=\s*(\d+)/);
-  assert(timeoutMatch, 'nudimmudOffload tool_timeout_sec missing');
+  assert(timeoutMatch, 'yuriOffload tool_timeout_sec missing');
   assert(
     Number(timeoutMatch[1]) >= 21600,
-    'nudimmudOffload MCP timeout must not reintroduce the 180s offload cap',
+    'yuriOffload MCP timeout must not reintroduce the 180s offload cap',
   );
 
   const responsesPreview = JSON.parse(execFileSync(

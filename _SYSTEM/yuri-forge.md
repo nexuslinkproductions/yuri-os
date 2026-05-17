@@ -1,7 +1,7 @@
 # NEURAL_FORGE // AUTONOMOUS_LLM_ORCHESTRATION
 
 ## 1. MISSION_STATEMENT
-To transform the NUDIMMUD Command Center into a world-class, local-first LLM development environment. The **Neural Forge** (ENKI) serves as the laboratory for the 'Oracle' core, enabling autonomous benchmarking, fine-tuning orchestration, and architectural reverse-engineering of state-of-the-art open-source models.
+To transform the YURI Command Center into a world-class, local-first LLM development environment. The **Neural Forge** (ENKI) serves as the laboratory for the 'Oracle' core, enabling autonomous benchmarking, fine-tuning orchestration, and architectural reverse-engineering of state-of-the-art open-source models.
 
 ## 2. CORE_INTEL: GLOBAL_OS_MODEL_REGISTRY (2026_COHORT)
 

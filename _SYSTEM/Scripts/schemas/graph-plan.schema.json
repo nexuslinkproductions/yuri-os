@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://nudimmud.local/schemas/graph-plan.schema.json",
+  "$id": "https://yuri.local/schemas/graph-plan.schema.json",
   "title": "Yuri control-plane graph plan",
   "type": "object",
   "additionalProperties": true,

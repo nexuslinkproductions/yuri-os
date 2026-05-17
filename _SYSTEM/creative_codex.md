@@ -1,4 +1,4 @@
-# CREATIVE CODEX — NUDIMMUD
+# CREATIVE CODEX — YURI
 
 *Marcel's aesthetic doctrine, creative philosophy, and decision framework.*  
 *Last updated: 2026-04-13*
@@ -132,4 +132,4 @@ This is not decoration. The geometry encodes a cosmological position: continuous
 
 ---
 
-*See also: `identity.md` (full NUDIMMUD doctrine) · `esoteric_codex.md` (mythic framework) · `.claude/rules/brand-standards.md` (enforcement rules)*
+*See also: `identity.md` (full YURI doctrine) · `esoteric_codex.md` (mythic framework) · `.claude/rules/brand-standards.md` (enforcement rules)*

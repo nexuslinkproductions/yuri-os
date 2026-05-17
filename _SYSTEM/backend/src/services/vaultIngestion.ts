@@ -300,7 +300,7 @@ async function performVaultIngestion(db: Database.Database, trigger: string): Pr
     const startTime = Date.now();
     const results: IngestFileResult[] = [];
 
-    console.log(`⬡ VAULT_INGESTION_START :: ${trigger} :: scanning NUDIMMUD knowledge layers...`);
+    console.log(`⬡ VAULT_INGESTION_START :: ${trigger} :: scanning YURI knowledge layers...`);
 
     // 1. Priority core files
     for (const { file, domain: _ } of CORE_FILES) {

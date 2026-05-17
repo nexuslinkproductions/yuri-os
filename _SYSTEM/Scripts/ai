@@ -34,7 +34,7 @@ Commands:
       Route directly to the Moonshot cloud lane (deprecated compatibility).
 
   offload [options] [prompt]
-      Route through the NUDIMMUD offload system (auto, --model, --swarm, --list, --dry-run, --route-only).
+      Route through the YURI offload system (auto, --model, --swarm, --list, --dry-run, --route-only).
 
   offload swarm [prompt]
       Run offload swarm with the shared default workhorse lane set.
@@ -214,7 +214,7 @@ run_gemini_prompt() {
 run_claude_safe() {
   local _claude_bin="${CLAUDE_BIN:-claude}"
   require_cmd "$_claude_bin"
-  NUDIMMUD_DISABLE_SCOUTS=1 exec "$_claude_bin" \
+  YURI_DISABLE_SCOUTS=1 exec "$_claude_bin" \
     --permission-mode default \
     --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
     --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
@@ -269,7 +269,7 @@ emit_claude_advisory_output() {
 
   printf '# ADVISORY_CLAUDE_COUNCIL_OUTPUT\n'
   printf '# lane: @claude\n'
-  printf '# model: %s\n' "${NUDIMMUD_COUNCIL_MODEL:-user-configured}"
+  printf '# model: %s\n' "${YURI_COUNCIL_MODEL:-user-configured}"
   printf '# reasoning: xhigh\n'
   printf '# advisory_only=true\n'
   printf '# local_truth_claim=false\n'
@@ -296,7 +296,7 @@ run_claude_safe_prompt() {
   _council_prompt="$(build_claude_council_prompt "$prompt")"
 
   set +e
-  NUDIMMUD_DISABLE_SCOUTS=1 "$_claude_bin" \
+  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
     --permission-mode default \
     --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
     --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
@@ -438,7 +438,7 @@ run_amp_offload() {
   require_cmd amp
   # Preamble tells Amp its Yuri OS identity before every headless task.
   # smart=Opus 4.7 (default, unconstrained), deep=GPT-5.5 (architecture/reasoning), rush=fast (mechanical tasks)
-  local preamble="YURI_OS: You are the Amp parallel implementation lane in the NUDIMMUD workspace. Read ## Amp in AGENTS.md before acting. Run gitnexus impact before symbol edits. Claude Code is the control plane."
+  local preamble="YURI_OS: You are the Amp parallel implementation lane in the YURI workspace. Read ## Amp in AGENTS.md before acting. Run gitnexus impact before symbol edits. Claude Code is the control plane."
   # --dangerously-allow-all: safe here — all dispatches are Claude-controlled, internal workspace only
   exec amp -x --mode "$mode" --no-notifications --no-ide --dangerously-allow-all --cd "$ROOT_DIR" "$preamble
 
@@ -1100,13 +1100,13 @@ case "${1:-help}" in
       printf "\n"
       printf "${_AU}  ◆ CLAUDE CODE${_RS}  ${_G2}──────────────────────────────────────${_RS}\n"
       printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "safe / no Agent"
-      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${NUDIMMUD_MODEL:-user-selected}"
-      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "NUDIMMUD"
+      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_MODEL:-user-selected}"
+      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "YURI"
       printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
       printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
       printf "\n"
       unset _G _G2 _AU _GR _CY _BD _RS
-      export NUDIMMUD_SPLASH_SHOWN=1
+      export YURI_SPLASH_SHOWN=1
       run_claude_safe
     fi
     run_claude_safe_prompt "$(join_prompt "$@")"
@@ -1125,13 +1125,13 @@ case "${1:-help}" in
       printf "\n"
       printf "${_AU}  ◆ CLAUDE CODE RAW${_RS}  ${_G2}──────────────────────────────${_RS}\n"
       printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "full / Agent allowed"
-      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${NUDIMMUD_MODEL:-user-selected}"
-      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "NUDIMMUD"
+      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_MODEL:-user-selected}"
+      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "YURI"
       printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
       printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
       printf "\n"
       unset _G _G2 _AU _GR _CY _BD _RS
-      export NUDIMMUD_SPLASH_SHOWN=1
+      export YURI_SPLASH_SHOWN=1
       run_claude_full
     fi
     run_claude_full --print "$(join_prompt "$@")"
@@ -1569,7 +1569,7 @@ case "${1:-help}" in
     _line_cap=80
     _max_bytes=12000
     _prompt_parts=()
-    _WORKHORSE_DEFAULT_ROOT="/private/tmp/nudimmud-workhorse-bundles"
+    _WORKHORSE_DEFAULT_ROOT="/private/tmp/yuri-workhorse-bundles"
     _skip_next=0
     for _arg in "$@"; do
       if [ "$_skip_next" -eq 1 ]; then
@@ -1623,7 +1623,7 @@ case "${1:-help}" in
     # Security: reject repo-internal or relative artifact roots
     _repo_root="$(cd "$SCRIPT_DIR/.." && pwd)"
     case "$_artifact_root" in
-      /Users/marcelspatz/NUDIMMUD*|"$_repo_root"*)
+      /Users/marcelspatz/YURI*|"$_repo_root"*)
         printf 'ERROR: artifact-bundle root must be outside the repo: %s\n' "$_artifact_root" >&2
         exit 1
         ;;

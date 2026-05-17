@@ -8,15 +8,15 @@
       "name": "Inventory & Integration Mapping",
       "status": "COMPLETE",
       "completed": "2026-05-05",
-      "artifact": "/Users/marcelspatz/.nudimmud/phase-one-rag-mlm-audit.md"
+      "artifact": "/Users/marcelspatz/.yuri/phase-one-rag-mlm-audit.md"
     },
     "phase_two": {
       "name": "Skills & Integration Audit",
       "status": "COMPLETE",
       "completed": "2026-05-05",
       "artifacts": [
-        "/Users/marcelspatz/.nudimmud/phase-two-rag-mlm-audit.md",
-        "/Users/marcelspatz/.nudimmud/phase-two-routing-matrix.md"
+        "/Users/marcelspatz/.yuri/phase-two-rag-mlm-audit.md",
+        "/Users/marcelspatz/.yuri/phase-two-routing-matrix.md"
       ],
       "key_findings": {
         "oracle_skills": "Documented-Only",

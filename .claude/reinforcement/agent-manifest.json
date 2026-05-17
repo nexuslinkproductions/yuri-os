@@ -241,7 +241,7 @@
     },
     {
       "name": "noesis-linter",
-      "description": "The Unconscious Memory Linter. Performs structural self-therapy on the NUDIMMUD Neural Network by reading all rules and skills, detecting contradictions and redundancies.",
+      "description": "The Unconscious Memory Linter. Performs structural self-therapy on the YURI Neural Network by reading all rules and skills, detecting contradictions and redundancies.",
       "role": "memory_scout",
       "runtime_kind": "scheduled_function",
       "model": null,

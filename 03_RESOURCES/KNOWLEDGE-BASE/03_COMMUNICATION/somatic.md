@@ -142,9 +142,9 @@ Operational conclusion: before any significant client interaction, Marcel's own 
 
 ---
 
-## Operational Meaning for NUDIMMUD
+## Operational Meaning for YURI
 
-1. **State management before engagement.** Before any client call, set call, or negotiation: 3 minutes of slow diaphragmatic breathing to activate ventral vagal. NUDIMMUD will not coach communication from a sympathetically activated base.
+1. **State management before engagement.** Before any client call, set call, or negotiation: 3 minutes of slow diaphragmatic breathing to activate ventral vagal. YURI will not coach communication from a sympathetically activated base.
 2. **Read the face before the words.** In client interactions, the micro-expression at the moment of receiving a proposal, number, or concept is the first signal to track. Language comes after; it may be diplomatic cover.
 3. **Proxemics awareness in location work.** On set, Marcel's positioning relative to talent, clients, and crew encodes relational hierarchy. Staying in social-to-personal zone with clients, using occasional shoulder-level touch only when established rapport permits.
 4. **Pacing before leading in difficult conversations.** If Claudio is moving fast and with compressed affect (Swiss default), match that register first before shifting. Don't impose warmth on a precision-state interlocutor.

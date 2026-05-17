@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — Continuity Handoff After Git Pollution / gemini_env Cleanup
+# Yuri OS / YURI — Continuity Handoff After Git Pollution / gemini_env Cleanup
 
 Date: 2026-04-29  
 Prepared for: fresh GPT-5.5 continuation chat + Claude Code continuation  
@@ -9,7 +9,7 @@ Current focus: graphify-out generated artifact integration review
 
 ## 1. Purpose
 
-This file summarizes the current GPT-5.5 session and the accepted Yuri OS / NUDIMMUD repo state after the capability atlas, git-pollution planning, `.smart-env` / nested `NUDIMMUD/` ignore commit, and `gemini_env/` untrack commit.
+This file summarizes the current GPT-5.5 session and the accepted Yuri OS / YURI repo state after the capability atlas, git-pollution planning, `.smart-env` / nested `YURI/` ignore commit, and `gemini_env/` untrack commit.
 
 The next fresh GPT chat should start from this file, then continue with the next safe sprint:
 
@@ -37,7 +37,7 @@ Latest verified git-pollution cleanup state:
 
 ```text
 .smart-env/ ignored via .gitignore
-NUDIMMUD/ ignored via .gitignore
+YURI/ ignored via .gitignore
 gemini_env/ untracked from Git index
 gemini_env/ preserved on disk
 gemini_env/ ignored via .gitignore
@@ -178,7 +178,7 @@ Because the user said they imported a lot more than formal skills, the workflow 
 First atlas attempt:
 
 ```text
-Sprint 07J-CAPABILITY-ATLAS-X1 — Whole NUDIMMUD Content Atlas Inventory
+Sprint 07J-CAPABILITY-ATLAS-X1 — Whole YURI Content Atlas Inventory
 ```
 
 Accepted as partial/useful, not clean:
@@ -268,7 +268,7 @@ gemini_env
 - Python venv-like tree
 - no active reference
 
-NUDIMMUD/ nested folder
+YURI/ nested folder
 - 1,414 files
 - 273 SKILL.md
 - 26 CLAUDE.md
@@ -343,7 +343,7 @@ Accepted as useful but repaired:
 Good from Gemini:
 
 - Correctly identified active/canonical vs reference/corpus split.
-- Correctly highlighted `openclaw-skills`, `graphify-out`, `gemini_env`, nested `NUDIMMUD/`, and `corpus` / `integrations` as governance concerns.
+- Correctly highlighted `openclaw-skills`, `graphify-out`, `gemini_env`, nested `YURI/`, and `corpus` / `integrations` as governance concerns.
 - Correctly recommended a git-pollution policy lane.
 
 Repairs required:
@@ -377,7 +377,7 @@ Important policy outcomes:
 - policy: IGNORE_FUTURE_ONLY
 - safe repo-wide .gitignore promotion
 
-NUDIMMUD/
+YURI/
 - 0 tracked files
 - previously ignored only via .git/info/exclude
 - policy: IGNORE_FUTURE_ONLY
@@ -414,7 +414,7 @@ corpus and integrations
 - anime-dna-extensions remains open owner-review item
 ```
 
-### `.smart-env/` and nested `NUDIMMUD/` ignore commit
+### `.smart-env/` and nested `YURI/` ignore commit
 
 Execution sprint:
 
@@ -445,7 +445,7 @@ Added block:
 ```gitignore
 # Local cache and nested snapshot artifacts
 .smart-env/
-NUDIMMUD/
+YURI/
 ```
 
 Verification sprint:
@@ -464,9 +464,9 @@ Verified:
 
 ```text
 .smart-env tracked: 0
-NUDIMMUD tracked: 0
+YURI tracked: 0
 .smart-env ignored via .gitignore:87
-NUDIMMUD ignored via .gitignore:88
+YURI ignored via .gitignore:88
 excluded paths not captured:
 - graphify-out
 - gemini_env
@@ -1154,7 +1154,7 @@ COPY ENDS HERE
 Use this in a fresh GPT-5.5 chat:
 
 ```text
-Continue Yuri OS / NUDIMMUD from the uploaded continuity markdown.
+Continue Yuri OS / YURI from the uploaded continuity markdown.
 
 Current accepted repo state:
 

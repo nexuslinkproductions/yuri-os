@@ -188,8 +188,8 @@ const PhysisVault: React.FC<PhysisVaultProps> = ({ surfaceLabel = 'Physis', init
 
     useEffect(() => {
         fetchNodes();
-        if ((window as any).nudimmudEngine) {
-            return (window as any).nudimmudEngine.subscribe((data: { obsidian?: { activeFile: string }; vault_updated?: boolean }) => {
+        if ((window as any).yuriEngine) {
+            return (window as any).yuriEngine.subscribe((data: { obsidian?: { activeFile: string }; vault_updated?: boolean }) => {
                 if (data.obsidian?.activeFile) setActiveFile(data.obsidian.activeFile);
                 if (data.vault_updated) fetchNodes();
             });
@@ -306,7 +306,7 @@ const PhysisVault: React.FC<PhysisVaultProps> = ({ surfaceLabel = 'Physis', init
     /* ── open file externally ──────────────────────────────────────── */
 
     const openExternally = useCallback((path: string) => {
-        (window as any).nudimmudEngine?.openNote(path);
+        (window as any).yuriEngine?.openNote(path);
     }, []);
 
     /* ── render ────────────────────────────────────────────────────── */

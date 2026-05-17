@@ -1,6 +1,6 @@
 [
   {
-    "title": "YURI OS / NUDIMMUD GPT Web Session Archive — Part 1: Continuity, Operating DNA, Boot Packet",
+    "title": "YURI OS / YURI GPT Web Session Archive — Part 1: Continuity, Operating DNA, Boot Packet",
     "source_file": "YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md",
     "trust_policy": "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document.",
     "key_facts": [
@@ -25,7 +25,7 @@
       "HEAD at session end was 025ba4c8f (verify actual repo state)",
       "Branch main",
       "File _SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md exists, was 93 lines",
-      ".claude/rules/nudimmud_operating_dna.md updated to ~221 lines with Gemini hard stop",
+      ".claude/rules/yuri_operating_dna.md updated to ~221 lines with Gemini hard stop",
       "backend/data/yuri.db clean; only db-shm/db-wal drift present",
       "No other staged or uncommitted changes beyond those two files"
     ],
@@ -53,7 +53,7 @@
       "gpt-5.5",
       "gemini-audit",
       "yuri-os",
-      "nudimmud",
+      "yuri",
       "archive"
     ],
     "suggested_chunking_strategy": "Single chunk sufficient; if splitting, group by logical task (08AI DNA repair, 08AJ–AK boot packet, 08AM Gemini policy) to preserve context.",
@@ -66,7 +66,7 @@
     ]
   },
   {
-    "title": "YURI OS / NUDIMMUD GPT Web Session Archive — Part 2: DeepSeek Guarded Executor and Observation Phase",
+    "title": "YURI OS / YURI GPT Web Session Archive — Part 2: DeepSeek Guarded Executor and Observation Phase",
     "source_file": "YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md",
     "trust_policy": "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document.",
     "key_facts": [
@@ -99,7 +99,7 @@
       "Wrapper selftest markers include HANDOFF_SELFTEST_PASS, HANDOFF_OFFSET_FIELD_REJECT_PASS etc.",
       "No write/stage/commit code paths activated in these files",
       "backend/data/yuri.db clean; db-shm/db-wal drift still present",
-      "No package alias, NUDIMMUD REPL integration, or MCP capabilities enabled"
+      "No package alias, YURI REPL integration, or MCP capabilities enabled"
     ],
     "safety_boundaries": [
       "DeepSeek output is advisory; only executor artifacts are local truth",
@@ -127,7 +127,7 @@
       "anime-dna",
       "gpt-5.5-gate",
       "yuri-os",
-      "nudimmud",
+      "yuri",
       "archive"
     ],
     "suggested_chunking_strategy": "Can be ingested as single chunk; for finer granularity, split by phase: 08AN–08AP (executor build), 08AR–08AT (policy fix + handoff), 08AU–08AV (live smoke + polish), 08AW–08AX (observation + invention gate).",

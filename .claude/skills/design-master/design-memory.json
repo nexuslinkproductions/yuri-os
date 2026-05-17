@@ -1,9 +1,30 @@
 {
   "version": "2.0",
   "canonicalPath": "design-memory.json",
-  "lastUpdated": "2026-05-17T15:11:12.879Z",
-  "note": "Canonical NUDIMMUD design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
+  "lastUpdated": "2026-05-17T20:04:08.733Z",
+  "note": "Canonical YURI design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
   "entries": [
+    {
+      "date": "2026-05-17",
+      "component": "yuri-os-launch-readiness",
+      "file": "_SYSTEM/yuri-os-launch-readiness.html",
+      "action": "edit",
+      "decision": "Updated: yuri-os-launch-readiness"
+    },
+    {
+      "date": "2026-05-17",
+      "component": ".tmp-dashboard-diag",
+      "file": ".tmp-dashboard-diag.html",
+      "action": "create",
+      "decision": "New component created: .tmp-dashboard-diag"
+    },
+    {
+      "date": "2026-05-17",
+      "component": "yuri-os-dashboard",
+      "file": "yuri-os-dashboard.html",
+      "action": "edit",
+      "decision": "Updated: yuri-os-dashboard"
+    },
     {
       "date": "2026-05-17",
       "component": "main",

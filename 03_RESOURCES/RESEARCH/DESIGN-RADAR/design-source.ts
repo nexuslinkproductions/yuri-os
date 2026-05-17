@@ -3,5 +3,5 @@ export type DesignSource = {
     name: string;
     url: string;
     signal: string[];
-    applyToNudimmud: string[];
+    applyToYuri: string[];
 };

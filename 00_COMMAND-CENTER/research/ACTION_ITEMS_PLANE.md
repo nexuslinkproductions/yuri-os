@@ -16,7 +16,7 @@ Copy and paste these tasks into your **EXEO Dashboard** project on Plane.
 5. **TASK:** Unified Telemetry Visualization.
    - **Description:** Create the "Right Deck" telemetry feed with animated "breathing" cyan accents.
 6. **TASK:** Agent Routine Monitor.
-   - **Description:** Build the sidebar module that displays active Nudimmud autonomous routines.
+   - **Description:** Build the sidebar module that displays active Yuri autonomous routines.
 
 ## 🛡️ Phase 3: Security & Performance
 7. **TASK:** seL4-inspired Safety Layer Audit.

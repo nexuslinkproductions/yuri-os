@@ -1,6 +1,6 @@
 ---
 name: deepseek-workhorse
-description: "NUDIMMUD Workhorse X1 — DeepSeek-backed orchestration for structured reasoning, planning, and execution via forge/plan/execute pipeline."
+description: "YURI Workhorse X1 — DeepSeek-backed orchestration for structured reasoning, planning, and execution via forge/plan/execute pipeline."
 triggers:
   - "/deepseek-workhorse"
   - "/ds-pro"
@@ -8,7 +8,7 @@ triggers:
 routing_note: "For direct lane routing (flash/pro/research) use /deepseek-offload. Workhorse adds forge→plan→execute orchestration on top."
 ---
 
-# NUDIMMUD Workhorse X1
+# YURI Workhorse X1
 
 ## How to invoke
 
@@ -17,7 +17,7 @@ DO NOT spawn an Agent. Run the workhorse script directly via Bash.
 ### Forge (rough idea → plan → review → execution)
 
 ```bash
-node Scripts/nudimmud-workhorse.mjs forge --generate-plan "<rough idea>"
+node Scripts/yuri-workhorse.mjs forge --generate-plan "<rough idea>"
 ```
 
 Flags:
@@ -31,14 +31,14 @@ Flags:
 ### Run from existing plan
 
 ```bash
-node Scripts/nudimmud-workhorse.mjs run --plan <path-to-plan.json>
-node Scripts/nudimmud-workhorse.mjs run --execute --plan <path-to-plan.json>
+node Scripts/yuri-workhorse.mjs run --plan <path-to-plan.json>
+node Scripts/yuri-workhorse.mjs run --execute --plan <path-to-plan.json>
 ```
 
 ### Self-test
 
 ```bash
-node Scripts/nudimmud-workhorse.mjs --selftest
+node Scripts/yuri-workhorse.mjs --selftest
 ```
 
 ## What happens
@@ -52,7 +52,7 @@ The workhorse:
 6. Optionally executes actions via `yuri-guarded-executor.mjs`
 7. Writes `final-report.md`
 
-All artifacts go to `~/.nudimmud/workhorse-runs/<run-id>/`
+All artifacts go to `~/.yuri/workhorse-runs/<run-id>/`
 
 ## Pipeline Flow
 
@@ -87,13 +87,13 @@ Rough Idea → Intent (SEM/KV) → Action Plan (scoped steps)
 
 Equivalent Bash:
 ```bash
-node Scripts/nudimmud-workhorse.mjs forge --generate-plan "analyze what Obsidian cache/plugin state would break the vault load loop"
+node Scripts/yuri-workhorse.mjs forge --generate-plan "analyze what Obsidian cache/plugin state would break the vault load loop"
 ```
 
 ## Dependencies
 
 - Node.js 18+
-- `Scripts/nudimmud-workhorse.mjs`
+- `Scripts/yuri-workhorse.mjs`
 - `Scripts/offload-runner.mjs` — DeepSeek API transport
 - `Scripts/yuri-guarded-executor.mjs` — guarded local runner
 - `Scripts/deepseek-action-schema.json`

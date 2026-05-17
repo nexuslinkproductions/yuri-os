@@ -78,7 +78,7 @@ run_test() {
 # Registry is rewritten once per script invocation. To preserve multiple rows, pass all target models in a single invocation.
 mkdir -p "$(dirname "$REGISTRY")"
 cat > "$REGISTRY" <<HEADER
-# Model Registry — NUDIMMUD Local LLMs
+# Model Registry — YURI Local LLMs
 
 **Benchmarked:** $(date '+%Y-%m-%d %H:%M')
 **Machine:** M2 Pro, 16GB unified memory

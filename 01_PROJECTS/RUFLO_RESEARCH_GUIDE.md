@@ -1,7 +1,7 @@
 # ⬡ RUFLO_RESEARCH_GUIDE ⬡
 ## Intelligence Ecosystem Mapping // v1.0
 
-This guide summarizes the architectural discoveries from the `ruflo` repository analysis. Use this to inform the next generation of NUDIMMUD's autonomous swarm.
+This guide summarizes the architectural discoveries from the `ruflo` repository analysis. Use this to inform the next generation of YURI's autonomous swarm.
 
 ---
 
@@ -19,7 +19,7 @@ The `ruflo` system is bifurcated into a legacy core (**v2**) and a high-performa
 
 ---
 
-## 2. NAVIGATION PATHS (NUDIMMUD OS)
+## 2. NAVIGATION PATHS (YURI OS)
 You can access the raw graph data and detailed reports at the following locations within the terminal or filesystem:
 
 | Artifact | Location |
@@ -32,9 +32,9 @@ You can access the raw graph data and detailed reports at the following location
 ---
 
 ## 3. INTEGRATION STRATEGY
-To enhance NUDIMMUD's performance, the following `ruflo` components are recommended for immediate synthesis:
+To enhance YURI's performance, the following `ruflo` components are recommended for immediate synthesis:
 
-1.  **SWARM_CONSENSUS**: Port the `v3/swarm` consensus logic to the NUDIMMUD Conclave to handle more than 4 agents simultaneously.
+1.  **SWARM_CONSENSUS**: Port the `v3/swarm` consensus logic to the YURI Conclave to handle more than 4 agents simultaneously.
 2.  **DETERMINISTIC_GATEWAY**: Adopt the `guidance/enforcement` gates to prevent the "CONCLAVE_TIMEOUT" issues experienced earlier by ensuring tools respond within hard millisecond bounds.
 3.  **SONA_ROUTING**: Replace the current `SmartRouter` with a SONA-inspired RL router to learn from your feedback over time.
 

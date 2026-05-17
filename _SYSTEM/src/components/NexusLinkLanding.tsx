@@ -47,7 +47,7 @@ const routeMap: Record<string, string> = {
 
 export default function NexusLinkLanding({ surfaceLabel = 'NexusLink' }: NexusLinkLandingProps) {
     const go = (moduleName: string) => {
-        (window as any).nudimmudEngine?.go(moduleName);
+        (window as any).yuriEngine?.go(moduleName);
     };
 
     return (
@@ -86,7 +86,7 @@ export default function NexusLinkLanding({ surfaceLabel = 'NexusLink' }: NexusLi
                                 marginBottom: '8px'
                             }}
                         >
-                            NUDIMMUD / {surfaceLabel}
+                            YURI / {surfaceLabel}
                         </div>
                         <div style={{ fontSize: '1.05rem', fontWeight: 800, letterSpacing: '-0.03em' }}>
                             Public landing module

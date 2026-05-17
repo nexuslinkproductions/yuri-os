@@ -15,7 +15,7 @@ Use this pack when the task involves frontend design, UI implementation, visual 
 
 - SaaS/app UI: Vercel, React docs, Primer, Atlassian, shadcn, Radix/Base UI, Mobbin.
 - Motion-heavy landing: Framer University, Motion Primitives, Codrops, Magic UI, React Bits, GSAP.
-- Dark operator/HUD: NUDIMMUD DESIGN.md, Dark Mode Design, Vercel restraint, Codrops interaction references.
+- Dark operator/HUD: YURI DESIGN.md, Dark Mode Design, Vercel restraint, Codrops interaction references.
 - AI-generated UI workflow: Anthropic frontend-design, Vercel agent skills, 21st.dev, v0, Figma Make.
 - Accessibility-heavy controls: React Aria, React purity/state docs, Radix, Base UI, Headless UI, Vercel Web Interface Guidelines.
 

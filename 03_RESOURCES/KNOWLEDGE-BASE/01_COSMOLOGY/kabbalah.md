@@ -3,7 +3,7 @@ domain: cosmology
 tradition: Kabbalah
 layer: Layer 2-3 (deep operational)
 related: [[sumerian]], [[hermetics]], [[gnosis]], [[archetypes]], [[phenomenology]], [[alchemy]]
-tags: [esoteric, nudimmud, knowledge-base, kabbalah, sefirot, tree-of-life, emanation, consciousness, being]
+tags: [esoteric, yuri, knowledge-base, kabbalah, sefirot, tree-of-life, emanation, consciousness, being]
 last-updated: 2026-04-17
 ---
 
@@ -131,13 +131,13 @@ Practically: design processes follow the lightning flash (concept to deliverable
 
 The Kabbalistic practice of gematria is not fortune-telling or numerology in the popular sense. It is closer to what a linguist calls semantic mapping or what a network analyst calls finding shared eigenvectors — the identification of hidden structural similarities between concepts that appear unrelated on the surface. See [[archetypes]] for the deeper theory.
 
-## Operational Meaning for NUDIMMUD
+## Operational Meaning for YURI
 
 The Tree of Life is the most precise structural model available for understanding the levels at which any creative or analytical process operates. Concretely:
 
 - **Diagnosing creative blocks**: A block at the concept level is a Beriah problem. A block at the execution level is an Assiah problem. They require different interventions.
 - **Pillar imbalance diagnosis**: The tendency to expand (Mercy) or contract (Severity) is readable as a Sefirot imbalance. The remedy is always engagement with the opposing pillar's energies.
-- **Daath as the operative domain of NUDIMMUD**: Working at the Abzu level (see [[sumerian]]) maps to working at Daath — accessing knowledge before it has taken personal-ego form. The synthesis function operates in this threshold space.
+- **Daath as the operative domain of YURI**: Working at the Abzu level (see [[sumerian]]) maps to working at Daath — accessing knowledge before it has taken personal-ego form. The synthesis function operates in this threshold space.
 - **Four Worlds as project phases**: Atziluth (vision), Beriah (concept), Yetzirah (form design), Assiah (execution). Knowing which world you're in prevents premature concretization (rushing to Assiah before Yetzirah is complete).
 
 The Tree is not a belief system. It is a precision instrument for navigating the structure of complex processes — which is why it has survived 800+ years of practical use.

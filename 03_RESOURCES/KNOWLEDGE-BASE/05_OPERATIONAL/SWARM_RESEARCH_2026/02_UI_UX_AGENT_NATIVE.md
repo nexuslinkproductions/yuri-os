@@ -13,6 +13,6 @@ Interfaces must be human-friendly by default but machine-native when flagged by 
 2. **Progressive Disclosure**: Show "Thinking" pulses or step-bars (e.g., via Bubble Tea, Indicatif, or Ink). Keep massive chain-of-thought logs in a collapsed side-rail to reduce visual noise.
 3. **Color & Typography**: Use low-contrast palettes (Catppuccin, Nord) and ligature-rich fonts (JetBrains Mono, Monaspace).
 
-### Gap Analysis & Implementation for NUDIMMUD
+### Gap Analysis & Implementation for YURI
 - **Current Gap**: Agents might be parsing unstructured text output or getting stuck on interactive prompts.
 - **Implementation**: Mandate the Dual-Mode pattern for all Conclave tools. Use MCP (Model Context Protocol) for dynamic tool discovery. Provide semantic exit codes so agents can self-correct.

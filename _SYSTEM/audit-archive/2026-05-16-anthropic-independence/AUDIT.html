@@ -124,7 +124,7 @@
   <header class="top">
     <div class="brand">
       <div class="mark"></div>
-      <div class="name">YURI OS <span>· NUDIMMUD</span></div>
+      <div class="name">YURI OS <span>· YURI</span></div>
     </div>
     <div class="meta">
       <span><b>Audit ID</b>2026-05-16/anthropic-independence</span>
@@ -351,7 +351,7 @@ flowchart LR
 
     <div class="callout good" style="margin-top:18px">
       <h4>Promise — Nexbox Handoff v1</h4>
-      <p><i>"A client receives NEXUSLINK / nexbox bundled with a NUDIMMUD-grade Symbiotic Pulse runtime that requires zero Anthropic credentials to operate."</i> Full packet shape in <span class="mono">_SYSTEM/NEXUSLINK/nexbox-handoff-v1.md</span>. Bundles ship with identity attestation, schema-versioned pulse packets, trust-chain nonces (tied to CASSANDRA), local model catalog, declared fallback policy, and TTL/heartbeat liveness — six layers DeepSeek's advisory flagged as missing from a naive bundle.</p>
+      <p><i>"A client receives NEXUSLINK / nexbox bundled with a YURI-grade Symbiotic Pulse runtime that requires zero Anthropic credentials to operate."</i> Full packet shape in <span class="mono">_SYSTEM/NEXUSLINK/nexbox-handoff-v1.md</span>. Bundles ship with identity attestation, schema-versioned pulse packets, trust-chain nonces (tied to CASSANDRA), local model catalog, declared fallback policy, and TTL/heartbeat liveness — six layers DeepSeek's advisory flagged as missing from a naive bundle.</p>
     </div>
   </section>
 
@@ -375,7 +375,7 @@ flowchart LR
         <tr><td>10</td><td><b>Hook-by-hook audit · quarantine any Claude spawn</b> <span class="file">.claude/hooks/*.js (37)</span></td><td><span class="tag blu">audit</span></td><td class="eta">3d</td><td>Codex</td></tr>
         <tr><td>11</td><td><b>Skill model-routing sweep · per-skill body audit</b> <span class="file">.claude/skills/*/SKILL.md (34)</span></td><td><span class="tag blu">audit</span></td><td class="eta">2d</td><td>Codex</td></tr>
         <tr><td>12</td><td><b>Scripts/ai banner defaults</b> <span class="file">Scripts/ai:272,1103,1128</span></td><td><span class="tag blu">config</span></td><td class="eta">0.5d</td><td>Codex</td></tr>
-        <tr><td>13</td><td><b>Independence smoke test — NUDIMMUD_NO_ANTHROPIC=1</b> <span class="file">new: Scripts/independence-check.mjs</span></td><td><span class="tag blu">verifier</span></td><td class="eta">1.5d</td><td>Codex</td></tr>
+        <tr><td>13</td><td><b>Independence smoke test — YURI_NO_ANTHROPIC=1</b> <span class="file">new: Scripts/independence-check.mjs</span></td><td><span class="tag blu">verifier</span></td><td class="eta">1.5d</td><td>Codex</td></tr>
         <tr><td>14</td><td><b>NEXUSLINK nexbox handoff packet</b> <span class="file">new: _SYSTEM/NEXUSLINK/nexbox-handoff-v1.md + landing extension</span></td><td><span class="tag mag">packet</span></td><td class="eta">2d</td><td>Marcel + Codex</td></tr>
         <tr><td>15</td><td><b>Lane dispatcher abstraction (capability manifest router)</b> <span class="file">new: Scripts/lane-dispatcher.mjs · DeepSeek's #1 architectural call</span></td><td><span class="tag mag">runtime</span></td><td class="eta">3d</td><td>Codex</td></tr>
         <tr><td>16</td><td><b>Kill-switch drill (14 June)</b> — disable Anthropic key, full day, measure delta</td><td><span class="tag amb">drill</span></td><td class="eta">0.5d</td><td>Marcel</td></tr>
@@ -419,9 +419,9 @@ flowchart LR
     <p class="lede">Acceptance is binary, not qualitative. The kill-switch drill is the canonical test. If a fresh session boots cleanly with no Anthropic key for 24 hours and the independence score holds ≥ 90, the sprint passed.</p>
 
     <ol style="color:var(--text);line-height:1.8;font-size:14px;padding-left:22px">
-      <li><span class="mono" style="color:var(--cyan)">Scripts/independence-check.mjs --strict</span> returns <span class="mono">exit 0</span> with <span class="mono">NUDIMMUD_NO_ANTHROPIC=1</span>. Verifier walks every subagent, hook, skill, and offload lane to confirm no Anthropic surface fires unprompted.</li>
+      <li><span class="mono" style="color:var(--cyan)">Scripts/independence-check.mjs --strict</span> returns <span class="mono">exit 0</span> with <span class="mono">YURI_NO_ANTHROPIC=1</span>. Verifier walks every subagent, hook, skill, and offload lane to confirm no Anthropic surface fires unprompted.</li>
       <li>Open <span class="mono">AUDIT.html</span>, <span class="mono">AUDIT-DECK.html</span> → confirm Mermaid + Chart.js render in a cold browser.</li>
-      <li>Run a full <span class="mono">/eot</span> cycle under <span class="mono">NUDIMMUD_NO_ANTHROPIC=1</span> → confirm no Claude API calls in <span class="mono">_SYSTEM/cost-trends.md</span> · no Haiku worker spawns.</li>
+      <li>Run a full <span class="mono">/eot</span> cycle under <span class="mono">YURI_NO_ANTHROPIC=1</span> → confirm no Claude API calls in <span class="mono">_SYSTEM/cost-trends.md</span> · no Haiku worker spawns.</li>
       <li>Boot a fresh session, kill-switch on, for <b>24 h continuous</b> → measure productivity delta vs the prior 24 h baseline.</li>
       <li>Run <span class="mono">gitnexus_detect_changes()</span> after each packet → confirm scope matches expectation (no spillover into protected paths).</li>
       <li>Re-run independence score formula → ≥ 90 / 100 required to declare PASS.</li>

@@ -39,7 +39,7 @@
 **Evidence:** All documented in PHASE_0-2_FOUNDATION_SUMMARY.md
 1. ✅ File length clamping (line 618-631, offload-runner.mjs)
 2. ✅ Command validation type-checking (line 666-669, offload-runner.mjs)
-3. ✅ Step malformation cleanup (line 560-590, nudimmud-workhorse.mjs)
+3. ✅ Step malformation cleanup (line 560-590, yuri-workhorse.mjs)
 4. ✅ API loop max iterations increase (10→50, offload-runner.mjs)
 5. ✅ Infinite loop detection (lastToolCallNames tracking, offload-runner.mjs)
 6. ✅ Scoped mutation policy (allow .claude/trading-bot/** writes)

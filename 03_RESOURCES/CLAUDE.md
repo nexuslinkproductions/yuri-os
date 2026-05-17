@@ -12,4 +12,4 @@ All assets, stock footage, LUTs, presets, plugins, templates, and reference mate
 - `References/` — visual references, mood boards, research
 
 ## Numbering Note
-This directory fills the gap between `02_AREAS/` and `04_FINANCE/`. Originally lived only in the nested `NUDIMMUD/` mirror; surfaced to root on 2026-05-07 as part of the structure refactor.
+This directory fills the gap between `02_AREAS/` and `04_FINANCE/`. Originally lived only in the nested `YURI/` mirror; surfaced to root on 2026-05-07 as part of the structure refactor.

@@ -1,7 +1,7 @@
-# Yuri OS / NUDIMMUD — GPT Session Archive, Part 1
+# Yuri OS / YURI — GPT Session Archive, Part 1
 
 **Generated:** 2026-05-03  
-**Session focus:** NUDIMMUD REPL/HUD usability, turn-output cleanup, natural composer, harness-core scaffolding, status-provider integration, paste handling, and early HUD transformation attempts.  
+**Session focus:** YURI REPL/HUD usability, turn-output cleanup, natural composer, harness-core scaffolding, status-provider integration, paste handling, and early HUD transformation attempts.  
 **Repo root:** `/Users/marcelspatz/YURI-OS-MUSUBI`  
 **Expected branch:** `main`  
 **Archive status:** Detailed continuity archive for ingestion. Not an independently executed repo audit.  
@@ -13,7 +13,7 @@
 
 This archive is split into two files for cleaner ingestion:
 
-- **Part 1:** NUDIMMUD terminal/REPL/HUD work, composer and harness-core timeline.
+- **Part 1:** YURI terminal/REPL/HUD work, composer and harness-core timeline.
 - **Part 2:** DeepSeek routing repair, model-claim authority audit, latest trusted state, next continuation rules and prompts.
 
 When ingesting, preserve both files as one chronological session. Part 2 contains the final trusted state and recommended continuation point.
@@ -22,9 +22,9 @@ When ingesting, preserve both files as one chronological session. Part 2 contain
 
 ## 1. Executive summary
 
-This GPT session started because Claude/Sonnet was burning extreme time and tokens on small local file reads and synthesis around `_SYSTEM/Scripts/nudimmud-repl.mjs`. The user reported a concrete failure mode: reading a single 582-line file could take Sonnet around five minutes and burn roughly 51.3k tokens before being stopped.
+This GPT session started because Claude/Sonnet was burning extreme time and tokens on small local file reads and synthesis around `_SYSTEM/Scripts/yuri-repl.mjs`. The user reported a concrete failure mode: reading a single 582-line file could take Sonnet around five minutes and burn roughly 51.3k tokens before being stopped.
 
-The session then moved through several NUDIMMUD terminal improvements:
+The session then moved through several YURI terminal improvements:
 
 1. Quieting noisy turn endings and making `/last` / saved output behavior more usable.
 2. Replacing the old slash-heavy `/paste` + `/send` interaction with a more natural composer.
@@ -34,7 +34,7 @@ The session then moved through several NUDIMMUD terminal improvements:
 6. Trying a major terminal HUD transformation based on visual references, which landed mechanically but visually regressed.
 7. Pausing HUD work and pivoting to DeepSeek routing/transport repair, covered in Part 2.
 
-Important session lesson: **the NUDIMMUD terminal can be visually strong, but the executor/claim boundary must be hardened before trusting any model-produced commit or validation labels.**
+Important session lesson: **the YURI terminal can be visually strong, but the executor/claim boundary must be hardened before trusting any model-produced commit or validation labels.**
 
 ---
 
@@ -44,9 +44,9 @@ The session began with the user reporting that Sonnet took around five minutes t
 
 ```text
 Read 1 file
-wc -l /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs
-582 /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs
-HEAD 4f4312fe9 fix(cli): calm NUDIMMUD HUD theme and move footer below input
+wc -l /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/yuri-repl.mjs
+582 /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/yuri-repl.mjs
+HEAD 4f4312fe9 fix(cli): calm YURI HUD theme and move footer below input
 Synthesizing… 6m49s · ↑ 1.6k tokens · thought for 361s
 ```
 
@@ -65,7 +65,7 @@ This reinforced existing TokenOps principles:
 
 ---
 
-## 3. Initial exact-symbol scan of `_SYSTEM/Scripts/nudimmud-repl.mjs`
+## 3. Initial exact-symbol scan of `_SYSTEM/Scripts/yuri-repl.mjs`
 
 The user provided a compact terminal symbol scan instead of a full file dump.
 
@@ -86,7 +86,7 @@ rl.on('line', ...)
 At that time the repo state shown by the user included:
 
 ```text
-HEAD: 4f4312fe9 fix(cli): calm NUDIMMUD HUD theme and move footer below input
+HEAD: 4f4312fe9 fix(cli): calm YURI HUD theme and move footer below input
 STATUS:
  M .claude/settings.json
  M backend/data/yuri.db-shm
@@ -99,7 +99,7 @@ STATUS:
 
 Interpretation:
 
-- `_SYSTEM/Scripts/nudimmud-repl.mjs` was the relevant mutation target.
+- `_SYSTEM/Scripts/yuri-repl.mjs` was the relevant mutation target.
 - The other dirty/untracked paths were tolerated/pre-existing and should not be touched.
 
 ---
@@ -140,13 +140,13 @@ TURN_SUMMARY_HIDDEN_PASS
 ### Commit
 
 ```text
-262ff9319 fix(cli): quiet NUDIMMUD turn endings
+262ff9319 fix(cli): quiet YURI turn endings
 ```
 
 Commit scope:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs only
+_SYSTEM/Scripts/yuri-repl.mjs only
 ```
 
 Post-commit status still showed the same tolerated dirty/untracked paths:
@@ -168,7 +168,7 @@ Post-commit status still showed the same tolerated dirty/untracked paths:
 After the quiet-turn commit, the user tried:
 
 ```text
-NUDIMMUD › /paste
+YURI › /paste
 [PASTE] Mode ON — paste lines, /send to submit, /cancel to abort
 PASTE[0]> /last
 PASTE[1]>
@@ -176,7 +176,7 @@ PASTE[2]>
 PASTE[3]>
 PASTE[4]> /cancel
 [PASTE] Cancelled.
-NUDIMMUD › /last
+YURI › /last
 [LAST] no completed turn yet
 ```
 
@@ -196,7 +196,7 @@ This became the design driver for the natural composer repair.
 
 ---
 
-## 6. First successful NUDIMMUD / DeepSeek output after quiet-turn repair
+## 6. First successful YURI / DeepSeek output after quiet-turn repair
 
 The user ran a prompt that effectively asked for the full prompt/system prompt, which produced a model refusal-style response:
 
@@ -209,7 +209,7 @@ The terminal displayed the now-cleaner flow:
 ```text
 ┌─ USER REQUEST [NMD-...]
 ...
-┌─ NUDIMMUD ROUTE
+┌─ YURI ROUTE
 │ LANE      deepseek-v4-pro
 │ TYPE      local-offload › _SYSTEM/Scripts/offload.sh
 │ BRANCH    main  HEAD 262ff9319  STAGED 0
@@ -248,13 +248,13 @@ A GPT-5.4-mini high / Codex-style execution repaired the REPL composer.
 ### Commit
 
 ```text
-df1e8ee98 fix(cli): add natural NUDIMMUD input composer
+df1e8ee98 fix(cli): add natural YURI input composer
 ```
 
 ### Files changed
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
+_SYSTEM/Scripts/yuri-repl.mjs
 ```
 
 ### Reported validation
@@ -276,7 +276,7 @@ DB_UNTOUCHED: yes
 
 ### UX changes
 
-- Natural `NUDIMMUD ›` prompt.
+- Natural `YURI ›` prompt.
 - Single-line Enter sends normally.
 - Multiline capture state.
 - Enter sends multiline capture.
@@ -306,7 +306,7 @@ very nice, almost there. the formatting needs a tiny upgrade but very well
 
 ## 8. Harness core 08L sequence
 
-The session then moved into the NUDIMMUD harness-core architecture work. The goal was to move from a simple terminal wrapper toward a cleaner event/run/harness structure, without breaking current UX.
+The session then moved into the YURI harness-core architecture work. The goal was to move from a simple terminal wrapper toward a cleaner event/run/harness structure, without breaking current UX.
 
 ### 8.1 08L-X1 — Harness core skeleton
 
@@ -320,16 +320,16 @@ Commit:
 
 ```text
 8d9346dc99e4a9cc5b819146b78fcbfc9d8105ba
-chore(cli): add NUDIMMUD harness core skeleton
+chore(cli): add YURI harness core skeleton
 ```
 
 Files changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud/event-protocol.mjs
-_SYSTEM/Scripts/nudimmud/harness-state.mjs
-_SYSTEM/Scripts/nudimmud/prompt-compiler.mjs
-docs/nudimmud-harness-core.md
+_SYSTEM/Scripts/yuri/event-protocol.mjs
+_SYSTEM/Scripts/yuri/harness-state.mjs
+_SYSTEM/Scripts/yuri/prompt-compiler.mjs
+docs/yuri-harness-core.md
 ```
 
 Validation:
@@ -370,14 +370,14 @@ Commit:
 
 ```text
 0d93caeb000b0f63d626dbc49ab393a1916ee7a5
-chore(cli): add NUDIMMUD prompt compiler dry run
+chore(cli): add YURI prompt compiler dry run
 ```
 
 Files changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud/prompt-compiler.mjs
-docs/nudimmud-harness-core.md
+_SYSTEM/Scripts/yuri/prompt-compiler.mjs
+docs/yuri-harness-core.md
 ```
 
 Key additions:
@@ -427,15 +427,15 @@ Commit:
 
 ```text
 63cffbaee94c0af2ba765f7bd41ce7821fe2d63d
-chore(cli): add NUDIMMUD recorder and status skeleton
+chore(cli): add YURI recorder and status skeleton
 ```
 
 Files changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud/run-recorder.mjs
-_SYSTEM/Scripts/nudimmud/status-line.mjs
-docs/nudimmud-harness-core.md
+_SYSTEM/Scripts/yuri/run-recorder.mjs
+_SYSTEM/Scripts/yuri/status-line.mjs
+docs/yuri-harness-core.md
 ```
 
 Validation:
@@ -516,19 +516,19 @@ Result label:
 Commit:
 
 ```text
-ce1fa159d chore(cli): wire NUDIMMUD HUD status provider
+ce1fa159d chore(cli): wire YURI HUD status provider
 ```
 
 Files changed:
 
 ```text
-_SYSTEM/Scripts/nudimmud-repl.mjs
-docs/nudimmud-harness-core.md
+_SYSTEM/Scripts/yuri-repl.mjs
+docs/yuri-harness-core.md
 ```
 
 Main change:
 
-- `_SYSTEM/Scripts/nudimmud-repl.mjs` imports:
+- `_SYSTEM/Scripts/yuri-repl.mjs` imports:
   - `createStatusSnapshot`
   - `renderCompactStatusLine`
   - `renderBudgetStatusLine`
@@ -567,14 +567,14 @@ The user shared a screenshot of the X4 state and then asked to continue.
 The user requested one last visual adjustment:
 
 ```text
-YURI OS is missing from the hud, place it above in the same style as NUDIMMUD and same color / 'OS' is PURPLE as it is one of Lilly's favourite colors and this is all based on her name translated in Japanese
+YURI OS is missing from the hud, place it above in the same style as YURI and same color / 'OS' is PURPLE as it is one of Lilly's favourite colors and this is all based on her name translated in Japanese
 ```
 
 Key visual requirement:
 
-- `YURI` should appear in the same large terminal identity style as `NUDIMMUD`.
+- `YURI` should appear in the same large terminal identity style as `YURI`.
 - `OS` should be purple.
-- Green remains the dominant NUDIMMUD/YURI color.
+- Green remains the dominant YURI/YURI color.
 - The identity is personally meaningful because the system name is tied to Lilly’s name translated in Japanese.
 
 This requirement later fed into the HUD transformation attempt.
@@ -623,9 +623,9 @@ The user later identified a major composer issue: long pastes required extra Ent
 User example:
 
 ```text
-NUDIMMUD › Read these two marker lines and reply exactly: 08N_MULTI_OK
+YURI › Read these two marker lines and reply exactly: 08N_MULTI_OK
 line one: YURI
-MULTILINE · 2 lines · 74 chars · Enter sends · Esc cancels line two: NUDIMMUD
+MULTILINE · 2 lines · 74 chars · Enter sends · Esc cancels line two: YURI
 MULTILINE · 3 lines · 93 chars · Enter sends · Esc cancels
 [PASTE] Sending 93 chars / 3 lines
 ```
@@ -641,7 +641,7 @@ Problems:
 Before the false model-claim incident, a real Codex/local commit had already improved bracketed paste handling:
 
 ```text
-cd12cfaba fix(cli): capture long NUDIMMUD pastes as one request
+cd12cfaba fix(cli): capture long YURI pastes as one request
 ```
 
 Validation:
@@ -679,7 +679,7 @@ Later, a DeepSeek model output falsely claimed an additional auto-send repair co
 
 The user provided screenshots showing the desired HUD direction:
 
-- large strong NUDIMMUD identity,
+- large strong YURI identity,
 - modular terminal panels,
 - green-dominant style,
 - YURI OS identity above or integrated,
@@ -770,7 +770,7 @@ This rule is critical for future Claude/Codex/DeepSeek prompts.
 
 Do not claim from this session alone:
 
-- Full NUDIMMUD harness readiness.
+- Full YURI harness readiness.
 - Full event bus/runtime recorder integration.
 - Full budget enforcement.
 - Full stream-json adapter readiness.

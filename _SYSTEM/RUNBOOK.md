@@ -1,4 +1,4 @@
-# NUDIMMUD Operational Runbook
+# YURI Operational Runbook
 
 **Last updated:** 2026-05-13
 **Owner:** Marcel Spatz
@@ -14,7 +14,7 @@
 | Memory core present | `[ -s memory-core.md ] && echo OK` | prints `OK` |
 | Palace index parseable | `grep -q '^#\+ ' claude-palace-out/palace-index.md && echo OK` | prints `OK` |
 | Session state schema | `jq -e .schema_version .claude/state/session-state.json` | non-zero exit means corruption |
-| Active launchd agents | `launchctl list \| grep nudimmud` | shows 4+ entries (ollama-kv, shellservice, wiki-rag, yuri-session-runtime) |
+| Active launchd agents | `launchctl list \| grep yuri` | shows 4+ entries (ollama-kv, shellservice, wiki-rag, yuri-session-runtime) |
 | DeepSeek lane live | `bash _SYSTEM/Scripts/offload.sh -m deepseek --no-tools "OK?"` | returns a model reply |
 | Codex-spark lane live | `bash _SYSTEM/Scripts/offload.sh -m codex-spark "OK?"` | returns a model reply |
 
@@ -42,7 +42,7 @@
 **Symptom:** `.claude/state/scout-errors.log` growing rapidly, mostly `claude -p ... failed` entries.
 **Root cause:** Scout-runner uses banned `claude -p --model claude-haiku-4-5-20251001` pattern. See `_SYSTEM/scout-errors-2026-05-13-triage.md`.
 **Action:**
-1. Do NOT install `com.nudimmud.eot-refresh.plist` (deferred until scout is rebuilt).
+1. Do NOT install `com.yuri.eot-refresh.plist` (deferred until scout is rebuilt).
 2. Apply the Codex spec from the triage doc to migrate scout to `_SYSTEM/Scripts/offload.sh -m deepseek`.
 3. Add size-based rotation (1 MB ring) as the second spec.
 
@@ -56,8 +56,8 @@
 **Symptom:** Obsidian-vault, nexus-core, or ollama-bridge tools time out.
 **Action:**
 1. `ps aux | grep mcp-server` — confirm process is alive.
-2. Restart via the relevant `~/Library/LaunchAgents/com.nudimmud.*.plist`:
-   `launchctl unload ~/Library/LaunchAgents/com.nudimmud.<name>.plist && launchctl load ~/Library/LaunchAgents/com.nudimmud.<name>.plist`
+2. Restart via the relevant `~/Library/LaunchAgents/com.yuri.*.plist`:
+   `launchctl unload ~/Library/LaunchAgents/com.yuri.<name>.plist && launchctl load ~/Library/LaunchAgents/com.yuri.<name>.plist`
 3. Tail the corresponding `.err.log` for cause.
 
 ### Ollama lanes returning ERR_INVALID_URL
@@ -91,7 +91,7 @@ Watch live: `tail -f .claude/state/progress.log`.
 pwd                                              # /Users/marcelspatz/YURI-OS-MUSUBI
 git branch --show-current                        # main
 git status --short                               # not blocking, but inspect
-launchctl list | grep nudimmud | wc -l           # >= 4
+launchctl list | grep yuri | wc -l           # >= 4
 bash _SYSTEM/Scripts/offload.sh -m deepseek --no-tools "OK?" 2>&1 | tail -1
 ```
 

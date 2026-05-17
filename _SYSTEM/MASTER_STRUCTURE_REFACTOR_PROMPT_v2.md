@@ -1,7 +1,7 @@
-# MASTER PROMPT v2 — NUDIMMUD Structure Refactor (Corrected)
+# MASTER PROMPT v2 — YURI Structure Refactor (Corrected)
 ## For Claude Code → DeepSeek Workhorse Swarm
 
-> **v2 changelog (2026-05-07):** v1 contained catastrophic misclassifications. `_SYSTEM/Scripts/`, `bin/`, `Volumes/`, `GeneratedContent`, and `Claude Code URL Handler.app` are **live infrastructure**, not dead artifacts. The `NUDIMMUD/` mirror is **not a clean duplicate** — it has 50+ unique markdown files and 38 diverged versions of root files requiring reconciliation before any deletion. v2 corrects all of this.
+> **v2 changelog (2026-05-07):** v1 contained catastrophic misclassifications. `_SYSTEM/Scripts/`, `bin/`, `Volumes/`, `GeneratedContent`, and `Claude Code URL Handler.app` are **live infrastructure**, not dead artifacts. The `YURI/` mirror is **not a clean duplicate** — it has 50+ unique markdown files and 38 diverged versions of root files requiring reconciliation before any deletion. v2 corrects all of this.
 
 ---
 
@@ -26,7 +26,7 @@ You are the orchestrator. Your job is exactly three things:
 ### Root directory — ~22 dirs + ~25 root files
 
 **LIVE INFRASTRUCTURE — DO NOT TOUCH:**
-- `_SYSTEM/Scripts/` — `ai`, `offload.sh`, `nudimmud-repl.mjs`, `swarm`, all `trading-bot/*.mjs`, `graphify-run.sh`, `install_daemon.sh` (referenced from `package.json`, CORE_PROTOCOL §9, CLAUDE.md launch chain)
+- `_SYSTEM/Scripts/` — `ai`, `offload.sh`, `yuri-repl.mjs`, `swarm`, all `trading-bot/*.mjs`, `graphify-run.sh`, `install_daemon.sh` (referenced from `package.json`, CORE_PROTOCOL §9, CLAUDE.md launch chain)
 - `bin/` — `claude` wrapper, `design-audit` (per memory: `boot.zsh → bin/claude → _SYSTEM/Scripts/ai`)
 - `GeneratedContent` — symlink to `/Users/marcelspatz/GeneratedContent` (NOT a regular dir; `rm -rf` of a dir-symlink is risky)
 - `Claude Code URL Handler.app` — registered macOS `claude://` deep-link handler
@@ -43,7 +43,7 @@ You are the orchestrator. Your job is exactly three things:
 - `07_ARCHIVE/` ⚠️ should be `08_ARCHIVE` after the renumber
 
 **TO RECONCILE THEN DELETE (gitignored, but contains 50+ unique markdown files + 38 diverged):**
-- `NUDIMMUD/` — the mirror. **DO NOT `rm -rf` until you have**:
+- `YURI/` — the mirror. **DO NOT `rm -rf` until you have**:
   1. Diff'd each of the 38 diverged top-level docs against root and merged anything worth keeping
   2. Extracted the unique `iC2M/` client-folder snapshot to `07_ARCHIVE/iC2M/`
   3. Confirmed the NABU/NISABA skeleton dirs (02_GOVERNANCE..07_FUTURES, 01_DEPLOYMENT..07_CANON) are not the canonical scaffolding
@@ -65,11 +65,11 @@ You are the orchestrator. Your job is exactly three things:
 
 ## THE GOAL
 
-A NUDIMMUD root that:
+A YURI root that:
 - Has ~9 numbered top-level dirs + the live-infra dirs (`Scripts`, `bin`, `Volumes`, `src`, `backend`, `_SYSTEM`, `node_modules`)
 - Has the duplicated #06 numbering resolved
 - Has auto-generated and ephemeral artifacts gitignored
-- Has the `NUDIMMUD/` mirror reconciled and removed (after manual review)
+- Has the `YURI/` mirror reconciled and removed (after manual review)
 - Preserves every byte of unique content — nothing lost
 
 ---
@@ -78,8 +78,8 @@ A NUDIMMUD root that:
 
 ### Phase 1 — Verifications (orchestrator only, 1 pass)
 
-1. Run `diff -rq . NUDIMMUD/ | grep "^Only in NUDIMMUD"` — list mirror-only paths
-2. Run `diff -rq . NUDIMMUD/ | grep "^Files .* differ"` — list diverged files
+1. Run `diff -rq . YURI/ | grep "^Only in YURI"` — list mirror-only paths
+2. Run `diff -rq . YURI/ | grep "^Files .* differ"` — list diverged files
 3. For each diverged file, take `wc -l` of both versions; if mirror has more lines or newer relevant content, flag for manual diff
 5. Inspect `GeneratedContent` symlink with `readlink GeneratedContent`
 6. Run `lsregister -dump | grep -i "claude code url handler"` to confirm the `.app` is registered before any unregister
@@ -96,13 +96,13 @@ A NUDIMMUD root that:
 
 ### Phase 3 — Renumber + reconcile (workhorse, sequenced)
 
-6. **Cross-ref grep** for `06_NETWORK-SYNC` and `07_ARCHIVE` outside `NUDIMMUD/` and `node_modules/`. **If ≤5 refs**, renumber via `mv 06_NETWORK-SYNC 07_NETWORK-SYNC && mv 07_ARCHIVE 08_ARCHIVE` and `sed` the refs. **If >5**, list refs and stop.
+6. **Cross-ref grep** for `06_NETWORK-SYNC` and `07_ARCHIVE` outside `YURI/` and `node_modules/`. **If ≤5 refs**, renumber via `mv 06_NETWORK-SYNC 07_NETWORK-SYNC && mv 07_ARCHIVE 08_ARCHIVE` and `sed` the refs. **If >5**, list refs and stop.
 7. **Mirror reconciliation** (per-file workhorse with explicit boundaries):
    - For each unique mirror file: read both, decide canonical, copy to root if mirror wins, leave alone if root wins.
    - For each diverged file: emit a unified diff and an integration recommendation (cherry-pick, merge, or skip).
    - For NABU/NISABA skeleton dirs: confirm they are not the canonical scaffolding.
    - For `iC2M/`: archive to `07_ARCHIVE/iC2M/` (or `08_ARCHIVE/iC2M/` post-renumber).
-8. **Mirror deletion** — only after step 7 produces "all unique content surfaced or archived" report. Then `rm -rf NUDIMMUD/`.
+8. **Mirror deletion** — only after step 7 produces "all unique content surfaced or archived" report. Then `rm -rf YURI/`.
 
 ### Phase 4 — Final pass
 
@@ -134,7 +134,7 @@ For each independent task:
 /spawn /deepseek-workhorse
 Task: [exact task description]
 Paths: [exact paths, no ambiguity]
-Forbidden paths: _SYSTEM/Scripts/ bin/ Volumes/ GeneratedContent NUDIMMUD/ Claude\ Code\ URL\ Handler.app DOMAIN\ EXPANSION\ -\ INFINITE\ VOID/
+Forbidden paths: _SYSTEM/Scripts/ bin/ Volumes/ GeneratedContent YURI/ Claude\ Code\ URL\ Handler.app DOMAIN\ EXPANSION\ -\ INFINITE\ VOID/
 Commands: [exact shell commands; quarantine pattern only]
 Verification: [exact criteria to check after]
 ```
@@ -157,7 +157,7 @@ If running through Claude Code, settings.json may have deny rules on `Bash(mv:*)
 - **NEVER `rm -rf` a directory containing >0 unique files without per-file inventory**
 - **PRESERVE every reference image, every business doc, every memory file**
 - **If unsure, quarantine** — do not delete
-- After the mirror is reconciled and removed, `git diff` the cross-refs (AGENTS.md, etc.) to verify nothing references `NUDIMMUD/<path>`
+- After the mirror is reconciled and removed, `git diff` the cross-refs (AGENTS.md, etc.) to verify nothing references `YURI/<path>`
 
 ---
 
@@ -169,7 +169,7 @@ After all workhorses report success, run:
 cd /Users/marcelspatz/YURI-OS-MUSUBI
 echo "=== Root dirs ===" && ls -d */ 2>/dev/null | sort
 echo "=== Numbered dirs ===" && ls -d [0-9][0-9]_*/ 2>/dev/null | sort
-echo "=== NUDIMMUD/ exists? ===" && test -d NUDIMMUD && echo "STILL EXISTS — verify intentional" || echo "REMOVED — OK"
+echo "=== YURI/ exists? ===" && test -d YURI && echo "STILL EXISTS — verify intentional" || echo "REMOVED — OK"
 echo "=== Live infra retained? ===" && for d in Scripts bin Volumes GeneratedContent backend src; do
   test -e "$d" && echo "OK: $d" || echo "MISSING: $d"
 done

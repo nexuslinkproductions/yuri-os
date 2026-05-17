@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — Session Continuity After Sprint 07J-D-V2
+# Yuri OS / YURI — Session Continuity After Sprint 07J-D-V2
 
 Date: 2026-04-27  
 Prepared for: new GPT-5.5 continuation chat + upcoming Opus full system audit reconciliation  
@@ -457,7 +457,7 @@ Do not assume 07J-E is automatically next until the Opus audit has been reviewed
 ## 12. Suggested New Chat Opening
 
 ```text
-Continue Yuri OS / NUDIMMUD from this continuity file.
+Continue Yuri OS / YURI from this continuity file.
 
 Important: do not continue execution yet. I am going to provide a new full system audit produced with Opus.
 
@@ -489,7 +489,7 @@ Need next:
 
 ```json
 {
-  "project": "Yuri OS / NUDIMMUD",
+  "project": "Yuri OS / YURI",
   "date": "2026-04-27",
   "document_type": "session_continuity_after_07j_d_v2",
   "status": "handoff_not_independent_repo_audit",

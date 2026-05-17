@@ -46,15 +46,15 @@ These are the most recent document in their lane. **Still historical records —
 
 | Rank | Basename | Lane | Date |
 |------|----------|------|------|
-| 3 | `yuri_os_nudimmud_session_context_extract_2026-04-27 (1).md` | session_context_extract (dated) | 2026-04-27 |
-| 17 | `yuri_os_nudimmud_rag_ingest_r_3_handoff_2026_05_01.md` | rag_ingest_handoff | 2026-05-01 |
+| 3 | `yuri_os_yuri_session_context_extract_2026-04-27 (1).md` | session_context_extract (dated) | 2026-04-27 |
+| 17 | `yuri_os_yuri_rag_ingest_r_3_handoff_2026_05_01.md` | rag_ingest_handoff | 2026-05-01 |
 | 19 | `YURI_OS_YURI_SESSION_CONTINUATION_AFTER_07K_QUERY_HARDENING_AND_HERMES_2026-05-01.md` | query_hardening_handoff | 2026-05-01 |
 | 20 | `YURI_OS_YURI_GPT_SESSION_CONTINUITY_AFTER_07K_RAG_QUERY_SWARM_COMMITS_2026-05-01.md` | session_continuity | 2026-05-01 |
 | 25 | `YURI_OS_YURI_GPT_SESSION_ARCHIVE_2026-05-03_PART2_YURI_HUD_CONTINUATION.md` | gpt_session_archive (part2) | 2026-05-03 |
 | 26 | `YURI_OS_YURI_SESSION_HANDOFF_2026-05-03_WEBSEARCH_DEEPSEEK_EXECUTOR_HUD.md` | websearch_executor_hud | 2026-05-03 |
 | 27 | `YURI_OS_YURI_SESSION_HANDOFF_2026-05-03_LOCAL_CLAIM_VERIFIER_TO_COMPOSER.md` | local_claim_verifier | 2026-05-03 |
 | 28 | `YURI_OS_YURI_SESSION_ARCHIVE_2026-05-03_HUD_DEEPSEEK_TOKENOPS.md` | deepseek_tokenops | 2026-05-03 |
-| 30 | `yuri_os_nudimmud_session_context_extract (1).md` | session_context_extract (undated) | null |
+| 30 | `yuri_os_yuri_session_context_extract (1).md` | session_context_extract (undated) | null |
 
 ---
 
@@ -123,7 +123,7 @@ Body verification required before assigning final supersession status.
 |------|----------|-------|
 | 22 | `GPT_SESSION_ARCHIVE_2026-05-03_PART_1.md` | Possible supersession by PART1_DEEPSEEK_TOKENOPS_RAG; compare headings |
 | 23 | `GPT_SESSION_ARCHIVE_2026-05-03_PART_2.md` | Possible supersession by PART2_YURI_HUD_CONTINUATION; compare headings |
-| 29 | `yuri_os_nudimmud_session_context_extract.md` | Undated; temporal position vs dated 2026-04-27 extracts unknown |
+| 29 | `yuri_os_yuri_session_context_extract.md` | Undated; temporal position vs dated 2026-04-27 extracts unknown |
 
 ---
 

@@ -38,7 +38,7 @@ const TicketBoard: React.FC = () => {
     const [activeFile, setActiveFile] = useState<string | null>(null);
 
     useEffect(() => {
-        const engine = (window as any).nudimmudEngine;
+        const engine = (window as any).yuriEngine;
         if (!engine) return;
 
         const unsubscribe = engine.subscribe((data: { obsidian?: { activeFile: string } }) => {
@@ -327,8 +327,8 @@ const TicketBoard: React.FC = () => {
                     <h2 className="text-mono glow-text" style={{ fontSize: '1.8rem', letterSpacing: '0.4em', marginBottom: '4px' }}>iC2M work stream</h2>
                     <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                         <p className="text-mono" style={{ fontSize: '0.7rem', opacity: 0.4 }}>Authoritative vault ingestion active</p>
-                        <div className="text-mono" style={{ fontSize: '0.6rem', color: (window as any).nudimmudEngine?.obsidianState?.status === 'ONLINE' ? 'var(--cyan-glow)' : 'var(--red-fusion)' }}>
-                           [ Vault: {(window as any).nudimmudEngine?.obsidianState?.status || 'OFFLINE'} ]
+                        <div className="text-mono" style={{ fontSize: '0.6rem', color: (window as any).yuriEngine?.obsidianState?.status === 'ONLINE' ? 'var(--cyan-glow)' : 'var(--red-fusion)' }}>
+                           [ Vault: {(window as any).yuriEngine?.obsidianState?.status || 'OFFLINE'} ]
                         </div>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-# 09OC CONTINUOUS PROMPT — YURI OS / NUDIMMUD
+# 09OC CONTINUOUS PROMPT — YURI OS / YURI
 
 Scope: All agents (ENKI, OPENCLAW, NABU, ENLIL, INANNA) interacting with the 09OC lane.  
 Last validated: 2026-05-04.  

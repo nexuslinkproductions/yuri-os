@@ -58,7 +58,7 @@ our new 'browser'"
 
 Earlier 2026-05-14: "perplexity is only going to be used with claude computer control to use
 perplexity app chat (mcp tool for folder search is already present and functioning directed
-to users/marcelspatz/NUDIMMUD)"
+to users/marcelspatz/YURI)"
 
 ## Anti-Patterns to Catch
 

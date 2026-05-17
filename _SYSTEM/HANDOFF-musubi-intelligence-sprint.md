@@ -30,7 +30,7 @@
 #### Sequential Task Queue — Impl backlog drains one at a time
 - `_SYSTEM/Scripts/task-queue.mjs` — FIFO queue with priority + state-hash freshness
 - Every impl prompt auto-enqueues a Codex task via `codex-queue-emit` ensemble slot
-- LaunchAgent: `com.nudimmud.task-queue-runner` (every 5 min)
+- LaunchAgent: `com.yuri.task-queue-runner` (every 5 min)
 - CLI: `node _SYSTEM/Scripts/task-queue.mjs drain | run-next | list | status | enqueue`
 
 #### Self-Learning Neuron Loop — Musubi audits and improves itself daily
@@ -41,11 +41,11 @@
 | `_SYSTEM/Scripts/calibration-tracker.mjs` | Tracks advisor accuracy → updates PDC priors |
 | `_SYSTEM/Scripts/neuron-loop.mjs` | Orchestrates all three → improvement score → brain:stale |
 
-LaunchAgent: `com.nudimmud.neuron-loop` (daily 03:00)
+LaunchAgent: `com.yuri.neuron-loop` (daily 03:00)
 Baseline score: **44/100** (first run — no prior, flaw count will improve each cycle)
 
 #### Palace Index — Fully autonomous
-- LaunchAgent: `com.nudimmud.palace-auto-rebuild` (nightly 02:30)
+- LaunchAgent: `com.yuri.palace-auto-rebuild` (nightly 02:30)
 - Last rebuild: 7,373 nodes | 47,424 edges | 4,017 clusters | 20s build time
 - Status: CURRENT (0d old)
 
@@ -74,14 +74,14 @@ Total: 12 | WARN: 0 | INFO: 12 (secondary aliases + contract drift — low prior
 
 ## LaunchAgent Stack (now 12 total)
 ```
-02:30  com.nudimmud.palace-auto-rebuild   — nightly palace index rebuild
-03:00  com.nudimmud.neuron-loop           — self-learning: audit + promoter + calibration
-09:00  com.nudimmud.launch-readiness-nightly
-09:10  com.nudimmud.independence-check-nightly
-09:15  com.nudimmud.learning-score-weekly (Monday)
-19:30  com.nudimmud.gitnexus-weekly (Sunday)
-*/5    com.nudimmud.task-queue-runner     — drain Codex impl backlog every 5 min
-*/30   com.nudimmud.lane-health           — every 30 min
+02:30  com.yuri.palace-auto-rebuild   — nightly palace index rebuild
+03:00  com.yuri.neuron-loop           — self-learning: audit + promoter + calibration
+09:00  com.yuri.launch-readiness-nightly
+09:10  com.yuri.independence-check-nightly
+09:15  com.yuri.learning-score-weekly (Monday)
+19:30  com.yuri.gitnexus-weekly (Sunday)
+*/5    com.yuri.task-queue-runner     — drain Codex impl backlog every 5 min
+*/30   com.yuri.lane-health           — every 30 min
 ```
 
 ---
@@ -163,4 +163,4 @@ ALL others freeze the machine. P9 soak requires Mac Mini M4 Pro.
 
 ---
 
-*NUDIMMUD · Yuri OS · 2026-05-16 · Musubi Intelligence Sprint*
+*YURI · Yuri OS · 2026-05-16 · Musubi Intelligence Sprint*

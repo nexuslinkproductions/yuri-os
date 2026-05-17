@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { inspectOpenDatabaseHealth, unavailableDatabaseHealth } from './lib/db-health.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const LABEL = 'com.nudimmud.wiki-rag';
+const LABEL = 'com.yuri.wiki-rag';
 const NOTEBOOK_STABLE_KEY = 'yuri-os/wiki-control-plane';
 const RAW_DB_PATH = process.env.YURI_DB_PATH;
 const UID = typeof process.getuid === 'function' ? process.getuid() : os.userInfo().uid;

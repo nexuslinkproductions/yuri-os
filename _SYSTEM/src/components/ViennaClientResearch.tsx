@@ -200,7 +200,7 @@ export default function ViennaClientResearch({ surfaceLabel = 'Research' }: Vien
                 >
                     <div style={{ maxWidth: '900px' }}>
                         <div className="text-mono" style={{ fontSize: '0.56rem', letterSpacing: '0.36em', color: 'rgba(255,255,255,0.42)', marginBottom: '10px' }}>
-                            NUDIMMUD / {surfaceLabel}
+                            YURI / {surfaceLabel}
                         </div>
                         <h1 style={{ margin: 0, fontSize: 'clamp(2rem, 4vw, 3.4rem)', lineHeight: 0.96, letterSpacing: '-0.05em' }}>
                             {VIENNA_BRIEFING_COPY.title}

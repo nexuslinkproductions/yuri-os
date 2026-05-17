@@ -1,4 +1,4 @@
-# NUDIMMUD Memory Layer Specification
+# YURI Memory Layer Specification
 
 **Version:** 1.0.0 — 2026-05-13
 **Status:** Spec only. No implementation in this campaign.
@@ -158,4 +158,4 @@ If a proposed tier can be rebuilt losslessly from the live ones, keep it out —
 ## Notes
 
 - All health checks are shell one-liners that exit 0 on success; operators can run them directly from `_SYSTEM/`.
-- The NUDIMMUD lifecycle vocabulary (NIGREDO–RUBEDO) already exists in swarm-coordination and parallel-clone-orchestrator; this specification maps tiers to those phases without inventing new alchemical terms.
+- The YURI lifecycle vocabulary (NIGREDO–RUBEDO) already exists in swarm-coordination and parallel-clone-orchestrator; this specification maps tiers to those phases without inventing new alchemical terms.

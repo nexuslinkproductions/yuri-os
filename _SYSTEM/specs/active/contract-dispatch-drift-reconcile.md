@@ -27,7 +27,7 @@ Add a `dispatchTokens` array field to every lane in `_SYSTEM/Scripts/offload-con
 
 ## 4. Stakeholders
 
-- NUDIMMUD operators who rely on `offload -l` and direct `-m` invocations.
+- YURI operators who rely on `offload -l` and direct `-m` invocations.
 - Future Spec Kit campaigns that depend on consistent routing between the contract and dispatch surfaces.
 - The checker itself (`offload-contract-dispatch-check.mjs`), which gates drift visibility.
 

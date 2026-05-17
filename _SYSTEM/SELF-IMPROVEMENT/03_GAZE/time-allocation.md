@@ -7,7 +7,7 @@
 | Category | Includes | Monthly Target |
 |----------|----------|----------------|
 | **Client Work** | C2Moviez, planzerfilms, MACL-ONE shoots/edits | < 50% |
-| **System Building** | NUDIMMUD, Yuri Flow, tooling, automation, your ecosystem | 15-25% |
+| **System Building** | YURI, Yuri Flow, tooling, automation, your ecosystem | 15-25% |
 | **Learning** | Japanese, cinematography, trading, esoteric study | 10-20% |
 | **Admin** | Email, invoices, scheduling, logistics, shopping, chores | < 10% |
 | **Rest** | Sleep, gym, social (non-work), cooking, deliberate rest | > 20% |

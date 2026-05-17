@@ -157,7 +157,7 @@ A client who shifts from defensive to collaborative within a conversation has ha
 
 ---
 
-## Operational Meaning for NUDIMMUD
+## Operational Meaning for YURI
 
 1. **Attunement-first in all client contact.** Before presenting, explaining, or solving — a moment of genuine reception. What state is the client in? What do they need to feel before they can engage with the content?
 2. **Emotional precision over emotional volume.** Not more feeling expressed — more precisely identified and named. "I notice this feels frustrating" is more useful than performing concern.

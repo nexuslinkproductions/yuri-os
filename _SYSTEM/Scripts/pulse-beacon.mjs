@@ -5,7 +5,7 @@
 // two sinks:
 //   1. macOS notification via osascript (`display notification`)
 //   2. Obsidian vault daily log append (file write; vault path from
-//      env OBSIDIAN_VAULT_PATH, default falls back to NUDIMMUD-local log)
+//      env OBSIDIAN_VAULT_PATH, default falls back to YURI-local log)
 //
 // Throttled: max 5 emits per session (state at pulse-beacon-state.json,
 // resets when SessionStart sentinel changes). Honors beaconLevel from

@@ -58,7 +58,7 @@ async function ingestToRAG() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.API_KEY || 'nudimmud-default-key-change-me'}`
+          'Authorization': `Bearer ${process.env.API_KEY || 'yuri-default-key-change-me'}`
         },
         body: JSON.stringify({
           source: `youtube:${entry.videoId}`,

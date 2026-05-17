@@ -1,6 +1,6 @@
 ---
 name: non-destructive-infinity-guard
-description: Always-on action boundary, risk classifier, and mutation approval gate for Yuri OS / Nudimmud. Inspired by Limitless / Infinity, translated into enterprise-safe system behavior.
+description: Always-on action boundary, risk classifier, and mutation approval gate for Yuri OS / Yuri. Inspired by Limitless / Infinity, translated into enterprise-safe system behavior.
 version: 1.0.0
 status: active
 enterprise_ready: true
@@ -19,7 +19,7 @@ requires:
 
 ## When to use
 
-Use this skill when the user asks Yuri OS / Nudimmud to perform work involving:
+Use this skill when the user asks Yuri OS / Yuri to perform work involving:
 
 - proposed_action
 - target_path
@@ -192,5 +192,5 @@ failure:
   1. Replaced `primary_command: /yuri guard` with `triggers: ["/yuri guard", "/guard", "/ndig"]`
   2. Changed `status: proposed` → `status: active`
   3. Added `## Session Notes` section (required by `.claude/rules/skill-creation.md`)
-- **Validation:** Schema now matches NUDIMMUD skill-creation checklist
+- **Validation:** Schema now matches YURI skill-creation checklist
 - **Status:** Ready for command file registration

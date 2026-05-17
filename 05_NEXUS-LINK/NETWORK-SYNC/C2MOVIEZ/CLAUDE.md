@@ -17,11 +17,11 @@ Status: **INCOMING** — Claudio's filesystem export not yet received.
 
 ## Sync Protocol
 1. **Drop raw export** into `Database/` — treat as READ-ONLY reference.
-2. **Create/Update _MAPPING.md** — map Claudio's paths → NUDIMMUD paths.
+2. **Create/Update _MAPPING.md** — map Claudio's paths → YURI paths.
 3. **Link shared items** in `Shared-Projects/` and `Shared-Assets/`.
 4. **Log sync** in `_SYNC-STATUS.md`.
 
 ## Standard Operations
-- **Naming**: Follow NUDIMMUD standard (ALLCAPS client, PascalCase projects).
+- **Naming**: Follow YURI standard (ALLCAPS client, PascalCase projects).
 - **Communication**: High-context, direct, technical precision.
 - **Tools**: Premiere Pro, After Effects, DaVinci Resolve, VideoDB.

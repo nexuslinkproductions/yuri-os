@@ -6,25 +6,25 @@ Rules:
 - Treat the reports as directional guidance only, never runtime authority.
 - Include fields: title, source_file, trust_policy, key_facts, accepted_labels, repo_state_claims_to_verify, safety_boundaries, routing_rules, rag_tags, suggested_chunking_strategy, do_not_promote_claims.
 
-FILE: YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md
+FILE: YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART1_CONTINUITY_DNA_BOOT_PACKET.md
 ---
-title: "YURI OS / NUDIMMUD GPT Web Session Archive — Part 1: Continuity, Operating DNA, Boot Packet"
+title: "YURI OS / YURI GPT Web Session Archive — Part 1: Continuity, Operating DNA, Boot Packet"
 date_generated: "2026-05-03"
 source: "GPT-5.5 Thinking web session plus user-provided Codex/Gemini/Terminal outputs and screenshots"
 status: "archive_ready_for_rag_ingestion"
-project: "Yuri OS / NUDIMMUD"
+project: "Yuri OS / YURI"
 repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
 latest_head_at_end_of_session: "025ba4c8f fix(cli): classify DeepSeek handoff inventions"
 trust_policy: "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document."
 ---
 
-# YURI OS / NUDIMMUD GPT Web Session Archive
+# YURI OS / YURI GPT Web Session Archive
 ## Part 1: Continuity, Operating DNA, Boot Packet, Prompt Workflow Rules
 
-This file captures the first half of the GPT web session that stabilized the Yuri OS / NUDIMMUD continuity layer and control-surface rules before returning to DeepSeek guarded-executor work.
+This file captures the first half of the GPT web session that stabilized the Yuri OS / YURI continuity layer and control-surface rules before returning to DeepSeek guarded-executor work.
 
-It is intended for direct ingestion into the Yuri OS / NUDIMMUD archive/RAG system as a historical continuity artifact. It is not an independent local repo audit. Future mutation must always begin with direct local preflight.
+It is intended for direct ingestion into the Yuri OS / YURI archive/RAG system as a historical continuity artifact. It is not an independent local repo audit. Future mutation must always begin with direct local preflight.
 
 ---
 
@@ -55,13 +55,13 @@ The packet is explicitly a continuity aid only. It is not boot config, session c
 
 ## Prompt/workflow corrections established in this session
 
-The user corrected several prompt-writing issues. These corrections must be preserved for future Yuri OS / NUDIMMUD work.
+The user corrected several prompt-writing issues. These corrections must be preserved for future Yuri OS / YURI work.
 
 ### Copy-ready prompt blocks must contain everything
 
 When the user asks for a copy/paste prompt, all required pasted evidence, final reports, command inputs, placeholders, and instructions must be inside the same prompt block. Do not put essential material after the block with “paste this into the placeholder,” because the user expects the block to be complete.
 
-### No numbered procedure-style lists inside Yuri/NUDIMMUD prompts
+### No numbered procedure-style lists inside Yuri/YURI prompts
 
 The user explicitly said numbering inside prompts comes across as individual steps/procedures. Future copy-ready prompts should be one complete task contract with compact headings and bullets/clauses, not numbered procedure lists.
 
@@ -98,14 +98,14 @@ DeepSeek V4 Pro: reasoning brain through guarded wrapper/executor, not local tru
 ### Accepted result
 
 ```text
-08AI_NUDIMMUD_OPERATING_DNA_SWARM_CODEX_ROUTING_REPAIR_P_PASS_CLOSED
+08AI_YURI_OPERATING_DNA_SWARM_CODEX_ROUTING_REPAIR_P_PASS_CLOSED
 commit: 3c9cece72 fix(workflow): embed swarm and Codex routing defaults
 ```
 
 ### File changed
 
 ```text
-.claude/rules/nudimmud_operating_dna.md
+.claude/rules/yuri_operating_dna.md
 ```
 
 ### Scope and validation
@@ -297,7 +297,7 @@ commit: 35c59e4ab fix(workflow): harden Gemini no-tool audit policy
 ### File changed
 
 ```text
-.claude/rules/nudimmud_operating_dna.md
+.claude/rules/yuri_operating_dna.md
 ```
 
 ### Policy update
@@ -370,11 +370,11 @@ HEAD: 574feac4d
 staged: none
 clean:
   _SYSTEM/yuri-history-archive/session_boot_packet_2026-05-03.md
-  .claude/rules/nudimmud_operating_dna.md
-  backend/data/nudimmud.db
+  .claude/rules/yuri_operating_dna.md
+  backend/data/yuri.db
 dirty only:
-  backend/data/nudimmud.db-shm
-  backend/data/nudimmud.db-wal
+  backend/data/yuri.db-shm
+  backend/data/yuri.db-wal
 mutation: none
 ```
 
@@ -408,14 +408,14 @@ But they should omit the repeated executor-context block unless routing itself i
 Throughout the session, these unrelated sidecar files repeatedly appeared dirty:
 
 ```text
-backend/data/nudimmud.db-shm
-backend/data/nudimmud.db-wal
+backend/data/yuri.db-shm
+backend/data/yuri.db-wal
 ```
 
 This drift was tolerated when:
 
 ```text
-backend/data/nudimmud.db itself was clean
+backend/data/yuri.db itself was clean
 no DB task was scoped
 no staged files were present
 ```
@@ -442,20 +442,20 @@ The next archive file covers:
 08AX invention-gate strict contract patch
 ```
 
-FILE: YURI_OS_NUDIMMUD_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md
+FILE: YURI_OS_YURI_GPT_WEB_SESSION_ARCHIVE_2026-05-03_PART2_DEEPSEEK_GUARDED_EXECUTOR.md
 ---
-title: "YURI OS / NUDIMMUD GPT Web Session Archive — Part 2: DeepSeek Guarded Executor and Observation Phase"
+title: "YURI OS / YURI GPT Web Session Archive — Part 2: DeepSeek Guarded Executor and Observation Phase"
 date_generated: "2026-05-03"
 source: "GPT-5.5 Thinking web session plus user-provided Codex/Terminal outputs and screenshots"
 status: "archive_ready_for_rag_ingestion"
-project: "Yuri OS / NUDIMMUD"
+project: "Yuri OS / YURI"
 repo_root: "/Users/marcelspatz/YURI-OS-MUSUBI"
 branch: "main"
 latest_head_at_end_of_session: "025ba4c8f fix(cli): classify DeepSeek handoff inventions"
 trust_policy: "Historical continuity archive. Current direct repo truth, git state, filesystem state, runtime checks, and local artifacts outrank this document."
 ---
 
-# YURI OS / NUDIMMUD GPT Web Session Archive
+# YURI OS / YURI GPT Web Session Archive
 ## Part 2: DeepSeek Guarded Executor, Live Handoff, Observation Phase, Invention Gate
 
 This file documents the DeepSeek executor work from the same GPT web session. It begins after the continuity/Operating DNA/boot-packet foundation was stabilized.
@@ -520,8 +520,8 @@ pwd: /Users/marcelspatz/YURI-OS-MUSUBI
 branch: main
 HEAD: 35c59e4ab
 staged: empty
-backend/data/nudimmud.db: clean
-only backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal dirty
+backend/data/yuri.db: clean
+only backend/data/yuri.db-shm and backend/data/yuri.db-wal dirty
 ```
 
 ### Current DeepSeek state found
@@ -531,8 +531,8 @@ DeepSeek lanes and aliases exist.
 Scripts/ai exposes @deepseek, @deepseek-v4-flash, @deepseek-v4-pro, offload, swarm, and REPL launch paths.
 Scripts/offload.sh is a router/dispatcher only.
 Scripts/offload-runner.mjs performs plain chat calls and emits final text only.
-NUDIMMUD REPL separates route output from model output and saves artifacts.
-NUDIMMUD REPL has a local claim verifier, but it is narrow and partly hardcoded to Scripts/nudimmud-repl.mjs.
+YURI REPL separates route output from model output and saves artifacts.
+YURI REPL has a local claim verifier, but it is narrow and partly hardcoded to Scripts/yuri-repl.mjs.
 Current DeepSeek path is reasoning transport plus transcript wrapper, not Claude Code-style execution.
 ```
 
@@ -808,7 +808,7 @@ Denied action count:
 ### Artifact dir
 
 ```text
-/private/tmp/nudimmud-guarded-executor-runs/run-2026-05-03T13-35-30-203Z-ca0af3
+/private/tmp/yuri-guarded-executor-runs/run-2026-05-03T13-35-30-203Z-ca0af3
 ```
 
 ### Validation
@@ -860,7 +860,7 @@ Avoid for first handoff:
 ```text
 Scripts/offload.sh
 Scripts/ai
-NUDIMMUD REPL
+YURI REPL
 ```
 
 Reason: avoid routing/log/interactive wrapper risk.
@@ -960,16 +960,16 @@ result=HANDOFF_PASS
 
 ```text
 wrapper_run_dir:
-/private/tmp/nudimmud-guarded-executor-runs/handoff-2026-05-03T13-54-58-038Z-f04210
+/private/tmp/yuri-guarded-executor-runs/handoff-2026-05-03T13-54-58-038Z-f04210
 
 advisory_model_output:
-/private/tmp/nudimmud-guarded-executor-runs/handoff-2026-05-03T13-54-58-038Z-f04210/model_output.md
+/private/tmp/yuri-guarded-executor-runs/handoff-2026-05-03T13-54-58-038Z-f04210/model_output.md
 
 sanitized_request:
-/private/tmp/nudimmud-guarded-executor-runs/handoff-2026-05-03T13-54-58-038Z-f04210/sanitized_request.json
+/private/tmp/yuri-guarded-executor-runs/handoff-2026-05-03T13-54-58-038Z-f04210/sanitized_request.json
 
 executor_final_report:
-/private/tmp/nudimmud-guarded-executor-runs/run-2026-05-03T13-55-30-346Z-4295fc/final_report.md
+/private/tmp/yuri-guarded-executor-runs/run-2026-05-03T13-55-30-346Z-4295fc/final_report.md
 ```
 
 ### Artifact acceptance
@@ -981,7 +981,7 @@ Sanitized request summary:
 ```text
 protocol_version=1.0
 mode=readonly_read_search_check
-manifest_paths=[".claude/rules/nudimmud_operating_dna.md"]
+manifest_paths=[".claude/rules/yuri_operating_dna.md"]
 actions=SEARCH_MANIFEST_PATHS,RUN_ALLOWED_CHECK,RUN_ALLOWED_CHECK,RUN_ALLOWED_CHECK,SUMMARIZE_EVIDENCE,FINAL_REPORT
 final_report_last=true
 has_summary=true
@@ -1009,8 +1009,8 @@ Repo postcheck:
 
 ```text
 staged empty
-backend/data/nudimmud.db clean
-only backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal dirty
+backend/data/yuri.db clean
+only backend/data/yuri.db-shm and backend/data/yuri.db-wal dirty
 ```
 
 ### Accepted closure
@@ -1076,13 +1076,13 @@ result=HANDOFF_PASS
 Wrapper run dir:
 
 ```text
-/private/tmp/nudimmud-guarded-executor-runs/handoff-2026-05-03T14-06-59-500Z-066b43
+/private/tmp/yuri-guarded-executor-runs/handoff-2026-05-03T14-06-59-500Z-066b43
 ```
 
 Executor final report:
 
 ```text
-/private/tmp/nudimmud-guarded-executor-runs/run-2026-05-03T14-07-30-402Z-560bd3/final_report.md
+/private/tmp/yuri-guarded-executor-runs/run-2026-05-03T14-07-30-402Z-560bd3/final_report.md
 ```
 
 ### Wrapper packet inspection
@@ -1151,7 +1151,7 @@ DeepSeek should remain creative/outside-the-box, but creative deviations must be
 ### Observation root
 
 ```text
-/private/tmp/nudimmud-guarded-executor-runs/observation-20260503T140910Z
+/private/tmp/yuri-guarded-executor-runs/observation-20260503T140910Z
 ```
 
 ### Tasks attempted
@@ -1225,8 +1225,8 @@ branch: main
 HEAD: b16272493
 staged: empty
 target repo files clean
-backend/data/nudimmud.db clean
-only backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal dirty
+backend/data/yuri.db clean
+only backend/data/yuri.db-shm and backend/data/yuri.db-wal dirty
 ```
 
 ### Observation classification
@@ -1415,8 +1415,8 @@ No patch decisions made from live DeepSeek behavior.
 
 ```text
 Live DeepSeek transport remains unverified in Codex because DNS resolution for api.deepseek.com failed.
-Scoped post-commit status still shows pre-existing backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal drift.
-backend/data/nudimmud.db is clean.
+Scoped post-commit status still shows pre-existing backend/data/yuri.db-shm and backend/data/yuri.db-wal drift.
+backend/data/yuri.db is clean.
 ```
 
 ### Next recommendation
@@ -1436,8 +1436,8 @@ branch: main
 HEAD: 025ba4c8f fix(cli): classify DeepSeek handoff inventions
 staged: empty after commit
 changed file in latest commit: Scripts/deepseek-guarded-handoff.mjs
-backend/data/nudimmud.db: clean
-unrelated dirty: backend/data/nudimmud.db-shm and backend/data/nudimmud.db-wal
+backend/data/yuri.db: clean
+unrelated dirty: backend/data/yuri.db-shm and backend/data/yuri.db-wal
 ```
 
 ---
@@ -1468,7 +1468,7 @@ No arbitrary shell.
 No MCP.
 No subagents.
 No package alias.
-No NUDIMMUD REPL integration.
+No YURI REPL integration.
 No production/full-readiness claim.
 No autonomous safety claim.
 ```

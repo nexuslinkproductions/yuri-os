@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — Session Continuity Extract
+# Yuri OS / YURI — Session Continuity Extract
 
 Date: 2026-04-27  
 Prepared for: new GPT-5.5 / Claude Code continuation chat  
@@ -9,7 +9,7 @@ Status: Continuity handoff, not an independently executed repo audit
 
 ## 1. Session Summary
 
-This session stabilized the Yuri OS / NUDIMMUD local working workflow around VS Code, Claude Code, Codex CLI, and Gemini CLI, then returned to boring reinforcement work.
+This session stabilized the Yuri OS / YURI local working workflow around VS Code, Claude Code, Codex CLI, and Gemini CLI, then returned to boring reinforcement work.
 
 Main outcomes:
 
@@ -101,7 +101,7 @@ Role:
 
 - Primary local executor and validator.
 - Runs in VS Code.
-- Owns normal boring Yuri OS / NUDIMMUD reinforcement work.
+- Owns normal boring Yuri OS / YURI reinforcement work.
 - Can perform narrow exact-path mutation only when a sprint explicitly allows it.
 
 Current note:
@@ -172,7 +172,7 @@ Status:
 Inserted guard content:
 
 ```md
-# Yuri OS / NUDIMMUD Session Start Guard
+# Yuri OS / YURI Session Start Guard
 
 Canonical repository root:
 
@@ -182,7 +182,7 @@ Canonical branch:
 
 - `main`
 
-Before any Yuri OS / NUDIMMUD sprint, audit, validation, cleanup, patch, report, config work, or local CLI task, first verify:
+Before any Yuri OS / YURI sprint, audit, validation, cleanup, patch, report, config work, or local CLI task, first verify:
 
 - `pwd` equals `/Users/marcelspatz/YURI-OS-MUSUBI`
 - `git branch --show-current` equals `main`
@@ -197,8 +197,8 @@ If either check fails:
 - do not stage or commit
 - report the mismatch to the owner and ask them to manually reconcile the VS Code workspace / terminal context
 
-Do not treat `/Users/marcelspatz` as the Yuri OS / NUDIMMUD repository root.
-Do not run Yuri OS / NUDIMMUD sprint work from `master`.
+Do not treat `/Users/marcelspatz` as the Yuri OS / YURI repository root.
+Do not run Yuri OS / YURI sprint work from `master`.
 
 ---
 ```
@@ -373,7 +373,7 @@ After that:
 ```text
 # Sprint 06F-W-C — Commit Workspace Root Guard
 
-We are preserving the Yuri OS / NUDIMMUD Session Start Guard that was intentionally added to `.claude/CLAUDE.md`.
+We are preserving the Yuri OS / YURI Session Start Guard that was intentionally added to `.claude/CLAUDE.md`.
 
 This is a narrow commit sprint.
 
@@ -393,7 +393,7 @@ Current accepted state:
 - Sprint 06E-V passed.
 - Sprint 06F-W-BOOTSTRAP passed.
 - Sprint 07A passed with pending policy change.
-- `.claude/CLAUDE.md` was intentionally modified to add the Yuri OS / NUDIMMUD Session Start Guard.
+- `.claude/CLAUDE.md` was intentionally modified to add the Yuri OS / YURI Session Start Guard.
 - Sprint 07A classified this as:
   - `INTENTIONAL_PENDING_POLICY_CHANGE`
   - not ephemeral noise
@@ -417,7 +417,7 @@ Canonical branch:
 Expected committed change:
 
 - `.claude/CLAUDE.md`
-- adds Yuri OS / NUDIMMUD Session Start Guard
+- adds Yuri OS / YURI Session Start Guard
 - guard requires future sessions to verify:
   - `pwd` equals `/Users/marcelspatz/YURI-OS-MUSUBI`
   - `git branch --show-current` equals `main`
@@ -657,5 +657,5 @@ Do not:
 Paste this file into the new chat or upload it, then say:
 
 ```text
-Continue Yuri OS / NUDIMMUD from this continuity extract. Next task is Sprint 06F-W-C — Commit Workspace Root Guard. Please review the state and produce the next safest action/prompt if needed.
+Continue Yuri OS / YURI from this continuity extract. Next task is Sprint 06F-W-C — Commit Workspace Root Guard. Please review the state and produce the next safest action/prompt if needed.
 ```

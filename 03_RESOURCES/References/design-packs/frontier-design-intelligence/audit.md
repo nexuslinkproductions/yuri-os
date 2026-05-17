@@ -4,7 +4,7 @@ Baseline score: 6.5/10 before this upgrade.
 
 ## Strengths
 
-- Strong NUDIMMUD HUD design system exists in `DESIGN.md`.
+- Strong YURI HUD design system exists in `DESIGN.md`.
 - Design memory exists and captures reusable decisions.
 - Framer University resource atlas provides 623 motion and component references.
 - Frontier pack now includes official React guidance for component purity, state management, and implementation reliability.

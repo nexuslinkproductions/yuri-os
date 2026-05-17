@@ -46,7 +46,7 @@ Joseph Campbell distilled the monomyth from comparative mythology across culture
 - **Resurrection:** A final test — the hero must demonstrate the transformation is complete.
 - **Return with the Elixir:** The hero brings something of value back to the community. The story closes the loop.
 
-**The client-as-hero reframe** (critical for sales and creative direction): the communicator is never the hero. The client is the hero. Their business, project, or creative vision is the hero's journey. Marcel/NUDIMMUD is the mentor — the one with tools and orientation who serves the hero's transformation. Positioning as hero makes the client a supporting character in your story. Positioning as guide makes the client the center of their own story. The latter wins.
+**The client-as-hero reframe** (critical for sales and creative direction): the communicator is never the hero. The client is the hero. Their business, project, or creative vision is the hero's journey. Marcel/YURI is the mentor — the one with tools and orientation who serves the hero's transformation. Positioning as hero makes the client a supporting character in your story. Positioning as guide makes the client the center of their own story. The latter wins.
 
 ---
 
@@ -151,7 +151,7 @@ These questions bypass the surface brief (deliverables, timelines, specs) and su
 
 ---
 
-## Operational Meaning for NUDIMMUD
+## Operational Meaning for YURI
 
 1. **Always identify which mode the conversation requires.** Technical specs conversations operate in paradigmatic mode. Vision, purpose, and creative direction conversations operate in narrative mode. Don't bring data where story is needed; don't bring story where spec is required.
 2. **Position as guide, not hero, in every client interaction.** Marcel's technical skill and creative intelligence are in service of the client's story — never competing with it for center stage.

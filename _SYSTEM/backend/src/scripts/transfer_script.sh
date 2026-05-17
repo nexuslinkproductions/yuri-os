@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # ⬡ OPERATION_RUBEDO :: CORE_TRANSFERENCE
-# This script migrates the NUDIMMUD infrastructure from SSD to Local Mac.
+# This script migrates the YURI infrastructure from SSD to Local Mac.
 # EXCLUDES: Images, Videos, Archives, and Heavy Binary Clutter.
 
-TARGET="/Users/marcelspatz/NUDIMMUD"
+TARGET="/Users/marcelspatz/YURI"
 
 echo "⬡ RUBEDO :: STARTING_TRANSFERENCE..."
 echo "⬡ SOURCE: $SOURCE"

@@ -14,7 +14,7 @@ Standard GQA reduces KV cache but MLA takes it further by compressing the KV sta
 - **ABSORBED_PROJECTIONS**: MLA allows the model to 'absorb' the KV projections into the attention matrix during inference, further optimizing throughput.
 
 ## 3. IMPLEMENTATION_NOTES (FOR_THE_FORGE)
-To mimic MLA in the NUDIMMUD core:
+To mimic MLA in the YURI core:
 1. Implement a bottleneck linear layer for K and V.
 2. Use RoPE (Rotary Positional Embeddings) only on a small 'decoupled' part of the key to maintain positional awareness while keeping the latent core compressed.
 

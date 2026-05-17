@@ -16,7 +16,7 @@ Source: https://linear.app/
 - Clear section scoping.
 - Action surfaces that feel like work, not marketing.
 
-## Apply to NUDIMMUD
+## Apply to YURI
 
 - Use Linear as the reference for the new top command rail.
 - Keep the landing page as a control surface, not a brochure.

@@ -1,10 +1,10 @@
-# Yuri OS / NUDIMMUD Session Continuation Handoff
+# Yuri OS / YURI Session Continuation Handoff
 
 **Generated:** 2026-05-03  
-**Project:** Yuri OS / NUDIMMUD  
+**Project:** Yuri OS / YURI  
 **Repo root:** `/Users/marcelspatz/YURI-OS-MUSUBI`  
 **Branch:** `main`  
-**Primary user goal:** Make DeepSeek a real, safe, low-cost, high-capability executor lane for Yuri OS / NUDIMMUD while preserving local truth, reducing token burn, and stabilizing the NUDIMMUD terminal/HUD workflow.
+**Primary user goal:** Make DeepSeek a real, safe, low-cost, high-capability executor lane for Yuri OS / YURI while preserving local truth, reducing token burn, and stabilizing the YURI terminal/HUD workflow.
 
 ---
 
@@ -39,11 +39,11 @@ The last confirmed successful HUD-related local commit from Codex was:
 
 ```text
 HEAD: 81722e778
-Commit: fix(cli): refine NUDIMMUD HUD from restored baseline
+Commit: fix(cli): refine YURI HUD from restored baseline
 Result label: 08T_YURI_HUD_REFINEMENT_FROM_RESTORATION_AND_GOAL_PASS_COMMITTED
 Changed files:
-- _SYSTEM/Scripts/nudimmud-repl.mjs
-- _SYSTEM/Scripts/nudimmud/status-line.mjs
+- _SYSTEM/Scripts/yuri-repl.mjs
+- _SYSTEM/Scripts/yuri/status-line.mjs
 ```
 
 Validation from that Codex run:
@@ -65,7 +65,7 @@ COMPOSER_PRESERVED: PASS
 
 Important visual summary from that commit:
 
-- Startup shows small mark, large `NUDIMMUD` identity, and `YURI OS / DEEPSEEK HUD REPL` subtitle.
+- Startup shows small mark, large `YURI` identity, and `YURI OS / DEEPSEEK HUD REPL` subtitle.
 - Startup status is a compact modular panel:
   - operator
   - session
@@ -84,7 +84,7 @@ Important visual summary from that commit:
   - no budget warning line
 - Active turn flow preserved:
   - USER REQUEST
-  - NUDIMMUD ROUTE
+  - YURI ROUTE
   - MODEL OUTPUT
   - OUTPUT SAVED
 - Route separation and output.md cleanliness remain intact.
@@ -103,12 +103,12 @@ Result: 08T_YURI_BOOT_LAYER_DUPLICATE_HUD_AUDIT_P_PASS
 
 ### Diagnosis
 
-The upper block is **not** rendered by `_SYSTEM/Scripts/nudimmud-repl.mjs`.
+The upper block is **not** rendered by `_SYSTEM/Scripts/yuri-repl.mjs`.
 
 It is rendered by:
 
 ```text
-/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/nudimmud-boot.zsh
+/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-boot.zsh
 ```
 
 It is sourced from:
@@ -120,9 +120,9 @@ It is sourced from:
 Known lines from audit:
 
 ```text
-~/.zshrc line ~51: sources _SYSTEM/nudimmud-boot.zsh
-~/.zshrc line ~64: binds nudimmud to node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/nudimmud-repl.mjs
-_SYSTEM/nudimmud-boot.zsh line ~38: render_context_bar() / precmd() renders upper boot HUD
+~/.zshrc line ~51: sources _SYSTEM/yuri-boot.zsh
+~/.zshrc line ~64: binds yuri to node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/yuri-repl.mjs
+_SYSTEM/yuri-boot.zsh line ~38: render_context_bar() / precmd() renders upper boot HUD
 ```
 
 The duplicated visual layers are:
@@ -137,29 +137,29 @@ The duplicated visual layers are:
    - CTX bar
    - prompt hooks
 
-2. **NUDIMMUD REPL layer**
+2. **YURI REPL layer**
    - logo
    - status
    - DeepSeek route/model output
 
 ### Safe next HUD direction
 
-Do **not** keep patching `_SYSTEM/Scripts/nudimmud-repl.mjs` blindly.
+Do **not** keep patching `_SYSTEM/Scripts/yuri-repl.mjs` blindly.
 
 The next HUD fix should target boot-layer gating:
 
 - allowed likely files:
   - `/Users/marcelspatz/.zshrc`
-  - `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/nudimmud-boot.zsh`
+  - `/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/yuri-boot.zsh`
 - goal:
   - gate the boot banner and CTX prompt behind an environment flag
   - keep REPL HUD unchanged
-  - default boot HUD off for the `nudimmud` launch path only
+  - default boot HUD off for the `yuri` launch path only
   - preserve boot HUD for normal shell sessions if wanted
 - acceptance:
   - no stacked double logos
   - no duplicate OPERATOR / SESSION / MODEL / INDEX blocks
-  - no pre-REPL CTX bar when launching `nudimmud`
+  - no pre-REPL CTX bar when launching `yuri`
   - REPL HUD from `81722e778` remains the visible base
 
 ---
@@ -182,15 +182,15 @@ Current deepseek CLI behavior:
   no git
   no read/write agent loop
 
-NUDIMMUD current DeepSeek route:
-  _SYSTEM/Scripts/ai / _SYSTEM/Scripts/offload.sh / _SYSTEM/Scripts/offload-runner.mjs / _SYSTEM/Scripts/nudimmud-repl.mjs
+YURI current DeepSeek route:
+  _SYSTEM/Scripts/ai / _SYSTEM/Scripts/offload.sh / _SYSTEM/Scripts/offload-runner.mjs / _SYSTEM/Scripts/yuri-repl.mjs
   model-only lane
   text in → text out
 ```
 
 Important correction:
 
-- NUDIMMUD using DeepSeek V4 Pro does **not** currently mean DeepSeek can mutate files.
+- YURI using DeepSeek V4 Pro does **not** currently mean DeepSeek can mutate files.
 - False `PASS_COMMITTED` claims from model output are correctly downgraded by local verifier when local git does not confirm.
 - The local verifier is a key safety asset and must be preserved.
 
@@ -233,7 +233,7 @@ Reason:
 - It appears to read skills from:
   - `~/.agents/skills/<name>/SKILL.md`
   - possibly project-level `.deepcode/skills/<name>/SKILL.md`
-- This aligns with Yuri/NUDIMMUD’s existing `.agents/skills/` structure.
+- This aligns with Yuri/YURI’s existing `.agents/skills/` structure.
 - It appears to support DeepSeek V4 Pro / Flash.
 - It may have VS Code extension support.
 
@@ -320,7 +320,7 @@ The session concluded that web/search token burn is now a system issue.
 
 This must be remembered as a priority:
 
-> For Yuri OS / NUDIMMUD workflows, improve web/search research cost control. Avoid expensive subagent/WebFetch patterns by default, especially full rendered GitHub/doc fetches. Prefer cheap research ladders: local/cache/grep, npm registry metadata, raw GitHub files with line caps, `gh api`, `curl`, `jq`, `sed`, snippet/highlight search, and only then targeted extracts. Add hard prompt rules: no subagents unless explicitly authorized, no full WebFetch of rendered GitHub pages, compact evidence packs, line/token caps, and DeepSeek reinforcement only from compact evidence. Treat excessive web-search token burn as a system issue to fix.
+> For Yuri OS / YURI workflows, improve web/search research cost control. Avoid expensive subagent/WebFetch patterns by default, especially full rendered GitHub/doc fetches. Prefer cheap research ladders: local/cache/grep, npm registry metadata, raw GitHub files with line caps, `gh api`, `curl`, `jq`, `sed`, snippet/highlight search, and only then targeted extracts. Add hard prompt rules: no subagents unless explicitly authorized, no full WebFetch of rendered GitHub pages, compact evidence packs, line/token caps, and DeepSeek reinforcement only from compact evidence. Treat excessive web-search token burn as a system issue to fix.
 
 ---
 
@@ -426,12 +426,12 @@ cwd: /Users/marcelspatz/YURI-OS-MUSUBI
 ```text
 08W_LOW_COST_WEB_AND_AGENT_RESEARCH_PIPELINE_AUDIT_P
 
-You are Claude Code CLI acting as TokenOps architect, LLMOps engineer, research-pipeline architect, DevEx engineer, and Yuri OS / NUDIMMUD cost-control coordinator.
+You are Claude Code CLI acting as TokenOps architect, LLMOps engineer, research-pipeline architect, DevEx engineer, and Yuri OS / YURI cost-control coordinator.
 
 This is a read-only audit.
 
 Goal:
-Design a cheaper research pipeline for Yuri OS / NUDIMMUD so web/package/source research does not burn massive Claude/Codex tokens.
+Design a cheaper research pipeline for Yuri OS / YURI so web/package/source research does not burn massive Claude/Codex tokens.
 
 Current problem:
 Recent package research spawned subagents and used full WebFetch on large GitHub/doc pages, causing 30k+ tokens per agent. This is not acceptable for routine provenance/package audits.
@@ -650,11 +650,11 @@ Future responses should:
 Use this if starting a fresh chat:
 
 ```text
-Continue Yuri OS / NUDIMMUD from the 2026-05-03 handoff.
+Continue Yuri OS / YURI from the 2026-05-03 handoff.
 
 Current accepted repo state:
-HEAD 81722e778 fix(cli): refine NUDIMMUD HUD from restored baseline.
-REPL HUD is improved and committed. Remaining duplicate visual layer comes from _SYSTEM/nudimmud-boot.zsh sourced by ~/.zshrc, not from _SYSTEM/Scripts/nudimmud-repl.mjs.
+HEAD 81722e778 fix(cli): refine YURI HUD from restored baseline.
+REPL HUD is improved and committed. Remaining duplicate visual layer comes from _SYSTEM/yuri-boot.zsh sourced by ~/.zshrc, not from _SYSTEM/Scripts/yuri-repl.mjs.
 
 Current priority:
 Stop expensive web/search behavior. We need 08W_LOW_COST_WEB_AND_AGENT_RESEARCH_PIPELINE_AUDIT_P before continuing DeepCode install/provenance or DeepSeek executor setup.

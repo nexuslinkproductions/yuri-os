@@ -17,7 +17,7 @@ Sources:
 - Strong empty and stateful components.
 - Utility surfaces that still feel polished.
 
-## Apply to NUDIMMUD
+## Apply to YURI
 
 - Use Geist-like restraint for navigation, search, and board controls.
 - Prefer one accent color per context.

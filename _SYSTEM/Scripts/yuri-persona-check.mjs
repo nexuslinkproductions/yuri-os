@@ -66,7 +66,7 @@ for (const file of directInheritFiles) {
 assertIncludes('YURI.md', 'INHERIT: SOUL.md');
 assertIncludes('.clinerules', 'INHERIT: SOUL.md');
 assertIncludes('.cursor/rules/sync.mdc', 'SOUL.md');
-assertIncludes('.claude/rules/nudimmud_operating_dna.md', '../../SOUL.md');
+assertIncludes('.claude/rules/yuri_operating_dna.md', '../../SOUL.md');
 
 const settings = JSON.parse(read('.claude/settings.json'));
 const sessionHooks = settings.hooks?.SessionStart?.flatMap((group) => group.hooks || []) || [];
@@ -107,7 +107,7 @@ const activePromptFiles = [
   '.cursorrules',
   '.clauderules',
   '.cursor/rules/sync.mdc',
-  '.claude/rules/nudimmud_operating_dna.md',
+  '.claude/rules/yuri_operating_dna.md',
 ];
 
 for (const file of activePromptFiles) {

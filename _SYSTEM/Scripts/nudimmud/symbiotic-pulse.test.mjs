@@ -24,7 +24,7 @@ assert.ok(simpleUser.normalizedTaskDelta.includes('inspect package scripts'), 'n
 
 const mutationUser = runSymbioticPulse({
   source: 'user',
-  content: 'edit _SYSTEM/Scripts/nudimmud-workhorse.mjs to add a new gate',
+  content: 'edit _SYSTEM/Scripts/yuri-workhorse.mjs to add a new gate',
   requestedAction: 'edit file',
   turnId: 'turn-mutation',
 });
@@ -35,8 +35,8 @@ assert.equal(mutationUser.decision, 'continue', 'non-protected owner mutation ca
 
 const dockedReport = runSymbioticPulse({
   source: 'docked_llm',
-  content: 'I checked the repo and _SYSTEM/Scripts/nudimmud-workhorse.mjs already emits pulse.json',
-  claims: ['_SYSTEM/Scripts/nudimmud-workhorse.mjs emits pulse.json'],
+  content: 'I checked the repo and _SYSTEM/Scripts/yuri-workhorse.mjs already emits pulse.json',
+  claims: ['_SYSTEM/Scripts/yuri-workhorse.mjs emits pulse.json'],
   turnId: 'turn-docked',
 });
 assert.equal(dockedReport.mode, 'full', 'docked LLM claims should escalate to full pulse');
@@ -47,7 +47,7 @@ assert.equal(dockedReport.decision, 'verify', 'docked model repo claim should ve
 
 const localTool = runSymbioticPulse({
   source: 'tool_result',
-  content: 'git status --short returned no changes for _SYSTEM/Scripts/nudimmud',
+  content: 'git status --short returned no changes for _SYSTEM/Scripts/yuri',
   requestedAction: 'local deterministic read',
   context: { deterministicLocal: true },
   turnId: 'turn-tool',
@@ -84,7 +84,7 @@ const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'symbiotic-pulse-workhors
 try {
   const selftestOutput = execFileSync(
     process.execPath,
-    ['_SYSTEM/Scripts/nudimmud-workhorse.mjs', '--selftest', '--artifact-root', tempRoot],
+    ['_SYSTEM/Scripts/yuri-workhorse.mjs', '--selftest', '--artifact-root', tempRoot],
     { cwd: path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..'), encoding: 'utf8' },
   );
   assert.ok(selftestOutput.includes('WORKHORSE_PULSE_ARTIFACT_PASS'), 'workhorse selftest should confirm pulse artifact');

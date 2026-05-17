@@ -54,7 +54,7 @@ function fmtTime(ts: number): string {
 
 export default function OracleTerminal() {
     const [lines, setLines]       = useState<TermLine[]>([
-        { id: lineId++, text: 'NUDIMMUD terminal — type "help" or press ? for cheatsheet', type: 'info' },
+        { id: lineId++, text: 'YURI terminal — type "help" or press ? for cheatsheet', type: 'info' },
     ]);
     const [input, setInput]       = useState('');
     const [history, setHistory]   = useState<string[]>([]);

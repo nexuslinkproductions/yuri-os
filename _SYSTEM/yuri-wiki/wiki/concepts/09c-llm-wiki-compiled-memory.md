@@ -6,7 +6,7 @@ reviewed_by: "owner:marcel-spatz"
 reviewed_at: "2026-05-09T16:18:26Z"
 created_at: "2026-05-09T14:31:23Z"
 source_refs:
-  - path: ".claude/rules/nudimmud_operating_dna.md"
+  - path: ".claude/rules/yuri_operating_dna.md"
     line_range: "1-68"
     source_type: "repo"
     authority_class: "current_local_truth"

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { NudimmudDesignConfig, CATALOG_CATEGORIES, FUNCTION_TOGGLES, CatalogOption } from './types';
+import { YuriDesignConfig, CATALOG_CATEGORIES, FUNCTION_TOGGLES, CatalogOption } from './types';
 
 interface DesignCatalogProps {
-  config: NudimmudDesignConfig;
+  config: YuriDesignConfig;
   onUpdate: (key: string, value: string | string[]) => void;
   onContinue: () => void;
 }
@@ -20,7 +20,7 @@ const ROW_VARIANTS = {
 
 const REQUIRED_KEYS = ['theme', 'motionIntensity', 'backgroundLife', 'layoutMode', 'componentStyle', 'auditTone'] as const;
 
-function isComplete(config: NudimmudDesignConfig): boolean {
+function isComplete(config: YuriDesignConfig): boolean {
   return REQUIRED_KEYS.every((k) => config[k] !== '');
 }
 
@@ -154,7 +154,7 @@ export default function DesignCatalog({ config, onUpdate, onContinue }: DesignCa
             textTransform: 'uppercase',
             marginBottom: 8,
           }}>
-            NUDIMMUD // DESIGN ARCHITECT
+            YURI // DESIGN ARCHITECT
           </div>
           <h1 style={{
             fontFamily: 'var(--font-display)',
@@ -360,7 +360,7 @@ export default function DesignCatalog({ config, onUpdate, onContinue }: DesignCa
             outline: 'none',
           }}
         >
-          NudimmudDesignConfig
+          YuriDesignConfig
           <span style={{ opacity: 0.5 }}>{debugOpen ? '▲' : '▼'}</span>
         </button>
         <AnimatePresence initial={false}>

@@ -1,12 +1,12 @@
-# Yuri OS / Nudimmud — Session Context Extract
+# Yuri OS / Yuri — Session Context Extract
 
 ## 1. Session Summary
 
-This chat focused on turning the current Yuri OS / Nudimmud work into a more disciplined, measurable, and non-overhyped reinforcement process.
+This chat focused on turning the current Yuri OS / Yuri work into a more disciplined, measurable, and non-overhyped reinforcement process.
 
-The user first asked for a master audit prompt so Claude Code could perform a full current-state audit of the Yuri OS / Nudimmud ecosystem and generate a GPT-5.5 continuity/tracking package. A detailed Claude Code audit prompt was produced, instructing Claude to inspect architecture, files, skills, agents, documentation, enterprise readiness, safety gates, memory systems, canonical sources, gaps, and risks.
+The user first asked for a master audit prompt so Claude Code could perform a full current-state audit of the Yuri OS / Yuri ecosystem and generate a GPT-5.5 continuity/tracking package. A detailed Claude Code audit prompt was produced, instructing Claude to inspect architecture, files, skills, agents, documentation, enterprise readiness, safety gates, memory systems, canonical sources, gaps, and risks.
 
-The user then provided Claude-generated audit outputs: `AUDIT_EXECUTIVE_BRIEF.md` and `ECOSYSTEM_AUDIT_2026-04-27.md`. Based on those reports, GPT-5.5 gave direct non-glazed feedback. The core conclusion was that Yuri OS / Nudimmud had progressed from vision-heavy chaos into a recognizable early-stage architecture, but remained far from enterprise-ready. The system had strong blueprint maturity and weak runtime enforcement.
+The user then provided Claude-generated audit outputs: `AUDIT_EXECUTIVE_BRIEF.md` and `ECOSYSTEM_AUDIT_2026-04-27.md`. Based on those reports, GPT-5.5 gave direct non-glazed feedback. The core conclusion was that Yuri OS / Yuri had progressed from vision-heavy chaos into a recognizable early-stage architecture, but remained far from enterprise-ready. The system had strong blueprint maturity and weak runtime enforcement.
 
 The user then asked for the next task and a Claude prompt to begin the “boring reinforcement” phase. A full **Boring Reinforcement Sprint 01** prompt was generated for Claude Code. The sprint focused on creating skill and agent manifests, a basic test harness, a read-only audit gate scaffold, reinforcement reports, and GPT-5.5 tracking JSON.
 
@@ -18,7 +18,7 @@ Finally, the user asked for a simplified single prompt to extract session contex
 
 ## 2. Key Decisions
 
-- Decision: Yuri OS / Nudimmud should currently stay in “boring reinforcement” mode.
+- Decision: Yuri OS / Yuri should currently stay in “boring reinforcement” mode.
 - Reason: The audit showed strong documentation and architecture but weak runtime enforcement, low test coverage, and missing safety gates.
 - Impact: Future work should prioritize measurement, manifests, tests, audit gates, terminology accuracy, policy, rollback, sandboxing, and permission boundaries before new symbolic extensions.
 - Status: Active recommendation.
@@ -55,7 +55,7 @@ Finally, the user asked for a simplified single prompt to extract session contex
 
 ## 3. Current Trusted State
 
-- Trusted state: Yuri OS / Nudimmud was audited as a foundation-stage system with strong blueprint maturity and weak runtime maturity.
+- Trusted state: Yuri OS / Yuri was audited as a foundation-stage system with strong blueprint maturity and weak runtime maturity.
 - Evidence from chat: The uploaded audit reports stated approximately 43% runtime maturity, 84% blueprint maturity, and 35% weighted readiness.
 - Confidence: High.
 
@@ -106,7 +106,7 @@ Finally, the user asked for a simplified single prompt to extract session contex
 ## 4. CLI and Model Context
 
 ### Claude Code CLI
-Claude Code CLI is the main working CLI for Yuri OS / Nudimmud. It should handle primary repo-native implementation, Yuri-specific skills, agents, `.claude/` structures, reinforcement work, documentation, symbolic-to-architecture translation, and main prompt execution.
+Claude Code CLI is the main working CLI for Yuri OS / Yuri. It should handle primary repo-native implementation, Yuri-specific skills, agents, `.claude/` structures, reinforcement work, documentation, symbolic-to-architecture translation, and main prompt execution.
 
 Best used for:
 - main implementation
@@ -197,7 +197,7 @@ Avoid:
 - replacing GPT-5.5 as primary continuity brain unless explicitly desired.
 
 ### VS Code
-VS Code is the main IDE for the Yuri OS / Nudimmud work.
+VS Code is the main IDE for the Yuri OS / Yuri work.
 
 Best used as:
 - central local development environment
@@ -208,13 +208,13 @@ Best used as:
 
 - Name: `AUDIT_EXECUTIVE_BRIEF.md`
 - Path if known: Uploaded as `/mnt/data/AUDIT_EXECUTIVE_BRIEF.md`; referenced internally as `.claude/audit-output/AUDIT_EXECUTIVE_BRIEF.md`
-- Purpose: Claude-generated executive audit summary of Yuri OS / Nudimmud.
+- Purpose: Claude-generated executive audit summary of Yuri OS / Yuri.
 - Status: Provided by user and analyzed in chat.
 - Notes: Included metrics such as 43% runtime, 84% blueprint, 35% weighted readiness, external release blocked, internal research allowed with warnings.
 
 - Name: `ECOSYSTEM_AUDIT_2026-04-27.md`
 - Path if known: Uploaded as `/mnt/data/ECOSYSTEM_AUDIT_2026-04-27.md`; referenced internally as `.claude/audit-output/ECOSYSTEM_AUDIT_2026-04-27.md`
-- Purpose: Full Claude-generated Yuri OS / Nudimmud ecosystem audit.
+- Purpose: Full Claude-generated Yuri OS / Yuri ecosystem audit.
 - Status: Provided by user and analyzed in chat.
 - Notes: Included architecture map, maturity matrix, gaps, security assessment, integration points, skill/agent ecosystem, and readiness conclusions.
 
@@ -290,9 +290,9 @@ Best used as:
 
 ## 6. Prompts Generated
 
-- Prompt name: Yuri OS / Nudimmud Full Ecosystem Audit for GPT-5.5 Tracking
+- Prompt name: Yuri OS / Yuri Full Ecosystem Audit for GPT-5.5 Tracking
 - Target: Claude Code CLI
-- Purpose: Perform full current-state audit of the Yuri OS / Nudimmud ecosystem for GPT-5.5 continuity.
+- Purpose: Perform full current-state audit of the Yuri OS / Yuri ecosystem for GPT-5.5 continuity.
 - When to use: When Claude needs to inspect the full repo/ecosystem and create audit reports.
 - Key instructions: Inspect architecture, repos, docs, skills, agents, prompts, safety, memory, enterprise readiness, canonical sources, gaps, risks, and produce audit files.
 
@@ -310,20 +310,20 @@ Best used as:
 
 - Prompt name: GPT-5.5 Master Session Prompt
 - Target: GPT-5.5
-- Purpose: Start future GPT-5.5 sessions with Yuri OS / Nudimmud continuity and CLI orchestration context.
+- Purpose: Start future GPT-5.5 sessions with Yuri OS / Yuri continuity and CLI orchestration context.
 - When to use: At the start of a new GPT-5.5 chat.
 - Key instructions: Act as strategic continuity brain, do not hype, maintain boring reinforcement priority, route tasks across Claude/Codex/Gemini.
 
 - Prompt name: Codex CLI Master Context
 - Target: Codex CLI
 - Purpose: Configure Codex as secondary repo-native engineering/validation lane.
-- When to use: When starting Codex work on Yuri OS / Nudimmud.
+- When to use: When starting Codex work on Yuri OS / Yuri.
 - Key instructions: Validate Claude output, strengthen tests, check manifests, write deterministic scripts, avoid destructive changes and symbolic expansion.
 
 - Prompt name: Claude Code CLI Master Context
 - Target: Claude Code CLI
 - Purpose: Re-establish Claude as main repo-native working lane with current reinforcement context.
-- When to use: When continuing Yuri OS / Nudimmud work in Claude Code CLI.
+- When to use: When continuing Yuri OS / Yuri work in Claude Code CLI.
 - Key instructions: Work additively, avoid overclaiming, use evidence, recommend Codex validation after important work.
 
 - Prompt name: Gemini CLI Master Context
@@ -332,7 +332,7 @@ Best used as:
 - When to use: For large context audits, broad comparison, or backup synthesis.
 - Key instructions: Identify contradictions, inflated claims, missing enforcement, and recommend Claude/Codex follow-up.
 
-- Prompt name: Master Prompt — Extract Yuri OS / Nudimmud Session Context for GPT-5.5
+- Prompt name: Master Prompt — Extract Yuri OS / Yuri Session Context for GPT-5.5
 - Target: GPT-5.5 / any chat with Yuri OS history
 - Purpose: Extract a detailed session context document from individual chats.
 - When to use: In each of the user’s 4 Yuri OS chats to create context extracts.
@@ -406,9 +406,9 @@ After Sprint 01.5, the next task should be:
 
 ## 10. GPT-5.5 Continuity Brief
 
-This chat established the current Yuri OS / Nudimmud continuity baseline for GPT-5.5.
+This chat established the current Yuri OS / Yuri continuity baseline for GPT-5.5.
 
-The user had Claude perform a full ecosystem audit and then provided the audit reports. GPT-5.5 reviewed them and gave direct feedback: Yuri OS / Nudimmud has strong architecture and documentation but weak runtime enforcement. It is a foundation-stage prototype, not enterprise-ready.
+The user had Claude perform a full ecosystem audit and then provided the audit reports. GPT-5.5 reviewed them and gave direct feedback: Yuri OS / Yuri has strong architecture and documentation but weak runtime enforcement. It is a foundation-stage prototype, not enterprise-ready.
 
 GPT-5.5 generated a Claude Code prompt for **Boring Reinforcement Sprint 01**, which created measurement infrastructure: skill manifest, agent manifest, test harness, audit-gate scaffold, and reporting. The user then pasted Claude’s Sprint 01 completion report. GPT-5.5 identified that the report overclaimed readiness by calling baseline checks “enterprise gates” and implying production readiness. GPT-5.5 recommended **Sprint 01.5** to correct terminology and evidence labels before Phase 0B.
 
@@ -440,10 +440,10 @@ Next task:
 
 ```json
 {
-  "project": "Yuri OS / Nudimmud",
+  "project": "Yuri OS / Yuri",
   "session_theme": "Audit review, boring reinforcement planning, Sprint 01/01.5, and CLI orchestration context",
   "main_outputs": [
-    "Master Claude Code prompt for full Yuri OS / Nudimmud ecosystem audit",
+    "Master Claude Code prompt for full Yuri OS / Yuri ecosystem audit",
     "Non-glazed audit feedback comparing current state to previous reference",
     "Boring Reinforcement Sprint 01 prompt",
     "Boring Reinforcement Sprint 01.5 prompt",
@@ -453,7 +453,7 @@ Next task:
     "This session context extract"
   ],
   "key_decisions": [
-    "Yuri OS / Nudimmud should remain in boring reinforcement mode before further expansion.",
+    "Yuri OS / Yuri should remain in boring reinforcement mode before further expansion.",
     "Sprint 01 created useful measurement infrastructure but did not enforce enterprise gates.",
     "Sprint 01.5 should correct terminology and readiness labels before Phase 0B.",
     "Baseline checks must not be labeled as enterprise gates.",
@@ -465,7 +465,7 @@ Next task:
     "VS Code is the main IDE."
   ],
   "trusted_state": [
-    "The audit reports classified Yuri OS / Nudimmud as foundation-stage with strong blueprint maturity and weak runtime enforcement.",
+    "The audit reports classified Yuri OS / Yuri as foundation-stage with strong blueprint maturity and weak runtime enforcement.",
     "External release is blocked according to the audit reports.",
     "Internal research is acceptable with warnings according to the audit reports.",
     "Sprint 01 reportedly catalogued 29 skills and 11 agents.",
@@ -501,7 +501,7 @@ Next task:
       "Best for second-pass review, alternate strategy, and prompt refinement."
     ],
     "vscode": [
-      "Main IDE for Yuri OS / Nudimmud work.",
+      "Main IDE for Yuri OS / Yuri work.",
       "CLI planning should assume VS Code as the active development environment."
     ]
   },
@@ -522,14 +522,14 @@ Next task:
     ".codex/ setup proposal"
   ],
   "prompts_generated": [
-    "Yuri OS / Nudimmud Full Ecosystem Audit for GPT-5.5 Tracking",
+    "Yuri OS / Yuri Full Ecosystem Audit for GPT-5.5 Tracking",
     "Boring Reinforcement Sprint 01",
     "Boring Reinforcement Sprint 01.5",
     "GPT-5.5 Master Session Prompt",
     "Codex CLI Master Context",
     "Claude Code CLI Master Context",
     "Gemini CLI Master Context",
-    "Master Prompt — Extract Yuri OS / Nudimmud Session Context for GPT-5.5",
+    "Master Prompt — Extract Yuri OS / Yuri Session Context for GPT-5.5",
     "Simplified Session Context Extract Prompt"
   ],
   "safety_status": {

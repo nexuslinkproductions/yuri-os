@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — GPT Continuity After 07J Bash Guard Live-Safe Verification
+# Yuri OS / YURI — GPT Continuity After 07J Bash Guard Live-Safe Verification
 
 Date: 2026-04-29  
 Prepared for: next GPT-5.5 continuation chat + Claude Code continuation  
@@ -8,7 +8,7 @@ Status: continuity handoff, not an independent repo audit
 
 ## 1. Purpose
 
-This file captures the current Yuri OS / NUDIMMUD state at the end of the 07J permission/Bash security guard lane.
+This file captures the current Yuri OS / YURI state at the end of the 07J permission/Bash security guard lane.
 
 The session should stop here because the user was at ~96% of the 5-hour Claude session limit. The next continuation should begin from this file and run only the next safe verification sprint.
 
@@ -619,7 +619,7 @@ END COPY HERE
 COPY FROM HERE
 
 ```text
-Continue Yuri OS / NUDIMMUD from this continuity handoff.
+Continue Yuri OS / YURI from this continuity handoff.
 
 Current accepted state:
 

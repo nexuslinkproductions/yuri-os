@@ -1,4 +1,4 @@
-# Yuri OS / NUDIMMUD — GPT Session Continuity After 07J Bash Hook Schema Validation + D-P Pending
+# Yuri OS / YURI — GPT Session Continuity After 07J Bash Hook Schema Validation + D-P Pending
 
 Date: 2026-04-29  
 Prepared for: new GPT-5.5 continuation chat + Claude Code continuation  
@@ -9,7 +9,7 @@ Status: continuity handoff, not an independently executed repo audit
 
 ## 1. Purpose
 
-This file captures the current Yuri OS / NUDIMMUD sprint state after the 07J permission/Bash bypass and PreToolUse hook schema validation work.
+This file captures the current Yuri OS / YURI sprint state after the 07J permission/Bash bypass and PreToolUse hook schema validation work.
 
 The immediate purpose of the next GPT chat is to review and gate the Claude result from:
 
@@ -62,7 +62,7 @@ f07279a8 fix(bench): render benchmark detail blocks with real newlines
 
 ## 3. Model Routing Rule
 
-For Yuri OS / NUDIMMUD Claude prompts, default to:
+For Yuri OS / YURI Claude prompts, default to:
 
 ```text
 Use Claude Sonnet 4.6 with max reasoning (claude-sonnet-4-6).
@@ -568,7 +568,7 @@ use Claude Sonnet 4.6 max reasoning by default for this lane
 ## 10. Ready-to-Paste New Chat Opening
 
 ```text
-Continue Yuri OS / NUDIMMUD from this GPT handoff.
+Continue Yuri OS / YURI from this GPT handoff.
 
 We are currently in the 07J permission/Bash hook lane.
 
@@ -642,7 +642,7 @@ END COPY HERE
 
 ```json
 {
-  "project": "Yuri OS / NUDIMMUD",
+  "project": "Yuri OS / YURI",
   "date": "2026-04-29",
   "document_type": "gpt_session_continuity_after_07j_bash_hook_schema_validation",
   "status": "handoff_not_independent_repo_audit",

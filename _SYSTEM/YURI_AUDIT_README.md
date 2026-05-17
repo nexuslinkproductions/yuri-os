@@ -1,8 +1,8 @@
-# NUDIMMUD Design Audit HUD — Usage Guide
+# YURI Design Audit HUD — Usage Guide
 
 ## What Was Built
 
-A premium interactive document audit system integrated into the NUDIMMUD HUD shell.
+A premium interactive document audit system integrated into the YURI HUD shell.
 Three-screen flow: Design Catalog → Confirmation → Document Audit HUD.
 
 ## How to Launch
@@ -33,7 +33,7 @@ Three-screen flow: Design Catalog → Confirmation → Document Audit HUD.
 - Document name + config theme badge + session ID
 - **Copy Handoff** — copies `YURI_DESIGN_HANDOFF` JSON to clipboard
 - **↓ Export HANDOFF.json** — downloads JSON file
-- **Config** — toggles the right debug panel (shows live `NudimmudDesignConfig`)
+- **Config** — toggles the right debug panel (shows live `YuriDesignConfig`)
 - **↺ Reset** — returns to catalog, clears config
 
 **Left sidebar:**
@@ -52,7 +52,7 @@ Three-screen flow: Design Catalog → Confirmation → Document Audit HUD.
 - Idle state shows "Hover a finding to inspect"
 
 **Right debug panel (toggleable):**
-- Live `NudimmudDesignConfig` JSON
+- Live `YuriDesignConfig` JSON
 - `YURI_DESIGN_HANDOFF` preview metadata
 
 ## Exporting the Handoff Payload
@@ -66,7 +66,7 @@ The payload schema:
 {
   "schema": "1.0.0",
   "generated": "<ISO timestamp>",
-  "config": { /* NudimmudDesignConfig */ },
+  "config": { /* YuriDesignConfig */ },
   "auditSummary": {
     "overallScore": 78,
     "strongestSection": "UX Audit",

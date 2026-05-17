@@ -27,7 +27,7 @@
   "skills": [
     {
       "name": "ai-pipeline-offloading",
-      "description": "Global offload routing for NUDIMMUD. Local-first: Deepseek, Qwen, GPT-OSS. Browser: Comet, Perplexity. Swarm via Ruflo. Cloud (Kimi) when limit allows.",
+      "description": "Global offload routing for YURI. Local-first: Deepseek, Qwen, GPT-OSS. Browser: Comet, Perplexity. Swarm via Ruflo. Cloud (Kimi) when limit allows.",
       "invocation_model": "routing_shortcut",
       "version": null,
       "status": "unknown",
@@ -166,7 +166,7 @@
     },
     {
       "name": "design-master",
-      "description": "Dedicated design artist agent for NUDIMMUD. Learns from every design task, stores decisions in design-memory.json, enforces the HUD design system, and improves with each use.",
+      "description": "Dedicated design artist agent for YURI. Learns from every design task, stores decisions in design-memory.json, enforces the HUD design system, and improves with each use.",
       "invocation_model": "user_invoked_direct",
       "version": null,
       "status": "unknown",
@@ -267,7 +267,7 @@
     },
     {
       "name": "execution-domain-core",
-      "description": "Scoped execution environment, task policy, and exit criteria system for Yuri OS / Nudimmud.",
+      "description": "Scoped execution environment, task policy, and exit criteria system for Yuri OS / Yuri.",
       "invocation_model": "assistant_managed_workflow",
       "version": "1.0.0",
       "status": "active",
@@ -297,7 +297,7 @@
     },
     {
       "name": "failure-evolution-loop",
-      "description": "Real failure capture, root-cause analysis, regression creation, and memory-driven improvement for Yuri OS / Nudimmud.",
+      "description": "Real failure capture, root-cause analysis, regression creation, and memory-driven improvement for Yuri OS / Yuri.",
       "invocation_model": "assistant_managed_workflow",
       "version": "1.0.0",
       "status": "active",
@@ -575,7 +575,7 @@
     },
     {
       "name": "non-destructive-infinity-guard",
-      "description": "Always-on action boundary, risk classifier, and mutation approval gate for Yuri OS / Nudimmud.",
+      "description": "Always-on action boundary, risk classifier, and mutation approval gate for Yuri OS / Yuri.",
       "invocation_model": "assistant_managed_workflow",
       "version": "1.0.0",
       "status": "active",
@@ -627,7 +627,7 @@
     },
     {
       "name": "parallel-clone-orchestrator",
-      "description": "Budgeted multi-agent decomposition, specialist execution, and synthesis for Yuri OS / Nudimmud.",
+      "description": "Budgeted multi-agent decomposition, specialist execution, and synthesis for Yuri OS / Yuri.",
       "invocation_model": "assistant_managed_workflow",
       "version": "1.0.0",
       "status": "active",
@@ -657,7 +657,7 @@
     },
     {
       "name": "pattern-mirror-core",
-      "description": "Artifact perception, pattern extraction, weakness detection, and yuri-native reconstruction for Yuri OS / Nudimmud.",
+      "description": "Artifact perception, pattern extraction, weakness detection, and yuri-native reconstruction for Yuri OS / Yuri.",
       "invocation_model": "assistant_managed_workflow",
       "version": "1.0.0",
       "status": "active",
@@ -739,7 +739,7 @@
     },
     {
       "name": "swarm-coordination",
-      "description": "Global swarm orchestration for NUDIMMUD. Use when distributing work across agents, model lanes, or handoff steps with shared state.",
+      "description": "Global swarm orchestration for YURI. Use when distributing work across agents, model lanes, or handoff steps with shared state.",
       "invocation_model": "routing_shortcut",
       "version": null,
       "status": "unknown",

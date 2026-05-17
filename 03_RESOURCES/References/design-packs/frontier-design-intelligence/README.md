@@ -4,7 +4,7 @@ Captured: 2026-05-10.
 Sources indexed: 72.
 Reachable: 68. Unavailable but retained with reason: 4.
 
-This pack is the frontier design intelligence layer for NUDIMMUD. It joins agent skills, design systems, component libraries, animation references, inspiration galleries, AI design tools, and public community signals into one source-selection atlas.
+This pack is the frontier design intelligence layer for YURI. It joins agent skills, design systems, component libraries, animation references, inspiration galleries, AI design tools, and public community signals into one source-selection atlas.
 
 ## Load Order
 
@@ -28,7 +28,7 @@ This pack is the frontier design intelligence layer for NUDIMMUD. It joins agent
 
 ## Operating Rule
 
-Before any major website or frontend build, select 3-7 sources from this pack by project type, then design against NUDIMMUD tokens and the canonical design memory. Do not copy a library aesthetic raw.
+Before any major website or frontend build, select 3-7 sources from this pack by project type, then design against YURI tokens and the canonical design memory. Do not copy a library aesthetic raw.
 
 ## Sources
 

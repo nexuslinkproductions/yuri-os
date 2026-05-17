@@ -16,7 +16,7 @@ Scrollable HTML document. Full-width sections stacked vertically. Fixed 48px hea
 
 SECTION 1 — HEADER (position:fixed, height:48px, z-index:100, background:#080808, border-bottom:1px solid rgba(212,175,55,0.15))
 
-Left: "YURI OS" 14px #D4AF37 · "NUDIMMUD" 11px #A8BCC6 · "main · ca0df14c" 11px #4A3B32
+Left: "YURI OS" 14px #D4AF37 · "YURI" 11px #A8BCC6 · "main · ca0df14c" 11px #4A3B32
 Right: soak ring SVG (r=12, 32% filled stroke #A8BCC6) · "16/50 SOAK" · "5/5 ●" pulsing #C95A3B · "TIER CRITICAL · PROTOCOL-CHANGE"
 
 ---
@@ -156,7 +156,7 @@ OBLITERATUS GATE: required for protocol change · canonical state mutation · pr
 
 SECTION 8 — LAUNCHD SERVICES
 
-Label: "LAUNCHD — 7 managed services · com.nudimmud.*"
+Label: "LAUNCHD — 7 managed services · com.yuri.*"
 
 Rows. Each: status dot · service name · PID/state · description.
 

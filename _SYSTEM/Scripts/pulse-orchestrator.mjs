@@ -342,7 +342,7 @@ async function dispatchCassandra(prompt, plan, turnId) {
   // budget so git mid-commit cannot block the detached process.
 
   const SESSION_JOURNAL = path.join(REPO_ROOT, '.claude', 'projects',
-    '-Users-marcelspatz-NUDIMMUD', 'memory', 'session-journal.md');
+    '-Users-marcelspatz-YURI', 'memory', 'session-journal.md');
 
   const readWithTimeout = (fn, ms) => Promise.race([
     fn().catch(() => ''),
