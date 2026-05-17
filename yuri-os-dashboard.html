@@ -7780,6 +7780,22 @@ const GRAPH_STATE = {
   },
   "upgrades_pending": [
     {
+      "id": "rag-inject-static-to-semantic",
+      "title": "RAG Injection — Static → Semantic",
+      "category": "MEMORY RAG",
+      "status": "pending",
+      "severity": "high",
+      "description": "Current: static top-10 by score at SessionStart only. Target: SessionStart = identity + critical rules only (~5 fixed); user-prompt-submit runs semantic query per task, injects threshold-based relevant items — no hard cap.",
+      "launch_gate_blocker": true,
+      "affected_files": [
+        ".claude/hooks/user-prompt-submit.js",
+        ".claude/hooks/brain-inject.js",
+        "_SYSTEM/Scripts/memory-query.mjs"
+      ],
+      "verification": "_SYSTEM/Scripts/launch-readiness-check.mjs reports rag-inject MISSING → expected to flip to PRESENT once wired; gate_status PARTIAL → READY",
+      "owner_next_session": true
+    },
+    {
       "id": "memory-early-lifecycle",
       "title": "Memory now early in lifecycle",
       "status": "applied-v15",
