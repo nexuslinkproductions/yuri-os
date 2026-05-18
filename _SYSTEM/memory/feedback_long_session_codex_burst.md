@@ -1,3 +1,9 @@
+---
+name: Single Long Session Over Multiple Short Sessions
+description: Stay in session during Codex rate-limits; use DeepSeek 1M context for deep analysis during windows rather than restarting
+type: feedback
+---
+
 # Rule: Single Long Session > Multiple Short Sessions for Codex Work
 
 **Set:** 2026-05-14

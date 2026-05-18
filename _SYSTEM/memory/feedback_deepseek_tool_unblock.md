@@ -1,3 +1,9 @@
+---
+name: DeepSeek Tools Default ON
+description: DeepSeek lanes run with autonomous tools (bash, read_file, write_file) enabled by default for parallel implementation
+type: feedback
+---
+
 # Rule: DeepSeek Tools Default ON
 
 **Set:** 2026-05-14

@@ -1,3 +1,9 @@
+---
+name: Spec Kit Advisory Templates Only
+description: Spec Kit at integrations/spec-kit/ provides format templates only; never overrides YURI routing, gates, or Codex-primary rule
+type: feedback
+---
+
 # Rule: Spec Kit = Advisory Templates Only, Not Authority
 
 **Set:** 2026-05-14

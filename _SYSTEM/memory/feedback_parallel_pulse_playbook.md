@@ -1,3 +1,9 @@
+---
+name: Parallel Symbiotic Pulse Playbook
+description: Default operating mode uses concurrent Codex + DeepSeek-with-tools + llama3.2 branches on disjoint file scopes
+type: feedback
+---
+
 # Playbook: Parallel Symbiotic Pulse with Codex + DeepSeek-with-tools
 
 **Set:** 2026-05-14

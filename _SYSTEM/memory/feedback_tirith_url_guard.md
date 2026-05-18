@@ -1,3 +1,9 @@
+---
+name: Tirith URL Guard Security Layer
+description: tirith-url-guard.js intercepts all Bash commands with URLs and risk-scores them; MEDIUM+ surfaces a permission prompt
+type: feedback
+---
+
 # Rule: Tirith URL Guard — Security Layer for URL-Touching Commands
 
 **Set:** 2026-05-14

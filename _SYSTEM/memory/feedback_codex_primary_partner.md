@@ -1,3 +1,9 @@
+---
+name: Codex Primary Implementation Partner
+description: Codex is always the first implementation lane; DeepSeek is advisory/on-call only — enforced every session
+type: feedback
+---
+
 # Rule: Codex is the Primary Implementation Co-Pilot
 
 **Set:** 2026-05-14
