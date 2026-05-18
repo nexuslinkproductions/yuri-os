@@ -19,9 +19,13 @@ const __dirname  = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = resolve(__dirname, '..', '..');
 const MEMORY_DIR = resolve(process.env.HOME, '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory');
 const MEMORY_IDX = resolve(MEMORY_DIR, 'MEMORY.md');
-const STATE_PATH = resolve(REPO_ROOT, '_SYSTEM/training/state/memory-pipeline-state.json');
-const OFFLOAD_SH = resolve(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
-const LOG_PATH   = resolve('/tmp/kagami-memory-pipeline.log');
+const CORRECTION_PAIRS = resolve(MEMORY_DIR, 'correction-pairs.jsonl');
+const STATE_PATH  = resolve(REPO_ROOT, '_SYSTEM/training/state/memory-pipeline-state.json');
+const OFFLOAD_SH  = resolve(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
+const LOG_PATH    = resolve('/tmp/kagami-memory-pipeline.log');
+const PULSE_BUS   = resolve(process.env.KAGAMI_PULSE_BUS_PATH ?? resolve(REPO_ROOT, '.claude/state/pulse-bus.jsonl'));
+const RICK_KEYWORDS = ['listen', 'morty', 'obviously', 'portal', 'genius', 'science', 'rick', 'multiverse', 'interdimensional', 'szechuan'];
+const RICK_DRIFT_THRESHOLD = 0.65;
 
 const RAPID_MLX_URL    = process.env.RAPID_MLX_URL    || 'http://localhost:8000';
 const RAPID_MLX_MODEL  = process.env.RAPID_MLX_MODEL  || 'qwen3.5-4b';
@@ -166,20 +170,87 @@ ${candidate.body}
   log(`wrote memory: ${filename}`);
 }
 
+// ─── Correction capture ──────────────────────────────────────────────────────
+
+function splitPromptResponse(content) {
+  const match = content.match(/^Q:\s*([\s\S]*?)\n\nA:\s*([\s\S]*)$/);
+  if (!match) return { prompt: content.trim(), response: '' };
+  return { prompt: (match[1] ?? '').trim(), response: (match[2] ?? '').trim() };
+}
+
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const curr = [i];
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+    }
+    prev = curr;
+  }
+  return prev[b.length];
+}
+
+function normalizedLevenshtein(a, b) {
+  const left = a.toLowerCase().replace(/\s+/g, ' ').trim();
+  const right = b.toLowerCase().replace(/\s+/g, ' ').trim();
+  const maxLen = Math.max(left.length, right.length);
+  if (maxLen === 0) return 0;
+  return levenshtein(left, right) / maxLen;
+}
+
+function captureRepeatedQuestionCorrection(state, reflectId, sessionId, prompt, response) {
+  if (!sessionId || !prompt) return;
+
+  const now = Date.now();
+  const recent = Array.isArray(state.recentResponses) ? state.recentResponses : [];
+  const previous = recent
+    .filter(item => item?.sessionId === sessionId && item.prompt && item.response)
+    .filter(item => now - Date.parse(item.ts ?? 0) <= 10 * 60 * 1000)
+    .find(item => normalizedLevenshtein(item.prompt, prompt) < 0.3);
+
+  if (previous) {
+    mkdirSync(MEMORY_DIR, { recursive: true });
+    const pair = {
+      ts: new Date().toISOString(),
+      reflectId: previous.reflectId,
+      prompt: previous.prompt,
+      badResponse: previous.response,
+      signal: 'repeated_question',
+      sessionId,
+    };
+    writeFileSync(CORRECTION_PAIRS, `${JSON.stringify(pair)}\n`, { flag: 'a' });
+    log(`captured correction pair for repeated question: ${previous.reflectId}`);
+  }
+
+  state.recentResponses = [
+    ...recent.filter(item => now - Date.parse(item.ts ?? 0) <= 10 * 60 * 1000),
+    { ts: new Date().toISOString(), reflectId, sessionId, prompt, response },
+  ].slice(-100);
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
   const reflectId = process.argv[2] || process.env.PIPELINE_REFLECT_ID || 'unknown';
   const content   = process.argv[3] || process.env.PIPELINE_CONTENT    || '';
+  const sessionId = process.argv[4] || process.env.PIPELINE_SESSION_ID || '';
 
   if (!content.trim()) { log('no content — exit'); return; }
 
   log(`processing reflect ${reflectId} (${content.length} chars)`);
 
+  const state = existsSync(STATE_PATH) ? JSON.parse(readFileSync(STATE_PATH, 'utf8')) : {};
+  const { prompt, response } = splitPromptResponse(content);
+  captureRepeatedQuestionCorrection(state, reflectId, sessionId, prompt, response);
+
   // Phase 1 — extract
   const candidates = await extractCandidates(reflectId, content);
   log(`extracted ${candidates.length} candidates`);
-  if (!candidates.length) return;
 
   const existingMemories = existsSync(MEMORY_IDX)
     ? readFileSync(MEMORY_IDX, 'utf8').split('\n').filter(l => l.startsWith('-')).slice(0, 20).join('\n')
@@ -195,9 +266,29 @@ async function main() {
     }
   }
 
+  // Drift detection — score response for Rick persona consistency
+  const rickHits = RICK_KEYWORDS.filter(kw => response.toLowerCase().includes(kw)).length;
+  const rickScoreVal = rickHits / RICK_KEYWORDS.length;
+  if (rickScoreVal < RICK_DRIFT_THRESHOLD) {
+    const anchorEvent = JSON.stringify({
+      ts: new Date().toISOString(),
+      source: 'kagami',
+      kind: 'character_anchor',
+      sessionId,
+      reflectId,
+      payload: { score: rickScoreVal, threshold: RICK_DRIFT_THRESHOLD },
+    });
+    try {
+      mkdirSync(dirname(PULSE_BUS), { recursive: true });
+      writeFileSync(PULSE_BUS, anchorEvent + '\n', { flag: 'a' });
+      log(`character_anchor emitted (score=${rickScoreVal.toFixed(2)})`);
+    } catch (e) {
+      log('character_anchor write failed:', e.message);
+    }
+  }
+
   // Update state
   mkdirSync(dirname(STATE_PATH), { recursive: true });
-  const state = existsSync(STATE_PATH) ? JSON.parse(readFileSync(STATE_PATH, 'utf8')) : {};
   state.lastProcessedAt = new Date().toISOString();
   state.lastReflectId   = reflectId;
   writeFileSync(STATE_PATH, JSON.stringify(state, null, 2));
