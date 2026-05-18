@@ -298,7 +298,22 @@ process.stdin.on('end', () => {
   const cmd = (input.tool_input && input.tool_input.command) || '';
   if (!cmd) process.exit(0);
 
+
+function appendAuditLog(entry) {
+  try {
+    const os = require('os');
+    require('fs').appendFileSync(os.homedir() + '/.yuri-audit.log', JSON.stringify(entry) + '\n');
+  } catch (_) {}
+}
   function emitDeny(reason) {
+    try {
+      const sid = process.env.CLAUDE_SESSION_ID || '';
+      if (sid && require('fs').existsSync('/tmp/yuri-session-packet-' + sid + '.json')) {
+        const plan = JSON.parse(require('fs').readFileSync('/tmp/yuri-session-packet-' + sid + '.json','utf8')).pulse_plan || {};
+        appendAuditLog({ ts: new Date().toISOString(), session_id: sid, entry_point: 'claude',
+          tool: 'Bash', violation: String(reason).slice(0,80), blocked: true, tier: plan.complexityTier || 'unknown' });
+      }
+    } catch (_) {}
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: 'PreToolUse',
