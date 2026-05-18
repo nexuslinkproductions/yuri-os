@@ -4,8 +4,12 @@
 # Bash subprocesses (e.g. Claude Code Bash tool) don't inherit ~/.zshrc exports.
 # pulse-lane-dispatch.mjs and offload-runner.mjs are Node child processes that
 # inherit this process's env — hydrate before any exec so they always have keys.
+# Primary: source dedicated key file (no parsing, always reliable)
+# shellcheck source=/dev/null
+[ -f "$HOME/.config/yuri/env.sh" ] && source "$HOME/.config/yuri/env.sh"
+# Fallback: grep .zshrc for any key still unset
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -134,7 +138,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -143,7 +147,7 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
       return 0
       ;;
   esac
@@ -308,10 +312,11 @@ dry_run_model_override() {
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$target_model"
         ;;
-      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*)
+      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*)
         case "$target_model" in
           nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
           nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
+          nvidia-gpt-oss-120b)    _nim_model="openai/gpt-oss-120b" ;;
           nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
           nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
           nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
@@ -430,10 +435,11 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --model "$target_model"
         ;;
-      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*)
+      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*)
         case "$target_model" in
           nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
           nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
+          nvidia-gpt-oss-120b)    _nim_model="openai/gpt-oss-120b" ;;
           nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
           nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
           nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
