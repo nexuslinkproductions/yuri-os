@@ -248,15 +248,14 @@ async function cmdHealth() {
   console.log(`[kagami] ✓ healthy | ${uptimeText}`);
 }
 
-async function cmdReflect(prompt, lane = 'default') {
+async function cmdReflect(prompt, lane = 'default', mode = null) {
   const text = String(prompt ?? '').trim();
   if (!text) fail('prompt required');
 
   const startedAt = Date.now();
   const requestBody = { command: text };
-  if (lane && lane !== 'default') {
-    requestBody.modelId = lane;
-  }
+  if (lane && lane !== 'default') requestBody.modelId = lane;
+  if (mode) requestBody.mode = mode;
 
   const response = await httpPostJson('/kagami/reflect', requestBody, 15000);
   if (response.status < 200 || response.status >= 300) {
@@ -390,6 +389,14 @@ async function main(argv = process.argv.slice(2)) {
     return;
   }
 
+  // Extract --mode <alias> from anywhere in argv before dispatch
+  let mode = null;
+  const modeIdx = argv.indexOf('--mode');
+  if (modeIdx !== -1 && argv[modeIdx + 1]) {
+    mode = argv[modeIdx + 1];
+    argv = [...argv.slice(0, modeIdx), ...argv.slice(modeIdx + 2)];
+  }
+
   const [command, ...rest] = argv;
   switch (command) {
     case '--health':
@@ -411,10 +418,10 @@ async function main(argv = process.argv.slice(2)) {
       await cmdImprovement();
       return;
     default:
-      if (String(command).startsWith('--')) {
+      if (String(command ?? '').startsWith('--')) {
         fail(`unknown command: ${command}`);
       }
-      await cmdReflect(argv.join(' '));
+      await cmdReflect(argv.join(' '), 'default', mode);
   }
 }
 
