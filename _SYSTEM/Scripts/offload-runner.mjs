@@ -1399,6 +1399,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
   let iteration = 0;
   let lastToolCallNames = []; // Track last tool calls to detect loops
   let lastCallSig = '';
+  let consecutiveIdenticalCallSigs = 0;
   let consecutiveToolCalls = 0;
   let toolLoopRecovered = false; // allow one graceful recovery before hard throw
 
@@ -1487,14 +1488,42 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
     // Check if model requested tool calls (only if tools are supported)
     if (supportsTools && message.tool_calls && message.tool_calls.length > 0) {
-      const currentCallSig = message.tool_calls
-        .map(tc => tc.function.name + ':' + JSON.stringify(tc.function.arguments))
-        .sort()
-        .join('|');
-      if (lastCallSig === currentCallSig && iteration >= 2) {
-        throw new Error('TOOL_ARG_REPETITION: identical tool+args called twice in a row');
+      try {
+        const currentCallSig = message.tool_calls
+          .map((tc) => {
+            const name = tc.function.name;
+            const rawArgs = tc.function.arguments;
+            let args = rawArgs;
+            if (typeof rawArgs === 'string') {
+              try {
+                args = JSON.parse(rawArgs);
+              } catch {
+                args = rawArgs;
+              }
+            }
+            if (name === 'write_file' && args && typeof args === 'object') {
+              return `${name}:${JSON.stringify({ path: args.path, content: args.content })}`;
+            }
+            if (name === 'bash' && args && typeof args === 'object') {
+              return `${name}:${JSON.stringify({ cmd: args.cmd })}`;
+            }
+            return `${name}:${JSON.stringify(rawArgs)}`;
+          })
+          .sort()
+          .join('|');
+        if (lastCallSig === currentCallSig) {
+          consecutiveIdenticalCallSigs++;
+        } else {
+          consecutiveIdenticalCallSigs = 0;
+        }
+        if (consecutiveIdenticalCallSigs >= 2 && iteration >= 3) {
+          throw new Error('TOOL_ARG_REPETITION: identical tool+args called twice in a row');
+        }
+        lastCallSig = currentCallSig;
+      } catch (err) {
+        if (err?.message?.startsWith('TOOL_ARG_REPETITION:')) throw err;
+        console.warn('Tool argument repetition guard skipped:', err?.message || err);
       }
-      lastCallSig = currentCallSig;
 
       const currentToolNames = message.tool_calls.map(tc => tc.function.name).sort().join(',');
       if (lastToolCallNames === currentToolNames && iteration >= 3) {
