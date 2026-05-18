@@ -4,6 +4,25 @@
 import * as kagamiFacade from './kagami-facade.mjs';
 import http from 'node:http';
 import https from 'node:https';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+
+const SESSION_FILE = join(process.env.HOME ?? '/tmp', '.kagami-session');
+const SESSION_TTL_MS = 2 * 60 * 60 * 1000; // 2h idle resets session
+
+function getOrCreateSessionId() {
+  try {
+    const s = JSON.parse(readFileSync(SESSION_FILE, 'utf8'));
+    if (typeof s.id === 'string' && typeof s.ts === 'number' && Date.now() - s.ts < SESSION_TTL_MS) {
+      writeFileSync(SESSION_FILE, JSON.stringify({ id: s.id, ts: Date.now() }));
+      return s.id;
+    }
+  } catch { /* no file or parse error — create new */ }
+  const id = randomUUID();
+  writeFileSync(SESSION_FILE, JSON.stringify({ id, ts: Date.now() }));
+  return id;
+}
 
 const KAGAMI_URL = process.env.KAGAMI_URL || 'http://localhost:3005';
 const KAGAMI_AUTH_TOKEN = process.env.KAGAMI_AUTH_TOKEN || '';
@@ -259,7 +278,8 @@ async function cmdReflect(prompt, lane = 'default', mode = null) {
   if (!text) fail('prompt required');
 
   const startedAt = Date.now();
-  const requestBody = { command: text };
+  const sessionId = getOrCreateSessionId();
+  const requestBody = { command: text, sessionId };
   if (lane && lane !== 'default') requestBody.modelId = lane;
   if (mode) requestBody.mode = mode;
 
