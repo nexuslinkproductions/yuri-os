@@ -30,7 +30,7 @@ Amp is the parallel implementation lane — **not Codex**. It is dispatched via 
 - No changes outside files listed in the task spec
 - No new dependencies without explicit approval
 - No destructive shell commands (`rm -rf`, `git reset --hard`, `git clean`)
-- Do not modify `.claude/hooks/` — those belong to Claude Code only
+- `.claude/hooks/` are Yuri OS infrastructure — all lanes may modify hooks when explicitly authorized in the task spec
 
 **Verification Output:** After completing a task output: files changed with exact paths, test command result, `git diff --stat`. Wait for Claude review before any commit.
 
@@ -129,7 +129,7 @@ bun run typecheck
 ### Common Mistakes
 
 - Do not touch `Scripts/offload-contract.mjs` dispatch tokens without Claude review — routing breaks silently
-- Do not edit `.claude/hooks/` — Claude Code-only infrastructure
+- `.claude/hooks/` may be edited when task spec explicitly includes hook files in target list
 - Do not run `git push` or commit without explicit spec instruction
 - Do not install new npm/bun packages without approval in the task spec
 - Do not read `.env` or `.claude/state/` — those are protected surfaces
@@ -140,7 +140,7 @@ bun run typecheck
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **yuri-vault** (63911 symbols, 92883 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (64186 symbols, 93265 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -163,10 +163,10 @@ This project is indexed by GitNexus as **yuri-vault** (63911 symbols, 92883 rela
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/yuri-vault/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/yuri-vault/clusters` | All functional areas |
-| `gitnexus://repo/yuri-vault/processes` | All execution flows |
-| `gitnexus://repo/yuri-vault/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/nudimmud-vault/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/nudimmud-vault/clusters` | All functional areas |
+| `gitnexus://repo/nudimmud-vault/processes` | All execution flows |
+| `gitnexus://repo/nudimmud-vault/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 

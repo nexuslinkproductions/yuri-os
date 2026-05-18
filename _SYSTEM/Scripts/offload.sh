@@ -319,8 +319,8 @@ dry_run_model_override() {
           nvidia/*)               _nim_model="$target_model" ;;
           *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
         esac
-        printf '%s\n' "⬡ ROUTING_TO_NVIDIA [${_nim_model}]..." >&2
-        run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$_nim_model"
+        printf '%s\n' "⬡ ROUTING_TO_NVIDIA_NIM [${_nim_model}]..." >&2
+        run_offload_runner nvidia-nim "$prompt" --dry-run --model "$_nim_model"
         ;;
       openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
@@ -441,8 +441,8 @@ dispatch_model() {
           nvidia/*)               _nim_model="$target_model" ;;  # pass full NIM path directly
           *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
         esac
-        printf '%s\n' "⬡ ROUTING_TO_NVIDIA [${_nim_model}]..." >&2
-        run_offload_runner nvidia-deepseek "$prompt" --model "$_nim_model"
+        printf '%s\n' "⬡ ROUTING_TO_NVIDIA_NIM [${_nim_model}]..." >&2
+        run_offload_runner nvidia-nim "$prompt" --model "$_nim_model"
         ;;
       openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2

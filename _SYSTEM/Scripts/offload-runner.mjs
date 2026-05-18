@@ -444,11 +444,19 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       apiKey: process.env.CODE_CLOUD_API_KEY || process.env.OLLAMA_API_KEY || '',
       model: normalizedForcedModel || process.env.CODE_CLOUD_MODEL || 'qwen2.5-coder:32b',
     },
-    'nvidia-deepseek': {
+    'nvidia-nim': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
       apiKey: process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || process.env.NVIDIA_NIM_MODEL || 'meta/llama-3.3-70b-instruct',
+      tools: true,
+      requiresKey: true,
+    },
+    'nvidia-deepseek': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || 'deepseek-ai/deepseek-r1',
       tools: true,
       requiresKey: true,
     },
