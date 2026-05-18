@@ -492,6 +492,54 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       tools: false,
       requiresKey: true,
     },
+    'nvidia-dracarys': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_KEY_DRACARYS || '',
+      model: normalizedForcedModel || 'abacusai/dracarys-llama-3.1-70b-instruct',
+      tools: false,
+      requiresKey: true,
+    },
+    'nvidia-glm': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_KEY_GLM || '',
+      model: normalizedForcedModel || 'z-ai/glm-5.1',
+      tools: false,
+      requiresKey: true,
+    },
+    'nvidia-ising': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_KEY_ISING || '',
+      model: normalizedForcedModel || 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',
+      tools: false,
+      requiresKey: true,
+    },
+    'nvidia-gpt-oss-120b': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_KEY_GPT_OSS_120B || '',
+      model: normalizedForcedModel || 'openai/gpt-oss-120b',
+      tools: false,
+      requiresKey: true,
+    },
+    'nvidia-nemotron-120b': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_KEY_GPT_OSS_120B || '',
+      model: normalizedForcedModel || 'nvidia/nemotron-3-super-120b-a12b',
+      tools: false,
+      requiresKey: true,
+    },
+    'nvidia-qwen3-next': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_KEY_QWEN3_NEXT || '',
+      model: normalizedForcedModel || 'qwen/qwen3-next-80b-a3b-instruct',
+      tools: false,
+      requiresKey: true,
+    },
     'nvidia-mistral': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
@@ -1109,7 +1157,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-mistral', 'nvidia-qwen', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-ising', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-qwen', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {
