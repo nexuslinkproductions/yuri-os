@@ -86,6 +86,18 @@ try {
         }
     }
 
+    // ── Plan dispatch gate: arm after ExitPlanMode ────────────────────────────
+    if (toolName === 'ExitPlanMode' && !isError) {
+        ss.update(state => {
+            state.plan_dispatch_gate = {
+                armed: true,
+                armed_at: Date.now(),
+                satisfied: false,
+                warn_count: 0,
+            };
+        });
+    }
+
     process.exit(0);
 } catch (_) {
     process.exit(0);
