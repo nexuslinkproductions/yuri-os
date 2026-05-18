@@ -30,7 +30,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT  = path.resolve(__dirname, '..');
+const REPO_ROOT  = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const NISABA_DIR = path.join(REPO_ROOT, '.claude', 'yuri-sentinel');
 const STATE_DIR  = path.join(REPO_ROOT, '.claude', 'state');
 
@@ -280,6 +280,12 @@ log('phase 7b: self-model-feedback');
 const feedbackResult = await runScript(PATHS.selfModelFeedback);
 if (feedbackResult.code !== 0) log(`self-model-feedback warning: ${feedbackResult.err.slice(0, 200)}`);
 const fingerprint = readJson(PATHS.fingerprint);
+
+// 7c. Fingerprint baseline drift compute
+log('phase 7c: fingerprint-baseline');
+const baselinePath = path.join(__dirname, 'fingerprint-baseline.mjs');
+const baselineResult = await runScript(baselinePath);
+if (baselineResult.code !== 0) log(`fingerprint-baseline warning: ${baselineResult.err.slice(0, 200)}`);
 
 // 8. Synthesize delta
 const externalRepos  = githubTrending?.repos?.length ?? 0;

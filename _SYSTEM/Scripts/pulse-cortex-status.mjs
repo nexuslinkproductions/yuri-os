@@ -13,13 +13,13 @@
 // (default) or --json for machine consumption.
 
 import { promises as fsp, existsSync } from 'node:fs';
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 const PATHS = {
   bus:     path.join(STATE_DIR, 'pulse-bus.json'),
@@ -136,6 +136,14 @@ function renderText(report) {
   }
   out.push(`Beacon: ${report.beacon.count || 0}/5 emits this session`);
   out.push(`OpenClaw gateway: ${report.openclaw_gateway}`);
+  const procs = activeProcesses();
+  if (procs.length) {
+    out.push('');
+    out.push('Active lanes:');
+    procs.forEach(p => out.push(p));
+  } else {
+    out.push('Active lanes: idle');
+  }
   out.push('');
   if (report.recent_errors.length) {
     out.push('Recent errors (tail):');
@@ -146,6 +154,28 @@ function renderText(report) {
     for (const t of report.recent_hook_telemetry) out.push(`  ${t.slice(0, 200)}`);
   }
   return out.join('\n');
+}
+
+function activeProcesses() {
+  const patterns = [
+    { label: 'codex exec',        re: /codex.*exec/i },
+    { label: 'offload-runner',    re: /offload-runner\.mjs/i },
+    { label: 'pulse-lane-dispatch', re: /pulse-lane-dispatch\.mjs/i },
+    { label: 'nvidia-nim request',  re: /offload.*nvidia|nvidia.*offload/i },
+    { label: 'deepseek request',    re: /offload.*deepseek|deepseek.*offload/i },
+  ];
+  try {
+    const ps = execSync('ps aux', { encoding: 'utf8', timeout: 3000 });
+    return patterns
+      .map(({ label, re }) => {
+        const lines = ps.split('\n').filter(l => re.test(l) && !/grep/.test(l));
+        if (!lines.length) return null;
+        const pid = lines[0].split(/\s+/)[1];
+        const elapsed = lines[0].split(/\s+/).slice(9, 10)[0] || '?';
+        return `  ⚡ ${label}  pid=${pid}  cpu-time=${elapsed}`;
+      })
+      .filter(Boolean);
+  } catch { return []; }
 }
 
 async function main() {

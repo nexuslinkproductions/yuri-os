@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const BUS = path.join(REPO_ROOT, '.claude/state/pulse-bus.json');
 const TEL = path.join(REPO_ROOT, '.claude/state/pulse-hook-telemetry.log');
 const SESSION = path.join(REPO_ROOT, '.claude/state/session-state.json');

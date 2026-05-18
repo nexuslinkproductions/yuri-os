@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const BACKEND_SOURCE_ROOT = path.join(REPO_ROOT, 'backend');
 const BACKEND_REQUIRE_ROOT = path.resolve(process.env.YURI_BACKEND_REQUIRE_ROOT || BACKEND_SOURCE_ROOT);
 const BACKEND_NODE_MODULES = path.join(BACKEND_REQUIRE_ROOT, 'node_modules');

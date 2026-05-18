@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 const PLAN_PATH = path.join(STATE_DIR, 'pulse-plan.json');
 const ERROR_LOG = path.join(STATE_DIR, 'pulse-errors.log');
@@ -572,24 +572,19 @@ function writeCouncilSynthesis(findings, turnId, plan) {
   const NISABA_DIR = path.join(path.dirname(STATE_DIR), 'yuri-sentinel', 'logs');
 
   try {
-    // M2a: extract consensus findings (≥2 distinct sources agree on WARN+)
+    // M2a: pass all WARN+ findings to the synthesis log.
+    // Per-turn cross-source text-matching was the wrong gate — advisors never
+    // produce identical phrasing, so consensus was always []. The correct gate
+    // is pattern-promoter's cross-session ≥3 occurrence threshold. Remove the
+    // pre-filter here and let pattern-promoter do the clustering it was built for.
     const warnPlus = findings.filter(f => ['WARN', 'HIGH', 'CRITICAL'].includes(f.severity));
-    const domainMap = {};
-    for (const f of warnPlus) {
-      // Key by truncated finding to detect cross-source agreement
-      const key = f.finding.slice(0, 50).replace(/\W+/g, '_');
-      if (!domainMap[key]) domainMap[key] = [];
-      domainMap[key].push(f.source);
-    }
-    const consensus = Object.entries(domainMap)
-      .filter(([, sources]) => sources.length >= 2)
-      .map(([key, sources]) => ({
-        key,
-        sources,
-        finding: warnPlus.find(f => f.finding.slice(0, 50).replace(/\W+/g, '_') === key)?.finding || key,
-        severity: warnPlus.find(f => f.finding.slice(0, 50).replace(/\W+/g, '_') === key)?.severity,
-        confidence: Math.min(0.95, 0.5 + sources.length * 0.15),
-      }));
+    const consensus = warnPlus.map(f => ({
+      key: `${f.source}_${f.severity}_${f.finding.slice(0, 40).replace(/\W+/g, '_')}`,
+      sources: [f.source],
+      finding: f.finding,
+      severity: f.severity,
+      confidence: f.confidence ?? 0.7,
+    }));
 
     // M2b: write synthesis record to council-synthesis.jsonl (append)
     const record = {

@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YURI-OS-MUSUBI Deep System Audit 2026-05-18</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+JP:wght@200&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --void: hsl(228, 30%, 4.5%);
+      --gold: #c9a84c;
+      --gold-bright: #e8c870;
+      --ember: hsl(34, 78%, 66%);
+      --red: hsl(12, 84%, 58%);
+      --red-dim: rgba(220,60,40,0.15);
+      --amber: #ffaa00;
+      --green: #00e5a0;
+      --green-dim: rgba(0,229,160,0.10);
+      --text: rgba(255,255,255,0.88);
+      --text-dim: rgba(255,255,255,0.42);
+      --text-micro: rgba(255,255,255,0.24);
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-display: 'Bricolage Grotesque', sans-serif;
+      --e: cubic-bezier(.23,1,.32,1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--void);
+      color: var(--text);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: hsl(228, 30%, 4.5%);
+      color: var(--text);
+      font-family: var(--font-display);
+      letter-spacing: 0;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: radial-gradient(ellipse at 50% 18%, rgba(0,0,0,0.76), transparent 72%);
+      opacity: 0.34;
+    }
+
+    #atm {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ao {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(72px);
+    }
+
+    .ao1 {
+      width: 1100px;
+      height: 400px;
+      background: radial-gradient(ellipse, hsla(34,80%,56%,0.11) 0%, transparent 68%);
+      top: 22%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .ao2 {
+      width: 720px;
+      height: 260px;
+      background: radial-gradient(ellipse, hsla(228,65%,60%,0.08) 0%, transparent 65%);
+      top: 68%;
+      left: 18%;
+    }
+
+    .ao3 {
+      width: 520px;
+      height: 200px;
+      background: radial-gradient(ellipse, hsla(245,55%,55%,0.06) 0%, transparent 65%);
+      top: 4%;
+      right: 4%;
+    }
+
+    .ao4 {
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, hsla(34,78%,54%,0.05) 0%, transparent 60%);
+      top: 34%;
+      left: 14%;
+      filter: blur(88px);
+    }
+
+    .hk {
+      position: fixed;
+      bottom: -80px;
+      right: -60px;
+      font-family: 'Noto Serif JP', serif;
+      font-weight: 200;
+      font-size: clamp(300px, 45vw, 600px);
+      color: rgba(255,255,255,0.04);
+      pointer-events: none;
+      user-select: none;
+      mix-blend-mode: screen;
+      z-index: 0;
+    }
+
+    .glass {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-top-color: rgba(255,255,255,0.19);
+      border-left-color: rgba(255,255,255,0.13);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,.08) inset,
+        0 -1px 0 rgba(0,0,0,.15) inset,
+        0 36px 72px rgba(0,0,0,.48),
+        0 8px 24px rgba(0,0,0,.26),
+        0 0 56px rgba(201,168,76,0.08);
+      border-radius: 16px;
+      transition: box-shadow .3s var(--e), transform .3s var(--e);
+    }
+
+    .glass:hover {
+      box-shadow:
+        0 1px 0 rgba(255,255,255,.11) inset,
+        0 44px 88px rgba(0,0,0,.52),
+        0 12px 32px rgba(0,0,0,.3),
+        0 0 72px rgba(201,168,76,0.12);
+      transform: translateY(-2px);
+    }
+
+    .bar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 11px 24px;
+      background: rgba(8,8,16,0.88);
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .brand .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 10px var(--gold);
+      flex: 0 0 auto;
+    }
+
+    .bar-spacer {
+      flex: 1;
+    }
+
+    .bar-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--text-dim);
+      font: 500 10px/1 var(--font-mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .gate-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid rgba(0,229,160,0.32);
+      color: var(--green);
+      background: rgba(0,229,160,0.08);
+      border-radius: 999px;
+      padding: 5px 10px;
+      box-shadow: 0 0 18px rgba(0,229,160,0.08);
+    }
+
+    .gate-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 48px 64px;
+    }
+
+    section {
+      position: relative;
+      margin: 0 0 24px;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .55s var(--e), transform .55s var(--e);
+    }
+
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-item {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .45s var(--e), transform .45s var(--e);
+    }
+
+    .in .reveal-item {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .panel {
+      padding: 28px;
+    }
+
+    .hero {
+      padding: 16px 0 28px;
+      margin-bottom: 20px;
+    }
+
+    .section-label {
+      margin: 0 0 10px;
+      color: var(--gold);
+      font: 600 10px/1.2 var(--font-mono);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      letter-spacing: 0;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: clamp(34px, 5vw, 40px);
+      line-height: 1.02;
+      font-weight: 700;
+    }
+
+    h2 {
+      color: rgba(255,255,255,0.92);
+      font-size: 14px;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .subline {
+      margin: 12px 0 0;
+      color: rgba(255,255,255,0.58);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .hero-kpi {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .kpi {
+      min-height: 154px;
+      border-radius: 12px;
+      padding: 24px 28px;
+      border-left: 3px solid var(--accent, var(--gold));
+    }
+
+    .kpi .l {
+      font-size: 9px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.42);
+      margin-bottom: 14px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .kpi .v {
+      color: var(--accent, var(--gold));
+      font-family: var(--font-mono);
+      font-size: 56px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -.02em;
+      text-shadow: 0 0 26px color-mix(in srgb, var(--accent, var(--gold)) 28%, transparent);
+    }
+
+    .kpi .sub {
+      color: rgba(255,255,255,0.45);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: .12em;
+      margin-top: 8px;
+      text-transform: uppercase;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .panel-note {
+      color: var(--text-micro);
+      font: 500 10px/1 var(--font-mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .health-wrap {
+      overflow-x: auto;
+      padding: 2px 0 4px;
+    }
+
+    .health-grid {
+      display: grid;
+      grid-template-columns: 120px repeat(7, 32px);
+      gap: 13px 12px;
+      align-items: center;
+      min-width: 428px;
+    }
+
+    .day-label,
+    .check-label {
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+
+    .day-label {
+      color: var(--text-micro);
+      font-size: 9px;
+      text-align: center;
+      letter-spacing: .06em;
+    }
+
+    .check-label {
+      color: var(--text-dim);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .dot-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 20px;
+    }
+
+    .pulse-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 currentColor;
+      transition: transform .15s var(--e), filter .15s var(--e), box-shadow .15s var(--e);
+      cursor: crosshair;
+    }
+
+    .pulse-dot:hover {
+      transform: scale(1.5);
+      filter: drop-shadow(0 0 8px currentColor);
+      box-shadow: 0 0 18px currentColor;
+    }
+
+    .g { color: var(--green); }
+    .a { color: var(--amber); }
+    .r { color: #ff4444; }
+
+    .topology-panel,
+    .pipeline-panel {
+      overflow: hidden;
+    }
+
+    .topology-svg {
+      display: block;
+      width: 100%;
+      height: 420px;
+      max-height: 64vw;
+    }
+
+    @keyframes nodePulse {
+      0%, 100% {
+        opacity: .72;
+        filter: drop-shadow(0 0 3px rgba(201,168,76,0.12));
+      }
+      50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 13px rgba(201,168,76,0.48));
+      }
+    }
+
+    .live-node > g {
+      animation: nodePulse 2.5s infinite;
+    }
+
+    .live-node .node-1 { animation-delay: 0s; }
+    .live-node .node-2 { animation-delay: .3s; }
+    .live-node .node-3 { animation-delay: .6s; }
+    .live-node .node-4 { animation-delay: .9s; }
+    .live-node .node-5 { animation-delay: 1.2s; }
+    .live-node .node-6 { animation-delay: 1.5s; }
+    .live-node .node-7 { animation-delay: 1.8s; }
+    .live-node .node-8 { animation-delay: 2.1s; }
+    .live-node .node-9 { animation-delay: 2.4s; }
+    .live-node .node-10 { animation-delay: 2.7s; }
+    .live-node .node-11 { animation-delay: 3s; }
+
+    .topology-label,
+    .dead-label {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: .06em;
+    }
+
+    .topology-label {
+      fill: var(--gold);
+      opacity: .78;
+    }
+
+    .dead-label {
+      fill: rgba(255,255,255,0.22);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 20px;
+    }
+
+    .works-list,
+    .bar-stack,
+    .rec-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .work-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding: 10px 0;
+    }
+
+    .work-item:first-child,
+    .bar-row:first-child,
+    .rec-item:first-child {
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .work-name {
+      color: rgba(255,255,255,0.82);
+      font: 500 12px/1.35 var(--font-mono);
+    }
+
+    .work-metric {
+      color: var(--green);
+      border: 1px solid rgba(0,229,160,0.34);
+      background: rgba(0,229,160,0.06);
+      border-radius: 8px;
+      padding: 3px 10px;
+      font: 600 10px/1 var(--font-mono);
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    .metric-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: 104px 1fr 42px;
+      gap: 13px;
+      align-items: center;
+    }
+
+    .metric-label {
+      color: rgba(255,255,255,0.58);
+      font: 700 11px/1 var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .metric-track {
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .metric-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 100%);
+      border-radius: inherit;
+      transition: width .7s var(--e);
+      box-shadow: 0 0 14px rgba(201,168,76,0.28);
+    }
+
+    .metric-value {
+      color: var(--gold);
+      text-align: right;
+      font: 600 12px/1 var(--font-mono);
+    }
+
+    .chips,
+    .drive-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chips {
+      margin-bottom: 18px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid currentColor;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font: 600 10px/1 var(--font-mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .chip.amber {
+      color: var(--amber);
+      background: rgba(255,170,0,0.07);
+    }
+
+    .chip.green {
+      color: var(--green);
+      background: rgba(0,229,160,0.07);
+    }
+
+    .drive {
+      color: var(--gold-bright);
+      border: 1px solid rgba(201,168,76,0.22);
+      background: rgba(201,168,76,0.06);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font: 600 10px/1 var(--font-mono);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .pipeline-scroller {
+      overflow-x: auto;
+    }
+
+    .pipeline-svg {
+      display: block;
+      width: 100%;
+      min-width: 700px;
+      height: 128px;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .sev-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      background: currentColor;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    .sev-dot.red { color: var(--red); }
+    .sev-dot.amber { color: var(--amber); }
+    .sev-dot.info { color: var(--gold); }
+    .sev-dot.green { color: var(--green); }
+
+    .bar-label {
+      width: 200px;
+      min-width: 200px;
+      color: var(--text);
+      font: 500 12px/1.25 var(--font-mono);
+    }
+
+    .bar-label.fixed {
+      color: rgba(255,255,255,0.45);
+      text-decoration: line-through;
+    }
+
+    .fixed-note {
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      transition: width .78s var(--e);
+    }
+
+    .impact-val {
+      width: 36px;
+      color: var(--text-dim);
+      text-align: right;
+      font: 600 10px/1 var(--font-mono);
+    }
+
+    .sev {
+      width: 64px;
+      text-align: center;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      padding: 4px 7px;
+      font: 600 9px/1 var(--font-mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .sev.red {
+      color: var(--red);
+      background: var(--red-dim);
+    }
+
+    .sev.amber {
+      color: var(--amber);
+      background: rgba(255,170,0,0.08);
+    }
+
+    .sev.info {
+      color: var(--gold);
+      background: rgba(201,168,76,0.08);
+    }
+
+    .sev.green {
+      color: var(--green);
+      background: var(--green-dim);
+    }
+
+    .rec-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 20px 0;
+    }
+
+    .rec-num {
+      min-width: 48px;
+      color: var(--gold);
+      font: 700 40px/0.9 var(--font-display);
+    }
+
+    .rec-item:nth-child(1) .rec-num { opacity: 1; }
+    .rec-item:nth-child(2) .rec-num { opacity: .8; }
+    .rec-item:nth-child(3) .rec-num { opacity: .65; }
+    .rec-item:nth-child(4) .rec-num { opacity: .5; }
+    .rec-item:nth-child(5) .rec-num { opacity: .4; }
+
+    .priority {
+      border: 1px solid currentColor;
+      border-radius: 4px;
+      padding: 3px 10px;
+      flex: 0 0 auto;
+      margin-top: 3px;
+      font: 600 9px/1 var(--font-mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .priority.high {
+      color: var(--red);
+      background: var(--red-dim);
+    }
+
+    .priority.warn {
+      color: var(--amber);
+      background: rgba(255,170,0,0.08);
+    }
+
+    .rec-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .rec-text {
+      display: block;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .dot-score {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      color: var(--text-dim);
+      margin-top: 8px;
+      font: 500 10px/1 var(--font-mono);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .filled {
+      color: var(--gold);
+    }
+
+    .empty {
+      color: rgba(201,168,76,0.22);
+    }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      width: min(1200px, 100%);
+      margin: 8px auto 0;
+      padding: 32px 64px 48px;
+      border-top: 1px solid rgba(201,168,76,0.1);
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      color: var(--text-dim);
+      font: 500 10px/1.4 var(--font-mono);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 920px) {
+      main {
+        padding: 40px 26px;
+      }
+
+      .hero-kpi,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .bar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .bar-spacer {
+        display: none;
+      }
+
+      .bar-meta {
+        flex-wrap: wrap;
+        gap: 8px 12px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      main {
+        padding: 32px 18px;
+      }
+
+      .panel {
+        padding: 22px 18px;
+      }
+
+      .kpi {
+        padding: 22px;
+      }
+
+      .topology-svg {
+        min-width: 720px;
+        max-height: none;
+      }
+
+      .topology-panel {
+        overflow-x: auto;
+      }
+
+      .metric-row {
+        grid-template-columns: 1fr 42px;
+      }
+
+      .metric-label {
+        grid-column: 1 / -1;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 8px 1fr auto;
+        gap: 10px 12px;
+      }
+
+      .bar-label {
+        width: auto;
+        min-width: 0;
+      }
+
+      .bar-track {
+        grid-column: 2 / -1;
+      }
+
+      .sev {
+        width: auto;
+      }
+
+      .rec-item {
+        display: grid;
+        grid-template-columns: 48px auto 1fr;
+        gap: 12px;
+      }
+
+      .rec-body {
+        grid-column: 1 / -1;
+      }
+
+      footer {
+        padding: 28px 18px 42px;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="atm" aria-hidden="true">
+    <div class="ao ao1"></div>
+    <div class="ao ao2"></div>
+    <div class="ao ao3"></div>
+    <div class="ao ao4"></div>
+  </div>
+  <div class="hk" aria-hidden="true">結</div>
+
+  <header class="bar">
+    <div class="brand"><span class="dot"></span><span>YURI-OS-MUSUBI</span></div>
+    <div class="bar-spacer"></div>
+    <div class="bar-meta">
+      <span>branch: main</span>
+      <span>build: e322e254</span>
+      <span class="gate-badge">gate ready</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero reveal score-section">
+      <p class="section-label">01 // YURI OS AUDIT</p>
+      <h1>Deep System Audit 2026-05-18</h1>
+      <p class="subline">Independence · Learning · Neuron Loop — 9/9 gate checks passing</p>
+
+      <div class="hero-kpi">
+        <div class="kpi glass reveal-item" style="--accent: var(--gold)">
+          <div class="l">Independence</div>
+          <div class="v" data-score="86">0</div>
+          <div class="sub">/100</div>
+        </div>
+        <div class="kpi glass reveal-item" style="--accent: var(--amber)">
+          <div class="l">Learning</div>
+          <div class="v" data-score="61">0</div>
+          <div class="sub">/100</div>
+        </div>
+        <div class="kpi glass reveal-item" style="--accent: var(--amber)">
+          <div class="l">Neuron Loop</div>
+          <div class="v" data-score="65">0</div>
+          <div class="sub">/100</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass panel reveal">
+      <div class="panel-head">
+        <h2>02 // Gate Checks — 7-Day History</h2>
+        <span class="panel-note">May-12 through May-18</span>
+      </div>
+      <div class="health-wrap">
+        <div class="health-grid">
+          <div></div>
+          <div class="day-label">May-12</div>
+          <div class="day-label">May-13</div>
+          <div class="day-label">May-14</div>
+          <div class="day-label">May-15</div>
+          <div class="day-label">May-16</div>
+          <div class="day-label">May-17</div>
+          <div class="day-label">May-18</div>
+
+          <div class="check-label">independence</div>
+          <div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div>
+
+          <div class="check-label">learning</div>
+          <div class="dot-cell"><span class="pulse-dot a"></span></div><div class="dot-cell"><span class="pulse-dot a"></span></div><div class="dot-cell"><span class="pulse-dot a"></span></div><div class="dot-cell"><span class="pulse-dot a"></span></div><div class="dot-cell"><span class="pulse-dot a"></span></div><div class="dot-cell"><span class="pulse-dot a"></span></div><div class="dot-cell"><span class="pulse-dot a"></span></div>
+
+          <div class="check-label">nexbox-verify</div>
+          <div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div>
+
+          <div class="check-label">memory-health</div>
+          <div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div>
+
+          <div class="check-label">dream-processor</div>
+          <div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div>
+
+          <div class="check-label">rag-inject</div>
+          <div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot r"></span></div>
+
+          <div class="check-label">spawn-guard-safe</div>
+          <div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div>
+
+          <div class="check-label">spawn-guard-block</div>
+          <div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div>
+
+          <div class="check-label">audit-violations</div>
+          <div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div><div class="dot-cell"><span class="pulse-dot g"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass panel topology-panel reveal">
+      <div class="panel-head">
+        <h2>03 // Lane Constellation</h2>
+        <span class="panel-note">11 live lanes · 6 offline adapters</span>
+      </div>
+      <svg class="topology-svg" viewBox="0 0 720 380" role="img" aria-label="Lane Constellation">
+        <defs>
+          <linearGradient id="edgeGrad" x1="360" y1="190" x2="660" y2="345" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="rgba(201,168,76,0.35)"></stop>
+            <stop offset="100%" stop-color="rgba(201,168,76,0.05)"></stop>
+          </linearGradient>
+          <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(201,168,76,0.32)"></stop>
+            <stop offset="100%" stop-color="rgba(201,168,76,0)"></stop>
+          </radialGradient>
+        </defs>
+        <rect x="0" y="0" width="720" height="380" fill="rgba(255,255,255,0.012)" rx="16"></rect>
+        <circle cx="360" cy="190" r="128" fill="url(#coreGlow)"></circle>
+        <g stroke="url(#edgeGrad)" stroke-width="1">
+          <line x1="360" y1="190" x2="360" y2="75"></line>
+          <line x1="360" y1="190" x2="210" y2="130"></line>
+          <line x1="360" y1="190" x2="175" y2="210"></line>
+          <line x1="360" y1="190" x2="115" y2="190"></line>
+          <line x1="360" y1="190" x2="470" y2="120"></line>
+          <line x1="360" y1="190" x2="510" y2="200"></line>
+          <line x1="360" y1="190" x2="530" y2="280"></line>
+          <line x1="360" y1="190" x2="420" y2="300"></line>
+          <line x1="360" y1="190" x2="290" y2="315"></line>
+          <line x1="360" y1="190" x2="175" y2="300"></line>
+          <line x1="360" y1="190" x2="385" y2="350"></line>
+        </g>
+
+        <circle cx="360" cy="190" r="18" fill="rgba(201,168,76,0.12)" stroke="var(--gold)" stroke-width="1.5"></circle>
+        <circle cx="360" cy="190" r="8" fill="var(--gold)" filter="drop-shadow(0 0 10px rgba(201,168,76,0.8))"></circle>
+        <text x="360" y="224" text-anchor="middle" class="topology-label">MUSUBI</text>
+
+        <g class="live-node">
+          <g class="node-1"><circle cx="360" cy="75" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="360" cy="75" r="6" fill="var(--gold)"></circle><text x="360" y="59" text-anchor="middle" class="topology-label">codex</text></g>
+          <g class="node-2"><circle cx="210" cy="130" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="210" cy="130" r="6" fill="var(--gold)"></circle><text x="210" y="114" text-anchor="middle" class="topology-label">deepseek-pro</text></g>
+          <g class="node-3"><circle cx="175" cy="210" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="175" cy="210" r="6" fill="var(--gold)"></circle><text x="175" y="230" text-anchor="middle" class="topology-label">deepseek-flash</text></g>
+          <g class="node-4"><circle cx="115" cy="190" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="115" cy="190" r="6" fill="var(--gold)"></circle><text x="92" y="176" text-anchor="middle" class="topology-label">ollama</text></g>
+          <g class="node-5"><circle cx="470" cy="120" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="470" cy="120" r="6" fill="var(--gold)"></circle><text x="502" y="108" text-anchor="middle" class="topology-label">nvidia-llama-70b</text></g>
+          <g class="node-6"><circle cx="510" cy="200" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="510" cy="200" r="6" fill="var(--gold)"></circle><text x="552" y="204" text-anchor="middle" class="topology-label">nvidia-qwen</text></g>
+          <g class="node-7"><circle cx="530" cy="280" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="530" cy="280" r="6" fill="var(--gold)"></circle><text x="576" y="284" text-anchor="middle" class="topology-label">nvidia-mistral</text></g>
+          <g class="node-8"><circle cx="420" cy="300" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="420" cy="300" r="6" fill="var(--gold)"></circle><text x="420" y="320" text-anchor="middle" class="topology-label">nvidia-kimi</text></g>
+          <g class="node-9"><circle cx="290" cy="315" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="290" cy="315" r="6" fill="var(--gold)"></circle><text x="290" y="335" text-anchor="middle" class="topology-label">nvidia-nemotron</text></g>
+          <g class="node-10"><circle cx="175" cy="300" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="175" cy="300" r="6" fill="var(--gold)"></circle><text x="175" y="320" text-anchor="middle" class="topology-label">nvidia-qwen-coder</text></g>
+          <g class="node-11"><circle cx="385" cy="350" r="10" fill="transparent" stroke="var(--gold)" stroke-width="1" opacity=".4"></circle><circle cx="385" cy="350" r="6" fill="var(--gold)"></circle><text x="385" y="371" text-anchor="middle" class="topology-label">nvidia-vision</text></g>
+        </g>
+
+        <g>
+          <circle cx="600" cy="95" r="7" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" stroke-width="1"></circle><text x="600" y="80" text-anchor="middle" class="dead-label">nvidia-phi</text>
+          <circle cx="635" cy="160" r="7" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" stroke-width="1"></circle><text x="635" y="145" text-anchor="middle" class="dead-label">nvidia-405b</text>
+          <circle cx="645" cy="235" r="7" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" stroke-width="1"></circle><text x="645" y="220" text-anchor="middle" class="dead-label">nvidia-gemma</text>
+          <circle cx="625" cy="305" r="7" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" stroke-width="1"></circle><text x="625" y="290" text-anchor="middle" class="dead-label">nvidia-embed</text>
+          <circle cx="575" cy="55" r="7" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" stroke-width="1"></circle><text x="575" y="39" text-anchor="middle" class="dead-label">perplexity</text>
+          <circle cx="660" cy="345" r="7" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" stroke-width="1"></circle><text x="660" y="367" text-anchor="middle" class="dead-label">comet</text>
+        </g>
+        <text x="612" y="24" text-anchor="middle" class="dead-label">DEAD ZONE</text>
+      </svg>
+    </section>
+
+    <section class="two-col reveal">
+      <div class="glass panel reveal-item">
+        <div class="panel-head">
+          <h2>04 // Operational Health</h2>
+        </div>
+        <div class="works-list">
+          <div class="work-item"><span class="work-name">Launch Gate</span><span class="work-metric">9/9 daily</span></div>
+          <div class="work-item"><span class="work-name">DeepSeek Offload</span><span class="work-metric">100% success today</span></div>
+          <div class="work-item"><span class="work-name">Palace</span><span class="work-metric">7378 nodes · 47424 edges</span></div>
+          <div class="work-item"><span class="work-name">Memory Consolidation</span><span class="work-metric">2432 items · 0 contradictions</span></div>
+          <div class="work-item"><span class="work-name">Spawn Guard</span><span class="work-metric">PASS + BLOCKING</span></div>
+          <div class="work-item"><span class="work-name">Audit Violations</span><span class="work-metric">CLEAN</span></div>
+          <div class="work-item"><span class="work-name">Pulse Orchestrator</span><span class="work-metric">writing every turn</span></div>
+          <div class="work-item"><span class="work-name">Brain Inject</span><span class="work-metric">stale sentinel live</span></div>
+          <div class="work-item"><span class="work-name">Session Learning</span><span class="work-metric">60 records/day</span></div>
+          <div class="work-item"><span class="work-name">NVIDIA NIM</span><span class="work-metric">7/12 models live</span></div>
+          <div class="work-item"><span class="work-name">Lane Feedback</span><span class="work-metric">heuristic scoring live</span></div>
+        </div>
+      </div>
+
+      <div class="glass panel behavior-section reveal-item">
+        <div class="panel-head">
+          <h2>Behavioral Profile</h2>
+        </div>
+        <div class="metric-bars">
+          <div class="metric-row"><span class="metric-label">curiosity</span><div class="metric-track"><div class="metric-fill" data-target="80"></div></div><span class="metric-value">80%</span></div>
+          <div class="metric-row"><span class="metric-label">improvement</span><div class="metric-track"><div class="metric-fill" data-target="100"></div></div><span class="metric-value">100%</span></div>
+          <div class="metric-row"><span class="metric-label">accuracy</span><div class="metric-track"><div class="metric-fill" data-target="75"></div></div><span class="metric-value">75%</span></div>
+        </div>
+        <div class="chips">
+          <span class="chip amber">confidence bias: slight_overconfidence</span>
+          <span class="chip green">drift magnitude: 0.000 baseline-stable</span>
+        </div>
+        <div class="drive-row" aria-label="Behavioral drives">
+          <span class="drive">curiosity 80%</span>
+          <span class="drive">improvement 100%</span>
+          <span class="drive">accuracy 75%</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass panel pipeline-panel reveal">
+      <div class="panel-head">
+        <h2>05 // Learning Loop</h2>
+        <span class="panel-note">Council synthesis fix live</span>
+      </div>
+      <div class="pipeline-scroller">
+        <svg class="pipeline-svg" viewBox="0 0 700 128" width="100%" height="128" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="Learning pipeline">
+          <defs>
+            <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+              <polygon points="0,0 6,3 0,6" fill="var(--gold)" opacity=".58"></polygon>
+            </marker>
+            <filter id="fixedGlow" x="-40%" y="-90%" width="180%" height="280%">
+              <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
+              <feMerge>
+                <feMergeNode in="blur"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+              </feMerge>
+            </filter>
+          </defs>
+          <path id="pipeline-path" d="M105,64 L140,64 M230,64 L275,64 M365,64 L410,64 M500,64 L545,64" fill="none"></path>
+          <g stroke="var(--gold)" opacity=".36" stroke-width="1.5" marker-end="url(#arrow)">
+            <line x1="105" y1="64" x2="140" y2="64"></line>
+            <line x1="230" y1="64" x2="275" y2="64"></line>
+            <line x1="365" y1="64" x2="410" y2="64"></line>
+            <line x1="500" y1="64" x2="545" y2="64"></line>
+          </g>
+          <g>
+            <rect x="15" y="47" width="90" height="34" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(201,168,76,0.3)"></rect>
+            <text x="60" y="68" text-anchor="middle" fill="var(--gold)" font-family="JetBrains Mono" font-size="9" letter-spacing=".1em">TURN</text>
+            <rect x="140" y="47" width="90" height="34" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(201,168,76,0.3)"></rect>
+            <text x="185" y="68" text-anchor="middle" fill="var(--gold)" font-family="JetBrains Mono" font-size="9" letter-spacing=".1em">PULSE-ORCH</text>
+            <rect x="275" y="47" width="90" height="34" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(201,168,76,0.3)"></rect>
+            <text x="320" y="68" text-anchor="middle" fill="var(--gold)" font-family="JetBrains Mono" font-size="9" letter-spacing=".1em">COUNCIL-SYNTH</text>
+            <rect x="410" y="47" width="90" height="34" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(201,168,76,0.3)"></rect>
+            <text x="455" y="68" text-anchor="middle" fill="var(--gold)" font-family="JetBrains Mono" font-size="9" letter-spacing=".1em">PATTERN-PRO</text>
+            <rect x="545" y="47" width="90" height="34" rx="8" fill="rgba(255,255,255,0.06)" stroke="rgba(201,168,76,0.3)"></rect>
+            <text x="590" y="68" text-anchor="middle" fill="var(--gold)" font-family="JetBrains Mono" font-size="9" letter-spacing=".1em">GLOBAL.MD</text>
+          </g>
+          <g filter="url(#fixedGlow)">
+            <title>Consensus pre-filter removed — all WARN+ findings now flow to pattern-promoter</title>
+            <rect x="312" y="10" width="156" height="24" rx="12" fill="rgba(0,229,160,0.13)" stroke="var(--green)"></rect>
+            <text x="390" y="26" text-anchor="middle" fill="var(--green)" font-family="JetBrains Mono" font-size="9" font-weight="600">FIXED 2026-05-18</text>
+          </g>
+          <circle r="4" fill="var(--gold)" filter="drop-shadow(0 0 8px rgba(201,168,76,0.8))">
+            <animateMotion dur="3s" repeatCount="indefinite" calcMode="linear">
+              <mpath xlink:href="#pipeline-path"></mpath>
+            </animateMotion>
+          </circle>
+        </svg>
+      </div>
+    </section>
+
+    <section class="glass panel inhibitor-section reveal">
+      <div class="panel-head">
+        <h2>06 // Inhibitors</h2>
+        <span class="panel-note">Impact × severity</span>
+      </div>
+      <div class="bar-stack">
+        <div class="bar-row"><span class="sev-dot green"></span><span class="bar-label fixed">council-synthesis<span class="fixed-note"> — FIXED</span></span><div class="bar-track"><div class="bar-fill" data-target="95" style="background:linear-gradient(90deg,var(--red),var(--green))"></div></div><span class="impact-val">95%</span><span class="sev green">FIXED</span></div>
+        <div class="bar-row"><span class="sev-dot red"></span><span class="bar-label">rules_added=0</span><div class="bar-track"><div class="bar-fill" data-target="85" style="background:var(--red)"></div></div><span class="impact-val">85%</span><span class="sev red">CRITICAL</span></div>
+        <div class="bar-row"><span class="sev-dot red"></span><span class="bar-label">hypo_accuracy=0%</span><div class="bar-track"><div class="bar-fill" data-target="75" style="background:var(--red)"></div></div><span class="impact-val">75%</span><span class="sev red">CRITICAL</span></div>
+        <div class="bar-row"><span class="sev-dot red"></span><span class="bar-label">palace path double-_SYSTEM</span><div class="bar-track"><div class="bar-fill" data-target="70" style="background:var(--red)"></div></div><span class="impact-val">70%</span><span class="sev red">HIGH</span></div>
+        <div class="bar-row"><span class="sev-dot amber"></span><span class="bar-label">session records type:?</span><div class="bar-track"><div class="bar-fill" data-target="50" style="background:var(--amber)"></div></div><span class="impact-val">50%</span><span class="sev amber">WARN</span></div>
+        <div class="bar-row"><span class="sev-dot amber"></span><span class="bar-label">neuron loop age missing</span><div class="bar-track"><div class="bar-fill" data-target="45" style="background:var(--amber)"></div></div><span class="impact-val">45%</span><span class="sev amber">WARN</span></div>
+        <div class="bar-row"><span class="sev-dot amber"></span><span class="bar-label">task queue drains empty</span><div class="bar-track"><div class="bar-fill" data-target="40" style="background:var(--amber)"></div></div><span class="impact-val">40%</span><span class="sev amber">WARN</span></div>
+        <div class="bar-row"><span class="sev-dot amber"></span><span class="bar-label">lane health probe stale</span><div class="bar-track"><div class="bar-fill" data-target="35" style="background:var(--amber)"></div></div><span class="impact-val">35%</span><span class="sev amber">WARN</span></div>
+        <div class="bar-row"><span class="sev-dot info"></span><span class="bar-label">perplexity API missing</span><div class="bar-track"><div class="bar-fill" data-target="25" style="background:var(--gold)"></div></div><span class="impact-val">25%</span><span class="sev info">INFO</span></div>
+        <div class="bar-row"><span class="sev-dot info"></span><span class="bar-label">comet adapter dead</span><div class="bar-track"><div class="bar-fill" data-target="20" style="background:var(--gold)"></div></div><span class="impact-val">20%</span><span class="sev info">INFO</span></div>
+        <div class="bar-row"><span class="sev-dot info"></span><span class="bar-label">npx missing in probe env</span><div class="bar-track"><div class="bar-fill" data-target="15" style="background:var(--gold)"></div></div><span class="impact-val">15%</span><span class="sev info">INFO</span></div>
+      </div>
+    </section>
+
+    <section class="glass panel reveal">
+      <div class="panel-head">
+        <h2>07 // Priority Actions</h2>
+        <span class="panel-note">High leverage next moves</span>
+      </div>
+      <div class="rec-list">
+        <div class="rec-item"><span class="rec-num">1</span><span class="priority high">HIGH</span><div class="rec-body"><span class="rec-text">Wire neuron loop flaw→promotion path</span><span class="dot-score">effort: <span><span class="filled">●●</span><span class="empty">○</span></span> impact: <span class="filled">●●●</span></span></div></div>
+        <div class="rec-item"><span class="rec-num">2</span><span class="priority high">HIGH</span><div class="rec-body"><span class="rec-text">Fix hypothesis tracker returning 0% accuracy</span><span class="dot-score">effort: <span><span class="filled">●</span><span class="empty">○○</span></span> impact: <span><span class="filled">●●</span><span class="empty">○</span></span></span></div></div>
+        <div class="rec-item"><span class="rec-num">3</span><span class="priority high">HIGH</span><div class="rec-body"><span class="rec-text">Fix palace path double-_SYSTEM prefix</span><span class="dot-score">effort: <span><span class="filled">●</span><span class="empty">○○</span></span> impact: <span><span class="filled">●●</span><span class="empty">○</span></span></span></div></div>
+        <div class="rec-item"><span class="rec-num">4</span><span class="priority warn">WARN</span><div class="rec-body"><span class="rec-text">Fix session record type tagging in cross-session miner</span><span class="dot-score">effort: <span><span class="filled">●</span><span class="empty">○○</span></span> impact: <span><span class="filled">●</span><span class="empty">○○</span></span></span></div></div>
+        <div class="rec-item"><span class="rec-num">5</span><span class="priority warn">WARN</span><div class="rec-body"><span class="rec-text">Update lane health probe to write fresh timestamps</span><span class="dot-score">effort: <span><span class="filled">●</span><span class="empty">○○</span></span> impact: <span><span class="filled">●</span><span class="empty">○○</span></span></span></div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>YURI-OS-MUSUBI / audit-2026-05-18</span>
+    <span>Generated 2026-05-18 · Musubi-Sonnet-4.6 · build e322e254</span>
+  </footer>
+
+  <script>
+    const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+    const hasAnimated = new WeakSet();
+
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('in');
+        entry.target.querySelectorAll('.reveal-item').forEach((item, index) => {
+          item.style.transitionDelay = `${index * 60}ms`;
+        });
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(section => revealObserver.observe(section));
+
+    const scoreSection = document.querySelector('.score-section');
+    const scoreObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting || hasAnimated.has(entry.target)) return;
+        hasAnimated.add(entry.target);
+        entry.target.querySelectorAll('.kpi .v').forEach(number => {
+          const score = Number(number.dataset.score);
+          const start = performance.now();
+          const tick = now => {
+            const progress = Math.min((now - start) / 1100, 1);
+            number.textContent = Math.round(easeOutCubic(progress) * score);
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        });
+        entry.target.querySelectorAll('.arc').forEach(arc => {
+          arc.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.23,1,.32,1)';
+          arc.style.strokeDashoffset = arc.dataset.target;
+        });
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -32px 0px' });
+
+    if (scoreSection) scoreObserver.observe(scoreSection);
+
+    const inhibitorSection = document.querySelector('.inhibitor-section');
+    const inhibitorObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.querySelectorAll('.bar-fill').forEach((bar, index) => {
+          setTimeout(() => {
+            bar.style.width = `${bar.dataset.target}%`;
+          }, index * 100);
+        });
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+
+    if (inhibitorSection) inhibitorObserver.observe(inhibitorSection);
+
+    const behaviorSection = document.querySelector('.behavior-section');
+    const behaviorObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.querySelectorAll('.metric-fill').forEach((bar, index) => {
+          setTimeout(() => {
+            bar.style.width = `${bar.dataset.target}%`;
+          }, index * 90);
+        });
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+
+    if (behaviorSection) behaviorObserver.observe(behaviorSection);
+
+    document.querySelectorAll('svg .arc').forEach(arc => {
+      if (!arc.dataset.target) return;
+      arc.style.strokeDashoffset = arc.getAttribute('stroke-dashoffset') || '283';
+    });
+  </script>
+</body>
+</html>

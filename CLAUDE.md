@@ -41,6 +41,17 @@ Use this packet for direct Claude control-plane work:
 
 Codex dispatch remains governed by `CODEX_PROTOCOL.md` and must include `## CODEX TASK SPEC`. Claude inherits that discipline but uses the broader packet above for direct control-plane work.
 
+### POST-PLAN DISPATCH GATE (PATCH 040 — 2026-05-18)
+
+After `ExitPlanMode` approval, the main thread MUST dispatch before mutating:
+
+1. For any implementation task (file write, HTML build, code edit >5 lines): call `node _SYSTEM/Scripts/ai auto "<goal>"` FIRST. The plan goal is the task string. Do NOT open Edit/Write tools before that call completes.
+2. Exception: surgical fixes ≤5 lines already fully scoped in the plan — proceed directly.
+3. Skills (design-master, deepseek-workhorse, etc.) are instruction sets that run in the main thread. Invoking a skill does NOT count as dispatching. The skill spec must be passed to `Scripts/ai auto` as the implementation task.
+4. `Scripts/ai` is the canonical entry point. Never call `Scripts/offload.sh` directly — it is the internal runner, not the interface.
+
+This gate exists because plan mode puts the main thread in executor mode with no routing step. Without it, the main thread bypasses the offload contract and implements directly, violating Claude=last-resort.
+
 ### Gate Rules
 
 - Direct `Write`, `Edit`, `MultiEdit`, risky `Bash`, or implementation `Agent` use without a packet should trigger a warn-first protocol gate.
@@ -122,7 +133,7 @@ Yuri runs a **Pulse Cortex** on every non-trivial user prompt. Auto-triggered by
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **yuri-vault** (63911 symbols, 92883 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (64199 symbols, 93275 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -145,10 +156,10 @@ This project is indexed by GitNexus as **yuri-vault** (63911 symbols, 92883 rela
 
 | Resource | Use for |
 |----------|---------|
-| `gitnexus://repo/yuri-vault/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/yuri-vault/clusters` | All functional areas |
-| `gitnexus://repo/yuri-vault/processes` | All execution flows |
-| `gitnexus://repo/yuri-vault/process/{name}` | Step-by-step execution trace |
+| `gitnexus://repo/nudimmud-vault/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/nudimmud-vault/clusters` | All functional areas |
+| `gitnexus://repo/nudimmud-vault/processes` | All execution flows |
+| `gitnexus://repo/nudimmud-vault/process/{name}` | Step-by-step execution trace |
 
 ## CLI
 

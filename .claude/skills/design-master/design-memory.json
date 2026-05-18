@@ -5,6 +5,17 @@
   "note": "Canonical YURI design memory. Skill-local copies are compatibility mirrors; write new decisions here first.",
   "entries": [
     {
+      "date": "2026-05-18",
+      "component": "audit-2026-05-18",
+      "file": "_SYSTEM/audit-2026-05-18.html",
+      "action": "create",
+      "decision": "Round 2 design pass via design-master (round 1 was raw Codex — rejected for generic boxy look). Composition family: Classified Intelligence Brief. Key decisions: sections float on void with LEFT-BORDER ONLY (3px gold) — no card boxes ever again for this surface. Scanline ambient texture via CSS repeating-linear-gradient (no canvas). 結 kanji watermark at 1.8% opacity bottom-right (Musubi brand depth). Typography hierarchy: section-num 10px uppercase 0.18em spacing, metric-value 36px gold mono, section-title 13px Bricolage Grotesque uppercase. Score rings: drop-shadow glow filter on SVG arcs. Health grid: table-like CSS grid with row labels + column headers. Lane constellation: dual concentric circles for live nodes (inner fill + outer ring). Inhibitor bars: 2px height track (refined), severity dot prefix, thinner than round 1. Recommendations: numbered with visual weight decay (opacity 1.0→0.85→0.70). References: YURI DESIGN.md, Musubi brand identity, VSCode layout shell, Codrops scroll choreography.",
+      "tokens_used": ["--bg-void", "--bg-surface", "--gold", "--gold-bright", "--gold-dim", "--gold-glow", "--red", "--red-dim", "--amber", "--green", "--green-dim", "--text", "--text-dim", "--text-micro", "--border", "--border-active", "--ease-neural", "--font-mono", "--font-display"],
+      "pattern": "Classified brief composition: left-border-only sections on void, scanline texture, 結 watermark, dual concentric node circles, 2px refined bars. Reuse for any YURI OS intelligence/audit surface."
+      "tokens_used": ["--gold", "--gold-bright", "--red", "--amber", "--green", "--bg", "--surface", "--border", "--muted", "--text"],
+      "pattern": "Audit report iteration: each run improves design (accent correction, animation add, layout evolution) AND updates all data. Never create a new file when an existing audit can be improved."
+    },
+    {
       "date": "2026-05-17",
       "component": "yuri-os-launch-readiness",
       "file": "_SYSTEM/yuri-os-launch-readiness.html",

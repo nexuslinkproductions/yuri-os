@@ -20,7 +20,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT  = path.resolve(__dirname, '..');
+const REPO_ROOT  = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const STATE_DIR  = path.join(REPO_ROOT, '.claude', 'state');
 const LOG_FILE   = path.join(STATE_DIR, 'palace-rebuild.log');
 const REBUILD_PY = path.join(REPO_ROOT, '_SYSTEM', 'palace-rebuild.py');

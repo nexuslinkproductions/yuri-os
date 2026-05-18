@@ -14,7 +14,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const LOG_PATH = path.join(REPO_ROOT, '.claude', 'state', 'pulse-hook-telemetry.log');
 const JSON_MODE = process.argv.includes('--json');
 

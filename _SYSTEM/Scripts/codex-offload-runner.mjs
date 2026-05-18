@@ -192,6 +192,7 @@ function buildCodexArgs({ modelId, config, reasoningEffort, prompt, artifactDir,
     'exec',
     '--model',    modelId,
     '--sandbox',  config.sandbox,
+    '--full-auto',            // non-TTY: never wait for interactive write approval
     '--ephemeral',
     '--ignore-user-config',
     '--skip-git-repo-check',
