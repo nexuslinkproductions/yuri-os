@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 
+const fs = require('fs');
+const ss = require('./session-state.js');
+
 const MUTATION_TOOLS = new Set(['Write', 'Edit', 'MultiEdit']);
 const CODEX_DISPATCH_MARKERS = [
   'codex exec',
@@ -149,6 +152,40 @@ function needsDirectMutationWarning(input) {
   return false;
 }
 
+const PLAN_GATE_TTL_MS = 30 * 60 * 1000;
+const PLAN_GATE_MAX_WARNS = 3;
+
+function checkPlanDispatchGate(input) {
+  const toolName = input?.tool_name || '';
+  const isMutation = MUTATION_TOOLS.has(toolName) ||
+    (toolName === 'Bash' && includesAny(` ${normalize(bashCommand(input))} `, MUTATING_COMMAND_MARKERS));
+  if (!isMutation) return null;
+
+  try {
+    const state = ss.read();
+    const gate = state?.plan_dispatch_gate;
+    if (!gate || !gate.armed || gate.satisfied) return null;
+
+    if (gate.warn_count >= PLAN_GATE_MAX_WARNS || Date.now() - gate.armed_at > PLAN_GATE_TTL_MS) {
+      ss.update(s => { s.plan_dispatch_gate.satisfied = true; });
+      return null;
+    }
+
+    if (hasRoutePlanEvidence(textOf(input?.tool_input))) {
+      ss.update(s => { s.plan_dispatch_gate.satisfied = true; });
+      return null;
+    }
+
+    ss.update(s => { s.plan_dispatch_gate.warn_count = (s.plan_dispatch_gate.warn_count || 0) + 1; });
+    return {
+      code: 'post-plan-dispatch-required',
+      message: 'ExitPlanMode approved but no route-plan dispatch — run: _SYSTEM/Scripts/ai route-plan "<task>" and dispatch to the returned lane before direct mutation. (offload priority: @gpt-5.5 → @codex-spark → ... → @claude last resort)',
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
 function inspect(input) {
   // Sprint mode bypass: set YURI_SPRINT_MODE=1 in env to suppress WARNs during
   // authorized rapid-implementation sessions. Session-scoped only — does not persist.
@@ -159,6 +196,15 @@ function inspect(input) {
   const toolText = textOf(input?.tool_input);
   const lowerToolText = toolText.toLowerCase();
   const warnings = [];
+
+  // Satisfy plan dispatch gate when route-plan evidence appears in any tool call
+  try {
+    const state = ss.read();
+    if (state?.plan_dispatch_gate?.armed && !state.plan_dispatch_gate.satisfied &&
+        hasRoutePlanEvidence(toolText)) {
+      ss.update(s => { s.plan_dispatch_gate.satisfied = true; });
+    }
+  } catch (_) {}
 
   if (needsDirectMutationWarning(input) && !hasClaudeControlPacket(toolText) && !hasCodexTaskSpec(toolText)) {
     warnings.push({
@@ -190,6 +236,9 @@ function inspect(input) {
     });
   }
 
+  const planGateWarn = checkPlanDispatchGate(input);
+  if (planGateWarn) warnings.push(planGateWarn);
+
   return warnings;
 }
 
@@ -211,17 +260,14 @@ function emitWarnings(warnings) {
 
 
 function emitBlock(warnings) {
-  const items = warnings.map((w) => '- ' + w.code + ': ' + w.message).join('
-');
+  const items = warnings.map((w) => '- ' + w.code + ': ' + w.message).join('\n');
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'PreToolUse',
       permissionDecision: 'deny',
-      permissionDecisionReason: 'YURI_GATE_BLOCK: critical tier — route through Yuri pipeline first.
-' + items,
+      permissionDecisionReason: 'YURI_GATE_BLOCK: critical tier — route through Yuri pipeline first.\n' + items,
     },
-  }) + '
-');
+  }) + '\n');
 }
 
 function readSessionPacket(sessionId) {
@@ -235,8 +281,7 @@ function readSessionPacket(sessionId) {
 function appendAuditLog(entry) {
   try {
     const os = require('os');
-    fs.appendFileSync(os.homedir() + '/.yuri-audit.log', JSON.stringify(entry) + '
-');
+    fs.appendFileSync(os.homedir() + '/.yuri-audit.log', JSON.stringify(entry) + '\n');
   } catch (_) {}
 }
 let raw = '';
