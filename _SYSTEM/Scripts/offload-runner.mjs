@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readdirSync, statSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, appendFileSync } from 'fs';
 import { execSync } from 'child_process';
 import path from 'path';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
@@ -121,6 +121,16 @@ const result = await runOpenAICompatibleChat(
   resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody,
   { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout, lane, traceId: ledgerTraceId, tools: options.tools }
 );
+if (options.outputFile) {
+  try {
+    const { mkdirSync: _mkdir, writeFileSync: _write } = await import('node:fs');
+    const { dirname: _dirname } = await import('node:path');
+    _mkdir(_dirname(options.outputFile), { recursive: true });
+    _write(options.outputFile, result, 'utf-8');
+  } catch (e) {
+    process.stderr.write(`[offload-runner] --output-file write failed: ${e.message}\n`);
+  }
+}
 process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
 
 function parseArgs(rest) {
@@ -136,6 +146,7 @@ function parseArgs(rest) {
     planFile: '',
     executePulse: false,
     tools: false,
+    outputFile: '',
   };
   const promptParts = [];
 
@@ -171,6 +182,10 @@ function parseArgs(rest) {
     }
     if (token === '--plan-file' && rest[i + 1]) {
       out.planFile = rest[++i];
+      continue;
+    }
+    if (token === '--output-file' && rest[i + 1]) {
+      out.outputFile = rest[++i];
       continue;
     }
     if (token === '--execute-pulse' || token === '--execute') {
@@ -1277,6 +1292,96 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
           required: ['path', 'content']
         }
       }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'grep',
+        description: 'Search files for a pattern, returns matching lines with line numbers',
+        parameters: {
+          type: 'object',
+          properties: {
+            pattern: { type: 'string', description: 'Search pattern' },
+            path: { type: 'string', description: 'File or directory to search (optional, defaults to repo root)' },
+            flags: { type: 'string', description: 'grep flags e.g. "rn", "rni" (optional, default "rn")' }
+          },
+          required: ['pattern']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'list_dir',
+        description: 'List files and directories at a path',
+        parameters: {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'Directory path to list' }
+          },
+          required: ['path']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'edit_file',
+        description: 'Replace exact old_string with new_string in a file (exact match required)',
+        parameters: {
+          type: 'object',
+          properties: {
+            path: { type: 'string', description: 'File path to edit' },
+            old_string: { type: 'string', description: 'Exact text to replace' },
+            new_string: { type: 'string', description: 'Replacement text' }
+          },
+          required: ['path', 'old_string', 'new_string']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'skill_invoke',
+        description: 'Load SKILL.md instructions for a named Yuri OS skill',
+        parameters: {
+          type: 'object',
+          properties: {
+            skill_name: { type: 'string', description: 'Skill directory name under .claude/skills/' }
+          },
+          required: ['skill_name']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'palace_query',
+        description: 'Query Yuri OS semantic memory (palace/vault) for relevant context using natural language',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Natural language query against semantic memory' },
+            top: { type: 'number', description: 'Number of results to return (default 5)' }
+          },
+          required: ['query']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'ollama_run',
+        description: 'Run a prompt through a local Ollama model (needle/llama3.2) for lightweight inference',
+        parameters: {
+          type: 'object',
+          properties: {
+            prompt: { type: 'string', description: 'Prompt to send to the local model' },
+            model: { type: 'string', description: 'Ollama model name (default: needle)' }
+          },
+          required: ['prompt']
+        }
+      }
     }
   ];
 
@@ -1287,6 +1392,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
   let lastToolCallNames = []; // Track last tool calls to detect loops
   let lastCallSig = '';
   let consecutiveToolCalls = 0;
+  let toolLoopRecovered = false; // allow one graceful recovery before hard throw
 
   while (iteration < maxIterations) {
     iteration++;
@@ -1384,7 +1490,17 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
       const currentToolNames = message.tool_calls.map(tc => tc.function.name).sort().join(',');
       if (lastToolCallNames === currentToolNames && iteration >= 3) {
-        throw new Error('TOOL_LOOP_DETECTED: same tools called 3+ times: ' + currentToolNames);
+        if (!toolLoopRecovered) {
+          toolLoopRecovered = true;
+          lastToolCallNames = null;
+          consecutiveToolCalls = 0;
+          messages.push({
+            role: 'user',
+            content: `TOOL_LOOP_NOTICE: "${currentToolNames}" was called 3+ times without new progress. Provide your final answer as plain text — no further tool calls.`,
+          });
+          continue;
+        }
+        throw new Error('TOOL_LOOP_DETECTED: same tools called 3+ times after recovery: ' + currentToolNames);
       }
       lastToolCallNames = currentToolNames;
       consecutiveToolCalls++;
@@ -1409,10 +1525,40 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
     // No more tool calls or tools disabled — return final answer
     consecutiveToolCalls = 0;
-    return message.content || '';
+    const finalText = message.content || '';
+    autoRecordOutcome(opts?.lane, opts?.traceId, finalText);
+    return finalText;
   }
 
   throw new Error(`Loop exceeded max iterations (${maxIterations})`);
+}
+
+function autoRecordOutcome(lane, traceId, text) {
+  if (!lane) return;
+  try {
+    let outcome = 'empty';
+    let outcome_source = 'heuristic_content_quality';
+    if (text && text.length >= 50) {
+      const lower = text.toLowerCase();
+      const isRefusal = /\bi (cannot|can't|am unable|won't|will not)\b/.test(lower) && text.length < 300;
+      const isError = /\b(rate limit|api error|connection refused|timeout|503|502)\b/.test(lower);
+      const hasStructure = /\n[-*•]|\n\d+\.|\n#{1,3} |```/.test(text);
+      if (isError) outcome = 'error';
+      else if (isRefusal) outcome = 'refusal';
+      else if (hasStructure || text.length >= 200) outcome = 'success';
+      else outcome = 'success';
+    }
+    const record = JSON.stringify({
+      ts: new Date().toISOString(),
+      lane,
+      traceId: traceId || null,
+      outcome,
+      outcome_source,
+      text_length: text ? text.length : 0,
+    });
+    const feedbackPath = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-feedback.jsonl';
+    appendFileSync(feedbackPath, record + '\n');
+  } catch (_) { /* never block on outcome recording */ }
 }
 
 async function recordOffloadLedger({
@@ -1523,6 +1669,97 @@ async function executeTool(name, argsStr) {
         return `✓ Wrote ${content.length} bytes to ${filePath}`;
       } catch (e) {
         return `write_file error: ${e.message}`;
+      }
+    }
+
+    if (name === 'grep') {
+      const { pattern, path: targetPath, flags = 'rn' } = args;
+      if (!pattern) return 'ERROR: Missing pattern parameter';
+      const safety = evaluateToolCall('bash', { cmd: `grep -${flags} "${pattern}" "${targetPath || '.'}"` }, { source: 'offload-runner' });
+      if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
+      try {
+        const output = execSync(`grep -${flags} "${pattern}" "${targetPath || '.'}"`, {
+          cwd: '/Users/marcelspatz/YURI-OS-MUSUBI',
+          encoding: 'utf-8',
+          maxBuffer: 2 * 1024 * 1024,
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        return output.trim() || '(no matches)';
+      } catch (e) {
+        return e.status === 1 ? '(no matches)' : `grep error: ${e.stderr?.toString() || e.message}`;
+      }
+    }
+
+    if (name === 'list_dir') {
+      const { path: dirPath } = args;
+      if (!dirPath) return 'ERROR: Missing path parameter';
+      try {
+        const { readdirSync: rds, statSync: ss } = await import('node:fs');
+        const entries = rds(dirPath, { withFileTypes: true });
+        return entries.map(e => `${e.isDirectory() ? 'd' : 'f'} ${e.name}`).join('\n');
+      } catch (e) {
+        return `list_dir error: ${e.message}`;
+      }
+    }
+
+    if (name === 'edit_file') {
+      const { path: filePath, old_string, new_string } = args;
+      if (!filePath || old_string === undefined || new_string === undefined) return 'ERROR: Missing path, old_string, or new_string';
+      const safety = evaluateToolCall('write_file', { path: filePath }, { source: 'offload-runner' });
+      if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
+      if (writeScope && !writeScope.has(path.resolve(filePath))) {
+        return 'SCOPE_BLOCKED: edit to ' + filePath + ' is outside write-scope manifest';
+      }
+      try {
+        const content = readFileSync(filePath, 'utf-8');
+        if (!content.includes(old_string)) return `edit_file error: old_string not found in ${filePath}`;
+        const updated = content.replace(old_string, new_string);
+        writeFileSync(filePath, updated, 'utf-8');
+        return `✓ Edited ${filePath}`;
+      } catch (e) {
+        return `edit_file error: ${e.message}`;
+      }
+    }
+
+    if (name === 'skill_invoke') {
+      const { skill_name } = args;
+      if (!skill_name) return 'ERROR: Missing skill_name parameter';
+      const skillPath = path.join('/Users/marcelspatz/YURI-OS-MUSUBI', '.claude', 'skills', skill_name, 'SKILL.md');
+      try {
+        const content = readFileSync(skillPath, 'utf-8');
+        return `SKILL_INSTRUCTIONS [${skill_name}]:\n${content.slice(0, 4000)}`;
+      } catch (e) {
+        return `skill_invoke error: SKILL.md not found for "${skill_name}" — ${e.message}`;
+      }
+    }
+
+    if (name === 'palace_query') {
+      const { query, top = 5 } = args;
+      if (!query) return 'ERROR: Missing query parameter';
+      try {
+        const safeQuery = query.replace(/"/g, '\\"');
+        const out = execSync(
+          `node _SYSTEM/Scripts/memory-query.mjs "${safeQuery}" --top ${top}`,
+          { cwd: '/Users/marcelspatz/YURI-OS-MUSUBI', encoding: 'utf-8', maxBuffer: 2 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }
+        );
+        return out.trim() || '(no results)';
+      } catch (e) {
+        return `palace_query error: ${e.stderr?.toString() || e.message}`;
+      }
+    }
+
+    if (name === 'ollama_run') {
+      const { prompt: ollamaPrompt, model: ollamaModel = 'needle' } = args;
+      if (!ollamaPrompt) return 'ERROR: Missing prompt parameter';
+      try {
+        const payload = JSON.stringify({ model: ollamaModel, prompt: ollamaPrompt, stream: false });
+        const out = execSync(
+          `curl -s --max-time 60 http://localhost:11434/api/generate -d ${JSON.stringify(payload)}`,
+          { encoding: 'utf-8', maxBuffer: 2 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }
+        );
+        try { return JSON.parse(out).response || out.trim(); } catch { return out.trim(); }
+      } catch (e) {
+        return `ollama_run error: ${e.stderr?.toString() || e.message}`;
       }
     }
 

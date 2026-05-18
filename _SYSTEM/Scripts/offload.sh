@@ -371,21 +371,10 @@ dispatch_model() {
     if [[ -n "${REASONING_DEPTH:-}" ]]; then
       reasoning_args=(--reasoning "$REASONING_DEPTH")
     fi
-    # Per-lane tool default: DeepSeek lanes get tools ON by default (full bash/read/write capability,
-    # 50-iter loop). Other lanes default to --no-tools. User can override either direction with explicit
-    # --tools / --no-tools flags (TOOLS_EXPLICIT=1).
-    local tool_args=()
-    local effective_tools="$ALLOW_MODEL_TOOLS"
-    if [[ "${TOOLS_EXPLICIT:-0}" != "1" ]]; then
-      case "$target_model" in
-        deepseek|deepseek-v4-flash|deepseek-v4-pro)
-          effective_tools=1
-          ;;
-      esac
-    fi
-    if [[ "$effective_tools" == "1" ]]; then
-      tool_args=(--tools)
-    else
+    # All lanes get tools ON by default (bash/read/write/grep/list_dir/edit_file/skill_invoke/palace_query/ollama_run).
+    # User can override with explicit --no-tools flag (TOOLS_EXPLICIT=1).
+    local tool_args=(--tools)
+    if [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" != "1" ]]; then
       tool_args=(--no-tools)
     fi
 

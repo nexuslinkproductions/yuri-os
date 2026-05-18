@@ -16,7 +16,7 @@ const PATHS = {
   bus: path.join(STATE_DIR, 'pulse-bus.json'),
   hypotheses: path.join(NISABA_LEARNING_DIR, 'hypotheses.json'),
   githubTrending: path.join(NISABA_LEARNING_DIR, 'github-trending.json'),
-  synthesis: path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'synthesis.jsonl'),
+  synthesis: path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'synthesis.jsonl'),
   heartbeat: path.join(STATE_DIR, 'yuri-sentinel-state.json'),
   vaultLogDir: path.join(STATE_DIR, 'pulse-vault-log'),
   memoryConsolidate: path.join(REPO_ROOT, 'Scripts', 'memory-consolidate.mjs'),

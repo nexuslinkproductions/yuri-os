@@ -202,7 +202,7 @@ OUTPUT_CAP: 40 lines`;
   const dsModel = plan.councilComposition?.deepseekModel || 'deepseek-v4-flash';
   const result = await execWithTimeout(
     'bash',
-    [OFFLOAD_SH, '-m', dsModel, '--no-tools', preflightPrompt],
+    [OFFLOAD_SH, '-m', dsModel, '--tools', preflightPrompt],
     {},
     TIMEOUT_DEEPSEEK_MS
   );
@@ -228,7 +228,7 @@ OUTPUT_CAP: 30 lines`;
 
   const result = await execWithTimeout(
     'bash',
-    [OFFLOAD_SH, '@nvidia', '--no-tools', preflightPrompt],
+    [OFFLOAD_SH, '@nvidia', '--tools', preflightPrompt],
     {},
     TIMEOUT_NVIDIA_MS
   );
@@ -396,7 +396,7 @@ ${peerDigest.slice(0, 400) || '(none)'}
 Output ONE line predicting the highest-probability failure mode for this turn. Format: SEVERITY:WARN|HIGH|CRITICAL :: <prediction>. Be concrete.`;
     const result = await execWithTimeout(
       'bash',
-      [OFFLOAD_SH, '@deepseek-v4-flash', '--no-tools', cassPrompt],
+      [OFFLOAD_SH, '@deepseek-v4-flash', '--tools', cassPrompt],
       {},
       25_000
     );
@@ -432,8 +432,8 @@ ${String(prompt).slice(0, 300)}
 TASK: Independent strategic risk scan. What could go wrong that the primary analysis missed? 1-3 lines.`;
 
   const [flashResult, proResult] = await Promise.allSettled([
-    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-flash', '--no-tools', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
-    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-pro',   '--no-tools', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
+    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-flash', '--tools', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
+    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-pro',   '--tools', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
   ]);
 
   const outputs = [];
@@ -472,7 +472,7 @@ TASK: 6-perspective strategic review. Return compact sections for architect, adv
   ];
 
   const results = await Promise.allSettled(lanes.map(([role, lane]) => (
-    execWithTimeout('bash', [OFFLOAD_SH, lane, '--no-tools', `${shuraPrompt}\nPERSPECTIVE: ${role}`], {}, TIMEOUT_SWARM_MS)
+    execWithTimeout('bash', [OFFLOAD_SH, lane, '--tools', `${shuraPrompt}\nPERSPECTIVE: ${role}`], {}, TIMEOUT_SWARM_MS)
   )));
 
   const outputs = [];
@@ -509,7 +509,7 @@ OUTPUT_CAP: 20 lines`;
 
   const result = await execWithTimeout(
     'bash',
-    [OFFLOAD_SH, '-m', codexModel, '--no-tools', advisoryPrompt],
+    [OFFLOAD_SH, '-m', codexModel, '--tools', advisoryPrompt],
     {},
     TIMEOUT_DEEPSEEK_MS
   );
