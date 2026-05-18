@@ -92,13 +92,19 @@ function printPrettyJson(value) {
 
 function printUsage() {
   console.log(`Usage:
-  kagami "<prompt>"              POST /kagami/reflect + SSE stream to stdout
-  kagami --history [N]           GET /kagami/memory/profile, last N reflections (default 10)
-  kagami --profile               GET /kagami/memory/profile, pretty JSON
-  kagami --rate <id> <1-5> [msg] POST /kagami/memory/rate/:id
-  kagami --lanes                 GET /kagami/lanes, columnar NAME|STATUS table
-  kagami --improvement           GET /kagami/improvement
-  kagami --health                GET /kagami/health, one-line uptime`);
+  kagami "<prompt>"                    reflect + stream to stdout
+  kagami --mode short "<prompt>"       ultra-terse: action + result only
+  kagami --mode silent "<prompt>"      outcome only, no process narration
+  kagami --mode zen "<prompt>"         sparse, one truth per response
+  kagami --mode sharp "<prompt>"       max technical precision, no filler
+  kagami --mode deep "<prompt>"        answers the underlying problem
+
+  kagami --health                      server status
+  kagami --lanes                       available lanes
+  kagami --history [N]                 last N reflections (default 10)
+  kagami --profile                     full memory profile
+  kagami --rate <id> <1-5> [msg]       rate a reflection
+  kagami --improvement                 prompt quality report`);
 }
 
 function fail(reason, code = 1) {
