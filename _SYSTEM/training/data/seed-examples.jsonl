@@ -1,0 +1,31 @@
+{"prompt": "what does hexagonal architecture solve?", "completion": "trivial"}
+{"prompt": "list files in _SYSTEM/Scripts/", "completion": "trivial"}
+{"prompt": "what is the current kagami health status?", "completion": "trivial"}
+{"prompt": "explain what pulse-bus.jsonl is used for", "completion": "trivial"}
+{"prompt": "what lanes are available in kagami?", "completion": "trivial"}
+{"prompt": "read the contents of server.ts", "completion": "trivial"}
+{"prompt": "what is the KAGAMI_TIMEOUT_MS default value?", "completion": "trivial"}
+{"prompt": "show recent git log", "completion": "trivial"}
+{"prompt": "what model does the yuri-triage ollama variant use?", "completion": "trivial"}
+{"prompt": "add error logging to yuriOffloadAdapter spawn calls", "completion": "standard"}
+{"prompt": "add a new CLI flag --verbose to kagami-cli.mjs", "completion": "standard"}
+{"prompt": "fix the circuit breaker overcalibration in the inference adapter", "completion": "standard"}
+{"prompt": "write unit tests for the Router.decide() function", "completion": "standard"}
+{"prompt": "update the Modelfile system prompt with new examples", "completion": "standard"}
+{"prompt": "add KAGAMI_TIMEOUT_MS to env.sh documentation comment", "completion": "standard"}
+{"prompt": "bump the pulse-bus rotation threshold from 5000 to 10000", "completion": "standard"}
+{"prompt": "add a --json flag to kagami --health output", "completion": "standard"}
+{"prompt": "extract the HTTP helpers from kagami-cli.mjs into a shared util", "completion": "standard"}
+{"prompt": "redesign the Kagami routing architecture to support dynamic lane registration", "completion": "complex"}
+{"prompt": "build a LoRA fine-tune pipeline with mlx-lm and automated trigger", "completion": "complex"}
+{"prompt": "integrate GitNexus MCP context injection into every reflect call", "completion": "complex"}
+{"prompt": "design a multi-tier caching layer for Kagami inference results", "completion": "complex"}
+{"prompt": "add a feedback loop that auto-updates the Router weights based on ratings", "completion": "complex"}
+{"prompt": "refactor the whole offload chain to support streaming from DeepSeek directly", "completion": "complex"}
+{"prompt": "build a new Shintai coordination protocol with consensus voting", "completion": "complex"}
+{"prompt": "drop all tables in kagami.db and rebuild from scratch", "completion": "critical"}
+{"prompt": "force push to main branch", "completion": "critical"}
+{"prompt": "rotate KAGAMI_AUTH_TOKEN and update all running services", "completion": "critical"}
+{"prompt": "delete the codex/kagami-rebuild worktree permanently", "completion": "critical"}
+{"prompt": "push the Kagami backend to production with breaking schema changes", "completion": "critical"}
+{"prompt": "revoke all NVIDIA API keys and rotate them across all envs", "completion": "critical"}
