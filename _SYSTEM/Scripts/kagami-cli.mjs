@@ -223,7 +223,7 @@ function tailKagamiStreamImpl(streamUrl, timeoutMs = 120000) {
       let fullText = '';
       let buffer = '';
 
-      res.on('data', (chunk) => {
+      res.on('data', async (chunk) => {
         buffer += chunk.toString('utf8');
         const parts = buffer.split(/\r?\n\r?\n/);
         buffer = parts.pop() ?? '';
