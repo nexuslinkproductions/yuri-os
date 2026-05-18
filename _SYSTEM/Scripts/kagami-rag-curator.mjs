@@ -135,16 +135,36 @@ async function main() {
     return;
   }
 
+  // Embed the summary for cosine-similarity RAG (nomic-embed-text via Ollama)
+  let embedding = null;
+  try {
+    const embedText = [atom.title, atom.summary, ...(atom.tags ?? [])].join(' ');
+    const ollamaUrl = process.env.OLLAMA_URL ?? 'http://localhost:11434';
+    const embedRes = await fetch(`${ollamaUrl}/api/embed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'nomic-embed-text', input: embedText }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (embedRes.ok) {
+      const embedData = await embedRes.json();
+      embedding = embedData.embeddings?.[0] ?? null;
+    }
+  } catch {
+    // Ollama unavailable — fall back to token-overlap scoring at query time
+  }
+
   const entry = JSON.stringify({
     reflectId,
     indexedAt: new Date().toISOString(),
     contentHash: createHash('sha256').update(content).digest('hex').slice(0, 12),
+    ...(embedding ? { embedding } : {}),
     ...atom,
   });
 
   mkdirSync(dirname(RAG_INDEX), { recursive: true });
   writeFileSync(RAG_INDEX, entry + '\n', { flag: 'a' });
-  log(`indexed: "${atom.title}" [${atom.tags?.join(', ')}]`);
+  log(`indexed: "${atom.title}" [${atom.tags?.join(', ')}]${embedding ? ' [embedded]' : ''}`);
 }
 
 main().catch(e => log('fatal:', e.message));

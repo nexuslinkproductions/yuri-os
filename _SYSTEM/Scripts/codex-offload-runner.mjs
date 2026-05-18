@@ -129,7 +129,7 @@ function parseArgs(rest) {
     proveRoute:    false,
     promptParts:   [],
     artifactDir:   '',
-    workspaceRoot: process.env.CODEX_SPARK_WORKSPACE || repoRoot,
+    workspaceRoot: process.env.CODEX_TARGET_WORKTREE || process.env.CODEX_SPARK_WORKSPACE || repoRoot,
     timeoutMs:     parseInt(process.env.CODEX_SPARK_TIMEOUT_MS || String(DEFAULT_TIMEOUT_MS), 10),
   };
 
@@ -280,8 +280,9 @@ async function runCodex({ options, prompt, artifactDir, traceId }) {
   }
 
   const lastMessage = readMaybe(lastMessagePath);
+  const outputText  = [outcome.stdout, outcome.stderr, outcome.error?.message || ''].filter(Boolean).join('\n');
   const output      = lastMessage || outcome.stdout || '';
-  const combined    = [output, outcome.stderr, outcome.stdout, outcome.error?.message || ''].filter(Boolean).join('\n');
+  const combined    = [output, outputText].filter(Boolean).join('\n');
 
   // Only apply SKIP_RE when lastMessage is empty — prevents false positives from
   // injected context (YURI_CONTEXT blocks) containing words like "unavailable".
@@ -295,6 +296,11 @@ async function runCodex({ options, prompt, artifactDir, traceId }) {
     const reason = outcome.error?.message || `Codex exited with code ${outcome.exitCode}.`;
     await recordCodexLedger({ traceId, modelId, modelConfig, prompt, output, status: 'error', startedAt, artifactDir, metadata: { reason_hash: hashPayload(reason), exit_code: outcome.exitCode, signal: outcome.signal } });
     return { status: 'FAILED', output, summary: { lane: modelConfig.label, model: modelId, status: 'FAILED', reason, exitCode: outcome.exitCode, signal: outcome.signal, artifactDir } };
+  }
+
+  if (!lastMessage && !SKIP_RE.test(outputText)) {
+    process.stderr.write('[codex] empty response — check quota or task spec\n');
+    process.exit(1);
   }
 
   await recordCodexLedger({ traceId, modelId, modelConfig, prompt, output, status: 'ok', startedAt, artifactDir, metadata: { exit_code: outcome.exitCode, signal: outcome.signal } });

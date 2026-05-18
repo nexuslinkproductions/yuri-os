@@ -138,9 +138,17 @@ function printUsage() {
   kagami --improvement                 prompt quality report`);
 }
 
+const DIM = '\x1b[2m';
+const RED = '\x1b[31m';
+const RESET = '\x1b[0m';
+
 function fail(reason, code = 1) {
-  process.stderr.write(`[kagami] ✗ ${reason}\n         ${BOOT_HINT}\n`);
+  process.stderr.write(`${RED}${reason}${RESET}\n${DIM}${BOOT_HINT}${RESET}\n`);
   process.exit(code);
+}
+
+function metaWrite(msg) {
+  process.stderr.write(`${DIM}${msg}${RESET}\n`);
 }
 
 function httpRequestJsonImpl(method, target, body, timeoutMs = 10000) {
@@ -284,7 +292,7 @@ async function cmdHealth() {
 
   const uptimeSeconds = extractUptimeSeconds(payload);
   const uptimeText = uptimeSeconds === null ? 'uptime unavailable' : `uptime ${Math.round(uptimeSeconds)}s`;
-  console.log(`[kagami] ✓ healthy | ${uptimeText}`);
+  metaWrite(`healthy | ${uptimeText}`);
 }
 
 async function cmdReflect(prompt, lane = 'default', mode = null, debug = false) {
@@ -310,10 +318,10 @@ async function cmdReflect(prompt, lane = 'default', mode = null, debug = false) 
   const laneLabel = payload.lane || payload.modelId || lane || 'default';
   const absoluteStreamUrl = resolveKagamiUrl(streamUrl);
 
-  if (debug) process.stderr.write(`[kagami] lane=${laneLabel} id=${reflectId}\n`);
+  metaWrite(`${laneLabel} · ${reflectId}`);
   const streamed = await tailKagamiStream(absoluteStreamUrl);
   if (streamed && !streamed.endsWith('\n')) process.stdout.write('\n');
-  if (debug) process.stderr.write(`[kagami] done ${Date.now() - startedAt}ms\n`);
+  if (debug) metaWrite(`${Date.now() - startedAt}ms`);
 }
 
 async function cmdHistory(limitArg = '10') {
