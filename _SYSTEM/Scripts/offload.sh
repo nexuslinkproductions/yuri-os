@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
-# Tier-gated pulse routing
+
+# ── Key hydration (MUST run first — before any exec that replaces this process) ──
+# Bash subprocesses (e.g. Claude Code Bash tool) don't inherit ~/.zshrc exports.
+# pulse-lane-dispatch.mjs and offload-runner.mjs are Node child processes that
+# inherit this process's env — hydrate before any exec so they always have keys.
+if [ -f "$HOME/.zshrc" ]; then
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+    if [ -z "${!_lane_var:-}" ]; then
+      _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
+      [ -n "$_line" ] && eval "$_line"
+    fi
+  done
+  unset _lane_var _line
+fi
+
+# If --model is explicitly set, bypass pulse classifier (MANUAL_OVERRIDE)
+for _arg in "$@"; do
+  if [[ "$_arg" == "--model" ]]; then export PULSE_LANE_BYPASS=1; break; fi
+done
+
+# Tier-gated pulse routing (keys are hydrated above — safe to exec now)
 if [ -z "$PULSE_LANE_BYPASS" ] && [ -z "$INSIDE_PULSE_WRAPPER" ]; then
   PULSE_TIER=$(node _SYSTEM/Scripts/pulse-classify-stdin.mjs "$@" 2>/dev/null)
   if [ "$PULSE_TIER" = "complex" ] || [ "$PULSE_TIER" = "critical" ]; then
@@ -20,19 +40,6 @@ OFFLOAD_CONTRACT="$SCRIPT_DIR/offload-contract.mjs"
 AUTH_HOOK="$SCRIPT_DIR/auth.mjs"
 BACKEND_URL="http://127.0.0.1:3004"
 # Ollama paths removed — lane deprecated
-
-# Bash subprocesses (e.g. Claude Code Bash tool) don't inherit ~/.zshrc exports.
-# When invoked from non-zsh contexts, hydrate lane API keys from ~/.zshrc if absent.
-# Only fires when a key is missing — zsh users see no overhead.
-if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
-    if [ -z "${!_lane_var:-}" ]; then
-      _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
-      [ -n "$_line" ] && eval "$_line"
-    fi
-  done
-  unset _lane_var _line
-fi
 
 usage() {
   cat <<EOF

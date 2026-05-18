@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync, readFileSync } from 'node:fs';
 
 const OFFLOAD_CONTRACT = {
   version: 3,
@@ -133,7 +134,7 @@ const OFFLOAD_CONTRACT = {
         'nvidia-llama-405b': 'nvidia-llama-70b',
         'nvidia-gemma':      'nvidia-llama-70b',
       },
-      codexRateLimitFallback: 'nvidia-qwen-coder',
+      extremeLoadFallback: 'nvidia-qwen-coder',
       longContextFallback: 'nvidia-kimi',
       models: {
         'nvidia-llama-70b':     'meta/llama-3.3-70b-instruct',
@@ -755,7 +756,12 @@ function selectSteeringLane(prompt) {
     return text.includes('summarize') || text.includes('summary') || text.includes('condense') ? 'summarize-local' : 'triage-local';
   }
 
-  if (text.includes('@gpt-oss') || text.includes('gpt-oss') || text.includes('format') || text.includes('formatting') || text.includes('template') || text.includes('ui ') || text.includes('frontend') || text.includes('design') || text.includes('react') || text.includes('interface')) {
+  // design/ui/frontend/visual work → Codex (powerhouse default for all work, not NIM)
+  if (text.includes('ui ') || text.includes('frontend') || text.includes('design') || text.includes('react') || text.includes('interface') || text.includes('visual') || text.includes('html report') || text.includes('css') || text.includes('layout')) {
+    return 'codex';
+  }
+
+  if (text.includes('@gpt-oss') || text.includes('gpt-oss') || text.includes('format') || text.includes('formatting') || text.includes('template')) {
     return 'gpt-oss';
   }
 
@@ -1267,8 +1273,30 @@ function selectScenario(prompt, lane = '') {
     OFFLOAD_CONTRACT.scenarios.find((scenario) => scenario.id === 'document-synthesis');
 }
 
+function readCalibration() {
+  try {
+    const calibPath = `${process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI'}/.claude/state/lane-calibration.json`;
+    if (!existsSync(calibPath)) return {};
+    return JSON.parse(readFileSync(calibPath, 'utf8')).lanes || {};
+  } catch { return {}; }
+}
+
+function applyCalibrationToLane(lane, calibData) {
+  const calib = calibData[lane] || {};
+  const warnings = [];
+  if (calib.overconfidence_gap > 0.15) {
+    warnings.push(`${lane}: overconfidence_gap=${calib.overconfidence_gap.toFixed(2)} (claimed vs actual success rate spread)`);
+  }
+  if (calib.actual_success_rate < 0.5 && (calib.n || 0) >= 50) {
+    warnings.push(`${lane}: DEGRADED actual_success_rate=${calib.actual_success_rate.toFixed(2)} over ${calib.n} calls`);
+  }
+  return { degraded: warnings.some(w => w.includes('DEGRADED')), warnings };
+}
+
 function buildRoutePlan(prompt) {
+  const calibData = readCalibration();
   const lane = selectSteeringLane(prompt);
+  const calibStatus = applyCalibrationToLane(lane, calibData);
   const scenario = selectScenario(prompt, lane);
   const deepseekAdvisory = assessDeepseekAdvisory(prompt, lane, scenario);
   const claudeAdvisory = assessClaudeAdvisory(prompt, lane, scenario, deepseekAdvisory);
@@ -1308,7 +1336,8 @@ function buildRoutePlan(prompt) {
     lifecycle: scenario.lifecycle,
     crossReference: OFFLOAD_CONTRACT.crossReference,
     learningCapture: OFFLOAD_CONTRACT.learningLoop.capture,
-    memorySurface: OFFLOAD_CONTRACT.learningLoop.memorySurface
+    memorySurface: OFFLOAD_CONTRACT.learningLoop.memorySurface,
+    calibrationStatus: calibStatus,
   };
 }
 

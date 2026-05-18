@@ -228,11 +228,10 @@
       "note": "dead = 404 on this account tier; re-test after NIM plan upgrade"
     },
     "routing_decision_guide": {
-      "quick_fix_or_review":        "@nvidia-nemotron-120b ✓",
-      "large_refactor_or_codegen":  "@nvidia-qwen-coder ✓",
-      "architecture_or_planning":   "@nvidia-nemotron-120b ✓",
-      "deep_analysis_or_research":  "@nvidia-qwen ✓",
-      "general_triage_or_summary":  "@nvidia-llama-70b ✓",
+      "note": "NIM lanes are for system/infra tasks only. Codex (gpt-5.5) is the default powerhouse for all impl, design, visual, and refactor work.",
+      "system_infra_quick_task":    "@nvidia-nemotron-120b ✓",
+      "system_infra_analysis":      "@nvidia-qwen ✓",
+      "system_triage_or_summary":   "@nvidia-llama-70b ✓",
       "high_stakes_broad_knowledge":"@nvidia-llama-70b (405b dead)",
       "image_or_screenshot_review": "@nvidia-vision ✓",
       "long_document_over_128k":    "@nvidia-kimi ✓",
