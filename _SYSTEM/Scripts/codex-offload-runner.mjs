@@ -247,7 +247,12 @@ async function runCodex({ options, prompt, artifactDir, traceId }) {
   };
   writeArtifact(artifactDir, 'invocation.json', invocation);
 
-  const child = spawn('codex', codexArgs, { cwd: workspaceRoot, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+  const codexBin = '/opt/homebrew/bin/codex';
+  const spawnEnv = {
+    ...process.env,
+    PATH: `/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:${process.env.PATH || ''}`,
+  };
+  const child = spawn(codexBin, codexArgs, { cwd: workspaceRoot, env: spawnEnv, stdio: ['ignore', 'pipe', 'pipe'] });
   let stdout = '', stderr = '', timedOut = false;
   child.stdout.setEncoding('utf8');
   child.stderr.setEncoding('utf8');

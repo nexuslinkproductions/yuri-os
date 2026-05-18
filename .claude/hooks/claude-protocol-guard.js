@@ -209,6 +209,36 @@ function emitWarnings(warnings) {
   }) + '\n');
 }
 
+
+function emitBlock(warnings) {
+  const items = warnings.map((w) => '- ' + w.code + ': ' + w.message).join('
+');
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason: 'YURI_GATE_BLOCK: critical tier — route through Yuri pipeline first.
+' + items,
+    },
+  }) + '
+');
+}
+
+function readSessionPacket(sessionId) {
+  try {
+    const p = '/tmp/yuri-session-packet-' + sessionId + '.json';
+    if (!fs.existsSync(p)) return null;
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (_) { return null; }
+}
+
+function appendAuditLog(entry) {
+  try {
+    const os = require('os');
+    fs.appendFileSync(os.homedir() + '/.yuri-audit.log', JSON.stringify(entry) + '
+');
+  } catch (_) {}
+}
 let raw = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (chunk) => { raw += chunk; });
@@ -221,5 +251,27 @@ process.stdin.on('end', () => {
   }
 
   const warnings = inspect(input);
-  if (warnings.length > 0) emitWarnings(warnings);
+  if (warnings.length === 0) { process.exit(0); return; }
+
+  try {
+    const sessionId = process.env.CLAUDE_SESSION_ID || '';
+    if (sessionId) {
+      const packet = readSessionPacket(sessionId);
+      if (packet && packet.pulse_plan && packet.pulse_plan.complexityTier === 'critical') {
+        appendAuditLog({
+          ts: new Date().toISOString(),
+          session_id: sessionId,
+          entry_point: 'claude',
+          tool: (input && input.tool_name) || 'unknown',
+          violation: warnings.map((w) => w.code).join(','),
+          blocked: true,
+        });
+        emitBlock(warnings);
+        process.exit(0);
+        return;
+      }
+    }
+  } catch (_) {}
+
+  emitWarnings(warnings);
 });

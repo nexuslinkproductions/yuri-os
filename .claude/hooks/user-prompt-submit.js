@@ -297,6 +297,15 @@ function spawnOrchestrator(text, turnId) {
       env: { ...process.env, PULSE_TURN_ID: turnId },
     });
     child.unref();
+
+    // Invoke pulse-packager to generate session context packet (non-blocking)
+    try {
+      const { spawnSync } = require('child_process');
+      spawnSync('node', [require('path').join(REPO_ROOT, '_SYSTEM', 'Scripts', 'pulse-packager.mjs')], {
+        cwd: REPO_ROOT, env: { ...process.env }, timeout: 3000, stdio: 'ignore',
+      });
+    } catch (_) {}
+
     return true;
   } catch (e) {
     logTelemetry(`spawn-failed turn=${turnId} reason=${e.message}`);
