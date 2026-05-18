@@ -28,6 +28,18 @@ const KAGAMI_URL = process.env.KAGAMI_URL || 'http://localhost:3005';
 const KAGAMI_AUTH_TOKEN = process.env.KAGAMI_AUTH_TOKEN || '';
 const BOOT_HINT = 'boot: bash _SYSTEM/Scripts/kagami-start.sh';
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function precisionPauseMs(token) {
+  if (process.env.KAGAMI_PRECISION_PAUSE === '0') return 0;
+  const t = String(token ?? '');
+  if (/[.!?]["')\]]?\s*$/.test(t)) return Number(process.env.KAGAMI_SENTENCE_PAUSE_MS ?? 180);
+  if (/[,;:]\s*$/.test(t)) return Number(process.env.KAGAMI_CLAUSE_PAUSE_MS ?? 60);
+  return 0;
+}
+
 const httpGet = kagamiFacade.httpGet ?? httpGetImpl;
 const httpPostJson = kagamiFacade.httpPostJson ?? httpPostJsonImpl;
 const tailKagamiStream = tailKagamiStreamImpl;
@@ -202,7 +214,7 @@ function tailKagamiStreamImpl(streamUrl, timeoutMs = 120000) {
       method: 'GET',
       headers,
       timeout: timeoutMs,
-    }, (res) => {
+    }, async (res) => {
       if (res.statusCode !== 200) {
         fail(new Error(`Stream returned ${res.statusCode}`));
         return;
@@ -234,6 +246,8 @@ function tailKagamiStreamImpl(streamUrl, timeoutMs = 120000) {
               if (token) {
                 process.stdout.write(token);
                 fullText += token;
+                const pause = precisionPauseMs(token);
+                if (pause > 0) await sleep(pause);
               }
             } catch {
               // Ignore malformed token events.
@@ -273,7 +287,7 @@ async function cmdHealth() {
   console.log(`[kagami] ✓ healthy | ${uptimeText}`);
 }
 
-async function cmdReflect(prompt, lane = 'default', mode = null) {
+async function cmdReflect(prompt, lane = 'default', mode = null, debug = false) {
   const text = String(prompt ?? '').trim();
   if (!text) fail('prompt required');
 
@@ -296,10 +310,10 @@ async function cmdReflect(prompt, lane = 'default', mode = null) {
   const laneLabel = payload.lane || payload.modelId || lane || 'default';
   const absoluteStreamUrl = resolveKagamiUrl(streamUrl);
 
-  process.stdout.write(`[kagami] → reflecting (lane: ${laneLabel})...\n`);
+  if (debug) process.stderr.write(`[kagami] lane=${laneLabel} id=${reflectId}\n`);
   const streamed = await tailKagamiStream(absoluteStreamUrl);
   if (streamed && !streamed.endsWith('\n')) process.stdout.write('\n');
-  process.stdout.write(`[kagami] ✓ ${Date.now() - startedAt}ms | id: ${reflectId}\n`);
+  if (debug) process.stderr.write(`[kagami] done ${Date.now() - startedAt}ms\n`);
 }
 
 async function cmdHistory(limitArg = '10') {
@@ -415,6 +429,9 @@ async function main(argv = process.argv.slice(2)) {
     return;
   }
 
+  const debug = argv.includes('--debug') || process.env.KAGAMI_DEBUG === '1';
+  argv = argv.filter((a) => a !== '--debug');
+
   // Extract --mode <alias> from anywhere in argv before dispatch
   let mode = null;
   const modeIdx = argv.indexOf('--mode');
@@ -447,7 +464,7 @@ async function main(argv = process.argv.slice(2)) {
       if (String(command ?? '').startsWith('--')) {
         fail(`unknown command: ${command}`);
       }
-      await cmdReflect(argv.join(' '), 'default', mode);
+      await cmdReflect(argv.join(' '), 'default', mode, debug);
   }
 }
 
