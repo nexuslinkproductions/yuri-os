@@ -4953,9 +4953,10 @@
     },
     {
       "source": "USER_INPUT",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "flow",
-      "is_return": false
+      "is_return": false,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "ENKI",
@@ -5505,9 +5506,10 @@
     },
     {
       "source": "PULSE_PLAN",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "data",
-      "is_return": false
+      "is_return": false,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "MEM_HOT",
@@ -5541,9 +5543,10 @@
     },
     {
       "source": "ENKI_DECIDES",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "return",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "MEMORY",
@@ -5554,15 +5557,17 @@
     },
     {
       "source": "SESSION_INIT",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "return",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "PROMPT_HOOKS",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "return",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "NEXUSPULSE",
@@ -5572,9 +5577,10 @@
     },
     {
       "source": "CLASSIFIER",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "return",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "ROUTING",
@@ -5646,10 +5652,11 @@
     },
     {
       "source": "HOOK_PIPELINE",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "validates",
       "is_return": true,
-      "redirected_from": []
+      "redirected_from": [],
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "HOOK_PIPELINE",
@@ -5721,27 +5728,31 @@
     },
     {
       "source": "SOUL_INJECT",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "data",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "PALACE",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "data",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "MNEMOSYNE",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "data",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "TOKEN_INIT",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "data",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "ORCHESTRATOR",
@@ -5870,9 +5881,10 @@
     },
     {
       "source": "GITNEXUS",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "return",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "GN_IMPACT",
@@ -5888,9 +5900,10 @@
     },
     {
       "source": "GN_QUERY",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "data",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "HOOK_PIPELINE",
@@ -5919,9 +5932,10 @@
     },
     {
       "source": "SELF_IMPROVE",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "return",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "EOT_PIPELINE",
@@ -5943,15 +5957,17 @@
     },
     {
       "source": "INTROSPECT",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "data",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "SKILL_REGISTRY",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "data",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "PRECOMMIT_REGRESS",
@@ -6192,9 +6208,10 @@
     },
     {
       "source": "ENKI_COMMANDS",
-      "target": "ENKI",
+      "target": "ENKI_INBOX",
       "type": "return",
-      "is_return": true
+      "is_return": true,
+      "routed_via": "ENKI_INBOX"
     },
     {
       "source": "ENKI_COMMANDS",
