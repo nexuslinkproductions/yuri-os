@@ -2,6 +2,19 @@
 
 set -euo pipefail
 
+# ── Key hydration (runs before any node exec — same pattern as offload.sh) ──
+# shellcheck source=/dev/null
+[ -f "$HOME/.config/yuri/env.sh" ] && source "$HOME/.config/yuri/env.sh"
+if [ -f "$HOME/.zshrc" ]; then
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+    if [ -z "${!_lane_var:-}" ]; then
+      _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
+      [ -n "$_line" ] && eval "$_line"
+    fi
+  done
+  unset _lane_var _line
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${ROOT_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 OFFLOAD_RUNNER="$SCRIPT_DIR/offload-runner.mjs"
@@ -471,7 +484,35 @@ run_offload_lane() {
   fi
 
   require_cmd node
-  OFFLOAD_PROMPT_TEXT="$prompt" exec node "$runner" "$lane"
+  OFFLOAD_PROMPT_TEXT="$prompt" node "$runner" "$lane"
+}
+
+run_kagami_or_fallback() {
+  local lane="$1"
+  shift
+  local prompt
+  prompt="$(join_prompt "$@")"
+
+  # If Kagami facade is not enabled, fall through to direct offload
+  if [ "${KAGAMI_FACADE_ENABLED:-}" != "1" ]; then
+    run_offload_lane "$lane" "$prompt"
+    return $?
+  fi
+
+  require_cmd node
+
+  local facade_script="$SCRIPT_DIR/kagami-facade.mjs"
+  local exit_code=0
+
+  node "$facade_script" --lane "$lane" -- "$prompt" || exit_code=$?
+
+  if [ "$exit_code" -ne 0 ]; then
+    # Kagami unreachable or failed — transparent fallback
+    run_offload_lane "$lane" "$prompt"
+    return $?
+  fi
+
+  return 0
 }
 
 run_codex_swarm() {
@@ -1039,7 +1080,7 @@ run_auto_route() {
       run_ruflo_swarm "$prompt"
       ;;
     *)
-      run_offload_lane "$lane" "$prompt"
+      run_kagami_or_fallback "$lane" "$prompt"
       ;;
   esac
 }

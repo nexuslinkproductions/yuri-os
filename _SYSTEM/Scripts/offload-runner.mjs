@@ -119,7 +119,7 @@ if (resolved.protocol === 'responses') {
 
 const result = await runOpenAICompatibleChat(
   resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody,
-  { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout, lane, traceId: ledgerTraceId, tools: options.tools }
+  { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout, lane, traceId: ledgerTraceId, tools: resolved.tools }
 );
 if (options.outputFile) {
   try {
@@ -480,8 +480,16 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
       apiKey: process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || 'nvidia/llama-3.1-nemotron-ultra-253b-v1',
+      tools: false,
+      requiresKey: true,
+    },
+    'nvidia-nemotron-70b': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'nvidia/llama-3.1-nemotron-70b-instruct',
-      tools: true,
+      tools: false,
       requiresKey: true,
     },
     'nvidia-mistral': {
@@ -1101,7 +1109,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-mistral', 'nvidia-qwen', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-mistral', 'nvidia-qwen', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -1187,7 +1195,7 @@ async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemTex
       endpoint,
       metadata: { http_status: response.status, error_hash: hashPayload(errText) },
     });
-    if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
+    if (response.status === 402) throw new Error(`HTTP_402: ${errText}`);
     if (response.status === 429) throw new Error('RATE_LIMITED');
     throw new Error(`OPENAI_RESPONSES_${response.status}: ${errText}`);
   }
@@ -1406,12 +1414,18 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
   while (iteration < maxIterations) {
     iteration++;
 
+    const requestExtraBody = { ...(extraBody || {}) };
+    if (!supportsTools) {
+      delete requestExtraBody.tools;
+      delete requestExtraBody.tool_choice;
+    }
+
     const body = {
       model,
       messages,
       ...(supportsTools && { tools: toolDefinitions, tool_choice: 'auto' }),
       ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
-      ...(extraBody || {})
+      ...requestExtraBody
     };
 
     const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) };
@@ -1452,7 +1466,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
         endpoint,
         metadata: { http_status: response.status, iteration, error_hash: hashPayload(errText) },
       });
-      if (response.status === 402) throw new Error('CREDIT_EXHAUSTED');
+      if (response.status === 402) throw new Error(`HTTP_402: ${errText}`);
       if (response.status === 429) throw new Error('RATE_LIMITED');
       throw new Error(`OPENAI_COMPAT_${response.status}: ${errText}`);
     }
