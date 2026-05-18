@@ -282,7 +282,9 @@ async function runCodex({ options, prompt, artifactDir, traceId }) {
   const output      = lastMessage || outcome.stdout || '';
   const combined    = [output, outcome.stderr, outcome.stdout, outcome.error?.message || ''].filter(Boolean).join('\n');
 
-  if (timedOut || SKIP_RE.test(combined)) {
+  // Only apply SKIP_RE when lastMessage is empty — prevents false positives from
+  // injected context (YURI_CONTEXT blocks) containing words like "unavailable".
+  if (timedOut || (!lastMessage && SKIP_RE.test(combined))) {
     const reason = timedOut ? `Timed out waiting for ${modelId}.` : classifySkipReason(combined);
     await recordCodexLedger({ traceId, modelId, modelConfig, prompt, output, status: 'skipped', startedAt, artifactDir, metadata: { reason, exit_code: outcome.exitCode, signal: outcome.signal, timed_out: timedOut } });
     return { status: 'SKIPPED_OR_RATE_LIMITED', output, summary: { lane: modelConfig.label, model: modelId, status: 'SKIPPED_OR_RATE_LIMITED', reason, exitCode: outcome.exitCode, signal: outcome.signal, timedOut, artifactDir } };

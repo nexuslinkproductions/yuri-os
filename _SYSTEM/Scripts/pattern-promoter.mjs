@@ -48,7 +48,8 @@ function clusterFindings(records) {
   const clusters = {};
   for (const record of records) {
     for (const c of record.consensus || []) {
-      const key = c.key;
+      const key = c.key || c.finding;
+      if (!key) continue;
       if (!clusters[key]) {
         clusters[key] = {
           key,

@@ -71,8 +71,8 @@ function validatePrior(priorHyps, currentSynthesis) {
       const delta = Math.abs(actual - predicted);
       outcome = delta <= 10 ? 'confirmed' : delta <= 20 ? 'partial' : 'refuted';
       evidence = `predicted=${predicted}, actual=${actual}, delta=${delta}`;
-    } else if (h.metric === 'flaws_count' && currentSynthesis.audit?.flaws_found != null) {
-      const actual = currentSynthesis.audit.flaws_found;
+    } else if (h.metric === 'flaws_count' && (currentSynthesis.audit?.flaws_found ?? currentSynthesis.flaws) != null) {
+      const actual = currentSynthesis.audit?.flaws_found ?? currentSynthesis.flaws;
       outcome = actual < (h.predicted_value || Infinity) ? 'confirmed' : 'refuted';
       evidence = `actual flaws=${actual}`;
     }
@@ -87,7 +87,7 @@ function generateHypotheses(synthesis, fingerprint, hnDigest, githubTrend) {
   const hyps = [];
 
   // H1: Derived from current flaw count trend
-  const flaws = synthesis?.audit?.flaws_found ?? 0;
+  const flaws = synthesis?.audit?.flaws_found ?? synthesis?.flaws ?? 0;
   const score = synthesis?.improvement_score ?? 50;
   hyps.push({
     id:              `H-${Date.now()}-1`,
