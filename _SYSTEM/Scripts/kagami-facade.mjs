@@ -197,6 +197,12 @@ export async function tailKagamiStream(streamUrl, timeoutMs = STREAM_TIMEOUT_MS)
               process.stdout.write(token);
               fullText += token;
             } catch (_) { /* skip malformed */ }
+          } else if (eventType === 'error') {
+            try {
+              const parsed = JSON.parse(eventData);
+              reject(new Error(parsed.message || 'stream error'));
+            } catch (_) { reject(new Error('stream error')); }
+            return;
           } else if (eventType === 'end') {
             // stream complete
           }

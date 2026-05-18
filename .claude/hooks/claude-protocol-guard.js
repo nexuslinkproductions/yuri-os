@@ -62,6 +62,24 @@ const IMPLEMENTATION_MARKERS = [
   'promote',
   'canonical',
   'merge',
+  'audit',
+  'research',
+  'analyze',
+  'inspect',
+  'investigate',
+  'gather',
+  'scan',
+  'survey',
+];
+
+const SHINTAI_DISPATCH_KEYWORDS = [
+  'shintai',
+  'full shintai',
+  'full operation',
+  'deploy team',
+  'dispatch team',
+  'shintai operation',
+  'full deployment',
 ];
 
 function textOf(value) {
@@ -117,6 +135,13 @@ function hasRoutePlanEvidence(text) {
     lower.includes('.claude/eot/pulse-cortex/route-plans/') ||
     lower.includes('pulse-cortex/route-plans');
   if (pulseCortexEvidence) return true;
+  // Recognize direct Scripts/ai dispatch or offload as route-plan evidence
+  if (lower.includes('_system/scripts/ai route-plan') ||
+      lower.includes('_system/scripts/ai auto') ||
+      lower.includes('scripts/ai route-plan') ||
+      lower.includes('scripts/ai auto') ||
+      lower.includes('offload.sh -m') ||
+      lower.includes('scripts/offload.sh')) return true;
   return (
     lower.includes('route-plan evidence') ||
     lower.includes('scripts/ai route-plan evidence') ||
@@ -131,8 +156,8 @@ function bashCommand(input) {
 }
 
 function isProtectedPath(input) {
-  const text = textOf(input?.tool_input);
-  return PROTECTED_PATHS.some(p => text.includes(p));
+  const filePath = input?.tool_input?.file_path || input?.tool_input?.path || '';
+  return PROTECTED_PATHS.some(p => filePath.includes(p));
 }
 
 function needsDirectMutationWarning(input) {
@@ -186,12 +211,28 @@ function checkPlanDispatchGate(input) {
   }
 }
 
+function checkShintaiDispatch(input) {
+  const toolName = input?.tool_name || '';
+  if (toolName !== 'Agent') return null;
+  const text = normalize(input?.tool_input);
+  const isShintai = SHINTAI_DISPATCH_KEYWORDS.some(k => text.includes(k));
+  if (!isShintai) return null;
+  return {
+    code: 'shintai-must-use-offload',
+    message: 'Shintai operations MUST dispatch via offload lanes — not Claude agents. Run: bash _SYSTEM/Scripts/ai auto "<task>" or bash _SYSTEM/Scripts/offload.sh -m <lane> "<spec>". Claude agents are banned for Shintai. See memory/feedback_no_anthropic_agents.md.',
+  };
+}
+
 function inspect(input) {
   // Sprint mode bypass: set YURI_SPRINT_MODE=1 in env to suppress WARNs during
   // authorized rapid-implementation sessions. Session-scoped only — does not persist.
   // Activate: export YURI_SPRINT_MODE=1
   // Deactivate: unset YURI_SPRINT_MODE (or open a new session)
   if (process.env.YURI_SPRINT_MODE === '1') return [];
+
+  // Shintai enforcement — block before any other check
+  const shintaiBlock = checkShintaiDispatch(input);
+  if (shintaiBlock) return [shintaiBlock];
 
   const toolText = textOf(input?.tool_input);
   const lowerToolText = toolText.toLowerCase();
