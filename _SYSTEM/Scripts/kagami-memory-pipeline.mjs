@@ -20,10 +20,13 @@ const REPO_ROOT  = resolve(__dirname, '..', '..');
 const MEMORY_DIR = resolve(process.env.HOME, '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory');
 const MEMORY_IDX = resolve(MEMORY_DIR, 'MEMORY.md');
 const CORRECTION_PAIRS = resolve(MEMORY_DIR, 'correction-pairs.jsonl');
-const STATE_PATH  = resolve(REPO_ROOT, '_SYSTEM/training/state/memory-pipeline-state.json');
-const OFFLOAD_SH  = resolve(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
-const LOG_PATH    = resolve('/tmp/kagami-memory-pipeline.log');
-const PULSE_BUS   = resolve(process.env.KAGAMI_PULSE_BUS_PATH ?? resolve(REPO_ROOT, '.claude/state/pulse-bus.jsonl'));
+const STATE_PATH   = resolve(REPO_ROOT, '_SYSTEM/training/state/memory-pipeline-state.json');
+const OFFLOAD_SH   = resolve(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
+const LOG_PATH     = resolve('/tmp/kagami-memory-pipeline.log');
+const PULSE_BUS    = resolve(process.env.KAGAMI_PULSE_BUS_PATH ?? resolve(REPO_ROOT, '.claude/state/pulse-bus.jsonl'));
+const PREFS_PATH   = resolve(MEMORY_DIR, 'preferences.json');
+const PREFS_MAX    = 8;
+const PREFS_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 const RICK_KEYWORDS = ['listen', 'morty', 'obviously', 'portal', 'genius', 'science', 'rick', 'multiverse', 'interdimensional', 'szechuan'];
 const RICK_DRIFT_THRESHOLD = 0.65;
 
@@ -172,6 +175,32 @@ ${candidate.body}
 
 // ─── Correction capture ──────────────────────────────────────────────────────
 
+function extractPreferences(prompt, response) {
+  const prefs = [];
+  const combined = `${prompt}\n${response}`;
+  // Explicit preferences — "I prefer", "always do", "never do", "I want"
+  const explicitRe = /(?:i (?:prefer|want|need|like|always|never)|(?:always|never) (?:use|show|include|skip|add|avoid))[^.!?\n]{5,80}/gi;
+  for (const m of combined.matchAll(explicitRe)) {
+    prefs.push({ type: 'explicit', text: m[0].trim().slice(0, 120) });
+  }
+  // Format preferences — JSON, markdown, bullets, code blocks
+  const formatRe = /(?:show|give|use|output|format)[^.!?\n]{0,30}(?:json|yaml|markdown|table|bullets?|code block|plain text)/gi;
+  for (const m of combined.matchAll(formatRe)) {
+    prefs.push({ type: 'format', text: m[0].trim().slice(0, 120) });
+  }
+  return prefs.slice(0, 4);
+}
+
+function mergePreferences(existing, fresh) {
+  const cutoff = Date.now() - PREFS_TTL_MS;
+  const live = (existing ?? []).filter(p => new Date(p.updatedAt).getTime() > cutoff);
+  for (const pref of fresh) {
+    const dupe = live.find(p => normalizedLevenshtein(p.text, pref.text) < 0.25);
+    if (!dupe) live.push({ ...pref, updatedAt: new Date().toISOString() });
+  }
+  return live.slice(-PREFS_MAX);
+}
+
 function splitPromptResponse(content) {
   const match = content.match(/^Q:\s*([\s\S]*?)\n\nA:\s*([\s\S]*)$/);
   if (!match) return { prompt: content.trim(), response: '' };
@@ -263,6 +292,20 @@ async function main() {
     log(`${candidate.name} → ${review.decision} (${review.reason})`);
     if (review.decision === 'APPROVE') {
       writeMemory(candidate, reflectId);
+    }
+  }
+
+  // V5 — Preference extraction
+  const freshPrefs = extractPreferences(prompt, response);
+  if (freshPrefs.length > 0) {
+    try {
+      const existing = existsSync(PREFS_PATH) ? JSON.parse(readFileSync(PREFS_PATH, 'utf8')) : [];
+      const merged = mergePreferences(existing, freshPrefs);
+      mkdirSync(dirname(PREFS_PATH), { recursive: true });
+      writeFileSync(PREFS_PATH, JSON.stringify(merged, null, 2));
+      log(`preferences updated: ${merged.length} total`);
+    } catch (e) {
+      log('preferences write failed:', e.message);
     }
   }
 
