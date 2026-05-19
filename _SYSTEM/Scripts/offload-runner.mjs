@@ -119,7 +119,16 @@ if (resolved.protocol === 'responses') {
 
 const result = await runOpenAICompatibleChat(
   resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody,
-  { extraHeaders: resolved.extraHeaders, maxTokens: resolved.maxTokens, timeout: resolved.timeout, lane, traceId: ledgerTraceId, tools: resolved.tools }
+  {
+    extraHeaders: resolved.extraHeaders,
+    maxTokens: resolved.maxTokens,
+    timeout: resolved.timeout,
+    lane,
+    traceId: ledgerTraceId,
+    tools: resolved.tools,
+    session: options.session,
+    fresh: options.fresh,
+  }
 );
 if (options.outputFile) {
   try {
@@ -147,6 +156,8 @@ function parseArgs(rest) {
     executePulse: false,
     tools: false,
     outputFile: '',
+    session: process.env.LANE_SESSION || 'default',
+    fresh: process.env.LANE_FRESH === '1' || process.env.LANE_FRESH === 'true',
   };
   const promptParts = [];
 
@@ -198,6 +209,14 @@ function parseArgs(rest) {
     }
     if (token === '--inventory') {
       out.inventory = true;
+      continue;
+    }
+    if (token === '--session' && rest[i + 1]) {
+      out.session = rest[++i];
+      continue;
+    }
+    if (token === '--fresh' || token === '--new-session') {
+      out.fresh = true;
       continue;
     }
     promptParts.push(token);
@@ -495,7 +514,7 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     'nvidia-dracarys': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_DRACARYS || '',
+      apiKey: process.env.NVIDIA_KEY_DRACARYS || process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'abacusai/dracarys-llama-3.1-70b-instruct',
       tools: false,
       requiresKey: true,
@@ -503,7 +522,7 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     'nvidia-glm': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_GLM || '',
+      apiKey: process.env.NVIDIA_KEY_GLM || process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'z-ai/glm-5.1',
       tools: false,
       requiresKey: true,
@@ -511,7 +530,7 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     'nvidia-ising': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_ISING || '',
+      apiKey: process.env.NVIDIA_KEY_ISING || process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',
       tools: false,
       requiresKey: true,
@@ -519,7 +538,7 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     'nvidia-gpt-oss-120b': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_GPT_OSS_120B || '',
+      apiKey: process.env.NVIDIA_KEY_GPT_OSS_120B || process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'openai/gpt-oss-120b',
       tools: false,
       requiresKey: true,
@@ -527,7 +546,7 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     'nvidia-nemotron-120b': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_GPT_OSS_120B || '',
+      apiKey: process.env.NVIDIA_KEY_GPT_OSS_120B || process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'nvidia/nemotron-3-super-120b-a12b',
       tools: false,
       requiresKey: true,
@@ -535,7 +554,7 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     'nvidia-qwen3-next': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_KEY_QWEN3_NEXT || '',
+      apiKey: process.env.NVIDIA_KEY_QWEN3_NEXT || process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'qwen/qwen3-next-80b-a3b-instruct',
       tools: false,
       requiresKey: true,
@@ -546,6 +565,22 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       apiKey: process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'mistralai/mistral-large-2-instruct',
       tools: true,
+      requiresKey: true,
+    },
+    'nvidia-mistral-medium': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || 'mistralai/mistral-medium-3.5-128b',
+      tools: false, // NIM Mistral-3 chat template breaks with tools — synthetic assistant turn trips add_generation_prompt
+      requiresKey: true,
+    },
+    'nvidia-mistral-large': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || 'mistralai/mistral-large-3-675b-instruct-2512',
+      tools: false, // NIM Mistral-3 chat template breaks with tools — synthetic assistant turn trips add_generation_prompt
       requiresKey: true,
     },
     'nvidia-qwen': {
@@ -1157,7 +1192,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-ising', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-qwen', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-ising', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-qwen', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -1303,8 +1338,21 @@ async function runOllamaRemote(endpoint, apiKey, model, promptText, systemText, 
 }
 
 async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, systemText, extraBody, opts = {}) {
+  // Persistent lane session: load prior history if this lane is eligible
+  // (deepseek-* only; NIM/Codex/local lanes skip persistence inside this fn).
+  const { loadLaneSession } = await import('./lane-session.mjs');
+  const laneSession = loadLaneSession({
+    modelId: opts.lane,
+    sessionName: opts.session || 'default',
+    fresh: opts.fresh === true,
+  });
+
   const messages = [];
   if (systemText) messages.push({ role: 'system', content: systemText });
+  // Prepend persistent history before the new user turn so the provider sees full prior context.
+  if (laneSession.enabled && laneSession.history.length > 0) {
+    for (const turn of laneSession.history) messages.push({ role: turn.role, content: turn.content });
+  }
   messages.push({ role: 'user', content: promptText });
 
   const headers = { 'Content-Type': 'application/json' };
@@ -1494,11 +1542,21 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
 
     if (!response.ok) {
       const errText = await response.text();
-      // If tool-use is not supported, disable it and retry
-      if (supportsTools && (errText.includes('unknown variant') || errText.includes('tool'))) {
+      // If tool-use is not supported OR the chat template chokes on tools
+      // (NIM Mistral-3 family injects a synthetic assistant turn that trips
+      // add_generation_prompt), disable tools and retry text-only.
+      if (
+        supportsTools &&
+        (errText.includes('unknown variant') ||
+          errText.includes('tool') ||
+          errText.includes('add_generation_prompt') ||
+          errText.includes('last message is from the assistant'))
+      ) {
         supportsTools = false;
         iteration = 0; // Reset iteration counter
-        messages.pop(); // Remove last message if it was a tool attempt
+        if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
+          messages.pop(); // Remove trailing assistant message if any
+        }
         continue;
       }
       await recordOffloadLedger({
@@ -1639,6 +1697,15 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
       process.stderr.write(`\x1b[2m[cache] hit=${cacheMetrics.prompt_cache_hit_tokens} miss=${cacheMetrics.prompt_cache_miss_tokens} ratio=${ratio.toFixed(2)}\x1b[0m\n`);
     }
     autoRecordOutcome(opts?.lane, opts?.traceId, finalText);
+    // Persistent lane: record this round to the lane's jsonl so the next dispatch sees it.
+    if (laneSession.enabled) {
+      try {
+        laneSession.record(promptText, finalText);
+        process.stderr.write(`\x1b[2m[lane-session] persisted to ${laneSession.sessionPath}\x1b[0m\n`);
+      } catch (e) {
+        process.stderr.write(`[lane-session] persist failed: ${e.message}\n`);
+      }
+    }
     return finalText;
   }
 

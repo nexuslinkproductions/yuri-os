@@ -138,7 +138,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -147,7 +147,7 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
       return 0
       ;;
   esac
@@ -294,25 +294,29 @@ dry_run_model_override() {
   local prompt="$2"
   apply_deepseek_normalization target_model
   local reasoning_args=()
+  local extra_codex_flags=""
   if [[ -n "${REASONING_DEPTH:-}" ]]; then
     reasoning_args=(--reasoning "$REASONING_DEPTH")
+  fi
+  if [[ -n "${CODEX_TARGET_WORKTREE:-}" ]]; then
+    extra_codex_flags="--cd $CODEX_TARGET_WORKTREE"
   fi
 
   case "$target_model" in
       codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.3-codex)
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" --dry-run
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run
         ;;
       gpt-5.4-mini|gpt-5.4|codex-mini)
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       gpt-5.5|codex|codex-high|codex-full)
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       nvidia-deepseek|deepseek-ai/*)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$target_model"
         ;;
-      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*)
+      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*)
         case "$target_model" in
           nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
           nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
@@ -321,6 +325,7 @@ dry_run_model_override() {
           nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
           nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
           nvidia-mistral-medium)  _nim_model="mistralai/mistral-medium-3.5-128b" ;;
+          nvidia-mistral-large)   _nim_model="mistralai/mistral-large-3-675b-instruct-2512" ;;
           nvidia-qwen)            _nim_model="qwen/qwen3.5-122b-a10b" ;;
           nvidia-qwen-coder)      _nim_model="qwen/qwen3-coder-480b-a35b-instruct" ;;
           nvidia-phi)             _nim_model="microsoft/phi-4" ;;
@@ -328,6 +333,10 @@ dry_run_model_override() {
           nvidia-gemma)           _nim_model="google/gemma-4-31b-it" ;;
           nvidia-vision)          _nim_model="meta/llama-3.2-11b-vision-instruct" ;;
           nvidia-embed)           _nim_model="nvidia/llama-nemotron-embed-1b-v2" ;;
+          nvidia-dracarys)    _nim_model="abacusai/dracarys-llama-3.1-70b-instruct" ;;
+          nvidia-glm)         _nim_model="z-ai/glm-5.1" ;;
+          nvidia-ising)       _nim_model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" ;;
+          nvidia-qwen3-next)  _nim_model="qwen/qwen3-next-80b-a3b-instruct" ;;
           nvidia/*)               _nim_model="$target_model" ;;
           *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
         esac
@@ -380,6 +389,7 @@ dispatch_model() {
     local prompt="$2"
     apply_deepseek_normalization target_model
     local reasoning_args=()
+    local extra_codex_flags=""
     if [[ -n "${REASONING_DEPTH:-}" ]]; then
       reasoning_args=(--reasoning "$REASONING_DEPTH")
     fi
@@ -388,6 +398,9 @@ dispatch_model() {
     local tool_args=(--tools)
     if [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" != "1" ]]; then
       tool_args=(--no-tools)
+    fi
+    if [[ -n "${CODEX_TARGET_WORKTREE:-}" ]]; then
+      extra_codex_flags="--cd $CODEX_TARGET_WORKTREE"
     fi
 
     check_branch_lock_advisory "$prompt"
@@ -435,7 +448,7 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --model "$target_model"
         ;;
-      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia/*)
+      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*)
         case "$target_model" in
           nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
           nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
@@ -444,6 +457,7 @@ dispatch_model() {
           nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
           nvidia-mistral)         _nim_model="mistralai/mistral-large-2-instruct" ;;
           nvidia-mistral-medium)  _nim_model="mistralai/mistral-medium-3.5-128b" ;;
+          nvidia-mistral-large)   _nim_model="mistralai/mistral-large-3-675b-instruct-2512" ;;
           nvidia-qwen)            _nim_model="qwen/qwen3.5-122b-a10b" ;;
           nvidia-qwen-coder)      _nim_model="qwen/qwen3-coder-480b-a35b-instruct" ;;
           nvidia-phi)             _nim_model="microsoft/phi-4" ;;
@@ -451,6 +465,10 @@ dispatch_model() {
           nvidia-gemma)           _nim_model="google/gemma-4-31b-it" ;;
           nvidia-vision)          _nim_model="meta/llama-3.2-11b-vision-instruct" ;;
           nvidia-embed)           _nim_model="nvidia/llama-nemotron-embed-1b-v2" ;;
+          nvidia-dracarys)    _nim_model="abacusai/dracarys-llama-3.1-70b-instruct" ;;
+          nvidia-glm)         _nim_model="z-ai/glm-5.1" ;;
+          nvidia-ising)       _nim_model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" ;;
+          nvidia-qwen3-next)  _nim_model="qwen/qwen3-next-80b-a3b-instruct" ;;
           nvidia/*)               _nim_model="$target_model" ;;  # pass full NIM path directly
           *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
         esac
@@ -463,7 +481,7 @@ dispatch_model() {
         ;;
       codex-spark|spark|fast-codex|gpt-5.3-codex-spark|gpt-5.3-codex)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_SPARK [gpt-5.3-codex-spark, read-only]..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model"
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags}
         ;;
       swarm)
         printf '%s\n' "⬡ ROUTING_TO_SWARM..." >&2
@@ -471,11 +489,11 @@ dispatch_model() {
         ;;
       gpt-5.4-mini|gpt-5.4|codex-mini)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_MINI [gpt-5.4-mini, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       gpt-5.5|codex|codex-high|codex-full)
         printf '%s\n' "⬡ ROUTING_TO_CODEX_FULL [gpt-5.5, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
+        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|reason-cloud|code-cloud|nvidia-deepseek|gemma|gemma-local|gemma-cloud)
         if ! curl -sf --max-time 2 localhost:11434/api/tags >/dev/null 2>&1; then printf '%s\n' '⚠ [offload] Ollama not responding on :11434 — lane may cold-start' >&2; fi

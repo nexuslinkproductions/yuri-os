@@ -115,6 +115,7 @@
       "instruction_fast":   "meta/llama-3.3-70b-instruct",
       "instruction_large":  "meta/llama-3.1-405b-instruct",
       "chat_balanced":      "mistralai/mistral-medium-3.5-128b",
+      "frontier_chat":      "mistralai/mistral-large-3-675b-instruct-2512",
       "multimodal_vision":  "meta/llama-3.2-11b-vision-instruct",
       "kimi_reasoning":     "moonshotai/kimi-k2.6",
       "mobile_efficient":   "microsoft/phi-4",
@@ -178,6 +179,16 @@
         "context_window": 128000,
         "tools": true
       },
+      "frontier_chat": {
+        "model": "mistralai/mistral-large-3-675b-instruct-2512",
+        "dispatch": "@nvidia-mistral-large",
+        "best_for": ["frontier-tier reasoning", "long-form synthesis", "European compliance contexts at scale", "Codex / Sonnet failover", "multilingual high-stakes prose"],
+        "avoid_for": ["latency-sensitive tasks (≈12s round-trip on 80 tokens)", "trivial classification"],
+        "context_window": 128000,
+        "tools": true,
+        "probed": "2026-05-19",
+        "size_params": "675B"
+      },
       "multimodal_vision": {
         "model": "meta/llama-3.2-11b-vision-instruct",
         "dispatch": "@nvidia-vision",
@@ -221,21 +232,25 @@
       }
     },
     "live_status": {
-      "tested": "2026-05-17",
-      "live":   ["nvidia-llama-70b", "nvidia-qwen", "nvidia-mistral-medium", "nvidia-kimi", "nvidia-nemotron-120b", "nvidia-qwen-coder", "nvidia-vision"],
-      "dead":   ["nvidia-nemotron", "nvidia-phi", "nvidia-llama-405b", "nvidia-gemma", "nvidia-embed"],
+      "tested": "2026-05-19",
+      "live":   ["nvidia-llama-70b", "nvidia-qwen", "nvidia-mistral-medium", "nvidia-mistral-large", "nvidia-nemotron-120b", "nvidia-dracarys", "nvidia-glm", "nvidia-ising", "nvidia-gemma", "nvidia-qwen-coder", "nvidia-qwen3-next", "nvidia-vision"],
+      "dead":   ["nvidia-nemotron", "nvidia-phi", "nvidia-llama-405b", "nvidia-embed", "nvidia-gpt-oss-120b", "nvidia-kimi"],
       "untested": [],
-      "note": "dead = 404 on this account tier; re-test after NIM plan upgrade"
+      "note": "Full parallel audit 2026-05-19. glm=stream:true required (hangs on non-stream). gemma recovered. qwen3-next LIVE but ~78s cold-start. gpt-oss-120b+kimi dead at 120s stream."
     },
     "routing_decision_guide": {
       "note": "NIM lanes are for system/infra tasks only. Codex (gpt-5.5) is the default powerhouse for all impl, design, visual, and refactor work.",
       "system_infra_quick_task":    "@nvidia-nemotron-120b ✓",
       "system_infra_analysis":      "@nvidia-qwen ✓",
       "system_triage_or_summary":   "@nvidia-llama-70b ✓",
-      "high_stakes_broad_knowledge":"@nvidia-llama-70b (405b dead)",
+      "high_stakes_broad_knowledge":"@nvidia-mistral-large ✓ (675B frontier)",
+      "research_analysis":          "@nvidia-glm ✓ (z-ai/glm-5.1, flagship-tier, stream-only)",
+      "adversarial_second_opinion": "@nvidia-glm ✓ (stream-only)",
       "image_or_screenshot_review": "@nvidia-vision ✓",
-      "long_document_over_128k":    "@nvidia-kimi ✓",
+      "long_document_over_128k":    "@nvidia-mistral-large ✓ (kimi dead)",
       "cheap_fast_classification":  "@nvidia-mistral-medium ✓ (phi dead)",
+      "frontier_chat_synthesis":    "@nvidia-mistral-large ✓ (675B)",
+      "mega_codegen":               "@nvidia-qwen-coder ✓ (480B)",
       "rag_or_similarity_search":   "@nvidia-embed (DEAD — 404 on current tier)"
     }
   },
