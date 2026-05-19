@@ -69,8 +69,10 @@ const STATE_FILES = {
   'launch-gate': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/launch-gate.json',
   'palace-rebuild': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/palace-rebuild.log',
   'lane-calibration': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-calibration.json',
-  'pulse-bus': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/pulse-bus.json',
+  'pulse-bus': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/pulse-bus.jsonl',
+  'lane-feedback': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-feedback.jsonl',
   'task-queue': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/task-queue.log',
+  'scout-errors': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/scout-errors.log',
   'eot-refresh-err': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/eot-refresh.err.log',
   'session-state': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/session-state.json',
 };
