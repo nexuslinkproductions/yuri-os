@@ -1,0 +1,44 @@
+---
+description: Auto-feed Codex, Claude, DeepSeek worker terminals from Cursor
+alwaysApply: true
+---
+
+## Worker bridge (no manual paste)
+
+Three terminals must stay open (see `.cursor/environment.json`):
+
+- **Yuri Codex** — `node _SYSTEM/Scripts/worker-bridge.mjs loop --worker codex`
+- **Yuri Claude** — `node _SYSTEM/Scripts/worker-bridge.mjs loop --worker claude`
+- **Yuri DeepSeek** — `node _SYSTEM/Scripts/worker-bridge.mjs loop --worker deepseek`
+
+### Auto-feed
+
+- User prompts: `.cursor/hooks/cursor-feed-workers.mjs` → `worker-bridge route` (non-blocking).
+- Disable: `YURI_AUTO_FEED=0` in env.
+
+### Agent delegation (required for impl)
+
+Do not paste specs into worker terminals. Enqueue:
+
+```bash
+node _SYSTEM/Scripts/worker-bridge.mjs enqueue --worker codex --prompt "## CODEX TASK SPEC ..."
+node _SYSTEM/Scripts/worker-bridge.mjs enqueue --worker deepseek --prompt "..."
+node _SYSTEM/Scripts/worker-bridge.mjs enqueue --worker claude --prompt "..."
+```
+
+Or fan-out from plan:
+
+```bash
+node _SYSTEM/Scripts/worker-bridge.mjs route --prompt "<goal>"
+```
+
+### Read results
+
+```bash
+node _SYSTEM/Scripts/worker-bridge.mjs status
+cat _SYSTEM/state/worker-last-codex.txt
+cat _SYSTEM/state/worker-last-deepseek.txt
+cat _SYSTEM/state/worker-last-claude.txt
+```
+
+Lane memory: `.claude/lane-sessions/*__marcel-<worker>.jsonl`

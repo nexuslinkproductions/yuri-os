@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "node .cursor/hooks/cursor-feed-workers.mjs",
+        "timeout": 8
+      }
+    ]
+  }
+}
