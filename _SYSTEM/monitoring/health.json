@@ -1,0 +1,281 @@
+{
+  "generated_at": "2026-05-19T22:19:29.380Z",
+  "launchagents": [
+    {
+      "name": "eot-refresh",
+      "label": "com.yuri-os-musubi.eot-refresh",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": "2AM,8AM,2PM,8PM"
+    },
+    {
+      "name": "gitnexus-weekly",
+      "label": "com.yuri-os-musubi.gitnexus-weekly",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "independence-check-nightly",
+      "label": "com.yuri-os-musubi.independence-check-nightly",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "lane-health",
+      "label": "com.yuri-os-musubi.lane-health",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": 1800,
+      "schedule": null
+    },
+    {
+      "name": "launch-readiness-nightly",
+      "label": "com.yuri-os-musubi.launch-readiness-nightly",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "learning-score-weekly",
+      "label": "com.yuri-os-musubi.learning-score-weekly",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "neuron-loop",
+      "label": "com.yuri-os-musubi.neuron-loop",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "ollama-kv",
+      "label": "com.yuri-os-musubi.ollama-kv",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "palace-auto-rebuild",
+      "label": "com.yuri-os-musubi.palace-auto-rebuild",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "shellservice",
+      "label": "com.yuri-os-musubi.shellservice",
+      "pid": 4254,
+      "last_exit_code": 0,
+      "status": "running",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "task-queue-runner",
+      "label": "com.yuri-os-musubi.task-queue-runner",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": 300,
+      "schedule": null
+    },
+    {
+      "name": "wiki-rag",
+      "label": "com.yuri-os-musubi.wiki-rag",
+      "pid": 97516,
+      "last_exit_code": 0,
+      "status": "running",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "yuri-sentinel",
+      "label": "com.yuri-os-musubi.yuri-sentinel",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": 1980,
+      "schedule": null
+    },
+    {
+      "name": "yuri-session-runtime",
+      "label": "com.yuri-os-musubi.yuri-session-runtime",
+      "pid": 17892,
+      "last_exit_code": 15,
+      "status": "running",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "kagami-heartbeat",
+      "label": "com.yuri.kagami-heartbeat",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": 3600,
+      "schedule": null
+    },
+    {
+      "name": "kagami-memory-consolidator",
+      "label": "com.yuri.kagami-memory-consolidator",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "kagami-session-synthesizer",
+      "label": "com.yuri.kagami-session-synthesizer",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "kagami-stale-memory-scan",
+      "label": "com.yuri.kagami-stale-memory-scan",
+      "pid": null,
+      "last_exit_code": 0,
+      "status": "exited_ok",
+      "interval_seconds": null,
+      "schedule": null
+    },
+    {
+      "name": "lane-memory-prune",
+      "label": "com.yuri.lane-memory-prune",
+      "pid": null,
+      "last_exit_code": null,
+      "status": "never_run",
+      "interval_seconds": null,
+      "schedule": null
+    }
+  ],
+  "state_files": {
+    "neuron-loop": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/neuron-loop.log",
+      "mtime_iso": "2026-05-19T22:03:18.805Z",
+      "age_hours": 0.27,
+      "freshness": "fresh"
+    },
+    "yuri-sentinel": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/yuri-sentinel-state.json",
+      "mtime_iso": "2026-05-19T21:58:20.910Z",
+      "age_hours": 0.35,
+      "freshness": "fresh"
+    },
+    "lane-health": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-health-status.json",
+      "mtime_iso": "2026-05-19T22:19:03.952Z",
+      "age_hours": 0.01,
+      "freshness": "fresh"
+    },
+    "launch-gate": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/launch-gate.json",
+      "mtime_iso": "2026-05-19T07:00:07.300Z",
+      "age_hours": 15.32,
+      "freshness": "aging"
+    },
+    "palace-rebuild": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/palace-rebuild.log",
+      "mtime_iso": "2026-05-19T00:30:23.184Z",
+      "age_hours": 21.82,
+      "freshness": "aging"
+    },
+    "lane-calibration": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-calibration.json",
+      "mtime_iso": "2026-05-17T20:22:18.793Z",
+      "age_hours": 49.95,
+      "freshness": "stale"
+    },
+    "pulse-bus": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/pulse-bus.json",
+      "mtime_iso": "2026-05-16T21:12:54.775Z",
+      "age_hours": 73.11,
+      "freshness": "dead"
+    },
+    "task-queue": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/task-queue.log",
+      "mtime_iso": "2026-05-19T22:17:53.990Z",
+      "age_hours": 0.03,
+      "freshness": "fresh"
+    },
+    "eot-refresh-err": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/eot-refresh.err.log",
+      "mtime_iso": "2026-05-14T00:00:04.545Z",
+      "age_hours": 142.32,
+      "freshness": "dead"
+    },
+    "session-state": {
+      "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/session-state.json",
+      "mtime_iso": "2026-05-19T22:19:29.360Z",
+      "age_hours": 0,
+      "freshness": "fresh"
+    }
+  },
+  "claude_hooks": {
+    "total_scripts": 26,
+    "hooks_by_phase": {
+      "SessionStart": [
+        "token-session-init",
+        "brain-inject",
+        "musubi-protocol-ingest",
+        "startup-offload",
+        "scout-orchestrator",
+        "eot-background-start",
+        "memory-archive"
+      ],
+      "UserPromptSubmit": [
+        "user-prompt-submit"
+      ],
+      "SubagentStart": [
+        "soul-persona-inject",
+        "yuri-sentinel-start"
+      ],
+      "PreToolUse": [
+        "pre-tool-gate",
+        "bash-security-guard",
+        "tirith-url-guard",
+        "claude-protocol-guard",
+        "pre-tool-use",
+        "musubi-protocol-enforce",
+        "gitnexus-hook",
+        "agent-spawn-guard"
+      ],
+      "PostToolUse": [
+        "post-tool-use",
+        "scout-orchestrator",
+        "token-tool-logger",
+        "session-checkpoint",
+        "gitnexus-hook"
+      ],
+      "Stop": [
+        "yuri-sentinel-stop",
+        "token-session-end",
+        "memory-session-write"
+      ]
+    }
+  }
+}

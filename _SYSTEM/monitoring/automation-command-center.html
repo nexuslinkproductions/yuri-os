@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YURI OS Automation Command Center</title>
+  <style>
+    :root {
+      --bg: #080810;
+      --bar: #0d0d1a;
+      --card: #12121f;
+      --card-2: #17172a;
+      --line: #2a2a4a;
+      --text: #e8e8ff;
+      --muted: #8585a8;
+      --green: #00ff88;
+      --red: #ff3355;
+      --amber: #ffaa00;
+      --blue: #4488ff;
+      --grey: #606078;
+      --shadow: rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      min-width: 320px;
+    }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 10;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 22px;
+      background: var(--bar);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 8px 22px var(--shadow);
+    }
+
+    .brand {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .topmeta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    main {
+      padding: 82px 22px 26px;
+      max-width: 1720px;
+      margin: 0 auto;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+
+    .tile {
+      min-height: 110px;
+      padding: 18px;
+      background: linear-gradient(180deg, var(--card-2), var(--card));
+      border: 1px solid var(--line);
+      border-top: 2px solid var(--accent);
+      border-radius: 8px;
+    }
+
+    .tile strong {
+      display: block;
+      color: var(--accent);
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 0.95;
+    }
+
+    .tile span {
+      display: block;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    section { margin-top: 28px; }
+
+    h2 {
+      margin: 0 0 14px;
+      color: var(--text);
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .agents {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+    }
+
+    .agent {
+      display: grid;
+      gap: 13px;
+      min-height: 158px;
+      padding: 15px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--status-color);
+      border-radius: 8px;
+    }
+
+    .agent.crashed { box-shadow: 0 0 12px rgba(255, 51, 85, 0.3); }
+
+    .agent-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 10px;
+      border-radius: 50%;
+      background: var(--status-color);
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+    .dot-running { animation: pulse 1.5s infinite; background: #00ff88; }
+
+    .agent-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .label {
+      overflow-wrap: anywhere;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .badge, .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #0e0e19;
+      color: var(--text);
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .badge.status { color: var(--status-color); border-color: color-mix(in srgb, var(--status-color) 50%, var(--line)); }
+
+    .hooks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    details {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 13px 14px;
+      list-style: none;
+      border-left: 4px solid var(--phase-color);
+      font-weight: 800;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    .hook-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 14px 14px;
+    }
+
+    .state-row {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+    }
+
+    .state-chip {
+      flex: 0 0 auto;
+      min-width: 220px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--freshness-color);
+      background: var(--card);
+    }
+
+    .state-chip strong {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 12px;
+    }
+
+    .state-chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    footer {
+      margin-top: 32px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .error {
+      margin: 90px auto 0;
+      max-width: 820px;
+      padding: 18px;
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      background: rgba(255, 51, 85, 0.08);
+      color: var(--text);
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        height: auto;
+        min-height: 64px;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 12px 14px;
+      }
+
+      .topmeta {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      main { padding: 102px 14px 22px; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .agents, .hooks { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dot-running { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">YURI OS · AUTOMATION COMMAND CENTER</div>
+    <div class="topmeta">
+      <span id="countdown">refresh in 30s</span>
+      <span id="lastUpdated">last updated --</span>
+    </div>
+  </header>
+
+  <main id="app" aria-live="polite">
+    <div class="summary" id="summary"></div>
+
+    <section>
+      <h2>LaunchAgents</h2>
+      <div class="agents" id="agents"></div>
+    </section>
+
+    <section>
+      <h2>Claude Hooks</h2>
+      <div class="hooks" id="hooks"></div>
+    </section>
+
+    <section>
+      <h2>State Files</h2>
+      <div class="state-row" id="stateFiles"></div>
+    </section>
+
+    <footer id="footer">Auto-refresh: 30s · Last fetch: -- · health.json generated by health-aggregator.mjs</footer>
+  </main>
+
+  <script>
+    const REFRESH_SECONDS = 30;
+    const STATUS_COLORS = {
+      running: '#00ff88',
+      exited_ok: '#4488ff',
+      never_run: '#606078',
+      crashed: '#ff3355'
+    };
+    const FRESHNESS_COLORS = {
+      fresh: '#00ff88',
+      aging: '#ffaa00',
+      stale: '#ff3355',
+      dead: '#606078',
+      missing: '#606078'
+    };
+    const PHASE_COLORS = ['#4488ff', '#00ff88', '#ffaa00', '#ff3355', '#a078ff', '#33d6ff'];
+
+    let nextRefreshAt = Date.now() + REFRESH_SECONDS * 1000;
+    let lastFetchText = '--';
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[char]);
+    }
+
+    function formatInterval(agent) {
+      if (agent.schedule) return agent.schedule;
+      const seconds = agent.interval_seconds;
+      if (!seconds) return agent.pid ? 'keepalive' : 'manual';
+      if (seconds < 60) return `every ${seconds}s`;
+      if (seconds < 3600) return `every ${Math.round(seconds / 60)}m`;
+      if (seconds < 86400) return `every ${(seconds / 3600).toFixed(seconds % 3600 ? 1 : 0)}h`;
+      return `every ${Math.round(seconds / 86400)}d`;
+    }
+
+    function formatEvidence(agent) {
+      if (agent.pid) return `pid ${agent.pid}`;
+      if (agent.last_exit_code === null) return 'no launch evidence';
+      return agent.last_exit_code === 0 ? 'last exit ok' : `last exit ${agent.last_exit_code}`;
+    }
+
+    function renderSummary(data) {
+      const agents = data.launchagents || [];
+      const states = Object.values(data.state_files || {});
+      const counts = {
+        running: agents.filter(agent => agent.status === 'running').length,
+        crashed: agents.filter(agent => agent.status === 'crashed').length,
+        stale: states.filter(file => ['stale', 'dead', 'missing'].includes(file.freshness)).length,
+        hooks: data.claude_hooks?.total_scripts || 0
+      };
+      const tiles = [
+        ['RUNNING', counts.running, '#00ff88'],
+        ['CRASHED', counts.crashed, '#ff3355'],
+        ['STALE STATE', counts.stale, '#ffaa00'],
+        ['HOOKS', counts.hooks, '#4488ff']
+      ];
+      document.getElementById('summary').innerHTML = tiles.map(([label, value, color]) => `
+        <article class="tile" style="--accent:${color}">
+          <strong>${value}</strong>
+          <span>${label}</span>
+        </article>
+      `).join('');
+    }
+
+    function renderAgents(data) {
+      document.getElementById('agents').innerHTML = (data.launchagents || []).map(agent => {
+        const color = STATUS_COLORS[agent.status] || '#606078';
+        const crashedClass = agent.status === 'crashed' ? ' crashed' : '';
+        const dotClass = agent.status === 'running' ? ' dot-running' : '';
+        return `
+          <article class="agent${crashedClass}" style="--status-color:${color}">
+            <div class="agent-head">
+              <span class="dot${dotClass}" aria-hidden="true"></span>
+              <span class="agent-name" title="${esc(agent.name)}">${esc(agent.name)}</span>
+            </div>
+            <div>
+              <div class="label">${esc(agent.label)}</div>
+              <div class="badges" style="margin-top:10px">
+                <span class="badge status">${esc(agent.status)}</span>
+                <span class="badge">${esc(formatInterval(agent))}</span>
+              </div>
+            </div>
+            <div class="badges">
+              <span class="badge">exit ${agent.last_exit_code ?? 'none'}</span>
+              <span class="badge">${esc(formatEvidence(agent))}</span>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderHooks(data) {
+      const phases = Object.entries(data.claude_hooks?.hooks_by_phase || {});
+      document.getElementById('hooks').innerHTML = phases.map(([phase, scripts], index) => `
+        <details open style="--phase-color:${PHASE_COLORS[index % PHASE_COLORS.length]}">
+          <summary>${esc(phase)} · ${scripts.length}</summary>
+          <div class="hook-list">
+            ${scripts.map(script => `<span class="chip">${esc(script)}</span>`).join('')}
+          </div>
+        </details>
+      `).join('');
+    }
+
+    function renderStateFiles(data) {
+      document.getElementById('stateFiles').innerHTML = Object.entries(data.state_files || {}).map(([name, file]) => {
+        const color = FRESHNESS_COLORS[file.freshness] || '#606078';
+        const age = file.age_hours === null ? 'unknown age' : `${file.age_hours}h old`;
+        return `
+          <article class="state-chip" style="--freshness-color:${color}">
+            <strong>${esc(name)} · ${esc(file.freshness)}</strong>
+            <span>${esc(age)}</span>
+            <span>${esc(file.mtime_iso || 'missing')}</span>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderAll(data) {
+      renderSummary(data);
+      renderAgents(data);
+      renderHooks(data);
+      renderStateFiles(data);
+      const generated = data.generated_at ? new Date(data.generated_at).toLocaleString() : '--';
+      lastFetchText = new Date().toLocaleTimeString();
+      document.getElementById('lastUpdated').textContent = `last updated ${generated}`;
+      document.getElementById('footer').textContent = `Auto-refresh: 30s · Last fetch: ${lastFetchText} · health.json generated by health-aggregator.mjs`;
+    }
+
+    async function refresh() {
+      const data = await fetch('./health.json?t=' + Date.now()).then(response => {
+        if (!response.ok) throw new Error(`health fetch failed: ${response.status}`);
+        return response.json();
+      });
+      renderAll(data);
+      nextRefreshAt = Date.now() + REFRESH_SECONDS * 1000;
+    }
+
+    function showError(error) {
+      document.getElementById('app').innerHTML = `<div class="error">${esc(error.message || error)}</div>`;
+    }
+
+    function tickCountdown() {
+      const remaining = Math.max(0, Math.ceil((nextRefreshAt - Date.now()) / 1000));
+      document.getElementById('countdown').textContent = `refresh in ${remaining}s`;
+    }
+
+    refresh().catch(showError);
+    setInterval(() => refresh().catch(showError), REFRESH_SECONDS * 1000);
+    setInterval(tickCountdown, 1000);
+    tickCountdown();
+  </script>
+</body>
+</html>

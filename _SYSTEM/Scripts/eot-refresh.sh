@@ -4,4 +4,4 @@
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export HOME="/Users/marcelspatz"
 cd /Users/marcelspatz/YURI-OS-MUSUBI
-exec /opt/homebrew/bin/node /Users/marcelspatz/YURI-OS-MUSUBI/Scripts/eot-archive.mjs --execute
+exec /opt/homebrew/bin/node /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/eot-archive.mjs --execute
