@@ -79,6 +79,57 @@ try {
   });
   assert.equal(protectedEnvWrite.allowed, false, 'DeepSeek hook allowance must not permit .env writes');
 
+  const emptyResponseRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-offload-runner-empty-'));
+  try {
+    const tempRunnerDir = path.join(emptyResponseRoot, 'runner');
+    const tempBinDir = path.join(tempRunnerDir, 'bin');
+    fs.mkdirSync(tempBinDir, { recursive: true });
+
+    const stubCodex = path.join(tempBinDir, 'codex');
+    fs.writeFileSync(stubCodex, '#!/usr/bin/env bash\nexit 0\n');
+    fs.chmodSync(stubCodex, 0o755);
+
+    const tempScript = path.join(tempRunnerDir, 'codex-offload-runner.mjs');
+    const tempTokenLedger = path.join(tempRunnerDir, 'token-ledger.mjs');
+    fs.mkdirSync(tempRunnerDir, { recursive: true });
+    fs.copyFileSync(script, tempScript);
+    fs.copyFileSync(path.join(__dirname, 'token-ledger.mjs'), tempTokenLedger);
+    fs.writeFileSync(
+      tempScript,
+      fs.readFileSync(tempScript, 'utf8').replace(
+        "const codexBin = '/opt/homebrew/bin/codex';",
+        `const codexBin = ${JSON.stringify(stubCodex)};`,
+      ),
+    );
+
+    let failure = null;
+    try {
+      execFileSync(
+        process.execPath,
+        [tempScript, '--artifact-dir', path.join(emptyResponseRoot, 'artifacts'), 'empty response probe'],
+        {
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'pipe'],
+          env: {
+            ...process.env,
+            TOKEN_LEDGER_DB_PATH: path.join(emptyResponseRoot, 'token-ledger.db'),
+            TOKEN_LEDGER_FAULT_DIR: path.join(emptyResponseRoot, 'faults'),
+            TOKEN_LEDGER_QUEUE_DIR: path.join(emptyResponseRoot, 'queue'),
+            TOKEN_LEDGER_VAULT_DIR: path.join(emptyResponseRoot, 'vault'),
+          },
+        },
+      );
+    } catch (error) {
+      failure = error;
+    }
+
+    assert(failure, 'runner should exit non-zero on empty non-skip response');
+    assert.equal(failure.status, 1, 'empty non-skip response should exit with code 1');
+    assert.match(failure.stderr, /\[codex\] empty response — check quota or task spec/);
+  } finally {
+    fs.rmSync(emptyResponseRoot, { recursive: true, force: true });
+  }
+
   process.stdout.write('codex-offload-runner: pass\n');
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });

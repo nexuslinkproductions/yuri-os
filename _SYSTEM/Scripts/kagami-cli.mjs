@@ -124,6 +124,7 @@ function printPrettyJson(value) {
 function printUsage() {
   console.log(`Usage:
   kagami "<prompt>"                    reflect + stream to stdout
+  kagami "<prompt>" --hud              reflect + stream with HUD to stderr
   kagami --mode short "<prompt>"       ultra-terse: action + result only
   kagami --mode silent "<prompt>"      outcome only, no process narration
   kagami --mode zen "<prompt>"         sparse, one truth per response
@@ -141,6 +142,19 @@ function printUsage() {
 const DIM = '\x1b[2m';
 const RED = '\x1b[31m';
 const RESET = '\x1b[0m';
+const GREEN = '\x1b[32m';
+const AMBER = '\x1b[33m';
+
+const RICK_KW = ['listen', 'morty', 'obviously', 'portal', 'genius', 'science', 'rick', 'multiverse', 'interdimensional', 'szechuan'];
+const LANE_RATES = {
+  'deepseek-v4-flash': 0.0028,
+  'deepseek-v4-pro': 0.014,
+  'codex-spark': 0.003,
+  'nvidia-gpt-oss-120b': 0.004,
+  'nvidia-dracarys': 0.003,
+  'ollama-exec': 0,
+  'rapid-mlx-exec': 0,
+};
 
 function fail(reason, code = 1) {
   process.stderr.write(`${RED}${reason}${RESET}\n${DIM}${BOOT_HINT}${RESET}\n`);
@@ -149,6 +163,50 @@ function fail(reason, code = 1) {
 
 function metaWrite(msg) {
   process.stderr.write(`${DIM}${msg}${RESET}\n`);
+}
+
+function rickScore(text) {
+  const low = String(text ?? '').toLowerCase();
+  return RICK_KW.filter((k) => low.includes(k)).length / RICK_KW.length;
+}
+
+function estimateCost(text, lane) {
+  const rate = LANE_RATES[String(lane ?? '')] ?? LANE_RATES.default ?? 0;
+  const tokens = String(text ?? '').length / 4;
+  return (tokens / 1_000_000) * rate;
+}
+
+function firstFiniteNumber(...candidates) {
+  for (const candidate of candidates) {
+    const value = Number(candidate);
+    if (Number.isFinite(value)) return value;
+  }
+  return null;
+}
+
+function reflectContext(payload) {
+  if (!payload || typeof payload !== 'object') return {};
+  return payload.context && typeof payload.context === 'object' ? payload.context : payload;
+}
+
+function writeHud({ lane, ttft, totalMs, ragHits, ragTopScore, rickScore: score, cacheRatio, costEst, tier }) {
+  const rickColor = score < 0.5 ? RED : score < 0.65 ? AMBER : GREEN;
+  const cacheColor = cacheRatio >= 0.75 ? GREEN : cacheRatio >= 0.4 ? AMBER : RED;
+  const bar = (v, max = 1, width = 8) => {
+    const filled = Math.max(0, Math.min(width, Math.round((v / max) * width)));
+    return '█'.repeat(filled) + '░'.repeat(width - filled);
+  };
+  const parts = [
+    `lane=${lane}`,
+    `ttft=${ttft}ms`,
+    `total=${totalMs}ms`,
+    ragHits != null ? `rag=${ragHits}hits·${ragTopScore?.toFixed(2)}` : null,
+    `rick=${rickColor}${bar(score)}${score.toFixed(2)}${RESET}${DIM}`,
+    cacheRatio != null ? `cache=${cacheColor}${bar(cacheRatio)}${cacheRatio.toFixed(2)}${RESET}${DIM}` : null,
+    `cost=~$${costEst.toFixed(4)}`,
+    tier ? `[${tier}]` : null,
+  ].filter(Boolean).join(' · ');
+  process.stderr.write(`${DIM}[hud] ${parts}${RESET}\n`);
 }
 
 function httpRequestJsonImpl(method, target, body, timeoutMs = 10000) {
@@ -197,7 +255,7 @@ function httpPostJsonImpl(target, body, timeoutMs = 10000) {
   return httpRequestJsonImpl('POST', target, body, timeoutMs);
 }
 
-function tailKagamiStreamImpl(streamUrl, timeoutMs = 120000) {
+function tailKagamiStreamImpl(streamUrl, timeoutMs = 120000, onFirstToken = null) {
   return new Promise((resolve, reject) => {
     const url = new URL(streamUrl, KAGAMI_URL);
     const client = url.protocol === 'https:' ? https : http;
@@ -230,6 +288,8 @@ function tailKagamiStreamImpl(streamUrl, timeoutMs = 120000) {
 
       let fullText = '';
       let buffer = '';
+      let sawFirstToken = false;
+      let streamMetrics = null;
 
       res.on('data', async (chunk) => {
         buffer += chunk.toString('utf8');
@@ -252,6 +312,10 @@ function tailKagamiStreamImpl(streamUrl, timeoutMs = 120000) {
               const parsed = JSON.parse(eventData);
               const token = String(parsed.token ?? '');
               if (token) {
+                if (!sawFirstToken) {
+                  sawFirstToken = true;
+                  onFirstToken?.();
+                }
                 process.stdout.write(token);
                 fullText += token;
                 const pause = precisionPauseMs(token);
@@ -260,15 +324,21 @@ function tailKagamiStreamImpl(streamUrl, timeoutMs = 120000) {
             } catch {
               // Ignore malformed token events.
             }
+          } else if (eventType === 'metrics' && eventData) {
+            try {
+              streamMetrics = JSON.parse(eventData);
+            } catch {
+              // Ignore malformed metrics events.
+            }
           } else if (eventType === 'end') {
             req.destroy();
-            finish(fullText);
+            finish({ text: fullText, metrics: streamMetrics });
             return;
           }
         }
       });
 
-      res.on('end', () => finish(fullText));
+      res.on('end', () => finish({ text: fullText, metrics: streamMetrics }));
       res.on('error', fail);
     });
 
@@ -295,7 +365,7 @@ async function cmdHealth() {
   metaWrite(`healthy | ${uptimeText}`);
 }
 
-async function cmdReflect(prompt, lane = 'default', mode = null, debug = false) {
+async function cmdReflect(prompt, lane = 'default', mode = null, debug = false, hud = false) {
   const text = String(prompt ?? '').trim();
   if (!text) fail('prompt required');
 
@@ -315,12 +385,52 @@ async function cmdReflect(prompt, lane = 'default', mode = null, debug = false) 
   if (!streamUrl) fail('reflect response missing streamUrl');
 
   const reflectId = payload.reflectId || payload.id || '?';
-  const laneLabel = payload.lane || payload.modelId || lane || 'default';
+  const laneId = payload.modelId || payload.lane || lane || 'default';
+  const laneLabel = payload.lane || laneId;
   const absoluteStreamUrl = resolveKagamiUrl(streamUrl);
+  const context = reflectContext(payload);
+  const ragHits = firstFiniteNumber(
+    context.ragHits,
+    context.rag_hits,
+    context.rag?.hits,
+    context.rag?.count,
+    context.memory?.ragHits,
+  );
+  const ragTopScore = firstFiniteNumber(
+    context.ragTopScore,
+    context.rag_top_score,
+    context.rag?.topScore,
+    context.rag?.top_score,
+    context.memory?.ragTopScore,
+  );
+  const pulsePlanTier = context.pulsePlanTier ?? context.pulse_plan_tier ?? context.pulsePlan?.tier ?? context.tier ?? null;
 
   metaWrite(`${laneLabel} · ${reflectId}`);
-  const streamed = await tailKagamiStream(absoluteStreamUrl);
+  let ttftMs = null;
+  const streamResult = await tailKagamiStream(absoluteStreamUrl, 120000, () => {
+    if (ttftMs === null) ttftMs = Date.now() - startedAt;
+  });
+  const streamed = typeof streamResult === 'string' ? streamResult : streamResult?.text ?? '';
+  const streamMetrics = typeof streamResult === 'object' && streamResult !== null ? streamResult.metrics : null;
+  const cacheHitTokens = firstFiniteNumber(streamMetrics?.cacheHitTokens, streamMetrics?.cache_hit_tokens);
+  const cacheMissTokens = firstFiniteNumber(streamMetrics?.cacheMissTokens, streamMetrics?.cache_miss_tokens);
+  const cacheTotalTokens = cacheHitTokens !== null && cacheMissTokens !== null ? cacheHitTokens + cacheMissTokens : 0;
+  const cacheRatio = cacheTotalTokens > 0 ? cacheHitTokens / cacheTotalTokens : null;
   if (streamed && !streamed.endsWith('\n')) process.stdout.write('\n');
+  if (hud) {
+    const totalMs = Date.now() - startedAt;
+    writeHud({
+      lane: laneLabel,
+      ttft: ttftMs ?? totalMs,
+      totalMs,
+      ragHits,
+      ragTopScore,
+      rickScore: rickScore(streamed),
+      cacheRatio,
+      costEst: estimateCost(streamed, laneId),
+      tier: pulsePlanTier,
+    });
+  }
   if (debug) metaWrite(`${Date.now() - startedAt}ms`);
 }
 
@@ -438,7 +548,8 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   const debug = argv.includes('--debug') || process.env.KAGAMI_DEBUG === '1';
-  argv = argv.filter((a) => a !== '--debug');
+  const hud = argv.includes('--hud');
+  argv = argv.filter((a) => a !== '--debug' && a !== '--hud');
 
   // Extract --mode <alias> from anywhere in argv before dispatch
   let mode = null;
@@ -472,7 +583,7 @@ async function main(argv = process.argv.slice(2)) {
       if (String(command ?? '').startsWith('--')) {
         fail(`unknown command: ${command}`);
       }
-      await cmdReflect(argv.join(' '), 'default', mode, debug);
+      await cmdReflect(argv.join(' '), 'default', mode, debug, hud);
   }
 }
 

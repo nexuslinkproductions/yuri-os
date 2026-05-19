@@ -1523,6 +1523,16 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
     const message = data.choices?.[0]?.message;
 
     if (!message) throw new Error('No response from model');
+    const measurement = normalizeProviderUsage('openai-compatible', data.usage, {
+      input_tokens: estimateTokensFromText(messages.map((m) => m.content || '').join('\n')),
+      output_tokens: estimateTokensFromText(message.content || ''),
+    });
+    const cacheMetrics = extractDeepSeekCacheMetrics(data.usage);
+    if (cacheMetrics) {
+      measurement.cache_read_tokens = cacheMetrics.prompt_cache_hit_tokens;
+      measurement.prompt_cache_hit_tokens = cacheMetrics.prompt_cache_hit_tokens;
+      measurement.prompt_cache_miss_tokens = cacheMetrics.prompt_cache_miss_tokens;
+    }
     await recordOffloadLedger({
       lane: opts.lane,
       traceId: opts.traceId,
@@ -1530,10 +1540,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
       requestModel: model,
       responseModel: data.model || model,
       status: 'ok',
-      measurement: normalizeProviderUsage('openai-compatible', data.usage, {
-        input_tokens: estimateTokensFromText(messages.map((m) => m.content || '').join('\n')),
-        output_tokens: estimateTokensFromText(message.content || ''),
-      }),
+      measurement,
       startedAt,
       promptText,
       systemText,
@@ -1542,6 +1549,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
         iteration,
         supports_tools: supportsTools,
         tool_call_count: Array.isArray(message.tool_calls) ? message.tool_calls.length : 0,
+        ...(cacheMetrics ?? {}),
       },
     });
 
@@ -1625,6 +1633,11 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
     // No more tool calls or tools disabled — return final answer
     consecutiveToolCalls = 0;
     const finalText = message.content || '';
+    if (cacheMetrics) {
+      const totalCacheTokens = cacheMetrics.prompt_cache_hit_tokens + cacheMetrics.prompt_cache_miss_tokens;
+      const ratio = totalCacheTokens > 0 ? cacheMetrics.prompt_cache_hit_tokens / totalCacheTokens : 0;
+      process.stderr.write(`\x1b[2m[cache] hit=${cacheMetrics.prompt_cache_hit_tokens} miss=${cacheMetrics.prompt_cache_miss_tokens} ratio=${ratio.toFixed(2)}\x1b[0m\n`);
+    }
     autoRecordOutcome(opts?.lane, opts?.traceId, finalText);
     return finalText;
   }
@@ -1660,6 +1673,17 @@ function autoRecordOutcome(lane, traceId, text) {
   } catch (_) { /* never block on outcome recording */ }
 }
 
+function extractDeepSeekCacheMetrics(usage = {}) {
+  if (!usage || usage.prompt_cache_hit_tokens == null || usage.prompt_cache_miss_tokens == null) return null;
+  const hit = Number(usage?.prompt_cache_hit_tokens);
+  const miss = Number(usage?.prompt_cache_miss_tokens);
+  if (!Number.isFinite(hit) || !Number.isFinite(miss)) return null;
+  return {
+    prompt_cache_hit_tokens: Math.max(0, Math.trunc(hit)),
+    prompt_cache_miss_tokens: Math.max(0, Math.trunc(miss)),
+  };
+}
+
 async function recordOffloadLedger({
   lane,
   traceId,
@@ -1691,6 +1715,8 @@ async function recordOffloadLedger({
       prompt_chars: promptText?.length || 0,
       system_chars: systemText?.length || 0,
       endpoint_host: endpointHost(endpoint),
+      prompt_cache_hit_tokens: safeMeasurement.prompt_cache_hit_tokens,
+      prompt_cache_miss_tokens: safeMeasurement.prompt_cache_miss_tokens,
       ...metadata,
     },
   });

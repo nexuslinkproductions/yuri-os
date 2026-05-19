@@ -64,6 +64,14 @@
       "port": 5001,
       "description": "OpenSpace dashboard server (Flask)",
       "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/openspace"
+    },
+    {
+      "name": "kagami-audit-report",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "5555"],
+      "port": 5555,
+      "description": "Static HTTP server for Kagami sprint audit HTML",
+      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/reports"
     }
   ]
 }
