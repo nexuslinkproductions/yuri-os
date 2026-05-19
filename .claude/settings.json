@@ -145,6 +145,14 @@
           {
             "type": "command",
             "command": "node .claude/hooks/musubi-protocol-enforce.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/cassandra-lite.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/token-budget-check.js"
           }
         ]
       },
@@ -232,6 +240,18 @@
             "type": "command",
             "command": "node _SYSTEM/Scripts/memory-session-write.mjs",
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/token-status.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/yuri-dream.js"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/session-reflect.js"
           }
         ]
       }
