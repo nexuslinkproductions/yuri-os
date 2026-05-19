@@ -13,7 +13,7 @@ const LAUNCH_AGENT_DIR = path.join('/Users/marcelspatz', 'Library', 'LaunchAgent
 
 let cachedHealthJson = '{"error":"not yet generated"}';
 
-createServer((req, res) => {
+const healthServer = createServer((req, res) => {
   const url = req.url?.split('?')[0] ?? '/';
   if (url === '/health.json') {
     res.writeHead(200, {
@@ -35,7 +35,13 @@ createServer((req, res) => {
     res.writeHead(404);
     res.end('Not found');
   }
-}).listen(HTTP_PORT, '127.0.0.1', () => {
+});
+
+healthServer.on('error', (error) => {
+  console.error(`[health-aggregator] HTTP server unavailable: ${error.code || error.message}`);
+});
+
+healthServer.listen(HTTP_PORT, '127.0.0.1', () => {
   console.log(`[health-aggregator] HTTP server on http://localhost:${HTTP_PORT}`);
 });
 
@@ -211,10 +217,10 @@ async function readServiceStatus() {
 
 async function main() {
   const hooksByPhase = { ...HOOKS };
-  const services = await readServiceStatus();
-  const health = {
+  const launchagents = LAUNCH_AGENTS.map(readLaunchAgent);
+  const result = {
     generated_at: new Date().toISOString(),
-    launchagents: LAUNCH_AGENTS.map(readLaunchAgent),
+    launchagents,
     state_files: Object.fromEntries(
       Object.entries(STATE_FILES).map(([name, filePath]) => [name, readStateFile(filePath)]),
     ),
@@ -222,11 +228,17 @@ async function main() {
       total_scripts: countHookScripts(hooksByPhase),
       hooks_by_phase: hooksByPhase,
     },
-    services,
+  };
+  result.services = {
+    backend: { status: launchagents.some((l) => l.label.startsWith('com.yuri.kagami') && l.status === 'running') ? 'ok' : 'fail' },
+    openclaw: { status: launchagents.find((l) => l.label === 'com.yuri.openclaw')?.status === 'running' ? 'ok' : 'fail' },
+    dream_synthesis: { status: existsSync(path.join(REPO_ROOT, '.claude/yuri-sentinel/learning/synthesis.json')) ? 'ok' : 'fail' },
+    worker_bridge: { status: existsSync(path.join(REPO_ROOT, '_SYSTEM/Scripts/worker-bridge.mjs')) ? 'ok' : 'fail' },
+    session_buffer: { status: existsSync(path.join('/Users/marcelspatz', '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-buffer.json')) ? 'ok' : 'fail' },
   };
 
   mkdirSync(MONITORING_DIR, { recursive: true });
-  const healthJson = `${JSON.stringify(health, null, 2)}\n`;
+  const healthJson = `${JSON.stringify(result, null, 2)}\n`;
   writeFileSync(OUTPUT_TMP_PATH, healthJson);
   renameSync(OUTPUT_TMP_PATH, OUTPUT_PATH);
   cachedHealthJson = healthJson;

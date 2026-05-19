@@ -1,347 +1,439 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YURI OS Automation Command Center</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>YURI OS · Automation Command Center</title>
   <style>
     :root {
-      --bg: #080810;
-      --bar: #0d0d1a;
-      --card: #12121f;
-      --card-2: #17172a;
-      --line: #2a2a4a;
-      --text: #e8e8ff;
-      --muted: #8585a8;
-      --green: #00ff88;
-      --red: #ff3355;
-      --amber: #ffaa00;
-      --blue: #4488ff;
-      --grey: #606078;
-      --shadow: rgba(0, 0, 0, 0.35);
+      --bg: #0A0A0A;
+      --card-bg: linear-gradient(180deg, rgba(20,22,20,0.7), rgba(12,14,12,0.6));
+      --border: 1px solid rgba(255,255,255,0.12);
+      --radius-card: 16px;
+      --radius-badge: 7px;
+      --shadow-card: 0 18px 60px -20px rgba(0,0,0,0.6);
+      --ring-green: inset 0 0 0 1px rgba(71,192,27,0.08);
+      --green: #47C01B;
+      --cyan: #1AFFE4;
+      --red: #FF3333;
+      --amber: #FF8800;
+      --text: #E8E8E8;
+      --muted: #8585A8;
+      --transition: cubic-bezier(.25,.8,.5,1) 0.25s;
       color-scheme: dark;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     }
-
-    * { box-sizing: border-box; }
-
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      min-width: 320px;
+      background: var(--bg);
+    }
     body {
       margin: 0;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 14% 0%, rgba(71,192,27,0.08), transparent 26rem),
+        linear-gradient(180deg, #0A0A0A 0%, #070807 100%);
       color: var(--text);
-      min-width: 320px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
     }
-
+    button {
+      font: inherit;
+    }
+    .mono {
+      font-family: "Geist Mono", "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
     .topbar {
       position: fixed;
       inset: 0 0 auto 0;
-      z-index: 10;
-      height: 58px;
+      z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 18px;
+      height: 56px;
       padding: 0 22px;
-      background: var(--bar);
-      border-bottom: 1px solid var(--line);
-      box-shadow: 0 8px 22px var(--shadow);
+      background: rgba(8, 9, 8, 0.92);
+      border-bottom: var(--border);
+      backdrop-filter: blur(18px);
     }
-
     .brand {
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 0;
-      white-space: nowrap;
-    }
-
-    .topmeta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
-    main {
-      padding: 82px 22px 26px;
-      max-width: 1720px;
-      margin: 0 auto;
-    }
-
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 30px;
-    }
-
-    .tile {
-      min-height: 110px;
-      padding: 18px;
-      background: linear-gradient(180deg, var(--card-2), var(--card));
-      border: 1px solid var(--line);
-      border-top: 2px solid var(--accent);
-      border-radius: 8px;
-    }
-
-    .tile strong {
-      display: block;
-      color: var(--accent);
-      font-size: clamp(34px, 5vw, 58px);
-      line-height: 0.95;
-    }
-
-    .tile span {
-      display: block;
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    section { margin-top: 28px; }
-
-    h2 {
-      margin: 0 0 14px;
-      color: var(--text);
-      font-size: 13px;
-      letter-spacing: 0;
-    }
-
-    .agents {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 12px;
-    }
-
-    .agent {
-      display: grid;
-      gap: 13px;
-      min-height: 158px;
-      padding: 15px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-left: 4px solid var(--status-color);
-      border-radius: 8px;
-    }
-
-    .agent.crashed { box-shadow: 0 0 12px rgba(255, 51, 85, 0.3); }
-
-    .agent-head {
       display: flex;
       align-items: center;
       gap: 10px;
       min-width: 0;
+      color: var(--green);
+      font-weight: 800;
+      text-shadow: 0 0 18px rgba(71,192,27,0.36);
+      white-space: nowrap;
     }
-
-    .dot {
+    .brand-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      color: var(--green);
+    }
+    .topbar-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 14px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .live-dot {
       width: 10px;
       height: 10px;
-      flex: 0 0 10px;
       border-radius: 50%;
-      background: var(--status-color);
+      background: var(--green);
+      box-shadow: 0 0 16px rgba(71,192,27,0.8);
+      animation: pulse-green 1.5s infinite;
     }
-
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
-    .dot-running { animation: pulse 1.5s infinite; background: #00ff88; }
-
+    .shell {
+      width: min(1760px, 100%);
+      margin: 0 auto;
+      padding: 84px 24px 28px;
+    }
+    .section {
+      margin-top: 28px;
+    }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .section-meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .summary-tile {
+      position: relative;
+      overflow: hidden;
+      min-height: 128px;
+      padding: 20px;
+      background: var(--card-bg);
+      border: var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card), var(--ring-green);
+    }
+    .summary-tile::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent 54%);
+      pointer-events: none;
+    }
+    .summary-number {
+      position: relative;
+      display: block;
+      color: var(--accent);
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .summary-label {
+      position: relative;
+      display: block;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .services-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .services-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 38px;
+      padding: 8px 12px;
+      background: rgba(18,20,18,0.82);
+      border: var(--border);
+      border-radius: 999px;
+      box-shadow: var(--ring-green);
+    }
+    .service-name {
+      color: var(--text);
+      font-weight: 750;
+      text-transform: capitalize;
+    }
+    .service-status {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .agent-card {
+      min-height: 168px;
+      padding: 16px;
+      background: var(--card-bg);
+      border: var(--border);
+      border-left: 3px solid var(--status-color);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+    }
+    .agent-card[data-status="crashed"] {
+      box-shadow: var(--shadow-card), 0 0 12px rgba(255,51,85,0.3);
+    }
+    .card-header {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 8px 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
     .agent-name {
       overflow: hidden;
+      color: var(--text);
+      font-weight: 850;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-weight: 800;
-      font-size: 14px;
     }
-
-    .label {
+    .agent-label {
+      grid-column: 2;
       overflow-wrap: anywhere;
       color: var(--muted);
       font-size: 11px;
-      line-height: 1.5;
+      line-height: 1.35;
     }
-
-    .badges {
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--status-color);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--status-color) 72%, transparent);
+    }
+    .status-dot.running {
+      animation: pulse-green 1.5s infinite;
+    }
+    .card-body {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       align-items: center;
     }
-
-    .badge, .chip {
+    .badge,
+    .chip {
       display: inline-flex;
       align-items: center;
-      min-height: 26px;
-      padding: 5px 8px;
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      background: #0e0e19;
+      min-height: 28px;
+      max-width: 100%;
+      padding: 6px 9px;
+      overflow: hidden;
+      border: var(--border);
+      border-radius: var(--radius-badge);
+      background: rgba(0,0,0,0.18);
       color: var(--text);
       font-size: 11px;
       line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-
-    .badge.status { color: var(--status-color); border-color: color-mix(in srgb, var(--status-color) 50%, var(--line)); }
-
-    .hooks {
+    .badge.status {
+      color: var(--status-color);
+      border-color: color-mix(in srgb, var(--status-color) 48%, rgba(255,255,255,0.12));
+    }
+    .timestamp {
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    .state-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 10px;
+    }
+    .state-row {
+      display: grid;
+      grid-template-columns: minmax(140px, 1fr) auto auto minmax(180px, 0.8fr);
       gap: 12px;
+      align-items: center;
+      min-height: 48px;
+      padding: 11px 13px;
+      background: rgba(16,18,16,0.74);
+      border: var(--border);
+      border-left: 3px solid var(--freshness-color);
+      border-radius: 12px;
     }
-
-    details {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 8px;
+    .state-name {
+      min-width: 0;
       overflow: hidden;
+      color: var(--text);
+      font-weight: 760;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-
-    summary {
+    .chip.fresh { color: var(--green); }
+    .chip.aging { color: var(--cyan); }
+    .chip.stale { color: var(--amber); }
+    .chip.dead { color: var(--red); }
+    .chip.missing { color: var(--muted); }
+    .muted {
+      color: var(--muted);
+    }
+    .hooks-stack {
+      display: grid;
+      gap: 10px;
+    }
+    .phase-accordion {
+      overflow: hidden;
+      background: rgba(16,18,16,0.74);
+      border: var(--border);
+      border-radius: var(--radius-card);
+    }
+    .phase-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      padding: 13px 15px;
+      color: var(--cyan);
+      background: transparent;
+      border: 0;
       cursor: pointer;
-      padding: 13px 14px;
-      list-style: none;
-      border-left: 4px solid var(--phase-color);
-      font-weight: 800;
+      text-align: left;
     }
-
-    summary::-webkit-details-marker { display: none; }
-
-    .hook-list {
+    .phase-trigger:hover {
+      background: rgba(26,255,228,0.06);
+    }
+    .phase-body {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      padding: 0 14px 14px;
+      padding: 0 15px 15px;
     }
-
-    .state-row {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 10px;
+    .phase-accordion[data-open="false"] .phase-body {
+      display: none;
     }
-
-    .state-chip {
-      flex: 0 0 auto;
-      min-width: 220px;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      border-left: 4px solid var(--freshness-color);
-      background: var(--card);
-    }
-
-    .state-chip strong {
-      display: block;
-      margin-bottom: 7px;
+    .phase-count {
+      color: var(--muted);
       font-size: 12px;
     }
-
-    .state-chip span {
-      display: block;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.45;
-    }
-
-    footer {
+    .footer {
       margin-top: 32px;
       padding-top: 18px;
-      border-top: 1px solid var(--line);
+      border-top: var(--border);
       color: var(--muted);
-      font-size: 11px;
+      font-size: 12px;
     }
-
-    .error {
-      margin: 90px auto 0;
-      max-width: 820px;
+    .error-panel {
+      margin-top: 18px;
       padding: 18px;
-      border: 1px solid var(--red);
-      border-radius: 8px;
-      background: rgba(255, 51, 85, 0.08);
       color: var(--text);
+      background: rgba(255,51,51,0.1);
+      border: 1px solid rgba(255,51,51,0.45);
+      border-radius: var(--radius-card);
     }
-
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.62; transform: scale(1.15); }
+    }
     @media (max-width: 760px) {
       .topbar {
-        height: auto;
-        min-height: 64px;
         align-items: flex-start;
         flex-direction: column;
+        height: auto;
+        min-height: 76px;
         padding: 12px 14px;
       }
-
-      .topmeta {
+      .brand {
+        max-width: 100%;
+        white-space: normal;
+      }
+      .topbar-meta {
         width: 100%;
         justify-content: space-between;
         gap: 8px;
+        overflow-x: auto;
       }
-
-      main { padding: 102px 14px 22px; }
-      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .agents, .hooks { grid-template-columns: 1fr; }
+      .shell {
+        padding: 104px 14px 24px;
+      }
+      .state-row {
+        grid-template-columns: 1fr auto;
+      }
+      .state-row .muted {
+        grid-column: 1 / -1;
+      }
     }
-
     @media (prefers-reduced-motion: reduce) {
-      .dot-running { animation: none; }
+      .live-dot,
+      .status-dot.running {
+        animation: none;
+      }
     }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">YURI OS · AUTOMATION COMMAND CENTER</div>
-    <div class="topmeta">
-      <span id="countdown">refresh in 30s</span>
-      <span id="lastUpdated">last updated --</span>
-    </div>
-  </header>
-
-  <main id="app" aria-live="polite">
-    <div class="summary" id="summary"></div>
-
-    <section>
-      <h2>LaunchAgents</h2>
-      <div class="agents" id="agents"></div>
-    </section>
-
-    <section>
-      <h2>Claude Hooks</h2>
-      <div class="hooks" id="hooks"></div>
-    </section>
-
-    <section>
-      <h2>State Files</h2>
-      <div class="state-row" id="stateFiles"></div>
-    </section>
-
-    <footer id="footer">Auto-refresh: 30s · Last fetch: -- · health.json served by health-aggregator.mjs · http://localhost:4242</footer>
-  </main>
-
+  <div id="app"></div>
   <script>
+    const API = 'http://localhost:4242/health.json';
     const REFRESH_SECONDS = 30;
-    const STATUS_COLORS = {
-      running: '#00ff88',
-      exited_ok: '#4488ff',
-      never_run: '#606078',
-      crashed: '#ff3355'
+    const STATUS_COLOR = {
+      running: '#47C01B',
+      crashed: '#FF3333',
+      exited_ok: '#1AFFE4',
+      never_run: '#8585A8',
+      unknown: '#8585A8'
     };
-    const FRESHNESS_COLORS = {
-      fresh: '#00ff88',
-      aging: '#ffaa00',
-      stale: '#ff3355',
-      dead: '#606078',
-      missing: '#606078'
+    const FRESHNESS_COLOR = {
+      fresh: '#47C01B',
+      aging: '#1AFFE4',
+      stale: '#FF8800',
+      dead: '#FF3333',
+      missing: '#8585A8'
     };
-    const PHASE_COLORS = ['#4488ff', '#00ff88', '#ffaa00', '#ff3355', '#a078ff', '#33d6ff'];
-
-    let nextRefreshAt = Date.now() + REFRESH_SECONDS * 1000;
-    let lastFetchText = '--';
-
+    const SERVICE_LABELS = {
+      backend: 'backend',
+      openclaw: 'openclaw',
+      dream_synthesis: 'dream-synthesis',
+      worker_bridge: 'worker-bridge',
+      session_buffer: 'session-buffer'
+    };
+    let countdownTimer;
+    let secondsRemaining = REFRESH_SECONDS;
+    let lastFetch = '--';
+    let lastData;
     function esc(value) {
-      return String(value ?? '').replace(/[&<>"']/g, char => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
       })[char]);
     }
-
+    function displayTime(value) {
+      if (!value) return '--';
+      const date = new Date(value);
+      return Number.isNaN(date.valueOf()) ? value : date.toLocaleString();
+    }
     function formatInterval(agent) {
       if (agent.schedule) return agent.schedule;
       const seconds = agent.interval_seconds;
@@ -351,122 +443,233 @@
       if (seconds < 86400) return `every ${(seconds / 3600).toFixed(seconds % 3600 ? 1 : 0)}h`;
       return `every ${Math.round(seconds / 86400)}d`;
     }
-
+    function formatExit(agent) {
+      return agent.last_exit_code === null || agent.last_exit_code === undefined
+        ? 'exit none'
+        : `exit ${agent.last_exit_code}`;
+    }
     function formatEvidence(agent) {
+      if (agent.last_run_iso) return displayTime(agent.last_run_iso);
       if (agent.pid) return `pid ${agent.pid}`;
-      if (agent.last_exit_code === null) return 'no launch evidence';
-      return agent.last_exit_code === 0 ? 'last exit ok' : `last exit ${agent.last_exit_code}`;
+      if (agent.last_exit_code === 0) return 'last exit ok';
+      if (agent.last_exit_code === null || agent.last_exit_code === undefined) return 'no evidence';
+      return `last exit ${agent.last_exit_code}`;
     }
-
-    function renderSummary(data) {
-      const agents = data.launchagents || [];
-      const states = Object.values(data.state_files || {});
-      const counts = {
-        running: agents.filter(agent => agent.status === 'running').length,
-        crashed: agents.filter(agent => agent.status === 'crashed').length,
-        stale: states.filter(file => ['stale', 'dead', 'missing'].includes(file.freshness)).length,
-        hooks: data.claude_hooks?.total_scripts || 0
-      };
-      const tiles = [
-        ['RUNNING', counts.running, '#00ff88'],
-        ['CRASHED', counts.crashed, '#ff3355'],
-        ['STALE STATE', counts.stale, '#ffaa00'],
-        ['HOOKS', counts.hooks, '#4488ff']
-      ];
-      document.getElementById('summary').innerHTML = tiles.map(([label, value, color]) => `
-        <article class="tile" style="--accent:${color}">
-          <strong>${value}</strong>
-          <span>${label}</span>
-        </article>
-      `).join('');
-    }
-
-    function renderAgents(data) {
-      document.getElementById('agents').innerHTML = (data.launchagents || []).map(agent => {
-        const color = STATUS_COLORS[agent.status] || '#606078';
-        const crashedClass = agent.status === 'crashed' ? ' crashed' : '';
-        const dotClass = agent.status === 'running' ? ' dot-running' : '';
-        return `
-          <article class="agent${crashedClass}" style="--status-color:${color}">
-            <div class="agent-head">
-              <span class="dot${dotClass}" aria-hidden="true"></span>
-              <span class="agent-name" title="${esc(agent.name)}">${esc(agent.name)}</span>
-            </div>
-            <div>
-              <div class="label">${esc(agent.label)}</div>
-              <div class="badges" style="margin-top:10px">
-                <span class="badge status">${esc(agent.status)}</span>
-                <span class="badge">${esc(formatInterval(agent))}</span>
-              </div>
-            </div>
-            <div class="badges">
-              <span class="badge">exit ${agent.last_exit_code ?? 'none'}</span>
-              <span class="badge">${esc(formatEvidence(agent))}</span>
-            </div>
-          </article>
-        `;
-      }).join('');
-    }
-
-    function renderHooks(data) {
-      const phases = Object.entries(data.claude_hooks?.hooks_by_phase || {});
-      document.getElementById('hooks').innerHTML = phases.map(([phase, scripts], index) => `
-        <details open style="--phase-color:${PHASE_COLORS[index % PHASE_COLORS.length]}">
-          <summary>${esc(phase)} · ${scripts.length}</summary>
-          <div class="hook-list">
-            ${scripts.map(script => `<span class="chip">${esc(script)}</span>`).join('')}
-          </div>
-        </details>
-      `).join('');
-    }
-
-    function renderStateFiles(data) {
-      document.getElementById('stateFiles').innerHTML = Object.entries(data.state_files || {}).map(([name, file]) => {
-        const color = FRESHNESS_COLORS[file.freshness] || '#606078';
-        const age = file.age_hours === null ? 'unknown age' : `${file.age_hours}h old`;
-        return `
-          <article class="state-chip" style="--freshness-color:${color}">
-            <strong>${esc(name)} · ${esc(file.freshness)}</strong>
-            <span>${esc(age)}</span>
-            <span>${esc(file.mtime_iso || 'missing')}</span>
-          </article>
-        `;
-      }).join('');
-    }
-
-    function renderAll(data) {
-      renderSummary(data);
-      renderAgents(data);
-      renderHooks(data);
-      renderStateFiles(data);
-      const generated = data.generated_at ? new Date(data.generated_at).toLocaleString() : '--';
-      lastFetchText = new Date().toLocaleTimeString();
-      document.getElementById('lastUpdated').textContent = `last updated ${generated}`;
-      document.getElementById('footer').textContent = `Auto-refresh: 30s · Last fetch: ${lastFetchText} · health.json served by health-aggregator.mjs · http://localhost:4242`;
-    }
-
-    async function refresh() {
-      const data = await fetch('http://localhost:4242/health.json?t=' + Date.now()).then(response => {
-        if (!response.ok) throw new Error(`health fetch failed: ${response.status}`);
-        return response.json();
+    function normalizeServices(services) {
+      const entries = Object.entries(SERVICE_LABELS);
+      return entries.map(([key, label]) => {
+        const raw = services?.[key];
+        const status = raw?.status === 'ok' || raw?.ok === true || raw?.exists === true ? 'ok' : 'fail';
+        return { key, label, status };
       });
-      renderAll(data);
-      nextRefreshAt = Date.now() + REFRESH_SECONDS * 1000;
     }
-
-    function showError(error) {
-      document.getElementById('app').innerHTML = `<div class="error">${esc(error.message || error)}</div>`;
+    function renderTopbar(generatedAt) {
+      return `
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true">◆</span>
+            <span>YURI OS · AUTOMATION COMMAND CENTER</span>
+          </div>
+          <div class="topbar-meta">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span id="countdown" class="mono">${secondsRemaining}s</span>
+            <span>last-updated ${esc(displayTime(generatedAt))}</span>
+          </div>
+        </header>
+      `;
     }
-
-    function tickCountdown() {
-      const remaining = Math.max(0, Math.ceil((nextRefreshAt - Date.now()) / 1000));
-      document.getElementById('countdown').textContent = `refresh in ${remaining}s`;
+    function renderSummary(launchagents, stateFiles, hooks) {
+      const agents = launchagents || [];
+      const states = Object.values(stateFiles || {});
+      const staleStates = states.filter((state) => ['stale', 'dead', 'missing'].includes(state.freshness));
+      const tiles = [
+        ['RUNNING', agents.filter((agent) => agent.status === 'running').length, STATUS_COLOR.running],
+        ['CRASHED', agents.filter((agent) => agent.status === 'crashed').length, STATUS_COLOR.crashed],
+        ['STALE STATE', staleStates.length, FRESHNESS_COLOR.stale],
+        ['HOOKS', hooks?.total_scripts || 0, '#4488FF']
+      ];
+      return `
+        <section class="summary-grid" aria-label="Automation summary">
+          ${tiles.map(([label, value, color]) => `
+            <article class="summary-tile" style="--accent:${color}">
+              <span class="summary-number mono">${value}</span>
+              <span class="summary-label">${label}</span>
+            </article>
+          `).join('')}
+        </section>
+      `;
     }
-
-    refresh().catch(showError);
-    setInterval(() => refresh().catch(showError), REFRESH_SECONDS * 1000);
-    setInterval(tickCountdown, 1000);
-    tickCountdown();
+    function renderServices(services) {
+      const normalized = normalizeServices(services);
+      return `
+        <section class="section" aria-label="Services">
+          <div class="section-head">
+            <h2 class="section-title">Services</h2>
+            <span class="section-meta mono">${normalized.filter((service) => service.status === 'ok').length}/${normalized.length} ok</span>
+          </div>
+          <div class="services-row">
+            ${normalized.map((service) => {
+              const color = service.status === 'ok' ? STATUS_COLOR.running : STATUS_COLOR.crashed;
+              return `
+                <div class="services-pill" style="--status-color:${color}">
+                  <span class="status-dot ${service.status === 'ok' ? 'running' : ''}" aria-hidden="true"></span>
+                  <span class="service-name">${esc(service.label)}</span>
+                  <span class="service-status mono">${esc(service.status)}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </section>
+      `;
+    }
+    function renderAgents(launchagents) {
+      const agents = launchagents || [];
+      return `
+        <section class="section">
+          <div class="section-head">
+            <h2 class="section-title">LaunchAgents</h2>
+            <span class="section-meta mono">${agents.length} probes</span>
+          </div>
+          <div class="agent-grid">
+            ${agents.map((agent) => {
+              const status = agent.status || 'unknown';
+              const color = STATUS_COLOR[status] || STATUS_COLOR.unknown;
+              return `
+                <article class="agent-card" data-status="${esc(status)}" style="--status-color:${color}">
+                  <div class="card-header">
+                    <span class="status-dot ${status === 'running' ? 'running' : ''}" aria-hidden="true"></span>
+                    <span class="agent-name" title="${esc(agent.name)}">${esc(agent.name)}</span>
+                    <span class="agent-label mono">${esc(agent.label)}</span>
+                  </div>
+                  <div class="card-body">
+                    <span class="badge status">${esc(status)}</span>
+                    <span class="badge mono">${esc(formatInterval(agent))}</span>
+                    <span class="badge mono exit-code">${esc(formatExit(agent))}</span>
+                    <span class="timestamp mono">${esc(formatEvidence(agent))}</span>
+                  </div>
+                </article>
+              `;
+            }).join('')}
+          </div>
+        </section>
+      `;
+    }
+    function renderStateFiles(stateFiles) {
+      const entries = Object.entries(stateFiles || {});
+      return `
+        <section class="section">
+          <div class="section-head">
+            <h2 class="section-title">State Files</h2>
+            <span class="section-meta mono">${entries.length} watched</span>
+          </div>
+          <div class="state-list">
+            ${entries.map(([name, file]) => {
+              const freshness = file?.freshness || 'missing';
+              const color = FRESHNESS_COLOR[freshness] || FRESHNESS_COLOR.missing;
+              const age = file?.age_hours === null || file?.age_hours === undefined ? '--h' : `${file.age_hours}h`;
+              return `
+                <div class="state-row" style="--freshness-color:${color}">
+                  <span class="state-name">${esc(name)}</span>
+                  <span class="chip ${esc(freshness)}">${esc(freshness)}</span>
+                  <span class="mono">${esc(age)}</span>
+                  <span class="mono muted">${esc(displayTime(file?.mtime_iso))}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </section>
+      `;
+    }
+    function renderHooks(claudeHooks) {
+      const phases = Object.entries(claudeHooks?.hooks_by_phase || {});
+      return `
+        <section class="section">
+          <div class="section-head">
+            <h2 class="section-title">Claude Hooks</h2>
+            <span class="section-meta mono">${claudeHooks?.total_scripts || 0} scripts</span>
+          </div>
+          <div class="hooks-stack">
+            ${phases.map(([phase, scripts]) => `
+              <div class="phase-accordion" data-open="true">
+                <button class="phase-trigger" type="button" aria-expanded="true">
+                  <span>${esc(phase)}</span>
+                  <span class="phase-count mono">${scripts.length}</span>
+                </button>
+                <div class="phase-body">
+                  ${scripts.map((script) => `<span class="chip mono">${esc(script)}</span>`).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+      `;
+    }
+    function renderFooter() {
+      return `<footer class="footer mono">▼ http://localhost:4242 · auto-refresh 30s · last fetch ${esc(lastFetch)}</footer>`;
+    }
+    function render(data) {
+      lastData = data;
+      document.getElementById('app').innerHTML = `
+        ${renderTopbar(data.generated_at)}
+        <main class="shell">
+          ${renderSummary(data.launchagents, data.state_files, data.claude_hooks)}
+          ${renderServices(data.services)}
+          ${renderAgents(data.launchagents)}
+          ${renderStateFiles(data.state_files)}
+          ${renderHooks(data.claude_hooks)}
+          ${renderFooter()}
+        </main>
+      `;
+      bindAccordions();
+      syncCountdown();
+    }
+    function renderError(error) {
+      document.getElementById('app').innerHTML = `
+        ${renderTopbar(lastData?.generated_at)}
+        <main class="shell">
+          <div class="error-panel">
+            <strong>Health endpoint unavailable.</strong>
+            <div class="mono">${esc(error.message || error)}</div>
+          </div>
+          ${lastData ? renderSummary(lastData.launchagents, lastData.state_files, lastData.claude_hooks) : ''}
+          ${renderFooter()}
+        </main>
+      `;
+      syncCountdown();
+    }
+    function bindAccordions() {
+      document.querySelectorAll('.phase-trigger').forEach((button) => {
+        button.addEventListener('click', () => {
+          const panel = button.closest('.phase-accordion');
+          const isOpen = panel.dataset.open !== 'false';
+          panel.dataset.open = String(!isOpen);
+          button.setAttribute('aria-expanded', String(!isOpen));
+        });
+      });
+    }
+    function syncCountdown() {
+      const node = document.getElementById('countdown');
+      if (node) node.textContent = `${secondsRemaining}s`;
+    }
+    function startCountdown(seconds) {
+      secondsRemaining = seconds;
+      clearInterval(countdownTimer);
+      syncCountdown();
+      countdownTimer = setInterval(() => {
+        secondsRemaining = Math.max(0, secondsRemaining - 1);
+        syncCountdown();
+      }, 1000);
+    }
+    async function load() {
+      const response = await fetch(API + '?t=' + Date.now());
+      if (!response.ok) throw new Error(`GET ${API} failed with ${response.status}`);
+      const data = await response.json();
+      lastFetch = new Date().toLocaleTimeString();
+      render(data);
+      startCountdown(REFRESH_SECONDS);
+    }
+    load().catch(renderError);
+    setInterval(() => load().catch(renderError), REFRESH_SECONDS * 1000);
   </script>
 </body>
 </html>
