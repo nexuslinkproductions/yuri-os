@@ -1,4 +1,4 @@
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
@@ -59,6 +59,7 @@ const LAUNCH_AGENTS = [
   { label: 'com.yuri.kagami-session-synthesizer' },
   { label: 'com.yuri.kagami-stale-memory-scan' },
   { label: 'com.yuri.lane-memory-prune' },
+  { label: 'com.yuri.health-aggregator', schedule: 'every 60s' },
 ];
 
 const STATE_FILES = {
@@ -161,12 +162,54 @@ function readStateFile(filePath) {
   };
 }
 
+const SESSION_BUFFER_PATH = path.join(
+  '/Users/marcelspatz',
+  '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-buffer.json',
+);
+const WORKER_REGISTRY_PATH = path.join(REPO_ROOT, '_SYSTEM/Scripts/worker-tmux-registry.json');
+const SYNTHESIS_PATH = path.join(REPO_ROOT, '.claude/yuri-sentinel/learning/synthesis.json');
+
 function countHookScripts(hooksByPhase) {
   return Object.values(hooksByPhase).reduce((total, scripts) => total + scripts.length, 0);
 }
 
-function main() {
+function probeHttp(port, urlPath, timeoutMs = 3000) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve({ ok: false, status: null, error: 'timeout' }), timeoutMs);
+    const req = httpRequest({ hostname: '127.0.0.1', port, path: urlPath, method: 'GET' }, (res) => {
+      clearTimeout(timer);
+      res.resume();
+      resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, status: res.statusCode });
+    });
+    req.on('error', (e) => { clearTimeout(timer); resolve({ ok: false, status: null, error: e.code }); });
+    req.end();
+  });
+}
+
+async function readServiceStatus() {
+  const [backend, openclaw] = await Promise.all([
+    probeHttp(3004, '/api/health'),
+    probeHttp(18789, '/health'),
+  ]);
+
+  const dreamSynthesis = existsSync(SYNTHESIS_PATH)
+    ? (() => { const s = statSync(SYNTHESIS_PATH); return { mtime_iso: s.mtime.toISOString(), age_hours: Number(((Date.now() - s.mtimeMs) / 36e5).toFixed(2)) }; })()
+    : null;
+
+  const workerBridge = existsSync(WORKER_REGISTRY_PATH)
+    ? (() => { const s = statSync(WORKER_REGISTRY_PATH); return { exists: true, mtime_iso: s.mtime.toISOString() }; })()
+    : { exists: false };
+
+  const sessionBuffer = existsSync(SESSION_BUFFER_PATH)
+    ? (() => { const s = statSync(SESSION_BUFFER_PATH); return { exists: true, mtime_iso: s.mtime.toISOString(), age_hours: Number(((Date.now() - s.mtimeMs) / 36e5).toFixed(2)) }; })()
+    : { exists: false };
+
+  return { backend, openclaw, dream_synthesis: dreamSynthesis, worker_bridge: workerBridge, session_buffer: sessionBuffer };
+}
+
+async function main() {
   const hooksByPhase = { ...HOOKS };
+  const services = await readServiceStatus();
   const health = {
     generated_at: new Date().toISOString(),
     launchagents: LAUNCH_AGENTS.map(readLaunchAgent),
@@ -177,6 +220,7 @@ function main() {
       total_scripts: countHookScripts(hooksByPhase),
       hooks_by_phase: hooksByPhase,
     },
+    services,
   };
 
   mkdirSync(MONITORING_DIR, { recursive: true });
