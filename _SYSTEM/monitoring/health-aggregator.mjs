@@ -1,12 +1,43 @@
-import { existsSync, mkdirSync, renameSync, statSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
+const HTTP_PORT = 4242;
+const HTML_PATH = new URL('./automation-command-center.html', import.meta.url);
 const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
 const MONITORING_DIR = path.join(REPO_ROOT, '_SYSTEM', 'monitoring');
 const OUTPUT_PATH = path.join(MONITORING_DIR, 'health.json');
 const OUTPUT_TMP_PATH = `${OUTPUT_PATH}.tmp`;
 const LAUNCH_AGENT_DIR = path.join('/Users/marcelspatz', 'Library', 'LaunchAgents');
+
+let cachedHealthJson = '{"error":"not yet generated"}';
+
+createServer((req, res) => {
+  const url = req.url?.split('?')[0] ?? '/';
+  if (url === '/health.json') {
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'no-cache',
+    });
+    res.end(cachedHealthJson);
+  } else if (url === '/' || url === '/automation-command-center.html') {
+    try {
+      const html = readFileSync(HTML_PATH, 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(html);
+    } catch {
+      res.writeHead(404);
+      res.end('Not found');
+    }
+  } else {
+    res.writeHead(404);
+    res.end('Not found');
+  }
+}).listen(HTTP_PORT, '127.0.0.1', () => {
+  console.log(`[health-aggregator] HTTP server on http://localhost:${HTTP_PORT}`);
+});
 
 const LAUNCH_AGENTS = [
   { label: 'com.yuri-os-musubi.eot-refresh', schedule: '2AM,8AM,2PM,8PM' },
@@ -149,8 +180,11 @@ function main() {
   };
 
   mkdirSync(MONITORING_DIR, { recursive: true });
-  writeFileSync(OUTPUT_TMP_PATH, `${JSON.stringify(health, null, 2)}\n`);
+  const healthJson = `${JSON.stringify(health, null, 2)}\n`;
+  writeFileSync(OUTPUT_TMP_PATH, healthJson);
   renameSync(OUTPUT_TMP_PATH, OUTPUT_PATH);
+  cachedHealthJson = healthJson;
 }
 
 main();
+setInterval(main, 60000);

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T22:19:29.380Z",
+  "generated_at": "2026-05-19T22:37:39.710Z",
   "launchagents": [
     {
       "name": "eot-refresh",
@@ -177,60 +177,60 @@
     "neuron-loop": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/neuron-loop.log",
       "mtime_iso": "2026-05-19T22:03:18.805Z",
-      "age_hours": 0.27,
+      "age_hours": 0.57,
       "freshness": "fresh"
     },
     "yuri-sentinel": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/yuri-sentinel-state.json",
-      "mtime_iso": "2026-05-19T21:58:20.910Z",
-      "age_hours": 0.35,
+      "mtime_iso": "2026-05-19T22:31:21.277Z",
+      "age_hours": 0.11,
       "freshness": "fresh"
     },
     "lane-health": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-health-status.json",
       "mtime_iso": "2026-05-19T22:19:03.952Z",
-      "age_hours": 0.01,
+      "age_hours": 0.31,
       "freshness": "fresh"
     },
     "launch-gate": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/launch-gate.json",
       "mtime_iso": "2026-05-19T07:00:07.300Z",
-      "age_hours": 15.32,
+      "age_hours": 15.63,
       "freshness": "aging"
     },
     "palace-rebuild": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/palace-rebuild.log",
       "mtime_iso": "2026-05-19T00:30:23.184Z",
-      "age_hours": 21.82,
+      "age_hours": 22.12,
       "freshness": "aging"
     },
     "lane-calibration": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-calibration.json",
       "mtime_iso": "2026-05-17T20:22:18.793Z",
-      "age_hours": 49.95,
+      "age_hours": 50.26,
       "freshness": "stale"
     },
     "pulse-bus": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/pulse-bus.json",
       "mtime_iso": "2026-05-16T21:12:54.775Z",
-      "age_hours": 73.11,
+      "age_hours": 73.41,
       "freshness": "dead"
     },
     "task-queue": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/task-queue.log",
-      "mtime_iso": "2026-05-19T22:17:53.990Z",
-      "age_hours": 0.03,
+      "mtime_iso": "2026-05-19T22:32:54.392Z",
+      "age_hours": 0.08,
       "freshness": "fresh"
     },
     "eot-refresh-err": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/eot-refresh.err.log",
       "mtime_iso": "2026-05-14T00:00:04.545Z",
-      "age_hours": 142.32,
+      "age_hours": 142.63,
       "freshness": "dead"
     },
     "session-state": {
       "path": "/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/session-state.json",
-      "mtime_iso": "2026-05-19T22:19:29.360Z",
+      "mtime_iso": "2026-05-19T22:37:26.932Z",
       "age_hours": 0,
       "freshness": "fresh"
     }

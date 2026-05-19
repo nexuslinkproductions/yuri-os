@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 
 const cwd = process.cwd();
 const queueFile = path.join(cwd, '.claude', 'yuri-sentinel', 'learning', 'dream-queue.jsonl');
-const offloadSh = path.join(cwd, 'Scripts', 'offload.sh');
+const offloadSh = path.join(cwd, '_SYSTEM', 'Scripts', 'offload.sh');
 const globalFile = path.join(cwd, '.claude', 'yuri-sentinel', 'learning', 'global.md');
 const dryRun = process.argv.includes('--dry-run');
 const force = process.argv.includes('--force');
