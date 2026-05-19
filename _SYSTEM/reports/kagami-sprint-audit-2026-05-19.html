@@ -5,21 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kagami AGI Evolution Sprint Audit · 2026-05-19</title>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.0.0/bundled/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.173.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.173.0/examples/jsm/"
+  }
+}
+  </script>
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/geist-mono">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
     :root {
       --bg: #0A0A0A;
-      --accent: #47C01B;
+      --accent-hue: 105;
+      --accent: hsl(var(--accent-hue), 75%, 43%);
       --sec: #1AFFE4;
       --danger: #FF3333;
       --txt: #E8E8E8;
       --muted: #666;
-      --font: "IBM Plex Mono", monospace;
+      --font-sans: 'Inter', 'Inter Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Geist Mono', 'IBM Plex Mono', 'JetBrains Mono', monospace;
+      --font: var(--font-mono);
+      --fw-body: 380;
+      --fw-emphasis: 520;
+      --fw-display: 660;
+      --fw-headline: 720;
       --amber: #FF8800;
       --panel: rgba(255,255,255,.035);
       --line: rgba(255,255,255,.12);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
+      --panel-bg: linear-gradient(180deg, rgba(20,22,20,0.7) 0%, rgba(12,14,12,0.6) 100%);
+      --panel-bg-hover: linear-gradient(180deg, rgba(28,32,28,0.85) 0%, rgba(16,18,16,0.75) 100%);
+      --shadow-soft: 0 18px 60px -20px rgba(0,0,0,0.6), 0 8px 24px -12px rgba(71,192,27,0.05);
+      --shadow-lift: 0 28px 80px -20px rgba(0,0,0,0.7), 0 12px 32px -12px rgba(71,192,27,0.12), 0 0 0 1px rgba(71,192,27,0.22) inset;
+      --ring-soft: 0 0 0 1px rgba(71,192,27,0.08) inset, 0 1px 0 rgba(255,255,255,0.04) inset;
+      --ease-snap: cubic-bezier(.42, .0, .58, 1);
+      --ease-glide: cubic-bezier(.25, .8, .5, 1);
+      --ease-pop: cubic-bezier(.68, -0.4, .265, 1.4);
+      --char-in-duration: 0.5s;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; background: var(--bg); }
@@ -27,8 +58,11 @@
       margin: 0;
       color: var(--txt);
       background: radial-gradient(circle at 75% 10%, rgba(71,192,27,.13), transparent 28%), var(--bg);
-      font-family: var(--font);
-      line-height: 1.55;
+      font-family: var(--font-sans);
+      font-variation-settings: "wght" var(--fw-body), "opsz" 16;
+      font-feature-settings: "ss01", "cv11";
+      line-height: 1.6;
+      letter-spacing: 0;
       overflow-x: hidden;
       cursor: none;
     }
@@ -46,24 +80,17 @@
       background-size: 44px 44px;
       mask-image: linear-gradient(to bottom, transparent, black 18%, black 80%, transparent);
     }
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 3;
-      background: repeating-linear-gradient(to bottom, rgba(255,255,255,.025), rgba(255,255,255,.025) 1px, transparent 1px, transparent 4px);
-      mix-blend-mode: screen;
-      opacity: .35;
-    }
     section {
       position: relative;
       z-index: 10;
-      min-height: 100vh;
-      padding: clamp(72px, 9vw, 128px) clamp(22px, 7vw, 96px);
+      min-height: auto;
+      padding: 4.5rem 0 3.5rem;
       border-bottom: 1px solid rgba(255,255,255,.06);
       isolation: isolate;
+      display: flex;
+      align-items: center;
     }
+    section#cover, section#results { min-height: 100vh; padding: 6rem 0; }
     section::before {
       content: "";
       position: absolute;
@@ -86,27 +113,99 @@
     }
     section > .inner { position: relative; z-index: 2; }
     #cover, #results { display: grid; place-items: center; text-align: center; }
-    .inner { width: min(1180px, 100%); margin: 0 auto; }
+    .inner, section .inner { max-width: 1100px; width: 100%; margin: 0 auto; padding: 0 3rem; }
+    section .inner > * + * { margin-top: 2.25rem; }
+    section .inner h2 + .hook { margin-top: 1rem; }
     h1, h2, h3, p { margin-top: 0; }
     h1 {
-      font-size: clamp(4rem, 12vw, 10.5rem);
-      line-height: .88;
-      letter-spacing: 0;
+      font-family: var(--font-sans);
+      font-size: clamp(4.5rem, 12vw, 13rem);
+      font-weight: 700;
+      font-variation-settings: "wght" 740, "opsz" 96;
+      letter-spacing: -0.045em;
+      line-height: 0.94;
+      margin: 0;
       color: var(--accent);
-      text-shadow: 0 0 12px rgba(71,192,27,0.4), 0 0 24px rgba(71,192,27,0.15);
+      text-shadow: 0 0 18px rgba(71,192,27,0.45), 0 0 36px rgba(71,192,27,0.18);
+      transition: opacity .22s var(--ease-snap), transform .22s var(--ease-snap);
     }
     h2 {
-      font-size: clamp(2rem, 4.8vw, 5rem);
-      line-height: .98;
+      font-family: var(--font-sans);
+      font-size: clamp(2.6rem, 5.4vw, 4.6rem);
+      font-weight: 700;
+      font-variation-settings: "wght" 720, "opsz" 64;
+      letter-spacing: -0.04em;
+      line-height: 0.98;
+      margin: 0 0 0.6rem;
       color: var(--accent);
-      letter-spacing: 0;
-      max-width: 980px;
-      text-shadow: 0 0 12px rgba(71,192,27,0.4), 0 0 24px rgba(71,192,27,0.15);
+      max-width: 1080px;
+      text-shadow: 0 0 14px rgba(71,192,27,0.42), 0 0 28px rgba(71,192,27,0.15);
+      transition: opacity .22s var(--ease-snap), transform .22s var(--ease-snap);
     }
-    h3 { color: var(--sec); font-size: 1rem; text-transform: uppercase; letter-spacing: 0; }
-    .subtitle { color: var(--sec); font-size: clamp(.95rem, 2vw, 1.45rem); }
-    .tagline, .hook { color: var(--txt); font-size: clamp(1.05rem, 2.2vw, 1.7rem); max-width: 980px; }
-    .hook { margin-bottom: 2rem; color: rgba(232,232,232,.86); }
+    h2::before {
+      content: attr(data-tag);
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.32em;
+      letter-spacing: 0.18em;
+      color: var(--sec);
+      opacity: 0.65;
+      text-shadow: none;
+      vertical-align: top;
+      margin-right: 1.2em;
+      margin-top: 0.5em;
+      font-variation-settings: "wght" 520;
+      text-transform: uppercase;
+    }
+    h3 {
+      color: var(--sec);
+      font-family: var(--font-sans);
+      font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+      font-variation-settings: "wght" 660, "opsz" 28;
+      text-transform: none;
+      letter-spacing: -0.018em;
+      line-height: 1.1;
+      margin: 0 0 0.5rem;
+    }
+    .yuri-card h3, .panel h3 {
+      font-size: clamp(0.82rem, 1.05vw, 0.95rem);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--sec);
+      opacity: 0.7;
+      font-variation-settings: "wght" 560, "opsz" 14;
+      margin-bottom: 1rem;
+    }
+    h4, .label-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--sec);
+      opacity: 0.75;
+      font-variation-settings: "wght" 540;
+      margin: 0 0 0.5rem;
+    }
+    .subtitle, .tagline, .hook, p, li, td, .muted {
+      font-family: var(--font-sans);
+      font-variation-settings: "wght" var(--fw-body), "opsz" 16;
+    }
+    code, pre, .code, .term, .badge, .hud, .terminal-output, .ambient, .portal {
+      font-family: var(--font-mono);
+      font-variation-settings: "wght" 480;
+      letter-spacing: 0;
+    }
+    .metric strong, .stat strong, .cache-ratio {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums lining-nums;
+      font-variation-settings: "wght" 620;
+      letter-spacing: -0.025em;
+    }
+    em, .emphasis { font-style: italic; font-variation-settings: "wght" 500, "slnt" -8; }
+    blockquote, q { font-style: normal; }
+    .subtitle { color: var(--sec); font-size: clamp(0.95rem, 1.4vw, 1.15rem); letter-spacing: 0.04em; opacity: 0.85; }
+    .tagline { color: var(--txt); font-size: clamp(1.05rem, 1.6vw, 1.4rem); opacity: 0.7; letter-spacing: 0.01em; margin-top: 1.5rem; }
+    .hook { color: var(--txt); font-size: clamp(1.05rem, 1.5vw, 1.3rem); line-height: 1.55; opacity: 0.88; max-width: 760px; margin-bottom: 2rem; }
     .muted { color: var(--muted); }
     .danger { color: var(--danger); }
     .green { color: var(--accent); }
@@ -114,16 +213,22 @@
     .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
     .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
     .grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-    .panel, .code, .terminal, .metric, .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      backdrop-filter: blur(10px);
+    .panel, .code, .terminal, .metric, .card, .callout, .amber-callout {
+      border: none;
+      background: var(--panel-bg);
+      box-shadow: var(--shadow-soft), var(--ring-soft);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--radius-lg);
     }
-    .panel { padding: 22px; }
+    .panel { padding: 28px; }
     h1, h2, .accent, [data-glow] { text-shadow: 0 0 12px rgba(71,192,27,0.4), 0 0 24px rgba(71,192,27,0.15); }
-    .panel, .code, .roster .member { box-shadow: 0 8px 32px rgba(71,192,27,0.04), 0 0 0 1px rgba(71,192,27,0.08) inset; }
-    .panel:hover, .roster .member:hover { box-shadow: 0 12px 40px rgba(71,192,27,0.12), 0 0 0 1px rgba(71,192,27,0.25) inset; transform: translateY(-2px); transition: box-shadow .25s, transform .25s; }
+    .panel, .code, .roster .member, .metric, .stat, .callout, .amber-callout { transition: transform .42s var(--ease-glide), box-shadow .42s var(--ease-glide), background .42s; }
+    .panel:hover, .roster .member:hover, .metric:hover, .stat:hover {
+      background: var(--panel-bg-hover);
+      box-shadow: var(--shadow-lift);
+      transform: translateY(-4px);
+    }
     .metric, .terminal, .card {
       position: relative;
       overflow: hidden;
@@ -144,13 +249,17 @@
     }
     .metric > *, .terminal > *, .card > * { position: relative; z-index: 1; }
     .code, pre {
-      padding: 18px;
+      padding: 16px;
       overflow: auto;
       color: var(--txt);
-      background: rgba(0,0,0,.72);
-      border-left: 2px solid var(--accent);
-      font-family: var(--font);
+      border-radius: var(--radius-md);
+      border-left: none;
+      font-family: var(--font-mono);
       white-space: pre-wrap;
+    }
+    .code {
+      background: linear-gradient(180deg, rgba(8,10,8,.86) 0%, rgba(2,3,2,.78) 100%);
+      box-shadow: var(--shadow-soft), var(--ring-soft);
     }
     .terminal {
       padding: 18px;
@@ -169,6 +278,7 @@
       color: var(--accent);
       background: rgba(71,192,27,.08);
       font-size: .8rem;
+      transition: transform .31s var(--ease-pop), background .25s ease-out;
     }
     .redbox { border-color: rgba(255,51,51,.45); background: rgba(255,51,51,.075); }
     .list { padding: 0; margin: 0; list-style: none; }
@@ -179,9 +289,45 @@
     .thin { stroke-width: 1.4; }
     .reveal { opacity: 0; transform: translateY(30px); transition: opacity .6s ease-out, transform .6s ease-out; }
     .reveal.visible { opacity: 1; transform: translateY(0); }
-    #dots { position:fixed; right:1.5rem; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:.7rem; z-index:999; }
-    .dot { width:10px; height:10px; border-radius:50%; background:var(--muted); cursor:pointer; transition:.3s; border: 0; padding: 0; }
-    .dot.active { background:var(--accent); transform:scale(1.3); box-shadow: 0 0 12px rgba(71,192,27,.7); }
+    #dots {
+      position: fixed;
+      right: 2.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      z-index: 999;
+      background: none;
+      padding: 0;
+      border-radius: 100px;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: none;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      cursor: pointer;
+      transition: transform .31s var(--ease-pop), background .25s ease-out;
+      border: 0;
+      padding: 0;
+    }
+    .dot:hover { background: rgba(71,192,27,0.6); transform: scale(1.4); }
+    .dot:focus-visible {
+      outline: 2px solid var(--sec);
+      outline-offset: 6px;
+      box-shadow: 0 0 0 4px rgba(26,255,228,.16), 0 0 18px rgba(26,255,228,.45);
+    }
+    .dot.active {
+      background: var(--accent);
+      width: 18px;
+      border-radius: 4px;
+      box-shadow: 0 0 14px rgba(71,192,27,0.6);
+      transition: width .42s var(--ease-pop), transform .31s var(--ease-pop), background .25s, box-shadow .25s;
+    }
     .portal {
       position: absolute;
       inset: 0;
@@ -189,12 +335,66 @@
       place-items: center;
       overflow: hidden;
       color: var(--accent);
-      opacity: .14;
+      opacity: 1;
       font-size: clamp(.55rem, 1.1vw, .95rem);
       white-space: pre;
       text-align: left;
-      transform: rotate(-6deg) scale(1.18);
-      animation: portalDrift 18s ease-in-out infinite;
+      transform: none;
+      animation: none;
+      mask: linear-gradient(180deg, transparent 0%, black 22%, black 78%, transparent 100%);
+      -webkit-mask: linear-gradient(180deg, transparent 0%, black 22%, black 78%, transparent 100%);
+    }
+    .portal-orb {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-mono);
+      font-size: clamp(1.6rem, 3.6vw, 3.2rem); /* portal-orb */
+      line-height: 0.95;
+      color: var(--accent);
+      opacity: 0.16;
+      white-space: pre;
+      margin: 0;
+      animation: portalSpin 110s linear infinite;
+      filter: drop-shadow(0 0 32px rgba(71,192,27,0.35)) drop-shadow(0 0 80px rgba(71,192,27,0.12));
+      letter-spacing: 0;
+      pointer-events: none;
+    }
+    @keyframes portalSpin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to   { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    .portal-rain {
+      position: absolute;
+      inset: 0;
+      font-family: var(--font-mono);
+      font-size: clamp(1rem, 1.6vw, 1.4rem);
+      line-height: 1.4;
+      color: var(--accent);
+      opacity: 0.05;
+      letter-spacing: 0.3em;
+      margin: 0;
+      padding: 3rem;
+      white-space: pre;
+      animation: rainDrift 24s ease-in-out infinite;
+      mask: linear-gradient(180deg, transparent 0%, black 25%, black 75%, transparent 100%);
+      -webkit-mask: linear-gradient(180deg, transparent 0%, black 25%, black 75%, transparent 100%);
+    }
+    @keyframes rainDrift {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-32px); }
+    }
+    .portal-hex {
+      position: absolute;
+      bottom: 4rem; left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--sec);
+      opacity: 0.4;
+      letter-spacing: 0.32em;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
     .ambient {
       position: absolute;
@@ -202,7 +402,7 @@
       overflow: hidden;
       pointer-events: none;
       color: var(--accent);
-      opacity: 0.06;
+      opacity: 0.07;
       font-size: clamp(0.5rem, 0.9vw, 0.8rem);
       white-space: pre;
       text-align: left;
@@ -211,12 +411,131 @@
       z-index: 1;
       transform: rotate(-4deg) scale(1.1);
       animation: ambientDrift 22s ease-in-out infinite;
+      mask: linear-gradient(180deg, transparent 0%, black 22%, black 78%, transparent 100%);
+      -webkit-mask: linear-gradient(180deg, transparent 0%, black 22%, black 78%, transparent 100%);
     }
-    .ambient-s2 { color: #FF8800; }
-    .ambient-s3 { color: #1AFFE4; }
-    .ambient-s8 { color: var(--sec); }
-    .ambient-s11 { color: var(--accent); }
-    .ambient-results { color: var(--accent); }
+    .ambient-s2 { display: grid; place-items: center; color: #FF8800; opacity: 0.07; }
+    .ambient-s2 svg { width: min(760px, 80vw); animation: slowRotate 80s linear infinite; }
+    .ambient-s2 circle { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-dasharray: 4 18; opacity: .55; }
+    .ambient-s3 { color: #1AFFE4; opacity: 0.07; }
+    .ambient-s8 { color: var(--sec); opacity: 0.07; }
+    .ambient-s11 { color: var(--accent); opacity: 0.07; }
+    .ambient-s12 { color: var(--sec); opacity: 0.06; }
+    .ambient-results { color: var(--accent); opacity: 0.07; }
+    .ambient-kv-bits,
+    .ambient-vector-dots,
+    .ambient-edit-flip,
+    .ambient-mesh {
+      padding: 0;
+      transform: none;
+      animation: none;
+      mask: none;
+      -webkit-mask: none;
+      text-align: left;
+      white-space: normal;
+    }
+    .ambient-kv-bits {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      color: var(--sec);
+      opacity: 0.06;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .ambient-kv-bits pre {
+      font-size: clamp(0.7rem, 1.3vw, 1.1rem);
+      line-height: 1.3;
+      letter-spacing: 0.15em;
+      margin: 0;
+      animation: kvCacheFlow 16s linear infinite;
+      mask: linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%);
+      -webkit-mask: linear-gradient(90deg, transparent 0%, black 12%, black 88%, transparent 100%);
+    }
+    @keyframes kvCacheFlow {
+      from { transform: translateX(-3%); }
+      to   { transform: translateX(3%); }
+    }
+    .ambient-vector-dots {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      opacity: 0.07;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .ambient-vector-dots pre {
+      font-size: clamp(0.85rem, 1.5vw, 1.3rem);
+      line-height: 1.6;
+      letter-spacing: 0.3em;
+      margin: 0;
+      animation: vectorDrift 28s ease-in-out infinite;
+      filter: blur(0.2px);
+    }
+    @keyframes vectorDrift {
+      0%, 100% { transform: translate(0, 0); }
+      33%      { transform: translate(-1.5%, 2%); }
+      66%      { transform: translate(1.5%, -2%); }
+    }
+    .ambient-edit-flip {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      opacity: 0.06;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .ambient-edit-flip pre {
+      font-size: clamp(0.95rem, 1.8vw, 1.5rem);
+      line-height: 2.4;
+      letter-spacing: 0.1em;
+      margin: 0;
+      animation: editFlip 6s steps(8) infinite;
+      mask: radial-gradient(ellipse 75% 60% at center, black 30%, transparent 100%);
+      -webkit-mask: radial-gradient(ellipse 75% 60% at center, black 30%, transparent 100%);
+    }
+    @keyframes editFlip {
+      0%   { letter-spacing: 0.1em; opacity: 0.65; }
+      25%  { letter-spacing: 0.18em; opacity: 0.85; }
+      50%  { letter-spacing: 0.05em; opacity: 0.55; }
+      75%  { letter-spacing: 0.22em; opacity: 0.95; }
+      100% { letter-spacing: 0.1em; opacity: 0.65; }
+    }
+    .ambient-mesh {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      color: var(--sec);
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .ambient-mesh pre {
+      font-size: clamp(0.9rem, 1.5vw, 1.25rem);
+      line-height: 2;
+      letter-spacing: 0.25em;
+      margin: 0;
+      animation: meshDrift 22s linear infinite;
+      filter: blur(0.3px) drop-shadow(0 0 18px rgba(26,255,228,0.3));
+    }
+    @keyframes meshDrift {
+      from { background-position: 0 0;     transform: translateX(0%); }
+      to   { background-position: 100% 0;  transform: translateX(-2%); }
+    }
     @keyframes ambientDrift {
       0%, 100% { transform: rotate(-4deg) scale(1.1) translateY(0); }
       50% { transform: rotate(-4deg) scale(1.1) translateY(-12px); }
@@ -225,29 +544,202 @@
       0%, 100% { transform: rotate(-6deg) scale(1.18) translateY(0); }
       50% { transform: rotate(-6deg) scale(1.18) translateY(-16px); }
     }
-    @property --rim-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-    .portal-rim {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      margin: 0 auto 32px;
-      background: conic-gradient(from var(--rim-angle), rgba(71,192,27,0.85) 0deg, rgba(26,255,228,0.6) 90deg, rgba(255,136,0,0.4) 180deg, rgba(71,192,27,0.85) 360deg);
-      animation: spinRim 8s linear infinite;
-      mask: radial-gradient(circle, transparent 56%, black 60%);
-      -webkit-mask: radial-gradient(circle, transparent 56%, black 60%);
-      filter: blur(0.3px) drop-shadow(0 0 18px rgba(71,192,27,0.6));
+    #s2 { padding: 12rem 0 10rem; }
+    #s2 .inner { max-width: 1200px; }
+    #s2 h2 {
+      font-size: clamp(3rem, 6.5vw, 5rem);
+      font-variation-settings: "wght" 760, "opsz" 64;
+      letter-spacing: -0.04em;
     }
-    @keyframes spinRim { from { --rim-angle: 0deg; } to { --rim-angle: 360deg; } }
+    #s2::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 800px 400px at 50% 30%, rgba(71,192,27,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
     .chev { position: absolute; bottom: 28px; color: var(--accent); animation: bounce 1.1s infinite; font-size: 2rem; }
     @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
     .before { background: radial-gradient(circle at 80% 20%, rgba(255,51,51,.15), transparent 32%), #090808; }
     .stack { display: grid; gap: 8px; }
-    .block { padding: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 4px; background: rgba(255,255,255,.035); }
+    .block { padding: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-sm); background: rgba(255,255,255,.035); }
+    .beforeCol .block, .afterCol .block { box-shadow: 0 0 0 1px rgba(71,192,27,0.1) inset, 0 4px 14px rgba(0,0,0,0.3); }
     .beforeCol .block { border-color: rgba(255,51,51,.35); color: rgba(232,232,232,.62); }
     .afterCol .block { border-color: rgba(71,192,27,.38); }
-    .cache-line { border-top: 1px dashed var(--accent); color: var(--accent); padding-top: 8px; font-size: .75rem; }
+    .cache-line {
+      border-top: 1px dashed var(--accent);
+      color: var(--accent);
+      padding-top: 8px;
+      font-size: .75rem;
+      animation: cachePulse 2.4s ease-in-out infinite;
+    }
+    .section-dense {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+    .section-dense > .main {
+      min-width: 0;
+    }
+    .section-dense > .sidekick {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      min-width: 0;
+    }
+    .mini-stat {
+      padding: 1rem 1.25rem;
+      background: var(--panel-bg);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-soft), var(--ring-soft);
+    }
+    .mini-stat .num {
+      font-family: var(--font-mono);
+      font-size: clamp(1.5rem, 2.4vw, 2rem);
+      font-variant-numeric: tabular-nums;
+      font-variation-settings: "wght" 660;
+      color: var(--accent);
+      letter-spacing: -0.025em;
+      line-height: 1;
+    }
+    .mini-stat .lbl { font-size: 0.75rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.4rem; }
+    .mini-stat .delta { font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem; color: var(--sec); }
+    .spark { background: var(--panel-bg); border-radius: var(--radius-md); box-shadow: var(--shadow-soft), var(--ring-soft); padding: 0.75rem; overflow: visible; }
+    .chart-bars { display: flex; flex-direction: column; gap: 0.6rem; padding: 1rem; background: var(--panel-bg); border-radius: var(--radius-md); box-shadow: var(--shadow-soft), var(--ring-soft); }
+    .bar-row { display: flex; align-items: center; gap: 0.75rem; }
+    .bar-label { font-family: var(--font-mono); font-size: 0.75rem; opacity: 0.7; min-width: 90px; }
+    .bar { height: 24px; border-radius: 4px; display: flex; align-items: center; padding: 0 0.6rem; font-family: var(--font-mono); font-size: 0.7rem; min-width: 60px; }
+    .bar-miss { background: linear-gradient(90deg, rgba(255,51,51,0.35), rgba(255,51,51,0.15)); color: #FF6666; }
+    .bar-hit { background: linear-gradient(90deg, rgba(71,192,27,0.6), rgba(71,192,27,0.3)); color: var(--accent); }
+    .lane-health { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.75rem; background: var(--panel-bg); border-radius: var(--radius-md); box-shadow: var(--shadow-soft), var(--ring-soft); }
+    .lane-dot { font-family: var(--font-mono); font-size: 0.65rem; padding: 0.3rem 0.55rem; border-radius: 100px; border: 1px solid currentColor; opacity: 0.85; }
+    .lane-dot.live { color: var(--accent); }
+    .lane-dot.live::before { content: '●'; margin-right: 0.3rem; color: var(--accent); }
+    .how-yuri .yuri-grid {
+      display: grid;
+      grid-template-columns: 1.7fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 1.75rem;
+      margin-top: 2.5rem;
+    }
+    .yuri-card {
+      background: var(--panel-bg);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 2rem;
+      box-shadow: var(--shadow-soft), var(--ring-soft);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      min-width: 0;
+    }
+    .yuri-card h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--sec);
+      opacity: 0.75;
+      margin: 0 0 1rem;
+      font-variation-settings: "wght" 580;
+    }
+    .how-yuri .yuri-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 1.75rem;
+      margin-top: 2.5rem;
+    }
+    .flow-card { grid-column: 1 / -1; grid-row: 1; display: flex; flex-direction: column; gap: 1.5rem; padding: 2.25rem 2.5rem; }
+    .flow-card .sankey { flex: 0 0 auto; max-height: 440px; width: 100%; margin: 0 auto; }
+    .flow-stages { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.85rem; flex: 0 0 auto; }
+    .flow-stages .stage { display: flex; gap: 0.55rem; align-items: flex-start; padding: 0.7rem 0.75rem; background: rgba(255,255,255,0.025); border-radius: var(--radius-md); border: 1px solid rgba(71,192,27,0.08); }
+    .flow-stages .stage-num { font-family: var(--font-mono); font-size: 0.62rem; color: var(--accent); opacity: 0.75; letter-spacing: 0.12em; padding-top: 0.18rem; flex-shrink: 0; }
+    .flow-stages .stage-meta { display: flex; flex-direction: column; min-width: 0; }
+    .flow-stages .stage-meta strong { font-size: 0.78rem; font-variation-settings: "wght" 620; letter-spacing: -0.005em; line-height: 1.15; }
+    .flow-stages .stage-meta span { font-family: var(--font-mono); font-size: 0.6rem; color: rgba(232,232,232,0.55); line-height: 1.4; margin-top: 0.3rem; }
+    .flow-legend { display: flex; flex-wrap: wrap; gap: 1.25rem; font-family: var(--font-mono); font-size: 0.68rem; opacity: 0.55; padding-top: 0.7rem; border-top: 1px solid rgba(71,192,27,0.07); margin-top: auto; }
+    .flow-legend span { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .flow-legend .lg { display: inline-block; width: 16px; height: 6px; border-radius: 3px; }
+    .flow-legend .lg-1 { background: linear-gradient(90deg, #47C01B, #1AFFE4); }
+    .flow-legend .lg-2 { background: #1AFFE4; opacity: 0.75; }
+    .flow-legend .lg-3 { background: #FF8800; opacity: 0.75; }
+    .flow-legend .lg-4 { background: linear-gradient(90deg, #FF8800, #47C01B); }
+    @media (max-width: 920px) {
+      .flow-stages { grid-template-columns: repeat(2, 1fr); }
+    }
+    .memory-card { grid-column: 1; grid-row: 2; }
+    .loop-card { grid-column: 2; grid-row: 2; }
+    .stats-card { grid-column: 1 / -1; grid-row: 3; }
+    @media (max-width: 920px) {
+      .how-yuri .yuri-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .flow-card, .memory-card, .loop-card, .stats-card { grid-column: 1; grid-row: auto; }
+    }
+    .sankey { width: 100%; height: auto; overflow: visible; }
+    .mem-stack { display: flex; flex-direction: column; gap: 0.7rem; }
+    .mem-layer {
+      position: relative;
+      padding: 1rem 1.2rem;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: transform .35s var(--ease-glide), background .35s, border-color .35s;
+      overflow: hidden;
+    }
+    .mem-layer::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: currentColor;
+      opacity: 0.85;
+      box-shadow: 0 0 12px currentColor;
+    }
+    .mem-layer:hover { transform: translateX(4px); background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); }
+    .mem-l1 { color: #47C01B; }
+    .mem-l2 { color: #6BE03B; }
+    .mem-l3 { color: #1AFFE4; }
+    .mem-l4 { color: #FF8800; }
+    .mem-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.45rem; }
+    .mem-badge { font-family: var(--font-mono); font-size: 0.62rem; padding: 0.18rem 0.45rem; background: currentColor; color: #0A0A0A; border-radius: 4px; font-weight: 700; letter-spacing: 0.04em; }
+    .mem-temp { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.18em; color: currentColor; opacity: 0.85; }
+    .mem-meta { font-family: var(--font-mono); font-size: 0.62rem; color: rgba(232,232,232,0.45); letter-spacing: 0.06em; margin-left: auto; }
+    .mem-title { font-family: var(--font-sans); font-size: 0.95rem; color: #E8E8E8; font-variation-settings: "wght" 600; margin-bottom: 0.2rem; letter-spacing: -0.005em; }
+    .mem-detail { font-family: var(--font-mono); font-size: 0.7rem; color: rgba(232,232,232,0.5); line-height: 1.4; margin-bottom: 0.5rem; }
+    .mem-bar { height: 4px; background: rgba(255,255,255,0.05); border-radius: 100px; overflow: hidden; }
+    .mem-bar span { display: block; height: 100%; background: linear-gradient(90deg, currentColor, transparent); opacity: 0.7; border-radius: 100px; transition: width .8s var(--ease-glide); }
+    .mem-tier { display: flex; gap: 1rem; align-items: flex-start; padding: 0.7rem 0; border-bottom: 1px solid rgba(71,192,27,0.06); }
+    .mem-tier:last-child { border-bottom: none; }
+    .tier-num { font-family: var(--font-mono); font-size: 0.75rem; padding: 0.3rem 0.6rem; background: rgba(71,192,27,0.12); color: var(--accent); border-radius: 4px; flex-shrink: 0; }
+    .mem-tier strong { font-size: 0.95rem; font-variation-settings: "wght" 600; display: block; margin-bottom: 0.2rem; }
+    .mem-tier .muted { font-size: 0.78rem; opacity: 0.55; }
+    .live-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; }
+    .live-stat { text-align: center; padding: 1rem 0.5rem; background: rgba(0,0,0,0.25); border-radius: var(--radius-md); }
+    .live-stat .num { font-family: var(--font-mono); font-size: clamp(1.5rem, 2.5vw, 2rem); color: var(--accent); font-variant-numeric: tabular-nums; font-variation-settings: "wght" 660; letter-spacing: -0.025em; }
+    .live-stat .lbl { font-size: 0.7rem; opacity: 0.6; margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    #s2, #s3, #s8, #s12, #results { will-change: auto; }
+    .pin-stage { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    @keyframes cachePulse {
+      0%, 100% { opacity: .58; filter: drop-shadow(0 0 0 rgba(71,192,27,0)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 10px rgba(71,192,27,.7)); }
+    }
+    .warning-glyph {
+      display: inline-grid;
+      place-items: center;
+      width: 1.25em;
+      height: 1.25em;
+      margin-right: .35rem;
+      border-radius: 50%;
+      color: #120101;
+      background: var(--danger);
+      box-shadow: 0 0 16px rgba(255,51,51,.5);
+      font-size: 1.08em;
+      font-weight: 700;
+      line-height: 1;
+      vertical-align: -0.08em;
+    }
+    .warning-glyph::before { content: "!"; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 24px 0; }
-    .metric { padding: 18px; min-height: 110px; }
+    .metric { padding: 18px; min-height: 110px; border-radius: var(--radius-md); }
     .metric strong { display: block; color: var(--accent); font-size: clamp(1.8rem, 4vw, 3.2rem); line-height: 1; }
     .metric span:last-child {
       display: block;
@@ -277,17 +769,74 @@
       82% { transform: translateX(100%); opacity: .22; }
     }
     .wired-measured {
-      border-color: rgba(255,136,0,.58);
-      background: rgba(255,136,0,.055);
+      border: none;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, rgba(255,136,0,.085) 0%, rgba(18,14,8,.68) 100%);
       color: var(--txt);
-      font-family: var(--font);
-      box-shadow: 0 8px 32px rgba(255,136,0,.06), 0 0 0 1px rgba(255,136,0,.18) inset;
+      font-family: var(--font-mono);
+      box-shadow: var(--shadow-soft), 0 0 0 1px rgba(255,136,0,.18) inset, 0 1px 0 rgba(255,255,255,0.04) inset;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
     table { width: 100%; border-collapse: collapse; font-size: .82rem; }
     th, td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,.1); text-align: left; vertical-align: top; }
     th { color: var(--sec); font-weight: 600; }
     .rings-wrap { display: grid; place-items: center; min-height: 610px; }
     .rings { width: min(760px, 100%); }
+    .three-scene {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 11;
+      border-radius: var(--radius-lg);
+      background: radial-gradient(ellipse at center, rgba(0,212,255,0.05) 0%, rgba(4,10,28,0.6) 60%, rgba(0,0,0,0.85) 100%);
+      overflow: hidden;
+      box-shadow: var(--shadow-soft), 0 0 0 1px rgba(71,192,27,0.06) inset;
+    }
+    .three-scene canvas { display: block; width: 100% !important; height: 100% !important; }
+    .three-scene-sm { aspect-ratio: 4 / 3; min-height: 240px; }
+    .v3-layer-labels {
+      list-style: none;
+      margin: 1.5rem 0 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.75rem;
+      width: 100%;
+    }
+    .v3-layer-labels li {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.8rem 0.9rem;
+      background: rgba(255,255,255,0.025);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(71,192,27,0.08);
+    }
+    .v3-layer-labels .l-dot,
+    .loop-legend .l-dot { display: inline-block; border-radius: 50%; flex: 0 0 auto; }
+    .v3-layer-labels .l-dot { width: 10px; height: 10px; }
+    .v3-layer-labels .l-1, .loop-legend .l-1 { background: #47C01B; box-shadow: 0 0 12px rgba(71,192,27,0.6); }
+    .v3-layer-labels .l-2, .loop-legend .l-2 { background: #1AFFE4; box-shadow: 0 0 12px rgba(26,255,228,0.6); }
+    .v3-layer-labels .l-3 { background: #E8E8E8; box-shadow: 0 0 12px rgba(232,232,232,0.4); }
+    .v3-layer-labels .l-4 { background: #888; }
+    .v3-layer-labels .l-5, .loop-legend .l-5 { background: #FF8800; box-shadow: 0 0 14px rgba(255,136,0,0.7); }
+    .v3-layer-labels strong { font-size: 0.85rem; font-variation-settings: "wght" 640; letter-spacing: -0.005em; }
+    .v3-layer-labels em { font-style: normal; font-family: var(--font-mono); font-size: 0.65rem; opacity: 0.6; line-height: 1.35; }
+    .loop-legend {
+      list-style: none;
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      padding: 0.6rem 0 0;
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      opacity: 0.6;
+    }
+    .loop-legend li { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .loop-legend .l-dot { width: 8px; height: 8px; }
+    @media (max-width: 920px) { .v3-layer-labels { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .v3-layer-labels { grid-template-columns: 1fr; } }
     .ring { stroke-dasharray: 1500; stroke-dashoffset: 1500; transition: stroke-dashoffset 1.2s ease-out; }
     .visible .ring.r1 { stroke-dashoffset: 0; transition-delay: 0s; animation: dnaBreath 1.8s ease-in-out infinite alternate 1.5s; }
     .visible .ring.r2 { stroke-dashoffset: 0; transition-delay: 0.2s; }
@@ -312,7 +861,7 @@
       align-content: center;
       padding: 14px;
       backface-visibility: hidden;
-      border-radius: 6px;
+      border-radius: var(--radius-md);
       border: 1px solid rgba(255,51,51,.48);
       background: rgba(255,51,51,.07);
       font-size: .82rem;
@@ -322,25 +871,113 @@
     .prompt-stack { display: grid; gap: 6px; font-size: .76rem; }
     .prompt-stack div { padding: 7px 9px; border-left: 2px solid var(--sec); background: rgba(26,255,228,.045); }
     .roster .card { padding: 14px; min-height: 142px; }
-    .roster .member { border-width: 2px; border-style: solid; transition: transform .25s, box-shadow .25s; }
+    .roster .member {
+      --role-color: rgba(71,192,27,.28);
+      border: none;
+      box-shadow: var(--shadow-soft), 0 0 0 1px var(--role-color) inset, 0 1px 0 rgba(255,255,255,0.04) inset;
+    }
     .roster .member[data-magnetic]:hover { transform: translateY(-4px) perspective(800px) rotateX(2deg); }
-    .role-architect { border-color: #47C01B; } .role-architect .badge { background: #47C01B; color: #000; }
-    .role-reasoner { border-color: #1AFFE4; } .role-reasoner .badge { background: #1AFFE4; color: #000; }
-    .role-context { border-color: #E8E8E8; } .role-context .badge { background: #E8E8E8; color: #000; }
-    .role-orchestrator { border-color: #FF8800; } .role-orchestrator .badge { background: #FF8800; color: #000; }
-    .role-creative { border-color: #FF3399; } .role-creative .badge { background: #FF3399; color: #000; }
-    .role-bilingual { border-color: #3399FF; } .role-bilingual .badge { background: #3399FF; color: #000; }
-    .role-generalist { border-color: #99FF99; } .role-generalist .badge { background: #99FF99; color: #000; }
-    .role-code { border-color: #AA66FF; } .role-code .badge { background: #AA66FF; color: #000; }
-    .role-fast { border-color: #FF6600; } .role-fast .badge { background: #FF6600; color: #000; }
+    .role-architect { --role-color: rgba(71,192,27,.45); } .role-architect .badge { background: var(--accent); color: #000; }
+    .role-reasoner { --role-color: rgba(26,255,228,.45); } .role-reasoner .badge { background: #1AFFE4; color: #000; }
+    .role-context { --role-color: rgba(232,232,232,.4); } .role-context .badge { background: #E8E8E8; color: #000; }
+    .role-orchestrator { --role-color: rgba(255,136,0,.45); } .role-orchestrator .badge { background: #FF8800; color: #000; }
+    .role-creative { --role-color: rgba(255,51,153,.45); } .role-creative .badge { background: #FF3399; color: #000; }
+    .role-bilingual { --role-color: rgba(51,153,255,.45); } .role-bilingual .badge { background: #3399FF; color: #000; }
+    .role-generalist { --role-color: rgba(153,255,153,.45); } .role-generalist .badge { background: #99FF99; color: #000; }
+    .role-code { --role-color: rgba(170,102,255,.45); } .role-code .badge { background: #AA66FF; color: #000; }
+    .role-fast { --role-color: rgba(255,102,0,.45); } .role-fast .badge { background: #FF6600; color: #000; }
     .roster strong { color: var(--accent); display: block; }
     .typedLine { min-height: 28px; color: var(--accent); }
-    .statGrid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-top: 36px; }
-    .stat { border-top: 1px solid var(--accent); padding-top: 12px; text-align: left; }
-    .stat strong { color: var(--accent); font-size: 2.2rem; display: block; line-height: 1; }
+    /* V6 layout — stack BEFORE table over cosine grid, both full main width */
+    #s5 .section-dense .main .grid2 {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    #s5 .section-dense .main .panel { width: 100%; }
+    #s5 .section-dense .main .panel table td { padding: 0.5rem 0.85rem; font-size: 0.85rem; }
+    .cosine-grid {
+      display: grid;
+      grid-template-rows: repeat(6, auto);
+      gap: 5px;
+      width: 100%;
+      max-width: none;
+      align-self: stretch;
+      padding: 1.25rem 1.4rem;
+    }
+    .cosine-grid .row {
+      display: grid;
+      grid-template-columns: 130px repeat(5, minmax(48px, 1fr));
+      gap: 5px;
+      align-items: center;
+    }
+    .cosine-grid .row.legend { font-size: 0.75rem; opacity: 0.6; }
+    .cosine-grid .term { font-family: var(--font-mono); font-size: 0.8rem; opacity: 0.8; padding: 0.3rem 0.5rem; }
+    .cosine-grid .score {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.5rem 0.3rem;
+      text-align: center;
+      border-radius: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .s-2 { background: hsl(105 50% 15% / 0.8); color: hsl(105 60% 35%); }
+    .s-3 { background: hsl(105 55% 22% / 0.85); color: hsl(105 65% 45%); }
+    .s-4 { background: hsl(115 60% 28% / 0.85); color: hsl(115 70% 55%); }
+    .s-5 { background: hsl(135 65% 32% / 0.85); color: hsl(135 70% 60%); }
+    .s-6 { background: hsl(150 65% 35% / 0.9); color: hsl(150 75% 65%); }
+    .s-7 { background: hsl(160 70% 38% / 0.92); color: hsl(160 80% 75%); }
+    .s-8 { background: hsl(170 75% 42% / 0.95); color: hsl(170 85% 88%); }
+    .s-9 { background: hsl(170 80% 50%); color: #001a1a; font-weight: 700; }
+    #results .stats, #results .statGrid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+    #results .stat {
+      padding: 2rem 1.75rem;
+      text-align: center;
+      border: none;
+      background: var(--panel-bg);
+      box-shadow: var(--shadow-soft), var(--ring-soft);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--radius-md);
+    }
+    #results .stat strong {
+      display: block;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(180deg, #6BE03B 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 24px rgba(71,192,27,0.4));
+    }
+    #results .stat:nth-child(1) { grid-column: 2; grid-row: 1; }
+    #results .stat:nth-child(2) { grid-column: 3; grid-row: 1; }
+    #results .stat:nth-child(3) {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    #results .stat:nth-child(3) strong {
+      font-size: clamp(4rem, 9vw, 7rem);
+      filter: drop-shadow(0 0 40px rgba(71,192,27,0.6));
+    }
+    #results .stat:nth-child(4) { grid-column: 2; grid-row: 2; }
+    #results .stat:nth-child(5) { grid-column: 3; grid-row: 2; }
+    #results .stat:nth-child(6) { grid-column: 2 / 4; grid-row: 3; text-align: center; }
+    #results .stat span, #results .stat:not(:has(strong)) { font-size: 0.95rem; opacity: 0.75; }
     .stat {
       position: relative;
-      transition: transform .25s ease, border-color .25s ease;
+      transition: transform .42s var(--ease-glide), box-shadow .42s var(--ease-glide), background .42s, border-color .25s ease;
     }
     .stat::after {
       content: "";
@@ -356,11 +993,28 @@
       transition: transform .25s ease;
     }
     .stat:hover {
-      transform: translateY(-3px);
       border-color: var(--sec);
     }
     .stat:hover::after { transform: scaleX(1); }
     .cache-ratio, .stat strong { text-shadow: 0 0 16px rgba(71,192,27,0.55); }
+    #cover h1 .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: charIn var(--char-in-duration) cubic-bezier(.2,.7,.2,1) forwards;
+    }
+    @keyframes charIn { to { opacity: 1; transform: translateY(0); } }
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--sec) 100%);
+      z-index: 9999;
+      pointer-events: none;
+      box-shadow: 0 0 12px rgba(71,192,27,0.7);
+    }
     @keyframes pulseGlow { 0%, 100% { text-shadow: 0 0 12px rgba(71,192,27,0.4); } 50% { text-shadow: 0 0 22px rgba(71,192,27,0.75); } }
     .glow-pulse { animation: pulseGlow 2.4s ease-in-out infinite; }
     .crt-scan {
@@ -381,7 +1035,7 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #47C01B;
+      background: var(--accent);
       pointer-events: none;
       z-index: 9999;
       mix-blend-mode: difference;
@@ -399,42 +1053,131 @@
       .cursor-dot, .cursor-trail { display: none; }
     }
     @media (max-width: 620px) {
-      .rings text { font-size: 11px; }
-      .portal-rim { width: 132px; height: 132px; margin-bottom: 24px; }
-      .stat strong { font-size: 1.75rem; }
       .metric { min-height: 96px; }
     }
     @media (max-width: 880px) {
-      section { padding-right: 54px; }
+      section { padding: 6rem 0 5rem; }
+      #s2 { padding: 8rem 0 7rem; }
+      section .inner { padding: 0 3.5rem 0 1.5rem; }
       .grid2, .grid3, .grid4, .metrics, .statGrid { grid-template-columns: 1fr; }
       .rings-wrap { min-height: 420px; }
       #dots { right: .75rem; }
     }
+    @media (max-width: 768px) {
+      #results .stats, #results .statGrid { grid-template-columns: 1fr; }
+      #results .stat { grid-column: 1 !important; grid-row: auto !important; }
+      .cosine-grid { overflow-x: auto; max-width: 100%; padding-bottom: .25rem; }
+      .cosine-grid .row { min-width: 520px; }
+      .live-grid { grid-template-columns: repeat(3, 1fr); }
+      .how-yuri .yuri-grid { grid-template-columns: 1fr; }
+      .flow-card, .memory-card, .loop-card, .stats-card { grid-column: 1; grid-row: auto; }
+      .bar-row { align-items: flex-start; flex-direction: column; }
+      .bar-label { min-width: 0; }
+    }
+    @media (max-width: 760px) {
+      #s2, #s3, #s8, #s12, #results { min-height: auto; }
+      #s2 .three-scene,
+      #s2 .v3-layer-labels li,
+      #s2 .panel,
+      #s2 .sidekick,
+      #s3 .stack,
+      #s3 .stack > *,
+      #s3 .sidekick,
+      #s3 .metric,
+      #s3 .wired-measured,
+      #s3 .redbox,
+      #s8 .roster .member,
+      #s8 .sidekick,
+      #s12 .sankey-path,
+      #s12 .sankey-node,
+      #s12 .sankey-label,
+      #s12 .memory-card,
+      #s12 .loop-card,
+      #s12 .stats-card,
+      #results .stat,
+      #results .term,
+      .reveal {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        filter: none !important;
+      }
+    }
+    @media (max-width: 920px) {
+      .section-dense { grid-template-columns: 1fr; }
+    }
+    @supports (animation-timeline: view()) {
+      .panel, .roster .member, .metric, .stat {
+        animation: panelMorph linear both;
+        animation-timeline: view(80% 20%);
+      }
+      @keyframes panelMorph {
+        from { border-radius: 8px; transform: translateY(20px) scale(0.98); opacity: 0.4; }
+        to { border-radius: var(--radius-lg); transform: none; opacity: 1; }
+      }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-      .reveal { opacity: 1; transform: none; }
+      .reveal,
+      #s2 .three-scene,
+      #s2 .v3-layer-labels li,
+      #s2 .panel,
+      #s2 .sidekick,
+      #s3 .stack,
+      #s3 .stack > *,
+      #s3 .sidekick,
+      #s3 .metric,
+      #s3 .wired-measured,
+      #s3 .redbox,
+      #s8 .roster .member,
+      #s8 .sidekick,
+      #s12 .sankey-path,
+      #s12 .sankey-node,
+      #s12 .sankey-label,
+      #s12 .memory-card,
+      #s12 .loop-card,
+      #s12 .stats-card,
+      #results .stat,
+      #results .term {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        filter: none !important;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="scroll-progress" aria-hidden="true"></div>
   <div id="tsparticles"></div>
   <div class="bg-grid"></div>
   <nav id="dots" aria-label="Section navigation"></nav>
 
   <section id="cover">
     <div class="inner reveal">
-      <div class="portal-rim glow-pulse" aria-hidden="true"></div>
-      <div class="portal" aria-hidden="true">CHARACTER PULSE ONLINE  ·  portal gun fire  ·  schwifty  ·  rick keywords loaded  ·  morty
-PERSONA  KV  CACHE  PREFIX  $0.0028/M  hit=0.63
-listen  obviously  genius  science  interdimensional  multiverse
-[IDENTITY]  [VoiceContract]  [CHARACTER PULSE]  [MEMORY]  [RAG]
-v4-flash  v4-pro  codex-spark  dracarys  glm  qwen3-next  gpt-oss-120b  ising  kimi
-node:fs/promises  spawn  fetch  Promise.all  await  yield  observe
-session-buffer.json  pulse-bus.jsonl  rag-index.jsonl  preferences.json
-deepseek prefix cache TTL window  ·  drift score 0.65 threshold  ·  Levenshtein 0.30
-buildPrompt()  start()  reflect()  decodeBrainDump()  getCharacterPulse()
-神鏡  鏡  KAGAMI  あ  か  さ  た  な  は  ま  や  ら  わ
-portal gun fire  ·  CHARACTER PULSE ONLINE  ·  schwifty</div>
+      <div class="portal" aria-hidden="true">
+        <pre class="portal-orb">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣤⣤⣶⣶⣶⣶⣶⣶⣤⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣠⣶⣾⠿⠛⠉⠁⠀⠀⠀⠀⠀⠀⠀⠉⠛⠿⣷⣦⣄⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣰⣾⠟⠉⠀⠀⠀⠀⠀⢀⣠⣤⣤⣀⡀⠀⠀⠀⠀⠈⠙⢿⣷⣄⠀⠀⠀
+⠀⠀⠀⠀⣰⡿⠋⠀⠀⠀⠀⠀⢀⣴⣾⠟⠉⠉⠻⣷⣦⡀⠀⠀⠀⠀⠈⢻⣿⣆⠀⠀
+⠀⠀⠀⢠⣿⠁⠀⠀⠀⠀⠀⣰⣿⡟⠁⠀⠀⠀⠀⠈⢿⣿⣆⠀⠀⠀⠀⠀⠹⣿⡄⠀
+⠀⠀⢠⣿⠃⠀⠀⠀⠀⠀⠰⣿⡟⠀⠀⠀⢤⡤⠀⠀⠀⢻⣿⡆⠀⠀⠀⠀⠀⢻⣿⡀
+⠀⢠⣿⠇⠀⠀⠀⠀⠀⠀⠘⣿⡇⠀⠀⠀⠈⠁⠀⠀⠀⢸⣿⠃⠀⠀⠀⠀⠀⠀⢿⣧
+⠀⣸⡏⠀⠀⠀⠀⠀⠀⠀⠀⠹⣷⡀⠀⠀⠀⠀⠀⠀⢀⣾⠏⠀⠀⠀⠀⠀⠀⠀⠘⣿
+⠀⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣿⣦⡀⠀⠀⢀⣴⣿⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹
+⠀⢿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⣶⣶⣿⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿
+⠀⠈⢿⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⠁
+⠀⠀⠀⠻⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⠟⠀⠀
+⠀⠀⠀⠀⠀⠉⠻⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣶⡿⠋⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠿⣷⣶⣶⣤⣤⣄⣀⣠⣤⣶⣶⠿⠛⠉⠀⠀⠀⠀⠀⠀⠀</pre>
+        <pre class="portal-rain">⠁⠂⠄⠈⠐⠠⢀⡀⠁⠂⠄⠈⠐⠠⢀⡀⠁⠂⠄⠈⠐⠠⢀⡀⠁⠂⠄⠈⠐⠠⢀⡀
+⠃⠉⠘⠰⠅⠎⠺⠝⠞⠒⠗⠷⠾⠽⠻⠿⠹⠸⠻⠺⠷⠽⠻⠿⠹⠸⠻⠺⠷⠽⠻⠿
+⠓⠊⠡⠼⠅⠎⠺⠝⠞⠒⠗⠷⠾⠽⠻⠿⠹⠸⠻⠺⠷⠽⠻⠿⠹⠸⠻⠺⠷⠽⠻⠿
+⢀⡀⠠⠐⢀⡀⠠⠐⢀⡀⠠⠐⢀⡀⠠⠐⢀⡀⠠⠐⢀⡀⠠⠐⢀⡀⠠⠐⢀⡀⠠⠐
+⠁⠂⠄⠈⠐⠠⢀⡀⠁⠂⠄⠈⠐⠠⢀⡀⠁⠂⠄⠈⠐⠠⢀⡀⠁⠂⠄⠈⠐⠠⢀⡀
+⠃⠉⠘⠰⠅⠎⠺⠝⠞⠒⠗⠷⠾⠽⠻⠿⠹⠸⠻⠺⠷⠽⠻⠿⠹⠸⠻⠺⠷⠽⠻⠿</pre>
+        <div class="portal-hex">0x47 · 0xC0 · 0x1B · sha256 a2c4f1e9 · §01 §02 §03 §04 §05 §06 §07 §08 §09 §10 §11 §12</div>
+      </div>
       <h1 class="glow-pulse">KAGAMI 神鏡</h1>
       <p class="subtitle">AGI Evolution Sprint · 2026-05-19 · 12 workstreams · 22 commits</p>
       <p class="tagline">The ghost became a body.</p>
@@ -454,7 +1197,7 @@ portal gun fire  ·  CHARACTER PULSE ONLINE  ·  schwifty</div>
         </div>
         <div class="panel reveal">
           <svg viewBox="0 0 640 220" role="img" aria-label="Before architecture">
-            <defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#47C01B"/></marker></defs>
+            <defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="var(--accent)"/></marker></defs>
             <rect x="28" y="72" width="140" height="72" rx="6" fill="#151515" stroke="#666"/><text x="98" y="114" fill="#999" text-anchor="middle">Input</text>
             <rect x="250" y="72" width="140" height="72" rx="6" fill="#151515" stroke="#666"/><text x="320" y="114" fill="#999" text-anchor="middle">Model</text>
             <rect x="472" y="72" width="140" height="72" rx="6" fill="#151515" stroke="#666"/><text x="542" y="114" fill="#999" text-anchor="middle">Output</text>
@@ -469,71 +1212,75 @@ portal gun fire  ·  CHARACTER PULSE ONLINE  ·  schwifty</div>
     <div class="inner">
       <h2 class="reveal">V2 — Codex Sandbox Fix</h2>
       <p class="hook danger reveal">"The sandbox was a ghost town — Codex was building the right thing in the wrong universe, and nobody knew."</p>
-      <div class="grid2">
-        <svg class="panel reveal" viewBox="0 0 760 260" role="img" aria-label="Codex sandbox flow">
-          <defs><marker id="arrow2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#47C01B"/></marker></defs>
-          <g fill="#0f0f0f" stroke="#47C01B"><rect x="24" y="92" width="132" height="66" rx="5"/><rect x="206" y="92" width="190" height="66" rx="5"/><rect x="446" y="92" width="230" height="66" rx="5"/></g>
-          <g fill="#E8E8E8" font-size="15" text-anchor="middle"><text x="90" y="131">offload.sh</text><text x="301" y="123">CODEX_TARGET_</text><text x="301" y="143">WORKTREE</text><text x="561" y="123">codex-offload-runner</text><text x="561" y="143">workspaceRoot</text></g>
-          <path class="draw arrow" marker-end="url(#arrow2)" d="M158 125 H202"/><path class="draw arrow" marker-end="url(#arrow2)" d="M398 125 H442"/><path class="draw arrow" marker-end="url(#arrow2)" d="M562 160 C562 210 132 210 132 162"/>
-        </svg>
-        <div class="reveal">
-          <pre class="code">// BEFORE: workspaceRoot = CODEX_SPARK_WORKSPACE || repoRoot
+      <div class="section-dense">
+        <div class="main">
+          <div class="grid2">
+            <svg class="panel reveal" viewBox="0 0 760 260" role="img" aria-label="Codex sandbox flow">
+              <defs><marker id="arrow2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="var(--accent)"/></marker></defs>
+              <g fill="#0f0f0f" stroke="var(--accent)"><rect x="24" y="92" width="132" height="66" rx="5"/><rect x="206" y="92" width="190" height="66" rx="5"/><rect x="446" y="92" width="230" height="66" rx="5"/></g>
+              <g fill="#E8E8E8" font-size="15" text-anchor="middle"><text x="90" y="131">offload.sh</text><text x="301" y="123">CODEX_TARGET_</text><text x="301" y="143">WORKTREE</text><text x="561" y="123">codex-offload-runner</text><text x="561" y="143">workspaceRoot</text></g>
+              <path class="draw arrow" marker-end="url(#arrow2)" d="M158 125 H202"/><path class="draw arrow" marker-end="url(#arrow2)" d="M398 125 H442"/><path class="draw arrow" marker-end="url(#arrow2)" d="M562 160 C562 210 132 210 132 162"/>
+            </svg>
+            <div class="reveal">
+              <pre class="code">// BEFORE: workspaceRoot = CODEX_SPARK_WORKSPACE || repoRoot
 // AFTER:  workspaceRoot = CODEX_TARGET_WORKTREE || CODEX_SPARK_WORKSPACE || repoRoot
 // + exit(1) on empty response — silent failures gone</pre>
-          <span class="badge">✓ Zero misdirected Codex edits</span>
+              <span class="badge">✓ Zero misdirected Codex edits</span>
+            </div>
+          </div>
+        </div>
+        <div class="sidekick reveal">
+          <div class="mini-stat"><div class="num">0→100<span class="muted" style="font-size:0.5em">%</span></div><div class="lbl">Worktree write success</div><div class="delta">Silent failures → loud exit(1)</div></div>
+          <div class="mini-stat"><div class="num">1<span class="muted" style="font-size:0.5em"> line</span></div><div class="lbl">Env-var fix</div><div class="delta">CODEX_TARGET_WORKTREE precedence</div></div>
+          <div class="mini-stat"><div class="num">∞→0</div><div class="lbl">Silent empty responses</div></div>
         </div>
       </div>
     </div>
   </section>
 
   <section id="s2">
-    <div class="ambient ambient-s2" aria-hidden="true">DNA  HEARTBEAT  IMMUNE  CIRCULATORY  PULSE  ·  drift_score=0.65  threshold
-character_anchor  ·  pulse-bus.jsonl  ·  session-buffer.json  ·  rick_score
-listen  morty  obviously  portal  genius  science  rick  multiverse  interdimensional  szechuan
-+0.3 cosine bonus  ·  top-2 turns  ·  persona-weighted  ·  cross-session
-buildPrompt → drift detector → character_anchor → [CHARACTER ANCHOR]
-761 lines  ·  immutable  ·  KV cache 2300 tokens  ·  $0.0028/M</div>
-    <div class="inner">
+    <div class="ambient ambient-s2" aria-hidden="true">
+      <svg viewBox="0 0 640 640" focusable="false">
+        <circle cx="320" cy="320" r="72"/>
+        <circle cx="320" cy="320" r="128"/>
+        <circle cx="320" cy="320" r="184"/>
+        <circle cx="320" cy="320" r="240"/>
+        <circle cx="320" cy="320" r="296"/>
+      </svg>
+    </div>
+      <div class="inner">
       <h2 class="reveal">V3 — Living Rick: 5-Layer Symbiotic Architecture</h2>
       <p class="hook reveal">"Rick doesn't just live in the prompt — he has a heartbeat, an immune system, and can feel himself becoming someone else."</p>
-      <div class="rings-wrap reveal">
-        <svg viewBox="-60 -40 720 680" class="rings" style="max-width: 100%; height: auto;">
-          <!-- 5 concentric rings -->
-          <circle cx="300" cy="300" r="40" stroke="#47C01B" stroke-width="3" fill="none" class="ring r1"/>
-          <circle cx="300" cy="300" r="80" stroke="#1AFFE4" stroke-width="3" fill="none" class="ring r2"/>
-          <circle cx="300" cy="300" r="120" stroke="#E8E8E8" stroke-width="3" fill="none" class="ring r3"/>
-          <circle cx="300" cy="300" r="160" stroke="#888" stroke-width="3" fill="none" class="ring r4"/>
-          <circle cx="300" cy="300" r="200" stroke="#FF8800" stroke-width="3" fill="none" class="ring r5"/>
+      <div class="section-dense">
+        <div class="main">
+          <div class="rings-wrap reveal">
+            <div id="v3-3d-scene" class="three-scene" aria-label="Living Rick 5-layer 3D architecture">
+              <noscript>
+                <svg viewBox="0 0 600 400" style="width:100%;height:100%"><circle cx="300" cy="200" r="40" fill="none" stroke="#47C01B" stroke-width="2"/><circle cx="300" cy="200" r="80" fill="none" stroke="#1AFFE4" stroke-width="2"/><circle cx="300" cy="200" r="120" fill="none" stroke="#E8E8E8" stroke-width="2"/><circle cx="300" cy="200" r="160" fill="none" stroke="#888" stroke-width="2"/><circle cx="300" cy="200" r="200" fill="none" stroke="#FF8800" stroke-width="2"/></svg>
+              </noscript>
+            </div>
 
-          <!-- Connector lines: from label anchor to ring outer edge, pentagon angles -->
-          <line x1="300" y1="20" x2="300" y2="260" stroke="#47C01B" stroke-width="0.8" opacity="0.45"/>
-          <line x1="557" y1="213" x2="466" y2="227" stroke="#1AFFE4" stroke-width="0.8" opacity="0.45"/>
-          <line x1="465" y1="510" x2="465" y2="427" stroke="#E8E8E8" stroke-width="0.8" opacity="0.45"/>
-          <line x1="135" y1="510" x2="135" y2="427" stroke="#888" stroke-width="0.8" opacity="0.45"/>
-          <line x1="43" y1="213" x2="134" y2="227" stroke="#FF8800" stroke-width="0.8" opacity="0.45"/>
-
-          <!-- Labels at pentagon vertices (radius 260 from center), 2-line stack for readability -->
-          <text x="300" y="-5" text-anchor="middle" font-family="IBM Plex Mono, monospace" fill="#47C01B">
-            <tspan x="300" font-size="14" font-weight="700">L1 · DNA</tspan>
-            <tspan x="300" dy="16" font-size="11" opacity="0.85">persona.md · 761 lines · immutable</tspan>
-          </text>
-          <text x="565" y="200" text-anchor="start" font-family="IBM Plex Mono, monospace" fill="#1AFFE4">
-            <tspan x="565" font-size="14" font-weight="700">L2 · HEARTBEAT</tspan>
-            <tspan x="565" dy="16" font-size="11" opacity="0.85">KV cache · 2300 tokens</tspan>
-          </text>
-          <text x="465" y="530" text-anchor="middle" font-family="IBM Plex Mono, monospace" fill="#E8E8E8">
-            <tspan x="465" font-size="14" font-weight="700">L3 · IMMUNE</tspan>
-            <tspan x="465" dy="16" font-size="11" opacity="0.85">drift detector · 0.65</tspan>
-          </text>
-          <text x="135" y="530" text-anchor="middle" font-family="IBM Plex Mono, monospace" fill="#888">
-            <tspan x="135" font-size="14" font-weight="700">L4 · CIRCULATORY</tspan>
-            <tspan x="135" dy="16" font-size="11" opacity="0.85">RAG · +0.3 Rick bonus</tspan>
-          </text>
-          <text x="35" y="200" text-anchor="end" font-family="IBM Plex Mono, monospace" fill="#FF8800">
-            <tspan x="35" font-size="14" font-weight="700">L5 · PULSE</tspan>
-            <tspan x="35" dy="16" font-size="11" opacity="0.85">top-2 turns · cross-session</tspan>
-          </text>
-        </svg>
+            <ul class="v3-layer-labels reveal">
+              <li><span class="l-dot l-1"></span><strong>L1 · DNA</strong><em>persona.md · 761 lines · immutable</em></li>
+              <li><span class="l-dot l-2"></span><strong>L2 · HEARTBEAT</strong><em>KV cache · 2300 stable tokens</em></li>
+              <li><span class="l-dot l-3"></span><strong>L3 · IMMUNE</strong><em>drift detector · threshold 0.65</em></li>
+              <li><span class="l-dot l-4"></span><strong>L4 · CIRCULATORY</strong><em>persona-weighted RAG · +0.3 bonus</em></li>
+              <li><span class="l-dot l-5"></span><strong>L5 · PULSE</strong><em>getCharacterPulse() · top-2 turns</em></li>
+            </ul>
+          </div>
+        </div>
+        <div class="sidekick reveal">
+          <svg viewBox="0 0 240 70" class="spark" style="width:100%">
+            <defs><linearGradient id="g1" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#47C01B" stop-opacity="0.4"/><stop offset="100%" stop-color="#47C01B" stop-opacity="0"/></linearGradient></defs>
+            <polyline points="0,40 24,32 48,44 72,18 96,28 120,12 144,22 168,8 192,16 216,6 240,10" fill="none" stroke="#47C01B" stroke-width="2"/>
+            <polyline points="0,40 24,32 48,44 72,18 96,28 120,12 144,22 168,8 192,16 216,6 240,10 240,70 0,70" fill="url(#g1)"/>
+            <line x1="0" y1="24" x2="240" y2="24" stroke="#FF8800" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.6"/>
+            <text x="214" y="27" font-size="8" fill="#FF8800" opacity="0.7">0.65</text>
+          </svg>
+          <div class="mini-stat"><div class="num">10</div><div class="lbl">Rick keywords scored</div></div>
+          <div class="mini-stat"><div class="num">0.65</div><div class="lbl">Drift anchor threshold</div><div class="delta">Below → CHARACTER ANCHOR injects</div></div>
+          <div class="mini-stat"><div class="num">2300</div><div class="lbl">Stable KV-cached tokens</div></div>
+        </div>
       </div>
       <div class="panel reveal">
         <table>
@@ -558,18 +1305,41 @@ return hits / RICK_KW.length;</pre>
   </section>
 
   <section id="s3">
-    <div class="ambient ambient-s3" aria-hidden="true">$0.14/M cache-miss  →  $0.0028/M cache-hit  ·  50× rate reduction
-[IDENTITY] + VoiceContract = 2300 stable tokens
-prefix_cache_hit_tokens  ·  prompt_cache_miss_tokens  ·  cache_read_tokens
-deepseek prefix cache TTL ≈ few hours  ·  warm = hit  ·  cold = miss
-STATIC FIRST  ·  DYNAMIC LAST  ·  pulse → moved downstream of identity
-ratio=0.63  ·  ratio=0.64  ·  WIRED  ·  MEASURED</div>
-    <div class="inner">
+    <div class="ambient ambient-s3" aria-hidden="true">$0.14/M
+        $0.0028/M
+  ratio:0.63
+            ratio:0.81
+      ratio:0.94
+$0.14/M
+          ratio:0.63
+    $0.0028/M
+              ratio:0.81
+  ratio:0.94</div>
+    <div class="ambient ambient-kv-bits" aria-hidden="true">
+<pre>⠁⠉⠙⠹⠼⠶⠿⠷⠷⠿⠶⠼⠹⠙⠉⠁⠁⠉⠙⠹⠼⠶⠿⠷  ⠐⠂⠆⠇⠏⠟⠿⠾⠾⠿⠟⠏⠇⠆⠂⠐
+⡏⡟⡿⣟⣿⣿⣿⣿⣿⣿⣿⣿⡿⡟⡏⡏  ⠁⠉⠙⠹⠼⠶⠿⠷  ⠐⠂⠆⠇⠏⠟⠿⠾  ⡟⡏⠁⠉
+⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿  ⠐⠂⠆⠇⠏⠟⠿⠾  ⠁⠉⠙⠹⠼⠶⠿⠷  ⣿⣿⡿
+⡏⡟⡿⣟⣿⣿⣿⣿⣿⣿⣿⣿⡿⡟⡏⡏  ⡏⡟⡿⣟⣿⣿⣿⣿  ⢸⣿⣿⣿⣿⣿⣿⣿⣿  ⡿⡟
+⠁⠉⠙⠹⠼⠶⠿⠷⠷⠿⠶⠼⠹⠙⠉⠁  ⢀⣀⣠⣤⣶⣶⣤⣀  ⠐⠂⠆⠇⠏⠟⠿⠾  ⡏⡟</pre>
+    </div>
+      <div class="inner">
       <h2 class="reveal">V4 — KV Prefix Caching: Wired & Measured</h2>
       <p class="hook reveal">"We moved the pulse downstream of identity. The prefix is stable now; the hit ratio fills from live measurement."</p>
-      <div class="grid2">
-        <div class="panel beforeCol reveal"><h3 class="danger">Before</h3><div class="stack"><div class="block">[IDENTITY]</div><div class="block">VoiceContract</div><div class="block danger">☠ InnerThought</div><div class="block">InfinityGuard</div><div class="block">Memory</div><div class="block">RAG</div><div class="block">History</div><div class="block">Command</div></div></div>
-        <div class="panel afterCol reveal"><h3>After</h3><div class="stack"><div class="block">[IDENTITY]</div><div class="block">VoiceContract</div><div class="cache-line">KV CACHE HIT ↓</div><div class="block">[CHARACTER PULSE]</div><div class="block">Memory</div><div class="block">RAG</div><div class="block">History</div><div class="block">[PREFERENCES]</div><div class="block">InnerThought</div><div class="block">InfinityGuard</div><div class="block">Command</div></div></div>
+      <div class="section-dense">
+        <div class="main">
+          <div class="grid2">
+            <div class="panel beforeCol reveal"><h3 class="danger">Before</h3><div class="stack"><div class="block">[IDENTITY]</div><div class="block">VoiceContract</div><div class="block danger"><span class="warning-glyph" aria-hidden="true"></span><span class="sr-only">Warning:</span>InnerThought</div><div class="block">InfinityGuard</div><div class="block">Memory</div><div class="block">RAG</div><div class="block">History</div><div class="block">Command</div></div></div>
+            <div class="panel afterCol reveal"><h3>After</h3><div class="stack"><div class="block">[IDENTITY]</div><div class="block">VoiceContract</div><div class="cache-line">KV CACHE HIT ↓</div><div class="block">[CHARACTER PULSE]</div><div class="block">Memory</div><div class="block">RAG</div><div class="block">History</div><div class="block">[PREFERENCES]</div><div class="block">InnerThought</div><div class="block">InfinityGuard</div><div class="block">Command</div></div></div>
+          </div>
+        </div>
+        <div class="sidekick reveal">
+          <div class="chart-bars">
+            <div class="bar-row"><span class="bar-label">cache-miss</span><div class="bar bar-miss" style="width:100%"><span>$0.14/M</span></div></div>
+            <div class="bar-row"><span class="bar-label">cache-hit</span><div class="bar bar-hit" style="width:2%"><span>$0.0028/M</span></div></div>
+          </div>
+          <div class="mini-stat"><div class="num">63<span style="font-size:0.55em">%</span></div><div class="lbl">Live cache-hit ratio</div><div class="delta">Measured across 2 consecutive calls</div></div>
+          <div class="mini-stat"><div class="num">50×</div><div class="lbl">Rate reduction (max)</div></div>
+        </div>
       </div>
       <div class="metrics reveal">
         <div class="metric"><span class="muted">Target cache-hit rate</span><strong>$0.0028/M</strong><span>vs $0.14/M cache-miss</span></div>
@@ -585,10 +1355,24 @@ Measured: Cache-hit ratio 63% across TTL window.</pre>
   </section>
 
   <section id="s4">
-    <div class="inner">
+      <div class="inner">
       <h2 class="reveal">V5 — Latent Preference Tracker</h2>
       <p class="hook reveal">"Manus remembered what you liked between sessions. Kagami couldn't remember your name after lunch — until this."</p>
-      <div class="flow reveal"><div class="block">user message</div><div class="block">extractPreferences()</div><div class="block">preferences.json</div><div class="block">[PREFERENCES]</div><div class="block">buildPrompt()</div></div>
+      <div class="section-dense">
+        <div class="main">
+          <div class="flow reveal"><div class="block">user message</div><div class="block">extractPreferences()</div><div class="block">preferences.json</div><div class="block">[PREFERENCES]</div><div class="block">buildPrompt()</div></div>
+        </div>
+        <div class="sidekick reveal">
+          <pre class="code" style="font-size:0.75rem;margin:0">{
+  "type": "explicit",
+  "text": "concise",
+  "updatedAt": "2026-05-19",
+  "ttl_days": 14
+}</pre>
+          <div class="mini-stat"><div class="num">8</div><div class="lbl">Max preferences</div></div>
+          <div class="mini-stat"><div class="num">14d</div><div class="lbl">Rolling TTL window</div></div>
+        </div>
+      </div>
       <div class="grid2">
         <pre class="code reveal">{
   "type": "explicit",
@@ -602,17 +1386,77 @@ Measured: Cache-hit ratio 63% across TTL window.</pre>
   </section>
 
   <section id="s5">
-    <div class="inner">
+    <div class="ambient ambient-vector-dots" aria-hidden="true">
+<pre>⠀⠁⠂⠄⠈⠐⠠⢀⡀⠀⠂⠈⠠⢀⠀⠁⠄⠐⡀⠀⠂⠈⠠⢀⠁⠄⠐⡀⠀⠂⠁⠠⢀⠀⠁⠈⠠⠐⡀⠂⠁
+⠐⠠⢀⡀⠁⠂⠄⠈⠠⢀⡀⠁⠂⠄⠈⠐⠁⠠⢀⠁⠈⠠⢀⠐⡀⠂⠁⠈⠂⠐⠠⢀⠁⠐⡀⠠⠁⠈⠠⠂⡀
+⠈⠠⢀⠁⠐⠁⠂⠠⢀⠁⠈⠐⠠⢀⡀⠂⠈⡀⠁⠐⠂⠠⢀⠁⠐⠂⠠⢀⡀⠁⠐⠂⡀⠁⠐⢀⠠⠁⡀⠂⠐
+⠂⠁⠈⠐⠠⢀⡀⠁⠈⠐⠠⢀⠁⠂⠈⠐⡀⠠⢀⠁⠐⠂⡀⠐⠠⢀⠁⠐⡀⠠⠁⠐⢀⠂⠁⠐⡀⠂⠁⠐⠠
+⠠⢀⡀⠁⠂⠄⠈⠐⠠⢀⠁⠂⠄⠈⠐⠠⢀⠁⠂⠈⠐⠠⢀⠁⠐⠂⠠⠁⠐⢀⠂⠁⠐⡀⠁⠂⠐⠠⢀⠁⠐</pre>
+    </div>
+      <div class="inner">
       <h2 class="reveal">V6 — Embeddings RAG</h2>
       <p class="hook reveal">"'portal' and 'gateway' lived in different zip codes until embeddings connected the map."</p>
-      <div class="grid2">
-        <div class="panel reveal"><h3 class="danger">Before</h3><table><tr><td class="green">'warp'</td><td class="green">'portal'</td><td>science</td></tr><tr><td class="muted">'interdimensional'</td><td class="muted">'gateway'</td><td class="muted">memory</td></tr><tr><td>token</td><td>overlap</td><td>miss</td></tr></table></div>
-        <svg class="panel reveal" viewBox="0 0 520 300" role="img" aria-label="Embedding scatter plot">
-          <g fill="#666"><circle cx="88" cy="90" r="5"/><circle cx="160" cy="180" r="5"/><circle cx="365" cy="76" r="5"/><circle cx="402" cy="204" r="5"/><circle cx="250" cy="236" r="5"/><circle cx="310" cy="160" r="5"/><circle cx="132" cy="250" r="5"/><circle cx="455" cy="110" r="5"/><circle cx="220" cy="80" r="5"/><circle cx="74" cy="190" r="5"/></g>
-          <circle cx="235" cy="134" r="8" fill="#47C01B"/><text x="235" y="116" fill="#47C01B" text-anchor="middle" font-size="12">warp portal</text>
-          <circle cx="274" cy="146" r="8" fill="#1AFFE4"/><text x="274" y="172" fill="#1AFFE4" text-anchor="middle" font-size="12">gateway</text>
-          <path class="draw" d="M235 134 Q255 104 274 146" fill="none" stroke="#1AFFE4" stroke-width="2"/>
-        </svg>
+      <div class="section-dense">
+        <div class="main">
+          <div class="grid2">
+            <div class="panel reveal"><h3 class="danger">Before</h3><table><tr><td class="green">'warp'</td><td class="green">'portal'</td><td>science</td></tr><tr><td class="muted">'interdimensional'</td><td class="muted">'gateway'</td><td class="muted">memory</td></tr><tr><td>token</td><td>overlap</td><td>miss</td></tr></table></div>
+            <div class="cosine-grid panel reveal" role="img" aria-label="Cosine distance heatmap for related memory terms">
+              <div class="row">
+                <span class="term">portal</span>
+                <span class="score s-9">0.94</span>
+                <span class="score s-8">0.81</span>
+                <span class="score s-7">0.72</span>
+                <span class="score s-4">0.41</span>
+                <span class="score s-2">0.18</span>
+              </div>
+              <div class="row">
+                <span class="term">gateway</span>
+                <span class="score s-8">0.81</span>
+                <span class="score s-9">0.91</span>
+                <span class="score s-8">0.78</span>
+                <span class="score s-5">0.52</span>
+                <span class="score s-3">0.24</span>
+              </div>
+              <div class="row">
+                <span class="term">interdimensional</span>
+                <span class="score s-7">0.72</span>
+                <span class="score s-8">0.78</span>
+                <span class="score s-9">0.96</span>
+                <span class="score s-6">0.61</span>
+                <span class="score s-2">0.19</span>
+              </div>
+              <div class="row">
+                <span class="term">memory</span>
+                <span class="score s-4">0.41</span>
+                <span class="score s-5">0.52</span>
+                <span class="score s-6">0.61</span>
+                <span class="score s-9">0.92</span>
+                <span class="score s-7">0.68</span>
+              </div>
+              <div class="row">
+                <span class="term">token</span>
+                <span class="score s-2">0.18</span>
+                <span class="score s-3">0.24</span>
+                <span class="score s-2">0.19</span>
+                <span class="score s-7">0.68</span>
+                <span class="score s-9">0.89</span>
+              </div>
+              <div class="row legend">
+                <span></span>
+                <span>portal</span>
+                <span>gateway</span>
+                <span>interdim</span>
+                <span>memory</span>
+                <span>token</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sidekick reveal">
+          <div class="mini-stat"><div class="num">768</div><div class="lbl">Embedding dimension</div><div class="delta">nomic-embed-text v1.5</div></div>
+          <div class="mini-stat"><div class="num">~12ms</div><div class="lbl">Avg query time</div></div>
+          <div class="mini-stat"><div class="num">+0.3</div><div class="lbl">Rick-consistency bonus</div></div>
+        </div>
       </div>
       <p class="badge reveal">curation → Ollama nomic-embed-text → embedding[] stored → query → cosine → result</p>
       <p class="badge reveal">Rick-consistent entries → +0.3 cosine bonus</p>
@@ -621,106 +1465,169 @@ Measured: Cache-hit ratio 63% across TTL window.</pre>
   </section>
 
   <section id="s6">
-    <div class="inner">
+    <div class="ambient ambient-edit-flip" aria-hidden="true">
+<pre>⠉⠹⠼⠶⠶⠼⠹⠉⠁⠂⠆⠇⠏⠟⠿⠾⠾⠿⠟⠏⠇⠆⠂⠁⠉⠹⠼⠶⠶⠼⠹⠉⠁⠂⠆⠇⠏⠟⠿⠾
+⠁⠂⠆⠇⠏⠟⠿⠾⠾⠿⠟⠏⠇⠆⠂⠁⠉⠹⠼⠶⠶⠼⠹⠉⠁⠂⠆⠇⠏⠟⠿⠾⠾⠿⠟⠏⠇⠆⠂⠁
+⠉⠹⠼⠶⠶⠼⠹⠉⠁⠂⠆⠇⠏⠟⠿⠾⠾⠿⠟⠏⠇⠆⠂⠁⠉⠹⠼⠶⠶⠼⠹⠉⠁⠂⠆⠇⠏⠟⠿⠾</pre>
+    </div>
+      <div class="inner">
       <h2 class="reveal">V8 — Correction Capture</h2>
       <p class="hook reveal">"Asking the same question twice shouldn't get the same wrong answer twice."</p>
-      <div class="grid2">
-        <div class="panel reveal"><h3>Levenshtein Signal</h3><svg viewBox="0 0 360 220"><g id="levGrid"></g></svg></div>
-        <pre class="code reveal">{"before":"what did we build","after":"what have we built","editDistance":0.23,"signal":"correction","updatedAt":"2026-05-19"}</pre>
+      <div class="section-dense">
+        <div class="main">
+          <div class="grid2">
+            <div class="panel reveal"><h3>Levenshtein Signal</h3><svg viewBox="0 0 360 220"><g id="levGrid"></g></svg></div>
+            <pre class="code reveal">{"before":"what did we build","after":"what have we built","editDistance":0.23,"signal":"correction","updatedAt":"2026-05-19"}</pre>
+          </div>
+        </div>
+        <div class="sidekick reveal">
+          <pre class="code" style="font-size:0.7rem;margin:0">{"before":"what did we build",
+ "after":"what have we built",
+ "editDistance":0.23,
+ "signal":"correction"}</pre>
+          <div class="mini-stat"><div class="num">&lt; 30%</div><div class="lbl">Edit distance threshold</div></div>
+        </div>
       </div>
       <p class="badge reveal">&lt; 30% edit distance → training signal emitted · Levenshtein already pre-wired in pipeline</p>
     </div>
   </section>
 
   <section id="s7">
-    <div class="inner">
+      <div class="inner">
       <h2 class="reveal">V9 — BrainDumpDecoder</h2>
       <p class="hook reveal">"Marcel sends shotgun bursts — 'whats up fucker what did we build' — and Kagami was routing a brain dump through a keyword filter."</p>
-      <div class="panel reveal"><p class="typedLine" data-type="whats up fucker what did we build → emotionalRegister: casual · implicitContextDep: TRUE → cloud"></p><p class="typedLine" data-type="fix the failing auth test → neutral · implicitContextDep: false → codex-spark"></p><p class="typedLine" data-type="we talked about that yesterday → neutral · implicitContextDep: TRUE → cloud"></p></div>
-      <div class="flow reveal"><div class="block">input</div><div class="block">regex patterns</div><div class="block">primaryIntent</div><div class="block">implicitCtxDep</div><div class="block">emotionalRegister</div><div class="block">entities[]</div></div>
+      <div class="section-dense">
+        <div class="main">
+          <div class="panel reveal"><p class="typedLine" data-type="whats up fucker what did we build → emotionalRegister: casual · implicitContextDep: TRUE → cloud"></p><p class="typedLine" data-type="fix the failing auth test → neutral · implicitContextDep: false → codex-spark"></p><p class="typedLine" data-type="we talked about that yesterday → neutral · implicitContextDep: TRUE → cloud"></p></div>
+          <div class="flow reveal"><div class="block">input</div><div class="block">regex patterns</div><div class="block">primaryIntent</div><div class="block">implicitCtxDep</div><div class="block">emotionalRegister</div><div class="block">entities[]</div></div>
+        </div>
+        <div class="sidekick reveal">
+          <div class="mini-stat"><div class="num">&lt; 1ms</div><div class="lbl">Decode latency</div><div class="delta">Pure regex, zero API call</div></div>
+          <div class="mini-stat"><div class="num">4</div><div class="lbl">Output fields</div><div class="delta">intent · ctx-dep · register · entities</div></div>
+          <div class="mini-stat"><div class="num">→ cloud</div><div class="lbl">When implicit-ctx detected</div></div>
+        </div>
+      </div>
       <p class="badge reveal">ZERO LATENCY — pure regex, no API call, &lt;1ms</p>
       <p class="badge reveal">implicitContextDep=true AND local lane → override to deepseek-v4-flash</p>
     </div>
   </section>
 
   <section id="s8">
-    <div class="ambient ambient-s8" aria-hidden="true">codex · gpt-5.5 · architect · xhigh
-deepseek · v4-pro · reasoner · probabilistic
-kimi · k2.6 · context-keeper · long-ctx
-nemotron · 120b · orchestrator · long-horizon
-dracarys · llama-3.1-70b · creative · narrative
-glm · 5.1-9b · bilingual · East/West bridge
-gpt-oss-120b · openai · generalist · deep research
-qwen3-next · 80b MoE · code-reasoning · algorithm
-ising · 3b · fast-triage · sub-second
-神隊  SHINTAI  v1.3  ·  9 members  ·  additive  ·  no replacement</div>
-    <div class="inner">
+    <div class="ambient ambient-s8" aria-hidden="true">gpt-5.5
+    deepseek-v4
+        kimi-k2.6
+  nemotron-120b
+      dracarys-70b
+          glm-5.1
+    qwen3-next
+        ising-3b</div>
+      <div class="inner">
       <h2 class="reveal">V10 — Shintai 神隊 · Seal-Team v1.3</h2>
       <p class="hook reveal">"Six new NIM lanes registered but invisible — like hiring specialists and never telling them what room the patient is in."</p>
-      <div class="grid3 roster">
-        <div class="card member reveal role-architect" data-magnetic><strong>codex</strong>architect<br><span class="muted">gpt-5.5 xhigh — implementation</span><br>codex-gpt-5.5</div>
-        <div class="card member reveal role-reasoner" data-magnetic><strong>deepseek</strong>reasoner<br><span class="muted">probabilistic + adversarial</span><br>deepseek-v4-pro</div>
-        <div class="card member reveal role-context" data-magnetic><strong>kimi</strong>context-keeper<br><span class="muted">long-ctx dependency maps</span><br>kimi</div>
-        <div class="card member reveal role-orchestrator" data-magnetic><strong>nemotron</strong>orchestrator<br><span class="muted">long-horizon architecture</span><br>nvidia-nemotron-120b</div>
-        <div class="card member reveal role-creative" data-magnetic><strong>dracarys</strong>creative<br><span class="muted">narrative + character voice</span><br>nvidia-dracarys</div>
-        <div class="card member reveal role-bilingual" data-magnetic><strong>glm</strong>bilingual<br><span class="muted">East/West bridge long-ctx</span><br>nvidia-glm</div>
-        <div class="card member reveal role-generalist" data-magnetic><strong>gpt-oss-120b</strong>generalist<br><span class="muted">deep research 120B</span><br>nvidia-gpt-oss-120b</div>
-        <div class="card member reveal role-code" data-magnetic><strong>qwen3-next</strong>code+reasoning<br><span class="muted">efficient MoE algorithms</span><br>nvidia-qwen3-next</div>
-        <div class="card member reveal role-fast" data-magnetic><strong>ising</strong>fast triage<br><span class="muted">sub-second classification</span><br>nvidia-ising</div>
+      <div class="section-dense">
+        <div class="main">
+          <div class="grid3 roster">
+            <div class="card member reveal role-architect" data-magnetic><strong>codex</strong>architect<br><span class="muted">gpt-5.5 xhigh — implementation</span><br>codex-gpt-5.5</div>
+            <div class="card member reveal role-reasoner" data-magnetic><strong>deepseek</strong>reasoner<br><span class="muted">probabilistic + adversarial</span><br>deepseek-v4-pro</div>
+            <div class="card member reveal role-context" data-magnetic><strong>kimi</strong>context-keeper<br><span class="muted">long-ctx dependency maps</span><br>kimi</div>
+            <div class="card member reveal role-orchestrator" data-magnetic><strong>nemotron</strong>orchestrator<br><span class="muted">long-horizon architecture</span><br>nvidia-nemotron-120b</div>
+            <div class="card member reveal role-creative" data-magnetic><strong>dracarys</strong>creative<br><span class="muted">narrative + character voice</span><br>nvidia-dracarys</div>
+            <div class="card member reveal role-bilingual" data-magnetic><strong>glm</strong>bilingual<br><span class="muted">East/West bridge long-ctx</span><br>nvidia-glm</div>
+            <div class="card member reveal role-generalist" data-magnetic><strong>gpt-oss-120b</strong>generalist<br><span class="muted">deep research 120B</span><br>nvidia-gpt-oss-120b</div>
+            <div class="card member reveal role-code" data-magnetic><strong>qwen3-next</strong>code+reasoning<br><span class="muted">efficient MoE algorithms</span><br>nvidia-qwen3-next</div>
+            <div class="card member reveal role-fast" data-magnetic><strong>ising</strong>fast triage<br><span class="muted">sub-second classification</span><br>nvidia-ising</div>
+          </div>
+          <svg class="panel reveal" viewBox="0 0 680 160"><path class="draw arrow" d="M80 38 H510"/><path class="draw arrow" d="M80 80 H510"/><path class="draw arrow" d="M80 122 H510"/><text x="30" y="43" fill="#E8E8E8">creative</text><text x="535" y="43" fill="var(--accent)">dracarys</text><text x="30" y="85" fill="#E8E8E8">algorithm</text><text x="535" y="85" fill="var(--accent)">qwen3-next</text><text x="30" y="127" fill="#E8E8E8">research</text><text x="535" y="127" fill="var(--accent)">gpt-oss-120b</text></svg>
+        </div>
+        <div class="sidekick reveal">
+          <div class="lane-health">
+            <div class="lane-dot live" title="codex">codex</div>
+            <div class="lane-dot live" title="deepseek">deepseek</div>
+            <div class="lane-dot live" title="kimi">kimi</div>
+            <div class="lane-dot live" title="nemotron">nemotron</div>
+            <div class="lane-dot live" title="dracarys">dracarys</div>
+            <div class="lane-dot live" title="glm">glm</div>
+            <div class="lane-dot live" title="gpt-oss">gpt-oss</div>
+            <div class="lane-dot live" title="qwen3-next">qwen</div>
+            <div class="lane-dot live" title="ising">ising</div>
+          </div>
+          <div class="mini-stat"><div class="num">9</div><div class="lbl">Shintai members</div></div>
+          <div class="mini-stat"><div class="num">+0</div><div class="lbl">Existing lanes replaced</div><div class="delta">Additive principle</div></div>
+        </div>
       </div>
-      <svg class="panel reveal" viewBox="0 0 680 160"><path class="draw arrow" d="M80 38 H510"/><path class="draw arrow" d="M80 80 H510"/><path class="draw arrow" d="M80 122 H510"/><text x="30" y="43" fill="#E8E8E8">creative</text><text x="535" y="43" fill="#47C01B">dracarys</text><text x="30" y="85" fill="#E8E8E8">algorithm</text><text x="535" y="85" fill="#47C01B">qwen3-next</text><text x="30" y="127" fill="#E8E8E8">research</text><text x="535" y="127" fill="#47C01B">gpt-oss-120b</text></svg>
       <p class="badge reveal">ADDITIVE · No existing model replaced · New models fill unique gaps</p>
     </div>
   </section>
 
   <section id="s9">
-    <div class="inner">
+      <div class="inner">
       <h2 class="reveal">V11 — Terminal Skin</h2>
       <p class="hook reveal">"Kagami talked over itself — meta banners, health checks, error noise all competing for stdout. Terminal Skin made it shut up."</p>
-      <div class="grid2">
-        <div class="terminal reveal"><span class="muted">BEFORE</span><br>[kagami] ✓ healthy | uptime 10s<br>Yeah, I'm here...<br>[kagami] done 2400ms</div>
-        <div class="terminal reveal"><span class="muted">AFTER</span><br><span class="green">Yeah, I'm here...</span><br><span class="muted">deepseek-v4-flash · fb7f4997</span><br><span class="danger">errors in red, no prefix</span></div>
+      <div class="section-dense">
+        <div class="main">
+          <div class="grid2">
+            <div class="terminal reveal"><span class="muted">BEFORE</span><br>[kagami] ✓ healthy | uptime 10s<br>Yeah, I'm here...<br>[kagami] done 2400ms</div>
+            <div class="terminal reveal"><span class="muted">AFTER</span><br><span class="green">Yeah, I'm here...</span><br><span class="muted">deepseek-v4-flash · fb7f4997</span><br><span class="danger">errors in red, no prefix</span></div>
+          </div>
+        </div>
+        <div class="sidekick reveal">
+          <div class="mini-stat"><div class="num">stderr</div><div class="lbl">Meta channel</div><div class="delta">health checks removed from stdout</div></div>
+          <div class="mini-stat"><div class="num">3</div><div class="lbl">Terminal tones</div><div class="delta">dim · green · red</div></div>
+          <div class="mini-stat"><div class="num">0</div><div class="lbl">Prefix clutter in final answer</div></div>
+        </div>
       </div>
       <pre class="code reveal">\x1b[2m  dim (meta to stderr)
 \x1b[31m red (errors)
 \x1b[0m  reset</pre>
-      <div class="swatches reveal"><div class="swatch" style="background:#47C01B">#47C01B</div><div class="swatch" style="background:#1AFFE4">#1AFFE4</div><div class="swatch" style="background:#FF3333;color:#fff">#FF3333</div></div>
+      <div class="swatches reveal"><div class="swatch" style="background:var(--accent)">#47C01B</div><div class="swatch" style="background:#1AFFE4">#1AFFE4</div><div class="swatch" style="background:#FF3333;color:#fff">#FF3333</div></div>
     </div>
   </section>
 
   <section id="s10">
-    <div class="inner">
+      <div class="inner">
       <h2 class="reveal">persona.md — Anti-Pattern Pairs</h2>
       <p class="hook reveal">"Rick Sanchez shouldn't say 'I'd be happy to help' — that's not a character drift, that's a body snatcher."</p>
-      <div class="grid4">
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: "I'd be happy to help!"</div><div class="face back">ALWAYS: Open with the answer.</div></div></div>
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: "Certainly."</div><div class="face back">ALWAYS: Speak like a person with a pulse.</div></div></div>
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Apologize by default.</div><div class="face back">ALWAYS: Correct and move.</div></div></div>
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Corporate cheer.</div><div class="face back">ALWAYS: Precise irreverence.</div></div></div>
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Empty empathy.</div><div class="face back">ALWAYS: Useful diagnosis.</div></div></div>
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Explain the costume.</div><div class="face back">ALWAYS: Embody the voice.</div></div></div>
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Drift into assistant mode.</div><div class="face back">ALWAYS: Re-anchor to Rick.</div></div></div>
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Ask permission to proceed.</div><div class="face back">ALWAYS: State the next action.</div></div></div>
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Hide uncertainty.</div><div class="face back">ALWAYS: Name the missing variable.</div></div></div>
-        <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Flatten to neutral.</div><div class="face back">ALWAYS: Keep the edge.</div></div></div>
+      <div class="section-dense">
+        <div class="main">
+          <div class="grid4">
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: "I'd be happy to help!"</div><div class="face back">ALWAYS: Open with the answer.</div></div></div>
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: "Certainly."</div><div class="face back">ALWAYS: Speak like a person with a pulse.</div></div></div>
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Apologize by default.</div><div class="face back">ALWAYS: Correct and move.</div></div></div>
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Corporate cheer.</div><div class="face back">ALWAYS: Precise irreverence.</div></div></div>
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Empty empathy.</div><div class="face back">ALWAYS: Useful diagnosis.</div></div></div>
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Explain the costume.</div><div class="face back">ALWAYS: Embody the voice.</div></div></div>
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Drift into assistant mode.</div><div class="face back">ALWAYS: Re-anchor to Rick.</div></div></div>
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Ask permission to proceed.</div><div class="face back">ALWAYS: State the next action.</div></div></div>
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Hide uncertainty.</div><div class="face back">ALWAYS: Name the missing variable.</div></div></div>
+            <div class="flip reveal"><div class="flipInner"><div class="face">NEVER: Flatten to neutral.</div><div class="face back">ALWAYS: Keep the edge.</div></div></div>
+          </div>
+        </div>
+        <div class="sidekick reveal">
+          <div class="mini-stat"><div class="num">10</div><div class="lbl">Anti-pattern pairs</div><div class="delta">Every drift trigger has a replacement behavior</div></div>
+          <div class="mini-stat"><div class="num">3</div><div class="lbl">Anchor tokens</div><div class="delta">rick · stay in character · rick sanchez</div></div>
+          <pre class="code" style="font-size:0.72rem;margin:0">NEVER → ALWAYS
+assistant mask → embodied voice
+permission ask → next action
+uncertainty hidden → variable named</pre>
+        </div>
       </div>
       <p class="badge reveal">rick · stay in character · rick sanchez → pure voice, next turn</p>
     </div>
   </section>
 
   <section id="s11">
-    <div class="ambient ambient-s11" aria-hidden="true">ReflectionService  ·  PulseBusAdapter  ·  YuriOffloadAdapter  ·  RapidMLXAdapter
-DrizzleAdapter  ·  FileSystemContextMemoryAdapter  ·  GitNexusMcpAdapter
-InferencePort  ·  MemoryPort  ·  ContextMemoryPort  ·  GitNexusPort  ·  PulsePlanPort
-hexagonal architecture  ·  domain · ports · adapters
-[CHARACTER PULSE]  [IDENTITY]  VoiceContract  [MEMORY]  [RAG]  [JOURNAL]  [SESSION HISTORY]
-[PREFERENCES]  InnerThought  InfinityGuard  [CHARACTER ANCHOR]  Mode  GitNexus  PulsePlan  Command
-reflect → curator → pipeline → pulse-bus → ANCHOR  ·  the loop closes</div>
+    <div class="ambient ambient-s11" aria-hidden="true">ReflectionService
+      →
+        PulseBusAdapter
+          →
+            DrizzleAdapter
+              →
+                pulse-bus.jsonl</div>
     <div class="inner">
       <h2 class="reveal">Kagami Architecture — Post-Sprint</h2>
       <div class="grid2">
         <svg class="panel hexmap reveal" viewBox="0 0 620 560" role="img" aria-label="Hexagonal architecture">
-          <polygon points="310,170 430,240 430,380 310,450 190,380 190,240" fill="rgba(71,192,27,.08)" stroke="#47C01B"/><text x="310" y="314" fill="#47C01B" text-anchor="middle">ReflectionService.ts</text>
+          <polygon points="310,170 430,240 430,380 310,450 190,380 190,240" fill="rgba(71,192,27,.08)" stroke="var(--accent)"/><text x="310" y="314" fill="var(--accent)" text-anchor="middle">ReflectionService.ts</text>
           <g fill="#0A0A0A" stroke="#1AFFE4"><rect x="222" y="42" width="176" height="38" rx="4"/><rect x="448" y="142" width="140" height="38" rx="4"/><rect x="448" y="380" width="140" height="38" rx="4"/><rect x="34" y="142" width="158" height="38" rx="4"/><rect x="34" y="380" width="160" height="38" rx="4"/></g>
           <g fill="#E8E8E8" font-size="12" text-anchor="middle"><text x="310" y="66">InferencePort</text><text x="518" y="166">MemoryPort</text><text x="518" y="404">GitNexusPort</text><text x="113" y="166">ContextMemoryPort</text><text x="114" y="404">PulsePlanPort</text></g>
           <g fill="#151515" stroke="#666"><rect x="218" y="486" width="184" height="34" rx="4"/><rect x="410" y="480" width="174" height="34" rx="4"/><rect x="40" y="480" width="168" height="34" rx="4"/><rect x="410" y="82" width="172" height="34" rx="4"/><rect x="40" y="82" width="172" height="34" rx="4"/></g>
@@ -737,23 +1644,173 @@ reflect → curator → pipeline → pulse-bus → ANCHOR  ·  the loop closes</
     </div>
   </section>
 
+  <section id="s12" class="how-yuri">
+    <div class="ambient ambient-s12" aria-hidden="true">request → router → lane → response · pulse-bus · memory tier · drift detector · cache hit ratio · codex two-phase · self-improvement loop</div>
+    <div class="ambient ambient-mesh" aria-hidden="true">
+<pre>⠁⠂⠄⠐⠠⠈⢀⡀⠂⠁⠐⠠⠈⢀⡀⠐⠁⠂⠠⠈⢀⡀⠐⠁⠂⠄⠠⠈⢀⠐⠁⠂⠄⠠⠈⢀⠐⠁⠂⠄⠠
+⠂⠐⠁⠠⠂⠁⠐⠠⠈⢀⡀⠂⠁⠐⠠⠁⠈⢀⡀⠐⠁⠂⠠⢀⡀⠐⠁⠂⠄⠠⢀⠐⠁⠂⠄⠠⢀⠐⠁⠂⠄
+⠐⠁⠂⠄⠠⠁⠈⠐⠠⢀⠁⠐⠠⠁⠈⠐⠠⢀⠁⠐⠠⠁⠈⠐⠠⢀⠁⠐⠠⠁⠈⠐⠠⢀⠁⠐⠠⠁⠈⠐⠠
+⠠⠁⠈⠐⠂⠐⠁⠐⠂⠈⠐⠠⠁⠂⠐⠂⠠⢀⠁⠐⠠⠁⠈⠐⠠⢀⠁⠐⠠⠁⠈⠐⠠⢀⠁⠐⠠⠁⠈⠐⠠</pre>
+    </div>
+    <div class="inner">
+      <h2 class="reveal">How Yuri Functions Now</h2>
+      <p class="hook reveal">"Not a chatbot. A living, multi-lane orchestration with memory tiers, self-correction, and a 9-member specialist team behind every response."</p>
+
+      <div class="yuri-grid reveal">
+        <div class="yuri-card flow-card">
+          <h3>Request flow · single reflect call</h3>
+          <svg viewBox="0 0 900 380" class="sankey" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="sf-pipe" x1="0" x2="1">
+                <stop offset="0%" stop-color="#47C01B" stop-opacity="0.78"/>
+                <stop offset="100%" stop-color="#1AFFE4" stop-opacity="0.6"/>
+              </linearGradient>
+              <linearGradient id="sf-fan" x1="0" x2="1">
+                <stop offset="0%" stop-color="#1AFFE4" stop-opacity="0.55"/>
+                <stop offset="100%" stop-color="#FF8800" stop-opacity="0.45"/>
+              </linearGradient>
+              <linearGradient id="sf-converge" x1="0" x2="1">
+                <stop offset="0%" stop-color="#FF8800" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#47C01B" stop-opacity="0.7"/>
+              </linearGradient>
+            </defs>
+
+            <!-- LINEAR PIPELINE: CLI → BrainDump → Router → 5 lanes → SSE stream -->
+
+            <rect class="sankey-node" x="20"  y="160" width="120" height="60" rx="10" fill="rgba(71,192,27,0.14)" stroke="#47C01B" stroke-width="1.2"/>
+            <text class="sankey-label" x="80"  y="187" text-anchor="middle" font-size="13" font-family="var(--font-mono)" fill="#E8E8E8" font-weight="600">CLI input</text>
+            <text class="sankey-label" x="80"  y="205" text-anchor="middle" font-size="10" fill="#888">kagami-cli.mjs</text>
+
+            <rect class="sankey-node" x="190" y="160" width="160" height="60" rx="10" fill="rgba(26,255,228,0.10)" stroke="#1AFFE4" stroke-width="1.2"/>
+            <text class="sankey-label" x="270" y="184" text-anchor="middle" font-size="13" font-family="var(--font-mono)" fill="#E8E8E8" font-weight="600">BrainDumpDecoder</text>
+            <text class="sankey-label" x="270" y="202" text-anchor="middle" font-size="10" fill="#888">intent · ctx-dep · register · entities</text>
+
+            <rect class="sankey-node" x="400" y="160" width="150" height="60" rx="10" fill="rgba(26,255,228,0.10)" stroke="#1AFFE4" stroke-width="1.2"/>
+            <text class="sankey-label" x="475" y="184" text-anchor="middle" font-size="13" font-family="var(--font-mono)" fill="#E8E8E8" font-weight="600">Router</text>
+            <text class="sankey-label" x="475" y="202" text-anchor="middle" font-size="10" fill="#888">9 lanes · pulse-plan · implicit-ctx override</text>
+
+            <rect class="sankey-node" x="600" y="40"  width="130" height="40" rx="8" fill="rgba(255,136,0,0.12)" stroke="#FF8800" stroke-width="1"/>
+            <text class="sankey-label" x="665" y="65" text-anchor="middle" font-size="11" font-family="var(--font-mono)" fill="#E8E8E8">deepseek-v4</text>
+            <rect class="sankey-node" x="600" y="100" width="130" height="40" rx="8" fill="rgba(255,136,0,0.12)" stroke="#FF8800" stroke-width="1"/>
+            <text class="sankey-label" x="665" y="125" text-anchor="middle" font-size="11" font-family="var(--font-mono)" fill="#E8E8E8">codex-spark</text>
+            <rect class="sankey-node" x="600" y="160" width="130" height="40" rx="8" fill="rgba(255,136,0,0.12)" stroke="#FF8800" stroke-width="1"/>
+            <text class="sankey-label" x="665" y="185" text-anchor="middle" font-size="11" font-family="var(--font-mono)" fill="#E8E8E8">dracarys</text>
+            <rect class="sankey-node" x="600" y="220" width="130" height="40" rx="8" fill="rgba(255,136,0,0.12)" stroke="#FF8800" stroke-width="1"/>
+            <text class="sankey-label" x="665" y="245" text-anchor="middle" font-size="11" font-family="var(--font-mono)" fill="#E8E8E8">qwen3-next</text>
+            <rect class="sankey-node" x="600" y="280" width="130" height="40" rx="8" fill="rgba(255,136,0,0.12)" stroke="#FF8800" stroke-width="1"/>
+            <text class="sankey-label" x="665" y="305" text-anchor="middle" font-size="11" font-family="var(--font-mono)" fill="#E8E8E8">ollama-local</text>
+
+            <rect class="sankey-node" x="780" y="160" width="100" height="60" rx="10" fill="rgba(71,192,27,0.14)" stroke="#47C01B" stroke-width="1.2"/>
+            <text class="sankey-label" x="830" y="187" text-anchor="middle" font-size="13" font-family="var(--font-mono)" fill="#E8E8E8" font-weight="600">SSE stream</text>
+            <text class="sankey-label" x="830" y="205" text-anchor="middle" font-size="10" fill="#888">token-by-token</text>
+
+            <!-- linear: CLI → BrainDump → Router -->
+            <path class="sankey-path" d="M 140,190 C 165,190 165,190 190,190" stroke="url(#sf-pipe)" stroke-width="24" fill="none" opacity="0.78"/>
+            <path class="sankey-path" d="M 350,190 C 375,190 375,190 400,190" stroke="url(#sf-pipe)" stroke-width="24" fill="none" opacity="0.78"/>
+
+            <!-- fan-out: Router → 5 lanes (weighted by usage) -->
+            <path class="sankey-path" d="M 550,190 C 580,190 580,60  600,60"  stroke="url(#sf-fan)" stroke-width="13" fill="none" opacity="0.78"/>
+            <path class="sankey-path" d="M 550,190 C 580,190 580,120 600,120" stroke="url(#sf-fan)" stroke-width="9"  fill="none" opacity="0.65"/>
+            <path class="sankey-path" d="M 550,190 C 580,190 580,180 600,180" stroke="url(#sf-fan)" stroke-width="5"  fill="none" opacity="0.55"/>
+            <path class="sankey-path" d="M 550,190 C 580,190 580,240 600,240" stroke="url(#sf-fan)" stroke-width="7"  fill="none" opacity="0.6"/>
+            <path class="sankey-path" d="M 550,190 C 580,190 580,300 600,300" stroke="url(#sf-fan)" stroke-width="4"  fill="none" opacity="0.5"/>
+
+            <!-- converge: 5 lanes → SSE -->
+            <path class="sankey-path" d="M 730,60  C 760,60  760,180 780,180" stroke="url(#sf-converge)" stroke-width="13" fill="none" opacity="0.78"/>
+            <path class="sankey-path" d="M 730,120 C 760,120 760,185 780,185" stroke="url(#sf-converge)" stroke-width="9"  fill="none" opacity="0.65"/>
+            <path class="sankey-path" d="M 730,180 C 760,180 760,190 780,190" stroke="url(#sf-converge)" stroke-width="5"  fill="none" opacity="0.55"/>
+            <path class="sankey-path" d="M 730,240 C 760,240 760,195 780,195" stroke="url(#sf-converge)" stroke-width="7"  fill="none" opacity="0.6"/>
+            <path class="sankey-path" d="M 730,300 C 760,300 760,200 780,200" stroke="url(#sf-converge)" stroke-width="4"  fill="none" opacity="0.5"/>
+          </svg>
+
+          <div class="flow-stages">
+            <div class="stage"><span class="stage-num">01</span><div class="stage-meta"><strong>decode</strong><span>BrainDumpDecoder · regex · &lt;1ms</span></div></div>
+            <div class="stage"><span class="stage-num">02</span><div class="stage-meta"><strong>route</strong><span>9 lanes · pulse-plan tier · ~3ms</span></div></div>
+            <div class="stage"><span class="stage-num">03</span><div class="stage-meta"><strong>enrich</strong><span>CHARACTER PULSE · RAG · history · ~40ms</span></div></div>
+            <div class="stage"><span class="stage-num">04</span><div class="stage-meta"><strong>infer</strong><span>DeepSeek prefix cache 63% hit · ttft 1.2s</span></div></div>
+            <div class="stage"><span class="stage-num">05</span><div class="stage-meta"><strong>stream</strong><span>SSE · token-by-token · drift score post</span></div></div>
+          </div>
+
+          <div class="flow-legend">
+            <span><i class="lg lg-1"></i>input · CLI</span>
+            <span><i class="lg lg-2"></i>analysis · decoder + router</span>
+            <span><i class="lg lg-3"></i>lanes · cloud + local</span>
+            <span><i class="lg lg-4"></i>output · SSE stream</span>
+          </div>
+        </div>
+
+        <div class="yuri-card memory-card">
+          <h3>Memory tiers · depth gradient</h3>
+          <div class="mem-stack">
+            <div class="mem-layer mem-l1">
+              <div class="mem-head"><span class="mem-badge">T1</span><span class="mem-temp">HOT</span><span class="mem-meta">2h idle TTL</span></div>
+              <div class="mem-title">in-session buffer</div>
+              <div class="mem-detail">last 48 turns · session-buffer.json</div>
+              <div class="mem-bar"><span style="width:96%"></span></div>
+            </div>
+            <div class="mem-layer mem-l2">
+              <div class="mem-head"><span class="mem-badge">T2</span><span class="mem-temp">WARM</span><span class="mem-meta">cross-session</span></div>
+              <div class="mem-title">episodic memory</div>
+              <div class="mem-detail">MEMORY.md index + per-fact files</div>
+              <div class="mem-bar"><span style="width:74%"></span></div>
+            </div>
+            <div class="mem-layer mem-l3">
+              <div class="mem-head"><span class="mem-badge">T3</span><span class="mem-temp">COLD</span><span class="mem-meta">cosine search</span></div>
+              <div class="mem-title">semantic RAG</div>
+              <div class="mem-detail">rag-index.jsonl · 768-d embeddings</div>
+              <div class="mem-bar"><span style="width:50%"></span></div>
+            </div>
+            <div class="mem-layer mem-l4">
+              <div class="mem-head"><span class="mem-badge">T4</span><span class="mem-temp">PULSE</span><span class="mem-meta">event bus</span></div>
+              <div class="mem-title">character_anchor · drift · correction</div>
+              <div class="mem-detail">pulse-bus.jsonl · append-only</div>
+              <div class="mem-bar"><span style="width:32%"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="yuri-card loop-card">
+          <h3>Self-improvement loop</h3>
+          <div id="loop-3d-scene" class="three-scene three-scene-sm" aria-label="Self-improvement loop 3D node constellation"></div>
+          <ul class="loop-legend">
+            <li><span class="l-dot l-1"></span>reflect</li>
+            <li><span class="l-dot l-2"></span>curator</li>
+            <li><span class="l-dot l-2"></span>pipeline</li>
+            <li><span class="l-dot l-5"></span>pulse-bus</li>
+            <li><span class="l-dot l-1"></span>next call</li>
+          </ul>
+        </div>
+
+        <div class="yuri-card stats-card">
+          <h3>Live system</h3>
+          <div class="live-grid">
+            <div class="live-stat"><div class="num">9</div><div class="lbl">Active lanes</div></div>
+            <div class="live-stat"><div class="num">4</div><div class="lbl">Memory tiers</div></div>
+            <div class="live-stat"><div class="num">63%</div><div class="lbl">KV cache hit</div></div>
+            <div class="live-stat"><div class="num">5</div><div class="lbl">Rick layers</div></div>
+            <div class="live-stat"><div class="num">8</div><div class="lbl">Latent prefs cap</div></div>
+            <div class="live-stat"><div class="num">10</div><div class="lbl">Drift keywords</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="results">
-    <div class="ambient ambient-results" aria-hidden="true">yo rick are you there  ·  deepseek-v4-flash  ·  V9 implicit-ctx fired
-22 commits  ·  12 workstreams  ·  5 layers  ·  9 shintai members  ·  6 NIM lanes  ·  63% cache
-ff68db02  7dec3a12  383da1ae  a2565ae4  5a4e0005  e3004d55  1969bc83  d1ff528d
-session verified  ·  built conscious  ·  not babysat  ·  every layer earned
-神鏡  KAGAMI  built awake  ·  marcel at the bench</div>
+    <div class="ambient ambient-results" aria-hidden="true">ff68db02        7dec3a12
+383da1ae        a2565ae4
+5a4e0005        e3004d55</div>
     <div class="inner reveal">
       <h2>"Built conscious. Not babysat."</h2>
       <div class="terminal"><pre id="replay" style="margin:0;color:var(--accent);background:transparent;border:0;padding:0;white-space:pre-wrap"></pre></div>
       <p class="muted">deepseek-v4-flash · V9 implicit-ctx fired · 22 commits · session verified</p>
       <div class="statGrid">
-        <div class="stat"><strong data-count="12">0</strong>workstreams</div>
-        <div class="stat"><strong data-count="22">0</strong>commits</div>
-        <div class="stat"><strong class="cache-ratio">63%</strong>KV cache-hit ratio</div>
-        <div class="stat"><strong data-count="9">0</strong>Shintai members</div>
-        <div class="stat"><strong data-count="5">0</strong>Living Rick layers</div>
-        <div class="stat"><strong data-count="6">0</strong>NIM lanes activated</div>
+        <div class="stat"><strong data-count="12">0</strong><span>workstreams</span></div>
+        <div class="stat"><strong data-count="22">0</strong><span>commits</span></div>
+        <div class="stat"><strong class="cache-ratio">63%</strong><span>KV cache-hit ratio</span></div>
+        <div class="stat"><strong data-count="9">0</strong><span>Shintai members</span></div>
+        <div class="stat"><strong data-count="5">0</strong><span>Living Rick layers</span></div>
+        <div class="stat"><strong data-count="6">0</strong><span>NIM lanes activated</span></div>
       </div>
     </div>
   </section>
@@ -767,25 +1824,96 @@ session verified  ·  built conscious  ·  not babysat  ·  every layer earned
   <div class="cursor-trail" data-i="5"></div>
 
   <script>
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = matchMedia('(max-width: 760px)').matches;
+    const PIN_DISABLED = reducedMotion || isMobile;
+
+    if (window.gsap && window.ScrollTrigger) {
+      gsap.registerPlugin(ScrollTrigger);
+    }
+
     if (window.Lenis) {
-      const lenis = new Lenis({ smooth: true, wheelMultiplier: 1, duration: 1.2, easing: t => Math.pow(2, 10*(t-1)), touchMultiplier: 0 });
-      function raf(t){ lenis.raf(t); requestAnimationFrame(raf); }
-      requestAnimationFrame(raf);
+      const lenis = new Lenis({
+        smooth: true, wheelMultiplier: 1, duration: 0.8,
+        easing: t => 1 - Math.pow(1 - t, 3), touchMultiplier: 0,
+      });
+      if (window.ScrollTrigger) lenis.on('scroll', ScrollTrigger.update);
+      if (window.gsap) {
+        gsap.ticker.add(time => lenis.raf(time * 1000));
+        gsap.ticker.lagSmoothing(0);
+      } else {
+        function raf(t){ lenis.raf(t); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+      }
+    }
+
+    function makePinnedScene(triggerSelector, { vh = 3, scrub = 0.8, finalState = null } = {}) {
+      const root = document.querySelector(triggerSelector);
+      if (!root || !window.gsap || !window.ScrollTrigger) return null;
+      if (PIN_DISABLED) {
+        if (finalState) finalState();
+        return null;
+      }
+      return gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: root,
+          start: 'top top',
+          end: () => `+=${innerHeight * vh}`,
+          pin: true,
+          scrub,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          pinSpacing: true,
+        }
+      });
     }
     if (window.tsParticles) {
+      const particleAccent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#47C01B';
       tsParticles.load("tsparticles", {
-        particles: { number: { value: 60 }, color: { value: "#47C01B" },
+        particles: { number: { value: 60 }, color: { value: particleAccent },
           opacity: { value: 0.15 }, size: { value: { min: 1, max: 2 } },
-          move: { enable: true, speed: 0.2, direction: "none", random: true },
+          move: { enable: !reducedMotion, speed: 0.2, direction: "none", random: true },
           links: { enable: false } },
         interactivity: { events: {} }
       });
     }
-    if (window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      gsap.fromTo('.portal-rim', { scale: .92, opacity: .65 }, { scale: 1, opacity: 1, duration: 1.8, ease: 'power2.out' });
-      gsap.to('.portal-rim', { filter: 'blur(0.3px) drop-shadow(0 0 28px rgba(71,192,27,0.78))', duration: 2.2, repeat: -1, yoyo: true, ease: 'sine.inOut' });
-      gsap.fromTo('#cover .subtitle, #cover .tagline', { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: .9, stagger: .14, delay: .25, ease: 'power2.out' });
+    if (window.gsap && !reducedMotion) {
+      gsap.fromTo('#cover .subtitle, #cover .tagline', { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: .9, stagger: .14, delay: .25, ease: 'none' });
     }
+
+    const coverTitle = document.querySelector('#cover h1');
+    if (coverTitle && !coverTitle.dataset.split) {
+      const text = coverTitle.textContent;
+      coverTitle.dataset.split = '1';
+      coverTitle.innerHTML = [...text].map((c, i) =>
+        c === ' ' ? ' ' : `<span class="char" style="animation-delay:${i * 0.025}s">${c}</span>`
+      ).join('');
+    }
+
+    const progress = document.querySelector('.scroll-progress');
+    const root = document.documentElement;
+    function updateProgress() {
+      if (!progress) return;
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+      progress.style.width = pct + '%';
+    }
+    function updateColorArc() {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const pct = max > 0 ? h.scrollTop / max : 0;
+      let hue;
+      if (pct < 0.35) hue = 105 + (pct / 0.35) * 30;
+      else if (pct < 0.7) hue = 135 + ((pct - 0.35) / 0.35) * (-15);
+      else hue = 120 + ((pct - 0.7) / 0.3) * (-42);
+      root.style.setProperty('--accent-hue', hue.toString());
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('scroll', updateColorArc, { passive: true });
+    updateProgress();
+    updateColorArc();
 
     const io = new IntersectionObserver(entries => entries.forEach(e => {
       if (e.isIntersecting) {
@@ -834,67 +1962,215 @@ session verified  ·  built conscious  ·  not babysat  ·  every layer earned
       };
       requestAnimationFrame(update);
     }
-    window.addEventListener('scroll', () => {
-      const grid = document.querySelector('.bg-grid');
-      if (grid) grid.style.transform = `translateY(${scrollY * 0.3}px)`;
+
+    const tokenValue = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const dangerColor = tokenValue('--danger');
+    const pinnedScenes = [];
+
+    const v3Scene = pinnedScenes[0] = makePinnedScene('#s2', {
+      vh: 3.2,
+      finalState: () => gsap.set('#s2 .three-scene, #s2 .v3-layer-labels li, #s2 .panel, #s2 .sidekick', { autoAlpha: 1, scale: 1, rotate: 0, y: 0 })
     });
 
-    const cursorDot = document.querySelector('.cursor-dot');
-    const trails = [...document.querySelectorAll('.cursor-trail')];
-    let mouse = { x: 0, y: 0 }, pos = { x: 0, y: 0 };
-    const trailPos = trails.map(() => ({ x: 0, y: 0 }));
-    function lerp(a, b, t) { return a + (b - a) * t; }
-    function cursorLoop() {
-      pos.x = lerp(pos.x, mouse.x, 0.18);
-      pos.y = lerp(pos.y, mouse.y, 0.18);
-      cursorDot.style.transform = `translate(${pos.x - 3}px, ${pos.y - 3}px)`;
-      trailPos.forEach((tp, i) => {
-        const factor = 0.15 * (1 - i * 0.12);
-        tp.x = lerp(tp.x, pos.x, factor);
-        tp.y = lerp(tp.y, pos.y, factor);
-        trails[i].style.transform = `translate(${tp.x - 3}px, ${tp.y - 3}px) scale(${1 - i * 0.15})`;
-      });
-      requestAnimationFrame(cursorLoop);
+    if (pinnedScenes[0]) {
+      gsap.set('#s2 .three-scene', { autoAlpha: 0.25, scale: 0.94, y: 22 });
+      gsap.set('#s2 .v3-layer-labels li', { autoAlpha: 0, y: 14 });
+      gsap.set('#s2 .panel, #s2 .sidekick', { autoAlpha: 0, y: 30 });
+
+      pinnedScenes[0]
+        .addLabel('intro')
+        .to('#s2 h2', { autoAlpha: 1, y: 0, duration: 0.4 })
+        .to('#s2 .hook', { autoAlpha: 1, y: 0, duration: 0.4 }, '<0.1')
+        .addLabel('rings')
+        .to('#s2 .three-scene', { autoAlpha: 1, scale: 1, y: 0, duration: 0.9 }, 'rings')
+        .addLabel('labels')
+        .to('#s2 .v3-layer-labels li', { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.08 }, 'labels+=0.1')
+        .addLabel('sidekick')
+        .to('#s2 .panel, #s2 .sidekick', { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.12 }, 'sidekick');
     }
-    addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-    addEventListener('pointerleave', () => {
-      cursorDot.style.opacity = '0';
-      trails.forEach(t => t.style.opacity = '0');
-    });
-    addEventListener('pointerenter', () => {
-      cursorDot.style.opacity = '1';
-      trails.forEach((t, i) => t.style.opacity = String(Math.max(0.15, 0.5 - i * 0.08)));
-    });
-    cursorLoop();
-    document.querySelectorAll('[data-magnetic], .dot, .member, .stat').forEach(el => {
-      el.addEventListener('mouseenter', () => { cursorDot.style.width = cursorDot.style.height = '18px'; });
-      el.addEventListener('mouseleave', () => { cursorDot.style.width = cursorDot.style.height = '6px'; });
-    });
-    const magneticTargets = [...document.querySelectorAll('[data-magnetic], .dot, .stat')];
-    magneticTargets.forEach(el => {
-      el.addEventListener('mousemove', e => {
-        const rect = el.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        const strength = el.classList.contains('dot') ? 0.45 : 0.16;
-        el.style.transform = `translate(${x * strength}px, ${y * strength}px)`;
-      });
-      el.addEventListener('mouseleave', () => {
-        el.style.transform = '';
-      });
-    });
-    const ambientSections = [...document.querySelectorAll('section')];
-    addEventListener('mousemove', e => {
-      const x = (e.clientX / innerWidth - 0.5).toFixed(3);
-      const y = (e.clientY / innerHeight - 0.5).toFixed(3);
-      ambientSections.forEach((section, i) => {
-        const depth = (i % 4 + 1) * 0.8;
-        section.style.setProperty('--ambient-x', `${Number(x) * depth}px`);
-        section.style.setProperty('--ambient-y', `${Number(y) * depth}px`);
-      });
-    }, { passive: true });
 
-    const dotTargets = ['s0','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','results'];
+    const v4Scene = pinnedScenes[1] = makePinnedScene('#s3', {
+      vh: 2.8,
+      finalState: () => gsap.set('#s3 .stack, #s3 .stack > *, #s3 .sidekick, #s3 .metric, #s3 .wired-measured, #s3 .redbox', { autoAlpha: 1, x: 0, scale: 1, y: 0 })
+    });
+
+    if (pinnedScenes[1]) {
+      gsap.set('#s3 .beforeCol .stack > *', { autoAlpha: 0.4, x: -10 });
+      gsap.set('#s3 .afterCol .stack > *', { autoAlpha: 0, x: 30, scale: 0.95 });
+      gsap.set('#s3 .sidekick, #s3 .metric, #s3 .wired-measured, #s3 .redbox', { autoAlpha: 0, y: 20 });
+
+      pinnedScenes[1]
+        .to('#s3 h2', { autoAlpha: 1, y: 0, duration: 0.3 })
+        .addLabel('before')
+        .to('#s3 .beforeCol .stack > *', { autoAlpha: 1, x: 0, stagger: 0.08, duration: 0.4 }, 'before')
+        .addLabel('break')
+        .to('#s3 .beforeCol .block.danger, #s3 .beforeCol .warning-glyph', {
+          x: -20, autoAlpha: 0.3, color: dangerColor, stagger: 0.05, duration: 0.4
+        }, 'break')
+        .addLabel('after')
+        .to('#s3 .afterCol .stack > *', { autoAlpha: 1, x: 0, scale: 1, stagger: 0.08, duration: 0.5 }, 'after')
+        .to('#s3 .sidekick, #s3 .metric, #s3 .wired-measured, #s3 .redbox', { autoAlpha: 1, y: 0, stagger: 0.15, duration: 0.4 }, 'after+=0.2');
+    }
+
+    const v10Scene = pinnedScenes[2] = makePinnedScene('#s8', {
+      vh: 2.4,
+      finalState: () => gsap.set('#s8 .roster .member, #s8 .sidekick', { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', x: 0 })
+    });
+
+    if (pinnedScenes[2]) {
+      gsap.set('#s8 .roster .member', { autoAlpha: 0, y: 60, scale: 0.92, filter: 'blur(8px)' });
+      gsap.set('#s8 .sidekick', { autoAlpha: 0, x: 30 });
+
+      pinnedScenes[2]
+        .to('#s8 h2', { autoAlpha: 1, y: 0, duration: 0.3 })
+        .to('#s8 .hook', { autoAlpha: 1, y: 0, duration: 0.3 }, '<0.1')
+        .to('#s8 .roster .member', {
+          autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)',
+          stagger: { each: 0.08, from: 'random' }, duration: 0.6
+        })
+        .to('#s8 .sidekick', { autoAlpha: 1, x: 0, duration: 0.5 }, '-=0.3');
+    }
+
+    const s12Scene = pinnedScenes[3] = makePinnedScene('#s12', {
+      vh: 3.4,
+      finalState: () => {
+        gsap.set('#s12 .sankey-path, #s12 .sankey-node, #s12 .sankey-label, #s12 .memory-card, #s12 .loop-card, #s12 .stats-card', { autoAlpha: 1, strokeDashoffset: 0, y: 0 });
+      }
+    });
+
+    if (pinnedScenes[3]) {
+      document.querySelectorAll('#s12 .sankey-path').forEach(p => {
+        const len = p.getTotalLength?.() || 600;
+        gsap.set(p, { strokeDasharray: len, strokeDashoffset: len, autoAlpha: 1 });
+      });
+      gsap.set('#s12 .sankey-node, #s12 .sankey-label', { autoAlpha: 0, y: 8 });
+      gsap.set('#s12 .memory-card, #s12 .loop-card, #s12 .stats-card', { autoAlpha: 0, y: 40 });
+
+      pinnedScenes[3]
+        .to('#s12 h2', { autoAlpha: 1, y: 0, duration: 0.3 })
+        .to('#s12 .hook', { autoAlpha: 1, y: 0, duration: 0.3 }, '<0.1')
+        .addLabel('trace')
+        .to('#s12 .sankey-path', { strokeDashoffset: 0, stagger: 0.04, duration: 0.7 }, 'trace')
+        .addLabel('nodes', '>-0.15')
+        .to('#s12 .sankey-node', { autoAlpha: 1, y: 0, stagger: 0.05, duration: 0.35 }, 'nodes')
+        .to('#s12 .sankey-label', { autoAlpha: 1, y: 0, stagger: 0.04, duration: 0.3 }, 'nodes+=0.1')
+        .addLabel('cards')
+        .to('#s12 .memory-card', { autoAlpha: 1, y: 0, duration: 0.4 }, 'cards')
+        .to('#s12 .loop-card', { autoAlpha: 1, y: 0, duration: 0.4 }, 'cards+=0.1')
+        .to('#s12 .stats-card', { autoAlpha: 1, y: 0, duration: 0.4 }, 'cards+=0.2');
+    }
+
+    const resultsScene = pinnedScenes[4] = makePinnedScene('#results', {
+      vh: 2.0,
+      finalState: () => {
+        gsap.set('#results .stat, #results .term', { autoAlpha: 1, y: 0, scale: 1 });
+        document.querySelectorAll('#results .stat strong').forEach(el => {
+          const final = el.dataset.final || el.dataset.count || el.textContent;
+          el.textContent = final;
+        });
+      }
+    });
+
+    if (pinnedScenes[4]) {
+      document.querySelectorAll('#results .stat strong').forEach(el => {
+        el.dataset.final = (el.dataset.count || el.textContent).trim();
+        el.dataset.done = '1';
+        el.textContent = el.dataset.final.replace(/[0-9]/g, '0');
+      });
+      gsap.set('#results .stat', { autoAlpha: 0, y: 40, scale: 0.96 });
+      gsap.set('#results .term', { autoAlpha: 0, y: 20 });
+
+      pinnedScenes[4]
+        .to('#results h2', { autoAlpha: 1, y: 0, duration: 0.3 })
+        .to('#results .term', { autoAlpha: 1, y: 0, duration: 0.4 }, '<0.1')
+        .addLabel('stats')
+        .to('#results .stat', { autoAlpha: 1, y: 0, scale: 1, stagger: 0.08, duration: 0.5 }, 'stats')
+        .addLabel('count', '>-0.2')
+        .add(() => {
+          document.querySelectorAll('#results .stat strong').forEach(el => {
+            if (el.dataset.counted) return;
+            el.dataset.counted = '1';
+            const final = el.dataset.final || el.dataset.count || el.textContent;
+            const num = parseFloat(final.replace(/[^0-9.]/g, ''));
+            const suffix = final.replace(/[\d.,]+/, '');
+            const start = performance.now();
+            const dur = 1400;
+            function tick(t) {
+              const p = Math.min((t - start) / dur, 1);
+              const v = Math.floor(p * num);
+              el.textContent = (p < 1 ? v : num) + suffix;
+              if (p < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+          });
+        }, 'count');
+    }
+
+    document.querySelectorAll('#results .stat').forEach(el => el.setAttribute('aria-live', 'polite'));
+
+    if (!reducedMotion) {
+      window.addEventListener('scroll', () => {
+        const grid = document.querySelector('.bg-grid');
+        if (grid) grid.style.transform = `translateY(${scrollY * 0.3}px)`;
+      });
+
+      const cursorDot = document.querySelector('.cursor-dot');
+      const trails = [...document.querySelectorAll('.cursor-trail')];
+      let mouse = { x: 0, y: 0 }, pos = { x: 0, y: 0 };
+      const trailPos = trails.map(() => ({ x: 0, y: 0 }));
+      function lerp(a, b, t) { return a + (b - a) * t; }
+      function cursorLoop() {
+        pos.x = lerp(pos.x, mouse.x, 0.18);
+        pos.y = lerp(pos.y, mouse.y, 0.18);
+        cursorDot.style.transform = `translate(${pos.x - 3}px, ${pos.y - 3}px)`;
+        trailPos.forEach((tp, i) => {
+          const factor = 0.15 * (1 - i * 0.12);
+          tp.x = lerp(tp.x, pos.x, factor);
+          tp.y = lerp(tp.y, pos.y, factor);
+          trails[i].style.transform = `translate(${tp.x - 3}px, ${tp.y - 3}px) scale(${1 - i * 0.15})`;
+        });
+        requestAnimationFrame(cursorLoop);
+      }
+      addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+      addEventListener('pointerleave', () => {
+        cursorDot.style.opacity = '0';
+        trails.forEach(t => t.style.opacity = '0');
+      });
+      addEventListener('pointerenter', () => {
+        cursorDot.style.opacity = '1';
+        trails.forEach((t, i) => t.style.opacity = String(Math.max(0.15, 0.5 - i * 0.08)));
+      });
+      cursorLoop();
+      document.querySelectorAll('[data-magnetic], .dot, .member, .stat').forEach(el => {
+        el.addEventListener('mouseenter', () => { cursorDot.style.width = cursorDot.style.height = '18px'; });
+        el.addEventListener('mouseleave', () => { cursorDot.style.width = cursorDot.style.height = '6px'; });
+      });
+      const magneticTargets = [...document.querySelectorAll('[data-magnetic], .dot, .stat')];
+      magneticTargets.forEach(el => {
+        el.addEventListener('mousemove', e => {
+          const rect = el.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+          const strength = el.classList.contains('dot') ? 0.45 : 0.16;
+          el.style.transform = `translate(${x * strength}px, ${y * strength}px)`;
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.transform = '';
+        });
+      });
+      const ambientSections = [...document.querySelectorAll('section')];
+      addEventListener('mousemove', e => {
+        const x = (e.clientX / innerWidth - 0.5).toFixed(3);
+        const y = (e.clientY / innerHeight - 0.5).toFixed(3);
+        ambientSections.forEach((section, i) => {
+          const depth = (i % 4 + 1) * 0.8;
+          section.style.setProperty('--ambient-x', `${Number(x) * depth}px`);
+          section.style.setProperty('--ambient-y', `${Number(y) * depth}px`);
+        });
+      }, { passive: true });
+    }
+
+    const dotTargets = ['s0','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','results'];
     const dots = document.getElementById('dots');
     dotTargets.forEach((id, i) => {
       const b = document.createElement('button');
@@ -918,12 +2194,248 @@ session verified  ·  built conscious  ·  not babysat  ·  every layer earned
     for (let y = 0; y <= b.length; y++) {
       for (let x = 0; x <= a.length; x++) {
         const cost = x === y ? 0 : Math.min(3, Math.abs(x-y) + (a[x-1] === b[y-1] ? 0 : 1));
-        const hue = cost === 0 ? '#47C01B' : cost === 1 ? '#1AFFE4' : cost === 2 ? '#666' : '#FF3333';
+        const hue = cost === 0 ? 'var(--accent)' : cost === 1 ? '#1AFFE4' : cost === 2 ? '#666' : '#FF3333';
         const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         r.setAttribute('x', 35 + x * 54); r.setAttribute('y', 25 + y * 34); r.setAttribute('width', 48); r.setAttribute('height', 28);
         r.setAttribute('fill', hue); r.setAttribute('opacity', cost === 0 ? '.55' : '.24'); r.setAttribute('stroke', 'rgba(255,255,255,.2)');
         lev.appendChild(r);
       }
+    }
+
+    window.addEventListener('load', () => {
+      if (!window.ScrollTrigger) return;
+      document.fonts?.ready?.then(() => ScrollTrigger.refresh());
+      setTimeout(() => ScrollTrigger.refresh(), 600);
+    });
+  </script>
+  <script type="module">
+    const reduceMotion3d = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile3d = matchMedia('(max-width: 760px)').matches;
+    let threeModules;
+
+    function loadThreeModules() {
+      threeModules ||= Promise.all([
+        import('three'),
+        import('three/addons/controls/OrbitControls.js')
+      ]).then(([THREE, controls]) => ({ THREE, OrbitControls: controls.OrbitControls }));
+      return threeModules;
+    }
+
+    async function initV3Scene() {
+      const mount = document.getElementById('v3-3d-scene');
+      if (!mount || mount.dataset.inited) return;
+      if (reduceMotion3d || isMobile3d) {
+        mount.innerHTML = '<svg viewBox="0 0 600 400" style="width:100%;height:100%"><circle cx="300" cy="200" r="40" fill="none" stroke="#47C01B" stroke-width="2"/><circle cx="300" cy="200" r="80" fill="none" stroke="#1AFFE4" stroke-width="2"/><circle cx="300" cy="200" r="120" fill="none" stroke="#E8E8E8" stroke-width="2"/><circle cx="300" cy="200" r="160" fill="none" stroke="#888" stroke-width="2"/><circle cx="300" cy="200" r="200" fill="none" stroke="#FF8800" stroke-width="2"/></svg>';
+        mount.dataset.inited = '1';
+        return;
+      }
+      mount.dataset.inited = '1';
+
+      let THREE;
+      let OrbitControls;
+      try {
+        ({ THREE, OrbitControls } = await loadThreeModules());
+      } catch {
+        mount.innerHTML = '<svg viewBox="0 0 600 400" style="width:100%;height:100%"><circle cx="300" cy="200" r="40" fill="none" stroke="#47C01B" stroke-width="2"/><circle cx="300" cy="200" r="80" fill="none" stroke="#1AFFE4" stroke-width="2"/><circle cx="300" cy="200" r="120" fill="none" stroke="#E8E8E8" stroke-width="2"/><circle cx="300" cy="200" r="160" fill="none" stroke="#888" stroke-width="2"/><circle cx="300" cy="200" r="200" fill="none" stroke="#FF8800" stroke-width="2"/></svg>';
+        return;
+      }
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x040A1C);
+
+      const camera = new THREE.PerspectiveCamera(38, w / h, 1, 5000);
+      camera.position.set(0, 60, 540);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(w, h);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      mount.appendChild(renderer.domElement);
+
+      scene.add(new THREE.AmbientLight(0x1B2540, 0.45));
+      const keyLight = new THREE.PointLight(0x00D4FF, 2.4, 1800); keyLight.position.set(0, 80, 240); scene.add(keyLight);
+      const fillLight = new THREE.PointLight(0x47C01B, 1.4, 1500); fillLight.position.set(-280, -160, 180); scene.add(fillLight);
+      const rimLight = new THREE.PointLight(0xFF8800, 1.0, 1500); rimLight.position.set(280, 160, -180); scene.add(rimLight);
+
+      const layers = [
+        { r: 40, c: 0x47C01B, tube: 4, z: 0, rx: 0.18, ry: 0.22 },
+        { r: 70, c: 0x1AFFE4, tube: 3, z: -10, rx: -0.12, ry: 0.34 },
+        { r: 100, c: 0xE8E8E8, tube: 2.8, z: -20, rx: 0.26, ry: -0.18 },
+        { r: 135, c: 0x888888, tube: 2.4, z: -30, rx: -0.22, ry: -0.30 },
+        { r: 175, c: 0xFF8800, tube: 3.2, z: -40, rx: 0.30, ry: 0.10 },
+      ];
+
+      const torusGroup = new THREE.Group();
+      const torusMeshes = [];
+      layers.forEach((L, i) => {
+        const geom = new THREE.TorusGeometry(L.r, L.tube, 24, 200);
+        const mat = new THREE.MeshStandardMaterial({
+          color: L.c,
+          metalness: 0.4,
+          roughness: 0.35,
+          emissive: L.c,
+          emissiveIntensity: i === 0 ? 0.6 : (i === 4 ? 0.55 : 0.32),
+        });
+        const mesh = new THREE.Mesh(geom, mat);
+        mesh.position.z = L.z;
+        mesh.rotation.x = L.rx;
+        mesh.rotation.y = L.ry;
+        mesh.userData = { spinSpeed: (i + 1) * 0.0014, baseRot: { x: L.rx, y: L.ry } };
+        torusGroup.add(mesh);
+        torusMeshes.push(mesh);
+      });
+      torusGroup.rotation.x = -0.18;
+      torusGroup.rotation.y = 0.14;
+      scene.add(torusGroup);
+
+      const starGeom = new THREE.BufferGeometry();
+      const starCount = 220;
+      const positions = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 1800;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 1200;
+        positions[i * 3 + 2] = -200 - Math.random() * 800;
+      }
+      starGeom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      const starMat = new THREE.PointsMaterial({ color: 0x47C01B, size: 1.4, transparent: true, opacity: 0.55, sizeAttenuation: true });
+      scene.add(new THREE.Points(starGeom, starMat));
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.enableZoom = false;
+      controls.enablePan = false;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.35;
+      controls.target.set(0, 0, 0);
+
+      function onResize() {
+        const W = mount.clientWidth;
+        const H = mount.clientHeight;
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+        renderer.setSize(W, H);
+      }
+      window.addEventListener('resize', onResize);
+
+      function tick(t) {
+        requestAnimationFrame(tick);
+        torusMeshes.forEach((m, i) => {
+          m.rotation.x = m.userData.baseRot.x + Math.sin(t * 0.0003 + i) * 0.12;
+          m.rotation.y += m.userData.spinSpeed;
+        });
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      tick(0);
+    }
+
+    async function initLoopScene() {
+      const mount = document.getElementById('loop-3d-scene');
+      if (!mount || mount.dataset.inited) return;
+      if (reduceMotion3d || isMobile3d) {
+        mount.innerHTML = '<svg viewBox="0 0 260 220" style="width:100%;height:100%"><circle cx="130" cy="40" r="22" fill="rgba(71,192,27,0.18)" stroke="#47C01B"/><circle cx="220" cy="120" r="22" fill="rgba(26,255,228,0.14)" stroke="#1AFFE4"/><circle cx="180" cy="190" r="22" fill="rgba(26,255,228,0.14)" stroke="#1AFFE4"/><circle cx="80" cy="190" r="22" fill="rgba(255,136,0,0.14)" stroke="#FF8800"/><circle cx="40" cy="120" r="22" fill="rgba(71,192,27,0.18)" stroke="#47C01B"/></svg>';
+        mount.dataset.inited = '1';
+        return;
+      }
+      mount.dataset.inited = '1';
+
+      let THREE;
+      try {
+        ({ THREE } = await loadThreeModules());
+      } catch {
+        mount.innerHTML = '<svg viewBox="0 0 260 220" style="width:100%;height:100%"><circle cx="130" cy="40" r="22" fill="rgba(71,192,27,0.18)" stroke="#47C01B"/><circle cx="220" cy="120" r="22" fill="rgba(26,255,228,0.14)" stroke="#1AFFE4"/><circle cx="180" cy="190" r="22" fill="rgba(26,255,228,0.14)" stroke="#1AFFE4"/><circle cx="80" cy="190" r="22" fill="rgba(255,136,0,0.14)" stroke="#FF8800"/><circle cx="40" cy="120" r="22" fill="rgba(71,192,27,0.18)" stroke="#47C01B"/></svg>';
+        return;
+      }
+      const w = mount.clientWidth;
+      const h = mount.clientHeight;
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x040A1C);
+      const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 500);
+      camera.position.set(0, 0, 110);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(w, h);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1;
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      mount.appendChild(renderer.domElement);
+
+      scene.add(new THREE.AmbientLight(0x1B2540, 0.4));
+      const k = new THREE.PointLight(0x00D4FF, 1.6, 220); k.position.set(40, 30, 50); scene.add(k);
+      const f = new THREE.PointLight(0xFF8800, 0.7, 220); f.position.set(-40, -20, 30); scene.add(f);
+
+      const nodeData = [
+        { c: 0x47C01B, angle: -Math.PI / 2 },
+        { c: 0x1AFFE4, angle: -Math.PI / 2 + (2 * Math.PI / 5) * 1 },
+        { c: 0x1AFFE4, angle: -Math.PI / 2 + (2 * Math.PI / 5) * 2 },
+        { c: 0xFF8800, angle: -Math.PI / 2 + (2 * Math.PI / 5) * 3 },
+        { c: 0x47C01B, angle: -Math.PI / 2 + (2 * Math.PI / 5) * 4 },
+      ];
+      const group = new THREE.Group();
+      const ringR = 38;
+      const nodeMeshes = nodeData.map(n => {
+        const geom = new THREE.SphereGeometry(5, 24, 24);
+        const mat = new THREE.MeshStandardMaterial({ color: n.c, emissive: n.c, emissiveIntensity: 0.7, metalness: 0.3, roughness: 0.35 });
+        const m = new THREE.Mesh(geom, mat);
+        m.position.set(Math.cos(n.angle) * ringR, Math.sin(n.angle) * ringR, 0);
+        group.add(m);
+        return m;
+      });
+      for (let i = 0; i < nodeMeshes.length; i++) {
+        const next = nodeMeshes[(i + 1) % nodeMeshes.length];
+        const pts = [nodeMeshes[i].position.clone(), next.position.clone()];
+        const lg = new THREE.BufferGeometry().setFromPoints(pts);
+        const lm = new THREE.LineBasicMaterial({ color: 0x47C01B, transparent: true, opacity: 0.45 });
+        group.add(new THREE.Line(lg, lm));
+      }
+      group.rotation.x = 0.35;
+      scene.add(group);
+
+      function onResize() {
+        const W = mount.clientWidth;
+        const H = mount.clientHeight;
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+        renderer.setSize(W, H);
+      }
+      window.addEventListener('resize', onResize);
+
+      function tick(t) {
+        requestAnimationFrame(tick);
+        group.rotation.y += 0.004;
+        group.rotation.x = 0.35 + Math.sin(t * 0.0004) * 0.08;
+        nodeMeshes.forEach((m, i) => {
+          m.material.emissiveIntensity = 0.55 + Math.sin(t * 0.002 + i * 1.2) * 0.25;
+        });
+        renderer.render(scene, camera);
+      }
+      tick(0);
+    }
+
+    const v3Mount = document.getElementById('v3-3d-scene');
+    if (v3Mount && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { initV3Scene(); io.disconnect(); } });
+      }, { rootMargin: '300px' });
+      io.observe(v3Mount);
+    } else {
+      initV3Scene();
+    }
+
+    const loopMount = document.getElementById('loop-3d-scene');
+    if (loopMount && 'IntersectionObserver' in window) {
+      const lio = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { initLoopScene(); lio.disconnect(); } });
+      }, { rootMargin: '300px' });
+      lio.observe(loopMount);
+    } else {
+      initLoopScene();
     }
   </script>
 </body>
