@@ -584,15 +584,25 @@ function toggleAgent(label) {
 }
 
 function renderAgents(data) {
+  function relTime(iso) {
+    if (!iso) return '--';
+    const h = (Date.now() - new Date(iso)) / 3600000;
+    if (Number.isNaN(h)) return '--';
+    if (h < 1) return Math.round(h * 60) + 'm ago';
+    if (h < 24) return Math.round(h) + 'h ago';
+    return Math.round(h / 24) + 'd ago';
+  }
+
   const rows = (data.launchagents || []).map((agent) => {
     const label = agent.label || agent.name;
     const open = expandedAgents.has(label);
+    const lastRun = relTime(agent.last_run_iso);
     const row = `<div class="data-row ${escapeHtml(agent.status)}" onclick="toggleAgent('${escapeHtml(label)}')">
       <div class="status-cell"><span class="dot ${escapeHtml(agent.status)}"></span><span>${escapeHtml(agent.status || 'unknown')}</span></div>
       <div class="name">${escapeHtml(agent.name)}</div>
       <div class="tech">${escapeHtml(fmtInterval(agent.interval_seconds, agent.schedule))}</div>
       <div class="tech">${escapeHtml(agent.last_exit_code ?? '--')}</div>
-      <div class="tech">${escapeHtml(fmtTime(agent.last_run_iso))}</div>
+      <div class="tech" title="${escapeHtml(agent.last_run_iso || '')}">${escapeHtml(lastRun)}</div>
       <div class="tech">${escapeHtml(agent.pid ?? '--')}</div>
     </div>`;
     const detail = open ? `<div class="agent-detail">

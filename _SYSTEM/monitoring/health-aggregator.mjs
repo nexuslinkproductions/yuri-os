@@ -1,7 +1,10 @@
 import { createServer, request as httpRequest } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import os from 'node:os';
 import path from 'node:path';
+
+function pad(n) { return String(n || '0').padStart(2, '0'); }
 
 const HTTP_PORT = 4242;
 const HTML_PATH = new URL('./automation-command-center.html', import.meta.url);
@@ -65,6 +68,7 @@ const LAUNCH_AGENTS = [
   { label: 'com.yuri.kagami-session-synthesizer' },
   { label: 'com.yuri.kagami-stale-memory-scan' },
   { label: 'com.yuri.lane-memory-prune' },
+  { label: 'com.yuri.lane-calibration' },
   { label: 'com.yuri.health-aggregator', schedule: 'every 60s' },
 ];
 
@@ -134,9 +138,53 @@ function freshnessFor(ageHours) {
 }
 
 function readLaunchAgent(entry) {
-  const output = run('launchctl', ['list', entry.label]);
-  const pid = parseNumberField(output, 'PID');
-  const lastExitStatus = parseNumberField(output, 'LastExitStatus');
+  const plistPath = path.join(os.homedir(), 'Library', 'LaunchAgents', `${entry.label}.plist`);
+  const launchctlOut = run('launchctl', ['list', entry.label]);
+  const pid = parseNumberField(launchctlOut, 'PID');
+  const lastExitStatus = parseNumberField(launchctlOut, 'LastExitStatus');
+
+  // last_run_iso from StandardOutPath mtime
+  let last_run_iso = null;
+  try {
+    const stdoutPath = run('plutil', ['-extract', 'StandardOutPath', 'raw', plistPath]).trim();
+    if (stdoutPath && existsSync(stdoutPath)) {
+      last_run_iso = statSync(stdoutPath).mtime.toISOString();
+    }
+  } catch { /* no StandardOutPath or plist missing */ }
+
+  // schedule from plist
+  let schedule = entry.schedule || null;
+  if (!schedule && existsSync(plistPath)) {
+    try {
+      const intervalRaw = run('plutil', ['-extract', 'StartInterval', 'raw', plistPath]).trim();
+      if (/^\d+$/.test(intervalRaw)) {
+        const s = parseInt(intervalRaw, 10);
+        schedule = s < 60 ? `every ${s}s` : s < 3600 ? `every ${Math.round(s / 60)}m` : `every ${Math.round(s / 3600)}h`;
+      } else {
+        // Try StartCalendarInterval as dict
+        const hour = run('plutil', ['-extract', 'StartCalendarInterval.Hour', 'raw', plistPath]).trim();
+        const min = run('plutil', ['-extract', 'StartCalendarInterval.Minute', 'raw', plistPath]).trim();
+        const wd = run('plutil', ['-extract', 'StartCalendarInterval.Weekday', 'raw', plistPath]).trim();
+        if (/^\d+$/.test(hour)) {
+          const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          schedule = /^\d+$/.test(wd)
+            ? `Weekly ${days[+wd]} ${pad(hour)}:${pad(min)}`
+            : `Daily ${pad(hour)}:${pad(min)}`;
+        } else {
+          // Try array[0]
+          const h0 = run('plutil', ['-extract', 'StartCalendarInterval.0.Hour', 'raw', plistPath]).trim();
+          const m0 = run('plutil', ['-extract', 'StartCalendarInterval.0.Minute', 'raw', plistPath]).trim();
+          if (/^\d+$/.test(h0)) {
+            schedule = `Daily ${pad(h0)}:${pad(m0)} +`;
+          } else {
+            // KeepAlive or on-demand
+            const ka = run('plutil', ['-extract', 'KeepAlive', 'raw', plistPath]).trim();
+            schedule = (ka === '1' || ka === 'true') ? 'daemon' : 'on-demand';
+          }
+        }
+      }
+    } catch { schedule = schedule || 'unknown'; }
+  }
 
   return {
     name: nameFromLabel(entry.label),
@@ -145,7 +193,8 @@ function readLaunchAgent(entry) {
     last_exit_code: lastExitStatus,
     status: statusFor(pid, lastExitStatus),
     interval_seconds: readStartInterval(entry.label),
-    schedule: entry.schedule || null,
+    schedule,
+    last_run_iso,
   };
 }
 
