@@ -1,675 +1,701 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>YURI OS · Automation Command Center</title>
-  <style>
-    :root {
-      --bg: #0A0A0A;
-      --card-bg: linear-gradient(180deg, rgba(20,22,20,0.7), rgba(12,14,12,0.6));
-      --border: 1px solid rgba(255,255,255,0.12);
-      --radius-card: 16px;
-      --radius-badge: 7px;
-      --shadow-card: 0 18px 60px -20px rgba(0,0,0,0.6);
-      --ring-green: inset 0 0 0 1px rgba(71,192,27,0.08);
-      --green: #47C01B;
-      --cyan: #1AFFE4;
-      --red: #FF3333;
-      --amber: #FF8800;
-      --text: #E8E8E8;
-      --muted: #8585A8;
-      --transition: cubic-bezier(.25,.8,.5,1) 0.25s;
-      color-scheme: dark;
-    }
-    * {
-      box-sizing: border-box;
-    }
-    html {
-      min-width: 320px;
-      background: var(--bg);
-    }
-    body {
-      margin: 0;
-      background:
-        radial-gradient(circle at 14% 0%, rgba(71,192,27,0.08), transparent 26rem),
-        linear-gradient(180deg, #0A0A0A 0%, #070807 100%);
-      color: var(--text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 14px;
-      line-height: 1.45;
-    }
-    button {
-      font: inherit;
-    }
-    .mono {
-      font-family: "Geist Mono", "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-    }
-    .topbar {
-      position: fixed;
-      inset: 0 0 auto 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      height: 56px;
-      padding: 0 22px;
-      background: rgba(8, 9, 8, 0.92);
-      border-bottom: var(--border);
-      backdrop-filter: blur(18px);
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-      color: var(--green);
-      font-weight: 800;
-      text-shadow: 0 0 18px rgba(71,192,27,0.36);
-      white-space: nowrap;
-    }
-    .brand-mark {
-      display: inline-grid;
-      place-items: center;
-      width: 18px;
-      height: 18px;
-      color: var(--green);
-    }
-    .topbar-meta {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 14px;
-      min-width: 0;
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-    .live-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 16px rgba(71,192,27,0.8);
-      animation: pulse-green 1.5s infinite;
-    }
-    .shell {
-      width: min(1760px, 100%);
-      margin: 0 auto;
-      padding: 84px 24px 28px;
-    }
-    .section {
-      margin-top: 28px;
-    }
-    .section-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 14px;
-    }
-    .section-title {
-      margin: 0;
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-    .section-meta {
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
-    .summary-tile {
-      position: relative;
-      overflow: hidden;
-      min-height: 128px;
-      padding: 20px;
-      background: var(--card-bg);
-      border: var(--border);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-card), var(--ring-green);
-    }
-    .summary-tile::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent 54%);
-      pointer-events: none;
-    }
-    .summary-number {
-      position: relative;
-      display: block;
-      color: var(--accent);
-      font-size: 48px;
-      font-weight: 900;
-      line-height: 1;
-    }
-    .summary-label {
-      position: relative;
-      display: block;
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-    .services-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .services-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      min-height: 38px;
-      padding: 8px 12px;
-      background: rgba(18,20,18,0.82);
-      border: var(--border);
-      border-radius: 999px;
-      box-shadow: var(--ring-green);
-    }
-    .service-name {
-      color: var(--text);
-      font-weight: 750;
-      text-transform: capitalize;
-    }
-    .service-status {
-      color: var(--muted);
-      font-size: 12px;
-      text-transform: uppercase;
-    }
-    .agent-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-    }
-    .agent-card {
-      min-height: 168px;
-      padding: 16px;
-      background: var(--card-bg);
-      border: var(--border);
-      border-left: 3px solid var(--status-color);
-      border-radius: var(--radius-card);
-      box-shadow: var(--shadow-card);
-    }
-    .agent-card[data-status="crashed"] {
-      box-shadow: var(--shadow-card), 0 0 12px rgba(255,51,85,0.3);
-    }
-    .card-header {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 8px 10px;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .agent-name {
-      overflow: hidden;
-      color: var(--text);
-      font-weight: 850;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .agent-label {
-      grid-column: 2;
-      overflow-wrap: anywhere;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.35;
-    }
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--status-color);
-      box-shadow: 0 0 12px color-mix(in srgb, var(--status-color) 72%, transparent);
-    }
-    .status-dot.running {
-      animation: pulse-green 1.5s infinite;
-    }
-    .card-body {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    .badge,
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      max-width: 100%;
-      padding: 6px 9px;
-      overflow: hidden;
-      border: var(--border);
-      border-radius: var(--radius-badge);
-      background: rgba(0,0,0,0.18);
-      color: var(--text);
-      font-size: 11px;
-      line-height: 1.2;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .badge.status {
-      color: var(--status-color);
-      border-color: color-mix(in srgb, var(--status-color) 48%, rgba(255,255,255,0.12));
-    }
-    .timestamp {
-      color: var(--muted);
-      overflow-wrap: anywhere;
-    }
-    .state-list {
-      display: grid;
-      gap: 10px;
-    }
-    .state-row {
-      display: grid;
-      grid-template-columns: minmax(140px, 1fr) auto auto minmax(180px, 0.8fr);
-      gap: 12px;
-      align-items: center;
-      min-height: 48px;
-      padding: 11px 13px;
-      background: rgba(16,18,16,0.74);
-      border: var(--border);
-      border-left: 3px solid var(--freshness-color);
-      border-radius: 12px;
-    }
-    .state-name {
-      min-width: 0;
-      overflow: hidden;
-      color: var(--text);
-      font-weight: 760;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .chip.fresh { color: var(--green); }
-    .chip.aging { color: var(--cyan); }
-    .chip.stale { color: var(--amber); }
-    .chip.dead { color: var(--red); }
-    .chip.missing { color: var(--muted); }
-    .muted {
-      color: var(--muted);
-    }
-    .hooks-stack {
-      display: grid;
-      gap: 10px;
-    }
-    .phase-accordion {
-      overflow: hidden;
-      background: rgba(16,18,16,0.74);
-      border: var(--border);
-      border-radius: var(--radius-card);
-    }
-    .phase-trigger {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      width: 100%;
-      padding: 13px 15px;
-      color: var(--cyan);
-      background: transparent;
-      border: 0;
-      cursor: pointer;
-      text-align: left;
-    }
-    .phase-trigger:hover {
-      background: rgba(26,255,228,0.06);
-    }
-    .phase-body {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 0 15px 15px;
-    }
-    .phase-accordion[data-open="false"] .phase-body {
-      display: none;
-    }
-    .phase-count {
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .footer {
-      margin-top: 32px;
-      padding-top: 18px;
-      border-top: var(--border);
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .error-panel {
-      margin-top: 18px;
-      padding: 18px;
-      color: var(--text);
-      background: rgba(255,51,51,0.1);
-      border: 1px solid rgba(255,51,51,0.45);
-      border-radius: var(--radius-card);
-    }
-    @keyframes pulse-green {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.62; transform: scale(1.15); }
-    }
-    @media (max-width: 760px) {
-      .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-        height: auto;
-        min-height: 76px;
-        padding: 12px 14px;
-      }
-      .brand {
-        max-width: 100%;
-        white-space: normal;
-      }
-      .topbar-meta {
-        width: 100%;
-        justify-content: space-between;
-        gap: 8px;
-        overflow-x: auto;
-      }
-      .shell {
-        padding: 104px 14px 24px;
-      }
-      .state-row {
-        grid-template-columns: 1fr auto;
-      }
-      .state-row .muted {
-        grid-column: 1 / -1;
-      }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .live-dot,
-      .status-dot.running {
-        animation: none;
-      }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YURI OS · Automation Command Center</title>
+<style>
+:root {
+  --bg: #080810;
+  --sidebar-bg: #0d0d1a;
+  --panel: rgba(20,22,20,0.7);
+  --panel-soft: rgba(255,255,255,0.035);
+  --border: rgba(255,255,255,0.08);
+  --green: #47C01B;
+  --cyan: #1AFFE4;
+  --red: #FF3333;
+  --amber: #FF8800;
+  --text: #E8E8E8;
+  --muted: #8585A8;
+  --muted-2: #5f6078;
+  --grey: #8585A8;
+  --transition: all 0.2s ease;
+}
+* { box-sizing: border-box; }
+html, body, #app { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  overflow: hidden;
+}
+button { font: inherit; color: inherit; }
+.shell {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  height: 100vh;
+  min-width: 0;
+}
+.sidebar {
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+.side-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 18px 14px;
+}
+.brand {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+.brand-title {
+  color: var(--green);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-shadow: 0 0 18px rgba(71,192,27,0.35);
+}
+.brand-subtitle {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 5px;
+}
+.health-score {
+  padding: 18px 0 12px;
+}
+.health-number {
+  font-size: 44px;
+  font-weight: 900;
+  line-height: 0.95;
+}
+.health-label {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 7px;
+}
+.issue-pill {
+  align-items: center;
+  border: 1px solid currentColor;
+  border-radius: 7px;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 800;
+  gap: 7px;
+  margin-bottom: 18px;
+  padding: 7px 9px;
+}
+.services {
+  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 9px;
+  padding: 16px 0;
+}
+.service-row {
+  align-items: center;
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  gap: 8px;
+  min-width: 0;
+}
+.service-name {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.service-status {
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.dot {
+  border-radius: 50%;
+  display: inline-block;
+  height: 9px;
+  width: 9px;
+}
+.dot.running, .dot.ok {
+  animation: pulse-green 1.5s infinite;
+  background: var(--green);
+  box-shadow: 0 0 12px rgba(71,192,27,0.45);
+}
+.dot.crashed, .dot.fail, .dot.dead { background: var(--red); }
+.dot.exited_ok, .dot.aging { background: var(--cyan); }
+.dot.never_run, .dot.unknown, .dot.missing { background: var(--grey); }
+.dot.stale { background: var(--amber); }
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.62; transform: scale(1.15); }
+}
+.nav {
+  display: grid;
+  gap: 5px;
+  padding: 16px 0;
+}
+.nav-btn {
+  background: transparent;
+  border: 0;
+  border-left: 3px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 10px 10px;
+  text-align: left;
+  transition: var(--transition);
+}
+.nav-btn:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+.nav-btn.active {
+  border-left-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(26,255,228,0.06);
+}
+.side-bottom {
+  color: var(--muted);
+  display: grid;
+  gap: 8px;
+  font-size: 10px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+.main {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 20px;
+}
+.main-header {
+  align-items: end;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+}
+.title {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.subtitle {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.meta {
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+}
+.empty {
+  align-items: center;
+  color: var(--green);
+  display: flex;
+  flex-direction: column;
+  font-size: 18px;
+  font-weight: 800;
+  justify-content: center;
+  min-height: 52vh;
+  text-align: center;
+}
+.empty-mark {
+  border: 2px solid rgba(71,192,27,0.45);
+  border-radius: 50%;
+  box-shadow: 0 0 42px rgba(71,192,27,0.18);
+  display: grid;
+  font-size: 74px;
+  height: 130px;
+  margin-bottom: 22px;
+  place-items: center;
+  width: 130px;
+}
+.section {
+  margin-bottom: 22px;
+}
+.section-title {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  margin: 0 0 9px;
+  text-transform: uppercase;
+}
+.issue-row {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 4px minmax(140px, 1fr) auto minmax(160px, 2fr);
+  min-height: 42px;
+  padding: 10px 16px 10px 0;
+  transition: var(--transition);
+}
+.issue-row:hover, .data-row:hover, .agent-detail:hover { background: rgba(255,255,255,0.03); }
+.bar {
+  align-self: stretch;
+  border-radius: 999px;
+  width: 4px;
+}
+.name {
+  font-weight: 800;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.detail {
+  color: var(--muted);
+  font-size: 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.badge, .chip {
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 7px;
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 800;
+  justify-content: center;
+  min-width: 62px;
+  padding: 5px 7px;
+  text-transform: uppercase;
+}
+.badge.running, .chip.fresh { background: rgba(71,192,27,0.1); color: var(--green); }
+.badge.crashed, .chip.dead, .chip.missing { background: rgba(255,51,51,0.1); color: var(--red); }
+.badge.exited_ok, .chip.aging { background: rgba(26,255,228,0.09); color: var(--cyan); }
+.badge.never_run, .badge.unknown { background: rgba(133,133,168,0.08); color: var(--grey); }
+.chip.stale { background: rgba(255,136,0,0.1); color: var(--amber); }
+.table {
+  border: 1px solid var(--border);
+  border-bottom: 0;
+}
+.table-head, .data-row {
+  display: grid;
+  gap: 10px;
+  min-width: 760px;
+}
+.agents-table .table-head, .agents-table .data-row {
+  grid-template-columns: 120px minmax(160px,1.4fr) 110px 90px minmax(160px,1fr) 80px;
+}
+.state-table .table-head, .state-table .data-row {
+  grid-template-columns: 4px minmax(170px,1fr) 120px 90px minmax(220px,1.4fr);
+}
+.table-scroller { overflow-x: auto; }
+.table-head {
+  background: rgba(255,255,255,0.035);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  padding: 10px 12px;
+  text-transform: uppercase;
+}
+.data-row {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  cursor: default;
+  min-height: 40px;
+  padding: 0 12px;
+  transition: var(--transition);
+}
+.data-row.crashed { background: rgba(255,51,51,0.06); box-shadow: inset 3px 0 0 var(--red); }
+.data-row.running { background: rgba(71,192,27,0.04); }
+.status-cell {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+.tech {
+  color: var(--muted);
+  font-size: 11px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-detail {
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  display: grid;
+  gap: 7px;
+  padding: 10px 14px 12px 32px;
+}
+.detail-line {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.accordion {
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.accordion-btn {
+  align-items: center;
+  background: rgba(255,255,255,0.025);
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 14px;
+  width: 100%;
+}
+.phase-pill {
+  background: rgba(26,255,228,0.08);
+  border: 1px solid rgba(26,255,228,0.22);
+  border-radius: 7px;
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+  padding: 6px 8px;
+}
+.phase-count {
+  color: var(--muted);
+  font-size: 11px;
+}
+.scripts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+.script-chip {
+  background: rgba(133,133,168,0.13);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 11px;
+  padding: 7px 9px;
+}
+.error {
+  border: 1px solid rgba(255,51,51,0.24);
+  color: var(--red);
+  padding: 16px;
+}
+@media (max-width: 760px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar {
+    border-bottom: 1px solid var(--border);
+    border-right: 0;
+    max-height: 42vh;
+  }
+  .main { padding: 16px; }
+  .main-header { align-items: start; flex-direction: column; }
+  .meta { text-align: left; }
+  .issue-row { grid-template-columns: 4px 1fr; }
+  .issue-row .badge, .issue-row .detail { grid-column: 2; }
+}
+</style>
 </head>
 <body>
-  <div id="app"></div>
-  <script>
-    const API = 'http://localhost:4242/health.json';
-    const REFRESH_SECONDS = 30;
-    const STATUS_COLOR = {
-      running: '#47C01B',
-      crashed: '#FF3333',
-      exited_ok: '#1AFFE4',
-      never_run: '#8585A8',
-      unknown: '#8585A8'
-    };
-    const FRESHNESS_COLOR = {
-      fresh: '#47C01B',
-      aging: '#1AFFE4',
-      stale: '#FF8800',
-      dead: '#FF3333',
-      missing: '#8585A8'
-    };
-    const SERVICE_LABELS = {
-      backend: 'backend',
-      openclaw: 'openclaw',
-      dream_synthesis: 'dream-synthesis',
-      worker_bridge: 'worker-bridge',
-      session_buffer: 'session-buffer'
-    };
-    let countdownTimer;
-    let secondsRemaining = REFRESH_SECONDS;
-    let lastFetch = '--';
-    let lastData;
-    function esc(value) {
-      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      })[char]);
+<div id="app"></div>
+<script>
+const API = 'http://localhost:4242/health.json';
+const STATUS_COLOR = {
+  running: '#47C01B',
+  crashed: '#FF3333',
+  exited_ok: '#1AFFE4',
+  never_run: '#8585A8',
+  unknown: '#8585A8'
+};
+const FRESHNESS_COLOR = {
+  fresh: '#47C01B',
+  aging: '#1AFFE4',
+  stale: '#FF8800',
+  dead: '#FF3333',
+  missing: '#8585A8'
+};
+const SERVICE_LABELS = {
+  backend: 'backend',
+  openclaw: 'openclaw',
+  dream_synthesis: 'dream-sync',
+  worker_bridge: 'workers',
+  session_buffer: 'session-mem'
+};
+const FRESHNESS_RANK = { dead: 0, missing: 0, stale: 1, aging: 2, fresh: 3 };
+let activeTab = 'issues';
+let lastData = null;
+let countdown = 30;
+let countdownTimer = null;
+const openHooks = new Set();
+const expandedAgents = new Set();
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
+
+function fmtTime(value) {
+  if (!value) return 'unknown';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString();
+}
+
+function fmtAge(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '--';
+  return Number(value).toFixed(Number(value) < 10 ? 1 : 0) + 'h';
+}
+
+function fmtInterval(seconds, schedule) {
+  if (schedule) return schedule;
+  if (!seconds) return 'keepalive';
+  if (seconds < 60) return seconds + 's';
+  if (seconds < 3600) return Math.round(seconds / 60) + 'm';
+  if (seconds < 86400) return Math.round(seconds / 3600) + 'h';
+  return Math.round(seconds / 86400) + 'd';
+}
+
+function colorForStatus(status) {
+  return STATUS_COLOR[status] || STATUS_COLOR.unknown;
+}
+
+function colorForFreshness(freshness) {
+  return FRESHNESS_COLOR[freshness] || FRESHNESS_COLOR.missing;
+}
+
+function collectIssues(data) {
+  const agents = data.launchagents || [];
+  const states = Object.entries(data.state_files || {}).map(([name, item]) => ({ name, ...item }));
+  return {
+    crashed: agents.filter((agent) => agent.status === 'crashed'),
+    dead: states.filter((item) => item.freshness === 'dead' || item.freshness === 'missing'),
+    stale: states.filter((item) => item.freshness === 'stale'),
+    aging: states.filter((item) => item.freshness === 'aging')
+  };
+}
+
+function issueCount(data) {
+  const issues = collectIssues(data);
+  return Object.values(issues).reduce((sum, list) => sum + list.length, 0);
+}
+
+function healthScore(data) {
+  const agents = data.launchagents || [];
+  if (!agents.length) return 0;
+  const healthy = agents.filter((agent) => agent.status === 'running' || agent.status === 'exited_ok').length;
+  return Math.round((healthy / agents.length) * 100);
+}
+
+function scoreColor(score) {
+  if (score >= 90) return 'var(--green)';
+  if (score >= 70) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function renderSidebar(data) {
+  const score = healthScore(data);
+  const issues = issueCount(data);
+  const services = data.services || {};
+  const nav = ['issues', 'agents', 'state', 'hooks'];
+  const serviceRows = Object.entries(SERVICE_LABELS).map(([key, label]) => {
+    const status = services[key]?.status || 'missing';
+    const ok = status === 'ok';
+    return `<div class="service-row">
+      <span class="dot ${ok ? 'ok' : 'fail'}"></span>
+      <span class="service-name">${escapeHtml(label)}</span>
+      <span class="service-status">${escapeHtml(status)}</span>
+    </div>`;
+  }).join('');
+  return `<aside class="sidebar">
+    <div class="side-inner">
+      <div class="brand">
+        <div class="brand-title">YURI OS</div>
+        <div class="brand-subtitle">COMMAND CENTER</div>
+      </div>
+      <div class="health-score">
+        <div class="health-number" style="color:${scoreColor(score)}">${score}%</div>
+        <div class="health-label">HEALTHY AGENTS</div>
+      </div>
+      <div class="issue-pill" style="color:${issues ? 'var(--red)' : 'var(--green)'}">${issues ? `${issues} ISSUES` : '✓ ALL CLEAR'}</div>
+      <div class="services">${serviceRows}</div>
+      <nav class="nav" aria-label="Monitoring tabs">
+        ${nav.map((name) => `<button class="nav-btn ${activeTab === name ? 'active' : ''}" onclick="setTab('${name}')">${name.toUpperCase()}</button>`).join('')}
+      </nav>
+      <div class="side-bottom">
+        <div>last: <span id="lastFetch">${fmtTime(data.generated_at)}</span></div>
+        <div>↺ <span id="countdown">${countdown}</span>s</div>
+      </div>
+    </div>
+  </aside>`;
+}
+
+function renderHeader(title, subtitle, data) {
+  return `<header class="main-header">
+    <div>
+      <div class="title">${title}</div>
+      <div class="subtitle">${subtitle}</div>
+    </div>
+    <div class="meta">
+      <div>generated: ${fmtTime(data.generated_at)}</div>
+      <div>commit: ${escapeHtml(data.build_commit || 'unknown')}</div>
+    </div>
+  </header>`;
+}
+
+function renderIssues(data) {
+  const issues = collectIssues(data);
+  const total = issueCount(data);
+  const sectionMap = [
+    ['CRASHED', 'crashed', 'status', 'exit'],
+    ['DEAD', 'dead', 'freshness', 'age'],
+    ['STALE', 'stale', 'freshness', 'age'],
+    ['AGING', 'aging', 'freshness', 'age']
+  ];
+  if (!total) {
+    return `${renderHeader('✓ ALL SYSTEMS NOMINAL', 'No crashed agents or stale state files detected.', data)}
+      <div class="empty"><div class="empty-mark">✓</div><div>ALL CLEAR</div></div>`;
+  }
+  const sections = sectionMap.map(([title, key, type, detailType]) => {
+    const list = issues[key];
+    if (!list.length) return '';
+    const rows = list.map((item) => {
+      const status = type === 'status' ? item.status : item.freshness;
+      const color = type === 'status' ? colorForStatus(status) : colorForFreshness(status);
+      const detail = detailType === 'exit'
+        ? `exit ${item.last_exit_code ?? 'unknown'} · ${fmtTime(item.last_run_iso)}`
+        : `${fmtAge(item.age_hours)} · ${fmtTime(item.mtime_iso)}`;
+      return `<div class="issue-row">
+        <span class="bar" style="background:${color}"></span>
+        <span class="name">${escapeHtml(item.name)}</span>
+        <span class="badge ${escapeHtml(status)}">${escapeHtml(status)}</span>
+        <span class="detail">${escapeHtml(detail)}</span>
+      </div>`;
+    }).join('');
+    return `<section class="section"><h2 class="section-title">${title}</h2>${rows}</section>`;
+  }).join('');
+  return `${renderHeader('⚠ ' + total + ' ISSUES', 'Crashed agents and stale state files, sorted by operational risk.', data)}${sections}`;
+}
+
+function toggleAgent(label) {
+  if (expandedAgents.has(label)) expandedAgents.delete(label);
+  else expandedAgents.add(label);
+  renderAll(lastData);
+}
+
+function renderAgents(data) {
+  const rows = (data.launchagents || []).map((agent) => {
+    const label = agent.label || agent.name;
+    const open = expandedAgents.has(label);
+    const row = `<div class="data-row ${escapeHtml(agent.status)}" onclick="toggleAgent('${escapeHtml(label)}')">
+      <div class="status-cell"><span class="dot ${escapeHtml(agent.status)}"></span><span>${escapeHtml(agent.status || 'unknown')}</span></div>
+      <div class="name">${escapeHtml(agent.name)}</div>
+      <div class="tech">${escapeHtml(fmtInterval(agent.interval_seconds, agent.schedule))}</div>
+      <div class="tech">${escapeHtml(agent.last_exit_code ?? '--')}</div>
+      <div class="tech">${escapeHtml(fmtTime(agent.last_run_iso))}</div>
+      <div class="tech">${escapeHtml(agent.pid ?? '--')}</div>
+    </div>`;
+    const detail = open ? `<div class="agent-detail">
+      <div class="detail-line">label: ${escapeHtml(agent.label)}</div>
+      <div class="detail-line">schedule: ${escapeHtml(agent.schedule || fmtInterval(agent.interval_seconds))}</div>
+      <div class="detail-line">last run: ${escapeHtml(fmtTime(agent.last_run_iso))}</div>
+    </div>` : '';
+    return row + detail;
+  }).join('');
+  return `${renderHeader('AGENTS', 'LaunchAgent status table. Click a row for full label and timing detail.', data)}
+    <div class="table-scroller"><div class="table agents-table">
+      <div class="table-head"><div>status</div><div>name</div><div>interval</div><div>exit</div><div>last-run</div><div>PID</div></div>
+      ${rows}
+    </div></div>`;
+}
+
+function renderStateFiles(data) {
+  const states = Object.entries(data.state_files || {})
+    .map(([name, item]) => ({ name, ...item }))
+    .sort((a, b) => (FRESHNESS_RANK[a.freshness] ?? 0) - (FRESHNESS_RANK[b.freshness] ?? 0));
+  const rows = states.map((item) => `<div class="data-row">
+    <span class="bar" style="background:${colorForFreshness(item.freshness)}"></span>
+    <div class="name">${escapeHtml(item.name)}</div>
+    <div><span class="chip ${escapeHtml(item.freshness)}">${escapeHtml(item.freshness || 'missing')}</span></div>
+    <div class="tech">${escapeHtml(fmtAge(item.age_hours))}</div>
+    <div class="tech">${escapeHtml(fmtTime(item.mtime_iso))}</div>
+  </div>`).join('');
+  return `${renderHeader('STATE FILES', 'Freshness sorted from dead or missing to fresh.', data)}
+    <div class="table-scroller"><div class="table state-table">
+      <div class="table-head"><div></div><div>name</div><div>freshness</div><div>age</div><div>mtime</div></div>
+      ${rows}
+    </div></div>`;
+}
+
+function toggleHook(phase) {
+  if (openHooks.has(phase)) openHooks.delete(phase);
+  else openHooks.add(phase);
+  renderAll(lastData);
+}
+
+function renderHooks(data) {
+  const hooks = data.claude_hooks?.hooks_by_phase || {};
+  const groups = Object.entries(hooks).map(([phase, scripts]) => {
+    const open = openHooks.has(phase);
+    return `<section class="accordion">
+      <button class="accordion-btn" onclick="toggleHook('${escapeHtml(phase)}')">
+        <span class="phase-pill">${escapeHtml(phase)}</span>
+        <span class="phase-count">${scripts.length} scripts ${open ? '▼' : '▶'}</span>
+      </button>
+      ${open ? `<div class="scripts">${scripts.map((script) => `<span class="script-chip">${escapeHtml(script)}</span>`).join('')}</div>` : ''}
+    </section>`;
+  }).join('');
+  return `${renderHeader('HOOKS', `${data.claude_hooks?.total_scripts || 0} Claude hook scripts grouped by phase.`, data)}${groups}`;
+}
+
+function renderMain(data) {
+  if (activeTab === 'agents') return renderAgents(data);
+  if (activeTab === 'state') return renderStateFiles(data);
+  if (activeTab === 'hooks') return renderHooks(data);
+  return renderIssues(data);
+}
+
+function renderAll(data) {
+  if (!data) return;
+  lastData = data;
+  document.getElementById('app').innerHTML = `<div class="shell">${renderSidebar(data)}<main class="main">${renderMain(data)}</main></div>`;
+}
+
+function setTab(name) {
+  activeTab = name;
+  renderAll(lastData);
+}
+
+function startCountdown() {
+  countdown = 30;
+  if (countdownTimer) clearInterval(countdownTimer);
+  countdownTimer = setInterval(() => {
+    countdown = Math.max(0, countdown - 1);
+    const el = document.getElementById('countdown');
+    if (el) el.textContent = String(countdown);
+  }, 1000);
+}
+
+async function refresh() {
+  try {
+    const response = await fetch(API + '?t=' + Date.now());
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const data = await response.json();
+    if (openHooks.size === 0 && data.claude_hooks?.hooks_by_phase) {
+      Object.keys(data.claude_hooks.hooks_by_phase).forEach((phase) => openHooks.delete(phase));
     }
-    function displayTime(value) {
-      if (!value) return '--';
-      const date = new Date(value);
-      return Number.isNaN(date.valueOf()) ? value : date.toLocaleString();
-    }
-    function formatInterval(agent) {
-      if (agent.schedule) return agent.schedule;
-      const seconds = agent.interval_seconds;
-      if (!seconds) return agent.pid ? 'keepalive' : 'manual';
-      if (seconds < 60) return `every ${seconds}s`;
-      if (seconds < 3600) return `every ${Math.round(seconds / 60)}m`;
-      if (seconds < 86400) return `every ${(seconds / 3600).toFixed(seconds % 3600 ? 1 : 0)}h`;
-      return `every ${Math.round(seconds / 86400)}d`;
-    }
-    function formatExit(agent) {
-      return agent.last_exit_code === null || agent.last_exit_code === undefined
-        ? 'exit none'
-        : `exit ${agent.last_exit_code}`;
-    }
-    function formatEvidence(agent) {
-      if (agent.last_run_iso) return displayTime(agent.last_run_iso);
-      if (agent.pid) return `pid ${agent.pid}`;
-      if (agent.last_exit_code === 0) return 'last exit ok';
-      if (agent.last_exit_code === null || agent.last_exit_code === undefined) return 'no evidence';
-      return `last exit ${agent.last_exit_code}`;
-    }
-    function normalizeServices(services) {
-      const entries = Object.entries(SERVICE_LABELS);
-      return entries.map(([key, label]) => {
-        const raw = services?.[key];
-        const status = raw?.status === 'ok' || raw?.ok === true || raw?.exists === true ? 'ok' : 'fail';
-        return { key, label, status };
-      });
-    }
-    function renderTopbar(generatedAt) {
-      return `
-        <header class="topbar">
-          <div class="brand">
-            <span class="brand-mark" aria-hidden="true">◆</span>
-            <span>YURI OS · AUTOMATION COMMAND CENTER</span>
-          </div>
-          <div class="topbar-meta">
-            <span class="live-dot" aria-hidden="true"></span>
-            <span id="countdown" class="mono">${secondsRemaining}s</span>
-            <span>last-updated ${esc(displayTime(generatedAt))}</span>
-          </div>
-        </header>
-      `;
-    }
-    function renderSummary(launchagents, stateFiles, hooks) {
-      const agents = launchagents || [];
-      const states = Object.values(stateFiles || {});
-      const staleStates = states.filter((state) => ['stale', 'dead', 'missing'].includes(state.freshness));
-      const tiles = [
-        ['RUNNING', agents.filter((agent) => agent.status === 'running').length, STATUS_COLOR.running],
-        ['CRASHED', agents.filter((agent) => agent.status === 'crashed').length, STATUS_COLOR.crashed],
-        ['STALE STATE', staleStates.length, FRESHNESS_COLOR.stale],
-        ['HOOKS', hooks?.total_scripts || 0, '#4488FF']
-      ];
-      return `
-        <section class="summary-grid" aria-label="Automation summary">
-          ${tiles.map(([label, value, color]) => `
-            <article class="summary-tile" style="--accent:${color}">
-              <span class="summary-number mono">${value}</span>
-              <span class="summary-label">${label}</span>
-            </article>
-          `).join('')}
-        </section>
-      `;
-    }
-    function renderServices(services) {
-      const normalized = normalizeServices(services);
-      return `
-        <section class="section" aria-label="Services">
-          <div class="section-head">
-            <h2 class="section-title">Services</h2>
-            <span class="section-meta mono">${normalized.filter((service) => service.status === 'ok').length}/${normalized.length} ok</span>
-          </div>
-          <div class="services-row">
-            ${normalized.map((service) => {
-              const color = service.status === 'ok' ? STATUS_COLOR.running : STATUS_COLOR.crashed;
-              return `
-                <div class="services-pill" style="--status-color:${color}">
-                  <span class="status-dot ${service.status === 'ok' ? 'running' : ''}" aria-hidden="true"></span>
-                  <span class="service-name">${esc(service.label)}</span>
-                  <span class="service-status mono">${esc(service.status)}</span>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        </section>
-      `;
-    }
-    function renderAgents(launchagents) {
-      const agents = launchagents || [];
-      return `
-        <section class="section">
-          <div class="section-head">
-            <h2 class="section-title">LaunchAgents</h2>
-            <span class="section-meta mono">${agents.length} probes</span>
-          </div>
-          <div class="agent-grid">
-            ${agents.map((agent) => {
-              const status = agent.status || 'unknown';
-              const color = STATUS_COLOR[status] || STATUS_COLOR.unknown;
-              return `
-                <article class="agent-card" data-status="${esc(status)}" style="--status-color:${color}">
-                  <div class="card-header">
-                    <span class="status-dot ${status === 'running' ? 'running' : ''}" aria-hidden="true"></span>
-                    <span class="agent-name" title="${esc(agent.name)}">${esc(agent.name)}</span>
-                    <span class="agent-label mono">${esc(agent.label)}</span>
-                  </div>
-                  <div class="card-body">
-                    <span class="badge status">${esc(status)}</span>
-                    <span class="badge mono">${esc(formatInterval(agent))}</span>
-                    <span class="badge mono exit-code">${esc(formatExit(agent))}</span>
-                    <span class="timestamp mono">${esc(formatEvidence(agent))}</span>
-                  </div>
-                </article>
-              `;
-            }).join('')}
-          </div>
-        </section>
-      `;
-    }
-    function renderStateFiles(stateFiles) {
-      const entries = Object.entries(stateFiles || {});
-      return `
-        <section class="section">
-          <div class="section-head">
-            <h2 class="section-title">State Files</h2>
-            <span class="section-meta mono">${entries.length} watched</span>
-          </div>
-          <div class="state-list">
-            ${entries.map(([name, file]) => {
-              const freshness = file?.freshness || 'missing';
-              const color = FRESHNESS_COLOR[freshness] || FRESHNESS_COLOR.missing;
-              const age = file?.age_hours === null || file?.age_hours === undefined ? '--h' : `${file.age_hours}h`;
-              return `
-                <div class="state-row" style="--freshness-color:${color}">
-                  <span class="state-name">${esc(name)}</span>
-                  <span class="chip ${esc(freshness)}">${esc(freshness)}</span>
-                  <span class="mono">${esc(age)}</span>
-                  <span class="mono muted">${esc(displayTime(file?.mtime_iso))}</span>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        </section>
-      `;
-    }
-    function renderHooks(claudeHooks) {
-      const phases = Object.entries(claudeHooks?.hooks_by_phase || {});
-      return `
-        <section class="section">
-          <div class="section-head">
-            <h2 class="section-title">Claude Hooks</h2>
-            <span class="section-meta mono">${claudeHooks?.total_scripts || 0} scripts</span>
-          </div>
-          <div class="hooks-stack">
-            ${phases.map(([phase, scripts]) => `
-              <div class="phase-accordion" data-open="true">
-                <button class="phase-trigger" type="button" aria-expanded="true">
-                  <span>${esc(phase)}</span>
-                  <span class="phase-count mono">${scripts.length}</span>
-                </button>
-                <div class="phase-body">
-                  ${scripts.map((script) => `<span class="chip mono">${esc(script)}</span>`).join('')}
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </section>
-      `;
-    }
-    function renderFooter() {
-      return `<footer class="footer mono">▼ http://localhost:4242 · auto-refresh 30s · last fetch ${esc(lastFetch)}</footer>`;
-    }
-    function render(data) {
-      lastData = data;
-      document.getElementById('app').innerHTML = `
-        ${renderTopbar(data.generated_at)}
-        <main class="shell">
-          ${renderSummary(data.launchagents, data.state_files, data.claude_hooks)}
-          ${renderServices(data.services)}
-          ${renderAgents(data.launchagents)}
-          ${renderStateFiles(data.state_files)}
-          ${renderHooks(data.claude_hooks)}
-          ${renderFooter()}
-        </main>
-      `;
-      bindAccordions();
-      syncCountdown();
-    }
-    function renderError(error) {
-      document.getElementById('app').innerHTML = `
-        ${renderTopbar(lastData?.generated_at)}
-        <main class="shell">
-          <div class="error-panel">
-            <strong>Health endpoint unavailable.</strong>
-            <div class="mono">${esc(error.message || error)}</div>
-          </div>
-          ${lastData ? renderSummary(lastData.launchagents, lastData.state_files, lastData.claude_hooks) : ''}
-          ${renderFooter()}
-        </main>
-      `;
-      syncCountdown();
-    }
-    function bindAccordions() {
-      document.querySelectorAll('.phase-trigger').forEach((button) => {
-        button.addEventListener('click', () => {
-          const panel = button.closest('.phase-accordion');
-          const isOpen = panel.dataset.open !== 'false';
-          panel.dataset.open = String(!isOpen);
-          button.setAttribute('aria-expanded', String(!isOpen));
-        });
-      });
-    }
-    function syncCountdown() {
-      const node = document.getElementById('countdown');
-      if (node) node.textContent = `${secondsRemaining}s`;
-    }
-    function startCountdown(seconds) {
-      secondsRemaining = seconds;
-      clearInterval(countdownTimer);
-      syncCountdown();
-      countdownTimer = setInterval(() => {
-        secondsRemaining = Math.max(0, secondsRemaining - 1);
-        syncCountdown();
-      }, 1000);
-    }
-    async function load() {
-      const response = await fetch(API + '?t=' + Date.now());
-      if (!response.ok) throw new Error(`GET ${API} failed with ${response.status}`);
-      const data = await response.json();
-      lastFetch = new Date().toLocaleTimeString();
-      render(data);
-      startCountdown(REFRESH_SECONDS);
-    }
-    load().catch(renderError);
-    setInterval(() => load().catch(renderError), REFRESH_SECONDS * 1000);
-  </script>
+    renderAll(data);
+    startCountdown();
+  } catch (error) {
+    document.getElementById('app').innerHTML = `<div class="shell">
+      <aside class="sidebar"><div class="side-inner"><div class="brand"><div class="brand-title">YURI OS</div><div class="brand-subtitle">COMMAND CENTER</div></div></div></aside>
+      <main class="main"><div class="error">health fetch failed: ${escapeHtml(error.message)}</div></main>
+    </div>`;
+  }
+}
+
+setInterval(refresh, 30000);
+refresh();
+</script>
 </body>
 </html>

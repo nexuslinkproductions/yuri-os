@@ -79,7 +79,7 @@ const STATE_FILES = {
   'lane-feedback': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-feedback.jsonl',
   'task-queue': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/task-queue.log',
   'scout-errors': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/scout-errors.log',
-  'eot-refresh-err': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/eot-refresh.err.log',
+  'eot-refresh-out': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/eot-refresh.out.log',
   'session-state': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/session-state.json',
 };
 
