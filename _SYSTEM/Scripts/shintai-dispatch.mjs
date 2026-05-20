@@ -18,6 +18,8 @@ import {
   getLaneKernelEntry,
   selectSuperauditMemberIds,
 } from './lane-kernel.mjs';
+import { evaluateExecutionRails } from './rails.mjs';
+import { buildConstraintBlock, preflightControlPlane } from './yuri-control-plane.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -346,6 +348,8 @@ export function buildMemberPrompt(task, member, options = {}) {
     'NeMo-style rails to apply:',
     rails,
     '',
+    options.controlPlaneBlock || '',
+    options.controlPlaneBlock ? '' : '',
     'Objective: stabilize Rick harness and Shintai integration.',
     '',
     'Evidence sources loaded before this packet:',
@@ -392,7 +396,7 @@ function critiquePrompt(task, member, peers) {
   ].join('\n');
 }
 
-function synthesisPrompt(task, proposals, critiques, assembly) {
+function synthesisPrompt(task, proposals, critiques, assembly, options = {}) {
   const proposalBlock = proposals
     .map(({ id, displayName, output }) => `### ${displayName} (${id})\n${String(output || '').slice(0, 2600)}`)
     .join('\n\n');
@@ -406,6 +410,8 @@ function synthesisPrompt(task, proposals, critiques, assembly) {
     '',
     `Assembly: ${assembly.selectedIds.join(', ')}${assembly.skipped.length ? `; skipped: ${assembly.skipped.map((s) => s.id).join(', ')}` : ''}`,
     '',
+    options.controlPlaneBlock || '',
+    options.controlPlaneBlock ? '' : '',
     `TASK:\n${task}`,
     '',
     '=== PROPOSALS ===',
@@ -423,6 +429,19 @@ function callArgsForMember(member, prompt) {
 }
 
 function callMember(member, prompt, timeoutMs) {
+  const dispatchCommand = `bash ${path.relative(REPO_ROOT, AI_SH)} ${member.dispatchArgs.join(' ')}`;
+  const executionRail = evaluateExecutionRails({ kind: 'shell', command: dispatchCommand });
+  if (!executionRail.ok) {
+    return {
+      ok: false,
+      status: null,
+      signal: null,
+      stdout: '',
+      stderr: '',
+      error: `execution rail blocked ${member.id}: ${executionRail.reasons.join('; ')}`,
+      rail: executionRail,
+    };
+  }
   const result = spawnSync('bash', [AI_SH, ...callArgsForMember(member, prompt)], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
@@ -466,16 +485,26 @@ function writeAdvisoryArtifact(payload) {
   mkdirSync(ADVISORY_DIR, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const base = path.join(ADVISORY_DIR, `shintai-${stamp}`);
+  const assembly = payload.assembly || { tier: 'blocked', selectedIds: [], skipped: [] };
   const md = [
     `# Shintai Advisory: ${payload.task}`,
     '',
     `Generated: ${payload.timestamp}`,
+    payload.error ? `Error: ${payload.error}` : '',
+    payload.supersedes ? `Supersedes: ${payload.supersedes}` : '',
     '',
+    payload.evidenceGate ? '## Evidence Gate' : '',
+    payload.evidenceGate ? '' : '',
+    payload.evidenceGate ? `Gate: ${payload.evidenceGate.gate} ok=${payload.evidenceGate.ok}` : '',
+    payload.evidenceGate ? `Loaded: ${payload.evidenceGate.loadedIds.join(', ')}` : '',
+    payload.evidenceGate?.missingIds?.length ? `Missing: ${payload.evidenceGate.missingIds.join(', ')}` : '',
+    payload.evidenceGate?.blockedIds?.length ? `Blocked: ${payload.evidenceGate.blockedIds.join(', ')}` : '',
+    payload.evidenceGate ? '' : '',
     '## Assembly',
     '',
-    `Tier: ${payload.assembly.tier}`,
-    `Members: ${payload.assembly.selectedIds.join(', ')}`,
-    payload.assembly.skipped.length ? `Skipped: ${payload.assembly.skipped.map((entry) => `${entry.id} (${entry.reason})`).join(', ')}` : '',
+    `Tier: ${assembly.tier}`,
+    `Members: ${assembly.selectedIds.join(', ')}`,
+    assembly.skipped.length ? `Skipped: ${assembly.skipped.map((entry) => `${entry.id} (${entry.reason})`).join(', ')}` : '',
     '',
     '## Synthesis',
     '',
@@ -499,6 +528,37 @@ export async function runAdvisory(task, options = {}) {
   if (!taskText) return { ok: false, task: taskText, error: 'empty Shintai task' };
 
   const stream = options.stream || process.stdout;
+  const controlPlane = options.evidenceGate === false
+    ? null
+    : options.controlPlane || preflightControlPlane(taskText, options.controlPlaneOptions || {});
+  const controlPlaneBlock = controlPlane ? buildConstraintBlock(controlPlane) : '';
+
+  if (controlPlane && !controlPlane.ok) {
+    const payload = {
+      ok: false,
+      task: taskText,
+      timestamp: new Date().toISOString(),
+      assembly: null,
+      proposals: [],
+      critiques: [],
+      synthesis: '',
+      evidenceGate: summarizeGate(controlPlane.gate0),
+      error: 'YURI control-plane Gate 0 failed',
+      supersedes: options.supersedes || null,
+      artifacts: null,
+    };
+    if (options.writeArtifact !== false) payload.artifacts = writeAdvisoryArtifact(payload);
+    return payload;
+  }
+
+  if (controlPlane) {
+    say(`${C.bronze}${C.bold}`, '\n── YURI control-plane Gate 0 ──', stream);
+    say(C.good, `  ✓ evidence loaded: ${controlPlane.gate0.loaded.map((entry) => entry.id).join(', ')}`, stream);
+    for (const warning of controlPlane.gate0.warnings || []) {
+      say(C.warn, `  ⚠ optional evidence missing: ${warning.id}`, stream);
+    }
+  }
+
   const roster = options.roster || loadShintaiRoster(options.rosterPath || ROSTER_PATH);
   const timeoutMs = Number(options.timeoutMs || DEFAULT_TIMEOUT_MS);
   let assembly = options.assembly || assembleShintaiTeam(taskText, roster, options.availableHealth || {});
@@ -517,13 +577,32 @@ export async function runAdvisory(task, options = {}) {
   }
 
   if (!assembly.ok) {
-    return { ok: false, task: taskText, assembly, error: 'no healthy Shintai members selected' };
+    const payload = {
+      ok: false,
+      task: taskText,
+      timestamp: new Date().toISOString(),
+      assembly,
+      proposals: [],
+      critiques: [],
+      synthesis: '',
+      evidenceGate: summarizeGate(controlPlane?.gate0),
+      error: 'no healthy Shintai members selected',
+      supersedes: options.supersedes || null,
+      artifacts: null,
+    };
+    if (options.writeArtifact !== false) payload.artifacts = writeAdvisoryArtifact(payload);
+    return payload;
   }
 
   say(`${C.bronze}${C.bold}`, '\n── Shintai advisory: fan-out ──', stream);
+  const sourcePaths = options.sourcePaths || controlPlane?.gate0?.loaded?.map((entry) => path.relative(REPO_ROOT, entry.absPath)) || SOURCE_PATHS;
   const proposals = assembly.members.map((member) => {
     say(C.dim, `  ${member.displayName} · ${member.lane}`, stream);
-    const result = callMember(member, buildMemberPrompt(taskText, member, { health: member.health }), timeoutMs);
+    const result = callMember(member, buildMemberPrompt(taskText, member, {
+      health: member.health,
+      sourcePaths,
+      controlPlaneBlock,
+    }), timeoutMs);
     say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} ${member.displayName}`, stream);
     return {
       id: member.id,
@@ -552,7 +631,7 @@ export async function runAdvisory(task, options = {}) {
 
   say(`${C.bronze}${C.bold}`, '\n── Shintai advisory: synthesis ──', stream);
   const synthMember = assembly.members.find((member) => member.id === 'deepseek') || assembly.members[0];
-  const synthesisResult = callMember(synthMember, synthesisPrompt(taskText, proposals, critiques, assembly), timeoutMs);
+  const synthesisResult = callMember(synthMember, synthesisPrompt(taskText, proposals, critiques, assembly, { controlPlaneBlock }), timeoutMs);
   const synthesis = synthesisResult.stdout || synthesisResult.stderr || synthesisResult.error || '';
 
   const payload = {
@@ -563,6 +642,8 @@ export async function runAdvisory(task, options = {}) {
     proposals,
     critiques,
     synthesis,
+    evidenceGate: summarizeGate(controlPlane?.gate0),
+    supersedes: options.supersedes || null,
     artifacts: null,
   };
 
@@ -571,6 +652,19 @@ export async function runAdvisory(task, options = {}) {
   }
 
   return payload;
+}
+
+function summarizeGate(gate0) {
+  if (!gate0) return null;
+  return {
+    gate: gate0.gate,
+    ok: gate0.ok,
+    timestamp: gate0.timestamp,
+    loadedIds: gate0.loaded.map((entry) => entry.id),
+    missingIds: gate0.missing.map((entry) => entry.id),
+    blockedIds: gate0.blocked.map((entry) => entry.id),
+    warnings: gate0.warnings.map((entry) => entry.id),
+  };
 }
 
 export async function run(taskSummary, options = {}) {

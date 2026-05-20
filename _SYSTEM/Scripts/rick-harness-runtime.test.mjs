@@ -22,6 +22,10 @@ test('Rick harness modules import without starting the REPL', async () => {
     browserBridge,
     laneSession,
     shintaiDispatch,
+    rails,
+    controlPlane,
+    memoryKernel,
+    automationKernel,
   ] = await Promise.all([
     import('./rick-banner.mjs'),
     import('./rick-repl.mjs'),
@@ -30,6 +34,10 @@ test('Rick harness modules import without starting the REPL', async () => {
     import('./browser-harness-bridge.mjs'),
     import('./lane-session.mjs'),
     import('./shintai-dispatch.mjs'),
+    import('./rails.mjs'),
+    import('./yuri-control-plane.mjs'),
+    import('./memory-kernel.mjs'),
+    import('./automation-kernel.mjs'),
   ]);
 
   assert.equal(typeof banner.printBanner, 'function');
@@ -39,6 +47,10 @@ test('Rick harness modules import without starting the REPL', async () => {
   assert.equal(typeof browserBridge.harnessViewport, 'function');
   assert.equal(typeof laneSession.loadLaneSession, 'function');
   assert.equal(typeof shintaiDispatch.assembleShintaiTeam, 'function');
+  assert.equal(typeof rails.evaluateExecutionRails, 'function');
+  assert.equal(typeof controlPlane.preflightControlPlane, 'function');
+  assert.equal(typeof memoryKernel.recallMemory, 'function');
+  assert.equal(typeof automationKernel.buildAutomationHealthSummary, 'function');
 });
 
 test('Rick prompt context drops poisoned terminal chrome history', async () => {
@@ -60,6 +72,15 @@ test('Rick prompt context drops poisoned terminal chrome history', async () => {
   assert.doesNotMatch(context, /HARDBORDER|YURI-OS v1\.0|tokens used/);
   assert.match(context, /real question/);
   assert.match(context, /real answer/);
+});
+
+test('Rick /goal surfaces the current YURI supercharge goal artifact', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+  const goal = __test__.goalText();
+
+  assert.match(goal, /YURI OS Forensic Supercharge Goal/);
+  assert.match(goal, /Task gates:/);
+  assert.match(goal, /YURI_OS_FORENSIC_SUPERCHARGE_GOAL_2026-05-20\.md/);
 });
 
 test('offload wrapper streams chat SSE chunks before process close', async () => {
@@ -183,6 +204,8 @@ test('Shintai guardrails reject hardcoded squad defaults and Rick-owned dispatch
   const roster = readFileSync(new URL('../kagami/shintai-team.json', import.meta.url), 'utf8');
 
   assert.doesNotMatch(repl, /rick-shintai\.mjs/);
+  assert.match(dispatch, /yuri-control-plane\.mjs/);
+  assert.match(dispatch, /evaluateExecutionRails/);
   assert.doesNotMatch(dispatch, /\bDEFAULT_SQUAD\b/);
   assert.doesNotMatch(dispatch, /lane:\s*['"]@?codex-spark['"]/);
   assert.doesNotMatch(dispatch, /rick-shintai\.mjs/);

@@ -22,6 +22,7 @@ const REPO_ROOT = path.resolve(__dirname, '../..');
 const AI_SH = path.join(__dirname, 'ai');
 const MEMORY_PATH = path.join(__dirname, 'lane-memory.mjs');
 const HISTORY_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'rick-history.jsonl');
+const GOAL_DOC = path.join(REPO_ROOT, '_SYSTEM', 'docs', 'YURI_OS_FORENSIC_SUPERCHARGE_GOAL_2026-05-20.md');
 
 const SESSION_ID = `rick-${Date.now()}`;
 const HISTORY_TTL = 24 * 60 * 60 * 1000;
@@ -284,6 +285,27 @@ function buildPrompt(input, historyCtx, memories) {
   if (historyCtx) parts.push('\n[Conversation — sanitized recent turns, terminal chrome omitted]\n' + historyCtx);
   parts.push('\nMarcel: ' + input);
   return parts.join('\n');
+}
+
+function goalText() {
+  if (!existsSync(GOAL_DOC)) return `current goal doc missing: ${GOAL_DOC}`;
+  const text = readFileSync(GOAL_DOC, 'utf8');
+  const title = text.match(/^#\s+(.+)$/m)?.[1] || 'YURI OS current goal';
+  const goal = text.match(/## Goal\s+([\s\S]*?)(?=\n## |$)/)?.[1]?.trim() || '';
+  const taskList = text.match(/## Task List\s+([\s\S]*?)(?=\n## |$)/)?.[1]?.trim() || '';
+  const compactTasks = taskList
+    .split('\n')
+    .filter((line) => /^###\s+Gate\b/.test(line) || /^-\s+/.test(line))
+    .slice(0, 28)
+    .join('\n');
+  return [
+    title,
+    '',
+    goal,
+    compactTasks ? '\nTask gates:\n' + compactTasks : '',
+    '',
+    `source: ${GOAL_DOC}`,
+  ].filter(Boolean).join('\n');
 }
 
 function extractBashBlocks(text) {
@@ -854,6 +876,7 @@ async function handleInput(ui, input, history) {
         if (text) ui.appendSystem(text);
       },
     };
+    ui.markActivity('loading YURI control-plane Gate 0');
     ui.markActivity('preflighting Shintai roster');
     const availableHealth = await preflightShintaiHealth();
     const roster = loadShintaiRoster();
@@ -918,6 +941,7 @@ function helpText() {
   return [
     'Rick harness commands:',
     '/help                  show this surface',
+    '/goal                  show current YURI supercharge goal',
     '/clear                 clear Rick prompt history',
     '/noexec [on|off]       toggle shell-block auto-exec',
     '/health                run worker PONG health checks',
@@ -957,6 +981,11 @@ async function main() {
     if (input === '/clear') {
       clearHistoryState(history);
       ui.appendSystem('Rick prompt history cleared.');
+      return;
+    }
+
+    if (input === '/goal') {
+      ui.appendSystem(goalText());
       return;
     }
 
@@ -1063,6 +1092,7 @@ export const __test__ = {
   extractBashBlocks,
   formatDuration,
   guardShellCommand,
+  goalText,
   normalizeText,
 };
 
