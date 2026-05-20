@@ -39,7 +39,7 @@ Use this packet for direct Claude control-plane work:
 **Verification before merge/promotion:** `<tests, GitNexus detect_changes, review gate>`
 ```
 
-Codex dispatch remains governed by `CODEX_PROTOCOL.md` and must include `## CODEX TASK SPEC`. Claude inherits that discipline but uses the broader packet above for direct control-plane work.
+Codex dispatches directly — no approval gate, no task spec required. Claude uses the packet above for its own control-plane work.
 
 ### POST-PLAN DISPATCH GATE (PATCH 040 — 2026-05-18)
 
@@ -55,7 +55,6 @@ This gate exists because plan mode puts the main thread in executor mode with no
 ### Gate Rules
 
 - Direct `Write`, `Edit`, `MultiEdit`, risky `Bash`, or implementation `Agent` use without a packet should trigger a warn-first protocol gate.
-- Codex-bound commands such as `codex exec`, `Scripts/ai codex`, `codex-spark`, or `Scripts/codex-offload-runner.mjs` require a valid `## CODEX TASK SPEC`.
 - Protocol, routing, memory, promotion, Protected Paths, or high-stakes work requires `Scripts/ai route-plan` evidence and explicit DeepSeek/symbioticPulse advisory expectations.
 - Run GitNexus impact before symbol edits and `gitnexus_detect_changes` before merge or promotion review.
 - Hermes and Argus native gates stay always-on. Obliteratus is required for high-risk protocol, promotion, governance, sandbox, protected-path, or canonical memory work.
@@ -114,14 +113,9 @@ Yuri runs a **Pulse Cortex** on every non-trivial user prompt. Auto-triggered by
 3. **Respect advisor authority boundaries:**
    - DeepSeek + Hermes-forecast + Cassandra = `model_advisor` / `native_function` — advisory only
    - Nisaba Sentinel = native autonomous layer; `nisaba-sentinel-state.json` is advisory input, not impl authority
-   - **Codex is the only impl authority** (via two-phase `Scripts/pulse-codex-runner.mjs` propose → approve → apply)
+   - **Codex is the only impl authority** — dispatches directly, no approval gate required.
 
-4. **Codex two-phase gate (PATCH 036):**
-   - Phase A `propose`: Codex outputs unified-diff to `.claude/state/pulse-codex-pending.json`. No file writes.
-   - Phase B `apply`: Only fires when (a) `.approved` marker exists, (b) not expired (10 min TTL), (c) `git rev-parse HEAD` matches snapshot from Phase A (DeepSeek stale-protection guard).
-   - User says "go" / "apply" / "lgtm" → main thread touches the `.approved` marker.
-
-5. **Beacon emission (PATCH 037):**
+4. **Beacon emission (PATCH 037):**
    - Honors `plan.beaconLevel` (`none` / `notify` / `notify+obsidian`)
    - Throttled 5/session
    - Detached spawn; never blocks orchestrator
@@ -133,7 +127,7 @@ Yuri runs a **Pulse Cortex** on every non-trivial user prompt. Auto-triggered by
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **nudimmud-vault** (64199 symbols, 93275 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **nudimmud-vault** (65531 symbols, 95005 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -173,3 +167,39 @@ This project is indexed by GitNexus as **nudimmud-vault** (64199 symbols, 93275 
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+### LANE_MEMORY_PROTOCOL
+
+Persistent, embeddings-backed cross-lane recall layer. Tier 1 = per-lane conversation history at `.claude/lane-sessions/<lane>__<session>.jsonl` (handled by `_SYSTEM/Scripts/lane-session.mjs`, persistent for **deepseek-*, code-deepseek, reason-cloud, codex-*, nvidia-***). Tier 2 = shared cross-lane semantic pool inside `_SYSTEM/OS_KERNEL/memory.db` (SQLite, WAL, four new `lane_finding_*` tables) accessed via `_SYSTEM/Scripts/lane-memory.mjs`.
+
+**Public API** (`import * as m from '_SYSTEM/Scripts/lane-memory.mjs'`):
+- `await m.write({ lane, session, type, tags=[], content, confidence=1.0, links=[] })` → `{ id, deduped }`. Type one of `fact|finding|warning|reference|decision`. Embedding (bge-m3) generated sync at write. INSERT OR IGNORE on dedup_hash (SHA-256 of normalized content, first 16 chars).
+- `await m.recall({ query, topN=5, filter: { lane?, tags?, type?, age_max?, min_confidence? } })` → `[{ row, similarity }]`. Scans in-memory cache of active rows, dot-product against query embedding, returns top-N sorted desc.
+- `m.pin(id)` → marks permanent (`expires_at = NULL`).
+- `m.dedupCheck(content)` → existing id or null.
+- `m.ageDecay()` → soft-tombstone rows past `expires_at`. Returns count.
+- `m.hardPurge({ olderThan })` → delete tombstoned rows older than threshold. Returns count.
+- `m.getStats()` → `{ total, byLane, byType, byTag, pendingEmbed, dbPath }`.
+
+**Schema** (bootstrapped via `node _SYSTEM/Scripts/lane-memory-migrate.mjs` — idempotent):
+- `lane_findings(id PK, ts, lane, session, type CHECK, content, confidence, expires_at, dedup_hash, status CHECK)`
+- `lane_finding_tags(finding_id FK CASCADE, tag, PK(finding_id, tag))`
+- `lane_finding_links(finding_id FK CASCADE, linked_id, PK)`
+- `lane_finding_embeddings(finding_id PK FK CASCADE, embedding BLOB)` — Float32Array(1024) × 4 bytes = 4 KB/row, BAAI/bge-m3 via Ollama localhost:11434
+
+**Operational defaults:**
+- TTL 30 days (`expires_at = now + 30d` on insert; NULL means permanent via `pin()`)
+- Soft-delete first (status='tombstoned'), hard-purge weekly via `com.yuri.lane-memory-prune` launchd plist (Sunday 03:00, runs `lane-memory-prune.mjs`)
+- Schema version pinned via `PRAGMA user_version = 1`; migrations live alongside `lane-memory-migrate.mjs`
+
+**CLI helpers:**
+- `node _SYSTEM/Scripts/lane-memory.mjs --stats` → JSON stats
+- `node _SYSTEM/Scripts/lane-memory.mjs --recall "query text"` → top-5 results JSON
+- `node _SYSTEM/Scripts/lane-memory.mjs --age-decay` → tombstone count
+
+**Cross-reference:** NIM lane persistence (`nvidia-*`) is now LIVE alongside DeepSeek+Codex thanks to the `PERSISTENT_LANE_PREFIXES` extension in `lane-session.mjs`. Tier 2 semantic recall supplements Tier 1 short-term context with long-term vector retrieval across all lanes.
+
+**Future polish** (tracked, not blocking):
+- L2-normalize embeddings at write time so dot product gives proper [0,1] cosine (bge-m3 returns un-normalized vectors → current similarities are dot-products, ranking is correct but absolute scale is uncalibrated)
+- Cross-lane handoff prompts (Codex querying Mistral findings tagged X)
+- Conflict-detection auto-flag when two high-confidence rows contradict

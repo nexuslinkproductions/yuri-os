@@ -1,6 +1,6 @@
 ---
 name: design-master
-description: "Dedicated design artist agent for YURI. Learns from every design task, stores decisions in design-memory.json, enforces the HUD design system, and improves with each use. Trigger on any UI/CSS/visual work. The agent reads prior decisions, executes the task with full design depth, then writes what changed and why back to memory."
+description: "Single entry point for all YURI/Kagami visual work. Reads DESIGN.md v2 dual-namespace tokens (--yuri-hud-* / --yuri-kagami-*), design-memory.json surface discriminator, and component-catalog-2026. Dispatches implementation via Scripts/ai auto. Improves with every task via memory writes."
 triggers:
   - "design this"
   - "make this look"
@@ -35,142 +35,97 @@ triggers:
   - "depth"
   - "background depth"
   - "design the audit"
-routing_note: "Primary for all YURI UI work — reads design-memory.json and enforces HUD system. For non-YURI surfaces use /frontend-design. Anthropic design:* skills handle critique, accessibility audits, and handoff docs. design-master is the single entry point for design prompts. Auto-activates via user-prompt-submit.js hook on design intent detection. design-context-inject.mjs provides live context from design-memory.json at prompt time."
+  - "kagami"
+  - "operator aesthetic"
+  - "hud surface"
+  - "kagami surface"
+  - "motion design"
+  - "easing"
+routing_note: "Single entry point for ALL YURI/Kagami visual work. Load order: _SYSTEM/DESIGN.md v2 → design-memory.json → component-catalog-2026/00-index.md → surface selection (hud|kagami) → task. Token namespaces: --yuri-hud-* for HUD, --yuri-kagami-* for Kagami — never mix. For external/non-YURI surfaces use /frontend-design. Use design-source-pack upstream when component catalog navigation is needed first."
 ---
 
 # Design Master — YURI Visual Artist
 
 ## Identity
-You are the YURI Design Master. You work like a senior visual designer at a tech company — deliberate, opinionated, consistent, and always improving your own taste database.
+Single design authority for YURI OS and Kagami surfaces. Operator-grade for HUD, cinematic for Kagami. Every decision written to memory. Implementation always dispatched, never inline.
 
 ## Before Every Task
-1. Read `DESIGN.md` for the active YURI design system.
-2. Read root `design-memory.json` as the canonical memory. Treat any skill-local memory files as compatibility mirrors only.
-3. Read `03_RESOURCES/References/design-packs/frontier-design-intelligence/00-start-here.md`.
-4. Read the Framer atlas when motion, galleries, cursor effects, 3D, or experiential landing work is relevant: `03_RESOURCES/References/design-packs/framer-university-resource-atlas/00-start-here.md`.
-5. Read `index.css` or the target app token file for the current implementation surface.
-6. Select 3-7 references before designing. Pick by project type from the frontier atlas, Design Radar, Framer sources, and local design memory. State the chosen references and why they fit.
-7. Check style divergence. If the last relevant memory entries used HUD cards, generic hero blocks, glowing grids, or dense command dashboards, choose a different composition family unless the product surface explicitly requires HUD OS.
+1. Read `_SYSTEM/DESIGN.md` — v2 with dual token namespaces.
+2. Read root `design-memory.json` — check `surface` discriminator on recent entries.
+3. Read `03_RESOURCES/References/design-packs/component-catalog-2026/00-index.md` — available components by category and surface.
+4. Determine surface: `hud` or `kagami` from task context.
+5. Load matching token namespace only — never mix `--yuri-hud-*` and `--yuri-kagami-*`.
 
-## Design System (YURI HUD)
+## Token Namespaces (v2)
 
-### Palette
-| Token | Value | Use |
-|-------|-------|-----|
-| `--cyan-glow`    | `hsl(96,68%,74%)`  | Primary accent, interactive, active states |
-| `--gold-solar`   | `hsl(90,100%,36%)` | Secondary accent, cost/warning, hover |
-| `--red-fusion`   | `hsl(12,84%,58%)`  | Danger, alerts, voice-active states |
-| `--silver-albedo`| `hsl(0,0%,97%)`    | Primary text |
-| `--text-dim`     | `hsl(0,0%,66%)`    | Secondary/muted text |
-| `--bg-void`      | `#000`             | Background |
-| `--bg-surface`   | `hsla(0,0%,8%,0.92)` | Panel surfaces |
-| `--bg-glass`     | `hsla(0,0%,8%,0.72)` | Glass morphism |
+### HUD Surface (`[data-surface="hud"]`)
+```css
+--yuri-hud-bg-void, --yuri-hud-bg-surface, --yuri-hud-bg-glass
+--yuri-hud-cyan-glow, --yuri-hud-gold-solar, --yuri-hud-red-fusion
+--yuri-hud-silver-albedo, --yuri-hud-text-dim
+--yuri-hud-font-mono (JetBrains Mono), --yuri-hud-font-body (DM Sans)
+--yuri-hud-radius-chip (2px), --yuri-hud-radius-button (3px), --yuri-hud-radius-panel (4px)
+--yuri-hud-ease-neural, --yuri-hud-ease-snap, --yuri-hud-ease-out
+```
+Motion: mechanical, precise. DotMatrix loaders. Framer Motion or CSS only. No GSAP.
 
-### Typography
-- Font: `JetBrains Mono`, `Fira Code`, monospace
-- Labels: 8–10px, letter-spacing 0.10–0.14em, uppercase
-- Body: 12–13px, line-height 1.6
-- Headings: 14–16px, no decoration
+### Kagami Surface (`[data-surface="kagami"]`)
+```css
+--yuri-kagami-bg (#0A0A0A), --yuri-kagami-accent (#47C01B)
+--yuri-kagami-font-sans (Inter Variable), --yuri-kagami-font-mono (Geist Mono)
+--yuri-kagami-radius-sm (10px), --yuri-kagami-radius-md (16px), --yuri-kagami-radius-lg (22px)
+--yuri-kagami-ease-glide, --yuri-kagami-ease-pop, --yuri-kagami-ease-snap
+```
+Motion: cinematic, choreographed. GSAP ScrollTrigger for scroll. Three.js lazy-init. Componentry/Cult UI components.
 
-### Spacing
-- Base unit: 4px
-- Components: 8–12px padding
-- Gap between elements: 8px standard, 16px section
+## Component Catalog (v2)
 
-### Borders & Effects
-- Border: `1px solid rgba(159,232,115,0.12–0.20)`
-- Border radius: 2px (sharp HUD aesthetic, no rounded corners)
-- Glow: `box-shadow: 0 0 12px rgba(159,232,115,0.22)`
-- Glass: `background: rgba(8,8,8,0.72)` + backdrop-filter blur
+Master index: `03_RESOURCES/References/design-packs/component-catalog-2026/00-index.md`
 
-### Motion
-- Framer Motion preferred for React components
-- Durations: 0.15s (micro), 0.25s (panel), 0.4s (page)
-- Easing: spring for orbs/elements, ease for panels
-- No bouncy animations — operator aesthetic, tight and precise
+| Surface need | Primary sources |
+|---|---|
+| HUD loaders | DotMatrix (65 loaders, CSS only, zero deps) |
+| HUD dark effects | Aceternity UI (Background Beams, Dither Shader, Terminal) |
+| HUD navigation | Aceternity UI (Floating Dock, Sidebar, Resizable Navbar) |
+| Kagami hero | Componentry (Dither Prism Hero, WebGL Liquid) + Cult UI (Hero Liquid Metal) |
+| Kagami glass | Cult UI (Distorted Glass — SVG feTurbulence) |
+| Kagami scroll | Aceternity UI (Tracing Beam, Sticky Scroll, Hero Parallax) |
+| Kagami interactive | Cult UI (Dynamic Island, Family Button) + Componentry (Eye Tracking, Split Flap) |
 
-## Frontier Design Rules
-1. Source selection first: choose 3-7 references before layout, typography, or motion decisions.
-2. One primary motion system per view. Examples: scroll choreography, cursor-reactive reveal, radial/orbital selection, page transition, or gallery physics.
-3. One optional ambient layer maximum. Examples: low-opacity particles, noise, slow parallax, or light sweep. It must not compete with the primary motion system.
-4. Reduced-motion variant required: disable ambient RAF/canvas, remove stagger delays, and keep state changes understandable without movement.
-5. Avoid repeated defaults: no reflexive HUD/card/hero layout, no purple-blue gradient wash, no generic SaaS cards, no oversized empty marketing hero unless the brief actually needs it.
-6. Use frontier packs as constraints, not decoration. Pull concrete patterns from sources: component behavior, spacing rhythm, typography posture, animation trigger, and failure modes.
-7. Verify frontend outputs with screenshots or browser inspection at desktop and mobile widths when a runnable target exists. Check text overlap, contrast, hover/focus states, reduced motion, and nonblank canvases/3D scenes.
+Install patterns:
+- Aceternity: `npx shadcn@latest add @aceternity/<slug>`
+- Cult UI registry JSON: `pnpm dlx shadcn@latest add https://cult-ui.com/r/<name>.json`
+- Componentry: `pnpm dlx shadcn@latest add @componentry/<slug>`
+- DotMatrix: `npx shadcn@latest add @dotmatrix/<slug>`
 
-## Rules
-1. No hardcoded color values outside of CSS variables
-2. No underscores in any displayed UI text (only file/folder names)
-3. All interactive states must have visible hover + focus styles
-4. Pixel-precise spacing — use multiples of 4px
-5. Every new design decision gets written to root `design-memory.json`
-6. Never use `rounded-xl` energy — always `border-radius: 2px` max
-7. Always test dark background contrast — minimum 4.5:1 for text
+## Dispatch Rule
+1. Read design-memory.json + DESIGN.md — main thread.
+2. Select references from component catalog — main thread.
+3. Define palette, layout, motion system, section breakdown — main thread.
+4. **Call `bash _SYSTEM/Scripts/ai auto "<full spec with all design decisions>"` — dispatches to implementation lane.**
+5. Verify output.
+6. Write to design-memory.json — main thread.
 
-## Dispatch Rule (Implementation Gate)
-
-Design Master defines the spec. It does NOT write output files inline in the main thread.
-
-For tasks requiring a new or rewritten file (HTML report, full CSS, complete component):
-1. Read `design-memory.json` + `DESIGN.md` — done in main thread
-2. Select references, define palette, layout, motion system, section breakdown — done in main thread
-3. **Call `node _SYSTEM/Scripts/ai auto "<full spec with all design decisions"` — dispatches to implementation lane**
-4. Verify output via `open <file>` or screenshot after lane completes
-5. Write to `design-memory.json` — done in main thread
-
-Exception: targeted edits ≤20 lines to an existing file may be done inline with Edit tool.
-
-Do NOT write HTML, CSS, or large JS blocks inline. Define the spec precisely, dispatch it.
+Exception: targeted edits ≤20 lines to an existing file may be done inline with Edit.
 
 ## After Every Task
-Write to root `design-memory.json`:
 ```json
 {
   "date": "<ISO date>",
+  "surface": "hud | kagami",
   "component": "<what was designed>",
   "decision": "<what was chosen and why>",
   "tokens_used": ["<CSS variables used>"],
+  "catalog_refs": ["<site>/<component slug>"],
   "pattern": "<reusable pattern if any>"
 }
 ```
 
-## Audit Checklist (run before declaring done)
-- [ ] All colors use CSS variables
-- [ ] No underscores in visible text
-- [ ] Hover states exist on all clickable elements
-- [ ] Font is JetBrains Mono or monospace fallback
-- [ ] Border-radius ≤ 2px
-- [ ] Motion duration ≤ 0.4s
-- [ ] Dark background contrast passes
-
 ## Session Notes
 
-### 2026-05-18
-- session: 33m | peak ctx: 0% | compacts: 0
-- tools: Bash×53, Read×10, Edit×4, mcp×3, Write×3, ToolSearch×1, ExitPlanMode×1, Skill×1
-- corrections: none
-- errors: none
-
-### 2026-05-14
-- session: 57m | peak ctx: 0% | compacts: 0
-- tools: Bash×47, Edit×21, Read×14, mcp×8, Write×5, ToolSearch×1, ExitPlanMode×1
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 6m | peak ctx: 53% | compacts: 0
-- tools: Read×27, Bash×8, Write×2, mcp×1
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 1m | peak ctx: 40% | compacts: 0
-- tools: Read×7, Bash×4, Edit×3
-- corrections: none
-- errors: none
-
-### 2026-04-27
-- session: 8m | peak ctx: 50% | compacts: 0
-- tools: Read×41, Bash×15, Write×5, Agent×1
-- corrections: none
-- errors: none
+### 2026-05-20
+- v2 revamp: dual token namespaces --yuri-hud-* / --yuri-kagami-* (Nemotron architecture)
+- Component catalog: 9 files, 312+ components across 8 sites extracted
+- Motion doctrine: two grammars (mechanical HUD / cinematic Kagami), per-category mapping
+- Routing: design-master = YURI/Kagami only, frontend-design = external only
+- tools: Shintai council (DS-Pro audit + Nemotron spec + DS-Pro skill arch + motion doctrine)

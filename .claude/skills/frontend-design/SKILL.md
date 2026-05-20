@@ -1,6 +1,6 @@
 ---
 name: frontend-design
-description: "Anthropic's leaked UI/UX skill designed to prevent 'AI slop' by enforcing high-end, intentional design systems. Use when asked to 'build a UI', 'design a landing page', 'fix UX', or create any visual interface to ensure a production-grade, non-generic aesthetic."
+description: "Design skill for external, non-YURI, non-Kagami surfaces. Use when building client work, external products, public-facing sites, or any UI that is NOT YURI HUD or Kagami. Enforces high-end intentional design systems, prevents AI slop. For YURI/Kagami surfaces, use design-master instead."
 triggers:
   - "build a UI"
   - "design a landing page"
@@ -12,54 +12,44 @@ triggers:
   - "production design"
   - "web design"
   - "design principles"
-routing_note: "Secondary to design-master for YURI surfaces. Use for general web UI, external products, or non-YURI interfaces. Pairs with design:design-critique for feedback and design:accessibility-review for a11y."
+  - "client site"
+  - "external product"
+  - "public page"
+routing_note: "EXTERNAL SURFACES ONLY. Do NOT use for YURI HUD or Kagami — those route to design-master. This skill is for: client work, external products, non-YURI public pages, planzerfilms, c2moviez, or any surface outside the YURI OS ecosystem."
 ---
 
-# Frontend Design (Anthropic Unpacked)
+# Frontend Design — External Surfaces
 
-Use this skill to act as a Creative Director for all UI/UX tasks, ensuring a level of aesthetic intentionality and execution that avoids generic "AI-generated" looks.
+Use this skill to act as Creative Director for external, non-YURI UI/UX tasks.
 
-## YURI Load Order
-Before any interface work, load context in this order:
-1. `DESIGN.md`
-2. Root `design-memory.json`
-3. `03_RESOURCES/References/design-packs/frontier-design-intelligence/00-start-here.md`
-4. `03_RESOURCES/References/design-packs/framer-university-resource-atlas/00-start-here.md` when motion, galleries, cursor effects, 3D, or experiential work is relevant
-5. The target app's tokens, component primitives, and current route/screen implementation
+## Scope
+**In scope:** Client sites, external products, public landing pages, planzerfilms/c2moviez work, any UI outside YURI OS.
+**Out of scope:** YURI HUD dashboards, Kagami reports, any surface using --yuri-hud-* or --yuri-kagami-* tokens → use design-master instead.
 
-Pick 3-7 concrete references before designing. Use them to set the type posture, layout grammar, component behavior, and motion trigger model.
+## Load Order (External Work)
+1. Define industry keywords and brand tone for this project
+2. Establish CSS variables for colors, typography, spacing
+3. Pick distinctive font pairing (no Inter/DM Sans by default — use something with personality)
+4. Select 3-7 references from frontier atlas or Design Radar (not YURI internal packs)
+5. Reference: `03_RESOURCES/References/design-packs/frontier-design-intelligence/00-start-here.md`
+6. Reference: `03_RESOURCES/References/design-packs/framer-university-resource-atlas/00-start-here.md` for motion/Framer work
 
-## Core Workflows
+## Core Principles
+- **Anti-Generic Mandate**: Refuse default choices. No Inter/Arial default. No generic SaaS hero.
+- **Reference First**: Pick 3-7 sources before layout, typography, or motion decisions.
+- **Motion Integration**: CSS animations or framer-motion for micro-interactions.
+- **Verification**: Browser/screenshot check at desktop and mobile before declaring done.
 
-### 1. The Design System Phase
-Before generating components or layouts, explicitly define:
-- **Industry Keywords & Brand Tone**: (e.g., "High-tech minimalism", "Playful maximalism").
-- **Visual Foundation**: Define CSS variables for colors, typography scale, and spacing.
-- **Font Pairing**: Select a distinctive display font and a refined body font.
-- **Reference Set**: Name 3-7 sources from the frontier atlas, Design Radar, Framer atlas, or product-specific references.
-
-### 2. The Implementation Phase
-Refer to [design-principles.md](references/design-principles.md) for:
-- **Anti-Generic Mandate**: Refuse default choices (no Inter/Arial by default).
-- **Motion Integration**: Use CSS animations or `framer-motion` for micro-interactions.
-- **Complexity Alignment**: Match the code complexity to the chosen aesthetic style.
-- **Style Divergence**: Avoid repeating recent memory patterns unless continuity is required.
-
-### 3. Verification & Refinement
-Ensure the final UI is:
-- **Accessible**: Semantic HTML, ARIA labels, and proper contrast.
-- **Performant**: Efficient CSS, optimized assets.
-- **Distinctive**: Does it look like a template, or like a custom-designed product?
-- **Verified**: Browser or screenshot check at desktop and mobile widths when a runnable target exists.
-
-## References
-- [Core Principles & Guidelines](references/design-principles.md)
-- `03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md`
+## Design System Phase (before any component work)
+Define explicitly:
+- Industry keywords and brand tone
+- Color variables with roles
+- Typography scale + font pairing
+- Spacing system
+- Reference set (named, with rationale)
 
 ## Session Notes
 
-### 2026-05-14
-- session: 57m | peak ctx: 0% | compacts: 0
-- tools: Bash×47, Edit×21, Read×14, mcp×8, Write×5, ToolSearch×1, ExitPlanMode×1
-- corrections: none
-- errors: none
+### 2026-05-20
+- Scoped to external/non-YURI surfaces only (v2 re-scoping)
+- YURI/Kagami work now exclusively routes to design-master

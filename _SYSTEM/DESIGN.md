@@ -1,260 +1,178 @@
-# YURI HUD OS — Design System
+# YURI Design System v2
 
-> Active design system for YURI Command Center. Supersedes NVIDIA-legacy reference.
-> All tokens live in `index.css`. Component decisions live in canonical root `design-memory.json`; skill-local copies are compatibility mirrors only.
+> Unified source for YURI surface design. HUD and Kagami share the same governance but never the same namespace.
 
----
+## 1. Architecture Decision
 
-## 1. Product Personality
+- Two surface namespaces: `--yuri-hud-*` and `--yuri-kagami-*`
+- One surface discriminator: `data-surface="hud"` or `data-surface="kagami"`
+- One memory contract: every decision write includes `surface`
+- One motion doctrine: HUD is mechanical, Kagami is cinematic
+- Cross-surface token reuse is a hard error, not an override
 
-**YURI HUD OS** is a dark operator system — not a consumer product, not a corporate dashboard.
+## 2. Surface Contract
 
-| Trait | Expression |
-|-------|-----------|
-| Futuristic | Sparse, precise, high-contrast |
-| Interactive | Every click produces visible state change |
-| Game-like | GTA customization energy — tactile, immersive |
-| Premium | No noise, no decoration, high-craft detail |
-| Tactical | Operator-grade information density |
-| Notebook-native | Embeds cleanly in HUD shells and iframes |
+Render roots must declare the surface before styling:
 
----
+```html
+<html data-surface="hud">
+<html data-surface="kagami">
+```
 
-## 2. Visual Tokens
+Rules:
 
-All tokens are CSS custom properties on `:root` in `index.css`. Never add new root-level variables without a documented reason.
+- HUD stays operator-grade, dense, and precise.
+- Kagami stays editorial, atmospheric, and choreographed.
+- Shared values can be duplicated across namespaces, but the namespace itself never collapses.
+- `design-master` reads `design-memory.json`, resolves the surface, and then loads only the matching token family.
 
-### Color Roles
+## 3. Token Namespaces
+
+### HUD Tokens
 
 ```css
---bg-void:        hsl(0, 0%, 0%)           /* Page background — absolute black */
---bg-surface:     hsla(0, 0%, 8%, 0.92)    /* Panel background — near-black glass */
---bg-glass:       hsla(0, 0%, 8%, 0.72)    /* Frosted glass — use for floating cards */
-
---cyan-glow:      hsl(96, 68%, 74%)        /* Primary accent — lime/neon green */
---cyan-dim:       hsl(96, 42%, 24%)        /* Muted accent — borders, inactive chips */
---gold-solar:     hsl(90, 100%, 36%)       /* Secondary — warnings, badges, value labels */
---red-fusion:     hsl(12, 84%, 58%)        /* Danger — critical alerts, HIGH priority */
-
---silver-albedo:  hsl(0, 0%, 97%)          /* Primary text — headlines, key values */
---text-dim:       hsl(0, 0%, 66%)          /* Secondary text — labels, metadata */
-```
-
-### Typography
-
-```css
---font-display:  'Bricolage Grotesque', 'DM Sans', system-ui
---font-body:     'DM Sans', system-ui
---font-mono:     'JetBrains Mono', monospace
-```
-
-Scale: 0.55rem (micro labels) → 0.6rem → 0.7rem → 0.82rem → 1rem → 1.2rem → 1.6rem → 2.4rem (hero scores)
-
-Weight: 400 (body) / 600 (subheadings) / 700 (display, scores, CTAs)
-
-### Spacing
-
-Base unit: **8px**. Use multiples: 4, 8, 12, 16, 24, 32, 40, 48.  
-Component padding: 12–16px. Section gaps: 24–32px. Never arbitrary values.
-
-```css
---grid-unit: 8px;
-```
-
-### Easing
-
-```css
---ease-neural:    cubic-bezier(0.23, 1, 0.32, 1)   /* Primary — overshoot-free elastic feel */
---ease-out:       cubic-bezier(0, 0, 0.2, 1)        /* Panel entry, drawer open */
---ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1)      /* Material standard, less preferred */
---transition-master: 250ms var(--ease-neural)        /* Default interactive transition */
-```
-
-### Shadows & Glow
-
-- Glow on active elements: `box-shadow: 0 0 12px rgba(150,220,120,0.2)`
-- Panel shadows: `0 4px 24px rgba(0,0,0,0.6)`
-- No drop shadows on text. No colored shadows except `--cyan-glow` and `--red-fusion` on explicit indicators.
-
-### Blur / Transparency
-
-- Glass panels: `backdrop-filter: blur(12px)` + `background: var(--bg-glass)`
-- Use blur only when it creates meaningful depth. Never blur text layers.
-- Scanline overlay: `rgba(cyan,0.03)` max — decorative only, never structural.
-
-### Borders
-
-- Primary border: `1px solid rgba(255,255,255,0.07)`
-- Active/selected border: `1px solid var(--cyan-glow)` with matching glow
-- Never use `2px` borders for decorative borders — only for focus rings.
-
----
-
-## 3. Layout Rules
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│ ACTIVITY BAR (48px) │ SIDEBAR NAV (220px) │ EDITOR AREA     │
-│                     │                     │                  │
-│ Icon buttons        │ nav-nodes           │ ┌─ TAB BAR ──┐  │
-│ Status orb          │ Section groups      │ │ BREADCRUMB  │  │
-│                     │ Dividers            │ ├─────────────┤  │
-│                     │                     │ │ MODULE      │  │
-│                     │                     │ │ CONTENT     │  │
-│                     │                     │ └─────────────┘  │
-│ ══════════════ STATUS BAR (footer) ═══════════════════════   │
-└──────────────────────────────────────────────────────────────┘
-```
-
-**Inside module content:**
-- Two-column HUD: left sidebar 260px + flex-1 main area
-- Always-visible inspector bar at bottom (48px, bordered)
-- Header bar when needed (48px, `background: rgba(0,0,0,0.3)`)
-- Panels float via `background: var(--bg-glass)` + border + blur
-
-**Responsive:** The app shell is fixed-viewport (no mobile). Components should scroll internally, not the outer viewport. Use `overflow: hidden` on outer shells, `overflow-y: auto` on scrollable inner areas.
-
----
-
-## 4. Motion Rules
-
-### Use motion to communicate state — never for decoration.
-
-| Trigger | Behavior |
-|---------|---------|
-| Screen transition | `AnimatePresence mode="wait"`, x: ±24px, opacity 0→1, 280ms |
-| Panel entry | `y: 8 → 0`, opacity 0→1, 250–320ms, `--ease-neural` |
-| Chip/button hover | `scale: 1.02`, 150ms |
-| Chip/button tap | `scale: 0.97`, 100ms |
-| Collapsible open | `height: 0 → auto`, opacity 0→1, 220ms (requires `overflow: hidden` wrapper) |
-| Score meter fill | `scaleX: 0 → target`, 900ms `--ease-neural`, applied via `useEffect` + `setTimeout` delay |
-| Stagger rows | `staggerChildren: 0.06`, each child: `opacity 0→1, y: 16→0` |
-| Inspector item | `x: 8→0`, opacity 0→1, 150ms, `mode="wait"` |
-| Background particles | Canvas RAF, velocity ±0.3 px/frame, 40 particles |
-
-### Reduced motion
-
-Always check `useReducedMotion()` from Framer Motion:
-- Disable canvas animation
-- Set all Framer transitions to `duration: 0`
-- Skip `setTimeout` delays on score meters (apply immediately)
-
----
-
-## 5. Component Rules
-
-### Buttons
-
-- Primary: `background: rgba(150,220,120,0.1)`, `border: 1px solid var(--cyan-glow)`, color: `--cyan-glow`
-- Secondary: transparent bg, `border: 1px solid rgba(255,255,255,0.12)`, color: `--text-dim`
-- Danger: `border-color: var(--red-fusion)`, color: `--red-fusion`
-- All: `font-mono`, 0.6–0.78rem, `letter-spacing: 0.1em`, `border-radius: 3–4px`
-- Always: `outline: none` + custom `:focus-visible` ring (`outline: 2px solid var(--cyan-glow)`)
-
-### Chips (selection)
-
-- Unselected: `background: rgba(255,255,255,0.03)`, `border: 1px solid rgba(255,255,255,0.1)`, color: `--text-dim`
-- Selected: `background: rgba(150,220,120,0.08)`, `border-color: var(--cyan-glow)`, color: `--cyan-glow`, glow shadow
-- Active indicator dot: 6px circle, `background: --cyan-glow`, top-right corner
-
-### Cards / Panels
-
-- `background: rgba(255,255,255,0.02)`, `border: 1px solid rgba(255,255,255,0.07)`, `border-radius: 6px`
-- Glass variant: `background: var(--bg-glass)`, `backdrop-filter: blur(12px)`
-- No drop shadows on panels by default. Add only for floating/elevated elements.
-
-### Score Meters
-
-- Track: `background: rgba(255,255,255,0.07)`, height 3px (small) or 6px (large)
-- Fill: `background` based on score: ≥80 `--cyan-glow`, ≥70 `--gold-solar`, <70 `--red-fusion`
-- Animation: CSS `transform: scaleX()`, `transformOrigin: left center`
-- `aria-live="polite"` on container for accessibility
-
-### Collapsible Sections
-
-- Always wrap content in `AnimatePresence` + `motion.div` with `overflow: hidden` parent
-- State: local `useState(false)` — never lift collapse state unless needed across siblings
-- Toggle: click on section header row
-
-### Code / Debug Panels
-
-- `font-family: var(--font-mono)`, `font-size: 0.6–0.62rem`, `line-height: 1.7`
-- JSON key color: `rgba(255,255,255,0.3)`, value color: `var(--gold-solar)`
-- Background: `var(--bg-void)` — darker than panels
-
-### Priority Badges
-
-- HIGH: `background: var(--red-fusion)`
-- MED: `background: var(--gold-solar)`
-- LOW: `background: var(--cyan-glow)`
-- All: `color: rgba(0,0,0,0.8)`, `font-mono`, 0.55rem, `border-radius: 2px`, `padding: 2px 5-6px`
-
----
-
-## 6. Interaction Philosophy
-
-- **Every click produces clear, immediate visual feedback.** No silent state changes.
-- **Motion clarifies state — it does not distract.** Background animations are at 20–25% opacity max.
-- **Background should feel alive but never reduce readability.** Particles and gradients are decorative layers, not foreground.
-- **User choices must visibly change the interface.** Config selections update chip states, debug panels, and downstream screens immediately.
-- **Inspector surfaces detail without navigation.** Hover reveals detail in-place; no new pages or modals for inspection.
-- **Debug panels are always honest.** Show live state objects (config JSON) without sanitization.
-
----
-
-## 7. Anti-Patterns
-
-| Anti-pattern | Why banned |
-|-------------|-----------|
-| Generic SaaS dashboard look | Kills the operator personality |
-| Plain white or light gray cards | Violates dark-first system |
-| Random gradients | Must map to a token or a specific documented reason |
-| Decorative animation with no state meaning | Motion budget is limited — spend it purposefully |
-| Inconsistent spacing | Strict 8px base unit — no arbitrary values |
-| Weak contrast | `--text-dim` is the minimum for body text, never lighter |
-| Inline TODO comments | All work must be complete or explicitly documented as mock data |
-| Fake "coming soon" sections | Never ship placeholder without a real fallback |
-| Unsigned transitions | All `transition:` declarations must reference `--ease-neural` or a documented easing |
-
----
-
-## 8. Design Audit HUD — Screen Architecture
-
-The Design Audit HUD (`src/components/DesignAuditHUD/`) follows this 3-screen state machine:
-
-```
-'catalog'  →  'confirm'  →  'hud'
-               ↓                ↓
-            (back to catalog) (reset to catalog)
-```
-
-### State Object
-
-```typescript
-YuriDesignConfig = {
-  theme: string;             // 6 options
-  motionIntensity: string;   // 4 options
-  backgroundLife: string;    // 6 options
-  layoutMode: string;        // 5 options
-  componentStyle: string;    // 5 options
-  auditTone: string;         // 5 options
-  enabledFunctions: string[]; // multi-select, 12 options
-  confirmed: boolean;
+[data-surface="hud"] {
+  --yuri-hud-bg-void: hsl(0 0% 0%);
+  --yuri-hud-bg-surface: hsla(0 0% 8% / 0.92);
+  --yuri-hud-bg-glass: hsla(0 0% 8% / 0.72);
+  --yuri-hud-cyan-glow: hsl(96 68% 74%);
+  --yuri-hud-cyan-dim: hsl(96 42% 24%);
+  --yuri-hud-gold-solar: hsl(90 100% 36%);
+  --yuri-hud-red-fusion: hsl(12 84% 58%);
+  --yuri-hud-silver-albedo: hsl(0 0% 97%);
+  --yuri-hud-text-dim: hsl(0 0% 66%);
+  --yuri-hud-font-display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
+  --yuri-hud-font-body: "DM Sans", system-ui, sans-serif;
+  --yuri-hud-font-mono: "JetBrains Mono", monospace;
+  --yuri-hud-grid-unit: 8px;
+  --yuri-hud-radius-chip: 2px;
+  --yuri-hud-radius-button: 3px;
+  --yuri-hud-radius-panel: 4px;
+  --yuri-hud-ease-snap: cubic-bezier(0.42, 0, 0.58, 1);
+  --yuri-hud-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --yuri-hud-ease-neural: cubic-bezier(0.23, 1, 0.32, 1);
+  --yuri-hud-dur-micro: 100ms;
+  --yuri-hud-dur-ui: 200ms;
+  --yuri-hud-dur-panel: 280ms;
+  --yuri-hud-dur-meter: 900ms;
 }
 ```
 
-### Handoff Payload
+### Kagami Tokens
 
-```typescript
-YURI_DESIGN_HANDOFF = {
-  schema: '1.0.0';
-  generated: ISO timestamp;
-  config: YuriDesignConfig;
-  auditSummary: { overallScore, strongestSection, weakestSection, sectionScores };
-  suggestions: AuditSuggestion[];
-  styleDirection: string;
-  nextBuildInstructions: string[];
+```css
+[data-surface="kagami"] {
+  --yuri-kagami-bg-void: #0A0A0A;
+  --yuri-kagami-bg-surface: hsla(0 0% 8% / 0.92);
+  --yuri-kagami-bg-glass: hsla(0 0% 8% / 0.72);
+  --yuri-kagami-accent-hot: #47C01B;
+  --yuri-kagami-accent-cold: #00D4FF;
+  --yuri-kagami-accent-amber: #FF8800;
+  --yuri-kagami-font-sans: "Inter Variable", system-ui, sans-serif;
+  --yuri-kagami-font-mono: "Geist Mono", "IBM Plex Mono", monospace;
+  --yuri-kagami-grid-unit: 8px;
+  --yuri-kagami-radius-sm: 10px;
+  --yuri-kagami-radius-md: 16px;
+  --yuri-kagami-radius-lg: 22px;
+  --yuri-kagami-shadow-idle: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --yuri-kagami-shadow-lift: 0 8px 16px rgba(0, 0, 0, 0.2);
+  --yuri-kagami-ease-snap: cubic-bezier(0.42, 0, 0.58, 1);
+  --yuri-kagami-ease-glide: cubic-bezier(0.25, 0.8, 0.5, 1);
+  --yuri-kagami-ease-pop: cubic-bezier(0.68, -0.4, 0.265, 1.4);
+  --yuri-kagami-dur-micro: 150ms;
+  --yuri-kagami-dur-ui: 300ms;
+  --yuri-kagami-dur-scene: 600ms;
+  --yuri-kagami-dur-pin: auto; /* scroll-distance driven */
 }
 ```
 
-Export: JSON download via `Blob + URL.createObjectURL`. Copy: `navigator.clipboard.writeText`.
+## 4. Motion Doctrine
+
+### HUD Grammar
+
+- Mechanical, immediate, operator-grade
+- No overshoot on controls
+- No ambient motion while the user is interacting
+- DotMatrix is the loader grammar
+- Aceternity handles dark panels, glow borders, and sharp interactive surfaces
+
+Canonical HUD patterns:
+
+| Trigger | Behavior | Easing | Duration |
+|---------|----------|--------|----------|
+| Screen transition | `AnimatePresence mode="wait"`, `x: +/-24px`, `opacity: 0 -> 1` | `--yuri-hud-ease-out` | 280ms |
+| Panel entry | `y: 8 -> 0`, `opacity: 0 -> 1` | `--yuri-hud-ease-neural` | 250-320ms |
+| Hover | `scale: 1.02` | `--yuri-hud-ease-neural` | 150-200ms |
+| Tap | `scale: 0.97` | `--yuri-hud-ease-snap` | 100ms |
+| Score fill | `scaleX: 0 -> target` | `--yuri-hud-ease-neural` | 900ms |
+
+HUD bans:
+
+- Bounce or elastic buttons
+- GSAP scroll choreography
+- Continuous background animation during focus-heavy tasks
+- Unscoped motion that cannot be tied to a state change
+
+### Kagami Grammar
+
+- Cinematic, editorial, choreographed
+- Cult UI handles glass, distortion, and hologram depth
+- Componentry handles scroll choreography, 3D, and layered motion
+- Motion is composition, not feedback
+
+Canonical Kagami patterns:
+
+| Trigger | Behavior | Easing | Duration |
+|---------|----------|--------|----------|
+| Scroll pin | GSAP ScrollTrigger pin + scrub | scroll-driven | varies |
+| Scene entry | `staggerChildren`, layered reveal | `--yuri-kagami-ease-glide` | 300-600ms |
+| Button / badge pop | slight overshoot only on accents | `--yuri-kagami-ease-pop` | 150-300ms |
+| Card hover | soft lift + glow + depth shift | `--yuri-kagami-ease-glide` | 300ms |
+| Text choreography | `useScroll`, `useTransform`, or velocity scroll | `--yuri-kagami-ease-snap` | 300-600ms |
+
+Kagami bans:
+
+- Bloom pass on Three.js
+- Uniform pin distances across scenes
+- Portal rotation that moves the parent container instead of the portal object
+- CSS-only scroll effects where pinned choreography is required
+
+## 5. Component Catalog Integration
+
+The component catalog is the reference index, not a paste bin.
+
+- HUD loaders and status indicators: DotMatrix
+- HUD cards, nav, terminal surfaces, and dark operator components: Aceternity UI
+- Kagami glass, distortion, and cinematic surface treatments: Cult UI
+- Kagami scroll choreography, 3D scenes, and layered motion: Componentry
+- Visual direction research only: Refero
+- Layout / static template tone only: StyleUI
+- JS-rendered sources that need browser extraction: Skiper UI and Ali Imam
+
+Pick 3-7 references before implementing a new surface. If a reference is not pasteable or does not change a decision, it is not a reference.
+
+## 6. Load Order
+
+1. Read `design-memory.json`.
+2. Determine `surface`.
+3. Read `03_RESOURCES/References/design-packs/component-catalog-2026/00-index.md`.
+4. Read `03_RESOURCES/References/design-packs/frontier-design-intelligence/00-start-here.md`.
+5. Read `03_RESOURCES/References/design-packs/framer-university-resource-atlas/00-start-here.md` when motion, gallery, cursor, 3D, or experiential work is relevant.
+6. Set `data-surface="hud"` or `data-surface="kagami"` on the root element.
+7. Scope every token lookup to the selected namespace only.
+
+## 7. Memory Contract
+
+- Every memory entry includes `surface`.
+- `hud` memory does not override `kagami` memory.
+- `kagami` memory does not override `hud` memory.
+- Preserve template entries, but keep them inside their own surface bucket.
+- The latest decision wins only within the same surface.
+
+## 8. Verification
+
+- All colors use tokens, not ad hoc literals.
+- All interactive elements expose hover and focus states.
+- Reduced motion collapses ambient animation first.
+- Text remains readable on dark backgrounds.
+- Namespace collisions fail the design review.

@@ -1,0 +1,83 @@
+{
+  "version": "2.0",
+  "lastUpdated": "2026-05-20T00:19:57.808Z",
+  "designSystemVersion": "2.0",
+  "architecture": {
+    "decision": "Independent token namespaces. --yuri-hud-* and --yuri-kagami-*. No base+override. Cross-surface reuse = hard error.",
+    "surfaces": {
+      "hud": {
+        "namespace": "--yuri-hud-*",
+        "font": "JetBrains Mono",
+        "radius": "2-4px",
+        "motion": "mechanical",
+        "selector": "[data-surface=hud]"
+      },
+      "kagami": {
+        "namespace": "--yuri-kagami-*",
+        "font": "Inter Variable",
+        "radius": "10-22px",
+        "motion": "cinematic/GSAP",
+        "selector": "[data-surface=kagami]"
+      }
+    }
+  },
+  "componentCatalog": {
+    "path": "03_RESOURCES/References/design-packs/component-catalog-2026/",
+    "index": "00-index.md",
+    "sites": [
+      "aceternity",
+      "cult-ui",
+      "componentry",
+      "dotmatrix",
+      "refero",
+      "styleui",
+      "skiper-ui",
+      "aliimam"
+    ],
+    "counts": {
+      "aceternity": 131,
+      "cult-ui": 74,
+      "componentry": 42,
+      "dotmatrix": 65
+    },
+    "totalCataloged": 334
+  },
+  "loadOrder": [
+    "_SYSTEM/DESIGN.md",
+    "_SYSTEM/design-memory.json",
+    "03_RESOURCES/References/design-packs/component-catalog-2026/00-index.md",
+    "surface selection hud|kagami",
+    "task"
+  ],
+  "templates": {},
+  "entries": [
+    {
+      "date": "2026-05-20",
+      "surface": "hud",
+      "component": "design-system-v2-foundation",
+      "decision": "Split YURI into independent HUD and Kagami namespaces, then bind motion and token selection to the active surface.",
+      "rationale": "HUD remains the operator shell while Kagami remains the editorial/cinematic shell; shared tokens caused false overrides.",
+      "tokens_used": [
+        "--yuri-hud-*",
+        "--yuri-kagami-*",
+        "--yuri-hud-ease-*",
+        "--yuri-kagami-ease-*"
+      ],
+      "pattern": "surface-isolated token namespaces"
+    },
+    {
+      "date": "2026-05-19",
+      "surface": "kagami",
+      "component": "kagami-sprint-audit",
+      "template": true,
+      "decision": "Preserve the Kagami sprint-audit template as the reusable fork baseline for cover, atmos, portal, and alternating S0 beats.",
+      "rationale": "The template captures the stable Kagami fork shape and should remain available without overruling HUD canonical tokens.",
+      "tokens_used": [
+        "--yuri-kagami-*",
+        "--yuri-kagami-ease-*"
+      ],
+      "pattern": "kagami-sprint-audit template"
+    }
+  ],
+  "openIssues": []
+}
