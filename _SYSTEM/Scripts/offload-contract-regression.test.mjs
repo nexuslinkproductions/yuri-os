@@ -295,7 +295,7 @@ const deepseekReasoningRoute = JSON.parse(execFileSync(
 assert.equal(deepseekReasoningRoute.lane, 'deepseek-v4-pro', 'DeepSeek reasoning suffix should normalize to canonical Pro lane');
 assert.equal(deepseekReasoningRoute.model, 'deepseek-v4-pro', 'DeepSeek reasoning suffix should preserve Pro model');
 assert.equal(deepseekReasoningRoute.reasoningDepth, 'xhigh', 'max-reasoning suffix should become xhigh depth');
-assert.equal(deepseekReasoningRoute.tools, false, 'DeepSeek must be text-only by default');
+assert.equal(deepseekReasoningRoute.tools, false, 'DeepSeek must not force API tool mode by default');
 
 const deepseekAliasRoute = JSON.parse(execFileSync(
   process.execPath,

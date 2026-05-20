@@ -20,7 +20,7 @@ fi
 
 # If --model is explicitly set, bypass pulse classifier (MANUAL_OVERRIDE)
 for _arg in "$@"; do
-  if [[ "$_arg" == "--model" ]]; then export PULSE_LANE_BYPASS=1; break; fi
+  if [[ "$_arg" == "--model" || "$_arg" == "-m" ]]; then export PULSE_LANE_BYPASS=1; break; fi
 done
 
 # Tier-gated pulse routing (keys are hydrated above — safe to exec now)
@@ -54,7 +54,7 @@ Options:
   -m, --model <id>       Force offload to a specific model ID
   --intent <id>          Pass a router intent hint for auto routing
   --reasoning <depth>    Reasoning depth hint: low, medium, high, xhigh
-  --tools                Allow model tool calls (default: disabled for DeepSeek)
+  --tools                Force API tool-call mode only when explicitly requested
   --no-tools             Force text-only model output
   --write-scope <paths>  Colon-delimited write allowlist for DeepSeek write_file
   -s, --swarm <id,id,..|default>
@@ -85,7 +85,7 @@ list_models() {
 
   echo
   echo "DeepSeek API lanes:"
-  printf '  [%-30s] %s\n' "deepseek-v4-flash" "official V4 Flash, text-only advisory default"
+  printf '  [%-30s] %s\n' "deepseek-v4-flash" "official V4 Flash, prompt-contract tool/skill guidance"
   printf '  [%-30s] %s\n' "deepseek-v4-pro" "official V4 Pro, reasoning depth via --reasoning"
   printf '  [%-30s] %s\n' "deepseek" "compat default -> deepseek-v4-flash when key is set"
   echo "  Deprecated DeepSeek aliases normalize into the two official lanes above."
@@ -371,12 +371,15 @@ dry_run_model_override() {
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/comet-adapter.mjs" --dry-run
         ;;
       deepseek-v4-flash|deepseek-v4-pro|deepseek)
-        # DeepSeek dry-run: tools default ON unless --no-tools explicit
-        local _ds_tool_arg="--tools"
-        if [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" == "0" ]]; then
-          _ds_tool_arg="--no-tools"
+        # DeepSeek dispatch: do not force CLI tool flags. Tool/skill intent belongs
+        # in the prompt contract unless the caller explicitly overrides here.
+        local _ds_tool_args=()
+        if [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" == "1" ]]; then
+          _ds_tool_args=(--tools)
+        elif [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" != "1" ]]; then
+          _ds_tool_args=(--no-tools)
         fi
-        run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} "$_ds_tool_arg"
+        run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
         ;;
       *)
         route_log "$(printf '⬡ DRY_RUN :: model=%s lane=%s' "$target_model" "$(classify_lane "$target_model")")"
@@ -393,10 +396,12 @@ dispatch_model() {
     if [[ -n "${REASONING_DEPTH:-}" ]]; then
       reasoning_args=(--reasoning "$REASONING_DEPTH")
     fi
-    # All lanes get tools ON by default (bash/read/write/grep/list_dir/edit_file/skill_invoke/palace_query/ollama_run).
-    # User can override with explicit --no-tools flag (TOOLS_EXPLICIT=1).
-    local tool_args=(--tools)
-    if [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" != "1" ]]; then
+    # DeepSeek dispatch must not force CLI tool flags. Prompt packets name the
+    # skills/tools to invoke; explicit user flags still pass through.
+    local tool_args=()
+    if [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" == "1" ]]; then
+      tool_args=(--tools)
+    elif [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" != "1" ]]; then
       tool_args=(--no-tools)
     fi
     if [[ -n "${CODEX_TARGET_WORKTREE:-}" ]]; then
@@ -434,7 +439,7 @@ dispatch_model() {
         ;;
       deepseek-v4-flash|deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2
-        run_offload_runner "$target_model" "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} "${tool_args[@]}"
+        run_offload_runner "$target_model" "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
         ;;
       deepseek-r1:8b|deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b)
         printf '%s\n' "⬡ DEEPSEEK_LOCAL_FROZEN :: local DeepSeek models disabled to prevent system hangs" >&2
@@ -442,7 +447,7 @@ dispatch_model() {
         ;;
       deepseek)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_CLOUD..." >&2
-        run_offload_runner deepseek "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} "${tool_args[@]}"
+        run_offload_runner deepseek "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
         ;;
       nvidia-deepseek|deepseek-ai/*)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2

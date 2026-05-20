@@ -107,7 +107,7 @@ Commands:
       Run the default DeepSeek cloud lane. Local DeepSeek is frozen.
 
   @deepseek-v4-flash [prompt]
-      Run the official DeepSeek V4 Flash lane (text-only advisory default).
+      Run the official DeepSeek V4 Flash lane. Tool/skill intent belongs in the prompt contract.
 
   @deepseek-v4-pro [prompt]
       Run the official DeepSeek V4 Pro lane. Add reasoning depth in the prompt or use offload.sh --reasoning.
@@ -140,6 +140,9 @@ Commands:
 
   @claude [prompt]
       Run the bounded Claude Sonnet council lane with advisory-only output.
+
+  @claude-opus-audit [prompt]
+      Wake Claude with Haiku, then run Opus 4.7 high-reasoning audit-only output.
 
   @reason-cloud [prompt]
       Run the reason-cloud lane (Ollama Cloud reasoning, defaults to qwen2.5:72b).
@@ -283,7 +286,7 @@ emit_claude_advisory_output() {
   printf '# ADVISORY_CLAUDE_COUNCIL_OUTPUT\n'
   printf '# lane: @claude\n'
   printf '# model: %s\n' "${YURI_COUNCIL_MODEL:-user-configured}"
-  printf '# reasoning: xhigh\n'
+  printf '# reasoning: %s\n' "${YURI_COUNCIL_REASONING:-xhigh}"
   printf '# advisory_only=true\n'
   printf '# local_truth_claim=false\n'
   printf '# codex_final_authority=true\n'
@@ -318,6 +321,67 @@ run_claude_safe_prompt() {
   _status=$?
   set -e
 
+  emit_claude_advisory_output "$_stdout" "$_stderr" "$_status"
+  rm -rf "$_tmpdir"
+  return "$_status"
+}
+
+build_claude_opus_audit_prompt() {
+  local prompt="$1"
+  cat <<EOF
+You are Claude Opus in the Yuri OS Shintai audit lane.
+
+Role: 1M-context audit/synthesis only.
+Authority: advisory_only=true; local_truth_claim=false; Codex/main remains orchestrator, implementer, verifier, and final authority.
+Bounds: no edits, no shell, no tools, no policy authority, no commits, no pushes.
+Evidence rule: every repo-state claim needs supplied evidence or must be marked unverified.
+
+Return exactly these sections:
+findings:
+contradictions:
+missed_context:
+risks:
+tests_needed:
+codex_decision_inputs:
+
+Task:
+$prompt
+EOF
+}
+
+run_claude_opus_audit_prompt() {
+  local prompt="$1"
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _tmpdir _wake_stdout _wake_stderr _stdout _stderr _status _audit_prompt
+  require_cmd "$_claude_bin"
+  _tmpdir="$(mktemp -d)"
+  _wake_stdout="$_tmpdir/wake.stdout.txt"
+  _wake_stderr="$_tmpdir/wake.stderr.txt"
+  _stdout="$_tmpdir/stdout.txt"
+  _stderr="$_tmpdir/stderr.txt"
+  _audit_prompt="$(build_claude_opus_audit_prompt "$prompt")"
+
+  set +e
+  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
+    --model "${YURI_CLAUDE_WAKE_MODEL:-claude-haiku-4-5}" \
+    --effort low \
+    --permission-mode plan \
+    --tools "" \
+    --no-session-persistence \
+    --print "YURI Claude wake preflight. Reply exactly PONG." >"$_wake_stdout" 2>"$_wake_stderr"
+
+  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
+    --model "${YURI_CLAUDE_AUDIT_MODEL:-claude-opus-4-7}" \
+    --effort high \
+    --permission-mode plan \
+    --tools "" \
+    --no-session-persistence \
+    --print "$_audit_prompt" >"$_stdout" 2>"$_stderr"
+  _status=$?
+  set -e
+
+  YURI_COUNCIL_MODEL="${YURI_CLAUDE_AUDIT_MODEL:-claude-opus-4-7}" \
+  YURI_COUNCIL_REASONING="high" \
   emit_claude_advisory_output "$_stdout" "$_stderr" "$_status"
   rm -rf "$_tmpdir"
   return "$_status"
@@ -1578,7 +1642,7 @@ case "${1:-help}" in
       exit 0
     fi
     require_cmd node
-    # Pass --tools explicitly — nvidia lanes have tool use on by default (same as DeepSeek)
+    # Pass --tools explicitly for NVIDIA lanes. DeepSeek prompt contracts name tools/skills without forcing CLI tool mode.
     OFFLOAD_PROMPT_TEXT="$(join_prompt "$@")" exec node "$OFFLOAD_RUNNER" "$_nvidia_lane" --tools
     ;;
   @amp|amp-deep|amp-rush)
@@ -1602,6 +1666,14 @@ case "${1:-help}" in
       exit 1
     fi
     run_claude_safe_prompt "$(join_prompt "$@")"
+    ;;
+  @claude-opus-audit|claude-opus-audit|opus-audit)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_claude_opus_audit_prompt "$(join_prompt "$@")"
     ;;
   @deepseek-workhorse|deepseek-workhorse)
     shift || true

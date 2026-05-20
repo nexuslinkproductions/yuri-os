@@ -1,0 +1,58 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { test } from 'node:test';
+import {
+  ACTIVE_NIM_LANES,
+  DEAD_NIM_LANES,
+  NEMO_STYLE_RAILS,
+  buildSuperauditDeployment,
+  isProtectedPath,
+} from './lane-kernel.mjs';
+
+test('lane kernel exposes the heavy Shintai/NIM deployment without Kimi or Spark', () => {
+  const deployment = buildSuperauditDeployment();
+  const ids = deployment.members.map((member) => member.id);
+  const lanes = deployment.members.map((member) => member.lane).join(' ');
+
+  assert.deepEqual(ids.slice(0, 3), ['codex', 'deepseek', 'claude-opus-audit']);
+  assert.ok(ids.includes('mistral-large'));
+  assert.ok(ids.includes('qwen-coder'));
+  assert.ok(ids.includes('glm'));
+  assert.ok(ids.includes('qwen3-next'));
+  assert.equal(ids.includes('kimi'), false);
+  assert.doesNotMatch(lanes, /codex-spark|spark/i);
+  assert.equal(deployment.authority.finalDecision, 'codex-main');
+});
+
+test('lane kernel tracks active and dead NIM lanes explicitly', () => {
+  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-mistral-large'));
+  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-coder'));
+  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-glm'));
+  assert.ok(DEAD_NIM_LANES.includes('nvidia-gpt-oss-120b'));
+  assert.ok(DEAD_NIM_LANES.includes('nvidia-kimi'));
+});
+
+test('lane kernel maps NeMo-style rails to YURI harness controls', () => {
+  assert.ok(NEMO_STYLE_RAILS.input.includes('shell-block-detect'));
+  assert.ok(NEMO_STYLE_RAILS.retrieval.includes('browser-harness-dom-first'));
+  assert.ok(NEMO_STYLE_RAILS.execution.includes('no-auto-commit-or-push'));
+  assert.ok(NEMO_STYLE_RAILS.output.includes('ansi-safe-streaming'));
+});
+
+test('protected path predicate blocks forbidden surfaces', () => {
+  assert.equal(isProtectedPath('backend/data/snapshot.db'), true);
+  assert.equal(isProtectedPath('.claude/state/pulse-bus.jsonl'), true);
+  assert.equal(isProtectedPath('.claude/history/session.jsonl'), true);
+  assert.equal(isProtectedPath('.env'), true);
+  assert.equal(isProtectedPath('node_modules/pkg/index.js'), true);
+  assert.equal(isProtectedPath('_SYSTEM/state/shintai-advisory/out.md'), false);
+});
+
+test('DeepSeek dispatch wrappers do not force CLI tool mode', () => {
+  const offload = readFileSync(new URL('./offload.sh', import.meta.url), 'utf8');
+  const pulse = readFileSync(new URL('./pulse-orchestrator.mjs', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(offload, /deepseek[^\n]*--tools|--tools[^\n]*deepseek/i);
+  assert.doesNotMatch(pulse, /deepseek[^\n]*--tools|--tools[^\n]*deepseek/i);
+  assert.match(offload, /Tool\/skill intent belongs\s+.*prompt contract/s);
+});

@@ -14,8 +14,10 @@ import { fileURLToPath } from 'node:url';
 import { printBanner } from './rick-banner.mjs';
 import { healthCheckAll } from './worker-tmux.mjs';
 import { harnessViewport } from './browser-harness-bridge.mjs';
+import { healthProbe } from './offload-contract.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const RICK_REPL_PATH = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const AI_SH = path.join(__dirname, 'ai');
 const MEMORY_PATH = path.join(__dirname, 'lane-memory.mjs');
@@ -23,9 +25,23 @@ const HISTORY_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'rick-history.json
 
 const SESSION_ID = `rick-${Date.now()}`;
 const HISTORY_TTL = 24 * 60 * 60 * 1000;
+const MAX_HISTORY_CONTEXT_TURNS = 8;
 const CTX_BUDGET = 50_000;
 const SHELL_EXEC_TIMEOUT_MS = 30_000;
 const MAX_AUTOEXEC_ROUNDS = 8;
+
+const PROMPT_POISON_PATTERNS = [
+  /\bHARDBORDER\b/i,
+  /\bYURI-OS\s+v\d+(?:\.\d+)?\b/i,
+  /\btokens used\b/i,
+  /\bInput persistence is working\b/i,
+  /\bTerminal is no longer naked\b/i,
+  /\bReady for next command\b/i,
+  /\bagent\/channel\/trigger configs written\b/i,
+  /\bscan the Codex `?\.agents\/?`? directory\b/i,
+  /\byour input (?:buffer is )?preserved\b/i,
+  /(^|\n)\s*[|│]?\s*Rick\s*>\s*/i,
+];
 
 const PALETTE = {
   gold: '#FFD700',
@@ -41,7 +57,7 @@ const PALETTE = {
 
 const ROUTES = {
   '@deepseek': { lane: '@deepseek-v4-pro', label: 'DeepSeek' },
-  '@codex': { lane: '@codex-spark', label: 'Codex' },
+  '@codex': { lane: 'gpt-5.5', label: 'Codex' },
   '@claude': { lane: '@claude', label: 'Claude' },
   '@nvidia': { lane: '@nvidia-nemotron-120b', label: 'Nvidia' },
   '@ds': { lane: '@deepseek-v4-pro', label: 'DeepSeek' },
@@ -65,6 +81,7 @@ const DENIED_SHELL_PATTERNS = [
 const RESET = '\x1b[0m';
 const BOLD = '\x1b[1m';
 const DIM_FX = '\x1b[2m';
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
 let shellAutoExecEnabled = true;
 let mem = null;
@@ -129,6 +146,13 @@ function formatTokenCount(value) {
   return Number(value || 0).toLocaleString('en-US');
 }
 
+function formatDuration(ms) {
+  const seconds = Math.max(0, Math.floor(Number(ms || 0) / 1000));
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return mins ? `${mins}m${String(secs).padStart(2, '0')}s` : `${secs}s`;
+}
+
 function ensureStateDir() {
   mkdirSync(path.dirname(HISTORY_FILE), { recursive: true });
 }
@@ -166,9 +190,37 @@ function pruneHistoryFile() {
   return entries;
 }
 
+function historyEntryText(entry) {
+  const parts = [entry?.user, entry?.assistant];
+  if (Array.isArray(entry?.turns)) {
+    for (const turn of entry.turns) parts.push(turn?.content);
+  }
+  return parts.filter(Boolean).join('\n');
+}
+
+function containsPromptPoison(value) {
+  const text = normalizeText(value);
+  return PROMPT_POISON_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+function promptSafeHistory(entries) {
+  return entries
+    .filter((entry) => !containsPromptPoison(historyEntryText(entry)))
+    .slice(-MAX_HISTORY_CONTEXT_TURNS);
+}
+
+function clearHistoryState(history) {
+  history.splice(0, history.length);
+  try {
+    ensureStateDir();
+    writeFileSync(HISTORY_FILE, '');
+  } catch {}
+}
+
 function buildHistoryContext(entries) {
-  if (!entries.length) return '';
-  const block = entries.map((entry) => {
+  const safeEntries = promptSafeHistory(entries);
+  if (!safeEntries.length) return '';
+  const block = safeEntries.map((entry) => {
     if (Array.isArray(entry.turns) && entry.turns.length) {
       const turns = entry.turns
         .map((turn) => `${turn.role === 'tool' ? 'Tool' : 'Rick'}: ${turn.content}`)
@@ -195,8 +247,9 @@ async function recallMemory(query) {
   try {
     const m = await getMemory();
     const results = await m.recall({ query, topN: 5 });
-    if (!results.length) return '';
-    return '[Persistent memory — relevant]\n' + results
+    const safeResults = results.filter(({ row }) => !containsPromptPoison(row?.content ?? ''));
+    if (!safeResults.length) return '';
+    return '[Persistent memory — relevant]\n' + safeResults
       .map(({ row, similarity }) =>
         `[${row.lane} · ${(similarity * 100).toFixed(0)}%] ${row.content.slice(0, 200)}`)
       .join('\n');
@@ -207,6 +260,7 @@ async function recallMemory(query) {
 
 async function writeMemory(input, response) {
   try {
+    if (containsPromptPoison(response)) return;
     const m = await getMemory();
     await m.write({
       lane: 'rick',
@@ -224,9 +278,10 @@ function buildPrompt(input, historyCtx, memories) {
     '[Rick · Marcel · YURI]',
     'Rick full harness active. Terse, evidence-first, no fluff.',
     'Honor no-auto-commit/no-push guardrails. Suggest patch-ready code, but do not assume shell execution.',
+    'Never emit terminal chrome: no fake borders, banners, status bars, token counters, or "Rick >" prefixes. The harness renders all UI.',
   ];
   if (memories) parts.push('\n' + memories);
-  if (historyCtx) parts.push('\n[Conversation — last 24h, oldest dropped when over budget]\n' + historyCtx);
+  if (historyCtx) parts.push('\n[Conversation — sanitized recent turns, terminal chrome omitted]\n' + historyCtx);
   parts.push('\nMarcel: ' + input);
   return parts.join('\n');
 }
@@ -257,47 +312,112 @@ function createHarnessUi({ sessionId }) {
     tokens: 0,
     busy: false,
     closed: false,
+    status: 'ready',
+    turnStartedAt: null,
+    lastActivityAt: null,
+    spinnerTick: 0,
+    ticker: null,
   };
 
   const columns = () => Math.max(40, stdout.columns || 80);
   const rows = () => Math.max(8, stdout.rows || 24);
+  const bottomHeight = 3;
+  const scrollBottom = () => Math.max(1, rows() - bottomHeight);
+  const bottomTop = () => Math.max(1, rows() - bottomHeight + 1);
+  const writeQueue = [];
+  let writing = false;
+  let configuredScrollBottom = null;
+
+  function terminalWrite(chunk) {
+    if (!chunk) return;
+    writeQueue.push(chunk);
+    if (writing) return;
+    writing = true;
+    try {
+      while (writeQueue.length) stdout.write(writeQueue.shift());
+    } finally {
+      writing = false;
+    }
+  }
+
+  function configureScrollRegion({ force = false } = {}) {
+    if (!stdout.isTTY || state.closed) return;
+    const bottom = scrollBottom();
+    if (!force && configuredScrollBottom === bottom) return;
+    terminalWrite(`\x1b7\x1b[1;${bottom}r\x1b8`);
+    configuredScrollBottom = bottom;
+  }
+
+  function resetScrollRegion({ preserveCursor = false } = {}) {
+    if (!stdout.isTTY) return;
+    configuredScrollBottom = null;
+    terminalWrite(preserveCursor ? '\x1b7\x1b[r\x1b8' : '\x1b[r');
+  }
 
   function reserveBottom() {
-    stdout.write('\n\n\n\x1b[3A');
+    if (!stdout.isTTY) {
+      terminalWrite('\n\n\n');
+      return;
+    }
+    terminalWrite('\n\n\n');
+    configureScrollRegion({ force: true });
+    terminalWrite(`\x1b[${scrollBottom()};1H`);
   }
 
   function clearBottom() {
-    const y = Math.max(1, rows() - 2);
-    stdout.write('\x1b7');
-    for (let i = 0; i < 3; i += 1) {
-      stdout.write(`\x1b[${y + i};1H\x1b[2K`);
+    const y = bottomTop();
+    let chunk = '\x1b7';
+    for (let i = 0; i < bottomHeight; i += 1) {
+      chunk += `\x1b[${y + i};1H\x1b[2K`;
     }
-    stdout.write('\x1b8');
+    chunk += '\x1b8';
+    terminalWrite(chunk);
   }
 
   function redrawBottom() {
     if (state.closed || !stdout.isTTY) return;
     const width = columns();
-    const y = Math.max(1, rows() - 2);
+    configureScrollRegion();
+    const y = bottomTop();
     const rule = '─'.repeat(width);
     const inputWidth = Math.max(1, width - 4);
     const visibleInput = truncateLeft(state.input, inputWidth - 1);
-    const status = `  ⚕ ${state.lane} · session ${sessionId} · tokens ${formatTokenCount(state.tokens)} · ${shellAutoExecEnabled ? 'exec:on' : 'noexec'} · ctrl+c exit  `;
+    const elapsed = state.busy && state.turnStartedAt ? ` · ${formatDuration(Date.now() - state.turnStartedAt)}` : '';
+    const spinner = state.busy ? `${SPINNER_FRAMES[state.spinnerTick % SPINNER_FRAMES.length]} ` : '';
+    const statusText = `${spinner}${state.status || (state.busy ? 'running' : 'ready')}${elapsed}`;
+    const status = `  ⚕ ${statusText} │ ${state.lane} · session ${sessionId} · tokens ${formatTokenCount(state.tokens)} · ${shellAutoExecEnabled ? 'exec:on' : 'noexec'} · ctrl+c exit  `;
     const statusLine = padVisible(truncateRight(status, width), width);
 
-    stdout.write('\x1b7');
-    stdout.write(`\x1b[${y};1H\x1b[2K${fg(PALETTE.bronze)}${rule}${RESET}`);
-    stdout.write(`\x1b[${y + 1};1H\x1b[2K${fg(PALETTE.gold, { bold: true })}> ${RESET}${fg(PALETTE.cream)}${visibleInput}${RESET}${fg(PALETTE.cream)}█${RESET}`);
-    stdout.write(`\x1b[${y + 2};1H\x1b[2K${bg(PALETTE.navyBg)}${fg(PALETTE.dim)}${statusLine}${RESET}`);
-    stdout.write('\x1b8');
+    terminalWrite([
+      '\x1b7',
+      `\x1b[${y};1H\x1b[2K${fg(PALETTE.bronze)}${rule}${RESET}`,
+      `\x1b[${y + 1};1H\x1b[2K${fg(PALETTE.gold, { bold: true })}> ${RESET}${fg(PALETTE.cream)}${visibleInput}${RESET}${fg(PALETTE.cream)}█${RESET}`,
+      `\x1b[${y + 2};1H\x1b[2K${bg(PALETTE.navyBg)}${fg(PALETTE.dim)}${statusLine}${RESET}`,
+      '\x1b8',
+    ].join(''));
   }
 
   function beforeOutput() {
-    if (stdout.isTTY) clearBottom();
+    if (stdout.isTTY) configureScrollRegion();
   }
 
   function afterOutput() {
     redrawBottom();
+  }
+
+  function startTicker() {
+    if (!stdout.isTTY || state.ticker) return;
+    state.ticker = setInterval(() => {
+      if (state.closed || !state.busy) return;
+      state.spinnerTick += 1;
+      redrawBottom();
+    }, 120);
+  }
+
+  function stopTicker() {
+    if (!state.ticker) return;
+    clearInterval(state.ticker);
+    state.ticker = null;
   }
 
   function prefix(kind) {
@@ -322,47 +442,88 @@ function createHarnessUi({ sessionId }) {
     const lines = splitDisplayLines(text);
     if (countTokens) state.tokens += estimateTokens(text);
     beforeOutput();
+    let chunk = '';
     for (const line of lines) {
       if (kind === 'dispatch') {
-        stdout.write(`${fg(PALETTE.bronze)}━━━ ${line} ━━━${RESET}\n`);
+        chunk += `${fg(PALETTE.bronze)}━━━ ${line} ━━━${RESET}\n`;
       } else if (kind === 'system') {
-        stdout.write(`${fg(PALETTE.dim)}${line}${RESET}\n`);
+        chunk += `${fg(PALETTE.dim)}${line}${RESET}\n`;
       } else if (kind === 'error') {
-        stdout.write(`${prefix('error')} ${line}\n`);
+        chunk += `${prefix('error')} ${line}\n`;
       } else {
-        stdout.write(`${prefix(kind)} ${fg(PALETTE.cream)}${line}${RESET}\n`);
+        chunk += `${prefix(kind)} ${fg(PALETTE.cream)}${line}${RESET}\n`;
       }
     }
+    terminalWrite(chunk);
     afterOutput();
   }
 
   function beginStream(kind) {
     let out = '';
     let atLineStart = true;
+    let started = false;
+    let pending = '';
+    let flushTimer = null;
     beforeOutput();
+    function writePrefix() {
+      if (!atLineStart) return;
+      terminalWrite(`${prefix(kind)} ${fg(PALETTE.cream)}`);
+      atLineStart = false;
+      started = true;
+    }
+    function flushPending() {
+      if (!pending) return;
+      const normalized = pending;
+      pending = '';
+      beforeOutput();
+      let chunk = '';
+      for (const ch of normalized) {
+        if (atLineStart) {
+          chunk += `${prefix(kind)} ${fg(PALETTE.cream)}`;
+          atLineStart = false;
+        }
+        if (ch === '\n') {
+          chunk += `${RESET}\n`;
+          atLineStart = true;
+        } else {
+          chunk += ch;
+        }
+      }
+      terminalWrite(chunk);
+      afterOutput();
+    }
+    function scheduleFlush() {
+      if (flushTimer) return;
+      flushTimer = setTimeout(() => {
+        flushTimer = null;
+        flushPending();
+      }, 16);
+    }
     return {
+      start() {
+        if (!started) {
+          beforeOutput();
+          writePrefix();
+          afterOutput();
+        }
+      },
       append(chunk) {
         const normalized = normalizeText(chunk);
         if (!normalized) return;
         state.tokens += estimateTokens(normalized);
         out += normalized;
-        for (const ch of normalized) {
-          if (atLineStart) {
-            stdout.write(`${prefix(kind)} ${fg(PALETTE.cream)}`);
-            atLineStart = false;
-          }
-          if (ch === '\n') {
-            stdout.write(`${RESET}\n`);
-            atLineStart = true;
-          } else {
-            stdout.write(ch);
-          }
-        }
-        afterOutput();
-        beforeOutput();
+        state.lastActivityAt = Date.now();
+        pending += normalized;
+        scheduleFlush();
       },
       finish() {
-        if (!atLineStart) stdout.write(`${RESET}\n`);
+        if (flushTimer) {
+          clearTimeout(flushTimer);
+          flushTimer = null;
+        }
+        flushPending();
+        beforeOutput();
+        if (!atLineStart) terminalWrite(`${RESET}\n`);
         afterOutput();
         return out;
       },
@@ -386,19 +547,64 @@ function createHarnessUi({ sessionId }) {
     redrawBottom();
   }
 
+  function markActivity(status) {
+    state.status = status || state.status || 'running';
+    state.lastActivityAt = Date.now();
+    redrawBottom();
+  }
+
+  function startTurn(lane, status = 'dispatching') {
+    state.busy = true;
+    state.turnStartedAt = Date.now();
+    state.lastActivityAt = state.turnStartedAt;
+    state.spinnerTick = 0;
+    state.status = status;
+    state.lane = lane || state.lane;
+    startTicker();
+    redrawBottom();
+  }
+
+  function finishTurn(lane = 'deepseek-v4-flash') {
+    state.busy = false;
+    state.turnStartedAt = null;
+    state.lastActivityAt = Date.now();
+    state.status = 'ready';
+    state.lane = lane || state.lane;
+    stopTicker();
+    redrawBottom();
+  }
+
   function shutdown(code = 0) {
     state.closed = true;
+    stopTicker();
     try {
       if (process.stdin.isTTY) process.stdin.setRawMode(false);
     } catch {}
-    if (stdout.isTTY) stdout.write('\x1b[?25h\n');
+    if (stdout.isTTY) {
+      stdout.off('resize', resizeHandler);
+      resetScrollRegion();
+      terminalWrite('\x1b[?25h\n');
+    }
     process.exit(code);
   }
+
+  const resizeHandler = () => {
+    resetScrollRegion({ preserveCursor: true });
+    configureScrollRegion({ force: true });
+    clearBottom();
+    redrawBottom();
+  };
+
+  if (stdout.isTTY) stdout.on('resize', resizeHandler);
 
   return {
     state,
     reserveBottom,
     redrawBottom,
+    resetScrollRegion,
+    markActivity,
+    startTurn,
+    finishTurn,
     setInput,
     clearInput,
     setLane,
@@ -480,12 +686,41 @@ function finalAssistantFromTurns(turns, fallback = '') {
 function streamLane(ui, lane, prompt, label) {
   return new Promise((resolve) => {
     let out = '';
+    let stderrOut = '';
+    let settled = false;
+    let firstTokenAt = null;
+    const startedAt = Date.now();
     ui.appendDispatch(`${lane} dispatched`);
+    ui.markActivity('connecting to lane');
     const stream = ui.beginRickStream();
-    const child = spawn('bash', [AI_SH, lane, prompt], { cwd: REPO_ROOT });
+    stream.start();
+    const child = spawn('bash', [AI_SH, lane, prompt], {
+      cwd: REPO_ROOT,
+      env: { ...process.env, OFFLOAD_STREAM: '1', OFFLOAD_STREAM_STATUS: '1' },
+    });
+
+    const firstTokenWatch = setTimeout(() => {
+      if (!firstTokenAt && !settled) {
+        ui.markActivity(`waiting for first token from ${label}`);
+      }
+    }, 900);
+
+    const heartbeat = setInterval(() => {
+      if (settled) return;
+      const elapsed = formatDuration(Date.now() - startedAt);
+      if (firstTokenAt) {
+        ui.markActivity(`streaming ${formatTokenCount(out.length)} chars`);
+      } else {
+        ui.markActivity(`waiting for ${label} · ${elapsed}`);
+      }
+    }, 1000);
 
     child.stdout.on('data', (data) => {
       const text = data.toString();
+      if (!firstTokenAt && text) {
+        firstTokenAt = Date.now();
+        ui.markActivity(`first token ${formatDuration(firstTokenAt - startedAt)}`);
+      }
       out += text;
       stream.append(text);
     });
@@ -493,15 +728,32 @@ function streamLane(ui, lane, prompt, label) {
     child.stderr.on('data', (data) => {
       const text = data.toString();
       if (text.includes('[cache]') || text.includes('[lane-session]')) return;
+      if (text.includes('[stream]')) {
+        ui.markActivity(text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\[stream\]/g, '').trim() || 'stream active');
+        return;
+      }
+      stderrOut += text;
       ui.appendSystem(text);
     });
 
     child.on('error', (err) => {
+      settled = true;
+      clearTimeout(firstTokenWatch);
+      clearInterval(heartbeat);
       ui.appendError(`${label} failed to start: ${err.message}`);
     });
 
-    child.on('close', () => {
+    child.on('close', (code, signal) => {
+      settled = true;
+      clearTimeout(firstTokenWatch);
+      clearInterval(heartbeat);
       stream.finish();
+      if (code !== 0) {
+        const reason = signal ? `signal ${signal}` : `exit ${code}`;
+        ui.appendError(`${label} lane ended with ${reason}${stderrOut ? `: ${stderrOut.trim().slice(0, 600)}` : ''}`);
+      } else if (!out.trim()) {
+        ui.appendError(`${label} lane returned no visible output`);
+      }
       resolve(out.trim());
     });
   });
@@ -545,7 +797,7 @@ async function streamLaneWithShell(ui, lane, prompt, label) {
 
 async function handleHealth(ui) {
   ui.setLane('health');
-  const report = await healthCheckAll(['@codex-spark', '@deepseek-v4-pro']);
+  const report = await healthCheckAll(['gpt-5.5', '@deepseek-v4-pro', '@nvidia-nemotron-120b', '@nvidia-qwen3-next']);
   ui.appendSystem(JSON.stringify(report, null, 2));
   return report;
 }
@@ -556,6 +808,31 @@ async function handleBrowser(ui, script) {
   const output = await harnessViewport(script);
   ui.appendShell(output || '[browser] no output');
   return output;
+}
+
+async function preflightShintaiHealth() {
+  const targets = [
+    { id: 'codex', lane: 'gpt-5.5', timeout: 90_000 },
+    { id: 'deepseek', lane: '@deepseek-v4-pro', timeout: 90_000 },
+    { id: 'nemotron', lane: '@nvidia-nemotron-120b', timeout: 90_000 },
+    { id: 'kimi', lane: '@kimi', timeout: 120_000 },
+    { id: 'qwen3-next', lane: '@nvidia-qwen3-next', timeout: 120_000 },
+  ];
+  const preflight = [];
+  for (const target of targets) {
+    const result = await healthProbe(target.lane, { timeoutMs: target.timeout });
+    preflight.push({
+      id: target.id,
+      lane: target.lane,
+      ok: Boolean(result.ok),
+      status: result.ok ? 0 : 1,
+      durationMs: result.ms ?? null,
+      stdout: result.pong || '',
+      stderr: result.error || '',
+      error: result.error || null,
+    });
+  }
+  return preflight;
 }
 
 async function handleInput(ui, input, history) {
@@ -570,14 +847,28 @@ async function handleInput(ui, input, history) {
     const task = input.replace(/@shintai/gi, '').trim() || input;
     ui.appendDispatch('@shintai advisory dispatched');
     ui.setLane('@shintai');
-    const { runAdvisory } = await import('./rick-shintai.mjs');
+    const { assembleShintaiTeam, loadShintaiRoster, runAdvisory } = await import('./shintai-dispatch.mjs');
     const stream = {
       write(chunk) {
         const text = normalizeText(chunk).trimEnd();
         if (text) ui.appendSystem(text);
       },
     };
-    const result = await runAdvisory(buildPrompt(task, historyCtx, memories), { stream });
+    ui.markActivity('preflighting Shintai roster');
+    const availableHealth = await preflightShintaiHealth();
+    const roster = loadShintaiRoster();
+    const assembly = assembleShintaiTeam(task, roster, availableHealth);
+    for (const skipped of assembly.skipped.filter((entry) => entry.health && !entry.health.ok)) {
+      const lane = skipped.lane || skipped.member?.lane;
+      ui.appendSystem(`Shintai skipped ${skipped.id}${lane ? ` (${lane})` : ''}: ${skipped.health.stderr || skipped.health.reason || 'unhealthy'}`);
+    }
+    ui.appendSystem(`Shintai assembled ${assembly.selected.length}/${assembly.targetSize}: ${assembly.selected.map((entry) => entry.displayName || entry.role).join(', ')}`);
+    const result = await runAdvisory(buildPrompt(task, historyCtx, memories), {
+      stream,
+      squad: assembly.selected,
+      assembly,
+      availableHealth,
+    });
     if (!result.ok) {
       ui.appendError(result.error || 'Shintai advisory failed');
       if (result.health) ui.appendSystem(JSON.stringify(result.health, null, 2));
@@ -627,6 +918,7 @@ function helpText() {
   return [
     'Rick harness commands:',
     '/help                  show this surface',
+    '/clear                 clear Rick prompt history',
     '/noexec [on|off]       toggle shell-block auto-exec',
     '/health                run worker PONG health checks',
     '/browser <python>      run browser-harness Python via repo-local CLI',
@@ -643,7 +935,7 @@ async function main() {
   await printBanner(SESSION_ID);
   ui.reserveBottom();
   ui.redrawBottom();
-  ui.appendSystem(`${history.length} turns loaded from last 24h · session ${SESSION_ID}`);
+  ui.appendSystem(`${history.length} turns loaded from last 24h · ${promptSafeHistory(history).length} usable for prompt · session ${SESSION_ID}`);
   ui.appendSystem('Route: @deepseek  @codex  @claude  @nvidia  @shintai');
 
   let busy = false;
@@ -662,6 +954,12 @@ async function main() {
       return;
     }
 
+    if (input === '/clear') {
+      clearHistoryState(history);
+      ui.appendSystem('Rick prompt history cleared.');
+      return;
+    }
+
     if (input.startsWith('/noexec')) {
       const [, value] = input.split(/\s+/, 2);
       if (!value) shellAutoExecEnabled = !shellAutoExecEnabled;
@@ -674,26 +972,28 @@ async function main() {
 
     if (input === '/health') {
       busy = true;
+      ui.startTurn('health', 'checking workers');
       try {
         await handleHealth(ui);
       } catch (err) {
         ui.appendError(err.message);
       } finally {
         busy = false;
-        ui.setLane('deepseek-v4-flash');
+        ui.finishTurn('deepseek-v4-flash');
       }
       return;
     }
 
     if (input.startsWith('/browser ')) {
       busy = true;
+      ui.startTurn('browser-harness', 'running browser-harness');
       try {
         await handleBrowser(ui, input.slice('/browser '.length));
       } catch (err) {
         ui.appendError(err.message);
       } finally {
         busy = false;
-        ui.setLane('deepseek-v4-flash');
+        ui.finishTurn('deepseek-v4-flash');
       }
       return;
     }
@@ -701,8 +1001,7 @@ async function main() {
     const detected = detectRoute(input);
     const lane = detected?.tag === '@shintai' ? '@shintai' : detected?.route?.lane ?? '@deepseek-v4-flash';
     busy = true;
-    ui.state.busy = true;
-    ui.setLane(lane);
+    ui.startTurn(lane, 'preparing prompt');
     ui.appendUser(input);
     try {
       await handleInput(ui, input, history);
@@ -710,8 +1009,7 @@ async function main() {
       ui.appendError(`error: ${err.message}`);
     } finally {
       busy = false;
-      ui.state.busy = false;
-      ui.setLane('@deepseek-v4-flash');
+      ui.finishTurn('@deepseek-v4-flash');
     }
   };
 
@@ -744,15 +1042,33 @@ async function main() {
   });
 
   process.on('SIGINT', () => ui.shutdown(0));
+  process.on('SIGTERM', () => ui.shutdown(0));
   process.on('exit', () => {
     try {
       if (process.stdin.isTTY) process.stdin.setRawMode(false);
-      process.stdout.write('\x1b[?25h');
+      process.stdout.write('\x1b[r\x1b[?25h');
     } catch {}
   });
 }
 
-main().catch((err) => {
-  process.stderr.write(`${fg(PALETTE.bad)}fatal: ${err.message}${RESET}\n`);
-  process.exit(1);
-});
+function isCliEntrypoint() {
+  return path.resolve(process.argv[1] || '') === path.resolve(RICK_REPL_PATH);
+}
+
+export const __test__ = {
+  buildPrompt,
+  buildHistoryContext,
+  containsPromptPoison,
+  detectRoute,
+  extractBashBlocks,
+  formatDuration,
+  guardShellCommand,
+  normalizeText,
+};
+
+if (isCliEntrypoint()) {
+  main().catch((err) => {
+    process.stderr.write(`${fg(PALETTE.bad)}fatal: ${err.message}${RESET}\n`);
+    process.exit(1);
+  });
+}

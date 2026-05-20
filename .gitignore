@@ -97,6 +97,11 @@ yuri-os/
 01_PROJECTS/claude-cookbooks/
 _SYSTEM/tools/browser-harness/
 _SYSTEM/state/shintai-advisory/
+_SYSTEM/state/rick-history.jsonl
+.claude/lane-sessions/
+_SYSTEM/_SYSTEM/OS_KERNEL/*.db-shm
+_SYSTEM/_SYSTEM/OS_KERNEL/*.db-wal
+_SYSTEM/backend/data/liquid_state.json
 
 # Local cache and nested snapshot artifacts
 .smart-env/

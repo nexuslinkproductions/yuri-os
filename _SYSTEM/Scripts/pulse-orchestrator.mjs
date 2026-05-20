@@ -396,7 +396,7 @@ ${peerDigest.slice(0, 400) || '(none)'}
 Output ONE line predicting the highest-probability failure mode for this turn. Format: SEVERITY:WARN|HIGH|CRITICAL :: <prediction>. Be concrete.`;
     const result = await execWithTimeout(
       'bash',
-      [OFFLOAD_SH, '@deepseek-v4-flash', '--tools', cassPrompt],
+      [OFFLOAD_SH, '@deepseek-v4-flash', cassPrompt],
       {},
       25_000
     );
@@ -432,8 +432,8 @@ ${String(prompt).slice(0, 300)}
 TASK: Independent strategic risk scan. What could go wrong that the primary analysis missed? 1-3 lines.`;
 
   const [flashResult, proResult] = await Promise.allSettled([
-    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-flash', '--tools', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
-    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-pro',   '--tools', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
+    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-flash', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
+    execWithTimeout('bash', [OFFLOAD_SH, '-m', 'deepseek-v4-pro', swarmPrompt], {}, TIMEOUT_DEEPSEEK_MS),
   ]);
 
   const outputs = [];

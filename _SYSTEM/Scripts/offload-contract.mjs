@@ -1,5 +1,14 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { safeRuntimePath } from './lane-kernel.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const REPO_ROOT = path.resolve(__dirname, '../..');
+const AI_SH = path.join(__dirname, 'ai');
 
 const OFFLOAD_CONTRACT = {
   version: 3,
@@ -1317,7 +1326,11 @@ function selectScenario(prompt, lane = '') {
 
 function readCalibration() {
   try {
-    const calibPath = `${process.env.YURI_ROOT || '/Users/marcelspatz/YURI-OS-MUSUBI'}/.claude/state/lane-calibration.json`;
+    const calibPath = safeRuntimePath(
+      'YURI_LANE_CALIBRATION_PATH',
+      path.join(process.env.HOME || '/tmp', '.yuri', 'lane-calibration.json'),
+    );
+    if (!calibPath) return {};
     if (!existsSync(calibPath)) return {};
     return JSON.parse(readFileSync(calibPath, 'utf8')).lanes || {};
   } catch { return {}; }
@@ -1387,26 +1400,92 @@ function printJson(value) {
   process.stdout.write(`${JSON.stringify(value)}\n`);
 }
 
-const [, , command = 'contract', ...args] = process.argv;
+export function healthProbe(laneName, options = {}) {
+  const timeoutMs = Number(options.timeoutMs || 15_000);
+  const startedAt = Date.now();
+  const lane = String(laneName || '').replace(/^@/, '');
+  const prompt = 'Health check. Reply exactly PONG and nothing else.';
+  if (!lane) {
+    return Promise.resolve({ ok: false, pong: null, ms: 0, error: 'missing lane' });
+  }
 
-switch (command) {
-  case 'contract':
-    printJson(OFFLOAD_CONTRACT);
-    break;
-  case 'steer':
-    process.stdout.write(`${selectSteeringLane(args.join(' '))}\n`);
-    break;
-  case 'route-plan':
-    printJson(buildRoutePlan(args.join(' ')));
-    break;
-  case 'examples':
-    printJson(OFFLOAD_CONTRACT.scenarios);
-    break;
-  case 'swarm-default':
-  case 'swarm-workhorse':
-    process.stdout.write(`${getSwarmModels(command === 'swarm-workhorse' ? 'workhorse' : 'default').join(',')}\n`);
-    break;
-  default:
-    console.error(`Unknown offload contract command: ${command}`);
-    process.exit(1);
+  return new Promise((resolve) => {
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    const child = spawn('bash', [AI_SH, lane, prompt], {
+      cwd: REPO_ROOT,
+      env: {
+        ...process.env,
+        OFFLOAD_PROMPT_TEXT: prompt,
+        OFFLOAD_STREAM: '0',
+        LANE_SESSION: 'health-probe',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    const done = (payload) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve({ ms: Date.now() - startedAt, ...payload });
+    };
+
+    const timer = setTimeout(() => {
+      try {
+        child.kill('SIGTERM');
+      } catch {}
+      done({ ok: false, pong: null, error: `timeout after ${timeoutMs}ms` });
+    }, timeoutMs);
+
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+      if (stdout.length > 20_000) stdout = stdout.slice(-20_000);
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+      if (stderr.length > 10_000) stderr = stderr.slice(-10_000);
+    });
+    child.on('error', (error) => {
+      done({ ok: false, pong: null, error: error.message || String(error) });
+    });
+    child.on('close', (code) => {
+      const pong = /\bPONG\b/i.test(stdout);
+      done({
+        ok: code === 0 && pong,
+        pong: pong ? 'PONG' : null,
+        error: code === 0 && pong ? null : (stderr.trim() || stdout.trim() || `exit ${code}`).slice(0, 1000),
+      });
+    });
+  });
+}
+
+function isCliEntrypoint() {
+  return path.resolve(process.argv[1] || '') === __filename;
+}
+
+if (isCliEntrypoint()) {
+  const [, , command = 'contract', ...args] = process.argv;
+
+  switch (command) {
+    case 'contract':
+      printJson(OFFLOAD_CONTRACT);
+      break;
+    case 'steer':
+      process.stdout.write(`${selectSteeringLane(args.join(' '))}\n`);
+      break;
+    case 'route-plan':
+      printJson(buildRoutePlan(args.join(' ')));
+      break;
+    case 'examples':
+      printJson(OFFLOAD_CONTRACT.scenarios);
+      break;
+    case 'swarm-default':
+    case 'swarm-workhorse':
+      process.stdout.write(`${getSwarmModels(command === 'swarm-workhorse' ? 'workhorse' : 'default').join(',')}\n`);
+      break;
+    default:
+      console.error(`Unknown offload contract command: ${command}`);
+      process.exit(1);
+  }
 }

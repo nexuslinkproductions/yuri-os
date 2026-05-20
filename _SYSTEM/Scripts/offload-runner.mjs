@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, appendFileSync } from 'fs';
+import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'fs';
 import { execSync } from 'child_process';
 import path from 'path';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
@@ -55,6 +55,7 @@ options.reasoning = laneRequest.reasoning || options.reasoning;
 const envPrompt = process.env.OFFLOAD_PROMPT_TEXT;
 const prompt = envPrompt !== undefined ? envPrompt : options.prompt.trim();
 const ledgerTraceId = process.env.TOKEN_LEDGER_TRACE_ID || process.env.OFFLOAD_TASK_ID || `offload-${Date.now()}-${process.pid}`;
+const STREAM_OUTPUT = /^(1|true|yes|on)$/i.test(process.env.OFFLOAD_STREAM || '');
 
 if (!lane) {
   console.error('Usage: offload-runner <lane|pulse> [--model <id>] [--system <prompt>] [--reasoning <low|medium|high|xhigh>] [--tools|--no-tools] [--dry-run] [--inventory] [--plan-json <json>] [--plan-file <path>] <prompt>');
@@ -95,13 +96,13 @@ if (
 
 if (resolved.kind === 'local') {
   const result = await runLocalChat(resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
-  process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+  emitResult(result);
   process.exit(0);
 }
 
 if (resolved.protocol === 'ollama-native') {
   const result = await runOllamaCloudChat(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
-  process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+  emitResult(result);
   process.exit(0);
 }
 
@@ -112,8 +113,11 @@ if (resolved.protocol === 'responses') {
     timeout: resolved.timeout,
     lane,
     traceId: ledgerTraceId,
+    streamOutput: STREAM_OUTPUT,
+    streamWriter: (chunk) => process.stdout.write(chunk),
+    streamStatusWriter: (line) => process.stderr.write(line),
   });
-  process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+  emitResult(result);
   process.exit(0);
 }
 
@@ -128,6 +132,9 @@ const result = await runOpenAICompatibleChat(
     tools: resolved.tools,
     session: options.session,
     fresh: options.fresh,
+    streamOutput: STREAM_OUTPUT,
+    streamWriter: (chunk) => process.stdout.write(chunk),
+    streamStatusWriter: (line) => process.stderr.write(line),
   }
 );
 if (options.outputFile) {
@@ -135,12 +142,30 @@ if (options.outputFile) {
     const { mkdirSync: _mkdir, writeFileSync: _write } = await import('node:fs');
     const { dirname: _dirname } = await import('node:path');
     _mkdir(_dirname(options.outputFile), { recursive: true });
-    _write(options.outputFile, result, 'utf-8');
+    _write(options.outputFile, resultText(result), 'utf-8');
   } catch (e) {
     process.stderr.write(`[offload-runner] --output-file write failed: ${e.message}\n`);
   }
 }
-process.stdout.write(result + (result.endsWith('\n') ? '' : '\n'));
+emitResult(result);
+
+function resultText(result) {
+  if (typeof result === 'string') return result;
+  return String(result?.text ?? '');
+}
+
+function resultWasStreamed(result) {
+  return Boolean(result && typeof result === 'object' && result.streamed);
+}
+
+function emitResult(result) {
+  const text = resultText(result);
+  if (resultWasStreamed(result)) {
+    if (text && !text.endsWith('\n')) process.stdout.write('\n');
+    return;
+  }
+  process.stdout.write(text + (text.endsWith('\n') ? '' : '\n'));
+}
 
 function parseArgs(rest) {
   const out = {
@@ -1246,6 +1271,7 @@ async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemTex
     ...(systemText ? { instructions: systemText } : {}),
     ...(opts.maxTokens ? { max_output_tokens: opts.maxTokens } : {}),
     ...(opts.reasoningEffort ? { reasoning: { effort: opts.reasoningEffort } } : {}),
+    ...(opts.streamOutput ? { stream: true } : {}),
   };
 
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) };
@@ -1283,6 +1309,35 @@ async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemTex
     throw new Error(`OPENAI_RESPONSES_${response.status}: ${errText}`);
   }
 
+  if (body.stream === true) {
+    opts.streamStatusWriter?.('\x1b[2m[stream] connected responses\x1b[0m\n');
+    const streamed = await readResponsesStream(response, {
+      onText: opts.streamWriter,
+      onReasoning: (chunk) => {
+        if (process.env.OFFLOAD_STREAM_REASONING === '1') opts.streamStatusWriter?.(`\x1b[2m[reasoning] ${chunk}\x1b[0m`);
+      },
+    });
+    const output = streamed.text || (streamed.finalResponse ? extractResponseText(streamed.finalResponse) : '');
+    await recordOffloadLedger({
+      lane: opts.lane,
+      traceId: opts.traceId,
+      provider: 'openai-responses',
+      requestModel: model,
+      responseModel: streamed.finalResponse?.model || model,
+      status: 'ok',
+      measurement: normalizeProviderUsage('openai', streamed.usage || streamed.finalResponse?.usage, {
+        input_tokens: estimateTokensFromText([systemText, promptText].filter(Boolean).join('\n')),
+        output_tokens: estimateTokensFromText(output),
+      }),
+      startedAt,
+      promptText,
+      systemText,
+      endpoint,
+      metadata: { streamed: true, response_id_hash: streamed.finalResponse?.id ? hashPayload(streamed.finalResponse.id) : '' },
+    });
+    return { text: output, streamed: true };
+  }
+
   const data = await response.json();
   const output = extractResponseText(data);
   await recordOffloadLedger({
@@ -1303,6 +1358,41 @@ async function runOpenAIResponses(endpoint, apiKey, model, promptText, systemTex
     metadata: { response_id_hash: data.id ? hashPayload(data.id) : '' },
   });
   return output;
+}
+
+async function readResponsesStream(response, handlers = {}) {
+  const onText = handlers.onText || (() => {});
+  const onReasoning = handlers.onReasoning || (() => {});
+  const state = {
+    text: '',
+    reasoning: '',
+    usage: null,
+    finalResponse: null,
+  };
+
+  await readSseResponse(response, (payload) => {
+    const type = payload.type || '';
+    if (type === 'response.output_text.delta' && typeof payload.delta === 'string') {
+      state.text += payload.delta;
+      onText(payload.delta);
+    }
+    if (
+      (type === 'response.reasoning_text.delta' ||
+        type === 'response.reasoning.delta' ||
+        type === 'response.output_item.delta') &&
+      typeof payload.delta === 'string'
+    ) {
+      state.reasoning += payload.delta;
+      onReasoning(payload.delta);
+    }
+    if (payload.response) {
+      state.finalResponse = payload.response;
+      if (payload.response.usage) state.usage = payload.response.usage;
+    }
+    if (payload.usage) state.usage = payload.usage;
+  });
+
+  return state;
 }
 
 function extractResponseText(data) {
@@ -1516,9 +1606,11 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
       delete requestExtraBody.tool_choice;
     }
 
+    const streamThisRound = opts.streamOutput === true && !supportsTools;
     const body = {
       model,
       messages,
+      ...(streamThisRound ? { stream: true } : {}),
       ...(supportsTools && { tools: toolDefinitions, tool_choice: 'auto' }),
       ...(opts.maxTokens ? { max_tokens: opts.maxTokens } : {}),
       ...requestExtraBody
@@ -1575,6 +1667,51 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
       if (response.status === 402) throw new Error(`HTTP_402: ${errText}`);
       if (response.status === 429) throw new Error('RATE_LIMITED');
       throw new Error(`OPENAI_COMPAT_${response.status}: ${errText}`);
+    }
+
+    if (streamThisRound) {
+      opts.streamStatusWriter?.(`\x1b[2m[stream] connected ${opts.lane || model}\x1b[0m\n`);
+      const streamed = await readOpenAICompatibleChatStream(response, {
+        onText: opts.streamWriter,
+        onReasoning: (chunk) => {
+          if (process.env.OFFLOAD_STREAM_REASONING === '1') opts.streamStatusWriter?.(`\x1b[2m[reasoning] ${chunk}\x1b[0m`);
+        },
+      });
+      const finalText = streamed.text || '';
+      const measurement = normalizeProviderUsage('openai-compatible', streamed.usage, {
+        input_tokens: estimateTokensFromText(messages.map((m) => m.content || '').join('\n')),
+        output_tokens: estimateTokensFromText(finalText),
+      });
+      await recordOffloadLedger({
+        lane: opts.lane,
+        traceId: opts.traceId,
+        provider: providerFromEndpoint(endpoint),
+        requestModel: model,
+        responseModel: streamed.responseModel || model,
+        status: 'ok',
+        measurement,
+        startedAt,
+        promptText,
+        systemText,
+        endpoint,
+        metadata: {
+          iteration,
+          supports_tools: false,
+          streamed: true,
+        },
+      });
+
+      messages.push({ role: 'assistant', content: finalText });
+      autoRecordOutcome(opts?.lane, opts?.traceId, finalText);
+      if (laneSession.enabled) {
+        try {
+          laneSession.record(promptText, finalText);
+          process.stderr.write(`\x1b[2m[lane-session] persisted to ${laneSession.sessionPath}\x1b[0m\n`);
+        } catch (e) {
+          process.stderr.write(`[lane-session] persist failed: ${e.message}\n`);
+        }
+      }
+      return { text: finalText, streamed: true };
     }
 
     const data = await response.json();
@@ -1712,6 +1849,76 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
   throw new Error(`Loop exceeded max iterations (${maxIterations})`);
 }
 
+async function readOpenAICompatibleChatStream(response, onText = () => {}) {
+  const handlers = typeof onText === 'function' ? { onText } : (onText || {});
+  const writeText = handlers.onText || (() => {});
+  const writeReasoning = handlers.onReasoning || (() => {});
+  const state = {
+    text: '',
+    reasoning: '',
+    usage: null,
+    responseModel: '',
+  };
+
+  await readSseResponse(response, (payload) => {
+    if (payload.model) state.responseModel = payload.model;
+    if (payload.usage) state.usage = payload.usage;
+    const choice = Array.isArray(payload.choices) ? payload.choices[0] : null;
+    const deltaObject = choice?.delta || {};
+    const delta = deltaObject.content ?? choice?.message?.content ?? choice?.text ?? '';
+    const reasoning =
+      deltaObject.reasoning_content ??
+      deltaObject.reasoning ??
+      deltaObject.thinking ??
+      payload.reasoning_content ??
+      payload.reasoning ??
+      '';
+    if (typeof delta === 'string' && delta.length > 0) {
+      state.text += delta;
+      writeText(delta);
+    }
+    if (typeof reasoning === 'string' && reasoning.length > 0) {
+      state.reasoning += reasoning;
+      writeReasoning(reasoning);
+    }
+  });
+
+  return state;
+}
+
+async function readSseResponse(response, onPayload) {
+  if (!response.body) return;
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  for await (const chunk of response.body) {
+    buffer += decoder.decode(chunk, { stream: true });
+    buffer = consumeSseBuffer(buffer, onPayload);
+  }
+
+  buffer += decoder.decode();
+  consumeSseBuffer(`${buffer}\n`, onPayload);
+}
+
+function consumeSseBuffer(buffer, onPayload) {
+  let cursor = buffer.indexOf('\n');
+  while (cursor >= 0) {
+    const rawLine = buffer.slice(0, cursor);
+    buffer = buffer.slice(cursor + 1);
+    const line = rawLine.trim();
+    if (line.startsWith('data:')) {
+      const data = line.slice(5).trim();
+      if (data && data !== '[DONE]') {
+        try {
+          onPayload(JSON.parse(data));
+        } catch {}
+      }
+    }
+    cursor = buffer.indexOf('\n');
+  }
+  return buffer;
+}
+
 function autoRecordOutcome(lane, traceId, text) {
   if (!lane) return;
   try {
@@ -1735,9 +1942,25 @@ function autoRecordOutcome(lane, traceId, text) {
       outcome_source,
       text_length: text ? text.length : 0,
     });
-    const feedbackPath = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/lane-feedback.jsonl';
+    const feedbackPath = resolveLaneFeedbackPath();
+    if (!feedbackPath) return;
+    mkdirSync(path.dirname(feedbackPath), { recursive: true });
     appendFileSync(feedbackPath, record + '\n');
   } catch (_) { /* never block on outcome recording */ }
+}
+
+function resolveLaneFeedbackPath() {
+  const requested = process.env.OFFLOAD_FEEDBACK_PATH || process.env.YURI_LANE_FEEDBACK_PATH || path.join(process.env.HOME || '/tmp', '.yuri', 'lane-feedback.jsonl');
+  const resolved = path.resolve(requested);
+  const protectedParts = [
+    `${path.sep}.claude${path.sep}state${path.sep}`,
+    `${path.sep}.claude${path.sep}history${path.sep}`,
+    `${path.sep}backend${path.sep}data${path.sep}`,
+    `${path.sep}node_modules${path.sep}`,
+  ];
+  if (protectedParts.some((part) => `${resolved}${path.sep}`.includes(part))) return '';
+  if (path.basename(resolved) === '.env') return '';
+  return resolved;
 }
 
 function extractDeepSeekCacheMetrics(usage = {}) {

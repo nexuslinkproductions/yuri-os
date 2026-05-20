@@ -1,0 +1,381 @@
+import assert from 'node:assert/strict';
+import http from 'node:http';
+import { spawn, spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+
+function stripAnsi(text) {
+  return String(text ?? '')
+    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
+    .replace(/\x1b[78]/g, '');
+}
+
+test('Rick harness modules import without starting the REPL', async () => {
+  const [
+    banner,
+    repl,
+    workerTmux,
+    offloadContract,
+    browserBridge,
+    laneSession,
+    shintaiDispatch,
+  ] = await Promise.all([
+    import('./rick-banner.mjs'),
+    import('./rick-repl.mjs'),
+    import('./worker-tmux.mjs'),
+    import('./offload-contract.mjs'),
+    import('./browser-harness-bridge.mjs'),
+    import('./lane-session.mjs'),
+    import('./shintai-dispatch.mjs'),
+  ]);
+
+  assert.equal(typeof banner.printBanner, 'function');
+  assert.equal(typeof repl.__test__.detectRoute, 'function');
+  assert.equal(typeof workerTmux.healthCheckAll, 'function');
+  assert.equal(typeof offloadContract.healthProbe, 'function');
+  assert.equal(typeof browserBridge.harnessViewport, 'function');
+  assert.equal(typeof laneSession.loadLaneSession, 'function');
+  assert.equal(typeof shintaiDispatch.assembleShintaiTeam, 'function');
+});
+
+test('Rick prompt context drops poisoned terminal chrome history', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+  const context = __test__.buildHistoryContext([
+    {
+      ts: Date.now(),
+      user: 'first',
+      assistant: '━━ HARDBORDER ━━\nYURI-OS v1.0 | session: old | snazzy\ntokens used\n42',
+    },
+    {
+      ts: Date.now(),
+      user: 'real question',
+      assistant: 'real answer',
+    },
+  ]);
+
+  assert.equal(__test__.containsPromptPoison('Rick > tokens used'), true);
+  assert.doesNotMatch(context, /HARDBORDER|YURI-OS v1\.0|tokens used/);
+  assert.match(context, /real question/);
+  assert.match(context, /real answer/);
+});
+
+test('offload wrapper streams chat SSE chunks before process close', async () => {
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/chat/completions') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      const parsed = JSON.parse(body || '{}');
+      assert.equal(parsed.stream, true);
+      res.writeHead(200, {
+        'content-type': 'text/event-stream',
+        'cache-control': 'no-cache',
+      });
+
+      ['alpha ', 'beta ', 'gamma'].forEach((text, index) => {
+        setTimeout(() => {
+          res.write(`data: ${JSON.stringify({ model: 'mock', choices: [{ delta: { content: text } }] })}\n\n`);
+          if (index === 2) {
+            setTimeout(() => res.end('data: [DONE]\n\n'), 30);
+          }
+        }, 50 * (index + 1));
+      });
+    });
+  });
+
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+
+  const { port } = server.address();
+  const startedAt = Date.now();
+  const events = [];
+  const child = spawn('bash', ['_SYSTEM/Scripts/ai', '@deepseek-v4-flash', 'mock stream'], {
+    cwd: REPO_ROOT,
+    env: {
+      ...process.env,
+      DEEPSEEK_API_KEY: 'mock-key',
+      DEEPSEEK_BASE_URL: `http://127.0.0.1:${port}`,
+      LANE_SESSION: 'rick-runtime-test',
+      OFFLOAD_STREAM: '1',
+    },
+  });
+
+  child.stdout.on('data', (chunk) => {
+    events.push({ t: Date.now() - startedAt, text: chunk.toString() });
+  });
+
+  let stderr = '';
+  child.stderr.on('data', (chunk) => {
+    stderr += chunk.toString();
+  });
+
+  const code = await new Promise((resolve) => child.on('close', resolve));
+  server.close();
+
+  assert.equal(code, 0, stderr);
+  assert.ok(events.length >= 3, `expected streamed stdout chunks, got ${events.length}`);
+  assert.equal(events.map((event) => event.text).join('').trim(), 'alpha beta gamma');
+  assert.ok(events[0].t < 500, `first chunk arrived too late: ${events[0].t}ms`);
+});
+
+test('Rick startup reaches banner without import-time crashes', async () => {
+  const child = spawn(process.execPath, ['_SYSTEM/Scripts/rick-repl.mjs'], {
+    cwd: REPO_ROOT,
+    env: { ...process.env, TERM: 'xterm-256color' },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+
+  let stdout = '';
+  let stderr = '';
+  child.stdout.on('data', (chunk) => {
+    stdout += chunk.toString();
+  });
+  child.stderr.on('data', (chunk) => {
+    stderr += chunk.toString();
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 900));
+  child.kill('SIGTERM');
+  await new Promise((resolve) => child.on('close', resolve));
+
+  assert.match(stdout, /KAGAMI|Welcome to Kagami/);
+  assert.doesNotMatch(stderr, /ERR_MODULE_NOT_FOUND|SyntaxError|TypeError|fatal:/);
+});
+
+test('Shintai critical harness assembly uses roster, task tier, fit, and live health', async () => {
+  const { assembleShintaiTeam, loadShintaiRoster } = await import('./shintai-dispatch.mjs');
+  const roster = loadShintaiRoster();
+  const health = [
+    { id: 'codex-architect', lane: 'gpt-5.5', ok: true, stdout: 'PONG' },
+    { id: 'deepseek-reasoner', lane: 'deepseek-v4-pro', ok: true, stdout: 'PONG' },
+    { id: 'claude-opus-audit', lane: 'claude-opus-4-7', ok: true, stdout: 'PONG' },
+    { id: 'nemotron-orchestrator', lane: 'nvidia-nemotron-120b', ok: true, stdout: 'PONG' },
+    { id: 'mistral-large', lane: 'nvidia-mistral-large', ok: true, stdout: 'PONG' },
+    { id: 'mistral-medium', lane: 'nvidia-mistral-medium', ok: true, stdout: 'PONG' },
+    { id: 'qwen-coder', lane: 'nvidia-qwen-coder', ok: true, stdout: 'PONG' },
+    { id: 'glm', lane: 'nvidia-glm', ok: true, stdout: 'PONG' },
+    { id: 'kimi-context-keeper', lane: 'kimi-k2.6', ok: false, stderr: 'Missing endpoint for lane: kimi' },
+    { id: 'qwen3-next-code', lane: 'nvidia-qwen3-next', ok: true, stdout: 'PONG' },
+  ];
+
+  const assembly = assembleShintaiTeam('critical Rick harness renderer Shintai integration', roster, health);
+
+  assert.equal(assembly.tier, 'critical');
+  assert.deepEqual(assembly.selectedIds, ['codex', 'deepseek', 'claude-opus-audit', 'nemotron', 'mistral-large', 'qwen-coder', 'glm', 'qwen3-next', 'mistral-medium']);
+  assert.equal(assembly.members.some((member) => member.id === 'kimi'), false);
+  assert.equal(assembly.members.some((member) => /codex-spark/i.test(member.lane)), false);
+  assert.equal(assembly.members.some((member) => member.id === 'qwen-coder'), true);
+  assert.equal(assembly.members.some((member) => member.id === 'glm'), true);
+});
+
+test('Shintai guardrails reject hardcoded squad defaults and Rick-owned dispatcher naming', () => {
+  const repl = readFileSync(new URL('./rick-repl.mjs', import.meta.url), 'utf8');
+  const dispatch = readFileSync(new URL('./shintai-dispatch.mjs', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(repl, /rick-shintai\.mjs/);
+  assert.doesNotMatch(dispatch, /\bDEFAULT_SQUAD\b/);
+  assert.doesNotMatch(dispatch, /lane:\s*['"]@?codex-spark['"]/);
+  assert.doesNotMatch(dispatch, /rick-shintai\.mjs/);
+});
+
+test('Rick renderer preserves cursor when configuring scroll region', () => {
+  const repl = readFileSync(new URL('./rick-repl.mjs', import.meta.url), 'utf8');
+
+  assert.match(repl, /terminalWrite\(`\\x1b7\\x1b\[1;\$\{bottom\}r\\x1b8`\)/);
+  assert.match(repl, /configuredScrollBottom === bottom/);
+  assert.doesNotMatch(repl, /terminalWrite\(`\\x1b\[1;\$\{scrollBottom\(\)\}r`\)/);
+  assert.doesNotMatch(repl, /terminalWrite\(`\\x1b\[1;\$\{scrollBottom\(\)\}r\\x1b\[1;1H`\)/);
+});
+
+test('Rick PTY streams two turns in order and restores terminal state', { timeout: 15_000 }, async (t) => {
+  const pythonCheck = spawnSync('python3', ['--version'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+  });
+  if (pythonCheck.status !== 0) {
+    t.skip('python3 PTY harness unavailable');
+    return;
+  }
+
+  let requestCount = 0;
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/chat/completions') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+
+    req.resume();
+    req.on('end', () => {
+      requestCount += 1;
+      const chunks = requestCount === 1 ? ['alpha ', 'one'] : ['beta ', 'two'];
+      res.writeHead(200, {
+        'content-type': 'text/event-stream',
+        'cache-control': 'no-cache',
+      });
+      chunks.forEach((text, index) => {
+        setTimeout(() => {
+          res.write(`data: ${JSON.stringify({ model: 'mock', choices: [{ delta: { content: text } }] })}\n\n`);
+          if (index === chunks.length - 1) {
+            setTimeout(() => res.end('data: [DONE]\n\n'), 20);
+          }
+        }, 40 * (index + 1));
+      });
+    });
+  });
+
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const { port } = server.address();
+
+  const pythonHarness = String.raw`
+import fcntl
+import os
+import pty
+import re
+import select
+import struct
+import subprocess
+import sys
+import termios
+import time
+
+root = os.environ["RICK_REPO_ROOT"]
+master, slave = pty.openpty()
+fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 32, 140, 0, 0))
+proc = subprocess.Popen(
+    [os.environ["NODE_BIN"], "_SYSTEM/Scripts/rick-repl.mjs"],
+    cwd=root,
+    stdin=slave,
+    stdout=slave,
+    stderr=slave,
+    env=os.environ.copy(),
+    close_fds=True,
+)
+os.close(slave)
+
+raw = b""
+first_sent = False
+second_sent = False
+done = False
+second_due = None
+started = time.time()
+
+def clean_text():
+    clean = re.sub(b"\x1b\\[[0-9;?]*[ -/]*[@-~]", b"", raw)
+    return re.sub(b"\x1b[78]", b"", clean)
+
+while time.time() - started < 12:
+    ready, _, _ = select.select([master], [], [], 0.05)
+    if master in ready:
+        try:
+            chunk = os.read(master, 4096)
+        except OSError:
+            break
+        if not chunk:
+            break
+        raw += chunk
+        sys.stdout.buffer.write(chunk)
+        sys.stdout.buffer.flush()
+
+    clean = clean_text()
+    if not first_sent and (b"Welcome to Kagami" in clean or b"Route:" in clean):
+        os.write(master, b"first pty turn\r")
+        first_sent = True
+    if first_sent and not second_sent and second_due is None and b"alpha" in clean and b"one" in clean:
+        second_due = time.time() + 0.5
+    if first_sent and not second_sent and second_due is not None and time.time() >= second_due:
+        os.write(master, b"second pty turn\r")
+        second_sent = True
+    if second_sent and not done and b"beta" in clean and b"two" in clean:
+        os.write(master, b"\x03")
+        done = True
+    if done and proc.poll() is not None:
+        break
+
+if not done and proc.poll() is None:
+    proc.terminate()
+
+try:
+    proc.wait(timeout=3)
+except subprocess.TimeoutExpired:
+    proc.kill()
+    proc.wait()
+
+while True:
+    ready, _, _ = select.select([master], [], [], 0)
+    if master not in ready:
+        break
+    try:
+        chunk = os.read(master, 4096)
+    except OSError:
+        break
+    if not chunk:
+        break
+    raw += chunk
+    sys.stdout.buffer.write(chunk)
+
+sys.exit(0 if done and proc.returncode == 0 else 2)
+`;
+
+  const child = spawn('python3', ['-c', pythonHarness], {
+    cwd: REPO_ROOT,
+    env: {
+      ...process.env,
+      DEEPSEEK_API_KEY: 'mock-key',
+      DEEPSEEK_BASE_URL: `http://127.0.0.1:${port}`,
+      LANE_SESSION: 'rick-pty-runtime-test',
+      NODE_BIN: process.execPath,
+      OFFLOAD_STREAM: '1',
+      RICK_REPO_ROOT: REPO_ROOT,
+      TERM: 'xterm-256color',
+    },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+
+  let raw = '';
+  let stderr = '';
+  let firstSent = false;
+  let secondSent = false;
+  let done = false;
+
+  child.stdout.on('data', (chunk) => {
+    raw += chunk.toString();
+    const clean = stripAnsi(raw);
+    firstSent ||= clean.includes('first pty turn');
+    secondSent ||= clean.includes('second pty turn');
+    done ||= clean.includes('beta') && clean.includes('two');
+  });
+  child.stderr.on('data', (chunk) => {
+    stderr += chunk.toString();
+  });
+
+  const fallback = setTimeout(() => {
+    if (!done) child.kill('SIGTERM');
+  }, 12_000);
+
+  const closeCode = await new Promise((resolve) => child.on('close', resolve));
+  clearTimeout(fallback);
+  server.close();
+
+  const clean = stripAnsi(raw);
+  assert.ok(done, `expected two streamed turns, got:\n${clean.slice(-3000)}\nSTDERR:\n${stderr}`);
+  const alpha = clean.indexOf('alpha');
+  const one = clean.indexOf('one', alpha);
+  const beta = clean.indexOf('beta', one);
+  const two = clean.indexOf('two', beta);
+  assert.ok(alpha >= 0 && one > alpha && beta > one && two > beta, clean);
+  assert.match(raw, /\x1b\[1;\d+r/, 'scroll region was not configured');
+  assert.match(raw, /\x1b7\x1b\[1;\d+r\x1b8/, 'scroll region changes must preserve cursor');
+  assert.match(raw, /\x1b\[r/, 'scroll region was not reset on exit');
+  assert.doesNotMatch(clean, /ctrl\+c exit[^\n]*(?:alpha one|beta two)/);
+  assert.equal(closeCode, 0);
+});

@@ -4,12 +4,12 @@
   "team_name_kanji": "神隊",
   "team_name_meaning": "divine unit — kami-coded, paired with Musubi/Kagami vocabulary",
   "createdAt": "2026-05-18T16:00:00.000Z",
-  "updatedAt": "2026-05-19T00:00:00.000Z",
+  "updatedAt": "2026-05-20T00:00:00.000Z",
   "roster_sizing": {
     "trivial": { "members": 1, "note": "single-shot lookups, file reads, trivial fixes" },
     "standard": { "members": 2, "note": "favored minimum for regular work — one specialist + one reviewer" },
     "complex": { "members": 3, "note": "add a context-keeper or reasoner" },
-    "critical": { "members": "4-5", "note": "full Shintai roster — rare" }
+    "critical": { "members": "7-10", "note": "Codex-assembled council for heavy harness/control-plane operations" }
   },
   "members": {
     "codex": {
@@ -27,23 +27,58 @@
       "skills": ["deepseek-workhorse","deepseek-offload","probabilistic-decision-core","izanagi-simulator","haki-intent","pattern-mirror-core","sharingan"],
       "mcp_tools": ["filesystem","obsidian-vault","ollama-bridge"],
       "lane_id": "deepseek-v4-pro",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m deepseek-v4-pro --tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m deepseek-v4-pro --reasoning xhigh"
     },
     "kimi": {
       "model": "kimi-k2.6",
       "role": "context-keeper",
+      "status": "excluded_for_large_context_harness_runs",
       "skills": ["swarm-coordination","parallel-clone-orchestrator","gitnexus","visual-introspection","codebase-to-course"],
       "mcp_tools": ["filesystem","gitnexus","obsidian-vault"],
       "lane_id": "kimi",
       "dispatch": "bash _SYSTEM/Scripts/offload.sh -m kimi --tools"
     },
     "nemotron": {
-      "model": "nvidia-nemotron-ultra-120b",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
       "role": "long-horizon-orchestrator",
       "skills": ["yuri-shura","bankai-manifest","visual-introspection","yuri-code-intelligence"],
       "mcp_tools": ["filesystem","gitnexus"],
       "lane_id": "nvidia-nemotron-120b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-nemotron-120b --tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-120b --no-tools"
+    },
+    "mistral-large": {
+      "model": "mistralai/mistral-large-3-675b-instruct-2512",
+      "role": "frontier-reasoning-reviewer",
+      "unique_strength": "largest active NIM reasoning lane for adversarial architecture review and contradiction pressure",
+      "task_fit": ["architecture audit","frontier reasoning","superaudit","control-plane","guardrail"],
+      "lane_id": "nvidia-mistral-large",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-large --no-tools"
+    },
+    "mistral-medium": {
+      "model": "mistralai/mistral-medium-3.5-128b",
+      "role": "fallback-system-reviewer",
+      "unique_strength": "large but faster Mistral fallback for broad system audit and timeout recovery",
+      "task_fit": ["fallback","system audit","routing cleanup","timeout policy"],
+      "lane_id": "nvidia-mistral-medium",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-medium --no-tools"
+    },
+    "qwen-coder": {
+      "model": "qwen/qwen3-coder-480b-a35b-instruct",
+      "role": "code-refactor-specialist",
+      "unique_strength": "NIM code specialist for collision detection, merge order, and regression design",
+      "task_fit": ["code review","refactor","merge collision","tests","routing logic"],
+      "lane_id": "nvidia-qwen-coder",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-coder --no-tools"
+    },
+    "claude-opus-audit": {
+      "model": "claude-opus-4-7",
+      "wake_model": "claude-haiku-4-5",
+      "role": "million-context-auditor",
+      "status": "audit_only_no_edits",
+      "skills": ["anthropic-managed-agents","compact-optimizer","failure-evolution-loop","tokenmaxxing"],
+      "mcp_tools": [],
+      "lane_id": "claude-opus-audit",
+      "dispatch": "bash _SYSTEM/Scripts/ai @claude-opus-audit"
     },
     "claude": {
       "model": "claude-sonnet-4-6",
@@ -72,6 +107,7 @@
     "gpt-oss-120b": {
       "model": "openai/gpt-oss-120b",
       "role": "deep-generalist",
+      "status": "dead_nim_lane",
       "unique_strength": "high-capacity 120B — architecture review, complex multi-step reasoning, comprehensive analysis where scale matters",
       "task_fit": ["research","deep analysis","long-horizon","comprehensive review","architecture audit","second opinion"],
       "lane_id": "nvidia-gpt-oss-120b",
