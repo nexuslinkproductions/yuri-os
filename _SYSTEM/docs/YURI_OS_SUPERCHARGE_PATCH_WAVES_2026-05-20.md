@@ -7,6 +7,8 @@ Mode: staged implementation after forensic audit
 
 - Goal: `_SYSTEM/docs/YURI_OS_FORENSIC_SUPERCHARGE_GOAL_2026-05-20.md`
 - NeMo matrix: `_SYSTEM/docs/YURI_OS_NEMO_GUARDRAIL_MATRIX_2026-05-20.md`
+- NeMo source repo progress: `_SYSTEM/docs/YURI_OS_NEMO_GUARDRAILS_SOURCE_REPO_PROGRESS_2026-05-20.md`
+- NeMo source repo checkout: `_SYSTEM/tools/nemo-guardrails` at `c98f7dfec98af0707983060d73b5fc465ffe4ff5`
 - Shintai advisory: `_SYSTEM/state/shintai-advisory/shintai-2026-05-20T16-39-04-302Z.md`
 - Forensic inventory: `_SYSTEM/state/shintai-advisory/yuri-forensic-inventory-2026-05-20T16-39-18-911Z.md`
 
@@ -19,6 +21,7 @@ Purpose: prevent another guessed Shintai run.
 Implement:
 
 - Add a control-plane preflight command that loads the active roster, lane kernel, offload contract, goal doc, and relevant memory docs before any Shintai packet.
+- Load upstream NeMo source repo excerpts when `_SYSTEM/tools/nemo-guardrails` exists.
 - Fail closed if required evidence is missing.
 - Record the exact evidence bundle into `_SYSTEM/state/`.
 
@@ -142,4 +145,3 @@ Verify:
 - Release gate passes from `main`.
 - Git status excludes protected runtime noise.
 - Final report lists all unresolved risks and next patches.
-

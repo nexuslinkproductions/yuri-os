@@ -10,6 +10,14 @@ Browser method: local browser-harness DOM extraction and `http_get`, not screens
 
 Docs coverage: 167 NVIDIA NeMo Guardrails pages across overview, YAML schema, guardrail catalog, Colang, custom actions, custom initialization, caching, exceptions, evaluation, observability, deployment, and reference sections.
 
+Official source repo:
+
+- Upstream: `https://github.com/NVIDIA-NeMo/Guardrails`
+- Local checkout: `_SYSTEM/tools/nemo-guardrails`
+- Branch: `develop`
+- Commit: `c98f7dfec98af0707983060d73b5fc465ffe4ff5`
+- Source progress note: `_SYSTEM/docs/YURI_OS_NEMO_GUARDRAILS_SOURCE_REPO_PROGRESS_2026-05-20.md`
+
 ## Translation Rule
 
 YURI should not copy NeMo as a dependency in this slice. YURI should translate NeMo rail concepts into local enforcement modules:
@@ -20,12 +28,13 @@ YURI should not copy NeMo as a dependency in this slice. YURI should translate N
 - `rick-repl.mjs`: terminal input/output rail surface.
 - `_SYSTEM/state/`: runtime audit artifacts and violations.
 - `_SYSTEM/docs/`: durable documentation and runbooks.
+- `_SYSTEM/tools/nemo-guardrails`: ignored upstream checkout for source-level rail mechanics, schemas, examples, and tests.
 
 ## Matrix
 
 | NeMo concept | YURI surface | Decision | Tests |
 |---|---|---|---|
-| Input rails | Rick input parser, slash commands, lane mentions | Parse `/help`, `/noexec`, `@lane`, `@shintai`, shell blocks before model dispatch | Unit tests for command parsing, lane mention parsing, shell block detection |
+| Input rails | Rick input parser, slash commands, lane mentions | Parse `/help`, `/noexec`, `@lane`, `@shintai`, shell blocks before model dispatch | Unit tests for command parsing, lane mention parsing, shell block detection; compare against upstream `docs/about/rail-types.md` |
 | Dialog rails | Shintai assembly and task tiering | Codex/main assembles Shintai from roster, task tier, health, and fit; Shintai never self-selects | `assembleShintaiTeam` critical task tests; no Spark defaults |
 | Retrieval rails | Memory recall, browser-harness, repo file reads | Recall allowed memory before dispatch; browser-harness DOM/CDP before screenshots; protected paths denied | Protected path predicate tests; browser-harness health; memory recall tests |
 | Execution rails | Shell execution, worker PONG, timeout caps | Shell blocks require guard checks and noexec state; health preflight before fan-out; per-lane timeout policy | Shell guard tests; worker health tests; timeout regression tests |
@@ -94,4 +103,3 @@ Minimum gates:
 - No critical Shintai route falls back to Spark.
 - No DeepSeek CLI tool flag unless explicitly requested.
 - NIM tool mode remains available under YURI rails.
-

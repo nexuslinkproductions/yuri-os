@@ -26,6 +26,11 @@ Claude is a powerful audit lane, not YURI's owner.
   - `_SYSTEM/state/shintai-advisory/nemo-guardrails-docs-crawl-2026-05-20T16-12-58Z.md`
   - `_SYSTEM/state/shintai-advisory/nemo-guardrails-docs-crawl-2026-05-20T16-12-58Z.json`
 - NeMo crawl scope: 167 docs pages across config, YAML schema, guardrail catalog, Colang, evaluation, observability, deployment, reference, tutorials, and related sections.
+- Official NeMo Guardrails source repo cloned as ignored external checkout:
+  - `_SYSTEM/tools/nemo-guardrails`
+  - branch `develop`
+  - commit `c98f7dfec98af0707983060d73b5fc465ffe4ff5`
+  - progress note: `_SYSTEM/docs/YURI_OS_NEMO_GUARDRAILS_SOURCE_REPO_PROGRESS_2026-05-20.md`
 - Current Shintai run is live and should supersede the failed first artifact caused by the old `ai offload` permission bug.
 
 ## Lane Truth
@@ -84,6 +89,7 @@ Runtime noise from those surfaces must not be staged.
 ### Gate 3 - NeMo Guardrail Matrix
 
 - Use the 167-page crawl artifact as the docs source.
+- Use `_SYSTEM/tools/nemo-guardrails` as the code/config/test source for NeMo rail mechanics.
 - Do not repeatedly reopen the YAML config page; use the captured crawl and targeted section URLs only.
 - Convert NeMo concepts into YURI controls:
   - input rails;
@@ -136,4 +142,3 @@ Runtime noise from those surfaces must not be staged.
 - Rick streams visible output across repeated turns.
 - YURI owns memory/routing/automation policy instead of Claude being the main entry point.
 - All patch waves have verification commands and rollback notes before implementation.
-

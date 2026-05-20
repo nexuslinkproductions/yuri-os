@@ -96,6 +96,7 @@ yuri-os/
 .agents/openmythos/
 01_PROJECTS/claude-cookbooks/
 _SYSTEM/tools/browser-harness/
+_SYSTEM/tools/nemo-guardrails/
 _SYSTEM/state/shintai-advisory/
 _SYSTEM/state/rick-history.jsonl
 .claude/lane-sessions/
