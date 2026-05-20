@@ -27,7 +27,9 @@ const REPO_ROOT = path.resolve(__dirname, '../..');
 const AI_SH = path.join(__dirname, 'ai');
 const ROSTER_PATH = path.join(REPO_ROOT, '_SYSTEM', 'kagami', 'shintai-team.json');
 const ADVISORY_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state', 'shintai-advisory');
-const DEFAULT_TIMEOUT_MS = 120_000;
+const DEFAULT_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_TIMEOUT_MS);
+const DEFAULT_HEALTH_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_HEALTH_TIMEOUT_MS);
+const DEFAULT_CRITIQUE_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_CRITIQUE_TIMEOUT_MS);
 const STREAM_MAX = 8 * 1024 * 1024;
 
 const C = {
@@ -429,6 +431,18 @@ function callArgsForMember(member, prompt) {
   return [...member.dispatchArgs, prompt];
 }
 
+function parseOptionalTimeout(value) {
+  if (value === undefined || value === null || value === '') return 0;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function resolveMemberTimeout(member, stage, fallbackTimeoutMs = 0) {
+  if (stage === 'health' && DEFAULT_HEALTH_TIMEOUT_MS > 0) return DEFAULT_HEALTH_TIMEOUT_MS;
+  if (stage === 'critique' && DEFAULT_CRITIQUE_TIMEOUT_MS > 0) return DEFAULT_CRITIQUE_TIMEOUT_MS;
+  return parseOptionalTimeout(fallbackTimeoutMs);
+}
+
 function callMember(member, prompt, timeoutMs) {
   const dispatchCommand = `bash ${path.relative(REPO_ROOT, AI_SH)} ${member.dispatchArgs.join(' ')}`;
   const executionRail = evaluateExecutionRails({ kind: 'shell', command: dispatchCommand });
@@ -443,12 +457,13 @@ function callMember(member, prompt, timeoutMs) {
       rail: executionRail,
     };
   }
-  const result = spawnSync('bash', [AI_SH, ...callArgsForMember(member, prompt)], {
+  const spawnOptions = {
     cwd: REPO_ROOT,
     encoding: 'utf8',
-    timeout: timeoutMs,
     maxBuffer: STREAM_MAX,
-  });
+  };
+  if (Number.isFinite(timeoutMs) && timeoutMs > 0) spawnOptions.timeout = timeoutMs;
+  const result = spawnSync('bash', [AI_SH, ...callArgsForMember(member, prompt)], spawnOptions);
   return {
     ok: result.status === 0,
     lane: member.lane,
@@ -477,7 +492,7 @@ function probeMember(member, timeoutMs) {
 function runHealthPreflight(assembly, timeoutMs) {
   const health = {};
   for (const member of assembly.members) {
-    health[member.id] = probeMember(member, Math.min(timeoutMs, member.id === 'kimi' || member.id === 'qwen3-next' ? 120_000 : 90_000));
+    health[member.id] = probeMember(member, resolveMemberTimeout(member, 'health', timeoutMs));
   }
   return health;
 }
@@ -586,7 +601,9 @@ export async function runAdvisory(task, options = {}) {
   }
 
   const roster = options.roster || loadShintaiRoster(options.rosterPath || ROSTER_PATH);
-  const timeoutMs = Number(options.timeoutMs || DEFAULT_TIMEOUT_MS);
+  const timeoutMs = options.timeoutMs === undefined
+    ? DEFAULT_TIMEOUT_MS
+    : parseOptionalTimeout(options.timeoutMs);
   let assembly = options.assembly || assembleShintaiTeam(taskText, roster, options.availableHealth || {});
   const initialDialogRail = evaluateDialogRails({
     task: taskText,
@@ -619,7 +636,7 @@ export async function runAdvisory(task, options = {}) {
 
   if (options.healthCheck !== false && !options.availableHealth) {
     say(`${C.bronze}${C.bold}`, '\n── Shintai health preflight ──', stream);
-    const health = runHealthPreflight(assembly, Math.min(timeoutMs, 120_000));
+    const health = runHealthPreflight(assembly, resolveMemberTimeout(null, 'health', timeoutMs));
     assembly = assembleShintaiTeam(taskText, roster, health);
     const healthDialogRail = evaluateDialogRails({
       task: taskText,
@@ -721,7 +738,7 @@ export async function runAdvisory(task, options = {}) {
     const peers = proposals
       .filter((entry) => entry.id !== member.id)
       .map((entry) => ({ label: `${entry.displayName} (${entry.id})`, output: entry.output }));
-    const result = callMember(member, critiquePrompt(taskText, member, peers), Math.min(timeoutMs, 90_000));
+    const result = callMember(member, critiquePrompt(taskText, member, peers), resolveMemberTimeout(member, 'critique', timeoutMs));
     say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} critique ${member.displayName}`, stream);
     return {
       id: member.id,

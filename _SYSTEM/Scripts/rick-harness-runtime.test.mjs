@@ -232,6 +232,15 @@ test('Shintai guardrails reject hardcoded squad defaults and Rick-owned dispatch
   assert.doesNotMatch(roster, /nvidia-[^"\n]+ --no-tools/);
 });
 
+test('Shintai dispatcher does not impose short hardcoded timeouts on large lanes', () => {
+  const dispatch = readFileSync(new URL('./shintai-dispatch.mjs', import.meta.url), 'utf8');
+
+  assert.match(dispatch, /YURI_SHINTAI_TIMEOUT_MS/);
+  assert.match(dispatch, /if \(Number\.isFinite\(timeoutMs\) && timeoutMs > 0\) spawnOptions\.timeout = timeoutMs/);
+  assert.doesNotMatch(dispatch, /DEFAULT_TIMEOUT_MS\s*=\s*120_000/);
+  assert.doesNotMatch(dispatch, /Math\.min\(timeoutMs,\s*(?:90_000|120_000)/);
+});
+
 test('Rick renderer preserves cursor when configuring scroll region', () => {
   const repl = readFileSync(new URL('./rick-repl.mjs', import.meta.url), 'utf8');
 
