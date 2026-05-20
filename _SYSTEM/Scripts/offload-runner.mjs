@@ -4,6 +4,15 @@ import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, appendF
 import { execSync } from 'child_process';
 import path from 'path';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
+import { safeRuntimePath } from './lane-kernel.mjs';
+import {
+  enforceOutputRails,
+  evaluateInputRails,
+  evaluateToolInputRails,
+  writeRailViolation,
+} from './rails.mjs';
+import { appendMemoryEntry } from './memory-kernel.mjs';
+import { YURI_RAILS_CONFIG } from '../kagami/yuri-rails-config.mjs';
 import {
   estimateTokensFromText,
   hashPayload,
@@ -73,6 +82,18 @@ if (!prompt && !options.dryRun) {
   process.exit(1);
 }
 
+if (!options.dryRun) {
+  const inputRail = evaluateInputRails(prompt, { source: 'user', noexec: true });
+  if (!inputRail.ok) {
+    writeRailViolation(inputRail);
+    console.error(`[input-rail] ${inputRail.reasons.join('; ')}`);
+    process.exit(2);
+  }
+  if (inputRail.severity === 'warn' && inputRail.reasons.length) {
+    process.stderr.write(`[input-rail] ${inputRail.reasons.join('; ')}\n`);
+  }
+}
+
 const localModels = listLocalModels();
 const resolved = resolveLane(lane, options.model, localModels, options.dryRun, options);
 if (options.toolsExplicit) {
@@ -124,22 +145,13 @@ if (resolved.protocol === 'responses') {
   process.exit(0);
 }
 
-const result = await runOpenAICompatibleChat(
-  resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, resolved.extraBody,
-  {
-    extraHeaders: resolved.extraHeaders,
-    maxTokens: resolved.maxTokens,
-    timeout: resolved.timeout,
-    lane,
-    traceId: ledgerTraceId,
-    tools: resolved.tools,
-    session: options.session,
-    fresh: options.fresh,
-    streamOutput: STREAM_OUTPUT,
-    streamWriter: (chunk) => process.stdout.write(chunk),
-    streamStatusWriter: (line) => process.stderr.write(line),
-  }
-);
+const result = await runCloudChatWithFallback(resolved, prompt, options, {
+  lane,
+  traceId: ledgerTraceId,
+  streamOutput: STREAM_OUTPUT,
+  streamWriter: (chunk) => process.stdout.write(chunk),
+  streamStatusWriter: (line) => process.stderr.write(line),
+});
 if (options.outputFile) {
   try {
     const { mkdirSync: _mkdir, writeFileSync: _write } = await import('node:fs');
@@ -163,11 +175,111 @@ function resultWasStreamed(result) {
 
 function emitResult(result) {
   const text = resultText(result);
+  const enforced = enforceOutputRails(text, {
+    requireEvidence: YURI_RAILS_CONFIG.output.evidenceRequiredForRepoClaims,
+    maxOutputChars: YURI_RAILS_CONFIG.output.maxChars,
+  });
   if (resultWasStreamed(result)) {
+    maybeAppendOffloadMemory(enforced.text, enforced);
     if (text && !text.endsWith('\n')) process.stdout.write('\n');
     return;
   }
-  process.stdout.write(text + (text.endsWith('\n') ? '' : '\n'));
+  if (enforced.severity === 'warn' && enforced.reasons.length) {
+    process.stderr.write(`[output-rail] ${enforced.reasons.join('; ')}\n`);
+  }
+  maybeAppendOffloadMemory(enforced.text, enforced);
+  process.stdout.write(enforced.text + (enforced.text.endsWith('\n') ? '' : '\n'));
+}
+
+function maybeAppendOffloadMemory(text, outputRail) {
+  if (!/^(1|true|yes|on)$/i.test(process.env.YURI_OFFLOAD_MEMORY_LEDGER || '')) return;
+  const result = appendMemoryEntry({
+    originLane: lane,
+    type: 'evidence',
+    scope: 'session',
+    content: String(text || '').slice(0, 16_000),
+    metadata: {
+      traceId: ledgerTraceId,
+      outputRail: {
+        severity: outputRail?.severity || 'allow',
+        reasons: outputRail?.reasons || [],
+      },
+    },
+  });
+  if (!result.ok) process.stderr.write(`[memory-ledger] ${result.error}\n`);
+  for (const warning of result.warnings || []) process.stderr.write(`[memory-ledger] ${warning}\n`);
+}
+
+async function runCloudChatWithFallback(resolved, promptText, runnerOptions, context) {
+  const baseOptions = {
+    extraHeaders: resolved.extraHeaders,
+    maxTokens: resolved.maxTokens,
+    timeout: resolved.timeout,
+    lane: context.lane,
+    traceId: context.traceId,
+    tools: resolved.tools,
+    session: runnerOptions.session,
+    fresh: runnerOptions.fresh,
+    streamOutput: context.streamOutput,
+    streamWriter: context.streamWriter,
+    streamStatusWriter: context.streamStatusWriter,
+  };
+
+  try {
+    return await runOpenAICompatibleChat(
+      resolved.endpoint,
+      resolved.apiKey,
+      resolved.model,
+      promptText,
+      runnerOptions.system,
+      resolved.extraBody,
+      baseOptions,
+    );
+  } catch (err) {
+    const fallbackLane = transientFallbackLaneFor(context.lane);
+    if (!isTransientProviderError(err) || !fallbackLane) throw err;
+    recordNimTransientIncident({
+      lane: context.lane,
+      model: resolved.model,
+      status: err.httpStatus || null,
+      action: 'fallback',
+      fallbackLane,
+      error: err.message,
+    });
+    context.streamStatusWriter?.(`\x1b[2m[retry] ${context.lane} transient failure; falling back to ${fallbackLane}\x1b[0m\n`);
+    const fallback = resolveLane(fallbackLane, '', localModels, false, runnerOptions);
+    return runOpenAICompatibleChat(
+      fallback.endpoint,
+      fallback.apiKey,
+      fallback.model,
+      promptText,
+      runnerOptions.system,
+      fallback.extraBody,
+      {
+        ...baseOptions,
+        extraHeaders: fallback.extraHeaders,
+        maxTokens: fallback.maxTokens,
+        timeout: fallback.timeout,
+        lane: fallbackLane,
+        tools: fallback.tools,
+      },
+    );
+  }
+}
+
+function transientFallbackLaneFor(laneName) {
+  const laneKey = String(laneName || '').replace(/^@/, '');
+  const fallbacks = {
+    'nvidia-nemotron-120b': 'nvidia-nemotron-nano-30b',
+    'nvidia-nemotron-nano-30b': 'nvidia-mistral-medium',
+    'nvidia-mistral-large': 'nvidia-mistral-medium',
+    'nvidia-qwen3-next': 'nvidia-qwen-coder',
+  };
+  return fallbacks[laneKey] || '';
+}
+
+function isTransientProviderError(err) {
+  return Boolean(err?.transient || [502, 503].includes(Number(err?.httpStatus)));
 }
 
 function parseArgs(rest) {
@@ -1638,21 +1750,17 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
       ...requestExtraBody
     };
 
-    const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) };
-    let timeoutId;
-    if (opts.timeout) {
-      const controller = new AbortController();
-      timeoutId = setTimeout(() => controller.abort(), opts.timeout);
-      fetchOpts.signal = controller.signal;
-    }
-
     let response;
     const startedAt = Date.now();
-    try {
-      response = await fetch(`${endpoint}/chat/completions`, fetchOpts);
-    } finally {
-      if (timeoutId) clearTimeout(timeoutId);
-    }
+    response = await fetchChatCompletionsWithRetry(`${endpoint}/chat/completions`, {
+      headers,
+      body,
+      timeout: opts.timeout,
+      lane: opts.lane,
+      model,
+      endpoint,
+      iteration,
+    });
 
     if (!response.ok) {
       const errText = await response.text();
@@ -1688,7 +1796,10 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
       });
       if (response.status === 402) throw new Error(`HTTP_402: ${errText}`);
       if (response.status === 429) throw new Error('RATE_LIMITED');
-      throw new Error(`OPENAI_COMPAT_${response.status}: ${errText}`);
+      const error = new Error(`OPENAI_COMPAT_${response.status}: ${errText}`);
+      error.httpStatus = response.status;
+      error.transient = YURI_RAILS_CONFIG.execution.transientHttpRetry.statuses.includes(response.status);
+      throw error;
     }
 
     if (streamThisRound) {
@@ -1908,6 +2019,69 @@ async function readOpenAICompatibleChatStream(response, onText = () => {}) {
   return state;
 }
 
+async function fetchChatCompletionsWithRetry(url, options = {}) {
+  const retryConfig = YURI_RAILS_CONFIG.execution.transientHttpRetry;
+  const retryStatuses = new Set(retryConfig.statuses || [502, 503]);
+  const attempts = Math.max(1, Number(retryConfig.attempts || 1));
+  let lastResponse = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const fetchOpts = {
+      method: 'POST',
+      headers: options.headers,
+      body: JSON.stringify(options.body),
+    };
+    let timeoutId;
+    if (options.timeout) {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), options.timeout);
+      fetchOpts.signal = controller.signal;
+    }
+
+    try {
+      lastResponse = await fetch(url, fetchOpts);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+
+    if (!retryStatuses.has(lastResponse.status) || attempt >= attempts) {
+      return lastResponse;
+    }
+
+    recordNimTransientIncident({
+      lane: options.lane,
+      model: options.model,
+      endpoint: endpointHost(options.endpoint),
+      status: lastResponse.status,
+      attempt,
+      maxAttempts: attempts,
+      iteration: options.iteration,
+      action: 'retry',
+    });
+    await sleep(retryConfig.backoffMs?.[attempt - 1] ?? 1000);
+  }
+
+  return lastResponse;
+}
+
+function recordNimTransientIncident(payload = {}) {
+  const logPath = safeRuntimePath('YURI_NIM_TRANSIENT_INCIDENT_LOG', path.resolve(YURI_RAILS_CONFIG.execution.transientHttpRetry.incidentLog));
+  if (!logPath) return;
+  try {
+    mkdirSync(path.dirname(logPath), { recursive: true });
+    appendFileSync(logPath, `${JSON.stringify({
+      ts: new Date().toISOString(),
+      ...payload,
+    })}\n`);
+  } catch {
+    // Incident logging must never block the lane call.
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function readSseResponse(response, onPayload) {
   if (!response.body) return;
   const decoder = new TextDecoder();
@@ -2060,6 +2234,12 @@ async function executeTool(name, argsStr) {
       args = argsStr;
     }
 
+    const inputRail = evaluateToolInputRails(toolRailPayload(name, args), { source: 'agent-tool' });
+    if (!inputRail.ok) {
+      writeRailViolation(inputRail);
+      return `RAIL_BLOCKED: ${inputRail.reasons.join('; ')}`;
+    }
+
     if (name === 'bash') {
       const { cmd, cwd } = args;
       if (!cmd) return 'ERROR: Missing cmd parameter';
@@ -2203,5 +2383,23 @@ async function executeTool(name, argsStr) {
     return `ERROR: Unknown tool "${name}"`;
   } catch (e) {
     return `Tool execution error: ${e.message}`;
+  }
+}
+
+function toolRailPayload(name, args = {}) {
+  switch (name) {
+    case 'bash':
+      return { kind: 'shell', command: args.cmd || '', cwd: args.cwd || '' };
+    case 'read_file':
+    case 'list_dir':
+      return { kind: name, path: args.path || '' };
+    case 'write_file':
+      return { kind: name, path: args.path || '', content: args.content || '' };
+    case 'edit_file':
+      return { kind: name, path: args.path || '', old_string: args.old_string || '', new_string: args.new_string || '' };
+    case 'grep':
+      return { kind: name, path: args.path || '.', command: `grep -${args.flags || 'rn'} ${args.pattern || ''} ${args.path || '.'}` };
+    default:
+      return { kind: name };
   }
 }

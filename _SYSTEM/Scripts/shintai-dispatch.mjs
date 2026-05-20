@@ -18,7 +18,8 @@ import {
   getLaneKernelEntry,
   selectSuperauditMemberIds,
 } from './lane-kernel.mjs';
-import { evaluateExecutionRails } from './rails.mjs';
+import { loadControlPlaneEvidence, validatePacketEvidence } from './memory-kernel.mjs';
+import { evaluateDialogRails, evaluateExecutionRails } from './rails.mjs';
 import { buildConstraintBlock, preflightControlPlane } from './yuri-control-plane.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -559,14 +560,92 @@ export async function runAdvisory(task, options = {}) {
     }
   }
 
+  const memoryEvidence = options.memoryEvidence === false
+    ? null
+    : loadControlPlaneEvidence(options.memoryEvidenceOptions || {});
+  if (memoryEvidence && !memoryEvidence.ok) {
+    const payload = {
+      ok: false,
+      task: taskText,
+      timestamp: new Date().toISOString(),
+      assembly: null,
+      proposals: [],
+      critiques: [],
+      synthesis: '',
+      evidenceGate: summarizeGate(controlPlane?.gate0),
+      memoryEvidence,
+      error: 'YURI memory evidence preflight failed',
+      supersedes: options.supersedes || null,
+      artifacts: null,
+    };
+    if (options.writeArtifact !== false) payload.artifacts = writeAdvisoryArtifact(payload);
+    return payload;
+  }
+  if (memoryEvidence) {
+    say(C.good, `  ✓ memory evidence loaded: ${memoryEvidence.sources.map((entry) => entry.id).join(', ')}`, stream);
+  }
+
   const roster = options.roster || loadShintaiRoster(options.rosterPath || ROSTER_PATH);
   const timeoutMs = Number(options.timeoutMs || DEFAULT_TIMEOUT_MS);
   let assembly = options.assembly || assembleShintaiTeam(taskText, roster, options.availableHealth || {});
+  const initialDialogRail = evaluateDialogRails({
+    task: taskText,
+    tier: assembly.tier,
+    members: assembly.members,
+  }, { maxMembers: assembly.targetSize });
+  const packetEvidence = memoryEvidence ? buildPacketEvidence(taskText, assembly, memoryEvidence) : null;
+  const packetValidation = packetEvidence ? validatePacketEvidence(packetEvidence) : { ok: true, reasons: [] };
+
+  if (!packetValidation.ok) {
+    const payload = {
+      ok: false,
+      task: taskText,
+      timestamp: new Date().toISOString(),
+      assembly,
+      proposals: [],
+      critiques: [],
+      synthesis: '',
+      evidenceGate: summarizeGate(controlPlane?.gate0),
+      memoryEvidence,
+      packetEvidence,
+      packetValidation,
+      error: `Shintai packet evidence validation failed: ${packetValidation.reasons.join('; ')}`,
+      supersedes: options.supersedes || null,
+      artifacts: null,
+    };
+    if (options.writeArtifact !== false) payload.artifacts = writeAdvisoryArtifact(payload);
+    return payload;
+  }
 
   if (options.healthCheck !== false && !options.availableHealth) {
     say(`${C.bronze}${C.bold}`, '\n── Shintai health preflight ──', stream);
     const health = runHealthPreflight(assembly, Math.min(timeoutMs, 120_000));
     assembly = assembleShintaiTeam(taskText, roster, health);
+    const healthDialogRail = evaluateDialogRails({
+      task: taskText,
+      tier: assembly.tier,
+      members: assembly.members,
+    }, { maxMembers: assembly.targetSize });
+    if (!healthDialogRail.ok) {
+      const payload = {
+        ok: false,
+        task: taskText,
+        timestamp: new Date().toISOString(),
+        assembly,
+        proposals: [],
+        critiques: [],
+        synthesis: '',
+        evidenceGate: summarizeGate(controlPlane?.gate0),
+        memoryEvidence,
+        packetEvidence,
+        packetValidation,
+        error: `dialog rail failed after health preflight: ${healthDialogRail.reasons.join('; ')}`,
+        supersedes: options.supersedes || null,
+        artifacts: null,
+      };
+      if (options.writeArtifact !== false) payload.artifacts = writeAdvisoryArtifact(payload);
+      return payload;
+    }
     for (const member of assembly.members) {
       const h = health[member.id];
       say(h?.ok ? C.good : C.warn, `  ${h?.ok ? '✓' : '⚠'} ${member.displayName} · ${member.lane}`, stream);
@@ -574,6 +653,27 @@ export async function runAdvisory(task, options = {}) {
     for (const skipped of assembly.skipped) {
       say(C.warn, `  ⚠ skipped ${skipped.member.displayName} · ${skipped.member.lane}`, stream);
     }
+  }
+
+  if (!initialDialogRail.ok) {
+    const payload = {
+      ok: false,
+      task: taskText,
+      timestamp: new Date().toISOString(),
+      assembly,
+      proposals: [],
+      critiques: [],
+      synthesis: '',
+      evidenceGate: summarizeGate(controlPlane?.gate0),
+      memoryEvidence,
+      packetEvidence,
+      packetValidation,
+      error: `dialog rail failed: ${initialDialogRail.reasons.join('; ')}`,
+      supersedes: options.supersedes || null,
+      artifacts: null,
+    };
+    if (options.writeArtifact !== false) payload.artifacts = writeAdvisoryArtifact(payload);
+    return payload;
   }
 
   if (!assembly.ok) {
@@ -586,6 +686,9 @@ export async function runAdvisory(task, options = {}) {
       critiques: [],
       synthesis: '',
       evidenceGate: summarizeGate(controlPlane?.gate0),
+      memoryEvidence,
+      packetEvidence,
+      packetValidation,
       error: 'no healthy Shintai members selected',
       supersedes: options.supersedes || null,
       artifacts: null,
@@ -643,6 +746,9 @@ export async function runAdvisory(task, options = {}) {
     critiques,
     synthesis,
     evidenceGate: summarizeGate(controlPlane?.gate0),
+    memoryEvidence,
+    packetEvidence,
+    packetValidation,
     supersedes: options.supersedes || null,
     artifacts: null,
   };
@@ -664,6 +770,23 @@ function summarizeGate(gate0) {
     missingIds: gate0.missing.map((entry) => entry.id),
     blockedIds: gate0.blocked.map((entry) => entry.id),
     warnings: gate0.warnings.map((entry) => entry.id),
+  };
+}
+
+function buildPacketEvidence(task, assembly, memoryEvidence) {
+  return {
+    task,
+    tier: assembly?.tier || 'unknown',
+    memberIds: assembly?.selectedIds || [],
+    evidenceSources: memoryEvidence.sources.map((entry) => ({
+      id: entry.id,
+      path: entry.path,
+      type: entry.type,
+      sha256: entry.sha256,
+    })),
+    hashes: memoryEvidence.hashes,
+    loadedTemplates: memoryEvidence.loadedTemplates,
+    protectedSurfaceExclusions: memoryEvidence.protectedSurfaceExclusions,
   };
 }
 

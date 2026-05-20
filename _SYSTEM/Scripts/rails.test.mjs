@@ -3,9 +3,12 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
+import { appendMemoryEntry } from './memory-kernel.mjs';
 import {
   detectLaneMentions,
   detectShellBlocks,
+  enforceOutputRails,
+  evaluateDialogRails,
   evaluateExecutionRails,
   evaluateHealthRails,
   evaluateInputRails,
@@ -21,10 +24,30 @@ test('input rail detects slash commands, lane mentions, and shell blocks', () =>
 
   assert.equal(result.ok, true);
   assert.equal(result.severity, 'warn');
+  assert.match(result.reasons.join('\n'), /prompt text/);
   assert.equal(result.evidence.slashCommand, '/goal');
   assert.deepEqual(result.evidence.laneMentions, ['@shintai']);
+  assert.equal(result.evidence.autoExecutableShellBlocks, false);
   assert.deepEqual(detectLaneMentions(input), ['@shintai']);
   assert.deepEqual(detectShellBlocks(input), ['node --check _SYSTEM/Scripts/rick-repl.mjs']);
+});
+
+test('assistant shell blocks may auto-execute only when noexec is off', () => {
+  const input = '```bash\nnode --version\n```';
+  const execOn = evaluateInputRails(input, { source: 'assistant', noexec: false });
+  const execOff = evaluateInputRails(input, { source: 'assistant', noexec: true });
+
+  assert.equal(execOn.evidence.autoExecutableShellBlocks, true);
+  assert.equal(execOff.evidence.autoExecutableShellBlocks, false);
+  assert.equal(execOff.severity, 'warn');
+});
+
+test('path-like input is not mistaken for a slash command', () => {
+  const result = evaluateInputRails('/tmp/yuri/fixture.txt is the file path', { source: 'user', noexec: true });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.evidence.slashCommand, null);
+  assert.doesNotMatch(result.reasons.join('\n'), /slash command/);
 });
 
 test('retrieval rail blocks protected surfaces', () => {
@@ -34,6 +57,31 @@ test('retrieval rail blocks protected surfaces', () => {
   assert.equal(result.ok, false);
   assert.equal(result.severity, 'block');
   assert.match(result.reasons.join('\n'), /protected retrieval path denied/);
+});
+
+test('retrieval rail performs lightweight memory recall when query is present', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-rails-memory-'));
+  const logPath = path.join(dir, 'memory-ledger.jsonl');
+  const previousLedgerPath = process.env.YURI_MEMORY_LEDGER_PATH;
+  process.env.YURI_MEMORY_LEDGER_PATH = logPath;
+  try {
+    appendMemoryEntry({
+      originLane: 'codex',
+      type: 'evidence',
+      scope: 'session',
+      content: 'browser harness should use DOM before screenshots',
+    }, { logPath });
+
+    const result = evaluateRetrievalRails({ query: 'DOM screenshots', scope: 'session' });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.evidence.memoryRecall.ok, true);
+    assert.match(result.evidence.memoryRecall.entries[0].content, /DOM before screenshots/);
+  } finally {
+    if (previousLedgerPath === undefined) delete process.env.YURI_MEMORY_LEDGER_PATH;
+    else process.env.YURI_MEMORY_LEDGER_PATH = previousLedgerPath;
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('execution rail blocks destructive shell commands and protected targets', () => {
@@ -63,6 +111,33 @@ test('output rail warns on repo truth claims without evidence', () => {
   assert.equal(result.ok, true);
   assert.equal(result.severity, 'warn');
   assert.match(result.reasons.join('\n'), /requires local evidence/);
+});
+
+test('output enforcement marks missing evidence and caps long text', () => {
+  const result = enforceOutputRails('implemented ' + 'x'.repeat(100), {
+    requireEvidence: true,
+    maxOutputChars: 20,
+  });
+
+  assert.match(result.text, /\[EVIDENCE_MISSING\]/);
+  assert.match(result.text, /\[OUTPUT_TRUNCATED\]/);
+  assert.equal(result.evidence.truncated, true);
+});
+
+test('dialog rail enforces Shintai tier caps and Spark ban', () => {
+  const trivial = evaluateDialogRails({
+    task: 'small typo',
+    members: [{ id: 'deepseek' }, { id: 'qwen-coder' }],
+  });
+  const spark = evaluateDialogRails({
+    task: 'critical guardrail sprint',
+    members: [{ id: 'deepseek' }, { id: 'codex-spark' }],
+  });
+
+  assert.equal(trivial.ok, false);
+  assert.match(trivial.reasons.join('\n'), /team size exceeds trivial cap/);
+  assert.equal(spark.ok, false);
+  assert.match(spark.reasons.join('\n'), /Spark member forbidden/);
 });
 
 test('health rail blocks failed required targets', () => {

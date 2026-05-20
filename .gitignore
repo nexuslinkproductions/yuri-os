@@ -99,6 +99,11 @@ _SYSTEM/tools/browser-harness/
 _SYSTEM/tools/nemo-guardrails/
 _SYSTEM/state/shintai-advisory/
 _SYSTEM/state/rick-history.jsonl
+_SYSTEM/state/nim-transient-incidents.jsonl
+_SYSTEM/state/memory-ledger.jsonl
+_SYSTEM/.claude/
+.amp/
+.claude/state/
 .claude/lane-sessions/
 _SYSTEM/_SYSTEM/OS_KERNEL/*.db-shm
 _SYSTEM/_SYSTEM/OS_KERNEL/*.db-wal

@@ -12,17 +12,20 @@ const includeBrowser = !args.has('--skip-browser');
 
 const checks = [
   ['syntax:rails', process.execPath, ['--check', '_SYSTEM/Scripts/rails.mjs']],
+  ['syntax:yuri-rails-config', process.execPath, ['--check', '_SYSTEM/kagami/yuri-rails-config.mjs']],
   ['syntax:yuri-control-plane', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-control-plane.mjs']],
   ['syntax:memory-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/memory-kernel.mjs']],
   ['syntax:automation-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/automation-kernel.mjs']],
   ['syntax:shintai-dispatch', process.execPath, ['--check', '_SYSTEM/Scripts/shintai-dispatch.mjs']],
   ['syntax:rick-repl', process.execPath, ['--check', '_SYSTEM/Scripts/rick-repl.mjs']],
   ['test:rails', process.execPath, ['--test', '_SYSTEM/Scripts/rails.test.mjs']],
+  ['test:yuri-rails-config', process.execPath, ['--test', '_SYSTEM/kagami/yuri-rails-config.test.mjs']],
   ['test:yuri-control-plane', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-control-plane.test.mjs']],
   ['test:memory-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/memory-kernel.test.mjs']],
   ['test:automation-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/automation-kernel.test.mjs']],
   ['test:lane-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/lane-kernel.test.mjs']],
   ['test:rick-harness-runtime', process.execPath, ['--test', '_SYSTEM/Scripts/rick-harness-runtime.test.mjs']],
+  ['test:offload-runner-rails', process.execPath, ['--test', '_SYSTEM/Scripts/offload-runner-rails.test.mjs']],
   ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/offload-contract-regression.test.mjs']],
   ['offload:dispatch-drift', process.execPath, ['_SYSTEM/Scripts/offload-contract-dispatch-check.mjs']],
 ];

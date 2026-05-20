@@ -1,0 +1,151 @@
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import http from 'node:http';
+import os from 'node:os';
+import path from 'node:path';
+import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+
+function runOffload(args, env) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, ['_SYSTEM/Scripts/offload-runner.mjs', ...args], {
+      cwd: REPO_ROOT,
+      env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+    child.on('close', (status, signal) => resolve({ status, signal, stdout, stderr }));
+  });
+}
+
+function isolatedEnv(tmpDir, port, extra = {}) {
+  return {
+    ...process.env,
+    NVIDIA_API_KEY: 'mock-nvidia-key',
+    NVIDIA_KEY_GPT_OSS_120B: '',
+    NVIDIA_NIM_BASE_URL: `http://127.0.0.1:${port}/v1`,
+    OFFLOAD_STREAM: '0',
+    TOKEN_LEDGER_AUTO_DRAIN: '0',
+    TOKEN_LEDGER_DB_PATH: path.join(tmpDir, 'memory.db'),
+    TOKEN_LEDGER_QUEUE_DIR: path.join(tmpDir, 'token-queue'),
+    TOKEN_LEDGER_FAULT_DIR: path.join(tmpDir, 'token-faults'),
+    TOKEN_LEDGER_VAULT_DIR: path.join(tmpDir, 'token-vault'),
+    YURI_NIM_TRANSIENT_INCIDENT_LOG: path.join(tmpDir, 'nim-transient.jsonl'),
+    ...extra,
+  };
+}
+
+function jsonChatResponse(model, content) {
+  return JSON.stringify({
+    model,
+    choices: [{ message: { role: 'assistant', content } }],
+    usage: {
+      prompt_tokens: 1,
+      completion_tokens: 1,
+      total_tokens: 2,
+    },
+  });
+}
+
+test('offload runner retries transient NIM failures then falls back to nano Nemotron', { timeout: 15_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-rails-'));
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk.toString();
+    });
+    req.on('end', () => {
+      const body = JSON.parse(raw || '{}');
+      requests.push(body);
+      if (body.model === 'nvidia/nemotron-3-super-120b-a12b') {
+        res.writeHead(503, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ error: 'mock cold start' }));
+        return;
+      }
+      assert.equal(body.model, 'nvidia/nemotron-3-nano-30b-a3b');
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(jsonChatResponse(body.model, 'fallback ok'));
+    });
+  });
+
+  try {
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    const env = isolatedEnv(tmpDir, port);
+    const result = await runOffload(['nvidia-nemotron-120b', 'say ok'], env);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /fallback ok/);
+    assert.equal(requests.filter((entry) => entry.model === 'nvidia/nemotron-3-super-120b-a12b').length, 3);
+    assert.equal(requests.filter((entry) => entry.model === 'nvidia/nemotron-3-nano-30b-a3b').length, 1);
+    assert.match(result.stderr, /falling back to nvidia-nemotron-nano-30b/);
+
+    const incidents = readFileSync(path.join(tmpDir, 'nim-transient.jsonl'), 'utf8');
+    assert.match(incidents, /"action":"retry"/);
+    assert.match(incidents, /"action":"fallback"/);
+  } finally {
+    server.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload runner treats user shell blocks as prompt text', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-input-rails-'));
+  let receivedPrompt = '';
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk.toString();
+    });
+    req.on('end', () => {
+      const body = JSON.parse(raw || '{}');
+      receivedPrompt = body.messages?.at(-1)?.content || '';
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(jsonChatResponse(body.model, 'plain ok'));
+    });
+  });
+
+  try {
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    const env = isolatedEnv(tmpDir, port);
+    const result = await runOffload([
+      'nvidia-mistral-medium',
+      'inspect this only',
+      '```bash',
+      'echo SHOULD_NOT_RUN',
+      '```',
+    ], env);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stderr, /user shell block treated as prompt text/);
+    assert.match(result.stdout, /plain ok/);
+    assert.match(receivedPrompt, /echo SHOULD_NOT_RUN/);
+  } finally {
+    server.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

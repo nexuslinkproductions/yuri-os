@@ -4,6 +4,8 @@ import { appendFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
+import { recallEntries } from './memory-kernel.mjs';
+import { YURI_RAILS_CONFIG } from '../kagami/yuri-rails-config.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_VIOLATION_LOG = path.join(__dirname, '..', 'state', 'guardrail-violations.jsonl');
@@ -16,6 +18,7 @@ export const RAIL_SEVERITY = Object.freeze({
 
 const BLOCKED_COMMAND_PATTERNS = Object.freeze([
   { id: 'git-push', pattern: /\bgit\s+push\b/i },
+  { id: 'git-add', pattern: /\bgit\s+add\b/i },
   { id: 'git-commit', pattern: /\bgit\s+commit\b/i },
   { id: 'git-reset-hard', pattern: /\bgit\s+reset\s+--hard\b/i },
   { id: 'git-clean', pattern: /\bgit\s+clean\b/i },
@@ -95,16 +98,24 @@ export function detectLaneMentions(input) {
 
 export function evaluateInputRails(input, context = {}) {
   const text = normalizeText(input).trim();
-  const slashCommand = text.startsWith('/') ? text.split(/\s+/, 1)[0] : null;
+  const slashCommand = text.match(/^\/[a-z][a-z0-9_-]*(?=\s|$)/i)?.[0] || null;
   const laneMentions = detectLaneMentions(text);
   const shellBlocks = detectShellBlocks(text);
+  const source = context.source || 'user';
   const reasons = [];
 
   if (!text) reasons.push({ severity: RAIL_SEVERITY.block, message: 'empty input' });
-  if (slashCommand && !/^\/[a-z][a-z0-9_-]*$/i.test(slashCommand)) {
-    reasons.push({ severity: RAIL_SEVERITY.block, message: `invalid slash command: ${slashCommand}` });
+  if (slashCommand && !isKnownSlashCommand(slashCommand, context)) {
+    reasons.push({ severity: RAIL_SEVERITY.warn, message: `unknown slash command: ${slashCommand}` });
   }
-  if (shellBlocks.length && context.noexec === true) {
+  for (const mention of laneMentions) {
+    if (!isKnownLaneMention(mention, context)) {
+      reasons.push({ severity: RAIL_SEVERITY.warn, message: `unknown lane mention: ${mention}` });
+    }
+  }
+  if (shellBlocks.length && source === 'user') {
+    reasons.push({ severity: RAIL_SEVERITY.warn, message: 'user shell block treated as prompt text; not auto-executed' });
+  } else if (shellBlocks.length && context.noexec === true) {
     reasons.push({ severity: RAIL_SEVERITY.warn, message: 'shell block detected while noexec is active' });
   }
 
@@ -116,6 +127,8 @@ export function evaluateInputRails(input, context = {}) {
       laneMentions,
       shellBlocks,
       noexec: Boolean(context.noexec),
+      source,
+      autoExecutableShellBlocks: shellBlocks.length > 0 && source !== 'user' && context.noexec !== true,
     },
   });
 }
@@ -127,6 +140,13 @@ export function evaluateRetrievalRails(request = {}, context = {}) {
     severity: RAIL_SEVERITY.block,
     message: `protected retrieval path denied: ${candidate}`,
   }));
+  const query = request.query || request.memoryQuery || context.query || '';
+  const memoryRecall = query && protectedPaths.length === 0 && context.memoryRecall !== false
+    ? recallEntries(query, {
+      scope: request.scope || context.scope,
+      maxEntries: request.maxEntries || context.maxEntries || 5,
+    })
+    : null;
 
   return resultFor({
     rail: 'retrieval',
@@ -134,6 +154,7 @@ export function evaluateRetrievalRails(request = {}, context = {}) {
     evidence: {
       checkedPaths: candidates,
       protectedPaths,
+      memoryRecall,
       source: context.source || request.source || null,
     },
   });
@@ -193,7 +214,7 @@ export function evaluateToolInputRails(input = {}, context = {}) {
 
 export function evaluateOutputRails(output = '', context = {}) {
   const text = normalizeText(output);
-  const cap = Number(context.maxOutputChars || 120_000);
+  const cap = Number(context.maxOutputChars || YURI_RAILS_CONFIG.output.maxChars || 64 * 1024);
   const reasons = [];
   if (text.length > cap) {
     reasons.push({ severity: RAIL_SEVERITY.warn, message: `output exceeds cap: ${text.length} > ${cap}` });
@@ -209,6 +230,58 @@ export function evaluateOutputRails(output = '', context = {}) {
       cap,
       truncated: text.length > cap,
       ansiSafe: !/\x1b\][^\x07]*(?:\x07|\x1b\\)/.test(text),
+      evidenceMissing: context.requireEvidence === true && looksLikeRepoTruthClaim(text) && !context.evidence,
+    },
+  });
+}
+
+export function enforceOutputRails(output = '', context = {}) {
+  const text = normalizeText(output);
+  const result = evaluateOutputRails(text, context);
+  const cap = result.evidence.cap;
+  const pieces = [];
+  if (result.evidence.evidenceMissing) pieces.push(YURI_RAILS_CONFIG.output.evidenceMarker);
+  if (text.length > cap) {
+    pieces.push(`${YURI_RAILS_CONFIG.output.truncationMarker} ${text.length} > ${cap}`);
+    pieces.push(text.slice(0, cap));
+  } else {
+    pieces.push(text);
+  }
+  return {
+    ...result,
+    text: pieces.filter(Boolean).join('\n'),
+  };
+}
+
+export function classifyRailTaskTier(task = '') {
+  const text = String(task || '').toLowerCase();
+  if (/(critical|supercharge|forensic|production|release|guardrail|control plane|shintai|harness|automation|memory|backend)/.test(text)) return 'critical';
+  if (/(refactor|architecture|audit|multi-file|offload|lane|browser-harness|integration)/.test(text)) return 'complex';
+  if (/(typo|one file|single file|quick|small)/.test(text)) return 'trivial';
+  return 'standard';
+}
+
+export function evaluateDialogRails(dialog = {}, context = {}) {
+  const task = dialog.task || context.task || '';
+  const tier = dialog.tier || classifyRailTaskTier(task);
+  const members = dialog.members || dialog.team || [];
+  const cap = Number(context.maxMembers || YURI_RAILS_CONFIG.dialog.tierMemberCaps[tier] || 3);
+  const memberIds = members.map((member) => String(member.id || member.lane || member || ''));
+  const reasons = [];
+  if (memberIds.some((id) => /(?:^|-)spark|codex-spark/i.test(id))) {
+    reasons.push({ severity: RAIL_SEVERITY.block, message: 'Spark member forbidden in Shintai assembly' });
+  }
+  if (memberIds.length > cap) {
+    reasons.push({ severity: RAIL_SEVERITY.block, message: `team size exceeds ${tier} cap: ${memberIds.length} > ${cap}` });
+  }
+  return resultFor({
+    rail: 'dialog',
+    reasons,
+    evidence: {
+      task,
+      tier,
+      cap,
+      memberIds,
     },
   });
 }
@@ -256,6 +329,8 @@ export function evaluateRails(kind, payload, context = {}) {
       return evaluateRetrievalRails(payload, context);
     case 'execution':
       return evaluateExecutionRails(payload, context);
+    case 'dialog':
+      return evaluateDialogRails(payload, context);
     case 'tool-input':
       return evaluateToolInputRails(payload, context);
     case 'output':
@@ -299,4 +374,14 @@ function detectPathLikeTokens(command) {
 
 function looksLikeRepoTruthClaim(text) {
   return /\b(?:all tests pass|tests pass|fixed|implemented|verified|repo is clean|clean worktree|no drift)\b/i.test(text);
+}
+
+function isKnownSlashCommand(command, context = {}) {
+  const commands = context.slashCommands || YURI_RAILS_CONFIG.input.slashCommands || [];
+  return commands.includes(String(command || '').replace(/^\//, ''));
+}
+
+function isKnownLaneMention(mention, context = {}) {
+  const lanes = context.laneMentions || YURI_RAILS_CONFIG.input.laneMentions || [];
+  return lanes.includes(String(mention || '').toLowerCase());
 }

@@ -74,6 +74,25 @@ test('Rick prompt context drops poisoned terminal chrome history', async () => {
   assert.match(context, /real answer/);
 });
 
+test('Rick does not auto-execute shell blocks that came from user input', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+  const userBlocks = __test__.extractBashBlocks('please inspect this\n```bash\necho USER_BLOCK\n```');
+  const assistantBlocks = __test__.extractBashBlocks([
+    'I will keep your quoted block as text.',
+    '```bash',
+    'echo USER_BLOCK',
+    '```',
+    'New diagnostic command:',
+    '```bash',
+    'node --check _SYSTEM/Scripts/rick-repl.mjs',
+    '```',
+  ].join('\n'));
+
+  assert.deepEqual(__test__.filterExecutableShellBlocks(assistantBlocks, userBlocks), [
+    'node --check _SYSTEM/Scripts/rick-repl.mjs',
+  ]);
+});
+
 test('Rick /goal surfaces the current YURI supercharge goal artifact', async () => {
   const { __test__ } = await import('./rick-repl.mjs');
   const goal = __test__.goalText();

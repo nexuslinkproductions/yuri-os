@@ -317,6 +317,11 @@ function extractBashBlocks(text) {
   return blocks;
 }
 
+function filterExecutableShellBlocks(blocks, userShellBlocks = []) {
+  const userSet = new Set(userShellBlocks.map((block) => String(block || '').trim()).filter(Boolean));
+  return blocks.filter((block) => !userSet.has(String(block || '').trim()));
+}
+
 function renderTurn(turn) {
   return `${turn.role === 'tool' ? 'Tool' : 'Rick'}: ${turn.content}`;
 }
@@ -781,18 +786,24 @@ function streamLane(ui, lane, prompt, label) {
   });
 }
 
-async function streamLaneWithShell(ui, lane, prompt, label) {
+async function streamLaneWithShell(ui, lane, prompt, label, options = {}) {
   const turns = [];
   let currentPrompt = prompt;
   let response = '';
   let pendingBlocks = [];
+  const userShellBlocks = options.userShellBlocks || [];
 
   for (let round = 0; round < MAX_AUTOEXEC_ROUNDS; round += 1) {
     ui.setLane(lane);
     response = await streamLane(ui, lane, currentPrompt, label);
     turns.push({ role: 'assistant', content: response });
 
-    pendingBlocks = shellAutoExecEnabled ? extractBashBlocks(response) : [];
+    pendingBlocks = shellAutoExecEnabled
+      ? filterExecutableShellBlocks(extractBashBlocks(response), userShellBlocks)
+      : [];
+    if (shellAutoExecEnabled && userShellBlocks.length && extractBashBlocks(response).length > pendingBlocks.length) {
+      ui.appendSystem('user-provided shell block was not auto-executed');
+    }
     if (!pendingBlocks.length) break;
 
     for (const cmd of pendingBlocks) {
@@ -862,6 +873,7 @@ async function handleInput(ui, input, history) {
     recallMemory(input),
     Promise.resolve(buildHistoryContext(history)),
   ]);
+  const userShellBlocks = extractBashBlocks(input);
 
   const detected = detectRoute(input);
 
@@ -915,6 +927,7 @@ async function handleInput(ui, input, history) {
       route.lane,
       buildPrompt(msg, historyCtx, memories),
       route.label,
+      { userShellBlocks },
     );
     const entry = { ts: Date.now(), session: SESSION_ID, user: input, assistant: response };
     if (turns.some((turn) => turn.role === 'tool')) entry.turns = turns;
@@ -929,6 +942,7 @@ async function handleInput(ui, input, history) {
     '@deepseek-v4-flash',
     buildPrompt(input, historyCtx, memories),
     'Rick',
+    { userShellBlocks },
   );
   const entry = { ts: Date.now(), session: SESSION_ID, user: input, assistant: response };
   if (turns.some((turn) => turn.role === 'tool')) entry.turns = turns;
@@ -1090,6 +1104,7 @@ export const __test__ = {
   containsPromptPoison,
   detectRoute,
   extractBashBlocks,
+  filterExecutableShellBlocks,
   formatDuration,
   guardShellCommand,
   goalText,
