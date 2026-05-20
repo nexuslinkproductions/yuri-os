@@ -294,9 +294,15 @@ dry_run_model_override() {
   local prompt="$2"
   apply_deepseek_normalization target_model
   local reasoning_args=()
+  local tool_args=()
   local extra_codex_flags=""
   if [[ -n "${REASONING_DEPTH:-}" ]]; then
     reasoning_args=(--reasoning "$REASONING_DEPTH")
+  fi
+  if [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" == "1" ]]; then
+    tool_args=(--tools)
+  elif [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" != "1" ]]; then
+    tool_args=(--no-tools)
   fi
   if [[ -n "${CODEX_TARGET_WORKTREE:-}" ]]; then
     extra_codex_flags="--cd $CODEX_TARGET_WORKTREE"
@@ -341,7 +347,7 @@ dry_run_model_override() {
           *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
         esac
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_NIM [${_nim_model}]..." >&2
-        run_offload_runner nvidia-nim "$prompt" --dry-run --model "$_nim_model"
+        run_offload_runner nvidia-nim "$prompt" --dry-run --model "$_nim_model" ${tool_args[@]+"${tool_args[@]}"}
         ;;
       openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2
@@ -478,7 +484,7 @@ dispatch_model() {
           *)                      _nim_model="meta/llama-3.3-70b-instruct" ;;
         esac
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_NIM [${_nim_model}]..." >&2
-        run_offload_runner nvidia-nim "$prompt" --model "$_nim_model"
+        run_offload_runner nvidia-nim "$prompt" --model "$_nim_model" ${tool_args[@]+"${tool_args[@]}"}
         ;;
       openrouter-free|openrouter/free|*/*:free)
         printf '%s\n' "⬡ ROUTING_TO_OPENROUTER_FREE..." >&2

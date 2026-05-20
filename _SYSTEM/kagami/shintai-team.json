@@ -44,7 +44,7 @@
       "skills": ["yuri-shura","bankai-manifest","visual-introspection","yuri-code-intelligence"],
       "mcp_tools": ["filesystem","gitnexus"],
       "lane_id": "nvidia-nemotron-120b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-120b --no-tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-120b"
     },
     "mistral-large": {
       "model": "mistralai/mistral-large-3-675b-instruct-2512",
@@ -52,7 +52,7 @@
       "unique_strength": "largest active NIM reasoning lane for adversarial architecture review and contradiction pressure",
       "task_fit": ["architecture audit","frontier reasoning","superaudit","control-plane","guardrail"],
       "lane_id": "nvidia-mistral-large",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-large --no-tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-large"
     },
     "mistral-medium": {
       "model": "mistralai/mistral-medium-3.5-128b",
@@ -60,7 +60,7 @@
       "unique_strength": "large but faster Mistral fallback for broad system audit and timeout recovery",
       "task_fit": ["fallback","system audit","routing cleanup","timeout policy"],
       "lane_id": "nvidia-mistral-medium",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-medium --no-tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-medium"
     },
     "qwen-coder": {
       "model": "qwen/qwen3-coder-480b-a35b-instruct",
@@ -68,7 +68,7 @@
       "unique_strength": "NIM code specialist for collision detection, merge order, and regression design",
       "task_fit": ["code review","refactor","merge collision","tests","routing logic"],
       "lane_id": "nvidia-qwen-coder",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-coder --no-tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-coder"
     },
     "claude-opus-audit": {
       "model": "claude-opus-4-7",
@@ -94,7 +94,7 @@
       "unique_strength": "nuanced narrative, character voice, long-form creative output — best for anything where tone and depth matter more than raw reasoning",
       "task_fit": ["write","draft","story","creative","blog","script","copy","narrative","marketing","brand voice"],
       "lane_id": "nvidia-dracarys",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-dracarys --no-tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-dracarys"
     },
     "glm": {
       "model": "thudm/glm-5.1-9b-chat",
@@ -102,7 +102,7 @@
       "unique_strength": "East/West bridge — bilingual Chinese/English, long-context document analysis",
       "task_fit": ["bilingual","chinese","translate","long document","long context","summarize lengthy"],
       "lane_id": "nvidia-glm",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-glm --no-tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-glm"
     },
     "gpt-oss-120b": {
       "model": "openai/gpt-oss-120b",
@@ -111,7 +111,7 @@
       "unique_strength": "high-capacity 120B — architecture review, complex multi-step reasoning, comprehensive analysis where scale matters",
       "task_fit": ["research","deep analysis","long-horizon","comprehensive review","architecture audit","second opinion"],
       "lane_id": "nvidia-gpt-oss-120b",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-gpt-oss-120b --no-tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-gpt-oss-120b"
     },
     "qwen3-next": {
       "model": "qwen/qwen3-next-80b-a3b-instruct",
@@ -119,7 +119,7 @@
       "unique_strength": "efficient MoE — code generation, algorithm analysis, reasoning-heavy code tasks at lower cost than 120B models",
       "task_fit": ["algorithm","optimize","code review","data structure","complexity","benchmark","refactor logic"],
       "lane_id": "nvidia-qwen3-next",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-qwen3-next --no-tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-qwen3-next"
     },
     "ising": {
       "model": "nvidia/ising-3b",
@@ -127,7 +127,7 @@
       "unique_strength": "sub-second inference — quick triage, classification, yes/no decisions where latency matters more than depth",
       "task_fit": ["classify","triage","quick check","yes or no","routing decision","label"],
       "lane_id": "nvidia-ising",
-      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-ising --no-tools"
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-ising"
     }
   },
   "cross_cutting": {

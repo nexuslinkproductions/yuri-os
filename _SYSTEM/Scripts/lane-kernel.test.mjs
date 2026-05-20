@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import {
   ACTIVE_NIM_LANES,
   DEAD_NIM_LANES,
+  LANE_KERNEL,
   NEMO_STYLE_RAILS,
   buildSuperauditDeployment,
   isProtectedPath,
@@ -30,6 +31,21 @@ test('lane kernel tracks active and dead NIM lanes explicitly', () => {
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-glm'));
   assert.ok(DEAD_NIM_LANES.includes('nvidia-gpt-oss-120b'));
   assert.ok(DEAD_NIM_LANES.includes('nvidia-kimi'));
+});
+
+test('Shintai NIM lanes keep tool mode available under YURI rails', () => {
+  for (const id of ['nemotron', 'mistral-large', 'mistral-medium', 'qwen-coder', 'glm', 'qwen3-next']) {
+    const lane = LANE_KERNEL[id];
+    assert.ok(lane, `missing lane kernel entry for ${id}`);
+    assert.equal(lane.dispatchArgs.includes('--no-tools'), false, `${id} should not force no-tools`);
+    assert.equal(lane.tools.read, true);
+    assert.equal(lane.tools.search, true);
+    assert.equal(lane.tools.shell, true);
+    assert.equal(lane.tools.commit, false);
+    assert.equal(lane.tools.push, false);
+    assert.equal(lane.tools.protectedReads, false);
+    assert.equal(lane.tools.protectedWrites, false);
+  }
 });
 
 test('lane kernel maps NeMo-style rails to YURI harness controls', () => {

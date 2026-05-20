@@ -96,28 +96,28 @@ const ASSIGNMENTS = {
     lane: 'nvidia-nemotron-120b',
     skills: ['yuri-shura', 'bankai-manifest', 'visual-introspection', 'yuri-code-intelligence'],
     assignment: 'Long-horizon architecture: Hermes-inspired scroll/composer adaptation without destructing YURI/Kagami.',
-    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-120b', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-120b'],
   },
   'mistral-large': {
     displayName: 'Mistral Large Auditor',
     lane: 'nvidia-mistral-large',
     skills: ['non-destructive-infinity-guard', 'execution-domain-core', 'failure-evolution-loop'],
     assignment: 'Frontier-scale adversarial review of the full lane-kernel merge. Challenge Codex, DeepSeek, and Nemotron assumptions.',
-    dispatchArgs: ['offload', '--model', 'nvidia-mistral-large', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-mistral-large'],
   },
   'mistral-medium': {
     displayName: 'Mistral Medium Reviewer',
     lane: 'nvidia-mistral-medium',
     skills: ['execution-domain-core', 'failure-evolution-loop'],
     assignment: 'Fallback and broad-system reviewer for routing simplification, timeout policy, and degraded-mode operation.',
-    dispatchArgs: ['offload', '--model', 'nvidia-mistral-medium', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-mistral-medium'],
   },
   'qwen-coder': {
     displayName: 'Qwen Coder Specialist',
     lane: 'nvidia-qwen-coder',
     skills: ['yuri-code-intelligence', 'gitnexus', 'failure-evolution-loop'],
     assignment: 'Code-level collision detection and regression plan for offload, Shintai, Rick, worker, and browser-harness merge points.',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen-coder', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-qwen-coder'],
   },
   kimi: {
     displayName: 'Kimi Context-Keeper',
@@ -131,14 +131,14 @@ const ASSIGNMENTS = {
     lane: 'nvidia-qwen3-next',
     skills: [],
     assignment: 'Renderer state machine and PTY regression design: two-turn streaming, resize/exit restore, terminal write serialization.',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen3-next', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-qwen3-next'],
   },
   glm: {
     displayName: 'GLM Long-Document Auditor',
     lane: 'nvidia-glm',
     skills: ['pattern-mirror-core', 'codebase-to-course'],
     assignment: 'Long-document and vocabulary audit: Shintai/Kagami/Musubi naming, stale aliases, bilingual terminology, and memory/docs consistency.',
-    dispatchArgs: ['offload', '--model', 'nvidia-glm', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-glm'],
   },
 };
 
@@ -329,7 +329,7 @@ export function assembleShintaiTeam(task, roster = loadShintaiRoster(), availabl
 export function buildMemberPrompt(task, member, options = {}) {
   const sourcePaths = options.sourcePaths || SOURCE_PATHS;
   const health = options.health ? JSON.stringify(options.health, null, 2) : 'not provided';
-  const toolPolicy = member.toolPolicy ? JSON.stringify(member.toolPolicy, null, 2) : 'text-output lane; Codex invokes required tools on its behalf';
+  const toolPolicy = member.toolPolicy ? JSON.stringify(member.toolPolicy, null, 2) : 'tool mode allowed when the lane runtime supports it; YURI guardrails still block protected paths, commits, pushes, and destructive actions';
   const rails = JSON.stringify(NEMO_STYLE_RAILS, null, 2);
   return [
     RICK_ANCHOR,

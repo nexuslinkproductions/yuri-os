@@ -75,6 +75,9 @@ if (!prompt && !options.dryRun) {
 
 const localModels = listLocalModels();
 const resolved = resolveLane(lane, options.model, localModels, options.dryRun, options);
+if (options.toolsExplicit) {
+  resolved.tools = options.tools;
+}
 
 if (options.dryRun) {
   const out = { lane, ...resolved };
@@ -180,6 +183,7 @@ function parseArgs(rest) {
     planFile: '',
     executePulse: false,
     tools: false,
+    toolsExplicit: false,
     outputFile: '',
     session: process.env.LANE_SESSION || 'default',
     fresh: process.env.LANE_FRESH === '1' || process.env.LANE_FRESH === 'true',
@@ -202,10 +206,12 @@ function parseArgs(rest) {
     }
     if (token === '--tools') {
       out.tools = true;
+      out.toolsExplicit = true;
       continue;
     }
     if (token === '--no-tools' || token === '--text-only') {
       out.tools = false;
+      out.toolsExplicit = true;
       continue;
     }
     if (token === '--max-output-tokens' && rest[i + 1]) {

@@ -1276,9 +1276,9 @@ case "${1:-help}" in
           exit 1
         fi
         if [ "$_dry_run" -eq 1 ] || [ "${AI_DRY_RUN:-0}" = "1" ]; then
-          exec "$SCRIPT_DIR/offload.sh" --dry-run --swarm default "$prompt"
+          exec bash "$SCRIPT_DIR/offload.sh" --dry-run --swarm default "$prompt"
         fi
-        exec "$SCRIPT_DIR/offload.sh" --swarm default "$prompt"
+        exec bash "$SCRIPT_DIR/offload.sh" --swarm default "$prompt"
         ;;
       capabilities|inventory)
         shift || true
@@ -1286,7 +1286,7 @@ case "${1:-help}" in
         exec node "$OFFLOAD_RUNNER" --inventory
         ;;
       *)
-        exec "$SCRIPT_DIR/offload.sh" "$@"
+        exec bash "$SCRIPT_DIR/offload.sh" "$@"
         ;;
     esac
     ;;

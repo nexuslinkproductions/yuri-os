@@ -180,11 +180,14 @@ test('Shintai critical harness assembly uses roster, task tier, fit, and live he
 test('Shintai guardrails reject hardcoded squad defaults and Rick-owned dispatcher naming', () => {
   const repl = readFileSync(new URL('./rick-repl.mjs', import.meta.url), 'utf8');
   const dispatch = readFileSync(new URL('./shintai-dispatch.mjs', import.meta.url), 'utf8');
+  const roster = readFileSync(new URL('../kagami/shintai-team.json', import.meta.url), 'utf8');
 
   assert.doesNotMatch(repl, /rick-shintai\.mjs/);
   assert.doesNotMatch(dispatch, /\bDEFAULT_SQUAD\b/);
   assert.doesNotMatch(dispatch, /lane:\s*['"]@?codex-spark['"]/);
   assert.doesNotMatch(dispatch, /rick-shintai\.mjs/);
+  assert.doesNotMatch(dispatch, /nvidia-[^'"\]]+['"\],\s*['"]--no-tools['"]/);
+  assert.doesNotMatch(roster, /nvidia-[^"\n]+ --no-tools/);
 });
 
 test('Rick renderer preserves cursor when configuring scroll region', () => {

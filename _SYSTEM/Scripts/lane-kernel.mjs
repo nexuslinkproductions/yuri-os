@@ -78,6 +78,16 @@ const BASE_FORBIDDEN_TOOLS = Object.freeze({
   protectedWrites: false,
 });
 
+const FULL_ADVISORY_TOOLS = Object.freeze({
+  ...BASE_FORBIDDEN_TOOLS,
+  read: true,
+  search: true,
+  browser: true,
+  gitnexus: true,
+  shell: true,
+  edit: true,
+});
+
 export const LANE_KERNEL = Object.freeze({
   codex: {
     id: 'codex',
@@ -125,9 +135,9 @@ export const LANE_KERNEL = Object.freeze({
     role: 'long-horizon-orchestrator',
     reasoning: 'high',
     contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-120b', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-120b'],
     assignment: 'Long-horizon control-plane architecture and NeMo-style rail mapping.',
-    tools: { ...BASE_FORBIDDEN_TOOLS, read: false, search: false, browser: false, gitnexus: false, shell: false },
+    tools: FULL_ADVISORY_TOOLS,
   },
   'mistral-large': {
     id: 'mistral-large',
@@ -137,9 +147,9 @@ export const LANE_KERNEL = Object.freeze({
     role: 'frontier-reasoning-reviewer',
     reasoning: 'high',
     contextTier: 'huge',
-    dispatchArgs: ['offload', '--model', 'nvidia-mistral-large', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-mistral-large'],
     assignment: 'Stress-test the full merge architecture, large-context contradictions, and failure modes.',
-    tools: { ...BASE_FORBIDDEN_TOOLS, read: false, search: false, browser: false, gitnexus: false, shell: false },
+    tools: FULL_ADVISORY_TOOLS,
   },
   'mistral-medium': {
     id: 'mistral-medium',
@@ -149,9 +159,9 @@ export const LANE_KERNEL = Object.freeze({
     role: 'system-audit-reviewer',
     reasoning: 'medium',
     contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-mistral-medium', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-mistral-medium'],
     assignment: 'Review routing simplification, fallback policy, and operational clarity.',
-    tools: { ...BASE_FORBIDDEN_TOOLS, read: false, search: false, browser: false, gitnexus: false, shell: false },
+    tools: FULL_ADVISORY_TOOLS,
   },
   'qwen-coder': {
     id: 'qwen-coder',
@@ -161,9 +171,9 @@ export const LANE_KERNEL = Object.freeze({
     role: 'code-refactor-specialist',
     reasoning: 'high',
     contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen-coder', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-qwen-coder'],
     assignment: 'Design the minimal refactor path and regression tests for the lane kernel merge.',
-    tools: { ...BASE_FORBIDDEN_TOOLS, read: false, search: false, browser: false, gitnexus: false, shell: false },
+    tools: FULL_ADVISORY_TOOLS,
   },
   glm: {
     id: 'glm',
@@ -173,9 +183,9 @@ export const LANE_KERNEL = Object.freeze({
     role: 'long-document-memory-auditor',
     reasoning: 'medium',
     contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-glm', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-glm'],
     assignment: 'Audit long-document memory, stale aliases, naming drift, and docs consistency.',
-    tools: { ...BASE_FORBIDDEN_TOOLS, read: false, search: false, browser: false, gitnexus: false, shell: false },
+    tools: FULL_ADVISORY_TOOLS,
   },
   'qwen3-next': {
     id: 'qwen3-next',
@@ -185,9 +195,9 @@ export const LANE_KERNEL = Object.freeze({
     role: 'state-machine-specialist',
     reasoning: 'high',
     contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-qwen3-next', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-qwen3-next'],
     assignment: 'Renderer, PTY, stream batching, resize, and terminal-state regression design.',
-    tools: { ...BASE_FORBIDDEN_TOOLS, read: false, search: false, browser: false, gitnexus: false, shell: false },
+    tools: FULL_ADVISORY_TOOLS,
   },
   'nvidia-ising': {
     id: 'nvidia-ising',
@@ -197,9 +207,9 @@ export const LANE_KERNEL = Object.freeze({
     role: 'fast-classifier',
     reasoning: 'low',
     contextTier: 'small',
-    dispatchArgs: ['offload', '--model', 'nvidia-ising', '--no-tools'],
+    dispatchArgs: ['offload', '--model', 'nvidia-ising'],
     assignment: 'Fast routing and health triage only.',
-    tools: { ...BASE_FORBIDDEN_TOOLS, read: false, search: false, browser: false, gitnexus: false, shell: false },
+    tools: FULL_ADVISORY_TOOLS,
   },
 });
 
