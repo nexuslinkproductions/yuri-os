@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ACTIVE_NIM_LANES, DEAD_NIM_LANES } from './lane-kernel.mjs';
+import { getHealthSummary as getKagamiHealthSummary } from './kagami-overseer.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -56,21 +57,29 @@ export function buildAutomationHealthSummary(input = {}) {
   const browserHarness = input.browserHarness || null;
   const launchd = Array.isArray(input.launchd) ? input.launchd : [];
   const laneCalibration = Array.isArray(input.laneCalibration) ? input.laneCalibration : [];
+  const kagamiOverseer = resolveKagamiOverseerHealth(input);
   const checks = [
     ...workerChecks.map((entry) => normalizeCheck('worker', entry)),
     ...(browserHarness ? [normalizeCheck('browser-harness', browserHarness)] : []),
     ...launchd.map((entry) => normalizeCheck('launchd', entry)),
     ...laneCalibration.map((entry) => normalizeCheck('lane-calibration', entry)),
+    ...(kagamiOverseer ? [normalizeKagamiCheck(kagamiOverseer)] : []),
   ];
   const counts = Object.fromEntries(HEALTH_STATES.map((state) => [state, 0]));
   for (const check of checks) counts[check.state] = (counts[check.state] || 0) + 1;
   const ok = checks.length > 0 && checks.every((check) => check.state === 'ok');
+  const automationHealth = {
+    status: kagamiOverseer?.status || 'unknown',
+    ok: !kagamiOverseer || kagamiOverseer.status !== 'fail',
+    kagamiOverseer,
+  };
   return {
     ok,
     timestamp: new Date().toISOString(),
     components: AUTOMATION_COMPONENTS,
     activeNimLanes: [...ACTIVE_NIM_LANES],
     deadNimLanes: [...DEAD_NIM_LANES],
+    automationHealth,
     counts,
     checks,
   };
@@ -127,6 +136,36 @@ function normalizeCheck(component, entry = {}) {
   };
 }
 
+function resolveKagamiOverseerHealth(input) {
+  if (input.kagamiOverseer === null) return null;
+  if (input.kagamiOverseer) return input.kagamiOverseer;
+  if (input.includeKagamiOverseer === true) {
+    return getKagamiHealthSummary({
+      logPath: input.kagamiLedgerPath,
+      now: input.now,
+    });
+  }
+  return null;
+}
+
+function normalizeKagamiCheck(summary = {}) {
+  const state = summary.status === 'ok'
+    ? 'ok'
+    : summary.status === 'fail'
+      ? 'crashed'
+      : 'degraded';
+  return {
+    component: 'kagami-overseer',
+    id: 'kagami-overseer',
+    state,
+    ok: state === 'ok',
+    lane: null,
+    detail: summary.quarantinedLanes?.length
+      ? `quarantined lanes: ${summary.quarantinedLanes.join(', ')}`
+      : '',
+  };
+}
+
 function repairActionFor(check) {
   const base = {
     component: check.component,
@@ -150,4 +189,14 @@ function repairActionFor(check) {
     default:
       return { ...base, action: 'inspect health detail and rerun non-mutating probe' };
   }
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const summary = buildAutomationHealthSummary({ includeKagamiOverseer: true });
+  if (summary.automationHealth.status === 'degraded') {
+    const lanes = summary.automationHealth.kagamiOverseer?.quarantinedLanes || [];
+    process.stdout.write(`YURI_SUPERCHARGE_GATE_WARNING automation:health quarantined=${lanes.join(',')}\n`);
+  }
+  process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
+  process.exit(summary.automationHealth.status === 'fail' ? 1 : 0);
 }

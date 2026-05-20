@@ -17,6 +17,7 @@ test('automation health state classification separates key, 404, timeout, crash,
 
 test('automation summary combines worker, browser, launchd, and calibration checks', () => {
   const summary = buildAutomationHealthSummary({
+    kagamiOverseer: null,
     workerChecks: [
       { id: 'deepseek', ok: true },
       { id: 'nvidia-nemotron', ok: false, stderr: '404 model not found' },
@@ -36,6 +37,7 @@ test('automation summary combines worker, browser, launchd, and calibration chec
 
 test('automation repair plan is non-destructive and state-specific', () => {
   const summary = buildAutomationHealthSummary({
+    kagamiOverseer: null,
     workerChecks: [
       { id: 'nvidia-nemotron', ok: false, stderr: '404 model not found' },
       { id: 'browser-harness', ok: false, error: 'ECONNREFUSED daemon' },
@@ -48,4 +50,20 @@ test('automation repair plan is non-destructive and state-specific', () => {
   assert.match(plan.actions[0].action, /mark lane dead|remap/);
   assert.match(plan.actions[1].action, /restart daemon/);
   assert.equal(plan.actions.some((action) => action.destructive), false);
+});
+
+test('automation summary includes Kagami quarantine evidence when requested', () => {
+  const summary = buildAutomationHealthSummary({
+    kagamiOverseer: {
+      status: 'degraded',
+      ok: true,
+      quarantinedLanes: ['nvidia-glm'],
+      lanes: {},
+    },
+  });
+
+  assert.equal(summary.ok, false);
+  assert.equal(summary.automationHealth.status, 'degraded');
+  assert.equal(summary.counts.degraded, 1);
+  assert.match(summary.checks.at(-1).detail, /nvidia-glm/);
 });

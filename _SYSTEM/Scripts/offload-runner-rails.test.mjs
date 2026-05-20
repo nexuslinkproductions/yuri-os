@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { recordCrash } from './kagami-overseer.mjs';
 
 const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -41,6 +42,7 @@ function isolatedEnv(tmpDir, port, extra = {}) {
     TOKEN_LEDGER_FAULT_DIR: path.join(tmpDir, 'token-faults'),
     TOKEN_LEDGER_VAULT_DIR: path.join(tmpDir, 'token-vault'),
     YURI_NIM_TRANSIENT_INCIDENT_LOG: path.join(tmpDir, 'nim-transient.jsonl'),
+    YURI_KAGAMI_LEDGER_PATH: path.join(tmpDir, 'kagami-ledger.jsonl'),
     ...extra,
   };
 }
@@ -144,6 +146,56 @@ test('offload runner treats user shell blocks as prompt text', { timeout: 10_000
     assert.match(result.stderr, /user shell block treated as prompt text/);
     assert.match(result.stdout, /plain ok/);
     assert.match(receivedPrompt, /echo SHOULD_NOT_RUN/);
+  } finally {
+    server.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload runner substitutes quarantined NIM lanes before dispatch', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-quarantine-'));
+  const logPath = path.join(tmpDir, 'kagami-ledger.jsonl');
+  const base = Date.parse('2026-05-20T12:00:00.000Z');
+  for (let i = 0; i < 3; i += 1) {
+    recordCrash('nvidia-nemotron-120b', {
+      logPath,
+      timestamp: base + i * 1000,
+      reason: 'provider-503',
+      status: 503,
+    });
+  }
+
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk.toString();
+    });
+    req.on('end', () => {
+      const body = JSON.parse(raw || '{}');
+      requests.push(body);
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(jsonChatResponse(body.model, 'substituted ok'));
+    });
+  });
+
+  try {
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    const env = isolatedEnv(tmpDir, port, { YURI_KAGAMI_LEDGER_PATH: logPath });
+    const result = await runOffload(['nvidia-nemotron-120b', 'say ok'], env);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /substituted ok/);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].model, 'nvidia/nemotron-3-nano-30b-a3b');
+    assert.match(result.stderr, /quarantined nvidia-nemotron-120b; substituting nvidia-nemotron-nano-30b/);
   } finally {
     server.close();
     rmSync(tmpDir, { recursive: true, force: true });

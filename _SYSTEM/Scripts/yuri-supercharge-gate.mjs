@@ -16,6 +16,7 @@ const checks = [
   ['syntax:yuri-control-plane', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-control-plane.mjs']],
   ['syntax:memory-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/memory-kernel.mjs']],
   ['syntax:automation-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/automation-kernel.mjs']],
+  ['syntax:kagami-overseer', process.execPath, ['--check', '_SYSTEM/Scripts/kagami-overseer.mjs']],
   ['syntax:shintai-dispatch', process.execPath, ['--check', '_SYSTEM/Scripts/shintai-dispatch.mjs']],
   ['syntax:rick-repl', process.execPath, ['--check', '_SYSTEM/Scripts/rick-repl.mjs']],
   ['test:rails', process.execPath, ['--test', '_SYSTEM/Scripts/rails.test.mjs']],
@@ -23,9 +24,11 @@ const checks = [
   ['test:yuri-control-plane', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-control-plane.test.mjs']],
   ['test:memory-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/memory-kernel.test.mjs']],
   ['test:automation-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/automation-kernel.test.mjs']],
+  ['test:kagami-overseer', process.execPath, ['--test', '_SYSTEM/Scripts/kagami-overseer.test.mjs']],
   ['test:lane-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/lane-kernel.test.mjs']],
   ['test:rick-harness-runtime', process.execPath, ['--test', '_SYSTEM/Scripts/rick-harness-runtime.test.mjs']],
   ['test:offload-runner-rails', process.execPath, ['--test', '_SYSTEM/Scripts/offload-runner-rails.test.mjs']],
+  ['automation:health', process.execPath, ['_SYSTEM/Scripts/automation-kernel.mjs']],
   ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/offload-contract-regression.test.mjs']],
   ['offload:dispatch-drift', process.execPath, ['_SYSTEM/Scripts/offload-contract-dispatch-check.mjs']],
 ];
@@ -53,12 +56,21 @@ const results = checks.map(([name, command, commandArgs]) => {
   };
 });
 
+const warnings = [];
+
 for (const result of results) {
   process.stdout.write(`${result.ok ? 'PASS' : 'FAIL'} ${result.name} ${result.ms}ms\n`);
+  if (result.stdout.includes('YURI_SUPERCHARGE_GATE_WARNING')) {
+    warnings.push(...result.stdout.split('\n').filter((line) => line.includes('YURI_SUPERCHARGE_GATE_WARNING')));
+  }
   if (!result.ok) {
     if (result.stdout) process.stdout.write(result.stdout + '\n');
     if (result.stderr) process.stderr.write(result.stderr + '\n');
   }
+}
+
+for (const warning of warnings) {
+  process.stdout.write(`${warning}\n`);
 }
 
 const ok = results.every((result) => result.ok);

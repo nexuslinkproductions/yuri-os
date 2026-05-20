@@ -1,0 +1,276 @@
+#!/usr/bin/env node
+
+import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { safeRuntimePath } from './lane-kernel.mjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export const REPO_ROOT = path.resolve(__dirname, '../..');
+export const DEFAULT_KAGAMI_LEDGER_PATH = path.join(REPO_ROOT, '_SYSTEM', 'state', 'kagami-ledger.jsonl');
+export const CRASH_WINDOW_MS = 60 * 60 * 1000;
+export const QUARANTINE_THRESHOLD = 3;
+
+export const MODEL_TO_LANE = Object.freeze({
+  'nvidia/nemotron-3-super-120b-a12b': 'nvidia-nemotron-120b',
+  'nvidia/nemotron-3-nano-30b-a3b': 'nvidia-nemotron-nano-30b',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning': 'nvidia-ising',
+  'mistralai/mistral-large-3-675b-instruct-2512': 'nvidia-mistral-large',
+  'mistralai/mistral-medium-3.5-128b': 'nvidia-mistral-medium',
+  'qwen/qwen3-next-80b-a3b-instruct': 'nvidia-qwen3-next',
+  'qwen/qwen3-coder-480b-a35b-instruct': 'nvidia-qwen-coder',
+  'qwen/qwen3.5-397b-a17b': 'nvidia-qwen-397b',
+  'z-ai/glm-5.1': 'nvidia-glm',
+  'openai/gpt-oss-120b': 'nvidia-gpt-oss-120b',
+  'abacusai/dracarys-llama-3.1-70b-instruct': 'nvidia-dracarys',
+  'meta/llama-3.3-70b-instruct': 'nvidia-llama-70b',
+});
+
+const LANE_ALIASES = Object.freeze({
+  nemotron: 'nvidia-nemotron-120b',
+  'nemotron-120b': 'nvidia-nemotron-120b',
+  'nemotron-nano': 'nvidia-nemotron-nano-30b',
+  'nemotron-nano-30b': 'nvidia-nemotron-nano-30b',
+  'mistral-large': 'nvidia-mistral-large',
+  'mistral-medium': 'nvidia-mistral-medium',
+  'qwen-coder': 'nvidia-qwen-coder',
+  'qwen3-next': 'nvidia-qwen3-next',
+  'qwen-397b': 'nvidia-qwen-397b',
+  glm: 'nvidia-glm',
+  codex: 'codex',
+  'gpt-5.5': 'codex',
+  'gpt-5.4': 'codex',
+  'gpt-5.4-mini': 'codex',
+});
+
+const FALLBACK_LANES = Object.freeze({
+  'nvidia-nemotron-120b': ['nvidia-nemotron-nano-30b', 'nvidia-mistral-medium'],
+  'nvidia-nemotron-nano-30b': ['nvidia-mistral-medium'],
+  'nvidia-mistral-large': ['nvidia-mistral-medium'],
+  'nvidia-qwen3-next': ['nvidia-qwen-coder', 'nvidia-mistral-medium'],
+  'nvidia-qwen-397b': ['nvidia-qwen-coder', 'nvidia-mistral-medium'],
+  'nvidia-glm': ['nvidia-mistral-medium'],
+  'nvidia-qwen-coder': ['nvidia-mistral-medium'],
+});
+
+export function resolveKagamiLedgerPath(options = {}) {
+  if (options.logPath) return path.resolve(options.logPath);
+  return safeRuntimePath('YURI_KAGAMI_LEDGER_PATH', DEFAULT_KAGAMI_LEDGER_PATH);
+}
+
+export function canonicalLaneForModel(model) {
+  const key = String(model || '').trim().toLowerCase();
+  return MODEL_TO_LANE[key] || '';
+}
+
+export function normalizeLaneId(value) {
+  const raw = String(value || '').trim().replace(/^@/, '');
+  if (!raw) return '';
+  const lower = raw.toLowerCase();
+  return MODEL_TO_LANE[lower] || LANE_ALIASES[lower] || lower;
+}
+
+export function isQuarantineExemptLane(laneId) {
+  const lane = normalizeLaneId(laneId);
+  return lane === 'codex' || lane.startsWith('gpt-5.');
+}
+
+export function recordCrash(laneId, options = {}) {
+  const lane = normalizeLaneId(laneId);
+  if (!lane) return { ok: false, error: 'missing lane id' };
+
+  const logPath = resolveKagamiLedgerPath(options);
+  if (!logPath) return { ok: false, error: 'unsafe kagami ledger path' };
+
+  const timestamp = numericTimestamp(options.timestamp ?? Date.now());
+  appendLedger(logPath, {
+    event: 'crash',
+    laneId: lane,
+    timestamp,
+    reason: options.reason || '',
+    status: options.status ?? null,
+    error: options.error || '',
+  });
+
+  const state = getQuarantineState({ ...options, logPath, now: timestamp });
+  const laneState = state.lanes[lane] || emptyLaneState(lane);
+  if (!laneState.quarantined && laneState.crashCount >= QUARANTINE_THRESHOLD && !isQuarantineExemptLane(lane)) {
+    appendLedger(logPath, {
+      event: 'quarantine',
+      laneId: lane,
+      timestamp,
+      triggerCount: laneState.crashCount,
+      windowMs: CRASH_WINDOW_MS,
+      reason: options.reason || 'crash-threshold',
+    });
+    return { ok: true, laneId: lane, quarantined: true, crashCount: laneState.crashCount };
+  }
+
+  return { ok: true, laneId: lane, quarantined: laneState.quarantined, crashCount: laneState.crashCount };
+}
+
+export function clearCrashes(laneId, options = {}) {
+  const lane = normalizeLaneId(laneId);
+  if (!lane) return { ok: false, error: 'missing lane id' };
+
+  const logPath = resolveKagamiLedgerPath(options);
+  if (!logPath) return { ok: false, error: 'unsafe kagami ledger path' };
+
+  appendLedger(logPath, {
+    event: 'clear',
+    laneId: lane,
+    timestamp: numericTimestamp(options.timestamp ?? Date.now()),
+    reason: options.reason || 'health-success',
+  });
+  return { ok: true, laneId: lane, quarantined: false, crashCount: 0 };
+}
+
+export function isQuarantined(laneId, options = {}) {
+  const lane = normalizeLaneId(laneId);
+  if (!lane || isQuarantineExemptLane(lane)) return false;
+  const state = getQuarantineState(options);
+  return Boolean(state.lanes[lane]?.quarantined);
+}
+
+export function selectFallbackLane(laneId, options = {}) {
+  const lane = normalizeLaneId(laneId);
+  const candidates = options.candidates || FALLBACK_LANES[lane] || [];
+  for (const candidate of candidates.map(normalizeLaneId)) {
+    if (!candidate || candidate === lane) continue;
+    if (!isQuarantined(candidate, options)) return candidate;
+  }
+  return '';
+}
+
+export function getQuarantineState(options = {}) {
+  const logPath = resolveKagamiLedgerPath(options);
+  const now = numericTimestamp(options.now ?? Date.now());
+  const lanes = {};
+
+  for (const event of readLedger(logPath)) {
+    const lane = normalizeLaneId(event.laneId);
+    if (!lane) continue;
+
+    const state = lanes[lane] || emptyLaneState(lane);
+    lanes[lane] = state;
+    const timestamp = numericTimestamp(event.timestamp ?? Date.parse(event.ts));
+
+    if (event.event === 'clear' || event.event === 'success') {
+      state.crashTimestamps = [];
+      state.quarantined = false;
+      state.lastEvent = event.event;
+      state.lastReason = event.reason || '';
+      state.lastTimestamp = timestamp;
+      continue;
+    }
+
+    if (event.event === 'crash') {
+      state.crashTimestamps.push(timestamp);
+      state.crashTimestamps = state.crashTimestamps.filter((value) => now - value <= CRASH_WINDOW_MS);
+      state.lastEvent = 'crash';
+      state.lastReason = event.reason || event.error || '';
+      state.lastStatus = event.status ?? null;
+      state.lastTimestamp = timestamp;
+      continue;
+    }
+
+    if (event.event === 'quarantine' && !isQuarantineExemptLane(lane)) {
+      state.quarantined = true;
+      state.quarantineReason = event.reason || 'crash-threshold';
+      state.quarantineTimestamp = timestamp;
+      state.lastEvent = 'quarantine';
+      state.lastTimestamp = timestamp;
+    }
+  }
+
+  for (const state of Object.values(lanes)) {
+    state.crashTimestamps = state.crashTimestamps.filter((value) => now - value <= CRASH_WINDOW_MS);
+    state.crashCount = state.crashTimestamps.length;
+    if (isQuarantineExemptLane(state.laneId)) state.quarantined = false;
+  }
+
+  return {
+    ok: true,
+    ledgerPath: logPath,
+    now,
+    windowMs: CRASH_WINDOW_MS,
+    threshold: QUARANTINE_THRESHOLD,
+    lanes,
+  };
+}
+
+export function getHealthSummary(options = {}) {
+  const state = getQuarantineState(options);
+  const quarantinedLanes = Object.values(state.lanes)
+    .filter((lane) => lane.quarantined && !isQuarantineExemptLane(lane.laneId))
+    .map((lane) => lane.laneId)
+    .sort();
+  const codexQuarantined = Boolean(state.lanes.codex?.quarantined);
+  const status = codexQuarantined ? 'fail' : quarantinedLanes.length > 0 ? 'degraded' : 'ok';
+
+  return {
+    ok: status !== 'fail',
+    status,
+    ledgerPath: state.ledgerPath,
+    quarantinedLanes,
+    codexQuarantined,
+    crashWindowMs: state.windowMs,
+    threshold: state.threshold,
+    lanes: state.lanes,
+  };
+}
+
+function appendLedger(logPath, payload) {
+  mkdirSync(path.dirname(logPath), { recursive: true });
+  appendFileSync(logPath, `${JSON.stringify({
+    ts: new Date(payload.timestamp || Date.now()).toISOString(),
+    ...payload,
+  })}\n`);
+}
+
+function readLedger(logPath) {
+  if (!logPath || !existsSync(logPath)) return [];
+  const lines = readFileSync(logPath, 'utf8').split('\n').filter(Boolean);
+  const events = [];
+  for (const line of lines) {
+    try {
+      events.push(JSON.parse(line));
+    } catch {
+      events.push({ event: 'malformed', line });
+    }
+  }
+  return events;
+}
+
+function emptyLaneState(laneId) {
+  return {
+    laneId,
+    crashTimestamps: [],
+    crashCount: 0,
+    quarantined: false,
+    lastEvent: '',
+    lastReason: '',
+    lastStatus: null,
+    lastTimestamp: null,
+    quarantineReason: '',
+    quarantineTimestamp: null,
+  };
+}
+
+function numericTimestamp(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : Date.now();
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const [command, laneId] = process.argv.slice(2);
+  if (command === 'record-crash') {
+    process.stdout.write(`${JSON.stringify(recordCrash(laneId), null, 2)}\n`);
+  } else if (command === 'clear') {
+    process.stdout.write(`${JSON.stringify(clearCrashes(laneId), null, 2)}\n`);
+  } else if (command === 'is-quarantined') {
+    process.stdout.write(`${JSON.stringify({ laneId: normalizeLaneId(laneId), quarantined: isQuarantined(laneId) }, null, 2)}\n`);
+  } else {
+    process.stdout.write(`${JSON.stringify(getHealthSummary(), null, 2)}\n`);
+  }
+}

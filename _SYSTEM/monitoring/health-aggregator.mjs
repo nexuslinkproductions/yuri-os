@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSyn
 import { execFileSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
+import { getHealthSummary as getKagamiHealthSummary } from '../Scripts/kagami-overseer.mjs';
 
 function pad(n) { return String(n || '0').padStart(2, '0'); }
 
@@ -267,9 +268,19 @@ async function readServiceStatus() {
 async function main() {
   const hooksByPhase = { ...HOOKS };
   const launchagents = LAUNCH_AGENTS.map(readLaunchAgent);
+  const kagamiOverseer = getKagamiHealthSummary();
   const result = {
     generated_at: new Date().toISOString(),
     launchagents,
+    automation_health: {
+      kagami_overseer: {
+        status: kagamiOverseer.status,
+        quarantined_lanes: kagamiOverseer.quarantinedLanes,
+        ledger_path: kagamiOverseer.ledgerPath,
+        threshold: kagamiOverseer.threshold,
+        crash_window_ms: kagamiOverseer.crashWindowMs,
+      },
+    },
     state_files: Object.fromEntries(
       Object.entries(STATE_FILES).map(([name, filePath]) => [name, readStateFile(filePath)]),
     ),
@@ -284,6 +295,10 @@ async function main() {
     dream_synthesis: { status: existsSync(path.join(REPO_ROOT, '.claude/yuri-sentinel/learning/synthesis.json')) ? 'ok' : 'fail' },
     worker_bridge: { status: existsSync(path.join(REPO_ROOT, '_SYSTEM/Scripts/worker-bridge.mjs')) ? 'ok' : 'fail' },
     session_buffer: { status: existsSync(path.join('/Users/marcelspatz', '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/session-buffer.json')) ? 'ok' : 'fail' },
+    'kagami-overseer': {
+      status: kagamiOverseer.status === 'ok' ? 'ok' : kagamiOverseer.status === 'fail' ? 'fail' : 'warn',
+      quarantined_lanes: kagamiOverseer.quarantinedLanes,
+    },
   };
 
   mkdirSync(MONITORING_DIR, { recursive: true });

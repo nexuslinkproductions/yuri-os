@@ -11,6 +11,14 @@ import {
   evaluateToolInputRails,
   writeRailViolation,
 } from './rails.mjs';
+import {
+  canonicalLaneForModel,
+  clearCrashes,
+  isQuarantined,
+  normalizeLaneId,
+  recordCrash,
+  selectFallbackLane,
+} from './kagami-overseer.mjs';
 import { appendMemoryEntry } from './memory-kernel.mjs';
 import { YURI_RAILS_CONFIG } from '../kagami/yuri-rails-config.mjs';
 import {
@@ -95,7 +103,7 @@ if (!options.dryRun) {
 }
 
 const localModels = listLocalModels();
-const resolved = resolveLane(lane, options.model, localModels, options.dryRun, options);
+let resolved = resolveLane(lane, options.model, localModels, options.dryRun, options);
 if (options.toolsExplicit) {
   resolved.tools = options.tools;
 }
@@ -116,6 +124,13 @@ if (
 ) {
   console.error(`[${lane}] ${resolved.status}: ${resolved.error}`);
   process.exit(0);
+}
+
+const quarantineSubstitution = maybeSubstituteQuarantinedLane(lane, resolved, options, localModels);
+if (quarantineSubstitution.substituted) {
+  process.stderr.write(`[kagami] quarantined ${quarantineSubstitution.from}; substituting ${quarantineSubstitution.to}\n`);
+  lane = quarantineSubstitution.to;
+  resolved = quarantineSubstitution.resolved;
 }
 
 if (resolved.kind === 'local') {
@@ -211,6 +226,7 @@ function maybeAppendOffloadMemory(text, outputRail) {
 }
 
 async function runCloudChatWithFallback(resolved, promptText, runnerOptions, context) {
+  const baseLaneId = quarantineLaneId(context.lane, resolved);
   const baseOptions = {
     extraHeaders: resolved.extraHeaders,
     maxTokens: resolved.maxTokens,
@@ -226,7 +242,7 @@ async function runCloudChatWithFallback(resolved, promptText, runnerOptions, con
   };
 
   try {
-    return await runOpenAICompatibleChat(
+    const result = await runOpenAICompatibleChat(
       resolved.endpoint,
       resolved.apiKey,
       resolved.model,
@@ -235,8 +251,11 @@ async function runCloudChatWithFallback(resolved, promptText, runnerOptions, con
       resolved.extraBody,
       baseOptions,
     );
+    noteLaneSuccess(baseLaneId);
+    return result;
   } catch (err) {
     const fallbackLane = transientFallbackLaneFor(context.lane);
+    if (isTransientProviderError(err)) noteLaneCrash(baseLaneId, err, 'base-transient-failure');
     if (!isTransientProviderError(err) || !fallbackLane) throw err;
     recordNimTransientIncident({
       lane: context.lane,
@@ -248,23 +267,67 @@ async function runCloudChatWithFallback(resolved, promptText, runnerOptions, con
     });
     context.streamStatusWriter?.(`\x1b[2m[retry] ${context.lane} transient failure; falling back to ${fallbackLane}\x1b[0m\n`);
     const fallback = resolveLane(fallbackLane, '', localModels, false, runnerOptions);
-    return runOpenAICompatibleChat(
-      fallback.endpoint,
-      fallback.apiKey,
-      fallback.model,
-      promptText,
-      runnerOptions.system,
-      fallback.extraBody,
-      {
-        ...baseOptions,
-        extraHeaders: fallback.extraHeaders,
-        maxTokens: fallback.maxTokens,
-        timeout: fallback.timeout,
-        lane: fallbackLane,
-        tools: fallback.tools,
-      },
-    );
+    const fallbackLaneId = quarantineLaneId(fallbackLane, fallback);
+    try {
+      const result = await runOpenAICompatibleChat(
+        fallback.endpoint,
+        fallback.apiKey,
+        fallback.model,
+        promptText,
+        runnerOptions.system,
+        fallback.extraBody,
+        {
+          ...baseOptions,
+          extraHeaders: fallback.extraHeaders,
+          maxTokens: fallback.maxTokens,
+          timeout: fallback.timeout,
+          lane: fallbackLane,
+          tools: fallback.tools,
+        },
+      );
+      noteLaneSuccess(fallbackLaneId);
+      return result;
+    } catch (fallbackError) {
+      if (isTransientProviderError(fallbackError)) noteLaneCrash(fallbackLaneId, fallbackError, 'fallback-transient-failure');
+      throw fallbackError;
+    }
   }
+}
+
+function maybeSubstituteQuarantinedLane(currentLane, currentResolved, runnerOptions, availableLocalModels) {
+  const laneId = quarantineLaneId(currentLane, currentResolved);
+  if (!laneId || !isQuarantined(laneId)) {
+    return { substituted: false, from: laneId, to: '', resolved: currentResolved };
+  }
+  const fallbackLane = selectFallbackLane(laneId);
+  if (!fallbackLane) {
+    return { substituted: false, from: laneId, to: '', resolved: currentResolved };
+  }
+  const fallbackResolved = resolveLane(fallbackLane, '', availableLocalModels, false, runnerOptions);
+  return {
+    substituted: true,
+    from: laneId,
+    to: fallbackLane,
+    resolved: fallbackResolved,
+  };
+}
+
+function quarantineLaneId(laneName, resolvedLane = {}) {
+  return canonicalLaneForModel(resolvedLane.model) || normalizeLaneId(laneName);
+}
+
+function noteLaneCrash(laneId, err, reason) {
+  if (!laneId) return;
+  recordCrash(laneId, {
+    reason,
+    status: err?.httpStatus ?? err?.status ?? null,
+    error: err?.message || '',
+  });
+}
+
+function noteLaneSuccess(laneId) {
+  if (!laneId) return;
+  clearCrashes(laneId, { reason: 'provider-success' });
 }
 
 function transientFallbackLaneFor(laneName) {
@@ -279,7 +342,16 @@ function transientFallbackLaneFor(laneName) {
 }
 
 function isTransientProviderError(err) {
-  return Boolean(err?.transient || [502, 503].includes(Number(err?.httpStatus)));
+  return Boolean(err?.transient || [502, 503].includes(Number(err?.httpStatus)) || isTransientFetchError(err));
+}
+
+function isTransientFetchError(err) {
+  const code = String(err?.cause?.code || err?.code || err?.name || '').toUpperCase();
+  const message = String(err?.message || '').toLowerCase();
+  return (
+    ['UND_ERR_HEADERS_TIMEOUT', 'ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'EAI_AGAIN', 'ABORTERROR'].includes(code) ||
+    /headers timeout|fetch failed|network|socket|timed out|timeout/.test(message)
+  );
 }
 
 function parseArgs(rest) {
@@ -2040,6 +2112,22 @@ async function fetchChatCompletionsWithRetry(url, options = {}) {
 
     try {
       lastResponse = await fetch(url, fetchOpts);
+    } catch (err) {
+      const transientError = decorateTransientFetchError(err);
+      recordNimTransientIncident({
+        lane: options.lane,
+        model: options.model,
+        endpoint: endpointHost(options.endpoint),
+        status: transientError.code || transientError.name || null,
+        attempt,
+        maxAttempts: attempts,
+        iteration: options.iteration,
+        action: attempt >= attempts ? 'throw-fetch-error' : 'retry-fetch-error',
+        error: transientError.message,
+      });
+      if (!transientError.transient || attempt >= attempts) throw transientError;
+      await sleep(retryConfig.backoffMs?.[attempt - 1] ?? 1000);
+      continue;
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
     }
@@ -2062,6 +2150,14 @@ async function fetchChatCompletionsWithRetry(url, options = {}) {
   }
 
   return lastResponse;
+}
+
+function decorateTransientFetchError(err) {
+  if (!isTransientFetchError(err)) return err;
+  err.transient = true;
+  err.httpStatus = err.httpStatus || null;
+  err.code = err.cause?.code || err.code || err.name || 'FETCH_TRANSIENT';
+  return err;
 }
 
 function recordNimTransientIncident(payload = {}) {
