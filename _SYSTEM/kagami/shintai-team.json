@@ -4,7 +4,7 @@
   "team_name_kanji": "神隊",
   "team_name_meaning": "divine unit — kami-coded, paired with Musubi/Kagami vocabulary",
   "createdAt": "2026-05-18T16:00:00.000Z",
-  "updatedAt": "2026-05-20T00:00:00.000Z",
+  "updatedAt": "2026-05-20T17:30:00.000Z",
   "roster_sizing": {
     "trivial": { "members": 1, "note": "single-shot lookups, file reads, trivial fixes" },
     "standard": { "members": 2, "note": "favored minimum for regular work — one specialist + one reviewer" },
@@ -70,6 +70,24 @@
       "lane_id": "nvidia-qwen-coder",
       "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-coder"
     },
+    "qwen-397b": {
+      "model": "qwen/qwen3.5-397b-a17b",
+      "role": "large-reasoning-generalist",
+      "status": "active_nim_lane",
+      "unique_strength": "large Qwen NIM reasoning lane for architecture synthesis, contradiction pressure, and broad code-adjacent audit",
+      "task_fit": ["architecture audit","deep reasoning","synthesis","contradiction check","large context review"],
+      "lane_id": "nvidia-qwen-397b",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-397b"
+    },
+    "nemotron-nano-30b": {
+      "model": "nvidia/nemotron-3-nano-30b-a3b",
+      "role": "fast-reasoning-orchestrator",
+      "status": "active_nim_lane",
+      "unique_strength": "fast Nemotron reasoning lane for triage, guardrail review, and cheaper contradiction checks",
+      "task_fit": ["triage","guardrail audit","routing check","fast reasoning","contradiction check"],
+      "lane_id": "nvidia-nemotron-nano-30b",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-nano-30b"
+    },
     "claude-opus-audit": {
       "model": "claude-opus-4-7",
       "wake_model": "claude-haiku-4-5",
@@ -107,7 +125,7 @@
     "gpt-oss-120b": {
       "model": "openai/gpt-oss-120b",
       "role": "deep-generalist",
-      "status": "dead_nim_lane",
+      "status": "active_nim_lane",
       "unique_strength": "high-capacity 120B — architecture review, complex multi-step reasoning, comprehensive analysis where scale matters",
       "task_fit": ["research","deep analysis","long-horizon","comprehensive review","architecture audit","second opinion"],
       "lane_id": "nvidia-gpt-oss-120b",

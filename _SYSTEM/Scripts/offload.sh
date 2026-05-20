@@ -99,6 +99,12 @@ list_models() {
   echo "NVIDIA hosted lanes:"
   printf '  [%-30s] %s\n' "nvidia-deepseek" "hosted DeepSeek V4 Pro via NVIDIA NIM"
   printf '  [%-30s] %s\n' "deepseek-ai/deepseek-v4-pro" "direct model override for the NVIDIA lane"
+  printf '  [%-30s] %s\n' "nvidia-nemotron-120b" "Nemotron 3 Super 120B A12B"
+  printf '  [%-30s] %s\n' "nvidia-nemotron-nano-30b" "Nemotron 3 Nano 30B A3B"
+  printf '  [%-30s] %s\n' "nvidia-qwen-397b" "Qwen3.5 397B A17B"
+  printf '  [%-30s] %s\n' "nvidia-qwen3.5-397b" "alias → nvidia-qwen-397b"
+  printf '  [%-30s] %s\n' "nvidia-qwen-coder" "Qwen3 Coder 480B A35B"
+  printf '  [%-30s] %s\n' "nvidia-qwen3-next" "Qwen3 Next 80B A3B"
 
   echo
   echo "Additive Ollama lanes:"
@@ -138,7 +144,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -147,7 +153,7 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
       return 0
       ;;
   esac
@@ -322,10 +328,11 @@ dry_run_model_override() {
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$target_model"
         ;;
-      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*)
+      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*)
         case "$target_model" in
           nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
           nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
+          nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b) _nim_model="nvidia/nemotron-3-nano-30b-a3b" ;;
           nvidia-gpt-oss-120b)    _nim_model="openai/gpt-oss-120b" ;;
           nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
           nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
@@ -333,6 +340,7 @@ dry_run_model_override() {
           nvidia-mistral-medium)  _nim_model="mistralai/mistral-medium-3.5-128b" ;;
           nvidia-mistral-large)   _nim_model="mistralai/mistral-large-3-675b-instruct-2512" ;;
           nvidia-qwen)            _nim_model="qwen/qwen3.5-122b-a10b" ;;
+          nvidia-qwen-397b|nvidia-qwen3.5-397b) _nim_model="qwen/qwen3.5-397b-a17b" ;;
           nvidia-qwen-coder)      _nim_model="qwen/qwen3-coder-480b-a35b-instruct" ;;
           nvidia-phi)             _nim_model="microsoft/phi-4" ;;
           nvidia-kimi)            _nim_model="moonshotai/kimi-k2.6" ;;
@@ -459,10 +467,11 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --model "$target_model"
         ;;
-      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*)
+      nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*)
         case "$target_model" in
           nvidia-nemotron)        _nim_model="nvidia/llama-3.1-nemotron-70b-instruct" ;;
           nvidia-nemotron-120b)   _nim_model="nvidia/nemotron-3-super-120b-a12b" ;;
+          nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b) _nim_model="nvidia/nemotron-3-nano-30b-a3b" ;;
           nvidia-gpt-oss-120b)    _nim_model="openai/gpt-oss-120b" ;;
           nvidia-llama-405b)      _nim_model="meta/llama-3.1-405b-instruct" ;;
           nvidia-llama-70b|nvidia) _nim_model="meta/llama-3.3-70b-instruct" ;;
@@ -470,6 +479,7 @@ dispatch_model() {
           nvidia-mistral-medium)  _nim_model="mistralai/mistral-medium-3.5-128b" ;;
           nvidia-mistral-large)   _nim_model="mistralai/mistral-large-3-675b-instruct-2512" ;;
           nvidia-qwen)            _nim_model="qwen/qwen3.5-122b-a10b" ;;
+          nvidia-qwen-397b|nvidia-qwen3.5-397b) _nim_model="qwen/qwen3.5-397b-a17b" ;;
           nvidia-qwen-coder)      _nim_model="qwen/qwen3-coder-480b-a35b-instruct" ;;
           nvidia-phi)             _nim_model="microsoft/phi-4" ;;
           nvidia-kimi)            _nim_model="moonshotai/kimi-k2.6" ;;

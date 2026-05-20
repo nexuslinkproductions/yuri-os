@@ -566,6 +566,14 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       tools: false,
       requiresKey: true,
     },
+    'nvidia-nemotron-nano-30b': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || 'nvidia/nemotron-3-nano-30b-a3b',
+      tools: true,
+      requiresKey: true,
+    },
     'nvidia-gpt-oss-120b': {
       kind: 'cloud',
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
@@ -619,6 +627,14 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
       apiKey: process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'qwen/qwen2.5-72b-instruct',
+      tools: true,
+      requiresKey: true,
+    },
+    'nvidia-qwen-397b': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || 'qwen/qwen3.5-397b-a17b',
       tools: true,
       requiresKey: true,
     },
@@ -1223,7 +1239,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-ising', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-qwen', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-ising', 'nvidia-nemotron-nano-30b', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-qwen', 'nvidia-qwen-397b', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {

@@ -30,11 +30,15 @@ export const ACTIVE_NIM_LANES = Object.freeze([
   'nvidia-mistral-medium',
   'nvidia-mistral-large',
   'nvidia-nemotron-120b',
+  'nvidia-nemotron-nano-30b',
   'nvidia-dracarys',
   'nvidia-glm',
+  'nvidia-gpt-oss-120b',
   'nvidia-ising',
   'nvidia-gemma',
+  'nvidia-kimi',
   'nvidia-qwen-coder',
+  'nvidia-qwen-397b',
   'nvidia-qwen3-next',
   'nvidia-vision',
 ]);
@@ -44,8 +48,6 @@ export const DEAD_NIM_LANES = Object.freeze([
   'nvidia-phi',
   'nvidia-llama-405b',
   'nvidia-embed',
-  'nvidia-gpt-oss-120b',
-  'nvidia-kimi',
 ]);
 
 export const NEMO_STYLE_RAILS = Object.freeze({
@@ -139,6 +141,18 @@ export const LANE_KERNEL = Object.freeze({
     assignment: 'Long-horizon control-plane architecture and NeMo-style rail mapping.',
     tools: FULL_ADVISORY_TOOLS,
   },
+  'nemotron-nano-30b': {
+    id: 'nemotron-nano-30b',
+    lane: 'nvidia-nemotron-nano-30b',
+    model: 'nvidia/nemotron-3-nano-30b-a3b',
+    provider: 'nvidia',
+    role: 'fast-reasoning-orchestrator',
+    reasoning: 'medium',
+    contextTier: 'large',
+    dispatchArgs: ['offload', '--model', 'nvidia-nemotron-nano-30b'],
+    assignment: 'Fast Nemotron reasoning lane for triage, contradiction checks, and lightweight guardrail audits.',
+    tools: FULL_ADVISORY_TOOLS,
+  },
   'mistral-large': {
     id: 'mistral-large',
     lane: 'nvidia-mistral-large',
@@ -173,6 +187,18 @@ export const LANE_KERNEL = Object.freeze({
     contextTier: 'large',
     dispatchArgs: ['offload', '--model', 'nvidia-qwen-coder'],
     assignment: 'Design the minimal refactor path and regression tests for the lane kernel merge.',
+    tools: FULL_ADVISORY_TOOLS,
+  },
+  'qwen-397b': {
+    id: 'qwen-397b',
+    lane: 'nvidia-qwen-397b',
+    model: 'qwen/qwen3.5-397b-a17b',
+    provider: 'nvidia',
+    role: 'large-reasoning-generalist',
+    reasoning: 'high',
+    contextTier: 'huge',
+    dispatchArgs: ['offload', '--model', 'nvidia-qwen-397b'],
+    assignment: 'Large Qwen reasoning lane for broad architecture review, synthesis pressure, and code-adjacent audit.',
     tools: FULL_ADVISORY_TOOLS,
   },
   glm: {

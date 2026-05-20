@@ -29,12 +29,17 @@ test('lane kernel tracks active and dead NIM lanes explicitly', () => {
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-mistral-large'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-coder'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-glm'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-gpt-oss-120b'));
-  assert.ok(DEAD_NIM_LANES.includes('nvidia-kimi'));
+  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-gpt-oss-120b'));
+  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-kimi'));
+  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-397b'));
+  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-nemotron-nano-30b'));
+  assert.ok(DEAD_NIM_LANES.includes('nvidia-llama-405b'));
+  assert.equal(DEAD_NIM_LANES.includes('nvidia-gpt-oss-120b'), false);
+  assert.equal(DEAD_NIM_LANES.includes('nvidia-kimi'), false);
 });
 
 test('Shintai NIM lanes keep tool mode available under YURI rails', () => {
-  for (const id of ['nemotron', 'mistral-large', 'mistral-medium', 'qwen-coder', 'glm', 'qwen3-next']) {
+  for (const id of ['nemotron', 'nemotron-nano-30b', 'mistral-large', 'mistral-medium', 'qwen-coder', 'qwen-397b', 'glm', 'qwen3-next']) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);
     assert.equal(lane.dispatchArgs.includes('--no-tools'), false, `${id} should not force no-tools`);
