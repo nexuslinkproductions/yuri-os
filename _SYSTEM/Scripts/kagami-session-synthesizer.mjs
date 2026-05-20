@@ -61,7 +61,7 @@ async function main() {
 
   // Check if already synthesized today
   if (existsSync(JOURNAL)) {
-    if (readFileSync(JOURNAL, 'utf8').includes(`## ${today}`)) {
+    if (readFileSync(JOURNAL, 'utf8').match(new RegExp(`^## ${today}$`, 'm'))) {
       log('already synthesized today — skip');
       return;
     }
