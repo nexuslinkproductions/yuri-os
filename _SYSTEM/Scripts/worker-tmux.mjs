@@ -55,7 +55,6 @@ function normalizeLaneName(laneName) {
   const base = String(laneName || '').replace(/^@/, '');
   if (base === 'codex-spark') return 'codex';
   if (base === 'deepseek-v4-pro' || base === 'deepseek-v4-flash' || base === 'deepseek') return 'deepseek';
-  if (base === 'amp-deep' || base === 'amp-rush') return 'amp';
   return base;
 }
 

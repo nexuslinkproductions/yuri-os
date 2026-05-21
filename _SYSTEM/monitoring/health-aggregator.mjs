@@ -86,6 +86,21 @@ const STATE_FILES = {
   'scout-errors': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/scout-errors.log',
   'eot-refresh-out': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/eot-refresh.out.log',
   'session-state': '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state/session-state.json',
+  'memory-health': '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/training/state/memory-health.json',
+};
+
+const AGENT_STATE_FILE = {
+  'eot-refresh': 'eot-refresh-out',
+  'lane-health': 'lane-health',
+  'launch-readiness-nightly': 'launch-gate',
+  'neuron-loop': 'neuron-loop',
+  'palace-auto-rebuild': 'palace-rebuild',
+  'task-queue-runner': 'task-queue',
+  'yuri-sentinel': 'yuri-sentinel',
+  'yuri-session-runtime': 'session-state',
+  'kagami-memory-consolidator': 'memory-health',
+  'kagami-stale-memory-scan': 'memory-health',
+  'lane-calibration': 'lane-calibration',
 };
 
 const HOOKS = {
@@ -115,6 +130,56 @@ function statusFor(pid, lastExitStatus) {
   if (lastExitStatus === 0) return 'exited_ok';
   if (lastExitStatus === null) return 'never_run';
   return 'crashed';
+}
+
+function expectedMaxAgeHours(agent) {
+  if (agent.pid !== null) return 0;
+  if (agent.interval_seconds) return Math.max((agent.interval_seconds / 3600) * 2, 0.25);
+  const schedule = String(agent.schedule || '').toLowerCase();
+  if (schedule.includes('on-demand')) return null;
+  if (schedule.includes('daemon')) return 0;
+  if (schedule.includes('weekly')) return 24 * 8;
+  if (schedule.includes('daily') || /\d+am|\d+pm/.test(schedule)) return 36;
+  return null;
+}
+
+function scheduleFreshness(agent) {
+  if (agent.pid !== null) {
+    return {
+      status: 'live',
+      expectation: 'daemon pid live',
+      stale: false,
+      expected_max_age_hours: 0,
+    };
+  }
+  if (!agent.last_run_iso) {
+    return {
+      status: 'unknown',
+      expectation: 'no launchd stdout timestamp',
+      stale: agent.status === 'crashed',
+      expected_max_age_hours: null,
+    };
+  }
+  const maxAgeHours = expectedMaxAgeHours(agent);
+  if (maxAgeHours === null) {
+    return {
+      status: agent.status === 'crashed' ? 'attention' : 'on_demand',
+      expectation: 'on-demand; age is informational',
+      stale: false,
+      expected_max_age_hours: null,
+    };
+  }
+  const ageHours = (Date.now() - new Date(agent.last_run_iso).getTime()) / 36e5;
+  const stale = Number.isFinite(ageHours) && ageHours > maxAgeHours;
+  return {
+    status: stale ? 'missed_window' : 'on_schedule',
+    expectation: stale
+      ? `expected within ${Number(maxAgeHours.toFixed(1))}h`
+      : `within ${Number(maxAgeHours.toFixed(1))}h window`,
+    stale,
+    age_hours: Number.isFinite(ageHours) ? Number(ageHours.toFixed(2)) : null,
+    expected_max_age_hours: Number(maxAgeHours.toFixed(2)),
+  };
 }
 
 function nameFromLabel(label) {
@@ -187,7 +252,7 @@ function readLaunchAgent(entry) {
     } catch { schedule = schedule || 'unknown'; }
   }
 
-  return {
+  const agent = {
     name: nameFromLabel(entry.label),
     label: entry.label,
     pid,
@@ -197,6 +262,18 @@ function readLaunchAgent(entry) {
     schedule,
     last_run_iso,
   };
+  const stateKey = AGENT_STATE_FILE[agent.name] || null;
+  const stateFile = stateKey ? readStateFile(STATE_FILES[stateKey]) : null;
+  agent.timing = {
+    launchd_status: agent.status,
+    pid_alive: pid !== null,
+    last_stdout_mtime_iso: last_run_iso,
+    state_file: stateKey,
+    state_mtime_iso: stateFile?.mtime_iso || null,
+    state_freshness: stateFile?.freshness || null,
+    ...scheduleFreshness(agent),
+  };
+  return agent;
 }
 
 function readStateFile(filePath) {

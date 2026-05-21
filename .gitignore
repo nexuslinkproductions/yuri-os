@@ -103,6 +103,7 @@ _SYSTEM/state/rick-history.jsonl
 _SYSTEM/state/nim-transient-incidents.jsonl
 _SYSTEM/state/memory-ledger.jsonl
 _SYSTEM/state/kagami-ledger.jsonl
+_SYSTEM/training/state/
 _SYSTEM/.claude/
 .amp/
 .claude/state/

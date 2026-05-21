@@ -129,7 +129,7 @@ button { font: inherit; color: inherit; }
 .dot.crashed, .dot.fail, .dot.dead { background: var(--red); }
 .dot.exited_ok, .dot.aging { background: var(--cyan); }
 .dot.never_run, .dot.unknown, .dot.missing { background: var(--grey); }
-.dot.stale { background: var(--amber); }
+.dot.stale, .dot.missed_window, .dot.attention { background: var(--amber); }
 @keyframes pulse-green {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.62; transform: scale(1.15); }
@@ -266,11 +266,11 @@ button { font: inherit; color: inherit; }
   padding: 5px 7px;
   text-transform: uppercase;
 }
-.badge.running, .chip.fresh { background: rgba(71,192,27,0.1); color: var(--green); }
+.badge.running, .badge.live, .badge.on_schedule, .chip.fresh { background: rgba(71,192,27,0.1); color: var(--green); }
 .badge.crashed, .chip.dead, .chip.missing { background: rgba(255,51,51,0.1); color: var(--red); }
 .badge.exited_ok, .chip.aging { background: rgba(26,255,228,0.09); color: var(--cyan); }
 .badge.never_run, .badge.unknown { background: rgba(133,133,168,0.08); color: var(--grey); }
-.chip.stale { background: rgba(255,136,0,0.1); color: var(--amber); }
+.badge.missed_window, .badge.attention, .chip.stale { background: rgba(255,136,0,0.1); color: var(--amber); }
 .table {
   border: 1px solid var(--border);
   border-bottom: 0;
@@ -281,7 +281,7 @@ button { font: inherit; color: inherit; }
   min-width: 760px;
 }
 .agents-table .table-head, .agents-table .data-row {
-  grid-template-columns: 120px minmax(160px,1.4fr) 110px 90px minmax(160px,1fr) 80px;
+  grid-template-columns: 120px minmax(160px,1.35fr) 110px 86px minmax(130px,0.9fr) minmax(145px,1fr) 80px;
 }
 .state-table .table-head, .state-table .data-row {
   grid-template-columns: 4px minmax(170px,1fr) 120px 90px minmax(220px,1.4fr);
@@ -398,8 +398,13 @@ button { font: inherit; color: inherit; }
 const API = 'http://localhost:4242/health.json';
 const STATUS_COLOR = {
   running: '#47C01B',
+  live: '#47C01B',
+  on_schedule: '#47C01B',
   crashed: '#FF3333',
   exited_ok: '#1AFFE4',
+  on_demand: '#1AFFE4',
+  attention: '#FF8800',
+  missed_window: '#FF8800',
   never_run: '#8585A8',
   unknown: '#8585A8'
 };
@@ -469,6 +474,7 @@ function collectIssues(data) {
   const states = Object.entries(data.state_files || {}).map(([name, item]) => ({ name, ...item }));
   return {
     crashed: agents.filter((agent) => agent.status === 'crashed'),
+    staleAgents: agents.filter((agent) => agent.status !== 'crashed' && agent.timing?.stale),
     dead: states.filter((item) => item.freshness === 'dead' || item.freshness === 'missing'),
     stale: states.filter((item) => item.freshness === 'stale'),
     aging: states.filter((item) => item.freshness === 'aging')
@@ -548,6 +554,7 @@ function renderIssues(data) {
   const total = issueCount(data);
   const sectionMap = [
     ['CRASHED', 'crashed', 'status', 'exit'],
+    ['MISSED SCHEDULE', 'staleAgents', 'timing', 'schedule'],
     ['DEAD', 'dead', 'freshness', 'age'],
     ['STALE', 'stale', 'freshness', 'age'],
     ['AGING', 'aging', 'freshness', 'age']
@@ -560,11 +567,14 @@ function renderIssues(data) {
     const list = issues[key];
     if (!list.length) return '';
     const rows = list.map((item) => {
-      const status = type === 'status' ? item.status : item.freshness;
-      const color = type === 'status' ? colorForStatus(status) : colorForFreshness(status);
+      const timingStatus = item.timing?.status || 'unknown';
+      const status = type === 'status' ? item.status : type === 'timing' ? timingStatus : item.freshness;
+      const color = type === 'status' ? colorForStatus(status) : type === 'timing' ? colorForStatus(status) : colorForFreshness(status);
       const detail = detailType === 'exit'
         ? `exit ${item.last_exit_code ?? 'unknown'} · ${fmtTime(item.last_run_iso)}`
-        : `${fmtAge(item.age_hours)} · ${fmtTime(item.mtime_iso)}`;
+        : detailType === 'schedule'
+          ? `${item.timing?.expectation || 'schedule unknown'} · ${fmtAge(item.timing?.age_hours)}`
+          : `${fmtAge(item.age_hours)} · ${fmtTime(item.mtime_iso)}`;
       return `<div class="issue-row">
         <span class="bar" style="background:${color}"></span>
         <span class="name">${escapeHtml(item.name)}</span>
@@ -596,25 +606,31 @@ function renderAgents(data) {
   const rows = (data.launchagents || []).map((agent) => {
     const label = agent.label || agent.name;
     const open = expandedAgents.has(label);
-    const lastRun = relTime(agent.last_run_iso);
+    const timing = agent.timing || {};
+    const timingStatus = timing.status || 'unknown';
+    const activityText = timing.pid_alive ? 'pid live' : relTime(agent.last_run_iso);
+    const stateText = timing.state_freshness ? `${timing.state_file || 'state'} · ${timing.state_freshness}` : '--';
     const row = `<div class="data-row ${escapeHtml(agent.status)}" onclick="toggleAgent('${escapeHtml(label)}')">
       <div class="status-cell"><span class="dot ${escapeHtml(agent.status)}"></span><span>${escapeHtml(agent.status || 'unknown')}</span></div>
       <div class="name">${escapeHtml(agent.name)}</div>
       <div class="tech">${escapeHtml(fmtInterval(agent.interval_seconds, agent.schedule))}</div>
       <div class="tech">${escapeHtml(agent.last_exit_code ?? '--')}</div>
-      <div class="tech" title="${escapeHtml(agent.last_run_iso || '')}">${escapeHtml(lastRun)}</div>
+      <div><span class="badge ${escapeHtml(timingStatus)}">${escapeHtml(timingStatus)}</span></div>
+      <div class="tech" title="${escapeHtml(agent.last_run_iso || '')}">${escapeHtml(activityText)}</div>
       <div class="tech">${escapeHtml(agent.pid ?? '--')}</div>
     </div>`;
     const detail = open ? `<div class="agent-detail">
       <div class="detail-line">label: ${escapeHtml(agent.label)}</div>
       <div class="detail-line">schedule: ${escapeHtml(agent.schedule || fmtInterval(agent.interval_seconds))}</div>
-      <div class="detail-line">last run: ${escapeHtml(fmtTime(agent.last_run_iso))}</div>
+      <div class="detail-line">launchd stdout: ${escapeHtml(fmtTime(timing.last_stdout_mtime_iso || agent.last_run_iso))}</div>
+      <div class="detail-line">state file: ${escapeHtml(stateText)} · ${escapeHtml(fmtTime(timing.state_mtime_iso))}</div>
+      <div class="detail-line">expectation: ${escapeHtml(timing.expectation || 'unknown')}</div>
     </div>` : '';
     return row + detail;
   }).join('');
-  return `${renderHeader('AGENTS', 'LaunchAgent status table. Click a row for full label and timing detail.', data)}
+  return `${renderHeader('AGENTS', 'LaunchAgent status table. Activity, schedule, and state freshness are separated.', data)}
     <div class="table-scroller"><div class="table agents-table">
-      <div class="table-head"><div>status</div><div>name</div><div>interval</div><div>exit</div><div>last-run</div><div>PID</div></div>
+      <div class="table-head"><div>status</div><div>name</div><div>interval</div><div>exit</div><div>schedule</div><div>activity</div><div>PID</div></div>
       ${rows}
     </div></div>`;
 }

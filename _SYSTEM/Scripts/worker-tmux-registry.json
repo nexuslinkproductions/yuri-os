@@ -5,8 +5,7 @@
   "laneStartCommands": {
     "codex": "bash _SYSTEM/Scripts/ai codex",
     "claude": "bash _SYSTEM/Scripts/ai @claude",
-    "deepseek": "bash _SYSTEM/Scripts/ai @deepseek-v4-pro",
-    "amp": "bash _SYSTEM/Scripts/ai @amp"
+    "deepseek": "bash _SYSTEM/Scripts/ai @deepseek-v4-pro"
   },
   "healthConfig": {
     "default": {
@@ -20,10 +19,6 @@
     "deepseek": {
       "healthTimeout": 15000,
       "retryCount": 2
-    },
-    "amp": {
-      "healthTimeout": 15000,
-      "retryCount": 3
     }
   },
   "tuiWorkers": ["codex", "claude"],

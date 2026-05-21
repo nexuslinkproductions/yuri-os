@@ -487,39 +487,9 @@ run_codex_offload() {
 }
 
 run_amp_offload() {
-  local mode="${1:-rush}"
-  shift
-
-  # Mode-hint flags: --deep → GPT-5.5 reasoning, --rush → fast/cheap
-  while [[ "${1:-}" == --* ]]; do
-    case "$1" in
-      --deep) mode="deep"; shift ;;
-      --rush) mode="rush"; shift ;;
-      *) break ;;
-    esac
-  done
-
-  local prompt
-  prompt="$(join_prompt "$@")"
-
-  if [ -z "$prompt" ]; then
-    usage
-    exit 1
-  fi
-
-  if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
-    printf 'amp -x --mode %s --cd %s "[YURI_OS] %s"\n' "$mode" "$ROOT_DIR" "$prompt"
-    return
-  fi
-
-  require_cmd amp
-  # Preamble tells Amp its Yuri OS identity before every headless task.
-  # smart=Opus 4.7 (default, unconstrained), deep=GPT-5.5 (architecture/reasoning), rush=fast (mechanical tasks)
-  local preamble="YURI_OS: You are the Amp parallel implementation lane in the YURI workspace. Read ## Amp in AGENTS.md before acting. Run gitnexus impact before symbol edits. Claude Code is the control plane."
-  # --dangerously-allow-all: safe here — all dispatches are Claude-controlled, internal workspace only
-  exec amp -x --mode "$mode" --no-notifications --no-ide --dangerously-allow-all --cd "$ROOT_DIR" "$preamble
-
-$prompt"
+  shift || true
+  printf 'Amp lane retired: use Codex, Shintai, DeepSeek, or validated NIM lanes instead.\n' >&2
+  return 64
 }
 
 run_offload_lane() {
@@ -1401,11 +1371,7 @@ case "${1:-help}" in
       status=1
     fi
     check_cmd "codex" codex || status=1
-    check_cmd "amp" amp || status=1
-    if command -v amp >/dev/null 2>&1; then
-      _amp_credits="$(amp usage 2>/dev/null | grep -o '\$[0-9.]*' | head -1)"
-      printf 'ok  amp credits -> %s remaining\n' "${_amp_credits:-unknown (run: node Scripts/amp-usage-tracker.mjs)}"
-    fi
+    printf 'skip amp -> retired lane\n'
     if [ -n "${NVIDIA_API_KEY:-}" ]; then
       printf 'ok  nvidia-nim -> key set (%s...)\n' "${NVIDIA_API_KEY:0:12}"
     else
@@ -1646,18 +1612,7 @@ case "${1:-help}" in
     OFFLOAD_PROMPT_TEXT="$(join_prompt "$@")" exec node "$OFFLOAD_RUNNER" "$_nvidia_lane" --tools
     ;;
   @amp|amp-deep|amp-rush)
-    _amp_mode="rush"
-    case "${1:-}" in
-      @amp)     _amp_mode="rush" ;;
-      amp-deep) _amp_mode="deep" ;;
-      amp-rush) _amp_mode="rush" ;;
-    esac
-    shift || true
-    if [ "$#" -eq 0 ]; then
-      usage
-      exit 1
-    fi
-    run_amp_offload "$_amp_mode" "$@"
+    run_amp_offload "$@"
     ;;
   @claude|claude-council)
     shift || true

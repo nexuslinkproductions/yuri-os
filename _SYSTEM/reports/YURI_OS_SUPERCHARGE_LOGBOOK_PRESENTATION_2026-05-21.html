@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en" data-surface="kagami">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YURI OS Supercharge Logbook · 2026-05-21</title>
+  <style>
+    [data-surface="kagami"] {
+      --yuri-kagami-bg-void: #0A0A0A;
+      --yuri-kagami-bg-surface: hsla(0 0% 8% / 0.92);
+      --yuri-kagami-bg-glass: hsla(0 0% 8% / 0.72);
+      --yuri-kagami-accent-hot: #47C01B;
+      --yuri-kagami-accent-cold: #00D4FF;
+      --yuri-kagami-accent-amber: #FF8800;
+      --yuri-kagami-font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+      --yuri-kagami-font-mono: "Geist Mono", "IBM Plex Mono", "JetBrains Mono", monospace;
+      --yuri-kagami-grid-unit: 8px;
+      --yuri-kagami-radius-sm: 10px;
+      --yuri-kagami-radius-md: 16px;
+      --yuri-kagami-radius-lg: 22px;
+      --yuri-kagami-ease-glide: cubic-bezier(0.25, 0.8, 0.5, 1);
+    }
+
+    :root {
+      --yuri-hud-bg-void: hsl(0 0% 0%);
+      --yuri-hud-bg-surface: hsla(0 0% 8% / 0.92);
+      --yuri-hud-bg-glass: hsla(0 0% 8% / 0.72);
+      --yuri-hud-cyan-glow: hsl(96 68% 74%);
+      --yuri-hud-gold-solar: hsl(90 100% 36%);
+      --yuri-hud-red-fusion: hsl(12 84% 58%);
+      --yuri-hud-silver-albedo: hsl(0 0% 97%);
+      --yuri-hud-text-dim: hsl(0 0% 66%);
+      --ink: rgba(245, 247, 238, 0.94);
+      --muted: rgba(245, 247, 238, 0.58);
+      --line: rgba(255,255,255,0.12);
+      --line-strong: rgba(255,255,255,0.22);
+      --panel: rgba(15, 17, 16, 0.78);
+      --panel-quiet: rgba(255,255,255,0.035);
+      --pass: #8FBC8F;
+      --warn: #FFD700;
+      --bad: #FF6B6B;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+        var(--yuri-kagami-bg-void);
+      background-size: 32px 32px;
+      color: var(--ink);
+      font-family: var(--yuri-kagami-font-sans);
+      letter-spacing: 0;
+    }
+
+    a { color: inherit; }
+    .deck {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .rail {
+      border-right: 1px solid var(--line);
+      min-height: 100vh;
+      padding: 18px 14px;
+      position: sticky;
+      top: 0;
+      align-self: start;
+      background: rgba(10,10,10,0.82);
+      backdrop-filter: blur(16px);
+      z-index: 5;
+    }
+    .rail .seal {
+      align-items: center;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      display: grid;
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 26px;
+      height: 56px;
+      justify-items: center;
+      margin: 0 auto 18px;
+      width: 56px;
+      color: var(--yuri-kagami-accent-hot);
+      box-shadow: inset 0 0 24px rgba(71,192,27,0.12), 0 0 28px rgba(71,192,27,0.16);
+    }
+    .rail-label {
+      color: var(--muted);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 10px;
+      line-height: 1.2;
+      margin: 0 auto 26px;
+      text-align: center;
+      writing-mode: vertical-rl;
+    }
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+    .nav a {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 10px;
+      padding: 7px 0;
+      text-align: center;
+      text-decoration: none;
+    }
+    .nav a:hover { color: var(--ink); border-color: var(--yuri-kagami-accent-hot); }
+
+    main {
+      min-width: 0;
+      padding: 28px;
+    }
+    .slide {
+      border-bottom: 1px solid var(--line);
+      min-height: 100vh;
+      padding: 20px 0 34px;
+    }
+    .slide:first-child { padding-top: 0; }
+    .slide-head {
+      align-items: end;
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      margin-bottom: 18px;
+    }
+    .kicker {
+      color: var(--yuri-kagami-accent-amber);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, p { margin: 0; }
+    h1 {
+      font-size: clamp(44px, 7vw, 104px);
+      line-height: 0.88;
+      max-width: 980px;
+    }
+    h2 {
+      font-size: clamp(28px, 4vw, 58px);
+      line-height: 0.96;
+    }
+    h3 {
+      font-size: 16px;
+      line-height: 1.15;
+    }
+    .meta {
+      color: var(--muted);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 11px;
+      line-height: 1.7;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+    .g-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--yuri-kagami-radius-md);
+      min-width: 0;
+      overflow: hidden;
+      padding: 16px;
+      position: relative;
+    }
+    .panel::before {
+      background: linear-gradient(90deg, var(--yuri-kagami-accent-hot), transparent);
+      content: "";
+      height: 1px;
+      left: 0;
+      opacity: 0.55;
+      position: absolute;
+      top: 0;
+      width: 100%;
+    }
+    .hud {
+      background: var(--yuri-hud-bg-glass);
+      border-radius: 4px;
+      font-family: var(--yuri-hud-font-mono);
+    }
+    .body {
+      color: rgba(245, 247, 238, 0.74);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .dense-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .dense-list div {
+      border-left: 2px solid rgba(71,192,27,0.55);
+      color: rgba(245, 247, 238, 0.76);
+      font-size: 13px;
+      line-height: 1.38;
+      padding-left: 10px;
+    }
+    .metric {
+      display: grid;
+      gap: 6px;
+    }
+    .metric strong {
+      color: var(--yuri-kagami-accent-hot);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: clamp(28px, 5vw, 58px);
+      line-height: 0.95;
+    }
+    .metric span {
+      color: var(--muted);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .mirror {
+      align-items: center;
+      display: grid;
+      justify-items: center;
+      min-height: 318px;
+    }
+    .mirror-core {
+      aspect-ratio: 1;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      position: relative;
+      width: min(260px, 80%);
+    }
+    .mirror-core::before, .mirror-core::after {
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 50%;
+      content: "";
+      inset: 18px;
+      position: absolute;
+    }
+    .mirror-core::after {
+      inset: 42px;
+      border-color: rgba(71,192,27,0.38);
+      box-shadow: 0 0 60px rgba(71,192,27,0.14);
+    }
+    .mirror-core span {
+      color: var(--yuri-kagami-accent-hot);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 56px;
+      z-index: 1;
+    }
+    .wave-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .wave {
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--line);
+      border-radius: var(--yuri-kagami-radius-sm);
+      display: grid;
+      gap: 10px;
+      min-height: 128px;
+      padding: 12px;
+    }
+    .wave .id {
+      color: var(--yuri-kagami-accent-cold);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 11px;
+    }
+    .wave .status {
+      align-self: end;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      color: var(--pass);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 10px;
+      justify-self: start;
+      padding: 4px 8px;
+    }
+    .wave.warn .status { color: var(--warn); }
+    .compare {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .compare h3 {
+      color: var(--yuri-kagami-accent-amber);
+      margin-bottom: 12px;
+    }
+    .compare .line {
+      align-items: start;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 118px minmax(0, 1fr);
+      padding: 10px 0;
+    }
+    .tag {
+      color: var(--muted);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    .matrix {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .matrix .cell {
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      min-height: 96px;
+      padding: 12px;
+    }
+    .cell strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .cell span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .roadmap {
+      display: grid;
+      gap: 10px;
+    }
+    .roadmap .step {
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--yuri-kagami-radius-sm);
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 72px minmax(0, 1fr) 120px;
+      padding: 12px;
+    }
+    .step .num {
+      color: var(--yuri-kagami-accent-cold);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 20px;
+    }
+    .step .owner {
+      color: var(--muted);
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 11px;
+      text-align: right;
+    }
+    .footer-seal {
+      align-items: center;
+      color: var(--muted);
+      display: flex;
+      font-family: var(--yuri-kagami-font-mono);
+      font-size: 11px;
+      gap: 10px;
+      justify-content: space-between;
+      margin-top: 18px;
+    }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: 1 / -1; }
+
+    @media (max-width: 980px) {
+      .deck { grid-template-columns: 1fr; }
+      .rail {
+        display: flex;
+        min-height: auto;
+        overflow-x: auto;
+        position: static;
+      }
+      .rail-label { writing-mode: horizontal-tb; margin: 0 12px 0 0; }
+      .nav { display: flex; }
+      .nav a { min-width: 44px; padding: 7px 10px; }
+      main { padding: 18px; }
+      .g-12, .compare, .matrix, .wave-grid { grid-template-columns: 1fr; }
+      .span-3, .span-4, .span-5, .span-6, .span-7, .span-8 { grid-column: 1; }
+      .slide { min-height: auto; }
+      .slide-head { grid-template-columns: 1fr; }
+      .meta { text-align: left; white-space: normal; }
+      .roadmap .step { grid-template-columns: 52px 1fr; }
+      .step .owner { grid-column: 2; text-align: left; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck">
+    <aside class="rail" aria-label="Presentation navigation">
+      <div class="seal">鏡</div>
+      <div class="rail-label">YURI OS · LOGBOOK · 2026</div>
+      <nav class="nav">
+        <a href="#s0">00</a>
+        <a href="#s1">01</a>
+        <a href="#s2">02</a>
+        <a href="#s3">03</a>
+        <a href="#s4">04</a>
+        <a href="#s5">05</a>
+      </nav>
+    </aside>
+    <main>
+      <section class="slide" id="s0">
+        <div class="slide-head">
+          <div>
+            <div class="kicker">神鏡 · Kagami report package</div>
+            <h1>YURI OS Supercharge Logbook</h1>
+          </div>
+          <div class="meta">
+            Claudio / Mike briefing<br>
+            generated 2026-05-21<br>
+            release gate: PASS
+          </div>
+        </div>
+        <div class="grid g-12">
+          <div class="panel mirror span-5">
+            <div class="mirror-core"><span>結</span></div>
+          </div>
+          <div class="panel span-7">
+            <h2>Before: scattered power. After: control plane.</h2>
+            <div class="dense-list">
+              <div>Rick stopped being a terminal facelift and became the operator-facing harness.</div>
+              <div>Shintai moved from guessed squads to Codex-assembled advisory operations with evidence gates.</div>
+              <div>NIM lanes stopped being folklore: live/dead truth moved into lane kernel and release evidence.</div>
+              <div>Guardrails became deterministic code paths inspired by NeMo, not prompt slogans.</div>
+              <div>Memory and automation now have YURI-owned contracts and release-gate proof.</div>
+            </div>
+          </div>
+          <div class="panel hud span-3 metric"><strong>8</strong><span>implementation waves</span></div>
+          <div class="panel hud span-3 metric"><strong>7/8</strong><span>pass, one tracked warn</span></div>
+          <div class="panel hud span-3 metric"><strong>0</strong><span>active Amp routes</span></div>
+          <div class="panel hud span-3 metric"><strong>1</strong><span>release command</span></div>
+        </div>
+      </section>
+
+      <section class="slide" id="s1">
+        <div class="slide-head">
+          <div>
+            <div class="kicker">Before / After · 構造</div>
+            <h2>Functionality changed at the ownership layer.</h2>
+          </div>
+          <div class="meta">source: supercharge final report<br>status: committed baseline</div>
+        </div>
+        <div class="compare">
+          <div class="panel">
+            <h3>Before</h3>
+            <div class="line"><span class="tag">lanes</span><p class="body">Scattered model references across scripts, roster, shell routes, and docs.</p></div>
+            <div class="line"><span class="tag">shintai</span><p class="body">Could look Rick-owned or self-selected; easy to invent squads or stale policy.</p></div>
+            <div class="line"><span class="tag">terminal</span><p class="body">Long turns blanked the chat or corrupted output placement.</p></div>
+            <div class="line"><span class="tag">memory</span><p class="body">Claude-coupled assumptions mixed with YURI runtime memory and lane sessions.</p></div>
+            <div class="line"><span class="tag">automation</span><p class="body">Health existed, but stale files, daemon liveness, and schedule state were blurred.</p></div>
+          </div>
+          <div class="panel">
+            <h3>After</h3>
+            <div class="line"><span class="tag">lanes</span><p class="body">Lane kernel is canonical; active/dead NIM status is explicit and tested.</p></div>
+            <div class="line"><span class="tag">shintai</span><p class="body">Codex/main assembles task-fit advisors through Gate 0 and health preflight.</p></div>
+            <div class="line"><span class="tag">terminal</span><p class="body">Rick uses fixed-bottom input, serialized writer, `/goal`, and release evidence.</p></div>
+            <div class="line"><span class="tag">memory</span><p class="body">YURI memory kernel owns recall/write proposal/promotion boundaries.</p></div>
+            <div class="line"><span class="tag">automation</span><p class="body">Health repair spine exists; command center now separates process, log, state, and schedule truth.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s2">
+        <div class="slide-head">
+          <div>
+            <div class="kicker">Eight waves · 八相</div>
+            <h2>Roadmap executed as a staged control-plane build.</h2>
+          </div>
+          <div class="meta">Wave 2 remains WARN<br>retrieval/output proof tracked</div>
+        </div>
+        <div class="wave-grid">
+          <div class="wave"><div class="id">WAVE 00</div><h3>Evidence Gate</h3><p class="body">Required roster, docs, memory, and NeMo evidence before dispatch.</p><span class="status">PASS</span></div>
+          <div class="wave"><div class="id">WAVE 01</div><h3>Lane Kernel</h3><p class="body">Single source for active/dead lanes and dispatch truth.</p><span class="status">PASS</span></div>
+          <div class="wave warn"><div class="id">WAVE 02</div><h3>Guardrails</h3><p class="body">Input/execution/tool rails landed; retrieval/output proof remains next.</p><span class="status">WARN</span></div>
+          <div class="wave"><div class="id">WAVE 03</div><h3>Shintai Plane</h3><p class="body">Advisory fan-out, critique, synthesis, artifact supersession.</p><span class="status">PASS</span></div>
+          <div class="wave"><div class="id">WAVE 04</div><h3>Memory Kernel</h3><p class="body">YURI-owned memory contracts and recall before dispatch.</p><span class="status">PASS</span></div>
+          <div class="wave"><div class="id">WAVE 05</div><h3>Automation</h3><p class="body">Kagami quarantine, health evidence, explicit repair actions.</p><span class="status">PASS</span></div>
+          <div class="wave"><div class="id">WAVE 06</div><h3>Rick Harness</h3><p class="body">Stable terminal, long-run status, `/goal`, PTY coverage.</p><span class="status">PASS</span></div>
+          <div class="wave"><div class="id">WAVE 07</div><h3>Release Gate</h3><p class="body">One command validates syntax, tests, health, and evidence.</p><span class="status">PASS</span></div>
+        </div>
+      </section>
+
+      <section class="slide" id="s3">
+        <div class="slide-head">
+          <div>
+            <div class="kicker">Rick report · 観察</div>
+            <h2>What worked, what changed, what I noticed.</h2>
+          </div>
+          <div class="meta">voice: mechanism-first<br>mode: evidence over theater</div>
+        </div>
+        <div class="grid g-12">
+          <div class="panel span-4">
+            <h3>Good signals</h3>
+            <div class="dense-list">
+              <div>You pushed against shallow fixes until the system became a harness instead of a theme.</div>
+              <div>The strongest runs happened after evidence gates forced roster, memory, NeMo, and lane truth into the prompt packet.</div>
+              <div>Slow NIM lanes became latency evidence, not fake failures. That changed orchestration quality.</div>
+            </div>
+          </div>
+          <div class="panel span-4">
+            <h3>Failure patterns converted</h3>
+            <div class="dense-list">
+              <div>Blank terminal turns became PTY renderer tests and serialized writer rules.</div>
+              <div>Wrong Shintai assumptions became a neutral dispatch bridge and Codex-assembled council.</div>
+              <div>Dead-lane confusion became lane kernel truth plus health preflight.</div>
+            </div>
+          </div>
+          <div class="panel span-4">
+            <h3>Behavioral lesson</h3>
+            <div class="dense-list">
+              <div>When the system feels magical, it drifts. When it emits evidence, it improves.</div>
+              <div>Do not let persona language become architecture. Contracts, gates, and tests own behavior.</div>
+              <div>Do not collapse logs, state, process, and schedule into one status field.</div>
+            </div>
+          </div>
+          <div class="panel span-12">
+            <div class="matrix">
+              <div class="cell"><strong>Best Shintai output</strong><span>Codex, DeepSeek, and Mistral Medium produced the most direct patch material.</span></div>
+              <div class="cell"><strong>Useful arbitration</strong><span>Claude Opus, Nemotron, Mistral Large, and Qwen3-Next were strong when constrained to audit.</span></div>
+              <div class="cell"><strong>Rejected signal</strong><span>Qwen Coder contamination was correctly treated as reject-stale, not patched blindly.</span></div>
+            </div>
+          </div>
+          <div class="panel span-12">
+            <h3>Skill stack applied</h3>
+            <div class="matrix">
+              <div class="cell"><strong>Domain</strong><span>execution-domain-core set scope, evidence, exit criteria, and allowed mutation surfaces.</span></div>
+              <div class="cell"><strong>Guard</strong><span>non-destructive-infinity-guard kept protected paths sealed and made Amp deletion a deletion-only action.</span></div>
+              <div class="cell"><strong>Evolution</strong><span>failure-evolution-loop turned stale agents and harness failures into regression targets.</span></div>
+              <div class="cell"><strong>Design</strong><span>frontend-design and design-source-pack shaped the Kagami HUD density and briefing posture.</span></div>
+              <div class="cell"><strong>Artifact</strong><span>research-artifact-factory framed reusable doctrine without silently promoting a new skill.</span></div>
+              <div class="cell"><strong>Verification</strong><span>verification-before-completion required fresh command evidence before the seal commit.</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="s4">
+        <div class="slide-head">
+          <div>
+            <div class="kicker">Current repair · 指令室</div>
+            <h2>Automation Command Center now reports separate truths.</h2>
+          </div>
+          <div class="meta">focus: stale agents<br>status: patched in this slice</div>
+        </div>
+        <div class="grid g-12">
+          <div class="panel span-6">
+            <h3>Old failure</h3>
+            <div class="dense-list">
+              <div>Daemon rows showed stale last-run values even while PID was alive.</div>
+              <div>Scheduled jobs, state files, and stdout mtime were collapsed into one operational story.</div>
+              <div>`launch-readiness-nightly`, `lane-memory-prune`, and `ollama-kv` needed different repair semantics.</div>
+            </div>
+          </div>
+          <div class="panel span-6">
+            <h3>New split</h3>
+            <div class="dense-list">
+              <div>Process liveness: PID and launchd status.</div>
+              <div>Last exit: crash or clean completion evidence.</div>
+              <div>Activity: stdout mtime only when relevant.</div>
+              <div>State freshness: state marker age, separate from process health.</div>
+              <div>Schedule expectation: `live`, `on_schedule`, `missed_window`, `on_demand`.</div>
+            </div>
+          </div>
+          <div class="panel hud span-3 metric"><strong>256</strong><span>launch-readiness exit</span></div>
+          <div class="panel hud span-3 metric"><strong>19968</strong><span>lane-prune exit</span></div>
+          <div class="panel hud span-3 metric"><strong>live</strong><span>daemon status class</span></div>
+          <div class="panel hud span-3 metric"><strong>sealed</strong><span>Amp retired</span></div>
+        </div>
+      </section>
+
+      <section class="slide" id="s5">
+        <div class="slide-head">
+          <div>
+            <div class="kicker">Next · 次相</div>
+            <h2>The next roadmap is migration without ownership drift.</h2>
+          </div>
+          <div class="meta">protected surfaces first<br>then full EOT</div>
+        </div>
+        <div class="roadmap">
+          <div class="step"><div class="num">01</div><div><h3>Protected-surface projection</h3><p class="body">Keep raw Claude/backend/secret surfaces sealed. Expose sanitized YURI summaries through wrappers.</p></div><div class="owner">Codex/main</div></div>
+          <div class="step"><div class="num">02</div><div><h3>Memory promotion discipline</h3><p class="body">EOT and Shintai propose memory updates; YURI policy promotes only reviewed, sourced entries.</p></div><div class="owner">MemoryKernel</div></div>
+          <div class="step"><div class="num">03</div><div><h3>Automation repair loop</h3><p class="body">Diagnose launch readiness and lane prune from public scripts, then add non-destructive repair commands.</p></div><div class="owner">AutomationKernel</div></div>
+          <div class="step"><div class="num">04</div><div><h3>Guardrail proof</h3><p class="body">Finish retrieval/output wiring proof so Wave 2 moves from WARN to PASS.</p></div><div class="owner">Rails</div></div>
+          <div class="step"><div class="num">05</div><div><h3>Full EOT</h3><p class="body">After commits are sealed, run full EOT to capture successes, failures, and future system rules.</p></div><div class="owner">Rick + YURI</div></div>
+        </div>
+        <div class="footer-seal">
+          <span>YURI OS / MUSUBI · Kagami report surface</span>
+          <span>source assets: _SYSTEM/reports/assets/yuri-supercharge-2026-05-21/</span>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

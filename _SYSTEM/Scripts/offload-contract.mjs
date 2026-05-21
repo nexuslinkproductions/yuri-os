@@ -23,10 +23,9 @@ const OFFLOAD_CONTRACT = {
   },
   // HARD RULE (2026-05-14): Codex is Claude's permanent implementation co-pilot.
   // Codex (gpt-5.5 / gpt-5.4-mini) is ALWAYS first for implementation tasks.
-  // Amp (@amp) is the parallel impl lane — same tier as Codex, auto-failover on Codex rate-limit.
   // DeepSeek = on-call only when explicitly named or for analysis-only work.
-  // Symbiotic Pulse = Claude (control) + Codex (implementation) + Amp (failover impl) + DeepSeek (analysis on demand).
-  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@amp', '@nvidia', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@swarm', '@kimi', '@deepseek'],
+  // Symbiotic Pulse = Claude (control) + Codex (implementation) + Shintai/NIM/DeepSeek advisory lanes.
+  routingPriority: ['@gpt-5.5', '@gpt-5.4-mini', '@nvidia', '@codex-spark', '@code-local', '@ollama-local', '@triage-local', '@summarize-local', '@gpt-oss', '@swarm', '@kimi', '@deepseek'],
   routingPriorityAnalysis: ['@deepseek-v4-pro', '@deepseek-v4-flash', '@gpt-5.5'],
   universalWorkflow: [
     {
@@ -109,21 +108,6 @@ const OFFLOAD_CONTRACT = {
       dispatchTokens: ['gpt-oss', 'gpt-oss:20b', 'gpt-oss:120b'],
       description: 'Formatting and synthesis lane',
       preferredUsage: ['formatting', 'template generation', 'ui text']
-    },
-    amp: {
-      alias: '@amp',
-      dispatchTokens: ['amp', 'amp-deep', 'amp-rush'],
-      description: 'Amp impl lane — headless amp -x, Codex-parallel failover. smart=Opus 4.7 (300k ctx), deep=GPT-5.5, rush=fast/cheap',
-      envKey: 'AMP_API_KEY',
-      executeFlag: '-x',
-      modes: {
-        smart: { model: 'gpt-5.5', reasoning: 'high', context: 'extended', use: 'unconstrained impl, complex tasks, state-of-the-art work' },
-        deep:  { model: 'gpt-5.5',         context: 'extended', use: 'architecture, extended reasoning, hard problems' },
-        rush:  { model: 'fast',             context: 'standard', use: 'mechanical tasks, well-defined scoped edits' }
-      },
-      defaultMode: 'smart',
-      threadDiscipline: 'one task per thread; start fresh thread when context has failed attempts',
-      preferredUsage: ['complex impl (smart→Opus 4.7)', 'architecture reasoning (deep→GPT-5.5)', 'mechanical edits (rush)', 'Codex rate-limit failover', 'parallel file-isolated subagent work']
     },
     nvidia: {
       alias: '@nvidia',
