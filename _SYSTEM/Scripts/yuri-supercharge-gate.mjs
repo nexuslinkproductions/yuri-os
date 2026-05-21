@@ -1,85 +1,251 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getHealthSummary } from './kagami-overseer.mjs';
+import { canBindLocalhost } from './loopback-capability.mjs';
+import { loadControlPlaneEvidence } from './memory-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '../..');
+export const REPO_ROOT = path.resolve(__dirname, '../..');
+export const RELEASE_GATE_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state', 'release-gate');
+export const RELEASE_EVIDENCE_JSONL = path.join(RELEASE_GATE_DIR, 'automation-evidence.jsonl');
+export const RELEASE_HEALTH_LATEST = path.join(RELEASE_GATE_DIR, 'automation-health-latest.json');
 
-const args = new Set(process.argv.slice(2));
-const includeBrowser = !args.has('--skip-browser');
+export const BASELINE_COMMITS = Object.freeze([
+  'dceb29ae',
+  '5fc2ccbb',
+  '18fc4f93',
+  '8be194c5',
+  'c04ebc11',
+  '50bde010',
+  'ee88dadf',
+]);
 
-const checks = [
-  ['syntax:rails', process.execPath, ['--check', '_SYSTEM/Scripts/rails.mjs']],
-  ['syntax:yuri-rails-config', process.execPath, ['--check', '_SYSTEM/kagami/yuri-rails-config.mjs']],
-  ['syntax:yuri-control-plane', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-control-plane.mjs']],
-  ['syntax:memory-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/memory-kernel.mjs']],
-  ['syntax:automation-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/automation-kernel.mjs']],
-  ['syntax:kagami-overseer', process.execPath, ['--check', '_SYSTEM/Scripts/kagami-overseer.mjs']],
-  ['syntax:health-status', process.execPath, ['--check', '_SYSTEM/Scripts/health-status.mjs']],
-  ['syntax:shintai-dispatch', process.execPath, ['--check', '_SYSTEM/Scripts/shintai-dispatch.mjs']],
-  ['syntax:rick-repl', process.execPath, ['--check', '_SYSTEM/Scripts/rick-repl.mjs']],
-  ['test:rails', process.execPath, ['--test', '_SYSTEM/Scripts/rails.test.mjs']],
-  ['test:yuri-rails-config', process.execPath, ['--test', '_SYSTEM/kagami/yuri-rails-config.test.mjs']],
-  ['test:yuri-control-plane', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-control-plane.test.mjs']],
-  ['test:memory-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/memory-kernel.test.mjs']],
-  ['test:automation-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/automation-kernel.test.mjs']],
-  ['test:kagami-overseer', process.execPath, ['--test', '_SYSTEM/Scripts/kagami-overseer.test.mjs']],
-  ['test:health-status', process.execPath, ['--test', '_SYSTEM/Scripts/health-status.test.mjs']],
-  ['test:lane-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/lane-kernel.test.mjs']],
-  ['test:rick-harness-runtime', process.execPath, ['--test', '_SYSTEM/Scripts/rick-harness-runtime.test.mjs']],
-  ['test:offload-runner-rails', process.execPath, ['--test', '_SYSTEM/Scripts/offload-runner-rails.test.mjs']],
-  ['automation:health', process.execPath, ['_SYSTEM/Scripts/automation-kernel.mjs']],
-  ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/offload-contract-regression.test.mjs']],
-  ['offload:dispatch-drift', process.execPath, ['_SYSTEM/Scripts/offload-contract-dispatch-check.mjs']],
-];
+const NETWORK_DEPENDENT_CHECKS = new Set([
+  'test:rick-harness-runtime',
+  'test:offload-runner-rails',
+  'browser-harness:health',
+]);
 
-if (includeBrowser) {
-  checks.push(['browser-harness:health', 'bash', ['_SYSTEM/Scripts/browser-harness-runner.sh', '--health']]);
+export function buildChecks(options = {}) {
+  const includeBrowser = options.includeBrowser !== false;
+  const checks = [
+    ['syntax:loopback-capability', process.execPath, ['--check', '_SYSTEM/Scripts/loopback-capability.mjs']],
+    ['syntax:rails', process.execPath, ['--check', '_SYSTEM/Scripts/rails.mjs']],
+    ['syntax:yuri-rails-config', process.execPath, ['--check', '_SYSTEM/kagami/yuri-rails-config.mjs']],
+    ['syntax:yuri-control-plane', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-control-plane.mjs']],
+    ['syntax:memory-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/memory-kernel.mjs']],
+    ['syntax:automation-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/automation-kernel.mjs']],
+    ['syntax:kagami-overseer', process.execPath, ['--check', '_SYSTEM/Scripts/kagami-overseer.mjs']],
+    ['syntax:health-status', process.execPath, ['--check', '_SYSTEM/Scripts/health-status.mjs']],
+    ['syntax:yuri-supercharge-gate', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-supercharge-gate.mjs']],
+    ['syntax:yuri-supercharge-report', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-supercharge-report.mjs']],
+    ['syntax:shintai-dispatch', process.execPath, ['--check', '_SYSTEM/Scripts/shintai-dispatch.mjs']],
+    ['syntax:rick-repl', process.execPath, ['--check', '_SYSTEM/Scripts/rick-repl.mjs']],
+    ['test:loopback-capability', process.execPath, ['--test', '_SYSTEM/Scripts/loopback-capability.test.mjs']],
+    ['test:rails', process.execPath, ['--test', '_SYSTEM/Scripts/rails.test.mjs']],
+    ['test:yuri-rails-config', process.execPath, ['--test', '_SYSTEM/kagami/yuri-rails-config.test.mjs']],
+    ['test:yuri-control-plane', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-control-plane.test.mjs']],
+    ['test:memory-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/memory-kernel.test.mjs']],
+    ['test:automation-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/automation-kernel.test.mjs']],
+    ['test:kagami-overseer', process.execPath, ['--test', '_SYSTEM/Scripts/kagami-overseer.test.mjs']],
+    ['test:health-status', process.execPath, ['--test', '_SYSTEM/Scripts/health-status.test.mjs']],
+    ['test:yuri-supercharge-gate', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-supercharge-gate.test.mjs']],
+    ['test:yuri-supercharge-report', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-supercharge-report.test.mjs']],
+    ['test:lane-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/lane-kernel.test.mjs']],
+    ['test:rick-harness-runtime', process.execPath, ['--test', '_SYSTEM/Scripts/rick-harness-runtime.test.mjs']],
+    ['test:offload-runner-rails', process.execPath, ['--test', '_SYSTEM/Scripts/offload-runner-rails.test.mjs']],
+    ['automation:health', process.execPath, ['_SYSTEM/Scripts/automation-kernel.mjs']],
+    ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/offload-contract-regression.test.mjs']],
+    ['offload:dispatch-drift', process.execPath, ['_SYSTEM/Scripts/offload-contract-dispatch-check.mjs']],
+  ];
+
+  if (includeBrowser) {
+    checks.push(['browser-harness:health', 'bash', ['_SYSTEM/Scripts/browser-harness-runner.sh', '--health']]);
+  }
+
+  return checks;
 }
 
-const results = checks.map(([name, command, commandArgs]) => {
-  const started = Date.now();
-  const result = spawnSync(command, commandArgs, {
-    cwd: REPO_ROOT,
-    encoding: 'utf8',
-    timeout: name.startsWith('test:rick') ? 20_000 : 120_000,
-    maxBuffer: 8 * 1024 * 1024,
+export async function runSuperchargeGate(options = {}) {
+  const stream = options.stream || process.stdout;
+  const errorStream = options.errorStream || process.stderr;
+  const loopback = await canBindLocalhost();
+  const checks = buildChecks(options);
+  const results = checks.map(([name, command, commandArgs]) => {
+    if (!loopback.ok && NETWORK_DEPENDENT_CHECKS.has(name)) {
+      return {
+        name,
+        ok: true,
+        skipped: true,
+        status: 0,
+        signal: null,
+        ms: 0,
+        stdout: `[loopback unavailable] ${loopback.code || loopback.error || 'cannot bind 127.0.0.1'}`,
+        stderr: '',
+      };
+    }
+
+    const started = Date.now();
+    const result = spawnSync(command, commandArgs, {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+      timeout: name.startsWith('test:rick') ? 20_000 : 120_000,
+      maxBuffer: 8 * 1024 * 1024,
+    });
+    return {
+      name,
+      ok: result.status === 0,
+      skipped: false,
+      status: result.status,
+      signal: result.signal,
+      ms: Date.now() - started,
+      stdout: tail(result.stdout),
+      stderr: tail(result.stderr || result.error?.message || ''),
+    };
   });
-  return {
-    name,
-    ok: result.status === 0,
+
+  const warnings = [];
+  for (const result of results) {
+    const label = result.skipped ? 'SKIP' : result.ok ? 'PASS' : 'FAIL';
+    stream.write(`${label} ${result.name} ${result.ms}ms\n`);
+    if (result.stdout.includes('YURI_SUPERCHARGE_GATE_WARNING')) {
+      warnings.push(...result.stdout.split('\n').filter((line) => line.includes('YURI_SUPERCHARGE_GATE_WARNING')));
+    }
+    if (!result.ok) {
+      if (result.stdout) stream.write(result.stdout + '\n');
+      if (result.stderr) errorStream.write(result.stderr + '\n');
+    }
+  }
+
+  for (const warning of warnings) {
+    stream.write(`${warning}\n`);
+  }
+
+  const failed = results.filter((result) => !result.ok);
+  const skipped = results.filter((result) => result.skipped);
+  const healthSummary = safeHealthSummary();
+  const gateStatus = failed.length
+    ? 'FAIL'
+    : skipped.length
+      ? 'ENV_BLOCKED'
+      : healthSummary.status === 'degraded'
+        ? 'WARNING'
+        : 'OK';
+  const failReasons = failed.map((result) => ({
+    check: result.name,
     status: result.status,
     signal: result.signal,
-    ms: Date.now() - started,
-    stdout: tail(result.stdout),
-    stderr: tail(result.stderr || result.error?.message || ''),
+    stderr: result.stderr,
+  }));
+  const evidence = buildReleaseEvidence({
+    gateStatus,
+    results,
+    warnings,
+    failReasons,
+    healthSummary,
+    loopback,
+  });
+  writeReleaseEvidence(evidence);
+
+  if (gateStatus === 'FAIL') {
+    stream.write('YURI_SUPERCHARGE_GATE_FAIL\n');
+    return { ok: false, gateStatus, exitCode: 1, results, evidence };
+  }
+  if (gateStatus === 'ENV_BLOCKED') {
+    stream.write('YURI_SUPERCHARGE_GATE_ENV_BLOCKED\n');
+    return { ok: true, gateStatus, exitCode: 0, results, evidence };
+  }
+  if (gateStatus === 'WARNING') {
+    stream.write('YURI_SUPERCHARGE_GATE_WARNING health degraded\n');
+  }
+  stream.write('YURI_SUPERCHARGE_GATE_PASS\n');
+  return { ok: true, gateStatus, exitCode: 0, results, evidence };
+}
+
+export function buildReleaseEvidence({
+  gateStatus,
+  results = [],
+  warnings = [],
+  failReasons = [],
+  healthSummary = safeHealthSummary(),
+  loopback = { ok: true },
+} = {}) {
+  const preflight = loadControlPlaneEvidence();
+  return {
+    schemaVersion: '1.0',
+    generatedAt: new Date().toISOString(),
+    baselineCommits: [...BASELINE_COMMITS],
+    gateStatus,
+    preflightSha256: sha256Stable(preflight.hashes || {}),
+    preflightOk: preflight.ok,
+    healthSummary,
+    loopback,
+    warnings,
+    failReasons,
+    checks: results.map((result) => ({
+      name: result.name,
+      ok: result.ok,
+      skipped: Boolean(result.skipped),
+      status: result.status,
+      signal: result.signal,
+      ms: result.ms,
+    })),
   };
-});
+}
 
-const warnings = [];
+export function writeReleaseEvidence(evidence, options = {}) {
+  const dir = path.resolve(options.dir || RELEASE_GATE_DIR);
+  mkdirSync(dir, { recursive: true });
+  const jsonlPath = path.join(dir, 'automation-evidence.jsonl');
+  const latestPath = path.join(dir, 'automation-health-latest.json');
+  appendFileSync(jsonlPath, `${JSON.stringify(evidence)}\n`);
+  writeFileSync(latestPath, `${JSON.stringify(evidence, null, 2)}\n`);
+  return { jsonlPath, latestPath };
+}
 
-for (const result of results) {
-  process.stdout.write(`${result.ok ? 'PASS' : 'FAIL'} ${result.name} ${result.ms}ms\n`);
-  if (result.stdout.includes('YURI_SUPERCHARGE_GATE_WARNING')) {
-    warnings.push(...result.stdout.split('\n').filter((line) => line.includes('YURI_SUPERCHARGE_GATE_WARNING')));
-  }
-  if (!result.ok) {
-    if (result.stdout) process.stdout.write(result.stdout + '\n');
-    if (result.stderr) process.stderr.write(result.stderr + '\n');
+function safeHealthSummary() {
+  try {
+    return getHealthSummary({ autoUnquarantine: true });
+  } catch (error) {
+    return {
+      ok: false,
+      status: 'fail',
+      error: error?.message || String(error),
+      quarantinedLanes: [],
+      crashCounts: {},
+    };
   }
 }
 
-for (const warning of warnings) {
-  process.stdout.write(`${warning}\n`);
+function sha256Stable(value) {
+  return createHash('sha256').update(stableJson(value)).digest('hex');
 }
 
-const ok = results.every((result) => result.ok);
-process.stdout.write(`${ok ? 'YURI_SUPERCHARGE_GATE_PASS' : 'YURI_SUPERCHARGE_GATE_FAIL'}\n`);
-process.exit(ok ? 0 : 1);
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
 
 function tail(value, max = 4000) {
   const text = String(value || '').trim();
   return text.length > max ? text.slice(-max) : text;
+}
+
+function isCliEntrypoint() {
+  return path.resolve(process.argv[1] || '') === fileURLToPath(import.meta.url);
+}
+
+if (isCliEntrypoint()) {
+  const args = new Set(process.argv.slice(2));
+  const includeBrowser = !args.has('--skip-browser');
+  const result = await runSuperchargeGate({ includeBrowser });
+  process.exit(result.exitCode);
 }

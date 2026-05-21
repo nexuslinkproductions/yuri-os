@@ -4,6 +4,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { allowOnlyIfBindable } from './loopback-capability.mjs';
 
 const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -98,11 +99,24 @@ test('Rick /goal surfaces the current YURI supercharge goal artifact', async () 
   const goal = __test__.goalText();
 
   assert.match(goal, /YURI OS Forensic Supercharge Goal/);
+  assert.match(goal, /Goal checklist:/);
   assert.match(goal, /Task gates:/);
   assert.match(goal, /YURI_OS_FORENSIC_SUPERCHARGE_GOAL_2026-05-20\.md/);
 });
 
-test('offload wrapper streams chat SSE chunks before process close', async () => {
+test('Rick /status returns structured release and health fields', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+  const status = JSON.parse(await __test__.statusText());
+
+  assert.equal(status.session.startsWith('rick-'), true);
+  assert.equal(Array.isArray(status.activeDispatches), true);
+  assert.equal(Array.isArray(status.quarantinedLanes), true);
+  assert.match(status.preflightEvidenceHash, /^[a-f0-9]{64}$/);
+  assert.ok(Object.hasOwn(status, 'lastReleaseGate'));
+});
+
+test('offload wrapper streams chat SSE chunks before process close', async (t) => {
+  if (!(await allowOnlyIfBindable(t))) return;
   const server = http.createServer((req, res) => {
     if (req.method !== 'POST' || req.url !== '/chat/completions') {
       res.writeHead(404);
@@ -232,6 +246,21 @@ test('Shintai guardrails reject hardcoded squad defaults and Rick-owned dispatch
   assert.doesNotMatch(roster, /nvidia-[^"\n]+ --no-tools/);
 });
 
+test('Shintai packet prompts begin with exact Rick persona anchor', async () => {
+  const { buildMemberPrompt, ensureRickPersonaAnchor } = await import('./shintai-dispatch.mjs');
+  const prompt = buildMemberPrompt('audit the harness', {
+    displayName: 'Codex Architect',
+    lane: 'gpt-5.5',
+    reasoningEffort: 'xhigh',
+    skills: [],
+    assignment: 'test',
+    toolPolicy: null,
+  });
+
+  assert.equal(prompt.split('\n').find((line) => line.trim()), 'PERSONA: Rick');
+  assert.equal(ensureRickPersonaAnchor('# Header\n---\nBody').split('\n')[2], 'PERSONA: Rick');
+});
+
 test('Shintai dispatcher does not impose short hardcoded timeouts on large lanes', () => {
   const dispatch = readFileSync(new URL('./shintai-dispatch.mjs', import.meta.url), 'utf8');
 
@@ -239,6 +268,16 @@ test('Shintai dispatcher does not impose short hardcoded timeouts on large lanes
   assert.match(dispatch, /if \(Number\.isFinite\(timeoutMs\) && timeoutMs > 0\) spawnOptions\.timeout = timeoutMs/);
   assert.doesNotMatch(dispatch, /DEFAULT_TIMEOUT_MS\s*=\s*120_000/);
   assert.doesNotMatch(dispatch, /Math\.min\(timeoutMs,\s*(?:90_000|120_000)/);
+});
+
+test('Rick @shintai path delegates full health preflight without hardcoded probe timeouts', () => {
+  const repl = readFileSync(new URL('./rick-repl.mjs', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(repl, /healthProbe/);
+  assert.doesNotMatch(repl, /preflightShintaiHealth/);
+  assert.doesNotMatch(repl, /timeout:\s*(?:90_000|120_000)/);
+  assert.match(repl, /runAdvisory\(buildPrompt/);
+  assert.match(repl, /Shintai health preflight/);
 });
 
 test('Rick renderer preserves cursor when configuring scroll region', () => {
@@ -251,6 +290,7 @@ test('Rick renderer preserves cursor when configuring scroll region', () => {
 });
 
 test('Rick PTY streams two turns in order and restores terminal state', { timeout: 15_000 }, async (t) => {
+  if (!(await allowOnlyIfBindable(t))) return;
   const pythonCheck = spawnSync('python3', ['--version'], {
     cwd: REPO_ROOT,
     encoding: 'utf8',

@@ -43,8 +43,10 @@ const C = {
   reset: '\x1b[0m',
 };
 
+export const RICK_PERSONA_LINE = 'PERSONA: Rick';
 export const RICK_ANCHOR = [
-  'PERSONA: Rick — adversarial ally, mechanism-first, terse, zero preamble, zero "here is" openers.',
+  RICK_PERSONA_LINE,
+  'Mode: adversarial ally, mechanism-first, terse, zero preamble, zero "here is" openers.',
   'Voice: cognitive workflow, not costume. Challenge premise once if broken, then execute.',
   'Vulgarity allowed when it sharpens the work; never aimed at identity/trauma.',
   'Output: facts → ranked options → action. No filler, no recap, no closing summary.',
@@ -336,7 +338,7 @@ export function buildMemberPrompt(task, member, options = {}) {
   const health = options.health ? JSON.stringify(options.health, null, 2) : 'not provided';
   const toolPolicy = member.toolPolicy ? JSON.stringify(member.toolPolicy, null, 2) : 'tool mode allowed when the lane runtime supports it; YURI guardrails still block protected paths, commits, pushes, and destructive actions';
   const rails = JSON.stringify(NEMO_STYLE_RAILS, null, 2);
-  return [
+  return ensureRickPersonaAnchor([
     RICK_ANCHOR,
     '',
     `Member: ${member.displayName}`,
@@ -381,11 +383,11 @@ export function buildMemberPrompt(task, member, options = {}) {
     health,
     '',
     `TASK:\n${task}`,
-  ].filter(Boolean).join('\n');
+  ].filter(Boolean).join('\n'));
 }
 
 function critiquePrompt(task, member, peers) {
-  return [
+  return ensureRickPersonaAnchor([
     RICK_ANCHOR,
     '',
     `Member: ${member.displayName}`,
@@ -396,7 +398,7 @@ function critiquePrompt(task, member, peers) {
     `TASK:\n${task}`,
     '',
     'Return: 3 flaws, 2 required corrections, 1 stronger implementation path, and contradictions with peers.',
-  ].join('\n');
+  ].join('\n'));
 }
 
 function synthesisPrompt(task, proposals, critiques, assembly, options = {}) {
@@ -406,7 +408,7 @@ function synthesisPrompt(task, proposals, critiques, assembly, options = {}) {
   const critiqueBlock = critiques
     .map(({ id, output }) => `### ${id}\n${String(output || '').slice(0, 1800)}`)
     .join('\n\n');
-  return [
+  return ensureRickPersonaAnchor([
     RICK_ANCHOR,
     '',
     'You are the Codex/main orchestrator synthesizing Shintai advisory output. Shintai advises; Codex decides.',
@@ -424,7 +426,24 @@ function synthesisPrompt(task, proposals, critiques, assembly, options = {}) {
     critiqueBlock,
     '',
     'Produce: FINAL_APPROACH, IMPLEMENTATION_GUIDANCE, GUARDRAILS, TESTS, META_AUDIT.',
-  ].join('\n');
+  ].join('\n'));
+}
+
+export function ensureRickPersonaAnchor(packet) {
+  const lines = String(packet || '').split('\n');
+  const firstBodyIndex = lines.findIndex((line) => {
+    const trimmed = line.trim();
+    return trimmed && !trimmed.startsWith('#') && trimmed !== '---';
+  });
+  if (firstBodyIndex === -1) return RICK_PERSONA_LINE;
+  if (lines[firstBodyIndex].trim() === RICK_PERSONA_LINE) return lines.join('\n');
+  if (lines.some((line) => line.trim() === RICK_PERSONA_LINE)) {
+    const withoutDuplicate = lines.filter((line, index) => index === firstBodyIndex || line.trim() !== RICK_PERSONA_LINE);
+    withoutDuplicate.splice(firstBodyIndex, 0, RICK_PERSONA_LINE);
+    return withoutDuplicate.join('\n');
+  }
+  lines.splice(firstBodyIndex, 0, RICK_PERSONA_LINE);
+  return lines.join('\n');
 }
 
 function callArgsForMember(member, prompt) {
@@ -515,6 +534,7 @@ function writeAdvisoryArtifact(payload) {
     payload.evidenceGate ? `Loaded: ${payload.evidenceGate.loadedIds.join(', ')}` : '',
     payload.evidenceGate?.missingIds?.length ? `Missing: ${payload.evidenceGate.missingIds.join(', ')}` : '',
     payload.evidenceGate?.blockedIds?.length ? `Blocked: ${payload.evidenceGate.blockedIds.join(', ')}` : '',
+    payload.auditFailures?.length ? `Audit failures: ${payload.auditFailures.map((entry) => entry.code).join(', ')}` : '',
     payload.evidenceGate ? '' : '',
     '## Assembly',
     '',
@@ -753,6 +773,19 @@ export async function runAdvisory(task, options = {}) {
   const synthMember = assembly.members.find((member) => member.id === 'deepseek') || assembly.members[0];
   const synthesisResult = callMember(synthMember, synthesisPrompt(taskText, proposals, critiques, assembly, { controlPlaneBlock }), timeoutMs);
   const synthesis = synthesisResult.stdout || synthesisResult.stderr || synthesisResult.error || '';
+  const postDispatchPacketValidation = packetEvidence
+    ? validatePacketEvidence(packetEvidence)
+    : { ok: true, reasons: [], checkedAt: new Date().toISOString(), sourceCount: 0 };
+  const auditFailures = postDispatchPacketValidation.ok
+    ? []
+    : [{
+        code: 'evidence_modified_during_council',
+        reasons: postDispatchPacketValidation.reasons,
+        checkedAt: postDispatchPacketValidation.checkedAt,
+      }];
+  if (auditFailures.length) {
+    say(C.warn, `  ⚠ post-dispatch evidence audit failed: ${postDispatchPacketValidation.reasons.join('; ')}`, stream);
+  }
 
   const payload = {
     ok: proposals.some((entry) => entry.result.ok) && Boolean(synthesis),
@@ -766,6 +799,8 @@ export async function runAdvisory(task, options = {}) {
     memoryEvidence,
     packetEvidence,
     packetValidation,
+    postDispatchPacketValidation,
+    auditFailures,
     supersedes: options.supersedes || null,
     artifacts: null,
   };

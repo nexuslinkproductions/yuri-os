@@ -8,13 +8,13 @@
 
 import readline from 'node:readline';
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync, appendFileSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, appendFileSync, readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { printBanner } from './rick-banner.mjs';
 import { healthCheckAll } from './worker-tmux.mjs';
 import { harnessViewport } from './browser-harness-bridge.mjs';
-import { healthProbe } from './offload-contract.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -23,6 +23,10 @@ const AI_SH = path.join(__dirname, 'ai');
 const MEMORY_PATH = path.join(__dirname, 'lane-memory.mjs');
 const HISTORY_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'rick-history.jsonl');
 const GOAL_DOC = path.join(REPO_ROOT, '_SYSTEM', 'docs', 'YURI_OS_FORENSIC_SUPERCHARGE_GOAL_2026-05-20.md');
+const PATCH_WAVES_DOC = path.join(REPO_ROOT, '_SYSTEM', 'docs', 'YURI_OS_SUPERCHARGE_PATCH_WAVES_2026-05-20.md');
+const GOAL_CHECKLIST_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'goal-checklist.json');
+const ADVISORY_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state', 'shintai-advisory');
+const RELEASE_GATE_EVIDENCE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'release-gate', 'automation-evidence.jsonl');
 
 const SESSION_ID = `rick-${Date.now()}`;
 const HISTORY_TTL = 24 * 60 * 60 * 1000;
@@ -86,6 +90,7 @@ const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', 
 
 let shellAutoExecEnabled = true;
 let mem = null;
+const ACTIVE_DISPATCHES = new Map();
 
 function rgb(hex, mode = 'fg') {
   const clean = String(hex).replace('#', '').padStart(6, '0').slice(0, 6);
@@ -302,10 +307,145 @@ function goalText() {
     title,
     '',
     goal,
+    renderGoalChecklist(),
     compactTasks ? '\nTask gates:\n' + compactTasks : '',
+    existsSync(PATCH_WAVES_DOC) ? `\npatch waves: ${PATCH_WAVES_DOC}` : '',
+    latestAdvisoryPath() ? `latest Shintai advisory: ${latestAdvisoryPath()}` : '',
     '',
     `source: ${GOAL_DOC}`,
   ].filter(Boolean).join('\n');
+}
+
+function renderGoalChecklist() {
+  const checklist = loadGoalChecklist();
+  if (!checklist.items.length) return '';
+  const lines = checklist.items.map((item) => {
+    const marker = item.met ? '[✓]' : '[✗]';
+    const detail = item.evidence || item.note || '';
+    return `${marker} ${item.goal}${detail ? ` — ${detail}` : ''}`;
+  });
+  const unmet = checklist.items.filter((item) => !item.met);
+  if (unmet.length) {
+    lines.push(`warning: ${unmet.length} goal item(s) still need verification; see ${GOAL_CHECKLIST_FILE}`);
+  }
+  return `\nGoal checklist:\n${lines.join('\n')}`;
+}
+
+function loadGoalChecklist() {
+  if (!existsSync(GOAL_CHECKLIST_FILE)) return { items: [] };
+  try {
+    const parsed = JSON.parse(readFileSync(GOAL_CHECKLIST_FILE, 'utf8'));
+    return {
+      items: Array.isArray(parsed.items) ? parsed.items : [],
+    };
+  } catch {
+    return { items: [] };
+  }
+}
+
+function latestAdvisoryPath() {
+  if (!existsSync(ADVISORY_DIR)) return '';
+  const files = readdirSync(ADVISORY_DIR)
+    .filter((name) => /^shintai-.*\.md$/.test(name))
+    .map((name) => {
+      const fullPath = path.join(ADVISORY_DIR, name);
+      return { fullPath, mtimeMs: statSync(fullPath).mtimeMs };
+    })
+    .sort((a, b) => b.mtimeMs - a.mtimeMs);
+  return files[0]?.fullPath || '';
+}
+
+async function statusText() {
+  let healthSummary = null;
+  let preflightEvidenceHash = '';
+  try {
+    const { getHealthSummary } = await import('./kagami-overseer.mjs');
+    healthSummary = getHealthSummary({ autoUnquarantine: true });
+  } catch (err) {
+    healthSummary = { ok: false, status: 'fail', error: err?.message || String(err), quarantinedLanes: [], crashCounts: {} };
+  }
+  try {
+    const { loadControlPlaneEvidence } = await import('./memory-kernel.mjs');
+    const evidence = loadControlPlaneEvidence();
+    preflightEvidenceHash = sha256Stable(evidence.hashes || {});
+  } catch {}
+
+  return JSON.stringify({
+    generatedAt: new Date().toISOString(),
+    session: SESSION_ID,
+    activeDispatches: activeDispatchesSnapshot(),
+    healthStatus: healthSummary.status || (healthSummary.ok ? 'ok' : 'fail'),
+    quarantinedLanes: healthSummary.quarantinedLanes || [],
+    crashCounts: healthSummary.crashCounts || {},
+    preflightEvidenceHash,
+    lastReleaseGate: latestReleaseGateEvidence(),
+    latestShintaiAdvisory: latestAdvisoryPath() || null,
+  }, null, 2);
+}
+
+function latestReleaseGateEvidence() {
+  if (!existsSync(RELEASE_GATE_EVIDENCE)) return null;
+  try {
+    const lines = readFileSync(RELEASE_GATE_EVIDENCE, 'utf8').trim().split('\n').filter(Boolean);
+    if (!lines.length) return null;
+    const latest = JSON.parse(lines[lines.length - 1]);
+    return {
+      generatedAt: latest.generatedAt || '',
+      gateStatus: latest.gateStatus || '',
+      preflightSha256: latest.preflightSha256 || '',
+      path: RELEASE_GATE_EVIDENCE,
+    };
+  } catch {
+    return {
+      gateStatus: 'unreadable',
+      path: RELEASE_GATE_EVIDENCE,
+    };
+  }
+}
+
+function sha256Stable(value) {
+  return createHash('sha256').update(stableJson(value)).digest('hex');
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function activeDispatchesSnapshot() {
+  return Array.from(ACTIVE_DISPATCHES.values()).map((entry) => ({
+    ...entry,
+    elapsedMs: Date.now() - entry.startedAt,
+  }));
+}
+
+function startDispatchRecord(lane, label, state = 'waiting') {
+  const id = `${lane}-${Date.now()}-${ACTIVE_DISPATCHES.size + 1}`;
+  ACTIVE_DISPATCHES.set(id, {
+    id,
+    lane,
+    label,
+    state,
+    startedAt: Date.now(),
+    chars: 0,
+  });
+  return id;
+}
+
+function updateDispatchRecord(id, patch = {}) {
+  if (!ACTIVE_DISPATCHES.has(id)) return;
+  ACTIVE_DISPATCHES.set(id, {
+    ...ACTIVE_DISPATCHES.get(id),
+    ...patch,
+    updatedAt: Date.now(),
+  });
+}
+
+function finishDispatchRecord(id) {
+  ACTIVE_DISPATCHES.delete(id);
 }
 
 function extractBashBlocks(text) {
@@ -717,6 +857,7 @@ function streamLane(ui, lane, prompt, label) {
     let settled = false;
     let firstTokenAt = null;
     const startedAt = Date.now();
+    const dispatchId = startDispatchRecord(lane, label, 'connecting');
     ui.appendDispatch(`${lane} dispatched`);
     ui.markActivity('connecting to lane');
     const stream = ui.beginRickStream();
@@ -728,6 +869,7 @@ function streamLane(ui, lane, prompt, label) {
 
     const firstTokenWatch = setTimeout(() => {
       if (!firstTokenAt && !settled) {
+        updateDispatchRecord(dispatchId, { state: 'waiting_first_token' });
         ui.markActivity(`waiting for first token from ${label}`);
       }
     }, 900);
@@ -736,8 +878,10 @@ function streamLane(ui, lane, prompt, label) {
       if (settled) return;
       const elapsed = formatDuration(Date.now() - startedAt);
       if (firstTokenAt) {
+        updateDispatchRecord(dispatchId, { state: 'streaming', chars: out.length });
         ui.markActivity(`streaming ${formatTokenCount(out.length)} chars`);
       } else {
+        updateDispatchRecord(dispatchId, { state: 'waiting_first_token' });
         ui.markActivity(`waiting for ${label} · ${elapsed}`);
       }
     }, 1000);
@@ -746,9 +890,11 @@ function streamLane(ui, lane, prompt, label) {
       const text = data.toString();
       if (!firstTokenAt && text) {
         firstTokenAt = Date.now();
+        updateDispatchRecord(dispatchId, { state: 'first_token', firstTokenMs: firstTokenAt - startedAt });
         ui.markActivity(`first token ${formatDuration(firstTokenAt - startedAt)}`);
       }
       out += text;
+      updateDispatchRecord(dispatchId, { state: 'streaming', chars: out.length });
       stream.append(text);
     });
 
@@ -765,13 +911,16 @@ function streamLane(ui, lane, prompt, label) {
 
     child.on('error', (err) => {
       settled = true;
+      updateDispatchRecord(dispatchId, { state: 'start_error', error: err.message });
       clearTimeout(firstTokenWatch);
       clearInterval(heartbeat);
       ui.appendError(`${label} failed to start: ${err.message}`);
+      finishDispatchRecord(dispatchId);
     });
 
     child.on('close', (code, signal) => {
       settled = true;
+      updateDispatchRecord(dispatchId, { state: code === 0 ? 'done' : 'failed', status: code, signal, chars: out.length });
       clearTimeout(firstTokenWatch);
       clearInterval(heartbeat);
       stream.finish();
@@ -781,6 +930,7 @@ function streamLane(ui, lane, prompt, label) {
       } else if (!out.trim()) {
         ui.appendError(`${label} lane returned no visible output`);
       }
+      finishDispatchRecord(dispatchId);
       resolve(out.trim());
     });
   });
@@ -843,31 +993,6 @@ async function handleBrowser(ui, script) {
   return output;
 }
 
-async function preflightShintaiHealth() {
-  const targets = [
-    { id: 'codex', lane: 'gpt-5.5', timeout: 90_000 },
-    { id: 'deepseek', lane: '@deepseek-v4-pro', timeout: 90_000 },
-    { id: 'nemotron', lane: '@nvidia-nemotron-120b', timeout: 90_000 },
-    { id: 'kimi', lane: '@kimi', timeout: 120_000 },
-    { id: 'qwen3-next', lane: '@nvidia-qwen3-next', timeout: 120_000 },
-  ];
-  const preflight = [];
-  for (const target of targets) {
-    const result = await healthProbe(target.lane, { timeoutMs: target.timeout });
-    preflight.push({
-      id: target.id,
-      lane: target.lane,
-      ok: Boolean(result.ok),
-      status: result.ok ? 0 : 1,
-      durationMs: result.ms ?? null,
-      stdout: result.pong || '',
-      stderr: result.error || '',
-      error: result.error || null,
-    });
-  }
-  return preflight;
-}
-
 async function handleInput(ui, input, history) {
   const [memories, historyCtx] = await Promise.all([
     recallMemory(input),
@@ -881,29 +1006,28 @@ async function handleInput(ui, input, history) {
     const task = input.replace(/@shintai/gi, '').trim() || input;
     ui.appendDispatch('@shintai advisory dispatched');
     ui.setLane('@shintai');
-    const { assembleShintaiTeam, loadShintaiRoster, runAdvisory } = await import('./shintai-dispatch.mjs');
+    const dispatchId = startDispatchRecord('@shintai', 'Shintai advisory', 'Gate 0');
+    const { runAdvisory } = await import('./shintai-dispatch.mjs');
     const stream = {
       write(chunk) {
         const text = normalizeText(chunk).trimEnd();
-        if (text) ui.appendSystem(text);
+        if (!text) return;
+        updateShintaiPhaseStatus(ui, text);
+        updateDispatchRecord(dispatchId, { state: stripAnsi(text).split('\n').at(-1)?.slice(0, 80) || 'running' });
+        ui.appendSystem(text);
       },
     };
     ui.markActivity('loading YURI control-plane Gate 0');
-    ui.markActivity('preflighting Shintai roster');
-    const availableHealth = await preflightShintaiHealth();
-    const roster = loadShintaiRoster();
-    const assembly = assembleShintaiTeam(task, roster, availableHealth);
-    for (const skipped of assembly.skipped.filter((entry) => entry.health && !entry.health.ok)) {
-      const lane = skipped.lane || skipped.member?.lane;
-      ui.appendSystem(`Shintai skipped ${skipped.id}${lane ? ` (${lane})` : ''}: ${skipped.health.stderr || skipped.health.reason || 'unhealthy'}`);
+    let result;
+    try {
+      result = await runAdvisory(buildPrompt(task, historyCtx, memories), {
+        stream,
+      });
+    } catch (err) {
+      result = { ok: false, error: err?.message || String(err) };
+    } finally {
+      finishDispatchRecord(dispatchId);
     }
-    ui.appendSystem(`Shintai assembled ${assembly.selected.length}/${assembly.targetSize}: ${assembly.selected.map((entry) => entry.displayName || entry.role).join(', ')}`);
-    const result = await runAdvisory(buildPrompt(task, historyCtx, memories), {
-      stream,
-      squad: assembly.selected,
-      assembly,
-      availableHealth,
-    });
     if (!result.ok) {
       ui.appendError(result.error || 'Shintai advisory failed');
       if (result.health) ui.appendSystem(JSON.stringify(result.health, null, 2));
@@ -951,11 +1075,23 @@ async function handleInput(ui, input, history) {
   await writeMemory(input, response);
 }
 
+function updateShintaiPhaseStatus(ui, text) {
+  const clean = stripAnsi(text).toLowerCase();
+  if (clean.includes('yuri control-plane gate 0')) ui.markActivity('Shintai Gate 0 evidence');
+  else if (clean.includes('shintai health preflight')) ui.markActivity('Shintai health preflight');
+  else if (clean.includes('shintai advisory: fan-out')) ui.markActivity('Shintai fan-out');
+  else if (clean.includes('shintai advisory: critique')) ui.markActivity('Shintai critique');
+  else if (clean.includes('shintai advisory: synthesis')) ui.markActivity('Shintai synthesis');
+  else if (clean.includes('advisory saved')) ui.markActivity('Shintai artifact saved');
+  else if (/^\s*[✓⚠]\s+/.test(stripAnsi(text))) ui.markActivity(stripAnsi(text).replace(/^\s*[✓⚠]\s+/, '').slice(0, 64));
+}
+
 function helpText() {
   return [
     'Rick harness commands:',
     '/help                  show this surface',
     '/goal                  show current YURI supercharge goal',
+    '/status                show Kagami lane health and latest Shintai artifact',
     '/clear                 clear Rick prompt history',
     '/noexec [on|off]       toggle shell-block auto-exec',
     '/health                run worker PONG health checks',
@@ -982,11 +1118,6 @@ async function main() {
     const input = String(rawValue ?? '').trim();
     if (!input) return;
 
-    if (busy) {
-      ui.appendSystem('Rick is still processing the previous turn.');
-      return;
-    }
-
     if (input === '/help') {
       ui.appendSystem(helpText());
       return;
@@ -1000,6 +1131,16 @@ async function main() {
 
     if (input === '/goal') {
       ui.appendSystem(goalText());
+      return;
+    }
+
+    if (input === '/status') {
+      ui.appendSystem(await statusText());
+      return;
+    }
+
+    if (busy) {
+      ui.appendSystem('Rick is still processing the previous turn. /status and /goal stay available.');
       return;
     }
 
@@ -1108,6 +1249,7 @@ export const __test__ = {
   formatDuration,
   guardShellCommand,
   goalText,
+  statusText,
   normalizeText,
 };
 

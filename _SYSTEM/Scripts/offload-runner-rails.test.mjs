@@ -7,6 +7,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { recordCrash } from './kagami-overseer.mjs';
+import { allowOnlyIfBindable } from './loopback-capability.mjs';
 
 const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -60,7 +61,8 @@ function jsonChatResponse(model, content) {
   });
 }
 
-test('offload runner retries transient NIM failures then falls back to nano Nemotron', { timeout: 15_000 }, async () => {
+test('offload runner retries transient NIM failures then falls back to nano Nemotron', { timeout: 15_000 }, async (t) => {
+  if (!(await allowOnlyIfBindable(t))) return;
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-rails-'));
   const requests = [];
   const server = http.createServer((req, res) => {
@@ -140,7 +142,8 @@ test('offload runner aborts quarantined lanes when no healthy fallback is availa
   }
 });
 
-test('offload runner treats user shell blocks as prompt text', { timeout: 10_000 }, async () => {
+test('offload runner treats user shell blocks as prompt text', { timeout: 10_000 }, async (t) => {
+  if (!(await allowOnlyIfBindable(t))) return;
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-input-rails-'));
   let receivedPrompt = '';
   const server = http.createServer((req, res) => {
@@ -184,7 +187,8 @@ test('offload runner treats user shell blocks as prompt text', { timeout: 10_000
   }
 });
 
-test('offload runner substitutes quarantined NIM lanes before dispatch', { timeout: 10_000 }, async () => {
+test('offload runner substitutes quarantined NIM lanes before dispatch', { timeout: 10_000 }, async (t) => {
+  if (!(await allowOnlyIfBindable(t))) return;
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-quarantine-'));
   const logPath = path.join(tmpDir, 'kagami-ledger.jsonl');
   const base = Date.parse('2026-05-20T12:00:00.000Z');
