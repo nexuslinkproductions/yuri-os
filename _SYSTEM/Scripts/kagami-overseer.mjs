@@ -10,6 +10,7 @@ export const REPO_ROOT = path.resolve(__dirname, '../..');
 export const DEFAULT_KAGAMI_LEDGER_PATH = path.join(REPO_ROOT, '_SYSTEM', 'state', 'kagami-ledger.jsonl');
 export const CRASH_WINDOW_MS = 60 * 60 * 1000;
 export const QUARANTINE_THRESHOLD = 3;
+export const AUTO_UNQUARANTINE_MS = 120 * 60 * 1000;
 
 export const MODEL_TO_LANE = Object.freeze({
   'nvidia/nemotron-3-super-120b-a12b': 'nvidia-nemotron-120b',
@@ -83,6 +84,7 @@ export function recordCrash(laneId, options = {}) {
   if (!logPath) return { ok: false, error: 'unsafe kagami ledger path' };
 
   const timestamp = numericTimestamp(options.timestamp ?? Date.now());
+  unquarantineIfStale({ ...options, logPath, now: timestamp });
   appendLedger(logPath, {
     event: 'crash',
     laneId: lane,
@@ -125,6 +127,46 @@ export function clearCrashes(laneId, options = {}) {
   return { ok: true, laneId: lane, quarantined: false, crashCount: 0 };
 }
 
+export function recordEscalation(laneId, options = {}) {
+  const lane = normalizeLaneId(laneId || 'system');
+  const logPath = resolveKagamiLedgerPath(options);
+  if (!logPath) return { ok: false, error: 'unsafe kagami ledger path' };
+  const timestamp = numericTimestamp(options.timestamp ?? Date.now());
+  appendLedger(logPath, {
+    event: 'escalation',
+    laneId: lane,
+    timestamp,
+    code: options.code || 'ESCALATION',
+    reason: options.reason || '',
+    candidates: Array.isArray(options.candidates) ? options.candidates.map(normalizeLaneId) : [],
+  });
+  return { ok: true, laneId: lane, code: options.code || 'ESCALATION' };
+}
+
+export function unquarantineIfStale(options = {}) {
+  const logPath = resolveKagamiLedgerPath(options);
+  if (!logPath) return { ok: false, error: 'unsafe kagami ledger path', unquarantined: [] };
+  const now = numericTimestamp(options.now ?? Date.now());
+  const state = getQuarantineState({ ...options, logPath, now, autoUnquarantine: false });
+  const unquarantined = [];
+
+  for (const laneState of Object.values(state.lanes)) {
+    if (!laneState.quarantined || isQuarantineExemptLane(laneState.laneId)) continue;
+    const lastCrash = laneState.lastCrashTimestamp || laneState.quarantineTimestamp || 0;
+    if (!lastCrash || now - lastCrash <= AUTO_UNQUARANTINE_MS) continue;
+    appendLedger(logPath, {
+      event: 'unquarantine',
+      laneId: laneState.laneId,
+      timestamp: now,
+      reason: 'stale-quarantine-window-elapsed',
+      previousLastCrashTimestamp: lastCrash,
+    });
+    unquarantined.push(laneState.laneId);
+  }
+
+  return { ok: true, logPath, unquarantined };
+}
+
 export function isQuarantined(laneId, options = {}) {
   const lane = normalizeLaneId(laneId);
   if (!lane || isQuarantineExemptLane(lane)) return false;
@@ -155,7 +197,7 @@ export function getQuarantineState(options = {}) {
     lanes[lane] = state;
     const timestamp = numericTimestamp(event.timestamp ?? Date.parse(event.ts));
 
-    if (event.event === 'clear' || event.event === 'success') {
+    if (event.event === 'clear' || event.event === 'success' || event.event === 'unquarantine') {
       state.crashTimestamps = [];
       state.quarantined = false;
       state.lastEvent = event.event;
@@ -171,6 +213,7 @@ export function getQuarantineState(options = {}) {
       state.lastReason = event.reason || event.error || '';
       state.lastStatus = event.status ?? null;
       state.lastTimestamp = timestamp;
+      state.lastCrashTimestamp = timestamp;
       continue;
     }
 
@@ -200,6 +243,7 @@ export function getQuarantineState(options = {}) {
 }
 
 export function getHealthSummary(options = {}) {
+  if (options.autoUnquarantine === true) unquarantineIfStale(options);
   const state = getQuarantineState(options);
   const quarantinedLanes = Object.values(state.lanes)
     .filter((lane) => lane.quarantined && !isQuarantineExemptLane(lane.laneId))
@@ -207,6 +251,12 @@ export function getHealthSummary(options = {}) {
     .sort();
   const codexQuarantined = Boolean(state.lanes.codex?.quarantined);
   const status = codexQuarantined ? 'fail' : quarantinedLanes.length > 0 ? 'degraded' : 'ok';
+  const crashCounts = Object.fromEntries(Object.values(state.lanes).map((lane) => [lane.laneId, lane.crashCount]));
+  const lastCrashes = Object.fromEntries(
+    Object.values(state.lanes)
+      .filter((lane) => lane.lastCrashTimestamp)
+      .map((lane) => [lane.laneId, lane.lastCrashTimestamp]),
+  );
 
   return {
     ok: status !== 'fail',
@@ -215,7 +265,10 @@ export function getHealthSummary(options = {}) {
     quarantinedLanes,
     codexQuarantined,
     crashWindowMs: state.windowMs,
+    autoUnquarantineMs: AUTO_UNQUARANTINE_MS,
     threshold: state.threshold,
+    crashCounts,
+    lastCrashes,
     lanes: state.lanes,
   };
 }
@@ -254,6 +307,7 @@ function emptyLaneState(laneId) {
     lastTimestamp: null,
     quarantineReason: '',
     quarantineTimestamp: null,
+    lastCrashTimestamp: null,
   };
 }
 
@@ -268,8 +322,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     process.stdout.write(`${JSON.stringify(recordCrash(laneId), null, 2)}\n`);
   } else if (command === 'clear') {
     process.stdout.write(`${JSON.stringify(clearCrashes(laneId), null, 2)}\n`);
+  } else if (command === 'record-escalation') {
+    process.stdout.write(`${JSON.stringify(recordEscalation(laneId, { code: process.argv[4] || 'ESCALATION' }), null, 2)}\n`);
   } else if (command === 'is-quarantined') {
     process.stdout.write(`${JSON.stringify({ laneId: normalizeLaneId(laneId), quarantined: isQuarantined(laneId) }, null, 2)}\n`);
+  } else if (command === 'unquarantine-stale') {
+    process.stdout.write(`${JSON.stringify(unquarantineIfStale({ autoUnquarantine: true }), null, 2)}\n`);
   } else {
     process.stdout.write(`${JSON.stringify(getHealthSummary(), null, 2)}\n`);
   }

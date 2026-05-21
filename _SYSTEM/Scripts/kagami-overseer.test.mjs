@@ -9,6 +9,7 @@ import {
   getHealthSummary,
   isQuarantined,
   recordCrash,
+  recordEscalation,
   selectFallbackLane,
 } from './kagami-overseer.mjs';
 
@@ -82,4 +83,30 @@ test('fallback selection skips quarantined candidates and model slugs normalize 
 
   assert.equal(canonicalLaneForModel('nvidia/nemotron-3-super-120b-a12b'), 'nvidia-nemotron-120b');
   assert.equal(selectFallbackLane('nvidia-nemotron-120b', { logPath, now: base + 4000 }), 'nvidia-mistral-medium');
+}));
+
+test('auto-unquarantine clears stale quarantine only when requested', () => withLedger((logPath) => {
+  const base = Date.parse('2026-05-20T12:00:00.000Z');
+  for (let i = 0; i < 3; i += 1) {
+    recordCrash('nvidia-glm', { logPath, timestamp: base + i * 1000, reason: 'provider-503' });
+  }
+
+  assert.equal(isQuarantined('nvidia-glm', { logPath, now: base + 121 * 60 * 1000 }), true);
+  const summary = getHealthSummary({ logPath, now: base + 121 * 60 * 1000, autoUnquarantine: true });
+  assert.equal(summary.quarantinedLanes.includes('nvidia-glm'), false);
+  assert.match(readFileSync(logPath, 'utf8'), /"event":"unquarantine"/);
+}));
+
+test('escalations are appended as explicit evidence', () => withLedger((logPath) => {
+  const result = recordEscalation('nvidia-nemotron-120b', {
+    logPath,
+    timestamp: Date.parse('2026-05-20T12:00:00.000Z'),
+    code: 'NO_HEALTHY_LANE_FOR_TASK',
+    candidates: ['nvidia-nemotron-nano-30b', 'nvidia-mistral-medium'],
+  });
+
+  assert.equal(result.ok, true);
+  const ledger = readFileSync(logPath, 'utf8');
+  assert.match(ledger, /"event":"escalation"/);
+  assert.match(ledger, /NO_HEALTHY_LANE_FOR_TASK/);
 }));

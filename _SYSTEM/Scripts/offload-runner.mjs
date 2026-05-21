@@ -17,6 +17,7 @@ import {
   isQuarantined,
   normalizeLaneId,
   recordCrash,
+  recordEscalation,
   selectFallbackLane,
 } from './kagami-overseer.mjs';
 import { appendMemoryEntry } from './memory-kernel.mjs';
@@ -135,13 +136,13 @@ if (quarantineSubstitution.substituted) {
 
 if (resolved.kind === 'local') {
   const result = await runLocalChat(resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
-  emitResult(result);
+  emitAndRecordResult(result);
   process.exit(0);
 }
 
 if (resolved.protocol === 'ollama-native') {
   const result = await runOllamaCloudChat(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
-  emitResult(result);
+  emitAndRecordResult(result);
   process.exit(0);
 }
 
@@ -156,7 +157,7 @@ if (resolved.protocol === 'responses') {
     streamWriter: (chunk) => process.stdout.write(chunk),
     streamStatusWriter: (line) => process.stderr.write(line),
   });
-  emitResult(result);
+  emitAndRecordResult(result);
   process.exit(0);
 }
 
@@ -177,7 +178,7 @@ if (options.outputFile) {
     process.stderr.write(`[offload-runner] --output-file write failed: ${e.message}\n`);
   }
 }
-emitResult(result);
+emitAndRecordResult(result);
 
 function resultText(result) {
   if (typeof result === 'string') return result;
@@ -206,6 +207,11 @@ function emitResult(result) {
   process.stdout.write(enforced.text + (enforced.text.endsWith('\n') ? '' : '\n'));
 }
 
+function emitAndRecordResult(result, exitCode = 0) {
+  emitResult(result);
+  recordLaneOutputEvidence(result, exitCode);
+}
+
 function maybeAppendOffloadMemory(text, outputRail) {
   if (!/^(1|true|yes|on)$/i.test(process.env.YURI_OFFLOAD_MEMORY_LEDGER || '')) return;
   const result = appendMemoryEntry({
@@ -223,6 +229,32 @@ function maybeAppendOffloadMemory(text, outputRail) {
   });
   if (!result.ok) process.stderr.write(`[memory-ledger] ${result.error}\n`);
   for (const warning of result.warnings || []) process.stderr.write(`[memory-ledger] ${warning}\n`);
+}
+
+function recordLaneOutputEvidence(result, exitCode = 0) {
+  const logPath = safeRuntimePath('YURI_MEMORY_LEDGER_PATH', path.resolve(process.cwd(), '_SYSTEM', 'state', 'memory-ledger.jsonl'));
+  if (!logPath) return;
+  const text = resultText(result);
+  const bytes = Buffer.byteLength(text || '', 'utf8');
+  const payload = {
+    timestamp: new Date().toISOString(),
+    type: 'lane_output',
+    lane,
+    exitCode,
+    bytes,
+    taskId: ledgerTraceId,
+    content: `lane ${lane} completed with ${bytes} output bytes`,
+    contentSha256: hashPayload(text || ''),
+    metadata: {
+      streamed: resultWasStreamed(result),
+    },
+  };
+  try {
+    mkdirSync(path.dirname(logPath), { recursive: true });
+    appendFileSync(logPath, `${JSON.stringify(payload)}\n`);
+  } catch (err) {
+    process.stderr.write(`[memory-ledger] lane_output append failed: ${err.message}\n`);
+  }
 }
 
 async function runCloudChatWithFallback(resolved, promptText, runnerOptions, context) {
@@ -301,7 +333,11 @@ function maybeSubstituteQuarantinedLane(currentLane, currentResolved, runnerOpti
   }
   const fallbackLane = selectFallbackLane(laneId);
   if (!fallbackLane) {
-    return { substituted: false, from: laneId, to: '', resolved: currentResolved };
+    recordEscalation(laneId, {
+      code: 'NO_HEALTHY_LANE_FOR_TASK',
+      reason: 'target lane quarantined and no healthy fallback lane available',
+    });
+    throw new Error(`NO_HEALTHY_LANE_FOR_TASK: ${laneId}`);
   }
   const fallbackResolved = resolveLane(fallbackLane, '', availableLocalModels, false, runnerOptions);
   return {

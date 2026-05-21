@@ -43,6 +43,7 @@ function isolatedEnv(tmpDir, port, extra = {}) {
     TOKEN_LEDGER_VAULT_DIR: path.join(tmpDir, 'token-vault'),
     YURI_NIM_TRANSIENT_INCIDENT_LOG: path.join(tmpDir, 'nim-transient.jsonl'),
     YURI_KAGAMI_LEDGER_PATH: path.join(tmpDir, 'kagami-ledger.jsonl'),
+    YURI_MEMORY_LEDGER_PATH: path.join(tmpDir, 'memory-ledger.jsonl'),
     ...extra,
   };
 }
@@ -102,8 +103,39 @@ test('offload runner retries transient NIM failures then falls back to nano Nemo
     const incidents = readFileSync(path.join(tmpDir, 'nim-transient.jsonl'), 'utf8');
     assert.match(incidents, /"action":"retry"/);
     assert.match(incidents, /"action":"fallback"/);
+    const memoryLedger = readFileSync(path.join(tmpDir, 'memory-ledger.jsonl'), 'utf8');
+    assert.match(memoryLedger, /"type":"lane_output"/);
   } finally {
     server.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload runner aborts quarantined lanes when no healthy fallback is available', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-no-fallback-'));
+  const logPath = path.join(tmpDir, 'kagami-ledger.jsonl');
+  const base = Date.parse('2026-05-20T12:00:00.000Z');
+  for (const lane of ['nvidia-nemotron-120b', 'nvidia-nemotron-nano-30b', 'nvidia-mistral-medium']) {
+    for (let i = 0; i < 3; i += 1) {
+      recordCrash(lane, {
+        logPath,
+        timestamp: base + i * 1000,
+        reason: 'provider-503',
+        status: 503,
+      });
+    }
+  }
+
+  try {
+    const env = isolatedEnv(tmpDir, 65530, { YURI_KAGAMI_LEDGER_PATH: logPath });
+    const result = await runOffload(['nvidia-nemotron-120b', 'say ok'], env);
+
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /NO_HEALTHY_LANE_FOR_TASK/);
+    const ledger = readFileSync(logPath, 'utf8');
+    assert.match(ledger, /"event":"escalation"/);
+    assert.match(ledger, /NO_HEALTHY_LANE_FOR_TASK/);
+  } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
