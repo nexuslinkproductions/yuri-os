@@ -298,12 +298,19 @@ export function evaluateToolInputRails(input = {}, context = {}) {
 export function evaluateOutputRails(output = '', context = {}) {
   const text = normalizeText(output);
   const cap = Number(context.maxOutputChars || YURI_RAILS_CONFIG.output.maxChars || 64 * 1024);
+  const requiredEvidenceIds = Array.isArray(context.requiredEvidenceIds) ? context.requiredEvidenceIds : [];
+  const evidenceSources = evidenceSourcesFromContext(context);
+  const evidenceSourceIds = new Set(evidenceSources.map((entry) => String(entry.id || entry)));
+  const missingEvidenceIds = requiredEvidenceIds.filter((id) => !evidenceSourceIds.has(id));
   const reasons = [];
   if (text.length > cap) {
     reasons.push({ severity: RAIL_SEVERITY.warn, message: `output exceeds cap: ${text.length} > ${cap}` });
   }
   if (context.requireEvidence === true && looksLikeRepoTruthClaim(text) && !context.evidence) {
     reasons.push({ severity: RAIL_SEVERITY.warn, message: 'repo truth claim requires local evidence' });
+  }
+  for (const id of missingEvidenceIds) {
+    reasons.push({ severity: RAIL_SEVERITY.block, message: `required output evidence missing: ${id}` });
   }
   return resultFor({
     rail: 'output',
@@ -314,6 +321,8 @@ export function evaluateOutputRails(output = '', context = {}) {
       truncated: text.length > cap,
       ansiSafe: !/\x1b\][^\x07]*(?:\x07|\x1b\\)/.test(text),
       evidenceMissing: context.requireEvidence === true && looksLikeRepoTruthClaim(text) && !context.evidence,
+      evidenceSourceIds: [...evidenceSourceIds],
+      missingEvidenceIds,
     },
   });
 }
@@ -404,6 +413,70 @@ export function evaluateHealthRails(targets = [], context = {}) {
   });
 }
 
+export function evaluateNeurodivergenceRails(input = {}, context = {}) {
+  const text = typeof input === 'string'
+    ? input
+    : [
+        input.task,
+        input.prompt,
+        input.goal,
+        input.context,
+        context.task,
+      ].filter(Boolean).join('\n');
+  const lowered = normalizeText(text).toLowerCase();
+  const activations = [];
+
+  if (/(critical|supercharge|forensic|production|deep|architecture|audit)/.test(lowered)) {
+    activations.push({
+      id: 'monotropic-depth',
+      behavior: 'hold one thread deeply, make the mechanism map explicit, then exit into verification',
+    });
+  }
+  if (/(brain dump|messy|chaos|all over|scattered|clusterfuck|too much|everything)/.test(lowered)) {
+    activations.push({
+      id: 'pattern-first-decode',
+      behavior: 'cluster the input before asking questions; expose intent map and priority order',
+    });
+  }
+  if (/(parallel|many|all phases|shintai|council|fan[- ]?out|duos|squad)/.test(lowered)) {
+    activations.push({
+      id: 'adhd-burst-batching',
+      behavior: 'batch independent work into visible lanes with checkpoints instead of serial trickle',
+    });
+  }
+  if (/(memory|rag|recall|skill|preference|remember|forgot|repeat|correction|again)/.test(lowered)) {
+    activations.push({
+      id: 'durable-correction-capture',
+      behavior: 'convert repeated correction into reviewable memory or rail update, not a one-off apology',
+    });
+  }
+  if (/(design|visual|presentation|motion|layout|screen|macbook|monitor)/.test(lowered)) {
+    activations.push({
+      id: 'visual-salience',
+      behavior: 'externalize visual checks with screenshots or browser inspection; avoid text-only claims',
+    });
+  }
+
+  const active = activations.length > 0 || context.force === true;
+  const fallback = active ? [] : [{
+    id: 'baseline-cognitive-workflow',
+    behavior: 'decode intent, separate evidence from inference, choose execute/verify/ask/block',
+  }];
+
+  return resultFor({
+    rail: 'neurodivergence',
+    reasons: [],
+    evidence: {
+      active,
+      activations: active ? activations : fallback,
+      sourceDocs: [
+        'SOUL.md',
+        '_SYSTEM/HANDOFF-musubi-intelligence-sprint-v2.md',
+      ],
+    },
+  });
+}
+
 export function evaluateRails(kind, payload, context = {}) {
   switch (kind) {
     case 'input':
@@ -422,6 +495,8 @@ export function evaluateRails(kind, payload, context = {}) {
       return evaluateToolOutputRails(payload, context);
     case 'health':
       return evaluateHealthRails(payload, context);
+    case 'neurodivergence':
+      return evaluateNeurodivergenceRails(payload, context);
     default:
       return resultFor({
         rail: String(kind || 'unknown'),
@@ -461,6 +536,14 @@ function detectPathLikeTokens(command) {
 
 function looksLikeRepoTruthClaim(text) {
   return /\b(?:all tests pass|tests pass|fixed|implemented|verified|repo is clean|clean worktree|no drift)\b/i.test(text);
+}
+
+function evidenceSourcesFromContext(context = {}) {
+  if (Array.isArray(context.evidenceSources)) return context.evidenceSources;
+  if (Array.isArray(context.evidence?.sources)) return context.evidence.sources;
+  if (Array.isArray(context.evidence?.evidenceSources)) return context.evidence.evidenceSources;
+  if (Array.isArray(context.packetEvidence?.evidenceSources)) return context.packetEvidence.evidenceSources;
+  return [];
 }
 
 function isKnownSlashCommand(command, context = {}) {

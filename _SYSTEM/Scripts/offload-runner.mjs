@@ -136,14 +136,12 @@ if (quarantineSubstitution.substituted) {
 
 if (resolved.kind === 'local') {
   const result = await runLocalChat(resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
-  emitAndRecordResult(result);
-  process.exit(0);
+  process.exit(emitAndRecordResult(result, 0, options.outputFile));
 }
 
 if (resolved.protocol === 'ollama-native') {
   const result = await runOllamaCloudChat(resolved.endpoint, resolved.apiKey, resolved.model, prompt, options.system, { lane, traceId: ledgerTraceId });
-  emitAndRecordResult(result);
-  process.exit(0);
+  process.exit(emitAndRecordResult(result, 0, options.outputFile));
 }
 
 if (resolved.protocol === 'responses') {
@@ -157,8 +155,7 @@ if (resolved.protocol === 'responses') {
     streamWriter: (chunk) => process.stdout.write(chunk),
     streamStatusWriter: (line) => process.stderr.write(line),
   });
-  emitAndRecordResult(result);
-  process.exit(0);
+  process.exit(emitAndRecordResult(result, 0, options.outputFile));
 }
 
 const result = await runCloudChatWithFallback(resolved, prompt, options, {
@@ -168,17 +165,7 @@ const result = await runCloudChatWithFallback(resolved, prompt, options, {
   streamWriter: (chunk) => process.stdout.write(chunk),
   streamStatusWriter: (line) => process.stderr.write(line),
 });
-if (options.outputFile) {
-  try {
-    const { mkdirSync: _mkdir, writeFileSync: _write } = await import('node:fs');
-    const { dirname: _dirname } = await import('node:path');
-    _mkdir(_dirname(options.outputFile), { recursive: true });
-    _write(options.outputFile, resultText(result), 'utf-8');
-  } catch (e) {
-    process.stderr.write(`[offload-runner] --output-file write failed: ${e.message}\n`);
-  }
-}
-emitAndRecordResult(result);
+process.exit(emitAndRecordResult(result, 0, options.outputFile));
 
 function resultText(result) {
   if (typeof result === 'string') return result;
@@ -194,22 +181,58 @@ function emitResult(result) {
   const enforced = enforceOutputRails(text, {
     requireEvidence: YURI_RAILS_CONFIG.output.evidenceRequiredForRepoClaims,
     maxOutputChars: YURI_RAILS_CONFIG.output.maxChars,
+    ...outputRailContextFromEnv(),
   });
+  if (!enforced.ok) {
+    writeRailViolation(enforced);
+    process.stderr.write(`[output-rail] blocked: ${enforced.reasons.join('; ')}\n`);
+    return enforced;
+  }
   if (resultWasStreamed(result)) {
     maybeAppendOffloadMemory(enforced.text, enforced);
     if (text && !text.endsWith('\n')) process.stdout.write('\n');
-    return;
+    return enforced;
   }
   if (enforced.severity === 'warn' && enforced.reasons.length) {
     process.stderr.write(`[output-rail] ${enforced.reasons.join('; ')}\n`);
   }
   maybeAppendOffloadMemory(enforced.text, enforced);
   process.stdout.write(enforced.text + (enforced.text.endsWith('\n') ? '' : '\n'));
+  return enforced;
 }
 
-function emitAndRecordResult(result, exitCode = 0) {
-  emitResult(result);
-  recordLaneOutputEvidence(result, exitCode);
+function emitAndRecordResult(result, exitCode = 0, outputFile = '') {
+  const outputRail = emitResult(result);
+  const finalExitCode = outputRail?.ok === false ? 2 : exitCode;
+  if (outputRail?.ok !== false && outputFile) writeAcceptedOutputFile(outputFile, outputRail.text);
+  recordLaneOutputEvidence(result, finalExitCode, outputRail);
+  return finalExitCode;
+}
+
+function writeAcceptedOutputFile(outputFile, text) {
+  try {
+    mkdirSync(path.dirname(outputFile), { recursive: true });
+    writeFileSync(outputFile, text, 'utf-8');
+  } catch (e) {
+    process.stderr.write(`[offload-runner] --output-file write failed: ${e.message}\n`);
+  }
+}
+
+function outputRailContextFromEnv() {
+  const requiredEvidenceIds = parseEnvList('YURI_OUTPUT_REQUIRED_EVIDENCE_IDS');
+  const evidenceSourceIds = parseEnvList('YURI_OUTPUT_EVIDENCE_IDS');
+  return {
+    requiredEvidenceIds,
+    evidenceSources: evidenceSourceIds.map((id) => ({ id })),
+    evidence: evidenceSourceIds.length > 0 ? { sourceIds: evidenceSourceIds } : undefined,
+  };
+}
+
+function parseEnvList(name) {
+  return String(process.env[name] || '')
+    .split(/[,\n]/)
+    .map((value) => value.trim())
+    .filter(Boolean);
 }
 
 function maybeAppendOffloadMemory(text, outputRail) {
@@ -231,7 +254,7 @@ function maybeAppendOffloadMemory(text, outputRail) {
   for (const warning of result.warnings || []) process.stderr.write(`[memory-ledger] ${warning}\n`);
 }
 
-function recordLaneOutputEvidence(result, exitCode = 0) {
+function recordLaneOutputEvidence(result, exitCode = 0, outputRail = null) {
   const logPath = safeRuntimePath('YURI_MEMORY_LEDGER_PATH', path.resolve(process.cwd(), '_SYSTEM', 'state', 'memory-ledger.jsonl'));
   if (!logPath) return;
   const text = resultText(result);
@@ -247,6 +270,12 @@ function recordLaneOutputEvidence(result, exitCode = 0) {
     contentSha256: hashPayload(text || ''),
     metadata: {
       streamed: resultWasStreamed(result),
+      outputRail: outputRail ? {
+        ok: outputRail.ok,
+        severity: outputRail.severity,
+        reasons: outputRail.reasons || [],
+        evidence: outputRail.evidence || {},
+      } : null,
     },
   };
   try {

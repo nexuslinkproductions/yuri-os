@@ -17,6 +17,25 @@ Turn YURI OS / MUSUBI from scattered lane, memory, automation, and Claude-couple
 
 Claude is a powerful audit lane, not YURI's owner.
 
+## Operating Rule
+
+Large YURI goal-plan work is never solo work.
+
+Codex/main remains the executor, arbitrator, verifier, and final authority, but every major phase must use Shintai collaboration:
+
+- Gate 0 evidence load before dispatch;
+- task-fit team assembly from live lane health;
+- multiple capable Shintai members for critical phases;
+- written member outputs;
+- contradiction and critique pass;
+- Codex arbitration before implementation;
+- verification after implementation;
+- Shintai recheck before sealing critical phases.
+
+This applies to lanes, Shintai, guardrails, memory/RAG, skill recall, automations, Rick harness, design-system policy, protected-surface migration, and release gates.
+
+Direct solo Codex work is allowed only for narrow reversible fixes that do not change architecture, policy, routing, memory ownership, guardrails, automation behavior, design-system doctrine, or release criteria.
+
 ## Current Evidence
 
 - Harness baseline committed on main: `3d4df4a1`.
@@ -128,6 +147,8 @@ Runtime noise from those surfaces must not be staged.
 - Patch wave 4: add AutomationKernel health aggregation and repair commands.
 - Patch wave 5: implement GuardrailKernel rails from the NeMo matrix.
 - Patch wave 6: documentation package and regression suite.
+- Patch wave 7: design-system learning loop and Kagami presentation correction.
+- Patch wave 8: Shintai-run self-improvement, Memory/RAG, skill recall, neurodivergency activation, and external MSA/research synthesis.
 
 ## Acceptance Criteria
 
@@ -142,3 +163,5 @@ Runtime noise from those surfaces must not be staged.
 - Rick streams visible output across repeated turns.
 - YURI owns memory/routing/automation policy instead of Claude being the main entry point.
 - All patch waves have verification commands and rollback notes before implementation.
+- Future memory/RAG/skill-recall supercharging is run through critical-tier Shintai, with Codex/main arbitration and source-backed research.
+- The neurodivergency document becomes an active interaction rail, not passive context.

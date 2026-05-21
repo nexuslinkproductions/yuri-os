@@ -1,0 +1,57 @@
+extension_id: "non-destructive-infinity-guard"
+version: "1.0.0"
+input:
+  goal:
+    type: string
+    required: true
+  artifact_type:
+    type: enum
+    values: ['proposed_action', 'target_path', 'tool_call', 'domain_manifest', 'risk_context', 'user_permission_state']
+    required: true
+  target:
+    type: string
+    required: true
+  mode:
+    type: enum
+    values: ['passive-always-on-guard', 'active-risk-review', 'audit-guardrail-review', 'integration-approval-gate', 'emergency-quarantine']
+    required: true
+  constraints:
+    enterprise_mode:
+      type: boolean
+      default: true
+    destructive_actions_allowed:
+      type: boolean
+      default: false
+    require_audit_trail:
+      type: boolean
+      default: true
+    require_rollback_plan:
+      type: boolean
+      default: true
+    max_risk:
+      type: enum
+      values: [low, medium, high, critical]
+      default: medium
+output:
+  extension_id: "non-destructive-infinity-guard"
+  summary: string
+  findings:
+    - id: string
+      type: string
+      severity: low | medium | high | critical
+      evidence: []
+      recommendation: string
+  implementation_plan:
+    phases: []
+    files_to_create: []
+    files_to_modify: []
+    approval_gates: []
+  safety_report:
+    risks: []
+    blocked_actions: []
+    rollback_plan: string
+  memory_update_proposals:
+    semantic: []
+    procedural: []
+    episodic: []
+  audit_events: []

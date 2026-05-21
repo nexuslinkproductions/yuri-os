@@ -12,6 +12,7 @@ import {
   evaluateExecutionRails,
   evaluateHealthRails,
   evaluateInputRails,
+  evaluateNeurodivergenceRails,
   evaluateOutputRails,
   evaluateRetrievalRails,
   evaluateToolInputRails,
@@ -140,6 +141,17 @@ test('output rail warns on repo truth claims without evidence', () => {
   assert.match(result.reasons.join('\n'), /requires local evidence/);
 });
 
+test('output rail blocks missing required evidence ids for Shintai packets', () => {
+  const result = evaluateOutputRails('verified packet', {
+    requiredEvidenceIds: ['shintai-roster', 'memory-rag-skill-research'],
+    evidenceSources: [{ id: 'shintai-roster' }],
+  });
+
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.evidence.missingEvidenceIds, ['memory-rag-skill-research']);
+  assert.match(result.reasons.join('\n'), /required output evidence missing/);
+});
+
 test('output enforcement marks missing evidence and caps long text', () => {
   const result = enforceOutputRails('implemented ' + 'x'.repeat(100), {
     requireEvidence: true,
@@ -175,6 +187,17 @@ test('health rail blocks failed required targets', () => {
 
   assert.equal(result.ok, false);
   assert.match(result.reasons.join('\n'), /nemotron/);
+});
+
+test('neurodivergence rail turns messy critical input into mechanical behaviors', () => {
+  const result = evaluateNeurodivergenceRails('critical Shintai supercharge memory/RAG skill recall clusterfuck with too much scattered input');
+
+  assert.equal(result.ok, true);
+  assert.equal(result.evidence.active, true);
+  assert.ok(result.evidence.activations.some((entry) => entry.id === 'monotropic-depth'));
+  assert.ok(result.evidence.activations.some((entry) => entry.id === 'pattern-first-decode'));
+  assert.ok(result.evidence.activations.some((entry) => entry.id === 'durable-correction-capture'));
+  assert.ok(result.evidence.sourceDocs.includes('SOUL.md'));
 });
 
 test('rail violations write only to caller-approved runtime paths', () => {

@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 
 const SCHEMA_VERSION = 1;
-const MAX_ACTIVE = 8;
-const MAX_PER_STAGE = 2;
+const MAX_ACTIVE = 12;
+const MAX_PER_STAGE = 5;
 const LOADER_SOURCE = '_SYSTEM/Scripts/yuri-skill-loader.mjs --json';
 const MANIFEST_SOURCE = '_SYSTEM/skill-hash-registry.json';
 
@@ -20,6 +20,12 @@ const LEGACY_PARSER_ONLY_SKILLS = Object.freeze({
   'openclaw-offload': 'offload',
 });
 
+const CANONICAL_COLLISION_SOURCES = new Set([
+  'yuri_agent_skill',
+  'codex_skill',
+  'codex_system_skill',
+]);
+
 const CAPABILITY_TO_STAGE = Object.freeze({
   'intent-normalization': ['intake_classify'],
   'deep-decomposition': ['campaign_decompose'],
@@ -32,6 +38,11 @@ const CAPABILITY_TO_STAGE = Object.freeze({
   formatting: ['specialist_fanout', 'merge_learn'],
   design: ['specialist_fanout'],
   'private-utility': ['intake_classify', 'specialist_fanout'],
+  'memory-navigation': ['intake_classify', 'merge_learn'],
+  retrieval: ['intake_classify', 'specialist_fanout'],
+  'skill-recall': ['intake_classify', 'campaign_decompose', 'specialist_fanout'],
+  'persona-alignment': ['intake_classify', 'merge_learn'],
+  research: ['specialist_fanout', 'merge_learn'],
   'deterministic-verification': ['verify_local_truth'],
   'mutation-guard': ['verify_local_truth'],
   'failure-learning': ['verify_local_truth', 'merge_learn'],
@@ -116,6 +127,46 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     traits: ['docs', 'teaching'],
     signals: ['docs'],
   },
+  'oracle-memory': {
+    capabilities: ['memory-navigation', 'retrieval', 'reduce-and-learn'],
+    traits: ['memory', 'recall', 'context'],
+    signals: ['memory', 'docs', 'campaign'],
+  },
+  'research-artifact-factory': {
+    capabilities: ['research', 'summarization', 'formatting'],
+    traits: ['research', 'artifacts', 'docs'],
+    signals: ['research', 'docs'],
+  },
+  'visual-introspection': {
+    capabilities: ['design', 'risk-review', 'deterministic-verification'],
+    traits: ['visual', 'perception', 'audit'],
+    signals: ['design', 'risk'],
+  },
+  'pattern-mirror-core': {
+    capabilities: ['risk-review', 'memory-navigation', 'reduce-and-learn'],
+    traits: ['pattern', 'failure', 'recall'],
+    signals: ['risk', 'memory', 'campaign'],
+  },
+  sharingan: {
+    capabilities: ['research', 'risk-review', 'summarization'],
+    traits: ['reverse-engineering', 'deep-read'],
+    signals: ['research', 'risk'],
+  },
+  'prompt-engineering': {
+    capabilities: ['skill-recall', 'persona-alignment', 'deterministic-verification'],
+    traits: ['prompt-contract', 'output-schema', 'evidence'],
+    signals: ['campaign', 'risk'],
+  },
+  'openai-codex-workflow': {
+    capabilities: ['orchestration', 'deterministic-verification', 'skill-recall'],
+    traits: ['codex', 'workflow', 'verification'],
+    signals: ['code', 'campaign'],
+  },
+  'end-of-transmission': {
+    capabilities: ['memory-navigation', 'reduce-and-learn', 'summarization'],
+    traits: ['eot', 'reflection', 'continuity'],
+    signals: ['memory', 'docs'],
+  },
 });
 
 export function buildActiveSkillRegistry({
@@ -143,7 +194,7 @@ export function buildActiveSkillRegistry({
       continue;
     }
 
-    if (skill.collision) {
+    if (skill.collision && !isCanonicalCollision(skill)) {
       suppressed.push(suppressedSkill(skillId, 'collision'));
       continue;
     }
@@ -155,6 +206,10 @@ export function buildActiveSkillRegistry({
 
     if (!matchedCapabilities.length && !matchedSignals.length) {
       suppressed.push(suppressedSkill(skillId, 'no_capability_match'));
+      continue;
+    }
+    if (!profile.knownProfile && matchedCapabilities.length < 2) {
+      suppressed.push(suppressedSkill(skillId, 'weak_inferred_match'));
       continue;
     }
 
@@ -227,6 +282,7 @@ export function buildActiveSkillRegistry({
       maxPerStage: MAX_PER_STAGE,
       hardFilters: ['no_collision', 'not_disabled', 'has_capability_match'],
       rankKeys: ['stage_fit', 'capability_fit', 'risk_fit', 'stable_name'],
+      collisionPolicy: 'canonical YURI skill roots win over migrated duplicate shadows',
     },
     active,
     suppressed,
@@ -238,6 +294,12 @@ export function buildActiveSkillRegistry({
       suppressedCount: suppressed.length,
     },
   };
+}
+
+function isCanonicalCollision(skill) {
+  const sourcePath = String(skill?.source_path || '');
+  if (sourcePath.startsWith('.agents/skills/')) return true;
+  return CANONICAL_COLLISION_SOURCES.has(String(skill?.source_type || ''));
 }
 
 function isSuppressedLegacySkill(skillId, legacyAliases) {
@@ -267,6 +329,11 @@ function profileSkill(skill) {
   addIf(text, capabilities, ['verify', 'verification', 'deterministic', 'test'], 'deterministic-verification');
   addIf(text, capabilities, ['code', 'refactor', 'debug', 'typescript', 'javascript'], 'code');
   addIf(text, capabilities, ['summarize', 'summary', 'document', 'docs'], 'summarization');
+  addIf(text, capabilities, ['memory', 'recall', 'rag', 'retrieve', 'retrieval', 'context'], 'memory-navigation');
+  addIf(text, capabilities, ['vector', 'search', 'index', 'semantic', 'hybrid'], 'retrieval');
+  addIf(text, capabilities, ['skill', 'skills', 'capability', 'routing', 'trigger'], 'skill-recall');
+  addIf(text, capabilities, ['persona', 'preference', 'neurodivergent', 'cognitive', 'interaction'], 'persona-alignment');
+  addIf(text, capabilities, ['research', 'source', 'citation', 'paper'], 'research');
   addIf(text, capabilities, ['design', 'frontend', 'visual', 'ui', 'ux'], 'design');
   addIf(text, capabilities, ['orchestrate', 'swarm', 'parallel', 'fanout', 'decompose'], 'orchestration');
   addIf(text, capabilities, ['token', 'compact', 'compression'], 'token-efficiency');
@@ -275,6 +342,8 @@ function profileSkill(skill) {
   addIf(text, signals, ['risk', 'security', 'audit'], 'risk');
   addIf(text, signals, ['code', 'refactor', 'debug'], 'code');
   addIf(text, signals, ['docs', 'document', 'summarize'], 'docs');
+  addIf(text, signals, ['memory', 'recall', 'rag', 'retrieval', 'context'], 'memory');
+  addIf(text, signals, ['research', 'source', 'citation', 'paper'], 'research');
   addIf(text, signals, ['design', 'frontend', 'ui', 'ux'], 'design');
   addIf(text, signals, ['campaign', 'swarm', 'orchestration', 'parallel'], 'campaign');
 
@@ -298,10 +367,14 @@ function scoreSkill({ profile, matchedCapabilities, matchedSignals, capabilityHi
   if (context.risk && profile.capabilities.includes('risk-review')) score += 6;
   if (context.risk && profile.capabilities.includes('decision-calibration')) score += 12;
   if (context.code && profile.capabilities.includes('code')) score += 4;
+  if (context.memory && profile.capabilities.includes('memory-navigation')) score += 12;
+  if (context.research && profile.capabilities.includes('research')) score += 8;
+  if (context.skillRecall && profile.capabilities.includes('skill-recall')) score += 12;
+  if (context.persona && profile.capabilities.includes('persona-alignment')) score += 8;
   if (context.requiresHighReasoning && profile.capabilities.includes('deep-decomposition')) score += 4;
   if (profile.capabilities.includes('deterministic-verification')) score += 10;
   if (routePlan?.scenario && profile.signals.includes(String(routePlan.scenario))) score += 2;
-  return profile.knownProfile ? score : Math.min(score, 32);
+  return profile.knownProfile ? score : Math.min(score, 18);
 }
 
 function selectedStageIds(profile, stageBindings) {

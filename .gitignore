@@ -97,12 +97,14 @@ yuri-os/
 01_PROJECTS/claude-cookbooks/
 _SYSTEM/tools/browser-harness/
 _SYSTEM/tools/nemo-guardrails/
+_SYSTEM/tools/MSA/
 _SYSTEM/state/shintai-advisory/
 _SYSTEM/state/release-gate/
 _SYSTEM/state/rick-history.jsonl
 _SYSTEM/state/nim-transient-incidents.jsonl
 _SYSTEM/state/memory-ledger.jsonl
 _SYSTEM/state/kagami-ledger.jsonl
+_SYSTEM/state/playwright-visual-check/
 _SYSTEM/training/state/
 _SYSTEM/.claude/
 .amp/
@@ -217,6 +219,13 @@ logs/
 
 # Codex worktrees (active git worktrees, not source files)
 .codex-worktrees/
+
+# Yuri-owned external skill/cache roots with compatibility symlinks from app homes
+.codex/plugins/cache/
+.codex/vendor_imports/skills/
+.codex/.tmp/
+_SYSTEM/archive/external-skill-roots/
+_SYSTEM/state/external-root-backups/
 
 # Python bytecode / cache
 _SYSTEM/OS_KERNEL/__pycache__/

@@ -13,6 +13,7 @@ import {
   proposeMemoryWrite,
   recallEntries,
   recallMemory,
+  SEMANTIC_MODES,
   validatePacketEvidence,
 } from './memory-kernel.mjs';
 
@@ -34,6 +35,25 @@ test('recall reads YURI-owned memory root and ranks matching context', () => {
     assert.equal(result.ok, true);
     assert.equal(result.contexts[0].id, 'a.md');
     assert.match(result.contexts[0].content, /Gate 0/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('memory scorer modes expose lexical fallback for embedding and MSA research modes', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-memory-scorer-'));
+  try {
+    writeFileSync(path.join(dir, 'a.md'), 'MSA sparse memory research and RAG recall.');
+    const embedding = recallMemory('MSA recall', { root: dir, scorer: 'embedding' });
+    const msa = recallMemory('MSA recall', { root: dir, scorer: 'msa' });
+
+    assert.deepEqual(SEMANTIC_MODES, ['lexical', 'embedding', 'msa']);
+    assert.equal(embedding.contexts[0].id, 'a.md');
+    assert.equal(embedding.policy.scorer, 'embedding');
+    assert.equal(embedding.policy.scorerFallback, true);
+    assert.match(embedding.policy.scorerWarning, /lexical fallback/);
+    assert.equal(msa.policy.scorer, 'msa');
+    assert.match(msa.policy.scorerWarning, /research-only/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -64,6 +84,9 @@ test('control-plane memory evidence loads and validates current hashes', () => {
   assert.equal(evidence.ok, true, JSON.stringify(evidence.missing.concat(evidence.blocked), null, 2));
   assert.ok(evidence.sources.some((source) => source.id === 'shintai-roster'));
   assert.ok(evidence.sources.some((source) => source.id === 'extraction-sprint-template'));
+  assert.ok(evidence.sources.some((source) => source.id === 'memory-rag-skill-research'));
+  assert.ok(evidence.sources.some((source) => source.id === 'msa-readme'));
+  assert.ok(evidence.sources.some((source) => source.id === 'neurodivergent-engine-handoff'));
   assert.equal(validation.ok, true, validation.reasons.join('\n'));
 });
 

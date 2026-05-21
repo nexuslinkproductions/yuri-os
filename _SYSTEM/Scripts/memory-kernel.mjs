@@ -4,6 +4,7 @@ import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { PROTECTED_SURFACE_EXCLUSIONS, requiredEvidenceIdsForTask } from './evidence-contract.mjs';
 import { isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -11,6 +12,7 @@ export const REPO_ROOT = path.resolve(__dirname, '../..');
 export const MEMORY_ROOT = path.join(REPO_ROOT, '_SYSTEM', 'memory');
 export const MEMORY_AUDIT_LOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-kernel-audit.jsonl');
 export const MEMORY_LEDGER_LOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-ledger.jsonl');
+export const SEMANTIC_MODES = Object.freeze(['lexical', 'embedding', 'msa']);
 
 export const CONTROL_PLANE_EVIDENCE_SOURCES = Object.freeze([
   { id: 'shintai-roster', path: '_SYSTEM/kagami/shintai-team.json', type: 'roster', required: true },
@@ -18,6 +20,16 @@ export const CONTROL_PLANE_EVIDENCE_SOURCES = Object.freeze([
   { id: 'extraction-sprint-template', path: '.claude/skills/extraction-sprint/SKILL.md', type: 'template', required: true },
   { id: 'offload-contract', path: '_SYSTEM/Scripts/offload-contract.mjs', type: 'source', required: true },
   { id: 'lane-kernel', path: '_SYSTEM/Scripts/lane-kernel.mjs', type: 'source', required: true },
+  { id: 'self-improvement-memory-rag-goal', path: '_SYSTEM/docs/YURI_OS_SELF_IMPROVEMENT_MEMORY_RAG_SHINTAI_GOAL_2026-05-21.md', type: 'doc', required: true },
+  { id: 'memory-rag-skill-research', path: '_SYSTEM/docs/YURI_MEMORY_RAG_SKILL_RESEARCH_2026-05-21.md', type: 'research', required: true },
+  { id: 'protected-surfaces-plan', path: '_SYSTEM/docs/YURI_OS_PROTECTED_SURFACES_MIGRATION_PLAN_2026-05-21.md', type: 'doc', required: true },
+  { id: 'soul-persona', path: 'SOUL.md', type: 'persona', required: true },
+  { id: 'neurodivergent-engine-handoff', path: '_SYSTEM/HANDOFF-musubi-intelligence-sprint-v2.md', type: 'neurodivergence', required: true },
+  { id: 'msa-readme', path: '_SYSTEM/tools/MSA/README.md', type: 'upstream-source', required: true },
+  { id: 'memory-kernel-source', path: '_SYSTEM/Scripts/memory-kernel.mjs', type: 'source', required: true },
+  { id: 'skill-loader-source', path: '_SYSTEM/Scripts/yuri-skill-loader.mjs', type: 'source', required: true },
+  { id: 'shintai-dispatch-source', path: '_SYSTEM/Scripts/shintai-dispatch.mjs', type: 'source', required: true },
+  { id: 'rails-source', path: '_SYSTEM/Scripts/rails.mjs', type: 'source', required: true },
 ]);
 
 export const MEMORY_ENTRY_TYPES = Object.freeze(['rule', 'feedback', 'contract', 'evidence', 'task']);
@@ -85,6 +97,7 @@ export function listMemorySurfaces() {
 export function recallMemory(query = '', options = {}) {
   const maxFiles = Number(options.maxFiles || 8);
   const maxBytes = Number(options.maxBytes || 40_000);
+  const scorer = resolveMemoryScorer(options.scorer || options.mode || 'lexical');
   const root = path.resolve(options.root || MEMORY_ROOT);
   if (isProtectedPath(root)) {
     return {
@@ -104,7 +117,7 @@ export function recallMemory(query = '', options = {}) {
     .map((entry) => {
       const absPath = path.join(root, entry.name);
       const text = readFileSync(absPath, 'utf8');
-      const score = scoreText(text, tokens);
+      const score = scorer.score(text, tokens, query);
       return {
         id: path.basename(entry.name),
         path: path.relative(REPO_ROOT, absPath),
@@ -128,6 +141,10 @@ export function recallMemory(query = '', options = {}) {
       writeRequiresProposal: true,
       promotionRequiresAudit: true,
       legacyClaudeMemoryImportOnly: true,
+      scorer: scorer.mode,
+      scorerActive: scorer.active,
+      scorerFallback: scorer.fallback,
+      scorerWarning: scorer.warning,
     },
   };
 }
@@ -167,7 +184,7 @@ export function loadControlPlaneEvidence(options = {}) {
     sources: loaded,
     hashes: Object.fromEntries(loaded.map((entry) => [entry.id, entry.sha256])),
     loadedTemplates: loaded.filter((entry) => entry.type === 'template').map((entry) => entry.id),
-    protectedSurfaceExclusions: ['backend/data/', '.claude/state/', '.claude/history/', '.env', 'node_modules/', '.amp/'],
+    protectedSurfaceExclusions: [...PROTECTED_SURFACE_EXCLUSIONS],
     missing,
     blocked,
   };
@@ -207,7 +224,7 @@ export function validatePacketEvidence(packet = {}, options = {}) {
     }
   }
 
-  const requiredIds = new Set((options.requiredIds || CONTROL_PLANE_EVIDENCE_SOURCES.map((entry) => entry.id)));
+  const requiredIds = new Set((options.requiredIds || requiredEvidenceIdsForTask(evidence.task || packet.task || '')));
   const sourceIds = new Set(sources.map((entry) => entry.id));
   for (const requiredId of requiredIds) {
     if (!sourceIds.has(requiredId)) reasons.push(`required evidence source missing from packet: ${requiredId}`);
@@ -218,6 +235,36 @@ export function validatePacketEvidence(packet = {}, options = {}) {
     reasons,
     checkedAt: new Date().toISOString(),
     sourceCount: sources.length,
+  };
+}
+
+function resolveMemoryScorer(mode) {
+  const requested = String(mode || 'lexical').toLowerCase();
+  const normalized = SEMANTIC_MODES.includes(requested) ? requested : 'lexical';
+  if (normalized === 'lexical') {
+    return {
+      mode: 'lexical',
+      active: true,
+      fallback: false,
+      warning: null,
+      score: scoreText,
+    };
+  }
+  if (normalized === 'embedding') {
+    return {
+      mode: 'embedding',
+      active: false,
+      fallback: true,
+      warning: 'embedding scorer not configured; lexical fallback used',
+      score: scoreText,
+    };
+  }
+  return {
+    mode: 'msa',
+    active: false,
+    fallback: true,
+    warning: 'MSA scorer is research-only; lexical fallback used',
+    score: scoreText,
   };
 }
 
@@ -409,4 +456,42 @@ function strongestAllowedScope(requestedScope, allowedScopes) {
   if (allowedScopes.includes(requestedScope)) return requestedScope;
   if (requestedScope === 'permanent' && allowedScopes.includes('project')) return 'project';
   return allowedScopes.includes('session') ? 'session' : allowedScopes[0];
+}
+
+function printJson(value) {
+  process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
+}
+
+function printHelp() {
+  process.stdout.write([
+    'YURI Memory Kernel',
+    '',
+    'Usage:',
+    '  node _SYSTEM/Scripts/memory-kernel.mjs surfaces',
+    '  node _SYSTEM/Scripts/memory-kernel.mjs recall <query>',
+    '  node _SYSTEM/Scripts/memory-kernel.mjs ledger <query>',
+    '  node _SYSTEM/Scripts/memory-kernel.mjs evidence',
+  ].join('\n') + '\n');
+}
+
+function isCliEntrypoint() {
+  return path.resolve(process.argv[1] || '') === fileURLToPath(import.meta.url);
+}
+
+if (isCliEntrypoint()) {
+  const [cmd, ...rest] = process.argv.slice(2);
+  if (!cmd || cmd === '--help' || cmd === 'help') {
+    printHelp();
+  } else if (cmd === 'surfaces') {
+    printJson({ ok: true, surfaces: listMemorySurfaces() });
+  } else if (cmd === 'recall') {
+    printJson(recallMemory(rest.join(' ')));
+  } else if (cmd === 'ledger') {
+    printJson(recallEntries(rest.join(' ')));
+  } else if (cmd === 'evidence') {
+    printJson(loadControlPlaneEvidence());
+  } else {
+    process.stderr.write(`unknown memory-kernel command: ${cmd}\n`);
+    process.exit(1);
+  }
 }

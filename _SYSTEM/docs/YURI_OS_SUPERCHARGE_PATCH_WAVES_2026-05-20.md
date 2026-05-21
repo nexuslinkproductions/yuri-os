@@ -3,6 +3,24 @@
 Date: 2026-05-20
 Mode: staged implementation after forensic audit
 
+## Orchestration Rule
+
+No large YURI supercharge phase is solo-Codex work.
+
+Every non-trivial phase below must run as a Codex/main + Shintai collaboration:
+
+1. Codex/main opens Gate 0 and loads the evidence bundle.
+2. Codex/main assembles the Shintai council from current lane health and task fit.
+3. Shintai members produce advisory outputs with findings, proposed edits, risks, tests, and contradictions.
+4. Codex/main synthesizes, arbitrates, rejects weak advice, and decides the implementation path.
+5. Codex/main implements bounded patches.
+6. Codex/main verifies and records evidence.
+7. Follow-up Shintai checks re-audit critical phases before the phase is considered sealed.
+
+Small local fixes may be done directly only when they are narrow, reversible, and do not alter architecture, memory, routing, guardrails, automation, design-system policy, lane policy, or release gates.
+
+Critical phases require the same style as the prior successful supercharge sprint: multiple capable lanes, no silent weak replacements, long enough processing windows for large models, written member notes, contradiction handling, and final Codex arbitration.
+
 ## Ground Truth Inputs
 
 - Goal: `_SYSTEM/docs/YURI_OS_FORENSIC_SUPERCHARGE_GOAL_2026-05-20.md`
@@ -17,6 +35,8 @@ Codex/main arbitration note: the Shintai advisory is useful but not authoritativ
 ## Wave 0 - Evidence Gate
 
 Purpose: prevent another guessed Shintai run.
+
+Shintai collaboration: mandatory. Use Shintai to challenge the evidence set and identify missing proof before implementation.
 
 Implement:
 
@@ -35,6 +55,8 @@ Verify:
 
 Purpose: stop lane truth from fragmenting across shell, runner, registry, tests, and roster.
 
+Shintai collaboration: mandatory. Use DeepSeek/NIM code-reasoning lanes to challenge lane truth, dead-lane status, and tool-mode assumptions.
+
 Implement:
 
 - Make `lane-kernel.mjs` the canonical active/dead lane source.
@@ -51,6 +73,8 @@ Verify:
 ## Wave 2 - Guardrail Kernel
 
 Purpose: make NeMo-style rails deterministic local code, not prompt vibes.
+
+Shintai collaboration: mandatory. Use NeMo-aware lanes and adversarial security reasoning before patches.
 
 Implement:
 
@@ -69,6 +93,8 @@ Verify:
 
 Purpose: Shintai becomes a YURI advisory operation assembled by Codex/main, not a Rick-owned subsystem.
 
+Shintai collaboration: mandatory. This phase must dogfood the Shintai process itself and record meta-audit failures.
+
 Implement:
 
 - Add `_SYSTEM/Scripts/yuri-control-plane.mjs`.
@@ -85,6 +111,8 @@ Verify:
 ## Wave 4 - Universal Memory Kernel
 
 Purpose: migrate ownership from Claude-coupled memory assumptions to YURI-owned memory contracts.
+
+Shintai collaboration: mandatory. Use long-context audit plus code/retrieval specialists before changing memory ownership.
 
 Implement:
 
@@ -103,6 +131,8 @@ Verify:
 
 Purpose: make health, launch, tmux workers, calibration, and monitoring one spine.
 
+Shintai collaboration: mandatory. Use automation, reliability, and adversarial lanes to challenge repair flows before implementation.
+
 Implement:
 
 - Define `AutomationKernel` over tmux workers, PONG probes, health aggregator, launchd plists, lane calibration, and task queue.
@@ -119,6 +149,8 @@ Verify:
 
 Purpose: keep terminal UX stable during long control-plane runs.
 
+Shintai collaboration: mandatory for renderer architecture, PTY regressions, and long-run status behavior. Narrow syntax fixes may be local.
+
 Implement:
 
 - Keep fixed-bottom renderer, serialized terminal writer, and 16ms batching.
@@ -134,6 +166,8 @@ Verify:
 
 Purpose: shipping preparation, not just code cleanup.
 
+Shintai collaboration: mandatory for final audit, unresolved risk review, release-gate confidence, and phase 0/1/2 recheck.
+
 Implement:
 
 - Keep goal, NeMo matrix, patch waves, and final audit report under `_SYSTEM/docs/`.
@@ -145,3 +179,30 @@ Verify:
 - Release gate passes from `main`.
 - Git status excludes protected runtime noise.
 - Final report lists all unresolved risks and next patches.
+
+## Wave 8 - Self-Improvement, Memory/RAG, And Skill-Recall Shintai Run
+
+Purpose: move YURI from patched control-plane functionality into a more symbiotic operating system that recalls, routes, retrieves, and learns without repeated manual correction.
+
+Shintai collaboration: mandatory by definition. No solo Codex architecture proposal is accepted as final guidance for this wave.
+
+Ground truth:
+
+- `_SYSTEM/docs/YURI_OS_SELF_IMPROVEMENT_MEMORY_RAG_SHINTAI_GOAL_2026-05-21.md`
+
+Implement after the Kagami HTML presentation pass is reviewed:
+
+- Run a critical-tier Shintai advisory council over memory/RAG, skill recall, session orchestration, and neurodivergency activation.
+- Clone `https://github.com/EverMind-AI/MSA` into `_SYSTEM/tools/MSA` as an ignored external checkout.
+- Use browser-harness and web research to collect current memory-agent/RAG work from serious OSS and leading AI providers.
+- Locate the YURI neurodivergency document through allowed repo search and turn it into an active persona/interaction rail.
+- Produce a source-backed research artifact, Shintai member notes, contradictions, Codex arbitration, and patch waves before implementation.
+
+Verify:
+
+- No advisory lane reads protected paths.
+- Shintai Gate 0 loads the goal doc, memory surfaces, skill surfaces, lane kernel, and roster before dispatch.
+- Research artifacts cite local paths and URLs.
+- Skill recall explains selected skills, evidence triggers, and skipped skills.
+- Neurodivergency rail activates mechanically in a test or prompt injection path.
+- MSA remains an ignored external checkout and does not become vendored application code.

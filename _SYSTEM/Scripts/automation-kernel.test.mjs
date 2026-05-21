@@ -67,3 +67,37 @@ test('automation summary includes Kagami quarantine evidence when requested', ()
   assert.equal(summary.counts.degraded, 1);
   assert.match(summary.checks.at(-1).detail, /nvidia-glm/);
 });
+
+test('launchd health separates daemon liveness from log and state freshness', () => {
+  const summary = buildAutomationHealthSummary({
+    kagamiOverseer: null,
+    now: '2026-05-21T12:00:00.000Z',
+    launchd: [
+      {
+        id: 'shellservice',
+        daemon: true,
+        pid: 92397,
+        exit: 15,
+        stdoutMtime: '2026-05-20T17:00:00.000Z',
+        stateMtime: '2026-05-20T17:00:00.000Z',
+      },
+      {
+        id: 'lane-memory-prune',
+        interval: 'every 1h',
+        exit: 19968,
+        lastRunAt: '2026-05-21T09:00:00.000Z',
+      },
+    ],
+  });
+
+  const shellservice = summary.checks.find((check) => check.id === 'shellservice');
+  const prune = summary.checks.find((check) => check.id === 'lane-memory-prune');
+
+  assert.equal(shellservice.state, 'ok');
+  assert.equal(shellservice.evidence.pidAlive, true);
+  assert.equal(shellservice.evidence.stdoutFresh, false);
+  assert.equal(shellservice.evidence.stateFresh, false);
+  assert.equal(prune.state, 'crashed');
+  assert.equal(prune.evidence.lastExit, 19968);
+  assert.equal(prune.evidence.scheduleExpected, false);
+});

@@ -16,10 +16,12 @@ import {
   PROTECTED_SURFACE_LABELS,
   SHINTAI_REQUIRED_MEMBER_IDS,
   getLaneKernelEntry,
+  selectMemoryRagMemberIds,
   selectSuperauditMemberIds,
 } from './lane-kernel.mjs';
 import { loadControlPlaneEvidence, validatePacketEvidence } from './memory-kernel.mjs';
-import { evaluateDialogRails, evaluateExecutionRails } from './rails.mjs';
+import { requiredEvidenceIdsForTask } from './evidence-contract.mjs';
+import { evaluateDialogRails, evaluateExecutionRails, evaluateNeurodivergenceRails } from './rails.mjs';
 import { buildConstraintBlock, preflightControlPlane } from './yuri-control-plane.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -31,6 +33,7 @@ const DEFAULT_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_TIMEOUT
 const DEFAULT_HEALTH_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_HEALTH_TIMEOUT_MS);
 const DEFAULT_CRITIQUE_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_CRITIQUE_TIMEOUT_MS);
 const STREAM_MAX = 8 * 1024 * 1024;
+const MIN_CRITICAL_COUNCIL_SIZE = 3;
 
 const C = {
   bronze: '\x1b[38;2;205;127;50m',
@@ -61,7 +64,7 @@ const SOURCE_PATHS = [
   '.claude/plans/shintai-has-to-fix-luminous-fountain.md',
 ];
 
-const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'nemotron', 'mistral-large', 'mistral-medium', 'qwen-coder', 'glm', 'qwen3-next', 'kimi']);
+const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'nemotron', 'mistral-large', 'mistral-medium', 'qwen-coder', 'qwen-397b', 'gpt-oss-120b', 'glm', 'qwen3-next', 'nemotron-nano-30b', 'kimi']);
 const HEALTH_ALIASES = {
   codex: ['codex-architect', 'codex-gpt-5.5', 'gpt-5.5'],
   deepseek: ['deepseek-reasoner', 'deepseek-v4-pro'],
@@ -73,6 +76,9 @@ const HEALTH_ALIASES = {
   kimi: ['kimi-context-keeper', 'kimi-k2.6', 'moonshot'],
   glm: ['nvidia-glm', 'glm'],
   'qwen3-next': ['qwen3-next-code', 'nvidia-qwen3-next'],
+  'qwen-397b': ['nvidia-qwen-397b', 'qwen-397b', 'qwen3.5-397b'],
+  'gpt-oss-120b': ['nvidia-gpt-oss-120b', 'gpt-oss-120b'],
+  'nemotron-nano-30b': ['nvidia-nemotron-nano-30b', 'nemotron-nano-30b'],
 };
 
 const ASSIGNMENTS = {
@@ -125,6 +131,20 @@ const ASSIGNMENTS = {
     skills: ['yuri-code-intelligence', 'gitnexus', 'failure-evolution-loop'],
     assignment: 'Code-level collision detection and regression plan for offload, Shintai, Rick, worker, and browser-harness merge points.',
     dispatchArgs: ['offload', '--model', 'nvidia-qwen-coder'],
+  },
+  'qwen-397b': {
+    displayName: 'Qwen 397B Reasoner',
+    lane: 'nvidia-qwen-397b',
+    skills: ['yuri-code-intelligence', 'oracle-memory', 'pattern-mirror-core', 'failure-evolution-loop'],
+    assignment: 'Memory/RAG and skill-recall specialist: inspect MemoryKernel, SkillLoader, retrieval surfaces, tests, and migration boundaries.',
+    dispatchArgs: ['offload', '--model', 'nvidia-qwen-397b'],
+  },
+  'gpt-oss-120b': {
+    displayName: 'GPT-OSS 120B Adversary',
+    lane: 'nvidia-gpt-oss-120b',
+    skills: ['pattern-mirror-core', 'failure-evolution-loop', 'non-destructive-infinity-guard'],
+    assignment: 'Adversarial simplification: find overengineering, fake sentience language, and brittle Memory/RAG/skill coupling.',
+    dispatchArgs: ['offload', '--model', 'nvidia-gpt-oss-120b'],
   },
   kimi: {
     displayName: 'Kimi Context-Keeper',
@@ -267,6 +287,9 @@ function normalizeMember(id, rosterMember = {}) {
 function selectMemberIds(task, roster) {
   const tier = classifyTaskTier(task);
   const members = roster?.members || {};
+  if (tier === 'critical' && /(memory|rag|retrieval|skill|neuro|self[- ]?improvement|msa|eot|neuron|persona|recall)/i.test(task)) {
+    return selectMemoryRagMemberIds(members);
+  }
   if (tier === 'critical' && /(rick|harness|terminal|renderer|stream|shintai|hermes|pty)/i.test(task)) {
     return selectSuperauditMemberIds(members);
   }
@@ -290,6 +313,8 @@ function selectMemberIds(task, roster) {
     if (/(mistral|frontier|large|huge|audit)/.test(text) && id === 'mistral-large') score += 3;
     if (/(qwen|coder|code|refactor)/.test(text) && id === 'qwen-coder') score += 3;
     if (/(glm|memory|docs|alias|vocabulary|naming)/.test(text) && id === 'glm') score += 3;
+    if (/(memory|rag|retrieval|skill|neuro|self[- ]?improvement|msa)/.test(text) && id === 'qwen-397b') score += 5;
+    if (/(memory|rag|retrieval|skill|neuro|self[- ]?improvement|msa|overengineering|adversarial)/.test(text) && id === 'gpt-oss-120b') score += 4;
     if (text.includes('context') && id === 'mistral-large') score += 2;
     if (text.includes('code') && id === 'qwen3-next') score += 2;
     return { id, score };
@@ -321,10 +346,13 @@ export function assembleShintaiTeam(task, roster = loadShintaiRoster(), availabl
   }
 
   return {
-    ok: requiredMemberIdsForTier(tier).every((id) => members.some((member) => member.id === id)) ||
-      (tier !== 'critical' && members.length > 0),
+    ok: (
+      requiredMemberIdsForTier(tier).every((id) => members.some((member) => member.id === id)) &&
+      (tier !== 'critical' || members.length >= MIN_CRITICAL_COUNCIL_SIZE)
+    ) || (tier !== 'critical' && members.length > 0),
     task: taskText,
     tier,
+    minSize: tier === 'critical' ? MIN_CRITICAL_COUNCIL_SIZE : 1,
     targetSize,
     rosterPath: ROSTER_PATH,
     selectedIds: members.map((member) => member.id),
@@ -344,6 +372,8 @@ export function buildMemberPrompt(task, member, options = {}) {
   const health = options.health ? JSON.stringify(options.health, null, 2) : 'not provided';
   const toolPolicy = member.toolPolicy ? JSON.stringify(member.toolPolicy, null, 2) : 'tool mode allowed when the lane runtime supports it; YURI guardrails still block protected paths, commits, pushes, and destructive actions';
   const rails = JSON.stringify(NEMO_STYLE_RAILS, null, 2);
+  const objective = options.objective || objectiveForTask(task);
+  const neuroRail = options.neuroRail ? JSON.stringify(options.neuroRail.evidence, null, 2) : '';
   return ensureRickPersonaAnchor([
     RICK_ANCHOR,
     '',
@@ -359,9 +389,12 @@ export function buildMemberPrompt(task, member, options = {}) {
     'NeMo-style rails to apply:',
     rails,
     '',
+    neuroRail ? 'Neurodivergence interaction rail:' : '',
+    neuroRail,
+    neuroRail ? '' : '',
     options.controlPlaneBlock || '',
     options.controlPlaneBlock ? '' : '',
-    'Objective: stabilize Rick harness and Shintai integration.',
+    `Objective: ${objective}`,
     '',
     'Evidence sources loaded before this packet:',
     ...sourcePaths.map((source) => `- ${source}`),
@@ -375,7 +408,7 @@ export function buildMemberPrompt(task, member, options = {}) {
     '- Rick-owned Shintai identity',
     '',
     'Required meta-audit:',
-    'Explain why the previous Codex run missed Shintai templates and how to prevent recurrence. The prevention must require loading roster + memory + extraction-sprint template before drafting any Shintai packet.',
+    'Explain why prior runs missed required templates, memory, or user preference context and how to prevent recurrence. The prevention must require loading roster + memory + extraction-sprint template + task-specific evidence before drafting any Shintai packet.',
     '',
     'Output schema:',
     'findings',
@@ -390,6 +423,17 @@ export function buildMemberPrompt(task, member, options = {}) {
     '',
     `TASK:\n${task}`,
   ].filter(Boolean).join('\n'));
+}
+
+function objectiveForTask(task) {
+  const text = String(task || '').toLowerCase();
+  if (/(memory|rag|retrieval|skill|neuro|self[- ]?improvement|msa|eot|neuron|persona|recall)/.test(text)) {
+    return 'stabilize YURI memory/RAG, skill recall, neurodivergence interaction rails, and self-improvement loops as one symbiotic control-plane system.';
+  }
+  if (/(rick|harness|terminal|renderer|stream|hermes|pty)/.test(text)) {
+    return 'stabilize Rick harness and Shintai integration.';
+  }
+  return 'stabilize the requested YURI control-plane operation with advisory-first Shintai, Codex arbitration, and evidence-backed patch guidance.';
 }
 
 function critiquePrompt(task, member, peers) {
@@ -468,7 +512,7 @@ function resolveMemberTimeout(member, stage, fallbackTimeoutMs = 0) {
   return parseOptionalTimeout(fallbackTimeoutMs);
 }
 
-function callMember(member, prompt, timeoutMs) {
+function callMember(member, prompt, timeoutMs, context = {}) {
   const dispatchCommand = `bash ${path.relative(REPO_ROOT, AI_SH)} ${member.dispatchArgs.join(' ')}`;
   const executionRail = evaluateExecutionRails({ kind: 'shell', command: dispatchCommand });
   if (!executionRail.ok) {
@@ -486,6 +530,7 @@ function callMember(member, prompt, timeoutMs) {
     cwd: REPO_ROOT,
     encoding: 'utf8',
     maxBuffer: STREAM_MAX,
+    env: buildMemberDispatchEnv(context),
   };
   if (Number.isFinite(timeoutMs) && timeoutMs > 0) spawnOptions.timeout = timeoutMs;
   const result = spawnSync('bash', [AI_SH, ...callArgsForMember(member, prompt)], spawnOptions);
@@ -497,6 +542,20 @@ function callMember(member, prompt, timeoutMs) {
     stdout: String(result.stdout || '').trim(),
     stderr: String(result.stderr || '').trim(),
     error: result.error ? result.error.message : null,
+  };
+}
+
+function buildMemberDispatchEnv(context = {}) {
+  const requiredEvidenceIds = Array.isArray(context.requiredEvidenceIds) ? context.requiredEvidenceIds : [];
+  const evidenceSources = Array.isArray(context.evidenceSources) ? context.evidenceSources : [];
+  return {
+    ...process.env,
+    ...(requiredEvidenceIds.length
+      ? { YURI_OUTPUT_REQUIRED_EVIDENCE_IDS: requiredEvidenceIds.join(',') }
+      : {}),
+    ...(evidenceSources.length
+      ? { YURI_OUTPUT_EVIDENCE_IDS: evidenceSources.map((entry) => entry.id || entry).filter(Boolean).join(',') }
+      : {}),
   };
 }
 
@@ -574,6 +633,7 @@ export async function runAdvisory(task, options = {}) {
     ? null
     : options.controlPlane || preflightControlPlane(taskText, options.controlPlaneOptions || {});
   const controlPlaneBlock = controlPlane ? buildConstraintBlock(controlPlane) : '';
+  const neuroRail = evaluateNeurodivergenceRails(taskText);
 
   if (controlPlane && !controlPlane.ok) {
     const payload = {
@@ -638,6 +698,10 @@ export async function runAdvisory(task, options = {}) {
   }, { maxMembers: assembly.targetSize });
   const packetEvidence = memoryEvidence ? buildPacketEvidence(taskText, assembly, memoryEvidence) : null;
   const packetValidation = packetEvidence ? validatePacketEvidence(packetEvidence) : { ok: true, reasons: [] };
+  const outputEvidenceContext = packetEvidence ? {
+    requiredEvidenceIds: requiredEvidenceIdsForTask(taskText),
+    evidenceSources: packetEvidence.evidenceSources,
+  } : {};
 
   if (!packetValidation.ok) {
     const payload = {
@@ -732,7 +796,9 @@ export async function runAdvisory(task, options = {}) {
       memoryEvidence,
       packetEvidence,
       packetValidation,
-      error: 'no healthy Shintai members selected',
+      error: assembly.tier === 'critical' && assembly.members.length < MIN_CRITICAL_COUNCIL_SIZE
+        ? `CRITICAL_COUNCIL_DEGRADED: ${assembly.members.length} healthy members < ${MIN_CRITICAL_COUNCIL_SIZE}`
+        : 'no healthy Shintai members selected',
       supersedes: options.supersedes || null,
       artifacts: null,
     };
@@ -748,7 +814,8 @@ export async function runAdvisory(task, options = {}) {
       health: member.health,
       sourcePaths,
       controlPlaneBlock,
-    }), timeoutMs);
+      neuroRail,
+    }), timeoutMs, outputEvidenceContext);
     say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} ${member.displayName}`, stream);
     return {
       id: member.id,
@@ -764,7 +831,12 @@ export async function runAdvisory(task, options = {}) {
     const peers = proposals
       .filter((entry) => entry.id !== member.id)
       .map((entry) => ({ label: `${entry.displayName} (${entry.id})`, output: entry.output }));
-    const result = callMember(member, critiquePrompt(taskText, member, peers), resolveMemberTimeout(member, 'critique', timeoutMs));
+    const result = callMember(
+      member,
+      critiquePrompt(taskText, member, peers),
+      resolveMemberTimeout(member, 'critique', timeoutMs),
+      outputEvidenceContext,
+    );
     say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} critique ${member.displayName}`, stream);
     return {
       id: member.id,
@@ -777,7 +849,12 @@ export async function runAdvisory(task, options = {}) {
 
   say(`${C.bronze}${C.bold}`, '\n── Shintai advisory: synthesis ──', stream);
   const synthMember = assembly.members.find((member) => member.id === 'deepseek') || assembly.members[0];
-  const synthesisResult = callMember(synthMember, synthesisPrompt(taskText, proposals, critiques, assembly, { controlPlaneBlock }), timeoutMs);
+  const synthesisResult = callMember(
+    synthMember,
+    synthesisPrompt(taskText, proposals, critiques, assembly, { controlPlaneBlock }),
+    timeoutMs,
+    outputEvidenceContext,
+  );
   const synthesis = synthesisResult.stdout || synthesisResult.stderr || synthesisResult.error || '';
   const postDispatchPacketValidation = packetEvidence
     ? validatePacketEvidence(packetEvidence)
@@ -802,6 +879,7 @@ export async function runAdvisory(task, options = {}) {
     critiques,
     synthesis,
     evidenceGate: summarizeGate(controlPlane?.gate0),
+    neuroRail,
     memoryEvidence,
     packetEvidence,
     packetValidation,

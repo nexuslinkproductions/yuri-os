@@ -1,0 +1,29 @@
+risks:
+  - risk: "Blind copying / licensing contamination"
+    severity: high
+    likelihood: high
+    impact: "Can reduce reliability, safety, or enterprise readiness of pattern-mirror-core."
+    mitigation: "Track provenance, summarize patterns rather than copying protected expression, require licensing note for external repos."
+    detection: "Audit events, test failures, guard decisions, and human review."
+    rollback: "Revert staged changes, remove proposed memory updates, and preserve incident report."
+  - risk: "Poisoned source artifact"
+    severity: critical
+    likelihood: medium
+    impact: "Can reduce reliability, safety, or enterprise readiness of pattern-mirror-core."
+    mitigation: "Run through Infinity Guard, quarantine suspicious code, block execution of unknown scripts."
+    detection: "Audit events, test failures, guard decisions, and human review."
+    rollback: "Revert staged changes, remove proposed memory updates, and preserve incident report."
+  - risk: "Overfitting to a weak example"
+    severity: medium
+    likelihood: medium
+    impact: "Can reduce reliability, safety, or enterprise readiness of pattern-mirror-core."
+    mitigation: "Require comparison against Yuri standards and known anti-patterns."
+    detection: "Audit events, test failures, guard decisions, and human review."
+    rollback: "Revert staged changes, remove proposed memory updates, and preserve incident report."
+  - risk: "Context collapse from large inputs"
+    severity: medium
+    likelihood: high
+    impact: "Can reduce reliability, safety, or enterprise readiness of pattern-mirror-core."
+    mitigation: "Chunk, index, summarize, and preserve source mapping."
+    detection: "Audit events, test failures, guard decisions, and human review."
+    rollback: "Revert staged changes, remove proposed memory updates, and preserve incident report."

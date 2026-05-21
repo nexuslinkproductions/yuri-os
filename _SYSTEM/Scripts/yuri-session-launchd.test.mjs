@@ -9,7 +9,11 @@ const result = spawnSync(process.execPath, ['_SYSTEM/Scripts/yuri-session-launch
 });
 
 assert.equal(result.status, 0, `print-plist should succeed: ${result.stderr || result.stdout}`);
-assert.match(result.stdout, /com\.yuri\.yuri-session-runtime/, 'plist should use Yuri runtime launchd label');
+assert.match(
+  result.stdout,
+  /com\.yuri-os-musubi\.yuri-session-runtime/,
+  'plist should use the canonical Yuri OS Musubi runtime launchd label',
+);
 assert.match(result.stdout, /KeepAlive/, 'plist should keep the backend runtime alive');
 assert.match(result.stdout, /backend/, 'plist should launch the backend runtime');
 assert.match(result.stdout, /YURI_SESSION_RUNTIME_ENABLED/, 'plist should enable the local session runtime');

@@ -72,6 +72,18 @@ export const SHINTAI_SUPERAUDIT_MEMBER_IDS = Object.freeze([
   'mistral-medium',
 ]);
 
+export const SHINTAI_MEMORY_RAG_MEMBER_IDS = Object.freeze([
+  'codex',
+  'deepseek',
+  'claude-opus-audit',
+  'nemotron',
+  'qwen-397b',
+  'mistral-large',
+  'gpt-oss-120b',
+  'glm',
+  'qwen-coder',
+]);
+
 export const SHINTAI_REQUIRED_MEMBER_IDS = Object.freeze(['codex', 'deepseek']);
 
 const BASE_FORBIDDEN_TOOLS = Object.freeze({
@@ -203,6 +215,18 @@ export const LANE_KERNEL = Object.freeze({
     assignment: 'Large Qwen reasoning lane for broad architecture review, synthesis pressure, and code-adjacent audit.',
     tools: FULL_ADVISORY_TOOLS,
   },
+  'gpt-oss-120b': {
+    id: 'gpt-oss-120b',
+    lane: 'nvidia-gpt-oss-120b',
+    model: 'openai/gpt-oss-120b',
+    provider: 'nvidia',
+    role: 'deep-generalist',
+    reasoning: 'high',
+    contextTier: 'large',
+    dispatchArgs: ['offload', '--model', 'nvidia-gpt-oss-120b'],
+    assignment: 'Adversarial large-model reviewer for memory/RAG simplification, skill recall drift, and overcoupled system plans.',
+    tools: FULL_ADVISORY_TOOLS,
+  },
   glm: {
     id: 'glm',
     lane: 'nvidia-glm',
@@ -273,6 +297,11 @@ export function getLaneKernelEntry(id) {
 export function selectSuperauditMemberIds(rosterMembers = {}) {
   const available = new Set(Object.keys(rosterMembers));
   return SHINTAI_SUPERAUDIT_MEMBER_IDS.filter((id) => available.has(id) || LANE_KERNEL[id]);
+}
+
+export function selectMemoryRagMemberIds(rosterMembers = {}) {
+  const available = new Set(Object.keys(rosterMembers));
+  return SHINTAI_MEMORY_RAG_MEMBER_IDS.filter((id) => available.has(id) || LANE_KERNEL[id]);
 }
 
 export function buildSuperauditDeployment() {

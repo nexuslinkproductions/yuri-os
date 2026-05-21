@@ -24,6 +24,8 @@ test('Gate 0 loads required control-plane evidence before Shintai dispatch', () 
   assert.equal(gate.constraints.taskTierHint, 'critical');
   assert.ok(gate.constraints.activeNimLanes.includes('nvidia-nemotron-120b'));
   assert.ok(gate.constraints.deadNimLanes.includes('nvidia-nemotron'));
+  assert.ok(gate.warnings.every((entry) => entry.id !== 'memory-rag-skill-research'));
+  assert.ok(gate.constraints.requiredEvidenceIds.includes('shintai-roster'));
 });
 
 test('Gate 0 fails closed when required evidence is missing', () => {

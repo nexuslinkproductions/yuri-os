@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { requiredEvidenceIdsForTask } from './evidence-contract.mjs';
 import {
   ACTIVE_NIM_LANES,
   DEAD_NIM_LANES,
@@ -48,11 +49,24 @@ export const OPTIONAL_MEMORY_FILES = Object.freeze([
   { id: 'yuri-memory', path: '_SYSTEM/memory/MEMORY.md', type: 'memory' },
   { id: 'codex-primary-partner', path: '_SYSTEM/memory/feedback_codex_primary_partner.md', type: 'memory' },
   { id: 'deepseek-tool-unblock', path: '_SYSTEM/memory/feedback_deepseek_tool_unblock.md', type: 'memory' },
+  { id: 'self-improvement-memory-rag-goal', path: '_SYSTEM/docs/YURI_OS_SELF_IMPROVEMENT_MEMORY_RAG_SHINTAI_GOAL_2026-05-21.md', type: 'doc' },
+  { id: 'memory-rag-skill-research', path: '_SYSTEM/docs/YURI_MEMORY_RAG_SKILL_RESEARCH_2026-05-21.md', type: 'research' },
+  { id: 'protected-surfaces-plan', path: '_SYSTEM/docs/YURI_OS_PROTECTED_SURFACES_MIGRATION_PLAN_2026-05-21.md', type: 'doc' },
+  { id: 'design-system-plan', path: '_SYSTEM/docs/YURI_DESIGN_SYSTEM_SUPERCHARGE_PLAN_2026-05-21.md', type: 'doc' },
+  { id: 'soul-persona', path: 'SOUL.md', type: 'persona' },
+  { id: 'neurodivergent-engine-handoff', path: '_SYSTEM/HANDOFF-musubi-intelligence-sprint-v2.md', type: 'neurodivergence' },
+  { id: 'memory-kernel-source', path: '_SYSTEM/Scripts/memory-kernel.mjs', type: 'source' },
+  { id: 'skill-loader-source', path: '_SYSTEM/Scripts/yuri-skill-loader.mjs', type: 'source' },
+  { id: 'shintai-dispatch-source', path: '_SYSTEM/Scripts/shintai-dispatch.mjs', type: 'source' },
+  { id: 'rails-source', path: '_SYSTEM/Scripts/rails.mjs', type: 'source' },
   { id: 'nemo-guardrails-readme', path: '_SYSTEM/tools/nemo-guardrails/README.md', type: 'upstream-source' },
   { id: 'nemo-guardrails-pyproject', path: '_SYSTEM/tools/nemo-guardrails/pyproject.toml', type: 'upstream-source' },
   { id: 'nemo-guardrails-rail-types', path: '_SYSTEM/tools/nemo-guardrails/docs/about/rail-types.md', type: 'upstream-source' },
   { id: 'nemo-guardrails-config-reference', path: '_SYSTEM/tools/nemo-guardrails/docs/configure-rails/configuration-reference.md', type: 'upstream-source' },
   { id: 'nemo-guardrails-llmrails', path: '_SYSTEM/tools/nemo-guardrails/nemoguardrails/rails/llm/llmrails.py', type: 'upstream-source' },
+  { id: 'msa-readme', path: '_SYSTEM/tools/MSA/README.md', type: 'upstream-source' },
+  { id: 'msa-memory-sparse-attention', path: '_SYSTEM/tools/MSA/src/msa/memory_sparse_attention.py', type: 'upstream-source' },
+  { id: 'msa-service', path: '_SYSTEM/tools/MSA/src/msa_service.py', type: 'upstream-source' },
   { id: 'legacy-shintai-team-sizing', path: path.relative(REPO_ROOT, path.join(LEGACY_CLAUDE_PROJECT_MEMORY_DIR, 'feedback_shintai_team_sizing.md')), type: 'legacy-memory' },
   { id: 'legacy-shintai-main-thread-role', path: path.relative(REPO_ROOT, path.join(LEGACY_CLAUDE_PROJECT_MEMORY_DIR, 'feedback_shintai_main_thread_role.md')), type: 'legacy-memory' },
   { id: 'legacy-rick-persona-dispatch', path: path.relative(REPO_ROOT, path.join(LEGACY_CLAUDE_PROJECT_MEMORY_DIR, 'feedback_rick_persona_every_dispatch.md')), type: 'legacy-memory' },
@@ -160,6 +174,7 @@ export function buildConstraints({ task = '', loaded = [] } = {}) {
     superauditMemberIds: deployment.members.map((member) => member.id),
     evidenceIds: loaded.map((entry) => entry.id),
     requiredCoreIds: CORE_EVIDENCE_FILES.map((entry) => entry.id),
+    requiredEvidenceIds: requiredEvidenceIdsForTask(task),
     gateSequence: CONTROL_PLANE_GATE_SEQUENCE,
   };
 }

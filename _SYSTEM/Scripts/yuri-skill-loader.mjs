@@ -7,7 +7,8 @@
  * them into a structured in-memory registry.
  *
  * Reference pattern: OpenClaw ~/.openclaw/workspace/skills/<name>/SKILL.md
- * Initial substrate: .cline/rules/*.md and .claude/skills/*
+ * Substrate: YURI-native .agents/skills, compatibility .claude/skills,
+ * and local Codex skill shims.
  *
  * This is a discovery/normalisation/validation prototype only.
  * No runtime skill execution. No plugin API.
@@ -18,6 +19,7 @@
  *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --json
  *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate
  *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json
+ *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --recommend <task>
  *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --write-manifest
  *   node _SYSTEM/Scripts/yuri-skill-loader.mjs --help
  */
@@ -25,26 +27,51 @@
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { stdout, stderr } from 'node:process'
+import { buildActiveSkillRegistry } from './yuri-active-skill-registry.mjs'
 
-const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const REPO_ROOT = path.resolve(__dirname, '../..')
 const MANIFEST_PATH = path.join(REPO_ROOT, '_SYSTEM', 'skill-hash-registry.json')
 
 // Discovery paths (order = precedence; first match wins for duplicate names)
 const DISCOVERY_PATHS = [
   { prefix: '.cline/rules', sourceType: 'cline_rule', kind: 'flat_md' },
+  { prefix: '.agents/skills', sourceType: 'yuri_agent_skill', kind: 'skill_md' },
   { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'flat_md' },
   { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'skill_md' },
-  // Future OpenClaw-style expansion can reuse kind=skill_md for skills/<name>/SKILL.md.
+  { prefix: '.cursor/skills', sourceType: 'cursor_skill', kind: 'skill_md' },
+  { prefix: '.cursor/skills-cursor', sourceType: 'cursor_skill', kind: 'skill_md' },
+  { prefix: '.gemini/skills', sourceType: 'gemini_skill', kind: 'skill_md' },
+  { prefix: '.hermes/skills', sourceType: 'hermes_skill', kind: 'skill_md_recursive' },
+  { prefix: '.hermes/hermes-agent/skills', sourceType: 'hermes_agent_skill', kind: 'skill_md_recursive' },
+  { prefix: '.hermes/hermes-agent/optional-skills', sourceType: 'hermes_agent_optional_skill', kind: 'skill_md_recursive' },
+  { prefix: '.hermes/hermes-agent/plugins', sourceType: 'hermes_agent_plugin_skill', kind: 'skill_md_recursive' },
+  { prefix: '.codex/skills', sourceType: 'codex_skill', kind: 'skill_md' },
+  { prefix: '.codex/skills/.system', sourceType: 'codex_system_skill', kind: 'skill_md' },
+  { prefix: '.codex/plugins/cache', sourceType: 'codex_plugin_cache_skill', kind: 'skill_md_recursive' },
+  { prefix: '_SYSTEM/archive/external-skill-roots', sourceType: 'archived_external_skill', kind: 'skill_md_recursive' },
 ]
 
 const PREVIEW_LINES = 20
+const RECURSIVE_SKIP_DIRS = new Set([
+  '.git',
+  'node_modules',
+  '.venv',
+  '__pycache__',
+  'dist',
+  'build',
+  '.next',
+])
 
 // Body injection size limits (tunable)
 const SKILL_BODY_MAX_PER_SKILL = 5000  // max chars per skill body
 const SKILL_BODY_MAX_TOTAL = 15000      // max chars across all skill bodies
 
-main()
+if (isCliEntrypoint()) {
+  main()
+}
 
 function main() {
   const args = process.argv.slice(2)
@@ -80,6 +107,16 @@ function main() {
     return
   }
 
+  if (args[0] === '--recommend') {
+    const query = args.slice(1).join(' ').trim()
+    if (!query) {
+      stderr.write('ERROR: --recommend requires a task/query\n')
+      process.exit(1)
+    }
+    stdout.write(JSON.stringify(recommendSkills(query, registry), null, 2) + '\n')
+    return
+  }
+
   if (args[0] === '--skill') {
     const name = args[1]
     if (!name) {
@@ -104,17 +141,30 @@ function printHelp() {
     '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --json',
     '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate',
     '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate --json',
+    '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --recommend <task>',
     '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --write-manifest',
     '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --help',
     '',
     'Discovery paths:',
     '  .cline/rules/*.md (current)',
+    '  .agents/skills/<name>/SKILL.md (YURI-native)',
     '  .claude/skills/*.md (current)',
     '  .claude/skills/<name>/SKILL.md (current)',
+    '  .cursor/skills/<name>/SKILL.md (local compatibility)',
+    '  .cursor/skills-cursor/<name>/SKILL.md (local compatibility)',
+    '  .gemini/skills/<name>/SKILL.md (local compatibility)',
+    '  .hermes/skills/**/SKILL.md (local compatibility)',
+    '  .hermes/hermes-agent/skills/**/SKILL.md (local compatibility)',
+    '  .hermes/hermes-agent/optional-skills/**/SKILL.md (local compatibility)',
+    '  .hermes/hermes-agent/plugins/**/SKILL.md (local compatibility)',
+    '  .codex/skills/<name>/SKILL.md (local compatibility)',
+    '  .codex/skills/.system/<name>/SKILL.md (local compatibility)',
+    '  .codex/plugins/cache/**/SKILL.md (local plugin cache)',
+    '  _SYSTEM/archive/external-skill-roots/**/SKILL.md (archived compatibility)',
   ].join('\n') + '\n')
 }
 
-function buildRegistry() {
+export function buildRegistry() {
   const skills = []
   const seen = new Map()
 
@@ -163,7 +213,23 @@ function buildRegistry() {
     }
   }
 
+  enforceTotalBodyCap(skills)
   return { skills, discovered_at: new Date().toISOString(), count: skills.length }
+}
+
+function enforceTotalBodyCap(skills) {
+  let total = skills.reduce((sum, skill) => sum + String(skill.body || '').length, 0)
+  if (total <= SKILL_BODY_MAX_TOTAL) return
+
+  for (let index = skills.length - 1; index >= 0 && total > SKILL_BODY_MAX_TOTAL; index--) {
+    const skill = skills[index]
+    const bodyLength = String(skill.body || '').length
+    if (!bodyLength) continue
+    skill.body = ''
+    skill.bodyPruned = true
+    skill.bodyPruneReason = `total skill body cap ${SKILL_BODY_MAX_TOTAL} exceeded`
+    total -= bodyLength
+  }
 }
 
 function discoverSurfaceFiles(surface, surfacePath) {
@@ -195,7 +261,30 @@ function discoverSurfaceFiles(surface, surfacePath) {
     return discovered
   }
 
+  if (surface.kind === 'skill_md_recursive') {
+    walkSkillDirs(surfacePath, discovered)
+    return discovered
+  }
+
   return discovered
+}
+
+function walkSkillDirs(dir, discovered) {
+  const entries = readdirSync(dir, { withFileTypes: true })
+  for (const entry of entries) {
+    const entryPath = path.join(dir, entry.name)
+    if (entry.isFile() && entry.name === 'SKILL.md') {
+      discovered.push({
+        skillName: path.basename(path.dirname(entryPath)),
+        sourcePath: entryPath,
+      })
+      continue
+    }
+    if (entry.isDirectory()) {
+      if (RECURSIVE_SKIP_DIRS.has(entry.name)) continue
+      walkSkillDirs(entryPath, discovered)
+    }
+  }
 }
 
 function runValidate(registry, useJson) {
@@ -283,6 +372,82 @@ function runValidate(registry, useJson) {
   }
 }
 
+export function recommendSkills(query, registry = buildRegistry()) {
+  const text = String(query || '').toLowerCase()
+  const pulseSeed = {
+    capabilityHints: deriveCapabilityHints(text),
+    workPackets: deriveWorkPackets(text),
+  }
+  const context = {
+    signals: deriveSignals(text),
+    code: /\b(code|test|refactor|script|kernel|loader|mjs|js|ts)\b/.test(text),
+    risk: /\b(risk|guard|protected|security|audit|failure|critical|production)\b/.test(text),
+    memory: /\b(memory|rag|recall|retrieval|context|eot|neuron)\b/.test(text),
+    research: /\b(research|source|citation|paper|msa|web|browser)\b/.test(text),
+    skillRecall: /\b(skill|skills|capability|trigger|routing|recall)\b/.test(text),
+    persona: /\b(neuro|persona|preference|interaction|marcel|rick|soul)\b/.test(text),
+    requiresHighReasoning: /\b(critical|supercharge|forensic|architecture|system|symbiotic)\b/.test(text),
+  }
+  const routePlan = {
+    lane: context.requiresHighReasoning ? 'shintai' : 'codex-main',
+    scenario: context.requiresHighReasoning ? 'high-stakes-review' : 'focused-recall',
+  }
+  const activeRegistry = buildActiveSkillRegistry({
+    pulseSeed,
+    context,
+    routePlan,
+    rawSkillRegistry: registry,
+  })
+  return {
+    ok: true,
+    query,
+    policy: {
+      advisoryOnly: true,
+      explainSelection: true,
+      noSkillBodies: true,
+    },
+    input: {
+      capabilityHints: pulseSeed.capabilityHints,
+      signals: context.signals,
+    },
+    active: activeRegistry.active,
+    stageBindings: activeRegistry.stageBindings,
+    capabilityIndex: activeRegistry.capabilityIndex,
+    suppressed: activeRegistry.suppressed.slice(0, 25),
+    trace: activeRegistry.trace,
+  }
+}
+
+function deriveCapabilityHints(text) {
+  const hints = ['intent-normalization', 'deterministic-verification']
+  if (/\b(memory|rag|recall|retrieval|context|eot|neuron)\b/.test(text)) hints.push('memory-navigation', 'retrieval', 'reduce-and-learn')
+  if (/\b(skill|skills|capability|trigger|routing|recall)\b/.test(text)) hints.push('skill-recall', 'orchestration')
+  if (/\b(neuro|persona|preference|interaction|marcel|rick|soul)\b/.test(text)) hints.push('persona-alignment')
+  if (/\b(research|source|citation|paper|msa|web|browser)\b/.test(text)) hints.push('research', 'summarization')
+  if (/\b(code|test|refactor|script|kernel|loader|mjs|js|ts)\b/.test(text)) hints.push('code')
+  if (/\b(risk|guard|protected|security|audit|failure|critical|production)\b/.test(text)) hints.push('risk-review', 'mutation-guard')
+  if (/\b(campaign|supercharge|forensic|symbiotic|shintai)\b/.test(text)) hints.push('deep-decomposition', 'orchestration')
+  return unique(hints)
+}
+
+function deriveWorkPackets(text) {
+  return deriveCapabilityHints(text).map((capability, index) => ({
+    id: `task-${String(index + 1).padStart(2, '0')}`,
+    capability,
+  }))
+}
+
+function deriveSignals(text) {
+  const signals = []
+  if (/\b(code|test|refactor|script|kernel|loader|mjs|js|ts)\b/.test(text)) signals.push('code')
+  if (/\b(risk|guard|protected|security|audit|failure|critical|production)\b/.test(text)) signals.push('risk')
+  if (/\b(memory|rag|recall|retrieval|context|eot|neuron)\b/.test(text)) signals.push('memory')
+  if (/\b(research|source|citation|paper|msa|web|browser)\b/.test(text)) signals.push('research', 'docs')
+  if (/\b(design|visual|presentation|html|ui|ux)\b/.test(text)) signals.push('design')
+  if (/\b(campaign|supercharge|forensic|symbiotic|shintai)\b/.test(text)) signals.push('campaign')
+  return unique(signals)
+}
+
 function writeManifest(registry) {
   const manifest = {}
   for (const skill of registry.skills) {
@@ -321,4 +486,12 @@ function printSkill(registry, name) {
   if (skill.collision) preview.collision = skill.collision_with
 
   stdout.write(JSON.stringify(preview, null, 2) + '\n')
+}
+
+function unique(values) {
+  return [...new Set((values || []).filter(Boolean))]
+}
+
+function isCliEntrypoint() {
+  return path.resolve(process.argv[1] || '') === fileURLToPath(import.meta.url)
 }

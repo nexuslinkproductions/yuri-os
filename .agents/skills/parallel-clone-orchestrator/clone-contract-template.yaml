@@ -1,0 +1,27 @@
+clone_contract:
+  clone_id: string
+  role: researcher | architect | security_auditor | implementation_planner | tester | documentation_writer | synthesizer
+  mission: string
+  allowed_inputs: []
+  forbidden_actions:
+    - delete_files
+    - overwrite_files
+    - deploy_changes
+    - access_credentials
+    - execute_untrusted_code
+  budget:
+    token_budget: integer
+    time_budget_minutes: integer
+    max_tool_calls: integer
+  output_contract:
+    required_sections:
+      - summary
+      - findings
+      - evidence
+      - risks
+      - recommendations
+      - confidence
+  merge_policy:
+    contradictions_must_be_reported: true
+    no_direct_mutation: true
+    synthesizer_required: true

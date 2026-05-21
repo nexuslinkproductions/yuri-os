@@ -58,10 +58,11 @@ export function buildAutomationHealthSummary(input = {}) {
   const launchd = Array.isArray(input.launchd) ? input.launchd : [];
   const laneCalibration = Array.isArray(input.laneCalibration) ? input.laneCalibration : [];
   const kagamiOverseer = resolveKagamiOverseerHealth(input);
+  const now = input.now ? new Date(input.now) : new Date();
   const checks = [
     ...workerChecks.map((entry) => normalizeCheck('worker', entry)),
     ...(browserHarness ? [normalizeCheck('browser-harness', browserHarness)] : []),
-    ...launchd.map((entry) => normalizeCheck('launchd', entry)),
+    ...launchd.map((entry) => normalizeCheck('launchd', entry, { now })),
     ...laneCalibration.map((entry) => normalizeCheck('lane-calibration', entry)),
     ...(kagamiOverseer ? [normalizeKagamiCheck(kagamiOverseer)] : []),
   ];
@@ -123,9 +124,14 @@ export function probeBrowserHarnessHealth(options = {}) {
   };
 }
 
-function normalizeCheck(component, entry = {}) {
+function normalizeCheck(component, entry = {}, options = {}) {
   const id = entry.id || entry.lane || entry.worker || entry.name || component;
-  const state = entry.state || normalizeHealthState(entry);
+  const evidence = component === 'launchd'
+    ? normalizeLaunchdEvidence(entry, options)
+    : normalizeGenericEvidence(entry);
+  const state = component === 'launchd'
+    ? normalizeLaunchdState(entry, evidence)
+    : entry.state || normalizeHealthState(entry);
   return {
     component,
     id,
@@ -133,7 +139,92 @@ function normalizeCheck(component, entry = {}) {
     ok: state === 'ok',
     lane: entry.lane || null,
     detail: entry.error || entry.stderr || entry.stdout || entry.message || entry.probe?.error || '',
+    evidence,
   };
+}
+
+function normalizeGenericEvidence(entry = {}) {
+  return {
+    ok: entry.ok ?? null,
+    status: entry.status ?? null,
+    exitCode: normalizeExitCode(entry.exitCode ?? entry.exit ?? entry.status),
+    signal: entry.signal ?? null,
+  };
+}
+
+function normalizeLaunchdEvidence(entry = {}, options = {}) {
+  const now = options.now instanceof Date ? options.now : new Date(options.now || Date.now());
+  const pid = Number(entry.pid || 0);
+  const stdoutMtime = normalizeTimestamp(entry.stdoutMtime || entry.stdout_mtime || entry.stdout?.mtime || entry.stdoutPathMtime);
+  const stateMtime = normalizeTimestamp(entry.stateMtime || entry.state_mtime || entry.stateFileMtime);
+  const lastRunAt = normalizeTimestamp(entry.lastRunAt || entry.last_run_at || entry.lastRun);
+  const expectedIntervalMs = normalizeExpectedIntervalMs(entry);
+  const stdoutAgeMs = stdoutMtime ? now.getTime() - stdoutMtime.getTime() : null;
+  const stateAgeMs = stateMtime ? now.getTime() - stateMtime.getTime() : null;
+  const lastRunAgeMs = lastRunAt ? now.getTime() - lastRunAt.getTime() : null;
+  const daemon = Boolean(entry.daemon || entry.interval === 'daemon' || entry.schedule === 'daemon');
+  const scheduleExpected = daemon
+    ? false
+    : expectedIntervalMs > 0 && lastRunAgeMs !== null
+      ? lastRunAgeMs <= expectedIntervalMs * 1.5
+      : null;
+
+  return {
+    daemon,
+    pid: pid || null,
+    pidAlive: pid > 0,
+    lastExit: normalizeExitCode(entry.lastExit ?? entry.last_exit ?? entry.exit ?? entry.exitCode),
+    stdoutMtime: stdoutMtime ? stdoutMtime.toISOString() : null,
+    stdoutAgeMs,
+    stdoutFresh: stdoutAgeMs === null ? null : stdoutAgeMs <= Number(entry.stdoutFreshMs || 60 * 60 * 1000),
+    stateMtime: stateMtime ? stateMtime.toISOString() : null,
+    stateAgeMs,
+    stateFresh: stateAgeMs === null ? null : stateAgeMs <= Number(entry.stateFreshMs || 60 * 60 * 1000),
+    lastRunAt: lastRunAt ? lastRunAt.toISOString() : null,
+    lastRunAgeMs,
+    expectedIntervalMs: expectedIntervalMs || null,
+    scheduleExpected,
+  };
+}
+
+function normalizeLaunchdState(entry = {}, evidence = {}) {
+  if (entry.state) return entry.state;
+  if (evidence.daemon && evidence.pidAlive) return 'ok';
+  if (evidence.lastExit && evidence.lastExit !== 0) return 'crashed';
+  if (evidence.scheduleExpected === false) return 'stale_daemon';
+  if (entry.ok === true) return 'ok';
+  return normalizeHealthState(entry);
+}
+
+function normalizeTimestamp(value) {
+  if (!value) return null;
+  if (value instanceof Date && Number.isFinite(value.getTime())) return value;
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return new Date(value < 10_000_000_000 ? value * 1000 : value);
+  }
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? date : null;
+}
+
+function normalizeExitCode(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function normalizeExpectedIntervalMs(entry = {}) {
+  if (entry.expectedIntervalMs) return Number(entry.expectedIntervalMs);
+  if (entry.intervalMs) return Number(entry.intervalMs);
+  const text = String(entry.interval || entry.schedule || '').trim().toLowerCase();
+  const match = text.match(/(?:every\s*)?(\d+)\s*(s|sec|secs|second|seconds|m|min|mins|minute|minutes|h|hr|hour|hours|d|day|days)/);
+  if (!match) return 0;
+  const value = Number(match[1]);
+  const unit = match[2];
+  if (/^s/.test(unit)) return value * 1000;
+  if (/^m/.test(unit)) return value * 60 * 1000;
+  if (/^h/.test(unit)) return value * 60 * 60 * 1000;
+  if (/^d/.test(unit)) return value * 24 * 60 * 60 * 1000;
+  return 0;
 }
 
 function resolveKagamiOverseerHealth(input) {
