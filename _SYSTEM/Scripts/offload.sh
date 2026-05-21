@@ -186,6 +186,7 @@ run_offload_runner() {
   local queue_needed=1
   local write_scope="${WRITE_SCOPE:-}"
   local runner_args=()
+  local has_runner_args=0
   shift 2
 
   while [[ $# -gt 0 ]]; do
@@ -196,6 +197,7 @@ run_offload_runner() {
         ;;
       *)
         runner_args+=("$1")
+        has_runner_args=1
         shift
         ;;
     esac
@@ -210,19 +212,21 @@ run_offload_runner() {
       ;;
   esac
 
-  for arg in "${runner_args[@]}"; do
-    if [[ "$arg" == "--dry-run" || "$arg" == "--route-only" ]]; then
-      queue_needed=0
-      break
-    fi
-  done
+  if [[ "$has_runner_args" -eq 1 ]]; then
+    for arg in "${runner_args[@]}"; do
+      if [[ "$arg" == "--dry-run" || "$arg" == "--route-only" ]]; then
+        queue_needed=0
+        break
+      fi
+    done
+  fi
 
   if [[ "$queue_needed" -eq 1 && "$(classify_lane "$lane")" == "cloud" && "${OFFLOAD_QUEUE_BYPASS:-0}" != "1" ]]; then
-    env "${env_args[@]}" node "$OFFLOAD_QUEUE" run --lane "$lane" -- node "$OFFLOAD_RUNNER" "$lane" "${runner_args[@]}"
+    env "${env_args[@]}" node "$OFFLOAD_QUEUE" run --lane "$lane" -- node "$OFFLOAD_RUNNER" "$lane" ${runner_args[@]+"${runner_args[@]}"}
     return
   fi
 
-  env "${env_args[@]}" node "$OFFLOAD_RUNNER" "$lane" "${runner_args[@]}"
+  env "${env_args[@]}" node "$OFFLOAD_RUNNER" "$lane" ${runner_args[@]+"${runner_args[@]}"}
 }
 
 normalize_reasoning_depth() {
@@ -328,6 +332,10 @@ dry_run_model_override() {
       nvidia-deepseek|deepseek-ai/*)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$target_model"
+        ;;
+      nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7)
+        printf '%s\n' "⬡ ROUTING_TO_MINIMAX_M27_NIM..." >&2
+        run_offload_runner "$target_model" "$prompt" --dry-run ${tool_args[@]+"${tool_args[@]}"}
         ;;
       nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*)
         case "$target_model" in
@@ -467,6 +475,10 @@ dispatch_model() {
       nvidia-deepseek|deepseek-ai/*)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
         run_offload_runner nvidia-deepseek "$prompt" --model "$target_model"
+        ;;
+      nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7)
+        printf '%s\n' "⬡ ROUTING_TO_MINIMAX_M27_NIM..." >&2
+        run_offload_runner "$target_model" "$prompt" ${tool_args[@]+"${tool_args[@]}"}
         ;;
       nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*)
         case "$target_model" in

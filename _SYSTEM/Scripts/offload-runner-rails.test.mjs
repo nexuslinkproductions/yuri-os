@@ -30,6 +30,25 @@ function runOffload(args, env) {
   });
 }
 
+function runOffloadWrapper(args, env) {
+  return new Promise((resolve) => {
+    const child = spawn('_SYSTEM/Scripts/offload.sh', args, {
+      cwd: REPO_ROOT,
+      env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+    child.on('close', (status, signal) => resolve({ status, signal, stdout, stderr }));
+  });
+}
+
 function isolatedEnv(tmpDir, port, extra = {}) {
   return {
     ...process.env,
@@ -355,6 +374,56 @@ test('offload runner prepares Minimax M2.7 NIM lane with dedicated key env', { t
     assert.equal(payload.model, 'minimaxai/minimax-m2.7');
     assert.equal(payload.apiKey, '[set]');
   } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload wrapper routes Minimax M2.7 manual override through dedicated lane', { timeout: 10_000 }, async (t) => {
+  if (!(await allowOnlyIfBindable(t))) return;
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-minimax-wrapper-'));
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk.toString();
+    });
+    req.on('end', () => {
+      const body = JSON.parse(raw || '{}');
+      requests.push({
+        auth: req.headers.authorization,
+        model: body.model,
+      });
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(jsonChatResponse(body.model, 'PONG'));
+    });
+  });
+
+  try {
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    const env = isolatedEnv(tmpDir, port, {
+      NVIDIA_API_KEY: '',
+      NVIDIA_KEY_MINIMAX_M27: 'mock-minimax-key',
+      OFFLOAD_QUEUE_BYPASS: '1',
+    });
+    const result = await runOffloadWrapper(['-m', 'nvidia-minimax-m27', 'Reply PONG only.'], env);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /PONG/);
+    assert.match(result.stderr, /MANUAL_OVERRIDE :: model=nvidia-minimax-m27/);
+    assert.match(result.stderr, /ROUTING_TO_MINIMAX_M27_NIM/);
+    assert.doesNotMatch(result.stderr, /UNKNOWN_MODEL/);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].auth, 'Bearer mock-minimax-key');
+    assert.equal(requests[0].model, 'minimaxai/minimax-m2.7');
+  } finally {
+    server.close();
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
