@@ -2,7 +2,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { closeSync, fsyncSync, mkdirSync, openSync, writeSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getHealthSummary } from './kagami-overseer.mjs';
@@ -23,6 +23,7 @@ export const BASELINE_COMMITS = Object.freeze([
   'c04ebc11',
   '50bde010',
   'ee88dadf',
+  '559138b6',
 ]);
 
 const NETWORK_DEPENDENT_CHECKS = new Set([
@@ -203,9 +204,19 @@ export function writeReleaseEvidence(evidence, options = {}) {
   mkdirSync(dir, { recursive: true });
   const jsonlPath = path.join(dir, 'automation-evidence.jsonl');
   const latestPath = path.join(dir, 'automation-health-latest.json');
-  appendFileSync(jsonlPath, `${JSON.stringify(evidence)}\n`);
-  writeFileSync(latestPath, `${JSON.stringify(evidence, null, 2)}\n`);
+  durableWrite(jsonlPath, `${JSON.stringify(evidence)}\n`, 'a');
+  durableWrite(latestPath, `${JSON.stringify(evidence, null, 2)}\n`, 'w');
   return { jsonlPath, latestPath };
+}
+
+function durableWrite(filePath, content, flag) {
+  const fd = openSync(filePath, flag);
+  try {
+    writeSync(fd, content);
+    fsyncSync(fd);
+  } finally {
+    closeSync(fd);
+  }
 }
 
 function safeHealthSummary() {

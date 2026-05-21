@@ -1,6 +1,6 @@
 # YURI OS Supercharge Final Report
 
-Generated: 2026-05-21T01:43:09.971Z
+Generated: 2026-05-21T02:35:12.740Z
 
 ## Scope
 
@@ -12,23 +12,24 @@ This report is the shipping ledger for the staged YURI OS / MUSUBI supercharge r
 - nemoMatrix: _SYSTEM/docs/YURI_OS_NEMO_GUARDRAIL_MATRIX_2026-05-20.md (6398 bytes)
 - patchWaves: _SYSTEM/docs/YURI_OS_SUPERCHARGE_PATCH_WAVES_2026-05-20.md (5769 bytes)
 - nemoSource: _SYSTEM/docs/YURI_OS_NEMO_GUARDRAILS_SOURCE_REPO_PROGRESS_2026-05-20.md (2482 bytes)
-- latestShintaiAdvisory: _SYSTEM/state/shintai-advisory/shintai-2026-05-21T01-31-57-299Z.md
+- latestShintaiAdvisory: _SYSTEM/state/shintai-advisory/shintai-2026-05-21T02-30-12-346Z.md
 - latestReleaseGate: _SYSTEM/state/release-gate/automation-health-latest.json (OK)
 - memberNotes: _SYSTEM/docs/YURI_OS_SHINTAI_MEMBER_NOTES_2026-05-21.md
 
 ## Wave Status
 
-- Wave 0: Evidence Gate — implemented-or-under-verification
-- Wave 1: Lane Kernel Consolidation — implemented-or-under-verification
-- Wave 2: Guardrail Kernel — implemented-or-under-verification
-- Wave 3: Shintai Control Plane — implemented-or-under-verification
-- Wave 4: Universal Memory Kernel — implemented-or-under-verification
-- Wave 5: Automation Kernel — implemented-or-under-verification
-- Wave 6: Rick Harness Hardening — implemented-or-under-verification
-- Wave 7: Documentation And Release Gate — implemented-or-under-verification
+- Wave 0: Evidence Gate — PASS
+- Wave 1: Lane Kernel Consolidation — PASS
+- Wave 2: Guardrail Kernel — WARN - execution sub-rails enforced; retrieval/output wiring proof remains tracked
+- Wave 3: Shintai Control Plane — PASS
+- Wave 4: Universal Memory Kernel — PASS
+- Wave 5: Automation Kernel — PASS
+- Wave 6: Rick Harness Hardening — PASS
+- Wave 7: Documentation And Release Gate — PASS
 
 ## Recent Implementation Commits
 
+- 559138b6 Finish YURI supercharge release gate
 - ee88dadf Harden Kagami quarantine loop
 - 50bde010 Add Kagami lane quarantine spine
 - c04ebc11 Allow long Shintai lane processing
@@ -36,7 +37,6 @@ This report is the shipping ledger for the staged YURI OS / MUSUBI supercharge r
 - 18fc4f93 Track NeMo Guardrails source evidence
 - 5fc2ccbb Add YURI control-plane supercharge gates
 - dceb29ae Document YURI forensic supercharge plan
-- 55cf42f8 Add validated NVIDIA NIM lanes
 
 ## Release Gate
 
@@ -54,6 +54,7 @@ Required final evidence before calling the run complete:
 - Runtime/protected Claude/Amp state may remain dirty and must not be staged as implementation code.
 - Slow NIM lanes are latency evidence, not failure, unless they emit provider errors or explicit nonzero exits.
 - Browser-harness research remains local Chrome/CDP first; screenshots are only visual evidence.
+- Output/PTY rail hardening remains a separate tracked phase, not part of this release-gate slice.
 
 ## Protected Surfaces
 

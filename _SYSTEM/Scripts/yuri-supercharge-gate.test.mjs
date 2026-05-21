@@ -19,6 +19,7 @@ test('release evidence includes baseline commits, preflight hash, and health sum
 
   assert.equal(evidence.schemaVersion, '1.0');
   assert.deepEqual(evidence.baselineCommits, BASELINE_COMMITS);
+  assert.ok(evidence.baselineCommits.includes('559138b6'));
   assert.match(evidence.preflightSha256, /^[a-f0-9]{64}$/);
   assert.equal(evidence.healthSummary.status, 'ok');
 });
@@ -45,4 +46,11 @@ test('release evidence writer appends JSONL and writes latest snapshot', () => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('release evidence writer uses durable fsync writes', () => {
+  const source = readFileSync(new URL('./yuri-supercharge-gate.mjs', import.meta.url), 'utf8');
+
+  assert.match(source, /fsyncSync/);
+  assert.match(source, /durableWrite/);
 });

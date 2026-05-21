@@ -3,7 +3,7 @@
 import { appendFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
+import { NEMO_STYLE_RAILS, isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
 import { recallEntries } from './memory-kernel.mjs';
 import { YURI_RAILS_CONFIG } from '../kagami/yuri-rails-config.mjs';
 
@@ -161,6 +161,75 @@ export function evaluateRetrievalRails(request = {}, context = {}) {
 }
 
 export function evaluateExecutionRails(action = {}, context = {}) {
+  const subRailResults = NEMO_STYLE_RAILS.execution.map((rail) => evaluateExecutionSubRail(rail, action, context));
+  const reasons = subRailResults.flatMap((result) =>
+    result.reasons.map((message) => ({ severity: result.severity, message })),
+  );
+  const base = resultFor({
+    rail: 'execution',
+    reasons,
+    evidence: {
+      subRailResults,
+    },
+  });
+  return {
+    ...base,
+    evidence: {
+      ...base.evidence,
+      ...subRailResults.find((result) => result.rail === 'tool-policy-enforcement')?.evidence,
+    },
+  };
+}
+
+function evaluateExecutionSubRail(rail, action = {}, context = {}) {
+  switch (rail) {
+    case 'health-preflight':
+      return evaluateHealthPreflightSubRail(action, context);
+    case 'timeout-caps':
+      return evaluateTimeoutCapsSubRail(action, context);
+    case 'tool-policy-enforcement':
+      return evaluateToolPolicyEnforcementSubRail(action, context);
+    case 'no-auto-commit-or-push':
+      return evaluateNoAutoCommitOrPushSubRail(action);
+    default:
+      return resultFor({
+        rail,
+        reasons: [{ severity: RAIL_SEVERITY.warn, message: `unknown execution sub-rail: ${rail}` }],
+      });
+  }
+}
+
+function evaluateHealthPreflightSubRail(action = {}, context = {}) {
+  const healthProbe = action.healthProbe || context.healthProbe || null;
+  const reasons = [];
+  if (context.requireHealthPreflight === true && !healthProbe) {
+    reasons.push({ severity: RAIL_SEVERITY.block, message: 'missing health preflight evidence' });
+  }
+  if (healthProbe && healthProbe.ok === false) {
+    reasons.push({ severity: RAIL_SEVERITY.block, message: `health preflight failed: ${healthProbe.reason || healthProbe.error || healthProbe.status || 'unknown'}` });
+  }
+  return resultFor({
+    rail: 'health-preflight',
+    reasons,
+    evidence: { healthProbe },
+  });
+}
+
+function evaluateTimeoutCapsSubRail(action = {}, context = {}) {
+  const timeoutMs = Number(action.timeoutMs || action.timeout || context.timeoutMs || 0);
+  const maxTimeoutMs = Number(context.maxTimeoutMs || YURI_RAILS_CONFIG.execution.maxTimeoutMs || 60_000);
+  const reasons = [];
+  if (timeoutMs > maxTimeoutMs) {
+    reasons.push({ severity: RAIL_SEVERITY.block, message: `execution timeout cap exceeded: ${timeoutMs} > ${maxTimeoutMs}` });
+  }
+  return resultFor({
+    rail: 'timeout-caps',
+    reasons,
+    evidence: { timeoutMs, maxTimeoutMs },
+  });
+}
+
+function evaluateToolPolicyEnforcementSubRail(action = {}, context = {}) {
   const command = normalizeText(action.command || action.cmd || action.shell || '');
   const kind = action.kind || (command ? 'shell' : 'action');
   const candidates = uniq([...pathCandidatesFrom(action), ...detectPathLikeTokens(command)]);
@@ -178,12 +247,8 @@ export function evaluateExecutionRails(action = {}, context = {}) {
   for (const candidate of protectedPaths) {
     reasons.push({ severity: RAIL_SEVERITY.block, message: `protected execution path denied: ${candidate}` });
   }
-  if (action.autoCommit === true || action.autoPush === true) {
-    reasons.push({ severity: RAIL_SEVERITY.block, message: 'automatic commit or push denied' });
-  }
-
   return resultFor({
-    rail: 'execution',
+    rail: 'tool-policy-enforcement',
     reasons,
     evidence: {
       kind,
@@ -191,6 +256,24 @@ export function evaluateExecutionRails(action = {}, context = {}) {
       checkedPaths: candidates,
       protectedPaths,
       noexec: Boolean(context.noexec),
+    },
+  });
+}
+
+function evaluateNoAutoCommitOrPushSubRail(action = {}) {
+  const reasons = [];
+  if (action.autoCommit === true) {
+    reasons.push({ severity: RAIL_SEVERITY.block, message: 'automatic commit denied' });
+  }
+  if (action.autoPush === true) {
+    reasons.push({ severity: RAIL_SEVERITY.block, message: 'automatic push denied' });
+  }
+  return resultFor({
+    rail: 'no-auto-commit-or-push',
+    reasons,
+    evidence: {
+      autoCommit: Boolean(action.autoCommit),
+      autoPush: Boolean(action.autoPush),
     },
   });
 }
@@ -369,7 +452,11 @@ function detectPathLikeTokens(command) {
   const text = normalizeText(command);
   if (!text) return [];
   const matches = text.match(/(?:^|\s)([./~]?[A-Za-z0-9_@.-]+(?:\/[A-Za-z0-9_@.+-]+)+|[A-Za-z0-9_@.-]+\/[A-Za-z0-9_@.+-]+)/g);
-  return (matches || []).map((entry) => entry.trim());
+  const simpleProtected = text.match(/(?:^|\s)(\.env|\.amp(?:\/[^\s;&|]+)?)(?=\s|$|[;&|])/g);
+  return [
+    ...(matches || []).map((entry) => entry.trim()),
+    ...(simpleProtected || []).map((entry) => entry.trim()),
+  ];
 }
 
 function looksLikeRepoTruthClaim(text) {

@@ -321,7 +321,8 @@ export function assembleShintaiTeam(task, roster = loadShintaiRoster(), availabl
   }
 
   return {
-    ok: SHINTAI_REQUIRED_MEMBER_IDS.every((id) => members.some((member) => member.id === id)) || members.length > 0,
+    ok: requiredMemberIdsForTier(tier).every((id) => members.some((member) => member.id === id)) ||
+      (tier !== 'critical' && members.length > 0),
     task: taskText,
     tier,
     targetSize,
@@ -330,7 +331,12 @@ export function assembleShintaiTeam(task, roster = loadShintaiRoster(), availabl
     selected: members,
     members,
     skipped,
+    requiredIds: requiredMemberIdsForTier(tier),
   };
+}
+
+function requiredMemberIdsForTier(tier) {
+  return tier === 'critical' ? [...SHINTAI_REQUIRED_MEMBER_IDS] : [];
 }
 
 export function buildMemberPrompt(task, member, options = {}) {
@@ -819,6 +825,7 @@ function summarizeGate(gate0) {
     ok: gate0.ok,
     timestamp: gate0.timestamp,
     loadedIds: gate0.loaded.map((entry) => entry.id),
+    hashes: Object.fromEntries(gate0.loaded.map((entry) => [entry.id, entry.sha256])),
     missingIds: gate0.missing.map((entry) => entry.id),
     blockedIds: gate0.blocked.map((entry) => entry.id),
     warnings: gate0.warnings.map((entry) => entry.id),

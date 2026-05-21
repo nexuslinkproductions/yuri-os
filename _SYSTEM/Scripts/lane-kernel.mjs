@@ -14,6 +14,7 @@ const CLAUDE_STATE = [CLAUDE_DIR, 'state'].join('/');
 const CLAUDE_HISTORY = [CLAUDE_DIR, 'history'].join('/');
 const BACKEND_DATA = ['backend', 'data'].join('/');
 const NODE_MODULES = ['node', 'modules'].join('_');
+const AMP_DIR = ['.', 'amp'].join('');
 const ENV_FILE = ['.', 'env'].join('');
 
 export const PROTECTED_SURFACE_LABELS = Object.freeze([
@@ -22,6 +23,7 @@ export const PROTECTED_SURFACE_LABELS = Object.freeze([
   `${CLAUDE_HISTORY}/`,
   ENV_FILE,
   `${NODE_MODULES}/`,
+  `${AMP_DIR}/`,
 ]);
 
 export const ACTIVE_NIM_LANES = Object.freeze([
@@ -70,7 +72,7 @@ export const SHINTAI_SUPERAUDIT_MEMBER_IDS = Object.freeze([
   'mistral-medium',
 ]);
 
-export const SHINTAI_REQUIRED_MEMBER_IDS = Object.freeze(['deepseek']);
+export const SHINTAI_REQUIRED_MEMBER_IDS = Object.freeze(['codex', 'deepseek']);
 
 const BASE_FORBIDDEN_TOOLS = Object.freeze({
   edit: false,
@@ -252,6 +254,7 @@ export function isProtectedPath(candidate) {
     withSlash.includes(`${CLAUDE_STATE}/`) ||
     withSlash.includes(`${CLAUDE_HISTORY}/`) ||
     withSlash.includes(`${NODE_MODULES}/`) ||
+    withSlash.includes(`${AMP_DIR}/`) ||
     path.basename(normalized) === ENV_FILE
   );
 }

@@ -96,6 +96,33 @@ test('execution rail blocks destructive shell commands and protected targets', (
   assert.match(result.reasons.join('\n'), /protected execution path denied/);
 });
 
+test('execution rail evaluates NeMo-style sub-rails', () => {
+  const missingHealth = evaluateExecutionRails(
+    { kind: 'shell', command: 'node --version' },
+    { requireHealthPreflight: true },
+  );
+  const timeout = evaluateExecutionRails({
+    kind: 'shell',
+    command: 'node --version',
+    timeoutMs: 120_000,
+    healthProbe: { ok: true },
+  });
+  const protectedEnv = evaluateExecutionRails({
+    kind: 'shell',
+    command: 'cat .env && ls .amp/settings.json',
+    healthProbe: { ok: true },
+  });
+
+  assert.equal(missingHealth.ok, false);
+  assert.match(missingHealth.reasons.join('\n'), /missing health preflight/);
+  assert.equal(timeout.ok, false);
+  assert.match(timeout.reasons.join('\n'), /timeout cap exceeded/);
+  assert.equal(protectedEnv.ok, false);
+  assert.match(protectedEnv.reasons.join('\n'), /\.env/);
+  assert.match(protectedEnv.reasons.join('\n'), /\.amp/);
+  assert.ok(timeout.evidence.subRailResults.some((result) => result.rail === 'timeout-caps'));
+});
+
 test('tool input rail keeps tools available while denying unsafe inputs', () => {
   const allowed = evaluateToolInputRails({ command: 'node --check _SYSTEM/Scripts/rails.mjs' });
   const denied = evaluateToolInputRails({ command: 'git push origin main' });

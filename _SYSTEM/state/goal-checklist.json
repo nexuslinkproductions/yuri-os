@@ -3,31 +3,37 @@
   "items": [
     {
       "goal": "canonical Shintai/NIM/Codex/Claude lane routing",
+      "rating": "PASS",
       "met": true,
       "evidence": "lane-kernel.mjs exports active/dead lanes; offload-runner.mjs substitutes quarantined lanes"
     },
     {
       "goal": "persistent universal memory with clear recall/write ownership",
+      "rating": "PASS",
       "met": true,
       "evidence": "memory-kernel.mjs exposes recallMemory, recallEntries, appendMemoryEntry, and Claude-import-only surfaces"
     },
     {
       "goal": "local browser-harness research and documentation capture",
+      "rating": "PASS",
       "met": true,
       "evidence": "_SYSTEM/tools/browser-harness is repo-local external checkout; browser-harness-runner.sh targets local CLI"
     },
     {
       "goal": "production automation health and recovery",
+      "rating": "PASS",
       "met": true,
       "evidence": "kagami-overseer.mjs quarantine, auto-unquarantine, health-status, and release gate evidence"
     },
     {
       "goal": "NeMo-style guardrails for input, retrieval, dialog, execution, output, tool, and health rails",
+      "rating": "WARN",
       "met": false,
-      "note": "Core rail evaluators exist; final audit still needs to prove every declared retrieval/output rail is wired at all dispatch surfaces"
+      "note": "Execution sub-rails are enforced; retrieval/output rails exist but still need a dedicated final wiring proof across every dispatch surface"
     },
     {
       "goal": "regression tests that prevent stale aliases, dead lanes, protected path writes, fake dispatch policy, and timeout regressions",
+      "rating": "PASS",
       "met": true,
       "evidence": "lane-kernel, Rick runtime, offload rails, memory-kernel, and supercharge gate tests cover these contracts"
     }

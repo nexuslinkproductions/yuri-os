@@ -14,7 +14,8 @@ test('supercharge report renders all waves and release gate evidence', () => {
   const report = renderSuperchargeReport(evidence);
 
   assert.match(report, /YURI OS Supercharge Final Report/);
-  assert.match(report, /Wave 0: Evidence Gate/);
+  assert.match(report, /Wave 0: Evidence Gate — PASS/);
+  assert.match(report, /Wave 2: Guardrail Kernel — WARN/);
   assert.match(report, /Wave 7: Documentation And Release Gate/);
   assert.match(report, /node _SYSTEM\/Scripts\/yuri-supercharge-gate\.mjs/);
   assert.match(report, /latestReleaseGate:/);

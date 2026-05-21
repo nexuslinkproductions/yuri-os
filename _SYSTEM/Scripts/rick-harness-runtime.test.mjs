@@ -224,11 +224,33 @@ test('Shintai critical harness assembly uses roster, task tier, fit, and live he
   const assembly = assembleShintaiTeam('critical Rick harness renderer Shintai integration', roster, health);
 
   assert.equal(assembly.tier, 'critical');
+  assert.deepEqual(assembly.requiredIds, ['codex', 'deepseek']);
   assert.deepEqual(assembly.selectedIds, ['codex', 'deepseek', 'claude-opus-audit', 'nemotron', 'mistral-large', 'qwen-coder', 'glm', 'qwen3-next', 'mistral-medium']);
   assert.equal(assembly.members.some((member) => member.id === 'kimi'), false);
   assert.equal(assembly.members.some((member) => /codex-spark/i.test(member.lane)), false);
   assert.equal(assembly.members.some((member) => member.id === 'qwen-coder'), true);
   assert.equal(assembly.members.some((member) => member.id === 'glm'), true);
+});
+
+test('Shintai critical assembly requires Codex and DeepSeek from the lane kernel', async () => {
+  const { assembleShintaiTeam } = await import('./shintai-dispatch.mjs');
+  const roster = {
+    members: {
+      nemotron: {
+        role: 'Nemotron',
+        model: 'nvidia-nemotron-120b',
+        skills: [],
+      },
+    },
+  };
+
+  const assembly = assembleShintaiTeam('critical Rick harness Shintai production audit', roster, {});
+
+  assert.equal(assembly.ok, true);
+  assert.ok(assembly.requiredIds.includes('codex'));
+  assert.ok(assembly.requiredIds.includes('deepseek'));
+  assert.ok(assembly.selectedIds.includes('codex'));
+  assert.ok(assembly.selectedIds.includes('deepseek'));
 });
 
 test('Shintai guardrails reject hardcoded squad defaults and Rick-owned dispatcher naming', () => {

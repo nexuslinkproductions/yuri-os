@@ -20,6 +20,17 @@ const DOC_PATHS = Object.freeze({
   nemoSource: path.join(DOCS_DIR, 'YURI_OS_NEMO_GUARDRAILS_SOURCE_REPO_PROGRESS_2026-05-20.md'),
 });
 
+const WAVE_STATUS = Object.freeze({
+  0: 'PASS',
+  1: 'PASS',
+  2: 'WARN - execution sub-rails enforced; retrieval/output wiring proof remains tracked',
+  3: 'PASS',
+  4: 'PASS',
+  5: 'PASS',
+  6: 'PASS',
+  7: 'PASS',
+});
+
 export function collectSuperchargeEvidence(options = {}) {
   const now = options.now || new Date();
   const docs = Object.fromEntries(
@@ -85,6 +96,7 @@ export function renderSuperchargeReport(evidence = collectSuperchargeEvidence())
     '- Runtime/protected Claude/Amp state may remain dirty and must not be staged as implementation code.',
     '- Slow NIM lanes are latency evidence, not failure, unless they emit provider errors or explicit nonzero exits.',
     '- Browser-harness research remains local Chrome/CDP first; screenshots are only visual evidence.',
+    '- Output/PTY rail hardening remains a separate tracked phase, not part of this release-gate slice.',
     '',
     '## Protected Surfaces',
     '',
@@ -119,7 +131,7 @@ function parseWaves(text) {
     waves.push({
       number: Number(match[1]),
       title: match[2].trim(),
-      status: 'implemented-or-under-verification',
+      status: WAVE_STATUS[Number(match[1])] || 'under-review',
     });
   }
   return waves;

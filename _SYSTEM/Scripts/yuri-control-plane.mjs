@@ -155,7 +155,7 @@ export function buildConstraints({ task = '', loaded = [] } = {}) {
     rails: NEMO_STYLE_RAILS,
     activeNimLanes: [...ACTIVE_NIM_LANES],
     deadNimLanes: [...DEAD_NIM_LANES],
-    protectedSurfaces: [...PROTECTED_SURFACE_LABELS, '.amp/'],
+    protectedSurfaces: [...new Set(PROTECTED_SURFACE_LABELS)],
     laneKernelIds: Object.keys(LANE_KERNEL),
     superauditMemberIds: deployment.members.map((member) => member.id),
     evidenceIds: loaded.map((entry) => entry.id),

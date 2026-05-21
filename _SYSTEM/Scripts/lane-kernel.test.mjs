@@ -6,6 +6,7 @@ import {
   DEAD_NIM_LANES,
   LANE_KERNEL,
   NEMO_STYLE_RAILS,
+  SHINTAI_REQUIRED_MEMBER_IDS,
   buildSuperauditDeployment,
   isProtectedPath,
 } from './lane-kernel.mjs';
@@ -23,6 +24,7 @@ test('lane kernel exposes the heavy Shintai/NIM deployment without Kimi or Spark
   assert.equal(ids.includes('kimi'), false);
   assert.doesNotMatch(lanes, /codex-spark|spark/i);
   assert.equal(deployment.authority.finalDecision, 'codex-main');
+  assert.deepEqual(SHINTAI_REQUIRED_MEMBER_IDS, ['codex', 'deepseek']);
 });
 
 test('lane kernel tracks active and dead NIM lanes explicitly', () => {
@@ -65,6 +67,8 @@ test('protected path predicate blocks forbidden surfaces', () => {
   assert.equal(isProtectedPath('.claude/state/pulse-bus.jsonl'), true);
   assert.equal(isProtectedPath('.claude/history/session.jsonl'), true);
   assert.equal(isProtectedPath('.env'), true);
+  assert.equal(isProtectedPath('/tmp/work/.env'), true);
+  assert.equal(isProtectedPath('.amp/settings.json'), true);
   assert.equal(isProtectedPath('node_modules/pkg/index.js'), true);
   assert.equal(isProtectedPath('_SYSTEM/state/shintai-advisory/out.md'), false);
 });

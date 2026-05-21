@@ -321,8 +321,9 @@ function renderGoalChecklist() {
   if (!checklist.items.length) return '';
   const lines = checklist.items.map((item) => {
     const marker = item.met ? '[✓]' : '[✗]';
+    const rating = item.rating ? ` ${item.rating}` : '';
     const detail = item.evidence || item.note || '';
-    return `${marker} ${item.goal}${detail ? ` — ${detail}` : ''}`;
+    return `${marker}${rating} ${item.goal}${detail ? ` — ${detail}` : ''}`;
   });
   const unmet = checklist.items.filter((item) => !item.met);
   if (unmet.length) {
