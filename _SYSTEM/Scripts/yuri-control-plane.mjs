@@ -46,7 +46,7 @@ export const CORE_EVIDENCE_FILES = Object.freeze([
 ]);
 
 export const OPTIONAL_MEMORY_FILES = Object.freeze([
-  { id: 'yuri-memory', path: '_SYSTEM/memory/MEMORY.md', type: 'memory' },
+  { id: 'yuri-memory-index', path: '_SYSTEM/memory/MEMORY.md', type: 'memory' },
   { id: 'codex-primary-partner', path: '_SYSTEM/memory/feedback_codex_primary_partner.md', type: 'memory' },
   { id: 'deepseek-tool-unblock', path: '_SYSTEM/memory/feedback_deepseek_tool_unblock.md', type: 'memory' },
   { id: 'self-improvement-memory-rag-goal', path: '_SYSTEM/docs/YURI_OS_SELF_IMPROVEMENT_MEMORY_RAG_SHINTAI_GOAL_2026-05-21.md', type: 'doc' },
@@ -70,7 +70,7 @@ export const OPTIONAL_MEMORY_FILES = Object.freeze([
   { id: 'legacy-shintai-team-sizing', path: path.relative(REPO_ROOT, path.join(LEGACY_CLAUDE_PROJECT_MEMORY_DIR, 'feedback_shintai_team_sizing.md')), type: 'legacy-memory' },
   { id: 'legacy-shintai-main-thread-role', path: path.relative(REPO_ROOT, path.join(LEGACY_CLAUDE_PROJECT_MEMORY_DIR, 'feedback_shintai_main_thread_role.md')), type: 'legacy-memory' },
   { id: 'legacy-rick-persona-dispatch', path: path.relative(REPO_ROOT, path.join(LEGACY_CLAUDE_PROJECT_MEMORY_DIR, 'feedback_rick_persona_every_dispatch.md')), type: 'legacy-memory' },
-  { id: 'extraction-sprint-skill', path: '.claude/skills/extraction-sprint/SKILL.md', type: 'template' },
+  { id: 'extraction-sprint-template', path: '.claude/skills/extraction-sprint/SKILL.md', type: 'template' },
   { id: 'luminous-fountain-plan', path: '.claude/plans/shintai-has-to-fix-luminous-fountain.md', type: 'template' },
 ]);
 
@@ -83,8 +83,9 @@ export function loadEvidenceGate(task = '', options = {}) {
   const missing = [];
   const blocked = [];
   const warnings = [];
+  const evidenceSources = [...coreFiles, ...optionalFiles];
 
-  for (const source of [...coreFiles, ...optionalFiles]) {
+  for (const source of evidenceSources) {
     const absPath = path.resolve(REPO_ROOT, source.path);
     const retrieval = evaluateRetrievalRails({ path: absPath, source: source.id });
     if (!retrieval.ok) {
@@ -109,7 +110,17 @@ export function loadEvidenceGate(task = '', options = {}) {
   }
 
   const constraints = buildConstraints({ task, loaded });
-  const ok = inputRail.ok && missing.length === 0 && blocked.length === 0;
+  const loadedIds = new Set(loaded.map((entry) => entry.id));
+  const sourceById = new Map(evidenceSources.map((source) => [source.id, source]));
+  const requiredMissing = constraints.requiredEvidenceIds
+    .filter((id) => !loadedIds.has(id))
+    .map((id) => ({
+      id,
+      ...(sourceById.get(id) || {}),
+      required: true,
+      error: 'required task evidence missing',
+    }));
+  const ok = inputRail.ok && missing.length === 0 && blocked.length === 0 && requiredMissing.length === 0;
 
   return {
     ok,
@@ -119,6 +130,7 @@ export function loadEvidenceGate(task = '', options = {}) {
     inputRail,
     loaded,
     missing,
+    requiredMissing,
     blocked,
     warnings,
     constraints,
@@ -134,6 +146,13 @@ export function preflightControlPlane(task = '', options = {}) {
     constraints: gate0.constraints,
     violations: [
       ...(gate0.inputRail.ok ? [] : [gate0.inputRail]),
+      ...gate0.requiredMissing.map((entry) => ({
+        ok: false,
+        rail: 'gate0-evidence',
+        severity: 'block',
+        reasons: [`required task evidence missing: ${entry.id}`],
+        evidence: { id: entry.id, path: entry.path || null },
+      })),
       ...gate0.blocked.map((entry) => entry.rail),
     ],
   };
@@ -144,11 +163,13 @@ export function buildConstraintBlock(gateOrPreflight) {
   const constraints = gate?.constraints || buildConstraints({ task: gate?.task || '', loaded: gate?.loaded || [] });
   const loadedIds = (gate?.loaded || []).map((entry) => `${entry.id}:${entry.sha256}`).join(', ');
   const missingOptional = (gate?.warnings || []).map((entry) => entry.id).join(', ');
+  const requiredMissing = (gate?.requiredMissing || []).map((entry) => entry.id).join(', ');
   return [
     '[YURI CONTROL PLANE GATE 0]',
     `gate_ok=${Boolean(gate?.ok)}`,
     `task_tier_hint=${constraints.taskTierHint}`,
     `loaded_evidence=${loadedIds || 'none'}`,
+    requiredMissing ? `required_missing=${requiredMissing}` : '',
     missingOptional ? `optional_missing=${missingOptional}` : '',
     `active_nim=${constraints.activeNimLanes.join(', ')}`,
     `dead_nim=${constraints.deadNimLanes.join(', ')}`,

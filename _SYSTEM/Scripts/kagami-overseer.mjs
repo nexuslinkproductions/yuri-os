@@ -22,6 +22,7 @@ export const MODEL_TO_LANE = Object.freeze({
   'qwen/qwen3-coder-480b-a35b-instruct': 'nvidia-qwen-coder',
   'qwen/qwen3.5-397b-a17b': 'nvidia-qwen-397b',
   'z-ai/glm-5.1': 'nvidia-glm',
+  'minimaxai/minimax-m2.7': 'nvidia-minimax-m27',
   'openai/gpt-oss-120b': 'nvidia-gpt-oss-120b',
   'abacusai/dracarys-llama-3.1-70b-instruct': 'nvidia-dracarys',
   'meta/llama-3.3-70b-instruct': 'nvidia-llama-70b',
@@ -38,6 +39,8 @@ const LANE_ALIASES = Object.freeze({
   'qwen3-next': 'nvidia-qwen3-next',
   'qwen-397b': 'nvidia-qwen-397b',
   glm: 'nvidia-glm',
+  'minimax-m27': 'nvidia-minimax-m27',
+  'minimax-m2.7': 'nvidia-minimax-m27',
   codex: 'codex',
   'gpt-5.5': 'codex',
   'gpt-5.4': 'codex',
@@ -51,6 +54,7 @@ const FALLBACK_LANES = Object.freeze({
   'nvidia-qwen3-next': ['nvidia-qwen-coder', 'nvidia-mistral-medium'],
   'nvidia-qwen-397b': ['nvidia-qwen-coder', 'nvidia-mistral-medium'],
   'nvidia-glm': ['nvidia-mistral-medium'],
+  'nvidia-minimax-m27': ['nvidia-mistral-large', 'nvidia-mistral-medium'],
   'nvidia-qwen-coder': ['nvidia-mistral-medium'],
 });
 

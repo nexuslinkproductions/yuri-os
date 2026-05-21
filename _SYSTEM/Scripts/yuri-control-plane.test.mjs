@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  CORE_EVIDENCE_FILES,
   buildConstraintBlock,
   classifyTaskTierHint,
   loadEvidenceGate,
@@ -10,17 +9,16 @@ import {
 
 test('Gate 0 loads required control-plane evidence before Shintai dispatch', () => {
   const gate = loadEvidenceGate('critical Rick harness Shintai guardrail supercharge', {
-    optionalFiles: [],
     maxBytes: 12_000,
   });
 
   assert.equal(gate.ok, true);
   assert.deepEqual(gate.missing, []);
+  assert.deepEqual(gate.requiredMissing, []);
   assert.deepEqual(gate.blocked, []);
-  assert.deepEqual(
-    CORE_EVIDENCE_FILES.map((entry) => entry.id),
-    gate.loaded.map((entry) => entry.id),
-  );
+  for (const requiredId of ['shintai-roster', 'yuri-memory-index', 'extraction-sprint-template']) {
+    assert.ok(gate.loaded.some((entry) => entry.id === requiredId), `${requiredId} should load`);
+  }
   assert.equal(gate.constraints.taskTierHint, 'critical');
   assert.ok(gate.constraints.activeNimLanes.includes('nvidia-nemotron-120b'));
   assert.ok(gate.constraints.deadNimLanes.includes('nvidia-nemotron'));
@@ -38,6 +36,17 @@ test('Gate 0 fails closed when required evidence is missing', () => {
   assert.deepEqual(gate.missing.map((entry) => entry.id), ['missing-required']);
 });
 
+test('Gate 0 fails closed when task-required optional evidence is not loaded', () => {
+  const gate = loadEvidenceGate('Shintai memory RAG self-improvement dispatch', {
+    optionalFiles: [],
+  });
+
+  assert.equal(gate.ok, false);
+  assert.ok(gate.requiredMissing.some((entry) => entry.id === 'yuri-memory-index'));
+  assert.ok(gate.requiredMissing.some((entry) => entry.id === 'extraction-sprint-template'));
+  assert.ok(gate.requiredMissing.some((entry) => entry.id === 'memory-rag-skill-research'));
+});
+
 test('Gate 0 blocks protected evidence paths', () => {
   const protectedPath = ['.claude', 'state', 'pulse-bus.jsonl'].join('/');
   const gate = loadEvidenceGate('Shintai dispatch', {
@@ -51,7 +60,6 @@ test('Gate 0 blocks protected evidence paths', () => {
 
 test('control-plane constraint block carries current authority and lane policy', () => {
   const preflight = preflightControlPlane('supercharge YURI control plane', {
-    optionalFiles: [],
     maxBytes: 8000,
   });
   const block = buildConstraintBlock(preflight);

@@ -21,7 +21,8 @@ test('lane kernel exposes the heavy Shintai/NIM deployment without Kimi or Spark
   assert.deepEqual(ids.slice(0, 3), ['codex', 'deepseek', 'claude-opus-audit']);
   assert.ok(ids.includes('mistral-large'));
   assert.ok(ids.includes('qwen-coder'));
-  assert.ok(ids.includes('glm'));
+  assert.ok(ids.includes('minimax-m27'));
+  assert.equal(ids.includes('glm'), false);
   assert.ok(ids.includes('qwen3-next'));
   assert.equal(ids.includes('kimi'), false);
   assert.doesNotMatch(lanes, /codex-spark|spark/i);
@@ -32,7 +33,8 @@ test('lane kernel exposes the heavy Shintai/NIM deployment without Kimi or Spark
 test('lane kernel tracks active and dead NIM lanes explicitly', () => {
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-mistral-large'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-coder'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-glm'));
+  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-minimax-m27'));
+  assert.equal(ACTIVE_NIM_LANES.includes('nvidia-glm'), false);
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-gpt-oss-120b'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-kimi'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-397b'));
@@ -50,7 +52,8 @@ test('memory/RAG Shintai council uses large task-fit lanes without Spark fallbac
   assert.ok(ids.includes('qwen-397b'));
   assert.ok(ids.includes('mistral-large'));
   assert.ok(ids.includes('gpt-oss-120b'));
-  assert.ok(ids.includes('glm'));
+  assert.ok(ids.includes('minimax-m27'));
+  assert.equal(ids.includes('glm'), false);
   assert.ok(ids.includes('qwen-coder'));
   assert.equal(ids.includes('codex-spark'), false);
   assert.equal(ids.includes('kimi'), false);
@@ -58,7 +61,7 @@ test('memory/RAG Shintai council uses large task-fit lanes without Spark fallbac
 });
 
 test('memory/RAG Shintai NIM lanes keep tool mode available under YURI rails', () => {
-  for (const id of ['nemotron', 'qwen-397b', 'mistral-large', 'gpt-oss-120b', 'glm', 'qwen-coder']) {
+  for (const id of ['nemotron', 'qwen-397b', 'mistral-large', 'gpt-oss-120b', 'minimax-m27', 'qwen-coder']) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);
     assert.equal(lane.dispatchArgs.includes('--no-tools'), false, `${id} should not force no-tools`);
@@ -70,7 +73,7 @@ test('memory/RAG Shintai NIM lanes keep tool mode available under YURI rails', (
 });
 
 test('Shintai NIM lanes keep tool mode available under YURI rails', () => {
-  for (const id of ['nemotron', 'nemotron-nano-30b', 'mistral-large', 'mistral-medium', 'qwen-coder', 'qwen-397b', 'glm', 'qwen3-next']) {
+  for (const id of ['nemotron', 'nemotron-nano-30b', 'mistral-large', 'mistral-medium', 'qwen-coder', 'qwen-397b', 'minimax-m27', 'qwen3-next']) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);
     assert.equal(lane.dispatchArgs.includes('--no-tools'), false, `${id} should not force no-tools`);

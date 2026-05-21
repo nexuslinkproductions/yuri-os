@@ -4,7 +4,7 @@ import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, appendF
 import { execSync } from 'child_process';
 import path from 'path';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
-import { safeRuntimePath } from './lane-kernel.mjs';
+import { DEAD_NIM_LANES, isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
 import {
   enforceOutputRails,
   evaluateInputRails,
@@ -203,18 +203,58 @@ function emitResult(result) {
 
 function emitAndRecordResult(result, exitCode = 0, outputFile = '') {
   const outputRail = emitResult(result);
-  const finalExitCode = outputRail?.ok === false ? 2 : exitCode;
-  if (outputRail?.ok !== false && outputFile) writeAcceptedOutputFile(outputFile, outputRail.text);
-  recordLaneOutputEvidence(result, finalExitCode, outputRail);
+  let finalExitCode = outputRail?.ok === false ? 2 : exitCode;
+  let outputRecord = outputRail;
+  if (outputRail?.ok !== false && outputFile) {
+    const writeResult = writeAcceptedOutputFile(outputFile, outputRail.text);
+    if (writeResult.ok === false) {
+      finalExitCode = 2;
+      outputRecord = {
+        ...outputRail,
+        ok: false,
+        severity: 'block',
+        reasons: [...(outputRail?.reasons || []), ...(writeResult.violation?.reasons || [])],
+        evidence: {
+          ...(outputRail?.evidence || {}),
+          outputFile: writeResult.violation?.evidence || { path: outputFile },
+        },
+      };
+    }
+  }
+  recordLaneOutputEvidence(result, finalExitCode, outputRecord);
   return finalExitCode;
 }
 
 function writeAcceptedOutputFile(outputFile, text) {
+  const resolved = path.resolve(outputFile);
+  if (isProtectedPath(resolved)) {
+    const violation = {
+      ok: false,
+      rail: 'output-file',
+      severity: 'block',
+      reasons: [`protected output file denied: ${outputFile}`],
+      evidence: { path: resolved },
+    };
+    writeRailViolation(violation);
+    process.stderr.write(`[output-rail] blocked output file: protected output file denied: ${outputFile}\n`);
+    return { ok: false, violation };
+  }
   try {
-    mkdirSync(path.dirname(outputFile), { recursive: true });
-    writeFileSync(outputFile, text, 'utf-8');
+    mkdirSync(path.dirname(resolved), { recursive: true });
+    writeFileSync(resolved, text, 'utf-8');
+    return { ok: true, path: resolved };
   } catch (e) {
     process.stderr.write(`[offload-runner] --output-file write failed: ${e.message}\n`);
+    return {
+      ok: false,
+      violation: {
+        ok: false,
+        rail: 'output-file',
+        severity: 'block',
+        reasons: [`output file write failed: ${e.message}`],
+        evidence: { path: resolved },
+      },
+    };
   }
 }
 
@@ -520,6 +560,8 @@ function normalizeLaneRequest(rawLane, rawReasoning = '') {
     'deepseek-reasoner': 'deepseek-v4-pro',
     'deepseek-chat': 'deepseek-v4-flash',
     'deepseek-v4-pro-lite-budget': 'deepseek-v4-pro',
+    'minimax-m27': 'nvidia-minimax-m27',
+    'minimax-m2.7': 'nvidia-minimax-m2.7',
   };
   const lane = alias[baseLane] || baseLane;
   const reasoning = explicitReasoning || suffixReasoning || (baseLane === 'deepseek-v4-pro-lite-budget' ? 'low' : '');
@@ -648,6 +690,19 @@ function persistPulseTraceSnapshot(pulsePlan, result, pulseTraceId, events) {
 
 function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, options = {}) {
   const normalizedForcedModel = normalizeForcedModel(forcedModel, requestedLane);
+  if (DEAD_NIM_LANES.includes(requestedLane)) {
+    const error = `Dead NIM lane blocked at resolution: ${requestedLane}`;
+    if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
+      return {
+        kind: 'blocked',
+        model: normalizedForcedModel || '',
+        executable: false,
+        status: 'DEAD_LANE_EXECUTION_BLOCKED',
+        error,
+      };
+    }
+    throw new Error(`DEAD_LANE_EXECUTION_BLOCKED: ${error}`);
+  }
 
   if (requestedLane === 'gemma' || requestedLane === 'gemma-local' || requestedLane === 'gemma-cloud') {
     return resolveGemmaLane(requestedLane, normalizedForcedModel, localModels, dryRun);
@@ -805,6 +860,22 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       apiKey: process.env.NVIDIA_KEY_GLM || process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || 'z-ai/glm-5.1',
       tools: false,
+      requiresKey: true,
+    },
+    'nvidia-minimax-m27': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_KEY_MINIMAX_M27 || process.env.MINIMAX_M27_NIM_API_KEY || process.env.MINIMAX_NIM_API_KEY || process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || 'minimaxai/minimax-m2.7',
+      tools: true,
+      requiresKey: true,
+    },
+    'nvidia-minimax-m2.7': {
+      kind: 'cloud',
+      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
+      apiKey: process.env.NVIDIA_KEY_MINIMAX_M27 || process.env.MINIMAX_M27_NIM_API_KEY || process.env.MINIMAX_NIM_API_KEY || process.env.NVIDIA_API_KEY || '',
+      model: normalizedForcedModel || 'minimaxai/minimax-m2.7',
+      tools: true,
       requiresKey: true,
     },
     'nvidia-ising': {
@@ -1488,7 +1559,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-ising', 'nvidia-nemotron-nano-30b', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-qwen', 'nvidia-qwen-397b', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-minimax-m27', 'nvidia-minimax-m2.7', 'nvidia-ising', 'nvidia-nemotron-nano-30b', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-qwen', 'nvidia-qwen-397b', 'nvidia-phi', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {

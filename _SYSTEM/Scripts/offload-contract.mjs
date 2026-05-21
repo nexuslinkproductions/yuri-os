@@ -111,14 +111,14 @@ const OFFLOAD_CONTRACT = {
     },
     nvidia: {
       alias: '@nvidia',
-      dispatchTokens: ['nvidia', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-120b', 'nvidia-nemotron-nano-30b', 'nvidia-nemotron-3-nano-30b-a3b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-ising', 'nvidia-gpt-oss-120b', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-qwen', 'nvidia-qwen-397b', 'nvidia-qwen3.5-397b', 'nvidia-qwen-coder', 'nvidia-qwen3-next', 'nvidia-phi', 'nvidia-kimi', 'nvidia-gemma', 'nvidia-vision', 'nvidia-embed'],
-      description: 'NVIDIA NIM cloud inference — OpenAI-compatible, tools default ON. Live: nemotron-120b, nemotron-nano-30b, dracarys, glm, ising, gemma, mistral-medium, mistral-large, qwen, qwen-397b, qwen-coder, qwen3-next, llama-70b, vision, gpt-oss-120b, kimi. Dead/mis-mapped: old nemotron alias, phi, llama-405b, embed. Probed 2026-05-20.',
+      dispatchTokens: ['nvidia', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-nemotron', 'nvidia-nemotron-120b', 'nvidia-nemotron-nano-30b', 'nvidia-nemotron-3-nano-30b-a3b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-minimax-m27', 'nvidia-minimax-m2.7', 'minimax-m27', 'minimax-m2.7', 'nvidia-ising', 'nvidia-gpt-oss-120b', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-qwen', 'nvidia-qwen-397b', 'nvidia-qwen3.5-397b', 'nvidia-qwen-coder', 'nvidia-qwen3-next', 'nvidia-phi', 'nvidia-kimi', 'nvidia-gemma', 'nvidia-vision', 'nvidia-embed'],
+      description: 'NVIDIA NIM cloud inference — OpenAI-compatible, tools default ON. Live: nemotron-120b, nemotron-nano-30b, dracarys, minimax-m27, ising, gemma, mistral-medium, mistral-large, qwen, qwen-397b, qwen-coder, qwen3-next, llama-70b, vision, gpt-oss-120b, kimi. GLM is explicit-only until reliability reprobe. Dead/mis-mapped: old nemotron alias, phi, llama-405b, embed. Probed 2026-05-20/21.',
       envKey: 'NVIDIA_API_KEY',
       toolsByDefault: true,
       defaultModel: 'meta/llama-3.3-70b-instruct',
-      note: 'Probed 2026-05-20 after offload wrapper fix. gpt-oss-120b and kimi returned PONG. qwen-397b and nemotron-nano-30b returned PONG. Old nemotron alias, phi, llama-405b, and embed still return NVIDIA 404.',
+      note: 'Probed 2026-05-20 after offload wrapper fix. gpt-oss-120b and kimi returned PONG. qwen-397b and nemotron-nano-30b returned PONG. GLM hung during 2026-05-21 Shintai recheck and is explicit-only. Minimax M2.7 prepared as GLM replacement with dedicated key env. Old nemotron alias, phi, llama-405b, and embed still return NVIDIA 404.',
       liveStatus: {
-        live: ['nvidia-llama-70b','nvidia-qwen','nvidia-qwen-397b','nvidia-mistral-medium','nvidia-mistral-large','nvidia-nemotron-120b','nvidia-nemotron-nano-30b','nvidia-dracarys','nvidia-glm','nvidia-ising','nvidia-gemma','nvidia-qwen-coder','nvidia-qwen3-next','nvidia-vision','nvidia-gpt-oss-120b','nvidia-kimi'],
+        live: ['nvidia-llama-70b','nvidia-qwen','nvidia-qwen-397b','nvidia-mistral-medium','nvidia-mistral-large','nvidia-nemotron-120b','nvidia-nemotron-nano-30b','nvidia-dracarys','nvidia-minimax-m27','nvidia-ising','nvidia-gemma','nvidia-qwen-coder','nvidia-qwen3-next','nvidia-vision','nvidia-gpt-oss-120b','nvidia-kimi'],
         dead: ['nvidia-nemotron','nvidia-phi','nvidia-llama-405b','nvidia-embed'],
       },
       deadModelFallbacks: {
@@ -139,6 +139,7 @@ const OFFLOAD_CONTRACT = {
           'nvidia-nemotron-nano-30b': 15000,
           'nvidia-dracarys':       20000,
           'nvidia-glm':            60000,
+          'nvidia-minimax-m27':     90000,
           'nvidia-ising':          10000,
           'nvidia-gemma':          15000,
           'nvidia-qwen-coder':     30000,
@@ -154,8 +155,8 @@ const OFFLOAD_CONTRACT = {
         system_triage_or_summary:    'nvidia-llama-70b',
         high_stakes_broad_knowledge: 'nvidia-nemotron-120b',
         frontier_reasoning:          'nvidia-mistral-large',
-        research_analysis:           'nvidia-glm',
-        adversarial_second_opinion:  'nvidia-glm',
+        research_analysis:           'nvidia-minimax-m27',
+        adversarial_second_opinion:  'nvidia-minimax-m27',
         mega_codegen:                'nvidia-qwen-coder',
         vision_task:                 'nvidia-vision',
         code_fast_advisory:          'nvidia-dracarys',
@@ -174,6 +175,8 @@ const OFFLOAD_CONTRACT = {
         'nvidia-nemotron-3-nano-30b-a3b': 'nvidia/nemotron-3-nano-30b-a3b',
         'nvidia-dracarys':      'abacusai/dracarys-llama-3.1-70b-instruct',
         'nvidia-glm':           { model: 'z-ai/glm-5.1', streamRequired: true },
+        'nvidia-minimax-m27':   'minimaxai/minimax-m2.7',
+        'nvidia-minimax-m2.7':  'minimaxai/minimax-m2.7',
         'nvidia-ising':         'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',
         'nvidia-gpt-oss-120b':  'openai/gpt-oss-120b',
         'nvidia-mistral':       'mistralai/mistral-large-2-instruct',
@@ -190,7 +193,7 @@ const OFFLOAD_CONTRACT = {
         'nvidia-vision':        'meta/llama-3.2-11b-vision-instruct',
         'nvidia-embed':         'nvidia/llama-nemotron-embed-1b-v2',
       },
-      preferredUsage: ['system/infra tasks (nemotron-120b)', 'research + adversarial review (glm→flagship-tier, stream-only)', 'frontier reasoning (mistral-large→675B)', 'mega codegen (qwen-coder→480B)', 'architecture review (nemotron-120b)', 'Codex rate-limit fallback (qwen-coder)', 'vision tasks (vision)', 'frontier inference without OpenAI dependency']
+      preferredUsage: ['system/infra tasks (nemotron-120b)', 'research + adversarial review (minimax-m27 replacing unreliable GLM)', 'frontier reasoning (mistral-large→675B)', 'mega codegen (qwen-coder→480B)', 'architecture review (nemotron-120b)', 'Codex rate-limit fallback (qwen-coder)', 'vision tasks (vision)', 'frontier inference without OpenAI dependency']
     },
     codexSpark: {
       alias: '@codex-spark',
@@ -545,12 +548,12 @@ const OFFLOAD_CONTRACT = {
         'md-vs-html', 'html control surface', 'control surface',
         'artifact audit', 'promotion candidates'
       ],
-      defaultLane: 'codex-spark',
+      defaultLane: 'swarm',
       lifecycle: [
         'Detect: classify scope, route, branch, and canonical-state risk.',
         'Isolate: create an artifact-only run directory outside tracked repo state.',
         'Self-probe: verify runner availability, artifact writes, and no repo mutation.',
-        'Run: execute Codex Spark through the read-only ephemeral sandbox lane.',
+        'Run: execute through primary Codex plus advisory gates; use Codex Spark only when explicitly requested.',
         'Verify: check artifacts, status, tests, and protected-state invariants.',
         'Sanitize: reduce raw output into a verified learning summary.',
         'Log: write only sanitized verified summaries through the learning capture path.',
@@ -703,6 +706,34 @@ function normalizePrompt(input) {
   return String(input || '').trim().toLowerCase();
 }
 
+function explicitlyRequestsCodexSpark(text) {
+  return /(^|\s)@codex-spark\b/.test(text) ||
+    /(^|\s)@spark\b/.test(text) ||
+    /\bcodex\s+spark\b/.test(text) ||
+    /\bspark\s+lane\b/.test(text) ||
+    /\buse\s+spark\b/.test(text) ||
+    /\bgpt-5\.3-codex(?:-spark)?\b/.test(text);
+}
+
+function hasSandboxImprovementSignal(text) {
+  return text.includes('sandbox') ||
+    text.includes('isolated') ||
+    text.includes('isolate') ||
+    text.includes('improvement loop') ||
+    text.includes('sandbox loop') ||
+    text.includes('operational trial') ||
+    text.includes('live test') ||
+    text.includes('proving run') ||
+    text.includes('beta-readiness') ||
+    text.includes('beta readiness') ||
+    text.includes('source manifest') ||
+    text.includes('reference registry') ||
+    text.includes('section manifest') ||
+    text.includes('md-vs-html') ||
+    text.includes('control surface') ||
+    text.includes('artifact audit');
+}
+
 function selectSteeringLane(prompt) {
   const text = normalizePrompt(prompt);
 
@@ -720,8 +751,12 @@ function selectSteeringLane(prompt) {
     return 'claude';
   }
 
-  if (text.includes('@codex-spark') || text.includes('@spark') || text.includes('sandbox') || text.includes('isolated') || text.includes('isolate') || text.includes('improvement loop') || text.includes('sandbox loop') || text.includes('operational trial') || text.includes('live test') || text.includes('proving run') || text.includes('beta-readiness') || text.includes('beta readiness') || text.includes('source manifest') || text.includes('reference registry') || text.includes('section manifest') || text.includes('md-vs-html') || text.includes('control surface') || text.includes('artifact audit')) {
+  if (explicitlyRequestsCodexSpark(text)) {
     return 'codex-spark';
+  }
+
+  if (hasSandboxImprovementSignal(text)) {
+    return 'swarm';
   }
 
   if (text.includes('control plane') || text.includes('control-plane') || text.includes('graph plan') || text.includes('graph-plan') || text.includes('task graph') || text.includes('brain dump') || text.includes('durable orchestration') || text.includes('verify sanitize promote') || text.includes('sanitize promote') || text.includes('canonical state')) {
@@ -1211,8 +1246,9 @@ function buildCodexDispatch(prompt, complexityTier, scenario) {
   const codeSignals = /(implement|fix|patch|refactor|debug|build|create|add|remove|wire|extend|write|generate|function|class|test|component|script|hook|migration)/i;
   const hasCode = codeSignals.test(text);
   const hasFilePath = /[/][\w-]+\.[a-z]+/i.test(text);
-  const sandboxSignals = ['sandbox', 'experiment', 'try', 'test run', 'isolated', 'proving', 'spark'];
+  const sandboxSignals = ['sandbox', 'experiment', 'try', 'test run', 'isolated', 'proving'];
   const hasSandbox = sandboxSignals.some(s => text.includes(s));
+  const explicitSpark = explicitlyRequestsCodexSpark(text);
 
   if (complexityTier === 'trivial') {
     return { model: null, tier: 'skip', reason: 'trivial — no Codex needed' };
@@ -1220,8 +1256,11 @@ function buildCodexDispatch(prompt, complexityTier, scenario) {
   if (complexityTier === 'analysis') {
     return { model: 'gpt-5.4-mini', tier: 'advisory-review', reasoning: 'high', reason: 'fast analysis review pass' };
   }
-  if (hasSandbox || scenario.id === 'sandbox-improvement') {
+  if (explicitSpark) {
     return { model: 'gpt-5.3-codex-spark', tier: 'spark-sandbox', sandbox: 'read-only', reason: 'sandboxed experiment — Spark lane' };
+  }
+  if (hasSandbox || scenario.id === 'sandbox-improvement') {
+    return { model: 'gpt-5.5', tier: 'full-impl', reasoning: 'xhigh', sandbox: 'workspace-write', reason: 'sandbox/proving task — primary Codex unless Spark is explicitly requested' };
   }
   if (complexityTier === 'critical') {
     return { model: 'gpt-5.5', tier: 'full-impl', reasoning: 'xhigh', sandbox: 'workspace-write', reason: 'critical tier — max Codex capacity' };

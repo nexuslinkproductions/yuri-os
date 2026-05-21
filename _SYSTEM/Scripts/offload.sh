@@ -9,7 +9,7 @@
 [ -f "$HOME/.config/yuri/env.sh" ] && source "$HOME/.config/yuri/env.sh"
 # Fallback: grep .zshrc for any key still unset
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY NVIDIA_KEY_MINIMAX_M27 MINIMAX_M27_NIM_API_KEY MINIMAX_NIM_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -105,6 +105,7 @@ list_models() {
   printf '  [%-30s] %s\n' "nvidia-qwen3.5-397b" "alias → nvidia-qwen-397b"
   printf '  [%-30s] %s\n' "nvidia-qwen-coder" "Qwen3 Coder 480B A35B"
   printf '  [%-30s] %s\n' "nvidia-qwen3-next" "Qwen3 Next 80B A3B"
+  printf '  [%-30s] %s\n' "nvidia-minimax-m27" "Minimax M2.7 via NIM; prefers NVIDIA_KEY_MINIMAX_M27"
 
   echo
   echo "Additive Ollama lanes:"
@@ -144,7 +145,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -153,7 +154,7 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-ising|nvidia-qwen3-next|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
       return 0
       ;;
   esac

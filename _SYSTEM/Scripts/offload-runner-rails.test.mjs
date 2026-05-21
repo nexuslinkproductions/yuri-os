@@ -45,6 +45,7 @@ function isolatedEnv(tmpDir, port, extra = {}) {
     YURI_NIM_TRANSIENT_INCIDENT_LOG: path.join(tmpDir, 'nim-transient.jsonl'),
     YURI_KAGAMI_LEDGER_PATH: path.join(tmpDir, 'kagami-ledger.jsonl'),
     YURI_MEMORY_LEDGER_PATH: path.join(tmpDir, 'memory-ledger.jsonl'),
+    YURI_GUARDRAIL_VIOLATION_LOG: path.join(tmpDir, 'guardrail-violations.jsonl'),
     ...extra,
   };
 }
@@ -275,6 +276,85 @@ test('offload runner blocks lane output when declared evidence ids are missing',
     assert.match(memoryLedger, /required output evidence missing: source-b/);
   } finally {
     server.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload runner denies protected --output-file targets', { timeout: 10_000 }, async (t) => {
+  if (!(await allowOnlyIfBindable(t))) return;
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-protected-output-'));
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+
+    req.resume();
+    req.on('end', () => {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(jsonChatResponse('nvidia/mistral-medium-3.1', 'plain ok'));
+    });
+  });
+
+  try {
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    const env = isolatedEnv(tmpDir, port);
+    const result = await runOffload(['nvidia-mistral-medium', '--output-file', 'backend/data/blocked-output.txt', 'say ok'], env);
+
+    assert.equal(result.status, 2);
+    assert.match(result.stdout, /plain ok/);
+    assert.match(result.stderr, /protected output file denied/);
+    const guardrailLog = readFileSync(path.join(tmpDir, 'guardrail-violations.jsonl'), 'utf8');
+    assert.match(guardrailLog, /output-file/);
+    assert.match(guardrailLog, /backend\/data\/blocked-output\.txt/);
+  } finally {
+    server.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload runner blocks dead NIM aliases before provider dispatch', { timeout: 10_000 }, async (t) => {
+  if (!(await allowOnlyIfBindable(t))) return;
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-dead-nim-'));
+  let requests = 0;
+  const server = http.createServer((req, res) => {
+    requests += 1;
+    res.writeHead(500, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: 'dead lane should not call provider' }));
+  });
+
+  try {
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    const env = isolatedEnv(tmpDir, port);
+    const result = await runOffload(['nvidia-nemotron', 'say ok'], env);
+
+    assert.notEqual(result.status, 0);
+    assert.equal(requests, 0);
+    assert.match(result.stderr, /DEAD_LANE_EXECUTION_BLOCKED/);
+  } finally {
+    server.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload runner prepares Minimax M2.7 NIM lane with dedicated key env', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-minimax-'));
+  try {
+    const env = isolatedEnv(tmpDir, 65531, {
+      NVIDIA_API_KEY: '',
+      NVIDIA_KEY_MINIMAX_M27: 'mock-minimax-key',
+    });
+    const result = await runOffload(['nvidia-minimax-m27', '--dry-run', 'pong'], env);
+    const payload = JSON.parse(result.stdout);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(payload.lane, 'nvidia-minimax-m27');
+    assert.equal(payload.model, 'minimaxai/minimax-m2.7');
+    assert.equal(payload.apiKey, '[set]');
+  } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });

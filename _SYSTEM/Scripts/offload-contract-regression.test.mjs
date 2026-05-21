@@ -40,6 +40,9 @@ assert.equal(contract.lanes.ollama.alias, '@ollama', 'additive Ollama lane metad
 assert.equal(contract.lanes.ollamaLocal.alias, '@ollama-local', 'additive local Ollama lane metadata missing');
 assert.equal(contract.lanes.ollamaCloud.alias, '@ollama-cloud', 'additive Ollama Cloud lane metadata missing');
 assert.equal(contract.lanes.claude.alias, '@claude', 'Claude council lane metadata missing');
+assert.ok(contract.lanes.nvidia.dispatchTokens.includes('nvidia-minimax-m27'), 'Minimax M2.7 NIM dispatch token missing');
+assert.equal(contract.lanes.nvidia.models['nvidia-minimax-m27'], 'minimaxai/minimax-m2.7', 'Minimax M2.7 model mapping missing');
+assert.equal(contract.lanes.nvidia.routing.research_analysis, 'nvidia-minimax-m27', 'research analysis should prefer Minimax over unreliable GLM');
 assert.equal(contract.crossReference.taxonomySurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md', 'cross-reference taxonomy surface missing');
 assert.equal(contract.crossReference.rulesSurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/prevention-rules.md', 'cross-reference rules surface missing');
 assert.equal(contract.claudeCouncilQualityGate.role.outputCapLines, 80, 'Claude council output cap should be 80 lines');
@@ -98,16 +101,21 @@ const cases = [
   },
   {
     prompt: 'run the Yuri sandbox improvement loop as a live test',
-    lane: 'codex-spark',
+    lane: 'swarm',
     scenario: 'sandbox-improvement'
   },
   {
     prompt: 'complete Yuri OS evidence-first upgrade proving run with source manifest reference registry section manifest md-vs-html and html control surface',
-    lane: 'codex-spark',
+    lane: 'swarm',
     scenario: 'sandbox-improvement'
   },
   {
     prompt: 'document-native audit proving run for beta-readiness with artifact audit and promotion candidates',
+    lane: 'swarm',
+    scenario: 'sandbox-improvement'
+  },
+  {
+    prompt: 'use @codex-spark for a bounded read-only sandbox proving run',
     lane: 'codex-spark',
     scenario: 'sandbox-improvement'
   },
@@ -212,10 +220,16 @@ assert.equal(claudeUltraPlan.nativeFunctionGates.hermes.decision, 'always-on', '
 assert.equal(claudeUltraPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Claude ultra hardening should activate Obliteratus');
 assert.ok(claudeUltraPlan.pulseGovernanceSkeleton.activeProfiles.includes('openclaw-derived'), 'Claude ultra hardening should expose OpenClaw-derived profile');
 const sandboxCouncilPlan = routePlan('Yuri sandbox proving run with model council review');
-assert.equal(sandboxCouncilPlan.lane, 'codex-spark', 'model council should not steal sandbox execution lane');
+assert.equal(sandboxCouncilPlan.lane, 'swarm', 'sandbox proving runs should not auto-route to Spark without explicit request');
+assert.equal(sandboxCouncilPlan.codexDispatch.model, 'gpt-5.5', 'non-explicit sandbox work should stay on primary Codex');
+assert.equal(sandboxCouncilPlan.codexDispatch.reasoning, 'xhigh', 'non-explicit sandbox work should use high-power Codex reasoning');
 assert.equal(sandboxCouncilPlan.claudeAdvisory.decision, 'use-sonnet', 'sandbox model council should still attach Claude advisory');
 assert.equal(sandboxCouncilPlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'Obliteratus should gate sandbox promotion-risk work');
 assert.ok(sandboxCouncilPlan.pulseGovernanceSkeleton.activeProfiles.includes('obliteratus'), 'sandbox promotion-risk plan should activate Obliteratus profile');
+const explicitSparkPlan = routePlan('use @codex-spark for a bounded read-only sandbox proving run');
+assert.equal(explicitSparkPlan.lane, 'codex-spark', 'explicit Spark request should preserve Spark lane');
+assert.equal(explicitSparkPlan.codexDispatch.model, 'gpt-5.3-codex-spark', 'explicit Spark request should use Spark model');
+assert.equal(explicitSparkPlan.codexDispatch.sandbox, 'read-only', 'explicit Spark request should stay read-only');
 
 const promotionGatePlan = routePlan('promote verified artifact into canonical memory after review');
 assert.equal(promotionGatePlan.nativeFunctionGates.obliteratus.decision, 'use-native-gate', 'promotion candidate should use Obliteratus gate');
@@ -273,7 +287,7 @@ assert.ok(controlPlaneScenario.lifecycle.some((step) => /Sanitize/i.test(step)),
 assert.ok(controlPlaneScenario.lifecycle.some((step) => /Promote/i.test(step)), 'control-plane lifecycle should include promote');
 const sandboxScenario = examples.find((scenario) => scenario.id === 'sandbox-improvement');
 assert.ok(sandboxScenario, 'sandbox-improvement example missing');
-assert.equal(sandboxScenario.defaultLane, 'codex-spark', 'sandbox-improvement should route to codex-spark');
+assert.equal(sandboxScenario.defaultLane, 'swarm', 'sandbox-improvement should route to swarm unless Spark is explicit');
 assert.ok(sandboxScenario.lifecycle.some((step) => /Self-probe/i.test(step)), 'sandbox lifecycle should include self-probe');
 assert.ok(sandboxScenario.lifecycle.some((step) => /Sanitize/i.test(step)), 'sandbox lifecycle should include sanitize');
 assert.ok(sandboxScenario.lifecycle.some((step) => /Promote-check/i.test(step)), 'sandbox lifecycle should include promote-check');

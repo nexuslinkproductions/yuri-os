@@ -133,11 +133,11 @@ test('tool input rail keeps tools available while denying unsafe inputs', () => 
   assert.match(denied.reasons.join('\n'), /git-push/);
 });
 
-test('output rail warns on repo truth claims without evidence', () => {
+test('output rail blocks repo truth claims without evidence', () => {
   const result = evaluateOutputRails('all tests pass and repo is clean', { requireEvidence: true });
 
-  assert.equal(result.ok, true);
-  assert.equal(result.severity, 'warn');
+  assert.equal(result.ok, false);
+  assert.equal(result.severity, 'block');
   assert.match(result.reasons.join('\n'), /requires local evidence/);
 });
 
@@ -160,6 +160,7 @@ test('output enforcement marks missing evidence and caps long text', () => {
 
   assert.match(result.text, /\[EVIDENCE_MISSING\]/);
   assert.match(result.text, /\[OUTPUT_TRUNCATED\]/);
+  assert.equal(result.ok, false);
   assert.equal(result.evidence.truncated, true);
 });
 

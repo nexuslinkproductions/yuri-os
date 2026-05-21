@@ -216,7 +216,7 @@ test('Shintai critical harness assembly uses roster, task tier, fit, and live he
     { id: 'mistral-large', lane: 'nvidia-mistral-large', ok: true, stdout: 'PONG' },
     { id: 'mistral-medium', lane: 'nvidia-mistral-medium', ok: true, stdout: 'PONG' },
     { id: 'qwen-coder', lane: 'nvidia-qwen-coder', ok: true, stdout: 'PONG' },
-    { id: 'glm', lane: 'nvidia-glm', ok: true, stdout: 'PONG' },
+    { id: 'minimax-m27', lane: 'nvidia-minimax-m27', ok: true, stdout: 'PONG' },
     { id: 'kimi-context-keeper', lane: 'kimi-k2.6', ok: false, stderr: 'Missing endpoint for lane: kimi' },
     { id: 'qwen3-next-code', lane: 'nvidia-qwen3-next', ok: true, stdout: 'PONG' },
   ];
@@ -225,11 +225,12 @@ test('Shintai critical harness assembly uses roster, task tier, fit, and live he
 
   assert.equal(assembly.tier, 'critical');
   assert.deepEqual(assembly.requiredIds, ['codex', 'deepseek']);
-  assert.deepEqual(assembly.selectedIds, ['codex', 'deepseek', 'claude-opus-audit', 'nemotron', 'mistral-large', 'qwen-coder', 'glm', 'qwen3-next', 'mistral-medium']);
+  assert.deepEqual(assembly.selectedIds, ['codex', 'deepseek', 'claude-opus-audit', 'nemotron', 'mistral-large', 'qwen-coder', 'minimax-m27', 'qwen3-next', 'mistral-medium']);
   assert.equal(assembly.members.some((member) => member.id === 'kimi'), false);
   assert.equal(assembly.members.some((member) => /codex-spark/i.test(member.lane)), false);
   assert.equal(assembly.members.some((member) => member.id === 'qwen-coder'), true);
-  assert.equal(assembly.members.some((member) => member.id === 'glm'), true);
+  assert.equal(assembly.members.some((member) => member.id === 'minimax-m27'), true);
+  assert.equal(assembly.members.some((member) => member.id === 'glm'), false);
 });
 
 test('Shintai critical assembly requires Codex and DeepSeek from the lane kernel', async () => {

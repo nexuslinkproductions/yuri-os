@@ -34,7 +34,7 @@ export const ACTIVE_NIM_LANES = Object.freeze([
   'nvidia-nemotron-120b',
   'nvidia-nemotron-nano-30b',
   'nvidia-dracarys',
-  'nvidia-glm',
+  'nvidia-minimax-m27',
   'nvidia-gpt-oss-120b',
   'nvidia-ising',
   'nvidia-gemma',
@@ -67,7 +67,7 @@ export const SHINTAI_SUPERAUDIT_MEMBER_IDS = Object.freeze([
   'nemotron',
   'mistral-large',
   'qwen-coder',
-  'glm',
+  'minimax-m27',
   'qwen3-next',
   'mistral-medium',
 ]);
@@ -80,7 +80,7 @@ export const SHINTAI_MEMORY_RAG_MEMBER_IDS = Object.freeze([
   'qwen-397b',
   'mistral-large',
   'gpt-oss-120b',
-  'glm',
+  'minimax-m27',
   'qwen-coder',
 ]);
 
@@ -236,7 +236,19 @@ export const LANE_KERNEL = Object.freeze({
     reasoning: 'medium',
     contextTier: 'large',
     dispatchArgs: ['offload', '--model', 'nvidia-glm'],
-    assignment: 'Audit long-document memory, stale aliases, naming drift, and docs consistency.',
+    assignment: 'Explicit-only legacy long-document lane. Do not use in default Shintai council until reliability is reprobed.',
+    tools: FULL_ADVISORY_TOOLS,
+  },
+  'minimax-m27': {
+    id: 'minimax-m27',
+    lane: 'nvidia-minimax-m27',
+    model: 'minimaxai/minimax-m2.7',
+    provider: 'nvidia',
+    role: 'long-context-replacement-auditor',
+    reasoning: 'high',
+    contextTier: 'large',
+    dispatchArgs: ['offload', '--model', 'nvidia-minimax-m27'],
+    assignment: 'Replace unreliable GLM in Shintai long-document and memory/RAG audits; challenge naming drift, docs consistency, and evidence contracts.',
     tools: FULL_ADVISORY_TOOLS,
   },
   'qwen3-next': {

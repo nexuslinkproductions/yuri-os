@@ -22,7 +22,7 @@ test('critical memory/RAG sprint assembles task-fit Shintai council', () => {
     'qwen-397b',
     'mistral-large',
     'gpt-oss-120b',
-    'glm',
+    'minimax-m27',
     'qwen-coder',
   ]);
   assert.equal(assembly.selectedIds.includes('kimi'), false);
@@ -76,7 +76,7 @@ test('critical Shintai dispatch fails closed when council degrades below minimum
     'qwen-397b': { ok: false, error: 'down' },
     'mistral-large': { ok: false, error: 'down' },
     'gpt-oss-120b': { ok: false, error: 'down' },
-    glm: { ok: false, error: 'down' },
+    'minimax-m27': { ok: false, error: 'down' },
     'qwen-coder': { ok: false, error: 'down' },
   });
 

@@ -104,6 +104,7 @@ _SYSTEM/state/rick-history.jsonl
 _SYSTEM/state/nim-transient-incidents.jsonl
 _SYSTEM/state/memory-ledger.jsonl
 _SYSTEM/state/kagami-ledger.jsonl
+_SYSTEM/state/guardrail-violations.jsonl
 _SYSTEM/state/playwright-visual-check/
 _SYSTEM/training/state/
 _SYSTEM/.claude/

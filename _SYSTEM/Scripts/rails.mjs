@@ -307,7 +307,7 @@ export function evaluateOutputRails(output = '', context = {}) {
     reasons.push({ severity: RAIL_SEVERITY.warn, message: `output exceeds cap: ${text.length} > ${cap}` });
   }
   if (context.requireEvidence === true && looksLikeRepoTruthClaim(text) && !context.evidence) {
-    reasons.push({ severity: RAIL_SEVERITY.warn, message: 'repo truth claim requires local evidence' });
+    reasons.push({ severity: RAIL_SEVERITY.block, message: 'repo truth claim requires local evidence' });
   }
   for (const id of missingEvidenceIds) {
     reasons.push({ severity: RAIL_SEVERITY.block, message: `required output evidence missing: ${id}` });

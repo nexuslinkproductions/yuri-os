@@ -64,7 +64,7 @@ const SOURCE_PATHS = [
   '.claude/plans/shintai-has-to-fix-luminous-fountain.md',
 ];
 
-const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'nemotron', 'mistral-large', 'mistral-medium', 'qwen-coder', 'qwen-397b', 'gpt-oss-120b', 'glm', 'qwen3-next', 'nemotron-nano-30b', 'kimi']);
+const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'nemotron', 'mistral-large', 'mistral-medium', 'qwen-coder', 'qwen-397b', 'gpt-oss-120b', 'minimax-m27', 'glm', 'qwen3-next', 'nemotron-nano-30b', 'kimi']);
 const HEALTH_ALIASES = {
   codex: ['codex-architect', 'codex-gpt-5.5', 'gpt-5.5'],
   deepseek: ['deepseek-reasoner', 'deepseek-v4-pro'],
@@ -74,6 +74,7 @@ const HEALTH_ALIASES = {
   'mistral-medium': ['nvidia-mistral-medium', 'mistral-medium'],
   'qwen-coder': ['nvidia-qwen-coder', 'qwen-coder'],
   kimi: ['kimi-context-keeper', 'kimi-k2.6', 'moonshot'],
+  'minimax-m27': ['nvidia-minimax-m27', 'nvidia-minimax-m2.7', 'minimax-m27', 'minimax-m2.7'],
   glm: ['nvidia-glm', 'glm'],
   'qwen3-next': ['qwen3-next-code', 'nvidia-qwen3-next'],
   'qwen-397b': ['nvidia-qwen-397b', 'qwen-397b', 'qwen3.5-397b'],
@@ -164,8 +165,15 @@ const ASSIGNMENTS = {
     displayName: 'GLM Long-Document Auditor',
     lane: 'nvidia-glm',
     skills: ['pattern-mirror-core', 'codebase-to-course'],
-    assignment: 'Long-document and vocabulary audit: Shintai/Kagami/Musubi naming, stale aliases, bilingual terminology, and memory/docs consistency.',
+    assignment: 'Explicit-only legacy long-document lane. Do not use in default council until reliability is reprobed.',
     dispatchArgs: ['offload', '--model', 'nvidia-glm'],
+  },
+  'minimax-m27': {
+    displayName: 'Minimax M2.7 Long-Context Auditor',
+    lane: 'nvidia-minimax-m27',
+    skills: ['pattern-mirror-core', 'codebase-to-course', 'failure-evolution-loop'],
+    assignment: 'GLM replacement for long-document memory, stale aliases, naming drift, docs consistency, and evidence-contract review.',
+    dispatchArgs: ['offload', '--model', 'nvidia-minimax-m27'],
   },
 };
 
@@ -312,7 +320,8 @@ function selectMemberIds(task, roster) {
     if (id === 'deepseek') score += 2;
     if (/(mistral|frontier|large|huge|audit)/.test(text) && id === 'mistral-large') score += 3;
     if (/(qwen|coder|code|refactor)/.test(text) && id === 'qwen-coder') score += 3;
-    if (/(glm|memory|docs|alias|vocabulary|naming)/.test(text) && id === 'glm') score += 3;
+    if (/(minimax|memory|docs|alias|vocabulary|naming|long[- ]?context)/.test(text) && id === 'minimax-m27') score += 3;
+    if (/(glm|memory|docs|alias|vocabulary|naming)/.test(text) && id === 'glm') score += 1;
     if (/(memory|rag|retrieval|skill|neuro|self[- ]?improvement|msa)/.test(text) && id === 'qwen-397b') score += 5;
     if (/(memory|rag|retrieval|skill|neuro|self[- ]?improvement|msa|overengineering|adversarial)/.test(text) && id === 'gpt-oss-120b') score += 4;
     if (text.includes('context') && id === 'mistral-large') score += 2;

@@ -4,7 +4,7 @@
   "team_name_kanji": "神隊",
   "team_name_meaning": "divine unit — kami-coded, paired with Musubi/Kagami vocabulary",
   "createdAt": "2026-05-18T16:00:00.000Z",
-  "updatedAt": "2026-05-20T17:30:00.000Z",
+  "updatedAt": "2026-05-21T16:30:00.000Z",
   "roster_sizing": {
     "trivial": { "members": 1, "note": "single-shot lookups, file reads, trivial fixes" },
     "standard": { "members": 2, "note": "favored minimum for regular work — one specialist + one reviewer" },
@@ -117,10 +117,20 @@
     "glm": {
       "model": "thudm/glm-5.1-9b-chat",
       "role": "bilingual-long-context",
+      "status": "degraded_explicit_only",
       "unique_strength": "East/West bridge — bilingual Chinese/English, long-context document analysis",
       "task_fit": ["bilingual","chinese","translate","long document","long context","summarize lengthy"],
       "lane_id": "nvidia-glm",
       "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-glm"
+    },
+    "minimax-m27": {
+      "model": "minimaxai/minimax-m2.7",
+      "role": "long-context-replacement-auditor",
+      "status": "prepared_requires_key_probe",
+      "unique_strength": "GLM replacement candidate — long-context synthesis, evidence-contract review, stale alias detection, memory/RAG audit",
+      "task_fit": ["long document","long context","memory","rag","docs","alias","evidence","synthesis","audit"],
+      "lane_id": "nvidia-minimax-m27",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-minimax-m27"
     },
     "gpt-oss-120b": {
       "model": "openai/gpt-oss-120b",
