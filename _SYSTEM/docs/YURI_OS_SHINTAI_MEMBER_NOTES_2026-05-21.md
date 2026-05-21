@@ -31,3 +31,15 @@ Status: implemented from consensus/direct-patch output; final Wave 0-2 no-timeou
 - GLM was skipped here by health evidence, not manually replaced.
 - Codex/main remains the only implementation and commit authority.
 - Qwen Coder output poisoning must be treated as a hard rejection signal in future Shintai synthesis.
+
+## 2026-05-21 Final Waves 0-2 Recheck
+
+Artifact: `_SYSTEM/state/shintai-advisory/shintai-2026-05-21T03-18-00-411Z.md`
+
+Outcome:
+
+- Wave 0 Evidence Gate: PASS.
+- Wave 1 Lane Kernel Consolidation: PASS.
+- Wave 2 Guardrail Kernel: WARN, not blocker. Retrieval/output wiring proof is deferred and tracked.
+- Commit `06d5be39` accepted as final for this audit; no follow-up edits required.
+- GLM remained unavailable after a prior 10+ minute PONG stall; Qwen3-Next critique also stalled and was recorded as a warning, not as evidence of a wave blocker.
