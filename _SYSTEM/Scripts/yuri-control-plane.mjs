@@ -65,6 +65,8 @@ export const OPTIONAL_MEMORY_FILES = Object.freeze([
   { id: 'cyber-capability-audit', path: '_SYSTEM/session-outputs/YURI-AI-CYBERSECURITY-CAPABILITY-AUDIT.md', type: 'research' },
   { id: 'cyber-research-sprint', path: '_SYSTEM/session-outputs/YURI-OS-GLOBAL-CYBERSECURITY-INTELLIGENCE-SPRINT-2026-05-21.md', type: 'research' },
   { id: 'threat-intel-kernel-source', path: '_SYSTEM/Scripts/threat-intel-kernel.mjs', type: 'source' },
+  { id: 'security-lens-source', path: '_SYSTEM/Scripts/security-lens.mjs', type: 'source' },
+  { id: 'security-lens-report', path: '_SYSTEM/reports/YURI_SECURITY_LENS_V0_2026-05-22.md', type: 'report' },
   { id: 'weft-audit-pack', path: '_SYSTEM/research-archive/yuri-cybersecurity-pivot-2026-05/weft_audit_pack.md', type: 'research' },
   { id: 'asi-evolve-pack', path: '_SYSTEM/research-archive/yuri-cybersecurity-pivot-2026-05/ASI-EVOLVE-FULL-PACK.md', type: 'research' },
   { id: 'nemo-guardrails-readme', path: '_SYSTEM/tools/nemo-guardrails/README.md', type: 'upstream-source' },

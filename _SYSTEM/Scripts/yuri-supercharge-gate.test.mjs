@@ -3,7 +3,16 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { BASELINE_COMMITS, buildReleaseEvidence, writeReleaseEvidence } from './yuri-supercharge-gate.mjs';
+import { BASELINE_COMMITS, buildChecks, buildReleaseEvidence, writeReleaseEvidence } from './yuri-supercharge-gate.mjs';
+
+test('release gate includes cyber intelligence and security lens checks', () => {
+  const checkNames = buildChecks({ includeBrowser: false }).map(([name]) => name);
+
+  assert.ok(checkNames.includes('syntax:threat-intel-kernel'));
+  assert.ok(checkNames.includes('test:threat-intel-kernel'));
+  assert.ok(checkNames.includes('syntax:security-lens'));
+  assert.ok(checkNames.includes('test:security-lens'));
+});
 
 test('release evidence includes baseline commits, preflight hash, and health summary', () => {
   const evidence = buildReleaseEvidence({

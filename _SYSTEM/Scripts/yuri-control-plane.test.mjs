@@ -59,6 +59,7 @@ test('Gate 0 loads cyber evidence before cyber Shintai dispatch', () => {
     'cyber-intel-matrix',
     'cyber-intel-ingestion-protocol',
     'threat-intel-kernel-source',
+    'security-lens-source',
     'cyber-capability-audit',
     'cyber-research-sprint',
   ]) {
@@ -75,6 +76,7 @@ test('Gate 0 fails closed when cyber-required evidence is not loaded', () => {
   assert.equal(gate.ok, false);
   assert.ok(gate.requiredMissing.some((entry) => entry.id === 'cyber-intel-matrix'));
   assert.ok(gate.requiredMissing.some((entry) => entry.id === 'threat-intel-kernel-source'));
+  assert.ok(gate.requiredMissing.some((entry) => entry.id === 'security-lens-source'));
 });
 
 test('Gate 0 blocks protected evidence paths', () => {
