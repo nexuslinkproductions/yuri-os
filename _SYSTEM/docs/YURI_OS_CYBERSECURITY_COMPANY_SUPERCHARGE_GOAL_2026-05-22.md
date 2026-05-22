@@ -237,15 +237,31 @@ Current boundary: Wave C5 v0 records fixture readiness only. No rail is marked p
 
 ### Wave C6: Upgreat Pilot Readiness
 
-Produce a narrow, evidence-heavy demo and report package for AI-agent security assessment, not a broad fake SOC pitch.
+Status: implementation slice active. Produce a narrow, evidence-heavy demo and report package for AI-agent security assessment, not a broad fake SOC pitch.
+
+Artifacts:
+
+- Pilot pack generator: `_SYSTEM/Scripts/cyber-pilot-pack.mjs`
+- Regression tests: `_SYSTEM/Scripts/cyber-pilot-pack.test.mjs`
+- Upgreat pilot report: `_SYSTEM/reports/YURI_UPGREAT_PILOT_READINESS_2026-05-22.md`
 
 ### Wave C7: Regional Packs
 
-Add Europe/West/Asia report templates and source-backed buyer language.
+Status: implementation slice active. Add Europe/West/Asia report templates and source-backed buyer language.
+
+Artifact:
+
+- Regional pack report: `_SYSTEM/reports/YURI_REGIONAL_INTELLIGENCE_PACKS_2026-05-22.md`
 
 ### Wave C8: Managed Operations Pre-Study
 
-Only after telemetry exists, define what later managed security operations could become.
+Status: implementation slice active. Only after telemetry exists, define what later managed security operations could become.
+
+Artifact:
+
+- Managed operations pre-study: `_SYSTEM/docs/YURI_MANAGED_OPERATIONS_PRE_STUDY_2026-05-22.md`
+
+Current boundary: C8 explicitly says YURI is not ready to claim managed security operations. It lists prerequisites before SOC/SIEM/XDR/MDR-style language becomes allowable.
 
 ## Claims Matrix
 
