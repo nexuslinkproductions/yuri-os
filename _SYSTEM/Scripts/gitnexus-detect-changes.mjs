@@ -5,9 +5,9 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const WRAPPER = path.join(REPO_ROOT, '_SYSTEM/Scripts/gitnexus-mcp.mjs');
-const repo = process.argv[2] || 'yuri-os-musubi';
+const repo = process.argv[2] || 'yuri-os';
 const scope = process.argv[3] || 'all';
 
 const result = await callGitNexusTool('detect_changes', { repo, scope });
