@@ -19,6 +19,16 @@ export const MEMORY_RAG_REQUIRED_EVIDENCE_IDS = Object.freeze([
   'rails-source',
 ]);
 
+export const CYBER_REQUIRED_EVIDENCE_IDS = Object.freeze([
+  ...SHINTAI_REQUIRED_EVIDENCE_IDS,
+  'cyber-company-goal',
+  'cyber-intel-matrix',
+  'cyber-intel-ingestion-protocol',
+  'threat-intel-kernel-source',
+  'cyber-capability-audit',
+  'cyber-research-sprint',
+]);
+
 export const PROTECTED_SURFACE_EXCLUSIONS = Object.freeze([
   'backend/data/',
   '.claude/state/',
@@ -30,8 +40,12 @@ export const PROTECTED_SURFACE_EXCLUSIONS = Object.freeze([
 
 export function requiredEvidenceIdsForTask(task = '') {
   const text = String(task || '').toLowerCase();
+  const required = [...SHINTAI_REQUIRED_EVIDENCE_IDS];
   if (/(memory|rag|retrieval|skill|neuro|self[- ]?improvement|msa|eot|neuron|persona|recall)/.test(text)) {
-    return [...MEMORY_RAG_REQUIRED_EVIDENCE_IDS];
+    required.push(...MEMORY_RAG_REQUIRED_EVIDENCE_IDS);
   }
-  return [...SHINTAI_REQUIRED_EVIDENCE_IDS];
+  if (/(cyber|security|threat|intel|intelligence|upgreat|agent security|mcp|ransomware|identity|supply chain|fraud|ddos|phishing|infostealer|cloud|saas|ot\/ics|ics|lab harness|security lens|vulnerability|exploit|guardrail proof)/.test(text)) {
+    required.push(...CYBER_REQUIRED_EVIDENCE_IDS);
+  }
+  return [...new Set(required)];
 }

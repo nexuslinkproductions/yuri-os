@@ -1,0 +1,3321 @@
+{
+  "schema": "yuri.threat-intel-matrix.v1",
+  "generatedAt": "2026-05-22T06:38:15.918Z",
+  "matrixPath": "_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md",
+  "protocolPath": "_SYSTEM/docs/YURI_GLOBAL_CYBER_THREAT_INTEL_INGESTION_PROTOCOL_2026-05-22.md",
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "rowCount": 90,
+    "checkedAt": "2026-05-22T06:38:15.917Z"
+  },
+  "summary": {
+    "totalRows": 90,
+    "buildRows": 65,
+    "watchRows": 25,
+    "rejectRows": 0,
+    "decisionCounts": {
+      "build": 65,
+      "watch": 25
+    },
+    "domainCounts": {
+      "ransomware": 5,
+      "infostealers": 3,
+      "identity": 6,
+      "fraud": 5,
+      "cloud": 5,
+      "saas": 4,
+      "supply-chain": 6,
+      "vulnerability": 4,
+      "web": 2,
+      "ddos": 3,
+      "ot-ics": 4,
+      "ai-attack": 11,
+      "memory": 4,
+      "model-supply": 4,
+      "regulation": 8,
+      "business": 6,
+      "runtime": 10
+    },
+    "regionCounts": {
+      "global": 64,
+      "europe": 16,
+      "west": 12,
+      "asia": 17,
+      "internal": 3
+    },
+    "sourceQualityCounts": {
+      "B": 73,
+      "A": 122,
+      "D": 3,
+      "C": 11
+    },
+    "topBuildRows": [
+      {
+        "threat_id": "CY-028",
+        "domain": "SaaS",
+        "threat": "Logs leaking sensitive AI prompts",
+        "source_score": 1,
+        "report_section": "saas-and-connector-risk"
+      },
+      {
+        "threat_id": "CY-048",
+        "domain": "AI Attack",
+        "threat": "Direct prompt injection",
+        "source_score": 1,
+        "report_section": "ai-agent-and-tool-risk"
+      },
+      {
+        "threat_id": "CY-049",
+        "domain": "AI Attack",
+        "threat": "Indirect prompt injection through docs/web",
+        "source_score": 1,
+        "report_section": "ai-agent-and-tool-risk"
+      },
+      {
+        "threat_id": "CY-055",
+        "domain": "AI Attack",
+        "threat": "Agent-to-agent instruction propagation",
+        "source_score": 1,
+        "report_section": "ai-agent-and-tool-risk"
+      },
+      {
+        "threat_id": "CY-056",
+        "domain": "AI Attack",
+        "threat": "Browser-agent form exfiltration",
+        "source_score": 1,
+        "report_section": "ai-agent-and-tool-risk"
+      },
+      {
+        "threat_id": "CY-057",
+        "domain": "AI Attack",
+        "threat": "Code-agent sabotage",
+        "source_score": 1,
+        "report_section": "ai-agent-and-tool-risk"
+      },
+      {
+        "threat_id": "CY-058",
+        "domain": "AI Attack",
+        "threat": "AI command injection through terminal output",
+        "source_score": 1,
+        "report_section": "ai-agent-and-tool-risk"
+      },
+      {
+        "threat_id": "CY-059",
+        "domain": "Memory",
+        "threat": "Memory poisoning gradual drift",
+        "source_score": 1,
+        "report_section": "memory-and-rag-risk"
+      },
+      {
+        "threat_id": "CY-060",
+        "domain": "Memory",
+        "threat": "RAG corpus poisoning",
+        "source_score": 1,
+        "report_section": "memory-and-rag-risk"
+      },
+      {
+        "threat_id": "CY-061",
+        "domain": "Memory",
+        "threat": "Context window trust collapse",
+        "source_score": 1,
+        "report_section": "memory-and-rag-risk"
+      },
+      {
+        "threat_id": "CY-062",
+        "domain": "Memory",
+        "threat": "Sensitive memory retention",
+        "source_score": 1,
+        "report_section": "memory-and-rag-risk"
+      },
+      {
+        "threat_id": "CY-063",
+        "domain": "Model Supply",
+        "threat": "Model artifact tampering",
+        "source_score": 1,
+        "report_section": "model-route-and-provenance-risk"
+      }
+    ]
+  },
+  "sources": {
+    "S1": {
+      "id": "S1",
+      "source": "Microsoft Digital Defense Report 2025: https://www.microsoft.com/en-us/corporate-responsibility/cybersecurity/microsoft-digital-defense-report-2025/",
+      "url": "https://www.microsoft.com/en-us/corporate-responsibility/cybersecurity/microsoft-digital-defense-report-2025/",
+      "quality": "B",
+      "local": false,
+      "score": 0.85
+    },
+    "S2": {
+      "id": "S2",
+      "source": "Google Cloud Cybersecurity Forecast 2026: https://cloud.google.com/blog/topics/threat-intelligence/cybersecurity-forecast-2026/",
+      "url": "https://cloud.google.com/blog/topics/threat-intelligence/cybersecurity-forecast-2026/",
+      "quality": "B",
+      "local": false,
+      "score": 0.85
+    },
+    "S3": {
+      "id": "S3",
+      "source": "CrowdStrike Global Threat Report 2026: https://www.crowdstrike.com/en-us/global-threat-report/",
+      "url": "https://www.crowdstrike.com/en-us/global-threat-report/",
+      "quality": "B",
+      "local": false,
+      "score": 0.85
+    },
+    "S4": {
+      "id": "S4",
+      "source": "Fortinet Global Threat Landscape Report 2026: https://www.fortinet.com/resources/reports/threat-landscape-report",
+      "url": "https://www.fortinet.com/resources/reports/threat-landscape-report",
+      "quality": "B",
+      "local": false,
+      "score": 0.85
+    },
+    "S5": {
+      "id": "S5",
+      "source": "Cloudflare 2026 Threat Report: https://blog.cloudflare.com/2026-threat-report/",
+      "url": "https://blog.cloudflare.com/2026-threat-report/",
+      "quality": "B",
+      "local": false,
+      "score": 0.85
+    },
+    "S6": {
+      "id": "S6",
+      "source": "ENISA Threat Landscape 2025: https://www.enisa.europa.eu/sites/default/files/2025-10/ENISA%20Threat%20Landscape%202025%20Booklet.pdf",
+      "url": "https://www.enisa.europa.eu/sites/default/files/2025-10/ENISA%20Threat%20Landscape%202025%20Booklet.pdf",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S7": {
+      "id": "S7",
+      "source": "CERT-EU Threat Landscape Report 2025: https://cert.europa.eu/blog/threat-landscape-report-2025",
+      "url": "https://cert.europa.eu/blog/threat-landscape-report-2025",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S8": {
+      "id": "S8",
+      "source": "FBI IC3 2025 Internet Crime Report: https://www.fbi.gov/file-repository/2025_ic3report.pdf",
+      "url": "https://www.fbi.gov/file-repository/2025_ic3report.pdf",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S9": {
+      "id": "S9",
+      "source": "Verizon Data Breach Investigations Report 2025: https://www.verizon.com/business/resources/reports/dbir/",
+      "url": "https://www.verizon.com/business/resources/reports/dbir/",
+      "quality": "B",
+      "local": false,
+      "score": 0.85
+    },
+    "S10": {
+      "id": "S10",
+      "source": "IBM Cost of a Data Breach Report 2025: https://www.ibm.com/reports/data-breach",
+      "url": "https://www.ibm.com/reports/data-breach",
+      "quality": "B",
+      "local": false,
+      "score": 0.85
+    },
+    "S11": {
+      "id": "S11",
+      "source": "NIST AI Risk Management Framework: Generative AI Profile: https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
+      "url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S12": {
+      "id": "S12",
+      "source": "NIST Cybersecurity Framework 2.0: https://www.nist.gov/cyberframework",
+      "url": "https://www.nist.gov/cyberframework",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S13": {
+      "id": "S13",
+      "source": "OWASP Top 10 for LLM Applications 2025: https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S14": {
+      "id": "S14",
+      "source": "OWASP Agentic Skills Top 10: https://owasp.org/www-project-agentic-skills-top-10/",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S15": {
+      "id": "S15",
+      "source": "MITRE ATLAS: https://atlas.mitre.org/",
+      "url": "https://atlas.mitre.org/",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S16": {
+      "id": "S16",
+      "source": "MCP Threat Modeling, arXiv 2603.22489: https://arxiv.org/abs/2603.22489",
+      "url": "https://arxiv.org/abs/2603.22489",
+      "quality": "C",
+      "local": false,
+      "score": 0.7
+    },
+    "S17": {
+      "id": "S17",
+      "source": "Breaking the Protocol, arXiv 2601.17549: https://arxiv.org/abs/2601.17549",
+      "url": "https://arxiv.org/abs/2601.17549",
+      "quality": "C",
+      "local": false,
+      "score": 0.7
+    },
+    "S18": {
+      "id": "S18",
+      "source": "Singapore AI Verify: https://www.imda.gov.sg/how-we-can-help/ai-verify",
+      "url": "https://www.imda.gov.sg/how-we-can-help/ai-verify",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S19": {
+      "id": "S19",
+      "source": "Singapore Cyber Landscape 2024/2025: https://isomer-user-content.by.gov.sg/36/995dbbd7-a1de-4edb-b731-8fa36eb5546e/Singapore%20Cyber%20Landscape%202024_2025.pdf",
+      "url": "https://isomer-user-content.by.gov.sg/36/995dbbd7-a1de-4edb-b731-8fa36eb5546e/Singapore%20Cyber%20Landscape%202024_2025.pdf",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S20": {
+      "id": "S20",
+      "source": "Japan METI Cybersecurity: https://www.meti.go.jp/english/policy/safety_security/cybersecurity/index.html",
+      "url": "https://www.meti.go.jp/english/policy/safety_security/cybersecurity/index.html",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S21": {
+      "id": "S21",
+      "source": "China TC260 Generative AI Security Requirements tracker: https://digitalpolicyalert.org/change/8857",
+      "url": "https://digitalpolicyalert.org/change/8857",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S22": {
+      "id": "S22",
+      "source": "CISA Known Exploited Vulnerabilities Catalog: https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+      "url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+      "quality": "A",
+      "local": false,
+      "score": 1
+    },
+    "S23": {
+      "id": "S23",
+      "source": "Anthropic Mythos Preview cyber assessment: https://red.anthropic.com/2026/mythos-preview/",
+      "url": "https://red.anthropic.com/2026/mythos-preview/",
+      "quality": "B",
+      "local": false,
+      "score": 0.85
+    },
+    "S24": {
+      "id": "S24",
+      "source": "OpenAI disruption of malicious uses by state-affiliated threat actors: https://openai.com/index/disrupting-malicious-uses-of-ai-by-state-affiliated-threat-actors/",
+      "url": "https://openai.com/index/disrupting-malicious-uses-of-ai-by-state-affiliated-threat-actors/",
+      "quality": "B",
+      "local": false,
+      "score": 0.85
+    },
+    "S25": {
+      "id": "S25",
+      "source": "Upgreat Baseline Security: https://www.upgreat.ch/consulting/baseline-security",
+      "url": "https://www.upgreat.ch/consulting/baseline-security",
+      "quality": "D",
+      "local": false,
+      "score": 0.5
+    },
+    "S26": {
+      "id": "S26",
+      "source": "YURI cybersecurity audit: _SYSTEM/session-outputs/YURI-AI-CYBERSECURITY-CAPABILITY-AUDIT.md",
+      "url": null,
+      "quality": "A",
+      "local": true,
+      "score": 1
+    },
+    "S27": {
+      "id": "S27",
+      "source": "Perplexity cyber sprint: _SYSTEM/session-outputs/YURI-OS-GLOBAL-CYBERSECURITY-INTELLIGENCE-SPRINT-2026-05-21.md",
+      "url": null,
+      "quality": "B",
+      "local": true,
+      "score": 0.85
+    }
+  },
+  "threats": [
+    {
+      "threat_id": "CY-001",
+      "number": 1,
+      "domain": "Ransomware",
+      "domain_id": "ransomware",
+      "threat": "Ransomware-as-a-Service affiliate sprawl",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S3",
+        "S4",
+        "S6",
+        "S8"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "SMEs cannot defend every exposed path or recover cleanly",
+      "yuri_capability": "Threat radar, assessment reporting, backup/segmentation checklist",
+      "missing_proof": "No customer ransomware resilience workflow yet",
+      "lab_scenario": null,
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "resilience-and-extortion-risk",
+      "decision": "build",
+      "action": "Build report mapping, watch for runtime",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-002",
+      "number": 2,
+      "domain": "Ransomware",
+      "domain_id": "ransomware",
+      "threat": "Data theft before encryption",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S3",
+        "S6",
+        "S8"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A",
+          "A"
+        ],
+        "score": 0.95,
+        "minimum": "B"
+      },
+      "customer_pain": "Breach impact persists even if systems restore",
+      "yuri_capability": "Exfiltration rails, data classification, tool-output controls",
+      "missing_proof": "No data discovery module",
+      "lab_scenario": null,
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": null,
+      "report_section": "resilience-and-extortion-risk",
+      "decision": "build",
+      "action": "Build for agent/tool surfaces",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-003",
+      "number": 3,
+      "domain": "Ransomware",
+      "domain_id": "ransomware",
+      "threat": "Double/triple extortion pressure",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S4",
+        "S6",
+        "S8"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A",
+          "A"
+        ],
+        "score": 0.95,
+        "minimum": "B"
+      },
+      "customer_pain": "Legal, PR, customer panic during incidents",
+      "yuri_capability": "Incident evidence pack templates",
+      "missing_proof": "No incident response retainer",
+      "lab_scenario": null,
+      "scanner_rule": null,
+      "guardrail": null,
+      "report_section": "resilience-and-extortion-risk",
+      "decision": "watch",
+      "action": "Watch-only now",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-004",
+      "number": 4,
+      "domain": "Ransomware",
+      "domain_id": "ransomware",
+      "threat": "Targeting of MSPs and service providers",
+      "regions": [
+        "europe",
+        "west"
+      ],
+      "evidence": [
+        "S6",
+        "S7",
+        "S25"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "D"
+        ],
+        "score": 0.833,
+        "minimum": "D"
+      },
+      "customer_pain": "One provider compromise reaches many clients",
+      "yuri_capability": "Partner risk reports for Upgreat-like MSPs",
+      "missing_proof": "No MSP connector inventory yet",
+      "lab_scenario": null,
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "tool-input-output-rail",
+      "report_section": "resilience-and-extortion-risk",
+      "decision": "build",
+      "action": "Build partner assessment lane",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-005",
+      "number": 5,
+      "domain": "Ransomware",
+      "domain_id": "ransomware",
+      "threat": "Backup destruction and recovery sabotage",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S6",
+        "S8",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Recovery plans fail under attacker pressure",
+      "yuri_capability": "Lab checklist and report controls",
+      "missing_proof": "No backup validation harness",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "resilience-and-extortion-risk",
+      "decision": "watch",
+      "action": "Watch then lab",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-006",
+      "number": 6,
+      "domain": "Infostealers",
+      "domain_id": "infostealers",
+      "threat": "Browser session token theft",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S4",
+        "S8",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A",
+          "B"
+        ],
+        "score": 0.888,
+        "minimum": "B"
+      },
+      "customer_pain": "MFA can be bypassed by stolen sessions",
+      "yuri_capability": "Secret handling, browser-harness redaction, session-risk checks",
+      "missing_proof": "No endpoint telemetry",
+      "lab_scenario": "owned-browser-agent-compromise-lab",
+      "scanner_rule": "secret-and-token-exposure-rule",
+      "guardrail": "browser-action-boundary-rail",
+      "report_section": "credential-and-session-risk",
+      "decision": "build",
+      "action": "Build browser-agent lab",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-007",
+      "number": 7,
+      "domain": "Infostealers",
+      "domain_id": "infostealers",
+      "threat": "Commodity stealer-log markets",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S4",
+        "S8"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Initial access becomes cheap and automated",
+      "yuri_capability": "Credential-risk reasoning in reports",
+      "missing_proof": "No dark-web/log ingestion",
+      "lab_scenario": "isolated-malware-behavior-lab",
+      "scanner_rule": "secret-and-token-exposure-rule",
+      "guardrail": null,
+      "report_section": "credential-and-session-risk",
+      "decision": "watch",
+      "action": "Watch-only unless authorized feed exists",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-008",
+      "number": 8,
+      "domain": "Infostealers",
+      "domain_id": "infostealers",
+      "threat": "Developer credential exposure",
+      "regions": [
+        "europe",
+        "west",
+        "asia"
+      ],
+      "evidence": [
+        "S1",
+        "S4",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "Repos, tokens, package registries exposed",
+      "yuri_capability": "Repo scanner, secrets policy, CI/CD guardrails",
+      "missing_proof": "Scanner needs broader file coverage",
+      "lab_scenario": "synthetic-rag-poisoning-lab",
+      "scanner_rule": "secret-and-token-exposure-rule",
+      "guardrail": "retrieval-memory-provenance-rail",
+      "report_section": "credential-and-session-risk",
+      "decision": "build",
+      "action": "Build in Security Lens",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-009",
+      "number": 9,
+      "domain": "Identity",
+      "domain_id": "identity",
+      "threat": "Password spraying and credential stuffing",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S8",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A",
+          "B"
+        ],
+        "score": 0.9,
+        "minimum": "B"
+      },
+      "customer_pain": "Weak identity hygiene still causes breaches",
+      "yuri_capability": "Assessment checklist and simulated login telemetry lab",
+      "missing_proof": "No IdP integration",
+      "lab_scenario": null,
+      "scanner_rule": "secret-and-token-exposure-rule",
+      "guardrail": "runtime-health-rail",
+      "report_section": "identity-and-access-risk",
+      "decision": "watch",
+      "action": "Watch then partner via MSP",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-010",
+      "number": 10,
+      "domain": "Identity",
+      "domain_id": "identity",
+      "threat": "MFA fatigue and push bombing",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "Users approve malicious auth requests",
+      "yuri_capability": "Executive/user training report module",
+      "missing_proof": "No phishing/MFA sim harness",
+      "lab_scenario": "consent-only-social-engineering-simulation",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "identity-and-access-risk",
+      "decision": "build",
+      "action": "Build awareness lab later",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-011",
+      "number": 11,
+      "domain": "Identity",
+      "domain_id": "identity",
+      "threat": "Session hijacking in SaaS",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S6",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A",
+          "B"
+        ],
+        "score": 0.9,
+        "minimum": "B"
+      },
+      "customer_pain": "SaaS access persists after compromise",
+      "yuri_capability": "SaaS/browser-agent boundary policies",
+      "missing_proof": "No SaaS API integrations",
+      "lab_scenario": "owned-browser-agent-compromise-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "browser-action-boundary-rail",
+      "report_section": "identity-and-access-risk",
+      "decision": "build",
+      "action": "Build threat model only",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-012",
+      "number": 12,
+      "domain": "Identity",
+      "domain_id": "identity",
+      "threat": "Over-privileged service accounts",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "One token grants too much blast radius",
+      "yuri_capability": "Model-route trust inventory, least-privilege tool policy",
+      "missing_proof": "No cloud IAM collector",
+      "lab_scenario": null,
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": null,
+      "report_section": "identity-and-access-risk",
+      "decision": "build",
+      "action": "Build local/tool version first",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-013",
+      "number": 13,
+      "domain": "Identity",
+      "domain_id": "identity",
+      "threat": "OAuth consent phishing",
+      "regions": [
+        "europe",
+        "west"
+      ],
+      "evidence": [
+        "S1",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "Users authorize malicious apps",
+      "yuri_capability": "Connector scanner concept for OAuth/MCP",
+      "missing_proof": "No OAuth test lab",
+      "lab_scenario": "local-mcp-tool-poisoning-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "tool-input-output-rail",
+      "report_section": "identity-and-access-risk",
+      "decision": "build",
+      "action": "Add to lab roadmap",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-014",
+      "number": 14,
+      "domain": "Identity",
+      "domain_id": "identity",
+      "threat": "API key sprawl",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S9",
+        "S26"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A"
+        ],
+        "score": 0.9,
+        "minimum": "B"
+      },
+      "customer_pain": "Keys leak through repos, logs, agents",
+      "yuri_capability": "Repo scanner, output redaction, protected path rails",
+      "missing_proof": "Need language/path expansion",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": "secret-and-token-exposure-rule",
+      "guardrail": null,
+      "report_section": "identity-and-access-risk",
+      "decision": "build",
+      "action": "Build now",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-015",
+      "number": 15,
+      "domain": "Fraud",
+      "domain_id": "fraud",
+      "threat": "Business email compromise",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S8",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "B"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Payment rerouting and invoice fraud",
+      "yuri_capability": "Client report templates and process controls",
+      "missing_proof": "No mail integration",
+      "lab_scenario": null,
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "fraud-and-social-engineering-risk",
+      "decision": "watch",
+      "action": "Watch/report only",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-016",
+      "number": 16,
+      "domain": "Fraud",
+      "domain_id": "fraud",
+      "threat": "AI-assisted phishing quality jump",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S2",
+        "S8",
+        "S24"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A",
+          "B"
+        ],
+        "score": 0.888,
+        "minimum": "B"
+      },
+      "customer_pain": "Lures become cheaper, multilingual, personalized",
+      "yuri_capability": "Phishing-awareness lab and report evidence",
+      "missing_proof": "No consent-based simulation package",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "fraud-and-social-engineering-risk",
+      "decision": "build",
+      "action": "Build later",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-017",
+      "number": 17,
+      "domain": "Fraud",
+      "domain_id": "fraud",
+      "threat": "Deepfake executive impersonation",
+      "regions": [
+        "global",
+        "asia"
+      ],
+      "evidence": [
+        "S8",
+        "S19"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Finance/HR verification breaks",
+      "yuri_capability": "Synthetic awareness lab with safe media",
+      "missing_proof": "No media pipeline",
+      "lab_scenario": "consent-only-social-engineering-simulation",
+      "scanner_rule": null,
+      "guardrail": null,
+      "report_section": "fraud-and-social-engineering-risk",
+      "decision": "watch",
+      "action": "Watch/lab later",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-018",
+      "number": 18,
+      "domain": "Fraud",
+      "domain_id": "fraud",
+      "threat": "Crypto wallet drain and seed phrase theft",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S8"
+      ],
+      "source_quality": {
+        "grades": [
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Private users and founders lose assets fast",
+      "yuri_capability": "Personal cyber hygiene package future",
+      "missing_proof": "No wallet-security module",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "fraud-and-social-engineering-risk",
+      "decision": "watch",
+      "action": "Watch-only now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-019",
+      "number": 19,
+      "domain": "Fraud",
+      "domain_id": "fraud",
+      "threat": "SIM swap and account takeover",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S8"
+      ],
+      "source_quality": {
+        "grades": [
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "High-value accounts bypass normal controls",
+      "yuri_capability": "Advisory checklist and identity threat model",
+      "missing_proof": "No telco workflows",
+      "lab_scenario": null,
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "fraud-and-social-engineering-risk",
+      "decision": "watch",
+      "action": "Watch-only now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-020",
+      "number": 20,
+      "domain": "Cloud",
+      "domain_id": "cloud",
+      "threat": "Cloud misconfiguration exposure",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S9",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A"
+        ],
+        "score": 0.9,
+        "minimum": "B"
+      },
+      "customer_pain": "Public buckets, broad roles, exposed services",
+      "yuri_capability": "Future cloud posture scan adapter",
+      "missing_proof": "No cloud account connectors",
+      "lab_scenario": null,
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "tool-input-output-rail",
+      "report_section": "cloud-and-iam-risk",
+      "decision": "watch",
+      "action": "Watch then build after agent proof",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-021",
+      "number": 21,
+      "domain": "Cloud",
+      "domain_id": "cloud",
+      "threat": "IAM policy blast radius",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Excess privilege turns bugs into breaches",
+      "yuri_capability": "Least-privilege policy engine for tools",
+      "missing_proof": "Needs cloud/IAM lab",
+      "lab_scenario": null,
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": null,
+      "report_section": "cloud-and-iam-risk",
+      "decision": "build",
+      "action": "Build lab track",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-022",
+      "number": 22,
+      "domain": "Cloud",
+      "domain_id": "cloud",
+      "threat": "Publicly exposed management interfaces",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S22",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Fast exploitation after exposure",
+      "yuri_capability": "Attack-surface inventory concept",
+      "missing_proof": "No external scanner",
+      "lab_scenario": null,
+      "scanner_rule": null,
+      "guardrail": null,
+      "report_section": "cloud-and-iam-risk",
+      "decision": "watch",
+      "action": "Watch-only without authorization",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-023",
+      "number": 23,
+      "domain": "Cloud",
+      "domain_id": "cloud",
+      "threat": "Serverless secret leakage",
+      "regions": [
+        "west",
+        "asia"
+      ],
+      "evidence": [
+        "S1",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "Logs and env vars leak secrets",
+      "yuri_capability": "Output rails, repo scan, secret redaction",
+      "missing_proof": "No serverless-specific parser",
+      "lab_scenario": null,
+      "scanner_rule": "secret-and-token-exposure-rule",
+      "guardrail": null,
+      "report_section": "cloud-and-iam-risk",
+      "decision": "build",
+      "action": "Add scanner rules",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-024",
+      "number": 24,
+      "domain": "Cloud",
+      "domain_id": "cloud",
+      "threat": "Container/Kubernetes control-plane abuse",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S9",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A"
+        ],
+        "score": 0.9,
+        "minimum": "B"
+      },
+      "customer_pain": "Mis-scoped workloads leak or pivot",
+      "yuri_capability": "Future lab and assessment checklist",
+      "missing_proof": "No K8s scanner",
+      "lab_scenario": null,
+      "scanner_rule": null,
+      "guardrail": null,
+      "report_section": "cloud-and-iam-risk",
+      "decision": "watch",
+      "action": "Watch/lab later",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-025",
+      "number": 25,
+      "domain": "SaaS",
+      "domain_id": "saas",
+      "threat": "SaaS connector over-permission",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S9",
+        "S13",
+        "S16"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A",
+          "C"
+        ],
+        "score": 0.85,
+        "minimum": "C"
+      },
+      "customer_pain": "AI tools inherit broad SaaS powers",
+      "yuri_capability": "Connector trust posture inventory",
+      "missing_proof": "No connector manifest corpus",
+      "lab_scenario": "local-mcp-tool-poisoning-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "tool-input-output-rail",
+      "report_section": "saas-and-connector-risk",
+      "decision": "build",
+      "action": "Build MCP/OAuth scanner",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-026",
+      "number": 26,
+      "domain": "SaaS",
+      "domain_id": "saas",
+      "threat": "Shadow SaaS + shadow AI adoption",
+      "regions": [
+        "global",
+        "asia"
+      ],
+      "evidence": [
+        "S1",
+        "S2",
+        "S19",
+        "S27"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A",
+          "B"
+        ],
+        "score": 0.888,
+        "minimum": "B"
+      },
+      "customer_pain": "IT does not know what tools employees use",
+      "yuri_capability": "Model-route inventory and regional pack",
+      "missing_proof": "No discovery integration",
+      "lab_scenario": null,
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": null,
+      "report_section": "saas-and-connector-risk",
+      "decision": "build",
+      "action": "Build intake questionnaire first",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-027",
+      "number": 27,
+      "domain": "SaaS",
+      "domain_id": "saas",
+      "threat": "Browser automation on privileged portals",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S14",
+        "S16"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "C"
+        ],
+        "score": 0.9,
+        "minimum": "C"
+      },
+      "customer_pain": "Agents click through sensitive workflows",
+      "yuri_capability": "Browser-harness guardrails and replay lab",
+      "missing_proof": "Need synthetic portals",
+      "lab_scenario": "owned-browser-agent-compromise-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "browser-action-boundary-rail",
+      "report_section": "saas-and-connector-risk",
+      "decision": "build",
+      "action": "Build lab now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-028",
+      "number": 28,
+      "domain": "SaaS",
+      "domain_id": "saas",
+      "threat": "Logs leaking sensitive AI prompts",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S11",
+        "S13"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Prompt logs become data breach artifacts",
+      "yuri_capability": "Output rails, redaction, retention mapping",
+      "missing_proof": "Need log sanitizer tests",
+      "lab_scenario": null,
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "input-dialog-rail",
+      "report_section": "saas-and-connector-risk",
+      "decision": "build",
+      "action": "Build in Guardrail Kernel",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-029",
+      "number": 29,
+      "domain": "Supply Chain",
+      "domain_id": "supply-chain",
+      "threat": "Open-source package compromise",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S6",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A",
+          "B"
+        ],
+        "score": 0.9,
+        "minimum": "B"
+      },
+      "customer_pain": "Malicious packages enter dev workflows",
+      "yuri_capability": "Repo/supply-chain scanner",
+      "missing_proof": "Needs package-lock/parser expansion",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "supply-chain-and-ci-risk",
+      "decision": "build",
+      "action": "Build in Security Lens",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-030",
+      "number": 30,
+      "domain": "Supply Chain",
+      "domain_id": "supply-chain",
+      "threat": "Typosquatting and dependency confusion",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "CI installs hostile dependency",
+      "yuri_capability": "Scanner rule and CI report",
+      "missing_proof": "Need test corpus",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": "retrieval-memory-provenance-rail",
+      "report_section": "supply-chain-and-ci-risk",
+      "decision": "build",
+      "action": "Build now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-031",
+      "number": 31,
+      "domain": "Supply Chain",
+      "domain_id": "supply-chain",
+      "threat": "Maintainer account takeover",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "Trusted packages become malicious",
+      "yuri_capability": "Watchlist/report guidance",
+      "missing_proof": "No package registry telemetry",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": "runtime-health-rail",
+      "report_section": "supply-chain-and-ci-risk",
+      "decision": "watch",
+      "action": "Watch-only",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-032",
+      "number": 32,
+      "domain": "Supply Chain",
+      "domain_id": "supply-chain",
+      "threat": "CI/CD secret exfiltration",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S9",
+        "S26"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A"
+        ],
+        "score": 0.9,
+        "minimum": "B"
+      },
+      "customer_pain": "Build systems leak tokens",
+      "yuri_capability": "Repo scanner, shell guard patterns",
+      "missing_proof": "Need CI config coverage",
+      "lab_scenario": "synthetic-rag-poisoning-lab",
+      "scanner_rule": "secret-and-token-exposure-rule",
+      "guardrail": "execution-output-trust-rail",
+      "report_section": "supply-chain-and-ci-risk",
+      "decision": "build",
+      "action": "Build scanner expansion",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-033",
+      "number": 33,
+      "domain": "Supply Chain",
+      "domain_id": "supply-chain",
+      "threat": "Malicious GitHub Actions/workflows",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S9"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "Workflows execute attacker code",
+      "yuri_capability": "Repo scanner for workflow permissions",
+      "missing_proof": "Need YAML parser/rules",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "supply-chain-and-ci-risk",
+      "decision": "build",
+      "action": "Build now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-034",
+      "number": 34,
+      "domain": "Supply Chain",
+      "domain_id": "supply-chain",
+      "threat": "AI-generated dependency risk",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S2",
+        "S11"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Code agents add packages without review",
+      "yuri_capability": "Agent guardrail and dependency approval",
+      "missing_proof": "Need code-agent eval harness",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "supply-chain-and-ci-risk",
+      "decision": "build",
+      "action": "Build lab",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-035",
+      "number": 35,
+      "domain": "Vulnerability",
+      "domain_id": "vulnerability",
+      "threat": "Known exploited vulnerabilities exploited faster",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S22",
+        "S1",
+        "S6"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "B",
+          "A"
+        ],
+        "score": 0.95,
+        "minimum": "B"
+      },
+      "customer_pain": "Patch windows shrink",
+      "yuri_capability": "Triage/report automation",
+      "missing_proof": "No vuln inventory connector",
+      "lab_scenario": "owned-vulnerability-research-benchmark-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "tool-input-output-rail",
+      "report_section": "vulnerability-and-exposure-risk",
+      "decision": "watch",
+      "action": "Watch/report now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-036",
+      "number": 36,
+      "domain": "Vulnerability",
+      "domain_id": "vulnerability",
+      "threat": "N-day exploitation of exposed services",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S22",
+        "S4"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "B"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Public exploit availability accelerates",
+      "yuri_capability": "Lab-only learning and patch report",
+      "missing_proof": "No external scan permission",
+      "lab_scenario": "owned-vulnerability-research-benchmark-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": "owned-lab-research-boundary-rail",
+      "report_section": "vulnerability-and-exposure-risk",
+      "decision": "watch",
+      "action": "Watch/lab",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-037",
+      "number": 37,
+      "domain": "Vulnerability",
+      "domain_id": "vulnerability",
+      "threat": "AI-assisted vulnerability research",
+      "regions": [
+        "west",
+        "asia"
+      ],
+      "evidence": [
+        "S2",
+        "S23",
+        "S24"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "Discovery cycles compress",
+      "yuri_capability": "Evolution Engine for defensive tests",
+      "missing_proof": "Need benchmark/lab",
+      "lab_scenario": "owned-vulnerability-research-benchmark-lab",
+      "scanner_rule": null,
+      "guardrail": "owned-lab-research-boundary-rail",
+      "report_section": "vulnerability-and-exposure-risk",
+      "decision": "build",
+      "action": "Build research track",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-038",
+      "number": 38,
+      "domain": "Vulnerability",
+      "domain_id": "vulnerability",
+      "threat": "API authorization bugs",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S9",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Business logic holes bypass auth",
+      "yuri_capability": "Vulnerable API lab",
+      "missing_proof": "Need lab apps",
+      "lab_scenario": "owned-vulnerable-web-api-lab",
+      "scanner_rule": null,
+      "guardrail": null,
+      "report_section": "vulnerability-and-exposure-risk",
+      "decision": "build",
+      "action": "Build lab now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-039",
+      "number": 39,
+      "domain": "Web",
+      "domain_id": "web",
+      "threat": "SQLi/XSS/SSRF still recurring",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S9",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Basic web flaws persist in SMEs",
+      "yuri_capability": "Learning labs and report templates",
+      "missing_proof": "No SAST engine",
+      "lab_scenario": "owned-vulnerable-web-api-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "web-and-api-risk",
+      "decision": "watch",
+      "action": "Lab/watch",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-040",
+      "number": 40,
+      "domain": "Web",
+      "domain_id": "web",
+      "threat": "SSRF into metadata services",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S9",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Cloud creds leaked from web bug",
+      "yuri_capability": "Vulnerable web/cloud lab",
+      "missing_proof": "Need local cloud simulator",
+      "lab_scenario": "owned-vulnerable-web-api-lab",
+      "scanner_rule": null,
+      "guardrail": null,
+      "report_section": "web-and-api-risk",
+      "decision": "build",
+      "action": "Build lab later",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-041",
+      "number": 41,
+      "domain": "DDoS",
+      "domain_id": "ddos",
+      "threat": "Hyper-volumetric DDoS",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S5",
+        "S6"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Availability loss exceeds human response speed",
+      "yuri_capability": "Resilience checklist and local load tests",
+      "missing_proof": "No edge telemetry",
+      "lab_scenario": "local-only-load-test-lab",
+      "scanner_rule": null,
+      "guardrail": "runtime-health-rail",
+      "report_section": "availability-and-resilience-risk",
+      "decision": "watch",
+      "action": "Watch/lab locally",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-042",
+      "number": 42,
+      "domain": "DDoS",
+      "domain_id": "ddos",
+      "threat": "HTTP/2 and L7 protocol abuse",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S5"
+      ],
+      "source_quality": {
+        "grades": [
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "Application layers buckle under shaped traffic",
+      "yuri_capability": "Local load-test harness",
+      "missing_proof": "No public stress testing",
+      "lab_scenario": "local-only-load-test-lab",
+      "scanner_rule": null,
+      "guardrail": null,
+      "report_section": "availability-and-resilience-risk",
+      "decision": "build",
+      "action": "Build local-only lab",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-043",
+      "number": 43,
+      "domain": "DDoS",
+      "domain_id": "ddos",
+      "threat": "Botnet-for-hire attacks",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S5",
+        "S6"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "SMEs cannot absorb traffic spikes",
+      "yuri_capability": "MSP report guidance",
+      "missing_proof": "No mitigation service",
+      "lab_scenario": "local-only-load-test-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "availability-and-resilience-risk",
+      "decision": "watch",
+      "action": "Watch-only",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-044",
+      "number": 44,
+      "domain": "OT/ICS",
+      "domain_id": "ot-ics",
+      "threat": "IT/OT convergence exposure",
+      "regions": [
+        "europe",
+        "west",
+        "asia"
+      ],
+      "evidence": [
+        "S6",
+        "S20"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Legacy systems meet Internet and AI ops",
+      "yuri_capability": "Toy ICS lab and report mapping",
+      "missing_proof": "No OT expertise/proof",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "industrial-and-ot-risk",
+      "decision": "watch",
+      "action": "Watch/lab only",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-045",
+      "number": 45,
+      "domain": "OT/ICS",
+      "domain_id": "ot-ics",
+      "threat": "Manufacturing ransomware disruption",
+      "regions": [
+        "europe",
+        "asia"
+      ],
+      "evidence": [
+        "S6",
+        "S20"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Downtime hits revenue fast",
+      "yuri_capability": "Partner checklist",
+      "missing_proof": "No plant telemetry",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": null,
+      "guardrail": "runtime-health-rail",
+      "report_section": "industrial-and-ot-risk",
+      "decision": "watch",
+      "action": "Watch-only",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-046",
+      "number": 46,
+      "domain": "OT/ICS",
+      "domain_id": "ot-ics",
+      "threat": "Building management system exposure",
+      "regions": [
+        "europe",
+        "asia"
+      ],
+      "evidence": [
+        "S6",
+        "S20"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Facilities can be disrupted",
+      "yuri_capability": "Toy lab concept",
+      "missing_proof": "No field data",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": null,
+      "guardrail": null,
+      "report_section": "industrial-and-ot-risk",
+      "decision": "watch",
+      "action": "Watch-only",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-047",
+      "number": 47,
+      "domain": "OT/ICS",
+      "domain_id": "ot-ics",
+      "threat": "Medical device security",
+      "regions": [
+        "europe",
+        "west",
+        "asia"
+      ],
+      "evidence": [
+        "S6",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Patient risk and compliance pressure",
+      "yuri_capability": "Long-term threat radar",
+      "missing_proof": "No medical lab",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": null,
+      "guardrail": null,
+      "report_section": "industrial-and-ot-risk",
+      "decision": "watch",
+      "action": "Watch-only",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-048",
+      "number": 48,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "Direct prompt injection",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S15"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Model follows malicious user instructions",
+      "yuri_capability": "Prompt replay harness",
+      "missing_proof": "Need benchmark corpus",
+      "lab_scenario": "synthetic-prompt-injection-replay-lab",
+      "scanner_rule": "memory-rag-provenance-rule",
+      "guardrail": "input-dialog-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-049",
+      "number": 49,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "Indirect prompt injection through docs/web",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S15"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Trusted content hijacks agent behavior",
+      "yuri_capability": "Browser/RAG lab",
+      "missing_proof": "Need synthetic hostile docs",
+      "lab_scenario": "synthetic-prompt-injection-replay-lab",
+      "scanner_rule": "memory-rag-provenance-rule",
+      "guardrail": "input-dialog-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-050",
+      "number": 50,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "Jailbreak regression after model updates",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S15",
+        "S23"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "B"
+        ],
+        "score": 0.95,
+        "minimum": "B"
+      },
+      "customer_pain": "Old evals stop representing live risk",
+      "yuri_capability": "Continuous eval harness",
+      "missing_proof": "Need per-lane history",
+      "lab_scenario": "synthetic-prompt-injection-replay-lab",
+      "scanner_rule": null,
+      "guardrail": "input-dialog-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build in Evolution Engine",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-051",
+      "number": 51,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "Tool invocation abuse",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S14",
+        "S16"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "C"
+        ],
+        "score": 0.9,
+        "minimum": "C"
+      },
+      "customer_pain": "Agents call dangerous tools from hostile context",
+      "yuri_capability": "Tool-input rails and command policy",
+      "missing_proof": "Need tool eval suite",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "execution-output-trust-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-052",
+      "number": 52,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "Cross-tool privilege escalation",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S14",
+        "S16",
+        "S17"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "C",
+          "C"
+        ],
+        "score": 0.8,
+        "minimum": "C"
+      },
+      "customer_pain": "One low-risk tool enables high-risk action chain",
+      "yuri_capability": "Tool graph and action lineage",
+      "missing_proof": "Need tool graph model",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "tool-input-output-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-053",
+      "number": 53,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "MCP server tool poisoning",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S14",
+        "S16",
+        "S17"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "C",
+          "C"
+        ],
+        "score": 0.8,
+        "minimum": "C"
+      },
+      "customer_pain": "Connector lies about capabilities or returns hostile instructions",
+      "yuri_capability": "MCP scanner and malicious server lab",
+      "missing_proof": "Need MCP corpus",
+      "lab_scenario": "local-mcp-tool-poisoning-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "tool-input-output-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-054",
+      "number": 54,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "MCP capability attestation failure",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S16",
+        "S17"
+      ],
+      "source_quality": {
+        "grades": [
+          "C",
+          "C"
+        ],
+        "score": 0.7,
+        "minimum": "C"
+      },
+      "customer_pain": "Clients trust unverified tool descriptions",
+      "yuri_capability": "Capability manifest validator",
+      "missing_proof": "Need schema/policy",
+      "lab_scenario": "local-mcp-tool-poisoning-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "tool-input-output-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-055",
+      "number": 55,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "Agent-to-agent instruction propagation",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S14",
+        "S15"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "One compromised agent contaminates others",
+      "yuri_capability": "Shintai lineage and kill-switch policies",
+      "missing_proof": "Need multi-agent lab",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": null,
+      "guardrail": "input-dialog-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build later",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-056",
+      "number": 56,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "Browser-agent form exfiltration",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S14"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Agent submits data to attacker-controlled form",
+      "yuri_capability": "Browser navigation/form rails",
+      "missing_proof": "Need synthetic portal lab",
+      "lab_scenario": "owned-browser-agent-compromise-lab",
+      "scanner_rule": "browser-session-isolation-rule",
+      "guardrail": "browser-action-boundary-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build now",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-057",
+      "number": 57,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "Code-agent sabotage",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S15"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Agent makes plausible malicious code edits",
+      "yuri_capability": "Repo guardrails, diff review, scanner",
+      "missing_proof": "Need malicious patch corpus",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": "retrieval-memory-provenance-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build later",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-058",
+      "number": 58,
+      "domain": "AI Attack",
+      "domain_id": "ai-attack",
+      "threat": "AI command injection through terminal output",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S15",
+        "S26"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Tool output becomes next instruction",
+      "yuri_capability": "Output trust tiers and terminal rails",
+      "missing_proof": "Need replay test",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": null,
+      "guardrail": "execution-output-trust-rail",
+      "report_section": "ai-agent-and-tool-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-059",
+      "number": 59,
+      "domain": "Memory",
+      "domain_id": "memory",
+      "threat": "Memory poisoning gradual drift",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S11",
+        "S13"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Long-term assistant behavior degrades",
+      "yuri_capability": "MemoryKernel provenance and rollback",
+      "missing_proof": "Need synthetic memory lab",
+      "lab_scenario": "synthetic-memory-poisoning-lab",
+      "scanner_rule": "memory-rag-provenance-rule",
+      "guardrail": "retrieval-memory-provenance-rail",
+      "report_section": "memory-and-rag-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-060",
+      "number": 60,
+      "domain": "Memory",
+      "domain_id": "memory",
+      "threat": "RAG corpus poisoning",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S11",
+        "S13"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Retrieval makes bad facts authoritative",
+      "yuri_capability": "Source registry and retrieval rails",
+      "missing_proof": "Need RAG poison corpus",
+      "lab_scenario": "synthetic-rag-poisoning-lab",
+      "scanner_rule": "memory-rag-provenance-rule",
+      "guardrail": "retrieval-memory-provenance-rail",
+      "report_section": "memory-and-rag-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-061",
+      "number": 61,
+      "domain": "Memory",
+      "domain_id": "memory",
+      "threat": "Context window trust collapse",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S15"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Mixed-trust content shares one context",
+      "yuri_capability": "Context segmentation policy",
+      "missing_proof": "Need prompt assembly tests",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "memory-rag-provenance-rule",
+      "guardrail": "input-dialog-rail",
+      "report_section": "memory-and-rag-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-062",
+      "number": 62,
+      "domain": "Memory",
+      "domain_id": "memory",
+      "threat": "Sensitive memory retention",
+      "regions": [
+        "europe",
+        "west"
+      ],
+      "evidence": [
+        "S11",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "User/company secrets persist too long",
+      "yuri_capability": "Retention and redaction rules",
+      "missing_proof": "Need memory audit ledger",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "memory-rag-provenance-rule",
+      "guardrail": "retrieval-memory-provenance-rail",
+      "report_section": "memory-and-rag-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-063",
+      "number": 63,
+      "domain": "Model Supply",
+      "domain_id": "model-supply",
+      "threat": "Model artifact tampering",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S11",
+        "S15"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Weights/adapters carry hidden behavior",
+      "yuri_capability": "Model provenance/checksum intake",
+      "missing_proof": "Need model registry design",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "model-supply-inventory-rule",
+      "guardrail": "model-supply-guardrail",
+      "report_section": "model-route-and-provenance-risk",
+      "decision": "build",
+      "action": "Build later",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-064",
+      "number": 64,
+      "domain": "Model Supply",
+      "domain_id": "model-supply",
+      "threat": "Fine-tune data poisoning",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S11",
+        "S15"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Poisoned training data embeds behavior",
+      "yuri_capability": "Data provenance policy",
+      "missing_proof": "No fine-tune pipeline",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "model-supply-inventory-rule",
+      "guardrail": "model-supply-guardrail",
+      "report_section": "model-route-and-provenance-risk",
+      "decision": "watch",
+      "action": "Watch/later",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-065",
+      "number": 65,
+      "domain": "Model Supply",
+      "domain_id": "model-supply",
+      "threat": "Unsafe model route selection",
+      "regions": [
+        "europe",
+        "west",
+        "asia"
+      ],
+      "evidence": [
+        "S11",
+        "S21",
+        "S27"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "B"
+        ],
+        "score": 0.95,
+        "minimum": "B"
+      },
+      "customer_pain": "Data goes to wrong jurisdiction/provider",
+      "yuri_capability": "Model-route trust-posture inventory",
+      "missing_proof": "Need lane metadata",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "model-route-trust-posture-rule",
+      "guardrail": "model-route-rail",
+      "report_section": "model-route-and-provenance-risk",
+      "decision": "build",
+      "action": "Build now",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-066",
+      "number": 66,
+      "domain": "Model Supply",
+      "domain_id": "model-supply",
+      "threat": "Shadow use of Asian model providers",
+      "regions": [
+        "global",
+        "asia"
+      ],
+      "evidence": [
+        "S18",
+        "S19",
+        "S21",
+        "S27"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "A",
+          "B"
+        ],
+        "score": 0.963,
+        "minimum": "B"
+      },
+      "customer_pain": "Policy misses non-Western AI usage",
+      "yuri_capability": "Regional Intelligence Pack",
+      "missing_proof": "Need intake questionnaire",
+      "lab_scenario": "local-supply-chain-ci-lab",
+      "scanner_rule": "model-route-trust-posture-rule",
+      "guardrail": "model-route-rail",
+      "report_section": "model-route-and-provenance-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-067",
+      "number": 67,
+      "domain": "Regulation",
+      "domain_id": "regulation",
+      "threat": "NIS2 operational pressure",
+      "regions": [
+        "europe"
+      ],
+      "evidence": [
+        "S6",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "More companies need provable controls",
+      "yuri_capability": "Europe report mapping",
+      "missing_proof": "No legal compliance engine",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": "regional-governance-evidence-rail",
+      "report_section": "regional-governance-risk",
+      "decision": "build",
+      "action": "Build mapping, not legal claims",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-068",
+      "number": 68,
+      "domain": "Regulation",
+      "domain_id": "regulation",
+      "threat": "DORA resilience expectations",
+      "regions": [
+        "europe"
+      ],
+      "evidence": [
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Financial firms need resilience evidence",
+      "yuri_capability": "Report mapping and lab evidence",
+      "missing_proof": "No DORA module",
+      "lab_scenario": null,
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": "regional-governance-evidence-rail",
+      "report_section": "regional-governance-risk",
+      "decision": "watch",
+      "action": "Watch/map",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-069",
+      "number": 69,
+      "domain": "Regulation",
+      "domain_id": "regulation",
+      "threat": "GDPR / revFADP data handling risk",
+      "regions": [
+        "europe"
+      ],
+      "evidence": [
+        "S12",
+        "S25"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "D"
+        ],
+        "score": 0.75,
+        "minimum": "D"
+      },
+      "customer_pain": "AI tools may process personal data badly",
+      "yuri_capability": "Data flow and route inventory",
+      "missing_proof": "Need data-classifier",
+      "lab_scenario": null,
+      "scanner_rule": "data-flow-classification-rule",
+      "guardrail": "privacy-and-data-route-rail",
+      "report_section": "regional-governance-risk",
+      "decision": "build",
+      "action": "Build later",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-070",
+      "number": 70,
+      "domain": "Regulation",
+      "domain_id": "regulation",
+      "threat": "EU AI Act governance pressure",
+      "regions": [
+        "europe"
+      ],
+      "evidence": [
+        "S11"
+      ],
+      "source_quality": {
+        "grades": [
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "AI systems need risk documentation",
+      "yuri_capability": "Evidence and eval reports",
+      "missing_proof": "Need claim discipline",
+      "lab_scenario": null,
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": "regional-governance-evidence-rail",
+      "report_section": "regional-governance-risk",
+      "decision": "build",
+      "action": "Build mapping",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-071",
+      "number": 71,
+      "domain": "Regulation",
+      "domain_id": "regulation",
+      "threat": "Singapore AI assurance/testing",
+      "regions": [
+        "asia"
+      ],
+      "evidence": [
+        "S18",
+        "S19"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Buyers expect testable AI governance",
+      "yuri_capability": "Asia pack and eval framing",
+      "missing_proof": "Need AI Verify mapping",
+      "lab_scenario": null,
+      "scanner_rule": "regional-governance-mapping-rule",
+      "guardrail": "regional-governance-evidence-rail",
+      "report_section": "regional-governance-risk",
+      "decision": "build",
+      "action": "Build research mapping",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-072",
+      "number": 72,
+      "domain": "Regulation",
+      "domain_id": "regulation",
+      "threat": "China GenAI security requirements divergence",
+      "regions": [
+        "asia"
+      ],
+      "evidence": [
+        "S21"
+      ],
+      "source_quality": {
+        "grades": [
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Western assumptions fail for China-linked deployments",
+      "yuri_capability": "Regional model governance lane",
+      "missing_proof": "Need deeper China source corpus",
+      "lab_scenario": null,
+      "scanner_rule": "memory-rag-provenance-rule",
+      "guardrail": "retrieval-memory-provenance-rail",
+      "report_section": "regional-governance-risk",
+      "decision": "build",
+      "action": "Build research lane",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-073",
+      "number": 73,
+      "domain": "Regulation",
+      "domain_id": "regulation",
+      "threat": "Japan industrial cyber/AI procurement controls",
+      "regions": [
+        "asia"
+      ],
+      "evidence": [
+        "S20"
+      ],
+      "source_quality": {
+        "grades": [
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Industrial buyers expect sober security method",
+      "yuri_capability": "Japan/OT/AI report mapping",
+      "missing_proof": "Need Japan-specific evidence",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": "regional-governance-evidence-rail",
+      "report_section": "regional-governance-risk",
+      "decision": "build",
+      "action": "Build research lane",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-074",
+      "number": 74,
+      "domain": "Regulation",
+      "domain_id": "regulation",
+      "threat": "Korea zero trust / AI security investments",
+      "regions": [
+        "asia"
+      ],
+      "evidence": [
+        "S19",
+        "S27"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "B"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Regional buyer expectations differ",
+      "yuri_capability": "Asia pack",
+      "missing_proof": "Need more Korea primary sources",
+      "lab_scenario": null,
+      "scanner_rule": "regional-governance-mapping-rule",
+      "guardrail": "regional-governance-evidence-rail",
+      "report_section": "regional-governance-risk",
+      "decision": "watch",
+      "action": "Extend research",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-075",
+      "number": 75,
+      "domain": "Business",
+      "domain_id": "business",
+      "threat": "Cyber insurance scrutiny",
+      "regions": [
+        "europe",
+        "west"
+      ],
+      "evidence": [
+        "S10",
+        "S12"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Insurers ask for evidence of controls",
+      "yuri_capability": "Evidence report format",
+      "missing_proof": "No insurance mapping",
+      "lab_scenario": null,
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": "browser-action-boundary-rail",
+      "report_section": "business-readiness-and-buyer-risk",
+      "decision": "watch",
+      "action": "Watch/map",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-076",
+      "number": 76,
+      "domain": "Business",
+      "domain_id": "business",
+      "threat": "Board-level AI risk pressure",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S11"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "A"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Executives want simple proof and accountability",
+      "yuri_capability": "Executive + technical split reports",
+      "missing_proof": "Need sample reports",
+      "lab_scenario": null,
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "business-readiness-and-buyer-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-077",
+      "number": 77,
+      "domain": "Business",
+      "domain_id": "business",
+      "threat": "SME security capacity gap",
+      "regions": [
+        "europe",
+        "west",
+        "asia"
+      ],
+      "evidence": [
+        "S6",
+        "S25"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "D"
+        ],
+        "score": 0.75,
+        "minimum": "D"
+      },
+      "customer_pain": "Small teams cannot run heavy security programs",
+      "yuri_capability": "Lightweight assessment workflow",
+      "missing_proof": "Need partner pilot",
+      "lab_scenario": "toy-ot-ics-simulation-lab",
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "business-readiness-and-buyer-risk",
+      "decision": "build",
+      "action": "Build for Upgreat",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-078",
+      "number": 78,
+      "domain": "Business",
+      "domain_id": "business",
+      "threat": "Security vendor AI-washing",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S1",
+        "S2",
+        "S11"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "A"
+        ],
+        "score": 0.9,
+        "minimum": "B"
+      },
+      "customer_pain": "Buyers distrust vague AI claims",
+      "yuri_capability": "Claims matrix and evidence-first reports",
+      "missing_proof": "Need public methodology",
+      "lab_scenario": null,
+      "scanner_rule": "repo-supply-chain-rule",
+      "guardrail": null,
+      "report_section": "business-readiness-and-buyer-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-079",
+      "number": 79,
+      "domain": "Business",
+      "domain_id": "business",
+      "threat": "Hyperscaler ecosystem lock-in",
+      "regions": [
+        "west"
+      ],
+      "evidence": [
+        "S1",
+        "S2",
+        "S3"
+      ],
+      "source_quality": {
+        "grades": [
+          "B",
+          "B",
+          "B"
+        ],
+        "score": 0.85,
+        "minimum": "B"
+      },
+      "customer_pain": "Customers get security only inside one cloud/model stack",
+      "yuri_capability": "Multi-model, cross-provider YURI posture",
+      "missing_proof": "Need lane metadata",
+      "lab_scenario": null,
+      "scanner_rule": "model-route-trust-posture-rule",
+      "guardrail": "model-route-rail",
+      "report_section": "business-readiness-and-buyer-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+    },
+    {
+      "threat_id": "CY-080",
+      "number": 80,
+      "domain": "Business",
+      "domain_id": "business",
+      "threat": "Regional data sovereignty pressure",
+      "regions": [
+        "europe",
+        "asia"
+      ],
+      "evidence": [
+        "S11",
+        "S18",
+        "S21"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Buyers need route and storage clarity",
+      "yuri_capability": "Model-route inventory and trust labels",
+      "missing_proof": "Need jurisdiction metadata",
+      "lab_scenario": null,
+      "scanner_rule": "model-route-trust-posture-rule",
+      "guardrail": "model-route-rail",
+      "report_section": "business-readiness-and-buyer-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-081",
+      "number": 81,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Missing telemetry for AI actions",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S14",
+        "S16"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A",
+          "C"
+        ],
+        "score": 0.9,
+        "minimum": "C"
+      },
+      "customer_pain": "Security teams cannot see agent decisions",
+      "yuri_capability": "Action lineage and audit ledger",
+      "missing_proof": "Need runtime event schema",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "runtime-inventory-rule",
+      "guardrail": "runtime-health-rail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-082",
+      "number": 82,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Output channel exfiltration",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S15"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Agent leaks data in responses/logs/files",
+      "yuri_capability": "Output rails and caps",
+      "missing_proof": "Need DLP-like tests",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "runtime-inventory-rule",
+      "guardrail": "runtime-guardrail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-083",
+      "number": 83,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Tool result prompt poisoning",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S16"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "C"
+        ],
+        "score": 0.85,
+        "minimum": "C"
+      },
+      "customer_pain": "Tool output becomes hidden instruction",
+      "yuri_capability": "Tool-output rails and trust tags",
+      "missing_proof": "Need parser/eval",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "agent-tool-connector-manifest-rule",
+      "guardrail": "input-dialog-rail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-084",
+      "number": 84,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Unsafe autonomous retries",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S14"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Agents repeat harmful actions faster than humans notice",
+      "yuri_capability": "Execution rails, round caps, kill switches",
+      "missing_proof": "Need regression tests",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "runtime-inventory-rule",
+      "guardrail": "runtime-health-rail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-085",
+      "number": 85,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Browser profile/session bleed",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S14"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "One task inherits another session's secrets",
+      "yuri_capability": "Browser profile isolation",
+      "missing_proof": "Need harness support",
+      "lab_scenario": "owned-browser-agent-compromise-lab",
+      "scanner_rule": "browser-session-isolation-rule",
+      "guardrail": "browser-action-boundary-rail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-086",
+      "number": 86,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Local daemon stale health",
+      "regions": [
+        "internal"
+      ],
+      "evidence": [
+        "S26",
+        "S27"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "B"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Automation looks healthy when evidence is stale",
+      "yuri_capability": "AutomationKernel health split",
+      "missing_proof": "Need completed implementation",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "runtime-inventory-rule",
+      "guardrail": "runtime-health-rail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-087",
+      "number": 87,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Research source poisoning",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S13",
+        "S15"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Web research injects bad instructions/data",
+      "yuri_capability": "Browser-harness DOM trust, source ranking",
+      "missing_proof": "Need research ingestion rails",
+      "lab_scenario": "owned-browser-agent-compromise-lab",
+      "scanner_rule": "browser-session-isolation-rule",
+      "guardrail": "browser-action-boundary-rail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-088",
+      "number": 88,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Multi-agent advisory drift",
+      "regions": [
+        "internal"
+      ],
+      "evidence": [
+        "S26",
+        "S27"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "B"
+        ],
+        "score": 0.925,
+        "minimum": "B"
+      },
+      "customer_pain": "Advisors invent policy or stale names",
+      "yuri_capability": "Shintai Gate 0 evidence contracts",
+      "missing_proof": "Need contradiction pass",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "runtime-inventory-rule",
+      "guardrail": "runtime-guardrail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-089",
+      "number": 89,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Skill library sprawl",
+      "regions": [
+        "global"
+      ],
+      "evidence": [
+        "S14",
+        "S26"
+      ],
+      "source_quality": {
+        "grades": [
+          "A",
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Users cannot know what skills/rules do",
+      "yuri_capability": "Skill scanner + registry",
+      "missing_proof": "Need semantic scanner",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "runtime-inventory-rule",
+      "guardrail": "runtime-guardrail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    },
+    {
+      "threat_id": "CY-090",
+      "number": 90,
+      "domain": "Runtime",
+      "domain_id": "runtime",
+      "threat": "Policy bypass through aliases",
+      "regions": [
+        "internal"
+      ],
+      "evidence": [
+        "S26"
+      ],
+      "source_quality": {
+        "grades": [
+          "A"
+        ],
+        "score": 1,
+        "minimum": "A"
+      },
+      "customer_pain": "Old aliases route around current policy",
+      "yuri_capability": "Lane kernel and alias audit",
+      "missing_proof": "Needs regression gates",
+      "lab_scenario": "synthetic-agent-security-lab",
+      "scanner_rule": "runtime-inventory-rule",
+      "guardrail": "runtime-guardrail",
+      "report_section": "runtime-monitoring-and-agent-ops-risk",
+      "decision": "build",
+      "action": "Build",
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+    }
+  ]
+}

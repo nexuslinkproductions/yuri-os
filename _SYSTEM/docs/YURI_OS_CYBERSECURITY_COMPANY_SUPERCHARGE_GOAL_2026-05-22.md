@@ -182,11 +182,20 @@ Required council:
 
 ### Wave C1: Intelligence Matrix
 
-Status: current wave. Build and maintain the 80+ row matrix. Every row must map to action or watch-only.
+Status: landed baseline. Build and maintain the 80+ row matrix. Every row must map to action or watch-only.
 
 ### Wave C2: ThreatIntelKernel
 
-Convert matrix rows into structured data and a source-scoring workflow.
+Status: implementation slice active. Convert matrix rows into structured data and a source-scoring workflow.
+
+Artifacts:
+
+- Parser/validator: `_SYSTEM/Scripts/threat-intel-kernel.mjs`
+- Regression tests: `_SYSTEM/Scripts/threat-intel-kernel.test.mjs`
+- Structured export: `_SYSTEM/data/cyber-intel/threat-intel-matrix.json`
+- Gate 0 evidence IDs: `cyber-company-goal`, `cyber-intel-matrix`, `cyber-intel-ingestion-protocol`, `threat-intel-kernel-source`, `cyber-capability-audit`, `cyber-research-sprint`
+
+Dispatch rule: any future cyber/threat/Upgreat/security-lens/lab-harness Shintai run must load the cyber matrix and ingestion protocol before fan-out. Generic Shintai memory is not enough for cyber work.
 
 ### Wave C3: Security Lens v0
 

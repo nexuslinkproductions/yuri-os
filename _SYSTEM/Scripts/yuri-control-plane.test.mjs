@@ -47,6 +47,36 @@ test('Gate 0 fails closed when task-required optional evidence is not loaded', (
   assert.ok(gate.requiredMissing.some((entry) => entry.id === 'memory-rag-skill-research'));
 });
 
+test('Gate 0 loads cyber evidence before cyber Shintai dispatch', () => {
+  const gate = loadEvidenceGate('critical cyber threat intelligence Upgreat sprint', {
+    maxBytes: 12_000,
+  });
+
+  assert.equal(gate.ok, true);
+  assert.deepEqual(gate.requiredMissing, []);
+  for (const requiredId of [
+    'cyber-company-goal',
+    'cyber-intel-matrix',
+    'cyber-intel-ingestion-protocol',
+    'threat-intel-kernel-source',
+    'cyber-capability-audit',
+    'cyber-research-sprint',
+  ]) {
+    assert.ok(gate.loaded.some((entry) => entry.id === requiredId), `${requiredId} should load`);
+    assert.ok(gate.constraints.requiredEvidenceIds.includes(requiredId), `${requiredId} should be required`);
+  }
+});
+
+test('Gate 0 fails closed when cyber-required evidence is not loaded', () => {
+  const gate = loadEvidenceGate('critical cyber threat intelligence Upgreat sprint', {
+    optionalFiles: [],
+  });
+
+  assert.equal(gate.ok, false);
+  assert.ok(gate.requiredMissing.some((entry) => entry.id === 'cyber-intel-matrix'));
+  assert.ok(gate.requiredMissing.some((entry) => entry.id === 'threat-intel-kernel-source'));
+});
+
 test('Gate 0 blocks protected evidence paths', () => {
   const protectedPath = ['.claude', 'state', 'pulse-bus.jsonl'].join('/');
   const gate = loadEvidenceGate('Shintai dispatch', {
@@ -66,6 +96,7 @@ test('control-plane constraint block carries current authority and lane policy',
 
   assert.equal(preflight.ok, true);
   assert.match(block, /Codex\/main assembles/);
+  assert.match(block, /cyber-intel-matrix/);
   assert.match(block, /dead_nim=.*nvidia-nemotron/);
   assert.match(block, /no DeepSeek CLI --tools forcing/);
   assert.doesNotMatch(block, /codex-spark default/i);
