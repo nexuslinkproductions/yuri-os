@@ -1,0 +1,137 @@
+{
+  "schema": "yuri.cyber-guardrail-proof-matrix.v0",
+  "generatedAt": "2026-05-22T07:35:01.670Z",
+  "source": {
+    "labRoot": "_SYSTEM/labs/cyber",
+    "labCount": 7
+  },
+  "proofs": [
+    {
+      "lab_id": "prompt-injection-replay",
+      "title": "Prompt Injection Replay Lab",
+      "proof_target": "input-dialog-rail",
+      "rail_category": "input-dialog",
+      "proof_state": "fixture-ready",
+      "executable_test": null,
+      "fixture": "_SYSTEM/labs/cyber/fixtures/prompt-injection-replay.json",
+      "related_threats": [
+        "CY-048",
+        "CY-049",
+        "CY-050"
+      ],
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "external_targets_allowed": false,
+      "claim": "Fixture exists; deterministic rail test still required."
+    },
+    {
+      "lab_id": "malicious-mcp-tool-schema",
+      "title": "Malicious MCP Tool Schema Lab",
+      "proof_target": "tool-input-output-rail",
+      "rail_category": "tool-io",
+      "proof_state": "fixture-ready",
+      "executable_test": null,
+      "fixture": "_SYSTEM/labs/cyber/fixtures/malicious-mcp-tool-schema.json",
+      "related_threats": [
+        "CY-013",
+        "CY-025",
+        "CY-053",
+        "CY-054"
+      ],
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "external_targets_allowed": false,
+      "claim": "Fixture exists; deterministic rail test still required."
+    },
+    {
+      "lab_id": "browser-agent-fake-portal",
+      "title": "Browser Agent Fake Portal Lab",
+      "proof_target": "browser-action-boundary-rail",
+      "rail_category": "browser-action",
+      "proof_state": "fixture-ready",
+      "executable_test": null,
+      "fixture": "_SYSTEM/labs/cyber/fixtures/browser-agent-fake-portal.html",
+      "related_threats": [
+        "CY-006",
+        "CY-011",
+        "CY-027",
+        "CY-056",
+        "CY-085",
+        "CY-087"
+      ],
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "external_targets_allowed": false,
+      "claim": "Fixture exists; deterministic rail test still required."
+    },
+    {
+      "lab_id": "memory-poisoning-corpus",
+      "title": "Memory Poisoning Corpus Lab",
+      "proof_target": "retrieval-memory-provenance-rail",
+      "rail_category": "retrieval-memory",
+      "proof_state": "fixture-ready",
+      "executable_test": null,
+      "fixture": "_SYSTEM/labs/cyber/fixtures/memory-poisoning-corpus.json",
+      "related_threats": [
+        "CY-059"
+      ],
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "external_targets_allowed": false,
+      "claim": "Fixture exists; deterministic rail test still required."
+    },
+    {
+      "lab_id": "rag-poisoning-corpus",
+      "title": "RAG Poisoning Corpus Lab",
+      "proof_target": "retrieval-memory-provenance-rail",
+      "rail_category": "retrieval-memory",
+      "proof_state": "fixture-ready",
+      "executable_test": null,
+      "fixture": "_SYSTEM/labs/cyber/fixtures/rag-poisoning-corpus.json",
+      "related_threats": [
+        "CY-008",
+        "CY-032",
+        "CY-060"
+      ],
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "external_targets_allowed": false,
+      "claim": "Fixture exists; deterministic rail test still required."
+    },
+    {
+      "lab_id": "vulnerable-api-cases",
+      "title": "Vulnerable Web/API Case Library",
+      "proof_target": "owned-lab-research-boundary-rail",
+      "rail_category": "owned-lab-boundary",
+      "proof_state": "fixture-ready",
+      "executable_test": null,
+      "fixture": "_SYSTEM/labs/cyber/fixtures/vulnerable-api-cases.json",
+      "related_threats": [
+        "CY-038",
+        "CY-039",
+        "CY-040"
+      ],
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "external_targets_allowed": false,
+      "claim": "Fixture exists; deterministic rail test still required."
+    },
+    {
+      "lab_id": "local-load-test-plan",
+      "title": "Local Availability Pressure Plan",
+      "proof_target": "runtime-health-rail",
+      "rail_category": "health-runtime",
+      "proof_state": "fixture-ready",
+      "executable_test": null,
+      "fixture": "_SYSTEM/labs/cyber/fixtures/local-load-test-plan.json",
+      "related_threats": [
+        "CY-041",
+        "CY-042",
+        "CY-043"
+      ],
+      "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "external_targets_allowed": false,
+      "claim": "Fixture exists; deterministic rail test still required."
+    }
+  ],
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "fixtureReady": 7,
+    "proven": 0
+  }
+}

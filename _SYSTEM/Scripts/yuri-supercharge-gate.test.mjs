@@ -14,6 +14,8 @@ test('release gate includes cyber intelligence and security lens checks', () => 
   assert.ok(checkNames.includes('test:security-lens'));
   assert.ok(checkNames.includes('syntax:cyber-lab-harness'));
   assert.ok(checkNames.includes('test:cyber-lab-harness'));
+  assert.ok(checkNames.includes('syntax:cyber-guardrail-proof'));
+  assert.ok(checkNames.includes('test:cyber-guardrail-proof'));
 });
 
 test('release evidence includes baseline commits, preflight hash, and health summary', () => {

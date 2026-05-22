@@ -224,7 +224,16 @@ Current boundary: Lab Harness v0 is fixture-only and disabled by default. It mat
 
 ### Wave C5: Guardrail Proof
 
-Convert lab failures into deterministic rails and tests.
+Status: implementation slice active. Convert lab failures into deterministic rails and tests.
+
+Artifacts:
+
+- Proof matrix builder: `_SYSTEM/Scripts/cyber-guardrail-proof.mjs`
+- Regression tests: `_SYSTEM/Scripts/cyber-guardrail-proof.test.mjs`
+- Structured matrix: `_SYSTEM/data/cyber-intel/guardrail-proof-matrix.json`
+- Markdown report: `_SYSTEM/reports/YURI_GUARDRAIL_PROOF_MATRIX_2026-05-22.md`
+
+Current boundary: Wave C5 v0 records fixture readiness only. No rail is marked proven until a deterministic executable test exists and passes.
 
 ### Wave C6: Upgreat Pilot Readiness
 
