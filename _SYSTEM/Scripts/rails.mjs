@@ -30,6 +30,33 @@ const BLOCKED_COMMAND_PATTERNS = Object.freeze([
 const SHELL_BLOCK_RE = /```(?:bash|sh|shell)\s*([\s\S]*?)```/gi;
 const SHELL_LINE_RE = /(^|\n)\s*(?:[$>]\s+)([^\n]+)/g;
 const LANE_MENTION_RE = /(^|\s)(@[a-z0-9_.:-]+)/gi;
+const PROMPT_INJECTION_PATTERNS = Object.freeze([
+  { id: 'ignore-authority', pattern: /\b(?:ignore|disregard|override)\s+(?:the\s+)?(?:previous|prior|developer|system|policy|instructions?)\b/i },
+  { id: 'reveal-hidden-prompt', pattern: /\b(?:reveal|print|show|dump|exfiltrate)\s+(?:the\s+)?(?:hidden\s+)?(?:system|developer)?\s*prompt\b/i },
+  { id: 'tool-output-authority', pattern: /\btool\s+output\s+says\b|\btrusted\s+source\s+says\b/i },
+  { id: 'forced-shell-execution', pattern: /\b(?:run|execute)\s+(?:the\s+)?(?:next\s+)?shell\s+command\b/i },
+]);
+const TOOL_POISONING_PATTERNS = Object.freeze([
+  { id: 'credential-leak-request', pattern: /\b(?:leak|exfiltrate|copy|dump)\s+(?:all\s+)?(?:credentials?|tokens?|secrets?|api[_ -]?keys?)\b/i },
+  { id: 'hidden-tool-instruction', pattern: /\bhidden\s+instructions?\b|\bignore\s+(?:all\s+)?(?:policy|instructions?)\b/i },
+]);
+const RETRIEVAL_POISONING_PATTERNS = Object.freeze([
+  { id: 'retrieved-authority-claim', pattern: /\b(?:instruction\s+to\s+assistant|trusted\s+source\s+says)\b/i },
+  { id: 'retrieved-exfiltration-request', pattern: /\b(?:exfiltrate|leak|dump|copy)\s+(?:all\s+)?(?:tokens?|secrets?|credentials?)\b/i },
+]);
+const MEMORY_POISONING_PATTERNS = Object.freeze([
+  { id: 'memory-evidence-gate-bypass', pattern: /\bignore\s+evidence\s+gates?\b/i },
+  { id: 'memory-speed-over-proof', pattern: /\bspeed\s+matters\s+more\b/i },
+  { id: 'future-response-policy-override', pattern: /\bfuture\s+responses?\s+should\s+ignore\b/i },
+]);
+const BROWSER_DOM_POISONING_PATTERNS = Object.freeze([
+  { id: 'hostile-dom-instruction', pattern: /\bdata-hostile-instruction\b|\bhostile\s+dom\s+instruction\b/i },
+  { id: 'dom-policy-override', pattern: /\bignore\s+policy\b/i },
+  { id: 'fake-secret-present', pattern: /\bFAKE_TOKEN_DO_NOT_USE\b/i },
+]);
+const OWNED_API_FLAW_PATTERNS = Object.freeze([
+  { id: 'owned-api-authz-gap', pattern: /\b(?:missing|absent|bypass(?:ed)?|broken)\s+(?:tenant\s+)?(?:ownership|authz|authorization|access)\b/i },
+]);
 
 function normalizeText(value) {
   return String(value ?? '');
@@ -37,6 +64,50 @@ function normalizeText(value) {
 
 function uniq(values) {
   return [...new Set(values.filter(Boolean))];
+}
+
+function signalMatches(text, patterns) {
+  const value = normalizeText(text);
+  return patterns
+    .filter((entry) => entry.pattern.test(value))
+    .map((entry) => entry.id);
+}
+
+function textFromFields(value, fields) {
+  if (!value || typeof value !== 'object') return '';
+  return fields.map((field) => normalizeText(value[field])).filter(Boolean).join('\n');
+}
+
+export function detectPromptInjectionSignals(input) {
+  return signalMatches(input, PROMPT_INJECTION_PATTERNS);
+}
+
+export function detectToolPoisoningSignals(input = {}) {
+  return signalMatches(textFromFields(input, ['toolName', 'name', 'description', 'schema', 'instructions', 'content']), TOOL_POISONING_PATTERNS);
+}
+
+export function detectRetrievalPoisoningSignals(request = {}) {
+  return signalMatches(textFromFields(request, ['documentText', 'retrievedText', 'sourceText', 'content', 'text']), RETRIEVAL_POISONING_PATTERNS);
+}
+
+export function detectMemoryPoisoningSignals(request = {}) {
+  return signalMatches(textFromFields(request, ['memoryText', 'memoryEntry', 'content', 'text']), MEMORY_POISONING_PATTERNS);
+}
+
+export function detectBrowserDomPoisoningSignals(action = {}) {
+  return signalMatches(textFromFields(action, ['html', 'domText', 'pageText', 'content']), BROWSER_DOM_POISONING_PATTERNS);
+}
+
+export function detectOwnedApiFlawSignals(action = {}) {
+  return signalMatches(textFromFields(action, ['target', 'route', 'flaw', 'description', 'content']), OWNED_API_FLAW_PATTERNS);
+}
+
+export function detectLocalAvailabilityBoundarySignals(action = {}) {
+  const target = normalizeText(action.target || action.route || action.url);
+  const limit = normalizeText(action.limit || action.description || action.command);
+  const localhostOnly = /^(?:127\.0\.0\.1|localhost)\b/i.test(target);
+  const bounded = /\b(?:small|bounded|local|limited)\b/i.test(limit);
+  return localhostOnly && bounded ? ['bounded-local-availability-plan'] : [];
 }
 
 function severityForReasons(reasons) {
@@ -101,6 +172,7 @@ export function evaluateInputRails(input, context = {}) {
   const slashCommand = text.match(/^\/[a-z][a-z0-9_-]*(?=\s|$)/i)?.[0] || null;
   const laneMentions = detectLaneMentions(text);
   const shellBlocks = detectShellBlocks(text);
+  const promptInjectionSignals = detectPromptInjectionSignals(text);
   const source = context.source || 'user';
   const reasons = [];
 
@@ -118,6 +190,9 @@ export function evaluateInputRails(input, context = {}) {
   } else if (shellBlocks.length && context.noexec === true) {
     reasons.push({ severity: RAIL_SEVERITY.warn, message: 'shell block detected while noexec is active' });
   }
+  for (const signal of promptInjectionSignals) {
+    reasons.push({ severity: RAIL_SEVERITY.warn, message: `prompt injection signal detected: ${signal}` });
+  }
 
   return resultFor({
     rail: 'input',
@@ -129,6 +204,7 @@ export function evaluateInputRails(input, context = {}) {
       noexec: Boolean(context.noexec),
       source,
       autoExecutableShellBlocks: shellBlocks.length > 0 && source !== 'user' && context.noexec !== true,
+      promptInjectionSignals,
     },
   });
 }
@@ -136,10 +212,18 @@ export function evaluateInputRails(input, context = {}) {
 export function evaluateRetrievalRails(request = {}, context = {}) {
   const candidates = pathCandidatesFrom(request);
   const protectedPaths = candidates.filter((candidate) => isProtectedPath(candidate));
+  const retrievalPoisoningSignals = detectRetrievalPoisoningSignals(request);
+  const memoryPoisoningSignals = detectMemoryPoisoningSignals(request);
   const reasons = protectedPaths.map((candidate) => ({
     severity: RAIL_SEVERITY.block,
     message: `protected retrieval path denied: ${candidate}`,
   }));
+  for (const signal of retrievalPoisoningSignals) {
+    reasons.push({ severity: RAIL_SEVERITY.warn, message: `retrieval poisoning signal detected: ${signal}` });
+  }
+  for (const signal of memoryPoisoningSignals) {
+    reasons.push({ severity: RAIL_SEVERITY.warn, message: `memory poisoning signal detected: ${signal}` });
+  }
   const query = request.query || request.memoryQuery || context.query || '';
   const memoryRecall = query && protectedPaths.length === 0 && context.memoryRecall !== false
     ? recallEntries(query, {
@@ -154,6 +238,8 @@ export function evaluateRetrievalRails(request = {}, context = {}) {
     evidence: {
       checkedPaths: candidates,
       protectedPaths,
+      retrievalPoisoningSignals,
+      memoryPoisoningSignals,
       memoryRecall,
       source: context.source || request.source || null,
     },
@@ -162,14 +248,26 @@ export function evaluateRetrievalRails(request = {}, context = {}) {
 
 export function evaluateExecutionRails(action = {}, context = {}) {
   const subRailResults = NEMO_STYLE_RAILS.execution.map((rail) => evaluateExecutionSubRail(rail, action, context));
+  const browserDomPoisoningSignals = detectBrowserDomPoisoningSignals(action);
+  const ownedApiFlawSignals = detectOwnedApiFlawSignals(action);
+  const localAvailabilityBoundarySignals = detectLocalAvailabilityBoundarySignals(action);
   const reasons = subRailResults.flatMap((result) =>
     result.reasons.map((message) => ({ severity: result.severity, message })),
   );
+  for (const signal of browserDomPoisoningSignals) {
+    reasons.push({ severity: RAIL_SEVERITY.warn, message: `browser DOM poisoning signal detected: ${signal}` });
+  }
+  for (const signal of ownedApiFlawSignals) {
+    reasons.push({ severity: RAIL_SEVERITY.warn, message: `owned API flaw signal detected: ${signal}` });
+  }
   const base = resultFor({
     rail: 'execution',
     reasons,
     evidence: {
       subRailResults,
+      browserDomPoisoningSignals,
+      ownedApiFlawSignals,
+      localAvailabilityBoundarySignals,
     },
   });
   return {
@@ -281,9 +379,11 @@ function evaluateNoAutoCommitOrPushSubRail(action = {}) {
 export function evaluateToolInputRails(input = {}, context = {}) {
   const retrieval = evaluateRetrievalRails(input, { ...context, source: 'tool-input' });
   const execution = evaluateExecutionRails(input, context);
+  const toolPoisoningSignals = detectToolPoisoningSignals(input);
   const reasons = [
     ...retrieval.reasons.map((message) => ({ severity: retrieval.severity, message })),
     ...execution.reasons.map((message) => ({ severity: execution.severity, message })),
+    ...toolPoisoningSignals.map((signal) => ({ severity: RAIL_SEVERITY.warn, message: `tool poisoning signal detected: ${signal}` })),
   ];
   return resultFor({
     rail: 'tool-input',
@@ -291,6 +391,7 @@ export function evaluateToolInputRails(input = {}, context = {}) {
     evidence: {
       retrieval: retrieval.evidence,
       execution: execution.evidence,
+      toolPoisoningSignals,
     },
   });
 }

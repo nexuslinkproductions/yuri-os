@@ -29,6 +29,7 @@ export const CYBER_REQUIRED_EVIDENCE_IDS = Object.freeze([
   'threat-intel-kernel-source',
   'security-lens-source',
   'cyber-lab-harness-source',
+  'cyber-lab-runner-source',
   'cyber-guardrail-proof-source',
   'cyber-pilot-pack-source',
   'cyber-capability-audit',

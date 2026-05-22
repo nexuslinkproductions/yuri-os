@@ -69,6 +69,7 @@ export const OPTIONAL_MEMORY_FILES = Object.freeze([
   { id: 'security-lens-source', path: '_SYSTEM/Scripts/security-lens.mjs', type: 'source' },
   { id: 'security-lens-report', path: '_SYSTEM/reports/YURI_SECURITY_LENS_V0_2026-05-22.md', type: 'report' },
   { id: 'cyber-lab-harness-source', path: '_SYSTEM/Scripts/cyber-lab-harness.mjs', type: 'source' },
+  { id: 'cyber-lab-runner-source', path: '_SYSTEM/Scripts/cyber-lab-runner.mjs', type: 'source' },
   { id: 'cyber-lab-manifest', path: '_SYSTEM/labs/cyber/lab-manifest.json', type: 'lab-manifest' },
   { id: 'cyber-guardrail-proof-source', path: '_SYSTEM/Scripts/cyber-guardrail-proof.mjs', type: 'source' },
   { id: 'cyber-guardrail-proof-matrix', path: '_SYSTEM/data/cyber-intel/guardrail-proof-matrix.json', type: 'guardrail-proof' },

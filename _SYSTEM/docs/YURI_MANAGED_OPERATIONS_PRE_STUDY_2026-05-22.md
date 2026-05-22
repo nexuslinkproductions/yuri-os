@@ -1,6 +1,6 @@
 # YURI Managed Operations Pre-Study
 
-Generated: 2026-05-22T07:52:50.412Z
+Generated: 2026-05-22T21:00:57.644Z
 
 ## Current State
 
@@ -12,7 +12,7 @@ Not ready to claim managed security operations.
 - Incident intake and escalation runbooks.
 - Legal/compliance partner boundaries.
 - Continuous evidence ingestion and source refresh.
-- Executable guardrail tests with proven states greater than zero.
+- Broader executable guardrail tests beyond local fixture proof, including client-safe replay and retest proof.
 - Operational health metrics for stale jobs, lane failures, and report freshness.
 
 ## Future Operating Loops
@@ -34,5 +34,5 @@ Not ready to claim managed security operations.
 
 - threatRows: 90
 - modules: 4
-- fixtureReadyRails: 7
-- provenRails: 0
+- fixtureReadyRails: 0
+- provenRails: 7

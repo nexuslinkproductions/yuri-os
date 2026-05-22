@@ -20,6 +20,7 @@ test('evidence contract exposes base and memory/RAG required IDs', () => {
   assert.ok(CYBER_REQUIRED_EVIDENCE_IDS.includes('threat-intel-kernel-source'));
   assert.ok(CYBER_REQUIRED_EVIDENCE_IDS.includes('security-lens-source'));
   assert.ok(CYBER_REQUIRED_EVIDENCE_IDS.includes('cyber-lab-harness-source'));
+  assert.ok(CYBER_REQUIRED_EVIDENCE_IDS.includes('cyber-lab-runner-source'));
   assert.ok(CYBER_REQUIRED_EVIDENCE_IDS.includes('cyber-guardrail-proof-source'));
   assert.ok(CYBER_REQUIRED_EVIDENCE_IDS.includes('cyber-pilot-pack-source'));
 });
@@ -39,6 +40,7 @@ test('task-specific evidence contract upgrades cyber intelligence work', () => {
   assert.ok(required.includes('threat-intel-kernel-source'));
   assert.ok(required.includes('security-lens-source'));
   assert.ok(required.includes('cyber-lab-harness-source'));
+  assert.ok(required.includes('cyber-lab-runner-source'));
   assert.ok(required.includes('cyber-guardrail-proof-source'));
   assert.ok(required.includes('cyber-pilot-pack-source'));
 });

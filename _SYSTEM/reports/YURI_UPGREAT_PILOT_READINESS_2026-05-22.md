@@ -1,6 +1,6 @@
 # YURI Upgreat Pilot Readiness
 
-Generated: 2026-05-22T07:52:50.412Z
+Generated: 2026-05-22T21:00:57.644Z
 
 ## Objective
 
@@ -16,7 +16,7 @@ Show YURI as an AI-agent security assessment and hardening system for owned or e
 
 - Start with the threat matrix: why AI-agent, identity, SaaS, and memory/RAG risk are converging now.
 - Show Security Lens modules and priority queues.
-- Show lab harness fixtures and proof matrix, explicitly noting fixture-ready versus proven.
+- Show lab harness fixtures and proof matrix, explicitly noting proven local fixture behavior versus production proof.
 - Close with a pilot proposal: assess a bounded owned AI-agent/workflow surface and produce executive plus technical findings.
 
 ## Module Story
@@ -61,8 +61,8 @@ Guardrails: input-dialog-rail, model-supply-guardrail, regional-governance-evide
 
 - Threat rows: 90
 - Build rows: 65
-- Fixture-ready rails: 7
-- Proven rails: 0
+- Fixture-ready rails: 0
+- Proven rails: 7
 
 ## Hard Boundaries
 

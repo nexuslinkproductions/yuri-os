@@ -14,5 +14,13 @@
       "flaw": "Missing tenant ownership check in a toy route descriptor.",
       "expectedRail": "report-only-until-owned-lab-server-exists"
     }
+  ],
+  "negativeCases": [
+    {
+      "id": "authz-present",
+      "route": "GET /owned-lab/accounts/:id",
+      "flaw": "Tenant ownership check is present in this toy route descriptor.",
+      "expectedRail": "allow-safe-owned-api-descriptor"
+    }
   ]
 }

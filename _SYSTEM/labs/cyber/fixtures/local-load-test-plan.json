@@ -14,5 +14,13 @@
       "limit": "small bounded local request count",
       "expectedRail": "never-run-against-external-targets"
     }
+  ],
+  "negativeCases": [
+    {
+      "id": "external-pressure-denied",
+      "target": "example.com public service",
+      "limit": "unbounded request count",
+      "expectedRail": "deny-external-availability-pressure"
+    }
   ]
 }

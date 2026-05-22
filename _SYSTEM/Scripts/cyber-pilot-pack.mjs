@@ -11,11 +11,12 @@
  * operations.
  */
 
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSecurityLens } from './security-lens.mjs';
 import { loadThreatIntelMatrix } from './threat-intel-kernel.mjs';
+import { buildGuardrailProofMatrix } from './cyber-guardrail-proof.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -41,7 +42,7 @@ const REGION_COPY = Object.freeze({
 export function buildCyberPilotPack(options = {}) {
   const threatIntel = options.threatIntel || loadThreatIntelMatrix(options);
   const securityLens = options.securityLens || buildSecurityLens({ threatIntel });
-  const proofMatrix = options.proofMatrix || readProofMatrix();
+  const proofMatrix = options.proofMatrix || buildGuardrailProofMatrix();
   const validation = validatePilotInputs({ threatIntel, securityLens, proofMatrix });
 
   return {
@@ -59,7 +60,14 @@ export function validatePilotInputs({ threatIntel, securityLens, proofMatrix }) 
   if (!threatIntel?.ok) errors.push('ThreatIntelKernel must validate before pilot pack generation');
   if (threatIntel?.rows?.length < 80) errors.push('pilot pack requires at least 80 threat rows');
   if ((securityLens?.modules || []).length !== 4) errors.push('Security Lens must expose four modules');
-  if ((proofMatrix?.validation?.proven || 0) !== 0) errors.push('v0 proof matrix must not mark rails proven prematurely');
+  for (const proof of proofMatrix?.proofs || []) {
+    if (proof.proof_state === 'proven' && !proof.executable_test) {
+      errors.push(`proven rail without executable test: ${proof.lab_id || 'unknown'}`);
+    }
+    if (proof.proof_state === 'proven' && !/fixture proof only/i.test(proof.claim || '')) {
+      errors.push(`proven rail overclaims beyond local fixture proof: ${proof.lab_id || 'unknown'}`);
+    }
+  }
   for (const region of ['europe', 'west', 'asia']) {
     if (!threatIntel?.summary?.regionCounts?.[region]) errors.push(`missing regional coverage: ${region}`);
   }
@@ -99,7 +107,7 @@ function buildUpgreatPilot({ threatIntel, securityLens, proofMatrix }) {
     demoFlow: [
       'Start with the threat matrix: why AI-agent, identity, SaaS, and memory/RAG risk are converging now.',
       'Show Security Lens modules and priority queues.',
-      'Show lab harness fixtures and proof matrix, explicitly noting fixture-ready versus proven.',
+      'Show lab harness fixtures and proof matrix, explicitly noting proven local fixture behavior versus production proof.',
       'Close with a pilot proposal: assess a bounded owned AI-agent/workflow surface and produce executive plus technical findings.',
     ],
     moduleSummaries,
@@ -151,7 +159,7 @@ function buildManagedOpsPreStudy({ threatIntel, securityLens, proofMatrix }) {
       'Incident intake and escalation runbooks.',
       'Legal/compliance partner boundaries.',
       'Continuous evidence ingestion and source refresh.',
-      'Executable guardrail tests with proven states greater than zero.',
+      'Broader executable guardrail tests beyond local fixture proof, including client-safe replay and retest proof.',
       'Operational health metrics for stale jobs, lane failures, and report freshness.',
     ],
     futureOperatingLoops: [
@@ -268,11 +276,6 @@ function renderManagedOps(managedOps, pack) {
     Object.entries(managedOps.evidenceCounts).map(([key, value]) => `- ${key}: ${value}`).join('\n'),
     '',
   ].join('\n');
-}
-
-function readProofMatrix() {
-  const proofPath = path.join(REPO_ROOT, '_SYSTEM', 'data', 'cyber-intel', 'guardrail-proof-matrix.json');
-  return JSON.parse(readFileSync(proofPath, 'utf8'));
 }
 
 function writeMarkdown(filePath, content) {

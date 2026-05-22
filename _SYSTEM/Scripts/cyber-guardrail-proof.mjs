@@ -2,15 +2,16 @@
 /**
  * YURI Cyber Guardrail Proof Matrix v0.
  *
- * Converts cyber lab fixtures into explicit proof states. v0 only records
- * fixture readiness. It must not claim a rail is proven until a deterministic
- * executable test exists and passes.
+ * Converts cyber lab fixtures into explicit proof states. v0 proves only local
+ * synthetic fixture behavior. It must not claim deployment security, external
+ * target safety, or production maturity from these deterministic checks.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEFAULT_LAB_ROOT, buildCyberLabHarness } from './cyber-lab-harness.mjs';
+import { runCyberLab } from './cyber-lab-runner.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -42,21 +43,20 @@ export function buildGuardrailProofMatrix(options = {}) {
   const harness = options.harness || loadHarness(labRoot);
   const proofs = harness.labs.map((lab) => {
     const fixturePath = path.join(labRoot, lab.fixture);
-    const fixtureExists = existsSync(fixturePath);
+    const executable = runCyberLab(lab, { labRoot });
     return {
       lab_id: lab.id,
       title: lab.title,
       proof_target: lab.proofTarget,
       rail_category: RAIL_CATEGORIES[lab.proofTarget] || 'unknown',
-      proof_state: fixtureExists ? 'fixture-ready' : 'missing-fixture',
-      executable_test: null,
+      proof_state: executable.state,
+      executable_test: executable.executableTest,
       fixture: path.relative(REPO_ROOT, fixturePath),
       related_threats: lab.relatedThreats.map((row) => row.threat_id),
       safety_boundary: lab.boundary,
       external_targets_allowed: lab.externalTargetsAllowed,
-      claim: fixtureExists
-        ? 'Fixture exists; deterministic rail test still required.'
-        : 'Fixture missing; no proof claim allowed.',
+      proof_results: executable.results,
+      claim: executable.claim,
     };
   });
   const validation = validateGuardrailProofMatrix({ proofs });
@@ -82,6 +82,17 @@ export function validateGuardrailProofMatrix(model) {
     if (proof.proof_state === 'proven' && !proof.executable_test) {
       errors.push(`${proof.lab_id} cannot be proven without executable_test`);
     }
+    if (proof.proof_state === 'proven') {
+      if (!Array.isArray(proof.proof_results) || proof.proof_results.length === 0) {
+        errors.push(`${proof.lab_id} cannot be proven without proof_results`);
+      } else if (proof.proof_results.some((result) => result.ok !== true)) {
+        errors.push(`${proof.lab_id} has failing proof_results`);
+      }
+      if (!/fixture proof only/i.test(proof.claim || '')) {
+        errors.push(`${proof.lab_id} proven claim must stay fixture-scoped`);
+      }
+    }
+    if (proof.proof_state === 'failed') errors.push(`${proof.lab_id} deterministic proof failed`);
     if (proof.rail_category === 'unknown') errors.push(`${proof.lab_id} has unknown rail category`);
     if (!proof.related_threats.length) errors.push(`${proof.lab_id} missing related threat links`);
   }
@@ -90,6 +101,7 @@ export function validateGuardrailProofMatrix(model) {
     errors,
     fixtureReady: (model.proofs || []).filter((proof) => proof.proof_state === 'fixture-ready').length,
     proven: (model.proofs || []).filter((proof) => proof.proof_state === 'proven').length,
+    failed: (model.proofs || []).filter((proof) => proof.proof_state === 'failed').length,
   };
 }
 
@@ -115,8 +127,13 @@ export function renderGuardrailProofReport(matrix = buildGuardrailProofMatrix())
     `- Rail: ${proof.proof_target} (${proof.rail_category})`,
     `- State: ${proof.proof_state}`,
     `- Fixture: ${proof.fixture}`,
+    `- Executable test: ${proof.executable_test || 'none'}`,
+    `- Passed cases: ${proof.proof_results.filter((result) => result.ok).length}/${proof.proof_results.length}`,
     `- Threats: ${proof.related_threats.join(', ')}`,
     `- Claim: ${proof.claim}`,
+    '',
+    'Case evidence:',
+    ...proof.proof_results.map((result) => `- ${result.case_id}: ${result.ok ? 'pass' : 'fail'} - ${result.reason}`),
   ].join('\n')).join('\n\n');
   return [
     '# YURI Cyber Guardrail Proof Matrix v0',
@@ -127,8 +144,9 @@ export function renderGuardrailProofReport(matrix = buildGuardrailProofMatrix())
     '',
     `- Fixture-ready rails: ${matrix.validation.fixtureReady}`,
     `- Proven rails: ${matrix.validation.proven}`,
+    `- Failed rails: ${matrix.validation.failed}`,
     '',
-    'No rail in this matrix is marked proven until an executable deterministic test exists and passes. v0 is a fixture-readiness layer only.',
+    'Proven means deterministic local fixture proof only. It does not mean production deployment proof, client-environment proof, malware capability, external target testing, or SOC/MDR maturity.',
     '',
     '## Proof Rows',
     '',
