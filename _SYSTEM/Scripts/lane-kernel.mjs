@@ -27,6 +27,8 @@ export const PROTECTED_SURFACE_LABELS = Object.freeze([
 ]);
 
 export const ACTIVE_NIM_LANES = Object.freeze([
+  'nvidia-deepseek-v4-pro',
+  'nvidia-deepseek-v4-flash',
   'nvidia-llama-70b',
   'nvidia-qwen',
   'nvidia-mistral-medium',
@@ -129,14 +131,14 @@ export const LANE_KERNEL = Object.freeze({
   },
   deepseek: {
     id: 'deepseek',
-    lane: 'deepseek-v4-pro:max-reasoning',
+    lane: 'nvidia-deepseek-v4-pro',
     model: 'deepseek-v4-pro',
-    provider: 'deepseek',
+    provider: 'nvidia',
     role: 'gate-1-synthesizer',
     reasoning: 'xhigh',
     contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'deepseek-v4-pro:max-reasoning'],
-    assignment: 'First synthesis gate: decide model duties, tool policy, contradictions, and dispatch order before broad fan-out.',
+    dispatchArgs: ['offload', '--model', 'nvidia-deepseek-v4-pro'],
+    assignment: 'First synthesis gate via NVIDIA-hosted DeepSeek V4 Pro: decide model duties, tool policy, contradictions, and dispatch order before broad fan-out. Direct paid DeepSeek API is retired.',
     tools: { ...BASE_FORBIDDEN_TOOLS, read: true, search: true, browser: false, gitnexus: false, shell: false },
   },
   'claude-opus-audit': {

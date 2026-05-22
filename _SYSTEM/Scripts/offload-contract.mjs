@@ -68,8 +68,8 @@ const OFFLOAD_CONTRACT = {
     },
     deepseek: {
       alias: '@deepseek',
-      dispatchTokens: ['deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro'],
-      description: 'DeepSeek reasoning + autonomous tool-use lane (bash/read_file/write_file, 50-step loop, 1M context)',
+      dispatchTokens: ['deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'nvidia-deepseek-v4-flash', 'nvidia-deepseek-v4-pro'],
+      description: 'NVIDIA-hosted DeepSeek V4 reasoning lane. Direct paid DeepSeek API is retired; route bare V4 model ids through NVIDIA NIM.',
       toolsByDefault: true,
       preferredUsage: ['reasoning', 'analysis', 'multi-step logic', 'code review', 'autonomous file edits', 'multi-file refactors', 'parallel implementer during Codex rate-limit windows']
     },
@@ -1102,7 +1102,7 @@ function assessOpenClawAdvisory(prompt, lane, scenario) {
   return {
     decision: 'use-bridge',
     role: 'pattern advisory (bridge-only, advisory-only)',
-    model: 'deepseek/deepseek-v4-flash',
+    model: 'deepseek-v4-flash',
     preflight: true,
     postflight: scenario.id === 'code-change',
     outputCapLines: 60,

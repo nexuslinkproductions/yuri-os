@@ -10,6 +10,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -95,10 +96,10 @@ const ASSIGNMENTS = {
   },
   deepseek: {
     displayName: 'DeepSeek Reasoner',
-    lane: 'deepseek-v4-pro:max-reasoning',
+    lane: 'nvidia-deepseek-v4-pro',
     skills: ['deepseek-workhorse', 'deepseek-offload', 'probabilistic-decision-core', 'pattern-mirror-core', 'sharingan'],
-    assignment: 'Gate 1 synthesis and adversarial diagnosis: model duties, tool-surface assignment, terminal failures, routing drift, and missed dispatch-template context.',
-    dispatchArgs: ['offload', '--model', 'deepseek-v4-pro:max-reasoning'],
+    assignment: 'Gate 1 synthesis and adversarial diagnosis via NVIDIA-hosted DeepSeek V4 Pro: model duties, tool-surface assignment, terminal failures, routing drift, and missed dispatch-template context.',
+    dispatchArgs: ['offload', '--model', 'nvidia-deepseek-v4-pro'],
   },
   'claude-opus-audit': {
     displayName: 'Claude Opus Co-Main',
@@ -284,6 +285,7 @@ function normalizeMember(id, rosterMember = {}) {
     displayName: assignment.displayName || rosterMember.role || id,
     lane: kernel?.lane || lane,
     model: kernel?.model || assignment.lane || rosterMember.model || lane,
+    provider: kernel?.provider || rosterMember.provider || '',
     role: kernel?.role || rosterMember.role || assignment.displayName || id,
     reasoningEffort: kernel?.reasoning || assignment.reasoningEffort || rosterMember.reasoning_effort || '',
     skills: assignment.skills?.length ? assignment.skills : rosterMember.skills || [],
@@ -712,7 +714,7 @@ export async function runAdvisory(task, options = {}) {
     tier: assembly.tier,
     members: assembly.members,
   }, { maxMembers: assembly.targetSize });
-  const packetEvidence = memoryEvidence ? buildPacketEvidence(taskText, assembly, memoryEvidence) : null;
+  const packetEvidence = memoryEvidence ? buildPacketEvidence(taskText, assembly, memoryEvidence, controlPlane) : null;
   const packetValidation = packetEvidence ? validatePacketEvidence(packetEvidence) : { ok: true, reasons: [] };
   const outputEvidenceContext = packetEvidence ? {
     requiredEvidenceIds: requiredEvidenceIdsForTask(taskText),
@@ -926,21 +928,53 @@ function summarizeGate(gate0) {
   };
 }
 
-function buildPacketEvidence(task, assembly, memoryEvidence) {
+export function buildPacketEvidence(task, assembly, memoryEvidence, controlPlane = null) {
+  const sources = mergeEvidenceSources([
+    ...(memoryEvidence?.sources || []),
+    ...(controlPlane?.gate0?.loaded || []),
+  ]);
+  const hashes = Object.fromEntries(sources.map((entry) => [entry.id, entry.sha256]));
+  const loadedTemplates = [...new Set([
+    ...(memoryEvidence?.loadedTemplates || []),
+    ...sources.filter((entry) => entry.type === 'template').map((entry) => entry.id),
+  ])];
+
   return {
     task,
     tier: assembly?.tier || 'unknown',
     memberIds: assembly?.selectedIds || [],
-    evidenceSources: memoryEvidence.sources.map((entry) => ({
+    evidenceSources: sources.map((entry) => ({
       id: entry.id,
       path: entry.path,
       type: entry.type,
       sha256: entry.sha256,
     })),
-    hashes: memoryEvidence.hashes,
-    loadedTemplates: memoryEvidence.loadedTemplates,
-    protectedSurfaceExclusions: memoryEvidence.protectedSurfaceExclusions,
+    hashes,
+    loadedTemplates,
+    protectedSurfaceExclusions: memoryEvidence?.protectedSurfaceExclusions || [],
   };
+}
+
+function mergeEvidenceSources(sources) {
+  const byId = new Map();
+  for (const source of sources) {
+    if (!source?.id || !source?.path || !source?.sha256) continue;
+    byId.set(source.id, {
+      id: source.id,
+      path: source.path,
+      type: source.type || 'evidence',
+      sha256: fullEvidenceHash(source),
+    });
+  }
+  return [...byId.values()].sort((left, right) => left.id.localeCompare(right.id));
+}
+
+function fullEvidenceHash(source) {
+  const existing = String(source?.sha256 || '');
+  if (/^[a-f0-9]{64}$/iu.test(existing)) return existing;
+  const sourcePath = source?.absPath || path.resolve(REPO_ROOT, String(source?.path || ''));
+  if (!existsSync(sourcePath)) return existing;
+  return crypto.createHash('sha256').update(readFileSync(sourcePath, 'utf8')).digest('hex');
 }
 
 export async function run(taskSummary, options = {}) {

@@ -22,7 +22,7 @@ Native module of `symbioticPulse`, alongside `swarm-coordination` and `offload-r
 
 | Lane | Route | Use Case | Status |
 |------|-------|----------|--------|
-| `@deepseek` | `./Scripts/ai @deepseek` | Reasoning, code analysis, multi-step logic | ✓ Active |
+| `@deepseek` | `./Scripts/ai @deepseek` | NVIDIA-hosted DeepSeek V4 reasoning, code analysis, multi-step logic | ✓ Active |
 | `@triage-local` | `./Scripts/ai @triage-local` | General tasks, quick classification, qwen-backed triage | ✓ Active |
 | `@summarize-local` | `./Scripts/ai @summarize-local` | Summarization, extraction, condensation | ✓ Active |
 | `@code-local` | `./Scripts/ai @code-local` | Code specialization, qwen-backed coding lane | ✓ Active |
@@ -55,7 +55,7 @@ Task arrives
 - Live arsenal planner: `./Scripts/ai pulse-plan "<campaign>"`
 - Machine-readable route plan: `./Scripts/ai route-plan "<request>"`
 - Embedded examples: `./Scripts/ai route-examples`
-- Shared swarm default: `deepseek-v4-pro-lite-budget,deepseek-v4-flash`
+- Shared swarm default: `deepseek-v4-pro,deepseek-v4-flash`, routed through NVIDIA NIM. Direct paid DeepSeek API is retired.
 - Compatibility aliases: `/tokenmaxxing`, `btw`, `/btw`, `btw offload this`, explicit `@lane`
 - Universal workflow: symbiotic pulse → classify → route → delegate → verify → merge → learn
 

@@ -318,17 +318,19 @@ assert.equal(swarmDefault, 'deepseek-v4-pro,deepseek-v4-flash', 'shared swarm de
 const deepseekReasoningRoute = JSON.parse(execFileSync(
   process.execPath,
   [offloadRunnerPath, 'deepseek-v4-pro:max-reasoning', '--dry-run', 'review deeply'],
-  { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
+  { encoding: 'utf8', env: { ...process.env, NVIDIA_API_KEY: 'test-key' } }
 ));
 assert.equal(deepseekReasoningRoute.lane, 'deepseek-v4-pro', 'DeepSeek reasoning suffix should normalize to canonical Pro lane');
-assert.equal(deepseekReasoningRoute.model, 'deepseek-v4-pro', 'DeepSeek reasoning suffix should preserve Pro model');
+assert.equal(deepseekReasoningRoute.model, 'deepseek-v4-pro', 'DeepSeek route should expose the bare YURI model id');
+assert.match(deepseekReasoningRoute.endpoint, /integrate\.api\.nvidia\.com\/v1$/, 'DeepSeek V4 Pro should route through NVIDIA NIM');
+assert.equal(deepseekReasoningRoute.resolvedVia, 'nvidia-nim-deepseek', 'Direct paid DeepSeek API must stay retired');
 assert.equal(deepseekReasoningRoute.reasoningDepth, 'xhigh', 'max-reasoning suffix should become xhigh depth');
 assert.equal(deepseekReasoningRoute.tools, false, 'DeepSeek must not force API tool mode by default');
 
 const deepseekAliasRoute = JSON.parse(execFileSync(
   process.execPath,
   [offloadRunnerPath, 'code-deepseek', '--dry-run', 'review code architecture'],
-  { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
+  { encoding: 'utf8', env: { ...process.env, NVIDIA_API_KEY: 'test-key' } }
 ));
 assert.equal(deepseekAliasRoute.lane, 'deepseek-v4-pro', 'code-deepseek alias should normalize to canonical Pro lane');
 

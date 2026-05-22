@@ -28,7 +28,7 @@
       "deepseek-v2:16b",
       "gemma4:latest"
     ],
-    "reasoning": "primary/utility: qwen3.5:4b is the active lightweight local default — needle not installed. code: qwen2.5-coder:7b for code-local, starcoder2 as fallback. deep_reasoning: deepseek-r1:8b frozen (local hangs); use cloud DeepSeek V4. multimodal: gemma4:e2b; gemma4:latest manual-only on 16 GB unified memory."
+    "reasoning": "primary/utility: qwen3.5:4b is the active lightweight local default — needle not installed. code: qwen2.5-coder:7b for code-local, starcoder2 as fallback. deep_reasoning: deepseek-r1:8b frozen (local hangs); use NVIDIA-hosted DeepSeek V4. multimodal: gemma4:e2b; gemma4:latest manual-only on 16 GB unified memory."
   },
   "hardware_constraints": {
     "macbook_m2_pro": {
@@ -45,9 +45,10 @@
   "deepseek_v4": {
     "docs_as_of": "2026-05-02",
     "base_urls": {
-      "openai": "https://api.deepseek.com",
-      "anthropic": "https://api.deepseek.com/anthropic"
+      "nvidia_nim": "https://integrate.api.nvidia.com/v1"
     },
+    "api_key_env": "NVIDIA_API_KEY",
+    "direct_api_status": "retired",
     "models": {
       "flash": "deepseek-v4-flash",
       "pro": "deepseek-v4-pro",

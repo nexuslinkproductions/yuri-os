@@ -9,7 +9,7 @@
 [ -f "$HOME/.config/yuri/env.sh" ] && source "$HOME/.config/yuri/env.sh"
 # Fallback: grep .zshrc for any key still unset
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY NVIDIA_KEY_MINIMAX_M27 MINIMAX_M27_NIM_API_KEY MINIMAX_NIM_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+  for _lane_var in KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY NVIDIA_KEY_MINIMAX_M27 MINIMAX_M27_NIM_API_KEY MINIMAX_NIM_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -79,15 +79,15 @@ list_models() {
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
   printf '  [%-16s] %s\n' "gpt-oss" "active via offload-runner (local wrapper)"
-  printf '  [%-16s] %s\n' "deepseek" "compat cloud default via offload-runner"
+  printf '  [%-16s] %s\n' "deepseek" "retired direct paid API; use nvidia-deepseek-v4-pro"
   printf '  [%-16s] %s\n' "openrouter-free" "active via offload-runner (needs OPENROUTER_API_KEY; supports openrouter/free and provider/model:free)"
-  printf '  [%-16s] %s\n' "nvidia-deepseek" "active via offload-runner (needs NVIDIA_API_KEY; defaults to deepseek-ai/deepseek-v4-pro)"
+  printf '  [%-16s] %s\n' "nvidia-deepseek" "active via offload-runner (needs NVIDIA_API_KEY; defaults to deepseek-v4-pro)"
 
   echo
-  echo "DeepSeek API lanes:"
-  printf '  [%-30s] %s\n' "deepseek-v4-flash" "official V4 Flash, prompt-contract tool/skill guidance"
-  printf '  [%-30s] %s\n' "deepseek-v4-pro" "official V4 Pro, reasoning depth via --reasoning"
-  printf '  [%-30s] %s\n' "deepseek" "compat default -> deepseek-v4-flash when key is set"
+  echo "DeepSeek compatibility lanes (NVIDIA-hosted):"
+  printf '  [%-30s] %s\n' "deepseek-v4-flash" "V4 Flash via NVIDIA NIM, prompt-contract tool/skill guidance"
+  printf '  [%-30s] %s\n' "deepseek-v4-pro" "V4 Pro via NVIDIA NIM, reasoning depth via --reasoning"
+  printf '  [%-30s] %s\n' "deepseek" "compat default -> NVIDIA deepseek-v4-flash"
   echo "  Deprecated DeepSeek aliases normalize into the two official lanes above."
 
   echo
@@ -98,7 +98,8 @@ list_models() {
   echo
   echo "NVIDIA hosted lanes:"
   printf '  [%-30s] %s\n' "nvidia-deepseek" "hosted DeepSeek V4 Pro via NVIDIA NIM"
-  printf '  [%-30s] %s\n' "deepseek-ai/deepseek-v4-pro" "direct model override for the NVIDIA lane"
+  printf '  [%-30s] %s\n' "nvidia-deepseek-v4-pro" "hosted DeepSeek V4 Pro via NVIDIA NIM"
+  printf '  [%-30s] %s\n' "nvidia-deepseek-v4-flash" "hosted DeepSeek V4 Flash via NVIDIA NIM"
   printf '  [%-30s] %s\n' "nvidia-nemotron-120b" "Nemotron 3 Super 120B A12B"
   printf '  [%-30s] %s\n' "nvidia-nemotron-super-49b" "Nemotron Super 49B v1.5 daily reasoning"
   printf '  [%-30s] %s\n' "nvidia-nemotron-nano-30b" "Nemotron 3 Nano 30B A3B"
@@ -154,7 +155,7 @@ list_models() {
 
 classify_lane() {
   case "$1" in
-    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|deepseek-ai/*|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
+    deepseek-v4-*|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|nvidia/*|kimi*|moonshot*|*-cloud*|openrouter*|*/*:free|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*|comet) printf 'cloud' ;;
     *) printf 'local' ;;
   esac
 }
@@ -163,13 +164,13 @@ is_direct_lane_token() {
   local token="${1#@}"
   token="${token%%:*}"
   case "$token" in
-    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
+    deepseek|deepseek-v4-flash|deepseek-v4-pro|deepseek-chat|deepseek-reasoner|deepseek-cloud|code-deepseek|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash|nvidia|nvidia-nemotron|nvidia-nemotron-120b|nvidia-nemotron-super-49b|nvidia-nemotron-nano-30b|nvidia-nemotron-3-nano-30b-a3b|nvidia-nemotron-nano-vl-8b|nvidia-nemotron-mini-4b|nvidia-gpt-oss-120b|nvidia-llama-405b|nvidia-llama-70b|nvidia-llama4-maverick|nvidia-mistral|nvidia-mistral-medium|nvidia-mistral-large|nvidia-mistral-nemotron|nvidia-magistral-small|nvidia-qwen|nvidia-qwen-397b|nvidia-qwen3.5-397b|nvidia-qwen-coder|nvidia-qwen-coder-32b|nvidia-phi|nvidia-kimi|nvidia-gemma|nvidia-vision|nvidia-vision-90b|nvidia-embed|nvidia-dracarys|nvidia-glm|nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7|nvidia-ising|nvidia-qwen3-next|nvidia-usdcode|kimi|moonshot|gpt-oss|ollama|ollama-local|ollama-cloud|triage-local|summarize-local|code-local|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud|codex|codex-mini|gpt-5.5|gpt-5.4|gpt-5.4-mini|gpt-5.3-codex|needle|comet)
       return 0
       ;;
   esac
 
   case "$token" in
-    deepseek-v4-*|deepseek-ai/*|kimi*|moonshot*|ollama*|openrouter*|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*)
+    deepseek-v4-*|kimi*|moonshot*|ollama*|openrouter*|codex*|gpt-5.5*|gpt-5.4*|gpt-5.3-codex*)
       return 0
       ;;
   esac
@@ -214,7 +215,7 @@ run_offload_runner() {
 
   local env_args=(OFFLOAD_PROMPT_TEXT="$prompt")
   case "$lane" in
-    deepseek|deepseek-v4-*|nvidia-deepseek|deepseek-ai/*)
+    deepseek|deepseek-v4-*|nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
       if [[ -n "$write_scope" ]]; then
         env_args+=(DEEPSEEK_WRITE_SCOPE="$write_scope")
       fi
@@ -338,9 +339,9 @@ dry_run_model_override() {
       gpt-5.5|codex|codex-high|codex-full)
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
-      nvidia-deepseek|deepseek-ai/*)
+      nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
-        run_offload_runner nvidia-deepseek "$prompt" --dry-run --model "$target_model"
+        run_offload_runner "$target_model" "$prompt" --dry-run
         ;;
       nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7)
         printf '%s\n' "⬡ ROUTING_TO_MINIMAX_M27_NIM..." >&2
@@ -424,7 +425,14 @@ dry_run_model_override() {
         elif [[ "${TOOLS_EXPLICIT:-0}" == "1" && "$ALLOW_MODEL_TOOLS" != "1" ]]; then
           _ds_tool_args=(--no-tools)
         fi
-        run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
+        case "$target_model" in
+          deepseek-v4-flash|deepseek-v4-pro)
+            run_offload_runner "$target_model" "$prompt" --dry-run ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
+            ;;
+          deepseek)
+            run_offload_runner deepseek-v4-flash "$prompt" --dry-run ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
+            ;;
+        esac
         ;;
       *)
         route_log "$(printf '⬡ DRY_RUN :: model=%s lane=%s' "$target_model" "$(classify_lane "$target_model")")"
@@ -483,20 +491,20 @@ dispatch_model() {
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/comet-adapter.mjs"
         ;;
       deepseek-v4-flash|deepseek-v4-pro)
-        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_V4..." >&2
-        run_offload_runner "$target_model" "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
+        printf '%s\n' "⬡ DEEPSEEK_DIRECT_RETIRED :: routing $target_model through NVIDIA NIM" >&2
+        run_offload_runner "$target_model" "$prompt" ${tool_args[@]+"${tool_args[@]}"}
         ;;
       deepseek-r1:8b|deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b)
         printf '%s\n' "⬡ DEEPSEEK_LOCAL_FROZEN :: local DeepSeek models disabled to prevent system hangs" >&2
         run_offload_runner deepseek-local "$prompt" --model "$target_model" --dry-run
         ;;
       deepseek)
-        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_CLOUD..." >&2
-        run_offload_runner deepseek "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
+        printf '%s\n' "⬡ DEEPSEEK_DIRECT_RETIRED :: routing deepseek through NVIDIA NIM deepseek-v4-flash" >&2
+        run_offload_runner deepseek-v4-flash "$prompt" ${tool_args[@]+"${tool_args[@]}"}
         ;;
-      nvidia-deepseek|deepseek-ai/*)
+      nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
         printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
-        run_offload_runner nvidia-deepseek "$prompt" --model "$target_model"
+        run_offload_runner "$target_model" "$prompt"
         ;;
       nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7)
         printf '%s\n' "⬡ ROUTING_TO_MINIMAX_M27_NIM..." >&2

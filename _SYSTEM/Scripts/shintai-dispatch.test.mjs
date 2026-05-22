@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import {
   assembleShintaiTeam,
   buildMemberPrompt,
+  buildPacketEvidence,
   loadShintaiRoster,
 } from './shintai-dispatch.mjs';
 
@@ -27,6 +28,19 @@ test('critical memory/RAG sprint assembles task-fit Shintai council', () => {
   ]);
   assert.equal(assembly.selectedIds.includes('kimi'), false);
   assert.equal(assembly.selectedIds.includes('codex-spark'), false);
+});
+
+test('Shintai DeepSeek member uses NVIDIA route instead of retired direct paid API', () => {
+  const assembly = assembleShintaiTeam(MEMORY_TASK, loadShintaiRoster(), {});
+  const deepseek = assembly.members.find((member) => member.id === 'deepseek');
+  const prompt = buildMemberPrompt(MEMORY_TASK, deepseek, {});
+
+  assert.equal(deepseek.provider, 'nvidia');
+  assert.equal(deepseek.lane, 'nvidia-deepseek-v4-pro');
+  assert.equal(deepseek.model, 'deepseek-v4-pro');
+  assert.deepEqual(deepseek.dispatchArgs, ['offload', '--model', 'nvidia-deepseek-v4-pro']);
+  assert.match(prompt, /Lane: nvidia-deepseek-v4-pro/);
+  assert.doesNotMatch(prompt, /deepseek-ai\//);
 });
 
 test('Claude Opus member prompt reflects co-main coding plus Codex verification gate', () => {
@@ -75,6 +89,37 @@ test('Shintai dispatch forwards packet evidence ids into member output rails', (
   assert.match(bridge, /requiredEvidenceIdsForTask/);
   assert.match(bridge, /YURI_OUTPUT_REQUIRED_EVIDENCE_IDS/);
   assert.match(bridge, /YURI_OUTPUT_EVIDENCE_IDS/);
+});
+
+test('Shintai packet evidence merges Gate 0 cyber evidence with memory evidence', () => {
+  const assembly = assembleShintaiTeam(MEMORY_TASK, loadShintaiRoster(), {});
+  const memoryEvidence = {
+    sources: [
+      { id: 'shintai-roster', path: '_SYSTEM/kagami/shintai-team.json', type: 'roster', sha256: 'aaa' },
+      { id: 'extraction-sprint-template', path: '.claude/skills/extraction-sprint/SKILL.md', type: 'template', sha256: 'bbb' },
+    ],
+    loadedTemplates: ['extraction-sprint-template'],
+    protectedSurfaceExclusions: ['.env'],
+  };
+  const controlPlane = {
+    gate0: {
+      loaded: [
+        { id: 'cyber-company-goal', path: '_SYSTEM/docs/YURI_OS_CYBERSECURITY_COMPANY_SUPERCHARGE_GOAL_2026-05-22.md', type: 'doc', sha256: 'ccc' },
+        { id: 'cyber-intel-matrix', path: '_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md', type: 'doc', sha256: 'ddd' },
+        { id: 'extraction-sprint-template', path: '.claude/skills/extraction-sprint/SKILL.md', type: 'template', sha256: 'bbb' },
+      ],
+    },
+  };
+
+  const packet = buildPacketEvidence('critical cybersecurity company supercharge', assembly, memoryEvidence, controlPlane);
+  const ids = packet.evidenceSources.map((entry) => entry.id);
+
+  assert.ok(ids.includes('shintai-roster'));
+  assert.ok(ids.includes('cyber-company-goal'));
+  assert.ok(ids.includes('cyber-intel-matrix'));
+  assert.equal(ids.filter((id) => id === 'extraction-sprint-template').length, 1);
+  assert.match(packet.hashes['cyber-company-goal'], /^[a-f0-9]{64}$/);
+  assert.ok(packet.loadedTemplates.includes('extraction-sprint-template'));
 });
 
 test('critical Shintai dispatch fails closed when council degrades below minimum size', () => {

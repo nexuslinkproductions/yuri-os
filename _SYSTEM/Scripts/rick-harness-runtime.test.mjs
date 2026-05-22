@@ -128,7 +128,7 @@ test('Rick /status returns structured release and health fields', async () => {
 test('offload wrapper streams chat SSE chunks before process close', async (t) => {
   if (!(await allowOnlyIfBindable(t))) return;
   const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/chat/completions') {
+    if (req.method !== 'POST' || !['/chat/completions', '/v1/chat/completions'].includes(req.url)) {
       res.writeHead(404);
       res.end();
       return;
@@ -140,6 +140,7 @@ test('offload wrapper streams chat SSE chunks before process close', async (t) =
     });
     req.on('end', () => {
       const parsed = JSON.parse(body || '{}');
+      assert.equal(parsed.model, 'deepseek-ai/deepseek-v4-flash');
       assert.equal(parsed.stream, true);
       res.writeHead(200, {
         'content-type': 'text/event-stream',
@@ -166,8 +167,8 @@ test('offload wrapper streams chat SSE chunks before process close', async (t) =
     cwd: REPO_ROOT,
     env: {
       ...process.env,
-      DEEPSEEK_API_KEY: 'mock-key',
-      DEEPSEEK_BASE_URL: `http://127.0.0.1:${port}`,
+      NVIDIA_API_KEY: 'mock-key',
+      NVIDIA_NIM_BASE_URL: `http://127.0.0.1:${port}`,
       LANE_SESSION: 'rick-runtime-test',
       OFFLOAD_STREAM: '1',
     },
@@ -335,7 +336,7 @@ test('Rick PTY streams two turns in order and restores terminal state', { timeou
 
   let requestCount = 0;
   const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/chat/completions') {
+    if (req.method !== 'POST' || !['/chat/completions', '/v1/chat/completions'].includes(req.url)) {
       res.writeHead(404);
       res.end();
       return;
@@ -457,8 +458,8 @@ sys.exit(0 if done and proc.returncode == 0 else 2)
     cwd: REPO_ROOT,
     env: {
       ...process.env,
-      DEEPSEEK_API_KEY: 'mock-key',
-      DEEPSEEK_BASE_URL: `http://127.0.0.1:${port}`,
+      NVIDIA_API_KEY: 'mock-key',
+      NVIDIA_NIM_BASE_URL: `http://127.0.0.1:${port}`,
       KAGAMI_RICK_MODE: 'rick',
       LANE_SESSION: 'rick-pty-runtime-test',
       NODE_BIN: process.execPath,
