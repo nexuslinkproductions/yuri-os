@@ -1,0 +1,23 @@
+pattern_library_entry:
+  id: string
+  source_artifact:
+    type: repo | document | pdf | prompt | workflow | memory_log | system_spec
+    path_or_url: string
+    provenance: string
+    license_status: unknown | permissive | restricted | internal | user_owned
+  extracted_pattern:
+    name: string
+    description: string
+    problem_solved: string
+    mechanism: string
+    prerequisites: []
+    failure_modes: []
+  yuri_native_adaptation:
+    improvement_summary: string
+    changes_from_source: []
+    safety_controls: []
+    tests_required: []
+  classification:
+    reusable: true
+    requires_human_review: false
+    risk_level: low | medium | high | critical

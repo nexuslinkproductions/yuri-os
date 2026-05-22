@@ -43,6 +43,20 @@ assert.equal(contract.lanes.claude.alias, '@claude', 'Claude council lane metada
 assert.ok(contract.lanes.nvidia.dispatchTokens.includes('nvidia-minimax-m27'), 'Minimax M2.7 NIM dispatch token missing');
 assert.equal(contract.lanes.nvidia.models['nvidia-minimax-m27'], 'minimaxai/minimax-m2.7', 'Minimax M2.7 model mapping missing');
 assert.equal(contract.lanes.nvidia.routing.research_analysis, 'nvidia-minimax-m27', 'research analysis should prefer Minimax over unreliable GLM');
+for (const [token, model] of [
+  ['nvidia-nemotron-super-49b', 'nvidia/llama-3.3-nemotron-super-49b-v1.5'],
+  ['nvidia-mistral-nemotron', 'mistralai/mistral-nemotron'],
+  ['nvidia-magistral-small', 'mistralai/magistral-small-2506'],
+  ['nvidia-qwen-coder-32b', 'qwen/qwen2.5-coder-32b-instruct'],
+  ['nvidia-llama4-maverick', 'meta/llama-4-maverick-17b-128e-instruct'],
+  ['nvidia-vision-90b', 'meta/llama-3.2-90b-vision-instruct'],
+  ['nvidia-nemotron-nano-vl-8b', 'nvidia/llama-3.1-nemotron-nano-vl-8b-v1'],
+  ['nvidia-nemotron-mini-4b', 'nvidia/nemotron-mini-4b-instruct'],
+  ['nvidia-usdcode', 'nvidia/usdcode'],
+]) {
+  assert.ok(contract.lanes.nvidia.dispatchTokens.includes(token), `${token} dispatch token missing`);
+  assert.equal(contract.lanes.nvidia.models[token], model, `${token} model mapping missing`);
+}
 assert.equal(contract.crossReference.taxonomySurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md', 'cross-reference taxonomy surface missing');
 assert.equal(contract.crossReference.rulesSurface, '_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/prevention-rules.md', 'cross-reference rules surface missing');
 assert.equal(contract.claudeCouncilQualityGate.role.outputCapLines, 80, 'Claude council output cap should be 80 lines');

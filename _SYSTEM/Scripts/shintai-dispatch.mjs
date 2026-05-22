@@ -4,7 +4,9 @@
  *
  * Rick may invoke this bridge, but Shintai is independent: Codex/main
  * assembles the task-fit team from the roster and live health, then the
- * members return advisory/patch-prep output only.
+ * members return advisory/patch-prep output by default. Claude Opus can operate
+ * as a bounded co-main implementation lane when the task explicitly asks for
+ * scoped edits, but Codex still verifies repo truth before promotion.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -68,7 +70,7 @@ const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'nemotron', 'mistral-l
 const HEALTH_ALIASES = {
   codex: ['codex-architect', 'codex-gpt-5.5', 'gpt-5.5'],
   deepseek: ['deepseek-reasoner', 'deepseek-v4-pro'],
-  'claude-opus-audit': ['claude-opus-audit', 'claude-opus-4-7', 'opus-4.7', 'claude'],
+  'claude-opus-audit': ['claude-opus-audit', 'claude-opus-comain', 'claude-opus-4-7-comain', 'claude-opus-4-7', 'opus-4.7', 'claude'],
   nemotron: ['nemotron-orchestrator', 'nvidia-nemotron-120b'],
   'mistral-large': ['nvidia-mistral-large', 'mistral-large'],
   'mistral-medium': ['nvidia-mistral-medium', 'mistral-medium'],
@@ -99,11 +101,11 @@ const ASSIGNMENTS = {
     dispatchArgs: ['offload', '--model', 'deepseek-v4-pro:max-reasoning'],
   },
   'claude-opus-audit': {
-    displayName: 'Claude Opus Audit',
-    lane: 'claude-opus-4-7-audit',
-    skills: ['anthropic-managed-agents', 'compact-optimizer', 'failure-evolution-loop', 'tokenmaxxing'],
-    assignment: 'Wake with Haiku, switch to Opus 4.7 high reasoning, audit all council outputs with 1M-context posture; no edits and no policy authority.',
-    dispatchArgs: ['@claude-opus-audit'],
+    displayName: 'Claude Opus Co-Main',
+    lane: 'claude-opus-4-7-comain',
+    skills: ['anthropic-managed-agents', 'compact-optimizer', 'failure-evolution-loop', 'tokenmaxxing', 'execution-domain-core', 'non-destructive-infinity-guard'],
+    assignment: 'Wake with Haiku, continue Opus 4.7 max-reasoning co-main session, draft or apply scoped code/tests/docs when explicitly tasked, and double-check Codex outputs. Codex must independently verify every Opus change before trust.',
+    dispatchArgs: ['@claude-opus-comain'],
   },
   nemotron: {
     displayName: 'Nemotron Orchestrator',
@@ -409,12 +411,17 @@ export function buildMemberPrompt(task, member, options = {}) {
     ...sourcePaths.map((source) => `- ${source}`),
     '',
     'Forbidden:',
-    '- commit, push, destructive shell commands, auto-apply patches',
+    member.id === 'claude-opus-audit'
+      ? '- commit, push, destructive shell commands, unscoped edits, or unverified patch application'
+      : '- commit, push, destructive shell commands, auto-apply patches',
     `- protected path reads/writes: ${protectedPathsText()}`,
     '- invented roster/model policy',
     '- hardcoded squad defaults',
     '- codex-spark default unless the user explicitly requests it',
     '- Rick-owned Shintai identity',
+    member.id === 'claude-opus-audit'
+      ? '- trusting Opus output without Codex re-reading changed files and running verification'
+      : '',
     '',
     'Required meta-audit:',
     'Explain why prior runs missed required templates, memory, or user preference context and how to prevent recurrence. The prevention must require loading roster + memory + extraction-sprint template + task-specific evidence before drafting any Shintai packet.',
@@ -442,7 +449,7 @@ function objectiveForTask(task) {
   if (/(rick|harness|terminal|renderer|stream|hermes|pty)/.test(text)) {
     return 'stabilize Rick harness and Shintai integration.';
   }
-  return 'stabilize the requested YURI control-plane operation with advisory-first Shintai, Codex arbitration, and evidence-backed patch guidance.';
+  return 'stabilize the requested YURI control-plane operation with advisory-first Shintai, Opus co-main pressure where useful, Codex arbitration, and evidence-backed patch guidance.';
 }
 
 function critiquePrompt(task, member, peers) {
@@ -470,7 +477,7 @@ function synthesisPrompt(task, proposals, critiques, assembly, options = {}) {
   return ensureRickPersonaAnchor([
     RICK_ANCHOR,
     '',
-    'You are the Codex/main orchestrator synthesizing Shintai advisory output. Shintai advises; Codex decides.',
+    'You are the Codex/main release-gate orchestrator synthesizing Shintai output. Claude Opus may act as co-main, but Codex verifies local truth and decides what lands.',
     '',
     `Assembly: ${assembly.selectedIds.join(', ')}${assembly.skipped.length ? `; skipped: ${assembly.skipped.map((s) => s.id).join(', ')}` : ''}`,
     '',

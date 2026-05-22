@@ -53,7 +53,7 @@ const WORKERS = {
   },
 };
 
-const TASK_TIMEOUT_MS = 10 * 60 * 1000;
+const TASK_TIMEOUT_MS = Number(process.env.YURI_WORKER_TASK_TIMEOUT_MS || 60 * 60 * 1000);
 const POLL_MS = 400;
 
 function emptyQueues() {
@@ -248,7 +248,8 @@ function execTask(task) {
       args = [CODEX_RUNNER, task.lane];
     } else if (spec.kind === 'claude') {
       cmd = 'bash';
-      args = [AI_SH, 'claude', task.prompt];
+      const route = task.lane === 'claude-opus-design-edit' ? '@claude-opus-design-edit' : 'claude';
+      args = [AI_SH, route, task.prompt];
     } else {
       cmd = 'bash';
       args = [OFFLOAD_SH, '-m', task.lane, ...(spec.offloadFlags || []), task.prompt];

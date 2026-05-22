@@ -427,3 +427,79 @@ test('offload wrapper routes Minimax M2.7 manual override through dedicated lane
     rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+test('offload runner prepares curated NIM expansion lanes', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-nim-expansion-'));
+  const expected = [
+    ['nvidia-nemotron-super-49b', 'nvidia/llama-3.3-nemotron-super-49b-v1.5'],
+    ['nvidia-mistral-nemotron', 'mistralai/mistral-nemotron'],
+    ['nvidia-llama4-maverick', 'meta/llama-4-maverick-17b-128e-instruct'],
+    ['nvidia-vision-90b', 'meta/llama-3.2-90b-vision-instruct'],
+    ['nvidia-nemotron-nano-vl-8b', 'nvidia/llama-3.1-nemotron-nano-vl-8b-v1'],
+    ['nvidia-nemotron-mini-4b', 'nvidia/nemotron-mini-4b-instruct'],
+  ];
+
+  try {
+    const env = isolatedEnv(tmpDir, 65532);
+    for (const [lane, model] of expected) {
+      const result = await runOffload([lane, '--dry-run', 'pong'], env);
+      const payload = JSON.parse(result.stdout);
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.equal(payload.lane, lane);
+      assert.equal(payload.model, model);
+      assert.equal(payload.apiKey, '[set]');
+      assert.equal(payload.tools, true);
+    }
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload wrapper dry-runs curated NIM expansion aliases through manual override', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-nim-wrapper-expansion-'));
+  const expected = [
+    ['nvidia-nemotron-super-49b', 'nvidia/llama-3.3-nemotron-super-49b-v1.5'],
+    ['nvidia-mistral-nemotron', 'mistralai/mistral-nemotron'],
+    ['nvidia-llama4-maverick', 'meta/llama-4-maverick-17b-128e-instruct'],
+    ['nvidia-vision-90b', 'meta/llama-3.2-90b-vision-instruct'],
+    ['nvidia-nemotron-nano-vl-8b', 'nvidia/llama-3.1-nemotron-nano-vl-8b-v1'],
+    ['nvidia-nemotron-mini-4b', 'nvidia/nemotron-mini-4b-instruct'],
+  ];
+
+  try {
+    const env = isolatedEnv(tmpDir, 65533, { OFFLOAD_QUEUE_BYPASS: '1' });
+    for (const [lane, model] of expected) {
+      const result = await runOffloadWrapper(['-m', lane, '--dry-run', 'Reply PONG only.'], env);
+      const payload = JSON.parse(result.stdout);
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.match(result.stderr, new RegExp(`ROUTING_TO_NVIDIA_NIM \\[${model.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`));
+      assert.equal(payload.lane, 'nvidia-nim');
+      assert.equal(payload.model, model);
+    }
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload wrapper blocks calibrated-dead NIM expansion aliases before provider dispatch', { timeout: 10_000 }, async () => {
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-dead-nim-wrapper-expansion-'));
+  const expected = ['nvidia-magistral-small', 'nvidia-qwen-coder-32b', 'nvidia-usdcode'];
+
+  try {
+    const env = isolatedEnv(tmpDir, 65534, { OFFLOAD_QUEUE_BYPASS: '1' });
+    for (const lane of expected) {
+      const result = await runOffloadWrapper(['-m', lane, '--dry-run', 'Reply PONG only.'], env);
+      const payload = JSON.parse(result.stdout);
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.match(result.stderr, new RegExp(`DEAD_NIM_LANE_CHECK \\[${lane}\\]`));
+      assert.equal(payload.status, 'DEAD_LANE_EXECUTION_BLOCKED');
+      assert.equal(payload.executable, false);
+      assert.match(payload.error, /Dead NIM lane blocked/);
+    }
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

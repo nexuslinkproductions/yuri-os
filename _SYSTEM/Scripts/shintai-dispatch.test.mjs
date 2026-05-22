@@ -29,6 +29,17 @@ test('critical memory/RAG sprint assembles task-fit Shintai council', () => {
   assert.equal(assembly.selectedIds.includes('codex-spark'), false);
 });
 
+test('Claude Opus member prompt reflects co-main coding plus Codex verification gate', () => {
+  const assembly = assembleShintaiTeam(MEMORY_TASK, loadShintaiRoster(), {});
+  const opus = assembly.members.find((member) => member.id === 'claude-opus-audit');
+  const prompt = buildMemberPrompt(MEMORY_TASK, opus, {});
+
+  assert.match(prompt, /Claude Opus Co-Main/);
+  assert.match(prompt, /draft or apply scoped code\/tests\/docs/);
+  assert.match(prompt, /Codex must independently verify every Opus change before trust/);
+  assert.doesNotMatch(prompt, /audit all council outputs with 1M-context posture; no edits/i);
+});
+
 test('memory/RAG member prompt uses YURI memory objective and neuro rail evidence', () => {
   const assembly = assembleShintaiTeam(MEMORY_TASK, loadShintaiRoster(), {});
   const qwen = assembly.members.find((member) => member.id === 'qwen-397b');

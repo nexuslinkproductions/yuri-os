@@ -26,6 +26,55 @@ Rules:
 - Shared values can be duplicated across namespaces, but the namespace itself never collapses.
 - `design-master` reads `design-memory.json`, resolves the surface, and then loads only the matching token family.
 
+## 2.1 Design Intelligence Loop
+
+YURI design work is not a one-shot style pass. It is an intake, memory, reference, execution, verification, and promotion loop.
+
+### Intake Gate
+
+Before a new design, major visual revision, presentation, HTML artifact, brand surface, motion system, or reusable component is produced, the active design agent must ask at least 10 design questions or explicitly map the user's existing brief to these categories:
+
+| Category | Required Answer |
+|---|---|
+| Surface | `hud`, `kagami`, hybrid, or new surface |
+| Audience | who sees it and what decision it should influence |
+| Output shape | app, tool, continuous HTML, deck, report, video, image, component |
+| Density | sparse, balanced, dense, maximal |
+| Structure | cards/panels, typography, diagram, cinematic, mixed |
+| Motion | none, micro, scroll, camera, WebGL/canvas, video-like |
+| Emotional temperature | calm, severe, premium, ritual, aggressive, playful, clinical, experimental |
+| Reference direction | existing YURI surface or external reference target |
+| Dislikes | explicit visual patterns to avoid |
+| Success test | what would make the user accept the design |
+| Constraints | deadline, device, browser, assets, accessibility, dependency limits |
+| Memory policy | reusable system pattern or one-off artifact |
+
+The answers form a `Design Brief`. If the user gives enough direction up front, the agent can present the inferred brief and ask only for missing categories. If the user explicitly says to proceed without questions, the agent must still write the inferred brief into its working notes and list unknowns.
+
+### Skill Selection
+
+Design Master is the orchestration entry point. It selects from the local YURI skill tree:
+
+- `frontend-design` for interaction quality, visual hierarchy, layout, and anti-generic UI decisions.
+- `math-curve-loaders` for kinetic motifs, loaders, and motion curves.
+- `pattern-mirror-core` and `sharingan` for reverse-engineering screenshots, references, or existing artifacts.
+- `design-source-pack` for turning reference language into reusable packs.
+- `prompt-engineering` for dispatch contracts to other lanes.
+- `parallel-clone-orchestrator` and `swarm-coordination` for multi-agent visual critique or implementation splits.
+- `presentations` only when the user wants an actual deck; Kagami continuous HTML must not collapse into slide-deck grammar.
+
+### Memory Promotion
+
+After meaningful visual work, update `_SYSTEM/design-memory.json` with:
+
+- the intake answers that should persist as user preference
+- references selected
+- tokens used
+- patterns promoted or rejected
+- exact user correction that caused the learning
+
+Design memory is not a gallery. It is the operating memory that prevents repeating visual mistakes.
+
 ## 3. Token Namespaces
 
 ### HUD Tokens

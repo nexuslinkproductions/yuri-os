@@ -34,7 +34,7 @@ Use this skill when a task should be split across multiple agents or model lanes
 
 - `ENLIL` for decomposition and final integration.
 - `NABU` for routing, docs, and memory.
-- `ENKI` for implementation.
+- `KAGAMI main` for implementation.
 - `INANNA` for validation and adversarial checks.
 
 ## Delegate Rules

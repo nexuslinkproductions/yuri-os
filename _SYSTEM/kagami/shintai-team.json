@@ -4,7 +4,7 @@
   "team_name_kanji": "神隊",
   "team_name_meaning": "divine unit — kami-coded, paired with Musubi/Kagami vocabulary",
   "createdAt": "2026-05-18T16:00:00.000Z",
-  "updatedAt": "2026-05-21T16:30:00.000Z",
+  "updatedAt": "2026-05-21T21:30:00.000Z",
   "roster_sizing": {
     "trivial": { "members": 1, "note": "single-shot lookups, file reads, trivial fixes" },
     "standard": { "members": 2, "note": "favored minimum for regular work — one specialist + one reviewer" },
@@ -46,6 +46,15 @@
       "lane_id": "nvidia-nemotron-120b",
       "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-120b"
     },
+    "nemotron-super-49b": {
+      "model": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+      "role": "daily-reasoning-orchestrator",
+      "status": "active_exact_pong_fresh_no_tools_29s",
+      "unique_strength": "daily Nemotron reasoning worker for Shintai review when 120B is unnecessary",
+      "task_fit": ["reasoning","architecture review","guardrail","control-plane","daily shintai"],
+      "lane_id": "nvidia-nemotron-super-49b",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-super-49b"
+    },
     "mistral-large": {
       "model": "mistralai/mistral-large-3-675b-instruct-2512",
       "role": "frontier-reasoning-reviewer",
@@ -62,6 +71,24 @@
       "lane_id": "nvidia-mistral-medium",
       "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-medium"
     },
+    "mistral-nemotron": {
+      "model": "mistralai/mistral-nemotron",
+      "role": "guardrail-planning-critic",
+      "status": "active_exact_pong_fresh_no_tools_1s",
+      "unique_strength": "hybrid Mistral/Nemotron critic for guardrail planning and contradiction pressure",
+      "task_fit": ["guardrail","architecture critique","planning","control-plane","second opinion"],
+      "lane_id": "nvidia-mistral-nemotron",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-mistral-nemotron"
+    },
+    "magistral-small": {
+      "model": "mistralai/magistral-small-2506",
+      "role": "fast-reasoning-critic",
+      "status": "dead_404_chat_completion_probe_2026-05-21",
+      "unique_strength": "catalog-visible but not usable through current OpenAI-compatible chat path",
+      "task_fit": ["fast critique","routing","triage","guardrail check","second opinion"],
+      "lane_id": "nvidia-magistral-small",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-magistral-small"
+    },
     "qwen-coder": {
       "model": "qwen/qwen3-coder-480b-a35b-instruct",
       "role": "code-refactor-specialist",
@@ -69,6 +96,15 @@
       "task_fit": ["code review","refactor","merge collision","tests","routing logic"],
       "lane_id": "nvidia-qwen-coder",
       "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-coder"
+    },
+    "qwen-coder-32b": {
+      "model": "qwen/qwen2.5-coder-32b-instruct",
+      "role": "cheap-code-specialist",
+      "status": "dead_eol_2026-05-12",
+      "unique_strength": "former cheap code lane; NIM reports end-of-life and qwen3-next/qwen-coder remain fallbacks",
+      "task_fit": ["code review","focused diff","test repair","small refactor","cheap code"],
+      "lane_id": "nvidia-qwen-coder-32b",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-qwen-coder-32b"
     },
     "qwen-397b": {
       "model": "qwen/qwen3.5-397b-a17b",
@@ -88,15 +124,34 @@
       "lane_id": "nvidia-nemotron-nano-30b",
       "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-nano-30b"
     },
+    "nemotron-nano-vl-8b": {
+      "model": "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",
+      "role": "cheap-visual-probe",
+      "status": "active_text_probe_pongish_fresh_no_tools",
+      "unique_strength": "low-cost visual lane before escalating screenshots to larger vision models; use fresh/small prompts",
+      "task_fit": ["visual probe","screenshot triage","design audit","ui check","cheap vision"],
+      "lane_id": "nvidia-nemotron-nano-vl-8b",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-nano-vl-8b"
+    },
+    "nemotron-mini-4b": {
+      "model": "nvidia/nemotron-mini-4b-instruct",
+      "role": "sentinel-classifier",
+      "status": "active_text_probe_pongish_fresh_no_tools",
+      "unique_strength": "ultra-cheap sentinel for route labels, health triage, and smoke checks; use fresh/small prompts",
+      "task_fit": ["classify","route","smoke test","stale lane","cheap sentinel"],
+      "lane_id": "nvidia-nemotron-mini-4b",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh --model nvidia-nemotron-mini-4b"
+    },
     "claude-opus-audit": {
       "model": "claude-opus-4-7",
       "wake_model": "claude-haiku-4-5",
-      "role": "million-context-auditor",
-      "status": "audit_only_no_edits",
-      "skills": ["anthropic-managed-agents","compact-optimizer","failure-evolution-loop","tokenmaxxing"],
-      "mcp_tools": [],
+      "role": "co-main-coding-architect",
+      "status": "active_comain_coding_verified",
+      "skills": ["anthropic-managed-agents","compact-optimizer","failure-evolution-loop","tokenmaxxing","execution-domain-core","non-destructive-infinity-guard"],
+      "mcp_tools": ["Read","Write","Edit","MultiEdit","Bash","Glob","Ls","TodoRead","TodoWrite"],
+      "verification_contract": "Codex independently verifies all Opus edits, tests, protected-path safety, and repo truth before promotion.",
       "lane_id": "claude-opus-audit",
-      "dispatch": "bash _SYSTEM/Scripts/ai @claude-opus-audit"
+      "dispatch": "bash _SYSTEM/Scripts/ai @claude-opus-comain"
     },
     "claude": {
       "model": "claude-sonnet-4-6",
@@ -148,6 +203,33 @@
       "task_fit": ["algorithm","optimize","code review","data structure","complexity","benchmark","refactor logic"],
       "lane_id": "nvidia-qwen3-next",
       "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-qwen3-next"
+    },
+    "llama4-maverick": {
+      "model": "meta/llama-4-maverick-17b-128e-instruct",
+      "role": "multimodal-generalist",
+      "status": "active_exact_pong_fresh_no_tools_2s",
+      "unique_strength": "general multimodal wildcard lane for broad review when specialists disagree",
+      "task_fit": ["multimodal","general review","fallback","broad reasoning","wildcard"],
+      "lane_id": "nvidia-llama4-maverick",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-llama4-maverick"
+    },
+    "vision-90b": {
+      "model": "meta/llama-3.2-90b-vision-instruct",
+      "role": "visual-introspection-specialist",
+      "status": "active_exact_pong_fresh_no_tools_109s",
+      "unique_strength": "large vision lane for screenshots, UI audits, presentation polish, and design-system checks",
+      "task_fit": ["visual introspection","screenshot","ui audit","design system","presentation"],
+      "lane_id": "nvidia-vision-90b",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-vision-90b"
+    },
+    "usdcode": {
+      "model": "nvidia/usdcode",
+      "role": "scene-graph-3d-specialist",
+      "status": "dead_404_chat_completion_probe_2026-05-21",
+      "unique_strength": "catalog-visible 3D specialist, but not usable through current chat-completions offload path; needs adapter research before routing",
+      "task_fit": ["usd","3d","scene graph","motion design","omniverse","kagami mechanics"],
+      "lane_id": "nvidia-usdcode",
+      "dispatch": "bash _SYSTEM/Scripts/offload.sh -m nvidia-usdcode"
     },
     "ising": {
       "model": "nvidia/ising-3b",

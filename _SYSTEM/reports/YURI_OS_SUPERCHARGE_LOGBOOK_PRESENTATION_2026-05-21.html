@@ -3,604 +3,2199 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YURI OS Supercharge Logbook · 2026-05-21</title>
+  <title>YURI OS Supercharge · Kagami Continuum</title>
   <style>
-    [data-surface="kagami"] {
-      --yuri-kagami-bg-void: #0A0A0A;
-      --yuri-kagami-bg-surface: hsla(0 0% 8% / 0.92);
-      --yuri-kagami-bg-glass: hsla(0 0% 8% / 0.72);
-      --yuri-kagami-accent-hot: #47C01B;
-      --yuri-kagami-accent-cold: #00D4FF;
-      --yuri-kagami-accent-amber: #FF8800;
-      --yuri-kagami-font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-      --yuri-kagami-font-mono: "Geist Mono", "IBM Plex Mono", "JetBrains Mono", monospace;
-      --yuri-kagami-grid-unit: 8px;
-      --yuri-kagami-radius-sm: 10px;
-      --yuri-kagami-radius-md: 16px;
-      --yuri-kagami-radius-lg: 22px;
-      --yuri-kagami-ease-glide: cubic-bezier(0.25, 0.8, 0.5, 1);
-    }
-
     :root {
-      --yuri-hud-bg-void: hsl(0 0% 0%);
-      --yuri-hud-bg-surface: hsla(0 0% 8% / 0.92);
-      --yuri-hud-bg-glass: hsla(0 0% 8% / 0.72);
-      --yuri-hud-cyan-glow: hsl(96 68% 74%);
-      --yuri-hud-gold-solar: hsl(90 100% 36%);
-      --yuri-hud-red-fusion: hsl(12 84% 58%);
-      --yuri-hud-silver-albedo: hsl(0 0% 97%);
-      --yuri-hud-text-dim: hsl(0 0% 66%);
-      --ink: rgba(245, 247, 238, 0.94);
-      --muted: rgba(245, 247, 238, 0.58);
-      --line: rgba(255,255,255,0.12);
-      --line-strong: rgba(255,255,255,0.22);
-      --panel: rgba(15, 17, 16, 0.78);
-      --panel-quiet: rgba(255,255,255,0.035);
-      --pass: #8FBC8F;
-      --warn: #FFD700;
-      --bad: #FF6B6B;
+      --void: #07060a;
+      --voidwarm: #0d0a08;
+      --ink: #f6ecda;
+      --paper: #ece0c5;
+      --muted: rgba(246,236,218,.72);
+      --quiet: rgba(246,236,218,.44);
+      --whisper: rgba(246,236,218,.18);
+      --ghost: rgba(246,236,218,.08);
+      --gold: #d8ad55;
+      --goldlow: rgba(216,173,85,.42);
+      --vermilion: #cf4d36;
+      --moss: #879b70;
+      --indigo: #2e497a;
+      --line: rgba(246,236,218,.14);
+      --serif: "Iowan Old Style", "Cormorant Garamond", "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif;
+      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", sans-serif;
+      --mono: "Geist Mono", "IBM Plex Mono", "JetBrains Mono", ui-monospace, monospace;
+      --ease: cubic-bezier(.2,.7,.18,1);
+      --glide: cubic-bezier(0.25, 0.8, 0.5, 1);
+      --snap: cubic-bezier(0.7, 0, 0.18, 1);
     }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { background: var(--void); color: var(--ink); overflow-x: hidden; scroll-behavior: smooth; }
     body {
+      --scroll: 0;
       margin: 0;
       min-height: 100vh;
+      overflow-x: hidden;
+      width: 100%;
+      font-family: var(--sans);
       background:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
-        var(--yuri-kagami-bg-void);
-      background-size: 32px 32px;
-      color: var(--ink);
-      font-family: var(--yuri-kagami-font-sans);
-      letter-spacing: 0;
+        radial-gradient(ellipse at calc(20% + var(--scroll) * 18%) calc(8% + var(--scroll) * 6%), rgba(207,77,54,.16), transparent 38vw),
+        radial-gradient(ellipse at calc(82% - var(--scroll) * 14%) calc(78% - var(--scroll) * 12%), rgba(46,73,122,.30), transparent 42vw),
+        radial-gradient(ellipse at 50% 50%, rgba(216,173,85,.05), transparent 55vw),
+        linear-gradient(170deg, var(--voidwarm), var(--void) 60%, #050309);
     }
 
-    a { color: inherit; }
-    .deck {
-      display: grid;
-      grid-template-columns: 88px minmax(0, 1fr);
-      min-height: 100vh;
+    /* Living atmosphere — three independent depth planes, all parallax-driven */
+    .haze {
+      position: fixed;
+      inset: -10vh -10vw;
+      pointer-events: none;
+      z-index: 1;
+      will-change: transform, opacity;
     }
-    .rail {
-      border-right: 1px solid var(--line);
-      min-height: 100vh;
-      padding: 18px 14px;
-      position: sticky;
-      top: 0;
-      align-self: start;
-      background: rgba(10,10,10,0.82);
-      backdrop-filter: blur(16px);
-      z-index: 5;
+    .haze.h1 {
+      background:
+        radial-gradient(circle at 30% 40%, rgba(216,173,85,.10), transparent 22%),
+        radial-gradient(circle at 70% 70%, rgba(46,73,122,.12), transparent 24%);
+      transform: translate3d(calc(var(--scroll) * -3vw), calc(var(--scroll) * -8vh), 0);
+      opacity: .9;
     }
-    .rail .seal {
-      align-items: center;
-      border: 1px solid var(--line-strong);
+    .haze.h2 {
+      background:
+        radial-gradient(circle at 50% 30%, rgba(207,77,54,.08), transparent 32%),
+        radial-gradient(circle at 20% 80%, rgba(135,155,112,.06), transparent 30%);
+      transform: translate3d(calc(var(--scroll) * 5vw), calc(var(--scroll) * -16vh), 0);
+      mix-blend-mode: screen;
+    }
+    .haze.h3 {
+      background-image:
+        linear-gradient(rgba(246,236,218,.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(246,236,218,.022) 1px, transparent 1px);
+      background-size: 56px 56px;
+      transform: translate3d(calc(var(--scroll) * -28px), calc(var(--scroll) * -48px), 0);
+      opacity: .55;
+    }
+
+    #grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      mix-blend-mode: soft-light;
+      opacity: .42;
+    }
+
+    .field-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: .58;
+    }
+    .kagami-3d {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: .44;
+      mix-blend-mode: screen;
+    }
+
+    /* Slow drifting orbits behind everything */
+    .camera {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      overflow: hidden;
+    }
+    .orbit {
+      position: absolute;
+      border: 1px solid rgba(216,173,85,.18);
       border-radius: 50%;
-      display: grid;
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 26px;
-      height: 56px;
-      justify-items: center;
-      margin: 0 auto 18px;
-      width: 56px;
-      color: var(--yuri-kagami-accent-hot);
-      box-shadow: inset 0 0 24px rgba(71,192,27,0.12), 0 0 28px rgba(71,192,27,0.16);
+      height: clamp(420px, 64vw, 1100px);
+      width: clamp(420px, 64vw, 1100px);
+      right: -18vw;
+      top: 4vh;
+      transform: translate3d(calc(var(--scroll) * -160px), calc(var(--scroll) * 88px), 0) rotate(calc(var(--scroll) * 90deg));
+      will-change: transform;
     }
-    .rail-label {
-      color: var(--muted);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 10px;
-      line-height: 1.2;
-      margin: 0 auto 26px;
-      text-align: center;
-      writing-mode: vertical-rl;
+    .orbit::before, .orbit::after {
+      content: "";
+      position: absolute;
+      border: 1px solid rgba(246,236,218,.10);
+      border-radius: 50%;
+      inset: 14%;
     }
-    .nav {
-      display: grid;
-      gap: 8px;
+    .orbit::after { border-color: rgba(207,77,54,.18); inset: 30%; }
+    .orbit-b {
+      position: absolute;
+      left: -22vw;
+      bottom: -18vh;
+      width: clamp(380px, 56vw, 920px);
+      height: clamp(380px, 56vw, 920px);
+      border: 1px solid rgba(46,73,122,.22);
+      border-radius: 50%;
+      transform: translate3d(calc(var(--scroll) * 120px), calc(var(--scroll) * -60px), 0) rotate(calc(var(--scroll) * -68deg));
     }
-    .nav a {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      color: var(--muted);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 10px;
-      padding: 7px 0;
-      text-align: center;
-      text-decoration: none;
+    .light-sweep {
+      position: absolute;
+      left: -10vw;
+      top: 34vh;
+      width: 120vw;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(216,173,85,.34), transparent);
+      transform: rotate(-7deg);
+      animation: sweep 11s var(--ease) infinite;
     }
-    .nav a:hover { color: var(--ink); border-color: var(--yuri-kagami-accent-hot); }
+    .light-sweep.alt {
+      animation-delay: -5.2s;
+      top: 72vh;
+      background: linear-gradient(90deg, transparent, rgba(46,73,122,.38), transparent);
+      transform: rotate(6deg);
+    }
+    .light-sweep.alt2 {
+      animation: sweep 17s var(--ease) infinite;
+      animation-delay: -2.4s;
+      top: 50vh;
+      background: linear-gradient(90deg, transparent, rgba(207,77,54,.22), transparent);
+      transform: rotate(-3deg);
+    }
 
-    main {
-      min-width: 0;
-      padding: 28px;
+    .progress {
+      position: fixed;
+      bottom: 28px;
+      left: clamp(24px, 5vw, 76px);
+      right: clamp(24px, 5vw, 76px);
+      height: 1px;
+      background: rgba(246,236,218,.10);
+      z-index: 30;
     }
-    .slide {
-      border-bottom: 1px solid var(--line);
-      min-height: 100vh;
-      padding: 20px 0 34px;
+    .progress span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--vermilion), var(--indigo));
+      box-shadow: 0 0 22px rgba(216,173,85,.48);
+      transform: scaleX(var(--scroll));
+      transform-origin: left;
     }
-    .slide:first-child { padding-top: 0; }
-    .slide-head {
-      align-items: end;
-      display: grid;
-      gap: 18px;
-      grid-template-columns: minmax(0, 1fr) auto;
-      margin-bottom: 18px;
-    }
-    .kicker {
-      color: var(--yuri-kagami-accent-amber);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 11px;
+    .progress-cap {
+      position: fixed;
+      bottom: 22px;
+      left: clamp(24px, 5vw, 76px);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .22em;
+      color: var(--quiet);
       text-transform: uppercase;
+      z-index: 30;
     }
-    h1, h2, h3, p { margin: 0; }
+    .progress-cap b { color: var(--gold); font-weight: 500; margin-right: 10px; }
+    .vert-watermark {
+      position: fixed;
+      top: 32px;
+      left: 20px;
+      color: rgba(246,236,218,.07);
+      font-family: var(--serif);
+      font-size: 14px;
+      letter-spacing: .14em;
+      writing-mode: vertical-rl;
+      pointer-events: none;
+      z-index: 30;
+    }
+    .vert-watermark.right {
+      left: auto;
+      right: 20px;
+      top: auto;
+      bottom: 78px;
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, p { margin: 0; }
     h1 {
-      font-size: clamp(44px, 7vw, 104px);
-      line-height: 0.88;
-      max-width: 980px;
+      font-family: var(--serif);
+      font-weight: 660;
+      font-size: clamp(70px, 10.8vw, 172px);
+      line-height: .86;
+      letter-spacing: -.024em;
+      max-width: 1240px;
     }
     h2 {
-      font-size: clamp(28px, 4vw, 58px);
-      line-height: 0.96;
+      font-family: var(--serif);
+      font-weight: 640;
+      font-size: clamp(38px, 5.25vw, 88px);
+      line-height: .92;
+      letter-spacing: -.012em;
     }
     h3 {
-      font-size: 16px;
-      line-height: 1.15;
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: clamp(24px, 2.4vw, 40px);
+      line-height: .98;
+      letter-spacing: -.012em;
     }
-    .meta {
+    h4 {
+      font-family: var(--serif);
+      font-weight: 580;
+      font-size: clamp(18px, 1.6vw, 26px);
+      line-height: 1.06;
+    }
+    p {
       color: var(--muted);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 11px;
-      line-height: 1.7;
-      text-align: right;
-      white-space: nowrap;
+      font-size: clamp(15px, 1.13vw, 18px);
+      line-height: 1.62;
     }
-    .grid {
-      display: grid;
-      gap: 12px;
+    .ital { font-style: italic; }
+    .small {
+      color: var(--quiet);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      line-height: 1.5;
     }
-    .g-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--yuri-kagami-radius-md);
-      min-width: 0;
-      overflow: hidden;
-      padding: 16px;
-      position: relative;
+    .eyebrow {
+      color: var(--gold);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
-    .panel::before {
-      background: linear-gradient(90deg, var(--yuri-kagami-accent-hot), transparent);
+    .eyebrow::before {
       content: "";
+      display: inline-block;
+      width: 36px;
       height: 1px;
-      left: 0;
-      opacity: 0.55;
+      background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .lead {
+      color: var(--paper);
+      font-family: var(--serif);
+      font-weight: 420;
+      font-size: clamp(21px, 1.85vw, 32px);
+      line-height: 1.18;
+      max-width: 880px;
+      letter-spacing: -.005em;
+    }
+    .vertical-axis {
       position: absolute;
-      top: 0;
+      right: clamp(22px, 4vw, 64px);
+      top: clamp(92px, 9vw, 148px);
+      color: rgba(246,236,218,.28);
+      font-family: var(--serif);
+      font-size: clamp(34px, 4.4vw, 72px);
+      line-height: 1;
+      writing-mode: vertical-rl;
+      letter-spacing: .04em;
+    }
+
+    /* Continuous flow container */
+    .page { position: relative; z-index: 4; }
+    .scene {
+      position: relative;
+      padding: clamp(70px, 7vw, 118px) clamp(28px, 7vw, 118px);
+      min-height: 100svh;
+    }
+    .scene.tall { min-height: 130vh; }
+    .scene.short { min-height: 70vh; }
+
+    /* === ACT 1 · OPENING (typographic full-bleed with sticky mirror) === */
+    .opening {
+      min-height: 100svh;
+      padding-top: clamp(64px, 8vh, 110px);
+      padding-bottom: clamp(56px, 7vh, 96px);
+      overflow: hidden;
+    }
+    .opening-layout {
+      display: grid;
+      grid-template-columns: minmax(0, .96fr) minmax(340px, .84fr);
+      gap: clamp(34px, 5vw, 80px);
+      align-items: center;
+      min-height: calc(100svh - clamp(120px, 15vh, 206px));
+    }
+    .open-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      position: relative;
+      z-index: 2;
+    }
+    .open-copy h1 .ln { display: block; overflow: hidden; }
+    .open-copy h1 .ln em { display: inline-block; font-style: normal; will-change: transform; }
+    .open-copy h1 { font-size: clamp(62px, 8vw, 132px); line-height: .87; }
+    .hero-loop {
+      position: relative;
+      min-height: 142px;
+      width: min(820px, 100%);
+      margin: 2px 0 0;
+      perspective: 900px;
+      transform-style: preserve-3d;
+    }
+    .hero-loop svg {
+      position: absolute;
+      inset: 0;
       width: 100%;
+      height: 100%;
+      overflow: visible;
+      opacity: .78;
+      transform: rotateX(56deg) rotateZ(-4deg) translateY(-8px);
+      transform-origin: center;
     }
-    .hud {
-      background: var(--yuri-hud-bg-glass);
-      border-radius: 4px;
-      font-family: var(--yuri-hud-font-mono);
+    .hero-loop path {
+      fill: none;
+      stroke: url(#heroLoopGrad);
+      stroke-width: 1.4;
+      stroke-dasharray: 5 8;
+      filter: drop-shadow(0 0 8px rgba(216,173,85,.35));
     }
-    .body {
-      color: rgba(245, 247, 238, 0.74);
-      font-size: 14px;
-      line-height: 1.55;
-    }
-    .dense-list {
-      display: grid;
-      gap: 8px;
-      margin-top: 12px;
-    }
-    .dense-list div {
-      border-left: 2px solid rgba(71,192,27,0.55);
-      color: rgba(245, 247, 238, 0.76);
-      font-size: 13px;
-      line-height: 1.38;
-      padding-left: 10px;
-    }
-    .metric {
-      display: grid;
-      gap: 6px;
-    }
-    .metric strong {
-      color: var(--yuri-kagami-accent-hot);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: clamp(28px, 5vw, 58px);
-      line-height: 0.95;
-    }
-    .metric span {
+    .hero-loop .loop-node {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       color: var(--muted);
-      font-family: var(--yuri-kagami-font-mono);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .18em;
+      line-height: 1.35;
+      text-transform: uppercase;
+      white-space: nowrap;
+      transform: translate3d(-50%, -50%, 24px);
+    }
+    .hero-loop .loop-node::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 18px rgba(216,173,85,.7);
+      flex: 0 0 auto;
+    }
+    .loop-node.k-main { left: 50%; top: 50%; color: var(--paper); font-size: 12px; }
+    .loop-node.k-user { left: 6%; top: 48%; }
+    .loop-node.k-advice { left: 34%; top: 8%; color: var(--gold); }
+    .loop-node.k-gate { left: 70%; top: 12%; color: var(--vermilion); }
+    .loop-node.k-memory { left: 88%; top: 54%; }
+    .loop-node.k-response { left: 48%; top: 92%; color: var(--paper); }
+    .open-copy .signature {
+      display: flex;
+      align-items: flex-end;
+      gap: 18px;
+      margin-top: 20px;
+    }
+    .seal-mark {
+      display: grid;
+      place-items: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--vermilion);
+      color: var(--paper);
+      font-family: var(--serif);
+      font-size: 26px;
+      box-shadow: 0 0 0 1px rgba(207,77,54,.4), 0 14px 32px -10px rgba(207,77,54,.5);
+    }
+    .seal-mark.gold { background: transparent; color: var(--gold); border: 1px solid rgba(216,173,85,.4); box-shadow: none; }
+    .open-meta {
+      color: var(--quiet);
+      font-family: var(--mono);
       font-size: 11px;
+      letter-spacing: .14em;
+      line-height: 1.7;
       text-transform: uppercase;
     }
-    .mirror {
-      align-items: center;
-      display: grid;
-      justify-items: center;
-      min-height: 318px;
-    }
-    .mirror-core {
+    .open-meta b { color: var(--paper); font-weight: 500; }
+
+    /* Sticky kagami mirror — orbits its own axis, POV camera fixed */
+    .kagami-stage {
+      position: sticky;
+      top: 6vh;
       aspect-ratio: 1;
-      border: 1px solid var(--line-strong);
+      width: min(39vw, 520px);
+      max-width: 520px;
+      justify-self: center;
+      display: grid;
+      place-items: center;
+      transform-style: preserve-3d;
+      perspective: 1100px;
+    }
+    .kagami-orbit {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(216,173,85,.26);
+      border-radius: 50%;
+    }
+    .kagami-orbit.a { animation: spin 38s linear infinite; }
+    .kagami-orbit.b { inset: 16%; border-color: rgba(46,73,122,.32); animation: spin 56s linear reverse infinite; }
+    .kagami-orbit.c { inset: 32%; border-color: rgba(207,77,54,.32); animation: spin 24s linear infinite; }
+    .kagami-orbit.d { inset: 5%; border-color: rgba(246,236,218,.10); border-style: dashed; animation: spin 96s linear infinite; }
+    .kagami-disk {
+      position: relative;
+      width: 60%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1px solid rgba(216,173,85,.62);
+      background:
+        radial-gradient(circle at 32% 26%, rgba(246,236,218,.96), rgba(216,173,85,.46) 26%, rgba(20,15,12,.92) 66%),
+        conic-gradient(from 220deg, rgba(216,173,85,.26), rgba(207,77,54,.30), rgba(46,73,122,.26), rgba(216,173,85,.26));
+      box-shadow: 0 0 110px rgba(216,173,85,.28), inset 0 0 86px rgba(0,0,0,.62);
+      display: grid;
+      place-items: center;
+      font-family: var(--serif);
+      font-size: clamp(64px, 8.5vw, 144px);
+      color: var(--paper);
+      animation: breathe 6.4s var(--ease) infinite;
+      transform: translateZ(80px);
+      will-change: transform;
+    }
+    .kagami-disk::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(118deg, transparent 18%, rgba(255,255,255,.6), transparent 58%);
+      mix-blend-mode: screen;
+      animation: sheen 5.6s var(--ease) infinite;
+      opacity: .42;
+    }
+    .kagami-ring-text {
+      position: absolute;
+      inset: -4%;
+      animation: spin 60s linear infinite;
+    }
+    .kagami-ring-text text {
+      fill: rgba(246,236,218,.32);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .42em;
+      text-transform: uppercase;
+    }
+
+    /* === ACT 2 · THESIS (vertical rhythm with floating numerals) === */
+    .thesis {
+      padding-top: clamp(56px, 6vw, 92px);
+      padding-bottom: clamp(56px, 7vw, 108px);
+    }
+    .thesis-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .46fr) minmax(0, .54fr);
+      gap: clamp(34px, 5vw, 96px);
+      align-items: center;
+      min-height: calc(100svh - clamp(112px, 13vw, 200px));
+    }
+    .thesis-claim h2 { font-size: clamp(42px, 4.55vw, 80px); max-width: 680px; }
+    .thesis-claim h2 .ln { display: block; overflow: hidden; }
+    .thesis-claim h2 .ln em { display: inline-block; font-style: normal; will-change: transform; }
+    .thesis-rhythm {
+      position: relative;
+      padding-left: 0;
+    }
+    .thesis-rhythm::before {
+      content: "";
+      position: absolute;
+      left: clamp(34px, 4vw, 58px);
+      top: 8%;
+      bottom: 8%;
+      width: 1px;
+      background: linear-gradient(180deg, var(--vermilion), var(--gold), var(--indigo));
+      opacity: .44;
+      box-shadow: 0 0 24px rgba(216,173,85,.24);
+    }
+    .thesis-weave {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      opacity: .48;
+    }
+    .thesis-weave path {
+      fill: none;
+      stroke: rgba(216,173,85,.42);
+      stroke-width: 1;
+      stroke-dasharray: 4 9;
+    }
+    .thesis-weave .scatter { stroke: rgba(207,77,54,.36); }
+    .thesis-weave .reflect { stroke: rgba(46,73,122,.38); }
+    .turn {
+      position: relative;
+      padding: clamp(22px, 3vh, 38px) 0 clamp(22px, 3vh, 38px) clamp(76px, 8vw, 122px);
+      border-top: 1px solid transparent;
+    }
+    .turn::before {
+      content: "";
+      position: absolute;
+      left: clamp(29px, 4vw, 53px);
+      top: 50%;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 22px rgba(216,173,85,.64);
+      transform: translate(-50%, -50%);
+    }
+    .turn + .turn { border-top: 1px solid var(--line); }
+    .turn-num {
+      position: absolute;
+      left: 0;
+      top: clamp(8px, 1vw, 18px);
+      font-family: var(--serif);
+      font-weight: 660;
+      font-size: clamp(56px, 6.8vw, 96px);
+      line-height: .72;
+      color: rgba(246,236,218,.08);
+      letter-spacing: -.04em;
+      user-select: none;
+    }
+    .turn-num .dot { color: var(--gold); }
+    .turn-label {
+      display: block;
+      color: var(--gold);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .turn h3 { margin-bottom: 14px; }
+    .turn p { max-width: 540px; }
+    .turn-line {
+      position: absolute;
+      left: clamp(76px, 8vw, 122px);
+      bottom: 0;
+      width: 22%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--goldlow), transparent);
+    }
+
+    /* === ACT 3 · IMPACT (replaces weak proof ledger with the actual story) === */
+    .impact {
+      min-height: 100svh;
+      padding-top: clamp(64px, 7vw, 112px);
+      padding-bottom: clamp(70px, 8vw, 120px);
+      overflow: hidden;
+    }
+    .impact-layout {
+      min-height: calc(100svh - clamp(134px, 15vw, 232px));
+      display: grid;
+      grid-template-columns: minmax(0, .44fr) minmax(0, .56fr);
+      gap: clamp(40px, 6vw, 108px);
+      align-items: center;
+      position: relative;
+    }
+    .impact-title h2 {
+      font-size: clamp(44px, 4.8vw, 82px);
+      max-width: 760px;
+    }
+    .impact-title p {
+      max-width: 520px;
+      margin-top: 28px;
+    }
+    .impact-flow {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(22px, 3vw, 44px);
+      align-items: end;
+    }
+    .impact-flow::before {
+      content: "";
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 45%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--vermilion), var(--gold), var(--indigo));
+      opacity: .42;
+      transform: rotate(-3deg);
+    }
+    .impact-beat {
+      position: relative;
+      min-height: 330px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-bottom: 20px;
+    }
+    .impact-beat:nth-child(2) { transform: translateY(-44px); }
+    .impact-beat:nth-child(3) { transform: translateY(22px); }
+    .impact-no {
+      font-family: var(--serif);
+      font-size: clamp(82px, 10vw, 150px);
+      line-height: .78;
+      color: rgba(246,236,218,.10);
+      letter-spacing: -.05em;
+      margin-bottom: 20px;
+    }
+    .impact-beat .small {
+      color: var(--gold);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .impact-beat h3 {
+      max-width: 300px;
+      margin-bottom: 12px;
+    }
+    .impact-beat p {
+      max-width: 320px;
+      font-size: clamp(14px, 1vw, 16px);
+      line-height: 1.55;
+    }
+    .impact-kanji {
+      position: absolute;
+      right: -1vw;
+      top: -4vh;
+      font-family: var(--serif);
+      font-size: clamp(110px, 16vw, 250px);
+      color: rgba(246,236,218,.045);
+      pointer-events: none;
+      writing-mode: vertical-rl;
+    }
+    .impact-map {
+      position: relative;
+      min-height: min(70vh, 680px);
+      perspective: 1200px;
+      transform-style: preserve-3d;
+    }
+    .impact-map svg.flow-lines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      transform: rotateX(58deg) rotateZ(-6deg) translateY(20px);
+      transform-origin: center;
+      opacity: .76;
+    }
+    .impact-map path,
+    .impact-map polyline,
+    .impact-map line {
+      fill: none;
+      stroke: url(#impactGrad);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 9px rgba(216,173,85,.22));
+    }
+    .impact-map .rail-dash { stroke-dasharray: 7 11; opacity: .5; }
+    .impact-center {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      width: clamp(118px, 15vw, 190px);
+      aspect-ratio: 1;
       border-radius: 50%;
       display: grid;
       place-items: center;
-      position: relative;
-      width: min(260px, 80%);
+      transform: translate(-50%, -50%) translateZ(90px);
+      background:
+        radial-gradient(circle at 34% 26%, rgba(246,236,218,.95), rgba(216,173,85,.44) 27%, rgba(12,10,9,.88) 68%),
+        conic-gradient(from 180deg, rgba(216,173,85,.28), rgba(46,73,122,.22), rgba(207,77,54,.25), rgba(216,173,85,.28));
+      border: 1px solid rgba(216,173,85,.62);
+      box-shadow: 0 0 70px rgba(216,173,85,.23), inset 0 0 62px rgba(0,0,0,.58);
+      color: var(--paper);
+      font-family: var(--serif);
+      font-size: clamp(52px, 7vw, 96px);
     }
-    .mirror-core::before, .mirror-core::after {
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 50%;
-      content: "";
-      inset: 18px;
+    .impact-node {
       position: absolute;
+      max-width: 230px;
+      transform: translate(-50%, -50%);
     }
-    .mirror-core::after {
-      inset: 42px;
-      border-color: rgba(71,192,27,0.38);
-      box-shadow: 0 0 60px rgba(71,192,27,0.14);
-    }
-    .mirror-core span {
-      color: var(--yuri-kagami-accent-hot);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 56px;
-      z-index: 1;
-    }
-    .wave-grid {
-      display: grid;
-      gap: 10px;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-    .wave {
-      background: rgba(255,255,255,0.035);
-      border: 1px solid var(--line);
-      border-radius: var(--yuri-kagami-radius-sm);
-      display: grid;
-      gap: 10px;
-      min-height: 128px;
-      padding: 12px;
-    }
-    .wave .id {
-      color: var(--yuri-kagami-accent-cold);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 11px;
-    }
-    .wave .status {
-      align-self: end;
-      border: 1px solid currentColor;
-      border-radius: 999px;
-      color: var(--pass);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 10px;
-      justify-self: start;
-      padding: 4px 8px;
-    }
-    .wave.warn .status { color: var(--warn); }
-    .compare {
-      display: grid;
-      gap: 12px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .compare h3 {
-      color: var(--yuri-kagami-accent-amber);
+    .impact-node::before {
+      content: "";
+      display: block;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
       margin-bottom: 12px;
+      background: var(--gold);
+      box-shadow: 0 0 18px rgba(216,173,85,.68);
     }
-    .compare .line {
+    .impact-node h3 { font-size: clamp(22px, 2.2vw, 36px); margin-bottom: 8px; }
+    .impact-node p { font-size: clamp(13px, .95vw, 15px); line-height: 1.45; }
+    .impact-node .small { color: var(--gold); margin-bottom: 8px; display: block; }
+    .impact-node.user { left: 7%; top: 52%; }
+    .impact-node.advisors { left: 33%; top: 12%; }
+    .impact-node.gate { left: 72%; top: 14%; }
+    .impact-node.memory { left: 92%; top: 54%; }
+    .impact-node.response { left: 48%; top: 91%; }
+    .gate-stack {
+      position: absolute;
+      right: 4%;
+      bottom: 9%;
+      width: min(25vw, 280px);
+      height: min(25vw, 280px);
+      transform: rotateX(63deg) rotateZ(16deg);
+      transform-style: preserve-3d;
+      opacity: .82;
+    }
+    .gate-stack span {
+      position: absolute;
+      inset: calc(var(--i) * 13%);
+      border: 1px solid rgba(216,173,85,.23);
+      border-radius: 50%;
+      box-shadow: 0 0 24px rgba(216,173,85,.08);
+    }
+
+    /* === ACT 4 · CHANGE (split-river with morphing giant word) === */
+    .change {
+      min-height: 110vh;
+      padding-top: clamp(80px, 9vw, 140px);
+      overflow: hidden;
+      position: relative;
+    }
+    .change-headline {
+      max-width: 880px;
+      margin-bottom: clamp(60px, 8vw, 110px);
+    }
+    .river {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(80px, 14vw) minmax(0, 1fr);
+      gap: clamp(22px, 3vw, 50px);
       align-items: start;
-      border-top: 1px solid var(--line);
+      min-height: 50vh;
+    }
+    .river-side {
+      position: relative;
+      padding-top: 12px;
+    }
+    .river-side.left { text-align: left; }
+    .river-side.right { padding-top: clamp(60px, 10vh, 140px); }
+    .river-side h3 { margin-bottom: 16px; color: var(--paper); }
+    .river-side p { max-width: 380px; }
+    .river-side .eyebrow { margin-bottom: 22px; }
+    .river-side.right .eyebrow { color: var(--vermilion); }
+    .river-side.right .eyebrow::before { background: linear-gradient(90deg, var(--vermilion), transparent); }
+    .river-bridge {
+      position: relative;
       display: grid;
-      gap: 12px;
-      grid-template-columns: 118px minmax(0, 1fr);
-      padding: 10px 0;
+      place-items: center;
+      min-height: 280px;
     }
-    .tag {
-      color: var(--muted);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 10px;
-      text-transform: uppercase;
+    .river-bridge svg {
+      width: 100%;
+      height: 320px;
+      overflow: visible;
     }
-    .matrix {
+    .river-bridge path {
+      fill: none;
+      stroke: url(#riverGrad);
+      stroke-width: 1.5;
+      opacity: .65;
+    }
+    .river-giant {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--serif);
+      font-weight: 660;
+      font-size: clamp(110px, 18vw, 280px);
+      line-height: 1;
+      color: rgba(246,236,218,.06);
+      letter-spacing: -.045em;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: -1;
+      will-change: transform, letter-spacing;
+    }
+    .river-axis {
+      position: absolute;
+      right: 0;
+      bottom: -2vh;
+      writing-mode: vertical-rl;
+      font-family: var(--serif);
+      font-size: clamp(48px, 6vw, 96px);
+      color: rgba(246,236,218,.10);
+      letter-spacing: .04em;
+    }
+
+    /* === ACT 5 · SYSTEM (orbital constellation, no cards) === */
+    .system {
+      min-height: 100svh;
+      padding-top: clamp(56px, 6vw, 90px);
+      padding-bottom: clamp(56px, 6vw, 90px);
+      overflow: hidden;
+      position: relative;
+    }
+    .system::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 70% 50%, rgba(216,173,85,.16), transparent 38%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .system-inner {
+      position: relative;
+      z-index: 1;
+      min-height: calc(100svh - clamp(112px, 12vw, 180px));
       display: grid;
-      gap: 8px;
-      grid-template-columns: 1fr 1fr 1fr;
-    }
-    .matrix .cell {
-      background: rgba(255,255,255,0.035);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      min-height: 96px;
-      padding: 12px;
-    }
-    .cell strong {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-    .cell span {
-      color: var(--muted);
-      display: block;
-      font-size: 12px;
-      line-height: 1.35;
-    }
-    .roadmap {
-      display: grid;
-      gap: 10px;
-    }
-    .roadmap .step {
+      grid-template-columns: minmax(0, .36fr) minmax(0, .64fr);
+      gap: clamp(36px, 5vw, 86px);
       align-items: center;
-      border: 1px solid var(--line);
-      border-radius: var(--yuri-kagami-radius-sm);
+    }
+    .system-headline {
+      max-width: 620px;
+      margin-bottom: 0;
+    }
+    .system-headline h2 { font-size: clamp(42px, 4.35vw, 76px); }
+    .constellation {
+      position: relative;
+      aspect-ratio: 1.6;
+      min-height: min(62vh, 620px);
+    }
+    .constellation svg.lines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .constellation svg.lines line {
+      stroke: rgba(216,173,85,.22);
+      stroke-width: 1;
+      stroke-dasharray: 3 6;
+    }
+    .constellation::before, .constellation::after {
+      content: "";
+      position: absolute;
+      border: 1px solid rgba(216,173,85,.16);
+      border-radius: 50%;
+      inset: 8% 18%;
+      animation: spin 96s linear infinite;
+    }
+    .constellation::after {
+      border-color: rgba(246,236,218,.08);
+      inset: 24% 32%;
+      animation-direction: reverse;
+      animation-duration: 72s;
+    }
+    .node {
+      position: absolute;
+      text-align: center;
+      width: min(22vw, 240px);
+    }
+    .node h3 { margin-bottom: 8px; }
+    .node p { font-size: 13.5px; color: var(--muted); max-width: 200px; margin: 0 auto; }
+    .node .small { color: var(--gold); margin-bottom: 8px; display: block; }
+    .node.center {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(24vw, 280px);
+    }
+    .node.center h3 {
+      color: var(--gold);
+      font-family: var(--serif);
+      font-size: clamp(42px, 4.8vw, 78px);
+      letter-spacing: -.02em;
+      line-height: .9;
+    }
+    .node.n1 { left: 3%; top: 4%; }
+    .node.n2 { right: 3%; top: 5%; }
+    .node.n3 { bottom: 3%; left: 10%; }
+    .node.n4 { bottom: 2%; right: 8%; }
+    .node-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 18px rgba(216,173,85,.7);
+      margin: 0 auto 14px;
+    }
+
+    /* === ACT 6 · ROAD (eight waves as one continuous path) === */
+    .road {
+      min-height: 180vh;
+      position: relative;
+      padding-top: clamp(72px, 7vw, 112px);
+      padding-bottom: clamp(96px, 10vw, 150px);
+      overflow: hidden;
+    }
+    .road-pin {
+      position: relative;
+      min-height: auto;
+    }
+    .road-headline {
+      max-width: 720px;
+      margin-bottom: clamp(18px, 3vw, 38px);
+    }
+    .road-headline h2 { font-size: clamp(42px, 4.7vw, 78px); }
+    .road-stage {
+      position: relative;
       display: grid;
-      gap: 12px;
-      grid-template-columns: 72px minmax(0, 1fr) 120px;
-      padding: 12px;
+      grid-template-columns: minmax(260px, .30fr) minmax(0, .70fr);
+      gap: clamp(28px, 4vw, 72px);
+      min-height: 1080px;
     }
-    .step .num {
-      color: var(--yuri-kagami-accent-cold);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 20px;
+    .road-svg-wrap {
+      position: relative;
+      min-height: 1100px;
     }
-    .step .owner {
-      color: var(--muted);
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 11px;
-      text-align: right;
+    .road-svg-wrap svg {
+      position: absolute;
+      top: -42px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(34vw, 420px);
+      height: calc(100% + 96px);
+      overflow: visible;
     }
-    .footer-seal {
-      align-items: center;
-      color: var(--muted);
+    .road-svg-wrap path.spine {
+      fill: none;
+      stroke: url(#spineGrad);
+      stroke-width: 1.6;
+      opacity: .8;
+    }
+    .road-svg-wrap circle.dot {
+      fill: var(--gold);
+      filter: drop-shadow(0 0 6px rgba(216,173,85,.8));
+    }
+    .road-current {
+      position: sticky;
+      top: 12vh;
+      align-self: start;
       display: flex;
-      font-family: var(--yuri-kagami-font-mono);
-      font-size: 11px;
-      gap: 10px;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .road-current .small { color: var(--gold); }
+    .road-current .wave-no {
+      font-family: var(--serif);
+      font-size: clamp(70px, 10vw, 150px);
+      line-height: .8;
+      letter-spacing: -.05em;
+      color: var(--paper);
+      font-weight: 660;
+    }
+    .road-current h3 { font-size: clamp(28px, 3vw, 44px); color: var(--ink); }
+    .road-current p { max-width: 460px; }
+    .road-current .wave-axis {
+      writing-mode: vertical-rl;
+      font-family: var(--serif);
+      color: rgba(246,236,218,.20);
+      font-size: clamp(28px, 3.4vw, 52px);
+      letter-spacing: .04em;
       margin-top: 18px;
     }
-    .span-3 { grid-column: span 3; }
-    .span-4 { grid-column: span 4; }
-    .span-5 { grid-column: span 5; }
-    .span-6 { grid-column: span 6; }
-    .span-7 { grid-column: span 7; }
-    .span-8 { grid-column: span 8; }
-    .span-12 { grid-column: 1 / -1; }
+    .road-steps {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(24px, 4.8vh, 58px);
+      padding-top: 0;
+    }
+    .road-step {
+      position: relative;
+      padding-left: clamp(56px, 8vw, 110px);
+      min-height: 80px;
+      max-width: 540px;
+    }
+    .road-step:nth-child(even) { margin-left: auto; }
+    .road-step .glyph {
+      position: absolute;
+      left: 0;
+      top: -.18em;
+      font-family: var(--serif);
+      font-weight: 660;
+      font-size: clamp(60px, 8vw, 108px);
+      line-height: .72;
+      letter-spacing: -.04em;
+      color: rgba(246,236,218,.12);
+    }
+    .road-step.active .glyph { color: var(--gold); }
+    .road-step .label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .22em;
+      color: var(--quiet);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .road-step.active .label { color: var(--vermilion); }
+    .road-step h3 { margin-bottom: 8px; }
+    .road-step p { font-size: 14.5px; }
 
-    @media (max-width: 980px) {
-      .deck { grid-template-columns: 1fr; }
-      .rail {
-        display: flex;
-        min-height: auto;
-        overflow-x: auto;
-        position: static;
-      }
-      .rail-label { writing-mode: horizontal-tb; margin: 0 12px 0 0; }
-      .nav { display: flex; }
-      .nav a { min-width: 44px; padding: 7px 10px; }
-      main { padding: 18px; }
-      .g-12, .compare, .matrix, .wave-grid { grid-template-columns: 1fr; }
-      .span-3, .span-4, .span-5, .span-6, .span-7, .span-8 { grid-column: 1; }
-      .slide { min-height: auto; }
-      .slide-head { grid-template-columns: 1fr; }
-      .meta { text-align: left; white-space: normal; }
-      .roadmap .step { grid-template-columns: 52px 1fr; }
-      .step .owner { grid-column: 2; text-align: left; }
+    /* === ACT 7 · LESSON (failure-to-structure conversion map) === */
+    .lesson {
+      min-height: 100svh;
+      padding-top: clamp(62px, 6vw, 96px);
+      padding-bottom: clamp(62px, 7vw, 108px);
+      overflow: hidden;
+      display: grid;
+      align-items: center;
+    }
+    .lesson-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, .50fr) minmax(0, .50fr);
+      gap: clamp(36px, 6vw, 108px);
+      align-items: center;
+      min-height: calc(100svh - clamp(124px, 13vw, 204px));
+    }
+    .lesson-quote {
+      position: relative;
+      max-width: none;
+      padding: 0;
+    }
+    .lesson-quote .open-q {
+      position: absolute;
+      left: 0;
+      top: -.32em;
+      font-family: var(--serif);
+      font-size: clamp(120px, 18vw, 240px);
+      line-height: 1;
+      color: var(--vermilion);
+      opacity: .42;
+      pointer-events: none;
+    }
+    .lesson-quote h2 {
+      font-style: italic;
+      font-weight: 460;
+      max-width: 760px;
+      font-size: clamp(42px, 4.4vw, 76px);
+    }
+    .lesson-quote h2 .ln { display: block; overflow: hidden; }
+    .lesson-quote h2 em { font-style: italic; display: inline-block; will-change: transform; }
+    .lesson-attrib {
+      margin-top: 38px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .lesson-attrib .small { color: var(--quiet); }
+    .lesson-attrib .small b { color: var(--gold); font-weight: 500; }
+    .lesson-attrib .dash { width: 48px; height: 1px; background: var(--gold); }
+    .failure-map {
+      position: relative;
+      min-height: min(62vh, 640px);
+      perspective: 1000px;
+    }
+    .failure-map svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      opacity: .72;
+      transform: rotateX(54deg) rotateZ(-3deg);
+      transform-origin: center;
+    }
+    .failure-map path {
+      fill: none;
+      stroke: url(#failureGrad);
+      stroke-width: 1.4;
+      stroke-dasharray: 8 10;
+      filter: drop-shadow(0 0 8px rgba(216,173,85,.25));
+    }
+    .failure-pair {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: min(28vw, 280px);
+    }
+    .failure-pair b,
+    .failure-pair span {
+      display: block;
+      line-height: 1.25;
+    }
+    .failure-pair b {
+      color: rgba(246,236,218,.52);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .failure-pair span {
+      color: var(--paper);
+      font-family: var(--serif);
+      font-size: clamp(22px, 2.3vw, 38px);
+    }
+    .failure-pair::before {
+      content: "";
+      display: block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 18px rgba(216,173,85,.72);
+      margin-bottom: 16px;
+    }
+    .failure-pair.p1 { left: 18%; top: 18%; }
+    .failure-pair.p2 { left: 78%; top: 22%; }
+    .failure-pair.p3 { left: 28%; top: 76%; }
+    .failure-pair.p4 { left: 78%; top: 76%; }
+    .failure-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: clamp(116px, 13vw, 180px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      transform: translate(-50%, -50%) rotateX(18deg);
+      border: 1px solid rgba(216,173,85,.42);
+      background: radial-gradient(circle at 40% 32%, rgba(246,236,218,.52), rgba(216,173,85,.20) 28%, rgba(8,7,8,.46) 66%);
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      text-align: center;
+      box-shadow: 0 0 52px rgba(216,173,85,.16);
     }
 
+    /* === ACT 8 · NEXT (editorial three-beat, no boxes) === */
+    .next {
+      min-height: 100vh;
+      padding-top: clamp(80px, 9vw, 140px);
+      padding-bottom: clamp(80px, 9vw, 140px);
+    }
+    .next-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .42fr) minmax(0, .58fr);
+      gap: clamp(36px, 6vw, 120px);
+      align-items: start;
+    }
+    .next-claim { position: sticky; top: 14vh; align-self: start; }
+    .next-claim h2 { margin-bottom: 28px; }
+    .next-beats {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(60px, 9vh, 120px);
+    }
+    .beat {
+      position: relative;
+      padding-left: 0;
+    }
+    .beat-num {
+      font-family: var(--serif);
+      font-weight: 660;
+      font-size: clamp(56px, 8vw, 120px);
+      line-height: .8;
+      letter-spacing: -.04em;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .beat-num .slash { color: rgba(246,236,218,.18); font-size: .6em; vertical-align: 0.18em; }
+    .beat .small { color: var(--vermilion); display: block; margin-bottom: 16px; }
+    .beat h3 { margin-bottom: 14px; }
+    .beat p { max-width: 520px; }
+    .beat-rule {
+      margin-top: 28px;
+      width: 60%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--goldlow), transparent);
+    }
+
+    /* === ACT 9 · CLOSE (cinematic closing, mirror seal) === */
+    .closing {
+      min-height: 100vh;
+      padding-top: clamp(100px, 12vw, 180px);
+      padding-bottom: clamp(120px, 14vw, 200px);
+      position: relative;
+      overflow: hidden;
+    }
+    .closing::before {
+      content: "";
+      position: absolute;
+      right: 4vw;
+      top: 8vh;
+      width: min(58vw, 760px);
+      height: min(58vw, 760px);
+      border-radius: 50%;
+      border: 1px solid rgba(216,173,85,.24);
+      pointer-events: none;
+      z-index: -1;
+      animation: spin 120s linear infinite;
+    }
+    .closing::after {
+      content: "";
+      position: absolute;
+      right: calc(4vw + 8%);
+      top: calc(8vh + 8%);
+      width: min(48vw, 620px);
+      height: min(48vw, 620px);
+      border-radius: 50%;
+      border: 1px dashed rgba(46,73,122,.34);
+      pointer-events: none;
+      z-index: -1;
+      animation: spin 180s linear reverse infinite;
+    }
+    .closing-statement {
+      max-width: 1280px;
+    }
+    .closing-statement p {
+      color: var(--paper);
+      font-family: var(--serif);
+      font-weight: 420;
+      font-size: clamp(40px, 7vw, 108px);
+      line-height: .94;
+      letter-spacing: -.018em;
+    }
+    .closing-statement p em {
+      font-style: normal;
+      color: var(--gold);
+    }
+    .closing-statement p .glow {
+      background: linear-gradient(90deg, var(--gold), var(--vermilion));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .closing-sign {
+      margin-top: clamp(60px, 9vw, 110px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 36px;
+      flex-wrap: wrap;
+    }
+    .closing-sign .small { line-height: 1.7; }
+    .closing-sign .small b { color: var(--paper); font-weight: 500; }
+    .closing-coord {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Reveal primitives */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 1s var(--ease), transform 1s var(--ease); }
+    .in-view .reveal { opacity: 1; transform: translateY(0); }
+    .d1 { transition-delay: .07s; }
+    .d2 { transition-delay: .15s; }
+    .d3 { transition-delay: .24s; }
+    .d4 { transition-delay: .33s; }
+    .d5 { transition-delay: .42s; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes sweep {
+      0%, 100% { opacity: 0; transform: translateX(-20%) rotate(-7deg); }
+      45% { opacity: 1; transform: translateX(14%) rotate(8deg); }
+      72% { opacity: 0; transform: translateX(28%) rotate(12deg); }
+    }
+    @keyframes sheen {
+      0%, 65%, 100% { transform: translateX(-120%) rotate(20deg); }
+      32% { transform: translateX(120%) rotate(20deg); }
+    }
+    @keyframes breathe {
+      0%, 100% { transform: translateZ(80px) scale(1); }
+      50% { transform: translateZ(102px) scale(1.025); }
+    }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      .kagami-disk, .haze, .orbit, .orbit-b, .light-sweep { transform: none !important; }
+    }
+
+    @media (min-width: 861px) and (max-height: 980px) {
+      .scene { padding-top: clamp(52px, 6vh, 76px); padding-bottom: clamp(48px, 6vh, 76px); }
+      .opening { padding-top: clamp(50px, 6vh, 74px); padding-bottom: clamp(42px, 5vh, 64px); }
+      .opening-layout {
+        min-height: calc(100svh - 116px);
+        grid-template-columns: minmax(0, .92fr) minmax(300px, .74fr);
+        gap: clamp(28px, 4vw, 60px);
+      }
+      .open-copy { gap: 18px; }
+      .open-copy h1 { font-size: clamp(58px, 7.2vw, 112px); line-height: .86; }
+      .lead { font-size: clamp(18px, 1.45vw, 24px); max-width: 720px; line-height: 1.16; }
+      .hero-loop { min-height: 112px; width: min(650px, 100%); }
+      .open-copy .signature { margin-top: 2px; }
+      .seal-mark { width: 52px; height: 52px; font-size: 22px; }
+      .open-meta { font-size: 9.5px; line-height: 1.55; }
+      .kagami-stage { width: min(34vw, 420px); top: 4vh; }
+      .kagami-disk { font-size: clamp(52px, 7vw, 104px); }
+      .kagami-ring-text text { font-size: 8px; }
+    }
+
+    @media (min-width: 2100px) {
+      .scene { padding-left: clamp(112px, 8vw, 190px); padding-right: clamp(112px, 8vw, 190px); }
+      .opening-layout {
+        grid-template-columns: minmax(0, .82fr) minmax(520px, .78fr);
+        gap: clamp(80px, 8vw, 180px);
+      }
+      .open-copy h1 { font-size: clamp(108px, 7vw, 172px); }
+      .lead { max-width: 1080px; font-size: clamp(28px, 1.65vw, 42px); }
+      .hero-loop { min-height: 230px; width: min(1060px, 100%); }
+      .hero-loop .loop-node { font-size: 12px; }
+      .loop-node.k-main { font-size: 14px; }
+      .kagami-stage { width: min(34vw, 760px); max-width: 760px; }
+      .impact-map { min-height: min(74vh, 860px); }
+      .impact-node { max-width: 310px; }
+      .impact-node h3 { font-size: clamp(32px, 1.9vw, 52px); }
+      .impact-node p { font-size: clamp(16px, .9vw, 20px); }
+      .failure-map { min-height: min(70vh, 780px); }
+      .failure-pair { width: min(24vw, 360px); }
+      .failure-pair span { font-size: clamp(34px, 1.8vw, 54px); }
+      .road-stage { grid-template-columns: minmax(360px, .28fr) minmax(0, .72fr); min-height: 1320px; }
+      .road-svg-wrap { min-height: 1320px; }
+      .road-svg-wrap svg { width: min(28vw, 560px); }
+    }
+
+    @media (max-width: 1100px) {
+      .opening-layout { grid-template-columns: minmax(0, 1fr) minmax(220px, .68fr); }
+      .thesis-grid, .impact-layout, .road-stage, .next-grid, .lesson-grid { gap: clamp(28px, 4vw, 60px); }
+      .hero-loop { min-height: 150px; }
+      .road-svg-wrap svg { width: min(46vw, 380px); }
+      .impact-node { max-width: 200px; }
+    }
+    @media (max-width: 860px) {
+      .scene { padding: 80px 22px; min-height: auto; }
+      .opening { min-height: auto; padding-top: 110px; }
+      .opening-layout { grid-template-columns: 1fr; gap: 50px; }
+      .hero-loop { min-height: 260px; }
+      .hero-loop svg { transform: none; }
+      .hero-loop .loop-node { transform: translate(-50%, -50%); white-space: normal; width: 130px; }
+      .kagami-stage { position: relative; top: auto; width: 78vw; max-width: 420px; justify-self: start; }
+      .vertical-axis { display: none; }
+      .vert-watermark { display: none; }
+      .thesis-grid, .impact-layout, .next-grid, .road-stage, .lesson-grid { grid-template-columns: 1fr; }
+      .turn { padding-left: 56px; }
+      .turn-num { font-size: 58px; }
+      .thesis-rhythm::before { left: 23px; }
+      .turn::before { left: 23px; }
+      .impact-map { min-height: 680px; }
+      .impact-map svg.flow-lines { transform: none; opacity: .46; }
+      .impact-center { left: 50%; top: 48%; }
+      .impact-node { max-width: 210px; }
+      .impact-node.user { left: 13%; top: 24%; }
+      .impact-node.advisors { left: 72%; top: 21%; }
+      .impact-node.gate { left: 78%; top: 47%; }
+      .impact-node.memory { left: 68%; top: 76%; }
+      .impact-node.response { left: 22%; top: 76%; }
+      .gate-stack { width: 220px; height: 220px; right: 0; bottom: 16%; }
+      .river { grid-template-columns: 1fr; }
+      .river-bridge { min-height: 90px; transform: rotate(90deg); }
+      .river-side.right { padding-top: 0; }
+      .river-giant { font-size: clamp(80px, 24vw, 160px); }
+      .constellation { aspect-ratio: auto; min-height: 0; display: grid; gap: 28px; }
+      .constellation::before, .constellation::after, .constellation svg.lines { display: none; }
+      .node, .node.center, .node.n1, .node.n2, .node.n3, .node.n4 {
+        position: relative; inset: auto; transform: none; width: auto; text-align: left;
+      }
+      .node p { margin: 0; }
+      .road { min-height: auto; }
+      .road-pin { min-height: auto; }
+      .road-current { position: relative; top: auto; }
+      .road-svg-wrap { display: none; }
+      .road-stage { gap: 30px; }
+      .road-step, .road-step:nth-child(even) { margin-left: 0; max-width: none; padding-left: 56px; }
+      .road-step .glyph { font-size: 58px; }
+      .lesson-quote { padding: 0 14px; }
+      .lesson-quote .open-q { font-size: 80px; top: -.2em; }
+      .failure-map { min-height: 620px; }
+      .failure-map svg { transform: none; opacity: .46; }
+      .failure-pair { width: 220px; }
+      .failure-pair.p1 { left: 24%; top: 18%; }
+      .failure-pair.p2 { left: 76%; top: 22%; }
+      .failure-pair.p3 { left: 25%; top: 76%; }
+      .failure-pair.p4 { left: 76%; top: 78%; }
+      .next-claim { position: relative; top: auto; }
+      .closing::before, .closing::after { display: none; }
+      .closing-statement p { font-size: clamp(34px, 9vw, 60px); }
+      .progress { left: 16px; right: 16px; bottom: 22px; }
+      .progress-cap { left: 16px; bottom: 14px; }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 </head>
 <body>
-  <div class="deck">
-    <aside class="rail" aria-label="Presentation navigation">
-      <div class="seal">鏡</div>
-      <div class="rail-label">YURI OS · LOGBOOK · 2026</div>
-      <nav class="nav">
-        <a href="#s0">00</a>
-        <a href="#s1">01</a>
-        <a href="#s2">02</a>
-        <a href="#s3">03</a>
-        <a href="#s4">04</a>
-        <a href="#s5">05</a>
-      </nav>
-    </aside>
-    <main>
-      <section class="slide" id="s0">
-        <div class="slide-head">
-          <div>
-            <div class="kicker">神鏡 · Kagami report package</div>
-            <h1>YURI OS Supercharge Logbook</h1>
-          </div>
-          <div class="meta">
-            Claudio / Mike briefing<br>
-            generated 2026-05-21<br>
-            release gate: PASS
-          </div>
-        </div>
-        <div class="grid g-12">
-          <div class="panel mirror span-5">
-            <div class="mirror-core"><span>結</span></div>
-          </div>
-          <div class="panel span-7">
-            <h2>Before: scattered power. After: control plane.</h2>
-            <div class="dense-list">
-              <div>Rick stopped being a terminal facelift and became the operator-facing harness.</div>
-              <div>Shintai moved from guessed squads to Codex-assembled advisory operations with evidence gates.</div>
-              <div>NIM lanes stopped being folklore: live/dead truth moved into lane kernel and release evidence.</div>
-              <div>Guardrails became deterministic code paths inspired by NeMo, not prompt slogans.</div>
-              <div>Memory and automation now have YURI-owned contracts and release-gate proof.</div>
-            </div>
-          </div>
-          <div class="panel hud span-3 metric"><strong>8</strong><span>implementation waves</span></div>
-          <div class="panel hud span-3 metric"><strong>7/8</strong><span>pass, one tracked warn</span></div>
-          <div class="panel hud span-3 metric"><strong>0</strong><span>active Amp routes</span></div>
-          <div class="panel hud span-3 metric"><strong>1</strong><span>release command</span></div>
-        </div>
-      </section>
+  <!-- Atmospheric depth layers (3 independent parallax planes) -->
+  <div class="haze h1" aria-hidden="true"></div>
+  <div class="haze h2" aria-hidden="true"></div>
+  <div class="haze h3" aria-hidden="true"></div>
+  <canvas class="field-canvas" id="field" aria-hidden="true"></canvas>
+  <canvas class="kagami-3d" id="kagami3d" aria-hidden="true"></canvas>
 
-      <section class="slide" id="s1">
-        <div class="slide-head">
-          <div>
-            <div class="kicker">Before / After · 構造</div>
-            <h2>Functionality changed at the ownership layer.</h2>
-          </div>
-          <div class="meta">source: supercharge final report<br>status: committed baseline</div>
-        </div>
-        <div class="compare">
-          <div class="panel">
-            <h3>Before</h3>
-            <div class="line"><span class="tag">lanes</span><p class="body">Scattered model references across scripts, roster, shell routes, and docs.</p></div>
-            <div class="line"><span class="tag">shintai</span><p class="body">Could look Rick-owned or self-selected; easy to invent squads or stale policy.</p></div>
-            <div class="line"><span class="tag">terminal</span><p class="body">Long turns blanked the chat or corrupted output placement.</p></div>
-            <div class="line"><span class="tag">memory</span><p class="body">Claude-coupled assumptions mixed with YURI runtime memory and lane sessions.</p></div>
-            <div class="line"><span class="tag">automation</span><p class="body">Health existed, but stale files, daemon liveness, and schedule state were blurred.</p></div>
-          </div>
-          <div class="panel">
-            <h3>After</h3>
-            <div class="line"><span class="tag">lanes</span><p class="body">Lane kernel is canonical; active/dead NIM status is explicit and tested.</p></div>
-            <div class="line"><span class="tag">shintai</span><p class="body">Codex/main assembles task-fit advisors through Gate 0 and health preflight.</p></div>
-            <div class="line"><span class="tag">terminal</span><p class="body">Rick uses fixed-bottom input, serialized writer, `/goal`, and release evidence.</p></div>
-            <div class="line"><span class="tag">memory</span><p class="body">YURI memory kernel owns recall/write proposal/promotion boundaries.</p></div>
-            <div class="line"><span class="tag">automation</span><p class="body">Health repair spine exists; command center now separates process, log, state, and schedule truth.</p></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="slide" id="s2">
-        <div class="slide-head">
-          <div>
-            <div class="kicker">Eight waves · 八相</div>
-            <h2>Roadmap executed as a staged control-plane build.</h2>
-          </div>
-          <div class="meta">Wave 2 remains WARN<br>retrieval/output proof tracked</div>
-        </div>
-        <div class="wave-grid">
-          <div class="wave"><div class="id">WAVE 00</div><h3>Evidence Gate</h3><p class="body">Required roster, docs, memory, and NeMo evidence before dispatch.</p><span class="status">PASS</span></div>
-          <div class="wave"><div class="id">WAVE 01</div><h3>Lane Kernel</h3><p class="body">Single source for active/dead lanes and dispatch truth.</p><span class="status">PASS</span></div>
-          <div class="wave warn"><div class="id">WAVE 02</div><h3>Guardrails</h3><p class="body">Input/execution/tool rails landed; retrieval/output proof remains next.</p><span class="status">WARN</span></div>
-          <div class="wave"><div class="id">WAVE 03</div><h3>Shintai Plane</h3><p class="body">Advisory fan-out, critique, synthesis, artifact supersession.</p><span class="status">PASS</span></div>
-          <div class="wave"><div class="id">WAVE 04</div><h3>Memory Kernel</h3><p class="body">YURI-owned memory contracts and recall before dispatch.</p><span class="status">PASS</span></div>
-          <div class="wave"><div class="id">WAVE 05</div><h3>Automation</h3><p class="body">Kagami quarantine, health evidence, explicit repair actions.</p><span class="status">PASS</span></div>
-          <div class="wave"><div class="id">WAVE 06</div><h3>Rick Harness</h3><p class="body">Stable terminal, long-run status, `/goal`, PTY coverage.</p><span class="status">PASS</span></div>
-          <div class="wave"><div class="id">WAVE 07</div><h3>Release Gate</h3><p class="body">One command validates syntax, tests, health, and evidence.</p><span class="status">PASS</span></div>
-        </div>
-      </section>
-
-      <section class="slide" id="s3">
-        <div class="slide-head">
-          <div>
-            <div class="kicker">Rick report · 観察</div>
-            <h2>What worked, what changed, what I noticed.</h2>
-          </div>
-          <div class="meta">voice: mechanism-first<br>mode: evidence over theater</div>
-        </div>
-        <div class="grid g-12">
-          <div class="panel span-4">
-            <h3>Good signals</h3>
-            <div class="dense-list">
-              <div>You pushed against shallow fixes until the system became a harness instead of a theme.</div>
-              <div>The strongest runs happened after evidence gates forced roster, memory, NeMo, and lane truth into the prompt packet.</div>
-              <div>Slow NIM lanes became latency evidence, not fake failures. That changed orchestration quality.</div>
-            </div>
-          </div>
-          <div class="panel span-4">
-            <h3>Failure patterns converted</h3>
-            <div class="dense-list">
-              <div>Blank terminal turns became PTY renderer tests and serialized writer rules.</div>
-              <div>Wrong Shintai assumptions became a neutral dispatch bridge and Codex-assembled council.</div>
-              <div>Dead-lane confusion became lane kernel truth plus health preflight.</div>
-            </div>
-          </div>
-          <div class="panel span-4">
-            <h3>Behavioral lesson</h3>
-            <div class="dense-list">
-              <div>When the system feels magical, it drifts. When it emits evidence, it improves.</div>
-              <div>Do not let persona language become architecture. Contracts, gates, and tests own behavior.</div>
-              <div>Do not collapse logs, state, process, and schedule into one status field.</div>
-            </div>
-          </div>
-          <div class="panel span-12">
-            <div class="matrix">
-              <div class="cell"><strong>Best Shintai output</strong><span>Codex, DeepSeek, and Mistral Medium produced the most direct patch material.</span></div>
-              <div class="cell"><strong>Useful arbitration</strong><span>Claude Opus, Nemotron, Mistral Large, and Qwen3-Next were strong when constrained to audit.</span></div>
-              <div class="cell"><strong>Rejected signal</strong><span>Qwen Coder contamination was correctly treated as reject-stale, not patched blindly.</span></div>
-            </div>
-          </div>
-          <div class="panel span-12">
-            <h3>Skill stack applied</h3>
-            <div class="matrix">
-              <div class="cell"><strong>Domain</strong><span>execution-domain-core set scope, evidence, exit criteria, and allowed mutation surfaces.</span></div>
-              <div class="cell"><strong>Guard</strong><span>non-destructive-infinity-guard kept protected paths sealed and made Amp deletion a deletion-only action.</span></div>
-              <div class="cell"><strong>Evolution</strong><span>failure-evolution-loop turned stale agents and harness failures into regression targets.</span></div>
-              <div class="cell"><strong>Design</strong><span>frontend-design and design-source-pack shaped the Kagami HUD density and briefing posture.</span></div>
-              <div class="cell"><strong>Artifact</strong><span>research-artifact-factory framed reusable doctrine without silently promoting a new skill.</span></div>
-              <div class="cell"><strong>Verification</strong><span>verification-before-completion required fresh command evidence before the seal commit.</span></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="slide" id="s4">
-        <div class="slide-head">
-          <div>
-            <div class="kicker">Current repair · 指令室</div>
-            <h2>Automation Command Center now reports separate truths.</h2>
-          </div>
-          <div class="meta">focus: stale agents<br>status: patched in this slice</div>
-        </div>
-        <div class="grid g-12">
-          <div class="panel span-6">
-            <h3>Old failure</h3>
-            <div class="dense-list">
-              <div>Daemon rows showed stale last-run values even while PID was alive.</div>
-              <div>Scheduled jobs, state files, and stdout mtime were collapsed into one operational story.</div>
-              <div>`launch-readiness-nightly`, `lane-memory-prune`, and `ollama-kv` needed different repair semantics.</div>
-            </div>
-          </div>
-          <div class="panel span-6">
-            <h3>New split</h3>
-            <div class="dense-list">
-              <div>Process liveness: PID and launchd status.</div>
-              <div>Last exit: crash or clean completion evidence.</div>
-              <div>Activity: stdout mtime only when relevant.</div>
-              <div>State freshness: state marker age, separate from process health.</div>
-              <div>Schedule expectation: `live`, `on_schedule`, `missed_window`, `on_demand`.</div>
-            </div>
-          </div>
-          <div class="panel hud span-3 metric"><strong>256</strong><span>launch-readiness exit</span></div>
-          <div class="panel hud span-3 metric"><strong>19968</strong><span>lane-prune exit</span></div>
-          <div class="panel hud span-3 metric"><strong>live</strong><span>daemon status class</span></div>
-          <div class="panel hud span-3 metric"><strong>sealed</strong><span>Amp retired</span></div>
-        </div>
-      </section>
-
-      <section class="slide" id="s5">
-        <div class="slide-head">
-          <div>
-            <div class="kicker">Next · 次相</div>
-            <h2>The next roadmap is migration without ownership drift.</h2>
-          </div>
-          <div class="meta">protected surfaces first<br>then full EOT</div>
-        </div>
-        <div class="roadmap">
-          <div class="step"><div class="num">01</div><div><h3>Protected-surface projection</h3><p class="body">Keep raw Claude/backend/secret surfaces sealed. Expose sanitized YURI summaries through wrappers.</p></div><div class="owner">Codex/main</div></div>
-          <div class="step"><div class="num">02</div><div><h3>Memory promotion discipline</h3><p class="body">EOT and Shintai propose memory updates; YURI policy promotes only reviewed, sourced entries.</p></div><div class="owner">MemoryKernel</div></div>
-          <div class="step"><div class="num">03</div><div><h3>Automation repair loop</h3><p class="body">Diagnose launch readiness and lane prune from public scripts, then add non-destructive repair commands.</p></div><div class="owner">AutomationKernel</div></div>
-          <div class="step"><div class="num">04</div><div><h3>Guardrail proof</h3><p class="body">Finish retrieval/output wiring proof so Wave 2 moves from WARN to PASS.</p></div><div class="owner">Rails</div></div>
-          <div class="step"><div class="num">05</div><div><h3>Full EOT</h3><p class="body">After commits are sealed, run full EOT to capture successes, failures, and future system rules.</p></div><div class="owner">Rick + YURI</div></div>
-        </div>
-        <div class="footer-seal">
-          <span>YURI OS / MUSUBI · Kagami report surface</span>
-          <span>source assets: _SYSTEM/reports/assets/yuri-supercharge-2026-05-21/</span>
-        </div>
-      </section>
-    </main>
+  <!-- Camera-field overlays -->
+  <div class="camera" aria-hidden="true">
+    <div class="orbit"></div>
+    <div class="orbit-b"></div>
+    <div class="light-sweep"></div>
+    <div class="light-sweep alt"></div>
+    <div class="light-sweep alt2"></div>
   </div>
+
+  <svg id="grain" aria-hidden="true">
+    <filter id="grainFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.95  0 0 0 0 0.92  0 0 0 0 0.86  0 0 0 0.10 0"/></filter>
+    <rect width="100%" height="100%" filter="url(#grainFilter)"/>
+  </svg>
+
+  <div class="vert-watermark" aria-hidden="true">神 鏡 連 続</div>
+  <div class="vert-watermark right" aria-hidden="true">YURI · MUSUBI</div>
+  <div class="progress" aria-hidden="true"><span></span></div>
+  <div class="progress-cap" aria-hidden="true"><b>神鏡</b>continuum · scroll for the field</div>
+
+  <main class="page">
+
+    <!-- ACT 1 · OPENING -->
+    <section class="scene opening" data-scene="opening">
+      <div class="opening-layout">
+        <div class="open-copy">
+          <div class="eyebrow reveal">神鏡 · continuous briefing · 2026-05-21</div>
+          <h1 class="reveal d1">
+            <span class="ln"><em>YURI&nbsp;OS</em></span>
+            <span class="ln"><em>Supercharge</em></span>
+          </h1>
+          <p class="lead reveal d2">A reflective scroll-field of how scattered capability folded into a coordinated operating system — one mirror, eight waves, one continuous motion.</p>
+          <div class="hero-loop reveal d3" aria-label="Kagami operating loop">
+            <svg viewBox="0 0 760 170" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="heroLoopGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#cf4d36"/>
+                  <stop offset=".46" stop-color="#d8ad55"/>
+                  <stop offset="1" stop-color="#2e497a"/>
+                </linearGradient>
+              </defs>
+              <path d="M38 92 C148 20, 272 10, 380 82 C496 160, 650 144, 710 92 C650 42, 506 22, 382 82 C258 144, 148 142, 38 92"/>
+              <path d="M380 24 C470 54, 520 92, 674 92"/>
+              <path d="M382 146 C300 118, 222 92, 74 92"/>
+            </svg>
+            <span class="loop-node k-user">operator input</span>
+            <span class="loop-node k-advice">advisor fanout</span>
+            <span class="loop-node k-gate">Codex gate</span>
+            <span class="loop-node k-memory">memory proof</span>
+            <span class="loop-node k-response">response surface</span>
+            <span class="loop-node k-main">Kagami main</span>
+          </div>
+          <div class="signature reveal d3">
+            <div class="seal-mark">結</div>
+            <div class="seal-mark gold">鏡</div>
+            <div class="open-meta">
+              for <b>Claudio</b> &amp; <b>Mike</b><br>
+              scroll slowly · no slide mode<br>
+              prepared by <b>Marcel × YURI</b>
+            </div>
+          </div>
+        </div>
+        <div class="kagami-stage reveal d2" aria-label="Animated Kagami mirror">
+          <div class="kagami-orbit d"></div>
+          <div class="kagami-orbit a"></div>
+          <div class="kagami-orbit b"></div>
+          <div class="kagami-orbit c"></div>
+          <svg class="kagami-ring-text" viewBox="0 0 200 200" aria-hidden="true">
+            <defs>
+              <path id="ringPath" d="M100,100 m-92,0 a92,92 0 1,1 184,0 a92,92 0 1,1 -184,0"/>
+            </defs>
+            <text>
+              <textPath xlink:href="#ringPath" startOffset="0">
+                神鏡 · KAGAMI · REFLECTIVE OS · 神鏡 · MUSUBI · 結 · YURI · 神鏡 · CONTINUUM ·
+              </textPath>
+            </text>
+          </svg>
+          <div class="kagami-disk" id="kagamiDisk">鏡</div>
+        </div>
+      </div>
+      <div class="vertical-axis" aria-hidden="true">鏡 面</div>
+    </section>
+
+    <!-- ACT 2 · THESIS -->
+    <section class="scene thesis" data-scene="thesis">
+      <div class="thesis-grid">
+        <div class="thesis-claim">
+          <div class="eyebrow reveal">起 · the thesis</div>
+          <h2 class="reveal d1" style="margin-top:22px;">
+            <span class="ln"><em>The break&shy;through</em></span>
+            <span class="ln"><em>was not a feature.</em></span>
+            <span class="ln"><em>It was convergence.</em></span>
+          </h2>
+          <p class="reveal d3" style="margin-top:36px; max-width:420px;">YURI did not gain a new organ this sprint. The organs already there finally moved as one body.</p>
+        </div>
+        <div class="thesis-rhythm">
+          <svg class="thesis-weave" viewBox="0 0 720 620" preserveAspectRatio="none" aria-hidden="true">
+            <path class="scatter" d="M40 96 C210 120, 300 72, 420 138 C520 194, 600 176, 686 108"/>
+            <path d="M44 300 C210 270, 332 324, 430 292 C548 252, 606 318, 690 282"/>
+            <path class="reflect" d="M42 506 C210 452, 310 538, 428 486 C548 432, 612 500, 684 468"/>
+            <path d="M68 96 C220 230, 346 310, 676 468"/>
+          </svg>
+          <div class="turn reveal d1">
+            <div class="turn-num" aria-hidden="true">01<span class="dot">.</span></div>
+            <span class="turn-label">before · 散</span>
+            <h3>Scattered power</h3>
+            <p>Lanes, memory, terminal behavior, automations, research capture, and Shintai assumptions all existed — none of them rehearsed together. Power without choreography.</p>
+            <div class="turn-line" aria-hidden="true"></div>
+          </div>
+          <div class="turn reveal d2">
+            <div class="turn-num" aria-hidden="true">02<span class="dot">.</span></div>
+            <span class="turn-label">turn · 転</span>
+            <h3>Evidence gates close</h3>
+            <p>Real lane roster, live docs, automation health, memory contracts and release constraints became the only acceptable starting surface for the work. The vibes layer was sealed off.</p>
+            <div class="turn-line" aria-hidden="true"></div>
+          </div>
+          <div class="turn reveal d3">
+            <div class="turn-num" aria-hidden="true">03<span class="dot">.</span></div>
+            <span class="turn-label">after · 結</span>
+            <h3>One reflective system</h3>
+            <p>Codex and main own arbitration. Shintai advises. Rick exposes the operator surface. Release gates prove the baseline. The mirror reflects all of it back as one frame.</p>
+          </div>
+        </div>
+      </div>
+      <div class="vertical-axis" aria-hidden="true">転 換</div>
+    </section>
+
+    <!-- ACT 3 · OPERATING LOOP (diagram-first, no ledger) -->
+    <section class="scene impact" data-scene="impact">
+      <div class="impact-layout">
+        <div class="impact-title">
+          <div class="eyebrow reveal">承 · operating loop</div>
+          <h2 class="reveal d1" style="margin-top:22px;">
+            <span class="ln"><em>The sprint made the loop visible.</em></span>
+          </h2>
+          <p class="reveal d2">The useful proof is not a number sheet. It is a readable motion: input enters Kagami, advisors challenge the work, Codex gates mutation, memory records the reason, and Rick returns a surfaced answer.</p>
+          <div class="impact-kanji" aria-hidden="true">見える</div>
+        </div>
+        <div class="impact-map reveal d2" aria-label="Kagami operating loop diagram">
+          <svg class="flow-lines" viewBox="0 0 900 640" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="impactGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#cf4d36"/>
+                <stop offset=".48" stop-color="#d8ad55"/>
+                <stop offset="1" stop-color="#2e497a"/>
+              </linearGradient>
+            </defs>
+            <path id="impactLoopPath" d="M82 332 C190 84, 346 60, 454 308 C548 530, 752 514, 818 330 C730 146, 548 118, 454 308 C344 520, 200 524, 82 332"/>
+            <path class="rail-dash" d="M454 308 C514 160, 646 92, 752 120"/>
+            <path class="rail-dash" d="M454 308 C616 348, 722 402, 826 334"/>
+            <path class="rail-dash" d="M454 308 C420 472, 346 552, 438 592"/>
+          </svg>
+          <div class="impact-center">鏡</div>
+          <div class="impact-node user">
+            <span class="small">01 · intake</span>
+            <h3>User signal</h3>
+            <p>Raw intent arrives with preference, pressure, and constraints intact.</p>
+          </div>
+          <div class="impact-node advisors">
+            <span class="small">02 · challenge</span>
+            <h3>Shintai fanout</h3>
+            <p>Multiple lanes argue from evidence before code mutates.</p>
+          </div>
+          <div class="impact-node gate">
+            <span class="small">03 · mutate</span>
+            <h3>Codex gate</h3>
+            <p>One owner decides what lands, what waits, and what fails closed.</p>
+          </div>
+          <div class="impact-node memory">
+            <span class="small">04 · persist</span>
+            <h3>Memory contract</h3>
+            <p>Decisions become retrievable operating context, not folklore.</p>
+          </div>
+          <div class="impact-node response">
+            <span class="small">05 · return</span>
+            <h3>Rick surface</h3>
+            <p>The operator sees progress, proof, and remaining risk in motion.</p>
+          </div>
+          <div class="gate-stack" aria-hidden="true">
+            <span style="--i:0"></span>
+            <span style="--i:1"></span>
+            <span style="--i:2"></span>
+            <span style="--i:3"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 4 · CHANGE (split-river with morphing word) -->
+    <section class="scene change" data-scene="change">
+      <div class="change-headline">
+        <div class="eyebrow reveal">転 · before / after</div>
+        <h2 class="reveal d1" style="margin-top:22px;">From scattered force to coordinated flow.</h2>
+      </div>
+      <div class="river">
+        <div class="river-side left reveal d1">
+          <div class="eyebrow">old motion · 散</div>
+          <h3>Scattered force</h3>
+          <p>Dispatch behavior could drift. Shintai could be guessed. Terminal trust could break. Automation status could flatten unrelated truths into one anxious green light.</p>
+        </div>
+        <div class="river-bridge reveal d2" aria-hidden="true">
+          <svg viewBox="0 0 200 320" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="riverGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#cf4d36"/>
+                <stop offset=".5" stop-color="#d8ad55"/>
+                <stop offset="1" stop-color="#2e497a"/>
+              </linearGradient>
+            </defs>
+            <path d="M100 0 C40 80, 160 160, 100 240 C70 280, 100 300, 100 320" id="riverPath"/>
+            <circle cx="100" cy="320" r="4" fill="#2e497a"/>
+            <circle cx="100" cy="0" r="3" fill="#cf4d36"/>
+          </svg>
+        </div>
+        <div class="river-side right reveal d3">
+          <div class="eyebrow">new motion · 流</div>
+          <h3>Coordinated flow</h3>
+          <p>Lane truth, advisory gates, memory contracts, automation signals, Rick status, and release proof now move as one system. Every input is owned. Every owner is visible.</p>
+        </div>
+        <div class="river-giant" id="riverGiant" aria-hidden="true">flow</div>
+      </div>
+      <div class="river-axis" aria-hidden="true">流 れ</div>
+    </section>
+
+    <!-- ACT 5 · SYSTEM (constellation) -->
+    <section class="scene system" data-scene="system">
+      <div class="system-inner">
+        <div class="system-headline">
+          <div class="eyebrow reveal">承 · operating shape</div>
+          <h2 class="reveal d1" style="margin-top:22px;">The control plane is circular, not hierarchical theater.</h2>
+          <p class="reveal d2" style="margin-top:26px; max-width:560px;">Four organs orbit a single reflective center. No chain of command. Each role holds a clear edge, and the mirror keeps them honest.</p>
+        </div>
+        <div class="constellation reveal d2">
+          <svg class="lines" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+            <line x1="500" y1="300" x2="120" y2="80"/>
+            <line x1="500" y1="300" x2="880" y2="100"/>
+            <line x1="500" y1="300" x2="220" y2="540"/>
+            <line x1="500" y1="300" x2="800" y2="540"/>
+          </svg>
+          <div class="node center">
+            <span class="small">center · 鏡</span>
+            <h3>YURI</h3>
+            <p style="margin-top:14px;">Control plane, release proof, memory ownership.</p>
+          </div>
+          <div class="node n1"><div class="node-dot"></div><span class="small">north · 北</span><h3>Codex / main</h3><p>Implementation and arbitration. Final word on mutation.</p></div>
+          <div class="node n2"><div class="node-dot"></div><span class="small">east · 東</span><h3>Shintai</h3><p>Advisory, critique, synthesis. Power without authorship.</p></div>
+          <div class="node n3"><div class="node-dot"></div><span class="small">south · 南</span><h3>Rick</h3><p>Operator harness, streaming surface, persona texture.</p></div>
+          <div class="node n4"><div class="node-dot"></div><span class="small">west · 西</span><h3>Automation</h3><p>Liveness, repair, schedule truth, exit evidence.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 6 · ROAD (continuous serpent path, sticky narrator) -->
+    <section class="scene road" data-scene="road">
+      <div class="road-pin" id="roadPin">
+        <div class="road-headline">
+          <div class="eyebrow reveal">転 · transformation spine</div>
+          <h2 class="reveal d1" style="margin-top:22px;">Eight waves, rendered as one continuous path — not eight cards in a line.</h2>
+        </div>
+        <div class="road-stage">
+          <div class="road-current" id="roadCurrent">
+            <span class="small">now passing · <b id="waveLabel">evidence</b></span>
+            <div class="wave-no" id="waveNo">00</div>
+            <h3 id="waveTitle">Evidence</h3>
+            <p id="waveDesc">The first move was not building. It was confirming the world: real roster, real docs, real memory, real NeMo research, real lane health.</p>
+            <div class="wave-axis" aria-hidden="true">波 紋</div>
+          </div>
+          <div class="road-svg-wrap">
+            <svg viewBox="0 0 500 1400" preserveAspectRatio="none" id="roadSvg" aria-hidden="true">
+              <defs>
+                <linearGradient id="spineGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#cf4d36"/>
+                  <stop offset=".5" stop-color="#d8ad55"/>
+                  <stop offset="1" stop-color="#2e497a"/>
+                </linearGradient>
+              </defs>
+              <path class="spine" id="spinePath" d="M260 0 C60 140 60 280 250 420 C440 560 440 700 250 840 C60 980 60 1120 260 1260 C420 1340 420 1380 260 1400"/>
+              <circle class="dot" id="spineDot" r="6" cx="260" cy="0"/>
+            </svg>
+            <div class="road-steps" id="roadSteps">
+              <article class="road-step" data-wave="0" data-label="Wave 00" data-title="Evidence" data-desc="Real roster, real docs, real memory, NeMo research. The world was confirmed before the work began.">
+                <div class="glyph" aria-hidden="true">00</div>
+                <span class="label">evidence · 証</span>
+                <h3>Confirming the world</h3>
+                <p>Real roster, real docs, real memory, NeMo research. No assumption survives unless it shows itself.</p>
+              </article>
+              <article class="road-step" data-wave="1" data-label="Wave 01" data-title="Lanes" data-desc="Active lanes, dead lanes, model truth, tool truth — all reconciled into a single source.">
+                <div class="glyph" aria-hidden="true">01</div>
+                <span class="label">lanes · 道</span>
+                <h3>Truth of routes</h3>
+                <p>Active, dead, model, and tool truth — reconciled into a single canonical map. No lane runs in the shadow anymore.</p>
+              </article>
+              <article class="road-step" data-wave="2" data-label="Wave 02" data-title="Rails" data-desc="Execution rails landed. Retrieval and output proof remain tracked rather than buried.">
+                <div class="glyph" aria-hidden="true">02</div>
+                <span class="label">rails · 軌</span>
+                <h3>Execution rails</h3>
+                <p>Execution rails landed. The remaining retrieval and output proof stays tracked, visible, gated — not buried in personal notes.</p>
+              </article>
+              <article class="road-step" data-wave="3" data-label="Wave 03" data-title="Shintai" data-desc="Fan-out, critique, synthesis, supersession — a six-advisor body learns to speak in one breath.">
+                <div class="glyph" aria-hidden="true">03</div>
+                <span class="label">shintai · 神隊</span>
+                <h3>Six bodies, one breath</h3>
+                <p>Fan-out, critique, synthesis, supersession. The advisor body learned how to disagree and still finish a sentence together.</p>
+              </article>
+              <article class="road-step" data-wave="4" data-label="Wave 04" data-title="Memory" data-desc="Recall, proposal, promotion, audit — memory becomes a contract instead of a habit.">
+                <div class="glyph" aria-hidden="true">04</div>
+                <span class="label">memory · 記</span>
+                <h3>Memory as contract</h3>
+                <p>Recall, proposal, promotion, audit — memory stopped being a habit and became a contract that survives the session.</p>
+              </article>
+              <article class="road-step" data-wave="5" data-label="Wave 05" data-title="Automation" data-desc="Health evidence, quarantine, repair — separated so one bad signal cannot poison the field.">
+                <div class="glyph" aria-hidden="true">05</div>
+                <span class="label">automation · 自</span>
+                <h3>Separated signals</h3>
+                <p>Liveness, logs, state, schedule, and exit code each carry their own evidence. A single misfire can no longer dye the whole pool red.</p>
+              </article>
+              <article class="road-step" data-wave="6" data-label="Wave 06" data-title="Rick" data-desc="Streaming harness, visible goals, operator voice — the operator surface becomes a presence.">
+                <div class="glyph" aria-hidden="true">06</div>
+                <span class="label">rick · 声</span>
+                <h3>An operator with a voice</h3>
+                <p>Streaming harness, visible goals, persona texture. Rick stopped being a wrapper and became a presence the operator can feel.</p>
+              </article>
+              <article class="road-step" data-wave="7" data-label="Wave 07" data-title="Seal" data-desc="Release gate over vibes. One repeatable command, one repeatable baseline.">
+                <div class="glyph" aria-hidden="true">07</div>
+                <span class="label">seal · 印</span>
+                <h3>Gate over vibes</h3>
+                <p>Release became a gate, not a feeling. One command. One repeatable baseline. Future selves inherit a sealed surface, not a hopeful one.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 7 · LESSON (failure-to-structure map) -->
+    <section class="scene lesson" data-scene="lesson">
+      <div class="lesson-grid">
+        <div class="lesson-quote">
+          <span class="open-q" aria-hidden="true">"</span>
+          <div class="eyebrow reveal" style="margin-bottom:30px;">結 · what changed behavior</div>
+          <h2 class="reveal d1">
+            <span class="ln"><em>Every failure became structure.</em></span>
+          </h2>
+          <p class="reveal d2" style="margin-top:30px; max-width:640px;">The sprint stopped treating breakage as embarrassment. Each break became a named mechanism, a regression surface, or a routing contract.</p>
+          <div class="lesson-attrib reveal d3">
+            <span class="dash" aria-hidden="true"></span>
+            <span class="small"><b>Rick · operator observation</b> · session journal · 2026-05-21</span>
+          </div>
+        </div>
+        <div class="failure-map reveal d2" aria-label="Failure converted into system structure">
+          <svg viewBox="0 0 760 560" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="failureGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#cf4d36"/>
+                <stop offset=".5" stop-color="#d8ad55"/>
+                <stop offset="1" stop-color="#2e497a"/>
+              </linearGradient>
+            </defs>
+            <path id="failurePath" d="M132 92 C242 210, 324 248, 380 280 C458 326, 570 390, 626 444"/>
+            <path d="M626 110 C522 202, 448 248, 380 280 C292 322, 220 402, 174 430"/>
+            <path d="M380 280 C380 148, 380 120, 380 80"/>
+            <path d="M380 280 C380 412, 380 452, 380 510"/>
+          </svg>
+          <div class="failure-center">failure<br>evolves</div>
+          <div class="failure-pair p1"><b>blank terminal</b><span>PTY regression</span></div>
+          <div class="failure-pair p2"><b>guessed Shintai</b><span>dispatch contract</span></div>
+          <div class="failure-pair p3"><b>dead-lane confusion</b><span>lane-kernel truth</span></div>
+          <div class="failure-pair p4"><b>automation drift</b><span>split health evidence</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 8 · NEXT (editorial three-beat) -->
+    <section class="scene next" data-scene="next">
+      <div class="next-grid">
+        <div class="next-claim">
+          <div class="eyebrow reveal">結 · next movement</div>
+          <h2 class="reveal d1" style="margin-top:22px;">Migration without ownership drift.</h2>
+          <p class="reveal d2" style="max-width:420px;">The next surface is already mapped. None of it touches protected ground; all of it stays inside the release gate.</p>
+        </div>
+        <div class="next-beats">
+          <div class="beat reveal d1">
+            <div class="beat-num">01<span class="slash">/</span><span style="color: var(--quiet); font-size:.42em; vertical-align:.32em;">03</span></div>
+            <span class="small">projection</span>
+            <h3>Protected surfaces stay sealed.</h3>
+            <p>YURI consumes only sanitized summaries of upstream protected ground. The mirror reflects — it does not enter the room.</p>
+            <div class="beat-rule" aria-hidden="true"></div>
+          </div>
+          <div class="beat reveal d2">
+            <div class="beat-num">02<span class="slash">/</span><span style="color: var(--quiet); font-size:.42em; vertical-align:.32em;">03</span></div>
+            <span class="small">rail proof</span>
+            <h3>The remaining guardrail becomes wired evidence.</h3>
+            <p>The one warning that still glows yellow gets a verifiable rail. No quiet pass. The gate either holds or names what it cannot hold.</p>
+            <div class="beat-rule" aria-hidden="true"></div>
+          </div>
+          <div class="beat reveal d3">
+            <div class="beat-num">03<span class="slash">/</span><span style="color: var(--quiet); font-size:.42em; vertical-align:.32em;">03</span></div>
+            <span class="small">repair loop</span>
+            <h3>Launch readiness becomes public.</h3>
+            <p>Lane pruning, repair commands, and diagnostics surface for any operator. Reversible by default. The system explains itself before it acts.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT 9 · CLOSE -->
+    <section class="scene closing" data-scene="close">
+      <div class="closing-statement reveal">
+        <div class="eyebrow" style="margin-bottom:34px;">結 · closing claim</div>
+        <p>
+          YURI becomes <em>powerful</em> when coordination is <span class="glow">visible</span>:<br>
+          evidence, owner, rail, memory, and release proof<br>
+          moving as <em>one reflective system</em>.
+        </p>
+        <div class="closing-sign">
+          <div class="closing-coord">
+            <div class="seal-mark">鏡</div>
+            <div class="seal-mark gold">結</div>
+            <span class="small"><b>YURI OS · MUSUBI</b><br>Kagami continuum · 2026-05-21<br>prepared for Claudio &amp; Mike</span>
+          </div>
+          <span class="small" style="text-align:right;">
+            <b>神鏡</b> — the mirror is the system<br>
+            <b>結</b> — the bind is the proof<br>
+            <b>流</b> — flow is the gate
+          </span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /* ---------- Atmospheric particle field (Canvas2D) ---------- */
+    (function initField() {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const canvas = document.getElementById('field');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const N = reduced ? 24 : 84;
+      const particles = [];
+      function resize() {
+        w = canvas.clientWidth = innerWidth;
+        h = canvas.clientHeight = innerHeight;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      function spawn() {
+        for (let i = 0; i < N; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 1.6 + 0.3,
+            vx: (Math.random() - 0.5) * 0.08,
+            vy: (Math.random() - 0.5) * 0.08 - 0.04,
+            a: Math.random() * 0.6 + 0.2,
+            hue: Math.random() > 0.7 ? 'gold' : (Math.random() > 0.5 ? 'indigo' : 'paper'),
+            depth: Math.random() * 0.8 + 0.2
+          });
+        }
+      }
+      const palette = {
+        gold:   'rgba(216,173,85, ',
+        indigo: 'rgba(46,73,122, ',
+        paper:  'rgba(246,236,218, '
+      };
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of particles) {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < -10) p.x = w + 10;
+          if (p.x > w + 10) p.x = -10;
+          if (p.y < -10) p.y = h + 10;
+          if (p.y > h + 10) p.y = -10;
+          ctx.beginPath();
+          ctx.fillStyle = palette[p.hue] + (p.a * p.depth).toFixed(3) + ')';
+          ctx.arc(p.x, p.y, p.r * p.depth * 1.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (!reduced) raf = requestAnimationFrame(draw);
+      }
+      let raf;
+      window.addEventListener('resize', () => { resize(); });
+      resize();
+      spawn();
+      draw();
+      if (reduced) {
+        // single frame, frozen
+        cancelAnimationFrame(raf);
+      }
+    })();
+
+    function initKagami3D() {
+      const canvas = document.getElementById('kagami3d');
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!canvas || reduced || !window.THREE) return;
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+      camera.position.set(0, 0, 7.2);
+
+      const group = new THREE.Group();
+      scene.add(group);
+
+      const ringColors = [0xd8ad55, 0xcf4d36, 0x2e497a, 0xf6ecda];
+      for (let i = 0; i < 7; i++) {
+        const geo = new THREE.TorusGeometry(1.1 + i * 0.34, 0.006 + i * 0.001, 8, 180);
+        const mat = new THREE.MeshBasicMaterial({
+          color: ringColors[i % ringColors.length],
+          transparent: true,
+          opacity: i % 2 ? 0.12 : 0.18,
+          wireframe: true
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.x = Math.PI / 2 + i * 0.12;
+        mesh.rotation.y = i * 0.28;
+        mesh.position.x = (i - 3) * 0.04;
+        group.add(mesh);
+      }
+
+      const pointCount = 420;
+      const positions = new Float32Array(pointCount * 3);
+      for (let i = 0; i < pointCount; i++) {
+        const r = 1.2 + Math.random() * 3.2;
+        const a = Math.random() * Math.PI * 2;
+        const z = (Math.random() - 0.5) * 1.8;
+        positions[i * 3] = Math.cos(a) * r;
+        positions[i * 3 + 1] = Math.sin(a) * r * 0.58;
+        positions[i * 3 + 2] = z;
+      }
+      const starGeo = new THREE.BufferGeometry();
+      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const starMat = new THREE.PointsMaterial({
+        color: 0xd8ad55,
+        size: 0.012,
+        transparent: true,
+        opacity: 0.58
+      });
+      group.add(new THREE.Points(starGeo, starMat));
+
+      function resize3d() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / Math.max(h, 1);
+        camera.updateProjectionMatrix();
+      }
+
+      let raf = 0;
+      function frame(t) {
+        const scroll = document.documentElement.scrollHeight > innerHeight
+          ? scrollY / (document.documentElement.scrollHeight - innerHeight)
+          : 0;
+        group.rotation.x = -0.55 + scroll * 0.28;
+        group.rotation.y = t * 0.000055 + scroll * 1.2;
+        group.rotation.z = t * 0.000038 - scroll * 0.62;
+        group.position.x = 1.65 - scroll * 1.2;
+        group.position.y = -0.1 + Math.sin(t * 0.0004) * 0.08;
+        renderer.render(scene, camera);
+        raf = requestAnimationFrame(frame);
+      }
+
+      window.addEventListener('resize', resize3d);
+      resize3d();
+      raf = requestAnimationFrame(frame);
+      window.addEventListener('pagehide', () => cancelAnimationFrame(raf), { once: true });
+    }
+
+    /* ---------- Scroll progress + camera offsets ---------- */
+    const scenes = [...document.querySelectorAll('.scene')];
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add('in-view');
+      });
+    }, { threshold: 0.20 });
+    scenes.forEach((scene) => io.observe(scene));
+
+    function updateScroll() {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      const global = max > 0 ? Math.max(0, Math.min(1, scrollY / max)) : 0;
+      document.body.style.setProperty('--scroll', global.toFixed(4));
+      scenes.forEach((scene) => {
+        const rect = scene.getBoundingClientRect();
+        const center = rect.top + rect.height / 2;
+        const distance = (center - innerHeight / 2) / Math.max(innerHeight, 1);
+        const local = Math.max(-1, Math.min(1, distance));
+        const focus = 1 - Math.min(1, Math.abs(local));
+        scene.style.setProperty('--scene-y', local.toFixed(4));
+        scene.style.setProperty('--scene-focus', focus.toFixed(4));
+      });
+    }
+    addEventListener('scroll', updateScroll, { passive: true });
+    addEventListener('resize', updateScroll);
+    updateScroll();
+
+    /* ---------- GSAP timelines (motion-OK guarded) ---------- */
+    const motionOK = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function splitLines() {
+      // ensure all .ln em elements start translated for line-mask reveal
+      document.querySelectorAll('.ln em').forEach(el => {
+        el.style.transform = 'translateY(110%)';
+      });
+    }
+    splitLines();
+
+    function initGSAP() {
+      if (!window.gsap || !window.ScrollTrigger) return;
+      gsap.registerPlugin(ScrollTrigger);
+
+      if (!motionOK) {
+        document.querySelectorAll('.ln em').forEach(el => { el.style.transform = 'none'; });
+        return;
+      }
+
+      /* Line-mask reveal on every .ln em */
+      document.querySelectorAll('section .ln em').forEach((el) => {
+        gsap.to(el, {
+          y: '0%',
+          duration: 1.05,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 88%' }
+        });
+      });
+
+      /* Kagami disk parallax push on hero scroll */
+      const disk = document.getElementById('kagamiDisk');
+      if (disk) {
+        gsap.to(disk, {
+          y: -80,
+          scale: 1.05,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.opening',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.8
+          }
+        });
+      }
+
+      /* Trace visible diagrams instead of static labels */
+      document.querySelectorAll('.hero-loop path, .thesis-weave path, #impactLoopPath, #failurePath').forEach((path) => {
+        if (typeof path.getTotalLength !== 'function') return;
+        const L = path.getTotalLength();
+        path.style.strokeDasharray = L;
+        path.style.strokeDashoffset = L;
+        gsap.to(path, {
+          strokeDashoffset: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: path.closest('section') || path,
+            start: 'top 76%',
+            end: 'bottom 38%',
+            scrub: 0.8
+          }
+        });
+      });
+
+      /* River giant word — letter-spacing expansion + slight drift */
+      const riverGiant = document.getElementById('riverGiant');
+      if (riverGiant) {
+        gsap.fromTo(riverGiant,
+          { letterSpacing: '-.045em', x: -40, opacity: .04 },
+          {
+            letterSpacing: '.08em',
+            x: 60,
+            opacity: .12,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '.change',
+              start: 'top 60%',
+              end: 'bottom top',
+              scrub: 1
+            }
+          });
+      }
+
+      /* River path trace */
+      const riverPath = document.querySelector('#riverPath');
+      if (riverPath) {
+        const L = riverPath.getTotalLength();
+        riverPath.style.strokeDasharray = L;
+        riverPath.style.strokeDashoffset = L;
+        gsap.to(riverPath, {
+          strokeDashoffset: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.river',
+            start: 'top 70%',
+            end: 'bottom 30%',
+            scrub: 0.8
+          }
+        });
+      }
+
+      /* Lesson italic h2 letter-shift on enter */
+      const lessonH2 = document.querySelector('.lesson-quote h2');
+      if (lessonH2) {
+        gsap.from(lessonH2, {
+          y: 40,
+          opacity: 0,
+          duration: 1.4,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: lessonH2, start: 'top 75%' }
+        });
+      }
+
+      /* ROAD scene — scroll-traced spine + active wave narrator */
+      const roadPin = document.getElementById('roadPin');
+      const spine = document.getElementById('spinePath');
+      const spineDot = document.getElementById('spineDot');
+      const steps = document.querySelectorAll('.road-step');
+      const waveNo = document.getElementById('waveNo');
+      const waveTitle = document.getElementById('waveTitle');
+      const waveDesc = document.getElementById('waveDesc');
+      const waveLabel = document.getElementById('waveLabel');
+
+      if (roadPin && spine && spineDot && steps.length) {
+        const L = spine.getTotalLength();
+        spine.style.strokeDasharray = L;
+        spine.style.strokeDashoffset = L;
+        gsap.set(steps, { opacity: 0.18, y: 18 });
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.road',
+            start: 'top 70%',
+            end: 'bottom 25%',
+            scrub: 0.6,
+            onUpdate: (self) => {
+              const p = self.progress;
+              const idx = Math.min(steps.length - 1, Math.floor(p * steps.length));
+              const step = steps[idx];
+              if (step && waveNo) {
+                waveNo.textContent = step.dataset.wave.padStart(2, '0');
+                waveTitle.textContent = step.dataset.title;
+                waveDesc.textContent = step.dataset.desc;
+                waveLabel.textContent = step.dataset.title.toLowerCase();
+                steps.forEach((s, i) => s.classList.toggle('active', i === idx));
+              }
+              // move dot along spine path
+              const pt = spine.getPointAtLength(L * p);
+              spineDot.setAttribute('cx', pt.x);
+              spineDot.setAttribute('cy', pt.y);
+            }
+          }
+        });
+        tl.to(spine, { strokeDashoffset: 0, ease: 'none' }, 0);
+        tl.to(steps, { opacity: 1, y: 0, stagger: 0.12, ease: 'power2.out' }, 0);
+      }
+
+      /* Closing statement glow shimmer on enter */
+      const glow = document.querySelector('.closing-statement .glow');
+      if (glow) {
+        gsap.from(glow, {
+          backgroundPositionX: '100%',
+          duration: 1.4,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: glow, start: 'top 78%' }
+        });
+      }
+    }
+
+    if (document.readyState === 'complete') {
+      initKagami3D();
+      initGSAP();
+    } else {
+      window.addEventListener('load', () => {
+        initKagami3D();
+        initGSAP();
+      });
+    }
+  </script>
 </body>
 </html>

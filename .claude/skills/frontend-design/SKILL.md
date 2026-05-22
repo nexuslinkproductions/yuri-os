@@ -50,6 +50,12 @@ Define explicitly:
 
 ## Session Notes
 
+### 2026-05-21
+- session: 10m | peak ctx: 0% | compacts: 0
+- tools: Read×24, Glob×1
+- corrections: none
+- errors: none
+
 ### 2026-05-20
 - Scoped to external/non-YURI surfaces only (v2 re-scoping)
 - YURI/Kagami work now exclusively routes to design-master

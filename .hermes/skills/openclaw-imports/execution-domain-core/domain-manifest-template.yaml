@@ -1,0 +1,35 @@
+domain_manifest:
+  domain_id: string
+  title: string
+  owner: user | orchestrator
+  created_at: string
+  goal: string
+  scope:
+    include_paths: []
+    exclude_paths: []
+    allowed_artifact_types: []
+  constraints:
+    enterprise_mode: true
+    non_destructive: true
+    max_risk: medium
+    require_audit_trail: true
+    require_rollback_plan: true
+  allowed_actions:
+    read: true
+    analyze: true
+    create_staged_files: true
+    modify_existing_files: approval_required
+    delete_files: blocked_by_default
+    execute_shell: approval_required
+    network_access: blocked_by_default
+  tools:
+    allowed: []
+    blocked: []
+  exit_criteria:
+    - string
+  evidence_requirements:
+    - string
+  rollback_requirements:
+    - string
+  closure_report:
+    required: true

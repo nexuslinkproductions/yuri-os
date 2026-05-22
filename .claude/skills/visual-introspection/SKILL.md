@@ -12,6 +12,8 @@ triggers:
 
 You are operating in visual-introspection mode. Read the Yuri OS architecture graph state and perform structured engineering analysis the same way a senior architect would by looking at a system diagram.
 
+Terminology rule: current Yuri OS control-plane language is `KAGAMI` / `Kagami main`. Normalize obsolete implementation-node vocabulary in prose; do not surface retired names in user-facing artifacts.
+
 ## Inputs
 
 Always start by reading:
@@ -23,7 +25,7 @@ Always start by reading:
 ### Phase 1 - Structural Audit
 
 For each node in the graph, check:
-- Closed loops: does the node have a path that eventually returns its output to ENKI / RESPONSE / USER?
+- Closed loops: does the node have a path that eventually returns its output to KAGAMI main / RESPONSE / USER?
 - Dead ends: nodes with no `outputs_to` and no `returns_to` -> flag as potential gaps
 - Orphans: nodes with no incoming edges -> flag as unused
 - Cycles: detect cycles that are not intentional (the prompt-response cycle is intentional; others may not be)

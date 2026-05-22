@@ -141,8 +141,14 @@ Commands:
   @claude [prompt]
       Run the bounded Claude Sonnet council lane with advisory-only output.
 
+  @claude-opus-comain [prompt]
+      Wake Claude with Haiku, then run Opus 4.7 as bounded co-main coding/reasoning lane.
+
   @claude-opus-audit [prompt]
-      Wake Claude with Haiku, then run Opus 4.7 high-reasoning audit-only output.
+      Compatibility alias for @claude-opus-comain.
+
+  @claude-opus-design-edit [prompt]
+      Run Sonnet xhigh context pass, then Opus 4.7 high-reasoning bounded design edit.
 
   @reason-cloud [prompt]
       Run the reason-cloud lane (Ollama Cloud reasoning, defaults to qwen2.5:72b).
@@ -329,20 +335,23 @@ run_claude_safe_prompt() {
 build_claude_opus_audit_prompt() {
   local prompt="$1"
   cat <<EOF
-You are Claude Opus in the Yuri OS Shintai audit lane.
+You are Claude Opus in the Yuri OS Shintai co-main lane.
 
-Role: 1M-context audit/synthesis only.
-Authority: advisory_only=true; local_truth_claim=false; Codex/main remains orchestrator, implementer, verifier, and final authority.
-Bounds: no edits, no shell, no tools, no policy authority, no commits, no pushes.
+Role: second owner/main for architecture, coding, tests, contradiction synthesis, and long-context continuity.
+Authority: co_main=true; local_truth_claim=false until verified; Codex/main remains final release gate after independent verification.
+Bounds: repo-scoped read/write/edit and Bash are allowed only for the named task and allowed files. No commits, no pushes, no protected paths, no destructive commands, no secrets, no unauthorized offensive activity. Offensive cybersecurity work is owned/authorized lab-only.
+Failsafe: double-check your own output and explicitly name what Codex must verify. Also challenge Codex proposals when they are vague, untested, or unsafe.
 Evidence rule: every repo-state claim needs supplied evidence or must be marked unverified.
 
 Return exactly these sections:
 findings:
 contradictions:
 missed_context:
-risks:
-tests_needed:
-codex_decision_inputs:
+implementation_or_patch_plan:
+edits_made_or_patch_suggestions:
+tests_run_or_needed:
+risks_and_rails:
+codex_double_check_required:
 
 Task:
 $prompt
@@ -367,22 +376,145 @@ run_claude_opus_audit_prompt() {
     --effort low \
     --permission-mode plan \
     --tools "" \
-    --no-session-persistence \
+    --name "${YURI_CLAUDE_COMAIN_SESSION_NAME:-yuri-opus-comain}" \
     --print "YURI Claude wake preflight. Reply exactly PONG." >"$_wake_stdout" 2>"$_wake_stderr"
 
   YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
     --model "${YURI_CLAUDE_AUDIT_MODEL:-claude-opus-4-7}" \
-    --effort high \
-    --permission-mode plan \
-    --tools "" \
-    --no-session-persistence \
+    --effort "${YURI_CLAUDE_COMAIN_EFFORT:-max}" \
+    --permission-mode acceptEdits \
+    --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
+    --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
+    --name "${YURI_CLAUDE_COMAIN_SESSION_NAME:-yuri-opus-comain}" \
     --print "$_audit_prompt" >"$_stdout" 2>"$_stderr"
   _status=$?
   set -e
 
   YURI_COUNCIL_MODEL="${YURI_CLAUDE_AUDIT_MODEL:-claude-opus-4-7}" \
-  YURI_COUNCIL_REASONING="high" \
+  YURI_COUNCIL_REASONING="${YURI_CLAUDE_COMAIN_EFFORT:-max}" \
   emit_claude_advisory_output "$_stdout" "$_stderr" "$_status"
+  rm -rf "$_tmpdir"
+  return "$_status"
+}
+
+build_claude_design_context_prompt() {
+  local prompt="$1"
+  cat <<EOF
+You are Claude Sonnet in the Yuri OS design context lane.
+
+Role: context gathering and design brief sharpening only.
+Authority: advisory_only=true; no edits; no commits; no protected paths.
+Use only the supplied task and embedded design contract. Do not call tools.
+
+Embedded design contract:
+- YURI has separate surfaces: HUD is operator/mechanical; Kagami is cinematic/editorial/reflective.
+- This task is Kagami, not HUD.
+- Kagami presentations must be continuous authored objects, not slide decks or dashboards.
+- The user's durable preferences for this artifact: no HUD, no slide deck, not logbook-like, fewer boxes/cards, more typography/path/mirror/motion, varied section layouts, visible scroll/camera choreography, Japanese structure without garnish.
+- Design Master must select from the full YURI skill tree: frontend-design, math-curve-loaders, pattern-mirror-core/sharingan when inspecting artifacts, design-source-pack when extracting reusable language, and prompt-engineering for lane contracts.
+
+Required output:
+brief:
+must_keep:
+must_remove:
+design_sources_to_use:
+opus_edit_constraints:
+
+Task:
+$prompt
+EOF
+}
+
+build_claude_opus_design_edit_prompt() {
+  local prompt="$1"
+  local context="$2"
+  cat <<EOF
+You are Claude Opus in the Yuri OS design edit lane.
+
+Objective: directly edit the requested YURI design artifact so it matches the user's stated visual taste and the YURI Kagami design system.
+
+Authority and boundaries:
+- You may edit only the exact target files named in the task.
+- Do not commit, stage, push, install dependencies, read protected paths, or expand scope.
+- Do not use Agent, WebSearch, or WebFetch.
+- Prefer Edit/MultiEdit over broad rewrites unless the target file is explicitly a standalone HTML artifact.
+- If something is uncertain, make the strongest reversible local design improvement and explain the choice.
+
+Design contract:
+- Surface is Kagami, not HUD.
+- The artifact must be one continuous cinematic presentation, not a slide deck and not a logbook.
+- No HUD system, status bars, dashboard grids, or operator panels.
+- Reduce boxed/card-heavy information. Use open typography, path, line, mask, mirror geometry, spacing, and motion to group meaning.
+- Avoid identical layouts section after section.
+- Use Japanese layout principles structurally: ma, asymmetry, vertical rhythm, seal/mirror geometry.
+- Add visible motion design: scroll choreography, camera movement, parallax, mask/text reveals, and reduced-motion fallback.
+- Use the full YURI design system and Design Master skill, not just generic frontend design.
+- Preserve readability and avoid text overlap at desktop and mobile.
+
+Sonnet context pass:
+$context
+
+Task:
+$prompt
+
+After editing, return:
+changed_files:
+design_decisions:
+verification_to_run:
+EOF
+}
+
+run_claude_opus_design_edit_prompt() {
+  local prompt="$1"
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _tmpdir _context_stdout _context_stderr _stdout _stderr _status _context_prompt _edit_prompt
+  require_cmd "$_claude_bin"
+  _tmpdir="$(mktemp -d)"
+  _context_stdout="$_tmpdir/context.stdout.txt"
+  _context_stderr="$_tmpdir/context.stderr.txt"
+  _stdout="$_tmpdir/stdout.txt"
+  _stderr="$_tmpdir/stderr.txt"
+  _context_prompt="$(build_claude_design_context_prompt "$prompt")"
+
+  set +e
+  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
+    --model "${YURI_CLAUDE_CONTEXT_MODEL:-sonnet}" \
+    --effort "${YURI_CLAUDE_CONTEXT_EFFORT:-xhigh}" \
+    --permission-mode plan \
+    --tools "" \
+    --no-session-persistence \
+    --print "$_context_prompt" >"$_context_stdout" 2>"$_context_stderr"
+
+  _edit_prompt="$(build_claude_opus_design_edit_prompt "$prompt" "$(cat "$_context_stdout")")"
+
+  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
+    --model "${YURI_CLAUDE_DESIGN_MODEL:-opus}" \
+    --effort "${YURI_CLAUDE_DESIGN_EFFORT:-high}" \
+    --permission-mode acceptEdits \
+    --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls \
+    --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
+    --no-session-persistence \
+    --print "$_edit_prompt" >"$_stdout" 2>"$_stderr"
+  _status=$?
+  set -e
+
+  printf '# lane: @claude-opus-design-edit\n'
+  printf '# context_model: %s\n' "${YURI_CLAUDE_CONTEXT_MODEL:-sonnet}"
+  printf '# context_effort: %s\n' "${YURI_CLAUDE_CONTEXT_EFFORT:-xhigh}"
+  printf '# design_model: %s\n' "${YURI_CLAUDE_DESIGN_MODEL:-opus}"
+  printf '# design_effort: %s\n' "${YURI_CLAUDE_DESIGN_EFFORT:-high}"
+  printf '# advisory_only: false\n'
+  printf '# bounded_edit: true\n'
+  printf '# status: %s\n\n' "$_status"
+  printf '## SONNET_CONTEXT\n'
+  sed -n '1,220p' "$_context_stdout"
+  printf '\n## OPUS_OUTPUT\n'
+  sed -n '1,260p' "$_stdout"
+  if [ -s "$_context_stderr" ] || [ -s "$_stderr" ]; then
+    printf '\n## STDERR\n'
+    sed -n '1,120p' "$_context_stderr"
+    sed -n '1,160p' "$_stderr"
+  fi
   rm -rf "$_tmpdir"
   return "$_status"
 }
@@ -1622,13 +1754,21 @@ case "${1:-help}" in
     fi
     run_claude_safe_prompt "$(join_prompt "$@")"
     ;;
-  @claude-opus-audit|claude-opus-audit|opus-audit)
+  @claude-opus-comain|claude-opus-comain|opus-comain|@claude-opus-audit|claude-opus-audit|opus-audit)
     shift || true
     if [ "$#" -eq 0 ]; then
       usage
       exit 1
     fi
     run_claude_opus_audit_prompt "$(join_prompt "$@")"
+    ;;
+  @claude-opus-design-edit|claude-opus-design-edit|opus-design-edit)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_claude_opus_design_edit_prompt "$(join_prompt "$@")"
     ;;
   @deepseek-workhorse|deepseek-workhorse)
     shift || true

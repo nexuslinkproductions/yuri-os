@@ -1,6 +1,6 @@
 ---
 name: end-of-transmission
-description: "Continuous background reflection engine. Auto-triggers mid-session at checkpoints (task completion, context ≥60%, after errors). Full 9-phase pipeline on manual /eot. All workers: Haiku max, run_in_background. Writes to tiered memory + Karpathy wiki atoms continuously."
+description: "Continuous background reflection engine. Auto-triggers mid-session at checkpoints (task completion, context ≥60%, after errors). Full 9-phase pipeline on manual /eot. All model workers route through DeepSeek lanes; no Haiku or Sonnet EOT workers."
 triggers:
   - "end of transmission"
   - "/eot"
@@ -26,7 +26,7 @@ Micro-EOT auto-triggers after:
 - Error recovery: after backtracking, error resolution, or failed branch analysis
 - Cycle completion: Plan-Act-Validate loop finishes
 
-Trigger action: Spawn `Agent({ model: "haiku-4-5-20251001", run_in_background: true })` with micro-EOT prompt. Main thread continues unblocked. Output written to `.Codex/eot/continuous/micro-{timestamp}.md`.
+Trigger action: Dispatch `_SYSTEM/Scripts/offload.sh -m deepseek-v4-flash` with the micro-EOT prompt in a detached background process. Main thread continues unblocked. Output is written to `.claude/eot/continuous/micro-{timestamp}.md`.
 
 ### Manual (Full EOT)
 
@@ -35,7 +35,7 @@ When the user says exactly or semantically `end of transmission`, begin with:
 ```text
 End of transmission received. Entering full auto reflection mode.
 
-I will not ask for further permission during this run. I will freeze new feature work, reconstruct the session from available evidence, verify what was actually completed, log successes and failures, extract skill updates, update the self-improvement system where safe, and offload mechanical checks to Haiku workers and deterministic tools.
+I will not ask for further permission during this run. I will freeze new feature work, reconstruct the session from available evidence, verify what was actually completed, log successes and failures, extract skill updates, update the self-improvement system where safe, and offload model-backed checks to DeepSeek workers plus deterministic tools.
 ```
 
 Then execute the full 9-phase pipeline below.
@@ -58,9 +58,9 @@ If the command conflicts with another project instruction, safety and evidence r
 
 `end of transmission` is a deliberate execution command, not a request for a plan, confirmation, or optional summary. By invoking it, the user grants standing permission to run the complete EOT pipeline from beginning to end without asking for additional approval.
 
-This permission includes: running all required deterministic checks · searching and inspecting session files, artifacts, logs, prompts, and self-improvement docs · creating new reflection artifacts · updating existing EOT/self-improvement documentation where the target path is clearly within scope · appending skill refinements, failure ledgers, boot packets, and patch proposals · offloading mechanical work to Haiku workers and local tools · making reasonable implementation choices independently when evidence is sufficient · continuing through non-critical uncertainty by recording it and choosing the safest useful fallback.
+This permission includes: running all required deterministic checks · searching and inspecting session files, artifacts, logs, prompts, and self-improvement docs · creating new reflection artifacts · updating existing EOT/self-improvement documentation where the target path is clearly within scope · appending skill refinements, failure ledgers, boot packets, and patch proposals · offloading model-backed reflection work to DeepSeek workers and local tools · making reasonable implementation choices independently when evidence is sufficient · continuing through non-critical uncertainty by recording it and choosing the safest useful fallback.
 
-**Micro-EOT Permission**: Full auto permission also grants standing permission for automatic micro-EOT triggers mid-session (no manual user trigger required). Micro-EOT runs in background, unblocks main thread, writes to `.Codex/eot/continuous/`. Main thread may continue work during micro-EOT execution.
+**Micro-EOT Permission**: Full auto permission also grants standing permission for automatic micro-EOT triggers mid-session (no manual user trigger required). Micro-EOT runs through DeepSeek in the background, unblocks main thread, writes to `.claude/eot/continuous/`. Main thread may continue work during micro-EOT execution.
 
 Do **not** ask the user:
 - "Do you want me to proceed?"
@@ -105,10 +105,11 @@ If a desired update conflicts with these boundaries, create a patch proposal mar
 - evidence inventory, worker routing
 - council review, final acceptance judgment, final report assembly
 
-### Haiku Workers (all execution):
-- All mechanical work: Haiku 4.5 model, `run_in_background: true`
-- No Sonnet spawning in EOT pipeline
-- Main thread performs final synthesis directly from Haiku outputs (no additional model spawn needed)
+### DeepSeek Workers (all model-backed EOT execution):
+- Micro-EOT: `deepseek-v4-flash` through `_SYSTEM/Scripts/offload.sh`.
+- Full EOT worker reviews: `deepseek-v4-pro:max-reasoning` for high-stakes synthesis, `deepseek-v4-flash` for lightweight ledgers and smoke reflections.
+- No Haiku or Sonnet workers in EOT.
+- Main thread performs final synthesis directly from DeepSeek outputs and deterministic tool evidence.
 
 ### Deterministic Tools:
 transcript extraction · file inventory · diff generation · grep/search self-improvement docs · test/build/lint results · artifact list · TODO/FIXME collection · failure log extraction · duplicate section detection · markdown validation · checklist tally · evidence table generation
@@ -232,8 +233,8 @@ Apply **mangekyo Phases 1-3 only** (Observe, Decompose, Audit) to session eviden
 ```
 
 **Routing:**
-- Local-subagent (Deepseek/Qwen) → source map + decomposition (deterministic)
-- Haiku 4.5 worker → weakness audit + hardening synthesis (run_in_background: true)
+- DeepSeek Pro worker → source map + decomposition
+- DeepSeek Pro worker → weakness audit + hardening synthesis (background when possible)
 - Main thread → integrate hardened findings into Phase 6
 
 **Why:** Raw session learnings often reflect surface fixes, assumption-driven conclusions, or unmeasured claims. MANGEKYO audit hardens them into reusable, architecturally sound, Yuri-aligned patterns before they become skill updates. This phase eliminates weak learnings and elevates sound ones.
@@ -303,7 +304,7 @@ This phase is non-blocking. If it errors or the overlay is absent, Phase 8 proce
 
 ### Phase 9 — Main Thread Synthesis
 
-After deterministic/offloaded work is complete, main thread synthesises directly from Haiku worker outputs:
+After deterministic/offloaded work is complete, main thread synthesises directly from DeepSeek worker outputs:
 - final reflection summary
 - corrected record of what happened
 - skill refinement patch
@@ -311,7 +312,7 @@ After deterministic/offloaded work is complete, main thread synthesises directly
 - next-session boot packet
 - remaining risks
 
-Main thread must reject vague learning summaries and require evidence-backed updates. No additional model spawn; synthesis performed on main thread using cached context from Haiku outputs.
+Main thread must reject vague learning summaries and require evidence-backed updates. No additional Claude model spawn; synthesis performed on main thread using cached context from DeepSeek outputs.
 
 ---
 
@@ -337,7 +338,7 @@ Prime Systems Architect · Orchestrator Architect · Worker Delegation Architect
 Seat duties:
 - **Repository Truth Architect** — flags claims made without inspecting files or source truth
 - **Deterministic Tooling Architect** — flags missed grep, tests, validators, diff tools
-- **Worker Delegation Architect** — checks Haiku/tool/worker routing was appropriate (no Sonnet escalation in EOT)
+- **Worker Delegation Architect** — checks DeepSeek/tool/worker routing was appropriate and no Haiku/Sonnet EOT worker was used
 - **Metric Truth Architect** — checks "success" and "completion" claims are evidence-based
 - **Swarm Learning Architect** — checks session learning became measurable skill refinement
 - **Physis System Health Architect** — checks system-health lessons became recommendations
@@ -353,12 +354,12 @@ Seat duties:
   <task id="eot-002" owner="deterministic_tool" permission="granted">Extract tool calls, errors, checks, command outputs, and validation evidence.</task>
   <task id="eot-003" owner="deterministic_tool" permission="granted">Search current self-improvement docs, related protocols, TODOs, and duplicated prompt sections.</task>
   <task id="eot-004" owner="deterministic_tool" permission="granted">Compare promised artifacts against actual files and inspect generated artifact headers where practical.</task>
-  <task id="eot-005" owner="local_subagent" model="deepseek-r1:latest | qwen2.5-coder:latest" permission="granted">MANGEKYO Phase 1-2: Observe session evidence + decompose into reusable patterns vs. surface observations. Output: source map + decomposition table.</task>
-  <task id="eot-005b" owner="haiku_worker" model="haiku-4-5-20251001" run_in_background="true" permission="granted">MANGEKYO Phase 3: Audit hardened evidence for weaknesses (architecture, security, reliability, maintainability, Yuri fit). Synthesize into evidence-backed findings ready for skill transformation.</task>
-  <task id="eot-006" owner="haiku_worker" model="haiku-4-5-20251001" run_in_background="true" permission="granted">Draft success, failure, partial, and risk ledgers from evidence (informed by Phase 5.5 hardening).</task>
-  <task id="eot-007" owner="haiku_worker" model="haiku-4-5-20251001" run_in_background="true" permission="granted">Draft skill patch candidates with trigger, rule, validation, and evidence (operating on Phase 5.5 hardened findings).</task>
+  <task id="eot-005" owner="deepseek_worker" model="deepseek-v4-pro:max-reasoning" permission="granted">MANGEKYO Phase 1-2: Observe session evidence + decompose into reusable patterns vs. surface observations. Output: source map + decomposition table.</task>
+  <task id="eot-005b" owner="deepseek_worker" model="deepseek-v4-pro:max-reasoning" run_in_background="true" permission="granted">MANGEKYO Phase 3: Audit hardened evidence for weaknesses (architecture, security, reliability, maintainability, Yuri fit). Synthesize into evidence-backed findings ready for skill transformation.</task>
+  <task id="eot-006" owner="deepseek_worker" model="deepseek-v4-flash" run_in_background="true" permission="granted">Draft success, failure, partial, and risk ledgers from evidence (informed by Phase 5.5 hardening).</task>
+  <task id="eot-007" owner="deepseek_worker" model="deepseek-v4-flash" run_in_background="true" permission="granted">Draft skill patch candidates with trigger, rule, validation, and evidence (operating on Phase 5.5 hardened findings).</task>
   <task id="eot-008" owner="deterministic_tool" permission="granted" conditional="system-overlays/karpathy-llm-wiki/ exists">Run LLM-Wiki EOT reflection: extract session atoms, update wiki pages, update indexes, append logs. Prompt: system-overlays/karpathy-llm-wiki/prompts/end-of-transmission-wiki-reflection.md. Skip silently if overlay absent.</task>
-  <task id="eot-009" owner="main_thread" permission="granted">Perform final synthesis of ledgers, skill patches, and self-improvement updates. No model spawn; main thread synthesizes from Haiku worker and local-subagent outputs.</task>
+  <task id="eot-009" owner="main_thread" permission="granted">Perform final synthesis of ledgers, skill patches, and self-improvement updates. No Claude model spawn; main thread synthesizes from DeepSeek worker and deterministic-tool outputs.</task>
 </end_of_transmission_routing>
 ```
 
@@ -402,7 +403,7 @@ When environment allows file output, produce or update in `.Codex/eot/YYYY-MM-DD
   </next_session_boot_packet>
   <offload_summary>
     <tools_used></tools_used>
-    <haiku_workers_used></haiku_workers_used>
+    <deepseek_workers_used></deepseek_workers_used>
     <main_thread_synthesis></main_thread_synthesis>
   </offload_summary>
   <blocked_items>
@@ -469,14 +470,14 @@ If XML is too heavy for the user-facing response, use readable Markdown with the
 - errors: none
 
 ### 2026-04-26 (v2: Continuous Background EOT)
-- EOT v2 implementation: auto-triggered micro-EOT, Sonnet removal, tiered memory integration
+- EOT v2 implementation: auto-triggered micro-EOT, Claude-worker removal, tiered memory integration
 - changes: added auto-trigger conditions (≥15 tool calls, context ≥60%, error recovery, cycle completion)
-- added micro-EOT mode (background Haiku, phases 1/4/7.5/8 only, outputs to .Codex/eot/continuous/)
-- removed Sonnet 4.6 auto from all phases: eot-005/006 now haiku workers, eot-007 now main thread synthesis
+- added micro-EOT mode, now routed through DeepSeek workers and written to `.claude/eot/continuous/`
+- removed Claude-worker EOT routing: eot-005/005b use DeepSeek Pro, eot-006/007 use DeepSeek Flash, eot-009 remains main-thread synthesis
 - updated Phase 7.5: tiered memory framing, micro-EOT wiki atom creation limited to steps 1-3
 - updated frontmatter description, Full Auto Permission Grant, Execution Model, routing table
 - harmony with Karpathy wiki: continuous atom creation via every micro-EOT, not just full EOT
-- model cap enforcement: all agents/subagents capped at Haiku, no escalation to Sonnet
+- model routing enforcement: EOT uses DeepSeek lanes only; no Haiku or Sonnet EOT workers
 
 ### 2026-04-26
 - session: 7m | peak ctx: 52% | compacts: 0

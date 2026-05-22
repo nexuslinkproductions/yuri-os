@@ -36,6 +36,13 @@
       "rating": "PASS",
       "met": true,
       "evidence": "lane-kernel, Rick runtime, offload rails, memory-kernel, and supercharge gate tests cover these contracts"
+    },
+    {
+      "goal": "critical-tier Shintai self-improvement run for Memory/RAG, skill recall, neurodivergency activation, and external memory-agent research",
+      "rating": "QUEUED_AFTER_HTML",
+      "met": false,
+      "evidence": "_SYSTEM/docs/YURI_OS_SELF_IMPROVEMENT_MEMORY_RAG_SHINTAI_GOAL_2026-05-21.md",
+      "note": "Must run through Shintai with Gate 0 evidence, EverMind-AI/MSA clone, browser/web research, member contradictions, and Codex arbitration before patches."
     }
   ]
 }

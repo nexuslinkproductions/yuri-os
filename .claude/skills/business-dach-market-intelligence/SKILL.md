@@ -47,7 +47,7 @@ triggers:
 
 **Context required:**
 - `identity.md` — Marcel's role (on-set videographer/photographer)
-- `enki_state.md` — current constraints and priorities
+- `kagami_state.md` — current constraints and priorities
 - `02_AREAS/DACH-Market-Intelligence/` — operational data folder
 - `06_NETWORK-SYNC/C2MOVIEZ/_MAPPING.md` — c2moviez client network
 - `00_COMMAND-CENTER/MOC-Network.md` — existing partnerships

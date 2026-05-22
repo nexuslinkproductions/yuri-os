@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-05-20T00:19:57.808Z",
+  "lastUpdated": "2026-05-21T06:42:53.263Z",
   "designSystemVersion": "2.0",
   "architecture": {
     "decision": "Independent token namespaces. --yuri-hud-* and --yuri-kagami-*. No base+override. Cross-surface reuse = hard error.",
@@ -52,6 +52,17 @@
   "templates": {},
   "entries": [
     {
+      "date": "2026-05-21",
+      "surface": "kagami",
+      "component": "design-intake-and-preference-memory",
+      "decision": "Design Master now requires a 10-question intake/mapping gate and promotes Marcel visual corrections into structured design memory before future design output.",
+      "rationale": "The prior presentation drifted into boxed logbook/deck grammar because preferences were treated as session context instead of durable system input.",
+      "tokens_used": [
+        "--yuri-kagami-*"
+      ],
+      "pattern": "design brief -> skill selection -> output -> verification -> memory promotion"
+    },
+    {
       "date": "2026-05-20",
       "surface": "hud",
       "component": "design-system-v2-foundation",
@@ -79,5 +90,70 @@
       "pattern": "kagami-sprint-audit template"
     }
   ],
-  "openIssues": []
+  "openIssues": [],
+  "designIntake": {
+    "minimumQuestions": 10,
+    "categories": [
+      "surface",
+      "audience",
+      "output_shape",
+      "density",
+      "structure",
+      "motion",
+      "emotional_temperature",
+      "reference_direction",
+      "dislikes",
+      "success_test",
+      "constraints",
+      "memory_policy"
+    ],
+    "rule": "Ask at least 10 design questions before producing new design output, or map an already-approved user brief to these categories and ask only for missing answers."
+  },
+  "userPreferences": {
+    "kagamiPresentation": {
+      "surface": "kagami",
+      "output_shape": "continuous HTML presentation, not slide deck",
+      "density": "dense but composed; avoid sparse one-point slides",
+      "structure": "typography, motion, mirror geometry, lines, seals, and spatial rhythm over boxed/card-heavy layout",
+      "motion": "visible scroll choreography, camera movement, parallax, masks, text motion, and reduced-motion fallback",
+      "dislikes": [
+        "HUD language or operator dashboard grammar on Kagami surfaces",
+        "slide-deck structure",
+        "logbook-like presentation copy",
+        "every point inside a block/card/capsule",
+        "repeated identical section layouts",
+        "sharp square blocks as the main grammar",
+        "generic AI-generated sparse pages"
+      ],
+      "success_test": "Feels like a polished cinematic Kagami briefing with varied composition and visible motion design.",
+      "memory_policy": "promote as reusable Kagami presentation preference"
+    }
+  },
+  "skillOrchestration": {
+    "designEntry": "design-master",
+    "selectionRule": "Pick skills from the local YURI tree based on the Design Brief; do not default to a single generic frontend skill.",
+    "matrix": {
+      "visualHierarchy": [
+        "frontend-design"
+      ],
+      "motion": [
+        "math-curve-loaders",
+        "framer-university-resource-atlas"
+      ],
+      "reverseEngineering": [
+        "pattern-mirror-core",
+        "sharingan"
+      ],
+      "reusableLanguage": [
+        "design-source-pack"
+      ],
+      "laneContracts": [
+        "prompt-engineering"
+      ],
+      "multiAgentDesign": [
+        "parallel-clone-orchestrator",
+        "swarm-coordination"
+      ]
+    }
+  }
 }

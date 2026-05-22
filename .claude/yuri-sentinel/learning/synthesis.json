@@ -1,13 +1,13 @@
 {
-  "run_id": "NL-2026-05-17",
-  "ts": "2026-05-17T14:18:36.175Z",
+  "run_id": "NL-2026-05-21",
+  "ts": "2026-05-21T22:00:07.457Z",
   "dry_run": false,
   "audit": {
-    "flaws_found": 10,
+    "flaws_found": 1,
     "auto_fixable": 1,
     "criticals": 0,
-    "warns": 1,
-    "flaws_delta": -8
+    "warns": 0,
+    "flaws_delta": 0
   },
   "promoter": {
     "candidates": 0,
@@ -22,8 +22,8 @@
     "f1_per_advisor": {}
   },
   "external_knowledge": {
-    "github_repos": 11,
-    "arxiv_papers": 0,
+    "github_repos": 10,
+    "arxiv_papers": 10,
     "hn_stories": 20,
     "signal_gain": 20
   },
@@ -40,6 +40,6 @@
       "accuracy": 0.75
     }
   },
-  "improvement_score": 69,
+  "improvement_score": 70,
   "brain_reloaded": true
 }

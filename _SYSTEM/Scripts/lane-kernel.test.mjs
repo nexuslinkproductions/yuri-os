@@ -26,20 +26,51 @@ test('lane kernel exposes the heavy Shintai/NIM deployment without Kimi or Spark
   assert.ok(ids.includes('qwen3-next'));
   assert.equal(ids.includes('kimi'), false);
   assert.doesNotMatch(lanes, /codex-spark|spark/i);
-  assert.equal(deployment.authority.finalDecision, 'codex-main');
+  assert.equal(deployment.authority.coMain, 'claude-opus-4-7-comain');
+  assert.equal(deployment.authority.finalDecision, 'codex-main-after-independent-verification');
+  assert.equal(deployment.authority.advisoryOnly.includes('claude-opus-audit'), false);
   assert.deepEqual(SHINTAI_REQUIRED_MEMBER_IDS, ['codex', 'deepseek']);
+});
+
+test('Claude Opus is a bounded co-main lane, not audit-only, and remains failsafe-gated', () => {
+  const opus = LANE_KERNEL['claude-opus-audit'];
+
+  assert.equal(opus.lane, 'claude-opus-4-7-comain');
+  assert.equal(opus.role, 'co-main-coding-architect');
+  assert.equal(opus.reasoning, 'max');
+  assert.deepEqual(opus.dispatchArgs, ['@claude-opus-comain']);
+  assert.match(opus.assignment, /Codex must independently verify/i);
+  assert.equal(opus.tools.edit, true);
+  assert.equal(opus.tools.shell, true);
+  assert.equal(opus.tools.commit, false);
+  assert.equal(opus.tools.push, false);
+  assert.equal(opus.tools.protectedReads, false);
+  assert.equal(opus.tools.protectedWrites, false);
 });
 
 test('lane kernel tracks active and dead NIM lanes explicitly', () => {
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-mistral-large'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-coder'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-minimax-m27'));
+  for (const lane of [
+    'nvidia-nemotron-super-49b',
+    'nvidia-mistral-nemotron',
+    'nvidia-llama4-maverick',
+    'nvidia-vision-90b',
+    'nvidia-nemotron-nano-vl-8b',
+    'nvidia-nemotron-mini-4b',
+  ]) {
+    assert.ok(ACTIVE_NIM_LANES.includes(lane), `${lane} should be an active NIM lane`);
+  }
   assert.equal(ACTIVE_NIM_LANES.includes('nvidia-glm'), false);
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-gpt-oss-120b'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-kimi'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-qwen-397b'));
   assert.ok(ACTIVE_NIM_LANES.includes('nvidia-nemotron-nano-30b'));
   assert.ok(DEAD_NIM_LANES.includes('nvidia-llama-405b'));
+  assert.ok(DEAD_NIM_LANES.includes('nvidia-magistral-small'));
+  assert.ok(DEAD_NIM_LANES.includes('nvidia-qwen-coder-32b'));
+  assert.ok(DEAD_NIM_LANES.includes('nvidia-usdcode'));
   assert.equal(DEAD_NIM_LANES.includes('nvidia-gpt-oss-120b'), false);
   assert.equal(DEAD_NIM_LANES.includes('nvidia-kimi'), false);
 });
@@ -73,7 +104,22 @@ test('memory/RAG Shintai NIM lanes keep tool mode available under YURI rails', (
 });
 
 test('Shintai NIM lanes keep tool mode available under YURI rails', () => {
-  for (const id of ['nemotron', 'nemotron-nano-30b', 'mistral-large', 'mistral-medium', 'qwen-coder', 'qwen-397b', 'minimax-m27', 'qwen3-next']) {
+  for (const id of [
+    'nemotron',
+    'nemotron-nano-30b',
+    'nemotron-super-49b',
+    'mistral-large',
+    'mistral-medium',
+    'mistral-nemotron',
+    'qwen-coder',
+    'qwen-397b',
+    'minimax-m27',
+    'qwen3-next',
+    'llama4-maverick',
+    'vision-90b',
+    'nemotron-nano-vl-8b',
+    'nemotron-mini-4b',
+  ]) {
     const lane = LANE_KERNEL[id];
     assert.ok(lane, `missing lane kernel entry for ${id}`);
     assert.equal(lane.dispatchArgs.includes('--no-tools'), false, `${id} should not force no-tools`);

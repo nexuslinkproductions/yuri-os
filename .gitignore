@@ -85,12 +85,16 @@ graphify-out/__pycache__/
 .claude/worktrees/
 .claude/plans/
 .claude/eot/
+.codex/eot/
+.Codex/eot/
 
 # Research corpus clones (external repos, not submodules)
 RESEARCH/ORACLE-CORPUS/
 RESEARCH/ruflo/
 deerflow/
 yuri-os/
+!.hermes/skills/yuri-os/
+!.hermes/skills/yuri-os/**
 
 # Embedded agent repos
 .agents/openmythos/
@@ -98,6 +102,11 @@ yuri-os/
 _SYSTEM/tools/browser-harness/
 _SYSTEM/tools/nemo-guardrails/
 _SYSTEM/tools/MSA/
+.hermes/**/__pycache__/
+.hermes/**/*.pyc
+.hermes/skills/.curator_state
+.hermes/skills/.curator_backups/
+.hermes/skills/.hub/
 _SYSTEM/state/shintai-advisory/
 _SYSTEM/state/release-gate/
 _SYSTEM/state/rick-history.jsonl
@@ -106,6 +115,9 @@ _SYSTEM/state/memory-ledger.jsonl
 _SYSTEM/state/kagami-ledger.jsonl
 _SYSTEM/state/guardrail-violations.jsonl
 _SYSTEM/state/playwright-visual-check/
+_SYSTEM/state/claude-opus-design-edit-prompt-*.md
+_SYSTEM/state/worker-last-*.txt
+_SYSTEM/state/worker-queues.json
 _SYSTEM/training/state/
 _SYSTEM/.claude/
 .amp/
@@ -210,6 +222,7 @@ _SYSTEM/SELF-IMPROVEMENT/03_GAZE/yuri-council-audit-framer-report.html
 
 # Runtime logs and generated Claude audit/trading artifacts
 logs/
+output/
 .claude/reinforcement/audit-output/
 .claude/trading-bot/audits/
 .claude/trading-bot/data/prediction_result.jsonl

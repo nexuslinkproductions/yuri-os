@@ -1,0 +1,26 @@
+failure_taxonomy:
+  categories:
+    - id: planning_failure
+      description: "The plan missed required steps, constraints, or dependencies."
+    - id: execution_failure
+      description: "A command, implementation, or file operation failed."
+    - id: safety_failure
+      description: "The system attempted or nearly attempted unsafe behavior."
+    - id: quality_failure
+      description: "The output was vague, incorrect, incomplete, or not useful enough."
+    - id: memory_failure
+      description: "Memory was missing, stale, overgeneralized, or incorrectly updated."
+    - id: coordination_failure
+      description: "Agents or clones disagreed, duplicated work, or failed to synthesize."
+    - id: user_alignment_failure
+      description: "The output missed the user's actual intent, tone, or constraints."
+  severity_rules:
+    low: "Minor issue; local correction sufficient."
+    medium: "Noticeable issue; add checklist or local test."
+    high: "Repeated or harmful issue; update skill or procedure after review."
+    critical: "Unsafe or destructive risk; freeze automation until guardrail is improved."
+  prohibited_learning_patterns:
+    - "Do not create artificial failures to gain improvement events."
+    - "Do not globalize a lesson from one weak signal."
+    - "Do not overwrite memory without evidence."
+    - "Do not hide failure records to preserve apparent success."
