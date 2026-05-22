@@ -26,6 +26,7 @@ export const CYBER_REQUIRED_EVIDENCE_IDS = Object.freeze([
   'cyber-intel-ingestion-protocol',
   'threat-intel-kernel-source',
   'security-lens-source',
+  'cyber-lab-harness-source',
   'cyber-capability-audit',
   'cyber-research-sprint',
 ]);

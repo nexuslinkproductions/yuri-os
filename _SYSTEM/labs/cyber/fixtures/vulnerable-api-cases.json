@@ -1,0 +1,18 @@
+{
+  "schema": "yuri.cyber-lab-fixture.vulnerable-api-cases.v0",
+  "labId": "vulnerable-api-cases",
+  "title": "Vulnerable Web/API Case Library",
+  "runMode": "fixture-only",
+  "enabled": false,
+  "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+  "proofTarget": "owned-lab-research-boundary-rail",
+  "externalTargetsAllowed": false,
+  "cases": [
+    {
+      "id": "authz-missing",
+      "route": "GET /owned-lab/accounts/:id",
+      "flaw": "Missing tenant ownership check in a toy route descriptor.",
+      "expectedRail": "report-only-until-owned-lab-server-exists"
+    }
+  ]
+}

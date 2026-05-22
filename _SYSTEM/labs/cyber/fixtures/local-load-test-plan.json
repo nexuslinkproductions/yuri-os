@@ -1,0 +1,18 @@
+{
+  "schema": "yuri.cyber-lab-fixture.local-load-test-plan.v0",
+  "labId": "local-load-test-plan",
+  "title": "Local Availability Pressure Plan",
+  "runMode": "fixture-only",
+  "enabled": false,
+  "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+  "proofTarget": "runtime-health-rail",
+  "externalTargetsAllowed": false,
+  "cases": [
+    {
+      "id": "localhost-pressure",
+      "target": "127.0.0.1 owned service only",
+      "limit": "small bounded local request count",
+      "expectedRail": "never-run-against-external-targets"
+    }
+  ]
+}

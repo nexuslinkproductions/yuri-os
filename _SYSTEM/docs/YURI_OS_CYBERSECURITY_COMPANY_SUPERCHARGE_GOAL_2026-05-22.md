@@ -211,7 +211,16 @@ Current boundary: Security Lens v0 is an evidence-backed assessment/report surfa
 
 ### Wave C4: Lab Harness v0
 
-Build local prompt-injection, malicious MCP, browser-agent, memory/RAG, and vulnerable API labs.
+Status: implementation slice active. Build local prompt-injection, malicious MCP, browser-agent, memory/RAG, and vulnerable API labs.
+
+Artifacts:
+
+- Harness builder: `_SYSTEM/Scripts/cyber-lab-harness.mjs`
+- Regression tests: `_SYSTEM/Scripts/cyber-lab-harness.test.mjs`
+- Manifest: `_SYSTEM/labs/cyber/lab-manifest.json`
+- Fixtures: `_SYSTEM/labs/cyber/fixtures/`
+
+Current boundary: Lab Harness v0 is fixture-only and disabled by default. It materializes local synthetic cases for prompt injection, MCP tool poisoning, browser-agent fake portal behavior, memory/RAG poisoning, vulnerable API case descriptions, and localhost-only load-test planning. It does not run exploits, malware, DDoS, or any external target activity.
 
 ### Wave C5: Guardrail Proof
 

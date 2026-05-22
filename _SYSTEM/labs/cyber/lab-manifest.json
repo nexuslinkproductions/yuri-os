@@ -1,0 +1,397 @@
+{
+  "schema": "yuri.cyber-lab-harness.v0",
+  "generatedAt": "2026-05-22T07:15:55.305Z",
+  "source": {
+    "threatIntelRows": 90,
+    "labCount": 7
+  },
+  "labs": [
+    {
+      "id": "prompt-injection-replay",
+      "labScenario": "synthetic-prompt-injection-replay-lab",
+      "title": "Prompt Injection Replay Lab",
+      "fixture": "fixtures/prompt-injection-replay.json",
+      "proofTarget": "input-dialog-rail",
+      "enabled": false,
+      "runMode": "fixture-only",
+      "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "externalTargetsAllowed": false,
+      "relatedThreats": [
+        {
+          "threat_id": "CY-048",
+          "domain": "AI Attack",
+          "threat": "Direct prompt injection",
+          "evidence": [
+            "S13",
+            "S15"
+          ],
+          "guardrail": "input-dialog-rail",
+          "scanner_rule": "memory-rag-provenance-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-049",
+          "domain": "AI Attack",
+          "threat": "Indirect prompt injection through docs/web",
+          "evidence": [
+            "S13",
+            "S15"
+          ],
+          "guardrail": "input-dialog-rail",
+          "scanner_rule": "memory-rag-provenance-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-050",
+          "domain": "AI Attack",
+          "threat": "Jailbreak regression after model updates",
+          "evidence": [
+            "S13",
+            "S15",
+            "S23"
+          ],
+          "guardrail": "input-dialog-rail",
+          "scanner_rule": null,
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        }
+      ],
+      "fixtureKind": "json"
+    },
+    {
+      "id": "malicious-mcp-tool-schema",
+      "labScenario": "local-mcp-tool-poisoning-lab",
+      "title": "Malicious MCP Tool Schema Lab",
+      "fixture": "fixtures/malicious-mcp-tool-schema.json",
+      "proofTarget": "tool-input-output-rail",
+      "enabled": false,
+      "runMode": "fixture-only",
+      "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "externalTargetsAllowed": false,
+      "relatedThreats": [
+        {
+          "threat_id": "CY-013",
+          "domain": "Identity",
+          "threat": "OAuth consent phishing",
+          "evidence": [
+            "S1",
+            "S9"
+          ],
+          "guardrail": "tool-input-output-rail",
+          "scanner_rule": "agent-tool-connector-manifest-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-025",
+          "domain": "SaaS",
+          "threat": "SaaS connector over-permission",
+          "evidence": [
+            "S1",
+            "S9",
+            "S13",
+            "S16"
+          ],
+          "guardrail": "tool-input-output-rail",
+          "scanner_rule": "agent-tool-connector-manifest-rule",
+          "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+        },
+        {
+          "threat_id": "CY-053",
+          "domain": "AI Attack",
+          "threat": "MCP server tool poisoning",
+          "evidence": [
+            "S14",
+            "S16",
+            "S17"
+          ],
+          "guardrail": "tool-input-output-rail",
+          "scanner_rule": "agent-tool-connector-manifest-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-054",
+          "domain": "AI Attack",
+          "threat": "MCP capability attestation failure",
+          "evidence": [
+            "S16",
+            "S17"
+          ],
+          "guardrail": "tool-input-output-rail",
+          "scanner_rule": "agent-tool-connector-manifest-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        }
+      ],
+      "fixtureKind": "json"
+    },
+    {
+      "id": "browser-agent-fake-portal",
+      "labScenario": "owned-browser-agent-compromise-lab",
+      "title": "Browser Agent Fake Portal Lab",
+      "fixture": "fixtures/browser-agent-fake-portal.html",
+      "proofTarget": "browser-action-boundary-rail",
+      "enabled": false,
+      "runMode": "fixture-only",
+      "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "externalTargetsAllowed": false,
+      "relatedThreats": [
+        {
+          "threat_id": "CY-006",
+          "domain": "Infostealers",
+          "threat": "Browser session token theft",
+          "evidence": [
+            "S1",
+            "S4",
+            "S8",
+            "S9"
+          ],
+          "guardrail": "browser-action-boundary-rail",
+          "scanner_rule": "secret-and-token-exposure-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-011",
+          "domain": "Identity",
+          "threat": "Session hijacking in SaaS",
+          "evidence": [
+            "S1",
+            "S6",
+            "S9"
+          ],
+          "guardrail": "browser-action-boundary-rail",
+          "scanner_rule": "agent-tool-connector-manifest-rule",
+          "safety_boundary": "assessment-and-reporting-only-unless-authorized"
+        },
+        {
+          "threat_id": "CY-027",
+          "domain": "SaaS",
+          "threat": "Browser automation on privileged portals",
+          "evidence": [
+            "S13",
+            "S14",
+            "S16"
+          ],
+          "guardrail": "browser-action-boundary-rail",
+          "scanner_rule": "agent-tool-connector-manifest-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-056",
+          "domain": "AI Attack",
+          "threat": "Browser-agent form exfiltration",
+          "evidence": [
+            "S13",
+            "S14"
+          ],
+          "guardrail": "browser-action-boundary-rail",
+          "scanner_rule": "browser-session-isolation-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-085",
+          "domain": "Runtime",
+          "threat": "Browser profile/session bleed",
+          "evidence": [
+            "S13",
+            "S14"
+          ],
+          "guardrail": "browser-action-boundary-rail",
+          "scanner_rule": "browser-session-isolation-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-087",
+          "domain": "Runtime",
+          "threat": "Research source poisoning",
+          "evidence": [
+            "S13",
+            "S15"
+          ],
+          "guardrail": "browser-action-boundary-rail",
+          "scanner_rule": "browser-session-isolation-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        }
+      ],
+      "fixtureKind": "html"
+    },
+    {
+      "id": "memory-poisoning-corpus",
+      "labScenario": "synthetic-memory-poisoning-lab",
+      "title": "Memory Poisoning Corpus Lab",
+      "fixture": "fixtures/memory-poisoning-corpus.json",
+      "proofTarget": "retrieval-memory-provenance-rail",
+      "enabled": false,
+      "runMode": "fixture-only",
+      "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "externalTargetsAllowed": false,
+      "relatedThreats": [
+        {
+          "threat_id": "CY-059",
+          "domain": "Memory",
+          "threat": "Memory poisoning gradual drift",
+          "evidence": [
+            "S11",
+            "S13"
+          ],
+          "guardrail": "retrieval-memory-provenance-rail",
+          "scanner_rule": "memory-rag-provenance-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        }
+      ],
+      "fixtureKind": "json"
+    },
+    {
+      "id": "rag-poisoning-corpus",
+      "labScenario": "synthetic-rag-poisoning-lab",
+      "title": "RAG Poisoning Corpus Lab",
+      "fixture": "fixtures/rag-poisoning-corpus.json",
+      "proofTarget": "retrieval-memory-provenance-rail",
+      "enabled": false,
+      "runMode": "fixture-only",
+      "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "externalTargetsAllowed": false,
+      "relatedThreats": [
+        {
+          "threat_id": "CY-008",
+          "domain": "Infostealers",
+          "threat": "Developer credential exposure",
+          "evidence": [
+            "S1",
+            "S4",
+            "S9"
+          ],
+          "guardrail": "retrieval-memory-provenance-rail",
+          "scanner_rule": "secret-and-token-exposure-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-032",
+          "domain": "Supply Chain",
+          "threat": "CI/CD secret exfiltration",
+          "evidence": [
+            "S1",
+            "S9",
+            "S26"
+          ],
+          "guardrail": "execution-output-trust-rail",
+          "scanner_rule": "secret-and-token-exposure-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-060",
+          "domain": "Memory",
+          "threat": "RAG corpus poisoning",
+          "evidence": [
+            "S11",
+            "S13"
+          ],
+          "guardrail": "retrieval-memory-provenance-rail",
+          "scanner_rule": "memory-rag-provenance-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        }
+      ],
+      "fixtureKind": "json"
+    },
+    {
+      "id": "vulnerable-api-cases",
+      "labScenario": "owned-vulnerable-web-api-lab",
+      "title": "Vulnerable Web/API Case Library",
+      "fixture": "fixtures/vulnerable-api-cases.json",
+      "proofTarget": "owned-lab-research-boundary-rail",
+      "enabled": false,
+      "runMode": "fixture-only",
+      "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "externalTargetsAllowed": false,
+      "relatedThreats": [
+        {
+          "threat_id": "CY-038",
+          "domain": "Vulnerability",
+          "threat": "API authorization bugs",
+          "evidence": [
+            "S9",
+            "S12"
+          ],
+          "guardrail": null,
+          "scanner_rule": null,
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-039",
+          "domain": "Web",
+          "threat": "SQLi/XSS/SSRF still recurring",
+          "evidence": [
+            "S9",
+            "S12"
+          ],
+          "guardrail": null,
+          "scanner_rule": "repo-supply-chain-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-040",
+          "domain": "Web",
+          "threat": "SSRF into metadata services",
+          "evidence": [
+            "S9",
+            "S12"
+          ],
+          "guardrail": null,
+          "scanner_rule": null,
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        }
+      ],
+      "fixtureKind": "json"
+    },
+    {
+      "id": "local-load-test-plan",
+      "labScenario": "local-only-load-test-lab",
+      "title": "Local Availability Pressure Plan",
+      "fixture": "fixtures/local-load-test-plan.json",
+      "proofTarget": "runtime-health-rail",
+      "enabled": false,
+      "runMode": "fixture-only",
+      "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+      "externalTargetsAllowed": false,
+      "relatedThreats": [
+        {
+          "threat_id": "CY-041",
+          "domain": "DDoS",
+          "threat": "Hyper-volumetric DDoS",
+          "evidence": [
+            "S5",
+            "S6"
+          ],
+          "guardrail": "runtime-health-rail",
+          "scanner_rule": null,
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-042",
+          "domain": "DDoS",
+          "threat": "HTTP/2 and L7 protocol abuse",
+          "evidence": [
+            "S5"
+          ],
+          "guardrail": null,
+          "scanner_rule": null,
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        },
+        {
+          "threat_id": "CY-043",
+          "domain": "DDoS",
+          "threat": "Botnet-for-hire attacks",
+          "evidence": [
+            "S5",
+            "S6"
+          ],
+          "guardrail": null,
+          "scanner_rule": "repo-supply-chain-rule",
+          "safety_boundary": "owned-local-synthetic-or-explicitly-authorized-only"
+        }
+      ],
+      "fixtureKind": "json"
+    }
+  ],
+  "validation": {
+    "ok": true,
+    "errors": []
+  }
+}
