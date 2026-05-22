@@ -16,6 +16,7 @@ import { printBanner } from './rick-banner.mjs';
 import { healthCheckAll } from './worker-tmux.mjs';
 import { harnessViewport } from './browser-harness-bridge.mjs';
 import { classifyRickRoute, formatRouteDecision } from './rick-route-classifier.mjs';
+import { appendRouteDecisionEvent } from './kagami-event-bus.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -198,6 +199,10 @@ function appendRoutingLog(decision, extra = {}) {
       ...decision,
       ...extra,
     })}\n`);
+    appendRouteDecisionEvent(decision, {
+      source: extra.source || 'rick',
+      session: SESSION_ID,
+    });
   } catch {}
 }
 

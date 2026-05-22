@@ -114,6 +114,7 @@ _SYSTEM/state/rick-routing.jsonl
 _SYSTEM/state/nim-transient-incidents.jsonl
 _SYSTEM/state/memory-ledger.jsonl
 _SYSTEM/state/kagami-ledger.jsonl
+_SYSTEM/state/kagami-control/
 _SYSTEM/state/guardrail-violations.jsonl
 _SYSTEM/state/playwright-visual-check/
 _SYSTEM/state/claude-opus-design-edit-prompt-*.md
