@@ -51,6 +51,7 @@ export const OPTIONAL_MEMORY_FILES = Object.freeze([
   { id: 'deepseek-tool-unblock', path: '_SYSTEM/memory/feedback_deepseek_tool_unblock.md', type: 'memory' },
   { id: 'self-improvement-memory-rag-goal', path: '_SYSTEM/docs/YURI_OS_SELF_IMPROVEMENT_MEMORY_RAG_SHINTAI_GOAL_2026-05-21.md', type: 'doc' },
   { id: 'memory-rag-skill-research', path: '_SYSTEM/docs/YURI_MEMORY_RAG_SKILL_RESEARCH_2026-05-21.md', type: 'research' },
+  { id: 'research-to-runtime-ledger', path: '_SYSTEM/docs/YURI_RESEARCH_TO_RUNTIME_LEDGER_2026-05-22.md', type: 'doc' },
   { id: 'protected-surfaces-plan', path: '_SYSTEM/docs/YURI_OS_PROTECTED_SURFACES_MIGRATION_PLAN_2026-05-21.md', type: 'doc' },
   { id: 'design-system-plan', path: '_SYSTEM/docs/YURI_DESIGN_SYSTEM_SUPERCHARGE_PLAN_2026-05-21.md', type: 'doc' },
   { id: 'soul-persona', path: 'SOUL.md', type: 'persona' },

@@ -17,6 +17,7 @@ import { healthCheckAll } from './worker-tmux.mjs';
 import { harnessViewport } from './browser-harness-bridge.mjs';
 import { classifyRickRoute, formatRouteDecision } from './rick-route-classifier.mjs';
 import { appendRouteDecisionEvent } from './kagami-event-bus.mjs';
+import { buildUserProfilePromptBlock } from './kagami-user-profile.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -302,12 +303,19 @@ async function writeMemory(input, response) {
 }
 
 function buildPrompt(input, historyCtx, memories) {
+  let userProfile = '';
+  try {
+    userProfile = buildUserProfilePromptBlock();
+  } catch {
+    userProfile = '';
+  }
   const parts = [
     '[Rick · Marcel · YURI]',
     'Rick full harness active. Terse, evidence-first, no fluff.',
     'Honor no-auto-commit/no-push guardrails. Suggest patch-ready code, but do not assume shell execution.',
     'Never emit terminal chrome: no fake borders, banners, status bars, token counters, or "Rick >" prefixes. The harness renders all UI.',
   ];
+  if (userProfile) parts.push('\n' + userProfile);
   if (memories) parts.push('\n' + memories);
   if (historyCtx) parts.push('\n[Conversation — sanitized recent turns, terminal chrome omitted]\n' + historyCtx);
   parts.push('\nMarcel: ' + input);
