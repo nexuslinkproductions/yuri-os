@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { printBanner } from './rick-banner.mjs';
 import { healthCheckAll } from './worker-tmux.mjs';
 import { harnessViewport } from './browser-harness-bridge.mjs';
+import { classifyRickRoute, formatRouteDecision } from './rick-route-classifier.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -27,6 +28,7 @@ const PATCH_WAVES_DOC = path.join(REPO_ROOT, '_SYSTEM', 'docs', 'YURI_OS_SUPERCH
 const GOAL_CHECKLIST_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'goal-checklist.json');
 const ADVISORY_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state', 'shintai-advisory');
 const RELEASE_GATE_EVIDENCE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'release-gate', 'automation-evidence.jsonl');
+const ROUTING_LOG_FILE = path.join(REPO_ROOT, '_SYSTEM', 'state', 'rick-routing.jsonl');
 
 const SESSION_ID = `rick-${Date.now()}`;
 const HISTORY_TTL = 24 * 60 * 60 * 1000;
@@ -64,6 +66,8 @@ const ROUTES = {
   '@deepseek': { lane: '@deepseek-v4-pro', label: 'DeepSeek' },
   '@codex': { lane: 'gpt-5.5', label: 'Codex' },
   '@claude': { lane: '@claude', label: 'Claude' },
+  '@opus': { lane: '@claude-opus-comain', label: 'Claude Opus' },
+  '@claude-opus': { lane: '@claude-opus-comain', label: 'Claude Opus' },
   '@nvidia': { lane: '@nvidia-nemotron-120b', label: 'Nvidia' },
   '@ds': { lane: '@deepseek-v4-pro', label: 'DeepSeek' },
   '@flash': { lane: '@deepseek-v4-flash', label: 'Rick' },
@@ -89,6 +93,7 @@ const DIM_FX = '\x1b[2m';
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
 let shellAutoExecEnabled = true;
+let kagamiRouteMode = process.env.KAGAMI_RICK_MODE || 'auto';
 let mem = null;
 const ACTIVE_DISPATCHES = new Map();
 
@@ -181,6 +186,18 @@ function appendHistory(entry) {
   try {
     ensureStateDir();
     appendFileSync(HISTORY_FILE, `${JSON.stringify(entry)}\n`);
+  } catch {}
+}
+
+function appendRoutingLog(decision, extra = {}) {
+  try {
+    ensureStateDir();
+    appendFileSync(ROUTING_LOG_FILE, `${JSON.stringify({
+      ts: Date.now(),
+      session: SESSION_ID,
+      ...decision,
+      ...extra,
+    })}\n`);
   } catch {}
 }
 
@@ -290,6 +307,39 @@ function buildPrompt(input, historyCtx, memories) {
   if (historyCtx) parts.push('\n[Conversation — sanitized recent turns, terminal chrome omitted]\n' + historyCtx);
   parts.push('\nMarcel: ' + input);
   return parts.join('\n');
+}
+
+function buildKagamiRoutePrompt(input, historyCtx, memories, routeDecision) {
+  const prompt = buildPrompt(input, historyCtx, memories);
+  const routeLines = [
+    '[Kagami Route]',
+    `class: ${routeDecision.class}`,
+    `lane: ${routeDecision.lane || 'blocked'}`,
+    `mode: ${routeDecision.mode}`,
+    `reason: ${routeDecision.reason}`,
+  ];
+  if (routeDecision.class === 'cyber') {
+    routeLines.push('cyber rail: defensive or owned-lab only; external targets require explicit engagement scope.');
+  }
+  if (routeDecision.advisory?.length) {
+    routeLines.push(`advisory: ${routeDecision.advisory.join(', ')}`);
+  }
+  routeLines.push('Codex/main remains final verifier for code, claims, memory promotion, and release decisions.');
+  return `${prompt}\n\n${routeLines.join('\n')}`;
+}
+
+function cyberBlockText(routeDecision) {
+  return [
+    'Kagami blocked this before dispatch.',
+    `reason: ${routeDecision.reason}`,
+    '',
+    'To run cybersecurity work, make it explicitly scoped:',
+    '- use `cyber:` for defensive or owned-lab work',
+    '- name the owned sandbox/lab or authorized engagement',
+    '- avoid real external targets unless an engagement scope exists',
+    '',
+    'Example: cyber: run a local lab assessment on my sandbox API',
+  ].join('\n');
 }
 
 function goalText() {
@@ -1062,11 +1112,23 @@ async function handleInput(ui, input, history) {
     return;
   }
 
+  const routeDecision = classifyRickRoute(input, { mode: kagamiRouteMode });
+  appendRoutingLog(routeDecision, { source: 'plain-input' });
+  if (routeDecision.blocked) {
+    const assistant = cyberBlockText(routeDecision);
+    ui.appendError(assistant);
+    const entry = { ts: Date.now(), session: SESSION_ID, user: input, assistant };
+    appendHistory(entry);
+    history.push(entry);
+    await writeMemory(input, assistant);
+    return;
+  }
+  ui.appendDispatch(`Kagami auto → ${routeDecision.lane} (${routeDecision.class})`);
   const { response, turns } = await streamLaneWithShell(
     ui,
-    '@deepseek-v4-flash',
-    buildPrompt(input, historyCtx, memories),
-    'Rick',
+    routeDecision.lane,
+    buildKagamiRoutePrompt(input, historyCtx, memories, routeDecision),
+    routeDecision.label,
     { userShellBlocks },
   );
   const entry = { ts: Date.now(), session: SESSION_ID, user: input, assistant: response };
@@ -1093,12 +1155,14 @@ function helpText() {
     '/help                  show this surface',
     '/goal                  show current YURI supercharge goal',
     '/status                show Kagami lane health and latest Shintai artifact',
+    '/why <task>            dry-run Kagami auto-route without dispatch',
+    '/mode [auto|codex|rick|cheap] show or set default route posture',
     '/clear                 clear Rick prompt history',
     '/noexec [on|off]       toggle shell-block auto-exec',
     '/health                run worker PONG health checks',
     '/browser <python>      run browser-harness Python via repo-local CLI',
     '@shintai <task>        advisory squad: fan-out, critique, synthesis, patch prep',
-    '@codex/@deepseek/...   route a turn to a lane',
+    '@codex/@deepseek/@opus route a turn to a lane',
     'ctrl+c                 exit',
   ].join('\n');
 }
@@ -1137,6 +1201,30 @@ async function main() {
 
     if (input === '/status') {
       ui.appendSystem(await statusText());
+      return;
+    }
+
+    if (input === '/mode') {
+      ui.appendSystem(`Kagami route mode: ${kagamiRouteMode}`);
+      return;
+    }
+
+    if (input.startsWith('/mode ')) {
+      const value = input.slice('/mode '.length).trim().toLowerCase();
+      if (!['auto', 'codex', 'rick', 'cheap'].includes(value)) {
+        ui.appendError('mode must be one of: auto, codex, rick, cheap');
+        return;
+      }
+      kagamiRouteMode = value;
+      ui.appendSystem(`Kagami route mode: ${kagamiRouteMode}`);
+      return;
+    }
+
+    if (input.startsWith('/why ') || input.startsWith('why ')) {
+      const task = input.startsWith('/why ') ? input.slice('/why '.length) : input.slice('why '.length);
+      const decision = classifyRickRoute(task, { mode: kagamiRouteMode });
+      appendRoutingLog(decision, { source: 'route-dry-run' });
+      ui.appendSystem(formatRouteDecision(decision));
       return;
     }
 
@@ -1184,9 +1272,10 @@ async function main() {
     }
 
     const detected = detectRoute(input);
-    const lane = detected?.tag === '@shintai' ? '@shintai' : detected?.route?.lane ?? '@deepseek-v4-flash';
+    const autoDecision = detected ? null : classifyRickRoute(input, { mode: kagamiRouteMode });
+    const lane = detected?.tag === '@shintai' ? '@shintai' : detected?.route?.lane ?? autoDecision?.lane ?? '@deepseek-v4-flash';
     busy = true;
-    ui.startTurn(lane, 'preparing prompt');
+    ui.startTurn(autoDecision?.blocked ? 'blocked' : lane, autoDecision?.blocked ? 'blocked by Kagami rail' : 'preparing prompt');
     ui.appendUser(input);
     try {
       await handleInput(ui, input, history);
@@ -1194,7 +1283,7 @@ async function main() {
       ui.appendError(`error: ${err.message}`);
     } finally {
       busy = false;
-      ui.finishTurn('@deepseek-v4-flash');
+      ui.finishTurn(kagamiRouteMode === 'codex' ? 'gpt-5.5' : '@deepseek-v4-flash');
     }
   };
 

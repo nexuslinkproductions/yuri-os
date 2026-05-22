@@ -449,6 +449,7 @@ sys.exit(0 if done and proc.returncode == 0 else 2)
       ...process.env,
       DEEPSEEK_API_KEY: 'mock-key',
       DEEPSEEK_BASE_URL: `http://127.0.0.1:${port}`,
+      KAGAMI_RICK_MODE: 'rick',
       LANE_SESSION: 'rick-pty-runtime-test',
       NODE_BIN: process.execPath,
       OFFLOAD_STREAM: '1',

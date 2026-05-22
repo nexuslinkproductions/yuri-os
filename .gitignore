@@ -110,6 +110,7 @@ _SYSTEM/tools/MSA/
 _SYSTEM/state/shintai-advisory/
 _SYSTEM/state/release-gate/
 _SYSTEM/state/rick-history.jsonl
+_SYSTEM/state/rick-routing.jsonl
 _SYSTEM/state/nim-transient-incidents.jsonl
 _SYSTEM/state/memory-ledger.jsonl
 _SYSTEM/state/kagami-ledger.jsonl
