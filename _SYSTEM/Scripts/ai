@@ -40,6 +40,12 @@ Commands:
   codex [prompt]
       Start Codex interactively, or run a one-shot prompt with codex exec.
 
+  @codex|@gpt-5.5 [prompt]
+      Run Codex full implementation lane with gpt-5.5.
+
+  @codex-mini|@gpt-5.4-mini [prompt]
+      Run Codex mini implementation/review lane with gpt-5.4-mini.
+
   btw [prompt]
       Route a live steering hint to the best lane, local first.
 
@@ -140,6 +146,9 @@ Commands:
 
   @claude [prompt]
       Run the bounded Claude Sonnet council lane with advisory-only output.
+
+  @claude-sonnet-code [prompt]
+      Run Claude Sonnet xhigh as a bounded coding lane. Edits allowed, no commit/push.
 
   @claude-opus-comain [prompt]
       Wake Claude with Haiku, then run Opus 4.7 as bounded co-main coding/reasoning lane.
@@ -291,8 +300,8 @@ emit_claude_advisory_output() {
 
   printf '# ADVISORY_CLAUDE_COUNCIL_OUTPUT\n'
   printf '# lane: @claude\n'
-  printf '# model: %s\n' "${YURI_COUNCIL_MODEL:-user-configured}"
-  printf '# reasoning: %s\n' "${YURI_COUNCIL_REASONING:-xhigh}"
+  printf '# model: %s\n' "${YURI_CLAUDE_COUNCIL_MODEL:-claude-sonnet-4-6}"
+  printf '# reasoning: %s\n' "${YURI_CLAUDE_COUNCIL_EFFORT:-xhigh}"
   printf '# advisory_only=true\n'
   printf '# local_truth_claim=false\n'
   printf '# codex_final_authority=true\n'
@@ -319,6 +328,8 @@ run_claude_safe_prompt() {
 
   set +e
   YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
+    --model "${YURI_CLAUDE_COUNCIL_MODEL:-claude-sonnet-4-6}" \
+    --effort "${YURI_CLAUDE_COUNCIL_EFFORT:-xhigh}" \
     --permission-mode default \
     --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
     --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
@@ -328,6 +339,67 @@ run_claude_safe_prompt() {
   set -e
 
   emit_claude_advisory_output "$_stdout" "$_stderr" "$_status"
+  rm -rf "$_tmpdir"
+  return "$_status"
+}
+
+build_claude_sonnet_code_prompt() {
+  local prompt="$1"
+  cat <<EOF
+You are Claude Sonnet in the Yuri OS bounded coding lane.
+
+Role: implementation partner for scoped code, tests, refactors, docs-to-code translation, and cleanup.
+Authority: coding_allowed=true; local_truth_claim=false until verified; Codex/main remains release gate and final verifier.
+Bounds: edit only files clearly required by the task. No commits, no pushes, no protected paths, no secrets, no destructive commands, no unauthorized offensive activity. For cybersecurity work, owned/authorized labs only.
+Quality bar: make minimal coherent edits, add or update focused tests when behavior changes, and run the cheapest relevant verification you can.
+Failsafe: inspect your own diff before finishing. Name assumptions, changed files, tests run, and what Codex must double-check.
+
+Return exactly these sections:
+summary:
+changed_files:
+tests_run:
+risks:
+codex_double_check_required:
+
+Task:
+$prompt
+EOF
+}
+
+run_claude_sonnet_code_prompt() {
+  local prompt="$1"
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _tmpdir _stdout _stderr _status _code_prompt
+  require_cmd "$_claude_bin"
+  _tmpdir="$(mktemp -d)"
+  _stdout="$_tmpdir/stdout.txt"
+  _stderr="$_tmpdir/stderr.txt"
+  _code_prompt="$(build_claude_sonnet_code_prompt "$prompt")"
+
+  set +e
+  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
+    --model "${YURI_CLAUDE_SONNET_CODE_MODEL:-claude-sonnet-4-6}" \
+    --effort "${YURI_CLAUDE_SONNET_CODE_EFFORT:-xhigh}" \
+    --permission-mode acceptEdits \
+    --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
+    --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
+    --name "${YURI_CLAUDE_SONNET_CODE_SESSION_NAME:-yuri-sonnet-code}" \
+    --print "$_code_prompt" >"$_stdout" 2>"$_stderr"
+  _status=$?
+  set -e
+
+  printf '# lane: @claude-sonnet-code\n'
+  printf '# model: %s\n' "${YURI_CLAUDE_SONNET_CODE_MODEL:-claude-sonnet-4-6}"
+  printf '# reasoning: %s\n' "${YURI_CLAUDE_SONNET_CODE_EFFORT:-xhigh}"
+  printf '# coding_allowed: true\n'
+  printf '# codex_final_authority: true\n'
+  printf '# session: %s\n' "${YURI_CLAUDE_SONNET_CODE_SESSION_NAME:-yuri-sonnet-code}"
+  printf '# status: %s\n\n' "$_status"
+  sed -n '1,260p' "$_stdout"
+  if [ -s "$_stderr" ]; then
+    printf '\n## STDERR\n'
+    sed -n '1,160p' "$_stderr"
+  fi
   rm -rf "$_tmpdir"
   return "$_status"
 }
@@ -616,6 +688,19 @@ run_codex_offload() {
 
   require_cmd codex
   exec codex exec --cd "$ROOT_DIR" "@${agent} $(join_prompt "$@")"
+}
+
+run_codex_model_prompt() {
+  local model="$1"
+  shift
+  local prompt
+  prompt="$(join_prompt "$@")"
+  if [[ "${AI_DRY_RUN:-0}" == "1" ]]; then
+    printf 'codex:%s\n' "$model"
+    return
+  fi
+  require_cmd codex
+  exec codex exec --cd "$ROOT_DIR" --model "$model" "$prompt"
 }
 
 run_amp_offload() {
@@ -1545,6 +1630,22 @@ case "${1:-help}" in
         fi
         run_offload_lane codex-spark "$@"
         ;;
+      gpt-5.5|codex-full)
+        shift || true
+        if [ "$#" -eq 0 ]; then
+          usage
+          exit 1
+        fi
+        run_codex_model_prompt gpt-5.5 "$@"
+        ;;
+      gpt-5.4-mini|gpt-5.4|codex-mini)
+        shift || true
+        if [ "$#" -eq 0 ]; then
+          usage
+          exit 1
+        fi
+        run_codex_model_prompt gpt-5.4-mini "$@"
+        ;;
       kimi)
         shift || true
         if [ "$#" -eq 0 ]; then
@@ -1630,6 +1731,22 @@ case "${1:-help}" in
       exit 1
     fi
     run_offload_lane codex-spark "$@"
+    ;;
+  @codex|@gpt-5.5|gpt-5.5|codex-full|@codex-full)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_codex_model_prompt gpt-5.5 "$@"
+    ;;
+  @codex-mini|codex-mini|@gpt-5.4-mini|gpt-5.4-mini|gpt-5.4)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_codex_model_prompt gpt-5.4-mini "$@"
     ;;
   @ollama|ollama)
     shift || true
@@ -1753,6 +1870,14 @@ case "${1:-help}" in
       exit 1
     fi
     run_claude_safe_prompt "$(join_prompt "$@")"
+    ;;
+  @claude-sonnet-code|claude-sonnet-code|@sonnet-code|sonnet-code|@claude-code|claude-code|@sonnet|sonnet)
+    shift || true
+    if [ "$#" -eq 0 ]; then
+      usage
+      exit 1
+    fi
+    run_claude_sonnet_code_prompt "$(join_prompt "$@")"
     ;;
   @claude-opus-comain|claude-opus-comain|opus-comain|@claude-opus-audit|claude-opus-audit|opus-audit)
     shift || true

@@ -6,6 +6,7 @@ import {
   buildClaudeControlPacket,
   buildKagamiControlDomain,
   classifyKagamiTask,
+  recommendKagamiFanout,
   summarizeDomainForPrompt,
 } from './kagami-control-domain.mjs';
 
@@ -36,6 +37,29 @@ test('domain makes Claude Opus a verified co-main, not unchecked owner', () => {
   assert.equal(claude.authority, 'co-main-architect-and-coder');
   assert.match(claude.verificationRule, /Codex\/main independently verifies/);
   assert.ok(claude.compatibilityAliases.includes('claude-opus-audit'));
+});
+
+test('domain exposes Codex family and Sonnet as bounded coding lanes', () => {
+  const domain = buildKagamiControlDomain();
+
+  assert.equal(domain.roles.codexFamily.authority, 'implementation-and-verification-family');
+  assert.match(domain.roles.codexFamily.routingRule, /gpt-5\.4-mini/);
+  assert.equal(domain.roles.claudeSonnetCode.authority, 'bounded-implementation-partner');
+  assert.match(domain.roles.claudeSonnetCode.verificationRule, /Codex\/main independently verifies/);
+  assert.ok(domain.commands.some((entry) => entry.command === '/claude sonnet'));
+});
+
+test('fanout recommendation scales from pair to council without parallel-always behavior', () => {
+  const pair = recommendKagamiFanout('fix focused Rick route test');
+  const council = recommendKagamiFanout('massive cybersecurity architecture release guardrail sprint');
+
+  assert.equal(pair.profile, 'pair');
+  assert.ok(pair.lanes.includes('@codex-mini'));
+  assert.ok(pair.lanes.includes('@claude-sonnet-code'));
+  assert.equal(council.profile, 'council');
+  assert.ok(council.lanes.includes('@codex'));
+  assert.ok(council.lanes.includes('@opus'));
+  assert.match(council.parallelismRule, /parallel only/);
 });
 
 test('critical cyber tasks require engagement scope before execution', () => {

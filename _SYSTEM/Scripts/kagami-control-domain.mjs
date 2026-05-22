@@ -72,6 +72,19 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
       'commit-when-authorized',
     ],
   },
+  codexFamily: {
+    id: 'codex-family',
+    authority: 'implementation-and-verification-family',
+    mutatesRepo: 'allowed-through-scoped-codex-sessions',
+    canonicalDuties: [
+      'gpt-5.5-full-implementation',
+      'gpt-5.4-mini-focused-code-and-review',
+      'spark-low-risk-sandbox-experiments',
+      'local-truth-verification',
+      'release-gate-participation',
+    ],
+    routingRule: 'Use gpt-5.5 for hard code, gpt-5.4-mini for focused code/review, Spark only for explicit cheap or low-risk experiments.',
+  },
   claudeOpusComain: {
     id: 'claude-opus-comain',
     authority: 'co-main-architect-and-coder',
@@ -85,6 +98,20 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
     ],
     verificationRule: 'Codex/main independently verifies every Claude mutation before trust.',
     compatibilityAliases: ['claude-opus-audit', '@claude-opus-comain'],
+  },
+  claudeSonnetCode: {
+    id: 'claude-sonnet-code',
+    authority: 'bounded-implementation-partner',
+    mutatesRepo: 'allowed-only-through-scoped-packets',
+    canonicalDuties: [
+      'medium-complexity-code',
+      'focused-tests',
+      'refactor-cleanup',
+      'docs-to-code-translation',
+      'self-check-before-codex-verification',
+    ],
+    verificationRule: 'Codex/main independently verifies every Sonnet mutation before trust.',
+    compatibilityAliases: ['@sonnet-code', '@claude-code', '@sonnet'],
   },
   deepseek: {
     id: 'deepseek',
@@ -145,8 +172,16 @@ export const KAGAMI_CONTROL_COMMANDS = Object.freeze([
     purpose: 'Attach or resume the continuous Claude Code session without starting heavy work.',
   },
   {
+    command: '/claude sonnet',
+    purpose: 'Run Claude Sonnet xhigh as a bounded implementation partner for scoped code and tests.',
+  },
+  {
     command: '/claude opus',
     purpose: 'Escalate a scoped packet to Claude Opus co-main when task tier and budget allow.',
+  },
+  {
+    command: '/fanout',
+    purpose: 'Preview the adaptive lane plan: solo, pair, trio, or council before dispatch.',
   },
   {
     command: '/claude send',
@@ -195,6 +230,39 @@ export const KAGAMI_CYBER_PIPELINE = Object.freeze([
   'client-ready-output',
   'memory-proposal',
 ]);
+
+export const KAGAMI_FANOUT_PROFILES = Object.freeze({
+  solo: {
+    id: 'solo',
+    useWhen: 'simple answer, status, cheap synthesis, or low-risk single-file work',
+    lanes: ['@deepseek-v4-flash'],
+    mergeRule: 'single-lane output accepted after normal local sanity check',
+  },
+  pair: {
+    id: 'pair',
+    useWhen: 'focused implementation or review where a second pass improves quality',
+    lanes: ['@codex-mini', '@claude-sonnet-code'],
+    mergeRule: 'primary implementation plus independent second-pass correction',
+  },
+  trio: {
+    id: 'trio',
+    useWhen: 'non-trivial code, harness, memory, automation, guardrails, or cyber product work',
+    lanes: ['@codex', '@claude-sonnet-code', '@deepseek-v4-pro'],
+    mergeRule: 'Codex/main integrates; Sonnet codes/reviews; DeepSeek challenges root cause and risks',
+  },
+  council: {
+    id: 'council',
+    useWhen: 'critical architecture, security, long-context, design, or release-risk work',
+    lanes: ['@codex', '@opus', '@sonnet', '@deepseek-v4-pro', '@shintai'],
+    mergeRule: 'Kagami records fan-out, contradictions are written down, Codex verifies every mutation',
+  },
+  experiment: {
+    id: 'experiment',
+    useWhen: 'cheap hypothesis, isolated patch idea, or read-only code sketch',
+    lanes: ['@codex-spark', '@deepseek-v4-flash'],
+    mergeRule: 'output is advisory until a stronger lane or Codex verifies it',
+  },
+});
 
 export const KAGAMI_EXECUTION_RAILS = Object.freeze({
   input: [
@@ -300,6 +368,29 @@ const STRUCTURAL_COMPLEXITY_MARKERS = Object.freeze([
   'guardrail',
 ]);
 
+const CODE_MARKERS = Object.freeze([
+  'code',
+  'coding',
+  'implement',
+  'fix',
+  'test',
+  'refactor',
+  'script',
+  'runtime',
+  'harness',
+  'kernel',
+]);
+
+const EXPERIMENT_MARKERS = Object.freeze([
+  'try',
+  'experiment',
+  'prototype',
+  'sketch',
+  'cheap',
+  'low risk',
+  'read-only',
+]);
+
 function normalizeText(value) {
   return String(value || '').trim();
 }
@@ -318,6 +409,7 @@ export function buildKagamiControlDomain() {
     roles: KAGAMI_DOMAIN_ROLES,
     commands: [...KAGAMI_CONTROL_COMMANDS],
     cyberPipeline: [...KAGAMI_CYBER_PIPELINE],
+    fanoutProfiles: KAGAMI_FANOUT_PROFILES,
     rails: KAGAMI_EXECUTION_RAILS,
     waves: [...KAGAMI_IMPLEMENTATION_WAVES],
   };
@@ -365,6 +457,47 @@ export function classifyKagamiTask(input = '') {
     recommendedPrimary,
     advisoryLanes,
     authorizationState: requiresCyberEngagement ? 'engagement-required' : 'local-or-internal-ok',
+  };
+}
+
+export function recommendKagamiFanout(input = '') {
+  const text = normalizeText(input);
+  const lowered = text.toLowerCase();
+  const task = classifyKagamiTask(text);
+  const hasCode = includesMarker(lowered, CODE_MARKERS);
+  const isExperiment = includesMarker(lowered, EXPERIMENT_MARKERS);
+  const isCritical = task.taskTier === 'critical';
+  const isHuge = /(opus|huge|massive|forensic|company|cyber|security|architecture|release|memory|rag|automation|guardrail|shintai)/u.test(lowered);
+
+  let profile = 'solo';
+  let reason = 'simple or cheap work';
+
+  if (isExperiment && !isCritical) {
+    profile = 'experiment';
+    reason = 'low-risk hypothesis or read-only sketch';
+  } else if (isHuge) {
+    profile = 'council';
+    reason = 'critical/large-context/system-risk work';
+  } else if (hasCode && isCritical) {
+    profile = 'trio';
+    reason = 'non-trivial code with system risk';
+  } else if (hasCode) {
+    profile = 'pair';
+    reason = 'focused implementation benefits from a second coding pass';
+  }
+
+  const selected = KAGAMI_FANOUT_PROFILES[profile];
+  return {
+    input: text,
+    profile,
+    reason,
+    lanes: [...selected.lanes],
+    mergeRule: selected.mergeRule,
+    taskTier: task.taskTier,
+    authorizationState: task.authorizationState,
+    codexRule: 'Codex family codes and verifies; gpt-5.5 for hard work, gpt-5.4-mini for focused work, Spark only for explicit cheap experiments.',
+    claudeRule: 'Sonnet codes in bounded packets; Opus co-builds hard slices; Codex verifies all mutations.',
+    parallelismRule: profile === 'solo' ? 'no fan-out' : 'parallel only when lane outputs do not fight over the same file; otherwise stage sequentially',
   };
 }
 

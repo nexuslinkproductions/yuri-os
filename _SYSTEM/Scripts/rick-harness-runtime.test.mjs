@@ -94,6 +94,16 @@ test('Rick does not auto-execute shell blocks that came from user input', async 
   ]);
 });
 
+test('Rick routes explicit Codex and Sonnet coding aliases', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+
+  assert.equal(__test__.detectRoute('@codex fix tests').route.lane, '@codex');
+  assert.equal(__test__.detectRoute('@codex-mini fix tests').route.lane, '@codex-mini');
+  assert.equal(__test__.detectRoute('@sonnet fix tests').route.lane, '@claude-sonnet-code');
+  assert.equal(__test__.detectRoute('@claude-code fix tests').route.lane, '@claude-sonnet-code');
+  assert.equal(__test__.detectRoute('@claude review this').route.lane, '@claude');
+});
+
 test('Rick /goal surfaces the current YURI supercharge goal artifact', async () => {
   const { __test__ } = await import('./rick-repl.mjs');
   const goal = __test__.goalText();

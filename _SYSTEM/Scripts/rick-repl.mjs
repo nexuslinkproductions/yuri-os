@@ -18,6 +18,7 @@ import { harnessViewport } from './browser-harness-bridge.mjs';
 import { classifyRickRoute, formatRouteDecision } from './rick-route-classifier.mjs';
 import { appendRouteDecisionEvent } from './kagami-event-bus.mjs';
 import { buildUserProfilePromptBlock } from './kagami-user-profile.mjs';
+import { recommendKagamiFanout } from './kagami-control-domain.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -66,10 +67,16 @@ const PALETTE = {
 
 const ROUTES = {
   '@deepseek': { lane: '@deepseek-v4-pro', label: 'DeepSeek' },
-  '@codex': { lane: 'gpt-5.5', label: 'Codex' },
-  '@claude': { lane: '@claude', label: 'Claude' },
-  '@opus': { lane: '@claude-opus-comain', label: 'Claude Opus' },
+  '@codex-mini': { lane: '@codex-mini', label: 'Codex Mini' },
+  '@codex-spark': { lane: '@codex-spark', label: 'Codex Spark' },
+  '@codex': { lane: '@codex', label: 'Codex' },
+  '@claude-sonnet-code': { lane: '@claude-sonnet-code', label: 'Claude Sonnet Code' },
   '@claude-opus': { lane: '@claude-opus-comain', label: 'Claude Opus' },
+  '@claude-code': { lane: '@claude-sonnet-code', label: 'Claude Sonnet Code' },
+  '@sonnet-code': { lane: '@claude-sonnet-code', label: 'Claude Sonnet Code' },
+  '@sonnet': { lane: '@claude-sonnet-code', label: 'Claude Sonnet Code' },
+  '@opus': { lane: '@claude-opus-comain', label: 'Claude Opus' },
+  '@claude': { lane: '@claude', label: 'Claude' },
   '@nvidia': { lane: '@nvidia-nemotron-120b', label: 'Nvidia' },
   '@ds': { lane: '@deepseek-v4-pro', label: 'DeepSeek' },
   '@flash': { lane: '@deepseek-v4-flash', label: 'Rick' },
@@ -1169,13 +1176,14 @@ function helpText() {
     '/goal                  show current YURI supercharge goal',
     '/status                show Kagami lane health and latest Shintai artifact',
     '/why <task>            dry-run Kagami auto-route without dispatch',
+    '/fanout <task>         preview adaptive solo/pair/trio/council lane plan',
     '/mode [auto|codex|rick|cheap] show or set default route posture',
     '/clear                 clear Rick prompt history',
     '/noexec [on|off]       toggle shell-block auto-exec',
     '/health                run worker PONG health checks',
     '/browser <python>      run browser-harness Python via repo-local CLI',
     '@shintai <task>        advisory squad: fan-out, critique, synthesis, patch prep',
-    '@codex/@deepseek/@opus route a turn to a lane',
+    '@codex/@codex-mini/@sonnet/@opus route a turn to a lane',
     'ctrl+c                 exit',
   ].join('\n');
 }
@@ -1188,7 +1196,7 @@ async function main() {
   ui.reserveBottom();
   ui.redrawBottom();
   ui.appendSystem(`${history.length} turns loaded from last 24h · ${promptSafeHistory(history).length} usable for prompt · session ${SESSION_ID}`);
-  ui.appendSystem('Route: @deepseek  @codex  @claude  @nvidia  @shintai');
+  ui.appendSystem('Route: @deepseek  @codex  @codex-mini  @sonnet  @opus  @nvidia  @shintai');
 
   let busy = false;
 
@@ -1238,6 +1246,12 @@ async function main() {
       const decision = classifyRickRoute(task, { mode: kagamiRouteMode });
       appendRoutingLog(decision, { source: 'route-dry-run' });
       ui.appendSystem(formatRouteDecision(decision));
+      return;
+    }
+
+    if (input.startsWith('/fanout ')) {
+      const task = input.slice('/fanout '.length).trim();
+      ui.appendSystem(JSON.stringify(recommendKagamiFanout(task), null, 2));
       return;
     }
 
