@@ -77,6 +77,9 @@
         "_SYSTEM/Scripts/threat-intel-kernel.mjs",
         "_SYSTEM/Scripts/security-lens.mjs",
         "_SYSTEM/Scripts/cyber-lab-harness.mjs",
+        "_SYSTEM/Scripts/cyber-guardrail-proof.mjs",
+        "_SYSTEM/Scripts/cyber-proof-cards.mjs",
+        "_SYSTEM/Scripts/cyber-pilot-pack.mjs",
         "_SYSTEM/Scripts/rails.mjs",
         "_SYSTEM/Scripts/secret-leak-scan.mjs"
       ],

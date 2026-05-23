@@ -235,7 +235,19 @@ Artifacts:
 
 Current boundary: Wave C5 v0 records fixture readiness only. No rail is marked proven until a deterministic executable test exists and passes.
 
-### Wave C6: Upgreat Pilot Readiness
+### Wave C6: Client Proof Cards
+
+Status: implementation slice active. Convert local fixture proof into buyer-readable cards that show what YURI proves now, what evidence backs it, and what remains unproven.
+
+Artifacts:
+
+- Proof-card generator: `_SYSTEM/Scripts/cyber-proof-cards.mjs`
+- Regression tests: `_SYSTEM/Scripts/cyber-proof-cards.test.mjs`
+- Client-facing report: `_SYSTEM/reports/YURI_CYBER_PROOF_CARDS_2026-05-23.md`
+
+Boundary: proof cards may say "deterministic local fixture proof"; they must not imply production security, external target testing, SOC/SIEM/XDR/MDR maturity, malware capability, or autonomous pentest capability.
+
+### Wave C7: Upgreat Pilot Readiness
 
 Status: implementation slice active. Produce a narrow, evidence-heavy demo and report package for AI-agent security assessment, not a broad fake SOC pitch.
 
@@ -245,7 +257,7 @@ Artifacts:
 - Regression tests: `_SYSTEM/Scripts/cyber-pilot-pack.test.mjs`
 - Upgreat pilot report: `_SYSTEM/reports/YURI_UPGREAT_PILOT_READINESS_2026-05-22.md`
 
-### Wave C7: Regional Packs
+### Wave C8: Regional Packs
 
 Status: implementation slice active. Add Europe/West/Asia report templates and source-backed buyer language.
 
@@ -253,7 +265,7 @@ Artifact:
 
 - Regional pack report: `_SYSTEM/reports/YURI_REGIONAL_INTELLIGENCE_PACKS_2026-05-22.md`
 
-### Wave C8: Managed Operations Pre-Study
+### Wave C9: Managed Operations Pre-Study
 
 Status: implementation slice active. Only after telemetry exists, define what later managed security operations could become.
 
@@ -261,7 +273,7 @@ Artifact:
 
 - Managed operations pre-study: `_SYSTEM/docs/YURI_MANAGED_OPERATIONS_PRE_STUDY_2026-05-22.md`
 
-Current boundary: C8 explicitly says YURI is not ready to claim managed security operations. It lists prerequisites before SOC/SIEM/XDR/MDR-style language becomes allowable.
+Current boundary: C9 explicitly says YURI is not ready to claim managed security operations. It lists prerequisites before SOC/SIEM/XDR/MDR-style language becomes allowable.
 
 ## Claims Matrix
 
@@ -279,4 +291,4 @@ Current boundary: C8 explicitly says YURI is not ready to claim managed security
 - Agentic security remains first proof surface, not final company scope.
 - Offensive labs are specific, safe, and tied to defensive deliverables.
 - Every major future claim has a proof gate.
-- Shintai contradiction pass is ready before implementation waves C2-C6.
+- Shintai contradiction pass is ready before implementation waves C2-C9.
