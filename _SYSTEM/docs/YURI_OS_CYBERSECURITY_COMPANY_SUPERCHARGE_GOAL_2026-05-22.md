@@ -262,6 +262,9 @@ Artifacts:
 - Demo transcript runner: `_SYSTEM/Scripts/cyber-demo-runner.mjs`
 - Demo transcript tests: `_SYSTEM/Scripts/cyber-demo-runner.test.mjs`
 - Demo transcript report: `_SYSTEM/reports/YURI_UPGREAT_DEMO_TRANSCRIPT_2026-05-23.md`
+- Meeting release command: `_SYSTEM/Scripts/cyber-meeting-release.mjs`
+- Meeting release tests: `_SYSTEM/Scripts/cyber-meeting-release.test.mjs`
+- Meeting release report: `_SYSTEM/reports/YURI_UPGREAT_MEETING_RELEASE_2026-05-23.md`
 
 ### Wave C8: Regional Packs
 

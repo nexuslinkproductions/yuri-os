@@ -1,6 +1,6 @@
 # YURI Upgreat Demo Transcript
 
-Generated: 2026-05-23T13:59:23.266Z
+Generated: 2026-05-23T14:05:17.558Z
 
 ## Objective
 

@@ -82,6 +82,7 @@
         "_SYSTEM/Scripts/cyber-pilot-pack.mjs",
         "_SYSTEM/Scripts/cyber-meeting-pack.mjs",
         "_SYSTEM/Scripts/cyber-demo-runner.mjs",
+        "_SYSTEM/Scripts/cyber-meeting-release.mjs",
         "_SYSTEM/Scripts/rails.mjs",
         "_SYSTEM/Scripts/secret-leak-scan.mjs"
       ],
