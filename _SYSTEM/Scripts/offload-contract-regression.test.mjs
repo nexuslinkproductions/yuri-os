@@ -318,19 +318,19 @@ assert.equal(swarmDefault, 'deepseek-v4-pro,deepseek-v4-flash', 'shared swarm de
 const deepseekReasoningRoute = JSON.parse(execFileSync(
   process.execPath,
   [offloadRunnerPath, 'deepseek-v4-pro:max-reasoning', '--dry-run', 'review deeply'],
-  { encoding: 'utf8', env: { ...process.env, NVIDIA_API_KEY: 'test-key' } }
+  { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
 ));
 assert.equal(deepseekReasoningRoute.lane, 'deepseek-v4-pro', 'DeepSeek reasoning suffix should normalize to canonical Pro lane');
 assert.equal(deepseekReasoningRoute.model, 'deepseek-v4-pro', 'DeepSeek route should expose the bare YURI model id');
-assert.match(deepseekReasoningRoute.endpoint, /integrate\.api\.nvidia\.com\/v1$/, 'DeepSeek V4 Pro should route through NVIDIA NIM');
-assert.equal(deepseekReasoningRoute.resolvedVia, 'nvidia-nim-deepseek', 'Direct paid DeepSeek API must stay retired');
+assert.match(deepseekReasoningRoute.endpoint, /api\.deepseek\.com\/v1$/, 'DeepSeek V4 Pro should route through direct DeepSeek API');
+assert.equal(deepseekReasoningRoute.resolvedVia, 'deepseek-direct', 'NVIDIA DeepSeek fallback must stay retired');
 assert.equal(deepseekReasoningRoute.reasoningDepth, 'xhigh', 'max-reasoning suffix should become xhigh depth');
 assert.equal(deepseekReasoningRoute.tools, false, 'DeepSeek must not force API tool mode by default');
 
 const deepseekAliasRoute = JSON.parse(execFileSync(
   process.execPath,
   [offloadRunnerPath, 'code-deepseek', '--dry-run', 'review code architecture'],
-  { encoding: 'utf8', env: { ...process.env, NVIDIA_API_KEY: 'test-key' } }
+  { encoding: 'utf8', env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' } }
 ));
 assert.equal(deepseekAliasRoute.lane, 'deepseek-v4-pro', 'code-deepseek alias should normalize to canonical Pro lane');
 
@@ -348,15 +348,21 @@ try {
     '',
   ].join('\n'));
   chmodSync(claudeStub, 0o755);
-  const claudeOut = execFileSync(
-    resolve(__dirname, 'ai'),
-    ['@claude', 'review architecture risk'],
-    { encoding: 'utf8', env: { ...process.env, CLAUDE_BIN: claudeStub } },
-  );
-  assert(claudeOut.includes('ADVISORY_CLAUDE_COUNCIL_OUTPUT'), 'Claude council advisory label missing');
-  assert(claudeOut.includes('NOT_LOCAL_TRUTH'), 'Claude council local truth disclaimer missing');
-  assert(claudeOut.includes('stdout_cap_marker: TRUNCATED'), 'Claude council output should be capped');
-  assert(claudeOut.includes('required_sections=findings,risks,upgrade_candidates,tests_needed,reject_or_accept_reasoning'), 'Claude council schema marker missing');
+  let claudeError = null;
+  try {
+    execFileSync(
+      resolve(__dirname, 'ai'),
+      ['@claude', 'review architecture risk'],
+      { encoding: 'utf8', env: { ...process.env, CLAUDE_BIN: claudeStub } },
+    );
+  } catch (error) {
+    claudeError = error;
+  }
+  assert(claudeError, 'Claude prompt route should fail closed');
+  assert.equal(claudeError.status, 64, 'Claude prompt route should use EX_USAGE failure');
+  assert.match(claudeError.stderr, /Claude prompt route disabled: @claude/, 'Claude prompt route should explain the disabled path');
+  assert.match(claudeError.stderr, /continuous Claude CLI session/, 'Claude prompt route should point to the continuous tmux\/PTY path');
+  assert.match(claudeError.stderr, /Forbidden here: Claude SDK/, 'Claude prompt route should forbid SDK-style one-shot calls');
 } finally {
   rmSync(claudeStubRoot, { recursive: true, force: true });
 }

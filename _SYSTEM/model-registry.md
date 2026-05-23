@@ -35,15 +35,15 @@
 - `openrouter/free` will choose among currently available free models that satisfy the request shape.
 - Boundary: do not treat free routing as canonical production infrastructure.
 
-## NVIDIA Hosted Lane Notes
+## DeepSeek Direct Lane Notes
 
-- Endpoint: `https://integrate.api.nvidia.com/v1`
-- Lane: `nvidia-deepseek`
-- Default model: `deepseek-ai/deepseek-v4-pro`
-- Requires `NVIDIA_API_KEY`.
+- Endpoint: `https://api.deepseek.com/v1`
+- Lane: `deepseek-v4-pro`
+- Default model: `deepseek-v4-pro`
+- Requires `DEEPSEEK_API_KEY` or `CODE_DEEPSEEK_API_KEY`.
 - API is OpenAI-compatible and exposes `/v1/chat/completions`, `/v1/completions`, `/v1/responses`, and `/v1/models`.
-- Use for heavy cloud bursts, hosted execution, and model access when local capacity is insufficient.
-- Boundary: hosted NVIDIA lanes are good throughput valves, not the future local-home base.
+- Use for cheap high-volume reasoning, cache-friendly synthesis, and Shintai Gate 1.
+- Boundary: NVIDIA DeepSeek fallback is retired; use NVIDIA lanes only for non-DeepSeek NIM models.
 
 ## Codex Spark Router Notes
 

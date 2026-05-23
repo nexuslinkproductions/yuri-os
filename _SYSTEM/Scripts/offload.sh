@@ -7,9 +7,23 @@
 # Primary: source dedicated key file (no parsing, always reliable)
 # shellcheck source=/dev/null
 [ -f "$HOME/.config/yuri/env.sh" ] && source "$HOME/.config/yuri/env.sh"
+hydrate_keychain_var() {
+  local key="$1"
+  local service="${YURI_KEYCHAIN_SERVICE_PREFIX:-YURI_OS_MUSUBI}:$key"
+  local value=""
+  if [ -n "${!key:-}" ] || ! command -v security >/dev/null 2>&1; then
+    return 0
+  fi
+  value="$(security find-generic-password -a "${USER:-$(whoami)}" -s "$service" -w 2>/dev/null || true)"
+  [ -n "$value" ] && export "$key=$value"
+}
+for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY NVIDIA_KEY_MINIMAX_M27 MINIMAX_M27_NIM_API_KEY MINIMAX_NIM_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+  hydrate_keychain_var "$_lane_var"
+done
+unset _lane_var
 # Fallback: grep .zshrc for any key still unset
 if [ -f "$HOME/.zshrc" ]; then
-  for _lane_var in KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY NVIDIA_KEY_MINIMAX_M27 MINIMAX_M27_NIM_API_KEY MINIMAX_NIM_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
+  for _lane_var in DEEPSEEK_API_KEY CODE_DEEPSEEK_API_KEY KIMI_API_KEY MOONSHOT_API_KEY OPENROUTER_API_KEY NVIDIA_API_KEY NVIDIA_KEY_MINIMAX_M27 MINIMAX_M27_NIM_API_KEY MINIMAX_NIM_API_KEY OPENAI_API_KEY OLLAMA_API_KEY OLLAMA_CLOUD_API_KEY; do
     if [ -z "${!_lane_var:-}" ]; then
       _line="$(grep -E "^export ${_lane_var}=" "$HOME/.zshrc" | tail -n 1 || true)"
       [ -n "$_line" ] && eval "$_line"
@@ -79,15 +93,14 @@ list_models() {
   echo "--------------------------------------------------"
   echo "Wrapper lanes:"
   printf '  [%-16s] %s\n' "gpt-oss" "active via offload-runner (local wrapper)"
-  printf '  [%-16s] %s\n' "deepseek" "retired direct paid API; use nvidia-deepseek-v4-pro"
+  printf '  [%-16s] %s\n' "deepseek" "active direct DeepSeek API; keychain/env hydrated"
   printf '  [%-16s] %s\n' "openrouter-free" "active via offload-runner (needs OPENROUTER_API_KEY; supports openrouter/free and provider/model:free)"
-  printf '  [%-16s] %s\n' "nvidia-deepseek" "active via offload-runner (needs NVIDIA_API_KEY; defaults to deepseek-v4-pro)"
 
   echo
-  echo "DeepSeek compatibility lanes (NVIDIA-hosted):"
-  printf '  [%-30s] %s\n' "deepseek-v4-flash" "V4 Flash via NVIDIA NIM, prompt-contract tool/skill guidance"
-  printf '  [%-30s] %s\n' "deepseek-v4-pro" "V4 Pro via NVIDIA NIM, reasoning depth via --reasoning"
-  printf '  [%-30s] %s\n' "deepseek" "compat default -> NVIDIA deepseek-v4-flash"
+  echo "DeepSeek direct lanes:"
+  printf '  [%-30s] %s\n' "deepseek-v4-flash" "V4 Flash via api.deepseek.com; prompt-cache metrics recorded"
+  printf '  [%-30s] %s\n' "deepseek-v4-pro" "V4 Pro via api.deepseek.com; reasoning depth via --reasoning"
+  printf '  [%-30s] %s\n' "deepseek" "compat default -> direct deepseek-v4-flash"
   echo "  Deprecated DeepSeek aliases normalize into the two official lanes above."
 
   echo
@@ -97,9 +110,6 @@ list_models() {
 
   echo
   echo "NVIDIA hosted lanes:"
-  printf '  [%-30s] %s\n' "nvidia-deepseek" "hosted DeepSeek V4 Pro via NVIDIA NIM"
-  printf '  [%-30s] %s\n' "nvidia-deepseek-v4-pro" "hosted DeepSeek V4 Pro via NVIDIA NIM"
-  printf '  [%-30s] %s\n' "nvidia-deepseek-v4-flash" "hosted DeepSeek V4 Flash via NVIDIA NIM"
   printf '  [%-30s] %s\n' "nvidia-nemotron-120b" "Nemotron 3 Super 120B A12B"
   printf '  [%-30s] %s\n' "nvidia-nemotron-super-49b" "Nemotron Super 49B v1.5 daily reasoning"
   printf '  [%-30s] %s\n' "nvidia-nemotron-nano-30b" "Nemotron 3 Nano 30B A3B"
@@ -141,10 +151,6 @@ list_models() {
   printf '  [%-30s] %s\n' "codex" "alias → gpt-5.5"
   printf '  [%-30s] %s\n' "codex-high" "alias → gpt-5.5"
   printf '  [%-30s] %s\n' "gpt-5.3-codex" "Alias for codex-spark"
-
-  echo
-  echo "Perplexity API lane (requires PERPLEXITY_API_KEY):"
-  printf '  [%-30s] %s\n' "perplexity" "sonar-pro default; --reasoning high/xhigh → sonar-reasoning-pro"
 
   echo
   echo "Browser control lane:"
@@ -340,8 +346,8 @@ dry_run_model_override() {
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
-        printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
-        run_offload_runner "$target_model" "$prompt" --dry-run
+        printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro or deepseek-v4-flash" >&2
+        return 2
         ;;
       nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7)
         printf '%s\n' "⬡ ROUTING_TO_MINIMAX_M27_NIM..." >&2
@@ -408,9 +414,6 @@ dry_run_model_override() {
       needle)
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/needle-adapter.mjs" --dry-run
-        ;;
-      perplexity|perplexity-sonar|sonar-pro|sonar-reasoning-pro)
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/perplexity-adapter.mjs" --dry-run ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
       comet)
         printf '%s\n' "⬡ ROUTING_TO_COMET..." >&2
@@ -482,16 +485,12 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_NEEDLE..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node --input-type=module -e 'import { pathToFileURL } from "node:url"; const { runNeedleLocalChat } = await import(pathToFileURL(process.argv[1]).href); await runNeedleLocalChat(process.env.OFFLOAD_PROMPT_TEXT ?? "", "", {});' "$SCRIPT_DIR/needle-adapter.mjs"
         ;;
-      perplexity|perplexity-sonar|sonar-pro|sonar-reasoning-pro)
-        printf '%s\n' "⬡ ROUTING_TO_PERPLEXITY [${REASONING_DEPTH:+sonar-reasoning-pro}${REASONING_DEPTH:-sonar-pro}]..." >&2
-        OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/perplexity-adapter.mjs" ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
-        ;;
       comet)
         printf '%s\n' "⬡ ROUTING_TO_COMET..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/comet-adapter.mjs"
         ;;
       deepseek-v4-flash|deepseek-v4-pro)
-        printf '%s\n' "⬡ DEEPSEEK_DIRECT_RETIRED :: routing $target_model through NVIDIA NIM" >&2
+        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [$target_model]..." >&2
         run_offload_runner "$target_model" "$prompt" ${tool_args[@]+"${tool_args[@]}"}
         ;;
       deepseek-r1:8b|deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b)
@@ -499,12 +498,12 @@ dispatch_model() {
         run_offload_runner deepseek-local "$prompt" --model "$target_model" --dry-run
         ;;
       deepseek)
-        printf '%s\n' "⬡ DEEPSEEK_DIRECT_RETIRED :: routing deepseek through NVIDIA NIM deepseek-v4-flash" >&2
+        printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [deepseek-v4-flash]..." >&2
         run_offload_runner deepseek-v4-flash "$prompt" ${tool_args[@]+"${tool_args[@]}"}
         ;;
       nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
-        printf '%s\n' "⬡ ROUTING_TO_NVIDIA_DEEPSEEK..." >&2
-        run_offload_runner "$target_model" "$prompt"
+        printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro or deepseek-v4-flash" >&2
+        return 2
         ;;
       nvidia-minimax-m27|nvidia-minimax-m2.7|minimax-m27|minimax-m2.7)
         printf '%s\n' "⬡ ROUTING_TO_MINIMAX_M27_NIM..." >&2
@@ -572,7 +571,7 @@ dispatch_model() {
         printf '%s\n' "⬡ ROUTING_TO_CODEX_FULL [gpt-5.5, workspace-write, reasoning=${REASONING_DEPTH:-high}]..." >&2
         OFFLOAD_PROMPT_TEXT="$prompt" node "$SCRIPT_DIR/codex-offload-runner.mjs" "$target_model" ${extra_codex_flags:+$extra_codex_flags} ${REASONING_DEPTH:+--reasoning "$REASONING_DEPTH"}
         ;;
-      triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|reason-cloud|code-cloud|nvidia-deepseek|gemma|gemma-local|gemma-cloud)
+      triage-local|summarize-local|code-local|ollama|ollama-local|ollama-cloud|reason-cloud|code-cloud|gemma|gemma-local|gemma-cloud)
         if ! curl -sf --max-time 2 localhost:11434/api/tags >/dev/null 2>&1; then printf '%s\n' '⚠ [offload] Ollama not responding on :11434 — lane may cold-start' >&2; fi
         printf '%s\n' "⬡ ROUTING_TO_OFFLOAD_RUNNER..." >&2
         run_offload_runner "$target_model" "$prompt"

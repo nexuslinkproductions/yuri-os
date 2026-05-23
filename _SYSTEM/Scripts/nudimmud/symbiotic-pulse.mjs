@@ -51,7 +51,7 @@ const EXTERNAL_PATTERNS = [
 ];
 
 const MODEL_REFERENCE_PATTERNS = [
-  /\b(llm|model|claude|sonnet|opus|haiku|deepseek|gemini|gpt|kimi|ollama)\b/i,
+  /\b(llm|model|claude|sonnet|opus|haiku|deepseek|gpt|qwen|kimi|ollama)\b/i,
   /\b(reported|said|claimed|suggested)\b/i,
 ];
 

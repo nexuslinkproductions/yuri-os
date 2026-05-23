@@ -70,14 +70,6 @@ check_ollama_local() {
   fi
 }
 
-check_perplexity_api() {
-  if [[ -n "${PERPLEXITY_API_KEY:-}" ]]; then
-    print_row "perplexity (API)" LIVE "key set"
-  else
-    print_row "perplexity (API)" DOWN "PERPLEXITY_API_KEY missing — use computer-control app instead"
-  fi
-}
-
 check_comet() {
   local out
   out="$(OFFLOAD_PROMPT_TEXT="test" node "$SCRIPT_DIR/comet-adapter.mjs" 2>&1 | head -10)"
@@ -141,7 +133,6 @@ check_ollama_local
 echo
 echo "Browser / Web:"
 check_comet
-check_perplexity_api
 
 echo
 echo "Knowledge:"

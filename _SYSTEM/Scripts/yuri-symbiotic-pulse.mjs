@@ -121,16 +121,6 @@ const CAPABILITY_TRAITS = {
     concurrency: 'cloud-bounded',
     traits: ['cloud', 'code', 'large-model'],
   },
-  'nvidia-deepseek': {
-    capabilities: ['hosted-deep-reasoning', 'architecture-review'],
-    cost: 'high',
-    latency: 'medium',
-    privacy: 'cloud',
-    memoryLoad: 'none-local',
-    contextSize: 'large',
-    concurrency: 'cloud-bounded',
-    traits: ['cloud', 'high-reasoning', 'hosted-deepseek'],
-  },
   'gemma-local': {
     capabilities: ['multimodal', 'inspection'],
     cost: 'low',
@@ -358,12 +348,12 @@ function buildPulsePlan(intent, routePlan, inventory, options) {
   });
 
   if (context.requiresHighReasoning) {
-    const plannerEntry = stageBuilder.firstAvailable(['deepseek-v4-pro', 'kimi', 'nvidia-deepseek', 'deepseek']);
+    const plannerEntry = stageBuilder.firstAvailable(['deepseek-v4-pro', 'kimi', 'deepseek']);
     stageBuilder.addStage(stages, {
       id: 'campaign_decompose',
       capability: 'deep-decomposition',
       purpose: 'Dissect the Pulse Seed into independent work packets, constraints, success criteria, and stop conditions.',
-      candidates: ['deepseek-v4-pro', 'kimi', 'nvidia-deepseek', 'deepseek'],
+      candidates: ['deepseek-v4-pro', 'kimi', 'deepseek'],
       laneIds: plannerEntry ? [plannerEntry] : [],
       skillIds: activeSkillRegistry.stageBindings.campaign_decompose || [],
       dependsOn: ['intake_classify'],

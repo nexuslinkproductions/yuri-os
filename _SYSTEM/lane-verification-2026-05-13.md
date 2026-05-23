@@ -21,8 +21,7 @@
 | 11 | `kimi` | kimi | Cloud high-grade reasoning | NOT EXERCISED | — | Requires `KIMI_API_KEY` / `MOONSHOT_API_KEY` |
 | 12 | `claude` | claude | Bounded Claude advisory lane | NOT EXERCISED | — | Violates "no Anthropic-model agents" memory rule; not used by policy |
 | 13 | `comet` | comet | Browser interaction lane | NOT EXERCISED | — | Requires computer-use grant |
-| 14 | `perplexity` | perplexity | Browser research lane (chat-driven) | NOT EXERCISED | — | Spec at `_SYSTEM/PERPLEXITY-COMPUTER-USE-WORKFLOW.md`; requires computer-use grant |
-| 15 | `swarm` | swarm | Ruflo-backed orchestration (deepseek V4-pro + flash) | LIVE (inherited) | 2026-05-13 | Inherits deepseek live status |
+| 14 | `swarm` | swarm | Ruflo-backed orchestration (deepseek V4-pro + flash) | LIVE (inherited) | 2026-05-13 | Inherits deepseek live status |
 
 ## Summary
 
@@ -30,7 +29,7 @@
 |---|---|---|
 | LIVE | 3 | deepseek, codex-spark, swarm (inherited) |
 | BLOCKED | 8 | 6 ollama-family + gpt-oss + codex |
-| NOT EXERCISED | 4 | kimi, claude, comet, perplexity |
+| NOT EXERCISED | 3 | kimi, claude, comet |
 
 ## Root Cause (single fix unblocks the most lanes)
 

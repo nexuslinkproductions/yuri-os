@@ -48,17 +48,17 @@ test('Claude Opus is a bounded co-main lane, not audit-only, and remains failsaf
   assert.equal(opus.tools.protectedWrites, false);
 });
 
-test('DeepSeek Shintai lane routes through NVIDIA NIM with bare V4 model ids', () => {
+test('DeepSeek Shintai lane routes through direct paid API with no NVIDIA fallback', () => {
   const deepseek = LANE_KERNEL.deepseek;
 
-  assert.equal(deepseek.provider, 'nvidia');
-  assert.equal(deepseek.lane, 'nvidia-deepseek-v4-pro');
+  assert.equal(deepseek.provider, 'deepseek');
+  assert.equal(deepseek.lane, 'deepseek-v4-pro');
   assert.equal(deepseek.model, 'deepseek-v4-pro');
-  assert.deepEqual(deepseek.dispatchArgs, ['offload', '--model', 'nvidia-deepseek-v4-pro']);
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-deepseek-v4-pro'));
-  assert.ok(ACTIVE_NIM_LANES.includes('nvidia-deepseek-v4-flash'));
+  assert.deepEqual(deepseek.dispatchArgs, ['offload', '--model', 'deepseek-v4-pro']);
+  assert.equal(ACTIVE_NIM_LANES.includes('nvidia-deepseek-v4-pro'), false);
+  assert.equal(ACTIVE_NIM_LANES.includes('nvidia-deepseek-v4-flash'), false);
   assert.doesNotMatch(deepseek.model, /deepseek-ai\//);
-  assert.match(deepseek.assignment, /Direct paid DeepSeek API is retired/);
+  assert.match(deepseek.assignment, /NVIDIA DeepSeek fallback is retired/);
 });
 
 test('lane kernel tracks active and dead NIM lanes explicitly', () => {

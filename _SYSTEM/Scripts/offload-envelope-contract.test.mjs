@@ -70,26 +70,6 @@ function spawnAdapter(cmd, args, envOverride = {}) {
 // ── Main ─────────────────────────────────────────────────────────────────────
 let failures = 0;
 
-// ── perplexity-adapter dry-run ───────────────────────────────────────────────
-{
-  const result = await spawnAdapter('node', ['perplexity-adapter.mjs', '--dry-run'], {});
-  try {
-    const obj = JSON.parse(result.stderr);
-    const err = validateEnvelope('perplexity-adapter --dry-run', obj);
-    if (err) {
-      console.error(`FAIL [perplexity-adapter --dry-run]: ${err}`);
-      console.error(`  received: ${result.stderr.slice(0, 200)}`);
-      failures++;
-    } else {
-      console.log(`PASS [perplexity-adapter --dry-run]: lane=${obj.lane} status=${obj.status}`);
-    }
-  } catch {
-    console.error(`FAIL [perplexity-adapter --dry-run]: not valid JSON`);
-    console.error(`  received: ${result.stderr.slice(0, 200)}`);
-    failures++;
-  }
-}
-
 // ── comet-adapter dry-run ────────────────────────────────────────────────────
 {
   const result = await spawnAdapter('node', ['comet-adapter.mjs', '--dry-run'], {

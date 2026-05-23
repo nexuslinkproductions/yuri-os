@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'fs';
-import { execSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import path from 'path';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { DEAD_NIM_LANES, isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
@@ -53,6 +53,24 @@ const LOCAL_MULTIMODAL_MODEL = LOCAL_MODEL_POLICY.multimodal || 'gemma4:e2b';
 const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || 'llama3.2:latest';
 const LOCAL_FROZEN_MODELS = LOCAL_MODEL_POLICY.frozen || LOCAL_MODEL_POLICY.manual_only || [];
 const LOCAL_MANUAL_ONLY_MODELS = LOCAL_MODEL_POLICY.manual_only || LOCAL_FROZEN_MODELS;
+
+function envOrKeychain(...names) {
+  for (const name of names) {
+    const value = process.env[name] || '';
+    if (value) return value;
+    if (process.platform !== 'darwin') continue;
+    try {
+      const out = execFileSync('security', [
+        'find-generic-password',
+        '-a', process.env.USER || 'yuri',
+        '-s', `${process.env.YURI_KEYCHAIN_SERVICE_PREFIX || 'YURI_OS_MUSUBI'}:${name}`,
+        '-w',
+      ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      if (out) return out;
+    } catch {}
+  }
+  return '';
+}
 
 const TOOL_REPETITION_SENTINEL = 'Reached tool call repetition limit; returning partial result.';
 const DEFAULT_LONG_OFFLOAD_TIMEOUT_MS = 6 * 60 * 60 * 1000;
@@ -721,6 +739,20 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     return resolveOllamaAdditiveLane(requestedLane, normalizedForcedModel, localModels, dryRun);
   }
 
+  if (['nvidia-deepseek', 'nvidia-deepseek-v4-pro', 'nvidia-deepseek-v4-flash'].includes(requestedLane)) {
+    const error = 'NVIDIA_DEEPSEEK_RETIRED: use direct deepseek-v4-pro or deepseek-v4-flash';
+    if (dryRun || process.env.OFFLOAD_OPTIONAL === '1') {
+      return {
+        kind: 'blocked',
+        model: normalizedForcedModel || requestedLane.replace(/^nvidia-/, ''),
+        executable: false,
+        status: 'NVIDIA_DEEPSEEK_RETIRED',
+        error,
+      };
+    }
+    throw new Error(error);
+  }
+
   if (requestedLane === 'code-local') {
     return resolveCodeLocalLane(
       normalizedForcedModel || normalizeForcedModel(process.env.CODE_LOCAL_MODEL || '', 'code-local') || '',
@@ -758,14 +790,14 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
     },
     'deepseek-v4-flash': deepseekLane(normalizedForcedModel, {
       defaultModel: 'deepseek-v4-flash',
-      envVars: ['NVIDIA_DEEPSEEK_FLASH_MODEL'],
+      envVars: ['DEEPSEEK_FLASH_MODEL'],
       thinking: false,
       maxTokens: 4096,
       timeout: parseInt(process.env.DEEPSEEK_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
     }, options),
     'deepseek-v4-pro': deepseekLane(normalizedForcedModel, {
       defaultModel: 'deepseek-v4-pro',
-      envVars: ['NVIDIA_DEEPSEEK_PRO_MODEL'],
+      envVars: ['DEEPSEEK_PRO_MODEL'],
       thinking: true,
       maxTokens: 8192,
       timeout: parseInt(process.env.DEEPSEEK_TIMEOUT_MS || String(DEFAULT_LONG_OFFLOAD_TIMEOUT_MS), 10),
@@ -812,30 +844,6 @@ function resolveLane(requestedLane, forcedModel, localModels, dryRun = false, op
       endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
       apiKey: process.env.NVIDIA_API_KEY || '',
       model: normalizedForcedModel || process.env.NVIDIA_NIM_MODEL || 'meta/llama-3.3-70b-instruct',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-deepseek': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'deepseek-v4-pro',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-deepseek-v4-pro': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'deepseek-v4-pro',
-      tools: true,
-      requiresKey: true,
-    },
-    'nvidia-deepseek-v4-flash': {
-      kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizedForcedModel || 'deepseek-v4-flash',
       tools: true,
       requiresKey: true,
     },
@@ -1335,18 +1343,17 @@ function deepseekLane(normalizedForcedModel, options, runnerOptions = {}) {
   const runtime = resolveDeepseekRuntime(options, runnerOptions);
   return {
     kind: 'cloud',
-    endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-    apiKey: process.env.NVIDIA_API_KEY || '',
+    endpoint: normalizeOpenAIBaseUrl(process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1'),
+    apiKey: envOrKeychain('DEEPSEEK_API_KEY', 'CODE_DEEPSEEK_API_KEY'),
     model: normalizedForcedModel || resolveDeepseekModel(options),
     maxTokens: runtime.maxTokens,
     timeout: runtime.timeout,
     reasoningDepth: runtime.reasoningDepth,
-    // Direct paid DeepSeek API is retired; DeepSeek V4 now routes via NVIDIA NIM.
-    // Tools default ON for this advisory lane unless explicitly disabled.
-    // Caller can pass --no-tools to force text-only advisory mode.
+    // Direct DeepSeek API is the canonical paid lane again. Tools default ON
+    // unless explicitly disabled by the caller.
     tools: runnerOptions.tools !== false,
     requiresKey: true,
-    resolvedVia: 'nvidia-nim-deepseek',
+    resolvedVia: 'deepseek-direct',
   };
 }
 
@@ -1357,38 +1364,37 @@ function resolveDeepseekDefaultLane(normalizedForcedModel, localModels, dryRun) 
     }
     return {
       kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
+      endpoint: normalizeOpenAIBaseUrl(process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1'),
+      apiKey: envOrKeychain('DEEPSEEK_API_KEY', 'CODE_DEEPSEEK_API_KEY'),
       model: normalizedForcedModel,
       maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
       timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
       reasoningDepth: 'off',
-      // Tools default ON — see deepseekLane() for full rationale.
       tools: true,
       requiresKey: true,
-      resolvedVia: 'nvidia-nim-deepseek-forced',
+      resolvedVia: 'deepseek-direct-forced',
     };
   }
 
-  if (process.env.NVIDIA_API_KEY) {
+  const deepseekApiKey = envOrKeychain('DEEPSEEK_API_KEY', 'CODE_DEEPSEEK_API_KEY');
+  if (deepseekApiKey) {
     return {
       kind: 'cloud',
-      endpoint: normalizeOpenAIBaseUrl(process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1'),
-      apiKey: process.env.NVIDIA_API_KEY || '',
-      model: normalizeDeepseekPublicModel(process.env.NVIDIA_DEEPSEEK_DEFAULT_MODEL || process.env.NVIDIA_DEEPSEEK_FLASH_MODEL || 'deepseek-v4-flash'),
+      endpoint: normalizeOpenAIBaseUrl(process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1'),
+      apiKey: deepseekApiKey,
+      model: normalizeDeepseekPublicModel(process.env.DEEPSEEK_DEFAULT_MODEL || process.env.DEEPSEEK_FLASH_MODEL || 'deepseek-v4-flash'),
       maxTokens: parseInt(process.env.DEEPSEEK_DEFAULT_MAX_TOKENS || '4096', 10),
       timeout: parseInt(process.env.DEEPSEEK_DEFAULT_TIMEOUT_MS || '60000', 10),
       reasoningDepth: 'off',
-      // Tools default ON — see deepseekLane() for full rationale.
       tools: true,
       requiresKey: true,
-      resolvedVia: 'nvidia-nim-deepseek-default',
+      resolvedVia: 'deepseek-direct-default',
     };
   }
 
   return blockedDeepseekLocal(
     LOCAL_DEEP_REASONING_MODEL,
-    'Lane "deepseek" now routes through NVIDIA NIM and requires NVIDIA_API_KEY. Direct paid DeepSeek API is retired.',
+    'Lane "deepseek" requires DEEPSEEK_API_KEY or CODE_DEEPSEEK_API_KEY. NVIDIA fallback is disabled by policy.',
     'cloud-required',
     'SKIPPED_MISSING_KEY',
   );
@@ -1645,7 +1651,7 @@ function safeStat(file) {
 }
 
 function buildInventory(localModels) {
-  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-deepseek', 'nvidia-deepseek-v4-pro', 'nvidia-deepseek-v4-flash', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-llama4-maverick', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-nemotron-super-49b', 'nvidia-nemotron-nano-vl-8b', 'nvidia-nemotron-mini-4b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-minimax-m27', 'nvidia-minimax-m2.7', 'nvidia-ising', 'nvidia-nemotron-nano-30b', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-mistral-nemotron', 'nvidia-magistral-small', 'nvidia-qwen', 'nvidia-qwen-397b', 'nvidia-qwen-coder-32b', 'nvidia-phi', 'nvidia-vision-90b', 'nvidia-usdcode', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
+  const laneNames = ['ollama', 'ollama-local', 'ollama-cloud', 'gpt-oss', 'deepseek', 'deepseek-local', 'deepseek-v4-flash', 'deepseek-v4-pro', 'triage-local', 'summarize-local', 'code-local', 'reason-cloud', 'code-cloud', 'nvidia-llama-405b', 'nvidia-llama-70b', 'nvidia-llama4-maverick', 'nvidia-nemotron', 'nvidia-nemotron-70b', 'nvidia-nemotron-super-49b', 'nvidia-nemotron-nano-vl-8b', 'nvidia-nemotron-mini-4b', 'nvidia-dracarys', 'nvidia-glm', 'nvidia-minimax-m27', 'nvidia-minimax-m2.7', 'nvidia-ising', 'nvidia-nemotron-nano-30b', 'nvidia-gpt-oss-120b', 'nvidia-nemotron-120b', 'nvidia-qwen3-next', 'nvidia-mistral', 'nvidia-mistral-medium', 'nvidia-mistral-large', 'nvidia-mistral-nemotron', 'nvidia-magistral-small', 'nvidia-qwen', 'nvidia-qwen-397b', 'nvidia-qwen-coder-32b', 'nvidia-phi', 'nvidia-vision-90b', 'nvidia-usdcode', 'gemma-local', 'gemma-cloud', 'gemma', 'openrouter-free', 'codex', 'codex-mini', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.3-codex'];
   const lanes = {};
   for (const name of laneNames) {
     try {
@@ -1864,7 +1870,8 @@ function wireModelForProvider(endpoint = '', model = '', lane = '') {
   const isDeepseekV4 = /^deepseek-v4-(?:flash|pro)$/.test(publicModel);
   const isDeepseekLane = /^(?:deepseek|deepseek-v4-|nvidia-deepseek)/.test(String(lane || ''));
   const isNvidiaEndpoint = /integrate\.api\.nvidia\.com/i.test(String(endpoint || ''));
-  if (isDeepseekV4 && (isDeepseekLane || isNvidiaEndpoint)) return `deepseek-ai/${publicModel}`;
+  if (isDeepseekV4 && isNvidiaEndpoint) return `deepseek-ai/${publicModel}`;
+  if (isDeepseekV4 && isDeepseekLane) return publicModel;
   return model;
 }
 

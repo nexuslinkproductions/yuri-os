@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * worker-bridge.mjs — Cursor → warm worker terminals (no manual paste)
+ * worker-bridge.mjs — IDE/Kagami → warm worker terminals (no manual paste)
  *
  * Each worker terminal runs:  node _SYSTEM/Scripts/worker-bridge.mjs loop --worker <name>
- * Cursor hook / CLI enqueues jobs; loops claim and execute with fixed LANE_SESSION.
+ * IDE, Kagami, or CLI enqueues jobs; loops claim and execute with fixed LANE_SESSION.
  *
  * Workers: codex | claude | deepseek
  */
@@ -49,11 +49,11 @@ const WORKERS = {
     lane: 'deepseek-v4-pro',
     laneSession: 'marcel-deepseek',
     kind: 'offload',
-    offloadFlags: ['--tools'],
+    offloadFlags: [],
   },
 };
 
-const TASK_TIMEOUT_MS = Number(process.env.YURI_WORKER_TASK_TIMEOUT_MS || 60 * 60 * 1000);
+const TASK_TIMEOUT_MS = Number(process.env.YURI_WORKER_TASK_TIMEOUT_MS || 6 * 60 * 60 * 1000);
 const POLL_MS = 400;
 
 function emptyQueues() {
@@ -86,7 +86,7 @@ function writeQueues(data) {
   renameSync(tmp, QUEUES_FILE);
 }
 
-function newTask({ worker, prompt, lane, addedBy = 'cursor', meta = {} }) {
+function newTask({ worker, prompt, lane, addedBy = 'ide', meta = {} }) {
   const w = WORKERS[worker];
   if (!w) throw new Error(`unknown worker: ${worker}`);
   return {
@@ -142,7 +142,7 @@ function buildWorkerPrompts(userPrompt, plan) {
 
   const wrap = (role, body) =>
     `[YURI worker dispatch · ${role} · tier=${tier}]\n` +
-    `Source: Cursor auto-feed\n\n` +
+    `Source: YURI worker bridge\n\n` +
     `${body}\n\n` +
     `---\nOriginal request:\n${userPrompt}`;
 
@@ -173,7 +173,7 @@ function buildWorkerPrompts(userPrompt, plan) {
   const mutate = /\b(implement|fix|patch|refactor|build|wire|create|add|migrate|debug)\b/i.test(
     userPrompt,
   );
-  // Worker terminal = impl lane; feed Codex on mutation verbs even when codexPolicy=none (manual gate is Cursor-side).
+  // Worker terminal = impl lane; feed Codex on mutation verbs even when codexPolicy=none.
   const wantsCodex = mutate && codexPolicy !== 'none' ? true : mutate && tier !== 'trivial';
 
   if (wantsCodex) {
@@ -199,7 +199,7 @@ function buildWorkerPrompts(userPrompt, plan) {
   return out;
 }
 
-export function routeFromPrompt(userPrompt, { addedBy = 'cursor-hook' } = {}) {
+export function routeFromPrompt(userPrompt, { addedBy = 'ide-hook' } = {}) {
   const plan = routePlan(userPrompt);
   const jobs = buildWorkerPrompts(userPrompt, plan);
   const enqueued = [];
@@ -395,7 +395,7 @@ function usage() {
 Commands:
   loop --worker <codex|claude|deepseek>   Run in a dedicated terminal (claims queue)
   enqueue --worker <name> --prompt "..."  Enqueue one job
-  route --prompt "..."                    route-plan → enqueue workers (Cursor hook)
+  route --prompt "..."                    route-plan → enqueue workers (IDE/Kagami hook)
   status                                  Queue summary
 
 Env:

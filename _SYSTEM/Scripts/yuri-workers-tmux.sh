@@ -21,9 +21,11 @@ tmux send-keys -t "$SESSION:0.0" "echo '🤖 CODEX WORKER READY — waiting for 
 tmux split-window -h -t "$SESSION:0" -c "$REPO"
 tmux send-keys -t "$SESSION:0.1" "echo '🧠 CLAUDE WORKER READY — waiting for tasks'" Enter
 
-# Pane 2: DeepSeek queue monitor
+# Pane 2: DeepSeek continuous queue worker.
+# This keeps one stable LANE_SESSION (`marcel-deepseek`) so DeepSeek prompt-cache
+# can reuse the same growing prefix across dispatches.
 tmux split-window -v -t "$SESSION:0.1" -c "$REPO"
-tmux send-keys -t "$SESSION:0.2" "echo '⚡ DEEPSEEK QUEUE READY — node _SYSTEM/Scripts/worker-bridge.mjs status'" Enter
+tmux send-keys -t "$SESSION:0.2" "node _SYSTEM/Scripts/worker-bridge.mjs loop --worker deepseek" Enter
 
 tmux select-pane -t "$SESSION:0.0"
 echo "✓ yuri-workers session created — run: tmux attach -t yuri-workers"

@@ -10,25 +10,43 @@
 import path from 'node:path';
 
 const CLAUDE_DIR = '.claude';
+const CLAUDE_CREDENTIALS = [CLAUDE_DIR, '.credentials.json'].join('/');
+const CLAUDE_CREDENTIALS_ALT = [CLAUDE_DIR, 'credentials.json'].join('/');
+const CLAUDE_FILE_HISTORY = [CLAUDE_DIR, 'file-history'].join('/');
 const CLAUDE_STATE = [CLAUDE_DIR, 'state'].join('/');
 const CLAUDE_HISTORY = [CLAUDE_DIR, 'history'].join('/');
+const CLAUDE_HISTORY_JSONL = [CLAUDE_DIR, 'history.jsonl'].join('/');
+const CLAUDE_LANE_SESSIONS = [CLAUDE_DIR, 'lane-sessions'].join('/');
+const CLAUDE_PASTE_CACHE = [CLAUDE_DIR, 'paste-cache'].join('/');
+const CLAUDE_PROJECTS = [CLAUDE_DIR, 'projects'].join('/');
 const BACKEND_DATA = ['backend', 'data'].join('/');
 const NODE_MODULES = ['node', 'modules'].join('_');
+const NODE_MODULES_DIR = ['node', 'modules'].join('_');
 const AMP_DIR = ['.', 'amp'].join('');
 const ENV_FILE = ['.', 'env'].join('');
 
-export const PROTECTED_SURFACE_LABELS = Object.freeze([
+export const PROTECTED_SURFACE_PREFIXES = Object.freeze([
   `${BACKEND_DATA}/`,
+  `${CLAUDE_CREDENTIALS}`,
+  `${CLAUDE_CREDENTIALS_ALT}`,
+  `${CLAUDE_FILE_HISTORY}/`,
   `${CLAUDE_STATE}/`,
   `${CLAUDE_HISTORY}/`,
+  CLAUDE_HISTORY_JSONL,
+  `${CLAUDE_LANE_SESSIONS}/`,
+  `${CLAUDE_PASTE_CACHE}/`,
+  `${CLAUDE_PROJECTS}/`,
   ENV_FILE,
-  `${NODE_MODULES}/`,
+  `${NODE_MODULES_DIR}/`,
   `${AMP_DIR}/`,
+  '_SYSTEM/tools/browser-harness/',
+  '_SYSTEM/tools/nemo-guardrails/',
+  '_SYSTEM/tools/MSA/',
 ]);
 
+export const PROTECTED_SURFACE_LABELS = PROTECTED_SURFACE_PREFIXES;
+
 export const ACTIVE_NIM_LANES = Object.freeze([
-  'nvidia-deepseek-v4-pro',
-  'nvidia-deepseek-v4-flash',
   'nvidia-llama-70b',
   'nvidia-qwen',
   'nvidia-mistral-medium',
@@ -131,14 +149,14 @@ export const LANE_KERNEL = Object.freeze({
   },
   deepseek: {
     id: 'deepseek',
-    lane: 'nvidia-deepseek-v4-pro',
+    lane: 'deepseek-v4-pro',
     model: 'deepseek-v4-pro',
-    provider: 'nvidia',
+    provider: 'deepseek',
     role: 'gate-1-synthesizer',
     reasoning: 'xhigh',
     contextTier: 'large',
-    dispatchArgs: ['offload', '--model', 'nvidia-deepseek-v4-pro'],
-    assignment: 'First synthesis gate via NVIDIA-hosted DeepSeek V4 Pro: decide model duties, tool policy, contradictions, and dispatch order before broad fan-out. Direct paid DeepSeek API is retired.',
+    dispatchArgs: ['offload', '--model', 'deepseek-v4-pro'],
+    assignment: 'First synthesis gate via direct DeepSeek V4 Pro: decide model duties, tool policy, contradictions, and dispatch order before broad fan-out. NVIDIA DeepSeek fallback is retired.',
     tools: { ...BASE_FORBIDDEN_TOOLS, read: true, search: true, browser: false, gitnexus: false, shell: false },
   },
   'claude-opus-audit': {

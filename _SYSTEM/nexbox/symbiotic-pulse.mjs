@@ -24,7 +24,6 @@ export const NATIVE_LANES = Object.freeze({
   kimi: lane('cloud', 'moonshot-v1-128k', 'KIMI_API_KEY', ['long-context', 'deep-synthesis']),
   'reason-cloud': lane('cloud', 'reason-cloud', 'REASON_API_KEY', ['reasoning', 'large-model']),
   'code-cloud': lane('cloud', 'code-cloud', 'CODE_API_KEY', ['code', 'large-code-model']),
-  'nvidia-deepseek': lane('cloud', 'nvidia/llama-3.1-nemotron-70b-instruct', 'NVIDIA_API_KEY', ['hosted-deep-reasoning', 'architecture-review']),
   'gemma-local': lane('local', 'gemma-2-9b', 'GEMMA_LOCAL_MODEL', ['multimodal', 'inspection']),
   'gemma-cloud': lane('cloud', 'gemma', 'GEMMA_CLOUD_API_KEY', ['multimodal', 'inspection']),
   gemma: lane('cloud-or-local', 'gemma', 'GEMMA_API_KEY', ['multimodal', 'inspection']),
@@ -35,7 +34,6 @@ export const NATIVE_LANES = Object.freeze({
   'gpt-oss': lane('local', 'gpt-oss-20b', 'GPT_OSS_MODEL', ['formatting', 'synthesis', 'template-generation']),
   swarm: lane('native', '', '', ['orchestration', 'fanout'], ['native', 'deterministic', 'swarm']),
   comet: lane('cloud', 'comet', 'COMET_API_KEY', ['search', 'research']),
-  perplexity: lane('cloud', 'perplexity', 'PERPLEXITY_API_KEY', ['search', 'research']),
   shell: lane('native', '', '', ['deterministic-verification', 'source-truth'], ['native', 'deterministic', 'verification']),
   tests: lane('native', '', '', ['regression-verification'], ['native', 'deterministic', 'tests']),
   git: lane('native', '', '', ['change-state', 'local-truth'], ['native', 'deterministic', 'git']),
@@ -73,7 +71,6 @@ export function selectSteeringLane(prompt) {
   if (text.includes('@qwen') || text.includes('summarize') || text.includes('summary') || text.includes('condense') || text.includes('extract') || text.includes('extraction') || text.includes('triage') || text.includes('general task')) return text.includes('summarize') || text.includes('summary') || text.includes('condense') ? 'summarize-local' : 'triage-local';
   if (text.includes('@gpt-oss') || text.includes('gpt-oss') || text.includes('format') || text.includes('formatting') || text.includes('template') || text.includes('ui ') || text.includes('frontend') || text.includes('design') || text.includes('react') || text.includes('interface')) return 'gpt-oss';
   if (text.includes('@comet')) return 'comet';
-  if (text.includes('@perplexity')) return 'perplexity';
   return 'triage-local';
 }
 
@@ -110,7 +107,7 @@ function buildStages(context) {
   const stages = [];
   const classLane = firstAvailable(['triage-local', 'summarize-local', 'deepseek-v4-flash', 'deepseek']);
   stages.push(stage('intake_classify', 'intent-normalization', ['triage-local', 'summarize-local', 'deepseek-v4-flash', 'deepseek'], classLane));
-  if (context.highReasoning) stages.push(stage('campaign_decompose', 'deep-decomposition', ['deepseek-v4-pro', 'kimi', 'nvidia-deepseek', 'deepseek'], firstAvailable(['deepseek-v4-pro', 'kimi', 'nvidia-deepseek', 'deepseek'])));
+  if (context.highReasoning) stages.push(stage('campaign_decompose', 'deep-decomposition', ['deepseek-v4-pro', 'kimi', 'deepseek'], firstAvailable(['deepseek-v4-pro', 'kimi', 'deepseek'])));
   const specialistCandidates = unique([...(context.code ? ['code-local', 'deepseek-v4-pro', 'code-cloud'] : []), ...(context.docs ? ['summarize-local', 'deepseek-v4-flash', 'gpt-oss'] : []), ...(context.research ? ['openrouter-free', 'deepseek-v4-flash', 'kimi'] : []), ...(context.design ? ['gpt-oss', 'gemma', 'gemma-cloud'] : []), ...(context.risk ? ['deepseek-v4-pro', 'claude', 'kimi'] : []), ...(context.private ? ['ollama-local', 'triage-local'] : []), ...(context.multimodal ? ['gemma-local', 'gemma-cloud', 'gemma'] : []), 'deepseek-v4-pro', 'deepseek-v4-flash']);
   stages.push(stage('specialist_fanout', 'bounded-specialist-work', specialistCandidates, firstAvailable(specialistCandidates)));
   stages.push(stage('verify_local_truth', 'deterministic-verification', ['shell', 'tests', 'git'], 'main-session', true));

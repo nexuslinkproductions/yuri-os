@@ -14,7 +14,7 @@ export const ROUTE_CLASS_GOLDENS = Object.freeze({
   coding: ['code-local', 'deepseek', 'codex'],
   architecture_review: ['swarm', 'deepseek-v4-pro', 'codex'],
   audit_security: ['swarm', 'deepseek-v4-pro', 'codex'],
-  research_latest: ['perplexity', 'comet'],
+  research_latest: ['comet'],
 });
 
 export const PROMOTION_GATE_DEFAULTS = Object.freeze({
@@ -280,7 +280,7 @@ function classify(row) {
   if (/code|coding|patch/.test(text)) return 'coding';
   if (/architecture/.test(text)) return 'architecture_review';
   if (/security|audit/.test(text)) return 'audit_security';
-  if (/research|browser|perplexity|comet/.test(text)) return 'research_latest';
+  if (/research|browser|comet/.test(text)) return 'research_latest';
   return 'unknown';
 }
 

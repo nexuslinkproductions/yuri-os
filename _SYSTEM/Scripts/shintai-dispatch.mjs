@@ -96,10 +96,10 @@ const ASSIGNMENTS = {
   },
   deepseek: {
     displayName: 'DeepSeek Reasoner',
-    lane: 'nvidia-deepseek-v4-pro',
+    lane: 'deepseek-v4-pro',
     skills: ['deepseek-workhorse', 'deepseek-offload', 'probabilistic-decision-core', 'pattern-mirror-core', 'sharingan'],
-    assignment: 'Gate 1 synthesis and adversarial diagnosis via NVIDIA-hosted DeepSeek V4 Pro: model duties, tool-surface assignment, terminal failures, routing drift, and missed dispatch-template context.',
-    dispatchArgs: ['offload', '--model', 'nvidia-deepseek-v4-pro'],
+    assignment: 'Gate 1 synthesis and adversarial diagnosis via direct DeepSeek V4 Pro: model duties, tool-surface assignment, terminal failures, routing drift, and missed dispatch-template context.',
+    dispatchArgs: ['offload', '--model', 'deepseek-v4-pro'],
   },
   'claude-opus-audit': {
     displayName: 'Claude Opus Co-Main',

@@ -10,7 +10,7 @@ import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const script = path.join(__dirname, 'codex-offload-runner.mjs');
-const repoRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(__dirname, '..', '..');
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-offload-runner-test-'));
 
 try {
@@ -62,7 +62,7 @@ try {
     {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, NVIDIA_API_KEY: 'test-key' },
+      env: { ...process.env, DEEPSEEK_API_KEY: 'test-key' },
     },
   ));
   assert.equal(deepseekPreview.timeout, 21600000, 'DeepSeek Pro default timeout must allow long offload work');
@@ -71,7 +71,7 @@ try {
     cwd: repoRoot,
     command: 'set -a; source .env; set +a; OFFLOAD_PROMPT_TEXT="Return OK" node _SYSTEM/Scripts/offload-runner.mjs deepseek-v4-pro',
   });
-  assert.equal(protectedEnvHydration.allowed, true, 'NVIDIA-hosted DeepSeek runner should be allowed to read .env for key hydration');
+  assert.equal(protectedEnvHydration.allowed, true, 'Direct DeepSeek runner should be allowed to read .env for key hydration');
 
   const protectedEnvWrite = evaluateToolCall('Bash', {
     cwd: repoRoot,

@@ -68,8 +68,8 @@ const OFFLOAD_CONTRACT = {
     },
     deepseek: {
       alias: '@deepseek',
-      dispatchTokens: ['deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro', 'nvidia-deepseek-v4-flash', 'nvidia-deepseek-v4-pro'],
-      description: 'NVIDIA-hosted DeepSeek V4 reasoning lane. Direct paid DeepSeek API is retired; route bare V4 model ids through NVIDIA NIM.',
+      dispatchTokens: ['deepseek', 'deepseek-v4-flash', 'deepseek-v4-pro'],
+      description: 'Direct paid DeepSeek V4 reasoning lane through api.deepseek.com. NVIDIA DeepSeek fallback is retired.',
       toolsByDefault: true,
       preferredUsage: ['reasoning', 'analysis', 'multi-step logic', 'code review', 'autonomous file edits', 'multi-file refactors', 'parallel implementer during Codex rate-limit windows']
     },
@@ -265,14 +265,6 @@ const OFFLOAD_CONTRACT = {
       dispatchTokens: ['comet'],
       description: 'Browser interaction lane',
       preferredUsage: ['screenshot', 'click', 'type', 'browser control']
-    },
-    perplexity: {
-      alias: '@perplexity',
-      dispatchTokens: ['perplexity', 'perplexity-sonar', 'sonar-pro', 'sonar-reasoning-pro'],
-      description: 'Perplexity app via Claude computer control — the canonical browser for web research. Default path = computer-use MCP drives the desktop app, NOT the API adapter. API adapter (_SYSTEM/Scripts/perplexity-adapter.mjs) only when explicitly requested via -m perplexity.',
-      preferredUsage: ['web research', 'latest facts', 'citations', 'deep research', 'current events'],
-      defaultRoute: 'computer-control-app',
-      apiFallback: '_SYSTEM/Scripts/perplexity-adapter.mjs'
     }
   },
   swarm: {
@@ -674,10 +666,10 @@ const OFFLOAD_CONTRACT = {
       id: 'research-latest',
       title: 'Current research or external facts',
       match: ['latest', 'current', 'today', 'research', 'web', 'citation'],
-      defaultLane: 'perplexity',
+      defaultLane: 'comet',
       lifecycle: [
         'Intake: mark volatile facts and required source quality.',
-        'Delegate: use browser research lane for current evidence.',
+        'Delegate: use browser control or first-party web tooling for current evidence.',
         'Verify: compare dates, primary sources, and contradictions.',
         'Merge: separate facts, inference, and recommendation.',
         'Learn: store durable source patterns, not transient facts.'
@@ -711,7 +703,7 @@ const OFFLOAD_CONTRACT = {
     }
   ],
   harnessContract: {
-    appliesTo: ['Codex', 'Claude Code', 'Cursor', 'VS Code', 'Antigravity', 'Gemini', 'OpenClaw', 'future CLI agents'],
+    appliesTo: ['Codex', 'Claude Code', 'VS Code', 'Kagami', 'Rick', 'DeepSeek', 'Qwen/Alibaba', 'future CLI agents'],
     requiredBehavior: [
       'Load OPERATOR_PROTOCOL.md or an inheriting rule file at startup.',
       'Treat offload routing as automatic for every non-trivial task.',
@@ -862,7 +854,6 @@ function selectSteeringLane(prompt) {
   }
 
   if (text.includes('@comet')) return 'comet';
-  if (text.includes('@perplexity')) return 'perplexity';
 
   return 'triage-local';
 }

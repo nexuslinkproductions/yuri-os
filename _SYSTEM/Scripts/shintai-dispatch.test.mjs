@@ -30,16 +30,17 @@ test('critical memory/RAG sprint assembles task-fit Shintai council', () => {
   assert.equal(assembly.selectedIds.includes('codex-spark'), false);
 });
 
-test('Shintai DeepSeek member uses NVIDIA route instead of retired direct paid API', () => {
+test('Shintai DeepSeek member uses direct paid API without NVIDIA fallback', () => {
   const assembly = assembleShintaiTeam(MEMORY_TASK, loadShintaiRoster(), {});
   const deepseek = assembly.members.find((member) => member.id === 'deepseek');
   const prompt = buildMemberPrompt(MEMORY_TASK, deepseek, {});
 
-  assert.equal(deepseek.provider, 'nvidia');
-  assert.equal(deepseek.lane, 'nvidia-deepseek-v4-pro');
+  assert.equal(deepseek.provider, 'deepseek');
+  assert.equal(deepseek.lane, 'deepseek-v4-pro');
   assert.equal(deepseek.model, 'deepseek-v4-pro');
-  assert.deepEqual(deepseek.dispatchArgs, ['offload', '--model', 'nvidia-deepseek-v4-pro']);
-  assert.match(prompt, /Lane: nvidia-deepseek-v4-pro/);
+  assert.deepEqual(deepseek.dispatchArgs, ['offload', '--model', 'deepseek-v4-pro']);
+  assert.match(prompt, /Lane: deepseek-v4-pro/);
+  assert.doesNotMatch(prompt, /nvidia-deepseek/);
   assert.doesNotMatch(prompt, /deepseek-ai\//);
 });
 

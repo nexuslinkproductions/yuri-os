@@ -8,7 +8,7 @@
 
 ### Tier 1 — Broad Retrieval (lowest token cost)
 
-Tools: Perplexity, yuri-research-capture.mjs, yuri-research-capture.py, scrapling (Python API)
+Tools: browser-harness, yuri-research-capture.mjs, yuri-research-capture.py, scrapling (Python API)
 Use for: source discovery, URL fetch, evidence pack creation
 Token cost: ~0 (T1 static) | medium (T2 browser) | high (T3 stealth)
 
@@ -20,7 +20,7 @@ Token cost: medium; escalate to Tier 3 only when Tier 2 stalls
 
 ### Tier 3 — Deep Synthesis (highest cost)
 
-Tools: Perplexity Deep Research, NotebookLM
+Tools: browser-harness research packs, NotebookLM
 Use for: cross-document briefing, architecture synthesis, compliance mapping
 Token cost: high; output is always advisory_only=true
 
