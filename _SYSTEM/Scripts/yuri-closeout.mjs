@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * yuri-closeout.mjs — Deterministic read-only closeout reporter for Cline
+ * yuri-closeout.mjs — Deterministic read-only closeout reporter
  *
- * Mirrors Claude Code end-of-transmission behavior in Cline-native terms.
+ * Mirrors end-of-transmission closeout behavior in provider-neutral terms.
  * Read-only. Never mutates, stages, commits, resets, cleans, installs,
  * starts servers, touches DB, or edits files.
  *
  * Usage:
  *   node _SYSTEM/Scripts/yuri-closeout.mjs
- *   node _SYSTEM/Scripts/yuri-closeout.mjs --path .clinerules --path _SYSTEM/Scripts/yuri-closeout.mjs
+ *   node _SYSTEM/Scripts/yuri-closeout.mjs --path _SYSTEM/Scripts/yuri-closeout.mjs
  */
 
 import { execFileSync } from 'node:child_process'

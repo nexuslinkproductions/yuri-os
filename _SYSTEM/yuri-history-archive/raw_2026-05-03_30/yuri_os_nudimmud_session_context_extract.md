@@ -237,7 +237,7 @@ Status: unknown for this session.
 - Project owner: final authority.
 - Local file evidence from Claude: should override GPT-5.5 assumptions.
 - `@swarm`: owned by `swarm-coordination`.
-- `@deepseek`, `@qwen`, `@gpt-oss`, `@ollama`, `@comet`, `@perplexity`, `@claude`, `@kimi`, `@haiku`: owned by `ai-pipeline-offloading`.
+- `@deepseek`, `@qwen`, `@gpt-oss`, `@ollama`, `@comet`, `@retired-search`, `@claude`, `@kimi`, `@haiku`: owned by `ai-pipeline-offloading`.
 - Slash commands and `@` routing aliases must remain separate.
 
 ## 5. Files, Reports, and Artifacts Mentioned

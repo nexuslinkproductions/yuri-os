@@ -104,5 +104,5 @@ If any line fails, stop and reconcile before starting work. Do not switch direct
 - `_SYSTEM/lane-verification-2026-05-13.md` — full 15-lane matrix
 - `_SYSTEM/scout-errors-2026-05-13-triage.md` — scout failure root cause + Codex specs
 - `_SYSTEM/memory-layer-spec.md` — five-tier memory model
-- `_SYSTEM/audit-archive/perplexity-2026-05-13-original.md` — archived audit (DO-NOT-EXECUTE-AS-WRITTEN)
+- `_SYSTEM/audit-archive/external-research-audit-2026-05-13-original.md` — archived audit (DO-NOT-EXECUTE-AS-WRITTEN)
 - `CODEX_PROTOCOL.md` — Codex task spec format

@@ -119,7 +119,7 @@ These are NOT problems. They are the explicit @claude advisory path that stays a
 | Item | Blocker | ETA |
 |------|---------|-----|
 | **P9 — deepseek-r1:8b soak + models.json update** | Mac Mini M4 Pro hardware | When Marcel has M4 |
-| **Track D — Sharingan 4 repos** | curl hook-gated. Needs `curl` permission or Perplexity app session | Next session w/ permissions |
+| **Track D — Sharingan 4 repos** | curl hook-gated. Needs `curl` permission or approved browser research session | Next session w/ permissions |
 | **P16 — kill-switch drill** | Calendar date | 2026-06-14 |
 | **P13 git hook wire** | `.git/hooks` hard-blocked by auto-classifier | Marcel runs: `echo 'bash _SYSTEM/Scripts/pre-commit-independence.sh' >> .git/hooks/pre-commit` |
 

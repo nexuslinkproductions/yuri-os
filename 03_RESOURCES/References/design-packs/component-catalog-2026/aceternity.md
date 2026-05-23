@@ -59,7 +59,7 @@
 | 36 | Card Spotlight | /components/card-spotlight | Card revealing radial gradient spotlight |
 | 37 | Card Hover Effect | /components/card-hover-effect | Hover effect sliding between cards |
 | 38 | Card Stack | /components/card-stack | Cards stacking with interval — testimonials |
-| 39 | Comet Card | /components/comet-card | 3D tilted card as on Perplexity |
+| 39 | Comet Card | /components/comet-card | 3D tilted browser-style card |
 | 40 | Draggable Card | /components/draggable-card | Tiltable, draggable card jumping on bounds |
 | 41 | Evervault Card | /components/evervault-card | Hover effect revealing encrypted text |
 | 42 | Expandable Cards | /components/expandable-card | Cards expanding to show additional info |

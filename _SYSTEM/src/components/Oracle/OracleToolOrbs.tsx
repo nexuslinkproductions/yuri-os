@@ -20,7 +20,7 @@ const ORBS: OrbDef[] = [
     { id: 'vault',    label: 'Vault',        summary: 'Obsidian vault sync — live note retrieval and ingestion status.',                          type: 'tool',   tab: ['context'], icon: '◎' },
 
     // Research
-    { id: 'search',   label: 'Web Search',   summary: 'Live web search via Perplexity or WebSearch tool. Routes through Comet for browser tasks.', type: 'tool',   tab: ['research'], icon: '⊕' },
+    { id: 'search',   label: 'Web Search',   summary: 'Live web research through approved browser and source tools. Routes through Comet for browser tasks.', type: 'tool',   tab: ['research'], icon: '⊕' },
     { id: 'albedo',   label: 'Albedo',       summary: 'Semantic knowledge search across the YURI vault and project corpus.',                   type: 'skill',  tab: ['research'], icon: '◎' },
     { id: 'corpus',   label: 'Corpus',       summary: 'Oracle research corpus — curated papers, transcripts, and reference documents.',            type: 'skill',  tab: ['research'], icon: '▣' },
     { id: 'ingest',   label: 'Ingest',       summary: 'Pull new documents, videos, or URLs into the vault for RAG indexing.',                     type: 'tool',   tab: ['research'], icon: '↓' },

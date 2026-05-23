@@ -1,158 +1,650 @@
 {
-  "closeout": {
-    "source_path": ".cline/rules/closeout.md",
-    "hash": "961321b256afb173"
-  },
-  "system-memory": {
-    "source_path": ".cline/rules/system-memory.md",
-    "hash": "fbee045eefcd6729"
-  },
-  "business-dach-market-intelligence": {
-    "source_path": ".claude/skills/business-dach-market-intelligence.md",
-    "hash": "4b2dfd79763fc33d"
-  },
-  "neural-forge-orchestration": {
-    "source_path": ".claude/skills/neural-forge-orchestration.md",
-    "hash": "ed59320d0e845b13"
-  },
   "ai-pipeline-offloading": {
-    "source_path": ".claude/skills/ai-pipeline-offloading/SKILL.md",
-    "hash": "b5f7bed54e66a93f"
+    "source_path": ".agents/skills/ai-pipeline-offloading/SKILL.md",
+    "hash": "45de9a53f8aa014e"
+  },
+  "anime-dna-extensions": {
+    "source_path": ".agents/skills/anime-dna-extensions/SKILL.md",
+    "hash": "63ebf9f1347dcaaa"
   },
   "anthropic-managed-agents": {
-    "source_path": ".claude/skills/anthropic-managed-agents/SKILL.md",
-    "hash": "f974bb01f6a112d3"
+    "source_path": ".agents/skills/anthropic-managed-agents/SKILL.md",
+    "hash": "4c013dc2a8154f70"
   },
   "bg": {
-    "source_path": ".claude/skills/bg/SKILL.md",
+    "source_path": ".agents/skills/bg/SKILL.md",
     "hash": "94d5b73aa8572aa5"
   },
   "codebase-to-course": {
-    "source_path": ".claude/skills/codebase-to-course/SKILL.md",
-    "hash": "1199400faf25ce66"
+    "source_path": ".agents/skills/codebase-to-course/SKILL.md",
+    "hash": "4e799a594afca564"
   },
   "compact-optimizer": {
-    "source_path": ".claude/skills/compact-optimizer/SKILL.md",
-    "hash": "274b7ce4f1726cb5"
+    "source_path": ".agents/skills/compact-optimizer/SKILL.md",
+    "hash": "2c48b4064f55505d"
   },
-  "deepseek-offload": {
-    "source_path": ".claude/skills/deepseek-offload/SKILL.md",
-    "hash": "b609efbe44127a91"
-  },
-  "deepseek-workhorse": {
-    "source_path": ".claude/skills/deepseek-workhorse/SKILL.md",
-    "hash": "3ecf881fad0b17dd"
+  "design-assistant-inbox": {
+    "source_path": ".agents/skills/design-assistant-inbox/SKILL.md",
+    "hash": "5fedc68fdcfbd2fe"
   },
   "design-master": {
-    "source_path": ".claude/skills/design-master/SKILL.md",
-    "hash": "200b587b9e6394f9"
+    "source_path": ".agents/skills/design-master/SKILL.md",
+    "hash": "e2d5e30ae81404d7"
   },
   "design-source-pack": {
-    "source_path": ".claude/skills/design-source-pack/SKILL.md",
-    "hash": "bc49b06138b34ca1"
+    "source_path": ".agents/skills/design-source-pack/SKILL.md",
+    "hash": "b866640afb28e04b"
   },
   "end-of-transmission": {
-    "source_path": ".claude/skills/end-of-transmission/SKILL.md",
-    "hash": "863042b53ecf8833"
+    "source_path": ".agents/skills/end-of-transmission/SKILL.md",
+    "hash": "68da4c50624a339a"
   },
   "execution-domain-core": {
-    "source_path": ".claude/skills/execution-domain-core/SKILL.md",
-    "hash": "5e4852ecf4680b7c"
+    "source_path": ".agents/skills/execution-domain-core/SKILL.md",
+    "hash": "f5a7b7ca5eed1b6a"
+  },
+  "exeoflow-yuri-sitrep-pack": {
+    "source_path": ".agents/skills/exeoflow-yuri-sitrep-pack/SKILL.md",
+    "hash": "0ea13a5086e94747"
   },
   "failure-evolution-loop": {
-    "source_path": ".claude/skills/failure-evolution-loop/SKILL.md",
-    "hash": "dda48fa8852c94b9"
+    "source_path": ".agents/skills/failure-evolution-loop/SKILL.md",
+    "hash": "4e955a494ab90b7c"
   },
   "frontend-design": {
-    "source_path": ".claude/skills/frontend-design/SKILL.md",
-    "hash": "0a00c861501ea53b"
+    "source_path": ".agents/skills/frontend-design/SKILL.md",
+    "hash": "43513700abb41aca"
   },
   "gitnexus-cli": {
-    "source_path": ".claude/skills/gitnexus-cli/SKILL.md",
+    "source_path": ".agents/skills/gitnexus-cli/SKILL.md",
     "hash": "d96337c948a333c8"
   },
   "gitnexus-debugging": {
-    "source_path": ".claude/skills/gitnexus-debugging/SKILL.md",
+    "source_path": ".agents/skills/gitnexus-debugging/SKILL.md",
     "hash": "4a1e82aa835c52e3"
   },
   "gitnexus-exploring": {
-    "source_path": ".claude/skills/gitnexus-exploring/SKILL.md",
+    "source_path": ".agents/skills/gitnexus-exploring/SKILL.md",
     "hash": "ffafeaa0ce52be07"
   },
   "gitnexus-guide": {
-    "source_path": ".claude/skills/gitnexus-guide/SKILL.md",
+    "source_path": ".agents/skills/gitnexus-guide/SKILL.md",
     "hash": "40b047beeb9a7c5d"
   },
   "gitnexus-impact-analysis": {
-    "source_path": ".claude/skills/gitnexus-impact-analysis/SKILL.md",
+    "source_path": ".agents/skills/gitnexus-impact-analysis/SKILL.md",
     "hash": "a4d6e8003c4a822c"
   },
   "gitnexus-pr-review": {
-    "source_path": ".claude/skills/gitnexus-pr-review/SKILL.md",
+    "source_path": ".agents/skills/gitnexus-pr-review/SKILL.md",
     "hash": "f7bac200a4752191"
   },
   "gitnexus-refactoring": {
-    "source_path": ".claude/skills/gitnexus-refactoring/SKILL.md",
+    "source_path": ".agents/skills/gitnexus-refactoring/SKILL.md",
     "hash": "6aab994ee0266063"
   },
   "gpt-oss-local-runtime": {
-    "source_path": ".claude/skills/gpt-oss-local-runtime/SKILL.md",
-    "hash": "00cbaee8b8125d7a"
+    "source_path": ".agents/skills/gpt-oss-local-runtime/SKILL.md",
+    "hash": "123ea0105c948d32"
   },
   "graphify": {
-    "source_path": ".claude/skills/graphify/SKILL.md",
-    "hash": "97b7bb92c47d8b6e"
+    "source_path": ".agents/skills/graphify/SKILL.md",
+    "hash": "291ffedf817fb22e"
   },
   "kimi-k2-6-server-adapter": {
-    "source_path": ".claude/skills/kimi-k2-6-server-adapter/SKILL.md",
-    "hash": "eb151333324b642e"
+    "source_path": ".agents/skills/kimi-k2-6-server-adapter/SKILL.md",
+    "hash": "a8372f7ab537320a"
   },
   "local-subagent": {
-    "source_path": ".claude/skills/local-subagent/SKILL.md",
-    "hash": "e0bedd5dd687ba08"
+    "source_path": ".agents/skills/local-subagent/SKILL.md",
+    "hash": "5fb9a8c2a436d8dc"
   },
   "math-curve-loaders": {
-    "source_path": ".claude/skills/math-curve-loaders/SKILL.md",
-    "hash": "1749a3bd26ed1123"
+    "source_path": ".agents/skills/math-curve-loaders/SKILL.md",
+    "hash": "1945e3424628de1d"
   },
   "non-destructive-infinity-guard": {
-    "source_path": ".claude/skills/non-destructive-infinity-guard/SKILL.md",
-    "hash": "7256c3a8b07c6a3b"
+    "source_path": ".agents/skills/non-destructive-infinity-guard/SKILL.md",
+    "hash": "3d2051603a311153"
   },
   "openai-codex-workflow": {
-    "source_path": ".claude/skills/openai-codex-workflow/SKILL.md",
-    "hash": "4773d0ef7e00b67b"
+    "source_path": ".agents/skills/openai-codex-workflow/SKILL.md",
+    "hash": "a1920979830e0970"
+  },
+  "oracle-adapters": {
+    "source_path": ".agents/skills/oracle-adapters/SKILL.md",
+    "hash": "6bffd475738f6dba"
+  },
+  "oracle-memory": {
+    "source_path": ".agents/skills/oracle-memory/SKILL.md",
+    "hash": "e9f05dcf4c2e1e11"
+  },
+  "oracle-registry": {
+    "source_path": ".agents/skills/oracle-registry/SKILL.md",
+    "hash": "84f23e2e86fe0629"
+  },
+  "oracle-router": {
+    "source_path": ".agents/skills/oracle-router/SKILL.md",
+    "hash": "a3257d2235e24cf9"
+  },
+  "oracle-voice": {
+    "source_path": ".agents/skills/oracle-voice/SKILL.md",
+    "hash": "a6f3a5a2fbca95b5"
+  },
+  "parallel-clone-orchestrator": {
+    "source_path": ".agents/skills/parallel-clone-orchestrator/SKILL.md",
+    "hash": "26f0eef7a7928d98"
+  },
+  "pattern-mirror-core": {
+    "source_path": ".agents/skills/pattern-mirror-core/SKILL.md",
+    "hash": "b26d4ece2d6a7ac5"
+  },
+  "prompt-engineering": {
+    "source_path": ".agents/skills/prompt-engineering/SKILL.md",
+    "hash": "01918939fb936e74"
+  },
+  "remotion-best-practices": {
+    "source_path": ".agents/skills/remotion-best-practices/SKILL.md",
+    "hash": "a7e5b85e96e13b43"
+  },
+  "research-artifact-factory": {
+    "source_path": ".agents/skills/research-artifact-factory/SKILL.md",
+    "hash": "783dbe5ea4d974b5"
+  },
+  "sales-psychology": {
+    "source_path": ".agents/skills/sales-psychology/SKILL.md",
+    "hash": "fee3df50caee3f25"
+  },
+  "sharingan": {
+    "source_path": ".agents/skills/sharingan/SKILL.md",
+    "hash": "8d9ef857991a899d"
+  },
+  "swarm-coordination": {
+    "source_path": ".agents/skills/swarm-coordination/SKILL.md",
+    "hash": "74f568576c85bd92"
+  },
+  "tokenmaxxing": {
+    "source_path": ".agents/skills/tokenmaxxing/SKILL.md",
+    "hash": "a6a87edde90b1349"
+  },
+  "videodb": {
+    "source_path": ".agents/skills/videodb/SKILL.md",
+    "hash": "4c26af0797e1c55b"
+  },
+  "visual-introspection": {
+    "source_path": ".agents/skills/visual-introspection/SKILL.md",
+    "hash": "562c09abc2ed230d"
+  },
+  "MinerU Document Extractor": {
+    "source_path": ".claude/skills/MinerU Document Extractor/SKILL.md",
+    "hash": "8d7135679636305c"
+  },
+  "ad-creative": {
+    "source_path": ".claude/skills/ad-creative/SKILL.md",
+    "hash": "97b41c50d2da97ab"
+  },
+  "agent-scout": {
+    "source_path": ".claude/skills/agent-scout/SKILL.md",
+    "hash": "39a5e0f6cf2df073"
+  },
+  "audit-log-firewall": {
+    "source_path": ".claude/skills/audit-log-firewall/SKILL.md",
+    "hash": "a3c3f80aadd3df4e"
+  },
+  "bankai-manifest": {
+    "source_path": ".claude/skills/bankai-manifest/SKILL.md",
+    "hash": "c0bbcaec6eac1911"
+  },
+  "business-dach-market-intelligence": {
+    "source_path": ".claude/skills/business-dach-market-intelligence/SKILL.md",
+    "hash": "e815a83e2d4283b8"
+  },
+  "deepseek-offload": {
+    "source_path": ".claude/skills/deepseek-offload/SKILL.md",
+    "hash": "aa953a162838cf74"
+  },
+  "deepseek-workhorse": {
+    "source_path": ".claude/skills/deepseek-workhorse/SKILL.md",
+    "hash": "35bf23d858077593"
+  },
+  "extraction-sprint": {
+    "source_path": ".claude/skills/extraction-sprint/SKILL.md",
+    "hash": "8dd7fc4af88f186c"
+  },
+  "geass-lock": {
+    "source_path": ".claude/skills/geass-lock/SKILL.md",
+    "hash": "e0af882c425d7391"
+  },
+  "gitnexus": {
+    "source_path": ".claude/skills/gitnexus/SKILL.md",
+    "hash": "1526fcec7c5bb7fe"
+  },
+  "haki-intent": {
+    "source_path": ".claude/skills/haki-intent/SKILL.md",
+    "hash": "f609fcb766645af9"
+  },
+  "izanagi-simulator": {
+    "source_path": ".claude/skills/izanagi-simulator/SKILL.md",
+    "hash": "3a83ff336e08e2e8"
+  },
+  "nen-phase-detector": {
+    "source_path": ".claude/skills/nen-phase-detector/SKILL.md",
+    "hash": "7f119052007e473d"
+  },
+  "nex-deliverables": {
+    "source_path": ".claude/skills/nex-deliverables/SKILL.md",
+    "hash": "da34d824d29cafa5"
+  },
+  "nex-vault": {
+    "source_path": ".claude/skills/nex-vault/SKILL.md",
+    "hash": "e62f6f584973ebfe"
+  },
+  "objection-source-diagnoser": {
+    "source_path": ".claude/skills/objection-source-diagnoser/SKILL.md",
+    "hash": "cb79c23ed96a352d"
   },
   "openclaw-offload": {
     "source_path": ".claude/skills/openclaw-offload/SKILL.md",
-    "hash": "b33419af63b9d53d"
-  },
-  "parallel-clone-orchestrator": {
-    "source_path": ".claude/skills/parallel-clone-orchestrator/SKILL.md",
-    "hash": "e184db22b33cf763"
-  },
-  "pattern-mirror-core": {
-    "source_path": ".claude/skills/pattern-mirror-core/SKILL.md",
-    "hash": "000634c7331f1e1a"
+    "hash": "e69da327e45d9ea4"
   },
   "probabilistic-decision-core": {
     "source_path": ".claude/skills/probabilistic-decision-core/SKILL.md",
-    "hash": "51941d626bf42c51"
+    "hash": "5de68134a9f55846"
   },
-  "research-artifact-factory": {
-    "source_path": ".claude/skills/research-artifact-factory/SKILL.md",
-    "hash": "f85bd03b223ea783"
+  "receipt-subscription-cleaner": {
+    "source_path": ".claude/skills/receipt-subscription-cleaner/SKILL.md",
+    "hash": "d6198064c817c458"
   },
-  "sharingan": {
-    "source_path": ".claude/skills/sharingan/SKILL.md",
-    "hash": "d1c8b7632fb761e0"
+  "yuri-code-intelligence": {
+    "source_path": ".claude/skills/yuri-code-intelligence/SKILL.md",
+    "hash": "7c085eccdc4fec0a"
   },
-  "swarm-coordination": {
-    "source_path": ".claude/skills/swarm-coordination/SKILL.md",
-    "hash": "57dd6e97c398f3e3"
+  "yuri-report": {
+    "source_path": ".claude/skills/yuri-report/SKILL.md",
+    "hash": "105bb31ea1abd913"
   },
-  "tokenmaxxing": {
-    "source_path": ".claude/skills/tokenmaxxing/SKILL.md",
-    "hash": "a010014d6015b10e"
+  "yuri-sales-intelligence": {
+    "source_path": ".claude/skills/yuri-sales-intelligence/SKILL.md",
+    "hash": "1ec49b3c94b066f1"
+  },
+  "yuri-shura": {
+    "source_path": ".claude/skills/yuri-shura/SKILL.md",
+    "hash": "a150ec961a1f0888"
+  },
+  "yuri-video-script": {
+    "source_path": ".claude/skills/yuri-video-script/SKILL.md",
+    "hash": "f12d0df709e23b15"
+  },
+  "browser-harness": {
+    "source_path": ".codex/skills/browser-harness/SKILL.md",
+    "hash": "4833ff29e7cfb8e9"
+  },
+  "hatch-pet": {
+    "source_path": ".codex/skills/hatch-pet/SKILL.md",
+    "hash": "7ab0f01e8561085d"
+  },
+  "imagegen": {
+    "source_path": ".codex/skills/.system/imagegen/SKILL.md",
+    "hash": "59981d23519222bc"
+  },
+  "openai-docs": {
+    "source_path": ".codex/skills/.system/openai-docs/SKILL.md",
+    "hash": "1ee3c911a5c615c4"
+  },
+  "plugin-creator": {
+    "source_path": ".codex/skills/.system/plugin-creator/SKILL.md",
+    "hash": "237ad1b3d2bfd312"
+  },
+  "skill-creator": {
+    "source_path": ".codex/skills/.system/skill-creator/SKILL.md",
+    "hash": "da44c88f6b3845a8"
+  },
+  "skill-installer": {
+    "source_path": ".codex/skills/.system/skill-installer/SKILL.md",
+    "hash": "09df0ea7921f63d5"
+  },
+  "browser": {
+    "source_path": ".codex/plugins/cache/openai-bundled/browser/26.519.31651/skills/browser/SKILL.md",
+    "hash": "9df7101d92c05d7d"
+  },
+  "ios-app-intents": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-ios-apps/6188456f/skills/ios-app-intents/SKILL.md",
+    "hash": "ee3ea635ba782e99"
+  },
+  "ios-debugger-agent": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-ios-apps/6188456f/skills/ios-debugger-agent/SKILL.md",
+    "hash": "07000b6744b8cf21"
+  },
+  "ios-ettrace-performance": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-ios-apps/6188456f/skills/ios-ettrace-performance/SKILL.md",
+    "hash": "a5ed95b19c3f9ae4"
+  },
+  "ios-memgraph-leaks": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-ios-apps/6188456f/skills/ios-memgraph-leaks/SKILL.md",
+    "hash": "edeb7df7a15c59f0"
+  },
+  "swiftui-liquid-glass": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-ios-apps/6188456f/skills/swiftui-liquid-glass/SKILL.md",
+    "hash": "4894cc1b529a6c38"
+  },
+  "swiftui-performance-audit": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-ios-apps/6188456f/skills/swiftui-performance-audit/SKILL.md",
+    "hash": "55d9bd46c8c92677"
+  },
+  "swiftui-ui-patterns": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-ios-apps/6188456f/skills/swiftui-ui-patterns/SKILL.md",
+    "hash": "83099a9386e8cdb8"
+  },
+  "swiftui-view-refactor": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-ios-apps/6188456f/skills/swiftui-view-refactor/SKILL.md",
+    "hash": "5ed2af6c5d7fd4d4"
+  },
+  "appkit-interop": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/appkit-interop/SKILL.md",
+    "hash": "2021ce39bec3ecd9"
+  },
+  "build-run-debug": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/build-run-debug/SKILL.md",
+    "hash": "29178de8ce687b5c"
+  },
+  "liquid-glass": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/liquid-glass/SKILL.md",
+    "hash": "45657c387be6b9f3"
+  },
+  "packaging-notarization": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/packaging-notarization/SKILL.md",
+    "hash": "47652322c0c406df"
+  },
+  "signing-entitlements": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/signing-entitlements/SKILL.md",
+    "hash": "b248eba30d47fd59"
+  },
+  "swiftpm-macos": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/swiftpm-macos/SKILL.md",
+    "hash": "48c2c6dbda37a061"
+  },
+  "swiftui-patterns": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/swiftui-patterns/SKILL.md",
+    "hash": "c2275fdf34f3df43"
+  },
+  "telemetry": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/telemetry/SKILL.md",
+    "hash": "7ff07549cd0601d9"
+  },
+  "test-triage": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/test-triage/SKILL.md",
+    "hash": "5d7e030913a5cd84"
+  },
+  "view-refactor": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/view-refactor/SKILL.md",
+    "hash": "ecccaf1507efddd2"
+  },
+  "window-management": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-macos-apps/6188456f/skills/window-management/SKILL.md",
+    "hash": "ec63fd51faebb71a"
+  },
+  "frontend-app-builder": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-web-apps/6188456f/skills/frontend-app-builder/SKILL.md",
+    "hash": "9273de02827b2953"
+  },
+  "frontend-testing-debugging": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-web-apps/6188456f/skills/frontend-testing-debugging/SKILL.md",
+    "hash": "03724620cf7e7de4"
+  },
+  "react-best-practices": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-web-apps/6188456f/skills/react-best-practices/SKILL.md",
+    "hash": "cc7d03309817f392"
+  },
+  "shadcn-best-practices": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-web-apps/6188456f/skills/shadcn-best-practices/SKILL.md",
+    "hash": "7678f5168d4ee6f3"
+  },
+  "stripe-best-practices": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-web-apps/6188456f/skills/stripe-best-practices/SKILL.md",
+    "hash": "5062f0c980030af3"
+  },
+  "supabase-best-practices": {
+    "source_path": ".codex/plugins/cache/openai-curated/build-web-apps/6188456f/skills/supabase-best-practices/SKILL.md",
+    "hash": "cfc4da3ed47c14f4"
+  },
+  "build-chatgpt-app": {
+    "source_path": ".codex/plugins/cache/openai-curated/chatgpt-apps/cc8b2295/skills/build-chatgpt-app/SKILL.md",
+    "hash": "b4ba5e0847e9b56b"
+  },
+  "chatgpt-app-submission": {
+    "source_path": ".codex/plugins/cache/openai-curated/chatgpt-apps/cc8b2295/skills/chatgpt-app-submission/SKILL.md",
+    "hash": "441c857881041c5d"
+  },
+  "agents-sdk": {
+    "source_path": ".codex/plugins/cache/openai-curated/cloudflare/6188456f/skills/agents-sdk/SKILL.md",
+    "hash": "007d6ccf85808a6c"
+  },
+  "building-ai-agent-on-cloudflare": {
+    "source_path": ".codex/plugins/cache/openai-curated/cloudflare/6188456f/skills/building-ai-agent-on-cloudflare/SKILL.md",
+    "hash": "31554ff30e2edb8c"
+  },
+  "building-mcp-server-on-cloudflare": {
+    "source_path": ".codex/plugins/cache/openai-curated/cloudflare/6188456f/skills/building-mcp-server-on-cloudflare/SKILL.md",
+    "hash": "d76ee46c043d3876"
+  },
+  "cloudflare": {
+    "source_path": ".codex/plugins/cache/openai-curated/cloudflare/6188456f/skills/cloudflare/SKILL.md",
+    "hash": "613c4c57c19bd638"
+  },
+  "durable-objects": {
+    "source_path": ".codex/plugins/cache/openai-curated/cloudflare/6188456f/skills/durable-objects/SKILL.md",
+    "hash": "cd6797cb18f3ae8f"
+  },
+  "sandbox-sdk": {
+    "source_path": ".codex/plugins/cache/openai-curated/cloudflare/6188456f/skills/sandbox-sdk/SKILL.md",
+    "hash": "0f3501e651092140"
+  },
+  "web-perf": {
+    "source_path": ".codex/plugins/cache/openai-curated/cloudflare/6188456f/skills/web-perf/SKILL.md",
+    "hash": "746b3490d401c802"
+  },
+  "workers-best-practices": {
+    "source_path": ".codex/plugins/cache/openai-curated/cloudflare/6188456f/skills/workers-best-practices/SKILL.md",
+    "hash": "099432ff265ff608"
+  },
+  "wrangler": {
+    "source_path": ".codex/plugins/cache/openai-curated/cloudflare/6188456f/skills/wrangler/SKILL.md",
+    "hash": "0aa6fbe6932df439"
+  },
+  "coderabbit-review": {
+    "source_path": ".codex/plugins/cache/openai-curated/coderabbit/6188456f/skills/coderabbit-review/SKILL.md",
+    "hash": "515ef4f096ff4ee9"
+  },
+  "attack-path-analysis": {
+    "source_path": ".codex/plugins/cache/openai-curated/codex-security/6188456f/skills/attack-path-analysis/SKILL.md",
+    "hash": "d03064b7b71cf366"
+  },
+  "finding-discovery": {
+    "source_path": ".codex/plugins/cache/openai-curated/codex-security/6188456f/skills/finding-discovery/SKILL.md",
+    "hash": "d52b3445b3792ae3"
+  },
+  "fix-finding": {
+    "source_path": ".codex/plugins/cache/openai-curated/codex-security/6188456f/skills/fix-finding/SKILL.md",
+    "hash": "41b9a5b26839b98d"
+  },
+  "security-scan": {
+    "source_path": ".codex/plugins/cache/openai-curated/codex-security/6188456f/skills/security-scan/SKILL.md",
+    "hash": "96eeec70694beae7"
+  },
+  "threat-model": {
+    "source_path": ".codex/plugins/cache/openai-curated/codex-security/6188456f/skills/threat-model/SKILL.md",
+    "hash": "9a73305a379a6e77"
+  },
+  "validation": {
+    "source_path": ".codex/plugins/cache/openai-curated/codex-security/6188456f/skills/validation/SKILL.md",
+    "hash": "b1c63f6198798033"
+  },
+  "figma-code-connect": {
+    "source_path": ".codex/plugins/cache/openai-curated/figma/6188456f/skills/figma-code-connect/SKILL.md",
+    "hash": "d69cfc0e2080351f"
+  },
+  "figma-create-new-file": {
+    "source_path": ".codex/plugins/cache/openai-curated/figma/6188456f/skills/figma-create-new-file/SKILL.md",
+    "hash": "82e0a018692d3d00"
+  },
+  "figma-generate-design": {
+    "source_path": ".codex/plugins/cache/openai-curated/figma/6188456f/skills/figma-generate-design/SKILL.md",
+    "hash": "04713c467ae5efce"
+  },
+  "figma-generate-diagram": {
+    "source_path": ".codex/plugins/cache/openai-curated/figma/6188456f/skills/figma-generate-diagram/SKILL.md",
+    "hash": "7297638dbf2130d1"
+  },
+  "figma-generate-library": {
+    "source_path": ".codex/plugins/cache/openai-curated/figma/6188456f/skills/figma-generate-library/SKILL.md",
+    "hash": "e35e6d2f6624ea6f"
+  },
+  "figma-use": {
+    "source_path": ".codex/plugins/cache/openai-curated/figma/6188456f/skills/figma-use/SKILL.md",
+    "hash": "511a7b00228b6dc6"
+  },
+  "figma-use-figjam": {
+    "source_path": ".codex/plugins/cache/openai-curated/figma/6188456f/skills/figma-use-figjam/SKILL.md",
+    "hash": "4edee26ddf0856f5"
+  },
+  "figma-use-slides": {
+    "source_path": ".codex/plugins/cache/openai-curated/figma/6188456f/skills/figma-use-slides/SKILL.md",
+    "hash": "b29d989acf8426ae"
+  },
+  "gh-address-comments": {
+    "source_path": ".codex/plugins/cache/openai-curated/github/6188456f/skills/gh-address-comments/SKILL.md",
+    "hash": "c1ebc337357402f7"
+  },
+  "gh-fix-ci": {
+    "source_path": ".codex/plugins/cache/openai-curated/github/6188456f/skills/gh-fix-ci/SKILL.md",
+    "hash": "7621a3560d788fb2"
+  },
+  "github": {
+    "source_path": ".codex/plugins/cache/openai-curated/github/6188456f/skills/github/SKILL.md",
+    "hash": "81dbdd90934fe86a"
+  },
+  "yeet": {
+    "source_path": ".codex/plugins/cache/openai-curated/github/6188456f/skills/yeet/SKILL.md",
+    "hash": "93a0bcbc834c9b3a"
+  },
+  "cli": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/cli/SKILL.md",
+    "hash": "ee85209886c4ec3d"
+  },
+  "community-evals": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/community-evals/SKILL.md",
+    "hash": "a97f1c703f55b724"
+  },
+  "datasets": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/datasets/SKILL.md",
+    "hash": "5af74f3e042313ef"
+  },
+  "gradio": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/gradio/SKILL.md",
+    "hash": "e2f4c232c38682bc"
+  },
+  "jobs": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/jobs/SKILL.md",
+    "hash": "b85252f49569e97a"
+  },
+  "llm-trainer": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/llm-trainer/SKILL.md",
+    "hash": "6628c305a8ae8de8"
+  },
+  "paper-publisher": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/paper-publisher/SKILL.md",
+    "hash": "04b59406cf88054a"
+  },
+  "papers": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/papers/SKILL.md",
+    "hash": "985c2d5c7261aba2"
+  },
+  "trackio": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/trackio/SKILL.md",
+    "hash": "893ac9695f8677db"
+  },
+  "transformers.js": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/transformers.js/SKILL.md",
+    "hash": "89a70a8a0604fc90"
+  },
+  "vision-trainer": {
+    "source_path": ".codex/plugins/cache/openai-curated/hugging-face/6188456f/skills/vision-trainer/SKILL.md",
+    "hash": "c7aba4de75fa6595"
+  },
+  "openai-api-troubleshooting": {
+    "source_path": ".codex/plugins/cache/openai-curated/openai-developers/6188456f/skills/openai-api-troubleshooting/SKILL.md",
+    "hash": "9fb4e152430c2f04"
+  },
+  "openai-platform-api-key": {
+    "source_path": ".codex/plugins/cache/openai-curated/openai-developers/6188456f/skills/openai-platform-api-key/SKILL.md",
+    "hash": "e25babfa87156270"
+  },
+  "brainstorming": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/brainstorming/SKILL.md",
+    "hash": "bba47904a7f6bbee"
+  },
+  "dispatching-parallel-agents": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/dispatching-parallel-agents/SKILL.md",
+    "hash": "76806091c7f923ba"
+  },
+  "executing-plans": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/executing-plans/SKILL.md",
+    "hash": "e2102f1163143393"
+  },
+  "finishing-a-development-branch": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/finishing-a-development-branch/SKILL.md",
+    "hash": "5c8d4b59aedb14c9"
+  },
+  "receiving-code-review": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/receiving-code-review/SKILL.md",
+    "hash": "c9382e92b8f32363"
+  },
+  "requesting-code-review": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/requesting-code-review/SKILL.md",
+    "hash": "5a3a44a3667800e2"
+  },
+  "subagent-driven-development": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/subagent-driven-development/SKILL.md",
+    "hash": "905a2b9be59b734d"
+  },
+  "systematic-debugging": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/systematic-debugging/SKILL.md",
+    "hash": "4999cb851360485e"
+  },
+  "test-driven-development": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/test-driven-development/SKILL.md",
+    "hash": "7dee67b4af6bdccc"
+  },
+  "using-git-worktrees": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/using-git-worktrees/SKILL.md",
+    "hash": "085a45ee3de432bd"
+  },
+  "using-superpowers": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/using-superpowers/SKILL.md",
+    "hash": "316e29381219adf0"
+  },
+  "verification-before-completion": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/verification-before-completion/SKILL.md",
+    "hash": "ea52d15aabaf72bc"
+  },
+  "writing-plans": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/writing-plans/SKILL.md",
+    "hash": "4fd4627d2c023678"
+  },
+  "writing-skills": {
+    "source_path": ".codex/plugins/cache/openai-curated/superpowers/6188456f/skills/writing-skills/SKILL.md",
+    "hash": "38ba648975ae6ba5"
+  },
+  "documents": {
+    "source_path": ".codex/plugins/cache/openai-primary-runtime/documents/26.521.10419/skills/documents/SKILL.md",
+    "hash": "bbd8bfc8460e0510"
+  },
+  "presentations": {
+    "source_path": ".codex/plugins/cache/openai-primary-runtime/presentations/26.521.10419/skills/presentations/SKILL.md",
+    "hash": "73e207fdc997b09b"
+  },
+  "spreadsheets": {
+    "source_path": ".codex/plugins/cache/openai-primary-runtime/spreadsheets/26.521.10419/skills/spreadsheets/SKILL.md",
+    "hash": "acae99095739bb92"
   }
 }

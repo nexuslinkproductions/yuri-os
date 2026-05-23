@@ -11,7 +11,7 @@ Turn YURI OS / MUSUBI into the foundation for a full AI-native cybersecurity com
 ## Ground Truth Inputs
 
 - Cyber capability audit: `_SYSTEM/session-outputs/YURI-AI-CYBERSECURITY-CAPABILITY-AUDIT.md`
-- Perplexity research sprint: `_SYSTEM/session-outputs/YURI-OS-GLOBAL-CYBERSECURITY-INTELLIGENCE-SPRINT-2026-05-21.md`
+- Cyber research sprint: `_SYSTEM/session-outputs/YURI-OS-GLOBAL-CYBERSECURITY-INTELLIGENCE-SPRINT-2026-05-21.md`
 - Cyber intelligence matrix: `_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md`
 - Weft research pack: `_SYSTEM/research-archive/yuri-cybersecurity-pivot-2026-05/weft_audit_pack.md`
 - ASI-Evolve research pack: `_SYSTEM/research-archive/yuri-cybersecurity-pivot-2026-05/ASI-EVOLVE-FULL-PACK.md`
@@ -160,7 +160,7 @@ YURI needs region-aware buyer language:
 
 Next Shintai pass must not ask whether agentic security is viable. It must challenge:
 
-- What threats are missing from the Perplexity report?
+- What threats are missing from the cyber research report?
 - Which regions remain under-researched?
 - Which YURI capabilities become company-defining?
 - Which threats are too far from first proof?

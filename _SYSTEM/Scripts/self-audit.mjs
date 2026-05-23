@@ -129,7 +129,7 @@ function scanContractVsLaneHealth() {
   const aliases = aliasMatches.map(m => m.replace(/alias:\s*'/, '').replace(/'/, ''));
   for (const alias of aliases) {
     const laneKey = alias.replace('@', '');
-    if (!['gpt-5.5', 'gpt-5.4-mini', 'gpt-5.3-codex-spark', 'swarm', 'comet', 'perplexity'].includes(laneKey)) {
+    if (!['gpt-5.5', 'gpt-5.4-mini', 'gpt-5.3-codex-spark', 'swarm', 'comet'].includes(laneKey)) {
       if (!laneHealthText.includes(laneKey)) {
         flaws.push({
           id: `CONTRACT_DRIFT_${laneKey.toUpperCase().replace(/-/g, '_')}`,

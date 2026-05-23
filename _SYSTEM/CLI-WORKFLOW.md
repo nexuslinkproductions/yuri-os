@@ -1,51 +1,51 @@
 # CLI Workflow
 
-Small launcher for the terminal tools already installed on this machine.
+Small launcher for the terminal tools installed in this workspace.
 
 ## Entry Point
 
 - `./Scripts/ai`
 
-## Commands
+## Active Commands
 
 - `./Scripts/ai code .`
   - Opens the repo in VS Code.
 
 - `./Scripts/ai claude "question"`
-  - Runs Claude interactively if no prompt is passed.
-  - Runs `claude --print` for one-shot prompts.
-
-- `./Scripts/ai gemini "question"`
-  - Runs Gemini interactively if no prompt is passed.
-  - Runs `gemini -p` for one-shot prompts.
+  - Starts Claude if available.
+  - Claude is a dormant/optional provider lane, not a required root.
 
 - `./Scripts/ai codex "question"`
-  - Runs Codex interactively if no prompt is passed.
+  - Starts Codex interactively if no prompt is passed.
   - Runs `codex exec` for one-shot prompts.
-  - Runs `./Scripts/ai @kimi "question"` for Kimi offload.
-  - Runs `./Scripts/ai @gpt-oss "question"` for local GPT-OSS offload.
-  - Runs `./Scripts/ai @ollama "question"` for local Ollama offload.
-  - Runs `./Scripts/ai @swarm "question"` to fan out to all three lanes in parallel and print each result.
 
-- `./Scripts/ai @kimi "question"`
-  - Short alias for Codex offload through Kimi.
+- `./Scripts/ai offload "question"`
+  - Routes through YURI's lane contract.
+  - Preferred path for DeepSeek, Qwen, NIM, local model, and swarm work.
 
-- `./Scripts/ai @gpt-oss "question"`
-  - Short alias for Codex offload through local GPT-OSS.
+- `./Scripts/ai @deepseek-v4-pro "question"`
+  - Dedicated DeepSeek reasoning lane.
 
-- `./Scripts/ai @ollama "question"`
-  - Short alias for Codex offload through local Ollama.
+- `./Scripts/ai @deepseek-v4-flash "question"`
+  - Dedicated DeepSeek fast workhorse lane.
 
 - `./Scripts/ai @swarm "question"`
-  - Fan-out lane: runs Kimi, GPT-OSS, and Ollama in parallel, then prints each output for comparison.
+  - Fan-out through the current active swarm configuration.
 
 - `./Scripts/ai triage "question"`
-  - Runs Claude, Gemini, and Codex in parallel.
-  - Good for research, cross-checks, and quick second opinions.
+  - Runs active review lanes in parallel: Claude if available, Codex, and offload swarm.
+  - Good for contradiction checks and high-leverage decisions.
+
+## Retired Provider Commands
+
+Gemini, Cursor, Cline, and Windsurf are retired from active YURI routing.
+Do not add new docs, rules, or dispatch paths for them. If useful old material exists,
+harvest the concept into a YURI-owned skill, doc, or registry entry, then retire the
+provider-specific source.
 
 ## Suggested Pattern
 
-1. Open the repo in VS Code with `./Scripts/ai code .`
-2. Use one model for a focused task.
-3. Use `triage` when the answer is ambiguous or high leverage.
-4. Keep shell work in the terminal and chat for decisions only.
+1. Start from `_SYSTEM/INDEX.md`.
+2. Use `./Scripts/ai offload --dry-run "task"` to inspect routing before expensive work.
+3. Use `triage` only when the answer is ambiguous or high leverage.
+4. Store new durable artifacts according to `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md`.

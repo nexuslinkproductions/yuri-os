@@ -106,7 +106,7 @@ I want to build a website for my videography work.
 Dark theme definitely. I keep thinking about that one site
 with the horizontal scroll, it felt so premium. Also need
 a way to show video without it being a grid of thumbnails
-like everyone else. Perplexity mentioned something about
+like everyone else. My design research mentioned something about
 magnetic buttons. Should I use a CMS or just hardcode it.
 Client needs to be able to update their own portfolio.
 Loading speed is important because video. I saw a cool
@@ -126,7 +126,7 @@ Output:
 1. Dark theme
 2. Horizontal scroll (premium feel)
 3. Video showcase that isn't a thumbnail grid
-4. Magnetic buttons (from Perplexity research)
+4. Magnetic buttons (from design research)
 5. CMS vs hardcoded question
 6. Client self-update requirement
 7. Loading speed concern (video-heavy)

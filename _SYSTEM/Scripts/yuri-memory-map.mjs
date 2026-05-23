@@ -122,19 +122,11 @@ function writeSurface(name) {
 }
 
 function inventoryRules() {
-  const clinerulesPath = path.join(REPO_ROOT, '.clinerules')
-  const clineRulesDir = path.join(REPO_ROOT, '.cline', 'rules')
   const claudeRulesDir = path.join(REPO_ROOT, '.claude', 'rules')
   const sysConfigPath = path.join(REPO_ROOT, 'backend/src/config/SystemConfig.ts')
   const vaultSourcePath = path.join(REPO_ROOT, 'backend/src/services/vaultIngestion.ts')
 
   const parts = []
-
-  const clinerulesExists = fileExists(clinerulesPath)
-  parts.push(`.clinerules=${clinerulesExists ? 'exists' : 'not_found'}`)
-
-  const clineFiles = dirFiles(clineRulesDir)
-  parts.push(`.cline/rules=${clineFiles.join(',')}`)
 
   const claudeFiles = dirFiles(claudeRulesDir)
   parts.push(`.claude/rules=${claudeFiles.join(',')}`)

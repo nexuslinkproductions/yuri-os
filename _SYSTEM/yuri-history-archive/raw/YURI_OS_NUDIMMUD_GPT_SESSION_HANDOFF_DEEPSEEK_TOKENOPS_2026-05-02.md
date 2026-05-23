@@ -411,32 +411,32 @@ Use Codex for scoped patch/review/commit discipline, but validate external netwo
 
 ---
 
-## 5. Perplexity MCP Status
+## 5. retired search lane MCP Status
 
 Result label:
-`07M_MCP_PERPLEXITY_CAPABILITY_P_PASS_ABSENT_NO_ACTION`
+`07M_MCP_RETIRED_SEARCH_CAPABILITY_P_PASS_ABSENT_NO_ACTION`
 
 Finding:
-- No actual Perplexity MCP server registered locally.
+- No actual retired search lane MCP server registered locally.
 - No `.mcp.json` project/global configuration.
-- No `mcp__perplexity__*` tool prefix.
-- No `PERPLEXITY_API_KEY` env var.
-- `@perplexity` in `ai-pipeline-offloading/SKILL.md` was speculative/browser-use via Comet alias, not live.
+- No `mcp__retired-search__*` tool prefix.
+- No `RETIRED_SEARCH_API_KEY` env var.
+- `@retired-search` in `ai-pipeline-offloading/SKILL.md` was speculative/browser-use via Comet alias, not live.
 - Browser-use/Comet MCP also not registered.
 
 Boundary:
-Perplexity, if added later, is external read-only research only:
+retired search lane, if added later, is external read-only research only:
 - not authority for local git state
 - not authority for DB/WAL/process state
 - not mutation authority
 - not allowed to see private repo/session/memory/secrets
 
 Worklist:
-Future MCP lane for Perplexity should include:
+Future MCP lane for retired search lane should include:
 - official MCP registration/provenance/pinning verification
 - sanitized test query
 - tool surface verification
-- update docs to mark `@perplexity` as planned/requires MCP registration unless actually active
+- update docs to mark `@retired-search` as planned/requires MCP registration unless actually active
 
 ---
 
@@ -766,7 +766,7 @@ Proposed integration stack:
 
 ### Still open / later
 
-- Perplexity MCP registration/provenance/pinning lane.
+- retired search lane MCP registration/provenance/pinning lane.
 - Browser-use / Comet MCP capability verification.
 - DeepSeek V4 Pro routing bench and cost telemetry.
 - Lean Context runtime guardrails for `_SYSTEM/Scripts/ai`, `offload.sh`, `offload-runner.mjs`.

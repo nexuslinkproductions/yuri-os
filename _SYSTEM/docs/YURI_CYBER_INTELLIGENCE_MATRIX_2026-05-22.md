@@ -40,7 +40,7 @@ Every row below maps a threat to a YURI action or a watch-only decision. A threa
 | S24 | OpenAI disruption of malicious uses by state-affiliated threat actors: https://openai.com/index/disrupting-malicious-uses-of-ai-by-state-affiliated-threat-actors/ |
 | S25 | Upgreat Baseline Security: https://www.upgreat.ch/consulting/baseline-security |
 | S26 | YURI cybersecurity audit: _SYSTEM/session-outputs/YURI-AI-CYBERSECURITY-CAPABILITY-AUDIT.md |
-| S27 | Perplexity cyber sprint: _SYSTEM/session-outputs/YURI-OS-GLOBAL-CYBERSECURITY-INTELLIGENCE-SPRINT-2026-05-21.md |
+| S27 | Cyber research sprint: _SYSTEM/session-outputs/YURI-OS-GLOBAL-CYBERSECURITY-INTELLIGENCE-SPRINT-2026-05-21.md |
 
 ## YURI Cyber Intelligence Matrix
 
@@ -205,4 +205,3 @@ Every source-backed threat becomes a structured object:
 ```
 
 The kernel is not an implementation dependency yet. It is the required mental shape for the next implementation wave so research does not become a graveyard of impressive paragraphs.
-

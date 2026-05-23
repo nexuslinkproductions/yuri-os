@@ -1,6 +1,6 @@
 # Terminology Index — Brain Dump Vocabulary
 
-> Extracted from Perplexity research. Use these words to describe what you see
+> Extracted from advanced web design research. Use these words to describe what you see
 > and want. Bake them into prompts so the system knows exactly what you mean.
 
 ---

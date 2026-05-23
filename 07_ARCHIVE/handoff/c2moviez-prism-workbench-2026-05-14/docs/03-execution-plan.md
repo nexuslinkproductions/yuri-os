@@ -10,7 +10,7 @@ Finish PRISM as a polished c2moviez Sales Engagement Workbench: Today-first, vis
 
 - Work from `codex/c2moviez-acquisition-crm` in an isolated worktree.
 - Keep dirty `main` offload changes untouched.
-- Archive the Perplexity blueprint under `_SYSTEM/research-archive/c2moviez-acquisition-workbench/`.
+- Archive the acquisition blueprint under `_SYSTEM/research-archive/c2moviez-acquisition-workbench/`.
 - Use this campaign directory as owner-intent evidence.
 
 ### Phase 2: State & Safety Spine

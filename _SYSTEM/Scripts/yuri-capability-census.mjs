@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(__dirname, '../..');
 
 const EXCLUDE_DIRS = new Set([
   '.git',
@@ -16,6 +16,12 @@ const EXCLUDE_DIRS = new Set([
   '.venv',
   '__pycache__',
   '.claude/projects',
+  '.claude/state',
+  '.claude/history',
+  '_SYSTEM/archive',
+  '_SYSTEM/state',
+  '_SYSTEM/tools/browser-harness',
+  '07_ARCHIVE',
 ]);
 
 const CAPABILITY_PATTERNS = [
@@ -58,13 +64,16 @@ const KNOWN_ROOTS = [
   '.claude/plugins',
   '.claude/mcp-servers',
   '.agents/skills',
-  '.gemini/skills',
-  'Scripts',
+  '.codex/skills',
+  '.codex/skills/.system',
+  '.codex/plugins/cache',
+  '_SYSTEM/Scripts',
+  '_SYSTEM/yuri-wiki',
   '01_PROJECTS/superpowers',
 ];
 
-function shouldExcludeDir(dir) {
-  return EXCLUDE_DIRS.has(dir) || dir.startsWith('.');
+function shouldExcludeDir(dir, relPath = '') {
+  return EXCLUDE_DIRS.has(dir) || EXCLUDE_DIRS.has(relPath) || dir.startsWith('.');
 }
 
 function isCapabilityFile(fileName) {
@@ -81,10 +90,10 @@ function walkDir(dir, results = { files: [], pathHits: [] }) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
-      if (shouldExcludeDir(entry.name)) continue;
-
       const fullPath = path.join(dir, entry.name);
       const relPath = path.relative(repoRoot, fullPath);
+
+      if (shouldExcludeDir(entry.name, relPath)) continue;
 
       if (entry.isDirectory()) {
         walkDir(fullPath, results);
@@ -203,7 +212,7 @@ function main() {
     .filter(p => /01_projects|gstack/i.test(p))
     .slice(0, 5);
   const agentReview = allResults.files
-    .filter(p => /\.claude\/agents|\.gemini/.test(p))
+    .filter(p => /\.claude\/agents/.test(p))
     .slice(0, 5);
 
   if (gstackReview.length > 0) {
@@ -211,7 +220,7 @@ function main() {
     gstackReview.forEach(p => console.log(`  ${p}`));
   }
   if (agentReview.length > 0) {
-    console.log('Agent & Gemini files:');
+    console.log('Agent files:');
     agentReview.forEach(p => console.log(`  ${p}`));
   }
   console.log();

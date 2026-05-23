@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const repoRoot = resolve(__dirname, '..');
+const repoRoot = resolve(__dirname, '../..');
 
 function read(relPath) {
   return readFileSync(resolve(repoRoot, relPath), 'utf8');
@@ -42,38 +42,32 @@ for (const rule of requiredSoulRules) {
   assertIncludes('SOUL.md', rule);
 }
 
-assertIncludes('OPERATOR_PROTOCOL.md', '## PERSONA_AUTHORITY');
-assertIncludes('OPERATOR_PROTOCOL.md', './SOUL.md');
-assertIncludes('OPERATOR_PROTOCOL.md', 'Research citations and rationale live outside SOUL');
+assertIncludes('_SYSTEM/OPERATOR_PROTOCOL.md', 'INHERIT: ./SOUL.md');
+assertIncludes('_SYSTEM/OPERATOR_PROTOCOL.md', 'Canonical operational rules live in `_SYSTEM/yuri-origin.md`');
 
 const directInheritFiles = [
   'AGENTS.md',
   'CLAUDE.md',
-  'CODEX_PROTOCOL.md',
-  'GEMINI.md',
-  'AEONIC_PROTOCOL.md',
-  'LOCAL_EXECUTION_POLICY.md',
+  '_SYSTEM/CODEX_PROTOCOL.md',
+  '_SYSTEM/LOCAL_EXECUTION_POLICY.md',
   '.claude/CLAUDE.md',
   '.clauderules',
-  '.cursorrules',
-  '.windsurfrules',
 ];
 
 for (const file of directInheritFiles) {
   assertIncludes(file, 'SOUL.md');
 }
 
-assertIncludes('YURI.md', 'INHERIT: SOUL.md');
-assertIncludes('.clinerules', 'INHERIT: SOUL.md');
-assertIncludes('.cursor/rules/sync.mdc', 'SOUL.md');
+assertIncludes('_SYSTEM/YURI.md', 'INHERIT: SOUL.md');
 assertIncludes('.claude/rules/yuri_operating_dna.md', '../../SOUL.md');
 
 const settings = JSON.parse(read('.claude/settings.json'));
 const sessionHooks = settings.hooks?.SessionStart?.flatMap((group) => group.hooks || []) || [];
 const subagentHooks = settings.hooks?.SubagentStart?.flatMap((group) => group.hooks || []) || [];
 assert.ok(
-  sessionHooks.some((hook) => hook.command === 'node .claude/hooks/soul-persona-inject.js'),
-  'SessionStart missing soul-persona-inject hook',
+  sessionHooks.some((hook) => hook.command === 'node .claude/hooks/soul-persona-inject.js')
+    || sessionHooks.some((hook) => hook.command === 'node .claude/hooks/brain-inject.js'),
+  'SessionStart missing persona injection hook',
 );
 assert.ok(
   subagentHooks.some((hook) => hook.command === 'node .claude/hooks/soul-persona-inject.js'),
@@ -98,15 +92,11 @@ assert.ok(
 
 const activePromptFiles = [
   'SOUL.md',
-  'OPERATOR_PROTOCOL.md',
+  '_SYSTEM/OPERATOR_PROTOCOL.md',
   'CLAUDE.md',
   'AGENTS.md',
-  'YURI.md',
-  '.clinerules',
-  '.windsurfrules',
-  '.cursorrules',
+  '_SYSTEM/YURI.md',
   '.clauderules',
-  '.cursor/rules/sync.mdc',
   '.claude/rules/yuri_operating_dna.md',
 ];
 
@@ -114,11 +104,12 @@ for (const file of activePromptFiles) {
   assert.equal(/https?:\/\//.test(read(file)), false, `${file} should not contain research URLs`);
 }
 
-assertIncludes('CLAUDE.md', '## CLAUDE_ULTRA_CONTROL_PLANE');
-assertIncludes('CLAUDE.md', 'CODEX_PROTOCOL.md');
-assertIncludes('CLAUDE.md', 'GitNexus impact');
+assertIncludes('CLAUDE.md', 'Claude-facing adapter for YURI OS / MUSUBI.');
+assertIncludes('CLAUDE.md', 'It does not make Claude the control-plane owner.');
+assertIncludes('CLAUDE.md', 'one real interactive Claude Code session');
+assertIncludes('CLAUDE.md', 'Codex/main remains the final verifier');
 assertIncludes('CLAUDE.md', 'Protected Paths');
-assertIncludes('CLAUDE.md', 'CLAUDE CONTROL PACKET');
+assertIncludes('_SYSTEM/CODEX_PROTOCOL.md', 'GitNexus impact check on changed symbols');
 
 const rationale = read('_SYSTEM/yuri-cognitive-persona-rationale.md');
 for (const url of [

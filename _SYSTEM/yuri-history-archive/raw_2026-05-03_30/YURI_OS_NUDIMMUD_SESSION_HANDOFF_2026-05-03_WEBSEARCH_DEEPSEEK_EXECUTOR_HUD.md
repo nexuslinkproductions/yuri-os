@@ -486,7 +486,7 @@ Assess only from public docs or known source references:
 - Exa MCP/highlights
 - Tavily search/extract chunks
 - Firecrawl MCP
-- Perplexity MCP as future lane
+- retired search lane MCP as future lane
 - SearxNG/self-hosted option if practical
 
 For each candidate, evaluate:
@@ -568,7 +568,7 @@ WEB_SEARCH_OPTIONS:
 - Exa:
 - Tavily:
 - Firecrawl:
-- Perplexity:
+- retired search lane:
 - SearxNG/self-hosted:
 
 RECOMMENDED_DEFAULT:

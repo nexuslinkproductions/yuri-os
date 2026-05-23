@@ -1,4 +1,4 @@
-# Perplexity Research Prompts — Finding Truly Advanced Websites
+# Research Prompts — Finding Truly Advanced Websites
 
 > Most "best website" lists are S tier templates on squarespace. You need sites
 > that push technical boundaries — WebGL, custom scroll engines, fluid typography,
@@ -6,7 +6,7 @@
 
 ---
 
-## The Prompt for Perplexity
+## The Prompt for Web Research
 
 Copy-paste exactly:
 
@@ -60,7 +60,7 @@ and designers actually study to learn from.
 
 ---
 
-## What Perplexity Can Also Do
+## What Web Research Can Also Do
 
 Once it gives you the initial list, follow up:
 
@@ -82,7 +82,7 @@ specifically the ones where it feels intuitive and not disorienting.
 
 ---
 
-## If Perplexity Has Web Browsing
+## If The Research Tool Has Web Browsing
 
 You can also have it actively find new things:
 

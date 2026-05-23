@@ -68,6 +68,8 @@ checkpoints/
 _BACKUPS/
 *.tmp
 *-backup/
+__pycache__/
+*.pyc
 
 # Archived deleted content
 07_ARCHIVE/deleted-backups/

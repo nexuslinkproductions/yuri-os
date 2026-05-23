@@ -106,7 +106,6 @@ specs/
 - `memory/feedback_deepseek_tool_unblock.md` — DeepSeek tools default ON
 - `memory/feedback_long_session_codex_burst.md` — stay in session through Codex rate-limit
 - `memory/feedback_parallel_pulse_playbook.md` — parallel branches pattern
-- `memory/feedback_perplexity_app_browser.md` — web search via Perplexity app
 - `memory/feedback_tirith_url_guard.md` — URL security layer
 
 ## Related System Docs

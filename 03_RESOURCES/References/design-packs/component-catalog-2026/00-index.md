@@ -73,7 +73,7 @@ Total cataloged: 332+ components/resources across 8 sources
 | Card Spotlight | Aceternity | framer-motion | Radial gradient reveal | aceternity.md |
 | Glare Card | Aceternity | framer-motion | Linear glare as on Linear.app | aceternity.md |
 | Wobble Card | Aceternity | framer-motion | Translate + scale on mousemove | aceternity.md |
-| Comet Card | Aceternity | framer-motion | 3D tilt as on Perplexity | aceternity.md |
+| Comet Card | Aceternity | framer-motion | 3D browser-style tilt | aceternity.md |
 | Expandable Card | Aceternity | framer-motion | Expand to show info | aceternity.md |
 | Focus Cards | Aceternity | framer-motion | Focus one, blur others | aceternity.md |
 | Draggable Card | Aceternity | framer-motion | Drag + tilt physics | aceternity.md |

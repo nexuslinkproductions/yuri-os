@@ -70,7 +70,7 @@ If Yuri OS is still implicitly running on Anthropic-backed subagents, hooks, and
       ├─ 🟢 @kimi K2.6
       ├─ 🟢 @nvidia NIM (nemotron · llama-3.3-70b)
       ├─ 🟢 @gpt-5.5 · @gpt-5.4-mini (Codex)
-      ├─ 🟢 @perplexity · @comet
+      ├─ 🟢 @comet
       ├─ 🔵 qwen2.5-coder:7b
       ├─ 🔵 qwen2.5:7b · qwen3.5:4b
       ├─ 🔵 deepseek-r1:8b (frozen → re-test M4 Pro)
@@ -105,7 +105,7 @@ Ratio: **~20×**. Estimates use EOT firing 6×/day with 4 Haiku workers, nisaba-
 
 - Migrating away from Claude Code itself (stays as IDE/CLI surface).
 - Re-architecting Codex protocol (already non-Anthropic).
-- Replacing Perplexity, NVIDIA NIM, Kimi, Amp (all non-Anthropic, all stay).
+- Replacing NVIDIA NIM, Kimi, Amp (all non-Anthropic, all stay).
 - New hardware beyond existing Mac Mini M4 Pro 16 GB floor.
 
 ---
@@ -223,7 +223,6 @@ nomic-embed-text:latest    274 MB    embeddings
 | @amp (smart, deep, rush) | Amp | Live — but `smart`=claude-opus-4-7 | **MIXED** |
 | @codex-spark | Codex sandbox | Live | None |
 | @gpt-oss | OpenAI gpt-oss | Live | None |
-| @perplexity | Perplexity (computer-use) | Live | None |
 | @comet | browser-use | Live | None |
 
 ## B.9 NEXUSLINK / Symbiotic Pulse Surface

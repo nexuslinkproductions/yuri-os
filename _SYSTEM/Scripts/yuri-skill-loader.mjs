@@ -7,8 +7,8 @@
  * them into a structured in-memory registry.
  *
  * Reference pattern: OpenClaw ~/.openclaw/workspace/skills/<name>/SKILL.md
- * Substrate: YURI-native .agents/skills, compatibility .claude/skills,
- * and local Codex skill shims.
+ * Substrate: YURI-native .agents/skills, Claude-compatible .claude/skills,
+ * and local Codex skill shims. Retired provider surfaces are not discovered.
  *
  * This is a discovery/normalisation/validation prototype only.
  * No runtime skill execution. No plugin API.
@@ -37,21 +37,12 @@ const MANIFEST_PATH = path.join(REPO_ROOT, '_SYSTEM', 'skill-hash-registry.json'
 
 // Discovery paths (order = precedence; first match wins for duplicate names)
 const DISCOVERY_PATHS = [
-  { prefix: '.cline/rules', sourceType: 'cline_rule', kind: 'flat_md' },
   { prefix: '.agents/skills', sourceType: 'yuri_agent_skill', kind: 'skill_md' },
   { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'flat_md' },
   { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'skill_md' },
-  { prefix: '.cursor/skills', sourceType: 'cursor_skill', kind: 'skill_md' },
-  { prefix: '.cursor/skills-cursor', sourceType: 'cursor_skill', kind: 'skill_md' },
-  { prefix: '.gemini/skills', sourceType: 'gemini_skill', kind: 'skill_md' },
-  { prefix: '.hermes/skills', sourceType: 'hermes_skill', kind: 'skill_md_recursive' },
-  { prefix: '.hermes/hermes-agent/skills', sourceType: 'hermes_agent_skill', kind: 'skill_md_recursive' },
-  { prefix: '.hermes/hermes-agent/optional-skills', sourceType: 'hermes_agent_optional_skill', kind: 'skill_md_recursive' },
-  { prefix: '.hermes/hermes-agent/plugins', sourceType: 'hermes_agent_plugin_skill', kind: 'skill_md_recursive' },
   { prefix: '.codex/skills', sourceType: 'codex_skill', kind: 'skill_md' },
   { prefix: '.codex/skills/.system', sourceType: 'codex_system_skill', kind: 'skill_md' },
   { prefix: '.codex/plugins/cache', sourceType: 'codex_plugin_cache_skill', kind: 'skill_md_recursive' },
-  { prefix: '_SYSTEM/archive/external-skill-roots', sourceType: 'archived_external_skill', kind: 'skill_md_recursive' },
 ]
 
 const PREVIEW_LINES = 20
@@ -146,21 +137,14 @@ function printHelp() {
     '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --help',
     '',
     'Discovery paths:',
-    '  .cline/rules/*.md (current)',
     '  .agents/skills/<name>/SKILL.md (YURI-native)',
     '  .claude/skills/*.md (current)',
     '  .claude/skills/<name>/SKILL.md (current)',
-    '  .cursor/skills/<name>/SKILL.md (local compatibility)',
-    '  .cursor/skills-cursor/<name>/SKILL.md (local compatibility)',
-    '  .gemini/skills/<name>/SKILL.md (local compatibility)',
-    '  .hermes/skills/**/SKILL.md (local compatibility)',
-    '  .hermes/hermes-agent/skills/**/SKILL.md (local compatibility)',
-    '  .hermes/hermes-agent/optional-skills/**/SKILL.md (local compatibility)',
-    '  .hermes/hermes-agent/plugins/**/SKILL.md (local compatibility)',
     '  .codex/skills/<name>/SKILL.md (local compatibility)',
     '  .codex/skills/.system/<name>/SKILL.md (local compatibility)',
     '  .codex/plugins/cache/**/SKILL.md (local plugin cache)',
-    '  _SYSTEM/archive/external-skill-roots/**/SKILL.md (archived compatibility)',
+    '',
+    'Archived external skill roots are harvest/reference material only.',
   ].join('\n') + '\n')
 }
 
@@ -297,7 +281,8 @@ function runValidate(registry, useJson) {
     } catch {}
   }
 
-  // Check for collisions
+  // Check for shadowed duplicate names. These are expected across compatibility
+  // roots when a higher-priority YURI skill overrides a provider mirror.
   const hasCollision = registry.skills.some(s => s.collision)
 
   // Check each discovered skill
@@ -366,8 +351,9 @@ function runValidate(registry, useJson) {
     stdout.write('manifest_exists=' + manifestExists + ' checked=' + registry.skills.length + ' ok=' + okCount + ' drift=' + driftCount + ' missing=' + missingCount + ' unregistered=' + unregisteredCount + ' collisions=' + hasCollision + '\n')
   }
 
-  // Exit non-zero on DRIFT, MISSING, or collision
-  if (driftCount > 0 || missingCount > 0 || hasCollision) {
+  // Exit non-zero only on registry drift/missing files. Shadowed duplicates are
+  // reported for review, but first-match precedence is deterministic.
+  if (driftCount > 0 || missingCount > 0) {
     process.exit(1)
   }
 }

@@ -6,7 +6,7 @@ date: 2026-04-24
 evidence: stable — repeated need for precise /compact hints across all sessions
 sources:
   - "Selective Context — Yucheng Li et al., EMNLP 2023 (self-information pruning)"
-  - "LLMLingua — Microsoft Research / PKU, EMNLP 2023 (perplexity-based token scoring)"
+  - "LLMLingua — Microsoft Research / PKU, EMNLP 2023 (language-model surprise token scoring)"
   - "H2O Heavy-Hitter Oracle — MIT Han Lab, NeurIPS 2023 (attention-weight KV cache eviction)"
 ---
 

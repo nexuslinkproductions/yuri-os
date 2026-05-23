@@ -59,10 +59,10 @@ The following test suites exist but were **not re-run** during this verification
 
 ---
 
-## Reconciliation with Perplexity 2026-05-13 Audit
+## Reconciliation with External 2026-05-13 Audit
 
-Perplexity audit (archived at `_SYSTEM/audit-archive/perplexity-2026-05-13-original.md`) claimed *"5 unresolved security vulnerabilities, zero remediation evidence since 2026-04-22."* That claim is **false**. ADR-061 dates 2026-03-05 (not April 22) and its own summary matrix marks all S-items as Fixed. Code inspection confirms the fixes are in place.
+External audit (archived at `_SYSTEM/audit-archive/external-research-audit-2026-05-13-original.md`) claimed *"5 unresolved security vulnerabilities, zero remediation evidence since 2026-04-22."* That claim is **false**. ADR-061 dates 2026-03-05 (not April 22) and its own summary matrix marks all S-items as Fixed. Code inspection confirms the fixes are in place.
 
-Perplexity's specific remediation recipe (e.g. "default API key fallback in authMiddleware.js") does not match the actual codebase — `backend/src/middleware/auth.ts` already enforces 16-char `X-API-KEY` + boot-fail behaviour.
+The specific remediation recipe (e.g. "default API key fallback in authMiddleware.js") does not match the actual codebase — `backend/src/middleware/auth.ts` already enforces 16-char `X-API-KEY` + boot-fail behaviour.
 
 **Action:** No P0 patches required. Phase 1 complete.

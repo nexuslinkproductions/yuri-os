@@ -21,7 +21,7 @@
 
 ## Why Rotation Alone Is Wrong
 
-The Perplexity audit (and my own initial plan) proposed log rotation. That treats the symptom — the log gets large — without fixing the system that produces ~150 failed invocations per scout session. Rotation just hides the breakage.
+The external audit (and my own initial plan) proposed log rotation. That treats the symptom — the log gets large — without fixing the system that produces ~150 failed invocations per scout session. Rotation just hides the breakage.
 
 ## Decision
 

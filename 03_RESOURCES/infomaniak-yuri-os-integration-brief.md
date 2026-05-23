@@ -1,7 +1,7 @@
 # Infomaniak × Yuri OS — Integration Brief
 
 **Status:** PREPARED — NOT ACTIVE. Awaiting Claudio's instructions before switching over.
-**Research date:** 2026-05-17 | 79 sources via Perplexity Deep Research
+**Research date:** 2026-05-17 | 79 sources via deep research
 **Next step:** Share with Claudio, confirm account setup, then uncomment lane configs below.
 
 ---

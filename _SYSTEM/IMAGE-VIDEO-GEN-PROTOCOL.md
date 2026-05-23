@@ -1,96 +1,60 @@
 # Image + Video Generation Protocol
 
-**Created:** 2026-04-24  
-**Status:** Manual trigger — no automated pipeline yet  
-**Scope:** Visual assets for client work + internal storyboards/moodboards
+**Status:** Active storage and quality protocol.  
+**Scope:** Visual assets for client work, YURI presentations, internal motion studies, and storyboards.
 
----
+## Platform Posture
 
-## Platform Roles
+Visual tools are disposable adapters. YURI owns the brief, naming, storage, quality
+gate, and source tracking.
 
-| Platform | Tool | Access | Output | Use Case |
-|----------|------|--------|--------|----------|
-| ChatGPT | **Images 2.0** | Web (paid subscription) | PNG/JPG | Client visual assets, concepts |
-| Gemini App | **Imagen** | Mobile/Web app (Google) | PNG/JPG | Moodboards, style references |
-| Gemini App | **Veo** | Mobile/Web app (Google) | MP4 | Storyboards, motion previsualization |
-| Gemini Flash | Markdown digest | `g` CLI | .md | Pre-process prompts for NotebookLM |
-| NotebookLM | Audio/visual digest | Manual upload | Audio/Notes | Research synthesis, brief prep |
+| Surface | Access | Output | Use Case |
+| --- | --- | --- | --- |
+| ChatGPT Images | Web or API when available | PNG/JPG | Client concepts, presentation assets, visual references |
+| Qwen/Wan image-video tools | Web/API when available | PNG/JPG/MP4 | Motion previsualization and style exploration |
+| Local/OSS visual tools | Local runtime | PNG/JPG/MP4 | Private tests, repeatable visual experiments |
+| Browser/Playwright inspection | Local browser | Screenshots/DOM evidence | Visual QA and responsive checks |
 
-> **C2MOVIEZ constraint:** Generative video for storyboards and moodboards ONLY.  
-> No AI-generated B-roll as deliverable content. All final footage is live capture.
+## Storage Convention
 
----
-
-## Workflow: Client Visual Assets (ChatGPT Images 2.0)
-
-1. Define visual brief in chat or prompt file
-2. Generate in ChatGPT Images 2.0 (web interface)
-3. Download output
-4. Save to project folder:
-   ```
-   01_PROJECTS/[CLIENT]/05_ASSETS/generated/[YYYYMMDD]-[description].png
-   ```
-5. Add to session log if relevant to deliverables
-
-**Prompt tips:**
-- Specify aspect ratio (16:9, 1:1, 9:16) in prompt
-- Include brand colors if available
-- Reference style (cinematic, editorial, product, etc.)
-
----
-
-## Workflow: Storyboards / Moodboards (Gemini App)
-
-1. Write visual brief — mood, lighting, movement, color palette
-2. Generate in Gemini App (Imagen for stills, Veo for motion)
-3. Download + save:
-   ```
-   01_PROJECTS/[CLIENT]/05_ASSETS/storyboards/[YYYYMMDD]-[scene]-[v1].mp4
-   ```
-4. Use for client pre-visualization only — never as deliverable
-
-**Notes:**
-- Veo outputs are watermarked — not suitable for client delivery
-- Use for pitch decks, mood communication, scene planning
-- Kling / Wan 2.5 (Chinese tools) available as alternatives for longer previsualization — see `noesis-intake.md`
-
----
-
-## Workflow: NotebookLM Audio Digest
-
-1. Gemini Flash (`g`) generates strict technical markdown from source material:
-   ```bash
-   g "prepare a structured markdown digest of this content for NotebookLM. Include: key concepts, named entities, relationships, open questions"
-   ```
-2. Save to `_SYSTEM/session-outputs/notebooklm-prep-[date].md`
-3. Manually upload to NotebookLM as source document
-4. Generate audio overview or interactive notes
-5. Export key insights → save as research note in vault
-
----
-
-## File Storage Conventions
-
-```
+```text
 01_PROJECTS/[CLIENT]/
   05_ASSETS/
-    generated/          ← ChatGPT Images 2.0 output
-    storyboards/        ← Gemini Veo / Imagen for previsualization
-    references/         ← Mood/style references (not generated)
+    generated/          # generated still assets
+    storyboards/        # previsualization motion or boards
+    references/         # human-curated style/source references
+    proofs/             # QA screenshots and review captures
 ```
 
----
+Internal YURI reports use:
+
+```text
+_SYSTEM/reports/
+  assets/[artifact-name]/
+```
+
+## Required Metadata
+
+Every durable generated asset should have nearby context in the project note,
+daily capture, or artifact registry:
+
+- source tool/model if known
+- prompt or brief reference
+- intended use
+- output path
+- license/confidentiality note if relevant
+- reviewer/status
 
 ## Quality Gates
 
-- [ ] No AI-generated content delivered to C2MOVIEZ clients as final B-roll
-- [ ] Storyboard files labeled as `[PREVIEW]` or `[MOODBOARD]` — not `[FINAL]`
-- [ ] ChatGPT Images 2.0 outputs: check for brand alignment before sharing
-- [ ] All generated assets versioned (`v1`, `v2`) — never overwrite
+- No generated final client B-roll unless explicitly approved by the project owner.
+- Storyboards and previsualization are labeled as preview/moodboard material.
+- Generated assets are versioned; do not overwrite final candidates.
+- Visual QA uses Playwright/browser screenshots for layout evidence when the target is HTML.
+- Assets for presentations should be checked at the actual presentation viewport, not only a large monitor.
 
----
+## Replacement Rule
 
-## Related
-
-- [`EVONEXUS_INTEGRATION_MAP.md`](EVONEXUS_INTEGRATION_MAP.md) — full platform map
-- [`noesis-intake.md`](../../../.claude/noesis/noesis-intake.md) — AI video tool research (Kling, Wan 2.5, Hailuo)
+If a new visual provider is added, do not create a provider-owned folder tree.
+Add a thin adapter note, update the registry, and keep storage under the project or
+YURI report artifact path.

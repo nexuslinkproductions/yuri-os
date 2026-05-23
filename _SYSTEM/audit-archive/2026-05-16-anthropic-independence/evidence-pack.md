@@ -124,7 +124,6 @@ nomic-embed-text:latest    274 MB    embeddings
 | @amp (smart, deep, rush) | Amp | Live — but `smart` mode = claude-opus-4-7 cloud-billed | **MIXED** (smart=Claude, deep=GPT-5.5, rush=fast) |
 | @codex-spark | Codex sandbox | Live | None |
 | @gpt-oss | OpenAI gpt-oss | Live | None |
-| @perplexity | Perplexity (computer-use) | Live | None |
 | @comet | browser-use | Live | None |
 
 ## §9 NEXUSLINK / Symbiotic Pulse Surface
