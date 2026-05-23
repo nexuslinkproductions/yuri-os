@@ -28,6 +28,8 @@ CLAUDE.local.md
 .claude/backups/
 .claude/shell-snapshots/
 .claude/ide/
+.claude/plugins/
+.claude/yuri-sentinel/
 
 # Claude runtime/debug snapshots
 .claude/debug/
