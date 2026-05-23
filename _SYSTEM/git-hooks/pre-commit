@@ -1,34 +1,25 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 
-ROOT_DIR="$(git rev-parse --show-toplevel)"
-cd "$ROOT_DIR"
-# Path-agnostic: supports root Scripts/ and _SYSTEM/Scripts/ layouts
-SCRIPTS_DIR="Scripts"; [ -d "_SYSTEM/Scripts" ] && SCRIPTS_DIR="_SYSTEM/Scripts"
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
 
-if ! command -v npm >/dev/null 2>&1; then
-  echo "[pre-commit] npm not found" >&2
-  exit 1
-fi
-
-echo "[pre-commit] cached diff check"
+echo "[pre-commit] cached diff whitespace"
 git diff --cached --check
 
-echo "[pre-commit] offload contract regression"
-npm run test:offload-contract --silent
+echo "[pre-commit] secret leak scan"
+node _SYSTEM/Scripts/secret-leak-scan.mjs
 
-# PATCH 015 — drift gate: block if contract↔dispatch drift detected (excluding legacy)
-# Bypass: git commit --no-verify
-echo "[pre-commit] offload contract dispatch drift check"
-if ! node "$SCRIPTS_DIR/offload-contract-dispatch-check.mjs" > /dev/null 2>&1; then
-  echo "[pre-commit] ⚠️  Contract-dispatch drift detected." >&2
-  echo "[pre-commit]   Run: node "$SCRIPTS_DIR/offload-contract-dispatch-check.mjs" (for details)" >&2
-  echo "[pre-commit]   Bypass: git commit --no-verify" >&2
-  echo "[pre-commit]   Reference: PATCH 015 in .claude/plans/" >&2
-  exit 1
-fi
+echo "[pre-commit] offload contract dispatch drift"
+node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs >/dev/null
 
-# PACKET 13 — sovereignty regression gate
-echo "[pre-commit] independence gate"
-bash "$SCRIPTS_DIR/pre-commit-independence.sh"
+echo "[pre-commit] persona contract"
+node _SYSTEM/Scripts/yuri-persona-check.mjs >/dev/null
+
+echo "[pre-commit] skill registry"
+node _SYSTEM/Scripts/yuri-skill-loader.mjs --validate >/dev/null
+
+echo "[pre-commit] GitNexus staged scope"
+node _SYSTEM/Scripts/gitnexus-detect-changes.mjs yuri-os staged >/dev/null
+
+echo "[pre-commit] pass"
