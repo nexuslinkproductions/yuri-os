@@ -1,4 +1,0 @@
-INHERIT: _SYSTEM/yuri-origin.md
-INHERIT: SOUL.md
-
-Windsurf adapter only. Policy lives in origin. Local evidence first. Keep writes scoped. Route protocol changes through `Scripts/offload-contract.mjs`.

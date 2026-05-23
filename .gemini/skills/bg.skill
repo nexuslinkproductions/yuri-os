@@ -1,7 +1,0 @@
-# Bridge Skill: bg
-This is an Antigravity bridge for the Claude skill "bg".
-See the core implementation at: `.claude/skills/bg/SKILL.md`
-
-**Instructions for Agent:**
-When executing this skill, you MUST strictly follow the instructions defined in:
-`.claude/skills/bg/SKILL.md`

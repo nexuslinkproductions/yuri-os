@@ -1,7 +1,0 @@
-# Bridge Skill: compact-optimizer
-This is an Antigravity bridge for the Claude skill "compact-optimizer".
-See the core implementation at: `.claude/skills/compact-optimizer/SKILL.md`
-
-**Instructions for Agent:**
-When executing this skill, you MUST strictly follow the instructions defined in:
-`.claude/skills/compact-optimizer/SKILL.md`

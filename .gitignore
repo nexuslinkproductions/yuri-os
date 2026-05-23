@@ -75,6 +75,9 @@ _SYSTEM/deleted-backups/
 graphify-out/node_modules/
 graphify-out/__pycache__/
 
+# Dependency installs are never source truth, including nested backups.
+**/node_modules/
+
 # IDE
 .vscode/
 .idea/
@@ -91,22 +94,13 @@ graphify-out/__pycache__/
 # Research corpus clones (external repos, not submodules)
 RESEARCH/ORACLE-CORPUS/
 RESEARCH/ruflo/
-deerflow/
 yuri-os/
-!.hermes/skills/yuri-os/
-!.hermes/skills/yuri-os/**
 
 # Embedded agent repos
-.agents/openmythos/
 01_PROJECTS/claude-cookbooks/
 _SYSTEM/tools/browser-harness/
 _SYSTEM/tools/nemo-guardrails/
 _SYSTEM/tools/MSA/
-.hermes/**/__pycache__/
-.hermes/**/*.pyc
-.hermes/skills/.curator_state
-.hermes/skills/.curator_backups/
-.hermes/skills/.hub/
 _SYSTEM/state/shintai-advisory/
 _SYSTEM/state/release-gate/
 _SYSTEM/state/rick-history.jsonl
@@ -136,7 +130,6 @@ NUDIMMUD/
 !Scripts/nudimmud/
 !Scripts/nudimmud/symbiotic-pulse.mjs
 !Scripts/nudimmud/symbiotic-pulse.test.mjs
-gemini_env/
 
 # Graphify generated runtime artifacts
 graphify-out/.venv/
@@ -196,7 +189,6 @@ backend/src/scripts/importPlaneTickets.ts
 .claude/state/eot-refresh.err.log
 01_PROJECTS/claude-mem/
 01_PROJECTS/gstack/.agents/
-01_PROJECTS/gstack/.cursor/
 01_PROJECTS/gstack/.factory/
 01_PROJECTS/gstack/.kiro/
 01_PROJECTS/gstack/.openclaw/
@@ -231,9 +223,6 @@ output/
 .claude/trading-bot/data/prediction_result.jsonl
 .claude/trading-bot/data/trade_outcome.jsonl
 
-# Local IDE runtime state
-.cursor/environment.json
-
 # Codex worktrees (active git worktrees, not source files)
 .codex-worktrees/
 
@@ -250,7 +239,6 @@ YURI-SENTINEL/08_INGESTION/skool/playwright_data/
 YURI-SENTINEL/08_INGESTION/skool/venv/
 03_RESOURCES/RESEARCH/corpus/awesome-deepseek-integration/
 03_RESOURCES/RESEARCH/ruflo/
-integrations/gemini-env/
 
 # Stray macOS app bundles and canvas files at root
 /*.app/
@@ -295,4 +283,3 @@ NEURAL-NETWORK/
 # Large local-only tool directories
 needle/
 checkpoints/
-integrations/gemini-env/

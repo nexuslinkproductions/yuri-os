@@ -3,7 +3,7 @@
  * Kagami Claude/Codex control-domain contract.
  *
  * This is intentionally declarative. Rick, worker bridges, Shintai dispatch,
- * and future Claude Code adapters can consume one domain map instead of
+ * and future Claude CLI adapters can consume one domain map instead of
  * rebuilding authority rules in separate scripts.
  */
 
@@ -89,6 +89,7 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
     id: 'claude-opus-comain',
     authority: 'co-main-architect-and-coder',
     mutatesRepo: 'allowed-only-through-scoped-packets',
+    launchRule: 'Persistent CLI/tmux/PTY session only. No SDK, no claude -p, no --print prompt calls.',
     canonicalDuties: [
       'long-context-architecture',
       'high-reasoning-implementation',
@@ -103,6 +104,7 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
     id: 'claude-sonnet-code',
     authority: 'bounded-implementation-partner',
     mutatesRepo: 'allowed-only-through-scoped-packets',
+    launchRule: 'Persistent CLI/tmux/PTY session only. No SDK, no claude -p, no --print prompt calls.',
     canonicalDuties: [
       'medium-complexity-code',
       'focused-tests',
@@ -169,7 +171,7 @@ export const KAGAMI_CONTROL_COMMANDS = Object.freeze([
   },
   {
     command: '/claude wake',
-    purpose: 'Attach or resume the continuous Claude Code session without starting heavy work.',
+    purpose: 'Attach or resume the continuous Claude CLI session without starting heavy work.',
   },
   {
     command: '/claude sonnet',
@@ -185,7 +187,7 @@ export const KAGAMI_CONTROL_COMMANDS = Object.freeze([
   },
   {
     command: '/claude send',
-    purpose: 'Send a bounded packet to the current Claude session and stream deltas into Kagami events.',
+    purpose: 'Send a bounded packet to the current persistent Claude session and stream deltas into Kagami events.',
   },
   {
     command: '/codex review',

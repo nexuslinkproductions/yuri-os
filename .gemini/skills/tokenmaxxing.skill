@@ -1,7 +1,0 @@
-# Bridge Skill: tokenmaxxing
-This is an Antigravity bridge for the Claude skill "tokenmaxxing".
-See the core implementation at: `.claude/skills/tokenmaxxing/SKILL.md`
-
-**Instructions for Agent:**
-When executing this skill, you MUST strictly follow the instructions defined in:
-`.claude/skills/tokenmaxxing/SKILL.md`

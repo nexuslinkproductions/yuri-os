@@ -1,7 +1,0 @@
-# Bridge Skill: openai-codex-workflow
-This is an Antigravity bridge for the Claude skill "openai-codex-workflow".
-See the core implementation at: `.claude/skills/openai-codex-workflow/SKILL.md`
-
-**Instructions for Agent:**
-When executing this skill, you MUST strictly follow the instructions defined in:
-`.claude/skills/openai-codex-workflow/SKILL.md`

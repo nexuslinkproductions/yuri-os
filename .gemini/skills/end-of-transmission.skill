@@ -1,7 +1,0 @@
-# Bridge Skill: end-of-transmission
-This is an Antigravity bridge for the Claude skill "end-of-transmission".
-See the core implementation at: `.claude/skills/end-of-transmission/SKILL.md`
-
-**Instructions for Agent:**
-When executing this skill, you MUST strictly follow the instructions defined in:
-`.claude/skills/end-of-transmission/SKILL.md`

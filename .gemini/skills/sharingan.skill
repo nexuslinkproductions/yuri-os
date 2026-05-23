@@ -1,7 +1,0 @@
-# Bridge Skill: sharingan
-This is an Antigravity bridge for the Claude skill "sharingan".
-See the core implementation at: `.claude/skills/sharingan/SKILL.md`
-
-**Instructions for Agent:**
-When executing this skill, you MUST strictly follow the instructions defined in:
-`.claude/skills/sharingan/SKILL.md`

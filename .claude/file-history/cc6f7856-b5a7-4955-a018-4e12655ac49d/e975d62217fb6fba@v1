@@ -1,8 +1,0 @@
-{
-  "terminal.integrated.env.osx": {
-    "PATH": "${env:HOME}/.local/bin:${env:PATH}",
-    "NUDIMMUD_STARTUP_SEED": "${workspaceFolder}/.claude/nisaba/learning/global.md",
-    "NUDIMMUD_CAVEMAN": "1",
-    "NUDIMMUD_OFFLOAD": "1"
-  }
-}

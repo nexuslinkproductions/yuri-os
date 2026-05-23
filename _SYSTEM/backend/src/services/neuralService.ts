@@ -53,17 +53,6 @@ class NeuralService {
                 status: 'ACTIVE'
             },
             {
-                id: 'gemini-3-1-pro-liberated',
-                name: 'Gemini 3.1 Pro (Liberated)',
-                provider: 'Google',
-                runtime: 'native',
-                recommended: false,
-                version: '3.1',
-                architecture: 'Transformer',
-                benchmarks: { mmlu: 93.5, human_eval: 91.0, gsm8k: 95.5, ifeval: 87.0 },
-                status: 'ACTIVE'
-            },
-            {
                 id: 'gpt-4o-liberated',
                 name: 'GPT-4o (Liberated)',
                 provider: 'OpenAI',

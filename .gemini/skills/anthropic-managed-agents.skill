@@ -1,7 +1,0 @@
-# Bridge Skill: anthropic-managed-agents
-This is an Antigravity bridge for the Claude skill "anthropic-managed-agents".
-See the core implementation at: `.claude/skills/anthropic-managed-agents/SKILL.md`
-
-**Instructions for Agent:**
-When executing this skill, you MUST strictly follow the instructions defined in:
-`.claude/skills/anthropic-managed-agents/SKILL.md`

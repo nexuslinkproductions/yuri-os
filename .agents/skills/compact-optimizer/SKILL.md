@@ -1,6 +1,6 @@
 ---
 name: compact-optimizer
-description: "Construct the minimum-viable /compact hint. Grounded in selective context compression research (self-information scoring, perplexity-based pruning, attention-sink preservation). Use before every /compact call to prevent loss of session-critical state."
+description: "Construct the minimum-viable /compact hint. Grounded in selective context compression research (self-information scoring, language-model surprise pruning, attention-sink preservation). Use before every /compact call to prevent loss of session-critical state."
 triggers:
   - "/compact"
   - "context is getting long"

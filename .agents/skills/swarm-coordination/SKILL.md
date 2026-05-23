@@ -52,38 +52,29 @@ Native module of `symbioticPulse`, alongside `ai-pipeline-offloading` and `offlo
 - If a lane returns ambiguous output, re-scope it before continuing.
 - If a lane exposes a conflict, preserve the narrower working set and retry.
 
-## Browser Lanes
+## Browser Lane
 
-Browser lanes are now Active. Use alongside local model lanes in swarm tasks.
+Browser control is active. Use it alongside local model lanes in swarm tasks.
 
 ### Lane Routing
 
-- `@comet` — UI interaction, screenshot capture, Obsidian Web Clipper
-- `@perplexity` — web research, real-time data, citation-backed answers
+- `@comet` — browser interaction, screenshot capture, DOM inspection, and UI control
 
 ### Swarm Integration
 
-Add browser lanes as research workers in parallel swarms:
+Add browser control as a research worker in parallel swarms:
 
 ```
 ENLIL decomposes task
 ├── @deepseek   ← local reasoning lane
 ├── @summarize-local ← summarization / extraction lane
-└── @perplexity ← web research lane (browser-lane.js)
+└── @comet ← browser control lane
 ```
 
 Swarm pattern for research tasks:
 1. Decompose task into: reasoning sub-tasks (local lanes) + web lookups (browser lane)
 2. Fan-out in parallel (one Agent per lane)
 3. Merge results in main session (ENLIL role)
-
-### Code Reference
-
-```javascript
-const { routeToBrowser } = require('.Codex/hooks/browser-lane.js');
-// Example: route research subtask to perplexity
-const result = await routeToBrowser('research topic X', 'perplexity');
-```
 
 ### Stop Condition
 

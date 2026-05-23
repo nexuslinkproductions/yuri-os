@@ -347,7 +347,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
         res.json({ ok: true });
     });
 
-    // Browser automation image gen (ChatGPT Images 2.0 / Gemini)
+    // Browser automation image generation.
     router.post('/image-gen/browser', authMiddleware, async (req, res) => {
         const { prompt, modelId, provider } = req.body;
         if (!prompt) return res.status(400).json({ error: 'prompt required' });
@@ -451,9 +451,7 @@ export function initApiRoutes(db: Database.Database, options: ApiRouteOptions = 
             ],
             remote: [
                 { id: 'chatgpt-images-2', label: 'ChatGPT Images 2.0', provider: 'chatgpt-web' },
-                { id: 'dalle3', label: 'DALL-E 3', provider: 'chatgpt-web' },
-                { id: 'imagen3', label: 'Imagen 3', provider: 'gemini-web' },
-                { id: 'veo2', label: 'Veo 2 (Video)', provider: 'gemini-web' }
+                { id: 'dalle3', label: 'DALL-E 3', provider: 'chatgpt-web' }
             ]
         });
     });

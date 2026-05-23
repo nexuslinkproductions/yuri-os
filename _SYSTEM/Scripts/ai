@@ -28,14 +28,11 @@ Commands:
   code|vscode|open [path]
       Open a path in VS Code. Defaults to the current directory.
 
-  claude [prompt]
-      Start Claude in safe mode (Agent and scouts disabled), or run a bounded advisory one-shot prompt.
+  claude
+      Start Claude in safe interactive mode (Agent and scouts disabled).
 
-  claude-full [prompt]
-      Start raw Claude interactively with full tool and scout behavior, or run a one-shot prompt with --print.
-
-  gemini [prompt]
-      Start Gemini interactively, or run a one-shot prompt with -p.
+  claude-full
+      Start raw Claude interactively with full tool and scout behavior.
 
   codex [prompt]
       Start Codex interactively, or run a one-shot prompt with codex exec.
@@ -181,7 +178,7 @@ Commands:
       Ask Ruflo for routing guidance without executing the routed lane.
 
   triage [prompt]
-      Run safe Claude, gemini, and codex in parallel and print all three outputs.
+      Run active review lanes in parallel: Claude if available, Codex, and offload swarm.
 
   cortex|pulse|pulse-status
       Print Pulse Cortex self-inspection status.
@@ -191,9 +188,8 @@ Commands:
 
 Examples:
   ai code .
-  ai claude "Trace the auth flow in this repo"
-  ai claude-full "Trace the auth flow in this repo"
-  ai gemini "Summarize the latest changes"
+  ai claude
+  ai claude-full
   ai codex "Find the riskiest file in backend/src"
   ai btw "offload this review"
   ai moonshot "deep architecture review"
@@ -224,24 +220,6 @@ offload_contract() {
   node "$OFFLOAD_CONTRACT" "$subcommand" "$@"
 }
 
-gemini_policy_guard() {
-  require_cmd python3
-  python3 "$ROOT_DIR/Scripts/gemini-policy-guard.py"
-}
-
-run_gemini_safe() {
-  gemini_policy_guard
-  require_cmd gemini
-  exec gemini "$@"
-}
-
-run_gemini_prompt() {
-  local prompt="$1"
-  gemini_policy_guard
-  require_cmd gemini
-  exec gemini -p "$prompt"
-}
-
 run_claude_safe() {
   local _claude_bin="${CLAUDE_BIN:-claude}"
   require_cmd "$_claude_bin"
@@ -250,6 +228,15 @@ run_claude_safe() {
     --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
     --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
     "$@"
+}
+
+claude_prompt_not_allowed() {
+  local route="${1:-claude}"
+  printf '%s\n' "Claude prompt route disabled: ${route}" >&2
+  printf '%s\n' "Use one continuous Claude CLI session through Kagami/tmux/PTY instead." >&2
+  printf '%s\n' "Forbidden here: Claude SDK, claude -p, --print, --no-session-persistence prompt calls." >&2
+  printf '%s\n' "Launch interactively with: _SYSTEM/Scripts/ai claude" >&2
+  return 64
 }
 
 build_claude_council_prompt() {
@@ -318,29 +305,8 @@ emit_claude_advisory_output() {
 
 run_claude_safe_prompt() {
   local prompt="$1"
-  local _claude_bin="${CLAUDE_BIN:-claude}"
-  local _tmpdir _stdout _stderr _status _council_prompt
-  require_cmd "$_claude_bin"
-  _tmpdir="$(mktemp -d)"
-  _stdout="$_tmpdir/stdout.txt"
-  _stderr="$_tmpdir/stderr.txt"
-  _council_prompt="$(build_claude_council_prompt "$prompt")"
-
-  set +e
-  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
-    --model "${YURI_CLAUDE_COUNCIL_MODEL:-claude-sonnet-4-6}" \
-    --effort "${YURI_CLAUDE_COUNCIL_EFFORT:-xhigh}" \
-    --permission-mode default \
-    --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
-    --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
-    --no-session-persistence \
-    --print "$_council_prompt" >"$_stdout" 2>"$_stderr"
-  _status=$?
-  set -e
-
-  emit_claude_advisory_output "$_stdout" "$_stderr" "$_status"
-  rm -rf "$_tmpdir"
-  return "$_status"
+  (void_prompt="$prompt"; unset void_prompt)
+  claude_prompt_not_allowed "@claude"
 }
 
 build_claude_sonnet_code_prompt() {
@@ -368,40 +334,8 @@ EOF
 
 run_claude_sonnet_code_prompt() {
   local prompt="$1"
-  local _claude_bin="${CLAUDE_BIN:-claude}"
-  local _tmpdir _stdout _stderr _status _code_prompt
-  require_cmd "$_claude_bin"
-  _tmpdir="$(mktemp -d)"
-  _stdout="$_tmpdir/stdout.txt"
-  _stderr="$_tmpdir/stderr.txt"
-  _code_prompt="$(build_claude_sonnet_code_prompt "$prompt")"
-
-  set +e
-  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
-    --model "${YURI_CLAUDE_SONNET_CODE_MODEL:-claude-sonnet-4-6}" \
-    --effort "${YURI_CLAUDE_SONNET_CODE_EFFORT:-xhigh}" \
-    --permission-mode acceptEdits \
-    --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
-    --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
-    --name "${YURI_CLAUDE_SONNET_CODE_SESSION_NAME:-yuri-sonnet-code}" \
-    --print "$_code_prompt" >"$_stdout" 2>"$_stderr"
-  _status=$?
-  set -e
-
-  printf '# lane: @claude-sonnet-code\n'
-  printf '# model: %s\n' "${YURI_CLAUDE_SONNET_CODE_MODEL:-claude-sonnet-4-6}"
-  printf '# reasoning: %s\n' "${YURI_CLAUDE_SONNET_CODE_EFFORT:-xhigh}"
-  printf '# coding_allowed: true\n'
-  printf '# codex_final_authority: true\n'
-  printf '# session: %s\n' "${YURI_CLAUDE_SONNET_CODE_SESSION_NAME:-yuri-sonnet-code}"
-  printf '# status: %s\n\n' "$_status"
-  sed -n '1,260p' "$_stdout"
-  if [ -s "$_stderr" ]; then
-    printf '\n## STDERR\n'
-    sed -n '1,160p' "$_stderr"
-  fi
-  rm -rf "$_tmpdir"
-  return "$_status"
+  (void_prompt="$prompt"; unset void_prompt)
+  claude_prompt_not_allowed "@claude-sonnet-code"
 }
 
 build_claude_opus_audit_prompt() {
@@ -432,41 +366,8 @@ EOF
 
 run_claude_opus_audit_prompt() {
   local prompt="$1"
-  local _claude_bin="${CLAUDE_BIN:-claude}"
-  local _tmpdir _wake_stdout _wake_stderr _stdout _stderr _status _audit_prompt
-  require_cmd "$_claude_bin"
-  _tmpdir="$(mktemp -d)"
-  _wake_stdout="$_tmpdir/wake.stdout.txt"
-  _wake_stderr="$_tmpdir/wake.stderr.txt"
-  _stdout="$_tmpdir/stdout.txt"
-  _stderr="$_tmpdir/stderr.txt"
-  _audit_prompt="$(build_claude_opus_audit_prompt "$prompt")"
-
-  set +e
-  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
-    --model "${YURI_CLAUDE_WAKE_MODEL:-claude-haiku-4-5}" \
-    --effort low \
-    --permission-mode plan \
-    --tools "" \
-    --name "${YURI_CLAUDE_COMAIN_SESSION_NAME:-yuri-opus-comain}" \
-    --print "YURI Claude wake preflight. Reply exactly PONG." >"$_wake_stdout" 2>"$_wake_stderr"
-
-  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
-    --model "${YURI_CLAUDE_AUDIT_MODEL:-claude-opus-4-7}" \
-    --effort "${YURI_CLAUDE_COMAIN_EFFORT:-max}" \
-    --permission-mode acceptEdits \
-    --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
-    --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
-    --name "${YURI_CLAUDE_COMAIN_SESSION_NAME:-yuri-opus-comain}" \
-    --print "$_audit_prompt" >"$_stdout" 2>"$_stderr"
-  _status=$?
-  set -e
-
-  YURI_COUNCIL_MODEL="${YURI_CLAUDE_AUDIT_MODEL:-claude-opus-4-7}" \
-  YURI_COUNCIL_REASONING="${YURI_CLAUDE_COMAIN_EFFORT:-max}" \
-  emit_claude_advisory_output "$_stdout" "$_stderr" "$_status"
-  rm -rf "$_tmpdir"
-  return "$_status"
+  (void_prompt="$prompt"; unset void_prompt)
+  claude_prompt_not_allowed "@claude-opus-comain"
 }
 
 build_claude_design_context_prompt() {
@@ -538,57 +439,8 @@ EOF
 
 run_claude_opus_design_edit_prompt() {
   local prompt="$1"
-  local _claude_bin="${CLAUDE_BIN:-claude}"
-  local _tmpdir _context_stdout _context_stderr _stdout _stderr _status _context_prompt _edit_prompt
-  require_cmd "$_claude_bin"
-  _tmpdir="$(mktemp -d)"
-  _context_stdout="$_tmpdir/context.stdout.txt"
-  _context_stderr="$_tmpdir/context.stderr.txt"
-  _stdout="$_tmpdir/stdout.txt"
-  _stderr="$_tmpdir/stderr.txt"
-  _context_prompt="$(build_claude_design_context_prompt "$prompt")"
-
-  set +e
-  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
-    --model "${YURI_CLAUDE_CONTEXT_MODEL:-sonnet}" \
-    --effort "${YURI_CLAUDE_CONTEXT_EFFORT:-xhigh}" \
-    --permission-mode plan \
-    --tools "" \
-    --no-session-persistence \
-    --print "$_context_prompt" >"$_context_stdout" 2>"$_context_stderr"
-
-  _edit_prompt="$(build_claude_opus_design_edit_prompt "$prompt" "$(cat "$_context_stdout")")"
-
-  YURI_DISABLE_SCOUTS=1 "$_claude_bin" \
-    --model "${YURI_CLAUDE_DESIGN_MODEL:-opus}" \
-    --effort "${YURI_CLAUDE_DESIGN_EFFORT:-high}" \
-    --permission-mode acceptEdits \
-    --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls \
-    --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
-    --no-session-persistence \
-    --print "$_edit_prompt" >"$_stdout" 2>"$_stderr"
-  _status=$?
-  set -e
-
-  printf '# lane: @claude-opus-design-edit\n'
-  printf '# context_model: %s\n' "${YURI_CLAUDE_CONTEXT_MODEL:-sonnet}"
-  printf '# context_effort: %s\n' "${YURI_CLAUDE_CONTEXT_EFFORT:-xhigh}"
-  printf '# design_model: %s\n' "${YURI_CLAUDE_DESIGN_MODEL:-opus}"
-  printf '# design_effort: %s\n' "${YURI_CLAUDE_DESIGN_EFFORT:-high}"
-  printf '# advisory_only: false\n'
-  printf '# bounded_edit: true\n'
-  printf '# status: %s\n\n' "$_status"
-  printf '## SONNET_CONTEXT\n'
-  sed -n '1,220p' "$_context_stdout"
-  printf '\n## OPUS_OUTPUT\n'
-  sed -n '1,260p' "$_stdout"
-  if [ -s "$_context_stderr" ] || [ -s "$_stderr" ]; then
-    printf '\n## STDERR\n'
-    sed -n '1,120p' "$_context_stderr"
-    sed -n '1,160p' "$_stderr"
-  fi
-  rm -rf "$_tmpdir"
-  return "$_status"
+  (void_prompt="$prompt"; unset void_prompt)
+  claude_prompt_not_allowed "@claude-opus-design-edit"
 }
 
 run_claude_full() {
@@ -629,32 +481,37 @@ cleanup_tmpdir() {
 
 run_triage() {
   local prompt="$1"
-  local tmpdir="" claude_out claude_err gemini_out gemini_err codex_out codex_err
-  local pid_claude pid_gemini pid_codex status
+  local tmpdir="" claude_out claude_err offload_out offload_err codex_out codex_err
+  local pid_claude="" pid_offload="" pid_codex="" status has_claude=0
 
-  require_cmd claude
   require_cmd codex
-  gemini_policy_guard
+  if command -v "${CLAUDE_BIN:-claude}" >/dev/null 2>&1; then
+    has_claude=1
+  fi
 
   tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/ai-triage.XXXXXX")"
   claude_out="$tmpdir/claude.txt"
   claude_err="$tmpdir/claude.route.txt"
-  gemini_out="$tmpdir/gemini.txt"
-  gemini_err="$tmpdir/gemini.route.txt"
+  offload_out="$tmpdir/offload-swarm.txt"
+  offload_err="$tmpdir/offload-swarm.route.txt"
   codex_out="$tmpdir/codex.txt"
   codex_err="$tmpdir/codex.route.txt"
 
   trap "cleanup_tmpdir \"$tmpdir\"" EXIT
 
-  (
-    run_claude_safe_prompt "$prompt" >"$claude_out" 2>"$claude_err"
-  ) &
-  pid_claude=$!
+  if [ "$has_claude" -eq 1 ]; then
+    (
+      run_claude_safe_prompt "$prompt" >"$claude_out" 2>"$claude_err"
+    ) &
+    pid_claude=$!
+  else
+    printf 'Claude unavailable; skipped dormant provider lane.\n' >"$claude_out"
+  fi
 
   (
-    run_gemini_prompt "$prompt" >"$gemini_out" 2>"$gemini_err"
+    bash "$SCRIPT_DIR/offload.sh" --swarm default "$prompt" >"$offload_out" 2>"$offload_err"
   ) &
-  pid_gemini=$!
+  pid_offload=$!
 
   (
     codex exec --cd "$ROOT_DIR" "$prompt" >"$codex_out" 2>"$codex_err"
@@ -662,10 +519,10 @@ run_triage() {
   pid_codex=$!
 
   status=0
-  if ! wait "$pid_claude"; then
+  if [ -n "$pid_claude" ] && ! wait "$pid_claude"; then
     status=1
   fi
-  if ! wait "$pid_gemini"; then
+  if ! wait "$pid_offload"; then
     status=1
   fi
   if ! wait "$pid_codex"; then
@@ -674,8 +531,8 @@ run_triage() {
 
   print_section "claude" "$claude_out"
   print_route_section "claude" "$claude_err"
-  print_section "gemini" "$gemini_out"
-  print_route_section "gemini" "$gemini_err"
+  print_section "offload-swarm" "$offload_out"
+  print_route_section "offload-swarm" "$offload_err"
   print_section "codex" "$codex_out"
   print_route_section "codex" "$codex_err"
 
@@ -1380,60 +1237,55 @@ case "${1:-help}" in
     ;;
   claude)
     shift || true
-    if [ "$#" -eq 0 ]; then
-      # ── Claude Code launch splash ─────────────────────────────
-      _G="\033[38;2;180;234;144m"
-      _G2="\033[38;2;56;87;36m"
-      _AU="\033[38;2;92;184;0m"
-      _GR="\033[38;2;168;168;168m"
-      _CY="\033[38;2;180;234;144m"
-      _BD="\033[1m"
-      _RS="\033[0m"
-      printf "\n"
-      printf "${_AU}  ◆ CLAUDE CODE${_RS}  ${_G2}──────────────────────────────────────${_RS}\n"
-      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "safe / no Agent"
-      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_MODEL:-user-selected}"
-      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "YURI"
-      printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
-      printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
-      printf "\n"
-      unset _G _G2 _AU _GR _CY _BD _RS
-      export YURI_SPLASH_SHOWN=1
-      run_claude_safe
+    if [ "$#" -ne 0 ]; then
+      claude_prompt_not_allowed "claude prompt"
+      exit $?
     fi
-    run_claude_safe_prompt "$(join_prompt "$@")"
+    # ── Claude Code launch splash ─────────────────────────────
+    _G="\033[38;2;180;234;144m"
+    _G2="\033[38;2;56;87;36m"
+    _AU="\033[38;2;92;184;0m"
+    _GR="\033[38;2;168;168;168m"
+    _CY="\033[38;2;180;234;144m"
+    _BD="\033[1m"
+    _RS="\033[0m"
+    printf "\n"
+    printf "${_AU}  ◆ CLAUDE CODE${_RS}  ${_G2}──────────────────────────────────────${_RS}\n"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "continuous CLI / no Agent"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_MODEL:-user-selected}"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "YURI"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
+    printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
+    printf "\n"
+    unset _G _G2 _AU _GR _CY _BD _RS
+    export YURI_SPLASH_SHOWN=1
+    run_claude_safe
     ;;
   claude-full|claude-raw)
     shift || true
-    if [ "$#" -eq 0 ]; then
-      # ── Raw Claude Code launch splash ─────────────────────────
-      _G="\033[38;2;180;234;144m"
-      _G2="\033[38;2;56;87;36m"
-      _AU="\033[38;2;92;184;0m"
-      _GR="\033[38;2;168;168;168m"
-      _CY="\033[38;2;180;234;144m"
-      _BD="\033[1m"
-      _RS="\033[0m"
-      printf "\n"
-      printf "${_AU}  ◆ CLAUDE CODE RAW${_RS}  ${_G2}──────────────────────────────${_RS}\n"
-      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "full / Agent allowed"
-      printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_MODEL:-user-selected}"
-      printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "YURI"
-      printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
-      printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
-      printf "\n"
-      unset _G _G2 _AU _GR _CY _BD _RS
-      export YURI_SPLASH_SHOWN=1
-      run_claude_full
+    if [ "$#" -ne 0 ]; then
+      claude_prompt_not_allowed "claude-full prompt"
+      exit $?
     fi
-    run_claude_full --print "$(join_prompt "$@")"
-    ;;
-  gemini)
-    shift || true
-    if [ "$#" -eq 0 ]; then
-      run_gemini_safe
-    fi
-    run_gemini_prompt "$(join_prompt "$@")"
+    # ── Raw Claude Code launch splash ─────────────────────────
+    _G="\033[38;2;180;234;144m"
+    _G2="\033[38;2;56;87;36m"
+    _AU="\033[38;2;92;184;0m"
+    _GR="\033[38;2;168;168;168m"
+    _CY="\033[38;2;180;234;144m"
+    _BD="\033[1m"
+    _RS="\033[0m"
+    printf "\n"
+    printf "${_AU}  ◆ CLAUDE CODE RAW${_RS}  ${_G2}──────────────────────────────${_RS}\n"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "continuous CLI / full tool policy"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_MODEL:-user-selected}"
+    printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "YURI"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
+    printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
+    printf "\n"
+    unset _G _G2 _AU _GR _CY _BD _RS
+    export YURI_SPLASH_SHOWN=1
+    run_claude_full
     ;;
   moonshot|kimi|@moonshot)
     shift || true
@@ -1547,14 +1399,10 @@ case "${1:-help}" in
     shift || true
     exec node "$SCRIPT_DIR/pulse-trivial-audit.mjs" "$@"
     ;;
-  mythos|openmythos|openmythos-swarm)
+  mythos)
     shift || true
-    prompt="$(join_prompt "$@")"
-    if [ -z "$prompt" ]; then
-      usage
-      exit 1
-    fi
-    exec codex exec --cd "$ROOT_DIR" "Use the openmythos-swarm skill. ${prompt}"
+    printf 'Retired architecture alias. Use YURI skill evolution/context routing instead.\n' >&2
+    exit 64
     ;;
   claudeunpacked|claude-code-unpacked|claudecodeunpacked)
     shift || true
@@ -1580,13 +1428,6 @@ case "${1:-help}" in
     printf 'ai launcher: %s\n' "$ROOT_DIR"
     check_cmd "code" code || status=1
     check_cmd "claude" claude || status=1
-    check_cmd "gemini" gemini || status=1
-    if gemini_policy_guard >/dev/null 2>&1; then
-      printf 'ok  gemini policy guard -> %s\n' "$ROOT_DIR/Scripts/gemini-policy-guard.py"
-    else
-      printf 'miss gemini policy guard\n'
-      status=1
-    fi
     check_cmd "codex" codex || status=1
     printf 'skip amp -> retired lane\n'
     if [ -n "${NVIDIA_API_KEY:-}" ]; then
@@ -1606,11 +1447,8 @@ case "${1:-help}" in
     fi
     check_cmd "moonshot" moonshot || status=1
     check_cmd "swarm" swarm || status=1
-    check_cmd "mythos" mythos || status=1
     check_cmd "claudeunpacked" claudeunpacked || status=1
     check_cmd "frontenddesign" frontenddesign || status=1
-    check_cmd "openmythos" openmythos || status=1
-    check_cmd "openmythos-swarm" openmythos-swarm || status=1
     check_lane "offload swarm proceed" swarm || status=1
     check_lane "deep architecture review" swarm || status=1
     exit "$status"
@@ -1844,9 +1682,9 @@ case "${1:-help}" in
     fi
     run_offload_lane reason-kimi "$@"
     ;;
-  @nvidia*|nvidia-deepseek|nvidia-llama-405b|nvidia-llama-70b|nvidia-nemotron|nvidia-mistral|nvidia-qwen|nvidia-phi)
+  @nvidia*|nvidia-llama-405b|nvidia-llama-70b|nvidia-nemotron|nvidia-mistral|nvidia-qwen|nvidia-phi)
     _nvidia_lane="${1#@}"
-    [ "$_nvidia_lane" = "nvidia" ] && _nvidia_lane="nvidia-deepseek"
+    [ "$_nvidia_lane" = "nvidia" ] && _nvidia_lane="nvidia-llama-70b"
     shift || true
     if [ "$#" -eq 0 ]; then
       usage

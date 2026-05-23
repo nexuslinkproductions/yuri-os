@@ -1,7 +1,0 @@
-# Bridge Skill: gpt-oss-local-runtime
-This is an Antigravity bridge for the Claude skill "gpt-oss-local-runtime".
-See the core implementation at: `.claude/skills/gpt-oss-local-runtime/SKILL.md`
-
-**Instructions for Agent:**
-When executing this skill, you MUST strictly follow the instructions defined in:
-`.claude/skills/gpt-oss-local-runtime/SKILL.md`

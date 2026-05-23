@@ -10,7 +10,7 @@ const PROFILE_DIR = path.join(CONTENT_DIR, '.browser-profile');
 export interface BrowserGenOptions {
     prompt: string;
     modelId?: string;
-    provider: 'chatgpt-web' | 'gemini-web';
+    provider: 'chatgpt-web';
 }
 
 export interface BrowserGenResult {
@@ -88,55 +88,6 @@ async function generateChatGPT(prompt: string, modelId: string): Promise<Browser
     return { urls: [imgSrc], localPaths: [localPath], provider: 'chatgpt-web', model: modelId || 'chatgpt-images-2' };
 }
 
-async function generateGemini(prompt: string, modelId: string): Promise<BrowserGenResult> {
-    const { chromium } = require('playwright');
-    ensureDirs();
-
-    const isVideo = modelId === 'veo2';
-    const browser = await chromium.launchPersistentContext(PROFILE_DIR, {
-        headless: false,
-        args: ['--no-sandbox'],
-        viewport: { width: 1280, height: 900 }
-    });
-
-    const page = browser.pages()[0] || await browser.newPage();
-    await page.goto('https://gemini.google.com', { waitUntil: 'domcontentloaded', timeout: 30000 });
-
-    // Check login
-    const needsLogin = await page.locator('button:has-text("Sign in"), [data-action="SIGN_IN"]').count() > 0;
-    if (needsLogin) {
-        await browser.close();
-        throw new Error('Gemini: not logged in — open the browser profile and log in once manually');
-    }
-
-    // Type prompt
-    const input = page.locator('.ql-editor, [aria-label="Enter a prompt here"], textarea[placeholder]').first();
-    await input.click();
-    await input.fill(prompt);
-    await page.keyboard.press('Enter');
-
-    const timestamp = Date.now();
-    const ext = isVideo ? 'mp4' : 'png';
-    const destDir = isVideo ? VIDEOS_DIR : IMAGES_DIR;
-    const filename = `gemini-${timestamp}.${ext}`;
-    const localPath = path.join(destDir, filename);
-
-    // Wait for generated content
-    const resultLocator = isVideo
-        ? page.locator('video, [data-veo]').first()
-        : page.locator('img[src*="generativelanguage"], .response-container img').first();
-
-    await resultLocator.waitFor({ state: 'visible', timeout: 90000 });
-
-    const src = await resultLocator.getAttribute('src') || '';
-    if (src.startsWith('http') && !isVideo) {
-        await downloadFile(src, localPath);
-    }
-
-    await browser.close();
-    return { urls: [src], localPaths: [localPath], provider: 'gemini-web', model: modelId || 'imagen3' };
-}
-
 class BrowserAutomation {
     async generate(options: BrowserGenOptions): Promise<BrowserGenResult> {
         const available = await checkPlaywright();
@@ -150,8 +101,6 @@ class BrowserAutomation {
 
         if (provider === 'chatgpt-web') {
             return generateChatGPT(prompt, modelId);
-        } else if (provider === 'gemini-web') {
-            return generateGemini(prompt, modelId);
         }
 
         throw new Error(`Unknown provider: ${provider}`);

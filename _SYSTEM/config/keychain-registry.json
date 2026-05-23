@@ -1,0 +1,80 @@
+{
+  "servicePrefix": "YURI_OS_MUSUBI",
+  "keys": {
+    "DEEPSEEK_API_KEY": {
+      "owner": "deepseek",
+      "requiredFor": ["deepseek-v4-flash", "deepseek-v4-pro"],
+      "missing": "hard-fail"
+    },
+    "CODE_DEEPSEEK_API_KEY": {
+      "owner": "deepseek",
+      "requiredFor": ["legacy-codex-deepseek"],
+      "missing": "warn"
+    },
+    "NVIDIA_API_KEY": {
+      "owner": "nvidia-nim",
+      "requiredFor": ["nvidia-*"],
+      "missing": "hard-fail"
+    },
+    "NVIDIA_KEY_MINIMAX_M27": {
+      "owner": "nvidia-nim",
+      "requiredFor": ["nvidia-minimax-m27"],
+      "missing": "warn"
+    },
+    "MINIMAX_M27_NIM_API_KEY": {
+      "owner": "nvidia-nim",
+      "requiredFor": ["nvidia-minimax-m27"],
+      "missing": "warn"
+    },
+    "MINIMAX_NIM_API_KEY": {
+      "owner": "nvidia-nim",
+      "requiredFor": ["nvidia-minimax-m27"],
+      "missing": "warn"
+    },
+    "KIMI_API_KEY": {
+      "owner": "kimi",
+      "requiredFor": ["kimi", "moonshot"],
+      "missing": "warn"
+    },
+    "MOONSHOT_API_KEY": {
+      "owner": "moonshot",
+      "requiredFor": ["kimi", "moonshot"],
+      "missing": "warn"
+    },
+    "OPENROUTER_API_KEY": {
+      "owner": "openrouter",
+      "requiredFor": ["openrouter-free"],
+      "missing": "warn"
+    },
+    "OPENAI_API_KEY": {
+      "owner": "openai",
+      "requiredFor": ["gpt-*", "openai-*"],
+      "missing": "warn"
+    },
+    "OLLAMA_API_KEY": {
+      "owner": "ollama-cloud",
+      "requiredFor": ["ollama-cloud", "gemma-cloud"],
+      "missing": "warn"
+    },
+    "OLLAMA_CLOUD_API_KEY": {
+      "owner": "ollama-cloud",
+      "requiredFor": ["ollama-cloud", "gemma-cloud"],
+      "missing": "warn"
+    },
+    "BROWSER_USE_API_KEY": {
+      "owner": "browser-use",
+      "requiredFor": ["cloud-browser"],
+      "missing": "optional"
+    },
+    "CLOUDINARY_URL": {
+      "owner": "cloudinary",
+      "requiredFor": ["cloudinary"],
+      "missing": "optional"
+    },
+    "CLOUDINARY_API_KEY": {
+      "owner": "cloudinary",
+      "requiredFor": ["cloudinary"],
+      "missing": "optional"
+    }
+  }
+}

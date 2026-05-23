@@ -1,0 +1,643 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-05-23",
+  "purpose": "Machine-readable YURI OS folder classification map. This is navigation metadata, not a cleanup permission slip.",
+  "rules": {
+    "readByDefault": "Only canonical anchors and selected control-plane docs are read by default.",
+    "protected": "Protected paths are never read directly without an explicit owner-approved operation.",
+    "cleanup": "No path is moved or deleted until active-process, tracked-state, rebuild/archive, and rollback evidence exists."
+  },
+  "classes": [
+    "canonical_anchor",
+    "human_workspace",
+    "system_control_plane",
+    "provider_adapter",
+    "retired_provider_adapter",
+    "context_layer",
+    "runtime_cache",
+    "generated_artifact",
+    "external_tool_checkout",
+    "external_research_checkout",
+    "harvest_source",
+    "local_model_runtime",
+    "protected_surface",
+    "archive",
+    "candidate_review",
+    "context_registry",
+    "artifact_registry"
+  ],
+  "folders": [
+    {
+      "path": "_SYSTEM",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "readByDefault": true,
+      "protected": false,
+      "status": "active",
+      "notes": "Operational control plane. Prefer _SYSTEM/INDEX.md before browsing broad subtrees."
+    },
+    {
+      "path": "_SYSTEM/context",
+      "class": "context_layer",
+      "owner": "YURI",
+      "readByDefault": true,
+      "protected": false,
+      "status": "active",
+      "notes": "Context assembly layer between global authority and task-local files."
+    },
+    {
+      "path": "_SYSTEM/context/context-registry.json",
+      "class": "context_registry",
+      "owner": "YURI context layer",
+      "readByDefault": true,
+      "protected": false,
+      "status": "active",
+      "notes": "Machine-readable task-to-context packet selector."
+    },
+    {
+      "path": "_SYSTEM/docs/YURI_SKILL_EVOLUTION_PROMOTION_2026-05-23.md",
+      "class": "context_layer",
+      "owner": "YURI skills",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Promoted skill-evolution patterns from retired research surfaces into YURI-owned architecture."
+    },
+    {
+      "path": "_SYSTEM/Scripts/context-router.mjs",
+      "class": "system_control_plane",
+      "owner": "YURI context layer",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "CLI that selects a context packet for a task before broad exploration."
+    },
+    {
+      "path": "_SYSTEM/tools/browser-harness",
+      "class": "external_tool_checkout",
+      "owner": "YURI/browser-harness",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Repo-local browser automation tool. Parent repo should ignore checkout internals."
+    },
+    {
+      "path": "_SYSTEM/tools/MSA",
+      "class": "external_tool_checkout",
+      "owner": "EverMind-AI/MSA",
+      "readByDefault": false,
+      "protected": false,
+      "status": "research_tool",
+      "notes": "Memory research checkout. Not active runtime unless promoted."
+    },
+    {
+      "path": "_SYSTEM/tools/nemo-guardrails",
+      "class": "external_tool_checkout",
+      "owner": "NVIDIA NeMo Guardrails",
+      "readByDefault": false,
+      "protected": false,
+      "status": "research_tool",
+      "notes": "Cloned Guardrails repo for research/reference."
+    },
+    {
+      "path": "_SYSTEM/yuri-wiki",
+      "class": "context_layer",
+      "owner": "YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_projection",
+      "notes": "Curated wiki/RAG projection. Advisory context; registry/local repo truth outranks it."
+    },
+    {
+      "path": ".agents",
+      "class": "system_control_plane",
+      "owner": "YURI skills",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "YURI skill library and agent skill roots. Read specific skills only."
+    },
+    {
+      "path": ".claude",
+      "class": "provider_adapter",
+      "owner": "Claude CLI adapter",
+      "readByDefault": false,
+      "protected": false,
+      "status": "dormant_adapter",
+      "notes": "Provider adapter/runtime surface. Use only when Claude CLI tasks require it; not a policy source."
+    },
+    {
+      "path": ".clauderules",
+      "class": "provider_adapter",
+      "owner": "Claude-compatible tooling",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Thin provider rule file. Must not duplicate global policy."
+    },
+    {
+      "path": ".codex",
+      "class": "provider_adapter",
+      "owner": "Codex adapter",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_adapter",
+      "notes": "Codex adapter and local skills. Not a separate policy source."
+    },
+    {
+      "path": ".codex-worktrees",
+      "class": "runtime_cache",
+      "owner": "Codex",
+      "readByDefault": false,
+      "protected": false,
+      "status": "cleanup_candidate",
+      "notes": "Untracked worktree scratch. Confirm no active session before cleanup."
+    },
+    {
+      "path": ".DS_Store",
+      "class": "runtime_cache",
+      "owner": "macOS",
+      "readByDefault": false,
+      "protected": false,
+      "status": "ignored",
+      "notes": "macOS metadata. Never source truth."
+    },
+    {
+      "path": ".env",
+      "class": "protected_surface",
+      "owner": "Secrets",
+      "readByDefault": false,
+      "protected": true,
+      "status": "sealed",
+      "notes": "Never read directly."
+    },
+    {
+      "path": ".gitattributes",
+      "class": "canonical_anchor",
+      "owner": "Git",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Git metadata. Read only for git behavior tasks."
+    },
+    {
+      "path": ".gitignore",
+      "class": "canonical_anchor",
+      "owner": "Git",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Ignore contract. Read for cleanup and generated artifact work."
+    },
+    {
+      "path": ".gitnexus",
+      "class": "runtime_cache",
+      "owner": "GitNexus",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_runtime",
+      "notes": "GitNexus index/cache. Use GitNexus tools or CLI instead of reading broadly."
+    },
+    {
+      "path": ".graphifyignore",
+      "class": "provider_adapter",
+      "owner": "Graphify",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Graphify ignore contract."
+    },
+    {
+      "path": ".obsidian",
+      "class": "provider_adapter",
+      "owner": "Workspace view adapter",
+      "readByDefault": false,
+      "protected": false,
+      "status": "optional_adapter",
+      "notes": "Vault/workspace view settings only. Does not own memory or routing."
+    },
+    {
+      "path": ".obsidianignore",
+      "class": "provider_adapter",
+      "owner": "Obsidian",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Obsidian ignore contract."
+    },
+    {
+      "path": ".sharingan",
+      "class": "system_control_plane",
+      "owner": "YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Pattern briefs and reverse-engineering notes. Read only for pattern work."
+    },
+    {
+      "path": ".smart-env",
+      "class": "runtime_cache",
+      "owner": "unknown",
+      "readByDefault": false,
+      "protected": false,
+      "status": "candidate_review",
+      "notes": "Large generated environment/cache. Needs owner/rebuild proof."
+    },
+    {
+      "path": ".tmp",
+      "class": "runtime_cache",
+      "owner": "YURI/tools",
+      "readByDefault": false,
+      "protected": false,
+      "status": "cleanup_candidate",
+      "notes": "Temporary runtime scratch. Confirm ownership before cleanup."
+    },
+    {
+      "path": ".vscode",
+      "class": "provider_adapter",
+      "owner": "Editor adapter",
+      "readByDefault": false,
+      "protected": false,
+      "status": "optional_adapter",
+      "notes": "Editor settings only. Does not own policy."
+    },
+    {
+      "path": "00_COMMAND-CENTER",
+      "class": "human_workspace",
+      "owner": "Marcel/YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Daily command surface and dashboard-adjacent workspace."
+    },
+    {
+      "path": "01_PROJECTS",
+      "class": "human_workspace",
+      "owner": "Marcel/YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Active projects. Contains some external checkouts that need sub-classification."
+    },
+    {
+      "path": "02_AREAS",
+      "class": "human_workspace",
+      "owner": "Marcel/YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Ongoing responsibility areas."
+    },
+    {
+      "path": "03_RESOURCES",
+      "class": "human_workspace",
+      "owner": "Marcel/YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Durable resources, research, design, and reusable references."
+    },
+    {
+      "path": "04_FINANCE",
+      "class": "human_workspace",
+      "owner": "Marcel",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_private",
+      "notes": "Finance context. Read only for finance tasks."
+    },
+    {
+      "path": "05_NEXUS-LINK",
+      "class": "human_workspace",
+      "owner": "Nexus Link/YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Company identity, strategy, and public-facing work."
+    },
+    {
+      "path": "07_ARCHIVE",
+      "class": "archive",
+      "owner": "YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "archive",
+      "notes": "Historical/inactive work. Not source truth unless explicitly referenced."
+    },
+    {
+      "path": "AGENTS.md",
+      "class": "canonical_anchor",
+      "owner": "Codex adapter",
+      "readByDefault": true,
+      "protected": false,
+      "status": "active",
+      "notes": "Codex-facing adapter. Must inherit canonical policy, not duplicate it."
+    },
+    {
+      "path": "backend",
+      "class": "candidate_review",
+      "owner": "YURI backend",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Backend surface. backend/data is protected and must remain sealed."
+    },
+    {
+      "path": "backend/data",
+      "class": "protected_surface",
+      "owner": "Backend",
+      "readByDefault": false,
+      "protected": true,
+      "status": "sealed",
+      "notes": "Never read directly. Use approved wrappers only."
+    },
+    {
+      "path": "checkpoints",
+      "class": "runtime_cache",
+      "owner": "YURI/runtime",
+      "readByDefault": false,
+      "protected": false,
+      "status": "cleanup_candidate",
+      "notes": "Checkpoint output. Confirm before cleanup."
+    },
+    {
+      "path": "Claude Code URL Handler.app",
+      "class": "external_tool_checkout",
+      "owner": "Claude tooling",
+      "readByDefault": false,
+      "protected": false,
+      "status": "ignore",
+      "notes": "Local app bundle. Do not read by default."
+    },
+    {
+      "path": "claude-palace-out",
+      "class": "generated_artifact",
+      "owner": "Claude Palace",
+      "readByDefault": false,
+      "protected": false,
+      "status": "cleanup_candidate",
+      "notes": "Generated output. Confirm rebuild/archive before cleanup."
+    },
+    {
+      "path": "CLAUDE.md",
+      "class": "canonical_anchor",
+      "owner": "Claude adapter",
+      "readByDefault": true,
+      "protected": false,
+      "status": "active",
+      "notes": "Claude-facing adapter. Must inherit canonical policy, not duplicate it."
+    },
+    {
+      "path": "debug-hardstop.mjs",
+      "class": "candidate_review",
+      "owner": "YURI/debug",
+      "readByDefault": false,
+      "protected": false,
+      "status": "legacy_review",
+      "notes": "Debug script. Needs owner and current use confirmation."
+    },
+    {
+      "path": "debug-preflight.mjs",
+      "class": "candidate_review",
+      "owner": "YURI/debug",
+      "readByDefault": false,
+      "protected": false,
+      "status": "legacy_review",
+      "notes": "Debug script. Needs owner and current use confirmation."
+    },
+    {
+      "path": "dist",
+      "class": "generated_artifact",
+      "owner": "Build system",
+      "readByDefault": false,
+      "protected": false,
+      "status": "cleanup_candidate",
+      "notes": "Build output. Regenerate rather than read by default."
+    },
+    {
+      "path": "ecosystem.config.cjs",
+      "class": "runtime_cache",
+      "owner": "PM2/runtime",
+      "readByDefault": false,
+      "protected": false,
+      "status": "ignored_review",
+      "notes": "Ignored process config variant. Confirm whether legacy."
+    },
+    {
+      "path": "ecosystem.config.js",
+      "class": "canonical_anchor",
+      "owner": "PM2/runtime",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Runtime process config. Read only for process management tasks."
+    },
+    {
+      "path": "GeneratedContent",
+      "class": "generated_artifact",
+      "owner": "external symlink",
+      "readByDefault": false,
+      "protected": false,
+      "status": "candidate_review",
+      "notes": "Symlink to external generated content. Do not follow by default."
+    },
+    {
+      "path": "graph",
+      "class": "generated_artifact",
+      "owner": "Graph tooling",
+      "readByDefault": false,
+      "protected": false,
+      "status": "cleanup_candidate",
+      "notes": "Generated graph output; not source truth."
+    },
+    {
+      "path": "graphify-out",
+      "class": "generated_artifact",
+      "owner": "Graphify",
+      "readByDefault": false,
+      "protected": false,
+      "status": "cleanup_candidate",
+      "notes": "Generated graphify output; not source truth."
+    },
+    {
+      "path": "integrations",
+      "class": "external_research_checkout",
+      "owner": "YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "candidate_review",
+      "notes": "Integration research/checkouts. Needs per-child registry rows."
+    },
+    {
+      "path": "logs",
+      "class": "runtime_cache",
+      "owner": "YURI/runtime",
+      "readByDefault": false,
+      "protected": false,
+      "status": "cleanup_candidate",
+      "notes": "Runtime logs. Use targeted tail commands, not broad context reads."
+    },
+    {
+      "path": "needle",
+      "class": "local_model_runtime",
+      "owner": "YURI local models",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_or_review",
+      "notes": "Needle is a tiny local language model/runtime surface. Use through YURI routing/health contracts."
+    },
+    {
+      "path": "NEURAL-NETWORK",
+      "class": "external_research_checkout",
+      "owner": "YURI research",
+      "readByDefault": false,
+      "protected": false,
+      "status": "candidate_review",
+      "notes": "Large research/vendor area. Needs per-child ownership map."
+    },
+    {
+      "path": "node_modules",
+      "class": "protected_surface",
+      "owner": "Package managers",
+      "readByDefault": false,
+      "protected": true,
+      "status": "sealed",
+      "notes": "Never inspect manually. Use package manifests and lockfiles."
+    },
+    {
+      "path": "output",
+      "class": "generated_artifact",
+      "owner": "YURI/tools",
+      "readByDefault": false,
+      "protected": false,
+      "status": "cleanup_candidate",
+      "notes": "General generated output. Needs per-child classification if retained."
+    },
+    {
+      "path": "package-lock.json",
+      "class": "canonical_anchor",
+      "owner": "Node workspace",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Read for dependency integrity tasks."
+    },
+    {
+      "path": "package.json",
+      "class": "canonical_anchor",
+      "owner": "Node workspace",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Read for Node scripts/dependency tasks."
+    },
+    {
+      "path": "README.md",
+      "class": "canonical_anchor",
+      "owner": "YURI",
+      "readByDefault": true,
+      "protected": false,
+      "status": "active",
+      "notes": "Human-facing root orientation. Should point toward _SYSTEM/INDEX.md."
+    },
+    {
+      "path": "ruvector.db",
+      "class": "runtime_cache",
+      "owner": "vector/runtime",
+      "readByDefault": false,
+      "protected": false,
+      "status": "ignore",
+      "notes": "Database artifact. Do not inspect by default."
+    },
+    {
+      "path": "Scripts",
+      "class": "candidate_review",
+      "owner": "unknown",
+      "readByDefault": false,
+      "protected": false,
+      "status": "legacy_review",
+      "notes": "Root Scripts is ambiguous because _SYSTEM/Scripts is canonical."
+    },
+    {
+      "path": "SOUL.md",
+      "class": "canonical_anchor",
+      "owner": "YURI",
+      "readByDefault": true,
+      "protected": false,
+      "status": "active",
+      "notes": "Persona and cognitive workflow source."
+    },
+    {
+      "path": "test",
+      "class": "candidate_review",
+      "owner": "YURI",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_or_legacy_review",
+      "notes": "Root test directory. Needs relationship to current test strategy."
+    },
+    {
+      "path": "tsconfig.json",
+      "class": "canonical_anchor",
+      "owner": "TypeScript",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Read for TypeScript tasks."
+    },
+    {
+      "path": "tsconfig.node.json",
+      "class": "canonical_anchor",
+      "owner": "TypeScript",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Read for Node TypeScript tasks."
+    },
+    {
+      "path": "vite.config.mts",
+      "class": "canonical_anchor",
+      "owner": "Frontend build",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Read for frontend build tasks."
+    },
+    {
+      "path": "Volumes",
+      "class": "runtime_cache",
+      "owner": "macOS/external volume mirror",
+      "readByDefault": false,
+      "protected": false,
+      "status": "ignore",
+      "notes": "Ignored volume/link artifact. Do not read by default."
+    },
+    {
+      "path": "yuri-os-dashboard.html",
+      "class": "candidate_review",
+      "owner": "YURI/dashboard",
+      "readByDefault": false,
+      "protected": false,
+      "status": "legacy_review",
+      "notes": "Root dashboard artifact. Determine whether source or generated output."
+    },
+    {
+      "path": "YURI-SENTINEL",
+      "class": "external_tool_checkout",
+      "owner": "YURI Sentinel",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_or_legacy_review",
+      "notes": "Sentinel-related checkout/output. Needs active runtime confirmation."
+    },
+    {
+      "path": "yuri.db",
+      "class": "runtime_cache",
+      "owner": "YURI/runtime",
+      "readByDefault": false,
+      "protected": false,
+      "status": "ignore",
+      "notes": "Database artifact. Do not inspect by default."
+    }
+  ]
+}

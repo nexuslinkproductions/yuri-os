@@ -1,7 +1,0 @@
-# Bridge Skill: research-artifact-factory
-This is an Antigravity bridge for the Claude skill "research-artifact-factory".
-See the core implementation at: `.claude/skills/research-artifact-factory/SKILL.md`
-
-**Instructions for Agent:**
-When executing this skill, you MUST strictly follow the instructions defined in:
-`.claude/skills/research-artifact-factory/SKILL.md`

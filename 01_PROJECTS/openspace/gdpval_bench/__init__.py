@@ -1,1 +1,0 @@
-# GDPVal Benchmark for OpenSpace
