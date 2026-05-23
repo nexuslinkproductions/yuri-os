@@ -104,14 +104,14 @@ test('Rick routes explicit Codex and Sonnet coding aliases', async () => {
   assert.equal(__test__.detectRoute('@claude review this').route.lane, '@claude');
 });
 
-test('Rick /goal surfaces the current YURI supercharge goal artifact', async () => {
+test('Rick /goal surfaces the current YURI self-improvement goal artifact', async () => {
   const { __test__ } = await import('./rick-repl.mjs');
   const goal = __test__.goalText();
 
-  assert.match(goal, /YURI OS Forensic Supercharge Goal/);
+  assert.match(goal, /YURI OS Disciplined Self-Improvement Goal/);
   assert.match(goal, /Goal checklist:/);
   assert.match(goal, /Task gates:/);
-  assert.match(goal, /YURI_OS_FORENSIC_SUPERCHARGE_GOAL_2026-05-20\.md/);
+  assert.match(goal, /YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23\.md/);
 });
 
 test('Rick /status returns structured release and health fields', async () => {

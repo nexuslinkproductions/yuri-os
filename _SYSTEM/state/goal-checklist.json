@@ -2,47 +2,52 @@
   "schemaVersion": "1.0",
   "items": [
     {
-      "goal": "canonical Shintai/NIM/Codex/Claude lane routing",
-      "rating": "PASS",
-      "met": true,
-      "evidence": "lane-kernel.mjs exports active/dead lanes; offload-runner.mjs substitutes quarantined lanes"
-    },
-    {
-      "goal": "persistent universal memory with clear recall/write ownership",
-      "rating": "PASS",
-      "met": true,
-      "evidence": "memory-kernel.mjs exposes recallMemory, recallEntries, appendMemoryEntry, and Claude-import-only surfaces"
-    },
-    {
-      "goal": "local browser-harness research and documentation capture",
-      "rating": "PASS",
-      "met": true,
-      "evidence": "_SYSTEM/tools/browser-harness is repo-local external checkout; browser-harness-runner.sh targets local CLI"
-    },
-    {
-      "goal": "production automation health and recovery",
-      "rating": "PASS",
-      "met": true,
-      "evidence": "kagami-overseer.mjs quarantine, auto-unquarantine, health-status, and release gate evidence"
-    },
-    {
-      "goal": "NeMo-style guardrails for input, retrieval, dialog, execution, output, tool, and health rails",
-      "rating": "WARN",
+      "goal": "canonical context spine stays current",
+      "rating": "ACTIVE",
       "met": false,
-      "note": "Execution sub-rails are enforced; retrieval/output rails exist but still need a dedicated final wiring proof across every dispatch surface"
+      "evidence": "_SYSTEM/context/context-registry.json and _SYSTEM/INDEX.md exist; needs routine updates as domains grow"
     },
     {
-      "goal": "regression tests that prevent stale aliases, dead lanes, protected path writes, fake dispatch policy, and timeout regressions",
-      "rating": "PASS",
-      "met": true,
-      "evidence": "lane-kernel, Rick runtime, offload rails, memory-kernel, and supercharge gate tests cover these contracts"
-    },
-    {
-      "goal": "critical-tier Shintai self-improvement run for Memory/RAG, skill recall, neurodivergency activation, and external memory-agent research",
-      "rating": "QUEUED_AFTER_HTML",
+      "goal": "memory promotion system is explicit and reviewable",
+      "rating": "ACTIVE",
       "met": false,
-      "evidence": "_SYSTEM/docs/YURI_OS_SELF_IMPROVEMENT_MEMORY_RAG_SHINTAI_GOAL_2026-05-21.md",
-      "note": "Must run through Shintai with Gate 0 evidence, EverMind-AI/MSA clone, browser/web research, member contradictions, and Codex arbitration before patches."
+      "evidence": "memory kernel exists; promotion proposals and user-profile activation still need final hardening"
+    },
+    {
+      "goal": "goal ledger and task continuity are visible through Rick",
+      "rating": "ACTIVE",
+      "met": false,
+      "evidence": "/goal now points at disciplined self-improvement; next step is richer goal state updates after sprints"
+    },
+    {
+      "goal": "persistent Claude and DeepSeek sessions replace one-shot prompt calls",
+      "rating": "ACTIVE",
+      "met": false,
+      "evidence": "Claude one-shot routes fail closed; Kagami/tmux PTY bridge and DeepSeek session cache still need full operating proof"
+    },
+    {
+      "goal": "failure evolution loop converts corrections into tests, rails, docs, or memory proposals",
+      "rating": "ACTIVE",
+      "met": false,
+      "note": "Pattern is active manually; needs automated capture after failed harness runs, dispatch drift, and user corrections"
+    },
+    {
+      "goal": "registry and storage hygiene prevent new clutter",
+      "rating": "ACTIVE",
+      "met": false,
+      "evidence": "folder registry and storage protocol exist; future artifact creation must enforce classification"
+    },
+    {
+      "goal": "cybersecurity product spine ties research to labs, scanner rules, guardrails, and client reports",
+      "rating": "ACTIVE",
+      "met": false,
+      "evidence": "cyber matrix and lab harness work exist; next work must turn rows into proof surfaces"
+    },
+    {
+      "goal": "release proof remains mandatory before claiming completion",
+      "rating": "ACTIVE",
+      "met": false,
+      "evidence": "secret scan and protected-path tracking checks are in place; every major sprint needs the same discipline"
     }
   ]
 }

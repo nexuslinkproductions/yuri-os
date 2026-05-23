@@ -21,6 +21,7 @@
         "_SYSTEM/context/README.md",
         "_SYSTEM/INDEX.md",
         "_SYSTEM/config/folder-registry.json",
+        "_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md",
         "_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md"
       ],
       "loadRule": "Read before broad filesystem exploration."

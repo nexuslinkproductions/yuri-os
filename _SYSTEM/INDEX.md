@@ -12,6 +12,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `SOUL.md` | Persona, cognitive workflow, and collaboration style. |
 | `_SYSTEM/context/README.md` | Context layer: how task context, wiki, registry, memory, and research are assembled before implementation. |
 | `_SYSTEM/context/context-registry.json` | Machine-readable context packet selector. |
+| `_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md` | Active `/goal`: disciplined cleanup, memory, navigation, persistent lanes, and cyber companion growth. |
 | `_SYSTEM/docs/YURI_OS_STRUCTURE_CLEANUP_AUDIT_2026-05-23.md` | Current structure cleanup audit and cleanup waves. |
 | `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md` | Where new docs/scripts/reports/registries/runtimes should live and how to classify them. |
 | `_SYSTEM/config/folder-registry.json` | Machine-readable folder classification map. |
