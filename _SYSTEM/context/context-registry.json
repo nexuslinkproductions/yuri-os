@@ -58,8 +58,8 @@
       "triggers": ["memory", "rag", "recall", "neuron", "profile", "eot", "wiki"],
       "paths": [
         "_SYSTEM/yuri-wiki/index.md",
+        "_SYSTEM/Scripts/memory-kernel.mjs",
         "_SYSTEM/Scripts/yuri-memory-map.mjs",
-        "_SYSTEM/Scripts/lane-memory.mjs",
         "_SYSTEM/Scripts/lane-session.mjs",
         "_SYSTEM/Scripts/yuri-persona-check.mjs"
       ],
@@ -70,9 +70,13 @@
       "label": "Cybersecurity Build Context",
       "triggers": ["cyber", "security", "threat", "upgreat", "client", "red team", "blue team", "guardrail"],
       "paths": [
-        "_SYSTEM/docs/YURI_CYBERSECURITY_COMPANY_MASTER_PLAN_2026-05-22.md",
-        "_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-21.md",
+        "_SYSTEM/docs/YURI_OS_CYBERSECURITY_COMPANY_SUPERCHARGE_GOAL_2026-05-22.md",
+        "_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md",
+        "_SYSTEM/docs/YURI_GLOBAL_CYBER_THREAT_INTEL_INGESTION_PROTOCOL_2026-05-22.md",
         "_SYSTEM/docs/YURI_OS_NEMO_GUARDRAIL_MATRIX_2026-05-20.md",
+        "_SYSTEM/Scripts/threat-intel-kernel.mjs",
+        "_SYSTEM/Scripts/security-lens.mjs",
+        "_SYSTEM/Scripts/cyber-lab-harness.mjs",
         "_SYSTEM/Scripts/rails.mjs",
         "_SYSTEM/Scripts/secret-leak-scan.mjs"
       ],
@@ -86,7 +90,8 @@
         "_SYSTEM/Scripts/automation-kernel.mjs",
         "_SYSTEM/Scripts/worker-tmux.mjs",
         "_SYSTEM/Scripts/worker-bridge.mjs",
-        "_SYSTEM/Scripts/health-aggregator.mjs",
+        "_SYSTEM/Scripts/health-status.mjs",
+        "_SYSTEM/Scripts/yuri-health.mjs",
         "_SYSTEM/Scripts/yuri-supercharge-gate.mjs"
       ],
       "loadRule": "Use health wrappers and state summaries rather than protected raw state."
