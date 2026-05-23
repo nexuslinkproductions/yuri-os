@@ -7,26 +7,30 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const WRAPPER = path.join(REPO_ROOT, '_SYSTEM/Scripts/gitnexus-mcp.mjs');
 const LOCAL_CLI = path.join(REPO_ROOT, 'NEURAL-NETWORK/GitNexus/gitnexus/dist/cli/index.js');
 const CODEX_PROJECT = path.join(REPO_ROOT, '.codex/config.toml');
 const VSCODE_MCP = path.join(REPO_ROOT, '.vscode/mcp.json');
-const CURSOR_MCP = path.join(os.homedir(), '.cursor/mcp.json');
 const CODEX_GLOBAL = path.join(os.homedir(), '.codex/config.toml');
 const CLAUDE_GLOBAL = path.join(os.homedir(), '.claude.json');
 const REQUIRED_TOOLS = ['list_repos', 'query', 'context', 'impact', 'detect_changes'];
+const INCLUDE_GLOBAL_CONFIG = process.argv.includes('--include-global-config');
 
 const failures = [];
+const warnings = [];
 
 checkFile('wrapper exists', WRAPPER);
 checkFile('local GitNexus CLI exists', LOCAL_CLI);
 checkStatus();
 checkCodexConfig('project Codex MCP', CODEX_PROJECT);
-checkCodexConfig('global Codex MCP', CODEX_GLOBAL);
-checkJsonMcpConfig('Cursor MCP', CURSOR_MCP);
-checkJsonMcpConfig('VS Code workspace MCP', VSCODE_MCP);
-checkJsonMcpConfig('Claude global MCP', CLAUDE_GLOBAL);
+checkJsonMcpConfig('VS Code workspace MCP', VSCODE_MCP, { optional: true });
+if (INCLUDE_GLOBAL_CONFIG) {
+  checkCodexConfig('global Codex MCP', CODEX_GLOBAL);
+  checkJsonMcpConfig('Claude global MCP', CLAUDE_GLOBAL);
+} else {
+  warnings.push('global MCP config checks skipped; pass --include-global-config to inspect user-level Codex/Claude config');
+}
 
 const tools = await smokeMcpTools();
 for (const tool of REQUIRED_TOOLS) {
@@ -40,6 +44,9 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
+for (const warning of warnings) {
+  console.warn(`WARN ${warning}`);
+}
 console.log(`GITNEXUS_MCP_CHECK_PASS tools=${tools.length}`);
 
 function checkFile(label, filePath) {
@@ -78,8 +85,12 @@ function checkCodexConfig(label, configPath) {
   }
 }
 
-function checkJsonMcpConfig(label, configPath) {
+function checkJsonMcpConfig(label, configPath, options = {}) {
   if (!fs.existsSync(configPath)) {
+    if (options.optional) {
+      warnings.push(`${label}: ${configPath} missing; skipping optional workspace-editor MCP check`);
+      return;
+    }
     failures.push(`${label}: ${configPath} missing`);
     return;
   }

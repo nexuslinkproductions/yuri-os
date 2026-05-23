@@ -38,7 +38,7 @@ tool_timeout_sec = 21600
 
 [mcp_servers.gitnexus]
 command = "node"
-args = ["/Users/marcelspatz/YURI-OS-MUSUBI/Scripts/gitnexus-mcp.mjs"]
+args = ["/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/gitnexus-mcp.mjs"]
 enabled = true
 startup_timeout_sec = 10
 tool_timeout_sec = 180
