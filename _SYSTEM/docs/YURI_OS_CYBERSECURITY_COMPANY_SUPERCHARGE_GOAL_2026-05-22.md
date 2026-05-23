@@ -259,6 +259,9 @@ Artifacts:
 - Meeting packet generator: `_SYSTEM/Scripts/cyber-meeting-pack.mjs`
 - Meeting packet tests: `_SYSTEM/Scripts/cyber-meeting-pack.test.mjs`
 - Meeting packet report: `_SYSTEM/reports/YURI_UPGREAT_MEETING_PACKET_2026-05-23.md`
+- Demo transcript runner: `_SYSTEM/Scripts/cyber-demo-runner.mjs`
+- Demo transcript tests: `_SYSTEM/Scripts/cyber-demo-runner.test.mjs`
+- Demo transcript report: `_SYSTEM/reports/YURI_UPGREAT_DEMO_TRANSCRIPT_2026-05-23.md`
 
 ### Wave C8: Regional Packs
 
