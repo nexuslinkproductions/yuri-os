@@ -256,6 +256,9 @@ Artifacts:
 - Pilot pack generator: `_SYSTEM/Scripts/cyber-pilot-pack.mjs`
 - Regression tests: `_SYSTEM/Scripts/cyber-pilot-pack.test.mjs`
 - Upgreat pilot report: `_SYSTEM/reports/YURI_UPGREAT_PILOT_READINESS_2026-05-22.md`
+- Meeting packet generator: `_SYSTEM/Scripts/cyber-meeting-pack.mjs`
+- Meeting packet tests: `_SYSTEM/Scripts/cyber-meeting-pack.test.mjs`
+- Meeting packet report: `_SYSTEM/reports/YURI_UPGREAT_MEETING_PACKET_2026-05-23.md`
 
 ### Wave C8: Regional Packs
 

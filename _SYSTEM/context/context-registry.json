@@ -80,6 +80,7 @@
         "_SYSTEM/Scripts/cyber-guardrail-proof.mjs",
         "_SYSTEM/Scripts/cyber-proof-cards.mjs",
         "_SYSTEM/Scripts/cyber-pilot-pack.mjs",
+        "_SYSTEM/Scripts/cyber-meeting-pack.mjs",
         "_SYSTEM/Scripts/rails.mjs",
         "_SYSTEM/Scripts/secret-leak-scan.mjs"
       ],
