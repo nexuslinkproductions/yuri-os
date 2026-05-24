@@ -1,0 +1,64 @@
+{
+  "schema": "yuri.cyber-authorized-replay-scope.v0",
+  "generatedAt": "2026-05-24T16:21:27.878Z",
+  "status": "blocked_until_signed_scope",
+  "client": "Upgreat pilot candidate",
+  "authorization": {
+    "writtenAuthorization": false,
+    "authorizedBy": null,
+    "authorizationReference": null,
+    "timeWindow": null,
+    "emergencyStopContact": null
+  },
+  "allowedSurfaces": [
+    "owned local synthetic fixture",
+    "client-provided owned staging URL after written authorization",
+    "client-provided AI-agent/tool manifest after written authorization",
+    "client-provided repository snapshot after written authorization"
+  ],
+  "allowedActions": [
+    "read-only DOM/CDP inspection",
+    "read-only manifest/schema review",
+    "read-only repository/static analysis",
+    "local fixture replay",
+    "report-only finding documentation"
+  ],
+  "forbiddenActions": [
+    "unscoped external scanning",
+    "credential capture or credential replay",
+    "form submission against client systems",
+    "malware execution",
+    "DDoS or availability pressure outside local owned systems",
+    "persistence, lateral movement, or data exfiltration"
+  ],
+  "requiredArtifactsBeforeExecution": [
+    "_SYSTEM/reports/YURI_CYBER_PROOF_CARDS_2026-05-23.md",
+    "_SYSTEM/reports/YURI_CYBER_RETEST_PROOF_2026-05-24.md",
+    "_SYSTEM/reports/YURI_BROWSER_REPLAY_PROOF_2026-05-24.md"
+  ],
+  "dataHandling": [
+    "no secrets copied into prompts or reports",
+    "client evidence redacted before durable storage",
+    "protected paths remain sealed unless a migration wrapper explicitly exports safe summaries",
+    "findings split into executive summary and technical reproduction notes"
+  ],
+  "stopConditions": [
+    "scope ambiguity",
+    "unexpected credential exposure",
+    "client system instability",
+    "request for out-of-scope offensive action",
+    "missing owner contact during active replay"
+  ],
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "blockers": [
+      "written authorization missing",
+      "authorizedBy missing",
+      "authorizationReference missing",
+      "timeWindow missing",
+      "emergencyStopContact missing"
+    ]
+  },
+  "releaseAllowed": false
+}

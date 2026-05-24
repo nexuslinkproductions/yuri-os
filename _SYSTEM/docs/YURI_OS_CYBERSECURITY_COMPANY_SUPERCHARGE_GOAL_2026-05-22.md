@@ -273,10 +273,16 @@ Artifacts:
 - Browser replay proof tests: `_SYSTEM/Scripts/cyber-browser-replay.test.mjs`
 - Browser replay proof matrix: `_SYSTEM/data/cyber-intel/browser-replay-proof.json`
 - Browser replay proof report: `_SYSTEM/reports/YURI_BROWSER_REPLAY_PROOF_2026-05-24.md`
+- Authorized replay scope generator: `_SYSTEM/Scripts/cyber-authorized-replay-scope.mjs`
+- Authorized replay scope tests: `_SYSTEM/Scripts/cyber-authorized-replay-scope.test.mjs`
+- Authorized replay scope data: `_SYSTEM/data/cyber-intel/authorized-replay-scope.json`
+- Authorized replay scope report: `_SYSTEM/reports/YURI_AUTHORIZED_REPLAY_SCOPE_2026-05-24.md`
 
 Current boundary: Upgreat-facing material may show before/after retest proof only for deterministic local fixtures: threat-shaped cases are detected safely before remediation, benign/remediated controls pass after. It must not imply production remediation proof, external target testing, or client guarantee.
 
 Browser replay boundary: browser-harness evidence is limited to repo-local `file://` fixtures, DOM/CDP read-only inspection, no screenshots required, no form submission, and no external target activity.
+
+Authorized replay boundary: partner/client replay remains blocked until written authorization, owner metadata, time window, emergency stop contact, allowed surfaces, and forbidden actions are present. No written scope means no execution.
 
 ### Wave C8: Regional Packs
 

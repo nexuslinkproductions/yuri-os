@@ -460,6 +460,18 @@
       "notes": "Records optional browser-harness DOM replay proof for owned local cyber fixtures."
     },
     {
+      "path": "_SYSTEM/Scripts/cyber-authorized-replay-scope.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI cyber authorization",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cyber runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run authorized-replay-scope tests and write the blocked-by-default scope report.",
+      "notes": "Fail-closed authorization contract before partner/client replay."
+    },
+    {
       "path": "_SYSTEM/Scripts/cyber-proof-cards.mjs",
       "type": "script",
       "class": "system_control_plane",
@@ -592,6 +604,18 @@
       "notes": "Structured browser-harness replay proof for the owned fake portal fixture."
     },
     {
+      "path": "_SYSTEM/data/cyber-intel/authorized-replay-scope.json",
+      "type": "data",
+      "class": "generated_artifact",
+      "owner": "YURI cyber authorization",
+      "status": "generated",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Derived cyber authorization data lives in _SYSTEM/data/cyber-intel/.",
+      "rebuildRule": "node _SYSTEM/Scripts/cyber-authorized-replay-scope.mjs --write",
+      "notes": "Machine-readable blocked-by-default client replay authorization scope."
+    },
+    {
       "path": "_SYSTEM/labs/cyber/lab-manifest.json",
       "type": "data",
       "class": "system_control_plane",
@@ -650,6 +674,18 @@
       "storageRule": "Cyber reports live in _SYSTEM/reports/.",
       "rebuildRule": "node _SYSTEM/Scripts/cyber-browser-replay.mjs --run --write",
       "notes": "Human-readable local browser-harness replay proof."
+    },
+    {
+      "path": "_SYSTEM/reports/YURI_AUTHORIZED_REPLAY_SCOPE_2026-05-24.md",
+      "type": "report",
+      "class": "generated_artifact",
+      "owner": "YURI cyber authorization",
+      "status": "generated_report",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cyber reports live in _SYSTEM/reports/.",
+      "rebuildRule": "node _SYSTEM/Scripts/cyber-authorized-replay-scope.mjs --write",
+      "notes": "Human-readable authorization gate for partner/client replay."
     },
     {
       "path": "_SYSTEM/reports/YURI_CYBER_PROOF_CARDS_2026-05-23.md",
