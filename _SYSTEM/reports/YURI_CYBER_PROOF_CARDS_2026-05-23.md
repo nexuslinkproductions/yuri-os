@@ -1,6 +1,6 @@
 # YURI Cyber Proof Cards
 
-Generated: 2026-05-23T14:05:17.548Z
+Generated: 2026-05-23T14:10:56.683Z
 
 ## Purpose
 
