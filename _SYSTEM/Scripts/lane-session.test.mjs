@@ -65,3 +65,21 @@ test('legacy Claude lane sessions migrate into YURI-owned state through the wrap
     rmSync(legacyDir, { recursive: true, force: true });
   }
 });
+
+test('lane compaction omits prior lane-memory turns to prevent recursive cache bloat', async () => {
+  const mod = await importFreshLaneSession();
+  const history = [
+    { role: 'system', content: '[LANE-MEMORY] Earlier summary that should not be re-summarized '.repeat(20) },
+    { role: 'user', content: 'first concrete user task '.repeat(20) },
+    { role: 'assistant', content: 'first concrete answer '.repeat(20) },
+    { role: 'user', content: 'recent task '.repeat(10) },
+    { role: 'assistant', content: 'recent answer '.repeat(10) },
+  ];
+
+  const result = mod.compactHistory(history, { budgetChars: 400, summaryChars: 600 });
+
+  assert.equal(result.trimmed, true);
+  assert.equal(result.omittedLaneMemoryTurns, 1);
+  assert.match(result.history[0].content, /prior LANE-MEMORY turns were not re-summarized/);
+  assert.doesNotMatch(result.history[0].content, /Earlier summary that should not be re-summarized/);
+});

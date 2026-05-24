@@ -292,6 +292,18 @@
       "notes": "Validates artifacts and classifies future paths."
     },
     {
+      "path": "_SYSTEM/Scripts/lane-cache-rotator.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI lane sessions",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run lane-cache-rotator and lane-session tests.",
+      "notes": "Compacts YURI-owned lane sessions and refuses protected/non-YURI stores."
+    },
+    {
       "path": "_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md",
       "type": "doc",
       "class": "system_control_plane",

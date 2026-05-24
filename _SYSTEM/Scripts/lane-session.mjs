@@ -45,7 +45,8 @@ const PERSISTENT_LANE_PREFIXES = [
 // Soft budget — when total chars across history exceed this, the oldest half
 // gets summarized into a single synthetic "lane memory" entry before the next
 // dispatch. Keeps the lane bounded without losing accumulated context.
-const TOKEN_BUDGET_CHARS = 120_000; // ~30K tokens at 4 chars/token
+export const TOKEN_BUDGET_CHARS = 120_000; // ~30K tokens at 4 chars/token
+const DEFAULT_SUMMARY_CHARS = 4000;
 
 function isPersistentLane(modelId) {
   if (!modelId) return false;
@@ -146,26 +147,64 @@ function migrateLegacyIfNeeded(modelId, sessionName) {
 // Trim history when over budget: keep the most recent 60% verbatim, replace the
 // oldest 40% with a single synthesized summary entry (best-effort — if
 // summarization fails, drops oldest turns instead).
-function trimIfOverBudget(history) {
+export function compactHistory(history, options = {}) {
+  const budgetChars = Number(options.budgetChars || TOKEN_BUDGET_CHARS);
+  const summaryChars = Number(options.summaryChars || DEFAULT_SUMMARY_CHARS);
   const totalChars = history.reduce((sum, t) => sum + (t.content?.length || 0), 0);
-  if (totalChars <= TOKEN_BUDGET_CHARS) return { history, trimmed: false };
+  if (totalChars <= budgetChars) {
+    return {
+      history,
+      trimmed: false,
+      omittedLaneMemoryTurns: 0,
+      totalChars,
+      compactedChars: totalChars,
+    };
+  }
 
   const splitIdx = Math.floor(history.length * 0.4);
-  if (splitIdx < 2) return { history, trimmed: false };
+  if (splitIdx < 2) {
+    return {
+      history,
+      trimmed: false,
+      omittedLaneMemoryTurns: 0,
+      totalChars,
+      compactedChars: totalChars,
+    };
+  }
 
   const oldest = history.slice(0, splitIdx);
   const recent = history.slice(splitIdx);
-  const summaryText = oldest
+  const summarySource = oldest.filter((turn) => !isLaneMemoryTurn(turn));
+  const omittedLaneMemoryTurns = oldest.length - summarySource.length;
+  const summaryText = summarySource
     .map((t) => `[${t.role}] ${t.content.slice(0, 400)}`)
     .join('\n')
-    .slice(0, 4000);
+    .slice(0, summaryChars);
+  const omittedNote = omittedLaneMemoryTurns > 0
+    ? `\n[omitted] ${omittedLaneMemoryTurns} prior LANE-MEMORY turns were not re-summarized to prevent recursive cache bloat.`
+    : '';
 
   const summaryTurn = {
     role: 'system',
-    content: `[LANE-MEMORY] Earlier in this lane session (${oldest.length} turns, summarized):\n${summaryText}`,
+    content: `[LANE-MEMORY] Earlier in this lane session (${oldest.length} turns, summarized):\n${summaryText}${omittedNote}`,
   };
 
-  return { history: [summaryTurn, ...recent], trimmed: true };
+  const compactedHistory = [summaryTurn, ...recent];
+  return {
+    history: compactedHistory,
+    trimmed: true,
+    omittedLaneMemoryTurns,
+    totalChars,
+    compactedChars: compactedHistory.reduce((sum, t) => sum + (t.content?.length || 0), 0),
+  };
+}
+
+function isLaneMemoryTurn(turn = {}) {
+  return turn.role === 'system' && String(turn.content || '').startsWith('[LANE-MEMORY]');
+}
+
+function trimIfOverBudget(history) {
+  return compactHistory(history);
 }
 
 // Public — called by offload-runner before building the messages array.
@@ -220,5 +259,6 @@ export const __test__ = {
   isPersistentLane,
   sessionPaths,
   trimIfOverBudget,
+  compactHistory,
   PERSISTENT_LANE_PREFIXES,
 };

@@ -25,7 +25,7 @@ node _SYSTEM/Scripts/secret-leak-scan.mjs
 Result:
 
 - scanned files: `5447`
-- latest scanned files after artifact-registry work: `5450`
+- latest scanned files after lane-cache-rotator work: `5452`
 - skipped large files: `3`
 - tracked protected files: `0`
 - findings: `0`
@@ -124,6 +124,8 @@ node _SYSTEM/Scripts/context-router.mjs "automation launchd agent health stale d
 - Added `_SYSTEM/config/artifact-registry.json` and `_SYSTEM/Scripts/artifact-registry.mjs`.
 - Wired artifact-registry syntax/tests into the release gate.
 - Registered the cybersecurity proof chain so the cyber packet maps to concrete docs, scripts, data, reports, and lab fixtures.
+- Added `_SYSTEM/Scripts/lane-cache-rotator.mjs` as the YURI-owned lane-session hygiene wrapper.
+- Hardened lane-session compaction so prior `[LANE-MEMORY]` summaries are not recursively re-summarized into cache bloat.
 
 ## DeepSeek Advisory Notes
 
@@ -155,6 +157,7 @@ Observed from this sprint:
 - first cache metric returned: `hit=0`, `miss=29538`, ratio `0.00`.
 - later same-session advisory call returned: `hit=27776`, `miss=2799`, ratio `0.91`.
 - session persisted through the wrapper.
+- `lane-cache-rotator.mjs --dry-run` found `7` YURI-owned lane-session files, `397233` bytes total, `0` compactable, and `0` secret-like sessions.
 
 Interpretation: persistence works. Cold starts still happen, but stable session reuse can push cache hit rate high when prompts keep a stable prefix. To raise cache hit rate, future large DeepSeek work should:
 
@@ -169,7 +172,7 @@ Interpretation: persistence works. Cold starts still happen, but stable session 
 
 1. Rotate/revoke the exposed NVIDIA key.
 2. Add a history-secret scan target to a slower/manual release command, not every pre-commit.
-3. Add a `lane-cache-rotator.mjs` or repair `lane-memory-prune` using wrappers, not raw protected reads.
+3. Wire the `lane-memory-prune` automation to call `lane-cache-rotator.mjs --apply` after a manual dry-run passes.
 4. Expand the artifact registry across skills, model runtimes, generated assets, and remaining project surfaces.
 5. Continue cybersecurity runtime integration: ThreatIntelKernel -> Security Lens -> Cyber Lab Harness -> deterministic client-safe retest proof.
 6. Add a slow cleanup lane for ignored legacy/runtime roots after rebuild/archive proof exists.
