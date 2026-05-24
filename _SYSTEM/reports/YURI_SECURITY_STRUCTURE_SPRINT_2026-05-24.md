@@ -25,6 +25,7 @@ node _SYSTEM/Scripts/secret-leak-scan.mjs
 Result:
 
 - scanned files: `5447`
+- latest scanned files after artifact-registry work: `5450`
 - skipped large files: `3`
 - tracked protected files: `0`
 - findings: `0`
@@ -82,7 +83,7 @@ Result:
 - root entries: `57`
 - unclassified: `0`
 - protected: `2`
-- registry entries: `66`
+- folder registry entries after artifact-registry work: `68`
 - missing registry entries: `0`
 
 Candidate-review surfaces after the tracked-root cleanup:
@@ -96,6 +97,8 @@ Resolved during follow-up:
 - `debug-hardstop.mjs` — removed from the active tree; tracked ad hoc debug residue with no live references
 - `debug-preflight.mjs` — removed from the active tree; tracked ad hoc debug residue with no live references
 - `yuri-os-dashboard.html` — reclassified as a tracked generated dashboard snapshot; source truth remains the generator/spec docs
+- `_SYSTEM/config/artifact-registry.json` — added as the durable artifact registry seed
+- `_SYSTEM/Scripts/artifact-registry.mjs` — added as the validator and future artifact placement classifier
 
 ### Context Router
 
@@ -116,6 +119,10 @@ node _SYSTEM/Scripts/context-router.mjs "automation launchd agent health stale d
 - Wired live secret scanning into `_SYSTEM/Scripts/yuri-supercharge-gate.mjs`.
 - Extended `_SYSTEM/Scripts/yuri-supercharge-gate.test.mjs` to require the secret scan checks.
 - Removed stale untracked `.claude/yuri-sentinel/learning/.dream-prompt.txt` without reading it.
+- Moved active lane session continuity into `_SYSTEM/state/lane-sessions/`.
+- Added `_SYSTEM/config/artifact-registry.json` and `_SYSTEM/Scripts/artifact-registry.mjs`.
+- Wired artifact-registry syntax/tests into the release gate.
+- Registered the cybersecurity proof chain so the cyber packet maps to concrete docs, scripts, data, reports, and lab fixtures.
 
 ## DeepSeek Advisory Notes
 
@@ -144,10 +151,11 @@ Follow-up hardening moved the default lane session store from Claude runtime int
 Observed from this sprint:
 
 - DeepSeek direct call used `deepseek-v4-pro`.
-- cache metric returned: `hit=0`, `miss=29538`, ratio `0.00`.
+- first cache metric returned: `hit=0`, `miss=29538`, ratio `0.00`.
+- later same-session advisory call returned: `hit=27776`, `miss=2799`, ratio `0.91`.
 - session persisted through the wrapper.
 
-Interpretation: persistence works, but this was effectively a cold session. To raise cache hit rate, future large DeepSeek work should:
+Interpretation: persistence works. Cold starts still happen, but stable session reuse can push cache hit rate high when prompts keep a stable prefix. To raise cache hit rate, future large DeepSeek work should:
 
 - reuse one stable `--session` name per sprint
 - keep stable prefix instructions across calls
@@ -162,8 +170,8 @@ Interpretation: persistence works, but this was effectively a cold session. To r
 2. Add a history-secret scan target to a slower/manual release command, not every pre-commit.
 3. Add a `lane-cache-rotator.mjs` or repair `lane-memory-prune` using wrappers, not raw protected reads.
 4. Classify the remaining candidate-review root surfaces.
-5. Promote the folder registry into the broader artifact registry described in `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md`.
-6. Continue cybersecurity runtime integration: ThreatIntelKernel -> Security Lens -> Cyber Lab Harness -> client report proof.
+5. Expand the artifact registry across skills, model runtimes, generated assets, and remaining project surfaces.
+6. Continue cybersecurity runtime integration: ThreatIntelKernel -> Security Lens -> Cyber Lab Harness -> deterministic client-safe retest proof.
 
 ## Guardrails
 
