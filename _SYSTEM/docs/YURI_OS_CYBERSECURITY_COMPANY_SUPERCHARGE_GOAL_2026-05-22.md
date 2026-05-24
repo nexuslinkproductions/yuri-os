@@ -265,6 +265,12 @@ Artifacts:
 - Meeting release command: `_SYSTEM/Scripts/cyber-meeting-release.mjs`
 - Meeting release tests: `_SYSTEM/Scripts/cyber-meeting-release.test.mjs`
 - Meeting release report: `_SYSTEM/reports/YURI_UPGREAT_MEETING_RELEASE_2026-05-23.md`
+- Retest proof generator: `_SYSTEM/Scripts/cyber-retest-proof.mjs`
+- Retest proof tests: `_SYSTEM/Scripts/cyber-retest-proof.test.mjs`
+- Retest proof matrix: `_SYSTEM/data/cyber-intel/retest-proof-matrix.json`
+- Retest proof report: `_SYSTEM/reports/YURI_CYBER_RETEST_PROOF_2026-05-24.md`
+
+Current boundary: Upgreat-facing material may show before/after retest proof only for deterministic local fixtures: threat-shaped cases are detected safely before remediation, benign/remediated controls pass after. It must not imply production remediation proof, external target testing, or client guarantee.
 
 ### Wave C8: Regional Packs
 

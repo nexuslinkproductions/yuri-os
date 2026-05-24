@@ -1,6 +1,6 @@
 # YURI Upgreat Meeting Packet
 
-Generated: 2026-05-24T10:03:53.549Z
+Generated: 2026-05-24T14:55:27.963Z
 
 ## Objective
 
@@ -15,6 +15,7 @@ Position YURI as an evidence-first AI security assessment and hardening system f
 ## Executive Version
 
 - YURI currently has 7 deterministic local proof cards across AI-agent, MCP/tool, browser, memory/RAG, API, and availability boundaries.
+- YURI also has 7 before/after retest rows showing threat-shaped fixtures blocked before and benign/remediated controls passing after.
 - The cyber matrix tracks 90 source-backed threat rows, with 65 mapped to build actions.
 - The first commercial surface should be a bounded AI security assessment, not a broad managed-security claim.
 - The strongest buyer promise is evidence: threats -> local proof -> reportable risk -> scoped next proof.
@@ -23,8 +24,18 @@ Position YURI as an evidence-first AI security assessment and hardening system f
 
 - The current proof surface covers input-dialog-rail, tool-input-output-rail, browser-action-boundary-rail, retrieval-memory-provenance-rail, owned-lab-research-boundary-rail, runtime-health-rail.
 - Each card links executable fixture tests, source IDs, related threat rows, Security Lens modules, demo steps, and next proof requirements.
+- Retest proof adds 8 before cases and 7 after controls across the same local lab harness.
 - The local harness proves classification and boundary behavior only; production client proof requires scoped authorized replay.
 - The next technical upgrade is live demo orchestration: run selected fixture tests, show generated reports, then map a client-safe pilot scope.
+
+## Retest Proof
+
+- Rows: 7/7 retest-proven
+- Before cases: 8 threat-shaped fixtures detected safely
+- After controls: 7 benign/remediated controls passed
+- Artifact: _SYSTEM/reports/YURI_CYBER_RETEST_PROOF_2026-05-24.md
+- Claim: Before/after deterministic local fixture retest proof only; not production remediation proof.
+- Boundary: owned-local-synthetic-or-explicitly-authorized-only
 
 ## Live Demo Order
 

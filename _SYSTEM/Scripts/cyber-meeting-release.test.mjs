@@ -25,6 +25,7 @@ test('cyber meeting release refreshes all meeting artifacts', () => {
     assert.equal(release.schema, 'yuri.upgreat-meeting-release.v0');
     assert.equal(release.validation.ok, true);
     assert.equal(release.artifacts.length, 4);
+    assert.ok(release.artifacts.some((artifact) => /retest-proof/u.test(artifact)));
     assert.equal(release.verification.skipped, true);
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -45,12 +46,21 @@ test('cyber meeting release writes markdown report', () => {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-meeting-release-report-'));
   try {
     const reportPath = path.join(dir, 'release.md');
-    const result = writeCyberMeetingRelease({ reportPath, skipTests: true });
+    const result = writeCyberMeetingRelease({
+      reportPath,
+      skipTests: true,
+      proofCardsPath: path.join(dir, 'proof-cards.md'),
+      retestProofPath: path.join(dir, 'retest-proof.md'),
+      retestProofJsonPath: path.join(dir, 'retest-proof.json'),
+      meetingPackPath: path.join(dir, 'meeting.md'),
+      demoTranscriptPath: path.join(dir, 'demo.md'),
+    });
     const markdown = readFileSync(reportPath, 'utf8');
 
     assert.equal(result.ok, true);
     assert.equal(existsSync(reportPath), true);
     assert.match(markdown, /YURI Upgreat Meeting Release/);
+    assert.match(markdown, /retest-proof/);
     assert.match(markdown, /skipped in test mode/);
   } finally {
     rmSync(dir, { recursive: true, force: true });

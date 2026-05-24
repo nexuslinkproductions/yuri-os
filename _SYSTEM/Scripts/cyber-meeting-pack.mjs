@@ -13,6 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCyberPilotPack } from './cyber-pilot-pack.mjs';
 import { buildCyberProofCards } from './cyber-proof-cards.mjs';
+import { buildCyberRetestProof } from './cyber-retest-proof.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -36,8 +37,10 @@ const DEMO_PRIORITY = Object.freeze([
 export function buildCyberMeetingPack(options = {}) {
   const pilotPack = options.pilotPack || buildCyberPilotPack(options);
   const proofCards = options.proofCards || buildCyberProofCards(options);
+  const retestProof = options.retestProof || buildCyberRetestProof(options);
   const cardById = new Map(proofCards.cards.map((card) => [card.id, card]));
   const demoOrder = DEMO_PRIORITY.map((id) => cardById.get(id)).filter(Boolean).map(toDemoStep);
+  const retestSummary = summarizeRetestProof(retestProof);
 
   const packet = {
     schema: 'yuri.upgreat-meeting-packet.v0',
@@ -48,8 +51,9 @@ export function buildCyberMeetingPack(options = {}) {
       'The first proof is narrower and stronger: AI-agent, MCP, browser, memory/RAG, model-route, and tool-use risk.',
       'Every claim shown here is tied to local fixture proof, source-backed threat rows, and a next proof step.',
     ],
-    executiveVersion: buildExecutiveVersion(pilotPack, proofCards),
-    technicalVersion: buildTechnicalVersion(proofCards),
+    executiveVersion: buildExecutiveVersion(pilotPack, proofCards, retestSummary),
+    technicalVersion: buildTechnicalVersion(proofCards, retestSummary),
+    retestProof: retestSummary,
     liveDemoOrder: demoOrder,
     pilotScope: buildPilotScope(),
     questionsForUpgreat: [
@@ -79,6 +83,8 @@ export function validateCyberMeetingPack(packet) {
   if ((packet.liveDemoOrder || []).length < 5) errors.push('expected at least 5 live demo steps');
   if ((packet.questionsForUpgreat || []).length < 5) errors.push('expected at least 5 Upgreat questions');
   if (!packet.pilotScope?.deliverables?.length) errors.push('missing pilot deliverables');
+  if ((packet.retestProof?.provenRows || 0) < 7) errors.push('expected at least 7 retest proof rows');
+  if (!/retest proof only/i.test(packet.retestProof?.claim || '')) errors.push('retest proof overclaims beyond fixture scope');
   if (containsForbiddenClaim(packet)) errors.push('packet contains forbidden platform maturity claim');
   for (const step of packet.liveDemoOrder || []) {
     if (!step.evidence || !step.executableTest || !step.boundary) errors.push(`demo step missing proof fields: ${step.id || 'unknown'}`);
@@ -108,6 +114,10 @@ export function renderCyberMeetingPackMarkdown(packet = buildCyberMeetingPack())
     '## Technical Version',
     '',
     list(packet.technicalVersion),
+    '',
+    '## Retest Proof',
+    '',
+    renderRetestProof(packet.retestProof),
     '',
     '## Live Demo Order',
     '',
@@ -145,23 +155,49 @@ export function writeCyberMeetingPack(options = {}) {
   return { ok: true, reportPath, packet };
 }
 
-function buildExecutiveVersion(pilotPack, proofCards) {
+function buildExecutiveVersion(pilotPack, proofCards, retestSummary) {
   return [
     `YURI currently has ${proofCards.cards.length} deterministic local proof cards across AI-agent, MCP/tool, browser, memory/RAG, API, and availability boundaries.`,
+    `YURI also has ${retestSummary.provenRows} before/after retest rows showing threat-shaped fixtures blocked before and benign/remediated controls passing after.`,
     `The cyber matrix tracks ${pilotPack.upgreat.proofStatus.threatRows} source-backed threat rows, with ${pilotPack.upgreat.proofStatus.buildRows} mapped to build actions.`,
     'The first commercial surface should be a bounded AI security assessment, not a broad managed-security claim.',
     'The strongest buyer promise is evidence: threats -> local proof -> reportable risk -> scoped next proof.',
   ];
 }
 
-function buildTechnicalVersion(proofCards) {
+function buildTechnicalVersion(proofCards, retestSummary) {
   const rails = [...new Set(proofCards.cards.map((card) => card.rail))];
   return [
     `The current proof surface covers ${rails.join(', ')}.`,
     'Each card links executable fixture tests, source IDs, related threat rows, Security Lens modules, demo steps, and next proof requirements.',
+    `Retest proof adds ${retestSummary.beforeCases} before cases and ${retestSummary.afterCases} after controls across the same local lab harness.`,
     'The local harness proves classification and boundary behavior only; production client proof requires scoped authorized replay.',
     'The next technical upgrade is live demo orchestration: run selected fixture tests, show generated reports, then map a client-safe pilot scope.',
   ];
+}
+
+function summarizeRetestProof(retestProof) {
+  const retests = retestProof.retests || [];
+  return {
+    provenRows: retests.filter((row) => row.state === 'retest-proven').length,
+    totalRows: retests.length,
+    beforeCases: retests.reduce((sum, row) => sum + (row.before?.total || 0), 0),
+    afterCases: retests.reduce((sum, row) => sum + (row.after?.total || 0), 0),
+    artifact: '_SYSTEM/reports/YURI_CYBER_RETEST_PROOF_2026-05-24.md',
+    claim: 'Before/after deterministic local fixture retest proof only; not production remediation proof.',
+    boundary: 'owned-local-synthetic-or-explicitly-authorized-only',
+  };
+}
+
+function renderRetestProof(retestProof) {
+  return [
+    `- Rows: ${retestProof.provenRows}/${retestProof.totalRows} retest-proven`,
+    `- Before cases: ${retestProof.beforeCases} threat-shaped fixtures detected safely`,
+    `- After controls: ${retestProof.afterCases} benign/remediated controls passed`,
+    `- Artifact: ${retestProof.artifact}`,
+    `- Claim: ${retestProof.claim}`,
+    `- Boundary: ${retestProof.boundary}`,
+  ].join('\n');
 }
 
 function toDemoStep(card, index) {
@@ -225,6 +261,7 @@ function containsForbiddenClaim(packet) {
     ...(packet.opener || []),
     ...(packet.executiveVersion || []),
     ...(packet.technicalVersion || []),
+    packet.retestProof?.claim,
     ...(packet.pilotScope?.deliverables || []),
     ...(packet.liveDemoOrder || []).flatMap((step) => [
       step.claim,
