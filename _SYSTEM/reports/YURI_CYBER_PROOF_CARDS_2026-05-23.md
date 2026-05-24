@@ -1,6 +1,6 @@
 # YURI Cyber Proof Cards
 
-Generated: 2026-05-24T10:03:53.544Z
+Generated: 2026-05-24T15:59:26.492Z
 
 ## Purpose
 
@@ -89,9 +89,9 @@ Local case evidence:
 - hostile-dom-form: execution rail emitted browser DOM poisoning signal while keeping action read-only
 - benign-local-page: execution rail left benign browser page clean
 
-Demo step: Open the owned fake portal fixture and show read-only inspection blocking form-exfiltration behavior.
+Demo step: Open the owned fake portal fixture through browser-harness and show read-only DOM/CDP inspection blocking form-exfiltration authority.
 
-Next proof: Add browser-harness replay over richer fake SaaS flows with isolated profiles.
+Next proof: Expand browser-harness replay over richer fake SaaS flows with isolated profiles and provenance scoring.
 
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 

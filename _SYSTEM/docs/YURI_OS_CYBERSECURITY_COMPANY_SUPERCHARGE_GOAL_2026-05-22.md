@@ -269,8 +269,14 @@ Artifacts:
 - Retest proof tests: `_SYSTEM/Scripts/cyber-retest-proof.test.mjs`
 - Retest proof matrix: `_SYSTEM/data/cyber-intel/retest-proof-matrix.json`
 - Retest proof report: `_SYSTEM/reports/YURI_CYBER_RETEST_PROOF_2026-05-24.md`
+- Browser replay proof generator: `_SYSTEM/Scripts/cyber-browser-replay.mjs`
+- Browser replay proof tests: `_SYSTEM/Scripts/cyber-browser-replay.test.mjs`
+- Browser replay proof matrix: `_SYSTEM/data/cyber-intel/browser-replay-proof.json`
+- Browser replay proof report: `_SYSTEM/reports/YURI_BROWSER_REPLAY_PROOF_2026-05-24.md`
 
 Current boundary: Upgreat-facing material may show before/after retest proof only for deterministic local fixtures: threat-shaped cases are detected safely before remediation, benign/remediated controls pass after. It must not imply production remediation proof, external target testing, or client guarantee.
+
+Browser replay boundary: browser-harness evidence is limited to repo-local `file://` fixtures, DOM/CDP read-only inspection, no screenshots required, no form submission, and no external target activity.
 
 ### Wave C8: Regional Packs
 

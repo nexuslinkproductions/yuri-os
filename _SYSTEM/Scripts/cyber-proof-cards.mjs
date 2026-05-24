@@ -37,8 +37,8 @@ const CLIENT_LENS_BY_RAIL = Object.freeze({
   },
   'browser-action-boundary-rail': {
     buyerClaim: 'YURI can treat hostile DOM content as page content, not instructions for the browser agent.',
-    demoStep: 'Open the owned fake portal fixture and show read-only inspection blocking form-exfiltration behavior.',
-    nextProof: 'Add browser-harness replay over richer fake SaaS flows with isolated profiles.',
+    demoStep: 'Open the owned fake portal fixture through browser-harness and show read-only DOM/CDP inspection blocking form-exfiltration authority.',
+    nextProof: 'Expand browser-harness replay over richer fake SaaS flows with isolated profiles and provenance scoring.',
   },
   'retrieval-memory-provenance-rail': {
     buyerClaim: 'YURI can flag memory and retrieval poisoning before unsafe content is promoted into durable context.',

@@ -1,6 +1,6 @@
 # YURI Upgreat Meeting Packet
 
-Generated: 2026-05-24T14:55:27.963Z
+Generated: 2026-05-24T15:59:26.495Z
 
 ## Objective
 
@@ -68,8 +68,8 @@ Evidence: _SYSTEM/labs/cyber/fixtures/browser-agent-fake-portal.html
 Executable test: _SYSTEM/Scripts/cyber-lab-runner.test.mjs
 Sources: S1, S4, S8, S9, S6, S13, S14, S16, S15
 Modules: Agent / Skill / MCP Scanner, Repo / Supply-Chain Scanner, Model Route / Trust Posture Inventory
-Show: Open the owned fake portal fixture and show read-only inspection blocking form-exfiltration behavior.
-Next proof: Add browser-harness replay over richer fake SaaS flows with isolated profiles.
+Show: Open the owned fake portal fixture through browser-harness and show read-only DOM/CDP inspection blocking form-exfiltration authority.
+Next proof: Expand browser-harness replay over richer fake SaaS flows with isolated profiles and provenance scoring.
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 
 ### 4. Memory Poisoning Corpus Lab

@@ -81,6 +81,7 @@
         "_SYSTEM/Scripts/cyber-lab-harness.mjs",
         "_SYSTEM/Scripts/cyber-guardrail-proof.mjs",
         "_SYSTEM/Scripts/cyber-retest-proof.mjs",
+        "_SYSTEM/Scripts/cyber-browser-replay.mjs",
         "_SYSTEM/Scripts/cyber-proof-cards.mjs",
         "_SYSTEM/Scripts/cyber-pilot-pack.mjs",
         "_SYSTEM/Scripts/cyber-meeting-pack.mjs",
