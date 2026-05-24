@@ -45,6 +45,7 @@ export function buildChecks(options = {}) {
     ['syntax:cyber-lab-runner', process.execPath, ['--check', '_SYSTEM/Scripts/cyber-lab-runner.mjs']],
     ['syntax:cyber-guardrail-proof', process.execPath, ['--check', '_SYSTEM/Scripts/cyber-guardrail-proof.mjs']],
     ['syntax:cyber-pilot-pack', process.execPath, ['--check', '_SYSTEM/Scripts/cyber-pilot-pack.mjs']],
+    ['syntax:secret-leak-scan', process.execPath, ['--check', '_SYSTEM/Scripts/secret-leak-scan.mjs']],
     ['syntax:memory-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/memory-kernel.mjs']],
     ['syntax:automation-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/automation-kernel.mjs']],
     ['syntax:kagami-overseer', process.execPath, ['--check', '_SYSTEM/Scripts/kagami-overseer.mjs']],
@@ -63,6 +64,7 @@ export function buildChecks(options = {}) {
     ['test:cyber-lab-runner', process.execPath, ['--test', '_SYSTEM/Scripts/cyber-lab-runner.test.mjs']],
     ['test:cyber-guardrail-proof', process.execPath, ['--test', '_SYSTEM/Scripts/cyber-guardrail-proof.test.mjs']],
     ['test:cyber-pilot-pack', process.execPath, ['--test', '_SYSTEM/Scripts/cyber-pilot-pack.test.mjs']],
+    ['test:secret-leak-scan', process.execPath, ['--test', '_SYSTEM/Scripts/secret-leak-scan.test.mjs']],
     ['test:memory-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/memory-kernel.test.mjs']],
     ['test:automation-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/automation-kernel.test.mjs']],
     ['test:kagami-overseer', process.execPath, ['--test', '_SYSTEM/Scripts/kagami-overseer.test.mjs']],
@@ -75,6 +77,7 @@ export function buildChecks(options = {}) {
     ['automation:health', process.execPath, ['_SYSTEM/Scripts/automation-kernel.mjs']],
     ['offload:contract-regression', process.execPath, ['_SYSTEM/Scripts/offload-contract-regression.test.mjs']],
     ['offload:dispatch-drift', process.execPath, ['_SYSTEM/Scripts/offload-contract-dispatch-check.mjs']],
+    ['security:secret-leak-live', process.execPath, ['_SYSTEM/Scripts/secret-leak-scan.mjs']],
   ];
 
   if (includeBrowser) {

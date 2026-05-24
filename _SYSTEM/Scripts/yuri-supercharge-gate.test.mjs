@@ -20,6 +20,9 @@ test('release gate includes cyber intelligence and security lens checks', () => 
   assert.ok(checkNames.includes('test:cyber-guardrail-proof'));
   assert.ok(checkNames.includes('syntax:cyber-pilot-pack'));
   assert.ok(checkNames.includes('test:cyber-pilot-pack'));
+  assert.ok(checkNames.includes('syntax:secret-leak-scan'));
+  assert.ok(checkNames.includes('test:secret-leak-scan'));
+  assert.ok(checkNames.includes('security:secret-leak-live'));
 });
 
 test('release evidence includes baseline commits, preflight hash, and health summary', () => {
