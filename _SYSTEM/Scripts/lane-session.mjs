@@ -1,6 +1,6 @@
 // lane-session.mjs — persistent conversation state per DeepSeek lane.
 //
-// Each lane gets a JSONL file under .claude/lane-sessions/. Sessions persist
+// Each lane gets a JSONL file under _SYSTEM/state/lane-sessions/. Sessions persist
 // across dispatches so the provider sees full prior context, prompt-cache fires,
 // and the lane's "personality" compounds across our work session.
 //
@@ -22,7 +22,8 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
-const SESSION_DIR = path.join(REPO_ROOT, '.claude', 'lane-sessions');
+const DEFAULT_SESSION_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state', 'lane-sessions');
+const DEFAULT_LEGACY_SESSION_DIR = path.join(REPO_ROOT, '.claude', 'lane-sessions');
 
 // Lanes eligible for persistence — covers ALL cloud lanes that benefit from
 // cross-session continuity. Local-only lanes (ollama-local, triage-local,
@@ -51,17 +52,29 @@ function isPersistentLane(modelId) {
   return PERSISTENT_LANE_PREFIXES.some((prefix) => String(modelId).startsWith(prefix));
 }
 
-function sessionPaths(modelId, sessionName = 'default') {
+function resolveSessionDir() {
+  return path.resolve(process.env.YURI_LANE_SESSION_DIR || DEFAULT_SESSION_DIR);
+}
+
+function resolveLegacySessionDir() {
+  if (process.env.YURI_LEGACY_LANE_SESSION_DIR) {
+    return path.resolve(process.env.YURI_LEGACY_LANE_SESSION_DIR);
+  }
+  if (process.env.YURI_LANE_SESSION_DIR) return '';
+  return path.resolve(process.env.YURI_LEGACY_LANE_SESSION_DIR || DEFAULT_LEGACY_SESSION_DIR);
+}
+
+function sessionPaths(modelId, sessionName = 'default', rootDir = resolveSessionDir()) {
   const safeName = String(sessionName).replace(/[^A-Za-z0-9._-]/g, '_');
   const safeModel = String(modelId).replace(/[^A-Za-z0-9._-]/g, '_');
   return {
-    jsonl: path.join(SESSION_DIR, `${safeModel}__${safeName}.jsonl`),
-    meta:  path.join(SESSION_DIR, `${safeModel}__${safeName}.meta.json`),
+    jsonl: path.join(rootDir, `${safeModel}__${safeName}.jsonl`),
+    meta:  path.join(rootDir, `${safeModel}__${safeName}.meta.json`),
   };
 }
 
-function ensureDir() {
-  if (!existsSync(SESSION_DIR)) mkdirSync(SESSION_DIR, { recursive: true });
+function ensureDir(rootDir = resolveSessionDir()) {
+  if (!existsSync(rootDir)) mkdirSync(rootDir, { recursive: true });
 }
 
 function readHistory(jsonlPath) {
@@ -99,7 +112,7 @@ function writeMeta(metaPath, meta) {
 
 function rotateForFresh(modelId, sessionName) {
   const paths = sessionPaths(modelId, sessionName);
-  ensureDir();
+  ensureDir(path.dirname(paths.jsonl));
   if (existsSync(paths.jsonl)) {
     const ts = new Date().toISOString().replace(/[:.]/g, '-');
     renameSync(paths.jsonl, `${paths.jsonl}.archive-${ts}`);
@@ -108,6 +121,26 @@ function rotateForFresh(modelId, sessionName) {
     const ts = new Date().toISOString().replace(/[:.]/g, '-');
     renameSync(paths.meta, `${paths.meta}.archive-${ts}`);
   }
+}
+
+function migrateLegacyIfNeeded(modelId, sessionName) {
+  const paths = sessionPaths(modelId, sessionName);
+  const legacyDir = resolveLegacySessionDir();
+  if (!legacyDir) return { paths, sourceSessionPath: paths.jsonl };
+  const legacyPaths = sessionPaths(modelId, sessionName, legacyDir);
+  if (existsSync(paths.jsonl) || !existsSync(legacyPaths.jsonl)) {
+    return { paths, sourceSessionPath: paths.jsonl };
+  }
+
+  ensureDir(path.dirname(paths.jsonl));
+  const legacyJsonl = readFileSync(legacyPaths.jsonl, 'utf8');
+  writeFileSync(paths.jsonl, legacyJsonl);
+  if (existsSync(legacyPaths.meta)) {
+    try {
+      writeFileSync(paths.meta, readFileSync(legacyPaths.meta, 'utf8'));
+    } catch {}
+  }
+  return { paths, sourceSessionPath: legacyPaths.jsonl };
 }
 
 // Trim history when over budget: keep the most recent 60% verbatim, replace the
@@ -150,7 +183,9 @@ export function loadLaneSession({ modelId, sessionName = 'default', fresh = fals
   if (fresh) rotateForFresh(modelId, sessionName);
 
   ensureDir();
-  const paths = sessionPaths(modelId, sessionName);
+  const { paths, sourceSessionPath } = fresh
+    ? { paths: sessionPaths(modelId, sessionName), sourceSessionPath: sessionPaths(modelId, sessionName).jsonl }
+    : migrateLegacyIfNeeded(modelId, sessionName);
   let history = readHistory(paths.jsonl);
   const { history: trimmedHistory, trimmed } = trimIfOverBudget(history);
 
@@ -166,6 +201,7 @@ export function loadLaneSession({ modelId, sessionName = 'default', fresh = fals
     enabled: true,
     history,
     sessionPath: paths.jsonl,
+    sourceSessionPath,
     record: (userContent, assistantContent) => {
       appendTurn(paths.jsonl, 'user', userContent);
       appendTurn(paths.jsonl, 'assistant', assistantContent);

@@ -65,6 +65,7 @@ export function buildChecks(options = {}) {
     ['test:cyber-guardrail-proof', process.execPath, ['--test', '_SYSTEM/Scripts/cyber-guardrail-proof.test.mjs']],
     ['test:cyber-pilot-pack', process.execPath, ['--test', '_SYSTEM/Scripts/cyber-pilot-pack.test.mjs']],
     ['test:secret-leak-scan', process.execPath, ['--test', '_SYSTEM/Scripts/secret-leak-scan.test.mjs']],
+    ['test:lane-session', process.execPath, ['--test', '_SYSTEM/Scripts/lane-session.test.mjs']],
     ['test:memory-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/memory-kernel.test.mjs']],
     ['test:automation-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/automation-kernel.test.mjs']],
     ['test:kagami-overseer', process.execPath, ['--test', '_SYSTEM/Scripts/kagami-overseer.test.mjs']],

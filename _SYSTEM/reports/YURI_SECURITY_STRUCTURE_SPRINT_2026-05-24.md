@@ -126,14 +126,20 @@ DeepSeek agreed on the core order:
 3. classify candidate-review surfaces instead of letting them become permanent haze
 4. use persistent DeepSeek sessions, but add session-cache hygiene and pruning
 
-DeepSeek also suggested direct inspection of lane-session files. That recommendation is rejected as written. Lane sessions are protected runtime surfaces; use wrappers, metadata, and health summaries instead of raw reads.
+DeepSeek also suggested direct inspection of lane-session files. That recommendation is rejected as written. Lane sessions must be accessed through wrappers, metadata, and health summaries instead of raw reads.
 
 ## DeepSeek Session / Cache Posture
 
-Current code already supports persistent DeepSeek and NIM sessions:
+Current code supports persistent DeepSeek and NIM sessions:
 
 - `_SYSTEM/Scripts/lane-session.mjs`
 - `_SYSTEM/Scripts/offload-runner.mjs`
+
+Follow-up hardening moved the default lane session store from Claude runtime into YURI-owned runtime:
+
+- new default: `_SYSTEM/state/lane-sessions/`
+- legacy import: `.claude/lane-sessions/` is read by `lane-session.mjs` only when a YURI-owned session file does not exist yet
+- test isolation: `YURI_LANE_SESSION_DIR` and `YURI_LEGACY_LANE_SESSION_DIR` can override both stores for workers/tests
 
 Observed from this sprint:
 
@@ -147,6 +153,7 @@ Interpretation: persistence works, but this was effectively a cold session. To r
 - keep stable prefix instructions across calls
 - avoid constantly changing massive preambles
 - summarize old context into a stable lane memory instead of restating everything
+- keep using stable `--session` names so the same YURI-owned session prefix accrues cache hits
 - repair or replace lane-session pruning so long-lived sessions stay useful without becoming secret-bearing archives
 
 ## Next Implementation Order
@@ -154,7 +161,7 @@ Interpretation: persistence works, but this was effectively a cold session. To r
 1. Rotate/revoke the exposed NVIDIA key.
 2. Add a history-secret scan target to a slower/manual release command, not every pre-commit.
 3. Add a `lane-cache-rotator.mjs` or repair `lane-memory-prune` using wrappers, not raw protected reads.
-4. Classify the six candidate-review root surfaces.
+4. Classify the remaining candidate-review root surfaces.
 5. Promote the folder registry into the broader artifact registry described in `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md`.
 6. Continue cybersecurity runtime integration: ThreatIntelKernel -> Security Lens -> Cyber Lab Harness -> client report proof.
 
@@ -163,5 +170,6 @@ Interpretation: persistence works, but this was effectively a cold session. To r
 - Do not request or print raw keys.
 - Do not read `.env`.
 - Do not read `.claude/state`, `.claude/history`, `.claude/lane-sessions`, `.claude/projects`, or credential files directly.
+- Treat `.claude/lane-sessions` as legacy-import-only; active DeepSeek/NIM continuity belongs under `_SYSTEM/state/lane-sessions`.
 - Do not rewrite git history without explicit owner approval.
 - Do not treat old provider/runtime folders as active architecture unless the registry says so.
