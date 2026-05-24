@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   classifyArtifactPath,
   loadArtifactRegistry,
   validateArtifactRegistry,
 } from './artifact-registry.mjs';
+
+const CONTEXT_REGISTRY = JSON.parse(readFileSync('_SYSTEM/context/context-registry.json', 'utf8'));
 
 test('artifact registry validates current durable seed', () => {
   const result = validateArtifactRegistry();
@@ -45,6 +48,15 @@ test('artifact registry active seed stays YURI-owned', () => {
 
   assert.equal(activeArtifacts.some((artifact) => artifact.class === 'retired_provider_adapter'), false);
   assert.equal(activeArtifacts.every((artifact) => artifact.storageRule && artifact.rebuildRule), true);
+});
+
+test('artifact registry covers cybersecurity context packet paths', () => {
+  const registry = loadArtifactRegistry();
+  const registered = new Set(registry.artifacts.map((artifact) => artifact.path));
+  const cybersecurity = CONTEXT_REGISTRY.packets.find((packet) => packet.id === 'cybersecurity');
+  const missing = cybersecurity.paths.filter((packetPath) => !registered.has(packetPath));
+
+  assert.deepEqual(missing, []);
 });
 
 test('artifact registry CLI emits valid JSON', () => {
