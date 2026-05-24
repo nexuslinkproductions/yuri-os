@@ -11,6 +11,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeCyberProofCards } from './cyber-proof-cards.mjs';
+import { writeCyberRetestProof } from './cyber-retest-proof.mjs';
 import { writeCyberMeetingPack } from './cyber-meeting-pack.mjs';
 import { writeCyberDemoTranscript } from './cyber-demo-runner.mjs';
 
@@ -25,6 +26,7 @@ export const DEFAULT_RELEASE_REPORT_PATH = path.join(
 
 export const MEETING_RELEASE_TESTS = Object.freeze([
   '_SYSTEM/Scripts/context-router.test.mjs',
+  '_SYSTEM/Scripts/cyber-retest-proof.test.mjs',
   '_SYSTEM/Scripts/cyber-proof-cards.test.mjs',
   '_SYSTEM/Scripts/cyber-meeting-pack.test.mjs',
   '_SYSTEM/Scripts/cyber-demo-runner.test.mjs',
@@ -34,6 +36,11 @@ export function runCyberMeetingRelease(options = {}) {
   const proofCards = writeCyberProofCards({
     ...options,
     reportPath: options.proofCardsPath,
+  });
+  const retestProof = writeCyberRetestProof({
+    ...options,
+    reportPath: options.retestProofPath,
+    jsonPath: options.retestProofJsonPath,
   });
   const meetingPack = writeCyberMeetingPack({
     ...options,
@@ -52,12 +59,13 @@ export function runCyberMeetingRelease(options = {}) {
     generatedAt: new Date().toISOString(),
     artifacts: [
       path.relative(REPO_ROOT, proofCards.reportPath),
+      path.relative(REPO_ROOT, retestProof.reportPath),
       path.relative(REPO_ROOT, meetingPack.reportPath),
       path.relative(REPO_ROOT, demoTranscript.reportPath),
     ],
     verification,
     validation: {
-      ok: proofCards.ok === true && meetingPack.ok === true && demoTranscript.ok === true && verification.ok === true,
+      ok: proofCards.ok === true && retestProof.ok === true && meetingPack.ok === true && demoTranscript.ok === true && verification.ok === true,
       errors: [],
     },
   };

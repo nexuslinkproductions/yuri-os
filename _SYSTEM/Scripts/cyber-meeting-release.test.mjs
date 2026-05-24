@@ -16,13 +16,15 @@ test('cyber meeting release refreshes all meeting artifacts', () => {
       skipTests: true,
       reportPath: path.join(dir, 'release.md'),
       proofCardsPath: path.join(dir, 'proof-cards.md'),
+      retestProofPath: path.join(dir, 'retest-proof.md'),
+      retestProofJsonPath: path.join(dir, 'retest-proof.json'),
       meetingPackPath: path.join(dir, 'meeting.md'),
       demoTranscriptPath: path.join(dir, 'demo.md'),
     });
 
     assert.equal(release.schema, 'yuri.upgreat-meeting-release.v0');
     assert.equal(release.validation.ok, true);
-    assert.equal(release.artifacts.length, 3);
+    assert.equal(release.artifacts.length, 4);
     assert.equal(release.verification.skipped, true);
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -32,6 +34,7 @@ test('cyber meeting release refreshes all meeting artifacts', () => {
 test('cyber meeting release declares the focused verification gate', () => {
   assert.deepEqual(MEETING_RELEASE_TESTS, [
     '_SYSTEM/Scripts/context-router.test.mjs',
+    '_SYSTEM/Scripts/cyber-retest-proof.test.mjs',
     '_SYSTEM/Scripts/cyber-proof-cards.test.mjs',
     '_SYSTEM/Scripts/cyber-meeting-pack.test.mjs',
     '_SYSTEM/Scripts/cyber-demo-runner.test.mjs',

@@ -436,6 +436,18 @@
       "notes": "Maps labs to deterministic guardrail proof states."
     },
     {
+      "path": "_SYSTEM/Scripts/cyber-retest-proof.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI cyber guardrails",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cyber runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run retest-proof tests and write retest proof matrix.",
+      "notes": "Builds deterministic local before/after retest proof."
+    },
+    {
       "path": "_SYSTEM/Scripts/cyber-proof-cards.mjs",
       "type": "script",
       "class": "system_control_plane",
@@ -544,6 +556,18 @@
       "notes": "Structured guardrail proof matrix."
     },
     {
+      "path": "_SYSTEM/data/cyber-intel/retest-proof-matrix.json",
+      "type": "data",
+      "class": "generated_artifact",
+      "owner": "YURI cyber guardrails",
+      "status": "generated",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Derived cyber proof JSON lives in _SYSTEM/data/cyber-intel/.",
+      "rebuildRule": "node _SYSTEM/Scripts/cyber-retest-proof.mjs --write",
+      "notes": "Structured before/after retest proof matrix."
+    },
+    {
       "path": "_SYSTEM/labs/cyber/lab-manifest.json",
       "type": "data",
       "class": "system_control_plane",
@@ -578,6 +602,18 @@
       "storageRule": "Cyber reports live in _SYSTEM/reports/.",
       "rebuildRule": "node _SYSTEM/Scripts/cyber-guardrail-proof.mjs --write",
       "notes": "Human-readable guardrail proof matrix."
+    },
+    {
+      "path": "_SYSTEM/reports/YURI_CYBER_RETEST_PROOF_2026-05-24.md",
+      "type": "report",
+      "class": "generated_artifact",
+      "owner": "YURI cyber guardrails",
+      "status": "generated_report",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cyber reports live in _SYSTEM/reports/.",
+      "rebuildRule": "node _SYSTEM/Scripts/cyber-retest-proof.mjs --write",
+      "notes": "Client-safe deterministic before/after retest proof."
     },
     {
       "path": "_SYSTEM/reports/YURI_CYBER_PROOF_CARDS_2026-05-23.md",
