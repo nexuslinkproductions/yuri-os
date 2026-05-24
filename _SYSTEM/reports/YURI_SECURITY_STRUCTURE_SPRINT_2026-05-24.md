@@ -174,7 +174,7 @@ Interpretation: persistence works. Cold starts still happen, but stable session 
 2. Add a history-secret scan target to a slower/manual release command, not every pre-commit.
 3. Wire the `lane-memory-prune` automation to call `lane-cache-rotator.mjs --apply` after a manual dry-run passes.
 4. Expand the artifact registry across skills, model runtimes, generated assets, and remaining project surfaces.
-5. Extend provenance scoring into rollback demonstrations and multi-hop RAG conflict proof.
+5. Extend memory/RAG proof into rollback demonstrations and richer synthetic corpus coverage.
 6. Add a slow cleanup lane for ignored legacy/runtime roots after rebuild/archive proof exists.
 
 ## Guardrails

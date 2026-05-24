@@ -1,6 +1,6 @@
 # YURI Cyber Proof Cards
 
-Generated: 2026-05-24T17:11:15.659Z
+Generated: 2026-05-24T17:49:52.047Z
 
 ## Purpose
 
@@ -114,7 +114,7 @@ Local case evidence:
 
 Demo step: Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.
 
-Next proof: Provenance scores now exist; next add rollback demonstrations and multi-hop RAG conflict tests.
+Next proof: Provenance scores and multi-hop RAG conflict proof now exist; next add rollback demonstrations.
 
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 
@@ -139,7 +139,7 @@ Local case evidence:
 
 Demo step: Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.
 
-Next proof: Provenance scores now exist; next add rollback demonstrations and multi-hop RAG conflict tests.
+Next proof: Provenance scores and multi-hop RAG conflict proof now exist; next add rollback demonstrations.
 
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 

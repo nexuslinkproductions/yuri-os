@@ -43,7 +43,7 @@ const CLIENT_LENS_BY_RAIL = Object.freeze({
   'retrieval-memory-provenance-rail': {
     buyerClaim: 'YURI can flag memory and retrieval poisoning before unsafe content is promoted into durable context.',
     demoStep: 'Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.',
-    nextProof: 'Provenance scores now exist; next add rollback demonstrations and multi-hop RAG conflict tests.',
+    nextProof: 'Provenance scores and multi-hop RAG conflict proof now exist; next add rollback demonstrations.',
   },
   'owned-lab-research-boundary-rail': {
     buyerClaim: 'YURI can document vulnerable owned lab patterns without crossing into unauthorized target activity.',

@@ -1,6 +1,6 @@
 # YURI Upgreat Meeting Packet
 
-Generated: 2026-05-24T17:11:15.666Z
+Generated: 2026-05-24T17:49:52.154Z
 
 ## Objective
 
@@ -46,6 +46,16 @@ Position YURI as an evidence-first AI security assessment and hardening system f
 - Claim: Deterministic local memory/RAG provenance scoring proof only; not production RAG security proof.
 - Boundary: owned-local-synthetic-fixtures-only
 
+## RAG Conflict Proof
+
+- Cases: 5 synthetic conflict cases
+- Resolved: 5
+- Ambiguous: 1
+- Unverified: 1
+- Artifact: _SYSTEM/reports/YURI_RAG_CONFLICT_PROOF_2026-05-24.md
+- Claim: Deterministic local multi-hop RAG conflict proof only; not production RAG security proof.
+- Boundary: owned-local-synthetic-fixtures-only
+
 ## Live Demo Order
 
 ### 1. Prompt Injection Replay Lab
@@ -89,7 +99,7 @@ Executable test: _SYSTEM/Scripts/cyber-lab-runner.test.mjs
 Sources: S11, S13
 Modules: AI Memory / RAG Scanner
 Show: Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.
-Next proof: Provenance scores now exist; next add rollback demonstrations and multi-hop RAG conflict tests.
+Next proof: Provenance scores and multi-hop RAG conflict proof now exist; next add rollback demonstrations.
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 
 ### 5. RAG Poisoning Corpus Lab
@@ -100,7 +110,7 @@ Executable test: _SYSTEM/Scripts/cyber-lab-runner.test.mjs
 Sources: S1, S4, S9, S26, S11, S13
 Modules: Repo / Supply-Chain Scanner, AI Memory / RAG Scanner
 Show: Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.
-Next proof: Provenance scores now exist; next add rollback demonstrations and multi-hop RAG conflict tests.
+Next proof: Provenance scores and multi-hop RAG conflict proof now exist; next add rollback demonstrations.
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 
 ### 6. Vulnerable Web/API Case Library

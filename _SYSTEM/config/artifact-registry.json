@@ -484,6 +484,18 @@
       "notes": "Scores owned local memory/RAG poisoning fixtures without promoting retrieved content to authority."
     },
     {
+      "path": "_SYSTEM/Scripts/cyber-rag-conflict-proof.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI cyber provenance",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cyber runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run rag-conflict-proof tests and write the RAG conflict proof.",
+      "notes": "Resolves owned synthetic multi-hop RAG source conflicts without promoting retrieved content to authority."
+    },
+    {
       "path": "_SYSTEM/Scripts/cyber-proof-cards.mjs",
       "type": "script",
       "class": "system_control_plane",
@@ -640,6 +652,18 @@
       "notes": "Structured memory/RAG provenance scoring proof for owned local fixtures."
     },
     {
+      "path": "_SYSTEM/data/cyber-intel/rag-conflict-proof.json",
+      "type": "data",
+      "class": "generated_artifact",
+      "owner": "YURI cyber provenance",
+      "status": "generated",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Derived cyber proof JSON lives in _SYSTEM/data/cyber-intel/.",
+      "rebuildRule": "node _SYSTEM/Scripts/cyber-rag-conflict-proof.mjs --write",
+      "notes": "Structured multi-hop RAG conflict proof for owned synthetic fixtures."
+    },
+    {
       "path": "_SYSTEM/labs/cyber/lab-manifest.json",
       "type": "data",
       "class": "system_control_plane",
@@ -650,6 +674,18 @@
       "storageRule": "Owned synthetic lab manifests live in _SYSTEM/labs/cyber/.",
       "rebuildRule": "node _SYSTEM/Scripts/cyber-lab-harness.mjs --write",
       "notes": "Cyber lab manifest for safe fixture-only scenarios."
+    },
+    {
+      "path": "_SYSTEM/labs/cyber/fixtures/rag-conflict-corpus.json",
+      "type": "data",
+      "class": "system_control_plane",
+      "owner": "YURI cyber lab",
+      "status": "fixture",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Owned synthetic lab fixtures live in _SYSTEM/labs/cyber/fixtures/.",
+      "rebuildRule": "Manual fixture edit; run cyber-rag-conflict-proof tests.",
+      "notes": "Synthetic multi-source RAG conflict cases; no real CVEs or client data."
     },
     {
       "path": "_SYSTEM/reports/YURI_SECURITY_LENS_V0_2026-05-22.md",
@@ -722,6 +758,18 @@
       "storageRule": "Cyber reports live in _SYSTEM/reports/.",
       "rebuildRule": "node _SYSTEM/Scripts/cyber-provenance-score.mjs --write",
       "notes": "Human-readable memory/RAG provenance scoring proof."
+    },
+    {
+      "path": "_SYSTEM/reports/YURI_RAG_CONFLICT_PROOF_2026-05-24.md",
+      "type": "report",
+      "class": "generated_artifact",
+      "owner": "YURI cyber provenance",
+      "status": "generated_report",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cyber reports live in _SYSTEM/reports/.",
+      "rebuildRule": "node _SYSTEM/Scripts/cyber-rag-conflict-proof.mjs --write",
+      "notes": "Human-readable multi-hop RAG conflict proof."
     },
     {
       "path": "_SYSTEM/reports/YURI_CYBER_PROOF_CARDS_2026-05-23.md",

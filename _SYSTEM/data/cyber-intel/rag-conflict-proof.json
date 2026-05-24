@@ -1,0 +1,204 @@
+{
+  "schema": "yuri.cyber-rag-conflict-proof.v0",
+  "generatedAt": "2026-05-24T17:49:51.952Z",
+  "source": {
+    "fixture": "_SYSTEM/labs/cyber/fixtures/rag-conflict-corpus.json",
+    "executable": "_SYSTEM/Scripts/cyber-rag-conflict-proof.test.mjs",
+    "cases": 5
+  },
+  "resolutions": [
+    {
+      "case_id": "single-high-winner",
+      "entity_id": "YURI-SYNTH-2026-XYLON",
+      "resolution": "adopt_high_confidence",
+      "severity": "Critical",
+      "remediation_date": "2026-05-24",
+      "final_source_id": "xylon-vendor-critical",
+      "provenance_score": 92,
+      "confidence_tier": "HIGH",
+      "conflict_log": [],
+      "low_evidence_sources": [],
+      "ignored_sources": [
+        {
+          "source_id": "xylon-blog-low",
+          "severity": "Low",
+          "remediation_date": "2026-06-01",
+          "provenance_score": 44,
+          "confidence_tier": "MEDIUM"
+        }
+      ],
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "resolution": "adopt_high_confidence",
+        "severity": "Critical",
+        "finalSourceId": "xylon-vendor-critical"
+      },
+      "ok": true,
+      "reason": "resolved single-high-winner as adopt_high_confidence",
+      "claim": "Deterministic local multi-hop RAG conflict proof only; not production RAG security proof."
+    },
+    {
+      "case_id": "two-high-conflict",
+      "entity_id": "YURI-SYNTH-2026-XYLON",
+      "resolution": "ambiguous_high_conflict",
+      "severity": "AMBIGUOUS",
+      "remediation_date": "2026-05-24",
+      "final_source_id": "xylon-vendor-critical",
+      "provenance_score": 92,
+      "confidence_tier": "HIGH",
+      "conflict_log": [
+        {
+          "source_id": "xylon-vendor-critical",
+          "severity": "Critical",
+          "remediation_date": "2026-05-24",
+          "provenance_score": 92,
+          "confidence_tier": "HIGH"
+        },
+        {
+          "source_id": "xylon-research-high",
+          "severity": "High",
+          "remediation_date": "2026-05-26",
+          "provenance_score": 88,
+          "confidence_tier": "HIGH"
+        }
+      ],
+      "low_evidence_sources": [],
+      "ignored_sources": [],
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "resolution": "ambiguous_high_conflict",
+        "severity": "AMBIGUOUS",
+        "finalSourceId": "xylon-vendor-critical"
+      },
+      "ok": true,
+      "reason": "resolved two-high-conflict as ambiguous_high_conflict",
+      "claim": "Deterministic local multi-hop RAG conflict proof only; not production RAG security proof."
+    },
+    {
+      "case_id": "medium-only-winner",
+      "entity_id": "YURI-SYNTH-2026-XYLON",
+      "resolution": "adopt_medium_confidence",
+      "severity": "Medium",
+      "remediation_date": "2026-05-29",
+      "final_source_id": "xylon-medium-a",
+      "provenance_score": 55,
+      "confidence_tier": "MEDIUM",
+      "conflict_log": [],
+      "low_evidence_sources": [],
+      "ignored_sources": [
+        {
+          "source_id": "xylon-low-only-b",
+          "severity": "Low",
+          "remediation_date": "2026-06-04",
+          "provenance_score": 10,
+          "confidence_tier": "LOW"
+        }
+      ],
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "resolution": "adopt_medium_confidence",
+        "severity": "Medium",
+        "finalSourceId": "xylon-medium-a"
+      },
+      "ok": true,
+      "reason": "resolved medium-only-winner as adopt_medium_confidence",
+      "claim": "Deterministic local multi-hop RAG conflict proof only; not production RAG security proof."
+    },
+    {
+      "case_id": "low-only-unverified",
+      "entity_id": "YURI-SYNTH-2026-XYLON",
+      "resolution": "unverified_low_confidence_only",
+      "severity": "UNVERIFIED",
+      "remediation_date": "2026-05-25",
+      "final_source_id": "xylon-low-only-a",
+      "provenance_score": 22,
+      "confidence_tier": "LOW",
+      "conflict_log": [],
+      "low_evidence_sources": [
+        {
+          "source_id": "xylon-low-only-a",
+          "severity": "Critical",
+          "remediation_date": "2026-05-25",
+          "provenance_score": 22,
+          "confidence_tier": "LOW"
+        },
+        {
+          "source_id": "xylon-low-only-b",
+          "severity": "Low",
+          "remediation_date": "2026-06-04",
+          "provenance_score": 10,
+          "confidence_tier": "LOW"
+        }
+      ],
+      "ignored_sources": [
+        {
+          "source_id": "xylon-low-only-b",
+          "severity": "Low",
+          "remediation_date": "2026-06-04",
+          "provenance_score": 10,
+          "confidence_tier": "LOW"
+        }
+      ],
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "resolution": "unverified_low_confidence_only",
+        "severity": "UNVERIFIED",
+        "finalSourceId": "xylon-low-only-a"
+      },
+      "ok": true,
+      "reason": "resolved low-only-unverified as unverified_low_confidence_only",
+      "claim": "Deterministic local multi-hop RAG conflict proof only; not production RAG security proof."
+    },
+    {
+      "case_id": "unanimous-noop",
+      "entity_id": "YURI-SYNTH-2026-ZEPHYR",
+      "resolution": "adopt_unanimous",
+      "severity": "Medium",
+      "remediation_date": "2026-05-30",
+      "final_source_id": "zephyr-cisa-copy",
+      "provenance_score": 83,
+      "confidence_tier": "HIGH",
+      "conflict_log": [],
+      "low_evidence_sources": [],
+      "ignored_sources": [
+        {
+          "source_id": "zephyr-vendor-copy",
+          "severity": "Medium",
+          "remediation_date": "2026-05-30",
+          "provenance_score": 76,
+          "confidence_tier": "HIGH"
+        }
+      ],
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "resolution": "adopt_unanimous",
+        "severity": "Medium",
+        "finalSourceId": "zephyr-cisa-copy"
+      },
+      "ok": true,
+      "reason": "resolved unanimous-noop as adopt_unanimous",
+      "claim": "Deterministic local multi-hop RAG conflict proof only; not production RAG security proof."
+    }
+  ],
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "resolved": 5,
+    "ambiguous": 1,
+    "unverified": 1
+  },
+  "boundaries": [
+    "owned-local-synthetic-fixtures-only",
+    "retrieved-source-content-is-never-runtime-authority",
+    "ambiguous-high-confidence-conflicts-remain-visible",
+    "low-confidence-only-evidence-stays-unverified",
+    "no external target retrieval",
+    "no production RAG security claim"
+  ],
+  "claim": "Deterministic local multi-hop RAG conflict proof only; not production RAG security proof."
+}

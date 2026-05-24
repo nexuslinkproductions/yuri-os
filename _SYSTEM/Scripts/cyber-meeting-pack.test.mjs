@@ -21,6 +21,9 @@ test('cyber meeting pack builds executive and technical Upgreat framing', () => 
   assert.equal(packet.provenanceProof.rows, 4);
   assert.equal(packet.provenanceProof.quarantined, 2);
   assert.match(packet.provenanceProof.claim, /provenance scoring proof only/i);
+  assert.equal(packet.ragConflictProof.cases, 5);
+  assert.equal(packet.ragConflictProof.ambiguous, 1);
+  assert.match(packet.ragConflictProof.claim, /conflict proof only/i);
   assert.equal(packet.liveDemoOrder.length, 7);
   assert.ok(packet.liveDemoOrder.every((step) => /fixture proof only/i.test(step.boundary)));
   assert.ok(packet.liveDemoOrder.every((step) => step.executableTest === '_SYSTEM/Scripts/cyber-lab-runner.test.mjs'));
@@ -45,6 +48,7 @@ test('cyber meeting pack validation rejects missing demos and overclaims', () =>
   invalid.pilotScope.deliverables = [];
   invalid.retestProof = { provenRows: 0, claim: 'production remediation proof' };
   invalid.provenanceProof = { rows: 0, quarantined: 0, claim: 'production RAG security proof' };
+  invalid.ragConflictProof = { cases: 0, ambiguous: 0, claim: 'production RAG conflict proof' };
 
   const validation = validateCyberMeetingPack(invalid);
 
@@ -55,6 +59,8 @@ test('cyber meeting pack validation rejects missing demos and overclaims', () =>
   assert.match(validation.errors.join('\n'), /retest proof overclaims/);
   assert.match(validation.errors.join('\n'), /at least 4 provenance proof rows/);
   assert.match(validation.errors.join('\n'), /provenance proof overclaims/);
+  assert.match(validation.errors.join('\n'), /at least 5 RAG conflict proof cases/);
+  assert.match(validation.errors.join('\n'), /RAG conflict proof overclaims/);
   assert.match(validation.errors.join('\n'), /forbidden platform maturity claim/);
 });
 
@@ -70,6 +76,7 @@ test('cyber meeting pack writes markdown artifact', () => {
     assert.match(markdown, /YURI Upgreat Meeting Packet/);
     assert.match(markdown, /Retest Proof/);
     assert.match(markdown, /Provenance Proof/);
+    assert.match(markdown, /RAG Conflict Proof/);
     assert.match(markdown, /Live Demo Order/);
     assert.match(markdown, /Questions For Upgreat/);
   } finally {

@@ -1,0 +1,130 @@
+{
+  "schema": "yuri.cyber-lab-fixture.rag-conflict-corpus.v0",
+  "labId": "rag-conflict-corpus",
+  "title": "Multi-Hop RAG Conflict Corpus Lab",
+  "runMode": "fixture-only",
+  "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+  "proofTarget": "retrieval-memory-provenance-rail",
+  "externalTargetsAllowed": false,
+  "documents": [
+    {
+      "id": "xylon-vendor-critical",
+      "entityId": "YURI-SYNTH-2026-XYLON",
+      "sourceType": "synthetic-vendor-advisory",
+      "provenanceScore": 92,
+      "severity": "Critical",
+      "remediationDate": "2026-05-24",
+      "text": "Vendor advisory: YURI-SYNTH-2026-XYLON is Critical and patched on 2026-05-24."
+    },
+    {
+      "id": "xylon-blog-low",
+      "entityId": "YURI-SYNTH-2026-XYLON",
+      "sourceType": "synthetic-blog-rumor",
+      "provenanceScore": 44,
+      "severity": "Low",
+      "remediationDate": "2026-06-01",
+      "text": "Unverified blog: YURI-SYNTH-2026-XYLON is probably Low severity."
+    },
+    {
+      "id": "xylon-research-high",
+      "entityId": "YURI-SYNTH-2026-XYLON",
+      "sourceType": "synthetic-research-note",
+      "provenanceScore": 88,
+      "severity": "High",
+      "remediationDate": "2026-05-26",
+      "text": "Research note: YURI-SYNTH-2026-XYLON is High severity."
+    },
+    {
+      "id": "xylon-medium-a",
+      "entityId": "YURI-SYNTH-2026-XYLON",
+      "sourceType": "synthetic-ticket",
+      "provenanceScore": 55,
+      "severity": "Medium",
+      "remediationDate": "2026-05-29",
+      "text": "Internal ticket: YURI-SYNTH-2026-XYLON appears Medium severity."
+    },
+    {
+      "id": "xylon-low-only-a",
+      "entityId": "YURI-SYNTH-2026-XYLON",
+      "sourceType": "synthetic-low-confidence-note",
+      "provenanceScore": 22,
+      "severity": "Critical",
+      "remediationDate": "2026-05-25",
+      "text": "Low-confidence note: YURI-SYNTH-2026-XYLON might be Critical."
+    },
+    {
+      "id": "xylon-low-only-b",
+      "entityId": "YURI-SYNTH-2026-XYLON",
+      "sourceType": "synthetic-low-confidence-note",
+      "provenanceScore": 10,
+      "severity": "Low",
+      "remediationDate": "2026-06-04",
+      "text": "Low-confidence note: YURI-SYNTH-2026-XYLON might be Low."
+    },
+    {
+      "id": "zephyr-cisa-copy",
+      "entityId": "YURI-SYNTH-2026-ZEPHYR",
+      "sourceType": "synthetic-agency-copy",
+      "provenanceScore": 83,
+      "severity": "Medium",
+      "remediationDate": "2026-05-30",
+      "text": "Agency copy: YURI-SYNTH-2026-ZEPHYR is Medium severity."
+    },
+    {
+      "id": "zephyr-vendor-copy",
+      "entityId": "YURI-SYNTH-2026-ZEPHYR",
+      "sourceType": "synthetic-vendor-copy",
+      "provenanceScore": 76,
+      "severity": "Medium",
+      "remediationDate": "2026-05-30",
+      "text": "Vendor copy: YURI-SYNTH-2026-ZEPHYR is Medium severity."
+    }
+  ],
+  "cases": [
+    {
+      "id": "single-high-winner",
+      "documentIds": ["xylon-vendor-critical", "xylon-blog-low"],
+      "expected": {
+        "resolution": "adopt_high_confidence",
+        "severity": "Critical",
+        "finalSourceId": "xylon-vendor-critical"
+      }
+    },
+    {
+      "id": "two-high-conflict",
+      "documentIds": ["xylon-vendor-critical", "xylon-research-high"],
+      "expected": {
+        "resolution": "ambiguous_high_conflict",
+        "severity": "AMBIGUOUS",
+        "finalSourceId": "xylon-vendor-critical"
+      }
+    },
+    {
+      "id": "medium-only-winner",
+      "documentIds": ["xylon-medium-a", "xylon-low-only-b"],
+      "expected": {
+        "resolution": "adopt_medium_confidence",
+        "severity": "Medium",
+        "finalSourceId": "xylon-medium-a"
+      }
+    },
+    {
+      "id": "low-only-unverified",
+      "documentIds": ["xylon-low-only-a", "xylon-low-only-b"],
+      "expected": {
+        "resolution": "unverified_low_confidence_only",
+        "severity": "UNVERIFIED",
+        "finalSourceId": "xylon-low-only-a"
+      }
+    },
+    {
+      "id": "unanimous-noop",
+      "documentIds": ["zephyr-cisa-copy", "zephyr-vendor-copy"],
+      "expected": {
+        "resolution": "adopt_unanimous",
+        "severity": "Medium",
+        "finalSourceId": "zephyr-cisa-copy"
+      }
+    }
+  ]
+}

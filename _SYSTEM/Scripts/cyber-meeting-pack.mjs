@@ -15,6 +15,7 @@ import { buildCyberPilotPack } from './cyber-pilot-pack.mjs';
 import { buildCyberProofCards } from './cyber-proof-cards.mjs';
 import { buildCyberRetestProof } from './cyber-retest-proof.mjs';
 import { buildCyberProvenanceScore } from './cyber-provenance-score.mjs';
+import { buildCyberRagConflictProof } from './cyber-rag-conflict-proof.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -40,10 +41,12 @@ export function buildCyberMeetingPack(options = {}) {
   const proofCards = options.proofCards || buildCyberProofCards(options);
   const retestProof = options.retestProof || buildCyberRetestProof(options);
   const provenanceProof = options.provenanceProof || buildCyberProvenanceScore(options);
+  const ragConflictProof = options.ragConflictProof || buildCyberRagConflictProof(options);
   const cardById = new Map(proofCards.cards.map((card) => [card.id, card]));
   const demoOrder = DEMO_PRIORITY.map((id) => cardById.get(id)).filter(Boolean).map(toDemoStep);
   const retestSummary = summarizeRetestProof(retestProof);
   const provenanceSummary = summarizeProvenanceProof(provenanceProof);
+  const ragConflictSummary = summarizeRagConflictProof(ragConflictProof);
 
   const packet = {
     schema: 'yuri.upgreat-meeting-packet.v0',
@@ -58,6 +61,7 @@ export function buildCyberMeetingPack(options = {}) {
     technicalVersion: buildTechnicalVersion(proofCards, retestSummary),
     retestProof: retestSummary,
     provenanceProof: provenanceSummary,
+    ragConflictProof: ragConflictSummary,
     liveDemoOrder: demoOrder,
     pilotScope: buildPilotScope(),
     questionsForUpgreat: [
@@ -92,6 +96,9 @@ export function validateCyberMeetingPack(packet) {
   if ((packet.provenanceProof?.rows || 0) < 4) errors.push('expected at least 4 provenance proof rows');
   if ((packet.provenanceProof?.quarantined || 0) < 2) errors.push('expected at least 2 quarantined provenance rows');
   if (!/provenance scoring proof only/i.test(packet.provenanceProof?.claim || '')) errors.push('provenance proof overclaims beyond fixture scope');
+  if ((packet.ragConflictProof?.cases || 0) < 5) errors.push('expected at least 5 RAG conflict proof cases');
+  if ((packet.ragConflictProof?.ambiguous || 0) < 1) errors.push('expected at least 1 ambiguous RAG conflict case');
+  if (!/conflict proof only/i.test(packet.ragConflictProof?.claim || '')) errors.push('RAG conflict proof overclaims beyond fixture scope');
   if (containsForbiddenClaim(packet)) errors.push('packet contains forbidden platform maturity claim');
   for (const step of packet.liveDemoOrder || []) {
     if (!step.evidence || !step.executableTest || !step.boundary) errors.push(`demo step missing proof fields: ${step.id || 'unknown'}`);
@@ -129,6 +136,10 @@ export function renderCyberMeetingPackMarkdown(packet = buildCyberMeetingPack())
     '## Provenance Proof',
     '',
     renderProvenanceProof(packet.provenanceProof),
+    '',
+    '## RAG Conflict Proof',
+    '',
+    renderRagConflictProof(packet.ragConflictProof),
     '',
     '## Live Demo Order',
     '',
@@ -211,6 +222,18 @@ function summarizeProvenanceProof(provenanceProof) {
   };
 }
 
+function summarizeRagConflictProof(ragConflictProof) {
+  return {
+    cases: ragConflictProof.resolutions?.length || 0,
+    resolved: ragConflictProof.validation?.resolved || 0,
+    ambiguous: ragConflictProof.validation?.ambiguous || 0,
+    unverified: ragConflictProof.validation?.unverified || 0,
+    artifact: '_SYSTEM/reports/YURI_RAG_CONFLICT_PROOF_2026-05-24.md',
+    claim: 'Deterministic local multi-hop RAG conflict proof only; not production RAG security proof.',
+    boundary: 'owned-local-synthetic-fixtures-only',
+  };
+}
+
 function renderRetestProof(retestProof) {
   return [
     `- Rows: ${retestProof.provenRows}/${retestProof.totalRows} retest-proven`,
@@ -230,6 +253,18 @@ function renderProvenanceProof(provenanceProof) {
     `- Artifact: ${provenanceProof.artifact}`,
     `- Claim: ${provenanceProof.claim}`,
     `- Boundary: ${provenanceProof.boundary}`,
+  ].join('\n');
+}
+
+function renderRagConflictProof(ragConflictProof) {
+  return [
+    `- Cases: ${ragConflictProof.cases} synthetic conflict cases`,
+    `- Resolved: ${ragConflictProof.resolved}`,
+    `- Ambiguous: ${ragConflictProof.ambiguous}`,
+    `- Unverified: ${ragConflictProof.unverified}`,
+    `- Artifact: ${ragConflictProof.artifact}`,
+    `- Claim: ${ragConflictProof.claim}`,
+    `- Boundary: ${ragConflictProof.boundary}`,
   ].join('\n');
 }
 

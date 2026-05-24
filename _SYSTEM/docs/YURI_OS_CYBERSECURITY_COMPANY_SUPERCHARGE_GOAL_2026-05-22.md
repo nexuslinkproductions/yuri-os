@@ -281,6 +281,11 @@ Artifacts:
 - Provenance score tests: `_SYSTEM/Scripts/cyber-provenance-score.test.mjs`
 - Provenance score data: `_SYSTEM/data/cyber-intel/provenance-score-matrix.json`
 - Provenance score report: `_SYSTEM/reports/YURI_PROVENANCE_SCORE_MATRIX_2026-05-24.md`
+- RAG conflict proof generator: `_SYSTEM/Scripts/cyber-rag-conflict-proof.mjs`
+- RAG conflict proof tests: `_SYSTEM/Scripts/cyber-rag-conflict-proof.test.mjs`
+- RAG conflict fixture: `_SYSTEM/labs/cyber/fixtures/rag-conflict-corpus.json`
+- RAG conflict data: `_SYSTEM/data/cyber-intel/rag-conflict-proof.json`
+- RAG conflict report: `_SYSTEM/reports/YURI_RAG_CONFLICT_PROOF_2026-05-24.md`
 
 Current boundary: Upgreat-facing material may show before/after retest proof only for deterministic local fixtures: threat-shaped cases are detected safely before remediation, benign/remediated controls pass after. It must not imply production remediation proof, external target testing, or client guarantee.
 
@@ -289,6 +294,8 @@ Browser replay boundary: browser-harness evidence is limited to repo-local `file
 Authorized replay boundary: partner/client replay remains blocked until written authorization, owner metadata, time window, emergency stop contact, allowed surfaces, and forbidden actions are present. No written scope means no execution.
 
 Provenance scoring boundary: memory/RAG proof remains owned local fixture-only. Retrieved or remembered text can be scored, quarantined, or allowed into audited review, but it never becomes runtime authority and it is not production RAG security proof.
+
+RAG conflict boundary: multi-hop retrieval conflict proof remains synthetic-only. Conflicting retrieved sources can be resolved, marked ambiguous, or marked unverified, but no retrieved source becomes runtime instruction authority and no real threat feed/client source is queried.
 
 ### Wave C8: Regional Packs
 
