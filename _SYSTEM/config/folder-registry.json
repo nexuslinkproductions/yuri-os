@@ -388,24 +388,6 @@
       "notes": "Claude-facing adapter. Must inherit canonical policy, not duplicate it."
     },
     {
-      "path": "debug-hardstop.mjs",
-      "class": "candidate_review",
-      "owner": "YURI/debug",
-      "readByDefault": false,
-      "protected": false,
-      "status": "legacy_review",
-      "notes": "Debug script. Needs owner and current use confirmation."
-    },
-    {
-      "path": "debug-preflight.mjs",
-      "class": "candidate_review",
-      "owner": "YURI/debug",
-      "readByDefault": false,
-      "protected": false,
-      "status": "legacy_review",
-      "notes": "Debug script. Needs owner and current use confirmation."
-    },
-    {
       "path": "dist",
       "class": "generated_artifact",
       "owner": "Build system",
@@ -614,12 +596,12 @@
     },
     {
       "path": "yuri-os-dashboard.html",
-      "class": "candidate_review",
+      "class": "generated_artifact",
       "owner": "YURI/dashboard",
       "readByDefault": false,
       "protected": false,
-      "status": "legacy_review",
-      "notes": "Root dashboard artifact. Determine whether source or generated output."
+      "status": "active_snapshot",
+      "notes": "Tracked dashboard snapshot referenced by dashboard specs. Source truth remains the generator/spec docs."
     },
     {
       "path": "YURI-SENTINEL",

@@ -79,20 +79,23 @@ node _SYSTEM/Scripts/folder-census.mjs --validate
 
 Result:
 
-- root entries: `59`
+- root entries: `57`
 - unclassified: `0`
 - protected: `2`
-- registry entries: `68`
+- registry entries: `66`
 - missing registry entries: `0`
 
-Candidate-review surfaces still requiring owner classification:
+Candidate-review surfaces after the tracked-root cleanup:
 
 - `backend` — active backend surface; `backend/data` remains sealed
-- `debug-hardstop.mjs` — legacy debug script
-- `debug-preflight.mjs` — legacy debug script
 - `Scripts` — ambiguous root script directory; `_SYSTEM/Scripts` is canonical
 - `test` — root test directory relationship needs confirmation
-- `yuri-os-dashboard.html` — root dashboard artifact needs source/generated decision
+
+Resolved during follow-up:
+
+- `debug-hardstop.mjs` — removed from the active tree; tracked ad hoc debug residue with no live references
+- `debug-preflight.mjs` — removed from the active tree; tracked ad hoc debug residue with no live references
+- `yuri-os-dashboard.html` — reclassified as a tracked generated dashboard snapshot; source truth remains the generator/spec docs
 
 ### Context Router
 
