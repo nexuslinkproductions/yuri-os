@@ -1,6 +1,6 @@
 {
   "schema": "yuri.threat-intel-matrix.v1",
-  "generatedAt": "2026-05-22T06:38:15.918Z",
+  "generatedAt": "2026-05-24T10:02:56.172Z",
   "matrixPath": "_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md",
   "protocolPath": "_SYSTEM/docs/YURI_GLOBAL_CYBER_THREAT_INTEL_INGESTION_PROTOCOL_2026-05-22.md",
   "validation": {
@@ -8,7 +8,7 @@
     "errors": [],
     "warnings": [],
     "rowCount": 90,
-    "checkedAt": "2026-05-22T06:38:15.917Z"
+    "checkedAt": "2026-05-24T10:02:56.172Z"
   },
   "summary": {
     "totalRows": 90,
@@ -349,7 +349,7 @@
     },
     "S27": {
       "id": "S27",
-      "source": "Cyber intelligence sprint: _SYSTEM/session-outputs/YURI-OS-GLOBAL-CYBERSECURITY-INTELLIGENCE-SPRINT-2026-05-21.md",
+      "source": "Cyber research sprint: _SYSTEM/session-outputs/YURI-OS-GLOBAL-CYBERSECURITY-INTELLIGENCE-SPRINT-2026-05-21.md",
       "url": null,
       "quality": "B",
       "local": true,

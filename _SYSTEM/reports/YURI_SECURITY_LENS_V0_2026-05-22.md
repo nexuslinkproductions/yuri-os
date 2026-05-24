@@ -1,6 +1,6 @@
 # YURI Security Lens v0
 
-Generated: 2026-05-22T06:56:35.466Z
+Generated: 2026-05-24T10:01:15.236Z
 
 ## Scope
 

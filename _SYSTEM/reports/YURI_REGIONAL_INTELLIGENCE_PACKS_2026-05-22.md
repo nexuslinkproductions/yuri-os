@@ -1,6 +1,6 @@
 # YURI Regional Intelligence Packs
 
-Generated: 2026-05-22T07:52:50.412Z
+Generated: 2026-05-24T10:01:15.251Z
 
 ## Europe / DACH / Switzerland
 
