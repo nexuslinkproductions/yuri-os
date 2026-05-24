@@ -12,13 +12,15 @@ Every durable artifact needs a predictable home and a registry entry. This makes
 
 ## Current Rule
 
-`_SYSTEM/config/folder-registry.json` is the first registry layer.
+`_SYSTEM/config/folder-registry.json` is the folder registry layer.
 
-It currently classifies root folders and key subfolders. It is navigation metadata, not cleanup permission.
+`_SYSTEM/config/artifact-registry.json` is the durable artifact registry seed.
+
+Together they classify root folders, key subfolders, and durable artifacts. This is navigation metadata, not cleanup permission.
 
 ## Next Evolution
 
-Promote the folder registry into a master artifact registry.
+Promote the artifact registry seed into a full master registry.
 
 The master registry should cover:
 
@@ -80,6 +82,13 @@ When creating a new durable file or folder:
 3. Add supersession metadata when replacing an older artifact.
 4. Avoid root-level files unless a tool absolutely requires them.
 5. Do not create a new provider-specific source of truth.
+
+Machine check:
+
+```bash
+node _SYSTEM/Scripts/artifact-registry.mjs --validate
+node _SYSTEM/Scripts/artifact-registry.mjs --classify "_SYSTEM/docs/new-plan.md"
+```
 
 ## Wiki Relationship
 

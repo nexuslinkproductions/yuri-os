@@ -112,7 +112,18 @@ It answers:
 - is it runtime/cache/generated/external?
 - who owns it?
 
-This should eventually expand into a full artifact registry covering docs, scripts, JSON, reports, runtimes, skills, generated assets, and model checkouts.
+This now has a seed artifact registry:
+
+`_SYSTEM/config/artifact-registry.json`
+
+Companion CLI:
+
+```bash
+node _SYSTEM/Scripts/artifact-registry.mjs --validate
+node _SYSTEM/Scripts/artifact-registry.mjs --classify "_SYSTEM/docs/new-plan.md"
+```
+
+The seed covers canonical anchors, context selectors, structure scripts, placement rules, and protected-path fail-closed behavior. It should continue expanding until docs, scripts, JSON, reports, runtimes, skills, generated assets, and model checkouts can all be resolved without rediscovery.
 
 ## Correct Model Read Path
 
@@ -125,6 +136,7 @@ owner prompt
   -> _SYSTEM/context/context-registry.json
   -> _SYSTEM/INDEX.md
   -> _SYSTEM/config/folder-registry.json
+  -> _SYSTEM/config/artifact-registry.json
   -> selected context packet
   -> curated wiki/RAG context when needed
   -> task-specific local docs
@@ -173,7 +185,7 @@ Before adding durable files:
 
 ## Remaining Work
 
-- Expand folder registry into a broader artifact registry.
+- Expand the artifact registry seed across reports, skills, model runtimes, cyber artifacts, and generated assets.
 - Generate a wiki projection from registry files.
 - Add a preflight that warns when new root folders are unclassified.
 - Finish persistent CLI bridge work so Kagami can control long-lived Claude and DeepSeek sessions without one-shot prompt calls.

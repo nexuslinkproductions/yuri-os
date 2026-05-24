@@ -22,6 +22,8 @@ test('release gate includes cyber intelligence and security lens checks', () => 
   assert.ok(checkNames.includes('test:cyber-pilot-pack'));
   assert.ok(checkNames.includes('syntax:secret-leak-scan'));
   assert.ok(checkNames.includes('test:secret-leak-scan'));
+  assert.ok(checkNames.includes('syntax:artifact-registry'));
+  assert.ok(checkNames.includes('test:artifact-registry'));
   assert.ok(checkNames.includes('test:lane-session'));
   assert.ok(checkNames.includes('security:secret-leak-live'));
 });

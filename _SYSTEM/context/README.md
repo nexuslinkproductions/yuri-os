@@ -20,6 +20,7 @@ operator input
   -> _SYSTEM/context/context-registry.json
   -> _SYSTEM/INDEX.md
   -> _SYSTEM/config/folder-registry.json
+  -> _SYSTEM/config/artifact-registry.json
   -> selected context packet
   -> task-local docs
   -> implementation files
@@ -43,6 +44,12 @@ It returns:
 
 This is the first concrete context registry. It should grow into a richer context database, but it already gives YURI a deterministic first turn instead of a blind filesystem crawl.
 
+Use the artifact registry before adding durable files:
+
+```bash
+node _SYSTEM/Scripts/artifact-registry.mjs --classify "_SYSTEM/docs/new-plan.md"
+```
+
 ## Context Sources
 
 | Source | Role | Rule |
@@ -50,6 +57,7 @@ This is the first concrete context registry. It should grow into a richer contex
 | `_SYSTEM/context/context-registry.json` | Task-to-context packet map | Select before broad exploration. |
 | `_SYSTEM/INDEX.md` | Human/model navigation map | Read before root browsing. |
 | `_SYSTEM/config/folder-registry.json` | Machine-readable folder classification | Use to answer "what is this path?" without rediscovery. |
+| `_SYSTEM/config/artifact-registry.json` | Machine-readable durable artifact classification | Use to answer "where should this new artifact live?" before creation. |
 | `_SYSTEM/yuri-wiki/index.md` | Curated wiki and RAG entrypoint | Advisory projection; local repo truth outranks it. |
 | `_SYSTEM/docs/*` | Current architecture, guardrail, cyber, memory, and sprint docs | Prefer recent dated docs over old handoffs. |
 | `.agents/skills/*` | YURI skill library | Load only relevant skills. |

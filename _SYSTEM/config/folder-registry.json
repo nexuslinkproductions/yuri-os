@@ -55,6 +55,15 @@
       "notes": "Machine-readable task-to-context packet selector."
     },
     {
+      "path": "_SYSTEM/config/artifact-registry.json",
+      "class": "artifact_registry",
+      "owner": "YURI structure",
+      "readByDefault": true,
+      "protected": false,
+      "status": "active_seed",
+      "notes": "Machine-readable durable artifact registry and placement-rule seed."
+    },
+    {
       "path": "_SYSTEM/docs/YURI_SKILL_EVOLUTION_PROMOTION_2026-05-23.md",
       "class": "context_layer",
       "owner": "YURI skills",
@@ -71,6 +80,15 @@
       "protected": false,
       "status": "active",
       "notes": "CLI that selects a context packet for a task before broad exploration."
+    },
+    {
+      "path": "_SYSTEM/Scripts/artifact-registry.mjs",
+      "class": "system_control_plane",
+      "owner": "YURI structure",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "CLI that validates durable artifacts and classifies future artifact paths before creation."
     },
     {
       "path": "_SYSTEM/tools/browser-harness",

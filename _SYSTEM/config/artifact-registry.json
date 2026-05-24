@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-05-24",
+  "purpose": "Master YURI artifact registry seed. This extends folder classification into durable docs, scripts, registries, reports, skills, runtime state, and generated artifacts.",
+  "rules": {
+    "readByDefault": "Only canonical anchors and context selectors may be read by default.",
+    "protected": "Protected paths are never read directly. Registering a protected path is a warning label, not read permission.",
+    "creation": "New durable artifacts must choose a storage rule before landing in the repo.",
+    "supersession": "Replacement artifacts must declare supersedes or supersededBy when applicable."
+  },
+  "artifactTypes": [
+    "folder",
+    "doc",
+    "script",
+    "test",
+    "config",
+    "data",
+    "report",
+    "runtime_state",
+    "external_checkout",
+    "model_runtime",
+    "skill",
+    "wiki_page",
+    "generated_artifact",
+    "provider_adapter"
+  ],
+  "placementRules": [
+    {
+      "id": "system-doc",
+      "matchPrefix": "_SYSTEM/docs/",
+      "artifactType": "doc",
+      "class": "system_control_plane",
+      "storageRule": "Operating policy, architecture, goals, guardrails, and durable plans live in _SYSTEM/docs/."
+    },
+    {
+      "id": "system-script",
+      "matchPrefix": "_SYSTEM/Scripts/",
+      "artifactType": "script",
+      "class": "system_control_plane",
+      "storageRule": "Runtime scripts and script tests live in _SYSTEM/Scripts/."
+    },
+    {
+      "id": "system-config",
+      "matchPrefix": "_SYSTEM/config/",
+      "artifactType": "config",
+      "class": "artifact_registry",
+      "storageRule": "Registries, schemas, and machine-readable configuration live in _SYSTEM/config/."
+    },
+    {
+      "id": "context-layer",
+      "matchPrefix": "_SYSTEM/context/",
+      "artifactType": "doc",
+      "class": "context_layer",
+      "storageRule": "Context selectors, packet docs, and context routing metadata live in _SYSTEM/context/."
+    },
+    {
+      "id": "wiki-projection",
+      "matchPrefix": "_SYSTEM/yuri-wiki/",
+      "artifactType": "wiki_page",
+      "class": "context_layer",
+      "storageRule": "Curated human/RAG-readable projections live in _SYSTEM/yuri-wiki/."
+    },
+    {
+      "id": "runtime-state",
+      "matchPrefix": "_SYSTEM/state/",
+      "artifactType": "runtime_state",
+      "class": "runtime_cache",
+      "storageRule": "Runtime state lives in _SYSTEM/state/ and is ignored unless explicitly promoted."
+    },
+    {
+      "id": "report",
+      "matchPrefix": "_SYSTEM/reports/",
+      "artifactType": "report",
+      "class": "generated_artifact",
+      "storageRule": "Generated or refreshed reports live in _SYSTEM/reports/."
+    },
+    {
+      "id": "research-archive",
+      "matchPrefix": "_SYSTEM/research-archive/",
+      "artifactType": "doc",
+      "class": "harvest_source",
+      "storageRule": "Evidence and research sources live in _SYSTEM/research-archive/ before promotion."
+    },
+    {
+      "id": "tool-checkout",
+      "matchPrefix": "_SYSTEM/tools/",
+      "artifactType": "external_checkout",
+      "class": "external_tool_checkout",
+      "storageRule": "Repo-local external tools live in _SYSTEM/tools/ and remain isolated from YURI source truth."
+    },
+    {
+      "id": "skill",
+      "matchPrefix": ".agents/skills/",
+      "artifactType": "skill",
+      "class": "system_control_plane",
+      "storageRule": "YURI-owned reusable skills live in .agents/skills/."
+    },
+    {
+      "id": "codex-skill",
+      "matchPrefix": ".codex/skills/",
+      "artifactType": "skill",
+      "class": "provider_adapter",
+      "storageRule": "Codex-specific skills live in .codex/skills/ and must not become global policy."
+    },
+    {
+      "id": "active-project",
+      "matchPrefix": "01_PROJECTS/",
+      "artifactType": "doc",
+      "class": "human_workspace",
+      "storageRule": "Active project material lives under 01_PROJECTS/<project>/."
+    },
+    {
+      "id": "resource",
+      "matchPrefix": "03_RESOURCES/",
+      "artifactType": "doc",
+      "class": "human_workspace",
+      "storageRule": "Durable reusable references live under 03_RESOURCES/."
+    },
+    {
+      "id": "archive",
+      "matchPrefix": "07_ARCHIVE/",
+      "artifactType": "doc",
+      "class": "archive",
+      "storageRule": "Inactive historical material lives in 07_ARCHIVE/."
+    }
+  ],
+  "protectedPrefixes": [
+    ".env",
+    "backend/data/",
+    ".claude/state/",
+    ".claude/history/",
+    "node_modules/",
+    ".amp/"
+  ],
+  "artifacts": [
+    {
+      "path": "_SYSTEM/yuri-origin.md",
+      "type": "doc",
+      "class": "canonical_anchor",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": true,
+      "protected": false,
+      "storageRule": "Canonical authority anchor.",
+      "rebuildRule": "Manual edit only; verify persona and control-plane tests.",
+      "notes": "Primary YURI operating contract."
+    },
+    {
+      "path": "SOUL.md",
+      "type": "doc",
+      "class": "canonical_anchor",
+      "owner": "YURI",
+      "status": "active",
+      "readByDefault": true,
+      "protected": false,
+      "storageRule": "Root canonical persona anchor.",
+      "rebuildRule": "Manual edit only; verify persona contract.",
+      "notes": "Persona and cognitive workflow source."
+    },
+    {
+      "path": "AGENTS.md",
+      "type": "provider_adapter",
+      "class": "canonical_anchor",
+      "owner": "Codex adapter",
+      "status": "active",
+      "readByDefault": true,
+      "protected": false,
+      "storageRule": "Root adapter that inherits YURI authority.",
+      "rebuildRule": "Keep thin; do not duplicate global policy.",
+      "notes": "Codex-facing entrypoint."
+    },
+    {
+      "path": "CLAUDE.md",
+      "type": "provider_adapter",
+      "class": "canonical_anchor",
+      "owner": "Claude CLI adapter",
+      "status": "dormant_adapter",
+      "readByDefault": true,
+      "protected": false,
+      "storageRule": "Root adapter that inherits YURI authority.",
+      "rebuildRule": "Keep thin; persistent CLI only when active.",
+      "notes": "Kept for possible future Claude subscription use."
+    },
+    {
+      "path": "_SYSTEM/INDEX.md",
+      "type": "doc",
+      "class": "context_layer",
+      "owner": "YURI context layer",
+      "status": "active",
+      "readByDefault": true,
+      "protected": false,
+      "storageRule": "System navigation map.",
+      "rebuildRule": "Update when root/context registry changes.",
+      "notes": "Human/model navigation map."
+    },
+    {
+      "path": "_SYSTEM/context/README.md",
+      "type": "doc",
+      "class": "context_layer",
+      "owner": "YURI context layer",
+      "status": "active",
+      "readByDefault": true,
+      "protected": false,
+      "storageRule": "Context layer contract.",
+      "rebuildRule": "Update when read cascade changes.",
+      "notes": "Explains context selection before broad exploration."
+    },
+    {
+      "path": "_SYSTEM/context/context-registry.json",
+      "type": "config",
+      "class": "context_registry",
+      "owner": "YURI context layer",
+      "status": "active",
+      "readByDefault": true,
+      "protected": false,
+      "storageRule": "Machine-readable context selector.",
+      "rebuildRule": "Run context-router tests.",
+      "notes": "Task-to-context packet map."
+    },
+    {
+      "path": "_SYSTEM/config/folder-registry.json",
+      "type": "config",
+      "class": "context_registry",
+      "owner": "YURI structure",
+      "status": "active",
+      "readByDefault": true,
+      "protected": false,
+      "storageRule": "Machine-readable root folder map.",
+      "rebuildRule": "Run folder-census validation.",
+      "notes": "Folder classification source."
+    },
+    {
+      "path": "_SYSTEM/config/artifact-registry.json",
+      "type": "config",
+      "class": "artifact_registry",
+      "owner": "YURI structure",
+      "status": "active_seed",
+      "readByDefault": true,
+      "protected": false,
+      "storageRule": "Machine-readable durable artifact map.",
+      "rebuildRule": "Run artifact-registry validation.",
+      "notes": "Seed for broader artifact/database navigation."
+    },
+    {
+      "path": "_SYSTEM/Scripts/context-router.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI context layer",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run context-router tests.",
+      "notes": "Selects task context packets."
+    },
+    {
+      "path": "_SYSTEM/Scripts/folder-census.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI structure",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run folder-census validation.",
+      "notes": "Validates root folder classification."
+    },
+    {
+      "path": "_SYSTEM/Scripts/artifact-registry.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI structure",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run artifact-registry tests.",
+      "notes": "Validates artifacts and classifies future paths."
+    },
+    {
+      "path": "_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md",
+      "type": "doc",
+      "class": "system_control_plane",
+      "owner": "YURI structure",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Architecture docs live in _SYSTEM/docs/.",
+      "rebuildRule": "Update when registry schema changes.",
+      "notes": "Human protocol for artifact placement."
+    },
+    {
+      "path": "_SYSTEM/docs/YURI_OS_STRUCTURE_CLEANUP_AUDIT_2026-05-23.md",
+      "type": "doc",
+      "class": "system_control_plane",
+      "owner": "YURI structure",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Architecture docs live in _SYSTEM/docs/.",
+      "rebuildRule": "Update as cleanup waves land.",
+      "notes": "Structure cleanup audit and remaining work."
+    },
+    {
+      "path": "_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md",
+      "type": "doc",
+      "class": "system_control_plane",
+      "owner": "YURI self-improvement",
+      "status": "active_goal",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Active goals live in _SYSTEM/docs/ until promoted.",
+      "rebuildRule": "Update as unlocks and cleanup gates land.",
+      "notes": "Current disciplined self-improvement goal."
+    }
+  ]
+}

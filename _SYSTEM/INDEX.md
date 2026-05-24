@@ -16,6 +16,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/docs/YURI_OS_STRUCTURE_CLEANUP_AUDIT_2026-05-23.md` | Current structure cleanup audit and cleanup waves. |
 | `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md` | Where new docs/scripts/reports/registries/runtimes should live and how to classify them. |
 | `_SYSTEM/config/folder-registry.json` | Machine-readable folder classification map. |
+| `_SYSTEM/config/artifact-registry.json` | Machine-readable durable artifact map and future placement rules. |
 | `_SYSTEM/Scripts/offload-contract.mjs` | Lane routing and model contract. |
 | `_SYSTEM/Scripts/lane-kernel.mjs` | Canonical lane status/model/tool source when present. |
 
@@ -43,6 +44,7 @@ owner prompt
   -> _SYSTEM/context/context-registry.json
   -> _SYSTEM/INDEX.md
   -> _SYSTEM/config/folder-registry.json
+  -> _SYSTEM/config/artifact-registry.json
   -> selected context packet
   -> _SYSTEM/yuri-wiki/index.md when curated memory/context is needed
   -> task-specific local context
@@ -103,7 +105,7 @@ Minimum metadata:
 - storage destination
 - cleanup/rebuild rule
 
-`_SYSTEM/config/folder-registry.json` is the folder implementation of this rule. `_SYSTEM/context/context-registry.json` is the context-packet implementation. `_SYSTEM/yuri-wiki` is the human/RAG-readable projection, not the hidden source of truth.
+`_SYSTEM/config/folder-registry.json` is the folder implementation of this rule. `_SYSTEM/config/artifact-registry.json` is the durable artifact implementation. `_SYSTEM/context/context-registry.json` is the context-packet implementation. `_SYSTEM/yuri-wiki` is the human/RAG-readable projection, not the hidden source of truth.
 
 ## Current Cleanup North Star
 
