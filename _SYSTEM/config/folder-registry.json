@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-23",
+  "updated": "2026-05-24",
   "purpose": "Machine-readable YURI OS folder classification map. This is navigation metadata, not a cleanup permission slip.",
   "rules": {
     "readByDefault": "Only canonical anchors and selected control-plane docs are read by default.",
@@ -353,12 +353,12 @@
     },
     {
       "path": "backend",
-      "class": "candidate_review",
+      "class": "runtime_cache",
       "owner": "YURI backend",
       "readByDefault": false,
       "protected": false,
-      "status": "active",
-      "notes": "Backend surface. backend/data is protected and must remain sealed."
+      "status": "legacy_backend_runtime",
+      "notes": "Untracked legacy backend runtime surface with ignored/sealed contents. backend/.env, backend/data, nested dependencies, logs, and dist remain sealed; use approved backend wrappers or tracked specs instead of browsing this root."
     },
     {
       "path": "backend/data",
@@ -551,12 +551,12 @@
     },
     {
       "path": "Scripts",
-      "class": "candidate_review",
-      "owner": "unknown",
+      "class": "runtime_cache",
+      "owner": "legacy tools",
       "readByDefault": false,
       "protected": false,
-      "status": "legacy_review",
-      "notes": "Root Scripts is ambiguous because _SYSTEM/Scripts is canonical."
+      "status": "legacy_tool_runtime",
+      "notes": "Untracked legacy tool surface with ignored/runtime contents. _SYSTEM/Scripts is canonical for active YURI scripts."
     },
     {
       "path": "SOUL.md",
@@ -569,12 +569,12 @@
     },
     {
       "path": "test",
-      "class": "candidate_review",
+      "class": "runtime_cache",
       "owner": "YURI",
       "readByDefault": false,
       "protected": false,
-      "status": "active_or_legacy_review",
-      "notes": "Root test directory. Needs relationship to current test strategy."
+      "status": "legacy_workspace_runtime",
+      "notes": "Untracked legacy workspace surface with ignored/runtime contents. Active tests live beside canonical scripts and packages, especially _SYSTEM/Scripts/*.test.mjs."
     },
     {
       "path": "tsconfig.json",

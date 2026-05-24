@@ -86,11 +86,11 @@ Result:
 - folder registry entries after artifact-registry work: `68`
 - missing registry entries: `0`
 
-Candidate-review surfaces after the tracked-root cleanup:
+Resolved legacy root surfaces after the tracked-root cleanup:
 
-- `backend` — active backend surface; `backend/data` remains sealed
-- `Scripts` — ambiguous root script directory; `_SYSTEM/Scripts` is canonical
-- `test` — root test directory relationship needs confirmation
+- `backend` — untracked legacy backend runtime surface with ignored/sealed contents; `backend/.env`, `backend/data`, nested dependencies, logs, and build output stay sealed
+- `Scripts` — untracked legacy tool surface with ignored/runtime contents; `_SYSTEM/Scripts` is canonical
+- `test` — untracked legacy workspace surface with ignored/runtime contents; active tests live beside canonical scripts/packages
 
 Resolved during follow-up:
 
@@ -99,6 +99,7 @@ Resolved during follow-up:
 - `yuri-os-dashboard.html` — reclassified as a tracked generated dashboard snapshot; source truth remains the generator/spec docs
 - `_SYSTEM/config/artifact-registry.json` — added as the durable artifact registry seed
 - `_SYSTEM/Scripts/artifact-registry.mjs` — added as the validator and future artifact placement classifier
+- `backend`, `Scripts`, and `test` — reclassified from candidate-review roots into explicit legacy/runtime surfaces without reading protected contents
 
 ### Context Router
 
@@ -169,9 +170,9 @@ Interpretation: persistence works. Cold starts still happen, but stable session 
 1. Rotate/revoke the exposed NVIDIA key.
 2. Add a history-secret scan target to a slower/manual release command, not every pre-commit.
 3. Add a `lane-cache-rotator.mjs` or repair `lane-memory-prune` using wrappers, not raw protected reads.
-4. Classify the remaining candidate-review root surfaces.
-5. Expand the artifact registry across skills, model runtimes, generated assets, and remaining project surfaces.
-6. Continue cybersecurity runtime integration: ThreatIntelKernel -> Security Lens -> Cyber Lab Harness -> deterministic client-safe retest proof.
+4. Expand the artifact registry across skills, model runtimes, generated assets, and remaining project surfaces.
+5. Continue cybersecurity runtime integration: ThreatIntelKernel -> Security Lens -> Cyber Lab Harness -> deterministic client-safe retest proof.
+6. Add a slow cleanup lane for ignored legacy/runtime roots after rebuild/archive proof exists.
 
 ## Guardrails
 
