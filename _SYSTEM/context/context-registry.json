@@ -83,6 +83,7 @@
         "_SYSTEM/Scripts/cyber-retest-proof.mjs",
         "_SYSTEM/Scripts/cyber-browser-replay.mjs",
         "_SYSTEM/Scripts/cyber-authorized-replay-scope.mjs",
+        "_SYSTEM/Scripts/cyber-provenance-score.mjs",
         "_SYSTEM/Scripts/cyber-proof-cards.mjs",
         "_SYSTEM/Scripts/cyber-pilot-pack.mjs",
         "_SYSTEM/Scripts/cyber-meeting-pack.mjs",

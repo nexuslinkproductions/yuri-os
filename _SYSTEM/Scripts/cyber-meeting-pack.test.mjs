@@ -18,6 +18,9 @@ test('cyber meeting pack builds executive and technical Upgreat framing', () => 
   assert.ok(packet.technicalVersion.length >= 4);
   assert.equal(packet.retestProof.provenRows, 7);
   assert.match(packet.retestProof.claim, /retest proof only/i);
+  assert.equal(packet.provenanceProof.rows, 4);
+  assert.equal(packet.provenanceProof.quarantined, 2);
+  assert.match(packet.provenanceProof.claim, /provenance scoring proof only/i);
   assert.equal(packet.liveDemoOrder.length, 7);
   assert.ok(packet.liveDemoOrder.every((step) => /fixture proof only/i.test(step.boundary)));
   assert.ok(packet.liveDemoOrder.every((step) => step.executableTest === '_SYSTEM/Scripts/cyber-lab-runner.test.mjs'));
@@ -41,6 +44,7 @@ test('cyber meeting pack validation rejects missing demos and overclaims', () =>
   invalid.executiveVersion[0] = 'YURI is a mature SOC replacement.';
   invalid.pilotScope.deliverables = [];
   invalid.retestProof = { provenRows: 0, claim: 'production remediation proof' };
+  invalid.provenanceProof = { rows: 0, quarantined: 0, claim: 'production RAG security proof' };
 
   const validation = validateCyberMeetingPack(invalid);
 
@@ -49,6 +53,8 @@ test('cyber meeting pack validation rejects missing demos and overclaims', () =>
   assert.match(validation.errors.join('\n'), /missing pilot deliverables/);
   assert.match(validation.errors.join('\n'), /at least 7 retest proof rows/);
   assert.match(validation.errors.join('\n'), /retest proof overclaims/);
+  assert.match(validation.errors.join('\n'), /at least 4 provenance proof rows/);
+  assert.match(validation.errors.join('\n'), /provenance proof overclaims/);
   assert.match(validation.errors.join('\n'), /forbidden platform maturity claim/);
 });
 
@@ -63,6 +69,7 @@ test('cyber meeting pack writes markdown artifact', () => {
     assert.equal(existsSync(reportPath), true);
     assert.match(markdown, /YURI Upgreat Meeting Packet/);
     assert.match(markdown, /Retest Proof/);
+    assert.match(markdown, /Provenance Proof/);
     assert.match(markdown, /Live Demo Order/);
     assert.match(markdown, /Questions For Upgreat/);
   } finally {

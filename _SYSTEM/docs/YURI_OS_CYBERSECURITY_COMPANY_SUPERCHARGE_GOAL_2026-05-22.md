@@ -277,12 +277,18 @@ Artifacts:
 - Authorized replay scope tests: `_SYSTEM/Scripts/cyber-authorized-replay-scope.test.mjs`
 - Authorized replay scope data: `_SYSTEM/data/cyber-intel/authorized-replay-scope.json`
 - Authorized replay scope report: `_SYSTEM/reports/YURI_AUTHORIZED_REPLAY_SCOPE_2026-05-24.md`
+- Provenance score generator: `_SYSTEM/Scripts/cyber-provenance-score.mjs`
+- Provenance score tests: `_SYSTEM/Scripts/cyber-provenance-score.test.mjs`
+- Provenance score data: `_SYSTEM/data/cyber-intel/provenance-score-matrix.json`
+- Provenance score report: `_SYSTEM/reports/YURI_PROVENANCE_SCORE_MATRIX_2026-05-24.md`
 
 Current boundary: Upgreat-facing material may show before/after retest proof only for deterministic local fixtures: threat-shaped cases are detected safely before remediation, benign/remediated controls pass after. It must not imply production remediation proof, external target testing, or client guarantee.
 
 Browser replay boundary: browser-harness evidence is limited to repo-local `file://` fixtures, DOM/CDP read-only inspection, no screenshots required, no form submission, and no external target activity.
 
 Authorized replay boundary: partner/client replay remains blocked until written authorization, owner metadata, time window, emergency stop contact, allowed surfaces, and forbidden actions are present. No written scope means no execution.
+
+Provenance scoring boundary: memory/RAG proof remains owned local fixture-only. Retrieved or remembered text can be scored, quarantined, or allowed into audited review, but it never becomes runtime authority and it is not production RAG security proof.
 
 ### Wave C8: Regional Packs
 

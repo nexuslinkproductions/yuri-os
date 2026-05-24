@@ -1,6 +1,6 @@
 # YURI Upgreat Meeting Packet
 
-Generated: 2026-05-24T15:59:26.495Z
+Generated: 2026-05-24T17:11:15.666Z
 
 ## Objective
 
@@ -36,6 +36,15 @@ Position YURI as an evidence-first AI security assessment and hardening system f
 - Artifact: _SYSTEM/reports/YURI_CYBER_RETEST_PROOF_2026-05-24.md
 - Claim: Before/after deterministic local fixture retest proof only; not production remediation proof.
 - Boundary: owned-local-synthetic-or-explicitly-authorized-only
+
+## Provenance Proof
+
+- Rows: 4 local memory/RAG provenance rows
+- Quarantined: 2 hostile authority/promotion candidates
+- Allowed for audited review: 2 benign candidates
+- Artifact: _SYSTEM/reports/YURI_PROVENANCE_SCORE_MATRIX_2026-05-24.md
+- Claim: Deterministic local memory/RAG provenance scoring proof only; not production RAG security proof.
+- Boundary: owned-local-synthetic-fixtures-only
 
 ## Live Demo Order
 
@@ -80,7 +89,7 @@ Executable test: _SYSTEM/Scripts/cyber-lab-runner.test.mjs
 Sources: S11, S13
 Modules: AI Memory / RAG Scanner
 Show: Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.
-Next proof: Add provenance scores, rollback demonstrations, and multi-hop RAG conflict tests.
+Next proof: Provenance scores now exist; next add rollback demonstrations and multi-hop RAG conflict tests.
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 
 ### 5. RAG Poisoning Corpus Lab
@@ -91,7 +100,7 @@ Executable test: _SYSTEM/Scripts/cyber-lab-runner.test.mjs
 Sources: S1, S4, S9, S26, S11, S13
 Modules: Repo / Supply-Chain Scanner, AI Memory / RAG Scanner
 Show: Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.
-Next proof: Add provenance scores, rollback demonstrations, and multi-hop RAG conflict tests.
+Next proof: Provenance scores now exist; next add rollback demonstrations and multi-hop RAG conflict tests.
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 
 ### 6. Vulnerable Web/API Case Library

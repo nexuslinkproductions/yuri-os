@@ -472,6 +472,18 @@
       "notes": "Fail-closed authorization contract before partner/client replay."
     },
     {
+      "path": "_SYSTEM/Scripts/cyber-provenance-score.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI cyber provenance",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cyber runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run provenance-score tests and write the provenance score matrix.",
+      "notes": "Scores owned local memory/RAG poisoning fixtures without promoting retrieved content to authority."
+    },
+    {
       "path": "_SYSTEM/Scripts/cyber-proof-cards.mjs",
       "type": "script",
       "class": "system_control_plane",
@@ -616,6 +628,18 @@
       "notes": "Machine-readable blocked-by-default client replay authorization scope."
     },
     {
+      "path": "_SYSTEM/data/cyber-intel/provenance-score-matrix.json",
+      "type": "data",
+      "class": "generated_artifact",
+      "owner": "YURI cyber provenance",
+      "status": "generated",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Derived cyber proof JSON lives in _SYSTEM/data/cyber-intel/.",
+      "rebuildRule": "node _SYSTEM/Scripts/cyber-provenance-score.mjs --write",
+      "notes": "Structured memory/RAG provenance scoring proof for owned local fixtures."
+    },
+    {
       "path": "_SYSTEM/labs/cyber/lab-manifest.json",
       "type": "data",
       "class": "system_control_plane",
@@ -686,6 +710,18 @@
       "storageRule": "Cyber reports live in _SYSTEM/reports/.",
       "rebuildRule": "node _SYSTEM/Scripts/cyber-authorized-replay-scope.mjs --write",
       "notes": "Human-readable authorization gate for partner/client replay."
+    },
+    {
+      "path": "_SYSTEM/reports/YURI_PROVENANCE_SCORE_MATRIX_2026-05-24.md",
+      "type": "report",
+      "class": "generated_artifact",
+      "owner": "YURI cyber provenance",
+      "status": "generated_report",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Cyber reports live in _SYSTEM/reports/.",
+      "rebuildRule": "node _SYSTEM/Scripts/cyber-provenance-score.mjs --write",
+      "notes": "Human-readable memory/RAG provenance scoring proof."
     },
     {
       "path": "_SYSTEM/reports/YURI_CYBER_PROOF_CARDS_2026-05-23.md",

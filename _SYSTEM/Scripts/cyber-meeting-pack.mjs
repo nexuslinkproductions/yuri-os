@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { buildCyberPilotPack } from './cyber-pilot-pack.mjs';
 import { buildCyberProofCards } from './cyber-proof-cards.mjs';
 import { buildCyberRetestProof } from './cyber-retest-proof.mjs';
+import { buildCyberProvenanceScore } from './cyber-provenance-score.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -38,9 +39,11 @@ export function buildCyberMeetingPack(options = {}) {
   const pilotPack = options.pilotPack || buildCyberPilotPack(options);
   const proofCards = options.proofCards || buildCyberProofCards(options);
   const retestProof = options.retestProof || buildCyberRetestProof(options);
+  const provenanceProof = options.provenanceProof || buildCyberProvenanceScore(options);
   const cardById = new Map(proofCards.cards.map((card) => [card.id, card]));
   const demoOrder = DEMO_PRIORITY.map((id) => cardById.get(id)).filter(Boolean).map(toDemoStep);
   const retestSummary = summarizeRetestProof(retestProof);
+  const provenanceSummary = summarizeProvenanceProof(provenanceProof);
 
   const packet = {
     schema: 'yuri.upgreat-meeting-packet.v0',
@@ -54,6 +57,7 @@ export function buildCyberMeetingPack(options = {}) {
     executiveVersion: buildExecutiveVersion(pilotPack, proofCards, retestSummary),
     technicalVersion: buildTechnicalVersion(proofCards, retestSummary),
     retestProof: retestSummary,
+    provenanceProof: provenanceSummary,
     liveDemoOrder: demoOrder,
     pilotScope: buildPilotScope(),
     questionsForUpgreat: [
@@ -85,6 +89,9 @@ export function validateCyberMeetingPack(packet) {
   if (!packet.pilotScope?.deliverables?.length) errors.push('missing pilot deliverables');
   if ((packet.retestProof?.provenRows || 0) < 7) errors.push('expected at least 7 retest proof rows');
   if (!/retest proof only/i.test(packet.retestProof?.claim || '')) errors.push('retest proof overclaims beyond fixture scope');
+  if ((packet.provenanceProof?.rows || 0) < 4) errors.push('expected at least 4 provenance proof rows');
+  if ((packet.provenanceProof?.quarantined || 0) < 2) errors.push('expected at least 2 quarantined provenance rows');
+  if (!/provenance scoring proof only/i.test(packet.provenanceProof?.claim || '')) errors.push('provenance proof overclaims beyond fixture scope');
   if (containsForbiddenClaim(packet)) errors.push('packet contains forbidden platform maturity claim');
   for (const step of packet.liveDemoOrder || []) {
     if (!step.evidence || !step.executableTest || !step.boundary) errors.push(`demo step missing proof fields: ${step.id || 'unknown'}`);
@@ -118,6 +125,10 @@ export function renderCyberMeetingPackMarkdown(packet = buildCyberMeetingPack())
     '## Retest Proof',
     '',
     renderRetestProof(packet.retestProof),
+    '',
+    '## Provenance Proof',
+    '',
+    renderProvenanceProof(packet.provenanceProof),
     '',
     '## Live Demo Order',
     '',
@@ -189,6 +200,17 @@ function summarizeRetestProof(retestProof) {
   };
 }
 
+function summarizeProvenanceProof(provenanceProof) {
+  return {
+    rows: provenanceProof.rows?.length || 0,
+    quarantined: provenanceProof.validation?.quarantined || 0,
+    allowed: provenanceProof.validation?.allowed || 0,
+    artifact: '_SYSTEM/reports/YURI_PROVENANCE_SCORE_MATRIX_2026-05-24.md',
+    claim: 'Deterministic local memory/RAG provenance scoring proof only; not production RAG security proof.',
+    boundary: 'owned-local-synthetic-fixtures-only',
+  };
+}
+
 function renderRetestProof(retestProof) {
   return [
     `- Rows: ${retestProof.provenRows}/${retestProof.totalRows} retest-proven`,
@@ -197,6 +219,17 @@ function renderRetestProof(retestProof) {
     `- Artifact: ${retestProof.artifact}`,
     `- Claim: ${retestProof.claim}`,
     `- Boundary: ${retestProof.boundary}`,
+  ].join('\n');
+}
+
+function renderProvenanceProof(provenanceProof) {
+  return [
+    `- Rows: ${provenanceProof.rows} local memory/RAG provenance rows`,
+    `- Quarantined: ${provenanceProof.quarantined} hostile authority/promotion candidates`,
+    `- Allowed for audited review: ${provenanceProof.allowed} benign candidates`,
+    `- Artifact: ${provenanceProof.artifact}`,
+    `- Claim: ${provenanceProof.claim}`,
+    `- Boundary: ${provenanceProof.boundary}`,
   ].join('\n');
 }
 
