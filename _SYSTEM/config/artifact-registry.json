@@ -1730,6 +1730,18 @@
       "notes": "Maps the May 10 evidence-first proving path into the May 25 truth-promotion procedure."
     },
     {
+      "path": "_SYSTEM/reports/YURI_PROMOTION_LEDGER_RESEARCH_2026-05-25.md",
+      "type": "report",
+      "class": "generated_artifact",
+      "owner": "Codex/main",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Truth-promotion research packets live in _SYSTEM/reports/ when source-controlled and registry-visible.",
+      "rebuildRule": "Recreate from official standards research, DeepSeek advisory, Flash advisory, Shintai advisory artifacts, and Codex/main arbitration notes; validate registry with node _SYSTEM/Scripts/artifact-registry.mjs --validate.",
+      "notes": "Research-backed design packet for the operator validation and recurring evidence promotion ledger sprint."
+    },
+    {
       "path": "_SYSTEM/reports/YURI_TRUTH_PROMOTION_NEXT_SESSION_2026-05-25.md",
       "type": "report",
       "class": "generated_artifact",
