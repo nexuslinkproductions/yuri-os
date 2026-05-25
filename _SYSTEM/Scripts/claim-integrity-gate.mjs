@@ -207,7 +207,7 @@ export function classifyClaimSupport({ term, line, context, path: relPath = '' }
 function isInternalOsName(term, line, relPath) {
   if (term !== 'OS') return false;
   const text = String(line || '');
-  if (!/\bYURI[- ]OS\b/u.test(text) && !/\bYURI OS\b/u.test(relPath)) return false;
+  if (!/\bYURI[- ]OS\b/iu.test(text) && !/\bYURI OS\b/iu.test(relPath)) return false;
   return !/\b(?:literal|real|full|production|operating system|runs hardware|kernel)\b/iu.test(text);
 }
 

@@ -83,6 +83,16 @@ test('internal YURI OS title does not become a literal OS claim', () => {
   assert.equal(report.findings.length, 0);
 });
 
+test('internal Yuri OS mixed-case brand spelling is qualified', () => {
+  const root = tempRepo();
+  writeFixture(root, '_SYSTEM/reports/title.md', '# Yuri OS Truth Promotion Packet\n\nInternal name only.\n');
+
+  const report = scanClaimIntegrity(['_SYSTEM/reports/title.md'], { repoRoot: root });
+
+  assert.equal(report.ok, true);
+  assert.equal(report.findings.length, 0);
+});
+
 test('protected paths are refused before read', () => {
   const root = tempRepo();
   writeFixture(root, '.env', 'VALUE=YURI is a production-ready SOC\n');

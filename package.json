@@ -21,6 +21,7 @@
     "test:artifact-audit": "node _SYSTEM/Scripts/yuri-artifact-audit.test.mjs",
     "test:council-claims": "node _SYSTEM/Scripts/yuri-council-claim-evidence.test.mjs",
     "test:canonical-memory-import": "node _SYSTEM/Scripts/yuri-canonical-memory-import.test.mjs",
+    "test:truth-promotion": "node _SYSTEM/Scripts/yuri-truth-promotion-pipeline.test.mjs",
     "memory:canonical-import": "node _SYSTEM/Scripts/yuri-canonical-memory-import.mjs import",
     "memory:canonical-rollback": "node _SYSTEM/Scripts/yuri-canonical-memory-import.mjs rollback",
     "proving:canonical-memory": "node _SYSTEM/Scripts/yuri-proving-run-repeatable.mjs",

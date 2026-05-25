@@ -259,3 +259,25 @@ test('Shintai substance gate accepts full advisory sections', () => {
   assert.equal(substance.degraded, false);
   assert.deepEqual(substance.metrics.missingRequiredSections, []);
 });
+
+test('Shintai substance gate accepts bold markdown advisory headings', () => {
+  const output = [
+    '**findings**',
+    'Local evidence shows the claim gate exists and produces structured findings.',
+    '**proposed_edits**',
+    'Keep the dispatch integration additive and include tests for degraded lane metadata.',
+    '**risks**',
+    'The Shintai path feeds Rick REPL, so breakage would affect operator dispatch.',
+    '**tests**',
+    'Run node _SYSTEM/Scripts/shintai-dispatch.test.mjs.',
+    '**contradictions_with_other_lanes**',
+    'Do not accept runtime protection claims without runtime_tested evidence.',
+    '**meta_audit**',
+    'Prior runs missed this because bold headings were not accepted as section labels.',
+  ].join('\n\n');
+
+  const substance = assessLaneOutputSubstance(output, { ok: true, stdout: output, stderr: '' });
+
+  assert.equal(substance.degraded, false);
+  assert.deepEqual(substance.metrics.missingRequiredSections, []);
+});

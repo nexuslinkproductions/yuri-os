@@ -573,7 +573,7 @@ function stripAnsi(value) {
 
 function sectionPattern(section) {
   const escaped = String(section).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replaceAll('_', '[_ -]');
-  return new RegExp(`(^|\\n)\\s*(?:#{1,6}\\s*)?${escaped}\\s*:?(?:\\n|$)`, 'iu');
+  return new RegExp(`(^|\\n)\\s*(?:#{1,6}\\s*)?(?:\\*\\*|__)?${escaped}(?:\\*\\*|__)?\\s*:?(?:\\n|$)`, 'iu');
 }
 
 export function assessLaneOutputSubstance(output = '', result = {}, options = {}) {
