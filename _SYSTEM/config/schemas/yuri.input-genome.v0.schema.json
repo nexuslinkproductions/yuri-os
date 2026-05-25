@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "yuri.input-genome.v0.schema.json",
+  "title": "YURI Input Genome v0",
+  "description": "Machine-readable local decode of raw operator input into a YURI operating packet before routing, execution, or advisory lane review.",
+  "type": "object",
+  "required": [
+    "schema",
+    "rawInput",
+    "rawInputSha256",
+    "inputMode",
+    "confidence",
+    "objective",
+    "constraints",
+    "riskSignals",
+    "workPackets",
+    "routeHints",
+    "verificationNeeds",
+    "normalizedIntent",
+    "promptContract",
+    "provenance",
+    "promptBlock"
+  ],
+  "properties": {
+    "schema": { "const": "yuri.input-genome.v0" },
+    "createdAt": { "type": "string" },
+    "source": { "type": "string" },
+    "target": { "type": "string" },
+    "rawInput": { "type": "string" },
+    "rawInputPreview": { "type": "string" },
+    "rawInputSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "genomeSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "promptBlockSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "inputMode": {
+      "type": "string",
+      "enum": ["command", "query", "task", "braindump", "mixed"]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "userVisibleIntent": { "type": "string", "minLength": 1 },
+    "objective": { "type": "string", "minLength": 1 },
+    "explicitRequests": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "impliedNeeds": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "text": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "riskSignals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "level"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "level": { "type": "string", "enum": ["low", "medium", "high"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "protectedSurfaceWarnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["marker", "warning"],
+        "properties": {
+          "marker": { "type": "string", "minLength": 1 },
+          "warning": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "successCriteria": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "workPackets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "source"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^wp-[0-9]{2}$" },
+          "title": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "routeHints": {
+      "type": "object",
+      "required": ["primaryAuthority", "localBaseRequired", "optionalReviewLanes", "suggestedLane", "scenario"],
+      "properties": {
+        "primaryAuthority": { "const": "codex-main" },
+        "localBaseRequired": { "const": true },
+        "optionalReviewLanes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "suggestedLane": { "type": "string", "minLength": 1 },
+        "scenario": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "verificationNeeds": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "normalizedIntent": { "type": "object" },
+    "promptContract": { "type": "object" },
+    "validation": { "type": "object" },
+    "provenance": {
+      "type": "object",
+      "required": ["model", "entities", "activities", "agents"],
+      "properties": {
+        "model": { "const": "PROV-O-lite" },
+        "entities": { "type": "object" },
+        "activities": { "type": "object" },
+        "agents": { "type": "object" }
+      }
+    },
+    "promptBlock": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": true
+}

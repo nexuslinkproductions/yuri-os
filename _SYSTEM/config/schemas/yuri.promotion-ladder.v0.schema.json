@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "yuri.promotion-ladder.v0.schema.json",
+  "title": "YURI Promotion Ladder v0",
+  "description": "Canonical truth-promotion ladder for YURI claims, artifacts, formula cards, reports, skills, and runtime-facing evidence.",
+  "type": "object",
+  "required": ["schema", "states"],
+  "properties": {
+    "schema": { "const": "yuri.promotion-ladder.v0" },
+    "states": {
+      "type": "array",
+      "prefixItems": [
+        { "const": "draft" },
+        { "const": "research" },
+        { "const": "fixture_ready" },
+        { "const": "runtime_tested" },
+        { "const": "operator_validated" },
+        { "const": "trusted" },
+        { "const": "deprecated" }
+      ],
+      "minItems": 7,
+      "maxItems": 7
+    },
+    "legacyMappings": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/promotionState" }
+    },
+    "evidenceRequirements": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "promotionState": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "research",
+        "fixture_ready",
+        "runtime_tested",
+        "operator_validated",
+        "trusted",
+        "deprecated"
+      ]
+    },
+    "claimEvidence": {
+      "type": "object",
+      "required": ["promotionState", "evidence"],
+      "properties": {
+        "promotionState": { "$ref": "#/$defs/promotionState" },
+        "artifactId": { "type": "string", "minLength": 1 },
+        "artifactPath": { "type": "string", "minLength": 1 },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["kind", "reference"],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": ["test", "report", "schema", "operator_note", "advisory", "runtime_trace", "fixture"]
+              },
+              "reference": { "type": "string", "minLength": 1 },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{16,64}$" },
+              "generatedAt": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

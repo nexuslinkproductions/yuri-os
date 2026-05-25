@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
+  assessLaneOutputSubstance,
   assembleShintaiTeam,
   applyHealthPreflightToAssembly,
   buildMemberPrompt,
@@ -93,6 +94,17 @@ test('Shintai dispatch forwards packet evidence ids into member output rails', (
   assert.match(bridge, /requiredEvidenceIdsForTask/);
   assert.match(bridge, /YURI_OUTPUT_REQUIRED_EVIDENCE_IDS/);
   assert.match(bridge, /YURI_OUTPUT_EVIDENCE_IDS/);
+});
+
+test('Rick and Shintai dispatch compile YURI input genome before lane prompts', () => {
+  const repl = readFileSync(new URL('./rick-repl.mjs', import.meta.url), 'utf8');
+  const bridge = readFileSync(new URL('./shintai-dispatch.mjs', import.meta.url), 'utf8');
+
+  assert.match(repl, /buildInputGenome/);
+  assert.match(repl, /renderInputGenomeBlock/);
+  assert.match(bridge, /buildInputGenome/);
+  assert.match(bridge, /dispatchTaskText/);
+  assert.match(repl, /taskAlreadyGenomeWrapped/);
 });
 
 test('Shintai packet evidence merges Gate 0 cyber evidence with memory evidence', () => {
@@ -210,4 +222,40 @@ test('Shintai health preflight preserves scoped assembly instead of rebuilding f
   assert.deepEqual(updated.selectedIds, []);
   assert.equal(updated.skipped[0].id, 'qwen3-next');
   assert.equal(updated.members.some((entry) => entry.id === 'codex'), false);
+});
+
+test('Shintai substance gate degrades PONG and schema-only output', () => {
+  const pong = assessLaneOutputSubstance('PONG', { ok: true, stdout: 'PONG', stderr: '' });
+  assert.equal(pong.degraded, true);
+  assert.ok(pong.reasons.includes('non_substantive_probe_response'));
+
+  const schemaOnly = assessLaneOutputSubstance('findings\nproposed_edits\nrisks\ntests\ncontradictions_with_other_lanes\nmeta_audit', {
+    ok: true,
+    stdout: '',
+    stderr: '',
+  });
+  assert.equal(schemaOnly.degraded, true);
+  assert.ok(schemaOnly.reasons.includes('schema_headings_only'));
+});
+
+test('Shintai substance gate accepts full advisory sections', () => {
+  const output = [
+    'findings',
+    'Local evidence shows the claim gate exists in _SYSTEM/Scripts/claim-integrity-gate.mjs and produces structured findings.',
+    'proposed_edits',
+    'Keep the dispatch integration additive and include tests for degraded lane metadata.',
+    'risks',
+    'The Shintai path feeds Rick REPL, so breakage would affect operator dispatch.',
+    'tests',
+    'Run node _SYSTEM/Scripts/shintai-dispatch.test.mjs and node _SYSTEM/Scripts/claim-integrity-gate.test.mjs.',
+    'contradictions_with_other_lanes',
+    'Do not accept runtime protection claims without runtime_tested evidence.',
+    'meta_audit',
+    'Prior runs missed this because PONG-style outputs were treated as healthy beyond sterile probes.',
+  ].join('\n\n');
+
+  const substance = assessLaneOutputSubstance(output, { ok: true, stdout: output, stderr: '' });
+
+  assert.equal(substance.degraded, false);
+  assert.deepEqual(substance.metrics.missingRequiredSections, []);
 });

@@ -26,6 +26,7 @@ import { loadControlPlaneEvidence, validatePacketEvidence } from './memory-kerne
 import { requiredEvidenceIdsForTask } from './evidence-contract.mjs';
 import { evaluateDialogRails, evaluateExecutionRails, evaluateNeurodivergenceRails } from './rails.mjs';
 import { buildConstraintBlock, preflightControlPlane } from './yuri-control-plane.mjs';
+import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -58,6 +59,23 @@ export const RICK_ANCHOR = [
   'Vulgarity allowed when it sharpens the work; never aimed at identity/trauma.',
   'Output: facts → ranked options → action. No filler, no recap, no closing summary.',
 ].join('\n');
+
+const PROPOSAL_REQUIRED_SECTIONS = Object.freeze([
+  'findings',
+  'proposed_edits',
+  'risks',
+  'tests',
+  'contradictions_with_other_lanes',
+  'meta_audit',
+]);
+const CRITIQUE_REQUIRED_SECTIONS = Object.freeze([]);
+const SYNTHESIS_REQUIRED_SECTIONS = Object.freeze([
+  'FINAL_APPROACH',
+  'IMPLEMENTATION_GUIDANCE',
+  'GUARDRAILS',
+  'TESTS',
+  'META_AUDIT',
+]);
 
 const SOURCE_PATHS = [
   '_SYSTEM/kagami/shintai-team.json',
@@ -549,6 +567,66 @@ export function ensureRickPersonaAnchor(packet) {
   return lines.join('\n');
 }
 
+function stripAnsi(value) {
+  return String(value || '').replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, '');
+}
+
+function sectionPattern(section) {
+  const escaped = String(section).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replaceAll('_', '[_ -]');
+  return new RegExp(`(^|\\n)\\s*(?:#{1,6}\\s*)?${escaped}\\s*:?(?:\\n|$)`, 'iu');
+}
+
+export function assessLaneOutputSubstance(output = '', result = {}, options = {}) {
+  const text = stripAnsi(output).trim();
+  const stdout = stripAnsi(result?.stdout || '').trim();
+  const stderr = stripAnsi(result?.stderr || '').trim();
+  const requiredSections = options.requiredSections ?? PROPOSAL_REQUIRED_SECTIONS;
+  const minChars = Number.isFinite(options.minChars) ? options.minChars : 200;
+  const reasons = [];
+
+  if (result?.ok === false) reasons.push('result_not_ok');
+  if (/^(?:pong|ok|done|yes)\s*[.!]*$/iu.test(text.replace(/\s+/g, ' '))) {
+    reasons.push('non_substantive_probe_response');
+  }
+  if (text.length < minChars) reasons.push('too_short');
+  if (stderr.length > 0 && (!stdout || stderr.length > stdout.length * 2)) {
+    reasons.push('stderr_dominant');
+  }
+
+  const presentSections = requiredSections.filter((section) => sectionPattern(section).test(text));
+  const missingRequiredSections = requiredSections.filter((section) => !presentSections.includes(section));
+  if (requiredSections.length && missingRequiredSections.length >= Math.min(2, requiredSections.length)) {
+    reasons.push('missing_required_sections');
+  }
+
+  const nonEmptyLines = text.split('\n').map((line) => line.trim()).filter(Boolean);
+  const headingLikeLines = nonEmptyLines.filter((line) => (
+    /^#{1,6}\s+\S/u.test(line) ||
+    /^[A-Z0-9_ -]{3,}:?\s*$/u.test(line) ||
+    requiredSections.some((section) => sectionPattern(section).test(line))
+  ));
+  const bodyChars = nonEmptyLines
+    .filter((line) => !headingLikeLines.includes(line))
+    .join('\n')
+    .length;
+  if (headingLikeLines.length >= 3 && bodyChars < 100) reasons.push('schema_headings_only');
+
+  return {
+    ok: reasons.length === 0,
+    degraded: reasons.length > 0,
+    reasons: [...new Set(reasons)],
+    metrics: {
+      chars: text.length,
+      stdoutChars: stdout.length,
+      stderrChars: stderr.length,
+      requiredSectionsPresent: presentSections,
+      missingRequiredSections,
+      headingLikeLines: headingLikeLines.length,
+      bodyChars,
+    },
+  };
+}
+
 function callArgsForMember(member, prompt, options = {}) {
   const sessionArgs = options.noSession ? ['--no-session'] : [];
   return [...member.dispatchArgs, ...sessionArgs, prompt];
@@ -765,13 +843,19 @@ async function buildProposalsInParallel({ assembly, taskText, sourcePaths, contr
       controlPlaneBlock,
       neuroRail,
     }), timeoutMs, outputEvidenceContext);
-    say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} ${member.displayName}`, stream);
+    const output = result.stdout || result.stderr || result.error || '';
+    const substance = assessLaneOutputSubstance(output, result, {
+      requiredSections: PROPOSAL_REQUIRED_SECTIONS,
+    });
+    const displayOk = result.ok && !substance.degraded;
+    say(displayOk ? C.good : C.warn, `  ${displayOk ? '✓' : '⚠'} ${member.displayName}`, stream);
     return {
       id: member.id,
       displayName: member.displayName,
       lane: member.lane,
-      output: result.stdout || result.stderr || result.error || '',
+      output,
       result,
+      substance,
     };
   });
 }
@@ -787,13 +871,20 @@ async function buildCritiquesInParallel({ assembly, taskText, proposals, timeout
       resolveMemberTimeout(member, 'critique', timeoutMs),
       outputEvidenceContext,
     );
-    say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} critique ${member.displayName}`, stream);
+    const output = result.stdout || result.stderr || result.error || '';
+    const substance = assessLaneOutputSubstance(output, result, {
+      requiredSections: CRITIQUE_REQUIRED_SECTIONS,
+      minChars: 120,
+    });
+    const displayOk = result.ok && !substance.degraded;
+    say(displayOk ? C.good : C.warn, `  ${displayOk ? '✓' : '⚠'} critique ${member.displayName}`, stream);
     return {
       id: member.id,
       displayName: member.displayName,
       lane: member.lane,
-      output: result.stdout || result.stderr || result.error || '',
+      output,
       result,
+      substance,
     };
   });
 }
@@ -805,7 +896,18 @@ async function runSynthesis(member, taskText, proposals, critiques, assembly, ti
     timeoutMs,
     outputEvidenceContext,
   );
-  return synthesisResult.stdout || synthesisResult.stderr || synthesisResult.error || '';
+  const output = synthesisResult.stdout || synthesisResult.stderr || synthesisResult.error || '';
+  return {
+    id: member.id,
+    displayName: member.displayName,
+    lane: member.lane,
+    output,
+    result: synthesisResult,
+    substance: assessLaneOutputSubstance(output, synthesisResult, {
+      requiredSections: SYNTHESIS_REQUIRED_SECTIONS,
+      minChars: 240,
+    }),
+  };
 }
 
 function runHealthPreflightSync(assembly, timeoutMs) {
@@ -836,12 +938,26 @@ function writeAdvisoryArtifact(payload) {
     payload.evidenceGate?.blockedIds?.length ? `Blocked: ${payload.evidenceGate.blockedIds.join(', ')}` : '',
     payload.auditFailures?.length ? `Audit failures: ${payload.auditFailures.map((entry) => entry.code).join(', ')}` : '',
     payload.evidenceGate ? '' : '',
+    payload.inputGenome ? '## Input Genome' : '',
+    payload.inputGenome ? '' : '',
+    payload.inputGenome ? `Schema: ${payload.inputGenome.schema}` : '',
+    payload.inputGenome ? `Raw SHA256: ${payload.inputGenome.rawInputSha256}` : '',
+    payload.inputGenome ? `Mode: ${payload.inputGenome.inputMode}` : '',
+    payload.inputGenome ? `Confidence: ${payload.inputGenome.confidence}` : '',
+    payload.inputGenome ? `Objective: ${payload.inputGenome.objective}` : '',
+    payload.inputGenome ? '' : '',
     '## Assembly',
     '',
     `Tier: ${assembly.tier}`,
     `Members: ${assembly.selectedIds.join(', ')}`,
     assembly.skipped.length ? `Skipped: ${assembly.skipped.map((entry) => `${entry.id} (${entry.reason})`).join(', ')}` : '',
     '',
+    payload.substance ? '## Substance' : '',
+    payload.substance ? '' : '',
+    payload.substance ? `Proposal degraded: ${payload.substance.proposals.degradedIds.join(', ') || 'none'}` : '',
+    payload.substance ? `Critique degraded: ${payload.substance.critiques.degradedIds.join(', ') || 'none'}` : '',
+    payload.substance ? `Synthesis degraded: ${payload.substance.synthesis.degraded ? payload.substance.synthesis.reasons.join(', ') : 'none'}` : '',
+    payload.substance ? '' : '',
     '## Synthesis',
     '',
     payload.synthesis,
@@ -863,6 +979,18 @@ export async function runAdvisory(task, options = {}) {
   const taskText = normalizeTask(task);
   if (!taskText) return { ok: false, task: taskText, error: 'empty Shintai task' };
 
+  const inputGenome = options.inputGenome === false
+    ? null
+    : options.inputGenome || buildInputGenome(taskText, {
+      source: 'shintai-dispatch',
+      target: 'shintai',
+      routePlan: { scenario: 'shintai-advisory', lane: 'shintai' },
+      artifactRoot: '_SYSTEM/state/shintai-advisory',
+      runDir: '_SYSTEM/state/shintai-advisory/current',
+    });
+  const dispatchTaskText = inputGenome
+    ? (options.taskAlreadyGenomeWrapped ? taskText : renderInputGenomeBlock(inputGenome, { target: 'shintai' }))
+    : taskText;
   const stream = options.stream || process.stdout;
   const controlPlane = options.evidenceGate === false
     ? null
@@ -879,6 +1007,7 @@ export async function runAdvisory(task, options = {}) {
       proposals: [],
       critiques: [],
       synthesis: '',
+      inputGenome,
       evidenceGate: summarizeGate(controlPlane.gate0),
       error: 'YURI control-plane Gate 0 failed',
       supersedes: options.supersedes || null,
@@ -908,6 +1037,7 @@ export async function runAdvisory(task, options = {}) {
       proposals: [],
       critiques: [],
       synthesis: '',
+      inputGenome,
       evidenceGate: summarizeGate(controlPlane?.gate0),
       memoryEvidence,
       error: 'YURI memory evidence preflight failed',
@@ -919,6 +1049,9 @@ export async function runAdvisory(task, options = {}) {
   }
   if (memoryEvidence) {
     say(C.good, `  ✓ memory evidence loaded: ${memoryEvidence.sources.map((entry) => entry.id).join(', ')}`, stream);
+  }
+  if (inputGenome) {
+    say(C.good, `  ✓ input genome compiled: ${inputGenome.inputMode} confidence=${inputGenome.confidence}`, stream);
   }
 
   const roster = options.roster || loadShintaiRoster(options.rosterPath || ROSTER_PATH);
@@ -947,6 +1080,7 @@ export async function runAdvisory(task, options = {}) {
       proposals: [],
       critiques: [],
       synthesis: '',
+      inputGenome,
       evidenceGate: summarizeGate(controlPlane?.gate0),
       memoryEvidence,
       packetEvidence,
@@ -979,6 +1113,7 @@ export async function runAdvisory(task, options = {}) {
         proposals: [],
         critiques: [],
         synthesis: '',
+        inputGenome,
         evidenceGate: summarizeGate(controlPlane?.gate0),
         memoryEvidence,
         packetEvidence,
@@ -1008,6 +1143,7 @@ export async function runAdvisory(task, options = {}) {
       proposals: [],
       critiques: [],
       synthesis: '',
+      inputGenome,
       evidenceGate: summarizeGate(controlPlane?.gate0),
       memoryEvidence,
       packetEvidence,
@@ -1029,6 +1165,7 @@ export async function runAdvisory(task, options = {}) {
       proposals: [],
       critiques: [],
       synthesis: '',
+      inputGenome,
       evidenceGate: summarizeGate(controlPlane?.gate0),
       memoryEvidence,
       packetEvidence,
@@ -1047,7 +1184,7 @@ export async function runAdvisory(task, options = {}) {
   const sourcePaths = options.sourcePaths || controlPlane?.gate0?.loaded?.map((entry) => path.relative(REPO_ROOT, entry.absPath)) || SOURCE_PATHS;
   const proposals = await buildProposalsInParallel({
     assembly,
-    taskText,
+    taskText: dispatchTaskText,
     sourcePaths,
     controlPlaneBlock,
     neuroRail,
@@ -1059,7 +1196,7 @@ export async function runAdvisory(task, options = {}) {
   say(`${C.bronze}${C.bold}`, '\n── Shintai advisory: critique ──', stream);
   const critiques = await buildCritiquesInParallel({
     assembly,
-    taskText,
+    taskText: dispatchTaskText,
     proposals,
     timeoutMs,
     outputEvidenceContext,
@@ -1068,9 +1205,9 @@ export async function runAdvisory(task, options = {}) {
 
   say(`${C.bronze}${C.bold}`, '\n── Shintai advisory: synthesis ──', stream);
   const synthMember = assembly.members.find((member) => member.id === 'deepseek') || assembly.members[0];
-  const synthesis = await runSynthesis(
+  const synthesisEntry = await runSynthesis(
     synthMember,
-    taskText,
+    dispatchTaskText,
     proposals,
     critiques,
     assembly,
@@ -1078,6 +1215,10 @@ export async function runAdvisory(task, options = {}) {
     outputEvidenceContext,
     controlPlaneBlock,
   );
+  const synthesis = synthesisEntry.output;
+  if (synthesisEntry.substance.degraded) {
+    say(C.warn, `  ⚠ synthesis substance degraded: ${synthesisEntry.substance.reasons.join(', ')}`, stream);
+  }
   const postDispatchPacketValidation = packetEvidence
     ? validatePacketEvidence(packetEvidence)
     : { ok: true, reasons: [], checkedAt: new Date().toISOString(), sourceCount: 0 };
@@ -1092,14 +1233,18 @@ export async function runAdvisory(task, options = {}) {
     say(C.warn, `  ⚠ post-dispatch evidence audit failed: ${postDispatchPacketValidation.reasons.join('; ')}`, stream);
   }
 
+  const allProposalsDegraded = proposals.length > 0 && proposals.every((entry) => entry.substance?.degraded);
   const payload = {
-    ok: proposals.some((entry) => entry.result.ok) && Boolean(synthesis),
+    ok: proposals.some((entry) => entry.result.ok) && Boolean(synthesis) && !allProposalsDegraded,
     task: taskText,
     timestamp: new Date().toISOString(),
     assembly,
     proposals,
     critiques,
     synthesis,
+    inputGenome,
+    synthesisEntry,
+    substance: summarizeSubstance({ proposals, critiques, synthesisEntry }),
     evidenceGate: summarizeGate(controlPlane?.gate0),
     neuroRail,
     memoryEvidence,
@@ -1129,6 +1274,24 @@ function summarizeGate(gate0) {
     missingIds: gate0.missing.map((entry) => entry.id),
     blockedIds: gate0.blocked.map((entry) => entry.id),
     warnings: gate0.warnings.map((entry) => entry.id),
+  };
+}
+
+function summarizeSubstance({ proposals = [], critiques = [], synthesisEntry = null } = {}) {
+  const summarizeEntries = (entries) => ({
+    total: entries.length,
+    degraded: entries.filter((entry) => entry.substance?.degraded).length,
+    degradedIds: entries
+      .filter((entry) => entry.substance?.degraded)
+      .map((entry) => entry.id),
+    reasonsById: Object.fromEntries(entries
+      .filter((entry) => entry.substance?.degraded)
+      .map((entry) => [entry.id, entry.substance.reasons])),
+  });
+  return {
+    proposals: summarizeEntries(proposals),
+    critiques: summarizeEntries(critiques),
+    synthesis: synthesisEntry?.substance || null,
   };
 }
 

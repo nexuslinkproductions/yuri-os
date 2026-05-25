@@ -19,6 +19,7 @@ import { classifyRickRoute, formatRouteDecision } from './rick-route-classifier.
 import { appendRouteDecisionEvent } from './kagami-event-bus.mjs';
 import { buildUserProfilePromptBlock } from './kagami-user-profile.mjs';
 import { recommendKagamiFanout } from './kagami-control-domain.mjs';
+import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -309,12 +310,32 @@ async function writeMemory(input, response) {
   } catch {}
 }
 
-function buildPrompt(input, historyCtx, memories) {
+function buildPrompt(input, historyCtx, memories, options = {}) {
   let userProfile = '';
+  let inputGenomeBlock = '';
   try {
     userProfile = buildUserProfilePromptBlock();
   } catch {
     userProfile = '';
+  }
+  if (options.inputGenome !== false) {
+    try {
+      const inputGenome = options.inputGenome || buildInputGenome(input, {
+        source: 'rick-repl',
+        target: options.target || options.routePlan?.lane || 'rick',
+        routePlan: options.routePlan || {},
+        artifactRoot: '_SYSTEM/state/rick-history',
+        runDir: `_SYSTEM/state/rick-history/${SESSION_ID}`,
+      });
+      inputGenomeBlock = renderInputGenomeBlock(inputGenome, { target: options.target || 'rick' });
+    } catch (err) {
+      inputGenomeBlock = [
+        '[YURI Input Genome v0]',
+        'degraded: true',
+        `reason: ${err?.message || err}`,
+        'fallback: preserve raw Marcel input and proceed conservatively.',
+      ].join('\n');
+    }
   }
   const parts = [
     '[Rick · Marcel · YURI]',
@@ -323,6 +344,7 @@ function buildPrompt(input, historyCtx, memories) {
     'Never emit terminal chrome: no fake borders, banners, status bars, token counters, or "Rick >" prefixes. The harness renders all UI.',
   ];
   if (userProfile) parts.push('\n' + userProfile);
+  if (inputGenomeBlock) parts.push('\n' + inputGenomeBlock);
   if (memories) parts.push('\n' + memories);
   if (historyCtx) parts.push('\n[Conversation — sanitized recent turns, terminal chrome omitted]\n' + historyCtx);
   parts.push('\nMarcel: ' + input);
@@ -330,7 +352,10 @@ function buildPrompt(input, historyCtx, memories) {
 }
 
 function buildKagamiRoutePrompt(input, historyCtx, memories, routeDecision) {
-  const prompt = buildPrompt(input, historyCtx, memories);
+  const prompt = buildPrompt(input, historyCtx, memories, {
+    target: 'kagami-route',
+    routePlan: { lane: routeDecision.lane || 'blocked', scenario: routeDecision.class },
+  });
   const routeLines = [
     '[Kagami Route]',
     `class: ${routeDecision.class}`,
@@ -1091,8 +1116,21 @@ async function handleInput(ui, input, history) {
     ui.markActivity('loading YURI control-plane Gate 0');
     let result;
     try {
-      result = await runAdvisory(buildPrompt(task, historyCtx, memories), {
+      const shintaiInputGenome = buildInputGenome(task, {
+        source: 'rick-repl',
+        target: 'shintai',
+        routePlan: { lane: 'shintai', scenario: 'shintai-advisory' },
+        artifactRoot: '_SYSTEM/state/rick-history',
+        runDir: `_SYSTEM/state/rick-history/${SESSION_ID}`,
+      });
+      result = await runAdvisory(buildPrompt(task, historyCtx, memories, {
+        target: 'shintai',
+        routePlan: { lane: 'shintai', scenario: 'shintai-advisory' },
+        inputGenome: shintaiInputGenome,
+      }), {
         stream,
+        inputGenome: shintaiInputGenome,
+        taskAlreadyGenomeWrapped: true,
       });
     } catch (err) {
       result = { ok: false, error: err?.message || String(err) };
@@ -1120,7 +1158,10 @@ async function handleInput(ui, input, history) {
     const { response, turns } = await streamLaneWithShell(
       ui,
       route.lane,
-      buildPrompt(msg, historyCtx, memories),
+      buildPrompt(msg, historyCtx, memories, {
+        target: route.lane,
+        routePlan: { lane: route.lane, scenario: 'explicit-lane' },
+      }),
       route.label,
       { userShellBlocks },
     );
