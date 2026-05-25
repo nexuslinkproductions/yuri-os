@@ -21,7 +21,7 @@ import { buildUserProfilePromptBlock } from './kagami-user-profile.mjs';
 import { recommendKagamiFanout } from './kagami-control-domain.mjs';
 import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
 import { buildReport as buildCloseoutReport, formatReport as formatCloseoutReport } from './yuri-closeout.mjs';
-import { listMemoryProposals, proposeMemoryWrite } from './memory-kernel.mjs';
+import { MEMORY_PROPOSAL_DECISIONS, listMemoryProposals, proposeMemoryWrite, recordMemoryProposalDecision } from './memory-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -469,6 +469,14 @@ function formatMemoryProposals(result) {
     lines.push(`- ${proposal.id} [${status}]${tags}: ${truncateRight(proposal.content || '', 140)}`);
   }
   return lines.join('\n');
+}
+
+function parseMemoryDecisionCommand(value = '') {
+  const parts = String(value || '').trim().split(/\s+/).filter(Boolean);
+  const proposalId = parts.shift() || '';
+  const decision = (parts.shift() || '').toLowerCase();
+  const reason = parts.join(' ').trim();
+  return { proposalId, decision, reason };
 }
 
 function memoryProposalStatus() {
@@ -1463,6 +1471,7 @@ function helpText() {
     '/eot [deep]            new-session handoff; add deep for Simple Rick synthesis',
     '/memory propose <text> record a pending memory proposal',
     '/memory proposals [q]  list pending memory proposals',
+    '/memory decide <id> <keep|rewrite|reject|defer> <reason>',
     '/memory review [q]     ask Simple Rick to triage pending memory proposals',
     '/why <task>            dry-run Kagami auto-route without dispatch',
     '/fanout <task>         preview adaptive solo/pair/trio/council lane plan',
@@ -1542,6 +1551,26 @@ async function main() {
     if (input === '/memory proposals' || input.startsWith('/memory proposals ')) {
       const query = input === '/memory proposals' ? '' : input.slice('/memory proposals '.length).trim();
       ui.appendSystem(formatMemoryProposals(listMemoryProposals(query)));
+      return;
+    }
+
+    if (input.startsWith('/memory decide ')) {
+      const parsed = parseMemoryDecisionCommand(input.slice('/memory decide '.length));
+      const result = recordMemoryProposalDecision(parsed, {
+        decidedBy: 'Marcel',
+        session: SESSION_ID,
+        lane: 'rick',
+      });
+      if (!result.ok) {
+        ui.appendError(`${result.error || 'memory proposal decision failed'}; decisions: ${MEMORY_PROPOSAL_DECISIONS.join(', ')}`);
+        return;
+      }
+      ui.appendRick([
+        'Memory proposal decision recorded. No memory was promoted.',
+        `proposal: ${result.decision.proposalId}`,
+        `decision: ${result.decision.decision}`,
+        `decision log: ${result.path}`,
+      ].join('\n'));
       return;
     }
 
@@ -1718,6 +1747,7 @@ export const __test__ = {
   filterExecutableShellBlocks,
   formatDuration,
   formatMemoryProposals,
+  parseMemoryDecisionCommand,
   memoryProposalStatus,
   buildMemoryReviewPrompt,
   handleMemoryReview,

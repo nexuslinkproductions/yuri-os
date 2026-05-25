@@ -14,6 +14,7 @@ export const MEMORY_ROOT = path.join(REPO_ROOT, '_SYSTEM', 'memory');
 export const MEMORY_AUDIT_LOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-kernel-audit.jsonl');
 export const MEMORY_LEDGER_LOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-ledger.jsonl');
 export const MEMORY_PROPOSAL_LOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-proposals.jsonl');
+export const MEMORY_PROPOSAL_DECISION_LOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-proposal-decisions.jsonl');
 export const SEMANTIC_MODES = Object.freeze(['lexical', 'embedding', 'msa']);
 
 export const CONTROL_PLANE_EVIDENCE_SOURCES = Object.freeze([
@@ -53,6 +54,8 @@ export const MEMORY_ACTIONS = Object.freeze([
   'lane-session-summary',
   'legacy-claude-import',
 ]);
+
+export const MEMORY_PROPOSAL_DECISIONS = Object.freeze(['keep', 'rewrite', 'reject', 'defer']);
 
 export const MEMORY_SURFACES = Object.freeze({
   yuriMemory: {
@@ -419,16 +422,10 @@ export function listMemoryProposals(query = '', options = {}) {
 
   const tokens = tokenize(query);
   const maxEntries = Number(options.maxEntries || 20);
-  const proposals = readFileSync(logPath, 'utf8')
-    .split('\n')
-    .filter(Boolean)
-    .map((line) => {
-      try {
-        return JSON.parse(line);
-      } catch {
-        return null;
-      }
-    })
+  const decisions = options.includeDecisions === false
+    ? []
+    : listMemoryProposalDecisions('', options).decisions || [];
+  const proposals = applyMemoryProposalDecisions(readJsonlRows(logPath), decisions)
     .filter(Boolean)
     .filter((proposal) => {
       if (!tokens.length) return true;
@@ -436,6 +433,8 @@ export function listMemoryProposals(query = '', options = {}) {
         proposal.content,
         proposal.reason,
         proposal.surface,
+        proposal.decision?.decision,
+        proposal.decision?.reason,
         ...(Array.isArray(proposal.tags) ? proposal.tags : []),
       ].filter(Boolean).join('\n');
       return scoreText(searchable, tokens) > 0;
@@ -444,6 +443,72 @@ export function listMemoryProposals(query = '', options = {}) {
     .reverse();
 
   return { ok: true, path: logPath, query, proposals };
+}
+
+export function recordMemoryProposalDecision(entry = {}, options = {}) {
+  const proposalId = String(entry.proposalId || entry.id || '').trim();
+  const decision = String(entry.decision || '').trim().toLowerCase();
+  const reason = String(entry.reason || '').trim();
+  if (!proposalId) return { ok: false, error: 'missing memory proposal id' };
+  if (!MEMORY_PROPOSAL_DECISIONS.includes(decision)) {
+    return { ok: false, error: `invalid memory proposal decision: ${decision || 'missing'}` };
+  }
+  if (!reason) return { ok: false, error: 'memory proposal decision requires a reason' };
+
+  const proposalLogPath = safeRuntimePath('YURI_MEMORY_PROPOSAL_LOG', options.proposalLogPath || MEMORY_PROPOSAL_LOG);
+  if (!proposalLogPath) return { ok: false, error: 'memory proposal log path is protected' };
+  const proposal = readJsonlRows(proposalLogPath).find((row) => row.id === proposalId);
+  if (!proposal) return { ok: false, error: `memory proposal not found: ${proposalId}` };
+
+  const decisionLogPath = safeRuntimePath('YURI_MEMORY_PROPOSAL_DECISION_LOG', options.decisionLogPath || MEMORY_PROPOSAL_DECISION_LOG);
+  if (!decisionLogPath) return { ok: false, error: 'memory proposal decision log path is protected' };
+  const payload = {
+    id: `mem-decision-${hashText(`${Date.now()}:${proposalId}:${decision}:${reason}`)}`,
+    proposalId,
+    decision,
+    reason,
+    decidedAt: new Date().toISOString(),
+    decidedBy: entry.decidedBy || options.decidedBy || 'codex-main',
+    session: options.session || entry.session || 'memory-kernel',
+    lane: options.lane || entry.lane || 'memory-kernel',
+    promotionPerformed: false,
+  };
+  mkdirSync(path.dirname(decisionLogPath), { recursive: true });
+  appendFileSync(decisionLogPath, `${JSON.stringify(payload)}\n`);
+  appendMemoryKagamiEvent('MEMORY_CANDIDATE_PROPOSED', {
+    source: 'memory-kernel:decision',
+    session: payload.session,
+    lane: payload.lane,
+    proposalId,
+    action: 'decision',
+    decision,
+    decisionId: payload.id,
+    promotionPerformed: false,
+    contentHash: hashText(proposal.content),
+  });
+  return { ok: true, path: decisionLogPath, decision: payload, proposal };
+}
+
+export function listMemoryProposalDecisions(query = '', options = {}) {
+  const logPath = safeRuntimePath('YURI_MEMORY_PROPOSAL_DECISION_LOG', options.decisionLogPath || MEMORY_PROPOSAL_DECISION_LOG);
+  if (!logPath) return { ok: false, query, decisions: [], error: 'memory proposal decision log path is protected' };
+  if (!existsSync(logPath)) return { ok: true, query, decisions: [] };
+
+  const tokens = tokenize(query);
+  const maxEntries = Number(options.maxEntries || 50);
+  const decisions = readJsonlRows(logPath)
+    .filter((decision) => {
+      if (!tokens.length) return true;
+      return scoreText([
+        decision.proposalId,
+        decision.decision,
+        decision.reason,
+        decision.decidedBy,
+      ].filter(Boolean).join('\n'), tokens) > 0;
+    })
+    .slice(-maxEntries)
+    .reverse();
+  return { ok: true, path: logPath, query, decisions };
 }
 
 export function promoteMemoryProposal(proposal = {}, options = {}) {
@@ -516,6 +581,39 @@ function tokenize(value) {
     .filter((token) => token.length >= 3);
 }
 
+function readJsonlRows(logPath) {
+  if (!existsSync(logPath)) return [];
+  return readFileSync(logPath, 'utf8')
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
+
+function applyMemoryProposalDecisions(proposals, decisions) {
+  const latestByProposal = new Map();
+  for (const decision of decisions) {
+    if (!decision?.proposalId || latestByProposal.has(decision.proposalId)) continue;
+    latestByProposal.set(decision.proposalId, decision);
+  }
+  return proposals.map((proposal) => {
+    const decision = latestByProposal.get(proposal.id);
+    if (!decision) return proposal;
+    return {
+      ...proposal,
+      status: decision.decision,
+      decision,
+      promotionRequiresApproval: true,
+    };
+  });
+}
+
 function getMemorySurface(idOrKey) {
   if (!idOrKey) return null;
   if (MEMORY_SURFACES[idOrKey]) return MEMORY_SURFACES[idOrKey];
@@ -578,6 +676,8 @@ function printHelp() {
     '  node _SYSTEM/Scripts/memory-kernel.mjs ledger <query>',
     '  node _SYSTEM/Scripts/memory-kernel.mjs propose [--tag tag] [--surface id] [--confidence n] [--reason text] <content>',
     '  node _SYSTEM/Scripts/memory-kernel.mjs proposals <query>',
+    '  node _SYSTEM/Scripts/memory-kernel.mjs decide <proposal-id> <keep|rewrite|reject|defer> <reason>',
+    '  node _SYSTEM/Scripts/memory-kernel.mjs decisions <query>',
     '  node _SYSTEM/Scripts/memory-kernel.mjs evidence',
   ].join('\n') + '\n');
 }
@@ -612,6 +712,15 @@ function parseProposalArgs(args = []) {
   return { ok: true, entry };
 }
 
+function parseDecisionArgs(args = []) {
+  const [proposalId, decision, ...reasonParts] = args;
+  return {
+    proposalId,
+    decision,
+    reason: reasonParts.join(' ').trim(),
+  };
+}
+
 function isCliEntrypoint() {
   return path.resolve(process.argv[1] || '') === fileURLToPath(import.meta.url);
 }
@@ -631,6 +740,13 @@ if (isCliEntrypoint()) {
     printJson(parsed.ok ? proposeMemoryWrite(parsed.entry, { record: true, reason: parsed.entry.reason }) : parsed);
   } else if (cmd === 'proposals') {
     printJson(listMemoryProposals(rest.join(' ')));
+  } else if (cmd === 'decide') {
+    printJson(recordMemoryProposalDecision(parseDecisionArgs(rest), {
+      decidedBy: 'operator',
+      lane: 'memory-kernel',
+    }));
+  } else if (cmd === 'decisions') {
+    printJson(listMemoryProposalDecisions(rest.join(' ')));
   } else if (cmd === 'evidence') {
     printJson(loadControlPlaneEvidence());
   } else {

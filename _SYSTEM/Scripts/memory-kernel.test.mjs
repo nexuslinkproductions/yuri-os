@@ -7,11 +7,13 @@ import {
   appendMemoryEntry,
   auditMemoryEvent,
   evictMemory,
+  listMemoryProposalDecisions,
   listMemoryProposals,
   listMemorySurfaces,
   loadControlPlaneEvidence,
   promoteMemoryProposal,
   proposeMemoryWrite,
+  recordMemoryProposalDecision,
   recallEntries,
   recallMemory,
   SEMANTIC_MODES,
@@ -76,6 +78,7 @@ test('memory write proposal does not promote without explicit approval', () => {
 test('memory write proposals can be recorded and reviewed without promotion', () => {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-memory-proposals-'));
   const proposalLogPath = path.join(dir, 'memory-proposals.jsonl');
+  const decisionLogPath = path.join(dir, 'memory-proposal-decisions.jsonl');
   try {
     const result = proposeMemoryWrite({
       content: 'Marcel prefers reviewable memory proposals before durable profile changes.',
@@ -93,6 +96,53 @@ test('memory write proposals can be recorded and reviewed without promotion', ()
     assert.equal(proposals.proposals.length, 1);
     assert.match(proposals.proposals[0].content, /reviewable memory proposals/);
     assert.equal(proposals.proposals[0].promotionRequiresApproval, true);
+
+    const decision = recordMemoryProposalDecision({
+      proposalId: result.proposal.id,
+      decision: 'keep',
+      reason: 'clear operator preference, but still needs explicit promotion later',
+      decidedBy: 'Marcel',
+    }, { proposalLogPath, decisionLogPath });
+    assert.equal(decision.ok, true);
+    assert.equal(decision.decision.promotionPerformed, false);
+
+    const decisions = listMemoryProposalDecisions('operator', { decisionLogPath });
+    assert.equal(decisions.proposals, undefined);
+    assert.equal(decisions.decisions.length, 1);
+
+    const afterDecision = listMemoryProposals('profile', { proposalLogPath, decisionLogPath });
+    assert.equal(afterDecision.proposals[0].status, 'keep');
+    assert.equal(afterDecision.proposals[0].decision.decidedBy, 'Marcel');
+    assert.equal(afterDecision.proposals[0].promotionRequiresApproval, true);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('memory proposal decisions require an existing proposal and valid decision', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-memory-decision-invalid-'));
+  try {
+    const missing = recordMemoryProposalDecision({
+      proposalId: 'mem-proposal-missing',
+      decision: 'keep',
+      reason: 'not present',
+    }, {
+      proposalLogPath: path.join(dir, 'memory-proposals.jsonl'),
+      decisionLogPath: path.join(dir, 'memory-proposal-decisions.jsonl'),
+    });
+    const invalid = recordMemoryProposalDecision({
+      proposalId: 'mem-proposal-missing',
+      decision: 'promote-now',
+      reason: 'invalid decision',
+    }, {
+      proposalLogPath: path.join(dir, 'memory-proposals.jsonl'),
+      decisionLogPath: path.join(dir, 'memory-proposal-decisions.jsonl'),
+    });
+
+    assert.equal(missing.ok, false);
+    assert.match(missing.error, /not found/);
+    assert.equal(invalid.ok, false);
+    assert.match(invalid.error, /invalid memory proposal decision/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
