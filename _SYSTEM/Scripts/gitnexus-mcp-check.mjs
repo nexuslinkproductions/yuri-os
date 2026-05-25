@@ -80,8 +80,8 @@ function checkCodexConfig(label, configPath) {
   if (!/command\s*=\s*"node"/.test(text)) {
     failures.push(`${label}: gitnexus command should be node`);
   }
-  if (!text.includes(WRAPPER)) {
-    failures.push(`${label}: missing wrapper path ${WRAPPER}`);
+  if (!configMentionsWrapper(text)) {
+    failures.push(`${label}: missing wrapper path ${WRAPPER} or repo-relative equivalent`);
   }
 }
 
@@ -109,9 +109,21 @@ function checkJsonMcpConfig(label, configPath, options = {}) {
   if (entry.command !== 'node') {
     failures.push(`${label}: gitnexus command should be node`);
   }
-  if (!Array.isArray(entry.args) || !entry.args.includes(WRAPPER)) {
-    failures.push(`${label}: gitnexus args should include ${WRAPPER}`);
+  if (!Array.isArray(entry.args) || !entry.args.some((arg) => resolvesToWrapper(arg))) {
+    failures.push(`${label}: gitnexus args should include ${WRAPPER} or repo-relative equivalent`);
   }
+}
+
+function configMentionsWrapper(text) {
+  return text.includes(WRAPPER)
+    || [...text.matchAll(/"([^"]+)"/g)].some((match) => resolvesToWrapper(match[1]));
+}
+
+function resolvesToWrapper(candidate) {
+  const value = String(candidate || '');
+  if (!value) return false;
+  const resolved = path.isAbsolute(value) ? value : path.resolve(REPO_ROOT, value);
+  return path.normalize(resolved) === path.normalize(WRAPPER);
 }
 
 function smokeMcpTools() {
