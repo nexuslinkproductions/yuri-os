@@ -26,6 +26,20 @@ const activeRootFiles = [
   '.claude/launch.json',
 ];
 
+const gitNexusAdapterFiles = [
+  'AGENTS.md',
+  'CLAUDE.md',
+];
+
+const canonicalGitNexusSkillPaths = [
+  'skills/gitnexus-exploring/SKILL.md',
+  'skills/gitnexus-impact-analysis/SKILL.md',
+  'skills/gitnexus-debugging/SKILL.md',
+  'skills/gitnexus-refactoring/SKILL.md',
+  'skills/gitnexus-guide/SKILL.md',
+  'skills/gitnexus-cli/SKILL.md',
+];
+
 const ignoredDirs = new Set([
   'node_modules',
   '.git',
@@ -119,7 +133,39 @@ for (const filePath of files) {
 assert.deepEqual(violations, [], `root architecture violations:\n${violations.join('\n')}`);
 assert.equal(path.basename(REPO_ROOT), 'YURI-OS-MUSUBI', 'test must resolve the canonical repo root');
 
+const gitNexusAdapterViolations = validateGitNexusAdapterSkillLinks();
+assert.deepEqual(
+  gitNexusAdapterViolations,
+  [],
+  `GitNexus adapter skill-link drift:\n${gitNexusAdapterViolations.join('\n')}`,
+);
+
 process.stdout.write(`root-architecture: pass files=${files.length}\n`);
+
+function validateGitNexusAdapterSkillLinks() {
+  const result = [];
+  for (const relPath of gitNexusAdapterFiles) {
+    const fullPath = path.join(REPO_ROOT, relPath);
+    const source = fs.readFileSync(fullPath, 'utf8');
+    const block = source.match(/<!-- gitnexus:start -->([\s\S]*?)<!-- gitnexus:end -->/)?.[1] || '';
+    if (!block) {
+      result.push(`${relPath}: missing GitNexus block`);
+      continue;
+    }
+    if (block.includes('.claude/skills/gitnexus')) {
+      result.push(`${relPath}: GitNexus block points at provider-local .claude skills`);
+    }
+    for (const skillPath of canonicalGitNexusSkillPaths) {
+      if (!fs.existsSync(path.join(REPO_ROOT, skillPath))) {
+        result.push(`${skillPath}: canonical root GitNexus skill file missing`);
+      }
+      if (!block.includes(`\`${skillPath}\``)) {
+        result.push(`${relPath}: missing canonical root skill link ${skillPath}`);
+      }
+    }
+  }
+  return result;
+}
 
 function listFiles(root) {
   if (!fs.existsSync(root)) return [];

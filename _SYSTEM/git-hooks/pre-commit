@@ -13,6 +13,9 @@ node _SYSTEM/Scripts/secret-leak-scan.mjs
 echo "[pre-commit] offload contract dispatch drift"
 node _SYSTEM/Scripts/offload-contract-dispatch-check.mjs >/dev/null
 
+echo "[pre-commit] root architecture"
+node _SYSTEM/Scripts/root-architecture.test.mjs >/dev/null
+
 echo "[pre-commit] persona contract"
 node _SYSTEM/Scripts/yuri-persona-check.mjs >/dev/null
 
