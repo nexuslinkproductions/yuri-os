@@ -215,6 +215,8 @@ test('Rick /status returns structured release and health fields', async () => {
   assert.equal(Array.isArray(status.quarantinedLanes), true);
   assert.match(status.preflightEvidenceHash, /^[a-f0-9]{64}$/);
   assert.ok(Object.hasOwn(status, 'lastReleaseGate'));
+  assert.ok(Object.hasOwn(status, 'memoryProposals'));
+  assert.equal(typeof status.memoryProposals.pending, 'number');
 });
 
 test('offload wrapper streams chat SSE chunks before process close', async (t) => {

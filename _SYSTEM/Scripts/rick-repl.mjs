@@ -471,6 +471,30 @@ function formatMemoryProposals(result) {
   return lines.join('\n');
 }
 
+function memoryProposalStatus() {
+  const result = listMemoryProposals('');
+  if (!result.ok) {
+    return {
+      ok: false,
+      error: result.error || 'memory proposal status unavailable',
+      pending: 0,
+      latest: [],
+    };
+  }
+  const proposals = Array.isArray(result.proposals) ? result.proposals : [];
+  return {
+    ok: true,
+    path: result.path || null,
+    pending: proposals.filter((proposal) => (proposal.status || 'pending') === 'pending').length,
+    latest: proposals.slice(0, 3).map((proposal) => ({
+      id: proposal.id,
+      status: proposal.status || 'pending',
+      tags: Array.isArray(proposal.tags) ? proposal.tags : [],
+      preview: truncateRight(proposal.content || '', 96),
+    })),
+  };
+}
+
 function latestAdvisoryPath() {
   if (!existsSync(ADVISORY_DIR)) return '';
   const files = readdirSync(ADVISORY_DIR)
@@ -506,6 +530,7 @@ async function statusText() {
     quarantinedLanes: healthSummary.quarantinedLanes || [],
     crashCounts: healthSummary.crashCounts || {},
     preflightEvidenceHash,
+    memoryProposals: memoryProposalStatus(),
     lastReleaseGate: latestReleaseGateEvidence(),
     latestShintaiAdvisory: latestAdvisoryPath() || null,
   }, null, 2);
@@ -1616,6 +1641,7 @@ export const __test__ = {
   filterExecutableShellBlocks,
   formatDuration,
   formatMemoryProposals,
+  memoryProposalStatus,
   guardShellCommand,
   goalText,
   handleEot,
