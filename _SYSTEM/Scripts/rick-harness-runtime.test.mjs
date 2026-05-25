@@ -185,6 +185,7 @@ test('Rick formats memory proposal review output without promoting memory', asyn
   assert.match(text, /tags=rick-harness/);
   assert.match(__test__.helpText(), /\/memory propose <text>/);
   assert.match(__test__.helpText(), /\/memory decide <id>/);
+  assert.match(__test__.helpText(), /feed Memory Rick/);
   assert.deepEqual(
     __test__.parseMemoryDecisionCommand('mem-proposal-test keep good signal for later promotion'),
     {
@@ -193,6 +194,14 @@ test('Rick formats memory proposal review output without promoting memory', asyn
       reason: 'good signal for later promotion',
     },
   );
+  assert.deepEqual(__test__.parseMemoryReviewCommand('addressing'), {
+    reviewer: 'memory-rick',
+    query: 'addressing',
+  });
+  assert.deepEqual(__test__.parseMemoryReviewCommand('--simple addressing'), {
+    reviewer: 'simple-rick',
+    query: 'addressing',
+  });
 });
 
 test('Rick builds bounded memory review prompts for advisory triage only', async () => {

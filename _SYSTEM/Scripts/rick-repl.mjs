@@ -22,6 +22,7 @@ import { recommendKagamiFanout } from './kagami-control-domain.mjs';
 import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
 import { buildReport as buildCloseoutReport, formatReport as formatCloseoutReport } from './yuri-closeout.mjs';
 import { MEMORY_PROPOSAL_DECISIONS, listMemoryProposals, proposeMemoryWrite, recordMemoryProposalDecision } from './memory-kernel.mjs';
+import { enqueue as enqueueWorkerTask } from './worker-bridge.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -477,6 +478,20 @@ function parseMemoryDecisionCommand(value = '') {
   const decision = (parts.shift() || '').toLowerCase();
   const reason = parts.join(' ').trim();
   return { proposalId, decision, reason };
+}
+
+function parseMemoryReviewCommand(value = '') {
+  const parts = String(value || '').trim().split(/\s+/).filter(Boolean);
+  const first = (parts[0] || '').toLowerCase();
+  let reviewer = 'memory-rick';
+  if (['--simple', 'simple', 'simple-rick', 'deepseek', '--deepseek'].includes(first)) {
+    reviewer = 'simple-rick';
+    parts.shift();
+  } else if (['--memory', 'memory', 'memory-rick', 'sonnet', '--sonnet'].includes(first)) {
+    reviewer = 'memory-rick';
+    parts.shift();
+  }
+  return { reviewer, query: parts.join(' ').trim() };
 }
 
 function memoryProposalStatus() {
@@ -1314,15 +1329,62 @@ async function handleEot(ui, history, options = {}) {
   return { report, synthesis };
 }
 
-async function handleMemoryReview(ui, query = '') {
+function enqueueMemoryRickReview(result, query = '') {
+  return enqueueWorkerTask({
+    worker: 'claude',
+    lane: 'claude',
+    prompt: buildMemoryReviewPrompt(result, query),
+    addedBy: 'rick:/memory review',
+    meta: {
+      model: 'sonnet',
+      purpose: 'memory-proposal-review',
+      query,
+      proposalCount: result.proposals.length,
+      approvalAuthority: 'Marcel + Codex/main',
+    },
+  });
+}
+
+async function handleMemoryReview(ui, review = {}) {
+  const parsed = typeof review === 'string' ? { reviewer: 'memory-rick', query: review } : review;
+  const reviewer = parsed.reviewer || 'memory-rick';
+  const query = parsed.query || '';
   const result = listMemoryProposals(query);
   ui.appendSystem(formatMemoryProposals(result));
   if (!result.ok) return '';
   if (!Array.isArray(result.proposals) || result.proposals.length === 0) return '';
 
+  if (reviewer === 'memory-rick') {
+    const task = enqueueMemoryRickReview(result, query);
+    appendRickEvent('MEMORY_REVIEW_REQUESTED', {
+      source: 'rick:/memory review',
+      lane: 'claude',
+      model: 'sonnet',
+      reviewer: 'Memory Rick',
+      proposalCount: result.proposals.length,
+      query,
+      taskId: task.id,
+      status: task.status,
+    });
+    if (task.status === 'failed') {
+      ui.appendError(`Memory Rick live TUI feed failed: ${task.error || 'unknown error'}`);
+      return '';
+    }
+    ui.setLane('claude');
+    ui.appendRick([
+      'Memory Rick has the proposal queue in the live Claude TUI. No memory was promoted.',
+      `task: ${task.id}`,
+      `model: ${task.meta?.model || 'sonnet'}`,
+      `capture: _SYSTEM/state/worker-captures/claude-${task.id}.txt`,
+      'Use `/memory review --simple` when you want an immediate Simple Rick streaming pass instead.',
+    ].join('\n'));
+    return task.result || '';
+  }
+
   appendRickEvent('MEMORY_REVIEW_REQUESTED', {
     source: 'rick:/memory review',
     lane: '@deepseek-v4-pro',
+    reviewer: 'Simple Rick',
     proposalCount: result.proposals.length,
     query,
   });
@@ -1472,7 +1534,7 @@ function helpText() {
     '/memory propose <text> record a pending memory proposal',
     '/memory proposals [q]  list pending memory proposals',
     '/memory decide <id> <keep|rewrite|reject|defer> <reason>',
-    '/memory review [q]     ask Simple Rick to triage pending memory proposals',
+    '/memory review [q]     feed Memory Rick; add --simple for streaming Simple Rick',
     '/why <task>            dry-run Kagami auto-route without dispatch',
     '/fanout <task>         preview adaptive solo/pair/trio/council lane plan',
     '/mode [auto|codex|rick|cheap] show or set default route posture',
@@ -1575,16 +1637,17 @@ async function main() {
     }
 
     if (input === '/memory review' || input.startsWith('/memory review ')) {
-      const query = input === '/memory review' ? '' : input.slice('/memory review '.length).trim();
+      const review = parseMemoryReviewCommand(input === '/memory review' ? '' : input.slice('/memory review '.length));
+      const lane = review.reviewer === 'simple-rick' ? '@deepseek-v4-pro' : 'claude';
       busy = true;
-      ui.startTurn('@deepseek-v4-pro', 'reviewing memory proposals');
+      ui.startTurn(lane, review.reviewer === 'simple-rick' ? 'reviewing memory proposals' : 'feeding Memory Rick');
       try {
-        await handleMemoryReview(ui, query);
+        await handleMemoryReview(ui, review);
       } catch (err) {
         ui.appendError(err.message);
       } finally {
         busy = false;
-        ui.finishTurn('@deepseek-v4-pro');
+        ui.finishTurn(lane);
       }
       return;
     }
@@ -1748,8 +1811,10 @@ export const __test__ = {
   formatDuration,
   formatMemoryProposals,
   parseMemoryDecisionCommand,
+  parseMemoryReviewCommand,
   memoryProposalStatus,
   buildMemoryReviewPrompt,
+  enqueueMemoryRickReview,
   handleMemoryReview,
   guardShellCommand,
   goalText,

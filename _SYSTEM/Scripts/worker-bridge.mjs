@@ -25,6 +25,7 @@ import { buildRickLanePacket, lanePersonaForWorker } from './lane-persona-map.mj
 import { captureWorkerPane, feedWorkerTui, scheduleCaptureAfterFeed } from './worker-tmux.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const WORKER_BRIDGE_PATH = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const STATE_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state');
 const PULSE_BUS = path.join(STATE_DIR, 'pulse-bus.jsonl');
@@ -620,7 +621,9 @@ async function main() {
   process.exit(1);
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+if (path.resolve(WORKER_BRIDGE_PATH) === path.resolve(process.argv[1] || '')) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}
