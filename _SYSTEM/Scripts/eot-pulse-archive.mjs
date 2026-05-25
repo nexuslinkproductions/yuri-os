@@ -1,25 +1,43 @@
 #!/usr/bin/env node
-import fs from 'node:fs';
-const bus = JSON.parse(fs.readFileSync('.claude/state/pulse-bus.json', 'utf8'));
-const ring = bus.ring || [];
-const findings = ring.filter(e =>
-  e.severity === 'WARN' || e.severity === 'HIGH' || e.severity === 'CRITICAL' ||
-  e.source === 'CASSANDRA' || e.source === 'CORTEX'
-);
-const archive = {
-  date: '2026-05-16',
-  session_id: bus.session_id || 'eot-session',
-  commits: ['1da68165', '00d325c6', 'cf872704', 'af5c626a', 'dc8e9f8e'],
-  findings: findings.map(f => ({
-    ts: f.ts, source: f.source, severity: f.severity,
-    finding: (f.finding || '').slice(0, 300), runtime_kind: f.runtime_kind, outcome_marker: null,
-  })),
-  telemetry: {
-    trivial_skip_count: ring.length - findings.length,
-    pulse_spawn_count: ring.length,
-    disagreement_count: findings.filter(f => f.source === 'CORTEX').length,
-  },
-};
-fs.mkdirSync('_SYSTEM/SELF-IMPROVEMENT/pulse-archive', { recursive: true });
-fs.writeFileSync('_SYSTEM/SELF-IMPROVEMENT/pulse-archive/2026-05-16.json', JSON.stringify(archive, null, 2));
-console.log(`pulse archive: ${findings.length} findings / ${ring.length} total`);
+
+/**
+ * Archive notable recent Kagami events into the self-improvement pulse archive.
+ * This replaces the legacy direct `.claude/state` pulse-bus reader.
+ */
+
+import { mkdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { readKagamiEvents } from './kagami-event-bus.mjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(__dirname, '../..');
+const ARCHIVE_DIR = path.join(REPO_ROOT, '_SYSTEM', 'SELF-IMPROVEMENT', 'pulse-archive');
+
+function notable(event) {
+  return /FAILED|AUTHORIZATION|COST|HANDOFF|MEMORY|ROUTE|VERIFICATION/u.test(event.kind || '');
+}
+
+function main() {
+  const events = readKagamiEvents({ limit: 500 }).filter(notable);
+  const date = new Date().toISOString().slice(0, 10);
+  const archive = {
+    date,
+    source: '_SYSTEM/state/kagami-control/events.jsonl',
+    eventCount: events.length,
+    findings: events.map((event) => ({
+      ts: event.ts,
+      kind: event.kind,
+      lane: event.lane || event.payload?.lane || null,
+      summary: String(event.payload?.reason || event.payload?.status || event.kind || '').slice(0, 300),
+      evidenceRefs: event.evidenceRefs || [],
+    })),
+  };
+
+  mkdirSync(ARCHIVE_DIR, { recursive: true });
+  const out = path.join(ARCHIVE_DIR, `${date}.json`);
+  writeFileSync(out, `${JSON.stringify(archive, null, 2)}\n`);
+  console.log(`pulse archive: ${archive.eventCount} notable events -> ${path.relative(REPO_ROOT, out)}`);
+}
+
+main();

@@ -81,7 +81,9 @@
         "_SYSTEM/Scripts/memory-kernel.mjs",
         "_SYSTEM/Scripts/yuri-memory-map.mjs",
         "_SYSTEM/Scripts/lane-session.mjs",
-        "_SYSTEM/Scripts/yuri-persona-check.mjs"
+        "_SYSTEM/Scripts/yuri-persona-check.mjs",
+        "_SYSTEM/Scripts/yuri-closeout.mjs",
+        "skills/end-of-transmission/SKILL.md"
       ],
       "loadRule": "Use wrappers and curated projections. Do not read protected runtime surfaces directly."
     },

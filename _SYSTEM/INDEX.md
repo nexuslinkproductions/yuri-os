@@ -26,6 +26,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/Scripts/kagami-event-bus.mjs` | YURI-owned append-only Kagami event bus for governed autonomy state. |
 | `_SYSTEM/Scripts/lane-arbitration.mjs` | Codex/main verifier for captured lane evidence, emitting Kagami verification events. |
 | `_SYSTEM/Scripts/lane-persona-map.mjs` | Private dev-only Rick alias overlay with neutral shipping labels and cache-stable packet headers. |
+| `_SYSTEM/Scripts/yuri-closeout.mjs` | Lean deterministic EOT/closeout checkpoint for continuity without model fanout. |
 | `_SYSTEM/Scripts/worker-capture-once.mjs` | Delayed live worker pane capture into `_SYSTEM/state/worker-captures/` with Kagami evidence refs. |
 | `_SYSTEM/research-archive/yuri-math-engine-2026-05/00_manifest.md` | Mathematical operating substrate research intake and governance boundary. |
 | `_SYSTEM/research-archive/yuri-math-engine-2026-05/09_general_math_operationalization.md` | General-purpose math operationalization method and adapter map. |

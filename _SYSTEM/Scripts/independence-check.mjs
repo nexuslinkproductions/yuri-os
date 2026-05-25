@@ -18,7 +18,7 @@ import { join, basename, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const REPO = join(__dirname, '..');
+const REPO = join(__dirname, '../..');
 
 const args = process.argv.slice(2);
 const STRICT = args.includes('--strict');
@@ -171,7 +171,12 @@ function checkRouting() {
 // ============================================================ EOT
 function checkEot() {
   const path = join(REPO, 'skills/end-of-transmission/SKILL.md');
+  const before = findings.fail.length + findings.warn.length;
   scanFile(path, 'eot');
+  const after = findings.fail.length + findings.warn.length;
+  if (after === before) {
+    record('pass', 'eot', relPath(path), 0, 'no automatic Anthropic EOT surface detected', '');
+  }
 }
 
 // ============================================================ DISPATCH

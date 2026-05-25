@@ -1,117 +1,176 @@
 #!/usr/bin/env node
 
 /**
- * yuri-closeout.mjs — Deterministic read-only closeout reporter
+ * yuri-closeout.mjs - deterministic YURI closeout checkpoint.
  *
- * Mirrors end-of-transmission closeout behavior in provider-neutral terms.
- * Read-only. Never mutates, stages, commits, resets, cleans, installs,
- * starts servers, touches DB, or edits files.
- *
- * Usage:
- *   node _SYSTEM/Scripts/yuri-closeout.mjs
- *   node _SYSTEM/Scripts/yuri-closeout.mjs --path _SYSTEM/Scripts/yuri-closeout.mjs
+ * Provider-neutral, read-only, and intentionally lighter than the old EOT
+ * pipeline. It summarizes repo state, scoped validation, and recent Kagami
+ * events without reading protected provider runtime.
  */
 
-import { execFileSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import path from 'node:path'
-import { stdout } from 'node:process'
-import { fileURLToPath } from 'node:url'
+import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { stdout } from 'node:process';
+import { fileURLToPath } from 'node:url';
+import { readKagamiEvents } from './kagami-event-bus.mjs';
+import { isProtectedPath } from './lane-kernel.mjs';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
-const FORBIDDEN_MARKERS = [
-  '.env',
-  '.npmrc',
-  'node_modules',
-  'backend/data',
-  '.claude/history',
-  '.claude/state',
-]
+export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-main()
-
-function main() {
-  const args = process.argv.slice(2)
-  const scopedPaths = collectPaths(args)
-  const report = buildReport(scopedPaths)
-  writeReport(report)
-}
-
-function collectPaths(argv) {
-  const paths = []
+export function collectPaths(argv = []) {
+  const paths = [];
   for (let index = 0; index < argv.length; index += 1) {
-    if (argv[index] === '--path' && index + 1 < argv.length) {
-      index += 1
-      const p = argv[index]
-      for (const marker of FORBIDDEN_MARKERS) {
-        if (p.includes(marker)) {
-          stdout.write(`ERROR: Forbidden path marker "${marker}" in "${p}"\n`)
-          process.exit(1)
-        }
-      }
-      paths.push(p)
+    if (argv[index] !== '--path' || index + 1 >= argv.length) continue;
+    index += 1;
+    const relPath = normalizeRepoPath(argv[index]);
+    if (isProtectedPath(relPath)) {
+      const error = new Error(`forbidden path: ${relPath}`);
+      error.code = 'YURI_CLOSEOUT_PROTECTED_PATH';
+      throw error;
     }
+    paths.push(relPath);
   }
-  return paths
+  return paths;
 }
 
-function buildReport(scopedPaths) {
-  const sections = {}
+export function buildReport(scopedPaths = [], options = {}) {
+  const status = gitExec(['status', '--short']);
+  const recentEvents = collectRecentEvents(Number(options.recentEventLimit || 8));
+  const scoped = scopedPaths.length
+    ? scopedPaths.map((pathValue) => buildScopedStatus(pathValue))
+    : [];
 
-  sections.result = 'closeout_report_readonly'
-
-  const branch = gitExec(['branch', '--show-current'])
-  const head = gitExec(['rev-parse', '--short', 'HEAD'])
-  sections.current = `branch=${branch} head=${head} repo=${REPO_ROOT}`
-
-  if (scopedPaths.length === 0) {
-    sections.scoped_status = 'SCOPED_PATHS=none_provided'
-    sections.validation = 'SCOPED_PATHS=none_provided'
-  } else {
-    sections.scoped_status = buildScopedStatus(scopedPaths)
-    sections.validation = buildValidation(scopedPaths)
-  }
-
-  sections.non_claims = 'read-only closeout no mutation no broad scan no forbidden paths'
-  sections.next_recommended = 'review closeout report approve commit if clean'
-
-  return sections
+  return {
+    schemaVersion: 'yuri.closeout.v1',
+    mode: 'deterministic-readonly',
+    current: {
+      branch: gitExec(['branch', '--show-current']) || 'unknown',
+      head: gitExec(['rev-parse', '--short', 'HEAD']) || 'unknown',
+      repo: REPO_ROOT,
+    },
+    workingTree: summarizeStatus(status),
+    scoped,
+    validation: scoped.length ? scoped.flatMap((entry) => entry.validation) : ['no scoped validation requested'],
+    recentEvents,
+    verdict: closeoutVerdict(status, scoped, recentEvents),
+    nonClaims: [
+      'no mutation performed',
+      'no protected provider runtime read',
+      'no commit or staging performed',
+      'model-backed synthesis not required for this deterministic checkpoint',
+    ],
+    nextRecommended: nextRecommended(status, scoped),
+  };
 }
 
-function buildScopedStatus(paths) {
-  const lines = []
-  for (const p of paths) {
-    const out = gitExec(['status', '--short', '--', p])
-    const status = out === '' ? 'clean' : out
-    lines.push(`path=${p} status=${status}`)
-  }
-  return lines.join(' | ')
+export function formatReport(report) {
+  const lines = [];
+  lines.push('EOT Checkpoint');
+  lines.push('');
+  lines.push(`Current: branch=${report.current.branch} head=${report.current.head}`);
+  lines.push(`Verdict: ${report.verdict}`);
+  lines.push('');
+  lines.push('Working tree:');
+  lines.push(`- changed files: ${report.workingTree.changedCount}`);
+  for (const item of report.workingTree.sample) lines.push(`- ${item}`);
+  if (!report.workingTree.sample.length) lines.push('- clean');
+  lines.push('');
+  lines.push('Validation:');
+  for (const item of report.validation) lines.push(`- ${item}`);
+  lines.push('');
+  lines.push('Recent Kagami events:');
+  for (const event of report.recentEvents) lines.push(`- ${event.ts} ${event.kind} ${event.lane || ''}`.trim());
+  if (!report.recentEvents.length) lines.push('- none observed');
+  lines.push('');
+  lines.push('Non-claims:');
+  for (const item of report.nonClaims) lines.push(`- ${item}`);
+  lines.push('');
+  lines.push('Next boot:');
+  for (const item of report.nextRecommended) lines.push(`- ${item}`);
+  return `${lines.join('\n')}\n`;
 }
 
-function buildValidation(paths) {
-  const lines = []
-  for (const p of paths) {
-    if (!p.endsWith('.js') && !p.endsWith('.mjs')) {
-      continue
-    }
-    const absolute = path.resolve(REPO_ROOT, p)
-    if (!existsSync(absolute)) {
-      lines.push(`path=${p} check=file_not_found`)
-      continue
-    }
-    try {
-      execFileSync('node', ['--check', p], {
-        cwd: REPO_ROOT,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-      })
-      lines.push(`path=${p} check=pass`)
-    } catch (err) {
-      const stderr = String(err.stderr || '').trim()
-      lines.push(`path=${p} check=fail error=${stderr}`)
-    }
+function normalizeRepoPath(inputPath) {
+  const raw = String(inputPath || '').trim();
+  const absolute = path.isAbsolute(raw) ? raw : path.join(REPO_ROOT, raw);
+  return path.relative(REPO_ROOT, absolute).replaceAll(path.sep, '/');
+}
+
+function buildScopedStatus(pathValue) {
+  const status = gitExec(['status', '--short', '--', pathValue]);
+  return {
+    path: pathValue,
+    status: status || 'clean',
+    validation: buildValidation(pathValue),
+  };
+}
+
+function buildValidation(pathValue) {
+  if (!/\.(?:js|mjs)$/i.test(pathValue)) return [`${pathValue}: no syntax check needed`];
+  const absolute = path.resolve(REPO_ROOT, pathValue);
+  if (!existsSync(absolute)) return [`${pathValue}: file not found`];
+  try {
+    execFileSync(process.execPath, ['--check', pathValue], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    return [`${pathValue}: node --check pass`];
+  } catch (err) {
+    const stderr = String(err.stderr || err.message || '').trim().split('\n').at(0) || 'syntax check failed';
+    return [`${pathValue}: node --check fail: ${stderr}`];
   }
-  return lines.length > 0 ? lines.join(' | ') : 'no_js_mjs_paths'
+}
+
+function summarizeStatus(statusText) {
+  const lines = String(statusText || '')
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .filter(Boolean)
+    .filter((line) => !isProtectedPath(line.slice(3).trim()));
+  return {
+    changedCount: lines.length,
+    sample: lines.slice(0, 12),
+    truncated: lines.length > 12,
+  };
+}
+
+function collectRecentEvents(limit) {
+  try {
+    return readKagamiEvents({ limit })
+      .filter((event) => !hasProtectedEvidence(event))
+      .map((event) => ({
+        id: event.id,
+        ts: event.ts,
+        kind: event.kind,
+        lane: event.lane || event.payload?.lane || '',
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function hasProtectedEvidence(event) {
+  return (event.evidenceRefs || []).some((ref) => isProtectedPath(ref));
+}
+
+function closeoutVerdict(statusText, scoped, recentEvents) {
+  if (scoped.some((entry) => entry.validation.some((line) => line.includes('fail')))) {
+    return 'attention-needed: scoped validation failed';
+  }
+  if (String(statusText || '').trim()) return 'checkpoint-useful: working tree has changes';
+  if (recentEvents.length) return 'checkpoint-useful: recent control-plane events exist';
+  return 'optional: no material local signal';
+}
+
+function nextRecommended(statusText, scoped) {
+  const recommendations = [];
+  if (scoped.length) recommendations.push('review scoped validation before claiming completion');
+  if (String(statusText || '').trim()) recommendations.push('keep staging scoped; ignore runtime noise unless explicitly promoted');
+  recommendations.push('write a short next-session boot note only if work will resume later');
+  recommendations.push('use DeepSeek synthesis only for large, contradictory, or memory-worthy sessions');
+  return recommendations;
 }
 
 function gitExec(args) {
@@ -120,19 +179,23 @@ function gitExec(args) {
       cwd: REPO_ROOT,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
-    }).trim()
+    }).trim();
   } catch {
-    return 'error'
+    return '';
   }
 }
 
-function writeReport(sections) {
-  const lines = []
-  lines.push(`RESULT: ${sections.result}`)
-  lines.push(`CURRENT: ${sections.current}`)
-  lines.push(`SCOPED_STATUS: ${sections.scoped_status}`)
-  lines.push(`VALIDATION: ${sections.validation}`)
-  lines.push(`NON_CLAIMS: ${sections.non_claims}`)
-  lines.push(`NEXT_RECOMMENDED: ${sections.next_recommended}`)
-  stdout.write(`${lines.join('\n')}\n`)
+function runCli(argv = process.argv.slice(2)) {
+  const json = argv.includes('--json');
+  try {
+    const report = buildReport(collectPaths(argv));
+    stdout.write(json ? `${JSON.stringify(report, null, 2)}\n` : formatReport(report));
+  } catch (err) {
+    stdout.write(`YURI_CLOSEOUT_ERROR: ${err.message}\n`);
+    process.exitCode = 1;
+  }
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  runCli();
 }

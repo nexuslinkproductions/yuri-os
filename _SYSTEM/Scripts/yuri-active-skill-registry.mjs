@@ -265,7 +265,7 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
   },
   'end-of-transmission': {
     capabilities: ['memory-navigation', 'reduce-and-learn', 'summarization'],
-    traits: ['eot', 'reflection', 'continuity'],
+    traits: ['eot', 'closeout', 'checkpoint', 'continuity'],
     signals: ['memory', 'docs'],
   },
 });

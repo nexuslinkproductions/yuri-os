@@ -14,8 +14,8 @@ import {
 import path from 'node:path';
 import process from 'node:process';
 
-const REPO_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const EOT_DIR = path.join(REPO_ROOT, '.claude', 'eot');
+const REPO_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const EOT_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state', 'eot');
 const ARCHIVE_DIR = path.join(EOT_DIR, '_archive');
 const TTL_DAYS = Number(process.env.EOT_ARCHIVE_TTL_DAYS) || 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -188,7 +188,7 @@ function printText(dirs, archived) {
   if (dirs.length === 0) return;
 
   const candidates = dirs.filter((dir) => dir.candidate).length;
-  process.stdout.write(`SCAN .claude/eot/ — ${candidates} candidate(s)\n`);
+  process.stdout.write(`SCAN _SYSTEM/state/eot/ — ${candidates} candidate(s)\n`);
   for (const dir of dirs) {
     process.stdout.write(`${textLine(dir)}\n`);
   }
@@ -203,7 +203,7 @@ function printJson(dirs, archived, errors) {
   process.stdout.write(
     `${JSON.stringify(
       {
-        eotDir: '.claude/eot/',
+        eotDir: '_SYSTEM/state/eot/',
         ttlDays: TTL_DAYS,
         dryRun: DRY_RUN,
         candidates,
@@ -220,7 +220,7 @@ function printJson(dirs, archived, errors) {
 function printHelp() {
   process.stdout.write(
     `Usage: node _SYSTEM/Scripts/eot-archive.mjs [--dry-run|--execute] [--json] [--help]\n\n` +
-      `Scan .claude/eot/ subdirectories and archive old sessions into .claude/eot/_archive/YYYY-MM/.\n\n` +
+      `Scan _SYSTEM/state/eot/ subdirectories and archive old sessions into _SYSTEM/state/eot/_archive/YYYY-MM/.\n\n` +
       `Options:\n` +
       `  --dry-run   Print what would be archived (default)\n` +
       `  --execute   Perform the archival move\n` +

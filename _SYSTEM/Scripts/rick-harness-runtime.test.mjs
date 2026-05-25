@@ -137,6 +137,26 @@ test('Rick routes explicit Codex and Sonnet coding aliases', async () => {
   assert.equal(__test__.detectRoute('@claude review this').route.lane, '@claude');
 });
 
+test('Rick recognizes EOT as a new-session handoff command', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+
+  assert.equal(__test__.isEotInput('/eot'), true);
+  assert.equal(__test__.isEotInput('end of transmission'), true);
+  assert.equal(__test__.isEotInput('move to a new session'), true);
+  assert.equal(__test__.isEotInput('handoff to new session'), true);
+  assert.equal(__test__.isEotInput('new session later maybe'), false);
+});
+
+test('Rick harness prompt keeps conversational personality on by default', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+  const prompt = __test__.buildPrompt('help me reason through this', '', '', { inputGenome: false });
+
+  assert.match(prompt, /Evidence-first and conversational/);
+  assert.match(prompt, /spend extra tokens on useful presence/);
+  assert.doesNotMatch(prompt, /Terse, evidence-first, no fluff/);
+  assert.match(__test__.helpText(), /\/eot\s+new-session handoff/);
+});
+
 test('Rick /goal surfaces the current YURI self-improvement goal artifact', async () => {
   const { __test__ } = await import('./rick-repl.mjs');
   const goal = __test__.goalText();

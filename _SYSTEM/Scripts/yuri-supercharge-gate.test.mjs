@@ -42,6 +42,11 @@ test('release gate includes cyber intelligence and security lens checks', () => 
   assert.ok(checkNames.includes('test:artifact-registry'));
   assert.ok(checkNames.includes('syntax:lane-persona-map'));
   assert.ok(checkNames.includes('test:lane-persona-map'));
+  assert.ok(checkNames.includes('syntax:yuri-closeout'));
+  assert.ok(checkNames.includes('test:yuri-closeout'));
+  assert.ok(checkNames.includes('syntax:eot-archive'));
+  assert.ok(checkNames.includes('syntax:eot-pulse-archive'));
+  assert.ok(checkNames.includes('syntax:eot-phase10-archive'));
   assert.ok(checkNames.includes('syntax:kagami-event-bus'));
   assert.ok(checkNames.includes('test:kagami-event-bus'));
   assert.ok(checkNames.includes('syntax:lane-arbitration'));

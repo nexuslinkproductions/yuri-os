@@ -105,7 +105,11 @@ Use wrappers, health summaries, or explicit owner-approved migration steps.
 
 ## EOT Rule
 
-End-of-transmission work should run through YURI-owned memory/reflection routes, with DeepSeek preferred for background synthesis when available. Do not use small Claude wakeup/background models for EOT.
+End-of-transmission is now a lean YURI closeout checkpoint, not an automatic reflection swarm. Default to deterministic local evidence through `_SYSTEM/Scripts/yuri-closeout.mjs`.
+
+Treat `/eot`, `/end-of-transmission`, `end of transmission`, and explicit new-session handoff language as the same closeout intent.
+
+Use DeepSeek only when synthesis is genuinely useful for a long, contradictory, or memory-worthy session. Do not use small Claude wakeup/background models for EOT.
 
 ## Verification
 

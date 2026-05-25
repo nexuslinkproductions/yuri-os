@@ -20,6 +20,7 @@ import { appendKagamiEvent, appendRouteDecisionEvent } from './kagami-event-bus.
 import { buildUserProfilePromptBlock } from './kagami-user-profile.mjs';
 import { recommendKagamiFanout } from './kagami-control-domain.mjs';
 import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
+import { buildReport as buildCloseoutReport, formatReport as formatCloseoutReport } from './yuri-closeout.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -355,7 +356,8 @@ function buildPrompt(input, historyCtx, memories, options = {}) {
   }
   const parts = [
     '[Rick · Marcel · YURI]',
-    'Rick full harness active. Terse, evidence-first, no fluff.',
+    'Rick full harness active. Evidence-first and conversational; use personality, warmth, and a bit of bite when it improves the work.',
+    'Marcel values immersive collaboration enough to spend extra tokens on useful presence. Do not flatten into corporate assistant mode.',
     'Honor no-auto-commit/no-push guardrails. Suggest patch-ready code, but do not assume shell execution.',
     'Never emit terminal chrome: no fake borders, banners, status bars, token counters, or "Rick >" prefixes. The harness renders all UI.',
   ];
@@ -907,6 +909,22 @@ function detectRoute(input) {
   return null;
 }
 
+function isEotInput(input) {
+  const value = normalizeText(input).trim().toLowerCase();
+  return [
+    '/eot',
+    '/end-of-transmission',
+    'end of transmission',
+    'move to a new session',
+    'move to new session',
+    'new session handoff',
+    'handoff to a new session',
+    'handoff to new session',
+    'wrap session',
+    'wrap this session',
+  ].includes(value);
+}
+
 function guardShellCommand(cmd) {
   const value = String(cmd || '').trim();
   if (!value) return { ok: false, reason: 'empty shell command' };
@@ -1118,6 +1136,23 @@ async function handleBrowser(ui, script) {
   return output;
 }
 
+async function handleEot(ui, history) {
+  ui.setLane('eot');
+  appendRickEvent('HANDOFF_RECORDED', {
+    source: 'rick:/eot',
+    lane: 'eot',
+    mode: 'deterministic-closeout',
+    historyTurns: history.length,
+  });
+  const report = buildCloseoutReport([], { recentEventLimit: 8 });
+  ui.appendRick([
+    'EOT is now a lean YURI checkpoint, not the old full-auto reflection machine.',
+    'Keeping the useful part: local truth, what changed, what is still open, and how the next session should wake up.',
+  ].join('\n'));
+  ui.appendSystem(formatCloseoutReport(report));
+  return report;
+}
+
 async function handleInput(ui, input, history) {
   const [memories, historyCtx] = await Promise.all([
     recallMemory(input),
@@ -1251,6 +1286,7 @@ function helpText() {
     '/help                  show this surface',
     '/goal                  show current YURI supercharge goal',
     '/status                show Kagami lane health and latest Shintai artifact',
+    '/eot                   new-session handoff: lean deterministic closeout checkpoint',
     '/why <task>            dry-run Kagami auto-route without dispatch',
     '/fanout <task>         preview adaptive solo/pair/trio/council lane plan',
     '/mode [auto|codex|rick|cheap] show or set default route posture',
@@ -1304,6 +1340,20 @@ async function main() {
 
     if (input === '/status') {
       ui.appendSystem(await statusText());
+      return;
+    }
+
+    if (isEotInput(input)) {
+      busy = true;
+      ui.startTurn('eot', 'building closeout checkpoint');
+      try {
+        await handleEot(ui, history);
+      } catch (err) {
+        ui.appendError(err.message);
+      } finally {
+        busy = false;
+        ui.finishTurn('eot');
+      }
       return;
     }
 
@@ -1443,11 +1493,14 @@ export const __test__ = {
   buildHistoryContext,
   containsPromptPoison,
   detectRoute,
+  isEotInput,
   extractBashBlocks,
   filterExecutableShellBlocks,
   formatDuration,
   guardShellCommand,
   goalText,
+  handleEot,
+  helpText,
   statusText,
   normalizeText,
 };
