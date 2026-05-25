@@ -161,7 +161,7 @@ test('Rick deep EOT prompt is bounded to the deterministic report', async () => 
     nextRecommended: ['write a short next-session boot note only if work will resume later'],
   }, 'EOT Checkpoint\nVerdict: optional');
 
-  assert.match(prompt, /persistent DeepSeek synthesis lane/);
+  assert.match(prompt, /persistent Simple Rick synthesis lane/);
   assert.match(prompt, /Use only the deterministic report below/);
   assert.match(prompt, /## Next Session First Moves/);
   assert.match(prompt, /EOT Checkpoint/);
@@ -184,6 +184,28 @@ test('Rick formats memory proposal review output without promoting memory', asyn
   assert.match(text, /mem-proposal-test \[pending\]/);
   assert.match(text, /tags=rick-harness/);
   assert.match(__test__.helpText(), /\/memory propose <text>/);
+});
+
+test('Rick builds bounded memory review prompts for advisory triage only', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+  const prompt = __test__.buildMemoryReviewPrompt({
+    ok: true,
+    proposals: [{
+      id: 'mem-proposal-test',
+      status: 'pending',
+      tags: ['operator-preference'],
+      confidence: 0.7,
+      reason: 'Marcel clarified addressing',
+      content: 'Address the user as Marcel; Rick is the assistant persona.',
+    }],
+  }, 'addressing');
+
+  assert.match(prompt, /YURI Memory Proposal Review/);
+  assert.match(prompt, /You do not promote memory/);
+  assert.match(prompt, /Codex\/main and Marcel remain approval authorities/);
+  assert.match(prompt, /## Questions For Marcel/);
+  assert.match(prompt, /mem-proposal-test/);
+  assert.match(__test__.helpText(), /\/memory review \[q\]/);
 });
 
 test('Rick harness prompt keeps conversational personality on by default', async () => {

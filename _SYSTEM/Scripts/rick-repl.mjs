@@ -69,7 +69,7 @@ const PALETTE = {
 };
 
 const ROUTES = {
-  '@deepseek': { lane: '@deepseek-v4-pro', label: 'DeepSeek' },
+  '@deepseek': { lane: '@deepseek-v4-pro', label: 'Simple Rick' },
   '@codex-mini': { lane: '@codex-mini', label: 'Codex Mini' },
   '@codex-spark': { lane: '@codex-spark', label: 'Codex Spark' },
   '@codex': { lane: '@codex', label: 'Codex' },
@@ -81,8 +81,8 @@ const ROUTES = {
   '@opus': { lane: '@claude-opus-comain', label: 'Claude Opus' },
   '@claude': { lane: '@claude', label: 'Claude' },
   '@nvidia': { lane: '@nvidia-nemotron-120b', label: 'Nvidia' },
-  '@ds': { lane: '@deepseek-v4-pro', label: 'DeepSeek' },
-  '@flash': { lane: '@deepseek-v4-flash', label: 'Rick' },
+  '@ds': { lane: '@deepseek-v4-pro', label: 'Simple Rick' },
+  '@flash': { lane: '@deepseek-v4-flash', label: 'Simple Rick Flash' },
 };
 
 const DENIED_SHELL_PATTERNS = [
@@ -493,6 +493,46 @@ function memoryProposalStatus() {
       preview: truncateRight(proposal.content || '', 96),
     })),
   };
+}
+
+function buildMemoryReviewPrompt(result, query = '') {
+  const proposals = Array.isArray(result?.proposals) ? result.proposals.slice(0, 12) : [];
+  const proposalLines = proposals.length
+    ? proposals.map((proposal, index) => [
+        `Proposal ${index + 1}:`,
+        `id: ${proposal.id}`,
+        `status: ${proposal.status || 'pending'}`,
+        `tags: ${Array.isArray(proposal.tags) ? proposal.tags.join(', ') : ''}`,
+        `confidence: ${proposal.confidence ?? ''}`,
+        `reason: ${proposal.reason || ''}`,
+        `content: ${proposal.content || ''}`,
+      ].join('\n')).join('\n\n')
+    : 'No pending proposals matched the query.';
+  return [
+    'YURI Memory Proposal Review',
+    '',
+    'Role:',
+    '- You are an advisory memory reviewer for YURI.',
+    '- You do not promote memory, mutate files, or claim durable memory changed.',
+    '- Codex/main and Marcel remain approval authorities.',
+    '- Use only the proposal queue below.',
+    '',
+    `Query: ${query || '(all pending proposals)'}`,
+    '',
+    'Return Markdown with exactly these headings:',
+    '## Queue Triage',
+    '## Keep',
+    '## Rewrite Before Promotion',
+    '## Reject Or Defer',
+    '## Questions For Marcel',
+    '',
+    'Be specific: cite proposal ids and explain why. Keep it under 80 lines.',
+    '',
+    'Proposal queue:',
+    '```text',
+    proposalLines.trim(),
+    '```',
+  ].join('\n');
 }
 
 function latestAdvisoryPath() {
@@ -1205,10 +1245,10 @@ async function handleBrowser(ui, script) {
 
 function buildEotDeepPrompt(report, formattedReport = formatCloseoutReport(report)) {
   return [
-    'YURI EOT DeepSeek Synthesis',
+    'YURI EOT Simple Rick Synthesis',
     '',
     'Role:',
-    '- You are the persistent DeepSeek synthesis lane for YURI closeout.',
+    '- You are the persistent Simple Rick synthesis lane for YURI closeout.',
     '- Advisory only. Codex/main remains verifier and commit lane.',
     '- Use only the deterministic report below; do not claim files, tests, commits, memories, or provider state that the report does not show.',
     '- Do not request or read protected paths.',
@@ -1247,12 +1287,12 @@ async function handleEot(ui, history, options = {}) {
   let synthesis = '';
   if (options.deep) {
     ui.setLane('@deepseek-v4-pro');
-    ui.appendRick('Deep EOT is on. I am handing the local checkpoint to the persistent DeepSeek lane for synthesis, then Codex/main keeps verification authority.');
+    ui.appendRick('Deep EOT is on. I am handing the local checkpoint to Simple Rick for synthesis, then Codex/main keeps verification authority.');
     synthesis = await streamLane(
       ui,
       '@deepseek-v4-pro',
       buildEotDeepPrompt(report, formattedReport),
-      'DeepSeek EOT synthesis',
+      'Simple Rick EOT synthesis',
     );
     appendRickEvent('HANDOFF_RECORDED', {
       source: 'rick:/eot deep',
@@ -1264,6 +1304,27 @@ async function handleEot(ui, history, options = {}) {
   }
 
   return { report, synthesis };
+}
+
+async function handleMemoryReview(ui, query = '') {
+  const result = listMemoryProposals(query);
+  ui.appendSystem(formatMemoryProposals(result));
+  if (!result.ok) return '';
+  if (!Array.isArray(result.proposals) || result.proposals.length === 0) return '';
+
+  appendRickEvent('MEMORY_REVIEW_REQUESTED', {
+    source: 'rick:/memory review',
+    lane: '@deepseek-v4-pro',
+    proposalCount: result.proposals.length,
+    query,
+  });
+  ui.setLane('@deepseek-v4-pro');
+  return streamLane(
+    ui,
+    '@deepseek-v4-pro',
+    buildMemoryReviewPrompt(result, query),
+    'Simple Rick memory review',
+  );
 }
 
 async function handleInput(ui, input, history) {
@@ -1399,9 +1460,10 @@ function helpText() {
     '/help                  show this surface',
     '/goal                  show current YURI supercharge goal',
     '/status                show Kagami lane health and latest Shintai artifact',
-    '/eot [deep]            new-session handoff; add deep for DeepSeek synthesis',
+    '/eot [deep]            new-session handoff; add deep for Simple Rick synthesis',
     '/memory propose <text> record a pending memory proposal',
     '/memory proposals [q]  list pending memory proposals',
+    '/memory review [q]     ask Simple Rick to triage pending memory proposals',
     '/why <task>            dry-run Kagami auto-route without dispatch',
     '/fanout <task>         preview adaptive solo/pair/trio/council lane plan',
     '/mode [auto|codex|rick|cheap] show or set default route posture',
@@ -1423,7 +1485,7 @@ async function main() {
   ui.reserveBottom();
   ui.redrawBottom();
   ui.appendSystem(`${history.length} turns loaded from last 24h · ${promptSafeHistory(history).length} usable for prompt · session ${SESSION_ID}`);
-  ui.appendSystem('Route: @deepseek  @codex  @codex-mini  @sonnet  @opus  @nvidia  @shintai');
+  ui.appendSystem('Route: @deepseek(Simple Rick)  @codex  @codex-mini  @sonnet  @opus  @nvidia  @shintai');
 
   let busy = false;
 
@@ -1480,6 +1542,21 @@ async function main() {
     if (input === '/memory proposals' || input.startsWith('/memory proposals ')) {
       const query = input === '/memory proposals' ? '' : input.slice('/memory proposals '.length).trim();
       ui.appendSystem(formatMemoryProposals(listMemoryProposals(query)));
+      return;
+    }
+
+    if (input === '/memory review' || input.startsWith('/memory review ')) {
+      const query = input === '/memory review' ? '' : input.slice('/memory review '.length).trim();
+      busy = true;
+      ui.startTurn('@deepseek-v4-pro', 'reviewing memory proposals');
+      try {
+        await handleMemoryReview(ui, query);
+      } catch (err) {
+        ui.appendError(err.message);
+      } finally {
+        busy = false;
+        ui.finishTurn('@deepseek-v4-pro');
+      }
       return;
     }
 
@@ -1642,6 +1719,8 @@ export const __test__ = {
   formatDuration,
   formatMemoryProposals,
   memoryProposalStatus,
+  buildMemoryReviewPrompt,
+  handleMemoryReview,
   guardShellCommand,
   goalText,
   handleEot,
