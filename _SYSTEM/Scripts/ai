@@ -222,8 +222,12 @@ offload_contract() {
 
 run_claude_safe() {
   local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _claude_model="${YURI_CLAUDE_MODEL:-${YURI_MODEL:-sonnet}}"
+  local _claude_effort="${YURI_CLAUDE_EFFORT:-max}"
   require_cmd "$_claude_bin"
   YURI_DISABLE_SCOUTS=1 exec "$_claude_bin" \
+    --model "$_claude_model" \
+    --effort "$_claude_effort" \
     --permission-mode default \
     --disallowed-tools Agent,TaskCreate,WebSearch,WebFetch \
     --tools Read,Write,Edit,MultiEdit,Bash,Glob,Ls,TodoRead,TodoWrite \
@@ -444,8 +448,11 @@ run_claude_opus_design_edit_prompt() {
 }
 
 run_claude_full() {
-  require_cmd claude
-  exec claude "$@"
+  local _claude_bin="${CLAUDE_BIN:-claude}"
+  local _claude_model="${YURI_CLAUDE_MODEL:-${YURI_MODEL:-sonnet}}"
+  local _claude_effort="${YURI_CLAUDE_EFFORT:-max}"
+  require_cmd "$_claude_bin"
+  exec "$_claude_bin" --model "$_claude_model" --effort "$_claude_effort" "$@"
 }
 
 join_prompt() {
@@ -1252,7 +1259,7 @@ case "${1:-help}" in
     printf "\n"
     printf "${_AU}  ◆ CLAUDE CODE${_RS}  ${_G2}──────────────────────────────────────${_RS}\n"
     printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "continuous CLI / no Agent"
-    printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_MODEL:-user-selected}"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_CLAUDE_MODEL:-${YURI_MODEL:-sonnet}}"
     printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "YURI"
     printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
     printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"
@@ -1278,7 +1285,7 @@ case "${1:-help}" in
     printf "\n"
     printf "${_AU}  ◆ CLAUDE CODE RAW${_RS}  ${_G2}──────────────────────────────${_RS}\n"
     printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "MODE"      "continuous CLI / full tool policy"
-    printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_MODEL:-user-selected}"
+    printf "  ${_GR}%-14s${_RS}%s\n"       "MODEL"     "${YURI_CLAUDE_MODEL:-${YURI_MODEL:-sonnet}}"
     printf "  ${_GR}%-14s${_CY}%s${_RS}\n" "WORKSPACE" "YURI"
     printf "  ${_GR}%-14s${_RS}%s\n"       "SESSION"   "$(date '+%Y-%m-%d  %H:%M')"
     printf "  ${_G2}──────────────────────────────────────────────${_RS}\n"

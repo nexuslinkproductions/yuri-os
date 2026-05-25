@@ -20,11 +20,13 @@ import { spawn, execFileSync, execSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { appendKagamiEvent } from './kagami-event-bus.mjs';
+import { captureWorkerPane, feedWorkerTui } from './worker-tmux.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const STATE_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state');
-const PULSE_BUS = path.join(REPO_ROOT, '.claude', 'state', 'pulse-bus.jsonl');
+const PULSE_BUS = path.join(STATE_DIR, 'pulse-bus.jsonl');
 const QUEUES_FILE = path.join(STATE_DIR, 'worker-queues.json');
 const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload.sh');
 const CODEX_RUNNER = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'codex-offload-runner.mjs');
@@ -108,6 +110,47 @@ function newTask({ worker, prompt, lane, addedBy = 'ide', meta = {} }) {
 export function enqueue({ worker, prompt, lane, addedBy, meta }) {
   const data = readQueues();
   const task = newTask({ worker, prompt, lane, addedBy, meta });
+  const spec = WORKERS[worker];
+  appendWorkerEvent('LANE_DISPATCHED', {
+    source: 'worker-bridge:enqueue',
+    worker,
+    lane: task.lane,
+    session: spec.laneSession,
+    taskId: task.id,
+    addedBy,
+    status: spec.kind === 'claude' ? 'fed-live-tui' : 'queued',
+    meta: task.meta,
+  });
+  if (spec.kind === 'claude') {
+    task.startedAt = new Date().toISOString();
+    const feed = feedWorkerTui('claude', task.prompt);
+    task.status = feed.ok ? 'done' : 'failed';
+    task.result = feed.ok
+      ? `fed live Claude TUI via ${feed.transport || 'tmux'} target=${feed.target || 'unknown'}`
+      : null;
+    task.error = feed.ok ? null : feed.error || 'Claude TUI feed failed';
+    task.completedAt = new Date().toISOString();
+    data.workers[worker].tasks.push(task);
+    writeQueues(data);
+    appendPulse({
+      kind: feed.ok ? 'worker-feed' : 'worker-feed-failed',
+      worker,
+      id: task.id,
+      addedBy,
+    });
+    appendWorkerEvent('LANE_OUTPUT_DELTA', {
+      source: 'worker-bridge:claude-feed',
+      worker,
+      lane: task.lane,
+      session: spec.laneSession,
+      taskId: task.id,
+      ok: feed.ok,
+      status: task.status,
+      target: feed.target || null,
+      error: task.error,
+    });
+    return task;
+  }
   data.workers[worker].tasks.push(task);
   writeQueues(data);
   appendPulse({ kind: 'worker-enqueue', worker, id: task.id, addedBy });
@@ -119,6 +162,17 @@ function appendPulse(entry) {
     appendFileSync(PULSE_BUS, `${JSON.stringify({ ts: new Date().toISOString(), ...entry })}\n`);
   } catch {
     // non-fatal if pulse-bus unavailable
+  }
+}
+
+function appendWorkerEvent(kind, payload = {}) {
+  try {
+    appendKagamiEvent(kind, {
+      source: 'worker-bridge',
+      ...payload,
+    });
+  } catch {
+    // Worker queues should keep moving even if telemetry is temporarily unavailable.
   }
 }
 
@@ -227,8 +281,37 @@ function nextPending(workerName) {
   return pending[0] || null;
 }
 
+function execClaudeTuiTask(task) {
+  return new Promise((resolve) => {
+    const feed = feedWorkerTui('claude', task.prompt);
+    if (!feed.ok) {
+      resolve({ ok: false, output: '', error: feed.error || 'Claude TUI feed failed' });
+      return;
+    }
+
+    const delayMs = Number(process.env.YURI_CLAUDE_CAPTURE_DELAY_MS || 1500);
+    const lines = Number(process.env.YURI_CLAUDE_CAPTURE_LINES || 160);
+    setTimeout(() => {
+      const capture = captureWorkerPane('claude', lines);
+      const captured = capture.ok
+        ? capture.text.slice(-6000)
+        : `Claude pane capture unavailable: ${capture.error || 'unknown error'}`;
+      resolve({
+        ok: true,
+        output: [
+          `fed live Claude TUI via ${feed.transport || 'tmux'} target=${feed.target || 'unknown'}`,
+          captured,
+        ].join('\n\n'),
+        error: null,
+      });
+    }, Number.isFinite(delayMs) && delayMs >= 0 ? delayMs : 1500);
+  });
+}
+
 function execTask(task) {
   const spec = WORKERS[task.worker];
+  if (spec.kind === 'claude') return execClaudeTuiTask(task);
+
   return new Promise((resolve) => {
     let stdout = '';
     let stderr = '';
@@ -246,10 +329,6 @@ function execTask(task) {
     if (spec.kind === 'codex') {
       cmd = 'node';
       args = [CODEX_RUNNER, task.lane];
-    } else if (spec.kind === 'claude') {
-      cmd = 'bash';
-      const route = task.lane === 'claude-opus-design-edit' ? '@claude-opus-design-edit' : 'claude';
-      args = [AI_SH, route, task.prompt];
     } else {
       cmd = 'bash';
       args = [OFFLOAD_SH, '-m', task.lane, ...(spec.offloadFlags || []), task.prompt];
@@ -319,6 +398,15 @@ async function runOne(workerName) {
   task.startedAt = new Date().toISOString();
   w.current = task.id;
   writeQueues(data);
+  appendWorkerEvent('LANE_DISPATCHED', {
+    source: 'worker-bridge:run-one',
+    worker: workerName,
+    lane: task.lane,
+    session: WORKERS[workerName].laneSession,
+    taskId: task.id,
+    status: 'running',
+    meta: task.meta || {},
+  });
 
   process.stderr.write(
     `\x1b[36m[yuri-worker:${workerName}]\x1b[0m ▶ ${task.id} [${task.lane}]\n`,
@@ -351,6 +439,29 @@ async function runOne(workerName) {
     ok: result.ok,
     outFile: path.basename(outFile),
   });
+  const evidenceRef = path.relative(REPO_ROOT, outFile);
+  appendWorkerEvent('LANE_OUTPUT_DELTA', {
+    source: 'worker-bridge:complete',
+    worker: workerName,
+    lane: task.lane,
+    session: WORKERS[workerName].laneSession,
+    taskId: task.id,
+    ok: result.ok,
+    status: result.ok ? 'done' : 'failed',
+    evidenceRefs: [evidenceRef],
+    error: result.error || null,
+  });
+  if (workerName === 'codex') {
+    appendWorkerEvent(result.ok ? 'CODEX_VERIFICATION_PASSED' : 'CODEX_VERIFICATION_FAILED', {
+      source: 'worker-bridge:codex-complete',
+      worker: workerName,
+      lane: task.lane,
+      session: WORKERS[workerName].laneSession,
+      taskId: task.id,
+      evidenceRefs: [evidenceRef],
+      error: result.error || null,
+    });
+  }
 
   process.stderr.write(
     `\x1b[36m[yuri-worker:${workerName}]\x1b[0m ${result.ok ? '✓' : '✗'} ${task.id} → ${outFile}\n`,

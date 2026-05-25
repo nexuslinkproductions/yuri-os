@@ -68,6 +68,43 @@ function laneHealthConfig(registry, laneName) {
   };
 }
 
+function paneRuntimeInfo(target) {
+  const raw = execFileSync(
+    'tmux',
+    ['display-message', '-p', '-t', target, '#{pane_pid}\n#{pane_current_command}'],
+    { encoding: 'utf8', maxBuffer: 64 * 1024 },
+  ).trimEnd();
+  const [pid = '', currentCommand = ''] = raw.split('\n');
+  let childProcesses = '';
+  let screenText = '';
+  try {
+    childProcesses = execFileSync('pgrep', ['-P', pid, '-fl', '.'], {
+      encoding: 'utf8',
+      maxBuffer: 128 * 1024,
+    }).trim();
+  } catch {
+    childProcesses = '';
+  }
+  try {
+    screenText = execFileSync(
+      'tmux',
+      ['capture-pane', '-t', target, '-p', '-S', '-80'],
+      { encoding: 'utf8', maxBuffer: 512 * 1024 },
+    );
+  } catch {
+    screenText = '';
+  }
+  return { pid, currentCommand, childProcesses, screenText };
+}
+
+function matchesExpectedProcess(registry, worker, info) {
+  const expected = registry.tuiHealth?.[worker]?.expectedProcess || [];
+  if (!expected.length) return { ok: true, expected, matched: null };
+  const haystack = `${info.currentCommand}\n${info.childProcesses}\n${info.screenText || ''}`.toLowerCase();
+  const matched = expected.find((name) => haystack.includes(String(name).toLowerCase()));
+  return { ok: Boolean(matched), expected, matched: matched || null };
+}
+
 /**
  * Multiline-safe feed: tmux buffer → paste → Enter.
  */
@@ -131,12 +168,18 @@ export async function healthCheck(laneName) {
   const target = paneTarget(registry, normalized);
   const fifoPath = `${FIFO_PREFIX}${normalized}`;
   const cfg = laneHealthConfig(registry, normalized);
+  const isTuiWorker = Boolean(registry.tuiWorkers?.includes(normalized));
   const result = {
     lane: laneName,
     worker: normalized,
     tmux: { pane: target || null, session: registry.session, hasSession: false },
-    fifo: { path: fifoPath, writable: false },
+    fifo: isTuiWorker
+      ? { path: null, writable: true, skipped: true, reason: 'TUI worker uses tmux/PTY feed' }
+      : { path: fifoPath, writable: false },
     panePid: null,
+    paneCurrentCommand: null,
+    paneChildProcesses: '',
+    processMatch: null,
     probe: { ok: false, pong: null, ms: null, error: null },
     ok: false,
     retries: cfg.retryCount,
@@ -145,15 +188,31 @@ export async function healthCheck(laneName) {
   if (target && hasTmux()) {
     try {
       result.tmux.hasSession = hasSession(registry.session);
-      const pidText = execFileSync(
-        'tmux',
-        ['list-panes', '-t', target, '-F', '#{pane_pid}'],
-        { encoding: 'utf8', maxBuffer: 64 * 1024 },
-      ).trim();
-      result.panePid = pidText || null;
+      if (result.tmux.hasSession) {
+        const info = paneRuntimeInfo(target);
+        result.panePid = info.pid || null;
+        result.paneCurrentCommand = info.currentCommand || null;
+        result.paneChildProcesses = info.childProcesses;
+        result.paneScreenText = info.screenText ? info.screenText.slice(-2000) : '';
+        result.processMatch = matchesExpectedProcess(registry, normalized, info);
+      }
     } catch (e) {
       result.tmux.error = e.message || String(e);
     }
+  }
+
+  if (isTuiWorker) {
+    const processOk = result.processMatch?.ok !== false;
+    result.probe = {
+      ok: result.tmux.hasSession && processOk,
+      pong: result.tmux.hasSession && processOk ? 'PTY' : null,
+      ms: 0,
+      error: result.tmux.hasSession
+        ? (processOk ? null : `expected live TUI process: ${result.processMatch?.expected?.join(', ') || normalized}`)
+        : `tmux session "${registry.session}" not running`,
+    };
+    result.ok = Boolean(target && result.tmux.hasSession && processOk);
+    return result;
   }
 
   try {

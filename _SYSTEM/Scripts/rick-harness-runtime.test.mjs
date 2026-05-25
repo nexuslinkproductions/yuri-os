@@ -54,6 +54,31 @@ test('Rick harness modules import without starting the REPL', async () => {
   assert.equal(typeof automationKernel.buildAutomationHealthSummary, 'function');
 });
 
+test('Claude worker bridge uses live tmux TUI instead of prompt route', () => {
+  const registry = JSON.parse(readFileSync(new URL('./worker-tmux-registry.json', import.meta.url), 'utf8'));
+  const ai = readFileSync(new URL('./ai', import.meta.url), 'utf8');
+  const launcher = readFileSync(new URL('./yuri-workers-tmux.sh', import.meta.url), 'utf8');
+  const bridge = readFileSync(new URL('./worker-bridge.mjs', import.meta.url), 'utf8');
+  const tmux = readFileSync(new URL('./worker-tmux.mjs', import.meta.url), 'utf8');
+  const rick = readFileSync(new URL('./rick-repl.mjs', import.meta.url), 'utf8');
+
+  assert.equal(registry.laneStartCommands.claude, 'bash _SYSTEM/Scripts/ai claude');
+  assert.match(ai, /YURI_CLAUDE_MODEL:-\$\{YURI_MODEL:-sonnet\}/);
+  assert.match(ai, /--model "\$_claude_model"/);
+  assert.match(launcher, /bash _SYSTEM\/Scripts\/ai claude/);
+  assert.match(bridge, /spec\.kind === 'claude'/);
+  assert.match(bridge, /feedWorkerTui\('claude', task\.prompt\)/);
+  assert.doesNotMatch(bridge, /AI_SH, route, task\.prompt/);
+  assert.match(bridge, /const PULSE_BUS = path\.join\(STATE_DIR, 'pulse-bus\.jsonl'\)/);
+  assert.match(bridge, /appendKagamiEvent/);
+  assert.match(bridge, /LANE_DISPATCHED/);
+  assert.match(bridge, /CODEX_VERIFICATION_PASSED/);
+  assert.match(rick, /INTAKE_RECORDED/);
+  assert.match(rick, /GOAL_BOUND/);
+  assert.match(rick, /LANE_HEALTH_PREFLIGHT/);
+  assert.match(tmux, /TUI worker uses tmux\/PTY feed/);
+});
+
 test('Rick prompt context drops poisoned terminal chrome history', async () => {
   const { __test__ } = await import('./rick-repl.mjs');
   const context = __test__.buildHistoryContext([

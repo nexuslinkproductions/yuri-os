@@ -6,6 +6,7 @@ import { closeSync, fsyncSync, mkdirSync, openSync, writeSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getHealthSummary } from './kagami-overseer.mjs';
+import { appendKagamiEvent } from './kagami-event-bus.mjs';
 import { canBindLocalhost } from './loopback-capability.mjs';
 import { loadControlPlaneEvidence } from './memory-kernel.mjs';
 
@@ -60,6 +61,7 @@ export function buildChecks(options = {}) {
     ['syntax:math-health', process.execPath, ['--check', '_SYSTEM/Scripts/math/math-health.mjs']],
     ['syntax:memory-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/memory-kernel.mjs']],
     ['syntax:automation-kernel', process.execPath, ['--check', '_SYSTEM/Scripts/automation-kernel.mjs']],
+    ['syntax:kagami-event-bus', process.execPath, ['--check', '_SYSTEM/Scripts/kagami-event-bus.mjs']],
     ['syntax:kagami-overseer', process.execPath, ['--check', '_SYSTEM/Scripts/kagami-overseer.mjs']],
     ['syntax:health-status', process.execPath, ['--check', '_SYSTEM/Scripts/health-status.mjs']],
     ['syntax:yuri-supercharge-gate', process.execPath, ['--check', '_SYSTEM/Scripts/yuri-supercharge-gate.mjs']],
@@ -93,6 +95,7 @@ export function buildChecks(options = {}) {
     ['test:lane-session', process.execPath, ['--test', '_SYSTEM/Scripts/lane-session.test.mjs']],
     ['test:memory-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/memory-kernel.test.mjs']],
     ['test:automation-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/automation-kernel.test.mjs']],
+    ['test:kagami-event-bus', process.execPath, ['--test', '_SYSTEM/Scripts/kagami-event-bus.test.mjs']],
     ['test:kagami-overseer', process.execPath, ['--test', '_SYSTEM/Scripts/kagami-overseer.test.mjs']],
     ['test:health-status', process.execPath, ['--test', '_SYSTEM/Scripts/health-status.test.mjs']],
     ['test:yuri-supercharge-gate', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-supercharge-gate.test.mjs']],
@@ -117,6 +120,12 @@ export function buildChecks(options = {}) {
 export async function runSuperchargeGate(options = {}) {
   const stream = options.stream || process.stdout;
   const errorStream = options.errorStream || process.stderr;
+  appendVerificationEvent('CODEX_VERIFICATION_STARTED', {
+    source: 'yuri-supercharge-gate',
+    session: 'release-gate',
+    lane: 'codex-main',
+    includeBrowser: options.includeBrowser !== false,
+  });
   const loopback = await canBindLocalhost();
   const checks = buildChecks(options);
   const results = checks.map(([name, command, commandArgs]) => {
@@ -196,6 +205,15 @@ export async function runSuperchargeGate(options = {}) {
   writeReleaseEvidence(evidence);
 
   if (gateStatus === 'FAIL') {
+    appendVerificationEvent('CODEX_VERIFICATION_FAILED', {
+      source: 'yuri-supercharge-gate',
+      session: 'release-gate',
+      lane: 'codex-main',
+      gateStatus,
+      failedChecks: failed.map((result) => result.name),
+      skippedChecks: skipped.map((result) => result.name),
+      evidenceRefs: ['_SYSTEM/state/release-gate/automation-health-latest.json'],
+    });
     stream.write('YURI_SUPERCHARGE_GATE_FAIL\n');
     return { ok: false, gateStatus, exitCode: 1, results, evidence };
   }
@@ -206,8 +224,24 @@ export async function runSuperchargeGate(options = {}) {
   if (gateStatus === 'WARNING') {
     stream.write('YURI_SUPERCHARGE_GATE_WARNING health degraded\n');
   }
+  appendVerificationEvent('CODEX_VERIFICATION_PASSED', {
+    source: 'yuri-supercharge-gate',
+    session: 'release-gate',
+    lane: 'codex-main',
+    gateStatus,
+    skippedChecks: skipped.map((result) => result.name),
+    evidenceRefs: ['_SYSTEM/state/release-gate/automation-health-latest.json'],
+  });
   stream.write('YURI_SUPERCHARGE_GATE_PASS\n');
   return { ok: true, gateStatus, exitCode: 0, results, evidence };
+}
+
+function appendVerificationEvent(kind, payload) {
+  try {
+    appendKagamiEvent(kind, payload);
+  } catch {
+    // Release checks must not fail just because runtime telemetry is unavailable.
+  }
 }
 
 export function buildReleaseEvidence({

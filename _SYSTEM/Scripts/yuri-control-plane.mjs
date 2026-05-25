@@ -110,7 +110,11 @@ export function loadEvidenceGate(task = '', options = {}) {
     const absPath = path.resolve(REPO_ROOT, source.path);
     const retrieval = evaluateRetrievalRails({ path: absPath, source: source.id });
     if (!retrieval.ok) {
-      blocked.push({ ...source, absPath, rail: retrieval });
+      if (source.required) {
+        blocked.push({ ...source, absPath, rail: retrieval });
+      } else {
+        warnings.push({ ...source, absPath, rail: retrieval, warning: 'optional evidence protected or denied' });
+      }
       continue;
     }
     if (!existsSync(absPath)) {

@@ -8,7 +8,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import {
   KAGAMI_CANONICAL_STATE_ROOT,
@@ -19,6 +19,7 @@ import {
 import { isProtectedPath } from './lane-kernel.mjs';
 
 export const KAGAMI_EVENT_BUS_FILE = 'events.jsonl';
+export const KAGAMI_SESSION_INDEX_FILE = 'sessions.json';
 
 export function resolveKagamiEventRoot(root = process.env.KAGAMI_CONTROL_STATE_ROOT || KAGAMI_CANONICAL_STATE_ROOT) {
   const value = String(root || '').trim() || KAGAMI_CANONICAL_STATE_ROOT;
@@ -33,10 +34,16 @@ export function kagamiEventFile(root) {
   return path.join(resolveKagamiEventRoot(root), KAGAMI_EVENT_BUS_FILE);
 }
 
+export function kagamiSessionIndexFile(root) {
+  return path.join(resolveKagamiEventRoot(root), KAGAMI_SESSION_INDEX_FILE);
+}
+
 export function buildKagamiEvent(kind, payload = {}, options = {}) {
   if (!KAGAMI_EVENT_KINDS.includes(kind) && !options.allowUnknownKind) {
     throw new Error(`Unknown Kagami event kind: ${kind}`);
   }
+  const evidenceRefs = payload.evidenceRefs || options.evidenceRefs || [];
+  assertSafeEvidenceRefs(evidenceRefs);
 
   const event = compactObject({
     id: options.id || `evt_${randomUUID()}`,
@@ -48,7 +55,7 @@ export function buildKagamiEvent(kind, payload = {}, options = {}) {
     lane: payload.lane || options.lane,
     goalId: payload.goalId || options.goalId,
     parentId: payload.parentId || options.parentId,
-    evidenceRefs: payload.evidenceRefs || options.evidenceRefs || [],
+    evidenceRefs,
     payload,
   });
 
@@ -60,6 +67,7 @@ export function appendKagamiEvent(kind, payload = {}, options = {}) {
   mkdirSync(root, { recursive: true });
   const event = buildKagamiEvent(kind, payload, options);
   appendFileSync(path.join(root, KAGAMI_EVENT_BUS_FILE), `${JSON.stringify(event)}\n`);
+  updateSessionIndex(root, event);
   return event;
 }
 
@@ -81,6 +89,21 @@ export function readKagamiEvents(options = {}) {
   return limit > 0 ? rows.slice(-limit) : rows;
 }
 
+export function getKagamiEventBusHealth(options = {}) {
+  const root = resolveKagamiEventRoot(options.root);
+  const events = readKagamiEvents({ root });
+  const sessionIndex = readSessionIndex(root);
+  return {
+    ok: true,
+    root,
+    eventsPath: kagamiEventFile(root),
+    sessionsPath: kagamiSessionIndexFile(root),
+    eventCount: events.length,
+    sessionCount: Object.keys(sessionIndex.sessions || {}).length,
+    lastEvent: events.at(-1) || null,
+  };
+}
+
 export function appendRouteDecisionEvent(decision, extra = {}, options = {}) {
   return appendKagamiEvent(
     'ROUTE_DECISION_RECORDED',
@@ -96,6 +119,64 @@ export function appendRouteDecisionEvent(decision, extra = {}, options = {}) {
     },
     options,
   );
+}
+
+function assertSafeEvidenceRefs(evidenceRefs) {
+  if (!Array.isArray(evidenceRefs)) {
+    throw new Error('Kagami event evidenceRefs must be an array');
+  }
+  for (const ref of evidenceRefs) {
+    if (isProtectedPath(ref)) {
+      throw new Error(`Kagami event evidence ref cannot be protected: ${ref}`);
+    }
+  }
+}
+
+function readSessionIndex(root) {
+  const file = kagamiSessionIndexFile(root);
+  if (!existsSync(file)) {
+    return { schemaVersion: 1, updatedAt: new Date().toISOString(), sessions: {} };
+  }
+  try {
+    const parsed = JSON.parse(readFileSync(file, 'utf8'));
+    if (parsed && typeof parsed === 'object' && parsed.sessions && typeof parsed.sessions === 'object') {
+      return parsed;
+    }
+  } catch {
+    // Runtime indexes are rebuildable. Keep appends moving instead of trusting a partial file.
+  }
+  return { schemaVersion: 1, updatedAt: new Date().toISOString(), sessions: {} };
+}
+
+function writeSessionIndex(root, index) {
+  const file = kagamiSessionIndexFile(root);
+  const tmp = `${file}.tmp`;
+  writeFileSync(tmp, `${JSON.stringify(index, null, 2)}\n`);
+  renameSync(tmp, file);
+}
+
+function updateSessionIndex(root, event) {
+  const session = event.session || event.sessionId;
+  if (!session) return null;
+  const index = readSessionIndex(root);
+  const existing = index.sessions[session] || {
+    session,
+    firstSeenAt: event.ts,
+    eventCount: 0,
+  };
+  index.sessions[session] = {
+    ...existing,
+    session,
+    goalId: event.goalId || existing.goalId || null,
+    lane: event.lane || existing.lane || null,
+    lastEventId: event.id,
+    lastKind: event.kind,
+    lastSeenAt: event.ts,
+    eventCount: Number(existing.eventCount || 0) + 1,
+  };
+  index.updatedAt = new Date().toISOString();
+  writeSessionIndex(root, index);
+  return index.sessions[session];
 }
 
 function compactObject(value) {

@@ -1,11 +1,14 @@
 #!/usr/bin/env node
-// Stop: finalize session, append to tracker, clean up stale sessions
+// Stop: finalize session, write token ledger, clean up stale sessions.
+// Legacy markdown tracker is disabled by default because it dirties a tracked
+// repo file on every Claude reset.
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
 
-const TRACKER = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/token-tracker.md';
+const LEGACY_TRACKER = '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/token-tracker.md';
+const WRITE_LEGACY_TRACKER = process.env.YURI_LEGACY_TOKEN_TRACKER === '1';
 const STATE_DIR = '/Users/marcelspatz/YURI-OS-MUSUBI/.claude/state';
 const SESSION_FILE = `${STATE_DIR}/token-session.json`;
 const WEEKLY_FILE = `${STATE_DIR}/token-weekly.json`;
@@ -47,7 +50,9 @@ try {
   const costDisplay = realCost > 0 ? ` $${realCost.toFixed(3)}` : '';
   const entry = `| ${new Date(session.startTime).toISOString().slice(0, 16)} | ${duration}m | ${toolCount} | ${tokDisplay}${costDisplay} | ${topTools} |\n`;
   if (!fs.existsSync(STATE_DIR)) fs.mkdirSync(STATE_DIR, { recursive: true });
-  fs.appendFileSync(TRACKER, entry);
+  if (WRITE_LEGACY_TRACKER) {
+    fs.appendFileSync(LEGACY_TRACKER, entry);
+  }
   writeLedgerEvent({
     event_id: `claude-session-end-${session.id || Date.now()}`,
     trace_id: `claude-session-${session.id || 'unknown'}`,

@@ -262,7 +262,7 @@
     "command": "node .claude/hooks/token-status.js"
   },
   "spinnerTipsEnabled": false,
-  "effortLevel": "high",
+  "effortLevel": "max",
   "prefersReducedMotion": false,
   "theme": "dark-ansi",
   "autoScrollEnabled": true,

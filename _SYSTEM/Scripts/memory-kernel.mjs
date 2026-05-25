@@ -5,6 +5,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { PROTECTED_SURFACE_EXCLUSIONS, requiredEvidenceIdsForTask } from './evidence-contract.mjs';
+import { appendKagamiEvent } from './kagami-event-bus.mjs';
 import { isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -344,7 +345,7 @@ export function proposeMemoryWrite(entry = {}, options = {}) {
   const surface = getMemorySurface(targetSurface) || MEMORY_SURFACES.yuriMemory;
   if (!surface.writable) return { ok: false, error: `memory surface is import-only: ${surface.id}` };
   if (isProtectedPath(surface.root)) return { ok: false, error: `protected memory surface denied: ${surface.root}` };
-  return {
+  const result = {
     ok: true,
     proposal: {
       id: `mem-proposal-${hashText(`${Date.now()}:${text}`)}`,
@@ -358,6 +359,19 @@ export function proposeMemoryWrite(entry = {}, options = {}) {
       promoteable: false,
     },
   };
+  appendMemoryKagamiEvent('MEMORY_CANDIDATE_PROPOSED', {
+    source: 'memory-kernel:propose',
+    session: options.session || entry.session || 'memory-kernel',
+    lane: options.lane || entry.originLane || 'memory-kernel',
+    proposalId: result.proposal.id,
+    surface: surface.id,
+    action: result.proposal.action,
+    contentHash: hashText(text),
+    tags: result.proposal.tags,
+    confidence: result.proposal.confidence,
+    promoteable: result.proposal.promoteable,
+  });
+  return result;
 }
 
 export function promoteMemoryProposal(proposal = {}, options = {}) {
@@ -371,7 +385,7 @@ export function promoteMemoryProposal(proposal = {}, options = {}) {
   }
   const surface = getMemorySurface(proposal.surface) || MEMORY_SURFACES.yuriMemory;
   if (!surface.writable) return { ok: false, error: `memory surface is import-only: ${surface.id}` };
-  return {
+  const result = {
     ok: true,
     event: auditMemoryEvent({
       action: 'promote',
@@ -381,6 +395,18 @@ export function promoteMemoryProposal(proposal = {}, options = {}) {
       dryRun: options.dryRun !== false,
     }, { dryRun: options.dryRun !== false }),
   };
+  appendMemoryKagamiEvent('MEMORY_CANDIDATE_PROPOSED', {
+    source: 'memory-kernel:promote',
+    session: options.session || 'memory-kernel',
+    lane: options.lane || 'codex-main',
+    proposalId: proposal.id,
+    surface: surface.id,
+    action: 'promote',
+    approved: true,
+    dryRun: options.dryRun !== false,
+    contentHash: hashText(proposal.content),
+  });
+  return result;
 }
 
 export function evictMemory(target = {}, options = {}) {
@@ -432,6 +458,14 @@ function scoreText(text, tokens) {
 
 function hashText(value) {
   return crypto.createHash('sha256').update(String(value || '')).digest('hex').slice(0, 16);
+}
+
+function appendMemoryKagamiEvent(kind, payload = {}) {
+  try {
+    appendKagamiEvent(kind, payload);
+  } catch {
+    // Memory proposals remain reviewable through memory ledgers even if telemetry is unavailable.
+  }
 }
 
 function hashFull(value) {

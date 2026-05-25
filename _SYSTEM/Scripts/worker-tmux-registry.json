@@ -4,8 +4,16 @@
   "bufferName": "yuri-worker-feed",
   "laneStartCommands": {
     "codex": "bash _SYSTEM/Scripts/ai codex",
-    "claude": "bash _SYSTEM/Scripts/ai @claude",
+    "claude": "bash _SYSTEM/Scripts/ai claude",
     "deepseek": "bash _SYSTEM/Scripts/ai @deepseek-v4-pro"
+  },
+  "tuiHealth": {
+    "codex": {
+      "expectedProcess": ["codex"]
+    },
+    "claude": {
+      "expectedProcess": ["claude"]
+    }
   },
   "healthConfig": {
     "default": {

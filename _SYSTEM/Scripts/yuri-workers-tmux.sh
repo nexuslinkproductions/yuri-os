@@ -20,7 +20,7 @@ tmux send-keys -t "$SESSION:0.0" "echo '🤖 CODEX WORKER READY — waiting for 
 
 # Pane 1: Claude CLI worker
 tmux split-window -h -t "$SESSION:0" -c "$REPO"
-tmux send-keys -t "$SESSION:0.1" "echo '🧠 CLAUDE WORKER READY — waiting for tasks'" Enter
+tmux send-keys -t "$SESSION:0.1" "bash _SYSTEM/Scripts/ai claude" Enter
 
 # Pane 2: DeepSeek continuous queue worker.
 # This keeps one stable LANE_SESSION (`marcel-deepseek`) so DeepSeek prompt-cache

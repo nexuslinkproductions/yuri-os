@@ -16,7 +16,7 @@ import { printBanner } from './rick-banner.mjs';
 import { healthCheckAll } from './worker-tmux.mjs';
 import { harnessViewport } from './browser-harness-bridge.mjs';
 import { classifyRickRoute, formatRouteDecision } from './rick-route-classifier.mjs';
-import { appendRouteDecisionEvent } from './kagami-event-bus.mjs';
+import { appendKagamiEvent, appendRouteDecisionEvent } from './kagami-event-bus.mjs';
 import { buildUserProfilePromptBlock } from './kagami-user-profile.mjs';
 import { recommendKagamiFanout } from './kagami-control-domain.mjs';
 import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
@@ -213,6 +213,22 @@ function appendRoutingLog(decision, extra = {}) {
       session: SESSION_ID,
     });
   } catch {}
+}
+
+function appendRickEvent(kind, payload = {}) {
+  try {
+    appendKagamiEvent(kind, {
+      source: 'rick',
+      session: SESSION_ID,
+      ...payload,
+    });
+  } catch {
+    // Telemetry must never break the operator surface.
+  }
+}
+
+function hashForEvent(value) {
+  return createHash('sha256').update(String(value || '')).digest('hex');
 }
 
 function pruneHistoryFile() {
@@ -1077,6 +1093,19 @@ async function streamLaneWithShell(ui, lane, prompt, label, options = {}) {
 async function handleHealth(ui) {
   ui.setLane('health');
   const report = await healthCheckAll(['gpt-5.5', '@deepseek-v4-pro', '@nvidia-nemotron-120b', '@nvidia-qwen3-next']);
+  appendRickEvent('LANE_HEALTH_PREFLIGHT', {
+    source: 'rick:/health',
+    lane: 'health',
+    ok: Boolean(report.ok),
+    checked: report.checked,
+    workers: (report.checks || []).map((entry) => ({
+      lane: entry.lane,
+      worker: entry.worker,
+      ok: Boolean(entry.ok),
+      pong: entry.probe?.pong || null,
+      error: entry.probe?.error || entry.fifo?.error || entry.tmux?.error || null,
+    })),
+  });
   ui.appendSystem(JSON.stringify(report, null, 2));
   return report;
 }
@@ -1095,6 +1124,12 @@ async function handleInput(ui, input, history) {
     Promise.resolve(buildHistoryContext(history)),
   ]);
   const userShellBlocks = extractBashBlocks(input);
+  appendRickEvent('INTAKE_RECORDED', {
+    lane: 'rick',
+    inputHash: hashForEvent(input),
+    tokenEstimate: estimateTokens(input),
+    hasShellBlocks: userShellBlocks.length > 0,
+  });
 
   const detected = detectRoute(input);
 
@@ -1257,6 +1292,12 @@ async function main() {
     }
 
     if (input === '/goal') {
+      appendRickEvent('GOAL_BOUND', {
+        source: 'rick:/goal',
+        lane: 'rick',
+        goalId: 'yuri-disciplined-self-improvement-2026-05-23',
+        evidenceRefs: ['_SYSTEM/docs/YURI_OS_DISCIPLINED_SELF_IMPROVEMENT_GOAL_2026-05-23.md'],
+      });
       ui.appendSystem(goalText());
       return;
     }

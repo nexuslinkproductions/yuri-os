@@ -42,6 +42,7 @@
         "_SYSTEM/Scripts/kagami-control-domain.mjs",
         "_SYSTEM/Scripts/lane-kernel.mjs",
         "_SYSTEM/Scripts/offload-contract.mjs",
+        "_SYSTEM/Scripts/kagami-event-bus.mjs",
         "_SYSTEM/Scripts/yuri/event-protocol.mjs",
         "_SYSTEM/Scripts/yuri/harness-state.mjs",
         "_SYSTEM/Scripts/yuri/prompt-compiler.mjs",
@@ -153,6 +154,7 @@
         "_SYSTEM/Scripts/worker-bridge.mjs",
         "_SYSTEM/Scripts/health-status.mjs",
         "_SYSTEM/Scripts/yuri-health.mjs",
+        "_SYSTEM/Scripts/kagami-event-bus.mjs",
         "_SYSTEM/Scripts/yuri-supercharge-gate.mjs"
       ],
       "loadRule": "Use health wrappers and state summaries rather than protected raw state."
