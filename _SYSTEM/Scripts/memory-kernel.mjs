@@ -13,6 +13,7 @@ export const REPO_ROOT = path.resolve(__dirname, '../..');
 export const MEMORY_ROOT = path.join(REPO_ROOT, '_SYSTEM', 'memory');
 export const MEMORY_AUDIT_LOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-kernel-audit.jsonl');
 export const MEMORY_LEDGER_LOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-ledger.jsonl');
+export const MEMORY_PROPOSAL_LOG = path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-proposals.jsonl');
 export const SEMANTIC_MODES = Object.freeze(['lexical', 'embedding', 'msa']);
 
 export const CONTROL_PLANE_EVIDENCE_SOURCES = Object.freeze([
@@ -359,6 +360,15 @@ export function proposeMemoryWrite(entry = {}, options = {}) {
       promoteable: false,
     },
   };
+  if (options.record === true) {
+    const recorded = recordMemoryProposal(result.proposal, options);
+    return {
+      ...result,
+      ok: result.ok && recorded.ok,
+      recorded,
+      ...(recorded.ok ? {} : { error: recorded.error }),
+    };
+  }
   appendMemoryKagamiEvent('MEMORY_CANDIDATE_PROPOSED', {
     source: 'memory-kernel:propose',
     session: options.session || entry.session || 'memory-kernel',
@@ -372,6 +382,68 @@ export function proposeMemoryWrite(entry = {}, options = {}) {
     promoteable: result.proposal.promoteable,
   });
   return result;
+}
+
+export function recordMemoryProposal(proposal = {}, options = {}) {
+  if (!proposal.id || !proposal.content) return { ok: false, error: 'invalid memory proposal' };
+  const logPath = safeRuntimePath('YURI_MEMORY_PROPOSAL_LOG', options.proposalLogPath || MEMORY_PROPOSAL_LOG);
+  if (!logPath) return { ok: false, error: 'memory proposal log path is protected' };
+  const payload = {
+    ...proposal,
+    status: proposal.status || 'pending',
+    recordedAt: new Date().toISOString(),
+    promotionRequiresApproval: true,
+  };
+  mkdirSync(path.dirname(logPath), { recursive: true });
+  appendFileSync(logPath, `${JSON.stringify(payload)}\n`);
+  appendMemoryKagamiEvent('MEMORY_CANDIDATE_PROPOSED', {
+    source: 'memory-kernel:record',
+    session: options.session || 'memory-kernel',
+    lane: options.lane || 'memory-kernel',
+    proposalId: payload.id,
+    surface: payload.surface,
+    action: 'write-proposal',
+    status: payload.status,
+    contentHash: hashText(payload.content),
+    tags: payload.tags,
+    confidence: payload.confidence,
+    promoteable: payload.promoteable,
+  });
+  return { ok: true, path: logPath, proposal: payload };
+}
+
+export function listMemoryProposals(query = '', options = {}) {
+  const logPath = safeRuntimePath('YURI_MEMORY_PROPOSAL_LOG', options.proposalLogPath || MEMORY_PROPOSAL_LOG);
+  if (!logPath) return { ok: false, query, proposals: [], error: 'memory proposal log path is protected' };
+  if (!existsSync(logPath)) return { ok: true, query, proposals: [] };
+
+  const tokens = tokenize(query);
+  const maxEntries = Number(options.maxEntries || 20);
+  const proposals = readFileSync(logPath, 'utf8')
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean)
+    .filter((proposal) => {
+      if (!tokens.length) return true;
+      const searchable = [
+        proposal.content,
+        proposal.reason,
+        proposal.surface,
+        ...(Array.isArray(proposal.tags) ? proposal.tags : []),
+      ].filter(Boolean).join('\n');
+      return scoreText(searchable, tokens) > 0;
+    })
+    .slice(-maxEntries)
+    .reverse();
+
+  return { ok: true, path: logPath, query, proposals };
 }
 
 export function promoteMemoryProposal(proposal = {}, options = {}) {
@@ -504,8 +576,40 @@ function printHelp() {
     '  node _SYSTEM/Scripts/memory-kernel.mjs surfaces',
     '  node _SYSTEM/Scripts/memory-kernel.mjs recall <query>',
     '  node _SYSTEM/Scripts/memory-kernel.mjs ledger <query>',
+    '  node _SYSTEM/Scripts/memory-kernel.mjs propose [--tag tag] [--surface id] [--confidence n] [--reason text] <content>',
+    '  node _SYSTEM/Scripts/memory-kernel.mjs proposals <query>',
     '  node _SYSTEM/Scripts/memory-kernel.mjs evidence',
   ].join('\n') + '\n');
+}
+
+function parseProposalArgs(args = []) {
+  const entry = { tags: [] };
+  const content = [];
+  for (let index = 0; index < args.length; index += 1) {
+    const value = args[index];
+    if (value === '--tag') {
+      index += 1;
+      if (!args[index]) return { ok: false, error: '--tag requires a value' };
+      entry.tags.push(args[index]);
+    } else if (value === '--surface') {
+      index += 1;
+      if (!args[index]) return { ok: false, error: '--surface requires a value' };
+      entry.surface = args[index];
+    } else if (value === '--confidence') {
+      index += 1;
+      if (!args[index]) return { ok: false, error: '--confidence requires a value' };
+      entry.confidence = Number(args[index]);
+      if (!Number.isFinite(entry.confidence)) return { ok: false, error: '--confidence must be numeric' };
+    } else if (value === '--reason') {
+      index += 1;
+      if (!args[index]) return { ok: false, error: '--reason requires a value' };
+      entry.reason = args[index];
+    } else {
+      content.push(value);
+    }
+  }
+  entry.content = content.join(' ').trim();
+  return { ok: true, entry };
 }
 
 function isCliEntrypoint() {
@@ -522,6 +626,11 @@ if (isCliEntrypoint()) {
     printJson(recallMemory(rest.join(' ')));
   } else if (cmd === 'ledger') {
     printJson(recallEntries(rest.join(' ')));
+  } else if (cmd === 'propose') {
+    const parsed = parseProposalArgs(rest);
+    printJson(parsed.ok ? proposeMemoryWrite(parsed.entry, { record: true, reason: parsed.entry.reason }) : parsed);
+  } else if (cmd === 'proposals') {
+    printJson(listMemoryProposals(rest.join(' ')));
   } else if (cmd === 'evidence') {
     printJson(loadControlPlaneEvidence());
   } else {

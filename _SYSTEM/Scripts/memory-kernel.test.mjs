@@ -7,6 +7,7 @@ import {
   appendMemoryEntry,
   auditMemoryEvent,
   evictMemory,
+  listMemoryProposals,
   listMemorySurfaces,
   loadControlPlaneEvidence,
   promoteMemoryProposal,
@@ -70,6 +71,31 @@ test('memory write proposal does not promote without explicit approval', () => {
   const blocked = promoteMemoryProposal(proposalResult.proposal);
   assert.equal(blocked.ok, false);
   assert.match(blocked.error, /explicit approval/);
+});
+
+test('memory write proposals can be recorded and reviewed without promotion', () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-memory-proposals-'));
+  const proposalLogPath = path.join(dir, 'memory-proposals.jsonl');
+  try {
+    const result = proposeMemoryWrite({
+      content: 'Marcel prefers reviewable memory proposals before durable profile changes.',
+      tags: ['user-profile', 'review'],
+      reason: 'capture a sensitive preference as pending memory, not promoted truth',
+    }, { record: true, proposalLogPath });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.proposal.promoteable, false);
+    assert.equal(result.recorded.proposal.status, 'pending');
+    assert.equal(readFileSync(proposalLogPath, 'utf8').trim().split('\n').length, 1);
+
+    const proposals = listMemoryProposals('profile', { proposalLogPath });
+    assert.equal(proposals.ok, true);
+    assert.equal(proposals.proposals.length, 1);
+    assert.match(proposals.proposals[0].content, /reviewable memory proposals/);
+    assert.equal(proposals.proposals[0].promotionRequiresApproval, true);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('control-plane memory evidence loads and validates current hashes', () => {

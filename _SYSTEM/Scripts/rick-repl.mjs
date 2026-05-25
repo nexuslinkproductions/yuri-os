@@ -21,6 +21,7 @@ import { buildUserProfilePromptBlock } from './kagami-user-profile.mjs';
 import { recommendKagamiFanout } from './kagami-control-domain.mjs';
 import { buildInputGenome, renderInputGenomeBlock } from './yuri-input-genome.mjs';
 import { buildReport as buildCloseoutReport, formatReport as formatCloseoutReport } from './yuri-closeout.mjs';
+import { listMemoryProposals, proposeMemoryWrite } from './memory-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RICK_REPL_PATH = fileURLToPath(import.meta.url);
@@ -455,6 +456,19 @@ function loadGoalChecklist() {
   } catch {
     return { items: [] };
   }
+}
+
+function formatMemoryProposals(result) {
+  if (!result?.ok) return `memory proposals unavailable: ${result?.error || 'unknown error'}`;
+  const proposals = Array.isArray(result.proposals) ? result.proposals.slice(0, 8) : [];
+  if (!proposals.length) return 'Memory proposals: none pending for this query.';
+  const lines = ['Memory proposals:'];
+  for (const proposal of proposals) {
+    const status = proposal.status || 'pending';
+    const tags = Array.isArray(proposal.tags) && proposal.tags.length ? ` tags=${proposal.tags.join(',')}` : '';
+    lines.push(`- ${proposal.id} [${status}]${tags}: ${truncateRight(proposal.content || '', 140)}`);
+  }
+  return lines.join('\n');
 }
 
 function latestAdvisoryPath() {
@@ -1361,6 +1375,8 @@ function helpText() {
     '/goal                  show current YURI supercharge goal',
     '/status                show Kagami lane health and latest Shintai artifact',
     '/eot [deep]            new-session handoff; add deep for DeepSeek synthesis',
+    '/memory propose <text> record a pending memory proposal',
+    '/memory proposals [q]  list pending memory proposals',
     '/why <task>            dry-run Kagami auto-route without dispatch',
     '/fanout <task>         preview adaptive solo/pair/trio/council lane plan',
     '/mode [auto|codex|rick|cheap] show or set default route posture',
@@ -1414,6 +1430,31 @@ async function main() {
 
     if (input === '/status') {
       ui.appendSystem(await statusText());
+      return;
+    }
+
+    if (input.startsWith('/memory propose ')) {
+      const content = input.slice('/memory propose '.length).trim();
+      const result = proposeMemoryWrite({
+        content,
+        tags: ['rick-harness', 'operator-proposed'],
+        reason: 'operator submitted a reviewable memory proposal through Rick',
+      }, { record: true, session: SESSION_ID, lane: 'rick' });
+      if (!result.ok) {
+        ui.appendError(result.error || result.recorded?.error || 'memory proposal failed');
+        return;
+      }
+      ui.appendRick([
+        'Memory proposal recorded as pending, not promoted.',
+        `id: ${result.proposal.id}`,
+        `review log: ${result.recorded.path}`,
+      ].join('\n'));
+      return;
+    }
+
+    if (input === '/memory proposals' || input.startsWith('/memory proposals ')) {
+      const query = input === '/memory proposals' ? '' : input.slice('/memory proposals '.length).trim();
+      ui.appendSystem(formatMemoryProposals(listMemoryProposals(query)));
       return;
     }
 
@@ -1574,6 +1615,7 @@ export const __test__ = {
   extractBashBlocks,
   filterExecutableShellBlocks,
   formatDuration,
+  formatMemoryProposals,
   guardShellCommand,
   goalText,
   handleEot,

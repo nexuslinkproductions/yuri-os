@@ -168,6 +168,24 @@ test('Rick deep EOT prompt is bounded to the deterministic report', async () => 
   assert.doesNotMatch(prompt, /Claude SDK|claude -p|--print/);
 });
 
+test('Rick formats memory proposal review output without promoting memory', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+  const text = __test__.formatMemoryProposals({
+    ok: true,
+    proposals: [{
+      id: 'mem-proposal-test',
+      status: 'pending',
+      tags: ['rick-harness'],
+      content: 'Marcel wants sensitive user-profile memory to be proposed first and reviewed before promotion.',
+    }],
+  });
+
+  assert.match(text, /Memory proposals:/);
+  assert.match(text, /mem-proposal-test \[pending\]/);
+  assert.match(text, /tags=rick-harness/);
+  assert.match(__test__.helpText(), /\/memory propose <text>/);
+});
+
 test('Rick harness prompt keeps conversational personality on by default', async () => {
   const { __test__ } = await import('./rick-repl.mjs');
   const prompt = __test__.buildPrompt('help me reason through this', '', '', { inputGenome: false });
