@@ -98,6 +98,7 @@ export function buildChecks(options = {}) {
     ['test:kagami-event-bus', process.execPath, ['--test', '_SYSTEM/Scripts/kagami-event-bus.test.mjs']],
     ['test:kagami-overseer', process.execPath, ['--test', '_SYSTEM/Scripts/kagami-overseer.test.mjs']],
     ['test:health-status', process.execPath, ['--test', '_SYSTEM/Scripts/health-status.test.mjs']],
+    ['test:worker-tmux', process.execPath, ['--test', '_SYSTEM/Scripts/worker-tmux.test.mjs']],
     ['test:yuri-supercharge-gate', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-supercharge-gate.test.mjs']],
     ['test:yuri-supercharge-report', process.execPath, ['--test', '_SYSTEM/Scripts/yuri-supercharge-report.test.mjs']],
     ['test:lane-kernel', process.execPath, ['--test', '_SYSTEM/Scripts/lane-kernel.test.mjs']],

@@ -42,6 +42,7 @@ test('release gate includes cyber intelligence and security lens checks', () => 
   assert.ok(checkNames.includes('test:artifact-registry'));
   assert.ok(checkNames.includes('syntax:kagami-event-bus'));
   assert.ok(checkNames.includes('test:kagami-event-bus'));
+  assert.ok(checkNames.includes('test:worker-tmux'));
   assert.ok(checkNames.includes('syntax:math-kernel'));
   assert.ok(checkNames.includes('test:math-kernel'));
   assert.ok(checkNames.includes('syntax:math-adapters'));

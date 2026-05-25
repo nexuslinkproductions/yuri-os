@@ -9,10 +9,12 @@
   },
   "tuiHealth": {
     "codex": {
-      "expectedProcess": ["codex"]
+      "expectedProcess": ["codex"],
+      "screenNeedles": ["Codex"]
     },
     "claude": {
-      "expectedProcess": ["claude"]
+      "expectedProcess": ["claude"],
+      "screenNeedles": ["Claude Code"]
     }
   },
   "healthConfig": {

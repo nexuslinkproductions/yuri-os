@@ -97,12 +97,26 @@ function paneRuntimeInfo(target) {
   return { pid, currentCommand, childProcesses, screenText };
 }
 
-function matchesExpectedProcess(registry, worker, info) {
-  const expected = registry.tuiHealth?.[worker]?.expectedProcess || [];
+export function matchesExpectedProcess(registry, worker, info) {
+  const cfg = registry.tuiHealth?.[worker] || {};
+  const expected = cfg.expectedProcess || [];
   if (!expected.length) return { ok: true, expected, matched: null };
-  const haystack = `${info.currentCommand}\n${info.childProcesses}\n${info.screenText || ''}`.toLowerCase();
-  const matched = expected.find((name) => haystack.includes(String(name).toLowerCase()));
-  return { ok: Boolean(matched), expected, matched: matched || null };
+  const liveHaystack = `${info.currentCommand || ''}\n${info.childProcesses || ''}`.toLowerCase();
+  const liveMatch = expected.find((name) => liveHaystack.includes(String(name).toLowerCase()));
+  if (liveMatch) return { ok: true, expected, matched: liveMatch, source: 'process' };
+
+  const currentCommand = String(info.currentCommand || '').trim().toLowerCase();
+  const hasChildren = Boolean(String(info.childProcesses || '').trim());
+  const idleShell = /^(zsh|bash|sh|fish|nu|pwsh)$/.test(currentCommand) && !hasChildren;
+  const screenNeedles = cfg.screenNeedles || cfg.screenNeedle || [];
+  const needles = Array.isArray(screenNeedles) ? screenNeedles : [screenNeedles];
+  const screenHaystack = String(info.screenText || '').toLowerCase();
+  const screenMatch = !idleShell
+    ? needles.find((name) => name && screenHaystack.includes(String(name).toLowerCase()))
+    : null;
+  if (screenMatch) return { ok: true, expected, matched: screenMatch, source: 'screen' };
+
+  return { ok: false, expected, matched: null, source: idleShell ? 'idle-shell' : 'none' };
 }
 
 /**

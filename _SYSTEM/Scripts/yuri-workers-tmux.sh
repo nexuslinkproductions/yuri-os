@@ -16,7 +16,7 @@ tmux new-session -d -s "$SESSION" -x 220 -y 50 -c "$REPO"
 tmux rename-window -t "$SESSION:0" "workers"
 
 # Pane 0: Codex CLI worker
-tmux send-keys -t "$SESSION:0.0" "echo '🤖 CODEX WORKER READY — waiting for tasks'" Enter
+tmux send-keys -t "$SESSION:0.0" "bash _SYSTEM/Scripts/ai codex" Enter
 
 # Pane 1: Claude CLI worker
 tmux split-window -h -t "$SESSION:0" -c "$REPO"
