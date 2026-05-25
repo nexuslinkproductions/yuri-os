@@ -21,7 +21,7 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appendKagamiEvent } from './kagami-event-bus.mjs';
-import { captureWorkerPane, feedWorkerTui } from './worker-tmux.mjs';
+import { captureWorkerPane, feedWorkerTui, scheduleCaptureAfterFeed } from './worker-tmux.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -124,9 +124,20 @@ export function enqueue({ worker, prompt, lane, addedBy, meta }) {
   if (spec.kind === 'claude') {
     task.startedAt = new Date().toISOString();
     const feed = feedWorkerTui('claude', task.prompt);
+    const capture = feed.ok
+      ? scheduleCaptureAfterFeed('claude', task.id, {
+          lane: task.lane,
+          session: spec.laneSession,
+          delayMs: Number(process.env.YURI_CLAUDE_CAPTURE_DELAY_MS || 12_000),
+          lines: Number(process.env.YURI_CLAUDE_CAPTURE_LINES || 500),
+        })
+      : null;
     task.status = feed.ok ? 'done' : 'failed';
     task.result = feed.ok
-      ? `fed live Claude TUI via ${feed.transport || 'tmux'} target=${feed.target || 'unknown'}`
+      ? [
+          `fed live Claude TUI via ${feed.transport || 'tmux'} target=${feed.target || 'unknown'}`,
+          capture?.scheduled ? `capture scheduled after ${capture.delayMs}ms` : null,
+        ].filter(Boolean).join('; ')
       : null;
     task.error = feed.ok ? null : feed.error || 'Claude TUI feed failed';
     task.completedAt = new Date().toISOString();
@@ -147,6 +158,8 @@ export function enqueue({ worker, prompt, lane, addedBy, meta }) {
       ok: feed.ok,
       status: task.status,
       target: feed.target || null,
+      captureScheduled: Boolean(capture?.scheduled),
+      captureDelayMs: capture?.delayMs ?? null,
       error: task.error,
     });
     return task;

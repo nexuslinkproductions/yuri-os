@@ -151,6 +151,7 @@
       "paths": [
         "_SYSTEM/Scripts/automation-kernel.mjs",
         "_SYSTEM/Scripts/worker-tmux.mjs",
+        "_SYSTEM/Scripts/worker-capture-once.mjs",
         "_SYSTEM/Scripts/worker-bridge.mjs",
         "_SYSTEM/Scripts/health-status.mjs",
         "_SYSTEM/Scripts/yuri-health.mjs",

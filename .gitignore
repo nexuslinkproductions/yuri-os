@@ -122,6 +122,7 @@ _SYSTEM/state/playwright-visual-check/
 _SYSTEM/state/claude-opus-design-edit-prompt-*.md
 _SYSTEM/state/worker-last-*.txt
 _SYSTEM/state/worker-queues.json
+_SYSTEM/state/worker-captures/
 _SYSTEM/training/state/
 _SYSTEM/.claude/
 .amp/
