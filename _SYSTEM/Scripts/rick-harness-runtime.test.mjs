@@ -144,7 +144,28 @@ test('Rick recognizes EOT as a new-session handoff command', async () => {
   assert.equal(__test__.isEotInput('end of transmission'), true);
   assert.equal(__test__.isEotInput('move to a new session'), true);
   assert.equal(__test__.isEotInput('handoff to new session'), true);
+  assert.equal(__test__.isEotInput('/eot deep'), true);
+  assert.deepEqual(__test__.parseEotInput('/eot --deepseek'), { ok: true, deep: true });
+  assert.deepEqual(__test__.parseEotInput('handoff to new session with deep synthesis'), { ok: true, deep: true });
   assert.equal(__test__.isEotInput('new session later maybe'), false);
+});
+
+test('Rick deep EOT prompt is bounded to the deterministic report', async () => {
+  const { __test__ } = await import('./rick-repl.mjs');
+  const prompt = __test__.buildEotDeepPrompt({
+    current: { branch: 'main', head: 'abc123' },
+    workingTree: { changedCount: 0, sample: [] },
+    validation: ['node --check pass'],
+    recentEvents: [],
+    nonClaims: ['no mutation performed'],
+    nextRecommended: ['write a short next-session boot note only if work will resume later'],
+  }, 'EOT Checkpoint\nVerdict: optional');
+
+  assert.match(prompt, /persistent DeepSeek synthesis lane/);
+  assert.match(prompt, /Use only the deterministic report below/);
+  assert.match(prompt, /## Next Session First Moves/);
+  assert.match(prompt, /EOT Checkpoint/);
+  assert.doesNotMatch(prompt, /Claude SDK|claude -p|--print/);
 });
 
 test('Rick harness prompt keeps conversational personality on by default', async () => {
@@ -154,7 +175,7 @@ test('Rick harness prompt keeps conversational personality on by default', async
   assert.match(prompt, /Evidence-first and conversational/);
   assert.match(prompt, /spend extra tokens on useful presence/);
   assert.doesNotMatch(prompt, /Terse, evidence-first, no fluff/);
-  assert.match(__test__.helpText(), /\/eot\s+new-session handoff/);
+  assert.match(__test__.helpText(), /\/eot \[deep\]\s+new-session handoff/);
 });
 
 test('Rick /goal surfaces the current YURI self-improvement goal artifact', async () => {

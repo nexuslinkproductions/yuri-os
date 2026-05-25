@@ -169,7 +169,7 @@ function nextRecommended(statusText, scoped) {
   if (scoped.length) recommendations.push('review scoped validation before claiming completion');
   if (String(statusText || '').trim()) recommendations.push('keep staging scoped; ignore runtime noise unless explicitly promoted');
   recommendations.push('write a short next-session boot note only if work will resume later');
-  recommendations.push('use DeepSeek synthesis only for large, contradictory, or memory-worthy sessions');
+  recommendations.push('use /eot deep only for large, contradictory, or memory-worthy sessions');
   return recommendations;
 }
 

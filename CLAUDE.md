@@ -107,7 +107,7 @@ Use wrappers, health summaries, or explicit owner-approved migration steps.
 
 End-of-transmission is now a lean YURI closeout checkpoint, not an automatic reflection swarm. Default to deterministic local evidence through `_SYSTEM/Scripts/yuri-closeout.mjs`.
 
-Treat `/eot`, `/end-of-transmission`, `end of transmission`, and explicit new-session handoff language as the same closeout intent.
+Treat `/eot`, `/end-of-transmission`, `end of transmission`, and explicit new-session handoff language as the same closeout intent. Treat `/eot deep` and `/eot --deepseek` as explicit requests for optional DeepSeek synthesis on top of the deterministic checkpoint.
 
 Use DeepSeek only when synthesis is genuinely useful for a long, contradictory, or memory-worthy session. Do not use small Claude wakeup/background models for EOT.
 

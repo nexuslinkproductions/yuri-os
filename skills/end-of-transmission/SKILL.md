@@ -4,6 +4,7 @@ description: "Lean YURI closeout checkpoint for session continuity, evidence cor
 triggers:
   - "end of transmission"
   - "/eot"
+  - "/eot deep"
   - "/end-of-transmission"
   - "move to a new session"
   - "handoff to new session"
@@ -41,6 +42,8 @@ Preserve these useful pieces:
 Manual triggers:
 
 - `/eot`
+- `/eot deep`
+- `/eot --deepseek`
 - `/end-of-transmission`
 - `end of transmission`
 - `move to a new session`
@@ -68,6 +71,7 @@ node _SYSTEM/Scripts/yuri-closeout.mjs --path _SYSTEM/Scripts/example.mjs
 
 DeepSeek mode is optional:
 
+- Trigger it explicitly with `/eot deep` or `/eot --deepseek`.
 - Use the persistent DeepSeek lane when available.
 - Use it for synthesis, contradictions, and next-session boot packet refinement.
 - Keep Codex/main as verifier and commit lane.

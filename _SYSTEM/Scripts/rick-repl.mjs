@@ -909,20 +909,48 @@ function detectRoute(input) {
   return null;
 }
 
-function isEotInput(input) {
+const EOT_BASE_COMMANDS = [
+  '/eot',
+  '/end-of-transmission',
+  'end of transmission',
+  'move to a new session',
+  'move to new session',
+  'new session handoff',
+  'handoff to a new session',
+  'handoff to new session',
+  'wrap session',
+  'wrap this session',
+];
+
+const EOT_DEEP_SUFFIXES = new Set([
+  'deep',
+  '--deep',
+  'deepseek',
+  '--deepseek',
+  'synthesis',
+  '--synthesis',
+  'deep synthesis',
+  'deepseek synthesis',
+  'with deep synthesis',
+  'with deepseek synthesis',
+]);
+
+function parseEotInput(input) {
   const value = normalizeText(input).trim().toLowerCase();
-  return [
-    '/eot',
-    '/end-of-transmission',
-    'end of transmission',
-    'move to a new session',
-    'move to new session',
-    'new session handoff',
-    'handoff to a new session',
-    'handoff to new session',
-    'wrap session',
-    'wrap this session',
-  ].includes(value);
+  if (!value) return { ok: false, deep: false };
+  if (EOT_BASE_COMMANDS.includes(value)) return { ok: true, deep: false };
+
+  for (const command of EOT_BASE_COMMANDS) {
+    if (!value.startsWith(`${command} `)) continue;
+    const suffix = value.slice(command.length).trim();
+    if (EOT_DEEP_SUFFIXES.has(suffix)) return { ok: true, deep: true };
+  }
+
+  return { ok: false, deep: false };
+}
+
+function isEotInput(input) {
+  return parseEotInput(input).ok;
 }
 
 function guardShellCommand(cmd) {
@@ -1136,21 +1164,67 @@ async function handleBrowser(ui, script) {
   return output;
 }
 
-async function handleEot(ui, history) {
+function buildEotDeepPrompt(report, formattedReport = formatCloseoutReport(report)) {
+  return [
+    'YURI EOT DeepSeek Synthesis',
+    '',
+    'Role:',
+    '- You are the persistent DeepSeek synthesis lane for YURI closeout.',
+    '- Advisory only. Codex/main remains verifier and commit lane.',
+    '- Use only the deterministic report below; do not claim files, tests, commits, memories, or provider state that the report does not show.',
+    '- Do not request or read protected paths.',
+    '',
+    'Return Markdown with exactly these headings:',
+    '## Handoff',
+    '## Risks',
+    '## Memory Candidates',
+    '## Next Session First Moves',
+    '',
+    'Keep it under 80 lines. Prefer concrete next actions over ceremony.',
+    '',
+    'Deterministic report:',
+    '```text',
+    formattedReport.trim(),
+    '```',
+  ].join('\n');
+}
+
+async function handleEot(ui, history, options = {}) {
   ui.setLane('eot');
   appendRickEvent('HANDOFF_RECORDED', {
-    source: 'rick:/eot',
+    source: options.deep ? 'rick:/eot deep' : 'rick:/eot',
     lane: 'eot',
-    mode: 'deterministic-closeout',
+    mode: options.deep ? 'deepseek-synthesis' : 'deterministic-closeout',
     historyTurns: history.length,
   });
   const report = buildCloseoutReport([], { recentEventLimit: 8 });
+  const formattedReport = formatCloseoutReport(report);
   ui.appendRick([
     'EOT is now a lean YURI checkpoint, not the old full-auto reflection machine.',
     'Keeping the useful part: local truth, what changed, what is still open, and how the next session should wake up.',
   ].join('\n'));
-  ui.appendSystem(formatCloseoutReport(report));
-  return report;
+  ui.appendSystem(formattedReport);
+
+  let synthesis = '';
+  if (options.deep) {
+    ui.setLane('@deepseek-v4-pro');
+    ui.appendRick('Deep EOT is on. I am handing the local checkpoint to the persistent DeepSeek lane for synthesis, then Codex/main keeps verification authority.');
+    synthesis = await streamLane(
+      ui,
+      '@deepseek-v4-pro',
+      buildEotDeepPrompt(report, formattedReport),
+      'DeepSeek EOT synthesis',
+    );
+    appendRickEvent('HANDOFF_RECORDED', {
+      source: 'rick:/eot deep',
+      lane: '@deepseek-v4-pro',
+      mode: 'deepseek-synthesis-complete',
+      historyTurns: history.length,
+      outputChars: synthesis.length,
+    });
+  }
+
+  return { report, synthesis };
 }
 
 async function handleInput(ui, input, history) {
@@ -1286,7 +1360,7 @@ function helpText() {
     '/help                  show this surface',
     '/goal                  show current YURI supercharge goal',
     '/status                show Kagami lane health and latest Shintai artifact',
-    '/eot                   new-session handoff: lean deterministic closeout checkpoint',
+    '/eot [deep]            new-session handoff; add deep for DeepSeek synthesis',
     '/why <task>            dry-run Kagami auto-route without dispatch',
     '/fanout <task>         preview adaptive solo/pair/trio/council lane plan',
     '/mode [auto|codex|rick|cheap] show or set default route posture',
@@ -1343,11 +1417,12 @@ async function main() {
       return;
     }
 
-    if (isEotInput(input)) {
+    const eotCommand = parseEotInput(input);
+    if (eotCommand.ok) {
       busy = true;
-      ui.startTurn('eot', 'building closeout checkpoint');
+      ui.startTurn('eot', eotCommand.deep ? 'building deep closeout synthesis' : 'building closeout checkpoint');
       try {
-        await handleEot(ui, history);
+        await handleEot(ui, history, { deep: eotCommand.deep });
       } catch (err) {
         ui.appendError(err.message);
       } finally {
@@ -1493,7 +1568,9 @@ export const __test__ = {
   buildHistoryContext,
   containsPromptPoison,
   detectRoute,
+  parseEotInput,
   isEotInput,
+  buildEotDeepPrompt,
   extractBashBlocks,
   filterExecutableShellBlocks,
   formatDuration,
