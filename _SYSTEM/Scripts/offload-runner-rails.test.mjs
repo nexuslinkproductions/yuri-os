@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
@@ -424,6 +424,50 @@ test('offload wrapper routes Minimax M2.7 manual override through dedicated lane
     assert.equal(requests.length, 1);
     assert.equal(requests[0].auth, 'Bearer mock-minimax-key');
     assert.equal(requests[0].model, 'minimaxai/minimax-m2.7');
+  } finally {
+    server.close();
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('offload wrapper forwards no-session to NIM runner', { timeout: 10_000 }, async (t) => {
+  if (!(await allowOnlyIfBindable(t))) return;
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-no-session-'));
+  const sessionDir = path.join(tmpDir, 'lane-sessions');
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk.toString();
+    });
+    req.on('end', () => {
+      const body = JSON.parse(raw || '{}');
+      requests.push(body);
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(jsonChatResponse(body.model, 'PONG'));
+    });
+  });
+
+  try {
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+    const env = isolatedEnv(tmpDir, port, {
+      OFFLOAD_QUEUE_BYPASS: '1',
+      YURI_LANE_SESSION_DIR: sessionDir,
+    });
+    const result = await runOffloadWrapper(['-m', 'nvidia-qwen-397b', '--no-tools', '--no-session', 'Reply PONG only.'], env);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /PONG/);
+    assert.equal(requests.length, 1);
+    assert.doesNotMatch(result.stderr, /lane-session.*persisted/);
+    assert.equal(existsSync(sessionDir) ? readdirSync(sessionDir).length : 0, 0);
   } finally {
     server.close();
     rmSync(tmpDir, { recursive: true, force: true });

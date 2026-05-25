@@ -70,6 +70,9 @@ Options:
   --reasoning <depth>    Reasoning depth hint: low, medium, high, xhigh
   --tools                Force API tool-call mode only when explicitly requested
   --no-tools             Force text-only model output
+  --no-session           Disable persistent lane-session read/write for this call
+  --session <name>       Use a named persistent lane session
+  --fresh                Rotate the named lane session before this call
   --write-scope <paths>  Colon-delimited write allowlist for DeepSeek write_file
   -s, --swarm <id,id,..|default>
                          Run task via multiple models (cloud parallel, local serialized)
@@ -204,6 +207,11 @@ run_offload_runner() {
   local runner_args=()
   local has_runner_args=0
   shift 2
+
+  if [[ "${#SESSION_ARGS[@]}" -gt 0 ]]; then
+    runner_args+=("${SESSION_ARGS[@]}")
+    has_runner_args=1
+  fi
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -626,6 +634,7 @@ REASONING_DEPTH=""
 ALLOW_MODEL_TOOLS=0
 TOOLS_EXPLICIT=0   # 1 if user explicitly passed --tools or --no-tools
 WRITE_SCOPE=""
+SESSION_ARGS=()
 PROMPT_PARTS=()
 
 while [[ $# -gt 0 ]]; do
@@ -658,6 +667,18 @@ while [[ $# -gt 0 ]]; do
     --no-tools|--text-only)
       ALLOW_MODEL_TOOLS=0
       TOOLS_EXPLICIT=1
+      shift
+      ;;
+    --no-session|--no-lane-session)
+      SESSION_ARGS+=("$1")
+      shift
+      ;;
+    --session)
+      SESSION_ARGS+=("$1" "$2")
+      shift 2
+      ;;
+    --fresh|--new-session)
+      SESSION_ARGS+=("$1")
       shift
       ;;
     --write-scope)

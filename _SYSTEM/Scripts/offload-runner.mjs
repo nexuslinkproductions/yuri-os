@@ -376,6 +376,7 @@ async function runCloudChatWithFallback(resolved, promptText, runnerOptions, con
     tools: resolved.tools,
     session: runnerOptions.session,
     fresh: runnerOptions.fresh,
+    noSession: runnerOptions.noSession,
     streamOutput: context.streamOutput,
     streamWriter: context.streamWriter,
     streamStatusWriter: context.streamStatusWriter,
@@ -515,6 +516,7 @@ function parseArgs(rest) {
     outputFile: '',
     session: process.env.LANE_SESSION || 'default',
     fresh: process.env.LANE_FRESH === '1' || process.env.LANE_FRESH === 'true',
+    noSession: process.env.LANE_NO_SESSION === '1' || process.env.LANE_NO_SESSION === 'true',
   };
   const promptParts = [];
 
@@ -576,6 +578,10 @@ function parseArgs(rest) {
     }
     if (token === '--fresh' || token === '--new-session') {
       out.fresh = true;
+      continue;
+    }
+    if (token === '--no-session' || token === '--no-lane-session') {
+      out.noSession = true;
       continue;
     }
     promptParts.push(token);
@@ -1898,13 +1904,14 @@ function wireModelForProvider(endpoint = '', model = '', lane = '') {
 
 async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, systemText, extraBody, opts = {}) {
   const requestModel = wireModelForProvider(endpoint, model, opts.lane);
-  // Persistent lane session: load prior history if this lane is eligible
-  // (deepseek-* only; NIM/Codex/local lanes skip persistence inside this fn).
-  const { loadLaneSession } = await import('./lane-session.mjs');
+  // Persistent lane session: NIM uses provider+model identity so parallel
+  // council lanes do not collide on the generic provider bucket.
+  const { laneSessionModelId, loadLaneSession } = await import('./lane-session.mjs');
   const laneSession = loadLaneSession({
-    modelId: opts.lane,
+    modelId: laneSessionModelId({ lane: opts.lane, model: requestModel, endpoint }),
     sessionName: opts.session || 'default',
     fresh: opts.fresh === true,
+    disabled: opts.noSession === true,
   });
 
   const messages = [];

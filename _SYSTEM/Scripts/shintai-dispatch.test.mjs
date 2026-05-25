@@ -7,6 +7,7 @@ import {
   buildMemberPrompt,
   buildPacketEvidence,
   loadShintaiRoster,
+  runMemberCallsInParallel,
   resolveShintaiStageTimeout,
 } from './shintai-dispatch.mjs';
 
@@ -149,6 +150,35 @@ test('Shintai health preflight has a bounded default timeout', () => {
   assert.equal(resolveShintaiStageTimeout('health', 0, { YURI_SHINTAI_HEALTH_TIMEOUT_MS: '2500' }), 2500);
   assert.equal(resolveShintaiStageTimeout('critique', 0, {}), 0);
   assert.equal(resolveShintaiStageTimeout('proposal', 45000, {}), 45000);
+});
+
+test('Shintai health probes do not persist into lane sessions', () => {
+  const bridge = readFileSync(new URL('./shintai-dispatch.mjs', import.meta.url), 'utf8');
+
+  assert.match(bridge, /callMember\(member, prompt, timeoutMs, \{ noSession: true \}\)/);
+  assert.match(bridge, /callMemberAsync\(member, prompt, timeoutMs, \{ noSession: true \}\)/);
+  assert.match(bridge, /--no-session/);
+});
+
+test('Shintai member calls run in parallel and preserve member order', async () => {
+  let active = 0;
+  let maxActive = 0;
+  const members = [
+    { id: 'codex' },
+    { id: 'deepseek' },
+    { id: 'mistral-large' },
+  ];
+
+  const results = await runMemberCallsInParallel(members, async (member) => {
+    active += 1;
+    maxActive = Math.max(maxActive, active);
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    active -= 1;
+    return member.id;
+  });
+
+  assert.deepEqual(results, ['codex', 'deepseek', 'mistral-large']);
+  assert.ok(maxActive > 1);
 });
 
 test('Shintai health preflight preserves scoped assembly instead of rebuilding from roster', () => {

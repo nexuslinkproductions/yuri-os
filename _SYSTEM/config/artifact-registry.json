@@ -1464,6 +1464,18 @@
       "storageRule": "Math research intake archives live in _SYSTEM/research-archive/ before promotion.",
       "rebuildRule": "node --test _SYSTEM/Scripts/math/math-research-archive.test.mjs",
       "notes": "Shintai and external research sprint for formula proof gates, reproducibility, and trace discipline."
+    },
+    {
+      "path": "_SYSTEM/reports/YURI_TRUTH_PROMOTION_NEXT_SESSION_2026-05-25.md",
+      "type": "report",
+      "class": "generated_artifact",
+      "owner": "Codex/main",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Session handoff and capability reports live in _SYSTEM/reports/ when they must be source-controlled and registry-visible.",
+      "rebuildRule": "Recreate from Shintai advisory artifacts and Codex/main arbitration notes; validate registry with node _SYSTEM/Scripts/artifact-registry.mjs --validate.",
+      "notes": "Source-controlled next-session packet for the YURI truth-promotion layer sprint."
     }
   ]
 }

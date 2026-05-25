@@ -9,7 +9,7 @@
  * scoped edits, but Codex still verifies repo truth before promotion.
  */
 
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -549,8 +549,9 @@ export function ensureRickPersonaAnchor(packet) {
   return lines.join('\n');
 }
 
-function callArgsForMember(member, prompt) {
-  return [...member.dispatchArgs, prompt];
+function callArgsForMember(member, prompt, options = {}) {
+  const sessionArgs = options.noSession ? ['--no-session'] : [];
+  return [...member.dispatchArgs, ...sessionArgs, prompt];
 }
 
 function parseOptionalTimeout(value) {
@@ -602,7 +603,7 @@ function callMember(member, prompt, timeoutMs, context = {}) {
     env: buildMemberDispatchEnv(context),
   };
   if (Number.isFinite(timeoutMs) && timeoutMs > 0) spawnOptions.timeout = timeoutMs;
-  const result = spawnSync('bash', [AI_SH, ...callArgsForMember(member, prompt)], spawnOptions);
+  const result = spawnSync('bash', [AI_SH, ...callArgsForMember(member, prompt, context)], spawnOptions);
   return {
     ok: result.status === 0,
     lane: member.lane,
@@ -612,6 +613,93 @@ function callMember(member, prompt, timeoutMs, context = {}) {
     stderr: String(result.stderr || '').trim(),
     error: result.error ? result.error.message : null,
   };
+}
+
+function callMemberAsync(member, prompt, timeoutMs, context = {}) {
+  const dispatchCommand = `bash ${path.relative(REPO_ROOT, AI_SH)} ${member.dispatchArgs.join(' ')}`;
+  const executionRail = evaluateExecutionRails({ kind: 'shell', command: dispatchCommand });
+  if (!executionRail.ok) {
+    return Promise.resolve({
+      ok: false,
+      status: null,
+      signal: null,
+      stdout: '',
+      stderr: '',
+      error: `execution rail blocked ${member.id}: ${executionRail.reasons.join('; ')}`,
+      rail: executionRail,
+    });
+  }
+
+  return new Promise((resolve) => {
+    let stdout = '';
+    let stderr = '';
+    let spawnError = null;
+    let timedOut = false;
+    let capped = false;
+    let settled = false;
+    let killTimer = null;
+
+    const child = spawn('bash', [AI_SH, ...callArgsForMember(member, prompt, context)], {
+      cwd: REPO_ROOT,
+      env: buildMemberDispatchEnv(context),
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    const timeoutTimer = Number.isFinite(timeoutMs) && timeoutMs > 0
+      ? setTimeout(() => {
+          timedOut = true;
+          child.kill('SIGTERM');
+          killTimer = setTimeout(() => child.kill('SIGKILL'), 5000);
+        }, timeoutMs)
+      : null;
+
+    child.stdout?.setEncoding('utf8');
+    child.stderr?.setEncoding('utf8');
+    child.stdout?.on('data', (chunk) => {
+      const next = appendCapped(stdout, chunk);
+      stdout = next.value;
+      capped ||= next.capped;
+      if (capped) child.kill('SIGTERM');
+    });
+    child.stderr?.on('data', (chunk) => {
+      const next = appendCapped(stderr, chunk);
+      stderr = next.value;
+      capped ||= next.capped;
+      if (capped) child.kill('SIGTERM');
+    });
+    child.on('error', (err) => {
+      spawnError = err;
+    });
+    child.on('close', (status, signal) => {
+      if (settled) return;
+      settled = true;
+      if (timeoutTimer) clearTimeout(timeoutTimer);
+      if (killTimer) clearTimeout(killTimer);
+      const error = spawnError
+        ? spawnError.message
+        : timedOut
+          ? `timeout after ${timeoutMs}ms`
+          : capped
+            ? `output exceeded ${STREAM_MAX} bytes`
+            : null;
+      resolve({
+        ok: status === 0 && !timedOut && !capped,
+        lane: member.lane,
+        status,
+        signal,
+        stdout: stdout.trim(),
+        stderr: stderr.trim(),
+        error,
+      });
+    });
+  });
+}
+
+function appendCapped(current, chunk) {
+  if (current.length >= STREAM_MAX) return { value: current, capped: true };
+  const next = `${current}${chunk}`;
+  if (next.length <= STREAM_MAX) return { value: next, capped: false };
+  return { value: next.slice(0, STREAM_MAX), capped: true };
 }
 
 function buildMemberDispatchEnv(context = {}) {
@@ -630,7 +718,7 @@ function buildMemberDispatchEnv(context = {}) {
 
 function probeMember(member, timeoutMs) {
   const prompt = 'Health preflight. Reply exactly PONG and nothing else.';
-  const result = callMember(member, prompt, timeoutMs);
+  const result = callMember(member, prompt, timeoutMs, { noSession: true });
   const text = `${result.stdout}\n${result.stderr}`;
   return {
     ok: result.ok && /\bPONG\b/i.test(text),
@@ -642,7 +730,85 @@ function probeMember(member, timeoutMs) {
   };
 }
 
-function runHealthPreflight(assembly, timeoutMs) {
+async function probeMemberAsync(member, timeoutMs) {
+  const prompt = 'Health preflight. Reply exactly PONG and nothing else.';
+  const result = await callMemberAsync(member, prompt, timeoutMs, { noSession: true });
+  const text = `${result.stdout}\n${result.stderr}`;
+  return {
+    ok: result.ok && /\bPONG\b/i.test(text),
+    lane: member.lane,
+    status: result.status,
+    signal: result.signal,
+    stderr: result.stderr,
+    error: result.error,
+  };
+}
+
+async function runHealthPreflight(assembly, timeoutMs) {
+  const entries = await Promise.all(assembly.members.map(async (member) => [
+    member.id,
+    await probeMemberAsync(member, resolveMemberTimeout(member, 'health', timeoutMs)),
+  ]));
+  return Object.fromEntries(entries);
+}
+
+export async function runMemberCallsInParallel(members, mapper) {
+  return Promise.all(members.map((member, index) => mapper(member, index)));
+}
+
+async function buildProposalsInParallel({ assembly, taskText, sourcePaths, controlPlaneBlock, neuroRail, timeoutMs, outputEvidenceContext, stream }) {
+  return runMemberCallsInParallel(assembly.members, async (member) => {
+    say(C.dim, `  ${member.displayName} · ${member.lane}`, stream);
+    const result = await callMemberAsync(member, buildMemberPrompt(taskText, member, {
+      health: member.health,
+      sourcePaths,
+      controlPlaneBlock,
+      neuroRail,
+    }), timeoutMs, outputEvidenceContext);
+    say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} ${member.displayName}`, stream);
+    return {
+      id: member.id,
+      displayName: member.displayName,
+      lane: member.lane,
+      output: result.stdout || result.stderr || result.error || '',
+      result,
+    };
+  });
+}
+
+async function buildCritiquesInParallel({ assembly, taskText, proposals, timeoutMs, outputEvidenceContext, stream }) {
+  return runMemberCallsInParallel(assembly.members, async (member) => {
+    const peers = proposals
+      .filter((entry) => entry.id !== member.id)
+      .map((entry) => ({ label: `${entry.displayName} (${entry.id})`, output: entry.output }));
+    const result = await callMemberAsync(
+      member,
+      critiquePrompt(taskText, member, peers),
+      resolveMemberTimeout(member, 'critique', timeoutMs),
+      outputEvidenceContext,
+    );
+    say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} critique ${member.displayName}`, stream);
+    return {
+      id: member.id,
+      displayName: member.displayName,
+      lane: member.lane,
+      output: result.stdout || result.stderr || result.error || '',
+      result,
+    };
+  });
+}
+
+async function runSynthesis(member, taskText, proposals, critiques, assembly, timeoutMs, outputEvidenceContext, controlPlaneBlock) {
+  const synthesisResult = await callMemberAsync(
+    member,
+    synthesisPrompt(taskText, proposals, critiques, assembly, { controlPlaneBlock }),
+    timeoutMs,
+    outputEvidenceContext,
+  );
+  return synthesisResult.stdout || synthesisResult.stderr || synthesisResult.error || '';
+}
+
+function runHealthPreflightSync(assembly, timeoutMs) {
   const health = {};
   for (const member of assembly.members) {
     health[member.id] = probeMember(member, resolveMemberTimeout(member, 'health', timeoutMs));
@@ -795,7 +961,7 @@ export async function runAdvisory(task, options = {}) {
 
   if (options.healthCheck !== false && !options.availableHealth) {
     say(`${C.bronze}${C.bold}`, '\n── Shintai health preflight ──', stream);
-    const health = runHealthPreflight(assembly, resolveMemberTimeout(null, 'health', timeoutMs));
+    const health = await runHealthPreflight(assembly, resolveMemberTimeout(null, 'health', timeoutMs));
     assembly = options.assembly
       ? applyHealthPreflightToAssembly(assembly, health)
       : assembleShintaiTeam(taskText, roster, health);
@@ -879,54 +1045,39 @@ export async function runAdvisory(task, options = {}) {
 
   say(`${C.bronze}${C.bold}`, '\n── Shintai advisory: fan-out ──', stream);
   const sourcePaths = options.sourcePaths || controlPlane?.gate0?.loaded?.map((entry) => path.relative(REPO_ROOT, entry.absPath)) || SOURCE_PATHS;
-  const proposals = assembly.members.map((member) => {
-    say(C.dim, `  ${member.displayName} · ${member.lane}`, stream);
-    const result = callMember(member, buildMemberPrompt(taskText, member, {
-      health: member.health,
-      sourcePaths,
-      controlPlaneBlock,
-      neuroRail,
-    }), timeoutMs, outputEvidenceContext);
-    say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} ${member.displayName}`, stream);
-    return {
-      id: member.id,
-      displayName: member.displayName,
-      lane: member.lane,
-      output: result.stdout || result.stderr || result.error || '',
-      result,
-    };
+  const proposals = await buildProposalsInParallel({
+    assembly,
+    taskText,
+    sourcePaths,
+    controlPlaneBlock,
+    neuroRail,
+    timeoutMs,
+    outputEvidenceContext,
+    stream,
   });
 
   say(`${C.bronze}${C.bold}`, '\n── Shintai advisory: critique ──', stream);
-  const critiques = assembly.members.map((member) => {
-    const peers = proposals
-      .filter((entry) => entry.id !== member.id)
-      .map((entry) => ({ label: `${entry.displayName} (${entry.id})`, output: entry.output }));
-    const result = callMember(
-      member,
-      critiquePrompt(taskText, member, peers),
-      resolveMemberTimeout(member, 'critique', timeoutMs),
-      outputEvidenceContext,
-    );
-    say(result.ok ? C.good : C.warn, `  ${result.ok ? '✓' : '⚠'} critique ${member.displayName}`, stream);
-    return {
-      id: member.id,
-      displayName: member.displayName,
-      lane: member.lane,
-      output: result.stdout || result.stderr || result.error || '',
-      result,
-    };
+  const critiques = await buildCritiquesInParallel({
+    assembly,
+    taskText,
+    proposals,
+    timeoutMs,
+    outputEvidenceContext,
+    stream,
   });
 
   say(`${C.bronze}${C.bold}`, '\n── Shintai advisory: synthesis ──', stream);
   const synthMember = assembly.members.find((member) => member.id === 'deepseek') || assembly.members[0];
-  const synthesisResult = callMember(
+  const synthesis = await runSynthesis(
     synthMember,
-    synthesisPrompt(taskText, proposals, critiques, assembly, { controlPlaneBlock }),
+    taskText,
+    proposals,
+    critiques,
+    assembly,
     timeoutMs,
     outputEvidenceContext,
+    controlPlaneBlock,
   );
-  const synthesis = synthesisResult.stdout || synthesisResult.stderr || synthesisResult.error || '';
   const postDispatchPacketValidation = packetEvidence
     ? validatePacketEvidence(packetEvidence)
     : { ok: true, reasons: [], checkedAt: new Date().toISOString(), sourceCount: 0 };

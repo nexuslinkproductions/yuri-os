@@ -53,6 +53,15 @@ function isPersistentLane(modelId) {
   return PERSISTENT_LANE_PREFIXES.some((prefix) => String(modelId).startsWith(prefix));
 }
 
+export function laneSessionModelId({ lane = '', model = '', endpoint = '' } = {}) {
+  const laneId = String(lane || '');
+  const modelId = String(model || '').trim();
+  const nvidiaEndpoint = /integrate\.api\.nvidia\.com/i.test(String(endpoint || ''));
+  const nvidiaLane = laneId === 'nvidia-nim' || laneId.startsWith('nvidia-') || nvidiaEndpoint;
+  if (nvidiaLane && modelId) return `nvidia-${modelId}`;
+  return laneId;
+}
+
 function resolveSessionDir() {
   return path.resolve(process.env.YURI_LANE_SESSION_DIR || DEFAULT_SESSION_DIR);
 }
@@ -96,6 +105,21 @@ function readHistory(jsonlPath) {
 function appendTurn(jsonlPath, role, content) {
   const row = { role, content, ts: new Date().toISOString() };
   appendFileSync(jsonlPath, JSON.stringify(row) + '\n');
+}
+
+function rewriteTrimmedHistory(jsonlPath, history) {
+  if (!existsSync(jsonlPath)) {
+    for (const turn of history) appendTurn(jsonlPath, turn.role, turn.content);
+    return;
+  }
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  const archivePath = `${jsonlPath}.pretrim-${ts}-${process.pid}`;
+  try {
+    renameSync(jsonlPath, archivePath);
+  } catch (err) {
+    if (err?.code !== 'ENOENT') throw err;
+  }
+  for (const turn of history) appendTurn(jsonlPath, turn.role, turn.content);
 }
 
 function readMeta(metaPath) {
@@ -209,8 +233,8 @@ function trimIfOverBudget(history) {
 
 // Public — called by offload-runner before building the messages array.
 // Returns the history to prepend, plus a closure to record the new round.
-export function loadLaneSession({ modelId, sessionName = 'default', fresh = false }) {
-  if (!isPersistentLane(modelId)) {
+export function loadLaneSession({ modelId, sessionName = 'default', fresh = false, disabled = false } = {}) {
+  if (disabled || !isPersistentLane(modelId)) {
     return {
       enabled: false,
       history: [],
@@ -230,9 +254,7 @@ export function loadLaneSession({ modelId, sessionName = 'default', fresh = fals
 
   if (trimmed) {
     // Rewrite the jsonl with trimmed history so the budget stays bounded.
-    const ts = new Date().toISOString().replace(/[:.]/g, '-');
-    renameSync(paths.jsonl, `${paths.jsonl}.pretrim-${ts}`);
-    for (const turn of trimmedHistory) appendTurn(paths.jsonl, turn.role, turn.content);
+    rewriteTrimmedHistory(paths.jsonl, trimmedHistory);
     history = trimmedHistory;
   }
 
@@ -257,6 +279,8 @@ export function loadLaneSession({ modelId, sessionName = 'default', fresh = fals
 
 export const __test__ = {
   isPersistentLane,
+  laneSessionModelId,
+  rewriteTrimmedHistory,
   sessionPaths,
   trimIfOverBudget,
   compactHistory,

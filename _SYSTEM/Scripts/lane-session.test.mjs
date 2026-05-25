@@ -37,6 +37,61 @@ test('lane session dir can be overridden for tests and isolated workers', async 
   }
 });
 
+test('lane sessions can be disabled for sterile health probes', async () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-lane-disabled-'));
+  process.env.YURI_LANE_SESSION_DIR = dir;
+  delete process.env.YURI_LEGACY_LANE_SESSION_DIR;
+
+  try {
+    const mod = await importFreshLaneSession();
+    const session = mod.loadLaneSession({ modelId: 'deepseek-v4-pro', sessionName: 'health', disabled: true });
+    session.record('Health preflight. Reply exactly PONG and nothing else.', 'PONG');
+
+    assert.equal(session.enabled, false);
+    assert.equal(session.sessionPath, null);
+  } finally {
+    delete process.env.YURI_LANE_SESSION_DIR;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('NIM persistent sessions are isolated by concrete model, not provider bucket', async () => {
+  const mod = await importFreshLaneSession();
+  const qwenId = mod.laneSessionModelId({
+    lane: 'nvidia-nim',
+    model: 'qwen/qwen3.5-397b-a17b',
+    endpoint: 'https://integrate.api.nvidia.com/v1',
+  });
+  const nemotronId = mod.laneSessionModelId({
+    lane: 'nvidia-nim',
+    model: 'nvidia/nemotron-3-super-120b-a12b',
+    endpoint: 'https://integrate.api.nvidia.com/v1',
+  });
+
+  assert.equal(qwenId, 'nvidia-qwen/qwen3.5-397b-a17b');
+  assert.equal(nemotronId, 'nvidia-nvidia/nemotron-3-super-120b-a12b');
+  assert.notEqual(qwenId, nemotronId);
+  assert.match(mod.__test__.sessionPaths(qwenId, 'default').jsonl, /nvidia-qwen_qwen3.5-397b-a17b__default\.jsonl$/);
+});
+
+test('trim rewrite tolerates a concurrently rotated session file', async () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'yuri-lane-trim-'));
+  const jsonlPath = path.join(dir, 'deepseek-v4-pro__default.jsonl');
+
+  try {
+    const mod = await importFreshLaneSession();
+    mod.__test__.rewriteTrimmedHistory(jsonlPath, [
+      { role: 'system', content: '[LANE-MEMORY] compacted' },
+      { role: 'user', content: 'recent task' },
+    ]);
+
+    const rows = readFileSync(jsonlPath, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+    assert.deepEqual(rows.map((row) => row.role), ['system', 'user']);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('legacy Claude lane sessions migrate into YURI-owned state through the wrapper', async () => {
   const primaryDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-lane-primary-'));
   const legacyDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-lane-legacy-'));
