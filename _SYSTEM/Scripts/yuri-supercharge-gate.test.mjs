@@ -40,8 +40,12 @@ test('release gate includes cyber intelligence and security lens checks', () => 
   assert.ok(checkNames.includes('test:lane-cache-rotator'));
   assert.ok(checkNames.includes('syntax:artifact-registry'));
   assert.ok(checkNames.includes('test:artifact-registry'));
+  assert.ok(checkNames.includes('syntax:lane-persona-map'));
+  assert.ok(checkNames.includes('test:lane-persona-map'));
   assert.ok(checkNames.includes('syntax:kagami-event-bus'));
   assert.ok(checkNames.includes('test:kagami-event-bus'));
+  assert.ok(checkNames.includes('syntax:lane-arbitration'));
+  assert.ok(checkNames.includes('test:lane-arbitration'));
   assert.ok(checkNames.includes('syntax:worker-capture-once'));
   assert.ok(checkNames.includes('test:worker-capture-once'));
   assert.ok(checkNames.includes('test:worker-tmux'));

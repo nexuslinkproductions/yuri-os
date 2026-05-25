@@ -278,6 +278,7 @@ export function scheduleCaptureAfterFeed(worker, taskId, options = {}) {
   ];
   if (options.lane) args.push('--lane', options.lane);
   if (options.session) args.push('--session', options.session);
+  if (options.model) args.push('--model', options.model);
   const child = spawn(process.execPath, args, {
     detached: true,
     stdio: 'ignore',

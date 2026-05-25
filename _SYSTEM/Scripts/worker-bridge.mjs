@@ -21,6 +21,7 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appendKagamiEvent } from './kagami-event-bus.mjs';
+import { buildRickLanePacket, lanePersonaForWorker } from './lane-persona-map.mjs';
 import { captureWorkerPane, feedWorkerTui, scheduleCaptureAfterFeed } from './worker-tmux.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -107,15 +108,26 @@ function newTask({ worker, prompt, lane, addedBy = 'ide', meta = {} }) {
   };
 }
 
+function claudeModelForTask(meta = {}) {
+  return meta.model || process.env.YURI_CLAUDE_MODEL || process.env.YURI_MODEL || 'sonnet';
+}
+
+function buildClaudeRickPacket(prompt, options = {}) {
+  return buildRickLanePacket('claude', prompt, options);
+}
+
 export function enqueue({ worker, prompt, lane, addedBy, meta }) {
   const data = readQueues();
   const task = newTask({ worker, prompt, lane, addedBy, meta });
   const spec = WORKERS[worker];
+  const claudeModel = spec.kind === 'claude' ? claudeModelForTask(task.meta) : null;
+  if (claudeModel) task.meta = { ...(task.meta || {}), model: claudeModel };
   appendWorkerEvent('LANE_DISPATCHED', {
     source: 'worker-bridge:enqueue',
     worker,
     lane: task.lane,
     session: spec.laneSession,
+    model: claudeModel,
     taskId: task.id,
     addedBy,
     status: spec.kind === 'claude' ? 'fed-live-tui' : 'queued',
@@ -123,12 +135,14 @@ export function enqueue({ worker, prompt, lane, addedBy, meta }) {
   });
   if (spec.kind === 'claude') {
     task.startedAt = new Date().toISOString();
-    const feed = feedWorkerTui('claude', task.prompt);
+    const lanePrompt = buildClaudeRickPacket(task.prompt, { model: claudeModel });
+    const feed = feedWorkerTui('claude', lanePrompt);
     const capture = feed.ok
       ? scheduleCaptureAfterFeed('claude', task.id, {
           lane: task.lane,
           session: spec.laneSession,
-          delayMs: Number(process.env.YURI_CLAUDE_CAPTURE_DELAY_MS || 12_000),
+          model: claudeModel,
+          delayMs: Number(process.env.YURI_CLAUDE_CAPTURE_DELAY_MS || 20_000),
           lines: Number(process.env.YURI_CLAUDE_CAPTURE_LINES || 500),
         })
       : null;
@@ -154,6 +168,7 @@ export function enqueue({ worker, prompt, lane, addedBy, meta }) {
       worker,
       lane: task.lane,
       session: spec.laneSession,
+      model: claudeModel,
       taskId: task.id,
       ok: feed.ok,
       status: task.status,
@@ -207,11 +222,17 @@ function buildWorkerPrompts(userPrompt, plan) {
   const codexPolicy = plan.codexPolicy || 'dry-run';
   const out = [];
 
-  const wrap = (role, body) =>
-    `[YURI worker dispatch · ${role} · tier=${tier}]\n` +
-    `Source: YURI worker bridge\n\n` +
-    `${body}\n\n` +
-    `---\nOriginal request:\n${userPrompt}`;
+  const wrap = (worker, role, body, options = {}) => {
+    const persona = lanePersonaForWorker(worker, options);
+    return buildRickLanePacket(
+      worker,
+      `[YURI worker dispatch · ${persona.packetRole} · ${role} · tier=${tier}]\n` +
+        `Source: YURI worker bridge\n\n` +
+        `${body}\n\n` +
+        `---\nOriginal request:\n${userPrompt}`,
+      options,
+    );
+  };
 
   if (tier === 'trivial') return out;
 
@@ -219,6 +240,7 @@ function buildWorkerPrompts(userPrompt, plan) {
     out.push({
       worker: 'deepseek',
       prompt: wrap(
+        'deepseek',
         'DeepSeek reasoner',
         'Advisory only. Bounded output. No writes unless explicitly in scope. ' +
           'Return: findings, risks, tests_needed (max 80 lines).',
@@ -230,9 +252,11 @@ function buildWorkerPrompts(userPrompt, plan) {
     out.push({
       worker: 'claude',
       prompt: wrap(
+        'claude',
         'Claude control-plane review',
         'Advisory only. Review routing, risks, merge gate. ' +
           'Required sections: findings, risks, upgrade_candidates, tests_needed, reject_or_accept_reasoning.',
+        { model: claudeModelForTask() },
       ),
     });
   }
@@ -249,6 +273,7 @@ function buildWorkerPrompts(userPrompt, plan) {
       worker: 'codex',
       lane: model,
       prompt: wrap(
+        'codex',
         'Codex implementer',
         `## CODEX TASK SPEC (auto-routed)\n` +
           `Goal: ${userPrompt.slice(0, 500)}\n` +
@@ -296,7 +321,8 @@ function nextPending(workerName) {
 
 function execClaudeTuiTask(task) {
   return new Promise((resolve) => {
-    const feed = feedWorkerTui('claude', task.prompt);
+    const model = claudeModelForTask(task.meta);
+    const feed = feedWorkerTui('claude', buildClaudeRickPacket(task.prompt, { model }));
     if (!feed.ok) {
       resolve({ ok: false, output: '', error: feed.error || 'Claude TUI feed failed' });
       return;

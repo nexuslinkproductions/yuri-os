@@ -27,6 +27,7 @@ test('Rick harness modules import without starting the REPL', async () => {
     controlPlane,
     memoryKernel,
     automationKernel,
+    lanePersonaMap,
   ] = await Promise.all([
     import('./rick-banner.mjs'),
     import('./rick-repl.mjs'),
@@ -39,6 +40,7 @@ test('Rick harness modules import without starting the REPL', async () => {
     import('./yuri-control-plane.mjs'),
     import('./memory-kernel.mjs'),
     import('./automation-kernel.mjs'),
+    import('./lane-persona-map.mjs'),
   ]);
 
   assert.equal(typeof banner.printBanner, 'function');
@@ -52,6 +54,7 @@ test('Rick harness modules import without starting the REPL', async () => {
   assert.equal(typeof controlPlane.preflightControlPlane, 'function');
   assert.equal(typeof memoryKernel.recallMemory, 'function');
   assert.equal(typeof automationKernel.buildAutomationHealthSummary, 'function');
+  assert.equal(typeof lanePersonaMap.buildRickLanePacket, 'function');
 });
 
 test('Claude worker bridge uses live tmux TUI instead of prompt route', () => {
@@ -59,6 +62,7 @@ test('Claude worker bridge uses live tmux TUI instead of prompt route', () => {
   const ai = readFileSync(new URL('./ai', import.meta.url), 'utf8');
   const launcher = readFileSync(new URL('./yuri-workers-tmux.sh', import.meta.url), 'utf8');
   const bridge = readFileSync(new URL('./worker-bridge.mjs', import.meta.url), 'utf8');
+  const personaMap = readFileSync(new URL('./lane-persona-map.mjs', import.meta.url), 'utf8');
   const tmux = readFileSync(new URL('./worker-tmux.mjs', import.meta.url), 'utf8');
   const rick = readFileSync(new URL('./rick-repl.mjs', import.meta.url), 'utf8');
 
@@ -67,7 +71,11 @@ test('Claude worker bridge uses live tmux TUI instead of prompt route', () => {
   assert.match(ai, /--model "\$_claude_model"/);
   assert.match(launcher, /bash _SYSTEM\/Scripts\/ai claude/);
   assert.match(bridge, /spec\.kind === 'claude'/);
-  assert.match(bridge, /feedWorkerTui\('claude', task\.prompt\)/);
+  assert.match(bridge, /buildClaudeRickPacket/);
+  assert.match(personaMap, /Rick-to-Rick live lane packet/);
+  assert.match(personaMap, /YURI_PRIVATE_RICK_OVERLAY/);
+  assert.match(bridge, /lanePersonaForWorker/);
+  assert.match(bridge, /feedWorkerTui\('claude', lanePrompt\)/);
   assert.doesNotMatch(bridge, /AI_SH, route, task\.prompt/);
   assert.match(bridge, /const PULSE_BUS = path\.join\(STATE_DIR, 'pulse-bus\.jsonl'\)/);
   assert.match(bridge, /appendKagamiEvent/);

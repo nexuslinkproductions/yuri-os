@@ -27,7 +27,7 @@ export function sanitizeCaptureToken(value, fallback = 'unknown') {
   return token || fallback;
 }
 
-export function buildWorkerCaptureEvidence({ worker, taskId, text, root = REPO_ROOT, ts = new Date().toISOString() }) {
+export function buildWorkerCaptureEvidence({ worker, taskId, model, text, root = REPO_ROOT, ts = new Date().toISOString() }) {
   const safeWorker = sanitizeCaptureToken(worker, 'worker');
   const safeTask = sanitizeCaptureToken(taskId, 'task');
   const fileName = `${safeWorker}-${safeTask}.txt`;
@@ -43,6 +43,7 @@ export function buildWorkerCaptureEvidence({ worker, taskId, text, root = REPO_R
     bytes: Buffer.byteLength(body, 'utf8'),
     lineCount: body ? body.split('\n').length : 0,
     captureHash: sha256(body),
+    model: model || null,
     body,
   };
 }
@@ -56,10 +57,11 @@ export function writeWorkerCaptureEvidence(args) {
       `ts: ${evidence.ts}`,
       `worker: ${evidence.worker}`,
       `taskId: ${evidence.taskId}`,
+      evidence.model ? `model: ${evidence.model}` : null,
       `captureHash: ${evidence.captureHash}`,
       '',
       evidence.body,
-    ].join('\n'),
+    ].filter((line) => line !== null).join('\n'),
   );
   return evidence;
 }
@@ -72,6 +74,7 @@ export function appendWorkerCaptureEvent({ worker, taskId, lane, session, captur
       worker,
       lane,
       session,
+      model: evidence.model || null,
       taskId,
       ok: Boolean(capture.ok),
       status: capture.ok ? 'captured' : 'capture-failed',
@@ -91,6 +94,7 @@ export async function captureOnce(options = {}) {
   const taskId = options.taskId || 'manual';
   const lane = options.lane || (worker === 'claude' ? 'claude' : worker);
   const session = options.session || `marcel-${worker}`;
+  const model = options.model || null;
   const delayMs = Number(options.delayMs ?? process.env.YURI_CAPTURE_DELAY_MS ?? 12_000);
   const lines = Number(options.lines ?? process.env.YURI_CAPTURE_LINES ?? 500);
 
@@ -105,6 +109,7 @@ export async function captureOnce(options = {}) {
   const evidence = writeWorkerCaptureEvidence({
     worker,
     taskId,
+    model,
     text,
     root: options.root || REPO_ROOT,
   });
@@ -129,6 +134,7 @@ function parseArgs(argv) {
     if (key === '--task-id' && value) out.taskId = value;
     if (key === '--lane' && value) out.lane = value;
     if (key === '--session' && value) out.session = value;
+    if (key === '--model' && value) out.model = value;
     if (key === '--delay' && value) out.delayMs = Number(value);
     if (key === '--lines' && value) out.lines = Number(value);
     if (key.startsWith('--') && value) i += 1;

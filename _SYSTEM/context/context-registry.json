@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-25",
+  "updated": "2026-05-26",
   "purpose": "Task-to-context routing map for YURI OS. This is the context layer between global authority and task-local files.",
   "readOrder": [
     "_SYSTEM/yuri-origin.md",
@@ -40,9 +40,11 @@
         "_SYSTEM/Scripts/rick-repl.mjs",
         "_SYSTEM/Scripts/rick-banner.mjs",
         "_SYSTEM/Scripts/kagami-control-domain.mjs",
+        "_SYSTEM/Scripts/lane-persona-map.mjs",
         "_SYSTEM/Scripts/lane-kernel.mjs",
         "_SYSTEM/Scripts/offload-contract.mjs",
         "_SYSTEM/Scripts/kagami-event-bus.mjs",
+        "_SYSTEM/Scripts/lane-arbitration.mjs",
         "_SYSTEM/Scripts/yuri/event-protocol.mjs",
         "_SYSTEM/Scripts/yuri/harness-state.mjs",
         "_SYSTEM/Scripts/yuri/prompt-compiler.mjs",
@@ -153,6 +155,8 @@
         "_SYSTEM/Scripts/worker-tmux.mjs",
         "_SYSTEM/Scripts/worker-capture-once.mjs",
         "_SYSTEM/Scripts/worker-bridge.mjs",
+        "_SYSTEM/Scripts/lane-arbitration.mjs",
+        "_SYSTEM/Scripts/lane-persona-map.mjs",
         "_SYSTEM/Scripts/health-status.mjs",
         "_SYSTEM/Scripts/yuri-health.mjs",
         "_SYSTEM/Scripts/kagami-event-bus.mjs",

@@ -34,17 +34,18 @@ test('domain makes Claude Opus a verified co-main, not unchecked owner', () => {
   const claude = domain.roles.claudeOpusComain;
 
   assert.equal(claude.id, 'claude-opus-comain');
-  assert.equal(claude.authority, 'co-main-architect-and-coder');
+  assert.equal(claude.authority, 'intentional-coding-escalation-rick');
   assert.match(claude.verificationRule, /Codex\/main independently verifies/);
   assert.ok(claude.compatibilityAliases.includes('claude-opus-audit'));
 });
 
-test('domain exposes Codex family and Sonnet as bounded coding lanes', () => {
+test('domain exposes Codex family and Sonnet as regular peer collaboration lane', () => {
   const domain = buildKagamiControlDomain();
 
   assert.equal(domain.roles.codexFamily.authority, 'implementation-and-verification-family');
   assert.match(domain.roles.codexFamily.routingRule, /gpt-5\.4-mini/);
-  assert.equal(domain.roles.claudeSonnetCode.authority, 'bounded-implementation-partner');
+  assert.equal(domain.roles.claudeSonnetCode.authority, 'regular-rick-collaboration-lane');
+  assert.match(domain.roles.claudeSonnetCode.routingRule, /regular collaboration/);
   assert.match(domain.roles.claudeSonnetCode.verificationRule, /Codex\/main independently verifies/);
   assert.ok(domain.commands.some((entry) => entry.command === '/claude sonnet'));
 });
@@ -98,7 +99,9 @@ test('Claude control packet carries protected path, commit, push, and verificati
 test('prompt summary states authority and protected runtime rule', () => {
   const summary = summarizeDomainForPrompt();
 
-  assert.match(summary, /Claude Opus may co-build/);
+  assert.match(summary, /Claude Sonnet collaborates as the regular peer lane/);
+  assert.match(summary, /Opus escalates hard coding/);
+  assert.match(summary, /private Rick aliases remain opt-in/);
   assert.match(summary, /Codex\/main verifies/);
   assert.match(summary, /compatibility-only/);
   assert.doesNotMatch(summary, /ENKI/);

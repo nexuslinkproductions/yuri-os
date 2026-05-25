@@ -70,6 +70,7 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
       'resolve-shintai-contradictions',
       'run-release-gates',
       'commit-when-authorized',
+      'keep-private-persona-overlays-out-of-shipping-labels',
     ],
   },
   codexFamily: {
@@ -80,6 +81,7 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
       'gpt-5.5-full-implementation',
       'gpt-5.4-mini-focused-code-and-review',
       'spark-low-risk-sandbox-experiments',
+      'rick-lane-collaboration-when-private-overlay-enabled',
       'local-truth-verification',
       'release-gate-participation',
     ],
@@ -87,12 +89,13 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
   },
   claudeOpusComain: {
     id: 'claude-opus-comain',
-    authority: 'co-main-architect-and-coder',
+    authority: 'intentional-coding-escalation-rick',
     mutatesRepo: 'allowed-only-through-scoped-packets',
     launchRule: 'Persistent CLI/tmux/PTY session only. No SDK, no claude -p, no --print prompt calls.',
     canonicalDuties: [
       'long-context-architecture',
       'high-reasoning-implementation',
+      'heavy-coding-escalation',
       'contradiction-synthesis',
       'patch-proposal',
       'self-check-before-handoff',
@@ -102,10 +105,13 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
   },
   claudeSonnetCode: {
     id: 'claude-sonnet-code',
-    authority: 'bounded-implementation-partner',
+    authority: 'regular-rick-collaboration-lane',
     mutatesRepo: 'allowed-only-through-scoped-packets',
     launchRule: 'Persistent CLI/tmux/PTY session only. No SDK, no claude -p, no --print prompt calls.',
     canonicalDuties: [
+      'regular-rick-to-rick-collaboration',
+      'planning-and-critique',
+      'operator-synthesis',
       'medium-complexity-code',
       'focused-tests',
       'refactor-cleanup',
@@ -113,11 +119,12 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
       'self-check-before-codex-verification',
     ],
     verificationRule: 'Codex/main independently verifies every Sonnet mutation before trust.',
+    routingRule: 'Use Sonnet aggressively for regular collaboration and advisory work; escalate to Opus intentionally for heavier coding or architecture.',
     compatibilityAliases: ['@sonnet-code', '@claude-code', '@sonnet'],
   },
   deepseek: {
     id: 'deepseek',
-    authority: 'synthesis-and-eot-workhorse',
+    authority: 'persistent-rick-synthesis-and-eot-workhorse',
     mutatesRepo: false,
     canonicalDuties: [
       'root-cause-synthesis',
@@ -152,7 +159,7 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
   },
   automationKernel: {
     id: 'automation-kernel',
-    authority: 'health-and-lifecycle-spine',
+    authority: 'health-lifecycle-and-private-overlay-spine',
     mutatesRepo: false,
     canonicalDuties: [
       'launchd-health',
@@ -160,6 +167,7 @@ export const KAGAMI_DOMAIN_ROLES = Object.freeze({
       'pong-probes',
       'stale-agent-repair',
       'daemon-reporting',
+      'cache-stable-packet-preamble',
     ],
   },
 });
@@ -498,7 +506,7 @@ export function recommendKagamiFanout(input = '') {
     taskTier: task.taskTier,
     authorizationState: task.authorizationState,
     codexRule: 'Codex family codes and verifies; gpt-5.5 for hard work, gpt-5.4-mini for focused work, Spark only for explicit cheap experiments.',
-    claudeRule: 'Sonnet codes in bounded packets; Opus co-builds hard slices; Codex verifies all mutations.',
+    claudeRule: 'Sonnet is the regular peer collaboration lane; Opus is intentional coding/architecture escalation; private Rick references remain opt-in dev aliases; Codex verifies all mutations.',
     parallelismRule: profile === 'solo' ? 'no fan-out' : 'parallel only when lane outputs do not fight over the same file; otherwise stage sequentially',
   };
 }
@@ -549,7 +557,7 @@ export function summarizeDomainForPrompt(domain = buildKagamiControlDomain()) {
     `state_root=${domain.stateRoot}`,
     `roles=${roles}`,
     `cyber_pipeline=${domain.cyberPipeline.join('>')}`,
-    'claude_rule=Claude Opus may co-build, but Codex/main verifies every mutation before trust.',
+    'claude_rule=Claude Sonnet collaborates as the regular peer lane; Opus escalates hard coding/architecture; private Rick aliases remain opt-in and non-shipping; Codex/main verifies every mutation before trust.',
     'protected_rule=Claude runtime state remains compatibility-only, never YURI canonical state.',
   ].join('\n');
 }

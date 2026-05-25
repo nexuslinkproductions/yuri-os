@@ -21,14 +21,18 @@ test('worker capture evidence writes runtime file under _SYSTEM/state', () => {
       root,
       worker: 'claude',
       taskId: 'task/one',
+      model: 'sonnet',
       text: 'YURI_GOVERNED_AUTONOMY_SMOKE_OK',
       ts: '2026-05-25T00:00:00.000Z',
     });
 
     assert.equal(evidence.relPath, path.join('_SYSTEM', 'state', 'worker-captures', 'claude-task-one.txt'));
     assert.equal(evidence.bytes, Buffer.byteLength('YURI_GOVERNED_AUTONOMY_SMOKE_OK', 'utf8'));
+    assert.equal(evidence.model, 'sonnet');
     assert.match(evidence.captureHash, /^[a-f0-9]{64}$/);
-    assert.match(readFileSync(evidence.absPath, 'utf8'), /YURI_GOVERNED_AUTONOMY_SMOKE_OK/);
+    const text = readFileSync(evidence.absPath, 'utf8');
+    assert.match(text, /model: sonnet/);
+    assert.match(text, /YURI_GOVERNED_AUTONOMY_SMOKE_OK/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
