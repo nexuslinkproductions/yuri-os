@@ -11,7 +11,7 @@ function sendError(res: any, error: any): void {
 }
 
 export function initDesignAssistantRoutes(router: Router, service: DesignAssistantBridgeService): void {
-    router.use('/design-assistant/files', localOnlyMiddleware, express.static(SystemConfig.resolve('backend/data/design-assistant')));
+    router.use('/design-assistant/files', localOnlyMiddleware, express.static(SystemConfig.resolve(`${SystemConfig.SYSTEM.DATA}/design-assistant`)));
 
     const designAssistant = Router();
     designAssistant.use(localOnlyMiddleware);

@@ -22,8 +22,8 @@ function locateRepoRoot(): string {
         let current = path.resolve(anchor);
         while (true) {
             if (
-                fs.existsSync(path.join(current, 'backend', 'package.json')) &&
-                fs.existsSync(path.join(current, '_SYSTEM'))
+                fs.existsSync(path.join(current, 'package.json')) &&
+                fs.existsSync(path.join(current, '_SYSTEM', 'backend', 'package.json'))
             ) {
                 return current;
             }
@@ -49,10 +49,10 @@ export const SystemConfig = {
     
     // Ecosystem A: System Assets
     SYSTEM: {
-        BACKEND: 'backend',
-        DATA: 'backend/data',
-        LOGS: 'backend/data/logs',
-        DB: 'backend/data/yuri.db'
+        BACKEND: '_SYSTEM/backend',
+        DATA: '_SYSTEM/backend/data',
+        LOGS: '_SYSTEM/backend/data/logs',
+        DB: '_SYSTEM/backend/data/yuri.db'
     },
 
     // Ecosystem B: Knowledge Vaults (Obsidian)

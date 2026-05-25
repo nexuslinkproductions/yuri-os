@@ -1502,9 +1502,6 @@ class YuriEngine {
                 case 'DIRECTIVE': 
                     this.stage.innerHTML = await this.directiveHTML(); this.bindDirective(); 
                     break;
-                case 'TRADING_HUD':
-                    this.stage.innerHTML = this.tradingHUDHTML();
-                    break;
             }
         } catch (err) {
             console.error('⬡ NAVIGATION_ERROR ::', err);
@@ -2373,83 +2370,6 @@ class YuriEngine {
             else if (path.endsWith('.md')) this.openNote(path);
         }));
         document.querySelectorAll('.breadcrumb-item').forEach(b => b.addEventListener('click', () => { this.currentPath = b.getAttribute('data-path')!; this.go('PHYSIS'); }));
-    }
-
-    // ─── TRADING BOT (IMPLEMENTATION OVERVIEW) ────────────────────────────────
-    tradingHUDHTML() {
-        return `
-            <div style="height:100%; overflow-y:auto; padding:32px 36px; background:linear-gradient(180deg, rgba(8,10,16,0.96) 0%, rgba(3,5,10,1) 100%)">
-                <div style="margin-bottom:8px">
-                    <span class="text-mono" style="font-size:0.55rem; color:var(--gold-solar); letter-spacing:0.3em;">PREDICTION MARKET BOT // ARCHITECTURE</span>
-                </div>
-                <h1 style="margin:0 0 8px; font-size:1.6rem; font-weight:800;">Trading Bot Pipeline</h1>
-                <p style="opacity:0.5; margin-bottom:32px; font-size:0.85rem; max-width:600px; line-height:1.6;">
-                    All 6 implementation phases complete. Live trading feeds require the feed-aggregator service. Run phases via npm scripts.
-                </p>
-                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; margin-bottom:32px;">
-                    <div class="neural-glass" style="padding:20px; border-left:3px solid #00e5bf;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                            <span class="text-mono" style="font-size:0.5rem; color:#00e5bf; letter-spacing:0.15em;">P3</span>
-                            <span class="text-mono" style="font-size:0.45rem; opacity:0.35;">1,146 lines</span>
-                        </div>
-                        <div style="font-size:1rem; font-weight:700; margin-bottom:6px;">Evidence Collector</div>
-                        <div style="font-size:0.75rem; opacity:0.65; line-height:1.5;">News feeds, social signals, dedup, confidence scoring</div>
-                    </div>
-                    <div class="neural-glass" style="padding:20px; border-left:3px solid #76b900;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                            <span class="text-mono" style="font-size:0.5rem; color:#76b900; letter-spacing:0.15em;">P4</span>
-                            <span class="text-mono" style="font-size:0.45rem; opacity:0.35;">935 lines</span>
-                        </div>
-                        <div style="font-size:1rem; font-weight:700; margin-bottom:6px;">Ensemble Inference</div>
-                        <div style="font-size:0.75rem; opacity:0.65; line-height:1.5;">5-model ensemble, Brier calibration, dispersion analysis</div>
-                    </div>
-                    <div class="neural-glass" style="padding:20px; border-left:3px solid #ff5252;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                            <span class="text-mono" style="font-size:0.5rem; color:#ff5252; letter-spacing:0.15em;">P5</span>
-                            <span class="text-mono" style="font-size:0.45rem; opacity:0.35;">1,344 lines</span>
-                        </div>
-                        <div style="font-size:1rem; font-weight:700; margin-bottom:6px;">Risk Engine</div>
-                        <div style="font-size:0.75rem; opacity:0.65; line-height:1.5;">9 deterministic gates, Kelly sizing, drawdown halts</div>
-                    </div>
-                    <div class="neural-glass" style="padding:20px; border-left:3px solid #7c4dff;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                            <span class="text-mono" style="font-size:0.5rem; color:#7c4dff; letter-spacing:0.15em;">P6</span>
-                            <span class="text-mono" style="font-size:0.45rem; opacity:0.35;">1,440 lines</span>
-                        </div>
-                        <div style="font-size:1rem; font-weight:700; margin-bottom:6px;">Execution Engine</div>
-                        <div style="font-size:0.75rem; opacity:0.65; line-height:1.5;">Coinbase API, HMAC auth, idempotent orders</div>
-                    </div>
-                    <div class="neural-glass" style="padding:20px; border-left:3px solid #00e676;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                            <span class="text-mono" style="font-size:0.5rem; color:#00e676; letter-spacing:0.15em;">P7</span>
-                            <span class="text-mono" style="font-size:0.45rem; opacity:0.35;">1,555 lines</span>
-                        </div>
-                        <div style="font-size:1rem; font-weight:700; margin-bottom:6px;">Paper Trading</div>
-                        <div style="font-size:0.75rem; opacity:0.65; line-height:1.5;">Full pipeline cycles, failure taxonomy, Brier gating</div>
-                    </div>
-                    <div class="neural-glass" style="padding:20px; border-left:3px solid #ff1744;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                            <span class="text-mono" style="font-size:0.5rem; color:#ff1744; letter-spacing:0.15em;">P8</span>
-                            <span class="text-mono" style="font-size:0.45rem; opacity:0.35;">885 lines</span>
-                        </div>
-                        <div style="font-size:1rem; font-weight:700; margin-bottom:6px;">Live Rollout</div>
-                        <div style="font-size:0.75rem; opacity:0.65; line-height:1.5;">Kill-switch, staging gates, manual approval</div>
-                    </div>
-                </div>
-                <div class="neural-glass" style="padding:20px;">
-                    <div class="text-mono" style="font-size:0.55rem; color:var(--cyan-glow); margin-bottom:12px;">USAGE</div>
-                    <div class="text-mono" style="font-size:0.7rem; opacity:0.7; line-height:2;">
-                        npm run trading-bot:phase-3 &num; Evidence collection<br>
-                        npm run trading-bot:phase-4 &num; Ensemble inference<br>
-                        npm run trading-bot:phase-5 &num; Risk evaluation<br>
-                        npm run trading-bot:phase-6 &num; Order execution<br>
-                        npm run trading-bot:phase-7 &num; Paper trading (50+ cycles)<br>
-                        npm run trading-bot:phase-8 &num; Live rollout<br>
-                        npm run trading-bot:kill-switch &num; Arm/disarm/audit<br>
-                    </div>
-                </div>
-            </div>
-        `;
     }
 
     // ─── DIRECTIVE (LIVE SYSTEM COMMAND CENTER) ───────────────────────────────

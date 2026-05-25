@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { inspectOpenDatabaseHealth, unavailableDatabaseHealth } from './lib/db-health.mjs';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const ARCHIVE_DIR = path.join(REPO_ROOT, '_SYSTEM/research-archive/yuri-sales-psychology-1980-2026');
 const MANIFEST_PATH = path.join(ARCHIVE_DIR, '00_manifest.md');
 const APPROVAL_PATH = path.join(ARCHIVE_DIR, '09_rag_ingestion_approval.md');
@@ -17,10 +17,10 @@ const EXPECTED_SOURCE_COUNT = 11;
 const RAW_DB_PATH = process.env.YURI_DB_PATH;
 const DB_PATH = RAW_DB_PATH && RAW_DB_PATH !== ':memory:'
   ? path.resolve(REPO_ROOT, RAW_DB_PATH)
-  : path.join(REPO_ROOT, 'backend/data/yuri.db');
+  : path.join(REPO_ROOT, '_SYSTEM', 'backend', 'data', 'yuri.db');
 
 const require = createRequire(import.meta.url);
-const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlite3'));
+const Database = require(path.join(REPO_ROOT, '_SYSTEM/backend/node_modules/better-sqlite3'));
 
 function readText(absPath, issues) {
   try {

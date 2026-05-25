@@ -4,8 +4,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const FORBIDDEN = /\b(?:exeoflow|exeo-flow|exeo flow)\b/i;
 const SCANNED_EXTENSIONS = new Set([
   '.cjs',
@@ -22,10 +23,10 @@ const SCANNED_EXTENSIONS = new Set([
 ]);
 
 const scanRoots = [
-  'backend/src',
-  'src',
-  'Scripts',
-  'docs',
+  '_SYSTEM/backend/src',
+  '_SYSTEM/src',
+  '_SYSTEM/Scripts',
+  '_SYSTEM/docs',
   '00_COMMAND-CENTER/MOCs',
   '02_AREAS/profile-marcel-en.md',
   '06_KNOWLEDGE-BASE/05_OPERATIONAL/partner_memory.md',
@@ -51,10 +52,11 @@ const skippedPathReasons = new Map([
   ['_SYSTEM/Scripts/yuri-exeoflow-assimilation.test.mjs', 'guardrail implementation must name retired terms to detect regressions'],
   ['_SYSTEM/Scripts/generated-artifact-hygiene.test.mjs', 'generated artifact guardrail must prioritize retired source-path regressions'],
   ['backend/data', 'protected live database surface'],
+  ['_SYSTEM/backend/data', 'protected live database surface'],
   ['.claude/state', 'protected agent state surface'],
   ['.claude/history', 'protected agent history surface'],
   ['node_modules', 'dependency tree'],
-  ['backend/node_modules', 'backend dependency tree'],
+  ['_SYSTEM/backend/node_modules', 'backend dependency tree'],
   ['NEURAL-NETWORK/GitNexus/gitnexus/node_modules', 'nested dependency tree'],
   ['.git', 'git internals'],
   ['07_ARCHIVE', 'historical archive, not active Yuri product surface'],
@@ -87,7 +89,7 @@ const allowedLineReasons = new Map([
       reason: 'release gate test must prove the requested assimilation guardrail filename is wired',
     },
   ]],
-  ['docs/GENERATED_ARTIFACT_HYGIENE.md', [
+  ['_SYSTEM/docs/GENERATED_ARTIFACT_HYGIENE.md', [
     {
       pattern: /Scripts\/yuri-exeoflow-assimilation\.test\.mjs/,
       reason: 'generated artifact lifecycle doc must list the retired-term guardrail command required before commit',

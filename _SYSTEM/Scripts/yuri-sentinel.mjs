@@ -19,7 +19,7 @@ const PATHS = {
   synthesis: path.join(REPO_ROOT, '.claude', 'yuri-sentinel', 'learning', 'synthesis.jsonl'),
   heartbeat: path.join(STATE_DIR, 'yuri-sentinel-state.json'),
   vaultLogDir: path.join(STATE_DIR, 'pulse-vault-log'),
-  memoryConsolidate: path.join(REPO_ROOT, 'Scripts', 'memory-consolidate.mjs'),
+  memoryConsolidate: path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'memory-consolidate.mjs'),
 };
 
 const OPENCLAW_HEALTH_URL = 'http://localhost:18789/health';

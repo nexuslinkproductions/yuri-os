@@ -77,7 +77,7 @@ function parseArgs(argv) {
 }
 
 function repoRoot() {
-  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 }
 
 function resolveDbPath(dbPath) {
@@ -89,10 +89,12 @@ function resolveDbPath(dbPath) {
   }
 
   const resolved = path.resolve(dbPath);
-  const backendDataDir = path.resolve(repoRoot(), 'backend', 'data');
-  const backendDataPrefix = `${backendDataDir}${path.sep}`;
+  const protectedDbDirs = [
+    path.resolve(repoRoot(), 'backend', 'data'),
+    path.resolve(repoRoot(), '_SYSTEM', 'backend', 'data'),
+  ];
 
-  if (resolved === backendDataDir || resolved.startsWith(backendDataPrefix)) {
+  if (protectedDbDirs.some((dir) => resolved === dir || resolved.startsWith(`${dir}${path.sep}`))) {
     fail(MARKERS.refusedOriginalDb, 'Refusing original backend/data DB path');
   }
 

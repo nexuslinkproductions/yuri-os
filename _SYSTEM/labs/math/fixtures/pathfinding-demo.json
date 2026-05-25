@@ -1,0 +1,32 @@
+{
+  "schema": "yuri.math.pathfinding-fixture.v0",
+  "name": "dijkstra-vs-astar-demo",
+  "description": "Owned synthetic graph used to show why informed A* search can expand fewer nodes than Dijkstra while preserving optimality under an admissible heuristic.",
+  "graph": {
+    "directed": false,
+    "nodes": ["A", "B", "C", "D", "E", "F"],
+    "edges": [
+      { "from": "A", "to": "B", "weight": 4 },
+      { "from": "A", "to": "C", "weight": 2 },
+      { "from": "B", "to": "C", "weight": 5 },
+      { "from": "B", "to": "D", "weight": 10 },
+      { "from": "C", "to": "E", "weight": 3 },
+      { "from": "E", "to": "D", "weight": 4 },
+      { "from": "D", "to": "F", "weight": 11 }
+    ]
+  },
+  "source": "A",
+  "target": "F",
+  "heuristic": {
+    "A": 20,
+    "B": 21,
+    "C": 18,
+    "D": 11,
+    "E": 15,
+    "F": 0
+  },
+  "expected": {
+    "path": ["A", "C", "E", "D", "F"],
+    "cost": 20
+  }
+}

@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { inspectOpenDatabaseHealth, unavailableDatabaseHealth } from './lib/db-health.mjs';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const LABEL = 'com.yuri.wiki-rag';
 const NOTEBOOK_STABLE_KEY = 'yuri-os/wiki-control-plane';
 const RAW_DB_PATH = process.env.YURI_DB_PATH;
@@ -19,9 +19,9 @@ const INGEST_REPORT_PATH = path.join(REPO_ROOT, '_SYSTEM/yuri-wiki/reports/stale
 const LAUNCHD_REPORT_PATH = path.join(REPO_ROOT, '_SYSTEM/yuri-wiki/reports/staleness/09c-rag-launchd.md');
 const DB_PATH = RAW_DB_PATH && RAW_DB_PATH !== ':memory:'
   ? path.resolve(REPO_ROOT, RAW_DB_PATH)
-  : path.join(REPO_ROOT, 'backend/data/yuri.db');
+  : path.join(REPO_ROOT, '_SYSTEM', 'backend', 'data', 'yuri.db');
 const require = createRequire(import.meta.url);
-const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlite3'));
+const Database = require(path.join(REPO_ROOT, '_SYSTEM/backend/node_modules/better-sqlite3'));
 
 function readText(absPath) {
   return fs.readFileSync(absPath, 'utf8');
@@ -90,7 +90,7 @@ function main() {
   if (!(launchdOutput.includes('wiki-rag-launchd.mjs') && launchdOutput.includes('run'))) {
     issues.push('launchd arguments do not reference wiki-rag-launchd.mjs run');
   }
-  if (!/node Scripts\/wiki-rag-watch\.mjs/.test(spawnSync('pgrep', ['-fl', 'wiki-rag-watch'], { encoding: 'utf8' }).stdout ?? '')) {
+  if (!/(?:node\s+)?(?:_SYSTEM\/)?Scripts\/wiki-rag-watch\.mjs/.test(spawnSync('pgrep', ['-fl', 'wiki-rag-watch'], { encoding: 'utf8' }).stdout ?? '')) {
     issues.push('watcher process not found');
   }
 

@@ -3,6 +3,7 @@
 import { existsSync, readdirSync, statSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'fs';
 import { execFileSync, execSync } from 'child_process';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { evaluateToolCall } from './policy/yuri-safety-core.mjs';
 import { DEAD_NIM_LANES, isProtectedPath, safeRuntimePath } from './lane-kernel.mjs';
 import {
@@ -40,8 +41,10 @@ import {
   writePulseTraceSnapshot,
 } from './pulse-trace-ledger.mjs';
 
-const writeScope = process.env.DEEPSEEK_WRITE_SCOPE ? new Set(process.env.DEEPSEEK_WRITE_SCOPE.split(':').map(p => path.resolve(p))) : null;
-const MODEL_POLICY_PATH = path.resolve(process.cwd(), '.claude/config/models.json');
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(SCRIPT_DIR, '../..');
+const writeScope = process.env.DEEPSEEK_WRITE_SCOPE ? new Set(process.env.DEEPSEEK_WRITE_SCOPE.split(':').map(p => resolveRepoPath(p))) : null;
+const MODEL_POLICY_PATH = path.join(REPO_ROOT, '.claude/config/models.json');
 const MODEL_POLICY = loadModelPolicy();
 const LOCAL_MODEL_POLICY = MODEL_POLICY.local || {};
 const LOCAL_PRIMARY_MODEL = LOCAL_MODEL_POLICY.primary || 'needle';
@@ -53,6 +56,24 @@ const LOCAL_MULTIMODAL_MODEL = LOCAL_MODEL_POLICY.multimodal || 'gemma4:e2b';
 const LOCAL_FALLBACK_MODEL = LOCAL_MODEL_POLICY.fallback || 'llama3.2:latest';
 const LOCAL_FROZEN_MODELS = LOCAL_MODEL_POLICY.frozen || LOCAL_MODEL_POLICY.manual_only || [];
 const LOCAL_MANUAL_ONLY_MODELS = LOCAL_MODEL_POLICY.manual_only || LOCAL_FROZEN_MODELS;
+
+function resolveRepoPath(inputPath = '') {
+  const value = String(inputPath || '');
+  return path.isAbsolute(value) ? path.normalize(value) : path.resolve(REPO_ROOT, value);
+}
+
+function isInsideRepoRoot(absPath) {
+  const relative = path.relative(REPO_ROOT, absPath);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
+}
+
+function resolveToolCwd(cwd = '') {
+  const resolved = cwd ? resolveRepoPath(cwd) : REPO_ROOT;
+  if (!isInsideRepoRoot(resolved)) {
+    throw new Error(`cwd outside repo root: ${cwd}`);
+  }
+  return resolved;
+}
 
 function envOrKeychain(...names) {
   for (const name of names) {
@@ -313,7 +334,7 @@ function maybeAppendOffloadMemory(text, outputRail) {
 }
 
 function recordLaneOutputEvidence(result, exitCode = 0, outputRail = null) {
-  const logPath = safeRuntimePath('YURI_MEMORY_LEDGER_PATH', path.resolve(process.cwd(), '_SYSTEM', 'state', 'memory-ledger.jsonl'));
+  const logPath = safeRuntimePath('YURI_MEMORY_LEDGER_PATH', path.join(REPO_ROOT, '_SYSTEM', 'state', 'memory-ledger.jsonl'));
   if (!logPath) return;
   const text = resultText(result);
   const bytes = Buffer.byteLength(text || '', 'utf8');
@@ -1600,7 +1621,7 @@ function pickFirstExisting(candidates, localModels) {
 function listLocalModels() {
   const models = new Set();
   const manifestRoot = process.env.OLLAMA_MANIFEST_DIR || path.join(process.env.HOME || '', '.ollama/models/manifests/registry.ollama.ai/library');
-  const needleRepo = process.env.NEEDLE_REPO_DIR || path.join(process.cwd(), 'needle');
+  const needleRepo = process.env.NEEDLE_REPO_DIR || path.join(REPO_ROOT, 'needle');
 
   if (!existsSync(manifestRoot)) {
     if (existsSync(needleRepo)) models.add('needle');
@@ -2582,11 +2603,12 @@ async function executeTool(name, argsStr) {
     if (name === 'bash') {
       const { cmd, cwd } = args;
       if (!cmd) return 'ERROR: Missing cmd parameter';
-      const safety = evaluateToolCall('bash', { cmd, cwd }, { source: 'offload-runner' });
+      const toolCwd = resolveToolCwd(cwd);
+      const safety = evaluateToolCall('bash', { cmd, cwd: toolCwd }, { source: 'offload-runner' });
       if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
       try {
         const output = execSync(cmd, {
-          cwd: cwd || '/Users/marcelspatz/YURI-OS-MUSUBI',
+          cwd: toolCwd,
           encoding: 'utf-8',
           maxBuffer: 10 * 1024 * 1024,
           stdio: ['pipe', 'pipe', 'pipe']
@@ -2600,8 +2622,10 @@ async function executeTool(name, argsStr) {
     if (name === 'read_file') {
       const { path: filePath, lines } = args;
       if (!filePath) return 'ERROR: Missing path parameter';
+      const resolvedPath = resolveRepoPath(filePath);
+      if (!isInsideRepoRoot(resolvedPath)) return `SCOPE_BLOCKED: read outside repo root: ${filePath}`;
       try {
-        let content = readFileSync(filePath, 'utf-8');
+        let content = readFileSync(resolvedPath, 'utf-8');
         if (lines) {
           const fileLines = content.split('\n');
           content = fileLines.slice(0, lines).join('\n');
@@ -2615,13 +2639,15 @@ async function executeTool(name, argsStr) {
     if (name === 'write_file') {
       const { path: filePath, content } = args;
       if (!filePath || content === undefined) return 'ERROR: Missing path or content parameter';
-      if (writeScope && !writeScope.has(path.resolve(filePath))) {
+      const resolvedPath = resolveRepoPath(filePath);
+      if (!isInsideRepoRoot(resolvedPath)) return `SCOPE_BLOCKED: write outside repo root: ${filePath}`;
+      if (writeScope && !writeScope.has(resolvedPath)) {
         return 'SCOPE_BLOCKED: write to ' + filePath + ' is outside the dispatch write-scope manifest';
       }
       const safety = evaluateToolCall('write_file', { path: filePath }, { source: 'offload-runner' });
       if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
       try {
-        writeFileSync(filePath, content, 'utf-8');
+        writeFileSync(resolvedPath, content, 'utf-8');
         return `✓ Wrote ${content.length} bytes to ${filePath}`;
       } catch (e) {
         return `write_file error: ${e.message}`;
@@ -2635,7 +2661,7 @@ async function executeTool(name, argsStr) {
       if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
       try {
         const output = execSync(`grep -${flags} "${pattern}" "${targetPath || '.'}"`, {
-          cwd: '/Users/marcelspatz/YURI-OS-MUSUBI',
+          cwd: REPO_ROOT,
           encoding: 'utf-8',
           maxBuffer: 2 * 1024 * 1024,
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -2649,9 +2675,11 @@ async function executeTool(name, argsStr) {
     if (name === 'list_dir') {
       const { path: dirPath } = args;
       if (!dirPath) return 'ERROR: Missing path parameter';
+      const resolvedPath = resolveRepoPath(dirPath);
+      if (!isInsideRepoRoot(resolvedPath)) return `SCOPE_BLOCKED: list outside repo root: ${dirPath}`;
       try {
         const { readdirSync: rds, statSync: ss } = await import('node:fs');
-        const entries = rds(dirPath, { withFileTypes: true });
+        const entries = rds(resolvedPath, { withFileTypes: true });
         return entries.map(e => `${e.isDirectory() ? 'd' : 'f'} ${e.name}`).join('\n');
       } catch (e) {
         return `list_dir error: ${e.message}`;
@@ -2663,14 +2691,16 @@ async function executeTool(name, argsStr) {
       if (!filePath || old_string === undefined || new_string === undefined) return 'ERROR: Missing path, old_string, or new_string';
       const safety = evaluateToolCall('write_file', { path: filePath }, { source: 'offload-runner' });
       if (!safety.allowed) return `SAFETY_BLOCKED: ${safety.reason}`;
-      if (writeScope && !writeScope.has(path.resolve(filePath))) {
+      const resolvedPath = resolveRepoPath(filePath);
+      if (!isInsideRepoRoot(resolvedPath)) return `SCOPE_BLOCKED: edit outside repo root: ${filePath}`;
+      if (writeScope && !writeScope.has(resolvedPath)) {
         return 'SCOPE_BLOCKED: edit to ' + filePath + ' is outside write-scope manifest';
       }
       try {
-        const content = readFileSync(filePath, 'utf-8');
+        const content = readFileSync(resolvedPath, 'utf-8');
         if (!content.includes(old_string)) return `edit_file error: old_string not found in ${filePath}`;
         const updated = content.replace(old_string, new_string);
-        writeFileSync(filePath, updated, 'utf-8');
+        writeFileSync(resolvedPath, updated, 'utf-8');
         return `✓ Edited ${filePath}`;
       } catch (e) {
         return `edit_file error: ${e.message}`;
@@ -2680,7 +2710,7 @@ async function executeTool(name, argsStr) {
     if (name === 'skill_invoke') {
       const { skill_name } = args;
       if (!skill_name) return 'ERROR: Missing skill_name parameter';
-      const skillPath = path.join('/Users/marcelspatz/YURI-OS-MUSUBI', '.claude', 'skills', skill_name, 'SKILL.md');
+      const skillPath = path.join(REPO_ROOT, '.claude', 'skills', skill_name, 'SKILL.md');
       try {
         const content = readFileSync(skillPath, 'utf-8');
         return `SKILL_INSTRUCTIONS [${skill_name}]:\n${content.slice(0, 4000)}`;
@@ -2696,7 +2726,7 @@ async function executeTool(name, argsStr) {
         const safeQuery = query.replace(/"/g, '\\"');
         const out = execSync(
           `node _SYSTEM/Scripts/memory-query.mjs "${safeQuery}" --top ${top}`,
-          { cwd: '/Users/marcelspatz/YURI-OS-MUSUBI', encoding: 'utf-8', maxBuffer: 2 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }
+          { cwd: REPO_ROOT, encoding: 'utf-8', maxBuffer: 2 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }
         );
         return out.trim() || '(no results)';
       } catch (e) {

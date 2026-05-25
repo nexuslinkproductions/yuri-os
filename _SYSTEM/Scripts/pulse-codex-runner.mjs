@@ -25,7 +25,7 @@ const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 const PENDING_PATH = path.join(STATE_DIR, 'pulse-codex-pending.json');
 const APPROVED_PATH = path.join(STATE_DIR, 'pulse-codex-pending.approved');
 const ERROR_LOG = path.join(STATE_DIR, 'pulse-errors.log');
-const OFFLOAD_SH = path.join(REPO_ROOT, 'Scripts', 'offload.sh');
+const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload.sh');
 
 const TIMEOUT_PROPOSE_MS = 120_000;
 const TIMEOUT_APPLY_MS   = 180_000;

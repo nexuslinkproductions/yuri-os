@@ -258,7 +258,7 @@ test('offload runner substitutes quarantined NIM lanes before dispatch', { timeo
   }
 });
 
-test('offload runner blocks lane output when declared evidence ids are missing', { timeout: 10_000 }, async (t) => {
+test('offload runner preserves lane output as advisory when declared evidence ids are missing', { timeout: 10_000 }, async (t) => {
   if (!(await allowOnlyIfBindable(t))) return;
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'yuri-offload-output-rails-'));
   const server = http.createServer((req, res) => {
@@ -271,7 +271,7 @@ test('offload runner blocks lane output when declared evidence ids are missing',
     req.resume();
     req.on('end', () => {
       res.writeHead(200, { 'content-type': 'application/json' });
-      res.end(jsonChatResponse('nvidia/mistral-medium-3.1', 'model output should be blocked'));
+      res.end(jsonChatResponse('nvidia/mistral-medium-3.1', 'model output should be preserved'));
     });
   });
 
@@ -282,16 +282,18 @@ test('offload runner blocks lane output when declared evidence ids are missing',
       YURI_OUTPUT_REQUIRED_EVIDENCE_IDS: 'source-a,source-b',
       YURI_OUTPUT_EVIDENCE_IDS: 'source-a',
     });
-    const outputFile = path.join(tmpDir, 'blocked-output.txt');
+    const outputFile = path.join(tmpDir, 'advisory-output.txt');
     const result = await runOffload(['nvidia-mistral-medium', '--output-file', outputFile, 'say ok'], env);
 
-    assert.equal(result.status, 2);
-    assert.equal(result.stdout.includes('model output should be blocked'), false);
-    assert.equal(existsSync(outputFile), false);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.includes('model output should be preserved'), true);
+    assert.equal(result.stdout.includes('[ADVISORY_HYPOTHESIS_ONLY]'), true);
+    assert.equal(existsSync(outputFile), true);
+    assert.match(readFileSync(outputFile, 'utf8'), /model output should be preserved/);
     assert.match(result.stderr, /required output evidence missing: source-b/);
     const memoryLedger = readFileSync(path.join(tmpDir, 'memory-ledger.jsonl'), 'utf8');
-    assert.match(memoryLedger, /"exitCode":2/);
-    assert.match(memoryLedger, /"ok":false/);
+    assert.match(memoryLedger, /"exitCode":0/);
+    assert.match(memoryLedger, /"ok":true/);
     assert.match(memoryLedger, /required output evidence missing: source-b/);
   } finally {
     server.close();

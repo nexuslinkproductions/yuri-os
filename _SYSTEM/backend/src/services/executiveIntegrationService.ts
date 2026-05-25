@@ -32,20 +32,6 @@ export interface ExecutiveIntegrationRoute {
 
 const EXECUTIVE_INTEGRATION_LANES: ExecutiveIntegrationLane[] = [
     {
-        lane: 'trading',
-        title: 'Trading Intelligence',
-        integrationSurface: 'tradingControlPlane',
-        actionGate: 'simulation_only',
-        nativeServices: ['tradingScoreService', 'smartRouter', 'headlessControlPlaneService'],
-        inspiredBy: [
-            source('AutoHedge', 'https://github.com/The-Swarm-Corporation/AutoHedge', 'multi-agent market, risk, and execution decomposition'),
-            source('Vibe-Trading', 'https://github.com/HKUDS/Vibe-Trading', 'trading skills, memory, MCP, swarm presets, and backtest loop'),
-            source('Fincept Terminal', 'https://github.com/Fincept-Corporation/FinceptTerminal', 'finance terminal research UX and market-analysis cockpit')
-        ],
-        capabilities: ['market_signal_routing', 'risk_gating', 'backtest_preparation', 'paper_execution_preparation'],
-        blockedActions: ['live_exchange_execution', 'custodial_key_management']
-    },
-    {
         lane: 'growth',
         title: 'Growth Audit',
         integrationSurface: 'siteBuilderService',
@@ -137,7 +123,6 @@ function source(name: string, url: string, absorbedAs: string): ExternalRepoSour
 function nextActionFor(actionGate: ActionGate): string {
     if (actionGate === 'approval_required') return 'Prepare approval packet before any external action.';
     if (actionGate === 'confirm_before_send') return 'Create a draft and require explicit send confirmation.';
-    if (actionGate === 'simulation_only') return 'Create simulation or paper-trading artifacts only.';
     if (actionGate === 'capture_only') return 'Capture evidence and attach it to the active request.';
     if (actionGate === 'render_only') return 'Create a render job and keep publication separate.';
     if (actionGate === 'draft_only') return 'Create governed draft artifacts for operator review.';

@@ -12,6 +12,7 @@ import { fileURLToPath }   from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..') // Scripts/ → _SYSTEM/ → repo root;
+const BACKEND_ROOT = path.join(REPO_ROOT, '_SYSTEM', 'backend');
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
 const DEFAULTS = {
@@ -167,7 +168,7 @@ async function main() {
 
   const { path: probePath, expectUnauth, expectAuth, expectBody,
           port, host, apiKey, timeoutMs } = opts;
-  const DB = path.join(REPO_ROOT, 'backend', 'data', 'yuri.db');
+  const DB = path.join(BACKEND_ROOT, 'data', 'yuri.db');
 
   // Port busy guard — exits nonzero if already occupied
   if (await portBusy(port)) {
@@ -202,11 +203,11 @@ async function main() {
   };
 
   // Spawn backend via local ts-node
-  const tsNodeBin  = path.join(REPO_ROOT, 'backend', 'node_modules', '.bin', 'ts-node');
-  const serverFile = path.join(REPO_ROOT, 'backend', 'src', 'server.ts');
+  const tsNodeBin  = path.join(BACKEND_ROOT, 'node_modules', '.bin', 'ts-node');
+  const serverFile = path.join(BACKEND_ROOT, 'src', 'server.ts');
   const logLines   = [];
   const proc = spawn(tsNodeBin, [serverFile], {
-    cwd:   REPO_ROOT,
+    cwd:   BACKEND_ROOT,
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
   });

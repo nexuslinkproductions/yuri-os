@@ -11,12 +11,14 @@ import {
 import * as fs from "fs";
 import * as path from "path";
 import { promisify } from "util";
+import { fileURLToPath } from "url";
 
 const readDir = promisify(fs.readdir);
 const readFile = promisify(fs.readFile);
 const stat = promisify(fs.stat);
 
-const VAULT_ROOT = "/Users/marcelspatz/YURI-OS-MUSUBI";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const VAULT_ROOT = path.resolve(__dirname, "../../../..");
 
 interface VaultFile {
   path: string;

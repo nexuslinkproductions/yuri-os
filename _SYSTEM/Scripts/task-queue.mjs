@@ -30,8 +30,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT  = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
 const STATE_DIR  = path.join(REPO_ROOT, '.claude', 'state');
 const QUEUE_FILE = path.join(STATE_DIR, 'task-queue.json');
-const OFFLOAD_SH = path.join(REPO_ROOT, 'Scripts', 'offload.sh');
-const CODEX_RUNNER = path.join(REPO_ROOT, 'Scripts', 'codex-offload-runner.mjs');
+const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload.sh');
+const CODEX_RUNNER = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'codex-offload-runner.mjs');
 
 const TASK_TIMEOUT_MS = 10 * 60 * 1000; // 10 min per task ceiling
 

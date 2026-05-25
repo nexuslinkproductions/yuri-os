@@ -12,6 +12,7 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 const { readdir, stat } = require("fs").promises;
+const REPO_ROOT = path.resolve(__dirname, '../../..');
 
 const server = new Server({
   name: "nexus-core",
@@ -150,14 +151,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "run_shell":
         result = execSync(args.command, {
-          cwd: args.cwd || process.cwd(),
+          cwd: args.cwd || REPO_ROOT,
           encoding: "utf-8",
         });
         break;
 
       case "git_command":
         result = execSync(`git ${args.command}`, {
-          cwd: args.cwd || process.cwd(),
+          cwd: args.cwd || REPO_ROOT,
           encoding: "utf-8",
         });
         break;

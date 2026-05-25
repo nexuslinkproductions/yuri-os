@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ → _SYSTEM/ → repo root
-const BACKEND_SOURCE_ROOT = path.join(REPO_ROOT, 'backend');
+const BACKEND_SOURCE_ROOT = path.join(REPO_ROOT, '_SYSTEM', 'backend');
 const BACKEND_REQUIRE_ROOT = path.resolve(process.env.YURI_BACKEND_REQUIRE_ROOT || BACKEND_SOURCE_ROOT);
 const BACKEND_NODE_MODULES = path.join(BACKEND_REQUIRE_ROOT, 'node_modules');
 process.env.NODE_PATH = [BACKEND_NODE_MODULES, process.env.NODE_PATH].filter(Boolean).join(path.delimiter);
@@ -40,7 +40,7 @@ const {
   getSessionImprovementSummary,
 } = service;
 
-const DEFAULT_DB = path.join(REPO_ROOT, 'backend/data/yuri.db');
+const DEFAULT_DB = path.join(REPO_ROOT, '_SYSTEM', 'backend', 'data', 'yuri.db');
 
 main();
 

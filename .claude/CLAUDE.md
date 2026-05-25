@@ -7,7 +7,7 @@ This file is a secondary extension layer for local Claude tooling behavior. If a
 
 Canonical repository root:
 
-- `/Users/marcelspatz/YURI-OS-MUSUBI`
+- this workspace root
 
 Canonical branch:
 
@@ -15,7 +15,7 @@ Canonical branch:
 
 Before any Yuri OS / Musubi sprint, audit, validation, cleanup, patch, report, config work, or local CLI task, first verify:
 
-- `pwd` equals `/Users/marcelspatz/YURI-OS-MUSUBI`
+- `pwd` resolves to this workspace root
 - `git branch --show-current` equals `main`
 
 If either check fails:

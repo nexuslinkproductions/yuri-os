@@ -257,7 +257,7 @@ function renderLeftPanel(sessionId, leftWidth) {
     return piece(pad(row, leftWidth), tone, { bold: index < 7 });
   });
   rows.push(piece(pad('神鏡 · YURI OS', leftWidth), COLORS.gold, { bold: true }));
-  rows.push(piece(pad('/Users/marcelspatz/YURI-OS-MUSUBI', leftWidth), COLORS.dim, { dim: true }));
+  rows.push(piece(pad(REPO_ROOT, leftWidth), COLORS.dim, { dim: true }));
   rows.push(piece(pad(`Session: ${sessionId}`, leftWidth), COLORS.dim, { dim: true }));
   return rows;
 }

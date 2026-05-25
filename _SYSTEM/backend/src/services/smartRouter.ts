@@ -19,8 +19,7 @@ export type BridgeTaskIntent =
     | 'audit_security'
     | 'custom';
 export type YuriIntegrationIntent =
-    'market_risk'
-    | 'growth_audit'
+    'growth_audit'
     | 'browser_research'
     | 'inbox_comms'
     | 'media_render';
@@ -39,18 +38,16 @@ export type PreferredRuntime = 'local' | 'cloud' | 'hybrid';
 export type CompressionMode = 'off' | 'safe' | 'aggressive';
 export type ReasoningBudget = 'cheap' | 'balanced' | 'deep';
 export type RetrievalProfile = 'YURI_SYSTEM' | 'CROSS_VAULT_SYNTHESIS';
-export type YuriIntegrationLane = 'core' | 'trading' | 'growth' | 'browser' | 'inbox' | 'media';
+export type YuriIntegrationLane = 'core' | 'growth' | 'browser' | 'inbox' | 'media';
 export type ActionGate =
     'none'
     | 'draft_only'
-    | 'simulation_only'
     | 'approval_required'
     | 'confirm_before_send'
     | 'capture_only'
     | 'render_only';
 export type IntegrationSurface =
     'oracle'
-    | 'tradingControlPlane'
     | 'siteBuilderService'
     | 'browserAutomation'
     | 'agenticInbox'
@@ -127,11 +124,6 @@ const DEFAULT_INTEGRATION_PROFILE: IntegrationProfile = {
 };
 
 const INTEGRATION_PROFILES: Partial<Record<NeuralTaskIntent, IntegrationProfile>> = {
-    market_risk: {
-        yuriLane: 'trading',
-        actionGate: 'simulation_only',
-        integrationSurface: 'tradingControlPlane'
-    },
     growth_audit: {
         yuriLane: 'growth',
         actionGate: 'draft_only',
@@ -174,7 +166,7 @@ export class SmartRouter {
         const fallbackChain = policyRoute
             ? this.buildPolicyFallbackChain(preferredModel, policyRoute)
             : this.buildFallbackChain(preferredModel, intent, preferredRuntime, complexity, options, providerStatus);
-        const integrationProfile = this.integrationProfileFor(intent, queryLower);
+        const integrationProfile = this.integrationProfileFor(intent);
 
         console.log(
             `⬡ SMART_ROUTER :: intent=${intent} complexity=${complexity} risk=${risk} runtime=${preferredRuntime} model=${preferredModel}`
@@ -196,13 +188,6 @@ export class SmartRouter {
     }
 
     private static detectIntent(queryLower: string): NeuralTaskIntent {
-        if (this.hasAny(queryLower, [
-            'backtest', 'paper trading', 'live execution', 'position sizing', 'funding', 'whale', 'dex',
-            'market signal', 'market signals', 'portfolio', 'solana position', 'solana positions', 'autohedge', 'vibe-trading'
-        ])) {
-            return 'market_risk';
-        }
-
         if (this.hasAny(queryLower, [
             'seo', 'google ads', 'meta ads', 'ppc', 'search console', 'structured data',
             'campaign audit', 'ad audit', 'ads audit', 'landing page audit', 'toprank', 'claude ads'
@@ -301,7 +286,7 @@ export class SmartRouter {
         if (intent === 'code_edit_small' || intent === 'summarization' || intent === 'extraction') return 'cheap';
         if (intent === 'code_edit_large' || intent === 'research_repo') return 'balanced';
         if (intent === 'architecture_review' || intent === 'audit_security') return 'deep';
-        if (intent === 'market_risk' || intent === 'growth_audit' || intent === 'media_render') return 'balanced';
+        if (intent === 'growth_audit' || intent === 'media_render') return 'balanced';
         if (intent === 'browser_research' || intent === 'inbox_comms') return mediumInput ? 'balanced' : 'cheap';
 
         if (
@@ -330,11 +315,6 @@ export class SmartRouter {
         if (intent === 'audit_security') return 'high';
         if (intent === 'code_edit_large' || intent === 'architecture_review') return 'medium';
         if (intent === 'code_edit_small' || intent === 'research_repo' || intent === 'summarization' || intent === 'extraction') return 'low';
-        if (intent === 'market_risk') {
-            return this.hasAny(queryLower, ['live execution', 'execute', 'order', 'real money', 'approve trade', 'position'])
-                ? 'high'
-                : 'medium';
-        }
         if (intent === 'growth_audit') return 'medium';
         if (intent === 'browser_research') return 'low';
         if (intent === 'inbox_comms') return 'high';
@@ -405,7 +385,6 @@ export class SmartRouter {
         }
 
         if (intent === 'coding') return LOCAL_CODE_MODEL;
-        if (intent === 'market_risk') return LOCAL_DEEP_REASONING_MODEL;
         if (intent === 'media_render') return LOCAL_PRIMARY_MODEL;
         if (complexity === 'cheap' || intent === 'ops' || intent === 'retrieval') return LOCAL_UTILITY_MODEL;
         if (complexity === 'deep') return LOCAL_DEEP_REASONING_MODEL;
@@ -477,11 +456,8 @@ export class SmartRouter {
         return [...new Set(ordered)];
     }
 
-    private static integrationProfileFor(intent: NeuralTaskIntent, queryLower: string): IntegrationProfile {
+    private static integrationProfileFor(intent: NeuralTaskIntent): IntegrationProfile {
         const profile = INTEGRATION_PROFILES[intent] || DEFAULT_INTEGRATION_PROFILE;
-        if (intent === 'market_risk' && this.hasAny(queryLower, ['live execution', 'execute', 'order', 'real money', 'approve trade', 'position'])) {
-            return { ...profile, actionGate: 'approval_required' };
-        }
         return profile;
     }
 

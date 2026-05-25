@@ -1,0 +1,83 @@
+{
+  "schema": "yuri.math.formula-bank.v0",
+  "id": "graph-search",
+  "version": "0.2.0",
+  "promotionStatus": "verified-baseline",
+  "advisoryOnly": false,
+  "formulas": [
+    {
+      "id": "astar-evaluation",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "graph-search",
+      "notation": "f(n) = g(n) + h(n)",
+      "purpose": "Rank frontier nodes by known path cost plus estimated remaining cost.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#astar",
+      "variables": [
+        { "symbol": "g(n)", "meaning": "known cost from source to node n", "type": "number", "constraints": ["finite or Infinity"] },
+        { "symbol": "h(n)", "meaning": "heuristic estimate from n to target", "type": "number", "constraints": ["finite", "h(n) >= 0"] }
+      ],
+      "assumptions": ["edge weights are non-negative", "strict optimality requires admissible heuristic"],
+      "invalidInputs": ["unknown nodes", "negative edge weights", "non-finite heuristic values"],
+      "failureModes": ["An overestimating heuristic can produce non-optimal paths unless strict validation catches it."],
+      "workedExamples": [
+        {
+          "name": "pathfinding fixture",
+          "input": { "fixture": "_SYSTEM/labs/math/fixtures/pathfinding-demo.json" },
+          "expected": { "path": ["A", "C", "E", "D", "F"], "cost": 20 },
+          "interpretation": "A* matches Dijkstra on the fixture while expanding fewer nodes."
+        }
+      ],
+      "proofObligations": ["non_negative_edges", "admissible_heuristic_for_optimality"]
+    },
+    {
+      "id": "dijkstra-relaxation",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "graph-search",
+      "notation": "dist(v) = min(dist(v), dist(u) + w(u,v))",
+      "purpose": "Maintain shortest known path costs over weighted graphs with non-negative edge weights.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#dijkstra",
+      "variables": [
+        { "symbol": "dist(v)", "meaning": "best known distance to node v", "type": "number", "constraints": ["finite or Infinity"] },
+        { "symbol": "w(u,v)", "meaning": "edge weight from u to v", "type": "number", "constraints": ["w(u,v) >= 0"] }
+      ],
+      "assumptions": ["all edge weights are non-negative"],
+      "invalidInputs": ["unknown nodes", "negative edge weights", "non-finite weights"],
+      "failureModes": ["Dijkstra is not valid for graphs whose path costs include negative edges."],
+      "workedExamples": [
+        {
+          "name": "pathfinding fixture",
+          "input": { "fixture": "_SYSTEM/labs/math/fixtures/pathfinding-demo.json" },
+          "expected": { "path": ["A", "C", "E", "D", "F"], "cost": 20 },
+          "interpretation": "Dijkstra provides the uninformed shortest-path baseline."
+        }
+      ],
+      "proofObligations": ["non_negative_edges", "priority_queue_extracts_minimum_cost"]
+    },
+    {
+      "id": "topological-dependency-order",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "graph-ordering",
+      "notation": "for every edge u -> v, u appears before v",
+      "purpose": "Order dependency DAGs and reject cyclic plans.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#topologicalSort",
+      "variables": [
+        { "symbol": "u -> v", "meaning": "dependency edge from prerequisite u to dependent v", "type": "edge", "constraints": ["u and v are known nodes"] }
+      ],
+      "assumptions": ["graph is directed", "valid ordering exists only for acyclic graphs"],
+      "invalidInputs": ["empty node set", "unknown nodes", "cycles"],
+      "failureModes": ["A cycle means there is no valid dependency order until the dependency model is changed."],
+      "workedExamples": [
+        {
+          "name": "simple dependency chain",
+          "input": { "nodes": ["research", "kernel", "lab", "gate"], "edges": [["research", "kernel"], ["kernel", "lab"], ["kernel", "gate"]] },
+          "expected": { "order": ["research", "kernel", "lab", "gate"] },
+          "interpretation": "Research must precede kernel work, and kernel work precedes lab/gate work."
+        }
+      ],
+      "proofObligations": ["directed_graph", "cycle_detection"]
+    }
+  ]
+}

@@ -20,8 +20,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { stdout } from 'node:process'
+import { fileURLToPath } from 'node:url'
 
-const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI'
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const HOME = os.homedir()
 const WORKHORSE_ARTIFACT_ROOT = path.join(HOME, '.yuri', 'workhorse-runs')
 const ARCHIVE_DIR = '_SYSTEM/yuri-history-archive'
@@ -123,8 +124,8 @@ function writeSurface(name) {
 
 function inventoryRules() {
   const claudeRulesDir = path.join(REPO_ROOT, '.claude', 'rules')
-  const sysConfigPath = path.join(REPO_ROOT, 'backend/src/config/SystemConfig.ts')
-  const vaultSourcePath = path.join(REPO_ROOT, 'backend/src/services/vaultIngestion.ts')
+  const sysConfigPath = path.join(REPO_ROOT, '_SYSTEM/backend/src/config/SystemConfig.ts')
+  const vaultSourcePath = path.join(REPO_ROOT, '_SYSTEM/backend/src/services/vaultIngestion.ts')
 
   const parts = []
 
@@ -138,7 +139,7 @@ function inventoryRules() {
 }
 
 function inventoryVault() {
-  const vaultIngestionPath = path.join(REPO_ROOT, 'backend/src/services/vaultIngestion.ts')
+  const vaultIngestionPath = path.join(REPO_ROOT, '_SYSTEM/backend/src/services/vaultIngestion.ts')
   const obsidianDir = path.join(REPO_ROOT, '.obsidian')
 
   if (!fs.existsSync(obsidianDir)) {
@@ -236,7 +237,7 @@ function inventoryWorkhorse() {
 
 function inventoryClaudeRuntime() {
   const surfaces = [
-    { name: 'rag_db', path: 'backend/data' },
+    { name: 'rag_db', path: '_SYSTEM/backend/data' },
     { name: 'claude_state', path: '.claude/state' },
     { name: 'claude_history', path: '.claude/history' },
     { name: 'claude_projects', path: '.claude/projects' },

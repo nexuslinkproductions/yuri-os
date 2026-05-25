@@ -327,7 +327,7 @@ export class SiteBuilderService {
                 'Selected node still renders on its registered route.',
                 'No unrelated public website visuals change.',
                 'Run npm run build.',
-                'Run npm --prefix backend run build if backend contract changes.'
+                'Run npm --prefix _SYSTEM/backend run build if backend contract changes.'
             ]
         };
         const markdown = this.buildPacketMarkdown(packet, nodeDef, intent);

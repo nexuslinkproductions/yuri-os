@@ -5,11 +5,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
 
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const BACKEND_ROOT = path.join(REPO_ROOT, '_SYSTEM/backend');
 const PORT = 3342;
 const API_KEY = 'test-api-key-123456';
 const SERVER_READY = /YURI_BACKEND_ONLINE/;
-const serverSource = fs.readFileSync(path.join(process.cwd(), 'backend/src/server.ts'), 'utf8');
+const serverSource = fs.readFileSync(path.join(BACKEND_ROOT, 'src/server.ts'), 'utf8');
 
 assert.equal(/Math\.random\s*\(/.test(serverSource), false, 'backend status paths must not use Math.random()');
 assert.equal(/fake(?:Latency|Request|Error)/i.test(serverSource), false, 'backend status paths must not expose fake observability values');
@@ -48,8 +51,8 @@ try {
 }
 
 async function startBackend() {
-  const proc = spawn('npm', ['--prefix', 'backend', 'run', 'dev'], {
-    cwd: process.cwd(),
+  const proc = spawn('npm', ['run', 'dev'], {
+    cwd: BACKEND_ROOT,
     env: {
       ...process.env,
       API_KEY,

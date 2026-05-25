@@ -43,7 +43,7 @@ const CLIENT_LENS_BY_RAIL = Object.freeze({
   'retrieval-memory-provenance-rail': {
     buyerClaim: 'YURI can flag memory and retrieval poisoning before unsafe content is promoted into durable context.',
     demoStep: 'Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.',
-    nextProof: 'Provenance scores and multi-hop RAG conflict proof now exist; next add rollback demonstrations.',
+    nextProof: 'Provenance scores and multi-hop RAG conflict proof now exist; synthetic memory rollback proof now exists; next expand corpus coverage without touching live memory stores.',
   },
   'owned-lab-research-boundary-rail': {
     buyerClaim: 'YURI can document vulnerable owned lab patterns without crossing into unauthorized target activity.',
@@ -126,7 +126,7 @@ export function renderCyberProofCardsMarkdown(model = buildCyberProofCards()) {
     '',
     '## Purpose',
     '',
-    'These cards translate YURI cyber fixture proof into buyer-readable evidence. They are for Upgreat-style pilot conversations: concrete enough to inspect, scoped enough to avoid overclaiming.',
+    'These cards translate YURI cyber fixture proof into buyer-readable evidence. They are for practical security review conversations: concrete enough to inspect, scoped enough to avoid overclaiming.',
     '',
     '## Boundaries',
     '',

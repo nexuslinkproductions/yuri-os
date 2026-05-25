@@ -1,10 +1,15 @@
+const path = require('node:path');
+
+const REPO_ROOT = __dirname;
+const BACKEND_ROOT = path.join(REPO_ROOT, '_SYSTEM', 'backend');
+
 module.exports = {
   apps: [
     {
       name: 'yuri-os-musubi-backend',
       script: 'node',
       args: 'dist/server.js',
-      cwd: '/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/backend',
+      cwd: BACKEND_ROOT,
       exec_mode: 'fork',
       instances: 1,
       env: {
@@ -24,7 +29,7 @@ module.exports = {
       name: 'yuri-os-musubi-frontend',
       script: 'npm',
       args: 'run dev',
-      cwd: '/Users/marcelspatz/YURI-OS-MUSUBI',
+      cwd: REPO_ROOT,
       env: {
         NODE_ENV: 'development',
         PORT: 5173

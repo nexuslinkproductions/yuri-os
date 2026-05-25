@@ -1,0 +1,79 @@
+{
+  "schema": "yuri.math-lab-harness.v0",
+  "generatedAt": "2026-05-24T00:00:00.000Z",
+  "purpose": "Governed polyglot lab surface for YURI mathematical operating substrate experiments.",
+  "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+  "writesRuntimeTruth": false,
+  "adapters": [
+    {
+      "schema": "yuri.math.adapter.v0",
+      "id": "node-math-core",
+      "engine": "node",
+      "capabilities": [
+        "entropy",
+        "kl-divergence",
+        "cross-entropy",
+        "confidence-decay",
+        "dijkstra",
+        "astar",
+        "topological-sort"
+      ],
+      "runMode": "core",
+      "promotionStatus": "verified-baseline",
+      "writesRuntimeTruth": false
+    },
+    {
+      "schema": "yuri.math.adapter.v0",
+      "id": "python-visual-proof",
+      "engine": "python",
+      "capabilities": [
+        "dijkstra-trace",
+        "astar-trace",
+        "graph-visualization",
+        "topological-visualization"
+      ],
+      "runMode": "lab",
+      "promotionStatus": "research",
+      "writesRuntimeTruth": false
+    },
+    {
+      "schema": "yuri.math.adapter.v0",
+      "id": "python-networkx",
+      "engine": "python-networkx",
+      "capabilities": [
+        "dijkstra",
+        "astar",
+        "shortest-path-cross-check",
+        "graph-visualization"
+      ],
+      "runMode": "lab",
+      "promotionStatus": "research",
+      "writesRuntimeTruth": false
+    },
+    {
+      "schema": "yuri.math.adapter.v0",
+      "id": "sympy-symbolic",
+      "engine": "python-sympy",
+      "capabilities": [
+        "symbolic-simplification",
+        "formula-bank-validation",
+        "eml-sandbox-precheck"
+      ],
+      "runMode": "research",
+      "promotionStatus": "research",
+      "writesRuntimeTruth": false
+    }
+  ],
+  "labs": [
+    {
+      "id": "dijkstra-vs-astar-visual-proof",
+      "title": "Dijkstra vs A* Visual Proof",
+      "fixture": "fixtures/pathfinding-demo.json",
+      "script": "visual-proof-lab.py",
+      "runMode": "fixture-only",
+      "enabled": true,
+      "externalTargetsAllowed": false,
+      "proofTarget": "algorithmic-operating-layer"
+    }
+  ]
+}

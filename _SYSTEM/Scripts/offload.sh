@@ -430,10 +430,10 @@ dry_run_model_override() {
         fi
         case "$target_model" in
           deepseek-v4-flash|deepseek-v4-pro)
-            run_offload_runner "$target_model" "$prompt" --dry-run ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
+            run_offload_runner "$target_model" "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
             ;;
           deepseek)
-            run_offload_runner deepseek-v4-flash "$prompt" --dry-run ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
+            run_offload_runner deepseek-v4-flash "$prompt" --dry-run ${reasoning_args[@]+"${reasoning_args[@]}"} ${_ds_tool_args[@]+"${_ds_tool_args[@]}"}
             ;;
         esac
         ;;
@@ -470,7 +470,7 @@ dispatch_model() {
   case "$target_model" in
       claude-3-5-sonnet-liberated|claude-3-5-sonnet|claude-3-opus|claude)
         printf '%s\n' "⬡ ROUTING_TO_CLAUDE..." >&2
-        /Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/ai claude "$prompt"
+        "$SCRIPT_DIR/ai" claude "$prompt"
         ;;
       # Deprecated Moonshot/Kimi compatibility path. Keep manual aliasing only.
       kimi-k2.6|kimi-k2.5-liberated|kimi-k2.5|kimi|moonshot)
@@ -491,7 +491,7 @@ dispatch_model() {
         ;;
       deepseek-v4-flash|deepseek-v4-pro)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [$target_model]..." >&2
-        run_offload_runner "$target_model" "$prompt" ${tool_args[@]+"${tool_args[@]}"}
+        run_offload_runner "$target_model" "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
         ;;
       deepseek-r1:8b|deepseek-r1:latest|deepseek-liberated:latest|deepseek-v2:16b)
         printf '%s\n' "⬡ DEEPSEEK_LOCAL_FROZEN :: local DeepSeek models disabled to prevent system hangs" >&2
@@ -499,7 +499,7 @@ dispatch_model() {
         ;;
       deepseek)
         printf '%s\n' "⬡ ROUTING_TO_DEEPSEEK_DIRECT [deepseek-v4-flash]..." >&2
-        run_offload_runner deepseek-v4-flash "$prompt" ${tool_args[@]+"${tool_args[@]}"}
+        run_offload_runner deepseek-v4-flash "$prompt" ${reasoning_args[@]+"${reasoning_args[@]}"} ${tool_args[@]+"${tool_args[@]}"}
         ;;
       nvidia-deepseek|nvidia-deepseek-v4-pro|nvidia-deepseek-v4-flash)
         printf '%s\n' "⬡ NVIDIA_DEEPSEEK_RETIRED :: use direct deepseek-v4-pro or deepseek-v4-flash" >&2

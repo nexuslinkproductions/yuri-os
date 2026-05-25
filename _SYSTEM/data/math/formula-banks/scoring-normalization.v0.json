@@ -1,0 +1,111 @@
+{
+  "schema": "yuri.math.formula-bank.v0",
+  "id": "scoring-normalization",
+  "version": "0.2.0",
+  "promotionStatus": "verified-baseline",
+  "advisoryOnly": false,
+  "formulas": [
+    {
+      "id": "weighted-mean",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "statistics",
+      "notation": "mu_w = sum_i w_i x_i / sum_i w_i",
+      "purpose": "Aggregate finite values according to explicit non-negative weights.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#weightedMean",
+      "variables": [
+        { "symbol": "x_i", "meaning": "finite value", "type": "number", "constraints": ["finite"] },
+        { "symbol": "w_i", "meaning": "non-negative weight", "type": "number", "constraints": ["w_i >= 0", "sum_i w_i > 0"] }
+      ],
+      "assumptions": ["weights are explicit and comparable"],
+      "invalidInputs": ["empty arrays", "unequal lengths", "negative weights", "zero weight sum"],
+      "failureModes": ["Weights can encode policy bias; formula correctness does not validate the weighting policy."],
+      "workedExamples": [
+        {
+          "name": "weighted average fixture",
+          "input": { "values": [1, 2, 3], "weights": [1, 1, 2] },
+          "expected": { "mean": 2.25 },
+          "interpretation": "The final value receives twice the mass of each earlier value."
+        }
+      ],
+      "proofObligations": ["positive_weight_sum", "equal_lengths"]
+    },
+    {
+      "id": "weighted-variance",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "statistics",
+      "notation": "var_w = sum_i w_i (x_i - mu_w)^2 / sum_i w_i",
+      "purpose": "Measure weighted spread around a weighted mean.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#weightedVariance",
+      "variables": [
+        { "symbol": "x_i", "meaning": "finite value", "type": "number", "constraints": ["finite"] },
+        { "symbol": "w_i", "meaning": "non-negative weight", "type": "number", "constraints": ["w_i >= 0", "sum_i w_i > 0"] }
+      ],
+      "assumptions": ["population-style variance", "weights are explicit"],
+      "invalidInputs": ["empty arrays", "unequal lengths", "negative weights", "zero weight sum"],
+      "failureModes": ["Spread is not a cause explanation; it only quantifies dispersion."],
+      "workedExamples": [
+        {
+          "name": "weighted variance fixture",
+          "input": { "values": [1, 2, 3], "weights": [1, 1, 2] },
+          "expected": { "variance": 0.6875 },
+          "interpretation": "The values have modest weighted spread around 2.25."
+        }
+      ],
+      "proofObligations": ["weighted_mean_dependency", "non_negative_variance"]
+    },
+    {
+      "id": "expected-value",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "decision-theory",
+      "notation": "E[X] = sum_i x_i P(x_i)",
+      "purpose": "Compute the probability-weighted average value of possible outcomes.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#expectedValue",
+      "variables": [
+        { "symbol": "x_i", "meaning": "finite outcome value", "type": "number", "constraints": ["finite"] },
+        { "symbol": "P(x_i)", "meaning": "non-negative probability mass", "type": "number", "constraints": ["P(x_i) >= 0", "sum_i P(x_i) > 0"] }
+      ],
+      "assumptions": ["outcomes and probabilities are paired", "probabilities can be normalized"],
+      "invalidInputs": ["empty arrays", "unequal lengths", "negative probability mass", "zero probability sum"],
+      "failureModes": ["Expected value can hide tail cases and should not replace risk inspection."],
+      "workedExamples": [
+        {
+          "name": "two-outcome fixture",
+          "input": { "values": [10, 20], "probabilities": [1, 3] },
+          "expected": { "value": 17.5 },
+          "interpretation": "The second outcome receives three quarters of normalized mass."
+        }
+      ],
+      "proofObligations": ["probability_normalization", "paired_arrays"]
+    },
+    {
+      "id": "log-scale",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "normalization",
+      "notation": "s = points * (log(x) - log(min)) / (log(max) - log(min))",
+      "purpose": "Compress a positive value range into a bounded score using logarithmic scaling.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#logScale",
+      "variables": [
+        { "symbol": "x", "meaning": "finite input value", "type": "number", "constraints": ["finite"] },
+        { "symbol": "min", "meaning": "lower positive bound", "type": "number", "constraints": ["min > 0"] },
+        { "symbol": "max", "meaning": "upper positive bound", "type": "number", "constraints": ["max > min"] },
+        { "symbol": "points", "meaning": "maximum returned score", "type": "number", "constraints": ["points >= 0"] }
+      ],
+      "assumptions": ["input range is positive", "log compression is desired"],
+      "invalidInputs": ["non-positive min", "max <= min", "negative points", "non-finite values"],
+      "failureModes": ["Bad bounds can make ordinary values appear extreme."],
+      "workedExamples": [
+        {
+          "name": "midpoint on log scale",
+          "input": { "value": 100, "min": 10, "max": 1000, "points": 20 },
+          "expected": { "score": 10 },
+          "interpretation": "100 is halfway between 10 and 1000 in log space."
+        }
+      ],
+      "proofObligations": ["positive_bounds", "bounded_output"]
+    }
+  ]
+}

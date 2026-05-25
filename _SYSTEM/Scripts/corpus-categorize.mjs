@@ -6,7 +6,7 @@ import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');
 const INPUT_FILE = path.join(REPO_ROOT, '_SYSTEM', 'corpus-output', 'skills-index.jsonl');
 const OUTPUT_FILE = path.join(REPO_ROOT, '_SYSTEM', 'corpus-output', 'skills-categorized.jsonl');
 const PROGRESS_EVERY = 1000;
@@ -16,7 +16,7 @@ const TAXONOMY = [
   ['security', ['security', 'audit', 'malware', 'scan', 'firewall', 'guard', 'permission', 'injection', 'vulnerability', 'threat']],
   ['marketing-seo', ['seo', 'competitor', 'ad', 'marketing', 'content', 'copywriting', 'landing page', 'campaign', 'sales enablement']],
   ['social-media', ['social', 'twitter', 'instagram', 'linkedin', 'facebook', 'tiktok', 'post', 'schedule', 'publish', 'engagement']],
-  ['finance-trading', ['finance', 'budget', 'trading', 'stock', 'crypto', 'forex', 'investment', 'portfolio', 'market', 'macro']],
+  ['finance', ['finance', 'budget', 'stock', 'crypto', 'forex', 'investment', 'portfolio', 'market', 'macro']],
   ['productivity', ['todo', 'task', 'calendar', 'reminder', 'schedule', 'workflow', 'automation', 'productivity', 'meeting', 'project']],
   ['communication', ['email', 'slack', 'discord', 'telegram', 'whatsapp', 'message', 'chat', 'notification', 'webhook']],
   ['data-research', ['data', 'research', 'analysis', 'query', 'database', 'search', 'scrape', 'report', 'insight', 'news']],

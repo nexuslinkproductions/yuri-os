@@ -19,6 +19,15 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/config/artifact-registry.json` | Machine-readable durable artifact map and future placement rules. |
 | `_SYSTEM/Scripts/offload-contract.mjs` | Lane routing and model contract. |
 | `_SYSTEM/Scripts/lane-kernel.mjs` | Canonical lane status/model/tool source when present. |
+| `_SYSTEM/Scripts/yuri/` | YURI-owned harness primitives relocated from the retired `nudimmud` script folder. |
+| `_SYSTEM/research-archive/yuri-math-engine-2026-05/00_manifest.md` | Mathematical operating substrate research intake and governance boundary. |
+| `_SYSTEM/research-archive/yuri-math-engine-2026-05/09_general_math_operationalization.md` | General-purpose math operationalization method and adapter map. |
+| `_SYSTEM/research-archive/yuri-math-engine-2026-05/10_formula_card_schema.md` | Rich formula-card schema for operational formulas and examples. |
+| `_SYSTEM/research-archive/yuri-math-engine-2026-05/11_general_math_hardening_plan.md` | Current non-domain-specific math hardening plan. |
+| `_SYSTEM/research-archive/yuri-math-engine-2026-05/12_research_sprint_2026_05_25.md` | Shintai plus web research hardening sprint for formula gates and proof traces. |
+| `_SYSTEM/config/schemas/yuri.math.formula-bank.v0.schema.json` | Canonical schema reference for promoted formula banks. |
+| `_SYSTEM/Scripts/math/math-proof-gate.mjs` | Formula-bank proof gate for executable examples and deterministic proof traces. |
+| `_SYSTEM/Scripts/math/math-health.mjs` | Health check for math archive, adapters, formula banks, and core algorithm proofs. |
 
 ## Root Folder Classes
 
@@ -106,6 +115,10 @@ Minimum metadata:
 - cleanup/rebuild rule
 
 `_SYSTEM/config/folder-registry.json` is the folder implementation of this rule. `_SYSTEM/config/artifact-registry.json` is the durable artifact implementation. `_SYSTEM/context/context-registry.json` is the context-packet implementation. `_SYSTEM/yuri-wiki` is the human/RAG-readable projection, not the hidden source of truth.
+
+## Mathematical Operating Substrate
+
+Math work routes through the `mathematics` context packet. Use `_SYSTEM/research-archive/yuri-math-engine-2026-05/` for research intake, `_SYSTEM/Scripts/math/` for verified substrate code, `_SYSTEM/labs/math/` for polyglot visual proof labs, and `_SYSTEM/data/math/formula-banks/` for versioned formula artifacts. External engines may explore and compute; YURI preserves hypotheses but promotes only verified outputs.
 
 ## Current Cleanup North Star
 

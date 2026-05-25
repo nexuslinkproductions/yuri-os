@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 
 const require = createRequire(import.meta.url);
-const Database = require(path.join(process.cwd(), 'backend/node_modules/better-sqlite3'));
+const Database = require(path.join(process.cwd(), '_SYSTEM/backend/node_modules/better-sqlite3'));
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-db-recovery-'));
 const retiredIdentityPattern = new RegExp([
   ['exeo', 'flow'].join(''),
@@ -118,7 +118,7 @@ try {
   });
   assert.equal(dbCheck.status, 0, `candidate should pass backend DB gate:\n${dbCheck.stdout}\n${dbCheck.stderr}`);
 
-  const runbookPath = path.join(process.cwd(), 'docs/BACKEND_DATABASE_RECOVERY_RUNBOOK.md');
+  const runbookPath = path.join(process.cwd(), '_SYSTEM/docs/BACKEND_DATABASE_RECOVERY_RUNBOOK.md');
   assert.equal(fs.existsSync(runbookPath), true, 'database recovery runbook should exist');
   const runbook = fs.readFileSync(runbookPath, 'utf8');
   assert.match(runbook, /Yuri OS/, 'runbook should use Yuri OS naming');

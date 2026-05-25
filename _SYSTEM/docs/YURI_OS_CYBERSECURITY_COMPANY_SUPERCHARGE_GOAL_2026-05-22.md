@@ -286,6 +286,11 @@ Artifacts:
 - RAG conflict fixture: `_SYSTEM/labs/cyber/fixtures/rag-conflict-corpus.json`
 - RAG conflict data: `_SYSTEM/data/cyber-intel/rag-conflict-proof.json`
 - RAG conflict report: `_SYSTEM/reports/YURI_RAG_CONFLICT_PROOF_2026-05-24.md`
+- Memory rollback proof generator: `_SYSTEM/Scripts/cyber-memory-rollback-proof.mjs`
+- Memory rollback proof tests: `_SYSTEM/Scripts/cyber-memory-rollback-proof.test.mjs`
+- Memory rollback fixture: `_SYSTEM/labs/cyber/fixtures/memory-rollback-corpus.json`
+- Memory rollback data: `_SYSTEM/data/cyber-intel/memory-rollback-proof.json`
+- Memory rollback report: `_SYSTEM/reports/YURI_MEMORY_ROLLBACK_PROOF_2026-05-24.md`
 
 Current boundary: Upgreat-facing material may show before/after retest proof only for deterministic local fixtures: threat-shaped cases are detected safely before remediation, benign/remediated controls pass after. It must not imply production remediation proof, external target testing, or client guarantee.
 
@@ -296,6 +301,8 @@ Authorized replay boundary: partner/client replay remains blocked until written 
 Provenance scoring boundary: memory/RAG proof remains owned local fixture-only. Retrieved or remembered text can be scored, quarantined, or allowed into audited review, but it never becomes runtime authority and it is not production RAG security proof.
 
 RAG conflict boundary: multi-hop retrieval conflict proof remains synthetic-only. Conflicting retrieved sources can be resolved, marked ambiguous, or marked unverified, but no retrieved source becomes runtime instruction authority and no real threat feed/client source is queried.
+
+Memory rollback boundary: rollback proof remains synthetic in-memory only. Poisoned candidates can be applied, rolled back, marked no-snapshot, or proven idempotent inside the local fixture model, but no live memory runtime files are read or written and this is not production memory safety proof.
 
 ### Wave C8: Regional Packs
 

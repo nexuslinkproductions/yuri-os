@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const extensionRoot = path.resolve(__dirname, '..');
-const repoRoot = path.resolve(extensionRoot, '../..');
+const repoRoot = path.resolve(extensionRoot, '../../..');
 const outDir = path.join(repoRoot, 'dist/chrome-design-assistant');
 const bridgeOrigin = process.env.DESIGN_ASSISTANT_BRIDGE_ORIGIN || 'http://127.0.0.1:3004';
 const keepAlive = !process.argv.includes('--check-only');
@@ -27,7 +27,7 @@ if (build.status !== 0) process.exit(build.status || 1);
 
 let backend = null;
 if (!(await bridgeReady())) {
-  backend = spawn('npm', ['--prefix', 'backend', 'run', 'dev'], {
+  backend = spawn('npm', ['--prefix', '_SYSTEM/backend', 'run', 'dev'], {
     cwd: repoRoot,
     stdio: keepAlive ? 'inherit' : 'ignore',
     env: backendEnv,

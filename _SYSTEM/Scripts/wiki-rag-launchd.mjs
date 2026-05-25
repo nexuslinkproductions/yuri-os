@@ -6,7 +6,7 @@ import process from 'node:process';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const LABEL = 'com.yuri.wiki-rag';
 const HOME = os.homedir();
 const LAUNCH_AGENTS_DIR = path.join(HOME, 'Library/LaunchAgents');

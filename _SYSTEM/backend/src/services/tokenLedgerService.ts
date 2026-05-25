@@ -4,10 +4,10 @@ import os from 'os';
 import path from 'path';
 import { spawn } from 'child_process';
 
-const repoRoot = path.resolve(__dirname, '../../..');
+const repoRoot = path.resolve(__dirname, '../../../..');
 const stateRoot = path.join(os.homedir(), '.yuri', 'token-ledger');
 const queueDir = process.env.TOKEN_LEDGER_QUEUE_DIR || path.join(stateRoot, 'queue');
-const ledgerScript = path.join(repoRoot, 'Scripts', 'token-ledger.mjs');
+const ledgerScript = path.join(repoRoot, '_SYSTEM', 'Scripts', 'token-ledger.mjs');
 
 type TokenLedgerUsage = {
     input_tokens?: number;
@@ -46,7 +46,7 @@ export const tokenLedgerService = {
             });
             const event = {
                 trace_id: process.env.TOKEN_LEDGER_TRACE_ID || process.env.YURI_SESSION_ID || `backend-${Date.now()}-${process.pid}`,
-                source_path: input.sourcePath || 'backend/src/services/providers',
+                source_path: input.sourcePath || '_SYSTEM/backend/src/services/providers',
                 lane: input.lane || 'backend',
                 provider: input.provider,
                 request_model: input.requestModel,

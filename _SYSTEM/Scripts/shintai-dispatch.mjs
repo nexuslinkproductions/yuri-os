@@ -32,6 +32,7 @@ const REPO_ROOT = path.resolve(__dirname, '../..');
 const AI_SH = path.join(__dirname, 'ai');
 const ROSTER_PATH = path.join(REPO_ROOT, '_SYSTEM', 'kagami', 'shintai-team.json');
 const ADVISORY_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state', 'shintai-advisory');
+const BUILTIN_HEALTH_TIMEOUT_MS = 180000;
 const DEFAULT_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_TIMEOUT_MS);
 const DEFAULT_HEALTH_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_HEALTH_TIMEOUT_MS);
 const DEFAULT_CRITIQUE_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_CRITIQUE_TIMEOUT_MS);
@@ -359,10 +360,7 @@ export function assembleShintaiTeam(task, roster = loadShintaiRoster(), availabl
   }
 
   return {
-    ok: (
-      requiredMemberIdsForTier(tier).every((id) => members.some((member) => member.id === id)) &&
-      (tier !== 'critical' || members.length >= MIN_CRITICAL_COUNCIL_SIZE)
-    ) || (tier !== 'critical' && members.length > 0),
+    ok: assemblyHasEnoughHealthyMembers(tier, members, requiredMemberIdsForTier(tier)),
     task: taskText,
     tier,
     minSize: tier === 'critical' ? MIN_CRITICAL_COUNCIL_SIZE : 1,
@@ -376,8 +374,45 @@ export function assembleShintaiTeam(task, roster = loadShintaiRoster(), availabl
   };
 }
 
+export function applyHealthPreflightToAssembly(assembly, health = {}) {
+  const tier = assembly?.tier || 'trivial';
+  const skipped = [...(assembly?.skipped || [])];
+  const members = [];
+
+  for (const member of assembly?.members || []) {
+    const memberHealth = health[member.id] || member.health || { ok: false, missing: true };
+    if (!memberHealth.ok && OPTIONAL_HEALTH_IDS.has(member.id)) {
+      skipped.push({ id: member.id, member, health: memberHealth, reason: 'health preflight failed' });
+      continue;
+    }
+    members.push({ ...member, health: memberHealth });
+  }
+
+  const selectedIds = members.map((member) => member.id);
+  const requiredIds = assembly?.requiredIds || requiredMemberIdsForTier(tier);
+  const ok = assemblyHasEnoughHealthyMembers(tier, members, requiredIds);
+
+  return {
+    ...assembly,
+    ok,
+    selectedIds,
+    selected: members,
+    members,
+    skipped,
+    requiredIds,
+  };
+}
+
 function requiredMemberIdsForTier(tier) {
   return tier === 'critical' ? [...SHINTAI_REQUIRED_MEMBER_IDS] : [];
+}
+
+function assemblyHasEnoughHealthyMembers(tier, members, requiredIds = requiredMemberIdsForTier(tier)) {
+  if (tier === 'critical') {
+    return requiredIds.every((id) => members.some((member) => member.id === id)) &&
+      members.length >= MIN_CRITICAL_COUNCIL_SIZE;
+  }
+  return members.length > 0;
 }
 
 export function buildMemberPrompt(task, member, options = {}) {
@@ -524,10 +559,26 @@ function parseOptionalTimeout(value) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
+export function resolveShintaiStageTimeout(stage, fallbackTimeoutMs = 0, env = process.env) {
+  const fallback = parseOptionalTimeout(fallbackTimeoutMs);
+  if (stage === 'health') {
+    return parseOptionalTimeout(env.YURI_SHINTAI_HEALTH_TIMEOUT_MS)
+      || fallback
+      || BUILTIN_HEALTH_TIMEOUT_MS;
+  }
+  if (stage === 'critique') {
+    return parseOptionalTimeout(env.YURI_SHINTAI_CRITIQUE_TIMEOUT_MS) || fallback;
+  }
+  return fallback;
+}
+
 function resolveMemberTimeout(member, stage, fallbackTimeoutMs = 0) {
-  if (stage === 'health' && DEFAULT_HEALTH_TIMEOUT_MS > 0) return DEFAULT_HEALTH_TIMEOUT_MS;
-  if (stage === 'critique' && DEFAULT_CRITIQUE_TIMEOUT_MS > 0) return DEFAULT_CRITIQUE_TIMEOUT_MS;
-  return parseOptionalTimeout(fallbackTimeoutMs);
+  const env = {
+    ...process.env,
+    ...(DEFAULT_HEALTH_TIMEOUT_MS > 0 ? { YURI_SHINTAI_HEALTH_TIMEOUT_MS: String(DEFAULT_HEALTH_TIMEOUT_MS) } : {}),
+    ...(DEFAULT_CRITIQUE_TIMEOUT_MS > 0 ? { YURI_SHINTAI_CRITIQUE_TIMEOUT_MS: String(DEFAULT_CRITIQUE_TIMEOUT_MS) } : {}),
+  };
+  return resolveShintaiStageTimeout(stage, fallbackTimeoutMs, env);
 }
 
 function callMember(member, prompt, timeoutMs, context = {}) {
@@ -745,7 +796,9 @@ export async function runAdvisory(task, options = {}) {
   if (options.healthCheck !== false && !options.availableHealth) {
     say(`${C.bronze}${C.bold}`, '\n── Shintai health preflight ──', stream);
     const health = runHealthPreflight(assembly, resolveMemberTimeout(null, 'health', timeoutMs));
-    assembly = assembleShintaiTeam(taskText, roster, health);
+    assembly = options.assembly
+      ? applyHealthPreflightToAssembly(assembly, health)
+      : assembleShintaiTeam(taskText, roster, health);
     const healthDialogRail = evaluateDialogRails({
       task: taskText,
       tier: assembly.tier,

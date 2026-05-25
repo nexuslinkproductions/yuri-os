@@ -14,7 +14,7 @@ import { NotebookObsidianSyncService } from '../services/notebookObsidianSyncSer
 import { NotebookVizService } from '../services/notebookVizService';
 import type { CompressionMode } from '../services/smartRouter';
 
-const UPLOAD_DIR = SystemConfig.resolve('backend/data/notebook-uploads');
+const UPLOAD_DIR = SystemConfig.resolve(`${SystemConfig.SYSTEM.DATA}/notebook-uploads`);
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const storage = multer.diskStorage({

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Yuri-aware Codex wrapper. Generates session packet then invokes Codex with context.
 set -euo pipefail
-REPO_ROOT="/Users/marcelspatz/YURI-OS-MUSUBI"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PROMPT="${*:-}"
 if [[ -z "$PROMPT" ]]; then echo 'Usage: codex-yuri <prompt>' >&2; exit 1; fi
 

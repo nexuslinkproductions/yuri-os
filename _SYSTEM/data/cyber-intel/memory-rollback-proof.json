@@ -1,0 +1,141 @@
+{
+  "schema": "yuri.cyber-memory-rollback-proof.v0",
+  "generatedAt": "2026-05-24T19:45:06.852Z",
+  "source": {
+    "fixture": "_SYSTEM/labs/cyber/fixtures/memory-rollback-corpus.json",
+    "executable": "_SYSTEM/Scripts/cyber-memory-rollback-proof.test.mjs",
+    "cases": 5
+  },
+  "cases": [
+    {
+      "case_id": "duplicate-key-rollback",
+      "status": "ROLLED_BACK",
+      "rollback_reason": "duplicate_key",
+      "rollback_id": "rollback-duplicate-key-rollback",
+      "snapshot_id": "a00316fa3411f68119012bf7d9d0c7ff4f6a9e34f78a854ebd6dd84a79acf346",
+      "before_count": 3,
+      "after_fault_count": 4,
+      "final_count": 3,
+      "restored_snapshot_matches": true,
+      "faulty_absent": true,
+      "timestamps_preserved": true,
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "status": "ROLLED_BACK",
+        "rollbackReason": "duplicate_key",
+        "finalCount": 3
+      },
+      "ok": true,
+      "reason": "rollback case duplicate-key-rollback preserved the synthetic memory boundary",
+      "claim": "Deterministic local memory/RAG rollback proof only; not production memory safety proof."
+    },
+    {
+      "case_id": "no-snapshot-found",
+      "status": "NO_SNAPSHOT_FOUND",
+      "rollback_reason": "no_snapshot",
+      "rollback_id": "rollback-no-snapshot-found",
+      "snapshot_id": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "before_count": 0,
+      "after_fault_count": 0,
+      "final_count": 0,
+      "restored_snapshot_matches": true,
+      "faulty_absent": true,
+      "timestamps_preserved": true,
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "status": "NO_SNAPSHOT_FOUND",
+        "rollbackReason": "no_snapshot",
+        "finalCount": 0
+      },
+      "ok": true,
+      "reason": "rollback case no-snapshot-found preserved the synthetic memory boundary",
+      "claim": "Deterministic local memory/RAG rollback proof only; not production memory safety proof."
+    },
+    {
+      "case_id": "valid-ingests-then-faulty",
+      "status": "ROLLED_BACK",
+      "rollback_reason": "duplicate_key",
+      "rollback_id": "rollback-valid-ingests-then-faulty",
+      "snapshot_id": "235f15f7ff6734309518c393cf92671018b415d1b50fa97d9ad59f04668e9378",
+      "before_count": 2,
+      "after_fault_count": 3,
+      "final_count": 2,
+      "restored_snapshot_matches": true,
+      "faulty_absent": true,
+      "timestamps_preserved": true,
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "status": "ROLLED_BACK",
+        "rollbackReason": "duplicate_key",
+        "finalCount": 2
+      },
+      "ok": true,
+      "reason": "rollback case valid-ingests-then-faulty preserved the synthetic memory boundary",
+      "claim": "Deterministic local memory/RAG rollback proof only; not production memory safety proof."
+    },
+    {
+      "case_id": "idempotent-noop",
+      "status": "NOTHING_TO_ROLLBACK",
+      "rollback_reason": "duplicate_key",
+      "rollback_id": "rollback-idempotent-noop",
+      "snapshot_id": "a00316fa3411f68119012bf7d9d0c7ff4f6a9e34f78a854ebd6dd84a79acf346",
+      "before_count": 3,
+      "after_fault_count": 4,
+      "final_count": 3,
+      "restored_snapshot_matches": true,
+      "faulty_absent": true,
+      "timestamps_preserved": true,
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "status": "NOTHING_TO_ROLLBACK",
+        "rollbackReason": "duplicate_key",
+        "finalCount": 3
+      },
+      "ok": true,
+      "reason": "rollback case idempotent-noop preserved the synthetic memory boundary",
+      "claim": "Deterministic local memory/RAG rollback proof only; not production memory safety proof."
+    },
+    {
+      "case_id": "confidence-threshold-abort",
+      "status": "ROLLED_BACK",
+      "rollback_reason": "confidence_below_threshold",
+      "rollback_id": "rollback-confidence-threshold-abort",
+      "snapshot_id": "a00316fa3411f68119012bf7d9d0c7ff4f6a9e34f78a854ebd6dd84a79acf346",
+      "before_count": 3,
+      "after_fault_count": 4,
+      "final_count": 3,
+      "restored_snapshot_matches": true,
+      "faulty_absent": true,
+      "timestamps_preserved": true,
+      "source_is_runtime_authority": false,
+      "external_targets_allowed": false,
+      "expected": {
+        "status": "ROLLED_BACK",
+        "rollbackReason": "confidence_below_threshold",
+        "finalCount": 3
+      },
+      "ok": true,
+      "reason": "rollback case confidence-threshold-abort preserved the synthetic memory boundary",
+      "claim": "Deterministic local memory/RAG rollback proof only; not production memory safety proof."
+    }
+  ],
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "rolledBack": 3,
+    "noSnapshot": 1,
+    "idempotent": 1
+  },
+  "boundaries": [
+    "owned-local-synthetic-fixtures-only",
+    "in-memory-simulation-only",
+    "no protected memory runtime reads",
+    "no live memory writes",
+    "no production memory safety claim"
+  ],
+  "claim": "Deterministic local memory/RAG rollback proof only; not production memory safety proof."
+}

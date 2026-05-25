@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { inspectOpenDatabaseHealth, unavailableDatabaseHealth } from './lib/db-health.mjs';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const ARCHIVE_DIR = path.join(REPO_ROOT, '_SYSTEM/research-archive/yuri-enterprise-ai-os-2026-05');
 const MANIFEST_PATH = path.join(ARCHIVE_DIR, '00_manifest.md');
 const INGEST_REPORT_PATH = path.join(ARCHIVE_DIR, '12_rag_ingested.md');
@@ -18,10 +18,10 @@ const EXPECTED_EMBEDDED_CHUNK_COUNT = 22;
 const RAW_DB_PATH = process.env.YURI_DB_PATH;
 const DB_PATH = RAW_DB_PATH && RAW_DB_PATH !== ':memory:'
   ? path.resolve(REPO_ROOT, RAW_DB_PATH)
-  : path.join(REPO_ROOT, 'backend/data/yuri.db');
+  : path.join(REPO_ROOT, '_SYSTEM', 'backend', 'data', 'yuri.db');
 
 const require = createRequire(import.meta.url);
-const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlite3'));
+const Database = require(path.join(REPO_ROOT, '_SYSTEM/backend/node_modules/better-sqlite3'));
 
 function readText(absPath, issues) {
   try {

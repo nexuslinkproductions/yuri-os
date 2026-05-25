@@ -1,0 +1,84 @@
+{
+  "schema": "yuri.math.formula-bank.v0",
+  "id": "vector-geometry",
+  "version": "0.2.0",
+  "promotionStatus": "verified-baseline",
+  "advisoryOnly": false,
+  "formulas": [
+    {
+      "id": "dot-product",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "linear-algebra",
+      "notation": "a dot b = sum_i a_i b_i",
+      "purpose": "Measure aligned magnitude between two equal-length vectors.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#dotProduct",
+      "variables": [
+        { "symbol": "a_i", "meaning": "component of first vector", "type": "number", "constraints": ["finite"] },
+        { "symbol": "b_i", "meaning": "component of second vector", "type": "number", "constraints": ["finite"] }
+      ],
+      "assumptions": ["vectors have equal non-zero length"],
+      "invalidInputs": ["empty vectors", "unequal lengths", "non-finite values"],
+      "failureModes": ["Large magnitudes can dominate direction unless vectors are normalized."],
+      "workedExamples": [
+        {
+          "name": "three-dimensional dot product",
+          "input": { "left": [1, 2, 3], "right": [4, 5, 6] },
+          "expected": { "value": 32 },
+          "interpretation": "The vectors have positive alignment under the chosen coordinates."
+        }
+      ],
+      "proofObligations": ["equal_lengths", "finite_values"]
+    },
+    {
+      "id": "p-norm",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "vector-geometry",
+      "notation": "||x||_p = (sum_i |x_i|^p)^(1/p)",
+      "purpose": "Measure vector magnitude under a selected p-norm.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#pNorm",
+      "variables": [
+        { "symbol": "x_i", "meaning": "vector component", "type": "number", "constraints": ["finite"] },
+        { "symbol": "p", "meaning": "norm order", "type": "number", "constraints": ["p >= 1"] }
+      ],
+      "assumptions": ["finite vector", "p is explicit"],
+      "invalidInputs": ["empty vector", "non-finite values", "p < 1"],
+      "failureModes": ["Different p values encode different geometry and should not be swapped silently."],
+      "workedExamples": [
+        {
+          "name": "classic Euclidean norm",
+          "input": { "values": [3, 4], "p": 2 },
+          "expected": { "value": 5 },
+          "interpretation": "The vector has Euclidean magnitude 5."
+        }
+      ],
+      "proofObligations": ["finite_values", "valid_p"]
+    },
+    {
+      "id": "cosine-similarity",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "vector-geometry",
+      "notation": "cos(theta) = (a dot b) / (||a||_2 ||b||_2)",
+      "purpose": "Measure directional similarity independent of vector magnitude.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#cosineSimilarity",
+      "variables": [
+        { "symbol": "a", "meaning": "first vector", "type": "number[]", "constraints": ["finite", "non-zero norm"] },
+        { "symbol": "b", "meaning": "second vector", "type": "number[]", "constraints": ["finite", "non-zero norm"] }
+      ],
+      "assumptions": ["vectors share coordinate basis", "zero vectors are rejected"],
+      "invalidInputs": ["empty vectors", "unequal lengths", "zero vector", "non-finite values"],
+      "failureModes": ["High similarity does not imply identical meaning if vector basis is poorly defined."],
+      "workedExamples": [
+        {
+          "name": "orthogonal basis vectors",
+          "input": { "left": [1, 0], "right": [0, 1] },
+          "expected": { "similarity": 0 },
+          "interpretation": "The vectors are orthogonal under the current basis."
+        }
+      ],
+      "proofObligations": ["equal_lengths", "non_zero_norms"]
+    }
+  ]
+}

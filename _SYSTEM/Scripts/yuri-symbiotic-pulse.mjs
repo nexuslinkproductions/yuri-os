@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { buildActiveSkillRegistry } from './yuri-active-skill-registry.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(SCRIPT_DIR, '..');
+const REPO_ROOT = path.resolve(SCRIPT_DIR, '../..');
 const PLAN_SCHEMA_VERSION = 2;
 
 const CAPABILITY_TRAITS = {

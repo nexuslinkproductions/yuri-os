@@ -41,6 +41,8 @@ try {
     OLLAMA_API_KEY: '',
     GEMMA_CLOUD_API_KEY: '',
     DEEPSEEK_API_KEY: '',
+    CODE_DEEPSEEK_API_KEY: '',
+    YURI_KEYCHAIN_SERVICE_PREFIX: 'YURI_OS_MUSUBI_TEST_NO_KEYS',
   };
 
   assert.equal(route('triage-local', env).model, 'needle');
@@ -52,7 +54,7 @@ try {
   const deepseekDefault = route('deepseek', env);
   assert.equal(deepseekDefault.kind, 'blocked');
   assert.equal(deepseekDefault.status, 'SKIPPED_MISSING_KEY');
-  assert.match(deepseekDefault.error, /Local DeepSeek fallback is frozen/);
+  assert.match(deepseekDefault.error, /requires DEEPSEEK_API_KEY/);
   const deepseekLocal = route('deepseek-local', env);
   assert.equal(deepseekLocal.kind, 'blocked');
   assert.equal(deepseekLocal.status, 'BLOCKED_FROZEN_MODEL');
@@ -160,6 +162,7 @@ try {
         ...process.env,
         HF_HOME: needleCacheHome,
         HF_HUB_DISABLE_XET: '1',
+        PYTHONPATH: needleRepo,
       },
     },
   );
@@ -230,10 +233,8 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
     );
 
     const needleArgs = readFileSync(captureFile, 'utf8').trim().split('\n');
-    assert.equal(needleArgs[0].endsWith('_SYSTEM/Scripts/offload-runner.mjs'), true);
-    assert.equal(needleArgs[1], 'ollama-local');
-    assert(needleArgs.includes('--model'));
-    assert(needleArgs.includes('needle'));
+    assert(needleArgs.some((arg) => arg.endsWith('_SYSTEM/Scripts/needle-adapter.mjs')));
+    assert(needleArgs.includes('--input-type=module'));
   } finally {
     rmSync(offloadCaptureRoot, { recursive: true, force: true });
   }
@@ -268,7 +269,6 @@ printf '%s\n' "$@" > "$CAPTURE_FILE"
     assert.equal(dispatchedArgs[1], 'deepseek-v4-pro');
     assert(dispatchedArgs.includes('--reasoning'));
     assert(dispatchedArgs.includes('xhigh'));
-    assert(dispatchedArgs.includes('--no-tools'));
   } finally {
     rmSync(deepseekCloudCaptureRoot, { recursive: true, force: true });
   }

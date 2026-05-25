@@ -14,7 +14,7 @@ const manifestRoot = mkdtempSync(join(tmpdir(), 'yuri-symbiotic-pulse-'));
 const traceRoot = mkdtempSync(join(tmpdir(), 'yuri-symbiotic-pulse-trace-'));
 
 try {
-  for (const model of ['qwen3.5:4b', 'qwen2.5-coder:7b', 'qwen2.5:7b']) {
+  for (const model of ['llama3.2:latest', 'qwen3.5:4b', 'qwen2.5-coder:7b', 'qwen2.5:7b']) {
     const [name, tag] = model.split(':');
     mkdirSync(join(manifestRoot, name), { recursive: true });
     writeFileSync(join(manifestRoot, name, tag), '{}');

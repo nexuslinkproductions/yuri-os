@@ -6,7 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 const generatedGraphArtifacts = [
   {
@@ -31,7 +31,7 @@ const generatedArtifactRoots = ['graphify-out/'];
 const protectedRoots = ['backend/data/', '.claude/state/', '.claude/history/', '.env'];
 // Graphify can emit package-local src/tools paths for nested corpora; keep this
 // guardrail to repo-root paths that are unambiguous in this repository.
-const activeSourceRoots = ['backend/src/', '_SYSTEM/Scripts/'];
+const activeSourceRoots = ['_SYSTEM/backend/src/', '_SYSTEM/Scripts/'];
 const historicalPathAllowlist = new Map([
   ['07_ARCHIVE/', 'historical archive paths are not active Yuri OS source truth'],
   ['_SYSTEM/yuri-history-archive/', 'historical session archive paths are not active Yuri OS source truth'],
@@ -129,6 +129,6 @@ function compareViolationPriority(left, right) {
 
 function violationPriority(violation) {
   if (/exeoflow/i.test(violation.sourcePath)) return 2;
-  if (violation.sourcePath.startsWith('backend/src/')) return 1;
+  if (violation.sourcePath.startsWith('_SYSTEM/backend/src/')) return 1;
   return 0;
 }

@@ -14,7 +14,6 @@ export interface HeadlessControlRequest {
 
 export interface HeadlessControlGuardrails {
     uiRemoved: true;
-    liveTradingSimulationsEnabled: false;
     hyperframesRendererEnabled: false;
     externalSendRequiresConfirmation: boolean;
     repoWritesEnabled: false;
@@ -91,7 +90,6 @@ export class HeadlessControlPlaneService {
             },
             guardrails: {
                 uiRemoved: true,
-                liveTradingSimulationsEnabled: false,
                 hyperframesRendererEnabled: false,
                 externalSendRequiresConfirmation: routeDecision.actionGate === 'confirm_before_send',
                 repoWritesEnabled: false
@@ -105,7 +103,6 @@ export class HeadlessControlPlaneService {
     private mergeBlockedActions(routeDecision: RoutingDecision, executiveRoute: ExecutiveIntegrationRoute): string[] {
         const headlessOnlyBlocks = [
             'frontend_runtime_disabled',
-            'active_trading_simulations_disabled',
             'hyperframes_renderer_deferred'
         ];
 
@@ -128,10 +125,6 @@ export class HeadlessControlPlaneService {
             return 'Create the draft and wait for explicit send confirmation.';
         }
 
-        if (routeDecision.actionGate === 'simulation_only') {
-            return 'Record the thesis and defer simulation and live execution until the trading core is restored.';
-        }
-
         if (routeDecision.actionGate === 'capture_only') {
             return 'Capture evidence and attach it to the active request.';
         }
@@ -150,7 +143,6 @@ export class HeadlessControlPlaneService {
     private buildNotes(routeDecision: RoutingDecision, executiveRoute: ExecutiveIntegrationRoute, source?: string): string[] {
         const notes = [
             'UI removed from the active runtime; backend is the operator surface.',
-            'Active trading simulations remain deferred.',
             'Hyperframes rendering remains deferred.',
             `Headless plan targets the ${routeDecision.yuriLane} lane.`,
             `Integration surface: ${routeDecision.integrationSurface}.`
@@ -170,10 +162,6 @@ export class HeadlessControlPlaneService {
 
         if (routeDecision.yuriLane === 'browser') {
             notes.push('Browser work is capture-only and must keep evidence attached.');
-        }
-
-        if (routeDecision.yuriLane === 'trading') {
-            notes.push('Trading lane is routing-only until Yuri is fully operational.');
         }
 
         if (routeDecision.yuriLane === 'media') {

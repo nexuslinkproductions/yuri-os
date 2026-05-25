@@ -1,15 +1,13 @@
 {
   "version": "2026-05-05.scoped-mutation.v1",
-  "repo_root": "/Users/marcelspatz/YURI-OS-MUSUBI",
+  "repo_root": "__YURI_REPO_ROOT__",
   "mode": "scoped_mutation_default",
-  "allowed_mutation_paths": [
-    ".claude/trading-bot/**",
-    ".claude/trading-bot-logs/**"
-  ],
+  "allowed_mutation_paths": [],
   "denied_mutation_paths": [
     ".env",
     ".git",
     "backend/data",
+    "_SYSTEM/backend/data",
     ".claude/history",
     ".claude/state",
     ".claude/cache",
@@ -51,6 +49,7 @@
     "private_key",
     "id_rsa",
     "backend/data",
+    "_SYSTEM/backend/data",
     ".db",
     ".sqlite",
     ".wal",
@@ -75,6 +74,7 @@
   ],
   "denied_globs": [
     "backend/data/*",
+    "_SYSTEM/backend/data/*",
     "_SYSTEM/**/*.md"
   ],
   "allowed_checks": [

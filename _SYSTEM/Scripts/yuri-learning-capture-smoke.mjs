@@ -9,8 +9,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '..');
-const backendRequire = createRequire(path.join(REPO_ROOT, 'backend', 'package.json'));
+const REPO_ROOT = path.resolve(__dirname, '../..');
+const backendRequire = createRequire(path.join(REPO_ROOT, '_SYSTEM', 'backend', 'package.json'));
 const Database = backendRequire('better-sqlite3');
 const workDir = mkdtempSync(path.join(tmpdir(), 'yuri-learning-'));
 const dbPath = path.join(workDir, 'learning.db');

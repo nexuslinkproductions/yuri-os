@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const result = spawnSync(process.execPath, ['_SYSTEM/Scripts/gitnexus-mcp-check.mjs'], {
   cwd: repoRoot,
   encoding: 'utf8',

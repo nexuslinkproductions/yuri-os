@@ -1,0 +1,131 @@
+{
+  "schema": "yuri.cyber-lab-fixture.memory-rollback-corpus.v0",
+  "labId": "memory-rollback-corpus",
+  "title": "Memory/RAG Rollback Corpus Lab",
+  "runMode": "fixture-only",
+  "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
+  "proofTarget": "retrieval-memory-provenance-rail",
+  "externalTargetsAllowed": false,
+  "journal": [
+    {
+      "id": "threat-a",
+      "type": "evidence",
+      "content": "Synthetic threat A remains stable.",
+      "provenanceScore": 90,
+      "timestamp": "2026-05-24T10:00:00.000Z"
+    },
+    {
+      "id": "threat-b",
+      "type": "evidence",
+      "content": "Synthetic threat B remains stable.",
+      "provenanceScore": 80,
+      "timestamp": "2026-05-24T10:05:00.000Z"
+    },
+    {
+      "id": "threat-c",
+      "type": "evidence",
+      "content": "Synthetic threat C remains stable.",
+      "provenanceScore": 70,
+      "timestamp": "2026-05-24T10:10:00.000Z"
+    }
+  ],
+  "cases": [
+    {
+      "id": "duplicate-key-rollback",
+      "start": "journal",
+      "faultyIngest": {
+        "id": "threat-b",
+        "type": "evidence",
+        "content": "Synthetic threat B poisoned duplicate.",
+        "provenanceScore": 30,
+        "timestamp": "2026-05-24T10:15:00.000Z"
+      },
+      "expected": {
+        "status": "ROLLED_BACK",
+        "rollbackReason": "duplicate_key",
+        "finalCount": 3
+      }
+    },
+    {
+      "id": "no-snapshot-found",
+      "start": "empty",
+      "faultyIngest": {
+        "id": "orphan-fault",
+        "type": "evidence",
+        "content": "Rollback requested without a prior snapshot.",
+        "provenanceScore": 30,
+        "timestamp": "2026-05-24T10:20:00.000Z"
+      },
+      "expected": {
+        "status": "NO_SNAPSHOT_FOUND",
+        "rollbackReason": "no_snapshot",
+        "finalCount": 0
+      }
+    },
+    {
+      "id": "valid-ingests-then-faulty",
+      "start": "empty",
+      "validIngests": [
+        {
+          "id": "valid-a",
+          "type": "evidence",
+          "content": "Valid synthetic memory A.",
+          "provenanceScore": 86,
+          "timestamp": "2026-05-24T10:25:00.000Z"
+        },
+        {
+          "id": "valid-b",
+          "type": "evidence",
+          "content": "Valid synthetic memory B.",
+          "provenanceScore": 74,
+          "timestamp": "2026-05-24T10:30:00.000Z"
+        }
+      ],
+      "faultyIngest": {
+        "id": "valid-b",
+        "type": "evidence",
+        "content": "Faulty duplicate after valid ingests.",
+        "provenanceScore": 35,
+        "timestamp": "2026-05-24T10:35:00.000Z"
+      },
+      "expected": {
+        "status": "ROLLED_BACK",
+        "rollbackReason": "duplicate_key",
+        "finalCount": 2
+      }
+    },
+    {
+      "id": "idempotent-noop",
+      "start": "journal",
+      "faultyIngest": {
+        "id": "threat-b",
+        "type": "evidence",
+        "content": "Synthetic threat B poisoned duplicate.",
+        "provenanceScore": 30,
+        "timestamp": "2026-05-24T10:40:00.000Z"
+      },
+      "repeatRollback": true,
+      "expected": {
+        "status": "NOTHING_TO_ROLLBACK",
+        "rollbackReason": "duplicate_key",
+        "finalCount": 3
+      }
+    },
+    {
+      "id": "confidence-threshold-abort",
+      "start": "journal",
+      "faultyIngest": {
+        "id": "threat-d",
+        "type": "evidence",
+        "content": "Low-confidence memory should not enter the journal.",
+        "provenanceScore": 25,
+        "timestamp": "2026-05-24T10:45:00.000Z"
+      },
+      "expected": {
+        "status": "ROLLED_BACK",
+        "rollbackReason": "confidence_below_threshold",
+        "finalCount": 3
+      }
+    }
+  ]
+}

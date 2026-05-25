@@ -208,7 +208,10 @@ export class OllamaProvider {
     }
 
     private baseUrl(runtime: OllamaRuntime) {
-        return runtime === 'cloud' ? this.cloudBaseUrl : this.localBaseUrl;
+        if (runtime === 'cloud') {
+            return normalizeBaseUrl(process.env.OLLAMA_CLOUD_ENDPOINT || this.cloudBaseUrl || 'https://ollama.com');
+        }
+        return normalizeBaseUrl(process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || this.localBaseUrl || 'http://localhost:11434');
     }
 
     private headers(runtime: OllamaRuntime): Record<string, string> {
@@ -268,7 +271,10 @@ export class OllamaProvider {
 }
 
 function normalizeBaseUrl(url: string) {
-    const trimmed = (url || '').replace(/\/$/, '');
+    let trimmed = (url || '').replace(/\/$/, '');
+    if (trimmed && !/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) {
+        trimmed = `http://${trimmed}`;
+    }
     if (trimmed.endsWith('/api/chat')) return trimmed.slice(0, -9);
     if (trimmed.endsWith('/api')) return trimmed.slice(0, -4);
     return trimmed;

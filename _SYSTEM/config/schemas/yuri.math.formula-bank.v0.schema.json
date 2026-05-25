@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "yuri.math.formula-bank.v0.schema.json",
+  "title": "YURI Math Formula Bank v0",
+  "description": "Canonical schema reference for promoted YURI formula banks. Fixture banks may intentionally remain advisory and omit executable formula-card fields.",
+  "type": "object",
+  "required": ["schema", "id", "version", "promotionStatus", "advisoryOnly", "formulas"],
+  "properties": {
+    "schema": { "const": "yuri.math.formula-bank.v0" },
+    "id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "promotionStatus": {
+      "type": "string",
+      "enum": ["research", "verified-baseline", "stable", "quarantined", "fixture"]
+    },
+    "advisoryOnly": { "type": "boolean" },
+    "authorityBoundary": { "type": "string" },
+    "formulas": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/formulaCard" }
+    }
+  },
+  "$defs": {
+    "formulaCard": {
+      "type": "object",
+      "required": ["id", "notation", "purpose", "proofObligations"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "promotionStatus": {
+          "type": "string",
+          "enum": ["research", "verified-baseline", "stable", "quarantined", "fixture"]
+        },
+        "advisoryOnly": { "type": "boolean" },
+        "domain": { "type": "string", "minLength": 1 },
+        "notation": { "type": "string", "minLength": 1 },
+        "purpose": { "type": "string", "minLength": 1 },
+        "implementedBy": { "type": "string", "minLength": 1 },
+        "variables": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/variable" }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "invalidInputs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "failureModes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "workedExamples": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workedExample" }
+        },
+        "proofObligations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "variable": {
+      "type": "object",
+      "required": ["symbol", "meaning", "type", "constraints"],
+      "properties": {
+        "symbol": { "type": "string", "minLength": 1 },
+        "meaning": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1 },
+        "constraints": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "workedExample": {
+      "type": "object",
+      "required": ["name", "input", "expected", "interpretation"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "input": { "type": "object" },
+        "expected": { "type": "object" },
+        "interpretation": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

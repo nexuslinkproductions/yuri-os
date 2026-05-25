@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const PROJECT_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
+const POLICY_DIR = path.dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = path.resolve(POLICY_DIR, '../../..');
 
 const PROTECTED_TARGETS = [
   { path: path.join(PROJECT_ROOT, '.env'), type: 'file', label: '.env' },
   { path: path.join(PROJECT_ROOT, '.claude/state'), type: 'dir', label: '.claude/state' },
   { path: path.join(PROJECT_ROOT, '.claude/history'), type: 'dir', label: '.claude/history' },
   { path: path.join(PROJECT_ROOT, 'backend/data'), type: 'dir', label: 'backend/data' },
+  { path: path.join(PROJECT_ROOT, '_SYSTEM/backend/data'), type: 'dir', label: '_SYSTEM/backend/data' },
 ];
 
 const PROTECTED_LITERAL_PATTERNS = [
@@ -16,6 +19,7 @@ const PROTECTED_LITERAL_PATTERNS = [
   { re: /(^|[\s"'=;:])\.claude\/state(\/|$|[\s"';|&])/u, label: '.claude/state' },
   { re: /(^|[\s"'=;:])\.claude\/history(\/|$|[\s"';|&])/u, label: '.claude/history' },
   { re: /(^|[\s"'=;:])backend\/data(\/|$|[\s"';|&])/u, label: 'backend/data' },
+  { re: /(^|[\s"'=;:])_SYSTEM\/backend\/data(\/|$|[\s"';|&])/u, label: '_SYSTEM/backend/data' },
 ];
 
 const MUTATING_COMMAND_RE =

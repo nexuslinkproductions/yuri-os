@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-23",
+  "updated": "2026-05-24",
   "purpose": "Task-to-context routing map for YURI OS. This is the context layer between global authority and task-local files.",
   "readOrder": [
     "_SYSTEM/yuri-origin.md",
@@ -37,7 +37,13 @@
         "_SYSTEM/Scripts/rick-banner.mjs",
         "_SYSTEM/Scripts/kagami-control-domain.mjs",
         "_SYSTEM/Scripts/lane-kernel.mjs",
-        "_SYSTEM/Scripts/offload-contract.mjs"
+        "_SYSTEM/Scripts/offload-contract.mjs",
+        "_SYSTEM/Scripts/yuri/event-protocol.mjs",
+        "_SYSTEM/Scripts/yuri/harness-state.mjs",
+        "_SYSTEM/Scripts/yuri/prompt-compiler.mjs",
+        "_SYSTEM/Scripts/yuri/run-recorder.mjs",
+        "_SYSTEM/Scripts/yuri/status-line.mjs",
+        "_SYSTEM/Scripts/yuri/symbiotic-pulse.mjs"
       ],
       "loadRule": "Use for terminal, lane routing, persistent CLI, and operator-surface work."
     },
@@ -85,6 +91,7 @@
         "_SYSTEM/Scripts/cyber-authorized-replay-scope.mjs",
         "_SYSTEM/Scripts/cyber-provenance-score.mjs",
         "_SYSTEM/Scripts/cyber-rag-conflict-proof.mjs",
+        "_SYSTEM/Scripts/cyber-memory-rollback-proof.mjs",
         "_SYSTEM/Scripts/cyber-proof-cards.mjs",
         "_SYSTEM/Scripts/cyber-pilot-pack.mjs",
         "_SYSTEM/Scripts/cyber-meeting-pack.mjs",
@@ -94,6 +101,35 @@
         "_SYSTEM/Scripts/secret-leak-scan.mjs"
       ],
       "loadRule": "Use for authorized defensive cybersecurity product and lab work."
+    },
+    {
+      "id": "mathematics",
+      "label": "Mathematical Operating Substrate Context",
+      "triggers": ["math", "mathematics", "algorithm", "algorithms", "logarithm", "logarithmic", "entropy", "kl", "dijkstra", "astar", "a*", "formula", "eml", "proof", "graph", "bayes", "brier", "calibration", "vector", "optimization"],
+      "paths": [
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/00_manifest.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/01_source_registry.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/04_mathematical_operating_substrate.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/05_polyglot_math_stack.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/06_eml_sandbox_assessment.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/07_yuri_integration_plan.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/09_general_math_operationalization.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/10_formula_card_schema.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/11_general_math_hardening_plan.md",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/12_research_sprint_2026_05_25.md",
+        "_SYSTEM/config/schemas/yuri.math.formula-bank.v0.schema.json",
+        "_SYSTEM/Scripts/math/math-kernel.mjs",
+        "_SYSTEM/Scripts/math/math-adapters.mjs",
+        "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "_SYSTEM/Scripts/math/math-health.mjs",
+        "_SYSTEM/labs/math/lab-manifest.json",
+        "_SYSTEM/data/math/formula-banks/information-theory.v0.json",
+        "_SYSTEM/data/math/formula-banks/graph-search.v0.json",
+        "_SYSTEM/data/math/formula-banks/probability-calibration.v0.json",
+        "_SYSTEM/data/math/formula-banks/vector-geometry.v0.json",
+        "_SYSTEM/data/math/formula-banks/scoring-normalization.v0.json"
+      ],
+      "loadRule": "Use for math substrate, graph algorithms, logarithmic scoring, formula banks, visual proofs, and EML research. External math engines remain advisory unless verified and promoted."
     },
     {
       "id": "automation",

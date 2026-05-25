@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(__dirname, '../..');
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-sandbox-loop-test-'));
 const dbPath = path.join(tempRoot, 'learning.db');
 let snapshot;
@@ -103,11 +103,11 @@ try {
 
   const selftest = execFileSync(
     process.execPath,
-    [path.join(snapshot.repoRoot, 'Scripts', 'yuri-sandbox-loop.mjs'), '--selftest'],
+    [path.join(snapshot.repoRoot, '_SYSTEM', 'Scripts', 'yuri-sandbox-loop.mjs'), '--selftest'],
     {
       cwd: snapshot.repoRoot,
       encoding: 'utf8',
-      env: { ...process.env, YURI_BACKEND_REQUIRE_ROOT: path.join(repoRoot, 'backend') },
+      env: { ...process.env, YURI_BACKEND_REQUIRE_ROOT: path.join(repoRoot, '_SYSTEM', 'backend') },
     },
   );
   assert(selftest.includes('YURI_SANDBOX_LOOP_SELFTEST_PASS'), 'selftest marker missing');
@@ -136,7 +136,7 @@ try {
   });
   execFileSync(
     'git',
-    ['-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--quiet', '--no-gpg-sign', '--only', '.env', '-m', 'Track protected fixture'],
+    ['-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--quiet', '--no-gpg-sign', '--no-verify', '--only', '.env', '-m', 'Track protected fixture'],
     {
       cwd: snapshot.repoRoot,
       encoding: 'utf8',
@@ -168,10 +168,10 @@ try {
 }
 
 function run(cwd, args, options = {}) {
-  const scriptPath = path.join(cwd, 'Scripts', 'yuri-sandbox-loop.mjs');
+  const scriptPath = path.join(cwd, '_SYSTEM', 'Scripts', 'yuri-sandbox-loop.mjs');
   const env = {
     ...process.env,
-    YURI_BACKEND_REQUIRE_ROOT: path.join(repoRoot, 'backend'),
+    YURI_BACKEND_REQUIRE_ROOT: path.join(repoRoot, '_SYSTEM', 'backend'),
     ...(options.env || {}),
   };
   try {
@@ -241,7 +241,7 @@ function createHermeticRepoSnapshot(rootDir) {
     fs.cpSync(sourcePath, destPath, { recursive: true, force: true, dereference: false });
   }
 
-  assert.equal(fs.existsSync(path.join(snapshotRoot, 'backend', 'node_modules')), false, 'snapshot should use dependency-root env, not copied backend node_modules');
+  assert.equal(fs.existsSync(path.join(snapshotRoot, '_SYSTEM', 'backend', 'node_modules')), false, 'snapshot should use dependency-root env, not copied backend node_modules');
 
   execFileSync('git', ['add', '-A'], {
     cwd: snapshotRoot,
@@ -255,7 +255,7 @@ function createHermeticRepoSnapshot(rootDir) {
   if (stagedSnapshotStatus !== '') {
     execFileSync(
       'git',
-      ['-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--quiet', '--no-gpg-sign', '-m', 'Sandbox loop hermetic snapshot'],
+      ['-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--quiet', '--no-gpg-sign', '--no-verify', '-m', 'Sandbox loop hermetic snapshot'],
       {
         cwd: snapshotRoot,
         encoding: 'utf8',

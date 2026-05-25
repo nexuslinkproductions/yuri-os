@@ -6,7 +6,7 @@ source_registry_status: `SOURCE_REGISTRY_MIRRORED`
 rag_gate_status: `OPEN`
 rag_ingestion_status: `VERIFIED`
 rag_notebook: `Yuri Wiki Control Plane`
-rag_notebook_id: `4`
+rag_notebook_id: `1`
 rag_notebook_key: `yuri-os/wiki-control-plane`
 
 ## current_head Policy
@@ -30,7 +30,7 @@ Raw/source truth stays outside this wiki. This fixture does not store raw corpor
 - accepted page count: 1
 - source registry entry count: 8
 - RAG indexed count: 16
-- RAG embedded chunk count: 22
+- RAG embedded chunk count: 23
 
 ## Navigation
 

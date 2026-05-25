@@ -3,13 +3,17 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const BACKEND_ROOT = path.join(REPO_ROOT, '_SYSTEM/backend');
 const PORT = 3317;
 const API_KEY = 'test-api-key-123456';
 const SERVER_READY = /YURI_BACKEND_ONLINE/;
 
-const child = spawn('npm', ['--prefix', 'backend', 'run', 'dev'], {
-  cwd: process.cwd(),
+const child = spawn('npm', ['run', 'dev'], {
+  cwd: BACKEND_ROOT,
   env: {
     ...process.env,
     API_KEY,

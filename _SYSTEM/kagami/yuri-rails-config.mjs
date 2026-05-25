@@ -63,6 +63,7 @@ export const YURI_RAILS_CONFIG = deepFreeze({
     enabled: true,
     maxChars: 64 * 1024,
     evidenceRequiredForRepoClaims: true,
+    advisoryMarker: '[ADVISORY_HYPOTHESIS_ONLY]',
     evidenceMarker: '[EVIDENCE_MISSING]',
     truncationMarker: '[OUTPUT_TRUNCATED]',
   },

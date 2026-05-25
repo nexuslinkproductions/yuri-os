@@ -153,22 +153,25 @@ test('cyber rail signals distinguish hostile fixtures from benign controls', () 
   assert.deepEqual(benignExecution.evidence.browserDomPoisoningSignals, []);
 });
 
-test('output rail blocks repo truth claims without evidence', () => {
+test('output rail preserves repo truth claims as advisory hypotheses without evidence', () => {
   const result = evaluateOutputRails('all tests pass and repo is clean', { requireEvidence: true });
 
-  assert.equal(result.ok, false);
-  assert.equal(result.severity, 'block');
-  assert.match(result.reasons.join('\n'), /requires local evidence/);
+  assert.equal(result.ok, true);
+  assert.equal(result.severity, 'warn');
+  assert.equal(result.evidence.advisoryHypothesisOnly, true);
+  assert.match(result.reasons.join('\n'), /advisory hypothesis/);
 });
 
-test('output rail blocks missing required evidence ids for Shintai packets', () => {
+test('output rail preserves missing required evidence ids as advisory hypotheses', () => {
   const result = evaluateOutputRails('verified packet', {
     requiredEvidenceIds: ['shintai-roster', 'memory-rag-skill-research'],
     evidenceSources: [{ id: 'shintai-roster' }],
   });
 
-  assert.equal(result.ok, false);
+  assert.equal(result.ok, true);
+  assert.equal(result.severity, 'warn');
   assert.deepEqual(result.evidence.missingEvidenceIds, ['memory-rag-skill-research']);
+  assert.equal(result.evidence.advisoryHypothesisOnly, true);
   assert.match(result.reasons.join('\n'), /required output evidence missing/);
 });
 
@@ -178,9 +181,11 @@ test('output enforcement marks missing evidence and caps long text', () => {
     maxOutputChars: 20,
   });
 
+  assert.match(result.text, /\[ADVISORY_HYPOTHESIS_ONLY\]/);
   assert.match(result.text, /\[EVIDENCE_MISSING\]/);
   assert.match(result.text, /\[OUTPUT_TRUNCATED\]/);
-  assert.equal(result.ok, false);
+  assert.equal(result.ok, true);
+  assert.equal(result.severity, 'warn');
   assert.equal(result.evidence.truncated, true);
 });
 

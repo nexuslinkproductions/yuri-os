@@ -212,6 +212,14 @@ backend/data/*.db-corrupt-*
 backend/data/*.db.corrupt.*
 backend/data/wiki-rag-auto-state.json
 backend/data/design-assistant/
+_SYSTEM/backend/data/*.db-shm
+_SYSTEM/backend/data/*.db-wal
+_SYSTEM/backend/data/*.db-corrupt-*
+_SYSTEM/backend/data/*.db.corrupt.*
+_SYSTEM/backend/data/wiki-rag-auto-state.json
+_SYSTEM/backend/data/design-assistant/
+_SYSTEM/backend/data/neural_registry.json
+_SYSTEM/recovery/backend-db/
 
 # Yuri runtime backups and generated audit artifacts
 _SYSTEM/OS_KERNEL/memory.db.backup-*
@@ -220,13 +228,10 @@ _SYSTEM/SELF-IMPROVEMENT/03_GAZE/yuri-council-audit-designed*.pdf
 _SYSTEM/SELF-IMPROVEMENT/03_GAZE/yuri-council-audit-designed*.png
 _SYSTEM/SELF-IMPROVEMENT/03_GAZE/yuri-council-audit-framer-report.html
 
-# Runtime logs and generated Claude audit/trading artifacts
+# Runtime logs and generated Claude audit artifacts
 logs/
 output/
 .claude/reinforcement/audit-output/
-.claude/trading-bot/audits/
-.claude/trading-bot/data/prediction_result.jsonl
-.claude/trading-bot/data/trade_outcome.jsonl
 
 # Codex worktrees (active git worktrees, not source files)
 .codex-worktrees/

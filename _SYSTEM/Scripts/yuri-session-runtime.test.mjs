@@ -5,12 +5,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
 
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const BACKEND_ROOT = path.join(REPO_ROOT, '_SYSTEM/backend');
 const PORT = 3320;
 const API_KEY = 'test-api-key-123456';
 const SERVER_READY = /YURI_BACKEND_ONLINE/;
 
-const repoScratch = path.join(process.cwd(), '.tmp');
+const repoScratch = path.join(REPO_ROOT, '.tmp');
 fs.mkdirSync(repoScratch, { recursive: true });
 const tempDir = fs.mkdtempSync(path.join(repoScratch, 'yuri-session-runtime-'));
 const dbPath = path.join(tempDir, 'runtime.db');
@@ -169,8 +172,8 @@ try {
 }
 
 async function startBackend() {
-  const proc = spawn('npm', ['--prefix', 'backend', 'run', 'dev'], {
-    cwd: process.cwd(),
+  const proc = spawn('npm', ['run', 'dev'], {
+    cwd: BACKEND_ROOT,
     env: {
       ...process.env,
       API_KEY,

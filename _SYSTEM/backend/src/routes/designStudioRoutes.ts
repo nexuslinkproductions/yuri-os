@@ -6,7 +6,7 @@ import { authMiddleware, localOnlyMiddleware } from '../middleware/auth';
 import { SystemConfig } from '../config/SystemConfig';
 import { DesignArtifactType, DesignStudioService } from '../services/designStudioService';
 
-const UPLOAD_DIR = SystemConfig.resolve('backend/data/design-studio/uploads');
+const UPLOAD_DIR = SystemConfig.resolve(`${SystemConfig.SYSTEM.DATA}/design-studio/uploads`);
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
@@ -54,7 +54,7 @@ export function initDesignStudioRoutes(router: Router): void {
     });
     const designStudio = Router();
 
-    router.use('/design-studio/files', localOnlyMiddleware, express.static(SystemConfig.resolve('backend/data/design-studio')));
+    router.use('/design-studio/files', localOnlyMiddleware, express.static(SystemConfig.resolve(`${SystemConfig.SYSTEM.DATA}/design-studio`)));
     designStudio.use(localOnlyMiddleware, authMiddleware);
 
     designStudio.get('/projects', (_req, res) => {

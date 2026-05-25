@@ -1,0 +1,84 @@
+{
+  "schema": "yuri.math.formula-bank.v0",
+  "id": "information-theory",
+  "version": "0.2.0",
+  "promotionStatus": "verified-baseline",
+  "advisoryOnly": false,
+  "formulas": [
+    {
+      "id": "shannon-entropy",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "information-theory",
+      "notation": "H(P) = -sum_i p_i log_b(p_i)",
+      "purpose": "Measure uncertainty in a normalized probability distribution.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#entropy",
+      "variables": [
+        { "symbol": "p_i", "meaning": "probability mass for event i", "type": "number", "constraints": ["p_i >= 0", "sum_i p_i > 0"] },
+        { "symbol": "b", "meaning": "logarithm base", "type": "number", "constraints": ["b > 0", "b != 1"] }
+      ],
+      "assumptions": ["input values can be normalized into a probability distribution"],
+      "invalidInputs": ["empty array", "negative values", "zero distribution sum", "invalid log base"],
+      "failureModes": ["Entropy measures uncertainty only; it does not identify which option is correct."],
+      "workedExamples": [
+        {
+          "name": "fair binary distribution",
+          "input": { "probabilities": [0.5, 0.5], "base": 2 },
+          "expected": { "entropy": 1 },
+          "interpretation": "A fair two-way uncertainty has one bit of entropy."
+        }
+      ],
+      "proofObligations": ["probabilities_non_negative", "positive_distribution_sum", "zero_terms_ignored"]
+    },
+    {
+      "id": "kl-divergence",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "information-theory",
+      "notation": "D_KL(P || Q) = sum_i p_i log_b(p_i / q_i)",
+      "purpose": "Measure directional distribution shift from reference Q to observed P.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#klDivergence",
+      "variables": [
+        { "symbol": "P", "meaning": "left distribution", "type": "number[]", "constraints": ["non-negative", "positive sum"] },
+        { "symbol": "Q", "meaning": "reference distribution", "type": "number[]", "constraints": ["non-negative", "positive sum", "q_i > 0 where p_i > 0"] }
+      ],
+      "assumptions": ["P and Q describe the same ordered event space"],
+      "invalidInputs": ["unequal lengths", "negative values", "zero q_i where p_i is positive"],
+      "failureModes": ["KL divergence is directional; swapping P and Q changes the result."],
+      "workedExamples": [
+        {
+          "name": "binary shift",
+          "input": { "p": [0.5, 0.5], "q": [0.25, 0.75], "base": 2 },
+          "expected": { "divergence": 0.20751874963942185 },
+          "interpretation": "The observed distribution has measurable directional shift from the reference."
+        }
+      ],
+      "proofObligations": ["equal_distribution_lengths", "q_i_positive_where_p_i_positive"]
+    },
+    {
+      "id": "cross-entropy",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "information-theory",
+      "notation": "H(P, Q) = -sum_i p_i log_b(q_i)",
+      "purpose": "Measure mismatch between a target distribution and an encoded/predicted distribution.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#crossEntropy",
+      "variables": [
+        { "symbol": "P", "meaning": "target distribution", "type": "number[]", "constraints": ["non-negative", "positive sum"] },
+        { "symbol": "Q", "meaning": "encoded or predicted distribution", "type": "number[]", "constraints": ["non-negative", "positive sum", "q_i > 0 where p_i > 0"] }
+      ],
+      "assumptions": ["P and Q describe the same ordered event space"],
+      "invalidInputs": ["unequal lengths", "negative values", "zero q_i where p_i is positive"],
+      "failureModes": ["Cross-entropy can rise because of mismatch, uncertainty, or both; inspect entropy and KL when interpreting."],
+      "workedExamples": [
+        {
+          "name": "binary mismatch",
+          "input": { "p": [0.5, 0.5], "q": [0.25, 0.75], "base": 2 },
+          "expected": { "crossEntropy": 1.207518749639422 },
+          "interpretation": "The encoding is worse than the one-bit entropy baseline by the KL divergence amount."
+        }
+      ],
+      "proofObligations": ["equal_distribution_lengths", "q_i_positive_where_p_i_positive"]
+    }
+  ]
+}

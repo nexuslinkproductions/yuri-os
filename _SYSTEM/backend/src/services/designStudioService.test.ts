@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import Database from 'better-sqlite3';
+import path from 'node:path';
 import { DesignStudioService } from './designStudioService';
 
+const repoRoot = path.resolve(__dirname, '../../../..');
 const db = new Database(':memory:');
 const memoryWrites: Array<{ content: string; tags: string[] }> = [];
 const service = new DesignStudioService(db, {
@@ -15,7 +17,7 @@ const service = new DesignStudioService(db, {
 const project = service.createProject({
     name: 'Homepage redesign control surface',
     description: 'Visual design work across website and reference screenshots.',
-    targetRoot: '/Users/marcelspatz/YURI-OS-MUSUBI'
+    targetRoot: repoRoot
 });
 assert.equal(project.name, 'Homepage redesign control surface');
 assert.equal(project.status, 'active');

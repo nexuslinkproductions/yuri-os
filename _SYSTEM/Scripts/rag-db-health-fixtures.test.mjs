@@ -10,9 +10,9 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { inspectDatabaseHealth } from './lib/db-health.mjs';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(import.meta.url);
-const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlite3'));
+const Database = require(path.join(REPO_ROOT, '_SYSTEM/backend/node_modules/better-sqlite3'));
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-rag-db-health-'));
 
 try {

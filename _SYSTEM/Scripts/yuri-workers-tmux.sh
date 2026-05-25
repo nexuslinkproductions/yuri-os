@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # yuri-workers-tmux.sh — launch Rick cockpit: 3 worker panes in yuri-workers tmux session
 set -euo pipefail
-REPO="/Users/marcelspatz/YURI-OS-MUSUBI"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SESSION="yuri-workers"
 
 if tmux has-session -t "$SESSION" 2>/dev/null; then

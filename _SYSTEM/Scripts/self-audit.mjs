@@ -25,8 +25,8 @@ const SKILLS_DIR = path.join(REPO_ROOT, '.claude', 'skills');
 const CMDS_DIR   = path.join(REPO_ROOT, '.claude', 'commands');
 const MEMORY_DIR = path.join(REPO_ROOT, '.claude', 'projects', '-Users-marcelspatz-YURI', 'memory');
 const SETTINGS   = path.join(REPO_ROOT, '.claude', 'settings.json');
-const CONTRACT   = path.join(REPO_ROOT, 'Scripts', 'offload-contract.mjs');
-const LANE_HEALTH= path.join(REPO_ROOT, 'Scripts', 'lane-health.sh');
+const CONTRACT   = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload-contract.mjs');
+const LANE_HEALTH= path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'lane-health.sh');
 
 const REPORT_PATH = path.join(STATE_DIR, 'self-audit-report.json');
 

@@ -6,7 +6,7 @@ import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');
 const INPUT_FILE = path.join(REPO_ROOT, '_SYSTEM', 'corpus-output', 'skills-categorized.jsonl');
 const MERGE_OUTPUT = path.join(REPO_ROOT, '_SYSTEM', 'corpus-output', 'merge-candidates.jsonl');
 const TOP_SKILLS_OUTPUT = path.join(REPO_ROOT, '_SYSTEM', 'corpus-output', 'top-skills-per-category.jsonl');

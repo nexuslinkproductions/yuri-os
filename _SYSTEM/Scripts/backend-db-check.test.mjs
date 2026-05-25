@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 
 const require = createRequire(import.meta.url);
-const Database = require(path.join(process.cwd(), 'backend/node_modules/better-sqlite3'));
+const Database = require(path.join(process.cwd(), '_SYSTEM/backend/node_modules/better-sqlite3'));
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yuri-db-check-'));
 const checkSource = fs.readFileSync(path.join(process.cwd(), '_SYSTEM/Scripts/backend-db-check.mjs'), 'utf8');
 

@@ -43,6 +43,9 @@ const DB_SCOPE_FILES = [
   'backend/data/yuri.db',
   'backend/data/yuri.db-shm',
   'backend/data/yuri.db-wal',
+  '_SYSTEM/backend/data/yuri.db',
+  '_SYSTEM/backend/data/yuri.db-shm',
+  '_SYSTEM/backend/data/yuri.db-wal',
 ]
 const REQUIRED_REPORT_FIELDS = [
   'result_label',
@@ -398,6 +401,9 @@ function loadPolicy(policyPath) {
       : null
   if (!Array.isArray(allowedFiles) || allowedFiles.length === 0) {
     throw new Error('Invalid policy object: allowed_files missing')
+  }
+  if (policy.repo_root === '.' || policy.repo_root === '__YURI_REPO_ROOT__') {
+    policy.repo_root = path.resolve(path.dirname(policyPath), '../../..')
   }
   policy.allowed_files = allowedFiles
   return policy

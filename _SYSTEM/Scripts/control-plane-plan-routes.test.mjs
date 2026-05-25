@@ -20,18 +20,16 @@ let child = null;
 try {
   child = await startBackend();
 
-  const marketPlan = await request('POST', '/api/control-plane/plan', {
-    prompt: 'backtest the market signal for Solana positions',
+  const browserPlan = await request('POST', '/api/control-plane/plan', {
+    prompt: 'capture page screenshot and accessibility snapshot for review',
     mode: 'plan',
     source: 'route-test',
   }, API_KEY);
-  assert.equal(marketPlan.status, 201, 'headless plan endpoint should create a plan');
-  assert.equal(marketPlan.json.plan.routeDecision.yuriLane, 'trading');
-  assert.equal(marketPlan.json.plan.routeDecision.actionGate, 'simulation_only');
-  assert.equal(marketPlan.json.plan.guardrails.uiRemoved, true);
-  assert.equal(marketPlan.json.plan.guardrails.liveTradingSimulationsEnabled, false);
-  assert.ok(marketPlan.json.plan.blockedActions.includes('active_trading_simulations_disabled'));
-  assert.match(marketPlan.json.plan.nextAction, /defer simulation/i);
+  assert.equal(browserPlan.status, 201, 'headless plan endpoint should create a plan');
+  assert.equal(browserPlan.json.plan.routeDecision.yuriLane, 'browser');
+  assert.equal(browserPlan.json.plan.routeDecision.actionGate, 'capture_only');
+  assert.equal(browserPlan.json.plan.guardrails.uiRemoved, true);
+  assert.match(browserPlan.json.plan.nextAction, /capture evidence/i);
 
   const growthPlan = await request('POST', '/api/control-plane/plan', {
     prompt: 'audit SEO, PPC, and structured data for the landing page',
@@ -55,12 +53,13 @@ try {
 }
 
 async function startBackend() {
-  const proc = spawn('npm', ['--prefix', 'backend', 'run', 'dev'], {
+  const proc = spawn('npm', ['--prefix', '_SYSTEM/backend', 'run', 'dev'], {
     cwd: process.cwd(),
     env: {
       ...process.env,
       API_KEY,
       PORT: String(PORT),
+      YURI_ROOT: process.cwd(),
       YURI_DB_PATH: appDbPath,
       YURI_MEMORY_DB_PATH: appDbPath,
       YURI_TEST_MODE: '1',

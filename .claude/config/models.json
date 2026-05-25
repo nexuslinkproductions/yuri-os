@@ -7,8 +7,8 @@
     "notes": "Centralized Ollama model registry. Skills, MCP bridges, and local lanes reference this policy instead of hardcoding model names. Deterministic Yuri functions stay native; local models provide cheap judgment/extraction only."
   },
   "local": {
-    "primary": "llama3.2:latest",
-    "utility": "llama3.2:latest",
+    "primary": "needle",
+    "utility": "needle",
     "code": "qwen2.5-coder:7b",
     "code_fallback": "starcoder2:latest",
     "deep_reasoning": "deepseek-r1:8b",
@@ -28,7 +28,7 @@
       "deepseek-v2:16b",
       "gemma4:latest"
     ],
-    "reasoning": "primary/utility: qwen3.5:4b is the active lightweight local default — needle not installed. code: qwen2.5-coder:7b for code-local, starcoder2 as fallback. deep_reasoning: deepseek-r1:8b frozen (local hangs); use NVIDIA-hosted DeepSeek V4. multimodal: gemma4:e2b; gemma4:latest manual-only on 16 GB unified memory."
+    "reasoning": "primary/utility: needle is installed locally and remains the active lightweight tool-call/default lane. code: qwen2.5-coder:7b for code-local, starcoder2 as fallback. deep_reasoning: deepseek-r1:8b frozen (local hangs); use DeepSeek V4 cloud lanes for serious reasoning. multimodal: gemma4:e2b; gemma4:latest manual-only on 16 GB unified memory."
   },
   "hardware_constraints": {
     "macbook_m2_pro": {

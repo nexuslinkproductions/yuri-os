@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import {
+  OLLAMA_LOCAL_MODELS,
   postOllamaEmbedding,
   resolveOllamaAdditiveLane,
   runOllamaCloudChat,
@@ -55,9 +57,10 @@ try {
   process.env.OLLAMA_HOST = 'http://127.0.0.1:11434';
 
   {
-    const lane = resolveOllamaAdditiveLane('ollama-local', '', new Set(['qwen2.5:7b']), false);
+    const policyModel = OLLAMA_LOCAL_MODELS.find((model) => model && model !== 'needle') || 'llama3.2:latest';
+    const lane = resolveOllamaAdditiveLane('ollama-local', '', new Set([policyModel]), false);
     assert.equal(lane.kind, 'local');
-    assert.equal(lane.model, 'qwen2.5:7b');
+    assert.equal(lane.model, policyModel);
     assert.equal(lane.additive, true);
   }
 
@@ -85,62 +88,58 @@ try {
   }
 
   {
-    let request;
-    globalThis.fetch = async (url, options) => {
-      request = { url, options };
-      return jsonResponse({
+    await withMockOllama(() => ({
+      status: 200,
+      body: {
         model: 'qwen2.5:7b',
         message: { content: 'local summary' },
         prompt_eval_count: 8,
         eval_count: 2,
-      });
-    };
-
-    const output = await runOllamaLocalChat('qwen2.5:7b', 'summarize', 'system', { lane: 'ollama-local', traceId: 'ollama-local-test' });
-    assert.equal(output, 'local summary');
-    assert.equal(request.url, 'http://127.0.0.1:11434/api/chat');
-    assert.equal(request.options.headers.Authorization, undefined);
-    assert.equal(JSON.parse(request.options.body).stream, false);
+      },
+    }), async ({ baseUrl, requests }) => {
+      process.env.OLLAMA_HOST = baseUrl;
+      const output = await runOllamaLocalChat('qwen2.5:7b', 'summarize', 'system', { lane: 'ollama-local', traceId: 'ollama-local-test' });
+      assert.equal(output, 'local summary');
+      assert.equal(requests[0].url, '/api/chat');
+      assert.equal(requests[0].headers.authorization, undefined);
+      assert.equal(requests[0].body.stream, false);
+    });
   }
 
   {
-    let request;
-    globalThis.fetch = async (url, options) => {
-      request = { url, options };
-      return jsonResponse({
+    await withMockOllama(() => ({
+      status: 200,
+      body: {
         model: 'llama3.3:70b',
         message: { content: 'cloud summary' },
         prompt_eval_count: 9,
         eval_count: 3,
-      });
-    };
-
-    const output = await runOllamaCloudChat('https://ollama.example/api/chat', 'cloud-secret', 'llama3.3:70b', 'summarize', '', { lane: 'ollama-cloud', traceId: 'ollama-cloud-test' });
-    assert.equal(output, 'cloud summary');
-    assert.equal(request.options.headers.Authorization, 'Bearer cloud-secret');
-  }
-
-  {
-    let request;
-    globalThis.fetch = async (url, options) => {
-      request = { url, options };
-      return jsonResponse({ embedding: [0.1, 0.2, 0.3] });
-    };
-
-    const embedding = await postOllamaEmbedding({
-      text: 'retrieval query',
-      model: 'nomic-embed-text',
-      baseUrl: 'http://127.0.0.1:11434',
-      traceId: 'ollama-embedding-test',
+      },
+    }), async ({ baseUrl, requests }) => {
+      const output = await runOllamaCloudChat(`${baseUrl}/api/chat`, 'cloud-secret', 'llama3.3:70b', 'summarize', '', { lane: 'ollama-cloud', traceId: 'ollama-cloud-test' });
+      assert.equal(output, 'cloud summary');
+      assert.equal(requests[0].headers.authorization, 'Bearer cloud-secret');
     });
-    assert.deepEqual(embedding, [0.1, 0.2, 0.3]);
-    assert.equal(request.url, 'http://127.0.0.1:11434/api/embeddings');
   }
 
   {
-    globalThis.fetch = async () => {
-      throw new Error('ECONNREFUSED');
-    };
+    await withMockOllama(() => ({
+      status: 200,
+      body: { embedding: [0.1, 0.2, 0.3] },
+    }), async ({ baseUrl, requests }) => {
+      const embedding = await postOllamaEmbedding({
+        text: 'retrieval query',
+        model: 'nomic-embed-text',
+        baseUrl,
+        traceId: 'ollama-embedding-test',
+      });
+      assert.deepEqual(embedding, [0.1, 0.2, 0.3]);
+      assert.equal(requests[0].url, '/api/embeddings');
+    });
+  }
+
+  {
+    process.env.OLLAMA_HOST = 'http://127.0.0.1:9';
     await assert.rejects(
       () => runOllamaLocalChat('qwen2.5:7b', 'summarize', '', { lane: 'ollama-local', traceId: 'ollama-local-down-test' }),
       /ECONNREFUSED/,
@@ -150,4 +149,31 @@ try {
   console.log('ollama-adapter: pass');
 } finally {
   restoreEnv();
+}
+
+async function withMockOllama(handler, callback) {
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk;
+    });
+    req.on('end', () => {
+      const body = raw ? JSON.parse(raw) : {};
+      const request = { url: req.url, headers: req.headers, body };
+      requests.push(request);
+      const response = handler(request);
+      res.writeHead(response.status || 200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(response.body || {}));
+    });
+  });
+
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const address = server.address();
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  try {
+    return await callback({ baseUrl, requests });
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
 }

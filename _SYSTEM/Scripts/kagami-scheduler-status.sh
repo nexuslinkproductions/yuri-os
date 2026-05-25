@@ -2,7 +2,8 @@
 # kagami-scheduler-status.sh — one-glance view of all scheduled Kagami agents
 set -euo pipefail
 
-REPO="/Users/marcelspatz/YURI-OS-MUSUBI"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$SCRIPT_DIR/../.." && pwd)"
 echo "═══════════════════════════════════════════════════════════"
 echo "  YURI OS — Kagami Automation Status  $(date '+%Y-%m-%d %H:%M')"
 echo "═══════════════════════════════════════════════════════════"

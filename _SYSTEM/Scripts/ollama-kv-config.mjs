@@ -5,7 +5,7 @@ import process from 'node:process';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const DEFAULT_HOST = normalizeHost(process.env.OLLAMA_HOST || process.env.OLLAMA_BASE_URL || '127.0.0.1:11434');
 const DEFAULT_KV_CACHE_TYPE = process.env.OLLAMA_KV_CACHE_TYPE || 'q8_0';
 const DEFAULT_FLASH_ATTENTION = parseBoolean(process.env.OLLAMA_FLASH_ATTENTION, true);

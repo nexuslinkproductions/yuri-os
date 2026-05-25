@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 import { resolveTokenLedgerPaths } from './token-ledger.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(scriptDir, '..');
-const require = createRequire(path.join(repoRoot, 'backend', 'package.json'));
+const repoRoot = path.resolve(scriptDir, '../..');
+const require = createRequire(path.join(repoRoot, '_SYSTEM', 'backend', 'package.json'));
 const Database = require('better-sqlite3');
 
 const DURATIONS = new Map([

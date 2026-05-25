@@ -1,14 +1,14 @@
 # 09C Fixture RAG Ingested and Verified
 
 status: `RAG_INGESTED_VERIFIED`
-checked_at: `2026-05-09T20:41:27+02:00`
+checked_at: `2026-05-25T01:54:12+02:00`
 head: `b5ac69333cf34915863f65fa6dcb4c6918a29107`
 notebook_title: `Yuri Wiki Control Plane`
-notebook_id: `4`
+notebook_id: `1`
 notebook_stable_key: `yuri-os/wiki-control-plane`
 source_count: `16`
-chunk_count: `22`
-embedded_chunk_count: `22`
+chunk_count: `23`
+embedded_chunk_count: `23`
 query_verification: `PASS`
 query_model: `qwen-liberated:latest`
 
@@ -19,8 +19,8 @@ The wiki control-plane lane was ingested into a dedicated notebook and verified 
 ## Evidence
 
 - 16 wiki control-plane sources ingested.
-- 22 total chunks created.
-- 22 chunks embedded successfully.
+- 23 total chunks created.
+- 23 chunks embedded successfully.
 - Notebook identity is stable-keyed as `yuri-os/wiki-control-plane`.
 - RAG query returned the expected control-plane state.
 

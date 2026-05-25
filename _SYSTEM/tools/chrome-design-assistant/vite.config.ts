@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const extensionRoot = __dirname;
-const repoRoot = path.resolve(extensionRoot, '../..');
+const repoRoot = path.resolve(extensionRoot, '../../..');
 
 export default defineConfig({
     root: extensionRoot,

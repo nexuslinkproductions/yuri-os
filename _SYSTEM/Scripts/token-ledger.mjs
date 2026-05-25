@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(scriptDir, '..');
+const repoRoot = path.resolve(scriptDir, '../..');
 const DEFAULT_DB_PATH = path.join(repoRoot, '_SYSTEM', 'OS_KERNEL', 'memory.db');
 const DEFAULT_STATE_ROOT = path.join(os.homedir(), '.yuri', 'token-ledger');
 const DEFAULT_QUEUE_DIR = path.join(DEFAULT_STATE_ROOT, 'queue');
@@ -691,7 +691,7 @@ export function normalizeTokenEvent(event = {}) {
 }
 
 function openDatabase(dbPath) {
-  const betterSqlite3 = require(path.join(repoRoot, 'backend', 'node_modules', 'better-sqlite3'));
+  const betterSqlite3 = require(path.join(repoRoot, '_SYSTEM', 'backend', 'node_modules', 'better-sqlite3'));
   const dbDir = path.dirname(dbPath);
   if (dbPath !== ':memory:' && !existsSync(dbDir)) mkdirSync(dbDir, { recursive: true });
   const db = new betterSqlite3(dbPath, { timeout: 10000 });

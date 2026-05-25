@@ -82,6 +82,15 @@
       "notes": "CLI that selects a context packet for a task before broad exploration."
     },
     {
+      "path": "_SYSTEM/Scripts/yuri",
+      "class": "system_control_plane",
+      "owner": "YURI harness",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "YURI-owned harness primitives: event protocol, prompt compiler, run recorder, status line, and symbiotic pulse."
+    },
+    {
       "path": "_SYSTEM/Scripts/artifact-registry.mjs",
       "class": "system_control_plane",
       "owner": "YURI structure",
@@ -438,8 +447,8 @@
       "owner": "external symlink",
       "readByDefault": false,
       "protected": false,
-      "status": "candidate_review",
-      "notes": "Symlink to external generated content. Do not follow by default."
+      "status": "migration_required",
+      "notes": "Tracked symlink to external generated content. Do not follow by default. Root-architecture risk: migrate to a governed _SYSTEM generated-artifact surface or remove after owner approval."
     },
     {
       "path": "graph",
@@ -530,6 +539,42 @@
       "protected": false,
       "status": "active",
       "notes": "Read for Node scripts/dependency tasks."
+    },
+    {
+      "path": "_SYSTEM/Scripts/math",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical operating substrate",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Verified math substrate scripts, tests, adapter contracts, and health checks."
+    },
+    {
+      "path": "_SYSTEM/labs/math",
+      "class": "system_control_plane",
+      "owner": "YURI mathematical lab",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_lab",
+      "notes": "Owned fixture-only math labs for visual proofs and polyglot experiments."
+    },
+    {
+      "path": "_SYSTEM/data/math",
+      "class": "generated_artifact",
+      "owner": "YURI mathematical operating substrate",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Versioned mathematical formula banks and derived math artifacts."
+    },
+    {
+      "path": "_SYSTEM/research-archive/yuri-math-engine-2026-05",
+      "class": "harvest_source",
+      "owner": "YURI mathematical research",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_research_intake",
+      "notes": "Research archive for YURI's mathematical operating substrate upgrade."
     },
     {
       "path": "README.md",

@@ -76,7 +76,7 @@ test('lane cache rotator refuses protected and non-YURI session directories', ()
     /only manages _SYSTEM\/state\/lane-sessions|protected/,
   );
   assert.throws(
-    () => collectLaneSessionHealth({ sessionDir: path.join(REPO_ROOT, 'backend', 'data') }),
+    () => collectLaneSessionHealth({ sessionDir: path.join(REPO_ROOT, '_SYSTEM', 'backend', 'data') }),
     /protected|only manages/,
   );
 });

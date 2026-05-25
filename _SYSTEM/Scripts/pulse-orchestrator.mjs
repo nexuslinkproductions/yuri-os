@@ -29,8 +29,8 @@ const REPO_ROOT = path.resolve(__dirname, '../..');  // Scripts/ â†’ _SYSTEM/ â†
 const STATE_DIR = path.join(REPO_ROOT, '.claude', 'state');
 const PLAN_PATH = path.join(STATE_DIR, 'pulse-plan.json');
 const ERROR_LOG = path.join(STATE_DIR, 'pulse-errors.log');
-const CONTRACT = path.join(REPO_ROOT, 'Scripts', 'offload-contract.mjs');
-const OFFLOAD_SH = path.join(REPO_ROOT, 'Scripts', 'offload.sh');
+const CONTRACT = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload-contract.mjs');
+const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'offload.sh');
 const OPENCLAW_BRIDGE = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'openclaw-bridge.sh');
 
 const TIMEOUT_DEEPSEEK_MS = 60_000;
@@ -771,7 +771,7 @@ async function main() {
   // block the orchestrator's clean exit. Beacon honors plan.beaconLevel.
   if (plan.beaconLevel && plan.beaconLevel !== 'none') {
     try {
-      const beaconScript = path.join(REPO_ROOT, 'Scripts', 'pulse-beacon.mjs');
+      const beaconScript = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'pulse-beacon.mjs');
       const beacon = spawn('node', [beaconScript, 'emit'], {
         cwd: REPO_ROOT,
         detached: true,

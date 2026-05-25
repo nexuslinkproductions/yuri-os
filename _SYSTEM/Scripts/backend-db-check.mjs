@@ -6,20 +6,24 @@ import process from 'node:process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_DB_PATH = path.join(REPO_ROOT, 'backend/data/yuri.db');
-const PROTECTED_DB_ROOT = path.join(REPO_ROOT, 'backend/data');
-const DATABASE_SOURCE = path.join(REPO_ROOT, 'backend/src/models/database.ts');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const BACKEND_ROOT = path.join(REPO_ROOT, '_SYSTEM/backend');
+const DEFAULT_DB_PATH = path.join(BACKEND_ROOT, 'data/yuri.db');
+const PROTECTED_DB_ROOTS = [
+  path.join(REPO_ROOT, 'backend/data'),
+  path.join(BACKEND_ROOT, 'data'),
+];
+const DATABASE_SOURCE = path.join(BACKEND_ROOT, 'src/models/database.ts');
 
 const require = createRequire(import.meta.url);
-const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlite3'));
+const Database = require(path.join(BACKEND_ROOT, 'node_modules/better-sqlite3'));
 
 const args = parseArgs(process.argv.slice(2));
 const dbPath = path.resolve(REPO_ROOT, args.db || process.env.YURI_DB_PATH || DEFAULT_DB_PATH);
 const latestSchemaVersion = readLatestSchemaVersion();
 const issues = [];
 
-if (isInsidePath(dbPath, PROTECTED_DB_ROOT) && !args.allowLiveDb) {
+if (isInsideAnyPath(dbPath, PROTECTED_DB_ROOTS) && !args.allowLiveDb) {
   process.stderr.write(
     'BACKEND_DB_CHECK_FAIL reason="implicit live DB check refused" required="--db <candidate> or --allow-live-db"\n'
   );
@@ -97,6 +101,10 @@ function parseArgs(argv) {
 function isInsidePath(candidate, parent) {
   const relative = path.relative(parent, candidate);
   return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
+function isInsideAnyPath(candidate, parents) {
+  return parents.some((parent) => isInsidePath(candidate, parent));
 }
 
 function readLatestSchemaVersion() {

@@ -1,0 +1,28 @@
+{
+  "schema": "yuri.math.formula-bank.v0",
+  "id": "business-fixtures",
+  "version": "0.1.0",
+  "promotionStatus": "fixture",
+  "advisoryOnly": true,
+  "authorityBoundary": "These are synthetic computational fixtures, not legal, tax, payroll, or accounting authority.",
+  "formulas": [
+    {
+      "id": "accounting-balance-fixture",
+      "notation": "assets = liabilities + equity",
+      "purpose": "Fixture invariant for teaching formula-bank validation.",
+      "proofObligations": ["synthetic_data_only", "human_review_before_domain_promotion"]
+    },
+    {
+      "id": "lkr-piecewise-fixture",
+      "notation": "cost(x) = rate_i * x + fixed_i when threshold_i <= x < threshold_{i+1}",
+      "purpose": "Synthetic LKR-style piecewise cost graph for algorithmic teaching and threshold traversal.",
+      "proofObligations": ["synthetic_thresholds_only", "not_payroll_authority", "human_review_before_domain_promotion"]
+    },
+    {
+      "id": "optimization-cost-fixture",
+      "notation": "objective = direct_cost + risk_penalty + delay_penalty",
+      "purpose": "Fixture cost function for routing and prioritization experiments.",
+      "proofObligations": ["weights_declared", "sensitivity_review_before_runtime_use"]
+    }
+  ]
+}

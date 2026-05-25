@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const extensionRoot = path.resolve(__dirname, '..');
-const repoRoot = path.resolve(extensionRoot, '../..');
+const repoRoot = path.resolve(extensionRoot, '../../..');
 const outDir = path.join(repoRoot, 'dist/chrome-design-assistant');
 const viteBin = path.join(repoRoot, 'node_modules/.bin/vite');
 

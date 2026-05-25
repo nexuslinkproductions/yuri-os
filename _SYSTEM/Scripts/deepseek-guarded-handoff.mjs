@@ -5,9 +5,10 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 const PROTOCOL_VERSION = '1.0'
-const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI'
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const DEFAULT_MODEL = 'deepseek-v4-pro'
 const DEFAULT_MAX_MODEL_OUTPUT_BYTES = 16000
 const DEFAULT_MAX_ACTIONS = 12

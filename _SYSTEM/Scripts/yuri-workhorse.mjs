@@ -5,6 +5,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { runSymbioticPulse } from './yuri/symbiotic-pulse.mjs'
 
 const WORKHORSE_VERSION = '0.1.0'
@@ -21,7 +22,8 @@ const DEFAULT_ARTIFACT_ROOT = path.join(os.homedir(), '.yuri', 'workhorse-runs')
 const FALLBACK_ARTIFACT_ROOT = '/private/tmp/yuri-workhorse-runs'
 const DEFAULT_MAX_LINES = 80
 const HARD_MAX_LINES = 200
-const REPO_ROOT = process.cwd()
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const REPO_ROOT = path.resolve(__dirname, '../..')
 const ALLOWED_ACTIONS = new Set([
   'read_file',
   'list_directory',

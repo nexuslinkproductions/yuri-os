@@ -6,9 +6,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(SCRIPT_DIR, '..');
-const MEMORY_FILE = path.join(ROOT, 'design-memory.json');
-const DESIGN_DOC_FILE = path.join(ROOT, 'DESIGN.md');
+const SYSTEM_ROOT = path.resolve(SCRIPT_DIR, '..');
+const MEMORY_FILE = path.join(SYSTEM_ROOT, 'design-memory.json');
+const DESIGN_DOC_FILE = path.join(SYSTEM_ROOT, 'DESIGN.md');
 
 function readText(filePath) {
   try {

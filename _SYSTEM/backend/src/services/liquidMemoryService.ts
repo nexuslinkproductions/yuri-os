@@ -41,7 +41,7 @@ export type LiquidMemoryDecision = 'PROMOTE' | 'DEMOTE' | 'ARCHIVE' | 'TOMBSTONE
 class LiquidMemoryService {
     private static instance: LiquidMemoryService;
     private state: HiddenState;
-    private readonly STATE_FILE = SystemConfig.resolve('backend/data/liquid_state.json');
+    private readonly STATE_FILE = SystemConfig.resolve(path.join(SystemConfig.SYSTEM.DATA, 'liquid_state.json'));
     private readonly DECAY_RATE = 0.03; // Slower decay for EvoNexus stability
 
     private constructor() {

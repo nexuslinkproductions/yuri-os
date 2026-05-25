@@ -24,6 +24,14 @@ test('release gate includes cyber intelligence and security lens checks', () => 
   assert.ok(checkNames.includes('test:cyber-browser-replay'));
   assert.ok(checkNames.includes('syntax:cyber-authorized-replay-scope'));
   assert.ok(checkNames.includes('test:cyber-authorized-replay-scope'));
+  assert.ok(checkNames.includes('syntax:cyber-provenance-score'));
+  assert.ok(checkNames.includes('test:cyber-provenance-score'));
+  assert.ok(checkNames.includes('syntax:cyber-rag-conflict-proof'));
+  assert.ok(checkNames.includes('test:cyber-rag-conflict-proof'));
+  assert.ok(checkNames.includes('syntax:cyber-memory-rollback-proof'));
+  assert.ok(checkNames.includes('test:cyber-memory-rollback-proof'));
+  assert.ok(checkNames.includes('syntax:cyber-proof-cards'));
+  assert.ok(checkNames.includes('test:cyber-proof-cards'));
   assert.ok(checkNames.includes('syntax:cyber-pilot-pack'));
   assert.ok(checkNames.includes('test:cyber-pilot-pack'));
   assert.ok(checkNames.includes('syntax:secret-leak-scan'));
@@ -32,8 +40,16 @@ test('release gate includes cyber intelligence and security lens checks', () => 
   assert.ok(checkNames.includes('test:lane-cache-rotator'));
   assert.ok(checkNames.includes('syntax:artifact-registry'));
   assert.ok(checkNames.includes('test:artifact-registry'));
+  assert.ok(checkNames.includes('syntax:math-kernel'));
+  assert.ok(checkNames.includes('test:math-kernel'));
+  assert.ok(checkNames.includes('syntax:math-adapters'));
+  assert.ok(checkNames.includes('test:math-adapters'));
+  assert.ok(checkNames.includes('syntax:math-health'));
+  assert.ok(checkNames.includes('test:math-health'));
+  assert.ok(checkNames.includes('test:math-research-archive'));
   assert.ok(checkNames.includes('test:lane-session'));
   assert.ok(checkNames.includes('security:secret-leak-live'));
+  assert.ok(checkNames.includes('math:health'));
 });
 
 test('release evidence includes baseline commits, preflight hash, and health summary', () => {

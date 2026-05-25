@@ -4,8 +4,10 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
+const ADAPTER_DIR = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(ADAPTER_DIR, '../..');
 const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
 const KERNEL_PY = path.join(REPO_ROOT, '_SYSTEM/OS_KERNEL/syscalls/kernel.py');
 const TOOL_NAME = 'yuri.offload_task';

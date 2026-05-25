@@ -4,15 +4,15 @@
 # Large research / sandbox trees create noisy sessions and skill-list overflow.
 
 [[skills.config]]
-path = "/Users/marcelspatz/YURI-OS-MUSUBI/03_RESOURCES/RESEARCH/ruflo"
+path = "03_RESOURCES/RESEARCH/ruflo"
 enabled = false
 
 [[skills.config]]
-path = "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/superpowers"
+path = "01_PROJECTS/superpowers"
 enabled = false
 
 [[skills.config]]
-path = "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/claude-cookbooks"
+path = "01_PROJECTS/claude-cookbooks"
 enabled = false
 
 sandbox_mode = "danger-full-access"
@@ -29,7 +29,7 @@ multi_agent = false
 
 [mcp_servers.yuriOffload]
 command = "node"
-args = ["/Users/marcelspatz/YURI-OS-MUSUBI/.codex/adapters/yuri-offload-mcp.mjs"]
+args = [".codex/adapters/yuri-offload-mcp.mjs"]
 enabled = true
 startup_timeout_sec = 5
 # Long offload jobs can legitimately spend minutes reasoning before returning text.
@@ -38,7 +38,7 @@ tool_timeout_sec = 21600
 
 [mcp_servers.gitnexus]
 command = "node"
-args = ["/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/gitnexus-mcp.mjs"]
+args = ["_SYSTEM/Scripts/gitnexus-mcp.mjs"]
 enabled = true
 startup_timeout_sec = 10
 tool_timeout_sec = 180
@@ -52,4 +52,4 @@ tool_timeout_sec = 60
 
 [[hooks.PreToolUse]]
 matcher = "*"
-hooks = [{ type = "command", command = "node /Users/marcelspatz/YURI-OS-MUSUBI/.codex/hooks/pre-tool-use.mjs" }]
+hooks = [{ type = "command", command = "node .codex/hooks/pre-tool-use.mjs" }]

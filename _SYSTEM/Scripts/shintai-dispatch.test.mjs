@@ -3,9 +3,11 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
   assembleShintaiTeam,
+  applyHealthPreflightToAssembly,
   buildMemberPrompt,
   buildPacketEvidence,
   loadShintaiRoster,
+  resolveShintaiStageTimeout,
 } from './shintai-dispatch.mjs';
 
 const MEMORY_TASK = 'critical Shintai YURI memory RAG skill recall neurodivergence self improvement MSA supercharge';
@@ -140,4 +142,42 @@ test('critical Shintai dispatch fails closed when council degrades below minimum
   assert.equal(assembly.ok, false);
   assert.equal(assembly.minSize, 3);
   assert.deepEqual(assembly.selectedIds, ['codex', 'deepseek']);
+});
+
+test('Shintai health preflight has a bounded default timeout', () => {
+  assert.equal(resolveShintaiStageTimeout('health', 0, {}), 180000);
+  assert.equal(resolveShintaiStageTimeout('health', 0, { YURI_SHINTAI_HEALTH_TIMEOUT_MS: '2500' }), 2500);
+  assert.equal(resolveShintaiStageTimeout('critique', 0, {}), 0);
+  assert.equal(resolveShintaiStageTimeout('proposal', 45000, {}), 45000);
+});
+
+test('Shintai health preflight preserves scoped assembly instead of rebuilding from roster', () => {
+  const member = {
+    id: 'qwen3-next',
+    displayName: 'Timeout Probe Lane',
+    lane: 'nvidia-qwen3-next',
+    model: 'nvidia-qwen3-next',
+    health: { ok: true },
+  };
+  const assembly = {
+    ok: true,
+    task: 'standard timeout probe',
+    tier: 'standard',
+    minSize: 1,
+    targetSize: 1,
+    selectedIds: ['qwen3-next'],
+    selected: [member],
+    members: [member],
+    skipped: [],
+    requiredIds: [],
+  };
+
+  const updated = applyHealthPreflightToAssembly(assembly, {
+    'qwen3-next': { ok: false, signal: 'SIGTERM', error: 'timeout' },
+  });
+
+  assert.equal(updated.ok, false);
+  assert.deepEqual(updated.selectedIds, []);
+  assert.equal(updated.skipped[0].id, 'qwen3-next');
+  assert.equal(updated.members.some((entry) => entry.id === 'codex'), false);
 });

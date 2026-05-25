@@ -9,12 +9,12 @@ const root = mkdtempSync(join(tmpdir(), 'self-improvement-crossref-'));
 const extractDir = resolve(root, '02_EXTRACT');
 const entriesDir = resolve(extractDir, 'entries');
 const experimentsDir = resolve(extractDir, 'experiments');
-mkdirSync(resolve(entriesDir, 'trading'), { recursive: true });
+mkdirSync(resolve(entriesDir, 'operations'), { recursive: true });
 mkdirSync(resolve(entriesDir, 'design'), { recursive: true });
 mkdirSync(resolve(experimentsDir, 'legal'), { recursive: true });
 
 writeFileSync(
-  resolve(entriesDir, 'trading', 'framing.md'),
+  resolve(entriesDir, 'operations', 'framing.md'),
   '---\ntags: framing_failure\n---\n# Wrong Market Question\n\n- What question did I answer instead of the real one?\n',
   'utf-8'
 );

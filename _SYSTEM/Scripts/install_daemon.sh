@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# ⬡ YURI_DAEMON_INSTALLER
 # This script configures the YURI-OS-MUSUBI to start automatically on boot.
 
-PROJECT_ROOT="/Users/marcelspatz/YURI-OS-MUSUBI"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-echo "⬡ INITIATING_STARTUP_HOOK_INTEGRATION..."
+echo "YURI_DAEMON_INSTALLER: initiating startup hook integration..."
 
 # 1. Ensure PM2 is installed
 if ! command -v pm2 &> /dev/null; then
@@ -23,5 +23,5 @@ echo ">>> Configuring OS-level persistence..."
 pm2 startup | grep "sudo" | bash
 pm2 save
 
-echo "⬡ INTEGRATION_COMPLETE"
+echo "YURI_DAEMON_INSTALLER: integration complete"
 echo ">>> YURI will now start automatically on device power-up."

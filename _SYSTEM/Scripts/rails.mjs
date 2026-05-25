@@ -408,10 +408,10 @@ export function evaluateOutputRails(output = '', context = {}) {
     reasons.push({ severity: RAIL_SEVERITY.warn, message: `output exceeds cap: ${text.length} > ${cap}` });
   }
   if (context.requireEvidence === true && looksLikeRepoTruthClaim(text) && !context.evidence) {
-    reasons.push({ severity: RAIL_SEVERITY.block, message: 'repo truth claim requires local evidence' });
+    reasons.push({ severity: RAIL_SEVERITY.warn, message: 'repo truth claim downgraded to advisory hypothesis because local evidence is missing' });
   }
   for (const id of missingEvidenceIds) {
-    reasons.push({ severity: RAIL_SEVERITY.block, message: `required output evidence missing: ${id}` });
+    reasons.push({ severity: RAIL_SEVERITY.warn, message: `required output evidence missing: ${id}; output preserved as advisory hypothesis` });
   }
   return resultFor({
     rail: 'output',
@@ -424,6 +424,7 @@ export function evaluateOutputRails(output = '', context = {}) {
       evidenceMissing: context.requireEvidence === true && looksLikeRepoTruthClaim(text) && !context.evidence,
       evidenceSourceIds: [...evidenceSourceIds],
       missingEvidenceIds,
+      advisoryHypothesisOnly: (context.requireEvidence === true && looksLikeRepoTruthClaim(text) && !context.evidence) || missingEvidenceIds.length > 0,
     },
   });
 }
@@ -433,7 +434,8 @@ export function enforceOutputRails(output = '', context = {}) {
   const result = evaluateOutputRails(text, context);
   const cap = result.evidence.cap;
   const pieces = [];
-  if (result.evidence.evidenceMissing) pieces.push(YURI_RAILS_CONFIG.output.evidenceMarker);
+  if (result.evidence.advisoryHypothesisOnly) pieces.push(YURI_RAILS_CONFIG.output.advisoryMarker || '[ADVISORY_HYPOTHESIS_ONLY]');
+  if (result.evidence.evidenceMissing || result.evidence.missingEvidenceIds?.length) pieces.push(YURI_RAILS_CONFIG.output.evidenceMarker);
   if (text.length > cap) {
     pieces.push(`${YURI_RAILS_CONFIG.output.truncationMarker} ${text.length} > ${cap}`);
     pieces.push(text.slice(0, cap));

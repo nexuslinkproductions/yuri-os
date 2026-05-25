@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');
 const MEMORY_DIR = path.join(REPO_ROOT, '.claude', 'projects', '-Users-marcelspatz-YURI', 'memory');
 const DB_PATH = path.join(REPO_ROOT, '_SYSTEM', 'OS_KERNEL', 'semantic-memory.db');
 
@@ -20,7 +20,7 @@ function countSourceFiles() {
 }
 
 function main() {
-  execFileSync(process.execPath, [path.join(REPO_ROOT, 'Scripts', 'memory-embed.mjs')], {
+  execFileSync(process.execPath, [path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'memory-embed.mjs')], {
     cwd: REPO_ROOT,
     stdio: 'inherit',
   });

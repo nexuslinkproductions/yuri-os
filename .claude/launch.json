@@ -7,7 +7,7 @@
       "runtimeArgs": ["run", "dev"],
       "port": 4200,
       "description": "YURI Command Center frontend (Vite + React 19)",
-      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI"
+      "cwd": "."
     },
     {
       "name": "yuri-backend",
@@ -15,15 +15,15 @@
       "runtimeArgs": ["ts-node", "src/server.ts"],
       "port": 3004,
       "description": "YURI backend API (Express + WebSocket, ts-node dev)",
-      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/backend"
+      "cwd": "_SYSTEM/backend"
     },
     {
       "name": "yuri-shell-service",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["backend/shellService.js"],
+      "runtimeArgs": ["_SYSTEM/backend/shellService.js"],
       "port": 3098,
       "description": "Oracle terminal shell service (launchd-managed in production)",
-      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI"
+      "cwd": "."
     },
     {
       "name": "nexus-link-landing",
@@ -31,7 +31,7 @@
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
       "description": "Next.js landing page server (dev mode)",
-      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/NEXUS-LINK-LANDING"
+      "cwd": "01_PROJECTS/NEXUS-LINK-LANDING"
     },
     {
       "name": "gstack-browse-server",
@@ -39,7 +39,7 @@
       "runtimeArgs": ["run", "server"],
       "port": 8080,
       "description": "GStack headless browser server",
-      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/gstack"
+      "cwd": "01_PROJECTS/gstack"
     },
     {
       "name": "claude-mem-worker",
@@ -47,7 +47,7 @@
       "runtimeArgs": ["run", "build-and-sync"],
       "port": 37777,
       "description": "Claude-mem plugin worker (builds, syncs, restarts)",
-      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/claude-mem"
+      "cwd": "01_PROJECTS/claude-mem"
     },
     {
       "name": "openspace-server",
@@ -55,7 +55,7 @@
       "runtimeArgs": ["-m", "openspace.local_server.main"],
       "port": 5000,
       "description": "OpenSpace local server (Flask)",
-      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/openspace"
+      "cwd": "01_PROJECTS/openspace"
     },
     {
       "name": "openspace-dashboard",
@@ -63,7 +63,7 @@
       "runtimeArgs": ["-m", "openspace.dashboard_server"],
       "port": 5001,
       "description": "OpenSpace dashboard server (Flask)",
-      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/01_PROJECTS/openspace"
+      "cwd": "01_PROJECTS/openspace"
     },
     {
       "name": "kagami-audit-report",
@@ -71,7 +71,7 @@
       "runtimeArgs": ["-m", "http.server", "5555"],
       "port": 5555,
       "description": "Static HTTP server for Kagami sprint audit HTML",
-      "cwd": "/Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/reports"
+      "cwd": "_SYSTEM/reports"
     }
   ]
 }

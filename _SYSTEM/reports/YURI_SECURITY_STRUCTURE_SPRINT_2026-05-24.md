@@ -126,6 +126,8 @@ node _SYSTEM/Scripts/context-router.mjs "automation launchd agent health stale d
 - Registered the cybersecurity proof chain so the cyber packet maps to concrete docs, scripts, data, reports, and lab fixtures.
 - Added `_SYSTEM/Scripts/lane-cache-rotator.mjs` as the YURI-owned lane-session hygiene wrapper.
 - Hardened lane-session compaction so prior `[LANE-MEMORY]` summaries are not recursively re-summarized into cache bloat.
+- Added and regression-tested `_SYSTEM/Scripts/cyber-memory-rollback-proof.mjs` with `_SYSTEM/Scripts/cyber-memory-rollback-proof.test.mjs` and `_SYSTEM/labs/cyber/fixtures/memory-rollback-corpus.json`.
+- Hardened Shintai health preflight so scoped assemblies do not silently rebuild into broader councils after a lane timeout or health failure.
 
 ## DeepSeek Advisory Notes
 
@@ -174,7 +176,7 @@ Interpretation: persistence works. Cold starts still happen, but stable session 
 2. Add a history-secret scan target to a slower/manual release command, not every pre-commit.
 3. Wire the `lane-memory-prune` automation to call `lane-cache-rotator.mjs --apply` after a manual dry-run passes.
 4. Expand the artifact registry across skills, model runtimes, generated assets, and remaining project surfaces.
-5. Extend memory/RAG proof into rollback demonstrations and richer synthetic corpus coverage.
+5. Extend memory/RAG proof with richer synthetic corpus coverage. Initial synthetic rollback proof is now implemented and test-gated; keep future work to bounded fixture expansion unless a live memory safety task is explicitly scoped.
 6. Add a slow cleanup lane for ignored legacy/runtime roots after rebuild/archive proof exists.
 
 ## Guardrails

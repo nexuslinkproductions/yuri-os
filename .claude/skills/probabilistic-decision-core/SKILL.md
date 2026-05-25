@@ -134,7 +134,7 @@ probabilistic_decision:
 - Use before `execution-domain-core` when uncertainty shapes the domain boundary.
 - Use before `non-destructive-infinity-guard` when probability affects risk acceptance.
 - Use after `failure-evolution-loop` when a wrong estimate caused bad routing, priority, or action.
-- Use alongside DACH market intelligence, trading analysis, and planning work where outcome probabilities drive operational choices.
+- Use alongside market intelligence, operational planning, research prioritization, and other work where outcome probabilities drive decisions.
 
 ## Research basis
 

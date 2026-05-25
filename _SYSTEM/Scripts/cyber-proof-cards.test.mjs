@@ -21,7 +21,7 @@ test('cyber proof cards convert fixture proofs into client-readable cards', () =
   assert.ok(model.cards.every((card) => card.local_evidence.executable_test === '_SYSTEM/Scripts/cyber-lab-runner.test.mjs'));
 });
 
-test('proof cards include Upgreat-ready demo language without platform overclaim', () => {
+test('proof cards include practical review demo language without platform overclaim', () => {
   const model = buildCyberProofCards();
   const browser = model.cards.find((card) => card.rail === 'browser-action-boundary-rail');
   const memory = model.cards.find((card) => card.rail === 'retrieval-memory-provenance-rail');
@@ -29,6 +29,8 @@ test('proof cards include Upgreat-ready demo language without platform overclaim
   assert.match(browser.executive_claim, /hostile DOM content/);
   assert.match(browser.client_demo_step, /fake portal/);
   assert.match(memory.executive_claim, /memory and retrieval poisoning/);
+  assert.match(memory.next_proof, /rollback proof now exists/i);
+  assert.doesNotMatch(memory.next_proof, /next add rollback demonstrations/i);
   assert.ok(model.cards.every((card) => !/mature\s+(SOC|SIEM|XDR|MDR)|autonomous pentest|production proof/iu.test(JSON.stringify(card))));
 });
 
@@ -57,7 +59,8 @@ test('cyber proof cards write markdown artifact', () => {
     assert.equal(result.ok, true);
     assert.equal(existsSync(reportPath), true);
     assert.match(markdown, /YURI Cyber Proof Cards/);
-    assert.match(markdown, /Upgreat-style pilot conversations/);
+    assert.match(markdown, /practical security review conversations/);
+    assert.doesNotMatch(markdown, /Upgreat-style pilot conversations/);
     assert.match(markdown, /avoid overclaiming/);
     assert.match(markdown, /Prompt Injection Replay Lab/);
   } finally {

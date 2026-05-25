@@ -1,8 +1,18 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const SOURCE = '/Users/marcelspatz/YURI-OS-MUSUBI';
-const TARGET = '/Users/marcelspatz/YURI-OS-MUSUBI';
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const SOURCE = path.resolve(SCRIPT_DIR, '../..');
+const TARGET = process.argv[2] ? path.resolve(process.argv[2]) : '';
+
+if (!TARGET) {
+    throw new Error('Usage: tsx _SYSTEM/Scripts/migrate_to_local.ts <target-directory>');
+}
+
+if (TARGET === SOURCE) {
+    throw new Error('Refusing to migrate into the source repo root');
+}
 
 console.log(`⬡ VESTA_MIGRATION :: IGNITING :: [${SOURCE}] -> [${TARGET}]`);
 
@@ -13,14 +23,14 @@ function copyRecursive(src: string, dest: string) {
     if (isDirectory) {
         if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
         fs.readdirSync(src).forEach(child => {
-            if (child === 'node_modules' || child === '.git' || child === 'dist') return;
+            if (shouldSkip(src, child)) return;
             copyRecursive(path.join(src, child), path.join(dest, child));
         });
     } else {
         let content = fs.readFileSync(src);
         
         // Patch paths if it's a text file
-        if (src.endsWith('.ts') || src.endsWith('.tsx') || src.endsWith('.js') || src.endsWith('.json') || src.endsWith('.env')) {
+        if (src.endsWith('.ts') || src.endsWith('.tsx') || src.endsWith('.js') || src.endsWith('.json')) {
             let text = content.toString('utf8');
             const original = text;
             if (original !== text) {
@@ -31,6 +41,21 @@ function copyRecursive(src: string, dest: string) {
             fs.writeFileSync(dest, content);
         }
     }
+}
+
+function shouldSkip(parent: string, child: string) {
+    const rel = path.relative(SOURCE, path.join(parent, child)).split(path.sep).join('/');
+    return child === 'node_modules'
+        || child === '.git'
+        || child === 'dist'
+        || child === '.env'
+        || rel.startsWith('backend/data')
+        || rel.startsWith('_SYSTEM/backend/data')
+        || rel.startsWith('.claude/state')
+        || rel.startsWith('.claude/history')
+        || rel.startsWith('.claude/file-history')
+        || rel.startsWith('.claude/projects')
+        || rel.startsWith('.amp');
 }
 
 try {

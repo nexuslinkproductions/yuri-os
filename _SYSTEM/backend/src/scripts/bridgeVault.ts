@@ -3,10 +3,11 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 function resolveEnvPath() {
+    const backendRoot = path.resolve(__dirname, '../..');
+    const repoRoot = path.resolve(backendRoot, '../..');
     const candidates = [
-        path.resolve(process.cwd(), 'backend/.env'),
-        path.resolve(process.cwd(), '.env'),
-        path.resolve(__dirname, '../../.env')
+        path.join(backendRoot, '.env'),
+        path.join(repoRoot, '.env')
     ];
 
     return candidates.find((candidate) => fs.existsSync(candidate));

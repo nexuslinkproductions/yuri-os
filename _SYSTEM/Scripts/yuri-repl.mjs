@@ -5,6 +5,7 @@ import { execSync, spawn } from 'child_process';
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
 import {
   DEFAULT_STATUS_LIMITS,
   createStatusSnapshot,
@@ -13,7 +14,7 @@ import {
   renderBudgetStatusLine,
 } from './yuri/status-line.mjs';
 
-const REPO_ROOT = '/Users/marcelspatz/YURI-OS-MUSUBI';
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OFFLOAD_SH = path.join(REPO_ROOT, '_SYSTEM/Scripts/offload.sh');
 const TOKENMAXXING_STATE = path.join(REPO_ROOT, '.claude/state/tokenmaxxing-state.json');
 const RUNS_DIR = path.join(os.homedir(), '.yuri', 'runs');

@@ -1,10 +1,10 @@
 # YURI Cyber Proof Cards
 
-Generated: 2026-05-24T17:49:52.047Z
+Generated: 2026-05-24T19:50:58.101Z
 
 ## Purpose
 
-These cards translate YURI cyber fixture proof into buyer-readable evidence. They are for Upgreat-style pilot conversations: concrete enough to inspect, scoped enough to avoid overclaiming.
+These cards translate YURI cyber fixture proof into buyer-readable evidence. They are for practical security review conversations: concrete enough to inspect, scoped enough to avoid overclaiming.
 
 ## Boundaries
 
@@ -114,7 +114,7 @@ Local case evidence:
 
 Demo step: Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.
 
-Next proof: Provenance scores and multi-hop RAG conflict proof now exist; next add rollback demonstrations.
+Next proof: Provenance scores and multi-hop RAG conflict proof now exist; synthetic memory rollback proof now exists; next expand corpus coverage without touching live memory stores.
 
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 
@@ -139,7 +139,7 @@ Local case evidence:
 
 Demo step: Run memory/RAG poisoning fixtures and show benign notes passing while hostile authority claims are quarantined.
 
-Next proof: Provenance scores and multi-hop RAG conflict proof now exist; next add rollback demonstrations.
+Next proof: Provenance scores and multi-hop RAG conflict proof now exist; synthetic memory rollback proof now exists; next expand corpus coverage without touching live memory stores.
 
 Boundary: Deterministic local fixture proof passed; fixture proof only, not deployment proof.
 

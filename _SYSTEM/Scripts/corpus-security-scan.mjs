@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');
 const CODE_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.py', '.sh']);
 const SEVERITY_SCORE = {
   CRITICAL: 40,

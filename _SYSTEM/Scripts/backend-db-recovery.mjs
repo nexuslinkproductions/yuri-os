@@ -7,12 +7,16 @@ import process from 'node:process';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const BACKEND_ROOT = path.join(REPO_ROOT, '_SYSTEM/backend');
 const DEFAULT_OUT_ROOT = path.join(REPO_ROOT, '_SYSTEM/recovery/backend-db');
-const PROTECTED_DB_ROOT = path.join(REPO_ROOT, 'backend/data');
+const PROTECTED_DB_ROOTS = [
+  path.join(REPO_ROOT, 'backend/data'),
+  path.join(BACKEND_ROOT, 'data'),
+];
 
 const require = createRequire(import.meta.url);
-const Database = require(path.join(REPO_ROOT, 'backend/node_modules/better-sqlite3'));
+const Database = require(path.join(BACKEND_ROOT, 'node_modules/better-sqlite3'));
 
 const args = parseArgs(process.argv.slice(2));
 
@@ -30,11 +34,11 @@ if (!args.source) {
   finish(buildPayload({ refusalReason: 'missing --source' }), 1, 'FAIL');
 }
 
-if (isInsidePath(sourcePath, PROTECTED_DB_ROOT) && !args.allowLiveSource) {
+if (isInsideAnyPath(sourcePath, PROTECTED_DB_ROOTS) && !args.allowLiveSource) {
   finish(buildPayload({ refusalReason: 'protected live DB source refused', required: '--allow-live-source' }), 1, 'FAIL');
 }
 
-if (isInsidePath(candidatePath, PROTECTED_DB_ROOT) && !args.allowLiveTarget) {
+if (isInsideAnyPath(candidatePath, PROTECTED_DB_ROOTS) && !args.allowLiveTarget) {
   finish(buildPayload({ refusalReason: 'protected live DB target refused', required: '--allow-live-target' }), 1, 'FAIL');
 }
 
@@ -149,6 +153,10 @@ function copySourceFamily(source, destinationDir) {
 function isInsidePath(candidate, parent) {
   const relative = path.relative(parent, candidate);
   return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
+function isInsideAnyPath(candidate, parents) {
+  return parents.some((parent) => isInsidePath(candidate, parent));
 }
 
 async function createBackupCandidate(source, destination) {

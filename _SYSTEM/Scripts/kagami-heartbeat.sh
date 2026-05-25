@@ -4,7 +4,8 @@
 # Non-fatal: always exits 0 so LaunchAgent doesn't retry aggressively
 set -euo pipefail
 
-REPO="/Users/marcelspatz/YURI-OS-MUSUBI"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOG="/tmp/kagami-heartbeat.log"
 TS="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 

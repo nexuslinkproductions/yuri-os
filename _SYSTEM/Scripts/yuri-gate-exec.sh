@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Universal Yuri gate for terminal commands. Generates packet, sets env, executes.
 set -euo pipefail
-REPO_ROOT="/Users/marcelspatz/YURI-OS-MUSUBI"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 if [[ $# -eq 0 ]]; then echo 'Usage: yuri-gate-exec <command> [args...]' >&2; exit 1; fi
 
 SESSION_ID="gate-$(date +%s)-$$"

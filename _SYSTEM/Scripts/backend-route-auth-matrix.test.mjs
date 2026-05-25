@@ -5,20 +5,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
 
 const PORT = 3341;
 const API_KEY = 'test-api-key-123456';
 const SERVER_READY = /YURI_BACKEND_ONLINE/;
-const ROOT = process.cwd();
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(SCRIPT_DIR, '../..');
+const BACKEND_ROOT = path.join(REPO_ROOT, '_SYSTEM', 'backend');
 
 const routeSources = [
-  { file: 'backend/src/server.ts', prefix: '', routers: ['app'] },
-  { file: 'backend/src/routes/api.ts', prefix: '/api', routers: ['router'] },
-  { file: 'backend/src/routes/designAssistantRoutes.ts', prefix: '/api/design-assistant', routers: ['designAssistant'], inherited: { localOnly: true } },
-  { file: 'backend/src/routes/siteBuilderRoutes.ts', prefix: '/api/site-builder', routers: ['siteBuilder'], inherited: { localOnly: true, auth: true } },
-  { file: 'backend/src/routes/designStudioRoutes.ts', prefix: '/api/design-studio', routers: ['designStudio'], inherited: { localOnly: true, auth: true } },
-  { file: 'backend/src/routes/notebookRoutes.ts', prefix: '/api', routers: ['router'] },
-  { file: 'backend/src/routes/consumerRoutes.ts', prefix: '/api', routers: ['router'] },
+  { file: '_SYSTEM/backend/src/server.ts', prefix: '', routers: ['app'] },
+  { file: '_SYSTEM/backend/src/routes/api.ts', prefix: '/api', routers: ['router'] },
+  { file: '_SYSTEM/backend/src/routes/designAssistantRoutes.ts', prefix: '/api/design-assistant', routers: ['designAssistant'], inherited: { localOnly: true } },
+  { file: '_SYSTEM/backend/src/routes/siteBuilderRoutes.ts', prefix: '/api/site-builder', routers: ['siteBuilder'], inherited: { localOnly: true, auth: true } },
+  { file: '_SYSTEM/backend/src/routes/designStudioRoutes.ts', prefix: '/api/design-studio', routers: ['designStudio'], inherited: { localOnly: true, auth: true } },
+  { file: '_SYSTEM/backend/src/routes/notebookRoutes.ts', prefix: '/api', routers: ['router'] },
+  { file: '_SYSTEM/backend/src/routes/consumerRoutes.ts', prefix: '/api', routers: ['router'] },
 ];
 
 const publicRoutes = new Map([
@@ -124,7 +127,7 @@ const protectedReadRoutes = [
   '/api/agents',
   '/api/projects',
   '/api/tickets',
-  '/api/files/ls?path=backend/src',
+  '/api/files/ls?path=_SYSTEM/backend/src',
   '/api/knowledge',
   '/api/knowledge/search?q=yuri',
   '/api/knowledge/detail?path=package.json',
@@ -212,7 +215,7 @@ function collectRoutes() {
   const found = [];
 
   for (const source of routeSources) {
-    const absolutePath = path.join(ROOT, source.file);
+    const absolutePath = path.join(REPO_ROOT, source.file);
     const text = fs.readFileSync(absolutePath, 'utf8');
     const routerPattern = source.routers.map(escapeRegExp).join('|');
     const routePattern = new RegExp(`\\b(?:${routerPattern})\\.(get|post|patch|delete)\\(\\s*['"]([^'"]+)['"]`, 'g');
@@ -295,8 +298,8 @@ function escapeRegExp(value) {
 }
 
 async function startBackend() {
-  const proc = spawn('npm', ['--prefix', 'backend', 'run', 'dev'], {
-    cwd: process.cwd(),
+  const proc = spawn('npm', ['run', 'dev'], {
+    cwd: BACKEND_ROOT,
     env: {
       ...process.env,
       API_KEY,

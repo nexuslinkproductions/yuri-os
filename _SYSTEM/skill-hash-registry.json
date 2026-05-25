@@ -249,7 +249,7 @@
   },
   "probabilistic-decision-core": {
     "source_path": ".claude/skills/probabilistic-decision-core/SKILL.md",
-    "hash": "5de68134a9f55846"
+    "hash": "9ed91baee0743574"
   },
   "receipt-subscription-cleaner": {
     "source_path": ".claude/skills/receipt-subscription-cleaner/SKILL.md",

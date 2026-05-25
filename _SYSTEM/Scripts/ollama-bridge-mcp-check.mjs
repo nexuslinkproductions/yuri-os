@@ -6,7 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SERVER = path.join(REPO_ROOT, '.claude/mcp-servers/ollama-bridge/index.js');
 const REQUIRED_TOOLS = ['ollama_explore_files', 'ollama_models', 'ollama_run'];
 

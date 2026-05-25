@@ -6,8 +6,8 @@ import process from 'node:process';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const STATE_FILE = path.resolve(REPO_ROOT, 'backend/data/wiki-rag-auto-state.json');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const STATE_FILE = path.resolve(REPO_ROOT, '_SYSTEM/backend/data/wiki-rag-auto-state.json');
 const POLL_MS = Number(process.env.WIKI_RAG_POLL_MS ?? 30000);
 
 const INPUT_PATHS = [
@@ -28,10 +28,10 @@ const INPUT_PATHS = [
   '_SYSTEM/yuri-wiki/schema/lint-contract.md',
   '_SYSTEM/Scripts/wiki-rag-launchd.mjs',
   '_SYSTEM/Scripts/wiki-rag-health.mjs',
-  'backend/src/scripts/ingestWikiControlPlane.ts',
-  'backend/src/services/notebookService.ts',
-  'backend/src/models/notebookSchema.ts',
-  'backend/package.json',
+  '_SYSTEM/backend/src/scripts/ingestWikiControlPlane.ts',
+  '_SYSTEM/backend/src/services/notebookService.ts',
+  '_SYSTEM/backend/src/models/notebookSchema.ts',
+  '_SYSTEM/backend/package.json',
   'package.json'
 ];
 
