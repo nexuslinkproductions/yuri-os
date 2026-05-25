@@ -155,8 +155,10 @@ test('lane kernel maps NeMo-style rails to YURI harness controls', () => {
 
 test('protected path predicate blocks forbidden surfaces', () => {
   assert.equal(isProtectedPath('backend/data/snapshot.db'), true);
+  assert.equal(isProtectedPath('.claude/file-history/session.jsonl'), true);
   assert.equal(isProtectedPath('.claude/state/pulse-bus.jsonl'), true);
   assert.equal(isProtectedPath('.claude/history/session.jsonl'), true);
+  assert.equal(isProtectedPath('.claude/projects/yuri.jsonl'), true);
   assert.equal(isProtectedPath('.env'), true);
   assert.equal(isProtectedPath('/tmp/work/.env'), true);
   assert.equal(isProtectedPath('.amp/settings.json'), true);

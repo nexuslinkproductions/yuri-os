@@ -34,6 +34,7 @@ const AI_SH = path.join(__dirname, 'ai');
 const ROSTER_PATH = path.join(REPO_ROOT, '_SYSTEM', 'kagami', 'shintai-team.json');
 const ADVISORY_DIR = path.join(REPO_ROOT, '_SYSTEM', 'state', 'shintai-advisory');
 const BUILTIN_HEALTH_TIMEOUT_MS = 180000;
+const HEAVY_HEALTH_TIMEOUT_MS = 3600000;
 const DEFAULT_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_TIMEOUT_MS);
 const DEFAULT_HEALTH_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_HEALTH_TIMEOUT_MS);
 const DEFAULT_CRITIQUE_TIMEOUT_MS = parseOptionalTimeout(process.env.YURI_SHINTAI_CRITIQUE_TIMEOUT_MS);
@@ -87,6 +88,7 @@ const SOURCE_PATHS = [
 ];
 
 const OPTIONAL_HEALTH_IDS = new Set(['claude-opus-audit', 'nemotron', 'mistral-large', 'mistral-medium', 'qwen-coder', 'qwen-397b', 'gpt-oss-120b', 'minimax-m27', 'glm', 'qwen3-next', 'nemotron-nano-30b', 'kimi']);
+const HEAVY_HEALTH_IDS = new Set(['qwen-397b', 'gpt-oss-120b']);
 const HEALTH_ALIASES = {
   codex: ['codex-architect', 'codex-gpt-5.5', 'gpt-5.5'],
   deepseek: ['deepseek-reasoner', 'deepseek-v4-pro'],
@@ -638,25 +640,47 @@ function parseOptionalTimeout(value) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
+function parseTimeoutOverride(value) {
+  if (value === undefined || value === null || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
 export function resolveShintaiStageTimeout(stage, fallbackTimeoutMs = 0, env = process.env) {
   const fallback = parseOptionalTimeout(fallbackTimeoutMs);
   if (stage === 'health') {
-    return parseOptionalTimeout(env.YURI_SHINTAI_HEALTH_TIMEOUT_MS)
-      || fallback
-      || BUILTIN_HEALTH_TIMEOUT_MS;
+    if (hasExplicitTimeout(env, 'YURI_SHINTAI_HEALTH_TIMEOUT_MS')) {
+      return parseTimeoutOverride(env.YURI_SHINTAI_HEALTH_TIMEOUT_MS);
+    }
+    return fallback || BUILTIN_HEALTH_TIMEOUT_MS;
   }
   if (stage === 'critique') {
-    return parseOptionalTimeout(env.YURI_SHINTAI_CRITIQUE_TIMEOUT_MS) || fallback;
+    if (hasExplicitTimeout(env, 'YURI_SHINTAI_CRITIQUE_TIMEOUT_MS')) {
+      return parseTimeoutOverride(env.YURI_SHINTAI_CRITIQUE_TIMEOUT_MS);
+    }
+    return fallback;
   }
   return fallback;
 }
 
-function resolveMemberTimeout(member, stage, fallbackTimeoutMs = 0) {
+function hasExplicitTimeout(env, name) {
+  return Object.prototype.hasOwnProperty.call(env, name)
+    && parseTimeoutOverride(env[name]) !== null;
+}
+
+export function resolveMemberTimeout(member, stage, fallbackTimeoutMs = 0) {
   const env = {
     ...process.env,
     ...(DEFAULT_HEALTH_TIMEOUT_MS > 0 ? { YURI_SHINTAI_HEALTH_TIMEOUT_MS: String(DEFAULT_HEALTH_TIMEOUT_MS) } : {}),
     ...(DEFAULT_CRITIQUE_TIMEOUT_MS > 0 ? { YURI_SHINTAI_CRITIQUE_TIMEOUT_MS: String(DEFAULT_CRITIQUE_TIMEOUT_MS) } : {}),
   };
+  if (stage === 'health'
+    && member?.id
+    && HEAVY_HEALTH_IDS.has(member.id)
+    && !hasExplicitTimeout(env, 'YURI_SHINTAI_HEALTH_TIMEOUT_MS')
+    && parseOptionalTimeout(fallbackTimeoutMs) === 0) {
+    return HEAVY_HEALTH_TIMEOUT_MS;
+  }
   return resolveShintaiStageTimeout(stage, fallbackTimeoutMs, env);
 }
 

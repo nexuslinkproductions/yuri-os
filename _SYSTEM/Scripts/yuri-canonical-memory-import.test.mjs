@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import Database from '../backend/node_modules/better-sqlite3/lib/index.js';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -19,6 +19,9 @@ try {
   const gatePath = path.join(runRoot, 'claim-promotion-gate.json');
   fs.writeFileSync(gatePath, JSON.stringify({
     schema_version: 1,
+    advisory_only: true,
+    local_truth_claim: true,
+    policy: 'Only claims passing this gate may be considered canonical memory candidates. Raw source prose remains tainted.',
     claims: [
       {
         claim_id: 'claim-eligible-a',
@@ -32,6 +35,7 @@ try {
         verification_method: 'test_fixture',
         source_file: '/tmp/source.md',
         source_line: 10,
+        promotion_requirements: ['human approve claim text', 'write sanitized canonical summary, not raw source prose'],
         reference: {
           id: 'ref-a',
           normalized_href: 'https://developers.openai.com/codex/noninteractive',
@@ -52,6 +56,7 @@ try {
         verification_method: 'test_fixture',
         source_file: '/tmp/source.md',
         source_line: 11,
+        promotion_requirements: ['human approve claim text', 'write sanitized canonical summary, not raw source prose'],
         reference: {
           id: 'ref-b',
           normalized_href: 'https://developers.openai.com/codex/noninteractive',
@@ -66,6 +71,7 @@ try {
         classification: 'risk',
         canonical_memory_gate: 'blocked_from_canonical_memory',
         blockers: ['support_score_below_0_35'],
+        promotion_requirements: ['resolve blockers before promotion'],
         reference: {
           normalized_href: 'https://example.com/blocked',
           tier: 'P0',
@@ -80,15 +86,45 @@ try {
     { encoding: 'utf8' },
   ));
   assert.equal(dryRun.mode, 'dry-run', 'dry-run mode mismatch');
+  assert.equal(dryRun.enforcement_ok, true, 'dry-run must pass truth-promotion enforcement');
+  assert.equal(dryRun.operator_approved, false, 'dry-run must not imply operator approval');
+  assert(fs.existsSync(dryRun.truth_promotion_enforcement), 'truth-promotion enforcement report missing');
   assert.equal(dryRun.record_count, 2, 'dry-run should include eligible records only');
   assert.equal(fs.existsSync(dbPath), false, 'dry-run should not create the memory db');
 
-  const applied = JSON.parse(execFileSync(
+  const blockedApply = spawnSync(
     process.execPath,
     [script, 'import', '--run-root', runRoot, '--db', dbPath],
     { encoding: 'utf8' },
+  );
+  assert.notEqual(blockedApply.status, 0, 'live import without operator approval must be blocked');
+  assert.match(blockedApply.stderr, /canonical_memory_write_requires_operator_approved_flag/, 'operator approval blocker missing');
+  assert.equal(fs.existsSync(dbPath), false, 'blocked live import should not create the memory db');
+
+  const protectedRunRoot = spawnSync(
+    process.execPath,
+    [script, 'import', '--run-root', path.join(tempRoot, '.env'), '--db', dbPath, '--dry-run'],
+    { encoding: 'utf8' },
+  );
+  assert.notEqual(protectedRunRoot.status, 0, 'protected run root must be refused');
+  assert.match(protectedRunRoot.stderr, /PROTECTED_SURFACE_ACCESS_DENIED/, 'protected run root error missing');
+
+  const protectedDb = spawnSync(
+    process.execPath,
+    [script, 'import', '--run-root', runRoot, '--db', path.join(tempRoot, '.env'), '--dry-run'],
+    { encoding: 'utf8' },
+  );
+  assert.notEqual(protectedDb.status, 0, 'protected db path must be refused');
+  assert.match(protectedDb.stderr, /PROTECTED_SURFACE_ACCESS_DENIED/, 'protected db error missing');
+
+  const applied = JSON.parse(execFileSync(
+    process.execPath,
+    [script, 'import', '--run-root', runRoot, '--db', dbPath, '--operator-approved'],
+    { encoding: 'utf8' },
   ));
   assert.equal(applied.mode, 'apply', 'apply mode mismatch');
+  assert.equal(applied.enforcement_ok, true, 'apply must pass truth-promotion enforcement');
+  assert.equal(applied.operator_approved, true, 'apply must record explicit operator approval');
   assert.equal(applied.claim_mappings, 2, 'apply should map both eligible claims');
   assert.equal(applied.active_memory_items, 1, 'duplicate sanitized content should share one memory item');
   assert.equal(applied.event_mappings, 2, 'duplicate claims should still create mapping events');

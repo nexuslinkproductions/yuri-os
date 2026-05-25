@@ -1538,6 +1538,30 @@
       "notes": "Verifies unsupported claims, fixture-qualified claims, internal YURI OS names, and protected-path refusal."
     },
     {
+      "path": "_SYSTEM/Scripts/yuri-truth-promotion-enforcement.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI truth promotion",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Truth-promotion runtime enforcement scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "node _SYSTEM/Scripts/yuri-truth-promotion-enforcement.test.mjs",
+      "notes": "Shared runtime enforcement layer for canonical-memory promotion gates and registry-visible truth-promotion surface coverage."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-truth-promotion-enforcement.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI truth promotion",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Truth-promotion runtime enforcement tests live beside their scripts.",
+      "rebuildRule": "node _SYSTEM/Scripts/yuri-truth-promotion-enforcement.test.mjs",
+      "notes": "Verifies registry coverage enforcement, promotion-gate runtime validation, dry-run allowance, and explicit operator approval for live canonical memory import."
+    },
+    {
       "path": "_SYSTEM/Scripts/yuri-council-claim-evidence.mjs",
       "type": "script",
       "class": "system_control_plane",

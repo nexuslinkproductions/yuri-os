@@ -6,13 +6,18 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  enforceCanonicalMemoryImportRuntime,
+  writeTruthPromotionEnforcementReport,
+} from './yuri-truth-promotion-enforcement.mjs';
+import { isProtectedPath } from './lane-kernel.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
 const defaultDb = path.join(repoRoot, '_SYSTEM', 'OS_KERNEL', 'memory.db');
 const usage = [
   'Usage:',
-  '  node _SYSTEM/Scripts/yuri-canonical-memory-import.mjs import --run-root dir [--db file] [--dry-run]',
+  '  node _SYSTEM/Scripts/yuri-canonical-memory-import.mjs import --run-root dir [--db file] [--dry-run] [--operator-approved]',
   '  node _SYSTEM/Scripts/yuri-canonical-memory-import.mjs rollback --run-root dir [--db file] [--dry-run]',
 ].join('\n');
 
@@ -34,15 +39,18 @@ try {
 }
 
 function parseArgs(args) {
-  const options = { runRoot: '', db: defaultDb, dryRun: false };
+  const options = { runRoot: '', db: defaultDb, dryRun: false, operatorApproved: false };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === '--run-root') options.runRoot = path.resolve(requireValue(args, ++index, '--run-root'));
     else if (arg === '--db') options.db = path.resolve(requireValue(args, ++index, '--db'));
     else if (arg === '--dry-run') options.dryRun = true;
+    else if (arg === '--operator-approved') options.operatorApproved = true;
     else throw new Error(`Unknown argument: ${arg}\n${usage}`);
   }
   if (!options.runRoot) throw new Error(`--run-root is required\n${usage}`);
+  assertUnprotectedPath(options.runRoot, '--run-root');
+  assertUnprotectedPath(options.db, '--db');
   return options;
 }
 
@@ -54,9 +62,22 @@ function requireValue(args, index, flag) {
 
 function runImport(options) {
   const runRoot = options.runRoot;
+  assertUnprotectedPath(runRoot, '--run-root');
+  assertUnprotectedPath(options.db, '--db');
   const gatePath = path.join(runRoot, 'claim-promotion-gate.json');
   if (!fs.existsSync(gatePath)) throw new Error(`Missing promotion gate: ${gatePath}`);
   const gate = JSON.parse(fs.readFileSync(gatePath, 'utf8'));
+  const enforcement = enforceCanonicalMemoryImportRuntime({
+    gate,
+    dryRun: options.dryRun,
+    operatorApproved: options.operatorApproved,
+    runRoot,
+    dbPath: options.db,
+  });
+  const enforcementPath = writeTruthPromotionEnforcementReport({ runRoot, report: enforcement });
+  if (!enforcement.ok) {
+    throw new Error(`Truth promotion runtime enforcement failed: ${enforcement.errors.join('; ')}\nReport: ${enforcementPath}`);
+  }
   const records = buildImportRecords(gate, runRoot);
   const batchPath = path.join(runRoot, 'canonical-memory-gated-import-batch.json');
   const batch = {
@@ -65,6 +86,8 @@ function runImport(options) {
     source_gate: gatePath,
     db_path: options.db,
     dry_run: options.dryRun,
+    truth_promotion_enforcement: enforcementPath,
+    operator_approved: options.operatorApproved,
     record_count: records.length,
     records,
   };
@@ -76,6 +99,9 @@ function runImport(options) {
       run_root: runRoot,
       db_path: options.db,
       batch: batchPath,
+      truth_promotion_enforcement: enforcementPath,
+      enforcement_ok: enforcement.ok,
+      operator_approved: options.operatorApproved,
       record_count: records.length,
       skipped_blocked_claims: blockedClaims(gate).length,
     };
@@ -86,12 +112,19 @@ function runImport(options) {
   if (fs.existsSync(options.db)) fs.copyFileSync(options.db, backupPath);
   else fs.writeFileSync(backupPath, '');
 
-  const result = runPythonImport({ runRoot, dbPath: options.db, batchPath, backupPath });
+  const result = {
+    ...runPythonImport({ runRoot, dbPath: options.db, batchPath, backupPath }),
+    truth_promotion_enforcement: enforcementPath,
+    enforcement_ok: enforcement.ok,
+    operator_approved: options.operatorApproved,
+  };
   writeFileJson(path.join(runRoot, 'canonical-memory-gated-import-result.json'), result);
   writeFileJson(path.join(runRoot, 'canonical-memory-write-audit.json'), {
     schema_version: 1,
     integrity_check: result.sqlite_integrity_check,
     canonical_memory_write_executed: true,
+    truth_promotion_enforcement: enforcementPath,
+    operator_approved: options.operatorApproved,
     source_result: path.join(runRoot, 'canonical-memory-gated-import-result.json'),
     source_event_map: path.join(runRoot, 'canonical-memory-gated-import-event-map.json'),
     claim_mappings: result.claim_mappings,
@@ -103,6 +136,8 @@ function runImport(options) {
 }
 
 function runRollback(options) {
+  assertUnprotectedPath(options.runRoot, '--run-root');
+  assertUnprotectedPath(options.db, '--db');
   const eventMapPath = path.join(options.runRoot, 'canonical-memory-gated-import-event-map.json');
   if (!fs.existsSync(eventMapPath)) throw new Error(`Missing event map: ${eventMapPath}`);
   const eventMap = JSON.parse(fs.readFileSync(eventMapPath, 'utf8'));
@@ -146,12 +181,14 @@ function buildImportRecords(gate, runRoot) {
   const eligible = (gate.claims || []).filter((claim) => claim.canonical_memory_gate === 'eligible_for_canonical_memory_candidate');
   return eligible.map((claim) => {
     const reference = claim.reference || {};
+    const sourceUri = reference.normalized_href || reference.href || '';
+    if (!sourceUri) throw new Error(`Eligible claim missing source URI: ${claim.claim_id || '(missing claim_id)'}`);
     const summary = canonicalSummary(claim.text || '');
     return {
       claim_id: claim.claim_id,
       content: summary,
       canonical_summary: summary.slice(0, 280),
-      source_uri: reference.normalized_href || reference.href || '',
+      source_uri: sourceUri,
       source_kind: 'proving_run_claim_gate',
       tags: ['yuri-os', 'proving-run', 'canonical-memory-candidate', claim.classification || 'claim'],
       importance: 3,
@@ -171,6 +208,13 @@ function buildImportRecords(gate, runRoot) {
       },
     };
   });
+}
+
+function assertUnprotectedPath(candidate, label) {
+  const resolved = path.resolve(String(candidate || ''));
+  if (isProtectedPath(resolved)) {
+    throw new Error(`PROTECTED_SURFACE_ACCESS_DENIED: ${label} ${resolved}`);
+  }
 }
 
 function buildRollbackPlan({ runRoot, dbPath, eventMapPath, eventMap, itemIds, targetSummary }) {

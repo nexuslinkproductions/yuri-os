@@ -9,6 +9,7 @@ import {
   buildPacketEvidence,
   loadShintaiRoster,
   runMemberCallsInParallel,
+  resolveMemberTimeout,
   resolveShintaiStageTimeout,
 } from './shintai-dispatch.mjs';
 
@@ -160,8 +161,17 @@ test('critical Shintai dispatch fails closed when council degrades below minimum
 test('Shintai health preflight has a bounded default timeout', () => {
   assert.equal(resolveShintaiStageTimeout('health', 0, {}), 180000);
   assert.equal(resolveShintaiStageTimeout('health', 0, { YURI_SHINTAI_HEALTH_TIMEOUT_MS: '2500' }), 2500);
+  assert.equal(resolveShintaiStageTimeout('health', 0, { YURI_SHINTAI_HEALTH_TIMEOUT_MS: '0' }), 0);
+  assert.equal(resolveShintaiStageTimeout('health', 5000, { YURI_SHINTAI_HEALTH_TIMEOUT_MS: 'invalid' }), 5000);
   assert.equal(resolveShintaiStageTimeout('critique', 0, {}), 0);
+  assert.equal(resolveShintaiStageTimeout('critique', 0, { YURI_SHINTAI_CRITIQUE_TIMEOUT_MS: '0' }), 0);
   assert.equal(resolveShintaiStageTimeout('proposal', 45000, {}), 45000);
+});
+
+test('heavy Shintai lanes get a long health preflight window by default', () => {
+  assert.equal(resolveMemberTimeout({ id: 'qwen-397b' }, 'health', 0), 3600000);
+  assert.equal(resolveMemberTimeout({ id: 'gpt-oss-120b' }, 'health', 0), 3600000);
+  assert.equal(resolveMemberTimeout({ id: 'qwen3-next' }, 'health', 0), 180000);
 });
 
 test('Shintai health probes do not persist into lane sessions', () => {

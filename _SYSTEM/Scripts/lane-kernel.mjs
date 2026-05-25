@@ -424,8 +424,10 @@ export function isProtectedPath(candidate) {
   const withSlash = normalized.endsWith('/') ? normalized : `${normalized}/`;
   return (
     withSlash.includes(`${BACKEND_DATA}/`) ||
+    withSlash.includes(`${CLAUDE_FILE_HISTORY}/`) ||
     withSlash.includes(`${CLAUDE_STATE}/`) ||
     withSlash.includes(`${CLAUDE_HISTORY}/`) ||
+    withSlash.includes(`${CLAUDE_PROJECTS}/`) ||
     withSlash.includes(`${NODE_MODULES}/`) ||
     withSlash.includes(`${AMP_DIR}/`) ||
     path.basename(normalized) === ENV_FILE

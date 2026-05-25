@@ -16,6 +16,8 @@ const requiredRegistryPaths = [
   '_SYSTEM/Scripts/claim-integrity-gate.mjs',
   '_SYSTEM/Scripts/yuri-council-claim-evidence.mjs',
   '_SYSTEM/Scripts/yuri-artifact-audit.mjs',
+  '_SYSTEM/Scripts/yuri-truth-promotion-enforcement.mjs',
+  '_SYSTEM/Scripts/yuri-truth-promotion-enforcement.test.mjs',
   '_SYSTEM/Scripts/yuri-canonical-memory-import.mjs',
   '_SYSTEM/Scripts/yuri-proving-run-repeatable.mjs',
   '_SYSTEM/Scripts/yuri-control-plane-schema.mjs',
@@ -43,6 +45,7 @@ assert.deepEqual(ladderStates, [
 
 const provingRun = readText('_SYSTEM/Scripts/yuri-proving-run-repeatable.mjs');
 assert.match(provingRun, /'--dry-run'/, 'repeatable proving run must dry-run canonical memory import');
+assert.match(provingRun, /truth_promotion_runtime_enforcement/, 'repeatable proving run must surface runtime enforcement');
 assert.match(provingRun, /rollback-rehearsal/, 'repeatable proving run must rehearse rollback on a copied DB');
 assert.match(provingRun, /production_db_unchanged/, 'repeatable proving run must verify production DB hash stability');
 
@@ -55,6 +58,21 @@ const claimGate = readText('_SYSTEM/Scripts/claim-integrity-gate.mjs');
 assert.match(claimGate, /HIGH_RISK_TERMS/, 'claim integrity gate must define high-risk claim terms');
 assert.match(claimGate, /PROMOTION_STATES/, 'claim integrity gate must recognize canonical promotion states');
 
+const truthPromotionEnforcement = readText('_SYSTEM/Scripts/yuri-truth-promotion-enforcement.mjs');
+assert.match(truthPromotionEnforcement, /canonical_memory_write_requires_operator_approved_flag/, 'runtime enforcement must require operator approval for live canonical writes');
+assert.match(truthPromotionEnforcement, /validateTruthPromotionRegistryRuntime/, 'runtime enforcement must validate registry-visible truth-promotion surfaces');
+assert.match(truthPromotionEnforcement, /missing source reference URI/, 'runtime enforcement must require source URI provenance');
+assert.match(truthPromotionEnforcement, /content_sha256/, 'runtime enforcement must require content hash provenance');
+assert.match(truthPromotionEnforcement, /verification_method/, 'runtime enforcement must require verification method provenance');
+
+const canonicalImport = readText('_SYSTEM/Scripts/yuri-canonical-memory-import.mjs');
+assert.match(canonicalImport, /--operator-approved/, 'canonical memory live import must require explicit operator approval flag');
+assert.match(canonicalImport, /enforceCanonicalMemoryImportRuntime/, 'canonical memory import must run truth-promotion enforcement before writing');
+assert.match(canonicalImport, /PROTECTED_SURFACE_ACCESS_DENIED/, 'canonical memory import must reject protected paths');
+
+const artifactRegistry = readText('_SYSTEM/Scripts/artifact-registry.mjs');
+assert.match(artifactRegistry, /validateTruthPromotionRegistryRuntime/, 'artifact registry validation must include truth-promotion runtime coverage');
+
 const procedure = readText('_SYSTEM/reports/YURI_TRUTH_PROMOTION_PROVING_PATH_REWORK_2026-05-25.md');
 for (const phrase of [
   'Fast claim language gate',
@@ -62,7 +80,8 @@ for (const phrase of [
   'Artifact and reference proof path',
   'Promotion ladder mapping',
   'Canonical memory import',
-  'No registry write-time enforcement exists in this tranche',
+  'Runtime enforcement',
+  'Registry enforcement is intentionally narrow',
   'No promotion ladder runtime migration is performed in this tranche',
   'Do not run canonical memory writes automatically',
 ]) {
@@ -74,6 +93,7 @@ for (const command of [
   ['node', '_SYSTEM/Scripts/claim-integrity-gate.mjs', '--path', '_SYSTEM/reports/YURI_TRUTH_PROMOTION_PROVING_PATH_REWORK_2026-05-25.md', '--json'],
   ['node', '_SYSTEM/Scripts/yuri-council-claim-evidence.test.mjs'],
   ['node', '_SYSTEM/Scripts/yuri-artifact-audit.test.mjs'],
+  ['node', '_SYSTEM/Scripts/yuri-truth-promotion-enforcement.test.mjs'],
   ['node', '_SYSTEM/Scripts/yuri-canonical-memory-import.test.mjs'],
   ['node', '_SYSTEM/Scripts/yuri-control-plane-schema.test.mjs'],
   ['node', '_SYSTEM/Scripts/shintai-dispatch.test.mjs'],

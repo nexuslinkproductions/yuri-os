@@ -2,6 +2,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { validateTruthPromotionRegistryRuntime } from './yuri-truth-promotion-enforcement.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(__dirname, '../..');
@@ -148,6 +149,9 @@ export function validateArtifactRegistry(registry = loadArtifactRegistry(), opti
   }
 
   if ((registry.artifacts || []).length < 10) warnings.push('artifact registry seed has fewer than 10 artifacts');
+  const truthPromotionRuntime = validateTruthPromotionRegistryRuntime(registry, { repoRoot });
+  errors.push(...truthPromotionRuntime.errors.map((error) => `truth promotion runtime: ${error}`));
+  warnings.push(...truthPromotionRuntime.warnings.map((warning) => `truth promotion runtime: ${warning}`));
 
   return {
     ok: errors.length === 0,
@@ -155,6 +159,7 @@ export function validateArtifactRegistry(registry = loadArtifactRegistry(), opti
     warnings,
     artifactCount: (registry.artifacts || []).length,
     placementRuleCount: (registry.placementRules || []).length,
+    truthPromotionRuntime,
   };
 }
 
