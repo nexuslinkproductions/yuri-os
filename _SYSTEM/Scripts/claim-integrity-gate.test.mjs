@@ -64,9 +64,37 @@ test('trusted claims require promotion context instead of self-supporting', () =
 
 test('explicit rejection or negation qualifies otherwise dangerous terms', () => {
   const root = tempRepo();
-  writeFixture(root, '_SYSTEM/reports/boundary.md', 'Rejected identity claim: YURI is not a SOC, SIEM, XDR, or cybersecurity company.\n');
+  writeFixture(
+    root,
+    '_SYSTEM/reports/boundary.md',
+    [
+      'Rejected identity claim: YURI is not a SOC, SIEM, XDR, or cybersecurity company.',
+      'No output from either main unit is trusted on authority alone.',
+      'Not yet: Full SOC, SIEM, XDR, or autonomous pentesting.',
+      '',
+    ].join('\n'),
+  );
 
   const report = scanClaimIntegrity(['_SYSTEM/reports/boundary.md'], { repoRoot: root });
+
+  assert.equal(report.ok, true);
+  assert.equal(report.findings.length, 0);
+  assert.ok(report.summary.qualified > 0);
+});
+
+test('third-party trusted threat descriptions do not become YURI trust claims', () => {
+  const root = tempRepo();
+  writeFixture(
+    root,
+    '_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md',
+    [
+      '| 31 | Supply Chain | Maintainer account takeover | Global | S1,S9 | Trusted packages become malicious | Watchlist/report guidance | No package registry telemetry | Watch-only |',
+      '| 49 | AI Attack | Indirect prompt injection through docs/web | Global | S13,S15 | Trusted content hijacks agent behavior | Browser/RAG lab | Need synthetic hostile docs | Build now |',
+      '',
+    ].join('\n'),
+  );
+
+  const report = scanClaimIntegrity(['_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md'], { repoRoot: root });
 
   assert.equal(report.ok, true);
   assert.equal(report.findings.length, 0);
@@ -116,4 +144,15 @@ test('support classifier exposes detected evidence labels', () => {
   assert.equal(support.supportStatus, 'supported');
   assert.ok(support.detectedSupport.includes('canonical_promotion_state'));
   assert.ok(support.detectedSupport.includes('executable_test_reference'));
+});
+
+test('selected cyber planning docs are truth-promotion qualified', () => {
+  const report = scanClaimIntegrity([
+    '_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md',
+    '_SYSTEM/docs/YURI_OS_CYBERSECURITY_COMPANY_SUPERCHARGE_GOAL_2026-05-22.md',
+    '_SYSTEM/reports/YURI_GUARDRAIL_PROOF_MATRIX_2026-05-22.md',
+  ]);
+
+  assert.equal(report.ok, true);
+  assert.equal(report.findings.length, 0);
 });

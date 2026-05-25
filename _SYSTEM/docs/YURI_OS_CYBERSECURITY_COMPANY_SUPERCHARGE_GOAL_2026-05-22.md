@@ -1,12 +1,13 @@
-# YURI OS Cybersecurity Company Supercharge Goal
+# YURI OS Cybersecurity Company Supercharge Goal (Research Planning Artifact)
 
 Date: 2026-05-22
 Owner: Codex main orchestrator + Claude Opus co-main
 Mode: evidence-first, lab-first, company-scale
+Promotion state: research. This is a historical planning artifact, not current external identity or trusted operating truth.
 
 ## Goal
 
-Turn YURI OS / MUSUBI into the foundation for a full AI-native cybersecurity company. The first proof surface is agentic security because YURI already has real substrate there, but the north star is wider: global cyber intelligence, assessment, controlled offensive lab validation, guardrails, runtime monitoring, memory/RAG security, client reporting, and eventually managed security operations.
+Research-only north star: explore whether YURI OS / MUSUBI can become the foundation for future AI-native cybersecurity company work. The first proof surface is agentic security because YURI has local substrate there, but this document does not assert current company, SOC/SIEM/XDR, production-ready, runtime-protection, or managed-operations capability.
 
 ## Ground Truth Inputs
 
@@ -20,7 +21,7 @@ Turn YURI OS / MUSUBI into the foundation for a full AI-native cybersecurity com
 
 ## Dual-Main Operating Model
 
-Codex and Claude Opus are the two main units for this cybersecurity company sprint.
+Codex and Claude Opus are the two main units for this cybersecurity research sprint.
 
 - Codex/main owns local implementation, filesystem truth, verification, release gates, and final repo mutations.
 - Claude Opus co-main owns long-context architecture, threat-intelligence synthesis, contradiction pressure, strategic critique, and second-owner reasoning.
@@ -40,9 +41,9 @@ No output from either main unit is trusted on authority alone.
 
 ## Strategic Position
 
-YURI should not become a narrow "AI-agent scanner" company. That is the beachhead. The larger company thesis is:
+YURI should not become a narrow "AI-agent scanner" company. That is the beachhead. The larger company thesis below is aspirational research language, not current identity:
 
-> YURI is an AI-native cyber operating system for seeing, testing, hardening, and governing the new attack surfaces created by agents, automation, memory, model routing, tool access, browser control, cloud/SaaS connectors, and cross-region AI adoption.
+> Future thesis, not current claim: YURI may become an AI-native cyber control plane for seeing, testing, hardening, and governing the new attack surfaces created by agents, automation, memory, model routing, tool access, browser control, cloud/SaaS connectors, and cross-region AI adoption.
 
 The first buyer-ready proof must still be smaller and sharper:
 
@@ -249,7 +250,7 @@ Boundary: proof cards may say "deterministic local fixture proof"; they must not
 
 ### Wave C7: Upgreat Pilot Readiness
 
-Status: implementation slice active. Produce a narrow, evidence-heavy demo and report package for AI-agent security assessment, not a broad fake SOC pitch.
+Status: implementation slice active. Produce a narrow, evidence-heavy demo and report package for AI-agent security assessment, not a broad managed-operations pitch.
 
 Artifacts:
 
@@ -329,7 +330,7 @@ Current boundary: C9 explicitly says YURI is not ready to claim managed security
 | Now | YURI has real internal guardrails, evidence gates, lane routing, protected-path discipline, and early AI skill-chain scanning. |
 | After lab proof | YURI can evaluate and harden specific AI-agent, MCP, browser, memory/RAG, and tool-use risks in controlled environments. |
 | After partner pilot | YURI can support partner-delivered AI-agent security assessments with real customer findings and remediations. |
-| Not yet | Full SOC, SIEM, XDR, MDR, autonomous pentesting, malware lab, legal compliance guarantee, or broad cyber platform maturity. |
+| Not current / blocked | Full SOC, SIEM, XDR, MDR, autonomous pentesting, malware lab, legal compliance guarantee, or broad cyber platform maturity. |
 
 ## Acceptance Criteria
 

@@ -6,7 +6,7 @@ Purpose: turn global cyber threat intelligence into YURI build priorities.
 
 ## Operating Thesis
 
-YURI's first defensible proof surface remains AI-agent, skill-chain, MCP, memory, RAG, browser-agent, and model-route security. That is not the final company scope. The company-scale direction is a cyber operating system that joins threat intelligence, assessment, lab validation, guardrails, runtime monitoring, memory/RAG defense, client reporting, and later managed security operations.
+Promotion state: research. YURI's first defensible proof surface remains AI-agent, skill-chain, MCP, memory, RAG, browser-agent, and model-route security. Company-scale or cyber operating system language in this matrix is a future product thesis only, not a current identity, production capability, SOC/SIEM/XDR claim, or trusted operating truth.
 
 Every row below maps a threat to a YURI action or a watch-only decision. A threat is not accepted into build scope unless it has a clear customer pain, a YURI capability path, and a proof artifact that can be produced in owned or explicitly authorized environments.
 

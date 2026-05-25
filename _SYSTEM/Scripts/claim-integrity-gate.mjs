@@ -74,6 +74,8 @@ const EVIDENCE_PATTERNS = Object.freeze([
 ]);
 
 const BOUNDARY_PATTERNS = Object.freeze([
+  /\b(?:not|no|never|without)\b[\s\S]{0,120}\b(?:literal\s+)?(?:OS|operating system|SOC|SIEM|XDR|cybersecurity company|production[- ]ready|runtime protection|autonomous|trusted)\b/iu,
+  /\b(?:not yet|not current|not ready|future|blocked|excluded)\b[\s\S]{0,120}\b(?:SOC|SIEM|XDR|cybersecurity company|production[- ]ready|runtime protection|autonomous)\b/iu,
   /\b(?:not|no|never|without)\s+(?:a\s+|an\s+|the\s+)?(?:literal\s+)?(?:OS|operating system|SOC|SIEM|XDR|cybersecurity company|production[- ]ready|runtime protection|autonomous)\b/iu,
   /\b(?:do not|don't|must not|should not)\s+(?:claim|describe|sell|position|treat|call)\b/iu,
   /\b(?:rejected|unsupported|false|aspirational|future|not current|downgrade|boundary|disclaimer)\b/iu,
@@ -178,6 +180,9 @@ export function classifyClaimSupport({ term, line, context, path: relPath = '' }
   if (BOUNDARY_PATTERNS.some((pattern) => pattern.test(text))) {
     detectedSupport.push('explicit_boundary_or_negation');
   }
+  if (isThirdPartyTrustedThreatDescription(term, directLine, relPath)) {
+    detectedSupport.push('third_party_threat_description');
+  }
   if (isInternalOsName(term, directLine, relPath)) {
     detectedSupport.push('internal_name_or_title');
   }
@@ -209,6 +214,15 @@ function isInternalOsName(term, line, relPath) {
   const text = String(line || '');
   if (!/\bYURI[- ]OS\b/iu.test(text) && !/\bYURI OS\b/iu.test(relPath)) return false;
   return !/\b(?:literal|real|full|production|operating system|runs hardware|kernel)\b/iu.test(text);
+}
+
+function isThirdPartyTrustedThreatDescription(term, line, relPath) {
+  if (term !== 'trusted') return false;
+  const text = String(line || '');
+  if (/\bYURI\b/iu.test(text)) return false;
+  if (!String(relPath || '').includes('YURI_CYBER_INTELLIGENCE_MATRIX')) return false;
+  return /\btrusted\s+(?:packages?|content|sources?|dependencies|workflows?|actions?|connectors?|tools?)\b/iu.test(text)
+    && /\b(?:malicious|hijack|hijacks|compromise|poison|attacker|hostile|abuse)\b/iu.test(text);
 }
 
 function contextWindow(lines, index, radius = 3) {
