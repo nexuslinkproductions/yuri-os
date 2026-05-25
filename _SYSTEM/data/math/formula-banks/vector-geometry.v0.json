@@ -14,21 +14,125 @@
       "purpose": "Measure aligned magnitude between two equal-length vectors.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#dotProduct",
       "variables": [
-        { "symbol": "a_i", "meaning": "component of first vector", "type": "number", "constraints": ["finite"] },
-        { "symbol": "b_i", "meaning": "component of second vector", "type": "number", "constraints": ["finite"] }
+        {
+          "symbol": "a_i",
+          "meaning": "component of first vector",
+          "type": "number",
+          "constraints": [
+            "finite"
+          ]
+        },
+        {
+          "symbol": "b_i",
+          "meaning": "component of second vector",
+          "type": "number",
+          "constraints": [
+            "finite"
+          ]
+        }
       ],
-      "assumptions": ["vectors have equal non-zero length"],
-      "invalidInputs": ["empty vectors", "unequal lengths", "non-finite values"],
-      "failureModes": ["Large magnitudes can dominate direction unless vectors are normalized."],
+      "assumptions": [
+        "vectors have equal non-zero length"
+      ],
+      "invalidInputs": [
+        "empty vectors",
+        "unequal lengths",
+        "non-finite values"
+      ],
+      "failureModes": [
+        "Large magnitudes can dominate direction unless vectors are normalized."
+      ],
       "workedExamples": [
         {
           "name": "three-dimensional dot product",
-          "input": { "left": [1, 2, 3], "right": [4, 5, 6] },
-          "expected": { "value": 32 },
+          "input": {
+            "left": [
+              1,
+              2,
+              3
+            ],
+            "right": [
+              4,
+              5,
+              6
+            ]
+          },
+          "expected": {
+            "value": 32
+          },
           "interpretation": "The vectors have positive alignment under the chosen coordinates."
         }
       ],
-      "proofObligations": ["equal_lengths", "finite_values"]
+      "proofObligations": [
+        "equal_lengths",
+        "finite_values"
+      ],
+      "plainLanguageUseCase": "Use when YURI needs an aligned-magnitude score between two equal-length numeric feature vectors.",
+      "units": {
+        "inputs": {
+          "left": "feature units",
+          "right": "feature units or weights aligned by index"
+        },
+        "output": "sum of pairwise unit products"
+      },
+      "inputConstraints": [
+        "vectors must be non-empty equal-length finite number arrays"
+      ],
+      "counterexamples": [
+        {
+          "name": "mismatched vector lengths",
+          "input": {
+            "left": [
+              1,
+              2
+            ],
+            "right": [
+              1
+            ]
+          },
+          "expectedError": "equal length"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "feature weights and feature values share a declared index order",
+          "magnitude should influence the score"
+        ],
+        "avoidWhen": [
+          "directional similarity should ignore magnitude",
+          "vectors have incompatible dimensions"
+        ],
+        "yuriApplications": [
+          "provenance-weight alignment",
+          "feature scoring",
+          "retrieval vector diagnostics"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#dotProduct",
+        "proofGateFormulaId": "dot-product",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "three-dimensional dot product",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "mismatched vector lengths",
+          "expectedError": "equal length"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs"
+      ]
     },
     {
       "id": "p-norm",
@@ -39,21 +143,120 @@
       "purpose": "Measure vector magnitude under a selected p-norm.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#pNorm",
       "variables": [
-        { "symbol": "x_i", "meaning": "vector component", "type": "number", "constraints": ["finite"] },
-        { "symbol": "p", "meaning": "norm order", "type": "number", "constraints": ["p >= 1"] }
+        {
+          "symbol": "x_i",
+          "meaning": "vector component",
+          "type": "number",
+          "constraints": [
+            "finite"
+          ]
+        },
+        {
+          "symbol": "p",
+          "meaning": "norm order",
+          "type": "number",
+          "constraints": [
+            "p >= 1"
+          ]
+        }
       ],
-      "assumptions": ["finite vector", "p is explicit"],
-      "invalidInputs": ["empty vector", "non-finite values", "p < 1"],
-      "failureModes": ["Different p values encode different geometry and should not be swapped silently."],
+      "assumptions": [
+        "finite vector",
+        "p is explicit"
+      ],
+      "invalidInputs": [
+        "empty vector",
+        "non-finite values",
+        "p < 1"
+      ],
+      "failureModes": [
+        "Different p values encode different geometry and should not be swapped silently."
+      ],
       "workedExamples": [
         {
           "name": "classic Euclidean norm",
-          "input": { "values": [3, 4], "p": 2 },
-          "expected": { "value": 5 },
+          "input": {
+            "values": [
+              3,
+              4
+            ],
+            "p": 2
+          },
+          "expected": {
+            "value": 5
+          },
           "interpretation": "The vector has Euclidean magnitude 5."
         }
       ],
-      "proofObligations": ["finite_values", "valid_p"]
+      "proofObligations": [
+        "finite_values",
+        "valid_p"
+      ],
+      "plainLanguageUseCase": "Use when YURI needs vector magnitude under an explicit p-norm.",
+      "units": {
+        "inputs": {
+          "values": "feature units",
+          "p": "dimensionless norm parameter"
+        },
+        "output": "same units as values when dimensions are homogeneous"
+      },
+      "inputConstraints": [
+        "values must be a non-empty finite number array",
+        "p must be finite and at least 1"
+      ],
+      "counterexamples": [
+        {
+          "name": "invalid norm exponent",
+          "input": {
+            "values": [
+              3,
+              4
+            ],
+            "p": 0
+          },
+          "expectedError": "p >= 1"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "measuring vector magnitude or distance components",
+          "normalizing vectors before similarity comparison"
+        ],
+        "avoidWhen": [
+          "features use incompatible units without scaling",
+          "p was chosen only to force a desired result"
+        ],
+        "yuriApplications": [
+          "embedding diagnostics",
+          "feature normalization",
+          "similarity quality checks"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#pNorm",
+        "proofGateFormulaId": "p-norm",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "classic Euclidean norm",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "invalid norm exponent",
+          "expectedError": "p >= 1"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs"
+      ]
     },
     {
       "id": "cosine-similarity",
@@ -64,21 +267,130 @@
       "purpose": "Measure directional similarity independent of vector magnitude.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#cosineSimilarity",
       "variables": [
-        { "symbol": "a", "meaning": "first vector", "type": "number[]", "constraints": ["finite", "non-zero norm"] },
-        { "symbol": "b", "meaning": "second vector", "type": "number[]", "constraints": ["finite", "non-zero norm"] }
+        {
+          "symbol": "a",
+          "meaning": "first vector",
+          "type": "number[]",
+          "constraints": [
+            "finite",
+            "non-zero norm"
+          ]
+        },
+        {
+          "symbol": "b",
+          "meaning": "second vector",
+          "type": "number[]",
+          "constraints": [
+            "finite",
+            "non-zero norm"
+          ]
+        }
       ],
-      "assumptions": ["vectors share coordinate basis", "zero vectors are rejected"],
-      "invalidInputs": ["empty vectors", "unequal lengths", "zero vector", "non-finite values"],
-      "failureModes": ["High similarity does not imply identical meaning if vector basis is poorly defined."],
+      "assumptions": [
+        "vectors share coordinate basis",
+        "zero vectors are rejected"
+      ],
+      "invalidInputs": [
+        "empty vectors",
+        "unequal lengths",
+        "zero vector",
+        "non-finite values"
+      ],
+      "failureModes": [
+        "High similarity does not imply identical meaning if vector basis is poorly defined."
+      ],
       "workedExamples": [
         {
           "name": "orthogonal basis vectors",
-          "input": { "left": [1, 0], "right": [0, 1] },
-          "expected": { "similarity": 0 },
+          "input": {
+            "left": [
+              1,
+              0
+            ],
+            "right": [
+              0,
+              1
+            ]
+          },
+          "expected": {
+            "similarity": 0
+          },
           "interpretation": "The vectors are orthogonal under the current basis."
         }
       ],
-      "proofObligations": ["equal_lengths", "non_zero_norms"]
+      "proofObligations": [
+        "equal_lengths",
+        "non_zero_norms"
+      ],
+      "plainLanguageUseCase": "Use when YURI compares direction of vectors while intentionally ignoring magnitude.",
+      "units": {
+        "inputs": {
+          "left": "feature vector",
+          "right": "feature vector with same dimensions"
+        },
+        "output": "dimensionless similarity from -1 to 1"
+      },
+      "inputConstraints": [
+        "vectors must be non-empty equal-length finite number arrays",
+        "neither vector may be the zero vector"
+      ],
+      "counterexamples": [
+        {
+          "name": "zero vector has undefined direction",
+          "input": {
+            "left": [
+              0,
+              0
+            ],
+            "right": [
+              1,
+              1
+            ]
+          },
+          "expectedError": "non-zero"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "semantic direction matters more than size",
+          "comparing normalized retrieval or memory feature vectors"
+        ],
+        "avoidWhen": [
+          "zero vectors appear",
+          "feature magnitude is operationally meaningful"
+        ],
+        "yuriApplications": [
+          "memory similarity",
+          "context packet similarity",
+          "RAG candidate clustering"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#cosineSimilarity",
+        "proofGateFormulaId": "cosine-similarity",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "orthogonal basis vectors",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "zero vector has undefined direction",
+          "expectedError": "non-zero"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/09_general_math_operationalization.md"
+      ]
     }
   ]
 }

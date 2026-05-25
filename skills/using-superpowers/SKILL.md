@@ -1,19 +1,18 @@
 ---
 name: using-superpowers
-description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+description: Use after the workspace authority chain is loaded to resolve task-relevant skills from the canonical local skill root.
 ---
 
 <SUBAGENT-STOP>
 If you were dispatched as a subagent to execute a specific task, skip this skill.
 </SUBAGENT-STOP>
 
-<EXTREMELY-IMPORTANT>
-If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
-
-IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
-
-This is not negotiable. This is not optional. You cannot rationalize your way out of this.
-</EXTREMELY-IMPORTANT>
+<YURI-ADAPTER-RULE>
+In YURI OS, the repository authority chain runs first: AGENTS.md, _SYSTEM/yuri-origin.md,
+SOUL.md, the context router, selected context packet, .agents recipes, then canonical root
+skills. Provider/plugin skill surfaces are compatibility and import sources until that chain
+has completed.
+</YURI-ADAPTER-RULE>
 
 ## Instruction Priority
 
@@ -43,11 +42,13 @@ Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-too
 
 ## The Rule
 
-**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+After the workspace authority chain is loaded, resolve relevant or requested skills from the
+canonical local skill root. If an invoked skill turns out to be wrong for the situation, you
+don't need to use it.
 
 ```dot
 digraph skill_flow {
-    "User message received" [shape=doublecircle];
+    "Workspace authority loaded" [shape=doublecircle];
     "About to EnterPlanMode?" [shape=doublecircle];
     "Already brainstormed?" [shape=diamond];
     "Invoke brainstorming skill" [shape=box];
@@ -64,7 +65,7 @@ digraph skill_flow {
     "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
     "Invoke brainstorming skill" -> "Might any skill apply?";
 
-    "User message received" -> "Might any skill apply?";
+    "Workspace authority loaded" -> "Might any skill apply?";
     "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
     "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
     "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";

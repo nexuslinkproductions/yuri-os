@@ -1,0 +1,193 @@
+{
+  "schema": "yuri.math-operational-simulation.v0",
+  "generatedAt": "2026-05-25T00:00:00.000Z",
+  "advisoryOnly": true,
+  "localTruthClaim": false,
+  "writesRuntimeTruth": false,
+  "purpose": "Non-invasive demonstration of math improving YURI memory, routing, RAG conflict detection, lane selection, release gates, and creative scheduling.",
+  "sections": {
+    "memoryRanking": {
+      "formulaIds": [
+        "confidence-decay",
+        "cosine-similarity",
+        "weighted-mean",
+        "weighted-variance"
+      ],
+      "weights": [
+        0.35,
+        0.25,
+        0.25,
+        0.15
+      ],
+      "ranked": [
+        {
+          "id": "recent-high-signal",
+          "components": {
+            "recencyConfidence": 0.783495506966512,
+            "sourceReliability": 0.95,
+            "normalizedInformationGain": 0.64,
+            "similarity": 0.995564481901805
+          },
+          "score": 0.82105809972355,
+          "disagreement": 0.0174137158248636
+        },
+        {
+          "id": "fresh-low-signal",
+          "components": {
+            "recencyConfidence": 0.606471444498925,
+            "sourceReliability": 0.7,
+            "normalizedInformationGain": 0.08,
+            "similarity": 0.998839792523321
+          },
+          "score": 0.557090974453122,
+          "disagreement": 0.0921344503994901
+        },
+        {
+          "id": "old-reference",
+          "components": {
+            "recencyConfidence": 0.2,
+            "sourceReliability": 0.9,
+            "normalizedInformationGain": 0.36,
+            "similarity": 0.993481025691008
+          },
+          "score": 0.534022153853651,
+          "disagreement": 0.111771021454716
+        }
+      ],
+      "recommendation": "recent-high-signal",
+      "interpretation": "Recent, reliable, information-bearing memories outrank stale or low-signal candidates."
+    },
+    "contextRouting": {
+      "formulaIds": [
+        "dijkstra-relaxation",
+        "topological-dependency-order"
+      ],
+      "route": {
+        "algorithm": "dijkstra",
+        "source": "intake",
+        "target": "operational-report",
+        "path": [
+          "intake",
+          "math-packet",
+          "formula-bank",
+          "operational-report"
+        ],
+        "cost": 5,
+        "reachable": true,
+        "visitedOrder": [
+          "intake",
+          "math-packet",
+          "formula-bank",
+          "visual-lab",
+          "operational-report"
+        ],
+        "expandedCount": 5,
+        "proof": {
+          "algorithm": "dijkstra",
+          "complexity": "O((V + E) log V)",
+          "assumptions": [
+            "non_negative_edge_weights"
+          ],
+          "warnings": []
+        }
+      },
+      "dependencyOrder": [
+        "read-startup",
+        "audit-formulas",
+        "upgrade-cards",
+        "run-proofs",
+        "write-report"
+      ],
+      "interpretation": "The cheapest route still requires loading the math packet before emitting an operational report."
+    },
+    "ragConflictDetection": {
+      "formulaIds": [
+        "kl-divergence",
+        "cross-entropy"
+      ],
+      "labels": [
+        "local_verified",
+        "research_advisory",
+        "operator_context"
+      ],
+      "trustedBaseline": [
+        0.45,
+        0.35,
+        0.2
+      ],
+      "observedRetrieval": [
+        0.62,
+        0.18,
+        0.2
+      ],
+      "divergence": 0.113968349924987,
+      "mismatch": 1.45125070802276,
+      "threshold": 0.1,
+      "status": "review_distribution_shift",
+      "interpretation": "The observed retrieval mix shifted toward local verified material; review if the task expected broader research."
+    },
+    "toolRouting": {
+      "formulaIds": [
+        "expected-value",
+        "softmax"
+      ],
+      "options": [
+        {
+          "id": "node-kernel",
+          "expectedUtility": 0.8025,
+          "displayWeight": 0.530728953235932
+        },
+        {
+          "id": "python-lab",
+          "expectedUtility": 0.765,
+          "displayWeight": 0.364764319503012
+        },
+        {
+          "id": "symbolic-adapter",
+          "expectedUtility": 0.64,
+          "displayWeight": 0.104506727261056
+        }
+      ],
+      "recommendation": "node-kernel",
+      "interpretation": "The Node kernel remains the trusted execution route; Python lab is useful for visual proof artifacts."
+    },
+    "releaseScoring": {
+      "formulaIds": [
+        "weighted-mean",
+        "weighted-variance"
+      ],
+      "hardBlockers": [],
+      "evidence": {
+        "mathHealth": 1,
+        "proofGate": 1,
+        "visualArtifacts": 1,
+        "operationalReport": 0.9
+      },
+      "weights": [
+        0.35,
+        0.3,
+        0.2,
+        0.15
+      ],
+      "score": 0.985,
+      "disagreement": 0.001275,
+      "status": "advisory_ready",
+      "interpretation": "Aggregate scores are advisory only; a hard blocker would override the numeric score."
+    },
+    "creativeProductionScheduling": {
+      "formulaIds": [
+        "topological-dependency-order"
+      ],
+      "order": [
+        "concept",
+        "reference-board",
+        "draft",
+        "review",
+        "render",
+        "package"
+      ],
+      "interpretation": "The schedule is valid because each creative step appears after its prerequisites."
+    }
+  },
+  "reportHash": "2515ef6e4da9cf3132a8df1bf905613a078eb34e087b923cb4d73678afeb5f8e"
+}

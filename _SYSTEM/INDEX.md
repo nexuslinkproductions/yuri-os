@@ -28,9 +28,11 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/research-archive/yuri-math-engine-2026-05/10_formula_card_schema.md` | Rich formula-card schema for operational formulas and examples. |
 | `_SYSTEM/research-archive/yuri-math-engine-2026-05/11_general_math_hardening_plan.md` | Current non-domain-specific math hardening plan. |
 | `_SYSTEM/research-archive/yuri-math-engine-2026-05/12_research_sprint_2026_05_25.md` | Shintai plus web research hardening sprint for formula gates and proof traces. |
+| `_SYSTEM/research-archive/yuri-math-engine-2026-05/13_math_application_playbook.md` | Operating playbook for mapping YURI tasks into math domains, variables, proof checks, visual artifacts, and non-invasive integrations. |
 | `_SYSTEM/config/schemas/yuri.math.formula-bank.v0.schema.json` | Canonical schema reference for promoted formula banks. |
 | `_SYSTEM/Scripts/math/math-proof-gate.mjs` | Formula-bank proof gate for executable examples and deterministic proof traces. |
 | `_SYSTEM/Scripts/math/math-health.mjs` | Health check for math archive, adapters, formula banks, and core algorithm proofs. |
+| `_SYSTEM/Scripts/math/math-operational-simulation.mjs` | Non-invasive math integration report for memory scoring, context routing, RAG conflict detection, tool routing, release scoring, and creative scheduling. |
 
 ## Root Folder Classes
 
@@ -127,7 +129,7 @@ Agent recipes belong in `.agents/`. Canonical reusable skills belong in `skills/
 
 ## Mathematical Operating Substrate
 
-Math work routes through the `mathematics` context packet. Use `_SYSTEM/research-archive/yuri-math-engine-2026-05/` for research intake, `_SYSTEM/Scripts/math/` for verified substrate code, `_SYSTEM/labs/math/` for polyglot visual proof labs, and `_SYSTEM/data/math/formula-banks/` for versioned formula artifacts. External engines may explore and compute; YURI preserves hypotheses but promotes only verified outputs.
+Math work routes through the `mathematics` context packet. Use `_SYSTEM/research-archive/yuri-math-engine-2026-05/` for research intake and application playbooks, `_SYSTEM/Scripts/math/` for verified substrate code and non-invasive simulations, `_SYSTEM/labs/math/` for polyglot visual proof labs, and `_SYSTEM/data/math/formula-banks/` for versioned formula artifacts. External engines may explore and compute; YURI preserves hypotheses but promotes only verified outputs.
 
 ## Current Cleanup North Star
 

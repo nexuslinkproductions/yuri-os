@@ -1,0 +1,51 @@
+{
+  "assertions": {
+    "astarExpandedNoMore": true,
+    "sameCost": true,
+    "samePath": true
+  },
+  "astar": {
+    "cost": 20.0,
+    "expanded": [
+      "A",
+      "C",
+      "E",
+      "D",
+      "F"
+    ],
+    "expandedCount": 5,
+    "path": [
+      "A",
+      "C",
+      "E",
+      "D",
+      "F"
+    ]
+  },
+  "dijkstra": {
+    "cost": 20.0,
+    "expanded": [
+      "A",
+      "C",
+      "B",
+      "E",
+      "D",
+      "F"
+    ],
+    "expandedCount": 6,
+    "path": [
+      "A",
+      "C",
+      "E",
+      "D",
+      "F"
+    ]
+  },
+  "fixture": "dijkstra-vs-astar-demo",
+  "proof": "pathfinding",
+  "schema": "yuri.math.visual-proof-report.v0",
+  "source": "A",
+  "target": "F",
+  "teachingPoint": "Dijkstra expands by known cost only; A* adds an admissible estimate of remaining cost.",
+  "writesRuntimeTruth": false
+}

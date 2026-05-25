@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="330" viewBox="0 0 760 330">
+<rect width="760" height="330" fill="#fbfaf7"/>
+<text x="30" y="34" font-family="Arial" font-size="20" fill="#1f2933">Bayes update and confidence decay proof</text>
+<text x="30" y="58" font-family="Arial" font-size="13" fill="#52616b">Posterior confidence rises after evidence, then decays by half-life.</text>
+<rect x="70" y="165.0" width="72" height="95.0" fill="#6c7a89" rx="4"/>
+<text x="106" y="284" text-anchor="middle" font-family="Arial" font-size="13" fill="#1f2933">prior</text>
+<text x="106" y="157.0" text-anchor="middle" font-family="Arial" font-size="13" fill="#1f2933">0.50</text>
+<rect x="200" y="108.0" width="72" height="152.0" fill="#2f8f83" rx="4"/>
+<text x="236" y="284" text-anchor="middle" font-family="Arial" font-size="13" fill="#1f2933">posterior</text>
+<text x="236" y="100.0" text-anchor="middle" font-family="Arial" font-size="13" fill="#1f2933">0.80</text>
+<polyline points="360,108.0 410,152.51985000000002 460,184.0 510,206.25983 560,222.0 610,233.13001 660,241.0" fill="none" stroke="#d64545" stroke-width="4"/>
+<circle cx="360" cy="108.0" r="5" fill="#d64545"/>
+<circle cx="410" cy="152.51985000000002" r="5" fill="#d64545"/>
+<circle cx="460" cy="184.0" r="5" fill="#d64545"/>
+<circle cx="510" cy="206.25983" r="5" fill="#d64545"/>
+<circle cx="560" cy="222.0" r="5" fill="#d64545"/>
+<circle cx="610" cy="233.13001" r="5" fill="#d64545"/>
+<circle cx="660" cy="241.0" r="5" fill="#d64545"/>
+<text x="360" y="284" font-family="Arial" font-size="13" fill="#1f2933">age 0</text>
+<text x="640" y="284" font-family="Arial" font-size="13" fill="#1f2933">age 30</text>
+</svg>

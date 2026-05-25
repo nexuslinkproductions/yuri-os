@@ -14,21 +14,122 @@
       "purpose": "Rank frontier nodes by known path cost plus estimated remaining cost.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#astar",
       "variables": [
-        { "symbol": "g(n)", "meaning": "known cost from source to node n", "type": "number", "constraints": ["finite or Infinity"] },
-        { "symbol": "h(n)", "meaning": "heuristic estimate from n to target", "type": "number", "constraints": ["finite", "h(n) >= 0"] }
+        {
+          "symbol": "g(n)",
+          "meaning": "known cost from source to node n",
+          "type": "number",
+          "constraints": [
+            "finite or Infinity"
+          ]
+        },
+        {
+          "symbol": "h(n)",
+          "meaning": "heuristic estimate from n to target",
+          "type": "number",
+          "constraints": [
+            "finite",
+            "h(n) >= 0"
+          ]
+        }
       ],
-      "assumptions": ["edge weights are non-negative", "strict optimality requires admissible heuristic"],
-      "invalidInputs": ["unknown nodes", "negative edge weights", "non-finite heuristic values"],
-      "failureModes": ["An overestimating heuristic can produce non-optimal paths unless strict validation catches it."],
+      "assumptions": [
+        "edge weights are non-negative",
+        "strict optimality requires admissible heuristic"
+      ],
+      "invalidInputs": [
+        "unknown nodes",
+        "negative edge weights",
+        "non-finite heuristic values"
+      ],
+      "failureModes": [
+        "An overestimating heuristic can produce non-optimal paths unless strict validation catches it."
+      ],
       "workedExamples": [
         {
           "name": "pathfinding fixture",
-          "input": { "fixture": "_SYSTEM/labs/math/fixtures/pathfinding-demo.json" },
-          "expected": { "path": ["A", "C", "E", "D", "F"], "cost": 20 },
+          "input": {
+            "fixture": "_SYSTEM/labs/math/fixtures/pathfinding-demo.json"
+          },
+          "expected": {
+            "path": [
+              "A",
+              "C",
+              "E",
+              "D",
+              "F"
+            ],
+            "cost": 20
+          },
           "interpretation": "A* matches Dijkstra on the fixture while expanding fewer nodes."
         }
       ],
-      "proofObligations": ["non_negative_edges", "admissible_heuristic_for_optimality"]
+      "proofObligations": [
+        "non_negative_edges",
+        "admissible_heuristic_for_optimality"
+      ],
+      "plainLanguageUseCase": "Use when YURI has a weighted route problem and a checked lower-bound estimate of remaining cost.",
+      "units": {
+        "inputs": {
+          "graph": "nodes plus non-negative edge costs in task-specific cost units",
+          "heuristic": "same cost units as graph edges"
+        },
+        "output": "path cost in graph cost units"
+      },
+      "inputConstraints": [
+        "edge weights must be finite and non-negative",
+        "source and target must exist in the graph",
+        "strict mode requires admissible non-negative heuristics"
+      ],
+      "counterexamples": [
+        {
+          "name": "missing fixture cannot prove route",
+          "input": {
+            "fixture": "_SYSTEM/labs/math/fixtures/missing-pathfinding-demo.json"
+          },
+          "expectedError": "ENOENT|no such file"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "routing has a trustworthy lower-bound heuristic",
+          "search space is large enough for heuristic pruning to matter"
+        ],
+        "avoidWhen": [
+          "heuristic is speculative or can overestimate",
+          "edge costs can be negative"
+        ],
+        "yuriApplications": [
+          "context routing",
+          "tool routing with known lower-bound costs",
+          "task navigation through dependency graph"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#astar",
+        "proofGateFormulaId": "astar-evaluation",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "pathfinding fixture",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "missing fixture cannot prove route",
+          "expectedError": "ENOENT|no such file"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/labs/math/fixtures/pathfinding-demo.json",
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs"
+      ]
     },
     {
       "id": "dijkstra-relaxation",
@@ -39,21 +140,118 @@
       "purpose": "Maintain shortest known path costs over weighted graphs with non-negative edge weights.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#dijkstra",
       "variables": [
-        { "symbol": "dist(v)", "meaning": "best known distance to node v", "type": "number", "constraints": ["finite or Infinity"] },
-        { "symbol": "w(u,v)", "meaning": "edge weight from u to v", "type": "number", "constraints": ["w(u,v) >= 0"] }
+        {
+          "symbol": "dist(v)",
+          "meaning": "best known distance to node v",
+          "type": "number",
+          "constraints": [
+            "finite or Infinity"
+          ]
+        },
+        {
+          "symbol": "w(u,v)",
+          "meaning": "edge weight from u to v",
+          "type": "number",
+          "constraints": [
+            "w(u,v) >= 0"
+          ]
+        }
       ],
-      "assumptions": ["all edge weights are non-negative"],
-      "invalidInputs": ["unknown nodes", "negative edge weights", "non-finite weights"],
-      "failureModes": ["Dijkstra is not valid for graphs whose path costs include negative edges."],
+      "assumptions": [
+        "all edge weights are non-negative"
+      ],
+      "invalidInputs": [
+        "unknown nodes",
+        "negative edge weights",
+        "non-finite weights"
+      ],
+      "failureModes": [
+        "Dijkstra is not valid for graphs whose path costs include negative edges."
+      ],
       "workedExamples": [
         {
           "name": "pathfinding fixture",
-          "input": { "fixture": "_SYSTEM/labs/math/fixtures/pathfinding-demo.json" },
-          "expected": { "path": ["A", "C", "E", "D", "F"], "cost": 20 },
+          "input": {
+            "fixture": "_SYSTEM/labs/math/fixtures/pathfinding-demo.json"
+          },
+          "expected": {
+            "path": [
+              "A",
+              "C",
+              "E",
+              "D",
+              "F"
+            ],
+            "cost": 20
+          },
           "interpretation": "Dijkstra provides the uninformed shortest-path baseline."
         }
       ],
-      "proofObligations": ["non_negative_edges", "priority_queue_extracts_minimum_cost"]
+      "proofObligations": [
+        "non_negative_edges",
+        "priority_queue_extracts_minimum_cost"
+      ],
+      "plainLanguageUseCase": "Use when YURI needs a baseline shortest path over non-negative weighted edges without heuristic assumptions.",
+      "units": {
+        "inputs": {
+          "graph": "nodes plus non-negative edge costs in task-specific cost units"
+        },
+        "output": "path cost in graph cost units"
+      },
+      "inputConstraints": [
+        "edge weights must be finite and non-negative",
+        "source and target must exist in the graph"
+      ],
+      "counterexamples": [
+        {
+          "name": "missing fixture cannot prove route",
+          "input": {
+            "fixture": "_SYSTEM/labs/math/fixtures/missing-pathfinding-demo.json"
+          },
+          "expectedError": "ENOENT|no such file"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "baseline correctness matters more than speed",
+          "no admissible heuristic is available"
+        ],
+        "avoidWhen": [
+          "edge weights may be negative",
+          "the problem is dependency ordering rather than path cost"
+        ],
+        "yuriApplications": [
+          "context-router baseline",
+          "adapter cross-checks",
+          "pathfinding visual proof"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#dijkstra",
+        "proofGateFormulaId": "dijkstra-relaxation",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "pathfinding fixture",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "missing fixture cannot prove route",
+          "expectedError": "ENOENT|no such file"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/labs/math/fixtures/pathfinding-demo.json",
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs"
+      ]
     },
     {
       "id": "topological-dependency-order",
@@ -64,20 +262,143 @@
       "purpose": "Order dependency DAGs and reject cyclic plans.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#topologicalSort",
       "variables": [
-        { "symbol": "u -> v", "meaning": "dependency edge from prerequisite u to dependent v", "type": "edge", "constraints": ["u and v are known nodes"] }
+        {
+          "symbol": "u -> v",
+          "meaning": "dependency edge from prerequisite u to dependent v",
+          "type": "edge",
+          "constraints": [
+            "u and v are known nodes"
+          ]
+        }
       ],
-      "assumptions": ["graph is directed", "valid ordering exists only for acyclic graphs"],
-      "invalidInputs": ["empty node set", "unknown nodes", "cycles"],
-      "failureModes": ["A cycle means there is no valid dependency order until the dependency model is changed."],
+      "assumptions": [
+        "graph is directed",
+        "valid ordering exists only for acyclic graphs"
+      ],
+      "invalidInputs": [
+        "empty node set",
+        "unknown nodes",
+        "cycles"
+      ],
+      "failureModes": [
+        "A cycle means there is no valid dependency order until the dependency model is changed."
+      ],
       "workedExamples": [
         {
           "name": "simple dependency chain",
-          "input": { "nodes": ["research", "kernel", "lab", "gate"], "edges": [["research", "kernel"], ["kernel", "lab"], ["kernel", "gate"]] },
-          "expected": { "order": ["research", "kernel", "lab", "gate"] },
+          "input": {
+            "nodes": [
+              "research",
+              "kernel",
+              "lab",
+              "gate"
+            ],
+            "edges": [
+              [
+                "research",
+                "kernel"
+              ],
+              [
+                "kernel",
+                "lab"
+              ],
+              [
+                "kernel",
+                "gate"
+              ]
+            ]
+          },
+          "expected": {
+            "order": [
+              "research",
+              "kernel",
+              "lab",
+              "gate"
+            ]
+          },
           "interpretation": "Research must precede kernel work, and kernel work precedes lab/gate work."
         }
       ],
-      "proofObligations": ["directed_graph", "cycle_detection"]
+      "proofObligations": [
+        "directed_graph",
+        "cycle_detection"
+      ],
+      "plainLanguageUseCase": "Use when YURI must order dependent work and prove the plan has no cycle before execution.",
+      "units": {
+        "inputs": {
+          "nodes": "task or artifact identifiers",
+          "edges": "directed dependency edges from prerequisite to dependent"
+        },
+        "output": "ordered identifiers; dimensionless"
+      },
+      "inputConstraints": [
+        "nodes must be non-empty",
+        "every edge endpoint must exist in nodes",
+        "graph must be acyclic"
+      ],
+      "counterexamples": [
+        {
+          "name": "cyclic dependency graph",
+          "input": {
+            "nodes": [
+              "draft",
+              "review"
+            ],
+            "edges": [
+              [
+                "draft",
+                "review"
+              ],
+              [
+                "review",
+                "draft"
+              ]
+            ]
+          },
+          "expectedError": "cycle"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "task decomposition has explicit prerequisites",
+          "creative production or release work needs a dependency order"
+        ],
+        "avoidWhen": [
+          "dependencies are probabilistic preferences rather than hard edges",
+          "cycle resolution needs human arbitration"
+        ],
+        "yuriApplications": [
+          "task decomposition",
+          "release sequencing",
+          "creative production scheduling"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#topologicalSort",
+        "proofGateFormulaId": "topological-dependency-order",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "simple dependency chain",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "cyclic dependency graph",
+          "expectedError": "cycle"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/13_math_application_playbook.md"
+      ]
     }
   ]
 }

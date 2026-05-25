@@ -1,6 +1,6 @@
 {
   "schema": "yuri.math-lab-harness.v0",
-  "generatedAt": "2026-05-24T00:00:00.000Z",
+  "generatedAt": "2026-05-25T00:00:00.000Z",
   "purpose": "Governed polyglot lab surface for YURI mathematical operating substrate experiments.",
   "boundary": "owned-local-synthetic-or-explicitly-authorized-only",
   "writesRuntimeTruth": false,
@@ -16,10 +16,32 @@
         "confidence-decay",
         "dijkstra",
         "astar",
-        "topological-sort"
+        "topological-sort",
+        "scoring-normalization",
+        "vector-geometry"
       ],
       "runMode": "core",
       "promotionStatus": "verified-baseline",
+      "authorityBoundary": "YURI-owned deterministic kernel; can produce trusted baseline results only through tests and proof gates.",
+      "commands": [
+        "npm run test:math-substrate",
+        "node _SYSTEM/Scripts/math/math-health.mjs"
+      ],
+      "inputs": [
+        "formula banks",
+        "owned fixtures",
+        "synthetic operational demos"
+      ],
+      "outputs": [
+        "proof traces",
+        "math health JSON",
+        "deterministic simulation reports"
+      ],
+      "promotionGate": [
+        "kernel tests pass",
+        "proof gate examples pass",
+        "math health passes"
+      ],
       "writesRuntimeTruth": false
     },
     {
@@ -30,10 +52,35 @@
         "dijkstra-trace",
         "astar-trace",
         "graph-visualization",
-        "topological-visualization"
+        "topological-visualization",
+        "bayes-update-visualization",
+        "confidence-decay-visualization",
+        "svg-output",
+        "png-output",
+        "html-report"
       ],
       "runMode": "lab",
       "promotionStatus": "research",
+      "authorityBoundary": "Fixture-only visual evidence. It may render artifacts but cannot promote runtime truth.",
+      "commands": [
+        "python3 _SYSTEM/labs/math/visual-proof-artifact-lab.py --out-dir _SYSTEM/labs/math/outputs --json"
+      ],
+      "inputs": [
+        "_SYSTEM/labs/math/fixtures/pathfinding-demo.json",
+        "synthetic Bayes confidence fixture embedded in the lab script"
+      ],
+      "outputs": [
+        "_SYSTEM/labs/math/outputs/pathfinding-proof.svg",
+        "_SYSTEM/labs/math/outputs/pathfinding-proof.png",
+        "_SYSTEM/labs/math/outputs/bayes-confidence-proof.svg",
+        "_SYSTEM/labs/math/outputs/bayes-confidence-proof.png",
+        "_SYSTEM/labs/math/outputs/index.html"
+      ],
+      "promotionGate": [
+        "visual outputs generated",
+        "JSON report agrees with Node kernel examples before any trusted use",
+        "writesRuntimeTruth remains false"
+      ],
       "writesRuntimeTruth": false
     },
     {
@@ -48,6 +95,26 @@
       ],
       "runMode": "lab",
       "promotionStatus": "research",
+      "authorityBoundary": "External graph library for cross-checking and visualization only; Node kernel remains the promoted baseline.",
+      "commands": [
+        "future: python3 _SYSTEM/labs/math/networkx-crosscheck.py --fixture _SYSTEM/labs/math/fixtures/pathfinding-demo.json"
+      ],
+      "inputs": [
+        "owned graph fixtures",
+        "formula-bank graph examples"
+      ],
+      "outputs": [
+        "advisory graph comparison report",
+        "optional visual graph artifacts"
+      ],
+      "requiredPackages": [
+        "networkx"
+      ],
+      "promotionGate": [
+        "package version recorded",
+        "fixture output matches Dijkstra/A* proof gate",
+        "counterexample behavior recorded"
+      ],
       "writesRuntimeTruth": false
     },
     {
@@ -61,6 +128,61 @@
       ],
       "runMode": "research",
       "promotionStatus": "research",
+      "authorityBoundary": "External symbolic checks are advisory until equivalent expressions and assumptions are verified by YURI proof gates.",
+      "commands": [
+        "future: python3 _SYSTEM/labs/math/sympy-formula-check.py --formula-bank _SYSTEM/data/math/formula-banks/information-theory.v0.json"
+      ],
+      "inputs": [
+        "formula notation",
+        "declared variables",
+        "assumptions"
+      ],
+      "outputs": [
+        "advisory symbolic equivalence notes",
+        "assumption mismatch warnings"
+      ],
+      "requiredPackages": [
+        "sympy"
+      ],
+      "promotionGate": [
+        "symbolic result includes assumptions",
+        "local executable examples still pass",
+        "no direct runtime truth writes"
+      ],
+      "writesRuntimeTruth": false
+    },
+    {
+      "schema": "yuri.math.adapter.v0",
+      "id": "python-numpy",
+      "engine": "python-numpy",
+      "capabilities": [
+        "vector-cross-check",
+        "linear-algebra-baseline",
+        "numerical-array-validation",
+        "future-optimization-precheck"
+      ],
+      "runMode": "lab",
+      "promotionStatus": "research",
+      "authorityBoundary": "External numerical array engine for lab cross-checks only; promoted truth requires Node kernel or explicit owner-approved gate.",
+      "commands": [
+        "future: python3 _SYSTEM/labs/math/numpy-vector-check.py --formula-bank _SYSTEM/data/math/formula-banks/vector-geometry.v0.json"
+      ],
+      "inputs": [
+        "owned vector fixtures",
+        "formula-bank worked examples"
+      ],
+      "outputs": [
+        "advisory numerical comparison report",
+        "floating-point tolerance notes"
+      ],
+      "requiredPackages": [
+        "numpy"
+      ],
+      "promotionGate": [
+        "version and tolerance recorded",
+        "local formula-card examples pass",
+        "counterexamples fail deterministically"
+      ],
       "writesRuntimeTruth": false
     }
   ],
@@ -69,11 +191,49 @@
       "id": "dijkstra-vs-astar-visual-proof",
       "title": "Dijkstra vs A* Visual Proof",
       "fixture": "fixtures/pathfinding-demo.json",
-      "script": "visual-proof-lab.py",
+      "script": "visual-proof-artifact-lab.py",
+      "command": "python3 _SYSTEM/labs/math/visual-proof-artifact-lab.py --out-dir _SYSTEM/labs/math/outputs --json",
       "runMode": "fixture-only",
       "enabled": true,
       "externalTargetsAllowed": false,
-      "proofTarget": "algorithmic-operating-layer"
+      "proofTarget": "algorithmic-operating-layer",
+      "outputs": [
+        "outputs/pathfinding-proof.json",
+        "outputs/pathfinding-proof.svg",
+        "outputs/pathfinding-proof.png",
+        "outputs/index.html"
+      ]
+    },
+    {
+      "id": "bayes-confidence-visual-proof",
+      "title": "Bayes Update And Confidence Decay Visual Proof",
+      "fixture": "embedded-synthetic-bayes-confidence",
+      "script": "visual-proof-artifact-lab.py",
+      "command": "python3 _SYSTEM/labs/math/visual-proof-artifact-lab.py --out-dir _SYSTEM/labs/math/outputs --json",
+      "runMode": "fixture-only",
+      "enabled": true,
+      "externalTargetsAllowed": false,
+      "proofTarget": "probability-calibration-layer",
+      "outputs": [
+        "outputs/bayes-confidence-proof.json",
+        "outputs/bayes-confidence-proof.svg",
+        "outputs/bayes-confidence-proof.png",
+        "outputs/index.html"
+      ]
+    },
+    {
+      "id": "operational-math-simulation-report",
+      "title": "Operational Math Simulation Report",
+      "fixture": "owned-synthetic-yuri-processes",
+      "script": "../../Scripts/math/math-operational-simulation.mjs",
+      "command": "node _SYSTEM/Scripts/math/math-operational-simulation.mjs",
+      "runMode": "report-only",
+      "enabled": true,
+      "externalTargetsAllowed": false,
+      "proofTarget": "yuri-integration-layer",
+      "outputs": [
+        "../reports/math-operational-simulation-2026-05-25.json"
+      ]
     }
   ]
 }

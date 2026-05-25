@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import path from 'node:path';
 import { test } from 'node:test';
 import { buildRegistry, recommendSkills } from './yuri-skill-loader.mjs';
 
@@ -42,3 +44,48 @@ test('root skills are canonical and Superpowers imports are visible from skills 
   assert.equal(byName.get('using-superpowers')?.source_path, 'skills/using-superpowers/SKILL.md');
   assert.equal(registry.skills.some((skill) => skill.source_path.startsWith('.agents/skills/')), false);
 });
+
+test('Superpowers imports are cloned into root skills without first-response queue jump wording', () => {
+  const pluginRoot = '.codex/plugins/cache/openai-curated/superpowers/6188456f/skills';
+  const rootSkills = 'skills';
+
+  if (existsSync(pluginRoot)) {
+    const pluginSkillNames = readdirSync(pluginRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+
+    assert.equal(pluginSkillNames.length > 0, true);
+
+    for (const skillName of pluginSkillNames) {
+      const pluginFiles = walkFiles(path.join(pluginRoot, skillName));
+      const rootSkillDir = path.join(rootSkills, skillName);
+      const rootFiles = existsSync(rootSkillDir) ? walkFiles(rootSkillDir) : [];
+
+      assert.deepEqual(rootFiles, pluginFiles, `${skillName} root clone must include every plugin support file`);
+    }
+  }
+
+  const usingSuperpowers = readFileSync('skills/using-superpowers/SKILL.md', 'utf8');
+  assert.doesNotMatch(usingSuperpowers, /before any response or action/i);
+  assert.doesNotMatch(usingSuperpowers, /before any response\/action/i);
+});
+
+function walkFiles(base, relativeDir = '') {
+  return readdirSync(path.join(base, relativeDir), { withFileTypes: true })
+    .flatMap((entry) => {
+      const relativePath = path.join(relativeDir, entry.name);
+      const absolutePath = path.join(base, relativePath);
+
+      if (entry.isDirectory()) {
+        return walkFiles(base, relativePath);
+      }
+
+      if (!statSync(absolutePath).isFile()) {
+        return [];
+      }
+
+      return [relativePath];
+    })
+    .sort();
+}

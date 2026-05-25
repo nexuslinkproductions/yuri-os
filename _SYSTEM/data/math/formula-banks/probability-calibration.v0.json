@@ -14,22 +14,132 @@
       "purpose": "Measure the squared error of probabilistic predictions against observed outcomes.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#brierScore",
       "variables": [
-        { "symbol": "p_i", "meaning": "predicted probability", "type": "number", "constraints": ["0 <= p_i <= 1"] },
-        { "symbol": "y_i", "meaning": "observed outcome or target probability", "type": "number", "constraints": ["0 <= y_i <= 1"] },
-        { "symbol": "n", "meaning": "number of paired observations", "type": "integer", "constraints": ["n > 0"] }
+        {
+          "symbol": "p_i",
+          "meaning": "predicted probability",
+          "type": "number",
+          "constraints": [
+            "0 <= p_i <= 1"
+          ]
+        },
+        {
+          "symbol": "y_i",
+          "meaning": "observed outcome or target probability",
+          "type": "number",
+          "constraints": [
+            "0 <= y_i <= 1"
+          ]
+        },
+        {
+          "symbol": "n",
+          "meaning": "number of paired observations",
+          "type": "integer",
+          "constraints": [
+            "n > 0"
+          ]
+        }
       ],
-      "assumptions": ["predictions and outcomes are paired in the same order"],
-      "invalidInputs": ["empty arrays", "unequal lengths", "values outside [0, 1]"],
-      "failureModes": ["A low score does not prove causality or explain why predictions are accurate."],
+      "assumptions": [
+        "predictions and outcomes are paired in the same order"
+      ],
+      "invalidInputs": [
+        "empty arrays",
+        "unequal lengths",
+        "values outside [0, 1]"
+      ],
+      "failureModes": [
+        "A low score does not prove causality or explain why predictions are accurate."
+      ],
       "workedExamples": [
         {
           "name": "two prediction smoke check",
-          "input": { "predictions": [0.9, 0.2], "outcomes": [1, 0] },
-          "expected": { "score": 0.025 },
+          "input": {
+            "predictions": [
+              0.9,
+              0.2
+            ],
+            "outcomes": [
+              1,
+              0
+            ]
+          },
+          "expected": {
+            "score": 0.025
+          },
           "interpretation": "The predictions are close to the observed outcomes on this synthetic fixture."
         }
       ],
-      "proofObligations": ["paired_probability_bounds", "mean_squared_error_determinism"]
+      "proofObligations": [
+        "paired_probability_bounds",
+        "mean_squared_error_determinism"
+      ],
+      "plainLanguageUseCase": "Use when YURI needs a bounded squared-error score for probability forecasts against observed binary outcomes.",
+      "units": {
+        "inputs": {
+          "predictions": "probabilities in [0,1]",
+          "outcomes": "binary observations represented as 0 or 1 probabilities"
+        },
+        "output": "mean squared probability error"
+      },
+      "inputConstraints": [
+        "predictions and outcomes must be equal-length probability vectors",
+        "outcomes must be encoded as 0 or 1 for binary event scoring"
+      ],
+      "counterexamples": [
+        {
+          "name": "prediction below probability range",
+          "input": {
+            "predictions": [
+              -0.1
+            ],
+            "outcomes": [
+              1
+            ]
+          },
+          "expectedError": "between 0 and 1"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "calibrating YURI confidence claims",
+          "comparing low-volume forecast quality"
+        ],
+        "avoidWhen": [
+          "outcomes are not binary/probability encoded",
+          "you need strong penalty for overconfident misses"
+        ],
+        "yuriApplications": [
+          "release confidence audit",
+          "tool routing forecast checks",
+          "memory confidence calibration"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#brierScore",
+        "proofGateFormulaId": "brier-score",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "two prediction smoke check",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "prediction below probability range",
+          "expectedError": "between 0 and 1"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-proof-gate.test.mjs",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/12_research_sprint_2026_05_25.md"
+      ]
     },
     {
       "id": "log-loss",
@@ -40,22 +150,137 @@
       "purpose": "Penalize overconfident wrong probabilistic predictions.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#logLoss",
       "variables": [
-        { "symbol": "p_i", "meaning": "predicted probability", "type": "number", "constraints": ["0 <= p_i <= 1"] },
-        { "symbol": "y_i", "meaning": "observed outcome or target probability", "type": "number", "constraints": ["0 <= y_i <= 1"] },
-        { "symbol": "epsilon", "meaning": "clipping value for numerical stability", "type": "number", "constraints": ["0 < epsilon < 0.5"] }
+        {
+          "symbol": "p_i",
+          "meaning": "predicted probability",
+          "type": "number",
+          "constraints": [
+            "0 <= p_i <= 1"
+          ]
+        },
+        {
+          "symbol": "y_i",
+          "meaning": "observed outcome or target probability",
+          "type": "number",
+          "constraints": [
+            "0 <= y_i <= 1"
+          ]
+        },
+        {
+          "symbol": "epsilon",
+          "meaning": "clipping value for numerical stability",
+          "type": "number",
+          "constraints": [
+            "0 < epsilon < 0.5"
+          ]
+        }
       ],
-      "assumptions": ["binary or fractional target in [0, 1]", "epsilon is explicit"],
-      "invalidInputs": ["empty arrays", "unequal lengths", "invalid probabilities", "invalid epsilon"],
-      "failureModes": ["Extreme clipping choices can hide numerical instability."],
+      "assumptions": [
+        "binary or fractional target in [0, 1]",
+        "epsilon is explicit"
+      ],
+      "invalidInputs": [
+        "empty arrays",
+        "unequal lengths",
+        "invalid probabilities",
+        "invalid epsilon"
+      ],
+      "failureModes": [
+        "Extreme clipping choices can hide numerical instability."
+      ],
       "workedExamples": [
         {
           "name": "two prediction smoke check",
-          "input": { "predictions": [0.9, 0.2], "outcomes": [1, 0] },
-          "expected": { "loss": 0.164252033486018 },
+          "input": {
+            "predictions": [
+              0.9,
+              0.2
+            ],
+            "outcomes": [
+              1,
+              0
+            ]
+          },
+          "expected": {
+            "loss": 0.164252033486018
+          },
           "interpretation": "The loss is low because both predictions assign high probability to the observed target."
         }
       ],
-      "proofObligations": ["probability_bounds", "epsilon_bounds", "deterministic_clipping"]
+      "proofObligations": [
+        "probability_bounds",
+        "epsilon_bounds",
+        "deterministic_clipping"
+      ],
+      "plainLanguageUseCase": "Use when YURI needs to penalize overconfident wrong probabilities more sharply than Brier score.",
+      "units": {
+        "inputs": {
+          "predictions": "probabilities in [0,1]",
+          "outcomes": "binary observations represented as 0 or 1 probabilities",
+          "epsilon": "clipping probability"
+        },
+        "output": "mean negative log likelihood in nats"
+      },
+      "inputConstraints": [
+        "predictions and outcomes must be equal-length probability vectors",
+        "epsilon must be greater than 0 and less than 0.5"
+      ],
+      "counterexamples": [
+        {
+          "name": "invalid clipping epsilon",
+          "input": {
+            "predictions": [
+              0.9
+            ],
+            "outcomes": [
+              1
+            ],
+            "epsilon": 0.9
+          },
+          "expectedError": "epsilon"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "overconfidence should hurt strongly",
+          "probability forecasts feed release gates or advisor calibration"
+        ],
+        "avoidWhen": [
+          "small samples would make one rare miss dominate interpretation without review",
+          "inputs are scores rather than probabilities"
+        ],
+        "yuriApplications": [
+          "advisor calibration",
+          "routing forecast reliability",
+          "release gate confidence review"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#logLoss",
+        "proofGateFormulaId": "log-loss",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "two prediction smoke check",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "invalid clipping epsilon",
+          "expectedError": "epsilon"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/12_research_sprint_2026_05_25.md"
+      ]
     },
     {
       "id": "bayes-update",
@@ -66,22 +291,127 @@
       "purpose": "Update a binary hypothesis probability after evidence.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#bayesUpdate",
       "variables": [
-        { "symbol": "P(H)", "meaning": "prior probability of hypothesis", "type": "number", "constraints": ["0 <= P(H) <= 1"] },
-        { "symbol": "P(E|H)", "meaning": "likelihood of evidence if hypothesis is true", "type": "number", "constraints": ["P(E|H) >= 0"] },
-        { "symbol": "P(E|not H)", "meaning": "likelihood of evidence if hypothesis is false", "type": "number", "constraints": ["P(E|not H) >= 0"] }
+        {
+          "symbol": "P(H)",
+          "meaning": "prior probability of hypothesis",
+          "type": "number",
+          "constraints": [
+            "0 <= P(H) <= 1"
+          ]
+        },
+        {
+          "symbol": "P(E|H)",
+          "meaning": "likelihood of evidence if hypothesis is true",
+          "type": "number",
+          "constraints": [
+            "P(E|H) >= 0"
+          ]
+        },
+        {
+          "symbol": "P(E|not H)",
+          "meaning": "likelihood of evidence if hypothesis is false",
+          "type": "number",
+          "constraints": [
+            "P(E|not H) >= 0"
+          ]
+        }
       ],
-      "assumptions": ["binary hypothesis split", "likelihoods use the same evidence event"],
-      "invalidInputs": ["invalid prior", "negative likelihoods", "zero total evidence mass"],
-      "failureModes": ["Wrong likelihoods produce precise-looking but false updates."],
+      "assumptions": [
+        "binary hypothesis split",
+        "likelihoods use the same evidence event"
+      ],
+      "invalidInputs": [
+        "invalid prior",
+        "negative likelihoods",
+        "zero total evidence mass"
+      ],
+      "failureModes": [
+        "Wrong likelihoods produce precise-looking but false updates."
+      ],
       "workedExamples": [
         {
           "name": "balanced prior with strong evidence",
-          "input": { "prior": 0.5, "likelihoodIfTrue": 0.8, "likelihoodIfFalse": 0.2 },
-          "expected": { "posterior": 0.8 },
+          "input": {
+            "prior": 0.5,
+            "likelihoodIfTrue": 0.8,
+            "likelihoodIfFalse": 0.2
+          },
+          "expected": {
+            "posterior": 0.8
+          },
           "interpretation": "Evidence four times likelier under the hypothesis moves a neutral prior to 0.8."
         }
       ],
-      "proofObligations": ["positive_evidence_mass", "posterior_probability_bounds"]
+      "proofObligations": [
+        "positive_evidence_mass",
+        "posterior_probability_bounds"
+      ],
+      "plainLanguageUseCase": "Use when YURI has a binary hypothesis, prior belief, and likelihoods for new evidence.",
+      "units": {
+        "inputs": {
+          "prior": "probability in [0,1]",
+          "likelihoodIfTrue": "non-negative evidence likelihood",
+          "likelihoodIfFalse": "non-negative evidence likelihood"
+        },
+        "output": "posterior probability in [0,1]"
+      },
+      "inputConstraints": [
+        "prior must be a probability",
+        "likelihoods must be finite and non-negative",
+        "combined evidence mass must be positive"
+      ],
+      "counterexamples": [
+        {
+          "name": "zero evidence mass",
+          "input": {
+            "prior": 0.5,
+            "likelihoodIfTrue": 0,
+            "likelihoodIfFalse": 0
+          },
+          "expectedError": "positive evidence mass"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "updating confidence after a clear evidence event",
+          "comparing true-vs-false hypothesis support"
+        ],
+        "avoidWhen": [
+          "hypotheses are not mutually exclusive enough for a binary update",
+          "likelihoods are invented without provenance"
+        ],
+        "yuriApplications": [
+          "memory provenance confidence",
+          "claim verification updates",
+          "risk triage"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#bayesUpdate",
+        "proofGateFormulaId": "bayes-update",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "balanced prior with strong evidence",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "zero evidence mass",
+          "expectedError": "positive evidence mass"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/13_math_application_playbook.md"
+      ]
     },
     {
       "id": "softmax",
@@ -92,21 +422,123 @@
       "purpose": "Convert finite scores into a normalized probability-like distribution.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#softmax",
       "variables": [
-        { "symbol": "x_i", "meaning": "finite score", "type": "number", "constraints": ["finite"] },
-        { "symbol": "T", "meaning": "temperature", "type": "number", "constraints": ["T > 0"] }
+        {
+          "symbol": "x_i",
+          "meaning": "finite score",
+          "type": "number",
+          "constraints": [
+            "finite"
+          ]
+        },
+        {
+          "symbol": "T",
+          "meaning": "temperature",
+          "type": "number",
+          "constraints": [
+            "T > 0"
+          ]
+        }
       ],
-      "assumptions": ["scores are comparable", "temperature is explicit"],
-      "invalidInputs": ["empty vector", "non-finite scores", "non-positive temperature"],
-      "failureModes": ["Softmax can make arbitrary scores look probabilistic even when scores lack evidence."],
+      "assumptions": [
+        "scores are comparable",
+        "temperature is explicit"
+      ],
+      "invalidInputs": [
+        "empty vector",
+        "non-finite scores",
+        "non-positive temperature"
+      ],
+      "failureModes": [
+        "Softmax can make arbitrary scores look probabilistic even when scores lack evidence."
+      ],
       "workedExamples": [
         {
           "name": "equal scores",
-          "input": { "values": [0, 0] },
-          "expected": { "distribution": [0.5, 0.5] },
+          "input": {
+            "values": [
+              0,
+              0
+            ]
+          },
+          "expected": {
+            "distribution": [
+              0.5,
+              0.5
+            ]
+          },
           "interpretation": "Equal scores receive equal mass."
         }
       ],
-      "proofObligations": ["positive_temperature", "normalized_output_sum"]
+      "proofObligations": [
+        "positive_temperature",
+        "normalized_output_sum"
+      ],
+      "plainLanguageUseCase": "Use when YURI needs to turn comparable finite scores into a normalized distribution for inspection, not hidden authority.",
+      "units": {
+        "inputs": {
+          "values": "dimensionless comparable scores",
+          "temperature": "positive dimensionless smoothing parameter"
+        },
+        "output": "dimensionless normalized distribution summing to 1"
+      },
+      "inputConstraints": [
+        "values must be a non-empty finite number array",
+        "temperature must be positive"
+      ],
+      "counterexamples": [
+        {
+          "name": "non-positive temperature",
+          "input": {
+            "values": [
+              1,
+              2
+            ],
+            "temperature": 0
+          },
+          "expectedError": "temperature must be positive"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "showing relative lane/tool preference from comparable scores",
+          "building an inspectable distribution from utility scores"
+        ],
+        "avoidWhen": [
+          "scores use incompatible scales",
+          "highest score should deterministically win without probabilistic interpretation"
+        ],
+        "yuriApplications": [
+          "tool/lane routing previews",
+          "context packet candidate distributions",
+          "advisor weighting diagnostics"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#softmax",
+        "proofGateFormulaId": "softmax",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "equal scores",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "non-positive temperature",
+          "expectedError": "temperature must be positive"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/09_general_math_operationalization.md"
+      ]
     }
   ]
 }

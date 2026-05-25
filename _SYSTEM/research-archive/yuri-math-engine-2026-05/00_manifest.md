@@ -54,6 +54,11 @@ Math becomes an operating substrate for YURI:
 | `06_eml_sandbox_assessment.md` | CURRENT | EML opportunity, caveats, risks, and sandbox policy |
 | `07_yuri_integration_plan.md` | CURRENT | Promotion path into YURI control plane and release gates |
 | `08_jan_briefing.md` | CURRENT | Human-readable briefing for Jan |
+| `09_general_math_operationalization.md` | CURRENT | General operating translation loop and math domain map |
+| `10_formula_card_schema.md` | CURRENT | Formula-card schema and professional card standard |
+| `11_general_math_hardening_plan.md` | CURRENT | Active hardening plan for deterministic primitives, adapters, and proof gates |
+| `12_research_sprint_2026_05_25.md` | CURRENT | Research sprint digest for schema, property tests, floating point, provenance, and calibration |
+| `13_math_application_playbook.md` | CURRENT | Operational playbook for mapping YURI tasks into variables, domains, proofs, and non-invasive integrations |
 
 ## Non-Claims
 

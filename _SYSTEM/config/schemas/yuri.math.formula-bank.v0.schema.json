@@ -35,7 +35,19 @@
         "domain": { "type": "string", "minLength": 1 },
         "notation": { "type": "string", "minLength": 1 },
         "purpose": { "type": "string", "minLength": 1 },
+        "plainLanguageUseCase": { "type": "string", "minLength": 1 },
         "implementedBy": { "type": "string", "minLength": 1 },
+        "units": {
+          "type": "object",
+          "properties": {
+            "inputs": { "type": "object" },
+            "output": { "type": "string" }
+          }
+        },
+        "inputConstraints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
         "variables": {
           "type": "array",
           "items": { "$ref": "#/$defs/variable" }
@@ -52,9 +64,51 @@
           "type": "array",
           "items": { "type": "string" }
         },
+        "selectionGuidance": {
+          "type": "object",
+          "properties": {
+            "useWhen": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "avoidWhen": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "yuriApplications": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "implementationBinding": {
+          "type": "object",
+          "properties": {
+            "runtime": { "type": "string" },
+            "binding": { "type": "string" },
+            "proofGateFormulaId": { "type": "string" },
+            "proofGate": { "type": "string" },
+            "tests": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
         "workedExamples": {
           "type": "array",
           "items": { "$ref": "#/$defs/workedExample" }
+        },
+        "counterexamples": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/counterexample" }
+        },
+        "testVectors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/testVector" }
+        },
+        "sources": {
+          "type": "array",
+          "items": { "type": "string" }
         },
         "proofObligations": {
           "type": "array",
@@ -85,6 +139,26 @@
         "input": { "type": "object" },
         "expected": { "type": "object" },
         "interpretation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "counterexample": {
+      "type": "object",
+      "required": ["name", "input", "expectedError"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "input": { "type": "object" },
+        "expectedError": { "type": "string", "minLength": 1 },
+        "interpretation": { "type": "string" }
+      }
+    },
+    "testVector": {
+      "type": "object",
+      "required": ["type", "name"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "expected": { "type": "string" },
+        "expectedError": { "type": "string" }
       }
     }
   }

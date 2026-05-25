@@ -14,21 +14,125 @@
       "purpose": "Measure uncertainty in a normalized probability distribution.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#entropy",
       "variables": [
-        { "symbol": "p_i", "meaning": "probability mass for event i", "type": "number", "constraints": ["p_i >= 0", "sum_i p_i > 0"] },
-        { "symbol": "b", "meaning": "logarithm base", "type": "number", "constraints": ["b > 0", "b != 1"] }
+        {
+          "symbol": "p_i",
+          "meaning": "probability mass for event i",
+          "type": "number",
+          "constraints": [
+            "p_i >= 0",
+            "sum_i p_i > 0"
+          ]
+        },
+        {
+          "symbol": "b",
+          "meaning": "logarithm base",
+          "type": "number",
+          "constraints": [
+            "b > 0",
+            "b != 1"
+          ]
+        }
       ],
-      "assumptions": ["input values can be normalized into a probability distribution"],
-      "invalidInputs": ["empty array", "negative values", "zero distribution sum", "invalid log base"],
-      "failureModes": ["Entropy measures uncertainty only; it does not identify which option is correct."],
+      "assumptions": [
+        "input values can be normalized into a probability distribution"
+      ],
+      "invalidInputs": [
+        "empty array",
+        "negative values",
+        "zero distribution sum",
+        "invalid log base"
+      ],
+      "failureModes": [
+        "Entropy measures uncertainty only; it does not identify which option is correct."
+      ],
       "workedExamples": [
         {
           "name": "fair binary distribution",
-          "input": { "probabilities": [0.5, 0.5], "base": 2 },
-          "expected": { "entropy": 1 },
+          "input": {
+            "probabilities": [
+              0.5,
+              0.5
+            ],
+            "base": 2
+          },
+          "expected": {
+            "entropy": 1
+          },
           "interpretation": "A fair two-way uncertainty has one bit of entropy."
         }
       ],
-      "proofObligations": ["probabilities_non_negative", "positive_distribution_sum", "zero_terms_ignored"]
+      "proofObligations": [
+        "probabilities_non_negative",
+        "positive_distribution_sum",
+        "zero_terms_ignored"
+      ],
+      "plainLanguageUseCase": "Use when YURI needs to quantify uncertainty before ranking memories, routes, or evidence buckets.",
+      "units": {
+        "inputs": {
+          "probabilities": "dimensionless probability weights; normalized internally",
+          "base": "dimensionless logarithm base"
+        },
+        "output": "bits when base=2, nats when base=e, otherwise units of the selected log base"
+      },
+      "inputConstraints": [
+        "probabilities must be finite non-negative numbers",
+        "probability mass must have positive sum",
+        "base must be positive and not equal to 1"
+      ],
+      "counterexamples": [
+        {
+          "name": "negative probability weight",
+          "input": {
+            "probabilities": [
+              1,
+              -1
+            ],
+            "base": 2
+          },
+          "expectedError": "non-negative"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "compare uncertainty before and after evidence",
+          "detect whether a distribution is diffuse or concentrated"
+        ],
+        "avoidWhen": [
+          "inputs are raw scores that cannot be interpreted as probability mass",
+          "the question is directional drift rather than uncertainty"
+        ],
+        "yuriApplications": [
+          "memory-ranking uncertainty",
+          "context-router ambiguity",
+          "release-gate evidence spread"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#entropy",
+        "proofGateFormulaId": "shannon-entropy",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "fair binary distribution",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "negative probability weight",
+          "expectedError": "non-negative"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/12_research_sprint_2026_05_25.md"
+      ]
     },
     {
       "id": "kl-divergence",
@@ -39,21 +143,133 @@
       "purpose": "Measure directional distribution shift from reference Q to observed P.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#klDivergence",
       "variables": [
-        { "symbol": "P", "meaning": "left distribution", "type": "number[]", "constraints": ["non-negative", "positive sum"] },
-        { "symbol": "Q", "meaning": "reference distribution", "type": "number[]", "constraints": ["non-negative", "positive sum", "q_i > 0 where p_i > 0"] }
+        {
+          "symbol": "P",
+          "meaning": "left distribution",
+          "type": "number[]",
+          "constraints": [
+            "non-negative",
+            "positive sum"
+          ]
+        },
+        {
+          "symbol": "Q",
+          "meaning": "reference distribution",
+          "type": "number[]",
+          "constraints": [
+            "non-negative",
+            "positive sum",
+            "q_i > 0 where p_i > 0"
+          ]
+        }
       ],
-      "assumptions": ["P and Q describe the same ordered event space"],
-      "invalidInputs": ["unequal lengths", "negative values", "zero q_i where p_i is positive"],
-      "failureModes": ["KL divergence is directional; swapping P and Q changes the result."],
+      "assumptions": [
+        "P and Q describe the same ordered event space"
+      ],
+      "invalidInputs": [
+        "unequal lengths",
+        "negative values",
+        "zero q_i where p_i is positive"
+      ],
+      "failureModes": [
+        "KL divergence is directional; swapping P and Q changes the result."
+      ],
       "workedExamples": [
         {
           "name": "binary shift",
-          "input": { "p": [0.5, 0.5], "q": [0.25, 0.75], "base": 2 },
-          "expected": { "divergence": 0.20751874963942185 },
+          "input": {
+            "p": [
+              0.5,
+              0.5
+            ],
+            "q": [
+              0.25,
+              0.75
+            ],
+            "base": 2
+          },
+          "expected": {
+            "divergence": 0.20751874963942185
+          },
           "interpretation": "The observed distribution has measurable directional shift from the reference."
         }
       ],
-      "proofObligations": ["equal_distribution_lengths", "q_i_positive_where_p_i_positive"]
+      "proofObligations": [
+        "equal_distribution_lengths",
+        "q_i_positive_where_p_i_positive"
+      ],
+      "plainLanguageUseCase": "Use when YURI compares an observed distribution against a reference distribution and cares about directional drift.",
+      "units": {
+        "inputs": {
+          "p": "dimensionless probability weights for observed/current distribution",
+          "q": "dimensionless probability weights for reference distribution",
+          "base": "dimensionless logarithm base"
+        },
+        "output": "bits when base=2, nats when base=e, otherwise units of selected log base"
+      },
+      "inputConstraints": [
+        "p and q must be finite non-negative equal-length vectors",
+        "both distributions must have positive mass",
+        "q cannot be zero where p is positive"
+      ],
+      "counterexamples": [
+        {
+          "name": "reference zero where observed is positive",
+          "input": {
+            "p": [
+              0.5,
+              0.5
+            ],
+            "q": [
+              1,
+              0
+            ],
+            "base": 2
+          },
+          "expectedError": "zero where p is positive"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "detect RAG distribution shift",
+          "compare current evidence mix to a trusted baseline"
+        ],
+        "avoidWhen": [
+          "the comparison must be symmetric",
+          "zero support in the reference means the case needs quarantine rather than a finite score"
+        ],
+        "yuriApplications": [
+          "RAG conflict detection",
+          "source mix drift",
+          "retrieval policy regression checks"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#klDivergence",
+        "proofGateFormulaId": "kl-divergence",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "binary shift",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "reference zero where observed is positive",
+          "expectedError": "zero where p is positive"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/09_general_math_operationalization.md"
+      ]
     },
     {
       "id": "cross-entropy",
@@ -64,21 +280,133 @@
       "purpose": "Measure mismatch between a target distribution and an encoded/predicted distribution.",
       "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#crossEntropy",
       "variables": [
-        { "symbol": "P", "meaning": "target distribution", "type": "number[]", "constraints": ["non-negative", "positive sum"] },
-        { "symbol": "Q", "meaning": "encoded or predicted distribution", "type": "number[]", "constraints": ["non-negative", "positive sum", "q_i > 0 where p_i > 0"] }
+        {
+          "symbol": "P",
+          "meaning": "target distribution",
+          "type": "number[]",
+          "constraints": [
+            "non-negative",
+            "positive sum"
+          ]
+        },
+        {
+          "symbol": "Q",
+          "meaning": "encoded or predicted distribution",
+          "type": "number[]",
+          "constraints": [
+            "non-negative",
+            "positive sum",
+            "q_i > 0 where p_i > 0"
+          ]
+        }
       ],
-      "assumptions": ["P and Q describe the same ordered event space"],
-      "invalidInputs": ["unequal lengths", "negative values", "zero q_i where p_i is positive"],
-      "failureModes": ["Cross-entropy can rise because of mismatch, uncertainty, or both; inspect entropy and KL when interpreting."],
+      "assumptions": [
+        "P and Q describe the same ordered event space"
+      ],
+      "invalidInputs": [
+        "unequal lengths",
+        "negative values",
+        "zero q_i where p_i is positive"
+      ],
+      "failureModes": [
+        "Cross-entropy can rise because of mismatch, uncertainty, or both; inspect entropy and KL when interpreting."
+      ],
       "workedExamples": [
         {
           "name": "binary mismatch",
-          "input": { "p": [0.5, 0.5], "q": [0.25, 0.75], "base": 2 },
-          "expected": { "crossEntropy": 1.207518749639422 },
+          "input": {
+            "p": [
+              0.5,
+              0.5
+            ],
+            "q": [
+              0.25,
+              0.75
+            ],
+            "base": 2
+          },
+          "expected": {
+            "crossEntropy": 1.207518749639422
+          },
           "interpretation": "The encoding is worse than the one-bit entropy baseline by the KL divergence amount."
         }
       ],
-      "proofObligations": ["equal_distribution_lengths", "q_i_positive_where_p_i_positive"]
+      "proofObligations": [
+        "equal_distribution_lengths",
+        "q_i_positive_where_p_i_positive"
+      ],
+      "plainLanguageUseCase": "Use when YURI measures how costly it is to encode or predict one distribution using another.",
+      "units": {
+        "inputs": {
+          "p": "dimensionless target probability weights",
+          "q": "dimensionless predicted/reference probability weights",
+          "base": "dimensionless logarithm base"
+        },
+        "output": "bits when base=2, nats when base=e, otherwise units of selected log base"
+      },
+      "inputConstraints": [
+        "p and q must be finite non-negative equal-length vectors",
+        "both distributions must have positive mass",
+        "q cannot be zero where p is positive"
+      ],
+      "counterexamples": [
+        {
+          "name": "predicted zero for possible target",
+          "input": {
+            "p": [
+              0.5,
+              0.5
+            ],
+            "q": [
+              1,
+              0
+            ],
+            "base": 2
+          },
+          "expectedError": "zero where p is positive"
+        }
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "score predictive mismatch",
+          "compare expected retrieval mix to actual retrieval mix"
+        ],
+        "avoidWhen": [
+          "you only need uncertainty of one distribution",
+          "you need a symmetric distance"
+        ],
+        "yuriApplications": [
+          "RAG mismatch scoring",
+          "routing distribution audit",
+          "evidence-model calibration"
+        ]
+      },
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#crossEntropy",
+        "proofGateFormulaId": "cross-entropy",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "binary mismatch",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "predicted zero for possible target",
+          "expectedError": "zero where p is positive"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.test.mjs",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/12_research_sprint_2026_05_25.md"
+      ]
     }
   ]
 }

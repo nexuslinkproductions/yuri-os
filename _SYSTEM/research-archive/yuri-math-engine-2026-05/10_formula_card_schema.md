@@ -22,7 +22,15 @@ implementation owns it, and which examples prove that YURI can use it correctly.
   "domain": "probability | graph | vector-geometry | optimization | control | proof",
   "notation": "mathematical notation",
   "purpose": "plain-language operating purpose",
+  "plainLanguageUseCase": "real YURI situation this formula helps with",
   "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#functionName",
+  "units": {
+    "inputs": {
+      "p": "dimensionless probability in [0,1]"
+    },
+    "output": "bits, nats, score units, cost units, or dimensionless"
+  },
+  "inputConstraints": ["machine-checkable input rule"],
   "variables": [
     {
       "symbol": "p",
@@ -33,7 +41,27 @@ implementation owns it, and which examples prove that YURI can use it correctly.
   ],
   "assumptions": ["explicit assumption"],
   "invalidInputs": ["what must be rejected"],
+  "counterexamples": [
+    {
+      "name": "invalid or misleading input",
+      "input": {},
+      "expectedError": "bounded error pattern",
+      "interpretation": "why this protects YURI"
+    }
+  ],
   "failureModes": ["how the formula can mislead if assumptions are false"],
+  "selectionGuidance": {
+    "useWhen": ["operating condition where the formula fits"],
+    "avoidWhen": ["condition where another method or human review is required"],
+    "yuriApplications": ["memory ranking", "context routing", "release gate"]
+  },
+  "implementationBinding": {
+    "runtime": "node | python | external-adapter",
+    "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#functionName",
+    "proofGateFormulaId": "stable-formula-id",
+    "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+    "tests": ["_SYSTEM/Scripts/math/math-kernel.test.mjs"]
+  },
   "workedExamples": [
     {
       "name": "short synthetic example",
@@ -42,9 +70,17 @@ implementation owns it, and which examples prove that YURI can use it correctly.
       "interpretation": "what YURI can do with the result"
     }
   ],
+  "testVectors": [
+    {
+      "type": "worked-example | invalid-input",
+      "name": "example or counterexample name",
+      "expected": "proof-gate match or expected error"
+    }
+  ],
   "proofObligations": ["test or proof requirement"],
   "promotionStatus": "research | verified-baseline | stable",
-  "advisoryOnly": false
+  "advisoryOnly": false,
+  "sources": ["local file, source registry row, or external primary source"]
 }
 ```
 
@@ -78,12 +114,28 @@ The proof gate checks:
 - per-formula promotion state and advisory boundary
 - declared implementation binding
 - executable worked examples
+- deterministic counterexamples and invalid-input failure traces
 - deterministic input, formula, and result hashes
 - failed examples preserved as proof traces when run in advisory mode
 
 The schema reference lives at
 `_SYSTEM/config/schemas/yuri.math.formula-bank.v0.schema.json`. The local validator
 is intentionally stricter for promoted banks than for fixture banks.
+
+## Professional Card Standard
+
+Promoted formula cards should now answer the full operational-use question:
+
+- Purpose: what decision or inspection the formula supports.
+- Plain-language use case: where it appears in YURI work.
+- Variables and units: what each input means and how dimensions behave.
+- Preconditions: what must be true before execution.
+- Invalid inputs and counterexamples: what must fail deterministically.
+- Failure modes: how the formula can mislead.
+- Selection guidance: when to use it, avoid it, or escalate to review.
+- Implementation binding: runtime, function, proof gate, and tests.
+- Test vectors: successful examples and invalid-input checks.
+- Sources: local evidence and external references when applicable.
 
 ## Adapter Result Contract
 

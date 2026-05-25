@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="330" viewBox="0 0 760 330">
+<rect width="760" height="330" fill="#fbfaf7"/>
+<text x="30" y="34" font-family="Arial" font-size="20" fill="#1f2933">Dijkstra vs A* pathfinding proof</text>
+<text x="30" y="58" font-family="Arial" font-size="13" fill="#52616b">Optimal path is highlighted; filled nodes were expanded by A*.</text>
+<line x1="80" y1="160" x2="210" y2="70" stroke="#a8b2bd" stroke-width="2" stroke-linecap="round"/>
+<text x="145.0" y="107.0" font-family="Arial" font-size="12" fill="#38434f">4</text>
+<line x1="80" y1="160" x2="220" y2="240" stroke="#d64545" stroke-width="5" stroke-linecap="round"/>
+<text x="150.0" y="192.0" font-family="Arial" font-size="12" fill="#38434f">2</text>
+<line x1="210" y1="70" x2="220" y2="240" stroke="#a8b2bd" stroke-width="2" stroke-linecap="round"/>
+<text x="215.0" y="147.0" font-family="Arial" font-size="12" fill="#38434f">5</text>
+<line x1="210" y1="70" x2="500" y2="120" stroke="#a8b2bd" stroke-width="2" stroke-linecap="round"/>
+<text x="355.0" y="87.0" font-family="Arial" font-size="12" fill="#38434f">10</text>
+<line x1="220" y1="240" x2="380" y2="240" stroke="#d64545" stroke-width="5" stroke-linecap="round"/>
+<text x="300.0" y="232.0" font-family="Arial" font-size="12" fill="#38434f">3</text>
+<line x1="380" y1="240" x2="500" y2="120" stroke="#d64545" stroke-width="5" stroke-linecap="round"/>
+<text x="440.0" y="172.0" font-family="Arial" font-size="12" fill="#38434f">4</text>
+<line x1="500" y1="120" x2="660" y2="160" stroke="#d64545" stroke-width="5" stroke-linecap="round"/>
+<text x="580.0" y="132.0" font-family="Arial" font-size="12" fill="#38434f">11</text>
+<circle cx="80" cy="160" r="24" fill="#f8d66d" stroke="#d64545" stroke-width="3"/>
+<text x="80" y="165" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#1f2933">A</text>
+<circle cx="210" cy="70" r="24" fill="#ffffff" stroke="#52616b" stroke-width="3"/>
+<text x="210" y="75" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#1f2933">B</text>
+<circle cx="220" cy="240" r="24" fill="#f8d66d" stroke="#d64545" stroke-width="3"/>
+<text x="220" y="245" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#1f2933">C</text>
+<circle cx="380" cy="240" r="24" fill="#f8d66d" stroke="#d64545" stroke-width="3"/>
+<text x="380" y="245" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#1f2933">E</text>
+<circle cx="500" cy="120" r="24" fill="#f8d66d" stroke="#d64545" stroke-width="3"/>
+<text x="500" y="125" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#1f2933">D</text>
+<circle cx="660" cy="160" r="24" fill="#f8d66d" stroke="#d64545" stroke-width="3"/>
+<text x="660" y="165" text-anchor="middle" font-family="Arial" font-size="16" font-weight="700" fill="#1f2933">F</text>
+<text x="30" y="305" font-family="Arial" font-size="14" fill="#1f2933">A*: cost 20.0, expanded 5; Dijkstra expanded 6</text>
+</svg>

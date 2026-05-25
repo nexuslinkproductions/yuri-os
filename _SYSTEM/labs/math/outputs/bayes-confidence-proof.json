@@ -1,0 +1,40 @@
+{
+  "confidenceDecay": [
+    {
+      "age": 0,
+      "confidence": 0.8
+    },
+    {
+      "age": 5,
+      "confidence": 0.565685
+    },
+    {
+      "age": 10,
+      "confidence": 0.4
+    },
+    {
+      "age": 15,
+      "confidence": 0.282843
+    },
+    {
+      "age": 20,
+      "confidence": 0.2
+    },
+    {
+      "age": 25,
+      "confidence": 0.141421
+    },
+    {
+      "age": 30,
+      "confidence": 0.1
+    }
+  ],
+  "likelihoodIfFalse": 0.2,
+  "likelihoodIfTrue": 0.8,
+  "posterior": 0.8,
+  "prior": 0.5,
+  "proof": "bayes-confidence-decay",
+  "schema": "yuri.math.visual-proof-report.v0",
+  "teachingPoint": "Evidence can raise confidence; age decay prevents old confidence from staying dominant.",
+  "writesRuntimeTruth": false
+}
