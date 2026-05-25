@@ -425,6 +425,8 @@ function buildPulsePlan(intent, routePlan, inventory, options) {
     symbioticPulse: {
       status: 'active',
       unit: 'symbioticPulse',
+      canonicalSkillRoot: 'skills',
+      agentAssemblyRoot: '.agents',
       nativeModules: ['ai-pipeline-offloading', 'swarm-coordination', 'offload-runner'],
       arsenalScope: 'all_available_lanes',
       triggerAllAtOnce: false,

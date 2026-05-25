@@ -91,7 +91,7 @@ export const OPTIONAL_MEMORY_FILES = Object.freeze([
   { id: 'legacy-shintai-team-sizing', path: path.relative(REPO_ROOT, path.join(LEGACY_CLAUDE_PROJECT_MEMORY_DIR, 'feedback_shintai_team_sizing.md')), type: 'legacy-memory' },
   { id: 'legacy-shintai-main-thread-role', path: path.relative(REPO_ROOT, path.join(LEGACY_CLAUDE_PROJECT_MEMORY_DIR, 'feedback_shintai_main_thread_role.md')), type: 'legacy-memory' },
   { id: 'legacy-rick-persona-dispatch', path: path.relative(REPO_ROOT, path.join(LEGACY_CLAUDE_PROJECT_MEMORY_DIR, 'feedback_rick_persona_every_dispatch.md')), type: 'legacy-memory' },
-  { id: 'extraction-sprint-template', path: '.claude/skills/extraction-sprint/SKILL.md', type: 'template' },
+  { id: 'extraction-sprint-template', path: 'skills/extraction-sprint/SKILL.md', type: 'template' },
   { id: 'luminous-fountain-plan', path: '.claude/plans/shintai-has-to-fix-luminous-fountain.md', type: 'template' },
 ]);
 

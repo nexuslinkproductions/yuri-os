@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 
 const SCHEMA_VERSION = 1;
-const MAX_ACTIVE = 12;
-const MAX_PER_STAGE = 5;
+const MAX_ACTIVE = 18;
+const MAX_PER_STAGE = 7;
 const LOADER_SOURCE = '_SYSTEM/Scripts/yuri-skill-loader.mjs --json';
 const MANIFEST_SOURCE = '_SYSTEM/skill-hash-registry.json';
 
@@ -21,6 +21,7 @@ const LEGACY_PARSER_ONLY_SKILLS = Object.freeze({
 });
 
 const CANONICAL_COLLISION_SOURCES = new Set([
+  'yuri_skill',
   'yuri_agent_skill',
   'codex_skill',
   'codex_system_skill',
@@ -57,13 +58,38 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     traits: ['risk', 'planning', 'calibration'],
     signals: ['risk', 'campaign'],
   },
+  'haki-intent': {
+    capabilities: ['intent-normalization', 'skill-recall'],
+    traits: ['intent', 'classification'],
+    signals: ['campaign', 'risk'],
+  },
+  'nen-phase-detector': {
+    capabilities: ['intent-normalization', 'decision-calibration'],
+    traits: ['phase', 'routing'],
+    signals: ['campaign'],
+  },
+  'bankai-manifest': {
+    capabilities: ['deep-decomposition', 'risk-review', 'summarization'],
+    traits: ['manifest', 'critical-work'],
+    signals: ['campaign', 'risk', 'docs'],
+  },
+  'izanagi-simulator': {
+    capabilities: ['decision-calibration', 'risk-review', 'deep-decomposition'],
+    traits: ['simulation', 'counterfactual'],
+    signals: ['campaign', 'risk'],
+  },
+  'geass-lock': {
+    capabilities: ['mutation-guard', 'deterministic-verification'],
+    traits: ['constraint', 'policy'],
+    signals: ['risk'],
+  },
   'execution-domain-core': {
-    capabilities: ['deterministic-verification', 'mutation-guard'],
+    capabilities: ['deterministic-verification', 'mutation-guard', 'risk-review'],
     traits: ['verification', 'execution-policy'],
     signals: ['risk', 'code'],
   },
   'non-destructive-infinity-guard': {
-    capabilities: ['risk-review', 'mutation-guard'],
+    capabilities: ['risk-review', 'mutation-guard', 'deterministic-verification'],
     traits: ['safety', 'verification'],
     signals: ['risk', 'code'],
   },
@@ -87,6 +113,31 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     traits: ['impact-analysis', 'risk'],
     signals: ['code', 'risk'],
   },
+  diagnose: {
+    capabilities: ['debugging', 'deterministic-verification', 'failure-learning'],
+    traits: ['diagnosis', 'root-cause'],
+    signals: ['code', 'risk'],
+  },
+  tdd: {
+    capabilities: ['code', 'deterministic-verification', 'failure-learning'],
+    traits: ['tests', 'red-green-refactor'],
+    signals: ['code'],
+  },
+  'test-driven-development': {
+    capabilities: ['code', 'deterministic-verification', 'failure-learning'],
+    traits: ['tests', 'red-green-refactor'],
+    signals: ['code'],
+  },
+  'systematic-debugging': {
+    capabilities: ['debugging', 'deterministic-verification', 'failure-learning'],
+    traits: ['debugging', 'root-cause'],
+    signals: ['code', 'risk'],
+  },
+  'using-git-worktrees': {
+    capabilities: ['code', 'risk-review', 'mutation-guard'],
+    traits: ['worktree', 'isolation'],
+    signals: ['code', 'risk'],
+  },
   'frontend-design': {
     capabilities: ['design', 'formatting'],
     traits: ['frontend', 'visual'],
@@ -107,6 +158,16 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     traits: ['parallel', 'coordination'],
     signals: ['campaign'],
   },
+  'dispatching-parallel-agents': {
+    capabilities: ['orchestration', 'deep-decomposition'],
+    traits: ['parallel', 'coordination'],
+    signals: ['campaign'],
+  },
+  'subagent-driven-development': {
+    capabilities: ['orchestration', 'deep-decomposition', 'code'],
+    traits: ['subagents', 'execution'],
+    signals: ['campaign', 'code'],
+  },
   'ai-pipeline-offloading': {
     capabilities: ['orchestration', 'intent-normalization'],
     traits: ['routing', 'capability-map'],
@@ -126,6 +187,46 @@ const SKILL_CAPABILITY_PROFILES = Object.freeze({
     capabilities: ['summarization', 'formatting'],
     traits: ['docs', 'teaching'],
     signals: ['docs'],
+  },
+  brainstorming: {
+    capabilities: ['intent-normalization', 'deep-decomposition'],
+    traits: ['ideation', 'options'],
+    signals: ['campaign', 'docs'],
+  },
+  'writing-plans': {
+    capabilities: ['deep-decomposition', 'summarization', 'deterministic-verification'],
+    traits: ['planning', 'implementation-plan'],
+    signals: ['campaign', 'docs'],
+  },
+  'executing-plans': {
+    capabilities: ['orchestration', 'code', 'deterministic-verification'],
+    traits: ['plan-execution', 'verification'],
+    signals: ['campaign', 'code'],
+  },
+  'verification-before-completion': {
+    capabilities: ['deterministic-verification', 'risk-review'],
+    traits: ['completion-gate', 'evidence'],
+    signals: ['risk', 'code'],
+  },
+  'requesting-code-review': {
+    capabilities: ['risk-review', 'deterministic-verification', 'code'],
+    traits: ['review', 'quality-gate'],
+    signals: ['code', 'risk'],
+  },
+  'receiving-code-review': {
+    capabilities: ['risk-review', 'deterministic-verification', 'code'],
+    traits: ['review', 'feedback'],
+    signals: ['code', 'risk'],
+  },
+  'writing-skills': {
+    capabilities: ['skill-recall', 'deterministic-verification', 'summarization'],
+    traits: ['skill-authoring', 'process-docs'],
+    signals: ['docs', 'campaign'],
+  },
+  'write-a-skill': {
+    capabilities: ['skill-recall', 'deterministic-verification', 'summarization'],
+    traits: ['skill-authoring', 'process-docs'],
+    signals: ['docs', 'campaign'],
   },
   'oracle-memory': {
     capabilities: ['memory-navigation', 'retrieval', 'reduce-and-learn'],
@@ -283,6 +384,7 @@ export function buildActiveSkillRegistry({
       hardFilters: ['no_collision', 'not_disabled', 'has_capability_match'],
       rankKeys: ['stage_fit', 'capability_fit', 'risk_fit', 'stable_name'],
       collisionPolicy: 'canonical YURI skill roots win over migrated duplicate shadows',
+      canonicalSkillRoot: 'skills',
     },
     active,
     suppressed,
@@ -298,7 +400,7 @@ export function buildActiveSkillRegistry({
 
 function isCanonicalCollision(skill) {
   const sourcePath = String(skill?.source_path || '');
-  if (sourcePath.startsWith('.agents/skills/')) return true;
+  if (sourcePath.startsWith('skills/')) return true;
   return CANONICAL_COLLISION_SOURCES.has(String(skill?.source_type || ''));
 }
 

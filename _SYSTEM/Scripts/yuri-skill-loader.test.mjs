@@ -32,3 +32,13 @@ test('skill registry prunes loaded bodies under total cap while preserving metad
   assert.ok(registry.skills.some((skill) => skill.bodyPruned === true));
   assert.ok(registry.skills.every((skill) => skill.name && skill.source_path && skill.hash));
 });
+
+test('root skills are canonical and Superpowers imports are visible from skills root', () => {
+  const registry = buildRegistry();
+  const byName = new Map(registry.skills.map((skill) => [skill.name, skill]));
+
+  assert.equal(byName.get('oracle-registry')?.source_path, 'skills/oracle-registry/SKILL.md');
+  assert.equal(byName.get('brainstorming')?.source_path, 'skills/brainstorming/SKILL.md');
+  assert.equal(byName.get('using-superpowers')?.source_path, 'skills/using-superpowers/SKILL.md');
+  assert.equal(registry.skills.some((skill) => skill.source_path.startsWith('.agents/skills/')), false);
+});

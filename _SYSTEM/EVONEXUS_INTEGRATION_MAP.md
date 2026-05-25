@@ -16,7 +16,7 @@ The active system is not provider-first.
 | Workspace authority | `_SYSTEM/yuri-origin.md`, `SOUL.md`, `_SYSTEM/context/README.md` | Operating doctrine and cognitive/persona context |
 | Navigation | `_SYSTEM/INDEX.md`, `_SYSTEM/config/folder-registry.json` | Canonical read path and folder meaning |
 | Routing | `_SYSTEM/Scripts/offload-contract.mjs`, `_SYSTEM/Scripts/lane-kernel.mjs` | Lane/model/tool truth |
-| Skills | `.agents/skills`, `.codex/skills`, `.codex/plugins/cache`, `.claude/skills` | YURI-owned skill recall and optional provider-compatible skills |
+| Skills | `skills`, `.codex/skills`, `.codex/plugins/cache`, `.claude/skills` | Root YURI skill recall plus optional provider-compatible reference surfaces |
 | Execution | `./Scripts/ai`, `_SYSTEM/Scripts/offload.sh`, Rick/Kagami terminal | Operator-facing command surface |
 
 ## Active Provider Posture

@@ -47,7 +47,7 @@ Before dispatch, Gate 0 must load:
 - `_SYSTEM/Scripts/lane-kernel.mjs`
 - `_SYSTEM/design-memory.json`
 - `_SYSTEM/memory/`
-- allowed `.claude/skills/` and `.agents/skills/` skill docs
+- allowed root `skills/` docs and provider compatibility skill references
 - the neurodivergency document once located by allowed repo search
 - Shintai roster and dispatch templates
 

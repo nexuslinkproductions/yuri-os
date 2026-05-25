@@ -52,6 +52,8 @@ Never read or write:
 - `backend/data/`
 - `.claude/state/`
 - `.claude/history/`
+- `.claude/file-history/`
+- `.claude/projects/`
 - `.env`
 - `node_modules/`
 - `.amp/`
@@ -113,11 +115,11 @@ This project is indexed by GitNexus as **yuri-os** (44349 symbols, 63297 relatio
 
 | Task | Read this skill file |
 |------|---------------------|
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+| Understand architecture / "How does X work?" | `skills/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `skills/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `skills/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `skills/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `skills/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `skills/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->

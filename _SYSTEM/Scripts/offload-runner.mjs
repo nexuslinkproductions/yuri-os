@@ -2019,7 +2019,7 @@ async function runOpenAICompatibleChat(endpoint, apiKey, model, promptText, syst
         parameters: {
           type: 'object',
           properties: {
-            skill_name: { type: 'string', description: 'Skill directory name under .claude/skills/' }
+            skill_name: { type: 'string', description: 'Skill directory name under root skills/' }
           },
           required: ['skill_name']
         }

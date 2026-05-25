@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-24",
+  "updated": "2026-05-25",
   "purpose": "Master YURI artifact registry seed. This extends folder classification into durable docs, scripts, registries, reports, skills, runtime state, and generated artifacts.",
   "rules": {
     "readByDefault": "Only canonical anchors and context selectors may be read by default.",
@@ -20,6 +20,7 @@
     "external_checkout",
     "model_runtime",
     "skill",
+    "agent_recipe",
     "wiki_page",
     "generated_artifact",
     "provider_adapter"
@@ -103,11 +104,18 @@
       "storageRule": "Repo-local external tools live in _SYSTEM/tools/ and remain isolated from YURI source truth."
     },
     {
+      "id": "agent-assembly",
+      "matchPrefix": ".agents/",
+      "artifactType": "agent_recipe",
+      "class": "agent_assembly",
+      "storageRule": "Agent recipes, role contracts, and assembly indexes live in .agents/. They reference canonical skills but do not contain skill bodies."
+    },
+    {
       "id": "skill",
-      "matchPrefix": ".agents/skills/",
+      "matchPrefix": "skills/",
       "artifactType": "skill",
-      "class": "system_control_plane",
-      "storageRule": "YURI-owned reusable skills live in .agents/skills/."
+      "class": "skill_library",
+      "storageRule": "YURI-owned reusable skills live in root skills/."
     },
     {
       "id": "codex-skill",
@@ -143,6 +151,8 @@
     "backend/data/",
     ".claude/state/",
     ".claude/history/",
+    ".claude/file-history/",
+    ".claude/projects/",
     "node_modules/",
     ".amp/"
   ],
@@ -230,6 +240,66 @@
       "storageRule": "Machine-readable context selector.",
       "rebuildRule": "Run context-router tests.",
       "notes": "Task-to-context packet map."
+    },
+    {
+      "path": ".agents/README.md",
+      "type": "doc",
+      "class": "agent_assembly",
+      "owner": "YURI agents",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Agent assembly docs live in .agents/ and reference root skills.",
+      "rebuildRule": "Run yuri-agent-index and context-router tests.",
+      "notes": "Explains that agents are recipes built from context, role contracts, skill bundles, lane policy, and verification gates."
+    },
+    {
+      "path": ".agents/agent-index.json",
+      "type": "agent_recipe",
+      "class": "agent_assembly",
+      "owner": "YURI agents",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Agent recipes live in .agents/ and reference skills/<skill-id>.",
+      "rebuildRule": "Run yuri-agent-index test after edits.",
+      "notes": "Machine-readable agent composition index."
+    },
+    {
+      "path": "skills/README.md",
+      "type": "doc",
+      "class": "skill_library",
+      "owner": "YURI skills",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Skill library docs live in skills/.",
+      "rebuildRule": "Run yuri-skill-loader and yuri-active-skill-registry tests.",
+      "notes": "Human-readable entrypoint for canonical skills."
+    },
+    {
+      "path": "skills/domain-index.json",
+      "type": "config",
+      "class": "skill_library",
+      "owner": "YURI skills",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Skill indexes live in skills/.",
+      "rebuildRule": "Regenerate or review when skill domains change; run yuri-skill-loader tests.",
+      "notes": "Ordered domain map for filesystem-first skill navigation."
+    },
+    {
+      "path": "skills/skill-index.json",
+      "type": "config",
+      "class": "skill_library",
+      "owner": "YURI skills",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Skill indexes live in skills/.",
+      "rebuildRule": "Regenerate after skill imports, moves, or deletions; run yuri-skill-loader tests.",
+      "notes": "Machine-readable canonical skill index generated from skills/*/SKILL.md."
     },
     {
       "path": "_SYSTEM/config/folder-registry.json",

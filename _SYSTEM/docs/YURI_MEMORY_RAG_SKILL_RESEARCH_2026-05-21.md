@@ -98,7 +98,7 @@ Skill recall becomes adjacent, not merged: the skill kernel selects instructions
 - Gate 0 must load this research artifact before Shintai dispatch for memory/RAG/skill work.
 - `memory-kernel.mjs` must expose evidence inventory, recall, proposal, promotion, ledger, and protected-surface denial as inspectable contracts.
 - `yuri-skill-loader.mjs` must provide body-free skill recommendations with reasons, stage bindings, and capability indexes.
-- `.agents/skills` must be treated as canonical when duplicate migrated skills exist.
+- `skills/` must be treated as canonical when duplicate migrated or provider-imported skills exist.
 - The neurodivergence rail must be mechanical: repeated correction, messy input, high-stakes orchestration, and visual/design prompts must activate named behaviors.
 - Shintai dispatch for this task must assemble the memory/RAG council: Codex, DeepSeek, Claude Opus audit, Nemotron, Qwen 397B, Mistral Large, GPT-OSS 120B, GLM, and Qwen Coder when healthy.
 

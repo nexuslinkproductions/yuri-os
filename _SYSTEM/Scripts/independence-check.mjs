@@ -147,7 +147,7 @@ function checkHooks() {
 
 // ============================================================ SKILLS
 function checkSkills() {
-  const dir = join(REPO, '.claude/skills');
+  const dir = join(REPO, 'skills');
   if (!existsSync(dir)) return;
   for (const skill of readdirSync(dir, { withFileTypes: true })) {
     if (!skill.isDirectory()) continue;
@@ -170,7 +170,7 @@ function checkRouting() {
 
 // ============================================================ EOT
 function checkEot() {
-  const path = join(REPO, '.claude/skills/end-of-transmission/SKILL.md');
+  const path = join(REPO, 'skills/end-of-transmission/SKILL.md');
   scanFile(path, 'eot');
 }
 

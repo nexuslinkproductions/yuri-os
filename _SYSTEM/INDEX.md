@@ -17,6 +17,9 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/docs/YURI_STORAGE_AND_ARTIFACT_REGISTRY_PROTOCOL_2026-05-23.md` | Where new docs/scripts/reports/registries/runtimes should live and how to classify them. |
 | `_SYSTEM/config/folder-registry.json` | Machine-readable folder classification map. |
 | `_SYSTEM/config/artifact-registry.json` | Machine-readable durable artifact map and future placement rules. |
+| `.agents/README.md` | Agent assembly layer: agents are recipes, not hidden provider magic. |
+| `skills/README.md` | Canonical root-visible skill library entrypoint. |
+| `skills/skill-index.json` | Machine-readable root skill index. |
 | `_SYSTEM/Scripts/offload-contract.mjs` | Lane routing and model contract. |
 | `_SYSTEM/Scripts/lane-kernel.mjs` | Canonical lane status/model/tool source when present. |
 | `_SYSTEM/Scripts/yuri/` | YURI-owned harness primitives relocated from the retired `nudimmud` script folder. |
@@ -35,6 +38,8 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 |---|---|---|
 | Human workspace | `00_COMMAND-CENTER`, `01_PROJECTS`, `02_AREAS`, `03_RESOURCES`, `04_FINANCE`, `05_NEXUS-LINK`, `07_ARCHIVE` | Read only when the task needs that domain. |
 | Control plane | `_SYSTEM` | Read targeted docs/scripts only. |
+| Agent assembly | `.agents` | Read recipes and command adapters only. It references skills; it does not own skill bodies. |
+| Skill library | `skills` | Canonical YURI capability database. Load selected `skills/<skill-id>/SKILL.md` files only. |
 | Provider adapters | `.claude`, `.codex`, `.obsidian`, `.vscode` | Doors, not brains. Read only provider-specific config needed for the task. |
 | Runtime/cache | `.codex-worktrees`, `.smart-env`, `.tmp`, `logs`, `checkpoints`, `dist`, `output` | Do not read by default. Candidate cleanup only after registry/process checks. |
 | Generated artifacts | `graph`, `graphify-out`, `claude-palace-out` | Do not read by default. Regenerate or inspect only for graph/report tasks. |
@@ -54,6 +59,8 @@ owner prompt
   -> _SYSTEM/INDEX.md
   -> _SYSTEM/config/folder-registry.json
   -> _SYSTEM/config/artifact-registry.json
+  -> .agents/README.md
+  -> skills/README.md
   -> selected context packet
   -> _SYSTEM/yuri-wiki/index.md when curated memory/context is needed
   -> task-specific local context
@@ -114,6 +121,8 @@ Minimum metadata:
 - storage destination
 - cleanup/rebuild rule
 
+Agent recipes belong in `.agents/`. Canonical reusable skills belong in `skills/`.
+
 `_SYSTEM/config/folder-registry.json` is the folder implementation of this rule. `_SYSTEM/config/artifact-registry.json` is the durable artifact implementation. `_SYSTEM/context/context-registry.json` is the context-packet implementation. `_SYSTEM/yuri-wiki` is the human/RAG-readable projection, not the hidden source of truth.
 
 ## Mathematical Operating Substrate
@@ -125,6 +134,7 @@ Math work routes through the `mathematics` context packet. Use `_SYSTEM/research
 YURI should read as:
 
 - one canonical operating spine
+- root-visible agent assembly followed by root-visible skills
 - thin provider adapters
 - strong context layer
 - clear human workspace

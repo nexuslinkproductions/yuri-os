@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // EOT Phase 10 worker — promote pulse-bus findings to durable archive.
-// Implements the spec at .claude/skills/end-of-transmission/SKILL.md Phase 10.
+// Implements the spec at skills/end-of-transmission/SKILL.md Phase 10.
 // Reads pulse-bus.json + hook telemetry + session-state, writes daily archive.
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';

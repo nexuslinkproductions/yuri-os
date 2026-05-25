@@ -6,15 +6,17 @@
 
 ## Purpose
 
-Skill/doctrine discovery and normalisation for Yuri OS, based on the OpenClaw `~/.openclaw/workspace/skills/<name>/SKILL.md` convention. Uses Yuri's existing `.cline/rules/*.md` and `.claude/skills/` structures as the active substrate.
+Skill/doctrine discovery and normalisation for Yuri OS, based on the OpenClaw `~/.openclaw/workspace/skills/<name>/SKILL.md` convention. Uses Yuri's root `skills/<name>/SKILL.md` library as the canonical substrate, with provider skill folders as compatibility/reference surfaces.
 
 ## Current Discovery Paths
 
 | Path | Source Type | Status |
 |---|---|---|
-| `.cline/rules/*.md` | `cline_rule` | Active |
-| `.claude/skills/*.md` | `claude_skill` | Active |
-| `.claude/skills/<name>/SKILL.md` | `claude_skill` | Active |
+| `skills/<name>/SKILL.md` | `yuri_skill` | Canonical |
+| `.claude/skills/*.md` | `claude_skill` | Provider reference |
+| `.claude/skills/<name>/SKILL.md` | `claude_skill` | Provider reference |
+| `.codex/skills/<name>/SKILL.md` | `codex_skill` | Provider compatibility |
+| `.codex/plugins/cache/**/SKILL.md` | `codex_plugin_cache_skill` | Provider/plugin reference |
 
 ## Normalisation Schema
 
@@ -24,7 +26,7 @@ Each discovered skill is normalised into:
 {
   name: string,           // filename without extension, or SKILL.md parent dir name
   source_path: string,    // repo-relative path
-  source_type: string,    // cline_rule | claude_skill | openclaw_skill
+  source_type: string,    // yuri_skill | claude_skill | codex_skill | codex_plugin_cache_skill
   body: string,           // full file content
   hash: string,           // SHA-256 prefix (16 hex chars)
   loaded_at: string,      // ISO timestamp of discovery
@@ -36,9 +38,9 @@ Each discovered skill is normalised into:
 ## Collision Rules
 
 - Discovery paths are ordered by precedence (higher-priority paths first).
-- First encounter wins. If a skill with the same name exists in a lower-priority path, it is skipped.
-- Both the kept and skipped skills are marked with `collision: true` and `collision_with:` pointing to the other.
-- No silent overwrite — collisions are always visible in `--list` output.
+- First encounter wins. If a canonical skill with the same name appears twice, the duplicate is marked for collision review.
+- Provider/reference shadows whose names normalize to an existing root skill ID are omitted so `skills/` remains source truth.
+- Provider/reference shadows whose names normalize to an existing root skill ID are omitted so `skills/` remains source truth.
 
 ## CLI
 
@@ -71,12 +73,12 @@ surface=skills
 ### What Is Included
 
 - All skills discovered by `yuri-skill-loader.mjs` from current active discovery paths
-- Currently: `.cline/rules/*.md`, `.claude/skills/*.md`, and `.claude/skills/<name>/SKILL.md`
+- Currently: `skills/<name>/SKILL.md` first, then provider compatibility/reference roots
 - Skills appear as compact text entries in the EVIDENCE_BUNDLE
 
 ### What Is Intentionally Excluded
 
-- Future external `skills/<name>/SKILL.md` path outside `.claude/skills/` — not yet activated
+- `.agents/skills/` - no longer a canonical source and should not be recreated
 - Full skill body text in summary metadata — only name/type/path/hash are included there to keep summaries compact
 - No execution, dispatch, or tool calling of any kind
 
@@ -149,7 +151,7 @@ Validation is integrity checking, not authority proof. A matching hash means the
 ```bash
 node _SYSTEM/Scripts/yuri-skill-loader.mjs --write-manifest
 ```
-Generates the initial manifest from the current state of all discovered skills. Run after adding or editing any discovered skill file under `.cline/rules/` or `.claude/skills/`. Commit the manifest alongside skill changes.
+Generates the initial manifest from the current state of all discovered skills. Run after adding, moving, importing, or editing any skill under root `skills/`. Commit the manifest alongside skill changes.
 
 
 ## Fused Swarm Observability

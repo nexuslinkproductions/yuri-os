@@ -115,7 +115,7 @@ async function traceToSkill() {
       edgeAnalysis
     );
 
-    const finalPath = outputPath || `/Users/marcelspatz/YURI-OS-MUSUBI/.claude/skills/${taskId}/SKILL.md`;
+    const finalPath = outputPath || `/Users/marcelspatz/YURI-OS-MUSUBI/skills/${taskId}/SKILL.md`;
     const finalDir = path.dirname(finalPath);
     if (!fs.existsSync(finalDir)) {
       fs.mkdirSync(finalDir, { recursive: true });

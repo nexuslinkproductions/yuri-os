@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-05-25",
+  "canonicalSkillRoot": "skills",
+  "model": "agent = context packet + role contract + ordered skill bundle + lane/tool policy + verification gate",
+  "rules": {
+    "skillBodiesInAgents": false,
+    "skillReferenceFormat": "skills/<skill-id>/SKILL.md",
+    "providerCaches": "reference_only"
+  },
+  "agents": [
+    {
+      "agentId": "yuri-main-codex",
+      "label": "YURI Main Codex",
+      "purpose": "Primary implementation, verification, arbitration, and scoped change execution.",
+      "contextPackets": ["baseline", "skills"],
+      "roleContract": "Implement owner-approved changes, verify locally, protect secrets and runtime state, and avoid commits unless explicitly authorized.",
+      "skillIds": [
+        "openai-codex-workflow",
+        "non-destructive-infinity-guard",
+        "execution-domain-core",
+        "gitnexus-impact-analysis",
+        "verification-before-completion"
+      ],
+      "lanePolicy": {
+        "owner": "codex-main",
+        "externalLanes": "advisory_only",
+        "mcpRequired": false
+      },
+      "verificationGate": ["tests_or_syntax", "protected_path_check", "git_diff_scope"]
+    },
+    {
+      "agentId": "skill-registry-curator",
+      "label": "Skill Registry Curator",
+      "purpose": "Maintain the root skills database, imports, indexes, and active selection behavior.",
+      "contextPackets": ["skills", "baseline"],
+      "roleContract": "Keep skills root-visible, indexed, deduplicated, and provider-agnostic.",
+      "skillIds": [
+        "oracle-registry",
+        "writing-skills",
+        "skill-creator",
+        "skill-installer",
+        "prompt-engineering"
+      ],
+      "lanePolicy": {
+        "owner": "codex-main",
+        "externalLanes": "advisory_only",
+        "mcpRequired": false
+      },
+      "verificationGate": ["skill_loader_validate", "skill_index_resolves", "active_registry_selects_root"]
+    },
+    {
+      "agentId": "symbiotic-pulse-architect",
+      "label": "Symbiotic Pulse Architect",
+      "purpose": "Compose intent, lanes, skills, risk, and verification into bounded pulse plans.",
+      "contextPackets": ["kagami-harness", "skills", "baseline"],
+      "roleContract": "Classify intent, activate only relevant skills and lanes, keep model output advisory until local verification accepts it.",
+      "skillIds": [
+        "ai-pipeline-offloading",
+        "swarm-coordination",
+        "parallel-clone-orchestrator",
+        "haki-intent",
+        "bankai-manifest",
+        "failure-evolution-loop"
+      ],
+      "lanePolicy": {
+        "owner": "symbioticPulse",
+        "externalLanes": "bounded_after_intake",
+        "mcpRequired": false
+      },
+      "verificationGate": ["pulse_plan_schema", "bounded_activation_graph", "local_truth_required"]
+    },
+    {
+      "agentId": "research-pattern-synthesizer",
+      "label": "Research Pattern Synthesizer",
+      "purpose": "Extract reusable patterns from docs, repos, papers, and artifacts into YURI-native skills or references.",
+      "contextPackets": ["skills", "memory", "baseline"],
+      "roleContract": "Separate source facts from inference, preserve provenance, and promote only verified reusable behavior.",
+      "skillIds": [
+        "sharingan",
+        "pattern-mirror-core",
+        "research-artifact-factory",
+        "graphify",
+        "oracle-memory"
+      ],
+      "lanePolicy": {
+        "owner": "codex-main",
+        "externalLanes": "source_backed_advisory",
+        "mcpRequired": false
+      },
+      "verificationGate": ["source_paths_exist", "claims_have_evidence", "promotion_target_registered"]
+    }
+  ]
+}

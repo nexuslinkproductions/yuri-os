@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-24",
+  "updated": "2026-05-25",
   "purpose": "Machine-readable YURI OS folder classification map. This is navigation metadata, not a cleanup permission slip.",
   "rules": {
     "readByDefault": "Only canonical anchors and selected control-plane docs are read by default.",
@@ -11,6 +11,8 @@
     "canonical_anchor",
     "human_workspace",
     "system_control_plane",
+    "agent_assembly",
+    "skill_library",
     "provider_adapter",
     "retired_provider_adapter",
     "context_layer",
@@ -137,12 +139,21 @@
     },
     {
       "path": ".agents",
-      "class": "system_control_plane",
+      "class": "agent_assembly",
+      "owner": "YURI agents",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active",
+      "notes": "Agent assembly and role-composition layer. It references skills; it does not own canonical skill bodies."
+    },
+    {
+      "path": "skills",
+      "class": "skill_library",
       "owner": "YURI skills",
       "readByDefault": false,
       "protected": false,
       "status": "active",
-      "notes": "YURI skill library and agent skill roots. Read specific skills only."
+      "notes": "Canonical root-visible skill library. Read via skills/README.md, skill-index.json, and selected SKILL.md files."
     },
     {
       "path": ".claude",

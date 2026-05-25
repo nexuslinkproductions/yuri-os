@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-05-25",
+  "canonicalRoot": "skills",
+  "orderMatters": true,
+  "domains": [
+    {
+      "domainId": "00-symbiotic-core",
+      "label": "Symbiotic Core",
+      "purpose": "Intent, pulse, routing, constraints, and high-stakes reasoning composition.",
+      "skillIds": [
+        "ai-pipeline-offloading",
+        "swarm-coordination",
+        "tokenmaxxing",
+        "haki-intent",
+        "nen-phase-detector",
+        "bankai-manifest",
+        "izanagi-simulator",
+        "geass-lock",
+        "prompt-engineering"
+      ]
+    },
+    {
+      "domainId": "01-agent-assembly",
+      "label": "Agent Assembly",
+      "purpose": "Compose agents from skill bundles, lanes, roles, and verification gates.",
+      "skillIds": [
+        "parallel-clone-orchestrator",
+        "dispatching-parallel-agents",
+        "subagent-driven-development",
+        "bg",
+        "local-subagent",
+        "oracle-router",
+        "anthropic-managed-agents"
+      ]
+    },
+    {
+      "domainId": "02-safety-verification",
+      "label": "Safety And Verification",
+      "purpose": "Risk gates, deterministic truth checks, debugging, TDD, review, and failure learning.",
+      "skillIds": [
+        "non-destructive-infinity-guard",
+        "execution-domain-core",
+        "failure-evolution-loop",
+        "verification-before-completion",
+        "requesting-code-review",
+        "receiving-code-review",
+        "systematic-debugging",
+        "diagnose",
+        "tdd",
+        "test-driven-development",
+        "using-git-worktrees"
+      ]
+    },
+    {
+      "domainId": "03-code-intelligence",
+      "label": "Code Intelligence",
+      "purpose": "Architecture exploration, impact analysis, refactoring, PR review, and coding workflows.",
+      "skillIds": [
+        "gitnexus",
+        "gitnexus-cli",
+        "gitnexus-exploring",
+        "gitnexus-impact-analysis",
+        "gitnexus-debugging",
+        "gitnexus-refactoring",
+        "gitnexus-pr-review",
+        "openai-codex-workflow",
+        "yuri-code-intelligence",
+        "improve-codebase-architecture"
+      ]
+    },
+    {
+      "domainId": "04-memory-research-patterns",
+      "label": "Memory Research Patterns",
+      "purpose": "Recall, pattern extraction, research promotion, graphing, and continuity.",
+      "skillIds": [
+        "oracle-memory",
+        "end-of-transmission",
+        "pattern-mirror-core",
+        "sharingan",
+        "research-artifact-factory",
+        "graphify",
+        "probabilistic-decision-core"
+      ]
+    },
+    {
+      "domainId": "05-skill-registry",
+      "label": "Skill Registry",
+      "purpose": "Create, install, validate, package, and evolve reusable skills.",
+      "skillIds": [
+        "oracle-registry",
+        "writing-skills",
+        "write-a-skill",
+        "skill-creator",
+        "skill-installer",
+        "plugin-creator",
+        "setup-matt-pocock-skills"
+      ]
+    },
+    {
+      "domainId": "06-design-content-business",
+      "label": "Design Content Business",
+      "purpose": "Design, course generation, reports, video, sales, business intelligence, and deliverables.",
+      "skillIds": [
+        "design-master",
+        "frontend-design",
+        "design-source-pack",
+        "design-assistant-inbox",
+        "codebase-to-course",
+        "yuri-report",
+        "yuri-video-script",
+        "sales-psychology",
+        "yuri-sales-intelligence",
+        "business-dach-market-intelligence",
+        "nex-deliverables",
+        "nex-vault",
+        "ad-creative"
+      ]
+    },
+    {
+      "domainId": "07-provider-imports",
+      "label": "Provider Imports",
+      "purpose": "Promoted provider skills that are now root-visible, while their original providers remain reference surfaces.",
+      "skillIds": [
+        "brainstorming",
+        "executing-plans",
+        "writing-plans",
+        "finishing-a-development-branch",
+        "imagegen",
+        "openai-docs",
+        "browser-harness",
+        "hatch-pet",
+        "mineru-document-extractor"
+      ]
+    }
+  ]
+}

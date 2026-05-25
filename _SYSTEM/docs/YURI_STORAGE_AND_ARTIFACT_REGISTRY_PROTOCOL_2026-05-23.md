@@ -65,7 +65,8 @@ Every durable artifact should eventually expose:
 | Registry/schema/config | `_SYSTEM/config/` |
 | Curated context layer doc | `_SYSTEM/context/` |
 | Curated wiki/RAG page | `_SYSTEM/yuri-wiki/` |
-| Skill | `.agents/skills/` |
+| Agent recipe or role assembly | `.agents/` |
+| Skill | `skills/` |
 | Research source/evidence | `_SYSTEM/research-archive/` |
 | Generated report | `_SYSTEM/reports/` |
 | Active project work | `01_PROJECTS/<project>/` |
@@ -82,6 +83,7 @@ When creating a new durable file or folder:
 3. Add supersession metadata when replacing an older artifact.
 4. Avoid root-level files unless a tool absolutely requires them.
 5. Do not create a new provider-specific source of truth.
+6. Do not recreate `.agents/skills/` as canonical skill storage.
 
 Machine check:
 

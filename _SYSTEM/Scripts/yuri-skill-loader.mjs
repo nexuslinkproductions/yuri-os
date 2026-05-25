@@ -7,8 +7,9 @@
  * them into a structured in-memory registry.
  *
  * Reference pattern: OpenClaw ~/.openclaw/workspace/skills/<name>/SKILL.md
- * Substrate: YURI-native .agents/skills, Claude-compatible .claude/skills,
- * and local Codex skill shims. Retired provider surfaces are not discovered.
+ * Substrate: YURI-native root skills/, provider reference skills, and local
+ * Codex compatibility skill shims. Retired provider surfaces are not
+ * authoritative.
  *
  * This is a discovery/normalisation/validation prototype only.
  * No runtime skill execution. No plugin API.
@@ -37,7 +38,7 @@ const MANIFEST_PATH = path.join(REPO_ROOT, '_SYSTEM', 'skill-hash-registry.json'
 
 // Discovery paths (order = precedence; first match wins for duplicate names)
 const DISCOVERY_PATHS = [
-  { prefix: '.agents/skills', sourceType: 'yuri_agent_skill', kind: 'skill_md' },
+  { prefix: 'skills', sourceType: 'yuri_skill', kind: 'skill_md' },
   { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'flat_md' },
   { prefix: '.claude/skills', sourceType: 'claude_skill', kind: 'skill_md' },
   { prefix: '.codex/skills', sourceType: 'codex_skill', kind: 'skill_md' },
@@ -137,12 +138,12 @@ function printHelp() {
     '  node _SYSTEM/Scripts/yuri-skill-loader.mjs --help',
     '',
     'Discovery paths:',
-    '  .agents/skills/<name>/SKILL.md (YURI-native)',
-    '  .claude/skills/*.md (current)',
-    '  .claude/skills/<name>/SKILL.md (current)',
-    '  .codex/skills/<name>/SKILL.md (local compatibility)',
-    '  .codex/skills/.system/<name>/SKILL.md (local compatibility)',
-    '  .codex/plugins/cache/**/SKILL.md (local plugin cache)',
+    '  skills/<name>/SKILL.md (YURI canonical)',
+    '  .claude/skills/*.md (provider reference)',
+    '  .claude/skills/<name>/SKILL.md (provider reference)',
+    '  .codex/skills/<name>/SKILL.md (provider compatibility)',
+    '  .codex/skills/.system/<name>/SKILL.md (provider compatibility)',
+    '  .codex/plugins/cache/**/SKILL.md (provider/plugin reference)',
     '',
     'Archived external skill roots are harvest/reference material only.',
   ].join('\n') + '\n')
@@ -151,6 +152,7 @@ function printHelp() {
 export function buildRegistry() {
   const skills = []
   const seen = new Map()
+  const seenNormalized = new Map()
 
   for (const surface of DISCOVERY_PATHS) {
     const surfacePath = path.join(REPO_ROOT, surface.prefix)
@@ -158,9 +160,13 @@ export function buildRegistry() {
 
     for (const discovered of discoverSurfaceFiles(surface, surfacePath)) {
       const { skillName, sourcePath } = discovered
+      const normalizedSkillName = normalizeSkillId(skillName)
       const stat = statSync(sourcePath)
 
       if (!stat.isFile()) continue
+      if (normalizedSkillName && seenNormalized.has(normalizedSkillName) && !isCanonicalSurface(surface)) {
+        continue
+      }
 
       const fullBody = readFileSync(sourcePath, 'utf8')
       let body = fullBody
@@ -193,6 +199,7 @@ export function buildRegistry() {
       }
 
       seen.set(skillName, skill)
+      if (normalizedSkillName) seenNormalized.set(normalizedSkillName, skill)
       skills.push(skill)
     }
   }
@@ -221,6 +228,7 @@ function discoverSurfaceFiles(surface, surfacePath) {
 
   if (surface.kind === 'flat_md') {
     const entries = readdirSync(surfacePath, { withFileTypes: true })
+      .sort((a, b) => a.name.localeCompare(b.name))
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith('.md')) continue
       discovered.push({
@@ -233,6 +241,7 @@ function discoverSurfaceFiles(surface, surfacePath) {
 
   if (surface.kind === 'skill_md') {
     const entries = readdirSync(surfacePath, { withFileTypes: true })
+      .sort((a, b) => a.name.localeCompare(b.name))
     for (const entry of entries) {
       if (!entry.isDirectory()) continue
       const sourcePath = path.join(surfacePath, entry.name, 'SKILL.md')
@@ -255,6 +264,7 @@ function discoverSurfaceFiles(surface, surfacePath) {
 
 function walkSkillDirs(dir, discovered) {
   const entries = readdirSync(dir, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name))
   for (const entry of entries) {
     const entryPath = path.join(dir, entry.name)
     if (entry.isFile() && entry.name === 'SKILL.md') {
@@ -476,6 +486,18 @@ function printSkill(registry, name) {
 
 function unique(values) {
   return [...new Set((values || []).filter(Boolean))]
+}
+
+function isCanonicalSurface(surface) {
+  return surface?.sourceType === 'yuri_skill'
+}
+
+function normalizeSkillId(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 
 function isCliEntrypoint() {

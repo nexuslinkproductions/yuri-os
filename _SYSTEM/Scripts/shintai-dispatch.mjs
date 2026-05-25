@@ -64,7 +64,7 @@ const SOURCE_PATHS = [
   '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/feedback_shintai_team_sizing.md',
   '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/feedback_shintai_main_thread_role.md',
   '.claude/projects/-Users-marcelspatz-YURI-OS-MUSUBI/memory/feedback_rick_persona_every_dispatch.md',
-  '.claude/skills/extraction-sprint/SKILL.md',
+  'skills/extraction-sprint/SKILL.md',
   '.claude/plans/shintai-has-to-fix-luminous-fountain.md',
 ];
 

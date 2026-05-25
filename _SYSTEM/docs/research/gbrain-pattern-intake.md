@@ -27,7 +27,7 @@ These patterns are safe to document now and may inform future Yuri memory, skill
 
 ### 1. Thin Harness, Fat Skills
 
-The host system stays minimal. Domain knowledge lives in loadable skill artifacts. This aligns with Yuri OS: skills are `.claude/skills/`, the harness is the session hook layer. Reinforces not growing the harness beyond its routing/boot role.
+The host system stays minimal. Domain knowledge lives in loadable skill artifacts. This aligns with Yuri OS: canonical skills are root `skills/`, while provider folders are compatibility surfaces. Reinforces not growing the harness beyond its routing/boot role.
 
 ### 2. Compiled Truth + Timeline Separation
 

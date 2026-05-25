@@ -38,7 +38,8 @@ The skill tree should be navigated by registry first, file tree second.
 
 The active registry surfaces are:
 
-- `.agents/skills/` for YURI-authored skills
+- `skills/` for canonical root-visible YURI skills
+- `.agents/` for agent recipes that reference skill IDs
 - `.codex/skills/` for Codex-specific skills
 - `_SYSTEM/Scripts/yuri-skill-loader.mjs` for load/validate behavior
 - `_SYSTEM/Scripts/yuri-capability-census.mjs` for capability inventory

@@ -22,7 +22,7 @@
 ## Output
 
 ```
-/.claude/skills/[task-id]/SKILL.md
+/skills/[task-id]/SKILL.md
   ├── Core Rules (from success analysis)
   ├── Failure Prevention (from error analysis)
   ├── Optimal Workflow (from structure analysis)

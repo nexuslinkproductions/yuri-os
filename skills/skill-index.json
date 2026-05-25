@@ -1,0 +1,541 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-05-25",
+  "canonicalRoot": "skills",
+  "sourceOfTruth": true,
+  "count": 103,
+  "rules": {
+    "skillBodyPath": "skills/<skill-id>/SKILL.md",
+    "providerCaches": "reference_only",
+    "agentAssembly": ".agents/agent-index.json references these ids"
+  },
+  "compatibilityReferences": {
+    "providerSkillRoots": [
+      ".claude/skills",
+      ".codex/skills",
+      ".codex/plugins/cache"
+    ],
+    "retiredAliasesNotPromoted": [
+      "deepseek-workhorse",
+      "deepseek-offload",
+      "openclaw-offload"
+    ]
+  },
+  "skills": [
+    {
+      "id": "ad-creative",
+      "path": "skills/ad-creative/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "agent-scout",
+      "path": "skills/agent-scout/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "ai-pipeline-offloading",
+      "path": "skills/ai-pipeline-offloading/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "anime-dna-extensions",
+      "path": "skills/anime-dna-extensions/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "anthropic-managed-agents",
+      "path": "skills/anthropic-managed-agents/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "audit-log-firewall",
+      "path": "skills/audit-log-firewall/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "bankai-manifest",
+      "path": "skills/bankai-manifest/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "bg",
+      "path": "skills/bg/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "brainstorming",
+      "path": "skills/brainstorming/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "browser-harness",
+      "path": "skills/browser-harness/SKILL.md",
+      "sourceFamily": "codex_import"
+    },
+    {
+      "id": "business-dach-market-intelligence",
+      "path": "skills/business-dach-market-intelligence/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "caveman",
+      "path": "skills/caveman/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "codebase-to-course",
+      "path": "skills/codebase-to-course/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "compact-optimizer",
+      "path": "skills/compact-optimizer/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "design-assistant-inbox",
+      "path": "skills/design-assistant-inbox/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "design-master",
+      "path": "skills/design-master/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "design-source-pack",
+      "path": "skills/design-source-pack/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "diagnose",
+      "path": "skills/diagnose/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "dispatching-parallel-agents",
+      "path": "skills/dispatching-parallel-agents/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "end-of-transmission",
+      "path": "skills/end-of-transmission/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "executing-plans",
+      "path": "skills/executing-plans/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "execution-domain-core",
+      "path": "skills/execution-domain-core/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "exeoflow-yuri-sitrep-pack",
+      "path": "skills/exeoflow-yuri-sitrep-pack/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "extraction-sprint",
+      "path": "skills/extraction-sprint/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "failure-evolution-loop",
+      "path": "skills/failure-evolution-loop/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "finishing-a-development-branch",
+      "path": "skills/finishing-a-development-branch/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "frontend-design",
+      "path": "skills/frontend-design/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "geass-lock",
+      "path": "skills/geass-lock/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "git-guardrails-claude-code",
+      "path": "skills/git-guardrails-claude-code/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "gitnexus",
+      "path": "skills/gitnexus/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "gitnexus-cli",
+      "path": "skills/gitnexus-cli/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "gitnexus-debugging",
+      "path": "skills/gitnexus-debugging/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "gitnexus-exploring",
+      "path": "skills/gitnexus-exploring/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "gitnexus-guide",
+      "path": "skills/gitnexus-guide/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "gitnexus-impact-analysis",
+      "path": "skills/gitnexus-impact-analysis/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "gitnexus-pr-review",
+      "path": "skills/gitnexus-pr-review/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "gitnexus-refactoring",
+      "path": "skills/gitnexus-refactoring/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "gpt-oss-local-runtime",
+      "path": "skills/gpt-oss-local-runtime/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "graphify",
+      "path": "skills/graphify/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "grill-me",
+      "path": "skills/grill-me/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "grill-with-docs",
+      "path": "skills/grill-with-docs/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "haki-intent",
+      "path": "skills/haki-intent/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "hatch-pet",
+      "path": "skills/hatch-pet/SKILL.md",
+      "sourceFamily": "codex_import"
+    },
+    {
+      "id": "imagegen",
+      "path": "skills/imagegen/SKILL.md",
+      "sourceFamily": "codex_import"
+    },
+    {
+      "id": "improve-codebase-architecture",
+      "path": "skills/improve-codebase-architecture/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "izanagi-simulator",
+      "path": "skills/izanagi-simulator/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "kimi-k2-6-server-adapter",
+      "path": "skills/kimi-k2-6-server-adapter/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "local-subagent",
+      "path": "skills/local-subagent/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "math-curve-loaders",
+      "path": "skills/math-curve-loaders/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "migrate-to-shoehorn",
+      "path": "skills/migrate-to-shoehorn/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "mineru-document-extractor",
+      "path": "skills/mineru-document-extractor/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "nen-phase-detector",
+      "path": "skills/nen-phase-detector/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "nex-deliverables",
+      "path": "skills/nex-deliverables/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "nex-vault",
+      "path": "skills/nex-vault/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "non-destructive-infinity-guard",
+      "path": "skills/non-destructive-infinity-guard/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "objection-source-diagnoser",
+      "path": "skills/objection-source-diagnoser/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "openai-codex-workflow",
+      "path": "skills/openai-codex-workflow/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "openai-docs",
+      "path": "skills/openai-docs/SKILL.md",
+      "sourceFamily": "codex_import"
+    },
+    {
+      "id": "oracle-adapters",
+      "path": "skills/oracle-adapters/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "oracle-memory",
+      "path": "skills/oracle-memory/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "oracle-registry",
+      "path": "skills/oracle-registry/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "oracle-router",
+      "path": "skills/oracle-router/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "oracle-voice",
+      "path": "skills/oracle-voice/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "parallel-clone-orchestrator",
+      "path": "skills/parallel-clone-orchestrator/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "pattern-mirror-core",
+      "path": "skills/pattern-mirror-core/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "plugin-creator",
+      "path": "skills/plugin-creator/SKILL.md",
+      "sourceFamily": "codex_import"
+    },
+    {
+      "id": "probabilistic-decision-core",
+      "path": "skills/probabilistic-decision-core/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "prompt-engineering",
+      "path": "skills/prompt-engineering/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "receipt-subscription-cleaner",
+      "path": "skills/receipt-subscription-cleaner/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "receiving-code-review",
+      "path": "skills/receiving-code-review/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "remotion-best-practices",
+      "path": "skills/remotion-best-practices/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "requesting-code-review",
+      "path": "skills/requesting-code-review/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "research-artifact-factory",
+      "path": "skills/research-artifact-factory/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "sales-psychology",
+      "path": "skills/sales-psychology/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "scaffold-exercises",
+      "path": "skills/scaffold-exercises/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "setup-matt-pocock-skills",
+      "path": "skills/setup-matt-pocock-skills/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "setup-pre-commit",
+      "path": "skills/setup-pre-commit/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "sharingan",
+      "path": "skills/sharingan/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "skill-creator",
+      "path": "skills/skill-creator/SKILL.md",
+      "sourceFamily": "codex_import"
+    },
+    {
+      "id": "skill-installer",
+      "path": "skills/skill-installer/SKILL.md",
+      "sourceFamily": "codex_import"
+    },
+    {
+      "id": "subagent-driven-development",
+      "path": "skills/subagent-driven-development/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "swarm-coordination",
+      "path": "skills/swarm-coordination/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "systematic-debugging",
+      "path": "skills/systematic-debugging/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "tdd",
+      "path": "skills/tdd/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "test-driven-development",
+      "path": "skills/test-driven-development/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "to-issues",
+      "path": "skills/to-issues/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "to-prd",
+      "path": "skills/to-prd/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "tokenmaxxing",
+      "path": "skills/tokenmaxxing/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "triage",
+      "path": "skills/triage/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "using-git-worktrees",
+      "path": "skills/using-git-worktrees/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "using-superpowers",
+      "path": "skills/using-superpowers/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "verification-before-completion",
+      "path": "skills/verification-before-completion/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "videodb",
+      "path": "skills/videodb/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "visual-introspection",
+      "path": "skills/visual-introspection/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "write-a-skill",
+      "path": "skills/write-a-skill/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    },
+    {
+      "id": "writing-plans",
+      "path": "skills/writing-plans/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "writing-skills",
+      "path": "skills/writing-skills/SKILL.md",
+      "sourceFamily": "superpowers_import"
+    },
+    {
+      "id": "yuri-code-intelligence",
+      "path": "skills/yuri-code-intelligence/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "yuri-report",
+      "path": "skills/yuri-report/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "yuri-sales-intelligence",
+      "path": "skills/yuri-sales-intelligence/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "yuri-shura",
+      "path": "skills/yuri-shura/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "yuri-video-script",
+      "path": "skills/yuri-video-script/SKILL.md",
+      "sourceFamily": "claude_import"
+    },
+    {
+      "id": "zoom-out",
+      "path": "skills/zoom-out/SKILL.md",
+      "sourceFamily": "yuri_native_migrated"
+    }
+  ]
+}

@@ -99,7 +99,7 @@ test('Shintai packet evidence merges Gate 0 cyber evidence with memory evidence'
   const memoryEvidence = {
     sources: [
       { id: 'shintai-roster', path: '_SYSTEM/kagami/shintai-team.json', type: 'roster', sha256: 'aaa' },
-      { id: 'extraction-sprint-template', path: '.claude/skills/extraction-sprint/SKILL.md', type: 'template', sha256: 'bbb' },
+      { id: 'extraction-sprint-template', path: 'skills/extraction-sprint/SKILL.md', type: 'template', sha256: 'bbb' },
     ],
     loadedTemplates: ['extraction-sprint-template'],
     protectedSurfaceExclusions: ['.env'],
@@ -109,7 +109,7 @@ test('Shintai packet evidence merges Gate 0 cyber evidence with memory evidence'
       loaded: [
         { id: 'cyber-company-goal', path: '_SYSTEM/docs/YURI_OS_CYBERSECURITY_COMPANY_SUPERCHARGE_GOAL_2026-05-22.md', type: 'doc', sha256: 'ccc' },
         { id: 'cyber-intel-matrix', path: '_SYSTEM/docs/YURI_CYBER_INTELLIGENCE_MATRIX_2026-05-22.md', type: 'doc', sha256: 'ddd' },
-        { id: 'extraction-sprint-template', path: '.claude/skills/extraction-sprint/SKILL.md', type: 'template', sha256: 'bbb' },
+        { id: 'extraction-sprint-template', path: 'skills/extraction-sprint/SKILL.md', type: 'template', sha256: 'bbb' },
       ],
     },
   };

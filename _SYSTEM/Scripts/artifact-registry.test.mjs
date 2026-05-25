@@ -27,6 +27,8 @@ test('artifact registry classifies canonical future destinations', () => {
   assert.equal(classifyArtifactPath('_SYSTEM/Scripts/new-tool.mjs', registry).ruleId, 'system-script');
   assert.equal(classifyArtifactPath('_SYSTEM/context/new-packet.md', registry).ruleId, 'context-layer');
   assert.equal(classifyArtifactPath('_SYSTEM/reports/new-report.md', registry).ruleId, 'report');
+  assert.equal(classifyArtifactPath('skills/new-skill/SKILL.md', registry).ruleId, 'skill');
+  assert.equal(classifyArtifactPath('.agents/new-agent.json', registry).ruleId, 'agent-assembly');
   assert.equal(classifyArtifactPath('01_PROJECTS/client/brief.md', registry).ruleId, 'active-project');
 });
 

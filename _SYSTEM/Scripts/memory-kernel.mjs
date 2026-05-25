@@ -17,7 +17,7 @@ export const SEMANTIC_MODES = Object.freeze(['lexical', 'embedding', 'msa']);
 export const CONTROL_PLANE_EVIDENCE_SOURCES = Object.freeze([
   { id: 'shintai-roster', path: '_SYSTEM/kagami/shintai-team.json', type: 'roster', required: true },
   { id: 'yuri-memory-index', path: '_SYSTEM/memory/MEMORY.md', type: 'memory', required: true },
-  { id: 'extraction-sprint-template', path: '.claude/skills/extraction-sprint/SKILL.md', type: 'template', required: true },
+  { id: 'extraction-sprint-template', path: 'skills/extraction-sprint/SKILL.md', type: 'template', required: true },
   { id: 'offload-contract', path: '_SYSTEM/Scripts/offload-contract.mjs', type: 'source', required: true },
   { id: 'lane-kernel', path: '_SYSTEM/Scripts/lane-kernel.mjs', type: 'source', required: true },
   { id: 'self-improvement-memory-rag-goal', path: '_SYSTEM/docs/YURI_OS_SELF_IMPROVEMENT_MEMORY_RAG_SHINTAI_GOAL_2026-05-21.md', type: 'doc', required: true },

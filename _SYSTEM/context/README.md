@@ -21,6 +21,8 @@ operator input
   -> _SYSTEM/INDEX.md
   -> _SYSTEM/config/folder-registry.json
   -> _SYSTEM/config/artifact-registry.json
+  -> .agents/README.md
+  -> skills/README.md
   -> selected context packet
   -> task-local docs
   -> implementation files
@@ -60,8 +62,9 @@ node _SYSTEM/Scripts/artifact-registry.mjs --classify "_SYSTEM/docs/new-plan.md"
 | `_SYSTEM/config/artifact-registry.json` | Machine-readable durable artifact classification | Use to answer "where should this new artifact live?" before creation. |
 | `_SYSTEM/yuri-wiki/index.md` | Curated wiki and RAG entrypoint | Advisory projection; local repo truth outranks it. |
 | `_SYSTEM/docs/*` | Current architecture, guardrail, cyber, memory, and sprint docs | Prefer recent dated docs over old handoffs. |
-| `.agents/skills/*` | YURI skill library | Load only relevant skills. |
-| `.codex/skills/*` | Codex-specific skill surface | Load only when Codex behavior or local skills are the task. |
+| `.agents/README.md` and `.agents/agent-index.json` | Agent assembly layer | Read to understand how context, role contracts, skills, lanes, and verification gates compose into agents. |
+| `skills/*` | Canonical YURI skill library | Load only relevant skills. Provider caches are import/reference sources only. |
+| `.codex/skills/*` | Codex-specific compatibility surface | Load only when Codex behavior or local adapter skills are the task. |
 | Local domain notes | Folder-specific context files | Keep when they explain local domain conventions; do not let them override global policy. |
 
 ## Context Packets
@@ -85,13 +88,15 @@ Use this decision order:
 2. Runtime script: `_SYSTEM/Scripts/`
 3. Config/registry/schema: `_SYSTEM/config/`
 4. Context selector or packet docs: `_SYSTEM/context/`
-5. Skill: `.agents/skills/` or `.codex/skills/`
-6. Curated wiki/RAG page: `_SYSTEM/yuri-wiki/`
-7. Evidence/research source: `_SYSTEM/research-archive/`
-8. Generated report: `_SYSTEM/reports/`
-9. Active project material: `01_PROJECTS/<project>/`
-10. Durable reusable reference: `03_RESOURCES/`
-11. Historical inactive material: `07_ARCHIVE/`
+5. Agent recipe or assembly metadata: `.agents/`
+6. Skill: `skills/`
+7. Provider-specific compatibility skill: `.codex/skills/`
+8. Curated wiki/RAG page: `_SYSTEM/yuri-wiki/`
+9. Evidence/research source: `_SYSTEM/research-archive/`
+10. Generated report: `_SYSTEM/reports/`
+11. Active project material: `01_PROJECTS/<project>/`
+12. Durable reusable reference: `03_RESOURCES/`
+13. Historical inactive material: `07_ARCHIVE/`
 
 If none fit, create or update a registry entry first and document why.
 

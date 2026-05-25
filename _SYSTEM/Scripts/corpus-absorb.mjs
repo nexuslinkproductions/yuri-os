@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../..') // Scripts/ → _SYSTEM/ → repo root;
 const SCANNER_PATH = path.join(REPO_ROOT, '_SYSTEM', 'Scripts', 'corpus-security-scan.mjs');
-const DEFAULT_DEST_ROOT = path.join(REPO_ROOT, '.claude', 'skills');
+const DEFAULT_DEST_ROOT = path.join(REPO_ROOT, 'skills');
 const DEFAULT_RECORD_FILE = path.join(REPO_ROOT, '_SYSTEM', 'corpus-output', 'absorbed-skills.jsonl');
 
 function usage() {
@@ -135,7 +135,7 @@ function absorbSkill(inputPath, options) {
 
   return {
     status: 0,
-    message: `[corpus-absorb] ABSORBED: ${skillName} → .claude/skills/${skillName}/`,
+    message: `[corpus-absorb] ABSORBED: ${skillName} -> skills/${skillName}/`,
   };
 }
 

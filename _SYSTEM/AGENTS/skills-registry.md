@@ -67,8 +67,8 @@
 | obliteratus | [_SYSTEM/Scripts/offload-contract.mjs](</Users/marcelspatz/YURI-OS-MUSUBI/_SYSTEM/Scripts/offload-contract.mjs>) / [spec](</Users/marcelspatz/YURI-OS-MUSUBI/.claude/agents/obliteratus-qa.md>) | `gitnexus-impact-analysis`, `gitnexus-pr-review`, `failure-evolution-loop` | Act as an explicit pre-promotion adversarial gate for high-stakes reviews, protocol changes, sandbox promotion candidates, protected-state changes, and durable learning promotion. |
 
 ## Integration Notes
-- Matt Pocock skills are installed at `.agents/skills/mattpocock/`
-- Yuri OS native skills are at `.agents/skills/`
+- Matt Pocock skills are promoted into root `skills/<skill-id>/`
+- Yuri OS canonical skills are at root `skills/`
 - All skills are loaded by OpenClaw on session boot
 - Skills can be invoked by slash command or triggered automatically
 - Cross-domain lesson indexing lives in `_SYSTEM/SELF-IMPROVEMENT/02_EXTRACT/cross-reference-taxonomy.md`, `cross-reference-index.md`, and `prevention-rules.md`; keep canonical tags when promoting memory or summarized logs.

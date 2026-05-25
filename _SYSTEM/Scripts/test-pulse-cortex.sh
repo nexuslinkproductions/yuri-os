@@ -119,13 +119,13 @@ run_phase() {
       ;;
     10)
       echo "── Phase 10: EOT Phase 10 + tokenmaxxing + CLAUDE.md (PATCH 039)"
-      assert_contains "EOT Phase 10 section" 'Phase 10 — Pulse Cortex Archive' "$(cat .claude/skills/end-of-transmission/SKILL.md)"
+      assert_contains "EOT Phase 10 section" 'Phase 10 — Pulse Cortex Archive' "$(cat skills/end-of-transmission/SKILL.md)"
       assert_contains "PULSE_CORTEX_PROTOCOL section" 'PULSE_CORTEX_PROTOCOL' "$(cat CLAUDE.md)"
-      assert_contains "tokenmaxxing description native" 'Native token efficiency' "$(cat .claude/skills/tokenmaxxing/SKILL.md)"
+      assert_contains "tokenmaxxing description native" 'Native token efficiency' "$(cat skills/tokenmaxxing/SKILL.md)"
       # /tokenmaxxing no longer in YAML triggers array; only body text references remain
-      assert_contains "tokenmaxxing yaml trigger removed" 'triggers:' "$(head -10 .claude/skills/tokenmaxxing/SKILL.md)"
+      assert_contains "tokenmaxxing yaml trigger removed" 'triggers:' "$(head -10 skills/tokenmaxxing/SKILL.md)"
       local frontmatter
-      frontmatter="$(awk '/^---$/{c++; next} c==1' .claude/skills/tokenmaxxing/SKILL.md)"
+      frontmatter="$(awk '/^---$/{c++; next} c==1' skills/tokenmaxxing/SKILL.md)"
       if echo "$frontmatter" | grep -q '"/tokenmaxxing"'; then
         echo "  ✗ /tokenmaxxing still in YAML triggers"
         FAIL_COUNT=$((FAIL_COUNT + 1))

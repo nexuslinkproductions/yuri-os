@@ -4,6 +4,10 @@
 # Large research / sandbox trees create noisy sessions and skill-list overflow.
 
 [[skills.config]]
+path = "skills"
+enabled = true
+
+[[skills.config]]
 path = "03_RESOURCES/RESEARCH/ruflo"
 enabled = false
 

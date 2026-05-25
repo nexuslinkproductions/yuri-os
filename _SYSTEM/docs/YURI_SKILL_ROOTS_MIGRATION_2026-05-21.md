@@ -1,4 +1,7 @@
-# YURI Skill Roots Migration — 2026-05-21
+# YURI Skill Roots Migration - 2026-05-21
+
+Updated: 2026-05-25
+Status: superseded by root `skills/` architecture
 
 ## Rule
 
@@ -7,9 +10,10 @@ External agent/app paths remain compatibility symlinks only.
 
 ## Canonical Roots
 
-- `.agents/skills/` — YURI-native skills and primary personal skill root.
-- `.claude/skills/` — Claude-compatible YURI skill surface.
-- `.codex/skills/` — Codex local/system skill shims.
+- `skills/` - canonical YURI skill library and source of truth.
+- `.agents/` - agent assembly recipes and command adapters; not skill storage.
+- `.claude/skills/` - Claude-compatible provider reference surface.
+- `.codex/skills/` - Codex local/system compatibility shims.
 - `.cursor/skills/` and `.cursor/skills-cursor/` — Cursor-compatible skill surfaces.
 - `.gemini/skills/` — Gemini-compatible skill surface.
 - `.hermes/skills/` — Hermes-compatible skill library.
@@ -42,12 +46,11 @@ These home paths now point back into YURI:
 
 `_SYSTEM/Scripts/yuri-skill-loader.mjs` now discovers:
 
-- YURI-native `.agents/skills`
-- Claude/Codex/Cursor/Gemini/Hermes compatibility roots
+- YURI-native root `skills/`
+- Claude/Codex compatibility roots as provider references
 - local Codex plugin cache skills
-- archived external skill roots
 
-Precedence stays YURI-first: `.agents/skills` wins before compatibility or archived duplicates.
+Precedence stays YURI-first: `skills/` wins before compatibility or plugin-cache duplicates.
 
 ## Intentionally Not Migrated
 
@@ -68,4 +71,3 @@ Those are not YURI-authored skill roots. They should not be edited or used as ow
 node --check _SYSTEM/Scripts/yuri-skill-loader.mjs
 node _SYSTEM/Scripts/yuri-skill-loader.mjs --list
 ```
-

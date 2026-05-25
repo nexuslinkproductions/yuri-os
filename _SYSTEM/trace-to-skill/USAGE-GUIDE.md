@@ -270,7 +270,7 @@ Each produces its own SKILL.md file.
 
 **Result:**
 ```
-/.claude/skills/
+/skills/
 ├── shot-list-generation/SKILL.md
 ├── client-brief-generation/SKILL.md
 ├── invoice-preparation/SKILL.md
