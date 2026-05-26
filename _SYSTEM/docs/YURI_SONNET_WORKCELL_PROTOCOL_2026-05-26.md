@@ -10,7 +10,7 @@ Use multiple persistent Claude Sonnet lanes for real implementation volume while
 
 The Sonnet workcell is not an advisor swarm. Worker lanes produce actual patch bundles, file contents, tests, docs, schemas, or registry patches. Codex/main decomposes the work, validates scope, integrates worker outputs into the real tree, runs verification, and commits only when Marcel explicitly authorizes it.
 
-Rick Prime is the supercharge layer: a high-reasoning improvement and gap-hunt pass over the integrated result, not a rubber-stamp review.
+Rick Prime is the supercharge layer: a high-reasoning improvement, gap-hunt, and scoped edit pass over the integrated result, not a rubber-stamp review.
 
 ## Role Model
 
@@ -23,7 +23,7 @@ Rick Prime is the supercharge layer: a high-reasoning improvement and gap-hunt p
 | Guardrail builder | Cop Rick / Nearly Kantian Rick | Claude Sonnet | Tests, negative cases, policy checks, contradiction and protected-surface pressure. |
 | Registry/docs builder | Riq IV | Claude Sonnet | Docs, schemas, artifact/context registry updates, operator-facing summaries. |
 | Synthesis filter | Simple Rick | DeepSeek | Compression, EOT, truth/memory proposal filtering, risk ordering. |
-| Supercharger | Rick Prime | Claude Opus | Structural scan, gate verification, regression hunt, gap hunt, improvement pass, verdict. |
+| Supercharger | Rick Prime | Claude Opus | Structural scan, gate verification, regression hunt, gap hunt, scoped improvement edits, verdict. |
 | Owner | Marcel | Human operator | Approves scope escalation, L3 mutation, and commits. |
 
 Private names are for Marcel's dev overlay only. Shipping docs and external surfaces use the neutral role labels.
@@ -41,10 +41,23 @@ Worker output is not prose advice. A worker must return a typed bundle:
   "filesInScope": ["_SYSTEM/Scripts/yuri-autonomy-runner.mjs"],
   "outputs": [
     {
-      "action": "edit",
-      "path": "_SYSTEM/Scripts/yuri-autonomy-runner.mjs",
-      "format": "unified-diff",
-      "content": "..."
+      "format": "yuri-patch-v0",
+      "scope_declared": ["_SYSTEM/Scripts/yuri-autonomy-runner.mjs"],
+      "patches": [
+        {
+          "op": "replace_lines",
+          "file": "_SYSTEM/Scripts/yuri-autonomy-runner.mjs",
+          "line_hint": 120,
+          "anchor_match": "exact",
+          "context_before": ["// exact nearby line before target"],
+          "old_lines": ["const oldValue = true;"],
+          "new_lines": ["const oldValue = false;"],
+          "context_after": ["// exact nearby line after target"],
+          "intent": "one-line reviewer-facing reason for the change"
+        }
+      ],
+      "test_commands": ["node --test _SYSTEM/Scripts/yuri-autonomy-runner.test.mjs"],
+      "risk_notes": []
     }
   ],
   "testCommands": ["node --test _SYSTEM/Scripts/yuri-autonomy-runner.test.mjs"],
@@ -62,7 +75,19 @@ Worker output is not prose advice. A worker must return a typed bundle:
 }
 ```
 
-C-137 applies worker-produced diffs or file contents after scope checks. C-137 may make integration repairs, conflict resolution, and final hardening edits, but the target operating model is that Sonnet workers produce the majority of implementation material.
+New worker implementation output should prefer `yuri-patch-v0`. Legacy `unified-diff` output remains accepted for backward compatibility, but it is not the preferred format for new workcell packets.
+
+Patch conventions:
+
+- All anchors (`context_before`, `context_after`, `old_lines`) reference the pre-patch file state. When a single patch contains multiple entries targeting the same file, each entry's anchors describe the original file, not the file after earlier entries are applied.
+- `replace_lines` with empty `new_lines` is a valid line deletion. No separate `delete_lines` op exists.
+- `test_commands` inside the patch envelope is advisory context for reviewers. `testCommands` on the outer worker output wrapper is what C-137 actually runs.
+- `intent` on each patch entry is optional but recommended. It gives Prime a one-line reason to review against the actual diff.
+- `line_hint` is advisory. When it disagrees with the anchor location, the anchor wins.
+- Harmless extras (`context_before`/`context_after`/`intent` on `create_file`/`delete_file`) are tolerated, not rejected.
+- `create_file` must not carry `old_lines`. `delete_file` must not carry `old_lines` or `new_lines`.
+
+C-137 applies worker-produced patch bundles, diffs, or file contents after scope checks. C-137 may make integration repairs, conflict resolution, and final hardening edits, but the target operating model is that Sonnet workers produce the majority of implementation material.
 
 ## Navigation Tiers
 
@@ -74,7 +99,7 @@ The protocol should make most workers powerful producers with curated context, n
 |---|---|---|
 | Root orchestration | C-137 | Full governed navigation through AGENTS read order, context-router, GitNexus, registries, and local verification. Never protected runtime/secrets. |
 | Scout navigation | Zeta Alpha Rick | Targeted broad navigation for context packets, dependency DAGs, and file-scope selection. Must report every file read. |
-| Supercharge navigation | Rick Prime | Targeted review navigation over integrated diff, registries, tests, and impact reports. Reads for review, not implementation sprawl. |
+| Supercharge navigation | Rick Prime | Targeted navigation over integrated diff, registries, tests, and impact reports. May edit explicit scoped files during implementation slices; no scope expansion, protected paths, staging, or commit. |
 | Builder navigation | Quantum Rick, Maximums Rickimus | Files in packet scope plus explicitly supplied context. Ask for C-137/Scout expansion when blocked. |
 | Guardrail navigation | Cop Rick / Nearly Kantian Rick | Files in packet scope, nearby tests, and explicit policy/test references. No broad exploration by default. |
 | Registry/docs navigation | Riq IV | Registry, context, schema, and doc paths explicitly named in packet. |
@@ -377,7 +402,7 @@ Common output:
 Builder output:
 
 - `filesInScope`: exact repo-relative files allowed.
-- `outputs`: `create`, `edit`, or `delete`, with path and content or unified diff.
+- `outputs`: prefer `yuri-patch-v0` structured patch envelopes. Legacy `unified-diff` entries remain accepted for compatibility.
 - `testCommands`: smallest meaningful checks the worker expects.
 - `riskNotes`: scope, protected-surface, and mutation notes.
 
@@ -421,8 +446,8 @@ Prime output:
 8. C-137 collects `memorySignals` and routes proposal candidates through Simple Rick before any memory-kernel proposal is created.
 9. C-137 detects file collisions and applies bundles in DAG order.
 10. C-137 runs the expected local verification.
-11. Rick Prime supercharges the integrated diff and memory usage.
-12. Prime findings are routed back to the responsible worker or handled by C-137 when they are integration-level repairs.
+11. Rick Prime supercharges the integrated diff and memory usage with scoped edit authority for implementation slices.
+12. Prime may directly fix issues inside the authorized file scope. Findings outside scope route back to C-137, the responsible worker, or Marcel for expansion.
 13. C-137 re-runs verification and presents Marcel with the integrated diff, Prime verdict, tests, memory proposals, and residual risks.
 14. Marcel authorizes or holds the commit and decides memory proposals separately.
 15. C-137 commits only after explicit authorization.
@@ -441,7 +466,7 @@ Rick Prime does not merely review. Prime runs six sequential stages:
 | S5 | Improvement pass | S4 findings and diff | ROI-ordered improvement list | Advisory unless high-risk. |
 | S6 | Verdict | S1-S5 artifacts | `approve`, `approve-with-fixes`, or `block` | Terminal. |
 
-Prime should intensify the integrated result: find what is missing, pressure the architecture, identify hidden regressions, and propose high-ROI improvements. Prime should not become the default implementer. Fixes go back to the relevant Sonnet worker or to C-137 for integration-level repairs.
+Prime should intensify the integrated result: find what is missing, pressure the architecture, identify hidden regressions, and implement high-ROI improvements inside the explicit authorized scope. Prime is not the default first-pass implementer, but for implementation tasks like this Prime should have edit privileges by default after C-137 has integrated the worker result. C-137 remains responsible for scope control, final verification, commit authorization, and rollback discipline.
 
 ## First Six Tasks
 

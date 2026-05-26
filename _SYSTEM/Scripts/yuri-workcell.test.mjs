@@ -7,6 +7,9 @@ import {
   buildWorkerPacket,
   validateWorkerOutput,
   buildDecomposition,
+  validatePatch,
+  YURI_PATCH_FORMAT,
+  YURI_PATCH_OPS,
 } from './yuri-workcell.mjs';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
@@ -476,4 +479,441 @@ test('mixed valid and malformed entries collects all errors', () => {
   );
   assert.equal(result.ok, false);
   assert.ok(result.errors.length >= 4);
+});
+
+// ---------------------------------------------------------------------------
+// Patch constants
+// ---------------------------------------------------------------------------
+
+test('YURI_PATCH_FORMAT is the correct string literal', () => {
+  assert.equal(YURI_PATCH_FORMAT, 'yuri-patch-v0');
+});
+
+test('YURI_PATCH_OPS contains all expected ops and is frozen', () => {
+  for (const op of ['replace_lines', 'insert_before', 'insert_after', 'create_file', 'delete_file']) {
+    assert.ok(YURI_PATCH_OPS.includes(op), `expected op '${op}' in YURI_PATCH_OPS`);
+  }
+  assert.ok(Object.isFrozen(YURI_PATCH_OPS));
+});
+
+// ---------------------------------------------------------------------------
+// validatePatch — helpers
+// ---------------------------------------------------------------------------
+
+const VALID_FILE = '_SYSTEM/Scripts/yuri-workcell.mjs';
+
+function basePatch(patchEntry) {
+  return {
+    format: 'yuri-patch-v0',
+    scope_declared: [VALID_FILE],
+    patches: [patchEntry],
+    test_commands: [],
+    risk_notes: [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// validatePatch — valid cases
+// ---------------------------------------------------------------------------
+
+test('valid replace_lines patch passes and returns filesAffected', () => {
+  const result = validatePatch(basePatch({
+    op: 'replace_lines',
+    file: VALID_FILE,
+    context_before: ['// before'],
+    old_lines: ['const X = 1;'],
+    new_lines: ['const X = 2;'],
+    context_after: ['// after'],
+  }));
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.errors, []);
+  assert.deepEqual(result.filesAffected, [VALID_FILE]);
+});
+
+test('replace_lines with empty new_lines (deletion) passes', () => {
+  const result = validatePatch(basePatch({
+    op: 'replace_lines',
+    file: VALID_FILE,
+    old_lines: ['const DEAD = true;'],
+    new_lines: [],
+  }));
+  assert.equal(result.ok, true);
+});
+
+test('valid create_file patch passes', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/new-file.json'],
+    patches: [{ op: 'create_file', file: '_SYSTEM/config/new-file.json', new_lines: ['{}'] }],
+    test_commands: [],
+    risk_notes: [],
+  });
+  assert.equal(result.ok, true);
+});
+
+test('valid delete_file patch passes', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/old-file.json'],
+    patches: [{ op: 'delete_file', file: '_SYSTEM/config/old-file.json' }],
+    test_commands: [],
+    risk_notes: [],
+  });
+  assert.equal(result.ok, true);
+});
+
+test('valid insert_before patch passes with context_before', () => {
+  const result = validatePatch(basePatch({
+    op: 'insert_before',
+    file: VALID_FILE,
+    context_before: ['export function foo() {'],
+    new_lines: ['// inserted comment'],
+  }));
+  assert.equal(result.ok, true);
+});
+
+test('valid insert_after patch passes with context_after', () => {
+  const result = validatePatch(basePatch({
+    op: 'insert_after',
+    file: VALID_FILE,
+    context_after: ['} // end foo'],
+    new_lines: ['// inserted after'],
+  }));
+  assert.equal(result.ok, true);
+});
+
+// ---------------------------------------------------------------------------
+// validatePatch — scope and path errors
+// ---------------------------------------------------------------------------
+
+test('missing file field is rejected', () => {
+  const result = validatePatch(basePatch({ op: 'replace_lines', old_lines: ['x'], new_lines: ['y'] }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('non-empty string')));
+});
+
+test('absolute path in patch.file is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['/etc/passwd'],
+    patches: [{ op: 'delete_file', file: '/etc/passwd' }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('absolute')));
+});
+
+test('traversal path in patch.file is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['../../etc/shadow'],
+    patches: [{ op: 'delete_file', file: '../../etc/shadow' }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('escapes')));
+});
+
+test('protected path in patch.file is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['.env'],
+    patches: [{ op: 'replace_lines', file: '.env', old_lines: ['S=x'], new_lines: ['S=y'] }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('protected')));
+});
+
+test('file not in scope_declared is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/INDEX.md'],
+    patches: [{ op: 'replace_lines', file: VALID_FILE, old_lines: ['x'], new_lines: ['y'] }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('not in scope_declared')));
+});
+
+test('scope_declared path outside packet scopeFiles is rejected', () => {
+  const result = validatePatch(
+    {
+      format: 'yuri-patch-v0',
+      scope_declared: ['_SYSTEM/INDEX.md'],
+      patches: [{ op: 'replace_lines', file: '_SYSTEM/INDEX.md', old_lines: ['x'], new_lines: ['y'] }],
+    },
+    [VALID_FILE],
+  );
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('not in packet scope')));
+});
+
+test('empty patches array is rejected', () => {
+  const result = validatePatch({ format: 'yuri-patch-v0', scope_declared: [VALID_FILE], patches: [] });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('non-empty array')));
+});
+
+// ---------------------------------------------------------------------------
+// validatePatch — op-specific errors
+// ---------------------------------------------------------------------------
+
+test('unknown op is rejected', () => {
+  const result = validatePatch(basePatch({ op: 'nuke_file', file: VALID_FILE }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('nuke_file')));
+});
+
+test('replace_lines without old_lines is rejected', () => {
+  const result = validatePatch(basePatch({ op: 'replace_lines', file: VALID_FILE, new_lines: ['y'] }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('old_lines')));
+});
+
+test('replace_lines with empty old_lines array is rejected', () => {
+  const result = validatePatch(basePatch({
+    op: 'replace_lines', file: VALID_FILE, old_lines: [], new_lines: ['y'],
+  }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('old_lines')));
+});
+
+test('replace_lines with new_lines as string shorthand is rejected', () => {
+  const result = validatePatch(basePatch({
+    op: 'replace_lines', file: VALID_FILE, old_lines: ['x'], new_lines: 'y',
+  }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('new_lines')));
+});
+
+test('non-string member in old_lines is rejected', () => {
+  const result = validatePatch(basePatch({
+    op: 'replace_lines', file: VALID_FILE, old_lines: [42], new_lines: ['y'],
+  }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('old_lines[0]') && e.includes('string')));
+});
+
+test('create_file with non-empty old_lines is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/new.json'],
+    patches: [{
+      op: 'create_file', file: '_SYSTEM/config/new.json',
+      old_lines: ['existing line'], new_lines: ['{}'],
+    }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('old_lines') && e.includes('create_file')));
+});
+
+test('create_file with old_lines string shorthand is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/new.json'],
+    patches: [{
+      op: 'create_file', file: '_SYSTEM/config/new.json',
+      old_lines: 'existing line', new_lines: ['{}'],
+    }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('old_lines') && e.includes('create_file')));
+});
+
+test('delete_file with non-empty new_lines is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/old.json'],
+    patches: [{ op: 'delete_file', file: '_SYSTEM/config/old.json', new_lines: ['oops'] }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('new_lines') && e.includes('delete_file')));
+});
+
+test('delete_file with new_lines string shorthand is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/old.json'],
+    patches: [{ op: 'delete_file', file: '_SYSTEM/config/old.json', new_lines: 'oops' }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('new_lines') && e.includes('delete_file')));
+});
+
+test('insert_before without context_before is rejected', () => {
+  const result = validatePatch(basePatch({
+    op: 'insert_before', file: VALID_FILE, new_lines: ['// new'],
+  }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('context_before')));
+});
+
+test('insert_before with empty context_before is rejected', () => {
+  const result = validatePatch(basePatch({
+    op: 'insert_before', file: VALID_FILE, context_before: [], new_lines: ['// new'],
+  }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('context_before')));
+});
+
+test('insert_after without context_after is rejected', () => {
+  const result = validatePatch(basePatch({
+    op: 'insert_after', file: VALID_FILE, new_lines: ['// new'],
+  }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('context_after')));
+});
+
+test('non-string member in new_lines is rejected', () => {
+  const result = validatePatch(basePatch({
+    op: 'insert_after', file: VALID_FILE, context_after: ['// end'], new_lines: [99],
+  }));
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('new_lines[0]') && e.includes('string')));
+});
+
+test('malformed patch entry (null) does not throw', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: [VALID_FILE],
+    patches: [null],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('non-null object')));
+});
+
+// ---------------------------------------------------------------------------
+// validateWorkerOutput — format routing
+// ---------------------------------------------------------------------------
+
+test('validateWorkerOutput routes valid yuri-patch-v0 entry through validatePatch', () => {
+  const result = validateWorkerOutput(
+    {
+      outputs: [{
+        format: 'yuri-patch-v0',
+        scope_declared: [VALID_FILE],
+        patches: [{
+          op: 'replace_lines', file: VALID_FILE,
+          old_lines: ['const X = 1;'], new_lines: ['const X = 2;'],
+        }],
+        test_commands: [], risk_notes: [],
+      }],
+      evidenceRefs: [],
+    },
+    { filesInScope: [VALID_FILE] },
+  );
+  assert.equal(result.ok, true);
+});
+
+test('validateWorkerOutput rejects invalid yuri-patch-v0 entry via validatePatch', () => {
+  const result = validateWorkerOutput(
+    {
+      outputs: [{
+        format: 'yuri-patch-v0',
+        scope_declared: [VALID_FILE],
+        patches: [{ op: 'replace_lines', file: VALID_FILE, new_lines: ['y'] }],
+      }],
+      evidenceRefs: [],
+    },
+    { filesInScope: [VALID_FILE] },
+  );
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('old_lines')));
+});
+
+test('validateWorkerOutput still passes legacy unified-diff entry', () => {
+  const result = validateWorkerOutput(
+    {
+      outputs: [{ path: VALID_FILE, action: 'edit', format: 'unified-diff', content: '--- a\n+++ b\n' }],
+      evidenceRefs: [],
+    },
+    { filesInScope: [VALID_FILE] },
+  );
+  assert.equal(result.ok, true);
+});
+
+test('validateWorkerOutput still passes entry with missing format (legacy behavior)', () => {
+  const result = validateWorkerOutput(
+    { outputs: [{ path: VALID_FILE, action: 'edit' }], evidenceRefs: [] },
+    { filesInScope: [VALID_FILE] },
+  );
+  assert.equal(result.ok, true);
+});
+
+test('validateWorkerOutput rejects entry with unknown format', () => {
+  const result = validateWorkerOutput(
+    { outputs: [{ path: VALID_FILE, format: 'xml-patch' }], evidenceRefs: [] },
+    { filesInScope: [VALID_FILE] },
+  );
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('unknown format')));
+});
+
+// ---------------------------------------------------------------------------
+// Prime S5 — additional coverage
+// ---------------------------------------------------------------------------
+
+test('validatePatch tolerates non-array scopeFiles without throwing', () => {
+  const result = validatePatch(basePatch({
+    op: 'replace_lines', file: VALID_FILE, old_lines: ['x'], new_lines: ['y'],
+  }), 'not-an-array');
+  assert.equal(result.ok, true);
+});
+
+test('delete_file with non-empty old_lines is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/old.json'],
+    patches: [{ op: 'delete_file', file: '_SYSTEM/config/old.json', old_lines: ['leaked'] }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('old_lines') && e.includes('delete_file')));
+});
+
+test('delete_file with old_lines string shorthand is rejected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/old.json'],
+    patches: [{ op: 'delete_file', file: '_SYSTEM/config/old.json', old_lines: 'leaked' }],
+  });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('old_lines') && e.includes('delete_file')));
+});
+
+test('multi-file patch returns deduped filesAffected', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: [VALID_FILE, '_SYSTEM/INDEX.md'],
+    patches: [
+      { op: 'replace_lines', file: VALID_FILE, old_lines: ['a'], new_lines: ['b'] },
+      { op: 'replace_lines', file: VALID_FILE, old_lines: ['c'], new_lines: ['d'] },
+      { op: 'replace_lines', file: '_SYSTEM/INDEX.md', old_lines: ['e'], new_lines: ['f'] },
+    ],
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.filesAffected, [VALID_FILE, '_SYSTEM/INDEX.md']);
+});
+
+test('harmless extras on create_file are tolerated', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/new.json'],
+    patches: [{
+      op: 'create_file', file: '_SYSTEM/config/new.json',
+      new_lines: ['{}'],
+      context_before: ['ignored'], context_after: ['also ignored'],
+      intent: 'test tolerant extras',
+    }],
+  });
+  assert.equal(result.ok, true);
+});
+
+test('harmless extras on delete_file are tolerated', () => {
+  const result = validatePatch({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/old.json'],
+    patches: [{
+      op: 'delete_file', file: '_SYSTEM/config/old.json',
+      context_before: ['ignored'],
+      intent: 'removing obsolete config',
+    }],
+  });
+  assert.equal(result.ok, true);
 });

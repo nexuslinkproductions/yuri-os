@@ -27,6 +27,15 @@ export const WORKCELL_ROLES = Object.freeze([
 export const WORKCELL_PACKET_SCHEMA = 'yuri.workcell.packet.v0';
 export const WORKCELL_DECOMPOSITION_SCHEMA = 'yuri.workcell.decomposition.v0';
 
+export const YURI_PATCH_FORMAT = 'yuri-patch-v0';
+export const YURI_PATCH_OPS = Object.freeze([
+  'replace_lines',
+  'insert_before',
+  'insert_after',
+  'create_file',
+  'delete_file',
+]);
+
 // ---------------------------------------------------------------------------
 // Path safety
 // ---------------------------------------------------------------------------
@@ -40,6 +49,170 @@ function assertSafeRelPath(filePath) {
   }
   if (isProtectedPath(normalized)) return `protected path: ${filePath}`;
   return '';
+}
+
+// ---------------------------------------------------------------------------
+// Patch validation — yuri-patch-v0 (pure, no FS access)
+// ---------------------------------------------------------------------------
+
+export function validatePatch(patch, scopeFiles = []) {
+  if (!patch || typeof patch !== 'object') {
+    return { ok: false, errors: ['patch must be a non-null object'] };
+  }
+
+  const errors = [];
+  const safeScopeFiles = Array.isArray(scopeFiles) ? scopeFiles : [];
+
+  if (patch.format !== YURI_PATCH_FORMAT) {
+    errors.push(`patch.format must be '${YURI_PATCH_FORMAT}', got ${JSON.stringify(patch.format)}`);
+  }
+
+  const scopeDeclared = patch.scope_declared;
+  if (!Array.isArray(scopeDeclared) || scopeDeclared.length === 0) {
+    errors.push('patch.scope_declared must be a non-empty array');
+  } else {
+    for (const p of scopeDeclared) {
+      const e = assertSafeRelPath(p);
+      if (e) errors.push(`scope_declared: ${e}`);
+    }
+    if (safeScopeFiles.length > 0) {
+      const packetSet = new Set(safeScopeFiles);
+      for (const p of scopeDeclared) {
+        if (!packetSet.has(p)) errors.push(`scope_declared path not in packet scope: ${p}`);
+      }
+    }
+  }
+
+  const rawPatches = patch.patches;
+  if (!Array.isArray(rawPatches) || rawPatches.length === 0) {
+    errors.push('patch.patches must be a non-empty array');
+    return { ok: false, errors };
+  }
+
+  const declaredSet = new Set(Array.isArray(scopeDeclared) ? scopeDeclared : []);
+  const packetSet = new Set(safeScopeFiles);
+  const filesAffectedSet = new Set();
+
+  for (let i = 0; i < rawPatches.length; i++) {
+    const entry = rawPatches[i];
+    const px = `patches[${i}]`;
+
+    if (!entry || typeof entry !== 'object') {
+      errors.push(`${px} must be a non-null object`);
+      continue;
+    }
+
+    if (!YURI_PATCH_OPS.includes(entry.op)) {
+      errors.push(`${px}.op must be one of ${YURI_PATCH_OPS.join('|')}, got ${JSON.stringify(entry.op)}`);
+    }
+
+    const fileErr = assertSafeRelPath(entry.file);
+    if (fileErr) {
+      errors.push(`${px}.file: ${fileErr}`);
+    } else {
+      if (declaredSet.size > 0 && !declaredSet.has(entry.file)) {
+        errors.push(`${px}.file not in scope_declared: ${entry.file}`);
+      }
+      if (packetSet.size > 0 && !packetSet.has(entry.file)) {
+        errors.push(`${px}.file not in packet filesInScope: ${entry.file}`);
+      }
+      filesAffectedSet.add(entry.file);
+    }
+
+    const op = entry.op;
+
+    if (op === 'replace_lines') {
+      if (!Array.isArray(entry.old_lines) || entry.old_lines.length === 0) {
+        errors.push(`${px}.old_lines must be a non-empty array for op 'replace_lines'`);
+      } else {
+        for (let j = 0; j < entry.old_lines.length; j++) {
+          if (typeof entry.old_lines[j] !== 'string') {
+            errors.push(`${px}.old_lines[${j}] must be a string, got ${typeof entry.old_lines[j]}`);
+          }
+        }
+      }
+      if (!Array.isArray(entry.new_lines)) {
+        errors.push(`${px}.new_lines must be an array for op 'replace_lines'`);
+      } else {
+        for (let j = 0; j < entry.new_lines.length; j++) {
+          if (typeof entry.new_lines[j] !== 'string') {
+            errors.push(`${px}.new_lines[${j}] must be a string, got ${typeof entry.new_lines[j]}`);
+          }
+        }
+      }
+    }
+
+    if (op === 'insert_before') {
+      if (!Array.isArray(entry.context_before) || entry.context_before.length === 0) {
+        errors.push(`${px}.context_before must be a non-empty array for op 'insert_before'`);
+      } else {
+        for (let j = 0; j < entry.context_before.length; j++) {
+          if (typeof entry.context_before[j] !== 'string') {
+            errors.push(`${px}.context_before[${j}] must be a string`);
+          }
+        }
+      }
+      if (!Array.isArray(entry.new_lines) || entry.new_lines.length === 0) {
+        errors.push(`${px}.new_lines must be a non-empty array for op 'insert_before'`);
+      } else {
+        for (let j = 0; j < entry.new_lines.length; j++) {
+          if (typeof entry.new_lines[j] !== 'string') {
+            errors.push(`${px}.new_lines[${j}] must be a string`);
+          }
+        }
+      }
+    }
+
+    if (op === 'insert_after') {
+      if (!Array.isArray(entry.context_after) || entry.context_after.length === 0) {
+        errors.push(`${px}.context_after must be a non-empty array for op 'insert_after'`);
+      } else {
+        for (let j = 0; j < entry.context_after.length; j++) {
+          if (typeof entry.context_after[j] !== 'string') {
+            errors.push(`${px}.context_after[${j}] must be a string`);
+          }
+        }
+      }
+      if (!Array.isArray(entry.new_lines) || entry.new_lines.length === 0) {
+        errors.push(`${px}.new_lines must be a non-empty array for op 'insert_after'`);
+      } else {
+        for (let j = 0; j < entry.new_lines.length; j++) {
+          if (typeof entry.new_lines[j] !== 'string') {
+            errors.push(`${px}.new_lines[${j}] must be a string`);
+          }
+        }
+      }
+    }
+
+    if (op === 'create_file') {
+      if (!Array.isArray(entry.new_lines) || entry.new_lines.length === 0) {
+        errors.push(`${px}.new_lines must be a non-empty array for op 'create_file'`);
+      } else {
+        for (let j = 0; j < entry.new_lines.length; j++) {
+          if (typeof entry.new_lines[j] !== 'string') {
+            errors.push(`${px}.new_lines[${j}] must be a string`);
+          }
+        }
+      }
+      if (entry.old_lines != null && (!Array.isArray(entry.old_lines) || entry.old_lines.length > 0)) {
+        errors.push(`${px}.old_lines must not be present for op 'create_file'`);
+      }
+    }
+
+    if (op === 'delete_file') {
+      if (entry.new_lines != null && (!Array.isArray(entry.new_lines) || entry.new_lines.length > 0)) {
+        errors.push(`${px}.new_lines must not be present for op 'delete_file'`);
+      }
+      if (entry.old_lines != null && (!Array.isArray(entry.old_lines) || entry.old_lines.length > 0)) {
+        errors.push(`${px}.old_lines must not be present for op 'delete_file'`);
+      }
+    }
+  }
+
+  const filesAffected = [...filesAffectedSet];
+  const result = { ok: errors.length === 0, errors };
+  if (errors.length === 0 && filesAffected.length > 0) result.filesAffected = filesAffected;
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -202,13 +375,21 @@ export function validateWorkerOutput(output, packet) {
       errors.push('output entry must be a non-null object');
       continue;
     }
-    const entryPath = typeof entry.path === 'string' ? entry.path : '';
-    const pathError = assertSafeRelPath(entryPath);
-    if (pathError) {
-      errors.push(`output path unsafe: ${pathError}`);
-    }
-    if (scopeSet.size > 0 && !scopeSet.has(entryPath)) {
-      errors.push(`output path not in filesInScope: ${entryPath}`);
+    const fmt = entry.format;
+    if (fmt === YURI_PATCH_FORMAT) {
+      const pr = validatePatch(entry, packet.filesInScope || []);
+      for (const e of pr.errors) errors.push(`patch entry: ${e}`);
+    } else if (fmt === 'unified-diff' || fmt == null) {
+      const entryPath = typeof entry.path === 'string' ? entry.path : '';
+      const pathError = assertSafeRelPath(entryPath);
+      if (pathError) {
+        errors.push(`output path unsafe: ${pathError}`);
+      }
+      if (scopeSet.size > 0 && !scopeSet.has(entryPath)) {
+        errors.push(`output path not in filesInScope: ${entryPath}`);
+      }
+    } else {
+      errors.push(`output entry has unknown format: ${JSON.stringify(fmt)}`);
     }
   }
 
