@@ -7,7 +7,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { topologicalSort } from './math/math-kernel.mjs';
@@ -479,6 +479,241 @@ export function makeFilesystemReader(repoRoot) {
       return null;
     }
   };
+}
+
+// ---------------------------------------------------------------------------
+// Filesystem factories — write/delete with shared guard chain
+// ---------------------------------------------------------------------------
+
+function assertSafeRepoPath(repoRoot, relPath) {
+  if (!relPath || typeof relPath !== 'string') throw new Error(`path must be a non-empty string, got ${typeof relPath}`);
+  const normalized = relPath.replaceAll('\\', '/');
+  if (path.isAbsolute(normalized) || path.isAbsolute(relPath)) throw new Error(`absolute path not allowed: ${relPath}`);
+  if (normalized.startsWith('../') || normalized.includes('/../') || normalized === '..') throw new Error(`path escapes repo root: ${relPath}`);
+  if (isProtectedPath(normalized)) throw new Error(`protected path: ${relPath}`);
+  const full = path.join(repoRoot, relPath);
+  const root = repoRoot.endsWith(path.sep) ? repoRoot : repoRoot + path.sep;
+  if (!full.startsWith(root) && full !== repoRoot) throw new Error(`path outside repo root: ${relPath}`);
+  return full;
+}
+
+export function makeFilesystemWriter(repoRoot) {
+  return function fsWriter(relPath, content) {
+    if (typeof content !== 'string') throw new Error(`content must be a string, got ${typeof content}`);
+    const full = assertSafeRepoPath(repoRoot, relPath);
+    mkdirSync(path.dirname(full), { recursive: true });
+    writeFileSync(full, content, 'utf8');
+  };
+}
+
+export function makeFilesystemDeleter(repoRoot) {
+  return function fsDeleter(relPath) {
+    const full = assertSafeRepoPath(repoRoot, relPath);
+    unlinkSync(full);
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Guarded filesystem apply — applyMaterializedPatch / rollbackMaterializedPatch
+// ---------------------------------------------------------------------------
+
+function ampEmpty(extra = {}) {
+  return {
+    ok: false, errors: [], warnings: [],
+    appliedFiles: [], skippedFiles: [],
+    rollbackAttempted: false, rollbackOk: null, rollbackErrors: [],
+    ...extra,
+  };
+}
+
+export function applyMaterializedPatch(materialized, fsReader, fsWriter, fsDeleter, options = {}) {
+  const inputErrors = [];
+  if (typeof fsReader !== 'function') inputErrors.push('fsReader must be a function');
+  if (typeof fsWriter !== 'function') inputErrors.push('fsWriter must be a function');
+  if (typeof fsDeleter !== 'function') inputErrors.push('fsDeleter must be a function');
+  if (inputErrors.length > 0) return ampEmpty({ errors: inputErrors });
+
+  if (
+    !materialized || typeof materialized !== 'object' ||
+    !materialized.ok || !Array.isArray(materialized.fileResults) ||
+    !materialized.rollbackManifest
+  ) {
+    return ampEmpty({ errors: ['materialized must be an ok:true materializePatch result with fileResults and rollbackManifest'] });
+  }
+
+  if (options.approved !== true) {
+    return ampEmpty({ errors: ['apply requires options.approved === true'] });
+  }
+
+  const VALID_ACTIONS = new Set(['create', 'modify', 'delete']);
+  const preflightErrors = [];
+  const warnings = [...(materialized.warnings || [])];
+
+  const rm = materialized.rollbackManifest;
+  if (!rm || !Array.isArray(rm.files)) {
+    preflightErrors.push('preflight: rollbackManifest.files must be an array');
+  } else {
+    for (const entry of rm.files) {
+      if (!entry || typeof entry !== 'object') {
+        preflightErrors.push('preflight: rollbackManifest entry must be a non-null object');
+      } else if (entry.rollbackAction === 'restore' && typeof entry.beforeContent !== 'string') {
+        preflightErrors.push(`preflight: rollbackManifest restore entry missing string beforeContent: ${entry.file}`);
+      }
+    }
+  }
+
+  for (const fr of materialized.fileResults) {
+    const pathErr = assertSafeRelPath(fr.file);
+    if (pathErr) { preflightErrors.push(`preflight path-safety: ${fr.file}: ${pathErr}`); continue; }
+
+    if (!VALID_ACTIONS.has(fr.action)) {
+      preflightErrors.push(`preflight: unknown fileResult action: ${JSON.stringify(fr.action)} for ${fr.file}`);
+      continue;
+    }
+
+    if ((fr.action === 'create' || fr.action === 'modify') && typeof fr.afterContent !== 'string') {
+      preflightErrors.push(`preflight: ${fr.action} requires string afterContent for ${fr.file}`);
+      continue;
+    }
+
+    if (fr.action === 'create') {
+      const read = safeReadFsReader(fsReader, fr.file);
+      if (!read.ok) { preflightErrors.push(`preflight read-error: ${fr.file}: ${read.error}`); continue; }
+      if (read.content !== null) preflightErrors.push(`preflight: create target already exists: ${fr.file}`);
+      if (sha256(fr.afterContent) !== fr.afterHash) {
+        preflightErrors.push(`preflight: afterContent/afterHash mismatch: ${fr.file}`);
+      }
+    } else if (fr.action === 'modify') {
+      const read = safeReadFsReader(fsReader, fr.file);
+      if (!read.ok) { preflightErrors.push(`preflight read-error: ${fr.file}: ${read.error}`); continue; }
+      if (typeof read.content !== 'string') { preflightErrors.push(`preflight: file not found: ${fr.file}`); continue; }
+      const normalized = read.content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      if (sha256(normalized) !== fr.beforeHash) {
+        preflightErrors.push(`preflight: beforeHash mismatch for ${fr.file}: file has changed since materialization`);
+      }
+      if (sha256(fr.afterContent) !== fr.afterHash) {
+        preflightErrors.push(`preflight: afterContent/afterHash mismatch: ${fr.file}`);
+      }
+    } else if (fr.action === 'delete') {
+      const read = safeReadFsReader(fsReader, fr.file);
+      if (!read.ok) { preflightErrors.push(`preflight read-error: ${fr.file}: ${read.error}`); continue; }
+      if (typeof read.content !== 'string') { preflightErrors.push(`preflight: file not found for delete: ${fr.file}`); continue; }
+      const normalized = read.content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      if (sha256(normalized) !== fr.beforeHash) {
+        preflightErrors.push(`preflight: beforeHash mismatch for ${fr.file}: file has changed since materialization`);
+      }
+    }
+  }
+
+  if (preflightErrors.length > 0) return ampEmpty({ errors: preflightErrors, warnings });
+
+  const creates = materialized.fileResults.filter((fr) => fr.action === 'create');
+  const modifies = materialized.fileResults.filter((fr) => fr.action === 'modify');
+  const deletes = materialized.fileResults.filter((fr) => fr.action === 'delete');
+  const ordered = [...creates, ...modifies, ...deletes];
+
+  const appliedFiles = [];
+  const skippedFiles = [];
+  const writeErrors = [];
+
+  for (const fr of ordered) {
+    if (writeErrors.length > 0) {
+      skippedFiles.push({ file: fr.file, action: fr.action, reason: 'aborted-on-prior-error' });
+      continue;
+    }
+    try {
+      if (fr.action === 'delete') {
+        fsDeleter(fr.file);
+      } else {
+        fsWriter(fr.file, fr.afterContent);
+      }
+      appliedFiles.push({ file: fr.file, action: fr.action, afterHash: fr.afterHash ?? null });
+    } catch (err) {
+      const msg = err && err.message ? err.message : String(err);
+      writeErrors.push(`write-error: ${fr.file}: ${msg}`);
+      skippedFiles.push({ file: fr.file, action: fr.action, reason: `write-error: ${msg}` });
+    }
+  }
+
+  if (writeErrors.length === 0) {
+    return {
+      ok: true, errors: [], warnings,
+      appliedFiles, skippedFiles,
+      rollbackAttempted: false, rollbackOk: null, rollbackErrors: [],
+    };
+  }
+
+  if (appliedFiles.length === 0) {
+    return {
+      ok: false, errors: writeErrors, warnings,
+      appliedFiles, skippedFiles,
+      rollbackAttempted: false, rollbackOk: null, rollbackErrors: [],
+    };
+  }
+
+  const rollbackResult = rollbackMaterializedPatch(
+    materialized.rollbackManifest,
+    fsWriter, fsDeleter,
+    { appliedFiles: appliedFiles.map((af) => af.file) },
+  );
+
+  return {
+    ok: false, errors: writeErrors, warnings,
+    appliedFiles, skippedFiles,
+    rollbackAttempted: true,
+    rollbackOk: rollbackResult.ok,
+    rollbackErrors: rollbackResult.errors,
+  };
+}
+
+export function rollbackMaterializedPatch(rollbackManifest, fsWriter, fsDeleter, options = {}) {
+  const errors = [];
+  if (typeof fsWriter !== 'function') errors.push('fsWriter must be a function');
+  if (typeof fsDeleter !== 'function') errors.push('fsDeleter must be a function');
+  if (errors.length > 0) return { ok: false, errors, restoredFiles: [], deletedFiles: [] };
+
+  if (!rollbackManifest || !Array.isArray(rollbackManifest.files)) {
+    return { ok: false, errors: ['rollbackManifest.files must be an array'], restoredFiles: [], deletedFiles: [] };
+  }
+
+  const scopeFiles = options.appliedFiles ?? options.files ?? null;
+  let entries;
+  if (Array.isArray(scopeFiles)) {
+    const orderMap = new Map(scopeFiles.map((f, i) => [f, i]));
+    entries = rollbackManifest.files
+      .filter((e) => orderMap.has(e.file))
+      .sort((a, b) => (orderMap.get(b.file) ?? 0) - (orderMap.get(a.file) ?? 0));
+  } else {
+    entries = [...rollbackManifest.files];
+  }
+
+  const restoredFiles = [];
+  const deletedFiles = [];
+
+  for (const entry of entries) {
+    const pathErr = assertSafeRelPath(entry.file);
+    if (pathErr) {
+      errors.push(`rollback-path-safety: ${entry.file}: ${pathErr}`);
+      continue;
+    }
+    try {
+      if (entry.rollbackAction === 'restore') {
+        if (typeof entry.beforeContent !== 'string') {
+          errors.push(`rollback-error: ${entry.file}: beforeContent is not a string for restore action`);
+          continue;
+        }
+        fsWriter(entry.file, entry.beforeContent);
+        restoredFiles.push(entry.file);
+      } else if (entry.rollbackAction === 'delete') {
+        fsDeleter(entry.file);
+        deletedFiles.push(entry.file);
+      }
+    } catch (err) {
+      errors.push(`rollback-error: ${entry.file}: ${err && err.message ? err.message : String(err)}`);
+    }
+  }
+
+  return { ok: errors.length === 0, errors, restoredFiles, deletedFiles };
 }
 
 // ---------------------------------------------------------------------------

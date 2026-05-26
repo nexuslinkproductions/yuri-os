@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
@@ -13,7 +15,11 @@ import {
   YURI_PATCH_OPS,
   applyPatchDryRun,
   makeFilesystemReader,
+  makeFilesystemWriter,
+  makeFilesystemDeleter,
   materializePatch,
+  applyMaterializedPatch,
+  rollbackMaterializedPatch,
   REPO_ROOT,
 } from './yuri-workcell.mjs';
 
@@ -1834,4 +1840,544 @@ test('materializePatch two insert_before at same anchor line triggers overlap er
   const r = materializePatch(patch, reader);
   assert.equal(r.ok, false);
   assert.ok(r.errors.some((e) => e.includes('overlapping')));
+});
+
+// ---------------------------------------------------------------------------
+// Phase 3B helpers
+// ---------------------------------------------------------------------------
+
+function mockWriter(callLog = []) {
+  return (relPath, content) => { callLog.push({ op: 'write', relPath, content }); };
+}
+function mockDeleter(callLog = []) {
+  return (relPath) => { callLog.push({ op: 'delete', relPath }); };
+}
+function throwingWriter(msg = 'WRITE_FAIL') {
+  return () => { throw new Error(msg); };
+}
+function throwingDeleter(msg = 'DELETE_FAIL') {
+  return () => { throw new Error(msg); };
+}
+
+// ---------------------------------------------------------------------------
+// makeFilesystemWriter — guard chain
+// ---------------------------------------------------------------------------
+
+test('makeFilesystemWriter rejects non-string relPath', () => {
+  const writer = makeFilesystemWriter(REPO_ROOT);
+  assert.throws(() => writer(null, 'x'), /non-empty string/);
+  assert.throws(() => writer(42, 'x'), /non-empty string/);
+});
+
+test('makeFilesystemWriter rejects absolute path', () => {
+  const writer = makeFilesystemWriter(REPO_ROOT);
+  assert.throws(() => writer('/etc/passwd', 'x'), /absolute/);
+});
+
+test('makeFilesystemWriter rejects traversal path', () => {
+  const writer = makeFilesystemWriter(REPO_ROOT);
+  assert.throws(() => writer('../../etc/shadow', 'x'), /escapes/);
+});
+
+test('makeFilesystemWriter rejects protected path', () => {
+  const writer = makeFilesystemWriter(REPO_ROOT);
+  assert.throws(() => writer('.env', 'x'), /protected/);
+  assert.throws(() => writer('.claude/state/foo.json', 'x'), /protected/);
+});
+
+test('makeFilesystemWriter creates parent dirs and writes file in tmpdir', () => {
+  const testRoot = mkdtempSync(path.join(tmpdir(), 'yuri-fw-'));
+  try {
+    const writer = makeFilesystemWriter(testRoot);
+    writer('subdir/nested/file.txt', 'hello world');
+    const full = path.join(testRoot, 'subdir/nested/file.txt');
+    assert.ok(existsSync(full));
+    assert.equal(readFileSync(full, 'utf8'), 'hello world');
+  } finally {
+    rmSync(testRoot, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// makeFilesystemDeleter — guard chain
+// ---------------------------------------------------------------------------
+
+test('makeFilesystemDeleter rejects non-string relPath', () => {
+  const deleter = makeFilesystemDeleter(REPO_ROOT);
+  assert.throws(() => deleter(null), /non-empty string/);
+});
+
+test('makeFilesystemDeleter rejects absolute path', () => {
+  const deleter = makeFilesystemDeleter(REPO_ROOT);
+  assert.throws(() => deleter('/etc/passwd'), /absolute/);
+});
+
+test('makeFilesystemDeleter rejects traversal path', () => {
+  const deleter = makeFilesystemDeleter(REPO_ROOT);
+  assert.throws(() => deleter('../../../etc/shadow'), /escapes/);
+});
+
+test('makeFilesystemDeleter rejects protected path', () => {
+  const deleter = makeFilesystemDeleter(REPO_ROOT);
+  assert.throws(() => deleter('.env'), /protected/);
+});
+
+test('makeFilesystemDeleter deletes a real file in tmpdir', () => {
+  const testRoot = mkdtempSync(path.join(tmpdir(), 'yuri-fd-'));
+  try {
+    const writer = makeFilesystemWriter(testRoot);
+    const deleter = makeFilesystemDeleter(testRoot);
+    writer('to-delete.txt', 'ephemeral');
+    const full = path.join(testRoot, 'to-delete.txt');
+    assert.ok(existsSync(full));
+    deleter('to-delete.txt');
+    assert.ok(!existsSync(full));
+  } finally {
+    rmSync(testRoot, { recursive: true, force: true });
+  }
+});
+
+test('reader + writer + deleter round trip in tmpdir', () => {
+  const testRoot = mkdtempSync(path.join(tmpdir(), 'yuri-rt-'));
+  try {
+    const reader = makeFilesystemReader(testRoot);
+    const writer = makeFilesystemWriter(testRoot);
+    const deleter = makeFilesystemDeleter(testRoot);
+    const relPath = 'roundtrip/file.txt';
+    const content = 'round\ntrip\ncontent';
+    assert.equal(reader(relPath), null);
+    writer(relPath, content);
+    assert.equal(reader(relPath), content);
+    deleter(relPath);
+    assert.equal(reader(relPath), null);
+  } finally {
+    rmSync(testRoot, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// applyMaterializedPatch — approval and input validation
+// ---------------------------------------------------------------------------
+
+test('applyMaterializedPatch not approved returns error and no writes', () => {
+  const mat = materializePatch(drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['x'] }), mockReader({ [DR_FILE]: FIXTURE }));
+  const writes = [];
+  const r = applyMaterializedPatch(mat, mockReader({ [DR_FILE]: FIXTURE }), mockWriter(writes), mockDeleter(), {});
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('approved')));
+  assert.equal(writes.length, 0);
+  assert.equal(r.rollbackAttempted, false);
+});
+
+test('applyMaterializedPatch with materialized.ok false returns error', () => {
+  const badMat = { ok: false, fileResults: [], rollbackManifest: null };
+  const r = applyMaterializedPatch(badMat, mockReader({}), mockWriter(), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('ok:true')));
+});
+
+test('applyMaterializedPatch with null materialized returns error', () => {
+  const r = applyMaterializedPatch(null, mockReader({}), mockWriter(), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.length > 0);
+});
+
+test('applyMaterializedPatch with invalid fsWriter returns error', () => {
+  const mat = materializePatch(drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['x'] }), mockReader({ [DR_FILE]: FIXTURE }));
+  const r = applyMaterializedPatch(mat, mockReader({}), null, mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('fsWriter')));
+});
+
+test('applyMaterializedPatch with invalid fsDeleter returns error', () => {
+  const mat = materializePatch(drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['x'] }), mockReader({ [DR_FILE]: FIXTURE }));
+  const r = applyMaterializedPatch(mat, mockReader({}), mockWriter(), 'not-a-function', { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('fsDeleter')));
+});
+
+test('applyMaterializedPatch with invalid fsReader returns error', () => {
+  const mat = materializePatch(drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['x'] }), mockReader({ [DR_FILE]: FIXTURE }));
+  const r = applyMaterializedPatch(mat, 42, mockWriter(), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('fsReader')));
+});
+
+// ---------------------------------------------------------------------------
+// applyMaterializedPatch — preflight
+// ---------------------------------------------------------------------------
+
+test('applyMaterializedPatch beforeHash mismatch on modify blocks all writes', () => {
+  const mat = materializePatch(drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['x'] }), mockReader({ [DR_FILE]: FIXTURE }));
+  const writes = [];
+  const r = applyMaterializedPatch(mat, mockReader({ [DR_FILE]: 'completely_different' }), mockWriter(writes), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('beforeHash mismatch')));
+  assert.equal(writes.length, 0);
+});
+
+test('applyMaterializedPatch create target already exists blocks all writes', () => {
+  const newFile = '_SYSTEM/config/amp-exists.txt';
+  const mat = materializePatch(
+    { format: 'yuri-patch-v0', scope_declared: [newFile], patches: [{ op: 'create_file', file: newFile, new_lines: ['line1'] }] },
+    mockReader({}),
+  );
+  assert.equal(mat.ok, true);
+  const writes = [];
+  const r = applyMaterializedPatch(mat, mockReader({ [newFile]: 'already there' }), mockWriter(writes), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('already exists')));
+  assert.equal(writes.length, 0);
+});
+
+test('applyMaterializedPatch tampered afterContent/afterHash mismatch blocks writes', () => {
+  const mat = materializePatch(drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['replaced'] }), mockReader({ [DR_FILE]: FIXTURE }));
+  const tampered = { ...mat, fileResults: [{ ...mat.fileResults[0], afterContent: 'TAMPERED' }] };
+  const writes = [];
+  const r = applyMaterializedPatch(tampered, mockReader({ [DR_FILE]: FIXTURE }), mockWriter(writes), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('afterContent/afterHash mismatch')));
+  assert.equal(writes.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// applyMaterializedPatch — successful apply
+// ---------------------------------------------------------------------------
+
+test('applyMaterializedPatch successful modify calls fsWriter with correct args', () => {
+  const mat = materializePatch(drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['new_line'] }), mockReader({ [DR_FILE]: FIXTURE }));
+  const writes = [];
+  const r = applyMaterializedPatch(mat, mockReader({ [DR_FILE]: FIXTURE }), mockWriter(writes), mockDeleter(), { approved: true });
+  assert.equal(r.ok, true);
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0].relPath, DR_FILE);
+  assert.equal(writes[0].content, mat.fileResults[0].afterContent);
+  assert.equal(r.appliedFiles.length, 1);
+  assert.equal(r.appliedFiles[0].file, DR_FILE);
+  assert.equal(r.appliedFiles[0].action, 'modify');
+  assert.equal(r.rollbackAttempted, false);
+});
+
+test('applyMaterializedPatch successful create calls fsWriter with correct args', () => {
+  const newFile = '_SYSTEM/config/amp-create-ok.txt';
+  const mat = materializePatch(
+    { format: 'yuri-patch-v0', scope_declared: [newFile], patches: [{ op: 'create_file', file: newFile, new_lines: ['created'] }] },
+    mockReader({}),
+  );
+  const writes = [];
+  const r = applyMaterializedPatch(mat, mockReader({}), mockWriter(writes), mockDeleter(), { approved: true });
+  assert.equal(r.ok, true);
+  assert.equal(writes[0].relPath, newFile);
+  assert.equal(writes[0].content, 'created');
+  assert.deepEqual(r.skippedFiles, []);
+});
+
+test('applyMaterializedPatch successful delete calls fsDeleter with correct relPath', () => {
+  const mat = materializePatch(
+    { format: 'yuri-patch-v0', scope_declared: [DR_FILE], patches: [{ op: 'delete_file', file: DR_FILE }] },
+    mockReader({ [DR_FILE]: FIXTURE }),
+  );
+  const deleteCalls = [];
+  const r = applyMaterializedPatch(mat, mockReader({ [DR_FILE]: FIXTURE }), mockWriter(), mockDeleter(deleteCalls), { approved: true });
+  assert.equal(r.ok, true);
+  assert.equal(deleteCalls[0].relPath, DR_FILE);
+  assert.equal(r.appliedFiles[0].action, 'delete');
+});
+
+test('applyMaterializedPatch enforces create→modify→delete order regardless of fileResults order', () => {
+  const fCreate = '_SYSTEM/config/amp-ord-c.txt';
+  const fModify = '_SYSTEM/config/amp-ord-m.txt';
+  const fDelete = '_SYSTEM/config/amp-ord-d.txt';
+  const beforeMod = 'mod_before';
+  const beforeDel = 'del_before';
+  // Patch order: modify, delete, create — apply must reorder
+  const patch = {
+    format: 'yuri-patch-v0', scope_declared: [fCreate, fModify, fDelete],
+    patches: [
+      { op: 'replace_lines', file: fModify, old_lines: ['mod_before'], new_lines: ['mod_after'] },
+      { op: 'delete_file', file: fDelete },
+      { op: 'create_file', file: fCreate, new_lines: ['created'] },
+    ],
+  };
+  const mat = materializePatch(patch, mockReader({ [fModify]: beforeMod, [fDelete]: beforeDel }));
+  assert.equal(mat.ok, true);
+  const opLog = [];
+  const writer = (relPath, content) => opLog.push({ type: 'write', relPath });
+  const deleter = (relPath) => opLog.push({ type: 'delete', relPath });
+  const r = applyMaterializedPatch(mat, mockReader({ [fModify]: beforeMod, [fDelete]: beforeDel }), writer, deleter, { approved: true });
+  assert.equal(r.ok, true);
+  assert.equal(opLog.length, 3);
+  assert.equal(opLog[0].relPath, fCreate);   // create first
+  assert.equal(opLog[1].relPath, fModify);   // modify second
+  assert.equal(opLog[2].type, 'delete');
+  assert.equal(opLog[2].relPath, fDelete);   // delete last
+});
+
+// ---------------------------------------------------------------------------
+// applyMaterializedPatch — failure, rollback, skippedFiles
+// ---------------------------------------------------------------------------
+
+test('applyMaterializedPatch writer failure after one success triggers rollback', () => {
+  const fCreate = '_SYSTEM/config/amp-rb-c.txt';
+  const fModify = '_SYSTEM/config/amp-rb-m.txt';
+  const beforeMod = 'before_rb_mod';
+  const patch = {
+    format: 'yuri-patch-v0', scope_declared: [fCreate, fModify],
+    patches: [
+      { op: 'create_file', file: fCreate, new_lines: ['content_c'] },
+      { op: 'replace_lines', file: fModify, old_lines: ['before_rb_mod'], new_lines: ['after_mod'] },
+    ],
+  };
+  const mat = materializePatch(patch, mockReader({ [fModify]: beforeMod }));
+  assert.equal(mat.ok, true);
+
+  let writeCount = 0;
+  const partialWriter = (relPath, content) => { if (++writeCount > 1) throw new Error('FAIL_SECOND_WRITE'); };
+  const delCalls = [];
+  const r = applyMaterializedPatch(mat, mockReader({ [fModify]: beforeMod }), partialWriter, mockDeleter(delCalls), { approved: true });
+
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('FAIL_SECOND_WRITE')));
+  assert.equal(r.rollbackAttempted, true);
+  assert.equal(r.rollbackOk, true);
+  // Rollback: create fCreate rolled back via fsDeleter (rollbackAction=delete)
+  assert.ok(delCalls.some((d) => d.relPath === fCreate));
+  assert.equal(r.appliedFiles.length, 1);
+  assert.equal(r.appliedFiles[0].file, fCreate);
+  assert.ok(r.skippedFiles.some((s) => s.file === fModify));
+});
+
+test('applyMaterializedPatch rollback failure sets rollbackOk false with rollbackErrors', () => {
+  const fCreate = '_SYSTEM/config/amp-rbfail-c.txt';
+  const fModify = '_SYSTEM/config/amp-rbfail-m.txt';
+  const beforeMod = 'before_rbfail_mod';
+  const patch = {
+    format: 'yuri-patch-v0', scope_declared: [fCreate, fModify],
+    patches: [
+      { op: 'create_file', file: fCreate, new_lines: ['content_c'] },
+      { op: 'replace_lines', file: fModify, old_lines: ['before_rbfail_mod'], new_lines: ['after_mod'] },
+    ],
+  };
+  const mat = materializePatch(patch, mockReader({ [fModify]: beforeMod }));
+  let writeCount2 = 0;
+  const partialWriter2 = (relPath, content) => { if (++writeCount2 > 1) throw new Error('FAIL_SECOND'); };
+  const r = applyMaterializedPatch(mat, mockReader({ [fModify]: beforeMod }), partialWriter2, throwingDeleter('ROLLBACK_DELETER_FAIL'), { approved: true });
+  assert.equal(r.rollbackAttempted, true);
+  assert.equal(r.rollbackOk, false);
+  assert.ok(r.rollbackErrors.some((e) => e.includes('ROLLBACK_DELETER_FAIL')));
+});
+
+test('applyMaterializedPatch skippedFiles have aborted-on-prior-error reason', () => {
+  const fCreate = '_SYSTEM/config/amp-skip-c.txt';
+  const fModify = '_SYSTEM/config/amp-skip-m.txt';
+  const fDelete = '_SYSTEM/config/amp-skip-d.txt';
+  const beforeContent = 'before_skip_content';
+  const patch = {
+    format: 'yuri-patch-v0', scope_declared: [fCreate, fModify, fDelete],
+    patches: [
+      { op: 'create_file', file: fCreate, new_lines: ['content'] },
+      { op: 'replace_lines', file: fModify, old_lines: ['before_skip_content'], new_lines: ['after'] },
+      { op: 'delete_file', file: fDelete },
+    ],
+  };
+  const mat = materializePatch(patch, mockReader({ [fModify]: beforeContent, [fDelete]: beforeContent }));
+  const r = applyMaterializedPatch(
+    mat,
+    mockReader({ [fModify]: beforeContent, [fDelete]: beforeContent }),
+    throwingWriter('FAIL_ALL'),
+    mockDeleter(),
+    { approved: true },
+  );
+  assert.equal(r.ok, false);
+  assert.equal(r.appliedFiles.length, 0);
+  assert.ok(r.skippedFiles.some((s) => s.reason.includes('aborted-on-prior-error')));
+});
+
+test('applyMaterializedPatch appliedFiles accurate on full success', () => {
+  const mat = materializePatch(drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['x'] }), mockReader({ [DR_FILE]: FIXTURE }));
+  const r = applyMaterializedPatch(mat, mockReader({ [DR_FILE]: FIXTURE }), mockWriter(), mockDeleter(), { approved: true });
+  assert.equal(r.ok, true);
+  assert.equal(r.appliedFiles.length, 1);
+  assert.equal(r.appliedFiles[0].afterHash, mat.fileResults[0].afterHash);
+  assert.equal(r.skippedFiles.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// rollbackMaterializedPatch — validation
+// ---------------------------------------------------------------------------
+
+test('rollbackMaterializedPatch fsWriter not a function returns error', () => {
+  const r = rollbackMaterializedPatch({ files: [] }, null, mockDeleter());
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('fsWriter')));
+});
+
+test('rollbackMaterializedPatch fsDeleter not a function returns error', () => {
+  const r = rollbackMaterializedPatch({ files: [] }, mockWriter(), 'bad');
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('fsDeleter')));
+});
+
+test('rollbackMaterializedPatch null manifest returns error', () => {
+  const r = rollbackMaterializedPatch(null, mockWriter(), mockDeleter());
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('files must be an array')));
+});
+
+test('rollbackMaterializedPatch empty files array is a no-op returning ok:true', () => {
+  const r = rollbackMaterializedPatch({ files: [] }, mockWriter(), mockDeleter());
+  assert.equal(r.ok, true);
+  assert.equal(r.restoredFiles.length, 0);
+  assert.equal(r.deletedFiles.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// rollbackMaterializedPatch — restore and delete
+// ---------------------------------------------------------------------------
+
+test('rollbackMaterializedPatch restore calls fsWriter with file and beforeContent', () => {
+  const calls = [];
+  const manifest = {
+    files: [{ file: DR_FILE, rollbackAction: 'restore', beforeContent: FIXTURE, beforeHash: testSha256(FIXTURE), afterHash: 'x' }],
+  };
+  const r = rollbackMaterializedPatch(manifest, (rp, c) => calls.push({ rp, c }), mockDeleter());
+  assert.equal(r.ok, true);
+  assert.equal(r.restoredFiles[0], DR_FILE);
+  assert.equal(calls[0].rp, DR_FILE);
+  assert.equal(calls[0].c, FIXTURE);
+});
+
+test('rollbackMaterializedPatch delete calls fsDeleter with file', () => {
+  const delCalls = [];
+  const manifest = {
+    files: [{ file: DR_FILE, rollbackAction: 'delete', beforeContent: null, beforeHash: null, afterHash: 'x' }],
+  };
+  const r = rollbackMaterializedPatch(manifest, mockWriter(), (rp) => delCalls.push(rp));
+  assert.equal(r.ok, true);
+  assert.equal(r.deletedFiles[0], DR_FILE);
+  assert.equal(delCalls[0], DR_FILE);
+});
+
+test('rollbackMaterializedPatch appliedFiles scope filters and reverses order (LIFO)', () => {
+  const calls = [];
+  const manifest = {
+    files: [
+      { file: '_SYSTEM/config/rb-a.txt', rollbackAction: 'restore', beforeContent: 'a', beforeHash: 'x', afterHash: 'y' },
+      { file: '_SYSTEM/config/rb-b.txt', rollbackAction: 'restore', beforeContent: 'b', beforeHash: 'x', afterHash: 'y' },
+      { file: '_SYSTEM/config/rb-c.txt', rollbackAction: 'restore', beforeContent: 'c', beforeHash: 'x', afterHash: 'y' },
+    ],
+  };
+  const r = rollbackMaterializedPatch(
+    manifest,
+    (rp, c) => calls.push(rp),
+    mockDeleter(),
+    { appliedFiles: ['_SYSTEM/config/rb-a.txt', '_SYSTEM/config/rb-b.txt'] },
+  );
+  assert.equal(r.ok, true);
+  assert.equal(r.restoredFiles.length, 2);
+  assert.equal(calls[0], '_SYSTEM/config/rb-b.txt');  // LIFO: b before a
+  assert.equal(calls[1], '_SYSTEM/config/rb-a.txt');
+  assert.ok(!calls.includes('_SYSTEM/config/rb-c.txt')); // c not in scope
+});
+
+test('rollbackMaterializedPatch fsWriter failure returns rollbackOk false with errors', () => {
+  const manifest = {
+    files: [{ file: DR_FILE, rollbackAction: 'restore', beforeContent: FIXTURE, beforeHash: testSha256(FIXTURE), afterHash: 'x' }],
+  };
+  const r = rollbackMaterializedPatch(manifest, throwingWriter('ROLLBACK_WRITE_FAIL'), mockDeleter());
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('ROLLBACK_WRITE_FAIL')));
+  assert.equal(r.restoredFiles.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// Prime S5 — Phase 3B supercharge tests
+// ---------------------------------------------------------------------------
+
+test('applyMaterializedPatch inherits materialized.warnings', () => {
+  const content = 'aaa\nbbb\nccc\nddd\neee';
+  const mat = materializePatch(
+    {
+      format: 'yuri-patch-v0',
+      scope_declared: [DR_FILE],
+      patches: [
+        { op: 'replace_lines', file: DR_FILE, old_lines: ['aaa'], new_lines: ['AAA'] },
+        { op: 'replace_lines', file: DR_FILE, old_lines: ['bbb'], new_lines: ['BBB'] },
+      ],
+    },
+    mockReader({ [DR_FILE]: content }),
+  );
+  assert.equal(mat.ok, true);
+  assert.ok(mat.warnings.some((w) => w.includes('adjacent')));
+  const r = applyMaterializedPatch(mat, mockReader({ [DR_FILE]: content }), mockWriter(), mockDeleter(), { approved: true });
+  assert.equal(r.ok, true);
+  assert.ok(r.warnings.some((w) => w.includes('adjacent')));
+});
+
+test('applyMaterializedPatch first write failure with zero applied sets rollbackAttempted false', () => {
+  const mat = materializePatch(
+    drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['x'] }),
+    mockReader({ [DR_FILE]: FIXTURE }),
+  );
+  const r = applyMaterializedPatch(mat, mockReader({ [DR_FILE]: FIXTURE }), throwingWriter('FIRST_FAIL'), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.equal(r.appliedFiles.length, 0);
+  assert.equal(r.rollbackAttempted, false);
+  assert.equal(r.rollbackOk, null);
+});
+
+test('applyMaterializedPatch unknown fileResult.action is rejected in preflight', () => {
+  const mat = materializePatch(
+    drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['x'] }),
+    mockReader({ [DR_FILE]: FIXTURE }),
+  );
+  const tampered = { ...mat, fileResults: [{ ...mat.fileResults[0], action: 'explode' }] };
+  const writes = [];
+  const r = applyMaterializedPatch(tampered, mockReader({ [DR_FILE]: FIXTURE }), mockWriter(writes), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('unknown fileResult action')));
+  assert.equal(writes.length, 0);
+});
+
+test('applyMaterializedPatch null afterContent on create is rejected in preflight', () => {
+  const newFile = '_SYSTEM/config/null-content.txt';
+  const mat = materializePatch(
+    { format: 'yuri-patch-v0', scope_declared: [newFile], patches: [{ op: 'create_file', file: newFile, new_lines: ['x'] }] },
+    mockReader({}),
+  );
+  const tampered = { ...mat, fileResults: [{ ...mat.fileResults[0], afterContent: null }] };
+  const writes = [];
+  const r = applyMaterializedPatch(tampered, mockReader({}), mockWriter(writes), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('string afterContent')));
+  assert.equal(writes.length, 0);
+});
+
+test('applyMaterializedPatch preflights rollbackManifest before writes', () => {
+  const mat = materializePatch(
+    drPatch({ op: 'replace_lines', old_lines: ['old_target_line'], new_lines: ['x'] }),
+    mockReader({ [DR_FILE]: FIXTURE }),
+  );
+  const tampered = { ...mat, rollbackManifest: { files: [{ file: DR_FILE, rollbackAction: 'restore', beforeContent: 42 }] } };
+  const writes = [];
+  const r = applyMaterializedPatch(tampered, mockReader({ [DR_FILE]: FIXTURE }), mockWriter(writes), mockDeleter(), { approved: true });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('rollbackManifest') && e.includes('beforeContent')));
+  assert.equal(writes.length, 0);
+});
+
+test('rollbackMaterializedPatch rejects protected path in manifest entry', () => {
+  const manifest = {
+    files: [{ file: '.env', rollbackAction: 'restore', beforeContent: 'SECRET=x' }],
+  };
+  const r = rollbackMaterializedPatch(manifest, mockWriter(), mockDeleter());
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('protected')));
+  assert.equal(r.restoredFiles.length, 0);
+});
+
+test('makeFilesystemWriter rejects non-string content', () => {
+  const writer = makeFilesystemWriter(REPO_ROOT);
+  assert.throws(() => writer('_SYSTEM/INDEX.md', 42), /content must be a string/);
+  assert.throws(() => writer('_SYSTEM/INDEX.md', null), /content must be a string/);
 });
