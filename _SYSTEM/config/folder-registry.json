@@ -467,8 +467,8 @@
       "owner": "external symlink",
       "readByDefault": false,
       "protected": false,
-      "status": "migration_required",
-      "notes": "Tracked symlink to external generated content. Do not follow by default. Root-architecture risk: migrate to a governed _SYSTEM generated-artifact surface or remove after owner approval."
+      "status": "local_ignored_symlink",
+      "notes": "Local symlink to external generated content. Kept out of Git and default navigation; use explicit generated-content tasks or governed adapters when needed."
     },
     {
       "path": "graph",

@@ -53,7 +53,7 @@ The root is not a clean product package. It is an active workspace with canonica
 | `AGENTS.md`, `CLAUDE.md`, `SOUL.md`, `README.md` | Root orientation and adapter documents. |
 | `package.json`, `package-lock.json`, `tsconfig*.json`, `vite.config.mts`, `ecosystem.config.js` | Root development, build, and process configuration. |
 | `yuri-os-dashboard.html` | Tracked dashboard snapshot; source truth is the generator/spec layer, not the snapshot alone. |
-| `GeneratedContent` | Tracked symlink to external generated content. Migration required before treating it as clean root architecture. |
+| `GeneratedContent` | Local ignored symlink to external generated content. Kept out of Git and hidden from default navigation. |
 | `backend/`, `Scripts/`, `test/` | Legacy or runtime surfaces. Active code belongs under `_SYSTEM/` unless a scoped cleanup proves otherwise. |
 | `integrations/`, `NEURAL-NETWORK/`, `YURI-SENTINEL/`, `needle/` | External, model, or legacy tool surfaces that need per-child classification before root cleanup. |
 | `output/`, `logs/`, `checkpoints/`, `dist/`, `graph/`, `graphify-out/`, `claude-palace-out/` | Generated/runtime output. Do not treat as source truth. |
