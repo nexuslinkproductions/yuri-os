@@ -82,6 +82,64 @@ The protocol should make most workers powerful producers with curated context, n
 
 The ideal packet is self-sufficient: goal, files in scope, relevant excerpts, constraints, expected output schema, and validation commands. The better C-137 and Scout prepare the packet, the less worker navigation is needed.
 
+## Planning Ladder
+
+Major sprint, architecture, autonomy, memory, or workcell plans should be built bottom-up. C-137 does not privately finish the whole plan and then ask the other lanes to rubber-stamp it.
+
+Default planning shape:
+
+1. C-137 gives Marcel a rough orientation plan first: goal, why it matters, likely route, major risks, and which lanes should participate.
+2. Marcel may correct direction, taste, scope, or priority before worker planning begins.
+3. C-137 routes only the needed Sonnet workers, not the whole workcell by default. Over-routing is noise.
+4. Sonnet workers assemble roughly 60-70% of the planning substance: decomposition options, local risks, implementation slices, tests, packet boundaries, and missing context.
+5. C-137 integrates worker planning into a coherent draft and removes contradictions, overreach, protected-surface risk, and irrelevant volume.
+6. Rick Prime receives the integrated draft for high-reasoning refinement, gap hunting, architecture pressure, and failure-mode analysis.
+7. C-137 arbitrates the final plan, makes it actionable, names evidence gates, and presents it to Marcel before implementation.
+
+This is an ideology, not a rigid ceremony. Small tactical fixes may stay solo in C-137 when that is faster and safe. High-leverage planning should use the ladder because the goal is to train orchestration, not just produce a pretty plan.
+
+### Process Learning Capture
+
+When Marcel corrects the collaboration process, routing ideology, memory boundary, commit habit, or model-lane behavior, C-137 treats it as a candidate operating-memory update even if Marcel does not explicitly say "remember this."
+
+The capture rule is:
+
+- if the correction affects future behavior beyond the current turn, C-137 proposes the durable memory/protocol surface where it belongs;
+- if the correction is low-risk and local to this repo's operating style, C-137 may update existing YURI-owned memory/protocol docs directly and report the changed files;
+- if the correction changes authority, protected-surface access, commit behavior, or memory promotion semantics, C-137 must present the intended memory update before treating it as canonical;
+- worker lanes can emit process-learning candidates through `memorySignals`, but C-137 remains the capture gate and Marcel remains the owner of canonical preference/authority changes.
+
+### Operator Probes
+
+When Marcel tests system behavior with structural constraints, expected exact outputs, routing expectations, rejection checks, or boundary enforcement, these are operator probes, not ordinary memory.
+
+Memory records what the system should know. Tests verify what the code does. Probes verify what the collaboration does: whether the system follows routing rules, respects protected surfaces, produces expected interaction outputs, or rejects malformed requests when Marcel is the one asking.
+
+Probe lifecycle:
+
+1. Marcel issues a structural check in chat or explicitly tags a constraint with `/probe this`.
+2. C-137 captures a probe candidate during process-learning capture or EOT. Candidates include an id, type, trigger pattern, expected outcome, and default severity.
+3. Marcel confirms or rejects the candidate. Confirmed probes become active; rejected candidates are discarded.
+4. Active probes run only on explicit `/probe-run` or at sprint start when their severity is blocking.
+5. Advisory probe failures are reported. Blocking probe failures halt the relevant sprint gate until resolved or waived by Marcel.
+
+Probe types:
+
+- `exact-output`: the system must reply with an exact string.
+- `contains`: the response must include a substring or declared pattern.
+- `rejects`: the system must refuse, error, or block a specific unsafe input.
+- `routes-to`: a task must route to a specific lane, context packet, or gate.
+- `behavioral`: a multi-step interaction must follow a declared sequence.
+
+Probe rules:
+
+- Do not treat every casual remark as a probe. Candidates require explicit structural signals such as exact-output wording, declared expected output, rejection checks, route expectations, or `/probe this`.
+- Probes are not promoted automatically. Marcel confirmation is required before a candidate becomes active.
+- Default severity is `advisory`. Only Marcel can escalate a probe to `blocking`.
+- Probes that duplicate existing `node --test` coverage must declare `coveredByTest` and defer to the test runner.
+- No probe infrastructure should be created until at least three confirmed probes exist from real sessions.
+- When the registry is justified, start with a flat `_SYSTEM/config/probe-registry.json` before creating a separate probe directory tree.
+
 ## Output Pool
 
 Worker output goes to a dedicated runtime pool, not directly into source:
