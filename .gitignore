@@ -241,6 +241,13 @@ logs/
 output/
 .claude/reinforcement/audit-output/
 
+# Root visibility cleanup — canonical source lives under _SYSTEM where applicable.
+# Keep these local/runtime roots out of Git and out of repo-facing review surfaces.
+/backend/
+/Scripts/
+/test/
+/integrations/
+
 # Codex worktrees (active git worktrees, not source files)
 .codex-worktrees/
 
