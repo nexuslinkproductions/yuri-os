@@ -63,6 +63,13 @@ try {
   assert(missingProvenanceReport.errors.some((error) => error.includes('missing valid content_sha256')));
   assert(missingProvenanceReport.errors.some((error) => error.includes('missing verification_method')));
 
+  const duplicateGate = buildGate();
+  duplicateGate.claims.push({ ...duplicateGate.claims[0] });
+  const duplicateReport = validateCanonicalMemoryPromotionGate(duplicateGate);
+  assert.equal(duplicateReport.ok, false, 'duplicate promotion candidates must fail');
+  assert(duplicateReport.errors.some((error) => error.includes('duplicate claim_id')));
+  assert(duplicateReport.errors.some((error) => error.includes('duplicate content_sha256')));
+
   const dryRun = enforceCanonicalMemoryImportRuntime({ gate, dryRun: true, runRoot: tempRoot });
   assert.equal(dryRun.ok, true, 'dry-run should not require operator approval');
   assert.equal(dryRun.decision, 'allow', 'dry-run enforcement decision mismatch');

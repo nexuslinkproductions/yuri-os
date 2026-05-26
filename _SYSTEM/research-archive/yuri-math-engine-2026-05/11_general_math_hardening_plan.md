@@ -91,3 +91,13 @@ The current implementation target is the bridge between "formula exists" and
 - Core primitives reject invalid input instead of hiding instability.
 - Math health proves graph, probability, scoring, and vector primitives.
 - External tools expand capability without becoming authority by default.
+
+## Implementation Progress
+
+2026-05-26:
+
+- Promoted formula banks now execute both worked examples and counterexamples.
+- `math-health` reports separate executable worked-example and counterexample counts.
+- Promoted banks fail when any formula lacks a passing worked example or a passing negative proof.
+- Counterexample expected-error patterns are rejected when they are too loose to prove the intended failure mode.
+- Truth-promotion enforcement rejects duplicate canonical-memory candidates by `claim_id` and `content_sha256`.

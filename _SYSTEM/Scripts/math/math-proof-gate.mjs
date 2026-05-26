@@ -111,6 +111,7 @@ export function inspectFormulaBankDirectory(bankDir = FORMULA_BANK_DIR) {
       advisoryOnly: bank.advisoryOnly,
       formulaCount: bank.formulas?.length || 0,
       executableExamples: 0,
+      executableCounterexamples: 0,
     };
 
     if (validation.errors.length === 0 && PROMOTED_STATES.has(bank.promotionStatus) && bank.advisoryOnly === false) {
@@ -132,6 +133,29 @@ export function inspectFormulaBankDirectory(bankDir = FORMULA_BANK_DIR) {
             if (error.trace) traces.push(error.trace);
           }
         }
+        for (const counterexample of formula.counterexamples || []) {
+          try {
+            const trace = runFormulaCounterexample({
+              bank,
+              formula,
+              input: counterexample.input,
+              expectedError: counterexample.expectedError,
+              exampleName: counterexample.name,
+              mode: 'strict',
+            });
+            traces.push(trace);
+            bankSummary.executableCounterexamples += 1;
+          } catch (error) {
+            errors.push(`${file}:${formula.id}:${counterexample.name || 'counterexample'} ${error.message}`);
+            if (error.trace) traces.push(error.trace);
+          }
+        }
+      }
+      if (bankSummary.executableExamples < bankSummary.formulaCount) {
+        errors.push(`${file} expected at least ${bankSummary.formulaCount} executable worked examples, got ${bankSummary.executableExamples}`);
+      }
+      if (bankSummary.executableCounterexamples < bankSummary.formulaCount) {
+        errors.push(`${file} expected at least ${bankSummary.formulaCount} executable counterexamples, got ${bankSummary.executableCounterexamples}`);
       }
     }
 
@@ -216,6 +240,53 @@ export function runFormulaProofGate(options = {}) {
   }
 }
 
+export function runFormulaCounterexample(options = {}) {
+  const bank = options.bank || findBankForFormula(options.formulaId);
+  const formula = options.formula || bank?.formulas?.find((entry) => entry.id === options.formulaId);
+  if (!bank || !formula) throw new ProofGateError(`unknown formula: ${options.formulaId}`);
+
+  const formulaImpl = FORMULA_IMPLEMENTATIONS[formula.id];
+  const traceBase = {
+    ...buildTraceBase({ bank, formula, input: options.input, exampleName: options.exampleName }),
+    counterexample: true,
+    expectedError: options.expectedError || null,
+  };
+
+  if (!formulaImpl) {
+    const trace = { ...traceBase, passed: false, error: 'missing formula implementation binding' };
+    return failOrReturn(options.mode, `missing formula implementation binding for ${formula.id}`, trace);
+  }
+
+  try {
+    const result = formulaImpl.invoke(options.input || {});
+    const trace = {
+      ...traceBase,
+      result,
+      resultHash: sha256Stable(result),
+      passed: false,
+      error: 'counterexample unexpectedly produced a result',
+      warnings: [],
+    };
+    return failOrReturn(options.mode, `counterexample unexpectedly passed for ${formula.id}`, trace);
+  } catch (error) {
+    const expected = String(options.expectedError || '').trim();
+    const matched = expected ? matchesExpectedError(error.message, expected) : true;
+    const trace = {
+      ...traceBase,
+      result: null,
+      resultHash: null,
+      passed: matched,
+      error: error.message,
+      errorMatcher: 'message-regex',
+      warnings: [],
+    };
+    if (!matched) {
+      return failOrReturn(options.mode, `counterexample error mismatch for ${formula.id}: ${error.message}`, trace);
+    }
+    return trace;
+  }
+}
+
 function validateFormulaCard(bank, formula, label, errors, warnings) {
   if (!formula || typeof formula !== 'object') {
     errors.push(`${label} formula entry must be an object`);
@@ -241,6 +312,7 @@ function validateFormulaCard(bank, formula, label, errors, warnings) {
   requireArray(formula, 'invalidInputs', formulaLabel, errors);
   requireArray(formula, 'failureModes', formulaLabel, errors);
   requireArray(formula, 'workedExamples', formulaLabel, errors);
+  requireArray(formula, 'counterexamples', formulaLabel, errors);
   requireString(formula, 'promotionStatus', formulaLabel, errors);
   requireBoolean(formula, 'advisoryOnly', formulaLabel, errors);
 
@@ -272,6 +344,18 @@ function validateFormulaCard(bank, formula, label, errors, warnings) {
     requireObject(example, 'input', formulaLabel, errors);
     requireObject(example, 'expected', formulaLabel, errors);
     requireString(example, 'interpretation', formulaLabel, errors);
+  }
+  for (const counterexample of formula.counterexamples || []) {
+    if (!counterexample || typeof counterexample !== 'object') {
+      errors.push(`${formulaLabel} counterexample must be an object`);
+      continue;
+    }
+    requireString(counterexample, 'name', formulaLabel, errors);
+    requireObject(counterexample, 'input', formulaLabel, errors);
+    requireString(counterexample, 'expectedError', formulaLabel, errors);
+    if (isLooseExpectedErrorPattern(counterexample.expectedError)) {
+      errors.push(`${formulaLabel} counterexample ${counterexample.name || '(unnamed)'} has loose expectedError`);
+    }
   }
 }
 
@@ -313,6 +397,20 @@ function matchesExpected(result, expected) {
     if (!deepAlmostEqual(result?.[key], expectedValue)) return false;
   }
   return true;
+}
+
+function matchesExpectedError(message, expectedPattern) {
+  try {
+    return new RegExp(expectedPattern, 'i').test(String(message || ''));
+  } catch {
+    return String(message || '').toLowerCase().includes(String(expectedPattern || '').toLowerCase());
+  }
+}
+
+function isLooseExpectedErrorPattern(value) {
+  const pattern = String(value || '').trim();
+  if (!pattern || pattern.length < 3) return true;
+  return /^(?:\.?\*|error|invalid|fail|failed|throw|throws|exception)$/iu.test(pattern);
 }
 
 function deepAlmostEqual(left, right) {

@@ -94,6 +94,8 @@ export function validateCanonicalMemoryPromotionGate(gate = {}, options = {}) {
   const claims = Array.isArray(gate.claims) ? gate.claims : [];
   const errors = [];
   const warnings = [];
+  const seenClaimIds = new Set();
+  const seenContentHashes = new Set();
 
   if (gate.schema_version !== 1) errors.push('promotion gate schema_version must be 1');
   if (!Array.isArray(gate.claims)) errors.push('promotion gate claims must be an array');
@@ -112,6 +114,15 @@ export function validateCanonicalMemoryPromotionGate(gate = {}, options = {}) {
     const promotionRequirements = Array.isArray(claim.promotion_requirements)
       ? claim.promotion_requirements.join(' ')
       : '';
+
+    if (claim.claim_id) {
+      if (seenClaimIds.has(claim.claim_id)) errors.push(`${claimId} duplicate claim_id`);
+      seenClaimIds.add(claim.claim_id);
+    }
+    if (SHA256_PATTERN.test(String(claim.content_sha256 || ''))) {
+      if (seenContentHashes.has(claim.content_sha256)) errors.push(`${claimId} duplicate content_sha256`);
+      seenContentHashes.add(claim.content_sha256);
+    }
 
     if (!CANONICAL_MEMORY_GATE_VALUES.includes(gateValue)) {
       errors.push(`${claimId} has unsupported canonical_memory_gate: ${gateValue || '(missing)'}`);
