@@ -165,6 +165,25 @@
         "_SYSTEM/Scripts/yuri-supercharge-gate.mjs"
       ],
       "loadRule": "Use health wrappers and state summaries rather than protected raw state."
+    },
+    {
+      "id": "autonomy",
+      "label": "Governed Autonomy Context",
+      "triggers": ["autonomy", "autonomous", "governed", "dry-run", "evidence runner", "timed run", "code autopilot", "approval boundary", "rollback contract", "scorecard"],
+      "paths": [
+        "_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md",
+        "_SYSTEM/Scripts/yuri-autonomy-runner.mjs",
+        "_SYSTEM/Scripts/yuri-autonomy-runner.test.mjs",
+        "_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json",
+        "_SYSTEM/Scripts/kagami-event-bus.mjs",
+        "_SYSTEM/Scripts/kagami-control-domain.mjs",
+        "_SYSTEM/Scripts/automation-kernel.mjs",
+        "_SYSTEM/Scripts/health-status.mjs",
+        "_SYSTEM/Scripts/yuri-health.mjs",
+        "_SYSTEM/Scripts/yuri-truth-promotion-pipeline.test.mjs",
+        "_SYSTEM/research-archive/yuri-math-engine-2026-05/11_general_math_hardening_plan.md"
+      ],
+      "loadRule": "Use for governed autonomy planning, dry-run run manifests, approval boundaries, scorecards, rollback gates, and first automation loops."
     }
   ],
   "protected": [

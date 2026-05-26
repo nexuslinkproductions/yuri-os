@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "yuri.autonomy-run.v0",
+  "title": "YURI Autonomy Run Manifest",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "runId",
+    "createdAt",
+    "goal",
+    "autonomy",
+    "approval",
+    "baselineAnchor",
+    "gates",
+    "scorecard",
+    "decision"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "yuri.autonomy-run.v0" },
+    "runId": { "type": "string", "minLength": 8 },
+    "createdAt": { "type": "string" },
+    "goal": { "type": "string", "minLength": 1 },
+    "autonomy": {
+      "type": "object",
+      "required": ["level", "label", "rank", "requestedMode"],
+      "properties": {
+        "level": {
+          "enum": [
+            "L0_MANUAL",
+            "L1_EVIDENCE_RUNNER",
+            "L2_RESEARCH_LOOP",
+            "L3_CODE_AUTOPILOT",
+            "L4_TIMED_RUN",
+            "L5_SCHEDULED_AUTOMATION"
+          ]
+        },
+        "label": { "type": "string" },
+        "rank": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "requestedMode": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "approval": {
+      "type": "object",
+      "required": [
+        "boundary",
+        "operatorApproved",
+        "operatorApprovalRequired",
+        "mutationAllowed",
+        "signature",
+        "l2ToL3Gate"
+      ],
+      "properties": {
+        "boundary": {
+          "enum": ["dry-run-only", "scoped-edits", "timed-run", "scheduled-run"]
+        },
+        "operatorApproved": { "type": "boolean" },
+        "operatorApprovalRequired": { "type": "boolean" },
+        "mutationAllowed": { "type": "boolean" },
+        "signature": {
+          "type": "object",
+          "required": ["required", "status", "digest"],
+          "properties": {
+            "required": { "type": "boolean" },
+            "status": { "type": "string" },
+            "digest": { "type": ["string", "null"] }
+          },
+          "additionalProperties": true
+        },
+        "l2ToL3Gate": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "baselineAnchor": {
+      "type": "object",
+      "required": ["repoRoot", "contextRouter", "git", "sourceHashes"],
+      "properties": {
+        "repoRoot": { "type": "string" },
+        "contextRouter": { "type": "object" },
+        "git": { "type": "object" },
+        "sourceHashes": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "gates": {
+      "type": "object",
+      "required": ["required", "rollbackContract", "contradictionDetection", "sourceFreshness"],
+      "additionalProperties": true
+    },
+    "scorecard": {
+      "type": "object",
+      "required": [
+        "taskClarity",
+        "contextPrecision",
+        "laneHealth",
+        "proofCoverage",
+        "contradictionRisk",
+        "protectedPathRisk",
+        "rollbackReadiness",
+        "elapsedAutonomousTimeMinutes",
+        "interventionCount"
+      ],
+      "additionalProperties": true
+    },
+    "decision": { "type": "string" }
+  },
+  "additionalProperties": true
+}

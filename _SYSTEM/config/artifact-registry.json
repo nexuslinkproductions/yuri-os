@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-25",
+  "updated": "2026-05-26",
   "purpose": "Master YURI artifact registry seed. This extends folder classification into durable docs, scripts, registries, reports, skills, runtime state, and generated artifacts.",
   "rules": {
     "readByDefault": "Only canonical anchors and context selectors may be read by default.",
@@ -324,6 +324,54 @@
       "storageRule": "Machine-readable durable artifact map.",
       "rebuildRule": "Run artifact-registry validation.",
       "notes": "Seed for broader artifact/database navigation."
+    },
+    {
+      "path": "_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md",
+      "type": "doc",
+      "class": "system_control_plane",
+      "owner": "YURI autonomy",
+      "status": "active_plan",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Governed-autonomy plans live in _SYSTEM/docs/.",
+      "rebuildRule": "Update through evidence-backed autonomy sprint changes; validate with yuri-autonomy-runner tests and artifact registry validation.",
+      "notes": "Sprint plan for baseline anchors, evidence runner, scorecards, approval gates, rollback contract, timed runs, and scheduler path."
+    },
+    {
+      "path": "_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json",
+      "type": "config",
+      "class": "artifact_registry",
+      "owner": "YURI autonomy",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Machine-readable schemas live in _SYSTEM/config/schemas/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-autonomy-runner.test.mjs after schema-affecting edits.",
+      "notes": "Schema for dry-run autonomy run manifests."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-autonomy-runner.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI autonomy",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-autonomy-runner.test.mjs.",
+      "notes": "Dry-run-first governed autonomy runner for baseline-anchored manifests and optional Kagami events."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-autonomy-runner.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI autonomy",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime script tests live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-autonomy-runner.test.mjs.",
+      "notes": "Tests dry-run manifests, approval blocking, protected-path acknowledgement, redacted events, and protected event-root refusal."
     },
     {
       "path": "_SYSTEM/Scripts/context-router.mjs",
