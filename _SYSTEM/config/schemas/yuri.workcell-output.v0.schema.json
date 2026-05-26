@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "yuri.workcell-output.v0",
+  "title": "YURI Workcell Worker Output Bundle",
+  "description": "Typed output bundle emitted by a Sonnet worker lane. Runtime validation is performed by validateWorkerOutput in yuri-workcell.mjs.",
+  "type": "object",
+  "properties": {
+    "role": { "enum": ["builder", "scout", "guardrail", "registry"] },
+    "packetId": { "type": "string" },
+    "filesInScope": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Must match or be a subset of the dispatched packet's filesInScope."
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "description": "Prefer 'yuri-patch-v0'. Legacy 'unified-diff' accepted for compatibility."
+          },
+          "scope_declared": { "type": "array", "items": { "type": "string" } },
+          "patches": { "type": "array" },
+          "path": { "type": "string", "description": "Used by unified-diff entries." }
+        },
+        "additionalProperties": true
+      }
+    },
+    "testCommands": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Commands C-137 should run to verify this output."
+    },
+    "riskNotes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Scope, protected-surface, and mutation notes from the worker."
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Repo-relative paths the worker read as evidence (no protected paths allowed)."
+    },
+    "memorySignals": {
+      "type": "object",
+      "properties": {
+        "proposals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "scope", "content", "confidence", "reason"],
+            "properties": {
+              "type": { "type": "string" },
+              "scope": {
+                "enum": ["session", "project"],
+                "description": "'permanent' is rejected at runtime by validateWorkerOutput."
+              },
+              "content": { "type": "string", "minLength": 1 },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+              "reason": { "type": "string", "minLength": 1 },
+              "tags": { "type": "array", "items": { "type": "string" } },
+              "sourceEvidence": { "type": "array", "items": { "type": "string" } },
+              "originRole": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "capsuleUsage": {
+          "type": "object",
+          "properties": {
+            "contextsUsed": { "type": "array", "items": { "type": "string" } },
+            "contextsIgnored": { "type": "array", "items": { "type": "string" } },
+            "staleContexts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "capsuleContextId": { "type": "string" },
+                  "reason": { "type": "string" },
+                  "suggestedAction": { "type": "string" }
+                },
+                "additionalProperties": true
+              }
+            },
+            "contradictionsDetected": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["capsuleContextId", "contradiction", "currentEvidence", "severity"],
+                "properties": {
+                  "capsuleContextId": { "type": "string" },
+                  "contradiction": { "type": "string" },
+                  "currentEvidence": { "type": "string" },
+                  "severity": { "type": "string" }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          "additionalProperties": true
+        },
+        "recallLog": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

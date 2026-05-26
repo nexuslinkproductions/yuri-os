@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "yuri.workcell-packet.v0",
+  "title": "YURI Workcell Worker Packet",
+  "description": "Bounded task packet dispatched to a single Sonnet worker lane. Runtime validation is performed by buildWorkerPacket and validateMemoryCapsule in yuri-workcell.mjs.",
+  "type": "object",
+  "required": ["schema", "packetId", "role", "filesInScope", "constraints", "expectedOutputSchema"],
+  "properties": {
+    "schema": { "const": "yuri.workcell.packet.v0" },
+    "packetId": { "type": "string", "minLength": 1 },
+    "role": { "enum": ["builder", "scout", "guardrail", "registry"] },
+    "goal": { "type": "string" },
+    "filesInScope": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Repo-relative paths the worker is permitted to read and emit patches for."
+    },
+    "memoryCapsule": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/memoryCapsule" }
+      ]
+    },
+    "dagValidation": {
+      "type": ["object", "null"],
+      "description": "DAG validation result from the decomposition this packet belongs to."
+    },
+    "constraints": {
+      "type": "object",
+      "required": ["noCommit", "noProtectedAccess", "noSdkCalls"],
+      "properties": {
+        "noCommit": { "const": true },
+        "noProtectedAccess": { "const": true },
+        "noSdkCalls": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "expectedOutputSchema": {
+      "type": "string",
+      "description": "Schema ID the worker must conform to when emitting its output bundle."
+    },
+    "tokenBudget": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "properties": {
+            "tokenCap": { "type": "integer", "minimum": 0 },
+            "estimatedTokens": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "memoryCapsule": {
+      "$ref": "yuri.workcell-capsule.v0",
+      "description": "Cross-file $ref by $id. These schemas are reference contracts, not runtime-resolved; if using Ajv, register capsule schema first."
+    }
+  }
+}

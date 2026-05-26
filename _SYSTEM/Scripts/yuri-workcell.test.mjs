@@ -21,6 +21,10 @@ import {
   applyMaterializedPatch,
   rollbackMaterializedPatch,
   REPO_ROOT,
+  WORKCELL_MEMORY_AUTHORITY,
+  WORKCELL_MEMORY_OPERATIONS,
+  isMemoryAllowed,
+  validateMemoryCapsule,
 } from './yuri-workcell.mjs';
 
 const RUNNER = path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-workcell.mjs');
@@ -2380,4 +2384,479 @@ test('makeFilesystemWriter rejects non-string content', () => {
   const writer = makeFilesystemWriter(REPO_ROOT);
   assert.throws(() => writer('_SYSTEM/INDEX.md', 42), /content must be a string/);
   assert.throws(() => writer('_SYSTEM/INDEX.md', null), /content must be a string/);
+});
+
+// ---------------------------------------------------------------------------
+// Phase 4A — Memory authority (isMemoryAllowed / WORKCELL_MEMORY_AUTHORITY)
+// ---------------------------------------------------------------------------
+
+test('WORKCELL_MEMORY_OPERATIONS contains recall/propose/promote', () => {
+  assert.ok(WORKCELL_MEMORY_OPERATIONS.includes('recall'));
+  assert.ok(WORKCELL_MEMORY_OPERATIONS.includes('propose'));
+  assert.ok(WORKCELL_MEMORY_OPERATIONS.includes('promote'));
+});
+
+// Acceptance gate 1
+test('isMemoryAllowed builder recall returns false', () => {
+  assert.equal(isMemoryAllowed('builder', 'recall'), false);
+});
+
+// Acceptance gate 2
+test('isMemoryAllowed scout recall returns true', () => {
+  assert.equal(isMemoryAllowed('scout', 'recall'), true);
+});
+
+// Acceptance gate 3
+test('isMemoryAllowed builder propose returns false', () => {
+  assert.equal(isMemoryAllowed('builder', 'propose'), false);
+});
+
+// Acceptance gate 4
+test('isMemoryAllowed orchestrator propose returns true', () => {
+  assert.equal(isMemoryAllowed('orchestrator', 'propose'), true);
+});
+
+test('isMemoryAllowed orchestrator promote returns true', () => {
+  assert.equal(isMemoryAllowed('orchestrator', 'promote'), true);
+});
+
+test('isMemoryAllowed orchestrator recall returns true', () => {
+  assert.equal(isMemoryAllowed('orchestrator', 'recall'), true);
+});
+
+test('isMemoryAllowed guardrail recall returns false', () => {
+  assert.equal(isMemoryAllowed('guardrail', 'recall'), false);
+});
+
+test('isMemoryAllowed registry propose returns false', () => {
+  assert.equal(isMemoryAllowed('registry', 'propose'), false);
+});
+
+test('isMemoryAllowed supercharger recall returns false', () => {
+  assert.equal(isMemoryAllowed('supercharger', 'recall'), false);
+});
+
+test('isMemoryAllowed unknown role returns false', () => {
+  assert.equal(isMemoryAllowed('overlord', 'recall'), false);
+  assert.equal(isMemoryAllowed('', 'recall'), false);
+  assert.equal(isMemoryAllowed(null, 'recall'), false);
+});
+
+test('isMemoryAllowed unknown operation returns false', () => {
+  assert.equal(isMemoryAllowed('orchestrator', 'delete'), false);
+  assert.equal(isMemoryAllowed('scout', 'promote'), false);
+});
+
+test('WORKCELL_MEMORY_AUTHORITY worker roles are all empty', () => {
+  for (const role of ['builder', 'guardrail', 'registry', 'supercharger']) {
+    assert.deepEqual(Array.from(WORKCELL_MEMORY_AUTHORITY[role]), []);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Phase 4A — validateMemoryCapsule
+// ---------------------------------------------------------------------------
+
+function validCapsule(overrides = {}) {
+  return {
+    version: 'workcell.capsule.v0',
+    assembledAt: '2026-05-26T12:00:00Z',
+    assembledBy: 'orchestrator',
+    contexts: [],
+    policy: { readOnly: true, writeAllowed: false, promoteAllowed: false },
+    ...overrides,
+  };
+}
+
+test('validateMemoryCapsule accepts a valid minimal capsule', () => {
+  const r = validateMemoryCapsule(validCapsule());
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.errors, []);
+});
+
+test('validateMemoryCapsule accepts capsule with populated contexts', () => {
+  const r = validateMemoryCapsule(validCapsule({
+    contexts: [{ id: 'feedback_codex.md', path: '_SYSTEM/memory/feedback_codex.md', bytes: 800 }],
+    maxTotalBytes: 24000,
+  }));
+  assert.equal(r.ok, true);
+});
+
+// Acceptance gate 12
+test('validateMemoryCapsule rejects missing version', () => {
+  const r = validateMemoryCapsule(validCapsule({ version: undefined }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('version')));
+});
+
+test('validateMemoryCapsule rejects missing assembledAt', () => {
+  const r = validateMemoryCapsule(validCapsule({ assembledAt: '' }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('assembledAt')));
+});
+
+test('validateMemoryCapsule rejects missing assembledBy', () => {
+  const r = validateMemoryCapsule(validCapsule({ assembledBy: null }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('assembledBy')));
+});
+
+test('validateMemoryCapsule rejects missing contexts', () => {
+  const r = validateMemoryCapsule(validCapsule({ contexts: 'not-an-array' }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('contexts')));
+});
+
+test('validateMemoryCapsule rejects missing policy', () => {
+  const r = validateMemoryCapsule(validCapsule({ policy: null }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('policy')));
+});
+
+// Acceptance gate 13
+test('validateMemoryCapsule rejects writeAllowed true', () => {
+  const r = validateMemoryCapsule(validCapsule({
+    policy: { readOnly: true, writeAllowed: true, promoteAllowed: false },
+  }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('writeAllowed')));
+});
+
+test('validateMemoryCapsule rejects promoteAllowed true', () => {
+  const r = validateMemoryCapsule(validCapsule({
+    policy: { readOnly: true, writeAllowed: false, promoteAllowed: true },
+  }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('promoteAllowed')));
+});
+
+test('validateMemoryCapsule rejects readOnly false', () => {
+  const r = validateMemoryCapsule(validCapsule({
+    policy: { readOnly: false, writeAllowed: false, promoteAllowed: false },
+  }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('readOnly')));
+});
+
+// Acceptance gate 14
+test('validateMemoryCapsule rejects protected context path', () => {
+  const r = validateMemoryCapsule(validCapsule({
+    contexts: [{ id: 'env-leak', path: '.env' }],
+  }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('protected')));
+});
+
+test('validateMemoryCapsule rejects absolute context path', () => {
+  const r = validateMemoryCapsule(validCapsule({
+    contexts: [{ id: 'abs', path: '/etc/passwd' }],
+  }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('absolute')));
+});
+
+test('validateMemoryCapsule rejects traversal context path', () => {
+  const r = validateMemoryCapsule(validCapsule({
+    contexts: [{ id: 'trav', path: '../../etc/passwd' }],
+  }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('escapes')));
+});
+
+// Acceptance gate 15
+test('validateMemoryCapsule warns above 80% maxTotalBytes', () => {
+  const r = validateMemoryCapsule(validCapsule({
+    contexts: [{ id: 'large', path: '_SYSTEM/INDEX.md', bytes: 8500 }],
+    maxTotalBytes: 10000,
+  }));
+  assert.equal(r.ok, true);
+  assert.equal(r.errors.length, 0);
+  assert.ok(r.warnings.some((w) => w.includes('80%')));
+});
+
+test('validateMemoryCapsule errors above maxTotalBytes', () => {
+  const r = validateMemoryCapsule(validCapsule({
+    contexts: [{ id: 'oversized', path: '_SYSTEM/INDEX.md', bytes: 11000 }],
+    maxTotalBytes: 10000,
+  }));
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('exceeds maxTotalBytes')));
+});
+
+test('validateMemoryCapsule rejects null input without throwing', () => {
+  const r = validateMemoryCapsule(null);
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.length > 0);
+});
+
+test('validateMemoryCapsule rejects array input without throwing', () => {
+  const r = validateMemoryCapsule([]);
+  assert.equal(r.ok, false);
+});
+
+// ---------------------------------------------------------------------------
+// Phase 4A — validateWorkerOutput extensions (memorySignals/riskNotes/testCommands)
+// ---------------------------------------------------------------------------
+
+const SCOPE_FILE = '_SYSTEM/Scripts/yuri-workcell.mjs';
+
+// Acceptance gate 5
+test('validateWorkerOutput rejects non-array memorySignals.proposals', () => {
+  const r = validateWorkerOutput(
+    { memorySignals: { proposals: 'not-an-array' } },
+    { filesInScope: [SCOPE_FILE] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('proposals') && e.includes('array')));
+});
+
+// Acceptance gate 6
+test('validateWorkerOutput rejects non-object memorySignals.capsuleUsage', () => {
+  const r = validateWorkerOutput(
+    { memorySignals: { capsuleUsage: ['not', 'an', 'object'] } },
+    { filesInScope: [SCOPE_FILE] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('capsuleUsage') && e.includes('object')));
+});
+
+// Acceptance gate 7
+test('validateWorkerOutput accepts well-formed memorySignals', () => {
+  const r = validateWorkerOutput(
+    {
+      outputs: [],
+      memorySignals: {
+        proposals: [
+          {
+            type: 'rule',
+            scope: 'project',
+            content: 'always check token budget before dispatch',
+            confidence: 0.8,
+            reason: 'prevents silent budget overruns',
+          },
+        ],
+        capsuleUsage: {
+          contextsUsed: ['feedback_codex.md'],
+          contextsIgnored: [],
+          staleContexts: [],
+          contradictionsDetected: [],
+        },
+        recallLog: [],
+      },
+    },
+    { filesInScope: [SCOPE_FILE] },
+  );
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.errors, []);
+});
+
+// Acceptance gate 8
+test('validateWorkerOutput rejects proposal confidence greater than 1', () => {
+  const r = validateWorkerOutput(
+    { memorySignals: { proposals: [{ type: 'rule', scope: 'session', content: 'x', confidence: 1.5, reason: 'y' }] } },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('confidence')));
+});
+
+test('validateWorkerOutput rejects proposal confidence below 0', () => {
+  const r = validateWorkerOutput(
+    { memorySignals: { proposals: [{ type: 'rule', scope: 'session', content: 'x', confidence: -0.1, reason: 'y' }] } },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('confidence')));
+});
+
+// Acceptance gate 9
+test('validateWorkerOutput rejects proposal missing reason', () => {
+  const r = validateWorkerOutput(
+    { memorySignals: { proposals: [{ type: 'rule', scope: 'session', content: 'x', confidence: 0.5 }] } },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('reason')));
+});
+
+// Acceptance gate 10
+test('validateWorkerOutput rejects proposal scope permanent', () => {
+  const r = validateWorkerOutput(
+    { memorySignals: { proposals: [{ type: 'rule', scope: 'permanent', content: 'x', confidence: 0.5, reason: 'y' }] } },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('permanent')));
+});
+
+// Acceptance gate 11
+test('validateWorkerOutput rejects non-array riskNotes', () => {
+  const r = validateWorkerOutput(
+    { riskNotes: 'should be array' },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('riskNotes')));
+});
+
+test('validateWorkerOutput rejects non-array testCommands', () => {
+  const r = validateWorkerOutput(
+    { testCommands: 42 },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('testCommands')));
+});
+
+test('validateWorkerOutput accepts valid riskNotes and testCommands', () => {
+  const r = validateWorkerOutput(
+    {
+      riskNotes: ['No protected surface access requested.'],
+      testCommands: ['node --test _SYSTEM/Scripts/yuri-workcell.test.mjs'],
+    },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, true);
+});
+
+test('validateWorkerOutput rejects non-string riskNotes entry', () => {
+  const r = validateWorkerOutput(
+    { riskNotes: ['ok', 42] },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('riskNotes[1]')));
+});
+
+test('validateWorkerOutput rejects contradictionsDetected entry missing required fields', () => {
+  const r = validateWorkerOutput(
+    {
+      memorySignals: {
+        capsuleUsage: {
+          contradictionsDetected: [{ capsuleContextId: 'x', contradiction: 'y' }],
+        },
+      },
+    },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('currentEvidence') || e.includes('severity')));
+});
+
+test('validateWorkerOutput rejects non-array capsuleUsage.contextsUsed', () => {
+  const r = validateWorkerOutput(
+    { memorySignals: { capsuleUsage: { contextsUsed: 'not-array' } } },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('contextsUsed')));
+});
+
+test('validateWorkerOutput rejects non-array memorySignals.recallLog', () => {
+  const r = validateWorkerOutput(
+    { memorySignals: { recallLog: {} } },
+    { filesInScope: [] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('recallLog')));
+});
+
+test('validateWorkerOutput accepts empty memorySignals object', () => {
+  const r = validateWorkerOutput({ memorySignals: {} }, { filesInScope: [] });
+  assert.equal(r.ok, true);
+});
+
+// ---------------------------------------------------------------------------
+// Phase 4A — JSON schema files parse and have required top-level fields
+// ---------------------------------------------------------------------------
+
+// Acceptance gate 16
+test('yuri.workcell-packet.v0.schema.json is valid JSON with required fields', () => {
+  const raw = readFileSync(
+    path.join(REPO_ROOT, '_SYSTEM/config/schemas/yuri.workcell-packet.v0.schema.json'),
+    'utf8',
+  );
+  const schema = JSON.parse(raw);
+  assert.ok(schema.$schema, '$schema missing');
+  assert.ok(schema.$id, '$id missing');
+  assert.ok(schema.title, 'title missing');
+  assert.equal(schema.type, 'object');
+  assert.equal(schema.$id, 'yuri.workcell-packet.v0');
+});
+
+test('yuri.workcell-output.v0.schema.json is valid JSON with required fields', () => {
+  const raw = readFileSync(
+    path.join(REPO_ROOT, '_SYSTEM/config/schemas/yuri.workcell-output.v0.schema.json'),
+    'utf8',
+  );
+  const schema = JSON.parse(raw);
+  assert.ok(schema.$schema, '$schema missing');
+  assert.ok(schema.$id, '$id missing');
+  assert.ok(schema.title, 'title missing');
+  assert.equal(schema.type, 'object');
+  assert.equal(schema.$id, 'yuri.workcell-output.v0');
+});
+
+test('yuri.workcell-capsule.v0.schema.json is valid JSON with required fields', () => {
+  const raw = readFileSync(
+    path.join(REPO_ROOT, '_SYSTEM/config/schemas/yuri.workcell-capsule.v0.schema.json'),
+    'utf8',
+  );
+  const schema = JSON.parse(raw);
+  assert.ok(schema.$schema, '$schema missing');
+  assert.ok(schema.$id, '$id missing');
+  assert.ok(schema.title, 'title missing');
+  assert.equal(schema.type, 'object');
+  assert.equal(schema.$id, 'yuri.workcell-capsule.v0');
+});
+
+// ---------------------------------------------------------------------------
+// Prime S5 — Phase 4A supercharge tests
+// ---------------------------------------------------------------------------
+
+test('isMemoryAllowed rejects invalid operation name even for orchestrator', () => {
+  assert.equal(isMemoryAllowed('orchestrator', 'evict'), false);
+  assert.equal(isMemoryAllowed('orchestrator', 'write'), false);
+  assert.equal(isMemoryAllowed('orchestrator', 'delete'), false);
+});
+
+test('isMemoryAllowed rejects non-string role and operation', () => {
+  assert.equal(isMemoryAllowed(42, 'recall'), false);
+  assert.equal(isMemoryAllowed('scout', 42), false);
+  assert.equal(isMemoryAllowed(null, null), false);
+});
+
+test('validateMemoryCapsule rejects non-boolean proposalAllowed', () => {
+  const r = validateMemoryCapsule({
+    version: 'workcell.capsule.v0',
+    assembledAt: '2026-05-26T00:00:00Z',
+    assembledBy: 'orchestrator',
+    contexts: [],
+    policy: { readOnly: true, writeAllowed: false, promoteAllowed: false, proposalAllowed: 'yes' },
+  });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('proposalAllowed') && e.includes('boolean')));
+});
+
+test('validateMemoryCapsule rejects non-boolean recallAllowed', () => {
+  const r = validateMemoryCapsule({
+    version: 'workcell.capsule.v0',
+    assembledAt: '2026-05-26T00:00:00Z',
+    assembledBy: 'orchestrator',
+    contexts: [],
+    policy: { readOnly: true, writeAllowed: false, promoteAllowed: false, recallAllowed: 1 },
+  });
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('recallAllowed') && e.includes('boolean')));
+});
+
+test('validateMemoryCapsule accepts valid boolean proposalAllowed and recallAllowed', () => {
+  const r = validateMemoryCapsule({
+    version: 'workcell.capsule.v0',
+    assembledAt: '2026-05-26T00:00:00Z',
+    assembledBy: 'orchestrator',
+    contexts: [],
+    policy: { readOnly: true, writeAllowed: false, promoteAllowed: false, proposalAllowed: true, recallAllowed: false },
+  });
+  assert.equal(r.ok, true);
 });

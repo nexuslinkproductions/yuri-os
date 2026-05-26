@@ -37,6 +37,42 @@ export const YURI_PATCH_OPS = Object.freeze([
 ]);
 
 // ---------------------------------------------------------------------------
+// Memory authority
+// ---------------------------------------------------------------------------
+
+export const WORKCELL_MEMORY_OPERATIONS = Object.freeze([
+  'recall',
+  'propose',
+  'promote',
+]);
+
+// orchestrator: full cycle — recall context, propose updates, promote approved proposals.
+// Promote is included because the orchestrator is the only entity that calls
+// promoteMemoryProposal() after Marcel approves; recall+propose without promote
+// would leave the write cycle incomplete and Marcel would need to intervene for
+// every promotion manually.
+// Worker roles (builder/guardrail/registry/supercharger) are worker-deny: [].
+// scout gets recall only — bounded curated recall with a per-task query cap.
+// Authority roles are a separate keyspace from WORKCELL_ROLES (DAG node roles);
+// orchestrator and supercharger are not valid DAG node roles.
+export const WORKCELL_MEMORY_AUTHORITY = Object.freeze({
+  orchestrator: Object.freeze(['recall', 'propose', 'promote']),
+  scout: Object.freeze(['recall']),
+  builder: Object.freeze([]),
+  guardrail: Object.freeze([]),
+  registry: Object.freeze([]),
+  supercharger: Object.freeze([]),
+});
+
+export function isMemoryAllowed(role, operation) {
+  if (!role || typeof role !== 'string') return false;
+  if (!operation || typeof operation !== 'string') return false;
+  if (!WORKCELL_MEMORY_OPERATIONS.includes(operation)) return false;
+  const allowed = WORKCELL_MEMORY_AUTHORITY[role];
+  return Array.isArray(allowed) && allowed.includes(operation);
+}
+
+// ---------------------------------------------------------------------------
 // Path safety
 // ---------------------------------------------------------------------------
 
@@ -969,6 +1005,88 @@ function dagFailure(message) {
 }
 
 // ---------------------------------------------------------------------------
+// Memory capsule validation
+// ---------------------------------------------------------------------------
+
+export function validateMemoryCapsule(capsule) {
+  const errors = [];
+  const warnings = [];
+
+  if (!capsule || typeof capsule !== 'object' || Array.isArray(capsule)) {
+    return { ok: false, errors: ['capsule must be a non-null object'], warnings };
+  }
+
+  if (!capsule.version || typeof capsule.version !== 'string') {
+    errors.push('capsule.version must be a non-empty string');
+  }
+  if (!capsule.assembledAt || typeof capsule.assembledAt !== 'string') {
+    errors.push('capsule.assembledAt must be a non-empty string');
+  }
+  if (!capsule.assembledBy || typeof capsule.assembledBy !== 'string') {
+    errors.push('capsule.assembledBy must be a non-empty string');
+  }
+
+  if (!Array.isArray(capsule.contexts)) {
+    errors.push('capsule.contexts must be an array');
+  } else {
+    for (let i = 0; i < capsule.contexts.length; i++) {
+      const ctx = capsule.contexts[i];
+      const cx = `capsule.contexts[${i}]`;
+      if (!ctx || typeof ctx !== 'object' || Array.isArray(ctx)) {
+        errors.push(`${cx} must be a non-null object`);
+        continue;
+      }
+      if (!ctx.id || typeof ctx.id !== 'string') {
+        errors.push(`${cx}.id must be a non-empty string`);
+      }
+      if (ctx.path != null) {
+        if (typeof ctx.path !== 'string') {
+          errors.push(`${cx}.path must be a string if present`);
+        } else {
+          const pathErr = assertSafeRelPath(ctx.path);
+          if (pathErr) errors.push(`${cx}.path: ${pathErr}`);
+        }
+      }
+      if (ctx.bytes != null && (typeof ctx.bytes !== 'number' || ctx.bytes < 0)) {
+        errors.push(`${cx}.bytes must be a non-negative number if present`);
+      }
+    }
+  }
+
+  if (!capsule.policy || typeof capsule.policy !== 'object' || Array.isArray(capsule.policy)) {
+    errors.push('capsule.policy must be an object');
+  } else {
+    if (capsule.policy.readOnly !== true) errors.push('capsule.policy.readOnly must be true');
+    if (capsule.policy.writeAllowed !== false) errors.push('capsule.policy.writeAllowed must be false');
+    if (capsule.policy.promoteAllowed !== false) errors.push('capsule.policy.promoteAllowed must be false');
+    if (capsule.policy.proposalAllowed != null && typeof capsule.policy.proposalAllowed !== 'boolean') {
+      errors.push('capsule.policy.proposalAllowed must be a boolean if present');
+    }
+    if (capsule.policy.recallAllowed != null && typeof capsule.policy.recallAllowed !== 'boolean') {
+      errors.push('capsule.policy.recallAllowed must be a boolean if present');
+    }
+  }
+
+  if (capsule.maxTotalBytes != null) {
+    if (typeof capsule.maxTotalBytes !== 'number' || capsule.maxTotalBytes <= 0) {
+      errors.push('capsule.maxTotalBytes must be a positive number if present');
+    } else if (Array.isArray(capsule.contexts)) {
+      let byteSum = 0;
+      for (const ctx of capsule.contexts) {
+        if (ctx && typeof ctx.bytes === 'number') byteSum += ctx.bytes;
+      }
+      if (byteSum > capsule.maxTotalBytes) {
+        errors.push(`capsule context bytes (${byteSum}) exceeds maxTotalBytes (${capsule.maxTotalBytes})`);
+      } else if (byteSum > capsule.maxTotalBytes * 0.8) {
+        warnings.push(`capsule context bytes (${byteSum}) exceeds 80% of maxTotalBytes (${capsule.maxTotalBytes})`);
+      }
+    }
+  }
+
+  return { ok: errors.length === 0, errors, warnings };
+}
+
+// ---------------------------------------------------------------------------
 // Packet assembly
 // ---------------------------------------------------------------------------
 
@@ -1056,6 +1174,103 @@ export function validateWorkerOutput(output, packet) {
     const refError = assertSafeRelPath(ref);
     if (refError) {
       errors.push(`evidence ref unsafe: ${refError}`);
+    }
+  }
+
+  // riskNotes and testCommands — must be arrays of strings when present
+  if (output.riskNotes != null) {
+    if (!Array.isArray(output.riskNotes)) {
+      errors.push('riskNotes must be an array');
+    } else {
+      for (let i = 0; i < output.riskNotes.length; i++) {
+        if (typeof output.riskNotes[i] !== 'string') {
+          errors.push(`riskNotes[${i}] must be a string`);
+        }
+      }
+    }
+  }
+  if (output.testCommands != null) {
+    if (!Array.isArray(output.testCommands)) {
+      errors.push('testCommands must be an array');
+    } else {
+      for (let i = 0; i < output.testCommands.length; i++) {
+        if (typeof output.testCommands[i] !== 'string') {
+          errors.push(`testCommands[${i}] must be a string`);
+        }
+      }
+    }
+  }
+
+  // memorySignals validation
+  const ms = output.memorySignals;
+  if (ms != null) {
+    if (typeof ms !== 'object' || Array.isArray(ms)) {
+      errors.push('memorySignals must be an object');
+    } else {
+      // proposals
+      if (ms.proposals != null) {
+        if (!Array.isArray(ms.proposals)) {
+          errors.push('memorySignals.proposals must be an array');
+        } else {
+          for (let i = 0; i < ms.proposals.length; i++) {
+            const p = ms.proposals[i];
+            const px = `memorySignals.proposals[${i}]`;
+            if (!p || typeof p !== 'object' || Array.isArray(p)) {
+              errors.push(`${px} must be a non-null object`);
+              continue;
+            }
+            if (!p.type || typeof p.type !== 'string') errors.push(`${px}.type must be a non-empty string`);
+            if (!p.scope || typeof p.scope !== 'string') {
+              errors.push(`${px}.scope must be a non-empty string`);
+            } else if (p.scope === 'permanent') {
+              errors.push(`${px}.scope 'permanent' is not allowed for worker proposals`);
+            }
+            if (!p.content || typeof p.content !== 'string') errors.push(`${px}.content must be a non-empty string`);
+            if (typeof p.confidence !== 'number' || p.confidence < 0 || p.confidence > 1) {
+              errors.push(`${px}.confidence must be a number between 0 and 1`);
+            }
+            if (!p.reason || typeof p.reason !== 'string') errors.push(`${px}.reason must be a non-empty string`);
+          }
+        }
+      }
+
+      // capsuleUsage
+      if (ms.capsuleUsage != null) {
+        if (typeof ms.capsuleUsage !== 'object' || Array.isArray(ms.capsuleUsage)) {
+          errors.push('memorySignals.capsuleUsage must be an object');
+        } else {
+          const cu = ms.capsuleUsage;
+          for (const field of ['contextsUsed', 'contextsIgnored', 'staleContexts']) {
+            if (cu[field] != null && !Array.isArray(cu[field])) {
+              errors.push(`memorySignals.capsuleUsage.${field} must be an array`);
+            }
+          }
+          if (cu.contradictionsDetected != null) {
+            if (!Array.isArray(cu.contradictionsDetected)) {
+              errors.push('memorySignals.capsuleUsage.contradictionsDetected must be an array');
+            } else {
+              for (let i = 0; i < cu.contradictionsDetected.length; i++) {
+                const cd = cu.contradictionsDetected[i];
+                const cdx = `memorySignals.capsuleUsage.contradictionsDetected[${i}]`;
+                if (!cd || typeof cd !== 'object' || Array.isArray(cd)) {
+                  errors.push(`${cdx} must be a non-null object`);
+                  continue;
+                }
+                for (const req of ['capsuleContextId', 'contradiction', 'currentEvidence', 'severity']) {
+                  if (!cd[req] || typeof cd[req] !== 'string') {
+                    errors.push(`${cdx}.${req} must be a non-empty string`);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // recallLog
+      if (ms.recallLog != null && !Array.isArray(ms.recallLog)) {
+        errors.push('memorySignals.recallLog must be an array');
+      }
     }
   }
 

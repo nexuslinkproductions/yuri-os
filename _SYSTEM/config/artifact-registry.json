@@ -362,6 +362,42 @@
       "notes": "Schema for dry-run autonomy run manifests."
     },
     {
+      "path": "_SYSTEM/config/schemas/yuri.workcell-packet.v0.schema.json",
+      "type": "config",
+      "class": "artifact_registry",
+      "owner": "YURI workcell",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Machine-readable schemas live in _SYSTEM/config/schemas/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-workcell.test.mjs after schema-affecting edits.",
+      "notes": "Reference schema for workcell worker packet structure. Runtime validation is JS in yuri-workcell.mjs."
+    },
+    {
+      "path": "_SYSTEM/config/schemas/yuri.workcell-output.v0.schema.json",
+      "type": "config",
+      "class": "artifact_registry",
+      "owner": "YURI workcell",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Machine-readable schemas live in _SYSTEM/config/schemas/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-workcell.test.mjs after schema-affecting edits.",
+      "notes": "Reference schema for workcell worker output bundle including memorySignals, riskNotes, and testCommands. Runtime validation is JS."
+    },
+    {
+      "path": "_SYSTEM/config/schemas/yuri.workcell-capsule.v0.schema.json",
+      "type": "config",
+      "class": "artifact_registry",
+      "owner": "YURI workcell",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Machine-readable schemas live in _SYSTEM/config/schemas/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-workcell.test.mjs after schema-affecting edits.",
+      "notes": "Reference schema for workcell memory capsule dispatched to worker packets. Runtime validation is JS."
+    },
+    {
       "path": "_SYSTEM/Scripts/yuri-autonomy-runner.mjs",
       "type": "script",
       "class": "system_control_plane",
