@@ -10,8 +10,8 @@ Curated UI references for the YURI OS redesign.
 - [Primer](./sources/primer.md)
 - [Atlassian](./sources/atlassian.md)
 - [Notion](./sources/notion.md)
-- [Frontier Design Intelligence](../../03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md)
-- [Framer University resource atlas](../../03_RESOURCES/References/design-packs/framer-university-resource-atlas/README.md)
+- [Frontier Design Intelligence](../../References/design-packs/frontier-design-intelligence/README.md)
+- [Framer University resource atlas](../../References/design-packs/framer-university-resource-atlas/README.md)
 - [Framer motion assets](./sources/framer-motion-assets.md)
 - [getdesign.md catalog](./getdesign-md.ts)
 
@@ -31,6 +31,6 @@ Curated UI references for the YURI OS redesign.
 ## Internal Reference Packs
 
 - Historical SITREP baseline pack - archived target-intelligence reference material only; do not use it as current Yuri OS product identity.
-- [Framer University resource atlas](../../03_RESOURCES/References/design-packs/framer-university-resource-atlas/README.md) - full 623-resource archive with cluster map, highlight set, and reusable motion guidance.
-- [Frontier Design Intelligence](../../03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md) - 72-source frontier atlas covering agent skills, design systems, React guidance, component catalogs, animation libraries, galleries, repos, AI design tools, and social/community signals.
-- [Frontier start here](../../03_RESOURCES/References/design-packs/frontier-design-intelligence/00-start-here.md) - load order, project-type source picking, and motion budget rules for future website work.
+- [Framer University resource atlas](../../References/design-packs/framer-university-resource-atlas/README.md) - full 623-resource archive with cluster map, highlight set, and reusable motion guidance.
+- [Frontier Design Intelligence](../../References/design-packs/frontier-design-intelligence/README.md) - 72-source frontier atlas covering agent skills, design systems, React guidance, component catalogs, animation libraries, galleries, repos, AI design tools, and social/community signals.
+- [Frontier start here](../../References/design-packs/frontier-design-intelligence/00-start-here.md) - load order, project-type source picking, and motion budget rules for future website work.

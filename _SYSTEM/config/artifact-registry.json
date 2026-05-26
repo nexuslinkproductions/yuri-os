@@ -139,6 +139,13 @@
       "storageRule": "Durable reusable references live under 02_RESOURCES/."
     },
     {
+      "id": "nexus-link",
+      "matchPrefix": "03_NEXUS-LINK/",
+      "artifactType": "doc",
+      "class": "human_workspace",
+      "storageRule": "Nexus Link identity and active public-facing assets live under 03_NEXUS-LINK/."
+    },
+    {
       "id": "archive",
       "matchPrefix": "04_ARCHIVE/",
       "artifactType": "doc",

@@ -1,8 +1,8 @@
 # YURI — Master Identity File
 
 > [!NOTE] Navigation
-> This file is the root ontology. Start here. Every other file in `06_KNOWLEDGE-BASE/` extends from this node.
-> Canonical path: `YURI/06_KNOWLEDGE-BASE/00_META/identity.md`
+> This file is the root ontology. Start here. Every other file in `02_RESOURCES/KNOWLEDGE-BASE/` extends from this node.
+> Canonical path: `02_RESOURCES/KNOWLEDGE-BASE/00_META/identity.md`
 > Cross-reference: [[../05_OPERATIONAL/mode_protocols]], [[system]], [[../04_SYNTHESIS/isomorphisms]]
 
 ---

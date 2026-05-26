@@ -6,8 +6,8 @@ Use this pack when the task involves frontend design, UI implementation, visual 
 
 1. `DESIGN.md`
 2. `design-memory.json`
-3. `03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md`
-4. `03_RESOURCES/References/design-packs/framer-university-resource-atlas/README.md` when motion or Framer-like effects are relevant
+3. `02_RESOURCES/References/design-packs/frontier-design-intelligence/README.md`
+4. `02_RESOURCES/References/design-packs/framer-university-resource-atlas/README.md` when motion or Framer-like effects are relevant
 5. A task-specific source subset from `source-index.json`
 6. Implementation constraints from the target app
 

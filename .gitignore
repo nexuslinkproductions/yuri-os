@@ -60,8 +60,8 @@ checkpoints/
 *.aep
 
 # Client private data
-04_FINANCE/**/*.pdf
-04_FINANCE/**/*.xlsx
+01_PROJECTS/**/*.pdf
+01_PROJECTS/**/*.xlsx
 01_PROJECTS/**/CLIENT-CONFIDENTIAL/
 
 # Backup/temp
@@ -72,7 +72,7 @@ __pycache__/
 *.pyc
 
 # Archived deleted content
-07_ARCHIVE/deleted-backups/
+04_ARCHIVE/deleted-backups/
 _SYSTEM/deleted-backups/
 
 # Build artifacts from graphify
@@ -263,8 +263,8 @@ _SYSTEM/state/external-root-backups/
 _SYSTEM/OS_KERNEL/__pycache__/
 YURI-SENTINEL/08_INGESTION/skool/playwright_data/
 YURI-SENTINEL/08_INGESTION/skool/venv/
-03_RESOURCES/RESEARCH/corpus/awesome-deepseek-integration/
-03_RESOURCES/RESEARCH/ruflo/
+02_RESOURCES/RESEARCH/corpus/awesome-deepseek-integration/
+02_RESOURCES/RESEARCH/ruflo/
 
 # Stray macOS app bundles and canvas files at root
 /*.app/

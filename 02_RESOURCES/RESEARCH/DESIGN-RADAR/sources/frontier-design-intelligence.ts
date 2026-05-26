@@ -3,7 +3,7 @@ import type { DesignSource } from '../design-source';
 export const frontierDesignIntelligence: DesignSource = {
     id: 'frontier-design-intelligence',
     name: 'Frontier Design Intelligence',
-    url: '03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md',
+    url: '02_RESOURCES/References/design-packs/frontier-design-intelligence/README.md',
     signal: [
         '72-source public frontier atlas spanning agent skills, systems, component catalogs, React guidance, motion, inspiration, repos, AI tools, and community signals',
         'Scored design-strength audit with activation gaps and concrete upgrade recommendations',

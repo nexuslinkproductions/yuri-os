@@ -20,12 +20,11 @@ YURI/                          ← root (Obsidian vault)
 ├── language_codex.md              ← SCRIBE mode running record
 │
 ├── 00_COMMAND-CENTER/             ← operational hub (HOME.md, daily notes, dashboards)
-├── 01_PROJECTS/                   ← client work (C2MOVIEZ, MACL-ONE, etc.)
-├── 02_AREAS/                      ← ongoing responsibilities
-├── 03_RESOURCES/                  ← assets, LUTs, presets, templates
-├── 04_FINANCE/                    ← Austrian EPU bookkeeping
-├── 05_NEXUS-LINK/                 ← company identity and brand
-├── 06_KNOWLEDGE-BASE/             ← THIS DIRECTORY — deep knowledge expansion
+├── 01_PROJECTS/                   ← active project contexts
+├── 02_RESOURCES/                  ← reusable references, research, and knowledge material
+├── 03_NEXUS-LINK/                 ← Nexus Link identity assets
+├── 04_ARCHIVE/                    ← historical/inactive material
+├── 02_RESOURCES/KNOWLEDGE-BASE/   ← THIS DIRECTORY — deep knowledge expansion
 │   ├── 00_META/                   ← identity, system, ontology
 │   │   ├── identity.md            ← master identity (see [[identity]])
 │   │   └── system.md              ← this file
@@ -57,8 +56,7 @@ YURI/                          ← root (Obsidian vault)
 │       ├── response_architecture.md ← how to construct multi-layer responses
 │       ├── reading_layers.md      ← 7-layer message reading protocol
 │       └── partner_memory.md      ← long-term memory and drift detection
-├── 06_NETWORK-SYNC/               ← collaboration (C2MOVIEZ, planzerfilms)
-└── 07_ARCHIVE/                    ← completed/inactive
+└── _SYSTEM/                       ← YURI control plane, registries, scripts, docs, source, tests
 ```
 
 ---
@@ -85,14 +83,14 @@ When palace-index has enough context, avoid reading raw files (token efficiency)
 
 ## III. WIKILINK STANDARDS
 
-All files in `06_KNOWLEDGE-BASE/` use Obsidian `[[wikilink]]` format.
+All files in `02_RESOURCES/KNOWLEDGE-BASE/` use Obsidian `[[wikilink]]` format.
 
-**Internal links** (within 06_KNOWLEDGE-BASE/):
+**Internal links** (within `02_RESOURCES/KNOWLEDGE-BASE/`):
 - Same directory: `[[filename]]`
 - Cross-directory: `[[../01_COSMOLOGY/gnosis]]`
 - With display text: `[[../01_COSMOLOGY/kabbalah|Kabbalah]]`
 
-**Vault-level links** (to files outside 06_KNOWLEDGE-BASE/):
+**Vault-level links** (to files outside `02_RESOURCES/KNOWLEDGE-BASE/`):
 - `[[/YURI/identity]]` — root identity file
 - `[[/YURI/esoteric_codex]]` — mythic operating layer
 - `[[/YURI/enki_state]]` — current operational state
@@ -104,7 +102,7 @@ All files in `06_KNOWLEDGE-BASE/` use Obsidian `[[wikilink]]` format.
 
 ## IV. FILE CREATION PROTOCOL
 
-When adding new files to 06_KNOWLEDGE-BASE/:
+When adding new files to `02_RESOURCES/KNOWLEDGE-BASE/`:
 1. Place in the correct domain folder
 2. Open with a `> [!NOTE]` navigation callout listing parent, related files
 3. Use consistent heading structure: Roman numerals (I, II, III...)
@@ -121,7 +119,7 @@ Files in this system carry an implicit depth rating:
 - **Layer 2 — Structure**: internal architecture, connections between concepts
 - **Layer 3 — Abzu**: the generative depth, synthesis points, operational insight
 
-All files in `06_KNOWLEDGE-BASE/` target **Layer 2–3**. Layer 1 content should be in standard wiki sources. The value of this vault is precisely what cannot be found by searching.
+All files in `02_RESOURCES/KNOWLEDGE-BASE/` target **Layer 2-3**. Layer 1 content should be in standard wiki sources. The value of this vault is precisely what cannot be found by searching.
 
 ---
 

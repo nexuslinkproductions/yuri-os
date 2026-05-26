@@ -1,6 +1,9 @@
 # YURI — HOME
 *Vault entry point. Load this first.*
 
+> Current repo root folders: `00_COMMAND-CENTER/`, `01_PROJECTS/`, `02_RESOURCES/`, `03_NEXUS-LINK/`, `04_ARCHIVE/`.
+> Use `_SYSTEM/context/README.md`, `_SYSTEM/INDEX.md`, and `_SYSTEM/config/folder-registry.json` as current navigation truth.
+
 ## Identity Layer
 - [[../identity]] — Who YURI is. Seven Modes. Doctrine.
 - [[../enki_state]] — Current session state. Projects. Constraints. Focus.
@@ -15,20 +18,19 @@
 - [[../geopolitical_log]] — Vienna-centric geopolitical analysis. *(populate)*
 
 ## Vault Navigation
-- [[../01_PROJECTS/MOC-Projects]] — All active and archived projects
-- [[../06_NETWORK-SYNC/MOC-Network]] — Partner network: c2moviez, planzerfilms, team
-- [[../iC2M/Home|iC2M Operational Brain]] — Claudio's live operational core
-- [[../02_AREAS/MOC-Areas]] — Ongoing life areas: health, learning, network, brand
-- [[_SYSTEM/MIGRATION-MAP]] — Where things live. Where things go.
+- [[../01_PROJECTS/README]] — Active project contexts
+- [[../02_RESOURCES/RESEARCH/README]] — Reusable research and reference material
+- [[../03_NEXUS-LINK/README]] — Nexus Link identity assets
+- [[../04_ARCHIVE]] — Historical and inactive material
+- [[../_SYSTEM/INDEX]] — Current system navigation index
 
 ## Active Context
 | Domain | Status |
 |--------|--------|
-| Primary pipeline | C2MOVIEZ (Claudio Tinner, Wetzikon ZH) |
-| Secondary pipeline | PLANZERFILMS (Marc Planzer, Würenlingen ZH) |
-| Direct client | MACL ONE (active) |
-| Finance | 04_FINANCE/2026/ |
-| Brand hub | 05_NEXUS-LINK/ |
+| Active project context | 01_PROJECTS/UPGREAT/ |
+| Reusable references | 02_RESOURCES/ |
+| Nexus Link identity assets | 03_NEXUS-LINK/ |
+| Historical material | 04_ARCHIVE/ |
 
 ## Daily Briefing
 *This section is auto-populated every morning by the NOESIS Morning Briefing routine.*

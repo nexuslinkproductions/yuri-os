@@ -11,8 +11,8 @@
 
 1. `design-memory.json` - canonical decisions, tokens, and approved patterns.
 2. `RESEARCH/DESIGN-RADAR/README.md` and `RESEARCH/DESIGN-RADAR/synthesis.md` - source selection and motion guidance.
-3. `03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md` - system foundation, accessibility, and source selection.
-4. `03_RESOURCES/References/design-packs/framer-university-resource-atlas/README.md` - motion families, interaction structures, and component behavior.
+3. `02_RESOURCES/References/design-packs/frontier-design-intelligence/README.md` - system foundation, accessibility, and source selection.
+4. `02_RESOURCES/References/design-packs/framer-university-resource-atlas/README.md` - motion families, interaction structures, and component behavior.
 5. `RESEARCH/06-ANALYZED-WEBSITES.md` - implementation patterns worth adapting.
 6. `RESEARCH/pinterest-refs/INDEX.md` - tone and mood only. Do not copy layout, spacing, or component structure from Pinterest.
 

@@ -501,7 +501,7 @@
       "component": "NexusLinkLogoAtmosphere",
       "file": "src/components/ui/LogoAtmosphere.tsx, src/components/Navigation.tsx, src/App.tsx, src/styles/global.css",
       "action": "create",
-      "decision": "Integrated the real Nexus Link SVG logo assets from 05_NEXUS-LINK/Identity/NLP LOGO as a first-load animated lockup, scroll-reactive background mark, ghost elements, construction lines, and navigation wordmark. Added hard CSS override so data-magnetic elements cannot be translated by stale cursor behavior.",
+      "decision": "Integrated the real Nexus Link SVG logo assets from 03_NEXUS-LINK/Identity/NLP LOGO as a first-load animated lockup, scroll-reactive background mark, ghost elements, construction lines, and navigation wordmark. Added hard CSS override so data-magnetic elements cannot be translated by stale cursor behavior.",
       "tokens_used": [
         "--color-crimson",
         "--color-bg-abzu",
@@ -662,7 +662,7 @@
     {
       "date": "2026-05-10",
       "component": "ExeoFlow YURI OS SITREP baseline reference pack",
-      "decision": "Saved the current ExeoFlow + YURI OS SITREP website as an internal design-source pack under 03_RESOURCES/References/design-packs. The pack records this as a basic baseline and includes snapshot assets, design notes, a reuse guide, and a prioritized improvement backlog for future presentation, animation, and information upgrades.",
+      "decision": "Saved the current ExeoFlow + YURI OS SITREP website as an internal design-source pack under 02_RESOURCES/References/design-packs. The pack records this as a basic baseline and includes snapshot assets, design notes, a reuse guide, and a prioritized improvement backlog for future presentation, animation, and information upgrades.",
       "tokens_used": [
         "--color-void",
         "--color-deep",
@@ -734,7 +734,7 @@
     {
       "date": "2026-05-10T20:00:45.290Z",
       "component": "Frontier Design Intelligence layer",
-      "file": "DESIGN.md, design-memory.json, skills/frontend-design/SKILL.md, skills/design-master/SKILL.md, RESEARCH/DESIGN-RADAR/design-radar.ts, 03_RESOURCES/References/design-packs/frontier-design-intelligence/README.md",
+      "file": "DESIGN.md, design-memory.json, skills/frontend-design/SKILL.md, skills/design-master/SKILL.md, RESEARCH/DESIGN-RADAR/design-radar.ts, 02_RESOURCES/References/design-packs/frontier-design-intelligence/README.md",
       "action": "upgrade",
       "decision": "Unified design activation around root design-memory.json, installed frontend-design as an active skill, added source-selection and motion-budget rules, and represented the frontier and Framer packs in Design Radar executable catalog form.",
       "tokens_used": [
