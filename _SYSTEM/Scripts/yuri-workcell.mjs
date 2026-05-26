@@ -482,6 +482,164 @@ export function makeFilesystemReader(repoRoot) {
 }
 
 // ---------------------------------------------------------------------------
+// Materialization — yuri-patch-v0 (in-memory composition, no FS mutation)
+// ---------------------------------------------------------------------------
+
+function mpBuildRegion(r) {
+  const matchedOld = r.op === 'replace_lines' ? (r.matchedOldLines ?? 1) : 0;
+  const start = r.anchorLine ?? 0;
+  const end = r.op === 'replace_lines' ? start + matchedOld - 1 : start;
+  const spliceStart = r.op === 'insert_after' ? start + 1 : start;
+  return { index: r.index, op: r.op, start, end, spliceStart, matchedOld };
+}
+
+function mpEarlyReturn(errors, extra = {}) {
+  return {
+    ok: false, errors, warnings: [],
+    dryRun: extra.dryRun ?? null, baseState: null, fileResults: [], rollbackManifest: null,
+    filesWouldModify: [], filesWouldCreate: [], filesWouldDelete: [],
+  };
+}
+
+export function materializePatch(patch, fsReader, options = {}) {
+  const dryRun = applyPatchDryRun(patch, fsReader, { skipValidation: options.skipValidation });
+  if (!dryRun.ok) return mpEarlyReturn(dryRun.errors, { dryRun });
+
+  const readAt = new Date().toISOString();
+  const bsFiles = {};
+  const baseErrors = [];
+
+  for (const r of dryRun.results) {
+    if (r.status !== 'would-apply' || Object.hasOwn(bsFiles, r.file)) continue;
+    if (r.op === 'create_file') {
+      bsFiles[r.file] = { beforeContent: null, beforeHash: null, beforeLines: null };
+    } else {
+      const read = safeReadFsReader(fsReader, r.file);
+      if (!read.ok || read.content === null) {
+        baseErrors.push(`base-state read failed for ${r.file}: ${read.ok ? 'returned null' : read.error}`);
+        continue;
+      }
+      const c = read.content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      bsFiles[r.file] = { beforeContent: c, beforeHash: sha256(c), beforeLines: splitLines(c).length };
+    }
+  }
+
+  if (baseErrors.length > 0) return mpEarlyReturn(baseErrors, { dryRun });
+
+  const baseState = { readAt, files: bsFiles };
+  const errors = [];
+  const warnings = [...(dryRun.warnings || [])];
+  const fileResults = [];
+
+  const byFile = new Map();
+  for (const r of dryRun.results) {
+    if (r.status !== 'would-apply') continue;
+    if (!byFile.has(r.file)) byFile.set(r.file, []);
+    byFile.get(r.file).push(r);
+  }
+
+  for (const [file, entries] of byFile) {
+    const bs = bsFiles[file];
+    const creates = entries.filter((e) => e.op === 'create_file');
+    const deletes = entries.filter((e) => e.op === 'delete_file');
+    const editOps = entries.filter((e) => ['replace_lines', 'insert_before', 'insert_after'].includes(e.op));
+
+    if (creates.length > 0 && (deletes.length > 0 || editOps.length > 0)) {
+      errors.push(`invalid op mix for ${file}: create_file cannot be combined with other ops`);
+      continue;
+    }
+    if (deletes.length > 0 && (creates.length > 0 || editOps.length > 0)) {
+      errors.push(`invalid op mix for ${file}: delete_file cannot be combined with other ops`);
+      continue;
+    }
+    if (creates.length > 1 || deletes.length > 1) {
+      errors.push(`invalid op: duplicate create_file or delete_file for ${file}`);
+      continue;
+    }
+
+    if (creates.length === 1) {
+      const pe = patch.patches[creates[0].index];
+      const afterContent = pe.new_lines.join('\n');
+      fileResults.push({
+        file, action: 'create', afterContent, afterHash: sha256(afterContent),
+        afterLines: splitLines(afterContent).length, appliedEntries: [creates[0].index], beforeHash: null,
+      });
+      continue;
+    }
+
+    if (deletes.length === 1) {
+      fileResults.push({
+        file, action: 'delete', afterContent: null, afterHash: null, afterLines: null,
+        appliedEntries: [deletes[0].index], beforeHash: bs.beforeHash,
+      });
+      continue;
+    }
+
+    const regions = editOps.map(mpBuildRegion);
+    let fileError = false;
+    for (let a = 0; a < regions.length; a++) {
+      for (let b = a + 1; b < regions.length; b++) {
+        const ra = regions[a];
+        const rb = regions[b];
+        if (ra.start <= rb.end && rb.start <= ra.end) {
+          errors.push(`overlapping edit regions in ${file}: patches[${ra.index}] and patches[${rb.index}]`);
+          fileError = true;
+        } else if (ra.end + 1 === rb.start || rb.end + 1 === ra.start) {
+          warnings.push(`adjacent edit regions in ${file}: patches[${ra.index}] and patches[${rb.index}]`);
+        }
+      }
+    }
+    if (fileError) continue;
+
+    const sorted = [...regions].sort((a, b) => b.spliceStart - a.spliceStart);
+    const lines = [...splitLines(bs.beforeContent)];
+    for (const reg of sorted) {
+      const pe = patch.patches[reg.index];
+      const nl = Array.isArray(pe.new_lines) ? pe.new_lines : [];
+      lines.splice(reg.spliceStart, reg.op === 'replace_lines' ? reg.matchedOld : 0, ...nl);
+    }
+
+    const afterContent = lines.join('\n');
+    fileResults.push({
+      file, action: 'modify', afterContent, afterHash: sha256(afterContent),
+      afterLines: lines.length, appliedEntries: editOps.map((e) => e.index), beforeHash: bs.beforeHash,
+    });
+  }
+
+  const patchHash = sha256(JSON.stringify(patch));
+  const baseStateHash = sha256(JSON.stringify(bsFiles));
+  const materializedAt = new Date().toISOString();
+
+  const rollbackManifest = {
+    schema: 'yuri.workcell.rollback.v0',
+    patchHash,
+    baseStateHash,
+    materializedAt,
+    files: fileResults.map((fr) => ({
+      file: fr.file,
+      action: fr.action,
+      rollbackAction: fr.action === 'create' ? 'delete' : 'restore',
+      beforeHash: bsFiles[fr.file]?.beforeHash ?? null,
+      beforeContent: bsFiles[fr.file]?.beforeContent ?? null,
+      afterHash: fr.afterHash,
+    })),
+  };
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    warnings,
+    dryRun,
+    baseState,
+    fileResults,
+    rollbackManifest,
+    filesWouldModify: fileResults.filter((fr) => fr.action === 'modify').map((fr) => fr.file),
+    filesWouldCreate: fileResults.filter((fr) => fr.action === 'create').map((fr) => fr.file),
+    filesWouldDelete: fileResults.filter((fr) => fr.action === 'delete').map((fr) => fr.file),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // DAG validation — hard gate
 // ---------------------------------------------------------------------------
 
