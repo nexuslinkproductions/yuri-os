@@ -169,7 +169,7 @@
     {
       "id": "autonomy",
       "label": "Governed Autonomy Context",
-      "triggers": ["autonomy", "autonomous", "governed", "dry-run", "evidence runner", "timed run", "code autopilot", "approval boundary", "rollback contract", "scorecard", "sonnet", "workcell", "output pool", "worker bundle"],
+      "triggers": ["autonomy", "autonomous", "governed", "dry-run", "evidence runner", "timed run", "code autopilot", "approval boundary", "rollback contract", "scorecard", "sonnet", "workcell", "output pool", "worker bundle", "memory capsule", "memory signal", "symbiotic memory"],
       "paths": [
         "_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md",
         "_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md",

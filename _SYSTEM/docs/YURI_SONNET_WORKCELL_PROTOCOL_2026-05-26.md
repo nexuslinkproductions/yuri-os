@@ -48,7 +48,17 @@ Worker output is not prose advice. A worker must return a typed bundle:
     }
   ],
   "testCommands": ["node --test _SYSTEM/Scripts/yuri-autonomy-runner.test.mjs"],
-  "riskNotes": ["No AGENTS-protected surface access requested."]
+  "riskNotes": ["No AGENTS-protected surface access requested."],
+  "memorySignals": {
+    "proposals": [],
+    "capsuleUsage": {
+      "contextsUsed": [],
+      "contextsIgnored": [],
+      "contradictionsDetected": [],
+      "staleContexts": []
+    },
+    "recallLog": []
+  }
 }
 ```
 
@@ -96,7 +106,199 @@ This pool is a safety gate. It lets workers dump real produced material without 
 
 The runtime pool is ignored source-wise. It becomes normal operating material only after `yuri-workcell.mjs` creates it, validates it, and registers the runtime path in the artifact/folder architecture.
 
+## Symbiotic Memory
+
+Prime's rule: workers see projections, emit signals, touch nothing.
+
+The workcell does not create a second memory system. It wraps the existing memory membrane in `_SYSTEM/Scripts/memory-kernel.mjs`: `recallMemory()` for curated recall, `proposeMemoryWrite()` for gated proposals, and `promoteMemoryProposal()` only after Marcel approves. Worker lanes receive read-only memory capsules in their packets. They do not mutate canonical memory, ledger files, proposal queues, or runtime state directly.
+
+This keeps the Ricks symbiotic with YURI memory without letting every worker become a memory authority. C-137 assembles memory context, workers report what helped or contradicted evidence, Simple Rick filters proposal candidates, Marcel decides, and C-137 performs the approved promotion.
+
+### Memory Permissions
+
+| Neutral role | Private overlay | Memory authority |
+|---|---|---|
+| Orchestrator | Rick C-137 | May call `recallMemory()`, read bounded ledger summaries, submit filtered proposals, record Marcel decisions, and promote approved proposals. |
+| Builder | Quantum Rick / Maximums Rickimus | Capsule only. Emits `memorySignals`; no direct recall, write, promote, or evict. |
+| Scout | Zeta Alpha Rick | May perform bounded curated recall when C-137 grants `recallAllowed`; must return `recallLog`. No ledger access and no mutation. |
+| Guardrail builder | Cop Rick / Nearly Kantian Rick | Capsule only. Reports stale or contradictory memory in `memorySignals`. |
+| Registry/docs builder | Riq IV | Capsule only. May draft docs/schema/registry changes about memory protocol, but cannot mutate memory. |
+| Synthesis filter | Simple Rick | May receive collected memory signals, perform bounded dedup/contradiction checks, and return filtered proposal lists. No promotion. |
+| Supercharger | Rick Prime | Reviews integrated diff and memory usage for false assumptions. Returns findings, not memory writes. |
+
+Implementation lock: add an explicit worker-deny authority such as `sonnet-worker: []` in `MEMORY_AUTHORITY` before worker dispatch tooling exposes any memory wrapper path. The protocol should not rely on the current safe-ish fallback to session scope.
+
+### Memory Capsule
+
+Every worker packet includes a read-only capsule assembled by C-137:
+
+```json
+{
+  "memoryCapsule": {
+    "version": "workcell.capsule.v0",
+    "assembledAt": "2026-05-26T14:00:00Z",
+    "assembledBy": "orchestrator",
+    "goal": "sub-task goal that drove recall",
+    "contexts": [
+      {
+        "id": "feedback_codex_primary_partner.md",
+        "path": "_SYSTEM/memory/feedback_codex_primary_partner.md",
+        "score": 0.85,
+        "content": "truncated curated projection",
+        "bytes": 1200,
+        "sha256": "abc123",
+        "truncated": false
+      }
+    ],
+    "maxContexts": 8,
+    "maxBytesPerContext": 4000,
+    "maxTotalBytes": 24000,
+    "policy": {
+      "readOnly": true,
+      "proposalAllowed": true,
+      "writeAllowed": false,
+      "promoteAllowed": false,
+      "recallAllowed": false
+    },
+    "staleness": {
+      "checkedAt": "2026-05-26T14:00:00Z",
+      "staleContextIds": [],
+      "freshnessWindowHours": 24
+    },
+    "ledgerSummary": {
+      "recentEntryCount": 5,
+      "lastTimestamp": "2026-05-26T13:45:00Z",
+      "scope": "session"
+    }
+  }
+}
+```
+
+Capsule rules:
+
+- C-137 assembles the capsule with `recallMemory()` against curated `_SYSTEM/memory/` projections.
+- Capsule total should stay at or below 24KB until token-budget telemetry proves a better threshold.
+- Scout may receive `recallAllowed: true`, capped at five recall queries per task.
+- Builder, guardrail, registry/docs, and Prime packets default to `recallAllowed: false`.
+- Capsule context hashes are checked during assembly and again at output collection. Drift is logged as stale memory, not silently trusted.
+
+### Memory Signals
+
+Every worker output includes `memorySignals`. This is the only worker-to-memory channel.
+
+```json
+{
+  "memorySignals": {
+    "proposals": [
+      {
+        "type": "rule",
+        "scope": "project",
+        "content": "What should be remembered",
+        "confidence": 0.75,
+        "reason": "Why this helps future work",
+        "tags": ["autonomy", "workcell"],
+        "sourceEvidence": ["_SYSTEM/Scripts/yuri-autonomy-runner.mjs:200"],
+        "originRole": "builder"
+      }
+    ],
+    "capsuleUsage": {
+      "contextsUsed": ["feedback_codex_primary_partner.md"],
+      "contextsIgnored": ["memory-core.md"],
+      "contradictionsDetected": [
+        {
+          "capsuleContextId": "feedback_codex_primary_partner.md",
+          "contradiction": "Capsule says X but current evidence says not-X.",
+          "currentEvidence": "path:line",
+          "severity": "high"
+        }
+      ],
+      "staleContexts": [
+        {
+          "capsuleContextId": "memory-core.md",
+          "reason": "References a deleted or renamed entity.",
+          "suggestedAction": "update"
+        }
+      ]
+    },
+    "recallLog": []
+  }
+}
+```
+
+Worker proposals may request `session` or `project` scope. `permanent` requests from workers are rejected or downgraded before reaching the memory kernel. The orchestrator injects `runId`, `taskGoal`, `capsuleVersion`, and verified `originRole` before any proposal is routed.
+
+### Recall Flow
+
+1. Marcel assigns a task.
+2. C-137 routes context, recalls curated memory, and assembles a base capsule.
+3. If deep context is needed, Scout receives a minimal packet, performs capped recall, and returns `recallLog` plus context references.
+4. C-137 merges Scout findings into role-specific capsules.
+5. Workers execute with capsules as read-only context.
+6. Workers report useful, ignored, stale, and contradictory capsule context in `memorySignals`.
+7. C-137 collects outputs and validates all memory signals before integration.
+
+Scout's `recallLog` is audit evidence. If Prime later finds that memory created a false assumption, the run can trace which recall produced the bad context.
+
+### Proposal And Promotion Flow
+
+1. Workers emit `memorySignals.proposals`.
+2. C-137 deduplicates by content hash, validates `type` against `MEMORY_ENTRY_TYPES`, validates scope, rejects `permanent`, and attaches run metadata.
+3. Simple Rick receives unique proposals plus the integrated diff and filters for contradiction, duplicate ledger entries, low-confidence noise, and "this belongs in code, not memory" cases.
+4. C-137 submits surviving proposals through `proposeMemoryWrite()` with `record: true`.
+5. Proposals remain pending until Marcel reviews them through the memory proposal flow.
+6. Marcel decides `keep`, `rewrite`, `reject`, or `defer`.
+7. C-137 promotes only kept proposals with explicit approval. Rewrites become new proposals. Rejects and defers remain logged.
+8. Promoted memory lands under `_SYSTEM/memory/` and is committed only when Marcel authorizes the commit.
+
+There are three gates between worker output and canonical memory: Simple Rick filtering, Marcel decision, and explicit promotion/commit.
+
+### Stale And Contradiction Gates
+
+- Capsule assembly excludes hash-stale contexts and records `staleContextIds`.
+- Worker-detected contradictions are routed to Simple Rick with evidence.
+- If current code is more authoritative than old memory, Simple Rick can emit an eviction/update proposal. Eviction follows the same Marcel-decision path.
+- If memory is more authoritative than a worker claim, C-137 routes the worker output to Prime or re-dispatches with clarified context.
+- Cross-worker contradictions are resolved before integration and reviewed during Prime's gap hunt.
+- If Prime finds memory-induced false assumptions in the integrated diff, the finding blocks handoff until C-137 either corrects the diff or opens a memory update/eviction proposal.
+
+### Workcell Memory Pool
+
+The runtime pool should store memory artifacts alongside worker outputs:
+
+```text
+_SYSTEM/state/workcell/<runId>/
+  manifest.json
+  decomposition.json
+  capsules/
+    scout.json
+    builder.json
+    guardrail.json
+    registry.json
+  outputs/
+    scout.json
+    builder.json
+    guardrail.json
+    registry.json
+  memory/
+    collected.json
+    filtered.json
+    proposed.json
+    contradictions.json
+  integration/
+    diff.patch
+    conflicts.json
+  supercharge/
+    findings.json
+  verdict.json
+```
+
+`_SYSTEM/state/workcell/` must be registered as runtime state before live worker bundles are written. `yuri-closeout.mjs` should summarize workcell memory proposals during EOT when a workcell run is active.
+
 ## Output Contracts
+
+Common output:
+
+- `memorySignals`: proposal candidates, capsule usage, contradictions, stale contexts, and Scout recall log.
 
 Builder output:
 
@@ -137,18 +339,20 @@ Prime output:
 
 1. C-137 creates an autonomy run manifest for the goal.
 2. C-137 decomposes the work into a dependency DAG.
-3. C-137 assigns independent leaf packets to Sonnet workers.
-4. Each worker receives a bounded packet: files in scope, expected output contract, validation commands, no commit/push, no AGENTS-protected surfaces.
-5. Workers produce typed output bundles under `_SYSTEM/state/workcell/<runId>/<role>/`.
-6. C-137 collects all bundles and rejects missing, malformed, out-of-scope, or protected-path outputs.
-7. C-137 detects file collisions and applies bundles in DAG order.
-8. C-137 runs the expected local verification.
-9. Rick Prime supercharges the integrated diff.
-10. Prime findings are routed back to the responsible worker or handled by C-137 when they are integration-level repairs.
-11. C-137 re-runs verification and presents Marcel with the integrated diff, Prime verdict, tests, and residual risks.
-12. Marcel authorizes or holds the commit.
-13. C-137 commits only after explicit authorization.
-14. C-137 records closeout and cleans worker runtime bundles when safe.
+3. C-137 assembles role-specific memory capsules.
+4. C-137 assigns independent leaf packets to Sonnet workers.
+5. Each worker receives a bounded packet: files in scope, memory capsule, expected output contract, validation commands, no commit/push, no AGENTS-protected surfaces.
+6. Workers produce typed output bundles under `_SYSTEM/state/workcell/<runId>/<role>/`.
+7. C-137 collects all bundles and rejects missing, malformed, out-of-scope, or protected-path outputs.
+8. C-137 collects `memorySignals` and routes proposal candidates through Simple Rick before any memory-kernel proposal is created.
+9. C-137 detects file collisions and applies bundles in DAG order.
+10. C-137 runs the expected local verification.
+11. Rick Prime supercharges the integrated diff and memory usage.
+12. Prime findings are routed back to the responsible worker or handled by C-137 when they are integration-level repairs.
+13. C-137 re-runs verification and presents Marcel with the integrated diff, Prime verdict, tests, memory proposals, and residual risks.
+14. Marcel authorizes or holds the commit and decides memory proposals separately.
+15. C-137 commits only after explicit authorization.
+16. C-137 records closeout and cleans worker runtime bundles when safe.
 
 ## Prime Supercharge
 
@@ -208,22 +412,25 @@ Expected artifacts:
 - runner/workcell budget estimate output
 - tests proving over-budget dispatch blocks
 
-### Task 3: Worker Packet Schema
+### Task 3: Worker Packet And Memory Schemas
 
 Goal: lock typed output contracts so C-137 integrates deterministic bundles, not prose.
 
 Processing:
 
 - Scout extracts expected role contracts from this protocol.
-- Builder creates `yuri.workcell-packet.v0.schema.json`.
+- Builder creates packet, output, and memory capsule schemas.
 - Guardrail writes validation tests for builder, scout, guardrail, registry, and Prime outputs.
 - Registry/docs registers the schema and links it from the autonomy context packet.
+- Simple Rick pressure-tests memory proposal fields for filtering and dedup.
 - Prime pressure-tests ambiguous fields and missing failure states.
 - C-137 integrates and verifies.
 
 Expected artifacts:
 
 - `_SYSTEM/config/schemas/yuri.workcell-packet.v0.schema.json`
+- `_SYSTEM/config/schemas/yuri.workcell-output.v0.schema.json`
+- `_SYSTEM/config/schemas/yuri.workcell-capsule.v0.schema.json`
 - workcell packet validation tests
 
 ### Task 4: L3 Rollback Contract Gate
@@ -293,6 +500,9 @@ Expected artifacts:
 - Worker packet schema does not exist yet.
 - Runtime workcell state path must be registered before worker bundles are written.
 - Token budget gate does not exist yet.
+- Workcell memory capsule/output schemas do not exist yet.
+- `MEMORY_AUTHORITY` needs an explicit worker-deny entry before memory wrapper access can be safely exposed to worker tooling.
+- Scout recall must be capped, with five recall queries per task as the initial default.
 - Patch conflict detection starts syntactic only; semantic conflicts remain C-137 review responsibility.
 - Persistent worker policy needs a first rule: use persistent sessions for continuity, but every packet must include explicit context so no worker relies on hidden memory.
 

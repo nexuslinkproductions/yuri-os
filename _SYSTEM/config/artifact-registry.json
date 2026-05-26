@@ -347,7 +347,7 @@
       "protected": false,
       "storageRule": "Governed-autonomy protocols live in _SYSTEM/docs/.",
       "rebuildRule": "Update through Sonnet workcell protocol changes; validate with artifact registry and autonomy context routing.",
-      "notes": "Protocol for multi-Sonnet worker implementation, Rick Prime supercharge review, C-137 integration, and Marcel authorization."
+      "notes": "Protocol for multi-Sonnet worker implementation, memory capsules/signals, Rick Prime supercharge review, C-137 integration, and Marcel authorization."
     },
     {
       "path": "_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json",
