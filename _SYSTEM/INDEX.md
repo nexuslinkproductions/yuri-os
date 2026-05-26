@@ -54,10 +54,10 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | Agent assembly | `.agents` | Read recipes and command adapters only. It references skills; it does not own skill bodies. |
 | Skill library | `skills` | Canonical YURI capability database. Load selected `skills/<skill-id>/SKILL.md` files only. |
 | Provider adapters | `.claude`, `.codex`, `.obsidian`, `.vscode` | Doors, not brains. Read only provider-specific config needed for the task. |
-| Runtime/cache | `.codex-worktrees`, `.smart-env`, `.tmp`, `logs`, `checkpoints`, `dist`, `output` | Do not read by default. Candidate cleanup only after registry/process checks. |
-| Generated artifacts | `graph`, `graphify-out`, `claude-palace-out` | Do not read by default. Regenerate or inspect only for graph/report tasks. |
-| External checkouts | `_SYSTEM/tools/*`, selected `01_PROJECTS/*`, selected `02_RESOURCES/RESEARCH/*` | Read only when explicitly relevant. Update through their own repo/tool contract. |
-| Local model runtimes | `needle` | Treat as a model runtime, not a generic research repo. Use through YURI routing/health contracts. |
+| Runtime/cache | `.codex-worktrees`, `.smart-env`, `.tmp` plus task-scoped generated outputs | Do not read by default. Root generated dumps should be deleted or regenerated through a scoped task. |
+| Generated artifacts | Historical roots such as `graph`, `graphify-out`, `claude-palace-out` | Not source truth and not kept in the root. Regenerate only for graph/report tasks. |
+| External checkouts | `_SYSTEM/tools/gitnexus`, selected `01_PROJECTS/*`, selected `02_RESOURCES/RESEARCH/*` | Read only when explicitly relevant. Update through their own repo/tool contract. |
+| Local model runtimes | `_SYSTEM/tools/needle`, `_SYSTEM/data/models/needle` | Treat as model runtime/data, not generic research. Use through YURI routing/health contracts. |
 | Protected surfaces | `.env`, `backend/data`, `.claude/state`, `.claude/history`, `node_modules` | Never read directly. Use existing wrappers or explicit owner-approved operation. |
 
 ## Canonical Model Read Path

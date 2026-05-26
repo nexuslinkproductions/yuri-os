@@ -280,7 +280,7 @@ function listInstalledModels() {
   }
 
   const manifestRoot = process.env.OLLAMA_MANIFEST_DIR || path.join(process.env.HOME || '', '.ollama/models/manifests/registry.ollama.ai/library');
-  const needleRepo = process.env.NEEDLE_REPO_DIR || path.join(process.cwd(), 'needle');
+  const needleRepo = process.env.NEEDLE_REPO_DIR || path.join(process.cwd(), '_SYSTEM/tools/needle');
   if (!existsSync(manifestRoot)) {
     if (existsSync(needleRepo)) models.add('needle');
     return models;

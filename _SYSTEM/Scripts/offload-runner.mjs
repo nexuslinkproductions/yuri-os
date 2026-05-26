@@ -1627,7 +1627,7 @@ function pickFirstExisting(candidates, localModels) {
 function listLocalModels() {
   const models = new Set();
   const manifestRoot = process.env.OLLAMA_MANIFEST_DIR || path.join(process.env.HOME || '', '.ollama/models/manifests/registry.ollama.ai/library');
-  const needleRepo = process.env.NEEDLE_REPO_DIR || path.join(REPO_ROOT, 'needle');
+  const needleRepo = process.env.NEEDLE_REPO_DIR || path.join(REPO_ROOT, '_SYSTEM/tools/needle');
 
   if (!existsSync(manifestRoot)) {
     if (existsSync(needleRepo)) models.add('needle');

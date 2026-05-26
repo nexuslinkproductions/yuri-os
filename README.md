@@ -8,7 +8,7 @@ This README is a factual orientation map. It is not a product claim, readiness c
 
 - Active development repository.
 - The main control plane is under `_SYSTEM/`.
-- The root contains a mix of active workspace folders, provider adapters, generated outputs, runtime/cache folders, and legacy surfaces still under review.
+- The root is being kept as an orientation surface: canonical workspace folders, provider adapters, root config, and a small number of protected/local tool surfaces.
 - New durable files should be placed through the YURI registry/context architecture.
 - Protected runtime and secret surfaces must not be read or written directly.
 
@@ -34,7 +34,7 @@ node _SYSTEM/Scripts/context-router.mjs "<task>"
 
 ## Root Map
 
-The root is not a clean product package. It is an active workspace with canonical surfaces, adapters, human work areas, and cleanup candidates.
+The root is not a product package. It is an active workspace with canonical surfaces, adapters, human work areas, and protected local runtime surfaces.
 
 | Path | Current role |
 |---|---|
@@ -50,12 +50,12 @@ The root is not a clean product package. It is an active workspace with canonica
 | `AGENTS.md`, `CLAUDE.md`, `SOUL.md`, `README.md` | Root orientation and adapter documents. |
 | `package.json`, `package-lock.json`, `tsconfig*.json`, `vite.config.mts`, `ecosystem.config.js` | Root development, build, and process configuration. |
 | `yuri-os-dashboard.html` | Tracked dashboard snapshot; source truth is the generator/spec layer, not the snapshot alone. |
-| `GeneratedContent` | Local ignored symlink to external generated content. Kept out of Git and hidden from default navigation. |
-| `backend/`, `Scripts/`, `test/` | Legacy or runtime surfaces. Active code belongs under `_SYSTEM/` unless a scoped cleanup proves otherwise. |
-| `integrations/`, `NEURAL-NETWORK/`, `YURI-SENTINEL/`, `needle/` | External, model, or legacy tool surfaces that need per-child classification before root cleanup. |
-| `output/`, `logs/`, `checkpoints/`, `dist/`, `graph/`, `graphify-out/`, `claude-palace-out/` | Generated/runtime output. Do not treat as source truth. |
+| `backend/` | Ignored legacy/protected local runtime surface. Active backend source is `_SYSTEM/backend/`; do not inspect `backend/data/` directly. |
+| `_SYSTEM/tools/gitnexus/` | Ignored local GitNexus checkout used by the MCP wrapper when present. |
+| `_SYSTEM/tools/needle/`, `_SYSTEM/data/models/needle/` | Ignored local Needle runtime and model payloads used by local-model routing when present. |
+| Generated roots such as `graph/`, `graphify-out/`, `logs/`, `output/`, `dist/`, `claude-palace-out/` | Not kept as root source truth. Regenerate only for scoped tasks. |
 | `.codex-worktrees/`, `.gitnexus/`, `.obsidian/`, `.smart-env/`, `.tmp/`, `.vscode/` | Local tool/runtime/editor state. Not canonical architecture. |
-| `.env`, `ruvector.db`, `yuri.db` | Local secret/runtime data surfaces. Do not inspect directly. |
+| `.env`, `yuri.db` | Local secret/runtime data surfaces. Do not inspect directly. |
 
 ## Active Implementation Areas
 
@@ -69,6 +69,8 @@ The root is not a clean product package. It is an active workspace with canonica
 | Governed autonomy | `_SYSTEM/Scripts/yuri-autonomy-runner.mjs`, `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md`. |
 | Workcell orchestration | `_SYSTEM/Scripts/yuri-workcell.mjs`, `_SYSTEM/Scripts/yuri-workcell-capture.mjs`, `_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md`. |
 | Math substrate | `_SYSTEM/Scripts/math/`, `_SYSTEM/research-archive/yuri-math-engine-2026-05/`, `_SYSTEM/data/math/`, `_SYSTEM/labs/math/`. |
+| Code intelligence | GitNexus MCP through `_SYSTEM/Scripts/gitnexus-mcp.mjs`; optional local checkout at `_SYSTEM/tools/gitnexus/`. |
+| Local model routing | Needle runtime at `_SYSTEM/tools/needle/` and model data at `_SYSTEM/data/models/needle/` when installed locally. |
 | RAG and knowledge health | `_SYSTEM/backend/src/scripts/`, `_SYSTEM/Scripts/*rag*`, `_SYSTEM/Scripts/*health*`. |
 | Reports and scenario artifacts | `_SYSTEM/reports/`, `_SYSTEM/labs/`, `_SYSTEM/research-archive/`. |
 

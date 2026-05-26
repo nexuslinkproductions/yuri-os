@@ -7,7 +7,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const LOCAL_CLI = path.join(REPO_ROOT, 'NEURAL-NETWORK/GitNexus/gitnexus/dist/cli/index.js');
+const LOCAL_CLI = path.join(REPO_ROOT, '_SYSTEM/tools/gitnexus/gitnexus/dist/cli/index.js');
 const FALLBACK_PACKAGE = 'gitnexus@1.6.2';
 
 const passthroughArgs = process.argv.slice(2);

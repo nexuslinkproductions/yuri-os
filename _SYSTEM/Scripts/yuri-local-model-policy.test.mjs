@@ -11,9 +11,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const offloadRunnerPath = resolve(__dirname, 'offload-runner.mjs');
 const benchmarkPath = resolve(__dirname, 'yuri-local-model-benchmark.mjs');
 const heavyModels = new Set(['deepseek-r1:8b', 'deepseek-liberated:latest', 'deepseek-v2:16b', 'gemma4:latest']);
-const needleRepo = resolve(process.cwd(), 'needle');
-const needleCheckpoint = resolve(process.cwd(), 'checkpoints/needle.pkl');
-const needleCli = resolve(needleRepo, '.venv/bin/needle');
+const needleRepo = resolve(process.cwd(), '_SYSTEM/tools/needle');
+const needleCheckpoint = resolve(process.cwd(), '_SYSTEM/data/models/needle/checkpoints/needle.pkl');
 const needlePython = resolve(needleRepo, '.venv/bin/python');
 const needleCacheHome = mkdtempSync(join(tmpdir(), 'needle-hf-'));
 
@@ -145,8 +144,10 @@ try {
   }
 
   const needleSmoke = execFileSync(
-    needleCli,
+    needlePython,
     [
+      '-c',
+      'from needle.cli import main; main()',
       'run',
       '--checkpoint',
       needleCheckpoint,

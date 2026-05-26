@@ -9,10 +9,10 @@ import {
 } from './token-ledger.mjs';
 
 const ROOT = path.resolve(process.cwd());
-const NEEDLE_REPO_DIR = process.env.NEEDLE_REPO_DIR || path.join(ROOT, 'needle');
+const NEEDLE_REPO_DIR = process.env.NEEDLE_REPO_DIR || path.join(ROOT, '_SYSTEM/tools/needle');
 const NEEDLE_PYTHON = process.env.NEEDLE_PYTHON || path.join(NEEDLE_REPO_DIR, '.venv/bin/python');
-const NEEDLE_CHECKPOINT = process.env.NEEDLE_CHECKPOINT || path.join(ROOT, 'checkpoints/needle.pkl');
-const NEEDLE_HF_HOME = process.env.NEEDLE_HF_HOME || path.join(NEEDLE_REPO_DIR, '.hf');
+const NEEDLE_CHECKPOINT = process.env.NEEDLE_CHECKPOINT || path.join(ROOT, '_SYSTEM/data/models/needle/checkpoints/needle.pkl');
+const NEEDLE_HF_HOME = process.env.NEEDLE_HF_HOME || path.join(ROOT, '_SYSTEM/data/models/needle/hf');
 
 export function isNeedleAvailable() {
   return existsSync(NEEDLE_REPO_DIR);

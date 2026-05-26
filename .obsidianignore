@@ -4,6 +4,9 @@
 backend/
 bin/
 checkpoints/
+_SYSTEM/data/models/needle/
+_SYSTEM/tools/gitnexus/
+_SYSTEM/tools/needle/
 dist/
 docs/
 graph/

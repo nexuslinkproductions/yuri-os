@@ -7,7 +7,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const GITNEXUS_LOCAL = path.join(REPO_ROOT, 'NEURAL-NETWORK/GitNexus/gitnexus/dist/cli/index.js');
+const GITNEXUS_LOCAL = path.join(REPO_ROOT, '_SYSTEM/tools/gitnexus/gitnexus/dist/cli/index.js');
 const CHECKS = [
   {
     id: 'build',

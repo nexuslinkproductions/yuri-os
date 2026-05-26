@@ -372,13 +372,13 @@
       "notes": "Never read directly. Use approved wrappers only."
     },
     {
-      "path": "checkpoints",
-      "class": "runtime_cache",
+      "path": "_SYSTEM/data/models/needle",
+      "class": "local_model_runtime",
       "owner": "YURI/runtime",
       "readByDefault": false,
       "protected": false,
-      "status": "cleanup_candidate",
-      "notes": "Checkpoint output. Confirm before cleanup."
+      "status": "active_ignored_runtime",
+      "notes": "Needle model payload/checkpoint area. Use through local-model routing contracts; keep out of Git and default context."
     },
     {
       "path": "Claude Code URL Handler.app",
@@ -386,8 +386,8 @@
       "owner": "Claude tooling",
       "readByDefault": false,
       "protected": false,
-      "status": "ignore",
-      "notes": "Local app bundle. Do not read by default."
+      "status": "removed_from_root",
+      "notes": "Local app bundle removed from the repo root. Reinstall outside the YURI workspace if needed."
     },
     {
       "path": "claude-palace-out",
@@ -395,8 +395,8 @@
       "owner": "Claude Palace",
       "readByDefault": false,
       "protected": false,
-      "status": "cleanup_candidate",
-      "notes": "Generated output. Confirm rebuild/archive before cleanup."
+      "status": "removed_from_root",
+      "notes": "Generated output removed from the local root. Regenerate only for a scoped Palace/indexing task."
     },
     {
       "path": "CLAUDE.md",
@@ -413,8 +413,8 @@
       "owner": "Build system",
       "readByDefault": false,
       "protected": false,
-      "status": "cleanup_candidate",
-      "notes": "Build output. Regenerate rather than read by default."
+      "status": "removed_from_root",
+      "notes": "Build output removed from the local root. Regenerate with the build command when needed."
     },
     {
       "path": "ecosystem.config.cjs",
@@ -422,8 +422,8 @@
       "owner": "PM2/runtime",
       "readByDefault": false,
       "protected": false,
-      "status": "ignored_review",
-      "notes": "Ignored process config variant. Confirm whether legacy."
+      "status": "removed_from_root",
+      "notes": "Ignored duplicate process config removed from the local root. Tracked source remains ecosystem.config.js."
     },
     {
       "path": "ecosystem.config.js",
@@ -440,8 +440,8 @@
       "owner": "external symlink",
       "readByDefault": false,
       "protected": false,
-      "status": "local_ignored_symlink",
-      "notes": "Local symlink to external generated content. Kept out of Git and default navigation; use explicit generated-content tasks or governed adapters when needed."
+      "status": "removed_from_root",
+      "notes": "Local symlink to external generated content removed from the repo root. Use explicit generated-content tasks or governed adapters when needed."
     },
     {
       "path": "graph",
@@ -449,8 +449,8 @@
       "owner": "Graph tooling",
       "readByDefault": false,
       "protected": false,
-      "status": "cleanup_candidate",
-      "notes": "Generated graph output; not source truth."
+      "status": "removed_from_root",
+      "notes": "Generated graph output removed from the local root. GitNexus/context-router are the active navigation surfaces."
     },
     {
       "path": "graphify-out",
@@ -458,8 +458,8 @@
       "owner": "Graphify",
       "readByDefault": false,
       "protected": false,
-      "status": "cleanup_candidate",
-      "notes": "Generated graphify output; not source truth."
+      "status": "removed_from_root",
+      "notes": "Generated graphify output removed from the local root. Graphify remains manual/dormant unless a scoped graph task explicitly regenerates it."
     },
     {
       "path": "integrations",
@@ -467,8 +467,8 @@
       "owner": "YURI",
       "readByDefault": false,
       "protected": false,
-      "status": "candidate_review",
-      "notes": "Integration research/checkouts. Needs per-child registry rows."
+      "status": "removed_from_root",
+      "notes": "Loose root integration research/checkouts removed. New integrations need registered placement."
     },
     {
       "path": "logs",
@@ -476,26 +476,26 @@
       "owner": "YURI/runtime",
       "readByDefault": false,
       "protected": false,
-      "status": "cleanup_candidate",
-      "notes": "Runtime logs. Use targeted tail commands, not broad context reads."
+      "status": "removed_from_root",
+      "notes": "Loose root runtime logs removed. Use targeted runtime wrappers, not broad context reads."
     },
     {
-      "path": "needle",
+      "path": "_SYSTEM/tools/needle",
       "class": "local_model_runtime",
       "owner": "YURI local models",
       "readByDefault": false,
       "protected": false,
-      "status": "active_or_review",
-      "notes": "Needle is a tiny local language model/runtime surface. Use through YURI routing/health contracts."
+      "status": "active_ignored_runtime",
+      "notes": "Needle local language model/runtime checkout. Use through YURI routing/health contracts; keep out of Git and default context."
     },
     {
-      "path": "NEURAL-NETWORK",
-      "class": "external_research_checkout",
-      "owner": "YURI research",
+      "path": "_SYSTEM/tools/gitnexus",
+      "class": "external_tool_checkout",
+      "owner": "Code intelligence",
       "readByDefault": false,
       "protected": false,
-      "status": "candidate_review",
-      "notes": "Large research/vendor area. Needs per-child ownership map."
+      "status": "active_ignored_runtime",
+      "notes": "Local GitNexus checkout used by _SYSTEM/Scripts/gitnexus-mcp.mjs when present. Root NEURAL-NETWORK was retired."
     },
     {
       "path": "node_modules",
@@ -512,8 +512,8 @@
       "owner": "YURI/tools",
       "readByDefault": false,
       "protected": false,
-      "status": "cleanup_candidate",
-      "notes": "General generated output. Needs per-child classification if retained."
+      "status": "removed_from_root",
+      "notes": "Loose root generated output removed. New durable outputs must route through the artifact registry."
     },
     {
       "path": "package-lock.json",
@@ -584,8 +584,8 @@
       "owner": "vector/runtime",
       "readByDefault": false,
       "protected": false,
-      "status": "ignore",
-      "notes": "Database artifact. Do not inspect by default."
+      "status": "removed_from_root",
+      "notes": "Stale root vector database removed without inspection. Recreate only through an approved vector/RAG runtime."
     },
     {
       "path": "Scripts",
@@ -593,8 +593,8 @@
       "owner": "legacy tools",
       "readByDefault": false,
       "protected": false,
-      "status": "legacy_tool_runtime",
-      "notes": "Untracked legacy tool surface with ignored/runtime contents. _SYSTEM/Scripts is canonical for active YURI scripts."
+      "status": "removed_from_root",
+      "notes": "Untracked legacy tool surface removed from the local root. _SYSTEM/Scripts is canonical for active YURI scripts."
     },
     {
       "path": "SOUL.md",
@@ -611,8 +611,8 @@
       "owner": "YURI",
       "readByDefault": false,
       "protected": false,
-      "status": "legacy_workspace_runtime",
-      "notes": "Untracked legacy workspace surface with ignored/runtime contents. Active tests live beside canonical scripts and packages, especially _SYSTEM/Scripts/*.test.mjs."
+      "status": "removed_from_root",
+      "notes": "Untracked legacy test vault removed. Active tests live beside canonical scripts and packages, especially _SYSTEM/Scripts/*.test.mjs."
     },
     {
       "path": "tsconfig.json",
@@ -647,8 +647,8 @@
       "owner": "macOS/external volume mirror",
       "readByDefault": false,
       "protected": false,
-      "status": "ignore",
-      "notes": "Ignored volume/link artifact. Do not read by default."
+      "status": "removed_from_root",
+      "notes": "Ignored volume/link artifact removed from the repo root. Do not recreate as a root surface."
     },
     {
       "path": "yuri-os-dashboard.html",
@@ -665,8 +665,8 @@
       "owner": "YURI Sentinel",
       "readByDefault": false,
       "protected": false,
-      "status": "active_or_legacy_review",
-      "notes": "Sentinel-related checkout/output. Needs active runtime confirmation."
+      "status": "removed_from_root",
+      "notes": "Legacy Sentinel ingestion/runtime residue removed from the local root. Reintroduce only through registered runtime placement."
     },
     {
       "path": "yuri.db",

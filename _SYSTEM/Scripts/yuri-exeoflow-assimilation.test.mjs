@@ -55,7 +55,7 @@ const skippedPathReasons = new Map([
   ['.claude/history', 'protected agent history surface'],
   ['node_modules', 'dependency tree'],
   ['_SYSTEM/backend/node_modules', 'backend dependency tree'],
-  ['NEURAL-NETWORK/GitNexus/gitnexus/node_modules', 'nested dependency tree'],
+  ['_SYSTEM/tools/gitnexus/gitnexus/node_modules', 'nested dependency tree'],
   ['.git', 'git internals'],
   ['04_ARCHIVE', 'historical archive, not active Yuri product surface'],
   ['_SYSTEM/yuri-history-archive', 'historical session archive, not active Yuri product surface'],
