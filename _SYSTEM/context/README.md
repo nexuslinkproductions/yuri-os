@@ -95,8 +95,8 @@ Use this decision order:
 9. Evidence/research source: `_SYSTEM/research-archive/`
 10. Generated report: `_SYSTEM/reports/`
 11. Active project material: `01_PROJECTS/<project>/`
-12. Durable reusable reference: `03_RESOURCES/`
-13. Historical inactive material: `07_ARCHIVE/`
+12. Durable reusable reference: `02_RESOURCES/`
+13. Historical inactive material: `04_ARCHIVE/`
 
 If none fit, create or update a registry entry first and document why.
 

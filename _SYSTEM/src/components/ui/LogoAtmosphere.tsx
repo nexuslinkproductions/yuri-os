@@ -1,8 +1,8 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 
-const elementLogo = new URL('../../../05_NEXUS-LINK/Identity/NLP LOGO/element light nexus.svg', import.meta.url).href;
-const wordmarkLogo = new URL('../../../05_NEXUS-LINK/Identity/NLP LOGO/wordmark light nexus.svg', import.meta.url).href;
-const lockupLogo = new URL('../../../05_NEXUS-LINK/Identity/NLP LOGO/logo light nexus.svg', import.meta.url).href;
+const elementLogo = new URL('../../../../03_NEXUS-LINK/Identity/NLP LOGO/element light nexus.svg', import.meta.url).href;
+const wordmarkLogo = new URL('../../../../03_NEXUS-LINK/Identity/NLP LOGO/wordmark light nexus.svg', import.meta.url).href;
+const lockupLogo = new URL('../../../../03_NEXUS-LINK/Identity/NLP LOGO/logo light nexus.svg', import.meta.url).href;
 
 export default function LogoAtmosphere() {
   const { scrollYProgress } = useScroll();

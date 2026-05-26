@@ -49,14 +49,14 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 
 | Class | Paths | Default behavior |
 |---|---|---|
-| Human workspace | `00_COMMAND-CENTER`, `01_PROJECTS`, `02_AREAS`, `03_RESOURCES`, `04_FINANCE`, `05_NEXUS-LINK`, `07_ARCHIVE` | Read only when the task needs that domain. |
+| Human workspace | `00_COMMAND-CENTER`, `01_PROJECTS`, `02_RESOURCES`, `03_NEXUS-LINK`, `04_ARCHIVE` | Read only when the task needs that domain. |
 | Control plane | `_SYSTEM` | Read targeted docs/scripts only. |
 | Agent assembly | `.agents` | Read recipes and command adapters only. It references skills; it does not own skill bodies. |
 | Skill library | `skills` | Canonical YURI capability database. Load selected `skills/<skill-id>/SKILL.md` files only. |
 | Provider adapters | `.claude`, `.codex`, `.obsidian`, `.vscode` | Doors, not brains. Read only provider-specific config needed for the task. |
 | Runtime/cache | `.codex-worktrees`, `.smart-env`, `.tmp`, `logs`, `checkpoints`, `dist`, `output` | Do not read by default. Candidate cleanup only after registry/process checks. |
 | Generated artifacts | `graph`, `graphify-out`, `claude-palace-out` | Do not read by default. Regenerate or inspect only for graph/report tasks. |
-| External checkouts | `_SYSTEM/tools/*`, selected `01_PROJECTS/*`, selected `03_RESOURCES/RESEARCH/*` | Read only when explicitly relevant. Update through their own repo/tool contract. |
+| External checkouts | `_SYSTEM/tools/*`, selected `01_PROJECTS/*`, selected `02_RESOURCES/RESEARCH/*` | Read only when explicitly relevant. Update through their own repo/tool contract. |
 | Local model runtimes | `needle` | Treat as a model runtime, not a generic research repo. Use through YURI routing/health contracts. |
 | Protected surfaces | `.env`, `backend/data`, `.claude/state`, `.claude/history`, `node_modules` | Never read directly. Use existing wrappers or explicit owner-approved operation. |
 

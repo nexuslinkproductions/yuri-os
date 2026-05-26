@@ -315,19 +315,10 @@
       "readByDefault": false,
       "protected": false,
       "status": "active",
-      "notes": "Active projects. Contains some external checkouts that need sub-classification."
+      "notes": "Active project material. Currently reduced to focused project contexts such as UPGREAT."
     },
     {
-      "path": "02_AREAS",
-      "class": "human_workspace",
-      "owner": "Marcel/YURI",
-      "readByDefault": false,
-      "protected": false,
-      "status": "active",
-      "notes": "Ongoing responsibility areas."
-    },
-    {
-      "path": "03_RESOURCES",
+      "path": "02_RESOURCES",
       "class": "human_workspace",
       "owner": "Marcel/YURI",
       "readByDefault": false,
@@ -336,25 +327,16 @@
       "notes": "Durable resources, research, design, and reusable references."
     },
     {
-      "path": "04_FINANCE",
-      "class": "human_workspace",
-      "owner": "Marcel",
-      "readByDefault": false,
-      "protected": false,
-      "status": "active_private",
-      "notes": "Finance context. Read only for finance tasks."
-    },
-    {
-      "path": "05_NEXUS-LINK",
+      "path": "03_NEXUS-LINK",
       "class": "human_workspace",
       "owner": "Nexus Link/YURI",
       "readByDefault": false,
       "protected": false,
       "status": "active",
-      "notes": "Company identity, strategy, and public-facing work."
+      "notes": "Nexus Link identity assets and public-facing material that remains active."
     },
     {
-      "path": "07_ARCHIVE",
+      "path": "04_ARCHIVE",
       "class": "archive",
       "owner": "YURI",
       "readByDefault": false,

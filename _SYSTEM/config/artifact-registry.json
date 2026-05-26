@@ -133,17 +133,17 @@
     },
     {
       "id": "resource",
-      "matchPrefix": "03_RESOURCES/",
+      "matchPrefix": "02_RESOURCES/",
       "artifactType": "doc",
       "class": "human_workspace",
-      "storageRule": "Durable reusable references live under 03_RESOURCES/."
+      "storageRule": "Durable reusable references live under 02_RESOURCES/."
     },
     {
       "id": "archive",
-      "matchPrefix": "07_ARCHIVE/",
+      "matchPrefix": "04_ARCHIVE/",
       "artifactType": "doc",
       "class": "archive",
-      "storageRule": "Inactive historical material lives in 07_ARCHIVE/."
+      "storageRule": "Inactive historical material lives in 04_ARCHIVE/."
     }
   ],
   "protectedPrefixes": [

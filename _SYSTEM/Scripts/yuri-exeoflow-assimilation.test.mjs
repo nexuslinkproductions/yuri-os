@@ -28,9 +28,7 @@ const scanRoots = [
   '_SYSTEM/Scripts',
   '_SYSTEM/docs',
   '00_COMMAND-CENTER/MOCs',
-  '02_AREAS/profile-marcel-en.md',
   '06_KNOWLEDGE-BASE/05_OPERATIONAL/partner_memory.md',
-  '06_NETWORK-SYNC/MOC-Network.md',
   'RESEARCH/DESIGN-RADAR/README.md',
   '_SYSTEM/ADVERSARIAL_STABILITY_AUDIT_2026-04-22_v2.md',
   '_SYSTEM/EVONEXUS_INTEGRATION_MAP.md',
@@ -59,10 +57,10 @@ const skippedPathReasons = new Map([
   ['_SYSTEM/backend/node_modules', 'backend dependency tree'],
   ['NEURAL-NETWORK/GitNexus/gitnexus/node_modules', 'nested dependency tree'],
   ['.git', 'git internals'],
-  ['07_ARCHIVE', 'historical archive, not active Yuri product surface'],
+  ['04_ARCHIVE', 'historical archive, not active Yuri product surface'],
   ['_SYSTEM/yuri-history-archive', 'historical session archive, not active Yuri product surface'],
   ['_SYSTEM/session-outputs', 'historical session outputs, not active Yuri product surface'],
-  ['03_RESOURCES/References/design-packs/exeoflow-yuri-sitrep-baseline', 'historical design-source pack retained as reference material'],
+  ['02_RESOURCES/References/design-packs/exeoflow-yuri-sitrep-baseline', 'historical design-source pack retained as reference material'],
   ['graphify-out', 'generated graph export; regenerate rather than hand-edit stale nodes'],
 ]);
 

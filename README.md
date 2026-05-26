@@ -43,12 +43,10 @@ The root is not a clean product package. It is an active workspace with canonica
 | `.claude/`, `.codex/` | Provider adapters and command/config surfaces. They are not independent policy sources. |
 | `skills/` | Root-visible YURI skill library. |
 | `00_COMMAND-CENTER/` | Human command/status workspace. |
-| `01_PROJECTS/` | Active project work. Some children may be external checkouts or project-specific repos. |
-| `02_AREAS/` | Ongoing responsibility areas. |
-| `03_RESOURCES/` | Reusable references, research, knowledge, and design material. |
-| `04_FINANCE/` | Finance material. Read only for finance tasks. |
-| `05_NEXUS-LINK/` | Nexus Link company identity, strategy, and public-facing work. |
-| `07_ARCHIVE/` | Historical/inactive material. Not default source truth. |
+| `01_PROJECTS/` | Active project work. Currently reduced to focused project material, including `UPGREAT/`. |
+| `02_RESOURCES/` | Reusable references, research, knowledge, and design material. |
+| `03_NEXUS-LINK/` | Nexus Link company identity assets and public-facing work that remains active. |
+| `04_ARCHIVE/` | Historical/inactive material. Not default source truth. |
 | `AGENTS.md`, `CLAUDE.md`, `SOUL.md`, `README.md` | Root orientation and adapter documents. |
 | `package.json`, `package-lock.json`, `tsconfig*.json`, `vite.config.mts`, `ecosystem.config.js` | Root development, build, and process configuration. |
 | `yuri-os-dashboard.html` | Tracked dashboard snapshot; source truth is the generator/spec layer, not the snapshot alone. |

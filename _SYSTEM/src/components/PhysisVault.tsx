@@ -58,9 +58,9 @@ const FOLDER_BOOKMARKS: Shelf[] = [
     { name: 'BACKEND',    path: 'backend',                      color: '#42a5f5', icon: '◈', description: 'Backend server code' },
     { name: 'SRC',        path: 'src',                          color: '#3178c6', icon: '⊞', description: 'Frontend source' },
     { name: 'PROJECTS',   path: '01_PROJECTS',                  color: '#ffb300', icon: '◆', description: 'Active client projects' },
-    { name: 'KNOWLEDGE',  path: '06_KNOWLEDGE-BASE',            color: '#8bc34a', icon: '◎', description: 'Research & knowledge base' },
+    { name: 'RESOURCES',  path: '02_RESOURCES',                 color: '#8bc34a', icon: '◎', description: 'Research & knowledge base' },
+    { name: 'NEXUS',      path: '03_NEXUS-LINK',                color: '#ab47bc', icon: '⊡', description: 'Nexus Link identity assets' },
     { name: 'SYSTEM',     path: '_SYSTEM',                      color: '#e44d26', icon: '⎔', description: 'Agentic OS kernel' },
-    { name: 'NETWORK',    path: '06_NETWORK-SYNC',              color: '#ab47bc', icon: '⊡', description: 'Sync & network layer' },
 ];
 
 /* ─── Helpers ────────────────────────────────────────────────────── */

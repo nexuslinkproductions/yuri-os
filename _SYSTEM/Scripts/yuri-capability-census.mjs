@@ -21,7 +21,7 @@ const EXCLUDE_DIRS = new Set([
   '_SYSTEM/archive',
   '_SYSTEM/state',
   '_SYSTEM/tools/browser-harness',
-  '07_ARCHIVE',
+  '04_ARCHIVE',
 ]);
 
 const CAPABILITY_PATTERNS = [
@@ -70,7 +70,6 @@ const KNOWN_ROOTS = [
   '.codex/plugins/cache',
   '_SYSTEM/Scripts',
   '_SYSTEM/yuri-wiki',
-  '01_PROJECTS/superpowers',
 ];
 
 function shouldExcludeDir(dir, relPath = '') {

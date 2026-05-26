@@ -1,3 +1,0 @@
-We need an RLM enterprise system. Recursive processing should inspect large prompts
- through a symbolic handle. The implementation must include security controls, MLOps
- monitoring, traceability, self-improvement proposals, and Claude Code guidance.

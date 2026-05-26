@@ -33,12 +33,12 @@ const protectedRoots = ['backend/data/', '.claude/state/', '.claude/history/', '
 // guardrail to repo-root paths that are unambiguous in this repository.
 const activeSourceRoots = ['_SYSTEM/backend/src/', '_SYSTEM/Scripts/'];
 const historicalPathAllowlist = new Map([
-  ['07_ARCHIVE/', 'historical archive paths are not active Yuri OS source truth'],
+  ['04_ARCHIVE/', 'historical archive paths are not active Yuri OS source truth'],
   ['_SYSTEM/yuri-history-archive/', 'historical session archive paths are not active Yuri OS source truth'],
   ['_SYSTEM/session-outputs/', 'historical session output paths are not active Yuri OS source truth'],
 ]);
 
-const pathPattern = /\b(?:backend\/src|src|Scripts|tools|07_ARCHIVE|_SYSTEM\/yuri-history-archive|_SYSTEM\/session-outputs)\/[A-Za-z0-9._~+@/()-]+\.(?:cjs|css|html|js|jsx|json|md|mjs|py|sh|ts|tsx|txt)\b/g;
+const pathPattern = /\b(?:backend\/src|src|Scripts|tools|04_ARCHIVE|_SYSTEM\/yuri-history-archive|_SYSTEM\/session-outputs)\/[A-Za-z0-9._~+@/()-]+\.(?:cjs|css|html|js|jsx|json|md|mjs|py|sh|ts|tsx|txt)\b/g;
 
 for (const artifact of generatedGraphArtifacts) {
   assert.equal(typeof artifact.reason, 'string', `${artifact.relative} must document why it is scanned`);

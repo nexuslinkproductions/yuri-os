@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 
-const wordmarkLogo = new URL('../../05_NEXUS-LINK/Identity/NLP LOGO/wordmark light nexus.svg', import.meta.url).href;
+const wordmarkLogo = new URL('../../../03_NEXUS-LINK/Identity/NLP LOGO/wordmark light nexus.svg', import.meta.url).href;
 
 const navLinks = [
   { label: 'Home', to: '/' },

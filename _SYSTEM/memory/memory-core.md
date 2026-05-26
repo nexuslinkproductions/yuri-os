@@ -30,8 +30,8 @@
 |----------|------|
 | Vault root | `/Users/marcelspatz/YURI-OS-MUSUBI/` |
 | Projects | `01_PROJECTS/` |
-| Finance | `04_FINANCE/2026/` |
-| Network sync | `06_NETWORK-SYNC/C2MOVIEZ/` |
+| Resources | `02_RESOURCES/` |
+| Nexus Link | `03_NEXUS-LINK/` |
 | System/config | `_SYSTEM/` |
 | Palace index | `claude-palace-out/palace-index.md` |
 
@@ -46,8 +46,6 @@
 ## Claude Behaviour Rules
 - Prefer action over clarification — max 1–2 questions before executing
 - For operational decisions under uncertainty, use Probabilistic Decision Core: separate forecast, goal, plan, confidence, cost of error, and calibration.
-- NEVER delete/move files without timestamped backup + explicit confirmation
-- NEVER rename existing files without explicit instruction
-- New projects: duplicate `01_PROJECTS/_TEMPLATE/`
-- Finance docs: `04_FINANCE/[YEAR]/[category]/`
+- Destructive cleanup requires explicit Marcel authorization and a reversible git commit boundary.
+- New projects: place under `01_PROJECTS/<project>/` and register durable material when it becomes source truth.
 - When unsure where something belongs → check `_SYSTEM/MIGRATION-MAP.md` first
