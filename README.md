@@ -41,7 +41,6 @@ The root is not a clean product package. It is an active workspace with canonica
 | `_SYSTEM/` | Main YURI control plane: docs, scripts, registries, schemas, frontend/backend source, reports, labs, runtime state, and research archive. |
 | `.agents/` | Agent assembly and role-composition recipes. |
 | `.claude/`, `.codex/` | Provider adapters and command/config surfaces. They are not independent policy sources. |
-| `.sharingan/` | Tracked pattern briefs. Active status is under review. |
 | `skills/` | Root-visible YURI skill library. |
 | `00_COMMAND-CENTER/` | Human command/status workspace. |
 | `01_PROJECTS/` | Active project work. Some children may be external checkouts or project-specific repos. |

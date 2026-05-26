@@ -273,15 +273,6 @@
       "notes": "Obsidian ignore contract."
     },
     {
-      "path": ".sharingan",
-      "class": "system_control_plane",
-      "owner": "YURI",
-      "readByDefault": false,
-      "protected": false,
-      "status": "active",
-      "notes": "Pattern briefs and reverse-engineering notes. Read only for pattern work."
-    },
-    {
       "path": ".smart-env",
       "class": "runtime_cache",
       "owner": "unknown",

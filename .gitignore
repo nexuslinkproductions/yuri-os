@@ -247,6 +247,7 @@ output/
 /Scripts/
 /test/
 /integrations/
+/.sharingan/
 
 # Codex worktrees (active git worktrees, not source files)
 .codex-worktrees/
