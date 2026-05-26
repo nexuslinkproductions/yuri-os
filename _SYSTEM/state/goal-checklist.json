@@ -44,6 +44,12 @@
       "evidence": "cyber matrix and lab harness work exist; next work must turn rows into proof surfaces"
     },
     {
+      "goal": "YURI Upgreat Operational Simulation Readiness",
+      "rating": "ACTIVE",
+      "met": false,
+      "evidence": "current active focus: finish workcell guardrails, then build synthetic Upgreat scenarios with fake input data, scorecards, truth boundaries, and restricted-user simulation proof"
+    },
+    {
       "goal": "release proof remains mandatory before claiming completion",
       "rating": "ACTIVE",
       "met": false,

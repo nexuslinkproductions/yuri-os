@@ -10,6 +10,8 @@ Turn YURI from a powerful but still operator-steered tool stack into a durable c
 
 This goal runs beside all product development. It is not a pause in cyber work. It is the discipline layer that keeps cyber work from creating another mess.
 
+Active focus: YURI Upgreat Operational Simulation Readiness. The current spine is to finish the governed workcell safety layer, then build demoable synthetic Upgreat-relevant scenarios that prove what YURI can and cannot do without relying on presentation scripts, sales polish, or hidden operator intervention.
+
 ## Task List
 
 ### Gate 01 - Canonical Context Spine
@@ -60,6 +62,7 @@ This goal runs beside all product development. It is not a pause in cyber work. 
 - Keep offensive research tied to owned labs, authorization, and defensive deliverables.
 - Build security capability from proof surfaces, not claims.
 - Prioritize Upgreat-ready evidence: agent/MCP security, memory/RAG security, repo/supply-chain scanning, threat intel, and guardrail proof.
+- Current Upgreat track: finish workcell guardrails, then create synthetic scenario fixtures, scorecards, and restricted-user simulations that Upgreat can inspect directly.
 
 ### Gate 08 - Release Proof
 
@@ -99,4 +102,3 @@ It includes:
 - No silent memory mutation.
 - No resurrecting retired provider/platform surfaces.
 - No cybersecurity claims without owned-lab proof, source-backed intelligence, or client-safe evidence.
-
