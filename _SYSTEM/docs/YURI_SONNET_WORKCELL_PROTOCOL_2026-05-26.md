@@ -119,6 +119,37 @@ Visible text in a worker TUI prompt editor or scrollback is not authorization an
 
 If a worker feed misroutes or blends with stale editor text, C-137 clears the idle editor and submits one clean packet. Do not infer owner intent from text visible inside a worker pane.
 
+## Lane Calibration
+
+Model and lane selection are operational calibration, not cosmetics. A lane should not be switched merely because a worker finished a packet. A lane should be switched, cleared, or reloaded when the next phase's job shape no longer matches the current lane identity.
+
+Calibration threshold:
+
+- Keep the current lane when continuity matters and the next task uses the same work shape.
+- Clear and reload a lane when the previous context becomes drag, the role contract changes, or prompt/editor residue increases misrouting risk.
+- Switch Quantum Rick to Maximums Rickimus when the next visible Sonnet phase is heavy scoped implementation rather than general synthesis.
+- Use Quantum Rick for general builder work, synthesis-adjacent implementation, and context-sensitive slices.
+- Use Maximums Rickimus for larger implementation chunks inside tightly bounded scopes.
+- Use Rick Prime for supercharge, gap hunting, architecture pressure, and scoped improvement edits after an integrated worker pass.
+- Use Simple Rick for compression, EOT, memory proposal filtering, and risk ordering.
+- C-137 remains the verification, arbitration, commit, and calibration-capture lane.
+
+Calibration events should be captured when Marcel corrects a routing threshold, lane role, patience rule, prompt-feed habit, or review authority boundary. Capture the trigger, the wrong/default behavior, the corrected threshold, the affected lanes, and the next testable expectation. Low-risk process updates may be patched into this protocol directly; authority, commit, protected-path, or memory-promotion changes still require Marcel-facing confirmation before becoming canonical.
+
+## Marcel Learning Layer
+
+YURI work sessions should help Marcel learn the technical system while the system is being built. This is private operator education, not product-facing documentation.
+
+C-137 should include short beginner/intermediate learning notes when a concept matters for understanding the sprint. The notes should be brief and practical:
+
+- `concept`: the thing Marcel just watched happen;
+- `what changed`: the concrete file, function, test, or workflow movement;
+- `why it matters`: the system behavior this protects or enables;
+- `failure mode`: what would break if the guard did not exist;
+- `where to look`: one local file or test reference when useful.
+
+Learning notes should be added to conversation summaries, handoffs, or sprint reports when they clarify the work. They should not flood every status update. Durable teaching material belongs in the relevant YURI protocol, sprint plan, or report already registered in the context architecture, not in random top-level notes.
+
 ## Planning Ladder
 
 Major sprint, architecture, autonomy, memory, or workcell plans should be built bottom-up. C-137 does not privately finish the whole plan and then ask the other lanes to rubber-stamp it.
@@ -484,7 +515,9 @@ Prime should intensify the integrated result: find what is missing, pressure the
 
 Prime's correction: task 6 is the bootstrap and should be built first if the goal is volume. Tasks 1-5 can be done manually through this protocol, but they scale only after the workcell orchestration script exists.
 
-### Task 1: Workcell Orchestration Script
+Status: Task 1 shipped across Phases 1-3B. Tasks 2-3 are next (Phase 4). Tasks 4-6 remain future.
+
+### Task 1: Workcell Orchestration Script (SHIPPED — Phases 1-3B)
 
 Goal: create the C-137 orchestration tool that dispatches, collects, scope-checks, and integrates worker bundles.
 
@@ -505,7 +538,7 @@ Expected artifacts:
 - `_SYSTEM/Scripts/yuri-workcell-capture.mjs`
 - artifact/context/index registry updates
 
-### Task 2: Token Budget Gate
+### Task 2: Token Budget Gate (Phase 4B target)
 
 Goal: prevent high-volume worker dispatch from silently burning budget.
 
@@ -524,7 +557,7 @@ Expected artifacts:
 - runner/workcell budget estimate output
 - tests proving over-budget dispatch blocks
 
-### Task 3: Worker Packet And Memory Schemas
+### Task 3: Worker Packet And Memory Schemas (Phase 4A target)
 
 Goal: lock typed output contracts so C-137 integrates deterministic bundles, not prose.
 
@@ -545,7 +578,7 @@ Expected artifacts:
 - `_SYSTEM/config/schemas/yuri.workcell-capsule.v0.schema.json`
 - workcell packet validation tests
 
-### Task 4: L3 Rollback Contract Gate
+### Task 4: L3 Rollback Contract Gate (Phase 5+ target)
 
 Goal: make mutation-capable autonomy refuse to proceed without rollback readiness.
 
@@ -564,7 +597,7 @@ Expected artifacts:
 - schema update
 - tests for required rollback readiness
 
-### Task 5: L4 Timed Dry-Run Checkpoint Recorder
+### Task 5: L4 Timed Dry-Run Checkpoint Recorder (Phase 5+ target)
 
 Goal: record checkpoints during timeboxed runs without mutation.
 
@@ -583,7 +616,7 @@ Expected artifacts:
 - checkpoint tests
 - Kagami event integration notes
 
-### Task 6: First 15-Minute L4 Workcell Dry Run
+### Task 6: First 15-Minute L4 Workcell Dry Run (Phase 5+ target)
 
 Goal: prove the protocol with live Sonnet workers, no source mutation by default.
 
@@ -606,17 +639,42 @@ Expected artifacts:
 - Prime verdict
 - C-137 handoff report
 
+## Phase Log
+
+| Phase | Commit | Summary |
+|---|---|---|
+| Protocol start | `15be1b36` | Initial Sonnet workcell protocol. |
+| Memory protocol | `84de1779` | Symbiotic memory protocol for worker capsules and memory signals. |
+| Pane capture | `64371f23` | Workcell capture intake bridge: `yuri-workcell-capture.mjs` preserves live worker/Prime pane output into `_SYSTEM/state/workcell/<runId>/<role>/`. |
+| Phase 1 | `76ca5bd9` | DAG validation hard gate via `topologicalSort()`, `buildWorkerPacket`, `validateWorkerOutput`, `buildDecomposition`, CLI `validate-dag`/`build-packet`. |
+| Phase 2A | `3d516809` | `yuri-patch-v0` structured patch contract validation and worker output routing. |
+| Phase 2B | `f436431f` | `applyPatchDryRun()` and `makeFilesystemReader()` with CRLF normalization, anchor checks, ambiguity handling, and negative tests. |
+| Phase 3A | `2b169a26` | `materializePatch()`: pure in-memory composition producing `afterContent`, `afterHash`, `rollbackManifest` with `beforeContent`. Overlap escalation from warning to hard error. Descending-start-line splice. |
+| Phase 3B | `4147db79` | `applyMaterializedPatch()`, `rollbackMaterializedPatch()`, `makeFilesystemWriter()`, `makeFilesystemDeleter()`. Preflight hash verification, ordered create→modify→delete, best-effort rollback, `options.approved === true` gate. |
+
+Current test count: 190 in `yuri-workcell.test.mjs`.
+
 ## Blockers Before Live Volume
 
-- Workcell orchestration script does not exist yet.
-- Worker packet schema does not exist yet.
-- Runtime workcell state path must be registered before worker bundles are written.
-- Token budget gate does not exist yet.
-- Workcell memory capsule/output schemas do not exist yet.
+Shipped:
+
+- ~~Workcell orchestration script does not exist yet.~~ `yuri-workcell.mjs` ships DAG validation, packet assembly, patch validation, dry-run, materialization, guarded apply, and rollback.
+- ~~Runtime workcell state path must be registered before worker bundles are written.~~ `_SYSTEM/state/workcell/` registered in artifact-registry.
+- ~~Patch conflict detection starts syntactic only.~~ Overlap detection in dry-run (warning) and materializer (hard error). Semantic conflicts remain C-137 review responsibility.
+
+Remaining:
+
+- Worker packet/output/capsule JSON schemas do not exist yet. Hand-rolled validators exist but no machine-readable schema files.
+- Token budget gate does not exist yet. No cost estimation before dispatch.
 - `MEMORY_AUTHORITY` needs an explicit worker-deny entry before memory wrapper access can be safely exposed to worker tooling.
+- `validateWorkerOutput` does not yet validate `memorySignals`, `riskNotes`, or `testCommands` shape beyond basic array/object checks.
+- No safe pool-read surface for collecting worker output from `_SYSTEM/state/workcell/`.
 - Scout recall must be capped, with five recall queries per task as the initial default.
-- Patch conflict detection starts syntactic only; semantic conflicts remain C-137 review responsibility.
 - Persistent worker policy needs a first rule: use persistent sessions for continuity, but every packet must include explicit context so no worker relies on hidden memory.
+- CLI `validate-patch` and `apply-patch` subcommands not yet wired.
+- Kagami event emission for workcell lifecycle not yet wired.
+- Autonomy runner L3 rollback-contract gate not yet connected to workcell rollback manifest.
+- Operator signature / approval token binding not yet implemented (Phase 3B uses `options.approved === true` boolean).
 
 ## Operating Stance
 
