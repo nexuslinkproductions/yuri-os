@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -25,6 +25,8 @@ import {
   WORKCELL_MEMORY_OPERATIONS,
   isMemoryAllowed,
   validateMemoryCapsule,
+  readPoolOutput,
+  estimateWorkcellTokens,
 } from './yuri-workcell.mjs';
 
 const RUNNER = path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-workcell.mjs');
@@ -2859,4 +2861,297 @@ test('validateMemoryCapsule accepts valid boolean proposalAllowed and recallAllo
     policy: { readOnly: true, writeAllowed: false, promoteAllowed: false, proposalAllowed: true, recallAllowed: false },
   });
   assert.equal(r.ok, true);
+});
+
+// ---------------------------------------------------------------------------
+// Phase 4B helpers
+// ---------------------------------------------------------------------------
+
+function makePoolFixture(runId, role, content) {
+  const tmpRoot = mkdtempSync(path.join(tmpdir(), 'yuri-pool-'));
+  const dir = path.join(tmpRoot, '_SYSTEM', 'state', 'workcell', runId, role);
+  mkdirSync(dir, { recursive: true });
+  if (content !== undefined) {
+    writeFileSync(path.join(dir, 'output.json'), content);
+  }
+  return tmpRoot;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4B — readPoolOutput
+// ---------------------------------------------------------------------------
+
+test('readPoolOutput valid fixture returns ok:true with parsed output', () => {
+  const tmpRoot = makePoolFixture('wc_valid', 'builder', JSON.stringify({ outputs: [], evidenceRefs: [] }));
+  try {
+    const r = readPoolOutput('wc_valid', 'builder', { root: tmpRoot });
+    assert.equal(r.ok, true);
+    assert.deepEqual(r.errors, []);
+    assert.ok(r.output !== null);
+    assert.equal(r.runId, 'wc_valid');
+    assert.equal(r.role, 'builder');
+    assert.ok(r.relPath.endsWith('output.json'));
+  } finally {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});
+
+test('readPoolOutput missing output.json returns ok:false, output:null, no throw', () => {
+  const tmpRoot = makePoolFixture('wc_miss', 'builder', undefined);
+  try {
+    assert.doesNotThrow(() => {
+      const r = readPoolOutput('wc_miss', 'builder', { root: tmpRoot });
+      assert.equal(r.ok, false);
+      assert.equal(r.output, null);
+      assert.ok(r.errors.some((e) => e.includes('not found')));
+    });
+  } finally {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});
+
+test('readPoolOutput malformed JSON returns ok:false, output:null, no throw', () => {
+  const tmpRoot = makePoolFixture('wc_bad', 'builder', '{ not valid json !!!');
+  try {
+    assert.doesNotThrow(() => {
+      const r = readPoolOutput('wc_bad', 'builder', { root: tmpRoot });
+      assert.equal(r.ok, false);
+      assert.equal(r.output, null);
+      assert.ok(r.errors.some((e) => e.includes('malformed')));
+    });
+  } finally {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});
+
+test('readPoolOutput traversal runId is rejected', () => {
+  const r = readPoolOutput('../escape', 'builder');
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('runId')));
+});
+
+test('readPoolOutput traversal role is rejected', () => {
+  const r = readPoolOutput('wc_ok', '../escape');
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('role')));
+});
+
+test('readPoolOutput empty or non-string runId is rejected', () => {
+  assert.equal(readPoolOutput('', 'builder').ok, false);
+  assert.ok(readPoolOutput('', 'builder').errors.some((e) => e.includes('runId')));
+  assert.equal(readPoolOutput(42, 'builder').ok, false);
+  assert.equal(readPoolOutput(null, 'builder').ok, false);
+});
+
+test('readPoolOutput empty or non-string role is rejected', () => {
+  assert.equal(readPoolOutput('wc_ok', '').ok, false);
+  assert.ok(readPoolOutput('wc_ok', '').errors.some((e) => e.includes('role')));
+  assert.equal(readPoolOutput('wc_ok', null).ok, false);
+  assert.equal(readPoolOutput('wc_ok', 99).ok, false);
+});
+
+test('readPoolOutput non-standard role warns but does not error when file exists', () => {
+  const tmpRoot = makePoolFixture('wc_prime', 'prime', JSON.stringify({ outputs: [], evidenceRefs: [] }));
+  try {
+    const r = readPoolOutput('wc_prime', 'prime', { root: tmpRoot });
+    assert.equal(r.ok, true);
+    assert.deepEqual(r.errors, []);
+    assert.ok(r.warnings.some((w) => w.includes('prime') || w.includes('not a standard')));
+  } finally {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});
+
+test('readPoolOutput validation enabled includes validation result', () => {
+  const tmpRoot = makePoolFixture('wc_valok', 'builder', JSON.stringify({ outputs: [], evidenceRefs: [] }));
+  try {
+    const r = readPoolOutput('wc_valok', 'builder', { root: tmpRoot });
+    assert.equal(r.ok, true);
+    assert.ok(r.validation !== null);
+    assert.equal(r.validation.ok, true);
+  } finally {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});
+
+test('readPoolOutput validate:false skips validation, validation is null', () => {
+  const tmpRoot = makePoolFixture('wc_skipval', 'builder', JSON.stringify({ outputs: 'not-an-array' }));
+  try {
+    const r = readPoolOutput('wc_skipval', 'builder', { root: tmpRoot, validate: false });
+    assert.equal(r.ok, true);
+    assert.equal(r.validation, null);
+    assert.ok(r.output !== null);
+  } finally {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Phase 4B — estimateWorkcellTokens
+// ---------------------------------------------------------------------------
+
+test('estimateWorkcellTokens valid 3-node decomposition returns correct totals', () => {
+  const decomp = buildDecomposition({
+    goal: 'estimate 3 nodes',
+    nodes: [
+      { id: 'n1', role: 'scout', filesInScope: ['_SYSTEM/INDEX.md'] },
+      { id: 'n2', role: 'builder', filesInScope: ['_SYSTEM/INDEX.md', '_SYSTEM/Scripts/yuri-workcell.mjs'] },
+      { id: 'n3', role: 'guardrail', filesInScope: ['_SYSTEM/Scripts/yuri-workcell.test.mjs'] },
+    ],
+    edges: [{ from: 'n1', to: 'n2' }, { from: 'n2', to: 'n3' }],
+  });
+  const r = estimateWorkcellTokens(decomp);
+  assert.equal(r.ok, true);
+  assert.equal(r.estimatorVersion, 'chars_div_4_v1');
+  assert.equal(r.nodes.length, 3);
+  assert.equal(r.totalTokens, r.totalInputTokens + r.totalOutputTokens);
+  assert.ok(r.totalTokens > 0);
+  assert.equal(r.budget, null);
+});
+
+test('estimateWorkcellTokens single node math matches chars_div_4_v1', () => {
+  const decomp = buildDecomposition({
+    goal: 'single node math',
+    nodes: [{ id: 'solo', role: 'builder', filesInScope: ['_SYSTEM/INDEX.md'] }],
+    edges: [],
+  });
+  const r = estimateWorkcellTokens(decomp);
+  assert.equal(r.ok, true);
+  assert.equal(r.nodes.length, 1);
+  // inputTokens = ceil((24000 + 4000 + 1*8000) / 4) = 9000
+  assert.equal(r.nodes[0].inputTokens, 9000);
+  // outputTokens = ceil(12000 / 4) = 3000
+  assert.equal(r.nodes[0].outputTokens, 3000);
+  assert.equal(r.nodes[0].totalTokens, 12000);
+  assert.equal(r.totalTokens, 12000);
+});
+
+test('estimateWorkcellTokens null or missing dagValidation returns ok:false', () => {
+  assert.equal(estimateWorkcellTokens(null).ok, false);
+  assert.equal(estimateWorkcellTokens({}).ok, false);
+  const noNodes = { dagValidation: { ok: true }, nodes: [], edges: [] };
+  assert.equal(estimateWorkcellTokens(noNodes).ok, false);
+  assert.ok(estimateWorkcellTokens(noNodes).errors.some((e) => e.includes('node')));
+});
+
+test('estimateWorkcellTokens failed dagValidation returns ok:false', () => {
+  const decomp = buildDecomposition({
+    goal: 'cyclic fail',
+    nodes: [
+      { id: 'a', role: 'builder', filesInScope: ['_SYSTEM/INDEX.md'] },
+      { id: 'b', role: 'guardrail', filesInScope: ['_SYSTEM/Scripts/yuri-workcell.test.mjs'] },
+    ],
+    edges: [{ from: 'a', to: 'b' }, { from: 'b', to: 'a' }],
+  });
+  assert.equal(decomp.dagValidation.ok, false);
+  const r = estimateWorkcellTokens(decomp);
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.includes('dagValidation')));
+});
+
+test('estimateWorkcellTokens custom capsuleBytesPerNode changes inputTokens', () => {
+  const decomp = buildDecomposition({
+    goal: 'custom capsule',
+    nodes: [{ id: 'n', role: 'builder', filesInScope: ['_SYSTEM/INDEX.md'] }],
+    edges: [],
+  });
+  const rDefault = estimateWorkcellTokens(decomp);
+  // 0 capsule: ceil((0 + 4000 + 8000) / 4) = 3000
+  const rCustom = estimateWorkcellTokens(decomp, { capsuleBytesPerNode: 0 });
+  assert.equal(rCustom.nodes[0].inputTokens, 3000);
+  assert.ok(rCustom.nodes[0].inputTokens < rDefault.nodes[0].inputTokens);
+});
+
+test('estimateWorkcellTokens custom fileSizeEstimate scales with filesInScope count', () => {
+  const decomp = buildDecomposition({
+    goal: 'scale test',
+    nodes: [{ id: 'n', role: 'builder', filesInScope: ['_SYSTEM/INDEX.md', '_SYSTEM/Scripts/yuri-workcell.mjs'] }],
+    edges: [],
+  });
+  // fileSizeEstimate=0: contextBytes=0, inputTokens=ceil((24000+4000+0)/4)=7000
+  const rZero = estimateWorkcellTokens(decomp, { fileSizeEstimate: 0 });
+  // fileSizeEstimate=16000: contextBytes=2*16000=32000, inputTokens=ceil((24000+4000+32000)/4)=15000
+  const rLarge = estimateWorkcellTokens(decomp, { fileSizeEstimate: 16000 });
+  assert.equal(rZero.nodes[0].inputTokens, 7000);
+  assert.equal(rLarge.nodes[0].inputTokens, 15000);
+});
+
+test('estimateWorkcellTokens budget ceiling above totalTokens passes with withinBudget:true', () => {
+  const decomp = buildDecomposition({
+    goal: 'budget pass',
+    nodes: [{ id: 'n', role: 'builder', filesInScope: ['_SYSTEM/INDEX.md'] }],
+    edges: [],
+  });
+  const r = estimateWorkcellTokens(decomp, { budget: { ceiling: 1000000 } });
+  assert.equal(r.ok, true);
+  assert.ok(r.budget !== null);
+  assert.equal(r.budget.withinBudget, true);
+  assert.equal(r.budget.actual, r.totalTokens);
+  assert.equal(r.budget.ceiling, 1000000);
+});
+
+test('estimateWorkcellTokens budget ceiling below totalTokens fails with withinBudget:false', () => {
+  const decomp = buildDecomposition({
+    goal: 'budget fail',
+    nodes: [{ id: 'n', role: 'builder', filesInScope: ['_SYSTEM/INDEX.md'] }],
+    edges: [],
+  });
+  // totalTokens = 12000, ceiling = 1 → 12000 >= 1 → withinBudget:false
+  const r = estimateWorkcellTokens(decomp, { budget: { ceiling: 1 } });
+  assert.equal(r.ok, false);
+  assert.ok(r.budget !== null);
+  assert.equal(r.budget.withinBudget, false);
+  assert.ok(r.errors.some((e) => e.includes('ceiling')));
+});
+
+test('estimateWorkcellTokens warnAt breached but under ceiling produces ok:true with warning', () => {
+  const decomp = buildDecomposition({
+    goal: 'warnAt test',
+    nodes: [{ id: 'n', role: 'builder', filesInScope: ['_SYSTEM/INDEX.md'] }],
+    edges: [],
+  });
+  // totalTokens = 12000, warnAt = 1 < 12000 < ceiling = 1000000
+  const r = estimateWorkcellTokens(decomp, { budget: { ceiling: 1000000, warnAt: 1 } });
+  assert.equal(r.ok, true);
+  assert.ok(r.warnings.some((w) => w.includes('warnAt') || w.includes('threshold')));
+  assert.equal(r.budget.withinBudget, true);
+});
+
+// ---------------------------------------------------------------------------
+// Prime S5 — Phase 4B supercharge tests
+// ---------------------------------------------------------------------------
+
+test('readPoolOutput validation failure propagates errors to top-level', () => {
+  const badOutput = { outputs: 'not-an-array', evidenceRefs: [] };
+  const tmpRoot = makePoolFixture('wc_valfail', 'builder', JSON.stringify(badOutput));
+  try {
+    const r = readPoolOutput('wc_valfail', 'builder', { root: tmpRoot });
+    assert.equal(r.ok, false);
+    assert.ok(r.errors.length > 0);
+    assert.ok(r.errors.some((e) => e.includes('validation:')));
+    assert.ok(r.validation !== null);
+    assert.equal(r.validation.ok, false);
+    assert.ok(r.output !== null);
+  } finally {
+    rmSync(tmpRoot, { recursive: true, force: true });
+  }
+});
+
+test('estimateWorkcellTokens budget ceiling exactly equals totalTokens fails', () => {
+  const decomp = buildDecomposition({
+    goal: 'boundary test',
+    nodes: [{ id: 'n', role: 'builder', filesInScope: ['_SYSTEM/INDEX.md'] }],
+    edges: [],
+  });
+  // totalTokens = 12000, ceiling = 12000 → 12000 < 12000 is false → withinBudget:false
+  const r = estimateWorkcellTokens(decomp, { budget: { ceiling: 12000 } });
+  assert.equal(r.ok, false);
+  assert.equal(r.budget.withinBudget, false);
+});
+
+test('estimateWorkcellTokens earlyFail returns independent arrays', () => {
+  const r1 = estimateWorkcellTokens(null);
+  const r2 = estimateWorkcellTokens(null);
+  r1.warnings.push('mutated');
+  assert.equal(r2.warnings.length, 0);
 });

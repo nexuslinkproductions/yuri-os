@@ -87,6 +87,14 @@ function assertSafeRelPath(filePath) {
   return '';
 }
 
+function validateWorkcellToken(value, name) {
+  if (typeof value !== 'string' || value.length === 0) return `${name} must be a non-empty string`;
+  if (value.includes('/') || value.includes('\\')) return `${name} contains path separator`;
+  if (value === '..' || value.includes('..')) return `${name} contains path traversal`;
+  if (!/^[a-zA-Z0-9_.\-]+$/.test(value)) return `${name} contains invalid characters`;
+  return '';
+}
+
 // ---------------------------------------------------------------------------
 // Patch validation — yuri-patch-v0 (pure, no FS access)
 // ---------------------------------------------------------------------------
@@ -1312,6 +1320,143 @@ function buildRunId(goal) {
 
 function sha256(text) {
   return createHash('sha256').update(String(text)).digest('hex');
+}
+
+// ---------------------------------------------------------------------------
+// Pool output reader — safe, read-only surface for _SYSTEM/state/workcell
+// ---------------------------------------------------------------------------
+
+export function readPoolOutput(runId, role, options = {}) {
+  const errors = [];
+  const warnings = [];
+
+  const runIdErr = validateWorkcellToken(runId, 'runId');
+  if (runIdErr) {
+    return { ok: false, errors: [runIdErr], warnings, runId, role, relPath: null, output: null, validation: null };
+  }
+
+  const roleErr = validateWorkcellToken(role, 'role');
+  if (roleErr) {
+    return { ok: false, errors: [roleErr], warnings, runId, role, relPath: null, output: null, validation: null };
+  }
+
+  if (!WORKCELL_ROLES.includes(role)) {
+    warnings.push(`role '${role}' is not a standard workcell role`);
+  }
+
+  const relPath = `${WORKCELL_STATE_DIR}/${runId}/${role}/output.json`;
+
+  const pathErr = assertSafeRelPath(relPath);
+  if (pathErr) {
+    return { ok: false, errors: [pathErr], warnings, runId, role, relPath, output: null, validation: null };
+  }
+
+  const root = options.root || REPO_ROOT;
+  const fullPath = path.join(root, relPath);
+
+  let raw;
+  try {
+    raw = readFileSync(fullPath, 'utf8');
+  } catch {
+    return { ok: false, errors: ['output.json not found'], warnings, runId, role, relPath, output: null, validation: null };
+  }
+
+  let output;
+  try {
+    output = JSON.parse(raw);
+  } catch {
+    return { ok: false, errors: ['output.json is malformed JSON'], warnings, runId, role, relPath, output: null, validation: null };
+  }
+
+  let validation = null;
+  if (options.validate !== false) {
+    const packet = options.packet || { filesInScope: [] };
+    validation = validateWorkerOutput(output, packet);
+    if (!validation.ok) {
+      for (const ve of validation.errors) errors.push(`validation: ${ve}`);
+    }
+  }
+
+  const ok = errors.length === 0;
+  return { ok, errors, warnings, runId, role, relPath, output, validation };
+}
+
+// ---------------------------------------------------------------------------
+// Token estimator — pure, no FS reads, no USD pricing
+// ---------------------------------------------------------------------------
+
+export function estimateWorkcellTokens(decomposition, options = {}) {
+  const errors = [];
+  const warnings = [];
+
+  const earlyFail = (msg) => ({
+    ok: false, errors: [msg], warnings: [],
+    estimatorVersion: 'chars_div_4_v1', nodes: [],
+    totalInputTokens: 0, totalOutputTokens: 0, totalTokens: 0, budget: null,
+  });
+
+  if (!decomposition || typeof decomposition !== 'object') {
+    return earlyFail('decomposition must be an object');
+  }
+  if (!decomposition.dagValidation || !decomposition.dagValidation.ok) {
+    return earlyFail('decomposition has failed or missing dagValidation');
+  }
+  const nodeList = decomposition.nodes;
+  if (!Array.isArray(nodeList) || nodeList.length === 0) {
+    return earlyFail('decomposition must have at least one node');
+  }
+
+  const capsuleBytesPerNode = options.capsuleBytesPerNode ?? 24000;
+  const systemPromptBytes = options.systemPromptBytes ?? 4000;
+  const fileSizeEstimate = options.fileSizeEstimate ?? 8000;
+  const expectedOutputBytes = options.expectedOutputBytes ?? 12000;
+
+  const nodeEstimates = [];
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+
+  for (const node of nodeList) {
+    const filesCount = Array.isArray(node.filesInScope) ? node.filesInScope.length : 0;
+    const contextBytes = filesCount * fileSizeEstimate;
+    const inputTokens = Math.ceil((capsuleBytesPerNode + systemPromptBytes + contextBytes) / 4);
+    const outputTokens = Math.ceil(expectedOutputBytes / 4);
+    nodeEstimates.push({
+      id: node.id,
+      role: node.role,
+      filesInScopeCount: filesCount,
+      inputTokens,
+      outputTokens,
+      totalTokens: inputTokens + outputTokens,
+    });
+    totalInputTokens += inputTokens;
+    totalOutputTokens += outputTokens;
+  }
+
+  const totalTokens = totalInputTokens + totalOutputTokens;
+
+  let budget = null;
+  if (options.budget != null) {
+    const { ceiling, warnAt } = options.budget;
+    const withinBudget = totalTokens < ceiling;
+    budget = { ceiling, actual: totalTokens, withinBudget };
+    if (!withinBudget) {
+      errors.push(`total tokens (${totalTokens}) exceeds budget ceiling (${ceiling})`);
+    } else if (warnAt != null && totalTokens >= warnAt) {
+      warnings.push(`total tokens (${totalTokens}) exceeds warnAt threshold (${warnAt})`);
+    }
+  }
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    warnings,
+    estimatorVersion: 'chars_div_4_v1',
+    nodes: nodeEstimates,
+    totalInputTokens,
+    totalOutputTokens,
+    totalTokens,
+    budget,
+  };
 }
 
 // ---------------------------------------------------------------------------
