@@ -216,6 +216,272 @@ export function validatePatch(patch, scopeFiles = []) {
 }
 
 // ---------------------------------------------------------------------------
+// Dry-run patch application — yuri-patch-v0 (no file mutation)
+// ---------------------------------------------------------------------------
+
+function splitLines(content) {
+  return content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+}
+
+function safeReadFsReader(fsReader, relPath) {
+  try {
+    const val = fsReader(relPath);
+    if (val !== null && typeof val !== 'string') {
+      return { ok: false, error: `reader-contract-violation: expected string or null, got ${typeof val}` };
+    }
+    return { ok: true, content: val };
+  } catch (err) {
+    return { ok: false, error: `reader-error: ${err && err.message ? err.message : String(err)}` };
+  }
+}
+
+function findSequence(lines, seq) {
+  const matches = [];
+  if (seq.length === 0) return matches;
+  const limit = lines.length - seq.length;
+  for (let i = 0; i <= limit; i++) {
+    let hit = true;
+    for (let j = 0; j < seq.length; j++) {
+      if (lines[i + j] !== seq[j]) { hit = false; break; }
+    }
+    if (hit) matches.push(i);
+  }
+  return matches;
+}
+
+function makeEntry(index, op, file, status, extra = {}) {
+  return { index, op, file, status, ...extra };
+}
+
+function resolveReplace(i, entry, lines) {
+  const { op, file, old_lines: ol } = entry;
+  const cb = Array.isArray(entry.context_before) ? entry.context_before : [];
+  const ca = Array.isArray(entry.context_after) ? entry.context_after : [];
+
+  let seq, offset;
+  if (cb.length > 0 && ca.length > 0) { seq = [...cb, ...ol, ...ca]; offset = cb.length; }
+  else if (cb.length > 0) { seq = [...cb, ...ol]; offset = cb.length; }
+  else if (ca.length > 0) { seq = [...ol, ...ca]; offset = 0; }
+  else { seq = [...ol]; offset = 0; }
+
+  const matches = findSequence(lines, seq);
+  if (matches.length === 0) return makeEntry(i, op, file, 'error', { error: 'anchor-not-found' });
+  if (matches.length > 1) {
+    const positions = matches.map((m) => m + offset).join(', ');
+    return makeEntry(i, op, file, 'error', { error: `anchor-ambiguity at lines ${positions}` });
+  }
+  const anchorLine = matches[0] + offset;
+  const extra = { anchorLine, matchedOldLines: ol.length };
+  if (entry.line_hint != null) {
+    const drift = Math.abs((entry.line_hint - 1) - anchorLine);
+    if (drift > 0) extra.lineHintDrift = drift;
+  }
+  return makeEntry(i, op, file, 'would-apply', extra);
+}
+
+function resolveInsertBefore(i, entry, lines) {
+  const { op, file } = entry;
+  const cb = Array.isArray(entry.context_before) ? entry.context_before : [];
+  const matches = findSequence(lines, cb);
+  if (matches.length === 0) return makeEntry(i, op, file, 'error', { error: 'anchor-not-found' });
+  if (matches.length > 1) {
+    return makeEntry(i, op, file, 'error', { error: `anchor-ambiguity at lines ${matches.join(', ')}` });
+  }
+  const anchorLine = matches[0];
+  const extra = { anchorLine };
+  if (entry.line_hint != null) {
+    const drift = Math.abs((entry.line_hint - 1) - anchorLine);
+    if (drift > 0) extra.lineHintDrift = drift;
+  }
+  return makeEntry(i, op, file, 'would-apply', extra);
+}
+
+function resolveInsertAfter(i, entry, lines) {
+  const { op, file } = entry;
+  const ca = Array.isArray(entry.context_after) ? entry.context_after : [];
+  const matches = findSequence(lines, ca);
+  if (matches.length === 0) return makeEntry(i, op, file, 'error', { error: 'anchor-not-found' });
+  if (matches.length > 1) {
+    const positions = matches.map((m) => m + ca.length - 1).join(', ');
+    return makeEntry(i, op, file, 'error', { error: `anchor-ambiguity at lines ${positions}` });
+  }
+  const anchorLine = matches[0] + ca.length - 1;
+  const extra = { anchorLine };
+  if (entry.line_hint != null) {
+    const drift = Math.abs((entry.line_hint - 1) - anchorLine);
+    if (drift > 0) extra.lineHintDrift = drift;
+  }
+  return makeEntry(i, op, file, 'would-apply', extra);
+}
+
+function detectOverlaps(results, warnings) {
+  const byFile = new Map();
+  for (const r of results) {
+    if (r.status !== 'would-apply' || typeof r.file !== 'string') continue;
+    if (!byFile.has(r.file)) byFile.set(r.file, []);
+    byFile.get(r.file).push(r);
+  }
+  for (const [file, entries] of byFile) {
+    const creates = entries.filter((e) => e.op === 'create_file');
+    const editOps = entries.filter((e) => ['replace_lines', 'insert_before', 'insert_after'].includes(e.op));
+    if (creates.length > 0 && editOps.length > 0) {
+      warnings.push(
+        `create_file and edit op target same file: ${file} (patches[${creates[0].index}] and patches[${editOps[0].index}])`,
+      );
+    }
+    const ranged = editOps
+      .filter((e) => e.anchorLine != null)
+      .map((e) => ({
+        index: e.index,
+        start: e.anchorLine,
+        end: e.op === 'replace_lines' ? e.anchorLine + (e.matchedOldLines || 1) - 1 : e.anchorLine,
+      }));
+    for (let a = 0; a < ranged.length; a++) {
+      for (let b = a + 1; b < ranged.length; b++) {
+        const ra = ranged[a]; const rb = ranged[b];
+        if (ra.start <= rb.end && rb.start <= ra.end) {
+          warnings.push(
+            `overlapping regions in ${file}: patches[${ra.index}] (lines ${ra.start}-${ra.end}) and patches[${rb.index}] (lines ${rb.start}-${rb.end})`,
+          );
+        }
+      }
+    }
+  }
+}
+
+function emptyDryResult() {
+  return { errors: [], warnings: [], results: [], filesWouldChange: [], filesWouldCreate: [], filesWouldDelete: [] };
+}
+
+export function applyPatchDryRun(patch, fsReader, options = {}) {
+  if (typeof fsReader !== 'function') {
+    return { ok: false, ...emptyDryResult(), errors: ['fsReader must be a function'] };
+  }
+
+  if (!options.skipValidation) {
+    const vr = validatePatch(patch);
+    if (!vr.ok) return { ok: false, ...emptyDryResult(), errors: vr.errors };
+  }
+
+  if (!patch || !Array.isArray(patch.patches) || patch.patches.length === 0) {
+    return { ok: false, ...emptyDryResult(), errors: ['patch.patches must be a non-empty array'] };
+  }
+
+  const errors = [];
+  const warnings = [];
+  const results = [];
+  const wChange = new Set();
+  const wCreate = new Set();
+  const wDelete = new Set();
+
+  // Read each unique valid file exactly once — pre-patch state
+  const fileCache = new Map();
+  for (const entry of patch.patches) {
+    if (!entry || typeof entry !== 'object' || typeof entry.file !== 'string') continue;
+    if (fileCache.has(entry.file)) continue;
+    const pathErr = assertSafeRelPath(entry.file);
+    if (pathErr) {
+      fileCache.set(entry.file, { readerError: `path-safety: ${pathErr}` });
+      continue;
+    }
+    const read = safeReadFsReader(fsReader, entry.file);
+    fileCache.set(entry.file, read.ok ? (read.content === null ? null : splitLines(read.content)) : { readerError: read.error });
+  }
+
+  for (let i = 0; i < patch.patches.length; i++) {
+    const entry = patch.patches[i];
+    const px = `patches[${i}]`;
+
+    if (!entry || typeof entry !== 'object') {
+      const e = 'entry must be a non-null object';
+      errors.push(`${px}: ${e}`);
+      results.push(makeEntry(i, '?', '?', 'error', { error: e }));
+      continue;
+    }
+
+    const { op, file } = entry;
+
+    if (typeof file !== 'string') {
+      const e = 'file must be a string';
+      errors.push(`${px}: ${e}`);
+      results.push(makeEntry(i, String(op ?? '?'), '?', 'error', { error: e }));
+      continue;
+    }
+
+    const cached = fileCache.get(file);
+    if (cached && typeof cached === 'object' && 'readerError' in cached) {
+      errors.push(`${px}: ${cached.readerError}`);
+      results.push(makeEntry(i, op, file, 'error', { error: cached.readerError }));
+      continue;
+    }
+
+    let result;
+    if (op === 'create_file') {
+      result = cached !== null
+        ? makeEntry(i, op, file, 'error', { error: 'file-already-exists' })
+        : makeEntry(i, op, file, 'would-apply');
+    } else if (op === 'delete_file') {
+      result = (cached === null || cached === undefined)
+        ? makeEntry(i, op, file, 'error', { error: 'file-not-found' })
+        : makeEntry(i, op, file, 'would-apply');
+    } else if (op === 'replace_lines') {
+      result = !Array.isArray(cached)
+        ? makeEntry(i, op, file, 'error', { error: 'file-not-found' })
+        : resolveReplace(i, entry, cached);
+    } else if (op === 'insert_before') {
+      result = !Array.isArray(cached)
+        ? makeEntry(i, op, file, 'error', { error: 'file-not-found' })
+        : resolveInsertBefore(i, entry, cached);
+    } else if (op === 'insert_after') {
+      result = !Array.isArray(cached)
+        ? makeEntry(i, op, file, 'error', { error: 'file-not-found' })
+        : resolveInsertAfter(i, entry, cached);
+    } else {
+      result = makeEntry(i, String(op ?? '?'), file, 'error', { error: `unknown op: ${JSON.stringify(op)}` });
+    }
+
+    results.push(result);
+    if (result.status === 'error') {
+      errors.push(`${px}: ${result.error}`);
+    } else {
+      if (op === 'create_file') wCreate.add(file);
+      else if (op === 'delete_file') wDelete.add(file);
+      else wChange.add(file);
+    }
+  }
+
+  detectOverlaps(results, warnings);
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    warnings,
+    results,
+    filesWouldChange: [...wChange],
+    filesWouldCreate: [...wCreate],
+    filesWouldDelete: [...wDelete],
+  };
+}
+
+export function makeFilesystemReader(repoRoot) {
+  return function fsReader(relPath) {
+    if (!relPath || typeof relPath !== 'string') return null;
+    const normalized = relPath.replaceAll('\\', '/');
+    if (path.isAbsolute(normalized) || path.isAbsolute(relPath)) return null;
+    if (normalized.startsWith('../') || normalized.includes('/../') || normalized === '..') return null;
+    if (isProtectedPath(normalized)) return null;
+    const full = path.join(repoRoot, relPath);
+    const root = repoRoot.endsWith(path.sep) ? repoRoot : repoRoot + path.sep;
+    if (!full.startsWith(root) && full !== repoRoot) return null;
+    try {
+      return readFileSync(full, 'utf8').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    } catch {
+      return null;
+    }
+  };
+}
+
+// ---------------------------------------------------------------------------
 // DAG validation — hard gate
 // ---------------------------------------------------------------------------
 

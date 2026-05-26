@@ -107,6 +107,12 @@ The protocol should make most workers powerful producers with curated context, n
 
 The ideal packet is self-sufficient: goal, files in scope, relevant excerpts, constraints, expected output schema, and validation commands. The better C-137 and Scout prepare the packet, the less worker navigation is needed.
 
+### Lane Visibility
+
+Quantum/Sonnet and Prime/Opus are the primary monitored lanes. They should stay in the visible operator workspace during implementation and supercharge work so Marcel can watch the main builder and supercharger directly.
+
+Additional worker lanes may run in background terminals when useful, but they must be named, discoverable in tmux, and available for Marcel to inspect at any time. C-137 must not create mystery Claude/worker lanes: every background lane needs a clear role, tmux location, and reason.
+
 ## Planning Ladder
 
 Major sprint, architecture, autonomy, memory, or workcell plans should be built bottom-up. C-137 does not privately finish the whole plan and then ask the other lanes to rubber-stamp it.

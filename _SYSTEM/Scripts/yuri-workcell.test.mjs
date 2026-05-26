@@ -10,9 +10,11 @@ import {
   validatePatch,
   YURI_PATCH_FORMAT,
   YURI_PATCH_OPS,
+  applyPatchDryRun,
+  makeFilesystemReader,
+  REPO_ROOT,
 } from './yuri-workcell.mjs';
 
-const REPO_ROOT = path.resolve(import.meta.dirname, '../..');
 const RUNNER = path.join(REPO_ROOT, '_SYSTEM/Scripts/yuri-workcell.mjs');
 
 // ---------------------------------------------------------------------------
@@ -916,4 +918,493 @@ test('harmless extras on delete_file are tolerated', () => {
     }],
   });
   assert.equal(result.ok, true);
+});
+
+// ---------------------------------------------------------------------------
+// applyPatchDryRun — helpers
+// ---------------------------------------------------------------------------
+
+const DR_FILE = '_SYSTEM/config/dry-run-fixture.txt';
+const DR_FILE2 = '_SYSTEM/config/dry-run-fixture-b.txt';
+
+// File content: 5 lines (0-indexed 0..4)
+const FIXTURE = 'header_line\ncontext_before_line\nold_target_line\ncontext_after_line\nfooter_line';
+// Lines: 0=header_line 1=context_before_line 2=old_target_line 3=context_after_line 4=footer_line
+
+function mockReader(map) {
+  return (relPath) => (Object.hasOwn(map, relPath) ? map[relPath] : null);
+}
+
+function drPatch(patchEntry, file = DR_FILE) {
+  return {
+    format: 'yuri-patch-v0',
+    scope_declared: [file],
+    patches: [{ file, ...patchEntry }],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// applyPatchDryRun — replace_lines
+// ---------------------------------------------------------------------------
+
+test('replace_lines happy path with context_before and context_after', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    context_before: ['context_before_line'],
+    old_lines: ['old_target_line'],
+    new_lines: ['new_target_line'],
+    context_after: ['context_after_line'],
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].status, 'would-apply');
+  assert.equal(result.results[0].anchorLine, 2);
+  assert.equal(result.results[0].matchedOldLines, 1);
+  assert.deepEqual(result.filesWouldChange, [DR_FILE]);
+});
+
+test('replace_lines anchor not found returns error', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    old_lines: ['nonexistent_line'],
+    new_lines: ['x'],
+  }), reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('anchor-not-found')));
+  assert.equal(result.results[0].status, 'error');
+});
+
+test('replace_lines ambiguous anchor returns error with positions', () => {
+  const content = 'dup_line\nmiddle\ndup_line';
+  const reader = mockReader({ [DR_FILE]: content });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    old_lines: ['dup_line'],
+    new_lines: ['replaced'],
+  }), reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('anchor-ambiguity')));
+});
+
+test('context_before narrows ambiguous old_lines to unique match', () => {
+  const content = 'unique_before\nold_target_line\nother_stuff\nother_before\nold_target_line';
+  const reader = mockReader({ [DR_FILE]: content });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    context_before: ['unique_before'],
+    old_lines: ['old_target_line'],
+    new_lines: ['replaced'],
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].anchorLine, 1);
+});
+
+test('context_before mismatch yields anchor-not-found', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    context_before: ['wrong_before_line'],
+    old_lines: ['old_target_line'],
+    new_lines: ['x'],
+  }), reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('anchor-not-found')));
+});
+
+test('replace_lines with empty new_lines (deletion) succeeds when anchor found', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    old_lines: ['old_target_line'],
+    new_lines: [],
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].status, 'would-apply');
+  assert.equal(result.results[0].matchedOldLines, 1);
+});
+
+// ---------------------------------------------------------------------------
+// applyPatchDryRun — insert_before / insert_after
+// ---------------------------------------------------------------------------
+
+test('insert_before happy path', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'insert_before',
+    context_before: ['context_before_line'],
+    new_lines: ['// inserted before'],
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].status, 'would-apply');
+  assert.equal(result.results[0].anchorLine, 1);
+  assert.deepEqual(result.filesWouldChange, [DR_FILE]);
+});
+
+test('insert_after happy path', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'insert_after',
+    context_after: ['context_after_line'],
+    new_lines: ['// inserted after'],
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].status, 'would-apply');
+  assert.equal(result.results[0].anchorLine, 3);
+});
+
+// ---------------------------------------------------------------------------
+// applyPatchDryRun — line_hint
+// ---------------------------------------------------------------------------
+
+test('line_hint drift is reported as lineHintDrift when mismatched', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    old_lines: ['old_target_line'],
+    new_lines: ['x'],
+    line_hint: 10,  // actual anchorLine is 2, drift = |10-1 - 2| = 7
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].lineHintDrift, 7);
+});
+
+test('line_hint matching anchorLine produces no lineHintDrift field', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    old_lines: ['old_target_line'],
+    new_lines: ['x'],
+    line_hint: 3,   // 1-indexed; anchorLine=2 (0-indexed); drift = |3-1-2| = 0
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].lineHintDrift, undefined);
+});
+
+// ---------------------------------------------------------------------------
+// applyPatchDryRun — create_file / delete_file
+// ---------------------------------------------------------------------------
+
+test('create_file succeeds when file does not exist', () => {
+  const reader = mockReader({});  // file absent
+  const result = applyPatchDryRun({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/brand-new.txt'],
+    patches: [{ op: 'create_file', file: '_SYSTEM/config/brand-new.txt', new_lines: ['hello'] }],
+  }, reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].status, 'would-apply');
+  assert.deepEqual(result.filesWouldCreate, ['_SYSTEM/config/brand-new.txt']);
+});
+
+test('create_file errors when file already exists', () => {
+  const reader = mockReader({ '_SYSTEM/config/brand-new.txt': 'existing' });
+  const result = applyPatchDryRun({
+    format: 'yuri-patch-v0',
+    scope_declared: ['_SYSTEM/config/brand-new.txt'],
+    patches: [{ op: 'create_file', file: '_SYSTEM/config/brand-new.txt', new_lines: ['hello'] }],
+  }, reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('file-already-exists')));
+});
+
+test('delete_file succeeds when file exists', () => {
+  const reader = mockReader({ [DR_FILE]: 'content' });
+  const result = applyPatchDryRun({
+    format: 'yuri-patch-v0',
+    scope_declared: [DR_FILE],
+    patches: [{ op: 'delete_file', file: DR_FILE }],
+  }, reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].status, 'would-apply');
+  assert.deepEqual(result.filesWouldDelete, [DR_FILE]);
+});
+
+test('delete_file errors when file does not exist', () => {
+  const reader = mockReader({});
+  const result = applyPatchDryRun({
+    format: 'yuri-patch-v0',
+    scope_declared: [DR_FILE],
+    patches: [{ op: 'delete_file', file: DR_FILE }],
+  }, reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('file-not-found')));
+});
+
+// ---------------------------------------------------------------------------
+// applyPatchDryRun — fsReader contract enforcement
+// ---------------------------------------------------------------------------
+
+test('fsReader null does not throw and returns errors', () => {
+  const result = applyPatchDryRun(drPatch({ op: 'replace_lines', old_lines: ['x'], new_lines: ['y'] }), null);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('fsReader must be a function')));
+});
+
+test('fsReader undefined does not throw and returns errors', () => {
+  const result = applyPatchDryRun(drPatch({ op: 'replace_lines', old_lines: ['x'], new_lines: ['y'] }), undefined);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('fsReader must be a function')));
+});
+
+test('fsReader as non-function object does not throw and returns errors', () => {
+  const result = applyPatchDryRun(drPatch({ op: 'replace_lines', old_lines: ['x'], new_lines: ['y'] }), { readFile: () => '' });
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('fsReader must be a function')));
+});
+
+test('fsReader returning non-string yields reader-contract-violation', () => {
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines', old_lines: ['x'], new_lines: ['y'],
+  }), () => 42);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('reader-contract-violation')));
+});
+
+test('fsReader throwing yields reader-error returned, not thrown', () => {
+  assert.doesNotThrow(() => {
+    const result = applyPatchDryRun(drPatch({
+      op: 'replace_lines', old_lines: ['x'], new_lines: ['y'],
+    }), () => { throw new Error('BOOM'); });
+    assert.equal(result.ok, false);
+    assert.ok(result.errors.some((e) => e.includes('reader-error') && e.includes('BOOM')));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// applyPatchDryRun — CRLF and empty file
+// ---------------------------------------------------------------------------
+
+test('CRLF file content is normalized and anchor matches', () => {
+  const crlf = 'header_line\r\nold_target_line\r\nfooter_line';
+  const reader = mockReader({ [DR_FILE]: crlf });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    old_lines: ['old_target_line'],
+    new_lines: ['replaced'],
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].anchorLine, 1);
+});
+
+test('empty file content yields anchor-not-found without crash', () => {
+  const reader = mockReader({ [DR_FILE]: '' });
+  const result = applyPatchDryRun(drPatch({
+    op: 'replace_lines',
+    old_lines: ['anything'],
+    new_lines: ['x'],
+  }), reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('anchor-not-found')));
+});
+
+// ---------------------------------------------------------------------------
+// applyPatchDryRun — overlap and multi-file
+// ---------------------------------------------------------------------------
+
+test('two non-overlapping replace_lines same file — both would-apply, no overlap warning', () => {
+  const content = 'aaa\nbbb\nccc\nddd\neee';
+  const reader = mockReader({ [DR_FILE]: content });
+  const patch = {
+    format: 'yuri-patch-v0',
+    scope_declared: [DR_FILE],
+    patches: [
+      { op: 'replace_lines', file: DR_FILE, old_lines: ['aaa'], new_lines: ['AAA'] },
+      { op: 'replace_lines', file: DR_FILE, old_lines: ['eee'], new_lines: ['EEE'] },
+    ],
+  };
+  const result = applyPatchDryRun(patch, reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].status, 'would-apply');
+  assert.equal(result.results[1].status, 'would-apply');
+  assert.equal(result.warnings.length, 0);
+});
+
+test('two overlapping replace_lines same file — both would-apply with overlap warning', () => {
+  const content = 'aaa\nbbb\nccc\nddd\neee';
+  const reader = mockReader({ [DR_FILE]: content });
+  const patch = {
+    format: 'yuri-patch-v0',
+    scope_declared: [DR_FILE],
+    patches: [
+      { op: 'replace_lines', file: DR_FILE, old_lines: ['bbb', 'ccc'], new_lines: ['X'] },
+      { op: 'replace_lines', file: DR_FILE, old_lines: ['ccc', 'ddd'], new_lines: ['Y'] },
+    ],
+  };
+  const result = applyPatchDryRun(patch, reader);
+  assert.equal(result.ok, true);
+  assert.ok(result.warnings.some((w) => w.includes('overlapping')));
+});
+
+test('create_file errors on existing file while replace_lines succeeds — no crash, results split', () => {
+  // create_file and replace_lines targeting the same file cannot both be would-apply:
+  // if the file exists, create_file errors; if it does not exist, replace_lines errors.
+  // This test verifies the split is handled cleanly with no spurious warnings.
+  const reader = mockReader({ [DR_FILE]: 'existing content\nsome_line' });
+  const patch = {
+    format: 'yuri-patch-v0',
+    scope_declared: [DR_FILE],
+    patches: [
+      { op: 'create_file', file: DR_FILE, new_lines: ['fresh'] },
+      { op: 'replace_lines', file: DR_FILE, old_lines: ['some_line'], new_lines: ['x'] },
+    ],
+  };
+  const result = applyPatchDryRun(patch, reader);
+  assert.equal(result.results[0].status, 'error');
+  assert.ok(result.errors.some((e) => e.includes('file-already-exists')));
+  assert.equal(result.results[1].status, 'would-apply');
+  assert.deepEqual(result.filesWouldChange, [DR_FILE]);
+  assert.deepEqual(result.filesWouldCreate, []);
+});
+
+test('multi-file patch populates filesWouldChange/Create/Delete correctly', () => {
+  const newFile = '_SYSTEM/config/to-create.txt';
+  const delFile = '_SYSTEM/config/to-delete.txt';
+  const editFile = '_SYSTEM/config/to-edit.txt';
+  const reader = mockReader({
+    [delFile]: 'bye',
+    [editFile]: 'change_me',
+  });
+  const patch = {
+    format: 'yuri-patch-v0',
+    scope_declared: [newFile, delFile, editFile],
+    patches: [
+      { op: 'create_file', file: newFile, new_lines: ['hello'] },
+      { op: 'delete_file', file: delFile },
+      { op: 'replace_lines', file: editFile, old_lines: ['change_me'], new_lines: ['changed'] },
+    ],
+  };
+  const result = applyPatchDryRun(patch, reader);
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.filesWouldCreate, [newFile]);
+  assert.deepEqual(result.filesWouldDelete, [delFile]);
+  assert.deepEqual(result.filesWouldChange, [editFile]);
+});
+
+// ---------------------------------------------------------------------------
+// makeFilesystemReader
+// ---------------------------------------------------------------------------
+
+test('makeFilesystemReader rejects protected path by returning null', () => {
+  const reader = makeFilesystemReader(REPO_ROOT);
+  assert.equal(reader('.env'), null);
+  assert.equal(reader('.claude/state/foo.json'), null);
+});
+
+test('makeFilesystemReader returns null for absolute path', () => {
+  const reader = makeFilesystemReader(REPO_ROOT);
+  assert.equal(reader('/etc/passwd'), null);
+});
+
+test('makeFilesystemReader returns null for traversal path', () => {
+  const reader = makeFilesystemReader(REPO_ROOT);
+  assert.equal(reader('../../etc/shadow'), null);
+});
+
+test('makeFilesystemReader reads a known repo file as a string', () => {
+  const reader = makeFilesystemReader(REPO_ROOT);
+  const content = reader('_SYSTEM/Scripts/yuri-workcell.mjs');
+  assert.ok(typeof content === 'string');
+  assert.ok(content.includes('YURI_PATCH_FORMAT'));
+  assert.ok(!content.includes('\r\n'));  // CRLF normalized
+});
+
+test('makeFilesystemReader returns null for missing file', () => {
+  const reader = makeFilesystemReader(REPO_ROOT);
+  assert.equal(reader('_SYSTEM/Scripts/definitely-does-not-exist-xyz.mjs'), null);
+});
+
+// ---------------------------------------------------------------------------
+// Prime S5 — additional dry-run coverage
+// ---------------------------------------------------------------------------
+
+test('insert_before anchor not found returns error', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'insert_before',
+    context_before: ['nonexistent_anchor'],
+    new_lines: ['// new'],
+  }), reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('anchor-not-found')));
+});
+
+test('insert_after anchor not found returns error', () => {
+  const reader = mockReader({ [DR_FILE]: FIXTURE });
+  const result = applyPatchDryRun(drPatch({
+    op: 'insert_after',
+    context_after: ['nonexistent_anchor'],
+    new_lines: ['// new'],
+  }), reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('anchor-not-found')));
+});
+
+test('insert_after with multi-line context_after anchors to last matched line', () => {
+  const content = 'aaa\nbbb\nccc\nddd';
+  const reader = mockReader({ [DR_FILE]: content });
+  const result = applyPatchDryRun(drPatch({
+    op: 'insert_after',
+    context_after: ['bbb', 'ccc'],
+    new_lines: ['// inserted'],
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].anchorLine, 2);
+});
+
+test('insert_before with multi-line context_before anchors to first matched line', () => {
+  const content = 'aaa\nbbb\nccc\nddd';
+  const reader = mockReader({ [DR_FILE]: content });
+  const result = applyPatchDryRun(drPatch({
+    op: 'insert_before',
+    context_before: ['bbb', 'ccc'],
+    new_lines: ['// inserted'],
+  }), reader);
+  assert.equal(result.ok, true);
+  assert.equal(result.results[0].anchorLine, 1);
+});
+
+test('early-return results arrays are independent across calls', () => {
+  const r1 = applyPatchDryRun({}, null);
+  const r2 = applyPatchDryRun({}, null);
+  assert.equal(r1.ok, false);
+  assert.equal(r2.ok, false);
+  r1.warnings.push('mutated');
+  assert.equal(r2.warnings.length, 0);
+});
+
+test('skipValidation malformed patch early-return does not reference stale empty result state', () => {
+  assert.doesNotThrow(() => {
+    const result = applyPatchDryRun({}, () => null, { skipValidation: true });
+    assert.equal(result.ok, false);
+    assert.ok(result.errors.some((e) => e.includes('patch.patches must be a non-empty array')));
+    result.warnings.push('mutated');
+
+    const next = applyPatchDryRun({}, () => null, { skipValidation: true });
+    assert.equal(next.warnings.length, 0);
+  });
+});
+
+test('insert_before ambiguous anchor returns error', () => {
+  const content = 'dup\nmiddle\ndup';
+  const reader = mockReader({ [DR_FILE]: content });
+  const result = applyPatchDryRun(drPatch({
+    op: 'insert_before',
+    context_before: ['dup'],
+    new_lines: ['// new'],
+  }), reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('anchor-ambiguity')));
+});
+
+test('insert_after ambiguous anchor returns error', () => {
+  const content = 'dup\nmiddle\ndup';
+  const reader = mockReader({ [DR_FILE]: content });
+  const result = applyPatchDryRun(drPatch({
+    op: 'insert_after',
+    context_after: ['dup'],
+    new_lines: ['// new'],
+  }), reader);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((e) => e.includes('anchor-ambiguity')));
 });
