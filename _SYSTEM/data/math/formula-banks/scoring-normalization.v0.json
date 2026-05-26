@@ -1,7 +1,7 @@
 {
   "schema": "yuri.math.formula-bank.v0",
   "id": "scoring-normalization",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "promotionStatus": "verified-baseline",
   "advisoryOnly": false,
   "formulas": [
@@ -544,6 +544,145 @@
       ],
       "sources": [
         "local:_SYSTEM/Scripts/math/math-kernel.test.mjs"
+      ]
+    },
+    {
+      "id": "confidence-decay",
+      "promotionStatus": "verified-baseline",
+      "advisoryOnly": false,
+      "domain": "scoring",
+      "notation": "c(t) = c_0 * 0.5^(t / h)",
+      "purpose": "Decay a base confidence score exponentially by age relative to a half-life.",
+      "plainLanguageUseCase": "Use when YURI ranks memory capsule contexts or truth claims by recency: older items decay toward zero unless refreshed.",
+      "implementedBy": "_SYSTEM/Scripts/math/math-kernel.mjs#confidenceDecay",
+      "units": {
+        "inputs": {
+          "base": "dimensionless confidence in [0,1]",
+          "age": "time elapsed in same units as halfLife",
+          "halfLife": "positive time constant in same units as age"
+        },
+        "output": "dimensionless confidence in [0,1]"
+      },
+      "inputConstraints": [
+        "base must be between 0 and 1 inclusive",
+        "age must be non-negative",
+        "halfLife must be positive"
+      ],
+      "variables": [
+        {
+          "symbol": "c_0",
+          "meaning": "base confidence at time zero",
+          "type": "number",
+          "constraints": ["0 <= c_0 <= 1"]
+        },
+        {
+          "symbol": "t",
+          "meaning": "age since the confidence was established",
+          "type": "number",
+          "constraints": ["t >= 0"]
+        },
+        {
+          "symbol": "h",
+          "meaning": "half-life: time for confidence to halve",
+          "type": "number",
+          "constraints": ["h > 0"]
+        }
+      ],
+      "assumptions": [
+        "exponential decay is appropriate for the recency model",
+        "age and halfLife share the same time unit"
+      ],
+      "invalidInputs": [
+        "base outside [0,1]",
+        "negative age",
+        "non-positive halfLife",
+        "non-finite values"
+      ],
+      "counterexamples": [
+        {
+          "name": "negative age",
+          "input": { "base": 0.8, "age": -1, "halfLife": 10 },
+          "expectedError": "age must be non-negative"
+        },
+        {
+          "name": "zero halfLife",
+          "input": { "base": 0.8, "age": 5, "halfLife": 0 },
+          "expectedError": "halfLife must be positive"
+        }
+      ],
+      "failureModes": [
+        "Half-life is load-bearing: too short and valuable reference memory decays before use; too long and stale memory dominates ranking.",
+        "Confidence decay models only recency, not correctness. A fresh falsehood decays slowly."
+      ],
+      "selectionGuidance": {
+        "useWhen": [
+          "ranking memory capsule contexts by recency-weighted confidence",
+          "aging truth or memory claims for freshness comparisons"
+        ],
+        "avoidWhen": [
+          "age is unknown or the item has no meaningful creation timestamp",
+          "correctness matters more than freshness"
+        ],
+        "yuriApplications": [
+          "memory capsule ranking",
+          "truth promotion freshness gate",
+          "workcell capsule assembly"
+        ]
+      },
+      "workedExamples": [
+        {
+          "name": "memory item at one half-life",
+          "input": { "base": 0.9, "age": 10, "halfLife": 10 },
+          "expected": { "decay": 0.45 },
+          "interpretation": "After exactly one half-life, the confidence halves from 0.9 to 0.45."
+        },
+        {
+          "name": "fresh item with zero age",
+          "input": { "base": 0.8, "age": 0, "halfLife": 14 },
+          "expected": { "decay": 0.8 },
+          "interpretation": "At age zero the confidence is unchanged."
+        }
+      ],
+      "proofObligations": [
+        "bounded_output_0_1",
+        "monotonic_decay_with_age",
+        "half_at_halfLife"
+      ],
+      "implementationBinding": {
+        "runtime": "node",
+        "binding": "_SYSTEM/Scripts/math/math-kernel.mjs#confidenceDecay",
+        "proofGateFormulaId": "confidence-decay",
+        "proofGate": "_SYSTEM/Scripts/math/math-proof-gate.mjs",
+        "tests": [
+          "_SYSTEM/Scripts/math/math-kernel.test.mjs",
+          "_SYSTEM/Scripts/math/math-proof-gate.test.mjs"
+        ]
+      },
+      "testVectors": [
+        {
+          "type": "worked-example",
+          "name": "memory item at one half-life",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "worked-example",
+          "name": "fresh item with zero age",
+          "expected": "matches workedExamples.expected via proof gate"
+        },
+        {
+          "type": "invalid-input",
+          "name": "negative age",
+          "expectedError": "age must be non-negative"
+        },
+        {
+          "type": "invalid-input",
+          "name": "zero halfLife",
+          "expectedError": "halfLife must be positive"
+        }
+      ],
+      "sources": [
+        "local:_SYSTEM/Scripts/math/math-kernel.mjs#confidenceDecay",
+        "local:_SYSTEM/research-archive/yuri-math-engine-2026-05/13_math_application_playbook.md"
       ]
     }
   ]

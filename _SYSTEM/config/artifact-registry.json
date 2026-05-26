@@ -386,6 +386,30 @@
       "notes": "Tests dry-run manifests, approval blocking, protected-path acknowledgement, redacted events, and protected event-root refusal."
     },
     {
+      "path": "_SYSTEM/Scripts/yuri-workcell.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI workcell",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-workcell.test.mjs.",
+      "notes": "Workcell orchestration core: DAG validation hard gate via topologicalSort, packet assembly, scope checking, and decomposition builder."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-workcell.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI workcell",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime script tests live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-workcell.test.mjs.",
+      "notes": "Tests DAG validation (cycle detection, protected paths, duplicate nodes), packet assembly, scope checking, and decomposition builder."
+    },
+    {
       "path": "_SYSTEM/Scripts/yuri-workcell-capture.mjs",
       "type": "script",
       "class": "system_control_plane",

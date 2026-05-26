@@ -175,6 +175,8 @@
         "_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md",
         "_SYSTEM/Scripts/yuri-autonomy-runner.mjs",
         "_SYSTEM/Scripts/yuri-autonomy-runner.test.mjs",
+        "_SYSTEM/Scripts/yuri-workcell.mjs",
+        "_SYSTEM/Scripts/yuri-workcell.test.mjs",
         "_SYSTEM/Scripts/yuri-workcell-capture.mjs",
         "_SYSTEM/Scripts/yuri-workcell-capture.test.mjs",
         "_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json",

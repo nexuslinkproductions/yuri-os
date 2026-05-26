@@ -28,6 +28,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/Scripts/lane-persona-map.mjs` | Private dev-only Rick alias overlay with neutral shipping labels and cache-stable packet headers. |
 | `_SYSTEM/Scripts/yuri-closeout.mjs` | Lean deterministic EOT/closeout checkpoint for continuity without model fanout. |
 | `_SYSTEM/Scripts/worker-capture-once.mjs` | Delayed live worker pane capture into `_SYSTEM/state/worker-captures/` with Kagami evidence refs. |
+| `_SYSTEM/Scripts/yuri-workcell.mjs` | Workcell orchestration core: DAG validation hard gate via `topologicalSort()`, packet assembly, scope checking, and decomposition builder. |
 | `_SYSTEM/Scripts/yuri-workcell-capture.mjs` | Workcell intake bridge: captures live worker/Prime pane output into `_SYSTEM/state/workcell/<runId>/<role>/` as structured output. |
 | `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md` | Active governed-autonomy sprint plan: baseline anchor, evidence runner, approval gates, rollback contract, scorecard, and timed-run path. |
 | `_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md` | Multi-Sonnet workcell protocol: worker bundles, memory capsules/signals, Rick Prime supercharge, C-137 integration, and commit authorization. |

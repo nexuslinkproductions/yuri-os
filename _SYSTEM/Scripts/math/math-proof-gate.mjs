@@ -85,6 +85,9 @@ const FORMULA_IMPLEMENTATIONS = {
   'cosine-similarity': {
     invoke: (input) => ({ similarity: kernel.cosineSimilarity(input.left, input.right) }),
   },
+  'confidence-decay': {
+    invoke: (input) => ({ decay: kernel.confidenceDecay(input) }),
+  },
 };
 
 export function inspectFormulaBankDirectory(bankDir = FORMULA_BANK_DIR) {
