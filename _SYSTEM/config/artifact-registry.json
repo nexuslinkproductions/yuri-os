@@ -338,6 +338,18 @@
       "notes": "Sprint plan for baseline anchors, evidence runner, scorecards, approval gates, rollback contract, timed runs, and scheduler path."
     },
     {
+      "path": "_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md",
+      "type": "doc",
+      "class": "system_control_plane",
+      "owner": "YURI autonomy",
+      "status": "active_protocol",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Governed-autonomy protocols live in _SYSTEM/docs/.",
+      "rebuildRule": "Update through Sonnet workcell protocol changes; validate with artifact registry and autonomy context routing.",
+      "notes": "Protocol for multi-Sonnet worker implementation, Rick Prime supercharge review, C-137 integration, and Marcel authorization."
+    },
+    {
       "path": "_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json",
       "type": "config",
       "class": "artifact_registry",

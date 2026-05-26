@@ -169,9 +169,10 @@
     {
       "id": "autonomy",
       "label": "Governed Autonomy Context",
-      "triggers": ["autonomy", "autonomous", "governed", "dry-run", "evidence runner", "timed run", "code autopilot", "approval boundary", "rollback contract", "scorecard"],
+      "triggers": ["autonomy", "autonomous", "governed", "dry-run", "evidence runner", "timed run", "code autopilot", "approval boundary", "rollback contract", "scorecard", "sonnet", "workcell", "output pool", "worker bundle"],
       "paths": [
         "_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md",
+        "_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md",
         "_SYSTEM/Scripts/yuri-autonomy-runner.mjs",
         "_SYSTEM/Scripts/yuri-autonomy-runner.test.mjs",
         "_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json",

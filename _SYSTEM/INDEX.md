@@ -29,6 +29,7 @@ Purpose: make the repo navigable without guessing. This file tells models what t
 | `_SYSTEM/Scripts/yuri-closeout.mjs` | Lean deterministic EOT/closeout checkpoint for continuity without model fanout. |
 | `_SYSTEM/Scripts/worker-capture-once.mjs` | Delayed live worker pane capture into `_SYSTEM/state/worker-captures/` with Kagami evidence refs. |
 | `_SYSTEM/docs/YURI_GOVERNED_AUTONOMY_SPRINT_PLAN_2026-05-26.md` | Active governed-autonomy sprint plan: baseline anchor, evidence runner, approval gates, rollback contract, scorecard, and timed-run path. |
+| `_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md` | Multi-Sonnet workcell protocol: worker bundles, Rick Prime supercharge, C-137 integration, and commit authorization. |
 | `_SYSTEM/Scripts/yuri-autonomy-runner.mjs` | Dry-run-first autonomy runner that emits baseline-anchored run manifests and optional Kagami events. |
 | `_SYSTEM/config/schemas/yuri.autonomy-run.v0.schema.json` | Canonical schema reference for autonomy run manifests. |
 | `_SYSTEM/research-archive/yuri-math-engine-2026-05/00_manifest.md` | Mathematical operating substrate research intake and governance boundary. |
@@ -142,6 +143,8 @@ Math work routes through the `mathematics` context packet. Use `_SYSTEM/research
 ## Governed Autonomy
 
 Autonomy work routes through the `autonomy` context packet. Start with `_SYSTEM/Scripts/yuri-autonomy-runner.mjs plan --goal "<goal>"` to produce a dry-run manifest before any mutation. L1/L2 runs may collect evidence and propose research or memory work. L3 and above require explicit operator approval, an operator signature slot, rollback readiness, protected-path checks, and local verification before source mutation can be trusted.
+
+Multi-Sonnet implementation work routes through `_SYSTEM/docs/YURI_SONNET_WORKCELL_PROTOCOL_2026-05-26.md`. Sonnet workers produce typed bundles; Codex/main integrates and verifies; Rick Prime supercharges the integrated diff; Marcel authorizes commits.
 
 ## Current Cleanup North Star
 
