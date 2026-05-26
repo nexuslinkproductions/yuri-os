@@ -90,6 +90,8 @@ Worker output goes to a dedicated runtime pool, not directly into source:
 _SYSTEM/state/workcell/<runId>/<role>/
   packet.json
   output.json
+  captures/
+    <captureId>.md
   patch.diff
   test-output.txt
   notes.md
@@ -105,6 +107,20 @@ This pool is a safety gate. It lets workers dump real produced material without 
 - Prime supercharge findings are resolved or explicitly held.
 
 The runtime pool is ignored source-wise. It becomes normal operating material only after `yuri-workcell.mjs` creates it, validates it, and registers the runtime path in the artifact/folder architecture.
+
+Live pane intake uses:
+
+```bash
+node _SYSTEM/Scripts/yuri-workcell-capture.mjs \
+  --run-id "<run-id>" \
+  --role supercharger \
+  --tmux-target "%3" \
+  --worker rick-prime \
+  --model claude-opus \
+  --lines 8000
+```
+
+This preserves Prime or worker output as `output.json` plus a raw capture under `captures/`. C-137 consumes those artifacts during integration instead of copy-pasting terminal scrollback into source.
 
 ## Symbiotic Memory
 
@@ -391,6 +407,7 @@ Expected artifacts:
 - `_SYSTEM/Scripts/yuri-workcell.mjs`
 - `_SYSTEM/Scripts/yuri-workcell.test.mjs`
 - `_SYSTEM/state/workcell/<runId>/<role>/` runtime contract
+- `_SYSTEM/Scripts/yuri-workcell-capture.mjs`
 - artifact/context/index registry updates
 
 ### Task 2: Token Budget Gate

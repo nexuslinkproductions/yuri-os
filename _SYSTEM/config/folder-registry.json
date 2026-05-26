@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-05-25",
+  "updated": "2026-05-26",
   "purpose": "Machine-readable YURI OS folder classification map. This is navigation metadata, not a cleanup permission slip.",
   "rules": {
     "readByDefault": "Only canonical anchors and selected control-plane docs are read by default.",
@@ -37,6 +37,15 @@
       "protected": false,
       "status": "active",
       "notes": "Operational control plane. Prefer _SYSTEM/INDEX.md before browsing broad subtrees."
+    },
+    {
+      "path": "_SYSTEM/state/workcell",
+      "class": "runtime_cache",
+      "owner": "YURI workcell",
+      "readByDefault": false,
+      "protected": false,
+      "status": "active_runtime",
+      "notes": "Runtime output pool for workcell packets, pane captures, integration artifacts, Prime findings, and verdicts. Ignored by git; promote only verified durable summaries."
     },
     {
       "path": "_SYSTEM/context",

@@ -126,6 +126,8 @@ _SYSTEM/state/claude-opus-design-edit-prompt-*.md
 _SYSTEM/state/worker-last-*.txt
 _SYSTEM/state/worker-queues.json
 _SYSTEM/state/worker-captures/
+_SYSTEM/state/workcell/*
+!_SYSTEM/state/workcell/.gitkeep
 _SYSTEM/training/state/
 _SYSTEM/.claude/
 .amp/

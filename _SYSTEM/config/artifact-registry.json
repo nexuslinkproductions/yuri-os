@@ -386,6 +386,42 @@
       "notes": "Tests dry-run manifests, approval blocking, protected-path acknowledgement, redacted events, and protected event-root refusal."
     },
     {
+      "path": "_SYSTEM/Scripts/yuri-workcell-capture.mjs",
+      "type": "script",
+      "class": "system_control_plane",
+      "owner": "YURI workcell",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime scripts live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-workcell-capture.test.mjs.",
+      "notes": "Captures live worker or Prime tmux pane output into the YURI workcell runtime pool as structured output artifacts."
+    },
+    {
+      "path": "_SYSTEM/Scripts/yuri-workcell-capture.test.mjs",
+      "type": "test",
+      "class": "system_control_plane",
+      "owner": "YURI workcell",
+      "status": "active",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Runtime script tests live in _SYSTEM/Scripts/.",
+      "rebuildRule": "Run node --test _SYSTEM/Scripts/yuri-workcell-capture.test.mjs.",
+      "notes": "Tests workcell capture artifact path safety, output metadata, raw capture preservation, and protected input refusal."
+    },
+    {
+      "path": "_SYSTEM/state/workcell/",
+      "type": "runtime_state",
+      "class": "runtime_cache",
+      "owner": "YURI workcell",
+      "status": "active_runtime",
+      "readByDefault": false,
+      "protected": false,
+      "storageRule": "Workcell run artifacts live in _SYSTEM/state/workcell/<runId>/<role>/ and remain ignored runtime state unless a verified summary is promoted.",
+      "rebuildRule": "Regenerated per workcell run by _SYSTEM/Scripts/yuri-workcell-capture.mjs and future yuri-workcell orchestration.",
+      "notes": "Runtime output pool for worker packets, pane captures, Prime findings, integration artifacts, and verdicts."
+    },
+    {
       "path": "_SYSTEM/Scripts/context-router.mjs",
       "type": "script",
       "class": "system_control_plane",
